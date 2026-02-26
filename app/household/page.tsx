@@ -109,9 +109,14 @@ export default async function HouseholdPage({
               {householdName ?? "Unnamed household"}
             </p>
             <div className="mt-5">
-              <Button asChild>
-                <a href="/dashboard">Go to Dashboard</a>
-              </Button>
+              <div className="flex flex-wrap gap-2">
+                <Button asChild>
+                  <a href="/dashboard">Go to Dashboard</a>
+                </Button>
+                <Button asChild variant="outline" className="text-black">
+                  <a href="/settings">Open Settings</a>
+                </Button>
+              </div>
             </div>
           </article>
         )}
