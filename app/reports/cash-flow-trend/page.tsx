@@ -1,6 +1,7 @@
 import { AppHeader } from "@/components/layout/app-header";
 import { AppShell } from "@/components/layout/app-shell";
 import { BottomTabBar } from "@/components/layout/bottom-tab-bar";
+import { getDashboardTrend } from "@/lib/dashboard/trend";
 import { formatVndCompact } from "@/lib/dashboard/format";
 import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
 import { createClient } from "@/lib/supabase/server";
@@ -15,12 +16,10 @@ export default async function CashFlowTrendPage() {
   const { householdId } = await getAuthenticatedHouseholdContext();
   const supabase = await createClient();
 
-  const trendResult = await supabase.rpc("rpc_dashboard_monthly_trend", {
-    p_household_id: householdId,
-    p_months: 12,
+  const trend = await getDashboardTrend(supabase, householdId, {
+    months: 12,
+    asOfDate: new Date().toISOString().slice(0, 10),
   });
-
-  const trend = (trendResult.data ?? []).slice().reverse();
   const latest = trend.at(-1);
 
   return (
@@ -35,11 +34,7 @@ export default async function CashFlowTrendPage() {
         </article>
 
         <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          {trendResult.error ? (
-            <p className="text-sm text-rose-600">{trendResult.error.message}</p>
-          ) : (
-            <CashFlowTrendChart points={trend} />
-          )}
+          <CashFlowTrendChart points={trend} />
         </article>
       </div>
     </AppShell>

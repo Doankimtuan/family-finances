@@ -68,7 +68,32 @@ export function detectGoalRisk(input: {
 export function detectDebtAlert(input: {
   debtServiceRatio: number | null;
   nextPaymentIncreaseAmount: number | null;
+  hasActiveDebt: boolean;
+  monthlyIncome: number;
+  monthlyExpense: number;
 }) {
+  if (input.hasActiveDebt && input.monthlyIncome <= 0 && input.monthlyExpense > 0) {
+    return {
+      insightType: "debt_alert" as const,
+      severity: "critical" as const,
+      title: "Debt pressure with no income this month",
+      body: "Debt is active but monthly income is zero while expenses continue. Stabilize income or reduce obligations immediately.",
+      actionLabel: "Open Debts",
+      actionTarget: "/debts",
+    };
+  }
+
+  if (input.hasActiveDebt && input.debtServiceRatio === null) {
+    return {
+      insightType: "debt_alert" as const,
+      severity: "warning" as const,
+      title: "Debt ratio cannot be computed",
+      body: "Debt service ratio is unavailable because income for this period is zero. Review debt affordability manually this month.",
+      actionLabel: "Open Debts",
+      actionTarget: "/debts",
+    };
+  }
+
   if ((input.debtServiceRatio ?? 0) <= 0.35 && (input.nextPaymentIncreaseAmount ?? 0) <= 0) return null;
 
   if ((input.nextPaymentIncreaseAmount ?? 0) > 0) {

@@ -154,6 +154,7 @@ export async function addTransactionDetailedAction(
   const type = String(formData.get("type") ?? "expense").trim();
   const amount = Number(formData.get("amount") ?? 0);
   const categoryIdRaw = String(formData.get("categoryId") ?? "").trim();
+  const counterpartyAccountIdRaw = String(formData.get("counterpartyAccountId") ?? "").trim();
   const transactionDate = String(formData.get("transactionDate") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
 
@@ -161,12 +162,15 @@ export async function addTransactionDetailedAction(
   if (!(type === "income" || type === "expense" || type === "transfer")) return fail("Invalid transaction type.");
   if (!Number.isFinite(amount) || amount <= 0) return fail("Amount must be greater than zero.");
   if (!transactionDate) return fail("Transaction date is required.");
+  if (type === "transfer" && !counterpartyAccountIdRaw) return fail("Destination account is required for transfer.");
+  if (type === "transfer" && counterpartyAccountIdRaw === accountId) return fail("Transfer requires two different accounts.");
 
   const { supabase, user, householdId, error } = await resolveContext();
   if (error || !user || !householdId) return fail(error ?? "No household found.");
 
   const amountRounded = Math.round(amount);
-  const categoryId = categoryIdRaw.length > 0 ? categoryIdRaw : null;
+  const categoryId = type === "transfer" ? null : categoryIdRaw.length > 0 ? categoryIdRaw : null;
+  const counterpartyAccountId = type === "transfer" ? counterpartyAccountIdRaw : null;
   const insert = await supabase
     .from("transactions")
     .insert({
@@ -178,6 +182,7 @@ export async function addTransactionDetailedAction(
       transaction_date: transactionDate,
       description: description.length > 0 ? description : null,
       category_id: categoryId,
+      counterparty_account_id: counterpartyAccountId,
       paid_by_member_id: user.id,
       status: "cleared",
       created_by: user.id,
@@ -193,7 +198,15 @@ export async function addTransactionDetailedAction(
     eventType: "transaction.created",
     entityType: "transaction",
     entityId: insert.data.id,
-    payload: { type, amount: amountRounded, accountId, categoryId, transactionDate, source: "detailed_add" },
+    payload: {
+      type,
+      amount: amountRounded,
+      accountId,
+      counterpartyAccountId,
+      categoryId,
+      transactionDate,
+      source: "detailed_add",
+    },
   });
 
   revalidatePath("/transactions");

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { getDashboardTrend } from "@/lib/dashboard/trend";
 import type { DashboardCoreMetrics, DashboardCoreResponse, DashboardTrendPoint } from "@/lib/dashboard/types";
 import { calculateAndPersistHealthSnapshot } from "@/lib/health/service";
 import { createClient } from "@/lib/supabase/server";
@@ -68,15 +69,13 @@ export async function GET(request: Request) {
     const householdId = householdResult.data.household_id;
     const { startISO, endISO } = monthRange(asOfDate);
 
-    const [coreResult, trendResult, healthResult, accountsResult, assetsResult, pricesResult, liabilitiesResult, txMonthResult, categoriesResult] = await Promise.all([
+    const requestedMonths = Number.isFinite(months) ? Math.max(1, Math.round(months)) : 6;
+    const [coreResult, trend, healthResult, accountsResult, assetsResult, pricesResult, liabilitiesResult, txBalanceResult, txMonthResult, categoriesResult] = await Promise.all([
       supabase.rpc("rpc_dashboard_core", {
         p_household_id: householdId,
         p_as_of_date: asOfDate,
       }),
-      supabase.rpc("rpc_dashboard_monthly_trend", {
-        p_household_id: householdId,
-        p_months: Number.isFinite(months) ? Math.max(1, months) : 6,
-      }),
+      getDashboardTrend(supabase, householdId, { months: requestedMonths, asOfDate }),
       calculateAndPersistHealthSnapshot(supabase, householdId, asOfDate).catch(() => null),
       supabase
         .from("accounts")
@@ -103,6 +102,11 @@ export async function GET(request: Request) {
         .eq("include_in_net_worth", true),
       supabase
         .from("transactions")
+        .select("account_id, type, amount")
+        .eq("household_id", householdId)
+        .lte("transaction_date", asOfDate),
+      supabase
+        .from("transactions")
         .select("account_id, category_id, type, amount")
         .eq("household_id", householdId)
         .gte("transaction_date", startISO)
@@ -121,15 +125,7 @@ export async function GET(request: Request) {
       );
     }
 
-    if (trendResult.error) {
-      const trendErr = trendResult.error as RpcError;
-      return NextResponse.json(
-        { error: `rpc_dashboard_monthly_trend failed: ${trendErr.message}` },
-        { status: 500 },
-      );
-    }
-
-    if (accountsResult.error || assetsResult.error || pricesResult.error || liabilitiesResult.error || txMonthResult.error || categoriesResult.error) {
+    if (accountsResult.error || assetsResult.error || pricesResult.error || liabilitiesResult.error || txBalanceResult.error || txMonthResult.error || categoriesResult.error) {
       return NextResponse.json(
         {
           error:
@@ -137,6 +133,7 @@ export async function GET(request: Request) {
             assetsResult.error?.message ??
             pricesResult.error?.message ??
             liabilitiesResult.error?.message ??
+            txBalanceResult.error?.message ??
             txMonthResult.error?.message ??
             categoriesResult.error?.message ??
             "Failed to build dashboard drill-downs.",
@@ -145,9 +142,10 @@ export async function GET(request: Request) {
       );
     }
 
-    const transactions = txMonthResult.data ?? [];
+    const monthTransactions = txMonthResult.data ?? [];
+    const balanceTransactions = txBalanceResult.data ?? [];
     const accountDeltaMap = new Map<string, number>();
-    for (const tx of transactions) {
+    for (const tx of balanceTransactions) {
       const current = accountDeltaMap.get(tx.account_id) ?? 0;
       const delta = tx.type === "income" ? Number(tx.amount) : tx.type === "expense" ? -Number(tx.amount) : 0;
       accountDeltaMap.set(tx.account_id, current + delta);
@@ -164,7 +162,7 @@ export async function GET(request: Request) {
       ...(accountsResult.data ?? []).map((a) => ({
         label: a.name,
         value: Number(a.opening_balance) + (accountDeltaMap.get(a.id) ?? 0),
-        source: `accounts:${a.id}+transactions(${startISO}..${endISO})`,
+        source: `accounts:${a.id}+transactions(<=${asOfDate})`,
       })),
       ...(assetsResult.data ?? []).map((a) => ({
         label: a.name,
@@ -181,7 +179,7 @@ export async function GET(request: Request) {
 
     const incomeMap = new Map<string, number>();
     const expenseMap = new Map<string, number>();
-    for (const tx of transactions) {
+    for (const tx of monthTransactions) {
       if (!tx.category_id) continue;
       if (tx.type === "income") {
         incomeMap.set(tx.category_id, (incomeMap.get(tx.category_id) ?? 0) + Number(tx.amount));
@@ -204,7 +202,7 @@ export async function GET(request: Request) {
 
     const payload: DashboardCoreResponse = {
       metrics: ((coreResult.data as DashboardCoreMetrics[] | null) ?? [])[0] ?? null,
-      trend: ((trendResult.data as DashboardTrendPoint[] | null) ?? []).slice().reverse(),
+      trend: (trend as DashboardTrendPoint[]).slice(),
       health: healthResult,
       drilldowns: {
         netWorth: {

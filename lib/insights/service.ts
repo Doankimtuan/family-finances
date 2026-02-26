@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { getDashboardTrend } from "@/lib/dashboard/trend";
 import {
   buildInsights,
   detectDebtAlert,
@@ -12,16 +13,10 @@ import {
 
 type CoreRow = {
   net_worth: number;
+  monthly_income: number;
   monthly_expense: number;
   emergency_months: number | null;
   debt_service_ratio: number | null;
-};
-
-type TrendRow = {
-  month: string;
-  net_worth: number;
-  expense: number;
-  emergency_months: number | null;
 };
 
 type GoalRow = { id: string; name: string; target_amount: number; target_date: string | null };
@@ -71,9 +66,8 @@ export async function calculateAndPersistInsights(
   householdId: string,
   asOfDate: string,
 ) {
-  const [coreResult, trendResult, goalsResult, liabilitiesResult] = await Promise.all([
+  const [coreResult, goalsResult, liabilitiesResult] = await Promise.all([
     supabase.rpc("rpc_dashboard_core", { p_household_id: householdId, p_as_of_date: asOfDate }),
-    supabase.rpc("rpc_dashboard_monthly_trend", { p_household_id: householdId, p_months: 6 }),
     supabase.from("goals").select("id, name, target_amount, target_date").eq("household_id", householdId).eq("status", "active"),
     supabase
       .from("liabilities")
@@ -83,16 +77,17 @@ export async function calculateAndPersistInsights(
   ]);
 
   if (coreResult.error) throw new Error(coreResult.error.message);
-  if (trendResult.error) throw new Error(trendResult.error.message);
   if (goalsResult.error) throw new Error(goalsResult.error.message);
   if (liabilitiesResult.error) throw new Error(liabilitiesResult.error.message);
 
   const core = ((coreResult.data ?? []) as CoreRow[])[0] ?? null;
   if (!core) throw new Error("Missing core metrics for insights.");
 
-  const trend = (trendResult.data ?? []) as TrendRow[];
+  const trend = await getDashboardTrend(supabase, householdId, { months: 6, asOfDate });
   const prev = trend.length >= 2 ? trend[trend.length - 2] : null;
-  const priorExpenses = trend.slice(Math.max(0, trend.length - 4), Math.max(0, trend.length - 1)).map((t) => Number(t.expense));
+  const priorExpenses = trend
+    .slice(Math.max(0, trend.length - 4), Math.max(0, trend.length - 1))
+    .map((t) => Number(t.expense));
   const avgPriorExpense = priorExpenses.length
     ? priorExpenses.reduce((sum, value) => sum + value, 0) / priorExpenses.length
     : 0;
@@ -150,6 +145,9 @@ export async function calculateAndPersistInsights(
     detectDebtAlert({
       debtServiceRatio: core.debt_service_ratio,
       nextPaymentIncreaseAmount: paymentIncrease,
+      hasActiveDebt: ((liabilitiesResult.data ?? []) as LiabilityRow[]).length > 0,
+      monthlyIncome: Number(core.monthly_income),
+      monthlyExpense: Number(core.monthly_expense),
     }),
     detectSavingsMilestone({
       emergencyMonths: core.emergency_months,

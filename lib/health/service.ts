@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { getDashboardTrend } from "@/lib/dashboard/trend";
 import { computeFinancialHealth } from "@/lib/health/engine";
 
 type DashboardCoreRow = {
@@ -10,8 +11,6 @@ type DashboardCoreRow = {
   emergency_months: number | null;
   debt_service_ratio: number | null;
 };
-
-type TrendRow = { net_worth: number };
 
 type GoalRow = {
   id: string;
@@ -50,9 +49,8 @@ export async function calculateAndPersistHealthSnapshot(
   householdId: string,
   asOfDate: string,
 ) {
-  const [coreResult, trendResult, goalsResult, assetsResult] = await Promise.all([
+  const [coreResult, goalsResult, assetsResult] = await Promise.all([
     supabase.rpc("rpc_dashboard_core", { p_household_id: householdId, p_as_of_date: asOfDate }),
-    supabase.rpc("rpc_dashboard_monthly_trend", { p_household_id: householdId, p_months: 6 }),
     supabase
       .from("goals")
       .select("id, target_amount, target_date")
@@ -67,7 +65,6 @@ export async function calculateAndPersistHealthSnapshot(
   ]);
 
   if (coreResult.error) throw new Error(coreResult.error.message);
-  if (trendResult.error) throw new Error(trendResult.error.message);
   if (goalsResult.error) throw new Error(goalsResult.error.message);
   if (assetsResult.error) throw new Error(assetsResult.error.message);
 
@@ -76,7 +73,8 @@ export async function calculateAndPersistHealthSnapshot(
     throw new Error("Missing dashboard core metrics for health calculation.");
   }
 
-  const trend = ((trendResult.data ?? []) as TrendRow[]).map((row) => Number(row.net_worth));
+  const trendPoints = await getDashboardTrend(supabase, householdId, { months: 6, asOfDate });
+  const trend = trendPoints.map((row) => Number(row.net_worth));
   const goals = (goalsResult.data ?? []) as GoalRow[];
 
   const goalIds = goals.map((goal) => goal.id);

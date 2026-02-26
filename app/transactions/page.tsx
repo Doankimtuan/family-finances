@@ -32,7 +32,7 @@ export default async function TransactionsPage() {
       .order("sort_order", { ascending: true }),
     supabase
       .from("transactions")
-      .select("id, type, amount, transaction_date, description, category_id, account_id, paid_by_member_id")
+      .select("id, type, amount, transaction_date, description, category_id, account_id, counterparty_account_id, paid_by_member_id")
       .eq("household_id", householdId)
       .order("transaction_date", { ascending: false })
       .order("created_at", { ascending: false })
@@ -58,6 +58,7 @@ export default async function TransactionsPage() {
     description: tx.description,
     category_name: tx.category_id ? categoryMap.get(tx.category_id) ?? null : null,
     account_name: tx.account_id ? accountMap.get(tx.account_id) ?? null : null,
+    counterparty_account_name: tx.counterparty_account_id ? accountMap.get(tx.counterparty_account_id) ?? null : null,
     member_name: tx.paid_by_member_id ? profileMap.get(tx.paid_by_member_id) ?? null : null,
   }));
 

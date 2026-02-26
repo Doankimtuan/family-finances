@@ -116,16 +116,27 @@ function ScenarioComparisonCard({
 }: {
   savedScenarios: SavedScenario[];
 }) {
-  const comparable = savedScenarios.filter(
+  const comparableWithSeries = savedScenarios.filter(
     (s) => Array.isArray(s.timeseries_json) && s.timeseries_json.length > 0,
   );
-  const [leftId, setLeftId] = useState(comparable[0]?.id ?? "");
-  const [rightId, setRightId] = useState(
-    comparable[1]?.id ?? comparable[0]?.id ?? "",
+  const scenarioTypeCounts = comparableWithSeries.reduce(
+    (acc, row) => {
+      acc.set(row.scenario_type, (acc.get(row.scenario_type) ?? 0) + 1);
+      return acc;
+    },
+    new Map<string, number>(),
+  );
+  const comparable = comparableWithSeries.filter(
+    (row) => (scenarioTypeCounts.get(row.scenario_type) ?? 0) >= 2,
   );
 
-  const left = comparable.find((s) => s.id === leftId) ?? null;
-  const right = comparable.find((s) => s.id === rightId) ?? null;
+  const [leftId, setLeftId] = useState("");
+  const [rightId, setRightId] = useState("");
+  const left = comparable.find((s) => s.id === leftId) ?? comparable[0] ?? null;
+  const rightCandidates = left
+    ? comparable.filter((s) => s.scenario_type === left.scenario_type && s.id !== left.id)
+    : [];
+  const right = rightCandidates.find((s) => s.id === rightId) ?? rightCandidates[0] ?? null;
 
   const chartData = buildComparisonSeries(left, right);
 
@@ -136,8 +147,8 @@ function ScenarioComparisonCard({
           Scenario Comparison
         </h2>
         <p className="mt-2 text-sm text-slate-500">
-          Save at least two scenarios with computed results to compare
-          side-by-side.
+          Save at least two scenarios of the same type with computed results
+          to compare side-by-side.
         </p>
       </article>
     );
@@ -159,7 +170,7 @@ function ScenarioComparisonCard({
             Scenario A
           </span>
           <select
-            value={leftId}
+            value={left?.id ?? ""}
             onChange={(e) => setLeftId(e.target.value)}
             className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900"
           >
@@ -175,11 +186,11 @@ function ScenarioComparisonCard({
             Scenario B
           </span>
           <select
-            value={rightId}
+            value={right?.id ?? ""}
             onChange={(e) => setRightId(e.target.value)}
             className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900"
           >
-            {comparable.map((s) => (
+            {rightCandidates.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.name}
               </option>
@@ -318,6 +329,7 @@ function buildComparisonSeries(
   right: SavedScenario | null,
 ) {
   if (!left || !right) return [];
+  if (left.scenario_type !== right.scenario_type) return [];
 
   const leftSeries = (left.timeseries_json ?? []) as Array<
     Record<string, unknown>
@@ -1286,10 +1298,13 @@ function calcGoalModelingScenario(input: {
 
   const projectedValue = Math.round(value);
   const onTrack = projectedValue >= input.targetAmount;
-  const remaining = Math.max(0, input.targetAmount - input.currentAmount);
-  const requiredMonthly = Math.ceil(
-    (remaining * monthlyRate) / (Math.pow(1 + monthlyRate, months) - 1 || 1),
-  );
+  const growthFactor = Math.pow(1 + monthlyRate, months);
+  const targetGapAtHorizon = input.targetAmount - input.currentAmount * growthFactor;
+  const requiredMonthly = targetGapAtHorizon <= 0
+    ? 0
+    : monthlyRate <= 0
+      ? Math.ceil(targetGapAtHorizon / months)
+      : Math.ceil((targetGapAtHorizon * monthlyRate) / (growthFactor - 1));
 
   let etaValue = input.currentAmount;
   let etaMonths = 0;

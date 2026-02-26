@@ -20,7 +20,7 @@ export function DetailedTransactionForm({ accounts, categories }: DetailedTransa
     initialTransactionActionState,
   );
   const [isPending, startTransition] = useTransition();
-  const [type, setType] = useState<"income" | "expense">("expense");
+  const [type, setType] = useState<"income" | "expense" | "transfer">("expense");
 
   const filteredCategories = useMemo(
     () => categories.filter((category) => category.kind === type),
@@ -40,12 +40,15 @@ export function DetailedTransactionForm({ accounts, categories }: DetailedTransa
     >
       <input type="hidden" name="type" value={type} />
 
-      <div className="grid grid-cols-2 gap-2 rounded-xl bg-slate-100 p-1">
+      <div className="grid grid-cols-3 gap-2 rounded-xl bg-slate-100 p-1">
         <button type="button" onClick={() => setType("expense")} className={`rounded-lg px-3 py-2 text-sm font-semibold ${type === "expense" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600"}`}>
           Expense
         </button>
         <button type="button" onClick={() => setType("income")} className={`rounded-lg px-3 py-2 text-sm font-semibold ${type === "income" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600"}`}>
           Income
+        </button>
+        <button type="button" onClick={() => setType("transfer")} className={`rounded-lg px-3 py-2 text-sm font-semibold ${type === "transfer" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600"}`}>
+          Transfer
         </button>
       </div>
 
@@ -55,7 +58,9 @@ export function DetailedTransactionForm({ accounts, categories }: DetailedTransa
       </div>
 
       <div className="space-y-1">
-        <label htmlFor="accountId" className="text-sm font-medium text-slate-700">Account</label>
+        <label htmlFor="accountId" className="text-sm font-medium text-slate-700">
+          {type === "transfer" ? "From Account" : "Account"}
+        </label>
         <select id="accountId" name="accountId" className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-base text-slate-900">
           {accounts.map((account) => (
             <option key={account.id} value={account.id}>{account.name}</option>
@@ -63,15 +68,27 @@ export function DetailedTransactionForm({ accounts, categories }: DetailedTransa
         </select>
       </div>
 
-      <div className="space-y-1">
-        <label htmlFor="categoryId" className="text-sm font-medium text-slate-700">Category</label>
-        <select id="categoryId" name="categoryId" className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-base text-slate-900">
-          <option value="">No category</option>
-          {filteredCategories.map((category) => (
-            <option key={category.id} value={category.id}>{category.name}</option>
-          ))}
-        </select>
-      </div>
+      {type === "transfer" ? (
+        <div className="space-y-1">
+          <label htmlFor="counterpartyAccountId" className="text-sm font-medium text-slate-700">To Account</label>
+          <select id="counterpartyAccountId" name="counterpartyAccountId" className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-base text-slate-900">
+            <option value="">Select destination account</option>
+            {accounts.map((account) => (
+              <option key={account.id} value={account.id}>{account.name}</option>
+            ))}
+          </select>
+        </div>
+      ) : (
+        <div className="space-y-1">
+          <label htmlFor="categoryId" className="text-sm font-medium text-slate-700">Category</label>
+          <select id="categoryId" name="categoryId" className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-base text-slate-900">
+            <option value="">No category</option>
+            {filteredCategories.map((category) => (
+              <option key={category.id} value={category.id}>{category.name}</option>
+            ))}
+          </select>
+        </div>
+      )}
 
       <div className="space-y-1">
         <label htmlFor="transactionDate" className="text-sm font-medium text-slate-700">Date</label>
