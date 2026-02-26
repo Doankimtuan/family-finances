@@ -20,7 +20,10 @@ import {
   formatVnd,
   formatVndCompact,
 } from "@/lib/dashboard/format";
-import type { DashboardCoreResponse, DashboardTrendPoint } from "@/lib/dashboard/types";
+import type {
+  DashboardCoreResponse,
+  DashboardTrendPoint,
+} from "@/lib/dashboard/types";
 import { cn } from "@/lib/utils";
 
 type FetchState = "idle" | "loading" | "success" | "error";
@@ -38,8 +41,12 @@ function MetricCard({
 }) {
   const content = (
     <>
-      <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-500">{label}</p>
-      <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">{value}</p>
+      <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-500">
+        {label}
+      </p>
+      <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">
+        {value}
+      </p>
       {note ? <p className="mt-1 text-xs text-slate-500">{note}</p> : null}
     </>
   );
@@ -82,12 +89,18 @@ function NetWorthTrend({ trend }: { trend: DashboardTrendPoint[] }) {
     <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="mb-3 flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-500">Net Worth Direction</p>
+          <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-500">
+            Net Worth Direction
+          </p>
           <p className="mt-1 text-sm text-slate-700">
-            {delta >= 0 ? "Trend is moving upward. Keep current plan." : "Trend dipped. Inspect spending and liabilities this month."}
+            {delta >= 0
+              ? "Trend is moving upward. Keep current plan."
+              : "Trend dipped. Inspect spending and liabilities this month."}
           </p>
         </div>
-        <p className={`text-sm font-semibold ${delta >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+        <p
+          className={`text-sm font-semibold ${delta >= 0 ? "text-emerald-600" : "text-rose-600"}`}
+        >
           {delta >= 0 ? "+" : ""}
           {formatVndCompact(delta)}
         </p>
@@ -95,15 +108,27 @@ function NetWorthTrend({ trend }: { trend: DashboardTrendPoint[] }) {
 
       <div className="h-52 w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={chartData} margin={{ top: 10, right: 4, bottom: 0, left: 4 }}>
+          <AreaChart
+            data={chartData}
+            margin={{ top: 10, right: 4, bottom: 0, left: 4 }}
+          >
             <defs>
               <linearGradient id="netWorthGradient" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="#0D9488" stopOpacity={0.35} />
                 <stop offset="100%" stopColor="#0D9488" stopOpacity={0.02} />
               </linearGradient>
             </defs>
-            <CartesianGrid vertical={false} stroke="#E2E8F0" strokeDasharray="3 3" />
-            <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#64748B" }} tickLine={false} axisLine={false} />
+            <CartesianGrid
+              vertical={false}
+              stroke="#E2E8F0"
+              strokeDasharray="3 3"
+            />
+            <XAxis
+              dataKey="month"
+              tick={{ fontSize: 11, fill: "#64748B" }}
+              tickLine={false}
+              axisLine={false}
+            />
             <YAxis
               tick={{ fontSize: 11, fill: "#64748B" }}
               tickLine={false}
@@ -112,10 +137,19 @@ function NetWorthTrend({ trend }: { trend: DashboardTrendPoint[] }) {
               tickFormatter={(value: number) => formatVndCompact(value)}
             />
             <Tooltip
-              formatter={(value) => [formatVnd(Number(value ?? 0)), "Net worth"]}
+              formatter={(value) => [
+                formatVnd(Number(value ?? 0)),
+                "Net worth",
+              ]}
               contentStyle={{ borderRadius: 12, borderColor: "#CBD5E1" }}
             />
-            <Area type="monotone" dataKey="netWorth" stroke="#0F766E" fill="url(#netWorthGradient)" strokeWidth={2.5} />
+            <Area
+              type="monotone"
+              dataKey="netWorth"
+              stroke="#0F766E"
+              fill="url(#netWorthGradient)"
+              strokeWidth={2.5}
+            />
           </AreaChart>
         </ResponsiveContainer>
       </div>
@@ -144,8 +178,12 @@ export function DashboardCorePanel() {
       });
 
       if (!response.ok) {
-        const errorBody = (await response.json().catch(() => null)) as { error?: string } | null;
-        throw new Error(errorBody?.error ?? `Request failed with status ${response.status}`);
+        const errorBody = (await response.json().catch(() => null)) as {
+          error?: string;
+        } | null;
+        throw new Error(
+          errorBody?.error ?? `Request failed with status ${response.status}`,
+        );
       }
 
       const data = (await response.json()) as DashboardCoreResponse;
@@ -156,7 +194,11 @@ export function DashboardCorePanel() {
         return;
       }
 
-      setErrorMessage(error instanceof Error ? error.message : "Failed to load dashboard data.");
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Failed to load dashboard data.",
+      );
       setState("error");
     }
 
@@ -189,10 +231,19 @@ export function DashboardCorePanel() {
 
   if (state === "error") {
     return (
-      <section className="rounded-2xl border border-rose-200 bg-white p-6 shadow-sm" role="alert">
-        <p className="text-sm font-semibold text-rose-700">Could not load dashboard data.</p>
+      <section
+        className="rounded-2xl border border-rose-200 bg-white p-6 shadow-sm"
+        role="alert"
+      >
+        <p className="text-sm font-semibold text-rose-700">
+          Could not load dashboard data.
+        </p>
         <p className="mt-1 text-sm text-slate-600">{errorMessage}</p>
-        <Button variant="destructive" onClick={() => void load()} className="mt-4">
+        <Button
+          variant="destructive"
+          onClick={() => void load()}
+          className="mt-4"
+        >
           Retry
         </Button>
       </section>
@@ -202,9 +253,12 @@ export function DashboardCorePanel() {
   if (!payload || !payload.metrics) {
     return (
       <section className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center shadow-sm">
-        <p className="text-base font-semibold text-slate-800">Your first clarity snapshot is waiting</p>
+        <p className="text-base font-semibold text-slate-800">
+          Your first clarity snapshot is waiting
+        </p>
         <p className="mx-auto mt-2 max-w-sm text-sm text-slate-600">
-          Add one account, one expense, and one debt or asset to unlock a full household picture.
+          Add one account, one expense, and one debt or asset to unlock a full
+          household picture.
         </p>
         <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
           <Button asChild size="sm">
@@ -220,7 +274,9 @@ export function DashboardCorePanel() {
 
   const { metrics, trend } = payload;
   const score = payload.health?.overallScore ?? 0;
-  const action = payload.health?.topAction ?? "Build more data to generate a monthly top action.";
+  const action =
+    payload.health?.topAction ??
+    "Build more data to generate a monthly top action.";
 
   return (
     <section className="space-y-4">
@@ -248,38 +304,48 @@ export function DashboardCorePanel() {
       <NetWorthTrend trend={trend} />
 
       <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-500">Most Impactful Action This Month</p>
+        <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-500">
+          Most Impactful Action This Month
+        </p>
         <p className="mt-2 text-sm text-slate-700">{action}</p>
         {payload.health ? (
           <p className="mt-2 text-xs text-slate-500">
-            Factors: cashflow {Math.round(payload.health.factorScores.cashflow)}, emergency {Math.round(payload.health.factorScores.emergency)}, debt {Math.round(payload.health.factorScores.debt)}, goals {Math.round(payload.health.factorScores.goals)}
+            Factors: cashflow {Math.round(payload.health.factorScores.cashflow)}
+            , emergency {Math.round(payload.health.factorScores.emergency)},
+            debt {Math.round(payload.health.factorScores.debt)}, goals{" "}
+            {Math.round(payload.health.factorScores.goals)}
           </p>
         ) : null}
       </article>
 
       <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-500">Quick Actions</p>
+        <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-500">
+          Quick Actions
+        </p>
         <div className="mt-3 grid grid-cols-2 gap-2">
           <Button asChild className="w-full">
             <Link href="/transactions">Log Expense</Link>
           </Button>
-          <Button asChild variant="outline" className="w-full">
+          <Button asChild variant="outline" className="w-full text-black">
             <Link href="/accounts">Accounts</Link>
           </Button>
-          <Button asChild variant="outline" className="w-full">
+          <Button asChild variant="outline" className="w-full text-black">
             <Link href="/categories">Categories</Link>
           </Button>
-          <Button asChild variant="outline" className="w-full">
+          <Button asChild variant="outline" className="w-full text-black">
             <Link href="/budgets">Budgets</Link>
           </Button>
-          <Button asChild variant="outline" className="w-full">
+          <Button asChild variant="outline" className="w-full text-black">
             <Link href="/goals">Goals</Link>
           </Button>
-          <Button asChild variant="outline" className="w-full">
+          <Button asChild variant="outline" className="w-full text-black">
             <Link href="/health">Health Details</Link>
           </Button>
-          <Button asChild variant="outline" className="w-full">
+          <Button asChild variant="outline" className="w-full text-black">
             <Link href="/insights">Insights</Link>
+          </Button>
+          <Button asChild variant="outline" className="w-full text-black">
+            <Link href="/decision-tools">Decision Tools</Link>
           </Button>
         </div>
       </article>
