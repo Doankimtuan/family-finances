@@ -49,6 +49,10 @@ const tabs: Array<{ key: TabKey; label: string }> = [
   { key: "debt_vs_invest", label: "Debt vs Invest" },
 ];
 
+function safeNumber(value: number, fallback = 0) {
+  return Number.isFinite(value) ? value : fallback;
+}
+
 export function DecisionToolsClient({ savedScenarios }: Props) {
   const [activeTab, setActiveTab] = useState<TabKey>("loan");
 
@@ -828,6 +832,7 @@ function ScenarioCard({
   children: React.ReactNode;
 }) {
   const [name, setName] = useState(defaultName);
+  const canSave = name.trim().length >= 3;
   const [saveState, action] = useActionState<ScenarioActionState, FormData>(
     saveScenarioAction,
     initialScenarioActionState,
@@ -864,15 +869,23 @@ function ScenarioCard({
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
+          required
+          minLength={3}
+          aria-invalid={!canSave}
           className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
         />
         <button
           type="submit"
-          disabled={isPending}
+          disabled={isPending || !canSave}
           className="w-full rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
         >
           {isPending ? "Saving..." : "Save Scenario"}
         </button>
+        {!canSave ? (
+          <p className="text-xs text-amber-700">
+            Scenario name must be at least 3 characters.
+          </p>
+        ) : null}
         {saveState.status === "error" && saveState.message ? (
           <p className="text-xs text-rose-600">{saveState.message}</p>
         ) : null}
@@ -901,7 +914,8 @@ function NumericInput({
       <input
         type="number"
         value={value}
-        onChange={(e) => onChange(Number(e.target.value || 0))}
+        min={0}
+        onChange={(e) => onChange(Math.max(0, safeNumber(Number(e.target.value), value)))}
         className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900"
       />
       <p className="text-[11px] text-slate-500">{formatVndCompact(value)}</p>
@@ -928,7 +942,9 @@ function RateInput({
         step="0.001"
         min="0"
         value={value}
-        onChange={(e) => onChange(Number(e.target.value || 0))}
+        onChange={(e) =>
+          onChange(Math.max(0, Math.min(2, safeNumber(Number(e.target.value), value))))
+        }
         className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900"
       />
       <p className="text-[11px] text-slate-500">{formatPercent(value)}</p>
