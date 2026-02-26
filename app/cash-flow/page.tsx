@@ -1,4 +1,5 @@
 import { ArrowLeftRight } from "lucide-react";
+import Link from "next/link";
 
 import { IncomeExpensesForm } from "@/app/onboarding/_components/income-expenses-form";
 import { AppHeader } from "@/components/layout/app-header";
@@ -34,17 +35,18 @@ export default async function CashFlowPage() {
           <h2 className="text-lg font-semibold text-slate-900 mb-4">
             Cash Flow History
           </h2>
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <div className="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mb-4">
-              <ArrowLeftRight className="h-6 w-6 text-slate-400" />
+          <div className="space-y-3">
+            <p className="text-sm text-slate-600">
+              Open reporting pages for monthly trend and review insights.
+            </p>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <Link href="/reports/cash-flow-trend" className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700">
+                Cash-Flow Trend Report
+              </Link>
+              <Link href="/reports/monthly-review" className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700">
+                Monthly Review
+              </Link>
             </div>
-            <p className="text-sm font-medium text-slate-900">
-              No transactions recorded
-            </p>
-            <p className="max-w-[240px] text-xs text-slate-500 mt-1 italic">
-              Record your daily income and expenses in the Transactions module
-              (coming soon) to see your actual cash flow here.
-            </p>
           </div>
         </article>
       </div>

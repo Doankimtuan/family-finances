@@ -441,6 +441,9 @@ export function DashboardCorePanel() {
           <Button asChild variant="outline" className="w-full text-black">
             <Link href="/decision-tools">Decision Tools</Link>
           </Button>
+          <Button asChild variant="outline" className="w-full text-black">
+            <Link href="/reports">Reports</Link>
+          </Button>
         </div>
       </article>
     </section>
