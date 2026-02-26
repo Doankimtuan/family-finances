@@ -257,6 +257,26 @@ export function DashboardCorePanel() {
         />
       </div>
 
+      <article className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+        <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-500">
+          Quick Actions
+        </p>
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <Button asChild className="w-full">
+            <Link href="/transactions">Log Transaction</Link>
+          </Button>
+          <Button asChild variant="outline" className="w-full">
+            <Link href="/accounts">Manage Accounts</Link>
+          </Button>
+          <Button asChild variant="outline" className="w-full">
+            <Link href="/categories">Categories</Link>
+          </Button>
+          <Button asChild variant="outline" className="w-full">
+            <Link href="/budgets">Monthly Budgets</Link>
+          </Button>
+        </div>
+      </article>
+
       <TrendMiniBars trend={trend} />
     </section>
   );
