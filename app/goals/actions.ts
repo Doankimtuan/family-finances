@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { writeAuditEvent } from "@/lib/server/audit";
 import { createClient } from "@/lib/supabase/server";
 
 import type { GoalActionState } from "./action-types";
@@ -57,19 +58,33 @@ export async function createGoalAction(
   const { supabase, user, householdId, error } = await resolveContext();
   if (error || !householdId || !user) return fail(error ?? "No household found.");
 
-  const insert = await supabase.from("goals").insert({
-    household_id: householdId,
-    goal_type: goalType,
-    name,
-    target_amount: Math.round(targetAmount),
-    target_date: targetDate.length > 0 ? targetDate : null,
-    start_date: new Date().toISOString().slice(0, 10),
-    priority,
-    status: "active",
-    created_by: user.id,
-  });
+  const targetAmountRounded = Math.round(targetAmount);
+  const insert = await supabase
+    .from("goals")
+    .insert({
+      household_id: householdId,
+      goal_type: goalType,
+      name,
+      target_amount: targetAmountRounded,
+      target_date: targetDate.length > 0 ? targetDate : null,
+      start_date: new Date().toISOString().slice(0, 10),
+      priority,
+      status: "active",
+      created_by: user.id,
+    })
+    .select("id")
+    .single();
 
-  if (insert.error) return fail(insert.error.message);
+  if (insert.error || !insert.data?.id) return fail(insert.error?.message ?? "Failed to create goal.");
+
+  await writeAuditEvent(supabase, {
+    householdId,
+    actorUserId: user.id,
+    eventType: "goal.created",
+    entityType: "goal",
+    entityId: insert.data.id,
+    payload: { goalType, name, targetAmount: targetAmountRounded, targetDate: targetDate || null, priority },
+  });
 
   revalidatePath("/goals");
   revalidatePath("/dashboard");
@@ -92,16 +107,30 @@ export async function addGoalContributionAction(
   const { supabase, user, householdId, error } = await resolveContext();
   if (error || !householdId || !user) return fail(error ?? "No household found.");
 
-  const insert = await supabase.from("goal_contributions").insert({
-    goal_id: goalId,
-    household_id: householdId,
-    contribution_date: contributionDate,
-    amount: Math.round(amount),
-    member_id: user.id,
-    note: note.length > 0 ? note : null,
-  });
+  const amountRounded = Math.round(amount);
+  const insert = await supabase
+    .from("goal_contributions")
+    .insert({
+      goal_id: goalId,
+      household_id: householdId,
+      contribution_date: contributionDate,
+      amount: amountRounded,
+      member_id: user.id,
+      note: note.length > 0 ? note : null,
+    })
+    .select("id")
+    .single();
 
-  if (insert.error) return fail(insert.error.message);
+  if (insert.error || !insert.data?.id) return fail(insert.error?.message ?? "Failed to add contribution.");
+
+  await writeAuditEvent(supabase, {
+    householdId,
+    actorUserId: user.id,
+    eventType: "goal.contribution_added",
+    entityType: "goal_contribution",
+    entityId: insert.data.id,
+    payload: { goalId, amount: amountRounded, contributionDate },
+  });
 
   revalidatePath("/goals");
   revalidatePath("/dashboard");

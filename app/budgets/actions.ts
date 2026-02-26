@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { writeAuditEvent } from "@/lib/server/audit";
 import { createClient } from "@/lib/supabase/server";
 
 import type { BudgetActionState } from "./action-types";
@@ -74,6 +75,14 @@ export async function upsertMonthlyBudgetAction(
 
   if (upsert.error) return fail(upsert.error.message);
 
+  await writeAuditEvent(supabase, {
+    householdId,
+    actorUserId: user.id,
+    eventType: "budget.upserted",
+    entityType: "monthly_budget",
+    payload: { categoryId, month: monthDate, plannedAmount: Math.round(plannedAmount) },
+  });
+
   revalidatePath("/budgets");
   revalidatePath("/dashboard");
   return ok("Monthly budget saved.");
@@ -86,11 +95,19 @@ export async function deleteMonthlyBudgetAction(
   const budgetId = String(formData.get("budgetId") ?? "").trim();
   if (!budgetId) return fail("Missing budget id.");
 
-  const { supabase, error } = await resolveContext();
-  if (error) return fail(error);
+  const { supabase, user, householdId, error } = await resolveContext();
+  if (error || !user || !householdId) return fail(error ?? "No household found.");
 
   const del = await supabase.from("monthly_budgets").delete().eq("id", budgetId);
   if (del.error) return fail(del.error.message);
+
+  await writeAuditEvent(supabase, {
+    householdId,
+    actorUserId: user.id,
+    eventType: "budget.deleted",
+    entityType: "monthly_budget",
+    entityId: budgetId,
+  });
 
   revalidatePath("/budgets");
   revalidatePath("/dashboard");

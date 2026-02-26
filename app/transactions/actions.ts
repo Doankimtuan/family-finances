@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { writeAuditEvent } from "@/lib/server/audit";
 import { createClient } from "@/lib/supabase/server";
 
 import type { TransactionActionState } from "./action-types";
@@ -107,21 +108,37 @@ export async function quickAddTransactionAction(
 
   const categoryId = categoryIdRaw.length > 0 ? categoryIdRaw : await getDefaultCategoryId(supabase, householdId, type);
 
-  const insert = await supabase.from("transactions").insert({
-    household_id: householdId,
-    account_id: accountId,
-    type,
-    amount: Math.round(amount),
-    currency: "VND",
-    transaction_date: new Date().toISOString().slice(0, 10),
-    description: descriptionRaw.length > 0 ? descriptionRaw : type === "income" ? "Quick income" : "Quick expense",
-    category_id: categoryId,
-    paid_by_member_id: user.id,
-    status: "cleared",
-    created_by: user.id,
-  });
+  const amountRounded = Math.round(amount);
+  const transactionDate = new Date().toISOString().slice(0, 10);
+  const description = descriptionRaw.length > 0 ? descriptionRaw : type === "income" ? "Quick income" : "Quick expense";
+  const insert = await supabase
+    .from("transactions")
+    .insert({
+      household_id: householdId,
+      account_id: accountId,
+      type,
+      amount: amountRounded,
+      currency: "VND",
+      transaction_date: transactionDate,
+      description,
+      category_id: categoryId,
+      paid_by_member_id: user.id,
+      status: "cleared",
+      created_by: user.id,
+    })
+    .select("id")
+    .single();
 
-  if (insert.error) return fail(insert.error.message);
+  if (insert.error || !insert.data?.id) return fail(insert.error?.message ?? "Failed to add transaction.");
+
+  await writeAuditEvent(supabase, {
+    householdId,
+    actorUserId: user.id,
+    eventType: "transaction.created",
+    entityType: "transaction",
+    entityId: insert.data.id,
+    payload: { type, amount: amountRounded, accountId, categoryId, transactionDate, source: "quick_add" },
+  });
 
   revalidatePath("/transactions");
   revalidatePath("/dashboard");
@@ -148,21 +165,36 @@ export async function addTransactionDetailedAction(
   const { supabase, user, householdId, error } = await resolveContext();
   if (error || !user || !householdId) return fail(error ?? "No household found.");
 
-  const insert = await supabase.from("transactions").insert({
-    household_id: householdId,
-    account_id: accountId,
-    type,
-    amount: Math.round(amount),
-    currency: "VND",
-    transaction_date: transactionDate,
-    description: description.length > 0 ? description : null,
-    category_id: categoryIdRaw.length > 0 ? categoryIdRaw : null,
-    paid_by_member_id: user.id,
-    status: "cleared",
-    created_by: user.id,
-  });
+  const amountRounded = Math.round(amount);
+  const categoryId = categoryIdRaw.length > 0 ? categoryIdRaw : null;
+  const insert = await supabase
+    .from("transactions")
+    .insert({
+      household_id: householdId,
+      account_id: accountId,
+      type,
+      amount: amountRounded,
+      currency: "VND",
+      transaction_date: transactionDate,
+      description: description.length > 0 ? description : null,
+      category_id: categoryId,
+      paid_by_member_id: user.id,
+      status: "cleared",
+      created_by: user.id,
+    })
+    .select("id")
+    .single();
 
-  if (insert.error) return fail(insert.error.message);
+  if (insert.error || !insert.data?.id) return fail(insert.error?.message ?? "Failed to save transaction.");
+
+  await writeAuditEvent(supabase, {
+    householdId,
+    actorUserId: user.id,
+    eventType: "transaction.created",
+    entityType: "transaction",
+    entityId: insert.data.id,
+    payload: { type, amount: amountRounded, accountId, categoryId, transactionDate, source: "detailed_add" },
+  });
 
   revalidatePath("/transactions");
   revalidatePath("/dashboard");

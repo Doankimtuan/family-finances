@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { writeAuditEvent } from "@/lib/server/audit";
 import { createClient } from "@/lib/supabase/server";
 
 import type { CategoryActionState } from "./action-types";
@@ -53,16 +54,29 @@ export async function createCategoryAction(
   const { supabase, user, householdId, error } = await resolveContext();
   if (error || !user || !householdId) return fail(error ?? "No household found.");
 
-  const insert = await supabase.from("categories").insert({
-    household_id: householdId,
-    kind,
-    name,
-    is_system: false,
-    is_active: true,
-    sort_order: 1000,
-  });
+  const insert = await supabase
+    .from("categories")
+    .insert({
+      household_id: householdId,
+      kind,
+      name,
+      is_system: false,
+      is_active: true,
+      sort_order: 1000,
+    })
+    .select("id")
+    .single();
 
-  if (insert.error) return fail(insert.error.message);
+  if (insert.error || !insert.data?.id) return fail(insert.error?.message ?? "Failed to create category.");
+
+  await writeAuditEvent(supabase, {
+    householdId,
+    actorUserId: user.id,
+    eventType: "category.created",
+    entityType: "category",
+    entityId: insert.data.id,
+    payload: { kind, name },
+  });
 
   revalidatePath("/categories");
   revalidatePath("/transactions");
@@ -79,8 +93,8 @@ export async function setCategoryActiveAction(
 
   if (!categoryId) return fail("Missing category id.");
 
-  const { supabase, error } = await resolveContext();
-  if (error) return fail(error);
+  const { supabase, user, householdId, error } = await resolveContext();
+  if (error || !user || !householdId) return fail(error ?? "No household found.");
 
   const update = await supabase
     .from("categories")
@@ -89,6 +103,15 @@ export async function setCategoryActiveAction(
     .eq("is_system", false);
 
   if (update.error) return fail(update.error.message);
+
+  await writeAuditEvent(supabase, {
+    householdId,
+    actorUserId: user.id,
+    eventType: "category.status_changed",
+    entityType: "category",
+    entityId: categoryId,
+    payload: { isActive },
+  });
 
   revalidatePath("/categories");
   revalidatePath("/transactions");

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { writeAuditEvent } from "@/lib/server/audit";
 import { createClient } from "@/lib/supabase/server";
 
 import type { ScenarioActionState } from "./action-types";
@@ -101,6 +102,15 @@ export async function saveScenarioAction(
   });
 
   if (resultInsert.error) return fail(resultInsert.error.message);
+
+  await writeAuditEvent(supabase, {
+    householdId,
+    actorUserId: user.id,
+    eventType: "scenario.saved",
+    entityType: "scenario",
+    entityId: scenarioInsert.data.id,
+    payload: { scenarioType, name },
+  });
 
   revalidatePath("/decision-tools");
   return ok("Scenario saved.");

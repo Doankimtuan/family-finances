@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { writeAuditEvent } from "@/lib/server/audit";
 import { createClient } from "@/lib/supabase/server";
 
 import type { HouseholdActionState } from "./action-types";
@@ -60,6 +61,15 @@ export async function createHouseholdAction(
   if (createResult.error || !createResult.data) {
     return errorState(createResult.error?.message ?? "Failed to create household.");
   }
+
+  await writeAuditEvent(supabase, {
+    householdId: createResult.data,
+    actorUserId: user.id,
+    eventType: "household.created",
+    entityType: "household",
+    entityId: createResult.data,
+    payload: { name: householdName },
+  });
 
   revalidatePath("/dashboard");
   revalidatePath("/household");
@@ -147,6 +157,14 @@ export async function inviteMemberAction(
     return errorState(inviteInsert.error?.message ?? "Failed to create invitation.");
   }
 
+  await writeAuditEvent(supabase, {
+    householdId,
+    actorUserId: user.id,
+    eventType: "household.invite_created",
+    entityType: "household_invitation",
+    payload: { email },
+  });
+
   revalidatePath("/household");
 
   return successState(`Invitation created. Share token: ${inviteInsert.data.token}`);
@@ -217,6 +235,15 @@ export async function acceptInviteAction(
   if (updateInvite.error) {
     return errorState(updateInvite.error.message);
   }
+
+  await writeAuditEvent(supabase, {
+    householdId: invite.household_id,
+    actorUserId: user.id,
+    eventType: "household.invite_accepted",
+    entityType: "household_invitation",
+    entityId: invite.id,
+    payload: { invitedBy: invite.invited_by, email: invite.email },
+  });
 
   revalidatePath("/dashboard");
   revalidatePath("/household");

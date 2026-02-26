@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { writeAuditEvent } from "@/lib/server/audit";
 import { createClient } from "@/lib/supabase/server";
 
 import type { AssetActionState } from "./action-types";
@@ -104,6 +105,23 @@ export async function createAssetAction(
   if (qInsert.error) return fail(qInsert.error.message);
   if (pInsert.error) return fail(pInsert.error.message);
 
+  await writeAuditEvent(supabase, {
+    householdId,
+    actorUserId: user.id,
+    eventType: "asset.created",
+    entityType: "asset",
+    entityId: asset.data.id,
+    payload: {
+      name,
+      assetClass,
+      unitLabel,
+      quantity,
+      unitPrice: Math.round(unitPrice),
+      isLiquid,
+      asOfDate: today,
+    },
+  });
+
   revalidatePath("/assets");
   return ok("Asset created.");
 }
@@ -136,6 +154,15 @@ export async function upsertQuantityHistoryAction(
   );
 
   if (upsert.error) return fail(upsert.error.message);
+
+  await writeAuditEvent(supabase, {
+    householdId,
+    actorUserId: user.id,
+    eventType: "asset.quantity_history_upserted",
+    entityType: "asset",
+    entityId: assetId,
+    payload: { asOfDate, quantity },
+  });
 
   revalidatePath(`/assets/${assetId}`);
   revalidatePath("/assets");
@@ -172,6 +199,15 @@ export async function upsertPriceHistoryAction(
 
   if (upsert.error) return fail(upsert.error.message);
 
+  await writeAuditEvent(supabase, {
+    householdId,
+    actorUserId: user.id,
+    eventType: "asset.price_history_upserted",
+    entityType: "asset",
+    entityId: assetId,
+    payload: { asOfDate, unitPrice: Math.round(unitPrice), currency: "VND" },
+  });
+
   revalidatePath(`/assets/${assetId}`);
   revalidatePath("/assets");
   return ok("Price history saved.");
@@ -189,8 +225,8 @@ export async function updateQuantityHistoryRowAction(
   if (!assetId) return fail("Missing asset id.");
   if (!Number.isFinite(quantity) || quantity < 0) return fail("Quantity must be non-negative.");
 
-  const { supabase, error } = await resolveContext();
-  if (error) return fail(error);
+  const { supabase, user, householdId, error } = await resolveContext();
+  if (error || !user || !householdId) return fail(error ?? "No household found.");
 
   const update = await supabase
     .from("asset_quantity_history")
@@ -198,6 +234,15 @@ export async function updateQuantityHistoryRowAction(
     .eq("id", rowId);
 
   if (update.error) return fail(update.error.message);
+
+  await writeAuditEvent(supabase, {
+    householdId,
+    actorUserId: user.id,
+    eventType: "asset.quantity_history_updated",
+    entityType: "asset",
+    entityId: assetId,
+    payload: { rowId, quantity },
+  });
 
   revalidatePath(`/assets/${assetId}`);
   revalidatePath("/assets");
@@ -216,8 +261,8 @@ export async function updatePriceHistoryRowAction(
   if (!assetId) return fail("Missing asset id.");
   if (!Number.isFinite(unitPrice) || unitPrice < 0) return fail("Price must be non-negative.");
 
-  const { supabase, error } = await resolveContext();
-  if (error) return fail(error);
+  const { supabase, user, householdId, error } = await resolveContext();
+  if (error || !user || !householdId) return fail(error ?? "No household found.");
 
   const update = await supabase
     .from("asset_price_history")
@@ -225,6 +270,15 @@ export async function updatePriceHistoryRowAction(
     .eq("id", rowId);
 
   if (update.error) return fail(update.error.message);
+
+  await writeAuditEvent(supabase, {
+    householdId,
+    actorUserId: user.id,
+    eventType: "asset.price_history_updated",
+    entityType: "asset",
+    entityId: assetId,
+    payload: { rowId, unitPrice: Math.round(unitPrice), currency: "VND" },
+  });
 
   revalidatePath(`/assets/${assetId}`);
   revalidatePath("/assets");

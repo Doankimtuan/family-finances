@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { writeAuditEvent } from "@/lib/server/audit";
 import { createClient } from "@/lib/supabase/server";
 
 import type { AccountActionState } from "./action-types";
@@ -54,18 +55,32 @@ export async function createAccountAction(
   const { supabase, user, householdId, error } = await resolveContext();
   if (error || !user || !householdId) return fail(error ?? "No household found.");
 
-  const insert = await supabase.from("accounts").insert({
-    household_id: householdId,
-    name,
-    type,
-    opening_balance: Math.round(openingBalance),
-    opening_balance_date: new Date().toISOString().slice(0, 10),
-    include_in_net_worth: true,
-    is_archived: false,
-    created_by: user.id,
-  });
+  const openingBalanceRounded = Math.round(openingBalance);
+  const insert = await supabase
+    .from("accounts")
+    .insert({
+      household_id: householdId,
+      name,
+      type,
+      opening_balance: openingBalanceRounded,
+      opening_balance_date: new Date().toISOString().slice(0, 10),
+      include_in_net_worth: true,
+      is_archived: false,
+      created_by: user.id,
+    })
+    .select("id")
+    .single();
 
-  if (insert.error) return fail(insert.error.message);
+  if (insert.error || !insert.data?.id) return fail(insert.error?.message ?? "Failed to create account.");
+
+  await writeAuditEvent(supabase, {
+    householdId,
+    actorUserId: user.id,
+    eventType: "account.created",
+    entityType: "account",
+    entityId: insert.data.id,
+    payload: { name, type, openingBalance: openingBalanceRounded },
+  });
 
   revalidatePath("/accounts");
   revalidatePath("/transactions");
@@ -80,8 +95,8 @@ export async function archiveAccountAction(
   const accountId = String(formData.get("accountId") ?? "").trim();
   if (!accountId) return fail("Missing account id.");
 
-  const { supabase, error } = await resolveContext();
-  if (error) return fail(error);
+  const { supabase, user, householdId, error } = await resolveContext();
+  if (error || !user || !householdId) return fail(error ?? "No household found.");
 
   const update = await supabase
     .from("accounts")
@@ -89,6 +104,14 @@ export async function archiveAccountAction(
     .eq("id", accountId);
 
   if (update.error) return fail(update.error.message);
+
+  await writeAuditEvent(supabase, {
+    householdId,
+    actorUserId: user.id,
+    eventType: "account.archived",
+    entityType: "account",
+    entityId: accountId,
+  });
 
   revalidatePath("/accounts");
   revalidatePath("/transactions");

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { writeAuditEvent } from "@/lib/server/audit";
 import { createClient } from "@/lib/supabase/server";
 
 import type { OnboardingActionState } from "./action-types";
@@ -52,8 +53,8 @@ export async function saveWelcomeAction(
     return fail("Household name must be at least 2 characters.");
   }
 
-  const { supabase, householdId, error } = await resolveUserAndHousehold();
-  if (error || !householdId) return fail(error ?? "No household found.");
+  const { supabase, householdId, user, error } = await resolveUserAndHousehold();
+  if (error || !householdId || !user) return fail(error ?? "No household found.");
 
   const update = await supabase
     .from("households")
@@ -61,6 +62,15 @@ export async function saveWelcomeAction(
     .eq("id", householdId);
 
   if (update.error) return fail(update.error.message);
+
+  await writeAuditEvent(supabase, {
+    householdId,
+    actorUserId: user.id,
+    eventType: "onboarding.welcome_saved",
+    entityType: "household",
+    entityId: householdId,
+    payload: { householdName, timezone },
+  });
 
   revalidatePath("/onboarding");
   return ok("Welcome details saved.");
@@ -93,6 +103,14 @@ export async function inviteMemberOnboardingAction(
 
   if (invite.error) return fail(invite.error.message);
 
+  await writeAuditEvent(supabase, {
+    householdId,
+    actorUserId: user.id,
+    eventType: "onboarding.member_invited",
+    entityType: "household_invitation",
+    payload: { email },
+  });
+
   revalidatePath("/onboarding/members");
   return ok(`Invitation token created: ${invite.data.token}`);
 }
@@ -111,17 +129,31 @@ export async function addAccountOnboardingAction(
   const { supabase, householdId, user, error } = await resolveUserAndHousehold();
   if (error || !householdId || !user) return fail(error ?? "No household found.");
 
-  const insert = await supabase.from("accounts").insert({
-    household_id: householdId,
-    name,
-    type,
-    opening_balance: Math.round(openingBalance),
-    opening_balance_date: new Date().toISOString().slice(0, 10),
-    include_in_net_worth: true,
-    created_by: user.id,
-  });
+  const openingBalanceRounded = Math.round(openingBalance);
+  const insert = await supabase
+    .from("accounts")
+    .insert({
+      household_id: householdId,
+      name,
+      type,
+      opening_balance: openingBalanceRounded,
+      opening_balance_date: new Date().toISOString().slice(0, 10),
+      include_in_net_worth: true,
+      created_by: user.id,
+    })
+    .select("id")
+    .single();
 
-  if (insert.error) return fail(insert.error.message);
+  if (insert.error || !insert.data?.id) return fail(insert.error?.message ?? "Failed to add account.");
+
+  await writeAuditEvent(supabase, {
+    householdId,
+    actorUserId: user.id,
+    eventType: "onboarding.account_added",
+    entityType: "account",
+    entityId: insert.data.id,
+    payload: { name, type, openingBalance: openingBalanceRounded },
+  });
 
   revalidatePath("/onboarding/accounts");
   return ok("Account added.");
@@ -191,6 +223,15 @@ export async function addAssetOnboardingAction(
   if (qInsert.error) return fail(qInsert.error.message);
   if (pInsert.error) return fail(pInsert.error.message);
 
+  await writeAuditEvent(supabase, {
+    householdId,
+    actorUserId: user.id,
+    eventType: "onboarding.asset_added",
+    entityType: "asset",
+    entityId: assetId,
+    payload: { name, assetClass, quantity, unitPrice: Math.round(unitPrice), isLiquid },
+  });
+
   revalidatePath("/onboarding/assets");
   return ok("Asset added with initial valuation.");
 }
@@ -250,6 +291,22 @@ export async function addDebtOnboardingAction(
   });
 
   if (rateInsert.error) return fail(rateInsert.error.message);
+
+  await writeAuditEvent(supabase, {
+    householdId,
+    actorUserId: user.id,
+    eventType: "onboarding.debt_added",
+    entityType: "liability",
+    entityId: liabilityInsert.data.id,
+    payload: {
+      name,
+      liabilityType,
+      principalOriginal: Math.round(principalOriginal),
+      currentOutstanding: Math.round(currentOutstanding),
+      annualRatePercent: annualRate,
+      repaymentMethod,
+    },
+  });
 
   revalidatePath("/onboarding/debts");
   return ok("Debt added.");
@@ -344,6 +401,18 @@ export async function addIncomeExpenseOnboardingAction(
   if (incomeRule.error) return fail(incomeRule.error.message);
   if (expenseRule.error) return fail(expenseRule.error.message);
 
+  await writeAuditEvent(supabase, {
+    householdId,
+    actorUserId: user.id,
+    eventType: "onboarding.income_expense_baseline_set",
+    entityType: "recurring_rule",
+    payload: {
+      monthlyIncome: Math.round(monthlyIncome),
+      monthlyEssentials: Math.round(monthlyEssentials),
+      startDate,
+    },
+  });
+
   revalidatePath("/onboarding/income-expenses");
   return ok("Income and essential expense baselines saved.");
 }
@@ -363,19 +432,33 @@ export async function addFirstGoalOnboardingAction(
   const { supabase, householdId, user, error } = await resolveUserAndHousehold();
   if (error || !householdId || !user) return fail(error ?? "No household found.");
 
-  const insert = await supabase.from("goals").insert({
-    household_id: householdId,
-    goal_type: goalType,
-    name,
-    target_amount: Math.round(targetAmount),
-    target_date: targetDate.length > 0 ? targetDate : null,
-    start_date: new Date().toISOString().slice(0, 10),
-    priority: 1,
-    status: "active",
-    created_by: user.id,
-  });
+  const targetAmountRounded = Math.round(targetAmount);
+  const insert = await supabase
+    .from("goals")
+    .insert({
+      household_id: householdId,
+      goal_type: goalType,
+      name,
+      target_amount: targetAmountRounded,
+      target_date: targetDate.length > 0 ? targetDate : null,
+      start_date: new Date().toISOString().slice(0, 10),
+      priority: 1,
+      status: "active",
+      created_by: user.id,
+    })
+    .select("id")
+    .single();
 
-  if (insert.error) return fail(insert.error.message);
+  if (insert.error || !insert.data?.id) return fail(insert.error?.message ?? "Failed to add first goal.");
+
+  await writeAuditEvent(supabase, {
+    householdId,
+    actorUserId: user.id,
+    eventType: "onboarding.first_goal_added",
+    entityType: "goal",
+    entityId: insert.data.id,
+    payload: { goalType, name, targetAmount: targetAmountRounded, targetDate: targetDate || null },
+  });
 
   revalidatePath("/onboarding/first-goal");
   return ok("First goal added.");
