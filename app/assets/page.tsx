@@ -1,6 +1,11 @@
 import Link from "next/link";
+import { Plus } from "lucide-react";
 
 import { CreateAssetForm } from "@/app/assets/_components/create-asset-form";
+import { AppHeader } from "@/components/layout/app-header";
+import { AppShell } from "@/components/layout/app-shell";
+import { BottomTabBar } from "@/components/layout/bottom-tab-bar";
+import { Button } from "@/components/ui/button";
 import { formatVnd } from "@/lib/dashboard/format";
 import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
 import { createClient } from "@/lib/supabase/server";
@@ -36,7 +41,10 @@ export default async function AssetsPage() {
     const priceRows = await supabase
       .from("asset_price_history")
       .select("asset_id, unit_price, as_of_date")
-      .in("asset_id", assets.map((asset) => asset.id))
+      .in(
+        "asset_id",
+        assets.map((asset) => asset.id),
+      )
       .order("as_of_date", { ascending: false });
 
     for (const row of priceRows.data ?? []) {
@@ -47,54 +55,65 @@ export default async function AssetsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-6">
-      <section className="mx-auto w-full max-w-3xl space-y-4">
-        <header>
-          <p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-500">Assets Module</p>
-          <h1 className="text-2xl font-semibold text-slate-900">Track assets and valuations</h1>
-          <p className="mt-1 text-sm text-slate-600">
-            Manage quantity and price snapshots to keep your net worth timeline accurate.
-          </p>
-        </header>
-
-        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="text-lg font-semibold text-slate-900">Add Asset</h2>
-          <p className="mt-1 text-sm text-slate-600">Create a new asset with initial quantity and price.</p>
-          <div className="mt-4">
-            <CreateAssetForm />
+    <AppShell
+      header={<AppHeader title="Assets & Valuations" />}
+      footer={<BottomTabBar />}
+    >
+      <div className="space-y-6">
+        <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="flex items-center gap-2 mb-4">
+            <Plus className="h-5 w-5 text-teal-600" />
+            <h2 className="text-lg font-semibold text-slate-900">
+              Add New Asset
+            </h2>
           </div>
+          <CreateAssetForm />
         </article>
 
-        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="text-lg font-semibold text-slate-900">Your Assets</h2>
+        <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-slate-900 mb-4">
+            Portfolio Register
+          </h2>
 
           {assetResult.error ? (
-            <p className="mt-2 text-sm text-rose-600">{assetResult.error.message}</p>
+            <div className="rounded-xl border border-rose-100 bg-rose-50 p-4 text-sm text-rose-700">
+              {assetResult.error.message}
+            </div>
           ) : assets.length === 0 ? (
-            <p className="mt-2 text-sm text-slate-500">No assets yet. Add your first asset above.</p>
+            <p className="py-8 text-center text-sm text-slate-500 italic">
+              No assets tracked yet. Add your first holding above.
+            </p>
           ) : (
-            <ul className="mt-3 space-y-2">
+            <ul className="divide-y divide-slate-100">
               {assets.map((asset) => {
                 const latestPrice = priceMap.get(asset.id) ?? 0;
                 const value = Number(asset.quantity) * latestPrice;
 
                 return (
-                  <li key={asset.id} className="rounded-xl border border-slate-200 p-3">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-sm font-semibold text-slate-900">{asset.name}</p>
-                        <p className="text-xs text-slate-500">{asset.asset_class} · {asset.is_liquid ? "Liquid" : "Illiquid"}</p>
-                        <p className="mt-1 text-sm text-slate-600">
-                          {Number(asset.quantity).toLocaleString("en-US")} {asset.unit_label} · Latest value {formatVnd(value)}
+                  <li key={asset.id} className="py-4 first:pt-0 last:pb-0">
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-slate-900 truncate">
+                          {asset.name}
                         </p>
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          {asset.asset_class.replace(/_/g, " ")} ·{" "}
+                          {asset.is_liquid ? "Liquid" : "Illiquid"}
+                        </p>
+                        <div className="mt-2 flex items-baseline gap-1.5">
+                          <span className="text-lg font-semibold text-slate-900">
+                            {formatVnd(value)}
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-medium">
+                            {Number(asset.quantity).toLocaleString("en-US")}{" "}
+                            {asset.unit_label}
+                          </span>
+                        </div>
                       </div>
 
-                      <Link
-                        href={`/assets/${asset.id}`}
-                        className="rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white"
-                      >
-                        Open
-                      </Link>
+                      <Button variant="outline" size="sm" asChild>
+                        <Link href={`/assets/${asset.id}`}>Details</Link>
+                      </Button>
                     </div>
                   </li>
                 );
@@ -102,7 +121,7 @@ export default async function AssetsPage() {
             </ul>
           )}
         </article>
-      </section>
-    </main>
+      </div>
+    </AppShell>
   );
 }
