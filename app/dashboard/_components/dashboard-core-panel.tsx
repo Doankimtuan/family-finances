@@ -278,6 +278,9 @@ export function DashboardCorePanel() {
           <Button asChild variant="outline" className="w-full">
             <Link href="/health">Health Details</Link>
           </Button>
+          <Button asChild variant="outline" className="w-full">
+            <Link href="/insights">Insights</Link>
+          </Button>
         </div>
       </article>
     </section>
