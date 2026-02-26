@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { getDashboardTrend } from "@/lib/dashboard/trend";
+import type { AppLanguage } from "@/lib/i18n/config";
 import {
   buildInsights,
   detectDebtAlert,
@@ -65,7 +66,10 @@ export async function calculateAndPersistInsights(
   supabase: SupabaseClient,
   householdId: string,
   asOfDate: string,
+  options?: { language?: AppLanguage; locale?: string },
 ) {
+  const language = options?.language ?? "en";
+  const locale = options?.locale ?? "en-US";
   const [coreResult, goalsResult, liabilitiesResult] = await Promise.all([
     supabase.rpc("rpc_dashboard_core", { p_household_id: householdId, p_as_of_date: asOfDate }),
     supabase.from("goals").select("id, name, target_amount, target_date").eq("household_id", householdId).eq("status", "active"),
@@ -140,22 +144,27 @@ export async function calculateAndPersistInsights(
     detectSpendingAnomaly({
       currentExpense: Number(core.monthly_expense),
       avgPriorExpense,
+      language,
     }),
-    detectGoalRisk({ goals: goalRiskInput }),
+    detectGoalRisk({ goals: goalRiskInput, language, locale }),
     detectDebtAlert({
       debtServiceRatio: core.debt_service_ratio,
       nextPaymentIncreaseAmount: paymentIncrease,
       hasActiveDebt: ((liabilitiesResult.data ?? []) as LiabilityRow[]).length > 0,
       monthlyIncome: Number(core.monthly_income),
       monthlyExpense: Number(core.monthly_expense),
+      language,
+      locale,
     }),
     detectSavingsMilestone({
       emergencyMonths: core.emergency_months,
       prevEmergencyMonths: prev?.emergency_months ?? null,
+      language,
     }),
     detectNetWorthChange({
       currentNetWorth: Number(core.net_worth),
       prevNetWorth: prev ? Number(prev.net_worth) : null,
+      language,
     }),
   ]);
 

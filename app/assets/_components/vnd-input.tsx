@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from "react";
 
+import { useI18n } from "@/lib/providers/i18n-provider";
+
 type VndInputProps = {
   id: string;
   name: string;
@@ -10,16 +12,16 @@ type VndInputProps = {
   placeholder?: string;
 };
 
-const formatter = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
-
 export function VndInput({ id, name, defaultValue = 0, className, placeholder }: VndInputProps) {
+  const { locale } = useI18n();
   const [raw, setRaw] = useState(String(Math.max(0, Math.round(defaultValue))));
+  const formatter = useMemo(() => new Intl.NumberFormat(locale, { maximumFractionDigits: 0 }), [locale]);
 
   const display = useMemo(() => {
     const n = Number(raw || 0);
     if (!raw) return "";
     return formatter.format(n);
-  }, [raw]);
+  }, [raw, formatter]);
 
   return (
     <>

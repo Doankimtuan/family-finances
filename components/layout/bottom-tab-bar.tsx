@@ -11,30 +11,31 @@ import {
   Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/providers/i18n-provider";
 
 const tabs = [
   {
-    label: "Overview",
+    labelKey: "nav.overview",
     href: "/dashboard",
     icon: LayoutDashboard,
   },
   {
-    label: "Assets",
+    labelKey: "nav.assets",
     href: "/assets",
     icon: Wallet,
   },
   {
-    label: "Debts",
+    labelKey: "nav.debts",
     href: "/debts",
     icon: TrendingDown, // Or another icon like 'ArrowDownCircle'
   },
   {
-    label: "Flow",
+    labelKey: "nav.flow",
     href: "/cash-flow",
     icon: ArrowLeftRight, // Will change icon to something like 'Activity'
   },
   {
-    label: "Family",
+    labelKey: "nav.family",
     href: "/household",
     icon: Users,
   },
@@ -42,6 +43,7 @@ const tabs = [
 
 export function BottomTabBar() {
   const pathname = usePathname();
+  const { t } = useI18n();
 
   return (
     <nav className="flex items-center justify-around h-16">
@@ -62,7 +64,7 @@ export function BottomTabBar() {
           >
             <Icon className={cn("h-6 w-6", isActive && "text-teal-600")} />
             <span className="text-[10px] font-medium uppercase tracking-wider">
-              {tab.label}
+              {t(tab.labelKey)}
             </span>
           </Link>
         );

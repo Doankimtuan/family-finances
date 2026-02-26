@@ -11,7 +11,7 @@ import { HistoryEntryForm } from "@/app/assets/_components/history-entry-form";
 import { PriceHistoryTable, QuantityHistoryTable } from "@/app/assets/_components/history-table";
 import { ValuationTimeline } from "@/app/assets/_components/valuation-timeline";
 import { buildValuationTimeline } from "@/lib/assets/timeline";
-import { formatVnd } from "@/lib/dashboard/format";
+import { formatNumber, formatVnd } from "@/lib/dashboard/format";
 import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
 import { createClient } from "@/lib/supabase/server";
 
@@ -21,7 +21,8 @@ type AssetDetailPageProps = {
 
 export default async function AssetDetailPage({ params }: AssetDetailPageProps) {
   const { id } = await params;
-  const { householdId } = await getAuthenticatedHouseholdContext();
+  const { householdId, householdLocale, language } = await getAuthenticatedHouseholdContext();
+  const vi = language === "vi";
   const supabase = await createClient();
 
   const assetResult = await supabase
@@ -70,30 +71,43 @@ export default async function AssetDetailPage({ params }: AssetDetailPageProps) 
   );
 
   const latest = timeline[timeline.length - 1];
+  const assetClassLabel = asset.asset_class === "gold"
+    ? (vi ? "Vàng" : "Gold")
+    : asset.asset_class === "mutual_fund"
+      ? (vi ? "Quỹ mở" : "Mutual fund")
+      : asset.asset_class === "real_estate"
+        ? (vi ? "Bất động sản" : "Real estate")
+        : asset.asset_class === "savings_deposit"
+          ? (vi ? "Tiền gửi tiết kiệm" : "Savings deposit")
+          : asset.asset_class === "stock"
+            ? (vi ? "Cổ phiếu" : "Stock")
+            : asset.asset_class === "other"
+              ? (vi ? "Khác" : "Other")
+              : asset.asset_class.replace(/_/g, " ");
 
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-6">
       <section className="mx-auto w-full max-w-4xl space-y-4">
         <header className="space-y-2">
-          <Link href="/assets" className="text-sm font-medium text-slate-600">← Back to Assets</Link>
+          <Link href="/assets" className="text-sm font-medium text-slate-600">← {vi ? "Quay lại Tài sản" : "Back to Assets"}</Link>
           <h1 className="text-2xl font-semibold text-slate-900">{asset.name}</h1>
-          <p className="text-sm text-slate-600">{asset.asset_class} · {asset.is_liquid ? "Liquid" : "Illiquid"}</p>
+          <p className="text-sm text-slate-600">{assetClassLabel} · {asset.is_liquid ? (vi ? "Thanh khoản" : "Liquid") : (vi ? "Kém thanh khoản" : "Illiquid")}</p>
         </header>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <article className="rounded-xl border border-slate-200 bg-white p-3">
-            <p className="text-xs uppercase tracking-[0.12em] text-slate-500">Current Quantity</p>
+            <p className="text-xs uppercase tracking-[0.12em] text-slate-500">{vi ? "Số lượng hiện tại" : "Current Quantity"}</p>
             <p className="mt-1 text-lg font-semibold text-slate-900">
-              {(latest?.quantity ?? Number(asset.quantity)).toLocaleString("en-US")} {asset.unit_label}
+              {formatNumber((latest?.quantity ?? Number(asset.quantity)), householdLocale)} {asset.unit_label}
             </p>
           </article>
           <article className="rounded-xl border border-slate-200 bg-white p-3">
-            <p className="text-xs uppercase tracking-[0.12em] text-slate-500">Current Unit Price</p>
-            <p className="mt-1 text-lg font-semibold text-slate-900">{formatVnd(latest?.unitPrice ?? 0)}</p>
+            <p className="text-xs uppercase tracking-[0.12em] text-slate-500">{vi ? "Đơn giá hiện tại" : "Current Unit Price"}</p>
+            <p className="mt-1 text-lg font-semibold text-slate-900">{formatVnd(latest?.unitPrice ?? 0, householdLocale)}</p>
           </article>
           <article className="rounded-xl border border-slate-200 bg-white p-3">
-            <p className="text-xs uppercase tracking-[0.12em] text-slate-500">Current Value</p>
-            <p className="mt-1 text-lg font-semibold text-slate-900">{formatVnd(latest?.value ?? 0)}</p>
+            <p className="text-xs uppercase tracking-[0.12em] text-slate-500">{vi ? "Giá trị hiện tại" : "Current Value"}</p>
+            <p className="mt-1 text-lg font-semibold text-slate-900">{formatVnd(latest?.value ?? 0, householdLocale)}</p>
           </article>
         </div>
 
@@ -106,7 +120,7 @@ export default async function AssetDetailPage({ params }: AssetDetailPageProps) 
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <article className="space-y-2">
-            <h2 className="text-lg font-semibold text-slate-900">Quantity History</h2>
+            <h2 className="text-lg font-semibold text-slate-900">{vi ? "Lịch sử số lượng" : "Quantity History"}</h2>
             <QuantityHistoryTable
               assetId={asset.id}
               rows={quantityHistory.map((row) => ({ id: row.id, as_of_date: row.as_of_date, quantity: Number(row.quantity) }))}
@@ -115,7 +129,7 @@ export default async function AssetDetailPage({ params }: AssetDetailPageProps) 
           </article>
 
           <article className="space-y-2">
-            <h2 className="text-lg font-semibold text-slate-900">Price History</h2>
+            <h2 className="text-lg font-semibold text-slate-900">{vi ? "Lịch sử giá" : "Price History"}</h2>
             <PriceHistoryTable
               assetId={asset.id}
               rows={priceHistory.map((row) => ({ id: row.id, as_of_date: row.as_of_date, unit_price: Number(row.unit_price) }))}

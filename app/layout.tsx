@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
+import { localeToLanguage, normalizeHouseholdLocale } from "@/lib/i18n/config";
 import { AppProviders } from "@/lib/providers/app-providers";
+import { createClient } from "@/lib/supabase/server";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -19,17 +21,57 @@ export const metadata: Metadata = {
   description: "Household finance clarity platform",
 };
 
-export default function RootLayout({
+async function resolveLanguageAndLocale() {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return { language: "en" as const, locale: "en-US" };
+    }
+
+    const membership = await supabase
+      .from("household_members")
+      .select("household_id")
+      .eq("user_id", user.id)
+      .eq("is_active", true)
+      .order("joined_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+
+    const householdId = membership.data?.household_id;
+    if (!householdId) {
+      return { language: "en" as const, locale: "en-US" };
+    }
+
+    const household = await supabase
+      .from("households")
+      .select("locale")
+      .eq("id", householdId)
+      .maybeSingle();
+
+    const locale = normalizeHouseholdLocale(household.data?.locale);
+    return { language: localeToLanguage(locale), locale };
+  } catch {
+    return { language: "en" as const, locale: "en-US" };
+  }
+}
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const { language, locale } = await resolveLanguageAndLocale();
+
   return (
-    <html lang="en">
+    <html lang={language === "vi" ? "vi" : "en"}>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AppProviders>{children}</AppProviders>
+        <AppProviders language={language} locale={locale}>{children}</AppProviders>
       </body>
     </html>
   );

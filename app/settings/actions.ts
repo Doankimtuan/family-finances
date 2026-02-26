@@ -1,7 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 
+import { LANGUAGE_COOKIE_NAME, languageToLocale, type AppLanguage } from "@/lib/i18n/config";
 import { writeAuditEvent } from "@/lib/server/audit";
 import { createClient } from "@/lib/supabase/server";
 
@@ -89,7 +91,9 @@ export async function updateHouseholdSettingsAction(
 ): Promise<SettingsActionState> {
   const name = String(formData.get("name") ?? "").trim();
   const timezone = String(formData.get("timezone") ?? "Asia/Ho_Chi_Minh").trim() || "Asia/Ho_Chi_Minh";
-  const locale = String(formData.get("locale") ?? "en-VN").trim() || "en-VN";
+  const languageRaw = String(formData.get("language") ?? "en").trim();
+  const language: AppLanguage = languageRaw === "vi" ? "vi" : "en";
+  const locale = languageToLocale(language);
 
   if (name.length < 2) return fail("Household name must be at least 2 characters.");
 
@@ -102,6 +106,14 @@ export async function updateHouseholdSettingsAction(
     .eq("id", householdId);
 
   if (update.error) return fail(update.error.message);
+
+  const cookieStore = await cookies();
+  cookieStore.set(LANGUAGE_COOKIE_NAME, language, {
+    path: "/",
+    sameSite: "lax",
+    httpOnly: false,
+    maxAge: 60 * 60 * 24 * 365,
+  });
 
   await writeAuditEvent(supabase, {
     householdId,
@@ -178,4 +190,46 @@ export async function updateAssumptionsAction(
   revalidatePath("/dashboard");
   revalidatePath("/decision-tools");
   return ok("Planning assumptions updated.");
+}
+
+export async function updateLanguagePreferenceAction(
+  _prev: SettingsActionState,
+  formData: FormData,
+): Promise<SettingsActionState> {
+  const languageRaw = String(formData.get("language") ?? "en").trim();
+  const language: AppLanguage = languageRaw === "vi" ? "vi" : "en";
+  const locale = languageToLocale(language);
+
+  const { supabase, user, householdId, error } = await resolveContext();
+  if (error || !user || !householdId) return fail(error ?? "No household found.");
+
+  const update = await supabase
+    .from("households")
+    .update({ locale })
+    .eq("id", householdId);
+
+  if (update.error) return fail(update.error.message);
+
+  const cookieStore = await cookies();
+  cookieStore.set(LANGUAGE_COOKIE_NAME, language, {
+    path: "/",
+    sameSite: "lax",
+    httpOnly: false,
+    maxAge: 60 * 60 * 24 * 365,
+  });
+
+  await writeAuditEvent(supabase, {
+    householdId,
+    actorUserId: user.id,
+    eventType: "settings.language_updated",
+    entityType: "household",
+    entityId: householdId,
+    payload: { language, locale },
+  });
+
+  revalidatePath("/");
+  revalidatePath("/settings");
+  revalidatePath("/settings/household");
+  revalidatePath("/dashboard");
+  return ok("Language updated.");
 }

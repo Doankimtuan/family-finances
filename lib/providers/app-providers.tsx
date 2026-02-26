@@ -3,11 +3,16 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 
+import type { AppLanguage } from "@/lib/i18n/config";
+import { I18nProvider } from "@/lib/providers/i18n-provider";
+
 type AppProvidersProps = {
   children: React.ReactNode;
+  language: AppLanguage;
+  locale: string;
 };
 
-export function AppProviders({ children }: AppProvidersProps) {
+export function AppProviders({ children, language, locale }: AppProvidersProps) {
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -24,5 +29,9 @@ export function AppProviders({ children }: AppProvidersProps) {
       }),
   );
 
-  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+  return (
+    <QueryClientProvider client={queryClient}>
+      <I18nProvider language={language} locale={locale}>{children}</I18nProvider>
+    </QueryClientProvider>
+  );
 }

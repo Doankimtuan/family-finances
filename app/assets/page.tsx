@@ -6,7 +6,8 @@ import { AppHeader } from "@/components/layout/app-header";
 import { AppShell } from "@/components/layout/app-shell";
 import { BottomTabBar } from "@/components/layout/bottom-tab-bar";
 import { Button } from "@/components/ui/button";
-import { formatVnd } from "@/lib/dashboard/format";
+import { formatNumber, formatVnd } from "@/lib/dashboard/format";
+import { t } from "@/lib/i18n/dictionary";
 import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
 import { createClient } from "@/lib/supabase/server";
 
@@ -24,7 +25,8 @@ type AssetRow = {
 };
 
 export default async function AssetsPage() {
-  const { householdId } = await getAuthenticatedHouseholdContext();
+  const { householdId, language, householdLocale } = await getAuthenticatedHouseholdContext();
+  const vi = language === "vi";
   const supabase = await createClient();
 
   const assetResult = await supabase
@@ -56,7 +58,7 @@ export default async function AssetsPage() {
 
   return (
     <AppShell
-      header={<AppHeader title="Assets & Valuations" />}
+      header={<AppHeader title={t(language, "assets.title")} />}
       footer={<BottomTabBar />}
     >
       <div className="space-y-6">
@@ -64,7 +66,7 @@ export default async function AssetsPage() {
           <div className="flex items-center gap-2 mb-4">
             <Plus className="h-5 w-5 text-teal-600" />
             <h2 className="text-lg font-semibold text-slate-900">
-              Add New Asset
+              {vi ? "Thêm tài sản mới" : "Add New Asset"}
             </h2>
           </div>
           <CreateAssetForm />
@@ -72,7 +74,7 @@ export default async function AssetsPage() {
 
         <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-slate-900 mb-4">
-            Portfolio Register
+            {vi ? "Danh mục tài sản" : "Portfolio Register"}
           </h2>
 
           {assetResult.error ? (
@@ -81,13 +83,26 @@ export default async function AssetsPage() {
             </div>
           ) : assets.length === 0 ? (
             <p className="py-8 text-center text-sm text-slate-500 italic">
-              No assets tracked yet. Add your first holding above.
+              {vi ? "Chưa theo dõi tài sản nào. Hãy thêm tài sản đầu tiên ở trên." : "No assets tracked yet. Add your first holding above."}
             </p>
           ) : (
             <ul className="divide-y divide-slate-100">
               {assets.map((asset) => {
                 const latestPrice = priceMap.get(asset.id) ?? 0;
                 const value = Number(asset.quantity) * latestPrice;
+                const assetClassLabel = asset.asset_class === "gold"
+                  ? (vi ? "Vàng" : "Gold")
+                  : asset.asset_class === "mutual_fund"
+                    ? (vi ? "Quỹ mở" : "Mutual fund")
+                    : asset.asset_class === "real_estate"
+                      ? (vi ? "Bất động sản" : "Real estate")
+                      : asset.asset_class === "savings_deposit"
+                        ? (vi ? "Tiền gửi tiết kiệm" : "Savings deposit")
+                        : asset.asset_class === "stock"
+                          ? (vi ? "Cổ phiếu" : "Stock")
+                          : asset.asset_class === "other"
+                            ? (vi ? "Khác" : "Other")
+                            : asset.asset_class.replace(/_/g, " ");
 
                 return (
                   <li key={asset.id} className="py-4 first:pt-0 last:pb-0">
@@ -97,22 +112,22 @@ export default async function AssetsPage() {
                           {asset.name}
                         </p>
                         <p className="text-xs text-slate-500 mt-0.5">
-                          {asset.asset_class.replace(/_/g, " ")} ·{" "}
-                          {asset.is_liquid ? "Liquid" : "Illiquid"}
+                          {assetClassLabel} ·{" "}
+                          {asset.is_liquid ? (vi ? "Thanh khoản" : "Liquid") : (vi ? "Kém thanh khoản" : "Illiquid")}
                         </p>
                         <div className="mt-2 flex items-baseline gap-1.5">
                           <span className="text-lg font-semibold text-slate-900">
-                            {formatVnd(value)}
+                            {formatVnd(value, householdLocale)}
                           </span>
                           <span className="text-[10px] text-slate-400 font-medium">
-                            {Number(asset.quantity).toLocaleString("en-US")}{" "}
+                            {formatNumber(Number(asset.quantity), householdLocale)}{" "}
                             {asset.unit_label}
                           </span>
                         </div>
                       </div>
 
                       <Button variant="outline" size="sm" asChild>
-                        <Link href={`/assets/${asset.id}`}>Details</Link>
+                        <Link href={`/assets/${asset.id}`}>{t(language, "common.details")}</Link>
                       </Button>
                     </div>
                   </li>

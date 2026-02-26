@@ -14,14 +14,17 @@ import {
 
 import { compactMonth, formatVndCompact } from "@/lib/dashboard/format";
 import type { LiabilityProjectionPoint } from "@/lib/debts/amortization";
+import { useI18n } from "@/lib/providers/i18n-provider";
 
 type Props = {
   schedule: LiabilityProjectionPoint[];
 };
 
 export function PayoffChart({ schedule }: Props) {
+  const { locale, language } = useI18n();
+  const vi = language === "vi";
   const chartData = schedule.map((row) => ({
-    month: compactMonth(row.month),
+    month: compactMonth(row.month, locale),
     balance: row.balance,
     payment: row.payment,
   }));
@@ -29,7 +32,7 @@ export function PayoffChart({ schedule }: Props) {
   if (chartData.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500">
-        Add debt details to generate payoff projection.
+        {vi ? "Thêm thông tin khoản nợ để tạo dự phóng trả nợ." : "Add debt details to generate payoff projection."}
       </div>
     );
   }
@@ -37,7 +40,9 @@ export function PayoffChart({ schedule }: Props) {
   return (
     <div className="space-y-4">
       <div className="rounded-xl border border-slate-200 p-3">
-        <p className="mb-2 text-xs font-medium uppercase tracking-[0.12em] text-slate-500">Projected Outstanding Balance</p>
+        <p className="mb-2 text-xs font-medium uppercase tracking-[0.12em] text-slate-500">
+          {vi ? "Dư nợ dự kiến theo thời gian" : "Projected Outstanding Balance"}
+        </p>
         <div className="h-48 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData} margin={{ top: 10, right: 6, bottom: 0, left: 6 }}>
@@ -46,11 +51,11 @@ export function PayoffChart({ schedule }: Props) {
               <YAxis
                 width={80}
                 tick={{ fontSize: 11, fill: "#64748B" }}
-                tickFormatter={(value: number) => formatVndCompact(value)}
+                tickFormatter={(value: number) => formatVndCompact(value, locale)}
                 tickLine={false}
                 axisLine={false}
               />
-              <Tooltip formatter={(value) => formatVndCompact(Number(value ?? 0))} />
+              <Tooltip formatter={(value) => formatVndCompact(Number(value ?? 0), locale)} />
               <Line type="monotone" dataKey="balance" stroke="#0F766E" strokeWidth={2.5} dot={false} />
             </LineChart>
           </ResponsiveContainer>
@@ -58,7 +63,9 @@ export function PayoffChart({ schedule }: Props) {
       </div>
 
       <div className="rounded-xl border border-slate-200 p-3">
-        <p className="mb-2 text-xs font-medium uppercase tracking-[0.12em] text-slate-500">Projected Monthly Payment</p>
+        <p className="mb-2 text-xs font-medium uppercase tracking-[0.12em] text-slate-500">
+          {vi ? "Khoản thanh toán dự kiến hàng tháng" : "Projected Monthly Payment"}
+        </p>
         <div className="h-44 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData} margin={{ top: 10, right: 6, bottom: 0, left: 6 }}>
@@ -67,11 +74,11 @@ export function PayoffChart({ schedule }: Props) {
               <YAxis
                 width={80}
                 tick={{ fontSize: 11, fill: "#64748B" }}
-                tickFormatter={(value: number) => formatVndCompact(value)}
+                tickFormatter={(value: number) => formatVndCompact(value, locale)}
                 tickLine={false}
                 axisLine={false}
               />
-              <Tooltip formatter={(value) => formatVndCompact(Number(value ?? 0))} />
+              <Tooltip formatter={(value) => formatVndCompact(Number(value ?? 0), locale)} />
               <Bar dataKey="payment" fill="#334155" radius={[5, 5, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>

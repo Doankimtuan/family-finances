@@ -1,7 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 
+import { LANGUAGE_COOKIE_NAME } from "@/lib/i18n/config";
 import { writeAuditEvent } from "@/lib/server/audit";
 import { createClient } from "@/lib/supabase/server";
 
@@ -54,7 +56,7 @@ export async function createHouseholdAction(
   const createResult = await supabase.rpc("create_household_with_owner", {
     p_name: householdName,
     p_base_currency: "VND",
-    p_locale: "en-VN",
+    p_locale: "en-US",
     p_timezone: "Asia/Ho_Chi_Minh",
   });
 
@@ -69,6 +71,14 @@ export async function createHouseholdAction(
     entityType: "household",
     entityId: createResult.data,
     payload: { name: householdName },
+  });
+
+  const cookieStore = await cookies();
+  cookieStore.set(LANGUAGE_COOKIE_NAME, "en", {
+    path: "/",
+    sameSite: "lax",
+    httpOnly: false,
+    maxAge: 60 * 60 * 24 * 365,
   });
 
   revalidatePath("/dashboard");

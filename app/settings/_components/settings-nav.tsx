@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 
+import { useI18n } from "@/lib/providers/i18n-provider";
 import { cn } from "@/lib/utils";
 
 const links = [
@@ -10,6 +13,15 @@ const links = [
 ];
 
 export function SettingsNav({ currentPath }: { currentPath: string }) {
+  const { t } = useI18n();
+
+  const labelMap: Record<string, string> = {
+    Profile: "settings.profile",
+    Household: "settings.household",
+    Categories: "settings.categories",
+    Assumptions: "settings.assumptions",
+  };
+
   return (
     <nav className="grid grid-cols-2 gap-2 rounded-2xl border border-slate-200 bg-white p-2 shadow-sm sm:grid-cols-4">
       {links.map((item) => {
@@ -25,7 +37,7 @@ export function SettingsNav({ currentPath }: { currentPath: string }) {
                 : "bg-slate-50 text-slate-700 hover:bg-slate-100",
             )}
           >
-            {item.label}
+            {t(labelMap[item.label] ?? item.label)}
           </Link>
         );
       })}

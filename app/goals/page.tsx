@@ -5,7 +5,8 @@ import { CreateGoalForm } from "@/app/goals/_components/create-goal-form";
 import { AppHeader } from "@/components/layout/app-header";
 import { AppShell } from "@/components/layout/app-shell";
 import { BottomTabBar } from "@/components/layout/bottom-tab-bar";
-import { formatVnd, formatVndCompact } from "@/lib/dashboard/format";
+import { formatDate, formatVnd, formatVndCompact } from "@/lib/dashboard/format";
+import { t } from "@/lib/i18n/dictionary";
 import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
 import { createClient } from "@/lib/supabase/server";
 
@@ -37,7 +38,8 @@ function monthsUntil(date: string) {
 }
 
 export default async function GoalsPage() {
-  const { householdId } = await getAuthenticatedHouseholdContext();
+  const { householdId, language, householdLocale } = await getAuthenticatedHouseholdContext();
+  const vi = language === "vi";
   const supabase = await createClient();
 
   const [goalsResult, contributionsResult] = await Promise.all([
@@ -66,24 +68,24 @@ export default async function GoalsPage() {
   }
 
   return (
-    <AppShell header={<AppHeader title="Financial Goals" />} footer={<BottomTabBar />}>
+    <AppShell header={<AppHeader title={t(language, "goals.title")} />} footer={<BottomTabBar />}>
       <div className="space-y-6">
         <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-slate-900">Create Goal</h2>
-          <p className="mt-1 text-sm text-slate-600">Turn abstract saving into a concrete household timeline.</p>
+          <h2 className="text-lg font-semibold text-slate-900">{vi ? "Tạo mục tiêu" : "Create Goal"}</h2>
+          <p className="mt-1 text-sm text-slate-600">{vi ? "Biến kế hoạch tiết kiệm thành lộ trình cụ thể của gia đình." : "Turn abstract saving into a concrete household timeline."}</p>
           <div className="mt-4">
             <CreateGoalForm />
           </div>
         </article>
 
         <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-slate-900">Active Goal Progress</h2>
+          <h2 className="text-lg font-semibold text-slate-900">{vi ? "Tiến độ mục tiêu" : "Active Goal Progress"}</h2>
           {goalsResult.error || contributionsResult.error ? (
-            <p className="mt-2 text-sm text-rose-600">Could not load goals data.</p>
+            <p className="mt-2 text-sm text-rose-600">{vi ? "Không thể tải dữ liệu mục tiêu." : "Could not load goals data."}</p>
           ) : goals.length === 0 ? (
             <div className="mt-3 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-5">
-              <p className="text-sm font-medium text-slate-800">No goals yet.</p>
-              <p className="mt-1 text-sm text-slate-600">Start with one meaningful goal and add your first contribution today.</p>
+              <p className="text-sm font-medium text-slate-800">{vi ? "Chưa có mục tiêu." : "No goals yet."}</p>
+              <p className="mt-1 text-sm text-slate-600">{vi ? "Bắt đầu với một mục tiêu quan trọng và thêm khoản đóng góp đầu tiên ngay hôm nay." : "Start with one meaningful goal and add your first contribution today."}</p>
             </div>
           ) : (
             <ul className="mt-4 space-y-4">
@@ -108,6 +110,28 @@ export default async function GoalsPage() {
                 const etaDate = etaMonths !== null
                   ? new Date(new Date().getFullYear(), new Date().getMonth() + etaMonths, 1)
                   : null;
+                const goalTypeLabel = goal.goal_type === "emergency_fund"
+                  ? (vi ? "Quỹ khẩn cấp" : "Emergency fund")
+                  : goal.goal_type === "property_purchase"
+                    ? (vi ? "Mua bất động sản" : "Property purchase")
+                    : goal.goal_type === "house_construction"
+                      ? (vi ? "Xây nhà" : "House construction")
+                      : goal.goal_type === "vehicle"
+                        ? (vi ? "Phương tiện" : "Vehicle")
+                        : goal.goal_type === "education"
+                          ? (vi ? "Giáo dục" : "Education")
+                          : goal.goal_type === "retirement"
+                            ? (vi ? "Nghỉ hưu" : "Retirement")
+                            : goal.goal_type === "custom"
+                              ? (vi ? "Tùy chỉnh" : "Custom")
+                              : goal.goal_type.replace(/_/g, " ");
+                const statusLabel = goal.status === "active"
+                  ? (vi ? "Đang hoạt động" : "Active")
+                  : goal.status === "paused"
+                    ? (vi ? "Tạm dừng" : "Paused")
+                    : goal.status === "completed"
+                      ? (vi ? "Hoàn thành" : "Completed")
+                      : goal.status;
 
                 return (
                   <li key={goal.id} className="rounded-xl border border-slate-200 p-4">
@@ -115,7 +139,7 @@ export default async function GoalsPage() {
                       <div>
                         <p className="text-sm font-semibold text-slate-900">{goal.name}</p>
                         <p className="text-xs text-slate-500">
-                          {goal.goal_type.replace(/_/g, " ")} · Priority {goal.priority} · {goal.status}
+                          {goalTypeLabel} · {vi ? "Ưu tiên" : "Priority"} {goal.priority} · {statusLabel}
                         </p>
                       </div>
                       <p className="text-sm font-semibold text-slate-900">{progress}%</p>
@@ -126,22 +150,22 @@ export default async function GoalsPage() {
                     </div>
 
                     <div className="mt-3 grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
-                      <Stat label="Funded" value={formatVndCompact(funded)} sub={formatVnd(funded)} />
-                      <Stat label="Remaining" value={formatVndCompact(remaining)} sub={formatVnd(remaining)} />
+                      <Stat label={vi ? "Đã tích lũy" : "Funded"} value={formatVndCompact(funded, householdLocale)} sub={formatVnd(funded, householdLocale)} />
+                      <Stat label={vi ? "Còn thiếu" : "Remaining"} value={formatVndCompact(remaining, householdLocale)} sub={formatVnd(remaining, householdLocale)} />
                       <Stat
-                        label="Required / Month"
-                        value={requiredMonthly !== null ? formatVndCompact(requiredMonthly) : "-"}
-                        sub={goal.target_date ? `to ${new Date(goal.target_date).toLocaleDateString("en-US")}` : "No target date"}
+                        label={vi ? "Cần / tháng" : "Required / Month"}
+                        value={requiredMonthly !== null ? formatVndCompact(requiredMonthly, householdLocale) : "-"}
+                        sub={goal.target_date ? `${t(language, "common.to")} ${formatDate(goal.target_date, householdLocale)}` : (language === "vi" ? "Không có ngày mục tiêu" : "No target date")}
                       />
                       <Stat
                         label="ETA"
-                        value={etaDate ? etaDate.toLocaleDateString("en-US", { month: "short", year: "numeric" }) : "-"}
-                        sub={avgMonthlyContribution > 0 ? `avg ${formatVndCompact(avgMonthlyContribution)}/mo` : "Need contributions history"}
+                        value={etaDate ? formatDate(etaDate, householdLocale, { month: "short", year: "numeric" }) : "-"}
+                        sub={avgMonthlyContribution > 0 ? `${language === "vi" ? "tb" : "avg"} ${formatVndCompact(avgMonthlyContribution, householdLocale)}/${language === "vi" ? "tháng" : "mo"}` : (language === "vi" ? "Cần lịch sử đóng góp" : "Need contributions history")}
                       />
                     </div>
 
                     <div className="mt-4">
-                      <p className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Add Contribution</p>
+                      <p className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">{vi ? "Thêm đóng góp" : "Add Contribution"}</p>
                       <AddContributionForm goalId={goal.id} />
                     </div>
                   </li>

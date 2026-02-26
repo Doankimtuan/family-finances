@@ -58,7 +58,7 @@ export async function saveWelcomeAction(
 
   const update = await supabase
     .from("households")
-    .update({ name: householdName, locale: "en-VN", timezone })
+    .update({ name: householdName, locale: "en-US", timezone })
     .eq("id", householdId);
 
   if (update.error) return fail(update.error.message);

@@ -8,6 +8,7 @@ import { AppHeader } from "@/components/layout/app-header";
 import { AppShell } from "@/components/layout/app-shell";
 import { BottomTabBar } from "@/components/layout/bottom-tab-bar";
 import { Button } from "@/components/ui/button";
+import { normalizeHouseholdLocale } from "@/lib/i18n/config";
 import { createClient } from "@/lib/supabase/server";
 
 type HouseholdPageProps = {
@@ -51,15 +52,17 @@ export default async function HouseholdPage({
   const householdId = membershipResult.data?.household_id ?? null;
 
   let householdName: string | null = null;
+  let householdLocale = "en-US";
 
   if (householdId) {
     const householdResult = await supabase
       .from("households")
-      .select("name")
+      .select("name, locale")
       .eq("id", householdId)
       .maybeSingle();
 
     householdName = householdResult.data?.name ?? null;
+    householdLocale = normalizeHouseholdLocale(householdResult.data?.locale);
   }
 
   const pendingReceivedInvites = await supabase
@@ -168,7 +171,7 @@ export default async function HouseholdPage({
                           <p className="text-xs text-slate-400">
                             Expires:{" "}
                             {new Date(invite.expires_at).toLocaleString(
-                              "en-US",
+                              householdLocale,
                             )}
                           </p>
                         </div>
@@ -215,7 +218,7 @@ export default async function HouseholdPage({
                     </p>
                     <p className="mt-1 text-xs text-slate-400">
                       Expires:{" "}
-                      {new Date(invite.expires_at).toLocaleString("en-US")}
+                      {new Date(invite.expires_at).toLocaleString(householdLocale)}
                     </p>
                   </li>
                 ))}

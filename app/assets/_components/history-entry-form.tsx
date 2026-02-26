@@ -4,6 +4,7 @@ import { useActionState, useTransition } from "react";
 
 import { initialAssetActionState, type AssetActionState } from "@/app/assets/action-types";
 import { VndInput } from "@/app/assets/_components/vnd-input";
+import { useI18n } from "@/lib/providers/i18n-provider";
 
 type HistoryEntryFormProps = {
   assetId: string;
@@ -12,6 +13,8 @@ type HistoryEntryFormProps = {
 };
 
 export function HistoryEntryForm({ assetId, mode, actionFn }: HistoryEntryFormProps) {
+  const { language } = useI18n();
+  const vi = language === "vi";
   const [state, action] = useActionState<AssetActionState, FormData>(actionFn, initialAssetActionState);
   const [isPending, startTransition] = useTransition();
 
@@ -28,11 +31,13 @@ export function HistoryEntryForm({ assetId, mode, actionFn }: HistoryEntryFormPr
       <input type="hidden" name="assetId" value={assetId} />
 
       <p className="text-sm font-semibold text-slate-800">
-        {mode === "quantity" ? "Add / Update Quantity" : "Add / Update Unit Price"}
+        {mode === "quantity"
+          ? (vi ? "Thêm / cập nhật số lượng" : "Add / Update Quantity")
+          : (vi ? "Thêm / cập nhật đơn giá" : "Add / Update Unit Price")}
       </p>
 
       <div className="space-y-1">
-        <label htmlFor={`${mode}-date`} className="text-sm font-medium text-slate-700">Date</label>
+        <label htmlFor={`${mode}-date`} className="text-sm font-medium text-slate-700">{vi ? "Ngày" : "Date"}</label>
         <input
           id={`${mode}-date`}
           name="asOfDate"
@@ -44,7 +49,7 @@ export function HistoryEntryForm({ assetId, mode, actionFn }: HistoryEntryFormPr
 
       {mode === "quantity" ? (
         <div className="space-y-1">
-          <label htmlFor="quantity" className="text-sm font-medium text-slate-700">Quantity</label>
+          <label htmlFor="quantity" className="text-sm font-medium text-slate-700">{vi ? "Số lượng" : "Quantity"}</label>
           <input
             id="quantity"
             name="quantity"
@@ -57,13 +62,13 @@ export function HistoryEntryForm({ assetId, mode, actionFn }: HistoryEntryFormPr
         </div>
       ) : (
         <div className="space-y-1">
-          <label htmlFor="unitPrice" className="text-sm font-medium text-slate-700">Unit price (VND)</label>
+          <label htmlFor="unitPrice" className="text-sm font-medium text-slate-700">{vi ? "Đơn giá (VND)" : "Unit price (VND)"}</label>
           <VndInput id="unitPrice" name="unitPrice" defaultValue={0} className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-base text-slate-900" />
         </div>
       )}
 
       <button type="submit" disabled={isPending} className="w-full rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60">
-        {isPending ? "Saving..." : "Save Entry"}
+        {isPending ? (vi ? "Đang lưu..." : "Saving...") : (vi ? "Lưu bản ghi" : "Save Entry")}
       </button>
 
       {state.status === "error" && state.message ? <p className="text-sm text-rose-600">{state.message}</p> : null}

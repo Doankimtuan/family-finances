@@ -20,6 +20,7 @@ import {
   type ScenarioActionState,
 } from "@/app/decision-tools/action-types";
 import { formatPercent, formatVndCompact } from "@/lib/dashboard/format";
+import { useI18n } from "@/lib/providers/i18n-provider";
 
 type SavedScenario = {
   id: string;
@@ -54,6 +55,7 @@ function safeNumber(value: number, fallback = 0) {
 }
 
 export function DecisionToolsClient({ savedScenarios }: Props) {
+  const { locale } = useI18n();
   const [activeTab, setActiveTab] = useState<TabKey>("loan");
 
   return (
@@ -98,7 +100,7 @@ export function DecisionToolsClient({ savedScenarios }: Props) {
                 <p className="text-sm font-semibold text-slate-900">{s.name}</p>
                 <p className="text-xs text-slate-500">
                   {s.scenario_type.replace(/_/g, " ")} ·{" "}
-                  {new Date(s.created_at).toLocaleString("en-US")}
+                  {new Date(s.created_at).toLocaleString(locale)}
                 </p>
               </li>
             ))}

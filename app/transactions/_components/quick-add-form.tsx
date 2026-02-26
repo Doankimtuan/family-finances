@@ -5,6 +5,7 @@ import { useActionState, useMemo, useState, useTransition } from "react";
 import { quickAddTransactionAction } from "@/app/transactions/actions";
 import { initialTransactionActionState, type TransactionActionState } from "@/app/transactions/action-types";
 import { VndQuickInput } from "@/app/transactions/_components/vnd-quick-input";
+import { useI18n } from "@/lib/providers/i18n-provider";
 
 type QuickCategory = {
   id: string;
@@ -17,6 +18,8 @@ type QuickAddFormProps = {
 };
 
 export function QuickAddForm({ accountId, categories }: QuickAddFormProps) {
+  const { language } = useI18n();
+  const vi = language === "vi";
   const [state, action] = useActionState<TransactionActionState, FormData>(
     quickAddTransactionAction,
     initialTransactionActionState,
@@ -27,11 +30,11 @@ export function QuickAddForm({ accountId, categories }: QuickAddFormProps) {
 
   const helperText = useMemo(() => {
     if (isIncomeMode) {
-      return "Income mode: amount -> done.";
+      return vi ? "Chế độ thu nhập: nhập số tiền -> xong." : "Income mode: amount -> done.";
     }
 
-    return "10-second expense flow: amount -> category -> done.";
-  }, [isIncomeMode]);
+    return vi ? "Luồng chi tiêu 10 giây: số tiền -> danh mục -> xong." : "10-second expense flow: amount -> category -> done.";
+  }, [isIncomeMode, vi]);
 
   return (
     <form
@@ -58,7 +61,7 @@ export function QuickAddForm({ accountId, categories }: QuickAddFormProps) {
             !isIncomeMode ? "bg-white text-slate-900 shadow-sm" : "text-slate-600"
           }`}
         >
-          Expense
+          {vi ? "Chi tiêu" : "Expense"}
         </button>
         <button
           type="button"
@@ -67,13 +70,13 @@ export function QuickAddForm({ accountId, categories }: QuickAddFormProps) {
             isIncomeMode ? "bg-white text-slate-900 shadow-sm" : "text-slate-600"
           }`}
         >
-          Income
+          {vi ? "Thu nhập" : "Income"}
         </button>
       </div>
 
       <div className="space-y-1">
         <label htmlFor="quickAmount" className="text-sm font-medium text-slate-700">
-          Amount (VND)
+          {vi ? "Số tiền (VND)" : "Amount (VND)"}
         </label>
         <VndQuickInput
           id="quickAmount"
@@ -87,7 +90,7 @@ export function QuickAddForm({ accountId, categories }: QuickAddFormProps) {
 
       {!isIncomeMode ? (
         <div className="space-y-1">
-          <p className="text-sm font-medium text-slate-700">Category</p>
+          <p className="text-sm font-medium text-slate-700">{vi ? "Danh mục" : "Category"}</p>
           <div className="flex gap-2 overflow-x-auto pb-1">
             {categories.map((category) => (
               <button
@@ -112,7 +115,7 @@ export function QuickAddForm({ accountId, categories }: QuickAddFormProps) {
         disabled={isPending || (!isIncomeMode && !activeCategoryId)}
         className="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white disabled:opacity-60"
       >
-        {isPending ? "Saving..." : isIncomeMode ? "Done: Add Income" : "Done: Add Expense"}
+        {isPending ? (vi ? "Đang lưu..." : "Saving...") : isIncomeMode ? (vi ? "Xong: Thêm thu nhập" : "Done: Add Income") : (vi ? "Xong: Thêm chi tiêu" : "Done: Add Expense")}
       </button>
 
       <p className="text-xs text-slate-500">{helperText}</p>

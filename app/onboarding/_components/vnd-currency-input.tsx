@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useI18n } from "@/lib/providers/i18n-provider";
 
 type VndCurrencyInputProps = {
   id: string;
@@ -10,10 +11,6 @@ type VndCurrencyInputProps = {
   required?: boolean;
   className?: string;
 };
-
-const formatter = new Intl.NumberFormat("en-US", {
-  maximumFractionDigits: 0,
-});
 
 function digitsOnly(value: string): string {
   return value.replace(/\D/g, "");
@@ -33,12 +30,17 @@ export function VndCurrencyInput({
   required,
   className,
 }: VndCurrencyInputProps) {
+  const { locale } = useI18n();
   const [raw, setRaw] = useState<string>(String(Math.max(0, Math.round(defaultValue))));
+  const formatter = useMemo(
+    () => new Intl.NumberFormat(locale, { maximumFractionDigits: 0 }),
+    [locale],
+  );
 
   const displayValue = useMemo(() => {
     if (!raw) return "";
     return formatter.format(Number(raw));
-  }, [raw]);
+  }, [raw, formatter]);
 
   return (
     <>

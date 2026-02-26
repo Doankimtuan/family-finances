@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { AppHeader } from "@/components/layout/app-header";
 import { AppShell } from "@/components/layout/app-shell";
 import { BottomTabBar } from "@/components/layout/bottom-tab-bar";
-import { formatPercent, formatVnd, formatVndCompact } from "@/lib/dashboard/format";
+import { formatDate, formatPercent, formatVnd, formatVndCompact } from "@/lib/dashboard/format";
 import { buildLiabilityProjection } from "@/lib/debts/amortization";
 import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
 import { createClient } from "@/lib/supabase/server";
@@ -35,7 +35,8 @@ type DebtRow = {
 };
 
 export default async function DebtDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { householdId } = await getAuthenticatedHouseholdContext();
+  const { householdId, householdLocale, language } = await getAuthenticatedHouseholdContext();
+  const vi = language === "vi";
   const { id } = await params;
   const supabase = await createClient();
 
@@ -102,11 +103,27 @@ export default async function DebtDetailPage({ params }: { params: Promise<{ id:
     ? floatingStartPayment - promoStartPayment
     : null;
 
-  const guidance = debt.liability_type === "family_loan"
-    ? "This is a family loan. Keep repayment expectations clear and predictable to protect trust on both sides."
+  const liabilityTypeLabel = debt.liability_type === "family_loan"
+    ? (vi ? "Vay gia đình" : "Family loan")
     : debt.liability_type === "mortgage"
-      ? "Mortgage with promotional/floating behavior. Keep a stress buffer for rate changes after promo period."
-      : "Track principal progress monthly. Small extra payments early can meaningfully shorten debt duration.";
+      ? "Mortgage"
+      : debt.liability_type === "personal_loan"
+        ? (vi ? "Vay cá nhân" : "Personal loan")
+        : debt.liability_type === "car_loan"
+          ? (vi ? "Vay mua xe" : "Car loan")
+          : debt.liability_type.replace(/_/g, " ");
+
+  const guidance = debt.liability_type === "family_loan"
+    ? (vi
+      ? "Đây là khoản vay gia đình. Hãy giữ kỳ vọng trả nợ rõ ràng và nhất quán để bảo vệ niềm tin đôi bên."
+      : "This is a family loan. Keep repayment expectations clear and predictable to protect trust on both sides.")
+    : debt.liability_type === "mortgage"
+      ? (vi
+        ? "Khoản thế chấp có giai đoạn ưu đãi và thả nổi. Hãy duy trì quỹ đệm cho rủi ro lãi suất sau ưu đãi."
+        : "Mortgage with promotional/floating behavior. Keep a stress buffer for rate changes after promo period.")
+      : (vi
+        ? "Theo dõi tiến độ gốc hàng tháng. Trả thêm sớm dù nhỏ vẫn có thể rút ngắn đáng kể thời gian trả nợ."
+        : "Track principal progress monthly. Small extra payments early can meaningfully shorten debt duration.");
 
   return (
     <AppShell
@@ -115,27 +132,27 @@ export default async function DebtDetailPage({ params }: { params: Promise<{ id:
     >
       <div className="space-y-4 pb-20 sm:pb-6">
         <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-500">Debt Snapshot</p>
+          <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-500">{vi ? "Tổng quan khoản nợ" : "Debt Snapshot"}</p>
           <h1 className="mt-1 text-xl font-semibold text-slate-900">{debt.name}</h1>
           <p className="mt-1 text-sm text-slate-600">
-            {debt.liability_type.replace(/_/g, " ")}
+            {liabilityTypeLabel}
             {debt.lender_name ? ` · ${debt.lender_name}` : ""}
             {debt.relationship_label ? ` · ${debt.relationship_label}` : ""}
           </p>
 
           <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div className="rounded-xl border border-slate-200 p-3">
-              <p className="text-xs uppercase tracking-[0.12em] text-slate-500">Outstanding</p>
-              <p className="mt-1 text-lg font-semibold text-slate-900">{formatVndCompact(Number(debt.current_principal_outstanding))}</p>
-              <p className="text-xs text-slate-500">{formatVnd(Number(debt.current_principal_outstanding))}</p>
+              <p className="text-xs uppercase tracking-[0.12em] text-slate-500">{vi ? "Dư nợ hiện tại" : "Outstanding"}</p>
+              <p className="mt-1 text-lg font-semibold text-slate-900">{formatVndCompact(Number(debt.current_principal_outstanding), householdLocale)}</p>
+              <p className="text-xs text-slate-500">{formatVnd(Number(debt.current_principal_outstanding), householdLocale)}</p>
             </div>
             <div className="rounded-xl border border-slate-200 p-3">
-              <p className="text-xs uppercase tracking-[0.12em] text-slate-500">Projected Next Payment</p>
-              <p className="mt-1 text-lg font-semibold text-slate-900">{formatVndCompact(nextPayment)}</p>
-              <p className="text-xs text-slate-500">Avg annual rate {formatPercent(avgRate)}</p>
+              <p className="text-xs uppercase tracking-[0.12em] text-slate-500">{vi ? "Khoản trả kỳ tới (dự kiến)" : "Projected Next Payment"}</p>
+              <p className="mt-1 text-lg font-semibold text-slate-900">{formatVndCompact(nextPayment, householdLocale)}</p>
+              <p className="text-xs text-slate-500">{vi ? "Lãi suất năm TB" : "Avg annual rate"} {formatPercent(avgRate)}</p>
             </div>
             <div className="rounded-xl border border-slate-200 p-3">
-              <p className="text-xs uppercase tracking-[0.12em] text-slate-500">Payoff Progress</p>
+              <p className="text-xs uppercase tracking-[0.12em] text-slate-500">{vi ? "Tiến độ trả nợ" : "Payoff Progress"}</p>
               <p className="mt-1 text-lg font-semibold text-slate-900">{payoffPercent}%</p>
               <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
                 <div className="h-full bg-teal-600" style={{ width: `${payoffPercent}%` }} />
@@ -146,19 +163,19 @@ export default async function DebtDetailPage({ params }: { params: Promise<{ id:
           <p className="mt-4 text-sm text-slate-700">{guidance}</p>
           {debt.next_payment_date ? (
             <p className="mt-1 text-sm text-slate-600">
-              Next payment date: {new Date(debt.next_payment_date).toLocaleDateString("en-US")}
+              {vi ? "Ngày thanh toán tiếp theo" : "Next payment date"}: {formatDate(debt.next_payment_date, householdLocale)}
             </p>
           ) : null}
           {debt.liability_type === "mortgage" ? (
             <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Promo to Floating Impact</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">{vi ? "Tác động từ ưu đãi sang thả nổi" : "Promo to Floating Impact"}</p>
               <p className="mt-1 text-sm text-slate-700">
-                Promo phase in projection: {promoMonthsInProjection} months
-                {floatingStartPoint ? ` · Floating starts ${new Date(floatingStartPoint.month).toLocaleDateString("en-US", { month: "short", year: "numeric" })}` : ""}
+                {vi ? "Số tháng ưu đãi trong dự phóng" : "Promo phase in projection"}: {promoMonthsInProjection} {vi ? "tháng" : "months"}
+                {floatingStartPoint ? ` · ${vi ? "Thả nổi bắt đầu" : "Floating starts"} ${formatDate(floatingStartPoint.month, householdLocale, { month: "short", year: "numeric" })}` : ""}
               </p>
               {switchDelta !== null ? (
                 <p className={`mt-1 text-sm font-medium ${switchDelta > 0 ? "text-rose-600" : "text-emerald-600"}`}>
-                  Payment change at switch: {switchDelta > 0 ? "+" : ""}{formatVnd(switchDelta)}
+                  {vi ? "Biến động khoản trả khi chuyển pha" : "Payment change at switch"}: {switchDelta > 0 ? "+" : ""}{formatVnd(switchDelta, householdLocale)}
                 </p>
               ) : null}
             </div>
@@ -166,8 +183,12 @@ export default async function DebtDetailPage({ params }: { params: Promise<{ id:
         </article>
 
         <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="text-lg font-semibold text-slate-900">Payoff Projection (24 months)</h2>
-          <p className="mt-1 text-sm text-slate-600">Use this to test whether current repayment pace fits household cash flow safely.</p>
+          <h2 className="text-lg font-semibold text-slate-900">{vi ? "Dự phóng trả nợ (24 tháng)" : "Payoff Projection (24 months)"}</h2>
+          <p className="mt-1 text-sm text-slate-600">
+            {vi
+              ? "Dùng phần này để kiểm tra nhịp độ trả nợ hiện tại có phù hợp an toàn với dòng tiền gia đình hay không."
+              : "Use this to test whether current repayment pace fits household cash flow safely."}
+          </p>
           <div className="mt-4">
             <PayoffChart schedule={schedule} />
           </div>
@@ -177,34 +198,44 @@ export default async function DebtDetailPage({ params }: { params: Promise<{ id:
         </article>
 
         <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="text-lg font-semibold text-slate-900">Amortization Schedule (Next 12 months)</h2>
-          <p className="mt-1 text-sm text-slate-600">This shows when rate phases change and how principal vs interest shifts monthly.</p>
+          <h2 className="text-lg font-semibold text-slate-900">{vi ? "Lịch trả nợ gốc/lãi (12 tháng tới)" : "Amortization Schedule (Next 12 months)"}</h2>
+          <p className="mt-1 text-sm text-slate-600">
+            {vi
+              ? "Bảng này cho thấy khi nào lãi suất đổi pha và tỷ trọng gốc/lãi thay đổi theo tháng."
+              : "This shows when rate phases change and how principal vs interest shifts monthly."}
+          </p>
           {schedule.length === 0 ? (
-            <p className="mt-2 text-sm text-slate-500">No projection available.</p>
+            <p className="mt-2 text-sm text-slate-500">{vi ? "Chưa có dữ liệu dự phóng." : "No projection available."}</p>
           ) : (
             <div className="mt-3 overflow-x-auto">
               <table className="min-w-full text-left text-sm">
                 <thead>
                   <tr className="border-b border-slate-200 text-xs uppercase tracking-[0.12em] text-slate-500">
-                    <th className="px-2 py-2">Month</th>
-                    <th className="px-2 py-2">Phase</th>
-                    <th className="px-2 py-2">Rate</th>
-                    <th className="px-2 py-2">Payment</th>
-                    <th className="px-2 py-2">Principal</th>
-                    <th className="px-2 py-2">Interest</th>
-                    <th className="px-2 py-2">Balance</th>
+                    <th className="px-2 py-2">{vi ? "Tháng" : "Month"}</th>
+                    <th className="px-2 py-2">{vi ? "Pha" : "Phase"}</th>
+                    <th className="px-2 py-2">{vi ? "Lãi suất" : "Rate"}</th>
+                    <th className="px-2 py-2">{vi ? "Thanh toán" : "Payment"}</th>
+                    <th className="px-2 py-2">{vi ? "Gốc" : "Principal"}</th>
+                    <th className="px-2 py-2">{vi ? "Lãi" : "Interest"}</th>
+                    <th className="px-2 py-2">{vi ? "Dư nợ" : "Balance"}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {schedule.slice(0, 12).map((row) => (
                     <tr key={row.month} className="border-b border-slate-100 text-slate-700">
-                      <td className="px-2 py-2">{new Date(row.month).toLocaleDateString("en-US", { month: "short", year: "numeric" })}</td>
-                      <td className="px-2 py-2">{row.phaseLabel}</td>
+                      <td className="px-2 py-2">{formatDate(row.month, householdLocale, { month: "short", year: "numeric" })}</td>
+                      <td className="px-2 py-2">
+                        {row.phase === "promo"
+                          ? (vi ? "Ưu đãi" : "Promo")
+                          : row.phase === "floating"
+                            ? (vi ? "Thả nổi" : "Floating")
+                            : vi ? "Thiết lập" : "Configured"}
+                      </td>
                       <td className="px-2 py-2">{formatPercent(row.annualRate)}</td>
-                      <td className="px-2 py-2">{formatVndCompact(row.payment)}</td>
-                      <td className="px-2 py-2">{formatVndCompact(row.principal)}</td>
-                      <td className="px-2 py-2">{formatVndCompact(row.interest)}</td>
-                      <td className="px-2 py-2">{formatVndCompact(row.balance)}</td>
+                      <td className="px-2 py-2">{formatVndCompact(row.payment, householdLocale)}</td>
+                      <td className="px-2 py-2">{formatVndCompact(row.principal, householdLocale)}</td>
+                      <td className="px-2 py-2">{formatVndCompact(row.interest, householdLocale)}</td>
+                      <td className="px-2 py-2">{formatVndCompact(row.balance, householdLocale)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -214,20 +245,22 @@ export default async function DebtDetailPage({ params }: { params: Promise<{ id:
         </article>
 
         <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="text-lg font-semibold text-slate-900">Recent Payments</h2>
+          <h2 className="text-lg font-semibold text-slate-900">{vi ? "Thanh toán gần đây" : "Recent Payments"}</h2>
           {paymentsResult.error ? (
             <p className="mt-2 text-sm text-rose-600">{paymentsResult.error.message}</p>
           ) : (paymentsResult.data ?? []).length === 0 ? (
-            <p className="mt-2 text-sm text-slate-500">No payment logs yet. Recording payments improves projection accuracy.</p>
+            <p className="mt-2 text-sm text-slate-500">
+              {vi ? "Chưa có nhật ký thanh toán. Ghi nhận thanh toán giúp tăng độ chính xác của dự phóng." : "No payment logs yet. Recording payments improves projection accuracy."}
+            </p>
           ) : (
             <ul className="mt-3 space-y-2">
               {(paymentsResult.data ?? []).map((payment, idx) => (
                 <li key={`${payment.payment_date}-${idx}`} className="rounded-xl border border-slate-200 p-3">
                   <p className="text-sm font-semibold text-slate-900">
-                    {new Date(payment.payment_date).toLocaleDateString("en-US")} · {formatVnd(Number(payment.actual_amount))}
+                    {formatDate(payment.payment_date, householdLocale)} · {formatVnd(Number(payment.actual_amount), householdLocale)}
                   </p>
                   <p className="mt-1 text-xs text-slate-500">
-                    Principal {formatVnd(Number(payment.principal_component))} · Interest {formatVnd(Number(payment.interest_component))}
+                    {vi ? "Gốc" : "Principal"} {formatVnd(Number(payment.principal_component), householdLocale)} · {vi ? "Lãi" : "Interest"} {formatVnd(Number(payment.interest_component), householdLocale)}
                   </p>
                 </li>
               ))}
@@ -237,7 +270,7 @@ export default async function DebtDetailPage({ params }: { params: Promise<{ id:
 
         <div className="flex items-center gap-3">
           <Link href="/debts" className="inline-flex rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700">
-            Back to Debts
+            {vi ? "Quay lại Nợ" : "Back to Debts"}
           </Link>
         </div>
       </div>

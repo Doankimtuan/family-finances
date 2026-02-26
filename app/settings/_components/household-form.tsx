@@ -4,21 +4,23 @@ import { useActionState, useTransition } from "react";
 
 import { updateHouseholdSettingsAction } from "@/app/settings/actions";
 import { initialSettingsActionState, type SettingsActionState } from "@/app/settings/action-types";
+import { useI18n } from "@/lib/providers/i18n-provider";
 
 export function HouseholdSettingsForm({
   defaultName,
   defaultTimezone,
-  defaultLocale,
+  defaultLanguage,
 }: {
   defaultName: string;
   defaultTimezone: string;
-  defaultLocale: string;
+  defaultLanguage: "en" | "vi";
 }) {
   const [state, action] = useActionState<SettingsActionState, FormData>(
     updateHouseholdSettingsAction,
     initialSettingsActionState,
   );
   const [isPending, startTransition] = useTransition();
+  const { t } = useI18n();
 
   return (
     <form
@@ -32,7 +34,7 @@ export function HouseholdSettingsForm({
     >
       <div className="space-y-1">
         <label htmlFor="name" className="text-sm font-medium text-slate-700">
-          Household name
+          {t("settings.household_name")}
         </label>
         <input
           id="name"
@@ -46,20 +48,23 @@ export function HouseholdSettingsForm({
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-1">
-          <label htmlFor="locale" className="text-sm font-medium text-slate-700">
-            Locale
+          <label htmlFor="language" className="text-sm font-medium text-slate-700">
+            {t("settings.language")}
           </label>
-          <input
-            id="locale"
-            name="locale"
-            defaultValue={defaultLocale}
+          <select
+            id="language"
+            name="language"
+            defaultValue={defaultLanguage}
             className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-base text-slate-900"
-          />
+          >
+            <option value="en">{t("settings.lang_en")}</option>
+            <option value="vi">{t("settings.lang_vi")}</option>
+          </select>
         </div>
 
         <div className="space-y-1">
           <label htmlFor="timezone" className="text-sm font-medium text-slate-700">
-            Timezone
+            {t("settings.timezone")}
           </label>
           <input
             id="timezone"
@@ -71,7 +76,7 @@ export function HouseholdSettingsForm({
       </div>
 
       <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
-        Base currency is fixed to VND for data consistency.
+        {t("settings.base_currency_note")}
       </div>
 
       <button
@@ -79,7 +84,7 @@ export function HouseholdSettingsForm({
         disabled={isPending}
         className="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white disabled:opacity-60"
       >
-        {isPending ? "Saving..." : "Save Household Settings"}
+        {isPending ? t("common.saving") : t("settings.save_household")}
       </button>
 
       {state.status === "error" && state.message ? <p className="text-sm text-rose-600">{state.message}</p> : null}

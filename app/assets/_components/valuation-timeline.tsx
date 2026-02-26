@@ -1,15 +1,22 @@
+"use client";
+
 import { formatVnd } from "@/lib/dashboard/format";
+import { formatDate, formatNumber } from "@/lib/dashboard/format";
 import type { ValuationPoint } from "@/lib/assets/timeline";
+import { useI18n } from "@/lib/providers/i18n-provider";
 
 type ValuationTimelineProps = {
   data: ValuationPoint[];
 };
 
 export function ValuationTimeline({ data }: ValuationTimelineProps) {
+  const { locale, language } = useI18n();
+  const vi = language === "vi";
+
   if (data.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500">
-        No valuation timeline yet. Add quantity and price snapshots to see trend.
+        {vi ? "Chưa có dòng thời gian định giá. Hãy thêm mốc số lượng và đơn giá để xem xu hướng." : "No valuation timeline yet. Add quantity and price snapshots to see trend."}
       </div>
     );
   }
@@ -18,7 +25,7 @@ export function ValuationTimeline({ data }: ValuationTimelineProps) {
 
   return (
     <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
-      <p className="text-sm font-semibold text-slate-800">Valuation Timeline</p>
+      <p className="text-sm font-semibold text-slate-800">{vi ? "Dòng thời gian định giá" : "Valuation Timeline"}</p>
 
       <div className="flex h-36 items-end gap-2 overflow-x-auto">
         {data.map((point) => {
@@ -28,9 +35,9 @@ export function ValuationTimeline({ data }: ValuationTimelineProps) {
               <div
                 className="w-8 rounded-t-md bg-indigo-600"
                 style={{ height: `${Math.round(ratio * 100)}%` }}
-                title={`${new Date(point.date).toLocaleDateString("en-US")}: ${formatVnd(point.value)}`}
+                title={`${formatDate(point.date, locale)}: ${formatVnd(point.value, locale)}`}
               />
-              <span className="text-[10px] text-slate-500">{new Date(point.date).toLocaleDateString("en-US", { month: "short" })}</span>
+              <span className="text-[10px] text-slate-500">{formatDate(point.date, locale, { month: "short" })}</span>
             </div>
           );
         })}
@@ -40,19 +47,19 @@ export function ValuationTimeline({ data }: ValuationTimelineProps) {
         <table className="min-w-full border-collapse text-left">
           <thead>
             <tr className="border-b border-slate-200 bg-slate-50">
-              <th className="px-3 py-2 text-xs uppercase tracking-[0.12em] text-slate-500">Date</th>
-              <th className="px-3 py-2 text-xs uppercase tracking-[0.12em] text-slate-500">Quantity</th>
-              <th className="px-3 py-2 text-xs uppercase tracking-[0.12em] text-slate-500">Unit Price</th>
-              <th className="px-3 py-2 text-xs uppercase tracking-[0.12em] text-slate-500">Value</th>
+              <th className="px-3 py-2 text-xs uppercase tracking-[0.12em] text-slate-500">{vi ? "Ngày" : "Date"}</th>
+              <th className="px-3 py-2 text-xs uppercase tracking-[0.12em] text-slate-500">{vi ? "Số lượng" : "Quantity"}</th>
+              <th className="px-3 py-2 text-xs uppercase tracking-[0.12em] text-slate-500">{vi ? "Đơn giá" : "Unit Price"}</th>
+              <th className="px-3 py-2 text-xs uppercase tracking-[0.12em] text-slate-500">{vi ? "Giá trị" : "Value"}</th>
             </tr>
           </thead>
           <tbody>
             {data.map((point) => (
               <tr key={point.date} className="border-b border-slate-100 last:border-b-0">
-                <td className="px-3 py-2 text-sm text-slate-700">{new Date(point.date).toLocaleDateString("en-US")}</td>
-                <td className="px-3 py-2 text-sm text-slate-700">{point.quantity.toLocaleString("en-US")}</td>
-                <td className="px-3 py-2 text-sm text-slate-700">{formatVnd(point.unitPrice)}</td>
-                <td className="px-3 py-2 text-sm font-medium text-slate-900">{formatVnd(point.value)}</td>
+                <td className="px-3 py-2 text-sm text-slate-700">{formatDate(point.date, locale)}</td>
+                <td className="px-3 py-2 text-sm text-slate-700">{formatNumber(point.quantity, locale)}</td>
+                <td className="px-3 py-2 text-sm text-slate-700">{formatVnd(point.unitPrice, locale)}</td>
+                <td className="px-3 py-2 text-sm font-medium text-slate-900">{formatVnd(point.value, locale)}</td>
               </tr>
             ))}
           </tbody>

@@ -4,6 +4,7 @@ import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis
 
 import { compactMonth, formatPercent } from "@/lib/dashboard/format";
 import type { LiabilityProjectionPoint } from "@/lib/debts/amortization";
+import { useI18n } from "@/lib/providers/i18n-provider";
 
 type Props = {
   schedule: LiabilityProjectionPoint[];
@@ -16,24 +17,27 @@ const phaseColorMap: Record<LiabilityProjectionPoint["phase"], string> = {
 };
 
 export function RatePhaseChart({ schedule }: Props) {
+  const { locale, language } = useI18n();
+  const vi = language === "vi";
   const chartData = schedule.slice(0, 24).map((row) => ({
-    month: compactMonth(row.month),
+    month: compactMonth(row.month, locale),
     annualRate: row.annualRate,
     phase: row.phase,
-    phaseLabel: row.phaseLabel,
   }));
 
   if (chartData.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500">
-        No rate data available yet.
+        {vi ? "Chưa có dữ liệu lãi suất." : "No rate data available yet."}
       </div>
     );
   }
 
   return (
     <div className="rounded-xl border border-slate-200 p-3">
-      <p className="mb-2 text-xs font-medium uppercase tracking-[0.12em] text-slate-500">Rate Timeline (Promo to Floating)</p>
+      <p className="mb-2 text-xs font-medium uppercase tracking-[0.12em] text-slate-500">
+        {vi ? "Dòng thời gian lãi suất (Ưu đãi -> Thả nổi)" : "Rate Timeline (Promo to Floating)"}
+      </p>
       <div className="h-44 w-full">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={chartData} margin={{ top: 10, right: 6, bottom: 0, left: 6 }}>
@@ -47,10 +51,13 @@ export function RatePhaseChart({ schedule }: Props) {
               axisLine={false}
             />
             <Tooltip
-              formatter={(value) => [formatPercent(Number(value ?? 0)), "Annual rate"]}
+              formatter={(value) => [formatPercent(Number(value ?? 0)), vi ? "Lãi suất năm" : "Annual rate"]}
               labelFormatter={(_, payload) => {
-                const item = payload?.[0]?.payload as { phaseLabel?: string } | undefined;
-                return item?.phaseLabel ?? "Rate phase";
+                const item = payload?.[0]?.payload as { phase?: "promo" | "floating" | "custom" } | undefined;
+                if (!item?.phase) return vi ? "Pha lãi suất" : "Rate phase";
+                if (item.phase === "promo") return vi ? "Giai đoạn ưu đãi" : "Promotional phase";
+                if (item.phase === "floating") return vi ? "Giai đoạn thả nổi" : "Floating phase";
+                return vi ? "Giai đoạn thiết lập" : "Configured phase";
               }}
             />
             <Bar dataKey="annualRate" radius={[4, 4, 0, 0]}>
@@ -62,9 +69,9 @@ export function RatePhaseChart({ schedule }: Props) {
         </ResponsiveContainer>
       </div>
       <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-slate-600">
-        <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-teal-700" />Promo</span>
-        <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-orange-700" />Floating</span>
-        <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-slate-600" />Configured</span>
+        <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-teal-700" />{vi ? "Ưu đãi" : "Promo"}</span>
+        <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-orange-700" />{vi ? "Thả nổi" : "Floating"}</span>
+        <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-slate-600" />{vi ? "Thiết lập" : "Configured"}</span>
       </div>
     </div>
   );

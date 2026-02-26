@@ -6,6 +6,7 @@ import { AppHeader } from "@/components/layout/app-header";
 import { AppShell } from "@/components/layout/app-shell";
 import { BottomTabBar } from "@/components/layout/bottom-tab-bar";
 import { formatVnd } from "@/lib/dashboard/format";
+import { t } from "@/lib/i18n/dictionary";
 import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
 import { createClient } from "@/lib/supabase/server";
 
@@ -23,7 +24,8 @@ type DebtRow = {
 };
 
 export default async function DebtsPage() {
-  const { householdId } = await getAuthenticatedHouseholdContext();
+  const { householdId, language, householdLocale } = await getAuthenticatedHouseholdContext();
+  const vi = language === "vi";
   const supabase = await createClient();
 
   const debtsResult = await supabase
@@ -39,7 +41,7 @@ export default async function DebtsPage() {
 
   return (
     <AppShell
-      header={<AppHeader title="Debts & Liabilities" />}
+      header={<AppHeader title={t(language, "debts.title")} />}
       footer={<BottomTabBar />}
     >
       <div className="space-y-6">
@@ -47,7 +49,7 @@ export default async function DebtsPage() {
           <div className="flex items-center gap-2 mb-4">
             <TrendingDown className="h-5 w-5 text-rose-600" />
             <h2 className="text-lg font-semibold text-slate-900">
-              Add New Debt
+              {vi ? "Thêm khoản nợ mới" : "Add New Debt"}
             </h2>
           </div>
           <DebtsForm />
@@ -55,7 +57,7 @@ export default async function DebtsPage() {
 
         <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-slate-900 mb-4">
-            Current Liabilities
+            {vi ? "Nghĩa vụ nợ hiện tại" : "Current Liabilities"}
           </h2>
 
           {debtsResult.error ? (
@@ -64,17 +66,25 @@ export default async function DebtsPage() {
             </div>
           ) : debts.length === 0 ? (
             <p className="py-8 text-center text-sm text-slate-500 italic">
-              No debts tracked yet. Stay debt-free or add a loan above.
+              {vi ? "Chưa theo dõi khoản nợ nào. Giữ không nợ hoặc thêm khoản vay ở trên." : "No debts tracked yet. Stay debt-free or add a loan above."}
             </p>
           ) : (
             <ul className="divide-y divide-slate-100">
               {debts.map((debt) => {
-                const progress = Math.round(
-                  (1 -
-                    debt.current_principal_outstanding /
-                      debt.principal_original) *
-                    100,
-                );
+                const progress = debt.principal_original > 0
+                  ? Math.round(
+                    (1 - debt.current_principal_outstanding / debt.principal_original) * 100,
+                  )
+                  : 0;
+                const liabilityTypeLabel = debt.liability_type === "mortgage"
+                  ? (vi ? "Thế chấp" : "Mortgage")
+                  : debt.liability_type === "family_loan"
+                    ? (vi ? "Vay gia đình" : "Family loan")
+                    : debt.liability_type === "personal_loan"
+                      ? (vi ? "Vay cá nhân" : "Personal loan")
+                      : debt.liability_type === "car_loan"
+                        ? (vi ? "Vay mua xe" : "Car loan")
+                        : debt.liability_type.replace(/_/g, " ");
 
                 return (
                   <li key={debt.id} className="py-4 first:pt-0 last:pb-0">
@@ -85,23 +95,23 @@ export default async function DebtsPage() {
                             {debt.name}
                           </p>
                           <p className="text-xs text-slate-500 mt-0.5">
-                            {debt.liability_type.replace(/_/g, " ")}
+                            {liabilityTypeLabel}
                           </p>
                         </div>
                         <div className="text-right">
                           <p className="text-sm font-bold text-slate-900">
-                            {formatVnd(debt.current_principal_outstanding)}
+                            {formatVnd(debt.current_principal_outstanding, householdLocale)}
                           </p>
                           <p className="text-[10px] text-slate-400 font-medium">
-                            remaining
+                            {vi ? "còn lại" : "remaining"}
                           </p>
                         </div>
                       </div>
 
                       <div className="space-y-1.5">
                         <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                          <span>Payoff Progress</span>
-                          <span>{progress}% Paid</span>
+                          <span>{vi ? "Tiến độ trả nợ" : "Payoff Progress"}</span>
+                          <span>{progress}% {vi ? "đã trả" : "Paid"}</span>
                         </div>
                         <div className="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
                           <div
@@ -114,7 +124,7 @@ export default async function DebtsPage() {
                         href={`/debts/${debt.id}`}
                         className="inline-flex rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700"
                       >
-                        Open Detail
+                        {vi ? "Mở chi tiết" : "Open Detail"}
                       </Link>
                     </div>
                   </li>

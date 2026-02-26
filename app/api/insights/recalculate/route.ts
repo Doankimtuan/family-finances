@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { calculateAndPersistInsights } from "@/lib/insights/service";
+import { localeToLanguage, normalizeHouseholdLocale } from "@/lib/i18n/config";
 import { createClient } from "@/lib/supabase/server";
 
 export async function GET(request: Request) {
@@ -31,7 +32,16 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: membership.error?.message ?? "No household found." }, { status: 404 });
     }
 
-    const insights = await calculateAndPersistInsights(supabase, membership.data.household_id, asOfDate);
+    const householdResult = await supabase
+      .from("households")
+      .select("locale")
+      .eq("id", membership.data.household_id)
+      .maybeSingle();
+    const householdLocale = normalizeHouseholdLocale(householdResult.data?.locale);
+    const insights = await calculateAndPersistInsights(supabase, membership.data.household_id, asOfDate, {
+      locale: householdLocale,
+      language: localeToLanguage(householdLocale),
+    });
 
     return NextResponse.json({ count: insights.length, insights }, { status: 200 });
   } catch (error) {

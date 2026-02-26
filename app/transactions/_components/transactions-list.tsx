@@ -1,4 +1,6 @@
 import { formatVnd } from "@/lib/dashboard/format";
+import { formatDate } from "@/lib/dashboard/format";
+import { useI18n } from "@/lib/providers/i18n-provider";
 
 type TransactionItem = {
   id: string;
@@ -13,8 +15,10 @@ type TransactionItem = {
 };
 
 export function TransactionsList({ items }: { items: TransactionItem[] }) {
+  const { locale, t } = useI18n();
+
   if (items.length === 0) {
-    return <p className="text-sm text-slate-500">No transactions yet. Use Quick Add to log your first one.</p>;
+    return <p className="text-sm text-slate-500">{t("transactions.none")}</p>;
   }
 
   return (
@@ -25,19 +29,19 @@ export function TransactionsList({ items }: { items: TransactionItem[] }) {
             <div>
               <p className="text-sm font-semibold text-slate-900">
                 {item.type === "income"
-                  ? `Income · ${item.category_name ?? "Uncategorized"}`
+                  ? `${t("transactions.income")} · ${item.category_name ?? t("transactions.uncategorized")}`
                   : item.type === "transfer"
-                    ? `Transfer · ${item.account_name ?? "Unknown"} -> ${item.counterparty_account_name ?? "Unknown"}`
-                    : `Expense · ${item.category_name ?? "Uncategorized"}`}
+                    ? `${t("transactions.transfer")} · ${item.account_name ?? t("transactions.unknown_account")} -> ${item.counterparty_account_name ?? t("transactions.unknown_account")}`
+                    : `${t("transactions.expense")} · ${item.category_name ?? t("transactions.uncategorized")}`}
               </p>
               <p className="mt-1 text-xs text-slate-500">
-                {item.account_name ?? "Unknown account"} · {new Date(item.transaction_date).toLocaleDateString("en-US")}
+                {item.account_name ?? t("transactions.unknown_account")} · {formatDate(item.transaction_date, locale)}
               </p>
-              <p className="mt-0.5 text-xs text-slate-500">Logged by {item.member_name ?? "Household member"}</p>
+              <p className="mt-0.5 text-xs text-slate-500">{t("transactions.logged_by")} {item.member_name ?? t("transactions.household_member")}</p>
               {item.description ? <p className="mt-1 text-sm text-slate-600">{item.description}</p> : null}
             </div>
             <p className={`text-sm font-semibold ${item.type === "income" ? "text-emerald-600" : item.type === "transfer" ? "text-slate-700" : "text-rose-600"}`}>
-              {item.type === "income" ? "+" : item.type === "transfer" ? "\u2192" : "-"}{formatVnd(item.amount)}
+              {item.type === "income" ? "+" : item.type === "transfer" ? "\u2192" : "-"}{formatVnd(item.amount, locale)}
             </p>
           </div>
         </li>

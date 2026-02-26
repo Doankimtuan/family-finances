@@ -6,6 +6,7 @@ import { TransactionsList } from "@/app/transactions/_components/transactions-li
 import { AppHeader } from "@/components/layout/app-header";
 import { AppShell } from "@/components/layout/app-shell";
 import { BottomTabBar } from "@/components/layout/bottom-tab-bar";
+import { t } from "@/lib/i18n/dictionary";
 import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
 import { createClient } from "@/lib/supabase/server";
 
@@ -14,7 +15,8 @@ export const metadata = {
 };
 
 export default async function TransactionsPage() {
-  const { householdId } = await getAuthenticatedHouseholdContext();
+  const { householdId, language } = await getAuthenticatedHouseholdContext();
+  const vi = language === "vi";
   const supabase = await createClient();
 
   const [accountsResult, categoriesResult, transactionsResult] = await Promise.all([
@@ -68,34 +70,50 @@ export default async function TransactionsPage() {
     .map((category) => ({ id: category.id, name: category.name }));
 
   return (
-    <AppShell header={<AppHeader title="Transactions" />} footer={<BottomTabBar />}>
+    <AppShell header={<AppHeader title={t(language, "transactions.title")} />} footer={<BottomTabBar />}>
       <section className="space-y-4 pb-20 sm:pb-6">
         <header>
-          <p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-500">Cash Flow Tracking</p>
-          <h1 className="text-2xl font-semibold text-slate-900">Fast logging, clear household history</h1>
-          <p className="mt-1 text-sm text-slate-600">Mobile quick add is optimized to keep expense logging under 10 seconds.</p>
+          <p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-500">
+            {vi ? "Theo dõi dòng tiền" : "Cash Flow Tracking"}
+          </p>
+          <h1 className="text-2xl font-semibold text-slate-900">
+            {vi ? "Ghi nhanh, lịch sử gia đình rõ ràng" : "Fast logging, clear household history"}
+          </h1>
+          <p className="mt-1 text-sm text-slate-600">
+            {vi
+              ? "Thêm nhanh trên di động được tối ưu để ghi chi tiêu trong dưới 10 giây."
+              : "Mobile quick add is optimized to keep expense logging under 10 seconds."}
+          </p>
         </header>
 
         {accounts.length === 0 ? (
           <article className="rounded-2xl border border-amber-200 bg-white p-5 shadow-sm">
-            <p className="text-sm text-amber-700">No active account found. Add one first in Accounts module.</p>
+            <p className="text-sm text-amber-700">
+              {vi
+                ? "Không tìm thấy tài khoản đang hoạt động. Hãy thêm tài khoản trước trong mục Tài khoản."
+                : "No active account found. Add one first in Accounts module."}
+            </p>
             <Link href="/accounts" className="mt-3 inline-flex rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white">
-              Go to Accounts
+              {vi ? "Đến Tài khoản" : "Go to Accounts"}
             </Link>
           </article>
         ) : (
           <>
             <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:hidden">
-              <h2 className="text-lg font-semibold text-slate-900">Quick Add</h2>
-              <p className="mt-1 text-sm text-slate-600">Amount to category to done.</p>
+              <h2 className="text-lg font-semibold text-slate-900">{vi ? "Thêm nhanh" : "Quick Add"}</h2>
+              <p className="mt-1 text-sm text-slate-600">
+                {vi ? "Nhập số tiền, chọn danh mục và hoàn tất." : "Amount to category to done."}
+              </p>
               <div className="mt-4">
                 <QuickAddForm accountId={accounts[0]!.id} categories={quickCategories} />
               </div>
             </article>
 
             <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <h2 className="text-lg font-semibold text-slate-900">Detailed Entry</h2>
-              <p className="mt-1 text-sm text-slate-600">Use this when you need date/account/category precision.</p>
+              <h2 className="text-lg font-semibold text-slate-900">{vi ? "Nhập chi tiết" : "Detailed Entry"}</h2>
+              <p className="mt-1 text-sm text-slate-600">
+                {vi ? "Dùng khi bạn cần chính xác ngày, tài khoản và danh mục." : "Use this when you need date/account/category precision."}
+              </p>
               <div className="mt-4">
                 <DetailedTransactionForm
                   accounts={accounts.map((account) => ({ id: account.id, name: account.name }))}
@@ -107,7 +125,7 @@ export default async function TransactionsPage() {
             </article>
 
             <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <h2 className="text-lg font-semibold text-slate-900">Recent Transactions</h2>
+              <h2 className="text-lg font-semibold text-slate-900">{vi ? "Giao dịch gần đây" : "Recent Transactions"}</h2>
               {transactionsResult.error ? (
                 <p className="mt-2 text-sm text-rose-600">{transactionsResult.error.message}</p>
               ) : (

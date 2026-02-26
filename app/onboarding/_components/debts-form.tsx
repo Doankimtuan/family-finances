@@ -9,8 +9,11 @@ import {
 } from "@/app/onboarding/action-types";
 import { VndCurrencyInput } from "@/app/onboarding/_components/vnd-currency-input";
 import { Button } from "@/components/ui/button";
+import { useI18n } from "@/lib/providers/i18n-provider";
 
 export function DebtsForm() {
+  const { language } = useI18n();
+  const vi = language === "vi";
   const [state, action] = useActionState<OnboardingActionState, FormData>(
     addDebtOnboardingAction,
     initialOnboardingActionState,
@@ -35,13 +38,13 @@ export function DebtsForm() {
             htmlFor="name"
             className="text-sm font-semibold text-slate-700"
           >
-            Debt name
+            {vi ? "Tên khoản nợ" : "Debt name"}
           </label>
           <input
             id="name"
             name="name"
             required
-            placeholder="VPBank Mortgage"
+            placeholder={vi ? "Khoản vay VPBank" : "VPBank Mortgage"}
             className={inputClasses}
           />
         </div>
@@ -51,7 +54,7 @@ export function DebtsForm() {
             htmlFor="liabilityType"
             className="text-sm font-semibold text-slate-700"
           >
-            Type
+            {vi ? "Loại" : "Type"}
           </label>
           <select
             id="liabilityType"
@@ -59,10 +62,10 @@ export function DebtsForm() {
             defaultValue="mortgage"
             className={inputClasses}
           >
-            <option value="mortgage">Mortgage</option>
-            <option value="family_loan">Family Loan</option>
-            <option value="personal_loan">Personal Loan</option>
-            <option value="car_loan">Car Loan</option>
+            <option value="mortgage">{vi ? "Thế chấp" : "Mortgage"}</option>
+            <option value="family_loan">{vi ? "Vay gia đình" : "Family Loan"}</option>
+            <option value="personal_loan">{vi ? "Vay cá nhân" : "Personal Loan"}</option>
+            <option value="car_loan">{vi ? "Vay mua xe" : "Car Loan"}</option>
           </select>
         </div>
 
@@ -72,7 +75,7 @@ export function DebtsForm() {
               htmlFor="principalOriginal"
               className="text-sm font-semibold text-slate-700"
             >
-              Original principal (VND)
+              {vi ? "Gốc ban đầu (VND)" : "Original principal (VND)"}
             </label>
             <VndCurrencyInput
               id="principalOriginal"
@@ -86,7 +89,7 @@ export function DebtsForm() {
               htmlFor="currentOutstanding"
               className="text-sm font-semibold text-slate-700"
             >
-              Current outstanding (VND)
+              {vi ? "Dư nợ hiện tại (VND)" : "Current outstanding (VND)"}
             </label>
             <VndCurrencyInput
               id="currentOutstanding"
@@ -103,7 +106,7 @@ export function DebtsForm() {
               htmlFor="annualRate"
               className="text-sm font-semibold text-slate-700"
             >
-              Annual rate (%)
+              {vi ? "Lãi suất năm (%)" : "Annual rate (%)"}
             </label>
             <input
               id="annualRate"
@@ -120,7 +123,7 @@ export function DebtsForm() {
               htmlFor="repaymentMethod"
               className="text-sm font-semibold text-slate-700"
             >
-              Repayment method
+              {vi ? "Phương thức trả nợ" : "Repayment method"}
             </label>
             <select
               id="repaymentMethod"
@@ -128,9 +131,9 @@ export function DebtsForm() {
               defaultValue="annuity"
               className={inputClasses}
             >
-              <option value="annuity">Equal total payment</option>
-              <option value="equal_principal">Equal principal</option>
-              <option value="flexible">Flexible</option>
+              <option value="annuity">{vi ? "Tổng trả cố định" : "Equal total payment"}</option>
+              <option value="equal_principal">{vi ? "Gốc cố định" : "Equal principal"}</option>
+              <option value="flexible">{vi ? "Linh hoạt" : "Flexible"}</option>
             </select>
           </div>
         </div>
@@ -141,7 +144,7 @@ export function DebtsForm() {
         disabled={isPending}
         className="w-full py-6 text-base"
       >
-        {isPending ? "Saving..." : "Add Debt"}
+        {isPending ? (vi ? "Đang lưu..." : "Saving...") : (vi ? "Thêm khoản nợ" : "Add Debt")}
       </Button>
 
       {state.status === "error" && state.message ? (

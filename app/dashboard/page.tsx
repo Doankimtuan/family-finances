@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { AppHeader } from "@/components/layout/app-header";
 import { AppShell } from "@/components/layout/app-shell";
 import { BottomTabBar } from "@/components/layout/bottom-tab-bar";
+import { t } from "@/lib/i18n/dictionary";
+import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
 import { createClient } from "@/lib/supabase/server";
 
 import { DashboardCorePanel } from "./_components/dashboard-core-panel";
@@ -13,6 +15,7 @@ export const metadata = {
 
 export default async function DashboardPage() {
   const supabase = await createClient();
+  const { language } = await getAuthenticatedHouseholdContext();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -36,7 +39,7 @@ export default async function DashboardPage() {
 
   return (
     <AppShell
-      header={<AppHeader title="Core Dashboard" />}
+      header={<AppHeader title={t(language, "dashboard.title")} />}
       footer={<BottomTabBar />}
     >
       <DashboardCorePanel />
