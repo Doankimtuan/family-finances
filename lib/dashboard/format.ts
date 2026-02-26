@@ -12,6 +12,29 @@ export function formatVnd(value: number | null | undefined): string {
   }).format(value);
 }
 
+export function formatVndCompact(value: number | null | undefined): string {
+  if (value === null || value === undefined || Number.isNaN(value)) {
+    return "-";
+  }
+
+  const abs = Math.abs(value);
+  const sign = value < 0 ? "-" : "";
+
+  if (abs >= 1_000_000_000) {
+    return `${sign}${(abs / 1_000_000_000).toFixed(1)} ty`;
+  }
+
+  if (abs >= 1_000_000) {
+    return `${sign}${(abs / 1_000_000).toFixed(1)} tr`;
+  }
+
+  if (abs >= 1_000) {
+    return `${sign}${(abs / 1_000).toFixed(1)}k`;
+  }
+
+  return `${sign}${Math.round(abs).toString()} VND`;
+}
+
 export function formatPercent(value: number | null | undefined): string {
   if (value === null || value === undefined || Number.isNaN(value)) {
     return "-";

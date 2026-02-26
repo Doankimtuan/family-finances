@@ -8,6 +8,7 @@ type TransactionItem = {
   description: string | null;
   category_name: string | null;
   account_name: string | null;
+  member_name: string | null;
 };
 
 export function TransactionsList({ items }: { items: TransactionItem[] }) {
@@ -27,6 +28,7 @@ export function TransactionsList({ items }: { items: TransactionItem[] }) {
               <p className="mt-1 text-xs text-slate-500">
                 {item.account_name ?? "Unknown account"} · {new Date(item.transaction_date).toLocaleDateString("en-US")}
               </p>
+              <p className="mt-0.5 text-xs text-slate-500">Logged by {item.member_name ?? "Household member"}</p>
               {item.description ? <p className="mt-1 text-sm text-slate-600">{item.description}</p> : null}
             </div>
             <p className={`text-sm font-semibold ${item.type === "income" ? "text-emerald-600" : "text-rose-600"}`}>

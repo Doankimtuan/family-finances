@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { TrendingDown } from "lucide-react";
 
 import { DebtsForm } from "@/app/onboarding/_components/debts-form";
@@ -109,6 +110,12 @@ export default async function DebtsPage() {
                           />
                         </div>
                       </div>
+                      <Link
+                        href={`/debts/${debt.id}`}
+                        className="inline-flex rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700"
+                      >
+                        Open Detail
+                      </Link>
                     </div>
                   </li>
                 );

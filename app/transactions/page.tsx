@@ -3,6 +3,9 @@ import Link from "next/link";
 import { DetailedTransactionForm } from "@/app/transactions/_components/detailed-transaction-form";
 import { QuickAddForm } from "@/app/transactions/_components/quick-add-form";
 import { TransactionsList } from "@/app/transactions/_components/transactions-list";
+import { AppHeader } from "@/components/layout/app-header";
+import { AppShell } from "@/components/layout/app-shell";
+import { BottomTabBar } from "@/components/layout/bottom-tab-bar";
 import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
 import { createClient } from "@/lib/supabase/server";
 
@@ -29,7 +32,7 @@ export default async function TransactionsPage() {
       .order("sort_order", { ascending: true }),
     supabase
       .from("transactions")
-      .select("id, type, amount, transaction_date, description, category_id, account_id")
+      .select("id, type, amount, transaction_date, description, category_id, account_id, paid_by_member_id")
       .eq("household_id", householdId)
       .order("transaction_date", { ascending: false })
       .order("created_at", { ascending: false })
@@ -41,6 +44,12 @@ export default async function TransactionsPage() {
   const accountMap = new Map(accounts.map((a) => [a.id, a.name]));
   const categoryMap = new Map(categories.map((c) => [c.id, c.name]));
 
+  const memberIds = Array.from(new Set((transactionsResult.data ?? []).map((tx) => tx.paid_by_member_id).filter(Boolean)));
+  const profilesResult = memberIds.length
+    ? await supabase.from("profiles").select("user_id, full_name").in("user_id", memberIds)
+    : { data: [], error: null };
+  const profileMap = new Map((profilesResult.data ?? []).map((p) => [p.user_id, p.full_name]));
+
   const listItems = (transactionsResult.data ?? []).map((tx) => ({
     id: tx.id,
     type: tx.type,
@@ -49,15 +58,21 @@ export default async function TransactionsPage() {
     description: tx.description,
     category_name: tx.category_id ? categoryMap.get(tx.category_id) ?? null : null,
     account_name: tx.account_id ? accountMap.get(tx.account_id) ?? null : null,
+    member_name: tx.paid_by_member_id ? profileMap.get(tx.paid_by_member_id) ?? null : null,
   }));
 
+  const quickCategories = categories
+    .filter((category) => category.kind === "expense")
+    .slice(0, 8)
+    .map((category) => ({ id: category.id, name: category.name }));
+
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-6 pb-24">
-      <section className="mx-auto w-full max-w-3xl space-y-4">
+    <AppShell header={<AppHeader title="Transactions" />} footer={<BottomTabBar />}>
+      <section className="space-y-4 pb-20 sm:pb-6">
         <header>
-          <p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-500">Transactions Module</p>
-          <h1 className="text-2xl font-semibold text-slate-900">Log and review cash flow</h1>
-          <p className="mt-1 text-sm text-slate-600">Quick add is optimized for fast mobile logging.</p>
+          <p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-500">Cash Flow Tracking</p>
+          <h1 className="text-2xl font-semibold text-slate-900">Fast logging, clear household history</h1>
+          <p className="mt-1 text-sm text-slate-600">Mobile quick add is optimized to keep expense logging under 10 seconds.</p>
         </header>
 
         {accounts.length === 0 ? (
@@ -69,9 +84,17 @@ export default async function TransactionsPage() {
           </article>
         ) : (
           <>
+            <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:hidden">
+              <h2 className="text-lg font-semibold text-slate-900">Quick Add</h2>
+              <p className="mt-1 text-sm text-slate-600">Amount to category to done.</p>
+              <div className="mt-4">
+                <QuickAddForm accountId={accounts[0]!.id} categories={quickCategories} />
+              </div>
+            </article>
+
             <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
               <h2 className="text-lg font-semibold text-slate-900">Detailed Entry</h2>
-              <p className="mt-1 text-sm text-slate-600">Use full form when you need account/category/date details.</p>
+              <p className="mt-1 text-sm text-slate-600">Use this when you need date/account/category precision.</p>
               <div className="mt-4">
                 <DetailedTransactionForm
                   accounts={accounts.map((account) => ({ id: account.id, name: account.name }))}
@@ -95,15 +118,6 @@ export default async function TransactionsPage() {
           </>
         )}
       </section>
-
-      {accounts.length > 0 ? (
-        <section className="fixed inset-x-0 bottom-0 border-t border-slate-200 bg-white/95 p-3 backdrop-blur sm:hidden">
-          <div className="mx-auto w-full max-w-3xl">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Quick Add</p>
-            <QuickAddForm />
-          </div>
-        </section>
-      ) : null}
-    </main>
+    </AppShell>
   );
 }

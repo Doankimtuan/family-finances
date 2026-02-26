@@ -77,36 +77,44 @@ export async function quickAddTransactionAction(
 ): Promise<TransactionActionState> {
   const type = String(formData.get("type") ?? "expense").trim() as "income" | "expense";
   const amount = Number(formData.get("amount") ?? 0);
+  const categoryIdRaw = String(formData.get("categoryId") ?? "").trim();
+  const accountIdRaw = String(formData.get("accountId") ?? "").trim();
+  const descriptionRaw = String(formData.get("description") ?? "").trim();
 
   if (!(type === "income" || type === "expense")) return fail("Invalid transaction type.");
   if (!Number.isFinite(amount) || amount <= 0) return fail("Amount must be greater than zero.");
+  if (type === "expense" && !categoryIdRaw) return fail("Choose a category to finish quick logging.");
 
   const { supabase, user, householdId, error } = await resolveContext();
   if (error || !user || !householdId) return fail(error ?? "No household found.");
 
-  const account = await supabase
-    .from("accounts")
-    .select("id")
-    .eq("household_id", householdId)
-    .eq("is_archived", false)
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
+  let accountId = accountIdRaw;
+  if (!accountId) {
+    const account = await supabase
+      .from("accounts")
+      .select("id")
+      .eq("household_id", householdId)
+      .eq("is_archived", false)
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
 
-  if (account.error || !account.data?.id) {
-    return fail(account.error?.message ?? "Add an account first.");
+    if (account.error || !account.data?.id) {
+      return fail(account.error?.message ?? "Add an account first.");
+    }
+    accountId = account.data.id;
   }
 
-  const categoryId = await getDefaultCategoryId(supabase, householdId, type);
+  const categoryId = categoryIdRaw.length > 0 ? categoryIdRaw : await getDefaultCategoryId(supabase, householdId, type);
 
   const insert = await supabase.from("transactions").insert({
     household_id: householdId,
-    account_id: account.data.id,
+    account_id: accountId,
     type,
     amount: Math.round(amount),
     currency: "VND",
     transaction_date: new Date().toISOString().slice(0, 10),
-    description: type === "income" ? "Quick income" : "Quick expense",
+    description: descriptionRaw.length > 0 ? descriptionRaw : type === "income" ? "Quick income" : "Quick expense",
     category_id: categoryId,
     paid_by_member_id: user.id,
     status: "cleared",
