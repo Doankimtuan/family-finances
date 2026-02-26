@@ -320,6 +320,100 @@ export function DashboardCorePanel() {
 
       <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-500">
+          Drill-Down & Explainability
+        </p>
+        <div className="mt-3 space-y-2">
+          <details className="group rounded-xl border border-slate-200 p-3">
+            <summary className="cursor-pointer list-none text-sm font-semibold text-slate-900">
+              Net Worth Source of Truth
+            </summary>
+            <p className="mt-2 text-xs text-slate-600">
+              Formula: Net worth = sum(asset line items) - sum(liability line
+              items)
+            </p>
+            <ul className="mt-2 space-y-1 text-xs text-slate-700">
+              {(payload.drilldowns?.netWorth.assets ?? []).map((row) => (
+                <li key={`a-${row.source}`} className="rounded-lg bg-slate-50 px-2 py-1">
+                  + {row.label}: {formatVnd(row.value)} · <span className="text-slate-500">{row.source}</span>
+                </li>
+              ))}
+              {(payload.drilldowns?.netWorth.liabilities ?? []).map((row) => (
+                <li key={`l-${row.source}`} className="rounded-lg bg-slate-50 px-2 py-1">
+                  - {row.label}: {formatVnd(row.value)} · <span className="text-slate-500">{row.source}</span>
+                </li>
+              ))}
+            </ul>
+          </details>
+
+          <details className="group rounded-xl border border-slate-200 p-3">
+            <summary className="cursor-pointer list-none text-sm font-semibold text-slate-900">
+              Cash Flow Source of Truth
+            </summary>
+            <p className="mt-2 text-xs text-slate-600">
+              Month window: {payload.drilldowns?.cashFlow.monthStart} to{" "}
+              {payload.drilldowns?.cashFlow.monthEnd}
+            </p>
+            <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Income</p>
+                <ul className="mt-1 space-y-1 text-xs text-slate-700">
+                  {(payload.drilldowns?.cashFlow.income ?? []).map((row) => (
+                    <li key={`i-${row.source}`} className="rounded-lg bg-slate-50 px-2 py-1">
+                      {row.label}: {formatVnd(row.value)}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Expense</p>
+                <ul className="mt-1 space-y-1 text-xs text-slate-700">
+                  {(payload.drilldowns?.cashFlow.expense ?? []).map((row) => (
+                    <li key={`e-${row.source}`} className="rounded-lg bg-slate-50 px-2 py-1">
+                      {row.label}: {formatVnd(row.value)}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </details>
+
+          <details className="group rounded-xl border border-slate-200 p-3">
+            <summary className="cursor-pointer list-none text-sm font-semibold text-slate-900">
+              Health Score Explainability
+            </summary>
+            {payload.health ? (
+              <>
+                <p className="mt-2 text-xs text-slate-600">
+                  Overall = weighted sum of factor scores. Higher is healthier.
+                </p>
+                <ul className="mt-2 space-y-1 text-xs text-slate-700">
+                  {Object.entries(payload.health.factorScores).map(([k, v]) => {
+                    const weight =
+                      payload.health?.weights[
+                        k as keyof typeof payload.health.weights
+                      ] ?? 0;
+                    const contribution = (v * weight) / 100;
+                    return (
+                      <li key={k} className="rounded-lg bg-slate-50 px-2 py-1">
+                        {k}: score {Math.round(v)} × weight {weight}% ={" "}
+                        {contribution.toFixed(1)} pts
+                      </li>
+                    );
+                  })}
+                </ul>
+                <p className="mt-2 text-xs text-slate-600">
+                  Top action rule: lowest-scoring urgent factor gets prioritized.
+                </p>
+              </>
+            ) : (
+              <p className="mt-2 text-xs text-slate-600">Health details not available yet.</p>
+            )}
+          </details>
+        </div>
+      </article>
+
+      <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-500">
           Quick Actions
         </p>
         <div className="mt-3 grid grid-cols-2 gap-2">

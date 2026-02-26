@@ -203,6 +203,7 @@ export async function calculateAndPersistHealthSnapshot(
     snapshotMonth,
     overallScore: health.overallScore,
     factorScores: health.factorScores,
+    weights: health.weights,
     topAction: health.topAction,
     metrics: health.metrics,
   };

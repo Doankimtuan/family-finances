@@ -40,7 +40,27 @@ export type DashboardCoreResponse = {
       goals: number;
       diversification: number;
     };
+    weights: {
+      cashflow: number;
+      emergency: number;
+      debt: number;
+      networth: number;
+      goals: number;
+      diversification: number;
+    };
     topAction: string;
     metrics: Record<string, number | null>;
+  } | null;
+  drilldowns: {
+    netWorth: {
+      assets: Array<{ label: string; value: number; source: string }>;
+      liabilities: Array<{ label: string; value: number; source: string }>;
+    };
+    cashFlow: {
+      income: Array<{ label: string; value: number; source: string }>;
+      expense: Array<{ label: string; value: number; source: string }>;
+      monthStart: string;
+      monthEnd: string;
+    };
   } | null;
 };

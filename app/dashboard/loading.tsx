@@ -9,6 +9,7 @@ export default function DashboardLoading() {
         </div>
         <div className="h-80 rounded-2xl bg-white shadow-sm" />
         <div className="h-32 rounded-2xl bg-white shadow-sm" />
+        <div className="h-64 rounded-2xl bg-white shadow-sm" />
         <div className="grid grid-cols-2 gap-2">
           <div className="h-11 rounded-xl bg-white shadow-sm" />
           <div className="h-11 rounded-xl bg-white shadow-sm" />
