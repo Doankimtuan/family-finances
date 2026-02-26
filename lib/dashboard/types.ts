@@ -29,4 +29,18 @@ export type DashboardTrendPoint = {
 export type DashboardCoreResponse = {
   metrics: DashboardCoreMetrics | null;
   trend: DashboardTrendPoint[];
+  health: {
+    snapshotMonth: string;
+    overallScore: number;
+    factorScores: {
+      cashflow: number;
+      emergency: number;
+      debt: number;
+      networth: number;
+      goals: number;
+      diversification: number;
+    };
+    topAction: string;
+    metrics: Record<string, number | null>;
+  } | null;
 };

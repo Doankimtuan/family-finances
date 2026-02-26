@@ -25,44 +25,6 @@ import { cn } from "@/lib/utils";
 
 type FetchState = "idle" | "loading" | "success" | "error";
 
-function computeHealthScore(input: {
-  savingsRate: number | null;
-  emergencyMonths: number | null;
-  debtServiceRatio: number | null;
-}) {
-  const savingsRate = input.savingsRate ?? 0;
-  const emergencyMonths = input.emergencyMonths ?? 0;
-  const debtServiceRatio = input.debtServiceRatio ?? 1;
-
-  const savingsScore = Math.max(0, Math.min(30, (savingsRate / 0.2) * 30));
-  const emergencyScore = Math.max(0, Math.min(30, (emergencyMonths / 6) * 30));
-  const debtScore = Math.max(0, Math.min(40, ((0.5 - debtServiceRatio) / 0.5) * 40));
-
-  return Math.max(0, Math.min(100, Math.round(savingsScore + emergencyScore + debtScore)));
-}
-
-function topAction(input: {
-  monthlySavings: number;
-  savingsRate: number | null;
-  emergencyMonths: number | null;
-  debtServiceRatio: number | null;
-}) {
-  if (input.monthlySavings < 0) {
-    return "You are spending more than income this month. Reduce one variable spending category this week.";
-  }
-  if ((input.emergencyMonths ?? 0) < 3) {
-    return "Your cash buffer is still thin. Auto-transfer part of monthly savings into emergency reserves.";
-  }
-  if ((input.debtServiceRatio ?? 0) > 0.35) {
-    return "Debt payments are heavy vs income. Prepay highest-cost debt before adding new obligations.";
-  }
-  if ((input.savingsRate ?? 0) < 0.2) {
-    return "Increase savings rate by 5% of income to reach long-term goals sooner.";
-  }
-
-  return "Your trajectory is healthy. Keep current savings habit and review goals at month-end.";
-}
-
 function MetricCard({
   label,
   value,
@@ -257,17 +219,8 @@ export function DashboardCorePanel() {
   }
 
   const { metrics, trend } = payload;
-  const score = computeHealthScore({
-    savingsRate: metrics.savings_rate,
-    emergencyMonths: metrics.emergency_months,
-    debtServiceRatio: metrics.debt_service_ratio,
-  });
-  const action = topAction({
-    monthlySavings: Number(metrics.monthly_savings),
-    savingsRate: metrics.savings_rate,
-    emergencyMonths: metrics.emergency_months,
-    debtServiceRatio: metrics.debt_service_ratio,
-  });
+  const score = payload.health?.overallScore ?? 0;
+  const action = payload.health?.topAction ?? "Build more data to generate a monthly top action.";
 
   return (
     <section className="space-y-4">
@@ -286,7 +239,7 @@ export function DashboardCorePanel() {
         />
         <MetricCard
           label="Health Score"
-          value={`${score}/100`}
+          value={`${score.toFixed(0)}/100`}
           note={`Emergency ${formatMonths(metrics.emergency_months)} · DSR ${formatPercent(metrics.debt_service_ratio)}`}
           href="/debts"
         />
@@ -297,6 +250,11 @@ export function DashboardCorePanel() {
       <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-500">Most Impactful Action This Month</p>
         <p className="mt-2 text-sm text-slate-700">{action}</p>
+        {payload.health ? (
+          <p className="mt-2 text-xs text-slate-500">
+            Factors: cashflow {Math.round(payload.health.factorScores.cashflow)}, emergency {Math.round(payload.health.factorScores.emergency)}, debt {Math.round(payload.health.factorScores.debt)}, goals {Math.round(payload.health.factorScores.goals)}
+          </p>
+        ) : null}
       </article>
 
       <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -316,6 +274,9 @@ export function DashboardCorePanel() {
           </Button>
           <Button asChild variant="outline" className="w-full">
             <Link href="/goals">Goals</Link>
+          </Button>
+          <Button asChild variant="outline" className="w-full">
+            <Link href="/health">Health Details</Link>
           </Button>
         </div>
       </article>

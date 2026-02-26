@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import type { DashboardCoreMetrics, DashboardCoreResponse, DashboardTrendPoint } from "@/lib/dashboard/types";
+import { calculateAndPersistHealthSnapshot } from "@/lib/health/service";
 import { createClient } from "@/lib/supabase/server";
 
 type RpcError = {
@@ -56,7 +57,7 @@ export async function GET(request: Request) {
 
     const householdId = householdResult.data.household_id;
 
-    const [coreResult, trendResult] = await Promise.all([
+    const [coreResult, trendResult, healthResult] = await Promise.all([
       supabase.rpc("rpc_dashboard_core", {
         p_household_id: householdId,
         p_as_of_date: asOfDate,
@@ -65,6 +66,7 @@ export async function GET(request: Request) {
         p_household_id: householdId,
         p_months: Number.isFinite(months) ? Math.max(1, months) : 6,
       }),
+      calculateAndPersistHealthSnapshot(supabase, householdId, asOfDate).catch(() => null),
     ]);
 
     if (coreResult.error) {
@@ -86,6 +88,7 @@ export async function GET(request: Request) {
     const payload: DashboardCoreResponse = {
       metrics: ((coreResult.data as DashboardCoreMetrics[] | null) ?? [])[0] ?? null,
       trend: ((trendResult.data as DashboardTrendPoint[] | null) ?? []).slice().reverse(),
+      health: healthResult,
     };
 
     return NextResponse.json(payload, { status: 200 });
