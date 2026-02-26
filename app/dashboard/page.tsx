@@ -17,6 +17,19 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
+  const householdMembership = await supabase
+    .from("household_members")
+    .select("household_id")
+    .eq("user_id", user.id)
+    .eq("is_active", true)
+    .order("joined_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  if (!householdMembership.data?.household_id) {
+    redirect("/household");
+  }
+
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-6">
       <section className="mx-auto w-full max-w-2xl">
