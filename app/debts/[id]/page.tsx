@@ -10,6 +10,7 @@ import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
 import { createClient } from "@/lib/supabase/server";
 
 import { PayoffChart } from "./_components/payoff-chart";
+import { RatePhaseChart } from "./_components/rate-phase-chart";
 
 export const metadata = {
   title: "Debt Detail | Family Finances",
@@ -49,7 +50,7 @@ export default async function DebtDetailPage({ params }: { params: Promise<{ id:
       .maybeSingle(),
     supabase
       .from("liability_rate_periods")
-      .select("period_start, period_end, annual_rate")
+      .select("period_start, period_end, annual_rate, is_promotional")
       .eq("household_id", householdId)
       .eq("liability_id", id)
       .order("period_start", { ascending: true }),
@@ -79,6 +80,7 @@ export default async function DebtDetailPage({ params }: { params: Promise<{ id:
       period_start: row.period_start,
       period_end: row.period_end,
       annual_rate: Number(row.annual_rate),
+      is_promotional: row.is_promotional,
     })),
     horizonMonths: 24,
   });
@@ -92,6 +94,13 @@ export default async function DebtDetailPage({ params }: { params: Promise<{ id:
   const avgRate = schedule.length
     ? schedule.reduce((sum, item) => sum + item.annualRate, 0) / schedule.length
     : Number(debt.promo_rate_annual ?? 0);
+  const promoMonthsInProjection = schedule.filter((row) => row.phase === "promo").length;
+  const floatingStartPoint = schedule.find((row) => row.phase === "floating");
+  const floatingStartPayment = floatingStartPoint?.payment ?? null;
+  const promoStartPayment = schedule.find((row) => row.phase === "promo")?.payment ?? null;
+  const switchDelta = floatingStartPayment !== null && promoStartPayment !== null
+    ? floatingStartPayment - promoStartPayment
+    : null;
 
   const guidance = debt.liability_type === "family_loan"
     ? "This is a family loan. Keep repayment expectations clear and predictable to protect trust on both sides."
@@ -140,6 +149,20 @@ export default async function DebtDetailPage({ params }: { params: Promise<{ id:
               Next payment date: {new Date(debt.next_payment_date).toLocaleDateString("en-US")}
             </p>
           ) : null}
+          {debt.liability_type === "mortgage" ? (
+            <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Promo to Floating Impact</p>
+              <p className="mt-1 text-sm text-slate-700">
+                Promo phase in projection: {promoMonthsInProjection} months
+                {floatingStartPoint ? ` · Floating starts ${new Date(floatingStartPoint.month).toLocaleDateString("en-US", { month: "short", year: "numeric" })}` : ""}
+              </p>
+              {switchDelta !== null ? (
+                <p className={`mt-1 text-sm font-medium ${switchDelta > 0 ? "text-rose-600" : "text-emerald-600"}`}>
+                  Payment change at switch: {switchDelta > 0 ? "+" : ""}{formatVnd(switchDelta)}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
         </article>
 
         <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -148,6 +171,46 @@ export default async function DebtDetailPage({ params }: { params: Promise<{ id:
           <div className="mt-4">
             <PayoffChart schedule={schedule} />
           </div>
+          <div className="mt-4">
+            <RatePhaseChart schedule={schedule} />
+          </div>
+        </article>
+
+        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <h2 className="text-lg font-semibold text-slate-900">Amortization Schedule (Next 12 months)</h2>
+          <p className="mt-1 text-sm text-slate-600">This shows when rate phases change and how principal vs interest shifts monthly.</p>
+          {schedule.length === 0 ? (
+            <p className="mt-2 text-sm text-slate-500">No projection available.</p>
+          ) : (
+            <div className="mt-3 overflow-x-auto">
+              <table className="min-w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b border-slate-200 text-xs uppercase tracking-[0.12em] text-slate-500">
+                    <th className="px-2 py-2">Month</th>
+                    <th className="px-2 py-2">Phase</th>
+                    <th className="px-2 py-2">Rate</th>
+                    <th className="px-2 py-2">Payment</th>
+                    <th className="px-2 py-2">Principal</th>
+                    <th className="px-2 py-2">Interest</th>
+                    <th className="px-2 py-2">Balance</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {schedule.slice(0, 12).map((row) => (
+                    <tr key={row.month} className="border-b border-slate-100 text-slate-700">
+                      <td className="px-2 py-2">{new Date(row.month).toLocaleDateString("en-US", { month: "short", year: "numeric" })}</td>
+                      <td className="px-2 py-2">{row.phaseLabel}</td>
+                      <td className="px-2 py-2">{formatPercent(row.annualRate)}</td>
+                      <td className="px-2 py-2">{formatVndCompact(row.payment)}</td>
+                      <td className="px-2 py-2">{formatVndCompact(row.principal)}</td>
+                      <td className="px-2 py-2">{formatVndCompact(row.interest)}</td>
+                      <td className="px-2 py-2">{formatVndCompact(row.balance)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </article>
 
         <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">

@@ -2,6 +2,7 @@ export type LiabilityRatePeriod = {
   period_start: string;
   period_end: string | null;
   annual_rate: number;
+  is_promotional?: boolean;
 };
 
 export type LiabilityProjectionInput = {
@@ -23,6 +24,8 @@ export type LiabilityProjectionPoint = {
   interest: number;
   balance: number;
   annualRate: number;
+  phase: "promo" | "floating" | "custom";
+  phaseLabel: string;
 };
 
 function monthStart(date: Date) {
@@ -50,20 +53,36 @@ function pickRateAnnual(input: LiabilityProjectionInput, monthDate: Date, monthO
     const isAfterStart = iso >= period.period_start;
     const isBeforeEnd = !period.period_end || iso <= period.period_end;
     if (isAfterStart && isBeforeEnd) {
-      return Number(period.annual_rate);
+      return {
+        annualRate: Number(period.annual_rate),
+        phase: period.is_promotional ? ("promo" as const) : ("custom" as const),
+        phaseLabel: period.is_promotional ? "Promotional phase" : "Configured rate phase",
+      };
     }
   }
 
   const promoMonths = input.promoMonths ?? 0;
   if (input.promoRateAnnual !== null && input.promoRateAnnual !== undefined && monthOffsetFromStart < promoMonths) {
-    return Number(input.promoRateAnnual);
+    return {
+      annualRate: Number(input.promoRateAnnual),
+      phase: "promo" as const,
+      phaseLabel: "Promotional phase",
+    };
   }
 
   if (input.promoRateAnnual !== null && input.promoRateAnnual !== undefined) {
-    return Number(input.promoRateAnnual) + Number(input.floatingRateMargin ?? 0);
+    return {
+      annualRate: Number(input.promoRateAnnual) + Number(input.floatingRateMargin ?? 0),
+      phase: "floating" as const,
+      phaseLabel: "Floating phase",
+    };
   }
 
-  return 0;
+  return {
+    annualRate: 0,
+    phase: "custom" as const,
+    phaseLabel: "No-rate phase",
+  };
 }
 
 export function buildLiabilityProjection(input: LiabilityProjectionInput): LiabilityProjectionPoint[] {
@@ -83,7 +102,8 @@ export function buildLiabilityProjection(input: LiabilityProjectionInput): Liabi
 
     const date = addMonths(now, i);
     const monthOffsetFromStart = monthDiff(start, date);
-    const annualRate = pickRateAnnual(input, date, monthOffsetFromStart);
+    const rateMeta = pickRateAnnual(input, date, monthOffsetFromStart);
+    const annualRate = rateMeta.annualRate;
     const monthlyRate = annualRate / 12;
 
     let payment = 0;
@@ -125,6 +145,8 @@ export function buildLiabilityProjection(input: LiabilityProjectionInput): Liabi
       interest: interestComponent,
       balance,
       annualRate,
+      phase: rateMeta.phase,
+      phaseLabel: rateMeta.phaseLabel,
     });
 
     remainingMonths = Math.max(1, remainingMonths - 1);
