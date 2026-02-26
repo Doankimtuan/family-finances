@@ -20,7 +20,46 @@ export default async function DecisionToolsPage() {
     .eq("household_id", householdId)
     .eq("status", "saved")
     .order("created_at", { ascending: false })
-    .limit(12);
+    .limit(24);
+
+  const scenarioIds = (scenariosResult.data ?? []).map((s) => s.id);
+  const resultsResult = scenarioIds.length
+    ? await supabase
+        .from("scenario_results")
+        .select("id, scenario_id, computed_at, summary_json, timeseries_json, key_metrics_json")
+        .eq("household_id", householdId)
+        .in("scenario_id", scenarioIds)
+        .order("computed_at", { ascending: false })
+    : { data: [], error: null };
+
+  const latestResultByScenarioId = new Map<string, {
+    computed_at: string;
+    summary_json: Record<string, unknown>;
+    timeseries_json: unknown[];
+    key_metrics_json: Record<string, unknown>;
+  }>();
+
+  for (const row of resultsResult.data ?? []) {
+    if (!latestResultByScenarioId.has(row.scenario_id)) {
+      latestResultByScenarioId.set(row.scenario_id, {
+        computed_at: row.computed_at,
+        summary_json: (row.summary_json ?? {}) as Record<string, unknown>,
+        timeseries_json: (row.timeseries_json ?? []) as unknown[],
+        key_metrics_json: (row.key_metrics_json ?? {}) as Record<string, unknown>,
+      });
+    }
+  }
+
+  const savedScenariosWithResults = (scenariosResult.data ?? []).map((scenario) => {
+    const result = latestResultByScenarioId.get(scenario.id);
+    return {
+      ...scenario,
+      result_computed_at: result?.computed_at ?? null,
+      summary_json: result?.summary_json ?? null,
+      timeseries_json: result?.timeseries_json ?? null,
+      key_metrics_json: result?.key_metrics_json ?? null,
+    };
+  });
 
   return (
     <AppShell header={<AppHeader title="Decision Tools" />} footer={<BottomTabBar />}>
@@ -32,12 +71,14 @@ export default async function DecisionToolsPage() {
           </p>
         </article>
 
-        {scenariosResult.error ? (
+        {scenariosResult.error || resultsResult.error ? (
           <article className="rounded-2xl border border-rose-200 bg-white p-5 shadow-sm">
-            <p className="text-sm text-rose-700">Could not load saved scenarios: {scenariosResult.error.message}</p>
+            <p className="text-sm text-rose-700">
+              Could not load saved scenarios: {scenariosResult.error?.message ?? resultsResult.error?.message}
+            </p>
           </article>
         ) : (
-          <DecisionToolsClient savedScenarios={scenariosResult.data ?? []} />
+          <DecisionToolsClient savedScenarios={savedScenariosWithResults} />
         )}
       </div>
     </AppShell>
