@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { HouseholdRealtimeSync } from "@/components/realtime/household-realtime-sync";
 import { cn } from "@/lib/utils";
 
 interface AppShellProps {
@@ -18,6 +19,7 @@ export function AppShell({
 }: AppShellProps) {
   return (
     <div className="flex min-h-dvh flex-col bg-slate-50">
+      <HouseholdRealtimeSync />
       {header && (
         <header className="sticky top-0 z-40 w-full border-b border-slate-200 bg-white/80 backdrop-blur-md">
           <div className="mx-auto flex h-14 max-w-2xl items-center px-4">
