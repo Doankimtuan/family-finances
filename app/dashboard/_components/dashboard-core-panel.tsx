@@ -5,7 +5,10 @@ import { useCallback, useEffect, useState } from "react";
 import {
   Area,
   AreaChart,
+  Cell,
   CartesianGrid,
+  Pie,
+  PieChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -28,6 +31,7 @@ import type {
 import { cn } from "@/lib/utils";
 
 type FetchState = "idle" | "loading" | "success" | "error";
+const PIE_COLORS = ["#0F766E", "#0284C7", "#16A34A", "#EA580C", "#7C3AED", "#BE123C", "#6D28D9", "#64748B"];
 
 function MetricCard({
   label,
@@ -156,6 +160,89 @@ function NetWorthTrend({ trend }: { trend: DashboardTrendPoint[] }) {
           </AreaChart>
         </ResponsiveContainer>
       </div>
+    </article>
+  );
+}
+
+function MonthlyExpenseAllocation({
+  expenseRows,
+  language,
+  locale,
+}: {
+  expenseRows: Array<{ label: string; value: number; color?: string | null }>;
+  language: "en" | "vi";
+  locale: string;
+}) {
+  const vi = language === "vi";
+  const rows = expenseRows
+    .map((row) => ({ name: row.label, value: Number(row.value), color: row.color ?? null }))
+    .filter((row) => row.value > 0);
+  const total = rows.reduce((sum, row) => sum + row.value, 0);
+
+  if (rows.length === 0 || total <= 0) {
+    return (
+      <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-500">
+          {vi ? "Phân bổ chi tiêu tháng" : "Monthly Expense Allocation"}
+        </p>
+        <p className="mt-2 text-sm text-slate-600">
+          {vi ? "Chưa có dữ liệu chi tiêu theo danh mục trong tháng này." : "No categorized expense data for this month yet."}
+        </p>
+      </article>
+    );
+  }
+
+  return (
+    <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-500">
+        {vi ? "Phân bổ chi tiêu tháng" : "Monthly Expense Allocation"}
+      </p>
+      <p className="mt-1 text-sm text-slate-700">
+        {vi ? "Tổng chi tiêu theo danh mục" : "Total categorized spending"}: {formatVnd(total, locale)}
+      </p>
+
+      <div className="mt-3 h-64 w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie
+              data={rows}
+              dataKey="value"
+              nameKey="name"
+              cx="50%"
+              cy="50%"
+              outerRadius={90}
+              innerRadius={46}
+              paddingAngle={2}
+            >
+              {rows.map((row, index) => (
+                <Cell key={`${row.name}-${index}`} fill={row.color ?? PIE_COLORS[index % PIE_COLORS.length]} />
+              ))}
+            </Pie>
+            <Tooltip
+              formatter={(value, name) => {
+                const numeric = Number(value ?? 0);
+                const pct = total > 0 ? (numeric / total) * 100 : 0;
+                return [`${formatVnd(numeric, locale)} (${pct.toFixed(1)}%)`, String(name)];
+              }}
+            />
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
+
+      <ul className="mt-2 space-y-1.5 text-xs text-slate-700">
+        {rows.slice(0, 6).map((row, index) => {
+          const pct = total > 0 ? (row.value / total) * 100 : 0;
+          return (
+            <li key={`legend-${row.name}-${index}`} className="flex items-center justify-between gap-2">
+              <span className="flex min-w-0 items-center gap-2">
+                <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ backgroundColor: row.color ?? PIE_COLORS[index % PIE_COLORS.length] }} />
+                <span className="truncate">{row.name}</span>
+              </span>
+              <span className="whitespace-nowrap font-medium">{pct.toFixed(1)}%</span>
+            </li>
+          );
+        })}
+      </ul>
     </article>
   );
 }
@@ -328,6 +415,11 @@ export function DashboardCorePanel() {
       </div>
 
       <NetWorthTrend trend={trend} />
+      <MonthlyExpenseAllocation
+        expenseRows={payload.drilldowns?.cashFlow.expense ?? []}
+        language={language}
+        locale={locale}
+      />
 
       <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-500">

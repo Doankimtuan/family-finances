@@ -5,6 +5,8 @@ import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
 import { createClient } from "@/lib/supabase/server";
 
 import { CategoryActiveToggle } from "./_components/category-active-toggle";
+import { CategoryDeleteButton } from "./_components/category-delete-button";
+import { CategoryRenameForm } from "./_components/category-rename-form";
 import { CreateCategoryForm } from "./_components/create-category-form";
 
 export const metadata = {
@@ -15,6 +17,7 @@ type CategoryRow = {
   id: string;
   kind: "income" | "expense";
   name: string;
+  color: string | null;
   is_system: boolean;
   is_active: boolean;
 };
@@ -25,10 +28,10 @@ export default async function CategoriesPage() {
 
   const categoriesResult = await supabase
     .from("categories")
-    .select("id, kind, name, is_system, is_active")
+    .select("id, kind, name, color, is_system, is_active")
     .or(`household_id.is.null,household_id.eq.${householdId}`)
     .order("kind", { ascending: true })
-    .order("is_system", { ascending: false })
+    .order("is_system", { ascending: true })
     .order("sort_order", { ascending: true });
 
   const categories = (categoriesResult.data ?? []) as CategoryRow[];
@@ -41,6 +44,7 @@ export default async function CategoriesPage() {
         <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-slate-900">Create Category</h2>
           <p className="mt-1 text-sm text-slate-600">Add household-specific income or expense categories.</p>
+          <p className="mt-1 text-xs text-slate-500">Categories with existing transactions cannot be deleted, but can still be edited.</p>
           <div className="mt-4">
             <CreateCategoryForm />
           </div>
@@ -74,12 +78,19 @@ function CategorySection({ rows, hasError }: { rows: CategoryRow[]; hasError: bo
         <li key={row.id} className="rounded-xl border border-slate-200 p-3">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-sm font-semibold text-slate-900">{row.name}</p>
+              <p className="text-sm font-semibold text-slate-900">
+                <span className="mr-2 inline-block h-2.5 w-2.5 rounded-full align-middle" style={{ backgroundColor: row.color ?? "#64748b" }} />
+                {row.name}
+              </p>
               <p className="text-xs text-slate-500">
                 {row.is_system ? "System category" : "Household category"} · {row.is_active ? "Active" : "Disabled"}
               </p>
             </div>
-            {!row.is_system ? <CategoryActiveToggle categoryId={row.id} currentActive={row.is_active} /> : null}
+            <div className="flex flex-wrap items-start justify-end gap-2">
+              <CategoryRenameForm categoryId={row.id} currentName={row.name} currentColor={row.color} />
+              {!row.is_system ? <CategoryActiveToggle categoryId={row.id} currentActive={row.is_active} /> : null}
+              <CategoryDeleteButton categoryId={row.id} />
+            </div>
           </div>
         </li>
       ))}

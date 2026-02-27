@@ -4,6 +4,7 @@ import { useActionState, useTransition } from "react";
 
 import { updateProfileAction } from "@/app/settings/actions";
 import { initialSettingsActionState, type SettingsActionState } from "@/app/settings/action-types";
+import { useI18n } from "@/lib/providers/i18n-provider";
 
 export function ProfileForm({
   defaultFullName,
@@ -14,6 +15,8 @@ export function ProfileForm({
   defaultEmail: string;
   defaultAvatarUrl: string;
 }) {
+  const { language, t } = useI18n();
+  const vi = language === "vi";
   const [state, action] = useActionState<SettingsActionState, FormData>(
     updateProfileAction,
     initialSettingsActionState,
@@ -32,7 +35,7 @@ export function ProfileForm({
     >
       <div className="space-y-1">
         <label htmlFor="fullName" className="text-sm font-medium text-slate-700">
-          Full name
+          {vi ? "Họ và tên" : "Full name"}
         </label>
         <input
           id="fullName"
@@ -46,7 +49,7 @@ export function ProfileForm({
 
       <div className="space-y-1">
         <label htmlFor="email" className="text-sm font-medium text-slate-700">
-          Email
+          {vi ? "Email" : "Email"}
         </label>
         <input
           id="email"
@@ -58,14 +61,14 @@ export function ProfileForm({
 
       <div className="space-y-1">
         <label htmlFor="avatarUrl" className="text-sm font-medium text-slate-700">
-          Avatar URL (optional)
+          {vi ? "URL ảnh đại diện (không bắt buộc)" : "Avatar URL (optional)"}
         </label>
         <input
           id="avatarUrl"
           name="avatarUrl"
           type="url"
           defaultValue={defaultAvatarUrl}
-          placeholder="https://example.com/avatar.jpg"
+          placeholder={vi ? "https://example.com/avatar.jpg" : "https://example.com/avatar.jpg"}
           className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-base text-slate-900 placeholder:text-slate-500"
         />
       </div>
@@ -75,7 +78,7 @@ export function ProfileForm({
         disabled={isPending}
         className="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white disabled:opacity-60"
       >
-        {isPending ? "Saving..." : "Save Profile"}
+        {isPending ? t("common.saving") : (vi ? "Lưu hồ sơ" : "Save Profile")}
       </button>
 
       {state.status === "error" && state.message ? <p className="text-sm text-rose-600">{state.message}</p> : null}

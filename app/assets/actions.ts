@@ -284,3 +284,46 @@ export async function updatePriceHistoryRowAction(
   revalidatePath("/assets");
   return ok("Price entry updated.");
 }
+
+export async function deleteAssetAction(
+  _prev: AssetActionState,
+  formData: FormData,
+): Promise<AssetActionState> {
+  const assetId = String(formData.get("assetId") ?? "").trim();
+  if (!assetId) return fail("Missing asset id.");
+
+  const { supabase, user, householdId, error } = await resolveContext();
+  if (error || !user || !householdId) return fail(error ?? "No household found.");
+
+  const existing = await supabase
+    .from("assets")
+    .select("id, name")
+    .eq("id", assetId)
+    .eq("household_id", householdId)
+    .maybeSingle();
+
+  if (existing.error) return fail(existing.error.message);
+  if (!existing.data) return fail("Asset not found.");
+
+  const del = await supabase
+    .from("assets")
+    .delete()
+    .eq("id", assetId)
+    .eq("household_id", householdId);
+
+  if (del.error) return fail(del.error.message);
+
+  await writeAuditEvent(supabase, {
+    householdId,
+    actorUserId: user.id,
+    eventType: "asset.deleted",
+    entityType: "asset",
+    entityId: assetId,
+    payload: { name: existing.data.name },
+  });
+
+  revalidatePath("/assets");
+  revalidatePath(`/assets/${assetId}`);
+  revalidatePath("/dashboard");
+  return ok("Asset deleted.");
+}

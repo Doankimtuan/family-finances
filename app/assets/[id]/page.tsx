@@ -10,6 +10,7 @@ import {
 import { HistoryEntryForm } from "@/app/assets/_components/history-entry-form";
 import { PriceHistoryTable, QuantityHistoryTable } from "@/app/assets/_components/history-table";
 import { ValuationTimeline } from "@/app/assets/_components/valuation-timeline";
+import { DeleteAssetButton } from "@/app/assets/_components/delete-asset-button";
 import { buildValuationTimeline } from "@/lib/assets/timeline";
 import { formatNumber, formatVnd } from "@/lib/dashboard/format";
 import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
@@ -90,7 +91,10 @@ export default async function AssetDetailPage({ params }: AssetDetailPageProps) 
       <section className="mx-auto w-full max-w-4xl space-y-4">
         <header className="space-y-2">
           <Link href="/assets" className="text-sm font-medium text-slate-600">← {vi ? "Quay lại Tài sản" : "Back to Assets"}</Link>
-          <h1 className="text-2xl font-semibold text-slate-900">{asset.name}</h1>
+          <div className="flex items-start justify-between gap-3">
+            <h1 className="text-2xl font-semibold text-slate-900">{asset.name}</h1>
+            <DeleteAssetButton assetId={asset.id} language={language} />
+          </div>
           <p className="text-sm text-slate-600">{assetClassLabel} · {asset.is_liquid ? (vi ? "Thanh khoản" : "Liquid") : (vi ? "Kém thanh khoản" : "Illiquid")}</p>
         </header>
 

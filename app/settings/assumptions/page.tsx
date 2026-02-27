@@ -1,6 +1,7 @@
 import { AppHeader } from "@/components/layout/app-header";
 import { AppShell } from "@/components/layout/app-shell";
 import { BottomTabBar } from "@/components/layout/bottom-tab-bar";
+import { t } from "@/lib/i18n/dictionary";
 import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
 import { createClient } from "@/lib/supabase/server";
 
@@ -8,7 +9,7 @@ import { AssumptionsForm } from "../_components/assumptions-form";
 import { SettingsNav } from "../_components/settings-nav";
 
 export default async function SettingsAssumptionsPage() {
-  const { householdId } = await getAuthenticatedHouseholdContext();
+  const { householdId, language } = await getAuthenticatedHouseholdContext();
   const supabase = await createClient();
 
   const assumptionsResult = await supabase
@@ -20,19 +21,23 @@ export default async function SettingsAssumptionsPage() {
     .maybeSingle();
 
   return (
-    <AppShell header={<AppHeader title="Settings · Assumptions" />} footer={<BottomTabBar />}>
+    <AppShell header={<AppHeader title={`${t(language, "settings.title")} · ${t(language, "settings.assumptions")}`} />} footer={<BottomTabBar />}>
       <section className="space-y-4">
         <SettingsNav currentPath="/settings/assumptions" />
 
         <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <p className="mb-4 text-sm text-slate-600">
-            These assumptions are used by forecasts, decision tools, and long-term goal projections.
+            {language === "vi"
+              ? "Các giả định này được dùng cho dự báo, công cụ quyết định và mô phỏng mục tiêu dài hạn."
+              : "These assumptions are used by forecasts, decision tools, and long-term goal projections."}
           </p>
 
           {assumptionsResult.error ? (
-            <p className="text-sm text-rose-600">Failed to load assumptions: {assumptionsResult.error.message}</p>
+            <p className="text-sm text-rose-600">{language === "vi" ? "Không thể tải giả định:" : "Failed to load assumptions:"} {assumptionsResult.error.message}</p>
           ) : !assumptionsResult.data ? (
-            <p className="text-sm text-slate-600">Assumptions are not available for this household yet.</p>
+            <p className="text-sm text-slate-600">
+              {language === "vi" ? "Chưa có dữ liệu giả định cho hộ gia đình này." : "Assumptions are not available for this household yet."}
+            </p>
           ) : (
             <AssumptionsForm
               defaults={{

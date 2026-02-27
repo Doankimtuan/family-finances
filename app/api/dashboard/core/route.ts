@@ -113,7 +113,7 @@ export async function GET(request: Request) {
         .lt("transaction_date", endISO),
       supabase
         .from("categories")
-        .select("id, name")
+        .select("id, name, color")
         .or(`household_id.is.null,household_id.eq.${householdId}`),
     ]);
 
@@ -151,7 +151,7 @@ export async function GET(request: Request) {
       accountDeltaMap.set(tx.account_id, current + delta);
     }
 
-    const categoryMap = new Map((categoriesResult.data ?? []).map((c) => [c.id, c.name]));
+    const categoryMap = new Map((categoriesResult.data ?? []).map((c) => [c.id, { name: c.name, color: c.color as string | null }]));
 
     const latestPriceMap = new Map<string, number>();
     for (const p of pricesResult.data ?? []) {
@@ -190,12 +190,14 @@ export async function GET(request: Request) {
     }
 
     const incomeItems = Array.from(incomeMap.entries()).map(([categoryId, value]) => ({
-      label: categoryMap.get(categoryId) ?? "Uncategorized income",
+      label: categoryMap.get(categoryId)?.name ?? "Uncategorized income",
+      color: categoryMap.get(categoryId)?.color ?? null,
       value,
       source: `transactions.category:${categoryId}(${startISO}..${endISO})`,
     }));
     const expenseItems = Array.from(expenseMap.entries()).map(([categoryId, value]) => ({
-      label: categoryMap.get(categoryId) ?? "Uncategorized expense",
+      label: categoryMap.get(categoryId)?.name ?? "Uncategorized expense",
+      color: categoryMap.get(categoryId)?.color ?? null,
       value,
       source: `transactions.category:${categoryId}(${startISO}..${endISO})`,
     }));

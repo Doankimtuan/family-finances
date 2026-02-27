@@ -57,8 +57,8 @@ export type DashboardCoreResponse = {
       liabilities: Array<{ label: string; value: number; source: string }>;
     };
     cashFlow: {
-      income: Array<{ label: string; value: number; source: string }>;
-      expense: Array<{ label: string; value: number; source: string }>;
+      income: Array<{ label: string; value: number; source: string; color?: string | null }>;
+      expense: Array<{ label: string; value: number; source: string; color?: string | null }>;
       monthStart: string;
       monthEnd: string;
     };

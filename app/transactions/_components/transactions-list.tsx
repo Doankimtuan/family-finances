@@ -1,3 +1,5 @@
+"use client";
+
 import { formatVnd } from "@/lib/dashboard/format";
 import { formatDate } from "@/lib/dashboard/format";
 import { useI18n } from "@/lib/providers/i18n-provider";

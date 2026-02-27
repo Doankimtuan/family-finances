@@ -9,6 +9,7 @@ import {
   TrendingDown,
   ArrowLeftRight,
   Users,
+  Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/providers/i18n-provider";
@@ -39,6 +40,11 @@ const tabs = [
     href: "/household",
     icon: Users,
   },
+  {
+    labelKey: "settings.title",
+    href: "/settings",
+    icon: Settings,
+  },
 ];
 
 export function BottomTabBar() {
@@ -46,9 +52,9 @@ export function BottomTabBar() {
   const { t } = useI18n();
 
   return (
-    <nav className="flex items-center justify-around h-16">
+    <nav className="grid h-16 grid-cols-6 bg-white" aria-label="Bottom navigation">
       {tabs.map((tab) => {
-        const isActive = pathname === tab.href;
+        const isActive = pathname === tab.href || pathname.startsWith(`${tab.href}/`);
         const Icon = tab.icon;
 
         return (
@@ -56,14 +62,14 @@ export function BottomTabBar() {
             key={tab.href}
             href={tab.href}
             className={cn(
-              "flex flex-col items-center justify-center gap-1 min-w-[64px] h-full transition-colors",
+              "flex h-full min-w-0 flex-col items-center justify-center gap-1 transition-colors",
               isActive
                 ? "text-slate-900"
-                : "text-slate-400 hover:text-slate-600",
+                : "text-slate-700 hover:text-slate-900",
             )}
           >
-            <Icon className={cn("h-6 w-6", isActive && "text-teal-600")} />
-            <span className="text-[10px] font-medium uppercase tracking-wider">
+            <Icon className={cn("h-5 w-5", isActive ? "text-teal-600" : "text-slate-700")} />
+            <span className="line-clamp-1 px-1 text-[10px] font-medium uppercase tracking-wide">
               {t(tab.labelKey)}
             </span>
           </Link>
