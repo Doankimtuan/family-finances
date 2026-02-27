@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { t } from "@/lib/i18n/dictionary";
 import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
 import { createClient } from "@/lib/supabase/server";
-import { History, Landmark, Receipt } from "lucide-react";
+import { History, Landmark, Receipt, Settings } from "lucide-react";
 
 export const metadata = {
   title: "Transactions | Family Finances",
@@ -100,7 +100,20 @@ export default async function TransactionsPage() {
 
   return (
     <AppShell
-      header={<AppHeader title={t(language, "transactions.title")} />}
+      header={
+        <AppHeader
+          title={t(language, "transactions.title")}
+          rightAction={
+            <Link
+              href="/settings"
+              className="p-2 -mr-2 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <Settings className="h-6 w-6" />
+              <span className="sr-only">Settings</span>
+            </Link>
+          }
+        />
+      }
       footer={<BottomTabBar />}
     >
       <div className="space-y-6 pb-24 animate-in fade-in slide-in-from-bottom-4 duration-700">

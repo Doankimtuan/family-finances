@@ -8,42 +8,30 @@ import {
   Wallet,
   TrendingDown,
   ArrowLeftRight,
-  Users,
-  Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/providers/i18n-provider";
 
 const tabs = [
   {
-    labelKey: "nav.overview",
+    labelKey: "nav.home",
     href: "/dashboard",
     icon: LayoutDashboard,
   },
   {
-    labelKey: "nav.assets",
-    href: "/assets",
+    labelKey: "nav.money",
+    href: "/accounts",
     icon: Wallet,
   },
   {
-    labelKey: "nav.debts",
-    href: "/debts",
-    icon: TrendingDown, // Or another icon like 'ArrowDownCircle'
+    labelKey: "nav.activity",
+    href: "/transactions",
+    icon: ArrowLeftRight,
   },
   {
-    labelKey: "nav.flow",
-    href: "/cash-flow",
-    icon: ArrowLeftRight, // Will change icon to something like 'Activity'
-  },
-  {
-    labelKey: "nav.family",
-    href: "/household",
-    icon: Users,
-  },
-  {
-    labelKey: "settings.title",
-    href: "/settings",
-    icon: Settings,
+    labelKey: "nav.plan",
+    href: "/insights",
+    icon: TrendingDown,
   },
 ];
 
@@ -53,7 +41,7 @@ export function BottomTabBar() {
 
   return (
     <nav
-      className="grid h-16 grid-cols-6 bg-card"
+      className="grid h-16 grid-cols-4 bg-card"
       aria-label="Bottom navigation"
     >
       {tabs.map((tab) => {

@@ -18,7 +18,8 @@ const en: Dictionary = {
   "settings.household_name": "Household name",
   "settings.language": "Language",
   "settings.timezone": "Timezone",
-  "settings.base_currency_note": "Base currency is fixed to VND for data consistency.",
+  "settings.base_currency_note":
+    "Base currency is fixed to VND for data consistency.",
   "settings.save_household": "Save Household Settings",
   "settings.lang_en": "English",
   "settings.lang_vi": "Vietnamese",
@@ -28,7 +29,8 @@ const en: Dictionary = {
   "debts.title": "Debts & Liabilities",
   "goals.title": "Financial Goals",
   "transactions.title": "Transactions",
-  "transactions.none": "No transactions yet. Use Quick Add to log your first one.",
+  "transactions.none":
+    "No transactions yet. Use Quick Add to log your first one.",
   "transactions.income": "Income",
   "transactions.expense": "Expense",
   "transactions.transfer": "Transfer",
@@ -40,6 +42,82 @@ const en: Dictionary = {
   "common.details": "Details",
   "common.to": "to",
   "common.no_data": "No data yet.",
+  // Health status words
+  "health.status.healthy": "Healthy",
+  "health.status.improving": "Improving",
+  "health.status.needs_attention": "Needs Attention",
+  "health.status.building": "Building",
+  "health.vs_last_month": "vs last month",
+  "health.strongest": "Your strongest area",
+  "health.improve": "Area to strengthen",
+  "health.see_all": "See all 6 factors",
+  "health.score_label": "Financial Health",
+  "health.factor.cashflow": "Cash Flow",
+  "health.factor.emergency": "Emergency Fund",
+  "health.factor.debt": "Debt Burden",
+  "health.factor.networth": "Net Worth Growth",
+  "health.factor.goals": "Goal Progress",
+  "health.factor.diversification": "Diversification",
+  "health.factor.cashflow.desc":
+    "How much of your income you are keeping each month",
+  "health.factor.emergency.desc":
+    "How many months your savings could cover if income stopped",
+  "health.factor.debt.desc":
+    "How manageable your debt obligations are relative to income",
+  "health.factor.networth.desc":
+    "Whether your total wealth is growing over time",
+  "health.factor.goals.desc": "How on-track your financial goals are",
+  "health.factor.diversification.desc":
+    "How well-spread your assets are across types",
+  // Health top actions (moved from hardcoded dashboard panel)
+  "health.action.negative_cashflow":
+    "Cash flow is negative this month. Cut one variable spending category by 10% to get back on track.",
+  "health.action.low_emergency":
+    "Build your emergency fund first. Set up an automatic transfer on your next salary day.",
+  "health.action.high_dsr":
+    "Debt payments are high relative to income. Put extra towards your most expensive debt this month.",
+  "health.action.goals_offtrack":
+    "Goal progress is behind. Increase monthly contributions or talk with your partner about adjusting the timeline.",
+  "health.action.concentrated":
+    "Your assets are concentrated in one type. Adding a second asset type reduces long-term risk.",
+  "health.action.slow_networth":
+    "Net worth growth is slow. Increasing savings or reducing expensive debt will improve your trajectory.",
+  "health.action.stable":
+    "Your finances look stable. Keep current habits and check back next month.",
+  "health.action.no_data":
+    "Add more data to generate a personalised monthly recommendation.",
+  // Goal status labels
+  "goals.on_track": "On track",
+  "goals.behind": "Behind",
+  "goals.arriving": "Arriving",
+  "goals.missed_by": "Behind by",
+  "goals.months": "months",
+  "goals.add_per_month": "more/month to stay on track",
+  "goals.no_deadline": "No target date",
+  "goals.completed": "Completed",
+  "goals.paused": "Paused",
+  // Budget remaining framing
+  "budget.remaining": "remaining",
+  "budget.per_day": "/day",
+  "budget.days_left": "days left",
+  "budget.over_budget": "over budget",
+  "budget.on_schedule": "on schedule",
+  "budget.above_daily_pace": "above daily pace",
+  // Insights grouped labels
+  "insights.action_required": "Action Required",
+  "insights.worth_knowing": "Worth Knowing",
+  "insights.wins": "Wins",
+  "insights.no_urgent": "No urgent actions right now",
+  "insights.no_wins": "Keep logging to unlock milestone wins",
+  "insights.recalculate": "Recalculate",
+  // Nav tabs (consolidated)
+  "nav.home": "Home",
+  "nav.money": "Money",
+  "nav.activity": "Activity",
+  "nav.plan": "Plan",
+  // Discuss together
+  "review.discuss_title": "Discuss Together",
+  "review.discuss_description": "Questions to review as a couple this month",
 };
 
 const vi: Dictionary = {
@@ -58,7 +136,8 @@ const vi: Dictionary = {
   "settings.household_name": "Tên hộ gia đình",
   "settings.language": "Ngôn ngữ",
   "settings.timezone": "Múi giờ",
-  "settings.base_currency_note": "Tiền tệ cơ sở được cố định là VND để đảm bảo dữ liệu nhất quán.",
+  "settings.base_currency_note":
+    "Tiền tệ cơ sở được cố định là VND để đảm bảo dữ liệu nhất quán.",
   "settings.save_household": "Lưu cài đặt hộ gia đình",
   "settings.lang_en": "Tiếng Anh",
   "settings.lang_vi": "Tiếng Việt",
@@ -68,7 +147,8 @@ const vi: Dictionary = {
   "debts.title": "Nợ & Nghĩa vụ",
   "goals.title": "Mục tiêu tài chính",
   "transactions.title": "Giao dịch",
-  "transactions.none": "Chưa có giao dịch. Hãy dùng Thêm nhanh để ghi giao dịch đầu tiên.",
+  "transactions.none":
+    "Chưa có giao dịch. Hãy dùng Thêm nhanh để ghi giao dịch đầu tiên.",
   "transactions.income": "Thu nhập",
   "transactions.expense": "Chi tiêu",
   "transactions.transfer": "Chuyển khoản",
@@ -80,6 +160,80 @@ const vi: Dictionary = {
   "common.details": "Chi tiết",
   "common.to": "đến",
   "common.no_data": "Chưa có dữ liệu.",
+  // Health status words
+  "health.status.healthy": "Tốt",
+  "health.status.improving": "Đang cải thiện",
+  "health.status.needs_attention": "Cần chú ý",
+  "health.status.building": "Đang xây dựng",
+  "health.vs_last_month": "so với tháng trước",
+  "health.strongest": "Điểm mạnh nhất",
+  "health.improve": "Cần cải thiện",
+  "health.see_all": "Xem đủ 6 yếu tố",
+  "health.score_label": "Sức khỏe tài chính",
+  "health.factor.cashflow": "Dòng tiền",
+  "health.factor.emergency": "Quỹ khẩn cấp",
+  "health.factor.debt": "Gánh nặng nợ",
+  "health.factor.networth": "Tăng trưởng tài sản ròng",
+  "health.factor.goals": "Tiến độ mục tiêu",
+  "health.factor.diversification": "Đa dạng hóa",
+  "health.factor.cashflow.desc": "Tỷ lệ thu nhập bạn tiết kiệm được mỗi tháng",
+  "health.factor.emergency.desc":
+    "Quỹ hiện tại đủ dùng bao nhiêu tháng nếu mất thu nhập",
+  "health.factor.debt.desc":
+    "Mức độ quản lý được nghĩa vụ trả nợ so với thu nhập",
+  "health.factor.networth.desc": "Tổng tài sản có đang tăng trưởng hay không",
+  "health.factor.goals.desc": "Các mục tiêu tài chính có đang đúng lịch không",
+  "health.factor.diversification.desc":
+    "Tài sản có được phân bổ đa dạng các loại không",
+  // Health top actions
+  "health.action.negative_cashflow":
+    "Dòng tiền tháng này đang âm. Hãy cắt ít nhất một danh mục chi tiêu biến đổi khoảng 10% để lấy lại đà.",
+  "health.action.low_emergency":
+    "Ưu tiên xây quỹ khẩn cấp trước. Hãy cài đặt tự động chuyển một khoản cố định vào ngày nhận lương.",
+  "health.action.high_dsr":
+    "Áp lực trả nợ đang cao so với thu nhập. Ưu tiên trả thêm vào khoản nợ có chi phí cao nhất.",
+  "health.action.goals_offtrack":
+    "Tiến độ mục tiêu đang lệch kế hoạch. Tăng đóng góp hàng tháng hoặc bàn lại timeline cùng người đồng hành.",
+  "health.action.concentrated":
+    "Tài sản đang tập trung cao. Hãy bổ sung thêm ít nhất một loại tài sản để giảm rủi ro tập trung.",
+  "health.action.slow_networth":
+    "Tăng trưởng tài sản ròng đang chậm. Hãy tăng tỷ lệ tiết kiệm hoặc giảm nợ chi phí cao.",
+  "health.action.stable":
+    "Sức khỏe tài chính đang ổn định. Hãy duy trì thói quen hiện tại và rà soát lại số liệu vào tháng sau.",
+  "health.action.no_data":
+    "Bổ sung thêm dữ liệu để hệ thống tạo khuyến nghị hàng tháng phù hợp với gia đình bạn.",
+  // Goal status labels
+  "goals.on_track": "Đúng kế hoạch",
+  "goals.behind": "Trễ kế hoạch",
+  "goals.arriving": "Dự kiến đến",
+  "goals.missed_by": "Trễ khoảng",
+  "goals.months": "tháng",
+  "goals.add_per_month": "thêm/tháng để đúng kế hoạch",
+  "goals.no_deadline": "Chưa có hạn chót",
+  "goals.completed": "Hoàn thành",
+  "goals.paused": "Tạm dừng",
+  // Budget remaining framing
+  "budget.remaining": "còn lại",
+  "budget.per_day": "/ngày",
+  "budget.days_left": "ngày còn lại",
+  "budget.over_budget": "vượt ngân sách",
+  "budget.on_schedule": "đúng kế hoạch",
+  "budget.above_daily_pace": "vượt tiến độ hàng ngày",
+  // Insights grouped labels
+  "insights.action_required": "Cần hành động",
+  "insights.worth_knowing": "Đáng lưu ý",
+  "insights.wins": "Thành tích",
+  "insights.no_urgent": "Không có hành động khẩn cấp ngay bây giờ",
+  "insights.no_wins": "Tiếp tục ghi dữ liệu để mở khóa các thành tích",
+  "insights.recalculate": "Tính lại",
+  // Nav tabs (consolidated)
+  "nav.home": "Trang chủ",
+  "nav.money": "Tài sản",
+  "nav.activity": "Hoạt động",
+  "nav.plan": "Kế hoạch",
+  // Discuss together
+  "review.discuss_title": "Thảo luận cùng nhau",
+  "review.discuss_description": "Câu hỏi để cùng xem xét trong tháng này",
 };
 
 const dictionaries: Record<AppLanguage, Dictionary> = { en, vi };

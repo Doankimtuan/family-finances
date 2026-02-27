@@ -58,12 +58,26 @@ function scoreEmergency(emergencyMonths: number | null) {
   return clamp((months / 6) * 100);
 }
 
-function scoreDebt(debtServiceRatio: number | null, totalAssets: number, totalLiabilities: number) {
+function scoreDebt(
+  debtServiceRatio: number | null,
+  totalAssets: number,
+  totalLiabilities: number,
+) {
   const dsr = debtServiceRatio ?? 1;
   const leverage = totalAssets > 0 ? totalLiabilities / totalAssets : 1;
 
-  const dsrScore = dsr <= 0.15 ? 100 : dsr <= 0.25 ? 80 : dsr <= 0.35 ? 60 : dsr <= 0.45 ? 40 : 20;
-  const leverageScore = leverage <= 0.3 ? 100 : leverage <= 0.6 ? 75 : leverage <= 1 ? 50 : 25;
+  const dsrScore =
+    dsr <= 0.15
+      ? 100
+      : dsr <= 0.25
+        ? 80
+        : dsr <= 0.35
+          ? 60
+          : dsr <= 0.45
+            ? 40
+            : 20;
+  const leverageScore =
+    leverage <= 0.3 ? 100 : leverage <= 0.6 ? 75 : leverage <= 1 ? 50 : 25;
 
   return Math.round(dsrScore * 0.7 + leverageScore * 0.3);
 }
@@ -106,39 +120,44 @@ function scoreDiversification(diversificationHHI: number | null) {
   return clamp(score);
 }
 
-function pickTopAction(input: HealthEngineInput, factors: Record<HealthFactorKey, number>) {
+/** Returns an i18n key from the dictionary (health.action.*) */
+function pickTopAction(
+  input: HealthEngineInput,
+  factors: Record<HealthFactorKey, number>,
+): string {
   if (input.monthlySavings < 0) {
-    return "This month cash flow is negative. Cut one variable spending category by 10% immediately.";
+    return "health.action.negative_cashflow";
   }
   if ((input.emergencyMonths ?? 0) < 3) {
-    return "Build emergency reserves first. Auto-transfer a fixed amount on salary day this month.";
+    return "health.action.low_emergency";
   }
   if ((input.debtServiceRatio ?? 0) > 0.35) {
-    return "Debt service is high versus income. Prioritize extra payment on your highest-cost debt.";
+    return "health.action.high_dsr";
   }
 
-  const weakest = (Object.keys(factors) as HealthFactorKey[]).reduce((minKey, key) =>
-    factors[key] < factors[minKey] ? key : minKey,
-  "cashflow");
+  const weakest = (Object.keys(factors) as HealthFactorKey[]).reduce(
+    (minKey, key) => (factors[key] < factors[minKey] ? key : minKey),
+    "cashflow" as HealthFactorKey,
+  );
 
-  if (weakest === "goals") {
-    return "Goal progress is off track. Increase monthly goal contribution or extend timeline with your partner.";
-  }
-  if (weakest === "diversification") {
-    return "Assets are concentrated. Add one additional asset type to reduce concentration risk over time.";
-  }
-  if (weakest === "networth") {
-    return "Net worth growth is slow. Increase savings rate or reduce high-cost debt to improve trajectory.";
-  }
+  if (weakest === "goals") return "health.action.goals_offtrack";
+  if (weakest === "diversification") return "health.action.concentrated";
+  if (weakest === "networth") return "health.action.slow_networth";
 
-  return "Financial health is stable. Keep current habits and review your numbers again next month.";
+  return "health.action.stable";
 }
 
-export function computeFinancialHealth(input: HealthEngineInput): FinancialHealthResult {
+export function computeFinancialHealth(
+  input: HealthEngineInput,
+): FinancialHealthResult {
   const factorScores: Record<HealthFactorKey, number> = {
     cashflow: scoreCashflow(input.monthlySavings, input.savingsRate),
     emergency: scoreEmergency(input.emergencyMonths),
-    debt: scoreDebt(input.debtServiceRatio, input.totalAssets, input.totalLiabilities),
+    debt: scoreDebt(
+      input.debtServiceRatio,
+      input.totalAssets,
+      input.totalLiabilities,
+    ),
     networth: scoreNetWorth(input.netWorthTrend),
     goals: scoreGoals(input.goalsProgressRatio, input.goalsOnTrackRatio),
     diversification: scoreDiversification(input.diversificationHHI),

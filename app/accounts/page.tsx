@@ -12,7 +12,14 @@ import { formatVnd, formatVndCompact } from "@/lib/dashboard/format";
 import { t } from "@/lib/i18n/dictionary";
 import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
 import { createClient } from "@/lib/supabase/server";
-import { Landmark, Building2, ShieldCheck, PlusCircle } from "lucide-react";
+import {
+  Landmark,
+  Building2,
+  ShieldCheck,
+  PlusCircle,
+  Settings,
+} from "lucide-react";
+import Link from "next/link";
 
 export const metadata = {
   title: "Accounts | Family Finances",
@@ -74,7 +81,20 @@ export default async function AccountsPage() {
 
   return (
     <AppShell
-      header={<AppHeader title={t(language, "accounts.title")} />}
+      header={
+        <AppHeader
+          title={t(language, "accounts.title")}
+          rightAction={
+            <Link
+              href="/settings"
+              className="p-2 -mr-2 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <Settings className="h-6 w-6" />
+              <span className="sr-only">Settings</span>
+            </Link>
+          }
+        />
+      }
       footer={<BottomTabBar />}
     >
       <div className="space-y-6 pb-24 animate-in fade-in slide-in-from-bottom-4 duration-700">

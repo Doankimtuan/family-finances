@@ -8,9 +8,11 @@ import { Progress } from "@/components/ui/progress";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { MetricCard } from "@/components/ui/metric-card";
-import { formatVnd, formatVndCompact } from "@/lib/dashboard/format";
+import { formatVndCompact } from "@/lib/dashboard/format";
 import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
 import { createClient } from "@/lib/supabase/server";
+import { t } from "@/lib/i18n/dictionary";
+import { cn } from "@/lib/utils";
 import {
   Receipt,
   Calendar,
@@ -18,6 +20,8 @@ import {
   Wallet,
   Tags,
   PlusCircle,
+  Clock,
+  AlertCircle,
 } from "lucide-react";
 
 import { DeleteBudgetButton } from "./_components/delete-budget-button";
@@ -58,7 +62,8 @@ export default async function BudgetsPage({
 }: {
   searchParams?: Promise<{ month?: string }>;
 }) {
-  const { householdId } = await getAuthenticatedHouseholdContext();
+  const { householdId, language, householdLocale } =
+    await getAuthenticatedHouseholdContext();
   const supabase = await createClient();
   const params = searchParams ? await searchParams : undefined;
 
@@ -111,6 +116,24 @@ export default async function BudgetsPage({
     0,
   );
   const totalRemaining = totalPlanned - totalSpent;
+
+  // Calculate days left in the selected month
+  const today = new Date();
+  const todayMonthKey = toMonthInput(today);
+  const isCurrentMonth = selectedMonth === todayMonthKey;
+
+  let daysInMonth = 30;
+  let remainingDays = 0;
+
+  if (isCurrentMonth) {
+    const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    daysInMonth = endOfMonth.getDate();
+    remainingDays = Math.max(1, daysInMonth - today.getDate());
+  } else if (selectedMonth > todayMonthKey) {
+    remainingDays = 30; // Future month
+  } else {
+    remainingDays = 0; // Past month
+  }
 
   return (
     <AppShell
@@ -188,70 +211,118 @@ export default async function BudgetsPage({
                 const utilization =
                   planned > 0 ? Math.round((spent / planned) * 100) : 0;
                 const over = spent - planned;
+                const remaining = Math.max(0, planned - spent);
+
+                // Pace calculation
+                const expectedUtilization = isCurrentMonth
+                  ? ((daysInMonth - remainingDays) / daysInMonth) * 100
+                  : 100;
+                const isPacingOver = utilization > expectedUtilization + 5; // 5% buffer
+                const dailyRate =
+                  isCurrentMonth && remainingDays > 0
+                    ? remaining / remainingDays
+                    : 0;
 
                 return (
                   <Card
                     key={row.id}
                     className="group hover:border-primary/30 transition-all duration-300"
                   >
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center justify-between mb-2">
-                            <h3 className="truncate text-sm font-bold text-foreground">
-                              {categoryMap.get(row.category_id) ??
-                                "Unknown category"}
-                            </h3>
-                            <Badge
-                              variant={over > 0 ? "destructive" : "success"}
-                              className="text-[10px] uppercase font-bold"
-                            >
-                              {over > 0 ? "Over" : "On Track"}
-                            </Badge>
-                          </div>
+                    <CardContent className="p-5 flex items-start gap-4">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted/50">
+                        <Wallet className="h-5 w-5 text-muted-foreground/70" />
+                      </div>
 
-                          <div className="flex items-baseline justify-between text-xs mb-3">
-                            <span className="text-muted-foreground">
-                              Planned{" "}
-                              <span className="font-bold text-foreground">
-                                {formatVnd(planned)}
-                              </span>
-                            </span>
-                            <span className="font-bold text-foreground">
-                              {formatVnd(spent)}
-                            </span>
-                          </div>
-
-                          <Progress
-                            value={utilization}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between mb-0.5">
+                          <h3 className="truncate text-base font-bold text-foreground">
+                            {categoryMap.get(row.category_id) ??
+                              "Unknown category"}
+                          </h3>
+                          <Badge
                             variant={
                               over > 0
                                 ? "destructive"
-                                : utilization > 85
+                                : isPacingOver
                                   ? "warning"
                                   : "success"
                             }
-                            className="h-2"
-                          />
+                            className="text-[10px] uppercase font-bold tracking-wider"
+                          >
+                            {over > 0
+                              ? t(language, "budget.over_budget")
+                              : isPacingOver
+                                ? t(language, "budget.above_daily_pace")
+                                : t(language, "budget.on_schedule")}
+                          </Badge>
+                        </div>
 
-                          <div className="mt-2 flex items-center justify-between text-[10px] font-bold uppercase tracking-wider">
-                            <span
-                              className={
-                                over > 0 ? "text-destructive" : "text-success"
-                              }
-                            >
-                              {over > 0
-                                ? `${formatVndCompact(over)} over`
-                                : `${formatVndCompact(Math.abs(over))} left`}
-                            </span>
-                            <span className="text-muted-foreground">
-                              {utilization}%
-                            </span>
+                        <div className="mb-4">
+                          <span className="text-sm font-medium text-muted-foreground mr-1">
+                            {formatVndCompact(spent, householdLocale)} /{" "}
+                            {formatVndCompact(planned, householdLocale)}
+                          </span>
+                        </div>
+
+                        <Progress
+                          value={utilization}
+                          variant={
+                            over > 0
+                              ? "destructive"
+                              : isPacingOver
+                                ? "warning"
+                                : "success"
+                          }
+                          className="h-2 mb-3"
+                        />
+
+                        {/* Pace framing */}
+                        {isCurrentMonth ? (
+                          over > 0 ? (
+                            <div className="flex items-center gap-1.5 text-xs font-semibold text-destructive">
+                              <AlertCircle className="h-3.5 w-3.5" />
+                              {formatVndCompact(over, householdLocale)}{" "}
+                              {t(language, "budget.over_budget")}
+                            </div>
+                          ) : (
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+                                <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                                <span>
+                                  {formatVndCompact(remaining, householdLocale)}{" "}
+                                  <span className="text-muted-foreground font-medium">
+                                    {t(language, "budget.remaining")}
+                                  </span>
+                                </span>
+                              </div>
+                              <div className="text-right">
+                                <span
+                                  className={cn(
+                                    "text-xs font-bold",
+                                    isPacingOver
+                                      ? "text-warning"
+                                      : "text-success",
+                                  )}
+                                >
+                                  {formatVndCompact(dailyRate, householdLocale)}
+                                  <span className="text-[10px] text-muted-foreground">
+                                    {t(language, "budget.per_day")}
+                                  </span>
+                                </span>
+                              </div>
+                            </div>
+                          )
+                        ) : (
+                          <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                            {over > 0
+                              ? `${formatVndCompact(over, householdLocale)} over`
+                              : `${formatVndCompact(remaining, householdLocale)} under`}
                           </div>
-                        </div>
-                        <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                          <DeleteBudgetButton budgetId={row.id} />
-                        </div>
+                        )}
+                      </div>
+
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                        <DeleteBudgetButton budgetId={row.id} />
                       </div>
                     </CardContent>
                   </Card>

@@ -15,21 +15,18 @@ import {
   YAxis,
 } from "recharts";
 import {
-  Landmark,
-  Tags,
   PieChart as PieIcon,
-  Target,
   HeartPulse,
   Sparkles,
-  BarChart3,
-  Settings,
   Info,
   History,
   TrendingUp,
-  Receipt,
   Wallet,
   Activity,
+  Target,
+  Zap,
 } from "lucide-react";
+import { t as tFn } from "@/lib/i18n/dictionary";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -430,10 +427,11 @@ export function DashboardCorePanel() {
         icon={HeartPulse}
         title={vi ? "Trục trặc kỹ thuật" : "Technical issue"}
         description={errorMessage}
-        action={{
-          label: vi ? "Thử lại" : "Retry",
-          onClick: () => void load(),
-        }}
+        action={
+          <Button onClick={() => void load()} variant="outline" size="sm">
+            {vi ? "Thử lại" : "Retry"}
+          </Button>
+        }
         className="border-destructive/20 bg-destructive/5"
       />
     );
@@ -453,46 +451,36 @@ export function DashboardCorePanel() {
             ? "Bổ sung đủ tài khoản, chi tiêu và nợ/tài sản để kích hoạt bức tranh gia đình trọn vẹn."
             : "Add accounts, expenses, and debts/assets to activate the full household picture."
         }
-        action={{
-          label: vi ? "Bắt đầu ngay" : "Get Started",
-          href: "/accounts",
-        }}
+        action={
+          <Button asChild size="sm">
+            <Link href="/accounts">{vi ? "Bắt đầu ngay" : "Get Started"}</Link>
+          </Button>
+        }
       />
     );
   }
 
   const { metrics, trend } = payload;
   const score = payload.health?.overallScore ?? 0;
-  const rawAction = payload.health?.topAction ?? null;
-  const action = vi
-    ? rawAction ===
-      "This month cash flow is negative. Cut one variable spending category by 10% immediately."
-      ? "Dòng tiền tháng này đang âm. Hãy cắt ít nhất một danh mục chi tiêu biến đổi khoảng 10% ngay."
-      : rawAction ===
-          "Build emergency reserves first. Auto-transfer a fixed amount on salary day this month."
-        ? "Ưu tiên xây quỹ khẩn cấp trước. Hãy cài đặt tự động chuyển một khoản cố định vào ngày nhận lương."
-        : rawAction ===
-            "Debt service is high versus income. Prioritize extra payment on your highest-cost debt."
-          ? "Áp lực trả nợ đang cao so với thu nhập. Ưu tiên trả thêm vào khoản nợ có chi phí cao nhất."
-          : rawAction ===
-              "Goal progress is off track. Increase monthly goal contribution or extend timeline with your partner."
-            ? "Tiến độ mục tiêu đang lệch kế hoạch. Tăng đóng góp hàng tháng hoặc giãn timeline cùng người đồng hành."
-            : rawAction ===
-                "Assets are concentrated. Add one additional asset type to reduce concentration risk over time."
-              ? "Tài sản đang tập trung cao. Hãy bổ sung thêm ít nhất một loại tài sản để giảm rủi ro tập trung."
-              : rawAction ===
-                  "Net worth growth is slow. Increase savings rate or reduce high-cost debt to improve trajectory."
-                ? "Tăng trưởng tài sản ròng đang chậm. Hãy tăng tỷ lệ tiết kiệm hoặc giảm nợ chi phí cao."
-                : rawAction ===
-                    "Financial health is stable. Keep current habits and review your numbers again next month."
-                  ? "Sức khỏe tài chính đang ổn định. Hãy duy trì thói quen hiện tại và rà soát lại số liệu vào tháng sau."
-                  : rawAction
-    : rawAction;
-  const displayAction =
-    action ??
-    (vi
-      ? "Bổ sung thêm dữ liệu để hệ thống tạo hành động ưu tiên hàng tháng."
-      : "Build more data to generate a monthly top action.");
+  // Resolve top action via i18n — engine now returns a dictionary key like "health.action.*"
+  const topActionKey = payload.health?.topAction ?? "health.action.no_data";
+  const displayAction = tFn(
+    language,
+    topActionKey.startsWith("health.action.")
+      ? topActionKey
+      : "health.action.no_data",
+  );
+
+  // Real month-over-month savings delta (not a hardcoded fake value)
+  const prevMonthSavings =
+    trend.length >= 2 ? Number(trend[trend.length - 2]?.savings ?? 0) : null;
+  const currMonthSavings = Number(metrics.monthly_savings);
+  const savingsDelta =
+    prevMonthSavings !== null ? currMonthSavings - prevMonthSavings : null;
+  const savingsDeltaPct =
+    prevMonthSavings !== null && prevMonthSavings !== 0
+      ? Math.round((savingsDelta! / Math.abs(prevMonthSavings)) * 100)
+      : null;
 
   return (
     <section className="space-y-6 pb-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">
@@ -510,10 +498,14 @@ export function DashboardCorePanel() {
           note={`${vi ? "Thu nhập" : "In"} ${formatVndCompact(Number(metrics.monthly_income), locale)} · ${vi ? "Chi" : "Ex"} ${formatVndCompact(Number(metrics.monthly_expense), locale)}`}
           href="/transactions"
           className="bg-card/50"
-          trend={{
-            value: Number(metrics.monthly_savings) >= 0 ? 5 : -5,
-            label: vi ? "vs tháng trước" : "vs last mo",
-          }}
+          trend={
+            savingsDeltaPct !== null
+              ? {
+                  value: savingsDeltaPct,
+                  label: vi ? "vs tháng trước" : "vs last mo",
+                }
+              : undefined
+          }
         />
         <MetricCard
           label={vi ? "Điểm tài chính" : "Health Score"}
@@ -721,7 +713,7 @@ export function DashboardCorePanel() {
           />
         </CardHeader>
         <CardContent className="px-0">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <QuickAction
               href="/transactions"
               icon={History}
@@ -729,29 +721,9 @@ export function DashboardCorePanel() {
               variant="primary"
             />
             <QuickAction
-              href="/accounts"
-              icon={Landmark}
-              label={vi ? "Tài khoản" : "Accounts"}
-            />
-            <QuickAction
-              href="/categories"
-              icon={Tags}
-              label={vi ? "Danh mục" : "Categories"}
-            />
-            <QuickAction
-              href="/budgets"
-              icon={Receipt}
-              label={vi ? "Ngân sách" : "Budgets"}
-            />
-            <QuickAction
               href="/goals"
               icon={Target}
               label={vi ? "Mục tiêu" : "Goals"}
-            />
-            <QuickAction
-              href="/health"
-              icon={HeartPulse}
-              label={vi ? "Sức khỏe" : "Health"}
             />
             <QuickAction
               href="/insights"
@@ -759,19 +731,9 @@ export function DashboardCorePanel() {
               label={vi ? "Gợi ý" : "Insights"}
             />
             <QuickAction
-              href="/decision-tools"
-              icon={PieIcon}
-              label={vi ? "Công cụ" : "Tools"}
-            />
-            <QuickAction
-              href="/reports"
-              icon={BarChart3}
-              label={vi ? "Báo cáo" : "Reports"}
-            />
-            <QuickAction
-              href="/settings"
-              icon={Settings}
-              label={vi ? "Cài đặt" : "Settings"}
+              href="/health"
+              icon={Zap}
+              label={vi ? "Sức khỏe" : "Health"}
             />
           </div>
         </CardContent>

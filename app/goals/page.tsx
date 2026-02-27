@@ -25,7 +25,12 @@ import {
   Wallet,
   TrendingUp,
   Info,
+  Clock,
+  Sparkles,
+  AlertCircle,
 } from "lucide-react";
+
+import { cn } from "@/lib/utils";
 
 export const metadata = {
   title: "Goals | Family Finances",
@@ -191,106 +196,239 @@ export default async function GoalsPage() {
                     : null;
 
                 const goalTypeLabel = goal.goal_type.replace(/_/g, " ");
-                const statusLabel = goal.status;
+
+                // Determine Health / Pace status
+                let paceStatus:
+                  | "on_track"
+                  | "behind"
+                  | "no_deadline"
+                  | "completed" = "no_deadline";
+                let overageMonths = 0;
+                let neededExtraPerMonth = 0;
+
+                if (goal.status === "completed") {
+                  paceStatus = "completed";
+                } else if (goal.target_date) {
+                  if (etaMonths !== null && monthlyWindow !== null) {
+                    if (etaMonths <= monthlyWindow) {
+                      paceStatus = "on_track";
+                    } else {
+                      paceStatus = "behind";
+                      overageMonths = etaMonths - monthlyWindow;
+                      neededExtraPerMonth =
+                        requiredMonthly !== null
+                          ? requiredMonthly - avgMonthlyContribution
+                          : 0;
+                    }
+                  } else if (
+                    remaining > 0 &&
+                    monthlyWindow !== null &&
+                    monthlyWindow < 3
+                  ) {
+                    // Very close but no recent contributions
+                    paceStatus = "behind";
+                    neededExtraPerMonth = requiredMonthly ?? 0;
+                  }
+                }
 
                 return (
                   <Card
                     key={goal.id}
-                    className="overflow-hidden group hover:border-primary/30 transition-all duration-300"
+                    className={cn(
+                      "overflow-hidden group transition-all duration-300",
+                      paceStatus === "behind"
+                        ? "border-warning/50 hover:border-warning"
+                        : "hover:border-primary/30",
+                    )}
                   >
-                    <CardHeader className="pb-2">
-                      <div className="flex items-start justify-between">
-                        <div className="min-w-0">
-                          <h3 className="truncate text-base font-bold text-foreground">
-                            {goal.name}
-                          </h3>
-                          <div className="mt-1 flex flex-wrap gap-2">
-                            <Badge
-                              variant="outline"
-                              className="text-[10px] uppercase font-bold bg-muted/20"
+                    <CardContent className="p-0">
+                      {/* Hero Section: ETA Focus */}
+                      <div
+                        className={cn(
+                          "p-5 pb-4 border-b",
+                          paceStatus === "behind"
+                            ? "bg-warning/5 border-warning/10"
+                            : paceStatus === "on_track"
+                              ? "bg-success/5 border-success/10"
+                              : paceStatus === "completed"
+                                ? "bg-primary/5 border-primary/10"
+                                : "bg-muted/10 border-border/50",
+                        )}
+                      >
+                        <div className="flex items-start justify-between gap-4 mb-3">
+                          <div className="min-w-0">
+                            <h3 className="truncate text-lg font-bold text-foreground mb-1">
+                              {goal.name}
+                            </h3>
+                            <div className="flex items-center gap-2">
+                              {paceStatus === "completed" ? (
+                                <Badge
+                                  variant="default"
+                                  className="bg-primary/20 text-primary hover:bg-primary/20 border-transparent text-[10px] uppercase font-bold"
+                                >
+                                  <Sparkles className="mr-1 h-3 w-3" />
+                                  {t(language, "goals.completed")}
+                                </Badge>
+                              ) : paceStatus === "on_track" ? (
+                                <Badge
+                                  variant="success"
+                                  className="text-[10px] uppercase font-bold"
+                                >
+                                  <TrendingUp className="mr-1 h-3 w-3" />
+                                  {t(language, "goals.on_track")}
+                                </Badge>
+                              ) : paceStatus === "behind" ? (
+                                <Badge
+                                  variant="warning"
+                                  className="text-[10px] uppercase font-bold"
+                                >
+                                  <AlertCircle className="mr-1 h-3 w-3" />
+                                  {t(language, "goals.behind")}
+                                </Badge>
+                              ) : (
+                                <Badge
+                                  variant="secondary"
+                                  className="text-[10px] uppercase font-bold"
+                                >
+                                  <Clock className="mr-1 h-3 w-3" />
+                                  {t(language, "goals.no_deadline")}
+                                </Badge>
+                              )}
+                              <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
+                                {goalTypeLabel}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="text-right shrink-0">
+                            <p className="text-sm font-medium text-muted-foreground mb-1">
+                              {formatVndCompact(funded, householdLocale)} /{" "}
+                              {formatVndCompact(target, householdLocale)}
+                            </p>
+                            <p
+                              className={cn(
+                                "text-xl font-black leading-none",
+                                paceStatus === "on_track" ||
+                                  paceStatus === "completed"
+                                  ? "text-success"
+                                  : paceStatus === "behind"
+                                    ? "text-warning"
+                                    : "text-primary",
+                              )}
                             >
-                              {goalTypeLabel}
-                            </Badge>
-                            <Badge
-                              variant="secondary"
-                              className="text-[10px] uppercase font-bold"
-                            >
-                              {vi ? "Ưu tiên" : "Prio"} {goal.priority}
-                            </Badge>
-                            <Badge
-                              variant={
-                                goal.status === "active" ? "success" : "warning"
-                              }
-                              className="text-[10px] uppercase font-bold"
-                            >
-                              {statusLabel}
-                            </Badge>
+                              {progressValue}%
+                            </p>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <p className="text-lg font-black text-primary leading-none">
-                            {progressValue}%
-                          </p>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <Progress
-                        value={progressValue}
-                        variant={progressValue > 90 ? "success" : "default"}
-                        className="h-2.5 shadow-xs"
-                      />
 
-                      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                        <GoalStat
-                          label={vi ? "Đã góp" : "Funded"}
-                          value={formatVndCompact(funded, householdLocale)}
-                          sub={formatVnd(funded, householdLocale)}
-                          icon={Wallet}
-                        />
-                        <GoalStat
-                          label={vi ? "Còn thiếu" : "To Go"}
-                          value={formatVndCompact(remaining, householdLocale)}
-                          sub={formatVnd(remaining, householdLocale)}
-                          icon={TrendingUp}
-                        />
-                        <GoalStat
-                          label={vi ? "Mục tiêu/th" : "Goal/Mo"}
-                          value={
-                            requiredMonthly !== null
-                              ? formatVndCompact(
+                        {/* Actionable insight row */}
+                        {paceStatus !== "completed" && (
+                          <div className="pt-2 mt-2 border-t border-border/50">
+                            {paceStatus === "behind" ? (
+                              <p className="text-sm text-warning-foreground font-medium flex items-center">
+                                {t(language, "goals.missed_by")} {overageMonths}{" "}
+                                {t(language, "goals.months")}.{" "}
+                                <br className="hidden sm:block" />
+                                {neededExtraPerMonth > 0 && (
+                                  <span className="ml-1 text-foreground">
+                                    +{" "}
+                                    {formatVndCompact(
+                                      neededExtraPerMonth,
+                                      householdLocale,
+                                    )}{" "}
+                                    {t(language, "goals.add_per_month")}
+                                  </span>
+                                )}
+                              </p>
+                            ) : paceStatus === "on_track" && etaDate ? (
+                              <p className="text-sm text-success-foreground font-medium flex items-center">
+                                {t(language, "goals.arriving")}{" "}
+                                {formatDate(etaDate, householdLocale, {
+                                  month: "long",
+                                  year: "numeric",
+                                })}
+                              </p>
+                            ) : requiredMonthly && requiredMonthly > 0 ? (
+                              <p className="text-sm text-muted-foreground font-medium flex items-center">
+                                {formatVndCompact(
                                   requiredMonthly,
                                   householdLocale,
-                                )
-                              : "-"
-                          }
-                          sub={
-                            goal.target_date
-                              ? `${t(language, "common.to")} ${formatDate(goal.target_date, householdLocale)}`
-                              : "No deadline"
-                          }
-                          icon={Calendar}
-                        />
-                        <GoalStat
-                          label="ETA"
-                          value={
-                            etaDate
-                              ? formatDate(etaDate, householdLocale, {
-                                  month: "short",
-                                  year: "numeric",
-                                })
-                              : "-"
-                          }
-                          sub={
-                            avgMonthlyContribution > 0
-                              ? `avg ${formatVndCompact(avgMonthlyContribution, householdLocale)}/mo`
-                              : "No history"
-                          }
-                          icon={Info}
-                        />
+                                )}
+                                /mo needed to hit target
+                              </p>
+                            ) : (
+                              <p className="text-sm text-muted-foreground font-medium flex items-center">
+                                Add a consistent monthly contribution to see
+                                your ETA.
+                              </p>
+                            )}
+                          </div>
+                        )}
                       </div>
 
-                      <div className="pt-2">
+                      <div className="px-5 py-4 space-y-4">
+                        <Progress
+                          value={progressValue}
+                          variant={
+                            progressValue > 90
+                              ? "success"
+                              : paceStatus === "behind"
+                                ? "warning"
+                                : "default"
+                          }
+                          className="h-2 shadow-xs"
+                        />
+
+                        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                          <GoalStat
+                            label={vi ? "Đã góp" : "Funded"}
+                            value={formatVndCompact(funded, householdLocale)}
+                            sub={formatVnd(funded, householdLocale)}
+                            icon={Wallet}
+                          />
+                          <GoalStat
+                            label={vi ? "Còn thiếu" : "To Go"}
+                            value={formatVndCompact(remaining, householdLocale)}
+                            sub={formatVnd(remaining, householdLocale)}
+                            icon={TrendingUp}
+                          />
+                          <GoalStat
+                            label={vi ? "Mục tiêu/th" : "Goal/Mo"}
+                            value={
+                              requiredMonthly !== null
+                                ? formatVndCompact(
+                                    requiredMonthly,
+                                    householdLocale,
+                                  )
+                                : "-"
+                            }
+                            sub={
+                              goal.target_date
+                                ? `${t(language, "common.to")} ${formatDate(goal.target_date, householdLocale)}`
+                                : "No deadline"
+                            }
+                            icon={Calendar}
+                          />
+                          <GoalStat
+                            label="ETA"
+                            value={
+                              etaDate
+                                ? formatDate(etaDate, householdLocale, {
+                                    month: "short",
+                                    year: "numeric",
+                                  })
+                                : "-"
+                            }
+                            sub={
+                              avgMonthlyContribution > 0
+                                ? `avg ${formatVndCompact(avgMonthlyContribution, householdLocale)}/mo`
+                                : "No history"
+                            }
+                            icon={Info}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="pt-2 px-5 pb-5 bg-muted/5 border-t border-border/50">
                         <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-3">
                           {vi ? "Thêm đóng góp" : "Add Towards Goal"}
                         </p>
