@@ -58,6 +58,9 @@ export default async function TransactionsPage() {
     amount: Number(tx.amount),
     transaction_date: tx.transaction_date,
     description: tx.description,
+    category_id: tx.category_id,
+    account_id: tx.account_id,
+    counterparty_account_id: tx.counterparty_account_id,
     category_name: tx.category_id ? categoryMap.get(tx.category_id) ?? null : null,
     account_name: tx.account_id ? accountMap.get(tx.account_id) ?? null : null,
     counterparty_account_name: tx.counterparty_account_id ? accountMap.get(tx.counterparty_account_id) ?? null : null,
@@ -130,7 +133,13 @@ export default async function TransactionsPage() {
                 <p className="mt-2 text-sm text-rose-600">{transactionsResult.error.message}</p>
               ) : (
                 <div className="mt-3">
-                  <TransactionsList items={listItems} />
+                  <TransactionsList
+                    items={listItems}
+                    accounts={accounts.map((account) => ({ id: account.id, name: account.name }))}
+                    categories={categories
+                      .filter((category) => category.kind === "income" || category.kind === "expense")
+                      .map((category) => ({ id: category.id, name: category.name, kind: category.kind as "income" | "expense" }))}
+                  />
                 </div>
               )}
             </article>

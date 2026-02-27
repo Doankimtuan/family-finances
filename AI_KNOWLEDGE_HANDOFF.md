@@ -13,7 +13,7 @@ Primary product goal:
 - Move users from anxiety to clarity by giving a single source of truth, explainable metrics, and actionable next steps.
 
 ## 2. Product/UX Contract (Implemented Direction)
-- Language: English only.
+- Language: bilingual (`en` + `vi`) with household-level language setting.
 - Data entry: manual only (no bank auto-sync dependency).
 - Collaboration: equal partner access by default.
 - Mobile-first interaction model, especially transaction logging.
@@ -152,10 +152,16 @@ Completed in codebase:
 - Onboarding flow (welcome, members, accounts, assets, debts, income/expenses, first goal, first insight).
 - Dashboard with core metrics, trend chart, explainability drill-down drawers, quick actions.
 - Accounts + transactions (including mobile quick-add path).
+  - Transaction create/edit/delete flows are implemented.
+  - Expense validation requires account, date, amount > 0, and category.
+  - Expense entries/edits are rejected when amount exceeds current account balance (record is not written).
 - Assets module with quantity/price history editing + valuation timeline.
+  - Asset detail supports full delete action.
 - Debts module with promo-to-floating visualization and amortization schedule.
 - Goals module with contribution tracking, progress, ETA, required monthly amount.
 - Categories and monthly budgets management.
+  - Category rename + color edit is supported for both system and household categories.
+  - Category delete is blocked when transactions already exist for that category.
 - Decision tools module (loan, purchase timing, savings projection, goal modeling, debt-vs-invest).
 - Scenario persistence + side-by-side comparison.
 - Financial health page + recalculation endpoints.
@@ -167,6 +173,8 @@ Completed in codebase:
   - Household
   - Categories
   - Assumptions
+  - Household settings include language dropdown (English/Vietnamese)
+  - `/settings/profile`, `/settings/categories`, `/settings/assumptions` have i18n coverage
 - Audit event writes on critical financial changes.
 - Global/page-level loading/error/empty states.
 
@@ -178,21 +186,47 @@ Critical actions now emit audit events, including:
 - household created/invite/accept
 - account create/archive
 - transaction create (quick + detailed)
+- transaction update/delete
 - asset create + history edits
+- asset delete
 - category create/status toggle
+- category rename/delete
 - budget upsert/delete
 - goal create/contribution
 - scenario save
 - onboarding-created financial records
 - settings updates (profile/household/assumptions)
+- settings language update
 
 ## 9. Known Issues Already Addressed
 - Seed failure for `paid_by_member_id` type mismatch fixed with explicit `::uuid` cast in `00005_seed_demo_household.sql`.
 - Next.js server-action error (`"use server" file can only export async functions`) fixed by moving initial action state out of server-action export patterns.
 - Household create RLS issue fixed via policy update + secure bootstrap RPC.
 - Input visibility/currency entry UX fixes applied in onboarding forms.
+- Next.js server/client boundary issue fixed where `useI18n()` was incorrectly invoked from a server component.
 
-## 10. Current Gaps / Next Best Steps
+## 10. Recent Implementation Delta (Latest)
+These updates were implemented after the initial handoff draft:
+- Transactions:
+  - Added inline edit/delete controls in recent transactions list.
+  - Added server actions: `updateTransactionAction`, `deleteTransactionAction`.
+  - Enforced mandatory expense fields in server validation (account/date/amount/category).
+  - Changed overspending behavior to hard reject with explicit error:
+    - create: "Transaction not recorded: expense amount exceeds current account balance."
+    - update: "Transaction not updated: expense amount exceeds current account balance."
+- Categories:
+  - Added edit + delete actions in settings categories UI.
+  - System categories can be edited.
+  - Categories already used by transactions cannot be deleted.
+  - Category color is editable and consumed by dashboard monthly spending allocation chart.
+- Assets:
+  - Added delete action on asset detail page.
+- i18n:
+  - Bilingual dictionary/provider patterns are active across key modules.
+  - Settings pages (`profile`, `categories`, `assumptions`) updated for EN/VI content.
+  - Household settings includes language switch dropdown (`en`/`vi`) and persists locale preference.
+
+## 11. Current Gaps / Next Best Steps
 1. Resolve duplicate migration numbering (`00008` and `00008`) to deterministic order.
 2. Add dedicated Settings link in global nav tab bar if desired (currently reachable via dashboard quick action and household page shortcut).
 3. Expand automated operations (Edge Functions + cron):
@@ -206,7 +240,7 @@ Critical actions now emit audit events, including:
    - scenario comparison integrity
 5. Connect household assumption values more deeply into all calculators if not already consumed everywhere.
 
-## 11. AI Continuation Guide
+## 12. AI Continuation Guide
 When continuing development, follow this pattern:
 - Use household-scoped server actions for writes.
 - Resolve auth + household context first; fail fast with user-safe messages.
@@ -225,4 +259,3 @@ Key files to start from:
 - Decision tools UI: `app/decision-tools/_components/decision-tools-client.tsx`
 - Settings: `app/settings/*`
 - Audit helper: `lib/server/audit.ts`
-

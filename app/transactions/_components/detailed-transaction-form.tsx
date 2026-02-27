@@ -64,7 +64,7 @@ export function DetailedTransactionForm({ accounts, categories }: DetailedTransa
         <label htmlFor="accountId" className="text-sm font-medium text-slate-700">
           {type === "transfer" ? (vi ? "Từ tài khoản" : "From Account") : (vi ? "Tài khoản" : "Account")}
         </label>
-        <select id="accountId" name="accountId" className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-base text-slate-900">
+        <select id="accountId" name="accountId" required className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-base text-slate-900">
           {accounts.map((account) => (
             <option key={account.id} value={account.id}>{account.name}</option>
           ))}
@@ -74,7 +74,7 @@ export function DetailedTransactionForm({ accounts, categories }: DetailedTransa
       {type === "transfer" ? (
         <div className="space-y-1">
           <label htmlFor="counterpartyAccountId" className="text-sm font-medium text-slate-700">{vi ? "Đến tài khoản" : "To Account"}</label>
-          <select id="counterpartyAccountId" name="counterpartyAccountId" className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-base text-slate-900">
+          <select id="counterpartyAccountId" name="counterpartyAccountId" required className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-base text-slate-900">
             <option value="">{vi ? "Chọn tài khoản đích" : "Select destination account"}</option>
             {accounts.map((account) => (
               <option key={account.id} value={account.id}>{account.name}</option>
@@ -84,8 +84,8 @@ export function DetailedTransactionForm({ accounts, categories }: DetailedTransa
       ) : (
         <div className="space-y-1">
           <label htmlFor="categoryId" className="text-sm font-medium text-slate-700">{vi ? "Danh mục" : "Category"}</label>
-          <select id="categoryId" name="categoryId" className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-base text-slate-900">
-            <option value="">{vi ? "Không có danh mục" : "No category"}</option>
+          <select id="categoryId" name="categoryId" required={type === "expense"} className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-base text-slate-900">
+            <option value="">{type === "expense" ? (vi ? "Chọn danh mục" : "Select category") : (vi ? "Không có danh mục" : "No category")}</option>
             {filteredCategories.map((category) => (
               <option key={category.id} value={category.id}>{category.name}</option>
             ))}
@@ -99,6 +99,7 @@ export function DetailedTransactionForm({ accounts, categories }: DetailedTransa
           id="transactionDate"
           name="transactionDate"
           type="date"
+          required
           defaultValue={new Date().toISOString().slice(0, 10)}
           className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-base text-slate-900"
         />
