@@ -22,23 +22,27 @@ export function AppHeader({
 
   return (
     <div className="flex w-full items-center justify-between">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-3">
         {showBack && (
           <Button
             variant="ghost"
             size="icon"
             onClick={() => router.back()}
-            className="-ml-2 h-10 w-10 text-slate-600"
+            className="-ml-2 h-10 w-10 text-muted-foreground hover:text-foreground"
           >
             <ChevronLeft className="h-6 w-6" />
             <span className="sr-only">{t("common.back")}</span>
           </Button>
         )}
-        <h1 className="text-lg font-semibold text-slate-900 line-clamp-1">
+        <h1 className="text-xl font-bold tracking-tight text-foreground line-clamp-1">
           {title}
         </h1>
       </div>
-      {rightAction && <div>{rightAction}</div>}
+      {rightAction && (
+        <div className="animate-in fade-in slide-in-from-right-2 duration-500">
+          {rightAction}
+        </div>
+      )}
     </div>
   );
 }

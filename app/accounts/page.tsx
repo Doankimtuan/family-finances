@@ -1,8 +1,18 @@
 import { ArchiveAccountButton } from "@/app/accounts/_components/archive-account-button";
 import { CreateAccountForm } from "@/app/accounts/_components/create-account-form";
-import { formatVnd } from "@/lib/dashboard/format";
+import { AppHeader } from "@/components/layout/app-header";
+import { AppShell } from "@/components/layout/app-shell";
+import { BottomTabBar } from "@/components/layout/bottom-tab-bar";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { SectionHeader } from "@/components/ui/section-header";
+import { MetricCard } from "@/components/ui/metric-card";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Badge } from "@/components/ui/badge";
+import { formatVnd, formatVndCompact } from "@/lib/dashboard/format";
+import { t } from "@/lib/i18n/dictionary";
 import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
 import { createClient } from "@/lib/supabase/server";
+import { Landmark, Building2, ShieldCheck, PlusCircle } from "lucide-react";
 
 export const metadata = {
   title: "Accounts | Family Finances",
@@ -16,7 +26,9 @@ type AccountRow = {
 };
 
 export default async function AccountsPage() {
-  const { householdId } = await getAuthenticatedHouseholdContext();
+  const { householdId, language, householdLocale } =
+    await getAuthenticatedHouseholdContext();
+  const vi = language === "vi";
   const supabase = await createClient();
 
   const accountsResult = await supabase
@@ -33,7 +45,10 @@ export default async function AccountsPage() {
         .from("transactions")
         .select("account_id, type, amount")
         .eq("household_id", householdId)
-        .in("account_id", accounts.map((account) => account.id))
+        .in(
+          "account_id",
+          accounts.map((account) => account.id),
+        )
     : { data: [], error: null };
 
   const balanceMap = new Map<string, number>();
@@ -43,51 +58,125 @@ export default async function AccountsPage() {
 
   for (const row of txResult.data ?? []) {
     const current = balanceMap.get(row.account_id) ?? 0;
-    const delta = row.type === "income" ? Number(row.amount) : row.type === "expense" ? -Number(row.amount) : 0;
+    const delta =
+      row.type === "income"
+        ? Number(row.amount)
+        : row.type === "expense"
+          ? -Number(row.amount)
+          : 0;
     balanceMap.set(row.account_id, current + delta);
   }
 
+  const totalBalance = Array.from(balanceMap.values()).reduce(
+    (sum, b) => sum + b,
+    0,
+  );
+
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-6">
-      <section className="mx-auto w-full max-w-3xl space-y-4">
-        <header>
-          <p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-500">Accounts Module</p>
-          <h1 className="text-2xl font-semibold text-slate-900">Manage household accounts</h1>
-          <p className="mt-1 text-sm text-slate-600">Track account balances used by transactions and cash flow.</p>
-        </header>
+    <AppShell
+      header={<AppHeader title={t(language, "accounts.title")} />}
+      footer={<BottomTabBar />}
+    >
+      <div className="space-y-6 pb-24 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <section className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <MetricCard
+            label={vi ? "Tổng tài sản" : "Total Assets"}
+            value={formatVndCompact(totalBalance, householdLocale)}
+            icon={Building2}
+            variant="default"
+          />
+          <MetricCard
+            label={vi ? "Số lượng tài khoản" : "Total Accounts"}
+            value={accounts.length.toString()}
+            icon={ShieldCheck}
+            variant="success"
+          />
+        </section>
 
-        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="text-lg font-semibold text-slate-900">Create Account</h2>
-          <div className="mt-4">
+        <Card className="border-primary/20 bg-primary/5">
+          <CardHeader>
+            <SectionHeader
+              label="Onboarding"
+              title={vi ? "Tạo tài khoản" : "Create Account"}
+              description={
+                vi
+                  ? "Thêm ví, tài khoản ngân hàng hoặc các quỹ tiết kiệm của gia đình."
+                  : "Add wallets, bank accounts, or household saving funds."
+              }
+            />
+          </CardHeader>
+          <CardContent>
             <CreateAccountForm />
-          </div>
-        </article>
+          </CardContent>
+        </Card>
 
-        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="text-lg font-semibold text-slate-900">Active Accounts</h2>
+        <div className="space-y-4">
+          <SectionHeader
+            label="Directory"
+            title={vi ? "Tài khoản đang hoạt động" : "Active Accounts"}
+          />
 
           {accountsResult.error ? (
-            <p className="mt-2 text-sm text-rose-600">{accountsResult.error.message}</p>
+            <EmptyState
+              icon={Landmark}
+              title="Error loading accounts"
+              description={accountsResult.error.message}
+              className="bg-destructive/5 border-destructive/20"
+            />
           ) : accounts.length === 0 ? (
-            <p className="mt-2 text-sm text-slate-500">No accounts yet. Add your first account above.</p>
+            <EmptyState
+              icon={PlusCircle}
+              title={vi ? "Chưa có tài khoản" : "No accounts yet"}
+              description={
+                vi
+                  ? "Hãy tạo tài khoản đầu tiên để bắt đầu theo dõi dòng tiền."
+                  : "Create your first account to start tracking household cash flow."
+              }
+            />
           ) : (
-            <ul className="mt-3 space-y-2">
-              {accounts.map((account) => (
-                <li key={account.id} className="rounded-xl border border-slate-200 p-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-semibold text-slate-900">{account.name}</p>
-                      <p className="text-xs text-slate-500">{account.type}</p>
-                      <p className="mt-1 text-sm text-slate-700">Current balance: {formatVnd(balanceMap.get(account.id) ?? 0)}</p>
-                    </div>
-                    <ArchiveAccountButton accountId={account.id} />
-                  </div>
-                </li>
-              ))}
-            </ul>
+            <div className="grid grid-cols-1 gap-4">
+              {accounts.map((account) => {
+                const balance = balanceMap.get(account.id) ?? 0;
+                return (
+                  <Card
+                    key={account.id}
+                    className="group hover:border-primary/30 transition-all duration-300"
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex items-start gap-3 min-w-0">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted group-hover:bg-primary/10 transition-colors">
+                            <Landmark className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                          </div>
+                          <div className="min-w-0">
+                            <h3 className="truncate text-sm font-bold text-foreground">
+                              {account.name}
+                            </h3>
+                            <div className="mt-1 flex items-center gap-2">
+                              <Badge
+                                variant="outline"
+                                className="text-[10px] uppercase font-bold bg-muted/20"
+                              >
+                                {account.type}
+                              </Badge>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-black text-primary">
+                            {formatVnd(balance, householdLocale)}
+                          </p>
+                          <ArchiveAccountButton accountId={account.id} />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
           )}
-        </article>
-      </section>
-    </main>
+        </div>
+      </div>
+    </AppShell>
   );
 }

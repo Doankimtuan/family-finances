@@ -52,9 +52,13 @@ export function BottomTabBar() {
   const { t } = useI18n();
 
   return (
-    <nav className="grid h-16 grid-cols-6 bg-white" aria-label="Bottom navigation">
+    <nav
+      className="grid h-16 grid-cols-6 bg-card"
+      aria-label="Bottom navigation"
+    >
       {tabs.map((tab) => {
-        const isActive = pathname === tab.href || pathname.startsWith(`${tab.href}/`);
+        const isActive =
+          pathname === tab.href || pathname.startsWith(`${tab.href}/`);
         const Icon = tab.icon;
 
         return (
@@ -62,16 +66,32 @@ export function BottomTabBar() {
             key={tab.href}
             href={tab.href}
             className={cn(
-              "flex h-full min-w-0 flex-col items-center justify-center gap-1 transition-colors",
+              "relative flex h-full min-w-0 flex-col items-center justify-center gap-1.5 transition-all duration-300",
               isActive
-                ? "text-slate-900"
-                : "text-slate-700 hover:text-slate-900",
+                ? "text-primary"
+                : "text-muted-foreground hover:text-foreground",
             )}
           >
-            <Icon className={cn("h-5 w-5", isActive ? "text-teal-600" : "text-slate-700")} />
-            <span className="line-clamp-1 px-1 text-[10px] font-medium uppercase tracking-wide">
+            {isActive && (
+              <span className="absolute inset-x-2 top-0 h-1 rounded-b-full bg-primary animate-in fade-in slide-in-from-top-1 duration-300" />
+            )}
+            <Icon
+              className={cn(
+                "h-5.5 w-5.5 transition-transform duration-300",
+                isActive && "scale-110",
+              )}
+            />
+            <span
+              className={cn(
+                "line-clamp-1 px-1 text-[10px] font-bold uppercase tracking-[0.08em] transition-all",
+                isActive ? "opacity-100" : "opacity-70",
+              )}
+            >
               {t(tab.labelKey)}
             </span>
+            {isActive && (
+              <span className="absolute inset-x-4 inset-y-2 rounded-xl bg-primary/5 -z-10 animate-in fade-in duration-500" />
+            )}
           </Link>
         );
       })}

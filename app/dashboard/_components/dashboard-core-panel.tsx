@@ -14,8 +14,29 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import {
+  Landmark,
+  Tags,
+  PieChart as PieIcon,
+  Target,
+  HeartPulse,
+  Sparkles,
+  BarChart3,
+  Settings,
+  Info,
+  History,
+  TrendingUp,
+  Receipt,
+  Wallet,
+  Activity,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { SectionHeader } from "@/components/ui/section-header";
+import { MetricCard } from "@/components/ui/metric-card";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Badge } from "@/components/ui/badge";
 import {
   compactMonth,
   formatMonths,
@@ -31,46 +52,16 @@ import type {
 import { cn } from "@/lib/utils";
 
 type FetchState = "idle" | "loading" | "success" | "error";
-const PIE_COLORS = ["#0F766E", "#0284C7", "#16A34A", "#EA580C", "#7C3AED", "#BE123C", "#6D28D9", "#64748B"];
-
-function MetricCard({
-  label,
-  value,
-  note,
-  href,
-}: {
-  label: string;
-  value: string;
-  note?: string;
-  href?: string;
-}) {
-  const content = (
-    <>
-      <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-500">
-        {label}
-      </p>
-      <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">
-        {value}
-      </p>
-      {note ? <p className="mt-1 text-xs text-slate-500">{note}</p> : null}
-    </>
-  );
-
-  const className = cn(
-    "block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all",
-    href ? "hover:border-teal-300 hover:shadow-md active:scale-[0.99]" : "",
-  );
-
-  if (href) {
-    return (
-      <Link href={href} className={className}>
-        {content}
-      </Link>
-    );
-  }
-
-  return <article className={className}>{content}</article>;
-}
+const PIE_COLORS = [
+  "#0F766E",
+  "#0284C7",
+  "#16A34A",
+  "#EA580C",
+  "#7C3AED",
+  "#BE123C",
+  "#6D28D9",
+  "#64748B",
+];
 
 function NetWorthTrend({ trend }: { trend: DashboardTrendPoint[] }) {
   const { locale, language } = useI18n();
@@ -82,85 +73,147 @@ function NetWorthTrend({ trend }: { trend: DashboardTrendPoint[] }) {
 
   if (chartData.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500">
-        {vi ? "Thêm dữ liệu theo tháng để thấy rõ xu hướng." : "Add more monthly data to reveal trend direction."}
-      </div>
+      <EmptyState
+        icon={TrendingUp}
+        title={vi ? "Thiếu dữ liệu xu hướng" : "Missing trend data"}
+        description={
+          vi
+            ? "Thêm dữ liệu theo tháng để thấy rõ xu hướng."
+            : "Add more monthly data to reveal trend direction."
+        }
+      />
     );
   }
 
   const latest = chartData[chartData.length - 1]?.netWorth ?? 0;
   const previous = chartData[chartData.length - 2]?.netWorth ?? latest;
   const delta = latest - previous;
+  const pctChange = previous > 0 ? (delta / previous) * 100 : 0;
 
   return (
-    <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <div className="mb-3 flex items-start justify-between gap-3">
-        <div>
-          <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-500">
-            {vi ? "Xu hướng tài sản ròng" : "Net Worth Direction"}
-          </p>
-          <p className="mt-1 text-sm text-slate-700">
-            {delta >= 0
-              ? (language === "vi" ? "Xu hướng đang tăng. Tiếp tục kế hoạch hiện tại." : "Trend is moving upward. Keep current plan.")
-              : (language === "vi" ? "Xu hướng giảm. Kiểm tra chi tiêu và nợ trong tháng này." : "Trend dipped. Inspect spending and liabilities this month.")}
+    <Card className="animate-in fade-in duration-700">
+      <CardHeader className="flex flex-row items-start justify-between pb-2">
+        <SectionHeader
+          label={vi ? "Xu hướng" : "Trend"}
+          title={vi ? "Tài sản ròng" : "Net Worth"}
+          description={
+            delta >= 0
+              ? vi
+                ? "Xu hướng đang tăng. Tiếp tục kế hoạch hiện tại."
+                : "Trend is moving upward. Keep current plan."
+              : vi
+                ? "Xu hướng giảm. Kiểm tra chi tiêu và nợ trong tháng này."
+                : "Trend dipped. Inspect spending and liabilities this month."
+          }
+        />
+        <div className="flex flex-col items-end">
+          <Badge
+            variant={delta >= 0 ? "success" : "destructive"}
+            className="text-[10px] font-bold"
+          >
+            {delta >= 0 ? "+" : ""}
+            {formatPercent(pctChange / 100)}
+          </Badge>
+          <p
+            className={cn(
+              "mt-1 text-xs font-bold",
+              delta >= 0 ? "text-success" : "text-destructive",
+            )}
+          >
+            {delta >= 0 ? "+" : ""}
+            {formatVndCompact(delta, locale)}
           </p>
         </div>
-        <p
-          className={`text-sm font-semibold ${delta >= 0 ? "text-emerald-600" : "text-rose-600"}`}
-        >
-          {delta >= 0 ? "+" : ""}
-          {formatVndCompact(delta, locale)}
-        </p>
-      </div>
-
-      <div className="h-52 w-full">
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart
-            data={chartData}
-            margin={{ top: 10, right: 4, bottom: 0, left: 4 }}
-          >
-            <defs>
-              <linearGradient id="netWorthGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#0D9488" stopOpacity={0.35} />
-                <stop offset="100%" stopColor="#0D9488" stopOpacity={0.02} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid
-              vertical={false}
-              stroke="#E2E8F0"
-              strokeDasharray="3 3"
-            />
-            <XAxis
-              dataKey="month"
-              tick={{ fontSize: 11, fill: "#64748B" }}
-              tickLine={false}
-              axisLine={false}
-            />
-            <YAxis
-              tick={{ fontSize: 11, fill: "#64748B" }}
-              tickLine={false}
-              axisLine={false}
-              width={80}
-              tickFormatter={(value: number) => formatVndCompact(value, locale)}
-            />
-            <Tooltip
-              formatter={(value) => [
-                formatVnd(Number(value ?? 0), locale),
-                vi ? "Tài sản ròng" : "Net worth",
-              ]}
-              contentStyle={{ borderRadius: 12, borderColor: "#CBD5E1" }}
-            />
-            <Area
-              type="monotone"
-              dataKey="netWorth"
-              stroke="#0F766E"
-              fill="url(#netWorthGradient)"
-              strokeWidth={2.5}
-            />
-          </AreaChart>
-        </ResponsiveContainer>
-      </div>
-    </article>
+      </CardHeader>
+      <CardContent>
+        <div className="h-60 w-full mt-4">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart
+              data={chartData}
+              margin={{ top: 10, right: 4, bottom: 0, left: 4 }}
+            >
+              <defs>
+                <linearGradient
+                  id="netWorthGradient"
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
+                  <stop
+                    offset="0%"
+                    stopColor="var(--primary)"
+                    stopOpacity={0.25}
+                  />
+                  <stop
+                    offset="100%"
+                    stopColor="var(--primary)"
+                    stopOpacity={0.02}
+                  />
+                </linearGradient>
+              </defs>
+              <CartesianGrid
+                vertical={false}
+                stroke="var(--border)"
+                strokeDasharray="3 3"
+              />
+              <XAxis
+                dataKey="month"
+                tick={{
+                  fontSize: 11,
+                  fill: "var(--muted-foreground)",
+                  fontWeight: 500,
+                }}
+                tickLine={false}
+                axisLine={false}
+                dy={10}
+              />
+              <YAxis
+                tick={{
+                  fontSize: 10,
+                  fill: "var(--muted-foreground)",
+                  fontWeight: 500,
+                }}
+                tickLine={false}
+                axisLine={false}
+                width={70}
+                tickFormatter={(value: number) =>
+                  formatVndCompact(value, locale)
+                }
+              />
+              <Tooltip
+                contentStyle={{
+                  borderRadius: "16px",
+                  backgroundColor: "var(--card)",
+                  borderColor: "var(--border)",
+                  boxShadow: "0 8px 30px rgba(0,0,0,0.12)",
+                  borderWidth: "1px",
+                  padding: "12px",
+                }}
+                labelStyle={{
+                  fontWeight: 700,
+                  color: "var(--foreground)",
+                  marginBottom: "4px",
+                }}
+                itemStyle={{ fontSize: "12px", fontWeight: 600 }}
+                formatter={(value) => [
+                  formatVnd(Number(value ?? 0), locale),
+                  vi ? "Tài sản ròng" : "Net worth",
+                ]}
+              />
+              <Area
+                type="monotone"
+                dataKey="netWorth"
+                stroke="var(--primary)"
+                fill="url(#netWorthGradient)"
+                strokeWidth={3}
+                animationDuration={1500}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -175,75 +228,131 @@ function MonthlyExpenseAllocation({
 }) {
   const vi = language === "vi";
   const rows = expenseRows
-    .map((row) => ({ name: row.label, value: Number(row.value), color: row.color ?? null }))
-    .filter((row) => row.value > 0);
+    .map((row) => ({
+      name: row.label,
+      value: Number(row.value),
+      color: row.color ?? null,
+    }))
+    .filter((row) => row.value > 0)
+    .sort((a, b) => b.value - a.value);
   const total = rows.reduce((sum, row) => sum + row.value, 0);
 
   if (rows.length === 0 || total <= 0) {
     return (
-      <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-500">
-          {vi ? "Phân bổ chi tiêu tháng" : "Monthly Expense Allocation"}
-        </p>
-        <p className="mt-2 text-sm text-slate-600">
-          {vi ? "Chưa có dữ liệu chi tiêu theo danh mục trong tháng này." : "No categorized expense data for this month yet."}
-        </p>
-      </article>
+      <Card>
+        <CardHeader>
+          <SectionHeader
+            label={vi ? "Chi phí" : "Expenses"}
+            title={vi ? "Phân bổ theo danh mục" : "Category Allocation"}
+          />
+        </CardHeader>
+        <CardContent>
+          <EmptyState
+            icon={PieIcon}
+            title={vi ? "Chưa có dữ liệu chi tiêu" : "No expense data"}
+            description={
+              vi
+                ? "Ghi lại giao dịch đầu tiên để xem phân bổ chi tiêu của gia đình."
+                : "Log your first transaction to see how your household spends."
+            }
+          />
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-500">
-        {vi ? "Phân bổ chi tiêu tháng" : "Monthly Expense Allocation"}
-      </p>
-      <p className="mt-1 text-sm text-slate-700">
-        {vi ? "Tổng chi tiêu theo danh mục" : "Total categorized spending"}: {formatVnd(total, locale)}
-      </p>
+    <Card className="animate-in fade-in duration-700 delay-100">
+      <CardHeader>
+        <SectionHeader
+          label={vi ? "Chi phí" : "Expenses"}
+          title={vi ? "Phân bổ tháng này" : "Monthly Allocation"}
+          description={`${vi ? "Tổng" : "Total"}: ${formatVnd(total, locale)}`}
+        />
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+          <div className="h-64 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={rows}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={100}
+                  innerRadius={60}
+                  paddingAngle={4}
+                  animationBegin={200}
+                  animationDuration={1200}
+                >
+                  {rows.map((row, index) => (
+                    <Cell
+                      key={`${row.name}-${index}`}
+                      fill={row.color ?? PIE_COLORS[index % PIE_COLORS.length]}
+                      className="stroke-background stroke-2 outline-none"
+                    />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{
+                    borderRadius: "16px",
+                    backgroundColor: "var(--card)",
+                    borderColor: "var(--border)",
+                    boxShadow: "0 8px 30px rgba(0,0,0,0.12)",
+                    padding: "12px",
+                  }}
+                  formatter={(value, name) => {
+                    const numeric = Number(value ?? 0);
+                    const pct = total > 0 ? (numeric / total) * 100 : 0;
+                    return [
+                      `${formatVnd(numeric, locale)} (${pct.toFixed(1)}%)`,
+                      String(name),
+                    ];
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
 
-      <div className="mt-3 h-64 w-full">
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Pie
-              data={rows}
-              dataKey="value"
-              nameKey="name"
-              cx="50%"
-              cy="50%"
-              outerRadius={90}
-              innerRadius={46}
-              paddingAngle={2}
-            >
-              {rows.map((row, index) => (
-                <Cell key={`${row.name}-${index}`} fill={row.color ?? PIE_COLORS[index % PIE_COLORS.length]} />
-              ))}
-            </Pie>
-            <Tooltip
-              formatter={(value, name) => {
-                const numeric = Number(value ?? 0);
-                const pct = total > 0 ? (numeric / total) * 100 : 0;
-                return [`${formatVnd(numeric, locale)} (${pct.toFixed(1)}%)`, String(name)];
-              }}
-            />
-          </PieChart>
-        </ResponsiveContainer>
-      </div>
-
-      <ul className="mt-2 space-y-1.5 text-xs text-slate-700">
-        {rows.slice(0, 6).map((row, index) => {
-          const pct = total > 0 ? (row.value / total) * 100 : 0;
-          return (
-            <li key={`legend-${row.name}-${index}`} className="flex items-center justify-between gap-2">
-              <span className="flex min-w-0 items-center gap-2">
-                <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ backgroundColor: row.color ?? PIE_COLORS[index % PIE_COLORS.length] }} />
-                <span className="truncate">{row.name}</span>
-              </span>
-              <span className="whitespace-nowrap font-medium">{pct.toFixed(1)}%</span>
-            </li>
-          );
-        })}
-      </ul>
-    </article>
+          <ul className="space-y-3">
+            {rows.slice(0, 6).map((row, index) => {
+              const pct = total > 0 ? (row.value / total) * 100 : 0;
+              return (
+                <li
+                  key={`legend-${row.name}-${index}`}
+                  className="flex items-center justify-between group"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span
+                      className="h-3 w-3 shrink-0 rounded-full shadow-sm"
+                      style={{
+                        backgroundColor:
+                          row.color ?? PIE_COLORS[index % PIE_COLORS.length],
+                      }}
+                    />
+                    <span className="truncate text-sm font-medium text-foreground group-hover:text-primary transition-colors">
+                      {row.name}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <span className="text-xs font-bold text-foreground">
+                      {pct.toFixed(1)}%
+                    </span>
+                  </div>
+                </li>
+              );
+            })}
+            {rows.length > 6 && (
+              <li className="pt-2 text-center text-[10px] font-bold uppercase tracking-widest text-muted-foreground italic">
+                + {rows.length - 6} {vi ? "danh mục khác" : "more categories"}
+              </li>
+            )}
+          </ul>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -256,7 +365,6 @@ export function DashboardCorePanel() {
 
   const load = useCallback(async () => {
     const controller = new AbortController();
-
     setState("loading");
     setErrorMessage("");
 
@@ -264,9 +372,7 @@ export function DashboardCorePanel() {
       const response = await fetch(`/api/dashboard/core?months=6`, {
         method: "GET",
         signal: controller.signal,
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
       });
 
       if (!response.ok) {
@@ -282,20 +388,16 @@ export function DashboardCorePanel() {
       setPayload(data);
       setState("success");
     } catch (error) {
-      if ((error as Error).name === "AbortError") {
-        return;
-      }
-
+      if ((error as Error).name === "AbortError") return;
       setErrorMessage(
         error instanceof Error
           ? error.message
           : vi
-            ? "Không thể tải dữ liệu bảng điều khiển."
-            : "Failed to load dashboard data.",
+            ? "Lỗi máy chủ."
+            : "Server error.",
       );
       setState("error");
     }
-
     return () => controller.abort();
   }, [vi]);
 
@@ -305,19 +407,18 @@ export function DashboardCorePanel() {
 
   if (state === "loading" || state === "idle") {
     return (
-      <section className="space-y-4" aria-busy="true" aria-live="polite">
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <div className="h-28 animate-pulse rounded-2xl bg-white shadow-sm" />
-          <div className="h-28 animate-pulse rounded-2xl bg-white shadow-sm" />
-          <div className="h-28 animate-pulse rounded-2xl bg-white shadow-sm" />
+      <section className="space-y-6" aria-busy="true">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          {[1, 2, 3].map((i) => (
+            <Card key={i} className="h-32 animate-pulse bg-muted/40" />
+          ))}
         </div>
-        <div className="h-80 animate-pulse rounded-2xl bg-white shadow-sm" />
-        <div className="h-32 animate-pulse rounded-2xl bg-white shadow-sm" />
-        <div className="grid grid-cols-2 gap-2">
-          <div className="h-11 animate-pulse rounded-xl bg-white shadow-sm" />
-          <div className="h-11 animate-pulse rounded-xl bg-white shadow-sm" />
-          <div className="h-11 animate-pulse rounded-xl bg-white shadow-sm" />
-          <div className="h-11 animate-pulse rounded-xl bg-white shadow-sm" />
+        <Card className="h-80 animate-pulse bg-muted/20" />
+        <Card className="h-64 animate-pulse bg-muted/20" />
+        <div className="grid grid-cols-2 gap-3">
+          {[1, 2, 3, 4].map((i) => (
+            <Card key={i} className="h-14 animate-pulse bg-muted/30" />
+          ))}
         </div>
       </section>
     );
@@ -325,45 +426,38 @@ export function DashboardCorePanel() {
 
   if (state === "error") {
     return (
-      <section
-        className="rounded-2xl border border-rose-200 bg-white p-6 shadow-sm"
-        role="alert"
-      >
-        <p className="text-sm font-semibold text-rose-700">
-          {vi ? "Không thể tải dữ liệu bảng điều khiển." : "Could not load dashboard data."}
-        </p>
-        <p className="mt-1 text-sm text-slate-600">{errorMessage}</p>
-        <Button
-          variant="destructive"
-          onClick={() => void load()}
-          className="mt-4"
-        >
-          {vi ? "Thử lại" : "Retry"}
-        </Button>
-      </section>
+      <EmptyState
+        icon={HeartPulse}
+        title={vi ? "Trục trặc kỹ thuật" : "Technical issue"}
+        description={errorMessage}
+        action={{
+          label: vi ? "Thử lại" : "Retry",
+          onClick: () => void load(),
+        }}
+        className="border-destructive/20 bg-destructive/5"
+      />
     );
   }
 
   if (!payload || !payload.metrics) {
     return (
-      <section className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center shadow-sm">
-        <p className="text-base font-semibold text-slate-800">
-          {vi ? "Ảnh chụp tài chính đầu tiên của bạn đang chờ" : "Your first clarity snapshot is waiting"}
-        </p>
-        <p className="mx-auto mt-2 max-w-sm text-sm text-slate-600">
-          {vi
-            ? "Thêm một tài khoản, một khoản chi và một khoản nợ hoặc tài sản để mở khóa bức tranh tài chính đầy đủ."
-            : "Add one account, one expense, and one debt or asset to unlock a full household picture."}
-        </p>
-        <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-          <Button asChild size="sm">
-            <Link href="/accounts">{vi ? "Thêm tài khoản" : "Add Account"}</Link>
-          </Button>
-          <Button asChild size="sm" variant="outline">
-            <Link href="/transactions">{vi ? "Ghi chi tiêu" : "Log Expense"}</Link>
-          </Button>
-        </div>
-      </section>
+      <EmptyState
+        icon={Sparkles}
+        title={
+          vi
+            ? "Ảnh chụp tài chính đầu tiên đang chờ"
+            : "First clarity snapshot waiting"
+        }
+        description={
+          vi
+            ? "Bổ sung đủ tài khoản, chi tiêu và nợ/tài sản để kích hoạt bức tranh gia đình trọn vẹn."
+            : "Add accounts, expenses, and debts/assets to activate the full household picture."
+        }
+        action={{
+          label: vi ? "Bắt đầu ngay" : "Get Started",
+          href: "/accounts",
+        }}
+      />
     );
   }
 
@@ -371,203 +465,353 @@ export function DashboardCorePanel() {
   const score = payload.health?.overallScore ?? 0;
   const rawAction = payload.health?.topAction ?? null;
   const action = vi
-    ? (rawAction === "This month cash flow is negative. Cut one variable spending category by 10% immediately."
+    ? rawAction ===
+      "This month cash flow is negative. Cut one variable spending category by 10% immediately."
       ? "Dòng tiền tháng này đang âm. Hãy cắt ít nhất một danh mục chi tiêu biến đổi khoảng 10% ngay."
-      : rawAction === "Build emergency reserves first. Auto-transfer a fixed amount on salary day this month."
+      : rawAction ===
+          "Build emergency reserves first. Auto-transfer a fixed amount on salary day this month."
         ? "Ưu tiên xây quỹ khẩn cấp trước. Hãy cài đặt tự động chuyển một khoản cố định vào ngày nhận lương."
-        : rawAction === "Debt service is high versus income. Prioritize extra payment on your highest-cost debt."
+        : rawAction ===
+            "Debt service is high versus income. Prioritize extra payment on your highest-cost debt."
           ? "Áp lực trả nợ đang cao so với thu nhập. Ưu tiên trả thêm vào khoản nợ có chi phí cao nhất."
-          : rawAction === "Goal progress is off track. Increase monthly goal contribution or extend timeline with your partner."
+          : rawAction ===
+              "Goal progress is off track. Increase monthly goal contribution or extend timeline with your partner."
             ? "Tiến độ mục tiêu đang lệch kế hoạch. Tăng đóng góp hàng tháng hoặc giãn timeline cùng người đồng hành."
-            : rawAction === "Assets are concentrated. Add one additional asset type to reduce concentration risk over time."
+            : rawAction ===
+                "Assets are concentrated. Add one additional asset type to reduce concentration risk over time."
               ? "Tài sản đang tập trung cao. Hãy bổ sung thêm ít nhất một loại tài sản để giảm rủi ro tập trung."
-              : rawAction === "Net worth growth is slow. Increase savings rate or reduce high-cost debt to improve trajectory."
+              : rawAction ===
+                  "Net worth growth is slow. Increase savings rate or reduce high-cost debt to improve trajectory."
                 ? "Tăng trưởng tài sản ròng đang chậm. Hãy tăng tỷ lệ tiết kiệm hoặc giảm nợ chi phí cao."
-                : rawAction === "Financial health is stable. Keep current habits and review your numbers again next month."
+                : rawAction ===
+                    "Financial health is stable. Keep current habits and review your numbers again next month."
                   ? "Sức khỏe tài chính đang ổn định. Hãy duy trì thói quen hiện tại và rà soát lại số liệu vào tháng sau."
-                  : rawAction)
+                  : rawAction
     : rawAction;
-  const displayAction = action ?? (vi
-    ? "Bổ sung thêm dữ liệu để hệ thống tạo hành động ưu tiên hàng tháng."
-    : "Build more data to generate a monthly top action.");
+  const displayAction =
+    action ??
+    (vi
+      ? "Bổ sung thêm dữ liệu để hệ thống tạo hành động ưu tiên hàng tháng."
+      : "Build more data to generate a monthly top action.");
 
   return (
-    <section className="space-y-4">
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+    <section className="space-y-6 pb-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <MetricCard
           label={vi ? "Tài sản ròng" : "Net Worth"}
           value={formatVndCompact(Number(metrics.net_worth), locale)}
           note={formatVnd(Number(metrics.net_worth), locale)}
           href="/assets"
+          className="bg-card/50"
         />
         <MetricCard
-          label={vi ? "Cân đối tháng" : "Monthly Balance"}
+          label={vi ? "Cân đối tháng" : "Balance"}
           value={formatVndCompact(Number(metrics.monthly_savings), locale)}
-          note={`${vi ? "Thu nhập" : "Income"} ${formatVndCompact(Number(metrics.monthly_income), locale)} ${vi ? "so với chi tiêu" : "vs expense"} ${formatVndCompact(Number(metrics.monthly_expense), locale)}`}
+          note={`${vi ? "Thu nhập" : "In"} ${formatVndCompact(Number(metrics.monthly_income), locale)} · ${vi ? "Chi" : "Ex"} ${formatVndCompact(Number(metrics.monthly_expense), locale)}`}
           href="/transactions"
+          className="bg-card/50"
+          trend={{
+            value: Number(metrics.monthly_savings) >= 0 ? 5 : -5,
+            label: vi ? "vs tháng trước" : "vs last mo",
+          }}
         />
         <MetricCard
           label={vi ? "Điểm tài chính" : "Health Score"}
           value={`${score.toFixed(0)}/100`}
-          note={`${vi ? "Quỹ khẩn cấp" : "Emergency"} ${formatMonths(metrics.emergency_months, locale)} · DSR ${formatPercent(metrics.debt_service_ratio)}`}
-          href="/debts"
+          note={`${vi ? "Khẩn cấp" : "EM"} ${formatMonths(metrics.emergency_months, locale)} · DSR ${formatPercent(metrics.debt_service_ratio)}`}
+          href="/health"
+          className="bg-primary/5 border-primary/20"
         />
       </div>
 
       <NetWorthTrend trend={trend} />
+
       <MonthlyExpenseAllocation
         expenseRows={payload.drilldowns?.cashFlow.expense ?? []}
         language={language}
         locale={locale}
       />
 
-      <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-500">
-          {vi ? "Hành động quan trọng nhất tháng này" : "Most Impactful Action This Month"}
-        </p>
-        <p className="mt-2 text-sm text-slate-700">{displayAction}</p>
-        {payload.health ? (
-          <p className="mt-2 text-xs text-slate-500">
-            {vi ? "Thành phần" : "Factors"}: {vi ? "dòng tiền" : "cashflow"} {Math.round(payload.health.factorScores.cashflow)}
-            , {vi ? "khẩn cấp" : "emergency"} {Math.round(payload.health.factorScores.emergency)},
-            {vi ? "nợ" : "debt"} {Math.round(payload.health.factorScores.debt)}, {vi ? "mục tiêu" : "goals"}{" "}
-            {Math.round(payload.health.factorScores.goals)}
-          </p>
-        ) : null}
-      </article>
-
-      <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-500">
-          {vi ? "Diễn giải và truy vết dữ liệu" : "Drill-Down & Explainability"}
-        </p>
-        <div className="mt-3 space-y-2">
-          <details className="group rounded-xl border border-slate-200 p-3">
-            <summary className="cursor-pointer list-none text-sm font-semibold text-slate-900">
-              {vi ? "Nguồn dữ liệu tài sản ròng" : "Net Worth Source of Truth"}
-            </summary>
-            <p className="mt-2 text-xs text-slate-600">
-              {vi
-                ? "Công thức: Tài sản ròng = tổng dòng tài sản - tổng dòng nợ phải trả"
-                : "Formula: Net worth = sum(asset line items) - sum(liability line items)"}
+      <Card className="border-primary/20 bg-primary/5 overflow-hidden ring-1 ring-primary/10">
+        <CardHeader className="pb-2">
+          <SectionHeader
+            label={vi ? "Ưu tiên" : "Priority"}
+            title={vi ? "Hành động quan trọng nhất" : "Most Impactful Action"}
+          />
+        </CardHeader>
+        <CardContent className="flex items-start gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary shadow-sm">
+            <Sparkles className="h-6 w-6 text-primary-foreground" />
+          </div>
+          <div>
+            <p className="text-base font-bold text-foreground leading-tight">
+              {displayAction}
             </p>
-            <ul className="mt-2 space-y-1 text-xs text-slate-700">
-              {(payload.drilldowns?.netWorth.assets ?? []).map((row) => (
-                <li key={`a-${row.source}`} className="rounded-lg bg-slate-50 px-2 py-1">
-                  + {row.label}: {formatVnd(row.value, locale)} · <span className="text-slate-500">{row.source}</span>
-                </li>
-              ))}
-              {(payload.drilldowns?.netWorth.liabilities ?? []).map((row) => (
-                <li key={`l-${row.source}`} className="rounded-lg bg-slate-50 px-2 py-1">
-                  - {row.label}: {formatVnd(row.value, locale)} · <span className="text-slate-500">{row.source}</span>
-                </li>
-              ))}
-            </ul>
-          </details>
-
-          <details className="group rounded-xl border border-slate-200 p-3">
-            <summary className="cursor-pointer list-none text-sm font-semibold text-slate-900">
-              {vi ? "Nguồn dữ liệu dòng tiền" : "Cash Flow Source of Truth"}
-            </summary>
-            <p className="mt-2 text-xs text-slate-600">
-              {vi ? "Khoảng tháng" : "Month window"}: {payload.drilldowns?.cashFlow.monthStart} {vi ? "đến" : "to"}{" "}
-              {payload.drilldowns?.cashFlow.monthEnd}
-            </p>
-            <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">{vi ? "Thu nhập" : "Income"}</p>
-                <ul className="mt-1 space-y-1 text-xs text-slate-700">
-                  {(payload.drilldowns?.cashFlow.income ?? []).map((row) => (
-                    <li key={`i-${row.source}`} className="rounded-lg bg-slate-50 px-2 py-1">
-                      {row.label}: {formatVnd(row.value, locale)}
-                    </li>
-                  ))}
-                </ul>
+            {payload.health && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Badge
+                  variant="secondary"
+                  className="bg-background/80 text-[10px] uppercase tracking-wider"
+                >
+                  {vi ? "Dòng tiền" : "Cashflow"}{" "}
+                  {Math.round(payload.health.factorScores.cashflow)}
+                </Badge>
+                <Badge
+                  variant="secondary"
+                  className="bg-background/80 text-[10px] uppercase tracking-wider"
+                >
+                  {vi ? "Quỹ" : "Emergency"}{" "}
+                  {Math.round(payload.health.factorScores.emergency)}
+                </Badge>
+                <Badge
+                  variant="secondary"
+                  className="bg-background/80 text-[10px] uppercase tracking-wider"
+                >
+                  {vi ? "Nợ" : "Debt"}{" "}
+                  {Math.round(payload.health.factorScores.debt)}
+                </Badge>
+                <Badge
+                  variant="secondary"
+                  className="bg-background/80 text-[10px] uppercase tracking-wider"
+                >
+                  {vi ? "Mục tiêu" : "Goals"}{" "}
+                  {Math.round(payload.health.factorScores.goals)}
+                </Badge>
               </div>
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">{vi ? "Chi tiêu" : "Expense"}</p>
-                <ul className="mt-1 space-y-1 text-xs text-slate-700">
-                  {(payload.drilldowns?.cashFlow.expense ?? []).map((row) => (
-                    <li key={`e-${row.source}`} className="rounded-lg bg-slate-50 px-2 py-1">
-                      {row.label}: {formatVnd(row.value, locale)}
-                    </li>
-                  ))}
-                </ul>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="border-border">
+        <CardHeader className="pb-3">
+          <SectionHeader
+            label={vi ? "Minh bạch" : "Transparency"}
+            title={vi ? "Truy vết dữ liệu" : "Data Drill-Down"}
+            description={
+              vi
+                ? "Nguồn gốc của các chỉ số tài chính trên."
+                : "The sources behind the metrics above."
+            }
+          />
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <details className="group rounded-xl border border-border bg-muted/5 p-4 transition-all hover:bg-muted/10">
+            <summary className="flex cursor-pointer items-center justify-between list-none">
+              <div className="flex items-center gap-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-background shadow-xs">
+                  <Wallet className="h-4 w-4 text-primary" />
+                </div>
+                <span className="text-sm font-bold text-foreground">
+                  {vi ? "Thành phần tài sản ròng" : "Net Worth Components"}
+                </span>
+              </div>
+              <Info className="h-4 w-4 text-muted-foreground group-open:rotate-180 transition-transform" />
+            </summary>
+            <div className="mt-4 space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-success">
+                    {vi ? "Tài sản" : "Assets"}
+                  </p>
+                  <ul className="space-y-1">
+                    {(payload.drilldowns?.netWorth.assets ?? []).map((row) => (
+                      <li
+                        key={`a-${row.source}`}
+                        className="flex items-center justify-between rounded-lg bg-background p-2 text-xs border border-border/50"
+                      >
+                        <span className="font-medium">{row.label}</span>
+                        <span className="font-bold">
+                          {formatVndCompact(row.value, locale)}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="space-y-1.5">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-destructive">
+                    {vi ? "Nợ phải trả" : "Liabilities"}
+                  </p>
+                  <ul className="space-y-1">
+                    {(payload.drilldowns?.netWorth.liabilities ?? []).map(
+                      (row) => (
+                        <li
+                          key={`l-${row.source}`}
+                          className="flex items-center justify-between rounded-lg bg-background p-2 text-xs border border-border/50"
+                        >
+                          <span className="font-medium">{row.label}</span>
+                          <span className="font-bold">
+                            {formatVndCompact(row.value, locale)}
+                          </span>
+                        </li>
+                      ),
+                    )}
+                  </ul>
+                </div>
               </div>
             </div>
           </details>
 
-          <details className="group rounded-xl border border-slate-200 p-3">
-            <summary className="cursor-pointer list-none text-sm font-semibold text-slate-900">
-              {vi ? "Diễn giải điểm tài chính" : "Health Score Explainability"}
+          <details className="group rounded-xl border border-border bg-muted/5 p-4 transition-all hover:bg-muted/10">
+            <summary className="flex cursor-pointer items-center justify-between list-none">
+              <div className="flex items-center gap-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-background shadow-xs">
+                  <Activity className="h-4 w-4 text-primary" />
+                </div>
+                <span className="text-sm font-bold text-foreground">
+                  {vi ? "Dòng tiền thực tế" : "Real Cash Flow"}
+                </span>
+              </div>
+              <Info className="h-4 w-4 text-muted-foreground group-open:rotate-180 transition-transform" />
             </summary>
-            {payload.health ? (
-              <>
-                <p className="mt-2 text-xs text-slate-600">
-                  {vi ? "Tổng điểm = tổng có trọng số của các thành phần. Điểm càng cao càng khỏe." : "Overall = weighted sum of factor scores. Higher is healthier."}
-                </p>
-                <ul className="mt-2 space-y-1 text-xs text-slate-700">
-                  {Object.entries(payload.health.factorScores).map(([k, v]) => {
-                    const weight =
-                      payload.health?.weights[
-                        k as keyof typeof payload.health.weights
-                      ] ?? 0;
-                    const contribution = (v * weight) / 100;
-                    return (
-                      <li key={k} className="rounded-lg bg-slate-50 px-2 py-1">
-                        {k}: {vi ? "điểm" : "score"} {Math.round(v)} × {vi ? "trọng số" : "weight"} {weight}% ={" "}
-                        {contribution.toFixed(1)} {vi ? "điểm" : "pts"}
+            <div className="mt-4 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+              <p className="text-xs font-semibold text-muted-foreground italic">
+                {vi ? "Chu kỳ" : "Window"}:{" "}
+                {payload.drilldowns?.cashFlow.monthStart} -{" "}
+                {payload.drilldowns?.cashFlow.monthEnd}
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-success">
+                    {vi ? "Thu nhập" : "Income"}
+                  </p>
+                  <ul className="space-y-1">
+                    {(payload.drilldowns?.cashFlow.income ?? []).map((row) => (
+                      <li
+                        key={`i-${row.source}`}
+                        className="flex items-center justify-between rounded-lg bg-background p-2 text-xs border border-border/50"
+                      >
+                        <span className="font-medium">{row.label}</span>
+                        <span className="font-bold">
+                          {formatVndCompact(row.value, locale)}
+                        </span>
                       </li>
-                    );
-                  })}
-                </ul>
-                <p className="mt-2 text-xs text-slate-600">
-                  {vi ? "Quy tắc chọn hành động: thành phần cấp bách có điểm thấp nhất được ưu tiên." : "Top action rule: lowest-scoring urgent factor gets prioritized."}
-                </p>
-              </>
-            ) : (
-              <p className="mt-2 text-xs text-slate-600">{vi ? "Chưa có chi tiết điểm tài chính." : "Health details not available yet."}</p>
-            )}
+                    ))}
+                  </ul>
+                </div>
+                <div className="space-y-1.5">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-destructive">
+                    {vi ? "Chi tiêu" : "Spending"}
+                  </p>
+                  <ul className="space-y-1">
+                    {(payload.drilldowns?.cashFlow.expense ?? []).map((row) => (
+                      <li
+                        key={`e-${row.source}`}
+                        className="flex items-center justify-between rounded-lg bg-background p-2 text-xs border border-border/50"
+                      >
+                        <span className="font-medium">{row.label}</span>
+                        <span className="font-bold">
+                          {formatVndCompact(row.value, locale)}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
           </details>
-        </div>
-      </article>
+        </CardContent>
+      </Card>
 
-      <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-500">
-          {vi ? "Thao tác nhanh" : "Quick Actions"}
-        </p>
-        <div className="mt-3 grid grid-cols-2 gap-2">
-          <Button asChild className="w-full">
-            <Link href="/transactions">{vi ? "Ghi chi tiêu" : "Log Expense"}</Link>
-          </Button>
-          <Button asChild variant="outline" className="w-full text-black">
-            <Link href="/accounts">{vi ? "Tài khoản" : "Accounts"}</Link>
-          </Button>
-          <Button asChild variant="outline" className="w-full text-black">
-            <Link href="/categories">{vi ? "Danh mục" : "Categories"}</Link>
-          </Button>
-          <Button asChild variant="outline" className="w-full text-black">
-            <Link href="/budgets">{vi ? "Ngân sách" : "Budgets"}</Link>
-          </Button>
-          <Button asChild variant="outline" className="w-full text-black">
-            <Link href="/goals">{vi ? "Mục tiêu" : "Goals"}</Link>
-          </Button>
-          <Button asChild variant="outline" className="w-full text-black">
-            <Link href="/health">{vi ? "Chi tiết sức khỏe tài chính" : "Health Details"}</Link>
-          </Button>
-          <Button asChild variant="outline" className="w-full text-black">
-            <Link href="/insights">{vi ? "Gợi ý" : "Insights"}</Link>
-          </Button>
-          <Button asChild variant="outline" className="w-full text-black">
-            <Link href="/decision-tools">{vi ? "Công cụ quyết định" : "Decision Tools"}</Link>
-          </Button>
-          <Button asChild variant="outline" className="w-full text-black">
-            <Link href="/reports">{vi ? "Báo cáo" : "Reports"}</Link>
-          </Button>
-          <Button asChild variant="outline" className="w-full text-black">
-            <Link href="/settings">{vi ? "Cài đặt" : "Settings"}</Link>
-          </Button>
-        </div>
-      </article>
+      <Card className="border-transparent bg-transparent shadow-none">
+        <CardHeader className="px-0">
+          <SectionHeader
+            label={vi ? "Lối tắt" : "Shortcuts"}
+            title={vi ? "Thao tác nhanh" : "Quick Actions"}
+          />
+        </CardHeader>
+        <CardContent className="px-0">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+            <QuickAction
+              href="/transactions"
+              icon={History}
+              label={vi ? "Ghi chi tiêu" : "Log Expense"}
+              variant="primary"
+            />
+            <QuickAction
+              href="/accounts"
+              icon={Landmark}
+              label={vi ? "Tài khoản" : "Accounts"}
+            />
+            <QuickAction
+              href="/categories"
+              icon={Tags}
+              label={vi ? "Danh mục" : "Categories"}
+            />
+            <QuickAction
+              href="/budgets"
+              icon={Receipt}
+              label={vi ? "Ngân sách" : "Budgets"}
+            />
+            <QuickAction
+              href="/goals"
+              icon={Target}
+              label={vi ? "Mục tiêu" : "Goals"}
+            />
+            <QuickAction
+              href="/health"
+              icon={HeartPulse}
+              label={vi ? "Sức khỏe" : "Health"}
+            />
+            <QuickAction
+              href="/insights"
+              icon={Sparkles}
+              label={vi ? "Gợi ý" : "Insights"}
+            />
+            <QuickAction
+              href="/decision-tools"
+              icon={PieIcon}
+              label={vi ? "Công cụ" : "Tools"}
+            />
+            <QuickAction
+              href="/reports"
+              icon={BarChart3}
+              label={vi ? "Báo cáo" : "Reports"}
+            />
+            <QuickAction
+              href="/settings"
+              icon={Settings}
+              label={vi ? "Cài đặt" : "Settings"}
+            />
+          </div>
+        </CardContent>
+      </Card>
     </section>
+  );
+}
+
+function QuickAction({
+  href,
+  icon: Icon,
+  label,
+  variant = "secondary",
+}: {
+  href: string;
+  icon: React.ElementType;
+  label: string;
+  variant?: "primary" | "secondary";
+}) {
+  return (
+    <Button
+      asChild
+      variant={variant === "primary" ? "default" : "outline"}
+      className={cn(
+        "h-auto flex-col items-center justify-center gap-2 rounded-2xl p-4 transition-all duration-300",
+        variant === "secondary" &&
+          "hover:border-primary/40 hover:bg-primary/5 hover:text-primary border-border bg-card shadow-sm",
+      )}
+    >
+      <Link href={href}>
+        <Icon
+          className={cn(
+            "h-6 w-6",
+            variant === "secondary"
+              ? "text-primary/70"
+              : "text-primary-foreground",
+          )}
+        />
+        <span className="text-xs font-bold leading-tight">{label}</span>
+      </Link>
+    </Button>
   );
 }

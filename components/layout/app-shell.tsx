@@ -18,11 +18,11 @@ export function AppShell({
   className,
 }: AppShellProps) {
   return (
-    <div className="flex min-h-dvh flex-col bg-slate-50">
+    <div className="flex min-h-dvh flex-col bg-background">
       <HouseholdRealtimeSync />
       {header && (
-        <header className="sticky top-0 z-40 w-full border-b border-slate-200 bg-white/80 backdrop-blur-md">
-          <div className="mx-auto flex h-14 max-w-2xl items-center px-4">
+        <header className="sticky top-0 z-40 w-full border-b border-border bg-background/80 backdrop-blur-md">
+          <div className="mx-auto flex h-16 max-w-2xl items-center px-4">
             {header}
           </div>
         </header>
@@ -38,7 +38,7 @@ export function AppShell({
       </main>
 
       {footer && (
-        <footer className="fixed bottom-0 left-0 right-0 z-[70] border-t border-slate-200 bg-white shadow-[0_-8px_24px_-16px_rgba(15,23,42,0.35)]">
+        <footer className="fixed bottom-0 left-0 right-0 z-[70] border-t border-border bg-card shadow-[0_-8px_20px_-12px_rgba(0,0,0,0.1)]">
           <div className="mx-auto w-full max-w-2xl pb-[max(env(safe-area-inset-bottom),0px)]">
             {footer}
           </div>

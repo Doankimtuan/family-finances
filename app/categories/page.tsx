@@ -1,8 +1,13 @@
 import { AppHeader } from "@/components/layout/app-header";
 import { AppShell } from "@/components/layout/app-shell";
 import { BottomTabBar } from "@/components/layout/bottom-tab-bar";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { SectionHeader } from "@/components/ui/section-header";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Badge } from "@/components/ui/badge";
 import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
 import { createClient } from "@/lib/supabase/server";
+import { Tags, PlusCircle } from "lucide-react";
 
 import { CategoryActiveToggle } from "./_components/category-active-toggle";
 import { CategoryDeleteButton } from "./_components/category-delete-button";
@@ -38,62 +43,131 @@ export default async function CategoriesPage() {
   const expenseCategories = categories.filter((c) => c.kind === "expense");
   const incomeCategories = categories.filter((c) => c.kind === "income");
 
+  const hasError = Boolean(categoriesResult.error);
+
   return (
-    <AppShell header={<AppHeader title="Categories" />} footer={<BottomTabBar />}>
-      <div className="space-y-6">
-        <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-slate-900">Create Category</h2>
-          <p className="mt-1 text-sm text-slate-600">Add household-specific income or expense categories.</p>
-          <p className="mt-1 text-xs text-slate-500">Categories with existing transactions cannot be deleted, but can still be edited.</p>
-          <div className="mt-4">
+    <AppShell
+      header={<AppHeader title="Categories" />}
+      footer={<BottomTabBar />}
+    >
+      <div className="space-y-6 pb-20 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <Card className="border-primary/20 bg-primary/5">
+          <CardHeader>
+            <SectionHeader
+              label="Management"
+              title="Create Category"
+              description="Add household-specific income or expense categories. Categories with transactions cannot be deleted."
+            />
+          </CardHeader>
+          <CardContent>
             <CreateCategoryForm />
-          </div>
-        </article>
+          </CardContent>
+        </Card>
 
-        <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-slate-900">Expense Categories</h2>
-          <CategorySection rows={expenseCategories} hasError={Boolean(categoriesResult.error)} />
-        </article>
+        <section className="space-y-4">
+          <SectionHeader label="Expenses" title="Expense Categories" />
+          <CategorySection
+            rows={expenseCategories}
+            hasError={hasError}
+            kind="expense"
+          />
+        </section>
 
-        <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-slate-900">Income Categories</h2>
-          <CategorySection rows={incomeCategories} hasError={Boolean(categoriesResult.error)} />
-        </article>
+        <section className="space-y-4">
+          <SectionHeader label="Income" title="Income Categories" />
+          <CategorySection
+            rows={incomeCategories}
+            hasError={hasError}
+            kind="income"
+          />
+        </section>
       </div>
     </AppShell>
   );
 }
 
-function CategorySection({ rows, hasError }: { rows: CategoryRow[]; hasError: boolean }) {
+function CategorySection({
+  rows,
+  hasError,
+  kind,
+}: {
+  rows: CategoryRow[];
+  hasError: boolean;
+  kind: string;
+}) {
   if (hasError) {
-    return <p className="mt-2 text-sm text-rose-600">Could not load categories.</p>;
+    return (
+      <EmptyState
+        icon={Tags}
+        title="Could not load categories"
+        description="There was a server error fetching your household categories."
+        className="bg-destructive/5 border-destructive/20"
+      />
+    );
   }
+
   if (rows.length === 0) {
-    return <p className="mt-2 text-sm text-slate-500">No categories found.</p>;
+    return (
+      <EmptyState
+        icon={kind === "expense" ? Tags : PlusCircle}
+        title={`No ${kind} categories`}
+        description={`You haven't defined any ${kind} categories yet.`}
+      />
+    );
   }
 
   return (
-    <ul className="mt-3 space-y-2">
+    <div className="grid grid-cols-1 gap-3">
       {rows.map((row) => (
-        <li key={row.id} className="rounded-xl border border-slate-200 p-3">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="text-sm font-semibold text-slate-900">
-                <span className="mr-2 inline-block h-2.5 w-2.5 rounded-full align-middle" style={{ backgroundColor: row.color ?? "#64748b" }} />
-                {row.name}
-              </p>
-              <p className="text-xs text-slate-500">
-                {row.is_system ? "System category" : "Household category"} · {row.is_active ? "Active" : "Disabled"}
-              </p>
+        <Card
+          key={row.id}
+          className="group hover:border-primary/30 transition-all duration-300"
+        >
+          <CardContent className="p-4">
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <span
+                    className="h-3 w-3 shrink-0 rounded-full shadow-sm"
+                    style={{ backgroundColor: row.color ?? "var(--primary)" }}
+                  />
+                  <h3 className="truncate text-sm font-bold text-foreground">
+                    {row.name}
+                  </h3>
+                </div>
+                <div className="mt-1 flex flex-wrap gap-2 items-center">
+                  <Badge
+                    variant="outline"
+                    className="text-[10px] uppercase font-bold text-muted-foreground bg-muted/20"
+                  >
+                    {row.is_system ? "System" : "Personal"}
+                  </Badge>
+                  <Badge
+                    variant={row.is_active ? "success" : "secondary"}
+                    className="text-[10px] uppercase font-bold"
+                  >
+                    {row.is_active ? "Active" : "Disabled"}
+                  </Badge>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center justify-end gap-1.5 opacity-80 group-hover:opacity-100 transition-opacity">
+                <CategoryRenameForm
+                  categoryId={row.id}
+                  currentName={row.name}
+                  currentColor={row.color}
+                />
+                {!row.is_system && (
+                  <CategoryActiveToggle
+                    categoryId={row.id}
+                    currentActive={row.is_active}
+                  />
+                )}
+                <CategoryDeleteButton categoryId={row.id} />
+              </div>
             </div>
-            <div className="flex flex-wrap items-start justify-end gap-2">
-              <CategoryRenameForm categoryId={row.id} currentName={row.name} currentColor={row.color} />
-              {!row.is_system ? <CategoryActiveToggle categoryId={row.id} currentActive={row.is_active} /> : null}
-              <CategoryDeleteButton categoryId={row.id} />
-            </div>
-          </div>
-        </li>
+          </CardContent>
+        </Card>
       ))}
-    </ul>
+    </div>
   );
 }
