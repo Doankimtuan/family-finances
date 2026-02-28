@@ -155,7 +155,7 @@ export async function addAccountOnboardingAction(
     payload: { name, type, openingBalance: openingBalanceRounded },
   });
 
-  revalidatePath("/onboarding/accounts");
+  revalidatePath("/onboarding/money");
   return ok("Account added.");
 }
 

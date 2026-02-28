@@ -7,7 +7,7 @@ import {
   initialOnboardingActionState,
   type OnboardingActionState,
 } from "@/app/onboarding/action-types";
-import { VndCurrencyInput } from "@/app/onboarding/_components/vnd-currency-input";
+import { MoneyInput } from "@/components/ui/money-input";
 import { Button } from "@/components/ui/button";
 
 export function IncomeExpensesForm() {
@@ -34,11 +34,11 @@ export function IncomeExpensesForm() {
           >
             Monthly income baseline (VND)
           </label>
-          <VndCurrencyInput
+          <MoneyInput
             id="monthlyIncome"
             name="monthlyIncome"
             defaultValue={50000000}
-            className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-slate-500 focus:ring-4 focus:ring-slate-50"
+            className="w-full"
           />
           <p className="text-xs text-slate-500 italic">
             Total monthly income after tax for the household.
@@ -52,11 +52,11 @@ export function IncomeExpensesForm() {
           >
             Monthly essential expenses (VND)
           </label>
-          <VndCurrencyInput
+          <MoneyInput
             id="monthlyEssentials"
             name="monthlyEssentials"
             defaultValue={25000000}
-            className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-slate-500 focus:ring-4 focus:ring-slate-50"
+            className="w-full"
           />
           <p className="text-xs text-slate-500 italic">
             Rent/Mortgage, utilities, groceries, and basic insurance.

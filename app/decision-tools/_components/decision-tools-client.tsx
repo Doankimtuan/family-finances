@@ -21,6 +21,7 @@ import {
 } from "@/app/decision-tools/action-types";
 import { formatPercent, formatVndCompact } from "@/lib/dashboard/format";
 import { useI18n } from "@/lib/providers/i18n-provider";
+import { Card, CardContent } from "@/components/ui/card";
 
 type SavedScenario = {
   id: string;
@@ -54,59 +55,88 @@ function safeNumber(value: number, fallback = 0) {
   return Number.isFinite(value) ? value : fallback;
 }
 
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
 export function DecisionToolsClient({ savedScenarios }: Props) {
   const { locale } = useI18n();
   const [activeTab, setActiveTab] = useState<TabKey>("loan");
 
   return (
     <div className="space-y-4">
-      <div className="overflow-x-auto">
-        <div className="flex min-w-max gap-2 rounded-xl bg-slate-100 p-1">
-          {tabs.map((tab) => (
-            <button
-              key={tab.key}
-              type="button"
-              onClick={() => setActiveTab(tab.key)}
-              className={`rounded-lg px-3 py-2 text-sm font-semibold ${
-                activeTab === tab.key
-                  ? "bg-white text-slate-900 shadow-sm"
-                  : "text-slate-600"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {activeTab === "loan" ? <LoanScenarioCard /> : null}
-      {activeTab === "purchase_timing" ? <PurchaseTimingCard /> : null}
-      {activeTab === "savings_projection" ? <SavingsProjectionCard /> : null}
-      {activeTab === "goal_modeling" ? <GoalModelingCard /> : null}
-      {activeTab === "debt_vs_invest" ? <DebtVsInvestCard /> : null}
-
-      <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="text-lg font-semibold text-slate-900">
-          Saved Scenarios
-        </h2>
-        {savedScenarios.length === 0 ? (
-          <p className="mt-2 text-sm text-slate-500">
-            No saved scenarios yet. Run one calculation and save it.
-          </p>
-        ) : (
-          <ul className="mt-3 space-y-2">
-            {savedScenarios.map((s) => (
-              <li key={s.id} className="rounded-xl border border-slate-200 p-3">
-                <p className="text-sm font-semibold text-slate-900">{s.name}</p>
-                <p className="text-xs text-slate-500">
-                  {s.scenario_type.replace(/_/g, " ")} ·{" "}
-                  {new Date(s.created_at).toLocaleString(locale)}
-                </p>
-              </li>
+      <Tabs
+        value={activeTab}
+        onValueChange={(v) => setActiveTab(v as TabKey)}
+        className="w-full"
+      >
+        <div className="overflow-x-auto pb-1">
+          <TabsList className="bg-slate-100 p-1">
+            {tabs.map((tab) => (
+              <TabsTrigger
+                key={tab.key}
+                value={tab.key}
+                className="rounded-lg px-3 py-2 text-sm font-semibold data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm text-slate-600"
+              >
+                {tab.label}
+              </TabsTrigger>
             ))}
-          </ul>
-        )}
-      </article>
+          </TabsList>
+        </div>
+
+        <div className="mt-4 space-y-4">
+          <TabsContent value="loan" className="mt-0">
+            <LoanScenarioCard />
+          </TabsContent>
+          <TabsContent value="purchase_timing" className="mt-0">
+            <PurchaseTimingCard />
+          </TabsContent>
+          <TabsContent value="savings_projection" className="mt-0">
+            <SavingsProjectionCard />
+          </TabsContent>
+          <TabsContent value="goal_modeling" className="mt-0">
+            <GoalModelingCard />
+          </TabsContent>
+          <TabsContent value="debt_vs_invest" className="mt-0">
+            <DebtVsInvestCard />
+          </TabsContent>
+        </div>
+      </Tabs>
+
+      <Card>
+        <CardContent className="p-5">
+          <h2 className="text-lg font-semibold text-slate-900">
+            Saved Scenarios
+          </h2>
+          {savedScenarios.length === 0 ? (
+            <p className="mt-2 text-sm text-slate-500">
+              No saved scenarios yet. Run one calculation and save it.
+            </p>
+          ) : (
+            <ul className="mt-3 space-y-2">
+              {savedScenarios.map((s) => (
+                <li
+                  key={s.id}
+                  className="rounded-xl border border-slate-200 p-3"
+                >
+                  <p className="text-sm font-semibold text-slate-900">
+                    {s.name}
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    {s.scenario_type.replace(/_/g, " ")} ·{" "}
+                    {new Date(s.created_at).toLocaleString(locale)}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
 
       <ScenarioComparisonCard savedScenarios={savedScenarios} />
     </div>
@@ -121,13 +151,10 @@ function ScenarioComparisonCard({
   const comparableWithSeries = savedScenarios.filter(
     (s) => Array.isArray(s.timeseries_json) && s.timeseries_json.length > 0,
   );
-  const scenarioTypeCounts = comparableWithSeries.reduce(
-    (acc, row) => {
-      acc.set(row.scenario_type, (acc.get(row.scenario_type) ?? 0) + 1);
-      return acc;
-    },
-    new Map<string, number>(),
-  );
+  const scenarioTypeCounts = comparableWithSeries.reduce((acc, row) => {
+    acc.set(row.scenario_type, (acc.get(row.scenario_type) ?? 0) + 1);
+    return acc;
+  }, new Map<string, number>());
   const comparable = comparableWithSeries.filter(
     (row) => (scenarioTypeCounts.get(row.scenario_type) ?? 0) >= 2,
   );
@@ -136,129 +163,144 @@ function ScenarioComparisonCard({
   const [rightId, setRightId] = useState("");
   const left = comparable.find((s) => s.id === leftId) ?? comparable[0] ?? null;
   const rightCandidates = left
-    ? comparable.filter((s) => s.scenario_type === left.scenario_type && s.id !== left.id)
+    ? comparable.filter(
+        (s) => s.scenario_type === left.scenario_type && s.id !== left.id,
+      )
     : [];
-  const right = rightCandidates.find((s) => s.id === rightId) ?? rightCandidates[0] ?? null;
+  const right =
+    rightCandidates.find((s) => s.id === rightId) ?? rightCandidates[0] ?? null;
 
   const chartData = buildComparisonSeries(left, right);
 
   if (comparable.length < 2) {
     return (
-      <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="text-lg font-semibold text-slate-900">
-          Scenario Comparison
-        </h2>
-        <p className="mt-2 text-sm text-slate-500">
-          Save at least two scenarios of the same type with computed results
-          to compare side-by-side.
-        </p>
-      </article>
+      <Card>
+        <CardContent className="p-5">
+          <h2 className="text-lg font-semibold text-slate-900">
+            Scenario Comparison
+          </h2>
+          <p className="mt-2 text-sm text-slate-500">
+            Save at least two scenarios of the same type with computed results
+            to compare side-by-side.
+          </p>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <h2 className="text-lg font-semibold text-slate-900">
-        Side-by-Side Comparison
-      </h2>
-      <p className="mt-1 text-sm text-slate-600">
-        Compare two saved scenarios to identify which path improves your
-        outcome.
-      </p>
-
-      <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
-        <label className="space-y-1">
-          <span className="text-xs font-medium uppercase tracking-[0.12em] text-slate-500">
-            Scenario A
-          </span>
-          <select
-            value={left?.id ?? ""}
-            onChange={(e) => setLeftId(e.target.value)}
-            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900"
-          >
-            {comparable.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="space-y-1">
-          <span className="text-xs font-medium uppercase tracking-[0.12em] text-slate-500">
-            Scenario B
-          </span>
-          <select
-            value={right?.id ?? ""}
-            onChange={(e) => setRightId(e.target.value)}
-            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900"
-          >
-            {rightCandidates.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
-
-      <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
-        <ScenarioSummaryBlock scenario={left} />
-        <ScenarioSummaryBlock scenario={right} />
-      </div>
-
-      {chartData.length > 0 ? (
-        <div className="mt-4 h-60 w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart
-              data={chartData}
-              margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
-            >
-              <CartesianGrid
-                stroke="#E2E8F0"
-                strokeDasharray="3 3"
-                vertical={false}
-              />
-              <XAxis
-                dataKey="month"
-                tick={{ fontSize: 11, fill: "#64748B" }}
-                tickLine={false}
-                axisLine={false}
-              />
-              <YAxis
-                tick={{ fontSize: 11, fill: "#64748B" }}
-                tickLine={false}
-                axisLine={false}
-                tickFormatter={(v: number) => formatVndCompact(v)}
-              />
-              <Tooltip
-                formatter={(value) => formatVndCompact(Number(value ?? 0))}
-              />
-              <Legend />
-              <Line
-                type="monotone"
-                dataKey="left"
-                name={left?.name ?? "Scenario A"}
-                stroke="#0F766E"
-                strokeWidth={2}
-                dot={false}
-              />
-              <Line
-                type="monotone"
-                dataKey="right"
-                name={right?.name ?? "Scenario B"}
-                stroke="#C2410C"
-                strokeWidth={2}
-                dot={false}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      ) : (
-        <p className="mt-4 text-sm text-slate-500">
-          Selected scenarios have no comparable timeline points.
+    <Card>
+      <CardContent className="p-5">
+        <h2 className="text-lg font-semibold text-slate-900">
+          Side-by-Side Comparison
+        </h2>
+        <p className="mt-1 text-sm text-slate-600">
+          Compare two saved scenarios to identify which path improves your
+          outcome.
         </p>
-      )}
-    </article>
+
+        <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <label className="space-y-1">
+            <span className="text-xs font-medium uppercase tracking-[0.12em] text-slate-500">
+              Scenario A
+            </span>
+            <Select
+              value={left?.id ?? ""}
+              onValueChange={(val) => setLeftId(val)}
+            >
+              <SelectTrigger className="w-full rounded-xl border border-slate-300 bg-white px-3 py-6 text-sm text-slate-900">
+                <SelectValue placeholder="Select Scenario A" />
+              </SelectTrigger>
+              <SelectContent>
+                {comparable.map((s) => (
+                  <SelectItem key={s.id} value={s.id}>
+                    {s.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </label>
+          <label className="space-y-1">
+            <span className="text-xs font-medium uppercase tracking-[0.12em] text-slate-500">
+              Scenario B
+            </span>
+            <Select
+              value={right?.id ?? ""}
+              onValueChange={(val) => setRightId(val)}
+            >
+              <SelectTrigger className="w-full rounded-xl border border-slate-300 bg-white px-3 py-6 text-sm text-slate-900">
+                <SelectValue placeholder="Select Scenario B" />
+              </SelectTrigger>
+              <SelectContent>
+                {rightCandidates.map((s) => (
+                  <SelectItem key={s.id} value={s.id}>
+                    {s.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </label>
+        </div>
+
+        <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <ScenarioSummaryBlock scenario={left} />
+          <ScenarioSummaryBlock scenario={right} />
+        </div>
+
+        {chartData.length > 0 ? (
+          <div className="mt-4 h-60 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart
+                data={chartData}
+                margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
+              >
+                <CartesianGrid
+                  stroke="#E2E8F0"
+                  strokeDasharray="3 3"
+                  vertical={false}
+                />
+                <XAxis
+                  dataKey="month"
+                  tick={{ fontSize: 11, fill: "#64748B" }}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <YAxis
+                  tick={{ fontSize: 11, fill: "#64748B" }}
+                  tickLine={false}
+                  axisLine={false}
+                  tickFormatter={(v: number) => formatVndCompact(v)}
+                />
+                <Tooltip
+                  formatter={(value) => formatVndCompact(Number(value ?? 0))}
+                />
+                <Legend />
+                <Line
+                  type="monotone"
+                  dataKey="left"
+                  name={left?.name ?? "Scenario A"}
+                  stroke="#0F766E"
+                  strokeWidth={2}
+                  dot={false}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="right"
+                  name={right?.name ?? "Scenario B"}
+                  stroke="#C2410C"
+                  strokeWidth={2}
+                  dot={false}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        ) : (
+          <p className="mt-4 text-sm text-slate-500">
+            Selected scenarios have no comparable timeline points.
+          </p>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
@@ -854,60 +896,62 @@ function ScenarioCard({
   const [isPending, startTransition] = useTransition();
 
   return (
-    <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
-      <p className="mt-1 text-sm text-slate-600">{description}</p>
-      <div className="mt-4">{children}</div>
+    <Card>
+      <CardContent className="p-5">
+        <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
+        <p className="mt-1 text-sm text-slate-600">{description}</p>
+        <div className="mt-4">{children}</div>
 
-      <form
-        className="mt-4 space-y-2"
-        noValidate
-        onSubmit={(event) => {
-          event.preventDefault();
-          const fd = new FormData(event.currentTarget);
-          fd.set("scenarioType", scenarioType);
-          fd.set("name", name);
-          fd.set("assumptionsJson", JSON.stringify(assumptions));
-          fd.set("summaryJson", JSON.stringify(summary));
-          fd.set("timeseriesJson", JSON.stringify(timeseries));
-          fd.set("keyMetricsJson", JSON.stringify(keyMetrics));
-          startTransition(() => action(fd));
-        }}
-      >
-        <input type="hidden" name="scenarioType" value={scenarioType} />
-        <input type="hidden" name="assumptionsJson" value="{}" />
-        <input type="hidden" name="summaryJson" value="{}" />
-        <input type="hidden" name="timeseriesJson" value="[]" />
-        <input type="hidden" name="keyMetricsJson" value="{}" />
-
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-          minLength={3}
-          aria-invalid={!canSave}
-          className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
-        />
-        <button
-          type="submit"
-          disabled={isPending || !canSave}
-          className="w-full rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
+        <form
+          className="mt-4 space-y-2"
+          noValidate
+          onSubmit={(event) => {
+            event.preventDefault();
+            const fd = new FormData(event.currentTarget);
+            fd.set("scenarioType", scenarioType);
+            fd.set("name", name);
+            fd.set("assumptionsJson", JSON.stringify(assumptions));
+            fd.set("summaryJson", JSON.stringify(summary));
+            fd.set("timeseriesJson", JSON.stringify(timeseries));
+            fd.set("keyMetricsJson", JSON.stringify(keyMetrics));
+            startTransition(() => action(fd));
+          }}
         >
-          {isPending ? "Saving..." : "Save Scenario"}
-        </button>
-        {!canSave ? (
-          <p className="text-xs text-amber-700">
-            Scenario name must be at least 3 characters.
-          </p>
-        ) : null}
-        {saveState.status === "error" && saveState.message ? (
-          <p className="text-xs text-rose-600">{saveState.message}</p>
-        ) : null}
-        {saveState.status === "success" && saveState.message ? (
-          <p className="text-xs text-emerald-600">{saveState.message}</p>
-        ) : null}
-      </form>
-    </article>
+          <input type="hidden" name="scenarioType" value={scenarioType} />
+          <input type="hidden" name="assumptionsJson" value="{}" />
+          <input type="hidden" name="summaryJson" value="{}" />
+          <input type="hidden" name="timeseriesJson" value="[]" />
+          <input type="hidden" name="keyMetricsJson" value="{}" />
+
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+            minLength={3}
+            aria-invalid={!canSave}
+            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
+          />
+          <button
+            type="submit"
+            disabled={isPending || !canSave}
+            className="w-full rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
+          >
+            {isPending ? "Saving..." : "Save Scenario"}
+          </button>
+          {!canSave ? (
+            <p className="text-xs text-amber-700">
+              Scenario name must be at least 3 characters.
+            </p>
+          ) : null}
+          {saveState.status === "error" && saveState.message ? (
+            <p className="text-xs text-rose-600">{saveState.message}</p>
+          ) : null}
+          {saveState.status === "success" && saveState.message ? (
+            <p className="text-xs text-emerald-600">{saveState.message}</p>
+          ) : null}
+        </form>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -929,7 +973,9 @@ function NumericInput({
         type="number"
         value={value}
         min={0}
-        onChange={(e) => onChange(Math.max(0, safeNumber(Number(e.target.value), value)))}
+        onChange={(e) =>
+          onChange(Math.max(0, safeNumber(Number(e.target.value), value)))
+        }
         className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900"
       />
       <p className="text-[11px] text-slate-500">{formatVndCompact(value)}</p>
@@ -957,7 +1003,9 @@ function RateInput({
         min="0"
         value={value}
         onChange={(e) =>
-          onChange(Math.max(0, Math.min(2, safeNumber(Number(e.target.value), value))))
+          onChange(
+            Math.max(0, Math.min(2, safeNumber(Number(e.target.value), value))),
+          )
         }
         className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900"
       />
@@ -1301,12 +1349,14 @@ function calcGoalModelingScenario(input: {
   const projectedValue = Math.round(value);
   const onTrack = projectedValue >= input.targetAmount;
   const growthFactor = Math.pow(1 + monthlyRate, months);
-  const targetGapAtHorizon = input.targetAmount - input.currentAmount * growthFactor;
-  const requiredMonthly = targetGapAtHorizon <= 0
-    ? 0
-    : monthlyRate <= 0
-      ? Math.ceil(targetGapAtHorizon / months)
-      : Math.ceil((targetGapAtHorizon * monthlyRate) / (growthFactor - 1));
+  const targetGapAtHorizon =
+    input.targetAmount - input.currentAmount * growthFactor;
+  const requiredMonthly =
+    targetGapAtHorizon <= 0
+      ? 0
+      : monthlyRate <= 0
+        ? Math.ceil(targetGapAtHorizon / months)
+        : Math.ceil((targetGapAtHorizon * monthlyRate) / (growthFactor - 1));
 
   let etaValue = input.currentAmount;
   let etaMonths = 0;

@@ -6,6 +6,7 @@ import { writeAuditEvent } from "@/lib/server/audit";
 import { createClient } from "@/lib/supabase/server";
 
 import type { AssetActionState } from "./action-types";
+import { redirect } from "next/navigation";
 
 function ok(message: string): AssetActionState {
   return { status: "success", message };
@@ -22,7 +23,12 @@ async function resolveContext() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return { supabase, user: null, householdId: null, error: "You must be logged in." };
+    return {
+      supabase,
+      user: null,
+      householdId: null,
+      error: "You must be logged in.",
+    };
   }
 
   const membership = await supabase
@@ -35,10 +41,20 @@ async function resolveContext() {
     .maybeSingle();
 
   if (membership.error || !membership.data?.household_id) {
-    return { supabase, user, householdId: null, error: membership.error?.message ?? "No household found." };
+    return {
+      supabase,
+      user,
+      householdId: null,
+      error: membership.error?.message ?? "No household found.",
+    };
   }
 
-  return { supabase, user, householdId: membership.data.household_id, error: null };
+  return {
+    supabase,
+    user,
+    householdId: membership.data.household_id,
+    error: null,
+  };
 }
 
 export async function createAssetAction(
@@ -47,17 +63,21 @@ export async function createAssetAction(
 ): Promise<AssetActionState> {
   const name = String(formData.get("name") ?? "").trim();
   const assetClass = String(formData.get("assetClass") ?? "other").trim();
-  const unitLabel = String(formData.get("unitLabel") ?? "unit").trim() || "unit";
+  const unitLabel =
+    String(formData.get("unitLabel") ?? "unit").trim() || "unit";
   const quantity = Number(formData.get("quantity") ?? 0);
   const unitPrice = Number(formData.get("unitPrice") ?? 0);
   const isLiquid = String(formData.get("isLiquid") ?? "false") === "true";
 
   if (name.length < 2) return fail("Asset name must be at least 2 characters.");
-  if (!Number.isFinite(quantity) || quantity < 0) return fail("Quantity must be non-negative.");
-  if (!Number.isFinite(unitPrice) || unitPrice < 0) return fail("Unit price must be non-negative.");
+  if (!Number.isFinite(quantity) || quantity < 0)
+    return fail("Quantity must be non-negative.");
+  if (!Number.isFinite(unitPrice) || unitPrice < 0)
+    return fail("Unit price must be non-negative.");
 
   const { supabase, user, householdId, error } = await resolveContext();
-  if (error || !user || !householdId) return fail(error ?? "No household found.");
+  if (error || !user || !householdId)
+    return fail(error ?? "No household found.");
 
   const today = new Date().toISOString().slice(0, 10);
 
@@ -136,10 +156,12 @@ export async function upsertQuantityHistoryAction(
 
   if (!assetId) return fail("Missing asset id.");
   if (!asOfDate) return fail("Date is required.");
-  if (!Number.isFinite(quantity) || quantity < 0) return fail("Quantity must be non-negative.");
+  if (!Number.isFinite(quantity) || quantity < 0)
+    return fail("Quantity must be non-negative.");
 
   const { supabase, user, householdId, error } = await resolveContext();
-  if (error || !user || !householdId) return fail(error ?? "No household found.");
+  if (error || !user || !householdId)
+    return fail(error ?? "No household found.");
 
   const upsert = await supabase.from("asset_quantity_history").upsert(
     {
@@ -179,10 +201,12 @@ export async function upsertPriceHistoryAction(
 
   if (!assetId) return fail("Missing asset id.");
   if (!asOfDate) return fail("Date is required.");
-  if (!Number.isFinite(unitPrice) || unitPrice < 0) return fail("Unit price must be non-negative.");
+  if (!Number.isFinite(unitPrice) || unitPrice < 0)
+    return fail("Unit price must be non-negative.");
 
   const { supabase, user, householdId, error } = await resolveContext();
-  if (error || !user || !householdId) return fail(error ?? "No household found.");
+  if (error || !user || !householdId)
+    return fail(error ?? "No household found.");
 
   const upsert = await supabase.from("asset_price_history").upsert(
     {
@@ -223,10 +247,12 @@ export async function updateQuantityHistoryRowAction(
 
   if (!rowId) return fail("Missing history row id.");
   if (!assetId) return fail("Missing asset id.");
-  if (!Number.isFinite(quantity) || quantity < 0) return fail("Quantity must be non-negative.");
+  if (!Number.isFinite(quantity) || quantity < 0)
+    return fail("Quantity must be non-negative.");
 
   const { supabase, user, householdId, error } = await resolveContext();
-  if (error || !user || !householdId) return fail(error ?? "No household found.");
+  if (error || !user || !householdId)
+    return fail(error ?? "No household found.");
 
   const update = await supabase
     .from("asset_quantity_history")
@@ -259,10 +285,12 @@ export async function updatePriceHistoryRowAction(
 
   if (!rowId) return fail("Missing history row id.");
   if (!assetId) return fail("Missing asset id.");
-  if (!Number.isFinite(unitPrice) || unitPrice < 0) return fail("Price must be non-negative.");
+  if (!Number.isFinite(unitPrice) || unitPrice < 0)
+    return fail("Price must be non-negative.");
 
   const { supabase, user, householdId, error } = await resolveContext();
-  if (error || !user || !householdId) return fail(error ?? "No household found.");
+  if (error || !user || !householdId)
+    return fail(error ?? "No household found.");
 
   const update = await supabase
     .from("asset_price_history")
@@ -281,7 +309,7 @@ export async function updatePriceHistoryRowAction(
   });
 
   revalidatePath(`/assets/${assetId}`);
-  revalidatePath("/assets");
+  revalidatePath("/money");
   return ok("Price entry updated.");
 }
 
@@ -293,7 +321,8 @@ export async function deleteAssetAction(
   if (!assetId) return fail("Missing asset id.");
 
   const { supabase, user, householdId, error } = await resolveContext();
-  if (error || !user || !householdId) return fail(error ?? "No household found.");
+  if (error || !user || !householdId)
+    return fail(error ?? "No household found.");
 
   const existing = await supabase
     .from("assets")
@@ -322,8 +351,5 @@ export async function deleteAssetAction(
     payload: { name: existing.data.name },
   });
 
-  revalidatePath("/assets");
-  revalidatePath(`/assets/${assetId}`);
-  revalidatePath("/dashboard");
-  return ok("Asset deleted.");
+  redirect("/money");
 }

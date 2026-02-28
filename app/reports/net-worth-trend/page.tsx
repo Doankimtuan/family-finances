@@ -5,6 +5,7 @@ import { getDashboardTrend } from "@/lib/dashboard/trend";
 import { formatVnd, formatVndCompact } from "@/lib/dashboard/format";
 import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
 import { createClient } from "@/lib/supabase/server";
+import { Card, CardContent } from "@/components/ui/card";
 
 import { NetWorthTrendChart } from "../_components/net-worth-trend-chart";
 
@@ -22,22 +23,37 @@ export default async function NetWorthTrendPage() {
   });
   const latest = trend.at(-1);
   const prev = trend.length > 1 ? trend.at(-2) : null;
-  const delta = latest && prev ? Number(latest.net_worth) - Number(prev.net_worth) : 0;
+  const delta =
+    latest && prev ? Number(latest.net_worth) - Number(prev.net_worth) : 0;
 
   return (
-    <AppShell header={<AppHeader title="Net Worth Trend" showBack />} footer={<BottomTabBar />}>
+    <AppShell
+      header={<AppHeader title="Net Worth Trend" showBack />}
+      footer={<BottomTabBar />}
+    >
       <div className="space-y-4 pb-20 sm:pb-6">
-        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-500">Trend Summary</p>
-          <p className="mt-1 text-xl font-semibold text-slate-900">{latest ? formatVndCompact(Number(latest.net_worth)) : "-"}</p>
-          <p className={`mt-1 text-sm ${delta >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
-            {delta >= 0 ? "+" : ""}{formatVnd(delta)} vs last month
-          </p>
-        </article>
+        <Card>
+          <CardContent className="p-5">
+            <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-500">
+              Trend Summary
+            </p>
+            <p className="mt-1 text-xl font-semibold text-slate-900">
+              {latest ? formatVndCompact(Number(latest.net_worth)) : "-"}
+            </p>
+            <p
+              className={`mt-1 text-sm ${delta >= 0 ? "text-emerald-600" : "text-rose-600"}`}
+            >
+              {delta >= 0 ? "+" : ""}
+              {formatVnd(delta)} vs last month
+            </p>
+          </CardContent>
+        </Card>
 
-        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <NetWorthTrendChart points={trend} />
-        </article>
+        <Card>
+          <CardContent className="p-5">
+            <NetWorthTrendChart points={trend} />
+          </CardContent>
+        </Card>
       </div>
     </AppShell>
   );

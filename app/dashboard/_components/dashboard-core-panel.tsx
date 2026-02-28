@@ -353,6 +353,8 @@ function MonthlyExpenseAllocation({
   );
 }
 
+import { Skeleton } from "@/components/ui/skeleton";
+
 export function DashboardCorePanel() {
   const { locale, language } = useI18n();
   const vi = language === "vi";
@@ -406,16 +408,17 @@ export function DashboardCorePanel() {
     return (
       <section className="space-y-6" aria-busy="true">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          {[1, 2, 3].map((i) => (
-            <Card key={i} className="h-32 animate-pulse bg-muted/40" />
-          ))}
+          <Skeleton className="h-32 rounded-2xl" />
+          <Skeleton className="h-32 rounded-2xl" />
+          <Skeleton className="h-32 rounded-2xl" />
         </div>
-        <Card className="h-80 animate-pulse bg-muted/20" />
-        <Card className="h-64 animate-pulse bg-muted/20" />
+        <Skeleton className="h-80 rounded-2xl" />
+        <Skeleton className="h-64 rounded-2xl" />
         <div className="grid grid-cols-2 gap-3">
-          {[1, 2, 3, 4].map((i) => (
-            <Card key={i} className="h-14 animate-pulse bg-muted/30" />
-          ))}
+          <Skeleton className="h-14 rounded-2xl" />
+          <Skeleton className="h-14 rounded-2xl" />
+          <Skeleton className="h-14 rounded-2xl" />
+          <Skeleton className="h-14 rounded-2xl" />
         </div>
       </section>
     );
@@ -489,7 +492,7 @@ export function DashboardCorePanel() {
           label={vi ? "Tài sản ròng" : "Net Worth"}
           value={formatVndCompact(Number(metrics.net_worth), locale)}
           note={formatVnd(Number(metrics.net_worth), locale)}
-          href="/assets"
+          href="/money"
           className="bg-card/50"
         />
         <MetricCard

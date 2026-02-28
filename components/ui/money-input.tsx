@@ -2,36 +2,31 @@
 
 import { useMemo, useState } from "react";
 import { useI18n } from "@/lib/providers/i18n-provider";
+import { Input } from "@/components/ui/input";
 
-type VndCurrencyInputProps = {
-  id: string;
+type MoneyInputProps = {
+  id?: string;
   name: string;
   defaultValue?: number;
   placeholder?: string;
   required?: boolean;
   className?: string;
+  autoFocus?: boolean;
 };
 
-function digitsOnly(value: string): string {
-  return value.replace(/\D/g, "");
-}
-
-function normalizeDigits(value: string): string {
-  const stripped = digitsOnly(value);
-  if (stripped.length === 0) return "";
-  return String(Number(stripped));
-}
-
-export function VndCurrencyInput({
+export function MoneyInput({
   id,
   name,
   defaultValue = 0,
   placeholder,
   required,
   className,
-}: VndCurrencyInputProps) {
+  autoFocus = false,
+}: MoneyInputProps) {
   const { locale } = useI18n();
-  const [raw, setRaw] = useState<string>(String(Math.max(0, Math.round(defaultValue))));
+  const [raw, setRaw] = useState<string>(
+    String(Math.max(0, Math.round(defaultValue))),
+  );
   const formatter = useMemo(
     () => new Intl.NumberFormat(locale, { maximumFractionDigits: 0 }),
     [locale],
@@ -44,15 +39,19 @@ export function VndCurrencyInput({
 
   return (
     <>
-      <input
+      <Input
         id={id}
         type="text"
         inputMode="numeric"
         autoComplete="off"
+        autoFocus={autoFocus}
         value={displayValue}
         required={required}
         placeholder={placeholder}
-        onChange={(event) => setRaw(normalizeDigits(event.target.value))}
+        onChange={(event) => {
+          const stripped = event.target.value.replace(/\D/g, "");
+          setRaw(stripped.length === 0 ? "" : String(Number(stripped)));
+        }}
         className={className}
       />
       <input type="hidden" name={name} value={raw || "0"} />

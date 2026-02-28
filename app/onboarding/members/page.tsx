@@ -11,7 +11,7 @@ export default async function OnboardingMembersPage() {
       title="Members"
       description="Invite your partner so both of you share the same financial reality."
       prevHref="/onboarding/welcome"
-      nextHref="/onboarding/accounts"
+      nextHref="/onboarding/money"
     >
       <MembersForm />
     </OnboardingShell>

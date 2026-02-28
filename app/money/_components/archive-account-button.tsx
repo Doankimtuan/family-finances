@@ -2,8 +2,11 @@
 
 import { useActionState, useTransition } from "react";
 
-import { archiveAccountAction } from "@/app/accounts/actions";
-import { initialAccountActionState, type AccountActionState } from "@/app/accounts/action-types";
+import { archiveAccountAction } from "@/app/money/actions";
+import {
+  initialAccountActionState,
+  type AccountActionState,
+} from "@/app/money/action-types";
 
 export function ArchiveAccountButton({ accountId }: { accountId: string }) {
   const [state, action] = useActionState<AccountActionState, FormData>(
@@ -23,10 +26,16 @@ export function ArchiveAccountButton({ accountId }: { accountId: string }) {
       className="space-y-1"
     >
       <input type="hidden" name="accountId" value={accountId} />
-      <button type="submit" disabled={isPending} className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 disabled:opacity-60">
+      <button
+        type="submit"
+        disabled={isPending}
+        className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 disabled:opacity-60"
+      >
         {isPending ? "Archiving..." : "Archive"}
       </button>
-      {state.status === "error" && state.message ? <p className="text-xs text-rose-600">{state.message}</p> : null}
+      {state.status === "error" && state.message ? (
+        <p className="text-xs text-rose-600">{state.message}</p>
+      ) : null}
     </form>
   );
 }

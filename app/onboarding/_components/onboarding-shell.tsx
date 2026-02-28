@@ -1,6 +1,7 @@
 import { AppHeader } from "@/components/layout/app-header";
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 
 type OnboardingShellProps = {
   title: string;
@@ -74,9 +75,9 @@ export function OnboardingShell({
           </div>
         </header>
 
-        <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          {children}
-        </article>
+        <Card>
+          <CardContent className="p-6">{children}</CardContent>
+        </Card>
       </div>
     </AppShell>
   );

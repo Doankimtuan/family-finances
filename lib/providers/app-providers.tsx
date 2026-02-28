@@ -5,6 +5,8 @@ import { useState } from "react";
 
 import type { AppLanguage } from "@/lib/i18n/config";
 import { I18nProvider } from "@/lib/providers/i18n-provider";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "@/components/ui/sonner";
 
 type AppProvidersProps = {
   children: React.ReactNode;
@@ -12,7 +14,11 @@ type AppProvidersProps = {
   locale: string;
 };
 
-export function AppProviders({ children, language, locale }: AppProvidersProps) {
+export function AppProviders({
+  children,
+  language,
+  locale,
+}: AppProvidersProps) {
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -31,7 +37,12 @@ export function AppProviders({ children, language, locale }: AppProvidersProps) 
 
   return (
     <QueryClientProvider client={queryClient}>
-      <I18nProvider language={language} locale={locale}>{children}</I18nProvider>
+      <I18nProvider language={language} locale={locale}>
+        <TooltipProvider>
+          {children}
+          <Toaster position="top-center" richColors />
+        </TooltipProvider>
+      </I18nProvider>
     </QueryClientProvider>
   );
 }

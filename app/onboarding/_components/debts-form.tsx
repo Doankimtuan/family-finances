@@ -7,9 +7,16 @@ import {
   initialOnboardingActionState,
   type OnboardingActionState,
 } from "@/app/onboarding/action-types";
-import { VndCurrencyInput } from "@/app/onboarding/_components/vnd-currency-input";
+import { MoneyInput } from "@/components/ui/money-input";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/providers/i18n-provider";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export function DebtsForm() {
   const { language } = useI18n();
@@ -56,17 +63,25 @@ export function DebtsForm() {
           >
             {vi ? "Loại" : "Type"}
           </label>
-          <select
-            id="liabilityType"
-            name="liabilityType"
-            defaultValue="mortgage"
-            className={inputClasses}
-          >
-            <option value="mortgage">{vi ? "Thế chấp" : "Mortgage"}</option>
-            <option value="family_loan">{vi ? "Vay gia đình" : "Family Loan"}</option>
-            <option value="personal_loan">{vi ? "Vay cá nhân" : "Personal Loan"}</option>
-            <option value="car_loan">{vi ? "Vay mua xe" : "Car Loan"}</option>
-          </select>
+          <Select name="liabilityType" defaultValue="mortgage">
+            <SelectTrigger id="liabilityType" className={inputClasses}>
+              <SelectValue placeholder={vi ? "Loại" : "Type"} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="mortgage">
+                {vi ? "Thế chấp" : "Mortgage"}
+              </SelectItem>
+              <SelectItem value="family_loan">
+                {vi ? "Vay gia đình" : "Family Loan"}
+              </SelectItem>
+              <SelectItem value="personal_loan">
+                {vi ? "Vay cá nhân" : "Personal Loan"}
+              </SelectItem>
+              <SelectItem value="car_loan">
+                {vi ? "Vay mua xe" : "Car Loan"}
+              </SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -77,7 +92,7 @@ export function DebtsForm() {
             >
               {vi ? "Gốc ban đầu (VND)" : "Original principal (VND)"}
             </label>
-            <VndCurrencyInput
+            <MoneyInput
               id="principalOriginal"
               name="principalOriginal"
               defaultValue={0}
@@ -91,7 +106,7 @@ export function DebtsForm() {
             >
               {vi ? "Dư nợ hiện tại (VND)" : "Current outstanding (VND)"}
             </label>
-            <VndCurrencyInput
+            <MoneyInput
               id="currentOutstanding"
               name="currentOutstanding"
               defaultValue={0}
@@ -125,16 +140,24 @@ export function DebtsForm() {
             >
               {vi ? "Phương thức trả nợ" : "Repayment method"}
             </label>
-            <select
-              id="repaymentMethod"
-              name="repaymentMethod"
-              defaultValue="annuity"
-              className={inputClasses}
-            >
-              <option value="annuity">{vi ? "Tổng trả cố định" : "Equal total payment"}</option>
-              <option value="equal_principal">{vi ? "Gốc cố định" : "Equal principal"}</option>
-              <option value="flexible">{vi ? "Linh hoạt" : "Flexible"}</option>
-            </select>
+            <Select name="repaymentMethod" defaultValue="annuity">
+              <SelectTrigger id="repaymentMethod" className={inputClasses}>
+                <SelectValue
+                  placeholder={vi ? "Phương thức trả nợ" : "Repayment method"}
+                />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="annuity">
+                  {vi ? "Tổng trả cố định" : "Equal total payment"}
+                </SelectItem>
+                <SelectItem value="equal_principal">
+                  {vi ? "Gốc cố định" : "Equal principal"}
+                </SelectItem>
+                <SelectItem value="flexible">
+                  {vi ? "Linh hoạt" : "Flexible"}
+                </SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </div>
@@ -144,7 +167,13 @@ export function DebtsForm() {
         disabled={isPending}
         className="w-full py-6 text-base"
       >
-        {isPending ? (vi ? "Đang lưu..." : "Saving...") : (vi ? "Thêm khoản nợ" : "Add Debt")}
+        {isPending
+          ? vi
+            ? "Đang lưu..."
+            : "Saving..."
+          : vi
+            ? "Thêm khoản nợ"
+            : "Add Debt"}
       </Button>
 
       {state.status === "error" && state.message ? (

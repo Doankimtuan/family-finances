@@ -3,6 +3,7 @@ import { AppShell } from "@/components/layout/app-shell";
 import { BottomTabBar } from "@/components/layout/bottom-tab-bar";
 import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
 import { createClient } from "@/lib/supabase/server";
+import { Card, CardContent } from "@/components/ui/card";
 
 import { DecisionToolsClient } from "./_components/decision-tools-client";
 
@@ -26,18 +27,23 @@ export default async function DecisionToolsPage() {
   const resultsResult = scenarioIds.length
     ? await supabase
         .from("scenario_results")
-        .select("id, scenario_id, computed_at, summary_json, timeseries_json, key_metrics_json")
+        .select(
+          "id, scenario_id, computed_at, summary_json, timeseries_json, key_metrics_json",
+        )
         .eq("household_id", householdId)
         .in("scenario_id", scenarioIds)
         .order("computed_at", { ascending: false })
     : { data: [], error: null };
 
-  const latestResultByScenarioId = new Map<string, {
-    computed_at: string;
-    summary_json: Record<string, unknown>;
-    timeseries_json: unknown[];
-    key_metrics_json: Record<string, unknown>;
-  }>();
+  const latestResultByScenarioId = new Map<
+    string,
+    {
+      computed_at: string;
+      summary_json: Record<string, unknown>;
+      timeseries_json: unknown[];
+      key_metrics_json: Record<string, unknown>;
+    }
+  >();
 
   for (const row of resultsResult.data ?? []) {
     if (!latestResultByScenarioId.has(row.scenario_id)) {
@@ -45,38 +51,54 @@ export default async function DecisionToolsPage() {
         computed_at: row.computed_at,
         summary_json: (row.summary_json ?? {}) as Record<string, unknown>,
         timeseries_json: (row.timeseries_json ?? []) as unknown[],
-        key_metrics_json: (row.key_metrics_json ?? {}) as Record<string, unknown>,
+        key_metrics_json: (row.key_metrics_json ?? {}) as Record<
+          string,
+          unknown
+        >,
       });
     }
   }
 
-  const savedScenariosWithResults = (scenariosResult.data ?? []).map((scenario) => {
-    const result = latestResultByScenarioId.get(scenario.id);
-    return {
-      ...scenario,
-      result_computed_at: result?.computed_at ?? null,
-      summary_json: result?.summary_json ?? null,
-      timeseries_json: result?.timeseries_json ?? null,
-      key_metrics_json: result?.key_metrics_json ?? null,
-    };
-  });
+  const savedScenariosWithResults = (scenariosResult.data ?? []).map(
+    (scenario) => {
+      const result = latestResultByScenarioId.get(scenario.id);
+      return {
+        ...scenario,
+        result_computed_at: result?.computed_at ?? null,
+        summary_json: result?.summary_json ?? null,
+        timeseries_json: result?.timeseries_json ?? null,
+        key_metrics_json: result?.key_metrics_json ?? null,
+      };
+    },
+  );
 
   return (
-    <AppShell header={<AppHeader title="Decision Tools" />} footer={<BottomTabBar />}>
+    <AppShell
+      header={<AppHeader title="Decision Tools" />}
+      footer={<BottomTabBar />}
+    >
       <div className="space-y-4 pb-20 sm:pb-6">
-        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h1 className="text-xl font-semibold text-slate-900">What-if modeling workspace</h1>
-          <p className="mt-1 text-sm text-slate-600">
-            Compare scenarios before major money decisions. Every chart is designed to support one concrete action.
-          </p>
-        </article>
+        <Card>
+          <CardContent className="p-5">
+            <h1 className="text-xl font-semibold text-slate-900">
+              What-if modeling workspace
+            </h1>
+            <p className="mt-1 text-sm text-slate-600">
+              Compare scenarios before major money decisions. Every chart is
+              designed to support one concrete action.
+            </p>
+          </CardContent>
+        </Card>
 
         {scenariosResult.error || resultsResult.error ? (
-          <article className="rounded-2xl border border-rose-200 bg-white p-5 shadow-sm">
-            <p className="text-sm text-rose-700">
-              Could not load saved scenarios: {scenariosResult.error?.message ?? resultsResult.error?.message}
-            </p>
-          </article>
+          <Card className="border-rose-200">
+            <CardContent className="p-5">
+              <p className="text-sm text-rose-700">
+                Could not load saved scenarios:{" "}
+                {scenariosResult.error?.message ?? resultsResult.error?.message}
+              </p>
+            </CardContent>
+          </Card>
         ) : (
           <DecisionToolsClient savedScenarios={savedScenariosWithResults} />
         )}

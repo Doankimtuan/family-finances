@@ -3,8 +3,18 @@
 import { useActionState, useTransition } from "react";
 
 import { updateHouseholdSettingsAction } from "@/app/settings/actions";
-import { initialSettingsActionState, type SettingsActionState } from "@/app/settings/action-types";
+import {
+  initialSettingsActionState,
+  type SettingsActionState,
+} from "@/app/settings/action-types";
 import { useI18n } from "@/lib/providers/i18n-provider";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export function HouseholdSettingsForm({
   defaultName,
@@ -48,22 +58,31 @@ export function HouseholdSettingsForm({
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-1">
-          <label htmlFor="language" className="text-sm font-medium text-slate-700">
+          <label
+            htmlFor="language"
+            className="text-sm font-medium text-slate-700"
+          >
             {t("settings.language")}
           </label>
-          <select
-            id="language"
-            name="language"
-            defaultValue={defaultLanguage}
-            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-base text-slate-900"
-          >
-            <option value="en">{t("settings.lang_en")}</option>
-            <option value="vi">{t("settings.lang_vi")}</option>
-          </select>
+          <Select name="language" defaultValue={defaultLanguage}>
+            <SelectTrigger
+              id="language"
+              className="w-full rounded-xl border border-slate-300 bg-white px-3 py-6 text-base text-slate-900"
+            >
+              <SelectValue placeholder={t("settings.language")} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="en">{t("settings.lang_en")}</SelectItem>
+              <SelectItem value="vi">{t("settings.lang_vi")}</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="space-y-1">
-          <label htmlFor="timezone" className="text-sm font-medium text-slate-700">
+          <label
+            htmlFor="timezone"
+            className="text-sm font-medium text-slate-700"
+          >
             {t("settings.timezone")}
           </label>
           <input
@@ -87,8 +106,12 @@ export function HouseholdSettingsForm({
         {isPending ? t("common.saving") : t("settings.save_household")}
       </button>
 
-      {state.status === "error" && state.message ? <p className="text-sm text-rose-600">{state.message}</p> : null}
-      {state.status === "success" && state.message ? <p className="text-sm text-emerald-600">{state.message}</p> : null}
+      {state.status === "error" && state.message ? (
+        <p className="text-sm text-rose-600">{state.message}</p>
+      ) : null}
+      {state.status === "success" && state.message ? (
+        <p className="text-sm text-emerald-600">{state.message}</p>
+      ) : null}
     </form>
   );
 }

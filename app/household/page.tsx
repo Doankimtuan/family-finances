@@ -8,6 +8,7 @@ import { AppHeader } from "@/components/layout/app-header";
 import { AppShell } from "@/components/layout/app-shell";
 import { BottomTabBar } from "@/components/layout/bottom-tab-bar";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { normalizeHouseholdLocale } from "@/lib/i18n/config";
 import { createClient } from "@/lib/supabase/server";
 
@@ -91,145 +92,157 @@ export default async function HouseholdPage({
     >
       <div className="space-y-6">
         {!householdId ? (
-          <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-slate-900">
-              Create your household
-            </h2>
-            <p className="mt-1 text-sm text-slate-600">
-              Start by creating a household workspace. You can invite your
-              partner immediately after.
-            </p>
-            <div className="mt-6">
-              <CreateHouseholdForm />
-            </div>
-          </article>
-        ) : (
-          <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-slate-900">
-              Current household
-            </h2>
-            <p className="mt-2 text-xl font-medium text-slate-800">
-              {householdName ?? "Unnamed household"}
-            </p>
-            <div className="mt-5">
-              <div className="flex flex-wrap gap-2">
-                <Button asChild>
-                  <a href="/dashboard">Go to Dashboard</a>
-                </Button>
-                <Button asChild variant="outline" className="text-black">
-                  <a href="/settings">Open Settings</a>
-                </Button>
+          <Card>
+            <CardContent className="p-6">
+              <h2 className="text-lg font-semibold text-slate-900">
+                Create your household
+              </h2>
+              <p className="mt-1 text-sm text-slate-600">
+                Start by creating a household workspace. You can invite your
+                partner immediately after.
+              </p>
+              <div className="mt-6">
+                <CreateHouseholdForm />
               </div>
-            </div>
-          </article>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card>
+            <CardContent className="p-6">
+              <h2 className="text-lg font-semibold text-slate-900">
+                Current household
+              </h2>
+              <p className="mt-2 text-xl font-medium text-slate-800">
+                {householdName ?? "Unnamed household"}
+              </p>
+              <div className="mt-5">
+                <div className="flex flex-wrap gap-2">
+                  <Button asChild>
+                    <a href="/dashboard">Go to Dashboard</a>
+                  </Button>
+                  <Button asChild variant="outline" className="text-black">
+                    <a href="/settings">Open Settings</a>
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         )}
 
         {householdId ? (
-          <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <Card>
+            <CardContent className="p-6">
+              <h2 className="text-lg font-semibold text-slate-900">
+                Invite partner
+              </h2>
+              <p className="mt-1 text-sm text-slate-600">
+                Send an invite token to your partner. They can accept it from
+                this page.
+              </p>
+              <div className="mt-6">
+                <InviteMemberForm />
+              </div>
+
+              <div className="mt-8 space-y-4">
+                <p className="text-sm font-semibold uppercase tracking-wider text-slate-500">
+                  Pending invitations
+                </p>
+                {pendingHouseholdInvites?.data &&
+                pendingHouseholdInvites.data.length > 0 ? (
+                  <ul className="space-y-3">
+                    {pendingHouseholdInvites.data.map((invite) => {
+                      const inviteLink = `${origin}/household?token=${invite.token}`;
+
+                      return (
+                        <li
+                          key={invite.id}
+                          className="rounded-xl border border-slate-100 bg-slate-50/50 p-4"
+                        >
+                          <p className="text-sm font-semibold text-slate-900">
+                            {invite.email}
+                          </p>
+                          <div className="mt-2 space-y-1">
+                            <p className="break-all text-xs text-slate-500">
+                              <span className="font-medium text-slate-700">
+                                Token:
+                              </span>{" "}
+                              {invite.token}
+                            </p>
+                            <p className="break-all text-xs text-slate-500">
+                              <span className="font-medium text-slate-700">
+                                Link:
+                              </span>{" "}
+                              {inviteLink}
+                            </p>
+                            <p className="text-xs text-slate-400">
+                              Expires:{" "}
+                              {new Date(invite.expires_at).toLocaleString(
+                                householdLocale,
+                              )}
+                            </p>
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-slate-500 italic">
+                    No pending invitations.
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        ) : null}
+
+        <Card>
+          <CardContent className="p-6">
             <h2 className="text-lg font-semibold text-slate-900">
-              Invite partner
+              Accept invitation
             </h2>
             <p className="mt-1 text-sm text-slate-600">
-              Send an invite token to your partner. They can accept it from this
-              page.
+              Paste the invitation token you received to join a household.
             </p>
+
             <div className="mt-6">
-              <InviteMemberForm />
+              <AcceptInviteForm defaultToken={queryToken} />
             </div>
 
             <div className="mt-8 space-y-4">
               <p className="text-sm font-semibold uppercase tracking-wider text-slate-500">
-                Pending invitations
+                Your pending invites
               </p>
-              {pendingHouseholdInvites?.data &&
-              pendingHouseholdInvites.data.length > 0 ? (
+              {pendingReceivedInvites.data &&
+              pendingReceivedInvites.data.length > 0 ? (
                 <ul className="space-y-3">
-                  {pendingHouseholdInvites.data.map((invite) => {
-                    const inviteLink = `${origin}/household?token=${invite.token}`;
-
-                    return (
-                      <li
-                        key={invite.id}
-                        className="rounded-xl border border-slate-100 bg-slate-50/50 p-4"
-                      >
-                        <p className="text-sm font-semibold text-slate-900">
-                          {invite.email}
-                        </p>
-                        <div className="mt-2 space-y-1">
-                          <p className="break-all text-xs text-slate-500">
-                            <span className="font-medium text-slate-700">
-                              Token:
-                            </span>{" "}
-                            {invite.token}
-                          </p>
-                          <p className="break-all text-xs text-slate-500">
-                            <span className="font-medium text-slate-700">
-                              Link:
-                            </span>{" "}
-                            {inviteLink}
-                          </p>
-                          <p className="text-xs text-slate-400">
-                            Expires:{" "}
-                            {new Date(invite.expires_at).toLocaleString(
-                              householdLocale,
-                            )}
-                          </p>
-                        </div>
-                      </li>
-                    );
-                  })}
+                  {pendingReceivedInvites.data.map((invite) => (
+                    <li
+                      key={invite.id}
+                      className="rounded-xl border border-slate-100 bg-slate-50/50 p-4"
+                    >
+                      <p className="break-all text-xs text-slate-500">
+                        <span className="font-medium text-slate-700">
+                          Token:
+                        </span>{" "}
+                        {invite.token}
+                      </p>
+                      <p className="mt-1 text-xs text-slate-400">
+                        Expires:{" "}
+                        {new Date(invite.expires_at).toLocaleString(
+                          householdLocale,
+                        )}
+                      </p>
+                    </li>
+                  ))}
                 </ul>
               ) : (
                 <p className="text-sm text-slate-500 italic">
-                  No pending invitations.
+                  No invitations waiting for your email.
                 </p>
               )}
             </div>
-          </article>
-        ) : null}
-
-        <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-slate-900">
-            Accept invitation
-          </h2>
-          <p className="mt-1 text-sm text-slate-600">
-            Paste the invitation token you received to join a household.
-          </p>
-
-          <div className="mt-6">
-            <AcceptInviteForm defaultToken={queryToken} />
-          </div>
-
-          <div className="mt-8 space-y-4">
-            <p className="text-sm font-semibold uppercase tracking-wider text-slate-500">
-              Your pending invites
-            </p>
-            {pendingReceivedInvites.data &&
-            pendingReceivedInvites.data.length > 0 ? (
-              <ul className="space-y-3">
-                {pendingReceivedInvites.data.map((invite) => (
-                  <li
-                    key={invite.id}
-                    className="rounded-xl border border-slate-100 bg-slate-50/50 p-4"
-                  >
-                    <p className="break-all text-xs text-slate-500">
-                      <span className="font-medium text-slate-700">Token:</span>{" "}
-                      {invite.token}
-                    </p>
-                    <p className="mt-1 text-xs text-slate-400">
-                      Expires:{" "}
-                      {new Date(invite.expires_at).toLocaleString(householdLocale)}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-sm text-slate-500 italic">
-                No invitations waiting for your email.
-              </p>
-            )}
-          </div>
-        </article>
+          </CardContent>
+        </Card>
       </div>
     </AppShell>
   );

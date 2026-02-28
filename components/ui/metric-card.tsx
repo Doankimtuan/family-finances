@@ -16,8 +16,15 @@ interface MetricCardProps {
     label?: string;
     inverse?: boolean;
   };
+  tooltip?: string;
   className?: string;
 }
+
+import {
+  Tooltip as ShTooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export function MetricCard({
   label,
@@ -27,6 +34,7 @@ export function MetricCard({
   icon: Icon,
   variant = "default",
   trend,
+  tooltip,
   className,
 }: MetricCardProps) {
   const isPositive = trend && trend.value > 0;
@@ -50,9 +58,22 @@ export function MetricCard({
                 <Icon className="h-4 w-4" />
               </div>
             )}
-            <p className="truncate text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground transition-colors group-hover:text-primary/70">
-              {label}
-            </p>
+            {tooltip ? (
+              <ShTooltip>
+                <TooltipTrigger asChild>
+                  <p className="truncate text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground transition-colors group-hover:text-primary/70 cursor-help border-b border-dotted border-muted-foreground/30">
+                    {label}
+                  </p>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs">{tooltip}</p>
+                </TooltipContent>
+              </ShTooltip>
+            ) : (
+              <p className="truncate text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground transition-colors group-hover:text-primary/70">
+                {label}
+              </p>
+            )}
           </div>
           {trend && (
             <div
