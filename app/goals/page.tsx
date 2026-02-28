@@ -48,9 +48,14 @@ type GoalRow = {
 };
 
 type ContributionRow = {
+  id: string;
   goal_id: string;
   amount: number;
   contribution_date: string;
+  flow_type: "inflow" | "outflow";
+  source_account_id: string | null;
+  destination_account_id: string | null;
+  note: string | null;
 };
 
 function monthsUntil(date: string) {
@@ -65,7 +70,7 @@ export default async function GoalsPage() {
   const vi = language === "vi";
   const supabase = await createClient();
 
-  const [goalsResult, contributionsResult] = await Promise.all([
+  const [goalsResult, contributionsResult, accountsResult] = await Promise.all([
     supabase
       .from("goals")
       .select(
@@ -77,13 +82,21 @@ export default async function GoalsPage() {
       .order("created_at", { ascending: false }),
     supabase
       .from("goal_contributions")
-      .select("goal_id, amount, contribution_date")
+      .select("id, goal_id, amount, contribution_date, flow_type, source_account_id, destination_account_id, note")
       .eq("household_id", householdId)
       .order("contribution_date", { ascending: false }),
+    supabase
+      .from("accounts")
+      .select("id, name")
+      .eq("household_id", householdId)
+      .eq("is_archived", false)
+      .order("created_at", { ascending: true }),
   ]);
 
   const goals = (goalsResult.data ?? []) as GoalRow[];
   const contributions = (contributionsResult.data ?? []) as ContributionRow[];
+  const accounts = accountsResult.data ?? [];
+  const accountMap = new Map(accounts.map((a) => [a.id, a.name]));
 
   const contributionsByGoal = new Map<string, ContributionRow[]>();
   for (const row of contributions) {
@@ -147,7 +160,7 @@ export default async function GoalsPage() {
               {goals.map((goal) => {
                 const rows = contributionsByGoal.get(goal.id) ?? [];
                 const funded = rows.reduce(
-                  (sum, row) => sum + Number(row.amount),
+                  (sum, row) => sum + (row.flow_type === "outflow" ? -Number(row.amount) : Number(row.amount)),
                   0,
                 );
                 const target = Number(goal.target_amount);
@@ -176,7 +189,7 @@ export default async function GoalsPage() {
                   recentContrib.length > 0
                     ? Math.round(
                         recentContrib.reduce(
-                          (sum, row) => sum + Number(row.amount),
+                          (sum, row) => sum + (row.flow_type === "outflow" ? -Number(row.amount) : Number(row.amount)),
                           0,
                         ) / 6,
                       )
@@ -428,11 +441,36 @@ export default async function GoalsPage() {
                         </div>
                       </div>
 
-                      <div className="pt-2 px-5 pb-5 bg-muted/5 border-t border-border/50">
+                      <div className="pt-2 px-5 pb-5 bg-muted/5 border-t border-border/50 space-y-3">
                         <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-3">
-                          {vi ? "Thêm đóng góp" : "Add Towards Goal"}
+                          {vi ? "Quản lý dòng tiền mục tiêu" : "Manage Goal Cash Flows"}
                         </p>
-                        <AddContributionForm goalId={goal.id} />
+                        <AddContributionForm
+                          goalId={goal.id}
+                          goalName={goal.name}
+                          accounts={accounts.map((account) => ({ id: account.id, name: account.name }))}
+                        />
+                        <ul className="space-y-1">
+                          {rows.slice(0, 5).map((row) => {
+                            const source = row.flow_type === "inflow"
+                              ? (row.source_account_id ? accountMap.get(row.source_account_id) ?? (vi ? "Tài khoản không xác định" : "Unknown account") : (vi ? "Tài khoản không xác định" : "Unknown account"))
+                              : goal.name;
+                            const destination = row.flow_type === "inflow"
+                              ? goal.name
+                              : (row.destination_account_id ? accountMap.get(row.destination_account_id) ?? (vi ? "Tài khoản không xác định" : "Unknown account") : (vi ? "Tài khoản không xác định" : "Unknown account"));
+
+                            return (
+                              <li key={row.id} className="rounded-lg border border-slate-200 bg-white px-3 py-2">
+                                <p className="text-xs font-semibold text-slate-700">
+                                  {source} {"->"} {destination}
+                                </p>
+                                <p className="text-xs text-slate-500">
+                                  {formatDate(row.contribution_date, householdLocale)} · {row.flow_type === "outflow" ? "-" : "+"}{formatVndCompact(Number(row.amount), householdLocale)}
+                                </p>
+                              </li>
+                            );
+                          })}
+                        </ul>
                       </div>
                     </CardContent>
                   </Card>

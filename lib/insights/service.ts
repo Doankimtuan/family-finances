@@ -22,7 +22,7 @@ type CoreRow = {
 
 type GoalRow = { id: string; name: string; target_amount: number; target_date: string | null };
 
-type ContributionRow = { goal_id: string; amount: number; contribution_date: string };
+type ContributionRow = { goal_id: string; amount: number; contribution_date: string; flow_type: "inflow" | "outflow" };
 
 type LiabilityRow = {
   id: string;
@@ -99,7 +99,7 @@ export async function calculateAndPersistInsights(
   const goals = (goalsResult.data ?? []) as GoalRow[];
   const goalIds = goals.map((g) => g.id);
   const contributionsResult = goalIds.length
-    ? await supabase.from("goal_contributions").select("goal_id, amount, contribution_date").eq("household_id", householdId).in("goal_id", goalIds)
+    ? await supabase.from("goal_contributions").select("goal_id, amount, contribution_date, flow_type").eq("household_id", householdId).in("goal_id", goalIds)
     : { data: [], error: null };
   if (contributionsResult.error) throw new Error(contributionsResult.error.message);
   const contributions = (contributionsResult.data ?? []) as ContributionRow[];
@@ -116,7 +116,7 @@ export async function calculateAndPersistInsights(
 
   const goalRiskInput = goals.map((goal) => {
     const rows = contribMap.get(goal.id) ?? [];
-    const funded = rows.reduce((sum, row) => sum + Number(row.amount), 0);
+    const funded = rows.reduce((sum, row) => sum + (row.flow_type === "outflow" ? -Number(row.amount) : Number(row.amount)), 0);
     const remaining = Math.max(0, Number(goal.target_amount) - funded);
 
     const requiredMonthly = goal.target_date
@@ -126,7 +126,7 @@ export async function calculateAndPersistInsights(
     const avgMonthlyContribution = Math.round(
       rows
         .filter((row) => new Date(row.contribution_date) >= sixMonthAgo)
-        .reduce((sum, row) => sum + Number(row.amount), 0) / 6,
+        .reduce((sum, row) => sum + (row.flow_type === "outflow" ? -Number(row.amount) : Number(row.amount)), 0) / 6,
     );
 
     return {

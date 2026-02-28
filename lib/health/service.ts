@@ -22,6 +22,7 @@ type GoalContributionRow = {
   goal_id: string;
   amount: number;
   contribution_date: string;
+  flow_type: "inflow" | "outflow";
 };
 
 type AssetRow = {
@@ -79,9 +80,9 @@ export async function calculateAndPersistHealthSnapshot(
 
   const goalIds = goals.map((goal) => goal.id);
   const contributionsResult = goalIds.length
-    ? await supabase
+      ? await supabase
         .from("goal_contributions")
-        .select("goal_id, amount, contribution_date")
+        .select("goal_id, amount, contribution_date, flow_type")
         .eq("household_id", householdId)
         .in("goal_id", goalIds)
     : { data: [], error: null };
@@ -105,7 +106,7 @@ export async function calculateAndPersistHealthSnapshot(
 
   for (const goal of goals) {
     const rows = contributionMap.get(goal.id) ?? [];
-    const funded = rows.reduce((sum, row) => sum + Number(row.amount), 0);
+    const funded = rows.reduce((sum, row) => sum + (row.flow_type === "outflow" ? -Number(row.amount) : Number(row.amount)), 0);
     const progress = goal.target_amount > 0 ? Math.max(0, Math.min(1, funded / Number(goal.target_amount))) : 0;
     goalProgressRatios.push(progress);
 
@@ -115,7 +116,7 @@ export async function calculateAndPersistHealthSnapshot(
       const requiredMonthly = remaining / monthsLeft;
       const monthlyAvg = rows
         .filter((row) => new Date(row.contribution_date) >= sixMonthAgo)
-        .reduce((sum, row) => sum + Number(row.amount), 0) / 6;
+        .reduce((sum, row) => sum + (row.flow_type === "outflow" ? -Number(row.amount) : Number(row.amount)), 0) / 6;
       goalOnTrackValues.push(monthlyAvg >= requiredMonthly ? 1 : 0);
     }
   }
