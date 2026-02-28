@@ -17,6 +17,7 @@ import { createClient } from "@/lib/supabase/server";
 
 import { PayoffChart } from "./_components/payoff-chart";
 import { RatePhaseChart } from "./_components/rate-phase-chart";
+import { RecordPaymentForm } from "./_components/record-payment-form";
 
 export const metadata = {
   title: "Debt Detail | Family Finances",
@@ -56,31 +57,39 @@ export default async function DebtDetailPage({
   const { id } = await params;
   const supabase = await createClient();
 
-  const [debtResult, ratesResult, paymentsResult] = await Promise.all([
-    supabase
-      .from("liabilities")
-      .select(
-        "id, name, liability_type, lender_name, principal_original, current_principal_outstanding, start_date, term_months, repayment_method, promo_rate_annual, promo_months, floating_rate_margin, next_payment_date, relationship_label, notes",
-      )
-      .eq("household_id", householdId)
-      .eq("id", id)
-      .maybeSingle(),
-    supabase
-      .from("liability_rate_periods")
-      .select("period_start, period_end, annual_rate, is_promotional")
-      .eq("household_id", householdId)
-      .eq("liability_id", id)
-      .order("period_start", { ascending: true }),
-    supabase
-      .from("liability_payments")
-      .select(
-        "payment_date, actual_amount, principal_component, interest_component",
-      )
-      .eq("household_id", householdId)
-      .eq("liability_id", id)
-      .order("payment_date", { ascending: false })
-      .limit(6),
-  ]);
+  const [debtResult, ratesResult, paymentsResult, accountsResult] =
+    await Promise.all([
+      supabase
+        .from("liabilities")
+        .select(
+          "id, name, liability_type, lender_name, principal_original, current_principal_outstanding, start_date, term_months, repayment_method, promo_rate_annual, promo_months, floating_rate_margin, next_payment_date, relationship_label, notes",
+        )
+        .eq("household_id", householdId)
+        .eq("id", id)
+        .maybeSingle(),
+      supabase
+        .from("liability_rate_periods")
+        .select("period_start, period_end, annual_rate, is_promotional")
+        .eq("household_id", householdId)
+        .eq("liability_id", id)
+        .order("period_start", { ascending: true }),
+      supabase
+        .from("liability_payments")
+        .select(
+          "payment_date, actual_amount, principal_component, interest_component",
+        )
+        .eq("household_id", householdId)
+        .eq("liability_id", id)
+        .order("payment_date", { ascending: false })
+        .limit(6),
+      supabase
+        .from("accounts")
+        .select("id, name")
+        .eq("household_id", householdId)
+        .eq("is_archived", false),
+    ]);
+
+  const accounts = accountsResult.data ?? [];
 
   const debt = debtResult.data as DebtRow | null;
   if (!debt) {
@@ -260,6 +269,20 @@ export default async function DebtDetailPage({
                 ) : null}
               </div>
             ) : null}
+          </CardContent>
+        </Card>
+
+        <Card className="border-emerald-200 bg-emerald-50">
+          <CardContent className="p-5">
+            <h2 className="text-lg font-semibold text-emerald-900">
+              {vi ? "Ghi nhận thanh toán" : "Record Payment"}
+            </h2>
+            <p className="mb-4 text-sm text-emerald-700">
+              {vi
+                ? "Ghi nhận các khoản trả nợ để cập nhật dư nợ và theo dõi tiến độ chính xác."
+                : "Log repayments to update outstanding balance and track progress accurately."}
+            </p>
+            <RecordPaymentForm liabilityId={id} accounts={accounts} vi={vi} />
           </CardContent>
         </Card>
 

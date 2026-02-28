@@ -12,6 +12,7 @@ type MoneyInputProps = {
   required?: boolean;
   className?: string;
   autoFocus?: boolean;
+  onValueChange?: (value: number) => void;
 };
 
 export function MoneyInput({
@@ -22,6 +23,7 @@ export function MoneyInput({
   required,
   className,
   autoFocus = false,
+  onValueChange,
 }: MoneyInputProps) {
   const { locale } = useI18n();
   const [raw, setRaw] = useState<string>(
@@ -50,7 +52,9 @@ export function MoneyInput({
         placeholder={placeholder}
         onChange={(event) => {
           const stripped = event.target.value.replace(/\D/g, "");
-          setRaw(stripped.length === 0 ? "" : String(Number(stripped)));
+          const nextVal = stripped.length === 0 ? 0 : Number(stripped);
+          setRaw(String(nextVal));
+          onValueChange?.(nextVal);
         }}
         className={className}
       />

@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useTransition, useEffect } from "react";
+import { useActionState, useTransition, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { createAccountAction } from "@/app/money/actions";
@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { createClient } from "@/lib/supabase/client";
 
 export function CreateAccountForm() {
   const { t } = useI18n();
@@ -28,6 +29,24 @@ export function CreateAccountForm() {
     initialAccountActionState,
   );
   const [isPending, startTransition] = useTransition();
+  const [accountType, setAccountType] = useState("checking");
+  const [bankAccounts, setBankAccounts] = useState<
+    { id: string; name: string }[]
+  >([]);
+
+  // Load non-credit-card accounts for the linked account selector
+  useEffect(() => {
+    if (accountType !== "credit_card") return;
+    const supabase = createClient();
+    supabase
+      .from("accounts")
+      .select("id, name")
+      .eq("is_archived", false)
+      .neq("type", "credit_card")
+      .then(({ data }) => {
+        if (data) setBankAccounts(data);
+      });
+  }, [accountType]);
 
   useEffect(() => {
     if (state.status === "success") {
@@ -36,6 +55,8 @@ export function CreateAccountForm() {
       toast.error(state.message);
     }
   }, [state]);
+
+  const vi = t("accounts.name") === "Tên tài khoản";
 
   return (
     <form
@@ -59,7 +80,11 @@ export function CreateAccountForm() {
 
       <div className="space-y-1">
         <Label htmlFor="type">{t("accounts.type")}</Label>
-        <Select name="type" defaultValue="checking">
+        <Select
+          name="type"
+          defaultValue="checking"
+          onValueChange={setAccountType}
+        >
           <SelectTrigger
             id="type"
             className="w-full rounded-xl border border-slate-300 bg-white px-3 py-6 text-base text-slate-900"
@@ -77,10 +102,78 @@ export function CreateAccountForm() {
             <SelectItem value="ewallet">
               {t("accounts.type.ewallet")}
             </SelectItem>
+            <SelectItem value="credit_card">
+              {t("accounts.type.credit_card")}
+            </SelectItem>
             <SelectItem value="other">{t("accounts.type.other")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
+
+      {/* Credit card specific fields */}
+      {accountType === "credit_card" && (
+        <div className="space-y-3 rounded-xl border border-primary/20 bg-primary/5 p-3">
+          <p className="text-xs font-bold text-primary/70 uppercase tracking-wider">
+            {vi ? "Thông tin thẻ tín dụng" : "Credit Card Settings"}
+          </p>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <Label htmlFor="creditLimit">
+                {vi ? "Hạn mức (VND)" : "Credit Limit (VND)"}
+              </Label>
+              <MoneyInput
+                id="creditLimit"
+                name="creditLimit"
+                defaultValue={0}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="statementDay">
+                {vi ? "Ngày kết sổ" : "Statement Day"}
+              </Label>
+              <Input
+                id="statementDay"
+                name="statementDay"
+                type="number"
+                min="1"
+                max="31"
+                defaultValue="25"
+                placeholder="25"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <Label htmlFor="linkedBankAccountId">
+              {vi ? "Tài khoản ngân hàng liên kết" : "Linked Bank Account"}
+            </Label>
+            <Select name="linkedBankAccountId">
+              <SelectTrigger id="linkedBankAccountId">
+                <SelectValue
+                  placeholder={
+                    vi ? "Chọn tài khoản thanh toán" : "Select payment account"
+                  }
+                />
+              </SelectTrigger>
+              <SelectContent>
+                {bankAccounts.map((acc) => (
+                  <SelectItem key={acc.id} value={acc.id}>
+                    {acc.name}
+                  </SelectItem>
+                ))}
+                {bankAccounts.length === 0 && (
+                  <SelectItem value="_none" disabled>
+                    {vi
+                      ? "Chưa có tài khoản ngân hàng"
+                      : "No bank accounts yet"}
+                  </SelectItem>
+                )}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      )}
 
       <div className="space-y-1">
         <Label htmlFor="openingBalance">{t("accounts.opening_balance")}</Label>

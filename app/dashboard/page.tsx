@@ -10,6 +10,7 @@ import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
 import { createClient } from "@/lib/supabase/server";
 
 import { DashboardCorePanel } from "./_components/dashboard-core-panel";
+import { DashboardInsightsPanel } from "./_components/dashboard-insights-panel";
 
 export const metadata = {
   title: "Dashboard | Family Finances",
@@ -57,6 +58,8 @@ export default async function DashboardPage() {
       }
       footer={<BottomTabBar />}
     >
+      <DashboardInsightsPanel />
+      <div className="h-[10px]" />
       <DashboardCorePanel />
     </AppShell>
   );

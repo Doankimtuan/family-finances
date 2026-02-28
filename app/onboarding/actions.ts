@@ -23,7 +23,12 @@ async function resolveUserAndHousehold() {
   } = await supabase.auth.getUser();
 
   if (error || !user) {
-    return { supabase, user: null, householdId: null, error: "You must be logged in." };
+    return {
+      supabase,
+      user: null,
+      householdId: null,
+      error: "You must be logged in.",
+    };
   }
 
   const membership = await supabase
@@ -36,10 +41,20 @@ async function resolveUserAndHousehold() {
     .maybeSingle();
 
   if (membership.error || !membership.data?.household_id) {
-    return { supabase, user, householdId: null, error: membership.error?.message ?? "No household found." };
+    return {
+      supabase,
+      user,
+      householdId: null,
+      error: membership.error?.message ?? "No household found.",
+    };
   }
 
-  return { supabase, user, householdId: membership.data.household_id, error: null };
+  return {
+    supabase,
+    user,
+    householdId: membership.data.household_id,
+    error: null,
+  };
 }
 
 export async function saveWelcomeAction(
@@ -47,14 +62,18 @@ export async function saveWelcomeAction(
   formData: FormData,
 ): Promise<OnboardingActionState> {
   const householdName = String(formData.get("householdName") ?? "").trim();
-  const timezone = String(formData.get("timezone") ?? "Asia/Ho_Chi_Minh").trim() || "Asia/Ho_Chi_Minh";
+  const timezone =
+    String(formData.get("timezone") ?? "Asia/Ho_Chi_Minh").trim() ||
+    "Asia/Ho_Chi_Minh";
 
   if (householdName.length < 2) {
     return fail("Household name must be at least 2 characters.");
   }
 
-  const { supabase, householdId, user, error } = await resolveUserAndHousehold();
-  if (error || !householdId || !user) return fail(error ?? "No household found.");
+  const { supabase, householdId, user, error } =
+    await resolveUserAndHousehold();
+  if (error || !householdId || !user)
+    return fail(error ?? "No household found.");
 
   const update = await supabase
     .from("households")
@@ -80,14 +99,18 @@ export async function inviteMemberOnboardingAction(
   _prevState: OnboardingActionState,
   formData: FormData,
 ): Promise<OnboardingActionState> {
-  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  const email = String(formData.get("email") ?? "")
+    .trim()
+    .toLowerCase();
 
   if (!email.includes("@")) {
     return fail("Enter a valid email address.");
   }
 
-  const { supabase, householdId, user, error } = await resolveUserAndHousehold();
-  if (error || !householdId || !user) return fail(error ?? "No household found.");
+  const { supabase, householdId, user, error } =
+    await resolveUserAndHousehold();
+  if (error || !householdId || !user)
+    return fail(error ?? "No household found.");
 
   const invite = await supabase
     .from("household_invitations")
@@ -122,12 +145,22 @@ export async function addAccountOnboardingAction(
   const name = String(formData.get("name") ?? "").trim();
   const type = String(formData.get("type") ?? "checking").trim();
   const openingBalance = Number(formData.get("openingBalance") ?? 0);
+  // Credit card extra fields
+  const creditLimit = Number(formData.get("creditLimit") ?? 0);
+  const statementDay = Number(formData.get("statementDay") ?? 25);
+  const linkedBankAccountId = String(
+    formData.get("linkedBankAccountId") ?? "",
+  ).trim();
 
-  if (name.length < 2) return fail("Account name must be at least 2 characters.");
-  if (!Number.isFinite(openingBalance) || openingBalance < 0) return fail("Opening balance must be a non-negative number.");
+  if (name.length < 2)
+    return fail("Account name must be at least 2 characters.");
+  if (!Number.isFinite(openingBalance) || openingBalance < 0)
+    return fail("Opening balance must be a non-negative number.");
 
-  const { supabase, householdId, user, error } = await resolveUserAndHousehold();
-  if (error || !householdId || !user) return fail(error ?? "No household found.");
+  const { supabase, householdId, user, error } =
+    await resolveUserAndHousehold();
+  if (error || !householdId || !user)
+    return fail(error ?? "No household found.");
 
   const openingBalanceRounded = Math.round(openingBalance);
   const insert = await supabase
@@ -144,7 +177,23 @@ export async function addAccountOnboardingAction(
     .select("id")
     .single();
 
-  if (insert.error || !insert.data?.id) return fail(insert.error?.message ?? "Failed to add account.");
+  if (insert.error || !insert.data?.id)
+    return fail(insert.error?.message ?? "Failed to add account.");
+
+  // If credit card, save the card-specific settings
+  if (type === "credit_card") {
+    await supabase.from("credit_card_settings").insert({
+      account_id: insert.data.id,
+      credit_limit: Math.round(creditLimit),
+      statement_day:
+        statementDay >= 1 && statementDay <= 31 ? statementDay : 25,
+      due_day: 15,
+      linked_bank_account_id:
+        linkedBankAccountId && linkedBankAccountId !== "_none"
+          ? linkedBankAccountId
+          : null,
+    });
+  }
 
   await writeAuditEvent(supabase, {
     householdId,
@@ -156,6 +205,7 @@ export async function addAccountOnboardingAction(
   });
 
   revalidatePath("/onboarding/money");
+  revalidatePath("/money");
   return ok("Account added.");
 }
 
@@ -165,17 +215,22 @@ export async function addAssetOnboardingAction(
 ): Promise<OnboardingActionState> {
   const name = String(formData.get("name") ?? "").trim();
   const assetClass = String(formData.get("assetClass") ?? "gold").trim();
-  const unitLabel = String(formData.get("unitLabel") ?? "unit").trim() || "unit";
+  const unitLabel =
+    String(formData.get("unitLabel") ?? "unit").trim() || "unit";
   const quantity = Number(formData.get("quantity") ?? 0);
   const unitPrice = Number(formData.get("unitPrice") ?? 0);
   const isLiquid = String(formData.get("isLiquid") ?? "false") === "true";
 
   if (name.length < 2) return fail("Asset name must be at least 2 characters.");
-  if (!Number.isFinite(quantity) || quantity < 0) return fail("Quantity must be non-negative.");
-  if (!Number.isFinite(unitPrice) || unitPrice < 0) return fail("Unit price must be non-negative.");
+  if (!Number.isFinite(quantity) || quantity < 0)
+    return fail("Quantity must be non-negative.");
+  if (!Number.isFinite(unitPrice) || unitPrice < 0)
+    return fail("Unit price must be non-negative.");
 
-  const { supabase, householdId, user, error } = await resolveUserAndHousehold();
-  if (error || !householdId || !user) return fail(error ?? "No household found.");
+  const { supabase, householdId, user, error } =
+    await resolveUserAndHousehold();
+  if (error || !householdId || !user)
+    return fail(error ?? "No household found.");
 
   const today = new Date().toISOString().slice(0, 10);
 
@@ -196,7 +251,8 @@ export async function addAssetOnboardingAction(
     .select("id")
     .single();
 
-  if (assetInsert.error || !assetInsert.data?.id) return fail(assetInsert.error?.message ?? "Failed to add asset.");
+  if (assetInsert.error || !assetInsert.data?.id)
+    return fail(assetInsert.error?.message ?? "Failed to add asset.");
 
   const assetId = assetInsert.data.id;
 
@@ -229,7 +285,13 @@ export async function addAssetOnboardingAction(
     eventType: "onboarding.asset_added",
     entityType: "asset",
     entityId: assetId,
-    payload: { name, assetClass, quantity, unitPrice: Math.round(unitPrice), isLiquid },
+    payload: {
+      name,
+      assetClass,
+      quantity,
+      unitPrice: Math.round(unitPrice),
+      isLiquid,
+    },
   });
 
   revalidatePath("/onboarding/assets");
@@ -241,19 +303,30 @@ export async function addDebtOnboardingAction(
   formData: FormData,
 ): Promise<OnboardingActionState> {
   const name = String(formData.get("name") ?? "").trim();
-  const liabilityType = String(formData.get("liabilityType") ?? "mortgage").trim();
+  const liabilityType = String(
+    formData.get("liabilityType") ?? "mortgage",
+  ).trim();
   const principalOriginal = Number(formData.get("principalOriginal") ?? 0);
   const currentOutstanding = Number(formData.get("currentOutstanding") ?? 0);
   const annualRate = Number(formData.get("annualRate") ?? 0);
-  const repaymentMethod = String(formData.get("repaymentMethod") ?? "annuity").trim();
+  const repaymentMethod = String(
+    formData.get("repaymentMethod") ?? "annuity",
+  ).trim();
+  const dueDay = Number(formData.get("dueDay") ?? 0);
+  const linkedAccountId = String(formData.get("linkedAccountId") ?? "").trim();
 
   if (name.length < 2) return fail("Debt name must be at least 2 characters.");
-  if (!Number.isFinite(principalOriginal) || principalOriginal <= 0) return fail("Original principal must be positive.");
-  if (!Number.isFinite(currentOutstanding) || currentOutstanding < 0) return fail("Current outstanding must be non-negative.");
-  if (!Number.isFinite(annualRate) || annualRate < 0) return fail("Rate must be non-negative.");
+  if (!Number.isFinite(principalOriginal) || principalOriginal <= 0)
+    return fail("Original principal must be positive.");
+  if (!Number.isFinite(currentOutstanding) || currentOutstanding < 0)
+    return fail("Current outstanding must be non-negative.");
+  if (!Number.isFinite(annualRate) || annualRate < 0)
+    return fail("Rate must be non-negative.");
 
-  const { supabase, householdId, user, error } = await resolveUserAndHousehold();
-  if (error || !householdId || !user) return fail(error ?? "No household found.");
+  const { supabase, householdId, user, error } =
+    await resolveUserAndHousehold();
+  if (error || !householdId || !user)
+    return fail(error ?? "No household found.");
 
   const today = new Date().toISOString().slice(0, 10);
 
@@ -272,6 +345,8 @@ export async function addDebtOnboardingAction(
       promo_months: 0,
       include_in_net_worth: true,
       is_active: true,
+      due_day: dueDay > 0 ? dueDay : null,
+      linked_payment_account_id: linkedAccountId || null,
       created_by: user.id,
     })
     .select("id")
@@ -305,10 +380,12 @@ export async function addDebtOnboardingAction(
       currentOutstanding: Math.round(currentOutstanding),
       annualRatePercent: annualRate,
       repaymentMethod,
+      dueDay,
     },
   });
 
   revalidatePath("/onboarding/debts");
+  revalidatePath("/debts");
   return ok("Debt added.");
 }
 
@@ -319,11 +396,15 @@ export async function addIncomeExpenseOnboardingAction(
   const monthlyIncome = Number(formData.get("monthlyIncome") ?? 0);
   const monthlyEssentials = Number(formData.get("monthlyEssentials") ?? 0);
 
-  if (!Number.isFinite(monthlyIncome) || monthlyIncome <= 0) return fail("Monthly income must be positive.");
-  if (!Number.isFinite(monthlyEssentials) || monthlyEssentials < 0) return fail("Monthly essentials must be non-negative.");
+  if (!Number.isFinite(monthlyIncome) || monthlyIncome <= 0)
+    return fail("Monthly income must be positive.");
+  if (!Number.isFinite(monthlyEssentials) || monthlyEssentials < 0)
+    return fail("Monthly essentials must be non-negative.");
 
-  const { supabase, householdId, user, error } = await resolveUserAndHousehold();
-  if (error || !householdId || !user) return fail(error ?? "No household found.");
+  const { supabase, householdId, user, error } =
+    await resolveUserAndHousehold();
+  if (error || !householdId || !user)
+    return fail(error ?? "No household found.");
 
   const today = new Date();
   const day = today.getDate();
@@ -339,7 +420,10 @@ export async function addIncomeExpenseOnboardingAction(
     .maybeSingle();
 
   if (account.error || !account.data?.id) {
-    return fail(account.error?.message ?? "Add an account first before setting income/expenses.");
+    return fail(
+      account.error?.message ??
+        "Add an account first before setting income/expenses.",
+    );
   }
 
   const incomeCategory = await supabase
@@ -358,8 +442,14 @@ export async function addIncomeExpenseOnboardingAction(
     .eq("name", "Housing")
     .maybeSingle();
 
-  if (incomeCategory.error || !incomeCategory.data?.id) return fail(incomeCategory.error?.message ?? "Missing Salary category seed data.");
-  if (expenseCategory.error || !expenseCategory.data?.id) return fail(expenseCategory.error?.message ?? "Missing Housing category seed data.");
+  if (incomeCategory.error || !incomeCategory.data?.id)
+    return fail(
+      incomeCategory.error?.message ?? "Missing Salary category seed data.",
+    );
+  if (expenseCategory.error || !expenseCategory.data?.id)
+    return fail(
+      expenseCategory.error?.message ?? "Missing Housing category seed data.",
+    );
 
   const [incomeRule, expenseRule] = await Promise.all([
     supabase.from("recurring_rules").insert({
@@ -427,10 +517,13 @@ export async function addFirstGoalOnboardingAction(
   const targetDate = String(formData.get("targetDate") ?? "").trim();
 
   if (name.length < 2) return fail("Goal name must be at least 2 characters.");
-  if (!Number.isFinite(targetAmount) || targetAmount <= 0) return fail("Target amount must be positive.");
+  if (!Number.isFinite(targetAmount) || targetAmount <= 0)
+    return fail("Target amount must be positive.");
 
-  const { supabase, householdId, user, error } = await resolveUserAndHousehold();
-  if (error || !householdId || !user) return fail(error ?? "No household found.");
+  const { supabase, householdId, user, error } =
+    await resolveUserAndHousehold();
+  if (error || !householdId || !user)
+    return fail(error ?? "No household found.");
 
   const targetAmountRounded = Math.round(targetAmount);
   const insert = await supabase
@@ -449,7 +542,8 @@ export async function addFirstGoalOnboardingAction(
     .select("id")
     .single();
 
-  if (insert.error || !insert.data?.id) return fail(insert.error?.message ?? "Failed to add first goal.");
+  if (insert.error || !insert.data?.id)
+    return fail(insert.error?.message ?? "Failed to add first goal.");
 
   await writeAuditEvent(supabase, {
     householdId,
@@ -457,7 +551,12 @@ export async function addFirstGoalOnboardingAction(
     eventType: "onboarding.first_goal_added",
     entityType: "goal",
     entityId: insert.data.id,
-    payload: { goalType, name, targetAmount: targetAmountRounded, targetDate: targetDate || null },
+    payload: {
+      goalType,
+      name,
+      targetAmount: targetAmountRounded,
+      targetDate: targetDate || null,
+    },
   });
 
   revalidatePath("/onboarding/first-goal");

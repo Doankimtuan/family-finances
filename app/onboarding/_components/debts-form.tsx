@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useTransition } from "react";
+import { useActionState, useEffect, useState, useTransition } from "react";
 
 import { addDebtOnboardingAction } from "@/app/onboarding/actions";
 import {
@@ -8,6 +8,7 @@ import {
   type OnboardingActionState,
 } from "@/app/onboarding/action-types";
 import { MoneyInput } from "@/components/ui/money-input";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/providers/i18n-provider";
 import {
@@ -17,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { createClient } from "@/lib/supabase/client";
 
 export function DebtsForm() {
   const { language } = useI18n();
@@ -26,9 +28,24 @@ export function DebtsForm() {
     initialOnboardingActionState,
   );
   const [isPending, startTransition] = useTransition();
+  const [accounts, setAccounts] = useState<
+    { id: string; name: string; type: string }[]
+  >([]);
 
-  const inputClasses =
-    "w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-slate-500 focus:ring-4 focus:ring-slate-50";
+  useEffect(() => {
+    async function loadAccounts() {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from("accounts")
+        .select("id, name, type")
+        .eq("is_archived", false)
+        .neq("type", "credit_card"); // Cannot pay debt from another credit card
+      if (data) setAccounts(data);
+    }
+    loadAccounts();
+  }, []);
+
+  const labelClasses = "text-sm font-semibold text-slate-700";
 
   return (
     <form
@@ -41,107 +58,123 @@ export function DebtsForm() {
     >
       <div className="space-y-4">
         <div className="space-y-1.5">
-          <label
-            htmlFor="name"
-            className="text-sm font-semibold text-slate-700"
-          >
+          <label htmlFor="name" className={labelClasses}>
             {vi ? "Tên khoản nợ" : "Debt name"}
           </label>
-          <input
+          <Input
             id="name"
             name="name"
             required
             placeholder={vi ? "Khoản vay VPBank" : "VPBank Mortgage"}
-            className={inputClasses}
           />
         </div>
 
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="space-y-1.5">
+            <label htmlFor="liabilityType" className={labelClasses}>
+              {vi ? "Loại nợ" : "Type"}
+            </label>
+            <Select name="liabilityType" defaultValue="mortgage">
+              <SelectTrigger id="liabilityType">
+                <SelectValue placeholder={vi ? "Loại" : "Type"} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="mortgage">
+                  {vi ? "Thế chấp" : "Mortgage"}
+                </SelectItem>
+                <SelectItem value="family_loan">
+                  {vi ? "Vay gia đình" : "Family Loan"}
+                </SelectItem>
+                <SelectItem value="personal_loan">
+                  {vi ? "Vay cá nhân" : "Personal Loan"}
+                </SelectItem>
+                <SelectItem value="car_loan">
+                  {vi ? "Vay mua xe" : "Car Loan"}
+                </SelectItem>
+                <SelectItem value="other">{vi ? "Khác" : "Other"}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-1.5">
+            <label htmlFor="dueDay" className={labelClasses}>
+              {vi ? "Ngày thanh toán hàng tháng" : "Monthly Due Day"}
+            </label>
+            <Input
+              id="dueDay"
+              name="dueDay"
+              type="number"
+              min="1"
+              max="31"
+              required
+              placeholder="e.g. 15"
+            />
+          </div>
+        </div>
+
         <div className="space-y-1.5">
-          <label
-            htmlFor="liabilityType"
-            className="text-sm font-semibold text-slate-700"
-          >
-            {vi ? "Loại" : "Type"}
+          <label htmlFor="linkedAccountId" className={labelClasses}>
+            {vi ? "Tài khoản thanh toán mặc định" : "Default Payment Account"}
           </label>
-          <Select name="liabilityType" defaultValue="mortgage">
-            <SelectTrigger id="liabilityType" className={inputClasses}>
-              <SelectValue placeholder={vi ? "Loại" : "Type"} />
+          <Select name="linkedAccountId">
+            <SelectTrigger id="linkedAccountId">
+              <SelectValue
+                placeholder={vi ? "Chọn tài khoản" : "Select account"}
+              />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="mortgage">
-                {vi ? "Thế chấp" : "Mortgage"}
-              </SelectItem>
-              <SelectItem value="family_loan">
-                {vi ? "Vay gia đình" : "Family Loan"}
-              </SelectItem>
-              <SelectItem value="personal_loan">
-                {vi ? "Vay cá nhân" : "Personal Loan"}
-              </SelectItem>
-              <SelectItem value="car_loan">
-                {vi ? "Vay mua xe" : "Car Loan"}
-              </SelectItem>
+              {accounts.map((acc) => (
+                <SelectItem key={acc.id} value={acc.id}>
+                  {acc.name} ({acc.type})
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
-            <label
-              htmlFor="principalOriginal"
-              className="text-sm font-semibold text-slate-700"
-            >
+            <label htmlFor="principalOriginal" className={labelClasses}>
               {vi ? "Gốc ban đầu (VND)" : "Original principal (VND)"}
             </label>
             <MoneyInput
               id="principalOriginal"
               name="principalOriginal"
               defaultValue={0}
-              className={inputClasses}
             />
           </div>
           <div className="space-y-1.5">
-            <label
-              htmlFor="currentOutstanding"
-              className="text-sm font-semibold text-slate-700"
-            >
+            <label htmlFor="currentOutstanding" className={labelClasses}>
               {vi ? "Dư nợ hiện tại (VND)" : "Current outstanding (VND)"}
             </label>
             <MoneyInput
               id="currentOutstanding"
               name="currentOutstanding"
               defaultValue={0}
-              className={inputClasses}
             />
           </div>
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
-            <label
-              htmlFor="annualRate"
-              className="text-sm font-semibold text-slate-700"
-            >
+            <label htmlFor="annualRate" className={labelClasses}>
               {vi ? "Lãi suất năm (%)" : "Annual rate (%)"}
             </label>
-            <input
+            <Input
               id="annualRate"
               name="annualRate"
               type="number"
               min="0"
               step="0.01"
               defaultValue="0"
-              className={inputClasses}
             />
           </div>
           <div className="space-y-1.5">
-            <label
-              htmlFor="repaymentMethod"
-              className="text-sm font-semibold text-slate-700"
-            >
+            <label htmlFor="repaymentMethod" className={labelClasses}>
               {vi ? "Phương thức trả nợ" : "Repayment method"}
             </label>
             <Select name="repaymentMethod" defaultValue="annuity">
-              <SelectTrigger id="repaymentMethod" className={inputClasses}>
+              <SelectTrigger id="repaymentMethod">
                 <SelectValue
                   placeholder={vi ? "Phương thức trả nợ" : "Repayment method"}
                 />
@@ -176,17 +209,16 @@ export function DebtsForm() {
             : "Add Debt"}
       </Button>
 
-      {state.status === "error" && state.message ? (
-        <p className="text-sm font-medium text-rose-600 animate-in fade-in slide-in-from-top-1">
-          {state.message}
-        </p>
-      ) : null}
-
-      {state.status === "success" && state.message ? (
-        <p className="text-sm font-medium text-emerald-600 animate-in fade-in slide-in-from-top-1">
-          {state.message}
-        </p>
-      ) : null}
+      {(state.status === "error" || state.status === "success") &&
+        state.message && (
+          <p
+            className={`text-sm font-medium animate-in fade-in slide-in-from-top-1 ${
+              state.status === "error" ? "text-rose-600" : "text-emerald-600"
+            }`}
+          >
+            {state.message}
+          </p>
+        )}
     </form>
   );
 }

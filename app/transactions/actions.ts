@@ -32,7 +32,7 @@ async function getAccountBalanceSnapshot(
 ) {
   const accountRes = await supabase
     .from("accounts")
-    .select("opening_balance")
+    .select("opening_balance, type")
     .eq("household_id", householdId)
     .eq("id", accountId)
     .maybeSingle();
@@ -42,6 +42,13 @@ async function getAccountBalanceSnapshot(
       balance: null as number | null,
       error: accountRes.error?.message ?? "Account not found.",
     };
+  }
+
+  // Credit cards operate on credit limit, not a deposited balance.
+  // We skip the balance check — spending is always allowed up to the credit limit.
+  // The credit limit constraint is handled separately through card_billing_months.
+  if (accountRes.data.type === "credit_card") {
+    return { balance: null as number | null, error: null as string | null };
   }
 
   let txQuery = supabase
