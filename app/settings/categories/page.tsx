@@ -79,18 +79,20 @@ function CategorySection({
               </p>
             </div>
             <div className="flex flex-wrap items-start justify-end gap-2">
-              <CategoryRenameForm
-                categoryId={row.id}
-                currentName={row.name}
-                currentColor={row.color}
-              />
               {!row.is_system ? (
-                <CategoryActiveToggle
-                  categoryId={row.id}
-                  currentActive={row.is_active}
-                />
+                <>
+                  <CategoryRenameForm
+                    categoryId={row.id}
+                    currentName={row.name}
+                    currentColor={row.color}
+                  />
+                  <CategoryActiveToggle
+                    categoryId={row.id}
+                    currentActive={row.is_active}
+                  />
+                  <CategoryDeleteButton categoryId={row.id} />
+                </>
               ) : null}
-              <CategoryDeleteButton categoryId={row.id} />
             </div>
           </div>
         </li>

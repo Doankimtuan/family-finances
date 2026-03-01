@@ -3,8 +3,14 @@
 import { useActionState, useState, useTransition } from "react";
 
 import { renameCategoryAction } from "@/app/categories/actions";
-import { initialCategoryActionState, type CategoryActionState } from "@/app/categories/action-types";
+import {
+  initialCategoryActionState,
+  type CategoryActionState,
+} from "@/app/categories/action-types";
 import { useI18n } from "@/lib/providers/i18n-provider";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Loader2, X, Check } from "lucide-react";
 
 type Props = {
   categoryId: string;
@@ -12,8 +18,12 @@ type Props = {
   currentColor: string | null;
 };
 
-export function CategoryRenameForm({ categoryId, currentName, currentColor }: Props) {
-  const { language, t } = useI18n();
+export function CategoryRenameForm({
+  categoryId,
+  currentName,
+  currentColor,
+}: Props) {
+  const { language } = useI18n();
   const vi = language === "vi";
   const [open, setOpen] = useState(false);
   const [state, action] = useActionState<CategoryActionState, FormData>(
@@ -24,19 +34,21 @@ export function CategoryRenameForm({ categoryId, currentName, currentColor }: Pr
 
   if (!open) {
     return (
-      <button
+      <Button
         type="button"
+        variant="outline"
+        size="sm"
         onClick={() => setOpen(true)}
-        className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700"
+        className="h-8 rounded-lg"
       >
         {vi ? "Sửa" : "Edit"}
-      </button>
+      </Button>
     );
   }
 
   return (
     <form
-      className="space-y-1"
+      className="space-y-2 w-full max-w-sm"
       noValidate
       onSubmit={(event) => {
         event.preventDefault();
@@ -45,37 +57,51 @@ export function CategoryRenameForm({ categoryId, currentName, currentColor }: Pr
       }}
     >
       <input type="hidden" name="categoryId" value={categoryId} />
-      <div className="flex items-center gap-2">
-        <input
+      <div className="flex flex-wrap sm:flex-nowrap items-center gap-2">
+        <Input
           name="name"
           defaultValue={currentName}
           minLength={2}
           required
-          className="w-36 rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-xs text-slate-900"
+          placeholder={vi ? "Tên danh mục..." : "Category name..."}
+          className="h-8 min-w-[120px] flex-1 rounded-lg text-sm"
         />
-        <input
-          name="color"
-          type="color"
-          defaultValue={currentColor ?? "#64748b"}
-          className="h-8 w-10 rounded border border-slate-300 bg-white p-0.5"
-        />
-        <button
-          type="submit"
-          disabled={isPending}
-          className="rounded-lg bg-slate-900 px-2.5 py-1.5 text-xs font-semibold text-white disabled:opacity-60"
-        >
-          {isPending ? t("common.saving") : (vi ? "Lưu" : "Save")}
-        </button>
-        <button
-          type="button"
-          onClick={() => setOpen(false)}
-          className="rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs font-medium text-slate-700"
-        >
-          {vi ? "Hủy" : "Cancel"}
-        </button>
+        <div className="flex items-center gap-2">
+          <input
+            name="color"
+            type="color"
+            defaultValue={currentColor ?? "#64748b"}
+            className="h-8 w-10 rounded-lg cursor-pointer bg-background shrink-0"
+          />
+          <Button
+            type="submit"
+            size="icon"
+            disabled={isPending}
+            className="h-8 w-8 rounded-lg shrink-0 bg-primary text-primary-foreground"
+          >
+            {isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Check className="h-4 w-4" />
+            )}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            onClick={() => setOpen(false)}
+            className="h-8 w-8 rounded-lg shrink-0"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
-      {state.status === "error" && state.message ? <p className="text-xs text-rose-600">{state.message}</p> : null}
-      {state.status === "success" && state.message ? <p className="text-xs text-emerald-600">{state.message}</p> : null}
+      {state.status === "error" && state.message ? (
+        <p className="text-xs font-medium text-rose-600">{state.message}</p>
+      ) : null}
+      {state.status === "success" && state.message ? (
+        <p className="text-xs font-medium text-emerald-600">{state.message}</p>
+      ) : null}
     </form>
   );
 }
