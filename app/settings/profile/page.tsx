@@ -23,7 +23,7 @@ export default async function SettingsProfilePage() {
     <AppShell
       header={
         <AppHeader
-          title={`${t(language, "settings.title")} · ${t(language, "settings.profile")}`}
+          title={`${t(language, "settings.title")} / ${t(language, "settings.profile")}`}
         />
       }
       footer={<BottomTabBar />}
@@ -50,7 +50,6 @@ export default async function SettingsProfilePage() {
               <ProfileForm
                 defaultFullName={profileResult.data.full_name}
                 defaultEmail={profileResult.data.email}
-                defaultAvatarUrl={profileResult.data.avatar_url ?? ""}
               />
             )}
           </CardContent>

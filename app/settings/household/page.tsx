@@ -24,7 +24,7 @@ export default async function SettingsHouseholdPage() {
     <AppShell
       header={
         <AppHeader
-          title={`${t(language, "settings.title")} · ${t(language, "settings.household")}`}
+          title={`${t(language, "settings.title")} / ${t(language, "settings.household")}`}
         />
       }
       footer={<BottomTabBar />}

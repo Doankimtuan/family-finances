@@ -120,7 +120,7 @@ export default async function SettingsCategoriesPage() {
     <AppShell
       header={
         <AppHeader
-          title={`${t(language, "settings.title")} · ${t(language, "settings.categories")}`}
+          title={`${t(language, "settings.title")} / ${t(language, "settings.categories")}`}
         />
       }
       footer={<BottomTabBar />}

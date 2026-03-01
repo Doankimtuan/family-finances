@@ -25,7 +25,7 @@ export default async function SettingsAssumptionsPage() {
     <AppShell
       header={
         <AppHeader
-          title={`${t(language, "settings.title")} · ${t(language, "settings.assumptions")}`}
+          title={`${t(language, "settings.title")} / ${t(language, "settings.assumptions")}`}
         />
       }
       footer={<BottomTabBar />}

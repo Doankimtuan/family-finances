@@ -15,6 +15,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 
 export function HouseholdSettingsForm({
   defaultName,
@@ -34,7 +38,7 @@ export function HouseholdSettingsForm({
 
   return (
     <form
-      className="space-y-4"
+      className="space-y-5"
       noValidate
       onSubmit={(event) => {
         event.preventDefault();
@@ -42,32 +46,35 @@ export function HouseholdSettingsForm({
         startTransition(() => action(fd));
       }}
     >
-      <div className="space-y-1">
-        <label htmlFor="name" className="text-sm font-medium text-slate-700">
+      <div className="space-y-1.5">
+        <Label
+          htmlFor="name"
+          className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
+        >
           {t("settings.household_name")}
-        </label>
-        <input
+        </Label>
+        <Input
           id="name"
           name="name"
           required
           minLength={2}
           defaultValue={defaultName}
-          className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-base text-slate-900 placeholder:text-slate-500"
+          className="rounded-xl"
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div className="space-y-1">
-          <label
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+        <div className="space-y-1.5">
+          <Label
             htmlFor="language"
-            className="text-sm font-medium text-slate-700"
+            className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
           >
             {t("settings.language")}
-          </label>
+          </Label>
           <Select name="language" defaultValue={defaultLanguage}>
             <SelectTrigger
               id="language"
-              className="w-full rounded-xl border border-slate-300 bg-white px-3 py-6 text-base text-slate-900"
+              className="w-full rounded-xl border border-input bg-background h-12"
             >
               <SelectValue placeholder={t("settings.language")} />
             </SelectTrigger>
@@ -78,40 +85,54 @@ export function HouseholdSettingsForm({
           </Select>
         </div>
 
-        <div className="space-y-1">
-          <label
+        <div className="space-y-1.5">
+          <Label
             htmlFor="timezone"
-            className="text-sm font-medium text-slate-700"
+            className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
           >
             {t("settings.timezone")}
-          </label>
-          <input
+          </Label>
+          <Input
             id="timezone"
             name="timezone"
             defaultValue={defaultTimezone}
-            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-base text-slate-900"
+            className="rounded-xl"
           />
         </div>
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
+      <div className="rounded-xl border bg-muted/30 px-4 py-3 text-xs text-muted-foreground font-medium leading-relaxed">
         {t("settings.base_currency_note")}
       </div>
 
-      <button
+      <Button
         type="submit"
         disabled={isPending}
-        className="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white disabled:opacity-60"
+        className="w-full rounded-xl py-6 text-sm font-bold tracking-wide"
       >
-        {isPending ? t("common.saving") : t("settings.save_household")}
-      </button>
+        {isPending ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            {t("common.saving")}
+          </>
+        ) : (
+          t("settings.save_household")
+        )}
+      </Button>
 
-      {state.status === "error" && state.message ? (
-        <p className="text-sm text-rose-600">{state.message}</p>
-      ) : null}
-      {state.status === "success" && state.message ? (
-        <p className="text-sm text-emerald-600">{state.message}</p>
-      ) : null}
+      {state.status === "error" && state.message && (
+        <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 dark:border-rose-900/30 dark:bg-rose-950/20 px-4 py-3 text-rose-800 dark:text-rose-400">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+          <p className="text-sm font-medium">{state.message}</p>
+        </div>
+      )}
+
+      {state.status === "success" && state.message && (
+        <div className="flex items-start gap-2 rounded-xl border border-emerald-200 bg-emerald-50 dark:border-emerald-900/30 dark:bg-emerald-950/20 px-4 py-3 text-emerald-800 dark:text-emerald-400">
+          <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+          <p className="text-sm font-medium">{state.message}</p>
+        </div>
+      )}
     </form>
   );
 }
