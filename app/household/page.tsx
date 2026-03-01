@@ -21,7 +21,7 @@ function getOriginFromHeaders(headerList: Headers): string {
   const host =
     headerList.get("x-forwarded-host") ??
     headerList.get("host") ??
-    "localhost:3000";
+    "family-finances-iota.vercel.app";
 
   return `${protocol}://${host}`;
 }

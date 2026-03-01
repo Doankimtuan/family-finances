@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 const links = [
   { href: "/settings/profile", label: "Profile" },
   { href: "/settings/household", label: "Household" },
+  { href: "/settings/members", label: "Members" },
   { href: "/settings/categories", label: "Categories" },
   { href: "/settings/assumptions", label: "Assumptions" },
 ];
@@ -19,6 +20,7 @@ export function SettingsNav({ currentPath }: { currentPath: string }) {
   const labelMap: Record<string, string> = {
     Profile: "settings.profile",
     Household: "settings.household",
+    Members: "settings.members",
     Categories: "settings.categories",
     Assumptions: "settings.assumptions",
   };
