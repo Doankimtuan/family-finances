@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -79,30 +80,23 @@ export function DashboardInsightsPanel() {
   const { language } = useI18n();
   const vi = language === "vi";
 
-  const [loading, setLoading] = useState(true);
-  const [data, setData] = useState<InsightsApiResponse | null>(null);
+  const {
+    data,
+    isLoading: loading,
+    refetch: fetchInsights,
+  } = useQuery<InsightsApiResponse>({
+    queryKey: ["dashboard-insights"],
+    queryFn: async () => {
+      const res = await fetch("/api/insights/check");
+      if (!res.ok) throw new Error("Failed to fetch insights");
+      return res.json();
+    },
+    staleTime: 60000,
+  });
+
   const [aiLoading, setAiLoading] = useState(false);
   const [aiResult, setAiResult] = useState<string | null>(null);
   const [feedbackSent, setFeedbackSent] = useState<Record<string, number>>({});
-
-  const fetchInsights = useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await fetch("/api/insights/check");
-      if (res.ok) {
-        const json = (await res.json()) as InsightsApiResponse;
-        setData(json);
-      }
-    } catch {
-      // silent fail, insights are non-critical
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void fetchInsights();
-  }, [fetchInsights]);
 
   const handleAiAnalysis = async () => {
     if (aiLoading) return;
