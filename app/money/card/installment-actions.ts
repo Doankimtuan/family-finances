@@ -9,6 +9,61 @@ export type InstallmentActionState = {
   message: string;
 };
 
+async function refreshBillingMonthStatus(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  billingMonthId: string,
+) {
+  const { data: month } = await supabase
+    .from("card_billing_months")
+    .select("id, statement_amount, paid_amount")
+    .eq("id", billingMonthId)
+    .maybeSingle();
+
+  if (!month) return;
+
+  const statementAmount = Number(month.statement_amount);
+  const paidAmount = Number(month.paid_amount);
+  const normalizedPaid = Math.max(0, Math.min(paidAmount, statementAmount));
+  const status =
+    statementAmount <= 0
+      ? "settled"
+      : normalizedPaid >= statementAmount
+        ? "settled"
+        : normalizedPaid > 0
+          ? "partial"
+          : "open";
+
+  await supabase
+    .from("card_billing_months")
+    .update({
+      paid_amount: normalizedPaid,
+      status,
+    })
+    .eq("id", billingMonthId);
+
+  await supabase
+    .from("card_billing_items")
+    .update({ is_paid: status === "settled" })
+    .eq("billing_month_id", billingMonthId);
+}
+
+function formatDateOnlyUTC(date: Date): string {
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(date.getUTCDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function parseDateOnlyToUTC(dateStr: string): Date | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateStr);
+  if (!match) return null;
+
+  const year = Number(match[1]);
+  const monthIdx = Number(match[2]) - 1;
+  const day = Number(match[3]);
+  return new Date(Date.UTC(year, monthIdx, day));
+}
+
 async function resolveContext() {
   const supabase = await createClient();
   const {
@@ -73,11 +128,14 @@ async function generateInstallmentItems(
     startBillingMonth: string; // "YYYY-MM-01"
   },
 ) {
-  const base = new Date(startBillingMonth);
+  const base = parseDateOnlyToUTC(startBillingMonth);
+  if (!base) return;
 
   for (let i = 0; i < numInstallments; i++) {
-    const billingDate = new Date(base.getFullYear(), base.getMonth() + i, 1);
-    const billingMonthStr = billingDate.toISOString().slice(0, 10);
+    const billingDate = new Date(
+      Date.UTC(base.getUTCFullYear(), base.getUTCMonth() + i, 1),
+    );
+    const billingMonthStr = formatDateOnlyUTC(billingDate);
 
     const { data: bMonth } = await supabase
       .from("card_billing_months")
@@ -282,19 +340,21 @@ export async function createInstallmentPlanAction(
     .single();
   const statementDay = settings?.statement_day ?? 25;
 
-  const startD = new Date(startDate);
-  let billingYear = startD.getFullYear();
-  let billingMonthIdx = startD.getMonth();
-  if (startD.getDate() > statementDay) {
+  const startD = parseDateOnlyToUTC(startDate);
+  if (!startD) return { status: "error", message: "Invalid start date." };
+
+  let billingYear = startD.getUTCFullYear();
+  let billingMonthIdx = startD.getUTCMonth();
+  if (startD.getUTCDate() > statementDay) {
     billingMonthIdx += 1;
     if (billingMonthIdx > 11) {
       billingMonthIdx = 0;
       billingYear += 1;
     }
   }
-  const startBillingMonth = new Date(billingYear, billingMonthIdx, 1)
-    .toISOString()
-    .slice(0, 10);
+  const startBillingMonthUtc = formatDateOnlyUTC(
+    new Date(Date.UTC(billingYear, billingMonthIdx, 1)),
+  );
 
   const { data: plan, error: planErr } = await supabase
     .from("installment_plans")
@@ -328,7 +388,7 @@ export async function createInstallmentPlanAction(
     numInstallments,
     monthlyAmount,
     conversionFee,
-    startBillingMonth,
+    startBillingMonth: startBillingMonthUtc,
   });
 
   await writeAuditEvent(supabase, {
@@ -467,6 +527,7 @@ export async function settleCardAction(
     account_id: sourceAccountId,
     counterparty_account_id: cardId,
     type: "transfer",
+    status: "cleared",
     amount,
     transaction_date: date,
     description: "Thanh toán thẻ tín dụng (FIFO)",
@@ -480,4 +541,125 @@ export async function settleCardAction(
   revalidatePath("/transactions");
 
   return { status: "success", message: "Đã tất toán thẻ theo thứ tự FIFO." };
+}
+
+// ─── ACTION 4: Record card cashback credit ──────────────────────────────────
+export async function addCardCashbackAction(
+  _prev: InstallmentActionState,
+  formData: FormData,
+): Promise<InstallmentActionState> {
+  const cardId = String(formData.get("cardId") ?? "").trim();
+  const amount = Number(formData.get("amount") ?? 0);
+  const cashbackDate = String(
+    formData.get("cashbackDate") ?? new Date().toISOString().slice(0, 10),
+  );
+  const note = String(formData.get("description") ?? "").trim();
+
+  if (!cardId) {
+    return { status: "error", message: "Missing card ID." };
+  }
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return { status: "error", message: "Cashback amount must be positive." };
+  }
+
+  const { supabase, user, householdId, error } = await resolveContext();
+  if (error || !user || !householdId) {
+    return { status: "error", message: error ?? "No household found." };
+  }
+
+  const { data: card } = await supabase
+    .from("accounts")
+    .select("id, type")
+    .eq("id", cardId)
+    .eq("household_id", householdId)
+    .eq("is_archived", false)
+    .maybeSingle();
+  if (!card || card.type !== "credit_card") {
+    return { status: "error", message: "Credit card account not found." };
+  }
+
+  const description =
+    note.length > 0 ? note : "Hoàn tiền thẻ tín dụng (cashback)";
+  const roundedAmount = Math.round(amount);
+
+  const latestUnpaidBeforeInsert = await supabase
+    .from("card_billing_months")
+    .select("id")
+    .eq("card_account_id", cardId)
+    .neq("status", "settled")
+    .order("billing_month", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const { data: txn, error: txnErr } = await supabase
+    .from("transactions")
+    .insert({
+      household_id: householdId,
+      account_id: cardId,
+      type: "income",
+      status: "cleared",
+      amount: roundedAmount,
+      transaction_date: cashbackDate,
+      description,
+      created_by: user.id,
+    })
+    .select("id")
+    .single();
+
+  if (txnErr || !txn) {
+    return {
+      status: "error",
+      message: txnErr?.message ?? "Failed to add cashback transaction.",
+    };
+  }
+
+  // Route cashback to the latest unpaid cycle so statement credit stays visible
+  // on the cycle users are currently paying after statement generation.
+  const billingItemResult = await supabase
+    .from("card_billing_items")
+    .select("id, billing_month_id")
+    .eq("transaction_id", txn.id)
+    .eq("card_account_id", cardId)
+    .maybeSingle();
+
+  const generatedItem = billingItemResult.data;
+  const targetMonthId = latestUnpaidBeforeInsert.data?.id ?? null;
+
+  if (generatedItem && targetMonthId && generatedItem.billing_month_id !== targetMonthId) {
+    await supabase.rpc("increment_statement_amount", {
+      month_id: generatedItem.billing_month_id,
+      inc: roundedAmount,
+    });
+    await supabase.rpc("increment_statement_amount", {
+      month_id: targetMonthId,
+      inc: -roundedAmount,
+    });
+    await supabase
+      .from("card_billing_items")
+      .update({ billing_month_id: targetMonthId })
+      .eq("id", generatedItem.id);
+    await refreshBillingMonthStatus(supabase, generatedItem.billing_month_id);
+    await refreshBillingMonthStatus(supabase, targetMonthId);
+  } else if (generatedItem) {
+    await refreshBillingMonthStatus(supabase, generatedItem.billing_month_id);
+  }
+
+  await writeAuditEvent(supabase, {
+    householdId,
+    actorUserId: user.id,
+    eventType: "card.cashback_added",
+    entityType: "transaction",
+    entityId: txn.id,
+    payload: {
+      cardId,
+      amount: roundedAmount,
+      cashbackDate,
+    },
+  });
+
+  revalidatePath("/money");
+  revalidatePath(`/money/card/${cardId}`);
+  revalidatePath("/transactions");
+
+  return { status: "success", message: "Đã thêm hoàn tiền thẻ thành công." };
 }

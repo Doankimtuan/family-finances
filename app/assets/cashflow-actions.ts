@@ -34,9 +34,9 @@ async function getAccountBalanceSnapshot(
 
   const txRes = await supabase
     .from("transactions")
-    .select("type, amount")
+    .select("account_id, counterparty_account_id, type, amount")
     .eq("household_id", householdId)
-    .eq("account_id", accountId)
+    .or(`account_id.eq.${accountId},counterparty_account_id.eq.${accountId}`)
     .eq("status", "cleared");
 
   if (txRes.error) {
@@ -46,8 +46,12 @@ async function getAccountBalanceSnapshot(
   let balance = Number(accountRes.data.opening_balance ?? 0);
   for (const row of txRes.data ?? []) {
     const amount = Number(row.amount ?? 0);
-    if (row.type === "income") balance += amount;
-    if (row.type === "expense") balance -= amount;
+    if (row.type === "income" && row.account_id === accountId) balance += amount;
+    if (row.type === "expense" && row.account_id === accountId) balance -= amount;
+    if (row.type === "transfer") {
+      if (row.account_id === accountId) balance -= amount;
+      if (row.counterparty_account_id === accountId) balance += amount;
+    }
   }
 
   return { balance, error: null as string | null };

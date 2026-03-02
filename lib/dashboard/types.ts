@@ -57,10 +57,55 @@ export type DashboardCoreResponse = {
       liabilities: Array<{ label: string; value: number; source: string }>;
     };
     cashFlow: {
-      income: Array<{ label: string; value: number; source: string; color?: string | null }>;
-      expense: Array<{ label: string; value: number; source: string; color?: string | null }>;
+      income: Array<{
+        label: string;
+        value: number;
+        source: string;
+        color?: string | null;
+      }>;
+      expense: Array<{
+        label: string;
+        value: number;
+        source: string;
+        color?: string | null;
+      }>;
       monthStart: string;
       monthEnd: string;
     };
   } | null;
+  goals?: Array<{
+    id: string;
+    name: string;
+    current_amount: number;
+    target_amount: number;
+    target_date: string | null;
+    status: string;
+  }>;
+  recentTransactions?: Array<{
+    id: string;
+    type: string;
+    amount: number;
+    transaction_date: string;
+    description: string | null;
+    category_name: string | null;
+  }>;
+  priorityActions?: Array<{
+    id: string;
+    title: string;
+    description: string;
+    amount: number;
+    dueDate: string;
+    priority: "high" | "medium" | "low";
+  }>;
+  jars?: Array<{
+    jar_id: string;
+    name: string;
+    color: string | null;
+    icon: string | null;
+    target_amount: number;
+    allocated_amount: number;
+    withdrawn_amount: number;
+    net_amount: number;
+    coverage_ratio: number;
+  }>;
 };

@@ -439,9 +439,9 @@ export default async function HealthPage() {
             variant="outline"
             className="h-auto flex-col gap-1 py-4 rounded-2xl"
           >
-            <Link href="/insights">
+            <Link href="/jars">
               <span className="text-xs font-bold">
-                {vi ? "Xem gợi ý" : "View Insights"}
+                {vi ? "Xem hũ tài chính" : "View Jars"}
               </span>
               <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
             </Link>

@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   Wallet,
-  TrendingDown,
+  PiggyBank,
   ArrowLeftRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -35,8 +35,8 @@ const tabs = [
   },
   {
     labelKey: "nav.plan",
-    href: "/insights",
-    icon: TrendingDown,
+    href: "/jars",
+    icon: PiggyBank,
   },
 ];
 
@@ -62,13 +62,10 @@ export function BottomTabBar() {
                 className={cn(
                   "relative flex h-full min-w-0 flex-col items-center justify-center gap-1.5 transition-all duration-300",
                   isActive
-                    ? "text-primary"
-                    : "text-muted-foreground hover:text-foreground",
+                    ? "text-primary border-t-2 border-primary bg-primary/3"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/5",
                 )}
               >
-                {isActive && (
-                  <span className="absolute inset-x-2 top-0 h-1 rounded-b-full bg-primary animate-in fade-in slide-in-from-top-1 duration-300" />
-                )}
                 <Icon
                   className={cn(
                     "h-5.5 w-5.5 transition-transform duration-300",
@@ -83,9 +80,6 @@ export function BottomTabBar() {
                 >
                   {t(tab.labelKey)}
                 </span>
-                {isActive && (
-                  <span className="absolute inset-x-4 inset-y-2 rounded-xl bg-primary/5 -z-10 animate-in fade-in duration-500" />
-                )}
               </Link>
             </TooltipTrigger>
             <TooltipContent side="top">

@@ -15,9 +15,11 @@ import {
   ChevronRight,
   Banknote,
   RefreshCw,
+  BadgePercent,
 } from "lucide-react";
 import { SettleCardForm } from "../_components/settle-card-form";
 import { ConvertToInstallmentDialog } from "../_components/convert-to-installment-dialog";
+import { AddCashbackForm } from "../_components/add-cashback-form";
 
 type BillingItem = {
   id: string;
@@ -195,7 +197,7 @@ export default async function CreditCardDetailPage({
         </div>
 
         {/* ── QUICK ACTIONS ── */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <a
             href="#settle"
             className="flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 transition-all hover:bg-emerald-100 active:scale-95"
@@ -229,6 +231,23 @@ export default async function CreditCardDetailPage({
               </p>
             </div>
           </a>
+
+          <a
+            href="#cashback"
+            className="flex items-center gap-3 rounded-2xl border border-sky-200 bg-sky-50 p-4 transition-all hover:bg-sky-100 active:scale-95"
+          >
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-600 text-white shadow">
+              <BadgePercent className="h-5 w-5" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-bold text-sky-800">
+                {vi ? "Hoàn tiền thẻ" : "Card Cashback"}
+              </p>
+              <p className="text-[10px] text-sky-700/60">
+                {vi ? "Bù trừ sau sao kê" : "Offset statement"}
+              </p>
+            </div>
+          </a>
         </div>
 
         {/* ── SETTLEMENT ── */}
@@ -252,6 +271,31 @@ export default async function CreditCardDetailPage({
                 </p>
               </div>
               <SettleCardForm cardId={id} currentBalance={balance} vi={vi} />
+            </CardContent>
+          </Card>
+        </section>
+
+        {/* ── CASHBACK ── */}
+        <section id="cashback" className="scroll-mt-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-sky-600 text-white">
+              <BadgePercent className="h-4 w-4" />
+            </div>
+            <h3 className="text-sm font-black uppercase tracking-wide text-foreground">
+              {vi ? "Hoàn tiền thẻ tín dụng" : "Credit Card Cashback"}
+            </h3>
+          </div>
+          <Card className="border-sky-200 bg-sky-50/40">
+            <CardContent className="p-5 space-y-4">
+              <div className="flex gap-3 rounded-xl bg-sky-100/60 p-3">
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-sky-700 mt-0.5" />
+                <p className="text-xs text-sky-800 leading-relaxed">
+                  {vi
+                    ? "Ghi nhận khoản hoàn tiền hằng tháng của thẻ. Hệ thống sẽ tạo giao dịch thu nhập trên thẻ và tự động bù trừ vào kỳ sao kê chưa thanh toán gần nhất."
+                    : "Record monthly cashback credits. The system creates an income transaction on this card and automatically applies it to the latest unpaid billing cycle."}
+                </p>
+              </div>
+              <AddCashbackForm cardId={id} vi={vi} />
             </CardContent>
           </Card>
         </section>

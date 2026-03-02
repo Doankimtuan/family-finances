@@ -54,8 +54,17 @@ export function MetricCard({
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
             {Icon && (
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary shadow-xs">
-                <Icon className="h-4 w-4" />
+              <div
+                className={cn(
+                  "flex h-8 w-8 shrink-0 items-center justify-center rounded-xl shadow-xs transition-colors",
+                  variant === "default" && "bg-primary/10 text-primary",
+                  variant === "success" && "bg-success/10 text-success",
+                  variant === "destructive" &&
+                    "bg-destructive/10 text-destructive",
+                  variant === "warning" && "bg-warning/10 text-warning",
+                )}
+              >
+                <Icon className="h-4.5 w-4.5" />
               </div>
             )}
             {tooltip ? (

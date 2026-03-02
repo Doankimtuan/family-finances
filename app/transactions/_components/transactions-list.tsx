@@ -20,6 +20,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  ArrowUpRight,
+  ArrowDownRight,
+  ArrowRight,
+  Pencil,
+  Trash2,
+  Tag,
+  CreditCard,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
 type TransactionItem = {
   id: string;
@@ -61,54 +71,97 @@ function TransactionRow({
   const [isPending, startTransition] = useTransition();
   const [isEditing, setIsEditing] = useState(false);
   const [type, setType] = useState<"income" | "expense" | "transfer">(
-    item.type === "income" || item.type === "transfer" ? item.type : "expense",
+    (item.type === "income" || item.type === "transfer"
+      ? item.type
+      : "expense") as "income" | "expense" | "transfer",
   );
   const filteredCategories = useMemo(
     () => categories.filter((category) => category.kind === type),
     [categories, type],
   );
 
+  const isIncome = type === "income";
+  const isTransfer = type === "transfer";
+
   return (
-    <li className="rounded-xl border border-slate-200 bg-white p-3">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-sm font-semibold text-slate-900">
-            {item.type === "income"
-              ? `${t("transactions.income")} · ${item.category_name ?? t("transactions.uncategorized")}`
-              : item.type === "transfer"
-                ? `${t("transactions.transfer")} · ${item.account_name ?? t("transactions.unknown_account")} -> ${item.counterparty_account_name ?? t("transactions.unknown_account")}`
-                : `${t("transactions.expense")} · ${item.category_name ?? t("transactions.uncategorized")}`}
-          </p>
-          <p className="mt-1 text-xs text-slate-500">
-            {item.account_name ?? t("transactions.unknown_account")} ·{" "}
-            {formatDate(item.transaction_date, locale)}
-          </p>
-          <p className="mt-0.5 text-xs text-slate-500">
-            {t("transactions.logged_by")}{" "}
-            {item.member_name ?? t("transactions.household_member")}
-          </p>
-          {item.description ? (
-            <p className="mt-1 text-sm text-slate-600">{item.description}</p>
-          ) : null}
+    <li className="group bg-card hover:bg-muted/30 transition-colors">
+      <div className="flex items-center gap-4 px-4 py-3">
+        {/* Icon */}
+        <div
+          className={cn(
+            "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl transition-colors",
+            isIncome
+              ? "bg-emerald-50 text-emerald-600"
+              : isTransfer
+                ? "bg-blue-50 text-blue-600"
+                : "bg-slate-50 text-slate-600",
+          )}
+        >
+          {isIncome ? (
+            <ArrowUpRight className="h-6 w-6" />
+          ) : isTransfer ? (
+            <ArrowRight className="h-6 w-6" />
+          ) : (
+            <ArrowDownRight className="h-6 w-6" />
+          )}
         </div>
+
+        {/* Content */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-0.5">
+            <h3 className="text-sm font-bold text-slate-900 truncate">
+              {item.category_name ??
+                (isTransfer
+                  ? vi
+                    ? "Chuyển khoản"
+                    : "Transfer"
+                  : vi
+                    ? "Chưa phân loại"
+                    : "Uncategorized")}
+            </h3>
+            {item.description && <span className="text-slate-300">·</span>}
+            {item.description && (
+              <p className="text-xs text-slate-500 truncate font-medium">
+                {item.description}
+              </p>
+            )}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+            <div className="flex items-center gap-1">
+              <CreditCard className="h-3 w-3" />
+              {item.account_name ?? t("transactions.unknown_account")}
+            </div>
+            <div className="flex items-center gap-1">
+              <Tag className="h-3 w-3" />
+              {formatDate(item.transaction_date, locale)}
+            </div>
+          </div>
+        </div>
+
+        {/* Amount */}
         <div className="text-right">
           <p
-            className={`text-sm font-semibold ${item.type === "income" ? "text-emerald-600" : item.type === "transfer" ? "text-slate-700" : "text-rose-600"}`}
+            className={cn(
+              "text-base font-black tracking-tight",
+              isIncome
+                ? "text-emerald-600"
+                : isTransfer
+                  ? "text-blue-600"
+                  : "text-slate-900",
+            )}
           >
-            {item.type === "income"
-              ? "+"
-              : item.type === "transfer"
-                ? "\u2192"
-                : "-"}
+            {isIncome ? "+" : isTransfer ? "" : "-"}
             {formatVnd(item.amount, locale)}
           </p>
-          <div className="mt-2 flex justify-end gap-2">
+          <div className="flex items-center justify-end gap-1 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
             <button
               type="button"
-              onClick={() => setIsEditing((value) => !value)}
-              className="rounded-lg border border-slate-300 px-2 py-1 text-xs font-semibold text-slate-700"
+              onClick={() => setIsEditing(!isEditing)}
+              className="p-1 rounded-md hover:bg-slate-100 text-slate-400 hover:text-primary transition-colors"
+              title={vi ? "Sửa" : "Edit"}
             >
-              {isEditing ? (vi ? "Đóng" : "Close") : vi ? "Sửa" : "Edit"}
+              <Pencil className="h-3.5 w-3.5" />
             </button>
             <form
               onSubmit={(event) => {
@@ -127,9 +180,10 @@ function TransactionRow({
               <button
                 type="submit"
                 disabled={isPending}
-                className="rounded-lg border border-rose-200 px-2 py-1 text-xs font-semibold text-rose-600 disabled:opacity-60"
+                className="p-1 rounded-md hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors"
+                title={vi ? "Xóa" : "Delete"}
               >
-                {vi ? "Xóa" : "Delete"}
+                <Trash2 className="h-3.5 w-3.5" />
               </button>
             </form>
           </div>
@@ -138,7 +192,7 @@ function TransactionRow({
 
       {isEditing ? (
         <form
-          className="mt-3 space-y-2 border-t border-slate-200 pt-3"
+          className="mt-2 space-y-3 border-t border-border/50 pt-4 px-4 pb-4 animate-in fade-in slide-in-from-top-2 duration-300"
           onSubmit={(event) => {
             event.preventDefault();
             const fd = new FormData(event.currentTarget);
@@ -153,74 +207,66 @@ function TransactionRow({
             <button
               type="button"
               onClick={() => setType("expense")}
-              className={`rounded-lg px-2 py-2 text-xs font-semibold ${type === "expense" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600"}`}
+              className={`rounded-lg px-2 py-2 text-xs font-bold transition-all ${type === "expense" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
             >
               {vi ? "Chi tiêu" : "Expense"}
             </button>
             <button
               type="button"
               onClick={() => setType("income")}
-              className={`rounded-lg px-2 py-2 text-xs font-semibold ${type === "income" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600"}`}
+              className={`rounded-lg px-2 py-2 text-xs font-bold transition-all ${type === "income" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
             >
               {vi ? "Thu nhập" : "Income"}
             </button>
             <button
               type="button"
               onClick={() => setType("transfer")}
-              className={`rounded-lg px-2 py-2 text-xs font-semibold ${type === "transfer" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600"}`}
+              className={`rounded-lg px-2 py-2 text-xs font-bold transition-all ${type === "transfer" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
             >
               {vi ? "Chuyển khoản" : "Transfer"}
             </button>
           </div>
 
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            <input
-              name="amount"
-              type="number"
-              min={1}
-              step={1}
-              required
-              defaultValue={Math.round(item.amount)}
-              className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
-            />
-            <input
-              name="transactionDate"
-              type="date"
-              required
-              defaultValue={item.transaction_date.slice(0, 10)}
-              className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
-            />
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 ml-1">
+                {vi ? "Số tiền" : "Amount"}
+              </label>
+              <input
+                name="amount"
+                type="number"
+                min={1}
+                step={1}
+                required
+                defaultValue={Math.round(item.amount)}
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 focus:bg-white focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 ml-1">
+                {vi ? "Ngày tháng" : "Date"}
+              </label>
+              <input
+                name="transactionDate"
+                type="date"
+                required
+                defaultValue={item.transaction_date.slice(0, 10)}
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 focus:bg-white focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+              />
+            </div>
           </div>
 
-          <Select
-            name="accountId"
-            required
-            defaultValue={item.account_id ?? undefined}
-          >
-            <SelectTrigger className="w-full rounded-xl border border-slate-300 bg-white px-3 py-6 text-sm text-slate-900">
-              <SelectValue placeholder={t("transactions.account")} />
-            </SelectTrigger>
-            <SelectContent>
-              {accounts.map((account) => (
-                <SelectItem key={account.id} value={account.id}>
-                  {account.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {type === "transfer" ? (
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 ml-1">
+              {vi ? "Tài khoản" : "Account"}
+            </label>
             <Select
-              name="counterpartyAccountId"
+              name="accountId"
               required
-              defaultValue={item.counterparty_account_id ?? undefined}
+              defaultValue={item.account_id ?? undefined}
             >
-              <SelectTrigger className="w-full rounded-xl border border-slate-300 bg-white px-3 py-6 text-sm text-slate-900">
-                <SelectValue
-                  placeholder={
-                    vi ? "Chọn tài khoản đích" : "Select destination account"
-                  }
-                />
+              <SelectTrigger className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-5 text-sm text-slate-900 focus:bg-white focus:ring-2 focus:ring-primary/20 outline-none transition-all">
+                <SelectValue placeholder={t("transactions.account")} />
               </SelectTrigger>
               <SelectContent>
                 {accounts.map((account) => (
@@ -230,76 +276,131 @@ function TransactionRow({
                 ))}
               </SelectContent>
             </Select>
-          ) : (
-            <Select
-              name="categoryId"
-              required={type === "expense"}
-              defaultValue={item.category_id ?? undefined}
-            >
-              <SelectTrigger className="w-full rounded-xl border border-slate-300 bg-white px-3 py-6 text-sm text-slate-900">
-                <SelectValue
-                  placeholder={
-                    type === "expense"
-                      ? vi
-                        ? "Chọn danh mục"
-                        : "Select category"
-                      : vi
-                        ? "Không có danh mục"
-                        : "No category"
-                  }
-                />
-              </SelectTrigger>
-              <SelectContent>
-                {filteredCategories.length === 0 ? (
-                  <SelectItem value="..." disabled>
-                    {vi ? "Không có danh mục" : "No category"}
-                  </SelectItem>
-                ) : (
-                  filteredCategories.map((category) => (
-                    <SelectItem key={category.id} value={category.id}>
-                      {category.name}
+          </div>
+
+          {type === "transfer" ? (
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 ml-1">
+                {vi ? "Tài khoản đích" : "To Account"}
+              </label>
+              <Select
+                name="counterpartyAccountId"
+                required
+                defaultValue={item.counterparty_account_id ?? undefined}
+              >
+                <SelectTrigger className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-5 text-sm text-slate-900 focus:bg-white focus:ring-2 focus:ring-primary/20 outline-none transition-all">
+                  <SelectValue
+                    placeholder={
+                      vi ? "Chọn tài khoản đích" : "Select destination account"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {accounts.map((account) => (
+                    <SelectItem key={account.id} value={account.id}>
+                      {account.name}
                     </SelectItem>
-                  ))
-                )}
-              </SelectContent>
-            </Select>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          ) : (
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 ml-1">
+                {vi ? "Danh mục" : "Category"}
+              </label>
+              <Select
+                name="categoryId"
+                required={type === "expense"}
+                defaultValue={item.category_id ?? undefined}
+              >
+                <SelectTrigger className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-5 text-sm text-slate-900 focus:bg-white focus:ring-2 focus:ring-primary/20 outline-none transition-all">
+                  <SelectValue
+                    placeholder={
+                      type === "expense"
+                        ? vi
+                          ? "Chọn danh mục"
+                          : "Select category"
+                        : vi
+                          ? "Không có danh mục"
+                          : "No category"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {filteredCategories.length === 0 ? (
+                    <SelectItem value="..." disabled>
+                      {vi ? "Không có danh mục" : "No category"}
+                    </SelectItem>
+                  ) : (
+                    filteredCategories.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.name}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
           )}
 
-          <input
-            name="description"
-            defaultValue={item.description ?? ""}
-            placeholder={vi ? "Ghi chú (không bắt buộc)" : "Optional note"}
-            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
-          />
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 ml-1">
+              {vi ? "Ghi chú" : "Note"}
+            </label>
+            <input
+              name="description"
+              defaultValue={item.description ?? ""}
+              placeholder={vi ? "Ghi chú (không bắt buộc)" : "Optional note"}
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 focus:bg-white focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+            />
+          </div>
 
-          <button
-            type="submit"
-            disabled={isPending}
-            className="rounded-xl bg-slate-900 px-3 py-2 text-xs font-semibold text-white disabled:opacity-60"
-          >
-            {isPending
-              ? vi
-                ? "Đang lưu..."
-                : "Saving..."
-              : vi
-                ? "Lưu thay đổi"
-                : "Save changes"}
-          </button>
+          <div className="flex gap-2 pt-2">
+            <button
+              type="submit"
+              disabled={isPending}
+              className="flex-1 rounded-xl bg-slate-900 px-4 py-3 text-sm font-bold text-white shadow-lg active:scale-[0.98] transition-all disabled:opacity-60"
+            >
+              {isPending
+                ? vi
+                  ? "Đang lưu..."
+                  : "Saving..."
+                : vi
+                  ? "Lưu thay đổi"
+                  : "Save changes"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsEditing(false)}
+              className="rounded-xl border border-slate-200 px-4 py-3 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all"
+            >
+              {vi ? "Hủy" : "Cancel"}
+            </button>
+          </div>
 
           {editState.status === "error" && editState.message ? (
-            <p className="text-sm text-rose-600">{editState.message}</p>
+            <p className="text-sm text-rose-600 font-medium">
+              {editState.message}
+            </p>
           ) : null}
           {editState.status === "success" && editState.message ? (
-            <p className="text-sm text-emerald-600">{editState.message}</p>
+            <p className="text-sm text-emerald-600 font-medium">
+              {editState.message}
+            </p>
           ) : null}
         </form>
       ) : null}
 
       {deleteState.status === "error" && deleteState.message ? (
-        <p className="mt-2 text-sm text-rose-600">{deleteState.message}</p>
+        <p className="mt-2 text-sm text-rose-600 font-medium">
+          {deleteState.message}
+        </p>
       ) : null}
       {deleteState.status === "success" && deleteState.message ? (
-        <p className="mt-2 text-sm text-emerald-600">{deleteState.message}</p>
+        <p className="mt-2 text-sm text-emerald-600 font-medium">
+          {deleteState.message}
+        </p>
       ) : null}
     </li>
   );
@@ -314,22 +415,91 @@ export function TransactionsList({
   accounts: OptionAccount[];
   categories: OptionCategory[];
 }) {
-  const { t } = useI18n();
+  const { t, locale, language } = useI18n();
+  const vi = language === "vi";
 
   if (items.length === 0) {
-    return <p className="text-sm text-slate-500">{t("transactions.none")}</p>;
+    return (
+      <p className="text-sm text-slate-500 italic py-4">
+        {t("transactions.none")}
+      </p>
+    );
   }
 
+  // Group by date
+  const groups = new Map<string, TransactionItem[]>();
+  for (const item of items) {
+    const day = item.transaction_date.slice(0, 10);
+    if (!groups.has(day)) groups.set(day, []);
+    groups.get(day)!.push(item);
+  }
+
+  const formatDayLabel = (dateStr: string) => {
+    const d = new Date(dateStr + "T00:00:00");
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+
+    const isSameDay = (a: Date, b: Date) =>
+      a.getFullYear() === b.getFullYear() &&
+      a.getMonth() === b.getMonth() &&
+      a.getDate() === b.getDate();
+
+    if (isSameDay(d, today)) return vi ? "Hôm nay" : "Today";
+    if (isSameDay(d, yesterday)) return vi ? "Hôm qua" : "Yesterday";
+
+    return d.toLocaleDateString(locale, {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+    });
+  };
+
   return (
-    <ul className="space-y-2">
-      {items.map((item) => (
-        <TransactionRow
-          key={item.id}
-          item={item}
-          accounts={accounts}
-          categories={categories}
-        />
-      ))}
-    </ul>
+    <div className="divide-y divide-border/50">
+      {Array.from(groups.entries()).map(([day, dayItems]) => {
+        const dayIncome = dayItems
+          .filter((tx) => tx.type === "income")
+          .reduce((s, tx) => s + tx.amount, 0);
+        const dayExpense = dayItems
+          .filter((tx) => tx.type === "expense")
+          .reduce((s, tx) => s + tx.amount, 0);
+
+        return (
+          <div key={day}>
+            {/* Date header */}
+            <div className="flex items-center justify-between px-4 py-2 bg-muted/30">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                {formatDayLabel(day)}
+              </span>
+              <div className="flex items-center gap-3 text-[10px] font-bold">
+                {dayIncome > 0 && (
+                  <span className="text-emerald-600">
+                    +{formatVnd(dayIncome, locale)}
+                  </span>
+                )}
+                {dayExpense > 0 && (
+                  <span className="text-slate-500">
+                    -{formatVnd(dayExpense, locale)}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Items */}
+            <ul className="divide-y divide-border/30">
+              {dayItems.map((item) => (
+                <TransactionRow
+                  key={item.id}
+                  item={item}
+                  accounts={accounts}
+                  categories={categories}
+                />
+              ))}
+            </ul>
+          </div>
+        );
+      })}
+    </div>
   );
 }

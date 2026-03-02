@@ -12,6 +12,12 @@ import {
   Activity,
   Target,
   Zap,
+  ChevronRight,
+  ArrowUpRight,
+  ArrowDownRight,
+  CreditCard,
+  AlertCircle,
+  Receipt,
 } from "lucide-react";
 import { t as tFn } from "@/lib/i18n/dictionary";
 
@@ -20,7 +26,6 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { SectionHeader } from "@/components/ui/section-header";
 import { MetricCard } from "@/components/ui/metric-card";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Badge } from "@/components/ui/badge";
 import {
   formatMonths,
   formatPercent,
@@ -79,18 +84,18 @@ export function DashboardCorePanel() {
   if (isLoading) {
     return (
       <section className="space-y-6" aria-busy="true">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <Skeleton className="h-32 rounded-2xl" />
-          <Skeleton className="h-32 rounded-2xl" />
-          <Skeleton className="h-32 rounded-2xl" />
+        <Skeleton className="h-48 rounded-3xl" />
+        <div className="grid grid-cols-2 gap-4">
+          <Skeleton className="h-24 rounded-2xl" />
+          <Skeleton className="h-24 rounded-2xl" />
+          <Skeleton className="h-24 rounded-2xl" />
+          <Skeleton className="h-24 rounded-2xl" />
         </div>
         <Skeleton className="h-80 rounded-2xl" />
         <Skeleton className="h-64 rounded-2xl" />
-        <div className="grid grid-cols-2 gap-3">
-          <Skeleton className="h-14 rounded-2xl" />
-          <Skeleton className="h-14 rounded-2xl" />
-          <Skeleton className="h-14 rounded-2xl" />
-          <Skeleton className="h-14 rounded-2xl" />
+        <div className="space-y-3">
+          <Skeleton className="h-20 rounded-2xl" />
+          <Skeleton className="h-20 rounded-2xl" />
         </div>
       </section>
     );
@@ -137,7 +142,6 @@ export function DashboardCorePanel() {
 
   const { metrics, trend } = payload;
   const score = payload.health?.overallScore ?? 0;
-  // Resolve top action via i18n — engine now returns a dictionary key like "health.action.*"
   const topActionKey = payload.health?.topAction ?? "health.action.no_data";
   const displayAction = tFn(
     language,
@@ -146,7 +150,6 @@ export function DashboardCorePanel() {
       : "health.action.no_data",
   );
 
-  // Real month-over-month savings delta (not a hardcoded fake value)
   const prevMonthSavings =
     trend.length >= 2 ? Number(trend[trend.length - 2]?.savings ?? 0) : null;
   const currMonthSavings = Number(metrics.monthly_savings);
@@ -158,21 +161,53 @@ export function DashboardCorePanel() {
       : null;
 
   return (
-    <section className="space-y-6 pb-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+    <section className="space-y-8 pb-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+      {/* ── 1. Hero Card ── */}
+      <div className="relative overflow-hidden rounded-3xl bg-linear-to-br from-primary to-blue-700 p-8 shadow-xl hover:scale-[1.005] transition-all duration-500 cursor-pointer group">
+        <div className="absolute -right-8 -top-8 w-40 h-40 bg-white/10 rounded-full group-hover:scale-110 transition-transform duration-700" />
+        <div className="absolute -left-4 bottom-0 w-24 h-24 bg-white/5 rounded-full" />
+        <Link href="/money" className="block relative z-10">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-white/60 mb-1">
+            {vi ? "Tài sản ròng" : "Net Worth"}
+          </p>
+          <p className="text-4xl font-bold text-white tracking-tight">
+            {formatVndCompact(Number(metrics.net_worth), locale)}
+          </p>
+          <p className="text-sm text-white/70 mt-1">
+            {formatVnd(Number(metrics.net_worth), locale)}
+          </p>
+          <div className="mt-5 flex items-center gap-3">
+            <span className="px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-[10px] font-bold uppercase tracking-wider text-white">
+              {vi ? "Điểm tài chính" : "Health Score"}: {score.toFixed(0)}/100
+            </span>
+            <span className="text-white/60 text-xs">
+              {vi ? "Dự phòng" : "EM"}{" "}
+              {formatMonths(metrics.emergency_months, locale)} · DSR{" "}
+              {formatPercent(metrics.debt_service_ratio)}
+            </span>
+          </div>
+        </Link>
+      </div>
+
+      {/* ── 2. 2×2 Metrics Grid ── */}
+      <div className="grid grid-cols-2 gap-4">
         <MetricCard
-          label={vi ? "Tài sản ròng" : "Net Worth"}
-          value={formatVndCompact(Number(metrics.net_worth), locale)}
-          note={formatVnd(Number(metrics.net_worth), locale)}
-          href="/money"
-          className="bg-card/50"
+          label={vi ? "Thu nhập" : "Income"}
+          value={formatVndCompact(Number(metrics.monthly_income), locale)}
+          variant="success"
+          className="bg-card shadow-sm border-border/50"
         />
         <MetricCard
-          label={vi ? "Cân đối tháng" : "Balance"}
+          label={vi ? "Chi tiêu" : "Spending"}
+          value={formatVndCompact(Number(metrics.monthly_expense), locale)}
+          variant="destructive"
+          className="bg-card shadow-sm border-border/50"
+        />
+        <MetricCard
+          label={vi ? "Tiết kiệm" : "Savings"}
           value={formatVndCompact(Number(metrics.monthly_savings), locale)}
-          note={`${vi ? "Thu nhập" : "In"} ${formatVndCompact(Number(metrics.monthly_income), locale)} · ${vi ? "Chi" : "Ex"} ${formatVndCompact(Number(metrics.monthly_expense), locale)}`}
           href="/transactions"
-          className="bg-card/50"
+          className="bg-card shadow-sm border-border/50"
           trend={
             savingsDeltaPct !== null
               ? {
@@ -183,73 +218,290 @@ export function DashboardCorePanel() {
           }
         />
         <MetricCard
-          label={vi ? "Điểm tài chính" : "Health Score"}
-          value={`${score.toFixed(0)}/100`}
-          note={`${vi ? "Khẩn cấp" : "EM"} ${formatMonths(metrics.emergency_months, locale)} · DSR ${formatPercent(metrics.debt_service_ratio)}`}
-          href="/health"
-          className="bg-primary/5 border-primary/20"
+          label={vi ? "Nợ còn lại" : "Debt"}
+          value={formatVndCompact(Number(metrics.total_liabilities), locale)}
+          variant="warning"
+          className="bg-card shadow-sm border-border/50"
         />
       </div>
 
-      <NetWorthTrend trend={trend} locale={locale} vi={vi} />
+      {/* ── 3. Charts ── */}
+      <div className="space-y-6">
+        <NetWorthTrend trend={trend} locale={locale} vi={vi} />
+        <MonthlyExpenseAllocation
+          expenseRows={payload.drilldowns?.cashFlow.expense ?? []}
+          vi={vi}
+          locale={locale}
+        />
+      </div>
 
-      <MonthlyExpenseAllocation
-        expenseRows={payload.drilldowns?.cashFlow.expense ?? []}
-        vi={vi}
-        locale={locale}
-      />
+      {/* ── 4. Goals Snapshot ── */}
+      {payload.goals && payload.goals.length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              <Target className="h-5 w-5 text-primary" />
+              {vi ? "Mục tiêu tài chính" : "Financial Goals"}
+            </h2>
+            <Link
+              href="/goals"
+              className="text-sm font-medium text-primary hover:underline flex items-center gap-1"
+            >
+              {vi ? "Tất cả" : "View All"}
+              <ChevronRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+          <div className="flex gap-4 overflow-x-auto pb-2 no-scrollbar -mx-1 px-1">
+            {payload.goals.map((goal) => {
+              const pct = Math.min(
+                100,
+                Math.round((goal.current_amount / goal.target_amount) * 100),
+              );
+              return (
+                <Card
+                  key={goal.id}
+                  className="min-w-[230px] shrink-0 border-border/50 hover:border-primary/40 hover:shadow-md transition-all"
+                >
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="font-bold text-sm truncate">{goal.name}</p>
+                      <span className="shrink-0 text-[10px] px-1.5 py-0.5 rounded-md bg-primary/10 text-primary font-bold">
+                        {pct}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
+                      <div
+                        className="bg-primary h-full transition-all duration-700"
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                    <p className="text-[10px] text-muted-foreground font-medium">
+                      {formatVndCompact(goal.current_amount, locale)} /{" "}
+                      {formatVndCompact(goal.target_amount, locale)}
+                    </p>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
-      <Card className="border-primary/20 bg-primary/5 overflow-hidden ring-1 ring-primary/10">
+      {/* ── 5. Jars Snapshot ── */}
+      {payload.jars && payload.jars.length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              <Wallet className="h-5 w-5 text-primary" />
+              {vi ? "Hũ cần bổ sung" : "Underfunded Jars"}
+            </h2>
+            <Link
+              href="/jars"
+              className="text-sm font-medium text-primary hover:underline flex items-center gap-1"
+            >
+              {vi ? "Mở hũ" : "Open Jars"}
+              <ChevronRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+          <div className="space-y-3">
+            {payload.jars.map((jar) => {
+              const coverage = Math.round(jar.coverage_ratio * 100);
+              return (
+                <Card key={jar.jar_id} className="border-border/50">
+                  <CardContent className="p-4 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <p className="font-semibold text-sm">{jar.name}</p>
+                      <p className="text-xs text-muted-foreground">{coverage}%</p>
+                    </div>
+                    <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                      <div
+                        className="h-full bg-primary transition-all duration-500"
+                        style={{
+                          width: `${Math.min(100, Math.max(0, coverage))}%`,
+                        }}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">
+                        {formatVndCompact(jar.net_amount, locale)} /{" "}
+                        {formatVndCompact(jar.target_amount, locale)}
+                      </span>
+                      <Link href="/jars" className="text-primary hover:underline">
+                        {vi ? "Phân bổ" : "Allocate"}
+                      </Link>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ── 6. Priority Actions ── */}
+      {payload.priorityActions && payload.priorityActions.length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="h-5 w-5 text-warning" />
+            <h2 className="text-xl font-bold">
+              {vi ? "Cần làm ngay" : "Priority Actions"}
+            </h2>
+          </div>
+          <div className="space-y-3">
+            {payload.priorityActions.map((action) => (
+              <Card
+                key={action.id}
+                className="border-orange-200/60 bg-orange-50/50 dark:border-orange-900/30 dark:bg-orange-950/20 hover:border-orange-300 transition-colors cursor-pointer group"
+              >
+                <CardContent className="p-4 flex items-center gap-4">
+                  <div className="h-10 w-10 rounded-xl bg-white dark:bg-slate-900 flex items-center justify-center shadow-sm shrink-0">
+                    <CreditCard className="h-5 w-5 text-warning" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-sm text-foreground">
+                      {action.title}
+                    </p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {action.description}
+                    </p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="font-bold text-sm text-foreground">
+                      {formatVndCompact(action.amount, locale)}
+                    </p>
+                    <p className="text-[10px] text-warning font-bold">
+                      {action.dueDate}
+                    </p>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0 group-hover:text-warning group-hover:translate-x-1 transition-all" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── 7. Recent Activity ── */}
+      {payload.recentTransactions && payload.recentTransactions.length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              <Receipt className="h-5 w-5 text-primary" />
+              {vi ? "Hoạt động gần đây" : "Recent Activity"}
+            </h2>
+            <Link
+              href="/transactions"
+              className="text-sm font-medium text-primary hover:underline flex items-center gap-1"
+            >
+              {vi ? "Xem thêm" : "View More"}
+              <ChevronRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+          <Card className="border-border/50 overflow-hidden">
+            <CardContent className="p-0">
+              {payload.recentTransactions.map((tx, idx) => (
+                <div
+                  key={tx.id}
+                  className={cn(
+                    "flex items-center gap-3 p-4 hover:bg-muted/40 transition-colors",
+                    idx !== payload.recentTransactions!.length - 1 &&
+                      "border-b border-border/50",
+                  )}
+                >
+                  <div
+                    className={cn(
+                      "h-10 w-10 rounded-xl flex items-center justify-center shadow-sm shrink-0",
+                      tx.type === "income"
+                        ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50"
+                        : "bg-slate-100 text-slate-600 dark:bg-slate-800",
+                    )}
+                  >
+                    {tx.type === "income" ? (
+                      <ArrowUpRight className="h-5 w-5" />
+                    ) : (
+                      <ArrowDownRight className="h-5 w-5" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-sm text-foreground truncate">
+                      {tx.description ||
+                        tx.category_name ||
+                        (vi ? "Không rõ" : "Unknown")}
+                    </p>
+                    {tx.category_name && (
+                      <p className="text-xs text-muted-foreground">
+                        {tx.category_name}
+                      </p>
+                    )}
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p
+                      className={cn(
+                        "font-bold text-sm",
+                        tx.type === "income"
+                          ? "text-emerald-600"
+                          : "text-foreground",
+                      )}
+                    >
+                      {tx.type === "income" ? "+" : "-"}
+                      {formatVndCompact(tx.amount, locale)}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">
+                      {tx.transaction_date}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* ── 8. Health Suggestion ── */}
+      <Card className="border-none bg-linear-to-br from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 overflow-hidden ring-1 ring-amber-200/50 dark:ring-amber-900/30">
         <CardHeader className="pb-2">
           <SectionHeader
-            label={vi ? "Ưu tiên" : "Priority"}
-            title={vi ? "Hành động quan trọng nhất" : "Most Impactful Action"}
+            label={vi ? "Sức khỏe" : "Health"}
+            title={vi ? "Gợi ý cải thiện" : "Financial Suggestion"}
           />
         </CardHeader>
         <CardContent className="flex items-start gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary shadow-sm">
-            <Sparkles className="h-6 w-6 text-primary-foreground" />
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-amber-400 to-orange-500 shadow-md">
+            <Sparkles className="h-6 w-6 text-white" />
           </div>
-          <div>
-            <p className="text-base font-bold text-foreground leading-tight">
+          <div className="flex-1">
+            <p className="text-base font-bold text-slate-900 dark:text-slate-100 leading-snug">
               {displayAction}
             </p>
             {payload.health && (
-              <div className="mt-3 flex flex-wrap gap-2">
-                <Badge
-                  variant="secondary"
-                  className="bg-background/80 text-[10px] uppercase tracking-wider"
-                >
-                  {vi ? "Dòng tiền" : "Cashflow"}{" "}
-                  {Math.round(payload.health.factorScores.cashflow)}
-                </Badge>
-                <Badge
-                  variant="secondary"
-                  className="bg-background/80 text-[10px] uppercase tracking-wider"
-                >
-                  {vi ? "Quỹ" : "Emergency"}{" "}
-                  {Math.round(payload.health.factorScores.emergency)}
-                </Badge>
-                <Badge
-                  variant="secondary"
-                  className="bg-background/80 text-[10px] uppercase tracking-wider"
-                >
-                  {vi ? "Nợ" : "Debt"}{" "}
-                  {Math.round(payload.health.factorScores.debt)}
-                </Badge>
-                <Badge
-                  variant="secondary"
-                  className="bg-background/80 text-[10px] uppercase tracking-wider"
-                >
-                  {vi ? "Mục tiêu" : "Goals"}{" "}
-                  {Math.round(payload.health.factorScores.goals)}
-                </Badge>
+              <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3">
+                <HealthFactor
+                  label={vi ? "Dòng tiền" : "Cashflow"}
+                  score={payload.health.factorScores.cashflow}
+                  color="bg-amber-500"
+                />
+                <HealthFactor
+                  label={vi ? "Dự phòng" : "Emergency"}
+                  score={payload.health.factorScores.emergency}
+                  color="bg-emerald-500"
+                />
+                <HealthFactor
+                  label={vi ? "Khoản nợ" : "Debt"}
+                  score={payload.health.factorScores.debt}
+                  color="bg-blue-500"
+                />
+                <HealthFactor
+                  label={vi ? "Mục tiêu" : "Goals"}
+                  score={payload.health.factorScores.goals}
+                  color="bg-purple-500"
+                />
               </div>
             )}
           </div>
         </CardContent>
       </Card>
 
+      {/* ── 9. Data Drill-Down ── */}
       <Card className="border-border">
         <CardHeader className="pb-3">
           <SectionHeader
@@ -334,7 +586,7 @@ export function DashboardCorePanel() {
             <div className="mt-4 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
               <p className="text-xs font-semibold text-muted-foreground italic">
                 {vi ? "Chu kỳ" : "Window"}:{" "}
-                {payload.drilldowns?.cashFlow.monthStart} -{" "}
+                {payload.drilldowns?.cashFlow.monthStart} –{" "}
                 {payload.drilldowns?.cashFlow.monthEnd}
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -380,6 +632,7 @@ export function DashboardCorePanel() {
         </CardContent>
       </Card>
 
+      {/* ── 10. Quick Actions ── */}
       <Card className="border-transparent bg-transparent shadow-none">
         <CardHeader className="px-0">
           <SectionHeader
@@ -401,9 +654,9 @@ export function DashboardCorePanel() {
               label={vi ? "Mục tiêu" : "Goals"}
             />
             <QuickAction
-              href="/insights"
+              href="/jars"
               icon={Sparkles}
-              label={vi ? "Gợi ý" : "Insights"}
+              label={vi ? "Hũ tài chính" : "Jars"}
             />
             <QuickAction
               href="/health"
@@ -414,6 +667,38 @@ export function DashboardCorePanel() {
         </CardContent>
       </Card>
     </section>
+  );
+}
+
+// ── Helper Components ──────────────────────────────────────────────────────
+
+function HealthFactor({
+  label,
+  score,
+  color,
+}: {
+  label: string;
+  score: number;
+  color: string;
+}) {
+  return (
+    <div className="flex flex-col gap-1">
+      <div className="flex items-center justify-between">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+          {label}
+        </span>
+        <span className="text-[10px] font-bold text-slate-400">{score}%</span>
+      </div>
+      <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+        <div
+          className={cn(
+            "h-full rounded-full transition-all duration-700",
+            color,
+          )}
+          style={{ width: `${score}%` }}
+        />
+      </div>
+    </div>
   );
 }
 

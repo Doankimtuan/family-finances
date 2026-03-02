@@ -7,8 +7,15 @@ import {
   initialAccountActionState,
   type AccountActionState,
 } from "@/app/money/action-types";
+import { cn } from "@/lib/utils";
 
-export function ArchiveAccountButton({ accountId }: { accountId: string }) {
+export function ArchiveAccountButton({
+  accountId,
+  textWhite,
+}: {
+  accountId: string;
+  textWhite?: boolean;
+}) {
   const [state, action] = useActionState<AccountActionState, FormData>(
     archiveAccountAction,
     initialAccountActionState,
@@ -29,7 +36,10 @@ export function ArchiveAccountButton({ accountId }: { accountId: string }) {
       <button
         type="submit"
         disabled={isPending}
-        className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 disabled:opacity-60"
+        className={cn(
+          "rounded-lg border px-3 py-1.5 text-xs font-medium disabled:opacity-60",
+          textWhite ? "text-white" : "text-slate-700",
+        )}
       >
         {isPending ? "Archiving..." : "Archive"}
       </button>

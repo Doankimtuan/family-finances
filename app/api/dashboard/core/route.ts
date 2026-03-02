@@ -92,6 +92,11 @@ export async function GET(request: Request) {
       categoriesResult,
       ccBillingResult,
       ccAccountsResult,
+      jarsOverviewResult,
+      goalsResult,
+      contributionsResult,
+      recentTxResult,
+      billingsResult,
     ] = await Promise.all([
       supabase.rpc("rpc_dashboard_core", {
         p_household_id: householdId,
@@ -130,7 +135,7 @@ export async function GET(request: Request) {
       // All-time balance transactions
       supabase
         .from("transactions")
-        .select("account_id, type, amount")
+        .select("account_id, counterparty_account_id, type, amount")
         .eq("household_id", householdId)
         .lte("transaction_date", asOfDate),
       // This-month transactions for category breakdown (no join needed)
@@ -159,6 +164,48 @@ export async function GET(request: Request) {
         .eq("household_id", householdId)
         .eq("type", "credit_card")
         .eq("is_archived", false),
+      supabase
+        .from("jar_monthly_overview")
+        .select(
+          "jar_id, name, color, icon, target_amount, allocated_amount, withdrawn_amount, net_amount, coverage_ratio",
+        )
+        .eq("household_id", householdId)
+        .eq("month", startISO),
+      supabase
+        .from("goals")
+        .select("id, name, target_amount, status, target_date")
+        .eq("household_id", householdId)
+        .eq("status", "active")
+        .limit(3),
+      supabase
+        .from("goal_contributions")
+        .select("goal_id, amount, flow_type")
+        .eq("household_id", householdId),
+      supabase
+        .from("transactions")
+        .select("id, type, amount, transaction_date, description, category_id")
+        .eq("household_id", householdId)
+        .order("transaction_date", { ascending: false })
+        .limit(5),
+      supabase
+        .from("card_billings")
+        .select(
+          `
+          id,
+          due_date,
+          status,
+          statement_balance,
+          accounts!account_id (name)
+        `,
+        )
+        .eq("household_id", householdId)
+        .eq("status", "pending")
+        .lte(
+          "due_date",
+          new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+            .toISOString()
+            .slice(0, 10),
+        ),
     ]);
 
     if (coreResult.error) {
@@ -169,6 +216,81 @@ export async function GET(request: Request) {
       );
     }
 
+    const goalsRaw = goalsResult.data ?? [];
+    const goalContributions = contributionsResult.data ?? [];
+    const recentTxRaw = recentTxResult.data ?? [];
+    const upcomingBills = billingsResult.data ?? [];
+    const goalsTyped = goalsRaw as Array<{
+      id: string;
+      name: string;
+      target_amount: number;
+      target_date: string | null;
+      status: string;
+    }>;
+    const contributionsTyped = goalContributions as Array<{
+      goal_id: string;
+      amount: number;
+      flow_type: "inflow" | "outflow";
+    }>;
+    const recentTxTyped = recentTxRaw as Array<{
+      id: string;
+      type: string;
+      amount: number;
+      transaction_date: string;
+      description: string | null;
+      category_id: string | null;
+    }>;
+    const upcomingBillsTyped = upcomingBills as Array<{
+      id: string;
+      due_date: string;
+      statement_balance: number;
+      accounts: Array<{ name: string }> | null;
+    }>;
+
+    const categoryMap = new Map(
+      (categoriesResult.data ?? []).map((c) => [
+        c.id,
+        { name: c.name, color: c.color as string | null },
+      ]),
+    );
+
+    const goals = goalsTyped.map((goal) => {
+      const currentAmount = contributionsTyped
+        .filter((c) => c.goal_id === goal.id)
+        .reduce(
+          (sum: number, c) =>
+            sum +
+            (c.flow_type === "inflow" ? Number(c.amount) : -Number(c.amount)),
+          0,
+        );
+      return {
+        id: goal.id,
+        name: goal.name,
+        current_amount: currentAmount,
+        target_amount: Number(goal.target_amount),
+        target_date: goal.target_date,
+        status: goal.status,
+      };
+    });
+
+    const recentTransactions = recentTxTyped.map((tx) => ({
+      id: tx.id,
+      type: tx.type,
+      amount: Number(tx.amount),
+      transaction_date: tx.transaction_date,
+      description: tx.description,
+      category_name: categoryMap.get(tx.category_id ?? "")?.name ?? null,
+    }));
+
+    const priorityActions = upcomingBillsTyped.map((bill) => ({
+      id: bill.id,
+      title: `Thanh toán thẻ ${bill.accounts?.[0]?.name ?? ""}`,
+      description: "Dư nợ sao kê cần thanh toán",
+      amount: Number(bill.statement_balance),
+      dueDate: bill.due_date,
+      priority: "high" as const,
+    }));
+
     if (
       accountsResult.error ||
       assetsResult.error ||
@@ -177,6 +299,7 @@ export async function GET(request: Request) {
       txBalanceResult.error ||
       txMonthResult.error ||
       categoriesResult.error
+      || jarsOverviewResult.error
     ) {
       return NextResponse.json(
         {
@@ -188,6 +311,7 @@ export async function GET(request: Request) {
             txBalanceResult.error?.message ??
             txMonthResult.error?.message ??
             categoriesResult.error?.message ??
+            jarsOverviewResult.error?.message ??
             "Failed to build dashboard drill-downs.",
         },
         { status: 500 },
@@ -197,6 +321,17 @@ export async function GET(request: Request) {
     const monthTransactions = txMonthResult.data ?? [];
     const balanceTransactions = txBalanceResult.data ?? [];
     const ccBillingItems = ccBillingResult.data ?? [];
+    const jarOverviewRows = (jarsOverviewResult.data ?? []) as Array<{
+      jar_id: string;
+      name: string;
+      color: string | null;
+      icon: string | null;
+      target_amount: number;
+      allocated_amount: number;
+      withdrawn_amount: number;
+      net_amount: number;
+      coverage_ratio: number;
+    }>;
     // Set of credit card account IDs — used to skip their raw expense transactions
     const ccAccountIds = new Set(
       (ccAccountsResult.data ?? []).map((a) => a.id),
@@ -205,22 +340,41 @@ export async function GET(request: Request) {
     // Build account → delta map for net-worth balances
     const accountDeltaMap = new Map<string, number>();
     for (const tx of balanceTransactions) {
-      const current = accountDeltaMap.get(tx.account_id) ?? 0;
-      const delta =
-        tx.type === "income"
-          ? Number(tx.amount)
-          : tx.type === "expense"
-            ? -Number(tx.amount)
-            : 0;
-      accountDeltaMap.set(tx.account_id, current + delta);
+      const amount = Number(tx.amount ?? 0);
+      const sourceId = tx.account_id;
+      const targetId = tx.counterparty_account_id;
+
+      if (tx.type === "income" && sourceId) {
+        accountDeltaMap.set(
+          sourceId,
+          (accountDeltaMap.get(sourceId) ?? 0) + amount,
+        );
+      }
+
+      if (tx.type === "expense" && sourceId) {
+        accountDeltaMap.set(
+          sourceId,
+          (accountDeltaMap.get(sourceId) ?? 0) - amount,
+        );
+      }
+
+      if (tx.type === "transfer") {
+        if (sourceId) {
+          accountDeltaMap.set(
+            sourceId,
+            (accountDeltaMap.get(sourceId) ?? 0) - amount,
+          );
+        }
+        if (targetId) {
+          accountDeltaMap.set(
+            targetId,
+            (accountDeltaMap.get(targetId) ?? 0) + amount,
+          );
+        }
+      }
     }
 
-    const categoryMap = new Map(
-      (categoriesResult.data ?? []).map((c) => [
-        c.id,
-        { name: c.name, color: c.color as string | null },
-      ]),
-    );
+    // categoryMap moved up
 
     const latestPriceMap = new Map<string, number>();
     for (const p of pricesResult.data ?? []) {
@@ -338,6 +492,27 @@ export async function GET(request: Request) {
           monthEnd: endISO,
         },
       },
+      goals,
+      recentTransactions,
+      priorityActions,
+      jars: jarOverviewRows
+        .filter((row) => Number(row.target_amount) > 0)
+        .sort(
+          (a, b) =>
+            Number(a.coverage_ratio ?? 0) - Number(b.coverage_ratio ?? 0),
+        )
+        .slice(0, 3)
+        .map((row) => ({
+          jar_id: row.jar_id,
+          name: row.name,
+          color: row.color,
+          icon: row.icon,
+          target_amount: Number(row.target_amount),
+          allocated_amount: Number(row.allocated_amount),
+          withdrawn_amount: Number(row.withdrawn_amount),
+          net_amount: Number(row.net_amount),
+          coverage_ratio: Number(row.coverage_ratio),
+        })),
     };
 
     return NextResponse.json(payload, { status: 200 });

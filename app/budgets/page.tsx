@@ -180,6 +180,14 @@ export default async function BudgetsPage({
             </div>
           </CardHeader>
           <CardContent>
+            <p className="mb-3 rounded-lg border border-amber-300/60 bg-amber-50/60 px-3 py-2 text-xs text-amber-900">
+              {language === "vi"
+                ? "Màn hình Budget hiện là legacy. Bạn nên dùng Hũ tài chính mới để lập kế hoạch."
+                : "Budget is now a legacy screen. Use the new Financial Jars page for planning."}{" "}
+              <Link href="/jars" className="font-bold underline underline-offset-2">
+                {language === "vi" ? "Mở Hũ" : "Open Jars"}
+              </Link>
+            </p>
             <MonthlyBudgetForm
               categories={categories.map((c) => ({ id: c.id, name: c.name }))}
               monthDefault={selectedMonth}

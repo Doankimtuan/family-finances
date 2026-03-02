@@ -157,7 +157,7 @@ const en: Dictionary = {
   "nav.home": "Home",
   "nav.money": "Money",
   "nav.activity": "Activity",
-  "nav.plan": "Plan",
+  "nav.plan": "Jars",
   // Discuss together
   "review.discuss_title": "Discuss Together",
   "review.discuss_description": "Questions to review as a couple this month",
@@ -316,7 +316,7 @@ const vi: Dictionary = {
   "nav.home": "Trang chủ",
   "nav.money": "Tài sản",
   "nav.activity": "Hoạt động",
-  "nav.plan": "Kế hoạch",
+  "nav.plan": "Hũ",
   // Discuss together
   "review.discuss_title": "Thảo luận cùng nhau",
   "review.discuss_description": "Câu hỏi để cùng xem xét trong tháng này",

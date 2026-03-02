@@ -53,9 +53,9 @@ async function getAccountBalanceSnapshot(
 
   let txQuery = supabase
     .from("transactions")
-    .select("type, amount")
+    .select("account_id, counterparty_account_id, type, amount")
     .eq("household_id", householdId)
-    .eq("account_id", accountId)
+    .or(`account_id.eq.${accountId},counterparty_account_id.eq.${accountId}`)
     .eq("status", "cleared");
   if (excludeTransactionId) {
     txQuery = txQuery.neq("id", excludeTransactionId);
@@ -70,8 +70,12 @@ async function getAccountBalanceSnapshot(
   let balance = Number(accountRes.data.opening_balance ?? 0);
   for (const row of txRes.data ?? []) {
     const amount = Number(row.amount ?? 0);
-    if (row.type === "income") balance += amount;
-    if (row.type === "expense") balance -= amount;
+    if (row.type === "income" && row.account_id === accountId) balance += amount;
+    if (row.type === "expense" && row.account_id === accountId) balance -= amount;
+    if (row.type === "transfer") {
+      if (row.account_id === accountId) balance -= amount;
+      if (row.counterparty_account_id === accountId) balance += amount;
+    }
   }
 
   return { balance, error: null as string | null };
@@ -387,6 +391,70 @@ function revalidateTransactionRelatedPaths() {
   revalidatePath("/budgets");
 }
 
+async function getAccountType(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  householdId: string,
+  accountId: string,
+): Promise<string | null> {
+  const result = await supabase
+    .from("accounts")
+    .select("type")
+    .eq("household_id", householdId)
+    .eq("id", accountId)
+    .maybeSingle();
+  if (result.error || !result.data?.type) return null;
+  return result.data.type;
+}
+
+async function resolveCardBillingMonth(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  householdId: string,
+  cardAccountId: string,
+  transactionDate: string,
+): Promise<{ id: string; billing_month: string } | null> {
+  const settings = await supabase
+    .from("credit_card_settings")
+    .select("statement_day")
+    .eq("account_id", cardAccountId)
+    .maybeSingle();
+  const statementDay = settings.data?.statement_day ?? 25;
+
+  const d = new Date(`${transactionDate}T00:00:00.000Z`);
+  let year = d.getUTCFullYear();
+  let monthIdx = d.getUTCMonth();
+  if (d.getUTCDate() > statementDay) {
+    monthIdx += 1;
+    if (monthIdx > 11) {
+      monthIdx = 0;
+      year += 1;
+    }
+  }
+  const billingMonth = `${year}-${String(monthIdx + 1).padStart(2, "0")}-01`;
+
+  await supabase.from("card_billing_months").upsert(
+    {
+      household_id: householdId,
+      card_account_id: cardAccountId,
+      billing_month: billingMonth,
+    },
+    { onConflict: "card_account_id,billing_month" },
+  );
+
+  const monthResult = await supabase
+    .from("card_billing_months")
+    .select("id, billing_month")
+    .eq("card_account_id", cardAccountId)
+    .eq("billing_month", billingMonth)
+    .maybeSingle();
+
+  if (monthResult.error || !monthResult.data) return null;
+  return monthResult.data;
+}
+
+function signedCardAmount(type: string, amount: number): number {
+  return type === "income" ? -Math.round(amount) : Math.round(amount);
+}
+
 export async function updateTransactionAction(
   _prev: TransactionActionState,
   formData: FormData,
@@ -422,7 +490,7 @@ export async function updateTransactionAction(
 
   const existing = await supabase
     .from("transactions")
-    .select("id, status")
+    .select("id, status, account_id, amount, type, transaction_date")
     .eq("household_id", householdId)
     .eq("id", transactionId)
     .maybeSingle();
@@ -486,6 +554,133 @@ export async function updateTransactionAction(
   if (update.error || !update.data?.id)
     return fail(update.error?.message ?? "Failed to update transaction.");
 
+  // Keep card billing tables in sync when a credit-card transaction is edited.
+  const prevAccountId = String(existing.data.account_id ?? "");
+  const prevAmount = Number(existing.data.amount ?? 0);
+  const prevType = String(existing.data.type ?? "expense");
+  const prevDate = String(existing.data.transaction_date ?? transactionDate);
+  const prevSigned = signedCardAmount(prevType, prevAmount);
+  const nextSigned = signedCardAmount(type, amountRounded);
+
+  const prevAccountType = prevAccountId
+    ? await getAccountType(supabase, householdId, prevAccountId)
+    : null;
+  const nextAccountType = await getAccountType(supabase, householdId, accountId);
+
+  const prevIsCard = prevAccountType === "credit_card";
+  const nextIsCard = nextAccountType === "credit_card";
+
+  if (prevIsCard || nextIsCard) {
+    const billingItemResult = await supabase
+      .from("card_billing_items")
+      .select(
+        "id, billing_month_id, card_account_id, is_converted_to_installment, item_type",
+      )
+      .eq("household_id", householdId)
+      .eq("transaction_id", transactionId)
+      .maybeSingle();
+
+    const billingItem = billingItemResult.data;
+
+    if (billingItem?.is_converted_to_installment) {
+      // Prevent unsafe edit once original card item has been converted to installment.
+      const financiallySensitiveChanged =
+        prevAmount !== amountRounded ||
+        prevDate !== transactionDate ||
+        prevAccountId !== accountId;
+      if (financiallySensitiveChanged) {
+        return fail(
+          "Cannot edit amount/date/account for a transaction already converted to installments.",
+        );
+      }
+    } else if (billingItem && billingItem.item_type === "standard") {
+      const oldMonthId = billingItem.billing_month_id;
+      const oldCardId = billingItem.card_account_id;
+
+      if (!nextIsCard) {
+        // Moved away from card account: remove billing item + statement contribution.
+        await supabase.rpc("increment_statement_amount", {
+          month_id: oldMonthId,
+          inc: -prevSigned,
+        });
+        await supabase
+          .from("card_billing_items")
+          .delete()
+          .eq("id", billingItem.id);
+      } else {
+        const targetMonth = await resolveCardBillingMonth(
+          supabase,
+          householdId,
+          accountId,
+          transactionDate,
+        );
+        if (targetMonth) {
+          const sameMonth = oldMonthId === targetMonth.id;
+          const sameCard = oldCardId === accountId;
+
+          if (sameMonth && sameCard) {
+            const delta = nextSigned - prevSigned;
+            if (delta !== 0) {
+              await supabase.rpc("increment_statement_amount", {
+                month_id: oldMonthId,
+                inc: delta,
+              });
+            }
+            await supabase
+              .from("card_billing_items")
+              .update({
+                card_account_id: accountId,
+                amount: amountRounded,
+                description,
+              })
+              .eq("id", billingItem.id);
+          } else {
+            await supabase.rpc("increment_statement_amount", {
+              month_id: oldMonthId,
+              inc: -prevSigned,
+            });
+            await supabase.rpc("increment_statement_amount", {
+              month_id: targetMonth.id,
+              inc: nextSigned,
+            });
+            await supabase
+              .from("card_billing_items")
+              .update({
+                card_account_id: accountId,
+                billing_month_id: targetMonth.id,
+                amount: amountRounded,
+                description,
+              })
+              .eq("id", billingItem.id);
+          }
+        }
+      }
+    } else if (!billingItem && nextIsCard && (type === "expense" || type === "income")) {
+      // Was non-card before, now moved to card: create matching standard billing item.
+      const targetMonth = await resolveCardBillingMonth(
+        supabase,
+        householdId,
+        accountId,
+        transactionDate,
+      );
+      if (targetMonth) {
+        await supabase.from("card_billing_items").insert({
+          household_id: householdId,
+          card_account_id: accountId,
+          billing_month_id: targetMonth.id,
+          transaction_id: transactionId,
+          description: description ?? `Giao dịch thẻ ${transactionDate}`,
+          amount: amountRounded,
+          item_type: "standard",
+        });
+        await supabase.rpc("increment_statement_amount", {
+          month_id: targetMonth.id,
+          inc: nextSigned,
+        });
+      }
+    }
+  }
+
   await writeAuditEvent(supabase, {
     householdId,
     actorUserId: user.id,
@@ -504,6 +699,9 @@ export async function updateTransactionAction(
   });
 
   revalidateTransactionRelatedPaths();
+  revalidatePath("/money");
+  if (prevIsCard && prevAccountId) revalidatePath(`/money/card/${prevAccountId}`);
+  if (nextIsCard) revalidatePath(`/money/card/${accountId}`);
   return ok("Transaction updated.");
 }
 
@@ -520,12 +718,50 @@ export async function deleteTransactionAction(
 
   const existing = await supabase
     .from("transactions")
-    .select("id")
+    .select("id, account_id, amount, type")
     .eq("household_id", householdId)
     .eq("id", transactionId)
     .maybeSingle();
   if (existing.error || !existing.data?.id)
     return fail(existing.error?.message ?? "Transaction not found.");
+
+  const prevAccountId = String(existing.data.account_id ?? "");
+  const prevAmount = Number(existing.data.amount ?? 0);
+  const prevType = String(existing.data.type ?? "expense");
+  const prevSigned = signedCardAmount(prevType, prevAmount);
+  const prevAccountType = prevAccountId
+    ? await getAccountType(supabase, householdId, prevAccountId)
+    : null;
+  const prevIsCard = prevAccountType === "credit_card";
+
+  if (prevIsCard) {
+    const billingItemResult = await supabase
+      .from("card_billing_items")
+      .select(
+        "id, billing_month_id, is_converted_to_installment, item_type",
+      )
+      .eq("household_id", householdId)
+      .eq("transaction_id", transactionId)
+      .maybeSingle();
+
+    const billingItem = billingItemResult.data;
+    if (billingItem?.is_converted_to_installment) {
+      return fail(
+        "Cannot delete a transaction already converted to installments.",
+      );
+    }
+
+    if (billingItem && billingItem.item_type === "standard") {
+      await supabase.rpc("increment_statement_amount", {
+        month_id: billingItem.billing_month_id,
+        inc: -prevSigned,
+      });
+      await supabase
+        .from("card_billing_items")
+        .delete()
+        .eq("id", billingItem.id);
+    }
+  }
 
   const deletion = await supabase
     .from("transactions")
@@ -544,5 +780,7 @@ export async function deleteTransactionAction(
   });
 
   revalidateTransactionRelatedPaths();
+  revalidatePath("/money");
+  if (prevIsCard && prevAccountId) revalidatePath(`/money/card/${prevAccountId}`);
   return ok("Transaction deleted.");
 }
