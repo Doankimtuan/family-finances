@@ -22,7 +22,7 @@ Primary product goal:
 - **Language**: Bilingual (`en` + `vi`) with household-level language setting.
 - **Narrative-First**: Replaces dry scores with "Health Stories" (e.g., "Improving", "Healthy") and dynamic visualizations.
 - **Action-Oriented**: Focuses on "Priority Actions" and "ETA" (Expected Time of Arrival) rather than just status.
-- **Consolidated Navigation**: Mobile-first design with 4 primary tabs: **Home** (Dashboard), **Money** (Accounts/Assets/Debts/Flow), **Activity** (Transactions), and **Plan** (Insights/Health/Goals/Budgets).
+- **Consolidated Navigation**: Mobile-first design with 4 primary tabs: **Home** (Dashboard), **Money** (Accounts/Assets/Debts/Flow), **Activity** (Transactions), and **Plan** (Financial Jars).
 - **Constructive Framing**: Uses progress-focused, non-shaming vocabulary (e.g., "Building" vs "Fragile").
 - **Manual Logging**: Optimized for high-speed manual data entry (under 10 seconds).
 - **Vietnamese Financial Context**: Native support for gold (`lượng`), VND scale, and complex mortgage rate structures (promo-to-floating).
@@ -81,6 +81,10 @@ Migration files in `supabase/migrations/`:
 | `00017_installment_conversion.sql`    | Adds `is_converted_to_installment` BOOLEAN to `card_billing_items`                      |
 | `00018_fix_dashboard_cc_expense.sql`  | Patches `rpc_dashboard_core` to exclude CC raw transactions from expense sum            |
 | `00019_sync_installment_progress.sql` | One-time sync: backfill `paid_installments` + `remaining_amount` on `installment_plans` |
+| `00021_fix_installment_month_timezone.sql` | Fixes timezone month-bucketing drift for installment/billing data                    |
+| `00022_financial_jars.sql`            | Introduces Financial Jars schema + policies + ledger/target structures                  |
+| `00023_translate_default_jars_vi.sql` | Translates seeded default jar names to Vietnamese labels                                |
+| `00024_sync_card_billing_items_with_transaction_edits.sql` | Backfills/syncs billing items with edited transactions                    |
 
 ---
 
@@ -116,7 +120,7 @@ Tracks one record per card per billing cycle month.
 | `billing_month`    | YYYY-MM-01 date                                 |
 | `statement_amount` | Total for this cycle (updated by billing items) |
 | `paid_amount`      | Amount settled                                  |
-| `status`           | `unpaid` / `partial` / `settled`                |
+| `status`           | `open` / `partial` / `settled`                  |
 
 ### 6d. card_billing_items
 
@@ -226,6 +230,7 @@ The category breakdown (donut chart) had the same problem:
 - **Usage bar**: Uses `rawUsage = (balance / creditLimit) * 100`, minimum 1% width when balance > 0 (prevents invisible bar for small balances), `usageDisplay` shows 1 decimal for < 1% (e.g., "0.1%" not "0%")
 - **Active Installment Plans**: Shows progress bar based on `paid_installments / num_installments`
 - **Billing History**: Each billing cycle shows all items. Standard unpaid items show a "Trả góp" button → opens `ConvertToInstallmentDialog`. Converted items show strikethrough + "→ Trả góp" badge. Installment items show "Góp N" sequence badge.
+- **Cashback section (new)**: Dedicated form for monthly statement cashback. Records cashback as a card `income` transaction and applies it to the latest unpaid cycle to avoid post-statement balance mismatches.
 
 ### ConvertToInstallmentDialog (`app/money/card/_components/convert-to-installment-dialog.tsx`)
 
@@ -242,9 +247,76 @@ Client component. Triggered per-item in billing history:
 - Same min-1% bar fix applies
 - `usageDisplay` used for text, `usagePercent` used for bar width
 
+### Cashback form (`app/money/card/_components/add-cashback-form.tsx`)
+
+Client component. Inputs:
+
+- Cashback amount (VND)
+- Cashback date
+- Optional note
+
+Submits `addCardCashbackAction`.
+
+### Cashback action (`addCardCashbackAction` in `app/money/card/installment-actions.ts`)
+
+Flow:
+
+1. Validate card account + household scope
+2. Find latest unpaid billing cycle **before** inserting cashback transaction
+3. Insert cashback as `transactions.type = 'income'` on the credit-card account
+4. Trigger auto-creates standard `card_billing_items` and subtracts statement amount
+5. If needed, move generated billing item to the latest unpaid cycle and rebalance `statement_amount` across months
+6. Normalize month status/paid flags to prevent stale cycle states
+7. Revalidate `/money`, `/money/card/[id]`, `/transactions`
+
+This is virtual statement-credit behavior (not bank transfer), and it prevents discrepancies where users receive monthly cashback after statement issuance.
+
 ---
 
-## 10. Supabase Join Gotcha (Important)
+## 10. Financial Jars Replacement (Insights Tab Replaced)
+
+### Product decision implemented
+
+- The former Insights tab flow has been replaced in navigation with **Financial Jars**.
+- `/insights` now redirects to `/jars` for compatibility during rollout.
+- Dashboard links to planning now point to jars.
+
+### Data model (new)
+
+- `jar_definitions`: jar metadata per household (name/slug/icon/color/archive/default)
+- `jar_monthly_targets`: per-jar monthly target with `fixed | percent` mode
+- `jar_ledger_entries`: manual allocations/withdrawals/adjustments with source metadata
+- Optional summary layer via monthly aggregation logic in app/dashboard
+
+### Scope and accounting contract
+
+- Jars are **virtual only**: no account balance movement in `accounts` or bank transfer generation.
+- Jars support monthly target setup + manual allocate/withdraw operations.
+- Initial migration seeds default jars and allows legacy budgets/goals coexistence for phased cleanup.
+
+### Localization update
+
+- Default jar labels translated to Vietnamese via `00023_translate_default_jars_vi.sql`.
+
+---
+
+## 11. Transaction Edit Sync for Card Billing (Mismatch Fix)
+
+Issue fixed:
+
+- Editing card transaction amount/date/account previously could leave stale billing item values and mismatched statement totals.
+
+Fixes shipped:
+
+- App-layer sync in `app/transactions/actions.ts` to keep corresponding standard `card_billing_items` aligned on edit/delete.
+- Data backfill migration `00024_sync_card_billing_items_with_transaction_edits.sql` to repair existing records:
+  - Re-links item month/card where needed
+  - Recomputes statement totals + statuses
+  - Preserves installment-converted safety checks
+
+---
+
+## 12. Supabase Join Gotcha (Important)
 
 **Never use `table!column_name(fields)` in Supabase selects when `column_name` is a column, not a constraint name.**
 
@@ -264,7 +336,7 @@ if (ccIds.has(tx.account_id)) { /* this is a CC transaction */ }
 
 ---
 
-## 11. AI Insights Module (Existing)
+## 13. AI Insights Module (Existing, Legacy UI Path)
 
 ### Key data model
 
@@ -274,6 +346,11 @@ if (ccIds.has(tx.account_id)) { /* this is a CC transaction */ }
 - `ai_insight_deliveries`: Per-member delivery/read status for in-app/email channels.
 - `ai_insight_feedback`: Helpful/not-helpful user feedback linked to prompt version.
 - `ai_scheduler_config`: Singleton table storing edge URL + worker secret + on/off flag.
+
+Current status:
+
+- Backend scheduler/data model still exists.
+- Primary user-facing Plan tab no longer routes to AI Insights UI (replaced by Jars).
 
 ### Scheduled AI functions
 
@@ -289,24 +366,28 @@ if (ccIds.has(tx.account_id)) { /* this is a CC transaction */ }
 
 ---
 
-## 12. Known Gaps / Next Best Steps
+## 14. Known Gaps / Next Best Steps
 
-1. **AI Insights UI**: Render `ai_insights` in dashboard/insights card, with thumbs up/down and read-state interactions.
+1. **Cashback automation**: Optional future enhancement to auto-create expected cashback entries per card statement rule.
 2. **Weekly Email Digest**: Use `ai_insight_deliveries.channel = 'email'` + mail provider.
 3. **Monitoring**: Failure alerts for `ai_insight_runs.status = 'failed'` with retry visibility.
 4. **Installment: Partial cycle settlement**: Currently, `installment_plans` are only updated when a full cycle is settled. Partial payments do not advance `paid_installments`. Consider whether partial payment should count as a paid installment.
 5. **CC expense in essential spending / emergency fund**: The `essential_by_month` CTE in `rpc_dashboard_core` still uses raw `transactions` (not billing items) for CC. If CC spending is tagged as essential, this will be inaccurate.
+6. **Legacy insights cleanup**: Decide whether to fully disable insight generation jobs if jars are the permanent replacement.
 
 ---
 
-## 13. Key File Index
+## 15. Key File Index
 
 | Purpose                              | File                                                                                  |
 | ------------------------------------ | ------------------------------------------------------------------------------------- |
 | Handoff doc                          | `AI_KNOWLEDGE_HANDOFF.md`                                                             |
+| Jars page                            | `app/jars/page.tsx`                                                                   |
+| Jars actions                         | `app/jars/actions.ts`                                                                 |
 | Credit card installment actions      | `app/money/card/installment-actions.ts`                                               |
 | Convert to installment dialog        | `app/money/card/_components/convert-to-installment-dialog.tsx`                        |
 | Settle card form                     | `app/money/card/_components/settle-card-form.tsx`                                     |
+| Add cashback form                    | `app/money/card/_components/add-cashback-form.tsx`                                    |
 | Credit card detail page              | `app/money/card/[id]/page.tsx`                                                        |
 | Money (accounts) page                | `app/money/page.tsx`                                                                  |
 | Dashboard API route                  | `app/api/dashboard/core/route.ts`                                                     |
@@ -316,6 +397,10 @@ if (ccIds.has(tx.account_id)) { /* this is a CC transaction */ }
 | `is_converted_to_installment` column | `supabase/migrations/00017_installment_conversion.sql`                                |
 | Dashboard CC expense fix RPC         | `supabase/migrations/00018_fix_dashboard_cc_expense.sql`                              |
 | Installment progress backfill        | `supabase/migrations/00019_sync_installment_progress.sql`                             |
+| Installment timezone fix             | `supabase/migrations/00021_fix_installment_month_timezone.sql`                        |
+| Financial jars schema                | `supabase/migrations/00022_financial_jars.sql`                                        |
+| Vietnamese jars translation          | `supabase/migrations/00023_translate_default_jars_vi.sql`                             |
+| Card edit/billing data sync backfill | `supabase/migrations/00024_sync_card_billing_items_with_transaction_edits.sql`        |
 | AI migrations                        | `supabase/migrations/00010_ai_insights_foundation.sql`, `00011_ai_scheduler_cron.sql` |
 | Edge dispatcher                      | `supabase/functions/ai-cycle-dispatch/index.ts`                                       |
 | Deterministic insights engine        | `lib/insights/engine.ts`, `lib/insights/service.ts`                                   |
@@ -324,7 +409,7 @@ if (ccIds.has(tx.account_id)) { /* this is a CC transaction */ }
 
 ---
 
-## 14. AI Continuation Guide for Future Agents
+## 16. AI Continuation Guide for Future Agents
 
 - Keep AI **scheduled and gated**, not real-time.
 - Prefer deterministic SQL/math pre-computation; AI should explain and recommend, not calculate raw metrics.
@@ -334,3 +419,5 @@ if (ccIds.has(tx.account_id)) { /* this is a CC transaction */ }
 - **Credit card expenses must always come from `card_billing_items`**, never raw `transactions`. The `transactions` table entry for a CC expense still exists for account balance tracking but must be excluded from expense/category calculations.
 - **Always run migration 00019** (`sync_installment_progress`) when onboarding existing data or after deploying the settle-tracking fix, to backfill `paid_installments` and `remaining_amount` on existing plans.
 - **Never use Supabase join syntax `table!column_name`** — use `table!constraint_name` or fetch related IDs separately.
+- **Cashback must be recorded as card `income` transaction**, then mapped to the intended unpaid billing cycle to preserve statement consistency.
+- **Jars are virtual planning envelopes only**; never mutate account balances through jar operations.
