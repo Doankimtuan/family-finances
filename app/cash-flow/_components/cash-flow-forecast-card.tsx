@@ -3,10 +3,11 @@
 import { AlertTriangle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import {
+  Area,
+  AreaChart,
   CartesianGrid,
   Legend,
   Line,
-  LineChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -22,6 +23,9 @@ type ForecastRow = {
   inflow: number;
   outflow: number;
   closing_balance: number;
+  p10_closing_balance: number;
+  p50_closing_balance: number;
+  p90_closing_balance: number;
   risk_flag: string | null;
 };
 
@@ -101,7 +105,13 @@ export function CashFlowForecastCard() {
           <>
             <div className="h-72 w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartRows} margin={{ top: 8, right: 12, left: 0, bottom: 4 }}>
+                <AreaChart data={chartRows} margin={{ top: 8, right: 12, left: 0, bottom: 4 }}>
+                  <defs>
+                    <linearGradient id="forecastBandFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#0F766E" stopOpacity={0.22} />
+                      <stop offset="100%" stopColor="#0F766E" stopOpacity={0.04} />
+                    </linearGradient>
+                  </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
                   <XAxis dataKey="dateLabel" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
                   <YAxis
@@ -116,10 +126,26 @@ export function CashFlowForecastCard() {
                     labelFormatter={(label) => `Date: ${String(label)}`}
                   />
                   <Legend />
-                  <Line type="monotone" dataKey="closing_balance" name="Closing" stroke="#0F766E" strokeWidth={2.5} dot={false} />
+                  <Area
+                    type="monotone"
+                    dataKey="p90_closing_balance"
+                    name="P90"
+                    stroke="transparent"
+                    fill="url(#forecastBandFill)"
+                    fillOpacity={1}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="p10_closing_balance"
+                    name="P10"
+                    stroke="transparent"
+                    fill="#ffffff"
+                    fillOpacity={1}
+                  />
+                  <Line type="monotone" dataKey="p50_closing_balance" name="P50 (Median)" stroke="#0F766E" strokeWidth={2.5} dot={false} />
                   <Line type="monotone" dataKey="inflow" name="Inflow" stroke="#0284C7" strokeWidth={1.8} dot={false} />
                   <Line type="monotone" dataKey="outflow" name="Outflow" stroke="#DC2626" strokeWidth={1.8} dot={false} />
-                </LineChart>
+                </AreaChart>
               </ResponsiveContainer>
             </div>
 

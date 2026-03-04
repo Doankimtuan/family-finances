@@ -8,6 +8,9 @@ type ForecastRow = {
   inflow: number;
   outflow: number;
   closing_balance: number;
+  p10_closing_balance: number;
+  p50_closing_balance: number;
+  p90_closing_balance: number;
   risk_flag: string | null;
 };
 
@@ -63,6 +66,9 @@ export async function GET(request: Request) {
       inflow: Number(row.inflow ?? 0),
       outflow: Number(row.outflow ?? 0),
       closing_balance: Number(row.closing_balance ?? 0),
+      p10_closing_balance: Number(row.p10_closing_balance ?? row.closing_balance ?? 0),
+      p50_closing_balance: Number(row.p50_closing_balance ?? row.closing_balance ?? 0),
+      p90_closing_balance: Number(row.p90_closing_balance ?? row.closing_balance ?? 0),
       risk_flag: row.risk_flag,
     }));
 

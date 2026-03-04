@@ -14,6 +14,7 @@ export type DashboardCoreMetrics = {
   savings_rate_mom_delta: number | null;
   emergency_months: number | null;
   debt_service_ratio: number | null;
+  tdsr_percent: number | null;
 };
 
 export type DashboardTrendPoint = {

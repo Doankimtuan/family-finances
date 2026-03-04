@@ -155,6 +155,23 @@ export function DashboardCorePanel() {
     ? Number((savingsRateMomDeltaRaw * 100).toFixed(1))
     : null;
   const savingsRateAvgLabel = vi ? "TB 6T" : "6-mo avg";
+  const tdsrValue = Number(metrics.tdsr_percent);
+  const hasTdsr = Number.isFinite(tdsrValue);
+  const tdsrLabel = !hasTdsr
+    ? (vi ? "Chưa đủ dữ liệu" : "No data")
+    : tdsrValue > 50
+      ? (vi ? "Rủi ro cao" : "High")
+      : tdsrValue >= 35
+        ? (vi ? "Cần theo dõi" : "Watch")
+        : (vi ? "Bình thường" : "Normal");
+  const tdsrVariant: "default" | "success" | "destructive" | "warning" =
+    !hasTdsr
+      ? "default"
+      : tdsrValue > 50
+        ? "destructive"
+        : tdsrValue >= 35
+          ? "warning"
+          : "success";
 
   return (
     <section className="space-y-8 pb-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">
@@ -215,9 +232,10 @@ export function DashboardCorePanel() {
           }
         />
         <MetricCard
-          label={vi ? "Nợ còn lại" : "Debt"}
-          value={formatVndCompact(Number(metrics.total_liabilities), locale)}
-          variant="warning"
+          label={vi ? "Tỷ lệ nợ/TN (TDSR)" : "Debt/Income (TDSR)"}
+          value={hasTdsr ? `${tdsrValue.toFixed(1)}%` : "-"}
+          note={tdsrLabel}
+          variant={tdsrVariant}
           className="bg-card shadow-sm border-border/50"
         />
       </div>
