@@ -35,6 +35,7 @@ type OverviewRow = {
   withdrawn_amount: number;
   net_amount: number;
   coverage_ratio: number;
+  jar_coverage_ratio_percent: number | null;
 };
 
 type EntryRow = {
@@ -111,7 +112,7 @@ export default async function JarsPage({
       supabase
         .from("jar_monthly_overview")
         .select(
-          "jar_id, target_amount, allocated_amount, withdrawn_amount, net_amount, coverage_ratio",
+          "jar_id, target_amount, allocated_amount, withdrawn_amount, net_amount, coverage_ratio, jar_coverage_ratio_percent",
         )
         .eq("household_id", householdId)
         .eq("month", monthStart),

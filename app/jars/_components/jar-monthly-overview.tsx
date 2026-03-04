@@ -9,6 +9,7 @@ import { JarEditForm } from "./jar-edit-form";
 type JarRow = {
   id: string;
   name: string;
+  slug: string;
   color: string | null;
   icon: string | null;
 };
@@ -20,6 +21,7 @@ type OverviewRow = {
   withdrawn_amount: number;
   net_amount: number;
   coverage_ratio: number;
+  jar_coverage_ratio_percent: number | null;
 };
 
 type TargetRow = {
@@ -59,6 +61,11 @@ export function JarMonthlyOverview({
         const ov = overviewMap.get(jar.id);
         const target = targetMap.get(jar.id);
         const coverage = Math.round(Number(ov?.coverage_ratio ?? 0) * 100);
+        const essentialsCoverage = Number(ov?.jar_coverage_ratio_percent);
+        const showEssentialsWarning =
+          jar.slug === "necessities"
+          && Number.isFinite(essentialsCoverage)
+          && essentialsCoverage < 100;
 
         return (
           <Card key={jar.id} className="border-border/60">
@@ -66,6 +73,11 @@ export function JarMonthlyOverview({
               <div className="flex items-center justify-between gap-2">
                 <h3 className="font-bold text-base">{jar.name}</h3>
                 <div className="flex items-center gap-2">
+                  {showEssentialsWarning ? (
+                    <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800">
+                      {vi ? "Thiếu quỹ thiết yếu" : "Essentials underfunded"}
+                    </span>
+                  ) : null}
                   <span className="text-xs text-muted-foreground">{coverage}%</span>
                   <form action={archiveJarDirectAction}>
                     <input type="hidden" name="jarId" value={jar.id} />
