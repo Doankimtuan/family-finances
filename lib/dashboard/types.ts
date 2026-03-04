@@ -10,6 +10,8 @@ export type DashboardCoreMetrics = {
   monthly_expense: number;
   monthly_savings: number;
   savings_rate: number | null;
+  savings_rate_6mo_avg: number | null;
+  savings_rate_mom_delta: number | null;
   emergency_months: number | null;
   debt_service_ratio: number | null;
 };

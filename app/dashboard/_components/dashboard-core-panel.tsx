@@ -150,15 +150,11 @@ export function DashboardCorePanel() {
       : "health.action.no_data",
   );
 
-  const prevMonthSavings =
-    trend.length >= 2 ? Number(trend[trend.length - 2]?.savings ?? 0) : null;
-  const currMonthSavings = Number(metrics.monthly_savings);
-  const savingsDelta =
-    prevMonthSavings !== null ? currMonthSavings - prevMonthSavings : null;
-  const savingsDeltaPct =
-    prevMonthSavings !== null && prevMonthSavings !== 0
-      ? Math.round((savingsDelta! / Math.abs(prevMonthSavings)) * 100)
-      : null;
+  const savingsRateMomDeltaRaw = Number(metrics.savings_rate_mom_delta);
+  const savingsRateMomDeltaPct = Number.isFinite(savingsRateMomDeltaRaw)
+    ? Number((savingsRateMomDeltaRaw * 100).toFixed(1))
+    : null;
+  const savingsRateAvgLabel = vi ? "TB 6T" : "6-mo avg";
 
   return (
     <section className="space-y-8 pb-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">
@@ -204,14 +200,15 @@ export function DashboardCorePanel() {
           className="bg-card shadow-sm border-border/50"
         />
         <MetricCard
-          label={vi ? "Tiết kiệm" : "Savings"}
-          value={formatVndCompact(Number(metrics.monthly_savings), locale)}
+          label={vi ? "Tỷ lệ tiết kiệm" : "Savings Rate"}
+          value={formatPercent(metrics.savings_rate)}
           href="/transactions"
           className="bg-card shadow-sm border-border/50"
+          note={`${savingsRateAvgLabel}: ${formatPercent(metrics.savings_rate_6mo_avg)}`}
           trend={
-            savingsDeltaPct !== null
+            savingsRateMomDeltaPct !== null
               ? {
-                  value: savingsDeltaPct,
+                  value: savingsRateMomDeltaPct,
                   label: vi ? "vs tháng trước" : "vs last mo",
                 }
               : undefined
