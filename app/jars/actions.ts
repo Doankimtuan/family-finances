@@ -411,3 +411,32 @@ export async function deleteJarLedgerEntryDirectAction(
 ): Promise<void> {
   await deleteJarLedgerEntryAction({ status: "idle", message: "" }, formData);
 }
+
+export async function runJarReconciliationDirectAction(
+  formData: FormData,
+): Promise<void> {
+  const monthRaw = String(formData.get("month") ?? "").trim();
+  const monthStart = toMonthStart(monthRaw);
+
+  const { supabase, user, householdId, error } = await resolveContext();
+  if (error || !householdId || !user || !monthStart) return;
+
+  const rpc = await supabase.rpc("rpc_jar_reconciliation_month", {
+    p_household_id: householdId,
+    p_month: monthStart,
+  });
+
+  if (!rpc.error) {
+    await writeAuditEvent(supabase, {
+      householdId,
+      actorUserId: user.id,
+      eventType: "jar.reconciliation_recomputed",
+      entityType: "jar_reconciliation_entries",
+      entityId: monthStart,
+      payload: { month: monthStart, count: (rpc.data ?? []).length },
+    });
+  }
+
+  revalidatePath(`/jars?month=${monthRaw}`);
+  revalidatePath("/jars");
+}

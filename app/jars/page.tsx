@@ -12,6 +12,7 @@ import { JarSummaryCards } from "./_components/jar-summary-cards";
 import { JarMonthlyOverview } from "./_components/jar-monthly-overview";
 import { JarActivityList } from "./_components/jar-activity-list";
 import { JarCreateForm } from "./_components/jar-create-form";
+import { JarAccountabilityTable } from "./_components/jar-accountability-table";
 
 type JarRow = {
   id: string;
@@ -45,6 +46,20 @@ type EntryRow = {
   amount: number;
   note: string | null;
   jar: { name: string }[] | null;
+};
+
+type ReconciliationRow = {
+  id: string;
+  category_id: string;
+  jar_id: string;
+  actual_amount: number;
+  allocated_amount: number;
+  gap_amount: number;
+};
+
+type CategoryRow = {
+  id: string;
+  name: string;
 };
 
 function toMonthInput(date: Date): string {
@@ -95,7 +110,7 @@ export default async function JarsPage({
     { onConflict: "household_id,slug", ignoreDuplicates: true },
   );
 
-  const [jarsResult, targetResult, overviewResult, entriesResult] =
+  const [jarsResult, targetResult, overviewResult, entriesResult, reconciliationResult, categoriesResult] =
     await Promise.all([
       supabase
         .from("jar_definitions")
@@ -126,15 +141,29 @@ export default async function JarsPage({
         .order("entry_date", { ascending: false })
         .order("created_at", { ascending: false })
         .limit(20),
+      supabase
+        .from("jar_reconciliation_entries")
+        .select("id, category_id, jar_id, actual_amount, allocated_amount, gap_amount")
+        .eq("household_id", householdId)
+        .eq("month", monthStart)
+        .order("gap_amount", { ascending: false }),
+      supabase
+        .from("categories")
+        .select("id, name")
+        .or(`household_id.is.null,household_id.eq.${householdId}`),
     ]);
 
   const jars = (jarsResult.data ?? []) as JarRow[];
   const targets = (targetResult.data ?? []) as TargetRow[];
   const overviewRows = (overviewResult.data ?? []) as OverviewRow[];
   const entries = (entriesResult.data ?? []) as EntryRow[];
+  const reconciliationRows = (reconciliationResult.data ?? []) as ReconciliationRow[];
+  const categories = (categoriesResult.data ?? []) as CategoryRow[];
 
   const targetMap = new Map(targets.map((t) => [t.jar_id, t]));
   const overviewMap = new Map(overviewRows.map((r) => [r.jar_id, r]));
+  const categoryNameMap = new Map(categories.map((c) => [c.id, c.name]));
+  const jarNameMap = new Map(jars.map((jar) => [jar.id, jar.name]));
 
   const totalAllocated = overviewRows.reduce(
     (sum, row) => sum + Number(row.allocated_amount ?? 0),
@@ -161,6 +190,14 @@ export default async function JarsPage({
     entry_type: entry.entry_type,
     amount: Number(entry.amount),
     note: entry.note,
+  }));
+  const accountabilityRows = reconciliationRows.map((row) => ({
+    id: row.id,
+    category_name: categoryNameMap.get(row.category_id) ?? (vi ? "Danh mục" : "Category"),
+    jar_name: jarNameMap.get(row.jar_id) ?? (vi ? "Hũ" : "Jar"),
+    actual_amount: Number(row.actual_amount),
+    allocated_amount: Number(row.allocated_amount),
+    gap_amount: Number(row.gap_amount),
   }));
 
   return (
@@ -223,6 +260,23 @@ export default async function JarsPage({
               jars={jars}
               overviewMap={overviewMap}
               targetMap={targetMap}
+              month={selectedMonth}
+              locale={householdLocale}
+              vi={vi}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <SectionHeader
+              label={vi ? "Kỷ luật" : "Accountability"}
+              title={vi ? "Đối soát hũ và chi tiêu" : "Jar-to-spending reconciliation"}
+            />
+          </CardHeader>
+          <CardContent>
+            <JarAccountabilityTable
+              rows={accountabilityRows}
               month={selectedMonth}
               locale={householdLocale}
               vi={vi}
