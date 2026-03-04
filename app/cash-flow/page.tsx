@@ -6,6 +6,7 @@ import { AppHeader } from "@/components/layout/app-header";
 import { AppShell } from "@/components/layout/app-shell";
 import { BottomTabBar } from "@/components/layout/bottom-tab-bar";
 import { Card, CardContent } from "@/components/ui/card";
+import { CashFlowForecastCard } from "@/app/cash-flow/_components/cash-flow-forecast-card";
 
 export const metadata = {
   title: "Cash Flow | Family Finances",
@@ -60,6 +61,8 @@ export default async function CashFlowPage() {
             </div>
           </CardContent>
         </Card>
+
+        <CashFlowForecastCard />
       </div>
     </AppShell>
   );
