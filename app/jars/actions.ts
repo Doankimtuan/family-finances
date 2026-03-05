@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { isServerFeatureEnabled } from "@/lib/config/features";
 import { writeAuditEvent } from "@/lib/server/audit";
 import { createClient } from "@/lib/supabase/server";
 
@@ -35,6 +36,15 @@ function slugify(text: string): string {
 }
 
 async function resolveContext() {
+  if (!isServerFeatureEnabled("jars")) {
+    return {
+      supabase: await createClient(),
+      user: null,
+      householdId: null,
+      error: "Feature disabled: jars.",
+    };
+  }
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -416,27 +426,8 @@ export async function runJarReconciliationDirectAction(
   formData: FormData,
 ): Promise<void> {
   const monthRaw = String(formData.get("month") ?? "").trim();
-  const monthStart = toMonthStart(monthRaw);
-
-  const { supabase, user, householdId, error } = await resolveContext();
-  if (error || !householdId || !user || !monthStart) return;
-
-  const rpc = await supabase.rpc("rpc_jar_reconciliation_month", {
-    p_household_id: householdId,
-    p_month: monthStart,
-  });
-
-  if (!rpc.error) {
-    await writeAuditEvent(supabase, {
-      householdId,
-      actorUserId: user.id,
-      eventType: "jar.reconciliation_recomputed",
-      entityType: "jar_reconciliation_entries",
-      entityId: monthStart,
-      payload: { month: monthStart, count: (rpc.data ?? []).length },
-    });
+  if (/^\\d{4}-\\d{2}$/.test(monthRaw)) {
+    revalidatePath(`/jars?month=${monthRaw}`);
   }
-
-  revalidatePath(`/jars?month=${monthRaw}`);
   revalidatePath("/jars");
 }

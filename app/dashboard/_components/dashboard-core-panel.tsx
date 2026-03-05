@@ -35,6 +35,7 @@ import {
 import { useI18n } from "@/lib/providers/i18n-provider";
 import type { DashboardCoreResponse } from "@/lib/dashboard/types";
 import { cn } from "@/lib/utils";
+import { isFeatureEnabled } from "@/lib/config/features";
 
 const NetWorthTrend = dynamic(
   () => import("./dashboard-charts").then((mod) => mod.NetWorthTrend),
@@ -52,6 +53,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 export function DashboardCorePanel() {
   const { locale, language } = useI18n();
   const vi = language === "vi";
+  const jarsEnabled = isFeatureEnabled("jars");
+  const financialHealthEnabled = isFeatureEnabled("financialHealth");
 
   const {
     data: payload,
@@ -303,7 +306,7 @@ export function DashboardCorePanel() {
       )}
 
       {/* ── 5. Jars Snapshot ── */}
-      {payload.jars && payload.jars.length > 0 && (
+      {jarsEnabled && payload.jars && payload.jars.length > 0 && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold flex items-center gap-2">
@@ -473,6 +476,7 @@ export function DashboardCorePanel() {
       )}
 
       {/* ── 8. Health Suggestion ── */}
+      {financialHealthEnabled ? (
       <Card className="border-none bg-linear-to-br from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 overflow-hidden ring-1 ring-amber-200/50 dark:ring-amber-900/30">
         <CardHeader className="pb-2">
           <SectionHeader
@@ -515,6 +519,7 @@ export function DashboardCorePanel() {
           </div>
         </CardContent>
       </Card>
+      ) : null}
 
       {/* ── 9. Data Drill-Down ── */}
       <Card className="border-border">
@@ -668,16 +673,20 @@ export function DashboardCorePanel() {
               icon={Target}
               label={vi ? "Mục tiêu" : "Goals"}
             />
-            <QuickAction
-              href="/jars"
-              icon={Sparkles}
-              label={vi ? "Hũ tài chính" : "Jars"}
-            />
-            <QuickAction
-              href="/health"
-              icon={Zap}
-              label={vi ? "Sức khỏe" : "Health"}
-            />
+            {jarsEnabled ? (
+              <QuickAction
+                href="/jars"
+                icon={Sparkles}
+                label={vi ? "Hũ tài chính" : "Jars"}
+              />
+            ) : null}
+            {financialHealthEnabled ? (
+              <QuickAction
+                href="/health"
+                icon={Zap}
+                label={vi ? "Sức khỏe" : "Health"}
+              />
+            ) : null}
           </div>
         </CardContent>
       </Card>

@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 
+import { isServerFeatureEnabled } from "@/lib/config/features";
 import { getDashboardTrend } from "@/lib/dashboard/trend";
 import type {
   DashboardCoreMetrics,
   DashboardCoreResponse,
   DashboardTrendPoint,
 } from "@/lib/dashboard/types";
-import { calculateAndPersistHealthSnapshot } from "@/lib/health/service";
 import { createClient } from "@/lib/supabase/server";
 
 type RpcError = { message: string };
@@ -75,6 +75,7 @@ export async function GET(request: Request) {
 
     const householdId = householdResult.data.household_id;
     const { startISO, endISO } = monthRange(asOfDate);
+    const jarsEnabled = isServerFeatureEnabled("jars");
     const requestedMonths = Number.isFinite(months)
       ? Math.max(1, Math.round(months))
       : 6;
@@ -82,7 +83,6 @@ export async function GET(request: Request) {
     const [
       coreResult,
       trend,
-      healthResult,
       accountsResult,
       assetsResult,
       pricesResult,
@@ -106,9 +106,6 @@ export async function GET(request: Request) {
         months: requestedMonths,
         asOfDate,
       }),
-      calculateAndPersistHealthSnapshot(supabase, householdId, asOfDate).catch(
-        () => null,
-      ),
       supabase
         .from("accounts")
         .select("id, name, opening_balance")
@@ -164,13 +161,15 @@ export async function GET(request: Request) {
         .eq("household_id", householdId)
         .eq("type", "credit_card")
         .eq("is_archived", false),
-      supabase
-        .from("jar_monthly_overview")
-        .select(
-          "jar_id, name, color, icon, target_amount, allocated_amount, withdrawn_amount, net_amount, coverage_ratio",
-        )
-        .eq("household_id", householdId)
-        .eq("month", startISO),
+      jarsEnabled
+        ? supabase
+            .from("jar_monthly_overview")
+            .select(
+              "jar_id, name, color, icon, target_amount, allocated_amount, withdrawn_amount, net_amount, coverage_ratio",
+            )
+            .eq("household_id", householdId)
+            .eq("month", startISO)
+        : Promise.resolve({ data: [], error: null }),
       supabase
         .from("goals")
         .select("id, name, target_amount, status, target_date")
@@ -479,7 +478,7 @@ export async function GET(request: Request) {
       metrics:
         ((coreResult.data as DashboardCoreMetrics[] | null) ?? [])[0] ?? null,
       trend: (trend as DashboardTrendPoint[]).slice(),
-      health: healthResult,
+      health: null,
       drilldowns: {
         netWorth: {
           assets: assetLineItems.sort((a, b) => b.value - a.value),
@@ -495,7 +494,8 @@ export async function GET(request: Request) {
       goals,
       recentTransactions,
       priorityActions,
-      jars: jarOverviewRows
+      jars: jarsEnabled
+        ? jarOverviewRows
         .filter((row) => Number(row.target_amount) > 0)
         .sort(
           (a, b) =>
@@ -512,7 +512,8 @@ export async function GET(request: Request) {
           withdrawn_amount: Number(row.withdrawn_amount),
           net_amount: Number(row.net_amount),
           coverage_ratio: Number(row.coverage_ratio),
-        })),
+        }))
+        : [],
     };
 
     return NextResponse.json(payload, { status: 200 });

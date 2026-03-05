@@ -16,8 +16,9 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { isFeatureEnabled } from "@/lib/config/features";
 
-const tabs = [
+const baseTabs = [
   {
     labelKey: "nav.home",
     href: "/dashboard",
@@ -43,10 +44,16 @@ const tabs = [
 export function BottomTabBar() {
   const pathname = usePathname();
   const { t } = useI18n();
+  const tabs = isFeatureEnabled("jars")
+    ? baseTabs
+    : baseTabs.filter((tab) => tab.href !== "/jars");
 
   return (
     <nav
-      className="grid h-16 grid-cols-4 bg-card"
+      className={cn(
+        "grid h-16 bg-card",
+        tabs.length === 4 ? "grid-cols-4" : "grid-cols-3",
+      )}
       aria-label="Bottom navigation"
     >
       {tabs.map((tab) => {

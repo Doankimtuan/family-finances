@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { AppHeader } from "@/components/layout/app-header";
 import { AppShell } from "@/components/layout/app-shell";
@@ -6,6 +7,7 @@ import { BottomTabBar } from "@/components/layout/bottom-tab-bar";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { SectionHeader } from "@/components/ui/section-header";
 import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
+import { isServerFeatureEnabled } from "@/lib/config/features";
 import { createClient } from "@/lib/supabase/server";
 
 import { JarSummaryCards } from "./_components/jar-summary-cards";
@@ -88,6 +90,10 @@ export default async function JarsPage({
 }: {
   searchParams?: Promise<{ month?: string }>;
 }) {
+  if (!isServerFeatureEnabled("jars")) {
+    redirect("/dashboard");
+  }
+
   const { householdId, language, householdLocale } =
     await getAuthenticatedHouseholdContext();
   const vi = language === "vi";
