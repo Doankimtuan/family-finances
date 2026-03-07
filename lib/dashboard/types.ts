@@ -1,3 +1,5 @@
+import type { SpendingJarAlert } from "@/lib/jars/spending";
+
 export type DashboardCoreMetrics = {
   household_id: string;
   as_of_date: string;
@@ -111,4 +113,5 @@ export type DashboardCoreResponse = {
     net_amount: number;
     coverage_ratio: number;
   }>;
+  spendingJarAlerts?: SpendingJarAlert[];
 };

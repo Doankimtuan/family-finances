@@ -14,7 +14,7 @@ export type FeatureKey =
 
 export function getFeatureFlags() {
   return {
-    jars: readBool(process.env.NEXT_PUBLIC_FEATURE_JARS_ENABLED, false),
+    jars: readBool(process.env.NEXT_PUBLIC_FEATURE_JARS_ENABLED, true),
     cashflowForecast: readBool(
       process.env.NEXT_PUBLIC_FEATURE_CASHFLOW_FORECAST_ENABLED,
       false,

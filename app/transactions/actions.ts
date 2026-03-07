@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 
+import { isServerFeatureEnabled } from "@/lib/config/features";
+import type { SpendingJarAlertLevel, SpendingJarSummaryRow } from "@/lib/jars/spending";
 import { writeAuditEvent } from "@/lib/server/audit";
 import { createClient } from "@/lib/supabase/server";
 
@@ -14,6 +16,15 @@ function ok(message: string): TransactionActionState {
 function fail(message: string): TransactionActionState {
   return { status: "error", message };
 }
+
+type SpendingJarWarning = {
+  jarId: string;
+  jarName: string;
+  alertLevel: SpendingJarAlertLevel;
+  usagePercent: number | null;
+  spent: number;
+  limit: number;
+};
 
 function isInsufficientFundsError(message: string | undefined) {
   const m = (message ?? "").toLowerCase();
@@ -153,6 +164,137 @@ async function getDefaultCategoryId(
   return fallback.data?.id ?? null;
 }
 
+async function ensureFallbackSpendingJarId(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  householdId: string,
+  userId: string,
+): Promise<string | null> {
+  const existing = await supabase
+    .from("jar_definitions")
+    .select("id")
+    .eq("household_id", householdId)
+    .eq("slug", "unassigned")
+    .eq("is_archived", false)
+    .limit(1)
+    .maybeSingle();
+
+  if (existing.data?.id) return existing.data.id;
+
+  await supabase.from("jar_definitions").upsert(
+    {
+      household_id: householdId,
+      name: "Unassigned",
+      slug: "unassigned",
+      color: "#64748B",
+      icon: "archive",
+      sort_order: 999,
+      is_system_default: true,
+      is_archived: false,
+      created_by: userId,
+    },
+    { onConflict: "household_id,slug", ignoreDuplicates: true },
+  );
+
+  const afterUpsert = await supabase
+    .from("jar_definitions")
+    .select("id")
+    .eq("household_id", householdId)
+    .eq("slug", "unassigned")
+    .eq("is_archived", false)
+    .limit(1)
+    .maybeSingle();
+
+  return afterUpsert.data?.id ?? null;
+}
+
+async function ensureSpendingJarCategoryMapping(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  householdId: string,
+  categoryId: string,
+  userId: string,
+) {
+  const existing = await supabase
+    .from("spending_jar_category_map")
+    .select("jar_id")
+    .eq("household_id", householdId)
+    .eq("category_id", categoryId)
+    .limit(1)
+    .maybeSingle();
+
+  if (existing.data?.jar_id) return existing.data.jar_id;
+
+  const fallbackJarId = await ensureFallbackSpendingJarId(
+    supabase,
+    householdId,
+    userId,
+  );
+  if (!fallbackJarId) return null;
+
+  await supabase.from("spending_jar_category_map").upsert(
+    {
+      household_id: householdId,
+      category_id: categoryId,
+      jar_id: fallbackJarId,
+      created_by: userId,
+    },
+    { onConflict: "household_id,category_id", ignoreDuplicates: true },
+  );
+
+  return fallbackJarId;
+}
+
+async function getSpendingJarWarningForCategory(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  householdId: string,
+  categoryId: string | null,
+  userId: string,
+): Promise<SpendingJarWarning | null> {
+  if (!isServerFeatureEnabled("jars") || !categoryId) return null;
+
+  await ensureSpendingJarCategoryMapping(supabase, householdId, categoryId, userId);
+
+  const monthStart = `${new Date().toISOString().slice(0, 7)}-01`;
+  const summaryResult = await supabase.rpc("rpc_spending_jar_monthly_summary", {
+    p_household_id: householdId,
+    p_month: monthStart,
+  });
+
+  if (summaryResult.error) return null;
+
+  const rows = (summaryResult.data ?? []) as SpendingJarSummaryRow[];
+  const mapRow = await supabase
+    .from("spending_jar_category_map")
+    .select("jar_id")
+    .eq("household_id", householdId)
+    .eq("category_id", categoryId)
+    .limit(1)
+    .maybeSingle();
+
+  const jarId = mapRow.data?.jar_id;
+  if (!jarId) return null;
+
+  const jarSummary = rows.find((row) => row.jar_id === jarId);
+  if (!jarSummary) return null;
+  if (
+    jarSummary.alert_level !== "warning" &&
+    jarSummary.alert_level !== "exceeded"
+  ) {
+    return null;
+  }
+
+  return {
+    jarId: jarSummary.jar_id,
+    jarName: jarSummary.jar_name,
+    alertLevel: jarSummary.alert_level,
+    usagePercent:
+      jarSummary.usage_percent === null || jarSummary.usage_percent === undefined
+        ? null
+        : Number(jarSummary.usage_percent),
+    spent: Number(jarSummary.monthly_spent ?? 0),
+    limit: Number(jarSummary.monthly_limit ?? 0),
+  };
+}
+
 export async function quickAddTransactionAction(
   _prev: TransactionActionState,
   formData: FormData,
@@ -270,8 +412,22 @@ export async function quickAddTransactionAction(
 
   revalidatePath("/transactions");
   revalidatePath("/dashboard");
+  revalidatePath("/jars");
 
-  return ok("Transaction added.");
+  const spendingJarWarning =
+    type === "expense"
+      ? await getSpendingJarWarningForCategory(
+          supabase,
+          householdId,
+          categoryId,
+          user.id,
+        )
+      : null;
+
+  return {
+    ...ok("Transaction added."),
+    spendingJarWarning,
+  };
 }
 
 export async function addTransactionDetailedAction(
@@ -380,8 +536,22 @@ export async function addTransactionDetailedAction(
 
   revalidatePath("/transactions");
   revalidatePath("/dashboard");
+  revalidatePath("/jars");
 
-  return ok("Transaction saved.");
+  const spendingJarWarning =
+    type === "expense"
+      ? await getSpendingJarWarningForCategory(
+          supabase,
+          householdId,
+          categoryId,
+          user.id,
+        )
+      : null;
+
+  return {
+    ...ok("Transaction saved."),
+    spendingJarWarning,
+  };
 }
 
 function revalidateTransactionRelatedPaths() {
@@ -389,6 +559,7 @@ function revalidateTransactionRelatedPaths() {
   revalidatePath("/dashboard");
   revalidatePath("/accounts");
   revalidatePath("/budgets");
+  revalidatePath("/jars");
 }
 
 async function getAccountType(
@@ -702,7 +873,20 @@ export async function updateTransactionAction(
   revalidatePath("/money");
   if (prevIsCard && prevAccountId) revalidatePath(`/money/card/${prevAccountId}`);
   if (nextIsCard) revalidatePath(`/money/card/${accountId}`);
-  return ok("Transaction updated.");
+  const spendingJarWarning =
+    type === "expense"
+      ? await getSpendingJarWarningForCategory(
+          supabase,
+          householdId,
+          categoryId,
+          user.id,
+        )
+      : null;
+
+  return {
+    ...ok("Transaction updated."),
+    spendingJarWarning,
+  };
 }
 
 export async function deleteTransactionAction(

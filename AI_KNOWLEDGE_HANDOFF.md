@@ -85,6 +85,19 @@ Migration files in `supabase/migrations/`:
 | `00022_financial_jars.sql`            | Introduces Financial Jars schema + policies + ledger/target structures                  |
 | `00023_translate_default_jars_vi.sql` | Translates seeded default jar names to Vietnamese labels                                |
 | `00024_sync_card_billing_items_with_transaction_edits.sql` | Backfills/syncs billing items with edited transactions                    |
+| `00025_fix_essential_spending_cc_source.sql` | Fixes essential-spending logic to source CC expenses from billing items           |
+| `00026_add_savings_rate_trend_fields.sql` | Adds savings-rate fields used by dashboard cards/trend                               |
+| `00027_jar_coverage_ratio.sql` | Adds jar coverage ratio metrics for jar and dashboard visibility                                 |
+| `00028_jar_reconciliation_ledger.sql` | Adds deterministic reconciliation ledger and recompute RPC                              |
+| `00029_cashflow_forecast_rpc.sql` | Introduces 90-day cashflow forecast RPC (later disabled)                                    |
+| `00030_cashflow_confidence_bands.sql` | Adds confidence band logic for forecast output                                          |
+| `00031_tdsr_metric.sql` | Adds Total Debt Service Ratio (TDSR) metric into dashboard core                                       |
+| `00032_drop_cashflow_forecast_rpc.sql` | Decommissions forecast RPC to simplify product surface                                  |
+| `00033_drop_jar_reconciliation_rpc.sql` | Drops deprecated reconciliation RPC while preserving table data                          |
+| `00034_spending_jar_category_map.sql` | Adds category→jar mapping table + RLS + per-household `unassigned` fallback jar         |
+| `00035_spending_jar_analytics_rpc.sql` | Adds Spending Jar RPCs (summary/history/tx list/category breakdown)                      |
+| `00036_spending_jar_backfill_12m.sql` | Backfills last-12-month expense categories into mapping table                            |
+| `00037_spending_jar_mapping_trigger.sql` | Adds trigger to auto-ensure category mapping on expense transaction write              |
 
 ---
 
@@ -297,6 +310,38 @@ This is virtual statement-credit behavior (not bank transfer), and it prevents d
 ### Localization update
 
 - Default jar labels translated to Vietnamese via `00023_translate_default_jars_vi.sql`.
+- Spending Jar surfaces (alerts/history/mapping) are also bilingual (`en`/`vi`) in app-layer components.
+
+### Spending Jar (Budget Jar) extension (2026-03)
+
+Implemented on top of existing jar infrastructure; no destructive production-data changes.
+
+- **Category mapping layer**:
+  - `spending_jar_category_map` enforces one `expense category -> jar` per household.
+  - Missing mapping resolves to household fallback jar slug `unassigned`.
+  - Mapping can be managed on `/jars` via a dedicated category-to-jar table.
+- **Deterministic analytics RPCs** (`00035`):
+  - `rpc_spending_jar_monthly_summary`
+  - `rpc_spending_jar_history_months`
+  - `rpc_spending_jar_month_transactions`
+  - `rpc_spending_jar_month_category_breakdown`
+- **Installment-aware spend rule**:
+  - Non-card spend from `transactions` on non-CC accounts.
+  - Card spend from `card_billing_items` only.
+  - Converted standard originals excluded (`is_converted_to_installment = false`).
+  - Installments counted by monthly billing lines (`item_type='installment'`).
+- **Alerts**:
+  - `warning` when usage >= 80% and <= 100%.
+  - `exceeded` when usage > 100%.
+  - No percent alert when monthly limit <= 0.
+- **History views**:
+  - `/jars/[jarId]/history` includes monthly summary, month transaction list, and category breakdown.
+- **Dashboard integration**:
+  - `app/api/dashboard/core/route.ts` now appends `spendingJarAlerts`.
+  - Dashboard UI renders warning/exceeded alert cards linking to `/jars`.
+- **Transaction-entry integration**:
+  - Expense create/update ensures fallback mapping exists and returns non-blocking jar warning metadata.
+  - Quick-add and detailed transaction forms display warning/exceeded banners.
 
 ---
 
@@ -351,6 +396,10 @@ Current status:
 
 - Backend scheduler/data model still exists.
 - Primary user-facing Plan tab no longer routes to AI Insights UI (replaced by Jars).
+- Insight/health/cashflow API surfaces are currently feature-disabled by default:
+  - `/api/insights/check` and `/api/insights/recalculate` return feature-disabled responses.
+  - `/api/health/recalculate` and `/api/cash-flow/forecast` return feature-disabled responses.
+- Feature flags default to: `jars=true`, `insights=false`, `financialHealth=false`, `cashflowForecast=false` unless env overrides.
 
 ### Scheduled AI functions
 
@@ -372,8 +421,10 @@ Current status:
 2. **Weekly Email Digest**: Use `ai_insight_deliveries.channel = 'email'` + mail provider.
 3. **Monitoring**: Failure alerts for `ai_insight_runs.status = 'failed'` with retry visibility.
 4. **Installment: Partial cycle settlement**: Currently, `installment_plans` are only updated when a full cycle is settled. Partial payments do not advance `paid_installments`. Consider whether partial payment should count as a paid installment.
-5. **CC expense in essential spending / emergency fund**: The `essential_by_month` CTE in `rpc_dashboard_core` still uses raw `transactions` (not billing items) for CC. If CC spending is tagged as essential, this will be inaccurate.
-6. **Legacy insights cleanup**: Decide whether to fully disable insight generation jobs if jars are the permanent replacement.
+5. **Spending Jar rollout dependency**: Ensure migrations `00034`–`00037` are applied in each environment before enabling jar mapping/history UIs.
+6. **Legacy insights cleanup**: Decide whether to fully retire scheduler jobs/tables if AI Insights remain disabled product-side.
+7. **Jar mapping UX**: Mapping is currently row-by-row save; bulk edit/import and diff preview are not implemented.
+8. **Cashflow chart typing debt**: `next build` currently fails on an unrelated `recharts` formatter type mismatch in `app/cash-flow/_components/cash-flow-forecast-card.tsx`.
 
 ---
 
@@ -384,6 +435,9 @@ Current status:
 | Handoff doc                          | `AI_KNOWLEDGE_HANDOFF.md`                                                             |
 | Jars page                            | `app/jars/page.tsx`                                                                   |
 | Jars actions                         | `app/jars/actions.ts`                                                                 |
+| Jar category mapping UI              | `app/jars/_components/jar-category-map-table.tsx`                                     |
+| Jar history page                     | `app/jars/[jarId]/history/page.tsx`                                                   |
+| Jar history components               | `app/jars/[jarId]/history/_components/*`                                              |
 | Credit card installment actions      | `app/money/card/installment-actions.ts`                                               |
 | Convert to installment dialog        | `app/money/card/_components/convert-to-installment-dialog.tsx`                        |
 | Settle card form                     | `app/money/card/_components/settle-card-form.tsx`                                     |
@@ -391,6 +445,7 @@ Current status:
 | Credit card detail page              | `app/money/card/[id]/page.tsx`                                                        |
 | Money (accounts) page                | `app/money/page.tsx`                                                                  |
 | Dashboard API route                  | `app/api/dashboard/core/route.ts`                                                     |
+| Spending jar API routes              | `app/api/jars/spending/*`                                                             |
 | Dashboard aggregates RPC             | `supabase/migrations/00006_dashboard_aggregates.sql`                                  |
 | CC settings + installment schema     | `supabase/migrations/00014_credit_card_installments.sql`                              |
 | Billing tables schema                | `supabase/migrations/00015_card_billing.sql`                                          |
@@ -401,10 +456,23 @@ Current status:
 | Financial jars schema                | `supabase/migrations/00022_financial_jars.sql`                                        |
 | Vietnamese jars translation          | `supabase/migrations/00023_translate_default_jars_vi.sql`                             |
 | Card edit/billing data sync backfill | `supabase/migrations/00024_sync_card_billing_items_with_transaction_edits.sql`        |
+| Essential spending CC source fix     | `supabase/migrations/00025_fix_essential_spending_cc_source.sql`                      |
+| Savings rate trend fields            | `supabase/migrations/00026_add_savings_rate_trend_fields.sql`                         |
+| Jar coverage ratio                   | `supabase/migrations/00027_jar_coverage_ratio.sql`                                    |
+| Jar reconciliation ledger            | `supabase/migrations/00028_jar_reconciliation_ledger.sql`                             |
+| Cashflow forecast (deprecated)       | `supabase/migrations/00029_cashflow_forecast_rpc.sql`, `00032_drop_cashflow_forecast_rpc.sql` |
+| Cashflow confidence bands            | `supabase/migrations/00030_cashflow_confidence_bands.sql`                             |
+| TDSR metric                          | `supabase/migrations/00031_tdsr_metric.sql`                                           |
+| Spending jar mapping schema          | `supabase/migrations/00034_spending_jar_category_map.sql`                             |
+| Spending jar analytics RPCs          | `supabase/migrations/00035_spending_jar_analytics_rpc.sql`                            |
+| Spending jar mapping backfill        | `supabase/migrations/00036_spending_jar_backfill_12m.sql`                             |
+| Spending jar mapping trigger         | `supabase/migrations/00037_spending_jar_mapping_trigger.sql`                          |
 | AI migrations                        | `supabase/migrations/00010_ai_insights_foundation.sql`, `00011_ai_scheduler_cron.sql` |
 | Edge dispatcher                      | `supabase/functions/ai-cycle-dispatch/index.ts`                                       |
 | Deterministic insights engine        | `lib/insights/engine.ts`, `lib/insights/service.ts`                                   |
 | Dashboard trend helper               | `lib/dashboard/trend.ts`                                                              |
+| Spending jar shared types            | `lib/jars/spending.ts`                                                                |
+| Feature flags                        | `lib/config/features.ts`                                                              |
 | UI money input                       | `components/ui/money-input.tsx`                                                       |
 
 ---
@@ -421,3 +489,35 @@ Current status:
 - **Never use Supabase join syntax `table!column_name`** — use `table!constraint_name` or fetch related IDs separately.
 - **Cashback must be recorded as card `income` transaction**, then mapped to the intended unpaid billing cycle to preserve statement consistency.
 - **Jars are virtual planning envelopes only**; never mutate account balances through jar operations.
+- **Spending Jar mapping contract**: every expense category resolves to exactly one jar (explicit map or `unassigned` fallback), and this must not block transaction writes.
+- **Spending alert contract**: `warning` at >=80% and `exceeded` at >100% of monthly limit; limit<=0 yields no percent alert.
+- **Before enabling Spending Jar UI in an environment, apply migrations `00034` -> `00037` in order.**
+
+---
+
+## 17. Session Update Snapshot (2026-03-07)
+
+### What was implemented in this session
+
+- Spending Jar backend stack completed:
+  - schema + RLS + fallback jar (`00034`)
+  - analytics RPCs (`00035`)
+  - 12-month backfill (`00036`)
+  - write-time mapping trigger (`00037`)
+- New REST endpoints under `app/api/jars/spending/*`:
+  - `summary`, `history`, `transactions`, `categories`, `map-category`
+- Dashboard integration:
+  - API now returns `spendingJarAlerts`
+  - UI renders warning/exceeded cards linking to jars
+- Transaction integration:
+  - quick add/detailed add/update return optional spending-jar warning payload
+  - form-level non-blocking warning banner for warning/exceeded jars
+- Jars UX:
+  - `/jars` now includes a category→jar mapping table with per-row save
+  - `/jars/[jarId]/history` now shows monthly summary + transactions + category breakdown
+
+### Production safety notes
+
+- All Spending Jar changes are additive/non-destructive.
+- No account balances are mutated by jar logic.
+- Credit-card expense sourcing remains billing-item based.

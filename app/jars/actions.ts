@@ -431,3 +431,75 @@ export async function runJarReconciliationDirectAction(
   }
   revalidatePath("/jars");
 }
+
+export async function updateSpendingJarCategoryMapAction(
+  _prev: JarActionState,
+  formData: FormData,
+): Promise<JarActionState> {
+  const categoryId = String(formData.get("categoryId") ?? "").trim();
+  const jarId = String(formData.get("jarId") ?? "").trim();
+
+  if (!categoryId) return fail("Thiếu danh mục.");
+  if (!jarId) return fail("Thiếu hũ.");
+
+  const { supabase, user, householdId, error } = await resolveContext();
+  if (error || !householdId || !user) return fail(error ?? "No household found.");
+
+  const [categoryResult, jarResult] = await Promise.all([
+    supabase
+      .from("categories")
+      .select("id, kind, household_id")
+      .eq("id", categoryId)
+      .or(`household_id.is.null,household_id.eq.${householdId}`)
+      .limit(1)
+      .maybeSingle(),
+    supabase
+      .from("jar_definitions")
+      .select("id")
+      .eq("id", jarId)
+      .eq("household_id", householdId)
+      .eq("is_archived", false)
+      .limit(1)
+      .maybeSingle(),
+  ]);
+
+  if (!categoryResult.data?.id) return fail("Danh mục không hợp lệ.");
+  if (categoryResult.data.kind !== "expense") {
+    return fail("Chỉ hỗ trợ map cho danh mục chi tiêu.");
+  }
+  if (!jarResult.data?.id) return fail("Hũ không hợp lệ.");
+
+  const upsert = await supabase.from("spending_jar_category_map").upsert(
+    {
+      household_id: householdId,
+      category_id: categoryId,
+      jar_id: jarId,
+      created_by: user.id,
+    },
+    { onConflict: "household_id,category_id" },
+  );
+
+  if (upsert.error) return fail(upsert.error.message);
+
+  await writeAuditEvent(supabase, {
+    householdId,
+    actorUserId: user.id,
+    eventType: "jar.category_map_upserted",
+    entityType: "spending_jar_category_map",
+    entityId: categoryId,
+    payload: { categoryId, jarId },
+  });
+
+  revalidatePath("/jars");
+  revalidatePath("/dashboard");
+  return ok("Đã cập nhật map danh mục → hũ.");
+}
+
+export async function updateSpendingJarCategoryMapDirectAction(
+  formData: FormData,
+): Promise<void> {
+  await updateSpendingJarCategoryMapAction(
+    { status: "idle", message: "" },
+    formData,
+  );
+}

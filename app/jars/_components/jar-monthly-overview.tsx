@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { formatVndCompact } from "@/lib/dashboard/format";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { archiveJarDirectAction } from "@/app/jars/actions";
 
@@ -34,6 +36,16 @@ type Props = {
   jars: JarRow[];
   overviewMap: Map<string, OverviewRow>;
   targetMap: Map<string, TargetRow>;
+  spendingAlertMap: Map<
+    string,
+    {
+      jarId: string;
+      alertLevel: "normal" | "warning" | "exceeded";
+      usagePercent: number | null;
+      spent: number;
+      limit: number;
+    }
+  >;
   month: string;
   locale: string;
   vi: boolean;
@@ -43,6 +55,7 @@ export function JarMonthlyOverview({
   jars,
   overviewMap,
   targetMap,
+  spendingAlertMap,
   month,
   locale,
   vi,
@@ -60,6 +73,7 @@ export function JarMonthlyOverview({
       {jars.map((jar) => {
         const ov = overviewMap.get(jar.id);
         const target = targetMap.get(jar.id);
+        const alert = spendingAlertMap.get(jar.id);
         const coverage = Math.round(Number(ov?.coverage_ratio ?? 0) * 100);
         const essentialsCoverage = Number(ov?.jar_coverage_ratio_percent);
         const showEssentialsWarning =
@@ -73,6 +87,19 @@ export function JarMonthlyOverview({
               <div className="flex items-center justify-between gap-2">
                 <h3 className="font-bold text-base">{jar.name}</h3>
                 <div className="flex items-center gap-2">
+                  {alert && alert.alertLevel !== "normal" ? (
+                    <Badge
+                      className={
+                        alert.alertLevel === "exceeded"
+                          ? "bg-rose-100 text-rose-700 border-rose-200"
+                          : "bg-amber-100 text-amber-800 border-amber-200"
+                      }
+                    >
+                      {alert.alertLevel === "exceeded"
+                        ? (vi ? "Vượt hạn mức" : "Exceeded")
+                        : (vi ? "Cảnh báo 80%" : "Warning 80%")}
+                    </Badge>
+                  ) : null}
                   {showEssentialsWarning ? (
                     <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800">
                       {vi ? "Thiếu quỹ thiết yếu" : "Essentials underfunded"}
@@ -141,6 +168,17 @@ export function JarMonthlyOverview({
                 </div>
               </div>
 
+              {alert && alert.alertLevel !== "normal" ? (
+                <p className="text-xs text-muted-foreground">
+                  {vi ? "Chi tiêu tháng" : "Monthly spend"}:{" "}
+                  {formatVndCompact(alert.spent, locale)} /{" "}
+                  {formatVndCompact(alert.limit, locale)}
+                  {alert.usagePercent !== null
+                    ? ` (${alert.usagePercent.toFixed(1)}%)`
+                    : ""}
+                </p>
+              ) : null}
+
               <JarTargetForm
                 jarId={jar.id}
                 month={month}
@@ -150,6 +188,15 @@ export function JarMonthlyOverview({
               />
 
               <JarAllocateWithdrawForm jarId={jar.id} month={month} vi={vi} />
+
+              <div className="flex justify-end">
+                <Link
+                  href={`/jars/${jar.id}/history`}
+                  className="text-xs font-semibold text-primary hover:underline"
+                >
+                  {vi ? "Xem lịch sử" : "View history"}
+                </Link>
+              </div>
             </CardContent>
           </Card>
         );

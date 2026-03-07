@@ -15,6 +15,8 @@ import { JarMonthlyOverview } from "./_components/jar-monthly-overview";
 import { JarActivityList } from "./_components/jar-activity-list";
 import { JarCreateForm } from "./_components/jar-create-form";
 import { JarAccountabilityTable } from "./_components/jar-accountability-table";
+import { JarCategoryMapTable } from "./_components/jar-category-map-table";
+import type { SpendingJarSummaryRow } from "@/lib/jars/spending";
 
 type JarRow = {
   id: string;
@@ -62,6 +64,15 @@ type ReconciliationRow = {
 type CategoryRow = {
   id: string;
   name: string;
+  kind: "income" | "expense";
+};
+
+type SpendingAlertRow = {
+  jarId: string;
+  alertLevel: "normal" | "warning" | "exceeded";
+  usagePercent: number | null;
+  spent: number;
+  limit: number;
 };
 
 function toMonthInput(date: Date): string {
@@ -116,7 +127,7 @@ export default async function JarsPage({
     { onConflict: "household_id,slug", ignoreDuplicates: true },
   );
 
-  const [jarsResult, targetResult, overviewResult, entriesResult, reconciliationResult, categoriesResult] =
+  const [jarsResult, targetResult, overviewResult, entriesResult, reconciliationResult, categoriesResult, spendingSummaryResult, mapResult] =
     await Promise.all([
       supabase
         .from("jar_definitions")
@@ -155,8 +166,16 @@ export default async function JarsPage({
         .order("gap_amount", { ascending: false }),
       supabase
         .from("categories")
-        .select("id, name")
+        .select("id, name, kind")
         .or(`household_id.is.null,household_id.eq.${householdId}`),
+      supabase.rpc("rpc_spending_jar_monthly_summary", {
+        p_household_id: householdId,
+        p_month: monthStart,
+      }),
+      supabase
+        .from("spending_jar_category_map")
+        .select("category_id, jar_id")
+        .eq("household_id", householdId),
     ]);
 
   const jars = (jarsResult.data ?? []) as JarRow[];
@@ -165,11 +184,56 @@ export default async function JarsPage({
   const entries = (entriesResult.data ?? []) as EntryRow[];
   const reconciliationRows = (reconciliationResult.data ?? []) as ReconciliationRow[];
   const categories = (categoriesResult.data ?? []) as CategoryRow[];
+  const mapRows = (mapResult.data ?? []) as Array<{
+    category_id: string;
+    jar_id: string;
+  }>;
+  const spendingSummaryRows =
+    (spendingSummaryResult.data ?? []) as SpendingJarSummaryRow[];
 
   const targetMap = new Map(targets.map((t) => [t.jar_id, t]));
   const overviewMap = new Map(overviewRows.map((r) => [r.jar_id, r]));
   const categoryNameMap = new Map(categories.map((c) => [c.id, c.name]));
   const jarNameMap = new Map(jars.map((jar) => [jar.id, jar.name]));
+  const spendingAlertMap = new Map<string, SpendingAlertRow>(
+    spendingSummaryRows.map((row) => [
+      row.jar_id,
+      {
+        jarId: row.jar_id,
+        alertLevel: row.alert_level,
+        usagePercent:
+          row.usage_percent === null || row.usage_percent === undefined
+            ? null
+            : Number(row.usage_percent),
+        spent: Number(row.monthly_spent ?? 0),
+        limit: Number(row.monthly_limit ?? 0),
+      },
+    ]),
+  );
+  const fallbackJarId = jars.find((jar) => jar.slug === "unassigned")?.id ?? null;
+  const categoryMappings = new Map(
+    mapRows.map((row) => [
+      row.category_id,
+      {
+        categoryId: row.category_id,
+        jarId: row.jar_id,
+        resolvedFromFallback: false,
+      },
+    ]),
+  );
+  const expenseCategories = categories
+    .filter((category) => category.kind === "expense")
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  for (const category of expenseCategories) {
+    if (!categoryMappings.has(category.id) && fallbackJarId) {
+      categoryMappings.set(category.id, {
+        categoryId: category.id,
+        jarId: fallbackJarId,
+        resolvedFromFallback: true,
+      });
+    }
+  }
 
   const totalAllocated = overviewRows.reduce(
     (sum, row) => sum + Number(row.allocated_amount ?? 0),
@@ -262,14 +326,15 @@ export default async function JarsPage({
             />
           </CardHeader>
           <CardContent>
-            <JarMonthlyOverview
-              jars={jars}
-              overviewMap={overviewMap}
-              targetMap={targetMap}
-              month={selectedMonth}
-              locale={householdLocale}
-              vi={vi}
-            />
+        <JarMonthlyOverview
+          jars={jars}
+          overviewMap={overviewMap}
+          targetMap={targetMap}
+          spendingAlertMap={spendingAlertMap}
+          month={selectedMonth}
+          locale={householdLocale}
+          vi={vi}
+        />
           </CardContent>
         </Card>
 
@@ -285,6 +350,29 @@ export default async function JarsPage({
               rows={accountabilityRows}
               month={selectedMonth}
               locale={householdLocale}
+              vi={vi}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <SectionHeader
+              label={vi ? "Liên kết danh mục" : "Category mapping"}
+              title={vi ? "Danh mục chi tiêu theo hũ" : "Expense Category to Jar"}
+              description={
+                vi
+                  ? "Mỗi danh mục chi tiêu phải gắn với một hũ. Nếu thiếu map sẽ dùng hũ 'Unassigned'."
+                  : "Each expense category maps to one jar. Missing mappings use the 'Unassigned' jar."
+              }
+            />
+          </CardHeader>
+          <CardContent>
+            <JarCategoryMapTable
+              categories={expenseCategories}
+              jarOptions={jars}
+              mappings={categoryMappings}
+              fallbackJarId={fallbackJarId}
               vi={vi}
             />
           </CardContent>

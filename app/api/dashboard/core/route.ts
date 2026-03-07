@@ -7,6 +7,7 @@ import type {
   DashboardCoreResponse,
   DashboardTrendPoint,
 } from "@/lib/dashboard/types";
+import type { SpendingJarSummaryRow } from "@/lib/jars/spending";
 import { createClient } from "@/lib/supabase/server";
 
 type RpcError = { message: string };
@@ -93,6 +94,7 @@ export async function GET(request: Request) {
       ccBillingResult,
       ccAccountsResult,
       jarsOverviewResult,
+      spendingJarSummaryResult,
       goalsResult,
       contributionsResult,
       recentTxResult,
@@ -169,6 +171,12 @@ export async function GET(request: Request) {
             )
             .eq("household_id", householdId)
             .eq("month", startISO)
+        : Promise.resolve({ data: [], error: null }),
+      jarsEnabled
+        ? supabase.rpc("rpc_spending_jar_monthly_summary", {
+            p_household_id: householdId,
+            p_month: startISO,
+          })
         : Promise.resolve({ data: [], error: null }),
       supabase
         .from("goals")
@@ -299,6 +307,7 @@ export async function GET(request: Request) {
       txMonthResult.error ||
       categoriesResult.error
       || jarsOverviewResult.error
+      || spendingJarSummaryResult.error
     ) {
       return NextResponse.json(
         {
@@ -311,6 +320,7 @@ export async function GET(request: Request) {
             txMonthResult.error?.message ??
             categoriesResult.error?.message ??
             jarsOverviewResult.error?.message ??
+            spendingJarSummaryResult.error?.message ??
             "Failed to build dashboard drill-downs.",
         },
         { status: 500 },
@@ -331,6 +341,8 @@ export async function GET(request: Request) {
       net_amount: number;
       coverage_ratio: number;
     }>;
+    const spendingJarSummaryRows =
+      (spendingJarSummaryResult.data ?? []) as SpendingJarSummaryRow[];
     // Set of credit card account IDs — used to skip their raw expense transactions
     const ccAccountIds = new Set(
       (ccAccountsResult.data ?? []).map((a) => a.id),
@@ -513,6 +525,27 @@ export async function GET(request: Request) {
           net_amount: Number(row.net_amount),
           coverage_ratio: Number(row.coverage_ratio),
         }))
+        : [],
+      spendingJarAlerts: jarsEnabled
+        ? spendingJarSummaryRows
+            .filter(
+              (row) =>
+                row.alert_level === "warning" || row.alert_level === "exceeded",
+            )
+            .sort(
+              (a, b) => Number(b.usage_percent ?? 0) - Number(a.usage_percent ?? 0),
+            )
+            .map((row) => ({
+              jarId: row.jar_id,
+              jarName: row.jar_name,
+              usagePercent:
+                row.usage_percent === null || row.usage_percent === undefined
+                  ? null
+                  : Number(row.usage_percent),
+              alertLevel: row.alert_level,
+              spent: Number(row.monthly_spent ?? 0),
+              limit: Number(row.monthly_limit ?? 0),
+            }))
         : [],
     };
 

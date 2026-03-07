@@ -22,6 +22,7 @@ import {
 import { t as tFn } from "@/lib/i18n/dictionary";
 
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { SectionHeader } from "@/components/ui/section-header";
 import { MetricCard } from "@/components/ui/metric-card";
@@ -357,6 +358,58 @@ export function DashboardCorePanel() {
       )}
 
       {/* ── 6. Priority Actions ── */}
+      {jarsEnabled && payload.spendingJarAlerts && payload.spendingJarAlerts.length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-warning" />
+              {vi ? "Cảnh báo chi tiêu theo hũ" : "Spending Jar Alerts"}
+            </h2>
+            <Link
+              href="/jars"
+              className="text-sm font-medium text-primary hover:underline flex items-center gap-1"
+            >
+              {vi ? "Mở hũ" : "Open Jars"}
+              <ChevronRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+          <div className="space-y-3">
+            {payload.spendingJarAlerts.map((alert) => (
+              <Card key={alert.jarId} className="border-border/50">
+                <CardContent className="p-4 flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold">{alert.jarName}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {formatVndCompact(alert.spent, locale)} /{" "}
+                      {formatVndCompact(alert.limit, locale)}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge
+                      className={
+                        alert.alertLevel === "exceeded"
+                          ? "bg-rose-100 text-rose-700 border-rose-200"
+                          : "bg-amber-100 text-amber-800 border-amber-200"
+                      }
+                    >
+                      {alert.alertLevel === "exceeded"
+                        ? (vi ? "Vượt hạn mức" : "Exceeded")
+                        : (vi ? "Sắp chạm hạn mức" : "Warning")}
+                    </Badge>
+                    <span className="text-xs font-semibold text-muted-foreground">
+                      {alert.usagePercent === null
+                        ? "—"
+                        : `${alert.usagePercent.toFixed(1)}%`}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── 7. Priority Actions ── */}
       {payload.priorityActions && payload.priorityActions.length > 0 && (
         <div className="space-y-4">
           <div className="flex items-center gap-2">
@@ -399,7 +452,7 @@ export function DashboardCorePanel() {
         </div>
       )}
 
-      {/* ── 7. Recent Activity ── */}
+      {/* ── 8. Recent Activity ── */}
       {payload.recentTransactions && payload.recentTransactions.length > 0 && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
@@ -475,7 +528,7 @@ export function DashboardCorePanel() {
         </div>
       )}
 
-      {/* ── 8. Health Suggestion ── */}
+      {/* ── 9. Health Suggestion ── */}
       {financialHealthEnabled ? (
       <Card className="border-none bg-linear-to-br from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 overflow-hidden ring-1 ring-amber-200/50 dark:ring-amber-900/30">
         <CardHeader className="pb-2">
@@ -521,7 +574,7 @@ export function DashboardCorePanel() {
       </Card>
       ) : null}
 
-      {/* ── 9. Data Drill-Down ── */}
+      {/* ── 10. Data Drill-Down ── */}
       <Card className="border-border">
         <CardHeader className="pb-3">
           <SectionHeader
@@ -652,7 +705,7 @@ export function DashboardCorePanel() {
         </CardContent>
       </Card>
 
-      {/* ── 10. Quick Actions ── */}
+      {/* ── 11. Quick Actions ── */}
       <Card className="border-transparent bg-transparent shadow-none">
         <CardHeader className="px-0">
           <SectionHeader

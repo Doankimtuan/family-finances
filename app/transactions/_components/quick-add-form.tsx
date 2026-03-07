@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useMemo, useState, useTransition } from "react";
+import { AlertTriangle } from "lucide-react";
 
 import { quickAddTransactionAction } from "@/app/transactions/actions";
 import {
@@ -155,6 +156,31 @@ export function QuickAddForm({ accountId, categories }: QuickAddFormProps) {
       </button>
 
       <p className="text-xs text-slate-500">{helperText}</p>
+
+      {state.spendingJarWarning ? (
+        <div
+          className={`rounded-xl border p-3 text-sm ${
+            state.spendingJarWarning.alertLevel === "exceeded"
+              ? "border-rose-200 bg-rose-50 text-rose-700"
+              : "border-amber-200 bg-amber-50 text-amber-800"
+          }`}
+        >
+          <p className="flex items-center gap-2 font-semibold">
+            <AlertTriangle className="h-4 w-4" />
+            {state.spendingJarWarning.alertLevel === "exceeded"
+              ? (vi ? "Hũ đã vượt hạn mức tháng" : "Jar monthly limit exceeded")
+              : (vi ? "Hũ đang gần chạm hạn mức" : "Jar is close to monthly limit")}
+          </p>
+          <p className="mt-1 text-xs">
+            {state.spendingJarWarning.jarName}:{" "}
+            {state.spendingJarWarning.spent.toLocaleString()} /{" "}
+            {state.spendingJarWarning.limit.toLocaleString()} VND
+            {state.spendingJarWarning.usagePercent !== null
+              ? ` (${state.spendingJarWarning.usagePercent.toFixed(1)}%)`
+              : ""}
+          </p>
+        </div>
+      ) : null}
 
       {state.status === "error" && state.message ? (
         <p className="text-sm text-rose-600">{state.message}</p>
