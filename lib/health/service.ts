@@ -2,6 +2,11 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { getDashboardTrend } from "@/lib/dashboard/trend";
 import { computeFinancialHealth } from "@/lib/health/engine";
+import {
+  buildSavingsListItems,
+  buildSavingsSummary,
+  fetchSavingsBundle,
+} from "@/lib/savings/service";
 
 type DashboardCoreRow = {
   total_assets: number;
@@ -74,8 +79,53 @@ export async function calculateAndPersistHealthSnapshot(
     throw new Error("Missing dashboard core metrics for health calculation.");
   }
 
+  const [savingsBundle, monthTransactionsResult] = await Promise.all([
+    fetchSavingsBundle(supabase, householdId),
+    supabase
+      .from("transactions")
+      .select("type, amount, transaction_subtype, is_non_cash, transaction_date")
+      .eq("household_id", householdId)
+      .gte("transaction_date", firstOfCurrentMonthISO()),
+  ]);
+
+  if (monthTransactionsResult.error) {
+    throw new Error(monthTransactionsResult.error.message);
+  }
+
   const trendPoints = await getDashboardTrend(supabase, householdId, { months: 6, asOfDate });
   const trend = trendPoints.map((row) => Number(row.net_worth));
+  const savingsItems = buildSavingsListItems(
+    savingsBundle.accounts,
+    savingsBundle.withdrawals,
+    savingsBundle.goals,
+    asOfDate,
+  );
+  const savingsSummary = buildSavingsSummary(savingsItems);
+  const monthTransactions = (monthTransactionsResult.data ?? []) as Array<{
+    type: string;
+    amount: number;
+    transaction_subtype: string | null;
+    is_non_cash: boolean;
+  }>;
+  const adjustedIncome = monthTransactions
+    .filter(
+      (row) =>
+        !row.is_non_cash &&
+        row.type === "income" &&
+        row.transaction_subtype !== "savings_principal_withdrawal",
+    )
+    .reduce((sum, row) => sum + Number(row.amount), 0);
+  const adjustedExpense = monthTransactions
+    .filter(
+      (row) =>
+        !row.is_non_cash &&
+        row.type === "expense" &&
+        row.transaction_subtype !== "savings_principal_deposit",
+    )
+    .reduce((sum, row) => sum + Number(row.amount), 0);
+  const adjustedSavings = adjustedIncome - adjustedExpense;
+  const adjustedSavingsRate =
+    adjustedIncome > 0 ? adjustedSavings / adjustedIncome : null;
   const goals = (goalsResult.data ?? []) as GoalRow[];
 
   const goalIds = goals.map((goal) => goal.id);
@@ -158,11 +208,11 @@ export async function calculateAndPersistHealthSnapshot(
     : null;
 
   const health = computeFinancialHealth({
-    monthlySavings: Number(core.monthly_savings),
-    savingsRate: core.savings_rate,
+    monthlySavings: adjustedSavings,
+    savingsRate: adjustedSavingsRate,
     emergencyMonths: core.emergency_months,
     debtServiceRatio: core.debt_service_ratio,
-    totalAssets: Number(core.total_assets),
+    totalAssets: Number(core.total_assets) + savingsSummary.totalGrossValue,
     totalLiabilities: Number(core.total_liabilities),
     netWorthTrend: trend,
     goalsProgressRatio: goalProgressRatios.length
@@ -189,6 +239,13 @@ export async function calculateAndPersistHealthSnapshot(
       diversification_score: health.factorScores.diversification,
       metrics_json: {
         ...health.metrics,
+        savings_gross_value: savingsSummary.totalGrossValue,
+        savings_liquidation_value: savingsSummary.totalLiquidationValue,
+        savings_locked_value:
+          savingsSummary.totalGrossValue - savingsSummary.totalLiquidationValue,
+        maturing_30d_value: savingsItems
+          .filter((item) => item.daysUntilMaturity !== null && item.daysUntilMaturity <= 30)
+          .reduce((sum, item) => sum + item.currentValue.grossValue, 0),
         weights: health.weights,
       },
       top_action: health.topAction,

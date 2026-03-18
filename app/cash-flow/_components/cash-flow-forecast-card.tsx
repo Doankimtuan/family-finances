@@ -122,7 +122,10 @@ export function CashFlowForecastCard() {
                     tickFormatter={(value: number) => formatVndCompact(value, "en-US")}
                   />
                   <Tooltip
-                    formatter={(value: number, key: string) => [formatVndCompact(Number(value), "en-US"), key]}
+                    formatter={(value, key) => [
+                      formatVndCompact(Number(value), "en-US"),
+                      String(key),
+                    ]}
                     labelFormatter={(label) => `Date: ${String(label)}`}
                   />
                   <Legend />

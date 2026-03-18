@@ -44,6 +44,8 @@ type TransactionItem = {
   account_name: string | null;
   counterparty_account_name: string | null;
   member_name: string | null;
+  transaction_subtype?: string | null;
+  is_non_cash?: boolean;
 };
 
 type OptionAccount = { id: string; name: string };
@@ -125,6 +127,16 @@ function TransactionRow({
                 {item.description}
               </p>
             )}
+            {item.transaction_subtype?.startsWith("savings_") ? (
+              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-emerald-700">
+                Savings
+              </span>
+            ) : null}
+            {item.is_non_cash ? (
+              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-700">
+                {vi ? "Phi tiền mặt" : "Non-cash"}
+              </span>
+            ) : null}
           </div>
 
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
@@ -157,6 +169,7 @@ function TransactionRow({
           <div className="flex items-center justify-end gap-1 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
             <button
               type="button"
+              disabled={item.transaction_subtype?.startsWith("savings_")}
               onClick={() => setIsEditing(!isEditing)}
               className="p-1 rounded-md hover:bg-slate-100 text-slate-400 hover:text-primary transition-colors"
               title={vi ? "Sửa" : "Edit"}
@@ -179,7 +192,7 @@ function TransactionRow({
               <input type="hidden" name="transactionId" value={item.id} />
               <button
                 type="submit"
-                disabled={isPending}
+                disabled={isPending || item.transaction_subtype?.startsWith("savings_")}
                 className="p-1 rounded-md hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors"
                 title={vi ? "Xóa" : "Delete"}
               >

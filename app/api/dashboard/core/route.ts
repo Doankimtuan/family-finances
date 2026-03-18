@@ -8,6 +8,11 @@ import type {
   DashboardTrendPoint,
 } from "@/lib/dashboard/types";
 import type { SpendingJarSummaryRow } from "@/lib/jars/spending";
+import {
+  buildSavingsListItems,
+  buildSavingsSummary,
+  fetchSavingsBundle,
+} from "@/lib/savings/service";
 import { createClient } from "@/lib/supabase/server";
 
 type RpcError = { message: string };
@@ -134,13 +139,17 @@ export async function GET(request: Request) {
       // All-time balance transactions
       supabase
         .from("transactions")
-        .select("account_id, counterparty_account_id, type, amount")
+        .select(
+          "account_id, counterparty_account_id, type, amount, transaction_subtype, is_non_cash",
+        )
         .eq("household_id", householdId)
         .lte("transaction_date", asOfDate),
       // This-month transactions for category breakdown (no join needed)
       supabase
         .from("transactions")
-        .select("account_id, category_id, type, amount")
+        .select(
+          "account_id, category_id, type, amount, transaction_subtype, is_non_cash",
+        )
         .eq("household_id", householdId)
         .gte("transaction_date", startISO)
         .lt("transaction_date", endISO),
@@ -190,7 +199,9 @@ export async function GET(request: Request) {
         .eq("household_id", householdId),
       supabase
         .from("transactions")
-        .select("id, type, amount, transaction_date, description, category_id")
+        .select(
+          "id, type, amount, transaction_date, description, category_id, transaction_subtype, is_non_cash",
+        )
         .eq("household_id", householdId)
         .order("transaction_date", { ascending: false })
         .limit(5),
@@ -329,6 +340,14 @@ export async function GET(request: Request) {
 
     const monthTransactions = txMonthResult.data ?? [];
     const balanceTransactions = txBalanceResult.data ?? [];
+    const savingsBundle = await fetchSavingsBundle(supabase, householdId);
+    const savingsItems = buildSavingsListItems(
+      savingsBundle.accounts,
+      savingsBundle.withdrawals,
+      savingsBundle.goals,
+      asOfDate,
+    );
+    const savingsSummary = buildSavingsSummary(savingsItems);
     const ccBillingItems = ccBillingResult.data ?? [];
     const jarOverviewRows = (jarsOverviewResult.data ?? []) as Array<{
       jar_id: string;
@@ -351,6 +370,7 @@ export async function GET(request: Request) {
     // Build account → delta map for net-worth balances
     const accountDeltaMap = new Map<string, number>();
     for (const tx of balanceTransactions) {
+      if (tx.is_non_cash) continue;
       const amount = Number(tx.amount ?? 0);
       const sourceId = tx.account_id;
       const targetId = tx.counterparty_account_id;
@@ -404,6 +424,11 @@ export async function GET(request: Request) {
         value: Number(a.quantity) * (latestPriceMap.get(a.id) ?? 0),
         source: `assets:${a.id}*asset_price_history(latest<=${asOfDate})`,
       })),
+      ...savingsItems.map((item) => ({
+        label: `${item.providerName} (${item.productName ?? "Savings"})`,
+        value: item.currentValue.grossValue,
+        source: `savings_accounts:${item.id}`,
+      })),
     ];
 
     const liabilityLineItems = (liabilitiesResult.data ?? []).map((l) => ({
@@ -417,6 +442,13 @@ export async function GET(request: Request) {
     const expenseMap = new Map<string, number>();
 
     for (const tx of monthTransactions) {
+      if (tx.is_non_cash) continue;
+      if (
+        tx.transaction_subtype === "savings_principal_deposit" ||
+        tx.transaction_subtype === "savings_principal_withdrawal"
+      ) {
+        continue;
+      }
       if (!tx.category_id) continue;
 
       // Skip expense transactions from credit_card accounts —
@@ -487,8 +519,51 @@ export async function GET(request: Request) {
     );
 
     const payload: DashboardCoreResponse = {
-      metrics:
-        ((coreResult.data as DashboardCoreMetrics[] | null) ?? [])[0] ?? null,
+      metrics: (() => {
+        const core =
+          ((coreResult.data as DashboardCoreMetrics[] | null) ?? [])[0] ?? null;
+        if (!core) return null;
+
+        const adjustedIncome = monthTransactions
+          .filter(
+            (tx) =>
+              !tx.is_non_cash &&
+              tx.type === "income" &&
+              tx.transaction_subtype !== "savings_principal_withdrawal",
+          )
+          .reduce((sum, tx) => sum + Number(tx.amount), 0);
+        const adjustedExpense = monthTransactions
+          .filter(
+            (tx) =>
+              !tx.is_non_cash &&
+              tx.type === "expense" &&
+              tx.transaction_subtype !== "savings_principal_deposit",
+          )
+          .reduce((sum, tx) => sum + Number(tx.amount), 0);
+        const adjustedSavings = adjustedIncome - adjustedExpense;
+        const adjustedTotalAssets =
+          Number(core.total_assets) + savingsSummary.totalGrossValue;
+        const adjustedNetWorth =
+          adjustedTotalAssets - Number(core.total_liabilities);
+
+        return {
+          ...core,
+          total_assets: adjustedTotalAssets,
+          net_worth: adjustedNetWorth,
+          monthly_income: adjustedIncome,
+          monthly_expense: adjustedExpense,
+          monthly_savings: adjustedSavings,
+          savings_rate:
+            adjustedIncome > 0 ? adjustedSavings / adjustedIncome : null,
+          savings_gross_value: savingsSummary.totalGrossValue,
+          savings_liquidation_value: savingsSummary.totalLiquidationValue,
+          savings_locked_value:
+            savingsSummary.totalGrossValue - savingsSummary.totalLiquidationValue,
+          maturing_30d_value: savingsItems
+            .filter((item) => item.daysUntilMaturity !== null && item.daysUntilMaturity <= 30)
+            .reduce((sum, item) => sum + item.currentValue.grossValue, 0),
+        };
+      })(),
       trend: (trend as DashboardTrendPoint[]).slice(),
       health: null,
       drilldowns: {

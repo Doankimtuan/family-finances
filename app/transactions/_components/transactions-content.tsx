@@ -46,7 +46,7 @@ export async function TransactionsContent({
       supabase
         .from("transactions")
         .select(
-          "id, type, amount, transaction_date, description, category_id, account_id, counterparty_account_id, paid_by_member_id",
+          "id, type, amount, transaction_date, description, category_id, account_id, counterparty_account_id, paid_by_member_id, transaction_subtype, is_non_cash",
         )
         .eq("household_id", householdId)
         .order("transaction_date", { ascending: false })
@@ -97,6 +97,9 @@ export async function TransactionsContent({
     member_name: tx.paid_by_member_id
       ? (profileMap.get(tx.paid_by_member_id) ?? null)
       : null,
+    transaction_subtype:
+      "transaction_subtype" in tx ? (tx.transaction_subtype as string | null) : null,
+    is_non_cash: "is_non_cash" in tx ? Boolean(tx.is_non_cash) : false,
   }));
 
   const quickCategories = categories
@@ -111,10 +114,20 @@ export async function TransactionsContent({
     (tx) => tx.transaction_date >= monthStart,
   );
   const monthIncome = monthItems
-    .filter((tx) => tx.type === "income")
+    .filter(
+      (tx) =>
+        tx.type === "income" &&
+        tx.transaction_subtype !== "savings_principal_withdrawal" &&
+        !tx.is_non_cash,
+    )
     .reduce((s, tx) => s + tx.amount, 0);
   const monthExpense = monthItems
-    .filter((tx) => tx.type === "expense")
+    .filter(
+      (tx) =>
+        tx.type === "expense" &&
+        tx.transaction_subtype !== "savings_principal_deposit" &&
+        !tx.is_non_cash,
+    )
     .reduce((s, tx) => s + tx.amount, 0);
   const monthNet = monthIncome - monthExpense;
 

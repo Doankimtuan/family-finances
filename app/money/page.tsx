@@ -1,9 +1,12 @@
 import { ArchiveAccountButton } from "@/app/money/_components/archive-account-button";
 import { CreateAccountForm } from "@/app/money/_components/create-account-form";
+import { AddSavingsForm } from "@/app/money/savings/_components/add-savings-form";
+import { SavingsCard } from "@/app/money/savings/_components/savings-card";
 import { CreateAssetForm } from "@/app/assets/_components/create-asset-form";
 import { AppHeader } from "@/components/layout/app-header";
 import { AppShell } from "@/components/layout/app-shell";
 import { BottomTabBar } from "@/components/layout/bottom-tab-bar";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
@@ -15,6 +18,12 @@ import {
 import { t } from "@/lib/i18n/dictionary";
 import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
 import { createClient } from "@/lib/supabase/server";
+import {
+  buildFeaturedSavingsItems,
+  buildSavingsListItems,
+  buildSavingsSummary,
+  fetchSavingsBundle,
+} from "@/lib/savings/service";
 import {
   Landmark,
   PiggyBank,
@@ -31,6 +40,7 @@ import {
   ChevronRight,
   MoreHorizontal,
   AlertTriangle,
+  HandCoins,
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -341,9 +351,10 @@ export default async function MoneyPage() {
     await getAuthenticatedHouseholdContext();
   const vi = language === "vi";
   const supabase = await createClient();
+  const today = new Date().toISOString().slice(0, 10);
 
   // ── Fetch all data in parallel ──────────────────────────────────────────
-  const [accountsResult, liabilitiesResult, assetResult] = await Promise.all([
+  const [accountsResult, liabilitiesResult, assetResult, savingsBundle] = await Promise.all([
     supabase
       .from("accounts")
       .select("id, name, type, opening_balance")
@@ -364,11 +375,28 @@ export default async function MoneyPage() {
       .eq("household_id", householdId)
       .eq("is_archived", false)
       .order("created_at", { ascending: false }),
+    fetchSavingsBundle(supabase, householdId),
   ]);
 
   const accounts = (accountsResult.data ?? []) as AccountRow[];
   const liabilities = (liabilitiesResult.data ?? []) as LiabilityRow[];
   const assets = (assetResult.data ?? []) as AssetRow[];
+  const savingsItems = buildSavingsListItems(
+    savingsBundle.accounts,
+    savingsBundle.withdrawals,
+    savingsBundle.goals,
+    today,
+  );
+  const savingsSummary = buildSavingsSummary(savingsItems);
+  const featuredSavings = buildFeaturedSavingsItems(savingsItems, 3);
+  const activeSavingsCount = savingsItems.filter(
+    (item) => item.status !== "withdrawn" && item.status !== "cancelled",
+  ).length;
+  const hiddenSavingsCount = Math.max(activeSavingsCount - featuredSavings.length, 0);
+  const savingsGoalOptions = Array.from(savingsBundle.goals.entries()).map(([id, name]) => ({
+    id,
+    name,
+  }));
 
   // ── Credit card settings & billing ──────────────────────────────────────
   const creditCardAccounts = accounts.filter((a) => a.type === "credit_card");
@@ -446,6 +474,7 @@ export default async function MoneyPage() {
       .from("transactions")
       .select("account_id, counterparty_account_id, type, amount")
       .eq("household_id", householdId)
+      .eq("is_non_cash", false)
       .or(
         `account_id.in.(${accountIdList}),counterparty_account_id.in.(${accountIdList})`,
       );
@@ -557,7 +586,8 @@ export default async function MoneyPage() {
       (s, l) => s + Number(l.current_principal_outstanding),
       0,
     ) + totalCardDebt;
-  const totalAssets = totalAccountBalance + totalAssetValue;
+  const totalAssets =
+    totalAccountBalance + savingsSummary.totalGrossValue + totalAssetValue;
   const netWorth = totalAssets - totalLiabilities;
 
   // ─── Render ───────────────────────────────────────────────────────────────
@@ -566,7 +596,8 @@ export default async function MoneyPage() {
     <AppShell
       header={
         <AppHeader
-          title={vi ? "Tài sản" : "Assets"}
+          title={t(language, "nav.money")}
+          subtitle={t(language, "money.summary.total_assets_includes_savings")}
           rightAction={
             <Link
               href="/settings"
@@ -593,6 +624,9 @@ export default async function MoneyPage() {
           <p className="text-sm text-white/70 mt-0.5 relative z-10">
             {formatVnd(netWorth, householdLocale)}
           </p>
+          <p className="mt-3 text-xs text-white/75 relative z-10">
+            {t(language, "money.summary.total_assets_includes_savings")}
+          </p>
           <div className="mt-5 grid grid-cols-2 gap-3 relative z-10">
             <div className="rounded-2xl bg-white/15 backdrop-blur-sm p-3">
               <p className="text-[9px] font-bold uppercase tracking-wider text-white/60">
@@ -610,6 +644,20 @@ export default async function MoneyPage() {
                 {formatVndCompact(totalLiabilities, householdLocale)}
               </p>
             </div>
+          </div>
+          <div className="relative z-10 mt-4 flex flex-wrap gap-2">
+            <Badge className="bg-white/15 text-white hover:bg-white/15">
+              {t(language, "money.summary.breakdown.accounts")}:{" "}
+              {formatVndCompact(totalAccountBalance, householdLocale)}
+            </Badge>
+            <Badge className="bg-white/15 text-white hover:bg-white/15">
+              {t(language, "money.summary.breakdown.savings")}:{" "}
+              {formatVndCompact(savingsSummary.totalGrossValue, householdLocale)}
+            </Badge>
+            <Badge className="bg-white/15 text-white hover:bg-white/15">
+              {t(language, "money.summary.breakdown.assets")}:{" "}
+              {formatVndCompact(totalAssetValue, householdLocale)}
+            </Badge>
           </div>
         </div>
 
@@ -701,6 +749,68 @@ export default async function MoneyPage() {
                   </Card>
                 );
               })}
+            </div>
+          )}
+        </section>
+
+        <section className="space-y-1">
+          <SectionTitle
+            title={t(language, "money.savings.title")}
+            total={`${t(language, "money.savings.total")}: ${formatVndCompact(savingsSummary.totalGrossValue, householdLocale)}`}
+            addAction={
+              <div className="flex items-center gap-2">
+                <Button asChild variant="ghost" size="sm" className="rounded-xl px-3">
+                  <Link href="/money/savings">{t(language, "money.savings.view_all")}</Link>
+                </Button>
+                <AddSavingsForm
+                  accounts={accounts.map((account) => ({ id: account.id, name: account.name }))}
+                  goals={savingsGoalOptions}
+                  triggerLabel={t(language, "money.savings.empty.action")}
+                />
+              </div>
+            }
+          />
+
+          {activeSavingsCount === 0 ? (
+            <EmptyState
+              icon={HandCoins}
+              title={t(language, "money.savings.empty.title")}
+              description={t(language, "money.savings.empty.description")}
+              action={
+                <AddSavingsForm
+                  accounts={accounts.map((account) => ({ id: account.id, name: account.name }))}
+                  goals={savingsGoalOptions}
+                  triggerLabel={t(language, "money.savings.empty.action")}
+                />
+              }
+            />
+          ) : (
+            <div className="space-y-3">
+              {featuredSavings.map((item) => (
+                <SavingsCard
+                  key={item.id}
+                  item={item}
+                  locale={householdLocale}
+                  href={`/money/savings/${item.id}`}
+                />
+              ))}
+              {hiddenSavingsCount > 0 ? (
+                <Card className="border-dashed border-border/70 bg-slate-50/70">
+                  <CardContent className="flex items-center justify-between gap-3 p-4">
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900">
+                        +{hiddenSavingsCount} {t(language, "money.savings.more_items")}
+                      </p>
+                      <p className="mt-1 text-sm text-slate-500">
+                        {t(language, "money.savings.view_all")}
+                      </p>
+                    </div>
+                    <Button asChild variant="outline" size="sm" className="rounded-xl">
+                      <Link href="/money/savings">{t(language, "money.savings.view_all")}</Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : null}
             </div>
           )}
         </section>
@@ -1024,10 +1134,10 @@ export default async function MoneyPage() {
         {/* ══ 4. TÀI SẢN (Variable Assets) ══ */}
         <section className="space-y-1">
           <SectionTitle
-            title={vi ? "Tài Sản" : "Assets"}
+            title={t(language, "money.assets.title")}
             total={
               totalAssetValue > 0
-                ? `${vi ? "Tổng giá trị" : "Total value"}: ${formatVndCompact(totalAssetValue, householdLocale)}`
+                ? `${t(language, "money.assets.total")}: ${formatVndCompact(totalAssetValue, householdLocale)}`
                 : undefined
             }
             addAction={
@@ -1049,12 +1159,8 @@ export default async function MoneyPage() {
           {assets.length === 0 ? (
             <EmptyState
               icon={TrendingUp}
-              title={vi ? "Chưa có tài sản" : "No assets yet"}
-              description={
-                vi
-                  ? "Thêm vàng, bất động sản, cổ phiếu... để theo dõi danh mục đầu tư."
-                  : "Track gold, real estate, stocks, and more."
-              }
+              title={t(language, "money.assets.empty.title")}
+              description={t(language, "money.assets.empty.description")}
             />
           ) : (
             <div className="grid grid-cols-2 gap-3">

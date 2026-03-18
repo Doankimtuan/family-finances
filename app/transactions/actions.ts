@@ -66,6 +66,7 @@ async function getAccountBalanceSnapshot(
     .from("transactions")
     .select("account_id, counterparty_account_id, type, amount")
     .eq("household_id", householdId)
+    .eq("is_non_cash", false)
     .or(`account_id.eq.${accountId},counterparty_account_id.eq.${accountId}`)
     .eq("status", "cleared");
   if (excludeTransactionId) {

@@ -16,6 +16,7 @@ import {
 } from "@/lib/dashboard/format";
 import { t } from "@/lib/i18n/dictionary";
 import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
+import { buildSavingsListItems, fetchSavingsBundle } from "@/lib/savings/service";
 import { createClient } from "@/lib/supabase/server";
 import {
   LucideIcon,
@@ -97,6 +98,13 @@ export default async function GoalsPage() {
   const contributions = (contributionsResult.data ?? []) as ContributionRow[];
   const accounts = accountsResult.data ?? [];
   const accountMap = new Map(accounts.map((a) => [a.id, a.name]));
+  const savingsBundle = await fetchSavingsBundle(supabase, householdId);
+  const savingsItems = buildSavingsListItems(
+    savingsBundle.accounts,
+    savingsBundle.withdrawals,
+    savingsBundle.goals,
+    new Date().toISOString().slice(0, 10),
+  );
 
   const contributionsByGoal = new Map<string, ContributionRow[]>();
   for (const row of contributions) {
@@ -159,10 +167,16 @@ export default async function GoalsPage() {
             <div className="grid grid-cols-1 gap-4">
               {goals.map((goal) => {
                 const rows = contributionsByGoal.get(goal.id) ?? [];
+                const savingsLinkedValue = savingsItems
+                  .filter((item) => item.goalId === goal.id)
+                  .reduce(
+                    (sum, item) => sum + item.currentValue.grossValue,
+                    0,
+                  );
                 const funded = rows.reduce(
                   (sum, row) => sum + (row.flow_type === "outflow" ? -Number(row.amount) : Number(row.amount)),
                   0,
-                );
+                ) + savingsLinkedValue;
                 const target = Number(goal.target_amount);
                 const progressValue =
                   target > 0

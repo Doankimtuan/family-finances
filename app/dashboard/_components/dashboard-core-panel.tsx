@@ -37,6 +37,7 @@ import { useI18n } from "@/lib/providers/i18n-provider";
 import type { DashboardCoreResponse } from "@/lib/dashboard/types";
 import { cn } from "@/lib/utils";
 import { isFeatureEnabled } from "@/lib/config/features";
+import { MaturityTimelineWidget } from "./maturity-timeline-widget";
 
 const NetWorthTrend = dynamic(
   () => import("./dashboard-charts").then((mod) => mod.NetWorthTrend),
@@ -305,6 +306,9 @@ export function DashboardCorePanel() {
           </div>
         </div>
       )}
+
+      {/* ── 5. Jars Snapshot ── */}
+      <MaturityTimelineWidget />
 
       {/* ── 5. Jars Snapshot ── */}
       {jarsEnabled && payload.jars && payload.jars.length > 0 && (

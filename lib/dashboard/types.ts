@@ -17,6 +17,10 @@ export type DashboardCoreMetrics = {
   emergency_months: number | null;
   debt_service_ratio: number | null;
   tdsr_percent: number | null;
+  savings_gross_value?: number;
+  savings_liquidation_value?: number;
+  savings_locked_value?: number;
+  maturing_30d_value?: number;
 };
 
 export type DashboardTrendPoint = {
