@@ -118,7 +118,7 @@ CREATE POLICY "Users can manage jar ledger for their households"
   USING (household_id IN (SELECT household_id FROM public.household_members WHERE user_id = auth.uid()));
 
 -- 4) Overview view ----------------------------------------------------------------
-CREATE OR REPLACE VIEW public.jar_monthly_overview AS
+CREATE OR REPLACE VIEW public.jar_monthly_overview WITH (security_invoker = true) AS
 WITH ledger AS (
   SELECT
     e.household_id,

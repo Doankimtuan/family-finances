@@ -4,7 +4,7 @@
 -- jar_coverage_ratio_percent = essential_jar_allocated / essential_expenses * 100
 -- ============================================================================
 
-CREATE OR REPLACE VIEW public.jar_monthly_overview AS
+CREATE OR REPLACE VIEW public.jar_monthly_overview WITH (security_invoker = true) AS
 WITH ledger AS (
   SELECT
     e.household_id,
