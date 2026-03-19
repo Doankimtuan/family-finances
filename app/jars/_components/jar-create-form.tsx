@@ -7,6 +7,8 @@ import {
   initialJarActionState,
   type JarActionState,
 } from "@/app/jars/action-types";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export function JarCreateForm({ vi }: { vi: boolean }) {
   const [state, action] = useActionState<JarActionState, FormData>(
@@ -17,33 +19,47 @@ export function JarCreateForm({ vi }: { vi: boolean }) {
 
   return (
     <form
-      className="grid grid-cols-1 gap-2 md:grid-cols-5"
+      className="space-y-4"
       onSubmit={(event) => {
         event.preventDefault();
         const fd = new FormData(event.currentTarget);
         startTransition(() => action(fd));
       }}
     >
-      <input
-        name="name"
-        placeholder={vi ? "Tên hũ" : "Jar name"}
-        className="rounded-lg border px-2 py-2 text-sm"
-        required
-      />
-      <input
-        name="color"
-        placeholder={vi ? "Màu (#2563EB)" : "Color (#2563EB)"}
-        className="rounded-lg border px-2 py-2 text-sm"
-      />
-      <input
-        name="icon"
-        placeholder={vi ? "Icon (house)" : "Icon (house)"}
-        className="rounded-lg border px-2 py-2 text-sm"
-      />
+      <div className="space-y-1.5">
+        <Label htmlFor="jar-name">{vi ? "Tên hũ" : "Jar name"}</Label>
+        <Input
+          id="jar-name"
+          name="name"
+          placeholder={vi ? "Ví dụ: Du lịch, Quà tặng..." : "e.g. Travel, Gifts..."}
+          className="h-[50px] rounded-xl border-slate-300"
+          required
+        />
+      </div>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div className="space-y-1.5">
+          <Label htmlFor="jar-color">{vi ? "Màu nhận diện" : "Color"}</Label>
+          <Input
+            id="jar-color"
+            name="color"
+            placeholder={vi ? "VD: #2563EB" : "e.g. #2563EB"}
+            className="h-[50px] rounded-xl border-slate-300"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="jar-icon">{vi ? "Biểu tượng" : "Icon"}</Label>
+          <Input
+            id="jar-icon"
+            name="icon"
+            placeholder="house"
+            className="h-[50px] rounded-xl border-slate-300"
+          />
+        </div>
+      </div>
       <button
         type="submit"
         disabled={isPending}
-        className="rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white disabled:opacity-60"
+        className="h-11 rounded-xl bg-slate-900 px-4 text-sm font-semibold text-white disabled:opacity-60"
       >
         {isPending ? (vi ? "Đang tạo..." : "Creating...") : vi ? "Tạo hũ" : "Create jar"}
       </button>

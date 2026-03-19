@@ -7,6 +7,8 @@ import {
   initialJarActionState,
   type JarActionState,
 } from "@/app/jars/action-types";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 type Props = {
   jarId: string;
@@ -31,7 +33,7 @@ export function JarEditForm({
 
   return (
     <form
-      className="grid grid-cols-1 gap-2 md:grid-cols-4"
+      className="space-y-4"
       onSubmit={(event) => {
         event.preventDefault();
         const fd = new FormData(event.currentTarget);
@@ -39,30 +41,44 @@ export function JarEditForm({
       }}
     >
       <input type="hidden" name="jarId" value={jarId} />
-      <input
-        name="name"
-        defaultValue={defaultName}
-        className="rounded-lg border px-2 py-2 text-sm"
-        required
-      />
-      <input
-        name="color"
-        defaultValue={defaultColor ?? ""}
-        className="rounded-lg border px-2 py-2 text-sm"
-      />
-      <input
-        name="icon"
-        defaultValue={defaultIcon ?? ""}
-        className="rounded-lg border px-2 py-2 text-sm"
-      />
+      <div className="space-y-1.5">
+        <Label htmlFor={`jar-edit-name-${jarId}`}>{vi ? "Tên hũ" : "Jar name"}</Label>
+        <Input
+          id={`jar-edit-name-${jarId}`}
+          name="name"
+          defaultValue={defaultName}
+          className="h-[50px] rounded-xl border-slate-300"
+          required
+        />
+      </div>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div className="space-y-1.5">
+          <Label htmlFor={`jar-edit-color-${jarId}`}>{vi ? "Màu nhận diện" : "Color"}</Label>
+          <Input
+            id={`jar-edit-color-${jarId}`}
+            name="color"
+            defaultValue={defaultColor ?? ""}
+            className="h-[50px] rounded-xl border-slate-300"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor={`jar-edit-icon-${jarId}`}>{vi ? "Biểu tượng" : "Icon"}</Label>
+          <Input
+            id={`jar-edit-icon-${jarId}`}
+            name="icon"
+            defaultValue={defaultIcon ?? ""}
+            className="h-[50px] rounded-xl border-slate-300"
+          />
+        </div>
+      </div>
       <button
         type="submit"
         disabled={isPending}
-        className="rounded-lg bg-muted px-3 py-2 text-sm font-semibold"
+        className="h-11 rounded-xl bg-muted px-4 text-sm font-semibold"
       >
         {isPending ? (vi ? "Đang cập nhật..." : "Updating...") : vi ? "Cập nhật hũ" : "Update jar"}
       </button>
-      <p className="text-xs text-muted-foreground md:col-span-4">
+      <p className="text-xs text-muted-foreground">
         {state.status === "error" ? state.message : state.status === "success" ? state.message : ""}
       </p>
     </form>

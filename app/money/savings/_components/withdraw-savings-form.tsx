@@ -26,9 +26,10 @@ type Props = {
   savings: SavingsAccountRow;
   computed: SavingsComputedValue;
   accounts: Array<{ id: string; name: string }>;
+  jars?: Array<{ id: string; name: string }>;
 };
 
-export function WithdrawSavingsForm({ savings, computed, accounts }: Props) {
+export function WithdrawSavingsForm({ savings, computed, accounts, jars = [] }: Props) {
   const router = useRouter();
   const { t, locale } = useI18n();
   const [open, setOpen] = useState(false);
@@ -39,6 +40,7 @@ export function WithdrawSavingsForm({ savings, computed, accounts }: Props) {
   const [destinationAccountId, setDestinationAccountId] = useState(
     accounts[0]?.id ?? savings.primary_linked_account_id,
   );
+  const [destinationJarId, setDestinationJarId] = useState("");
   const [withdrawalDate, setWithdrawalDate] = useState(
     new Date().toISOString().slice(0, 10),
   );
@@ -55,10 +57,12 @@ export function WithdrawSavingsForm({ savings, computed, accounts }: Props) {
         ? {
             withdrawalDate,
             destinationAccountId,
+            destinationJarId: destinationJarId || null,
           }
         : {
             withdrawalDate,
             destinationAccountId,
+            destinationJarId: destinationJarId || null,
             principalAmount: Math.round(Number(principalAmount)),
           };
     const response = await fetch(`/api/savings/${savings.id}/withdraw`, {
@@ -109,6 +113,20 @@ export function WithdrawSavingsForm({ savings, computed, accounts }: Props) {
                 </SelectContent>
               </Select>
             </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Destination jar</Label>
+            <Select value={destinationJarId || "__none__"} onValueChange={(value) => setDestinationJarId(value === "__none__" ? "" : value)}>
+              <SelectTrigger className="h-12 border-slate-300 bg-white text-slate-950 data-[placeholder]:text-slate-400">
+                <SelectValue placeholder="Review later" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Review later</SelectItem>
+                {jars.map((jar) => (
+                  <SelectItem key={jar.id} value={jar.id}>{jar.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           {savings.savings_type === "third_party" ? (
             <div className="space-y-1.5">

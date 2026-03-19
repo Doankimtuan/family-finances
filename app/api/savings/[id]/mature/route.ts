@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { syncSavingsReleaseToJarIntent } from "@/lib/jars/intent";
 import { computeSavingsCurrentValue, computeWithdrawalPreview } from "@/lib/savings/calculations";
 import { matureSavingsSchema } from "@/lib/savings/schemas";
 import { fetchSavingsBundle } from "@/lib/savings/service";
@@ -120,11 +121,26 @@ export async function POST(request: Request, { params }: RouteProps) {
         penalty_amount: preview.penaltyAmount,
         net_received_amount: preview.netReceived,
         destination_account_id: destinationAccountId,
+        destination_jar_id: parsed.data.destinationJarId ?? null,
         remaining_principal_after: 0,
         principal_transaction_id: principalTransactionId,
         interest_transaction_id: interestTransactionId,
         tax_transaction_id: taxTransactionId,
         created_by: user.id,
+      });
+
+      await syncSavingsReleaseToJarIntent(supabase, {
+        householdId,
+        userId: user.id,
+        sourceType: "savings_mature",
+        sourceId: id,
+        savingsId: id,
+        movementDate: parsed.data.actionDate,
+        providerName: account.provider_name,
+        principalAmount: preview.principalPaid,
+        interestAmount: preview.interestPaid,
+        taxAmount: preview.taxAmount,
+        destinationJarId: parsed.data.destinationJarId ?? null,
       });
     }
 

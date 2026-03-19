@@ -29,6 +29,7 @@ const sharedCreateSchema = z.object({
   annualRate: z.number().min(0),
   startDate: z.string().date(),
   primaryLinkedAccountId: z.string().uuid(),
+  sourceJarId: z.string().uuid().nullable().optional(),
   goalId: z.string().uuid().nullable().optional(),
   notes: z.string().max(2000).nullable().optional(),
 });
@@ -76,6 +77,7 @@ export const patchSavingsSchema = z.object({
 export const withdrawBankSchema = z.object({
   withdrawalDate: z.string().date(),
   destinationAccountId: z.string().uuid(),
+  destinationJarId: z.string().uuid().nullable().optional(),
   note: z.string().max(2000).optional(),
 });
 
@@ -87,6 +89,7 @@ export const matureSavingsSchema = z.object({
   actionDate: z.string().date(),
   actionType: savingsMaturityPreferenceEnum,
   destinationAccountId: z.string().uuid().optional(),
+  destinationJarId: z.string().uuid().nullable().optional(),
   newPlan: z
     .object({
       annualRate: z.number().min(0),

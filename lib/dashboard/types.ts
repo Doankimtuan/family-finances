@@ -1,5 +1,3 @@
-import type { SpendingJarAlert } from "@/lib/jars/spending";
-
 export type DashboardCoreMetrics = {
   household_id: string;
   as_of_date: string;
@@ -33,6 +31,15 @@ export type DashboardTrendPoint = {
   savings_rate: number | null;
   emergency_months: number | null;
   debt_service_ratio: number | null;
+};
+
+export type DashboardJarAlert = {
+  jarId: string;
+  jarName: string;
+  usagePercent: number | null;
+  alertLevel: "warning" | "exceeded";
+  spent: number;
+  limit: number;
 };
 
 export type DashboardCoreResponse = {
@@ -106,6 +113,7 @@ export type DashboardCoreResponse = {
     dueDate: string;
     priority: "high" | "medium" | "low";
   }>;
+  pendingJarReviews?: number;
   jars?: Array<{
     jar_id: string;
     name: string;
@@ -117,5 +125,5 @@ export type DashboardCoreResponse = {
     net_amount: number;
     coverage_ratio: number;
   }>;
-  spendingJarAlerts?: SpendingJarAlert[];
+  spendingJarAlerts?: DashboardJarAlert[];
 };

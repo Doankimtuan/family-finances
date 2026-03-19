@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { syncSavingsCreateToJarIntent } from "@/lib/jars/intent";
 import { writeAuditEvent } from "@/lib/server/audit";
 import { computeSavingsProjection } from "@/lib/savings/calculations";
 import { createSavingsSchema, savingsListQuerySchema } from "@/lib/savings/schemas";
@@ -169,6 +170,7 @@ export async function POST(request: Request) {
             : payload.termMode === "fixed"
               ? payload.maturityPreference ?? "withdraw"
               : null,
+        source_jar_id: payload.sourceJarId ?? null,
         status:
           maturityDate && maturityDate < todayIso() ? "matured" : "active",
         notes: payload.notes ?? null,
@@ -236,6 +238,16 @@ export async function POST(request: Request) {
         savingsType: payload.savingsType,
         providerName: payload.providerName,
       },
+    });
+
+    await syncSavingsCreateToJarIntent(supabase, {
+      householdId,
+      userId: user.id,
+      savingsId: insert.data.id,
+      amount: payload.principalAmount,
+      movementDate: startDate,
+      providerName: payload.providerName,
+      sourceJarId: payload.sourceJarId ?? null,
     });
 
     const bundle = await fetchSavingsBundle(supabase, householdId, {

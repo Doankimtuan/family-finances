@@ -2,11 +2,10 @@ import Link from "next/link";
 import { formatVndCompact } from "@/lib/dashboard/format";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { archiveJarDirectAction } from "@/app/jars/actions";
 
-import { JarTargetForm } from "./jar-target-form";
-import { JarAllocateWithdrawForm } from "./jar-allocate-withdraw-form";
-import { JarEditForm } from "./jar-edit-form";
+import { JarEntryDialog } from "./jar-entry-dialog";
+import { JarSettingsDialog } from "./jar-settings-dialog";
+import { JarTargetDialog } from "./jar-target-dialog";
 
 type JarRow = {
   id: string;
@@ -69,7 +68,7 @@ export function JarMonthlyOverview({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="grid grid-cols-1 gap-4">
       {jars.map((jar) => {
         const ov = overviewMap.get(jar.id);
         const target = targetMap.get(jar.id);
@@ -82,11 +81,16 @@ export function JarMonthlyOverview({
           && essentialsCoverage < 100;
 
         return (
-          <Card key={jar.id} className="border-border/60">
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between gap-2">
-                <h3 className="font-bold text-base">{jar.name}</h3>
-                <div className="flex items-center gap-2">
+          <Card key={jar.id} className="border-border/60 shadow-sm">
+            <CardHeader className="space-y-3 pb-0">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h3 className="font-bold text-base">{jar.name}</h3>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {vi ? "Theo dõi mục tiêu và dòng tiền trong tháng." : "Track the monthly goal and jar cash flow."}
+                  </p>
+                </div>
+                <div className="flex flex-wrap justify-end gap-2">
                   {alert && alert.alertLevel !== "normal" ? (
                     <Badge
                       className={
@@ -97,24 +101,18 @@ export function JarMonthlyOverview({
                     >
                       {alert.alertLevel === "exceeded"
                         ? (vi ? "Vượt hạn mức" : "Exceeded")
-                        : (vi ? "Cảnh báo 80%" : "Warning 80%")}
+                        : (vi ? "Cần chú ý" : "Needs attention")}
+                    </Badge>
+                  ) : (
+                    <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">
+                      {vi ? "Ổn định" : "On track"}
+                    </Badge>
+                  )}
+                  {showEssentialsWarning ? (
+                    <Badge className="bg-amber-100 text-amber-800 border-amber-200">
+                      {vi ? "Thiếu quỹ thiết yếu" : "Essentials underfunded"}
                     </Badge>
                   ) : null}
-                  {showEssentialsWarning ? (
-                    <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800">
-                      {vi ? "Thiếu quỹ thiết yếu" : "Essentials underfunded"}
-                    </span>
-                  ) : null}
-                  <span className="text-xs text-muted-foreground">{coverage}%</span>
-                  <form action={archiveJarDirectAction}>
-                    <input type="hidden" name="jarId" value={jar.id} />
-                    <button
-                      className="text-xs text-destructive hover:underline"
-                      type="submit"
-                    >
-                      {vi ? "Lưu trữ" : "Archive"}
-                    </button>
-                  </form>
                 </div>
               </div>
               <div className="h-1.5 rounded-full bg-muted overflow-hidden">
@@ -124,16 +122,8 @@ export function JarMonthlyOverview({
                 />
               </div>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <JarEditForm
-                jarId={jar.id}
-                defaultName={jar.name}
-                defaultColor={jar.color}
-                defaultIcon={jar.icon}
-                vi={vi}
-              />
-
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+            <CardContent className="space-y-4 pt-4">
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-4 text-sm">
                 <div>
                   <p className="text-[10px] uppercase text-muted-foreground font-bold">
                     {vi ? "Mục tiêu" : "Target"}
@@ -168,34 +158,53 @@ export function JarMonthlyOverview({
                 </div>
               </div>
 
-              {alert && alert.alertLevel !== "normal" ? (
-                <p className="text-xs text-muted-foreground">
-                  {vi ? "Chi tiêu tháng" : "Monthly spend"}:{" "}
-                  {formatVndCompact(alert.spent, locale)} /{" "}
-                  {formatVndCompact(alert.limit, locale)}
-                  {alert.usagePercent !== null
-                    ? ` (${alert.usagePercent.toFixed(1)}%)`
-                    : ""}
+              <div className="rounded-2xl border border-border/60 bg-slate-50/60 p-3 text-sm">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="font-medium text-foreground">
+                    {vi ? "Trạng thái tháng" : "Monthly status"}
+                  </p>
+                  <span className="text-xs font-semibold text-muted-foreground">
+                    {coverage}%
+                  </span>
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {alert
+                    ? `${vi ? "Đã dùng" : "Spent"}: ${formatVndCompact(alert.spent, locale)} / ${formatVndCompact(alert.limit, locale)}${alert.usagePercent !== null ? ` (${alert.usagePercent.toFixed(1)}%)` : ""}`
+                    : vi
+                      ? "Chưa có cảnh báo chi tiêu trong tháng này."
+                      : "No spending alerts for this month."}
                 </p>
-              ) : null}
+              </div>
 
-              <JarTargetForm
-                jarId={jar.id}
-                month={month}
-                defaultMode={target?.target_mode ?? "fixed"}
-                defaultValue={Number(target?.target_value ?? 0)}
-                vi={vi}
-              />
-
-              <JarAllocateWithdrawForm jarId={jar.id} month={month} vi={vi} />
-
-              <div className="flex justify-end">
+              <div className="flex flex-wrap gap-2">
+                <JarEntryDialog
+                  jarId={jar.id}
+                  jarName={jar.name}
+                  month={month}
+                  vi={vi}
+                />
+                <JarTargetDialog
+                  jarId={jar.id}
+                  jarName={jar.name}
+                  month={month}
+                  defaultMode={target?.target_mode ?? "fixed"}
+                  defaultValue={Number(target?.target_value ?? 0)}
+                  vi={vi}
+                />
                 <Link
                   href={`/jars/${jar.id}/history`}
-                  className="text-xs font-semibold text-primary hover:underline"
+                  className="inline-flex h-9 items-center rounded-xl border border-input px-3 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-accent"
                 >
                   {vi ? "Xem lịch sử" : "View history"}
                 </Link>
+                <JarSettingsDialog
+                  jarId={jar.id}
+                  jarName={jar.name}
+                  defaultName={jar.name}
+                  defaultColor={jar.color}
+                  defaultIcon={jar.icon}
+                  vi={vi}
+                />
               </div>
             </CardContent>
           </Card>

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { syncSavingsReleaseToJarIntent } from "@/lib/jars/intent";
 import { writeAuditEvent } from "@/lib/server/audit";
 import { computeSavingsCurrentValue, computeWithdrawalPreview } from "@/lib/savings/calculations";
 import { withdrawBankSchema, withdrawThirdPartySchema } from "@/lib/savings/schemas";
@@ -126,6 +127,7 @@ export async function POST(request: Request, { params }: RouteProps) {
         penalty_amount: preview.penaltyAmount,
         net_received_amount: preview.netReceived,
         destination_account_id: parsed.data.destinationAccountId,
+        destination_jar_id: parsed.data.destinationJarId ?? null,
         remaining_principal_after: preview.remainingPrincipal,
         principal_transaction_id: principalTransactionId,
         interest_transaction_id: interestTransactionId,
@@ -161,6 +163,20 @@ export async function POST(request: Request, { params }: RouteProps) {
       entityType: "savings_withdrawal",
       entityId: withdrawalInsert.data.id,
       payload: preview,
+    });
+
+    await syncSavingsReleaseToJarIntent(supabase, {
+      householdId,
+      userId: user.id,
+      sourceType: "savings_withdraw",
+      sourceId: withdrawalInsert.data.id,
+      savingsId: id,
+      movementDate: parsed.data.withdrawalDate,
+      providerName: account.provider_name,
+      principalAmount: preview.principalPaid,
+      interestAmount: preview.interestPaid,
+      taxAmount: preview.taxAmount,
+      destinationJarId: parsed.data.destinationJarId ?? null,
     });
 
     return NextResponse.json({

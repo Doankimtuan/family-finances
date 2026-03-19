@@ -63,7 +63,7 @@ export function JarCategoryMapTable({
                     (vi ? "Chưa map" : "Unmapped")}
                   {mapping?.resolvedFromFallback ? (
                     <span className="ml-2 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800">
-                      {vi ? "Fallback" : "Fallback"}
+                      {vi ? "Tự gán tạm" : "Auto-assigned"}
                     </span>
                   ) : null}
                 </td>

@@ -30,10 +30,12 @@ import { cn } from "@/lib/utils";
 
 type AccountOption = { id: string; name: string };
 type GoalOption = { id: string; name: string };
+type JarOption = { id: string; name: string };
 
 type Props = {
   accounts: AccountOption[];
   goals: GoalOption[];
+  jars?: JarOption[];
   defaultType?: "bank" | "third_party";
   triggerLabel?: string;
 };
@@ -53,6 +55,7 @@ type FormState = {
   maturityPreference: "renew_same" | "switch_plan" | "withdraw";
   taxRate: string;
   interestType: "simple" | "compound_daily";
+  sourceJarId: string;
   goalId: string;
   notes: string;
 };
@@ -97,6 +100,7 @@ function Field({
 export function AddSavingsForm({
   accounts,
   goals,
+  jars = [],
   defaultType = "bank",
   triggerLabel,
 }: Props) {
@@ -120,6 +124,7 @@ export function AddSavingsForm({
     maturityPreference: "renew_same",
     taxRate: "0.05",
     interestType: "simple",
+    sourceJarId: "",
     goalId: "",
     notes: "",
   });
@@ -198,6 +203,7 @@ export function AddSavingsForm({
             termDays: Number(form.termDays),
             earlyWithdrawalRate: Number(form.earlyWithdrawalRate),
             maturityPreference: form.maturityPreference,
+            sourceJarId: form.sourceJarId || null,
             goalId: form.goalId || null,
             notes: form.notes || null,
           }
@@ -219,6 +225,7 @@ export function AddSavingsForm({
             maturityPreference:
               form.termMode === "fixed" ? form.maturityPreference : null,
             taxRate: Number(form.taxRate),
+            sourceJarId: form.sourceJarId || null,
             goalId: form.goalId || null,
             notes: form.notes || null,
           };
@@ -667,6 +674,26 @@ export function AddSavingsForm({
 
               <FormSection title={t("savings.form.section.optional")}>
                 <div className="grid gap-4 md:grid-cols-2">
+                  <Field label="Source jar">
+                    <Select
+                      value={form.sourceJarId || "__none__"}
+                      onValueChange={(value) =>
+                        update("sourceJarId", value === "__none__" ? "" : value)
+                      }
+                    >
+                      <SelectTrigger className={selectClassName}>
+                        <SelectValue placeholder="Review later" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__none__">Review later</SelectItem>
+                        {jars.map((jar) => (
+                          <SelectItem key={jar.id} value={jar.id}>
+                            {jar.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </Field>
                   <Field label={t("savings.form.field.goal")}>
                     <Select
                       value={form.goalId || "__none__"}
@@ -807,6 +834,12 @@ export function AddSavingsForm({
                     </span>{" "}
                     {accounts.find((account) => account.id === form.primaryLinkedAccountId)
                       ?.name ?? "-"}
+                  </p>
+                  <p className="mt-2">
+                    <span className="font-medium text-slate-900">Source jar:</span>{" "}
+                    {form.sourceJarId
+                      ? jars.find((jar) => jar.id === form.sourceJarId)?.name ?? "-"
+                      : "Review later"}
                   </p>
                   {form.goalId ? (
                     <p className="mt-2">

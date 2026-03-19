@@ -42,6 +42,14 @@ export default async function SavingsPage() {
       .order("created_at", { ascending: true })).data ?? []
   ) as Array<{ id: string; name: string }>;
   const goals = Array.from(bundle.goals.entries()).map(([id, name]) => ({ id, name }));
+  const jars = (
+    (await supabase
+      .from("jars")
+      .select("id, name")
+      .eq("household_id", householdId)
+      .eq("is_archived", false)
+      .order("sort_order", { ascending: true })).data ?? []
+  ) as Array<{ id: string; name: string }>;
   const nextMaturityLabel = summary.nextMaturity?.maturityDate ?? t(language, "savings.summary.none");
   const upcomingCountLabel = `${summary.upcomingCount30d} ${t(language, "savings.summary.deposits")}`;
 
@@ -72,6 +80,7 @@ export default async function SavingsPage() {
                 <AddSavingsForm
                   accounts={accounts}
                   goals={goals}
+                  jars={jars}
                   triggerLabel={t(language, "savings.add")}
                 />
                 <Button asChild variant="ghost" className="justify-start px-0 sm:justify-end">
@@ -142,6 +151,7 @@ export default async function SavingsPage() {
               <AddSavingsForm
                 accounts={accounts}
                 goals={goals}
+                jars={jars}
                 triggerLabel={t(language, "savings.empty.action")}
               />
             }

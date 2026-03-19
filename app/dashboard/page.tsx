@@ -26,7 +26,7 @@ export default async function DashboardPage() {
               className="p-2 -mr-2 text-muted-foreground hover:text-foreground transition-colors"
             >
               <Settings className="h-6 w-6" />
-              <span className="sr-only">Settings</span>
+              <span className="sr-only">{t(language, "settings.title")}</span>
             </Link>
           }
         />

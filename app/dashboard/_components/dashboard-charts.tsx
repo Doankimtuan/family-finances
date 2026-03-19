@@ -25,6 +25,7 @@ import {
   formatVndCompact,
 } from "@/lib/dashboard/format";
 import type { DashboardTrendPoint } from "@/lib/dashboard/types";
+import { useI18n } from "@/lib/providers/i18n-provider";
 import { cn } from "@/lib/utils";
 
 const PIE_COLORS = [
@@ -38,15 +39,8 @@ const PIE_COLORS = [
   "#64748B",
 ];
 
-export function NetWorthTrend({
-  trend,
-  locale,
-  vi,
-}: {
-  trend: DashboardTrendPoint[];
-  locale: string;
-  vi: boolean;
-}) {
+export function NetWorthTrend({ trend }: { trend: DashboardTrendPoint[] }) {
+  const { locale, t } = useI18n();
   const chartData = trend.map((point) => ({
     month: compactMonth(point.month, locale),
     netWorth: Number(point.net_worth),
@@ -56,12 +50,8 @@ export function NetWorthTrend({
     return (
       <EmptyState
         icon={TrendingUp}
-        title={vi ? "Thiếu dữ liệu xu hướng" : "Missing trend data"}
-        description={
-          vi
-            ? "Thêm dữ liệu theo tháng để thấy rõ xu hướng."
-            : "Add more monthly data to reveal trend direction."
-        }
+        title={t("dashboard.trend.empty.title")}
+        description={t("dashboard.trend.empty.description")}
       />
     );
   }
@@ -75,17 +65,9 @@ export function NetWorthTrend({
     <Card className="animate-in fade-in duration-700">
       <CardHeader className="flex flex-row items-start justify-between pb-2">
         <SectionHeader
-          label={vi ? "Xu hướng" : "Trend"}
-          title={vi ? "Tài sản ròng" : "Net Worth"}
-          description={
-            delta >= 0
-              ? vi
-                ? "Xu hướng đang tăng. Tiếp tục kế hoạch hiện tại."
-                : "Trend is moving upward. Keep current plan."
-              : vi
-                ? "Xu hướng giảm. Kiểm tra chi tiêu và nợ trong tháng này."
-                : "Trend dipped. Inspect spending and liabilities this month."
-          }
+          label={t("dashboard.trend.label")}
+          title={t("dashboard.trend.title")}
+          description={delta >= 0 ? t("dashboard.trend.up") : t("dashboard.trend.down")}
         />
         <div className="flex flex-col items-end">
           <Badge
@@ -179,7 +161,7 @@ export function NetWorthTrend({
                 itemStyle={{ fontSize: "12px", fontWeight: 600 }}
                 formatter={(value) => [
                   formatVnd(Number(value ?? 0), locale),
-                  vi ? "Tài sản ròng" : "Net worth",
+                  t("dashboard.trend.title"),
                 ]}
               />
               <Area
@@ -200,13 +182,10 @@ export function NetWorthTrend({
 
 export function MonthlyExpenseAllocation({
   expenseRows,
-  vi,
-  locale,
 }: {
   expenseRows: Array<{ label: string; value: number; color?: string | null }>;
-  vi: boolean;
-  locale: string;
 }) {
+  const { locale, t } = useI18n();
   const rows = expenseRows
     .map((row) => ({
       name: row.label,
@@ -222,19 +201,15 @@ export function MonthlyExpenseAllocation({
       <Card>
         <CardHeader>
           <SectionHeader
-            label={vi ? "Chi phí" : "Expenses"}
-            title={vi ? "Phân bổ theo danh mục" : "Category Allocation"}
+            label={t("dashboard.expenses.label")}
+            title={t("dashboard.expenses.title")}
           />
         </CardHeader>
         <CardContent>
           <EmptyState
             icon={PieIcon}
-            title={vi ? "Chưa có dữ liệu chi tiêu" : "No expense data"}
-            description={
-              vi
-                ? "Ghi lại giao dịch đầu tiên để xem phân bổ chi tiêu của gia đình."
-                : "Log your first transaction to see how your household spends."
-            }
+            title={t("dashboard.expenses.empty.title")}
+            description={t("dashboard.expenses.empty.description")}
           />
         </CardContent>
       </Card>
@@ -245,9 +220,9 @@ export function MonthlyExpenseAllocation({
     <Card className="animate-in fade-in duration-700 delay-100">
       <CardHeader>
         <SectionHeader
-          label={vi ? "Chi phí" : "Expenses"}
-          title={vi ? "Phân bổ tháng này" : "Monthly Allocation"}
-          description={`${vi ? "Tổng" : "Total"}: ${formatVnd(total, locale)}`}
+          label={t("dashboard.expenses.label")}
+          title={t("dashboard.expenses.title")}
+          description={`${t("dashboard.expenses.total")}: ${formatVnd(total, locale)}`}
         />
       </CardHeader>
       <CardContent>
@@ -326,7 +301,7 @@ export function MonthlyExpenseAllocation({
             })}
             {rows.length > 6 && (
               <li className="pt-2 text-center text-[10px] font-bold uppercase tracking-widest text-muted-foreground italic">
-                + {rows.length - 6} {vi ? "danh mục khác" : "more categories"}
+                + {rows.length - 6} {t("dashboard.expenses.more_categories")}
               </li>
             )}
           </ul>

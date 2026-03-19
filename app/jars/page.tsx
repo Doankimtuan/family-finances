@@ -1,423 +1,425 @@
+import type { ElementType } from "react";
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { ArrowRight, CheckCircle2, Coins, Eye, PiggyBank, Wallet } from "lucide-react";
 
 import { AppHeader } from "@/components/layout/app-header";
 import { AppShell } from "@/components/layout/app-shell";
 import { BottomTabBar } from "@/components/layout/bottom-tab-bar";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { SectionHeader } from "@/components/ui/section-header";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { formatVnd, formatVndCompact } from "@/lib/dashboard/format";
+import { fetchJarCommandCenter } from "@/lib/jars/intent";
 import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
-import { isServerFeatureEnabled } from "@/lib/config/features";
 import { createClient } from "@/lib/supabase/server";
 
-import { JarSummaryCards } from "./_components/jar-summary-cards";
-import { JarMonthlyOverview } from "./_components/jar-monthly-overview";
-import { JarActivityList } from "./_components/jar-activity-list";
-import { JarCreateForm } from "./_components/jar-create-form";
-import { JarAccountabilityTable } from "./_components/jar-accountability-table";
-import { JarCategoryMapTable } from "./_components/jar-category-map-table";
-import type { SpendingJarSummaryRow } from "@/lib/jars/spending";
-
-type JarRow = {
-  id: string;
-  name: string;
-  slug: string;
-  color: string | null;
-  icon: string | null;
-  sort_order: number;
-};
-
-type TargetRow = {
-  jar_id: string;
-  target_mode: "fixed" | "percent";
-  target_value: number;
-};
-
-type OverviewRow = {
-  jar_id: string;
-  target_amount: number;
-  allocated_amount: number;
-  withdrawn_amount: number;
-  net_amount: number;
-  coverage_ratio: number;
-  jar_coverage_ratio_percent: number | null;
-};
-
-type EntryRow = {
-  id: string;
-  entry_date: string;
-  entry_type: "allocate" | "withdraw" | "adjust";
-  amount: number;
-  note: string | null;
-  jar: { name: string }[] | null;
-};
-
-type ReconciliationRow = {
-  id: string;
-  category_id: string;
-  jar_id: string;
-  actual_amount: number;
-  allocated_amount: number;
-  gap_amount: number;
-};
-
-type CategoryRow = {
-  id: string;
-  name: string;
-  kind: "income" | "expense";
-};
-
-type SpendingAlertRow = {
-  jarId: string;
-  alertLevel: "normal" | "warning" | "exceeded";
-  usagePercent: number | null;
-  spent: number;
-  limit: number;
-};
-
-function toMonthInput(date: Date): string {
-  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
-}
-
-function firstDate(monthInput: string): string {
-  return `${monthInput}-01`;
-}
-
-const DEFAULT_JARS = [
-  { name: "Nhu cầu thiết yếu", slug: "necessities", color: "#2563EB", icon: "house", sort_order: 10 },
-  { name: "Giáo dục", slug: "education", color: "#0EA5E9", icon: "book-open", sort_order: 20 },
-  { name: "Tự do tài chính", slug: "financial-freedom", color: "#16A34A", icon: "trending-up", sort_order: 30 },
-  { name: "Tiết kiệm dài hạn", slug: "long-term-savings", color: "#7C3AED", icon: "piggy-bank", sort_order: 40 },
-  { name: "Hưởng thụ", slug: "play", color: "#F59E0B", icon: "party-popper", sort_order: 50 },
-  { name: "Cho đi", slug: "give", color: "#DC2626", icon: "heart-handshake", sort_order: 60 },
-];
+import { addManualJarAdjustmentAction, upsertJarPlanAction } from "./intent-actions";
 
 export const metadata = {
-  title: "Financial Jars | Family Finances",
+  title: "Jars | Family Finances",
 };
 
 export default async function JarsPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ month?: string }>;
-}) {
-  if (!isServerFeatureEnabled("jars")) {
-    redirect("/dashboard");
-  }
-
-  const { householdId, language, householdLocale } =
-    await getAuthenticatedHouseholdContext();
-  const vi = language === "vi";
-  const supabase = await createClient();
-
-  const params = searchParams ? await searchParams : undefined;
-  const fallbackMonth = toMonthInput(new Date());
-  const selectedMonth = /^\d{4}-\d{2}$/.test(params?.month ?? "")
-    ? (params?.month as string)
-    : fallbackMonth;
-  const monthStart = firstDate(selectedMonth);
-
-  await supabase.from("jar_definitions").upsert(
-    DEFAULT_JARS.map((jar) => ({
-      household_id: householdId,
-      ...jar,
-      is_system_default: true,
-      is_archived: false,
-    })),
-    { onConflict: "household_id,slug", ignoreDuplicates: true },
-  );
-
-  const [jarsResult, targetResult, overviewResult, entriesResult, reconciliationResult, categoriesResult, spendingSummaryResult, mapResult] =
-    await Promise.all([
-      supabase
-        .from("jar_definitions")
-        .select("id, name, slug, color, icon, sort_order")
-        .eq("household_id", householdId)
-        .eq("is_archived", false)
-        .order("sort_order", { ascending: true })
-        .order("created_at", { ascending: true }),
-      supabase
-        .from("jar_monthly_targets")
-        .select("jar_id, target_mode, target_value")
-        .eq("household_id", householdId)
-        .eq("month", monthStart),
-      supabase
-        .from("jar_monthly_overview")
-        .select(
-          "jar_id, target_amount, allocated_amount, withdrawn_amount, net_amount, coverage_ratio, jar_coverage_ratio_percent",
-        )
-        .eq("household_id", householdId)
-        .eq("month", monthStart),
-      supabase
-        .from("jar_ledger_entries")
-        .select(
-          "id, entry_date, entry_type, amount, note, jar:jar_definitions(name)",
-        )
-        .eq("household_id", householdId)
-        .eq("month", monthStart)
-        .order("entry_date", { ascending: false })
-        .order("created_at", { ascending: false })
-        .limit(20),
-      supabase
-        .from("jar_reconciliation_entries")
-        .select("id, category_id, jar_id, actual_amount, allocated_amount, gap_amount")
-        .eq("household_id", householdId)
-        .eq("month", monthStart)
-        .order("gap_amount", { ascending: false }),
-      supabase
-        .from("categories")
-        .select("id, name, kind")
-        .or(`household_id.is.null,household_id.eq.${householdId}`),
-      supabase.rpc("rpc_spending_jar_monthly_summary", {
-        p_household_id: householdId,
-        p_month: monthStart,
-      }),
-      supabase
-        .from("spending_jar_category_map")
-        .select("category_id, jar_id")
-        .eq("household_id", householdId),
-    ]);
-
-  const jars = (jarsResult.data ?? []) as JarRow[];
-  const targets = (targetResult.data ?? []) as TargetRow[];
-  const overviewRows = (overviewResult.data ?? []) as OverviewRow[];
-  const entries = (entriesResult.data ?? []) as EntryRow[];
-  const reconciliationRows = (reconciliationResult.data ?? []) as ReconciliationRow[];
-  const categories = (categoriesResult.data ?? []) as CategoryRow[];
-  const mapRows = (mapResult.data ?? []) as Array<{
-    category_id: string;
-    jar_id: string;
+  searchParams?: Promise<{
+    month?: string;
+    success?: string;
+    error?: string;
   }>;
-  const spendingSummaryRows =
-    (spendingSummaryResult.data ?? []) as SpendingJarSummaryRow[];
-
-  const targetMap = new Map(targets.map((t) => [t.jar_id, t]));
-  const overviewMap = new Map(overviewRows.map((r) => [r.jar_id, r]));
-  const categoryNameMap = new Map(categories.map((c) => [c.id, c.name]));
-  const jarNameMap = new Map(jars.map((jar) => [jar.id, jar.name]));
-  const spendingAlertMap = new Map<string, SpendingAlertRow>(
-    spendingSummaryRows.map((row) => [
-      row.jar_id,
-      {
-        jarId: row.jar_id,
-        alertLevel: row.alert_level,
-        usagePercent:
-          row.usage_percent === null || row.usage_percent === undefined
-            ? null
-            : Number(row.usage_percent),
-        spent: Number(row.monthly_spent ?? 0),
-        limit: Number(row.monthly_limit ?? 0),
-      },
-    ]),
-  );
-  const fallbackJarId = jars.find((jar) => jar.slug === "unassigned")?.id ?? null;
-  const categoryMappings = new Map(
-    mapRows.map((row) => [
-      row.category_id,
-      {
-        categoryId: row.category_id,
-        jarId: row.jar_id,
-        resolvedFromFallback: false,
-      },
-    ]),
-  );
-  const expenseCategories = categories
-    .filter((category) => category.kind === "expense")
-    .sort((a, b) => a.name.localeCompare(b.name));
-
-  for (const category of expenseCategories) {
-    if (!categoryMappings.has(category.id) && fallbackJarId) {
-      categoryMappings.set(category.id, {
-        categoryId: category.id,
-        jarId: fallbackJarId,
-        resolvedFromFallback: true,
-      });
-    }
-  }
-
-  const totalAllocated = overviewRows.reduce(
-    (sum, row) => sum + Number(row.allocated_amount ?? 0),
-    0,
-  );
-  const totalWithdrawn = overviewRows.reduce(
-    (sum, row) => sum + Number(row.withdrawn_amount ?? 0),
-    0,
-  );
-  const netBalance = overviewRows.reduce(
-    (sum, row) => sum + Number(row.net_amount ?? 0),
-    0,
-  );
-  const totalTarget = overviewRows.reduce(
-    (sum, row) => sum + Number(row.target_amount ?? 0),
-    0,
-  );
-  const coveragePercent = totalTarget > 0 ? (netBalance / totalTarget) * 100 : 0;
-
-  const activityItems = entries.map((entry) => ({
-    id: entry.id,
-    jar_name: entry.jar?.[0]?.name ?? "Hũ",
-    entry_date: entry.entry_date,
-    entry_type: entry.entry_type,
-    amount: Number(entry.amount),
-    note: entry.note,
-  }));
-  const accountabilityRows = reconciliationRows.map((row) => ({
-    id: row.id,
-    category_name: categoryNameMap.get(row.category_id) ?? (vi ? "Danh mục" : "Category"),
-    jar_name: jarNameMap.get(row.jar_id) ?? (vi ? "Hũ" : "Jar"),
-    actual_amount: Number(row.actual_amount),
-    allocated_amount: Number(row.allocated_amount),
-    gap_amount: Number(row.gap_amount),
-  }));
+}) {
+  const { householdId, householdLocale } = await getAuthenticatedHouseholdContext();
+  const params = searchParams ? await searchParams : undefined;
+  const month =
+    params?.month && /^\d{4}-\d{2}$/.test(params.month)
+      ? params.month
+      : new Date().toISOString().slice(0, 7);
+  const supabase = await createClient();
+  const data = await fetchJarCommandCenter(supabase, householdId, `${month}-01`);
 
   return (
     <AppShell
-      header={<AppHeader title={vi ? "Hũ tài chính" : "Financial Jars"} />}
+      header={<AppHeader title="Jars" />}
       footer={<BottomTabBar />}
     >
       <div className="space-y-6 pb-24">
-        <SectionHeader
-          label={vi ? "Kế hoạch" : "Planning"}
-          title={vi ? "Phân bổ tiền theo hũ" : "Envelope planning with jars"}
-          description={
-            vi
-              ? "Hũ ảo không ảnh hưởng số dư tài khoản. Đặt mục tiêu tháng và phân bổ thủ công."
-              : "Virtual jars do not move real account balances. Set monthly targets and allocate manually."
-          }
-        />
+        {params?.success ? (
+          <Alert className="border-emerald-200 bg-emerald-50 text-emerald-900">
+            <AlertDescription>{params.success}</AlertDescription>
+          </Alert>
+        ) : null}
+        {params?.error ? (
+          <Alert className="border-rose-200 bg-rose-50 text-rose-900">
+            <AlertDescription>{params.error}</AlertDescription>
+          </Alert>
+        ) : null}
 
-        <div className="flex items-center justify-between gap-3">
-          <div className="text-sm text-muted-foreground">
-            {vi ? "Tháng hiện tại" : "Current month"}
-          </div>
-          <div className="flex items-center gap-2">
-            <input
-              type="month"
-              defaultValue={selectedMonth}
-              name="month"
-              form="jar-month-switch"
-              className="rounded-lg border px-2 py-1.5 text-sm"
-            />
-            <form id="jar-month-switch" action="/jars" method="get">
-              <button
-                className="rounded-lg border px-3 py-1.5 text-sm font-semibold"
-                type="submit"
-              >
-                {vi ? "Xem" : "View"}
-              </button>
-            </form>
-          </div>
-        </div>
+        <Card className="overflow-hidden border-border/60 bg-gradient-to-br from-slate-50 via-white to-amber-50/50">
+          <CardContent className="space-y-5 p-6">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+              <div className="space-y-2">
+                <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                  <PiggyBank className="h-3.5 w-3.5" />
+                  Financial Intent Layer
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold tracking-tight text-slate-950">
+                    Hệ thống hũ tài chính
+                  </h1>
+                  <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
+                    Mỗi hũ là một mục đích giữ tiền. Hệ thống theo dõi tiền đã được cấp vào hũ nào,
+                    đang nằm ở cash hay savings, và khoản nào còn chờ bạn review trước khi chốt.
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button asChild variant="outline">
+                  <Link href={`/jars/review`}>
+                    Review queue
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+                <Button asChild>
+                  <Link href={`/jars/setup?month=${month}`}>
+                    Thiết lập jars
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
 
-        <JarSummaryCards
-          totalAllocated={totalAllocated}
-          totalWithdrawn={totalWithdrawn}
-          netBalance={netBalance}
-          coveragePercent={coveragePercent}
-          locale={householdLocale}
-          vi={vi}
-        />
-
-        <Card>
-          <CardHeader>
-            <SectionHeader
-              label={vi ? "Tổng quan" : "Overview"}
-              title={vi ? "Tiến độ từng hũ" : "Per-jar monthly progress"}
-            />
-          </CardHeader>
-          <CardContent>
-        <JarMonthlyOverview
-          jars={jars}
-          overviewMap={overviewMap}
-          targetMap={targetMap}
-          spendingAlertMap={spendingAlertMap}
-          month={selectedMonth}
-          locale={householdLocale}
-          vi={vi}
-        />
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <SummaryCard
+                title="Tổng số dư theo hũ"
+                value={formatVndCompact(data.summary.totalBalance, householdLocale)}
+                helper={formatVnd(data.summary.totalBalance, householdLocale)}
+              />
+              <SummaryCard
+                title="Dòng tiền vào tháng này"
+                value={formatVndCompact(data.summary.totalMonthInflow, householdLocale)}
+                helper="Từ income allocations và interest"
+              />
+              <SummaryCard
+                title="Đã chi / ra khỏi hũ"
+                value={formatVndCompact(data.summary.totalMonthOutflow, householdLocale)}
+                helper="Bao gồm expense, tax và adjustments"
+              />
+              <SummaryCard
+                title="Review queue"
+                value={String(data.summary.pendingReviews)}
+                helper={`${data.summary.mappedExpenseRules} quy tắc category đang hoạt động`}
+              />
+            </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <SectionHeader
-              label={vi ? "Kỷ luật" : "Accountability"}
-              title={vi ? "Đối soát hũ và chi tiêu" : "Jar-to-spending reconciliation"}
-            />
-          </CardHeader>
-          <CardContent>
-            <JarAccountabilityTable
-              rows={accountabilityRows}
-              month={selectedMonth}
-              locale={householdLocale}
-              vi={vi}
-            />
-          </CardContent>
-        </Card>
+        {data.items.length === 0 ? (
+          <EmptyState
+            icon={PiggyBank}
+            title="Bạn chưa có hệ hũ nào"
+            description="Bắt đầu từ preset 6 jars hoặc tự tạo cấu trúc riêng. Sau khi có jars, thu nhập và savings sẽ bắt đầu được đề xuất gắn vào hũ."
+            className="min-h-[280px] border-border/60 bg-slate-50/60"
+            action={
+              <Button asChild>
+                <Link href={`/jars/setup?month=${month}`}>Bắt đầu thiết lập</Link>
+              </Button>
+            }
+          />
+        ) : (
+          <>
+            <section className="grid gap-4 xl:grid-cols-[1.35fr_0.95fr]">
+              <Card className="border-border/60">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg">Tình trạng các hũ</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {data.items.map((jar) => {
+                    const heldOutsideCash =
+                      jar.heldInSavings + jar.heldInInvestments + jar.heldInAssets;
+                    return (
+                      <div
+                        key={jar.id}
+                        className="rounded-2xl border border-border/60 bg-white p-4 shadow-sm"
+                      >
+                        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span
+                                className="inline-block h-3 w-3 rounded-full"
+                                style={{ backgroundColor: jar.color ?? "#64748B" }}
+                              />
+                              <h2 className="text-base font-semibold text-slate-950">
+                                {jar.name}
+                              </h2>
+                              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600">
+                                {jar.jar_type}
+                              </span>
+                            </div>
+                            <p className="text-sm text-slate-500">
+                              Số dư hiện tại {formatVnd(jar.currentBalance, householdLocale)}.
+                              {jar.monthlyIncomePercent > 0
+                                ? ` Ke hoach: ${jar.monthlyIncomePercent.toFixed(0)}% thu nhap`
+                                : jar.monthlyTarget > 0
+                                  ? ` Ke hoach: ${formatVnd(jar.monthlyTarget, householdLocale)}/thang`
+                                  : " Chua dat target thang."}
+                            </p>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            <Button asChild variant="outline" size="sm">
+                              <Link href={`/jars/${jar.id}`}>Xem chi tiết</Link>
+                            </Button>
+                            <Button asChild variant="ghost" size="sm">
+                              <Link href={`/jars/setup?month=${month}#rules`}>Sửa rule</Link>
+                            </Button>
+                          </div>
+                        </div>
 
-        <Card>
-          <CardHeader>
-            <SectionHeader
-              label={vi ? "Liên kết danh mục" : "Category mapping"}
-              title={vi ? "Danh mục chi tiêu theo hũ" : "Expense Category to Jar"}
-              description={
-                vi
-                  ? "Mỗi danh mục chi tiêu phải gắn với một hũ. Nếu thiếu map sẽ dùng hũ 'Unassigned'."
-                  : "Each expense category maps to one jar. Missing mappings use the 'Unassigned' jar."
-              }
-            />
-          </CardHeader>
-          <CardContent>
-            <JarCategoryMapTable
-              categories={expenseCategories}
-              jarOptions={jars}
-              mappings={categoryMappings}
-              fallbackJarId={fallbackJarId}
-              vi={vi}
-            />
-          </CardContent>
-        </Card>
+                        <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                          <MiniMetric
+                            icon={Wallet}
+                            label="Trong cash"
+                            value={formatVndCompact(jar.heldInCash, householdLocale)}
+                          />
+                          <MiniMetric
+                            icon={PiggyBank}
+                            label="Đang ở savings"
+                            value={formatVndCompact(jar.heldInSavings, householdLocale)}
+                          />
+                          <MiniMetric
+                            icon={Coins}
+                            label="Đang ở investments"
+                            value={formatVndCompact(jar.heldInInvestments, householdLocale)}
+                          />
+                          <MiniMetric
+                            icon={CheckCircle2}
+                            label="Ra khỏi cash"
+                            value={formatVndCompact(heldOutsideCash, householdLocale)}
+                          />
+                        </div>
 
-        <Card>
-          <CardHeader>
-            <SectionHeader
-              label={vi ? "Hoạt động" : "Activity"}
-              title={vi ? "Nhật ký giao dịch hũ" : "Jar ledger activity"}
-            />
-          </CardHeader>
-          <CardContent>
-            <JarActivityList
-              items={activityItems}
-              month={selectedMonth}
-              locale={householdLocale}
-              vi={vi}
-            />
-          </CardContent>
-        </Card>
+                        <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_auto]">
+                          <div className="rounded-2xl bg-slate-50 p-4">
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="font-medium text-slate-600">Tháng này đã cấp vào</span>
+                              <span className="font-semibold text-slate-950">
+                                {formatVndCompact(jar.monthInflow, householdLocale)}
+                              </span>
+                            </div>
+                            <div className="mt-2 flex items-center justify-between text-sm">
+                              <span className="font-medium text-slate-600">Tháng này đã dùng / giảm</span>
+                              <span className="font-semibold text-slate-950">
+                                {formatVndCompact(jar.monthOutflow, householdLocale)}
+                              </span>
+                            </div>
+                          </div>
 
-        <Card>
-          <CardHeader>
-            <SectionHeader
-              label={vi ? "Thiết lập" : "Setup"}
-              title={vi ? "Tạo hũ mới" : "Create new jar"}
-              description={
-                vi
-                  ? "Bạn có thể thêm hũ tùy chỉnh ngoài 6 hũ mặc định."
-                  : "Add custom jars in addition to the default 6 jars."
-              }
-            />
-          </CardHeader>
-          <CardContent>
-            <JarCreateForm vi={vi} />
-            <p className="mt-3 text-xs text-muted-foreground">
-              {vi ? "Mẹo: Dùng /budgets như màn hình legacy trong lúc chuyển đổi." : "Tip: /budgets remains available as a legacy screen during transition."}
-            </p>
-            <Link href="/budgets" className="text-xs text-primary hover:underline">
-              {vi ? "Mở Budget (legacy)" : "Open Budget (legacy)"}
-            </Link>
-          </CardContent>
-        </Card>
+                          <form
+                            action={upsertJarPlanAction}
+                            className="grid gap-2 rounded-2xl border border-border/60 bg-slate-50 p-4 sm:grid-cols-2 lg:min-w-[360px]"
+                          >
+                            <input type="hidden" name="jarId" value={jar.id} />
+                            <input type="hidden" name="month" value={month} />
+                            <input type="hidden" name="returnTo" value={`/jars?month=${month}`} />
+                            <div className="space-y-1.5">
+                              <Label htmlFor={`fixed-${jar.id}`}>So tien thang</Label>
+                              <Input
+                                id={`fixed-${jar.id}`}
+                                name="fixedAmount"
+                                type="number"
+                                min="0"
+                                defaultValue={jar.monthlyTarget}
+                              />
+                            </div>
+                            <div className="space-y-1.5">
+                              <Label htmlFor={`percent-${jar.id}`}>% thu nhap</Label>
+                              <Input
+                                id={`percent-${jar.id}`}
+                                name="incomePercent"
+                                type="number"
+                                min="0"
+                                max="100"
+                                step="0.01"
+                                defaultValue={jar.monthlyIncomePercent}
+                              />
+                            </div>
+                            <div className="sm:col-span-2 flex justify-end">
+                              <Button type="submit" size="sm">
+                                Luu ke hoach thang
+                              </Button>
+                            </div>
+                          </form>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </CardContent>
+              </Card>
+
+              <div className="space-y-4">
+                <Card className="border-border/60">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg">Review queue</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {data.reviews.length === 0 ? (
+                      <EmptyState
+                        icon={Eye}
+                        title="Khong co movement cho review"
+                        description="Thu nhap va savings se xuat hien o day khi he thong chua du chac chan de gan vao hu."
+                        className="min-h-[180px] border-0 bg-transparent p-0"
+                      />
+                    ) : (
+                      data.reviews.slice(0, 5).map((review) => (
+                        <div
+                          key={review.id}
+                          className="rounded-2xl border border-border/60 bg-white p-4"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <p className="text-sm font-semibold text-slate-950">
+                                {review.source_type}
+                              </p>
+                              <p className="mt-1 text-xs text-slate-500">
+                                {review.movement_date} · {formatVnd(review.amount, householdLocale)}
+                              </p>
+                            </div>
+                            <span className="rounded-full bg-amber-100 px-2 py-1 text-[11px] font-semibold text-amber-800">
+                              pending
+                            </span>
+                          </div>
+                          {review.suggested_allocations.length > 0 ? (
+                            <div className="mt-3 space-y-1.5">
+                              {review.suggested_allocations.slice(0, 3).map((item) => (
+                                <div
+                                  key={`${review.id}-${item.jarId}`}
+                                  className="flex items-center justify-between text-sm"
+                                >
+                                  <span className="text-slate-600">{item.jarName}</span>
+                                  <span className="font-medium text-slate-900">
+                                    {formatVndCompact(item.amount, householdLocale)}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          ) : null}
+                        </div>
+                      ))
+                    )}
+                    <Button asChild className="w-full">
+                      <Link href="/jars/review">Mo review queue</Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-border/60">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg">Dieu chinh thu cong</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <form action={addManualJarAdjustmentAction} className="space-y-3">
+                      <input type="hidden" name="returnTo" value={`/jars?month=${month}`} />
+                      <div className="space-y-1.5">
+                        <Label htmlFor="manualJarId">Hu</Label>
+                        <select
+                          id="manualJarId"
+                          name="jarId"
+                          className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                          defaultValue={data.items[0]?.id ?? ""}
+                        >
+                          {data.items.map((jar) => (
+                            <option key={jar.id} value={jar.id}>
+                              {jar.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="manualDirection">Huong</Label>
+                          <select
+                            id="manualDirection"
+                            name="direction"
+                            className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                            defaultValue="in"
+                          >
+                            <option value="in">Tang so du</option>
+                            <option value="out">Giam so du</option>
+                          </select>
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label htmlFor="manualDate">Ngay</Label>
+                          <Input
+                            id="manualDate"
+                            name="movementDate"
+                            type="date"
+                            defaultValue={new Date().toISOString().slice(0, 10)}
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="manualAmount">So tien</Label>
+                        <Input id="manualAmount" name="amount" type="number" min="1" />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="manualNote">Ghi chu</Label>
+                        <Input id="manualNote" name="note" placeholder="Ly do dieu chinh" />
+                      </div>
+                      <Button type="submit" className="w-full">
+                        Ghi nhan dieu chinh
+                      </Button>
+                    </form>
+                  </CardContent>
+                </Card>
+              </div>
+            </section>
+          </>
+        )}
       </div>
     </AppShell>
+  );
+}
+
+function SummaryCard({
+  title,
+  value,
+  helper,
+}: {
+  title: string;
+  value: string;
+  helper: string;
+}) {
+  return (
+    <Card className="border-border/60 bg-white/90">
+      <CardContent className="p-4">
+        <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+          {title}
+        </p>
+        <p className="mt-2 text-2xl font-bold text-slate-950">{value}</p>
+        <p className="mt-1 text-sm text-slate-500">{helper}</p>
+      </CardContent>
+    </Card>
+  );
+}
+
+function MiniMetric({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: ElementType;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-border/60 bg-slate-50 p-3">
+      <div className="flex items-center gap-2 text-slate-500">
+        <Icon className="h-4 w-4" />
+        <span className="text-xs font-medium">{label}</span>
+      </div>
+      <p className="mt-2 text-sm font-semibold text-slate-950">{value}</p>
+    </div>
   );
 }

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { isServerFeatureEnabled } from "@/lib/config/features";
+import { syncTransactionToJarIntent } from "@/lib/jars/intent";
 import type { SpendingJarAlertLevel, SpendingJarSummaryRow } from "@/lib/jars/spending";
 import { writeAuditEvent } from "@/lib/server/audit";
 import { createClient } from "@/lib/supabase/server";
@@ -415,6 +416,17 @@ export async function quickAddTransactionAction(
   revalidatePath("/dashboard");
   revalidatePath("/jars");
 
+  await syncTransactionToJarIntent(supabase, {
+    householdId,
+    userId: user.id,
+    transactionId: insert.data.id,
+    type,
+    amount: amountRounded,
+    transactionDate,
+    categoryId,
+    description,
+  });
+
   const spendingJarWarning =
     type === "expense"
       ? await getSpendingJarWarningForCategory(
@@ -538,6 +550,17 @@ export async function addTransactionDetailedAction(
   revalidatePath("/transactions");
   revalidatePath("/dashboard");
   revalidatePath("/jars");
+
+  await syncTransactionToJarIntent(supabase, {
+    householdId,
+    userId: user.id,
+    transactionId: insert.data.id,
+    type: type as "income" | "expense" | "transfer",
+    amount: amountRounded,
+    transactionDate,
+    categoryId,
+    description: description.length > 0 ? description : null,
+  });
 
   const spendingJarWarning =
     type === "expense"

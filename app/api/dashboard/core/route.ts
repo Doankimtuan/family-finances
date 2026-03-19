@@ -5,9 +5,11 @@ import { getDashboardTrend } from "@/lib/dashboard/trend";
 import type {
   DashboardCoreMetrics,
   DashboardCoreResponse,
+  DashboardJarAlert,
   DashboardTrendPoint,
 } from "@/lib/dashboard/types";
-import type { SpendingJarSummaryRow } from "@/lib/jars/spending";
+import { calculateAndPersistHealthSnapshot } from "@/lib/health/service";
+import { fetchJarCommandCenter } from "@/lib/jars/intent";
 import {
   buildSavingsListItems,
   buildSavingsSummary,
@@ -16,6 +18,18 @@ import {
 import { createClient } from "@/lib/supabase/server";
 
 type RpcError = { message: string };
+type HealthSnapshotRow = {
+  snapshot_month: string;
+  overall_score: number;
+  cashflow_score: number;
+  emergency_score: number;
+  debt_score: number;
+  networth_score: number;
+  goals_score: number;
+  diversification_score: number;
+  top_action: string;
+  metrics_json: Record<string, number | null | Record<string, number>>;
+};
 
 function monthRange(asOfDate: string) {
   const date = new Date(asOfDate);
@@ -98,8 +112,6 @@ export async function GET(request: Request) {
       categoriesResult,
       ccBillingResult,
       ccAccountsResult,
-      jarsOverviewResult,
-      spendingJarSummaryResult,
       goalsResult,
       contributionsResult,
       recentTxResult,
@@ -172,21 +184,6 @@ export async function GET(request: Request) {
         .eq("household_id", householdId)
         .eq("type", "credit_card")
         .eq("is_archived", false),
-      jarsEnabled
-        ? supabase
-            .from("jar_monthly_overview")
-            .select(
-              "jar_id, name, color, icon, target_amount, allocated_amount, withdrawn_amount, net_amount, coverage_ratio",
-            )
-            .eq("household_id", householdId)
-            .eq("month", startISO)
-        : Promise.resolve({ data: [], error: null }),
-      jarsEnabled
-        ? supabase.rpc("rpc_spending_jar_monthly_summary", {
-            p_household_id: householdId,
-            p_month: startISO,
-          })
-        : Promise.resolve({ data: [], error: null }),
       supabase
         .from("goals")
         .select("id, name, target_amount, status, target_date")
@@ -317,8 +314,6 @@ export async function GET(request: Request) {
       txBalanceResult.error ||
       txMonthResult.error ||
       categoriesResult.error
-      || jarsOverviewResult.error
-      || spendingJarSummaryResult.error
     ) {
       return NextResponse.json(
         {
@@ -330,8 +325,6 @@ export async function GET(request: Request) {
             txBalanceResult.error?.message ??
             txMonthResult.error?.message ??
             categoriesResult.error?.message ??
-            jarsOverviewResult.error?.message ??
-            spendingJarSummaryResult.error?.message ??
             "Failed to build dashboard drill-downs.",
         },
         { status: 500 },
@@ -348,24 +341,126 @@ export async function GET(request: Request) {
       asOfDate,
     );
     const savingsSummary = buildSavingsSummary(savingsItems);
+    const jarCommandCenter = jarsEnabled
+      ? await fetchJarCommandCenter(supabase, householdId, startISO)
+      : null;
+    const snapshotMonth = startISO;
+    const healthSnapshotResult = await supabase
+      .from("health_score_snapshots")
+      .select(
+        "snapshot_month, overall_score, cashflow_score, emergency_score, debt_score, networth_score, goals_score, diversification_score, top_action, metrics_json",
+      )
+      .eq("household_id", householdId)
+      .lte("snapshot_month", snapshotMonth)
+      .order("snapshot_month", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (healthSnapshotResult.error) {
+      return NextResponse.json(
+        { error: healthSnapshotResult.error.message },
+        { status: 500 },
+      );
+    }
+
+    const healthSnapshot =
+      (healthSnapshotResult.data as HealthSnapshotRow | null) ??
+      (await calculateAndPersistHealthSnapshot(supabase, householdId, asOfDate));
+    const normalizedHealth =
+      "snapshotMonth" in healthSnapshot
+        ? healthSnapshot
+        : {
+            snapshotMonth: healthSnapshot.snapshot_month,
+            overallScore: Number(healthSnapshot.overall_score),
+            factorScores: {
+              cashflow: Number(healthSnapshot.cashflow_score),
+              emergency: Number(healthSnapshot.emergency_score),
+              debt: Number(healthSnapshot.debt_score),
+              networth: Number(healthSnapshot.networth_score),
+              goals: Number(healthSnapshot.goals_score),
+              diversification: Number(healthSnapshot.diversification_score),
+            },
+            weights:
+              (healthSnapshot.metrics_json?.weights as {
+                cashflow: number;
+                emergency: number;
+                debt: number;
+                networth: number;
+                goals: number;
+                diversification: number;
+              } | undefined) ?? {
+                cashflow: 22,
+                emergency: 20,
+                debt: 20,
+                networth: 16,
+                goals: 14,
+                diversification: 8,
+              },
+            topAction: healthSnapshot.top_action,
+            metrics:
+              (healthSnapshot.metrics_json as Record<string, number | null>) ?? {},
+          };
     const ccBillingItems = ccBillingResult.data ?? [];
-    const jarOverviewRows = (jarsOverviewResult.data ?? []) as Array<{
-      jar_id: string;
-      name: string;
-      color: string | null;
-      icon: string | null;
-      target_amount: number;
-      allocated_amount: number;
-      withdrawn_amount: number;
-      net_amount: number;
-      coverage_ratio: number;
-    }>;
-    const spendingJarSummaryRows =
-      (spendingJarSummaryResult.data ?? []) as SpendingJarSummaryRow[];
     // Set of credit card account IDs — used to skip their raw expense transactions
     const ccAccountIds = new Set(
       (ccAccountsResult.data ?? []).map((a) => a.id),
     );
+
+    const jarSnapshotRows =
+      jarCommandCenter?.items.map((item) => {
+        const targetAmount =
+          item.monthlyTarget > 0
+            ? item.monthlyTarget
+            : item.monthlyIncomePercent > 0
+              ? item.monthInflow
+              : 0;
+
+        return {
+          jar_id: item.id,
+          name: item.name,
+          color: item.color,
+          icon: item.icon,
+          target_amount: targetAmount,
+          allocated_amount: item.monthInflow,
+          withdrawn_amount: item.monthOutflow,
+          net_amount: item.currentBalance,
+          coverage_ratio: targetAmount > 0 ? item.monthInflow / targetAmount : 1,
+        };
+      }) ?? [];
+
+    const jarAlertRows: DashboardJarAlert[] =
+      jarCommandCenter?.items
+        .filter((item) => item.monthlyTarget > 0)
+        .flatMap<DashboardJarAlert>((item) => {
+          if (item.monthOutflow > item.monthlyTarget) {
+            return [
+              {
+                jarId: item.id,
+                jarName: item.name,
+                usagePercent: (item.monthOutflow / item.monthlyTarget) * 100,
+                alertLevel: "exceeded" as const,
+                spent: item.monthOutflow,
+                limit: item.monthlyTarget,
+              },
+            ];
+          }
+
+          if (item.monthInflow < item.monthlyTarget) {
+            return [
+              {
+                jarId: item.id,
+                jarName: item.name,
+                usagePercent: (item.monthInflow / item.monthlyTarget) * 100,
+                alertLevel: "warning" as const,
+                spent: item.monthInflow,
+                limit: item.monthlyTarget,
+              },
+            ];
+          }
+
+          return [];
+        })
+        .sort((a, b) => (b.usagePercent ?? 0) - (a.usagePercent ?? 0)) ?? [];
 
     // Build account → delta map for net-worth balances
     const accountDeltaMap = new Map<string, number>();
@@ -565,7 +660,7 @@ export async function GET(request: Request) {
         };
       })(),
       trend: (trend as DashboardTrendPoint[]).slice(),
-      health: null,
+      health: normalizedHealth,
       drilldowns: {
         netWorth: {
           assets: assetLineItems.sort((a, b) => b.value - a.value),
@@ -581,8 +676,9 @@ export async function GET(request: Request) {
       goals,
       recentTransactions,
       priorityActions,
+      pendingJarReviews: jarCommandCenter?.summary.pendingReviews ?? 0,
       jars: jarsEnabled
-        ? jarOverviewRows
+        ? jarSnapshotRows
         .filter((row) => Number(row.target_amount) > 0)
         .sort(
           (a, b) =>
@@ -602,25 +698,7 @@ export async function GET(request: Request) {
         }))
         : [],
       spendingJarAlerts: jarsEnabled
-        ? spendingJarSummaryRows
-            .filter(
-              (row) =>
-                row.alert_level === "warning" || row.alert_level === "exceeded",
-            )
-            .sort(
-              (a, b) => Number(b.usage_percent ?? 0) - Number(a.usage_percent ?? 0),
-            )
-            .map((row) => ({
-              jarId: row.jar_id,
-              jarName: row.jar_name,
-              usagePercent:
-                row.usage_percent === null || row.usage_percent === undefined
-                  ? null
-                  : Number(row.usage_percent),
-              alertLevel: row.alert_level,
-              spent: Number(row.monthly_spent ?? 0),
-              limit: Number(row.monthly_limit ?? 0),
-            }))
+        ? jarAlertRows
         : [],
     };
 

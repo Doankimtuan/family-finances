@@ -69,6 +69,14 @@ export default async function SavingsDetailPage({ params }: Props) {
       .eq("is_archived", false)
       .order("created_at", { ascending: true })).data ?? []
   ) as Array<{ id: string; name: string }>;
+  const jars = (
+    (await supabase
+      .from("jars")
+      .select("id, name")
+      .eq("household_id", householdId)
+      .eq("is_archived", false)
+      .order("sort_order", { ascending: true })).data ?? []
+  ) as Array<{ id: string; name: string }>;
 
   return (
     <AppShell
@@ -93,11 +101,13 @@ export default async function SavingsDetailPage({ params }: Props) {
               savings={account}
               computed={detail.computed}
               accounts={accounts}
+              jars={jars}
             />
             <MatureSavingsForm
               savings={account}
               computed={detail.computed}
               accounts={accounts}
+              jars={jars}
             />
           </div>
         </div>

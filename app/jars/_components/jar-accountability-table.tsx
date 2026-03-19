@@ -24,8 +24,8 @@ export function JarAccountabilityTable({ rows, month, locale, vi }: Props) {
       <div className="flex items-center justify-between gap-3">
         <p className="text-xs text-muted-foreground">
           {vi
-            ? "Đối soát theo danh mục chi tiêu và phần phân bổ từ hũ."
-            : "Reconciles category spend against allocated jar funding."}
+            ? "So sánh chi tiêu thực tế với phần tiền đã phân bổ từ từng hũ."
+            : "Compare actual spending with the money allocated from each jar."}
         </p>
         <form action={runJarReconciliationDirectAction}>
           <input type="hidden" name="month" value={month} />
@@ -33,7 +33,7 @@ export function JarAccountabilityTable({ rows, month, locale, vi }: Props) {
             className="rounded-md border px-3 py-1.5 text-xs font-semibold hover:bg-muted"
             type="submit"
           >
-            {vi ? "Đối soát lại" : "Recompute"}
+            {vi ? "Cập nhật lại dữ liệu" : "Refresh data"}
           </button>
         </form>
       </div>
@@ -41,8 +41,8 @@ export function JarAccountabilityTable({ rows, month, locale, vi }: Props) {
       {rows.length === 0 ? (
         <div className="rounded-lg border p-3 text-sm text-muted-foreground">
           {vi
-            ? "Chưa có dữ liệu đối soát. Nhấn 'Đối soát lại' để tạo dữ liệu tháng này."
-            : "No reconciliation rows yet. Click Recompute to generate this month."}
+            ? "Chưa có dữ liệu so sánh. Nhấn 'Cập nhật lại dữ liệu' để làm mới tháng này."
+            : "No comparison rows yet. Click Refresh data to rebuild this month."}
         </div>
       ) : (
         <div className="overflow-x-auto rounded-lg border">

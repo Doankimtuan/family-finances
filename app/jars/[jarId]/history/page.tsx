@@ -5,6 +5,7 @@ import { AppHeader } from "@/components/layout/app-header";
 import { AppShell } from "@/components/layout/app-shell";
 import { BottomTabBar } from "@/components/layout/bottom-tab-bar";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { SectionHeader } from "@/components/ui/section-header";
 import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
 import { createClient } from "@/lib/supabase/server";
@@ -106,39 +107,44 @@ export default async function JarHistoryPage({
       footer={<BottomTabBar />}
     >
       <div className="space-y-6 pb-24">
-        <SectionHeader
-          label={vi ? "Theo dõi" : "Tracking"}
-          title={jarResult.data.name}
-          description={
-            vi
-              ? "Tổng hợp chi tiêu theo hạn mức tháng của hũ."
-              : "Monthly spending and limit history for this jar."
-          }
-        />
-
-        <div className="flex items-center justify-between gap-3">
-          <Link href="/jars" className="text-sm font-semibold text-primary hover:underline">
-            {vi ? "← Quay lại danh sách hũ" : "← Back to jars"}
-          </Link>
-
-          <form action={`/jars/${jarId}/history`} method="get" className="flex items-center gap-2">
-            <input
-              type="month"
-              name="month"
-              defaultValue={toMonthControlValue(selectedMonth)}
-              className="rounded-lg border px-2 py-1.5 text-sm"
+        <Card className="overflow-hidden border-border/60 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white shadow-xl">
+          <CardContent className="space-y-5 p-6">
+            <SectionHeader
+              label={vi ? "Theo dõi" : "Tracking"}
+              title={jarResult.data.name}
+              description={
+                vi
+                  ? "Xem xu hướng nhiều tháng, chi tiêu theo danh mục và giao dịch của hũ này."
+                  : "Review month trends, category spending, and transactions for this jar."
+              }
+              className="[&_h2]:text-white [&_p]:text-white/80 [&_[class*='text-primary']]:text-white/70"
             />
-            <button className="rounded-lg border px-3 py-1.5 text-sm font-semibold" type="submit">
-              {vi ? "Xem" : "View"}
-            </button>
-          </form>
-        </div>
+
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <Link href="/jars" className="text-sm font-semibold text-white hover:underline">
+                {vi ? "← Quay lại danh sách hũ" : "← Back to jars"}
+              </Link>
+
+              <form action={`/jars/${jarId}/history`} method="get" className="flex items-center gap-2">
+                <input
+                  type="month"
+                  name="month"
+                  defaultValue={toMonthControlValue(selectedMonth)}
+                  className="h-11 rounded-xl border border-white/20 bg-white/10 px-3 text-sm text-white"
+                />
+                <button className="h-11 rounded-xl bg-white px-4 text-sm font-semibold text-slate-900" type="submit">
+                  {vi ? "Xem tháng" : "View month"}
+                </button>
+              </form>
+            </div>
+          </CardContent>
+        </Card>
 
         {thisMonth ? (
-          <div className="rounded-xl border border-border/60 p-4">
+          <div className="rounded-2xl border border-border/60 bg-card p-4">
             <div className="flex items-center justify-between gap-2">
               <div>
-                <p className="text-sm font-semibold">{vi ? "Trạng thái tháng" : "Current Month Status"}</p>
+                <p className="text-sm font-semibold">{vi ? "Trạng thái tháng đang xem" : "Selected month status"}</p>
                 <p className="text-xs text-muted-foreground">
                   {selectedMonth} ·{" "}
                   {thisMonth.usage_percent === null
@@ -178,8 +184,8 @@ export default async function JarHistoryPage({
         ) : null}
 
         <JarHistoryMonthlySummary rows={historyRows} locale={householdLocale} vi={vi} />
-        <JarHistoryTransactionList rows={txRows} locale={householdLocale} vi={vi} />
         <JarHistoryCategoryBreakdown rows={categoryRows} locale={householdLocale} vi={vi} />
+        <JarHistoryTransactionList rows={txRows} locale={householdLocale} vi={vi} />
       </div>
     </AppShell>
   );

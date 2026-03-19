@@ -7,6 +7,8 @@ import {
   initialJarActionState,
   type JarActionState,
 } from "@/app/jars/action-types";
+import { Label } from "@/components/ui/label";
+import { MoneyInput } from "@/components/ui/money-input";
 
 type Props = {
   jarId: string;
@@ -31,7 +33,7 @@ export function JarTargetForm({
 
   return (
     <form
-      className="grid grid-cols-1 gap-2 md:grid-cols-4"
+      className="space-y-4"
       onSubmit={(event) => {
         event.preventDefault();
         const fd = new FormData(event.currentTarget);
@@ -41,27 +43,39 @@ export function JarTargetForm({
       <input type="hidden" name="jarId" value={jarId} />
       <input type="hidden" name="month" value={month} />
 
-      <select
-        name="targetMode"
-        defaultValue={defaultMode}
-        className="rounded-lg border px-2 py-2 text-sm"
-      >
-        <option value="fixed">{vi ? "Số tiền cố định" : "Fixed amount"}</option>
-        <option value="percent">{vi ? "% thu nhập tháng" : "% monthly income"}</option>
-      </select>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div className="space-y-1.5">
+          <Label htmlFor={`target-mode-${jarId}`}>
+            {vi ? "Kiểu mục tiêu" : "Target type"}
+          </Label>
+          <select
+            id={`target-mode-${jarId}`}
+            name="targetMode"
+            defaultValue={defaultMode}
+            className="h-[50px] w-full rounded-xl border border-slate-300 bg-white px-3 text-sm text-slate-900"
+          >
+            <option value="fixed">{vi ? "Số tiền cố định" : "Fixed amount"}</option>
+            <option value="percent">{vi ? "% thu nhập tháng" : "% monthly income"}</option>
+          </select>
+        </div>
 
-      <input
-        name="targetValue"
-        type="number"
-        min={0}
-        defaultValue={defaultValue}
-        className="rounded-lg border px-2 py-2 text-sm"
-      />
+        <div className="space-y-1.5">
+          <Label htmlFor={`target-value-${jarId}`}>
+            {vi ? "Giá trị mục tiêu" : "Target value"}
+          </Label>
+          <MoneyInput
+            id={`target-value-${jarId}`}
+            name="targetValue"
+            defaultValue={defaultValue}
+            className="h-[50px] rounded-xl border-slate-300"
+          />
+        </div>
+      </div>
 
       <button
         type="submit"
         disabled={isPending}
-        className="rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white disabled:opacity-60"
+        className="h-11 rounded-xl bg-slate-900 px-4 text-sm font-semibold text-white disabled:opacity-60"
       >
         {isPending ? (vi ? "Đang lưu..." : "Saving...") : vi ? "Lưu mục tiêu" : "Save target"}
       </button>

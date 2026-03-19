@@ -24,9 +24,10 @@ type Props = {
   savings: SavingsAccountRow;
   computed: SavingsComputedValue;
   accounts: Array<{ id: string; name: string }>;
+  jars?: Array<{ id: string; name: string }>;
 };
 
-export function MatureSavingsForm({ savings, computed, accounts }: Props) {
+export function MatureSavingsForm({ savings, computed, accounts, jars = [] }: Props) {
   const router = useRouter();
   const { t, locale } = useI18n();
   const [open, setOpen] = useState(false);
@@ -37,6 +38,7 @@ export function MatureSavingsForm({ savings, computed, accounts }: Props) {
   const [destinationAccountId, setDestinationAccountId] = useState(
     savings.primary_linked_account_id,
   );
+  const [destinationJarId, setDestinationJarId] = useState("");
   const [actionDate, setActionDate] = useState(
     savings.maturity_date ?? new Date().toISOString().slice(0, 10),
   );
@@ -53,6 +55,7 @@ export function MatureSavingsForm({ savings, computed, accounts }: Props) {
         actionDate,
         actionType,
         destinationAccountId,
+        destinationJarId: destinationJarId || null,
         newPlan:
           actionType === "switch_plan"
             ? {
@@ -124,6 +127,18 @@ export function MatureSavingsForm({ savings, computed, accounts }: Props) {
               <SelectContent>
                 {accounts.map((account) => (
                   <SelectItem key={account.id} value={account.id}>{account.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Destination jar</Label>
+            <Select value={destinationJarId || "__none__"} onValueChange={(value) => setDestinationJarId(value === "__none__" ? "" : value)}>
+              <SelectTrigger className="h-12 border-slate-300 bg-white text-slate-950 data-[placeholder]:text-slate-400"><SelectValue placeholder="Review later" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Review later</SelectItem>
+                {jars.map((jar) => (
+                  <SelectItem key={jar.id} value={jar.id}>{jar.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>

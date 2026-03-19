@@ -1,24 +1,36 @@
 "use client";
 
+import { HeartPulse } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
+import { useI18n } from "@/lib/providers/i18n-provider";
+
 type DashboardErrorProps = {
   error: Error;
   reset: () => void;
 };
 
-export default function DashboardError({ error, reset }: DashboardErrorProps) {
+export default function DashboardError({
+  error,
+  reset,
+}: DashboardErrorProps) {
+  const { t } = useI18n();
+
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-6">
-      <section className="mx-auto w-full max-w-md rounded-2xl border border-rose-200 bg-white p-5 shadow-sm">
-        <p className="text-xs font-medium uppercase tracking-[0.16em] text-rose-500">Dashboard Error</p>
-        <h1 className="mt-1 text-lg font-semibold text-rose-700">Unable to load dashboard</h1>
-        <p className="mt-2 text-sm text-slate-600">{error.message}</p>
-        <button
-          type="button"
-          onClick={reset}
-          className="mt-4 rounded-xl bg-rose-600 px-4 py-2 text-sm font-medium text-white"
-        >
-          Retry
-        </button>
+    <main className="min-h-screen bg-slate-50 px-4 py-6 pb-24">
+      <section className="mx-auto w-full max-w-2xl">
+        <EmptyState
+          icon={HeartPulse}
+          title={t("dashboard.error.title")}
+          description={error.message}
+          action={
+            <Button onClick={reset} size="sm">
+              {t("dashboard.error.retry")}
+            </Button>
+          }
+          className="border-destructive/20 bg-destructive/5"
+        />
       </section>
     </main>
   );
