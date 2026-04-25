@@ -40,7 +40,7 @@ export function LanguageSwitcher({
     >
       <label
         htmlFor="quick-language"
-        className="text-sm font-medium text-slate-700"
+        className="text-sm font-medium text-foreground"
       >
         {t("settings.language")}
       </label>
@@ -48,7 +48,7 @@ export function LanguageSwitcher({
         <Select name="language" defaultValue={defaultLanguage}>
           <SelectTrigger
             id="quick-language"
-            className="flex-1 rounded-xl border border-slate-300 bg-white px-3 py-6 text-sm text-slate-900"
+            className="flex-1"
           >
             <SelectValue placeholder={t("settings.language")} />
           </SelectTrigger>
@@ -60,17 +60,17 @@ export function LanguageSwitcher({
         <button
           type="submit"
           disabled={isPending}
-          className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
+          className="rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-60"
         >
           {isPending ? t("common.saving") : vi ? "Áp dụng" : "Apply"}
         </button>
       </div>
 
       {state.status === "error" && state.message ? (
-        <p className="text-sm text-rose-600">{state.message}</p>
+        <p className="text-sm text-destructive">{state.message}</p>
       ) : null}
       {state.status === "success" && state.message ? (
-        <p className="text-sm text-emerald-600">{state.message}</p>
+        <p className="text-sm text-success">{state.message}</p>
       ) : null}
     </form>
   );

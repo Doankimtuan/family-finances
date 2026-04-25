@@ -1,7 +1,8 @@
 import { AppHeader } from "@/components/layout/app-header";
 import { AppShell } from "@/components/layout/app-shell";
 import { BottomTabBar } from "@/components/layout/bottom-tab-bar";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { SectionHeader } from "@/components/ui/section-header";
 import { t } from "@/lib/i18n/dictionary";
 import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
 import { createClient } from "@/lib/supabase/server";
@@ -32,16 +33,27 @@ export default async function SettingsProfilePage() {
         <SettingsNav currentPath="/settings/profile" />
 
         <Card>
-          <CardContent className="p-5">
+          <CardHeader>
+            <SectionHeader
+              label={language === "vi" ? "Tài khoản" : "Account"}
+              title={language === "vi" ? "Hồ sơ cá nhân" : "Personal Profile"}
+              description={
+                language === "vi"
+                  ? "Cập nhật tên hiển thị của bạn trong hộ gia đình."
+                  : "Update your display name across the household."
+              }
+            />
+          </CardHeader>
+          <CardContent className="p-5 pt-0">
             {profileResult.error ? (
-              <p className="text-sm text-rose-600">
+              <p className="text-sm text-destructive">
                 {language === "vi"
                   ? "Không thể tải hồ sơ:"
                   : "Failed to load profile:"}{" "}
                 {profileResult.error.message}
               </p>
             ) : !profileResult.data ? (
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-muted-foreground">
                 {language === "vi"
                   ? "Hồ sơ chưa được khởi tạo. Hãy đăng xuất rồi đăng nhập lại để đồng bộ hồ sơ."
                   : "Profile is not initialized yet. Sign out and sign in again to rehydrate your profile."}

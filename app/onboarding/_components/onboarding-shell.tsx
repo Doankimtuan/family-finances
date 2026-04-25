@@ -51,25 +51,25 @@ export function OnboardingShell({
       <div className="space-y-6">
         <header className="space-y-4">
           <div className="space-y-2">
-            <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               <span>
                 Step {step} of {TOTAL_STEPS}
               </span>
               <span>{progress}%</span>
             </div>
-            <div className="h-2 w-full rounded-full bg-slate-200 overflow-hidden">
+            <div className="h-2 w-full rounded-full bg-secondary overflow-hidden">
               <div
-                className="h-full bg-teal-600 transition-all duration-500 ease-out"
+                className="h-full bg-primary transition-all duration-500 ease-out"
                 style={{ width: `${progress}%` }}
               />
             </div>
           </div>
 
           <div className="space-y-1">
-            <h1 className="text-2xl font-bold text-slate-900 leading-tight">
+            <h1 className="text-2xl font-bold text-foreground leading-tight">
               {title}
             </h1>
-            <p className="text-sm text-slate-600 leading-relaxed">
+            <p className="text-sm text-muted-foreground leading-relaxed">
               {description}
             </p>
           </div>

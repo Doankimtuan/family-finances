@@ -80,10 +80,10 @@ export default async function DecisionToolsPage() {
       <div className="space-y-4 pb-20 sm:pb-6">
         <Card>
           <CardContent className="p-5">
-            <h1 className="text-xl font-semibold text-slate-900">
+            <h1 className="text-xl font-semibold text-foreground">
               What-if modeling workspace
             </h1>
-            <p className="mt-1 text-sm text-slate-600">
+            <p className="mt-1 text-sm text-muted-foreground">
               Compare scenarios before major money decisions. Every chart is
               designed to support one concrete action.
             </p>
@@ -91,9 +91,9 @@ export default async function DecisionToolsPage() {
         </Card>
 
         {scenariosResult.error || resultsResult.error ? (
-          <Card className="border-rose-200">
+          <Card className="border-destructive/30">
             <CardContent className="p-5">
-              <p className="text-sm text-rose-700">
+              <p className="text-sm text-destructive">
                 Could not load saved scenarios:{" "}
                 {scenariosResult.error?.message ?? resultsResult.error?.message}
               </p>

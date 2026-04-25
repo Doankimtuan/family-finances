@@ -35,13 +35,17 @@ export default async function SettingsHouseholdPage() {
         <Card>
           <CardContent className="p-5">
             {householdResult.error ? (
-              <p className="text-sm text-rose-600">
-                Failed to load household settings:{" "}
+              <p className="text-sm text-destructive">
+                {language === "vi"
+                  ? "Không thể tải cài đặt hộ gia đình:"
+                  : "Failed to load household settings:"}{" "}
                 {householdResult.error.message}
               </p>
             ) : !householdResult.data ? (
-              <p className="text-sm text-slate-600">
-                No household settings found yet.
+              <p className="text-sm text-muted-foreground">
+                {language === "vi"
+                  ? "Chưa tìm thấy cài đặt hộ gia đình."
+                  : "No household settings found yet."}
               </p>
             ) : (
               <HouseholdSettingsForm

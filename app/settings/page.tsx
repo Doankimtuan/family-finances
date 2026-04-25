@@ -19,7 +19,7 @@ const sections = [
     href: "/settings/profile",
     titleKey: "settings.profile",
     icon: User,
-    color: "bg-blue-100 text-blue-600",
+    color: "bg-primary/10 text-primary",
     description: {
       en: "Update your name and account identity details.",
       vi: "Cập nhật tên và thông tin nhận diện tài khoản.",
@@ -29,7 +29,7 @@ const sections = [
     href: "/settings/household",
     titleKey: "settings.household",
     icon: Home,
-    color: "bg-emerald-100 text-emerald-600",
+    color: "bg-success/15 text-success",
     description: {
       en: "Manage shared household identity, language, and timezone.",
       vi: "Quản lý thông tin hộ gia đình, ngôn ngữ và múi giờ.",
@@ -39,7 +39,7 @@ const sections = [
     href: "/settings/members",
     titleKey: "settings.members",
     icon: Users,
-    color: "bg-violet-100 text-violet-600",
+    color: "bg-accent/15 text-accent",
     description: {
       en: "Invite partner and manage household members.",
       vi: "Mời bạn đời và quản lý thành viên hộ gia đình.",
@@ -49,7 +49,7 @@ const sections = [
     href: "/settings/categories",
     titleKey: "settings.categories",
     icon: Tag,
-    color: "bg-orange-100 text-orange-600",
+    color: "bg-warning/15 text-warning",
     description: {
       en: "Control income and expense category taxonomy.",
       vi: "Quản lý hệ thống danh mục thu nhập và chi tiêu.",
@@ -59,7 +59,7 @@ const sections = [
     href: "/settings/assumptions",
     titleKey: "settings.assumptions",
     icon: TrendingUp,
-    color: "bg-teal-100 text-teal-600",
+    color: "bg-primary/15 text-primary",
     description: {
       en: "Set inflation and return assumptions used in projections.",
       vi: "Thiết lập các giả định lạm phát và lợi suất cho dự báo.",
@@ -78,12 +78,12 @@ export default async function SettingsIndexPage() {
       <section className="space-y-4">
         <Card>
           <CardContent className="p-5">
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-muted-foreground">
               {language === "vi"
                 ? "Giữ các cài đặt này luôn cập nhật để bảng điều khiển, dự báo và cộng tác luôn chính xác cho cả hai thành viên."
                 : "Keep these settings current so dashboards, projections, and collaboration stay accurate for both partners."}
             </p>
-            <div className="mt-4 border-t border-slate-200 pt-4">
+            <div className="mt-4 border-t border-border pt-4">
               <LanguageSwitcher defaultLanguage={language} />
             </div>
           </CardContent>

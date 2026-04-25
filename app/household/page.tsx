@@ -94,10 +94,10 @@ export default async function HouseholdPage({
         {!householdId ? (
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-lg font-semibold text-slate-900">
+              <h2 className="text-lg font-semibold text-foreground">
                 Create your household
               </h2>
-              <p className="mt-1 text-sm text-slate-600">
+              <p className="mt-1 text-sm text-muted-foreground">
                 Start by creating a household workspace. You can invite your
                 partner immediately after.
               </p>
@@ -109,10 +109,10 @@ export default async function HouseholdPage({
         ) : (
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-lg font-semibold text-slate-900">
+              <h2 className="text-lg font-semibold text-foreground">
                 Current household
               </h2>
-              <p className="mt-2 text-xl font-medium text-slate-800">
+              <p className="mt-2 text-xl font-medium text-foreground">
                 {householdName ?? "Unnamed household"}
               </p>
               <div className="mt-5">
@@ -132,10 +132,10 @@ export default async function HouseholdPage({
         {householdId ? (
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-lg font-semibold text-slate-900">
+              <h2 className="text-lg font-semibold text-foreground">
                 Invite partner
               </h2>
-              <p className="mt-1 text-sm text-slate-600">
+              <p className="mt-1 text-sm text-muted-foreground">
                 Send an invite token to your partner. They can accept it from
                 this page.
               </p>
@@ -144,7 +144,7 @@ export default async function HouseholdPage({
               </div>
 
               <div className="mt-8 space-y-4">
-                <p className="text-sm font-semibold uppercase tracking-wider text-slate-500">
+                <p className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
                   Pending invitations
                 </p>
                 {pendingHouseholdInvites?.data &&
@@ -156,25 +156,25 @@ export default async function HouseholdPage({
                       return (
                         <li
                           key={invite.id}
-                          className="rounded-xl border border-slate-100 bg-slate-50/50 p-4"
+                          className="rounded-xl border border-border bg-muted/30 p-4"
                         >
-                          <p className="text-sm font-semibold text-slate-900">
+                          <p className="text-sm font-semibold text-foreground">
                             {invite.email}
                           </p>
                           <div className="mt-2 space-y-1">
-                            <p className="break-all text-xs text-slate-500">
-                              <span className="font-medium text-slate-700">
+                            <p className="break-all text-xs text-muted-foreground">
+                              <span className="font-medium text-foreground">
                                 Token:
                               </span>{" "}
                               {invite.token}
                             </p>
-                            <p className="break-all text-xs text-slate-500">
-                              <span className="font-medium text-slate-700">
+                            <p className="break-all text-xs text-muted-foreground">
+                              <span className="font-medium text-foreground">
                                 Link:
                               </span>{" "}
                               {inviteLink}
                             </p>
-                            <p className="text-xs text-slate-400">
+                            <p className="text-xs text-muted-foreground/60">
                               Expires:{" "}
                               {new Date(invite.expires_at).toLocaleString(
                                 householdLocale,
@@ -186,7 +186,7 @@ export default async function HouseholdPage({
                     })}
                   </ul>
                 ) : (
-                  <p className="text-sm text-slate-500 italic">
+                  <p className="text-sm text-muted-foreground italic">
                     No pending invitations.
                   </p>
                 )}
@@ -197,10 +197,10 @@ export default async function HouseholdPage({
 
         <Card>
           <CardContent className="p-6">
-            <h2 className="text-lg font-semibold text-slate-900">
+            <h2 className="text-lg font-semibold text-foreground">
               Accept invitation
             </h2>
-            <p className="mt-1 text-sm text-slate-600">
+            <p className="mt-1 text-sm text-muted-foreground">
               Paste the invitation token you received to join a household.
             </p>
 
@@ -209,7 +209,7 @@ export default async function HouseholdPage({
             </div>
 
             <div className="mt-8 space-y-4">
-              <p className="text-sm font-semibold uppercase tracking-wider text-slate-500">
+              <p className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
                 Your pending invites
               </p>
               {pendingReceivedInvites.data &&
@@ -218,15 +218,15 @@ export default async function HouseholdPage({
                   {pendingReceivedInvites.data.map((invite) => (
                     <li
                       key={invite.id}
-                      className="rounded-xl border border-slate-100 bg-slate-50/50 p-4"
+                      className="rounded-xl border border-border bg-muted/30 p-4"
                     >
-                      <p className="break-all text-xs text-slate-500">
-                        <span className="font-medium text-slate-700">
+                      <p className="break-all text-xs text-muted-foreground">
+                        <span className="font-medium text-foreground">
                           Token:
                         </span>{" "}
                         {invite.token}
                       </p>
-                      <p className="mt-1 text-xs text-slate-400">
+                      <p className="mt-1 text-xs text-muted-foreground/60">
                         Expires:{" "}
                         {new Date(invite.expires_at).toLocaleString(
                           householdLocale,
@@ -236,7 +236,7 @@ export default async function HouseholdPage({
                   ))}
                 </ul>
               ) : (
-                <p className="text-sm text-slate-500 italic">
+                <p className="text-sm text-muted-foreground italic">
                   No invitations waiting for your email.
                 </p>
               )}

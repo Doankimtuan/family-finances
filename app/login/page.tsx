@@ -33,10 +33,10 @@ export default async function LoginPage() {
     <AppShell header={<AppHeader title="Family Finances" />}>
       <section className="mx-auto flex w-full max-w-md flex-col gap-6">
         <header>
-          <h1 className="text-2xl font-bold text-slate-900 leading-tight">
+          <h1 className="text-2xl font-bold text-foreground leading-tight">
             Access your household workspace
           </h1>
-          <p className="mt-2 text-sm text-slate-600 leading-relaxed">
+          <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
             Log in or create an account. Both partners can collaborate on the
             same financial truth.
           </p>

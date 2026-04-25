@@ -29,13 +29,13 @@ import { useI18n } from "@/lib/providers/i18n-provider";
 import { cn } from "@/lib/utils";
 
 const PIE_COLORS = [
-  "#0F766E",
-  "#0284C7",
-  "#16A34A",
-  "#EA580C",
-  "#7C3AED",
-  "#BE123C",
-  "#6D28D9",
+  "#E11D48",
+  "#9333EA",
+  "#22C55E",
+  "#F59E0B",
+  "#0EA5E9",
+  "#EC4899",
+  "#8B5CF6",
   "#64748B",
 ];
 

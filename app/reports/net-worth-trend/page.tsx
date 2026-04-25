@@ -34,14 +34,14 @@ export default async function NetWorthTrendPage() {
       <div className="space-y-4 pb-20 sm:pb-6">
         <Card>
           <CardContent className="p-5">
-            <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-500">
+            <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
               Trend Summary
             </p>
-            <p className="mt-1 text-xl font-semibold text-slate-900">
+            <p className="mt-1 text-xl font-semibold text-foreground">
               {latest ? formatVndCompact(Number(latest.net_worth)) : "-"}
             </p>
             <p
-              className={`mt-1 text-sm ${delta >= 0 ? "text-emerald-600" : "text-rose-600"}`}
+              className={`mt-1 text-sm ${delta >= 0 ? "text-success" : "text-destructive"}`}
             >
               {delta >= 0 ? "+" : ""}
               {formatVnd(delta)} vs last month

@@ -1,20 +1,9 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 
 import { localeToLanguage, normalizeHouseholdLocale } from "@/lib/i18n/config";
 import { AppProviders } from "@/lib/providers/app-providers";
 import { createClient } from "@/lib/supabase/server";
 import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "Family Finances",
@@ -69,7 +58,7 @@ export default async function RootLayout({
   return (
     <html lang={language === "vi" ? "vi" : "en"}>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className="font-sans antialiased"
       >
         <AppProviders language={language} locale={locale}>{children}</AppProviders>
       </body>

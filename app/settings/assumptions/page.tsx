@@ -1,7 +1,8 @@
 import { AppHeader } from "@/components/layout/app-header";
 import { AppShell } from "@/components/layout/app-shell";
 import { BottomTabBar } from "@/components/layout/bottom-tab-bar";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { SectionHeader } from "@/components/ui/section-header";
 import { t } from "@/lib/i18n/dictionary";
 import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
 import { createClient } from "@/lib/supabase/server";
@@ -34,22 +35,27 @@ export default async function SettingsAssumptionsPage() {
         <SettingsNav currentPath="/settings/assumptions" />
 
         <Card>
-          <CardContent className="p-5">
-            <p className="mb-4 text-sm text-slate-600">
-              {language === "vi"
-                ? "Các giả định này được dùng cho dự báo, công cụ quyết định và mô phỏng mục tiêu dài hạn."
-                : "These assumptions are used by forecasts, decision tools, and long-term goal projections."}
-            </p>
-
+          <CardHeader>
+            <SectionHeader
+              label={language === "vi" ? "Cài đặt" : "Config"}
+              title={language === "vi" ? "Giả định tài chính" : "Financial Assumptions"}
+              description={
+                language === "vi"
+                  ? "Dùng cho dự báo, công cụ quyết định và mô phỏng mục tiêu dài hạn."
+                  : "Used by forecasts, decision tools, and long-term goal projections."
+              }
+            />
+          </CardHeader>
+          <CardContent className="p-5 pt-0">
             {assumptionsResult.error ? (
-              <p className="text-sm text-rose-600">
+              <p className="text-sm text-destructive">
                 {language === "vi"
                   ? "Không thể tải giả định:"
                   : "Failed to load assumptions:"}{" "}
                 {assumptionsResult.error.message}
               </p>
             ) : !assumptionsResult.data ? (
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-muted-foreground">
                 {language === "vi"
                   ? "Chưa có dữ liệu giả định cho hộ gia đình này."
                   : "Assumptions are not available for this household yet."}

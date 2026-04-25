@@ -3,21 +3,21 @@ import { Card, CardContent } from "@/components/ui/card";
 
 export default function NotFound() {
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-10">
+    <main className="min-h-screen bg-background px-4 py-10">
       <Card className="mx-auto w-full max-w-xl">
         <CardContent className="p-6">
-          <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-500">
+          <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
             Not found
           </p>
-          <h1 className="mt-1 text-xl font-semibold text-slate-900">
+          <h1 className="mt-1 text-xl font-semibold text-foreground">
             This page does not exist.
           </h1>
-          <p className="mt-2 text-sm text-slate-600">
+          <p className="mt-2 text-sm text-muted-foreground">
             Use dashboard navigation to return to your household workspace.
           </p>
           <Link
             href="/dashboard"
-            className="mt-4 inline-flex rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
+            className="mt-4 inline-flex rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
           >
             Go to Dashboard
           </Link>

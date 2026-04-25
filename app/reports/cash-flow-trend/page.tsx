@@ -31,15 +31,15 @@ export default async function CashFlowTrendPage() {
       <div className="space-y-4 pb-20 sm:pb-6">
         <Card>
           <CardContent className="p-5">
-            <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-500">
+            <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
               Latest Month
             </p>
-            <p className="mt-1 text-sm text-slate-700">
+            <p className="mt-1 text-sm text-foreground">
               Income {latest ? formatVndCompact(Number(latest.income)) : "-"} ·
               Expense {latest ? formatVndCompact(Number(latest.expense)) : "-"}
             </p>
             <p
-              className={`mt-1 text-sm ${latest && Number(latest.savings) >= 0 ? "text-emerald-600" : "text-rose-600"}`}
+              className={`mt-1 text-sm ${latest && Number(latest.savings) >= 0 ? "text-success" : "text-destructive"}`}
             >
               Savings {latest ? formatVndCompact(Number(latest.savings)) : "-"}
             </p>

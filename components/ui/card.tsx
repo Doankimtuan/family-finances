@@ -8,7 +8,7 @@ const cardVariants = cva("rounded-2xl border transition-all", {
       default: "bg-card text-card-foreground border-border shadow-sm",
       elevated: "bg-card text-card-foreground border-transparent shadow-md",
       outlined: "bg-transparent text-card-foreground border-border",
-      glass: "bg-white/70 backdrop-blur-md border-white/20 shadow-lg",
+      glass: "bg-card/70 backdrop-blur-md border-card/20 shadow-lg",
       muted: "bg-muted/50 border-muted text-muted-foreground",
     },
     padding: {

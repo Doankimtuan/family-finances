@@ -11,15 +11,15 @@ export default function GlobalError({
 
   return (
     <html lang="en">
-      <body className="min-h-screen bg-slate-50 px-4 py-10">
-        <section className="mx-auto w-full max-w-xl rounded-2xl border border-rose-200 bg-white p-6 shadow-sm">
-          <p className="text-xs font-medium uppercase tracking-[0.14em] text-rose-600">Critical error</p>
-          <h1 className="mt-1 text-xl font-semibold text-slate-900">The app hit an unexpected failure.</h1>
-          <p className="mt-2 text-sm text-slate-600">Try again. If this persists, restart the app session.</p>
+      <body style={{ minHeight: "100vh", background: "hsl(350 30% 98%)", padding: "2.5rem 1rem" }}>
+        <section style={{ maxWidth: "36rem", margin: "0 auto", background: "#fff", border: "1px solid hsl(345 82% 52% / 0.3)", borderRadius: "1rem", padding: "1.5rem", boxShadow: "0 1px 3px 0 rgb(0 0 0 / .1)" }}>
+          <p style={{ fontSize: "0.75rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.14em", color: "hsl(345 82% 52%)" }}>Critical error</p>
+          <h1 style={{ marginTop: "0.25rem", fontSize: "1.25rem", fontWeight: 600, color: "hsl(345 10% 10%)" }}>The app hit an unexpected failure.</h1>
+          <p style={{ marginTop: "0.5rem", fontSize: "0.875rem", color: "hsl(345 10% 42%)" }}>Try again. If this persists, restart the app session.</p>
           <button
             type="button"
             onClick={reset}
-            className="mt-4 rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
+            style={{ marginTop: "1rem", borderRadius: "0.75rem", background: "hsl(345 82% 52%)", padding: "0.5rem 1rem", fontSize: "0.875rem", fontWeight: 600, color: "#fff", border: "none", cursor: "pointer" }}
           >
             Retry
           </button>

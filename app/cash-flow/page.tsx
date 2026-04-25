@@ -21,12 +21,12 @@ export default async function CashFlowPage() {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center gap-2 mb-4">
-              <ArrowLeftRight className="h-5 w-5 text-teal-600" />
-              <h2 className="text-lg font-semibold text-slate-900">
+              <ArrowLeftRight className="h-5 w-5 text-primary" />
+              <h2 className="text-lg font-semibold text-foreground">
                 Monthly Baselines
               </h2>
             </div>
-            <p className="text-sm text-slate-600 mb-6">
+            <p className="text-sm text-muted-foreground mb-6">
               Configure your expected monthly income and essential expenses.
               These values are used for financial planning and health scoring.
             </p>
@@ -36,23 +36,23 @@ export default async function CashFlowPage() {
 
         <Card>
           <CardContent className="p-6">
-            <h2 className="text-lg font-semibold text-slate-900 mb-4">
+            <h2 className="text-lg font-semibold text-foreground mb-4">
               Cash Flow History
             </h2>
             <div className="space-y-3">
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-muted-foreground">
                 Open reporting pages for monthly trend and review insights.
               </p>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 <Link
                   href="/reports/cash-flow-trend"
-                  className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700"
+                  className="rounded-xl border border-border px-4 py-2 text-sm font-medium text-foreground hover:border-primary/50 transition-colors"
                 >
                   Cash-Flow Trend Report
                 </Link>
                 <Link
                   href="/reports/monthly-review"
-                  className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700"
+                  className="rounded-xl border border-border px-4 py-2 text-sm font-medium text-foreground hover:border-primary/50 transition-colors"
                 >
                   Monthly Review
                 </Link>

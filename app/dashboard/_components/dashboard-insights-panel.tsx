@@ -46,25 +46,24 @@ type InsightsApiResponse = {
 const SEVERITY_CONFIG = {
   critical: {
     icon: AlertTriangle,
-    bg: "bg-rose-50 dark:bg-rose-950/30",
-    border: "border-rose-200 dark:border-rose-800",
-    iconColor: "text-rose-600 dark:text-rose-400",
-    badge: "bg-rose-100 text-rose-700 dark:bg-rose-900 dark:text-rose-300",
+    bg: "bg-destructive/10",
+    border: "border-destructive/30",
+    iconColor: "text-destructive",
+    badge: "bg-destructive/15 text-destructive",
   },
   warning: {
     icon: AlertTriangle,
-    bg: "bg-amber-50 dark:bg-amber-950/30",
-    border: "border-amber-200 dark:border-amber-800",
-    iconColor: "text-amber-600 dark:text-amber-400",
-    badge: "bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300",
+    bg: "bg-warning/10",
+    border: "border-warning/30",
+    iconColor: "text-warning",
+    badge: "bg-warning/15 text-warning",
   },
   info: {
     icon: CheckCircle2,
-    bg: "bg-emerald-50 dark:bg-emerald-950/30",
-    border: "border-emerald-200 dark:border-emerald-800",
-    iconColor: "text-emerald-600 dark:text-emerald-400",
-    badge:
-      "bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300",
+    bg: "bg-success/10",
+    border: "border-success/30",
+    iconColor: "text-success",
+    badge: "bg-success/15 text-success",
   },
 } as const;
 
@@ -165,19 +164,19 @@ export function DashboardInsightsPanel() {
 
   if (!hasAnyContent && !aiResult) {
     return (
-      <Card className="border-emerald-200/50 bg-emerald-50/30 dark:border-emerald-800/30 dark:bg-emerald-950/10">
+      <Card className="border-success/30 bg-success/10">
         <CardContent className="p-5">
           <div className="flex items-start gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-900/50">
-              <CheckCircle2 className="h-4.5 w-4.5 text-emerald-600 dark:text-emerald-400" />
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-success/15">
+              <CheckCircle2 className="h-4.5 w-4.5 text-success" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-bold text-emerald-800 dark:text-emerald-300">
+              <p className="text-sm font-bold text-success">
                 {vi
                   ? "Mọi thứ ổn! Không có gợi ý nào."
                   : "All clear! No insights right now."}
               </p>
-              <p className="mt-0.5 text-xs text-emerald-600/80 dark:text-emerald-400/60">
+              <p className="mt-0.5 text-xs text-success/70">
                 {vi
                   ? "Tài chính gia đình đang ổn định."
                   : "Your household finances look stable."}
@@ -272,11 +271,11 @@ export function DashboardInsightsPanel() {
           return (
             <div
               key={ai.id}
-              className="rounded-xl border border-violet-200 bg-violet-50/50 dark:border-violet-800 dark:bg-violet-950/20 p-3.5"
+              className="rounded-xl border border-accent/30 bg-accent/10 p-3.5"
             >
               <div className="flex items-start gap-3">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-violet-100 dark:bg-violet-900/50">
-                  <Sparkles className="h-4 w-4 text-violet-600 dark:text-violet-400" />
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent/15">
+                  <Sparkles className="h-4 w-4 text-accent" />
                 </div>
                 <div className="min-w-0 flex-1 space-y-1.5">
                   <div className="flex items-center gap-2">
@@ -284,7 +283,7 @@ export function DashboardInsightsPanel() {
                       {(ai.content_json as { title?: string })?.title ??
                         (vi ? "Phân tích AI" : "AI Analysis")}
                     </p>
-                    <Badge className="shrink-0 text-[9px] uppercase font-black px-1.5 py-0 border-0 bg-violet-100 text-violet-700 dark:bg-violet-900 dark:text-violet-300">
+                    <Badge className="shrink-0 text-[9px] uppercase font-black px-1.5 py-0 border-0 bg-accent/15 text-accent">
                       AI
                     </Badge>
                   </div>
@@ -292,8 +291,8 @@ export function DashboardInsightsPanel() {
                     {ai.content_text}
                   </p>
                   {ai.recommendation_text && (
-                    <div className="mt-2 rounded-lg bg-violet-100/60 dark:bg-violet-900/30 p-2.5">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-violet-600 dark:text-violet-400 mb-0.5">
+                    <div className="mt-2 rounded-lg bg-accent/10 p-2.5">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-accent mb-0.5">
                         {vi ? "💡 Hành động đề xuất" : "💡 Recommended action"}
                       </p>
                       <p className="text-xs font-medium text-foreground">
@@ -309,8 +308,8 @@ export function DashboardInsightsPanel() {
                       className={cn(
                         "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold transition-all",
                         fb === 1
-                          ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300"
-                          : "text-muted-foreground hover:bg-emerald-50 hover:text-emerald-600",
+                          ? "bg-success/15 text-success"
+                          : "text-muted-foreground hover:bg-success/10 hover:text-success",
                       )}
                     >
                       <ThumbsUp className="h-3 w-3" />
@@ -323,8 +322,8 @@ export function DashboardInsightsPanel() {
                       className={cn(
                         "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold transition-all",
                         fb === -1
-                          ? "bg-rose-100 text-rose-700 dark:bg-rose-900 dark:text-rose-300"
-                          : "text-muted-foreground hover:bg-rose-50 hover:text-rose-600",
+                          ? "bg-destructive/15 text-destructive"
+                          : "text-muted-foreground hover:bg-destructive/10 hover:text-destructive",
                       )}
                     >
                       <ThumbsDown className="h-3 w-3" />
@@ -364,7 +363,7 @@ export function DashboardInsightsPanel() {
                   key={i}
                   className={cn(
                     "h-1.5 w-3 rounded-full transition-all",
-                    i < aiUsage.used ? "bg-violet-500" : "bg-muted",
+                    i < aiUsage.used ? "bg-accent" : "bg-muted",
                   )}
                 />
               ))}
@@ -373,7 +372,7 @@ export function DashboardInsightsPanel() {
           <Button
             variant="outline"
             size="sm"
-            className="w-full gap-2 rounded-xl border-violet-200 text-violet-700 hover:bg-violet-50 hover:border-violet-300 dark:border-violet-800 dark:text-violet-400 dark:hover:bg-violet-950/30"
+            className="w-full gap-2 rounded-xl border-accent/30 text-accent hover:bg-accent/10 hover:border-accent/50"
             onClick={handleAiAnalysis}
             disabled={aiLoading || aiUsage.used >= aiUsage.cap}
           >

@@ -206,7 +206,7 @@ export function DashboardCorePanel() {
 
   return (
     <section className="space-y-6 pb-12">
-      <Card className="overflow-hidden border-none bg-linear-to-br from-primary via-blue-700 to-blue-800 text-white shadow-xl">
+      <Card className="overflow-hidden border-none bg-linear-to-br from-primary via-primary/80 to-accent text-white shadow-xl">
         <CardContent className="relative p-6 sm:p-8">
           <div className="absolute -right-8 top-0 h-36 w-36 rounded-full bg-white/10 blur-2xl" />
           <div className="absolute bottom-0 left-0 h-24 w-24 rounded-full bg-white/10 blur-xl" />
@@ -260,23 +260,23 @@ export function DashboardCorePanel() {
         </CardContent>
       </Card>
 
-      <Card className="border-amber-200/70 bg-amber-50/80 shadow-sm">
+      <Card className="border-warning/30 bg-warning/10 shadow-sm">
         <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-1">
-            <div className="flex items-center gap-2 text-amber-900">
+            <div className="flex items-center gap-2 text-warning">
               <Sparkles className="h-4.5 w-4.5" />
               <p className="text-xs font-bold uppercase tracking-[0.16em]">
                 {t("dashboard.hero.top_action")}
               </p>
             </div>
-            <p className="text-sm font-semibold leading-6 text-amber-950">
+            <p className="text-sm font-semibold leading-6 text-foreground">
               {score === null
                 ? t("dashboard.hero.health_pending")
                 : topAction}
             </p>
           </div>
           {financialHealthEnabled ? (
-            <Button asChild variant="outline" className="shrink-0 border-amber-300 bg-white/80">
+            <Button asChild variant="outline" className="shrink-0 border-warning/40 bg-card/80">
               <Link href="/health">{t("dashboard.health.open")}</Link>
             </Button>
           ) : null}
@@ -343,7 +343,7 @@ export function DashboardCorePanel() {
                           "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl",
                           item.tone === "destructive"
                             ? "bg-destructive/10 text-destructive"
-                            : "bg-amber-100 text-amber-700",
+                            : "bg-warning/15 text-warning",
                         )}
                       >
                         {item.href === "/debts" ? (
@@ -503,9 +503,9 @@ export function DashboardCorePanel() {
                             className={cn(
                               "h-full rounded-full",
                               coverage >= 100
-                                ? "bg-emerald-500"
+                                ? "bg-success"
                                 : coverage >= 75
-                                  ? "bg-amber-500"
+                                  ? "bg-warning"
                                   : "bg-primary",
                             )}
                             style={{

@@ -34,14 +34,14 @@ function CategorySection({
   const vi = language === "vi";
   if (hasError) {
     return (
-      <p className="mt-2 text-sm text-rose-600">
+      <p className="mt-2 text-sm text-destructive">
         {vi ? "Không thể tải danh mục." : "Could not load categories."}
       </p>
     );
   }
   if (rows.length === 0) {
     return (
-      <p className="mt-2 text-sm text-slate-500">
+      <p className="mt-2 text-sm text-muted-foreground">
         {vi ? "Không tìm thấy danh mục." : "No categories found."}
       </p>
     );
@@ -50,17 +50,17 @@ function CategorySection({
   return (
     <ul className="mt-3 space-y-2">
       {rows.map((row) => (
-        <li key={row.id} className="rounded-xl border border-slate-200 p-3">
+        <li key={row.id} className="rounded-xl border border-border p-3">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-sm font-semibold text-slate-900">
+              <p className="text-sm font-semibold text-foreground">
                 <span
                   className="mr-2 inline-block h-2.5 w-2.5 rounded-full align-middle"
                   style={{ backgroundColor: row.color ?? "#64748b" }}
                 />
                 {row.name}
               </p>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-muted-foreground">
                 {row.is_system
                   ? vi
                     ? "Danh mục hệ thống"
@@ -141,7 +141,7 @@ export default async function SettingsCategoriesPage() {
                   : "Add household-specific income or expense categories."
               }
             />
-            <p className="mt-1 text-xs text-slate-500">
+            <p className="mt-1 text-xs text-muted-foreground">
               {vi
                 ? "Danh mục đã có giao dịch sẽ không thể xóa, nhưng vẫn có thể chỉnh sửa."
                 : "Categories with existing transactions cannot be deleted, but can still be edited."}

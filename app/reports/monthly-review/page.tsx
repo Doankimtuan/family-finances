@@ -108,7 +108,7 @@ export default async function MonthlyReviewPage() {
       <div className="space-y-4 pb-20 sm:pb-6">
         <Card>
           <CardContent className="p-5">
-            <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-500">
+            <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
               Month Snapshot
             </p>
             {metrics ? (
@@ -131,7 +131,7 @@ export default async function MonthlyReviewPage() {
                 />
               </div>
             ) : (
-              <p className="mt-2 text-sm text-slate-500">
+              <p className="mt-2 text-sm text-muted-foreground">
                 No monthly metrics yet.
               </p>
             )}
@@ -140,11 +140,11 @@ export default async function MonthlyReviewPage() {
 
         <Card>
           <CardContent className="p-5">
-            <h2 className="text-lg font-semibold text-slate-900">
+            <h2 className="text-lg font-semibold text-foreground">
               Top Expense Categories
             </h2>
             {topCategories.length === 0 ? (
-              <p className="mt-2 text-sm text-slate-500">
+              <p className="mt-2 text-sm text-muted-foreground">
                 No expense transactions this month.
               </p>
             ) : (
@@ -152,7 +152,7 @@ export default async function MonthlyReviewPage() {
                 {topCategories.map((c) => (
                   <li
                     key={c.id}
-                    className="rounded-xl border border-slate-200 p-3 text-sm text-slate-700"
+                    className="rounded-xl border border-border p-3 text-sm text-foreground"
                   >
                     {c.name}: {formatVndCompact(c.value)}
                   </li>
@@ -164,15 +164,15 @@ export default async function MonthlyReviewPage() {
 
         <Card>
           <CardContent className="p-5">
-            <h2 className="text-lg font-semibold text-slate-900">
-              Wins & Risks
+            <h2 className="text-lg font-semibold text-foreground">
+              Wins &amp; Risks
             </h2>
             <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-emerald-700">
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-success">
                   Wins
                 </p>
-                <ul className="mt-1 space-y-1 text-sm text-slate-700">
+                <ul className="mt-1 space-y-1 text-sm text-foreground">
                   {(wins.length > 0
                     ? wins
                     : ["No major wins detected yet this month."]
@@ -182,10 +182,10 @@ export default async function MonthlyReviewPage() {
                 </ul>
               </div>
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-rose-700">
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-destructive">
                   Risks
                 </p>
-                <ul className="mt-1 space-y-1 text-sm text-slate-700">
+                <ul className="mt-1 space-y-1 text-sm text-foreground">
                   {(risks.length > 0
                     ? risks
                     : ["No critical risk signal this month."]
@@ -200,15 +200,15 @@ export default async function MonthlyReviewPage() {
 
         <Card>
           <CardContent className="p-5">
-            <h2 className="text-lg font-semibold text-slate-900">
+            <h2 className="text-lg font-semibold text-foreground">
               Next Month Actions
             </h2>
-            <ul className="mt-2 space-y-1 text-sm text-slate-700">
+            <ul className="mt-2 space-y-1 text-sm text-foreground">
               {actions.map((a) => (
                 <li key={a}>• {a}</li>
               ))}
             </ul>
-            <p className="mt-3 text-xs text-slate-500">
+            <p className="mt-3 text-xs text-muted-foreground">
               Active goals: {(goalsResult.data ?? []).length}
             </p>
           </CardContent>
@@ -220,11 +220,11 @@ export default async function MonthlyReviewPage() {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-slate-200 p-2">
-      <p className="text-[10px] uppercase tracking-[0.12em] text-slate-500">
+    <div className="rounded-lg border border-border p-2">
+      <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
         {label}
       </p>
-      <p className="mt-1 text-sm font-semibold text-slate-900">{value}</p>
+      <p className="mt-1 text-sm font-semibold text-foreground">{value}</p>
     </div>
   );
 }

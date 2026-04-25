@@ -54,7 +54,7 @@ type Props = {
   language: "vi" | "en";
 };
 
-function CopyButton({ text }: { text: string }) {
+function CopyButton({ text, vi }: { text: string; vi: boolean }) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -77,12 +77,12 @@ function CopyButton({ text }: { text: string }) {
       {copied ? (
         <>
           <Check className="h-3 w-3" />
-          Đã sao chép
+          {vi ? "Đã sao chép" : "Copied"}
         </>
       ) : (
         <>
           <Copy className="h-3 w-3" />
-          Copy
+          {vi ? "Sao chép" : "Copy"}
         </>
       )}
     </button>
@@ -217,7 +217,7 @@ export function InviteMemberSection({
                 <p className="min-w-0 flex-1 truncate rounded-lg bg-background border px-2.5 py-1.5 text-xs text-muted-foreground font-mono">
                   {latestInviteLink}
                 </p>
-                <CopyButton text={latestInviteLink} />
+                <CopyButton text={latestInviteLink} vi={vi} />
               </div>
             </div>
           )}
@@ -255,7 +255,7 @@ export function InviteMemberSection({
                         <p className="min-w-0 flex-1 truncate rounded-lg bg-background border px-2 py-1 text-[10px] text-muted-foreground font-mono">
                           {link}
                         </p>
-                        <CopyButton text={link} />
+                        <CopyButton text={link} vi={vi} />
                       </div>
                     </li>
                   );
@@ -295,7 +295,7 @@ export function InviteMemberSection({
                     <UserPlus className="h-4 w-4 shrink-0 text-amber-600" />
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-semibold text-foreground">
-                        {invite.households?.name ?? "Unknown household"}
+                        {invite.households?.name ?? (vi ? "Hộ gia đình không xác định" : "Unknown household")}
                       </p>
                       <p className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5">
                         <Clock className="h-2.5 w-2.5" />

@@ -92,7 +92,7 @@ export default async function SettingsMembersPage() {
   return (
     <AppShell
       header={
-        <AppHeader title={`${t(language, "settings.title")} / Thành viên`} />
+        <AppHeader title={`${t(language, "settings.title")} / ${t(language, "settings.members")}`} />
       }
       footer={<BottomTabBar />}
     >

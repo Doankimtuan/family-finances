@@ -58,7 +58,7 @@ export function MaturityTimelineWidget() {
   return (
     <Card className="border-border/60">
       <CardHeader className="space-y-1 pb-2">
-        <h3 className="text-lg font-semibold text-slate-900">
+        <h3 className="text-lg font-semibold text-foreground">
           {t("savings.widget.title")}
         </h3>
         <p className="text-sm text-muted-foreground">
@@ -68,12 +68,12 @@ export function MaturityTimelineWidget() {
         </p>
       </CardHeader>
       <CardContent className="space-y-3">
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
-          <p className="text-sm font-semibold text-slate-900">{next.providerName}</p>
-          <p className="mt-1 text-xs text-slate-500">
+        <div className="rounded-2xl border border-warning/30 bg-warning/10 p-4">
+          <p className="text-sm font-semibold text-foreground">{next.providerName}</p>
+          <p className="mt-1 text-xs text-muted-foreground">
             {formatDate(next.maturityDate, locale)}
           </p>
-          <p className="mt-3 text-lg font-bold text-amber-800">
+          <p className="mt-3 text-lg font-bold text-warning">
             {formatVndCompact(next.grossValue, locale)}
           </p>
         </div>
