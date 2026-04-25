@@ -1,523 +1,283 @@
-# Family Finances AI Knowledge Handoff
+# Family Finances AI Knowledge Hub
 
-## 1. Real Problem Being Solved
+## 1. What This Product Is Solving
 
-This product is not a bookkeeping app. It is a household clarity system for Vietnamese couples who feel financial anxiety because they cannot see one trusted, complete, forward-looking picture of money.
+Family Finances is a household finance clarity system, not just a bookkeeping app.
 
-Core user pain points:
+It is built for households that need one trusted view of:
 
-- Fragmented truth across bank apps, memory, and spreadsheets.
-- No clear projection for major life decisions (land purchase, mortgage, child, job change).
-- No shared household visibility between partners.
-- Difficulty turning data into action (cognitive load of raw numbers).
+- where money is now
+- how money is moving
+- what commitments already exist
+- whether current behavior supports future goals
 
-Primary product goal:
+The product is especially shaped around Vietnamese household finance patterns: VND-first thinking, manual entry, gold/assets, mortgage-style debt, savings products, and shared household visibility between partners.
 
-- Move users from anxiety to clarity by giving a single source of truth, explainable metrics, and actionable next steps.
+The product goal is to move users from fragmented financial tracking to a single household operating system for money, decisions, and follow-up actions.
 
----
+## 2. Product Mental Model
 
-## 2. Product/UX Contract (Implemented Direction)
+The system should be understood through these layers:
 
-- **Language**: Bilingual (`en` + `vi`) with household-level language setting.
-- **Narrative-First**: Replaces dry scores with "Health Stories" (e.g., "Improving", "Healthy") and dynamic visualizations.
-- **Action-Oriented**: Focuses on "Priority Actions" and "ETA" (Expected Time of Arrival) rather than just status.
-- **Consolidated Navigation**: Mobile-first design with 4 primary tabs: **Home** (Dashboard), **Money** (Accounts/Assets/Debts/Flow), **Activity** (Transactions), and **Plan** (Financial Jars).
-- **Constructive Framing**: Uses progress-focused, non-shaming vocabulary (e.g., "Building" vs "Fragile").
-- **Manual Logging**: Optimized for high-speed manual data entry (under 10 seconds).
-- **Vietnamese Financial Context**: Native support for gold (`lượng`), VND scale, and complex mortgage rate structures (promo-to-floating).
+- `household` is the ownership and access boundary
+- `accounts + transactions` are the base cash ledger
+- `assets`, `liabilities`, `goals`, and `savings` add domain-specific state on top
+- `credit cards` use a parallel billing/installment layer instead of behaving like ordinary cash accounts
+- `jars` are an intent/allocation layer for planned use of money
+- `dashboard`, `health`, `insights`, and `reports` are read models built from the underlying data
+- `decision-tools` store user-created what-if scenarios and outputs
+- `AI insights` are scheduled narrative outputs layered on top of deterministic household data
 
----
+When in doubt, treat the product as a household-scoped financial platform with multiple domain views over a common base ledger, not as a single-table expense tracker.
 
-## 3. Technical Baseline
+## 3. Technical Architecture At A Glance
 
-Stack in use:
+### Frontend
 
-- Next.js 16 App Router + TypeScript
-- Supabase (Postgres, Auth, RLS, Realtime)
-- Supabase Edge Functions + `pg_cron`/`pg_net` for scheduled AI execution
-- shadcn-style UI primitives + Tailwind v4 (`bg-linear-to-br` NOT `bg-gradient-to-br`)
-- Recharts
-- TanStack Query + Supabase Realtime integration
+- `app/*` is the main application surface built with Next.js App Router
+- primary areas include dashboard, money, transactions, debts, goals, assets, jars, reports, settings, onboarding, household management, insights, and savings
+- `components/layout/*` contains the shared app shell, header, and bottom tab navigation
+- `components/ui/*` contains reusable UI primitives
 
-Deployment target:
+### Application logic
 
-- Vercel + Supabase hosted
+- server actions live alongside route groups in `app/**/actions.ts`
+- API routes live under `app/api/*`
+- shared business logic, calculations, formatting, and orchestration live in `lib/*`
+- common patterns include server-side household resolution, Supabase queries, revalidation, and audit logging
 
-> **Tailwind v4 note**: Use `bg-linear-to-br` instead of `bg-gradient-to-br`. The old class names will generate lint errors.
+### Backend and persistence
 
----
+- `supabase/migrations/*` is the main source of truth for schema, RLS, triggers, RPCs, and long-term business invariants
+- Supabase Auth + Postgres + RLS enforce household isolation
+- some product features rely on RPC-backed aggregates instead of recomputing everything in the client
 
-## 4. Current Solution Architecture
+### AI layer
 
-### Frontend structure
+- `supabase/functions/ai-cycle-dispatch` is the scheduled AI worker entrypoint
+- `supabase/functions/_shared/*` contains shared AI context building, prompts, persistence helpers, and run-lock logic
+- AI storage, run tracking, prompt versions, delivery, feedback, and scheduling are rooted in migrations `00010` and `00011`
 
-- **App Shell**: Wraps pages with mobile-friendly container, sticky header (with Settings access), and 4-tab bottom navigation.
-- **Components**: Shared primitives under `components/ui/*` (Card, MetricCard, SectionHeader, Progress, EmptyState, Badge, MoneyInput, Select).
-- **Server Actions / API routes**: Typed action states with revalidation and audit logging. AI feedback/read state endpoints added under `app/api/ai-insights/*`.
+### Stitch UI & Design System
 
-### Data flow pattern
+- **Project Name**: `Family Finances Dashboard`
+- **Project ID**: `projects/12932461820484795471`
+- **Design System**: A premium, "Heritage Ledger" aesthetic inspired by Vietnamese architectural sanctuaries and high-end editorial design.
+- **Typography**: Newsreader (Serif) for headlines/numbers, Be Vietnam Pro (Sans) for body/labels.
+- **Colors**: Deep Emerald (#005235), Paper-white surfaces (#F9F9F8), and warm Amber accents.
+- **Usage**: Use Stitch MCP tools to iterate on UI components and screen layouts based on this design system.
 
-- **Server Discovery**: Fetches household-scoped context and data early.
-- **Realtime Bridge**: `HouseholdRealtimeSync` ensures multi-device consistency without manual refreshes.
-- **Explainability**: Complex metrics (Health, Insights) provide drill-downs or "How this is calculated" narratives.
-- **Scheduled AI**: New Supabase Edge dispatcher runs on cron cadence, gated by deterministic triggers and monthly quota.
+## 4. Core Domains And Responsibilities
 
----
+### Household, auth, and invitations
 
-## 5. Database and Migrations (Current)
+- core tables begin in `supabase/migrations/00002_core_schema.sql`
+- RLS and household membership helpers are established in `supabase/migrations/00003_functions_and_rls.sql`
+- user entry and household setup live in `app/login/*`, `app/household/*`, and `app/onboarding/*`
+- the standard server-side household resolver is `lib/server/household.ts`
 
-Migration files in `supabase/migrations/`:
+### Accounts and transactions
 
-| File                                  | Purpose                                                                                 |
-| ------------------------------------- | --------------------------------------------------------------------------------------- |
-| `00001` to `00008`                    | Core schema, lifecycle, RLS                                                             |
-| `00009_goal_cashflow_directions.sql`  | Goal inflow/outflow + account direction                                                 |
-| `00010_ai_insights_foundation.sql`    | AI storage, runs, delivery, feedback, prompt versions, RPC locks                        |
-| `00011_ai_scheduler_cron.sql`         | Scheduler config + `invoke_ai_cycle` + cron jobs                                        |
-| `00014_credit_card_installments.sql`  | `installment_plans` table, `credit_card_settings` table                                 |
-| `00015_card_billing.sql`              | `card_billing_months`, `card_billing_items` tables                                      |
-| `00016_fix_billing_trigger.sql`       | Trigger fixes for billing                                                               |
-| `00017_installment_conversion.sql`    | Adds `is_converted_to_installment` BOOLEAN to `card_billing_items`                      |
-| `00018_fix_dashboard_cc_expense.sql`  | Patches `rpc_dashboard_core` to exclude CC raw transactions from expense sum            |
-| `00019_sync_installment_progress.sql` | One-time sync: backfill `paid_installments` + `remaining_amount` on `installment_plans` |
-| `00021_fix_installment_month_timezone.sql` | Fixes timezone month-bucketing drift for installment/billing data                    |
-| `00022_financial_jars.sql`            | Introduces Financial Jars schema + policies + ledger/target structures                  |
-| `00023_translate_default_jars_vi.sql` | Translates seeded default jar names to Vietnamese labels                                |
-| `00024_sync_card_billing_items_with_transaction_edits.sql` | Backfills/syncs billing items with edited transactions                    |
-| `00025_fix_essential_spending_cc_source.sql` | Fixes essential-spending logic to source CC expenses from billing items           |
-| `00026_add_savings_rate_trend_fields.sql` | Adds savings-rate fields used by dashboard cards/trend                               |
-| `00027_jar_coverage_ratio.sql` | Adds jar coverage ratio metrics for jar and dashboard visibility                                 |
-| `00028_jar_reconciliation_ledger.sql` | Adds deterministic reconciliation ledger and recompute RPC                              |
-| `00029_cashflow_forecast_rpc.sql` | Introduces 90-day cashflow forecast RPC (later disabled)                                    |
-| `00030_cashflow_confidence_bands.sql` | Adds confidence band logic for forecast output                                          |
-| `00031_tdsr_metric.sql` | Adds Total Debt Service Ratio (TDSR) metric into dashboard core                                       |
-| `00032_drop_cashflow_forecast_rpc.sql` | Decommissions forecast RPC to simplify product surface                                  |
-| `00033_drop_jar_reconciliation_rpc.sql` | Drops deprecated reconciliation RPC while preserving table data                          |
-| `00034_spending_jar_category_map.sql` | Adds category→jar mapping table + RLS + per-household `unassigned` fallback jar         |
-| `00035_spending_jar_analytics_rpc.sql` | Adds Spending Jar RPCs (summary/history/tx list/category breakdown)                      |
-| `00036_spending_jar_backfill_12m.sql` | Backfills last-12-month expense categories into mapping table                            |
-| `00037_spending_jar_mapping_trigger.sql` | Adds trigger to auto-ensure category mapping on expense transaction write              |
+- accounts represent cash accounts, bank accounts, and credit cards
+- transactions are the base cash ledger for income, expense, and transfer events
+- most write flows are implemented in `app/money/actions.ts` and `app/transactions/actions.ts`
+- transaction writes are often the trigger point for downstream logic such as jars, balances, and read-model refresh
 
----
+### Assets
 
-## 6. Credit Card & Installment System (New Module)
+- assets track owned value outside ordinary cash accounts
+- quantity and price history are stored separately and used to derive current value and trends
+- entrypoints: `app/assets/*`
+- supporting logic: `app/assets/actions.ts`, `lib/assets/*`
 
-### 6a. Core Concept
+### Debts / liabilities
 
-Credit card transactions are **NOT** standard expense transactions for calculation purposes. They flow through a separate billing cycle system:
+- liabilities model debt state and repayment structure
+- liability payments update both payment history and outstanding principal
+- debt calculations and amortization helpers live in `lib/debts/amortization.ts`
+- entrypoints: `app/debts/*`
 
-```
-Transaction recorded → card_billing_items (via billing_month_id → card_billing_months)
-Monthly total → card_billing_months.statement_amount
-User settlement → card_billing_months.paid_amount / status
-```
+### Goals
 
-### 6b. credit_card_settings (per card)
-
-| Column                   | Purpose                                   |
-| ------------------------ | ----------------------------------------- |
-| `account_id`             | FK → accounts                             |
-| `credit_limit`           | Max spending limit                        |
-| `statement_day`          | Day of month billing cycle ends (e.g. 21) |
-| `due_day`                | Payment due day                           |
-| `linked_bank_account_id` | Default bank account for repayments       |
-
-### 6c. card_billing_months
-
-Tracks one record per card per billing cycle month.
-
-| Column             | Purpose                                         |
-| ------------------ | ----------------------------------------------- |
-| `card_account_id`  | FK → accounts                                   |
-| `billing_month`    | YYYY-MM-01 date                                 |
-| `statement_amount` | Total for this cycle (updated by billing items) |
-| `paid_amount`      | Amount settled                                  |
-| `status`           | `open` / `partial` / `settled`                  |
-
-### 6d. card_billing_items
-
-Individual line items inside a billing cycle.
-
-| Column                        | Purpose                                                                            |
-| ----------------------------- | ---------------------------------------------------------------------------------- |
-| `billing_month_id`            | FK → card_billing_months                                                           |
-| `installment_plan_id`         | NULL for standard, FK for installment items                                        |
-| `item_type`                   | `standard` or `installment`                                                        |
-| `installment_sequence`        | 1-based sequence within a plan                                                     |
-| `amount`                      | Item amount                                                                        |
-| `fee_amount`                  | Conversion fee (applied to first installment only)                                 |
-| `description`                 | Item label                                                                         |
-| `is_paid`                     | Set true when cycle is settled                                                     |
-| `is_converted_to_installment` | TRUE when original item was converted; its amount is excluded from statement total |
-
-### 6e. installment_plans
-
-Tracks the lifecycle state of a conversion-to-installment action.
-
-| Column              | Purpose                                     |
-| ------------------- | ------------------------------------------- |
-| `card_account_id`   | FK → accounts                               |
-| `description`       | Plan label                                  |
-| `original_amount`   | Full transaction amount                     |
-| `conversion_fee`    | One-time fee                                |
-| `total_amount`      | original + fee                              |
-| `monthly_amount`    | Per-month installment                       |
-| `num_installments`  | Total months                                |
-| `paid_installments` | Count paid so far (updated on cycle settle) |
-| `remaining_amount`  | What's left to pay                          |
-| `status`            | `active` / `completed`                      |
-
----
-
-## 7. Installment Conversion Flow (Critical Business Logic)
-
-### Converting a transaction to installments
-
-Action: `convertItemToInstallmentAction` in `app/money/card/installment-actions.ts`
-
-Steps:
-
-1. Fetch the source `card_billing_items` row (must be `item_type != installment` and `is_converted_to_installment = false`)
-2. Mark item `is_converted_to_installment = true` → prevents double-counting in statement total
-3. Call `increment_statement_amount` RPC with **negative** value to remove original amount from source cycle
-4. Insert a new `installment_plans` record
-5. Loop N months: upsert `card_billing_months` + insert `card_billing_items` with `item_type = 'installment'`
-6. Call `increment_statement_amount` RPC with monthly amount for each new month
-
-### Settling a card (FIFO)
-
-Action: `settleCardAction` in `app/money/card/installment-actions.ts`
-
-Steps:
-
-1. Fetch all unsettled billing months ordered oldest-first
-2. Apply payment amount FIFO across cycles
-3. When a cycle is **fully settled**:
-   - Set `card_billing_months.status = 'settled'`
-   - Set `card_billing_items.is_paid = true` for all items in cycle
-   - **Update installment_plans**: for each installment item paid, increment `paid_installments` and decrease `remaining_amount`
-   - Mark plan `status = 'completed'` when `paid_installments >= num_installments`
-4. Insert a `transfer` transaction (source bank → credit card)
-
-> **Bug fixed (session 2026-02-28)**: Previously `settleCardAction` did NOT update `installment_plans.paid_installments` or `remaining_amount`. This caused the progress bar on the "Active Installment Plans" section to never advance. Fixed by adding post-settle installment plan sync logic.
-
----
-
-## 8. Dashboard Expense Calculation (Credit Card Fix)
-
-### The problem
-
-`rpc_dashboard_core` originally summed ALL expense transactions:
-
-```sql
-SELECT SUM(amount) FROM transactions WHERE type = 'expense' AND ...
-```
-
-This included full-amount credit card transactions even after conversion to installments.
-
-### The fix (migration 00018)
-
-Split expense calculation into two parts:
-
-1. **Non-CC accounts**: Sum expense transactions as before (excluding `credit_card` account types)
-2. **CC accounts**: Sum `card_billing_items` where `is_converted_to_installment = false` for the current billing month
-
-This ensures converted items contribute only their **monthly installment amount**, not the full original transaction.
-
-### Dashboard API route fix (`app/api/dashboard/core/route.ts`)
-
-The category breakdown (donut chart) had the same problem:
-
-- **Wrong approach used initially**: Supabase join `account:accounts!account_id(type)` — this uses FK **constraint name** not column name; it silently fails returning null for all rows.
-- **Correct approach**: Pre-fetch CC account IDs in a separate query, build a `Set<string>`, then use `ccAccountIds.has(tx.account_id)` to skip CC expense transactions.
-- CC billing items for the current month are aggregated into a single "Thẻ tín dụng" bucket in the `expenseMap`.
-
----
-
-## 9. Credit Card UI Components
-
-### Credit Card Detail Page (`app/money/card/[id]/page.tsx`)
-
-- **Hero card**: Dark gradient, shows outstanding balance, credit limit, usage bar, statement day, due day, linked account
-- **Usage bar**: Uses `rawUsage = (balance / creditLimit) * 100`, minimum 1% width when balance > 0 (prevents invisible bar for small balances), `usageDisplay` shows 1 decimal for < 1% (e.g., "0.1%" not "0%")
-- **Active Installment Plans**: Shows progress bar based on `paid_installments / num_installments`
-- **Billing History**: Each billing cycle shows all items. Standard unpaid items show a "Trả góp" button → opens `ConvertToInstallmentDialog`. Converted items show strikethrough + "→ Trả góp" badge. Installment items show "Góp N" sequence badge.
-- **Cashback section (new)**: Dedicated form for monthly statement cashback. Records cashback as a card `income` transaction and applies it to the latest unpaid cycle to avoid post-statement balance mismatches.
-
-### ConvertToInstallmentDialog (`app/money/card/_components/convert-to-installment-dialog.tsx`)
-
-Client component. Triggered per-item in billing history:
-
-- Shows source transaction summary
-- Inputs: number of installments (2–60), conversion fee (VND)
-- Live preview of monthly payment amount
-- Submits `convertItemToInstallmentAction`
-
-### Money Page Credit Card Display (`app/money/page.tsx`)
-
-- CC balance comes from `cardOutstandingMap` (summed from `card_billing_months`, not from `transactions`)
-- Same min-1% bar fix applies
-- `usageDisplay` used for text, `usagePercent` used for bar width
-
-### Cashback form (`app/money/card/_components/add-cashback-form.tsx`)
-
-Client component. Inputs:
-
-- Cashback amount (VND)
-- Cashback date
-- Optional note
-
-Submits `addCardCashbackAction`.
-
-### Cashback action (`addCardCashbackAction` in `app/money/card/installment-actions.ts`)
-
-Flow:
-
-1. Validate card account + household scope
-2. Find latest unpaid billing cycle **before** inserting cashback transaction
-3. Insert cashback as `transactions.type = 'income'` on the credit-card account
-4. Trigger auto-creates standard `card_billing_items` and subtracts statement amount
-5. If needed, move generated billing item to the latest unpaid cycle and rebalance `statement_amount` across months
-6. Normalize month status/paid flags to prevent stale cycle states
-7. Revalidate `/money`, `/money/card/[id]`, `/transactions`
-
-This is virtual statement-credit behavior (not bank transfer), and it prevents discrepancies where users receive monthly cashback after statement issuance.
-
----
-
-## 10. Financial Jars Replacement (Insights Tab Replaced)
-
-### Product decision implemented
-
-- The former Insights tab flow has been replaced in navigation with **Financial Jars**.
-- `/insights` now redirects to `/jars` for compatibility during rollout.
-- Dashboard links to planning now point to jars.
-
-### Data model (new)
-
-- `jar_definitions`: jar metadata per household (name/slug/icon/color/archive/default)
-- `jar_monthly_targets`: per-jar monthly target with `fixed | percent` mode
-- `jar_ledger_entries`: manual allocations/withdrawals/adjustments with source metadata
-- Optional summary layer via monthly aggregation logic in app/dashboard
-
-### Scope and accounting contract
-
-- Jars are **virtual only**: no account balance movement in `accounts` or bank transfer generation.
-- Jars support monthly target setup + manual allocate/withdraw operations.
-- Initial migration seeds default jars and allows legacy budgets/goals coexistence for phased cleanup.
-
-### Localization update
-
-- Default jar labels translated to Vietnamese via `00023_translate_default_jars_vi.sql`.
-- Spending Jar surfaces (alerts/history/mapping) are also bilingual (`en`/`vi`) in app-layer components.
-
-### Spending Jar (Budget Jar) extension (2026-03)
-
-Implemented on top of existing jar infrastructure; no destructive production-data changes.
-
-- **Category mapping layer**:
-  - `spending_jar_category_map` enforces one `expense category -> jar` per household.
-  - Missing mapping resolves to household fallback jar slug `unassigned`.
-  - Mapping can be managed on `/jars` via a dedicated category-to-jar table.
-- **Deterministic analytics RPCs** (`00035`):
-  - `rpc_spending_jar_monthly_summary`
-  - `rpc_spending_jar_history_months`
-  - `rpc_spending_jar_month_transactions`
-  - `rpc_spending_jar_month_category_breakdown`
-- **Installment-aware spend rule**:
-  - Non-card spend from `transactions` on non-CC accounts.
-  - Card spend from `card_billing_items` only.
-  - Converted standard originals excluded (`is_converted_to_installment = false`).
-  - Installments counted by monthly billing lines (`item_type='installment'`).
-- **Alerts**:
-  - `warning` when usage >= 80% and <= 100%.
-  - `exceeded` when usage > 100%.
-  - No percent alert when monthly limit <= 0.
-- **History views**:
-  - `/jars/[jarId]/history` includes monthly summary, month transaction list, and category breakdown.
-- **Dashboard integration**:
-  - `app/api/dashboard/core/route.ts` now appends `spendingJarAlerts`.
-  - Dashboard UI renders warning/exceeded alert cards linking to `/jars`.
-- **Transaction-entry integration**:
-  - Expense create/update ensures fallback mapping exists and returns non-blocking jar warning metadata.
-  - Quick-add and detailed transaction forms display warning/exceeded banners.
-
----
-
-## 11. Transaction Edit Sync for Card Billing (Mismatch Fix)
-
-Issue fixed:
-
-- Editing card transaction amount/date/account previously could leave stale billing item values and mismatched statement totals.
-
-Fixes shipped:
-
-- App-layer sync in `app/transactions/actions.ts` to keep corresponding standard `card_billing_items` aligned on edit/delete.
-- Data backfill migration `00024_sync_card_billing_items_with_transaction_edits.sql` to repair existing records:
-  - Re-links item month/card where needed
-  - Recomputes statement totals + statuses
-  - Preserves installment-converted safety checks
-
----
-
-## 12. Supabase Join Gotcha (Important)
-
-**Never use `table!column_name(fields)` in Supabase selects when `column_name` is a column, not a constraint name.**
-
-Supabase disambiguates FK joins using the **constraint name** (e.g., `transactions_account_id_fkey`), not the column name.
-
-```typescript
-// ❌ WRONG - silently returns null for all rows
-.select("account_id, account:accounts!account_id(type)")
-
-// ✅ CORRECT option 1 - only if there's one FK to accounts
-.select("account_id, account:accounts(type)")
-
-// ✅ CORRECT option 2 - fetch CC account IDs separately then use Set
-const ccIds = new Set(ccAccountsResult.data.map(a => a.id));
-if (ccIds.has(tx.account_id)) { /* this is a CC transaction */ }
-```
-
----
-
-## 13. AI Insights Module (Existing, Legacy UI Path)
-
-### Key data model
-
-- `ai_prompt_versions`: Prompt registry with active version per AI function.
-- `ai_insight_runs`: Idempotent run tracking (`running/completed/failed/skipped`) per household + function + period.
-- `ai_insights`: Structured AI output (`content_json`) + narrative text + metadata (model, tokens, latency).
-- `ai_insight_deliveries`: Per-member delivery/read status for in-app/email channels.
-- `ai_insight_feedback`: Helpful/not-helpful user feedback linked to prompt version.
-- `ai_scheduler_config`: Singleton table storing edge URL + worker secret + on/off flag.
-
-Current status:
-
-- Backend scheduler/data model still exists.
-- Primary user-facing Plan tab no longer routes to AI Insights UI (replaced by Jars).
-- Insight/health/cashflow API surfaces are currently feature-disabled by default:
-  - `/api/insights/check` and `/api/insights/recalculate` return feature-disabled responses.
-  - `/api/health/recalculate` and `/api/cash-flow/forecast` return feature-disabled responses.
-- Feature flags default to: `jars=true`, `insights=false`, `financialHealth=false`, `cashflowForecast=false` unless env overrides.
-
-### Scheduled AI functions
-
-1. **`monthly_review`** — Runs monthly (VN 08:00 day 1). Vietnamese financial summary + 1 concrete weekly action.
-2. **`goal_risk_coach`** — Weekly (VN Monday 08:00). Only calls AI if off-track rule true.
-3. **`spending_anomaly_explainer`** — Weekly (VN Wednesday 20:00). Only calls AI if +25% anomaly threshold breached.
-
-### Cost guardrails
-
-- Hard cap: **max 6 AI generations per household per month**.
-- Priority: `monthly_review` > `goal_risk_coach` > `spending_anomaly_explainer`.
-- Near cap: deterministic fallback stored in `insights` (no AI call).
-
----
-
-## 14. Known Gaps / Next Best Steps
-
-1. **Cashback automation**: Optional future enhancement to auto-create expected cashback entries per card statement rule.
-2. **Weekly Email Digest**: Use `ai_insight_deliveries.channel = 'email'` + mail provider.
-3. **Monitoring**: Failure alerts for `ai_insight_runs.status = 'failed'` with retry visibility.
-4. **Installment: Partial cycle settlement**: Currently, `installment_plans` are only updated when a full cycle is settled. Partial payments do not advance `paid_installments`. Consider whether partial payment should count as a paid installment.
-5. **Spending Jar rollout dependency**: Ensure migrations `00034`–`00037` are applied in each environment before enabling jar mapping/history UIs.
-6. **Legacy insights cleanup**: Decide whether to fully retire scheduler jobs/tables if AI Insights remain disabled product-side.
-7. **Jar mapping UX**: Mapping is currently row-by-row save; bulk edit/import and diff preview are not implemented.
-8. **Cashflow chart typing debt**: `next build` currently fails on an unrelated `recharts` formatter type mismatch in `app/cash-flow/_components/cash-flow-forecast-card.tsx`.
-
----
-
-## 15. Key File Index
-
-| Purpose                              | File                                                                                  |
-| ------------------------------------ | ------------------------------------------------------------------------------------- |
-| Handoff doc                          | `AI_KNOWLEDGE_HANDOFF.md`                                                             |
-| Jars page                            | `app/jars/page.tsx`                                                                   |
-| Jars actions                         | `app/jars/actions.ts`                                                                 |
-| Jar category mapping UI              | `app/jars/_components/jar-category-map-table.tsx`                                     |
-| Jar history page                     | `app/jars/[jarId]/history/page.tsx`                                                   |
-| Jar history components               | `app/jars/[jarId]/history/_components/*`                                              |
-| Credit card installment actions      | `app/money/card/installment-actions.ts`                                               |
-| Convert to installment dialog        | `app/money/card/_components/convert-to-installment-dialog.tsx`                        |
-| Settle card form                     | `app/money/card/_components/settle-card-form.tsx`                                     |
-| Add cashback form                    | `app/money/card/_components/add-cashback-form.tsx`                                    |
-| Credit card detail page              | `app/money/card/[id]/page.tsx`                                                        |
-| Money (accounts) page                | `app/money/page.tsx`                                                                  |
-| Dashboard API route                  | `app/api/dashboard/core/route.ts`                                                     |
-| Spending jar API routes              | `app/api/jars/spending/*`                                                             |
-| Dashboard aggregates RPC             | `supabase/migrations/00006_dashboard_aggregates.sql`                                  |
-| CC settings + installment schema     | `supabase/migrations/00014_credit_card_installments.sql`                              |
-| Billing tables schema                | `supabase/migrations/00015_card_billing.sql`                                          |
-| `is_converted_to_installment` column | `supabase/migrations/00017_installment_conversion.sql`                                |
-| Dashboard CC expense fix RPC         | `supabase/migrations/00018_fix_dashboard_cc_expense.sql`                              |
-| Installment progress backfill        | `supabase/migrations/00019_sync_installment_progress.sql`                             |
-| Installment timezone fix             | `supabase/migrations/00021_fix_installment_month_timezone.sql`                        |
-| Financial jars schema                | `supabase/migrations/00022_financial_jars.sql`                                        |
-| Vietnamese jars translation          | `supabase/migrations/00023_translate_default_jars_vi.sql`                             |
-| Card edit/billing data sync backfill | `supabase/migrations/00024_sync_card_billing_items_with_transaction_edits.sql`        |
-| Essential spending CC source fix     | `supabase/migrations/00025_fix_essential_spending_cc_source.sql`                      |
-| Savings rate trend fields            | `supabase/migrations/00026_add_savings_rate_trend_fields.sql`                         |
-| Jar coverage ratio                   | `supabase/migrations/00027_jar_coverage_ratio.sql`                                    |
-| Jar reconciliation ledger            | `supabase/migrations/00028_jar_reconciliation_ledger.sql`                             |
-| Cashflow forecast (deprecated)       | `supabase/migrations/00029_cashflow_forecast_rpc.sql`, `00032_drop_cashflow_forecast_rpc.sql` |
-| Cashflow confidence bands            | `supabase/migrations/00030_cashflow_confidence_bands.sql`                             |
-| TDSR metric                          | `supabase/migrations/00031_tdsr_metric.sql`                                           |
-| Spending jar mapping schema          | `supabase/migrations/00034_spending_jar_category_map.sql`                             |
-| Spending jar analytics RPCs          | `supabase/migrations/00035_spending_jar_analytics_rpc.sql`                            |
-| Spending jar mapping backfill        | `supabase/migrations/00036_spending_jar_backfill_12m.sql`                             |
-| Spending jar mapping trigger         | `supabase/migrations/00037_spending_jar_mapping_trigger.sql`                          |
-| AI migrations                        | `supabase/migrations/00010_ai_insights_foundation.sql`, `00011_ai_scheduler_cron.sql` |
-| Edge dispatcher                      | `supabase/functions/ai-cycle-dispatch/index.ts`                                       |
-| Deterministic insights engine        | `lib/insights/engine.ts`, `lib/insights/service.ts`                                   |
-| Dashboard trend helper               | `lib/dashboard/trend.ts`                                                              |
-| Spending jar shared types            | `lib/jars/spending.ts`                                                                |
-| Feature flags                        | `lib/config/features.ts`                                                              |
-| UI money input                       | `components/ui/money-input.tsx`                                                       |
-
----
-
-## 16. AI Continuation Guide for Future Agents
-
-- Keep AI **scheduled and gated**, not real-time.
-- Prefer deterministic SQL/math pre-computation; AI should explain and recommend, not calculate raw metrics.
-- Maintain strict output contracts (JSON), Vietnamese user-facing tone, and exactly one action recommendation.
-- Do not merge `ai_insights` into legacy `insights` unless a deliberate migration strategy is approved.
-- Respect cost cap and trigger gating; they are product decisions, not temporary safeguards.
-- **Credit card expenses must always come from `card_billing_items`**, never raw `transactions`. The `transactions` table entry for a CC expense still exists for account balance tracking but must be excluded from expense/category calculations.
-- **Always run migration 00019** (`sync_installment_progress`) when onboarding existing data or after deploying the settle-tracking fix, to backfill `paid_installments` and `remaining_amount` on existing plans.
-- **Never use Supabase join syntax `table!column_name`** — use `table!constraint_name` or fetch related IDs separately.
-- **Cashback must be recorded as card `income` transaction**, then mapped to the intended unpaid billing cycle to preserve statement consistency.
-- **Jars are virtual planning envelopes only**; never mutate account balances through jar operations.
-- **Spending Jar mapping contract**: every expense category resolves to exactly one jar (explicit map or `unassigned` fallback), and this must not block transaction writes.
-- **Spending alert contract**: `warning` at >=80% and `exceeded` at >100% of monthly limit; limit<=0 yields no percent alert.
-- **Before enabling Spending Jar UI in an environment, apply migrations `00034` -> `00037` in order.**
-
----
-
-## 17. Session Update Snapshot (2026-03-07)
-
-### What was implemented in this session
-
-- Spending Jar backend stack completed:
-  - schema + RLS + fallback jar (`00034`)
-  - analytics RPCs (`00035`)
-  - 12-month backfill (`00036`)
-  - write-time mapping trigger (`00037`)
-- New REST endpoints under `app/api/jars/spending/*`:
-  - `summary`, `history`, `transactions`, `categories`, `map-category`
-- Dashboard integration:
-  - API now returns `spendingJarAlerts`
-  - UI renders warning/exceeded cards linking to jars
-- Transaction integration:
-  - quick add/detailed add/update return optional spending-jar warning payload
-  - form-level non-blocking warning banner for warning/exceeded jars
-- Jars UX:
-  - `/jars` now includes a category→jar mapping table with per-row save
-  - `/jars/[jarId]/history` now shows monthly summary + transactions + category breakdown
-
-### Production safety notes
-
-- All Spending Jar changes are additive/non-destructive.
-- No account balances are mutated by jar logic.
-- Credit-card expense sourcing remains billing-item based.
+- goals track future targets and contribution progress
+- contributions can create corresponding account cash-flow entries, so goals are not isolated from the ledger
+- entrypoints: `app/goals/*`
+- core write flow: `app/goals/actions.ts`
+
+### Savings
+
+- savings is its own domain, not just a tag on transactions
+- the system stores savings accounts, rate history, withdrawals, maturity actions, and computed current/projected values
+- savings creation usually creates matching ledger activity and can sync into jar intent
+- key files: `app/api/savings/*`, `lib/savings/*`, migration `00039_savings_feature.sql`
+
+### Credit cards and installments
+
+- credit cards deliberately do not behave like normal expense accounts for aggregate calculations
+- the billing model uses card settings, billing cycles, billing items, and installment plans
+- settlement and installment conversion logic live in `app/money/card/installment-actions.ts`
+- related schema evolves across migrations such as `00014`, `00015`, `00017`, `00018`, `00021`, `00024`, and `00025`
+- if investigating card math, always confirm behavior in both write actions and the related migrations/RPCs
+
+### Jars / financial intent layer
+
+- jars are a planning and allocation layer that answers what money is for, not only where it sits
+- this area has evolved from earlier spending-jar structures toward a broader intent model
+- current intent-centered logic lives in `lib/jars/intent.ts` and `app/jars/*`
+- spending-analytics endpoints still exist under `app/api/jars/spending/*`
+- current tables for the rebuilt intent layer are defined in `00040_rebuild_jars_intent_layer.sql`
+
+### Dashboard, health, insights, reports, and scenarios
+
+- dashboard is a read-model surface, not the canonical write source
+- `rpc_dashboard_core` and related aggregate logic are central to the dashboard experience
+- financial health snapshots are calculated through `lib/health/service.ts` and `lib/health/engine.ts`
+- deterministic insights are calculated through `lib/insights/service.ts` and `lib/insights/engine.ts`
+- reports and trends use read-side aggregation over household data
+- decision scenarios are stored through `app/decision-tools/actions.ts` using `scenarios` and `scenario_results`
+
+## 5. Source Of Truth Map
+
+Use this section to decide where to read next.
+
+### Schema, RLS, triggers, and RPCs
+
+- read `supabase/migrations/*`
+- start with:
+  - `00002_core_schema.sql`
+  - `00003_functions_and_rls.sql`
+  - `00006_dashboard_aggregates.sql`
+  - `00010_ai_insights_foundation.sql`
+  - `00022_financial_jars.sql`
+  - `00039_savings_feature.sql`
+  - `00040_rebuild_jars_intent_layer.sql`
+
+### Page-level behavior and user flows
+
+- read `app/*`
+- page components show the surface area and composition
+- server actions in the same feature folder usually reveal the real mutation flow
+- API routes under `app/api/*` usually reveal read-model composition and domain endpoints
+
+### Shared business logic and calculations
+
+- read `lib/*`
+- key clusters:
+  - `lib/server/*` for household context and audit helpers
+  - `lib/dashboard/*` for formatted metrics and trends
+  - `lib/health/*` for health calculations
+  - `lib/insights/*` for rule-based insight generation
+  - `lib/savings/*` for savings computations and schemas
+  - `lib/jars/*` for intent and jar logic
+  - `lib/config/features.ts` for feature gating
+
+### AI scheduling, prompts, runs, and deliveries
+
+- read `supabase/functions/*`
+- `supabase/functions/README.md` explains runtime shape and secrets
+- `supabase/functions/ai-cycle-dispatch/index.ts` is the AI orchestration entrypoint
+- `supabase/functions/_shared/*` contains prompt construction, context assembly, locking, and persistence helpers
+
+## 6. Important Cross-Cutting Rules And Conventions
+
+- Household is the isolation boundary. Almost every meaningful query and write is household-scoped.
+- RLS is fundamental. Do not reason about access rules from app code alone; verify them in migrations.
+- The app often uses server-side aggregation and RPCs for derived metrics. Do not assume UI totals are computed only from raw page queries.
+- Transactions are the base cash ledger, but some domains intentionally maintain parallel truth layers:
+  - credit cards use billing cycles and installment tables
+  - savings uses dedicated savings tables plus linked ledger events
+  - jars use allocation and intent tracking that is not reducible to a single transaction category
+- Audit logging is a normal expectation in write flows. Many mutations call `writeAuditEvent`.
+- Household language and locale are stored at household level and affect UI copy and AI output language.
+- Feature flags can gate product surfaces. See `lib/config/features.ts` for:
+  - `jars`
+  - `cashflowForecast`
+  - `insights`
+  - `financialHealth`
+- Realtime refresh is handled through household-scoped invalidation in `components/realtime/household-realtime-sync.tsx`.
+
+## 7. AI Subsystem Overview
+
+The AI subsystem is not a general chat agent bolted onto the UI. It is a scheduled insight pipeline with explicit storage, quotas, and deterministic triggers.
+
+Current shape:
+
+- storage and control plane live in AI-related migrations, especially `00010` and `00011`
+- the worker entrypoint is `supabase/functions/ai-cycle-dispatch/index.ts`
+- supported function types currently include:
+  - `monthly_review`
+  - `goal_risk_coach`
+  - `spending_anomaly_explainer`
+- the worker:
+  - resolves active households
+  - checks whether a run should happen
+  - builds deterministic context from household data
+  - loads the active prompt version
+  - calls the model
+  - stores deliveries and fallback outputs
+- monthly cost control matters; the system enforces caps and can store deterministic fallback insights when limits are reached
+
+If working on AI behavior, inspect both the edge function code and the AI foundation migrations before making assumptions.
+
+## 8. Recommended Investigation Paths By Task Type
+
+### If the task is about a user-visible page or workflow
+
+1. Start with the route in `app/.../page.tsx`
+2. Check nearby components in the same route folder
+3. Inspect the matching `actions.ts` or `app/api/.../route.ts`
+4. Follow into `lib/*` for calculations or orchestration
+5. Confirm schema and invariants in the relevant migration files
+
+### If the task is about data correctness or a metric mismatch
+
+1. Check the API route or server component that supplies the UI
+2. Identify whether it uses raw tables, helper services, or RPCs
+3. Read the matching `lib/*` service or engine
+4. Confirm the underlying SQL/RPC definition in migrations
+5. For card, savings, or jar behavior, verify any parallel truth layer before trusting raw transactions alone
+
+### If the task is about a mutation or write flow
+
+1. Find the server action or API POST handler
+2. Check validation and household resolution
+3. Identify follow-up writes, side effects, and audit events
+4. Check whether the write also updates a specialized domain table
+5. Verify downstream aggregates or triggers in migrations
+
+### If the task is about AI-generated content
+
+1. Read the relevant API route in `app/api/ai-insights/*` if the issue is user delivery or feedback
+2. Read `supabase/functions/ai-cycle-dispatch/index.ts` for generation flow
+3. Inspect `_shared/context.ts`, `_shared/prompts.ts`, and `_shared/store.ts`
+4. Confirm the DB structures and run semantics in `00010` and `00011`
+
+### If the task is about access, membership, or localization
+
+1. Start with `lib/server/household.ts`
+2. Check household and settings actions in `app/household/actions.ts` and `app/settings/actions.ts`
+3. Verify locale behavior in `lib/i18n/*`
+4. Confirm membership and RLS rules in `00002` and `00003`
+
+## 9. Known Documentation Limits
+
+- This file is intentionally overview-first. It should help an AI orient itself and choose where to read next, not replace code-level investigation.
+- Some domains have historical layers still visible in the repo, especially jars and cashflow forecasting. Prefer current active routes, services, and latest migrations over old mental models.
+- The repo currently has no first-party automated test files outside dependencies/build artifacts. Confidence should come from reading migrations, service logic, write flows, and runtime endpoints together.
+- If a behavior seems ambiguous, trust this order:
+  1. latest relevant migration
+  2. current server action or API route
+  3. shared service/calculation layer
+  4. page/UI code
+
+## Quick Orientation Checklist For Future AI
+
+Before making changes, answer these questions:
+
+- Which household-scoped domain is affected?
+- Is the source of truth raw transactions, a specialized table, or an aggregate/RPC?
+- Is there a server action or API route already responsible for this flow?
+- Is there a feature flag involved?
+- Which migration defines the invariant that must remain true?
+
+If those answers are clear, the rest of the repo becomes much easier to navigate safely.

@@ -1,10 +1,11 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;500;600;700&display=swap");
 @import "tailwindcss";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Be Vietnam Pro", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Newsreader", ui-serif, Georgia, serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
 
@@ -82,113 +83,114 @@
 }
 
 :root {
-  /* Light mode - Warm, inviting, trustworthy */
-  --background: hsl(50 40% 98%);
-  --foreground: hsl(217 32% 17%);
+  /* Emerald Hearth - Heritage Ledger */
+  /* Main background/surface - Paper-white */
+  --background: hsl(60 11% 97%);
+  --foreground: hsl(180 4% 11%);
 
   --card: hsl(0 0% 100%);
-  --card-foreground: hsl(217 32% 17%);
+  --card-foreground: hsl(180 4% 11%);
 
   --popover: hsl(0 0% 100%);
-  --popover-foreground: hsl(217 32% 17%);
+  --popover-foreground: hsl(180 4% 11%);
 
-  /* Primary: Warm blue-teal for trust and financial stability */
-  --primary: hsl(217 91% 40%);
-  --primary-foreground: hsl(50 100% 98%);
+  /* Primary: Deep Emerald */
+  --primary: hsl(159 100% 16%);
+  --primary-foreground: hsl(0 0% 100%);
 
-  /* Secondary: Warm light cream for secondary actions */
-  --secondary: hsl(40 100% 95%);
-  --secondary-foreground: hsl(217 32% 17%);
+  /* Secondary */
+  --secondary: hsl(224 49% 91%);
+  --secondary-foreground: hsl(217 30% 12%);
 
-  /* Muted: Warm gray for subtle elements */
-  --muted: hsl(210 14% 63%);
-  --muted-foreground: hsl(217 32% 35%);
+  /* Muted */
+  --muted: hsl(60 4% 93%);
+  --muted-foreground: hsl(219 9% 41%);
 
-  /* Accent: Gold/amber for Vietnamese cultural warmth */
-  --accent: hsl(38 92% 50%);
-  --accent-foreground: hsl(217 32% 17%);
+  /* Accent: Warm Amber */
+  --accent: hsl(38 100% 20%);
+  --accent-foreground: hsl(0 0% 100%);
 
   /* Success: Calm green for progress and health */
-  --success: hsl(142 71% 45%);
+  --success: hsl(156 61% 26%); 
   --success-foreground: hsl(0 0% 100%);
 
-  /* Warning: Soft orange for attention (not alarming) */
-  --warning: hsl(28 100% 58%);
-  --warning-foreground: hsl(217 32% 17%);
+  /* Warning */
+  --warning: hsl(38 100% 50%);
+  --warning-foreground: hsl(180 4% 11%);
 
-  /* Destructive: Muted red for errors */
-  --destructive: hsl(0 84.2% 60.2%);
-  --destructive-foreground: hsl(210 40% 98%);
+  /* Destructive */
+  --destructive: hsl(0 75% 42%);
+  --destructive-foreground: hsl(0 0% 100%);
 
   /* Neutral Surface */
-  --border: hsl(210 30% 90%);
-  --input: hsl(210 30% 92%);
-  --ring: hsl(217 91% 40%);
+  --border: hsl(135 11% 77%); /* outline_variant */
+  --input: hsl(120 4% 95%);
+  --ring: hsl(159 100% 16%);
 
   --radius: 0.5rem;
 
   /* Sidebar styling */
-  --sidebar-background: hsl(50 40% 98%);
-  --sidebar-foreground: hsl(217 32% 17%);
-  --sidebar-primary: hsl(217 91% 40%);
+  --sidebar-background: hsl(60 11% 97%);
+  --sidebar-foreground: hsl(180 4% 11%);
+  --sidebar-primary: hsl(159 100% 16%);
   --sidebar-primary-foreground: hsl(0 0% 100%);
-  --sidebar-accent: hsl(38 92% 50%);
-  --sidebar-accent-foreground: hsl(217 32% 17%);
-  --sidebar-border: hsl(210 30% 90%);
-  --sidebar-ring: hsl(217 91% 40%);
+  --sidebar-accent: hsl(38 100% 20%);
+  --sidebar-accent-foreground: hsl(0 0% 100%);
+  --sidebar-border: hsl(135 11% 77%);
+  --sidebar-ring: hsl(159 100% 16%);
 
   /* Chart Primitives */
-  --chart-1: hsl(217 91% 40%);
-  --chart-2: hsl(142 71% 45%);
-  --chart-3: hsl(38 92% 50%);
-  --chart-4: hsl(28 100% 58%);
-  --chart-5: hsl(0 84.2% 60.2%);
+  --chart-1: hsl(159 100% 16%);
+  --chart-2: hsl(156 61% 26%);
+  --chart-3: hsl(38 100% 20%);
+  --chart-4: hsl(39 100% 26%);
+  --chart-5: hsl(0 75% 42%);
 }
 
 .dark {
-  /* Dark mode - Maintain warmth and clarity */
-  --background: hsl(217 32% 15%);
-  --foreground: hsl(50 40% 96%);
+  /* Dark mode - Deep Emerald & Warm Accents */
+  --background: hsl(180 3% 9%);
+  --foreground: hsl(60 11% 97%);
 
-  --card: hsl(217 32% 22%);
-  --card-foreground: hsl(50 40% 96%);
+  --card: hsl(180 2% 14%);
+  --card-foreground: hsl(60 11% 97%);
 
-  --popover: hsl(217 32% 22%);
-  --popover-foreground: hsl(50 40% 96%);
+  --popover: hsl(180 2% 14%);
+  --popover-foreground: hsl(60 11% 97%);
 
-  --primary: hsl(217 91% 55%);
-  --primary-foreground: hsl(217 32% 15%);
+  --primary: hsl(153 73% 76%);
+  --primary-foreground: hsl(159 100% 8%);
 
-  --secondary: hsl(40 100% 85%);
-  --secondary-foreground: hsl(217 32% 15%);
+  --secondary: hsl(218 16% 28%);
+  --secondary-foreground: hsl(0 0% 100%);
 
-  --muted: hsl(217 20% 50%);
-  --muted-foreground: hsl(50 40% 80%);
+  --muted: hsl(180 2% 14%);
+  --muted-foreground: hsl(219 9% 60%);
 
-  --accent: hsl(38 92% 60%);
-  --accent-foreground: hsl(217 32% 15%);
+  --accent: hsl(35 100% 85%);
+  --accent-foreground: hsl(38 100% 10%);
 
-  --success: hsl(142 71% 55%);
-  --success-foreground: hsl(217 32% 15%);
+  --success: hsl(153 73% 76%);
+  --success-foreground: hsl(159 100% 16%);
 
-  --warning: hsl(28 100% 65%);
-  --warning-foreground: hsl(217 32% 15%);
+  --warning: hsl(38 100% 60%);
+  --warning-foreground: hsl(180 4% 11%);
 
-  --destructive: hsl(0 62.8% 30.6%);
-  --destructive-foreground: hsl(50 40% 96%);
+  --destructive: hsl(0 100% 84%);
+  --destructive-foreground: hsl(0 100% 20%);
 
-  --border: hsl(217 32% 30%);
-  --input: hsl(217 32% 28%);
-  --ring: hsl(217 91% 55%);
+  --border: hsl(135 7% 45%);
+  --input: hsl(135 7% 35%);
+  --ring: hsl(153 73% 76%);
 
-  --sidebar-background: hsl(217 32% 15%);
-  --sidebar-foreground: hsl(50 40% 96%);
-  --sidebar-primary: hsl(217 91% 55%);
-  --sidebar-primary-foreground: hsl(217 32% 15%);
-  --sidebar-accent: hsl(38 92% 60%);
-  --sidebar-accent-foreground: hsl(217 32% 15%);
-  --sidebar-border: hsl(217 32% 30%);
-  --sidebar-ring: hsl(217 91% 55%);
+  --sidebar-background: hsl(180 3% 9%);
+  --sidebar-foreground: hsl(60 11% 97%);
+  --sidebar-primary: hsl(153 73% 76%);
+  --sidebar-primary-foreground: hsl(159 100% 8%);
+  --sidebar-accent: hsl(35 100% 85%);
+  --sidebar-accent-foreground: hsl(38 100% 10%);
+  --sidebar-border: hsl(135 7% 45%);
+  --sidebar-ring: hsl(153 73% 76%);
 }
 
 body {
