@@ -3,6 +3,7 @@ import { AppShell } from "@/components/layout/app-shell";
 import { BottomTabBar } from "@/components/layout/bottom-tab-bar";
 import { getDashboardTrend } from "@/lib/dashboard/trend";
 import { formatVnd, formatVndCompact } from "@/lib/dashboard/format";
+import { t } from "@/lib/i18n/dictionary";
 import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,7 +15,7 @@ export const metadata = {
 };
 
 export default async function NetWorthTrendPage() {
-  const { householdId } = await getAuthenticatedHouseholdContext();
+  const { householdId, language } = await getAuthenticatedHouseholdContext();
   const supabase = await createClient();
 
   const trend = await getDashboardTrend(supabase, householdId, {
@@ -28,14 +29,14 @@ export default async function NetWorthTrendPage() {
 
   return (
     <AppShell
-      header={<AppHeader title="Net Worth Trend" showBack />}
+      header={<AppHeader title={t(language, "reports.networth_trend.title")} showBack />}
       footer={<BottomTabBar />}
     >
       <div className="space-y-4 pb-20 sm:pb-6">
         <Card>
           <CardContent className="p-5">
             <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
-              Trend Summary
+              {t(language, "reports.networth_trend.summary")}
             </p>
             <p className="mt-1 text-xl font-semibold text-foreground">
               {latest ? formatVndCompact(Number(latest.net_worth)) : "-"}
@@ -44,7 +45,7 @@ export default async function NetWorthTrendPage() {
               className={`mt-1 text-sm ${delta >= 0 ? "text-success" : "text-destructive"}`}
             >
               {delta >= 0 ? "+" : ""}
-              {formatVnd(delta)} vs last month
+              {formatVnd(delta)} {t(language, "reports.networth_trend.vs_last_month")}
             </p>
           </CardContent>
         </Card>

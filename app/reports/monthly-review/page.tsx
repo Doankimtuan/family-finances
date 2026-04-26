@@ -2,6 +2,7 @@ import { AppHeader } from "@/components/layout/app-header";
 import { AppShell } from "@/components/layout/app-shell";
 import { BottomTabBar } from "@/components/layout/bottom-tab-bar";
 import { formatPercent, formatVndCompact } from "@/lib/dashboard/format";
+import { t } from "@/lib/i18n/dictionary";
 import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent } from "@/components/ui/card";
@@ -24,7 +25,7 @@ function monthRange(asOf: Date) {
 }
 
 export default async function MonthlyReviewPage() {
-  const { householdId } = await getAuthenticatedHouseholdContext();
+  const { householdId, language } = await getAuthenticatedHouseholdContext();
   const supabase = await createClient();
   const now = new Date();
   const { start, end } = monthRange(now);
@@ -69,70 +70,76 @@ export default async function MonthlyReviewPage() {
   const topCategories = Array.from(expenseMap.entries())
     .map(([id, value]) => ({
       id,
-      name: categoryMap.get(id) ?? "Uncategorized",
+      name: categoryMap.get(id) ?? t(language, "reports.monthly_review.uncategorized"),
       value,
     }))
     .sort((a, b) => b.value - a.value)
     .slice(0, 3);
+
+  const WIN_POSITIVE_SAVINGS = t(language, "reports.monthly_review.win.positive_savings");
+  const WIN_EMERGENCY_OK = t(language, "reports.monthly_review.win.emergency_ok");
+  const RISK_NEGATIVE_SAVINGS = t(language, "reports.monthly_review.risk.negative_savings");
+  const RISK_LOW_EMERGENCY = t(language, "reports.monthly_review.risk.low_emergency");
+  const RISK_HIGH_DSR = t(language, "reports.monthly_review.risk.high_dsr");
 
   const wins: string[] = [];
   const risks: string[] = [];
 
   if (metrics) {
     if (Number(metrics.monthly_savings) > 0)
-      wins.push("Positive monthly savings maintained.");
-    else risks.push("Monthly savings is negative.");
+      wins.push(WIN_POSITIVE_SAVINGS);
+    else risks.push(RISK_NEGATIVE_SAVINGS);
 
     if ((metrics.emergency_months ?? 0) >= 3)
-      wins.push("Emergency runway is above 3 months.");
-    else risks.push("Emergency runway is below 3 months.");
+      wins.push(WIN_EMERGENCY_OK);
+    else risks.push(RISK_LOW_EMERGENCY);
 
     if ((metrics.debt_service_ratio ?? 0) > 0.35)
-      risks.push("Debt-service ratio is above 35%.");
+      risks.push(RISK_HIGH_DSR);
   }
 
   const actions = [
-    risks.includes("Monthly savings is negative.")
-      ? "Reduce one variable spending category by at least 10% next month."
-      : "Keep automatic savings transfer on salary day.",
-    risks.includes("Debt-service ratio is above 35%.")
-      ? "Prioritize extra debt payment before new discretionary spending."
-      : "Review top spending category and keep within budget.",
+    risks.includes(RISK_NEGATIVE_SAVINGS)
+      ? t(language, "reports.monthly_review.action.cut_spending")
+      : t(language, "reports.monthly_review.action.keep_transfer"),
+    risks.includes(RISK_HIGH_DSR)
+      ? t(language, "reports.monthly_review.action.pay_debt")
+      : t(language, "reports.monthly_review.action.review_top"),
   ];
 
   return (
     <AppShell
-      header={<AppHeader title="Monthly Review" showBack />}
+      header={<AppHeader title={t(language, "reports.monthly_review.title")} showBack />}
       footer={<BottomTabBar />}
     >
       <div className="space-y-4 pb-20 sm:pb-6">
         <Card>
           <CardContent className="p-5">
             <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
-              Month Snapshot
+              {t(language, "reports.monthly_review.snapshot")}
             </p>
             {metrics ? (
               <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
                 <Stat
-                  label="Income"
+                  label={t(language, "reports.monthly_review.income")}
                   value={formatVndCompact(Number(metrics.monthly_income))}
                 />
                 <Stat
-                  label="Expense"
+                  label={t(language, "reports.monthly_review.expense")}
                   value={formatVndCompact(Number(metrics.monthly_expense))}
                 />
                 <Stat
-                  label="Savings"
+                  label={t(language, "reports.monthly_review.savings")}
                   value={formatVndCompact(Number(metrics.monthly_savings))}
                 />
                 <Stat
-                  label="Savings Rate"
+                  label={t(language, "reports.monthly_review.savings_rate")}
                   value={formatPercent(metrics.savings_rate)}
                 />
               </div>
             ) : (
               <p className="mt-2 text-sm text-muted-foreground">
-                No monthly metrics yet.
+                {t(language, "reports.monthly_review.no_metrics")}
               </p>
             )}
           </CardContent>
@@ -141,11 +148,11 @@ export default async function MonthlyReviewPage() {
         <Card>
           <CardContent className="p-5">
             <h2 className="text-lg font-semibold text-foreground">
-              Top Expense Categories
+              {t(language, "reports.monthly_review.top_categories")}
             </h2>
             {topCategories.length === 0 ? (
               <p className="mt-2 text-sm text-muted-foreground">
-                No expense transactions this month.
+                {t(language, "reports.monthly_review.no_expenses")}
               </p>
             ) : (
               <ul className="mt-3 space-y-2">
@@ -165,17 +172,17 @@ export default async function MonthlyReviewPage() {
         <Card>
           <CardContent className="p-5">
             <h2 className="text-lg font-semibold text-foreground">
-              Wins &amp; Risks
+              {t(language, "reports.monthly_review.wins_risks")}
             </h2>
             <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.12em] text-success">
-                  Wins
+                  {t(language, "reports.monthly_review.wins")}
                 </p>
                 <ul className="mt-1 space-y-1 text-sm text-foreground">
                   {(wins.length > 0
                     ? wins
-                    : ["No major wins detected yet this month."]
+                    : [t(language, "reports.monthly_review.no_wins")]
                   ).map((w) => (
                     <li key={w}>• {w}</li>
                   ))}
@@ -183,12 +190,12 @@ export default async function MonthlyReviewPage() {
               </div>
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.12em] text-destructive">
-                  Risks
+                  {t(language, "reports.monthly_review.risks")}
                 </p>
                 <ul className="mt-1 space-y-1 text-sm text-foreground">
                   {(risks.length > 0
                     ? risks
-                    : ["No critical risk signal this month."]
+                    : [t(language, "reports.monthly_review.no_risks")]
                   ).map((r) => (
                     <li key={r}>• {r}</li>
                   ))}
@@ -201,7 +208,7 @@ export default async function MonthlyReviewPage() {
         <Card>
           <CardContent className="p-5">
             <h2 className="text-lg font-semibold text-foreground">
-              Next Month Actions
+              {t(language, "reports.monthly_review.next_actions")}
             </h2>
             <ul className="mt-2 space-y-1 text-sm text-foreground">
               {actions.map((a) => (
@@ -209,7 +216,7 @@ export default async function MonthlyReviewPage() {
               ))}
             </ul>
             <p className="mt-3 text-xs text-muted-foreground">
-              Active goals: {(goalsResult.data ?? []).length}
+              {t(language, "reports.monthly_review.active_goals")}: {(goalsResult.data ?? []).length}
             </p>
           </CardContent>
         </Card>

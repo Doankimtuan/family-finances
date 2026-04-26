@@ -210,7 +210,7 @@ export async function deleteCategoryAction(
       .select("id", { count: "exact", head: true })
       .eq("category_id", categoryId),
     supabase
-      .from("budgets")
+      .from("monthly_budgets")
       .select("id", { count: "exact", head: true })
       .eq("household_id", householdId)
       .eq("category_id", categoryId),
@@ -225,7 +225,7 @@ export async function deleteCategoryAction(
 
   if ((budgetCount.count ?? 0) > 0) {
     const removeBudgets = await supabase
-      .from("budgets")
+      .from("monthly_budgets")
       .delete()
       .eq("household_id", householdId)
       .eq("category_id", categoryId);

@@ -3,6 +3,7 @@ import { AppShell } from "@/components/layout/app-shell";
 import { BottomTabBar } from "@/components/layout/bottom-tab-bar";
 import { getDashboardTrend } from "@/lib/dashboard/trend";
 import { formatVndCompact } from "@/lib/dashboard/format";
+import { t } from "@/lib/i18n/dictionary";
 import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
 import { Card, CardContent } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
@@ -14,7 +15,7 @@ export const metadata = {
 };
 
 export default async function CashFlowTrendPage() {
-  const { householdId } = await getAuthenticatedHouseholdContext();
+  const { householdId, language } = await getAuthenticatedHouseholdContext();
   const supabase = await createClient();
 
   const trend = await getDashboardTrend(supabase, householdId, {
@@ -25,23 +26,23 @@ export default async function CashFlowTrendPage() {
 
   return (
     <AppShell
-      header={<AppHeader title="Cash-Flow Trend" showBack />}
+      header={<AppHeader title={t(language, "reports.cashflow_trend.title")} showBack />}
       footer={<BottomTabBar />}
     >
       <div className="space-y-4 pb-20 sm:pb-6">
         <Card>
           <CardContent className="p-5">
             <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
-              Latest Month
+              {t(language, "reports.cashflow_trend.latest_month")}
             </p>
             <p className="mt-1 text-sm text-foreground">
-              Income {latest ? formatVndCompact(Number(latest.income)) : "-"} ·
-              Expense {latest ? formatVndCompact(Number(latest.expense)) : "-"}
+              {t(language, "reports.cashflow_trend.income")} {latest ? formatVndCompact(Number(latest.income)) : "-"} ·
+              {t(language, "reports.cashflow_trend.expense")} {latest ? formatVndCompact(Number(latest.expense)) : "-"}
             </p>
             <p
               className={`mt-1 text-sm ${latest && Number(latest.savings) >= 0 ? "text-success" : "text-destructive"}`}
             >
-              Savings {latest ? formatVndCompact(Number(latest.savings)) : "-"}
+              {t(language, "reports.cashflow_trend.savings")} {latest ? formatVndCompact(Number(latest.savings)) : "-"}
             </p>
           </CardContent>
         </Card>
