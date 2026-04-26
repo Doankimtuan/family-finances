@@ -37,11 +37,13 @@ export function AppHeader({
           </Button>
         )}
         {!showBack && (
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary shadow-sm ring-1 ring-primary/20">
-            <span className="text-[10px] font-black text-primary-foreground tracking-tighter">
-              FF
-            </span>
-          </div>
+          <img
+            src="/logo.svg"
+            width={32}
+            height={32}
+            alt="Family Finances logo"
+            className="shrink-0 rounded-lg"
+          />
         )}
         <div className="min-w-0">
           <h1 className="text-xl font-bold tracking-tight text-foreground line-clamp-1">
