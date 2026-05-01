@@ -23,8 +23,10 @@ import { createClient } from "@/lib/supabase/server";
 import {
   getAssetClassConfig,
   getCashflowLabel,
+  getClassLabel,
   type CashflowFlowType,
 } from "@/lib/assets/class-config";
+import { t as dictT } from "@/lib/i18n/dictionary";
 
 type AssetDetailPageProps = {
   params: Promise<{ id: string }>;
@@ -36,12 +38,14 @@ export default async function AssetDetailPage({
   const { id } = await params;
   const { householdId, householdLocale, language } =
     await getAuthenticatedHouseholdContext();
-  const vi = language === "vi";
+  const t = (key: string) => dictT(language, key);
   const supabase = await createClient();
 
   const assetResult = await supabase
     .from("assets")
-    .select("id, name, asset_class, unit_label, quantity, is_liquid, metadata, valuation_method, risk_level, acquisition_cost, acquisition_date")
+    .select(
+      "id, name, asset_class, unit_label, quantity, is_liquid, metadata, valuation_method, risk_level, acquisition_cost, acquisition_date",
+    )
     .eq("household_id", householdId)
     .eq("id", id)
     .maybeSingle();
@@ -124,43 +128,29 @@ export default async function AssetDetailPage({
   const roi = totalInvested > 0 ? (unrealizedPnl / totalInvested) * 100 : 0;
 
   const classConfig = getAssetClassConfig(asset.asset_class);
-  const assetClassLabel = vi ? classConfig.labelVi : classConfig.labelEn;
+  const assetClassLabel = getClassLabel(asset.asset_class, t);
   const isTracker = classConfig.isInvestmentTracker;
   const assetMetadata = (asset.metadata ?? {}) as Record<string, unknown>;
 
   // Risk level label
-  const riskLabels: Record<string, [string, string]> = {
-    low: ["Thấp", "Low"],
-    medium: ["Trung bình", "Medium"],
-    high: ["Cao", "High"],
-    very_high: ["Rất cao", "Very High"],
-  };
-  const riskLabel = asset.risk_level
-    ? (riskLabels[asset.risk_level]?.[vi ? 0 : 1] ?? asset.risk_level)
-    : null;
+  const riskLabel = asset.risk_level ? t(`risk.${asset.risk_level}`) : null;
 
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-6">
       <section className="mx-auto w-full max-w-4xl space-y-4">
         <header className="space-y-2">
           <Link href="/money" className="text-sm font-medium text-slate-600">
-            ← {vi ? "Quay lại Tài sản" : "Back to Assets"}
+            ← {t("assets.back_to_assets")}
           </Link>
           <div className="flex items-start justify-between gap-3">
             <h1 className="text-2xl font-semibold text-slate-900">
               {asset.name}
             </h1>
-            <DeleteAssetButton assetId={asset.id} language={language} />
+            <DeleteAssetButton assetId={asset.id} />
           </div>
           <p className="text-sm text-slate-600">
             {assetClassLabel} ·{" "}
-            {asset.is_liquid
-              ? vi
-                ? "Thanh khoản"
-                : "Liquid"
-              : vi
-                ? "Kém thanh khoản"
-                : "Illiquid"}
+            {asset.is_liquid ? t("assets.liquid") : t("assets.illiquid")}
           </p>
         </header>
 
@@ -168,7 +158,7 @@ export default async function AssetDetailPage({
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-4 bg-teal-50 border border-teal-100 rounded-xl p-3">
             <div className="space-y-1">
               <p className="text-[10px] uppercase font-bold text-teal-800 tracking-wider pt-1">
-                {vi ? "Tổng vốn" : "Total Invested"}
+                {t("assets.total_capital")}
               </p>
               <p className="font-semibold text-teal-900">
                 {formatVnd(totalInvested, householdLocale)}
@@ -176,7 +166,7 @@ export default async function AssetDetailPage({
             </div>
             <div className="space-y-1">
               <p className="text-[10px] uppercase font-bold text-teal-800 tracking-wider pt-1">
-                {vi ? "Lãi/Lỗ tạm tính" : "Unrealized PNL"}
+                {t("assets.unrealized_pnl")}
               </p>
               <p
                 className={`font-semibold ${unrealizedPnl >= 0 ? "text-emerald-600" : "text-rose-600"}`}
@@ -187,7 +177,7 @@ export default async function AssetDetailPage({
             </div>
             <div className="space-y-1">
               <p className="text-[10px] uppercase font-bold text-teal-800 tracking-wider pt-1">
-                {vi ? "Tỷ suất sinh lời" : "ROI"}
+                {t("assets.roi_label")}
               </p>
               <p
                 className={`font-semibold ${unrealizedPnl >= 0 ? "text-emerald-600" : "text-rose-600"}`}
@@ -198,7 +188,7 @@ export default async function AssetDetailPage({
             </div>
             <div className="space-y-1">
               <p className="text-[10px] uppercase font-bold text-teal-800 tracking-wider pt-1">
-                {vi ? "Hiện tại" : "Current Value"}
+                {t("assets.current_value")}
               </p>
               <p className="font-bold text-teal-900">
                 {formatVnd(currentValue, householdLocale)}
@@ -211,7 +201,7 @@ export default async function AssetDetailPage({
           <Card>
             <CardContent className="p-3">
               <p className="text-xs uppercase tracking-[0.12em] text-slate-500">
-                {vi ? "Số lượng hiện tại" : "Current Quantity"}
+                {t("assets.current_quantity")}
               </p>
               <p className="mt-1 text-lg font-semibold text-slate-900">
                 {formatNumber(
@@ -225,7 +215,7 @@ export default async function AssetDetailPage({
           <Card>
             <CardContent className="p-3">
               <p className="text-xs uppercase tracking-[0.12em] text-slate-500">
-                {vi ? "Đơn giá hiện tại" : "Current Unit Price"}
+                {t("assets.current_unit_price")}
               </p>
               <p className="mt-1 text-lg font-semibold text-slate-900">
                 {formatVnd(latest?.unitPrice ?? 0, householdLocale)}
@@ -235,7 +225,7 @@ export default async function AssetDetailPage({
           <Card>
             <CardContent className="p-3">
               <p className="text-xs uppercase tracking-[0.12em] text-slate-500">
-                {vi ? "Giá trị hiện tại" : "Current Value"}
+                {t("assets.current_value")}
               </p>
               <p className="mt-1 text-lg font-semibold text-slate-900">
                 {formatVnd(currentValue, householdLocale)}
@@ -250,9 +240,7 @@ export default async function AssetDetailPage({
           <Card>
             <CardContent className="p-5 space-y-4">
               <h2 className="text-lg font-semibold text-slate-900">
-                {vi
-                  ? "Quản lý dòng tiền đầu tư"
-                  : "Manage Investment Cash Flows"}
+                {t("assets.manage_cashflows")}
               </h2>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <AssetCashflowForm
@@ -262,12 +250,12 @@ export default async function AssetDetailPage({
 
                 <div className="space-y-2">
                   <h3 className="text-sm font-semibold text-slate-700">
-                    {vi ? "Lịch sử dòng tiền" : "History"}
+                    {t("assets.cashflow_history")}
                   </h3>
                   <ul className="space-y-2">
                     {cashflows.length === 0 ? (
                       <li className="text-sm text-slate-500 italic">
-                        {vi ? "Chưa có dòng tiền nào." : "No cash flows yet."}
+                        {t("assets.no_cashflows")}
                       </li>
                     ) : (
                       cashflows.slice(0, 10).map((cf) => {
@@ -286,7 +274,7 @@ export default async function AssetDetailPage({
                         const cfLabel = getCashflowLabel(
                           asset.asset_class,
                           cf.flow_type as CashflowFlowType,
-                          vi,
+                          t,
                         );
 
                         return (
@@ -325,7 +313,7 @@ export default async function AssetDetailPage({
             <Card>
               <CardContent className="p-4 space-y-2">
                 <p className="text-sm font-semibold text-slate-800">
-                  {vi ? "Thông tin chi tiết" : "Asset Details"}
+                  {t("assets.details_title")}
                 </p>
                 <div className="grid grid-cols-2 gap-x-4 gap-y-2">
                   {classConfig.metadataFields.map((field) => {
@@ -334,20 +322,19 @@ export default async function AssetDetailPage({
                       return null;
                     let display = String(val);
                     if (field.type === "select" && field.options) {
-                      const opt = field.options.find(
-                        (o) => o.value === val,
-                      );
-                      if (opt) display = vi ? opt.labelVi : opt.labelEn;
+                      const opt = field.options.find((o) => o.value === val);
+                      if (opt) display = t(opt.labelKey);
                     }
                     if (field.type === "boolean") {
-                      display = val === true || val === "true"
-                        ? (vi ? "Có" : "Yes")
-                        : (vi ? "Không" : "No");
+                      display =
+                        val === true || val === "true"
+                          ? t("common.yes")
+                          : t("common.no");
                     }
                     return (
                       <div key={field.key}>
                         <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">
-                          {vi ? field.labelVi : field.labelEn}
+                          {t(field.labelKey)}
                         </p>
                         <p className="text-sm text-slate-800 mt-0.5">
                           {display}
@@ -359,11 +346,9 @@ export default async function AssetDetailPage({
                 {riskLabel && (
                   <div className="pt-2 border-t border-slate-100">
                     <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">
-                      {vi ? "Mức rủi ro" : "Risk Level"}
+                      {t("assets.risk_level")}
                     </p>
-                    <p className="text-sm text-slate-800 mt-0.5">
-                      {riskLabel}
-                    </p>
+                    <p className="text-sm text-slate-800 mt-0.5">{riskLabel}</p>
                   </div>
                 )}
               </CardContent>
@@ -386,7 +371,7 @@ export default async function AssetDetailPage({
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <article className="space-y-2">
             <h2 className="text-lg font-semibold text-slate-900">
-              {vi ? "Lịch sử số lượng" : "Quantity History"}
+              {t("assets.quantity_history")}
             </h2>
             <QuantityHistoryTable
               assetId={asset.id}
@@ -401,7 +386,7 @@ export default async function AssetDetailPage({
 
           <article className="space-y-2">
             <h2 className="text-lg font-semibold text-slate-900">
-              {vi ? "Lịch sử giá" : "Price History"}
+              {t("assets.price_history")}
             </h2>
             <PriceHistoryTable
               assetId={asset.id}

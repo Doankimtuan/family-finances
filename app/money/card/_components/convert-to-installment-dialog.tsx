@@ -79,14 +79,16 @@ export function ConvertToInstallmentDialog({ item, locale, vi }: Props) {
 
   return (
     <>
-      <button
+      <Button
+        variant="outline"
+        size="sm"
         onClick={() => setOpen(true)}
-        className="flex items-center gap-1 rounded-md bg-amber-100 px-2 py-1 text-[10px] font-bold text-amber-700 transition-colors hover:bg-amber-200"
+        className="flex items-center gap-1 rounded-md bg-amber-100 px-2 py-1 text-[10px] font-bold text-amber-700 transition-colors hover:bg-amber-200 border-none h-auto"
         title={vi ? "Chuyển trả góp" : "Convert to installments"}
       >
         <Calculator className="h-3 w-3" />
         {vi ? "Trả góp" : "EMI"}
-      </button>
+      </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-sm rounded-2xl">

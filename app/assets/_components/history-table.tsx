@@ -6,6 +6,8 @@ import {
   initialAssetActionState,
   type AssetActionState,
 } from "@/app/assets/action-types";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { MoneyInput } from "@/components/ui/money-input";
 import { formatDate } from "@/lib/dashboard/format";
 import { useI18n } from "@/lib/providers/i18n-provider";
@@ -46,8 +48,7 @@ export function QuantityHistoryTable({
   rows,
   updateAction,
 }: QuantityTableProps) {
-  const { locale, language } = useI18n();
-  const vi = language === "vi";
+  const { locale, t } = useI18n();
 
   return (
     <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
@@ -55,22 +56,20 @@ export function QuantityHistoryTable({
         <thead>
           <tr className="border-b border-slate-200 bg-slate-50">
             <th className="px-3 py-2 text-xs uppercase tracking-[0.12em] text-slate-500">
-              {vi ? "Ngày" : "Date"}
+              {t("common.date")}
             </th>
             <th className="px-3 py-2 text-xs uppercase tracking-[0.12em] text-slate-500">
-              {vi ? "Số lượng" : "Quantity"}
+              {t("assets.history.quantity")}
             </th>
             <th className="px-3 py-2 text-xs uppercase tracking-[0.12em] text-slate-500">
-              {vi ? "Thao tác" : "Action"}
+              {t("common.action")}
             </th>
           </tr>
         </thead>
         <tbody>
           {rows.length === 0 ? (
             <EmptyRow
-              text={
-                vi ? "Chưa có lịch sử số lượng." : "No quantity history yet."
-              }
+              text={t("assets.no_quantity_history")}
             />
           ) : (
             rows.map((row) => (
@@ -80,7 +79,6 @@ export function QuantityHistoryTable({
                 row={row}
                 updateAction={updateAction}
                 locale={locale}
-                vi={vi}
               />
             ))
           )}
@@ -95,7 +93,6 @@ function QuantityRowEditor({
   row,
   updateAction,
   locale,
-  vi,
 }: {
   assetId: string;
   row: QuantityRow;
@@ -104,8 +101,8 @@ function QuantityRowEditor({
     formData: FormData,
   ) => Promise<AssetActionState>;
   locale: string;
-  vi: boolean;
 }) {
+  const { t } = useI18n();
   const [state, action] = useActionState<AssetActionState, FormData>(
     updateAction,
     initialAssetActionState,
@@ -129,7 +126,7 @@ function QuantityRowEditor({
         >
           <input type="hidden" name="assetId" value={assetId} />
           <input type="hidden" name="rowId" value={row.id} />
-          <input
+          <Input
             type="number"
             name="quantity"
             min="0"
@@ -137,20 +134,20 @@ function QuantityRowEditor({
             defaultValue={row.quantity}
             className="w-28 rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-900"
           />
-          <button
+          <Button
             type="submit"
             disabled={isPending}
             className="rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60"
           >
-            {vi ? "Lưu" : "Save"}
-          </button>
+            {t("common.save")}
+          </Button>
         </form>
         {state.status === "error" && state.message ? (
           <p className="mt-1 text-xs text-rose-600">{state.message}</p>
         ) : null}
       </td>
       <td className="px-3 py-2 text-xs text-slate-500">
-        {isPending ? (vi ? "Đang cập nhật..." : "Updating...") : ""}
+        {isPending ? t("common.updating") : ""}
       </td>
     </tr>
   );
@@ -161,8 +158,7 @@ export function PriceHistoryTable({
   rows,
   updateAction,
 }: PriceTableProps) {
-  const { locale, language } = useI18n();
-  const vi = language === "vi";
+  const { locale, t } = useI18n();
 
   return (
     <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
@@ -170,20 +166,20 @@ export function PriceHistoryTable({
         <thead>
           <tr className="border-b border-slate-200 bg-slate-50">
             <th className="px-3 py-2 text-xs uppercase tracking-[0.12em] text-slate-500">
-              {vi ? "Ngày" : "Date"}
+              {t("common.date")}
             </th>
             <th className="px-3 py-2 text-xs uppercase tracking-[0.12em] text-slate-500">
-              {vi ? "Đơn giá" : "Unit Price"}
+              {t("assets.history.unit_price")}
             </th>
             <th className="px-3 py-2 text-xs uppercase tracking-[0.12em] text-slate-500">
-              {vi ? "Thao tác" : "Action"}
+              {t("common.action")}
             </th>
           </tr>
         </thead>
         <tbody>
           {rows.length === 0 ? (
             <EmptyRow
-              text={vi ? "Chưa có lịch sử giá." : "No price history yet."}
+              text={t("assets.no_price_history")}
             />
           ) : (
             rows.map((row) => (
@@ -193,7 +189,6 @@ export function PriceHistoryTable({
                 row={row}
                 updateAction={updateAction}
                 locale={locale}
-                vi={vi}
               />
             ))
           )}
@@ -208,7 +203,6 @@ function PriceRowEditor({
   row,
   updateAction,
   locale,
-  vi,
 }: {
   assetId: string;
   row: PriceRow;
@@ -217,8 +211,8 @@ function PriceRowEditor({
     formData: FormData,
   ) => Promise<AssetActionState>;
   locale: string;
-  vi: boolean;
 }) {
+  const { t } = useI18n();
   const [state, action] = useActionState<AssetActionState, FormData>(
     updateAction,
     initialAssetActionState,
@@ -250,20 +244,20 @@ function PriceRowEditor({
               className="w-full"
             />
           </div>
-          <button
+          <Button
             type="submit"
             disabled={isPending}
             className="rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60"
           >
-            {vi ? "Lưu" : "Save"}
-          </button>
+            {t("common.save")}
+          </Button>
         </form>
         {state.status === "error" && state.message ? (
           <p className="mt-1 text-xs text-rose-600">{state.message}</p>
         ) : null}
       </td>
       <td className="px-3 py-2 text-xs text-slate-500">
-        {isPending ? (vi ? "Đang cập nhật..." : "Updating...") : ""}
+        {isPending ? t("common.updating") : ""}
       </td>
     </tr>
   );

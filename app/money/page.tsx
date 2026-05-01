@@ -1,51 +1,57 @@
+import { CreateAssetForm } from "@/app/assets/_components/create-asset-form";
 import { ArchiveAccountButton } from "@/app/money/_components/archive-account-button";
 import { CreateAccountForm } from "@/app/money/_components/create-account-form";
 import { AddSavingsForm } from "@/app/money/savings/_components/add-savings-form";
 import { SavingsCard } from "@/app/money/savings/_components/savings-card";
-import { CreateAssetForm } from "@/app/assets/_components/create-asset-form";
 import { AppHeader } from "@/components/layout/app-header";
 import { AppShell } from "@/components/layout/app-shell";
 import { BottomTabBar } from "@/components/layout/bottom-tab-bar";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Card, CardContent } from "@/components/ui/card";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { EmptyState } from "@/components/ui/empty-state";
+import { getClassLabel } from "@/lib/assets/class-config";
+import {
+  formatDate,
+  formatNumber,
   formatVnd,
   formatVndCompact,
-  formatNumber,
 } from "@/lib/dashboard/format";
-import { t } from "@/lib/i18n/dictionary";
-import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
-import { createClient } from "@/lib/supabase/server";
+import { t as dictT } from "@/lib/i18n/dictionary";
 import {
   buildFeaturedSavingsItems,
   buildSavingsListItems,
   buildSavingsSummary,
   fetchSavingsBundle,
 } from "@/lib/savings/service";
+import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
+import { createClient } from "@/lib/supabase/server";
+import { cn } from "@/lib/utils";
 import {
-  Landmark,
-  PiggyBank,
-  Wallet,
-  CreditCard,
-  Home,
-  Car,
-  TrendingUp,
-  TrendingDown,
-  Coins,
   Banknote,
-  Settings,
-  Plus,
+  Car,
   ChevronRight,
-  MoreHorizontal,
-  AlertTriangle,
+  Coins,
+  CreditCard,
   HandCoins,
+  Home,
+  Landmark,
+  MoreHorizontal,
+  PiggyBank,
+  Plus,
+  Settings,
+  TrendingDown,
+  TrendingUp,
+  Wallet,
 } from "lucide-react";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
-import { getClassLabel } from "@/lib/assets/class-config";
 
 export const metadata = {
   title: "Tài sản & Nợ | Family Finances",
@@ -149,30 +155,28 @@ function getAccountColors(type: string) {
   }
 }
 
-function getAccountTypeLabel(type: string, vi: boolean) {
-  const map: Record<string, [string, string]> = {
-    checking: ["Tài khoản thường", "Checking"],
-    savings: ["Tiết kiệm", "Savings"],
-    wallet: ["Ví điện tử", "Wallet"],
-    credit_card: ["Thẻ tín dụng", "Credit Card"],
+function getAccountTypeLabel(type: string, t: (key: string) => string) {
+  const map: Record<string, string> = {
+    checking: "money.accounts.type.checking",
+    savings: "money.accounts.type.savings",
+    wallet: "money.accounts.type.wallet",
+    credit_card: "money.accounts.type.credit_card",
   };
-  const pair = map[type];
-  if (!pair) return type.replace(/_/g, " ");
-  return vi ? pair[0] : pair[1];
+  const key = map[type];
+  return key ? t(key) : type.replace(/_/g, " ");
 }
 
-function getLiabilityLabel(type: string, vi: boolean) {
-  const map: Record<string, [string, string]> = {
-    mortgage: ["Vay mua nhà", "Mortgage"],
-    personal_loan: ["Vay cá nhân", "Personal Loan"],
-    car_loan: ["Vay mua xe", "Car Loan"],
-    credit_card: ["Thẻ tín dụng", "Credit Card"],
-    family_loan: ["Vay gia đình", "Family Loan"],
-    other: ["Khoản vay khác", "Other Loan"],
+function getLiabilityLabel(type: string, t: (key: string) => string) {
+  const map: Record<string, string> = {
+    mortgage: "money.liabilities.type.mortgage",
+    personal_loan: "money.liabilities.type.personal_loan",
+    car_loan: "money.liabilities.type.car_loan",
+    credit_card: "money.accounts.type.credit_card",
+    family_loan: "money.liabilities.type.family_loan",
+    other: "money.liabilities.type.other",
   };
-  const pair = map[type];
-  if (!pair) return type.replace(/_/g, " ");
-  return vi ? pair[0] : pair[1];
+  const key = map[type];
+  return key ? t(key) : type.replace(/_/g, " ");
 }
 
 function getLiabilityIcon(type: string) {
@@ -275,8 +279,8 @@ function getAssetColors(cls: string) {
   }
 }
 
-function getAssetClassLabel(cls: string, vi: boolean) {
-  return getClassLabel(cls, vi);
+function getAssetClassLabel(cls: string, t: (key: string) => string) {
+  return getClassLabel(cls, t);
 }
 
 function calcRemainingMonths(
@@ -295,6 +299,7 @@ function calcRemainingMonths(
 function calcDueDate(
   statementDay: number,
   dueDay: number,
+  t: (key: string) => string,
 ): { label: string; urgent: boolean } {
   const now = new Date();
   let dueDate = new Date(now.getFullYear(), now.getMonth(), dueDay);
@@ -303,8 +308,11 @@ function calcDueDate(
   }
   const diffDays = Math.ceil((dueDate.getTime() - now.getTime()) / 86400000);
   const urgent = diffDays <= 3;
-  if (diffDays === 0) return { label: "Hôm nay", urgent: true };
-  return { label: `${diffDays} ngày nữa`, urgent };
+  if (diffDays === 0) return { label: t("common.today"), urgent: true };
+  return {
+    label: t("common.days_left").replace("{count}", String(diffDays)),
+    urgent,
+  };
 }
 
 // ─── Shared section header with + add action ─────────────────────────────────
@@ -352,34 +360,35 @@ function SectionTitle({
 export default async function MoneyPage() {
   const { householdId, language, householdLocale } =
     await getAuthenticatedHouseholdContext();
-  const vi = language === "vi";
+  const t = (key: string) => dictT(language, key);
   const supabase = await createClient();
   const today = new Date().toISOString().slice(0, 10);
 
   // ── Fetch all data in parallel ──────────────────────────────────────────
-  const [accountsResult, liabilitiesResult, assetResult, savingsBundle] = await Promise.all([
-    supabase
-      .from("accounts")
-      .select("id, name, type, opening_balance")
-      .eq("household_id", householdId)
-      .eq("is_archived", false)
-      .order("created_at", { ascending: false }),
-    supabase
-      .from("liabilities")
-      .select(
-        "id, name, liability_type, current_principal_outstanding, principal_original, start_date, term_months, next_payment_date, promo_rate_annual, floating_rate_margin, lender_name",
-      )
-      .eq("household_id", householdId)
-      .eq("is_active", true)
-      .order("current_principal_outstanding", { ascending: false }),
-    supabase
-      .from("assets")
-      .select("id, name, asset_class, unit_label, quantity, is_liquid")
-      .eq("household_id", householdId)
-      .eq("is_archived", false)
-      .order("created_at", { ascending: false }),
-    fetchSavingsBundle(supabase, householdId),
-  ]);
+  const [accountsResult, liabilitiesResult, assetResult, savingsBundle] =
+    await Promise.all([
+      supabase
+        .from("accounts")
+        .select("id, name, type, opening_balance")
+        .eq("household_id", householdId)
+        .eq("is_archived", false)
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("liabilities")
+        .select(
+          "id, name, liability_type, current_principal_outstanding, principal_original, start_date, term_months, next_payment_date, promo_rate_annual, floating_rate_margin, lender_name",
+        )
+        .eq("household_id", householdId)
+        .eq("is_active", true)
+        .order("current_principal_outstanding", { ascending: false }),
+      supabase
+        .from("assets")
+        .select("id, name, asset_class, unit_label, quantity, is_liquid")
+        .eq("household_id", householdId)
+        .eq("is_archived", false)
+        .order("created_at", { ascending: false }),
+      fetchSavingsBundle(supabase, householdId),
+    ]);
 
   const accounts = (accountsResult.data ?? []) as AccountRow[];
   const liabilities = (liabilitiesResult.data ?? []) as LiabilityRow[];
@@ -395,11 +404,16 @@ export default async function MoneyPage() {
   const activeSavingsCount = savingsItems.filter(
     (item) => item.status !== "withdrawn" && item.status !== "cancelled",
   ).length;
-  const hiddenSavingsCount = Math.max(activeSavingsCount - featuredSavings.length, 0);
-  const savingsGoalOptions = Array.from(savingsBundle.goals.entries()).map(([id, name]) => ({
-    id,
-    name,
-  }));
+  const hiddenSavingsCount = Math.max(
+    activeSavingsCount - featuredSavings.length,
+    0,
+  );
+  const savingsGoalOptions = Array.from(savingsBundle.goals.entries()).map(
+    ([id, name]) => ({
+      id,
+      name,
+    }),
+  );
 
   // ── Credit card settings & billing ──────────────────────────────────────
   const creditCardAccounts = accounts.filter((a) => a.type === "credit_card");
@@ -599,8 +613,8 @@ export default async function MoneyPage() {
     <AppShell
       header={
         <AppHeader
-          title={t(language, "nav.money")}
-          subtitle={t(language, "money.summary.total_assets_includes_savings")}
+          title={t("nav.money")}
+          subtitle={t("money.summary.total_assets_includes_savings")}
           rightAction={
             <Link
               href="/settings"
@@ -619,7 +633,7 @@ export default async function MoneyPage() {
         <div className="relative overflow-hidden rounded-3xl bg-linear-to-br from-primary to-blue-700 p-7 shadow-xl">
           <div className="absolute -right-8 -top-8 w-40 h-40 bg-white/10 rounded-full" />
           <p className="text-[10px] font-bold uppercase tracking-widest text-white/60 mb-1 relative z-10">
-            {vi ? "Tài sản ròng" : "Net Worth"}
+            {t("money.summary.net_worth")}
           </p>
           <p className="text-4xl font-bold text-white tracking-tight relative z-10">
             {formatVndCompact(netWorth, householdLocale)}
@@ -628,12 +642,12 @@ export default async function MoneyPage() {
             {formatVnd(netWorth, householdLocale)}
           </p>
           <p className="mt-3 text-xs text-white/75 relative z-10">
-            {t(language, "money.summary.total_assets_includes_savings")}
+            {t("money.summary.total_assets_includes_savings")}
           </p>
           <div className="mt-5 grid grid-cols-2 gap-3 relative z-10">
             <div className="rounded-2xl bg-white/15 backdrop-blur-sm p-3">
               <p className="text-[9px] font-bold uppercase tracking-wider text-white/60">
-                {vi ? "Tổng tài sản" : "Total Assets"}
+                {t("money.summary.total_assets")}
               </p>
               <p className="text-base font-bold text-white mt-1">
                 {formatVndCompact(totalAssets, householdLocale)}
@@ -641,7 +655,7 @@ export default async function MoneyPage() {
             </div>
             <div className="rounded-2xl bg-white/15 backdrop-blur-sm p-3">
               <p className="text-[9px] font-bold uppercase tracking-wider text-white/60">
-                {vi ? "Tổng nợ" : "Total Debt"}
+                {t("money.summary.total_debt")}
               </p>
               <p className="text-base font-bold text-rose-300 mt-1">
                 {formatVndCompact(totalLiabilities, householdLocale)}
@@ -650,15 +664,18 @@ export default async function MoneyPage() {
           </div>
           <div className="relative z-10 mt-4 flex flex-wrap gap-2">
             <Badge className="bg-white/15 text-white hover:bg-white/15">
-              {t(language, "money.summary.breakdown.accounts")}:{" "}
+              {t("money.summary.breakdown.accounts")}:{" "}
               {formatVndCompact(totalAccountBalance, householdLocale)}
             </Badge>
             <Badge className="bg-white/15 text-white hover:bg-white/15">
-              {t(language, "money.summary.breakdown.savings")}:{" "}
-              {formatVndCompact(savingsSummary.totalGrossValue, householdLocale)}
+              {t("money.summary.breakdown.savings")}:{" "}
+              {formatVndCompact(
+                savingsSummary.totalGrossValue,
+                householdLocale,
+              )}
             </Badge>
             <Badge className="bg-white/15 text-white hover:bg-white/15">
-              {t(language, "money.summary.breakdown.assets")}:{" "}
+              {t("money.summary.breakdown.assets")}:{" "}
               {formatVndCompact(totalAssetValue, householdLocale)}
             </Badge>
           </div>
@@ -667,20 +684,24 @@ export default async function MoneyPage() {
         {/* ══ 1. TÀI KHOẢN (Accounts) ══ */}
         <section className="space-y-1">
           <SectionTitle
-            title={vi ? "Tài Khoản" : "Accounts"}
-            total={`${vi ? "Tổng" : "Total"}: ${formatVndCompact(totalAccountBalance, householdLocale)}`}
+            title={t("money.accounts.title")}
+            total={`${t("money.accounts.total")}: ${formatVndCompact(totalAccountBalance, householdLocale)}`}
             addAction={
               <Dialog>
                 <DialogTrigger asChild>
-                  <button className="flex items-center gap-1 text-sm font-bold text-primary hover:text-primary/80 transition-colors cursor-pointer list-none">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="flex items-center gap-1 text-sm font-bold text-primary hover:text-primary/80 transition-colors h-auto p-0"
+                  >
                     <Plus className="h-4 w-4" />
-                    {vi ? "Thêm" : "Add"}
-                  </button>
+                    {t("common.add")}
+                  </Button>
                 </DialogTrigger>
                 <DialogContent className="max-h-[85vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">
-                      {vi ? "Tài khoản mới" : "New Account"}
+                      {t("money.accounts.new_account")}
                     </DialogTitle>
                   </DialogHeader>
                   <CreateAccountForm />
@@ -692,12 +713,8 @@ export default async function MoneyPage() {
           {standardAccounts.length === 0 ? (
             <EmptyState
               icon={Landmark}
-              title={vi ? "Chưa có tài khoản" : "No accounts yet"}
-              description={
-                vi
-                  ? "Thêm tài khoản ngân hàng hoặc ví để bắt đầu."
-                  : "Add a bank account or wallet."
-              }
+              title={t("money.accounts.empty.title")}
+              description={t("money.accounts.empty.description")}
             />
           ) : (
             <div className="grid grid-cols-2 gap-3">
@@ -723,7 +740,7 @@ export default async function MoneyPage() {
                               colors.label,
                             )}
                           >
-                            {getAccountTypeLabel(account.type, vi)}
+                            {getAccountTypeLabel(account.type, t)}
                           </p>
                           <p className="text-sm font-bold text-foreground truncate mt-0.5">
                             {account.name}
@@ -762,17 +779,27 @@ export default async function MoneyPage() {
 
         <section className="space-y-1">
           <SectionTitle
-            title={t(language, "money.savings.title")}
-            total={`${t(language, "money.savings.total")}: ${formatVndCompact(savingsSummary.totalGrossValue, householdLocale)}`}
+            title={t("money.savings.title")}
+            total={`${t("money.savings.total")}: ${formatVndCompact(savingsSummary.totalGrossValue, householdLocale)}`}
             addAction={
               <div className="flex items-center gap-2">
-                <Button asChild variant="ghost" size="sm" className="rounded-xl px-3">
-                  <Link href="/money/savings">{t(language, "money.savings.view_all")}</Link>
+                <Button
+                  asChild
+                  variant="ghost"
+                  size="sm"
+                  className="rounded-xl px-3"
+                >
+                  <Link href="/money/savings">
+                    {t("money.savings.view_all")}
+                  </Link>
                 </Button>
                 <AddSavingsForm
-                  accounts={accounts.map((account) => ({ id: account.id, name: account.name }))}
+                  accounts={accounts.map((account) => ({
+                    id: account.id,
+                    name: account.name,
+                  }))}
                   goals={savingsGoalOptions}
-                  triggerLabel={t(language, "money.savings.empty.action")}
+                  triggerLabel={t("money.savings.empty.action")}
                 />
               </div>
             }
@@ -781,13 +808,16 @@ export default async function MoneyPage() {
           {activeSavingsCount === 0 ? (
             <EmptyState
               icon={HandCoins}
-              title={t(language, "money.savings.empty.title")}
-              description={t(language, "money.savings.empty.description")}
+              title={t("money.savings.empty.title")}
+              description={t("money.savings.empty.description")}
               action={
                 <AddSavingsForm
-                  accounts={accounts.map((account) => ({ id: account.id, name: account.name }))}
+                  accounts={accounts.map((account) => ({
+                    id: account.id,
+                    name: account.name,
+                  }))}
                   goals={savingsGoalOptions}
-                  triggerLabel={t(language, "money.savings.empty.action")}
+                  triggerLabel={t("money.savings.empty.action")}
                 />
               }
             />
@@ -806,14 +836,21 @@ export default async function MoneyPage() {
                   <CardContent className="flex items-center justify-between gap-3 p-4">
                     <div>
                       <p className="text-sm font-semibold text-slate-900">
-                        +{hiddenSavingsCount} {t(language, "money.savings.more_items")}
+                        +{hiddenSavingsCount} {t("money.savings.more_items")}
                       </p>
                       <p className="mt-1 text-sm text-slate-500">
-                        {t(language, "money.savings.view_all")}
+                        {t("money.savings.view_all")}
                       </p>
                     </div>
-                    <Button asChild variant="outline" size="sm" className="rounded-xl">
-                      <Link href="/money/savings">{t(language, "money.savings.view_all")}</Link>
+                    <Button
+                      asChild
+                      variant="outline"
+                      size="sm"
+                      className="rounded-xl"
+                    >
+                      <Link href="/money/savings">
+                        {t("money.savings.view_all")}
+                      </Link>
                     </Button>
                   </CardContent>
                 </Card>
@@ -826,14 +863,14 @@ export default async function MoneyPage() {
         {creditCardAccounts.length > 0 && (
           <section className="space-y-1">
             <SectionTitle
-              title={vi ? "Thẻ Tín Dụng" : "Credit Cards"}
+              title={t("money.accounts.credit_card.label")}
               total={
                 totalCardDebt > 0
-                  ? `${vi ? "Dư nợ" : "Outstanding"}: ${formatVndCompact(totalCardDebt, householdLocale)}`
+                  ? `${t("money.liabilities.outstanding")}: ${formatVndCompact(totalCardDebt, householdLocale)}`
                   : undefined
               }
               addHref="/money/card/new"
-              addLabel={vi ? "Thêm" : "Add"}
+              addLabel={t("common.add")}
             />
             <div className="grid grid-cols-1 gap-4">
               {creditCardAccounts.map((account) => {
@@ -856,7 +893,7 @@ export default async function MoneyPage() {
                   ? accountNames.get(settings.linked_bank_account_id)
                   : null;
                 const dueInfo = settings
-                  ? calcDueDate(settings.statement_day, settings.due_day)
+                  ? calcDueDate(settings.statement_day, settings.due_day, t)
                   : null;
                 const installmentCount = billing?.installmentCount ?? 0;
 
@@ -870,14 +907,15 @@ export default async function MoneyPage() {
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
                           <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
-                            {vi ? "Thẻ tín dụng" : "Credit Card"}
+                            {t("money.accounts.credit_card.label")}
                           </p>
                           <p className="text-base font-bold text-white truncate mt-0.5">
                             {account.name}
                           </p>
                           {linkedName && (
                             <p className="text-[10px] text-slate-400 mt-0.5">
-                              {vi ? "Liên kết" : "Linked"}: {linkedName}
+                              {t("money.accounts.credit_card.linked")}:{" "}
+                              {linkedName}
                             </p>
                           )}
                         </div>
@@ -890,14 +928,14 @@ export default async function MoneyPage() {
                       <div className="flex justify-between items-end">
                         <div>
                           <p className="text-[9px] text-slate-400 font-bold uppercase">
-                            {vi ? "Số dư nợ" : "Outstanding"}
+                            {t("money.liabilities.outstanding")}
                           </p>
                           <p className="text-2xl font-black text-white tracking-tight mt-0.5">
                             {formatVndCompact(outstanding, householdLocale)}
                           </p>
                         </div>
                         <p className="text-[10px] text-slate-400 font-medium">
-                          {vi ? "Hạn mức" : "Limit"}:{" "}
+                          {t("money.accounts.credit_card.limit")}:{" "}
                           <span className="font-bold text-slate-300">
                             {formatVndCompact(creditLimit, householdLocale)}
                           </span>
@@ -921,7 +959,7 @@ export default async function MoneyPage() {
                         </div>
                         <div className="flex justify-between text-[9px] font-bold text-slate-400">
                           <span>
-                            {vi ? "Còn khả dụng" : "Available"}:{" "}
+                            {t("money.accounts.credit_card.available")}:{" "}
                             <span className="text-emerald-400">
                               {formatVndCompact(
                                 availableCredit,
@@ -930,7 +968,8 @@ export default async function MoneyPage() {
                             </span>
                           </span>
                           <span>
-                            {usageDisplay}% {vi ? "sử dụng" : "used"}
+                            {usageDisplay}%{" "}
+                            {t("money.accounts.credit_card.used")}
                           </span>
                         </div>
                       </div>
@@ -940,7 +979,7 @@ export default async function MoneyPage() {
                         <div className="grid grid-cols-2 gap-x-4">
                           <div>
                             <p className="text-slate-400 font-medium">
-                              {vi ? "Hạn thanh toán" : "Due date"}
+                              {t("money.liabilities.end_date")}
                             </p>
                             <p
                               className={cn(
@@ -955,18 +994,17 @@ export default async function MoneyPage() {
                           </div>
                           <div>
                             <p className="text-slate-400 font-medium">
-                              {vi ? "Ngày lập hóa đơn" : "Statement day"}
+                              {t("money.accounts.credit_card.statement_day")}
                             </p>
                             <p className="font-bold text-white mt-0.5">
-                              {vi ? "Ngày" : "Day"}{" "}
-                              {settings?.statement_day ?? "—"}
+                              {t("common.day")} {settings?.statement_day ?? "—"}
                             </p>
                           </div>
                         </div>
                         {installmentCount > 0 && (
                           <span className="text-amber-400 font-bold">
                             {installmentCount}{" "}
-                            {vi ? "trả góp đang chạy" : "installments"}
+                            {t("money.accounts.credit_card.installments")}
                           </span>
                         )}
                       </div>
@@ -976,7 +1014,7 @@ export default async function MoneyPage() {
                         href={`/money/card/${account.id}`}
                         className="flex items-center justify-center gap-2 w-full rounded-xl bg-white/10 hover:bg-white/20 transition-colors py-2.5 text-xs font-bold text-white"
                       >
-                        {vi ? "Xem chi tiết" : "View Details"}
+                        {t("common.details")}
                         <ChevronRight className="h-3.5 w-3.5" />
                       </Link>
                     </CardContent>
@@ -990,24 +1028,20 @@ export default async function MoneyPage() {
         {/* ══ 3. KHOẢN VAY (Liabilities) ══ */}
         <section className="space-y-1">
           <SectionTitle
-            title={vi ? "Khoản Vay" : "Loans & Debts"}
+            title={t("money.liabilities.title")}
             total={
               totalLiabilities - totalCardDebt > 0
-                ? `${vi ? "Còn nợ" : "Outstanding"}: ${formatVndCompact(totalLiabilities - totalCardDebt, householdLocale)}`
+                ? `${t("money.liabilities.outstanding")}: ${formatVndCompact(totalLiabilities - totalCardDebt, householdLocale)}`
                 : undefined
             }
             addHref="/debts"
-            addLabel={vi ? "Thêm" : "Add"}
+            addLabel={t("common.add")}
           />
           {liabilities.length === 0 ? (
             <EmptyState
               icon={TrendingDown}
-              title={vi ? "Không có khoản vay" : "No active loans"}
-              description={
-                vi
-                  ? "Gia đình đang không có nợ. Tuyệt vời!"
-                  : "Your household is debt-free!"
-              }
+              title={t("money.liabilities.empty.title")}
+              description={t("money.liabilities.empty.description")}
             />
           ) : (
             <div className="grid grid-cols-1 gap-4">
@@ -1040,7 +1074,7 @@ export default async function MoneyPage() {
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 flex-1">
                           <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
-                            {getLiabilityLabel(debt.liability_type, vi)}
+                            {getLiabilityLabel(debt.liability_type, t)}
                           </p>
                           <p className="text-sm font-bold text-foreground truncate mt-0.5">
                             {debt.name}
@@ -1055,13 +1089,13 @@ export default async function MoneyPage() {
                       <div className="flex justify-between items-baseline">
                         <div>
                           <p className="text-[9px] text-muted-foreground font-bold uppercase">
-                            {vi ? "Còn nợ" : "Outstanding"}
+                            {t("money.liabilities.outstanding")}
                           </p>
                           <p className="text-xl font-black text-rose-600 dark:text-rose-400 tracking-tight mt-0.5">
                             {formatVndCompact(outstanding, householdLocale)}
                           </p>
                           <p className="text-[10px] text-muted-foreground">
-                            {vi ? "Tổng" : "Total"}:{" "}
+                            {t("money.liabilities.total")}:{" "}
                             {formatVndCompact(original, householdLocale)}
                           </p>
                         </div>
@@ -1069,7 +1103,7 @@ export default async function MoneyPage() {
                           href={`/debts/${debt.id}`}
                           className="text-xs font-bold text-primary hover:underline flex items-center gap-0.5"
                         >
-                          {t(language, "common.details")}
+                          {t("common.details")}
                           <ChevronRight className="h-3 w-3" />
                         </Link>
                       </div>
@@ -1083,7 +1117,7 @@ export default async function MoneyPage() {
                           />
                         </div>
                         <p className="text-[9px] text-muted-foreground mt-1 font-medium">
-                          {vi ? "Đã trả" : "Repaid"}: {paidPct}%
+                          {t("money.liabilities.repaid")}: {paidPct}%
                         </p>
                       </div>
 
@@ -1092,7 +1126,7 @@ export default async function MoneyPage() {
                         {rate !== undefined && (
                           <div>
                             <p className="text-[9px] text-muted-foreground font-medium">
-                              {vi ? "Lãi suất" : "Interest rate"}
+                              {t("money.liabilities.interest_rate")}
                             </p>
                             <p className="text-sm font-bold text-foreground mt-0.5">
                               {rate.toFixed(1)}%
@@ -1102,17 +1136,17 @@ export default async function MoneyPage() {
                         {remainMonths !== null && (
                           <div>
                             <p className="text-[9px] text-muted-foreground font-medium">
-                              {vi ? "Thời gian còn lại" : "Remaining"}
+                              {t("money.liabilities.remaining")}
                             </p>
                             <p className="text-sm font-bold text-foreground mt-0.5">
-                              {remainMonths} {vi ? "tháng" : "mo"}
+                              {remainMonths} {t("common.months")}
                             </p>
                           </div>
                         )}
                         {debt.next_payment_date && (
                           <div>
                             <p className="text-[9px] text-muted-foreground font-medium">
-                              {vi ? "Ngày hoàn tất" : "End date"}
+                              {t("money.liabilities.end_date")}
                             </p>
                             <p className="text-sm font-bold text-foreground mt-0.5">
                               {debt.next_payment_date}
@@ -1122,7 +1156,7 @@ export default async function MoneyPage() {
                         {debt.lender_name && (
                           <div>
                             <p className="text-[9px] text-muted-foreground font-medium">
-                              {vi ? "Bên cho vay" : "Lender"}
+                              {t("money.liabilities.lender")}
                             </p>
                             <p className="text-sm font-bold text-foreground mt-0.5 truncate">
                               {debt.lender_name}
@@ -1138,27 +1172,27 @@ export default async function MoneyPage() {
           )}
         </section>
 
-        {/* ══ 4. TÀI SẢN (Variable Assets) ══ */}
+        {/* ══ 4. TÀI SẢN (Investment Assets) ══ */}
         <section className="space-y-1">
           <SectionTitle
-            title={t(language, "money.assets.title")}
-            total={
-              totalAssetValue > 0
-                ? `${t(language, "money.assets.total")}: ${formatVndCompact(totalAssetValue, householdLocale)}`
-                : undefined
-            }
+            title={t("assets.title")}
+            total={`${t("money.accounts.total")}: ${formatVndCompact(totalAssetValue, householdLocale)}`}
             addAction={
               <Dialog>
                 <DialogTrigger asChild>
-                  <button className="flex items-center gap-1 text-sm font-bold text-primary hover:text-primary/80 transition-colors cursor-pointer list-none">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="flex items-center gap-1 text-sm font-bold text-primary hover:text-primary/80 transition-colors h-auto p-0"
+                  >
                     <Plus className="h-4 w-4" />
-                    {vi ? "Thêm" : "Add"}
-                  </button>
+                    {t("common.add")}
+                  </Button>
                 </DialogTrigger>
                 <DialogContent className="max-h-[85vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">
-                      {vi ? "Tài sản mới" : "New Asset"}
+                      {t("assets.create")}
                     </DialogTitle>
                   </DialogHeader>
                   <CreateAssetForm />
@@ -1170,181 +1204,202 @@ export default async function MoneyPage() {
           {assets.length === 0 ? (
             <EmptyState
               icon={TrendingUp}
-              title={t(language, "money.assets.empty.title")}
-              description={t(language, "money.assets.empty.description")}
+              title={t("money.assets.empty.title")}
+              description={t("money.assets.empty.description")}
             />
           ) : (
             <>
-            {/* ── Portfolio Allocation Summary ── */}
-            {totalAssetValue > 0 && (() => {
-              const classTotals = new Map<string, number>();
-              let liquidTotal = 0;
-              let illiquidTotal = 0;
-              for (const a of assets) {
-                const val = Number(a.quantity) * (priceMap.get(a.id) ?? 0);
-                classTotals.set(a.asset_class, (classTotals.get(a.asset_class) ?? 0) + val);
-                if (a.is_liquid) liquidTotal += val;
-                else illiquidTotal += val;
-              }
-              const entries = [...classTotals.entries()]
-                .filter(([, v]) => v > 0)
-                .sort((a, b) => b[1] - a[1]);
-              const liquidPct = Math.round((liquidTotal / totalAssetValue) * 100);
+              {/* ── Portfolio Allocation Summary ── */}
+              {totalAssetValue > 0 &&
+                (() => {
+                  const classTotals = new Map<string, number>();
+                  let liquidTotal = 0;
+                  let illiquidTotal = 0;
+                  for (const a of assets) {
+                    const val = Number(a.quantity) * (priceMap.get(a.id) ?? 0);
+                    classTotals.set(
+                      a.asset_class,
+                      (classTotals.get(a.asset_class) ?? 0) + val,
+                    );
+                    if (a.is_liquid) liquidTotal += val;
+                    else illiquidTotal += val;
+                  }
+                  const entries = [...classTotals.entries()]
+                    .filter(([, v]) => v > 0)
+                    .sort((a, b) => b[1] - a[1]);
+                  const liquidPct = Math.round(
+                    (liquidTotal / totalAssetValue) * 100,
+                  );
 
-              return (
-                <div className="space-y-2 mb-3">
-                  {/* Allocation bar */}
-                  <div className="flex h-2.5 rounded-full overflow-hidden bg-muted">
-                    {entries.map(([cls, val]) => {
-                      const pct = (val / totalAssetValue) * 100;
-                      const colorMap: Record<string, string> = {
-                        gold: "bg-yellow-500",
-                        real_estate: "bg-sky-500",
-                        mutual_fund: "bg-indigo-500",
-                        stock: "bg-indigo-400",
-                        crypto: "bg-purple-500",
-                        savings_deposit: "bg-emerald-500",
-                        vehicle: "bg-blue-500",
-                      };
-                      return (
-                        <div
-                          key={cls}
-                          className={cn(colorMap[cls] ?? "bg-teal-500", "transition-all duration-700")}
-                          style={{ width: `${pct}%` }}
-                          title={`${getAssetClassLabel(cls, vi)}: ${pct.toFixed(1)}%`}
-                        />
-                      );
-                    })}
-                  </div>
-                  {/* Legend */}
-                  <div className="flex flex-wrap gap-x-3 gap-y-1">
-                    {entries.map(([cls, val]) => (
-                      <span key={cls} className="text-[10px] font-medium text-muted-foreground">
-                        {getAssetClassLabel(cls, vi)}{" "}
-                        <span className="font-bold text-foreground">
-                          {((val / totalAssetValue) * 100).toFixed(0)}%
-                        </span>
-                      </span>
-                    ))}
-                    <span className="text-[10px] font-medium text-muted-foreground ml-auto">
-                      {vi ? "Thanh khoản" : "Liquid"}{" "}
-                      <span className="font-bold text-emerald-600">{liquidPct}%</span>
-                    </span>
-                  </div>
-                </div>
-              );
-            })()}
+                  return (
+                    <div className="space-y-2 mb-3">
+                      {/* Allocation bar */}
+                      <div className="flex h-2.5 rounded-full overflow-hidden bg-muted">
+                        {entries.map(([cls, val]) => {
+                          const pct = (val / totalAssetValue) * 100;
+                          const colorMap: Record<string, string> = {
+                            gold: "bg-yellow-500",
+                            real_estate: "bg-sky-500",
+                            mutual_fund: "bg-indigo-500",
+                            stock: "bg-indigo-400",
+                            crypto: "bg-purple-500",
+                            savings_deposit: "bg-emerald-500",
+                            vehicle: "bg-blue-500",
+                          };
+                          return (
+                            <div
+                              key={cls}
+                              style={{ width: `${pct}%` }}
+                              className={cn(
+                                "h-full",
+                                colorMap[cls] ?? "bg-slate-500",
+                              )}
+                            />
+                          );
+                        })}
+                      </div>
+                      {/* Legend */}
+                      <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+                        {entries.map(([cls, val]) => {
+                          const pct = Math.round((val / totalAssetValue) * 100);
+                          const colorMap: Record<string, string> = {
+                            gold: "text-yellow-500",
+                            real_estate: "text-sky-500",
+                            mutual_fund: "text-indigo-500",
+                            stock: "text-indigo-400",
+                            crypto: "text-purple-500",
+                            savings_deposit: "text-emerald-500",
+                            vehicle: "text-blue-500",
+                          };
+                          return (
+                            <div
+                              key={cls}
+                              className="flex items-center gap-1.5 text-[10px] font-bold"
+                            >
+                              <span
+                                className={cn(
+                                  "h-1.5 w-1.5 rounded-full",
+                                  colorMap[cls]?.replace("text-", "bg-") ??
+                                    "bg-slate-500",
+                                )}
+                              />
+                              <span className="text-slate-500 uppercase">
+                                {getAssetClassLabel(cls, t)}
+                              </span>
+                              <span className="text-slate-900">{pct}%</span>
+                            </div>
+                          );
+                        })}
+                        <div className="flex items-center gap-1.5 text-[10px] font-bold border-l pl-4 ml-auto">
+                          <span className="text-slate-500 uppercase">
+                            {t("assets.liquidity.liquid")}
+                          </span>
+                          <span
+                            className={cn(
+                              liquidPct > 50
+                                ? "text-emerald-600"
+                                : "text-amber-600",
+                            )}
+                          >
+                            {liquidPct}%
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
 
-            <div className="grid grid-cols-2 gap-3">
-              {assets.map((asset) => {
-                const latestPrice = priceMap.get(asset.id) ?? 0;
-                const prevPrice = prevPriceMap.get(asset.id);
-                const value = Number(asset.quantity) * latestPrice;
-                const changePct =
-                  prevPrice && prevPrice > 0
-                    ? ((latestPrice - prevPrice) / prevPrice) * 100
-                    : null;
-                const lastUpdated = lastUpdatedMap.get(asset.id);
-                const colors = getAssetColors(asset.asset_class);
-                const AssetIcon = getAssetIcon(asset.asset_class);
-                const isPositive = changePct !== null && changePct >= 0;
+              <div className="grid grid-cols-1 gap-3">
+                {assets.map((asset) => {
+                  const colors = getAssetColors(asset.asset_class);
+                  const Icon = getAssetIcon(asset.asset_class);
+                  const price = priceMap.get(asset.id) ?? 0;
+                  const prevPrice = prevPriceMap.get(asset.id) ?? price;
+                  const value = Number(asset.quantity) * price;
+                  const changePct =
+                    prevPrice > 0 ? ((price - prevPrice) / prevPrice) * 100 : 0;
+                  const isPositive = changePct >= 0;
+                  const updatedDate = lastUpdatedMap.get(asset.id);
 
-                return (
-                  <Link key={asset.id} href={`/assets/${asset.id}`}>
-                    <Card
-                      className={cn(
-                        "border transition-all duration-200 hover:shadow-md h-full",
-                        colors.border,
-                        colors.bg,
-                      )}
-                    >
-                      <CardContent className="p-4 space-y-3">
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="min-w-0 flex-1">
-                            <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
-                              {getAssetClassLabel(asset.asset_class, vi)}
-                            </p>
-                            <p className="text-sm font-bold text-foreground truncate mt-0.5">
-                              {asset.name}
-                            </p>
-                          </div>
+                  return (
+                    <Link key={asset.id} href={`/assets/${asset.id}`}>
+                      <Card
+                        className={cn(
+                          "border-none shadow-xs transition-all duration-200 hover:shadow-md",
+                          colors.bg,
+                        )}
+                      >
+                        <CardContent className="p-4 flex items-center gap-4">
                           <div
                             className={cn(
-                              "h-8 w-8 rounded-lg flex items-center justify-center shrink-0",
+                              "h-12 w-12 rounded-2xl flex items-center justify-center shrink-0 shadow-xs",
                               colors.icon,
                             )}
                           >
-                            <AssetIcon className="h-4 w-4" />
+                            <Icon className="h-6 w-6" />
                           </div>
-                        </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                              {getAssetClassLabel(asset.asset_class, t)}
+                            </p>
+                            <h3 className="font-bold text-slate-900 truncate">
+                              {asset.name}
+                            </h3>
+                            <p className="text-[10px] text-slate-500 mt-0.5">
+                              {formatNumber(asset.quantity, householdLocale)}{" "}
+                              {asset.unit_label} ·{" "}
+                              {updatedDate
+                                ? formatDate(updatedDate, householdLocale)
+                                : "---"}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm font-black text-slate-900">
+                              {formatVndCompact(value, householdLocale)}
+                            </p>
+                          </div>
 
-                        <div>
-                          <p className="text-lg font-black text-foreground tracking-tight">
-                            {formatVndCompact(value, householdLocale)}
-                          </p>
-                          <p className="text-[10px] text-muted-foreground mt-0.5">
-                            {formatNumber(
-                              Number(asset.quantity),
-                              householdLocale,
-                            )}{" "}
-                            {asset.unit_label}
-                          </p>
-                        </div>
-
-                        <div className="flex items-center justify-between text-[10px]">
-                          {changePct !== null ? (
-                            <span
-                              className={cn(
-                                "flex items-center gap-0.5 font-bold",
-                                isPositive
-                                  ? "text-emerald-600"
-                                  : "text-rose-600",
-                              )}
-                            >
-                              {isPositive ? (
-                                <TrendingUp className="h-3 w-3" />
-                              ) : (
-                                <TrendingDown className="h-3 w-3" />
-                              )}
-                              {isPositive ? "+" : ""}
-                              {changePct.toFixed(1)}%
-                            </span>
-                          ) : (
-                            <span className="text-muted-foreground">
-                              {vi ? "Thay đổi" : "Change"}: —
-                            </span>
-                          )}
-                          <span className="text-muted-foreground">
-                            {lastUpdated
-                              ? new Date(lastUpdated).toLocaleDateString(
-                                  householdLocale,
-                                  { day: "numeric", month: "short" },
-                                )
-                              : "—"}
-                          </span>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                );
-              })}
-            </div>
+                          <div className="flex items-center justify-between text-[10px]">
+                            {changePct !== null ? (
+                              <span
+                                className={cn(
+                                  "flex items-center gap-0.5 font-bold",
+                                  isPositive
+                                    ? "text-emerald-600"
+                                    : "text-rose-600",
+                                )}
+                              >
+                                {isPositive ? (
+                                  <TrendingUp className="h-3 w-3" />
+                                ) : (
+                                  <TrendingDown className="h-3 w-3" />
+                                )}
+                                {isPositive ? "+" : ""}
+                                {changePct.toFixed(1)}%
+                              </span>
+                            ) : (
+                              <span className="text-muted-foreground">
+                                {t("common.change")}: —
+                              </span>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  );
+                })}
+              </div>
             </>
           )}
         </section>
 
-        {/* ══ 5. Manage all debts link ══ */}
-        <Button
-          variant="ghost"
-          size="sm"
-          asChild
-          className="w-full text-muted-foreground hover:text-foreground"
+        <Link
+          href="/debts"
+          className="mt-6 flex items-center justify-center gap-2 w-full rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 py-4 text-sm font-bold shadow-lg hover:opacity-90 transition-all"
         >
-          <Link href="/debts" className="flex items-center gap-2">
-            <AlertTriangle className="h-4 w-4" />
-            {vi ? "Quản lý tất cả khoản nợ" : "Manage All Debts"}
-          </Link>
-        </Button>
+          {t("money.liabilities.manage_all")}
+          <ChevronRight className="h-4 w-4" />
+        </Link>
       </div>
 
       {/* ── Sticky Summary Bar ── */}
@@ -1352,7 +1407,7 @@ export default async function MoneyPage() {
         <div className="pointer-events-auto bg-background/90 backdrop-blur-md border border-border/60 rounded-2xl shadow-lg p-3 grid grid-cols-3 gap-0 text-center">
           <div className="border-r border-border/40">
             <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
-              {vi ? "Tài sản" : "Assets"}
+              {t("assets.title")}
             </p>
             <p className="text-sm font-bold text-success tabular-nums">
               {formatVndCompact(totalAssets, householdLocale)}
@@ -1360,7 +1415,7 @@ export default async function MoneyPage() {
           </div>
           <div className="border-r border-border/40">
             <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
-              {vi ? "Nợ" : "Debt"}
+              {t("common.debt")}
             </p>
             <p className="text-sm font-bold text-destructive tabular-nums">
               {formatVndCompact(totalLiabilities, householdLocale)}
@@ -1368,7 +1423,7 @@ export default async function MoneyPage() {
           </div>
           <div>
             <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
-              {vi ? "Ròng" : "Net"}
+              {t("common.net")}
             </p>
             <p
               className={cn(

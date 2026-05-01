@@ -11,15 +11,12 @@ type ValuationTimelineProps = {
 };
 
 export function ValuationTimeline({ data }: ValuationTimelineProps) {
-  const { locale, language } = useI18n();
-  const vi = language === "vi";
+  const { locale, t } = useI18n();
 
   if (data.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500">
-        {vi
-          ? "Chưa có dòng thời gian định giá. Hãy thêm mốc số lượng và đơn giá để xem xu hướng."
-          : "No valuation timeline yet. Add quantity and price snapshots to see trend."}
+        {t("assets.no_valuation_timeline")}
       </div>
     );
   }
@@ -30,7 +27,7 @@ export function ValuationTimeline({ data }: ValuationTimelineProps) {
     <Card>
       <CardContent className="space-y-3 p-4">
         <p className="text-sm font-semibold text-slate-800">
-          {vi ? "Dòng thời gian định giá" : "Valuation Timeline"}
+          {t("assets.valuation_timeline")}
         </p>
 
         <div className="flex h-36 items-end gap-2 overflow-x-auto">
@@ -59,16 +56,16 @@ export function ValuationTimeline({ data }: ValuationTimelineProps) {
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50">
                 <th className="px-3 py-2 text-xs uppercase tracking-[0.12em] text-slate-500">
-                  {vi ? "Ngày" : "Date"}
+                  {t("common.date")}
                 </th>
                 <th className="px-3 py-2 text-xs uppercase tracking-[0.12em] text-slate-500">
-                  {vi ? "Số lượng" : "Quantity"}
+                  {t("assets.quantity")}
                 </th>
                 <th className="px-3 py-2 text-xs uppercase tracking-[0.12em] text-slate-500">
-                  {vi ? "Đơn giá" : "Unit Price"}
+                  {t("assets.unit_price")}
                 </th>
                 <th className="px-3 py-2 text-xs uppercase tracking-[0.12em] text-slate-500">
-                  {vi ? "Giá trị" : "Value"}
+                  {t("assets.value")}
                 </th>
               </tr>
             </thead>

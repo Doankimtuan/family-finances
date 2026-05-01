@@ -7,6 +7,7 @@ import {
   initialAccountActionState,
   type AccountActionState,
 } from "@/app/money/action-types";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export function ArchiveAccountButton({
@@ -33,16 +34,18 @@ export function ArchiveAccountButton({
       className="space-y-1"
     >
       <input type="hidden" name="accountId" value={accountId} />
-      <button
+      <Button
         type="submit"
+        variant="outline"
+        size="sm"
         disabled={isPending}
         className={cn(
           "rounded-lg border px-3 py-1.5 text-xs font-medium disabled:opacity-60",
-          textWhite ? "text-white" : "text-slate-700",
+          textWhite ? "text-white border-white/20 hover:bg-white/10" : "text-slate-700",
         )}
       >
         {isPending ? "Archiving..." : "Archive"}
-      </button>
+      </Button>
       {state.status === "error" && state.message ? (
         <p className="text-xs text-rose-600">{state.message}</p>
       ) : null}

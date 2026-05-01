@@ -100,14 +100,16 @@ export function MatureSavingsForm({ savings, computed, accounts, jars = [] }: Pr
               { value: "switch_plan", label: t("savings.mature.action.switch_plan") },
               { value: "withdraw", label: t("savings.mature.action.withdraw") },
             ] as const).map((item) => (
-              <button
+              <Button
                 key={item.value}
                 type="button"
+                variant="ghost"
+                size="sm"
                 onClick={() => setActionType(item.value)}
-                className={`rounded-lg px-3 py-2 text-sm font-semibold ${actionType === item.value ? "bg-white text-slate-950 shadow-sm ring-1 ring-slate-200" : "text-slate-600 hover:bg-white/70"}`}
+                className={`rounded-lg px-3 py-2 text-sm font-semibold h-auto ${actionType === item.value ? "bg-white text-slate-950 shadow-sm ring-1 ring-slate-200 hover:bg-white" : "text-slate-600 hover:bg-white/70"}`}
               >
                 {item.label}
-              </button>
+              </Button>
             ))}
           </div>
 

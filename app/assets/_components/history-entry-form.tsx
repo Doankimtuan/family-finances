@@ -39,8 +39,7 @@ export function HistoryEntryForm({
   mode,
   actionFn,
 }: HistoryEntryFormProps) {
-  const { language } = useI18n();
-  const vi = language === "vi";
+  const { t } = useI18n();
   const [state, setState] = useState<AssetActionState>(initialAssetActionState);
   const [isPending, startTransition] = useTransition();
 
@@ -89,17 +88,13 @@ export function HistoryEntryForm({
 
             <Label className="text-sm font-semibold text-slate-800">
               {mode === "quantity"
-                ? vi
-                  ? "Thêm / cập nhật số lượng"
-                  : "Add / Update Quantity"
-                : vi
-                  ? "Thêm / cập nhật đơn giá"
-                  : "Add / Update Unit Price"}
+                ? t("assets.history.add_quantity")
+                : t("assets.history.add_price")}
             </Label>
 
             <RHFInput
               name="asOfDate"
-              label={vi ? "Ngày" : "Date"}
+              label={t("common.date")}
               type="date"
               required
             />
@@ -107,7 +102,7 @@ export function HistoryEntryForm({
             {mode === "quantity" ? (
               <RHFInput
                 name="quantity"
-                label={vi ? "Số lượng" : "Quantity"}
+                label={t("assets.history.quantity")}
                 type="number"
                 min="0"
                 step="0.001"
@@ -115,7 +110,7 @@ export function HistoryEntryForm({
             ) : (
               <RHFMoneyInput
                 name="unitPrice"
-                label={vi ? "Đơn giá (VND)" : "Unit price (VND)"}
+                label={t("assets.history.unit_price")}
                 className="w-full"
               />
             )}
@@ -126,12 +121,8 @@ export function HistoryEntryForm({
               className="w-full rounded-xl bg-slate-900"
             >
               {isPending
-                ? vi
-                  ? "Đang lưu..."
-                  : "Saving..."
-                : vi
-                  ? "Lưu bản ghi"
-                  : "Save Entry"}
+                ? t("common.saving")
+                : t("assets.history.save_entry")}
             </Button>
 
             <FormStatus message={state.message} status={state.status} />

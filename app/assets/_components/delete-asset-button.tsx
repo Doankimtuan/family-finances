@@ -9,13 +9,15 @@ import {
   type AssetActionState,
 } from "@/app/assets/action-types";
 
+import { useI18n } from "@/lib/providers/i18n-provider";
+import { Button } from "@/components/ui/button";
+
 type Props = {
   assetId: string;
-  language: "en" | "vi";
 };
 
-export function DeleteAssetButton({ assetId, language }: Props) {
-  const vi = language === "vi";
+export function DeleteAssetButton({ assetId }: Props) {
+  const { t } = useI18n();
   const router = useRouter();
   const [state, action] = useActionState<AssetActionState, FormData>(
     deleteAssetAction,
@@ -36,32 +38,20 @@ export function DeleteAssetButton({ assetId, language }: Props) {
       className="space-y-1"
       onSubmit={(event) => {
         event.preventDefault();
-        if (
-          !window.confirm(
-            vi
-              ? "Xóa tài sản này? Hành động này không thể hoàn tác."
-              : "Delete this asset? This action cannot be undone.",
-          )
-        )
-          return;
+        if (!window.confirm(t("assets.confirm_delete"))) return;
         const fd = new FormData(event.currentTarget);
         startTransition(() => action(fd));
       }}
     >
       <input type="hidden" name="assetId" value={assetId} />
-      <button
+      <Button
         type="submit"
+        variant="outline"
         disabled={isPending}
-        className="rounded-xl border border-rose-300 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700 disabled:opacity-60"
+        className="rounded-xl border border-rose-300 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-100 hover:text-rose-800 disabled:opacity-60"
       >
-        {isPending
-          ? vi
-            ? "Đang xóa..."
-            : "Deleting..."
-          : vi
-            ? "Xóa tài sản"
-            : "Delete Asset"}
-      </button>
+        {isPending ? t("common.deleting") : t("assets.delete")}
+      </Button>
       {state.status === "error" && state.message ? (
         <p className="text-xs text-rose-600">{state.message}</p>
       ) : null}

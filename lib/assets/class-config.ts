@@ -28,40 +28,37 @@ export type CashflowFlowType =
 
 export type MetadataFieldDef = {
   key: string;
-  labelVi: string;
-  labelEn: string;
+  labelKey: string;
   type: "text" | "number" | "select" | "boolean";
-  options?: { value: string; labelVi: string; labelEn: string }[];
-  placeholder?: string;
+  options?: { value: string; labelKey: string }[];
+  placeholderKey?: string;
 };
 
 export type AssetClassConfig = {
   key: AssetClassKey;
-  labelVi: string;
-  labelEn: string;
+  labelKey: string;
   iconName: string;
   defaultUnitLabel: string;
   defaultLiquid: boolean;
   defaultRisk: RiskLevel;
   defaultValuationMethod: ValuationMethod;
   isInvestmentTracker: boolean;
-  cashflowLabels: Record<CashflowFlowType, { vi: string; en: string }>;
+  cashflowLabels: Record<CashflowFlowType, string>;
   metadataFields: MetadataFieldDef[];
 };
 
 const SHARED_CASHFLOW_LABELS: AssetClassConfig["cashflowLabels"] = {
-  contribution: { vi: "Đóng góp/Mua", en: "Buy / Contribute" },
-  withdrawal: { vi: "Rút tiền/Bán", en: "Sell / Withdraw" },
-  income: { vi: "Thu nhập", en: "Income" },
-  fee: { vi: "Phí", en: "Fee" },
-  tax: { vi: "Thuế", en: "Tax" },
+  contribution: "assets.contribution",
+  withdrawal: "assets.withdrawal",
+  income: "assets.income",
+  fee: "assets.fee",
+  tax: "assets.tax",
 };
 
 export const ASSET_CLASS_CONFIGS: Record<AssetClassKey, AssetClassConfig> = {
   real_estate: {
     key: "real_estate",
-    labelVi: "Bất động sản",
-    labelEn: "Real Estate",
+    labelKey: "assets.class.real_estate",
     iconName: "Home",
     defaultUnitLabel: "căn",
     defaultLiquid: false,
@@ -69,43 +66,40 @@ export const ASSET_CLASS_CONFIGS: Record<AssetClassKey, AssetClassConfig> = {
     defaultValuationMethod: "appraisal",
     isInvestmentTracker: true,
     cashflowLabels: {
-      contribution: { vi: "Mua / Đặt cọc", en: "Purchase / Deposit" },
-      withdrawal: { vi: "Bán / Rút vốn", en: "Sale / Withdrawal" },
-      income: { vi: "Tiền thuê", en: "Rental Income" },
-      fee: { vi: "Phí quản lý / Bảo trì", en: "Mgmt / Maintenance" },
-      tax: { vi: "Thuế BĐS", en: "Property Tax" },
+      contribution: "assets.cashflow.real_estate.contribution",
+      withdrawal: "assets.cashflow.real_estate.withdrawal",
+      income: "assets.cashflow.real_estate.income",
+      fee: "assets.cashflow.real_estate.fee",
+      tax: "assets.cashflow.real_estate.tax",
     },
     metadataFields: [
-      { key: "address", labelVi: "Địa chỉ", labelEn: "Address", type: "text" },
+      { key: "address", labelKey: "assets.field.address", type: "text" },
       {
         key: "property_type",
-        labelVi: "Loại BĐS",
-        labelEn: "Property Type",
+        labelKey: "assets.field.property_type",
         type: "select",
         options: [
-          { value: "apartment", labelVi: "Chung cư", labelEn: "Apartment" },
-          { value: "house", labelVi: "Nhà phố", labelEn: "House" },
-          { value: "land", labelVi: "Đất nền", labelEn: "Land" },
-          { value: "commercial", labelVi: "Thương mại", labelEn: "Commercial" },
-          { value: "other", labelVi: "Khác", labelEn: "Other" },
+          { value: "apartment", labelKey: "assets.option.apartment" },
+          { value: "house", labelKey: "assets.option.house" },
+          { value: "land", labelKey: "assets.option.land" },
+          { value: "commercial", labelKey: "assets.option.commercial" },
+          { value: "other", labelKey: "assets.option.other" },
         ],
       },
-      { key: "area_sqm", labelVi: "Diện tích (m²)", labelEn: "Area (sqm)", type: "number" },
+      { key: "area_sqm", labelKey: "assets.field.area_sqm", type: "number" },
       {
         key: "ownership_pct",
-        labelVi: "Tỷ lệ sở hữu (%)",
-        labelEn: "Ownership %",
+        labelKey: "assets.field.ownership_pct",
         type: "number",
       },
       {
         key: "rental_status",
-        labelVi: "Trạng thái cho thuê",
-        labelEn: "Rental Status",
+        labelKey: "assets.field.rental_status",
         type: "select",
         options: [
-          { value: "vacant", labelVi: "Trống", labelEn: "Vacant" },
-          { value: "rented", labelVi: "Đang cho thuê", labelEn: "Rented" },
-          { value: "owner_occupied", labelVi: "Tự ở", labelEn: "Owner-occupied" },
+          { value: "vacant", labelKey: "assets.option.vacant" },
+          { value: "rented", labelKey: "assets.option.rented" },
+          { value: "owner_occupied", labelKey: "assets.option.owner_occupied" },
         ],
       },
     ],
@@ -113,8 +107,7 @@ export const ASSET_CLASS_CONFIGS: Record<AssetClassKey, AssetClassConfig> = {
 
   mutual_fund: {
     key: "mutual_fund",
-    labelVi: "Quỹ mở",
-    labelEn: "Mutual Fund",
+    labelKey: "assets.class.mutual_fund",
     iconName: "TrendingUp",
     defaultUnitLabel: "CCQ",
     defaultLiquid: true,
@@ -123,22 +116,21 @@ export const ASSET_CLASS_CONFIGS: Record<AssetClassKey, AssetClassConfig> = {
     isInvestmentTracker: true,
     cashflowLabels: {
       ...SHARED_CASHFLOW_LABELS,
-      income: { vi: "Cổ tức / Phân phối", en: "Dividend / Distribution" },
+      income: "assets.cashflow.mutual_fund.income",
     },
     metadataFields: [
-      { key: "fund_code", labelVi: "Mã quỹ", labelEn: "Fund Code", type: "text", placeholder: "VD: VESAF" },
-      { key: "fund_manager", labelVi: "Công ty quản lý", labelEn: "Fund Manager", type: "text" },
-      { key: "platform", labelVi: "Nền tảng mua", labelEn: "Platform", type: "text", placeholder: "VD: Fmarket, Stox" },
+      { key: "fund_code", labelKey: "assets.field.fund_code", type: "text", placeholderKey: "assets.field.fund_code" },
+      { key: "fund_manager", labelKey: "assets.field.fund_manager", type: "text" },
+      { key: "platform", labelKey: "assets.field.platform", type: "text", placeholderKey: "assets.field.platform" },
       {
         key: "fund_type",
-        labelVi: "Loại quỹ",
-        labelEn: "Fund Type",
+        labelKey: "assets.field.fund_type",
         type: "select",
         options: [
-          { value: "equity", labelVi: "Cổ phiếu", labelEn: "Equity" },
-          { value: "bond", labelVi: "Trái phiếu", labelEn: "Bond" },
-          { value: "balanced", labelVi: "Cân bằng", labelEn: "Balanced" },
-          { value: "money_market", labelVi: "Thị trường tiền tệ", labelEn: "Money Market" },
+          { value: "equity", labelKey: "assets.option.equity" },
+          { value: "bond", labelKey: "assets.option.bond" },
+          { value: "balanced", labelKey: "assets.option.balanced" },
+          { value: "money_market", labelKey: "assets.option.money_market" },
         ],
       },
     ],
@@ -146,8 +138,7 @@ export const ASSET_CLASS_CONFIGS: Record<AssetClassKey, AssetClassConfig> = {
 
   gold: {
     key: "gold",
-    labelVi: "Vàng",
-    labelEn: "Gold",
+    labelKey: "assets.class.gold",
     iconName: "Coins",
     defaultUnitLabel: "lượng",
     defaultLiquid: true,
@@ -156,42 +147,39 @@ export const ASSET_CLASS_CONFIGS: Record<AssetClassKey, AssetClassConfig> = {
     isInvestmentTracker: true,
     cashflowLabels: {
       ...SHARED_CASHFLOW_LABELS,
-      contribution: { vi: "Mua vàng", en: "Buy Gold" },
-      withdrawal: { vi: "Bán vàng", en: "Sell Gold" },
+      contribution: "assets.cashflow.gold.contribution",
+      withdrawal: "assets.cashflow.gold.withdrawal",
     },
     metadataFields: [
       {
         key: "gold_form",
-        labelVi: "Hình thức",
-        labelEn: "Form",
+        labelKey: "assets.field.gold_form",
         type: "select",
         options: [
-          { value: "bar_sjc", labelVi: "Vàng miếng SJC", labelEn: "SJC Bar" },
-          { value: "bar_other", labelVi: "Vàng miếng khác", labelEn: "Other Bar" },
-          { value: "ring", labelVi: "Nhẫn vàng", labelEn: "Gold Ring" },
-          { value: "jewelry", labelVi: "Trang sức", labelEn: "Jewelry" },
+          { value: "bar_sjc", labelKey: "assets.option.bar_sjc" },
+          { value: "bar_other", labelKey: "assets.option.bar_other" },
+          { value: "ring", labelKey: "assets.option.ring" },
+          { value: "jewelry", labelKey: "assets.option.jewelry" },
         ],
       },
       {
         key: "purity",
-        labelVi: "Tuổi vàng",
-        labelEn: "Purity",
+        labelKey: "assets.field.purity",
         type: "select",
         options: [
-          { value: "9999", labelVi: "99.99%", labelEn: "99.99%" },
-          { value: "999", labelVi: "99.9%", labelEn: "99.9%" },
-          { value: "750", labelVi: "75% (18K)", labelEn: "75% (18K)" },
-          { value: "other", labelVi: "Khác", labelEn: "Other" },
+          { value: "9999", labelKey: "assets.option.9999" },
+          { value: "999", labelKey: "assets.option.999" },
+          { value: "750", labelKey: "assets.option.750" },
+          { value: "other", labelKey: "assets.option.other" },
         ],
       },
-      { key: "storage_location", labelVi: "Nơi cất giữ", labelEn: "Storage Location", type: "text" },
+      { key: "storage_location", labelKey: "assets.field.storage_location", type: "text" },
     ],
   },
 
   crypto: {
     key: "crypto",
-    labelVi: "Tiền mã hóa",
-    labelEn: "Cryptocurrency",
+    labelKey: "assets.class.crypto",
     iconName: "Bitcoin",
     defaultUnitLabel: "coin",
     defaultLiquid: true,
@@ -200,28 +188,26 @@ export const ASSET_CLASS_CONFIGS: Record<AssetClassKey, AssetClassConfig> = {
     isInvestmentTracker: true,
     cashflowLabels: {
       ...SHARED_CASHFLOW_LABELS,
-      income: { vi: "Staking / Reward", en: "Staking / Reward" },
-      fee: { vi: "Phí giao dịch / Gas", en: "Transaction / Gas Fee" },
+      income: "assets.cashflow.crypto.income",
+      fee: "assets.cashflow.crypto.fee",
     },
     metadataFields: [
-      { key: "symbol", labelVi: "Mã coin", labelEn: "Symbol", type: "text", placeholder: "VD: BTC, ETH" },
-      { key: "network", labelVi: "Mạng blockchain", labelEn: "Network", type: "text", placeholder: "VD: Bitcoin, Ethereum" },
+      { key: "symbol", labelKey: "assets.field.symbol", type: "text", placeholderKey: "assets.field.symbol" },
+      { key: "network", labelKey: "assets.field.network", type: "text", placeholderKey: "assets.field.network" },
       {
         key: "custody_type",
-        labelVi: "Hình thức lưu trữ",
-        labelEn: "Custody",
+        labelKey: "assets.field.custody_type",
         type: "select",
         options: [
-          { value: "exchange", labelVi: "Sàn giao dịch", labelEn: "Exchange" },
-          { value: "hot_wallet", labelVi: "Ví nóng", labelEn: "Hot Wallet" },
-          { value: "cold_wallet", labelVi: "Ví lạnh", labelEn: "Cold Wallet" },
+          { value: "exchange", labelKey: "assets.option.exchange" },
+          { value: "hot_wallet", labelKey: "assets.option.hot_wallet" },
+          { value: "cold_wallet", labelKey: "assets.option.cold_wallet" },
         ],
       },
-      { key: "wallet_exchange", labelVi: "Ví / Sàn", labelEn: "Wallet / Exchange", type: "text", placeholder: "VD: Binance, Metamask" },
+      { key: "wallet_exchange", labelKey: "assets.field.wallet_exchange", type: "text", placeholderKey: "assets.field.wallet_exchange" },
       {
         key: "is_staking",
-        labelVi: "Đang staking",
-        labelEn: "Staking",
+        labelKey: "assets.field.is_staking",
         type: "boolean",
       },
     ],
@@ -229,8 +215,7 @@ export const ASSET_CLASS_CONFIGS: Record<AssetClassKey, AssetClassConfig> = {
 
   stock: {
     key: "stock",
-    labelVi: "Cổ phiếu",
-    labelEn: "Stock",
+    labelKey: "assets.class.stock",
     iconName: "TrendingUp",
     defaultUnitLabel: "cp",
     defaultLiquid: true,
@@ -239,19 +224,18 @@ export const ASSET_CLASS_CONFIGS: Record<AssetClassKey, AssetClassConfig> = {
     isInvestmentTracker: true,
     cashflowLabels: {
       ...SHARED_CASHFLOW_LABELS,
-      income: { vi: "Cổ tức", en: "Dividend" },
+      income: "assets.cashflow.stock.income",
     },
     metadataFields: [
-      { key: "ticker", labelVi: "Mã CK", labelEn: "Ticker", type: "text", placeholder: "VD: VNM, FPT" },
-      { key: "exchange", labelVi: "Sàn", labelEn: "Exchange", type: "text", placeholder: "VD: HOSE, HNX" },
-      { key: "broker", labelVi: "Công ty CK", labelEn: "Broker", type: "text" },
+      { key: "ticker", labelKey: "assets.field.ticker", type: "text", placeholderKey: "assets.field.ticker" },
+      { key: "exchange", labelKey: "assets.field.exchange", type: "text", placeholderKey: "assets.field.exchange" },
+      { key: "broker", labelKey: "assets.field.broker", type: "text" },
     ],
   },
 
   savings_deposit: {
     key: "savings_deposit",
-    labelVi: "Tiền gửi tiết kiệm",
-    labelEn: "Savings Deposit",
+    labelKey: "assets.class.savings_deposit",
     iconName: "PiggyBank",
     defaultUnitLabel: "sổ",
     defaultLiquid: false,
@@ -264,8 +248,7 @@ export const ASSET_CLASS_CONFIGS: Record<AssetClassKey, AssetClassConfig> = {
 
   vehicle: {
     key: "vehicle",
-    labelVi: "Phương tiện",
-    labelEn: "Vehicle",
+    labelKey: "assets.class.vehicle",
     iconName: "Car",
     defaultUnitLabel: "xe",
     defaultLiquid: false,
@@ -278,8 +261,7 @@ export const ASSET_CLASS_CONFIGS: Record<AssetClassKey, AssetClassConfig> = {
 
   cash_equivalent: {
     key: "cash_equivalent",
-    labelVi: "Tương đương tiền mặt",
-    labelEn: "Cash Equivalent",
+    labelKey: "assets.class.cash_equivalent",
     iconName: "Banknote",
     defaultUnitLabel: "unit",
     defaultLiquid: true,
@@ -292,8 +274,7 @@ export const ASSET_CLASS_CONFIGS: Record<AssetClassKey, AssetClassConfig> = {
 
   other: {
     key: "other",
-    labelVi: "Khác",
-    labelEn: "Other",
+    labelKey: "assets.class.other",
     iconName: "TrendingUp",
     defaultUnitLabel: "unit",
     defaultLiquid: false,
@@ -324,18 +305,18 @@ export function getAssetClassConfig(
 }
 
 /** Get localized label */
-export function getClassLabel(cls: string, vi: boolean): string {
+export function getClassLabel(cls: string, t: (key: string) => string): string {
   const cfg = getAssetClassConfig(cls);
-  return vi ? cfg.labelVi : cfg.labelEn;
+  return t(cfg.labelKey);
 }
 
 /** Get localized cashflow label */
 export function getCashflowLabel(
   cls: string,
   flowType: CashflowFlowType,
-  vi: boolean,
+  t: (key: string) => string,
 ): string {
   const cfg = getAssetClassConfig(cls);
-  const labels = cfg.cashflowLabels[flowType];
-  return labels ? (vi ? labels.vi : labels.en) : flowType;
+  const labelKey = cfg.cashflowLabels[flowType];
+  return labelKey ? t(labelKey) : flowType;
 }

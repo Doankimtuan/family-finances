@@ -39,8 +39,7 @@ type CreateAssetFormProps = {
 };
 
 export function CreateAssetForm({ onSuccess }: CreateAssetFormProps) {
-  const { t, language } = useI18n();
-  const vi = language === "vi";
+  const { t } = useI18n();
   const [selectedClass, setSelectedClass] = useState<AssetClassKey>("gold");
   const classConfig = getAssetClassConfig(selectedClass);
   const [state, setState] = useState<AssetActionState>(initialAssetActionState);
@@ -58,7 +57,7 @@ export function CreateAssetForm({ onSuccess }: CreateAssetFormProps) {
     },
   });
 
-  const { handleSubmit, setValue, watch, reset } = methods;
+  const { handleSubmit, setValue, reset } = methods;
 
   useEffect(() => {
     const config = getAssetClassConfig(selectedClass);
@@ -101,7 +100,7 @@ export function CreateAssetForm({ onSuccess }: CreateAssetFormProps) {
             label={t("assets.class")}
             defaultValue="gold"
             options={Object.values(ASSET_CLASS_CONFIGS).map((cfg) => ({
-              label: vi ? cfg.labelVi : cfg.labelEn,
+              label: t(cfg.labelKey),
               value: cfg.key,
             }))}
             placeholder={t("assets.class")}
@@ -144,7 +143,7 @@ export function CreateAssetForm({ onSuccess }: CreateAssetFormProps) {
         {classConfig.metadataFields.length > 0 && (
           <div className="space-y-2 rounded-xl border border-slate-200 bg-slate-50/50 p-3">
             <Label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-              {vi ? "Thông tin chi tiết" : "Details"}
+              {t("assets.details")}
             </Label>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               {classConfig.metadataFields.map((field) => (
@@ -152,30 +151,30 @@ export function CreateAssetForm({ onSuccess }: CreateAssetFormProps) {
                   {field.type === "select" && field.options ? (
                     <RHFSelect
                       name={`meta_${field.key}`}
-                      label={vi ? field.labelVi : field.labelEn}
+                      label={t(field.labelKey)}
                       options={field.options.map((opt) => ({
-                        label: vi ? opt.labelVi : opt.labelEn,
+                        label: t(opt.labelKey),
                         value: opt.value,
                       }))}
-                      placeholder={vi ? "Chọn" : "Select"}
+                      placeholder={t("common.select")}
                     />
                   ) : field.type === "boolean" ? (
                     <RHFSelect
                       name={`meta_${field.key}`}
-                      label={vi ? field.labelVi : field.labelEn}
+                      label={t(field.labelKey)}
                       defaultValue="false"
                       options={[
-                        { label: vi ? "Có" : "Yes", value: "true" },
-                        { label: vi ? "Không" : "No", value: "false" },
+                        { label: t("common.yes"), value: "true" },
+                        { label: t("common.no"), value: "false" },
                       ]}
                     />
                   ) : (
                     <RHFInput
                       name={`meta_${field.key}`}
-                      label={vi ? field.labelVi : field.labelEn}
+                      label={t(field.labelKey)}
                       type={field.type === "number" ? "number" : "text"}
                       step={field.type === "number" ? "any" : undefined}
-                      placeholder={field.placeholder}
+                      placeholder={field.placeholderKey ? t(field.placeholderKey) : undefined}
                       className="text-sm"
                     />
                   )}

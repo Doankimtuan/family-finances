@@ -90,7 +90,7 @@ export function AssetCashflowForm({
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <RHFSelect
             name="flowType"
-            label={vi ? "Loại giao dịch" : "Transaction type"}
+            label={t("common.transaction_type")}
             defaultValue="contribution"
             options={[
               { label: t("assets.contribution"), value: "contribution" },
@@ -99,12 +99,12 @@ export function AssetCashflowForm({
               { label: t("assets.fee"), value: "fee" },
               { label: t("assets.tax"), value: "tax" },
             ]}
-            placeholder={vi ? "Chọn loại" : "Select type"}
+            placeholder={t("common.select_type")}
           />
 
           <RHFInput
             name="flowDate"
-            label={vi ? "Ngày" : "Date"}
+            label={t("common.date")}
             type="date"
             required
           />
@@ -114,27 +114,27 @@ export function AssetCashflowForm({
           <div className="sm:col-span-2">
             <RHFSelect
               name="accountId"
-              label={vi ? "Tài khoản thanh toán" : "Funding Account"}
+              label={t("common.funding_account")}
               required
               options={accounts.map((acc) => ({
                 label: acc.name,
                 value: acc.id,
               }))}
-              placeholder={vi ? "Chọn tài khoản" : "Select account"}
+              placeholder={t("common.select_account")}
             />
           </div>
         </div>
 
         <RHFMoneyInput
           name="amount"
-          label={vi ? "Số tiền (VND)" : "Amount (VND)"}
+          label={t("assets.amount")}
           className="w-full"
         />
 
         <RHFInput
           name="note"
-          label={vi ? "Ghi chú" : "Note"}
-          placeholder={vi ? "VD: Mua thêm BTC" : "e.g. Bought more BTC"}
+          label={t("common.note")}
+          placeholder={t("common.note_placeholder")}
         />
 
         <Button
@@ -142,7 +142,7 @@ export function AssetCashflowForm({
           disabled={isPending}
           className="w-full rounded-xl bg-teal-600 hover:bg-teal-700"
         >
-          {isPending ? t("common.saving") : t("common.saving").replace("...", "")}
+          {isPending ? t("common.saving") : t("common.add")}
         </Button>
 
         <FormStatus message={state.message} status={state.status} />

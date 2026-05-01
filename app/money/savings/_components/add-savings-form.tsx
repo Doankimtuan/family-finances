@@ -279,14 +279,15 @@ export function AddSavingsForm({
               const active = step === value;
               const done = step > value;
               return (
-                <button
+                <Button
                   key={label}
                   type="button"
+                  variant="ghost"
                   onClick={() => setStep(value)}
                   className={cn(
-                    "rounded-xl px-3 py-3 text-left transition",
+                    "rounded-xl px-3 py-3 text-left transition h-auto justify-start",
                     active
-                      ? "bg-white shadow-sm ring-1 ring-slate-200"
+                      ? "bg-white shadow-sm ring-1 ring-slate-200 hover:bg-white"
                       : "text-slate-600 hover:bg-white/70",
                   )}
                 >
@@ -303,7 +304,7 @@ export function AddSavingsForm({
                     </span>
                     <span className="text-sm font-semibold text-slate-900">{label}</span>
                   </div>
-                </button>
+                </Button>
               );
             })}
           </div>
@@ -311,13 +312,14 @@ export function AddSavingsForm({
           {step === 1 ? (
             <div className="space-y-4">
               <div className="grid gap-3 md:grid-cols-2">
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
                   className={cn(
-                    "rounded-2xl border p-5 text-left transition",
+                    "rounded-2xl border p-5 text-left transition h-auto justify-start block",
                     form.savingsType === "bank"
-                      ? "border-primary bg-blue-50 shadow-sm ring-1 ring-blue-100"
-                      : "border-slate-200 bg-white hover:border-primary/40",
+                      ? "border-primary bg-blue-50 shadow-sm ring-1 ring-blue-100 hover:bg-blue-50"
+                      : "border-slate-200 bg-white hover:border-primary/40 hover:bg-white",
                   )}
                   onClick={() => {
                     update("savingsType", "bank");
@@ -338,15 +340,16 @@ export function AddSavingsForm({
                       </p>
                     </div>
                   </div>
-                </button>
+                </Button>
 
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
                   className={cn(
-                    "rounded-2xl border p-5 text-left transition",
+                    "rounded-2xl border p-5 text-left transition h-auto justify-start block",
                     form.savingsType === "third_party"
-                      ? "border-primary bg-emerald-50 shadow-sm ring-1 ring-emerald-100"
-                      : "border-slate-200 bg-white hover:border-primary/40",
+                      ? "border-primary bg-emerald-50 shadow-sm ring-1 ring-emerald-100 hover:bg-emerald-50"
+                      : "border-slate-200 bg-white hover:border-primary/40 hover:bg-white",
                   )}
                   onClick={() => update("savingsType", "third_party")}
                 >
@@ -363,7 +366,7 @@ export function AddSavingsForm({
                       </p>
                     </div>
                   </div>
-                </button>
+                </Button>
               </div>
 
               <div className="rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
@@ -651,19 +654,21 @@ export function AddSavingsForm({
                         {accounts.map((account) => {
                           const selected = form.linkedAccountIds.includes(account.id);
                           return (
-                            <button
+                            <Button
                               key={account.id}
                               type="button"
+                              variant="ghost"
+                              size="sm"
                               onClick={() => toggleLinkedAccount(account.id)}
                               className={cn(
-                                "rounded-full border px-3 py-2 text-sm transition",
+                                "rounded-full border px-3 py-2 text-sm transition h-auto",
                                 selected
-                                  ? "border-primary bg-primary/10 text-primary ring-1 ring-primary/15"
-                                  : "border-slate-300 bg-white text-slate-700 hover:border-primary/40",
+                                  ? "border-primary bg-primary/10 text-primary ring-1 ring-primary/15 hover:bg-primary/20"
+                                  : "border-slate-300 bg-white text-slate-700 hover:border-primary/40 hover:bg-slate-50",
                               )}
                             >
                               {account.name}
-                            </button>
+                            </Button>
                           );
                         })}
                       </div>
