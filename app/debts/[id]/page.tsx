@@ -169,7 +169,7 @@ export default async function DebtDetailPage({
 
   return (
     <AppShell
-      header={<AppHeader title={debt.name} showBack />}
+      header={<AppHeader title={debt.name} leftAction={<AppHeader.BackButton />} />}
       footer={<BottomTabBar />}
     >
       <div className="space-y-4 pb-20 sm:pb-6">

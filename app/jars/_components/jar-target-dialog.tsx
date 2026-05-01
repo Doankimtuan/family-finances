@@ -10,7 +10,12 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-import { JarTargetForm } from "./jar-target-form";
+import dynamic from "next/dynamic";
+
+const JarTargetForm = dynamic(
+  () => import("./jar-target-form").then((m) => m.JarTargetForm),
+  { ssr: false }
+);
 
 type Props = {
   jarId: string;

@@ -112,7 +112,7 @@ export default async function CreditCardDetailPage({
 
   return (
     <AppShell
-      header={<AppHeader title={account.name} showBack />}
+      header={<AppHeader title={account.name} leftAction={<AppHeader.BackButton />} />}
       footer={<BottomTabBar />}
     >
       <div className="space-y-6 pb-28">

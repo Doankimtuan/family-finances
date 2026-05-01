@@ -66,24 +66,26 @@ export default async function HouseholdPage({
     householdLocale = normalizeHouseholdLocale(householdResult.data?.locale);
   }
 
-  const pendingReceivedInvites = await supabase
-    .from("household_invitations")
-    .select("id, token, expires_at")
-    .eq("status", "pending")
-    .eq("email", user.email)
-    .order("created_at", { ascending: false });
-
-  const pendingHouseholdInvites = householdId
-    ? await supabase
+  const [pendingReceivedInvites, pendingHouseholdInvites, requestHeaders] =
+    await Promise.all([
+      supabase
         .from("household_invitations")
-        .select("id, email, token, status, expires_at")
-        .eq("household_id", householdId)
+        .select("id, token, expires_at")
         .eq("status", "pending")
-        .order("created_at", { ascending: false })
-    : null;
+        .eq("email", user.email)
+        .order("created_at", { ascending: false }),
+      householdId
+        ? supabase
+            .from("household_invitations")
+            .select("id, email, token, status, expires_at")
+            .eq("household_id", householdId)
+            .eq("status", "pending")
+            .order("created_at", { ascending: false })
+        : Promise.resolve(null),
+      headers(),
+    ]);
 
-  const requestHeaders = await headers();
-  const origin = getOriginFromHeaders(requestHeaders);
+  const origin = getOriginFromHeaders(requestHeaders as Headers);
 
   return (
     <AppShell

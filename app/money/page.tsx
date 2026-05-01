@@ -1,6 +1,6 @@
-import { CreateAssetForm } from "@/app/assets/_components/create-asset-form";
+import { CreateAssetDialog } from "@/app/assets/_components/create-asset-dialog";
 import { ArchiveAccountButton } from "@/app/money/_components/archive-account-button";
-import { CreateAccountForm } from "@/app/money/_components/create-account-form";
+import { CreateAccountDialog } from "@/app/money/_components/create-account-dialog";
 import { AddSavingsForm } from "@/app/money/savings/_components/add-savings-form";
 import { SavingsCard } from "@/app/money/savings/_components/savings-card";
 import { AppHeader } from "@/components/layout/app-header";
@@ -9,13 +9,7 @@ import { BottomTabBar } from "@/components/layout/bottom-tab-bar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+
 import { EmptyState } from "@/components/ui/empty-state";
 import { getClassLabel } from "@/lib/assets/class-config";
 import {
@@ -686,28 +680,7 @@ export default async function MoneyPage() {
           <SectionTitle
             title={t("money.accounts.title")}
             total={`${t("money.accounts.total")}: ${formatVndCompact(totalAccountBalance, householdLocale)}`}
-            addAction={
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="flex items-center gap-1 text-sm font-bold text-primary hover:text-primary/80 transition-colors h-auto p-0"
-                  >
-                    <Plus className="h-4 w-4" />
-                    {t("common.add")}
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-h-[85vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">
-                      {t("money.accounts.new_account")}
-                    </DialogTitle>
-                  </DialogHeader>
-                  <CreateAccountForm />
-                </DialogContent>
-              </Dialog>
-            }
+            addAction={<CreateAccountDialog />}
           />
 
           {standardAccounts.length === 0 ? (
@@ -1177,28 +1150,7 @@ export default async function MoneyPage() {
           <SectionTitle
             title={t("assets.title")}
             total={`${t("money.accounts.total")}: ${formatVndCompact(totalAssetValue, householdLocale)}`}
-            addAction={
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="flex items-center gap-1 text-sm font-bold text-primary hover:text-primary/80 transition-colors h-auto p-0"
-                  >
-                    <Plus className="h-4 w-4" />
-                    {t("common.add")}
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-h-[85vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">
-                      {t("assets.create")}
-                    </DialogTitle>
-                  </DialogHeader>
-                  <CreateAssetForm />
-                </DialogContent>
-              </Dialog>
-            }
+            addAction={<CreateAssetDialog />}
           />
 
           {assets.length === 0 ? (

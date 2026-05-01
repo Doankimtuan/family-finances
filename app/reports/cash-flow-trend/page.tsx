@@ -26,7 +26,7 @@ export default async function CashFlowTrendPage() {
 
   return (
     <AppShell
-      header={<AppHeader title={t(language, "reports.cashflow_trend.title")} showBack />}
+      header={<AppHeader title={t(language, "reports.cashflow_trend.title")} leftAction={<AppHeader.BackButton />} />}
       footer={<BottomTabBar />}
     >
       <div className="space-y-4 pb-20 sm:pb-6">

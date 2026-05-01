@@ -10,7 +10,12 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-import { JarCreateForm } from "./jar-create-form";
+import dynamic from "next/dynamic";
+
+const JarCreateForm = dynamic(
+  () => import("./jar-create-form").then((m) => m.JarCreateForm),
+  { ssr: false }
+);
 
 export function JarCreateDialog({ vi }: { vi: boolean }) {
   return (

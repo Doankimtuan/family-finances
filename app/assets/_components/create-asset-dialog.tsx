@@ -10,7 +10,15 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { CreateAssetForm } from "@/app/assets/_components/create-asset-form";
+import dynamic from "next/dynamic";
+
+const CreateAssetForm = dynamic(
+  () =>
+    import("@/app/assets/_components/create-asset-form").then(
+      (m) => m.CreateAssetForm
+    ),
+  { ssr: false }
+);
 import { useI18n } from "@/lib/providers/i18n-provider";
 
 export function CreateAssetDialog() {

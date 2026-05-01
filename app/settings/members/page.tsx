@@ -39,29 +39,27 @@ export default async function SettingsMembersPage() {
 
   if (!user?.email) redirect("/login");
 
-  // Fetch current members
-  const membersResult = await supabase
-    .from("household_members")
-    .select("id, user_id, role, joined_at, profiles!user_id(full_name, email)")
-    .eq("household_id", householdId)
-    .eq("is_active", true)
-    .order("joined_at", { ascending: true });
-
-  // Fetch pending outgoing invitations
-  const pendingInvites = await supabase
-    .from("household_invitations")
-    .select("id, email, token, expires_at")
-    .eq("household_id", householdId)
-    .eq("status", "pending")
-    .order("created_at", { ascending: false });
-
-  // Fetch pending invites for THIS user's email (incoming)
-  const incomingInvites = await supabase
-    .from("household_invitations")
-    .select("id, token, expires_at, households!household_id(name)")
-    .eq("email", user.email)
-    .eq("status", "pending")
-    .order("created_at", { ascending: false });
+  // Fetch current members, outgoing invites, and incoming invites in parallel
+  const [membersResult, pendingInvites, incomingInvites] = await Promise.all([
+    supabase
+      .from("household_members")
+      .select("id, user_id, role, joined_at, profiles!user_id(full_name, email)")
+      .eq("household_id", householdId)
+      .eq("is_active", true)
+      .order("joined_at", { ascending: true }),
+    supabase
+      .from("household_invitations")
+      .select("id, email, token, expires_at")
+      .eq("household_id", householdId)
+      .eq("status", "pending")
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("household_invitations")
+      .select("id, token, expires_at, households!household_id(name)")
+      .eq("email", user.email)
+      .eq("status", "pending")
+      .order("created_at", { ascending: false }),
+  ]);
 
   const requestHeaders = await headers();
   const origin = getOriginFromHeaders(requestHeaders);

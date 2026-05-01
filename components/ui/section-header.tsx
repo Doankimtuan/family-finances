@@ -31,12 +31,12 @@ export function SectionHeader({
           {title && (
             <div className="flex items-center gap-2">
               {icon && (
-                typeof icon === "function" ? (
+                React.isValidElement(icon) ? (
+                  icon
+                ) : (
                   React.createElement(icon as React.ElementType, {
                     className: "h-5 w-5 text-primary/80",
                   })
-                ) : (
-                  icon
                 )
               )}
               <h2 className="text-xl font-bold tracking-tight text-foreground">

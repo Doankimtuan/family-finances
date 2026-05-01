@@ -10,7 +10,15 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-import { JarAllocateWithdrawForm } from "./jar-allocate-withdraw-form";
+import dynamic from "next/dynamic";
+
+const JarAllocateWithdrawForm = dynamic(
+  () =>
+    import("./jar-allocate-withdraw-form").then(
+      (m) => m.JarAllocateWithdrawForm
+    ),
+  { ssr: false }
+);
 
 type Props = {
   jarId: string;

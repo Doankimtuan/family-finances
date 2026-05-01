@@ -11,7 +11,12 @@ import {
 } from "@/components/ui/dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { archiveJarDirectAction } from "@/app/jars/actions";
-import { JarEditForm } from "./jar-edit-form";
+import dynamic from "next/dynamic";
+
+const JarEditForm = dynamic(
+  () => import("./jar-edit-form").then((m) => m.JarEditForm),
+  { ssr: false }
+);
 
 type Props = {
   jarId: string;

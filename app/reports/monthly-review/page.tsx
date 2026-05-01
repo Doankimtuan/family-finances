@@ -109,7 +109,7 @@ export default async function MonthlyReviewPage() {
 
   return (
     <AppShell
-      header={<AppHeader title={t(language, "reports.monthly_review.title")} showBack />}
+      header={<AppHeader title={t(language, "reports.monthly_review.title")} leftAction={<AppHeader.BackButton />} />}
       footer={<BottomTabBar />}
     >
       <div className="space-y-4 pb-20 sm:pb-6">
