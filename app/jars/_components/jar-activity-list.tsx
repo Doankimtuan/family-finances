@@ -1,6 +1,6 @@
 import { formatVndCompact } from "@/lib/dashboard/format";
-
 import { deleteJarLedgerEntryDirectAction } from "@/app/jars/actions";
+import { Button } from "@/components/ui/button";
 
 type ActivityItem = {
   id: string;
@@ -58,9 +58,14 @@ export function JarActivityList({ items, month, locale, vi }: Props) {
             <form action={deleteJarLedgerEntryDirectAction}>
               <input type="hidden" name="entryId" value={item.id} />
               <input type="hidden" name="month" value={month} />
-              <button className="text-xs text-destructive hover:underline" type="submit">
+              <Button
+                variant="ghost"
+                size="sm"
+                type="submit"
+                className="h-6 px-2 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+              >
                 {vi ? "Xóa" : "Delete"}
-              </button>
+              </Button>
             </form>
           </div>
         </div>

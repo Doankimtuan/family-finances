@@ -1,93 +1,135 @@
 "use client";
 
-import { useActionState, useState, useTransition } from "react";
+import { useActionState, useTransition, useEffect } from "react";
+import { useForm, FormProvider } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 
 import { createCategoryAction } from "@/app/categories/actions";
-import {
-  initialCategoryActionState,
-  type CategoryActionState,
-} from "@/app/categories/action-types";
+import { initialCategoryActionState } from "@/app/categories/action-types";
 import { useI18n } from "@/lib/providers/i18n-provider";
+import { Button } from "@/components/ui/button";
+import { RHFInput, RHFColorInput } from "@/components/ui/rhf-fields";
+import { FormStatus } from "@/components/ui/form-status";
+import { Label } from "@/components/ui/label";
+
+const categorySchema = z.object({
+  kind: z.enum(["income", "expense"]),
+  name: z.string().min(2, "Category name must be at least 2 characters"),
+  color: z.string(),
+});
+
+type CategoryValues = z.infer<typeof categorySchema>;
 
 export function CreateCategoryForm() {
   const { language, t } = useI18n();
   const vi = language === "vi";
-  const [state, action] = useActionState<CategoryActionState, FormData>(
+  const [isPending, startTransition] = useTransition();
+
+  const [state, action] = useActionState(
     createCategoryAction,
     initialCategoryActionState,
   );
-  const [isPending, startTransition] = useTransition();
-  const [kind, setKind] = useState<"income" | "expense">("expense");
+
+  const methods = useForm<CategoryValues>({
+    resolver: zodResolver(categorySchema),
+    defaultValues: {
+      kind: "expense",
+      name: "",
+      color: "#ef4444",
+    },
+  });
+
+  const { watch, setValue, handleSubmit, reset } = methods;
+  const kind = watch("kind");
+
+  useEffect(() => {
+    if (state.status === "success") {
+      const timer = setTimeout(() => {
+        reset({
+          kind: "expense",
+          name: "",
+          color: "#ef4444",
+        });
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+  }, [state.status, reset]);
+
+  // Update color when kind changes to defaults
+  useEffect(() => {
+    if (kind === "expense") setValue("color", "#ef4444");
+    else setValue("color", "#16a34a");
+  }, [kind, setValue]);
 
   return (
-    <form
-      className="space-y-3"
-      noValidate
-      onSubmit={(event) => {
-        event.preventDefault();
-        const fd = new FormData(event.currentTarget);
-        fd.set("kind", kind);
-        startTransition(() => action(fd));
-      }}
-    >
-      <input type="hidden" name="kind" value={kind} />
-      <div className="grid grid-cols-2 gap-2 rounded-xl bg-slate-100 p-1">
-        <button
-          type="button"
-          onClick={() => setKind("expense")}
-          className={`rounded-lg px-3 py-2 text-sm font-semibold ${
-            kind === "expense" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600"
-          }`}
-        >
-          {vi ? "Chi tiêu" : "Expense"}
-        </button>
-        <button
-          type="button"
-          onClick={() => setKind("income")}
-          className={`rounded-lg px-3 py-2 text-sm font-semibold ${
-            kind === "income" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600"
-          }`}
-        >
-          {vi ? "Thu nhập" : "Income"}
-        </button>
-      </div>
-
-      <div className="space-y-1">
-        <label htmlFor="categoryName" className="text-sm font-medium text-slate-700">
-          {vi ? "Tên danh mục" : "Category Name"}
-        </label>
-        <input
-          id="categoryName"
-          name="name"
-          required
-          placeholder={kind === "expense" ? (vi ? "VD: Trông trẻ" : "e.g. Childcare") : (vi ? "VD: Làm tự do" : "e.g. Freelance")}
-          className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-base text-slate-900 placeholder:text-slate-500"
-        />
-      </div>
-
-      <div className="space-y-1">
-        <label htmlFor="categoryColor" className="text-sm font-medium text-slate-700">
-          {vi ? "Màu sắc" : "Color"}
-        </label>
-        <input
-          id="categoryColor"
-          name="color"
-          type="color"
-          defaultValue={kind === "expense" ? "#ef4444" : "#16a34a"}
-          className="h-10 w-20 rounded-lg border border-slate-300 bg-white p-1"
-        />
-      </div>
-
-      <button
-        type="submit"
-        disabled={isPending}
-        className="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white disabled:opacity-60"
+    <FormProvider {...methods}>
+      <form
+        className="space-y-4"
+        noValidate
+        action={action}
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSubmit(() => {
+            startTransition(() => action(new FormData(e.currentTarget)));
+          })(e);
+        }}
       >
-        {isPending ? t("common.saving") : (vi ? "Tạo danh mục" : "Create Category")}
-      </button>
+        <input type="hidden" {...methods.register("kind")} />
+        
+        <div className="grid grid-cols-2 gap-2 rounded-2xl bg-slate-100 p-1">
+          <Button
+            type="button"
+            variant={kind === "expense" ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setValue("kind", "expense")}
+            className={`rounded-xl px-3 py-2 text-sm font-semibold ${
+              kind === "expense"
+                ? "bg-white text-slate-900 shadow-sm hover:bg-white"
+                : "text-slate-600"
+            }`}
+          >
+            {vi ? "Chi tiêu" : "Expense"}
+          </Button>
+          <Button
+            type="button"
+            variant={kind === "income" ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setValue("kind", "income")}
+            className={`rounded-xl px-3 py-2 text-sm font-semibold ${
+              kind === "income"
+                ? "bg-white text-slate-900 shadow-sm hover:bg-white"
+                : "text-slate-600"
+            }`}
+          >
+            {vi ? "Thu nhập" : "Income"}
+          </Button>
+        </div>
 
-      {state.status === "error" && state.message ? <p className="text-sm text-rose-600">{state.message}</p> : null}
-      {state.status === "success" && state.message ? <p className="text-sm text-emerald-600">{state.message}</p> : null}
-    </form>
+        <RHFInput
+          name="name"
+          label={vi ? "Tên danh mục" : "Category Name"}
+          placeholder={kind === "expense" ? (vi ? "VD: Trông trẻ" : "e.g. Childcare") : (vi ? "VD: Làm tự do" : "e.g. Freelance")}
+          required
+          className="bg-white"
+        />
+
+        <RHFColorInput
+          name="color"
+          label={vi ? "Màu sắc" : "Color"}
+          required
+        />
+
+        <FormStatus message={state.message} status={state.status} />
+
+        <Button
+          type="submit"
+          disabled={isPending}
+          className="w-full rounded-xl py-6 text-base font-semibold shadow-sm"
+        >
+          {isPending ? t("common.saving") : (vi ? "Tạo danh mục" : "Create Category")}
+        </Button>
+      </form>
+    </FormProvider>
   );
 }

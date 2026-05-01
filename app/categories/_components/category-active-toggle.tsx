@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import { setCategoryActiveAction } from "@/app/categories/actions";
 import {
   initialCategoryActionState,
-  type CategoryActionState,
 } from "@/app/categories/action-types";
 import { useI18n } from "@/lib/providers/i18n-provider";
 import { Switch } from "@/components/ui/switch";
@@ -18,9 +17,9 @@ type Props = {
 };
 
 export function CategoryActiveToggle({ categoryId, currentActive }: Props) {
-  const { language, t } = useI18n();
+  const { language } = useI18n();
   const vi = language === "vi";
-  const [state, action] = useActionState<CategoryActionState, FormData>(
+  const [state, action] = useActionState(
     setCategoryActiveAction,
     initialCategoryActionState,
   );
@@ -34,34 +33,24 @@ export function CategoryActiveToggle({ categoryId, currentActive }: Props) {
     }
   }, [state, vi]);
 
+  const handleToggle = () => {
+    const fd = new FormData();
+    fd.append("categoryId", categoryId);
+    fd.append("isActive", String(!currentActive));
+    startTransition(() => action(fd));
+  };
+
   return (
-    <div className="flex items-center space-x-2">
-      <form
-        noValidate
-        onSubmit={(event) => {
-          event.preventDefault();
-          const fd = new FormData(event.currentTarget);
-          startTransition(() => action(fd));
-        }}
-      >
-        <input type="hidden" name="categoryId" value={categoryId} />
-        <input type="hidden" name="isActive" value={String(!currentActive)} />
-        <Switch
-          id={`active-toggle-${categoryId}`}
-          checked={currentActive}
-          disabled={isPending}
-          onCheckedChange={() => {
-            const form = document.getElementById(
-              `form-${categoryId}`,
-            ) as HTMLFormElement;
-            if (form) form.requestSubmit();
-          }}
-        />
-        <button type="submit" className="hidden" id={`form-${categoryId}`} />
-      </form>
+    <div className="flex items-center space-x-2 bg-slate-50 border border-slate-100 rounded-xl px-2 py-1 shadow-sm">
+      <Switch
+        id={`active-toggle-${categoryId}`}
+        checked={currentActive}
+        disabled={isPending}
+        onCheckedChange={handleToggle}
+      />
       <Label
         htmlFor={`active-toggle-${categoryId}`}
-        className="text-xs font-medium text-slate-500"
+        className="text-[10px] font-bold uppercase tracking-wider text-slate-500 cursor-pointer select-none"
       >
         {currentActive ? (vi ? "Bật" : "Active") : vi ? "Tắt" : "Disabled"}
       </Label>

@@ -8,6 +8,7 @@ interface FormFieldProps extends React.HTMLAttributes<HTMLDivElement> {
   error?: string;
   description?: string;
   required?: boolean;
+  hideLabel?: boolean;
 }
 
 function FormField({
@@ -16,20 +17,23 @@ function FormField({
   error,
   description,
   required,
+  hideLabel,
   className,
   children,
   ...props
 }: FormFieldProps) {
   return (
     <div className={cn("flex flex-col gap-1.5", className)} {...props}>
-      <Label htmlFor={htmlFor}>
-        {label}
-        {required && (
-          <span className="ml-0.5 text-destructive" aria-hidden="true">
-            *
-          </span>
-        )}
-      </Label>
+      {!hideLabel && (
+        <Label htmlFor={htmlFor}>
+          {label}
+          {required && (
+            <span className="ml-0.5 text-destructive" aria-hidden="true">
+              *
+            </span>
+          )}
+        </Label>
+      )}
       {children}
       {description && !error && (
         <p className="text-xs text-muted-foreground">{description}</p>

@@ -9,14 +9,14 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatVnd, formatVndCompact } from "@/lib/dashboard/format";
 import { fetchJarCommandCenter } from "@/lib/jars/intent";
 import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
 import { createClient } from "@/lib/supabase/server";
 
-import { addManualJarAdjustmentAction, upsertJarPlanAction } from "./intent-actions";
+import { JarPlanForm } from "./_components/jar-plan-form";
+import { JarManualAdjustmentForm } from "./_components/jar-manual-adjustment-form";
 
 export const metadata = {
   title: "Jars | Family Finances",
@@ -76,13 +76,13 @@ export default async function JarsPage({
                 </div>
               </div>
               <div className="flex flex-wrap gap-2">
-                <Button asChild variant="outline">
+                <Button asChild variant="outline" className="rounded-xl">
                   <Link href={`/jars/review`}>
                     Review queue
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
                 </Button>
-                <Button asChild>
+                <Button asChild className="rounded-xl">
                   <Link href={`/jars/setup?month=${month}`}>
                     Thiết lập jars
                     <ArrowRight className="ml-2 h-4 w-4" />
@@ -123,7 +123,7 @@ export default async function JarsPage({
             description="Bắt đầu từ preset 6 jars hoặc tự tạo cấu trúc riêng. Sau khi có jars, thu nhập và savings sẽ bắt đầu được đề xuất gắn vào hũ."
             className="min-h-[280px] border-border/60 bg-slate-50/60"
             action={
-              <Button asChild>
+              <Button asChild className="rounded-xl">
                 <Link href={`/jars/setup?month=${month}`}>Bắt đầu thiết lập</Link>
               </Button>
             }
@@ -161,17 +161,17 @@ export default async function JarsPage({
                             <p className="text-sm text-slate-500">
                               Số dư hiện tại {formatVnd(jar.currentBalance, householdLocale)}.
                               {jar.monthlyIncomePercent > 0
-                                ? ` Ke hoach: ${jar.monthlyIncomePercent.toFixed(0)}% thu nhap`
+                                ? ` Kế hoạch: ${jar.monthlyIncomePercent.toFixed(0)}% thu nhập`
                                 : jar.monthlyTarget > 0
-                                  ? ` Ke hoach: ${formatVnd(jar.monthlyTarget, householdLocale)}/thang`
-                                  : " Chua dat target thang."}
+                                  ? ` Kế hoạch: ${formatVnd(jar.monthlyTarget, householdLocale)}/tháng`
+                                  : " Chưa đặt target tháng."}
                             </p>
                           </div>
                           <div className="flex flex-wrap gap-2">
-                            <Button asChild variant="outline" size="sm">
+                            <Button asChild variant="outline" size="sm" className="rounded-xl">
                               <Link href={`/jars/${jar.id}`}>Xem chi tiết</Link>
                             </Button>
-                            <Button asChild variant="ghost" size="sm">
+                            <Button asChild variant="ghost" size="sm" className="rounded-xl">
                               <Link href={`/jars/setup?month=${month}#rules`}>Sửa rule</Link>
                             </Button>
                           </div>
@@ -203,54 +203,26 @@ export default async function JarsPage({
                         <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_auto]">
                           <div className="rounded-2xl bg-slate-50 p-4">
                             <div className="flex items-center justify-between text-sm">
-                              <span className="font-medium text-slate-600">Tháng này đã cấp vào</span>
+                              <Label className="font-medium text-slate-600">Tháng này đã cấp vào</Label>
                               <span className="font-semibold text-slate-950">
                                 {formatVndCompact(jar.monthInflow, householdLocale)}
                               </span>
                             </div>
                             <div className="mt-2 flex items-center justify-between text-sm">
-                              <span className="font-medium text-slate-600">Tháng này đã dùng / giảm</span>
+                              <Label className="font-medium text-slate-600">Tháng này đã dùng / giảm</Label>
                               <span className="font-semibold text-slate-950">
                                 {formatVndCompact(jar.monthOutflow, householdLocale)}
                               </span>
                             </div>
                           </div>
 
-                          <form
-                            action={upsertJarPlanAction}
-                            className="grid gap-2 rounded-2xl border border-border/60 bg-slate-50 p-4 sm:grid-cols-2 lg:min-w-[360px]"
-                          >
-                            <input type="hidden" name="jarId" value={jar.id} />
-                            <input type="hidden" name="month" value={month} />
-                            <input type="hidden" name="returnTo" value={`/jars?month=${month}`} />
-                            <div className="space-y-1.5">
-                              <Label htmlFor={`fixed-${jar.id}`}>So tien thang</Label>
-                              <Input
-                                id={`fixed-${jar.id}`}
-                                name="fixedAmount"
-                                type="number"
-                                min="0"
-                                defaultValue={jar.monthlyTarget}
-                              />
-                            </div>
-                            <div className="space-y-1.5">
-                              <Label htmlFor={`percent-${jar.id}`}>% thu nhap</Label>
-                              <Input
-                                id={`percent-${jar.id}`}
-                                name="incomePercent"
-                                type="number"
-                                min="0"
-                                max="100"
-                                step="0.01"
-                                defaultValue={jar.monthlyIncomePercent}
-                              />
-                            </div>
-                            <div className="sm:col-span-2 flex justify-end">
-                              <Button type="submit" size="sm">
-                                Luu ke hoach thang
-                              </Button>
-                            </div>
-                          </form>
+                          <JarPlanForm
+                            jarId={jar.id}
+                            month={month}
+                            defaultFixed={jar.monthlyTarget}
+                            defaultPercent={jar.monthlyIncomePercent}
+                            returnTo={`/jars?month=${month}`}
+                          />
                         </div>
                       </div>
                     );
@@ -267,8 +239,8 @@ export default async function JarsPage({
                     {data.reviews.length === 0 ? (
                       <EmptyState
                         icon={Eye}
-                        title="Khong co movement cho review"
-                        description="Thu nhap va savings se xuat hien o day khi he thong chua du chac chan de gan vao hu."
+                        title="Không có movement cho review"
+                        description="Thu nhập và savings sẽ xuất hiện ở đây khi hệ thống chưa đủ chắc chắn để gắn vào hũ."
                         className="min-h-[180px] border-0 bg-transparent p-0"
                       />
                     ) : (
@@ -308,69 +280,22 @@ export default async function JarsPage({
                         </div>
                       ))
                     )}
-                    <Button asChild className="w-full">
-                      <Link href="/jars/review">Mo review queue</Link>
+                    <Button asChild className="w-full rounded-xl">
+                      <Link href="/jars/review">Mở review queue</Link>
                     </Button>
                   </CardContent>
                 </Card>
 
                 <Card className="border-border/60">
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-lg">Dieu chinh thu cong</CardTitle>
+                    <CardTitle className="text-lg">Điều chỉnh thủ công</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <form action={addManualJarAdjustmentAction} className="space-y-3">
-                      <input type="hidden" name="returnTo" value={`/jars?month=${month}`} />
-                      <div className="space-y-1.5">
-                        <Label htmlFor="manualJarId">Hu</Label>
-                        <select
-                          id="manualJarId"
-                          name="jarId"
-                          className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-                          defaultValue={data.items[0]?.id ?? ""}
-                        >
-                          {data.items.map((jar) => (
-                            <option key={jar.id} value={jar.id}>
-                              {jar.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="grid gap-3 sm:grid-cols-2">
-                        <div className="space-y-1.5">
-                          <Label htmlFor="manualDirection">Huong</Label>
-                          <select
-                            id="manualDirection"
-                            name="direction"
-                            className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-                            defaultValue="in"
-                          >
-                            <option value="in">Tang so du</option>
-                            <option value="out">Giam so du</option>
-                          </select>
-                        </div>
-                        <div className="space-y-1.5">
-                          <Label htmlFor="manualDate">Ngay</Label>
-                          <Input
-                            id="manualDate"
-                            name="movementDate"
-                            type="date"
-                            defaultValue={new Date().toISOString().slice(0, 10)}
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label htmlFor="manualAmount">So tien</Label>
-                        <Input id="manualAmount" name="amount" type="number" min="1" />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label htmlFor="manualNote">Ghi chu</Label>
-                        <Input id="manualNote" name="note" placeholder="Ly do dieu chinh" />
-                      </div>
-                      <Button type="submit" className="w-full">
-                        Ghi nhan dieu chinh
-                      </Button>
-                    </form>
+                    <JarManualAdjustmentForm
+                      jars={data.items}
+                      month={month}
+                      returnTo={`/jars?month=${month}`}
+                    />
                   </CardContent>
                 </Card>
               </div>
@@ -394,10 +319,10 @@ function SummaryCard({
   return (
     <Card className="border-border/60 bg-white/90">
       <CardContent className="p-4">
-        <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+        <Label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-2">
           {title}
-        </p>
-        <p className="mt-2 text-2xl font-bold text-slate-950">{value}</p>
+        </Label>
+        <p className="text-2xl font-bold text-slate-950">{value}</p>
         <p className="mt-1 text-sm text-slate-500">{helper}</p>
       </CardContent>
     </Card>
@@ -417,7 +342,7 @@ function MiniMetric({
     <div className="rounded-2xl border border-border/60 bg-slate-50 p-3">
       <div className="flex items-center gap-2 text-slate-500">
         <Icon className="h-4 w-4" />
-        <span className="text-xs font-medium">{label}</span>
+        <Label className="text-xs font-medium cursor-default">{label}</Label>
       </div>
       <p className="mt-2 text-sm font-semibold text-slate-950">{value}</p>
     </div>

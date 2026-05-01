@@ -1,5 +1,6 @@
 import { formatVndCompact } from "@/lib/dashboard/format";
 import { Card, CardContent } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 
 type Props = {
   totalAllocated: number;
@@ -22,9 +23,9 @@ export function JarSummaryCards({
     <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
       <Card>
         <CardContent className="p-4">
-          <p className="text-[11px] font-bold uppercase text-muted-foreground">
+          <Label className="text-[11px] font-bold uppercase text-muted-foreground block mb-1">
             {vi ? "Đã phân bổ" : "Allocated"}
-          </p>
+          </Label>
           <p className="text-lg font-bold text-emerald-600">
             {formatVndCompact(totalAllocated, locale)}
           </p>
@@ -33,9 +34,9 @@ export function JarSummaryCards({
 
       <Card>
         <CardContent className="p-4">
-          <p className="text-[11px] font-bold uppercase text-muted-foreground">
+          <Label className="text-[11px] font-bold uppercase text-muted-foreground block mb-1">
             {vi ? "Đã rút" : "Withdrawn"}
-          </p>
+          </Label>
           <p className="text-lg font-bold text-amber-600">
             {formatVndCompact(totalWithdrawn, locale)}
           </p>
@@ -44,9 +45,9 @@ export function JarSummaryCards({
 
       <Card>
         <CardContent className="p-4">
-          <p className="text-[11px] font-bold uppercase text-muted-foreground">
+          <Label className="text-[11px] font-bold uppercase text-muted-foreground block mb-1">
             {vi ? "Số dư hũ" : "Jar Net"}
-          </p>
+          </Label>
           <p className="text-lg font-bold text-primary">
             {formatVndCompact(netBalance, locale)}
           </p>
@@ -55,9 +56,9 @@ export function JarSummaryCards({
 
       <Card>
         <CardContent className="p-4">
-          <p className="text-[11px] font-bold uppercase text-muted-foreground">
+          <Label className="text-[11px] font-bold uppercase text-muted-foreground block mb-1">
             {vi ? "Đạt mục tiêu" : "Coverage"}
-          </p>
+          </Label>
           <p className="text-lg font-bold">{Math.round(coveragePercent)}%</p>
         </CardContent>
       </Card>

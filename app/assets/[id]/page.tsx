@@ -20,6 +20,11 @@ import { buildValuationTimeline } from "@/lib/assets/timeline";
 import { formatNumber, formatVnd } from "@/lib/dashboard/format";
 import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
 import { createClient } from "@/lib/supabase/server";
+import {
+  getAssetClassConfig,
+  getCashflowLabel,
+  type CashflowFlowType,
+} from "@/lib/assets/class-config";
 
 type AssetDetailPageProps = {
   params: Promise<{ id: string }>;
@@ -36,7 +41,7 @@ export default async function AssetDetailPage({
 
   const assetResult = await supabase
     .from("assets")
-    .select("id, name, asset_class, unit_label, quantity, is_liquid")
+    .select("id, name, asset_class, unit_label, quantity, is_liquid, metadata, valuation_method, risk_level, acquisition_cost, acquisition_date")
     .eq("household_id", householdId)
     .eq("id", id)
     .maybeSingle();
@@ -118,40 +123,21 @@ export default async function AssetDetailPage({
   const unrealizedPnl = currentValue - totalInvested;
   const roi = totalInvested > 0 ? (unrealizedPnl / totalInvested) * 100 : 0;
 
-  const assetClassLabel =
-    asset.asset_class === "gold"
-      ? vi
-        ? "Vàng"
-        : "Gold"
-      : asset.asset_class === "mutual_fund"
-        ? vi
-          ? "Quỹ mở"
-          : "Mutual fund"
-        : asset.asset_class === "real_estate"
-          ? vi
-            ? "Bất động sản"
-            : "Real estate"
-          : asset.asset_class === "savings_deposit"
-            ? vi
-              ? "Tiền gửi tiết kiệm"
-              : "Savings deposit"
-            : asset.asset_class === "stock"
-              ? vi
-                ? "Cổ phiếu"
-                : "Stock"
-              : asset.asset_class === "crypto"
-                ? vi
-                  ? "Tiền mã hóa"
-                  : "Cryptocurrency"
-                : asset.asset_class === "other"
-                  ? vi
-                    ? "Khác"
-                    : "Other"
-                  : asset.asset_class.replace(/_/g, " ");
+  const classConfig = getAssetClassConfig(asset.asset_class);
+  const assetClassLabel = vi ? classConfig.labelVi : classConfig.labelEn;
+  const isTracker = classConfig.isInvestmentTracker;
+  const assetMetadata = (asset.metadata ?? {}) as Record<string, unknown>;
 
-  const isTracker = ["mutual_fund", "stock", "crypto", "real_estate"].includes(
-    asset.asset_class,
-  );
+  // Risk level label
+  const riskLabels: Record<string, [string, string]> = {
+    low: ["Thấp", "Low"],
+    medium: ["Trung bình", "Medium"],
+    high: ["Cao", "High"],
+    very_high: ["Rất cao", "Very High"],
+  };
+  const riskLabel = asset.risk_level
+    ? (riskLabels[asset.risk_level]?.[vi ? 0 : 1] ?? asset.risk_level)
+    : null;
 
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-6">
@@ -297,17 +283,11 @@ export default async function AssetDetailPage({
                         const accountName = accountId
                           ? (accountMap.get(accountId) ?? "Unknown account")
                           : "Unknown account";
-                        const cfLabel = vi
-                          ? cf.flow_type === "contribution"
-                            ? "Đóng góp/Mua"
-                            : cf.flow_type === "withdrawal"
-                              ? "Rút tiền/Bán"
-                              : cf.flow_type === "income"
-                                ? "Thu nhập"
-                                : cf.flow_type === "fee"
-                                  ? "Phí"
-                                  : "Thuế"
-                          : cf.flow_type;
+                        const cfLabel = getCashflowLabel(
+                          asset.asset_class,
+                          cf.flow_type as CashflowFlowType,
+                          vi,
+                        );
 
                         return (
                           <li
@@ -338,6 +318,57 @@ export default async function AssetDetailPage({
             </CardContent>
           </Card>
         )}
+
+        {/* ── Metadata Details Card ── */}
+        {classConfig.metadataFields.length > 0 &&
+          Object.keys(assetMetadata).length > 0 && (
+            <Card>
+              <CardContent className="p-4 space-y-2">
+                <p className="text-sm font-semibold text-slate-800">
+                  {vi ? "Thông tin chi tiết" : "Asset Details"}
+                </p>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                  {classConfig.metadataFields.map((field) => {
+                    const val = assetMetadata[field.key];
+                    if (val === undefined || val === null || val === "")
+                      return null;
+                    let display = String(val);
+                    if (field.type === "select" && field.options) {
+                      const opt = field.options.find(
+                        (o) => o.value === val,
+                      );
+                      if (opt) display = vi ? opt.labelVi : opt.labelEn;
+                    }
+                    if (field.type === "boolean") {
+                      display = val === true || val === "true"
+                        ? (vi ? "Có" : "Yes")
+                        : (vi ? "Không" : "No");
+                    }
+                    return (
+                      <div key={field.key}>
+                        <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">
+                          {vi ? field.labelVi : field.labelEn}
+                        </p>
+                        <p className="text-sm text-slate-800 mt-0.5">
+                          {display}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+                {riskLabel && (
+                  <div className="pt-2 border-t border-slate-100">
+                    <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">
+                      {vi ? "Mức rủi ro" : "Risk Level"}
+                    </p>
+                    <p className="text-sm text-slate-800 mt-0.5">
+                      {riskLabel}
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <HistoryEntryForm

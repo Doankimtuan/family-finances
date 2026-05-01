@@ -1,7 +1,6 @@
 "use client";
 
 import { useActionState, useMemo, useState, useTransition } from "react";
-
 import {
   deleteTransactionAction,
   updateTransactionAction,
@@ -10,8 +9,7 @@ import {
   initialTransactionActionState,
   type TransactionActionState,
 } from "@/app/transactions/action-types";
-import { formatVnd } from "@/lib/dashboard/format";
-import { formatDate } from "@/lib/dashboard/format";
+import { formatVnd, formatDate } from "@/lib/dashboard/format";
 import { useI18n } from "@/lib/providers/i18n-provider";
 import {
   Select,
@@ -20,6 +18,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   ArrowUpRight,
   ArrowDownRight,
@@ -30,6 +31,7 @@ import {
   CreditCard,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 type TransactionItem = {
   id: string;
@@ -84,6 +86,36 @@ function TransactionRow({
 
   const isIncome = type === "income";
   const isTransfer = type === "transfer";
+
+  const handleDelete = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!window.confirm(vi ? "Xóa giao dịch này?" : "Delete this transaction?"))
+      return;
+    const fd = new FormData(event.currentTarget);
+    startTransition(async () => {
+      const result = await deleteTransactionAction(deleteState, fd);
+      if (result.status === "success") {
+        toast.success(result.message);
+      } else if (result.status === "error") {
+        toast.error(result.message);
+      }
+    });
+  };
+
+  const handleEdit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const fd = new FormData(event.currentTarget);
+    fd.set("type", type);
+    startTransition(async () => {
+      const result = await updateTransactionAction(editState, fd);
+      if (result.status === "success") {
+        toast.success(result.message);
+        setIsEditing(false);
+      } else if (result.status === "error") {
+        toast.error(result.message);
+      }
+    });
+  };
 
   return (
     <li className="group bg-card hover:bg-muted/30 transition-colors">
@@ -167,37 +199,29 @@ function TransactionRow({
             {formatVnd(item.amount, locale)}
           </p>
           <div className="flex items-center justify-end gap-1 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="icon"
               disabled={item.transaction_subtype?.startsWith("savings_")}
               onClick={() => setIsEditing(!isEditing)}
-              className="p-1 rounded-md hover:bg-slate-100 text-slate-400 hover:text-primary transition-colors"
+              className="h-7 w-7 text-slate-400 hover:text-primary"
               title={vi ? "Sửa" : "Edit"}
             >
               <Pencil className="h-3.5 w-3.5" />
-            </button>
-            <form
-              onSubmit={(event) => {
-                event.preventDefault();
-                if (
-                  !window.confirm(
-                    vi ? "Xóa giao dịch này?" : "Delete this transaction?",
-                  )
-                )
-                  return;
-                const fd = new FormData(event.currentTarget);
-                startTransition(() => deleteAction(fd));
-              }}
-            >
+            </Button>
+            <form onSubmit={handleDelete}>
               <input type="hidden" name="transactionId" value={item.id} />
-              <button
+              <Button
                 type="submit"
+                variant="ghost"
+                size="icon"
                 disabled={isPending || item.transaction_subtype?.startsWith("savings_")}
-                className="p-1 rounded-md hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors"
+                className="h-7 w-7 text-slate-400 hover:text-rose-600 hover:bg-rose-50"
                 title={vi ? "Xóa" : "Delete"}
               >
                 <Trash2 className="h-3.5 w-3.5" />
-              </button>
+              </Button>
             </form>
           </div>
         </div>
@@ -206,79 +230,89 @@ function TransactionRow({
       {isEditing ? (
         <form
           className="mt-2 space-y-3 border-t border-border/50 pt-4 px-4 pb-4 animate-in fade-in slide-in-from-top-2 duration-300"
-          onSubmit={(event) => {
-            event.preventDefault();
-            const fd = new FormData(event.currentTarget);
-            fd.set("type", type);
-            startTransition(() => editAction(fd));
-          }}
+          onSubmit={handleEdit}
         >
           <input type="hidden" name="transactionId" value={item.id} />
           <input type="hidden" name="type" value={type} />
 
           <div className="grid grid-cols-3 gap-2 rounded-xl bg-slate-100 p-1">
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="sm"
               onClick={() => setType("expense")}
-              className={`rounded-lg px-2 py-2 text-xs font-bold transition-all ${type === "expense" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+              className={cn(
+                "rounded-lg transition-all text-xs font-bold",
+                type === "expense" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
+              )}
             >
               {vi ? "Chi tiêu" : "Expense"}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="ghost"
+              size="sm"
               onClick={() => setType("income")}
-              className={`rounded-lg px-2 py-2 text-xs font-bold transition-all ${type === "income" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+              className={cn(
+                "rounded-lg transition-all text-xs font-bold",
+                type === "income" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
+              )}
             >
               {vi ? "Thu nhập" : "Income"}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="ghost"
+              size="sm"
               onClick={() => setType("transfer")}
-              className={`rounded-lg px-2 py-2 text-xs font-bold transition-all ${type === "transfer" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+              className={cn(
+                "rounded-lg transition-all text-xs font-bold",
+                type === "transfer" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
+              )}
             >
               {vi ? "Chuyển khoản" : "Transfer"}
-            </button>
+            </Button>
           </div>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div className="space-y-1">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 ml-1">
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 ml-1">
                 {vi ? "Số tiền" : "Amount"}
-              </label>
-              <input
+              </Label>
+              <Input
                 name="amount"
                 type="number"
                 min={1}
                 step={1}
                 required
                 defaultValue={Math.round(item.amount)}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 focus:bg-white focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                className="bg-slate-50 focus:bg-white"
               />
             </div>
-            <div className="space-y-1">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 ml-1">
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 ml-1">
                 {vi ? "Ngày tháng" : "Date"}
-              </label>
-              <input
+              </Label>
+              <Input
                 name="transactionDate"
                 type="date"
                 required
                 defaultValue={item.transaction_date.slice(0, 10)}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 focus:bg-white focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                className="bg-slate-50 focus:bg-white"
               />
             </div>
           </div>
 
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 ml-1">
+          <div className="space-y-1.5">
+            <Label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 ml-1">
               {vi ? "Tài khoản" : "Account"}
-            </label>
+            </Label>
             <Select
               name="accountId"
               required
               defaultValue={item.account_id ?? undefined}
             >
-              <SelectTrigger className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-5 text-sm text-slate-900 focus:bg-white focus:ring-2 focus:ring-primary/20 outline-none transition-all">
+              <SelectTrigger className="w-full bg-slate-50 focus:bg-white">
                 <SelectValue placeholder={t("transactions.account")} />
               </SelectTrigger>
               <SelectContent>
@@ -292,16 +326,16 @@ function TransactionRow({
           </div>
 
           {type === "transfer" ? (
-            <div className="space-y-1">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 ml-1">
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 ml-1">
                 {vi ? "Tài khoản đích" : "To Account"}
-              </label>
+              </Label>
               <Select
                 name="counterpartyAccountId"
                 required
                 defaultValue={item.counterparty_account_id ?? undefined}
               >
-                <SelectTrigger className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-5 text-sm text-slate-900 focus:bg-white focus:ring-2 focus:ring-primary/20 outline-none transition-all">
+                <SelectTrigger className="w-full bg-slate-50 focus:bg-white">
                   <SelectValue
                     placeholder={
                       vi ? "Chọn tài khoản đích" : "Select destination account"
@@ -318,16 +352,16 @@ function TransactionRow({
               </Select>
             </div>
           ) : (
-            <div className="space-y-1">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 ml-1">
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 ml-1">
                 {vi ? "Danh mục" : "Category"}
-              </label>
+              </Label>
               <Select
                 name="categoryId"
                 required={type === "expense"}
                 defaultValue={item.category_id ?? undefined}
               >
-                <SelectTrigger className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-5 text-sm text-slate-900 focus:bg-white focus:ring-2 focus:ring-primary/20 outline-none transition-all">
+                <SelectTrigger className="w-full bg-slate-50 focus:bg-white">
                   <SelectValue
                     placeholder={
                       type === "expense"
@@ -357,23 +391,23 @@ function TransactionRow({
             </div>
           )}
 
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 ml-1">
+          <div className="space-y-1.5">
+            <Label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 ml-1">
               {vi ? "Ghi chú" : "Note"}
-            </label>
-            <input
+            </Label>
+            <Input
               name="description"
               defaultValue={item.description ?? ""}
               placeholder={vi ? "Ghi chú (không bắt buộc)" : "Optional note"}
-              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 focus:bg-white focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+              className="bg-slate-50 focus:bg-white"
             />
           </div>
 
           <div className="flex gap-2 pt-2">
-            <button
+            <Button
               type="submit"
               disabled={isPending}
-              className="flex-1 rounded-xl bg-slate-900 px-4 py-3 text-sm font-bold text-white shadow-lg active:scale-[0.98] transition-all disabled:opacity-60"
+              className="flex-1 font-bold"
             >
               {isPending
                 ? vi
@@ -382,36 +416,26 @@ function TransactionRow({
                 : vi
                   ? "Lưu thay đổi"
                   : "Save changes"}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="outline"
               onClick={() => setIsEditing(false)}
-              className="rounded-xl border border-slate-200 px-4 py-3 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all"
+              className="font-bold"
             >
               {vi ? "Hủy" : "Cancel"}
-            </button>
+            </Button>
           </div>
-
-          {editState.status === "error" && editState.message ? (
-            <p className="text-sm text-rose-600 font-medium">
-              {editState.message}
-            </p>
-          ) : null}
-          {editState.status === "success" && editState.message ? (
-            <p className="text-sm text-emerald-600 font-medium">
-              {editState.message}
-            </p>
-          ) : null}
         </form>
       ) : null}
 
-      {deleteState.status === "error" && deleteState.message ? (
-        <p className="mt-2 text-sm text-rose-600 font-medium">
-          {deleteState.message}
+      {editState.status === "error" && editState.message ? (
+        <p className="mt-2 text-sm text-rose-600 font-medium px-4 pb-4">
+          {editState.message}
         </p>
       ) : null}
-      {deleteState.status === "success" && deleteState.message ? (
-        <p className="mt-2 text-sm text-emerald-600 font-medium">
+      {deleteState.status === "error" && deleteState.message ? (
+        <p className="mt-2 text-sm text-rose-600 font-medium px-4 pb-4">
           {deleteState.message}
         </p>
       ) : null}

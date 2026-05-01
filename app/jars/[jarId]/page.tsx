@@ -1,10 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ChevronLeft } from "lucide-react";
 
 import { AppHeader } from "@/components/layout/app-header";
 import { AppShell } from "@/components/layout/app-shell";
 import { BottomTabBar } from "@/components/layout/bottom-tab-bar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { formatVndCompact } from "@/lib/dashboard/format";
 import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
 import { createClient } from "@/lib/supabase/server";
@@ -77,17 +80,21 @@ export default async function JarDetailPage({
     >
       <div className="space-y-6 pb-24">
         <div>
-          <Link href="/jars" className="text-sm font-medium text-primary hover:underline">
-            ← Quay lại Jars
-          </Link>
+          <Button variant="ghost" size="sm" asChild className="-ml-2 h-8 px-2 text-primary hover:text-primary/80">
+            <Link href="/jars">
+              <ChevronLeft className="mr-1 h-4 w-4" />
+              Quay lại Jars
+            </Link>
+          </Button>
           <h1 className="mt-2 text-2xl font-bold text-slate-950">{jar.name}</h1>
           <p className="mt-2 text-sm text-slate-600">
-            Jar type: {jar.jar_type} · Spend policy: {jar.spend_policy}
+            Jar type: <span className="font-medium text-slate-900">{jar.jar_type}</span> · 
+            Spend policy: <span className="font-medium text-slate-900">{jar.spend_policy}</span>
           </p>
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <Metric title="So du hien tai" value={formatVndCompact(Number(balance?.current_balance ?? 0), householdLocale)} />
+          <Metric title="Số dư hiện tại" value={formatVndCompact(Number(balance?.current_balance ?? 0), householdLocale)} />
           <Metric title="Trong cash" value={formatVndCompact(Number(balance?.held_in_cash ?? 0), householdLocale)} />
           <Metric title="Trong savings" value={formatVndCompact(Number(balance?.held_in_savings ?? 0), householdLocale)} />
           <Metric title="Trong investments/assets" value={formatVndCompact(Number(balance?.held_in_investments ?? 0) + Number(balance?.held_in_assets ?? 0), householdLocale)} />
@@ -98,7 +105,7 @@ export default async function JarDetailPage({
         <div className="grid gap-4 lg:grid-cols-2">
           <Card className="border-border/60">
             <CardHeader>
-              <CardTitle>Holdings theo vi tri</CardTitle>
+              <CardTitle className="text-lg">Holdings theo vị trí</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <HoldingRow label="Cash" value={Number(balance?.held_in_cash ?? 0)} locale={householdLocale} />
@@ -110,13 +117,13 @@ export default async function JarDetailPage({
 
           <Card className="border-border/60">
             <CardHeader>
-              <CardTitle>Movements gan day</CardTitle>
+              <CardTitle className="text-lg">Movements gần đây</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               {(movementsResult.data ?? []).map((movement) => (
                 <div
                   key={movement.id}
-                  className="rounded-2xl border border-border/60 bg-white p-4"
+                  className="rounded-2xl border border-border/60 bg-white p-4 shadow-sm"
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div>
@@ -127,7 +134,7 @@ export default async function JarDetailPage({
                         {movement.movement_date} · {movement.location_from ?? "?"} → {movement.location_to ?? "?"}
                       </p>
                     </div>
-                    <span className="text-sm font-semibold text-slate-950">
+                    <span className={`text-sm font-semibold ${movement.balance_delta === -1 ? "text-rose-600" : movement.balance_delta === 1 ? "text-emerald-600" : "text-slate-950"}`}>
                       {movement.balance_delta === -1 ? "-" : movement.balance_delta === 1 ? "+" : ""}
                       {formatVndCompact(Number(movement.amount ?? 0), householdLocale)}
                     </span>
@@ -144,10 +151,10 @@ export default async function JarDetailPage({
 
 function Metric({ title, value }: { title: string; value: string }) {
   return (
-    <Card className="border-border/60">
+    <Card className="border-border/60 shadow-sm">
       <CardContent className="p-4">
-        <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">{title}</p>
-        <p className="mt-2 text-2xl font-bold text-slate-950">{value}</p>
+        <Label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-2">{title}</Label>
+        <p className="text-2xl font-bold text-slate-950">{value}</p>
       </CardContent>
     </Card>
   );
@@ -164,7 +171,7 @@ function HoldingRow({
 }) {
   return (
     <div className="flex items-center justify-between rounded-2xl border border-border/60 bg-slate-50 px-4 py-3">
-      <span className="text-sm text-slate-600">{label}</span>
+      <Label className="text-sm text-slate-600 font-medium cursor-default">{label}</Label>
       <span className="text-sm font-semibold text-slate-950">
         {formatVndCompact(value, locale)}
       </span>

@@ -2,6 +2,8 @@ import Link from "next/link";
 import { formatVndCompact } from "@/lib/dashboard/format";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 
 import { JarEntryDialog } from "./jar-entry-dialog";
 import { JarSettingsDialog } from "./jar-settings-dialog";
@@ -125,33 +127,33 @@ export function JarMonthlyOverview({
             <CardContent className="space-y-4 pt-4">
               <div className="grid grid-cols-2 gap-3 md:grid-cols-4 text-sm">
                 <div>
-                  <p className="text-[10px] uppercase text-muted-foreground font-bold">
+                  <Label className="text-[10px] uppercase text-muted-foreground font-bold block mb-1">
                     {vi ? "Mục tiêu" : "Target"}
-                  </p>
+                  </Label>
                   <p className="font-semibold">
                     {formatVndCompact(Number(ov?.target_amount ?? 0), locale)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-[10px] uppercase text-muted-foreground font-bold">
+                  <Label className="text-[10px] uppercase text-muted-foreground font-bold block mb-1">
                     {vi ? "Phân bổ" : "Allocated"}
-                  </p>
+                  </Label>
                   <p className="font-semibold text-emerald-600">
                     {formatVndCompact(Number(ov?.allocated_amount ?? 0), locale)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-[10px] uppercase text-muted-foreground font-bold">
+                  <Label className="text-[10px] uppercase text-muted-foreground font-bold block mb-1">
                     {vi ? "Rút" : "Withdrawn"}
-                  </p>
+                  </Label>
                   <p className="font-semibold text-amber-600">
                     {formatVndCompact(Number(ov?.withdrawn_amount ?? 0), locale)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-[10px] uppercase text-muted-foreground font-bold">
+                  <Label className="text-[10px] uppercase text-muted-foreground font-bold block mb-1">
                     {vi ? "Số dư" : "Net"}
-                  </p>
+                  </Label>
                   <p className="font-semibold">
                     {formatVndCompact(Number(ov?.net_amount ?? 0), locale)}
                   </p>
@@ -160,9 +162,9 @@ export function JarMonthlyOverview({
 
               <div className="rounded-2xl border border-border/60 bg-slate-50/60 p-3 text-sm">
                 <div className="flex items-center justify-between gap-3">
-                  <p className="font-medium text-foreground">
+                  <Label className="font-medium text-foreground">
                     {vi ? "Trạng thái tháng" : "Monthly status"}
-                  </p>
+                  </Label>
                   <span className="text-xs font-semibold text-muted-foreground">
                     {coverage}%
                   </span>
@@ -191,12 +193,11 @@ export function JarMonthlyOverview({
                   defaultValue={Number(target?.target_value ?? 0)}
                   vi={vi}
                 />
-                <Link
-                  href={`/jars/${jar.id}/history`}
-                  className="inline-flex h-9 items-center rounded-xl border border-input px-3 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-accent"
-                >
-                  {vi ? "Xem lịch sử" : "View history"}
-                </Link>
+                <Button variant="outline" size="sm" asChild className="rounded-xl">
+                  <Link href={`/jars/${jar.id}/history`}>
+                    {vi ? "Xem lịch sử" : "View history"}
+                  </Link>
+                </Button>
                 <JarSettingsDialog
                   jarId={jar.id}
                   jarName={jar.name}

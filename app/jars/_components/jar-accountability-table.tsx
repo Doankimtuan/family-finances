@@ -1,6 +1,7 @@
 import { formatVndCompact } from "@/lib/dashboard/format";
-
 import { runJarReconciliationDirectAction } from "@/app/jars/actions";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 
 type Row = {
   id: string;
@@ -22,19 +23,21 @@ export function JarAccountabilityTable({ rows, month, locale, vi }: Props) {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-xs text-muted-foreground">
+        <Label className="text-xs text-muted-foreground font-normal">
           {vi
             ? "So sánh chi tiêu thực tế với phần tiền đã phân bổ từ từng hũ."
             : "Compare actual spending with the money allocated from each jar."}
-        </p>
+        </Label>
         <form action={runJarReconciliationDirectAction}>
           <input type="hidden" name="month" value={month} />
-          <button
-            className="rounded-md border px-3 py-1.5 text-xs font-semibold hover:bg-muted"
+          <Button
+            variant="outline"
+            size="sm"
             type="submit"
+            className="text-xs h-8"
           >
             {vi ? "Cập nhật lại dữ liệu" : "Refresh data"}
-          </button>
+          </Button>
         </form>
       </div>
 

@@ -9,6 +9,7 @@ import { SectionHeader } from "@/components/ui/section-header";
 import { Progress } from "@/components/ui/progress";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
 import {
   formatDate,
   formatVnd,
@@ -29,6 +30,7 @@ import {
   Clock,
   Sparkles,
   AlertCircle,
+  ArrowRight,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -119,7 +121,7 @@ export default async function GoalsPage() {
       footer={<BottomTabBar />}
     >
       <div className="space-y-6 pb-24 animate-in fade-in slide-in-from-bottom-4 duration-700">
-        <Card className="border-primary/20 bg-primary/5">
+        <Card className="border-primary/20 bg-primary/5 shadow-sm">
           <CardHeader>
             <SectionHeader
               label="Planning"
@@ -164,7 +166,7 @@ export default async function GoalsPage() {
               }
             />
           ) : (
-            <div className="grid grid-cols-1 gap-4">
+            <div className="grid grid-cols-1 gap-6">
               {goals.map((goal) => {
                 const rows = contributionsByGoal.get(goal.id) ?? [];
                 const savingsLinkedValue = savingsItems
@@ -262,9 +264,9 @@ export default async function GoalsPage() {
                   <Card
                     key={goal.id}
                     className={cn(
-                      "overflow-hidden group transition-all duration-300",
+                      "overflow-hidden group transition-all duration-300 shadow-sm",
                       paceStatus === "behind"
-                        ? "border-warning/50 hover:border-warning"
+                        ? "border-rose-200 hover:border-rose-300"
                         : "hover:border-primary/30",
                     )}
                   >
@@ -274,23 +276,22 @@ export default async function GoalsPage() {
                         className={cn(
                           "p-5 pb-4 border-b",
                           paceStatus === "behind"
-                            ? "bg-warning/5 border-warning/10"
+                            ? "bg-rose-50 border-rose-100"
                             : paceStatus === "on_track"
-                              ? "bg-success/5 border-success/10"
+                              ? "bg-emerald-50 border-emerald-100"
                               : paceStatus === "completed"
                                 ? "bg-primary/5 border-primary/10"
-                                : "bg-muted/10 border-border/50",
+                                : "bg-slate-50 border-slate-100",
                         )}
                       >
                         <div className="flex items-start justify-between gap-4 mb-3">
                           <div className="min-w-0">
-                            <h3 className="truncate text-lg font-bold text-foreground mb-1">
+                            <h3 className="truncate text-lg font-bold text-slate-900 mb-1">
                               {goal.name}
                             </h3>
                             <div className="flex items-center gap-2">
                               {paceStatus === "completed" ? (
                                 <Badge
-                                  variant="default"
                                   className="bg-primary/20 text-primary hover:bg-primary/20 border-transparent text-[10px] uppercase font-bold"
                                 >
                                   <Sparkles className="mr-1 h-3 w-3" />
@@ -306,8 +307,8 @@ export default async function GoalsPage() {
                                 </Badge>
                               ) : paceStatus === "behind" ? (
                                 <Badge
-                                  variant="warning"
-                                  className="text-[10px] uppercase font-bold"
+                                  variant="destructive"
+                                  className="text-[10px] uppercase font-bold bg-rose-100 text-rose-700 hover:bg-rose-100 border-transparent"
                                 >
                                   <AlertCircle className="mr-1 h-3 w-3" />
                                   {t(language, "goals.behind")}
@@ -321,25 +322,25 @@ export default async function GoalsPage() {
                                   {t(language, "goals.no_deadline")}
                                 </Badge>
                               )}
-                              <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
+                              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
                                 {goalTypeLabel}
                               </span>
                             </div>
                           </div>
                           <div className="text-right shrink-0">
-                            <p className="text-sm font-medium text-muted-foreground mb-1">
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
                               {formatVndCompact(funded, householdLocale)} /{" "}
                               {formatVndCompact(target, householdLocale)}
                             </p>
                             <p
                               className={cn(
-                                "text-xl font-black leading-none",
+                                "text-2xl font-black leading-none",
                                 paceStatus === "on_track" ||
                                   paceStatus === "completed"
-                                  ? "text-success"
+                                  ? "text-emerald-600"
                                   : paceStatus === "behind"
-                                    ? "text-warning"
-                                    : "text-primary",
+                                    ? "text-rose-600"
+                                    : "text-slate-900",
                               )}
                             >
                               {progressValue}%
@@ -349,14 +350,14 @@ export default async function GoalsPage() {
 
                         {/* Actionable insight row */}
                         {paceStatus !== "completed" && (
-                          <div className="pt-2 mt-2 border-t border-border/50">
+                          <div className="pt-2 mt-2 border-t border-slate-200/50">
                             {paceStatus === "behind" ? (
-                              <p className="text-sm text-warning-foreground font-medium flex items-center">
+                              <p className="text-sm text-rose-700 font-medium flex items-center">
                                 {t(language, "goals.missed_by")} {overageMonths}{" "}
                                 {t(language, "goals.months")}.{" "}
                                 <br className="hidden sm:block" />
                                 {neededExtraPerMonth > 0 && (
-                                  <span className="ml-1 text-foreground">
+                                  <span className="ml-1 text-slate-900">
                                     +{" "}
                                     {formatVndCompact(
                                       neededExtraPerMonth,
@@ -367,7 +368,7 @@ export default async function GoalsPage() {
                                 )}
                               </p>
                             ) : paceStatus === "on_track" && etaDate ? (
-                              <p className="text-sm text-success-foreground font-medium flex items-center">
+                              <p className="text-sm text-emerald-700 font-medium flex items-center">
                                 {t(language, "goals.arriving")}{" "}
                                 {formatDate(etaDate, householdLocale, {
                                   month: "long",
@@ -375,7 +376,7 @@ export default async function GoalsPage() {
                                 })}
                               </p>
                             ) : requiredMonthly && requiredMonthly > 0 ? (
-                              <p className="text-sm text-muted-foreground font-medium flex items-center">
+                              <p className="text-sm text-slate-600 font-medium flex items-center">
                                 {formatVndCompact(
                                   requiredMonthly,
                                   householdLocale,
@@ -383,7 +384,7 @@ export default async function GoalsPage() {
                                 /mo needed to hit target
                               </p>
                             ) : (
-                              <p className="text-sm text-muted-foreground font-medium flex items-center">
+                              <p className="text-sm text-slate-500 font-medium flex items-center">
                                 Add a consistent monthly contribution to see
                                 your ETA.
                               </p>
@@ -392,7 +393,7 @@ export default async function GoalsPage() {
                         )}
                       </div>
 
-                      <div className="px-5 py-4 space-y-4">
+                      <div className="px-5 py-5 space-y-5">
                         <Progress
                           value={progressValue}
                           variant={
@@ -455,36 +456,61 @@ export default async function GoalsPage() {
                         </div>
                       </div>
 
-                      <div className="pt-2 px-5 pb-5 bg-muted/5 border-t border-border/50 space-y-3">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-3">
+                      <div className="px-5 py-5 bg-slate-50/50 border-t border-slate-100 space-y-4">
+                        <Label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-3">
                           {vi ? "Quản lý dòng tiền mục tiêu" : "Manage Goal Cash Flows"}
-                        </p>
+                        </Label>
                         <AddContributionForm
                           goalId={goal.id}
                           goalName={goal.name}
                           accounts={accounts.map((account) => ({ id: account.id, name: account.name }))}
                         />
-                        <ul className="space-y-1">
-                          {rows.slice(0, 5).map((row) => {
-                            const source = row.flow_type === "inflow"
-                              ? (row.source_account_id ? accountMap.get(row.source_account_id) ?? (vi ? "Tài khoản không xác định" : "Unknown account") : (vi ? "Tài khoản không xác định" : "Unknown account"))
-                              : goal.name;
-                            const destination = row.flow_type === "inflow"
-                              ? goal.name
-                              : (row.destination_account_id ? accountMap.get(row.destination_account_id) ?? (vi ? "Tài khoản không xác định" : "Unknown account") : (vi ? "Tài khoản không xác định" : "Unknown account"));
+                        
+                        {rows.length > 0 && (
+                          <div className="space-y-2 pt-2">
+                            <Label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                              {vi ? "Lịch sử gần đây" : "Recent History"}
+                            </Label>
+                            <ul className="space-y-2">
+                              {rows.slice(0, 3).map((row) => {
+                                const source = row.flow_type === "inflow"
+                                  ? (row.source_account_id ? accountMap.get(row.source_account_id) ?? (vi ? "Tài khoản không xác định" : "Unknown account") : (vi ? "Tài khoản không xác định" : "Unknown account"))
+                                  : goal.name;
+                                const destination = row.flow_type === "inflow"
+                                  ? goal.name
+                                  : (row.destination_account_id ? accountMap.get(row.destination_account_id) ?? (vi ? "Tài khoản không xác định" : "Unknown account") : (vi ? "Tài khoản không xác định" : "Unknown account"));
 
-                            return (
-                              <li key={row.id} className="rounded-lg border border-slate-200 bg-white px-3 py-2">
-                                <p className="text-xs font-semibold text-slate-700">
-                                  {source} {"->"} {destination}
-                                </p>
-                                <p className="text-xs text-slate-500">
-                                  {formatDate(row.contribution_date, householdLocale)} · {row.flow_type === "outflow" ? "-" : "+"}{formatVndCompact(Number(row.amount), householdLocale)}
-                                </p>
-                              </li>
-                            );
-                          })}
-                        </ul>
+                                return (
+                                  <li key={row.id} className="rounded-xl border border-slate-200/60 bg-white p-3 shadow-sm transition-all hover:border-slate-300">
+                                    <div className="flex items-center justify-between gap-2">
+                                      <div className="flex items-center gap-2 text-xs font-semibold text-slate-800">
+                                        <span className="truncate max-w-[100px]">{source}</span>
+                                        <ArrowRight className="h-3 w-3 text-slate-400 shrink-0" />
+                                        <span className="truncate max-w-[100px]">{destination}</span>
+                                      </div>
+                                      <span className={cn(
+                                        "text-xs font-bold",
+                                        row.flow_type === "outflow" ? "text-rose-600" : "text-emerald-600"
+                                      )}>
+                                        {row.flow_type === "outflow" ? "-" : "+"}{formatVndCompact(Number(row.amount), householdLocale)}
+                                      </span>
+                                    </div>
+                                    <div className="mt-1 flex items-center justify-between">
+                                      <p className="text-[10px] font-medium text-slate-500">
+                                        {formatDate(row.contribution_date, householdLocale)}
+                                      </p>
+                                      {row.note && (
+                                        <p className="text-[10px] italic text-slate-400 truncate max-w-[150px]">
+                                          {row.note}
+                                        </p>
+                                      )}
+                                    </div>
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          </div>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -510,15 +536,15 @@ function GoalStat({
   icon: LucideIcon;
 }) {
   return (
-    <div className="rounded-xl border border-border bg-muted/5 p-3 transition-colors hover:bg-muted/10">
-      <div className="flex items-center gap-1.5 mb-1">
-        <Icon className="h-3 w-3 text-muted-foreground/70" />
-        <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
+    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all hover:border-primary/20 hover:bg-slate-50/30">
+      <div className="flex items-center gap-1.5 mb-2">
+        <Icon className="h-3.5 w-3.5 text-slate-400" />
+        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
           {label}
         </p>
       </div>
-      <p className="text-sm font-bold text-foreground truncate">{value}</p>
-      <p className="text-[10px] text-muted-foreground/80 truncate font-medium">
+      <p className="text-sm font-bold text-slate-900 truncate">{value}</p>
+      <p className="mt-1 text-[10px] text-slate-500 truncate font-medium">
         {sub}
       </p>
     </div>

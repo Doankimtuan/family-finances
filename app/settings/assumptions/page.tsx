@@ -6,12 +6,14 @@ import { SectionHeader } from "@/components/ui/section-header";
 import { t } from "@/lib/i18n/dictionary";
 import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
 import { createClient } from "@/lib/supabase/server";
+import { TrendingUp } from "lucide-react";
 
 import { AssumptionsForm } from "../_components/assumptions-form";
 import { SettingsNav } from "../_components/settings-nav";
 
 export default async function SettingsAssumptionsPage() {
   const { householdId, language } = await getAuthenticatedHouseholdContext();
+  const vi = language === "vi";
   const supabase = await createClient();
 
   const assumptionsResult = await supabase
@@ -31,32 +33,33 @@ export default async function SettingsAssumptionsPage() {
       }
       footer={<BottomTabBar />}
     >
-      <section className="space-y-4">
+      <div className="space-y-6 pb-24 animate-in fade-in slide-in-from-bottom-4 duration-700">
         <SettingsNav currentPath="/settings/assumptions" />
 
-        <Card>
-          <CardHeader>
-            <SectionHeader
-              label={language === "vi" ? "Cài đặt" : "Config"}
-              title={language === "vi" ? "Giả định tài chính" : "Financial Assumptions"}
-              description={
-                language === "vi"
-                  ? "Dùng cho dự báo, công cụ quyết định và mô phỏng mục tiêu dài hạn."
-                  : "Used by forecasts, decision tools, and long-term goal projections."
-              }
-            />
+        <Card className="border-blue-100 shadow-sm overflow-hidden">
+          <CardHeader className="p-0">
+            <div className="p-5 border-b border-blue-50 bg-blue-50/30">
+              <SectionHeader
+                label={vi ? "Cài đặt" : "Config"}
+                title={vi ? "Giả định tài chính" : "Financial Assumptions"}
+                description={
+                  vi
+                    ? "Dùng cho dự báo, công cụ quyết định và mô phỏng mục tiêu dài hạn."
+                    : "Used by forecasts, decision tools, and long-term goal projections."
+                }
+                icon={<TrendingUp className="h-4 w-4 text-blue-600" />}
+              />
+            </div>
           </CardHeader>
-          <CardContent className="p-5 pt-0">
+          <CardContent className="p-6">
             {assumptionsResult.error ? (
-              <p className="text-sm text-destructive">
-                {language === "vi"
-                  ? "Không thể tải giả định:"
-                  : "Failed to load assumptions:"}{" "}
+              <p className="text-sm text-rose-600 font-medium">
+                {vi ? "Không thể tải giả định:" : "Failed to load assumptions:"}{" "}
                 {assumptionsResult.error.message}
               </p>
             ) : !assumptionsResult.data ? (
-              <p className="text-sm text-muted-foreground">
-                {language === "vi"
+              <p className="text-sm text-slate-500 italic">
+                {vi
                   ? "Chưa có dữ liệu giả định cho hộ gia đình này."
                   : "Assumptions are not available for this household yet."}
               </p>
@@ -98,7 +101,7 @@ export default async function SettingsAssumptionsPage() {
             )}
           </CardContent>
         </Card>
-      </section>
+      </div>
     </AppShell>
   );
 }

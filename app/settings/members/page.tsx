@@ -4,13 +4,16 @@ import { redirect } from "next/navigation";
 import { AppHeader } from "@/components/layout/app-header";
 import { AppShell } from "@/components/layout/app-shell";
 import { BottomTabBar } from "@/components/layout/bottom-tab-bar";
-import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { SectionHeader } from "@/components/ui/section-header";
 import { t } from "@/lib/i18n/dictionary";
 import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
 import { createClient } from "@/lib/supabase/server";
+import { Shield, Users } from "lucide-react";
 
-import { SettingsNav } from "../_components/settings-nav";
 import { InviteMemberSection } from "../_components/invite-member-section";
+import { SettingsNav } from "../_components/settings-nav";
 
 export const metadata = {
   title: "Members | Settings | Family Finances",
@@ -27,6 +30,7 @@ function getOriginFromHeaders(headerList: Headers): string {
 
 export default async function SettingsMembersPage() {
   const { householdId, language } = await getAuthenticatedHouseholdContext();
+  const vi = language === "vi";
   const supabase = await createClient();
 
   const {
@@ -92,50 +96,69 @@ export default async function SettingsMembersPage() {
   return (
     <AppShell
       header={
-        <AppHeader title={`${t(language, "settings.title")} / ${t(language, "settings.members")}`} />
+        <AppHeader
+          title={`${t(language, "settings.title")} / ${t(language, "settings.members")}`}
+        />
       }
       footer={<BottomTabBar />}
     >
-      <section className="space-y-4">
+      <div className="space-y-6 pb-24 animate-in fade-in slide-in-from-bottom-4 duration-700">
         <SettingsNav currentPath="/settings/members" />
 
         {/* Current Members */}
-        <Card>
-          <CardContent className="p-5 space-y-4">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">
-                {language === "vi" ? "Thành viên hiện tại" : "Current Members"}
-              </p>
-              <ul className="space-y-2">
-                {members.map((m) => (
-                  <li
-                    key={m.id}
-                    className="flex items-center gap-3 rounded-xl border bg-muted/30 px-4 py-3"
-                  >
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
-                      {(m.profiles?.full_name ?? m.profiles?.email ?? "?")
-                        .charAt(0)
-                        .toUpperCase()}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold text-foreground truncate">
+        <Card className="border-violet-100 shadow-sm overflow-hidden">
+          <CardHeader className="p-0">
+            <div className="p-5 border-b border-violet-50 bg-violet-50/30">
+              <SectionHeader
+                label={vi ? "Thành viên" : "Members"}
+                title={vi ? "Thành viên gia đình" : "Household Members"}
+                description={
+                  vi
+                    ? "Danh sách những người có quyền truy cập vào hộ gia đình này."
+                    : "People who have access to this shared household."
+                }
+                icon={<Users className="h-4 w-4 text-violet-600" />}
+              />
+            </div>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="grid grid-cols-1 gap-3">
+              {members.map((m) => (
+                <div
+                  key={m.id}
+                  className="flex items-center gap-4 rounded-2xl border border-slate-100 bg-slate-50/30 p-4 transition-all hover:bg-white hover:shadow-sm"
+                >
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white shadow-sm border border-slate-100 text-lg font-bold text-primary">
+                    {(m.profiles?.full_name ?? m.profiles?.email ?? "?")
+                      .charAt(0)
+                      .toUpperCase()}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className="text-base font-bold text-slate-900 truncate">
                         {m.profiles?.full_name ?? "—"}
-                        {m.user_id === user.id && (
-                          <span className="ml-2 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
-                            {language === "vi" ? "Bạn" : "You"}
-                          </span>
-                        )}
                       </p>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {m.profiles?.email ?? "—"}
-                      </p>
+                      {m.user_id === user.id && (
+                        <Badge
+                          variant="secondary"
+                          className="bg-primary/10 text-primary text-[10px] font-bold border-none uppercase tracking-widest px-2"
+                        >
+                          {vi ? "Bạn" : "You"}
+                        </Badge>
+                      )}
                     </div>
-                    <span className="shrink-0 text-[10px] font-bold uppercase tracking-wider text-muted-foreground border rounded-full px-2 py-0.5">
+                    <p className="text-xs text-slate-500 font-medium truncate mt-0.5">
+                      {m.profiles?.email ?? "—"}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0 px-3 py-1.5 rounded-xl border border-slate-200 bg-white shadow-xs">
+                    <Shield className="h-3 w-3 text-slate-400" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600">
                       {m.role}
                     </span>
-                  </li>
-                ))}
-              </ul>
+                  </div>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
@@ -147,7 +170,7 @@ export default async function SettingsMembersPage() {
           incomingInvites={incoming}
           language={language}
         />
-      </section>
+      </div>
     </AppShell>
   );
 }

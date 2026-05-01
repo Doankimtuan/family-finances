@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ChevronLeft } from "lucide-react";
 
 import { AppHeader } from "@/components/layout/app-header";
 import { AppShell } from "@/components/layout/app-shell";
@@ -7,12 +8,14 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Label } from "@/components/ui/label";
 import { formatVnd, formatVndCompact } from "@/lib/dashboard/format";
 import { fetchJarCommandCenter } from "@/lib/jars/intent";
 import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
 import { createClient } from "@/lib/supabase/server";
 
 import { resolveJarReviewAction } from "../intent-actions";
+import { JarManualReviewForm } from "../_components/jar-manual-review-form";
 
 export const metadata = {
   title: "Jar Review Queue | Family Finances",
@@ -39,9 +42,12 @@ export default async function JarReviewPage({
     >
       <div className="space-y-6 pb-24">
         <div>
-          <Link href="/jars" className="text-sm font-medium text-primary hover:underline">
-            ← Quay lại Jars
-          </Link>
+          <Button variant="ghost" size="sm" asChild className="-ml-2 h-8 px-2 text-primary hover:text-primary/80">
+            <Link href="/jars">
+              <ChevronLeft className="mr-1 h-4 w-4" />
+              Quay lại Jars
+            </Link>
+          </Button>
           <h1 className="mt-2 text-2xl font-bold text-slate-950">Review queue cho jars</h1>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
             Những transaction hoặc savings event chưa đủ chắc chắn sẽ dừng ở đây. Bạn có thể chấp
@@ -66,7 +72,7 @@ export default async function JarReviewPage({
             description="Hiện chưa có movement nào cần bạn xác nhận. Khi thu nhập mới hoặc savings event chưa map được, chúng sẽ xuất hiện ở đây."
             className="min-h-[280px] border-border/60 bg-slate-50/60"
             action={
-              <Button asChild>
+              <Button asChild className="rounded-xl">
                 <Link href="/jars">Quay lại command center</Link>
               </Button>
             }
@@ -74,9 +80,9 @@ export default async function JarReviewPage({
         ) : (
           <div className="space-y-4">
             {data.reviews.map((review) => (
-              <Card key={review.id} className="border-border/60">
+              <Card key={review.id} className="border-border/60 shadow-sm">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-lg">
+                  <CardTitle className="text-lg font-bold">
                     {review.source_type} · {review.movement_date}
                   </CardTitle>
                 </CardHeader>
@@ -91,8 +97,8 @@ export default async function JarReviewPage({
                       <div className="mt-2 space-y-1">
                         {Object.entries(review.context_json).map(([key, value]) => (
                           <p key={key}>
-                            <span className="font-medium text-slate-500">{key}:</span>{" "}
-                            <span>{String(value)}</span>
+                            <Label className="font-medium text-slate-500 cursor-default">{key}:</Label>{" "}
+                            <span className="text-slate-900">{String(value)}</span>
                           </p>
                         ))}
                       </div>
@@ -101,10 +107,10 @@ export default async function JarReviewPage({
 
                   {review.suggested_allocations.length > 0 ? (
                     <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
-                      <p className="text-sm font-semibold text-emerald-900">
+                      <Label className="text-sm font-semibold text-emerald-900 block mb-3">
                         Gợi ý hiện tại từ hệ thống
-                      </p>
-                      <div className="mt-3 space-y-2">
+                      </Label>
+                      <div className="space-y-2">
                         {review.suggested_allocations.map((suggestion) => (
                           <div
                             key={`${review.id}-${suggestion.jarId}`}
@@ -134,37 +140,24 @@ export default async function JarReviewPage({
                             })),
                           )}
                         />
-                        <Button type="submit">Chấp nhận gợi ý</Button>
+                        <Button type="submit" className="rounded-xl bg-emerald-600 hover:bg-emerald-700">
+                          Chấp nhận gợi ý
+                        </Button>
                       </form>
                     </div>
                   ) : null}
 
-                  <form action={resolveJarReviewAction} className="grid gap-3 sm:grid-cols-[1fr_180px_auto]">
-                    <input type="hidden" name="reviewId" value={review.id} />
-                    <input type="hidden" name="returnTo" value="/jars/review" />
-                    <input type="hidden" name="mode" value="manual" />
-                    <select
-                      name="manualJarId"
-                      className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-                      defaultValue={data.items[0]?.id ?? ""}
-                    >
-                      {data.items.map((jar) => (
-                        <option key={jar.id} value={jar.id}>
-                          {jar.name}
-                        </option>
-                      ))}
-                    </select>
-                    <input
-                      name="manualAmount"
-                      type="number"
-                      min="1"
-                      defaultValue={review.amount}
-                      className="h-10 rounded-md border border-input bg-background px-3 text-sm"
-                    />
-                    <Button type="submit" variant="outline">
+                  <div className="pt-2">
+                    <Label className="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-2">
                       Gán thủ công
-                    </Button>
-                  </form>
+                    </Label>
+                    <JarManualReviewForm
+                      reviewId={review.id}
+                      amount={review.amount}
+                      jars={data.items}
+                      returnTo="/jars/review"
+                    />
+                  </div>
                 </CardContent>
               </Card>
             ))}

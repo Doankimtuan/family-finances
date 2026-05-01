@@ -220,13 +220,20 @@ create table if not exists public.assets (
   include_in_net_worth boolean not null default true,
   is_archived boolean not null default false,
   notes text,
+  metadata jsonb default '{}'::jsonb,
+  valuation_method text default 'manual',
+  target_allocation_pct numeric(5,2) default null,
+  risk_level text default null,
   created_by uuid references public.profiles(user_id) on delete set null,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  constraint assets_asset_class_check check (asset_class in ('cash_equivalent', 'gold', 'mutual_fund', 'stock', 'real_estate', 'savings_deposit', 'vehicle', 'other')),
+  constraint assets_asset_class_check check (asset_class in ('cash_equivalent', 'gold', 'mutual_fund', 'stock', 'real_estate', 'savings_deposit', 'vehicle', 'crypto', 'other')),
   constraint assets_quantity_nonnegative check (quantity >= 0),
   constraint assets_acquisition_cost_nonnegative check (acquisition_cost is null or acquisition_cost >= 0),
-  constraint assets_household_pair_unique unique (id, household_id)
+  constraint assets_household_pair_unique unique (id, household_id),
+  constraint assets_valuation_method_check check (valuation_method in ('manual', 'api', 'appraisal', 'calculated')),
+  constraint assets_risk_level_check check (risk_level is null or risk_level in ('low', 'medium', 'high', 'very_high')),
+  constraint assets_target_allocation_pct_check check (target_allocation_pct is null or (target_allocation_pct >= 0 and target_allocation_pct <= 100))
 );
 comment on table public.assets is 'Master register of non-account holdings (gold, funds, property, deposits, etc.).';
 

@@ -1,20 +1,25 @@
 "use client";
 
 import { useActionState, useTransition } from "react";
+import { useForm, FormProvider } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 
 import {
   initialSettingsActionState,
-  type SettingsActionState,
 } from "@/app/settings/action-types";
 import { updateLanguagePreferenceAction } from "@/app/settings/actions";
 import { useI18n } from "@/lib/providers/i18n-provider";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { RHFSelect } from "@/components/ui/rhf-fields";
+import { Button } from "@/components/ui/button";
+import { Loader2, Check } from "lucide-react";
+import { FormStatus } from "@/components/ui/form-status";
+
+const languageSchema = z.object({
+  language: z.enum(["en", "vi"]),
+});
+
+type LanguageValues = z.infer<typeof languageSchema>;
 
 export function LanguageSwitcher({
   defaultLanguage,
@@ -23,55 +28,58 @@ export function LanguageSwitcher({
 }) {
   const { t, language } = useI18n();
   const vi = language === "vi";
-  const [state, action] = useActionState<SettingsActionState, FormData>(
+  const [state, action] = useActionState(
     updateLanguagePreferenceAction,
     initialSettingsActionState,
   );
   const [isPending, startTransition] = useTransition();
 
-  return (
-    <form
-      className="space-y-2"
-      onSubmit={(event) => {
-        event.preventDefault();
-        const fd = new FormData(event.currentTarget);
-        startTransition(() => action(fd));
-      }}
-    >
-      <label
-        htmlFor="quick-language"
-        className="text-sm font-medium text-foreground"
-      >
-        {t("settings.language")}
-      </label>
-      <div className="flex items-center gap-2">
-        <Select name="language" defaultValue={defaultLanguage}>
-          <SelectTrigger
-            id="quick-language"
-            className="flex-1"
-          >
-            <SelectValue placeholder={t("settings.language")} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="en">{t("settings.lang_en")}</SelectItem>
-            <SelectItem value="vi">{t("settings.lang_vi")}</SelectItem>
-          </SelectContent>
-        </Select>
-        <button
-          type="submit"
-          disabled={isPending}
-          className="rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-60"
-        >
-          {isPending ? t("common.saving") : vi ? "Áp dụng" : "Apply"}
-        </button>
-      </div>
+  const methods = useForm<LanguageValues>({
+    resolver: zodResolver(languageSchema),
+    defaultValues: { language: defaultLanguage },
+  });
 
-      {state.status === "error" && state.message ? (
-        <p className="text-sm text-destructive">{state.message}</p>
-      ) : null}
-      {state.status === "success" && state.message ? (
-        <p className="text-sm text-success">{state.message}</p>
-      ) : null}
-    </form>
+  const { handleSubmit } = methods;
+
+  return (
+    <FormProvider {...methods}>
+      <form
+        className="space-y-3"
+        noValidate
+        action={action}
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSubmit(() => {
+            startTransition(() => action(new FormData(e.currentTarget)));
+          })(e);
+        }}
+      >
+        <div className="flex flex-col sm:flex-row items-end gap-3">
+          <RHFSelect
+            name="language"
+            label={t("settings.language")}
+            options={[
+              { label: t("settings.lang_en"), value: "en" },
+              { label: t("settings.lang_vi"), value: "vi" },
+            ]}
+            className="bg-white flex-1 min-w-[140px]"
+          />
+          <Button
+            type="submit"
+            disabled={isPending}
+            className="w-full sm:w-auto shrink-0 px-6 h-10 rounded-xl font-bold shadow-sm"
+          >
+            {isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+            ) : (
+              <Check className="h-4 w-4 mr-2" />
+            )}
+            {vi ? "Cập nhật" : "Apply"}
+          </Button>
+        </div>
+
+        <FormStatus message={state.message} status={state.status} className="text-xs" />
+      </form>
+    </FormProvider>
   );
 }

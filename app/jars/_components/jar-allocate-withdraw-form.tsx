@@ -1,15 +1,30 @@
 "use client";
 
-import { useActionState, useTransition } from "react";
+import { useTransition, useState } from "react";
+import { useForm, FormProvider } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 
 import { addJarLedgerEntryAction } from "@/app/jars/actions";
 import {
   initialJarActionState,
   type JarActionState,
 } from "@/app/jars/action-types";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { MoneyInput } from "@/components/ui/money-input";
+import { RHFInput, RHFSelect, RHFMoneyInput } from "@/components/ui/rhf-fields";
+import { Button } from "@/components/ui/button";
+import { FormStatus } from "@/components/ui/form-status";
+import { toast } from "sonner";
+
+const ledgerEntrySchema = z.object({
+  jarId: z.string().min(1),
+  month: z.string().min(1),
+  entryType: z.enum(["allocate", "withdraw", "adjust"]),
+  amount: z.coerce.number().min(1, "Amount must be greater than 0"),
+  entryDate: z.string().min(1, "Date is required"),
+  note: z.string().optional(),
+});
+
+type LedgerEntryValues = z.infer<typeof ledgerEntrySchema>;
 
 type Props = {
   jarId: string;
@@ -18,91 +33,98 @@ type Props = {
 };
 
 export function JarAllocateWithdrawForm({ jarId, month, vi }: Props) {
-  const [state, action] = useActionState<JarActionState, FormData>(
-    addJarLedgerEntryAction,
-    initialJarActionState,
-  );
+  const [state, setState] = useState<JarActionState>(initialJarActionState);
   const [isPending, startTransition] = useTransition();
 
+  const methods = useForm<LedgerEntryValues>({
+    resolver: zodResolver(ledgerEntrySchema),
+    defaultValues: {
+      jarId,
+      month,
+      entryType: "allocate",
+      amount: 0,
+      entryDate: new Date().toISOString().slice(0, 10),
+      note: "",
+    },
+  });
+
+  const { handleSubmit, reset } = methods;
+
+  const onSubmit = async (data: LedgerEntryValues) => {
+    const formData = new FormData();
+    Object.entries(data).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        formData.append(key, String(value));
+      }
+    });
+
+    startTransition(async () => {
+      const result = await addJarLedgerEntryAction(state, formData);
+      setState(result);
+      if (result.status === "success") {
+        toast.success(result.message);
+        reset({
+          ...data,
+          amount: 0,
+          note: "",
+        });
+      } else if (result.status === "error") {
+        toast.error(result.message);
+      }
+    });
+  };
+
   return (
-    <form
-      className="space-y-4"
-      onSubmit={(event) => {
-        event.preventDefault();
-        const fd = new FormData(event.currentTarget);
-        startTransition(() => action(fd));
-      }}
-    >
-      <input type="hidden" name="jarId" value={jarId} />
-      <input type="hidden" name="month" value={month} />
-
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <div className="space-y-1.5">
-          <Label htmlFor={`entry-type-${jarId}`}>
-            {vi ? "Loại giao dịch" : "Entry type"}
-          </Label>
-          <select
-            id={`entry-type-${jarId}`}
-            name="entryType"
-            defaultValue="allocate"
-            className="h-[50px] w-full rounded-xl border border-slate-300 bg-white px-3 text-sm text-slate-900"
-          >
-            <option value="allocate">{vi ? "Phân bổ" : "Allocate"}</option>
-            <option value="withdraw">{vi ? "Rút" : "Withdraw"}</option>
-            <option value="adjust">{vi ? "Điều chỉnh" : "Adjust"}</option>
-          </select>
-        </div>
-
-        <div className="space-y-1.5">
-          <Label htmlFor={`entry-amount-${jarId}`}>
-            {vi ? "Số tiền" : "Amount"}
-          </Label>
-          <MoneyInput
-            id={`entry-amount-${jarId}`}
-            name="amount"
-            defaultValue={0}
-            required
-            className="h-[50px] rounded-xl border-slate-300"
-          />
-        </div>
-
-        <div className="space-y-1.5">
-          <Label htmlFor={`entry-date-${jarId}`}>
-            {vi ? "Ngày giao dịch" : "Entry date"}
-          </Label>
-          <Input
-            id={`entry-date-${jarId}`}
-            type="date"
-            name="entryDate"
-            className="h-[50px] rounded-xl border-slate-300"
-          />
-        </div>
-
-        <div className="space-y-1.5">
-          <Label htmlFor={`entry-note-${jarId}`}>
-            {vi ? "Ghi chú" : "Note"}
-          </Label>
-          <Input
-            id={`entry-note-${jarId}`}
-            type="text"
-            name="note"
-            placeholder={vi ? "Ví dụ: chuyển từ lương tháng này" : "Example: moved from this month's income"}
-            className="h-[50px] rounded-xl border-slate-300"
-          />
-        </div>
-      </div>
-
-      <button
-        type="submit"
-        disabled={isPending}
-        className="h-11 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+    <FormProvider {...methods}>
+      <form
+        className="space-y-4"
+        noValidate
+        onSubmit={handleSubmit(onSubmit)}
       >
-        {isPending ? (vi ? "Đang lưu..." : "Saving...") : vi ? "Lưu giao dịch" : "Save entry"}
-      </button>
+        <input type="hidden" {...methods.register("jarId")} />
+        <input type="hidden" {...methods.register("month")} />
 
-      <p className="text-xs text-muted-foreground">
-        {state.status === "error" ? state.message : state.status === "success" ? state.message : ""}
-      </p>
-    </form>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <RHFSelect
+            name="entryType"
+            label={vi ? "Loại giao dịch" : "Entry type"}
+            options={[
+              { label: vi ? "Phân bổ" : "Allocate", value: "allocate" },
+              { label: vi ? "Rút" : "Withdraw", value: "withdraw" },
+              { label: vi ? "Điều chỉnh" : "Adjust", value: "adjust" },
+            ]}
+          />
+
+          <RHFMoneyInput
+            name="amount"
+            label={vi ? "Số tiền" : "Amount"}
+            required
+          />
+
+          <RHFInput
+            name="entryDate"
+            label={vi ? "Ngày giao dịch" : "Entry date"}
+            type="date"
+            required
+          />
+
+          <RHFInput
+            name="note"
+            label={vi ? "Ghi chú" : "Note"}
+            placeholder={vi ? "Ví dụ: chuyển từ lương tháng này" : "Example: moved from this month's income"}
+          />
+        </div>
+
+        <Button
+          type="submit"
+          disabled={isPending}
+          className="w-full rounded-xl"
+        >
+          {isPending ? (vi ? "Đang lưu..." : "Saving...") : vi ? "Lưu giao dịch" : "Save entry"}
+        </Button>
+
+        <FormStatus message={state.message} status={state.status} />
+      </form>
+    </FormProvider>
   );
 }

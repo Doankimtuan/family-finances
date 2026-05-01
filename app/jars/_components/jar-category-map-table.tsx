@@ -1,4 +1,13 @@
 import { updateSpendingJarCategoryMapDirectAction } from "@/app/jars/actions";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 
 type CategoryRow = {
   id: string;
@@ -62,31 +71,34 @@ export function JarCategoryMapTable({
                   {jarOptions.find((jar) => jar.id === resolvedJarId)?.name ??
                     (vi ? "Chưa map" : "Unmapped")}
                   {mapping?.resolvedFromFallback ? (
-                    <span className="ml-2 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800">
+                    <Badge variant="warning" className="ml-2 text-[10px] px-1.5 py-0">
                       {vi ? "Tự gán tạm" : "Auto-assigned"}
-                    </span>
+                    </Badge>
                   ) : null}
                 </td>
                 <td className="px-3 py-2">
                   <form action={updateSpendingJarCategoryMapDirectAction} className="flex items-center gap-2">
                     <input type="hidden" name="categoryId" value={category.id} />
-                    <select
-                      name="jarId"
-                      defaultValue={resolvedJarId}
-                      className="rounded-md border px-2 py-1.5 text-xs"
-                    >
-                      {jarOptions.map((jar) => (
-                        <option key={jar.id} value={jar.id}>
-                          {jar.name}
-                        </option>
-                      ))}
-                    </select>
-                    <button
+                    <Select name="jarId" defaultValue={resolvedJarId}>
+                      <SelectTrigger className="h-8 w-[140px] text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {jarOptions.map((jar) => (
+                          <SelectItem key={jar.id} value={jar.id} className="text-xs">
+                            {jar.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
                       type="submit"
-                      className="rounded-md border px-2 py-1.5 text-xs font-semibold hover:bg-muted"
+                      variant="outline"
+                      size="sm"
+                      className="h-8 text-xs px-3 font-semibold"
                     >
                       {vi ? "Lưu" : "Save"}
-                    </button>
+                    </Button>
                   </form>
                 </td>
               </tr>

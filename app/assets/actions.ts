@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 
 import type { AssetActionState } from "./action-types";
 import { redirect } from "next/navigation";
+import { getAssetClassConfig } from "@/lib/assets/class-config";
 
 function ok(message: string): AssetActionState {
   return { status: "success", message };
@@ -69,6 +70,23 @@ export async function createAssetAction(
   const unitPrice = Number(formData.get("unitPrice") ?? 0);
   const isLiquid = String(formData.get("isLiquid") ?? "false") === "true";
 
+  // Extract class-specific metadata fields (prefixed with meta_)
+  const classConfig = getAssetClassConfig(assetClass);
+  const metadata: Record<string, string | number | boolean> = {};
+  for (const field of classConfig.metadataFields) {
+    const raw = formData.get(`meta_${field.key}`);
+    if (raw !== null && String(raw).trim() !== "") {
+      const val = String(raw).trim();
+      if (field.type === "number") {
+        metadata[field.key] = Number(val);
+      } else if (field.type === "boolean") {
+        metadata[field.key] = val === "true";
+      } else {
+        metadata[field.key] = val;
+      }
+    }
+  }
+
   if (name.length < 2) return fail("Asset name must be at least 2 characters.");
   if (!Number.isFinite(quantity) || quantity < 0)
     return fail("Quantity must be non-negative.");
@@ -94,6 +112,9 @@ export async function createAssetAction(
       is_liquid: isLiquid,
       include_in_net_worth: true,
       created_by: user.id,
+      metadata,
+      valuation_method: classConfig.defaultValuationMethod,
+      risk_level: classConfig.defaultRisk,
     })
     .select("id")
     .single();

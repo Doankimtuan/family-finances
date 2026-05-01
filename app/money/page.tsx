@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   formatVnd,
   formatVndCompact,
@@ -44,6 +45,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { getClassLabel } from "@/lib/assets/class-config";
 
 export const metadata = {
   title: "Tài sản & Nợ | Family Finances",
@@ -251,6 +253,19 @@ function getAssetColors(cls: string) {
         bg: "bg-emerald-50/60 dark:bg-emerald-950/20",
         icon: "bg-emerald-100 text-emerald-700",
       };
+    case "crypto":
+      return {
+        border: "border-purple-200 dark:border-purple-900/50",
+        bg: "bg-purple-50/60 dark:bg-purple-950/20",
+        icon: "bg-purple-100 text-purple-700",
+      };
+    case "mutual_fund":
+    case "stock":
+      return {
+        border: "border-indigo-200 dark:border-indigo-900/50",
+        bg: "bg-indigo-50/60 dark:bg-indigo-950/20",
+        icon: "bg-indigo-100 text-indigo-700",
+      };
     default:
       return {
         border: "border-teal-200 dark:border-teal-900/50",
@@ -261,19 +276,7 @@ function getAssetColors(cls: string) {
 }
 
 function getAssetClassLabel(cls: string, vi: boolean) {
-  const map: Record<string, [string, string]> = {
-    gold: ["Vàng", "Gold"],
-    real_estate: ["Bất động sản", "Real Estate"],
-    vehicle: ["Phương tiện", "Vehicle"],
-    savings_deposit: ["Đầu tư", "Investment"],
-    mutual_fund: ["Quỹ mở", "Mutual Fund"],
-    stock: ["Cổ phiếu", "Stock"],
-    crypto: ["Crypto", "Crypto"],
-    other: ["Khác", "Other"],
-  };
-  const pair = map[cls];
-  if (!pair) return cls.replace(/_/g, " ");
-  return vi ? pair[0] : pair[1];
+  return getClassLabel(cls, vi);
 }
 
 function calcRemainingMonths(
@@ -667,18 +670,22 @@ export default async function MoneyPage() {
             title={vi ? "Tài Khoản" : "Accounts"}
             total={`${vi ? "Tổng" : "Total"}: ${formatVndCompact(totalAccountBalance, householdLocale)}`}
             addAction={
-              <details className="relative group/form">
-                <summary className="flex items-center gap-1 text-sm font-bold text-primary hover:text-primary/80 transition-colors cursor-pointer list-none">
-                  <Plus className="h-4 w-4" />
-                  {vi ? "Thêm" : "Add"}
-                </summary>
-                <div className="absolute right-0 top-8 z-30 w-80 bg-card border border-border rounded-2xl shadow-xl p-4 animate-in fade-in slide-in-from-top-2 duration-200">
-                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">
-                    {vi ? "Tài khoản mới" : "New Account"}
-                  </p>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <button className="flex items-center gap-1 text-sm font-bold text-primary hover:text-primary/80 transition-colors cursor-pointer list-none">
+                    <Plus className="h-4 w-4" />
+                    {vi ? "Thêm" : "Add"}
+                  </button>
+                </DialogTrigger>
+                <DialogContent className="max-h-[85vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">
+                      {vi ? "Tài khoản mới" : "New Account"}
+                    </DialogTitle>
+                  </DialogHeader>
                   <CreateAccountForm />
-                </div>
-              </details>
+                </DialogContent>
+              </Dialog>
             }
           />
 
@@ -1141,18 +1148,22 @@ export default async function MoneyPage() {
                 : undefined
             }
             addAction={
-              <details className="relative group/form">
-                <summary className="flex items-center gap-1 text-sm font-bold text-primary hover:text-primary/80 transition-colors cursor-pointer list-none">
-                  <Plus className="h-4 w-4" />
-                  {vi ? "Thêm" : "Add"}
-                </summary>
-                <div className="absolute right-0 top-8 z-30 w-80 bg-card border border-border rounded-2xl shadow-xl p-4 animate-in fade-in slide-in-from-top-2 duration-200">
-                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">
-                    {vi ? "Tài sản mới" : "New Asset"}
-                  </p>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <button className="flex items-center gap-1 text-sm font-bold text-primary hover:text-primary/80 transition-colors cursor-pointer list-none">
+                    <Plus className="h-4 w-4" />
+                    {vi ? "Thêm" : "Add"}
+                  </button>
+                </DialogTrigger>
+                <DialogContent className="max-h-[85vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">
+                      {vi ? "Tài sản mới" : "New Asset"}
+                    </DialogTitle>
+                  </DialogHeader>
                   <CreateAssetForm />
-                </div>
-              </details>
+                </DialogContent>
+              </Dialog>
             }
           />
 
@@ -1163,6 +1174,67 @@ export default async function MoneyPage() {
               description={t(language, "money.assets.empty.description")}
             />
           ) : (
+            <>
+            {/* ── Portfolio Allocation Summary ── */}
+            {totalAssetValue > 0 && (() => {
+              const classTotals = new Map<string, number>();
+              let liquidTotal = 0;
+              let illiquidTotal = 0;
+              for (const a of assets) {
+                const val = Number(a.quantity) * (priceMap.get(a.id) ?? 0);
+                classTotals.set(a.asset_class, (classTotals.get(a.asset_class) ?? 0) + val);
+                if (a.is_liquid) liquidTotal += val;
+                else illiquidTotal += val;
+              }
+              const entries = [...classTotals.entries()]
+                .filter(([, v]) => v > 0)
+                .sort((a, b) => b[1] - a[1]);
+              const liquidPct = Math.round((liquidTotal / totalAssetValue) * 100);
+
+              return (
+                <div className="space-y-2 mb-3">
+                  {/* Allocation bar */}
+                  <div className="flex h-2.5 rounded-full overflow-hidden bg-muted">
+                    {entries.map(([cls, val]) => {
+                      const pct = (val / totalAssetValue) * 100;
+                      const colorMap: Record<string, string> = {
+                        gold: "bg-yellow-500",
+                        real_estate: "bg-sky-500",
+                        mutual_fund: "bg-indigo-500",
+                        stock: "bg-indigo-400",
+                        crypto: "bg-purple-500",
+                        savings_deposit: "bg-emerald-500",
+                        vehicle: "bg-blue-500",
+                      };
+                      return (
+                        <div
+                          key={cls}
+                          className={cn(colorMap[cls] ?? "bg-teal-500", "transition-all duration-700")}
+                          style={{ width: `${pct}%` }}
+                          title={`${getAssetClassLabel(cls, vi)}: ${pct.toFixed(1)}%`}
+                        />
+                      );
+                    })}
+                  </div>
+                  {/* Legend */}
+                  <div className="flex flex-wrap gap-x-3 gap-y-1">
+                    {entries.map(([cls, val]) => (
+                      <span key={cls} className="text-[10px] font-medium text-muted-foreground">
+                        {getAssetClassLabel(cls, vi)}{" "}
+                        <span className="font-bold text-foreground">
+                          {((val / totalAssetValue) * 100).toFixed(0)}%
+                        </span>
+                      </span>
+                    ))}
+                    <span className="text-[10px] font-medium text-muted-foreground ml-auto">
+                      {vi ? "Thanh khoản" : "Liquid"}{" "}
+                      <span className="font-bold text-emerald-600">{liquidPct}%</span>
+                    </span>
+                  </div>
+                </div>
+              );
+            })()}
+
             <div className="grid grid-cols-2 gap-3">
               {assets.map((asset) => {
                 const latestPrice = priceMap.get(asset.id) ?? 0;
@@ -1257,6 +1329,7 @@ export default async function MoneyPage() {
                 );
               })}
             </div>
+            </>
           )}
         </section>
 

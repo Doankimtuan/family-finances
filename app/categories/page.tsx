@@ -1,13 +1,13 @@
 import { AppHeader } from "@/components/layout/app-header";
 import { AppShell } from "@/components/layout/app-shell";
 import { BottomTabBar } from "@/components/layout/bottom-tab-bar";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { SectionHeader } from "@/components/ui/section-header";
-import { EmptyState } from "@/components/ui/empty-state";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
+import { SectionHeader } from "@/components/ui/section-header";
 import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
 import { createClient } from "@/lib/supabase/server";
-import { Tags, PlusCircle } from "lucide-react";
+import { PlusCircle, Tags, TrendingDown, TrendingUp } from "lucide-react";
 
 import { CategoryActiveToggle } from "./_components/category-active-toggle";
 import { CategoryDeleteButton } from "./_components/category-delete-button";
@@ -50,8 +50,8 @@ export default async function CategoriesPage() {
       header={<AppHeader title="Categories" />}
       footer={<BottomTabBar />}
     >
-      <div className="space-y-6 pb-20 animate-in fade-in slide-in-from-bottom-4 duration-700">
-        <Card className="border-primary/20 bg-primary/5">
+      <div className="space-y-8 pb-24 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <Card className="border-primary/20 bg-primary/5 shadow-sm">
           <CardHeader>
             <SectionHeader
               label="Management"
@@ -65,7 +65,11 @@ export default async function CategoriesPage() {
         </Card>
 
         <section className="space-y-4">
-          <SectionHeader label="Expenses" title="Expense Categories" />
+          <SectionHeader
+            label="Expenses"
+            title="Expense Categories"
+            icon={<TrendingDown className="h-4 w-4 text-rose-500" />}
+          />
           <CategorySection
             rows={expenseCategories}
             hasError={hasError}
@@ -74,7 +78,11 @@ export default async function CategoriesPage() {
         </section>
 
         <section className="space-y-4">
-          <SectionHeader label="Income" title="Income Categories" />
+          <SectionHeader
+            label="Income"
+            title="Income Categories"
+            icon={<TrendingUp className="h-4 w-4 text-emerald-500" />}
+          />
           <CategorySection
             rows={incomeCategories}
             hasError={hasError}
@@ -117,52 +125,66 @@ function CategorySection({
   }
 
   return (
-    <div className="grid grid-cols-1 gap-3">
+    <div className="grid grid-cols-1 gap-4">
       {rows.map((row) => (
         <Card
           key={row.id}
-          className="group hover:border-primary/30 transition-all duration-300"
+          className="group hover:border-primary/30 transition-all duration-300 shadow-sm overflow-hidden"
         >
-          <CardContent className="p-4">
-            <div className="flex items-start justify-between gap-4">
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
+          <CardContent className="p-0">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between">
+              <div className="p-4 flex items-center gap-4 min-w-0 flex-1">
+                <div
+                  className="h-10 w-10 shrink-0 rounded-2xl flex items-center justify-center shadow-sm"
+                  style={{
+                    backgroundColor: `${row.color ?? "var(--primary)"}20`,
+                  }}
+                >
                   <span
-                    className="h-3 w-3 shrink-0 rounded-full shadow-sm"
+                    className="h-3 w-3 rounded-full shadow-sm"
                     style={{ backgroundColor: row.color ?? "var(--primary)" }}
                   />
-                  <h3 className="truncate text-sm font-bold text-foreground">
+                </div>
+                <div className="min-w-0">
+                  <h3 className="truncate text-base font-bold text-slate-900">
                     {row.name}
                   </h3>
-                </div>
-                <div className="mt-1 flex flex-wrap gap-2 items-center">
-                  <Badge
-                    variant="outline"
-                    className="text-[10px] uppercase font-bold text-muted-foreground bg-muted/20"
-                  >
-                    {row.is_system ? "System" : "Personal"}
-                  </Badge>
-                  <Badge
-                    variant={row.is_active ? "success" : "secondary"}
-                    className="text-[10px] uppercase font-bold"
-                  >
-                    {row.is_active ? "Active" : "Disabled"}
-                  </Badge>
+                  <div className="mt-1 flex flex-wrap gap-2 items-center">
+                    <Badge
+                      variant="outline"
+                      className="text-[10px] uppercase font-bold text-slate-500 bg-slate-50 border-slate-200"
+                    >
+                      {row.is_system ? "System" : "Personal"}
+                    </Badge>
+                    <Badge
+                      variant={row.is_active ? "success" : "secondary"}
+                      className="text-[10px] uppercase font-bold"
+                    >
+                      {row.is_active ? "Active" : "Disabled"}
+                    </Badge>
+                  </div>
                 </div>
               </div>
-              <div className="flex flex-wrap items-center justify-end gap-1.5 opacity-80 group-hover:opacity-100 transition-opacity">
-                <CategoryRenameForm
-                  categoryId={row.id}
-                  currentName={row.name}
-                  currentColor={row.color}
-                />
-                {!row.is_system && (
-                  <CategoryActiveToggle
+
+              <div className="bg-slate-50/50 sm:bg-transparent border-t sm:border-t-0 border-slate-100 p-3 sm:p-4 flex items-center justify-between sm:justify-end gap-3 transition-colors group-hover:bg-primary/5 sm:group-hover:bg-transparent">
+                <div className="flex items-center gap-1.5">
+                  {!row.is_system && (
+                    <CategoryActiveToggle
+                      categoryId={row.id}
+                      currentActive={row.is_active}
+                    />
+                  )}
+                </div>
+                <div className="flex items-center gap-1">
+                  <CategoryRenameForm
                     categoryId={row.id}
-                    currentActive={row.is_active}
+                    currentName={row.name}
+                    currentColor={row.color}
                   />
-                )}
-                <CategoryDeleteButton categoryId={row.id} />
+                  {!row.is_system && (
+                    <CategoryDeleteButton categoryId={row.id} />
+                  )}
+                </div>
               </div>
             </div>
           </CardContent>

@@ -1,15 +1,31 @@
 "use client";
 
-import { useActionState, useMemo, useState, useTransition } from "react";
+import { useTransition, useState, useMemo } from "react";
+import { useForm, FormProvider } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import { AlertTriangle } from "lucide-react";
-
+import { cn } from "@/lib/utils";
 import { quickAddTransactionAction } from "@/app/transactions/actions";
 import {
   initialTransactionActionState,
   type TransactionActionState,
 } from "@/app/transactions/action-types";
-import { MoneyInput } from "@/components/ui/money-input";
 import { useI18n } from "@/lib/providers/i18n-provider";
+import { RHFMoneyInput } from "@/components/ui/rhf-fields";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { FormStatus } from "@/components/ui/form-status";
+import { toast } from "sonner";
+
+const quickAddSchema = z.object({
+  type: z.enum(["income", "expense"]),
+  accountId: z.string(),
+  categoryId: z.string().optional(),
+  amount: z.coerce.number().min(1, "Amount must be greater than 0"),
+});
+
+type QuickAddValues = z.infer<typeof quickAddSchema>;
 
 type QuickCategory = {
   id: string;
@@ -22,17 +38,25 @@ type QuickAddFormProps = {
 };
 
 export function QuickAddForm({ accountId, categories }: QuickAddFormProps) {
-  const { language } = useI18n();
+  const { language, t } = useI18n();
   const vi = language === "vi";
-  const [state, action] = useActionState<TransactionActionState, FormData>(
-    quickAddTransactionAction,
-    initialTransactionActionState,
-  );
+  const [state, setState] = useState<TransactionActionState>(initialTransactionActionState);
   const [isPending, startTransition] = useTransition();
-  const [activeCategoryId, setActiveCategoryId] = useState<string>(
-    categories[0]?.id ?? "",
-  );
-  const [isIncomeMode, setIsIncomeMode] = useState(false);
+
+  const methods = useForm<QuickAddValues>({
+    resolver: zodResolver(quickAddSchema),
+    defaultValues: {
+      type: "expense",
+      accountId,
+      categoryId: categories[0]?.id ?? "",
+      amount: 0,
+    },
+  });
+
+  const { handleSubmit, setValue, watch, reset } = methods;
+  const type = watch("type");
+  const activeCategoryId = watch("categoryId");
+  const isIncomeMode = type === "income";
 
   const helperText = useMemo(() => {
     if (isIncomeMode) {
@@ -46,148 +70,153 @@ export function QuickAddForm({ accountId, categories }: QuickAddFormProps) {
       : "10-second expense flow: amount -> category -> done.";
   }, [isIncomeMode, vi]);
 
+  const onSubmit = async (data: QuickAddValues) => {
+    const formData = new FormData();
+    Object.entries(data).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        formData.append(key, String(value));
+      }
+    });
+
+    startTransition(async () => {
+      const result = await quickAddTransactionAction(state, formData);
+      setState(result);
+      if (result.status === "success") {
+        toast.success(result.message);
+        reset({
+          ...data,
+          amount: 0,
+        });
+      } else if (result.status === "error") {
+        toast.error(result.message);
+      }
+    });
+  };
+
   return (
-    <form
-      className="space-y-3"
-      noValidate
-      onSubmit={(event) => {
-        event.preventDefault();
-        const fd = new FormData(event.currentTarget);
-        fd.set("type", isIncomeMode ? "income" : "expense");
-        fd.set("accountId", accountId);
-        fd.set("categoryId", isIncomeMode ? "" : activeCategoryId);
-        startTransition(() => action(fd));
-      }}
-    >
-      <input
-        type="hidden"
-        name="type"
-        value={isIncomeMode ? "income" : "expense"}
-      />
-      <input type="hidden" name="accountId" value={accountId} />
-      <input
-        type="hidden"
-        name="categoryId"
-        value={isIncomeMode ? "" : activeCategoryId}
-      />
+    <FormProvider {...methods}>
+      <form
+        className="space-y-3"
+        noValidate
+        onSubmit={handleSubmit(onSubmit)}
+      >
+        <div className="grid grid-cols-2 gap-2 rounded-xl bg-slate-100 p-1">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => setValue("type", "expense")}
+            className={cn(
+              "rounded-lg transition-all",
+              !isIncomeMode
+                ? "bg-white text-slate-900 shadow-sm"
+                : "text-slate-600 hover:bg-slate-200/50"
+            )}
+          >
+            {vi ? "Chi tiêu" : "Expense"}
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => setValue("type", "income")}
+            className={cn(
+              "rounded-lg transition-all",
+              isIncomeMode
+                ? "bg-white text-slate-900 shadow-sm"
+                : "text-slate-600 hover:bg-slate-200/50"
+            )}
+          >
+            {vi ? "Thu nhập" : "Income"}
+          </Button>
+        </div>
 
-      <div className="grid grid-cols-2 gap-2 rounded-xl bg-slate-100 p-1">
-        <button
-          type="button"
-          onClick={() => setIsIncomeMode(false)}
-          className={`rounded-lg px-3 py-2 text-sm font-semibold ${
-            !isIncomeMode
-              ? "bg-white text-slate-900 shadow-sm"
-              : "text-slate-600"
-          }`}
-        >
-          {vi ? "Chi tiêu" : "Expense"}
-        </button>
-        <button
-          type="button"
-          onClick={() => setIsIncomeMode(true)}
-          className={`rounded-lg px-3 py-2 text-sm font-semibold ${
-            isIncomeMode
-              ? "bg-white text-slate-900 shadow-sm"
-              : "text-slate-600"
-          }`}
-        >
-          {vi ? "Thu nhập" : "Income"}
-        </button>
-      </div>
-
-      <div className="space-y-1">
-        <label
-          htmlFor="quickAmount"
-          className="text-sm font-medium text-slate-700"
-        >
-          {vi ? "Số tiền (VND)" : "Amount (VND)"}
-        </label>
-        <MoneyInput
-          id="quickAmount"
+        <RHFMoneyInput
           name="amount"
-          defaultValue={0}
-          autoFocus
+          label={vi ? "Số tiền (VND)" : "Amount (VND)"}
           className="w-full text-xl font-semibold"
+          autoFocus
           placeholder="0"
         />
-      </div>
 
-      {!isIncomeMode ? (
-        <div className="space-y-1">
-          <p className="text-sm font-medium text-slate-700">
-            {vi ? "Danh mục" : "Category"}
-          </p>
-          <div className="flex gap-2 overflow-x-auto pb-1">
-            {categories.map((category) => (
-              <button
-                key={category.id}
-                type="button"
-                onClick={() => setActiveCategoryId(category.id)}
-                className={`whitespace-nowrap rounded-full border px-3 py-2 text-xs font-semibold transition ${
-                  activeCategoryId === category.id
-                    ? "border-slate-900 bg-slate-900 text-white"
-                    : "border-slate-300 bg-white text-slate-700"
-                }`}
-              >
-                {category.name}
-              </button>
-            ))}
+        {!isIncomeMode ? (
+          <div className="space-y-1">
+            <p className="text-sm font-medium text-slate-700">
+              {vi ? "Danh mục" : "Category"}
+            </p>
+            <div className="flex gap-2 overflow-x-auto pb-1">
+              {categories.map((category) => (
+                <Button
+                  key={category.id}
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setValue("categoryId", category.id)}
+                  className={cn(
+                    "whitespace-nowrap rounded-full border px-3 transition",
+                    activeCategoryId === category.id
+                      ? "border-slate-900 bg-slate-900 text-white hover:bg-slate-800"
+                      : "border-slate-300 bg-white text-slate-700 hover:bg-slate-100"
+                  )}
+                >
+                  {category.name}
+                </Button>
+              ))}
+            </div>
           </div>
-        </div>
-      ) : null}
+        ) : null}
 
-      <button
-        type="submit"
-        disabled={isPending || (!isIncomeMode && !activeCategoryId)}
-        className="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white disabled:opacity-60"
-      >
-        {isPending
-          ? vi
-            ? "Đang lưu..."
-            : "Saving..."
-          : isIncomeMode
-            ? vi
-              ? "Xong: Thêm thu nhập"
-              : "Done: Add Income"
-            : vi
-              ? "Xong: Thêm chi tiêu"
-              : "Done: Add Expense"}
-      </button>
-
-      <p className="text-xs text-slate-500">{helperText}</p>
-
-      {state.spendingJarWarning ? (
-        <div
-          className={`rounded-xl border p-3 text-sm ${
-            state.spendingJarWarning.alertLevel === "exceeded"
-              ? "border-rose-200 bg-rose-50 text-rose-700"
-              : "border-amber-200 bg-amber-50 text-amber-800"
-          }`}
+        <Button
+          type="submit"
+          disabled={isPending || (!isIncomeMode && !activeCategoryId)}
+          className="w-full rounded-xl bg-slate-900"
         >
-          <p className="flex items-center gap-2 font-semibold">
-            <AlertTriangle className="h-4 w-4" />
-            {state.spendingJarWarning.alertLevel === "exceeded"
-              ? (vi ? "Hũ đã vượt hạn mức tháng" : "Jar monthly limit exceeded")
-              : (vi ? "Hũ đang gần chạm hạn mức" : "Jar is close to monthly limit")}
-          </p>
-          <p className="mt-1 text-xs">
-            {state.spendingJarWarning.jarName}:{" "}
-            {state.spendingJarWarning.spent.toLocaleString()} /{" "}
-            {state.spendingJarWarning.limit.toLocaleString()} VND
-            {state.spendingJarWarning.usagePercent !== null
-              ? ` (${state.spendingJarWarning.usagePercent.toFixed(1)}%)`
-              : ""}
-          </p>
-        </div>
-      ) : null}
+          {isPending
+            ? vi
+              ? "Đang lưu..."
+              : "Saving..."
+            : isIncomeMode
+              ? vi
+                ? "Xong: Thêm thu nhập"
+                : "Done: Add Income"
+              : vi
+                ? "Xong: Thêm chi tiêu"
+                : "Done: Add Expense"}
+        </Button>
 
-      {state.status === "error" && state.message ? (
-        <p className="text-sm text-rose-600">{state.message}</p>
-      ) : null}
-      {state.status === "success" && state.message ? (
-        <p className="text-sm text-emerald-600">{state.message}</p>
-      ) : null}
-    </form>
+        <p className="text-xs text-slate-500">{helperText}</p>
+
+        {state.spendingJarWarning ? (
+          <Alert
+            variant={
+              state.spendingJarWarning.alertLevel === "exceeded"
+                ? "destructive"
+                : "warning"
+            }
+          >
+            <AlertTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4" />
+              {state.spendingJarWarning.alertLevel === "exceeded"
+                ? vi
+                  ? "Hũ đã vượt hạn mức tháng"
+                  : "Jar monthly limit exceeded"
+                : vi
+                  ? "Hũ đang gần chạm hạn mức"
+                  : "Jar is close to monthly limit"}
+            </AlertTitle>
+            <AlertDescription>
+              {state.spendingJarWarning.jarName}:{" "}
+              {state.spendingJarWarning.spent.toLocaleString()} /{" "}
+              {state.spendingJarWarning.limit.toLocaleString()} VND
+              {state.spendingJarWarning.usagePercent !== null
+                ? ` (${state.spendingJarWarning.usagePercent.toFixed(1)}%)`
+                : ""}
+            </AlertDescription>
+          </Alert>
+        ) : null}
+
+        <FormStatus message={state.message} status={state.status} />
+      </form>
+    </FormProvider>
   );
 }
