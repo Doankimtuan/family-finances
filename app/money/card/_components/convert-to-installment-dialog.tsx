@@ -22,6 +22,8 @@ import {
 import { Calculator, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
+import { useI18n } from "@/lib/providers/i18n-provider";
+
 type Props = {
   item: {
     id: string;
@@ -29,8 +31,6 @@ type Props = {
     amount: number;
     fee_amount: number;
   };
-  locale: string;
-  vi: boolean;
 };
 
 function formatVnd(amount: number, locale: string) {
@@ -41,7 +41,8 @@ function formatVnd(amount: number, locale: string) {
   }).format(amount);
 }
 
-export function ConvertToInstallmentDialog({ item, locale, vi }: Props) {
+export function ConvertToInstallmentDialog({ item }: Props) {
+  const { t, locale } = useI18n();
   const [open, setOpen] = useState(false);
   const [numInstallments, setNumInstallments] = useState(3);
   const [conversionFee, setConversionFee] = useState(0);
@@ -84,10 +85,10 @@ export function ConvertToInstallmentDialog({ item, locale, vi }: Props) {
         size="sm"
         onClick={() => setOpen(true)}
         className="flex items-center gap-1 rounded-md bg-amber-100 px-2 py-1 text-[10px] font-bold text-amber-700 transition-colors hover:bg-amber-200 border-none h-auto"
-        title={vi ? "Chuyển trả góp" : "Convert to installments"}
+        title={t("card.convert_to_emi")}
       >
         <Calculator className="h-3 w-3" />
-        {vi ? "Trả góp" : "EMI"}
+        {t("card.emi_label")}
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
@@ -95,22 +96,20 @@ export function ConvertToInstallmentDialog({ item, locale, vi }: Props) {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-base">
               <Calculator className="h-5 w-5 text-amber-500" />
-              {vi ? "Chuyển đổi trả góp 0%" : "Convert to 0% Installments"}
+              {t("card.convert_to_emi_title")}
             </DialogTitle>
             <DialogDescription className="text-xs">
-              {vi
-                ? "Giao dịch gốc sẽ bị xóa khỏi kỳ hiện tại và thay bằng các kỳ trả góp hàng tháng."
-                : "The original item is removed from this cycle and replaced with monthly installment records."}
+              {t("card.convert_to_emi_desc")}
             </DialogDescription>
           </DialogHeader>
 
           {/* Source transaction summary */}
           <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
             <p className="text-[10px] font-bold uppercase tracking-wide text-amber-700">
-              {vi ? "Giao dịch gốc" : "Source transaction"}
+              {t("card.source_transaction")}
             </p>
             <p className="mt-1 truncate text-sm font-bold text-foreground">
-              {item.description || (vi ? "Giao dịch thẻ" : "Card transaction")}
+              {item.description || t("card.transaction")}
             </p>
             <p className="mt-0.5 text-lg font-black text-amber-700">
               {formatVnd(item.amount, locale)}
@@ -123,7 +122,7 @@ export function ConvertToInstallmentDialog({ item, locale, vi }: Props) {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
                 <Label htmlFor="numInstallments" className="text-xs font-bold">
-                  {vi ? "Số kỳ trả góp" : "No. of installments"}
+                  {t("card.num_installments")}
                 </Label>
                 <Input
                   id="numInstallments"
@@ -138,7 +137,7 @@ export function ConvertToInstallmentDialog({ item, locale, vi }: Props) {
               </div>
               <div className="space-y-1">
                 <Label htmlFor="conversionFee" className="text-xs font-bold">
-                  {vi ? "Phí chuyển đổi (VND)" : "Conversion fee (VND)"}
+                  {t("card.conversion_fee")}
                 </Label>
                 <MoneyInput
                   id="conversionFee"
@@ -153,16 +152,14 @@ export function ConvertToInstallmentDialog({ item, locale, vi }: Props) {
             {numInstallments >= 2 && (
               <div className="rounded-xl bg-slate-50 p-3 text-center">
                 <p className="text-[10px] text-muted-foreground">
-                  {vi ? "Mỗi tháng trả" : "Monthly payment"}
+                  {t("card.monthly_payment")}
                 </p>
                 <p className="text-xl font-black text-primary">
                   {formatVnd(monthlyAmount, locale)}
                 </p>
                 {conversionFee > 0 && (
                   <p className="mt-0.5 text-[10px] text-amber-600">
-                    {vi
-                      ? `* Phí ${formatVnd(conversionFee, locale)} cộng vào tháng đầu`
-                      : `* Fee ${formatVnd(conversionFee, locale)} added to 1st month`}
+                    {t("card.fee_added_note").replace("{fee}", formatVnd(conversionFee, locale))}
                   </p>
                 )}
               </div>
@@ -188,7 +185,7 @@ export function ConvertToInstallmentDialog({ item, locale, vi }: Props) {
                 className="flex-1"
                 onClick={() => setOpen(false)}
               >
-                {vi ? "Hủy" : "Cancel"}
+                {t("common.cancel")}
               </Button>
               <Button
                 type="submit"
@@ -198,13 +195,9 @@ export function ConvertToInstallmentDialog({ item, locale, vi }: Props) {
                 {isPending ? (
                   <>
                     <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
-                    {vi ? "Đang xử lý..." : "Processing..."}
+                    {t("common.processing")}
                   </>
-                ) : vi ? (
-                  "Xác nhận trả góp"
-                ) : (
-                  "Convert"
-                )}
+                ) : t("card.confirm_emi")}
               </Button>
             </div>
           </form>

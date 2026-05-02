@@ -20,6 +20,7 @@ import {
 import { SettleCardForm } from "../_components/settle-card-form";
 import { ConvertToInstallmentDialog } from "../_components/convert-to-installment-dialog";
 import { AddCashbackForm } from "../_components/add-cashback-form";
+import { t as dictT } from "@/lib/i18n/dictionary";
 
 type BillingItem = {
   id: string;
@@ -48,7 +49,7 @@ export default async function CreditCardDetailPage({
 }) {
   const { householdId, householdLocale, language } =
     await getAuthenticatedHouseholdContext();
-  const vi = language === "vi";
+  const t = (key: string) => dictT(language, key);
   const { id } = await params;
   const supabase = await createClient();
 
@@ -112,7 +113,9 @@ export default async function CreditCardDetailPage({
 
   return (
     <AppShell
-      header={<AppHeader title={account.name} leftAction={<AppHeader.BackButton />} />}
+      header={
+        <AppHeader title={account.name} leftAction={<AppHeader.BackButton />} />
+      }
       footer={<BottomTabBar />}
     >
       <div className="space-y-6 pb-28">
@@ -124,7 +127,7 @@ export default async function CreditCardDetailPage({
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-widest text-white/50">
-                  {vi ? "Dư nợ cần thanh toán" : "Outstanding Balance"}
+                  {t("card.outstanding_balance")}
                 </p>
                 <h2 className="mt-1 text-4xl font-black tracking-tight">
                   {formatVnd(balance, householdLocale)}
@@ -139,10 +142,10 @@ export default async function CreditCardDetailPage({
               <div className="mt-5">
                 <div className="mb-1.5 flex justify-between text-xs text-white/60">
                   <span>
-                    {vi ? "Đã dùng" : "Used"} {usageDisplay}%
+                    {t("card.used")} {usageDisplay}%
                   </span>
                   <span>
-                    {vi ? "Hạn mức" : "Limit"}:{" "}
+                    {t("card.limit")}:{" "}
                     {formatVndCompact(creditLimit, householdLocale)}
                   </span>
                 </div>
@@ -153,9 +156,7 @@ export default async function CreditCardDetailPage({
                   />
                 </div>
                 <div className="mt-2 flex justify-between text-xs">
-                  <span className="text-white/50">
-                    {vi ? "Còn khả dụng" : "Available"}
-                  </span>
+                  <span className="text-white/50">{t("card.available")}</span>
                   <span className="font-bold text-emerald-400">
                     {formatVndCompact(availableCredit, householdLocale)}
                   </span>
@@ -165,28 +166,20 @@ export default async function CreditCardDetailPage({
 
             <div className="mt-5 flex gap-4 border-t border-white/10 pt-4 text-xs">
               <div>
-                <p className="text-white/40">
-                  {vi ? "Ngày kết sổ" : "Statement"}
-                </p>
+                <p className="text-white/40">{t("card.statement_day")}</p>
                 <p className="font-bold text-white">
-                  {vi
-                    ? `Ngày ${settings?.statement_day}`
-                    : `Day ${settings?.statement_day}`}
+                  {t("common.day")} {settings?.statement_day}
                 </p>
               </div>
               <div>
-                <p className="text-white/40">{vi ? "Hạn TT" : "Due Day"}</p>
+                <p className="text-white/40">{t("card.due_day")}</p>
                 <p className="font-bold text-white">
-                  {vi
-                    ? `Ngày ${settings?.due_day}`
-                    : `Day ${settings?.due_day}`}
+                  {t("common.day")} {settings?.due_day}
                 </p>
               </div>
               {linkedAccountName && (
                 <div className="min-w-0 flex-1">
-                  <p className="text-white/40">
-                    {vi ? "TK liên kết" : "Linked"}
-                  </p>
+                  <p className="text-white/40">{t("card.linked_account")}</p>
                   <p className="truncate font-bold text-white">
                     {linkedAccountName}
                   </p>
@@ -207,10 +200,10 @@ export default async function CreditCardDetailPage({
             </div>
             <div className="min-w-0">
               <p className="text-sm font-bold text-emerald-800">
-                {vi ? "Thanh toán thẻ" : "Pay Card"}
+                {t("card.pay_card")}
               </p>
               <p className="text-[10px] text-emerald-700/60">
-                {vi ? "Chuyển khoản FIFO" : "Transfer FIFO"}
+                {t("card.transfer_fifo")}
               </p>
             </div>
           </a>
@@ -224,10 +217,10 @@ export default async function CreditCardDetailPage({
             </div>
             <div className="min-w-0">
               <p className="text-sm font-bold text-amber-800">
-                {vi ? "Chuyển trả góp" : "Convert to EMI"}
+                {t("card.convert_to_emi")}
               </p>
               <p className="text-[10px] text-amber-700/60">
-                {vi ? "Chọn giao dịch bên dưới" : "Pick a transaction below"}
+                {t("card.pick_transaction")}
               </p>
             </div>
           </a>
@@ -241,10 +234,10 @@ export default async function CreditCardDetailPage({
             </div>
             <div className="min-w-0">
               <p className="text-sm font-bold text-sky-800">
-                {vi ? "Hoàn tiền thẻ" : "Card Cashback"}
+                {t("card.cashback")}
               </p>
               <p className="text-[10px] text-sky-700/60">
-                {vi ? "Bù trừ sau sao kê" : "Offset statement"}
+                {t("card.offset_statement")}
               </p>
             </div>
           </a>
@@ -257,7 +250,7 @@ export default async function CreditCardDetailPage({
               <Banknote className="h-4 w-4" />
             </div>
             <h3 className="text-sm font-black uppercase tracking-wide text-foreground">
-              {vi ? "Thanh toán thẻ (FIFO)" : "Pay Card Balance (FIFO)"}
+              {t("card.pay_fifo_title")}
             </h3>
           </div>
           <Card className="border-emerald-200 bg-emerald-50/40">
@@ -265,12 +258,10 @@ export default async function CreditCardDetailPage({
               <div className="flex gap-3 rounded-xl bg-emerald-100/60 p-3">
                 <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-700 mt-0.5" />
                 <p className="text-xs text-emerald-800 leading-relaxed">
-                  {vi
-                    ? "Nhập số tiền và chọn tài khoản ngân hàng để thanh toán. Hệ thống sẽ tự động trả dứt điểm kỳ sao kê cũ nhất trước (FIFO)."
-                    : "Enter amount and choose source bank account. Payments clear the oldest billing cycle first (FIFO)."}
+                  {t("card.pay_fifo_desc")}
                 </p>
               </div>
-              <SettleCardForm cardId={id} currentBalance={balance} vi={vi} />
+              <SettleCardForm cardId={id} currentBalance={balance} />
             </CardContent>
           </Card>
         </section>
@@ -282,7 +273,7 @@ export default async function CreditCardDetailPage({
               <BadgePercent className="h-4 w-4" />
             </div>
             <h3 className="text-sm font-black uppercase tracking-wide text-foreground">
-              {vi ? "Hoàn tiền thẻ tín dụng" : "Credit Card Cashback"}
+              {t("card.cashback_title")}
             </h3>
           </div>
           <Card className="border-sky-200 bg-sky-50/40">
@@ -290,12 +281,10 @@ export default async function CreditCardDetailPage({
               <div className="flex gap-3 rounded-xl bg-sky-100/60 p-3">
                 <CheckCircle2 className="h-4 w-4 shrink-0 text-sky-700 mt-0.5" />
                 <p className="text-xs text-sky-800 leading-relaxed">
-                  {vi
-                    ? "Ghi nhận khoản hoàn tiền hằng tháng của thẻ. Hệ thống sẽ tạo giao dịch thu nhập trên thẻ và tự động bù trừ vào kỳ sao kê chưa thanh toán gần nhất."
-                    : "Record monthly cashback credits. The system creates an income transaction on this card and automatically applies it to the latest unpaid billing cycle."}
+                  {t("card.cashback_desc")}
                 </p>
               </div>
-              <AddCashbackForm cardId={id} vi={vi} />
+              <AddCashbackForm cardId={id} />
             </CardContent>
           </Card>
         </section>
@@ -308,7 +297,7 @@ export default async function CreditCardDetailPage({
                 <RefreshCw className="h-4 w-4" />
               </div>
               <h3 className="text-sm font-black uppercase tracking-wide text-foreground">
-                {vi ? "Kế hoạch trả góp đang chạy" : "Active Installment Plans"}
+                {t("card.active_plans")}
               </h3>
             </div>
             <div className="space-y-2">
@@ -322,12 +311,12 @@ export default async function CreditCardDetailPage({
                         </p>
                         <p className="mt-0.5 text-[10px] text-muted-foreground">
                           {plan.paid_installments}/{plan.num_installments}{" "}
-                          {vi ? "kỳ" : "months"}&nbsp;·&nbsp;
+                          {t("common.months")}&nbsp;·&nbsp;
                           {formatVnd(
                             Number(plan.monthly_amount),
                             householdLocale,
                           )}
-                          /{vi ? "tháng" : "mo"}
+                          /{t("common.months")}
                         </p>
                       </div>
                       <div className="text-right shrink-0">
@@ -338,7 +327,7 @@ export default async function CreditCardDetailPage({
                           )}
                         </p>
                         <p className="text-[10px] text-muted-foreground">
-                          {vi ? "còn lại" : "remaining"}
+                          {t("card.outstanding")}
                         </p>
                       </div>
                     </div>
@@ -364,14 +353,14 @@ export default async function CreditCardDetailPage({
               <History className="h-4 w-4" />
             </div>
             <h3 className="text-sm font-black uppercase tracking-wide text-foreground">
-              {vi ? "Lịch sử kỳ sao kê" : "Billing Cycles History"}
+              {t("card.billing_history")}
             </h3>
             {openCycles.length > 0 && (
               <Badge
                 variant="outline"
                 className="ml-auto text-[10px] border-rose-300 text-rose-600 bg-rose-50"
               >
-                {openCycles.length} {vi ? "kỳ chưa TT" : "unpaid"}
+                {openCycles.length} {t("card.unpaid_cycles")}
               </Badge>
             )}
           </div>
@@ -380,9 +369,7 @@ export default async function CreditCardDetailPage({
           <div className="flex gap-2 rounded-xl border border-amber-200 bg-amber-50/60 p-3">
             <RefreshCw className="h-4 w-4 shrink-0 text-amber-600 mt-0.5" />
             <p className="text-xs text-amber-800 leading-relaxed">
-              {vi
-                ? 'Nhấn nút "Trả góp" trên từng giao dịch để chuyển nó thành các kỳ trả góp hàng tháng. Số tiền gốc sẽ được xóa khỏi kỳ đó và thay bằng khoản trả góp tương ứng.'
-                : 'Tap the "EMI" button on any transaction to split it into monthly installments. The original amount is removed from that cycle and replaced with the monthly installment amount.'}
+              {t("card.emi_instruction")}
             </p>
           </div>
 
@@ -391,9 +378,7 @@ export default async function CreditCardDetailPage({
               <CardContent className="p-8 text-center">
                 <CreditCard className="mx-auto h-8 w-8 text-muted-foreground/30 mb-3" />
                 <p className="text-sm text-muted-foreground italic">
-                  {vi
-                    ? "Chưa có kỳ sao kê nào. Ghi giao dịch chi tiêu bằng thẻ này để bắt đầu."
-                    : "No billing cycles yet. Record a transaction using this card to begin."}
+                  {t("card.no_billing_cycles")}
                 </p>
               </CardContent>
             </Card>
@@ -421,13 +406,16 @@ export default async function CreditCardDetailPage({
                       <div className="flex items-center justify-between gap-3">
                         <div>
                           <h4 className="text-sm font-black capitalize">
-                            {new Intl.DateTimeFormat(vi ? "vi-VN" : "en-US", {
-                              month: "long",
-                              year: "numeric",
-                            }).format(new Date(month.billing_month))}
+                            {new Intl.DateTimeFormat(
+                              language === "vi" ? "vi-VN" : "en-US",
+                              {
+                                month: "long",
+                                year: "numeric",
+                              },
+                            ).format(new Date(month.billing_month))}
                           </h4>
                           <p className="text-[10px] text-muted-foreground mt-0.5">
-                            {vi ? "Tổng phát sinh" : "Total"}:{" "}
+                            {t("card.total_incurred")}:{" "}
                             <span className="font-bold">
                               {formatVnd(
                                 Number(month.statement_amount),
@@ -448,16 +436,10 @@ export default async function CreditCardDetailPage({
                             variant="outline"
                           >
                             {isSettled
-                              ? vi
-                                ? "✓ Đã TT"
-                                : "✓ Settled"
+                              ? `✓ ${t("card.settled")}`
                               : isPartial
-                                ? vi
-                                  ? "Trả một phần"
-                                  : "Partial"
-                                : vi
-                                  ? "Chưa TT"
-                                  : "Unpaid"}
+                                ? t("card.partial")
+                                : t("card.unpaid")}
                           </Badge>
                           {!isSettled && remaining > 0 && (
                             <p className="text-xs font-black text-rose-600 mt-1">
@@ -472,7 +454,7 @@ export default async function CreditCardDetailPage({
                         <div className="mt-3">
                           <div className="flex justify-between text-[10px] text-muted-foreground mb-1">
                             <span>
-                              {vi ? "Đã trả" : "Paid"}:{" "}
+                              {t("card.paid")}:{" "}
                               {formatVndCompact(
                                 Number(month.paid_amount),
                                 householdLocale,
@@ -528,20 +510,17 @@ export default async function CreditCardDetailPage({
                                         className={`font-semibold truncate ${isConverted ? "line-through" : ""}`}
                                       >
                                         {item.description ||
-                                          (vi
-                                            ? "Giao dịch thẻ"
-                                            : "Card transaction")}
+                                          t("card.transaction")}
                                       </span>
                                       {isInstallment && (
                                         <Badge className="h-3.5 shrink-0 px-1 text-[8px] bg-amber-100 text-amber-700 border-amber-300">
-                                          {vi
-                                            ? `Góp ${item.installment_sequence}`
-                                            : `EMI ${item.installment_sequence}`}
+                                          {t("card.emi_suffix")}{" "}
+                                          {item.installment_sequence}
                                         </Badge>
                                       )}
                                       {isConverted && (
                                         <Badge className="h-3.5 shrink-0 px-1 text-[8px] bg-slate-100 text-slate-500 border-slate-200">
-                                          {vi ? "→ Trả góp" : "→ EMI"}
+                                          {t("card.emi_prefix")}
                                         </Badge>
                                       )}
                                     </div>
@@ -549,16 +528,10 @@ export default async function CreditCardDetailPage({
                                       className={`text-[10px] mt-0.5 ${item.is_paid ? "text-emerald-600" : "text-muted-foreground"}`}
                                     >
                                       {item.is_paid
-                                        ? vi
-                                          ? "✓ Đã TT"
-                                          : "✓ Paid"
+                                        ? `✓ ${t("card.settled")}`
                                         : isConverted
-                                          ? vi
-                                            ? "Đã chuyển trả góp"
-                                            : "Converted to EMI"
-                                          : vi
-                                            ? "Chờ TT"
-                                            : "Pending"}
+                                          ? t("card.converted_to_emi")
+                                          : t("card.pending")}
                                     </p>
                                   </div>
                                 </div>
@@ -573,8 +546,6 @@ export default async function CreditCardDetailPage({
                                         amount: Number(item.amount),
                                         fee_amount: Number(item.fee_amount),
                                       }}
-                                      locale={householdLocale}
-                                      vi={vi}
                                     />
                                   )}
                                   <div className="text-right">
@@ -593,7 +564,7 @@ export default async function CreditCardDetailPage({
                                           Number(item.fee_amount),
                                           householdLocale,
                                         )}{" "}
-                                        {vi ? "phí" : "fee"}
+                                        {t("card.fee")}
                                       </p>
                                     )}
                                   </div>
@@ -608,9 +579,7 @@ export default async function CreditCardDetailPage({
                     {month.items.length === 0 && (
                       <CardContent className="p-4 text-center">
                         <p className="text-[10px] text-muted-foreground italic">
-                          {vi
-                            ? "Chưa có giao dịch trong kỳ này"
-                            : "No items in this cycle"}
+                          {t("card.no_items")}
                         </p>
                       </CardContent>
                     )}

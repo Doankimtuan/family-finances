@@ -15,13 +15,15 @@ import {
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 
+import { useI18n } from "@/lib/providers/i18n-provider";
+
 type Props = {
   cardId: string;
   currentBalance: number;
-  vi: boolean;
 };
 
-export function SettleCardForm({ cardId, currentBalance, vi }: Props) {
+export function SettleCardForm({ cardId, currentBalance }: Props) {
+  const { t } = useI18n();
   const [state, action] = useActionState(settleCardAction, {
     status: "idle",
     message: "",
@@ -64,12 +66,12 @@ export function SettleCardForm({ cardId, currentBalance, vi }: Props) {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-1">
           <Label htmlFor="sourceAccountId">
-            {vi ? "Từ tài khoản" : "From Account"}
+            {t("card.from_account")}
           </Label>
           <Select name="sourceAccountId" required>
             <SelectTrigger>
               <SelectValue
-                placeholder={vi ? "Chọn nguồn tiền" : "Select source"}
+                placeholder={t("card.select_source")}
               />
             </SelectTrigger>
             <SelectContent>
@@ -84,7 +86,7 @@ export function SettleCardForm({ cardId, currentBalance, vi }: Props) {
 
         <div className="space-y-1">
           <Label htmlFor="amount">
-            {vi ? "Số tiền tất toán" : "Settlement Amount"}
+            {t("card.settlement_amount")}
           </Label>
           <MoneyInput id="amount" name="amount" defaultValue={currentBalance} />
         </div>
@@ -97,12 +99,8 @@ export function SettleCardForm({ cardId, currentBalance, vi }: Props) {
         className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
       >
         {isPending
-          ? vi
-            ? "Đang xử lý..."
-            : "Processing..."
-          : vi
-            ? "Xác nhận tất toán"
-            : "Settle Now"}
+          ? t("common.processing")
+          : t("card.settle_now")}
       </Button>
     </form>
   );

@@ -9,6 +9,7 @@ import {
 } from "@/app/money/action-types";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/providers/i18n-provider";
 
 export function ArchiveAccountButton({
   accountId,
@@ -17,6 +18,7 @@ export function ArchiveAccountButton({
   accountId: string;
   textWhite?: boolean;
 }) {
+  const { t } = useI18n();
   const [state, action] = useActionState<AccountActionState, FormData>(
     archiveAccountAction,
     initialAccountActionState,
@@ -41,10 +43,12 @@ export function ArchiveAccountButton({
         disabled={isPending}
         className={cn(
           "rounded-lg border px-3 py-1.5 text-xs font-medium disabled:opacity-60",
-          textWhite ? "text-white border-white/20 hover:bg-white/10" : "text-slate-700",
+          textWhite
+            ? "text-white border-white/20 hover:bg-white/10"
+            : "text-slate-700",
         )}
       >
-        {isPending ? "Archiving..." : "Archive"}
+        {isPending ? t("accounts.archiving") : t("accounts.archive")}
       </Button>
       {state.status === "error" && state.message ? (
         <p className="text-xs text-rose-600">{state.message}</p>

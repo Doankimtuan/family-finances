@@ -8,7 +8,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Label } from "@/components/ui/label";
 import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
 import { createClient } from "@/lib/supabase/server";
 
@@ -63,7 +62,9 @@ export default async function JarSetupPage({
 
   const jars = jarsResult.data ?? [];
   const categories = categoriesResult.data ?? [];
-  const rules = new Map((rulesResult.data ?? []).map((row) => [row.category_id, row.jar_id]));
+  const rules = new Map(
+    (rulesResult.data ?? []).map((row) => [row.category_id, row.jar_id]),
+  );
   const jarNameMap = new Map(jars.map((jar) => [jar.id, jar.name]));
 
   return (
@@ -74,16 +75,24 @@ export default async function JarSetupPage({
       <div className="space-y-6 pb-24">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <Button variant="ghost" size="sm" asChild className="-ml-2 h-8 px-2 text-primary hover:text-primary/80">
+            <Button
+              variant="ghost"
+              size="sm"
+              asChild
+              className="-ml-2 h-8 px-2 text-primary hover:text-primary/80"
+            >
               <Link href="/jars">
                 <ChevronLeft className="mr-1 h-4 w-4" />
                 Quay lại Jars
               </Link>
             </Button>
-            <h1 className="mt-2 text-2xl font-bold text-slate-950">Thiết lập hệ hũ</h1>
+            <h1 className="mt-2 text-2xl font-bold text-slate-950">
+              Thiết lập hệ hũ
+            </h1>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
-              Tại đây bạn khởi tạo bộ 6 jars mẫu, tạo jars tùy chỉnh, và gắn category chi tiêu
-              vào hũ phù hợp để các expense transaction tự giảm đúng hũ.
+              Tại đây bạn khởi tạo bộ 6 jars mẫu, tạo jars tùy chỉnh, và gắn
+              category chi tiêu vào hũ phù hợp để các expense transaction tự
+              giảm đúng hũ.
             </p>
           </div>
           <Button asChild variant="outline" className="rounded-xl">
@@ -109,11 +118,15 @@ export default async function JarSetupPage({
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-slate-600">
-                Dùng bộ 6 jars chuẩn như một điểm bắt đầu. Bạn vẫn có thể thêm, xóa hoặc thay đổi
-                kế hoạch tháng sau đó.
+                Dùng bộ 6 jars chuẩn như một điểm bắt đầu. Bạn vẫn có thể thêm,
+                xóa hoặc thay đổi kế hoạch tháng sau đó.
               </p>
               <form action={bootstrapPresetJarsAction}>
-                <input type="hidden" name="returnTo" value={`/jars/setup?month=${month}`} />
+                <input
+                  type="hidden"
+                  name="returnTo"
+                  value={`/jars/setup?month=${month}`}
+                />
                 <Button type="submit" className="w-full rounded-xl">
                   Khởi tạo bộ 6 jars
                 </Button>
@@ -126,7 +139,10 @@ export default async function JarSetupPage({
               <CardTitle className="text-lg">Tạo jar tùy chỉnh</CardTitle>
             </CardHeader>
             <CardContent>
-              <JarSetupCreateForm month={month} returnTo={`/jars/setup?month=${month}`} />
+              <JarSetupCreateForm
+                month={month}
+                returnTo={`/jars/setup?month=${month}`}
+              />
             </CardContent>
           </Card>
         </div>
@@ -161,14 +177,19 @@ export default async function JarSetupPage({
                         key={category.id}
                         className="grid grid-cols-[1.2fr_1fr] gap-3 px-4 py-3 text-sm"
                       >
-                        <span className="font-medium text-slate-800">{category.name}</span>
+                        <span className="font-medium text-slate-800">
+                          {category.name}
+                        </span>
                         <span className="text-slate-600">
                           {rules.has(category.id) ? (
                             <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
-                              {jarNameMap.get(rules.get(category.id)!) ?? "Unknown jar"}
+                              {jarNameMap.get(rules.get(category.id)!) ??
+                                "Unknown jar"}
                             </span>
                           ) : (
-                            <span className="text-slate-400 italic">Chưa map</span>
+                            <span className="text-slate-400 italic">
+                              Chưa map
+                            </span>
                           )}
                         </span>
                       </div>
@@ -198,19 +219,35 @@ export default async function JarSetupPage({
                   className="flex flex-col gap-3 rounded-2xl border border-border/60 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div>
-                    <p className="text-sm font-semibold text-slate-950">{jar.name}</p>
+                    <p className="text-sm font-semibold text-slate-950">
+                      {jar.name}
+                    </p>
                     <p className="mt-1 text-xs text-slate-500">
                       {jar.jar_type} · {jar.spend_policy}
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <Button asChild variant="outline" size="sm" className="rounded-xl">
+                    <Button
+                      asChild
+                      variant="outline"
+                      size="sm"
+                      className="rounded-xl"
+                    >
                       <Link href={`/jars/${jar.id}`}>Xem chi tiết</Link>
                     </Button>
                     <form action={deleteIntentJarAction}>
                       <input type="hidden" name="jarId" value={jar.id} />
-                      <input type="hidden" name="returnTo" value={`/jars/setup?month=${month}`} />
-                      <Button type="submit" size="sm" variant="ghost" className="rounded-xl text-destructive hover:bg-destructive/10 hover:text-destructive">
+                      <input
+                        type="hidden"
+                        name="returnTo"
+                        value={`/jars/setup?month=${month}`}
+                      />
+                      <Button
+                        type="submit"
+                        size="sm"
+                        variant="ghost"
+                        className="rounded-xl text-destructive hover:bg-destructive/10 hover:text-destructive"
+                      >
                         Xóa
                       </Button>
                     </form>

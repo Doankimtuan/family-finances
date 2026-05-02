@@ -311,7 +311,7 @@ function calcDueDate(
 
 // ─── Shared section header with + add action ─────────────────────────────────
 
-function SectionTitle({
+async function SectionTitle({
   title,
   addHref,
   addLabel,
@@ -324,6 +324,8 @@ function SectionTitle({
   addAction?: React.ReactNode;
   total?: string;
 }) {
+  const { language } = await getAuthenticatedHouseholdContext();
+  const t = (key: string) => dictT(language, key);
   return (
     <div className="flex items-center justify-between mb-3">
       <div>
@@ -340,7 +342,7 @@ function SectionTitle({
           className="flex items-center gap-1 text-sm font-bold text-primary hover:text-primary/80 transition-colors"
         >
           <Plus className="h-4 w-4" />
-          {addLabel ?? "Thêm"}
+          {addLabel ?? t("common.add")}
         </Link>
       ) : (
         addAction

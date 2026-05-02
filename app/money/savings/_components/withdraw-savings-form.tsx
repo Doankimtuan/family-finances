@@ -115,13 +115,13 @@ export function WithdrawSavingsForm({ savings, computed, accounts, jars = [] }: 
             </div>
           </div>
           <div className="space-y-1.5">
-            <Label>Destination jar</Label>
+            <Label>{t("savings.mature.field.destination_jar")}</Label>
             <Select value={destinationJarId || "__none__"} onValueChange={(value) => setDestinationJarId(value === "__none__" ? "" : value)}>
               <SelectTrigger className="h-12 border-slate-300 bg-white text-slate-950 data-[placeholder]:text-slate-400">
-                <SelectValue placeholder="Review later" />
+                <SelectValue placeholder={t("savings.form.placeholder.review_later")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="__none__">Review later</SelectItem>
+                <SelectItem value="__none__">{t("savings.form.placeholder.review_later")}</SelectItem>
                 {jars.map((jar) => (
                   <SelectItem key={jar.id} value={jar.id}>{jar.name}</SelectItem>
                 ))}

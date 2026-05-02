@@ -50,7 +50,7 @@ export function CreateAssetForm({ onSuccess }: CreateAssetFormProps) {
     defaultValues: {
       name: "",
       assetClass: "gold",
-      unitLabel: "lượng",
+      unitLabel: t("assets.unit.tael"),
       quantity: 1,
       unitPrice: 0,
       isLiquid: "true",
@@ -61,7 +61,7 @@ export function CreateAssetForm({ onSuccess }: CreateAssetFormProps) {
 
   useEffect(() => {
     const config = getAssetClassConfig(selectedClass);
-    setValue("unitLabel", config.defaultUnitLabel);
+    setValue("unitLabel", t(config.defaultUnitLabel));
     setValue("isLiquid", config.defaultLiquid ? "true" : "false");
   }, [selectedClass, setValue]);
 

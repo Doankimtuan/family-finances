@@ -679,7 +679,7 @@ export function AddSavingsForm({
 
               <FormSection title={t("savings.form.section.optional")}>
                 <div className="grid gap-4 md:grid-cols-2">
-                  <Field label="Source jar">
+                  <Field label={t("savings.form.field.source_jar")}>
                     <Select
                       value={form.sourceJarId || "__none__"}
                       onValueChange={(value) =>
@@ -687,10 +687,10 @@ export function AddSavingsForm({
                       }
                     >
                       <SelectTrigger className={selectClassName}>
-                        <SelectValue placeholder="Review later" />
+                        <SelectValue placeholder={t("savings.form.placeholder.review_later")} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="__none__">Review later</SelectItem>
+                        <SelectItem value="__none__">{t("savings.form.placeholder.review_later")}</SelectItem>
                         {jars.map((jar) => (
                           <SelectItem key={jar.id} value={jar.id}>
                             {jar.name}
@@ -841,10 +841,10 @@ export function AddSavingsForm({
                       ?.name ?? "-"}
                   </p>
                   <p className="mt-2">
-                    <span className="font-medium text-slate-900">Source jar:</span>{" "}
+                    <span className="font-medium text-slate-900">{t("savings.form.field.source_jar")}:</span>{" "}
                     {form.sourceJarId
                       ? jars.find((jar) => jar.id === form.sourceJarId)?.name ?? "-"
-                      : "Review later"}
+                      : t("savings.form.placeholder.review_later")}
                   </p>
                   {form.goalId ? (
                     <p className="mt-2">

@@ -11,16 +11,18 @@ import { Label } from "@/components/ui/label";
 import { MoneyInput } from "@/components/ui/money-input";
 import { toast } from "sonner";
 
+import { useI18n } from "@/lib/providers/i18n-provider";
+
 type Props = {
   cardId: string;
-  vi: boolean;
 };
 
 function todayIsoDate() {
   return new Date().toISOString().slice(0, 10);
 }
 
-export function AddCashbackForm({ cardId, vi }: Props) {
+export function AddCashbackForm({ cardId }: Props) {
+  const { t } = useI18n();
   const [state, action] = useActionState<InstallmentActionState, FormData>(
     addCardCashbackAction,
     { status: "idle", message: "" },
@@ -49,11 +51,11 @@ export function AddCashbackForm({ cardId, vi }: Props) {
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-1">
-          <Label htmlFor="amount">{vi ? "Số tiền hoàn" : "Cashback amount"}</Label>
+          <Label htmlFor="amount">{t("card.cashback_amount")}</Label>
           <MoneyInput id="amount" name="amount" defaultValue={0} />
         </div>
         <div className="space-y-1">
-          <Label htmlFor="cashbackDate">{vi ? "Ngày hoàn tiền" : "Cashback date"}</Label>
+          <Label htmlFor="cashbackDate">{t("card.cashback_date")}</Label>
           <Input
             id="cashbackDate"
             name="cashbackDate"
@@ -66,13 +68,11 @@ export function AddCashbackForm({ cardId, vi }: Props) {
       </div>
 
       <div className="space-y-1">
-        <Label htmlFor="description">{vi ? "Ghi chú" : "Note"}</Label>
+        <Label htmlFor="description">{t("common.note")}</Label>
         <Input
           id="description"
           name="description"
-          placeholder={
-            vi ? "VD: Hoàn tiền chi tiêu tháng 2" : "e.g. February statement cashback"
-          }
+          placeholder={t("card.cashback_placeholder")}
         />
       </div>
 
@@ -82,12 +82,8 @@ export function AddCashbackForm({ cardId, vi }: Props) {
         className="w-full bg-sky-600 text-white hover:bg-sky-700"
       >
         {isPending
-          ? vi
-            ? "Đang xử lý..."
-            : "Processing..."
-          : vi
-            ? "Ghi nhận hoàn tiền"
-            : "Record Cashback"}
+          ? t("common.processing")
+          : t("card.record_cashback")}
       </Button>
     </form>
   );
