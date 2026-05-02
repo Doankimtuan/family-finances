@@ -1,5 +1,4 @@
 import { headers } from "next/headers";
-import { redirect } from "next/navigation";
 
 import { AppHeader } from "@/components/layout/app-header";
 import { AppShell } from "@/components/layout/app-shell";
@@ -28,25 +27,12 @@ function getOriginFromHeaders(headerList: Headers): string {
 }
 
 export default async function SettingsMembersPage() {
-  const { user, language, members, pendingInvites, incomingInvites, householdId } = await getSettingsDataContext(false, false, false, true);
+  const { user, language, members, pendingInvites, incomingInvites } =
+    await getSettingsDataContext(false, false, false, true);
   const vi = language === "vi";
-
-  if (!user?.email) redirect("/login");
 
   const requestHeaders = await headers();
   const origin = getOriginFromHeaders(requestHeaders);
-
-  // Debug: Log the data to see what's being returned
-  console.log("=== MEMBERS DEBUG ===");
-  console.log("User ID:", user.id);
-  console.log("User Email:", user.email);
-  console.log("Household ID:", householdId);
-  console.log("Members data:", members);
-  console.log("Members type:", typeof members);
-  console.log("Members length:", Array.isArray(members) ? members.length : 'Not an array');
-  console.log("Pending invites:", pendingInvites);
-  console.log("Incoming invites:", incomingInvites);
-  console.log("==================");
 
   return (
     <AppShell
@@ -118,28 +104,10 @@ export default async function SettingsMembersPage() {
               ) : (
                 <div className="text-center py-8">
                   <p className="text-sm text-slate-500">
-                    {vi ? "Chưa có thành viên nào trong hộ gia đình." : "No members in this household yet."}
+                    {vi
+                      ? "Chưa có thành viên nào trong hộ gia đình."
+                      : "No members in this household yet."}
                   </p>
-                  <div className="mt-4 p-3 bg-slate-50 rounded-lg text-left">
-                    <p className="text-xs font-mono text-slate-600 mb-2">
-                      <strong>Debug Info:</strong>
-                    </p>
-                    <p className="text-xs font-mono text-slate-500">
-                      User ID: {user.id}
-                    </p>
-                    <p className="text-xs font-mono text-slate-500">
-                      Household ID: {householdId}
-                    </p>
-                    <p className="text-xs font-mono text-slate-500">
-                      Members Type: {typeof members}
-                    </p>
-                    <p className="text-xs font-mono text-slate-500">
-                      Is Array: {Array.isArray(members) ? 'Yes' : 'No'}
-                    </p>
-                    <p className="text-xs font-mono text-slate-500 break-all">
-                      Members Data: {JSON.stringify(members)}
-                    </p>
-                  </div>
                 </div>
               )}
             </div>
