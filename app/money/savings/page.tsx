@@ -12,7 +12,11 @@ import { t } from "@/lib/i18n/dictionary";
 import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
 import { AddSavingsForm } from "@/app/money/savings/_components/add-savings-form";
 import { SavingsCard } from "@/app/money/savings/_components/savings-card";
-import { buildSavingsListItems, buildSavingsSummary, fetchSavingsBundle } from "@/lib/savings/service";
+import {
+  buildSavingsListItems,
+  buildSavingsSummary,
+  fetchSavingsBundle,
+} from "@/lib/savings/service";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata = {
@@ -33,24 +37,28 @@ export default async function SavingsPage() {
   const summary = buildSavingsSummary(items);
   const bankItems = items.filter((item) => item.savingsType === "bank");
   const appItems = items.filter((item) => item.savingsType === "third_party");
-  const accounts = (
-    (await supabase
+  const accounts = ((
+    await supabase
       .from("accounts")
       .select("id, name")
       .eq("household_id", householdId)
       .eq("is_archived", false)
-      .order("created_at", { ascending: true })).data ?? []
-  ) as Array<{ id: string; name: string }>;
-  const goals = Array.from(bundle.goals.entries()).map(([id, name]) => ({ id, name }));
-  const jars = (
-    (await supabase
+      .order("created_at", { ascending: true })
+  ).data ?? []) as Array<{ id: string; name: string }>;
+  const goals = Array.from(bundle.goals.entries()).map(([id, name]) => ({
+    id,
+    name,
+  }));
+  const jars = ((
+    await supabase
       .from("jars")
       .select("id, name")
       .eq("household_id", householdId)
       .eq("is_archived", false)
-      .order("sort_order", { ascending: true })).data ?? []
-  ) as Array<{ id: string; name: string }>;
-  const nextMaturityLabel = summary.nextMaturity?.maturityDate ?? t(language, "savings.summary.none");
+      .order("sort_order", { ascending: true })
+  ).data ?? []) as Array<{ id: string; name: string }>;
+  const nextMaturityLabel =
+    summary.nextMaturity?.maturityDate ?? t(language, "savings.summary.none");
   const upcomingCountLabel = `${summary.upcomingCount30d} ${t(language, "savings.summary.deposits")}`;
 
   return (
@@ -83,7 +91,11 @@ export default async function SavingsPage() {
                   jars={jars}
                   triggerLabel={t(language, "savings.add")}
                 />
-                <Button asChild variant="ghost" className="justify-start px-0 sm:justify-end">
+                <Button
+                  asChild
+                  variant="ghost"
+                  className="justify-start px-0 sm:justify-end"
+                >
                   <Link href="/money">
                     {t(language, "savings.back_to_money")}
                     <ArrowRight className="ml-2 h-4 w-4" />
@@ -109,7 +121,10 @@ export default async function SavingsPage() {
                     {t(language, "savings.summary.liquid_value")}
                   </p>
                   <p className="mt-2 text-2xl font-bold text-slate-900">
-                    {formatVndCompact(summary.totalLiquidationValue, householdLocale)}
+                    {formatVndCompact(
+                      summary.totalLiquidationValue,
+                      householdLocale,
+                    )}
                   </p>
                 </CardContent>
               </Card>
@@ -119,7 +134,10 @@ export default async function SavingsPage() {
                     {t(language, "savings.summary.accrued_interest")}
                   </p>
                   <p className="mt-2 text-2xl font-bold text-emerald-700">
-                    {formatVndCompact(summary.totalAccruedInterest, householdLocale)}
+                    {formatVndCompact(
+                      summary.totalAccruedInterest,
+                      householdLocale,
+                    )}
                   </p>
                 </CardContent>
               </Card>
@@ -133,7 +151,8 @@ export default async function SavingsPage() {
                     {nextMaturityLabel}
                   </p>
                   <p className="mt-1 text-sm text-slate-500">
-                    {t(language, "savings.summary.upcoming_count")}: {upcomingCountLabel}
+                    {t(language, "savings.summary.upcoming_count")}:{" "}
+                    {upcomingCountLabel}
                   </p>
                 </CardContent>
               </Card>
@@ -160,7 +179,7 @@ export default async function SavingsPage() {
           <div className="space-y-8">
             <section className="space-y-3">
               <div className="flex items-center justify-between">
-                <div>
+                <div className="min-w-0 flex-1">
                   <h2 className="text-xl font-bold text-slate-900">
                     {t(language, "savings.group.bank")}
                   </h2>
@@ -191,7 +210,7 @@ export default async function SavingsPage() {
 
             <section className="space-y-3">
               <div className="flex items-center justify-between">
-                <div>
+                <div className="min-w-0 flex-1">
                   <h2 className="text-xl font-bold text-slate-900">
                     {t(language, "savings.group.third_party")}
                   </h2>

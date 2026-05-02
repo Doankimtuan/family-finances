@@ -21,7 +21,7 @@ export function SavingsStepType({ onNext }: Props) {
           type="button"
           variant="ghost"
           className={cn(
-            "rounded-2xl border p-5 text-left transition h-auto justify-start block",
+            "rounded-2xl border p-5 text-left transition h-auto justify-start block whitespace-normal",
             savingsType === "bank"
               ? "border-primary bg-blue-50 shadow-sm ring-1 ring-blue-100 hover:bg-blue-50"
               : "border-slate-200 bg-white hover:border-primary/40 hover:bg-white",
@@ -36,7 +36,7 @@ export function SavingsStepType({ onNext }: Props) {
             <div className="rounded-2xl bg-blue-50 p-3 text-blue-700">
               <Landmark className="h-5 w-5" />
             </div>
-            <div>
+            <div className="min-w-0 flex-1">
               <p className="font-semibold text-slate-900">
                 {t("savings.form.type.bank.title")}
               </p>
@@ -51,7 +51,7 @@ export function SavingsStepType({ onNext }: Props) {
           type="button"
           variant="ghost"
           className={cn(
-            "rounded-2xl border p-5 text-left transition h-auto justify-start block",
+            "rounded-2xl border p-5 text-left transition h-auto justify-start block whitespace-normal",
             savingsType === "third_party"
               ? "border-primary bg-emerald-50 shadow-sm ring-1 ring-emerald-100 hover:bg-emerald-50"
               : "border-slate-200 bg-white hover:border-primary/40 hover:bg-white",
@@ -62,7 +62,7 @@ export function SavingsStepType({ onNext }: Props) {
             <div className="rounded-2xl bg-emerald-50 p-3 text-emerald-700">
               <WalletCards className="h-5 w-5" />
             </div>
-            <div>
+            <div className="min-w-0 flex-1">
               <p className="font-semibold text-slate-900">
                 {t("savings.form.type.third_party.title")}
               </p>
