@@ -3,58 +3,10 @@
 import { revalidatePath } from "next/cache";
 
 import { writeAuditEvent } from "@/lib/server/audit";
-import { createClient } from "@/lib/supabase/server";
+import { resolveActionContext } from "@/lib/server/action-context";
+import { ok, fail } from "@/lib/server/action-helpers";
 
 import type { AccountActionState } from "./action-types";
-
-function ok(message: string): AccountActionState {
-  return { status: "success", message };
-}
-
-function fail(message: string): AccountActionState {
-  return { status: "error", message };
-}
-
-async function resolveContext() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return {
-      supabase,
-      user: null,
-      householdId: null,
-      error: "You must be logged in.",
-    };
-  }
-
-  const membership = await supabase
-    .from("household_members")
-    .select("household_id")
-    .eq("user_id", user.id)
-    .eq("is_active", true)
-    .order("joined_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-
-  if (membership.error || !membership.data?.household_id) {
-    return {
-      supabase,
-      user,
-      householdId: null,
-      error: membership.error?.message ?? "No household found.",
-    };
-  }
-
-  return {
-    supabase,
-    user,
-    householdId: membership.data.household_id,
-    error: null,
-  };
-}
 
 export async function createAccountAction(
   _prev: AccountActionState,
@@ -71,13 +23,13 @@ export async function createAccountAction(
   ).trim();
 
   if (name.length < 2)
-    return fail("Account name must be at least 2 characters.");
+    return fail("common.error.name_length");
   if (!Number.isFinite(openingBalance) || openingBalance < 0)
-    return fail("Opening balance must be non-negative.");
+    return fail("common.error.amount_negative");
 
-  const { supabase, user, householdId, error } = await resolveContext();
+  const { supabase, user, householdId, t, error } = await resolveActionContext();
   if (error || !user || !householdId)
-    return fail(error ?? "No household found.");
+    return fail(error ?? "errors.household_not_found");
 
   const openingBalanceRounded = Math.round(openingBalance);
   const insert = await supabase
@@ -96,7 +48,7 @@ export async function createAccountAction(
     .single();
 
   if (insert.error || !insert.data?.id)
-    return fail(insert.error?.message ?? "Failed to create account.");
+    return fail(insert.error?.message ?? t("accounts.error.failed_create"));
 
   // If credit card, initialize settings with user-supplied values
   if (type === "credit_card") {
@@ -133,7 +85,7 @@ export async function createAccountAction(
   revalidatePath("/accounts");
   revalidatePath("/transactions");
 
-  return ok("Account created.");
+  return ok(t("accounts.success.created"));
 }
 
 export async function archiveAccountAction(
@@ -141,11 +93,11 @@ export async function archiveAccountAction(
   formData: FormData,
 ): Promise<AccountActionState> {
   const accountId = String(formData.get("accountId") ?? "").trim();
-  if (!accountId) return fail("Missing account id.");
+  if (!accountId) return fail("common.error.missing_id");
 
-  const { supabase, user, householdId, error } = await resolveContext();
+  const { supabase, user, householdId, t, error } = await resolveActionContext();
   if (error || !user || !householdId)
-    return fail(error ?? "No household found.");
+    return fail(error ?? "errors.household_not_found");
 
   const update = await supabase
     .from("accounts")
@@ -165,5 +117,5 @@ export async function archiveAccountAction(
   revalidatePath("/accounts");
   revalidatePath("/transactions");
 
-  return ok("Account archived.");
+  return ok(t("accounts.success.archived"));
 }

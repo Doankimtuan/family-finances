@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { writeAuditEvent } from "@/lib/server/audit";
+import { resolveActionContext } from "@/lib/server/action-context";
 import { createClient } from "@/lib/supabase/server";
 
 export type InstallmentActionState = {
@@ -62,47 +63,6 @@ function parseDateOnlyToUTC(dateStr: string): Date | null {
   const monthIdx = Number(match[2]) - 1;
   const day = Number(match[3]);
   return new Date(Date.UTC(year, monthIdx, day));
-}
-
-async function resolveContext() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return {
-      supabase,
-      user: null,
-      householdId: null,
-      error: "You must be logged in.",
-    };
-  }
-
-  const membership = await supabase
-    .from("household_members")
-    .select("household_id")
-    .eq("user_id", user.id)
-    .eq("is_active", true)
-    .order("joined_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-
-  if (membership.error || !membership.data?.household_id) {
-    return {
-      supabase,
-      user,
-      householdId: null,
-      error: membership.error?.message ?? "No household found.",
-    };
-  }
-
-  return {
-    supabase,
-    user,
-    householdId: membership.data.household_id,
-    error: null,
-  };
 }
 
 // ─── Shared helper: generate N billing items for an installment plan ──────────
@@ -191,7 +151,7 @@ export async function convertItemToInstallmentAction(
       message: "Number of installments must be positive.",
     };
 
-  const { supabase, user, householdId, error } = await resolveContext();
+  const { supabase, user, householdId, error } = await resolveActionContext();
   if (error || !user || !householdId)
     return { status: "error", message: error ?? "No household found." };
 
@@ -326,7 +286,7 @@ export async function createInstallmentPlanAction(
       message: "Number of installments must be positive.",
     };
 
-  const { supabase, user, householdId, error } = await resolveContext();
+  const { supabase, user, householdId, error } = await resolveActionContext();
   if (error || !user || !householdId)
     return { status: "error", message: error ?? "No household found." };
 
@@ -421,7 +381,7 @@ export async function settleCardAction(
   if (!cardId || !sourceAccountId || amount <= 0)
     return { status: "error", message: "Missing data or invalid amount." };
 
-  const { supabase, user, householdId, error } = await resolveContext();
+  const { supabase, user, householdId, error } = await resolveActionContext();
   if (error || !user || !householdId)
     return { status: "error", message: error ?? "No household found." };
 
@@ -562,7 +522,7 @@ export async function addCardCashbackAction(
     return { status: "error", message: "Cashback amount must be positive." };
   }
 
-  const { supabase, user, householdId, error } = await resolveContext();
+  const { supabase, user, householdId, error } = await resolveActionContext();
   if (error || !user || !householdId) {
     return { status: "error", message: error ?? "No household found." };
   }

@@ -10,38 +10,12 @@ import {
   slugifyJarName,
 } from "@/lib/jars/intent";
 import { writeAuditEvent } from "@/lib/server/audit";
-import { createClient } from "@/lib/supabase/server";
+import { resolveActionContextOrThrow } from "@/lib/server/action-context";
 
 function withStatus(path: string, key: "success" | "error", message: string) {
   const url = new URL(path, "http://local");
   url.searchParams.set(key, message);
   return `${url.pathname}${url.search}`;
-}
-
-async function resolveContext() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    throw new Error("You must be logged in.");
-  }
-
-  const membership = await supabase
-    .from("household_members")
-    .select("household_id")
-    .eq("user_id", user.id)
-    .eq("is_active", true)
-    .order("joined_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-
-  if (membership.error || !membership.data?.household_id) {
-    throw new Error(membership.error?.message ?? "No household found.");
-  }
-
-  return { supabase, user, householdId: membership.data.household_id };
 }
 
 function getReturnTo(formData: FormData, fallback: string) {
@@ -52,7 +26,7 @@ function getReturnTo(formData: FormData, fallback: string) {
 export async function bootstrapPresetJarsAction(formData: FormData) {
   const returnTo = getReturnTo(formData, "/jars");
   try {
-    const { supabase, user, householdId } = await resolveContext();
+    const { supabase, user, householdId } = await resolveActionContextOrThrow();
     await ensureJarPreset(supabase, householdId, user.id);
     await writeAuditEvent(supabase, {
       householdId,
@@ -78,7 +52,7 @@ export async function bootstrapPresetJarsAction(formData: FormData) {
 export async function createIntentJarAction(formData: FormData) {
   const returnTo = getReturnTo(formData, "/jars/setup");
   try {
-    const { supabase, user, householdId } = await resolveContext();
+    const { supabase, user, householdId } = await resolveActionContextOrThrow();
     const name = String(formData.get("name") ?? "").trim();
     const jarType = String(formData.get("jarType") ?? "custom").trim();
     const spendPolicy = String(formData.get("spendPolicy") ?? "flexible").trim();
@@ -177,7 +151,7 @@ export async function createIntentJarAction(formData: FormData) {
 export async function upsertJarPlanAction(formData: FormData) {
   const returnTo = getReturnTo(formData, "/jars");
   try {
-    const { supabase, user, householdId } = await resolveContext();
+    const { supabase, user, householdId } = await resolveActionContextOrThrow();
     const jarId = String(formData.get("jarId") ?? "").trim();
     const month = String(formData.get("month") ?? "").trim();
     const incomePercent = Math.max(0, Number(formData.get("incomePercent") ?? 0));
@@ -232,7 +206,7 @@ export async function upsertJarPlanAction(formData: FormData) {
 export async function upsertExpenseRuleAction(formData: FormData) {
   const returnTo = getReturnTo(formData, "/jars/setup");
   try {
-    const { supabase, user, householdId } = await resolveContext();
+    const { supabase, user, householdId } = await resolveActionContextOrThrow();
     const categoryId = String(formData.get("categoryId") ?? "").trim();
     const jarId = String(formData.get("jarId") ?? "").trim();
 
@@ -275,7 +249,7 @@ export async function upsertExpenseRuleAction(formData: FormData) {
 export async function resolveJarReviewAction(formData: FormData) {
   const returnTo = getReturnTo(formData, "/jars/review");
   try {
-    const { supabase, user, householdId } = await resolveContext();
+    const { supabase, user, householdId } = await resolveActionContextOrThrow();
     const reviewId = String(formData.get("reviewId") ?? "").trim();
     const mode = String(formData.get("mode") ?? "suggested").trim();
     const allocationsJson = String(formData.get("allocationsJson") ?? "[]");
@@ -314,7 +288,7 @@ export async function resolveJarReviewAction(formData: FormData) {
 export async function deleteIntentJarAction(formData: FormData) {
   const returnTo = getReturnTo(formData, "/jars/setup");
   try {
-    const { supabase, householdId } = await resolveContext();
+    const { supabase, householdId } = await resolveActionContextOrThrow();
     const jarId = String(formData.get("jarId") ?? "").trim();
     if (!jarId) throw new Error("Thieu hu can xoa.");
 
@@ -386,7 +360,7 @@ export async function deleteIntentJarAction(formData: FormData) {
 export async function addManualJarAdjustmentAction(formData: FormData) {
   const returnTo = getReturnTo(formData, "/jars");
   try {
-    const { supabase, user, householdId } = await resolveContext();
+    const { supabase, user, householdId } = await resolveActionContextOrThrow();
     const jarId = String(formData.get("jarId") ?? "").trim();
     const movementDate = String(formData.get("movementDate") ?? "").trim();
     const amount = Math.max(0, Number(formData.get("amount") ?? 0));

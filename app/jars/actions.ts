@@ -4,17 +4,11 @@ import { revalidatePath } from "next/cache";
 
 import { isServerFeatureEnabled } from "@/lib/config/features";
 import { writeAuditEvent } from "@/lib/server/audit";
+import { resolveActionContext } from "@/lib/server/action-context";
+import { ok, fail } from "@/lib/server/action-helpers";
 import { createClient } from "@/lib/supabase/server";
 
 import type { JarActionState } from "./action-types";
-
-function ok(message: string): JarActionState {
-  return { status: "success", message };
-}
-
-function fail(message: string): JarActionState {
-  return { status: "error", message };
-}
 
 function toMonthStart(value: string): string | null {
   if (!/^\d{4}-\d{2}$/.test(value)) return null;
@@ -35,6 +29,10 @@ function slugify(text: string): string {
     .slice(0, 60);
 }
 
+/**
+ * jars-specific context: adds a feature-flag guard before the standard
+ * auth + household resolution.
+ */
 async function resolveContext() {
   if (!isServerFeatureEnabled("jars")) {
     return {
@@ -44,36 +42,9 @@ async function resolveContext() {
       error: "Feature disabled: jars.",
     };
   }
-
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { supabase, user: null, householdId: null, error: "You must be logged in." };
-  }
-
-  const membership = await supabase
-    .from("household_members")
-    .select("household_id")
-    .eq("user_id", user.id)
-    .eq("is_active", true)
-    .order("joined_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-
-  if (membership.error || !membership.data?.household_id) {
-    return {
-      supabase,
-      user,
-      householdId: null,
-      error: membership.error?.message ?? "No household found.",
-    };
-  }
-
-  return { supabase, user, householdId: membership.data.household_id, error: null };
+  return resolveActionContext();
 }
+
 
 async function computeTargetAmount(
   supabase: Awaited<ReturnType<typeof createClient>>,

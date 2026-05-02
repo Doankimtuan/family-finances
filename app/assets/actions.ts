@@ -3,60 +3,12 @@
 import { revalidatePath } from "next/cache";
 
 import { writeAuditEvent } from "@/lib/server/audit";
-import { createClient } from "@/lib/supabase/server";
+import { resolveActionContext } from "@/lib/server/action-context";
+import { ok, fail } from "@/lib/server/action-helpers";
 
 import type { AssetActionState } from "./action-types";
 import { redirect } from "next/navigation";
 import { getAssetClassConfig } from "@/lib/assets/class-config";
-
-function ok(message: string): AssetActionState {
-  return { status: "success", message };
-}
-
-function fail(message: string): AssetActionState {
-  return { status: "error", message };
-}
-
-async function resolveContext() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return {
-      supabase,
-      user: null,
-      householdId: null,
-      error: "You must be logged in.",
-    };
-  }
-
-  const membership = await supabase
-    .from("household_members")
-    .select("household_id")
-    .eq("user_id", user.id)
-    .eq("is_active", true)
-    .order("joined_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-
-  if (membership.error || !membership.data?.household_id) {
-    return {
-      supabase,
-      user,
-      householdId: null,
-      error: membership.error?.message ?? "No household found.",
-    };
-  }
-
-  return {
-    supabase,
-    user,
-    householdId: membership.data.household_id,
-    error: null,
-  };
-}
 
 export async function createAssetAction(
   _prev: AssetActionState,
@@ -87,15 +39,15 @@ export async function createAssetAction(
     }
   }
 
-  if (name.length < 2) return fail("Asset name must be at least 2 characters.");
+  if (name.length < 2) return fail("common.error.name_length");
   if (!Number.isFinite(quantity) || quantity < 0)
-    return fail("Quantity must be non-negative.");
+    return fail("common.error.amount_negative");
   if (!Number.isFinite(unitPrice) || unitPrice < 0)
-    return fail("Unit price must be non-negative.");
+    return fail("common.error.amount_negative");
 
-  const { supabase, user, householdId, error } = await resolveContext();
+  const { supabase, user, householdId, t, error } = await resolveActionContext();
   if (error || !user || !householdId)
-    return fail(error ?? "No household found.");
+    return fail(error ?? "errors.household_not_found");
 
   const today = new Date().toISOString().slice(0, 10);
 
@@ -120,7 +72,7 @@ export async function createAssetAction(
     .single();
 
   if (asset.error || !asset.data?.id) {
-    return fail(asset.error?.message ?? "Failed to create asset.");
+    return fail(asset.error?.message ?? t("assets.error.failed_create"));
   }
 
   const [qInsert, pInsert] = await Promise.all([
@@ -164,7 +116,7 @@ export async function createAssetAction(
   });
 
   revalidatePath("/assets");
-  return ok("Asset created.");
+  return ok(t("assets.success.created"));
 }
 
 export async function upsertQuantityHistoryAction(
@@ -175,14 +127,14 @@ export async function upsertQuantityHistoryAction(
   const asOfDate = String(formData.get("asOfDate") ?? "").trim();
   const quantity = Number(formData.get("quantity") ?? 0);
 
-  if (!assetId) return fail("Missing asset id.");
-  if (!asOfDate) return fail("Date is required.");
+  if (!assetId) return fail("common.error.missing_id");
+  if (!asOfDate) return fail("common.error.date_required");
   if (!Number.isFinite(quantity) || quantity < 0)
-    return fail("Quantity must be non-negative.");
+    return fail("common.error.amount_negative");
 
-  const { supabase, user, householdId, error } = await resolveContext();
+  const { supabase, user, householdId, t, error } = await resolveActionContext();
   if (error || !user || !householdId)
-    return fail(error ?? "No household found.");
+    return fail(error ?? "errors.household_not_found");
 
   const upsert = await supabase.from("asset_quantity_history").upsert(
     {
@@ -209,7 +161,7 @@ export async function upsertQuantityHistoryAction(
 
   revalidatePath(`/assets/${assetId}`);
   revalidatePath("/assets");
-  return ok("Quantity history saved.");
+  return ok(t("assets.success.quantity_saved"));
 }
 
 export async function upsertPriceHistoryAction(
@@ -220,14 +172,14 @@ export async function upsertPriceHistoryAction(
   const asOfDate = String(formData.get("asOfDate") ?? "").trim();
   const unitPrice = Number(formData.get("unitPrice") ?? 0);
 
-  if (!assetId) return fail("Missing asset id.");
-  if (!asOfDate) return fail("Date is required.");
+  if (!assetId) return fail("common.error.missing_id");
+  if (!asOfDate) return fail("common.error.date_required");
   if (!Number.isFinite(unitPrice) || unitPrice < 0)
-    return fail("Unit price must be non-negative.");
+    return fail("common.error.amount_negative");
 
-  const { supabase, user, householdId, error } = await resolveContext();
+  const { supabase, user, householdId, t, error } = await resolveActionContext();
   if (error || !user || !householdId)
-    return fail(error ?? "No household found.");
+    return fail(error ?? "errors.household_not_found");
 
   const upsert = await supabase.from("asset_price_history").upsert(
     {
@@ -255,7 +207,7 @@ export async function upsertPriceHistoryAction(
 
   revalidatePath(`/assets/${assetId}`);
   revalidatePath("/assets");
-  return ok("Price history saved.");
+  return ok(t("assets.success.price_saved"));
 }
 
 export async function updateQuantityHistoryRowAction(
@@ -266,14 +218,14 @@ export async function updateQuantityHistoryRowAction(
   const assetId = String(formData.get("assetId") ?? "").trim();
   const quantity = Number(formData.get("quantity") ?? 0);
 
-  if (!rowId) return fail("Missing history row id.");
-  if (!assetId) return fail("Missing asset id.");
+  if (!rowId) return fail("common.error.missing_id");
+  if (!assetId) return fail("common.error.missing_id");
   if (!Number.isFinite(quantity) || quantity < 0)
-    return fail("Quantity must be non-negative.");
+    return fail("common.error.amount_negative");
 
-  const { supabase, user, householdId, error } = await resolveContext();
+  const { supabase, user, householdId, t, error } = await resolveActionContext();
   if (error || !user || !householdId)
-    return fail(error ?? "No household found.");
+    return fail(error ?? "errors.household_not_found");
 
   const update = await supabase
     .from("asset_quantity_history")
@@ -293,7 +245,7 @@ export async function updateQuantityHistoryRowAction(
 
   revalidatePath(`/assets/${assetId}`);
   revalidatePath("/assets");
-  return ok("Quantity entry updated.");
+  return ok(t("assets.success.quantity_updated"));
 }
 
 export async function updatePriceHistoryRowAction(
@@ -304,14 +256,14 @@ export async function updatePriceHistoryRowAction(
   const assetId = String(formData.get("assetId") ?? "").trim();
   const unitPrice = Number(formData.get("unitPrice") ?? 0);
 
-  if (!rowId) return fail("Missing history row id.");
-  if (!assetId) return fail("Missing asset id.");
+  if (!rowId) return fail("common.error.missing_id");
+  if (!assetId) return fail("common.error.missing_id");
   if (!Number.isFinite(unitPrice) || unitPrice < 0)
-    return fail("Price must be non-negative.");
+    return fail("common.error.amount_negative");
 
-  const { supabase, user, householdId, error } = await resolveContext();
+  const { supabase, user, householdId, t, error } = await resolveActionContext();
   if (error || !user || !householdId)
-    return fail(error ?? "No household found.");
+    return fail(error ?? "errors.household_not_found");
 
   const update = await supabase
     .from("asset_price_history")
@@ -331,7 +283,7 @@ export async function updatePriceHistoryRowAction(
 
   revalidatePath(`/assets/${assetId}`);
   revalidatePath("/money");
-  return ok("Price entry updated.");
+  return ok(t("assets.success.price_updated"));
 }
 
 export async function deleteAssetAction(
@@ -339,11 +291,11 @@ export async function deleteAssetAction(
   formData: FormData,
 ): Promise<AssetActionState> {
   const assetId = String(formData.get("assetId") ?? "").trim();
-  if (!assetId) return fail("Missing asset id.");
+  if (!assetId) return fail("common.error.missing_id");
 
-  const { supabase, user, householdId, error } = await resolveContext();
+  const { supabase, user, householdId, t, error } = await resolveActionContext();
   if (error || !user || !householdId)
-    return fail(error ?? "No household found.");
+    return fail(error ?? "errors.household_not_found");
 
   const existing = await supabase
     .from("assets")
@@ -353,7 +305,7 @@ export async function deleteAssetAction(
     .maybeSingle();
 
   if (existing.error) return fail(existing.error.message);
-  if (!existing.data) return fail("Asset not found.");
+  if (!existing.data) return fail(t("assets.error.not_found"));
 
   const del = await supabase
     .from("assets")

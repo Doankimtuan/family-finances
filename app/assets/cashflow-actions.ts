@@ -2,102 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { writeAuditEvent } from "@/lib/server/audit";
-import { createClient } from "@/lib/supabase/server";
+import { resolveActionContext } from "@/lib/server/action-context";
+import { ok, fail } from "@/lib/server/action-helpers";
+import { getAccountBalanceSnapshot } from "@/lib/server/balance";
 import type { AssetActionState } from "./action-types";
-
-function ok(message: string): AssetActionState {
-  return { status: "success", message };
-}
-
-function fail(message: string): AssetActionState {
-  return { status: "error", message };
-}
-
-async function getAccountBalanceSnapshot(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  householdId: string,
-  accountId: string,
-) {
-  const accountRes = await supabase
-    .from("accounts")
-    .select("opening_balance")
-    .eq("household_id", householdId)
-    .eq("id", accountId)
-    .maybeSingle();
-
-  if (accountRes.error || !accountRes.data) {
-    return {
-      balance: null as number | null,
-      error: accountRes.error?.message ?? "Account not found.",
-    };
-  }
-
-  const txRes = await supabase
-    .from("transactions")
-    .select("account_id, counterparty_account_id, type, amount")
-    .eq("household_id", householdId)
-    .eq("is_non_cash", false)
-    .or(`account_id.eq.${accountId},counterparty_account_id.eq.${accountId}`)
-    .eq("status", "cleared");
-
-  if (txRes.error) {
-    return { balance: null as number | null, error: txRes.error.message };
-  }
-
-  let balance = Number(accountRes.data.opening_balance ?? 0);
-  for (const row of txRes.data ?? []) {
-    const amount = Number(row.amount ?? 0);
-    if (row.type === "income" && row.account_id === accountId) balance += amount;
-    if (row.type === "expense" && row.account_id === accountId) balance -= amount;
-    if (row.type === "transfer") {
-      if (row.account_id === accountId) balance -= amount;
-      if (row.counterparty_account_id === accountId) balance += amount;
-    }
-  }
-
-  return { balance, error: null as string | null };
-}
-
-async function resolveContext() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return {
-      supabase,
-      user: null,
-      householdId: null,
-      error: "You must be logged in.",
-    };
-  }
-
-  const membership = await supabase
-    .from("household_members")
-    .select("household_id")
-    .eq("user_id", user.id)
-    .eq("is_active", true)
-    .order("joined_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-
-  if (membership.error || !membership.data?.household_id) {
-    return {
-      supabase,
-      user,
-      householdId: null,
-      error: membership.error?.message ?? "No household found.",
-    };
-  }
-
-  return {
-    supabase,
-    user,
-    householdId: membership.data.household_id,
-    error: null,
-  };
-}
 
 export async function addAssetCashflowAction(
   _prev: AssetActionState,
@@ -116,7 +24,7 @@ export async function addAssetCashflowAction(
   if (!flowDate) return fail("Date is required.");
   if (!accountId) return fail("Account is required.");
 
-  const { supabase, user, householdId, error } = await resolveContext();
+  const { supabase, user, householdId, error } = await resolveActionContext();
   if (error || !householdId || !user)
     return fail(error ?? "No household found.");
 

@@ -6,7 +6,7 @@ interface SectionHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
   title?: string;
   description?: string;
   rightAction?: React.ReactNode;
-  icon?: React.ReactNode;
+  icon?: React.ElementType | React.ReactNode;
 }
 
 export function SectionHeader({
@@ -30,15 +30,12 @@ export function SectionHeader({
         <div className="space-y-1">
           {title && (
             <div className="flex items-center gap-2">
-              {icon && (
-                React.isValidElement(icon) ? (
-                  icon
-                ) : (
-                  React.createElement(icon as React.ElementType, {
-                    className: "h-5 w-5 text-primary/80",
-                  })
-                )
-              )}
+              {icon &&
+                (React.isValidElement(icon)
+                  ? icon
+                  : React.createElement(icon as React.ElementType, {
+                      className: "h-5 w-5 text-primary/80",
+                    }))}
               <h2 className="text-xl font-bold tracking-tight text-foreground">
                 {title}
               </h2>
