@@ -20,7 +20,7 @@ import * as z from "zod";
 
 const transactionSchema = z.object({
   type: z.enum(["income", "expense", "transfer"]),
-  amount: z.coerce.number().min(1, "Amount must be greater than 0"),
+  amount: z.number().min(1, "Amount must be greater than 0"),
   accountId: z.string().min(1, "Account is required"),
   counterpartyAccountId: z.string().optional(),
   categoryId: z.string().optional(),

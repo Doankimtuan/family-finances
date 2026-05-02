@@ -19,7 +19,7 @@ const ledgerEntrySchema = z.object({
   jarId: z.string().min(1),
   month: z.string().min(1),
   entryType: z.enum(["allocate", "withdraw", "adjust"]),
-  amount: z.coerce.number().min(1, "Amount must be greater than 0"),
+  amount: z.number().min(1, "Amount must be greater than 0"),
   entryDate: z.string().min(1, "Date is required"),
   note: z.string().optional(),
 });

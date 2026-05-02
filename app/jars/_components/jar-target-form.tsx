@@ -19,7 +19,7 @@ const targetSchema = z.object({
   jarId: z.string().min(1),
   month: z.string().min(1),
   targetMode: z.enum(["fixed", "percent"]),
-  targetValue: z.coerce.number().min(0),
+  targetValue: z.number().min(0),
 });
 
 type TargetValues = z.infer<typeof targetSchema>;

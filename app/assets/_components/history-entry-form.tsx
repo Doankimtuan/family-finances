@@ -19,8 +19,8 @@ import { toast } from "sonner";
 const historySchema = z.object({
   assetId: z.string(),
   asOfDate: z.string().min(1, "Date is required"),
-  quantity: z.coerce.number().min(0, "Quantity must be non-negative").optional(),
-  unitPrice: z.coerce.number().min(0, "Unit price must be non-negative").optional(),
+  quantity: z.number().min(0, "Quantity must be non-negative").optional(),
+  unitPrice: z.number().min(0, "Unit price must be non-negative").optional(),
 });
 
 type HistoryValues = z.infer<typeof historySchema>;

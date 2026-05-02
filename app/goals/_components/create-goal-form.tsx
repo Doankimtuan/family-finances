@@ -15,8 +15,8 @@ import { FormStatus } from "@/components/ui/form-status";
 const goalSchema = z.object({
   name: z.string().min(2, "Goal name must be at least 2 characters"),
   goalType: z.string(),
-  priority: z.coerce.number().min(1).max(5),
-  targetAmount: z.coerce.number().positive("Target amount must be positive"),
+  priority: z.number().min(1).max(5),
+  targetAmount: z.number().positive("Target amount must be positive"),
   targetDate: z.string().optional(),
 });
 

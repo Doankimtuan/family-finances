@@ -24,7 +24,7 @@ const cashflowSchema = z.object({
   flowType: z.string(),
   flowDate: z.string().min(1, "Date is required"),
   accountId: z.string().min(1, "Account is required"),
-  amount: z.coerce.number().min(0, "Amount must be non-negative"),
+  amount: z.number().min(0, "Amount must be non-negative"),
   note: z.string().optional(),
 });
 

@@ -22,7 +22,7 @@ const quickAddSchema = z.object({
   type: z.enum(["income", "expense"]),
   accountId: z.string(),
   categoryId: z.string().optional(),
-  amount: z.coerce.number().min(1, "Amount must be greater than 0"),
+  amount: z.number().min(1, "Amount must be greater than 0"),
 });
 
 type QuickAddValues = z.infer<typeof quickAddSchema>;

@@ -61,7 +61,7 @@ export function RHFInput({
         )}
         <Input
           id={name}
-          {...register(name)}
+          {...register(name, { valueAsNumber: props.type === "number" })}
           {...props}
           className={cn(
             prefix && "pl-8",

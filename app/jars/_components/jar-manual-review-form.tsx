@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 const manualSchema = z.object({
   reviewId: z.string().min(1),
   manualJarId: z.string().min(1, "Vui lòng chọn hũ"),
-  manualAmount: z.coerce.number().min(1),
+  manualAmount: z.number().min(1),
   mode: z.literal("manual"),
   returnTo: z.string(),
 });

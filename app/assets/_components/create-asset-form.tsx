@@ -26,8 +26,8 @@ const assetFormSchema = z
     name: z.string().min(2, "Asset name must be at least 2 characters"),
     assetClass: z.string(),
     unitLabel: z.string().min(1, "Unit label is required"),
-    quantity: z.coerce.number().min(0, "Quantity must be non-negative"),
-    unitPrice: z.coerce.number().min(0, "Unit price must be non-negative"),
+    quantity: z.number().min(0, "Quantity must be non-negative"),
+    unitPrice: z.number().min(0, "Unit price must be non-negative"),
     isLiquid: z.string(),
   })
   .catchall(z.any());

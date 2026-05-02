@@ -15,12 +15,12 @@ import { RHFInput } from "@/components/ui/rhf-fields";
 import { FormStatus } from "@/components/ui/form-status";
 
 const assumptionsSchema = z.object({
-  inflationAnnual: z.coerce.number().min(0).max(100),
-  cashReturnAnnual: z.coerce.number().min(0).max(100),
-  investmentReturnAnnual: z.coerce.number().min(0).max(100),
-  propertyGrowthAnnual: z.coerce.number().min(0).max(100),
-  goldGrowthAnnual: z.coerce.number().min(0).max(100),
-  salaryGrowthAnnual: z.coerce.number().min(0).max(100),
+  inflationAnnual: z.number().min(0).max(100),
+  cashReturnAnnual: z.number().min(0).max(100),
+  investmentReturnAnnual: z.number().min(0).max(100),
+  propertyGrowthAnnual: z.number().min(0).max(100),
+  goldGrowthAnnual: z.number().min(0).max(100),
+  salaryGrowthAnnual: z.number().min(0).max(100),
 });
 
 type AssumptionsValues = z.infer<typeof assumptionsSchema>;

@@ -17,7 +17,7 @@ const contributionSchema = z.object({
   goalId: z.string(),
   flowType: z.enum(["inflow", "outflow"]),
   accountId: z.string().min(1, "Account is required"),
-  amount: z.coerce.number().positive("Amount must be greater than zero"),
+  amount: z.number().positive("Amount must be greater than zero"),
   contributionDate: z.string().min(1, "Date is required"),
   note: z.string().optional(),
 });
