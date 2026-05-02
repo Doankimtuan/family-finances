@@ -12,8 +12,8 @@ import { RHFInput } from "@/components/ui/rhf-fields";
 const planSchema = z.object({
   jarId: z.string().min(1),
   month: z.string().min(1),
-  fixedAmount: z.coerce.number().min(0),
-  incomePercent: z.coerce.number().min(0).max(100),
+  fixedAmount: z.number().min(0),
+  incomePercent: z.number().min(0).max(100),
   returnTo: z.string(),
 });
 

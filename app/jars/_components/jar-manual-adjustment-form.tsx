@@ -12,7 +12,7 @@ import { RHFInput, RHFSelect } from "@/components/ui/rhf-fields";
 const adjustmentSchema = z.object({
   jarId: z.string().min(1, "Vui lòng chọn hũ"),
   movementDate: z.string().min(1, "Vui lòng chọn ngày"),
-  amount: z.coerce.number().min(1, "Số tiền phải lớn hơn 0"),
+  amount: z.number().min(1, "Số tiền phải lớn hơn 0"),
   direction: z.enum(["in", "out"]),
   note: z.string().optional(),
   returnTo: z.string(),
