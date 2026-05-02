@@ -15,36 +15,44 @@ import dynamic from "next/dynamic";
 const JarAllocateWithdrawForm = dynamic(
   () =>
     import("./jar-allocate-withdraw-form").then(
-      (m) => m.JarAllocateWithdrawForm
+      (m) => m.JarAllocateWithdrawForm,
     ),
-  { ssr: false }
+  { ssr: false },
 );
+
+import { useI18n } from "@/lib/providers/i18n-provider";
+
+import type { AppLanguage } from "@/lib/i18n/config";
 
 type Props = {
   jarId: string;
   jarName: string;
   month: string;
-  vi: boolean;
+  language: AppLanguage;
 };
 
-export function JarEntryDialog({ jarId, jarName, month, vi }: Props) {
+export function JarEntryDialog({ jarId, jarName, month, language }: Props) {
+  const { t } = useI18n();
+
   return (
     <Dialog>
       <DialogTrigger asChild>
         <Button size="sm" className="rounded-xl">
-          {vi ? "Phân bổ / Rút" : "Allocate / Withdraw"}
+          {t("jars.action.allocate_withdraw")}
         </Button>
       </DialogTrigger>
       <DialogContent className="border-slate-300 bg-white shadow-2xl sm:rounded-[28px]">
         <DialogHeader>
-          <DialogTitle>{vi ? "Ghi nhận giao dịch hũ" : "Record jar entry"}</DialogTitle>
+          <DialogTitle>{t("jars.entry.title")}</DialogTitle>
           <DialogDescription>
-            {vi
-              ? `Thêm phân bổ, rút hoặc điều chỉnh cho hũ ${jarName}.`
-              : `Add an allocation, withdrawal, or adjustment for ${jarName}.`}
+            {t("jars.entry.description", { name: jarName })}
           </DialogDescription>
         </DialogHeader>
-        <JarAllocateWithdrawForm jarId={jarId} month={month} vi={vi} />
+        <JarAllocateWithdrawForm
+          jarId={jarId}
+          month={month}
+          language={language}
+        />
       </DialogContent>
     </Dialog>
   );

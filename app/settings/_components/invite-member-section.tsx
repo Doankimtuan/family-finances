@@ -188,10 +188,10 @@ export function InviteMemberSection({
                 action={inviteAction}
                 onSubmit={(e) => {
                   e.preventDefault();
-                  handleInviteSubmit(() => {
-                    startInviteTransition(() =>
-                      inviteAction(new FormData(e.currentTarget)),
-                    );
+                  handleInviteSubmit((data) => {
+                    const formData = new FormData();
+                    formData.append("email", data.email);
+                    startInviteTransition(() => inviteAction(formData));
                   })(e);
                 }}
               >
@@ -379,10 +379,10 @@ export function InviteMemberSection({
                 action={acceptAction}
                 onSubmit={(e) => {
                   e.preventDefault();
-                  handleAcceptSubmit(() => {
-                    startAcceptTransition(() =>
-                      acceptAction(new FormData(e.currentTarget)),
-                    );
+                  handleAcceptSubmit((data) => {
+                    const formData = new FormData();
+                    formData.append("token", data.token);
+                    startAcceptTransition(() => acceptAction(formData));
                   })(e);
                 }}
               >

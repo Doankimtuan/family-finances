@@ -5,11 +5,11 @@ import { cn } from "@/lib/utils";
 
 interface FormStatusProps extends React.HTMLAttributes<HTMLParagraphElement> {
   message?: string | null;
-  status?: "error" | "success" | "idle";
+  status?: "error" | "success" | "idle" | "pending";
 }
 
 export function FormStatus({ message, status, className, ...props }: FormStatusProps) {
-  if (!message || status === "idle") return null;
+  if (!message || status === "idle" || status === "pending") return null;
 
   return (
     <p

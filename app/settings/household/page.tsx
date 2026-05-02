@@ -5,23 +5,15 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { SectionHeader } from "@/components/ui/section-header";
 import { localeToLanguage, normalizeHouseholdLocale } from "@/lib/i18n/config";
 import { t } from "@/lib/i18n/dictionary";
-import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
-import { createClient } from "@/lib/supabase/server";
+import { getSettingsDataContext } from "@/lib/server/settings-data";
 import { Home } from "lucide-react";
 
 import { HouseholdSettingsForm } from "../_components/household-form";
 import { SettingsNav } from "../_components/settings-nav";
 
 export default async function SettingsHouseholdPage() {
-  const { householdId, language } = await getAuthenticatedHouseholdContext();
+  const { language, household } = await getSettingsDataContext(false, true, false);
   const vi = language === "vi";
-  const supabase = await createClient();
-
-  const householdResult = await supabase
-    .from("households")
-    .select("name, timezone, locale")
-    .eq("id", householdId)
-    .maybeSingle();
 
   return (
     <AppShell
@@ -51,14 +43,7 @@ export default async function SettingsHouseholdPage() {
             </div>
           </CardHeader>
           <CardContent className="p-6">
-            {householdResult.error ? (
-              <p className="text-sm text-rose-600 font-medium">
-                {vi
-                  ? "Không thể tải cài đặt hộ gia đình:"
-                  : "Failed to load household settings:"}{" "}
-                {householdResult.error.message}
-              </p>
-            ) : !householdResult.data ? (
+            {!household ? (
               <p className="text-sm text-slate-500 italic">
                 {vi
                   ? "Chưa tìm thấy cài đặt hộ gia đình."
@@ -66,10 +51,10 @@ export default async function SettingsHouseholdPage() {
               </p>
             ) : (
               <HouseholdSettingsForm
-                defaultName={householdResult.data.name}
-                defaultTimezone={householdResult.data.timezone}
+                defaultName={household.name || ""}
+                defaultTimezone={household.timezone || "Asia/Ho_Chi_Minh"}
                 defaultLanguage={localeToLanguage(
-                  normalizeHouseholdLocale(householdResult.data.locale),
+                  normalizeHouseholdLocale(household.locale || ""),
                 )}
               />
             )}

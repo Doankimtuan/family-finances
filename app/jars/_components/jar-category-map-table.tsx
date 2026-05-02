@@ -26,12 +26,14 @@ type MappingRow = {
   resolvedFromFallback: boolean;
 };
 
+import { useI18n } from "@/lib/providers/i18n-provider";
+
 type Props = {
   categories: CategoryRow[];
   jarOptions: JarOption[];
   mappings: Map<string, MappingRow>;
   fallbackJarId: string | null;
-  vi: boolean;
+  language: string;
 };
 
 export function JarCategoryMapTable({
@@ -39,12 +41,14 @@ export function JarCategoryMapTable({
   jarOptions,
   mappings,
   fallbackJarId,
-  vi,
+  language,
 }: Props) {
+  const { t } = useI18n();
+
   if (categories.length === 0) {
     return (
       <div className="rounded-lg border p-3 text-sm text-muted-foreground">
-        {vi ? "Không có danh mục chi tiêu để map." : "No expense categories to map."}
+        {t("jars.map.empty")}
       </div>
     );
   }
@@ -54,9 +58,9 @@ export function JarCategoryMapTable({
       <table className="min-w-full text-sm">
         <thead className="bg-muted/40">
           <tr className="text-left">
-            <th className="px-3 py-2 font-semibold">{vi ? "Danh mục" : "Category"}</th>
-            <th className="px-3 py-2 font-semibold">{vi ? "Hũ hiện tại" : "Current jar"}</th>
-            <th className="px-3 py-2 font-semibold">{vi ? "Đổi hũ" : "Reassign"}</th>
+            <th className="px-3 py-2 font-semibold">{t("common.category")}</th>
+            <th className="px-3 py-2 font-semibold">{t("jars.map.current_jar")}</th>
+            <th className="px-3 py-2 font-semibold">{t("jars.map.reassign")}</th>
           </tr>
         </thead>
         <tbody>
@@ -69,10 +73,10 @@ export function JarCategoryMapTable({
                 <td className="px-3 py-2 font-medium">{category.name}</td>
                 <td className="px-3 py-2 text-muted-foreground">
                   {jarOptions.find((jar) => jar.id === resolvedJarId)?.name ??
-                    (vi ? "Chưa map" : "Unmapped")}
+                    t("jars.map.unmapped")}
                   {mapping?.resolvedFromFallback ? (
                     <Badge variant="warning" className="ml-2 text-[10px] px-1.5 py-0">
-                      {vi ? "Tự gán tạm" : "Auto-assigned"}
+                      {t("jars.map.auto_assigned")}
                     </Badge>
                   ) : null}
                 </td>
@@ -97,7 +101,7 @@ export function JarCategoryMapTable({
                       size="sm"
                       className="h-8 text-xs px-3 font-semibold"
                     >
-                      {vi ? "Lưu" : "Save"}
+                      {t("common.save")}
                     </Button>
                   </form>
                 </td>

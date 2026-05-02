@@ -8,6 +8,7 @@ import * as z from "zod";
 import { upsertJarPlanAction } from "@/app/jars/intent-actions";
 import { Button } from "@/components/ui/button";
 import { RHFInput } from "@/components/ui/rhf-fields";
+import { useI18n } from "@/lib/providers/i18n-provider";
 
 const planSchema = z.object({
   jarId: z.string().min(1),
@@ -35,6 +36,7 @@ export function JarPlanForm({
   returnTo,
 }: Props) {
   const [isPending, startTransition] = useTransition();
+  const { t } = useI18n();
 
   const methods = useForm<PlanValues>({
     resolver: zodResolver(planSchema),
@@ -75,7 +77,7 @@ export function JarPlanForm({
 
         <RHFInput
           name="fixedAmount"
-          label="Số tiền tháng"
+          label={t("jars.field.fixed_target")}
           type="number"
           min="0"
           className="bg-white"
@@ -83,7 +85,7 @@ export function JarPlanForm({
 
         <RHFInput
           name="incomePercent"
-          label="% thu nhập"
+          label={t("jars.field.income_percent")}
           type="number"
           min="0"
           max="100"
@@ -93,7 +95,7 @@ export function JarPlanForm({
 
         <div className="sm:col-span-2 flex justify-end">
           <Button type="submit" size="sm" disabled={isPending}>
-            {isPending ? "Đang lưu..." : "Lưu kế hoạch tháng"}
+            {isPending ? t("common.saving") : t("jars.action.save_plan")}
           </Button>
         </div>
       </form>

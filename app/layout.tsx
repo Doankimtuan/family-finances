@@ -65,9 +65,10 @@ export default async function RootLayout({
   const { language, locale } = await resolveLanguageAndLocale();
 
   return (
-    <html lang={language === "vi" ? "vi" : "en"}>
+    <html lang={language === "vi" ? "vi" : "en"} suppressHydrationWarning>
       <body
         className="font-sans antialiased"
+        suppressHydrationWarning
       >
         <AppProviders language={language} locale={locale}>{children}</AppProviders>
       </body>

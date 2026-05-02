@@ -2,24 +2,28 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { formatVndCompact } from "@/lib/dashboard/format";
 import type { SpendingJarHistoryRow } from "@/lib/jars/spending";
 
+import { useI18n } from "@/lib/providers/i18n-provider";
+
 type Props = {
   rows: SpendingJarHistoryRow[];
   locale: string;
-  vi: boolean;
+  language: string;
 };
 
-export function JarHistoryMonthlySummary({ rows, locale, vi }: Props) {
+export function JarHistoryMonthlySummary({ rows, locale, language }: Props) {
+  const { t } = useI18n();
+
   return (
     <Card>
       <CardHeader className="pb-2">
         <h2 className="text-base font-bold">
-          {vi ? "Tổng hợp theo tháng" : "Monthly Summary"}
+          {t("jars.history.summary_title")}
         </h2>
       </CardHeader>
       <CardContent className="space-y-2">
         {rows.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            {vi ? "Chưa có dữ liệu." : "No data yet."}
+            {t("common.no_data")}
           </p>
         ) : (
           rows.map((row) => (

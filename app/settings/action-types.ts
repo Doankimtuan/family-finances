@@ -1,5 +1,5 @@
 export type SettingsActionState = {
-  status: "idle" | "error" | "success";
+  status: "idle" | "error" | "success" | "pending";
   message: string;
 };
 

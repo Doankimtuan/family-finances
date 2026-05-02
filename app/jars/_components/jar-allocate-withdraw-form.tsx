@@ -15,12 +15,14 @@ import { Button } from "@/components/ui/button";
 import { FormStatus } from "@/components/ui/form-status";
 import { toast } from "sonner";
 
+import { useI18n } from "@/lib/providers/i18n-provider";
+
 const ledgerEntrySchema = z.object({
   jarId: z.string().min(1),
   month: z.string().min(1),
   entryType: z.enum(["allocate", "withdraw", "adjust"]),
-  amount: z.number().min(1, "Amount must be greater than 0"),
-  entryDate: z.string().min(1, "Date is required"),
+  amount: z.number().min(1, "common.validation.amount_positive"),
+  entryDate: z.string().min(1, "common.validation.select_date"),
   note: z.string().optional(),
 });
 
@@ -29,12 +31,13 @@ type LedgerEntryValues = z.infer<typeof ledgerEntrySchema>;
 type Props = {
   jarId: string;
   month: string;
-  vi: boolean;
+  language: string;
 };
 
-export function JarAllocateWithdrawForm({ jarId, month, vi }: Props) {
+export function JarAllocateWithdrawForm({ jarId, month, language }: Props) {
   const [state, setState] = useState<JarActionState>(initialJarActionState);
   const [isPending, startTransition] = useTransition();
+  const { t } = useI18n();
 
   const methods = useForm<LedgerEntryValues>({
     resolver: zodResolver(ledgerEntrySchema),
@@ -87,31 +90,31 @@ export function JarAllocateWithdrawForm({ jarId, month, vi }: Props) {
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <RHFSelect
             name="entryType"
-            label={vi ? "Loại giao dịch" : "Entry type"}
+            label={t("jars.field.entry_type")}
             options={[
-              { label: vi ? "Phân bổ" : "Allocate", value: "allocate" },
-              { label: vi ? "Rút" : "Withdraw", value: "withdraw" },
-              { label: vi ? "Điều chỉnh" : "Adjust", value: "adjust" },
+              { label: t("jars.entry.allocate"), value: "allocate" },
+              { label: t("jars.entry.withdraw"), value: "withdraw" },
+              { label: t("jars.entry.adjust"), value: "adjust" },
             ]}
           />
 
           <RHFMoneyInput
             name="amount"
-            label={vi ? "Số tiền" : "Amount"}
+            label={t("common.amount")}
             required
           />
 
           <RHFInput
             name="entryDate"
-            label={vi ? "Ngày giao dịch" : "Entry date"}
+            label={t("jars.field.entry_date")}
             type="date"
             required
           />
 
           <RHFInput
             name="note"
-            label={vi ? "Ghi chú" : "Note"}
-            placeholder={vi ? "Ví dụ: chuyển từ lương tháng này" : "Example: moved from this month's income"}
+            label={t("common.note")}
+            placeholder={t("jars.placeholder.entry_note")}
           />
         </div>
 
@@ -120,7 +123,7 @@ export function JarAllocateWithdrawForm({ jarId, month, vi }: Props) {
           disabled={isPending}
           className="w-full rounded-xl"
         >
-          {isPending ? (vi ? "Đang lưu..." : "Saving...") : vi ? "Lưu giao dịch" : "Save entry"}
+          {isPending ? t("common.saving") : t("jars.action.save_entry")}
         </Button>
 
         <FormStatus message={state.message} status={state.status} />

@@ -9,9 +9,11 @@ import { resolveJarReviewAction } from "@/app/jars/intent-actions";
 import { RHFInput, RHFSelect } from "@/components/ui/rhf-fields";
 import { Button } from "@/components/ui/button";
 
+import { useI18n } from "@/lib/providers/i18n-provider";
+
 const manualSchema = z.object({
   reviewId: z.string().min(1),
-  manualJarId: z.string().min(1, "Vui lòng chọn hũ"),
+  manualJarId: z.string().min(1, "jars.validation.select_jar"),
   manualAmount: z.number().min(1),
   mode: z.literal("manual"),
   returnTo: z.string(),
@@ -28,6 +30,7 @@ type Props = {
 
 export function JarManualReviewForm({ reviewId, amount, jars, returnTo }: Props) {
   const [isPending, startTransition] = useTransition();
+  const { t } = useI18n();
 
   const methods = useForm<ManualValues>({
     resolver: zodResolver(manualSchema),
@@ -78,7 +81,7 @@ export function JarManualReviewForm({ reviewId, amount, jars, returnTo }: Props)
         />
 
         <Button type="submit" variant="outline" disabled={isPending} className="rounded-xl h-10">
-          {isPending ? "Đang gán..." : "Gán thủ công"}
+          {isPending ? t("jars.action.assigning") : t("jars.review.manual_assignment")}
         </Button>
       </form>
     </FormProvider>

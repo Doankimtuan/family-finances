@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { formatVndCompact } from "@/lib/dashboard/format";
 import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
 import { createClient } from "@/lib/supabase/server";
+import { t } from "@/lib/i18n/dictionary";
 
 import { JarTrendChart } from "../_components/jar-trend-chart";
 
@@ -24,7 +25,7 @@ export default async function JarDetailPage({
   params: Promise<{ jarId: string }>;
 }) {
   const { jarId } = await params;
-  const { householdId, householdLocale } = await getAuthenticatedHouseholdContext();
+  const { householdId, householdLocale, language } = await getAuthenticatedHouseholdContext();
   const supabase = await createClient();
   const [jarResult, balanceResult, monthlyResult, movementsResult] = await Promise.all([
     supabase
@@ -83,21 +84,27 @@ export default async function JarDetailPage({
           <Button variant="ghost" size="sm" asChild className="-ml-2 h-8 px-2 text-primary hover:text-primary/80">
             <Link href="/jars">
               <ChevronLeft className="mr-1 h-4 w-4" />
-              Quay lại Jars
+              {t(language, "jars.back_to_jars")}
             </Link>
           </Button>
           <h1 className="mt-2 text-2xl font-bold text-slate-950">{jar.name}</h1>
           <p className="mt-2 text-sm text-slate-600">
-            Jar type: <span className="font-medium text-slate-900">{jar.jar_type}</span> · 
-            Spend policy: <span className="font-medium text-slate-900">{jar.spend_policy}</span>
+            {t(language, "jars.field.jar_type")}:{" "}
+            <span className="font-medium text-slate-900">
+              {t(language, `jars.type.${jar.jar_type}`)}
+            </span> ·{" "}
+            {t(language, "jars.field.spend_policy")}:{" "}
+            <span className="font-medium text-slate-900">
+              {t(language, `jars.policy.${jar.spend_policy}`)}
+            </span>
           </p>
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <Metric title="Số dư hiện tại" value={formatVndCompact(Number(balance?.current_balance ?? 0), householdLocale)} />
-          <Metric title="Trong cash" value={formatVndCompact(Number(balance?.held_in_cash ?? 0), householdLocale)} />
-          <Metric title="Trong savings" value={formatVndCompact(Number(balance?.held_in_savings ?? 0), householdLocale)} />
-          <Metric title="Trong investments/assets" value={formatVndCompact(Number(balance?.held_in_investments ?? 0) + Number(balance?.held_in_assets ?? 0), householdLocale)} />
+          <Metric title={t(language, "jars.item.current_balance")} value={formatVndCompact(Number(balance?.current_balance ?? 0), householdLocale)} />
+          <Metric title={t(language, "jars.metric.in_cash")} value={formatVndCompact(Number(balance?.held_in_cash ?? 0), householdLocale)} />
+          <Metric title={t(language, "jars.metric.in_savings")} value={formatVndCompact(Number(balance?.held_in_savings ?? 0), householdLocale)} />
+          <Metric title={t(language, "jars.metric.in_investments_assets")} value={formatVndCompact(Number(balance?.held_in_investments ?? 0) + Number(balance?.held_in_assets ?? 0), householdLocale)} />
         </div>
 
         <JarTrendChart data={chartData} locale={householdLocale} />
@@ -105,7 +112,7 @@ export default async function JarDetailPage({
         <div className="grid gap-4 lg:grid-cols-2">
           <Card className="border-border/60">
             <CardHeader>
-              <CardTitle className="text-lg">Holdings theo vị trí</CardTitle>
+              <CardTitle className="text-lg">{t(language, "jars.holdings.title")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <HoldingRow label="Cash" value={Number(balance?.held_in_cash ?? 0)} locale={householdLocale} />
@@ -117,7 +124,7 @@ export default async function JarDetailPage({
 
           <Card className="border-border/60">
             <CardHeader>
-              <CardTitle className="text-lg">Movements gần đây</CardTitle>
+              <CardTitle className="text-lg">{t(language, "jars.movements.title")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               {(movementsResult.data ?? []).map((movement) => (

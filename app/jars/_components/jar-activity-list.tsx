@@ -2,6 +2,8 @@ import { formatVndCompact } from "@/lib/dashboard/format";
 import { deleteJarLedgerEntryDirectAction } from "@/app/jars/actions";
 import { Button } from "@/components/ui/button";
 
+import { useI18n } from "@/lib/providers/i18n-provider";
+
 type ActivityItem = {
   id: string;
   jar_name: string;
@@ -15,20 +17,16 @@ type Props = {
   items: ActivityItem[];
   month: string;
   locale: string;
-  vi: boolean;
+  language: string;
 };
 
-function entryTypeLabel(type: ActivityItem["entry_type"], vi: boolean) {
-  if (type === "allocate") return vi ? "Phân bổ" : "Allocate";
-  if (type === "withdraw") return vi ? "Rút" : "Withdraw";
-  return vi ? "Điều chỉnh" : "Adjust";
-}
+export function JarActivityList({ items, month, locale, language }: Props) {
+  const { t } = useI18n();
 
-export function JarActivityList({ items, month, locale, vi }: Props) {
   if (items.length === 0) {
     return (
       <div className="rounded-xl border p-4 text-sm text-muted-foreground">
-        {vi ? "Chưa có giao dịch hũ trong tháng này." : "No jar ledger entries for this month."}
+        {t("jars.activity.empty")}
       </div>
     );
   }
@@ -42,7 +40,7 @@ export function JarActivityList({ items, month, locale, vi }: Props) {
         >
           <div className="min-w-0">
             <p className="text-sm font-semibold truncate">
-              {item.jar_name} · {entryTypeLabel(item.entry_type, vi)}
+              {item.jar_name} · {t(`jars.entry.${item.entry_type}`)}
             </p>
             <p className="text-xs text-muted-foreground">
               {item.entry_date}
@@ -64,7 +62,7 @@ export function JarActivityList({ items, month, locale, vi }: Props) {
                 type="submit"
                 className="h-6 px-2 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
               >
-                {vi ? "Xóa" : "Delete"}
+                {t("common.delete")}
               </Button>
             </form>
           </div>

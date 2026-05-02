@@ -15,21 +15,25 @@ import { Button } from "@/components/ui/button";
 import { FormStatus } from "@/components/ui/form-status";
 import { toast } from "sonner";
 
+import { useI18n } from "@/lib/providers/i18n-provider";
+
 const editJarSchema = z.object({
   jarId: z.string().min(1),
-  name: z.string().min(1, "Jar name is required"),
+  name: z.string().min(1, "jars.validation.name_required"),
   color: z.string().optional(),
   icon: z.string().optional(),
 });
 
 type EditJarValues = z.infer<typeof editJarSchema>;
 
+import type { AppLanguage } from "@/lib/i18n/config";
+
 type Props = {
   jarId: string;
   defaultName: string;
   defaultColor: string | null;
   defaultIcon: string | null;
-  vi: boolean;
+  language: AppLanguage;
 };
 
 export function JarEditForm({
@@ -37,10 +41,11 @@ export function JarEditForm({
   defaultName,
   defaultColor,
   defaultIcon,
-  vi,
+  language,
 }: Props) {
   const [state, setState] = useState<JarActionState>(initialJarActionState);
   const [isPending, startTransition] = useTransition();
+  const { t } = useI18n();
 
   const methods = useForm<EditJarValues>({
     resolver: zodResolver(editJarSchema),
@@ -84,20 +89,20 @@ export function JarEditForm({
         
         <RHFInput
           name="name"
-          label={vi ? "Tên hũ" : "Jar name"}
-          placeholder={vi ? "Ví dụ: Du lịch, Quà tặng..." : "e.g. Travel, Gifts..."}
+          label={t("jars.field.name")}
+          placeholder={t("jars.placeholder.edit_name")}
           required
         />
         
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <RHFInput
             name="color"
-            label={vi ? "Màu nhận diện" : "Color"}
-            placeholder={vi ? "VD: #2563EB" : "e.g. #2563EB"}
+            label={t("jars.field.color_label")}
+            placeholder="e.g. #2563EB"
           />
           <RHFInput
             name="icon"
-            label={vi ? "Biểu tượng" : "Icon"}
+            label={t("common.icon")}
             placeholder="house"
           />
         </div>
@@ -108,7 +113,7 @@ export function JarEditForm({
           variant="outline"
           className="w-full rounded-xl"
         >
-          {isPending ? (vi ? "Đang cập nhật..." : "Updating...") : vi ? "Cập nhật hũ" : "Update jar"}
+          {isPending ? t("jars.action.updating") : t("jars.action.update_jar")}
         </Button>
 
         <FormStatus message={state.message} status={state.status} />

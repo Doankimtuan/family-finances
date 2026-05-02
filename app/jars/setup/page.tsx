@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
 import { createClient } from "@/lib/supabase/server";
+import { t } from "@/lib/i18n/dictionary";
 
 import {
   bootstrapPresetJarsAction,
@@ -32,7 +33,7 @@ export default async function JarSetupPage({
     error?: string;
   }>;
 }) {
-  const { householdId } = await getAuthenticatedHouseholdContext();
+  const { householdId, householdLocale, language } = await getAuthenticatedHouseholdContext();
   const params = searchParams ? await searchParams : undefined;
   const month =
     params?.month && /^\d{4}-\d{2}$/.test(params.month)
@@ -69,7 +70,7 @@ export default async function JarSetupPage({
 
   return (
     <AppShell
-      header={<AppHeader title="Jar setup" />}
+      header={<AppHeader title={t(language, "jars.setup.title")} />}
       footer={<BottomTabBar />}
     >
       <div className="space-y-6 pb-24">
@@ -83,20 +84,18 @@ export default async function JarSetupPage({
             >
               <Link href="/jars">
                 <ChevronLeft className="mr-1 h-4 w-4" />
-                Quay lại Jars
+                {t(language, "jars.back_to_jars")}
               </Link>
             </Button>
             <h1 className="mt-2 text-2xl font-bold text-slate-950">
-              Thiết lập hệ hũ
+              {t(language, "jars.setup.header")}
             </h1>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
-              Tại đây bạn khởi tạo bộ 6 jars mẫu, tạo jars tùy chỉnh, và gắn
-              category chi tiêu vào hũ phù hợp để các expense transaction tự
-              giảm đúng hũ.
+              {t(language, "jars.setup.description")}
             </p>
           </div>
           <Button asChild variant="outline" className="rounded-xl">
-            <Link href="/jars/review">Mở review queue</Link>
+            <Link href="/jars/review">{t(language, "jars.review.open_queue")}</Link>
           </Button>
         </div>
 
@@ -114,12 +113,11 @@ export default async function JarSetupPage({
         <div className="grid gap-4 xl:grid-cols-[0.9fr_1.1fr]">
           <Card className="border-border/60">
             <CardHeader>
-              <CardTitle className="text-lg">Khởi tạo preset 6 jars</CardTitle>
+              <CardTitle className="text-lg">{t(language, "jars.setup.preset.title")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-slate-600">
-                Dùng bộ 6 jars chuẩn như một điểm bắt đầu. Bạn vẫn có thể thêm,
-                xóa hoặc thay đổi kế hoạch tháng sau đó.
+                {t(language, "jars.setup.preset.description")}
               </p>
               <form action={bootstrapPresetJarsAction}>
                 <input
@@ -128,7 +126,7 @@ export default async function JarSetupPage({
                   value={`/jars/setup?month=${month}`}
                 />
                 <Button type="submit" className="w-full rounded-xl">
-                  Khởi tạo bộ 6 jars
+                  {t(language, "jars.setup.preset.action")}
                 </Button>
               </form>
             </CardContent>
@@ -136,7 +134,7 @@ export default async function JarSetupPage({
 
           <Card className="border-border/60">
             <CardHeader>
-              <CardTitle className="text-lg">Tạo jar tùy chỉnh</CardTitle>
+              <CardTitle className="text-lg">{t(language, "jars.setup.custom.title")}</CardTitle>
             </CardHeader>
             <CardContent>
               <JarSetupCreateForm
@@ -149,13 +147,13 @@ export default async function JarSetupPage({
 
         <Card id="rules" className="border-border/60">
           <CardHeader>
-            <CardTitle className="text-lg">Quy tắc category → jar</CardTitle>
+            <CardTitle className="text-lg">{t(language, "jars.setup.rules.title")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {jars.length === 0 ? (
               <EmptyState
-                title="Chưa có jars để map category"
-                description="Hãy khởi tạo preset hoặc tạo ít nhất một jar trước."
+                title={t(language, "jars.setup.rules.empty_title")}
+                description={t(language, "jars.setup.rules.empty_description")}
                 className="min-h-[180px] border-0 bg-transparent p-0"
               />
             ) : (
@@ -168,8 +166,8 @@ export default async function JarSetupPage({
 
                 <div className="overflow-hidden rounded-2xl border border-border/60">
                   <div className="grid grid-cols-[1.2fr_1fr] gap-3 border-b border-border/60 bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    <span>Category</span>
-                    <span>Jar hiện tại</span>
+                    <span>{t(language, "jars.setup.rules.category")}</span>
+                    <span>{t(language, "jars.setup.rules.current_jar")}</span>
                   </div>
                   <div className="divide-y divide-border/50 bg-white">
                     {categories.map((category) => (
@@ -184,11 +182,11 @@ export default async function JarSetupPage({
                           {rules.has(category.id) ? (
                             <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
                               {jarNameMap.get(rules.get(category.id)!) ??
-                                "Unknown jar"}
+                                t(language, "jars.setup.rules.unknown_jar")}
                             </span>
                           ) : (
                             <span className="text-slate-400 italic">
-                              Chưa map
+                              {t(language, "jars.setup.rules.unmapped")}
                             </span>
                           )}
                         </span>
@@ -203,13 +201,13 @@ export default async function JarSetupPage({
 
         <Card className="border-border/60">
           <CardHeader>
-            <CardTitle className="text-lg">Jars hiện có</CardTitle>
+            <CardTitle className="text-lg">{t(language, "jars.setup.list.title")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {jars.length === 0 ? (
               <EmptyState
-                title="Chưa có jar nào"
-                description="Preset và jars tùy chỉnh bạn tạo sẽ hiện ở đây."
+                title={t(language, "jars.setup.list.empty_title")}
+                description={t(language, "jars.setup.list.empty_description")}
                 className="min-h-[180px] border-0 bg-transparent p-0"
               />
             ) : (
@@ -223,7 +221,7 @@ export default async function JarSetupPage({
                       {jar.name}
                     </p>
                     <p className="mt-1 text-xs text-slate-500">
-                      {jar.jar_type} · {jar.spend_policy}
+                      {t(language, `jars.type.${jar.jar_type}`)} · {t(language, `jars.policy.${jar.spend_policy}`)}
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -233,7 +231,7 @@ export default async function JarSetupPage({
                       size="sm"
                       className="rounded-xl"
                     >
-                      <Link href={`/jars/${jar.id}`}>Xem chi tiết</Link>
+                      <Link href={`/jars/${jar.id}`}>{t(language, "common.details")}</Link>
                     </Button>
                     <form action={deleteIntentJarAction}>
                       <input type="hidden" name="jarId" value={jar.id} />
@@ -248,7 +246,7 @@ export default async function JarSetupPage({
                         variant="ghost"
                         className="rounded-xl text-destructive hover:bg-destructive/10 hover:text-destructive"
                       >
-                        Xóa
+                        {t(language, "common.delete")}
                       </Button>
                     </form>
                   </div>

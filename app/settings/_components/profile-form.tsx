@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useTransition } from "react";
+import { useActionState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -29,11 +29,10 @@ export function ProfileForm({
 }) {
   const { language, t } = useI18n();
   const vi = language === "vi";
-  const [state, action] = useActionState(
+  const [state, formAction] = useActionState(
     updateProfileAction,
     initialSettingsActionState,
   );
-  const [isPending, startTransition] = useTransition();
 
   const methods = useForm<ProfileValues>({
     resolver: zodResolver(profileSchema),
@@ -44,18 +43,18 @@ export function ProfileForm({
 
   const { handleSubmit } = methods;
 
+  const onSubmit = handleSubmit((data) => {
+    const formData = new FormData();
+    formData.append("fullName", data.fullName);
+    formAction(formData);
+  });
+
   return (
     <FormProvider {...methods}>
       <form
         className="space-y-6"
         noValidate
-        action={action}
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleSubmit(() => {
-            startTransition(() => action(new FormData(e.currentTarget)));
-          })(e);
-        }}
+        onSubmit={onSubmit}
       >
         <RHFInput
           name="fullName"
@@ -80,10 +79,10 @@ export function ProfileForm({
 
         <Button
           type="submit"
-          disabled={isPending}
+          disabled={state.status === "pending"}
           className="w-full rounded-xl py-6 text-base font-semibold shadow-sm"
         >
-          {isPending ? t("common.saving") : (vi ? "Cập nhật hồ sơ" : "Update Profile")}
+          {state.status === "pending" ? t("common.saving") : (vi ? "Cập nhật hồ sơ" : "Update Profile")}
         </Button>
       </form>
     </FormProvider>

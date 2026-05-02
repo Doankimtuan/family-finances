@@ -9,6 +9,8 @@ import { JarEntryDialog } from "./jar-entry-dialog";
 import { JarSettingsDialog } from "./jar-settings-dialog";
 import { JarTargetDialog } from "./jar-target-dialog";
 
+import { useI18n } from "@/lib/providers/i18n-provider";
+
 type JarRow = {
   id: string;
   name: string;
@@ -33,6 +35,8 @@ type TargetRow = {
   target_value: number;
 };
 
+import type { AppLanguage } from "@/lib/i18n/config";
+
 type Props = {
   jars: JarRow[];
   overviewMap: Map<string, OverviewRow>;
@@ -48,8 +52,8 @@ type Props = {
     }
   >;
   month: string;
-  locale: string;
-  vi: boolean;
+  householdLocale: string;
+  language: AppLanguage;
 };
 
 export function JarMonthlyOverview({
@@ -58,13 +62,13 @@ export function JarMonthlyOverview({
   targetMap,
   spendingAlertMap,
   month,
-  locale,
-  vi,
+  householdLocale,
 }: Props) {
+  const { t, language } = useI18n();
   if (jars.length === 0) {
     return (
       <div className="rounded-xl border p-4 text-sm text-muted-foreground">
-        {vi ? "Chưa có hũ nào. Hãy tạo hũ đầu tiên bên dưới." : "No jars yet. Create your first jar below."}
+        {t("jars.overview.empty")}
       </div>
     );
   }
@@ -89,7 +93,7 @@ export function JarMonthlyOverview({
                 <div>
                   <h3 className="font-bold text-base">{jar.name}</h3>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    {vi ? "Theo dõi mục tiêu và dòng tiền trong tháng." : "Track the monthly goal and jar cash flow."}
+                    {t("jars.overview.track_description")}
                   </p>
                 </div>
                 <div className="flex flex-wrap justify-end gap-2">
@@ -102,17 +106,17 @@ export function JarMonthlyOverview({
                       }
                     >
                       {alert.alertLevel === "exceeded"
-                        ? (vi ? "Vượt hạn mức" : "Exceeded")
-                        : (vi ? "Cần chú ý" : "Needs attention")}
+                        ? t("jars.status.exceeded")
+                        : t("jars.status.needs_attention")}
                     </Badge>
                   ) : (
                     <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">
-                      {vi ? "Ổn định" : "On track"}
+                      {t("jars.status.on_track")}
                     </Badge>
                   )}
                   {showEssentialsWarning ? (
                     <Badge className="bg-amber-100 text-amber-800 border-amber-200">
-                      {vi ? "Thiếu quỹ thiết yếu" : "Essentials underfunded"}
+                      {t("jars.status.essentials_underfunded")}
                     </Badge>
                   ) : null}
                 </div>
@@ -128,34 +132,34 @@ export function JarMonthlyOverview({
               <div className="grid grid-cols-2 gap-3 md:grid-cols-4 text-sm">
                 <div>
                   <Label className="text-[10px] uppercase text-muted-foreground font-bold block mb-1">
-                    {vi ? "Mục tiêu" : "Target"}
+                    {t("jars.field.fixed_target")}
                   </Label>
                   <p className="font-semibold">
-                    {formatVndCompact(Number(ov?.target_amount ?? 0), locale)}
+                    {formatVndCompact(Number(ov?.target_amount ?? 0), householdLocale)}
                   </p>
                 </div>
                 <div>
                   <Label className="text-[10px] uppercase text-muted-foreground font-bold block mb-1">
-                    {vi ? "Phân bổ" : "Allocated"}
+                    {t("jars.item.allocated")}
                   </Label>
                   <p className="font-semibold text-emerald-600">
-                    {formatVndCompact(Number(ov?.allocated_amount ?? 0), locale)}
+                    {formatVndCompact(Number(ov?.allocated_amount ?? 0), householdLocale)}
                   </p>
                 </div>
                 <div>
                   <Label className="text-[10px] uppercase text-muted-foreground font-bold block mb-1">
-                    {vi ? "Rút" : "Withdrawn"}
+                    {t("jars.item.withdrawn")}
                   </Label>
                   <p className="font-semibold text-amber-600">
-                    {formatVndCompact(Number(ov?.withdrawn_amount ?? 0), locale)}
+                    {formatVndCompact(Number(ov?.withdrawn_amount ?? 0), householdLocale)}
                   </p>
                 </div>
                 <div>
                   <Label className="text-[10px] uppercase text-muted-foreground font-bold block mb-1">
-                    {vi ? "Số dư" : "Net"}
+                    {t("jars.item.current_balance")}
                   </Label>
                   <p className="font-semibold">
-                    {formatVndCompact(Number(ov?.net_amount ?? 0), locale)}
+                    {formatVndCompact(Number(ov?.net_amount ?? 0), householdLocale)}
                   </p>
                 </div>
               </div>
@@ -163,7 +167,7 @@ export function JarMonthlyOverview({
               <div className="rounded-2xl border border-border/60 bg-slate-50/60 p-3 text-sm">
                 <div className="flex items-center justify-between gap-3">
                   <Label className="font-medium text-foreground">
-                    {vi ? "Trạng thái tháng" : "Monthly status"}
+                    {t("jars.status.monthly_status")}
                   </Label>
                   <span className="text-xs font-semibold text-muted-foreground">
                     {coverage}%
@@ -171,10 +175,8 @@ export function JarMonthlyOverview({
                 </div>
                 <p className="mt-1 text-xs text-muted-foreground">
                   {alert
-                    ? `${vi ? "Đã dùng" : "Spent"}: ${formatVndCompact(alert.spent, locale)} / ${formatVndCompact(alert.limit, locale)}${alert.usagePercent !== null ? ` (${alert.usagePercent.toFixed(1)}%)` : ""}`
-                    : vi
-                      ? "Chưa có cảnh báo chi tiêu trong tháng này."
-                      : "No spending alerts for this month."}
+                    ? `${t("jars.overview.spent")}: ${formatVndCompact(alert.spent, householdLocale)} / ${formatVndCompact(alert.limit, householdLocale)}${alert.usagePercent !== null ? ` (${alert.usagePercent.toFixed(1)}%)` : ""}`
+                    : t("jars.overview.no_alerts")}
                 </p>
               </div>
 
@@ -183,7 +185,7 @@ export function JarMonthlyOverview({
                   jarId={jar.id}
                   jarName={jar.name}
                   month={month}
-                  vi={vi}
+                  language={language}
                 />
                 <JarTargetDialog
                   jarId={jar.id}
@@ -191,11 +193,11 @@ export function JarMonthlyOverview({
                   month={month}
                   defaultMode={target?.target_mode ?? "fixed"}
                   defaultValue={Number(target?.target_value ?? 0)}
-                  vi={vi}
+                  language={language}
                 />
                 <Button variant="outline" size="sm" asChild className="rounded-xl">
                   <Link href={`/jars/${jar.id}/history`}>
-                    {vi ? "Xem lịch sử" : "View history"}
+                    {t("jars.action.view_history")}
                   </Link>
                 </Button>
                 <JarSettingsDialog
@@ -204,7 +206,7 @@ export function JarMonthlyOverview({
                   defaultName={jar.name}
                   defaultColor={jar.color}
                   defaultIcon={jar.icon}
-                  vi={vi}
+                  language={language}
                 />
               </div>
             </CardContent>

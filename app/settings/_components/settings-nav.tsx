@@ -1,10 +1,17 @@
 "use client";
 
 import Link from "next/link";
+import { memo, useMemo } from "react";
 
 import { useI18n } from "@/lib/providers/i18n-provider";
 import { cn } from "@/lib/utils";
-import { User, Home, Users, Tag, TrendingUp } from "lucide-react";
+import { 
+  User, 
+  Home, 
+  Users, 
+  Tag, 
+  TrendingUp 
+} from "lucide-react";
 
 const links = [
   { href: "/settings/profile", label: "Profile", icon: User },
@@ -14,16 +21,16 @@ const links = [
   { href: "/settings/assumptions", label: "Assumptions", icon: TrendingUp },
 ];
 
-export function SettingsNav({ currentPath }: { currentPath: string }) {
+export const SettingsNav = memo(function SettingsNav({ currentPath }: { currentPath: string }) {
   const { t } = useI18n();
 
-  const labelMap: Record<string, string> = {
+  const labelMap: Record<string, string> = useMemo(() => ({
     Profile: "settings.profile",
     Household: "settings.household",
     Members: "settings.members",
     Categories: "settings.categories",
     Assumptions: "settings.assumptions",
-  };
+  }), []);
 
   return (
     <nav className="flex overflow-x-auto pb-4 gap-2 no-scrollbar scroll-smooth">
@@ -57,4 +64,4 @@ export function SettingsNav({ currentPath }: { currentPath: string }) {
       })}
     </nav>
   );
-}
+});

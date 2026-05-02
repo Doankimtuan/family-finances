@@ -17,6 +17,8 @@ import { createClient } from "@/lib/supabase/server";
 import { resolveJarReviewAction } from "../intent-actions";
 import { JarManualReviewForm } from "../_components/jar-manual-review-form";
 
+import { t } from "@/lib/i18n/dictionary";
+
 export const metadata = {
   title: "Jar Review Queue | Family Finances",
 };
@@ -29,7 +31,7 @@ export default async function JarReviewPage({
     error?: string;
   }>;
 }) {
-  const { householdId, householdLocale } = await getAuthenticatedHouseholdContext();
+  const { householdId, householdLocale, language } = await getAuthenticatedHouseholdContext();
   const params = searchParams ? await searchParams : undefined;
   const supabase = await createClient();
   const month = new Date().toISOString().slice(0, 10);
@@ -37,7 +39,7 @@ export default async function JarReviewPage({
 
   return (
     <AppShell
-      header={<AppHeader title="Review queue" />}
+      header={<AppHeader title={t(language, "jars.review.title")} />}
       footer={<BottomTabBar />}
     >
       <div className="space-y-6 pb-24">
@@ -45,13 +47,14 @@ export default async function JarReviewPage({
           <Button variant="ghost" size="sm" asChild className="-ml-2 h-8 px-2 text-primary hover:text-primary/80">
             <Link href="/jars">
               <ChevronLeft className="mr-1 h-4 w-4" />
-              Quay lại Jars
+              {t(language, "jars.back_to_jars")}
             </Link>
           </Button>
-          <h1 className="mt-2 text-2xl font-bold text-slate-950">Review queue cho jars</h1>
+          <h1 className="mt-2 text-2xl font-bold text-slate-950">
+            {t(language, "jars.review.header")}
+          </h1>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
-            Những transaction hoặc savings event chưa đủ chắc chắn sẽ dừng ở đây. Bạn có thể chấp
-            nhận gợi ý của hệ thống hoặc gán lại thủ công vào đúng hũ.
+            {t(language, "jars.review.description")}
           </p>
         </div>
 
@@ -68,12 +71,12 @@ export default async function JarReviewPage({
 
         {data.reviews.length === 0 ? (
           <EmptyState
-            title="Review queue đang trống"
-            description="Hiện chưa có movement nào cần bạn xác nhận. Khi thu nhập mới hoặc savings event chưa map được, chúng sẽ xuất hiện ở đây."
+            title={t(language, "jars.review.empty_title")}
+            description={t(language, "jars.review.empty_description")}
             className="min-h-[280px] border-border/60 bg-slate-50/60"
             action={
               <Button asChild className="rounded-xl">
-                <Link href="/jars">Quay lại command center</Link>
+                <Link href="/jars">{t(language, "jars.review.back_to_command_center")}</Link>
               </Button>
             }
           />
@@ -89,7 +92,8 @@ export default async function JarReviewPage({
                 <CardContent className="space-y-4">
                   <div className="rounded-2xl bg-slate-50 p-4 text-sm text-slate-700">
                     <p>
-                      Tổng amount: <span className="font-semibold text-slate-950">
+                      {t(language, "jars.review.total_amount")}:{" "}
+                      <span className="font-semibold text-slate-950">
                         {formatVnd(review.amount, householdLocale)}
                       </span>
                     </p>
@@ -108,7 +112,7 @@ export default async function JarReviewPage({
                   {review.suggested_allocations.length > 0 ? (
                     <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
                       <Label className="text-sm font-semibold text-emerald-900 block mb-3">
-                        Gợi ý hiện tại từ hệ thống
+                        {t(language, "jars.review.suggested_title")}
                       </Label>
                       <div className="space-y-2">
                         {review.suggested_allocations.map((suggestion) => (
@@ -141,7 +145,7 @@ export default async function JarReviewPage({
                           )}
                         />
                         <Button type="submit" className="rounded-xl bg-emerald-600 hover:bg-emerald-700">
-                          Chấp nhận gợi ý
+                          {t(language, "jars.review.accept_suggestion")}
                         </Button>
                       </form>
                     </div>
@@ -149,7 +153,7 @@ export default async function JarReviewPage({
 
                   <div className="pt-2">
                     <Label className="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-2">
-                      Gán thủ công
+                      {t(language, "jars.review.manual_assignment")}
                     </Label>
                     <JarManualReviewForm
                       reviewId={review.id}

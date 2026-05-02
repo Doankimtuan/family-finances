@@ -8,8 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { SectionHeader } from "@/components/ui/section-header";
 import { t } from "@/lib/i18n/dictionary";
-import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
-import { createClient } from "@/lib/supabase/server";
+import { getSettingsDataContext } from "@/lib/server/settings-data";
 import { Shield, Users } from "lucide-react";
 
 import { InviteMemberSection } from "../_components/invite-member-section";
@@ -29,67 +28,25 @@ function getOriginFromHeaders(headerList: Headers): string {
 }
 
 export default async function SettingsMembersPage() {
-  const { householdId, language } = await getAuthenticatedHouseholdContext();
+  const { user, language, members, pendingInvites, incomingInvites, householdId } = await getSettingsDataContext(false, false, false, true);
   const vi = language === "vi";
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
 
   if (!user?.email) redirect("/login");
-
-  // Fetch current members, outgoing invites, and incoming invites in parallel
-  const [membersResult, pendingInvites, incomingInvites] = await Promise.all([
-    supabase
-      .from("household_members")
-      .select("id, user_id, role, joined_at, profiles!user_id(full_name, email)")
-      .eq("household_id", householdId)
-      .eq("is_active", true)
-      .order("joined_at", { ascending: true }),
-    supabase
-      .from("household_invitations")
-      .select("id, email, token, expires_at")
-      .eq("household_id", householdId)
-      .eq("status", "pending")
-      .order("created_at", { ascending: false }),
-    supabase
-      .from("household_invitations")
-      .select("id, token, expires_at, households!household_id(name)")
-      .eq("email", user.email)
-      .eq("status", "pending")
-      .order("created_at", { ascending: false }),
-  ]);
 
   const requestHeaders = await headers();
   const origin = getOriginFromHeaders(requestHeaders);
 
-  type MemberRow = {
-    id: string;
-    user_id: string;
-    role: string;
-    joined_at: string;
-    profiles: { full_name: string | null; email: string | null } | null;
-  };
-
-  type InviteRow = {
-    id: string;
-    email: string;
-    token: string;
-    expires_at: string;
-  };
-
-  type IncomingInviteRow = {
-    id: string;
-    token: string;
-    expires_at: string;
-    households: { name: string } | null;
-  };
-
-  const members = ((membersResult.data as unknown) ?? []) as MemberRow[];
-  const outgoingInvites = (pendingInvites.data ?? []) as unknown as InviteRow[];
-  const incoming = ((incomingInvites.data as unknown) ??
-    []) as IncomingInviteRow[];
+  // Debug: Log the data to see what's being returned
+  console.log("=== MEMBERS DEBUG ===");
+  console.log("User ID:", user.id);
+  console.log("User Email:", user.email);
+  console.log("Household ID:", householdId);
+  console.log("Members data:", members);
+  console.log("Members type:", typeof members);
+  console.log("Members length:", Array.isArray(members) ? members.length : 'Not an array');
+  console.log("Pending invites:", pendingInvites);
+  console.log("Incoming invites:", incomingInvites);
+  console.log("==================");
 
   return (
     <AppShell
@@ -121,42 +78,70 @@ export default async function SettingsMembersPage() {
           </CardHeader>
           <CardContent className="p-6">
             <div className="grid grid-cols-1 gap-3">
-              {members.map((m) => (
-                <div
-                  key={m.id}
-                  className="flex items-center gap-4 rounded-2xl border border-slate-100 bg-slate-50/30 p-4 transition-all hover:bg-white hover:shadow-sm"
-                >
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white shadow-sm border border-slate-100 text-lg font-bold text-primary">
-                    {(m.profiles?.full_name ?? m.profiles?.email ?? "?")
-                      .charAt(0)
-                      .toUpperCase()}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className="text-base font-bold text-slate-900 truncate">
-                        {m.profiles?.full_name ?? "—"}
-                      </p>
-                      {m.user_id === user.id && (
-                        <Badge
-                          variant="secondary"
-                          className="bg-primary/10 text-primary text-[10px] font-bold border-none uppercase tracking-widest px-2"
-                        >
-                          {vi ? "Bạn" : "You"}
-                        </Badge>
-                      )}
+              {Array.isArray(members) && members.length > 0 ? (
+                members.map((m) => (
+                  <div
+                    key={m.id}
+                    className="flex items-center gap-4 rounded-2xl border border-slate-100 bg-slate-50/30 p-4 transition-all hover:bg-white hover:shadow-sm"
+                  >
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white shadow-sm border border-slate-100 text-lg font-bold text-primary">
+                      {(m.profiles?.full_name ?? m.profiles?.email ?? "?")
+                        .charAt(0)
+                        .toUpperCase()}
                     </div>
-                    <p className="text-xs text-slate-500 font-medium truncate mt-0.5">
-                      {m.profiles?.email ?? "—"}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="text-base font-bold text-slate-900 truncate">
+                          {m.profiles?.full_name ?? "—"}
+                        </p>
+                        {m.user_id === user.id && (
+                          <Badge
+                            variant="secondary"
+                            className="bg-primary/10 text-primary text-[10px] font-bold border-none uppercase tracking-widest px-2"
+                          >
+                            {vi ? "Bạn" : "You"}
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-xs text-slate-500 font-medium truncate mt-0.5">
+                        {m.profiles?.email ?? "—"}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0 px-3 py-1.5 rounded-xl border border-slate-200 bg-white shadow-xs">
+                      <Shield className="h-3 w-3 text-slate-400" />
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600">
+                        {m.role}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-sm text-slate-500">
+                    {vi ? "Chưa có thành viên nào trong hộ gia đình." : "No members in this household yet."}
+                  </p>
+                  <div className="mt-4 p-3 bg-slate-50 rounded-lg text-left">
+                    <p className="text-xs font-mono text-slate-600 mb-2">
+                      <strong>Debug Info:</strong>
+                    </p>
+                    <p className="text-xs font-mono text-slate-500">
+                      User ID: {user.id}
+                    </p>
+                    <p className="text-xs font-mono text-slate-500">
+                      Household ID: {householdId}
+                    </p>
+                    <p className="text-xs font-mono text-slate-500">
+                      Members Type: {typeof members}
+                    </p>
+                    <p className="text-xs font-mono text-slate-500">
+                      Is Array: {Array.isArray(members) ? 'Yes' : 'No'}
+                    </p>
+                    <p className="text-xs font-mono text-slate-500 break-all">
+                      Members Data: {JSON.stringify(members)}
                     </p>
                   </div>
-                  <div className="flex items-center gap-1.5 shrink-0 px-3 py-1.5 rounded-xl border border-slate-200 bg-white shadow-xs">
-                    <Shield className="h-3 w-3 text-slate-400" />
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600">
-                      {m.role}
-                    </span>
-                  </div>
                 </div>
-              ))}
+              )}
             </div>
           </CardContent>
         </Card>
@@ -164,8 +149,8 @@ export default async function SettingsMembersPage() {
         {/* Invite Section (client component for copy/form) */}
         <InviteMemberSection
           origin={origin}
-          outgoingInvites={outgoingInvites}
-          incomingInvites={incoming}
+          outgoingInvites={pendingInvites || []}
+          incomingInvites={incomingInvites || []}
           language={language}
         />
       </div>

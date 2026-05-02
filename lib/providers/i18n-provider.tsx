@@ -8,7 +8,7 @@ import { t } from "@/lib/i18n/dictionary";
 type I18nContextValue = {
   language: AppLanguage;
   locale: string;
-  t: (key: string) => string;
+  t: (key: string, params?: Record<string, string | number>) => string;
 };
 
 const I18nContext = createContext<I18nContextValue>({
@@ -27,7 +27,14 @@ export function I18nProvider({
   locale: string;
 }) {
   return (
-    <I18nContext.Provider value={{ language, locale, t: (key: string) => t(language, key) }}>
+    <I18nContext.Provider
+      value={{
+        language,
+        locale,
+        t: (key: string, params?: Record<string, string | number>) =>
+          t(language, key, params),
+      }}
+    >
       {children}
     </I18nContext.Provider>
   );

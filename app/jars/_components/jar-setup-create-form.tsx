@@ -4,13 +4,14 @@ import { useTransition } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { useI18n } from "@/lib/providers/i18n-provider";
 
 import { createIntentJarAction } from "@/app/jars/intent-actions";
 import { RHFInput, RHFSelect } from "@/components/ui/rhf-fields";
 import { Button } from "@/components/ui/button";
 
 const schema = z.object({
-  name: z.string().min(2, "Tên hũ phải có ít nhất 2 ký tự"),
+  name: z.string().min(2, "jars.validation.name_min"),
   jarType: z.string(),
   spendPolicy: z.string(),
   fixedAmount: z.number().min(0),
@@ -30,6 +31,8 @@ type Props = {
 
 export function JarSetupCreateForm({ month, returnTo }: Props) {
   const [isPending, startTransition] = useTransition();
+
+  const { t, language } = useI18n();
 
   const methods = useForm<Values>({
     resolver: zodResolver(schema),
@@ -68,45 +71,50 @@ export function JarSetupCreateForm({ month, returnTo }: Props) {
         <input type="hidden" {...methods.register("returnTo")} />
 
         <div className="sm:col-span-2">
-          <RHFInput name="name" label="Tên hũ" placeholder="VD: Quỹ học cho con" required />
+          <RHFInput
+            name="name"
+            label={t("jars.field.name")}
+            placeholder={t("jars.placeholder.name")}
+            required
+          />
         </div>
 
         <RHFSelect
           name="jarType"
-          label="Loại hũ"
+          label={t("jars.field.jar_type")}
           options={[
-            { label: "Custom", value: "custom" },
-            { label: "Essential", value: "essential" },
-            { label: "Investment / FFA", value: "investment" },
-            { label: "Long-term saving", value: "long_term_saving" },
-            { label: "Education", value: "education" },
-            { label: "Play", value: "play" },
-            { label: "Give", value: "give" },
+            { label: t("jars.type.custom"), value: "custom" },
+            { label: t("jars.type.essential"), value: "essential" },
+            { label: t("jars.type.investment"), value: "investment" },
+            { label: t("jars.type.long_term_saving"), value: "long_term_saving" },
+            { label: t("jars.type.education"), value: "education" },
+            { label: t("jars.type.play"), value: "play" },
+            { label: t("jars.type.give"), value: "give" },
           ]}
           required
         />
 
         <RHFSelect
           name="spendPolicy"
-          label="Policy sử dụng"
+          label={t("jars.field.spend_policy")}
           options={[
-            { label: "Flexible", value: "flexible" },
-            { label: "Invest only", value: "invest_only" },
-            { label: "Long-term only", value: "long_term_only" },
-            { label: "Must spend", value: "must_spend" },
-            { label: "Give only", value: "give_only" },
+            { label: t("jars.policy.flexible"), value: "flexible" },
+            { label: t("jars.policy.invest_only"), value: "invest_only" },
+            { label: t("jars.policy.long_term_only"), value: "long_term_only" },
+            { label: t("jars.policy.must_spend"), value: "must_spend" },
+            { label: t("jars.policy.give_only"), value: "give_only" },
           ]}
           required
         />
 
-        <RHFInput name="fixedAmount" label="Target cố định / tháng" type="number" min="0" />
-        <RHFInput name="incomePercent" label="% thu nhập / tháng" type="number" min="0" max="100" step="0.01" />
-        <RHFInput name="color" label="Màu" />
-        <RHFInput name="icon" label="Icon" />
+        <RHFInput name="fixedAmount" label={t("jars.field.fixed_target")} type="number" min="0" />
+        <RHFInput name="incomePercent" label={t("jars.field.income_percent")} type="number" min="0" max="100" step="0.01" />
+        <RHFInput name="color" label={t("common.color")} />
+        <RHFInput name="icon" label={t("common.icon")} />
 
         <div className="sm:col-span-2 flex justify-end">
           <Button type="submit" disabled={isPending} className="rounded-xl">
-            {isPending ? "Đang tạo..." : "Tạo jar"}
+            {isPending ? t("common.processing") : t("jars.action.create")}
           </Button>
         </div>
       </form>

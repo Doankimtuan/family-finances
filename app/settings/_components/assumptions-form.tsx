@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useTransition } from "react";
+import { useActionState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -41,11 +41,10 @@ export function AssumptionsForm({
 }) {
   const { language, t } = useI18n();
   const vi = language === "vi";
-  const [state, action] = useActionState(
+  const [state, formAction] = useActionState(
     updateAssumptionsAction,
     initialSettingsActionState,
   );
-  const [isPending, startTransition] = useTransition();
 
   const methods = useForm<AssumptionsValues>({
     resolver: zodResolver(assumptionsSchema),
@@ -61,18 +60,20 @@ export function AssumptionsForm({
 
   const { handleSubmit } = methods;
 
+  const onSubmit = handleSubmit((data) => {
+    const formData = new FormData();
+    Object.entries(data).forEach(([key, value]) => {
+      formData.append(key, String(value));
+    });
+    formAction(formData);
+  });
+
   return (
     <FormProvider {...methods}>
       <form
         className="space-y-8"
         noValidate
-        action={action}
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleSubmit(() => {
-            startTransition(() => action(new FormData(e.currentTarget)));
-          })(e);
-        }}
+        onSubmit={onSubmit}
       >
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           <RHFInput
@@ -147,10 +148,10 @@ export function AssumptionsForm({
 
         <Button
           type="submit"
-          disabled={isPending}
+          disabled={state.status === "pending"}
           className="w-full rounded-xl py-6 text-base font-semibold shadow-sm"
         >
-          {isPending ? t("common.saving") : (vi ? "Lưu giả định" : "Save Assumptions")}
+          {state.status === "pending" ? t("common.saving") : (vi ? "Lưu giả định" : "Save Assumptions")}
         </Button>
       </form>
     </FormProvider>

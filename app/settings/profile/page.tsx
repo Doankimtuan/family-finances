@@ -4,23 +4,15 @@ import { BottomTabBar } from "@/components/layout/bottom-tab-bar";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { SectionHeader } from "@/components/ui/section-header";
 import { t } from "@/lib/i18n/dictionary";
-import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
-import { createClient } from "@/lib/supabase/server";
+import { getSettingsDataContext } from "@/lib/server/settings-data";
 import { User } from "lucide-react";
 
 import { ProfileForm } from "../_components/profile-form";
 import { SettingsNav } from "../_components/settings-nav";
 
 export default async function SettingsProfilePage() {
-  const { user, language } = await getAuthenticatedHouseholdContext();
+  const { language, profile } = await getSettingsDataContext(true, false, false);
   const vi = language === "vi";
-  const supabase = await createClient();
-
-  const profileResult = await supabase
-    .from("profiles")
-    .select("full_name, email, avatar_url")
-    .eq("user_id", user.id)
-    .maybeSingle();
 
   return (
     <AppShell
@@ -50,12 +42,7 @@ export default async function SettingsProfilePage() {
             </div>
           </CardHeader>
           <CardContent className="p-6">
-            {profileResult.error ? (
-              <p className="text-sm text-rose-600 font-medium">
-                {vi ? "Không thể tải hồ sơ:" : "Failed to load profile:"}{" "}
-                {profileResult.error.message}
-              </p>
-            ) : !profileResult.data ? (
+            {!profile ? (
               <p className="text-sm text-slate-500 italic">
                 {vi
                   ? "Hồ sơ chưa được khởi tạo. Hãy đăng xuất rồi đăng nhập lại để đồng bộ hồ sơ."
@@ -63,8 +50,8 @@ export default async function SettingsProfilePage() {
               </p>
             ) : (
               <ProfileForm
-                defaultFullName={profileResult.data.full_name}
-                defaultEmail={profileResult.data.email}
+                defaultFullName={profile.full_name || ""}
+                defaultEmail={profile.email || ""}
               />
             )}
           </CardContent>

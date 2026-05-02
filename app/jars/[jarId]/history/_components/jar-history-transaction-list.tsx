@@ -2,24 +2,28 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { formatVndCompact } from "@/lib/dashboard/format";
 import type { SpendingJarTxnRow } from "@/lib/jars/spending";
 
+import { useI18n } from "@/lib/providers/i18n-provider";
+
 type Props = {
   rows: SpendingJarTxnRow[];
   locale: string;
-  vi: boolean;
+  language: string;
 };
 
-export function JarHistoryTransactionList({ rows, locale, vi }: Props) {
+export function JarHistoryTransactionList({ rows, locale, language }: Props) {
+  const { t } = useI18n();
+
   return (
     <Card>
       <CardHeader className="pb-2">
         <h2 className="text-base font-bold">
-          {vi ? "Giao dịch trong tháng" : "Month Transactions"}
+          {t("jars.history.transactions_title")}
         </h2>
       </CardHeader>
       <CardContent className="space-y-2">
         {rows.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            {vi ? "Không có giao dịch." : "No transactions."}
+            {t("jars.history.no_transactions")}
           </p>
         ) : (
           rows.map((row) => (
@@ -30,7 +34,7 @@ export function JarHistoryTransactionList({ rows, locale, vi }: Props) {
               <div>
                 <p className="text-sm font-semibold">{row.description}</p>
                 <p className="text-xs text-muted-foreground">
-                  {row.entry_date} · {row.category_name ?? (vi ? "Không phân loại" : "Uncategorized")}
+                  {row.entry_date} · {row.category_name ?? t("common.uncategorized")}
                 </p>
               </div>
               <p className="text-sm font-bold">

@@ -33,6 +33,8 @@ function toMonthControlValue(monthStart: string): string {
   return monthStart.slice(0, 7);
 }
 
+import { t } from "@/lib/i18n/dictionary";
+
 export default async function JarHistoryPage({
   params,
   searchParams,
@@ -46,7 +48,6 @@ export default async function JarHistoryPage({
 
   const { householdId, language, householdLocale } =
     await getAuthenticatedHouseholdContext();
-  const vi = language === "vi";
   const supabase = await createClient();
 
   const jarResult = await supabase
@@ -103,26 +104,22 @@ export default async function JarHistoryPage({
 
   return (
     <AppShell
-      header={<AppHeader title={vi ? "Lịch sử hũ" : "Jar History"} />}
+      header={<AppHeader title={t(language, "jars.history.title")} />}
       footer={<BottomTabBar />}
     >
       <div className="space-y-6 pb-24">
         <Card className="overflow-hidden border-border/60 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white shadow-xl">
           <CardContent className="space-y-5 p-6">
             <SectionHeader
-              label={vi ? "Theo dõi" : "Tracking"}
+              label={t(language, "common.tracking")}
               title={jarResult.data.name}
-              description={
-                vi
-                  ? "Xem xu hướng nhiều tháng, chi tiêu theo danh mục và giao dịch của hũ này."
-                  : "Review month trends, category spending, and transactions for this jar."
-              }
+              description={t(language, "jars.history.header")}
               className="[&_h2]:text-white [&_p]:text-white/80 [&_[class*='text-primary']]:text-white/70"
             />
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <Link href="/jars" className="text-sm font-semibold text-white hover:underline">
-                {vi ? "← Quay lại danh sách hũ" : "← Back to jars"}
+                {t(language, "jars.history.back_link")}
               </Link>
 
               <form action={`/jars/${jarId}/history`} method="get" className="flex items-center gap-2">
@@ -133,7 +130,7 @@ export default async function JarHistoryPage({
                   className="h-11 rounded-xl border border-white/20 bg-white/10 px-3 text-sm text-white"
                 />
                 <button className="h-11 rounded-xl bg-white px-4 text-sm font-semibold text-slate-900" type="submit">
-                  {vi ? "Xem tháng" : "View month"}
+                  {t(language, "jars.history.view_month")}
                 </button>
               </form>
             </div>
@@ -144,7 +141,7 @@ export default async function JarHistoryPage({
           <div className="rounded-2xl border border-border/60 bg-card p-4">
             <div className="flex items-center justify-between gap-2">
               <div>
-                <p className="text-sm font-semibold">{vi ? "Trạng thái tháng đang xem" : "Selected month status"}</p>
+                <p className="text-sm font-semibold">{t(language, "jars.history.month_status")}</p>
                 <p className="text-xs text-muted-foreground">
                   {selectedMonth} ·{" "}
                   {thisMonth.usage_percent === null
@@ -162,16 +159,10 @@ export default async function JarHistoryPage({
                 }
               >
                 {thisMonth.alert_level === "exceeded"
-                  ? vi
-                    ? "Vượt hạn mức"
-                    : "Exceeded"
+                  ? t(language, "jars.status.exceeded")
                   : thisMonth.alert_level === "warning"
-                    ? vi
-                      ? "Cảnh báo"
-                      : "Warning"
-                    : vi
-                      ? "Bình thường"
-                      : "Normal"}
+                    ? t(language, "jars.status.warning")
+                    : t(language, "jars.status.normal")}
               </Badge>
             </div>
           </div>
@@ -183,9 +174,9 @@ export default async function JarHistoryPage({
           </div>
         ) : null}
 
-        <JarHistoryMonthlySummary rows={historyRows} locale={householdLocale} vi={vi} />
-        <JarHistoryCategoryBreakdown rows={categoryRows} locale={householdLocale} vi={vi} />
-        <JarHistoryTransactionList rows={txRows} locale={householdLocale} vi={vi} />
+        <JarHistoryMonthlySummary rows={historyRows} locale={householdLocale} language={language} />
+        <JarHistoryCategoryBreakdown rows={categoryRows} locale={householdLocale} language={language} />
+        <JarHistoryTransactionList rows={txRows} locale={householdLocale} language={language} />
       </div>
     </AppShell>
   );

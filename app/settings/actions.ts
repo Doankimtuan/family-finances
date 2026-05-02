@@ -89,8 +89,8 @@ export async function updateProfileAction(
     payload: { fullName, hasAvatarUrl: Boolean(avatarUrl) },
   });
 
-  revalidatePath("/settings");
   revalidatePath("/settings/profile");
+  revalidatePath("/settings");
   return ok(vi ? "Đã cập nhật hồ sơ." : "Profile updated.");
 }
 
@@ -137,8 +137,8 @@ export async function updateHouseholdSettingsAction(
     payload: { name, timezone, locale, baseCurrency: "VND" },
   });
 
-  revalidatePath("/settings");
   revalidatePath("/settings/household");
+  revalidatePath("/settings");
   revalidatePath("/household");
   return ok(vi ? "Đã lưu cài đặt hộ gia đình." : "Household settings updated.");
 }
@@ -206,8 +206,8 @@ export async function updateAssumptionsAction(
     },
   });
 
-  revalidatePath("/settings");
   revalidatePath("/settings/assumptions");
+  revalidatePath("/settings");
   revalidatePath("/dashboard");
   revalidatePath("/decision-tools");
   return ok(vi ? "Đã lưu giả định tài chính." : "Planning assumptions updated.");
@@ -251,8 +251,8 @@ export async function updateLanguagePreferenceAction(
   });
 
   revalidatePath("/");
-  revalidatePath("/settings");
-  revalidatePath("/settings/household");
   revalidatePath("/dashboard");
+  revalidatePath("/settings/household");
+  revalidatePath("/settings");
   return ok(vi ? "Đã cập nhật ngôn ngữ." : "Language updated.");
 }

@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useFormContext, Controller } from "react-hook-form";
+import { useI18n } from "@/lib/providers/i18n-provider";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -41,8 +42,10 @@ export function RHFInput({
     register,
     formState: { errors },
   } = useFormContext();
+  const { t } = useI18n();
 
-  const error = errors[name]?.message as string | undefined;
+  const errorKey = errors[name]?.message as string | undefined;
+  const error = errorKey ? t(errorKey) : undefined;
 
   return (
     <FormField
@@ -101,8 +104,10 @@ export function RHFSelect({
     control,
     formState: { errors },
   } = useFormContext();
+  const { t } = useI18n();
 
-  const error = errors[name]?.message as string | undefined;
+  const errorKey = errors[name]?.message as string | undefined;
+  const error = errorKey ? t(errorKey) : undefined;
 
   return (
     <FormField
@@ -148,8 +153,10 @@ export function RHFMoneyInput({
     control,
     formState: { errors },
   } = useFormContext();
+  const { t } = useI18n();
 
-  const error = errors[name]?.message as string | undefined;
+  const errorKey = errors[name]?.message as string | undefined;
+  const error = errorKey ? t(errorKey) : undefined;
 
   return (
     <FormField
@@ -195,8 +202,11 @@ export function RHFColorInput({
     watch,
     formState: { errors },
   } = useFormContext();
+  const { t } = useI18n();
 
-  const error = errors[name]?.message as string | undefined;
+  const errorKey = errors[name]?.message as string | undefined;
+  const error = errorKey ? t(errorKey) : undefined;
+
   const colorValue = watch(name);
 
   return (

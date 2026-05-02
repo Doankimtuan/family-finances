@@ -8,10 +8,11 @@ import * as z from "zod";
 import { upsertExpenseRuleAction } from "@/app/jars/intent-actions";
 import { RHFSelect } from "@/components/ui/rhf-fields";
 import { Button } from "@/components/ui/button";
+import { useI18n } from "@/lib/providers/i18n-provider";
 
 const schema = z.object({
-  categoryId: z.string().min(1, "Vui lòng chọn category"),
-  jarId: z.string().min(1, "Vui lòng chọn hũ"),
+  categoryId: z.string().min(1, "jars.validation.select_category"),
+  jarId: z.string().min(1, "jars.validation.select_jar"),
   returnTo: z.string(),
 });
 
@@ -25,6 +26,7 @@ type Props = {
 
 export function JarSetupRuleForm({ categories, jars, returnTo }: Props) {
   const [isPending, startTransition] = useTransition();
+  const { t } = useI18n();
 
   const methods = useForm<Values>({
     resolver: zodResolver(schema),
@@ -57,21 +59,21 @@ export function JarSetupRuleForm({ categories, jars, returnTo }: Props) {
 
         <RHFSelect
           name="categoryId"
-          label="Expense category"
+          label={t("jars.field.category")}
           options={categories.map(c => ({ label: c.name, value: c.id }))}
           required
         />
 
         <RHFSelect
           name="jarId"
-          label="Jar"
+          label={t("jars.field.jar")}
           options={jars.map(j => ({ label: j.name, value: j.id }))}
           required
         />
 
         <div className="flex items-end">
           <Button type="submit" disabled={isPending} className="w-full sm:w-auto rounded-xl">
-            {isPending ? "Đang lưu..." : "Lưu rule"}
+            {isPending ? t("common.saving") : t("jars.action.save_rule")}
           </Button>
         </div>
       </form>

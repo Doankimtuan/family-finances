@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useTransition, useEffect } from "react";
+import { useActionState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -32,11 +32,10 @@ export function HouseholdSettingsForm({
   defaultLanguage: "en" | "vi";
 }) {
   const { t } = useI18n();
-  const [state, action] = useActionState(
+  const [state, formAction] = useActionState(
     updateHouseholdSettingsAction,
     initialSettingsActionState,
   );
-  const [isPending, startTransition] = useTransition();
 
   const methods = useForm<HouseholdValues>({
     resolver: zodResolver(householdSchema),
@@ -49,18 +48,20 @@ export function HouseholdSettingsForm({
 
   const { handleSubmit } = methods;
 
+  const onSubmit = handleSubmit((data) => {
+    const formData = new FormData();
+    formData.append("name", data.name);
+    formData.append("language", data.language);
+    formData.append("timezone", data.timezone);
+    formAction(formData);
+  });
+
   return (
     <FormProvider {...methods}>
       <form
         className="space-y-6"
         noValidate
-        action={action}
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleSubmit(() => {
-            startTransition(() => action(new FormData(e.currentTarget)));
-          })(e);
-        }}
+        onSubmit={onSubmit}
       >
         <RHFInput
           name="name"
@@ -97,10 +98,10 @@ export function HouseholdSettingsForm({
 
         <Button
           type="submit"
-          disabled={isPending}
+          disabled={state.status === "pending"}
           className="w-full rounded-xl py-6 text-base font-semibold shadow-sm"
         >
-          {isPending ? t("common.saving") : t("settings.save_household")}
+          {state.status === "pending" ? t("common.saving") : t("settings.save_household")}
         </Button>
       </form>
     </FormProvider>

@@ -18,13 +18,17 @@ const JarEditForm = dynamic(
   { ssr: false }
 );
 
+import { useI18n } from "@/lib/providers/i18n-provider";
+
+import type { AppLanguage } from "@/lib/i18n/config";
+
 type Props = {
   jarId: string;
   jarName: string;
   defaultName: string;
   defaultColor: string | null;
   defaultIcon: string | null;
-  vi: boolean;
+  language: AppLanguage;
 };
 
 export function JarSettingsDialog({
@@ -33,22 +37,22 @@ export function JarSettingsDialog({
   defaultName,
   defaultColor,
   defaultIcon,
-  vi,
+  language,
 }: Props) {
+  const { t } = useI18n();
+
   return (
     <Dialog>
       <DialogTrigger asChild>
         <Button variant="ghost" size="sm" className="rounded-xl">
-          {vi ? "Thiết lập" : "Settings"}
+          {t("common.settings")}
         </Button>
       </DialogTrigger>
       <DialogContent className="border-slate-300 bg-white shadow-2xl sm:rounded-[28px]">
         <DialogHeader>
-          <DialogTitle>{vi ? "Thiết lập hũ" : "Jar settings"}</DialogTitle>
+          <DialogTitle>{t("jars.settings.title")}</DialogTitle>
           <DialogDescription>
-            {vi
-              ? `Đổi tên, màu hoặc biểu tượng cho hũ ${jarName}.`
-              : `Update the name, color, or icon for ${jarName}.`}
+            {t("jars.settings.description", { name: jarName })}
           </DialogDescription>
         </DialogHeader>
 
@@ -58,21 +62,19 @@ export function JarSettingsDialog({
             defaultName={defaultName}
             defaultColor={defaultColor}
             defaultIcon={defaultIcon}
-            vi={vi}
+            language={language}
           />
 
           <Alert variant="destructive" className="bg-rose-50 border-rose-200">
             <AlertTitle className="text-rose-900 font-semibold">
-              {vi ? "Lưu trữ hũ" : "Archive jar"}
+              {t("jars.settings.archive_title")}
             </AlertTitle>
             <AlertDescription className="text-rose-700">
-              {vi
-                ? "Hũ sẽ ẩn khỏi danh sách chính nhưng lịch sử cũ vẫn được giữ lại."
-                : "The jar will be hidden from the main list while keeping past history."}
+              {t("jars.settings.archive_description")}
               <form action={archiveJarDirectAction} className="mt-3">
                 <input type="hidden" name="jarId" value={jarId} />
                 <Button type="submit" variant="destructive" size="sm" className="rounded-xl">
-                  {vi ? "Lưu trữ hũ này" : "Archive this jar"}
+                  {t("jars.action.archive_jar")}
                 </Button>
               </form>
             </AlertDescription>

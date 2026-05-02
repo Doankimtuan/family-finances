@@ -21,10 +21,12 @@ const languageSchema = z.object({
 
 type LanguageValues = z.infer<typeof languageSchema>;
 
+import type { AppLanguage } from "@/lib/i18n/config";
+
 export function LanguageSwitcher({
   defaultLanguage,
 }: {
-  defaultLanguage: "en" | "vi";
+  defaultLanguage: AppLanguage;
 }) {
   const { t, language } = useI18n();
   const vi = language === "vi";
@@ -49,8 +51,10 @@ export function LanguageSwitcher({
         action={action}
         onSubmit={(e) => {
           e.preventDefault();
-          handleSubmit(() => {
-            startTransition(() => action(new FormData(e.currentTarget)));
+          handleSubmit((data) => {
+            const formData = new FormData();
+            formData.append("language", data.language);
+            startTransition(() => action(formData));
           })(e);
         }}
       >

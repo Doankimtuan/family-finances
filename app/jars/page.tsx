@@ -14,6 +14,7 @@ import { formatVnd, formatVndCompact } from "@/lib/dashboard/format";
 import { fetchJarCommandCenter } from "@/lib/jars/intent";
 import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
 import { createClient } from "@/lib/supabase/server";
+import { t } from "@/lib/i18n/dictionary";
 
 import { JarPlanForm } from "./_components/jar-plan-form";
 import { JarManualAdjustmentForm } from "./_components/jar-manual-adjustment-form";
@@ -31,7 +32,7 @@ export default async function JarsPage({
     error?: string;
   }>;
 }) {
-  const { householdId, householdLocale } = await getAuthenticatedHouseholdContext();
+  const { householdId, householdLocale, language } = await getAuthenticatedHouseholdContext();
   const params = searchParams ? await searchParams : undefined;
   const month =
     params?.month && /^\d{4}-\d{2}$/.test(params.month)
@@ -42,7 +43,7 @@ export default async function JarsPage({
 
   return (
     <AppShell
-      header={<AppHeader title="Jars" />}
+      header={<AppHeader title={t(language, "jars.title")} />}
       footer={<BottomTabBar />}
     >
       <div className="space-y-6 pb-24">
@@ -63,28 +64,27 @@ export default async function JarsPage({
               <div className="space-y-2">
                 <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
                   <PiggyBank className="h-3.5 w-3.5" />
-                  Financial Intent Layer
+                  {t(language, "jars.intent_layer")}
                 </div>
                 <div>
                   <h1 className="text-2xl font-bold tracking-tight text-slate-950">
-                    Hệ thống hũ tài chính
+                    {t(language, "jars.system_title")}
                   </h1>
                   <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
-                    Mỗi hũ là một mục đích giữ tiền. Hệ thống theo dõi tiền đã được cấp vào hũ nào,
-                    đang nằm ở cash hay savings, và khoản nào còn chờ bạn review trước khi chốt.
+                    {t(language, "jars.system_description")}
                   </p>
                 </div>
               </div>
               <div className="flex flex-wrap gap-2">
                 <Button asChild variant="outline" className="rounded-xl">
                   <Link href={`/jars/review`}>
-                    Review queue
+                    {t(language, "jars.review_queue")}
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
                 </Button>
                 <Button asChild className="rounded-xl">
                   <Link href={`/jars/setup?month=${month}`}>
-                    Thiết lập jars
+                    {t(language, "jars.setup_jars")}
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
                 </Button>
@@ -93,24 +93,24 @@ export default async function JarsPage({
 
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
               <SummaryCard
-                title="Tổng số dư theo hũ"
+                title={t(language, "jars.summary.total_balance")}
                 value={formatVndCompact(data.summary.totalBalance, householdLocale)}
                 helper={formatVnd(data.summary.totalBalance, householdLocale)}
               />
               <SummaryCard
-                title="Dòng tiền vào tháng này"
+                title={t(language, "jars.summary.monthly_inflow")}
                 value={formatVndCompact(data.summary.totalMonthInflow, householdLocale)}
-                helper="Từ income allocations và interest"
+                helper={t(language, "jars.summary.inflow_helper")}
               />
               <SummaryCard
-                title="Đã chi / ra khỏi hũ"
+                title={t(language, "jars.summary.monthly_outflow")}
                 value={formatVndCompact(data.summary.totalMonthOutflow, householdLocale)}
-                helper="Bao gồm expense, tax và adjustments"
+                helper={t(language, "jars.summary.outflow_helper")}
               />
               <SummaryCard
-                title="Review queue"
+                title={t(language, "jars.review_queue")}
                 value={String(data.summary.pendingReviews)}
-                helper={`${data.summary.mappedExpenseRules} quy tắc category đang hoạt động`}
+                helper={t(language, "jars.summary.rules_active", { count: String(data.summary.mappedExpenseRules) })}
               />
             </div>
           </CardContent>
@@ -119,12 +119,12 @@ export default async function JarsPage({
         {data.items.length === 0 ? (
           <EmptyState
             icon={PiggyBank}
-            title="Bạn chưa có hệ hũ nào"
-            description="Bắt đầu từ preset 6 jars hoặc tự tạo cấu trúc riêng. Sau khi có jars, thu nhập và savings sẽ bắt đầu được đề xuất gắn vào hũ."
+            title={t(language, "jars.empty.title")}
+            description={t(language, "jars.empty.description")}
             className="min-h-[280px] border-border/60 bg-slate-50/60"
             action={
               <Button asChild className="rounded-xl">
-                <Link href={`/jars/setup?month=${month}`}>Bắt đầu thiết lập</Link>
+                <Link href={`/jars/setup?month=${month}`}>{t(language, "jars.empty.action")}</Link>
               </Button>
             }
           />
@@ -133,7 +133,7 @@ export default async function JarsPage({
             <section className="grid gap-4 xl:grid-cols-[1.35fr_0.95fr]">
               <Card className="border-border/60">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-lg">Tình trạng các hũ</CardTitle>
+                  <CardTitle className="text-lg">{t(language, "jars.status.title")}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {data.items.map((jar) => {
@@ -155,24 +155,24 @@ export default async function JarsPage({
                                 {jar.name}
                               </h2>
                               <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600">
-                                {jar.jar_type}
+                                {t(language, `jars.type.${jar.jar_type}`)}
                               </span>
                             </div>
                             <p className="text-sm text-slate-500">
-                              Số dư hiện tại {formatVnd(jar.currentBalance, householdLocale)}.
+                              {t(language, "jars.item.current_balance")} {formatVnd(jar.currentBalance, householdLocale)}.
                               {jar.monthlyIncomePercent > 0
-                                ? ` Kế hoạch: ${jar.monthlyIncomePercent.toFixed(0)}% thu nhập`
+                                ? ` ${t(language, "jars.item.plan_percent", { percent: jar.monthlyIncomePercent.toFixed(0) })}`
                                 : jar.monthlyTarget > 0
-                                  ? ` Kế hoạch: ${formatVnd(jar.monthlyTarget, householdLocale)}/tháng`
-                                  : " Chưa đặt target tháng."}
+                                  ? ` ${t(language, "jars.item.plan_fixed", { amount: formatVnd(jar.monthlyTarget, householdLocale) })}`
+                                  : ` ${t(language, "jars.item.no_plan")}`}
                             </p>
                           </div>
                           <div className="flex flex-wrap gap-2">
                             <Button asChild variant="outline" size="sm" className="rounded-xl">
-                              <Link href={`/jars/${jar.id}`}>Xem chi tiết</Link>
+                              <Link href={`/jars/${jar.id}`}>{t(language, "common.details")}</Link>
                             </Button>
                             <Button asChild variant="ghost" size="sm" className="rounded-xl">
-                              <Link href={`/jars/setup?month=${month}#rules`}>Sửa rule</Link>
+                              <Link href={`/jars/setup?month=${month}#rules`}>{t(language, "jars.item.edit_rules")}</Link>
                             </Button>
                           </div>
                         </div>
@@ -180,22 +180,22 @@ export default async function JarsPage({
                         <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                           <MiniMetric
                             icon={Wallet}
-                            label="Trong cash"
+                            label={t(language, "jars.metric.in_cash")}
                             value={formatVndCompact(jar.heldInCash, householdLocale)}
                           />
                           <MiniMetric
                             icon={PiggyBank}
-                            label="Đang ở savings"
+                            label={t(language, "jars.metric.in_savings")}
                             value={formatVndCompact(jar.heldInSavings, householdLocale)}
                           />
                           <MiniMetric
                             icon={Coins}
-                            label="Đang ở investments"
+                            label={t(language, "jars.metric.in_investments")}
                             value={formatVndCompact(jar.heldInInvestments, householdLocale)}
                           />
                           <MiniMetric
                             icon={CheckCircle2}
-                            label="Ra khỏi cash"
+                            label={t(language, "jars.metric.outside_cash")}
                             value={formatVndCompact(heldOutsideCash, householdLocale)}
                           />
                         </div>
@@ -203,13 +203,13 @@ export default async function JarsPage({
                         <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_auto]">
                           <div className="rounded-2xl bg-slate-50 p-4">
                             <div className="flex items-center justify-between text-sm">
-                              <Label className="font-medium text-slate-600">Tháng này đã cấp vào</Label>
+                              <Label className="font-medium text-slate-600">{t(language, "jars.item.monthly_inflow")}</Label>
                               <span className="font-semibold text-slate-950">
                                 {formatVndCompact(jar.monthInflow, householdLocale)}
                               </span>
                             </div>
                             <div className="mt-2 flex items-center justify-between text-sm">
-                              <Label className="font-medium text-slate-600">Tháng này đã dùng / giảm</Label>
+                              <Label className="font-medium text-slate-600">{t(language, "jars.item.monthly_outflow")}</Label>
                               <span className="font-semibold text-slate-950">
                                 {formatVndCompact(jar.monthOutflow, householdLocale)}
                               </span>
@@ -233,14 +233,14 @@ export default async function JarsPage({
               <div className="space-y-4">
                 <Card className="border-border/60">
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-lg">Review queue</CardTitle>
+                    <CardTitle className="text-lg">{t(language, "jars.review_queue")}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     {data.reviews.length === 0 ? (
                       <EmptyState
                         icon={Eye}
-                        title="Không có movement cho review"
-                        description="Thu nhập và savings sẽ xuất hiện ở đây khi hệ thống chưa đủ chắc chắn để gắn vào hũ."
+                        title={t(language, "jars.review.empty_title")}
+                        description={t(language, "jars.review.empty_description")}
                         className="min-h-[180px] border-0 bg-transparent p-0"
                       />
                     ) : (
@@ -259,7 +259,7 @@ export default async function JarsPage({
                               </p>
                             </div>
                             <span className="rounded-full bg-amber-100 px-2 py-1 text-[11px] font-semibold text-amber-800">
-                              pending
+                              {t(language, "common.status.pending")}
                             </span>
                           </div>
                           {review.suggested_allocations.length > 0 ? (
@@ -281,14 +281,14 @@ export default async function JarsPage({
                       ))
                     )}
                     <Button asChild className="w-full rounded-xl">
-                      <Link href="/jars/review">Mở review queue</Link>
+                      <Link href="/jars/review">{t(language, "jars.review.open_queue")}</Link>
                     </Button>
                   </CardContent>
                 </Card>
 
                 <Card className="border-border/60">
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-lg">Điều chỉnh thủ công</CardTitle>
+                    <CardTitle className="text-lg">{t(language, "jars.manual_adjustment.title")}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <JarManualAdjustmentForm

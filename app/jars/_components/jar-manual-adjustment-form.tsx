@@ -8,11 +8,12 @@ import * as z from "zod";
 import { addManualJarAdjustmentAction } from "@/app/jars/intent-actions";
 import { Button } from "@/components/ui/button";
 import { RHFInput, RHFSelect } from "@/components/ui/rhf-fields";
+import { useI18n } from "@/lib/providers/i18n-provider";
 
 const adjustmentSchema = z.object({
-  jarId: z.string().min(1, "Vui lòng chọn hũ"),
-  movementDate: z.string().min(1, "Vui lòng chọn ngày"),
-  amount: z.number().min(1, "Số tiền phải lớn hơn 0"),
+  jarId: z.string().min(1, "jars.validation.select_jar"),
+  movementDate: z.string().min(1, "common.validation.select_date"),
+  amount: z.number().min(1, "common.validation.amount_positive"),
   direction: z.enum(["in", "out"]),
   note: z.string().optional(),
   returnTo: z.string(),
@@ -28,6 +29,7 @@ type Props = {
 
 export function JarManualAdjustmentForm({ jars, month, returnTo }: Props) {
   const [isPending, startTransition] = useTransition();
+  const { t } = useI18n();
 
   const methods = useForm<AdjustmentValues>({
     resolver: zodResolver(adjustmentSchema),
@@ -61,7 +63,7 @@ export function JarManualAdjustmentForm({ jars, month, returnTo }: Props) {
 
         <RHFSelect
           name="jarId"
-          label="Hũ"
+          label={t("jars.field.jar")}
           options={jars.map((j) => ({ label: j.name, value: j.id }))}
           required
         />
@@ -69,28 +71,28 @@ export function JarManualAdjustmentForm({ jars, month, returnTo }: Props) {
         <div className="grid gap-3 sm:grid-cols-2">
           <RHFSelect
             name="direction"
-            label="Hướng"
+            label={t("jars.field.direction")}
             options={[
-              { label: "Tăng số dư", value: "in" },
-              { label: "Giảm số dư", value: "out" },
+              { label: t("jars.direction.in"), value: "in" },
+              { label: t("jars.direction.out"), value: "out" },
             ]}
             required
           />
-          <RHFInput name="movementDate" label="Ngày" type="date" required />
+          <RHFInput name="movementDate" label={t("common.date")} type="date" required />
         </div>
 
         <RHFInput
           name="amount"
-          label="Số tiền"
+          label={t("common.amount")}
           type="number"
           min="1"
           required
         />
 
-        <RHFInput name="note" label="Ghi chú" placeholder="Lý do điều chỉnh" />
+        <RHFInput name="note" label={t("common.note")} placeholder={t("jars.placeholder.adjustment_note")} />
 
         <Button type="submit" className="w-full" disabled={isPending}>
-          {isPending ? "Đang ghi nhận..." : "Ghi nhận điều chỉnh"}
+          {isPending ? t("common.processing") : t("jars.action.record_adjustment")}
         </Button>
       </form>
     </FormProvider>

@@ -24,12 +24,15 @@ const targetSchema = z.object({
 
 type TargetValues = z.infer<typeof targetSchema>;
 
+import { useI18n } from "@/lib/providers/i18n-provider";
+import type { AppLanguage } from "@/lib/i18n/config";
+
 type Props = {
   jarId: string;
   month: string;
   defaultMode: "fixed" | "percent";
   defaultValue: number;
-  vi: boolean;
+  language: AppLanguage;
 };
 
 export function JarTargetForm({
@@ -37,8 +40,9 @@ export function JarTargetForm({
   month,
   defaultMode,
   defaultValue,
-  vi,
+  language,
 }: Props) {
+  const { t } = useI18n();
   const [state, setState] = useState<JarActionState>(initialJarActionState);
   const [isPending, startTransition] = useTransition();
 
@@ -86,16 +90,16 @@ export function JarTargetForm({
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <RHFSelect
             name="targetMode"
-            label={vi ? "Kiểu mục tiêu" : "Target type"}
+            label={t("jars.field.target_type")}
             options={[
-              { label: vi ? "Số tiền cố định" : "Fixed amount", value: "fixed" },
-              { label: vi ? "% thu nhập tháng" : "% monthly income", value: "percent" },
+              { label: t("jars.target.mode.fixed"), value: "fixed" },
+              { label: t("jars.target.mode.percent"), value: "percent" },
             ]}
           />
 
           <RHFMoneyInput
             name="targetValue"
-            label={vi ? "Giá trị mục tiêu" : "Target value"}
+            label={t("jars.field.target_value")}
           />
         </div>
 
@@ -104,7 +108,7 @@ export function JarTargetForm({
           disabled={isPending}
           className="w-full rounded-xl"
         >
-          {isPending ? (vi ? "Đang lưu..." : "Saving...") : vi ? "Lưu mục tiêu" : "Save target"}
+          {isPending ? t("common.saving") : t("jars.action.save_target")}
         </Button>
 
         <FormStatus message={state.message} status={state.status} />

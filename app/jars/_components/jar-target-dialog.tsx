@@ -17,13 +17,16 @@ const JarTargetForm = dynamic(
   { ssr: false }
 );
 
+import { useI18n } from "@/lib/providers/i18n-provider";
+import type { AppLanguage } from "@/lib/i18n/config";
+
 type Props = {
   jarId: string;
   jarName: string;
   month: string;
   defaultMode: "fixed" | "percent";
   defaultValue: number;
-  vi: boolean;
+  language: AppLanguage;
 };
 
 export function JarTargetDialog({
@@ -32,22 +35,22 @@ export function JarTargetDialog({
   month,
   defaultMode,
   defaultValue,
-  vi,
+  language,
 }: Props) {
+  const { t } = useI18n();
+
   return (
     <Dialog>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="rounded-xl">
-          {vi ? "Đặt mục tiêu" : "Set target"}
+          {t("jars.action.set_target")}
         </Button>
       </DialogTrigger>
       <DialogContent className="border-slate-300 bg-white shadow-2xl sm:rounded-[28px]">
         <DialogHeader>
-          <DialogTitle>{vi ? "Cập nhật mục tiêu tháng" : "Update monthly target"}</DialogTitle>
+          <DialogTitle>{t("jars.target.title")}</DialogTitle>
           <DialogDescription>
-            {vi
-              ? `Thiết lập mục tiêu cho hũ ${jarName} trong tháng đang xem.`
-              : `Set the target for ${jarName} in the selected month.`}
+            {t("jars.target.description", { name: jarName })}
           </DialogDescription>
         </DialogHeader>
         <JarTargetForm
@@ -55,7 +58,7 @@ export function JarTargetDialog({
           month={month}
           defaultMode={defaultMode}
           defaultValue={defaultValue}
-          vi={vi}
+          language={language}
         />
       </DialogContent>
     </Dialog>

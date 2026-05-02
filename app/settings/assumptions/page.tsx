@@ -4,25 +4,15 @@ import { BottomTabBar } from "@/components/layout/bottom-tab-bar";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { SectionHeader } from "@/components/ui/section-header";
 import { t } from "@/lib/i18n/dictionary";
-import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
-import { createClient } from "@/lib/supabase/server";
+import { getSettingsDataContext } from "@/lib/server/settings-data";
 import { TrendingUp } from "lucide-react";
 
 import { AssumptionsForm } from "../_components/assumptions-form";
 import { SettingsNav } from "../_components/settings-nav";
 
 export default async function SettingsAssumptionsPage() {
-  const { householdId, language } = await getAuthenticatedHouseholdContext();
+  const { language, assumptions } = await getSettingsDataContext(false, false, true);
   const vi = language === "vi";
-  const supabase = await createClient();
-
-  const assumptionsResult = await supabase
-    .from("households")
-    .select(
-      "assumptions_inflation_annual, assumptions_cash_return_annual, assumptions_investment_return_annual, assumptions_property_growth_annual, assumptions_gold_growth_annual, assumptions_salary_growth_annual",
-    )
-    .eq("id", householdId)
-    .maybeSingle();
 
   return (
     <AppShell
@@ -52,12 +42,7 @@ export default async function SettingsAssumptionsPage() {
             </div>
           </CardHeader>
           <CardContent className="p-6">
-            {assumptionsResult.error ? (
-              <p className="text-sm text-rose-600 font-medium">
-                {vi ? "Không thể tải giả định:" : "Failed to load assumptions:"}{" "}
-                {assumptionsResult.error.message}
-              </p>
-            ) : !assumptionsResult.data ? (
+            {!assumptions ? (
               <p className="text-sm text-slate-500 italic">
                 {vi
                   ? "Chưa có dữ liệu giả định cho hộ gia đình này."
@@ -67,35 +52,17 @@ export default async function SettingsAssumptionsPage() {
               <AssumptionsForm
                 defaults={{
                   inflationAnnual:
-                    Number(
-                      assumptionsResult.data.assumptions_inflation_annual ??
-                        0.04,
-                    ) * 100,
+                    Number(assumptions.assumptions_inflation_annual ?? 0.04) * 100,
                   cashReturnAnnual:
-                    Number(
-                      assumptionsResult.data.assumptions_cash_return_annual ??
-                        0.03,
-                    ) * 100,
+                    Number(assumptions.assumptions_cash_return_annual ?? 0.03) * 100,
                   investmentReturnAnnual:
-                    Number(
-                      assumptionsResult.data
-                        .assumptions_investment_return_annual ?? 0.1,
-                    ) * 100,
+                    Number(assumptions.assumptions_investment_return_annual ?? 0.1) * 100,
                   propertyGrowthAnnual:
-                    Number(
-                      assumptionsResult.data
-                        .assumptions_property_growth_annual ?? 0.05,
-                    ) * 100,
+                    Number(assumptions.assumptions_property_growth_annual ?? 0.05) * 100,
                   goldGrowthAnnual:
-                    Number(
-                      assumptionsResult.data.assumptions_gold_growth_annual ??
-                        0.04,
-                    ) * 100,
+                    Number(assumptions.assumptions_gold_growth_annual ?? 0.04) * 100,
                   salaryGrowthAnnual:
-                    Number(
-                      assumptionsResult.data.assumptions_salary_growth_annual ??
-                        0.07,
-                    ) * 100,
+                    Number(assumptions.assumptions_salary_growth_annual ?? 0.07) * 100,
                 }}
               />
             )}

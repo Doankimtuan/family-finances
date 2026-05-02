@@ -3,6 +3,8 @@ import { runJarReconciliationDirectAction } from "@/app/jars/actions";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 
+import { useI18n } from "@/lib/providers/i18n-provider";
+
 type Row = {
   id: string;
   category_name: string;
@@ -16,17 +18,17 @@ type Props = {
   rows: Row[];
   month: string;
   locale: string;
-  vi: boolean;
+  language: string;
 };
 
-export function JarAccountabilityTable({ rows, month, locale, vi }: Props) {
+export function JarAccountabilityTable({ rows, month, locale, language }: Props) {
+  const { t } = useI18n();
+
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-3">
         <Label className="text-xs text-muted-foreground font-normal">
-          {vi
-            ? "So sánh chi tiêu thực tế với phần tiền đã phân bổ từ từng hũ."
-            : "Compare actual spending with the money allocated from each jar."}
+          {t("jars.accountability.description")}
         </Label>
         <form action={runJarReconciliationDirectAction}>
           <input type="hidden" name="month" value={month} />
@@ -36,27 +38,25 @@ export function JarAccountabilityTable({ rows, month, locale, vi }: Props) {
             type="submit"
             className="text-xs h-8"
           >
-            {vi ? "Cập nhật lại dữ liệu" : "Refresh data"}
+            {t("common.refresh")}
           </Button>
         </form>
       </div>
 
       {rows.length === 0 ? (
         <div className="rounded-lg border p-3 text-sm text-muted-foreground">
-          {vi
-            ? "Chưa có dữ liệu so sánh. Nhấn 'Cập nhật lại dữ liệu' để làm mới tháng này."
-            : "No comparison rows yet. Click Refresh data to rebuild this month."}
+          {t("jars.accountability.empty")}
         </div>
       ) : (
         <div className="overflow-x-auto rounded-lg border">
           <table className="min-w-full text-sm">
             <thead className="bg-muted/40">
               <tr className="text-left">
-                <th className="px-3 py-2 font-semibold">{vi ? "Danh mục" : "Category"}</th>
-                <th className="px-3 py-2 font-semibold">{vi ? "Hũ" : "Jar"}</th>
-                <th className="px-3 py-2 font-semibold">{vi ? "Chi thực tế" : "Actual"}</th>
-                <th className="px-3 py-2 font-semibold">{vi ? "Phân bổ" : "Allocated"}</th>
-                <th className="px-3 py-2 font-semibold">{vi ? "Chênh lệch" : "Gap"}</th>
+                <th className="px-3 py-2 font-semibold">{t("common.category")}</th>
+                <th className="px-3 py-2 font-semibold">{t("common.jar")}</th>
+                <th className="px-3 py-2 font-semibold">{t("jars.accountability.actual")}</th>
+                <th className="px-3 py-2 font-semibold">{t("jars.summary.allocated")}</th>
+                <th className="px-3 py-2 font-semibold">{t("jars.accountability.gap")}</th>
               </tr>
             </thead>
             <tbody>
