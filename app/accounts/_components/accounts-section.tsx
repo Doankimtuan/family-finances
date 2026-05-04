@@ -1,5 +1,5 @@
-import { ArchiveAccountButton } from "@/app/money/_components/archive-account-button";
-import { CreateAccountDialog } from "@/app/money/_components/create-account-dialog";
+import { ArchiveAccountButton } from "@/app/accounts/_components/archive-account-button";
+import { CreateAccountDialog } from "@/app/accounts/_components/create-account-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { formatVnd, formatVndCompact } from "@/lib/dashboard/format";
@@ -31,7 +31,6 @@ export async function AccountsSection({
 
   return (
     <section className="space-y-1">
-      {/* Section header */}
       <div className="flex items-center justify-between mb-3">
         <div>
           <h2 className="text-xl font-bold text-foreground">

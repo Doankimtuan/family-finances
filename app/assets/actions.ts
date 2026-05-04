@@ -283,6 +283,7 @@ export async function updatePriceHistoryRowAction(
 
   revalidatePath(`/assets/${assetId}`);
   revalidatePath("/money");
+  revalidatePath("/accounts");
   return ok(t("assets.success.price_updated"));
 }
 

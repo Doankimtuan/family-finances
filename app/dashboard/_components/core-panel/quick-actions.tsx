@@ -30,7 +30,7 @@ export function QuickActionsSection({
           variant="primary"
         />
         <QuickAction
-          href="/money"
+          href="/accounts"
           icon={Wallet}
           label={t("dashboard.shortcuts.money")}
         />

@@ -2,11 +2,11 @@
 
 import { useActionState, useTransition } from "react";
 
-import { archiveAccountAction } from "@/app/money/actions";
+import { archiveAccountAction } from "@/app/accounts/actions";
 import {
   initialAccountActionState,
   type AccountActionState,
-} from "@/app/money/action-types";
+} from "@/app/accounts/action-types";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/providers/i18n-provider";

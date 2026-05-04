@@ -15,7 +15,6 @@ export async function createAccountAction(
   const name = String(formData.get("name") ?? "").trim();
   const type = String(formData.get("type") ?? "checking").trim();
   const openingBalance = Number(formData.get("openingBalance") ?? 0);
-  // Credit card extra fields
   const creditLimit = Number(formData.get("creditLimit") ?? 0);
   const statementDay = Number(formData.get("statementDay") ?? 25);
   const linkedBankAccountId = String(
@@ -50,7 +49,6 @@ export async function createAccountAction(
   if (insert.error || !insert.data?.id)
     return fail(insert.error?.message ?? t("accounts.error.failed_create"));
 
-  // If credit card, initialize settings with user-supplied values
   if (type === "credit_card") {
     const settingsInsert = await supabase.from("credit_card_settings").insert({
       account_id: insert.data.id,
@@ -64,7 +62,6 @@ export async function createAccountAction(
           : null,
     });
     if (settingsInsert.error) {
-      // Non-fatal — log but don't block
       console.error(
         "credit_card_settings insert error:",
         settingsInsert.error.message,
@@ -81,7 +78,6 @@ export async function createAccountAction(
     payload: { name, type, openingBalance: openingBalanceRounded },
   });
 
-  revalidatePath("/money");
   revalidatePath("/accounts");
   revalidatePath("/transactions");
 

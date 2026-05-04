@@ -1,5 +1,5 @@
 /**
- * Server-side data fetching for the Money page.
+ * Server-side data fetching for the Accounts page.
  * All functions accept a Supabase client + householdId and return typed data.
  * Never import from here in Client Components.
  */

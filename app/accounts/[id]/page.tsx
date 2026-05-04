@@ -46,7 +46,7 @@ type DebtRow = {
   notes: string | null;
 };
 
-export default async function DebtDetailPage({
+export default async function AccountDebtDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
@@ -91,7 +91,6 @@ export default async function DebtDetailPage({
     ]);
 
   const accounts = accountsResult.data ?? [];
-
   const debt = debtResult.data as DebtRow | null;
   if (!debt) {
     notFound();
@@ -439,10 +438,10 @@ export default async function DebtDetailPage({
 
         <div className="flex items-center gap-3">
           <Link
-            href="/debts"
+            href="/accounts"
             className="inline-flex rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700"
           >
-            {vi ? "Quay lại Nợ" : "Back to Debts"}
+            {vi ? "Quay lại Tài khoản" : "Back to Accounts"}
           </Link>
         </div>
       </div>

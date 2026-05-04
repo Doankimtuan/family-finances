@@ -88,7 +88,7 @@ export function DashboardCorePanel() {
         description={t("dashboard.empty.description")}
         action={
           <Button asChild size="sm">
-            <Link href="/money">{t("dashboard.empty.action")}</Link>
+            <Link href="/accounts">{t("dashboard.empty.action")}</Link>
           </Button>
         }
       />

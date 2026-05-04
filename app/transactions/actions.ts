@@ -488,6 +488,7 @@ export async function updateTransactionAction(
 
   revalidateTransactionRelatedPaths();
   revalidatePath("/money");
+  revalidatePath("/accounts");
 
   const prevAccountId = String(existing.data.account_id ?? "");
   const prevAccountType = prevAccountId
@@ -576,6 +577,7 @@ export async function deleteTransactionAction(
 
   revalidateTransactionRelatedPaths();
   revalidatePath("/money");
+  revalidatePath("/accounts");
 
   const prevAccountType = prevAccountId
     ? await getAccountType(supabase, householdId, prevAccountId)

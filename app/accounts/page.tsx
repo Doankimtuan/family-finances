@@ -1,10 +1,10 @@
-import { AccountsSection } from "@/app/money/_components/accounts-section";
-import { AssetsSection } from "@/app/money/_components/assets-section";
-import { CreditCardsSection } from "@/app/money/_components/credit-cards-section";
-import { LiabilitiesSection } from "@/app/money/_components/liabilities-section";
-import { NetWorthHero } from "@/app/money/_components/net-worth-hero";
-import { SavingsSection } from "@/app/money/_components/savings-section";
-import { StickySummaryBar } from "@/app/money/_components/sticky-summary-bar";
+import { Suspense } from "react";
+import { AccountsSection } from "./_components/accounts-section";
+import { AssetsSection } from "./_components/assets-section";
+import { CreditCardsSection } from "./_components/credit-cards-section";
+import { NetWorthHero } from "./_components/net-worth-hero";
+import { SavingsSection } from "./_components/savings-section";
+import { StickySummaryBar } from "./_components/sticky-summary-bar";
 import { AppHeader } from "@/components/layout/app-header";
 import { AppShell } from "@/components/layout/app-shell";
 import { BottomTabBar } from "@/components/layout/bottom-tab-bar";
@@ -18,21 +18,21 @@ import {
   fetchAccountBalances,
   fetchAssetPrices,
   fetchCardData,
-  fetchLiabilityRates,
   fetchMoneyPageData,
 } from "./_lib/queries";
+import { DebtsSection } from "./_components/debts-section";
 
 export const metadata = {
-  title: "Tài sản & Nợ | Family Finances",
+  title: "Accounts | Family Finances",
 };
 
-export default async function MoneyPage() {
+export default async function AccountsPage() {
   const { householdId, language, householdLocale } =
     await getAuthenticatedHouseholdContext();
   const t = (key: string) => dictT(language, key);
   const supabase = await createClient();
 
-  // ── Step 1: Core data (accounts, assets, liabilities, savings) ────────────
+  // ── Step 1: Core data ────────────────────────────────────────────────────
   const {
     accounts,
     liabilities,
@@ -49,14 +49,16 @@ export default async function MoneyPage() {
   const standardAccounts = accounts.filter((a) => a.type !== "credit_card");
   const accountNames = new Map(accounts.map((a) => [a.id, a.name]));
 
-  // ── Step 2: Parallel secondary fetches ────────────────────────────────────
-  const [{ cardSettingsMap, cardBillingMap }, balanceMap, { priceMap, prevPriceMap, lastUpdatedMap }, rateMap] =
-    await Promise.all([
-      fetchCardData(supabase, householdId, creditCardIds),
-      fetchAccountBalances(supabase, householdId, accounts),
-      fetchAssetPrices(supabase, assets),
-      fetchLiabilityRates(supabase, liabilities),
-    ]);
+  // ── Step 2: Parallel secondary fetches ───────────────────────────────────
+  const [
+    { cardSettingsMap, cardBillingMap },
+    balanceMap,
+    { priceMap, prevPriceMap, lastUpdatedMap },
+  ] = await Promise.all([
+    fetchCardData(supabase, householdId, creditCardIds),
+    fetchAccountBalances(supabase, householdId, accounts),
+    fetchAssetPrices(supabase, assets),
+  ]);
 
   // ── Step 3: Aggregate summary ─────────────────────────────────────────────
   const summary = buildMoneySummary({
@@ -73,7 +75,7 @@ export default async function MoneyPage() {
     <AppShell
       header={
         <AppHeader
-          title={t("nav.money")}
+          title={t("nav.accounts")}
           subtitle={t("money.summary.total_assets_includes_savings")}
           rightAction={
             <Link
@@ -114,13 +116,6 @@ export default async function MoneyPage() {
           totalCardDebt={summary.totalCardDebt}
         />
 
-        <LiabilitiesSection
-          liabilities={liabilities}
-          rateMap={rateMap}
-          totalLiabilities={summary.totalLiabilities}
-          totalCardDebt={summary.totalCardDebt}
-        />
-
         <AssetsSection
           assets={assets}
           priceMap={priceMap}
@@ -129,25 +124,13 @@ export default async function MoneyPage() {
           totalAssetValue={summary.totalAssetValue}
         />
 
-        <Link
-          href="/debts"
-          className="mt-6 flex items-center justify-center gap-2 w-full rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 py-4 text-sm font-bold shadow-lg hover:opacity-90 transition-all"
-        >
-          {t("money.liabilities.manage_all")}
-          <svg
-            className="h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 5l7 7-7 7"
-            />
-          </svg>
-        </Link>
+        <Suspense fallback={null}>
+          <DebtsSection
+            householdId={householdId}
+            householdLocale={householdLocale}
+            language={language}
+          />
+        </Suspense>
       </div>
 
       <StickySummaryBar

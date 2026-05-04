@@ -49,7 +49,7 @@ export function MetricsGrid({
         <MetricCard
           label={t("dashboard.metrics.savings_rate")}
           value={formatPercent(metrics.savings_rate ?? 0)}
-          href="/money"
+          href="/accounts"
           note={`${t("dashboard.metrics.savings_rate_avg")}: ${formatPercent(metrics.savings_rate_6mo_avg ?? 0)}`}
           trend={
             savingsRateMomDeltaPct !== null

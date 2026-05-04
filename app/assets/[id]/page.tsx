@@ -140,7 +140,7 @@ export default async function AssetDetailPage({
     <main className="min-h-screen bg-slate-50 px-4 py-6">
       <section className="mx-auto w-full max-w-4xl space-y-4">
         <header className="space-y-2">
-          <Link href="/money" className="text-sm font-medium text-slate-600">
+          <Link href="/accounts" className="text-sm font-medium text-slate-600">
             ← {t("assets.back_to_assets")}
           </Link>
           <div className="flex items-start justify-between gap-3">

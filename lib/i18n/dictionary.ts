@@ -635,6 +635,7 @@ const en: Dictionary = {
   "insights.recalculate": "Recalculate",
   "nav.home": "Home",
   "nav.money": "Money",
+  "nav.accounts": "Accounts",
   "nav.activity": "Activity",
   "nav.plan": "Jars",
   "review.discuss_title": "Discuss Together",
@@ -1583,6 +1584,7 @@ const vi: Dictionary = {
   // Nav tabs (consolidated)
   "nav.home": "Trang chủ",
   "nav.money": "Tài sản",
+  "nav.accounts": "Tài khoản",
   "nav.activity": "Hoạt động",
   "nav.plan": "Hũ",
   // Discuss together

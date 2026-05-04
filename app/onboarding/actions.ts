@@ -155,6 +155,7 @@ export async function addAccountOnboardingAction(
 
   revalidatePath("/onboarding/money");
   revalidatePath("/money");
+  revalidatePath("/accounts");
   return ok("Account added.");
 }
 
@@ -333,6 +334,7 @@ export async function addDebtOnboardingAction(
 
   revalidatePath("/onboarding/debts");
   revalidatePath("/debts");
+  revalidatePath("/accounts");
   return ok("Debt added.");
 }
 

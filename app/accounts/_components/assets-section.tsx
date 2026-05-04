@@ -36,7 +36,6 @@ export async function AssetsSection({
 
   return (
     <section className="space-y-1">
-      {/* Section header */}
       <div className="flex items-center justify-between mb-3">
         <div>
           <h2 className="text-xl font-bold text-foreground">
@@ -58,7 +57,6 @@ export async function AssetsSection({
         />
       ) : (
         <>
-          {/* Portfolio allocation bar */}
           {totalAssetValue > 0 && (
             <PortfolioAllocationBar
               assets={assets}
@@ -145,8 +143,6 @@ export async function AssetsSection({
   );
 }
 
-// ─── Sub-component: allocation bar + legend ─────────────────────────────────
-
 function PortfolioAllocationBar({
   assets,
   priceMap,
@@ -174,7 +170,6 @@ function PortfolioAllocationBar({
 
   return (
     <div className="space-y-2 mb-3">
-      {/* Allocation bar */}
       <div className="flex h-2.5 rounded-full overflow-hidden bg-muted">
         {entries.map(([cls, val]) => {
           const pct = (val / totalAssetValue) * 100;
@@ -188,7 +183,6 @@ function PortfolioAllocationBar({
         })}
       </div>
 
-      {/* Legend */}
       <div className="flex flex-wrap gap-x-4 gap-y-1.5">
         {entries.map(([cls, val]) => {
           const pct = Math.round((val / totalAssetValue) * 100);

@@ -59,12 +59,7 @@ async function resolveContext() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return {
-      supabase,
-      user: null,
-      householdId: null,
-      error: "You must be logged in.",
-    };
+    return { supabase, user: null, householdId: null, error: "You must be logged in." };
   }
 
   const membership = await supabase
@@ -85,12 +80,7 @@ async function resolveContext() {
     };
   }
 
-  return {
-    supabase,
-    user,
-    householdId: membership.data.household_id,
-    error: null,
-  };
+  return { supabase, user, householdId: membership.data.household_id, error: null };
 }
 
 export async function recordDebtPaymentAction(
@@ -107,22 +97,16 @@ export async function recordDebtPaymentAction(
   const fee = Number(formData.get("fee") ?? 0);
   const sourceAccountId = String(formData.get("sourceAccountId") ?? "");
 
-  if (!liabilityId)
-    return { status: "error", message: "Missing liability ID." };
-  if (amount <= 0)
-    return { status: "error", message: "Amount must be positive." };
+  if (!liabilityId) return { status: "error", message: "Missing liability ID." };
+  if (amount <= 0) return { status: "error", message: "Amount must be positive." };
   if (principal + interest + fee > amount) {
-    return {
-      status: "error",
-      message: "Sum of components cannot exceed total amount.",
-    };
+    return { status: "error", message: "Sum of components cannot exceed total amount." };
   }
 
   const { supabase, user, householdId, error } = await resolveContext();
   if (error || !user || !householdId)
     return { status: "error", message: error ?? "No household found." };
 
-  // 0. Pre-check: ensure source account has sufficient balance
   if (sourceAccountId) {
     const snap = await getAccountBalance(supabase, householdId, sourceAccountId);
     if (snap.error) return { status: "error", message: snap.error };
@@ -131,7 +115,6 @@ export async function recordDebtPaymentAction(
     }
   }
 
-  // 1. Record the payment
   const paymentInsert = await supabase
     .from("liability_payments")
     .insert({
@@ -151,7 +134,6 @@ export async function recordDebtPaymentAction(
   if (paymentInsert.error)
     return { status: "error", message: paymentInsert.error.message };
 
-  // 2. Update the outstanding principal balance on the liability
   if (principal > 0) {
     const liabilityRes = await supabase
       .from("liabilities")
@@ -180,7 +162,6 @@ export async function recordDebtPaymentAction(
     }
   }
 
-  // 3. If source account exists, create an expense transaction
   if (sourceAccountId) {
     const txInsert = await supabase.from("transactions").insert({
       household_id: householdId,
@@ -206,12 +187,8 @@ export async function recordDebtPaymentAction(
     payload: { amount, principal, interest },
   });
 
-  revalidatePath("/money");
-  revalidatePath("/debts");
-  revalidatePath(`/debts/${liabilityId}`);
+  revalidatePath("/accounts");
+  revalidatePath(`/accounts/${liabilityId}`);
 
-  return {
-    status: "success",
-    message: "Payment recorded and balance updated.",
-  };
+  return { status: "success", message: "Payment recorded and balance updated." };
 }

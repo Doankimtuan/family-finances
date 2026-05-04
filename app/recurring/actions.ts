@@ -55,7 +55,7 @@ export async function createRecurringRule(
     if (!validated.success) {
       return {
         success: false,
-        error: validated.error.errors.map((e) => e.message).join(", "),
+        error: validated.error.issues.map((e) => e.message).join(", "),
       };
     }
 
@@ -143,7 +143,7 @@ export async function updateRecurringRule(
     if (!validated.success) {
       return {
         success: false,
-        error: validated.error.errors.map((e) => e.message).join(", "),
+        error: validated.error.issues.map((e) => e.message).join(", "),
       };
     }
 

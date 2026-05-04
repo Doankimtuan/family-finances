@@ -30,7 +30,6 @@ export async function CreditCardsSection({
 
   return (
     <section className="space-y-1">
-      {/* Section header */}
       <div className="flex items-center justify-between mb-3">
         <div>
           <h2 className="text-xl font-bold text-foreground">
@@ -44,7 +43,7 @@ export async function CreditCardsSection({
           )}
         </div>
         <Link
-          href="/money/card/new"
+          href="/accounts/card/new"
           className="flex items-center gap-1 text-sm font-bold text-primary hover:text-primary/80 transition-colors"
         >
           <Plus className="h-4 w-4" />
@@ -82,7 +81,6 @@ export async function CreditCardsSection({
               className="overflow-hidden border-slate-700 bg-linear-to-br from-slate-900 to-slate-800 text-white shadow-lg"
             >
               <CardContent className="p-5 space-y-4">
-                {/* Header row */}
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
@@ -102,7 +100,6 @@ export async function CreditCardsSection({
                   </div>
                 </div>
 
-                {/* Balance + limit */}
                 <div className="flex justify-between items-end">
                   <div>
                     <p className="text-[9px] text-slate-400 font-bold uppercase">
@@ -120,7 +117,6 @@ export async function CreditCardsSection({
                   </p>
                 </div>
 
-                {/* Usage bar */}
                 <div className="space-y-1.5 p-3 rounded-xl bg-slate-800/60 border border-slate-700/50">
                   <div className="h-2 rounded-full bg-slate-700 overflow-hidden">
                     <div
@@ -148,7 +144,6 @@ export async function CreditCardsSection({
                   </div>
                 </div>
 
-                {/* Meta row */}
                 <div className="flex items-center justify-between text-[10px]">
                   <div className="grid grid-cols-2 gap-x-4">
                     <div>
@@ -181,9 +176,8 @@ export async function CreditCardsSection({
                   )}
                 </div>
 
-                {/* CTA */}
                 <Link
-                  href={`/money/card/${account.id}`}
+                  href={`/accounts/card/${account.id}`}
                   className="flex items-center justify-center gap-2 w-full rounded-xl bg-white/10 hover:bg-white/20 transition-colors py-2.5 text-xs font-bold text-white"
                 >
                   {t("common.details")}

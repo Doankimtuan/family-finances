@@ -17,6 +17,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatVndCompact } from "@/lib/dashboard/format";
 import { createClient } from "@/lib/supabase/server";
+import { t as dictT } from "@/lib/i18n/dictionary";
+import type { AppLanguage } from "@/lib/i18n/config";
 
 type DebtRow = {
   id: string;
@@ -27,15 +29,17 @@ type DebtRow = {
   next_payment_date: string | null;
 };
 
-export async function DebtsContent({
+export async function DebtsSection({
   householdId,
-  vi,
   householdLocale,
+  language,
 }: {
   householdId: string;
-  vi: boolean;
   householdLocale: string;
+  language: AppLanguage;
 }) {
+  const vi = language === "vi";
+  const t = (key: string) => dictT(language, key);
   const supabase = await createClient();
 
   const debtsResult = await supabase
@@ -62,7 +66,17 @@ export async function DebtsContent({
       : 0;
 
   return (
-    <div className="space-y-6 pb-24 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="space-y-6">
+      <SectionHeader
+        label={vi ? "Quản lý nợ" : "Debt Management"}
+        title={t("debts.title")}
+        description={
+          vi
+            ? "Theo dõi các khoản vay và tiến độ trả nợ."
+            : "Track your loans and repayment progress."
+        }
+      />
+
       <section className="grid grid-cols-2 gap-3">
         <MetricCard
           label={vi ? "Tổng nợ" : "Total Debt"}
@@ -82,7 +96,7 @@ export async function DebtsContent({
       <Card className="border-primary/20 bg-primary/5">
         <CardHeader>
           <SectionHeader
-            label="Management"
+            label={vi ? "Quản lý" : "Management"}
             title={vi ? "Thêm khoản nợ mới" : "Add New Debt"}
             description={
               vi
@@ -98,14 +112,14 @@ export async function DebtsContent({
 
       <div className="space-y-4">
         <SectionHeader
-          label="Obligations"
+          label={vi ? "Nghĩa vụ" : "Obligations"}
           title={vi ? "Nghĩa vụ nợ hiện tại" : "Current Liabilities"}
         />
 
         {debtsResult.error ? (
           <EmptyState
             icon={Info}
-            title="Error loading debts"
+            title={vi ? "Lỗi tải dữ liệu" : "Error loading debts"}
             description={debtsResult.error.message}
             className="bg-destructive/5 border-destructive/20"
           />
@@ -194,7 +208,7 @@ export async function DebtsContent({
                         size="sm"
                         className="h-8 text-xs font-bold"
                       >
-                        <Link href={`/debts/${debt.id}`}>
+                        <Link href={`/accounts/${debt.id}`}>
                           {vi ? "Chi tiết" : "Details"}
                         </Link>
                       </Button>

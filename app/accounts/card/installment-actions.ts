@@ -251,8 +251,8 @@ export async function convertItemToInstallmentAction(
     payload: { sourceItemId, description, totalAmount, numInstallments },
   });
 
-  revalidatePath("/money");
-  revalidatePath(`/money/card/${cardAccountId}`);
+  revalidatePath("/accounts");
+  revalidatePath(`/accounts/card/${cardAccountId}`);
 
   return {
     status: "success",
@@ -360,8 +360,8 @@ export async function createInstallmentPlanAction(
     payload: { description, totalAmount, numInstallments },
   });
 
-  revalidatePath("/money");
-  revalidatePath(`/money/card/${cardAccountId}`);
+  revalidatePath("/accounts");
+  revalidatePath(`/accounts/card/${cardAccountId}`);
 
   return { status: "success", message: "Kế hoạch trả góp đã được tạo." };
 }
@@ -496,8 +496,8 @@ export async function settleCardAction(
 
   if (insert.error) return { status: "error", message: insert.error.message };
 
-  revalidatePath("/money");
-  revalidatePath(`/money/card/${cardId}`);
+  revalidatePath("/accounts");
+  revalidatePath(`/accounts/card/${cardId}`);
   revalidatePath("/transactions");
 
   return { status: "success", message: "Đã tất toán thẻ theo thứ tự FIFO." };
@@ -618,8 +618,8 @@ export async function addCardCashbackAction(
     },
   });
 
-  revalidatePath("/money");
-  revalidatePath(`/money/card/${cardId}`);
+  revalidatePath("/accounts");
+  revalidatePath(`/accounts/card/${cardId}`);
   revalidatePath("/transactions");
 
   return { status: "success", message: "Đã thêm hoàn tiền thẻ thành công." };

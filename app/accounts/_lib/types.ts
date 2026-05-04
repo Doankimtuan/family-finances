@@ -1,4 +1,4 @@
-// ─── Row types used across money page sections ─────────────────────────────
+// ─── Row types used across accounts page sections ──────────────────────────
 
 export type AccountRow = {
   id: string;

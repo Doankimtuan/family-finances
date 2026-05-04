@@ -4,7 +4,7 @@ import { useActionState, useTransition, useState } from "react";
 import {
   recordDebtPaymentAction,
   type DebtPaymentActionState,
-} from "@/app/debts/actions";
+} from "@/app/accounts/debt-actions";
 import { MoneyInput } from "@/components/ui/money-input";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

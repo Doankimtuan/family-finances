@@ -14,7 +14,7 @@ import { useI18n } from "@/lib/providers/i18n-provider";
 
 const CreateAccountForm = dynamic(
   () =>
-    import("@/app/money/_components/create-account-form").then(
+    import("@/app/accounts/_components/create-account-form").then(
       (m) => m.CreateAccountForm
     ),
   { ssr: false }

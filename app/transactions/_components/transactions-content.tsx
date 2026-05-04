@@ -188,7 +188,7 @@ export async function TransactionsContent({
           }
           action={
             <Button asChild>
-              <Link href="/money">{vi ? "Đến Tài sản" : "Go to Assets"}</Link>
+              <Link href="/accounts">{vi ? "Đến Tài khoản" : "Go to Accounts"}</Link>
             </Button>
           }
           className="bg-amber-50/50 border-amber-200"

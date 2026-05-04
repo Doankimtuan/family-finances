@@ -10,8 +10,8 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { formatVndCompact } from "@/lib/dashboard/format";
 import { t } from "@/lib/i18n/dictionary";
 import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
-import { AddSavingsForm } from "@/app/money/savings/_components/add-savings-form";
-import { SavingsCard } from "@/app/money/savings/_components/savings-card";
+import { AddSavingsForm } from "@/app/accounts/savings/_components/add-savings-form";
+import { SavingsCard } from "@/app/accounts/savings/_components/savings-card";
 import {
   buildSavingsListItems,
   buildSavingsSummary,
@@ -98,7 +98,7 @@ export default async function SavingsPage() {
                   variant="ghost"
                   className="justify-start px-0 sm:justify-end"
                 >
-                  <Link href="/money">
+                  <Link href="/accounts">
                     {t(language, "savings.back_to_money")}
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>

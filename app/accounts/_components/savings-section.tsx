@@ -1,5 +1,5 @@
-import { AddSavingsForm } from "@/app/money/savings/_components/add-savings-form";
-import { SavingsCard } from "@/app/money/savings/_components/savings-card";
+import { AddSavingsForm } from "@/app/accounts/savings/_components/add-savings-form";
+import { SavingsCard } from "@/app/accounts/savings/_components/savings-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -33,7 +33,6 @@ export async function SavingsSection({
 
   return (
     <section className="space-y-1">
-      {/* Section header */}
       <div className="flex items-center justify-between mb-3">
         <div>
           <h2 className="text-xl font-bold text-foreground">
@@ -46,7 +45,7 @@ export async function SavingsSection({
         </div>
         <div className="flex items-center gap-2">
           <Button asChild variant="ghost" size="sm" className="rounded-xl px-3">
-            <Link href="/money/savings">{t("money.savings.view_all")}</Link>
+            <Link href="/accounts/savings">{t("money.savings.view_all")}</Link>
           </Button>
           <AddSavingsForm
             accounts={accounts}
@@ -76,7 +75,7 @@ export async function SavingsSection({
               key={item.id}
               item={item}
               locale={householdLocale}
-              href={`/money/savings/${item.id}`}
+              href={`/accounts/savings/${item.id}`}
             />
           ))}
           {hiddenSavingsCount > 0 && (
@@ -91,7 +90,7 @@ export async function SavingsSection({
                   </p>
                 </div>
                 <Button asChild variant="outline" size="sm" className="rounded-xl">
-                  <Link href="/money/savings">{t("money.savings.view_all")}</Link>
+                  <Link href="/accounts/savings">{t("money.savings.view_all")}</Link>
                 </Button>
               </CardContent>
             </Card>

@@ -10,9 +10,9 @@ import { t } from "@/lib/i18n/dictionary";
 import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
 import { createClient } from "@/lib/supabase/server";
 import { buildSavingsDetailPayload, fetchSavingsBundle } from "@/lib/savings/service";
-import { MatureSavingsForm } from "@/app/money/savings/_components/mature-savings-form";
-import { SavingsValueChart } from "@/app/money/savings/_components/savings-value-chart";
-import { WithdrawSavingsForm } from "@/app/money/savings/_components/withdraw-savings-form";
+import { MatureSavingsForm } from "@/app/accounts/savings/_components/mature-savings-form";
+import { SavingsValueChart } from "@/app/accounts/savings/_components/savings-value-chart";
+import { WithdrawSavingsForm } from "@/app/accounts/savings/_components/withdraw-savings-form";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -88,7 +88,7 @@ export default async function SavingsDetailPage({ params }: Props) {
       <div className="space-y-6 pb-24">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <Link href="/money/savings" className="text-sm font-medium text-primary hover:underline">
+            <Link href="/accounts/savings" className="text-sm font-medium text-primary hover:underline">
               ← {t(language, "savings.detail.back_to_list")}
             </Link>
             <h1 className="mt-2 text-2xl font-bold text-slate-900">

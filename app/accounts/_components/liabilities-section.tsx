@@ -33,7 +33,6 @@ export async function LiabilitiesSection({
 
   return (
     <section className="space-y-1">
-      {/* Section header */}
       <div className="flex items-center justify-between mb-3">
         <div>
           <h2 className="text-xl font-bold text-foreground">
@@ -47,7 +46,7 @@ export async function LiabilitiesSection({
           )}
         </div>
         <Link
-          href="/debts"
+          href="/accounts"
           className="flex items-center gap-1 text-sm font-bold text-primary hover:text-primary/80 transition-colors"
         >
           <Plus className="h-4 w-4" />
@@ -88,7 +87,6 @@ export async function LiabilitiesSection({
                 )}
               >
                 <CardContent className="p-4 space-y-4">
-                  {/* Header */}
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
                       <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
@@ -103,7 +101,6 @@ export async function LiabilitiesSection({
                     </div>
                   </div>
 
-                  {/* Outstanding */}
                   <div className="flex justify-between items-baseline">
                     <div>
                       <p className="text-[9px] text-muted-foreground font-bold uppercase">
@@ -118,7 +115,7 @@ export async function LiabilitiesSection({
                       </p>
                     </div>
                     <Link
-                      href={`/debts/${debt.id}`}
+                      href={`/accounts/${debt.id}`}
                       className="text-xs font-bold text-primary hover:underline flex items-center gap-0.5"
                     >
                       {t("common.details")}
@@ -126,7 +123,6 @@ export async function LiabilitiesSection({
                     </Link>
                   </div>
 
-                  {/* Progress bar */}
                   <div>
                     <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
                       <div
@@ -139,7 +135,6 @@ export async function LiabilitiesSection({
                     </p>
                   </div>
 
-                  {/* Details grid */}
                   <div className="grid grid-cols-2 gap-3 pt-1 border-t border-border/50">
                     {rate !== undefined && (
                       <div>

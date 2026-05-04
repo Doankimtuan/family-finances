@@ -81,7 +81,7 @@ export async function resolveActionContextOrThrow() {
   }
   return {
     supabase: ctx.supabase,
-    user: ctx.user,
+    user: ctx.user as User,
     householdId: ctx.householdId as string,
     t: ctx.t,
   };

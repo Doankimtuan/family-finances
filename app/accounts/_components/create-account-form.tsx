@@ -3,11 +3,11 @@
 import { useActionState, useTransition, useEffect, useState } from "react";
 import { toast } from "sonner";
 
-import { createAccountAction } from "@/app/money/actions";
+import { createAccountAction } from "@/app/accounts/actions";
 import {
   initialAccountActionState,
   type AccountActionState,
-} from "@/app/money/action-types";
+} from "@/app/accounts/action-types";
 import { MoneyInput } from "@/components/ui/money-input";
 import { useI18n } from "@/lib/providers/i18n-provider";
 import { Input } from "@/components/ui/input";
@@ -34,7 +34,6 @@ export function CreateAccountForm() {
     { id: string; name: string }[]
   >([]);
 
-  // Load non-credit-card accounts for the linked account selector
   useEffect(() => {
     if (accountType !== "credit_card") return;
     const supabase = createClient();
@@ -109,7 +108,6 @@ export function CreateAccountForm() {
         </Select>
       </div>
 
-      {/* Credit card specific fields */}
       {accountType === "credit_card" && (
         <div className="space-y-3 rounded-xl border border-primary/20 bg-primary/5 p-3">
           <p className="text-xs font-bold text-primary/70 uppercase tracking-wider">

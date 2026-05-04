@@ -1,5 +1,5 @@
 /**
- * Pure helper functions for the money page sections.
+ * Pure helper functions for the accounts page sections.
  * All functions are stateless — no Supabase, no async.
  */
 import {

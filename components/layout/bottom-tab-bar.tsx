@@ -25,8 +25,8 @@ const baseTabs = [
     icon: LayoutDashboard,
   },
   {
-    labelKey: "nav.money",
-    href: "/money",
+    labelKey: "nav.accounts",
+    href: "/accounts",
     icon: Wallet,
   },
   {

@@ -58,7 +58,7 @@ export function HeroSection({
                 variant="secondary"
                 className="shrink-0 rounded-full border-0 bg-white/15 text-white hover:bg-white/25"
               >
-                <Link href="/money">
+                <Link href="/accounts">
                   {t("dashboard.hero.open_money")}
                   <ArrowRight className="ml-1 h-4 w-4" />
                 </Link>
