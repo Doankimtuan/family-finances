@@ -1,0 +1,23 @@
+export const PAGINATION = {
+  ITEMS_PER_PAGE: 20,
+} as const;
+
+export const CACHE = {
+  STALE_TIME_DEFAULT: 30_000,
+  STALE_TIME_DASHBOARD: 60_000,
+  COOKIE_MAX_AGE_SECONDS: 60 * 60 * 24 * 365,
+} as const;
+
+export const TIME = {
+  MS_PER_SECOND: 1000,
+  MS_PER_MINUTE: 60_000,
+  MS_PER_HOUR: 3_600_000,
+  MS_PER_DAY: 86_400_000,
+  MS_PER_WEEK: 7 * 86_400_000,
+  DAYS_PER_YEAR: 365,
+} as const;
+
+export const SAVINGS = {
+  MAX_PROJECTION_DAYS: 3650,
+  DEFAULT_PROJECTION_DAYS: 365,
+} as const;

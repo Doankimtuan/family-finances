@@ -42,6 +42,7 @@ export function CreateAccountForm() {
       .from("accounts")
       .select("id, name")
       .eq("is_archived", false)
+      .is("deleted_at", null)
       .neq("type", "credit_card")
       .then(({ data }) => {
         if (data) setBankAccounts(data);

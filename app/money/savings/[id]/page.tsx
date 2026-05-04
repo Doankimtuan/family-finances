@@ -67,6 +67,7 @@ export default async function SavingsDetailPage({ params }: Props) {
       .select("id, name")
       .eq("household_id", householdId)
       .eq("is_archived", false)
+      .is("deleted_at", null)
       .order("created_at", { ascending: true })).data ?? []
   ) as Array<{ id: string; name: string }>;
   const jars = (
@@ -75,6 +76,7 @@ export default async function SavingsDetailPage({ params }: Props) {
       .select("id, name")
       .eq("household_id", householdId)
       .eq("is_archived", false)
+      .is("deleted_at", null)
       .order("sort_order", { ascending: true })).data ?? []
   ) as Array<{ id: string; name: string }>;
 

@@ -39,13 +39,12 @@ export function AccountsForm() {
       .from("accounts")
       .select("id, name")
       .eq("is_archived", false)
+      .is("deleted_at", null)
       .neq("type", "credit_card")
       .then(({ data }) => {
         if (data) setBankAccounts(data);
       });
   }, [accountType]);
-
-  const vi = t("accounts.name") === "Tên tài khoản";
 
   return (
     <form
@@ -102,13 +101,13 @@ export function AccountsForm() {
       {accountType === "credit_card" && (
         <div className="space-y-3 rounded-xl border border-primary/20 bg-primary/5 p-3">
           <p className="text-xs font-bold text-primary/70 uppercase tracking-wider">
-            {vi ? "Thông tin thẻ tín dụng" : "Credit Card Settings"}
+            {t("accounts.credit_card_settings")}
           </p>
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
               <Label htmlFor="creditLimit">
-                {vi ? "Hạn mức (VND)" : "Credit Limit (VND)"}
+                {t("accounts.credit_limit")}
               </Label>
               <MoneyInput
                 id="creditLimit"
@@ -118,7 +117,7 @@ export function AccountsForm() {
             </div>
             <div className="space-y-1">
               <Label htmlFor="statementDay">
-                {vi ? "Ngày kết sổ" : "Statement Day"}
+                {t("accounts.statement_day")}
               </Label>
               <Input
                 id="statementDay"
@@ -134,14 +133,12 @@ export function AccountsForm() {
 
           <div className="space-y-1">
             <Label htmlFor="linkedBankAccountId">
-              {vi ? "Tài khoản ngân hàng liên kết" : "Linked Bank Account"}
+              {t("accounts.linked_bank_account")}
             </Label>
             <Select name="linkedBankAccountId">
               <SelectTrigger id="linkedBankAccountId">
                 <SelectValue
-                  placeholder={
-                    vi ? "Chọn tài khoản thanh toán" : "Select payment account"
-                  }
+                  placeholder={t("accounts.select_payment_account")}
                 />
               </SelectTrigger>
               <SelectContent>
@@ -152,9 +149,7 @@ export function AccountsForm() {
                 ))}
                 {bankAccounts.length === 0 && (
                   <SelectItem value="_none" disabled>
-                    {vi
-                      ? "Chưa có tài khoản ngân hàng"
-                      : "No bank accounts yet"}
+                    {t("accounts.no_bank_accounts")}
                   </SelectItem>
                 )}
               </SelectContent>
@@ -178,7 +173,7 @@ export function AccountsForm() {
         disabled={isPending}
         className="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white disabled:opacity-60"
       >
-        {isPending ? "Saving..." : "Add Account"}
+        {isPending ? t("accounts.saving") : t("accounts.create")}
       </button>
 
       {state.status === "error" && state.message ? (

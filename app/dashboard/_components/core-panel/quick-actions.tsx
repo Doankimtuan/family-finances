@@ -1,6 +1,6 @@
 "use client";
 
-import { History, HeartPulse, Sparkles, Target, Wallet, Zap } from "lucide-react";
+import { History, Sparkles, Target, Wallet } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { SectionHeader } from "@/components/ui/section-header";
 import { useI18n } from "@/lib/providers/i18n-provider";
@@ -8,10 +8,8 @@ import { QuickAction } from "./ui";
 
 export function QuickActionsSection({
   jarsEnabled,
-  financialHealthEnabled,
 }: {
   jarsEnabled: boolean;
-  financialHealthEnabled: boolean;
 }) {
   const { t } = useI18n();
 
@@ -24,7 +22,7 @@ export function QuickActionsSection({
           title={t("dashboard.shortcuts.title")}
         />
       </CardHeader>
-      <CardContent className="grid grid-cols-2 gap-3 px-0 sm:grid-cols-3 lg:grid-cols-6">
+      <CardContent className="grid grid-cols-2 gap-3 px-0 sm:grid-cols-3 lg:grid-cols-4">
         <QuickAction
           href="/transactions"
           icon={History}
@@ -48,18 +46,6 @@ export function QuickActionsSection({
             label={t("dashboard.shortcuts.jars")}
           />
         ) : null}
-        {financialHealthEnabled ? (
-          <QuickAction
-            href="/health"
-            icon={HeartPulse}
-            label={t("dashboard.shortcuts.health")}
-          />
-        ) : null}
-        <QuickAction
-          href="/insights"
-          icon={Zap}
-          label={t("dashboard.shortcuts.insights")}
-        />
       </CardContent>
     </Card>
   );

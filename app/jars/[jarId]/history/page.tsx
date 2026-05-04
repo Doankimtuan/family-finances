@@ -56,6 +56,7 @@ export default async function JarHistoryPage({
     .eq("household_id", householdId)
     .eq("id", jarId)
     .eq("is_archived", false)
+    .is("deleted_at", null)
     .limit(1)
     .maybeSingle();
 

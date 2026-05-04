@@ -533,6 +533,7 @@ export async function addCardCashbackAction(
     .eq("id", cardId)
     .eq("household_id", householdId)
     .eq("is_archived", false)
+    .is("deleted_at", null)
     .maybeSingle();
   if (!card || card.type !== "credit_card") {
     return { status: "error", message: "Credit card account not found." };

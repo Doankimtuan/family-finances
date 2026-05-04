@@ -24,6 +24,7 @@ export async function ensureFallbackSpendingJarId(
     .eq("household_id", householdId)
     .eq("slug", "unassigned")
     .eq("is_archived", false)
+    .is("deleted_at", null)
     .limit(1)
     .maybeSingle();
 
@@ -50,6 +51,7 @@ export async function ensureFallbackSpendingJarId(
     .eq("household_id", householdId)
     .eq("slug", "unassigned")
     .eq("is_archived", false)
+    .is("deleted_at", null)
     .limit(1)
     .maybeSingle();
 

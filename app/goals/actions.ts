@@ -1,19 +1,10 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
-
 import { writeAuditEvent } from "@/lib/server/audit";
 import { createClient } from "@/lib/supabase/server";
+import { fail, ok, resolveActionContext, revalidateGoals, revalidateGoalsFull } from "@/lib/server/action-helpers";
 
 import type { GoalActionState } from "./action-types";
-
-function ok(message: string): GoalActionState {
-  return { status: "success", message };
-}
-
-function fail(message: string): GoalActionState {
-  return { status: "error", message };
-}
 
 async function getAccountBalanceSnapshot(
   supabase: Awaited<ReturnType<typeof createClient>>,
@@ -57,32 +48,6 @@ async function getAccountBalanceSnapshot(
   return { balance, error: null as string | null };
 }
 
-async function resolveContext() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { supabase, user: null, householdId: null, error: "You must be logged in." };
-  }
-
-  const membership = await supabase
-    .from("household_members")
-    .select("household_id")
-    .eq("user_id", user.id)
-    .eq("is_active", true)
-    .order("joined_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-
-  if (membership.error || !membership.data?.household_id) {
-    return { supabase, user, householdId: null, error: membership.error?.message ?? "No household found." };
-  }
-
-  return { supabase, user, householdId: membership.data.household_id, error: null };
-}
-
 export async function createGoalAction(
   _prev: GoalActionState,
   formData: FormData,
@@ -97,7 +62,7 @@ export async function createGoalAction(
   if (!Number.isFinite(targetAmount) || targetAmount <= 0) return fail("Target amount must be positive.");
   if (![1, 2, 3, 4, 5].includes(priority)) return fail("Priority must be between 1 and 5.");
 
-  const { supabase, user, householdId, error } = await resolveContext();
+  const { supabase, user, householdId, error } = await resolveActionContext();
   if (error || !householdId || !user) return fail(error ?? "No household found.");
 
   const targetAmountRounded = Math.round(targetAmount);
@@ -128,8 +93,7 @@ export async function createGoalAction(
     payload: { goalType, name, targetAmount: targetAmountRounded, targetDate: targetDate || null, priority },
   });
 
-  revalidatePath("/goals");
-  revalidatePath("/dashboard");
+  revalidateGoals();
   return ok("Goal created.");
 }
 
@@ -150,7 +114,7 @@ export async function addGoalContributionAction(
   if (!(flowType === "inflow" || flowType === "outflow")) return fail("Invalid flow type.");
   if (!accountId) return fail("Account is required.");
 
-  const { supabase, user, householdId, error } = await resolveContext();
+  const { supabase, user, householdId, error } = await resolveActionContext();
   if (error || !householdId || !user) return fail(error ?? "No household found.");
 
   const goalResult = await supabase
@@ -167,6 +131,7 @@ export async function addGoalContributionAction(
     .eq("household_id", householdId)
     .eq("id", accountId)
     .eq("is_archived", false)
+    .is("deleted_at", null)
     .maybeSingle();
   if (accountResult.error || !accountResult.data) return fail(accountResult.error?.message ?? "Account not found.");
 
@@ -232,9 +197,6 @@ export async function addGoalContributionAction(
     payload: { goalId, amount: amountRounded, contributionDate, flowType, accountId, transactionId: txInsert.data.id },
   });
 
-  revalidatePath("/goals");
-  revalidatePath("/dashboard");
-  revalidatePath("/transactions");
-  revalidatePath("/accounts");
+  revalidateGoalsFull();
   return ok("Goal cash flow recorded.");
 }

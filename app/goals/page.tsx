@@ -93,6 +93,7 @@ export default async function GoalsPage() {
       .select("id, name")
       .eq("household_id", householdId)
       .eq("is_archived", false)
+      .is("deleted_at", null)
       .order("created_at", { ascending: true }),
   ]);
 

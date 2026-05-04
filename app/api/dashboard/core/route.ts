@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { TIME } from "@/lib/constants";
 import { isServerFeatureEnabled } from "@/lib/config/features";
 import { getDashboardTrend } from "@/lib/dashboard/trend";
 import type {
@@ -8,6 +9,7 @@ import type {
   DashboardJarAlert,
   DashboardTrendPoint,
 } from "@/lib/dashboard/types";
+import { DEFAULT_HEALTH_WEIGHTS } from "@/lib/health/engine";
 import { calculateAndPersistHealthSnapshot } from "@/lib/health/service";
 import { fetchJarCommandCenter } from "@/lib/jars/intent";
 import {
@@ -129,12 +131,14 @@ export async function GET(request: Request) {
         .from("accounts")
         .select("id, name, opening_balance")
         .eq("household_id", householdId)
-        .eq("is_archived", false),
+        .eq("is_archived", false)
+        .is("deleted_at", null),
       supabase
         .from("assets")
         .select("id, name, quantity")
         .eq("household_id", householdId)
         .eq("is_archived", false)
+        .is("deleted_at", null)
         .eq("include_in_net_worth", true),
       supabase
         .from("asset_price_history")
@@ -183,7 +187,8 @@ export async function GET(request: Request) {
         .select("id")
         .eq("household_id", householdId)
         .eq("type", "credit_card")
-        .eq("is_archived", false),
+        .eq("is_archived", false)
+        .is("deleted_at", null),
       supabase
         .from("goals")
         .select("id, name, target_amount, status, target_date")
@@ -217,7 +222,7 @@ export async function GET(request: Request) {
         .eq("status", "pending")
         .lte(
           "due_date",
-          new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+          new Date(Date.now() + TIME.MS_PER_WEEK)
             .toISOString()
             .slice(0, 10),
         ),
@@ -388,14 +393,7 @@ export async function GET(request: Request) {
                 networth: number;
                 goals: number;
                 diversification: number;
-              } | undefined) ?? {
-                cashflow: 22,
-                emergency: 20,
-                debt: 20,
-                networth: 16,
-                goals: 14,
-                diversification: 8,
-              },
+              } | undefined) ?? DEFAULT_HEALTH_WEIGHTS,
             topAction: healthSnapshot.top_action,
             metrics:
               (healthSnapshot.metrics_json as Record<string, number | null>) ?? {},
@@ -702,7 +700,25 @@ export async function GET(request: Request) {
         : [],
     };
 
-    return NextResponse.json(payload, { status: 200 });
+    const response = NextResponse.json(
+      {
+        ...payload,
+        _meta: {
+          deprecated: true,
+          deprecationDate: "2025-06-01",
+          migrationGuide: "Use /api/dashboard/summary, /api/dashboard/activity, /api/dashboard/goals instead",
+          sunsetting: "2025-12-01",
+        },
+      },
+      { status: 200 },
+    );
+
+    // Add deprecation headers for API clients
+    response.headers.set("Deprecation", "true");
+    response.headers.set("Sunset", "Sun, 01 Dec 2025 00:00:00 GMT");
+    response.headers.set("Link", '</api/dashboard/summary>; rel="successor-version"');
+
+    return response;
   } catch (error) {
     return NextResponse.json(
       { error: toErrorMessage(error, "Unexpected server error") },

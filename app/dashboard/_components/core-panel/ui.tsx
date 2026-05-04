@@ -118,7 +118,7 @@ export function QuickAction({
         >
           <Icon className="h-6 w-6" />
         </div>
-        <span className="text-xs font-semibold">{label}</span>
+        <span className="text-xs font-semibold text-black">{label}</span>
       </Link>
     </Button>
   );

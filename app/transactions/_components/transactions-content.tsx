@@ -13,6 +13,7 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Zap,
+  Repeat,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { formatVndCompact } from "@/lib/dashboard/format";
@@ -36,6 +37,7 @@ export async function TransactionsContent({
         .select("id, name")
         .eq("household_id", householdId)
         .eq("is_archived", false)
+        .is("deleted_at", null)
         .order("created_at", { ascending: true }),
       supabase
         .from("categories")
@@ -255,6 +257,30 @@ export async function TransactionsContent({
             </CardContent>
           </Card>
 
+          {/* ── Recurring Link ── */}
+          <Link href="/recurring">
+            <Card className="hover:border-primary/50 transition-colors cursor-pointer">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+                    <Repeat className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold text-sm">
+                      {vi ? "Giao dịch định kỳ" : "Recurring Transactions"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {vi
+                        ? "Quản lý thu nhập và chi phí lặp lại"
+                        : "Manage repeating income and expenses"}
+                    </p>
+                  </div>
+                  <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+
           {/* ── History ── */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
@@ -300,7 +326,6 @@ export async function TransactionsContent({
               <Card className="overflow-hidden border-border/60">
                 <CardContent className="p-0">
                   <TransactionsList
-                    items={listItems}
                     accounts={accounts.map((account) => ({
                       id: account.id,
                       name: account.name,

@@ -27,6 +27,7 @@ export async function fetchJarCommandCenter(
       .select("*")
       .eq("household_id", householdId)
       .eq("is_archived", false)
+      .is("deleted_at", null)
       .order("sort_order", { ascending: true })
       .order("created_at", { ascending: true }),
     supabase

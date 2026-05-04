@@ -9,6 +9,8 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDate, formatVndCompact } from "@/lib/dashboard/format";
 import { useI18n } from "@/lib/providers/i18n-provider";
+import { CACHE } from "@/lib/constants";
+import { savingsKeys } from "@/lib/queries/keys";
 
 type Payload = {
   totalGrossValue: number;
@@ -19,13 +21,13 @@ type Payload = {
 export function MaturityTimelineWidget() {
   const { locale, t } = useI18n();
   const query = useQuery<Payload>({
-    queryKey: ["savings-summary-widget"],
+    queryKey: savingsKeys.summary(),
     queryFn: async () => {
       const response = await fetch("/api/savings/summary");
       if (!response.ok) throw new Error(t("savings.widget.load_error"));
       return (await response.json()) as Payload;
     },
-    staleTime: 60_000,
+    staleTime: CACHE.STALE_TIME_DASHBOARD,
   });
 
   if (query.isLoading) {

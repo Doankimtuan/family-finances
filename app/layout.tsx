@@ -6,8 +6,8 @@ import { createClient } from "@/lib/supabase/server";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: { default: "VíNhà", template: "%s · VíNhà" },
-  description: "Tài chính minh bạch — Quản lý chi tiêu, đầu tư, tài sản gia đình",
+  title: { default: "ViNha", template: "%s · ViNha" },
+  description: "Transparent family finances — Track spending, investments, and household assets",
   icons: {
     icon: [
       { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },

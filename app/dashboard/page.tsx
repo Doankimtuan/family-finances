@@ -12,6 +12,8 @@ export const metadata = {
   title: "Dashboard | Family Finances",
 };
 
+export const revalidate = 60;
+
 export default async function DashboardPage() {
   const { language } = await getAuthenticatedHouseholdContext();
 

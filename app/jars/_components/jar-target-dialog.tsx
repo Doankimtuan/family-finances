@@ -18,7 +18,6 @@ const JarTargetForm = dynamic(
 );
 
 import { useI18n } from "@/lib/providers/i18n-provider";
-import type { AppLanguage } from "@/lib/i18n/config";
 
 type Props = {
   jarId: string;
@@ -26,7 +25,6 @@ type Props = {
   month: string;
   defaultMode: "fixed" | "percent";
   defaultValue: number;
-  language: AppLanguage;
 };
 
 export function JarTargetDialog({
@@ -35,7 +33,6 @@ export function JarTargetDialog({
   month,
   defaultMode,
   defaultValue,
-  language,
 }: Props) {
   const { t } = useI18n();
 
@@ -58,7 +55,6 @@ export function JarTargetDialog({
           month={month}
           defaultMode={defaultMode}
           defaultValue={defaultValue}
-          language={language}
         />
       </DialogContent>
     </Dialog>

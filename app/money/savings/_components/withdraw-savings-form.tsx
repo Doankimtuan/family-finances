@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ import { MoneyInput } from "@/components/ui/money-input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatVnd } from "@/lib/dashboard/format";
 import { useI18n } from "@/lib/providers/i18n-provider";
+import { savingsKeys } from "@/lib/queries/keys";
 import { computeWithdrawalPreview } from "@/lib/savings/calculations";
 import type { SavingsAccountRow, SavingsComputedValue } from "@/lib/savings/types";
 
@@ -32,8 +34,8 @@ type Props = {
 export function WithdrawSavingsForm({ savings, computed, accounts, jars = [] }: Props) {
   const router = useRouter();
   const { t, locale } = useI18n();
+  const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
-  const [isPending, startTransition] = useTransition();
   const [principalAmount, setPrincipalAmount] = useState(
     String(computed.principal),
   );
@@ -51,28 +53,39 @@ export function WithdrawSavingsForm({ savings, computed, accounts, jars = [] }: 
     savings.savings_type === "third_party" ? Number(principalAmount) : undefined,
   );
 
-  async function submit() {
-    const body =
-      savings.savings_type === "bank"
-        ? {
-            withdrawalDate,
-            destinationAccountId,
-            destinationJarId: destinationJarId || null,
-          }
-        : {
-            withdrawalDate,
-            destinationAccountId,
-            destinationJarId: destinationJarId || null,
-            principalAmount: Math.round(Number(principalAmount)),
-          };
-    const response = await fetch(`/api/savings/${savings.id}/withdraw`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    const data = (await response.json().catch(() => null)) as { error?: string };
-    if (!response.ok) throw new Error(data?.error ?? t("savings.withdraw.submit_error"));
-  }
+  const mutation = useMutation({
+    mutationFn: async () => {
+      const body =
+        savings.savings_type === "bank"
+          ? {
+              withdrawalDate,
+              destinationAccountId,
+              destinationJarId: destinationJarId || null,
+            }
+          : {
+              withdrawalDate,
+              destinationAccountId,
+              destinationJarId: destinationJarId || null,
+              principalAmount: Math.round(Number(principalAmount)),
+            };
+      const response = await fetch(`/api/savings/${savings.id}/withdraw`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = (await response.json().catch(() => null)) as { error?: string };
+      if (!response.ok) throw new Error(data?.error ?? t("savings.withdraw.submit_error"));
+    },
+    onSuccess: () => {
+      toast.success(t("savings.withdraw.toast.success"));
+      setOpen(false);
+      queryClient.invalidateQueries({ queryKey: savingsKeys.all });
+      router.refresh();
+    },
+    onError: (error) => {
+      toast.error(error instanceof Error ? error.message : t("savings.withdraw.toast.error"));
+    },
+  });
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -158,23 +171,10 @@ export function WithdrawSavingsForm({ savings, computed, accounts, jars = [] }: 
 
           <Button
             className="w-full"
-            disabled={isPending}
-            onClick={() =>
-              startTransition(async () => {
-                try {
-                  await submit();
-                  toast.success(t("savings.withdraw.toast.success"));
-                  setOpen(false);
-                  router.refresh();
-                } catch (error) {
-                  toast.error(
-                    error instanceof Error ? error.message : t("savings.withdraw.toast.error"),
-                  );
-                }
-              })
-            }
+            disabled={mutation.isPending}
+            onClick={() => mutation.mutate()}
           >
-            {isPending ? t("savings.withdraw.processing") : t("savings.withdraw.action")}
+            {mutation.isPending ? t("savings.withdraw.processing") : t("savings.withdraw.action")}
           </Button>
         </div>
       </DialogContent>

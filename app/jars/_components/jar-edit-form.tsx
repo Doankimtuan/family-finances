@@ -26,14 +26,11 @@ const editJarSchema = z.object({
 
 type EditJarValues = z.infer<typeof editJarSchema>;
 
-import type { AppLanguage } from "@/lib/i18n/config";
-
 type Props = {
   jarId: string;
   defaultName: string;
   defaultColor: string | null;
   defaultIcon: string | null;
-  language: AppLanguage;
 };
 
 export function JarEditForm({
@@ -41,7 +38,6 @@ export function JarEditForm({
   defaultName,
   defaultColor,
   defaultIcon,
-  language,
 }: Props) {
   const [state, setState] = useState<JarActionState>(initialJarActionState);
   const [isPending, startTransition] = useTransition();

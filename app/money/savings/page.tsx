@@ -43,6 +43,7 @@ export default async function SavingsPage() {
       .select("id, name")
       .eq("household_id", householdId)
       .eq("is_archived", false)
+      .is("deleted_at", null)
       .order("created_at", { ascending: true })
   ).data ?? []) as Array<{ id: string; name: string }>;
   const goals = Array.from(bundle.goals.entries()).map(([id, name]) => ({
@@ -55,6 +56,7 @@ export default async function SavingsPage() {
       .select("id, name")
       .eq("household_id", householdId)
       .eq("is_archived", false)
+      .is("deleted_at", null)
       .order("sort_order", { ascending: true })
   ).data ?? []) as Array<{ id: string; name: string }>;
   const nextMaturityLabel =

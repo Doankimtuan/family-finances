@@ -22,16 +22,13 @@ const JarAllocateWithdrawForm = dynamic(
 
 import { useI18n } from "@/lib/providers/i18n-provider";
 
-import type { AppLanguage } from "@/lib/i18n/config";
-
 type Props = {
   jarId: string;
   jarName: string;
   month: string;
-  language: AppLanguage;
 };
 
-export function JarEntryDialog({ jarId, jarName, month, language }: Props) {
+export function JarEntryDialog({ jarId, jarName, month }: Props) {
   const { t } = useI18n();
 
   return (
@@ -51,7 +48,6 @@ export function JarEntryDialog({ jarId, jarName, month, language }: Props) {
         <JarAllocateWithdrawForm
           jarId={jarId}
           month={month}
-          language={language}
         />
       </DialogContent>
     </Dialog>

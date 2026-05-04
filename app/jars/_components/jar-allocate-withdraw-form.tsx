@@ -31,10 +31,9 @@ type LedgerEntryValues = z.infer<typeof ledgerEntrySchema>;
 type Props = {
   jarId: string;
   month: string;
-  language: string;
 };
 
-export function JarAllocateWithdrawForm({ jarId, month, language }: Props) {
+export function JarAllocateWithdrawForm({ jarId, month }: Props) {
   const [state, setState] = useState<JarActionState>(initialJarActionState);
   const [isPending, startTransition] = useTransition();
   const { t } = useI18n();

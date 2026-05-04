@@ -86,7 +86,8 @@ export default async function DebtDetailPage({
         .from("accounts")
         .select("id, name")
         .eq("household_id", householdId)
-        .eq("is_archived", false),
+        .eq("is_archived", false)
+        .is("deleted_at", null),
     ]);
 
   const accounts = accountsResult.data ?? [];

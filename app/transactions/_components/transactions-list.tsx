@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useMemo, useState, useTransition } from "react";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import {
   deleteTransactionAction,
   updateTransactionAction,
@@ -11,6 +12,7 @@ import {
 } from "@/app/transactions/action-types";
 import { formatVnd, formatDate } from "@/lib/dashboard/format";
 import { useI18n } from "@/lib/providers/i18n-provider";
+import { transactionKeys } from "@/lib/queries/keys";
 import {
   Select,
   SelectContent,
@@ -29,6 +31,7 @@ import {
   Trash2,
   Tag,
   CreditCard,
+  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -57,13 +60,16 @@ function TransactionRow({
   item,
   accounts,
   categories,
+  onSuccess,
 }: {
   item: TransactionItem;
   accounts: OptionAccount[];
   categories: OptionCategory[];
+  onSuccess?: () => void;
 }) {
   const { locale, t, language } = useI18n();
   const vi = language === "vi";
+  const queryClient = useQueryClient();
   const [editState, editAction] = useActionState<
     TransactionActionState,
     FormData
@@ -96,6 +102,8 @@ function TransactionRow({
       const result = await deleteTransactionAction(deleteState, fd);
       if (result.status === "success") {
         toast.success(result.message);
+        queryClient.invalidateQueries({ queryKey: transactionKeys.list() });
+        onSuccess?.();
       } else if (result.status === "error") {
         toast.error(result.message);
       }
@@ -111,6 +119,8 @@ function TransactionRow({
       if (result.status === "success") {
         toast.success(result.message);
         setIsEditing(false);
+        queryClient.invalidateQueries({ queryKey: transactionKeys.list() });
+        onSuccess?.();
       } else if (result.status === "error") {
         toast.error(result.message);
       }
@@ -444,18 +454,55 @@ function TransactionRow({
 }
 
 export function TransactionsList({
-  items,
   accounts,
   categories,
 }: {
-  items: TransactionItem[];
   accounts: OptionAccount[];
   categories: OptionCategory[];
 }) {
   const { t, locale, language } = useI18n();
   const vi = language === "vi";
+  const queryClient = useQueryClient();
 
-  if (items.length === 0) {
+  const {
+    data,
+    isLoading,
+    isError,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    queryKey: transactionKeys.list(),
+    queryFn: async ({ pageParam = null }) => {
+      const params = new URLSearchParams({ limit: "20" });
+      if (pageParam) params.set("cursor", pageParam);
+      const response = await fetch(`/api/transactions?${params}`);
+      if (!response.ok) throw new Error("Failed to fetch transactions");
+      return response.json();
+    },
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    initialPageParam: null,
+  });
+
+  const allItems = data?.pages.flatMap((page) => page.items) ?? [];
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <p className="text-sm text-rose-600 py-4 text-center">
+        {t("transactions.error")}
+      </p>
+    );
+  }
+
+  if (allItems.length === 0) {
     return (
       <p className="text-sm text-slate-500 italic py-4">
         {t("transactions.none")}
@@ -465,7 +512,7 @@ export function TransactionsList({
 
   // Group by date
   const groups = new Map<string, TransactionItem[]>();
-  for (const item of items) {
+  for (const item of allItems) {
     const day = item.transaction_date.slice(0, 10);
     if (!groups.has(day)) groups.set(day, []);
     groups.get(day)!.push(item);
@@ -531,12 +578,31 @@ export function TransactionsList({
                   item={item}
                   accounts={accounts}
                   categories={categories}
+                  onSuccess={() => queryClient.invalidateQueries({ queryKey: transactionKeys.list() })}
                 />
               ))}
             </ul>
           </div>
         );
       })}
+
+      {/* Pagination Controls */}
+      {hasNextPage && (
+        <div className="flex items-center justify-center px-4 py-4 border-t border-border/50 bg-muted/20">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => fetchNextPage()}
+            disabled={isFetchingNextPage}
+            className="gap-2"
+          >
+            {isFetchingNextPage ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : null}
+            {vi ? "Tải thêm" : "Load More"}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

@@ -8,11 +8,12 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { SectionHeader } from "@/components/ui/section-header";
 import { formatVndCompact } from "@/lib/dashboard/format";
 import { useI18n } from "@/lib/providers/i18n-provider";
+import type { DashboardCoreResponse } from "@/lib/dashboard/types";
 import { cn } from "@/lib/utils";
 
 type SnapshotProps = {
-  goals: any[];
-  jars: any[];
+  goals: NonNullable<DashboardCoreResponse["goals"]>;
+  jars: NonNullable<DashboardCoreResponse["jars"]>;
   jarsEnabled: boolean;
 };
 

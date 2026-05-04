@@ -2,12 +2,14 @@
 
 import { useI18n } from "@/lib/providers/i18n-provider";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { useMemo, useTransition } from "react";
+import { useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { savingsFormSchema, type SavingsFormValues } from "../_lib/form-schema";
 import type { AccountOption } from "../_lib/form-types";
+import { savingsKeys } from "@/lib/queries/keys";
 
 export function useSavingsForm(
   initialType: "bank" | "third_party",
@@ -15,7 +17,7 @@ export function useSavingsForm(
 ) {
   const router = useRouter();
   const { t } = useI18n();
-  const [isPending, startTransition] = useTransition();
+  const queryClient = useQueryClient();
 
   const form = useForm<SavingsFormValues>({
     resolver: zodResolver(savingsFormSchema),
@@ -101,60 +103,66 @@ export function useSavingsForm(
     setValue("linkedAccountIds", next, { shouldValidate: true });
   }
 
-  async function submitForm(data: SavingsFormValues) {
-    const payload = {
-      ...data,
-      principalAmount: Math.round(data.principalAmount),
-      productName: data.productName || null,
-      sourceJarId:
-        data.sourceJarId && data.sourceJarId !== "__none__"
-          ? data.sourceJarId
-          : null,
-      goalId: data.goalId && data.goalId !== "__none__" ? data.goalId : null,
-      notes: data.notes || null,
-      linkedAccountIds:
-        data.linkedAccountIds.length > 0
-          ? data.linkedAccountIds
-          : [data.primaryLinkedAccountId],
-    };
+  const mutation = useMutation({
+    mutationFn: async (data: SavingsFormValues) => {
+      const payload = {
+        ...data,
+        principalAmount: Math.round(data.principalAmount),
+        productName: data.productName || null,
+        sourceJarId:
+          data.sourceJarId && data.sourceJarId !== "__none__"
+            ? data.sourceJarId
+            : null,
+        goalId: data.goalId && data.goalId !== "__none__" ? data.goalId : null,
+        notes: data.notes || null,
+        linkedAccountIds:
+          data.linkedAccountIds.length > 0
+            ? data.linkedAccountIds
+            : [data.primaryLinkedAccountId],
+      };
 
-    const response = await fetch("/api/savings", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+      const response = await fetch("/api/savings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
-    const result = (await response.json().catch(() => null)) as {
-      error?: string;
-    };
-    if (!response.ok) {
-      throw new Error(result?.error ?? t("savings.form.toast.create_error"));
-    }
-  }
+      const result = (await response.json().catch(() => null)) as {
+        error?: string;
+      };
+      if (!response.ok) {
+        throw new Error(result?.error ?? t("savings.form.toast.create_error"));
+      }
+    },
+    onSuccess: () => {
+      toast.success(t("savings.form.toast.created"));
+      queryClient.invalidateQueries({ queryKey: savingsKeys.all });
+      router.refresh();
+    },
+    onError: (error) => {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : t("savings.form.toast.create_error"),
+      );
+    },
+  });
 
   const handleConfirm = (onSuccess: () => void) => {
     form.handleSubmit(async (data: SavingsFormValues) => {
-      startTransition(async () => {
-        try {
-          await submitForm(data);
-          toast.success(t("savings.form.toast.created"));
-          onSuccess();
-          router.refresh();
-        } catch (error) {
-          toast.error(
-            error instanceof Error
-              ? error.message
-              : t("savings.form.toast.create_error"),
-          );
-        }
-      });
+      try {
+        await mutation.mutateAsync(data);
+        onSuccess();
+      } catch {
+        // error handled in onError
+      }
     })();
   };
 
   return {
     form,
     preview,
-    isPending,
+    isPending: mutation.isPending,
     validateDetails,
     toggleLinkedAccount,
     handleConfirm,

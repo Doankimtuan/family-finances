@@ -20,15 +20,12 @@ const JarEditForm = dynamic(
 
 import { useI18n } from "@/lib/providers/i18n-provider";
 
-import type { AppLanguage } from "@/lib/i18n/config";
-
 type Props = {
   jarId: string;
   jarName: string;
   defaultName: string;
   defaultColor: string | null;
   defaultIcon: string | null;
-  language: AppLanguage;
 };
 
 export function JarSettingsDialog({
@@ -37,7 +34,6 @@ export function JarSettingsDialog({
   defaultName,
   defaultColor,
   defaultIcon,
-  language,
 }: Props) {
   const { t } = useI18n();
 
@@ -62,7 +58,6 @@ export function JarSettingsDialog({
             defaultName={defaultName}
             defaultColor={defaultColor}
             defaultIcon={defaultIcon}
-            language={language}
           />
 
           <Alert variant="destructive" className="bg-rose-50 border-rose-200">

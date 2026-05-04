@@ -37,6 +37,7 @@ export async function fetchMoneyPageData(
         .select("id, name, type, opening_balance")
         .eq("household_id", householdId)
         .eq("is_archived", false)
+        .is("deleted_at", null)
         .order("created_at", { ascending: false }),
       supabase
         .from("liabilities")
@@ -51,6 +52,7 @@ export async function fetchMoneyPageData(
         .select("id, name, asset_class, unit_label, quantity, is_liquid")
         .eq("household_id", householdId)
         .eq("is_archived", false)
+        .is("deleted_at", null)
         .order("created_at", { ascending: false }),
       fetchSavingsBundle(supabase, householdId),
     ]);

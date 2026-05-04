@@ -3,6 +3,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 
+import { CACHE } from "@/lib/constants";
 import type { AppLanguage } from "@/lib/i18n/config";
 import { I18nProvider } from "@/lib/providers/i18n-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -24,7 +25,7 @@ export function AppProviders({
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 30_000,
+            staleTime: CACHE.STALE_TIME_DEFAULT,
             refetchOnWindowFocus: false,
             retry: 1,
           },

@@ -430,6 +430,7 @@ export async function updateSpendingJarCategoryMapAction(
       .eq("id", jarId)
       .eq("household_id", householdId)
       .eq("is_archived", false)
+      .is("deleted_at", null)
       .limit(1)
       .maybeSingle(),
   ]);

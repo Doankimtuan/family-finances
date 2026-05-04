@@ -21,7 +21,8 @@ export async function computeIncomeAllocationSuggestions(
       .from("jars")
       .select("id, name")
       .eq("household_id", householdId)
-      .eq("is_archived", false),
+      .eq("is_archived", false)
+      .is("deleted_at", null),
     supabase
       .from("jar_balances_monthly")
       .select("jar_id, inflow_amount")

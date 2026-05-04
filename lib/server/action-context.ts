@@ -5,6 +5,7 @@
  *   const { supabase, user, householdId, t, error } = await resolveActionContext();
  *   if (error || !user || !householdId) return fail(error ?? t("errors.household_not_found"));
  */
+import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
 import { LANGUAGE_COOKIE_NAME, type AppLanguage } from "@/lib/i18n/config";
@@ -12,7 +13,7 @@ import { t as translate } from "@/lib/i18n/dictionary";
 
 export type ActionContext = {
   supabase: Awaited<ReturnType<typeof createClient>>;
-  user: any; // Type simplification for context
+  user: User | null;
   householdId: string | null;
   t: (key: string) => string;
   error: string | null;

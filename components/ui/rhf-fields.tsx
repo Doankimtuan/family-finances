@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { FormField } from "@/components/ui/form-field";
 import { MoneyInput } from "@/components/ui/money-input";
+import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
 interface BaseFieldProps {
@@ -235,6 +236,50 @@ export function RHFColorInput({
           </span>
         )}
       </div>
+    </FormField>
+  );
+}
+
+interface RHFSwitchProps extends BaseFieldProps {
+  description?: string;
+}
+
+export function RHFSwitch({
+  name,
+  label,
+  description,
+  required,
+  hideLabel,
+}: RHFSwitchProps) {
+  const {
+    control,
+    formState: { errors },
+  } = useFormContext();
+  const { t } = useI18n();
+
+  const errorKey = errors[name]?.message as string | undefined;
+  const error = errorKey ? t(errorKey) : undefined;
+
+  return (
+    <FormField
+      label={label}
+      htmlFor={name}
+      error={error}
+      description={description}
+      required={required}
+      hideLabel={hideLabel}
+    >
+      <Controller
+        name={name}
+        control={control}
+        render={({ field }) => (
+          <Switch
+            id={name}
+            checked={field.value}
+            onCheckedChange={field.onChange}
+          />
+        )}
+      />
     </FormField>
   );
 }

@@ -34,6 +34,7 @@ export default async function JarDetailPage({
       .eq("household_id", householdId)
       .eq("id", jarId)
       .eq("is_archived", false)
+      .is("deleted_at", null)
       .maybeSingle(),
     supabase
       .from("jar_current_balances")

@@ -67,6 +67,7 @@ export async function calculateAndPersistHealthSnapshot(
       .select("id, asset_class, quantity")
       .eq("household_id", householdId)
       .eq("is_archived", false)
+      .is("deleted_at", null)
       .eq("include_in_net_worth", true),
   ]);
 

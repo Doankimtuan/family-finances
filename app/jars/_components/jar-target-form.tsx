@@ -25,14 +25,12 @@ const targetSchema = z.object({
 type TargetValues = z.infer<typeof targetSchema>;
 
 import { useI18n } from "@/lib/providers/i18n-provider";
-import type { AppLanguage } from "@/lib/i18n/config";
 
 type Props = {
   jarId: string;
   month: string;
   defaultMode: "fixed" | "percent";
   defaultValue: number;
-  language: AppLanguage;
 };
 
 export function JarTargetForm({
@@ -40,7 +38,6 @@ export function JarTargetForm({
   month,
   defaultMode,
   defaultValue,
-  language,
 }: Props) {
   const { t } = useI18n();
   const [state, setState] = useState<JarActionState>(initialJarActionState);

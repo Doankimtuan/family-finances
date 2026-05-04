@@ -63,7 +63,6 @@ function revalidateTransactionRelatedPaths() {
   revalidatePath("/transactions");
   revalidatePath("/dashboard");
   revalidatePath("/accounts");
-  revalidatePath("/budgets");
   revalidatePath("/jars");
 }
 
@@ -99,6 +98,7 @@ export async function quickAddTransactionAction(
       .select("id")
       .eq("household_id", householdId)
       .eq("is_archived", false)
+      .is("deleted_at", null)
       .order("created_at", { ascending: true })
       .limit(1)
       .maybeSingle();

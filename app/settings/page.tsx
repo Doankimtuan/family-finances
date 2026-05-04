@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { t } from "@/lib/i18n/dictionary";
 import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
 import { LanguageSwitcher } from "@/app/settings/_components/language-switcher";
-import { User, Home, Users, Tag, TrendingUp, ChevronRight, Settings2 } from "lucide-react";
+import { User, Home, Users, Tag, TrendingUp, ChevronRight, Settings2, ArrowLeftRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const metadata = {
@@ -54,6 +54,16 @@ const sections = [
     description: {
       en: "Control income and expense category taxonomy.",
       vi: "Quản lý hệ thống danh mục thu nhập và chi tiêu.",
+    },
+  },
+  {
+    href: "/settings/cash-flow",
+    titleKey: "settings.cash_flow",
+    icon: ArrowLeftRight,
+    color: "bg-cyan-100 text-cyan-600",
+    description: {
+      en: "Configure monthly income and expense baselines for planning.",
+      vi: "Thiết lập mức thu nhập và chi tiêu cơ bản hàng tháng cho kế hoạch.",
     },
   },
   {

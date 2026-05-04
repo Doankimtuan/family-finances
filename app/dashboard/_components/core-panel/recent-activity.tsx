@@ -9,12 +9,13 @@ import {
   formatVndCompact,
 } from "@/lib/dashboard/format";
 import { useI18n } from "@/lib/providers/i18n-provider";
+import type { DashboardCoreResponse } from "@/lib/dashboard/types";
 import { cn } from "@/lib/utils";
 
 export function RecentActivity({
   transactions,
 }: {
-  transactions: any[];
+  transactions: NonNullable<DashboardCoreResponse["recentTransactions"]>;
 }) {
   const { locale, t } = useI18n();
 

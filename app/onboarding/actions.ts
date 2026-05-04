@@ -2,60 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 
+import { TIME } from "@/lib/constants";
 import { writeAuditEvent } from "@/lib/server/audit";
 import { createClient } from "@/lib/supabase/server";
+import { fail, ok, resolveActionContext } from "@/lib/server/action-helpers";
 
 import type { OnboardingActionState } from "./action-types";
-
-function ok(message: string): OnboardingActionState {
-  return { status: "success", message };
-}
-
-function fail(message: string): OnboardingActionState {
-  return { status: "error", message };
-}
-
-async function resolveUserAndHousehold() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
-
-  if (error || !user) {
-    return {
-      supabase,
-      user: null,
-      householdId: null,
-      error: "You must be logged in.",
-    };
-  }
-
-  const membership = await supabase
-    .from("household_members")
-    .select("household_id")
-    .eq("user_id", user.id)
-    .eq("is_active", true)
-    .order("joined_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-
-  if (membership.error || !membership.data?.household_id) {
-    return {
-      supabase,
-      user,
-      householdId: null,
-      error: membership.error?.message ?? "No household found.",
-    };
-  }
-
-  return {
-    supabase,
-    user,
-    householdId: membership.data.household_id,
-    error: null,
-  };
-}
 
 export async function saveWelcomeAction(
   _prevState: OnboardingActionState,
@@ -70,8 +22,7 @@ export async function saveWelcomeAction(
     return fail("Household name must be at least 2 characters.");
   }
 
-  const { supabase, householdId, user, error } =
-    await resolveUserAndHousehold();
+  const { supabase, user, householdId, error } = await resolveActionContext();
   if (error || !householdId || !user)
     return fail(error ?? "No household found.");
 
@@ -107,8 +58,7 @@ export async function inviteMemberOnboardingAction(
     return fail("Enter a valid email address.");
   }
 
-  const { supabase, householdId, user, error } =
-    await resolveUserAndHousehold();
+  const { supabase, user, householdId, error } = await resolveActionContext();
   if (error || !householdId || !user)
     return fail(error ?? "No household found.");
 
@@ -119,7 +69,7 @@ export async function inviteMemberOnboardingAction(
       email,
       invited_by: user.id,
       status: "pending",
-      expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      expires_at: new Date(Date.now() + TIME.MS_PER_WEEK).toISOString(),
     })
     .select("token")
     .single();
@@ -157,8 +107,7 @@ export async function addAccountOnboardingAction(
   if (!Number.isFinite(openingBalance) || openingBalance < 0)
     return fail("Opening balance must be a non-negative number.");
 
-  const { supabase, householdId, user, error } =
-    await resolveUserAndHousehold();
+  const { supabase, user, householdId, error } = await resolveActionContext();
   if (error || !householdId || !user)
     return fail(error ?? "No household found.");
 
@@ -227,8 +176,7 @@ export async function addAssetOnboardingAction(
   if (!Number.isFinite(unitPrice) || unitPrice < 0)
     return fail("Unit price must be non-negative.");
 
-  const { supabase, householdId, user, error } =
-    await resolveUserAndHousehold();
+  const { supabase, user, householdId, error } = await resolveActionContext();
   if (error || !householdId || !user)
     return fail(error ?? "No household found.");
 
@@ -323,8 +271,7 @@ export async function addDebtOnboardingAction(
   if (!Number.isFinite(annualRate) || annualRate < 0)
     return fail("Rate must be non-negative.");
 
-  const { supabase, householdId, user, error } =
-    await resolveUserAndHousehold();
+  const { supabase, user, householdId, error } = await resolveActionContext();
   if (error || !householdId || !user)
     return fail(error ?? "No household found.");
 
@@ -401,8 +348,7 @@ export async function addIncomeExpenseOnboardingAction(
   if (!Number.isFinite(monthlyEssentials) || monthlyEssentials < 0)
     return fail("Monthly essentials must be non-negative.");
 
-  const { supabase, householdId, user, error } =
-    await resolveUserAndHousehold();
+  const { supabase, user, householdId, error } = await resolveActionContext();
   if (error || !householdId || !user)
     return fail(error ?? "No household found.");
 
@@ -415,6 +361,7 @@ export async function addIncomeExpenseOnboardingAction(
     .select("id")
     .eq("household_id", householdId)
     .eq("is_archived", false)
+    .is("deleted_at", null)
     .order("created_at", { ascending: true })
     .limit(1)
     .maybeSingle();
@@ -520,8 +467,7 @@ export async function addFirstGoalOnboardingAction(
   if (!Number.isFinite(targetAmount) || targetAmount <= 0)
     return fail("Target amount must be positive.");
 
-  const { supabase, householdId, user, error } =
-    await resolveUserAndHousehold();
+  const { supabase, user, householdId, error } = await resolveActionContext();
   if (error || !householdId || !user)
     return fail(error ?? "No household found.");
 

@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import type { DashboardCoreMetrics, DashboardTrendPoint } from "@/lib/dashboard/types";
+import type { DashboardTrendPoint } from "@/lib/dashboard/types";
 
 type TrendOptions = {
   months: number;
@@ -50,20 +50,6 @@ function normalizeTrendRow(row: DashboardTrendPoint): DashboardTrendPoint {
   };
 }
 
-function toTrendFromCore(core: DashboardCoreMetrics): DashboardTrendPoint {
-  return {
-    household_id: core.household_id,
-    month: core.month_start,
-    net_worth: coerceNumber(core.net_worth),
-    income: coerceNumber(core.monthly_income),
-    expense: coerceNumber(core.monthly_expense),
-    savings: coerceNumber(core.monthly_savings),
-    savings_rate: coerceOptionalNumber(core.savings_rate),
-    emergency_months: coerceOptionalNumber(core.emergency_months),
-    debt_service_ratio: coerceOptionalNumber(core.debt_service_ratio),
-  };
-}
-
 function buildMonthConfigs({ months, asOfDate }: TrendOptions) {
   const count = Math.max(1, Math.min(36, Math.round(months)));
   const asOf = new Date(`${asOfDate}T00:00:00Z`);
@@ -104,43 +90,8 @@ export async function getDashboardTrend(
     snapshotMap.set(normalized.month, normalized);
   }
 
-  const missing = monthConfigs.filter((m) => !snapshotMap.has(m.monthStartIso));
-  if (missing.length === 0) {
-    return monthConfigs
-      .map((m) => snapshotMap.get(m.monthStartIso))
-      .filter((row): row is DashboardTrendPoint => Boolean(row));
-  }
-
-  const fallbackMap = new Map<string, DashboardTrendPoint>();
-  const fallbackResults = await Promise.all(
-    missing.map((m) =>
-      supabase.rpc("rpc_dashboard_core", {
-        p_household_id: householdId,
-        p_as_of_date: m.asOfIso,
-      }),
-    ),
-  );
-
-  for (let i = 0; i < fallbackResults.length; i += 1) {
-    const result = fallbackResults[i];
-    const monthConfig = missing[i];
-
-    if (!monthConfig) continue;
-    if (result.error) throw new Error(result.error.message);
-
-    const row = ((result.data ?? []) as DashboardCoreMetrics[])[0] ?? null;
-    if (!row) throw new Error(`Missing dashboard core row for ${monthConfig.asOfIso}`);
-    fallbackMap.set(monthConfig.monthStartIso, toTrendFromCore(row));
-  }
-
-  return monthConfigs.map((m) => {
-    const snapshot = snapshotMap.get(m.monthStartIso);
-    if (snapshot) return snapshot;
-
-    const fallback = fallbackMap.get(m.monthStartIso);
-    if (!fallback) {
-      throw new Error(`Trend row unavailable for month ${m.monthStartIso}`);
-    }
-    return fallback;
-  });
+  // RPC now handles gaps - no fallback needed
+  return monthConfigs
+    .map((m) => snapshotMap.get(m.monthStartIso))
+    .filter((row): row is DashboardTrendPoint => Boolean(row));
 }

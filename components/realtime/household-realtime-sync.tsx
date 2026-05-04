@@ -11,7 +11,6 @@ const TABLES_WITH_HOUSEHOLD_ID = [
   "accounts",
   "categories",
   "transactions",
-  "monthly_budgets",
   "assets",
   "asset_quantity_history",
   "asset_price_history",

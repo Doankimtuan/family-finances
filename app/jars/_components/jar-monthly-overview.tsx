@@ -185,7 +185,6 @@ export function JarMonthlyOverview({
                   jarId={jar.id}
                   jarName={jar.name}
                   month={month}
-                  language={language}
                 />
                 <JarTargetDialog
                   jarId={jar.id}
@@ -193,7 +192,6 @@ export function JarMonthlyOverview({
                   month={month}
                   defaultMode={target?.target_mode ?? "fixed"}
                   defaultValue={Number(target?.target_value ?? 0)}
-                  language={language}
                 />
                 <Button variant="outline" size="sm" asChild className="rounded-xl">
                   <Link href={`/jars/${jar.id}/history`}>
@@ -206,7 +204,6 @@ export function JarMonthlyOverview({
                   defaultName={jar.name}
                   defaultColor={jar.color}
                   defaultIcon={jar.icon}
-                  language={language}
                 />
               </div>
             </CardContent>

@@ -38,7 +38,8 @@ export function SettleCardForm({ cardId, currentBalance }: Props) {
         .from("accounts")
         .select("id, name")
         .neq("id", cardId)
-        .eq("is_archived", false);
+        .eq("is_archived", false)
+        .is("deleted_at", null);
       if (data) setAccounts(data);
     }
     fetchAccounts();

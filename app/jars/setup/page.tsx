@@ -46,6 +46,7 @@ export default async function JarSetupPage({
       .select("id, name, slug, jar_type, spend_policy")
       .eq("household_id", householdId)
       .eq("is_archived", false)
+      .is("deleted_at", null)
       .order("sort_order", { ascending: true }),
     supabase
       .from("categories")

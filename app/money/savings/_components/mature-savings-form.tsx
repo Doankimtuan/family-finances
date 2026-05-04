@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatVnd } from "@/lib/dashboard/format";
 import { useI18n } from "@/lib/providers/i18n-provider";
+import { savingsKeys } from "@/lib/queries/keys";
 import type { SavingsAccountRow, SavingsComputedValue } from "@/lib/savings/types";
 
 type Props = {
@@ -30,8 +32,8 @@ type Props = {
 export function MatureSavingsForm({ savings, computed, accounts, jars = [] }: Props) {
   const router = useRouter();
   const { t, locale } = useI18n();
+  const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
-  const [isPending, startTransition] = useTransition();
   const [actionType, setActionType] = useState(
     savings.maturity_preference ?? "renew_same",
   );
@@ -47,31 +49,42 @@ export function MatureSavingsForm({ savings, computed, accounts, jars = [] }: Pr
   const [taxRate, setTaxRate] = useState(String(savings.tax_rate));
   const [interestType, setInterestType] = useState(savings.interest_type);
 
-  async function submit() {
-    const response = await fetch(`/api/savings/${savings.id}/mature`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        actionDate,
-        actionType,
-        destinationAccountId,
-        destinationJarId: destinationJarId || null,
-        newPlan:
-          actionType === "switch_plan"
-            ? {
-                annualRate: Number(annualRate),
-                termDays: Number(termDays),
-                interestType,
-                taxRate: Number(taxRate),
-                primaryLinkedAccountId: destinationAccountId,
-                linkedAccountIds: [destinationAccountId],
-              }
-            : undefined,
-      }),
-    });
-    const data = (await response.json().catch(() => null)) as { error?: string };
-    if (!response.ok) throw new Error(data?.error ?? t("savings.mature.submit_error"));
-  }
+  const mutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch(`/api/savings/${savings.id}/mature`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          actionDate,
+          actionType,
+          destinationAccountId,
+          destinationJarId: destinationJarId || null,
+          newPlan:
+            actionType === "switch_plan"
+              ? {
+                  annualRate: Number(annualRate),
+                  termDays: Number(termDays),
+                  interestType,
+                  taxRate: Number(taxRate),
+                  primaryLinkedAccountId: destinationAccountId,
+                  linkedAccountIds: [destinationAccountId],
+                }
+              : undefined,
+        }),
+      });
+      const data = (await response.json().catch(() => null)) as { error?: string };
+      if (!response.ok) throw new Error(data?.error ?? t("savings.mature.submit_error"));
+    },
+    onSuccess: () => {
+      toast.success(t("savings.mature.toast.success"));
+      setOpen(false);
+      queryClient.invalidateQueries({ queryKey: savingsKeys.all });
+      router.refresh();
+    },
+    onError: (error) => {
+      toast.error(error instanceof Error ? error.message : t("savings.mature.toast.error"));
+    },
+  });
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -170,23 +183,10 @@ export function MatureSavingsForm({ savings, computed, accounts, jars = [] }: Pr
 
           <Button
             className="w-full"
-            disabled={isPending}
-            onClick={() =>
-              startTransition(async () => {
-                try {
-                  await submit();
-                  toast.success(t("savings.mature.toast.success"));
-                  setOpen(false);
-                  router.refresh();
-                } catch (error) {
-                  toast.error(
-                    error instanceof Error ? error.message : t("savings.mature.toast.error"),
-                  );
-                }
-              })
-            }
+            disabled={mutation.isPending}
+            onClick={() => mutation.mutate()}
           >
-            {isPending ? t("savings.mature.processing") : t("savings.mature.action.confirm")}
+            {mutation.isPending ? t("savings.mature.processing") : t("savings.mature.action.confirm")}
           </Button>
         </div>
       </DialogContent>

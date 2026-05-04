@@ -1,51 +1,18 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 
+import { CACHE } from "@/lib/constants";
 import { LANGUAGE_COOKIE_NAME, languageToLocale, type AppLanguage } from "@/lib/i18n/config";
 import { writeAuditEvent } from "@/lib/server/audit";
 import { createClient } from "@/lib/supabase/server";
+import { fail, ok, resolveActionContext, revalidateSettingsProfile, revalidateSettingsHousehold, revalidateSettingsAssumptions, revalidatePath } from "@/lib/server/action-helpers";
 
 import type { SettingsActionState } from "./action-types";
 
 async function getLang(): Promise<AppLanguage> {
   const cookieStore = await cookies();
   return cookieStore.get(LANGUAGE_COOKIE_NAME)?.value === "vi" ? "vi" : "en";
-}
-
-function ok(message: string): SettingsActionState {
-  return { status: "success", message };
-}
-
-function fail(message: string): SettingsActionState {
-  return { status: "error", message };
-}
-
-async function resolveContext() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { supabase, user: null, householdId: null, error: "You must be logged in." };
-  }
-
-  const membership = await supabase
-    .from("household_members")
-    .select("household_id")
-    .eq("user_id", user.id)
-    .eq("is_active", true)
-    .order("joined_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-
-  if (membership.error || !membership.data?.household_id) {
-    return { supabase, user, householdId: null, error: membership.error?.message ?? "No household found." };
-  }
-
-  return { supabase, user, householdId: membership.data.household_id, error: null };
 }
 
 function parsePercent(input: FormDataEntryValue | null): number | null {
@@ -69,7 +36,7 @@ export async function updateProfileAction(
   if (fullName.length < 2)
     return fail(vi ? "Họ và tên phải có ít nhất 2 ký tự." : "Full name must be at least 2 characters.");
 
-  const { supabase, user, householdId, error } = await resolveContext();
+  const { supabase, user, householdId, error } = await resolveActionContext();
   if (error || !user || !householdId)
     return fail(error ?? (vi ? "Không tìm thấy hộ gia đình." : "No household found."));
 
@@ -89,8 +56,7 @@ export async function updateProfileAction(
     payload: { fullName, hasAvatarUrl: Boolean(avatarUrl) },
   });
 
-  revalidatePath("/settings/profile");
-  revalidatePath("/settings");
+  revalidateSettingsProfile();
   return ok(vi ? "Đã cập nhật hồ sơ." : "Profile updated.");
 }
 
@@ -109,7 +75,7 @@ export async function updateHouseholdSettingsAction(
   if (name.length < 2)
     return fail(vi ? "Tên hộ gia đình phải có ít nhất 2 ký tự." : "Household name must be at least 2 characters.");
 
-  const { supabase, user, householdId, error } = await resolveContext();
+  const { supabase, user, householdId, error } = await resolveActionContext();
   if (error || !user || !householdId)
     return fail(error ?? (vi ? "Không tìm thấy hộ gia đình." : "No household found."));
 
@@ -125,7 +91,7 @@ export async function updateHouseholdSettingsAction(
     path: "/",
     sameSite: "lax",
     httpOnly: false,
-    maxAge: 60 * 60 * 24 * 365,
+    maxAge: CACHE.COOKIE_MAX_AGE_SECONDS,
   });
 
   await writeAuditEvent(supabase, {
@@ -137,9 +103,7 @@ export async function updateHouseholdSettingsAction(
     payload: { name, timezone, locale, baseCurrency: "VND" },
   });
 
-  revalidatePath("/settings/household");
-  revalidatePath("/settings");
-  revalidatePath("/household");
+  revalidateSettingsHousehold();
   return ok(vi ? "Đã lưu cài đặt hộ gia đình." : "Household settings updated.");
 }
 
@@ -172,7 +136,7 @@ export async function updateAssumptionsAction(
     );
   }
 
-  const { supabase, user, householdId, error } = await resolveContext();
+  const { supabase, user, householdId, error } = await resolveActionContext();
   if (error || !user || !householdId)
     return fail(error ?? (vi ? "Không tìm thấy hộ gia đình." : "No household found."));
 
@@ -206,10 +170,7 @@ export async function updateAssumptionsAction(
     },
   });
 
-  revalidatePath("/settings/assumptions");
-  revalidatePath("/settings");
-  revalidatePath("/dashboard");
-  revalidatePath("/decision-tools");
+  revalidateSettingsAssumptions();
   return ok(vi ? "Đã lưu giả định tài chính." : "Planning assumptions updated.");
 }
 
@@ -222,7 +183,7 @@ export async function updateLanguagePreferenceAction(
   const locale = languageToLocale(language);
   const vi = language === "vi";
 
-  const { supabase, user, householdId, error } = await resolveContext();
+  const { supabase, user, householdId, error } = await resolveActionContext();
   if (error || !user || !householdId)
     return fail(error ?? (vi ? "Không tìm thấy hộ gia đình." : "No household found."));
 
@@ -238,7 +199,7 @@ export async function updateLanguagePreferenceAction(
     path: "/",
     sameSite: "lax",
     httpOnly: false,
-    maxAge: 60 * 60 * 24 * 365,
+    maxAge: CACHE.COOKIE_MAX_AGE_SECONDS,
   });
 
   await writeAuditEvent(supabase, {

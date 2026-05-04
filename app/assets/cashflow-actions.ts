@@ -43,6 +43,7 @@ export async function addAssetCashflowAction(
     .eq("household_id", householdId)
     .eq("id", accountId)
     .eq("is_archived", false)
+    .is("deleted_at", null)
     .maybeSingle();
   if (accountResult.error || !accountResult.data)
     return fail(accountResult.error?.message ?? "Account not found.");

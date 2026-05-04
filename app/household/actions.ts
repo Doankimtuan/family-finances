@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 
+import { CACHE, TIME } from "@/lib/constants";
 import { LANGUAGE_COOKIE_NAME } from "@/lib/i18n/config";
 import { writeAuditEvent } from "@/lib/server/audit";
 import { createClient } from "@/lib/supabase/server";
@@ -78,7 +79,7 @@ export async function createHouseholdAction(
     path: "/",
     sameSite: "lax",
     httpOnly: false,
-    maxAge: 60 * 60 * 24 * 365,
+    maxAge: CACHE.COOKIE_MAX_AGE_SECONDS,
   });
 
   revalidatePath("/dashboard");
@@ -158,7 +159,7 @@ export async function inviteMemberAction(
       email,
       invited_by: user.id,
       status: "pending",
-      expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      expires_at: new Date(Date.now() + TIME.MS_PER_WEEK).toISOString(),
     })
     .select("token")
     .single();

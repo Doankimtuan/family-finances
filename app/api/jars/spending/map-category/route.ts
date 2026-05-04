@@ -38,6 +38,7 @@ export async function POST(request: Request) {
       .eq("id", jarId)
       .eq("household_id", ctx.value.householdId)
       .eq("is_archived", false)
+      .is("deleted_at", null)
       .limit(1)
       .maybeSingle(),
   ]);

@@ -6,6 +6,7 @@ import { HeartPulse, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { Skeleton } from "@/components/ui/skeleton";
 import { isFeatureEnabled } from "@/lib/config/features";
 import {
@@ -40,7 +41,6 @@ const MonthlyExpenseAllocation = dynamic(
 export function DashboardCorePanel() {
   const { locale, t } = useI18n();
   const jarsEnabled = isFeatureEnabled("jars");
-  const financialHealthEnabled = isFeatureEnabled("financialHealth");
 
   const { data: payload, isLoading, isError, error, refetch } = useDashboardData();
 
@@ -166,7 +166,6 @@ export function DashboardCorePanel() {
       <TopActionBanner
         healthScore={healthScore}
         topAction={topAction}
-        financialHealthEnabled={financialHealthEnabled}
       />
 
       <MetricsGrid
@@ -190,23 +189,28 @@ export function DashboardCorePanel() {
         jarsEnabled={jarsEnabled}
       />
 
-      <NetWorthTrend trend={trend} />
+      <ErrorBoundary title={t("dashboard.error.chart_title")}>
+        <NetWorthTrend trend={trend} />
+      </ErrorBoundary>
 
-      <MonthlyExpenseAllocation
-        expenseRows={payload.drilldowns?.cashFlow.expense ?? []}
-      />
+      <ErrorBoundary title={t("dashboard.error.chart_title")}>
+        <MonthlyExpenseAllocation
+          expenseRows={payload.drilldowns?.cashFlow.expense ?? []}
+        />
+      </ErrorBoundary>
 
       <RecentActivity transactions={payload.recentTransactions ?? []} />
 
-      {financialHealthEnabled ? (
-        <HealthFactors healthData={payload.health} />
-      ) : null}
+      {payload.health && (
+        <ErrorBoundary title={t("dashboard.error.health_title")}>
+          <HealthFactors healthData={payload.health} />
+        </ErrorBoundary>
+      )}
 
       <TransparencySection drilldowns={payload.drilldowns} />
 
       <QuickActionsSection
         jarsEnabled={jarsEnabled}
-        financialHealthEnabled={financialHealthEnabled}
       />
     </section>
   );

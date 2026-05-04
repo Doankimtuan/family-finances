@@ -1,19 +1,15 @@
 "use client";
 
-import Link from "next/link";
 import { Sparkles } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useI18n } from "@/lib/providers/i18n-provider";
 
 export function TopActionBanner({
   healthScore,
   topAction,
-  financialHealthEnabled,
 }: {
   healthScore: number | null;
   topAction: string;
-  financialHealthEnabled: boolean;
 }) {
   const { t } = useI18n();
 
@@ -31,15 +27,6 @@ export function TopActionBanner({
             {healthScore === null ? t("dashboard.hero.health_pending") : topAction}
           </p>
         </div>
-        {financialHealthEnabled ? (
-          <Button
-            asChild
-            variant="outline"
-            className="shrink-0 border-warning/40 bg-card/80"
-          >
-            <Link href="/health">{t("dashboard.health.open")}</Link>
-          </Button>
-        ) : null}
       </CardContent>
     </Card>
   );

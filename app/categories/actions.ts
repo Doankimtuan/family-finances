@@ -1,51 +1,16 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
-
 import { writeAuditEvent } from "@/lib/server/audit";
 import { createClient } from "@/lib/supabase/server";
+import { fail, ok, resolveActionContext, revalidateCategories, revalidateCategoriesWithSettings } from "@/lib/server/action-helpers";
 
 import type { CategoryActionState } from "./action-types";
-
-function ok(message: string): CategoryActionState {
-  return { status: "success", message };
-}
-
-function fail(message: string): CategoryActionState {
-  return { status: "error", message };
-}
 
 function normalizeHexColor(input: string | null | undefined) {
   const fallback = "#64748b";
   if (!input) return fallback;
   const normalized = input.trim();
   return /^#[0-9a-fA-F]{6}$/.test(normalized) ? normalized.toLowerCase() : fallback;
-}
-
-async function resolveContext() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { supabase, user: null, householdId: null, error: "You must be logged in." };
-  }
-
-  const membership = await supabase
-    .from("household_members")
-    .select("household_id")
-    .eq("user_id", user.id)
-    .eq("is_active", true)
-    .order("joined_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-
-  if (membership.error || !membership.data?.household_id) {
-    return { supabase, user, householdId: null, error: membership.error?.message ?? "No household found." };
-  }
-
-  return { supabase, user, householdId: membership.data.household_id, error: null };
 }
 
 export async function createCategoryAction(
@@ -59,7 +24,7 @@ export async function createCategoryAction(
   if (!(kind === "income" || kind === "expense")) return fail("Invalid category type.");
   if (name.length < 2) return fail("Category name must be at least 2 characters.");
 
-  const { supabase, user, householdId, error } = await resolveContext();
+  const { supabase, user, householdId, error } = await resolveActionContext();
   if (error || !user || !householdId) return fail(error ?? "No household found.");
 
   const insert = await supabase
@@ -87,9 +52,7 @@ export async function createCategoryAction(
     payload: { kind, name, color },
   });
 
-  revalidatePath("/categories");
-  revalidatePath("/transactions");
-  revalidatePath("/budgets");
+  revalidateCategories();
   return ok("Category created.");
 }
 
@@ -102,7 +65,7 @@ export async function setCategoryActiveAction(
 
   if (!categoryId) return fail("Missing category id.");
 
-  const { supabase, user, householdId, error } = await resolveContext();
+  const { supabase, user, householdId, error } = await resolveActionContext();
   if (error || !user || !householdId) return fail(error ?? "No household found.");
 
   const update = await supabase
@@ -122,10 +85,7 @@ export async function setCategoryActiveAction(
     payload: { isActive },
   });
 
-  revalidatePath("/categories");
-  revalidatePath("/settings/categories");
-  revalidatePath("/transactions");
-  revalidatePath("/budgets");
+  revalidateCategoriesWithSettings();
   return ok(isActive ? "Category enabled." : "Category disabled.");
 }
 
@@ -140,7 +100,7 @@ export async function renameCategoryAction(
   if (!categoryId) return fail("Missing category id.");
   if (name.length < 2) return fail("Category name must be at least 2 characters.");
 
-  const { supabase, user, householdId, error } = await resolveContext();
+  const { supabase, user, householdId, error } = await resolveActionContext();
   if (error || !user || !householdId) return fail(error ?? "No household found.");
 
   const categoryResult = await supabase
@@ -173,10 +133,7 @@ export async function renameCategoryAction(
     payload: { name, color },
   });
 
-  revalidatePath("/categories");
-  revalidatePath("/settings/categories");
-  revalidatePath("/transactions");
-  revalidatePath("/budgets");
+  revalidateCategoriesWithSettings();
   return ok("Category updated.");
 }
 
@@ -188,7 +145,7 @@ export async function deleteCategoryAction(
 
   if (!categoryId) return fail("Missing category id.");
 
-  const { supabase, user, householdId, error } = await resolveContext();
+  const { supabase, user, householdId, error } = await resolveActionContext();
   if (error || !user || !householdId) return fail(error ?? "No household found.");
 
   const categoryResult = await supabase
@@ -204,32 +161,15 @@ export async function deleteCategoryAction(
     return fail("You do not have permission to delete this category.");
   }
 
-  const [txCount, budgetCount] = await Promise.all([
-    supabase
-      .from("transactions")
-      .select("id", { count: "exact", head: true })
-      .eq("category_id", categoryId),
-    supabase
-      .from("monthly_budgets")
-      .select("id", { count: "exact", head: true })
-      .eq("household_id", householdId)
-      .eq("category_id", categoryId),
-  ]);
+  const txCount = await supabase
+    .from("transactions")
+    .select("id", { count: "exact", head: true })
+    .eq("category_id", categoryId);
 
   if (txCount.error) return fail(txCount.error.message);
-  if (budgetCount.error) return fail(budgetCount.error.message);
 
   if ((txCount.count ?? 0) > 0) {
     return fail("This category has transactions, so it cannot be deleted. You can still edit it.");
-  }
-
-  if ((budgetCount.count ?? 0) > 0) {
-    const removeBudgets = await supabase
-      .from("monthly_budgets")
-      .delete()
-      .eq("household_id", householdId)
-      .eq("category_id", categoryId);
-    if (removeBudgets.error) return fail(removeBudgets.error.message);
   }
 
   const del = await supabase
@@ -249,9 +189,6 @@ export async function deleteCategoryAction(
     payload: {},
   });
 
-  revalidatePath("/categories");
-  revalidatePath("/settings/categories");
-  revalidatePath("/transactions");
-  revalidatePath("/budgets");
+  revalidateCategoriesWithSettings();
   return ok("Category deleted.");
 }

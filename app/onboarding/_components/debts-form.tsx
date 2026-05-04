@@ -39,6 +39,7 @@ export function DebtsForm() {
         .from("accounts")
         .select("id, name, type")
         .eq("is_archived", false)
+        .is("deleted_at", null)
         .neq("type", "credit_card"); // Cannot pay debt from another credit card
       if (data) setAccounts(data);
     }

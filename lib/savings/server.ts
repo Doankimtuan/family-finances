@@ -156,7 +156,8 @@ export async function assertSavingsLinkedAccounts(
     .select("id")
     .eq("household_id", householdId)
     .in("id", uniqueIds)
-    .eq("is_archived", false);
+    .eq("is_archived", false)
+    .is("deleted_at", null);
 
   if (result.error) throw new Error(result.error.message);
   if ((result.data ?? []).length !== uniqueIds.length) {
