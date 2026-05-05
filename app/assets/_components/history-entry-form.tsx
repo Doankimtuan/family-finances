@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition, useState } from "react";
+import { useActionState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -12,22 +12,22 @@ import { useI18n } from "@/lib/providers/i18n-provider";
 import { Card, CardContent } from "@/components/ui/card";
 import { RHFInput, RHFMoneyInput } from "@/components/ui/rhf-fields";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { FormStatus } from "@/components/ui/form-status";
 import { toast } from "sonner";
+import { HISTORY_MODE, type HistoryMode } from "../_lib/constants";
 
 const historySchema = z.object({
   assetId: z.string(),
-  asOfDate: z.string().min(1, "Date is required"),
-  quantity: z.number().min(0, "Quantity must be non-negative").optional(),
-  unitPrice: z.number().min(0, "Unit price must be non-negative").optional(),
+  asOfDate: z.string().min(1, "assets.errors.date_required"),
+  quantity: z.number().min(0, "assets.errors.quantity_non_negative").optional(),
+  unitPrice: z.number().min(0, "assets.errors.price_non_negative").optional(),
 });
 
 type HistoryValues = z.infer<typeof historySchema>;
 
 type HistoryEntryFormProps = {
   assetId: string;
-  mode: "quantity" | "price";
+  mode: HistoryMode;
   actionFn: (
     prevState: AssetActionState,
     formData: FormData,
@@ -40,8 +40,10 @@ export function HistoryEntryForm({
   actionFn,
 }: HistoryEntryFormProps) {
   const { t } = useI18n();
-  const [state, setState] = useState<AssetActionState>(initialAssetActionState);
-  const [isPending, startTransition] = useTransition();
+  const [state, formAction, isPending] = useActionState(
+    actionFn,
+    initialAssetActionState
+  );
 
   const methods = useForm<HistoryValues>({
     resolver: zodResolver(historySchema),
@@ -63,16 +65,14 @@ export function HistoryEntryForm({
       }
     });
 
-    startTransition(async () => {
-      const result = await actionFn(state, formData);
-      setState(result);
-      if (result.status === "success") {
-        toast.success(result.message);
-        reset({ ...data, quantity: data.quantity, unitPrice: data.unitPrice });
-      } else if (result.status === "error") {
-        toast.error(result.message);
-      }
-    });
+    formAction(formData);
+
+    if (state.status === "success") {
+      toast.success(state.message);
+      reset();
+    } else if (state.status === "error") {
+      toast.error(state.message);
+    }
   };
 
   return (
@@ -86,11 +86,11 @@ export function HistoryEntryForm({
           >
             <input type="hidden" {...methods.register("assetId")} />
 
-            <Label className="text-sm font-semibold text-slate-800">
-              {mode === "quantity"
+            <p className="text-sm font-semibold text-slate-800">
+              {mode === HISTORY_MODE.QUANTITY
                 ? t("assets.history.add_quantity")
                 : t("assets.history.add_price")}
-            </Label>
+            </p>
 
             <RHFInput
               name="asOfDate"
@@ -99,7 +99,7 @@ export function HistoryEntryForm({
               required
             />
 
-            {mode === "quantity" ? (
+            {mode === HISTORY_MODE.QUANTITY ? (
               <RHFInput
                 name="quantity"
                 label={t("assets.history.quantity")}
@@ -118,7 +118,7 @@ export function HistoryEntryForm({
             <Button
               type="submit"
               disabled={isPending}
-              className="w-full rounded-xl bg-slate-900"
+              className="w-full"
             >
               {isPending
                 ? t("common.saving")

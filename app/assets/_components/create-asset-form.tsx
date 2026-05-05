@@ -1,15 +1,15 @@
 "use client";
 
-import { useTransition, useEffect, useState } from "react";
-import { useForm, FormProvider, useFormContext } from "react-hook-form";
+import { useActionState, useCallback, useEffect } from "react";
+import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { createAssetAction } from "@/app/assets/actions";
-import { toast } from "sonner";
 import {
   initialAssetActionState,
   type AssetActionState,
 } from "@/app/assets/action-types";
+import { DEFAULT_ASSET_CLASS, BOOLEAN_STRING } from "@/app/assets/_lib/constants";
 import { useI18n } from "@/lib/providers/i18n-provider";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -40,49 +40,45 @@ type CreateAssetFormProps = {
 
 export function CreateAssetForm({ onSuccess }: CreateAssetFormProps) {
   const { t } = useI18n();
-  const [selectedClass, setSelectedClass] = useState<AssetClassKey>("gold");
-  const classConfig = getAssetClassConfig(selectedClass);
-  const [state, setState] = useState<AssetActionState>(initialAssetActionState);
-  const [isPending, startTransition] = useTransition();
+  const [state, action, isPending] = useActionState<AssetActionState, FormData>(
+    createAssetAction,
+    initialAssetActionState,
+  );
 
   const methods = useForm<AssetFormValues>({
     resolver: zodResolver(assetFormSchema),
     defaultValues: {
       name: "",
-      assetClass: "gold",
+      assetClass: DEFAULT_ASSET_CLASS,
       unitLabel: t("assets.unit.tael"),
       quantity: 1,
       unitPrice: 0,
-      isLiquid: "true",
+      isLiquid: BOOLEAN_STRING.TRUE,
     },
   });
 
-  const { handleSubmit, setValue, reset } = methods;
+  const { handleSubmit, setValue, watch } = methods;
+
+  const watchedClass = watch("assetClass");
+  const selectedClass = (watchedClass as AssetClassKey) ?? DEFAULT_ASSET_CLASS;
+  const classConfig = getAssetClassConfig(selectedClass);
 
   useEffect(() => {
     const config = getAssetClassConfig(selectedClass);
     setValue("unitLabel", t(config.defaultUnitLabel));
-    setValue("isLiquid", config.defaultLiquid ? "true" : "false");
-  }, [selectedClass, setValue]);
+    setValue("isLiquid", config.defaultLiquid ? BOOLEAN_STRING.TRUE : BOOLEAN_STRING.FALSE);
+  }, [selectedClass, setValue, t]);
 
-  const onSubmit = async (data: AssetFormValues) => {
-    const formData = new FormData();
-    Object.entries(data).forEach(([key, value]) => {
-      formData.append(key, String(value));
-    });
-
-    startTransition(async () => {
-      const result = await createAssetAction(state, formData);
-      setState(result);
-      if (result.status === "success") {
-        toast.success(result.message);
-        onSuccess?.();
-        reset();
-      } else if (result.status === "error") {
-        toast.error(result.message);
-      }
-    });
-  };
+  const onSubmit = useCallback(
+    (data: AssetFormValues) => {
+      const formData = new FormData();
+      Object.entries(data).forEach(([key, value]) => {
+        formData.append(key, String(value));
+      });
+      action(formData);
+    },
+    [action],
+  );
 
   return (
     <FormProvider {...methods}>
@@ -98,7 +94,7 @@ export function CreateAssetForm({ onSuccess }: CreateAssetFormProps) {
           <RHFSelect
             name="assetClass"
             label={t("assets.class")}
-            defaultValue="gold"
+            defaultValue={DEFAULT_ASSET_CLASS}
             options={Object.values(ASSET_CLASS_CONFIGS).map((cfg) => ({
               label: t(cfg.labelKey),
               value: cfg.key,
@@ -133,8 +129,8 @@ export function CreateAssetForm({ onSuccess }: CreateAssetFormProps) {
           name="isLiquid"
           label={t("assets.liquidity")}
           options={[
-            { label: t("assets.liquid"), value: "true" },
-            { label: t("assets.illiquid"), value: "false" },
+            { label: t("assets.liquid"), value: BOOLEAN_STRING.TRUE },
+            { label: t("assets.illiquid"), value: BOOLEAN_STRING.FALSE },
           ]}
           placeholder={t("assets.liquidity")}
         />
@@ -162,10 +158,10 @@ export function CreateAssetForm({ onSuccess }: CreateAssetFormProps) {
                     <RHFSelect
                       name={`meta_${field.key}`}
                       label={t(field.labelKey)}
-                      defaultValue="false"
+                      defaultValue={BOOLEAN_STRING.FALSE}
                       options={[
-                        { label: t("common.yes"), value: "true" },
-                        { label: t("common.no"), value: "false" },
+                        { label: t("common.yes"), value: BOOLEAN_STRING.TRUE },
+                        { label: t("common.no"), value: BOOLEAN_STRING.FALSE },
                       ]}
                     />
                   ) : (
@@ -193,27 +189,7 @@ export function CreateAssetForm({ onSuccess }: CreateAssetFormProps) {
         </Button>
 
         <FormStatus message={state.message} status={state.status} />
-
-        {/* Watcher to sync selectedClass state */}
-        <ClassWatcher onClassChange={setSelectedClass} />
       </form>
     </FormProvider>
   );
-}
-
-function ClassWatcher({
-  onClassChange,
-}: {
-  onClassChange: (val: AssetClassKey) => void;
-}) {
-  const { watch } = useFormContext();
-  const assetClass = watch("assetClass");
-
-  useEffect(() => {
-    if (assetClass) {
-      onClassChange(assetClass as AssetClassKey);
-    }
-  }, [assetClass, onClassChange]);
-
-  return null;
 }

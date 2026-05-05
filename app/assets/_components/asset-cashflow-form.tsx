@@ -1,13 +1,12 @@
 "use client";
 
-import { useTransition, useState } from "react";
+import { useActionState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { addAssetCashflowAction } from "@/app/assets/cashflow-actions";
 import {
   initialAssetActionState,
-  type AssetActionState,
 } from "@/app/assets/action-types";
 import { useI18n } from "@/lib/providers/i18n-provider";
 import {
@@ -18,13 +17,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { FormStatus } from "@/components/ui/form-status";
 import { toast } from "sonner";
+import { ASSET_FLOW_TYPES } from "../_lib/constants";
 
 const cashflowSchema = z.object({
   assetId: z.string(),
   flowType: z.string(),
-  flowDate: z.string().min(1, "Date is required"),
-  accountId: z.string().min(1, "Account is required"),
-  amount: z.number().min(0, "Amount must be non-negative"),
+  flowDate: z.string().min(1, "assets.errors.date_required"),
+  accountId: z.string().min(1, "assets.errors.account_required"),
+  amount: z.number().min(0, "assets.errors.amount_non_negative"),
   note: z.string().optional(),
 });
 
@@ -41,16 +41,17 @@ export function AssetCashflowForm({
   assetId,
   accounts,
 }: AssetCashflowFormProps) {
-  const { language, t } = useI18n();
-  const vi = language === "vi";
-  const [state, setState] = useState<AssetActionState>(initialAssetActionState);
-  const [isPending, startTransition] = useTransition();
+  const { t } = useI18n();
+  const [state, formAction, isPending] = useActionState(
+    addAssetCashflowAction,
+    initialAssetActionState
+  );
 
   const methods = useForm<CashflowValues>({
     resolver: zodResolver(cashflowSchema),
     defaultValues: {
       assetId,
-      flowType: "contribution",
+      flowType: ASSET_FLOW_TYPES.CONTRIBUTION,
       flowDate: new Date().toISOString().slice(0, 10),
       accountId: "",
       amount: 0,
@@ -66,16 +67,14 @@ export function AssetCashflowForm({
       formData.append(key, String(value));
     });
 
-    startTransition(async () => {
-      const result = await addAssetCashflowAction(state, formData);
-      setState(result);
-      if (result.status === "success") {
-        toast.success(result.message);
-        reset();
-      } else if (result.status === "error") {
-        toast.error(result.message);
-      }
-    });
+    formAction(formData);
+
+    if (state.status === "success") {
+      toast.success(state.message);
+      reset();
+    } else if (state.status === "error") {
+      toast.error(state.message);
+    }
   };
 
   return (
@@ -91,13 +90,13 @@ export function AssetCashflowForm({
           <RHFSelect
             name="flowType"
             label={t("common.transaction_type")}
-            defaultValue="contribution"
+            defaultValue={ASSET_FLOW_TYPES.CONTRIBUTION}
             options={[
-              { label: t("assets.contribution"), value: "contribution" },
-              { label: t("assets.withdrawal"), value: "withdrawal" },
-              { label: t("assets.income"), value: "income" },
-              { label: t("assets.fee"), value: "fee" },
-              { label: t("assets.tax"), value: "tax" },
+              { label: t("assets.contribution"), value: ASSET_FLOW_TYPES.CONTRIBUTION },
+              { label: t("assets.withdrawal"), value: ASSET_FLOW_TYPES.WITHDRAWAL },
+              { label: t("assets.income"), value: ASSET_FLOW_TYPES.INCOME },
+              { label: t("assets.fee"), value: ASSET_FLOW_TYPES.FEE },
+              { label: t("assets.tax"), value: ASSET_FLOW_TYPES.TAX },
             ]}
             placeholder={t("common.select_type")}
           />
@@ -140,7 +139,7 @@ export function AssetCashflowForm({
         <Button
           type="submit"
           disabled={isPending}
-          className="w-full rounded-xl bg-teal-600 hover:bg-teal-700"
+          className="w-full"
         >
           {isPending ? t("common.saving") : t("common.add")}
         </Button>

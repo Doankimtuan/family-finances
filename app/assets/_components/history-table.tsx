@@ -1,14 +1,16 @@
 "use client";
 
-import { useActionState, useTransition } from "react";
+import { useActionState } from "react";
+import { useForm, FormProvider } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 
 import {
   initialAssetActionState,
   type AssetActionState,
 } from "@/app/assets/action-types";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { MoneyInput } from "@/components/ui/money-input";
+import { RHFInput, RHFMoneyInput } from "@/components/ui/rhf-fields";
 import { formatDate } from "@/lib/dashboard/format";
 import { useI18n } from "@/lib/providers/i18n-provider";
 
@@ -88,6 +90,14 @@ export function QuantityHistoryTable({
   );
 }
 
+const quantityRowSchema = z.object({
+  rowId: z.string(),
+  assetId: z.string(),
+  quantity: z.number().min(0, "Quantity must be non-negative"),
+});
+
+type QuantityRowFormValues = z.infer<typeof quantityRowSchema>;
+
 function QuantityRowEditor({
   assetId,
   row,
@@ -103,11 +113,29 @@ function QuantityRowEditor({
   locale: string;
 }) {
   const { t } = useI18n();
-  const [state, action] = useActionState<AssetActionState, FormData>(
+  const [state, action, isPending] = useActionState<AssetActionState, FormData>(
     updateAction,
     initialAssetActionState,
   );
-  const [isPending, startTransition] = useTransition();
+
+  const methods = useForm<QuantityRowFormValues>({
+    resolver: zodResolver(quantityRowSchema),
+    defaultValues: {
+      rowId: row.id,
+      assetId,
+      quantity: row.quantity,
+    },
+  });
+
+  const { handleSubmit } = methods;
+
+  const onSubmit = (data: QuantityRowFormValues) => {
+    const formData = new FormData();
+    formData.append("rowId", data.rowId);
+    formData.append("assetId", data.assetId);
+    formData.append("quantity", String(data.quantity));
+    action(formData);
+  };
 
   return (
     <tr className="border-b border-slate-100 last:border-b-0">
@@ -115,33 +143,30 @@ function QuantityRowEditor({
         {formatDate(row.as_of_date, locale)}
       </td>
       <td className="px-3 py-2">
-        <form
-          className="flex items-center gap-2"
-          noValidate
-          onSubmit={(event) => {
-            event.preventDefault();
-            const fd = new FormData(event.currentTarget);
-            startTransition(() => action(fd));
-          }}
-        >
-          <input type="hidden" name="assetId" value={assetId} />
-          <input type="hidden" name="rowId" value={row.id} />
-          <Input
-            type="number"
-            name="quantity"
-            min="0"
-            step="0.001"
-            defaultValue={row.quantity}
-            className="w-28 rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-900"
-          />
-          <Button
-            type="submit"
-            disabled={isPending}
-            className="rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60"
+        <FormProvider {...methods}>
+          <form
+            className="flex items-center gap-2"
+            noValidate
+            onSubmit={handleSubmit(onSubmit)}
           >
-            {t("common.save")}
-          </Button>
-        </form>
+            <RHFInput
+              name="quantity"
+              label={t("assets.history.quantity")}
+              hideLabel
+              type="number"
+              min="0"
+              step="0.001"
+              className="w-28 rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-900"
+            />
+            <Button
+              type="submit"
+              disabled={isPending}
+              className="rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60"
+            >
+              {t("common.save")}
+            </Button>
+          </form>
+        </FormProvider>
         {state.status === "error" && state.message ? (
           <p className="mt-1 text-xs text-rose-600">{state.message}</p>
         ) : null}
@@ -198,6 +223,14 @@ export function PriceHistoryTable({
   );
 }
 
+const priceRowSchema = z.object({
+  rowId: z.string(),
+  assetId: z.string(),
+  unitPrice: z.number().min(0, "Unit price must be non-negative"),
+});
+
+type PriceRowFormValues = z.infer<typeof priceRowSchema>;
+
 function PriceRowEditor({
   assetId,
   row,
@@ -213,11 +246,29 @@ function PriceRowEditor({
   locale: string;
 }) {
   const { t } = useI18n();
-  const [state, action] = useActionState<AssetActionState, FormData>(
+  const [state, action, isPending] = useActionState<AssetActionState, FormData>(
     updateAction,
     initialAssetActionState,
   );
-  const [isPending, startTransition] = useTransition();
+
+  const methods = useForm<PriceRowFormValues>({
+    resolver: zodResolver(priceRowSchema),
+    defaultValues: {
+      rowId: row.id,
+      assetId,
+      unitPrice: row.unit_price,
+    },
+  });
+
+  const { handleSubmit } = methods;
+
+  const onSubmit = (data: PriceRowFormValues) => {
+    const formData = new FormData();
+    formData.append("rowId", data.rowId);
+    formData.append("assetId", data.assetId);
+    formData.append("unitPrice", String(data.unitPrice));
+    action(formData);
+  };
 
   return (
     <tr className="border-b border-slate-100 last:border-b-0">
@@ -225,33 +276,29 @@ function PriceRowEditor({
         {formatDate(row.as_of_date, locale)}
       </td>
       <td className="px-3 py-2">
-        <form
-          className="flex items-center gap-2"
-          noValidate
-          onSubmit={(event) => {
-            event.preventDefault();
-            const fd = new FormData(event.currentTarget);
-            startTransition(() => action(fd));
-          }}
-        >
-          <input type="hidden" name="assetId" value={assetId} />
-          <input type="hidden" name="rowId" value={row.id} />
-          <div className="w-40">
-            <MoneyInput
-              id={`price-${row.id}`}
-              name="unitPrice"
-              defaultValue={row.unit_price}
-              className="w-full"
-            />
-          </div>
-          <Button
-            type="submit"
-            disabled={isPending}
-            className="rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60"
+        <FormProvider {...methods}>
+          <form
+            className="flex items-center gap-2"
+            noValidate
+            onSubmit={handleSubmit(onSubmit)}
           >
-            {t("common.save")}
-          </Button>
-        </form>
+            <div className="w-40">
+              <RHFMoneyInput
+                name="unitPrice"
+                label={t("assets.history.unit_price")}
+                hideLabel
+                className="w-full"
+              />
+            </div>
+            <Button
+              type="submit"
+              disabled={isPending}
+              className="rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60"
+            >
+              {t("common.save")}
+            </Button>
+          </form>
+        </FormProvider>
         {state.status === "error" && state.message ? (
           <p className="mt-1 text-xs text-rose-600">{state.message}</p>
         ) : null}

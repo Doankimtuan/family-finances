@@ -5,6 +5,7 @@ import { writeAuditEvent } from "@/lib/server/audit";
 import { resolveActionContext } from "@/lib/server/action-context";
 import { ok, fail } from "@/lib/server/action-helpers";
 import { getAccountBalanceSnapshot } from "@/lib/server/balance";
+import { OUTBOUND_FLOW_TYPES, INBOUND_FLOW_TYPES } from "@/app/assets/_lib/constants";
 import type { AssetActionState } from "./action-types";
 
 export async function addAssetCashflowAction(
@@ -18,15 +19,15 @@ export async function addAssetCashflowAction(
   const flowType = String(formData.get("flowType") ?? "contribution").trim();
   const accountId = String(formData.get("accountId") ?? "").trim();
 
-  if (!assetId) return fail("Missing asset id.");
+  if (!assetId) return fail("assets.error.missing_asset_id");
   if (!Number.isFinite(amount) || amount <= 0)
-    return fail("Cash flow amount must be greater than zero.");
-  if (!flowDate) return fail("Date is required.");
-  if (!accountId) return fail("Account is required.");
+    return fail("assets.error.cashflow_amount_positive");
+  if (!flowDate) return fail("common.error.date_required");
+  if (!accountId) return fail("assets.error.account_required");
 
-  const { supabase, user, householdId, error } = await resolveActionContext();
+  const { supabase, user, householdId, t, error } = await resolveActionContext();
   if (error || !householdId || !user)
-    return fail(error ?? "No household found.");
+    return fail(error ?? "errors.household_not_found");
 
   const assetResult = await supabase
     .from("assets")
@@ -35,7 +36,7 @@ export async function addAssetCashflowAction(
     .eq("id", assetId)
     .maybeSingle();
   if (assetResult.error || !assetResult.data)
-    return fail(assetResult.error?.message ?? "Asset not found.");
+    return fail(assetResult.error?.message ?? t("assets.error.not_found"));
 
   const accountResult = await supabase
     .from("accounts")
@@ -46,16 +47,14 @@ export async function addAssetCashflowAction(
     .is("deleted_at", null)
     .maybeSingle();
   if (accountResult.error || !accountResult.data)
-    return fail(accountResult.error?.message ?? "Account not found.");
+    return fail(accountResult.error?.message ?? t("assets.error.account_not_found"));
 
   const amountRounded = Math.round(amount);
-  const isOutboundFromAccount = ["contribution", "fee", "tax"].includes(
-    flowType,
-  );
-  const isInboundToAccount = ["withdrawal", "income"].includes(flowType);
+  const isOutboundFromAccount = OUTBOUND_FLOW_TYPES.includes(flowType);
+  const isInboundToAccount = INBOUND_FLOW_TYPES.includes(flowType);
 
   if (!isOutboundFromAccount && !isInboundToAccount) {
-    return fail("Invalid flow type.");
+    return fail(t("assets.error.invalid_flow_type"));
   }
 
   if (isOutboundFromAccount) {
@@ -66,9 +65,7 @@ export async function addAssetCashflowAction(
     );
     if (snapshot.error) return fail(snapshot.error);
     if (snapshot.balance !== null && amountRounded > snapshot.balance) {
-      return fail(
-        "Asset cashflow not recorded: amount exceeds source account balance.",
-      );
+      return fail(t("assets.error.insufficient_funds"));
     }
   }
 
@@ -89,7 +86,7 @@ export async function addAssetCashflowAction(
     .single();
 
   if (insert.error || !insert.data?.id)
-    return fail(insert.error?.message ?? "Failed to add asset cash flow.");
+    return fail(insert.error?.message ?? t("assets.error.cashflow_failed"));
 
   const txInsert = await supabase
     .from("transactions")
@@ -112,8 +109,7 @@ export async function addAssetCashflowAction(
   if (txInsert.error || !txInsert.data?.id) {
     await supabase.from("asset_cashflows").delete().eq("id", insert.data.id);
     return fail(
-      txInsert.error?.message ??
-        "Failed to record account cash flow for asset.",
+      txInsert.error?.message ?? t("assets.error.cashflow_transaction_failed"),
     );
   }
 
@@ -138,5 +134,5 @@ export async function addAssetCashflowAction(
   revalidatePath("/dashboard");
   revalidatePath("/activity");
   revalidatePath("/accounts");
-  return ok("Asset cash flow recorded.");
+  return ok(t("assets.success.cashflow_recorded"));
 }

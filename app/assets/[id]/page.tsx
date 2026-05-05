@@ -15,9 +15,13 @@ import {
 import { ValuationTimeline } from "@/app/assets/_components/valuation-timeline";
 import { DeleteAssetButton } from "@/app/assets/_components/delete-asset-button";
 import { AssetCashflowForm } from "@/app/assets/_components/asset-cashflow-form";
+import { AssetSummaryCards } from "@/app/assets/_components/asset-summary-cards";
+import { InvestmentMetricsBar } from "@/app/assets/_components/investment-metrics-bar";
+import { CashflowHistoryList } from "@/app/assets/_components/cashflow-history-list";
+import { AssetMetadataCard } from "@/app/assets/_components/asset-metadata-card";
 import { Card, CardContent } from "@/components/ui/card";
 import { buildValuationTimeline } from "@/lib/assets/timeline";
-import { formatNumber, formatVnd } from "@/lib/dashboard/format";
+import { formatVnd } from "@/lib/dashboard/format";
 import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -198,42 +202,14 @@ export default async function AssetDetailPage({
           </div>
         )}
 
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <Card>
-            <CardContent className="p-3">
-              <p className="text-xs uppercase tracking-[0.12em] text-slate-500">
-                {t("assets.current_quantity")}
-              </p>
-              <p className="mt-1 text-lg font-semibold text-slate-900">
-                {formatNumber(
-                  latest?.quantity ?? Number(asset.quantity),
-                  householdLocale,
-                )}{" "}
-                {asset.unit_label}
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-3">
-              <p className="text-xs uppercase tracking-[0.12em] text-slate-500">
-                {t("assets.current_unit_price")}
-              </p>
-              <p className="mt-1 text-lg font-semibold text-slate-900">
-                {formatVnd(latest?.unitPrice ?? 0, householdLocale)}
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-3">
-              <p className="text-xs uppercase tracking-[0.12em] text-slate-500">
-                {t("assets.current_value")}
-              </p>
-              <p className="mt-1 text-lg font-semibold text-slate-900">
-                {formatVnd(currentValue, householdLocale)}
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+        <AssetSummaryCards
+          latest={latest}
+          assetQuantity={Number(asset.quantity)}
+          unitLabel={asset.unit_label}
+          currentValue={currentValue}
+          householdLocale={householdLocale}
+          t={t}
+        />
 
         <ValuationTimeline data={timeline} />
 
