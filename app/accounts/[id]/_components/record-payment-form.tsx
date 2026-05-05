@@ -1,154 +1,130 @@
 "use client";
 
-import { useActionState, useTransition, useState } from "react";
+import { useState, memo, useTransition } from "react";
+import { useForm, FormProvider } from "react-hook-form";
 import {
   recordDebtPaymentAction,
   type DebtPaymentActionState,
 } from "@/app/accounts/debt-actions";
-import { MoneyInput } from "@/components/ui/money-input";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  RHFInput,
+  RHFSelect,
+  RHFMoneyInput,
+} from "@/components/ui/rhf-fields";
 import { toast } from "sonner";
-import { useEffect } from "react";
+import { useI18n } from "@/lib/providers/i18n-provider";
 
 type Props = {
   liabilityId: string;
   accounts: { id: string; name: string }[];
-  vi: boolean;
 };
 
-export function RecordPaymentForm({ liabilityId, accounts, vi }: Props) {
-  const [state, action] = useActionState<DebtPaymentActionState, FormData>(
-    recordDebtPaymentAction,
-    { status: "idle", message: "" },
-  );
+interface RecordPaymentFormData {
+  paymentDate: string;
+  sourceAccountId: string;
+  amount: number;
+  principal: number;
+  interest: number;
+  fee: number;
+}
+
+function RecordPaymentFormComponent({ liabilityId, accounts }: Props) {
+  const { t } = useI18n();
   const [isPending, startTransition] = useTransition();
 
-  const [totalAmount, setTotalAmount] = useState(0);
-  const [principal, setPrincipal] = useState(0);
-  const [interest, setInterest] = useState(0);
-  const [fee, setFee] = useState(0);
+  const methods = useForm<RecordPaymentFormData>({
+    defaultValues: {
+      paymentDate: new Date().toISOString().slice(0, 10),
+      sourceAccountId: "",
+      amount: 0,
+      principal: 0,
+      interest: 0,
+      fee: 0,
+    },
+  });
 
-  useEffect(() => {
-    if (state.status === "success") {
-      toast.success(state.message);
-    } else if (state.status === "error") {
-      toast.error(state.message);
-    }
-  }, [state]);
+  const totalAmount = methods.watch("amount");
+  const principal = methods.watch("principal");
+  const interest = methods.watch("interest");
+  const fee = methods.watch("fee");
+
+  const onSubmit = (data: RecordPaymentFormData) => {
+    const formData = new FormData();
+    formData.append("liabilityId", liabilityId);
+    formData.append("paymentDate", data.paymentDate);
+    formData.append("sourceAccountId", data.sourceAccountId);
+    formData.append("amount", String(data.amount));
+    formData.append("principal", String(data.principal));
+    formData.append("interest", String(data.interest));
+    formData.append("fee", String(data.fee));
+
+    startTransition(async () => {
+      const result = await recordDebtPaymentAction({ status: "idle", message: "" }, formData);
+      if (result.status === "success") {
+        toast.success(result.message);
+        methods.reset();
+      } else if (result.status === "error") {
+        toast.error(result.message);
+      }
+    });
+  };
+
+  const accountOptions = accounts.map((acc) => ({
+    label: acc.name,
+    value: acc.id,
+  }));
 
   return (
-    <form
-      className="space-y-4"
-      onSubmit={(e) => {
-        e.preventDefault();
-        const fd = new FormData(e.currentTarget);
-        startTransition(() => action(fd));
-      }}
-    >
-      <input type="hidden" name="liabilityId" value={liabilityId} />
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div className="space-y-1">
-          <Label htmlFor="paymentDate">
-            {vi ? "Ngày thanh toán" : "Payment Date"}
-          </Label>
-          <Input
-            id="paymentDate"
+    <FormProvider {...methods}>
+      <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-3" noValidate>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <RHFInput
             name="paymentDate"
+            label={t("debt.payment_date")}
             type="date"
-            defaultValue={new Date().toISOString().slice(0, 10)}
+          />
+
+          <RHFSelect
+            name="sourceAccountId"
+            label={t("debt.source_account")}
+            options={accountOptions}
+            placeholder={t("debt.select_account")}
           />
         </div>
 
-        <div className="space-y-1">
-          <Label htmlFor="sourceAccountId">
-            {vi ? "Tài khoản trích tiền" : "Source Account"}
-          </Label>
-          <Select name="sourceAccountId">
-            <SelectTrigger>
-              <SelectValue
-                placeholder={vi ? "Chọn tài khoản" : "Select account"}
-              />
-            </SelectTrigger>
-            <SelectContent>
-              {accounts.map((acc) => (
-                <SelectItem key={acc.id} value={acc.id}>
-                  {acc.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <div className="space-y-1">
-        <Label htmlFor="amount">
-          {vi ? "Tổng số tiền trả" : "Total Amount"}
-        </Label>
-        <MoneyInput
-          id="amount"
+        <RHFMoneyInput
           name="amount"
-          defaultValue={0}
-          onValueChange={(val) => setTotalAmount(val || 0)}
+          label={t("debt.total_amount")}
         />
-      </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="space-y-1">
-          <Label htmlFor="principal">{vi ? "Gốc" : "Principal"}</Label>
-          <MoneyInput
-            id="principal"
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <RHFMoneyInput
             name="principal"
-            defaultValue={0}
-            onValueChange={(val) => setPrincipal(val || 0)}
+            label={t("debt.principal")}
           />
-        </div>
-        <div className="space-y-1">
-          <Label htmlFor="interest">{vi ? "Lãi" : "Interest"}</Label>
-          <MoneyInput
-            id="interest"
+          <RHFMoneyInput
             name="interest"
-            defaultValue={0}
-            onValueChange={(val) => setInterest(val || 0)}
+            label={t("debt.interest")}
           />
-        </div>
-        <div className="space-y-1">
-          <Label htmlFor="fee">{vi ? "Phí" : "Fee"}</Label>
-          <MoneyInput
-            id="fee"
+          <RHFMoneyInput
             name="fee"
-            defaultValue={0}
-            onValueChange={(val) => setFee(val || 0)}
+            label={t("debt.fee")}
           />
         </div>
-      </div>
 
-      {principal + interest + fee > totalAmount && (
-        <p className="text-xs text-rose-600">
-          {vi
-            ? "Lưu ý: Tổng (Gốc + Lãi + Phí) đang lớn hơn số tiền trả."
-            : "Note: Sum of parts exceeds total amount."}
-        </p>
-      )}
+        {principal + interest + fee > totalAmount && (
+          <p className="text-xs text-rose-600">
+            {t("debt.sum_exceeds_total")}
+          </p>
+        )}
 
-      <Button type="submit" disabled={isPending} className="w-full">
-        {isPending
-          ? vi
-            ? "Đang lưu..."
-            : "Saving..."
-          : vi
-            ? "Ghi nhận thanh toán"
-            : "Record Payment"}
-      </Button>
-    </form>
+        <Button type="submit" disabled={isPending} className="w-full">
+          {isPending ? t("debt.saving") : t("debt.record_payment")}
+        </Button>
+      </form>
+    </FormProvider>
   );
 }
+
+export const RecordPaymentForm = memo(RecordPaymentFormComponent);

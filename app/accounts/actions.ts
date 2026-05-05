@@ -7,6 +7,13 @@ import { resolveActionContext } from "@/lib/server/action-context";
 import { ok, fail } from "@/lib/server/action-helpers";
 
 import type { AccountActionState } from "./action-types";
+import {
+  DEFAULT_STATEMENT_DAY,
+  DEFAULT_DUE_DAY,
+  MIN_STATEMENT_DAY,
+  MAX_STATEMENT_DAY,
+  MIN_NAME_LENGTH,
+} from "./_lib/constants";
 
 export async function createAccountAction(
   _prev: AccountActionState,
@@ -16,12 +23,12 @@ export async function createAccountAction(
   const type = String(formData.get("type") ?? "checking").trim();
   const openingBalance = Number(formData.get("openingBalance") ?? 0);
   const creditLimit = Number(formData.get("creditLimit") ?? 0);
-  const statementDay = Number(formData.get("statementDay") ?? 25);
+  const statementDay = Number(formData.get("statementDay") ?? DEFAULT_STATEMENT_DAY);
   const linkedBankAccountId = String(
     formData.get("linkedBankAccountId") ?? "",
   ).trim();
 
-  if (name.length < 2)
+  if (name.length < MIN_NAME_LENGTH)
     return fail("common.error.name_length");
   if (!Number.isFinite(openingBalance) || openingBalance < 0)
     return fail("common.error.amount_negative");
@@ -54,18 +61,15 @@ export async function createAccountAction(
       account_id: insert.data.id,
       credit_limit: Math.round(creditLimit),
       statement_day:
-        statementDay >= 1 && statementDay <= 31 ? statementDay : 25,
-      due_day: 15,
+        statementDay >= MIN_STATEMENT_DAY && statementDay <= MAX_STATEMENT_DAY ? statementDay : DEFAULT_STATEMENT_DAY,
+      due_day: DEFAULT_DUE_DAY,
       linked_bank_account_id:
         linkedBankAccountId && linkedBankAccountId !== "_none"
           ? linkedBankAccountId
           : null,
     });
     if (settingsInsert.error) {
-      console.error(
-        "credit_card_settings insert error:",
-        settingsInsert.error.message,
-      );
+      // Silently fail - card settings are optional
     }
   }
 

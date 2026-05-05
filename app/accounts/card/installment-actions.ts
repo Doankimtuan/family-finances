@@ -3,7 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { writeAuditEvent } from "@/lib/server/audit";
 import { resolveActionContext } from "@/lib/server/action-context";
+import { ok, fail } from "@/lib/server/action-helpers";
 import { createClient } from "@/lib/supabase/server";
+import {
+  DEFAULT_NUM_INSTALLMENTS,
+  DEFAULT_STATEMENT_DAY,
+  MIN_DESCRIPTION_LENGTH,
+} from "../_lib/constants";
 
 export type InstallmentActionState = {
   status: "idle" | "success" | "error";
@@ -140,20 +146,17 @@ export async function convertItemToInstallmentAction(
   formData: FormData,
 ): Promise<InstallmentActionState> {
   const sourceItemId = String(formData.get("sourceItemId") ?? "").trim();
-  const numInstallments = Number(formData.get("numInstallments") ?? 3);
+  const numInstallments = Number(formData.get("numInstallments") ?? DEFAULT_NUM_INSTALLMENTS);
   const conversionFee = Number(formData.get("conversionFee") ?? 0);
 
   if (!sourceItemId)
-    return { status: "error", message: "Missing source item." };
+    return fail("installment.error.missing_source_item");
   if (numInstallments <= 0)
-    return {
-      status: "error",
-      message: "Number of installments must be positive.",
-    };
+    return fail("installment.error.num_installments_positive");
 
-  const { supabase, user, householdId, error } = await resolveActionContext();
+  const { supabase, user, householdId, t, error } = await resolveActionContext();
   if (error || !user || !householdId)
-    return { status: "error", message: error ?? "No household found." };
+    return fail(error ?? "installment.error.household_not_found");
 
   // 1. Fetch the source billing item with its billing month
   const { data: sourceItem, error: itemErr } = await supabase
@@ -166,19 +169,13 @@ export async function convertItemToInstallmentAction(
     .maybeSingle();
 
   if (itemErr || !sourceItem)
-    return { status: "error", message: "Billing item not found." };
+    return fail("installment.error.billing_item_not_found");
 
   if (sourceItem.is_converted_to_installment)
-    return {
-      status: "error",
-      message: "Giao dịch này đã được chuyển trả góp rồi.",
-    };
+    return fail("installment.error.already_converted");
 
   if (sourceItem.item_type === "installment")
-    return {
-      status: "error",
-      message: "Không thể chuyển một khoản trả góp khác.",
-    };
+    return fail("installment.error.cannot_convert_installment");
 
   const cardAccountId = sourceItem.card_account_id;
   const originalAmount = Number(sourceItem.amount);
@@ -225,10 +222,7 @@ export async function convertItemToInstallmentAction(
     .single();
 
   if (planErr || !plan)
-    return {
-      status: "error",
-      message: planErr?.message ?? "Failed to create installment plan.",
-    };
+    return fail("installment.error.failed_create");
 
   // 4. Generate N billing items (1 per month starting from source billing month)
   await generateInstallmentItems(supabase, {
@@ -254,10 +248,7 @@ export async function convertItemToInstallmentAction(
   revalidatePath("/accounts");
   revalidatePath(`/accounts/card/${cardAccountId}`);
 
-  return {
-    status: "success",
-    message: `Đã chuyển thành ${numInstallments} kỳ trả góp thành công!`,
-  };
+  return ok(t("installment.success.converted").replace("{numInstallments}", String(numInstallments)));
 }
 
 // ─── ACTION 2: Direct installment plan (standalone, without source item) ──────
@@ -269,26 +260,23 @@ export async function createInstallmentPlanAction(
   const description = String(formData.get("description") ?? "").trim();
   const originalAmount = Number(formData.get("originalAmount") ?? 0);
   const conversionFee = Number(formData.get("conversionFee") ?? 0);
-  const numInstallments = Number(formData.get("numInstallments") ?? 3);
+  const numInstallments = Number(formData.get("numInstallments") ?? DEFAULT_NUM_INSTALLMENTS);
   const startDate = String(
     formData.get("startDate") ?? new Date().toISOString().slice(0, 10),
   );
 
   if (!cardAccountId)
-    return { status: "error", message: "Missing card account ID." };
-  if (description.length < 2)
-    return { status: "error", message: "Description too short." };
+    return fail("installment.error.missing_card_id");
+  if (description.length < MIN_DESCRIPTION_LENGTH)
+    return fail("installment.error.description_too_short");
   if (originalAmount <= 0)
-    return { status: "error", message: "Amount must be positive." };
+    return fail("installment.error.amount_positive");
   if (numInstallments <= 0)
-    return {
-      status: "error",
-      message: "Number of installments must be positive.",
-    };
+    return fail("installment.error.num_installments_positive");
 
-  const { supabase, user, householdId, error } = await resolveActionContext();
+  const { supabase, user, householdId, t, error } = await resolveActionContext();
   if (error || !user || !householdId)
-    return { status: "error", message: error ?? "No household found." };
+    return fail(error ?? "installment.error.household_not_found");
 
   const totalAmount = originalAmount + conversionFee;
   const monthlyAmount = Math.round(totalAmount / numInstallments);
@@ -298,10 +286,10 @@ export async function createInstallmentPlanAction(
     .select("statement_day")
     .eq("account_id", cardAccountId)
     .single();
-  const statementDay = settings?.statement_day ?? 25;
+  const statementDay = settings?.statement_day ?? DEFAULT_STATEMENT_DAY;
 
   const startD = parseDateOnlyToUTC(startDate);
-  if (!startD) return { status: "error", message: "Invalid start date." };
+  if (!startD) return fail("installment.error.invalid_start_date");
 
   let billingYear = startD.getUTCFullYear();
   let billingMonthIdx = startD.getUTCMonth();
@@ -335,10 +323,7 @@ export async function createInstallmentPlanAction(
     .single();
 
   if (planErr || !plan)
-    return {
-      status: "error",
-      message: planErr?.message ?? "Failed to create plan.",
-    };
+    return fail("installment.error.failed_create_plan");
 
   await generateInstallmentItems(supabase, {
     householdId,
@@ -363,7 +348,7 @@ export async function createInstallmentPlanAction(
   revalidatePath("/accounts");
   revalidatePath(`/accounts/card/${cardAccountId}`);
 
-  return { status: "success", message: "Kế hoạch trả góp đã được tạo." };
+  return ok(t("installment.success.plan_created"));
 }
 
 // ─── ACTION 3: FIFO Card Settlement ──────────────────────────────────────────
@@ -379,11 +364,11 @@ export async function settleCardAction(
   );
 
   if (!cardId || !sourceAccountId || amount <= 0)
-    return { status: "error", message: "Missing data or invalid amount." };
+    return fail("installment.error.missing_data");
 
-  const { supabase, user, householdId, error } = await resolveActionContext();
+  const { supabase, user, householdId, t, error } = await resolveActionContext();
   if (error || !user || !householdId)
-    return { status: "error", message: error ?? "No household found." };
+    return fail(error ?? "installment.error.household_not_found");
 
   const { data: cycles } = await supabase
     .from("card_billing_months")
@@ -494,13 +479,13 @@ export async function settleCardAction(
     created_by: user.id,
   });
 
-  if (insert.error) return { status: "error", message: insert.error.message };
+  if (insert.error) return fail(insert.error.message);
 
   revalidatePath("/accounts");
   revalidatePath(`/accounts/card/${cardId}`);
   revalidatePath("/activity");
 
-  return { status: "success", message: "Đã tất toán thẻ theo thứ tự FIFO." };
+  return ok(t("installment.success.settled_fifo"));
 }
 
 // ─── ACTION 4: Record card cashback credit ──────────────────────────────────
@@ -516,15 +501,15 @@ export async function addCardCashbackAction(
   const note = String(formData.get("description") ?? "").trim();
 
   if (!cardId) {
-    return { status: "error", message: "Missing card ID." };
+    return fail("installment.error.missing_card_id_settle");
   }
   if (!Number.isFinite(amount) || amount <= 0) {
-    return { status: "error", message: "Cashback amount must be positive." };
+    return fail("installment.error.cashback_positive");
   }
 
-  const { supabase, user, householdId, error } = await resolveActionContext();
+  const { supabase, user, householdId, t, error } = await resolveActionContext();
   if (error || !user || !householdId) {
-    return { status: "error", message: error ?? "No household found." };
+    return fail(error ?? "installment.error.household_not_found");
   }
 
   const { data: card } = await supabase
@@ -536,7 +521,7 @@ export async function addCardCashbackAction(
     .is("deleted_at", null)
     .maybeSingle();
   if (!card || card.type !== "credit_card") {
-    return { status: "error", message: "Credit card account not found." };
+    return fail("installment.error.card_not_found");
   }
 
   const description =
@@ -568,10 +553,7 @@ export async function addCardCashbackAction(
     .single();
 
   if (txnErr || !txn) {
-    return {
-      status: "error",
-      message: txnErr?.message ?? "Failed to add cashback transaction.",
-    };
+    return fail("installment.error.cashback_failed");
   }
 
   // Route cashback to the latest unpaid cycle so statement credit stays visible
@@ -622,5 +604,5 @@ export async function addCardCashbackAction(
   revalidatePath(`/accounts/card/${cardId}`);
   revalidatePath("/activity");
 
-  return { status: "success", message: "Đã thêm hoàn tiền thẻ thành công." };
+  return ok(t("installment.success.cashback_added"));
 }

@@ -9,7 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useState } from "react";
+import { useState, memo } from "react";
 import { useI18n } from "@/lib/providers/i18n-provider";
 
 const CreateAccountForm = dynamic(
@@ -20,7 +20,7 @@ const CreateAccountForm = dynamic(
   { ssr: false }
 );
 
-export function CreateAccountDialog() {
+function CreateAccountDialogComponent() {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
 
@@ -46,3 +46,5 @@ export function CreateAccountDialog() {
     </Dialog>
   );
 }
+
+export const CreateAccountDialog = memo(CreateAccountDialogComponent);

@@ -282,7 +282,7 @@ export default async function AccountDebtDetailPage({
                 ? "Ghi nhận các khoản trả nợ để cập nhật dư nợ và theo dõi tiến độ chính xác."
                 : "Log repayments to update outstanding balance and track progress accurately."}
             </p>
-            <RecordPaymentForm liabilityId={id} accounts={accounts} vi={vi} />
+            <RecordPaymentForm liabilityId={id} accounts={accounts} />
           </CardContent>
         </Card>
 

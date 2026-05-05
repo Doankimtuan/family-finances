@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { writeAuditEvent } from "@/lib/server/audit";
+import { resolveActionContext } from "@/lib/server/action-context";
+import { ok, fail } from "@/lib/server/action-helpers";
 import { createClient } from "@/lib/supabase/server";
 
 async function getAccountBalance(
@@ -52,36 +54,6 @@ export type DebtPaymentActionState = {
   message: string;
 };
 
-async function resolveContext() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { supabase, user: null, householdId: null, error: "You must be logged in." };
-  }
-
-  const membership = await supabase
-    .from("household_members")
-    .select("household_id")
-    .eq("user_id", user.id)
-    .eq("is_active", true)
-    .order("joined_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-
-  if (membership.error || !membership.data?.household_id) {
-    return {
-      supabase,
-      user,
-      householdId: null,
-      error: membership.error?.message ?? "No household found.",
-    };
-  }
-
-  return { supabase, user, householdId: membership.data.household_id, error: null };
-}
 
 export async function recordDebtPaymentAction(
   _prev: DebtPaymentActionState,
@@ -97,21 +69,21 @@ export async function recordDebtPaymentAction(
   const fee = Number(formData.get("fee") ?? 0);
   const sourceAccountId = String(formData.get("sourceAccountId") ?? "");
 
-  if (!liabilityId) return { status: "error", message: "Missing liability ID." };
-  if (amount <= 0) return { status: "error", message: "Amount must be positive." };
+  if (!liabilityId) return fail("debt.error.missing_liability_id");
+  if (amount <= 0) return fail("debt.error.amount_positive");
   if (principal + interest + fee > amount) {
-    return { status: "error", message: "Sum of components cannot exceed total amount." };
+    return fail("debt.error.sum_exceeds_total");
   }
 
-  const { supabase, user, householdId, error } = await resolveContext();
+  const { supabase, user, householdId, t, error } = await resolveActionContext();
   if (error || !user || !householdId)
-    return { status: "error", message: error ?? "No household found." };
+    return fail(error ?? "debt.error.household_not_found");
 
   if (sourceAccountId) {
     const snap = await getAccountBalance(supabase, householdId, sourceAccountId);
-    if (snap.error) return { status: "error", message: snap.error };
+    if (snap.error) return fail("debt.error.account_balance_failed");
     if (snap.balance !== null && amount > snap.balance) {
-      return { status: "error", message: "Insufficient funds in source account." };
+      return fail("debt.error.insufficient_funds");
     }
   }
 
@@ -132,7 +104,7 @@ export async function recordDebtPaymentAction(
     .single();
 
   if (paymentInsert.error)
-    return { status: "error", message: paymentInsert.error.message };
+    return fail("debt.error.payment_failed");
 
   if (principal > 0) {
     const liabilityRes = await supabase
@@ -143,7 +115,7 @@ export async function recordDebtPaymentAction(
 
     if (liabilityRes.error) {
       await supabase.from("liability_payments").delete().eq("id", paymentInsert.data.id);
-      return { status: "error", message: `Failed to fetch liability: ${liabilityRes.error.message}` };
+      return fail("debt.error.liability_fetch_failed");
     }
 
     if (liabilityRes.data) {
@@ -157,7 +129,7 @@ export async function recordDebtPaymentAction(
         .eq("id", liabilityId);
       if (updateRes.error) {
         await supabase.from("liability_payments").delete().eq("id", paymentInsert.data.id);
-        return { status: "error", message: `Failed to update liability balance: ${updateRes.error.message}` };
+        return fail("debt.error.liability_update_failed");
       }
     }
   }
@@ -174,7 +146,7 @@ export async function recordDebtPaymentAction(
     });
     if (txInsert.error) {
       await supabase.from("liability_payments").delete().eq("id", paymentInsert.data.id);
-      return { status: "error", message: `Payment recorded but transaction failed: ${txInsert.error.message}` };
+      return fail("debt.error.transaction_failed");
     }
   }
 
@@ -190,5 +162,5 @@ export async function recordDebtPaymentAction(
   revalidatePath("/accounts");
   revalidatePath(`/accounts/${liabilityId}`);
 
-  return { status: "success", message: "Payment recorded and balance updated." };
+  return ok(t("debt.success.payment_recorded"));
 }

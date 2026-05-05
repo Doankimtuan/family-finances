@@ -19,6 +19,7 @@ import type {
   MoneySummary,
   RateRow,
 } from "./types";
+import { FEATURED_SAVINGS_COUNT } from "./constants";
 
 type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
 
@@ -67,7 +68,7 @@ export async function fetchMoneyPageData(
     today,
   );
   const savingsSummary = buildSavingsSummary(savingsItems);
-  const featuredSavings = buildFeaturedSavingsItems(savingsItems, 3);
+  const featuredSavings = buildFeaturedSavingsItems(savingsItems, FEATURED_SAVINGS_COUNT);
   const activeSavingsCount = savingsItems.filter(
     (item) => item.status !== "withdrawn" && item.status !== "cancelled",
   ).length;
