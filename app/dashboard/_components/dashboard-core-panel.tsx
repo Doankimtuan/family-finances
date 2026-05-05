@@ -13,6 +13,7 @@ import {
   formatVndCompact,
 } from "@/lib/dashboard/format";
 import { useI18n } from "@/lib/providers/i18n-provider";
+import { calculateSavingsRateDelta, getDebtPressureNote } from "@/lib/dashboard/utils";
 
 import { MaturityTimelineWidget } from "./maturity-timeline-widget";
 import { HeroSection } from "./core-panel/hero-section";
@@ -25,6 +26,7 @@ import { HealthFactors } from "./core-panel/health-factors";
 import { TransparencySection } from "./core-panel/transparency-section";
 import { QuickActionsSection } from "./core-panel/quick-actions";
 import { useDashboardData } from "../_hooks/use-dashboard-data";
+import { useActionItems } from "../_hooks/use-action-items";
 
 const NetWorthTrend = dynamic(
   () => import("./dashboard-charts").then((mod) => mod.NetWorthTrend),
@@ -42,6 +44,7 @@ export function DashboardCorePanel() {
   const jarsEnabled = isFeatureEnabled("jars");
 
   const { data: payload, isError, error, refetch } = useDashboardData();
+  const actionItems = useActionItems(payload, locale, t);
 
   if (isError) {
     return (
@@ -78,57 +81,9 @@ export function DashboardCorePanel() {
   const healthScore = payload.health?.overallScore ?? null;
   const topAction = t(payload.health?.topAction ?? "health.action.no_data");
 
-  const savingsRateMomDeltaRaw = Number(metrics.savings_rate_mom_delta);
-  const savingsRateMomDeltaPct = Number.isFinite(savingsRateMomDeltaRaw)
-    ? Number((savingsRateMomDeltaRaw * 100).toFixed(1))
-    : null;
+  const savingsRateMomDeltaPct = calculateSavingsRateDelta(metrics.savings_rate_mom_delta);
   const tdsrValue = Number(metrics.tdsr_percent);
-  const debtPressureNote = !Number.isFinite(tdsrValue)
-    ? t("dashboard.metrics.debt_pressure.none")
-    : tdsrValue > 50
-      ? t("dashboard.metrics.debt_pressure.high")
-      : tdsrValue >= 35
-        ? t("dashboard.metrics.debt_pressure.watch")
-        : t("dashboard.metrics.debt_pressure.normal");
-
-  const actionItems = [
-    ...((payload.pendingJarReviews ?? 0) > 0
-        ? [
-          {
-            id: "jar-review-queue",
-            title: t("dashboard.actions.jar_review_title"),
-            description: t("dashboard.actions.jar_review_description"),
-            amountLabel: `${payload.pendingJarReviews ?? 0} ${t("dashboard.actions.jar_review_count")}`,
-            metaLabel: t("dashboard.actions.open_jars"),
-            href: "/goals/jars/review",
-            tone: "warning" as const,
-          },
-        ]
-      : []),
-    ...(payload.priorityActions ?? []).map((action) => ({
-      id: `bill-${action.id}`,
-      title: `${t("dashboard.actions.credit_card_title")} ${action.title.replace(/^Thanh toán thẻ\s*/i, "").trim()}`.trim(),
-      description: t("dashboard.actions.credit_card_description"),
-      amountLabel: formatVndCompact(action.amount, locale),
-      metaLabel: formatDate(action.dueDate, locale),
-      href: "/debts",
-      tone: "warning" as const,
-    })),
-    ...(payload.spendingJarAlerts ?? []).map((alert) => ({
-      id: `jar-${alert.jarId}`,
-      title: alert.jarName,
-      description:
-        alert.alertLevel === "exceeded"
-          ? t("dashboard.actions.jar_exceeded")
-          : t("dashboard.actions.jar_warning"),
-      amountLabel: `${formatVndCompact(alert.spent, locale)} / ${formatVndCompact(alert.limit, locale)}`,
-      metaLabel:
-        alert.usagePercent === null ? "-" : `${alert.usagePercent.toFixed(1)}%`,
-      href: "/goals?tab=jars",
-      tone:
-        alert.alertLevel === "exceeded" ? ("destructive" as const) : ("warning" as const),
-    })),
-  ];
+  const debtPressureNote = getDebtPressureNote(tdsrValue, t);
 
   return (
     <section className="space-y-6 pb-12">
