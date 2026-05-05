@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Target, PiggyBank } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/providers/i18n-provider";
 
 type TabValue = "goals" | "jars";
 
@@ -16,6 +17,7 @@ export function GoalsPageClient({
   goalsContent: React.ReactNode;
   jarsContent: React.ReactNode;
 }) {
+  const { t } = useI18n();
   const [activeTab, setActiveTab] = useState<TabValue>(initialTab);
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -42,7 +44,7 @@ export function GoalsPageClient({
           )}
         >
           <Target className="h-4 w-4" />
-          Goals
+          {t("goals.tabs.goals")}
         </button>
         <button
           onClick={() => setActiveTab("jars")}
@@ -54,7 +56,7 @@ export function GoalsPageClient({
           )}
         >
           <PiggyBank className="h-4 w-4" />
-          Spending Jars
+          {t("goals.tabs.spending_jars")}
         </button>
       </div>
 
