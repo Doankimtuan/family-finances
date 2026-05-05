@@ -32,8 +32,9 @@ async function getDefaultCategoryId(
   supabase: Awaited<ReturnType<typeof createClient>>,
   householdId: string,
   type: "income" | "expense",
+  t: (key: string) => string,
 ): Promise<string | null> {
-  const name = type === "income" ? "Salary" : "Groceries";
+  const name = type === "income" ? t("activity.default_category.income") : t("activity.default_category.expense");
 
   const system = await supabase
     .from("categories")
@@ -112,7 +113,7 @@ export async function quickAddTransactionAction(
   const categoryId =
     categoryIdRaw.length > 0
       ? categoryIdRaw
-      : await getDefaultCategoryId(supabase, householdId, type);
+      : await getDefaultCategoryId(supabase, householdId, type, t);
 
   const amountRounded = Math.round(amount);
   const transactionDate = new Date().toISOString().slice(0, 10);
@@ -120,8 +121,8 @@ export async function quickAddTransactionAction(
     descriptionRaw.length > 0
       ? descriptionRaw
       : type === "income"
-        ? "Quick income"
-        : "Quick expense";
+        ? t("activity.quick_add.default_income")
+        : t("activity.quick_add.default_expense");
   const status: "cleared" | "pending" = "cleared";
   if (type === "expense") {
     const snapshot = await getAccountBalanceSnapshot(
@@ -291,7 +292,7 @@ export async function addTransactionDetailedAction(
   }
 
   if (insert.error || !insert.data?.id)
-    return fail(insert.error?.message ?? "Failed to save transaction.");
+    return fail(insert.error?.message ?? t("activity.error.save_failed"));
 
   await writeAuditEvent(supabase, {
     householdId,
@@ -434,12 +435,12 @@ export async function updateTransactionAction(
     isInsufficientFundsError(update.error?.message)
   ) {
     return fail(
-      "Transaction not updated: expense amount exceeds current account balance.",
+      t("transactions.error.insufficient_funds"),
     );
   }
 
   if (update.error || !update.data?.id)
-    return fail(update.error?.message ?? "Failed to update transaction.");
+    return fail(update.error?.message ?? t("activity.error.update_failed"));
 
   const billingSync = await syncCardBillingOnUpdate(
     supabase,

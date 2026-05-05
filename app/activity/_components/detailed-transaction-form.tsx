@@ -18,17 +18,17 @@ import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
 
-const transactionSchema = z.object({
+const detailedTransactionSchema = z.object({
   type: z.enum(["income", "expense", "transfer"]),
-  amount: z.number().min(1, "Amount must be greater than 0"),
-  accountId: z.string().min(1, "Account is required"),
+  amount: z.number().min(1, "activity.error.amount_required"),
+  accountId: z.string().min(1, "activity.error.account_required"),
   counterpartyAccountId: z.string().optional(),
   categoryId: z.string().optional(),
-  transactionDate: z.string().min(1, "Date is required"),
+  transactionDate: z.string().min(1, "activity.error.date_required"),
   description: z.string().optional(),
 });
 
-type TransactionValues = z.infer<typeof transactionSchema>;
+type TransactionValues = z.infer<typeof detailedTransactionSchema>;
 
 type AccountOption = { id: string; name: string };
 type CategoryOption = { id: string; name: string; kind: "income" | "expense" };
@@ -50,7 +50,7 @@ export function DetailedTransactionForm({
   const [isPending, startTransition] = useTransition();
 
   const methods = useForm<TransactionValues>({
-    resolver: zodResolver(transactionSchema),
+    resolver: zodResolver(detailedTransactionSchema),
     defaultValues: {
       type: "expense",
       amount: 0,
@@ -110,7 +110,7 @@ export function DetailedTransactionForm({
                 : "text-slate-600 hover:bg-slate-200/50",
             )}
           >
-            {vi ? "Chi tiêu" : "Expense"}
+            {t("activity.detailed.expense")}
           </Button>
           <Button
             type="button"
@@ -124,7 +124,7 @@ export function DetailedTransactionForm({
                 : "text-slate-600 hover:bg-slate-200/50",
             )}
           >
-            {vi ? "Thu nhập" : "Income"}
+            {t("activity.detailed.income")}
           </Button>
           <Button
             type="button"
@@ -138,13 +138,13 @@ export function DetailedTransactionForm({
                 : "text-slate-600 hover:bg-slate-200/50",
             )}
           >
-            {vi ? "Chuyển khoản" : "Transfer"}
+            {t("activity.detailed.transfer")}
           </Button>
         </div>
 
         <RHFMoneyInput
           name="amount"
-          label={vi ? "Số tiền (VND)" : "Amount (VND)"}
+          label={t("activity.detailed.amount")}
           className="w-full"
           autoFocus
         />
@@ -153,35 +153,29 @@ export function DetailedTransactionForm({
           name="accountId"
           label={
             type === "transfer"
-              ? vi
-                ? "Từ tài khoản"
-                : "From Account"
-              : vi
-                ? "Tài khoản"
-                : "Account"
+              ? t("activity.detailed.from_account")
+              : t("activity.detailed.account")
           }
           required
           options={accounts.map((acc) => ({ label: acc.name, value: acc.id }))}
-          placeholder={vi ? "Chọn tài khoản" : "Select account"}
+          placeholder={t("activity.detailed.select_account")}
         />
 
         {type === "transfer" ? (
           <RHFSelect
             name="counterpartyAccountId"
-            label={vi ? "Đến tài khoản" : "To Account"}
+            label={t("activity.detailed.to_account")}
             required
             options={accounts.map((acc) => ({
               label: acc.name,
               value: acc.id,
             }))}
-            placeholder={
-              vi ? "Chọn tài khoản đích" : "Select destination account"
-            }
+            placeholder={t("activity.detailed.select_destination_account")}
           />
         ) : (
           <RHFSelect
             name="categoryId"
-            label={vi ? "Danh mục" : "Category"}
+            label={t("activity.detailed.category")}
             required={type === "expense"}
             options={filteredCategories.map((cat) => ({
               label: cat.name,
@@ -189,27 +183,23 @@ export function DetailedTransactionForm({
             }))}
             placeholder={
               filteredCategories.length === 0
-                ? vi
-                  ? "Không có danh mục"
-                  : "No category"
-                : vi
-                  ? "Chọn danh mục"
-                  : "Select category"
+                ? t("activity.quick_add.no_category")
+                : t("activity.detailed.select_category")
             }
           />
         )}
 
         <RHFInput
           name="transactionDate"
-          label={vi ? "Ngày" : "Date"}
+          label={t("activity.detailed.date")}
           type="date"
           required
         />
 
         <RHFInput
           name="description"
-          label={vi ? "Mô tả" : "Description"}
-          placeholder={vi ? "Ghi chú (không bắt buộc)" : "Optional note"}
+          label={t("activity.detailed.description")}
+          placeholder={t("activity.detailed.description_placeholder")}
         />
 
         <Button
@@ -218,12 +208,8 @@ export function DetailedTransactionForm({
           className="w-full rounded-xl bg-slate-900"
         >
           {isPending
-            ? vi
-              ? "Đang lưu..."
-              : "Saving..."
-            : vi
-              ? "Lưu giao dịch"
-              : "Save Transaction"}
+            ? t("common.saving")
+            : t("activity.detailed.save")}
         </Button>
 
         {state.spendingJarWarning ? (
@@ -237,12 +223,8 @@ export function DetailedTransactionForm({
             <AlertTitle className="flex items-center gap-2">
               <AlertTriangle className="h-4 w-4" />
               {state.spendingJarWarning.alertLevel === "exceeded"
-                ? vi
-                  ? "Hũ đã vượt hạn mức tháng"
-                  : "Jar monthly limit exceeded"
-                : vi
-                  ? "Hũ đang gần chạm hạn mức"
-                  : "Jar is close to monthly limit"}
+                ? t("activity.alert.jar_exceeded")
+                : t("activity.alert.jar_warning")}
             </AlertTitle>
             <AlertDescription>
               {state.spendingJarWarning.jarName}:{" "}

@@ -22,7 +22,7 @@ const quickAddSchema = z.object({
   type: z.enum(["income", "expense"]),
   accountId: z.string(),
   categoryId: z.string().optional(),
-  amount: z.number().min(1, "Amount must be greater than 0"),
+  amount: z.number().min(1, "activity.error.amount_required"),
 });
 
 type QuickAddValues = z.infer<typeof quickAddSchema>;
@@ -60,15 +60,11 @@ export function QuickAddForm({ accountId, categories }: QuickAddFormProps) {
 
   const helperText = useMemo(() => {
     if (isIncomeMode) {
-      return vi
-        ? "Chế độ thu nhập: nhập số tiền -> xong."
-        : "Income mode: amount -> done.";
+      return t("activity.quick_add.helper.income");
     }
 
-    return vi
-      ? "Luồng chi tiêu 10 giây: số tiền -> danh mục -> xong."
-      : "10-second expense flow: amount -> category -> done.";
-  }, [isIncomeMode, vi]);
+    return t("activity.quick_add.helper.expense");
+  }, [isIncomeMode, t]);
 
   const onSubmit = async (data: QuickAddValues) => {
     const formData = new FormData();
@@ -113,7 +109,7 @@ export function QuickAddForm({ accountId, categories }: QuickAddFormProps) {
                 : "text-slate-600 hover:bg-slate-200/50"
             )}
           >
-            {vi ? "Chi tiêu" : "Expense"}
+            {t("activity.quick_add.expense")}
           </Button>
           <Button
             type="button"
@@ -127,13 +123,13 @@ export function QuickAddForm({ accountId, categories }: QuickAddFormProps) {
                 : "text-slate-600 hover:bg-slate-200/50"
             )}
           >
-            {vi ? "Thu nhập" : "Income"}
+            {t("activity.quick_add.income")}
           </Button>
         </div>
 
         <RHFMoneyInput
           name="amount"
-          label={vi ? "Số tiền (VND)" : "Amount (VND)"}
+          label={t("activity.quick_add.amount")}
           className="w-full text-xl font-semibold"
           autoFocus
           placeholder="0"
@@ -142,7 +138,7 @@ export function QuickAddForm({ accountId, categories }: QuickAddFormProps) {
         {!isIncomeMode ? (
           <div className="space-y-1">
             <p className="text-sm font-medium text-slate-700">
-              {vi ? "Danh mục" : "Category"}
+              {t("activity.quick_add.category")}
             </p>
             <div className="flex gap-2 overflow-x-auto pb-1">
               {categories.map((category) => (
@@ -172,16 +168,10 @@ export function QuickAddForm({ accountId, categories }: QuickAddFormProps) {
           className="w-full rounded-xl bg-slate-900"
         >
           {isPending
-            ? vi
-              ? "Đang lưu..."
-              : "Saving..."
+            ? t("common.saving")
             : isIncomeMode
-              ? vi
-                ? "Xong: Thêm thu nhập"
-                : "Done: Add Income"
-              : vi
-                ? "Xong: Thêm chi tiêu"
-                : "Done: Add Expense"}
+              ? t("activity.quick_add.submit.income")
+              : t("activity.quick_add.submit.expense")}
         </Button>
 
         <p className="text-xs text-slate-500">{helperText}</p>
@@ -197,12 +187,8 @@ export function QuickAddForm({ accountId, categories }: QuickAddFormProps) {
             <AlertTitle className="flex items-center gap-2">
               <AlertTriangle className="h-4 w-4" />
               {state.spendingJarWarning.alertLevel === "exceeded"
-                ? vi
-                  ? "Hũ đã vượt hạn mức tháng"
-                  : "Jar monthly limit exceeded"
-                : vi
-                  ? "Hũ đang gần chạm hạn mức"
-                  : "Jar is close to monthly limit"}
+                ? t("activity.alert.jar_exceeded")
+                : t("activity.alert.jar_warning")}
             </AlertTitle>
             <AlertDescription>
               {state.spendingJarWarning.jarName}:{" "}
