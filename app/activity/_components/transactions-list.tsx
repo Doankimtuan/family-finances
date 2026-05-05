@@ -55,6 +55,10 @@ type TransactionItem = {
 
 type OptionAccount = { id: string; name: string };
 type OptionCategory = { id: string; name: string; kind: "income" | "expense" };
+type InitialTransactionPage = {
+  items: TransactionItem[];
+  nextCursor: string | null;
+};
 
 function TransactionRow({
   item,
@@ -456,9 +460,11 @@ function TransactionRow({
 export function TransactionsList({
   accounts,
   categories,
+  initialPage,
 }: {
   accounts: OptionAccount[];
   categories: OptionCategory[];
+  initialPage?: InitialTransactionPage;
 }) {
   const { t, locale, language } = useI18n();
   const vi = language === "vi";
@@ -482,6 +488,12 @@ export function TransactionsList({
     },
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     initialPageParam: null,
+    initialData: initialPage
+      ? {
+          pages: [initialPage],
+          pageParams: [null],
+        }
+      : undefined,
   });
 
   const allItems = data?.pages.flatMap((page) => page.items) ?? [];

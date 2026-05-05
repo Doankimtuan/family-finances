@@ -199,6 +199,41 @@ body {
     "calt" 1;
 }
 
+.skeleton-shimmer {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background: linear-gradient(
+    90deg,
+    hsl(280 60% 80%),
+    hsl(280 60% 90%),
+    hsl(280 60% 80%)
+  );
+  background-size: 200% 100%;
+  animation: skeleton-gradient 2s ease-in-out infinite;
+}
+
+@keyframes skeleton-gradient {
+  0% {
+    background-position: 200% 0;
+  }
+  50% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.dark .skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    hsl(280 60% 65%),
+    hsl(280 60% 75%),
+    hsl(280 60% 65%)
+  );
+}
+
 /* Base focus styles */
 :focus-visible {
   outline: 2px solid var(--ring);

@@ -1,22 +1,23 @@
-import { ContentLoadingShell } from "@/components/layout/content-loading-shell";
+import { LoadingContainer } from "@/components/ui/loading-container";
+import { SkeletonBlock, SkeletonGrid } from "@/components/ui/skeleton-builders";
 
 export default function DashboardLoading() {
   return (
-    <ContentLoadingShell>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <div className="h-28 rounded-2xl bg-card shadow-sm" />
-          <div className="h-28 rounded-2xl bg-card shadow-sm" />
-          <div className="h-28 rounded-2xl bg-card shadow-sm" />
-        </div>
-        <div className="h-80 rounded-2xl bg-card shadow-sm" />
-        <div className="h-32 rounded-2xl bg-card shadow-sm" />
-        <div className="h-64 rounded-2xl bg-card shadow-sm" />
-        <div className="grid grid-cols-2 gap-2">
-          <div className="h-11 rounded-xl bg-card shadow-sm" />
-          <div className="h-11 rounded-xl bg-card shadow-sm" />
-          <div className="h-11 rounded-xl bg-card shadow-sm" />
-          <div className="h-11 rounded-xl bg-card shadow-sm" />
-        </div>
-    </ContentLoadingShell>
+    <LoadingContainer>
+      <SkeletonGrid cols={3} gap="gap-3" className="sm:grid-cols-3 grid-cols-1">
+        <SkeletonBlock height="h-28" />
+        <SkeletonBlock height="h-28" />
+        <SkeletonBlock height="h-28" />
+      </SkeletonGrid>
+      <SkeletonBlock height="h-80" />
+      <SkeletonBlock height="h-32" />
+      <SkeletonBlock height="h-64" />
+      <SkeletonGrid cols={2} gap="gap-2">
+        <SkeletonBlock height="h-11" rounded="rounded-xl" />
+        <SkeletonBlock height="h-11" rounded="rounded-xl" />
+        <SkeletonBlock height="h-11" rounded="rounded-xl" />
+        <SkeletonBlock height="h-11" rounded="rounded-xl" />
+      </SkeletonGrid>
+    </LoadingContainer>
   );
 }

@@ -48,12 +48,12 @@ export async function TransactionsContent({
       supabase
         .from("transactions")
         .select(
-          "id, type, amount, transaction_date, description, category_id, account_id, counterparty_account_id, paid_by_member_id, transaction_subtype, is_non_cash",
+          "id, type, amount, transaction_date, description, category_id, account_id, counterparty_account_id, paid_by_member_id, transaction_subtype, is_non_cash, created_at",
         )
         .eq("household_id", householdId)
         .order("transaction_date", { ascending: false })
         .order("created_at", { ascending: false })
-        .limit(50),
+        .limit(51),
     ]);
 
   const accounts = accountsResult.data ?? [];
@@ -103,6 +103,13 @@ export async function TransactionsContent({
       "transaction_subtype" in tx ? (tx.transaction_subtype as string | null) : null,
     is_non_cash: "is_non_cash" in tx ? Boolean(tx.is_non_cash) : false,
   }));
+  const historyItems = listItems.slice(0, 50);
+  const historyHasMore = (transactionsResult.data ?? []).length > 50;
+  const lastHistoryRow = transactionsResult.data?.[historyItems.length - 1];
+  const historyNextCursor =
+    historyHasMore && lastHistoryRow
+      ? `${lastHistoryRow.transaction_date}|${lastHistoryRow.created_at}`
+      : null;
 
   const quickCategories = categories
     .filter((category) => category.kind === "expense")
@@ -341,6 +348,10 @@ export async function TransactionsContent({
                         name: category.name,
                         kind: category.kind as "income" | "expense",
                       }))}
+                    initialPage={{
+                      items: historyItems,
+                      nextCursor: historyNextCursor,
+                    }}
                   />
                 </CardContent>
               </Card>

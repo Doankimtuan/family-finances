@@ -7,7 +7,6 @@ import { HeartPulse, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
-import { Skeleton } from "@/components/ui/skeleton";
 import { isFeatureEnabled } from "@/lib/config/features";
 import {
   formatDate,
@@ -42,27 +41,7 @@ export function DashboardCorePanel() {
   const { locale, t } = useI18n();
   const jarsEnabled = isFeatureEnabled("jars");
 
-  const { data: payload, isLoading, isError, error, refetch } = useDashboardData();
-
-  if (isLoading) {
-    return (
-      <section className="space-y-6" aria-busy="true">
-        <Skeleton className="h-56 rounded-3xl" />
-        <Skeleton className="h-20 rounded-2xl" />
-        <div className="grid gap-4 md:grid-cols-3">
-          <Skeleton className="h-28 rounded-2xl" />
-          <Skeleton className="h-28 rounded-2xl" />
-          <Skeleton className="h-28 rounded-2xl" />
-        </div>
-        <div className="grid gap-4 lg:grid-cols-[1.35fr_0.95fr]">
-          <Skeleton className="h-72 rounded-2xl" />
-          <Skeleton className="h-72 rounded-2xl" />
-        </div>
-        <Skeleton className="h-72 rounded-2xl" />
-        <Skeleton className="h-72 rounded-2xl" />
-      </section>
-    );
-  }
+  const { data: payload, isError, error, refetch } = useDashboardData();
 
   if (isError) {
     return (

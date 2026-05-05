@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import Link from "next/link";
 import { AppHeader } from "@/components/layout/app-header";
 import { AppShell } from "@/components/layout/app-shell";
@@ -7,7 +6,6 @@ import { t } from "@/lib/i18n/dictionary";
 import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
 import { Settings } from "lucide-react";
 import { TransactionsContent } from "./_components/transactions-content";
-import { TransactionsSkeleton } from "./_components/transactions-skeleton";
 
 export const metadata = {
   title: "Activity | Family Finances",
@@ -35,9 +33,7 @@ export default async function ActivityPage() {
       }
       footer={<BottomTabBar />}
     >
-      <Suspense fallback={<TransactionsSkeleton />}>
-        <TransactionsContent householdId={householdId} vi={vi} />
-      </Suspense>
+      <TransactionsContent householdId={householdId} vi={vi} />
     </AppShell>
   );
 }

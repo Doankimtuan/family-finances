@@ -1,11 +1,12 @@
-import { ContentLoadingShell } from "@/components/layout/content-loading-shell";
+import { LoadingContainer } from "@/components/ui/loading-container";
+import { SkeletonLine, SkeletonBlock } from "@/components/ui/skeleton-builders";
 
 export default function AssetsLoading() {
   return (
-    <ContentLoadingShell>
-      <div className="h-6 w-48 rounded bg-muted" />
-      <div className="h-44 rounded-2xl bg-card shadow-sm" />
-      <div className="h-44 rounded-2xl bg-card shadow-sm" />
-    </ContentLoadingShell>
+    <LoadingContainer>
+      <SkeletonLine width="w-48" />
+      <SkeletonBlock height="h-44" />
+      <SkeletonBlock height="h-44" />
+    </LoadingContainer>
   );
 }

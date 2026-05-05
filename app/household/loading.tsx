@@ -1,11 +1,12 @@
-import { ContentLoadingShell } from "@/components/layout/content-loading-shell";
+import { LoadingContainer } from "@/components/ui/loading-container";
+import { SkeletonBlock } from "@/components/ui/skeleton-builders";
 
 export default function HouseholdLoading() {
   return (
-    <ContentLoadingShell>
-      <div className="h-40 rounded-2xl bg-card shadow-sm" />
-      <div className="h-52 rounded-2xl bg-card shadow-sm" />
-      <div className="h-44 rounded-2xl bg-card shadow-sm" />
-    </ContentLoadingShell>
+    <LoadingContainer>
+      <SkeletonBlock height="h-40" />
+      <SkeletonBlock height="h-52" />
+      <SkeletonBlock height="h-44" />
+    </LoadingContainer>
   );
 }

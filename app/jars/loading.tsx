@@ -1,18 +1,19 @@
-import { ContentLoadingShell } from "@/components/layout/content-loading-shell";
+import { LoadingContainer } from "@/components/ui/loading-container";
+import { SkeletonBlock, SkeletonGrid } from "@/components/ui/skeleton-builders";
 
 export default function JarsLoading() {
   return (
-    <ContentLoadingShell>
-        <div className="h-48 rounded-3xl bg-white" />
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          <div className="h-24 rounded-2xl bg-white" />
-          <div className="h-24 rounded-2xl bg-white" />
-          <div className="h-24 rounded-2xl bg-white" />
-          <div className="h-24 rounded-2xl bg-white" />
-        </div>
-        <div className="h-64 rounded-2xl bg-white" />
-        <div className="h-56 rounded-2xl bg-white" />
-        <div className="h-72 rounded-2xl bg-white" />
-    </ContentLoadingShell>
+    <LoadingContainer>
+      <SkeletonBlock height="h-48" rounded="rounded-3xl" />
+      <SkeletonGrid cols={4} gap="gap-3" className="grid-cols-2 md:grid-cols-4">
+        <SkeletonBlock height="h-24" />
+        <SkeletonBlock height="h-24" />
+        <SkeletonBlock height="h-24" />
+        <SkeletonBlock height="h-24" />
+      </SkeletonGrid>
+      <SkeletonBlock height="h-64" />
+      <SkeletonBlock height="h-56" />
+      <SkeletonBlock height="h-72" />
+    </LoadingContainer>
   );
 }

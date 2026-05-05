@@ -1,11 +1,12 @@
+import { LoadingContainer } from "@/components/ui/loading-container";
+import { SkeletonLine, SkeletonBlock } from "@/components/ui/skeleton-builders";
+
 export default function CategoriesLoading() {
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-6">
-      <section className="mx-auto w-full max-w-3xl animate-pulse space-y-4">
-        <div className="h-6 w-44 rounded bg-slate-300" />
-        <div className="h-56 rounded-2xl bg-white" />
-        <div className="h-48 rounded-2xl bg-white" />
-      </section>
-    </main>
+    <LoadingContainer variant="full-page">
+      <SkeletonLine width="w-44" />
+      <SkeletonBlock height="h-56" />
+      <SkeletonBlock height="h-48" />
+    </LoadingContainer>
   );
 }
