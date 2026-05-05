@@ -18,6 +18,8 @@ import { t } from "@/lib/i18n/dictionary";
 
 import { JarPlanForm } from "./_components/jar-plan-form";
 import { JarManualAdjustmentForm } from "./_components/jar-manual-adjustment-form";
+import { SummaryCard } from "./_components/summary-card";
+import { MiniMetric } from "./_components/mini-metric";
 
 export const metadata = {
   title: "Jars | Family Finances",
@@ -307,44 +309,3 @@ export default async function JarsPage({
   );
 }
 
-function SummaryCard({
-  title,
-  value,
-  helper,
-}: {
-  title: string;
-  value: string;
-  helper: string;
-}) {
-  return (
-    <Card className="border-border/60 bg-white/90">
-      <CardContent className="p-4">
-        <Label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-2">
-          {title}
-        </Label>
-        <p className="text-2xl font-bold text-slate-950">{value}</p>
-        <p className="mt-1 text-sm text-slate-500">{helper}</p>
-      </CardContent>
-    </Card>
-  );
-}
-
-function MiniMetric({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: ElementType;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-border/60 bg-slate-50 p-3">
-      <div className="flex items-center gap-2 text-slate-500">
-        <Icon className="h-4 w-4" />
-        <Label className="text-xs font-medium cursor-default">{label}</Label>
-      </div>
-      <p className="mt-2 text-sm font-semibold text-slate-950">{value}</p>
-    </div>
-  );
-}

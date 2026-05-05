@@ -9,9 +9,10 @@ import { ok, fail } from "@/lib/server/action-helpers";
 import { createClient } from "@/lib/supabase/server";
 
 import type { JarActionState } from "./action-types";
+import { JARS_CONSTANTS } from "./_lib/constants";
 
 function toMonthStart(value: string): string | null {
-  if (!/^\d{4}-\d{2}$/.test(value)) return null;
+  if (!JARS_CONSTANTS.VALIDATION.MONTH_REGEX.test(value)) return null;
   return `${value}-01`;
 }
 
@@ -26,7 +27,7 @@ function slugify(text: string): string {
     .trim()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
-    .slice(0, 60);
+    .slice(0, JARS_CONSTANTS.SLUG.MAX_LENGTH);
 }
 
 /**
@@ -85,12 +86,14 @@ export async function createJarAction(
   const color = String(formData.get("color") ?? "").trim() || null;
   const icon = String(formData.get("icon") ?? "").trim() || null;
 
-  if (name.length < 2) return fail("Tên hũ phải có ít nhất 2 ký tự.");
+  if (name.length < JARS_CONSTANTS.VALIDATION.NAME_MIN_LENGTH) {
+    return fail("jars.validation.name_min");
+  }
 
   const { supabase, user, householdId, error } = await resolveContext();
   if (error || !householdId || !user) return fail(error ?? "No household found.");
 
-  const baseSlug = slugify(name) || "jar";
+  const baseSlug = slugify(name) || JARS_CONSTANTS.SLUG.DEFAULT_PREFIX;
 
   const existingRes = await supabase
     .from("jar_definitions")
@@ -122,7 +125,7 @@ export async function createJarAction(
     .single();
 
   if (insert.error || !insert.data?.id)
-    return fail(insert.error?.message ?? "Không thể tạo hũ.");
+    return fail(insert.error?.message ?? "jars.error.create_failed");
 
   await writeAuditEvent(supabase, {
     householdId,
@@ -135,7 +138,7 @@ export async function createJarAction(
 
   revalidatePath("/goals");
   revalidatePath("/dashboard");
-  return ok("Đã tạo hũ.");
+  return ok("jars.success.created");
 }
 
 export async function updateJarAction(
@@ -147,8 +150,10 @@ export async function updateJarAction(
   const color = String(formData.get("color") ?? "").trim() || null;
   const icon = String(formData.get("icon") ?? "").trim() || null;
 
-  if (!jarId) return fail("Thiếu ID hũ.");
-  if (name.length < 2) return fail("Tên hũ phải có ít nhất 2 ký tự.");
+  if (!jarId) return fail("jars.validation.jar_id_required");
+  if (name.length < JARS_CONSTANTS.VALIDATION.NAME_MIN_LENGTH) {
+    return fail("jars.validation.name_min");
+  }
 
   const { supabase, user, householdId, error } = await resolveContext();
   if (error || !householdId || !user) return fail(error ?? "No household found.");
@@ -172,7 +177,7 @@ export async function updateJarAction(
 
   revalidatePath("/goals");
   revalidatePath("/dashboard");
-  return ok("Đã cập nhật hũ.");
+  return ok("jars.success.updated");
 }
 
 export async function archiveJarAction(
@@ -180,7 +185,7 @@ export async function archiveJarAction(
   formData: FormData,
 ): Promise<JarActionState> {
   const jarId = String(formData.get("jarId") ?? "").trim();
-  if (!jarId) return fail("Thiếu ID hũ.");
+  if (!jarId) return fail("jars.validation.jar_id_required");
 
   const { supabase, user, householdId, error } = await resolveContext();
   if (error || !householdId || !user) return fail(error ?? "No household found.");
@@ -203,7 +208,7 @@ export async function archiveJarAction(
 
   revalidatePath("/goals");
   revalidatePath("/dashboard");
-  return ok("Đã lưu trữ hũ.");
+  return ok("jars.success.archived");
 }
 
 export async function archiveJarDirectAction(
@@ -224,9 +229,9 @@ export async function upsertJarMonthlyTargetAction(
   const monthStart = toMonthStart(monthRaw);
   const mode = modeRaw === "percent" ? "percent" : "fixed";
 
-  if (!jarId) return fail("Thiếu ID hũ.");
-  if (!monthStart) return fail("Tháng không hợp lệ.");
-  if (!Number.isFinite(value) || value < 0) return fail("Giá trị mục tiêu phải không âm.");
+  if (!jarId) return fail("jars.validation.jar_id_required");
+  if (!monthStart) return fail("jars.validation.invalid_month");
+  if (!Number.isFinite(value) || value < 0) return fail("jars.validation.target_value_non_negative");
 
   const { supabase, user, householdId, error } = await resolveContext();
   if (error || !householdId || !user) return fail(error ?? "No household found.");
@@ -272,7 +277,7 @@ export async function upsertJarMonthlyTargetAction(
 
   revalidatePath(`/goals?tab=jars&month=${toMonthInput(monthStart)}`);
   revalidatePath("/dashboard");
-  return ok("Đã lưu mục tiêu tháng.");
+  return ok("jars.success.target_saved");
 }
 
 export async function addJarLedgerEntryAction(
@@ -292,9 +297,9 @@ export async function addJarLedgerEntryAction(
       ? entryTypeRaw
       : "allocate";
 
-  if (!jarId) return fail("Thiếu ID hũ.");
-  if (!monthStart) return fail("Tháng không hợp lệ.");
-  if (!Number.isFinite(amount) || amount <= 0) return fail("Số tiền phải lớn hơn 0.");
+  if (!jarId) return fail("jars.validation.jar_id_required");
+  if (!monthStart) return fail("jars.validation.invalid_month");
+  if (!Number.isFinite(amount) || amount <= 0) return fail("common.validation.amount_positive");
 
   const { supabase, user, householdId, error } = await resolveContext();
   if (error || !householdId || !user) return fail(error ?? "No household found.");
@@ -315,7 +320,7 @@ export async function addJarLedgerEntryAction(
     }, 0);
 
     if (Math.round(amount) > balance) {
-      return fail("Số tiền rút vượt quá số dư hũ.");
+      return fail("jars.validation.insufficient_balance");
     }
   }
 
@@ -336,7 +341,7 @@ export async function addJarLedgerEntryAction(
     .single();
 
   if (insert.error || !insert.data?.id) {
-    return fail(insert.error?.message ?? "Không thể lưu giao dịch hũ.");
+    return fail(insert.error?.message ?? "jars.error.entry_save_failed");
   }
 
   await writeAuditEvent(supabase, {
@@ -350,7 +355,7 @@ export async function addJarLedgerEntryAction(
 
   revalidatePath(`/goals?tab=jars&month=${monthRaw}`);
   revalidatePath("/dashboard");
-  return ok("Đã lưu giao dịch hũ.");
+  return ok("jars.success.entry_saved");
 }
 
 export async function deleteJarLedgerEntryAction(
@@ -360,7 +365,7 @@ export async function deleteJarLedgerEntryAction(
   const entryId = String(formData.get("entryId") ?? "").trim();
   const monthRaw = String(formData.get("month") ?? "").trim();
 
-  if (!entryId) return fail("Thiếu ID giao dịch.");
+  if (!entryId) return fail("jars.validation.entry_id_required");
 
   const { supabase, user, householdId, error } = await resolveContext();
   if (error || !householdId || !user) return fail(error ?? "No household found.");
@@ -381,10 +386,10 @@ export async function deleteJarLedgerEntryAction(
     entityId: entryId,
   });
 
-  if (/^\d{4}-\d{2}$/.test(monthRaw)) revalidatePath(`/goals?tab=jars&month=${monthRaw}`);
+  if (JARS_CONSTANTS.VALIDATION.MONTH_REGEX.test(monthRaw)) revalidatePath(`/goals?tab=jars&month=${monthRaw}`);
   revalidatePath("/goals");
   revalidatePath("/dashboard");
-  return ok("Đã xóa giao dịch hũ.");
+  return ok("jars.success.entry_deleted");
 }
 
 export async function deleteJarLedgerEntryDirectAction(
@@ -397,7 +402,7 @@ export async function runJarReconciliationDirectAction(
   formData: FormData,
 ): Promise<void> {
   const monthRaw = String(formData.get("month") ?? "").trim();
-  if (/^\d{4}-\d{2}$/.test(monthRaw)) {
+  if (JARS_CONSTANTS.VALIDATION.MONTH_REGEX.test(monthRaw)) {
     revalidatePath(`/goals?tab=jars&month=${monthRaw}`);
   }
   revalidatePath("/goals");
@@ -410,8 +415,8 @@ export async function updateSpendingJarCategoryMapAction(
   const categoryId = String(formData.get("categoryId") ?? "").trim();
   const jarId = String(formData.get("jarId") ?? "").trim();
 
-  if (!categoryId) return fail("Thiếu danh mục.");
-  if (!jarId) return fail("Thiếu hũ.");
+  if (!categoryId) return fail("jars.validation.category_required");
+  if (!jarId) return fail("jars.validation.jar_id_required");
 
   const { supabase, user, householdId, error } = await resolveContext();
   if (error || !householdId || !user) return fail(error ?? "No household found.");
@@ -435,11 +440,11 @@ export async function updateSpendingJarCategoryMapAction(
       .maybeSingle(),
   ]);
 
-  if (!categoryResult.data?.id) return fail("Danh mục không hợp lệ.");
+  if (!categoryResult.data?.id) return fail("jars.validation.invalid_category");
   if (categoryResult.data.kind !== "expense") {
-    return fail("Chỉ hỗ trợ map cho danh mục chi tiêu.");
+    return fail("jars.validation.expense_category_only");
   }
-  if (!jarResult.data?.id) return fail("Hũ không hợp lệ.");
+  if (!jarResult.data?.id) return fail("jars.validation.invalid_jar");
 
   const upsert = await supabase.from("spending_jar_category_map").upsert(
     {
@@ -464,7 +469,7 @@ export async function updateSpendingJarCategoryMapAction(
 
   revalidatePath("/goals");
   revalidatePath("/dashboard");
-  return ok("Đã cập nhật map danh mục → hũ.");
+  return ok("jars.success.category_map_updated");
 }
 
 export async function updateSpendingJarCategoryMapDirectAction(

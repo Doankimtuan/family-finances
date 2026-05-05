@@ -9,17 +9,19 @@ import { useI18n } from "@/lib/providers/i18n-provider";
 import { createIntentJarAction } from "@/app/jars/intent-actions";
 import { RHFInput, RHFSelect } from "@/components/ui/rhf-fields";
 import { Button } from "@/components/ui/button";
+import { objectToFormDataUnfiltered } from "../_lib/form-helpers";
+import { JARS_CONSTANTS } from "../_lib/constants";
 
 const schema = z.object({
-  name: z.string().min(2, "jars.validation.name_min"),
-  jarType: z.string(),
-  spendPolicy: z.string(),
-  fixedAmount: z.number().min(0),
-  incomePercent: z.number().min(0).max(100),
-  color: z.string(),
-  icon: z.string(),
-  month: z.string(),
-  returnTo: z.string(),
+  name: z.string().min(JARS_CONSTANTS.VALIDATION.NAME_MIN_LENGTH, "jars.validation.name_min"),
+  jarType: z.string().min(1, "jars.validation.jar_type_required"),
+  spendPolicy: z.string().min(1, "jars.validation.spend_policy_required"),
+  fixedAmount: z.number().min(0, "jars.validation.target_value_non_negative"),
+  incomePercent: z.number().min(0, "jars.validation.target_value_non_negative").max(100, "jars.validation.percent_max_100"),
+  color: z.string().min(1, "jars.validation.color_required"),
+  icon: z.string().min(1, "jars.validation.icon_required"),
+  month: z.string().min(1, "jars.validation.invalid_month"),
+  returnTo: z.string().min(1, "common.validation.required"),
 });
 
 type Values = z.infer<typeof schema>;
@@ -38,22 +40,19 @@ export function JarSetupCreateForm({ month, returnTo }: Props) {
     resolver: zodResolver(schema),
     defaultValues: {
       name: "",
-      jarType: "custom",
-      spendPolicy: "flexible",
+      jarType: JARS_CONSTANTS.DEFAULTS.JAR_TYPE,
+      spendPolicy: JARS_CONSTANTS.DEFAULTS.SPEND_POLICY,
       fixedAmount: 0,
       incomePercent: 0,
-      color: "#2563EB",
-      icon: "piggy-bank",
+      color: JARS_CONSTANTS.DEFAULTS.COLOR,
+      icon: JARS_CONSTANTS.DEFAULTS.ICON,
       month,
       returnTo,
     },
   });
 
   const onSubmit = async (data: Values) => {
-    const formData = new FormData();
-    Object.entries(data).forEach(([key, value]) => {
-      formData.append(key, String(value));
-    });
+    const formData = objectToFormDataUnfiltered(data);
 
     startTransition(async () => {
       await createIntentJarAction(formData);

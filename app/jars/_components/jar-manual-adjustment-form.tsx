@@ -9,14 +9,15 @@ import { addManualJarAdjustmentAction } from "@/app/jars/intent-actions";
 import { Button } from "@/components/ui/button";
 import { RHFInput, RHFSelect } from "@/components/ui/rhf-fields";
 import { useI18n } from "@/lib/providers/i18n-provider";
+import { objectToFormData } from "../_lib/form-helpers";
 
 const adjustmentSchema = z.object({
-  jarId: z.string().min(1, "jars.validation.select_jar"),
+  jarId: z.string().min(1, "jars.validation.jar_id_required"),
   movementDate: z.string().min(1, "common.validation.select_date"),
   amount: z.number().min(1, "common.validation.amount_positive"),
   direction: z.enum(["in", "out"]),
   note: z.string().optional(),
-  returnTo: z.string(),
+  returnTo: z.string().min(1, "common.validation.required"),
 });
 
 type AdjustmentValues = z.infer<typeof adjustmentSchema>;
@@ -46,10 +47,7 @@ export function JarManualAdjustmentForm({ jars, month, returnTo }: Props) {
   const { handleSubmit } = methods;
 
   const onSubmit = async (data: AdjustmentValues) => {
-    const formData = new FormData();
-    Object.entries(data).forEach(([key, value]) => {
-      formData.append(key, String(value));
-    });
+    const formData = objectToFormData(data);
 
     startTransition(async () => {
       await addManualJarAdjustmentAction(formData);

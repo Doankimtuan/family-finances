@@ -9,13 +9,14 @@ import { upsertJarPlanAction } from "@/app/jars/intent-actions";
 import { Button } from "@/components/ui/button";
 import { RHFInput } from "@/components/ui/rhf-fields";
 import { useI18n } from "@/lib/providers/i18n-provider";
+import { objectToFormData } from "../_lib/form-helpers";
 
 const planSchema = z.object({
-  jarId: z.string().min(1),
-  month: z.string().min(1),
-  fixedAmount: z.number().min(0),
-  incomePercent: z.number().min(0).max(100),
-  returnTo: z.string(),
+  jarId: z.string().min(1, "jars.validation.jar_id_required"),
+  month: z.string().min(1, "jars.validation.invalid_month"),
+  fixedAmount: z.number().min(0, "jars.validation.target_value_non_negative"),
+  incomePercent: z.number().min(0, "jars.validation.target_value_non_negative").max(100, "jars.validation.percent_max_100"),
+  returnTo: z.string().min(1, "common.validation.required"),
 });
 
 type PlanValues = z.infer<typeof planSchema>;
@@ -52,10 +53,7 @@ export function JarPlanForm({
   const { handleSubmit } = methods;
 
   const onSubmit = async (data: PlanValues) => {
-    const formData = new FormData();
-    Object.entries(data).forEach(([key, value]) => {
-      formData.append(key, String(value));
-    });
+    const formData = objectToFormData(data);
 
     startTransition(async () => {
       // Note: upsertJarPlanAction is a server action that redirects
