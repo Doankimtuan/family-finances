@@ -79,7 +79,7 @@ export default async function OnboardingFirstInsightPage() {
         <Link href="/dashboard" className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white">
           {t(language, "onboarding.first_insight.open_dashboard")}
         </Link>
-        <Link href="/transactions" className="inline-flex items-center justify-center rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700">
+        <Link href="/activity" className="inline-flex items-center justify-center rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700">
           {t(language, "onboarding.first_insight.log_transaction")}
         </Link>
       </div>

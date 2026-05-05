@@ -121,7 +121,7 @@ export function DashboardCorePanel() {
             description: t("dashboard.actions.jar_review_description"),
             amountLabel: `${payload.pendingJarReviews ?? 0} ${t("dashboard.actions.jar_review_count")}`,
             metaLabel: t("dashboard.actions.open_jars"),
-            href: "/jars/review",
+            href: "/goals/jars/review",
             tone: "warning" as const,
           },
         ]
@@ -145,7 +145,7 @@ export function DashboardCorePanel() {
       amountLabel: `${formatVndCompact(alert.spent, locale)} / ${formatVndCompact(alert.limit, locale)}`,
       metaLabel:
         alert.usagePercent === null ? "-" : `${alert.usagePercent.toFixed(1)}%`,
-      href: "/jars",
+      href: "/goals?tab=jars",
       tone:
         alert.alertLevel === "exceeded" ? ("destructive" as const) : ("warning" as const),
     })),

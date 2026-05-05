@@ -3,8 +3,8 @@
 import {
   initialTransactionActionState,
   type TransactionActionState,
-} from "@/app/transactions/action-types";
-import { addTransactionDetailedAction } from "@/app/transactions/actions";
+} from "@/app/activity/action-types";
+import { addTransactionDetailedAction } from "@/app/activity/actions";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { FormStatus } from "@/components/ui/form-status";

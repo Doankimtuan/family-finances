@@ -105,7 +105,7 @@ export function SnapshotsSection({
                   {t("dashboard.jars.title")}
                 </h2>
                 <Link
-                  href="/jars"
+                  href="/goals?tab=jars"
                   className="text-sm font-medium text-primary hover:underline"
                 >
                   {t("dashboard.jars.open")}
@@ -160,7 +160,7 @@ export function SnapshotsSection({
                             : t("dashboard.actions.empty.title")}
                         </span>
                         <Link
-                          href="/jars"
+                          href="/goals?tab=jars"
                           className="text-xs font-semibold text-primary hover:underline"
                         >
                           {t("dashboard.jars.allocate")}

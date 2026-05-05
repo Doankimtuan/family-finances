@@ -10,10 +10,10 @@ import { TransactionsContent } from "./_components/transactions-content";
 import { TransactionsSkeleton } from "./_components/transactions-skeleton";
 
 export const metadata = {
-  title: "Transactions | Family Finances",
+  title: "Activity | Family Finances",
 };
 
-export default async function TransactionsPage() {
+export default async function ActivityPage() {
   const { householdId, language } = await getAuthenticatedHouseholdContext();
   const vi = language === "vi";
 

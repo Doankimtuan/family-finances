@@ -45,7 +45,7 @@ export default async function JarReviewPage({
       <div className="space-y-6 pb-24">
         <div>
           <Button variant="ghost" size="sm" asChild className="-ml-2 h-8 px-2 text-primary hover:text-primary/80">
-            <Link href="/jars">
+            <Link href="/goals?tab=jars">
               <ChevronLeft className="mr-1 h-4 w-4" />
               {t(language, "jars.back_to_jars")}
             </Link>
@@ -76,7 +76,7 @@ export default async function JarReviewPage({
             className="min-h-[280px] border-border/60 bg-slate-50/60"
             action={
               <Button asChild className="rounded-xl">
-                <Link href="/jars">{t(language, "jars.review.back_to_command_center")}</Link>
+                <Link href="/goals?tab=jars">{t(language, "jars.review.back_to_command_center")}</Link>
               </Button>
             }
           />
@@ -132,7 +132,7 @@ export default async function JarReviewPage({
                       </div>
                       <form action={resolveJarReviewAction} className="mt-4">
                         <input type="hidden" name="reviewId" value={review.id} />
-                        <input type="hidden" name="returnTo" value="/jars/review" />
+                        <input type="hidden" name="returnTo" value="/goals/jars/review" />
                         <input type="hidden" name="mode" value="suggested" />
                         <input
                           type="hidden"
@@ -159,7 +159,7 @@ export default async function JarReviewPage({
                       reviewId={review.id}
                       amount={review.amount}
                       jars={data.items}
-                      returnTo="/jars/review"
+                      returnTo="/goals/jars/review"
                     />
                   </div>
                 </CardContent>

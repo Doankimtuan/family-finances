@@ -99,7 +99,7 @@ export async function createRecurringRule(
     }
 
     revalidatePath("/recurring");
-    revalidatePath("/transactions");
+    revalidatePath("/activity");
     return { success: true, ruleId: result.id };
   } catch (err) {
     return {
@@ -169,7 +169,7 @@ export async function updateRecurringRule(
     }
 
     revalidatePath("/recurring");
-    revalidatePath("/transactions");
+    revalidatePath("/activity");
     return { success: true };
   } catch (err) {
     return {

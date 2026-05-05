@@ -23,6 +23,21 @@ const nextConfig: NextConfig = {
         destination: "/accounts/:id",
         permanent: true,
       },
+      {
+        source: "/transactions",
+        destination: "/activity",
+        permanent: true,
+      },
+      {
+        source: "/transactions/:path*",
+        destination: "/activity/:path*",
+        permanent: true,
+      },
+      {
+        source: "/jars",
+        destination: "/goals?tab=jars",
+        permanent: true,
+      },
     ];
   },
 };

@@ -498,7 +498,7 @@ export async function settleCardAction(
 
   revalidatePath("/accounts");
   revalidatePath(`/accounts/card/${cardId}`);
-  revalidatePath("/transactions");
+  revalidatePath("/activity");
 
   return { status: "success", message: "Đã tất toán thẻ theo thứ tự FIFO." };
 }
@@ -620,7 +620,7 @@ export async function addCardCashbackAction(
 
   revalidatePath("/accounts");
   revalidatePath(`/accounts/card/${cardId}`);
-  revalidatePath("/transactions");
+  revalidatePath("/activity");
 
   return { status: "success", message: "Đã thêm hoàn tiền thẻ thành công." };
 }

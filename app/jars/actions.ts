@@ -133,7 +133,7 @@ export async function createJarAction(
     payload: { name, slug, color, icon },
   });
 
-  revalidatePath("/jars");
+  revalidatePath("/goals");
   revalidatePath("/dashboard");
   return ok("Đã tạo hũ.");
 }
@@ -170,7 +170,7 @@ export async function updateJarAction(
     payload: { name, color, icon },
   });
 
-  revalidatePath("/jars");
+  revalidatePath("/goals");
   revalidatePath("/dashboard");
   return ok("Đã cập nhật hũ.");
 }
@@ -201,7 +201,7 @@ export async function archiveJarAction(
     entityId: jarId,
   });
 
-  revalidatePath("/jars");
+  revalidatePath("/goals");
   revalidatePath("/dashboard");
   return ok("Đã lưu trữ hũ.");
 }
@@ -270,7 +270,7 @@ export async function upsertJarMonthlyTargetAction(
     },
   });
 
-  revalidatePath(`/jars?month=${toMonthInput(monthStart)}`);
+  revalidatePath(`/goals?tab=jars&month=${toMonthInput(monthStart)}`);
   revalidatePath("/dashboard");
   return ok("Đã lưu mục tiêu tháng.");
 }
@@ -348,7 +348,7 @@ export async function addJarLedgerEntryAction(
     payload: { jarId, month: monthStart, entryType, amount: Math.round(amount) },
   });
 
-  revalidatePath(`/jars?month=${monthRaw}`);
+  revalidatePath(`/goals?tab=jars&month=${monthRaw}`);
   revalidatePath("/dashboard");
   return ok("Đã lưu giao dịch hũ.");
 }
@@ -381,8 +381,8 @@ export async function deleteJarLedgerEntryAction(
     entityId: entryId,
   });
 
-  if (/^\d{4}-\d{2}$/.test(monthRaw)) revalidatePath(`/jars?month=${monthRaw}`);
-  revalidatePath("/jars");
+  if (/^\d{4}-\d{2}$/.test(monthRaw)) revalidatePath(`/goals?tab=jars&month=${monthRaw}`);
+  revalidatePath("/goals");
   revalidatePath("/dashboard");
   return ok("Đã xóa giao dịch hũ.");
 }
@@ -397,10 +397,10 @@ export async function runJarReconciliationDirectAction(
   formData: FormData,
 ): Promise<void> {
   const monthRaw = String(formData.get("month") ?? "").trim();
-  if (/^\\d{4}-\\d{2}$/.test(monthRaw)) {
-    revalidatePath(`/jars?month=${monthRaw}`);
+  if (/^\d{4}-\d{2}$/.test(monthRaw)) {
+    revalidatePath(`/goals?tab=jars&month=${monthRaw}`);
   }
-  revalidatePath("/jars");
+  revalidatePath("/goals");
 }
 
 export async function updateSpendingJarCategoryMapAction(
@@ -462,7 +462,7 @@ export async function updateSpendingJarCategoryMapAction(
     payload: { categoryId, jarId },
   });
 
-  revalidatePath("/jars");
+  revalidatePath("/goals");
   revalidatePath("/dashboard");
   return ok("Đã cập nhật map danh mục → hũ.");
 }

@@ -106,14 +106,14 @@ export function revalidateDashboard(): void {
 /** Revalidates categories-related pages. */
 export function revalidateCategories(): void {
   nextRevalidatePath("/categories");
-  nextRevalidatePath("/transactions");
+  nextRevalidatePath("/activity");
 }
 
 /** Revalidates categories with settings page. */
 export function revalidateCategoriesWithSettings(): void {
   nextRevalidatePath("/categories");
   nextRevalidatePath("/settings/categories");
-  nextRevalidatePath("/transactions");
+  nextRevalidatePath("/activity");
 }
 
 /** Revalidates goals-related pages. */
@@ -126,31 +126,31 @@ export function revalidateGoals(): void {
 export function revalidateGoalsFull(): void {
   nextRevalidatePath("/goals");
   nextRevalidatePath("/dashboard");
-  nextRevalidatePath("/transactions");
+  nextRevalidatePath("/activity");
   nextRevalidatePath("/accounts");
 }
 
 /** Revalidates jars-related pages. */
 export function revalidateJars(): void {
-  nextRevalidatePath("/jars");
+  nextRevalidatePath("/goals");
   nextRevalidatePath("/dashboard");
 }
 
 /** Revalidates jars for a specific month. */
 export function revalidateJarsMonth(month: string): void {
-  nextRevalidatePath(`/jars?month=${month}`);
+  nextRevalidatePath(`/goals?tab=jars&month=${month}`);
   nextRevalidatePath("/dashboard");
 }
 
 /** Revalidates transactions and dashboard. */
 export function revalidateTransactions(): void {
-  nextRevalidatePath("/transactions");
+  nextRevalidatePath("/activity");
   nextRevalidatePath("/dashboard");
 }
 
 /** Revalidates transactions, dashboard, and accounts. */
 export function revalidateTransactionsFull(): void {
-  nextRevalidatePath("/transactions");
+  nextRevalidatePath("/activity");
   nextRevalidatePath("/dashboard");
   nextRevalidatePath("/accounts");
 }
@@ -163,11 +163,10 @@ export function revalidateAssets(assetId?: string): void {
   }
 }
 
-/** Revalidates money/accounts pages. */
+/** Revalidates accounts pages. */
 export function revalidateMoney(): void {
-  nextRevalidatePath("/money");
   nextRevalidatePath("/accounts");
-  nextRevalidatePath("/transactions");
+  nextRevalidatePath("/activity");
 }
 
 /** Revalidates settings pages. */

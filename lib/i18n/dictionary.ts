@@ -637,6 +637,7 @@ const en: Dictionary = {
   "nav.money": "Money",
   "nav.accounts": "Accounts",
   "nav.activity": "Activity",
+  "nav.goals": "Goals",
   "nav.plan": "Jars",
   "review.discuss_title": "Discuss Together",
   "review.discuss_description": "Questions to review as a couple this month",
@@ -1586,6 +1587,7 @@ const vi: Dictionary = {
   "nav.money": "Tài sản",
   "nav.accounts": "Tài khoản",
   "nav.activity": "Hoạt động",
+  "nav.goals": "Mục tiêu",
   "nav.plan": "Hũ",
   // Discuss together
   "review.discuss_title": "Thảo luận cùng nhau",

@@ -79,7 +79,7 @@ export async function createAccountAction(
   });
 
   revalidatePath("/accounts");
-  revalidatePath("/transactions");
+  revalidatePath("/activity");
 
   return ok(t("accounts.success.created"));
 }
@@ -111,7 +111,7 @@ export async function archiveAccountAction(
   });
 
   revalidatePath("/accounts");
-  revalidatePath("/transactions");
+  revalidatePath("/activity");
 
   return ok(t("accounts.success.archived"));
 }

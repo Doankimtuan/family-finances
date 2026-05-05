@@ -1,6 +1,6 @@
 import { ContentLoadingShell } from "@/components/layout/content-loading-shell";
 
-export default function TransactionsLoading() {
+export default function ActivityLoading() {
   return (
     <ContentLoadingShell>
         <div className="h-6 w-56 rounded bg-slate-300" />

@@ -38,13 +38,13 @@ export function MetricsGrid({
           label={t("dashboard.metrics.income")}
           value={formatVndCompact(Number(metrics.monthly_income), locale)}
           variant="success"
-          href="/transactions"
+          href="/activity"
         />
         <MetricCard
           label={t("dashboard.metrics.spending")}
           value={formatVndCompact(Number(metrics.monthly_expense), locale)}
           variant="destructive"
-          href="/transactions"
+          href="/activity"
         />
         <MetricCard
           label={t("dashboard.metrics.savings_rate")}

@@ -136,7 +136,7 @@ export async function addAssetCashflowAction(
   revalidatePath(`/assets/${assetId}`);
   revalidatePath("/assets");
   revalidatePath("/dashboard");
-  revalidatePath("/transactions");
+  revalidatePath("/activity");
   revalidatePath("/accounts");
   return ok("Asset cash flow recorded.");
 }

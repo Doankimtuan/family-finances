@@ -66,9 +66,6 @@ export async function resolveCardBillingMonth(
   return monthResult.data;
 }
 
-/**
- * Handles all synchronization logic for credit card billing when a transaction is updated or moved.
- */
 export async function syncCardBillingOnUpdate(
   supabase: SupabaseClient,
   householdId: string,
@@ -128,7 +125,6 @@ export async function syncCardBillingOnUpdate(
     const oldCardId = billingItem.card_account_id;
 
     if (!nextIsCard) {
-      // Moved away from card account: remove billing item + statement contribution.
       await supabase.rpc("increment_statement_amount", {
         month_id: oldMonthId,
         inc: -prevSigned,
@@ -186,7 +182,6 @@ export async function syncCardBillingOnUpdate(
       }
     }
   } else if (!billingItem && nextIsCard && (nextType === "expense" || nextType === "income")) {
-    // Was non-card before, now moved to card: create matching standard billing item.
     const targetMonth = await resolveCardBillingMonth(
       supabase,
       householdId,
@@ -213,9 +208,6 @@ export async function syncCardBillingOnUpdate(
   return {};
 }
 
-/**
- * Handles cleanup of credit card billing when a transaction is deleted.
- */
 export async function syncCardBillingOnDelete(
   supabase: SupabaseClient,
   householdId: string,

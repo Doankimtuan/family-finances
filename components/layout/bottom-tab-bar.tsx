@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   Wallet,
-  PiggyBank,
+  Target,
   ArrowLeftRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -31,13 +31,13 @@ const baseTabs = [
   },
   {
     labelKey: "nav.activity",
-    href: "/transactions",
+    href: "/activity",
     icon: ArrowLeftRight,
   },
   {
-    labelKey: "nav.plan",
-    href: "/jars",
-    icon: PiggyBank,
+    labelKey: "nav.goals",
+    href: "/goals",
+    icon: Target,
   },
 ];
 
@@ -46,7 +46,7 @@ export function BottomTabBar() {
   const { t } = useI18n();
   const tabs = isFeatureEnabled("jars")
     ? baseTabs
-    : baseTabs.filter((tab) => tab.href !== "/jars");
+    : baseTabs.filter((tab) => tab.href !== "/goals");
 
   return (
     <nav

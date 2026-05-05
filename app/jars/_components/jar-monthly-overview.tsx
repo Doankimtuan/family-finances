@@ -194,7 +194,7 @@ export function JarMonthlyOverview({
                   defaultValue={Number(target?.target_value ?? 0)}
                 />
                 <Button variant="outline" size="sm" asChild className="rounded-xl">
-                  <Link href={`/jars/${jar.id}/history`}>
+                  <Link href={`/goals/jars/${jar.id}/history`}>
                     {t("jars.action.view_history")}
                   </Link>
                 </Button>

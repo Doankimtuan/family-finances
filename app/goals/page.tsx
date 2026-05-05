@@ -1,6 +1,9 @@
 import { differenceInCalendarMonths } from "date-fns";
+import Link from "next/link";
 import { AddContributionForm } from "@/app/goals/_components/add-contribution-form";
 import { CreateGoalForm } from "@/app/goals/_components/create-goal-form";
+import { JarsTab } from "@/app/goals/_components/jars-tab";
+import { GoalsPageClient } from "@/app/goals/_components/goals-page-client";
 import { AppHeader } from "@/components/layout/app-header";
 import { AppShell } from "@/components/layout/app-shell";
 import { BottomTabBar } from "@/components/layout/bottom-tab-bar";
@@ -31,6 +34,7 @@ import {
   Sparkles,
   AlertCircle,
   ArrowRight,
+  PiggyBank,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -67,7 +71,15 @@ function monthsUntil(date: string) {
   return Math.max(0, differenceInCalendarMonths(target, now));
 }
 
-export default async function GoalsPage() {
+export default async function GoalsPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ tab?: string; month?: string }>;
+}) {
+  const params = searchParams ? await searchParams : undefined;
+  const activeTab = params?.tab === "jars" ? "jars" : "goals";
+  const month = params?.month;
+
   const { householdId, language, householdLocale } =
     await getAuthenticatedHouseholdContext();
   const vi = language === "vi";
@@ -122,6 +134,11 @@ export default async function GoalsPage() {
       footer={<BottomTabBar />}
     >
       <div className="space-y-6 pb-24 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        {/* ── Tab switcher (client-side for instant switching) ── */}
+        <GoalsPageClient
+          initialTab={activeTab}
+          goalsContent={
+            <>
         <Card className="border-primary/20 bg-primary/5 shadow-sm">
           <CardHeader>
             <SectionHeader
@@ -520,6 +537,10 @@ export default async function GoalsPage() {
             </div>
           )}
         </section>
+            </>
+          }
+          jarsContent={<JarsTab month={month} />}
+        />
       </div>
     </AppShell>
   );

@@ -119,7 +119,7 @@ export default async function JarHistoryPage({
             />
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <Link href="/jars" className="text-sm font-semibold text-white hover:underline">
+              <Link href="/goals?tab=jars" className="text-sm font-semibold text-white hover:underline">
                 {t(language, "jars.history.back_link")}
               </Link>
 

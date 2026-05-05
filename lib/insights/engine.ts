@@ -48,7 +48,7 @@ export function detectSpendingAnomaly(input: {
       ? `Chi tiêu tháng này cao hơn ${deltaPct}% so với trung bình 3 tháng trước. Hãy rà soát nhóm chi biến đổi để bảo toàn đà tiết kiệm.`
       : `This month expenses are ${deltaPct}% above your previous 3-month average. Review variable categories to protect savings momentum.`,
     actionLabel: vi ? "Xem Giao dịch" : "Review Transactions",
-    actionTarget: "/transactions",
+    actionTarget: "/activity",
   };
 }
 

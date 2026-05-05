@@ -83,7 +83,7 @@ export default async function JarDetailPage({
       <div className="space-y-6 pb-24">
         <div>
           <Button variant="ghost" size="sm" asChild className="-ml-2 h-8 px-2 text-primary hover:text-primary/80">
-            <Link href="/jars">
+            <Link href="/goals?tab=jars">
               <ChevronLeft className="mr-1 h-4 w-4" />
               {t(language, "jars.back_to_jars")}
             </Link>

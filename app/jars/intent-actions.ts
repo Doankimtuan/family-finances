@@ -35,7 +35,7 @@ export async function bootstrapPresetJarsAction(formData: FormData) {
       entityType: "jar",
       entityId: householdId,
     });
-    revalidatePath("/jars");
+    revalidatePath("/goals");
     revalidatePath("/dashboard");
     redirect(withStatus(returnTo, "success", "Da khoi tao bo 6 hu mac dinh."));
   } catch (error) {
@@ -134,8 +134,8 @@ export async function createIntentJarAction(formData: FormData) {
       payload: { name, jarType, spendPolicy, incomePercent, fixedAmount },
     });
 
-    revalidatePath("/jars");
-    revalidatePath("/jars/setup");
+    revalidatePath("/goals");
+    revalidatePath("/goals?tab=jars");
     redirect(withStatus(returnTo, "success", "Da tao hu moi."));
   } catch (error) {
     redirect(
@@ -189,8 +189,8 @@ export async function upsertJarPlanAction(formData: FormData) {
       .eq("id", jarId);
     if (updateJar.error) throw new Error(updateJar.error.message);
 
-    revalidatePath("/jars");
-    revalidatePath(`/jars/${jarId}`);
+    revalidatePath("/goals");
+    revalidatePath(`/goals/jars/${jarId}`);
     redirect(withStatus(returnTo, "success", "Da cap nhat ke hoach thang."));
   } catch (error) {
     redirect(
@@ -232,8 +232,8 @@ export async function upsertExpenseRuleAction(formData: FormData) {
     });
     if (insert.error) throw new Error(insert.error.message);
 
-    revalidatePath("/jars");
-    revalidatePath("/jars/setup");
+    revalidatePath("/goals");
+    revalidatePath("/goals?tab=jars");
     redirect(withStatus(returnTo, "success", "Da luu quy tac category -> hu."));
   } catch (error) {
     redirect(
@@ -270,8 +270,8 @@ export async function resolveJarReviewAction(formData: FormData) {
       allocations,
     });
 
-    revalidatePath("/jars");
-    revalidatePath("/jars/review");
+    revalidatePath("/goals");
+    revalidatePath("/goals/jars/review");
     revalidatePath("/dashboard");
     redirect(withStatus(returnTo, "success", "Da xu ly review item."));
   } catch (error) {
@@ -343,8 +343,8 @@ export async function deleteIntentJarAction(formData: FormData) {
       .eq("id", jarId);
     if (deleteResult.error) throw new Error(deleteResult.error.message);
 
-    revalidatePath("/jars");
-    revalidatePath("/jars/setup");
+    revalidatePath("/goals");
+    revalidatePath("/goals?tab=jars");
     redirect(withStatus(returnTo, "success", "Da xoa hu."));
   } catch (error) {
     redirect(
@@ -384,8 +384,8 @@ export async function addManualJarAdjustmentAction(formData: FormData) {
       createdBy: user.id,
     });
 
-    revalidatePath("/jars");
-    revalidatePath(`/jars/${jarId}`);
+    revalidatePath("/goals");
+    revalidatePath(`/goals/jars/${jarId}`);
     redirect(withStatus(returnTo, "success", "Da ghi nhan dieu chinh thu cong."));
   } catch (error) {
     redirect(

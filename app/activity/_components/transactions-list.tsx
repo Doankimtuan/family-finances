@@ -5,11 +5,11 @@ import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import {
   deleteTransactionAction,
   updateTransactionAction,
-} from "@/app/transactions/actions";
+} from "@/app/activity/actions";
 import {
   initialTransactionActionState,
   type TransactionActionState,
-} from "@/app/transactions/action-types";
+} from "@/app/activity/action-types";
 import { formatVnd, formatDate } from "@/lib/dashboard/format";
 import { useI18n } from "@/lib/providers/i18n-provider";
 import { transactionKeys } from "@/lib/queries/keys";

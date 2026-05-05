@@ -6,11 +6,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { quickAddTransactionAction } from "@/app/transactions/actions";
+import { quickAddTransactionAction } from "@/app/activity/actions";
 import {
   initialTransactionActionState,
   type TransactionActionState,
-} from "@/app/transactions/action-types";
+} from "@/app/activity/action-types";
 import { useI18n } from "@/lib/providers/i18n-provider";
 import { RHFMoneyInput } from "@/components/ui/rhf-fields";
 import { Button } from "@/components/ui/button";

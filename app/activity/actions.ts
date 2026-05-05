@@ -60,10 +60,10 @@ async function getDefaultCategoryId(
 }
 
 function revalidateTransactionRelatedPaths() {
-  revalidatePath("/transactions");
+  revalidatePath("/activity");
   revalidatePath("/dashboard");
   revalidatePath("/accounts");
-  revalidatePath("/jars");
+  revalidatePath("/goals");
 }
 
 // ─── Actions ────────────────────────────────────────────────────────────────
@@ -131,9 +131,7 @@ export async function quickAddTransactionAction(
     );
     if (snapshot.error) return fail(snapshot.error);
     if (snapshot.balance !== null && amountRounded > snapshot.balance) {
-      return fail(
-        t("transactions.error.insufficient_funds"),
-      );
+      return fail(t("transactions.error.insufficient_funds"));
     }
   }
   const insert = await supabase
@@ -159,9 +157,7 @@ export async function quickAddTransactionAction(
     type === "expense" &&
     isInsufficientFundsError(insert.error?.message)
   ) {
-    return fail(
-      t("transactions.error.insufficient_funds"),
-    );
+    return fail(t("transactions.error.insufficient_funds"));
   }
 
   if (insert.error || !insert.data?.id)
@@ -184,9 +180,9 @@ export async function quickAddTransactionAction(
     },
   });
 
-  revalidatePath("/transactions");
+  revalidatePath("/activity");
   revalidatePath("/dashboard");
-  revalidatePath("/jars");
+  revalidatePath("/goals");
 
   await syncTransactionToJarIntent(supabase, {
     householdId,
@@ -264,9 +260,7 @@ export async function addTransactionDetailedAction(
     );
     if (snapshot.error) return fail(snapshot.error);
     if (snapshot.balance !== null && amountRounded > snapshot.balance) {
-      return fail(
-        t("transactions.error.insufficient_funds"),
-      );
+      return fail(t("transactions.error.insufficient_funds"));
     }
   }
   const insert = await supabase
@@ -293,9 +287,7 @@ export async function addTransactionDetailedAction(
     type === "expense" &&
     isInsufficientFundsError(insert.error?.message)
   ) {
-    return fail(
-      t("transactions.error.insufficient_funds"),
-    );
+    return fail(t("transactions.error.insufficient_funds"));
   }
 
   if (insert.error || !insert.data?.id)
@@ -319,9 +311,9 @@ export async function addTransactionDetailedAction(
     },
   });
 
-  revalidatePath("/transactions");
+  revalidatePath("/activity");
   revalidatePath("/dashboard");
-  revalidatePath("/jars");
+  revalidatePath("/goals");
 
   await syncTransactionToJarIntent(supabase, {
     householdId,
@@ -449,7 +441,6 @@ export async function updateTransactionAction(
   if (update.error || !update.data?.id)
     return fail(update.error?.message ?? "Failed to update transaction.");
 
-  // Sync card billing
   const billingSync = await syncCardBillingOnUpdate(
     supabase,
     householdId,
@@ -487,23 +478,18 @@ export async function updateTransactionAction(
   });
 
   revalidateTransactionRelatedPaths();
-  revalidatePath("/money");
   revalidatePath("/accounts");
 
   const prevAccountId = String(existing.data.account_id ?? "");
   const prevAccountType = prevAccountId
     ? await getAccountType(supabase, householdId, prevAccountId)
     : null;
-  const nextAccountType = await getAccountType(
-    supabase,
-    householdId,
-    accountId,
-  );
+  const nextAccountType = await getAccountType(supabase, householdId, accountId);
 
   if (prevAccountType === "credit_card" && prevAccountId)
-    revalidatePath(`/money/card/${prevAccountId}`);
+    revalidatePath(`/accounts/card/${prevAccountId}`);
   if (nextAccountType === "credit_card")
-    revalidatePath(`/money/card/${accountId}`);
+    revalidatePath(`/accounts/card/${accountId}`);
 
   const spendingJarWarning =
     type === "expense"
@@ -545,7 +531,6 @@ export async function deleteTransactionAction(
   const prevAmount = Number(existing.data.amount ?? 0);
   const prevType = String(existing.data.type ?? "expense");
 
-  // Sync card billing
   const billingSync = await syncCardBillingOnDelete(
     supabase,
     householdId,
@@ -576,14 +561,13 @@ export async function deleteTransactionAction(
   });
 
   revalidateTransactionRelatedPaths();
-  revalidatePath("/money");
   revalidatePath("/accounts");
 
   const prevAccountType = prevAccountId
     ? await getAccountType(supabase, householdId, prevAccountId)
     : null;
   if (prevAccountType === "credit_card" && prevAccountId)
-    revalidatePath(`/money/card/${prevAccountId}`);
+    revalidatePath(`/accounts/card/${prevAccountId}`);
 
   return ok("Transaction deleted.");
 }

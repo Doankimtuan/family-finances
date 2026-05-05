@@ -24,7 +24,7 @@ export function QuickActionsSection({
       </CardHeader>
       <CardContent className="grid grid-cols-2 gap-3 px-0 sm:grid-cols-3 lg:grid-cols-4">
         <QuickAction
-          href="/transactions"
+          href="/activity"
           icon={History}
           label={t("dashboard.shortcuts.transactions")}
           variant="primary"
@@ -41,7 +41,7 @@ export function QuickActionsSection({
         />
         {jarsEnabled ? (
           <QuickAction
-            href="/jars"
+            href="/goals?tab=jars"
             icon={Sparkles}
             label={t("dashboard.shortcuts.jars")}
           />

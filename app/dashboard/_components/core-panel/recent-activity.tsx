@@ -30,7 +30,7 @@ export function RecentActivity({
           title={t("dashboard.activity.title")}
         />
         <Link
-          href="/transactions"
+          href="/activity"
           className="text-sm font-medium text-primary hover:underline"
         >
           {t("dashboard.activity.view_more")}

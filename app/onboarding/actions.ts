@@ -153,8 +153,7 @@ export async function addAccountOnboardingAction(
     payload: { name, type, openingBalance: openingBalanceRounded },
   });
 
-  revalidatePath("/onboarding/money");
-  revalidatePath("/money");
+  revalidatePath("/onboarding/accounts");
   revalidatePath("/accounts");
   return ok("Account added.");
 }
@@ -332,8 +331,7 @@ export async function addDebtOnboardingAction(
     },
   });
 
-  revalidatePath("/onboarding/debts");
-  revalidatePath("/debts");
+  revalidatePath("/onboarding/accounts");
   revalidatePath("/accounts");
   return ok("Debt added.");
 }
