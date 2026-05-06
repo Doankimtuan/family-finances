@@ -7,8 +7,8 @@ import * as z from "zod";
 import { useI18n } from "@/lib/providers/i18n-provider";
 import { RHFInput, RHFSelect } from "@/components/ui/rhf-fields";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { TransactionType, TRANSACTION_TYPES } from "../_constants";
+import { SegmentedControl } from "@/components/ui/segmented-control";
+import { TransactionType } from "../_constants";
 
 const editTransactionSchema = z.object({
   type: z.enum(["income", "expense", "transfer"]),
@@ -53,7 +53,8 @@ export function TransactionEditForm({
   onCancel,
   isPending,
 }: TransactionEditFormProps) {
-  const { t } = useI18n();
+  const { language, t } = useI18n();
+  const typeLabel = language === "vi" ? "Loại giao dịch" : "Transaction type";
 
   const [type, setType] = useState<TransactionType>(
     (transaction.type === "income" || transaction.type === "transfer"
@@ -74,7 +75,7 @@ export function TransactionEditForm({
     },
   });
 
-  const { handleSubmit, setValue, watch } = methods;
+  const { handleSubmit, setValue } = methods;
 
   const filteredCategories = useMemo(
     () => categories.filter((category) => category.kind === type),
@@ -101,67 +102,23 @@ export function TransactionEditForm({
 
   return (
     <FormProvider {...methods}>
-      <form
-        className="space-y-3"
-        noValidate
-        onSubmit={handleSubmit(handleFormSubmit)}
-      >
+      <form className="space-y-4" noValidate onSubmit={handleSubmit(handleFormSubmit)}>
         <input type="hidden" name="transactionId" value={transaction.id} />
         <input type="hidden" name="type" value={type} />
 
-        <div className="grid grid-cols-3 gap-2 rounded-xl bg-slate-100 p-1">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              setType("expense");
-              setValue("type", "expense");
-            }}
-            className={cn(
-              "rounded-lg transition-all text-xs font-bold",
-              type === "expense"
-                ? "bg-white text-slate-900 shadow-sm"
-                : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50",
-            )}
-          >
-            {t("activity.edit.expense")}
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              setType("income");
-              setValue("type", "income");
-            }}
-            className={cn(
-              "rounded-lg transition-all text-xs font-bold",
-              type === "income"
-                ? "bg-white text-slate-900 shadow-sm"
-                : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50",
-            )}
-          >
-            {t("activity.edit.income")}
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              setType("transfer");
-              setValue("type", "transfer");
-            }}
-            className={cn(
-              "rounded-lg transition-all text-xs font-bold",
-              type === "transfer"
-                ? "bg-white text-slate-900 shadow-sm"
-                : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50",
-            )}
-          >
-            {t("activity.edit.transfer")}
-          </Button>
-        </div>
+        <SegmentedControl
+          ariaLabel={typeLabel}
+          value={type}
+          onValueChange={(nextType) => {
+            setType(nextType as TransactionType);
+            setValue("type", nextType as "income" | "expense" | "transfer");
+          }}
+          options={[
+            { value: "expense", label: t("activity.edit.expense") },
+            { value: "income", label: t("activity.edit.income") },
+            { value: "transfer", label: t("activity.edit.transfer") },
+          ]}
+        />
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <RHFInput
@@ -171,14 +128,14 @@ export function TransactionEditForm({
             min={1}
             step={1}
             required
-            className="bg-slate-50 focus:bg-white"
+            className="rounded-xl border-border/70 bg-background shadow-sm focus-visible:ring-2 focus-visible:ring-primary/20"
           />
           <RHFInput
             name="transactionDate"
             label={t("activity.edit.date")}
             type="date"
             required
-            className="bg-slate-50 focus:bg-white"
+            className="rounded-xl border-border/70 bg-background shadow-sm focus-visible:ring-2 focus-visible:ring-primary/20"
           />
         </div>
 
@@ -188,7 +145,7 @@ export function TransactionEditForm({
           required
           options={accounts.map((acc) => ({ label: acc.name, value: acc.id }))}
           placeholder={t("activity.detailed.select_account")}
-          className="bg-slate-50 focus:bg-white"
+          className="rounded-xl border-border/70 bg-background shadow-sm focus:ring-2 focus:ring-primary/20"
         />
 
         {type === "transfer" ? (
@@ -201,7 +158,7 @@ export function TransactionEditForm({
               value: acc.id,
             }))}
             placeholder={t("activity.detailed.select_destination_account")}
-            className="bg-slate-50 focus:bg-white"
+            className="rounded-xl border-border/70 bg-background shadow-sm focus:ring-2 focus:ring-primary/20"
           />
         ) : (
           <RHFSelect
@@ -217,7 +174,7 @@ export function TransactionEditForm({
                 ? t("activity.quick_add.no_category")
                 : t("activity.detailed.select_category")
             }
-            className="bg-slate-50 focus:bg-white"
+            className="rounded-xl border-border/70 bg-background shadow-sm focus:ring-2 focus:ring-primary/20"
           />
         )}
 
@@ -225,14 +182,14 @@ export function TransactionEditForm({
           name="description"
           label={t("activity.edit.note")}
           placeholder={t("activity.edit.note_placeholder")}
-          className="bg-slate-50 focus:bg-white"
+          className="rounded-xl border-border/70 bg-background shadow-sm focus-visible:ring-2 focus-visible:ring-primary/20"
         />
 
         <div className="flex gap-2 pt-2">
           <Button
             type="submit"
             disabled={isPending}
-            className="flex-1 font-bold"
+            className="flex-1 rounded-xl font-semibold shadow-sm transition-transform active:scale-[0.99]"
           >
             {isPending
               ? t("common.saving")
@@ -242,7 +199,7 @@ export function TransactionEditForm({
             type="button"
             variant="outline"
             onClick={onCancel}
-            className="font-bold"
+            className="rounded-xl font-semibold"
           >
             {t("activity.edit.cancel")}
           </Button>

@@ -12,7 +12,6 @@ import {
   Receipt,
   ArrowUpRight,
   ArrowDownRight,
-  Zap,
   Repeat,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
@@ -34,7 +33,8 @@ export async function TransactionsContent({
   householdId: string;
 }) {
   const supabase = await createClient();
-  const { householdLocale, language } = await getAuthenticatedHouseholdContext();
+  const { householdLocale, language } =
+    await getAuthenticatedHouseholdContext();
 
   const [accountsResult, categoriesResult, transactionsResult] =
     await Promise.all([
@@ -106,11 +106,14 @@ export async function TransactionsContent({
       ? (profileMap.get(tx.paid_by_member_id) ?? null)
       : null,
     transaction_subtype:
-      "transaction_subtype" in tx ? (tx.transaction_subtype as string | null) : null,
+      "transaction_subtype" in tx
+        ? (tx.transaction_subtype as string | null)
+        : null,
     is_non_cash: "is_non_cash" in tx ? Boolean(tx.is_non_cash) : false,
   }));
   const historyItems = listItems.slice(0, TRANSACTION_HISTORY_LIMIT);
-  const historyHasMore = (transactionsResult.data ?? []).length > TRANSACTION_HISTORY_LIMIT;
+  const historyHasMore =
+    (transactionsResult.data ?? []).length > TRANSACTION_HISTORY_LIMIT;
   const lastHistoryRow = transactionsResult.data?.[historyItems.length - 1];
   const historyNextCursor =
     historyHasMore && lastHistoryRow
@@ -147,47 +150,61 @@ export async function TransactionsContent({
   const monthNet = monthIncome - monthExpense;
 
   return (
-    <div className="space-y-6 pb-28 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      {/* ── Monthly Summary Banner ── */}
+    <div className="mx-auto w-full max-w-md space-y-8 px-4 pb-28 animate-in fade-in slide-in-from-bottom-4 duration-700 sm:max-w-xl lg:max-w-2xl">
       {listItems.length > 0 && (
-        <div className="relative overflow-hidden rounded-2xl bg-linear-to-br from-slate-900 to-slate-800 p-5 shadow-lg">
-          <div className="absolute -right-6 -top-6 w-28 h-28 bg-white/5 rounded-full" />
-          <p className="text-[9px] font-bold uppercase tracking-widest text-white/50 mb-3">
-            {t(language, "activity.summary.this_month")}
-          </p>
-          <div className="grid grid-cols-3 gap-3">
-            <div>
-              <p className="text-[9px] font-bold uppercase tracking-wider text-emerald-400/80 mb-1">
-                {t(language, "activity.summary.income")}
-              </p>
-              <p className="text-base font-bold text-emerald-400 tabular-nums">
-                {formatVndCompact(monthIncome, householdLocale)}
-              </p>
+        <Card
+          variant="glass"
+          className="overflow-hidden border-primary/10 bg-gradient-to-br from-primary/10 via-card to-muted/20 shadow-lg"
+        >
+          <CardContent className="relative p-5 sm:p-6">
+            <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-primary/10 blur-3xl" />
+            <div className="relative space-y-5">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+                    {t(language, "activity.summary.this_month")}
+                  </p>
+                </div>
+                <div className="rounded-full border border-border/60 bg-background/80 px-3 py-1 text-xs font-medium text-muted-foreground shadow-sm">
+                  {listItems.length} {t(language, "activity.list.recent")}
+                </div>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-3">
+                <div className="rounded-2xl border border-emerald-500/10 bg-background/80 p-4 shadow-sm backdrop-blur-sm">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-emerald-600/80">
+                    {t(language, "activity.summary.income")}
+                  </p>
+                  <p className="mt-2 text-lg font-semibold tabular-nums text-emerald-600 sm:text-xl">
+                    {formatVndCompact(monthIncome, householdLocale)}
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-rose-500/10 bg-background/80 p-4 shadow-sm backdrop-blur-sm">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-rose-600/80">
+                    {t(language, "activity.summary.expense")}
+                  </p>
+                  <p className="mt-2 text-lg font-semibold tabular-nums text-rose-600 sm:text-xl">
+                    {formatVndCompact(monthExpense, householdLocale)}
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-border/60 bg-background/80 p-4 shadow-sm backdrop-blur-sm">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                    {t(language, "activity.summary.net")}
+                  </p>
+                  <p
+                    className={cn(
+                      "mt-2 text-lg font-semibold tabular-nums sm:text-xl",
+                      monthNet >= 0 ? "text-foreground" : "text-rose-600",
+                    )}
+                  >
+                    {monthNet >= 0 ? "+" : ""}
+                    {formatVndCompact(monthNet, householdLocale)}
+                  </p>
+                </div>
+              </div>
             </div>
-            <div>
-              <p className="text-[9px] font-bold uppercase tracking-wider text-rose-400/80 mb-1">
-                {t(language, "activity.summary.expense")}
-              </p>
-              <p className="text-base font-bold text-rose-400 tabular-nums">
-                {formatVndCompact(monthExpense, householdLocale)}
-              </p>
-            </div>
-            <div>
-              <p className="text-[9px] font-bold uppercase tracking-wider text-white/50 mb-1">
-                {t(language, "activity.summary.net")}
-              </p>
-              <p
-                className={cn(
-                  "text-base font-bold tabular-nums",
-                  monthNet >= 0 ? "text-white" : "text-rose-400",
-                )}
-              >
-                {monthNet >= 0 ? "+" : ""}
-                {formatVndCompact(monthNet, householdLocale)}
-              </p>
-            </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       )}
 
       {accounts.length === 0 ? (
@@ -197,109 +214,112 @@ export async function TransactionsContent({
           description={t(language, "activity.empty.no_accounts_desc")}
           action={
             <Button asChild>
-              <Link href="/accounts">{t(language, "activity.empty.go_to_accounts")}</Link>
+              <Link href="/accounts">
+                {t(language, "activity.empty.go_to_accounts")}
+              </Link>
             </Button>
           }
           className="bg-amber-50/50 border-amber-200"
         />
       ) : (
-        <div className="space-y-6">
-          {/* ── Quick Add (mobile-first) ── */}
-          <Card className="border-primary/20 bg-primary/5 sm:hidden">
-            <CardHeader className="pb-2">
-              <SectionHeader
-                label={t(language, "activity.form.speed")}
-                title={t(language, "activity.form.quick_add")}
-                description={t(language, "activity.form.quick_add_desc")}
-              />
-            </CardHeader>
-            <CardContent>
-              <QuickAddForm
-                accountId={accounts[0]!.id}
-                categories={quickCategories}
-              />
-            </CardContent>
-          </Card>
+        <div className="space-y-8">
+          <div className="w-full">
+            <div className="grid gap-8">
+              <Card
+                variant="elevated"
+                className="w-full border-primary/10 bg-gradient-to-br from-primary/5 via-card to-muted/20"
+              >
+                <CardHeader className="pb-3">
+                  <SectionHeader
+                    label={t(language, "activity.form.speed")}
+                    title={t(language, "activity.form.quick_add")}
+                    description={t(language, "activity.form.quick_add_desc")}
+                  />
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <QuickAddForm
+                    accountId={accounts[0]!.id}
+                    categories={quickCategories}
+                  />
+                </CardContent>
+              </Card>
 
-          {/* ── Add FAB (floating action button look on mobile) ── */}
-          <div className="flex gap-3 sm:hidden">
-            <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground">
-              <Zap className="h-3.5 w-3.5 text-primary" />
-              {t(language, "activity.form.or_add_detail")}
+              <Card className="w-full">
+                <CardHeader className="pb-3">
+                  <SectionHeader
+                    label={t(language, "activity.form.details")}
+                    title={t(language, "activity.form.detailed_entry")}
+                    description={t(
+                      language,
+                      "activity.form.detailed_entry_desc",
+                    )}
+                  />
+                </CardHeader>
+                <CardContent>
+                  <DetailedTransactionForm
+                    accounts={accounts.map((account) => ({
+                      id: account.id,
+                      name: account.name,
+                    }))}
+                    categories={categories
+                      .filter(
+                        (category) =>
+                          category.kind === "income" ||
+                          category.kind === "expense",
+                      )
+                      .map((category) => ({
+                        id: category.id,
+                        name: category.name,
+                        kind: category.kind as "income" | "expense",
+                      }))}
+                  />
+                </CardContent>
+              </Card>
             </div>
           </div>
 
-          {/* ── Detailed Entry ── */}
-          <Card>
-            <CardHeader className="pb-2">
-              <SectionHeader
-                label={t(language, "activity.form.details")}
-                title={t(language, "activity.form.detailed_entry")}
-                description={t(language, "activity.form.detailed_entry_desc")}
-              />
-            </CardHeader>
-            <CardContent>
-              <DetailedTransactionForm
-                accounts={accounts.map((account) => ({
-                  id: account.id,
-                  name: account.name,
-                }))}
-                categories={categories
-                  .filter(
-                    (category) =>
-                      category.kind === "income" || category.kind === "expense",
-                  )
-                  .map((category) => ({
-                    id: category.id,
-                    name: category.name,
-                    kind: category.kind as "income" | "expense",
-                  }))}
-              />
-            </CardContent>
-          </Card>
-
-          {/* ── Recurring Link ── */}
-          <Link href="/recurring">
-            <Card className="hover:border-primary/50 transition-colors cursor-pointer">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
-                    <Repeat className="h-5 w-5 text-primary" />
+          <div className="w-full">
+            <Link href="/recurring" className="block">
+              <Card className="group overflow-hidden border-border/70 transition-all hover:border-primary/30 hover:bg-primary/5">
+                <CardContent className="p-5">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary transition-transform group-hover:scale-105">
+                      <Repeat className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-foreground">
+                        {t(language, "activity.form.recurring")}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {t(language, "activity.form.recurring_desc")}
+                      </p>
+                    </div>
+                    <ArrowUpRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                   </div>
-                  <div className="flex-1">
-                    <p className="font-semibold text-sm">
-                      {t(language, "activity.form.recurring")}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {t(language, "activity.form.recurring_desc")}
-                    </p>
-                  </div>
-                  <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
+                </CardContent>
+              </Card>
+            </Link>
+          </div>
 
-          {/* ── History ── */}
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold flex items-center gap-2">
-                <Receipt className="h-5 w-5 text-primary" />
-                {t(language, "activity.list.recent")}
-              </h2>
-              <span className="text-xs text-muted-foreground font-medium">
-                {t(language, "activity.list.latest_shown")}
-              </span>
-            </div>
+            <SectionHeader
+              label={t(language, "activity.list.latest_shown")}
+              title={t(language, "activity.list.recent")}
+              icon={Receipt}
+              rightAction={
+                <span className="rounded-full border border-border/60 bg-muted/40 px-3 py-1 text-xs font-medium text-muted-foreground">
+                  {listItems.length}
+                </span>
+              }
+            />
 
-            {/* Month legend */}
-            <div className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-wider">
-              <span className="flex items-center gap-1 text-emerald-600">
-                <ArrowUpRight className="h-3 w-3" />
+            <div className="flex flex-wrap items-center gap-2 text-[11px] font-medium text-muted-foreground">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-1 text-emerald-700 dark:text-emerald-400">
+                <ArrowUpRight className="h-3.5 w-3.5" />
                 {t(language, "activity.list.in")}
               </span>
-              <span className="flex items-center gap-1 text-slate-500">
-                <ArrowDownRight className="h-3 w-3" />
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-2.5 py-1 text-rose-700 dark:text-rose-400">
+                <ArrowDownRight className="h-3.5 w-3.5" />
                 {t(language, "activity.list.out")}
               </span>
             </div>
@@ -309,7 +329,7 @@ export async function TransactionsContent({
                 icon={History}
                 title={t(language, "transactions.error")}
                 description={transactionsResult.error.message}
-                className="bg-destructive/5 border-destructive/20"
+                className="border-destructive/20 bg-destructive/5"
               />
             ) : null}
 

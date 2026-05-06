@@ -21,8 +21,11 @@ export default async function ActivityPage() {
         <AppHeader
           title={t(language, "transactions.title")}
           rightAction={
-            <Link href="/settings" className="p-2 -mr-2 text-muted-foreground hover:text-foreground transition-colors">
-              <Settings className="h-6 w-6" />
+            <Link
+              href="/settings"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/70 bg-background/80 text-muted-foreground shadow-sm transition-all hover:border-primary/20 hover:bg-primary/5 hover:text-foreground"
+            >
+              <Settings className="h-5 w-5" />
               <span className="sr-only">{t(language, "nav.settings")}</span>
             </Link>
           }

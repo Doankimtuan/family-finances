@@ -1,7 +1,7 @@
 "use client";
 
 import { useTransition, useState, useMemo } from "react";
-import { useForm, FormProvider } from "react-hook-form";
+import { useForm, FormProvider, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { AlertTriangle } from "lucide-react";
@@ -16,6 +16,7 @@ import { RHFMoneyInput } from "@/components/ui/rhf-fields";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { FormStatus } from "@/components/ui/form-status";
+import { SegmentedControl } from "@/components/ui/segmented-control";
 import { toast } from "sonner";
 
 const quickAddSchema = z.object({
@@ -39,9 +40,12 @@ type QuickAddFormProps = {
 
 export function QuickAddForm({ accountId, categories }: QuickAddFormProps) {
   const { language, t } = useI18n();
-  const vi = language === "vi";
-  const [state, setState] = useState<TransactionActionState>(initialTransactionActionState);
+  const [state, setState] = useState<TransactionActionState>(
+    initialTransactionActionState,
+  );
   const [isPending, startTransition] = useTransition();
+  const quickAddModeLabel =
+    language === "vi" ? "Chế độ nhập nhanh" : "Quick add mode";
 
   const methods = useForm<QuickAddValues>({
     resolver: zodResolver(quickAddSchema),
@@ -53,9 +57,9 @@ export function QuickAddForm({ accountId, categories }: QuickAddFormProps) {
     },
   });
 
-  const { handleSubmit, setValue, watch, reset } = methods;
-  const type = watch("type");
-  const activeCategoryId = watch("categoryId");
+  const { handleSubmit, setValue, reset, control } = methods;
+  const type = useWatch({ control, name: "type" });
+  const activeCategoryId = useWatch({ control, name: "categoryId" });
   const isIncomeMode = type === "income";
 
   const helperText = useMemo(() => {
@@ -91,81 +95,65 @@ export function QuickAddForm({ accountId, categories }: QuickAddFormProps) {
 
   return (
     <FormProvider {...methods}>
-      <form
-        className="space-y-3"
-        noValidate
-        onSubmit={handleSubmit(onSubmit)}
-      >
-        <div className="grid grid-cols-2 gap-2 rounded-xl bg-slate-100 p-1">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => setValue("type", "expense")}
-            className={cn(
-              "rounded-lg transition-all",
-              !isIncomeMode
-                ? "bg-white text-slate-900 shadow-sm"
-                : "text-slate-600 hover:bg-slate-200/50"
-            )}
-          >
-            {t("activity.quick_add.expense")}
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => setValue("type", "income")}
-            className={cn(
-              "rounded-lg transition-all",
-              isIncomeMode
-                ? "bg-white text-slate-900 shadow-sm"
-                : "text-slate-600 hover:bg-slate-200/50"
-            )}
-          >
-            {t("activity.quick_add.income")}
-          </Button>
-        </div>
+      <form className="space-y-4" noValidate onSubmit={handleSubmit(onSubmit)}>
+        <SegmentedControl
+          ariaLabel={quickAddModeLabel}
+          value={type}
+          onValueChange={(nextType) =>
+            setValue("type", nextType as "income" | "expense")
+          }
+          options={[
+            { value: "expense", label: t("activity.quick_add.expense") },
+            { value: "income", label: t("activity.quick_add.income") },
+          ]}
+        />
 
         <RHFMoneyInput
           name="amount"
           label={t("activity.quick_add.amount")}
-          className="w-full text-xl font-semibold"
+          className="w-full rounded-2xl border-2 border-border/70 bg-background text-2xl font-bold tracking-tight shadow-sm transition-colors focus-visible:border-primary/50 focus-visible:ring-4 focus-visible:ring-primary/10 sm:text-3xl"
           autoFocus
           placeholder="0"
         />
 
         {!isIncomeMode ? (
-          <div className="space-y-1">
-            <p className="text-sm font-medium text-slate-700">
+          <div className="space-y-2 rounded-2xl border border-border/70 bg-muted/30 p-3">
+            <p className="text-sm font-semibold text-foreground">
               {t("activity.quick_add.category")}
             </p>
-            <div className="flex gap-2 overflow-x-auto pb-1">
-              {categories.map((category) => (
-                <Button
-                  key={category.id}
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setValue("categoryId", category.id)}
-                  className={cn(
-                    "whitespace-nowrap rounded-full border px-3 transition",
-                    activeCategoryId === category.id
-                      ? "border-slate-900 bg-slate-900 text-white hover:bg-slate-800"
-                      : "border-slate-300 bg-white text-slate-700 hover:bg-slate-100"
-                  )}
-                >
-                  {category.name}
-                </Button>
-              ))}
-            </div>
+            {categories.length > 0 ? (
+              <div className="flex flex-wrap gap-2 pt-1 pb-1">
+                {categories.map((category) => (
+                  <Button
+                    key={category.id}
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setValue("categoryId", category.id)}
+                    className={cn(
+                      "whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium transition-all",
+                      activeCategoryId === category.id
+                        ? "border-primary bg-primary text-primary-foreground shadow-md ring-2 ring-primary/20"
+                        : "border-border bg-background/50 text-muted-foreground hover:border-border/80 hover:bg-background hover:text-foreground",
+                    )}
+                  >
+                    {category.name}
+                  </Button>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                {t("activity.quick_add.no_category")}
+              </p>
+            )}
           </div>
         ) : null}
 
         <Button
           type="submit"
+          size="lg"
           disabled={isPending || (!isIncomeMode && !activeCategoryId)}
-          className="w-full rounded-xl bg-slate-900"
+          className="w-full rounded-2xl text-base font-semibold shadow-lg transition-transform active:scale-[0.98]"
         >
           {isPending
             ? t("common.saving")
@@ -174,7 +162,11 @@ export function QuickAddForm({ accountId, categories }: QuickAddFormProps) {
               : t("activity.quick_add.submit.expense")}
         </Button>
 
-        <p className="text-xs text-slate-500">{helperText}</p>
+        <div className="rounded-2xl border border-primary/10 bg-primary/5 p-4 text-center">
+          <p className="text-sm font-medium leading-relaxed text-primary/80">
+            {helperText}
+          </p>
+        </div>
 
         {state.spendingJarWarning ? (
           <Alert
@@ -183,6 +175,7 @@ export function QuickAddForm({ accountId, categories }: QuickAddFormProps) {
                 ? "destructive"
                 : "warning"
             }
+            className="rounded-2xl"
           >
             <AlertTitle className="flex items-center gap-2">
               <AlertTriangle className="h-4 w-4" />

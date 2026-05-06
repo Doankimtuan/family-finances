@@ -9,12 +9,12 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { FormStatus } from "@/components/ui/form-status";
 import { RHFInput, RHFMoneyInput, RHFSelect } from "@/components/ui/rhf-fields";
+import { SegmentedControl } from "@/components/ui/segmented-control";
 import { useI18n } from "@/lib/providers/i18n-provider";
-import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertTriangle } from "lucide-react";
 import { useMemo, useState, useTransition } from "react";
-import { FormProvider, useForm } from "react-hook-form";
+import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
 
@@ -43,7 +43,7 @@ export function DetailedTransactionForm({
   categories,
 }: DetailedTransactionFormProps) {
   const { language, t } = useI18n();
-  const vi = language === "vi";
+  const typeLabel = language === "vi" ? "Loại giao dịch" : "Transaction type";
   const [state, setState] = useState<TransactionActionState>(
     initialTransactionActionState,
   );
@@ -62,8 +62,8 @@ export function DetailedTransactionForm({
     },
   });
 
-  const { handleSubmit, setValue, watch, reset } = methods;
-  const type = watch("type");
+  const { handleSubmit, setValue, reset, control } = methods;
+  const type = useWatch({ control, name: "type" });
 
   const filteredCategories = useMemo(
     () => categories.filter((category) => category.kind === type),
@@ -96,58 +96,39 @@ export function DetailedTransactionForm({
 
   return (
     <FormProvider {...methods}>
-      <form className="space-y-3" noValidate onSubmit={handleSubmit(onSubmit)}>
-        <div className="grid grid-cols-3 gap-2 rounded-xl bg-slate-100 p-1">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => setValue("type", "expense")}
-            className={cn(
-              "rounded-lg transition-all",
-              type === "expense"
-                ? "bg-white text-slate-900 shadow-sm"
-                : "text-slate-600 hover:bg-slate-200/50",
-            )}
-          >
-            {t("activity.detailed.expense")}
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => setValue("type", "income")}
-            className={cn(
-              "rounded-lg transition-all",
-              type === "income"
-                ? "bg-white text-slate-900 shadow-sm"
-                : "text-slate-600 hover:bg-slate-200/50",
-            )}
-          >
-            {t("activity.detailed.income")}
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => setValue("type", "transfer")}
-            className={cn(
-              "rounded-lg transition-all",
-              type === "transfer"
-                ? "bg-white text-slate-900 shadow-sm"
-                : "text-slate-600 hover:bg-slate-200/50",
-            )}
-          >
-            {t("activity.detailed.transfer")}
-          </Button>
-        </div>
-
-        <RHFMoneyInput
-          name="amount"
-          label={t("activity.detailed.amount")}
-          className="w-full"
-          autoFocus
+      <form
+        className="space-y-6"
+        noValidate
+        onSubmit={handleSubmit(onSubmit)}
+      >
+        <SegmentedControl
+          ariaLabel={typeLabel}
+          value={type}
+          onValueChange={(nextType) =>
+            setValue("type", nextType as "income" | "expense" | "transfer")
+          }
+          options={[
+            { value: "expense", label: t("activity.detailed.expense") },
+            { value: "income", label: t("activity.detailed.income") },
+            { value: "transfer", label: t("activity.detailed.transfer") },
+          ]}
         />
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6">
+          <RHFMoneyInput
+            name="amount"
+            label={t("activity.detailed.amount")}
+            className="w-full rounded-2xl border-border/70 bg-background text-xl font-semibold shadow-sm transition-colors focus-visible:border-primary/50 focus-visible:ring-4 focus-visible:ring-primary/10"
+            autoFocus
+          />
+          <RHFInput
+            name="transactionDate"
+            label={t("activity.detailed.date")}
+            type="date"
+            required
+            className="rounded-2xl border-border/70 bg-background shadow-sm transition-colors focus-visible:border-primary/50 focus-visible:ring-4 focus-visible:ring-primary/10"
+          />
+        </div>
 
         <RHFSelect
           name="accountId"
@@ -159,6 +140,7 @@ export function DetailedTransactionForm({
           required
           options={accounts.map((acc) => ({ label: acc.name, value: acc.id }))}
           placeholder={t("activity.detailed.select_account")}
+          className="rounded-2xl border-border/70 bg-background shadow-sm transition-colors focus:border-primary/50 focus:ring-4 focus:ring-primary/10"
         />
 
         {type === "transfer" ? (
@@ -171,6 +153,7 @@ export function DetailedTransactionForm({
               value: acc.id,
             }))}
             placeholder={t("activity.detailed.select_destination_account")}
+            className="rounded-2xl border-border/70 bg-background shadow-sm transition-colors focus:border-primary/50 focus:ring-4 focus:ring-primary/10"
           />
         ) : (
           <RHFSelect
@@ -186,26 +169,22 @@ export function DetailedTransactionForm({
                 ? t("activity.quick_add.no_category")
                 : t("activity.detailed.select_category")
             }
+            className="rounded-2xl border-border/70 bg-background shadow-sm transition-colors focus:border-primary/50 focus:ring-4 focus:ring-primary/10"
           />
         )}
-
-        <RHFInput
-          name="transactionDate"
-          label={t("activity.detailed.date")}
-          type="date"
-          required
-        />
 
         <RHFInput
           name="description"
           label={t("activity.detailed.description")}
           placeholder={t("activity.detailed.description_placeholder")}
+          className="rounded-2xl border-border/70 bg-background shadow-sm transition-colors focus-visible:border-primary/50 focus-visible:ring-4 focus-visible:ring-primary/10"
         />
 
         <Button
           type="submit"
+          size="lg"
           disabled={isPending}
-          className="w-full rounded-xl bg-slate-900"
+          className="w-full rounded-2xl text-base font-semibold shadow-lg transition-transform active:scale-[0.98]"
         >
           {isPending
             ? t("common.saving")
@@ -219,6 +198,7 @@ export function DetailedTransactionForm({
                 ? "destructive"
                 : "warning"
             }
+            className="rounded-2xl"
           >
             <AlertTitle className="flex items-center gap-2">
               <AlertTriangle className="h-4 w-4" />

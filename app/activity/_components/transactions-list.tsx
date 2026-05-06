@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { formatVnd, formatDate } from "@/lib/dashboard/format";
 import { useI18n } from "@/lib/providers/i18n-provider";
@@ -56,8 +56,7 @@ function TransactionRow({
   categories: OptionCategory[];
   onSuccess?: () => void;
 }) {
-  const { locale, t, language } = useI18n();
-  const vi = language === "vi";
+  const { locale, t } = useI18n();
   const queryClient = useQueryClient();
   const { updateTransaction, deleteTransaction, isPending } = useTransactionActions();
   const [isEditing, setIsEditing] = useState(false);
@@ -84,98 +83,91 @@ function TransactionRow({
   };
 
   return (
-    <li className="group bg-card hover:bg-muted/30 transition-colors">
-      <div className="flex items-center gap-4 px-4 py-3">
-        {/* Icon */}
+    <li className="group border-b border-border/50 last:border-b-0 transition-colors hover:bg-muted/30 focus-within:bg-muted/30">
+      <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-3 px-4 py-4 sm:gap-4">
         <div
           className={cn(
-            "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl transition-colors",
+            "flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl transition-colors sm:h-12 sm:w-12",
             isIncome
-              ? "bg-emerald-50 text-emerald-600"
+              ? "bg-emerald-500/10 text-emerald-600"
               : isTransfer
-                ? "bg-blue-50 text-blue-600"
-                : "bg-slate-50 text-slate-600",
+                ? "bg-blue-500/10 text-blue-600"
+                : "bg-muted/70 text-muted-foreground",
           )}
         >
           {isIncome ? (
-            <ArrowUpRight className="h-6 w-6" />
+            <ArrowUpRight className="h-5 w-5 sm:h-6 sm:w-6" />
           ) : isTransfer ? (
-            <ArrowRight className="h-6 w-6" />
+            <ArrowRight className="h-5 w-5 sm:h-6 sm:w-6" />
           ) : (
-            <ArrowDownRight className="h-6 w-6" />
+            <ArrowDownRight className="h-5 w-5 sm:h-6 sm:w-6" />
           )}
         </div>
 
-        {/* Content */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-0.5">
-            <h3 className="text-sm font-bold text-slate-900 truncate">
-              {item.category_name ??
-                (isTransfer
-                  ? t("activity.alert.transfer")
-                  : t("activity.alert.uncategorized"))}
-            </h3>
-            {item.description && <span className="text-slate-300">·</span>}
-            {item.description && (
-              <p className="text-xs text-slate-500 truncate font-medium">
-                {item.description}
-              </p>
-            )}
-            {item.transaction_subtype?.startsWith(SAVINGS_SUBTYPE_PREFIX) ? (
-              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-emerald-700">
-                {t("activity.alert.savings")}
-              </span>
-            ) : null}
-            {item.is_non_cash ? (
-              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-700">
-                {t("activity.alert.non_cash")}
-              </span>
-            ) : null}
+        <div className="min-w-0 space-y-2">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0 space-y-0.5">
+              <h3 className="truncate text-sm font-semibold text-foreground sm:text-[15px]">
+                {item.category_name ??
+                  (isTransfer
+                    ? t("activity.alert.transfer")
+                    : t("activity.alert.uncategorized"))}
+              </h3>
+              {item.description && (
+                <p className="truncate text-xs leading-5 text-muted-foreground sm:text-sm">
+                  {item.description}
+                </p>
+              )}
+            </div>
+
+            <div className="flex shrink-0 flex-wrap justify-end gap-1.5">
+              {item.transaction_subtype?.startsWith(SAVINGS_SUBTYPE_PREFIX) ? (
+                <span className="rounded-full bg-emerald-500/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-700 dark:text-emerald-400">
+                  {t("activity.alert.savings")}
+                </span>
+              ) : null}
+              {item.is_non_cash ? (
+                <span className="rounded-full bg-amber-500/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-700 dark:text-amber-400">
+                  {t("activity.alert.non_cash")}
+                </span>
+              ) : null}
+            </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-            <span className="flex items-center gap-1 text-emerald-600">
-              <ArrowUpRight className="h-3 w-3" />
-              {t("activity.list.in")}
+          <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
+            <span className="inline-flex items-center gap-1 rounded-full bg-muted/60 px-2 py-1">
+              <CreditCard className="h-3.5 w-3.5" />
+              <span className="truncate">{item.account_name ?? t("transactions.unknown_account")}</span>
             </span>
-            <span className="flex items-center gap-1 text-slate-500">
-              <ArrowDownRight className="h-3 w-3" />
-              {t("activity.list.out")}
-            </span>
-            <div className="flex items-center gap-1">
-              <CreditCard className="h-3 w-3" />
-              {item.account_name ?? t("transactions.unknown_account")}
-            </div>
-            <div className="flex items-center gap-1">
-              <Tag className="h-3 w-3" />
+            <span className="inline-flex items-center gap-1 rounded-full bg-muted/60 px-2 py-1">
+              <Tag className="h-3.5 w-3.5" />
               {formatDate(item.transaction_date, locale)}
-            </div>
+            </span>
           </div>
         </div>
 
-        {/* Amount */}
-        <div className="text-right">
+        <div className="flex flex-col items-end gap-2 text-right">
           <p
             className={cn(
-              "text-base font-black tracking-tight",
+              "text-sm font-bold tabular-nums tracking-tight sm:text-base",
               isIncome
                 ? "text-emerald-600"
                 : isTransfer
                   ? "text-blue-600"
-                  : "text-slate-900",
+                  : "text-foreground",
             )}
           >
             {isIncome ? "+" : isTransfer ? "" : "-"}
             {formatVnd(item.amount, locale)}
           </p>
-          <div className="flex items-center justify-end gap-1 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="flex items-center justify-end gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
             <Button
               type="button"
               variant="ghost"
               size="icon"
               disabled={item.transaction_subtype?.startsWith(SAVINGS_SUBTYPE_PREFIX)}
               onClick={() => setIsEditing(!isEditing)}
-              className="h-7 w-7 text-slate-400 hover:text-primary"
+              className="h-7 w-7 rounded-full text-muted-foreground hover:bg-primary/10 hover:text-primary"
               title={t("activity.edit.edit")}
             >
               <Pencil className="h-3.5 w-3.5" />
@@ -186,7 +178,7 @@ function TransactionRow({
               size="icon"
               disabled={isPending || item.transaction_subtype?.startsWith(SAVINGS_SUBTYPE_PREFIX)}
               onClick={handleDelete}
-              className="h-7 w-7 text-slate-400 hover:text-rose-600 hover:bg-rose-50"
+              className="h-7 w-7 rounded-full text-muted-foreground hover:bg-rose-500/10 hover:text-rose-600"
               title={t("activity.edit.delete")}
             >
               <Trash2 className="h-3.5 w-3.5" />
@@ -196,7 +188,7 @@ function TransactionRow({
       </div>
 
       {isEditing ? (
-        <div className="mt-2 border-t border-border/50 pt-4 px-4 pb-4 animate-in fade-in slide-in-from-top-2 duration-300">
+        <div className="border-t border-border/50 px-4 pb-4 pt-4 animate-in fade-in slide-in-from-top-2 duration-300">
           <TransactionEditForm
             transaction={item}
             accounts={accounts}
@@ -220,8 +212,7 @@ export function TransactionsList({
   categories: OptionCategory[];
   initialPage?: InitialTransactionPage;
 }) {
-  const { t, locale, language } = useI18n();
-  const vi = language === "vi";
+  const { t, locale } = useI18n();
   const queryClient = useQueryClient();
 
   const {
@@ -306,7 +297,7 @@ export function TransactionsList({
   };
 
   return (
-    <div className="divide-y divide-border/50">
+    <div className="space-y-3">
       {Array.from(groups.entries()).map(([day, dayItems]) => {
         const dayIncome = dayItems
           .filter((tx) => tx.type === "income")
@@ -316,28 +307,29 @@ export function TransactionsList({
           .reduce((s, tx) => s + tx.amount, 0);
 
         return (
-          <div key={day}>
-            {/* Date header */}
-            <div className="flex items-center justify-between px-4 py-2 bg-muted/30">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+          <section
+            key={day}
+            className="overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm"
+          >
+            <div className="flex items-center justify-between gap-3 border-b border-border/60 bg-muted/30 px-4 py-3">
+              <span className="inline-flex items-center rounded-full bg-background px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground shadow-sm">
                 {formatDayLabel(day)}
               </span>
-              <div className="flex items-center gap-3 text-[10px] font-bold">
+              <div className="flex items-center gap-2 text-[11px] font-semibold tabular-nums">
                 {dayIncome > 0 && (
-                  <span className="text-emerald-600">
+                  <span className="rounded-full bg-emerald-500/10 px-2.5 py-1 text-emerald-700 dark:text-emerald-400">
                     +{formatVnd(dayIncome, locale)}
                   </span>
                 )}
                 {dayExpense > 0 && (
-                  <span className="text-slate-500">
+                  <span className="rounded-full bg-rose-500/10 px-2.5 py-1 text-rose-700 dark:text-rose-400">
                     -{formatVnd(dayExpense, locale)}
                   </span>
                 )}
               </div>
             </div>
 
-            {/* Items */}
-            <ul className="divide-y divide-border/30">
+            <ul className="divide-y divide-border/50">
               {dayItems.map((item) => (
                 <TransactionRow
                   key={item.id}
@@ -348,13 +340,13 @@ export function TransactionsList({
                 />
               ))}
             </ul>
-          </div>
+          </section>
         );
       })}
 
       {/* Pagination Controls */}
       {hasNextPage && (
-        <div className="flex items-center justify-center px-4 py-4 border-t border-border/50 bg-muted/20">
+        <div className="flex items-center justify-center px-4 py-4">
           <Button
             variant="outline"
             size="sm"

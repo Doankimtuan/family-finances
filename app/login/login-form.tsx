@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { AlertCircle, CheckCircle2, Lock, Mail, Sparkles } from "lucide-react";
 import { useActionState, useMemo, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -13,6 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
+import { useI18n } from "@/lib/providers/i18n-provider";
 
 const authSchema = z.object({
   email: z.string().email("Enter a valid email address."),
@@ -29,6 +31,7 @@ const initialAuthActionState: AuthActionState = {
 };
 
 export function LoginForm({ origin }: { origin: string }) {
+  const { t } = useI18n();
   const [mode, setMode] = useState<Mode>("login");
   const [loginState, loginFormAction] = useActionState<
     AuthActionState,
@@ -54,6 +57,26 @@ export function LoginForm({ origin }: { origin: string }) {
     [loginState, mode, signupState],
   );
 
+  const modeCopy = useMemo(
+    () =>
+      mode === "login"
+        ? {
+            title: t("login.welcome_back"),
+            description: t("login.welcome_back_desc"),
+            toggleHint: t("login.toggle_login"),
+            submitLabel: t("login.login"),
+            pendingLabel: t("login.signing_in"),
+          }
+        : {
+            title: t("login.create_access"),
+            description: t("login.create_access_desc"),
+            toggleHint: t("login.toggle_signup"),
+            submitLabel: t("login.signup"),
+            pendingLabel: t("login.creating_account"),
+          },
+    [mode, t],
+  );
+
   const onSubmit = handleSubmit((values) => {
     const payload = new FormData();
     payload.set("email", values.email);
@@ -72,86 +95,127 @@ export function LoginForm({ origin }: { origin: string }) {
   const pending = isPending || isSubmitting;
 
   return (
-    <div className="w-full rounded-2xl border border-border bg-card p-6 shadow-sm">
-      <div className="mb-6 grid grid-cols-2 gap-2 rounded-xl bg-muted p-1">
-        <button
-          type="button"
-          onClick={() => setMode("login")}
-          className={`rounded-lg py-2.5 text-sm font-semibold transition-all ${
-            mode === "login"
-              ? "bg-card text-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          Log In
-        </button>
-        <button
-          type="button"
-          onClick={() => setMode("signup")}
-          className={`rounded-lg py-2.5 text-sm font-semibold transition-all ${
-            mode === "signup"
-              ? "bg-card text-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          Sign Up
-        </button>
+    <div className="w-full rounded-3xl border border-border/70 bg-card/95 p-5 shadow-xl shadow-foreground/5 sm:p-6">
+      <div className="mb-6 space-y-4">
+        <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/8 px-3 py-1 text-xs font-semibold text-primary">
+          <Sparkles className="h-3.5 w-3.5" />
+          {t("login.household_access")}
+        </div>
+
+        <div className="space-y-1.5">
+          <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+            {modeCopy.title}
+          </h2>
+          <p className="text-sm leading-6 text-muted-foreground">
+            {modeCopy.description}
+          </p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2 rounded-2xl bg-muted p-1.5">
+          <Button
+            type="button"
+            variant={mode === "login" ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setMode("login")}
+            aria-pressed={mode === "login"}
+            className="h-10 w-full rounded-xl text-sm font-semibold"
+          >
+            {t("login.login")}
+          </Button>
+          <Button
+            type="button"
+            variant={mode === "signup" ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setMode("signup")}
+            aria-pressed={mode === "signup"}
+            className="h-10 w-full rounded-xl text-sm font-semibold"
+          >
+            {t("login.signup")}
+          </Button>
+        </div>
+
+        <p className="text-xs leading-5 text-muted-foreground">
+          {modeCopy.toggleHint}
+        </p>
       </div>
 
       <form className="space-y-5" onSubmit={onSubmit} noValidate>
         <FormField
-          label="Email"
+          label={t("login.email")}
           htmlFor="email"
           error={errors.email?.message}
+          description={t("login.email_desc")}
+          required
         >
-          <Input
-            id="email"
-            type="email"
-            autoComplete="email"
-            placeholder="you@example.com"
-            aria-invalid={!!errors.email}
-            {...register("email")}
-          />
+          <div className="relative">
+            <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              id="email"
+              type="email"
+              autoComplete="email"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              placeholder={t("login.email_placeholder")}
+              aria-invalid={!!errors.email}
+              className="h-12 bg-background pl-10 text-base shadow-sm transition-shadow focus-visible:shadow-[0_0_0_4px_hsl(var(--ring)/0.12)]"
+              {...register("email")}
+            />
+          </div>
         </FormField>
 
         <FormField
-          label="Password"
+          label={t("login.password")}
           htmlFor="password"
           error={errors.password?.message}
+          description={t("login.password_desc")}
+          required
         >
-          <Input
-            id="password"
-            type="password"
-            autoComplete={mode === "login" ? "current-password" : "new-password"}
-            placeholder="At least 8 characters"
-            aria-invalid={!!errors.password}
-            {...register("password")}
-          />
+          <div className="relative">
+            <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              id="password"
+              type="password"
+              autoComplete={mode === "login" ? "current-password" : "new-password"}
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              placeholder={t("login.password_placeholder")}
+              aria-invalid={!!errors.password}
+              className="h-12 bg-background pl-10 text-base shadow-sm transition-shadow focus-visible:shadow-[0_0_0_4px_hsl(var(--ring)/0.12)]"
+              {...register("password")}
+            />
+          </div>
         </FormField>
 
         <Button
           type="submit"
           disabled={pending}
-          className="w-full py-6 text-base"
+          size="lg"
+          className="w-full shadow-md shadow-primary/15"
         >
-          {pending
-            ? "Please wait..."
-            : mode === "login"
-              ? "Log In"
-              : "Create Account"}
+          {pending ? modeCopy.pendingLabel : modeCopy.submitLabel}
         </Button>
       </form>
 
       {activeState.status === "error" && activeState.message ? (
-        <p className="mt-4 rounded-xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive animate-in fade-in slide-in-from-top-1">
-          {activeState.message}
-        </p>
+        <div
+          className="mt-4 flex items-start gap-3 rounded-2xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive animate-in fade-in slide-in-from-top-1"
+          role="alert"
+        >
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+          <p className="font-medium leading-6">{activeState.message}</p>
+        </div>
       ) : null}
 
       {activeState.status === "success" && activeState.message ? (
-        <p className="mt-4 rounded-xl border border-success/20 bg-success/10 px-4 py-3 text-sm font-medium text-success animate-in fade-in slide-in-from-top-1">
-          {activeState.message}
-        </p>
+        <div
+          className="mt-4 flex items-start gap-3 rounded-2xl border border-success/20 bg-success/10 px-4 py-3 text-sm text-success animate-in fade-in slide-in-from-top-1"
+          role="status"
+        >
+          <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+          <p className="font-medium leading-6">{activeState.message}</p>
+        </div>
       ) : null}
     </div>
   );
