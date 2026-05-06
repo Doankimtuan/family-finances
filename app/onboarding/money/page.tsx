@@ -9,7 +9,7 @@ export default async function OnboardingAccountsPage() {
     <OnboardingShell
       step={3}
       title="Accounts"
-      description="Add at least one account so cash flow and balances can be tracked correctly."
+      description="Add the accounts your household actively uses so balances and cash flow stay accurate."
       prevHref="/onboarding/members"
       nextHref="/onboarding/assets"
     >

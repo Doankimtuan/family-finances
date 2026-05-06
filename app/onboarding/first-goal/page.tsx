@@ -9,7 +9,7 @@ export default async function OnboardingFirstGoalPage() {
     <OnboardingShell
       step={7}
       title="First Goal"
-      description="Define your first household goal so progress and recommendations have direction."
+      description="Choose one clear target so progress and recommendations have direction."
       prevHref="/onboarding/income-expenses"
       nextHref="/onboarding/first-insight"
     >

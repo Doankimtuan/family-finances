@@ -7,6 +7,9 @@ import {
   initialOnboardingActionState,
   type OnboardingActionState,
 } from "@/app/onboarding/action-types";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { MoneyInput } from "@/components/ui/money-input";
 import {
   Select,
@@ -16,9 +19,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useI18n } from "@/lib/providers/i18n-provider";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { createClient } from "@/lib/supabase/client";
+
+import { OnboardingField, OnboardingStatusMessage } from "./onboarding-form";
 
 export function AccountsForm() {
   const { t } = useI18n();
@@ -48,77 +51,84 @@ export function AccountsForm() {
 
   return (
     <form
-      className="space-y-3"
+      className="space-y-6"
       onSubmit={(event) => {
         event.preventDefault();
         const fd = new FormData(event.currentTarget);
         startTransition(() => action(fd));
       }}
     >
-      <div className="space-y-1">
-        <Label htmlFor="name">{t("accounts.name")}</Label>
-        <Input
-          id="name"
-          name="name"
+      <div className="grid gap-5 sm:grid-cols-2">
+        <OnboardingField
+          htmlFor="name"
+          label={t("accounts.name")}
           required
-          placeholder={t("accounts.placeholder")}
-        />
-      </div>
-
-      <div className="space-y-1">
-        <Label htmlFor="type">{t("accounts.type")}</Label>
-        <Select
-          name="type"
-          defaultValue="checking"
-          onValueChange={setAccountType}
+          hint={t("accounts.placeholder")}
         >
-          <SelectTrigger
-            id="type"
-            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-6 text-base text-slate-900"
+          <Input
+            id="name"
+            name="name"
+            required
+            placeholder={t("accounts.placeholder")}
+            className="h-11 rounded-xl border-border bg-background px-4 text-base shadow-sm"
+          />
+        </OnboardingField>
+
+        <OnboardingField
+          htmlFor="type"
+          label={t("accounts.type")}
+          hint={t("accounts.type.other")}
+        >
+          <Select
+            name="type"
+            defaultValue="checking"
+            onValueChange={setAccountType}
           >
-            <SelectValue placeholder={t("accounts.type")} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="checking">
-              {t("accounts.type.checking")}
-            </SelectItem>
-            <SelectItem value="savings">
-              {t("accounts.type.savings")}
-            </SelectItem>
-            <SelectItem value="cash">{t("accounts.type.cash")}</SelectItem>
-            <SelectItem value="ewallet">
-              {t("accounts.type.ewallet")}
-            </SelectItem>
-            <SelectItem value="credit_card">
-              {t("accounts.type.credit_card")}
-            </SelectItem>
-            <SelectItem value="other">{t("accounts.type.other")}</SelectItem>
-          </SelectContent>
-        </Select>
+            <SelectTrigger
+              id="type"
+              className="h-11 rounded-xl border-border bg-background px-4 text-base shadow-sm"
+            >
+              <SelectValue placeholder={t("accounts.type")} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="checking">
+                {t("accounts.type.checking")}
+              </SelectItem>
+              <SelectItem value="savings">
+                {t("accounts.type.savings")}
+              </SelectItem>
+              <SelectItem value="cash">{t("accounts.type.cash")}</SelectItem>
+              <SelectItem value="ewallet">
+                {t("accounts.type.ewallet")}
+              </SelectItem>
+              <SelectItem value="credit_card">
+                {t("accounts.type.credit_card")}
+              </SelectItem>
+              <SelectItem value="other">{t("accounts.type.other")}</SelectItem>
+            </SelectContent>
+          </Select>
+        </OnboardingField>
       </div>
 
       {/* Credit card specific fields */}
       {accountType === "credit_card" && (
-        <div className="space-y-3 rounded-xl border border-primary/20 bg-primary/5 p-3">
-          <p className="text-xs font-bold text-primary/70 uppercase tracking-wider">
+        <div className="space-y-4 rounded-2xl border border-primary/15 bg-primary/5 p-4">
+          <p className="text-xs font-bold uppercase tracking-wider text-primary/70">
             {t("accounts.credit_card_settings")}
           </p>
 
           <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <Label htmlFor="creditLimit">
-                {t("accounts.credit_limit")}
-              </Label>
+            <div className="space-y-2">
+              <Label htmlFor="creditLimit">{t("accounts.credit_limit")}</Label>
               <MoneyInput
                 id="creditLimit"
                 name="creditLimit"
                 defaultValue={0}
+                className="h-11 rounded-xl border-border bg-background px-4 text-base shadow-sm"
               />
             </div>
-            <div className="space-y-1">
-              <Label htmlFor="statementDay">
-                {t("accounts.statement_day")}
-              </Label>
+            <div className="space-y-2">
+              <Label htmlFor="statementDay">{t("accounts.statement_day")}</Label>
               <Input
                 id="statementDay"
                 name="statementDay"
@@ -127,19 +137,18 @@ export function AccountsForm() {
                 max="31"
                 defaultValue="25"
                 placeholder="25"
+                className="h-11 rounded-xl border-border bg-background px-4 text-base shadow-sm"
               />
             </div>
           </div>
 
-          <div className="space-y-1">
+          <div className="space-y-2">
             <Label htmlFor="linkedBankAccountId">
               {t("accounts.linked_bank_account")}
             </Label>
             <Select name="linkedBankAccountId">
-              <SelectTrigger id="linkedBankAccountId">
-                <SelectValue
-                  placeholder={t("accounts.select_payment_account")}
-                />
+              <SelectTrigger id="linkedBankAccountId" className="h-11 rounded-xl border-border bg-background px-4 text-base shadow-sm">
+                <SelectValue placeholder={t("accounts.select_payment_account")} />
               </SelectTrigger>
               <SelectContent>
                 {bankAccounts.map((acc) => (
@@ -158,30 +167,25 @@ export function AccountsForm() {
         </div>
       )}
 
-      <div className="space-y-1">
+      <div className="space-y-2">
         <Label htmlFor="openingBalance">{t("accounts.opening_balance")}</Label>
         <MoneyInput
           id="openingBalance"
           name="openingBalance"
           defaultValue={0}
-          className="w-full"
+          className="h-11 rounded-xl border-border bg-background px-4 text-base shadow-sm"
         />
       </div>
 
-      <button
-        type="submit"
-        disabled={isPending}
-        className="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white disabled:opacity-60"
-      >
-        {isPending ? t("accounts.saving") : t("accounts.create")}
-      </button>
+      <div className="rounded-2xl border border-border/70 bg-muted/30 p-4 text-sm leading-6 text-muted-foreground">
+        This account will be included in your household balance and cash-flow calculations right away.
+      </div>
 
-      {state.status === "error" && state.message ? (
-        <p className="text-sm text-rose-600">{state.message}</p>
-      ) : null}
-      {state.status === "success" && state.message ? (
-        <p className="text-sm text-emerald-600">{state.message}</p>
-      ) : null}
+      <Button type="submit" disabled={isPending} size="lg" className="w-full">
+        {isPending ? t("accounts.saving") : t("accounts.create")}
+      </Button>
+
+      <OnboardingStatusMessage state={state} />
     </form>
   );
 }

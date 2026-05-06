@@ -9,7 +9,7 @@ export default async function OnboardingMembersPage() {
     <OnboardingShell
       step={2}
       title="Members"
-      description="Invite your partner so both of you share the same financial reality."
+      description="Invite your partner so both of you see the same financial picture."
       prevHref="/onboarding/welcome"
       nextHref="/onboarding/money"
     >

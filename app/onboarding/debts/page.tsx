@@ -9,7 +9,7 @@ export default async function OnboardingDebtsPage() {
     <OnboardingShell
       step={5}
       title="Debts"
-      description="Add current liabilities to get an accurate net worth and debt burden profile."
+      description="Add the debts that still affect your household cash flow and net worth."
       prevHref="/onboarding/assets"
       nextHref="/onboarding/income-expenses"
     >

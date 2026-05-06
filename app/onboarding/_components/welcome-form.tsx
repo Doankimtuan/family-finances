@@ -1,58 +1,83 @@
 "use client";
 
 import { useActionState, useTransition } from "react";
+import { FormProvider, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 
 import { saveWelcomeAction } from "@/app/onboarding/actions";
 import { initialOnboardingActionState, type OnboardingActionState } from "@/app/onboarding/action-types";
+import { Button } from "@/components/ui/button";
+import { RHFInput } from "@/components/ui/rhf-fields";
+import { useI18n } from "@/lib/providers/i18n-provider";
+import { DEFAULTS, INPUT_CLASS_NAME, VALIDATION } from "../_lib/constants";
+
+import { OnboardingField, OnboardingStatusMessage } from "./onboarding-form";
+
+const welcomeFormSchema = z.object({
+  householdName: z.string().min(VALIDATION.MIN_HOUSEHOLD_NAME_LENGTH),
+  timezone: z.string().min(1),
+});
+
+type WelcomeFormValues = z.infer<typeof welcomeFormSchema>;
 
 export function WelcomeForm({ initialHouseholdName }: { initialHouseholdName: string }) {
+  const { t } = useI18n();
   const [state, action] = useActionState<OnboardingActionState, FormData>(
     saveWelcomeAction,
     initialOnboardingActionState,
   );
   const [isPending, startTransition] = useTransition();
 
+  const form = useForm<WelcomeFormValues>({
+    resolver: zodResolver(welcomeFormSchema),
+    defaultValues: {
+      householdName: initialHouseholdName,
+      timezone: DEFAULTS.TIMEZONE,
+    },
+  });
+
+  const onSubmit = (data: WelcomeFormValues) => {
+    const fd = new FormData();
+    fd.append("householdName", data.householdName);
+    fd.append("timezone", data.timezone);
+    startTransition(() => action(fd));
+  };
+
   return (
-    <form
-      className="space-y-3"
-      onSubmit={(event) => {
-        event.preventDefault();
-        const fd = new FormData(event.currentTarget);
-        startTransition(() => action(fd));
-      }}
-    >
-      <div className="space-y-1">
-        <label htmlFor="householdName" className="text-sm font-medium text-slate-700">Household name</label>
-        <input
-          id="householdName"
-          name="householdName"
-          required
-          minLength={2}
-          defaultValue={initialHouseholdName}
-          className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-base text-slate-900 placeholder:text-slate-500"
-        />
-      </div>
-
-      <div className="space-y-1">
-        <label htmlFor="timezone" className="text-sm font-medium text-slate-700">Timezone</label>
-        <input
-          id="timezone"
-          name="timezone"
-          defaultValue="Asia/Ho_Chi_Minh"
-          className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-base text-slate-900 placeholder:text-slate-500"
-        />
-      </div>
-
-      <button
-        type="submit"
-        disabled={isPending}
-        className="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white disabled:opacity-60"
+    <FormProvider {...form}>
+      <form
+        className="space-y-5"
+        onSubmit={form.handleSubmit(onSubmit)}
       >
-        {isPending ? "Saving..." : "Save Welcome Details"}
-      </button>
+        <div className="grid gap-5 sm:grid-cols-2">
+          <RHFInput
+          name="householdName"
+          label={t("onboarding.welcome.householdName")}
+          required
+          description={t("onboarding.welcome.householdNameHint")}
+          className={INPUT_CLASS_NAME}
+        />
 
-      {state.status === "error" && state.message ? <p className="text-sm text-rose-600">{state.message}</p> : null}
-      {state.status === "success" && state.message ? <p className="text-sm text-emerald-600">{state.message}</p> : null}
-    </form>
+        <RHFInput
+          name="timezone"
+          label={t("onboarding.welcome.timezone")}
+          description={t("onboarding.welcome.timezoneHint")}
+          className={INPUT_CLASS_NAME}
+          disabled
+        />
+      </div>
+
+      <div className="rounded-2xl border border-border/70 bg-muted/30 p-4 text-sm leading-6 text-muted-foreground">
+        {t("onboarding.welcome.infoBanner")}
+      </div>
+
+      <Button type="submit" disabled={isPending} size="lg" className="w-full">
+        {isPending ? t("common.saving") : t("onboarding.welcome.submit")}
+      </Button>
+
+        <OnboardingStatusMessage state={state} />
+      </form>
+    </FormProvider>
   );
 }

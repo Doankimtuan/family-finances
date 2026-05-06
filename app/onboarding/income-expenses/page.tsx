@@ -9,7 +9,7 @@ export default async function OnboardingIncomeExpensesPage() {
     <OnboardingShell
       step={6}
       title="Income & Expenses"
-      description="Set monthly baseline income and essential expenses to seed cash flow forecasting."
+      description="Set a simple monthly baseline so cash flow guidance starts from reality."
       prevHref="/onboarding/debts"
       nextHref="/onboarding/first-goal"
     >

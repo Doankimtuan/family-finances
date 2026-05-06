@@ -30,7 +30,7 @@ export function AppShell({
 
       <main
         className={cn(
-          "mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 pb-28 pt-6",
+          "mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 pb-36 pt-6",
           className,
         )}
       >

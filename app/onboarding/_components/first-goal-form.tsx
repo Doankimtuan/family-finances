@@ -1,119 +1,113 @@
 "use client";
 
 import { useActionState, useTransition } from "react";
+import { FormProvider, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 
 import { addFirstGoalOnboardingAction } from "@/app/onboarding/actions";
 import {
   initialOnboardingActionState,
   type OnboardingActionState,
 } from "@/app/onboarding/action-types";
-import { MoneyInput } from "@/components/ui/money-input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { RHFInput, RHFMoneyInput, RHFSelect } from "@/components/ui/rhf-fields";
+import { useI18n } from "@/lib/providers/i18n-provider";
+import { DEFAULTS, GOAL_TYPE_OPTIONS, INPUT_CLASS_NAME, VALIDATION } from "../_lib/constants";
+
+import { OnboardingStatusMessage } from "./onboarding-form";
+
+const firstGoalFormSchema = z.object({
+  name: z.string().min(VALIDATION.MIN_NAME_LENGTH),
+  goalType: z.string(),
+  targetAmount: z.number().min(0),
+  targetDate: z.string().optional(),
+});
+
+type FirstGoalFormValues = z.infer<typeof firstGoalFormSchema>;
 
 export function FirstGoalForm() {
+  const { t } = useI18n();
   const [state, action] = useActionState<OnboardingActionState, FormData>(
     addFirstGoalOnboardingAction,
     initialOnboardingActionState,
   );
   const [isPending, startTransition] = useTransition();
 
+  const form = useForm<FirstGoalFormValues>({
+    resolver: zodResolver(firstGoalFormSchema),
+    defaultValues: {
+      name: "",
+      goalType: "emergency_fund",
+      targetAmount: DEFAULTS.TARGET_AMOUNT,
+      targetDate: "",
+    },
+  });
+
+  const onSubmit = (data: FirstGoalFormValues) => {
+    const fd = new FormData();
+    fd.append("name", data.name);
+    fd.append("goalType", data.goalType);
+    fd.append("targetAmount", String(data.targetAmount));
+    fd.append("targetDate", data.targetDate || "");
+    startTransition(() => action(fd));
+  };
+
+  const goalTypeOptions = GOAL_TYPE_OPTIONS.map((opt) => ({
+    value: opt.value,
+    label: t(opt.label),
+  }));
+
   return (
-    <form
-      className="space-y-3"
-      onSubmit={(event) => {
-        event.preventDefault();
-        const fd = new FormData(event.currentTarget);
-        startTransition(() => action(fd));
-      }}
-    >
-      <div className="space-y-1">
-        <label htmlFor="name" className="text-sm font-medium text-slate-700">
-          Goal name
-        </label>
-        <input
-          id="name"
-          name="name"
-          required
-          placeholder="Emergency Fund (6 months)"
-          className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-base text-slate-900 placeholder:text-slate-500"
-        />
-      </div>
-
-      <div className="space-y-1">
-        <label
-          htmlFor="goalType"
-          className="text-sm font-medium text-slate-700"
-        >
-          Goal type
-        </label>
-        <Select name="goalType" defaultValue="emergency_fund">
-          <SelectTrigger
-            id="goalType"
-            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-6 text-base text-slate-900"
-          >
-            <SelectValue placeholder="Goal type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="emergency_fund">Emergency fund</SelectItem>
-            <SelectItem value="property_purchase">Property purchase</SelectItem>
-            <SelectItem value="vehicle">Vehicle</SelectItem>
-            <SelectItem value="education">Education</SelectItem>
-            <SelectItem value="retirement">Retirement</SelectItem>
-            <SelectItem value="custom">Custom</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="space-y-1">
-        <label
-          htmlFor="targetAmount"
-          className="text-sm font-medium text-slate-700"
-        >
-          Target amount (VND)
-        </label>
-        <MoneyInput
-          id="targetAmount"
-          name="targetAmount"
-          defaultValue={180000000}
-          className="w-full"
-        />
-      </div>
-
-      <div className="space-y-1">
-        <label
-          htmlFor="targetDate"
-          className="text-sm font-medium text-slate-700"
-        >
-          Target date (optional)
-        </label>
-        <input
-          id="targetDate"
-          name="targetDate"
-          type="date"
-          className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-base text-slate-900 placeholder:text-slate-500"
-        />
-      </div>
-
-      <button
-        type="submit"
-        disabled={isPending}
-        className="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white disabled:opacity-60"
+    <FormProvider {...form}>
+      <form
+        className="space-y-6"
+        onSubmit={form.handleSubmit(onSubmit)}
       >
-        {isPending ? "Saving..." : "Save First Goal"}
-      </button>
+        <div className="grid gap-5 sm:grid-cols-2">
+          <RHFInput
+          name="name"
+          label={t("onboarding.goals.name")}
+          required
+          description={t("onboarding.goals.nameHint")}
+          placeholder={t("onboarding.goals.namePlaceholder")}
+          className={INPUT_CLASS_NAME}
+        />
 
-      {state.status === "error" && state.message ? (
-        <p className="text-sm text-rose-600">{state.message}</p>
-      ) : null}
-      {state.status === "success" && state.message ? (
-        <p className="text-sm text-emerald-600">{state.message}</p>
-      ) : null}
-    </form>
+        <RHFSelect
+          name="goalType"
+          label={t("onboarding.goals.type")}
+          description={t("onboarding.goals.typeHint")}
+          options={goalTypeOptions}
+          className={INPUT_CLASS_NAME}
+        />
+      </div>
+
+      <div className="grid gap-5 sm:grid-cols-2">
+        <RHFMoneyInput
+          name="targetAmount"
+          label={t("onboarding.goals.targetAmount")}
+          className={INPUT_CLASS_NAME}
+        />
+
+        <RHFInput
+          name="targetDate"
+          label={t("onboarding.goals.targetDate")}
+          type="date"
+          className={INPUT_CLASS_NAME}
+        />
+      </div>
+
+      <div className="rounded-2xl border border-border/70 bg-muted/30 p-4 text-sm leading-6 text-muted-foreground">
+        {t("onboarding.goals.infoBanner")}
+      </div>
+
+      <Button type="submit" disabled={isPending} size="lg" className="w-full">
+        {isPending ? t("common.saving") : t("onboarding.goals.submit")}
+      </Button>
+
+        <OnboardingStatusMessage state={state} />
+      </form>
+    </FormProvider>
   );
 }

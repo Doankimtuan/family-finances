@@ -1,7 +1,11 @@
 import Link from "next/link";
+import { ArrowRight, Target, Wallet, ChartNoAxesCombined, CalendarDays } from "lucide-react";
 
 import { OnboardingShell } from "@/app/onboarding/_components/onboarding-shell";
 import { formatDate, formatMonths, formatPercent, formatVnd } from "@/lib/dashboard/format";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { t } from "@/lib/i18n/dictionary";
 import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
 import { createClient } from "@/lib/supabase/server";
@@ -42,46 +46,104 @@ export default async function OnboardingFirstInsightPage() {
       prevHref="/onboarding/first-goal"
     >
       {metrics ? (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <article className="rounded-xl border border-slate-200 p-3">
-            <p className="text-xs uppercase tracking-[0.12em] text-slate-500">{t(language, "onboarding.first_insight.net_worth")}</p>
-            <p className="mt-1 text-lg font-semibold text-slate-900">{formatVnd(metrics.net_worth, householdLocale)}</p>
-          </article>
-          <article className="rounded-xl border border-slate-200 p-3">
-            <p className="text-xs uppercase tracking-[0.12em] text-slate-500">{t(language, "onboarding.first_insight.monthly_savings")}</p>
-            <p className="mt-1 text-lg font-semibold text-slate-900">{formatVnd(metrics.monthly_savings, householdLocale)}</p>
-          </article>
-          <article className="rounded-xl border border-slate-200 p-3">
-            <p className="text-xs uppercase tracking-[0.12em] text-slate-500">{t(language, "onboarding.first_insight.savings_rate")}</p>
-            <p className="mt-1 text-lg font-semibold text-slate-900">{formatPercent(metrics.savings_rate)}</p>
-          </article>
-          <article className="rounded-xl border border-slate-200 p-3">
-            <p className="text-xs uppercase tracking-[0.12em] text-slate-500">{t(language, "onboarding.first_insight.emergency_runway")}</p>
-            <p className="mt-1 text-lg font-semibold text-slate-900">{formatMonths(metrics.emergency_months, householdLocale)}</p>
-          </article>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Card variant="elevated" className="border-border/70">
+            <CardContent className="p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                    {t(language, "onboarding.first_insight.net_worth")}
+                  </p>
+                  <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
+                    {formatVnd(metrics.net_worth, householdLocale)}
+                  </p>
+                </div>
+                <Badge variant="secondary" className="rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em]">
+                  <Wallet className="mr-1 h-3.5 w-3.5" />
+                  Snapshot
+                </Badge>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card variant="elevated" className="border-border/70">
+            <CardContent className="p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                    {t(language, "onboarding.first_insight.monthly_savings")}
+                  </p>
+                  <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
+                    {formatVnd(metrics.monthly_savings, householdLocale)}
+                  </p>
+                </div>
+                <Badge variant="secondary" className="rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em]">
+                  <ChartNoAxesCombined className="mr-1 h-3.5 w-3.5" />
+                  Flow
+                </Badge>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card variant="elevated" className="border-border/70">
+            <CardContent className="p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                {t(language, "onboarding.first_insight.savings_rate")}
+              </p>
+              <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
+                {formatPercent(metrics.savings_rate)}
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card variant="elevated" className="border-border/70">
+            <CardContent className="p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                {t(language, "onboarding.first_insight.emergency_runway")}
+              </p>
+              <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
+                {formatMonths(metrics.emergency_months, householdLocale)}
+              </p>
+            </CardContent>
+          </Card>
         </div>
       ) : (
-        <p className="text-sm text-slate-600">{t(language, "onboarding.first_insight.no_metrics")}</p>
+        <Card className="border-border/70 bg-muted/20">
+          <CardContent className="flex flex-col items-center gap-3 p-6 text-center">
+            <Target className="h-10 w-10 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">{t(language, "onboarding.first_insight.no_metrics")}</p>
+          </CardContent>
+        </Card>
       )}
 
-      <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3">
-        <p className="text-sm text-slate-700">{insightText}</p>
-        {primaryGoal ? (
-          <p className="mt-2 text-sm text-slate-600">
-            {t(language, "onboarding.first_insight.primary_goal")}: <span className="font-medium text-slate-800">{primaryGoal.name}</span>
-            {primaryGoal.target_date ? ` ${t(language, "onboarding.first_insight.by")} ${formatDate(primaryGoal.target_date, householdLocale)}` : ""}
-            {` (${t(language, "onboarding.first_insight.target")} ${formatVnd(primaryGoal.target_amount, householdLocale)}).`}
-          </p>
-        ) : null}
-      </div>
+      <Card className="border-border/70 bg-muted/20">
+        <CardContent className="space-y-3 p-4">
+          <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+            <CalendarDays className="h-4 w-4 text-primary" />
+            <span>{insightText}</span>
+          </div>
+          {primaryGoal ? (
+            <p className="text-sm leading-6 text-muted-foreground">
+              {t(language, "onboarding.first_insight.primary_goal")}: <span className="font-semibold text-foreground">{primaryGoal.name}</span>
+              {primaryGoal.target_date ? ` ${t(language, "onboarding.first_insight.by")} ${formatDate(primaryGoal.target_date, householdLocale)}` : ""}
+              {` (${t(language, "onboarding.first_insight.target")} ${formatVnd(primaryGoal.target_amount, householdLocale)}).`}
+            </p>
+          ) : null}
+        </CardContent>
+      </Card>
 
-      <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-        <Link href="/dashboard" className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white">
-          {t(language, "onboarding.first_insight.open_dashboard")}
-        </Link>
-        <Link href="/activity" className="inline-flex items-center justify-center rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700">
-          {t(language, "onboarding.first_insight.log_transaction")}
-        </Link>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Button asChild size="lg" className="w-full">
+          <Link href="/dashboard">
+            {t(language, "onboarding.first_insight.open_dashboard")}
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Link>
+        </Button>
+        <Button asChild variant="outline" size="lg" className="w-full">
+          <Link href="/activity">
+            {t(language, "onboarding.first_insight.log_transaction")}
+          </Link>
+        </Button>
       </div>
     </OnboardingShell>
   );

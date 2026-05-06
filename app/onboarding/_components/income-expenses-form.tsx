@@ -1,88 +1,84 @@
 "use client";
 
 import { useActionState, useTransition } from "react";
+import { FormProvider, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 
 import { addIncomeExpenseOnboardingAction } from "@/app/onboarding/actions";
 import {
   initialOnboardingActionState,
   type OnboardingActionState,
 } from "@/app/onboarding/action-types";
-import { MoneyInput } from "@/components/ui/money-input";
 import { Button } from "@/components/ui/button";
+import { RHFMoneyInput } from "@/components/ui/rhf-fields";
+import { useI18n } from "@/lib/providers/i18n-provider";
+import { DEFAULTS, INPUT_CLASS_NAME } from "../_lib/constants";
+
+import { OnboardingStatusMessage } from "./onboarding-form";
+
+const incomeExpensesFormSchema = z.object({
+  monthlyIncome: z.number().min(0),
+  monthlyEssentials: z.number().min(0),
+});
+
+type IncomeExpensesFormValues = z.infer<typeof incomeExpensesFormSchema>;
 
 export function IncomeExpensesForm() {
+  const { t } = useI18n();
   const [state, action] = useActionState<OnboardingActionState, FormData>(
     addIncomeExpenseOnboardingAction,
     initialOnboardingActionState,
   );
   const [isPending, startTransition] = useTransition();
 
-  return (
-    <form
-      className="space-y-6"
-      onSubmit={(event) => {
-        event.preventDefault();
-        const fd = new FormData(event.currentTarget);
-        startTransition(() => action(fd));
-      }}
-    >
-      <div className="space-y-4">
-        <div className="space-y-1.5">
-          <label
-            htmlFor="monthlyIncome"
-            className="text-sm font-semibold text-slate-700"
-          >
-            Monthly income baseline (VND)
-          </label>
-          <MoneyInput
-            id="monthlyIncome"
-            name="monthlyIncome"
-            defaultValue={50000000}
-            className="w-full"
-          />
-          <p className="text-xs text-slate-500 italic">
-            Total monthly income after tax for the household.
-          </p>
-        </div>
+  const form = useForm<IncomeExpensesFormValues>({
+    resolver: zodResolver(incomeExpensesFormSchema),
+    defaultValues: {
+      monthlyIncome: DEFAULTS.MONTHLY_INCOME,
+      monthlyEssentials: DEFAULTS.MONTHLY_ESSENTIALS,
+    },
+  });
 
-        <div className="space-y-1.5">
-          <label
-            htmlFor="monthlyEssentials"
-            className="text-sm font-semibold text-slate-700"
-          >
-            Monthly essential expenses (VND)
-          </label>
-          <MoneyInput
-            id="monthlyEssentials"
-            name="monthlyEssentials"
-            defaultValue={25000000}
-            className="w-full"
-          />
-          <p className="text-xs text-slate-500 italic">
-            Rent/Mortgage, utilities, groceries, and basic insurance.
-          </p>
-        </div>
+  const onSubmit = (data: IncomeExpensesFormValues) => {
+    const fd = new FormData();
+    fd.append("monthlyIncome", String(data.monthlyIncome));
+    fd.append("monthlyEssentials", String(data.monthlyEssentials));
+    startTransition(() => action(fd));
+  };
+
+  return (
+    <FormProvider {...form}>
+      <form
+        className="space-y-6"
+        onSubmit={form.handleSubmit(onSubmit)}
+      >
+        <div className="grid gap-5 sm:grid-cols-2">
+          <RHFMoneyInput
+          name="monthlyIncome"
+          label={t("onboarding.incomeExpenses.monthlyIncome")}
+          description={t("onboarding.incomeExpenses.monthlyIncomeHint")}
+          className={INPUT_CLASS_NAME}
+        />
+
+        <RHFMoneyInput
+          name="monthlyEssentials"
+          label={t("onboarding.incomeExpenses.monthlyEssentials")}
+          description={t("onboarding.incomeExpenses.monthlyEssentialsHint")}
+          className={INPUT_CLASS_NAME}
+        />
       </div>
 
-      <Button
-        type="submit"
-        disabled={isPending}
-        className="w-full py-6 text-base"
-      >
-        {isPending ? "Saving..." : "Save Baselines"}
+      <div className="rounded-2xl border border-border/70 bg-muted/30 p-4 text-sm leading-6 text-muted-foreground">
+        {t("onboarding.incomeExpenses.infoBanner")}
+      </div>
+
+      <Button type="submit" disabled={isPending} size="lg" className="w-full">
+        {isPending ? t("common.saving") : t("onboarding.incomeExpenses.submit")}
       </Button>
 
-      {state.status === "error" && state.message ? (
-        <p className="text-sm font-medium text-rose-600 animate-in fade-in slide-in-from-top-1">
-          {state.message}
-        </p>
-      ) : null}
-
-      {state.status === "success" && state.message ? (
-        <p className="text-sm font-medium text-emerald-600 animate-in fade-in slide-in-from-top-1">
-          {state.message}
-        </p>
-      ) : null}
-    </form>
+        <OnboardingStatusMessage state={state} />
+      </form>
+    </FormProvider>
   );
 }

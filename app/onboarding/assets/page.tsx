@@ -9,7 +9,7 @@ export default async function OnboardingAssetsPage() {
     <OnboardingShell
       step={4}
       title="Assets"
-      description="Record major assets (gold, funds, real estate) with quantity and current unit price."
+      description="Record the assets that meaningfully affect your household net worth."
       prevHref="/onboarding/money"
       nextHref="/onboarding/debts"
     >

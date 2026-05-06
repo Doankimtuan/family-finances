@@ -9,7 +9,7 @@ export default async function OnboardingWelcomePage() {
     <OnboardingShell
       step={1}
       title="Welcome"
-      description="Set your household identity and locale before adding financial data."
+      description="Set your household name and time zone before adding financial details."
       nextHref="/onboarding/members"
     >
       <WelcomeForm initialHouseholdName={context.householdName ?? "My Household"} />
