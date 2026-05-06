@@ -29,7 +29,6 @@ function getOriginFromHeaders(headerList: Headers): string {
 export default async function SettingsMembersPage() {
   const { user, language, members, pendingInvites, incomingInvites } =
     await getSettingsDataContext(false, false, false, true);
-  const vi = language === "vi";
 
   const requestHeaders = await headers();
   const origin = getOriginFromHeaders(requestHeaders);
@@ -46,75 +45,69 @@ export default async function SettingsMembersPage() {
       <div className="space-y-6 pb-24 animate-in fade-in slide-in-from-bottom-4 duration-700">
         <SettingsNav currentPath="/settings/members" />
 
-        {/* Current Members */}
         <Card className="border-violet-100 shadow-sm overflow-hidden">
           <CardHeader className="p-0">
             <div className="p-5 border-b border-violet-50 bg-violet-50/30">
               <SectionHeader
-                label={vi ? "Thành viên" : "Members"}
-                title={vi ? "Thành viên gia đình" : "Household Members"}
-                description={
-                  vi
-                    ? "Danh sách những người có quyền truy cập vào hộ gia đình này."
-                    : "People who have access to this shared household."
-                }
+                label={t(language, "settings.members_label")}
+                title={t(language, "settings.household_members")}
+                description={t(language, "settings.members_description")}
                 icon={<Users className="h-4 w-4 text-violet-600" />}
               />
             </div>
           </CardHeader>
           <CardContent className="p-6">
-            <div className="grid grid-cols-1 gap-3">
-              {Array.isArray(members) && members.length > 0 ? (
-                members.map((m) => (
-                  <div
-                    key={m.id}
-                    className="flex items-center gap-4 rounded-2xl border border-slate-100 bg-slate-50/30 p-4 transition-all hover:bg-white hover:shadow-sm"
+            {!members || members.length === 0 ? (
+              <p className="text-sm text-slate-500 italic">
+                {t(language, "settings.no_members")}
+              </p>
+            ) : (
+              <ul className="space-y-3">
+                {members.map((member) => (
+                  <li
+                    key={member.id}
+                    className="flex items-center justify-between rounded-xl border border-slate-200 px-4 py-3"
                   >
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white shadow-sm border border-slate-100 text-lg font-bold text-primary">
-                      {(m.profiles?.full_name ?? m.profiles?.email ?? "?")
-                        .charAt(0)
-                        .toUpperCase()}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <p className="text-base font-bold text-slate-900 truncate">
-                          {m.profiles?.full_name ?? "—"}
-                        </p>
-                        {m.user_id === user.id && (
-                          <Badge
-                            variant="secondary"
-                            className="bg-primary/10 text-primary text-[10px] font-bold border-none uppercase tracking-widest px-2"
-                          >
-                            {vi ? "Bạn" : "You"}
-                          </Badge>
-                        )}
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-full bg-violet-100 flex items-center justify-center text-violet-600 font-bold text-sm">
+                        {(member.user_id.slice(0, 2).toUpperCase())}
                       </div>
-                      <p className="text-xs text-slate-500 font-medium truncate mt-0.5">
-                        {m.profiles?.email ?? "—"}
-                      </p>
+                      <div>
+                        <p className="text-sm font-semibold text-slate-900">
+                          {member.user_id === user.id
+                            ? t(language, "settings.you")
+                            : member.profiles?.full_name || "—"}
+                        </p>
+                        <p className="text-xs text-slate-500">
+                          {new Date(member.joined_at).toLocaleDateString(undefined, {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })}
+                        </p>
+                      </div>
                     </div>
+                    {member.user_id === user.id && (
+                      <Badge
+                        variant="secondary"
+                        className="bg-primary/10 text-primary text-[10px] font-bold border-none uppercase tracking-widest px-2"
+                      >
+                        {t(language, "settings.you")}
+                      </Badge>
+                    )}
                     <div className="flex items-center gap-1.5 shrink-0 px-3 py-1.5 rounded-xl border border-slate-200 bg-white shadow-xs">
                       <Shield className="h-3 w-3 text-slate-400" />
                       <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600">
-                        {m.role}
+                        {member.role}
                       </span>
                     </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-sm text-slate-500">
-                    {vi
-                      ? "Chưa có thành viên nào trong hộ gia đình."
-                      : "No members in this household yet."}
-                  </p>
-                </div>
-              )}
-            </div>
+                  </li>
+                ))}
+              </ul>
+            )}
           </CardContent>
         </Card>
 
-        {/* Invite Section (client component for copy/form) */}
         <InviteMemberSection
           origin={origin}
           outgoingInvites={pendingInvites || []}

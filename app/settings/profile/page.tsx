@@ -12,7 +12,6 @@ import { SettingsNav } from "../_components/settings-nav";
 
 export default async function SettingsProfilePage() {
   const { language, profile } = await getSettingsDataContext(true, false, false);
-  const vi = language === "vi";
 
   return (
     <AppShell
@@ -30,13 +29,9 @@ export default async function SettingsProfilePage() {
           <CardHeader className="p-0">
             <div className="p-5 border-b border-slate-100 bg-slate-50/50">
               <SectionHeader
-                label={vi ? "Tài khoản" : "Account"}
-                title={vi ? "Hồ sơ cá nhân" : "Personal Profile"}
-                description={
-                  vi
-                    ? "Cập nhật tên hiển thị của bạn trong hộ gia đình."
-                    : "Update your display name across the household."
-                }
+                label={t(language, "settings.account")}
+                title={t(language, "settings.personal_profile")}
+                description={t(language, "settings.profile_description")}
                 icon={<User className="h-4 w-4 text-primary" />}
               />
             </div>
@@ -44,9 +39,7 @@ export default async function SettingsProfilePage() {
           <CardContent className="p-6">
             {!profile ? (
               <p className="text-sm text-slate-500 italic">
-                {vi
-                  ? "Hồ sơ chưa được khởi tạo. Hãy đăng xuất rồi đăng nhập lại để đồng bộ hồ sơ."
-                  : "Profile is not initialized yet. Sign out and sign in again to rehydrate your profile."}
+                {t(language, "settings.profile_not_initialized")}
               </p>
             ) : (
               <ProfileForm

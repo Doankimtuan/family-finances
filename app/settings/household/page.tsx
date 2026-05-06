@@ -13,7 +13,6 @@ import { SettingsNav } from "../_components/settings-nav";
 
 export default async function SettingsHouseholdPage() {
   const { language, household } = await getSettingsDataContext(false, true, false);
-  const vi = language === "vi";
 
   return (
     <AppShell
@@ -31,13 +30,9 @@ export default async function SettingsHouseholdPage() {
           <CardHeader className="p-0">
             <div className="p-5 border-b border-emerald-50 bg-emerald-50/30">
               <SectionHeader
-                label={vi ? "Hộ gia đình" : "Household"}
-                title={vi ? "Cài đặt hộ gia đình" : "Household Settings"}
-                description={
-                  vi
-                    ? "Quản lý thông tin chung, ngôn ngữ và múi giờ của gia đình."
-                    : "Manage shared identity, language, and timezone settings."
-                }
+                label={t(language, "settings.household")}
+                title={t(language, "settings.household_settings")}
+                description={t(language, "settings.household_description")}
                 icon={<Home className="h-4 w-4 text-emerald-600" />}
               />
             </div>
@@ -45,9 +40,7 @@ export default async function SettingsHouseholdPage() {
           <CardContent className="p-6">
             {!household ? (
               <p className="text-sm text-slate-500 italic">
-                {vi
-                  ? "Chưa tìm thấy cài đặt hộ gia đình."
-                  : "No household settings found yet."}
+                {t(language, "settings.no_household_settings")}
               </p>
             ) : (
               <HouseholdSettingsForm

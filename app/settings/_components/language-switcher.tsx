@@ -28,8 +28,7 @@ export function LanguageSwitcher({
 }: {
   defaultLanguage: AppLanguage;
 }) {
-  const { t, language } = useI18n();
-  const vi = language === "vi";
+  const { t } = useI18n();
   const [state, action] = useActionState(
     updateLanguagePreferenceAction,
     initialSettingsActionState,
@@ -78,7 +77,7 @@ export function LanguageSwitcher({
             ) : (
               <Check className="h-4 w-4 mr-2" />
             )}
-            {vi ? "Cập nhật" : "Apply"}
+            {t("settings.accept")}
           </Button>
         </div>
 

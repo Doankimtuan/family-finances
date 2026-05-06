@@ -15,7 +15,7 @@ import { RHFInput } from "@/components/ui/rhf-fields";
 import { FormStatus } from "@/components/ui/form-status";
 
 const profileSchema = z.object({
-  fullName: z.string().min(2, "Full name must be at least 2 characters"),
+  fullName: z.string().min(2, "validation.full_name_min"),
 });
 
 type ProfileValues = z.infer<typeof profileSchema>;
@@ -27,8 +27,7 @@ export function ProfileForm({
   defaultFullName: string;
   defaultEmail: string;
 }) {
-  const { language, t } = useI18n();
-  const vi = language === "vi";
+  const { t } = useI18n();
   const [state, formAction] = useActionState(
     updateProfileAction,
     initialSettingsActionState,
@@ -58,20 +57,20 @@ export function ProfileForm({
       >
         <RHFInput
           name="fullName"
-          label={vi ? "Họ và tên" : "Full name"}
+          label={t("settings.full_name")}
           required
           className="bg-white"
         />
 
         <div className="space-y-1.5">
           <p className="text-sm font-medium text-slate-700">
-            {vi ? "Email" : "Email"}
+            {t("settings.email")}
           </p>
           <div className="rounded-xl bg-slate-50 border border-slate-200 px-3 py-3 text-base text-slate-500 italic">
             {defaultEmail}
           </div>
           <p className="text-[10px] text-slate-400 font-medium">
-            {vi ? "Email không thể thay đổi." : "Email cannot be changed."}
+            {t("settings.email_readonly")}
           </p>
         </div>
 
@@ -82,7 +81,7 @@ export function ProfileForm({
           disabled={state.status === "pending"}
           className="w-full rounded-xl py-6 text-base font-semibold shadow-sm"
         >
-          {state.status === "pending" ? t("common.saving") : (vi ? "Cập nhật hồ sơ" : "Update Profile")}
+          {state.status === "pending" ? t("common.saving") : t("settings.update_profile")}
         </Button>
       </form>
     </FormProvider>

@@ -15,9 +15,9 @@ import { RHFInput, RHFSelect } from "@/components/ui/rhf-fields";
 import { FormStatus } from "@/components/ui/form-status";
 
 const householdSchema = z.object({
-  name: z.string().min(2, "Household name must be at least 2 characters"),
+  name: z.string().min(2, "validation.household_name_min"),
   language: z.enum(["en", "vi"]),
-  timezone: z.string().min(1, "Timezone is required"),
+  timezone: z.string().min(1, "validation.timezone_required"),
 });
 
 type HouseholdValues = z.infer<typeof householdSchema>;

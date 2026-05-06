@@ -31,18 +31,17 @@ function CategorySection({
   hasError: boolean;
   language: "en" | "vi";
 }) {
-  const vi = language === "vi";
   if (hasError) {
     return (
       <p className="mt-2 text-sm text-destructive">
-        {vi ? "Không thể tải danh mục." : "Could not load categories."}
+        {t(language, "settings.could_not_load")}
       </p>
     );
   }
   if (rows.length === 0) {
     return (
       <p className="mt-2 text-sm text-muted-foreground">
-        {vi ? "Không tìm thấy danh mục." : "No categories found."}
+        {t(language, "settings.no_categories")}
       </p>
     );
   }
@@ -62,20 +61,12 @@ function CategorySection({
               </p>
               <p className="text-xs text-muted-foreground">
                 {row.is_system
-                  ? vi
-                    ? "Danh mục hệ thống"
-                    : "System category"
-                  : vi
-                    ? "Danh mục hộ gia đình"
-                    : "Household category"}{" "}
+                  ? t(language, "settings.system_category")
+                  : t(language, "settings.household_category")}{" "}
                 ·{" "}
                 {row.is_active
-                  ? vi
-                    ? "Đang bật"
-                    : "Active"
-                  : vi
-                    ? "Đã tắt"
-                    : "Disabled"}
+                  ? t(language, "settings.active")
+                  : t(language, "settings.disabled")}
               </p>
             </div>
             <div className="flex flex-wrap items-start justify-end gap-2">
@@ -103,7 +94,6 @@ function CategorySection({
 
 export default async function SettingsCategoriesPage() {
   const { householdId, language } = await getAuthenticatedHouseholdContext();
-  const vi = language === "vi";
   const supabase = await createClient();
 
   const categoriesResult = await supabase
@@ -133,18 +123,12 @@ export default async function SettingsCategoriesPage() {
         <Card>
           <CardHeader>
             <SectionHeader
-              label={vi ? "Thiết lập" : "Setup"}
-              title={vi ? "Tạo danh mục" : "Create Category"}
-              description={
-                vi
-                  ? "Thêm danh mục thu nhập hoặc chi tiêu riêng cho hộ gia đình."
-                  : "Add household-specific income or expense categories."
-              }
+              label={t(language, "settings.setup")}
+              title={t(language, "settings.create_category")}
+              description={t(language, "settings.create_description")}
             />
             <p className="mt-1 text-xs text-muted-foreground">
-              {vi
-                ? "Danh mục đã có giao dịch sẽ không thể xóa, nhưng vẫn có thể chỉnh sửa."
-                : "Categories with existing transactions cannot be deleted, but can still be edited."}
+              {t(language, "settings.category_note")}
             </p>
           </CardHeader>
           <CardContent>
@@ -155,8 +139,8 @@ export default async function SettingsCategoriesPage() {
         <Card>
           <CardHeader>
             <SectionHeader
-              label={vi ? "Chi tiêu" : "Expenses"}
-              title={vi ? "Danh mục chi tiêu" : "Expense Categories"}
+              label={t(language, "settings.expenses")}
+              title={t(language, "settings.expense_categories")}
             />
           </CardHeader>
           <CardContent>
@@ -171,8 +155,8 @@ export default async function SettingsCategoriesPage() {
         <Card>
           <CardHeader>
             <SectionHeader
-              label={vi ? "Thu nhập" : "Income"}
-              title={vi ? "Danh mục thu nhập" : "Income Categories"}
+              label={t(language, "settings.income")}
+              title={t(language, "settings.income_categories")}
             />
           </CardHeader>
           <CardContent>

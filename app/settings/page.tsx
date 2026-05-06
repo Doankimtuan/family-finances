@@ -19,68 +19,49 @@ const sections = [
   {
     href: "/settings/profile",
     titleKey: "settings.profile",
+    descriptionKey: "settings.profile_description_main",
     icon: User,
     color: "bg-primary/10 text-primary",
-    description: {
-      en: "Update your name and account identity details.",
-      vi: "Cập nhật tên và thông tin nhận diện tài khoản.",
-    },
   },
   {
     href: "/settings/household",
     titleKey: "settings.household",
+    descriptionKey: "settings.household_description_main",
     icon: Home,
     color: "bg-emerald-100 text-emerald-600",
-    description: {
-      en: "Manage shared household identity, language, and timezone.",
-      vi: "Quản lý thông tin hộ gia đình, ngôn ngữ và múi giờ.",
-    },
   },
   {
     href: "/settings/members",
     titleKey: "settings.members",
+    descriptionKey: "settings.members_description_main",
     icon: Users,
     color: "bg-violet-100 text-violet-600",
-    description: {
-      en: "Invite partner and manage household members.",
-      vi: "Mời bạn đời và quản lý thành viên hộ gia đình.",
-    },
   },
   {
     href: "/settings/categories",
     titleKey: "settings.categories",
+    descriptionKey: "settings.categories_description_main",
     icon: Tag,
     color: "bg-amber-100 text-amber-600",
-    description: {
-      en: "Control income and expense category taxonomy.",
-      vi: "Quản lý hệ thống danh mục thu nhập và chi tiêu.",
-    },
   },
   {
     href: "/settings/cash-flow",
     titleKey: "settings.cash_flow",
+    descriptionKey: "settings.cash_flow_description_main",
     icon: ArrowLeftRight,
     color: "bg-cyan-100 text-cyan-600",
-    description: {
-      en: "Configure monthly income and expense baselines for planning.",
-      vi: "Thiết lập mức thu nhập và chi tiêu cơ bản hàng tháng cho kế hoạch.",
-    },
   },
   {
     href: "/settings/assumptions",
     titleKey: "settings.assumptions",
+    descriptionKey: "settings.assumptions_description_main",
     icon: TrendingUp,
     color: "bg-blue-100 text-blue-600",
-    description: {
-      en: "Set inflation and return assumptions used in projections.",
-      vi: "Thiết lập các giả định lạm phát và lợi suất cho dự báo.",
-    },
   },
 ];
 
 export default async function SettingsIndexPage() {
   const { language } = await getAuthenticatedHouseholdContext();
-  const vi = language === "vi";
 
   return (
     <AppShell
@@ -96,20 +77,16 @@ export default async function SettingsIndexPage() {
               </div>
               <div>
                 <Label className="text-[10px] font-bold uppercase tracking-wider text-primary block">
-                  {vi ? "Quản lý hệ thống" : "System Management"}
+                  {t(language, "settings.system_management")}
                 </Label>
                 <p className="text-xs text-slate-500 font-medium mt-0.5">
-                  {vi
-                    ? "Tùy chỉnh trải nghiệm tài khoản của bạn."
-                    : "Customize your account experience."}
+                  {t(language, "settings.customize_experience")}
                 </p>
               </div>
             </div>
             <div className="p-5 space-y-4">
               <p className="text-sm text-slate-600 leading-relaxed">
-                {vi
-                  ? "Giữ các cài đặt này luôn cập nhật để bảng điều khiển, dự báo và cộng tác luôn chính xác cho cả hai thành viên."
-                  : "Keep these settings current so dashboards, projections, and collaboration stay accurate for both partners."}
+                {t(language, "settings.keep_current")}
               </p>
               <div className="pt-4 border-t border-slate-100">
                 <LanguageSwitcher defaultLanguage={language} />
@@ -142,7 +119,7 @@ export default async function SettingsIndexPage() {
                         {t(language, section.titleKey)}
                       </p>
                       <p className="text-xs text-slate-500 truncate font-medium mt-0.5">
-                        {section.description[language]}
+                        {t(language, section.descriptionKey)}
                       </p>
                     </div>
                     <div className="h-8 w-8 rounded-xl bg-slate-50 flex items-center justify-center text-slate-300 group-hover:text-primary group-hover:bg-primary/5 transition-all">
