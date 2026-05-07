@@ -14,14 +14,13 @@ import { RHFSelect } from "@/components/ui/rhf-fields";
 import { Button } from "@/components/ui/button";
 import { Loader2, Check } from "lucide-react";
 import { FormStatus } from "@/components/ui/form-status";
+import type { AppLanguage } from "@/lib/i18n/config";
 
 const languageSchema = z.object({
   language: z.enum(["en", "vi"]),
 });
 
 type LanguageValues = z.infer<typeof languageSchema>;
-
-import type { AppLanguage } from "@/lib/i18n/config";
 
 export function LanguageSwitcher({
   defaultLanguage,
@@ -45,7 +44,7 @@ export function LanguageSwitcher({
   return (
     <FormProvider {...methods}>
       <form
-        className="space-y-3"
+        className="space-y-4"
         noValidate
         action={action}
         onSubmit={(e) => {
@@ -57,7 +56,7 @@ export function LanguageSwitcher({
           })(e);
         }}
       >
-        <div className="flex flex-col sm:flex-row items-end gap-3">
+        <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
           <RHFSelect
             name="language"
             label={t("settings.language")}
@@ -65,12 +64,13 @@ export function LanguageSwitcher({
               { label: t("settings.lang_en"), value: "en" },
               { label: t("settings.lang_vi"), value: "vi" },
             ]}
-            className="bg-white flex-1 min-w-[140px]"
+            className="h-11 min-w-0 rounded-xl bg-background"
           />
           <Button
             type="submit"
             disabled={isPending}
-            className="w-full sm:w-auto shrink-0 px-6 h-10 rounded-xl font-bold shadow-sm"
+            className="h-11 w-full shrink-0 rounded-xl px-6 font-semibold shadow-sm sm:w-auto"
+            aria-busy={isPending}
           >
             {isPending ? (
               <Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -81,7 +81,11 @@ export function LanguageSwitcher({
           </Button>
         </div>
 
-        <FormStatus message={state.message} status={state.status} className="text-xs" />
+        <FormStatus
+          message={state.message}
+          status={state.status}
+          className="text-xs leading-5"
+        />
       </form>
     </FormProvider>
   );

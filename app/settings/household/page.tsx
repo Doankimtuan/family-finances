@@ -9,7 +9,6 @@ import { getSettingsDataContext } from "@/lib/server/settings-data";
 import { Home } from "lucide-react";
 
 import { HouseholdSettingsForm } from "../_components/household-form";
-import { SettingsNav } from "../_components/settings-nav";
 
 export default async function SettingsHouseholdPage() {
   const { language, household } = await getSettingsDataContext(false, true, false);
@@ -24,8 +23,6 @@ export default async function SettingsHouseholdPage() {
       footer={<BottomTabBar />}
     >
       <div className="space-y-6 pb-24 animate-in fade-in slide-in-from-bottom-4 duration-700">
-        <SettingsNav currentPath="/settings/household" />
-
         <Card className="border-emerald-100 shadow-sm overflow-hidden">
           <CardHeader className="p-0">
             <div className="p-5 border-b border-emerald-50 bg-emerald-50/30">

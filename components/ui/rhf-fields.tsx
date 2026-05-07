@@ -27,6 +27,7 @@ interface BaseFieldProps {
 interface RHFInputProps extends BaseFieldProps {
   prefix?: React.ReactNode;
   suffix?: React.ReactNode;
+  classNameContainer?: string;
 }
 
 export function RHFInput({
@@ -37,6 +38,7 @@ export function RHFInput({
   hideLabel,
   prefix,
   suffix,
+  classNameContainer,
   ...props
 }: RHFInputProps & React.ComponentProps<typeof Input>) {
   const {
@@ -56,6 +58,7 @@ export function RHFInput({
       description={description}
       required={required}
       hideLabel={hideLabel}
+      className={classNameContainer}
     >
       <div className="relative">
         {prefix && (
@@ -88,6 +91,7 @@ interface RHFSelectProps extends BaseFieldProps {
   placeholder?: string;
   defaultValue?: string;
   className?: string;
+  classNameContainer?: string;
 }
 
 export function RHFSelect({
@@ -100,6 +104,7 @@ export function RHFSelect({
   placeholder,
   defaultValue,
   className,
+  classNameContainer,
 }: RHFSelectProps) {
   const {
     control,
@@ -118,6 +123,7 @@ export function RHFSelect({
       description={description}
       required={required}
       hideLabel={hideLabel}
+      className={classNameContainer}
     >
       <Controller
         name={name}

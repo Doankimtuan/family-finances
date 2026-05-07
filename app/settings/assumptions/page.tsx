@@ -8,7 +8,6 @@ import { getSettingsDataContext } from "@/lib/server/settings-data";
 import { TrendingUp } from "lucide-react";
 
 import { AssumptionsForm } from "../_components/assumptions-form";
-import { SettingsNav } from "../_components/settings-nav";
 import { DEFAULT_ASSUMPTIONS } from "../constants/assumptions";
 
 export default async function SettingsAssumptionsPage() {
@@ -24,8 +23,6 @@ export default async function SettingsAssumptionsPage() {
       footer={<BottomTabBar />}
     >
       <div className="space-y-6 pb-24 animate-in fade-in slide-in-from-bottom-4 duration-700">
-        <SettingsNav currentPath="/settings/assumptions" />
-
         <Card className="border-blue-100 shadow-sm overflow-hidden">
           <CardHeader className="p-0">
             <div className="p-5 border-b border-blue-50 bg-blue-50/30">

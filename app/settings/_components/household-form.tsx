@@ -67,7 +67,7 @@ export function HouseholdSettingsForm({
           name="name"
           label={t("settings.household_name")}
           required
-          className="bg-white"
+          className="w-full bg-white"
         />
 
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
@@ -79,14 +79,14 @@ export function HouseholdSettingsForm({
               { label: t("settings.lang_vi"), value: "vi" },
             ]}
             required
-            className="bg-white h-12"
+            className="w-full bg-white h-12"
           />
 
           <RHFInput
             name="timezone"
             label={t("settings.timezone")}
             required
-            className="bg-white"
+            className="w-full bg-white"
           />
         </div>
 

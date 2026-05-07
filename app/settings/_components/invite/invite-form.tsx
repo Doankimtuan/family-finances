@@ -92,7 +92,7 @@ export function InviteForm({ origin, outgoingInvites }: InviteFormProps) {
               onSubmit(e);
             }}
           >
-            <div className="flex flex-col sm:flex-row gap-3 items-end">
+            <div className="flex flex-col sm:flex-row gap-3 items-end ">
               <RHFInput
                 name="email"
                 label={t("settings.invitee_email")}
@@ -101,6 +101,7 @@ export function InviteForm({ origin, outgoingInvites }: InviteFormProps) {
                 required
                 className="bg-white flex-1"
                 hideLabel
+                classNameContainer="w-full"
               />
               <Button
                 type="submit"

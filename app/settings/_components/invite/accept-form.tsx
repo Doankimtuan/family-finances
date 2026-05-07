@@ -151,6 +151,7 @@ export function AcceptForm({ incomingInvites }: AcceptFormProps) {
                 required
                 hideLabel
                 className="bg-white flex-1 font-mono text-xs"
+                classNameContainer="w-full"
               />
               <Button
                 type="submit"

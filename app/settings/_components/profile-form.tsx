@@ -59,14 +59,14 @@ export function ProfileForm({
           name="fullName"
           label={t("settings.full_name")}
           required
-          className="bg-white"
+          className="w-full bg-white"
         />
 
         <div className="space-y-1.5">
           <p className="text-sm font-medium text-slate-700">
             {t("settings.email")}
           </p>
-          <div className="rounded-xl bg-slate-50 border border-slate-200 px-3 py-3 text-base text-slate-500 italic">
+          <div className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-3 text-base text-slate-500 italic">
             {defaultEmail}
           </div>
           <p className="text-[10px] text-slate-400 font-medium">

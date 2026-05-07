@@ -11,7 +11,6 @@ import { getSettingsDataContext } from "@/lib/server/settings-data";
 import { Shield, Users } from "lucide-react";
 
 import { InviteMemberSection } from "../_components/invite-member-section";
-import { SettingsNav } from "../_components/settings-nav";
 
 export const metadata = {
   title: "Members | Settings | Family Finances",
@@ -43,8 +42,6 @@ export default async function SettingsMembersPage() {
       footer={<BottomTabBar />}
     >
       <div className="space-y-6 pb-24 animate-in fade-in slide-in-from-bottom-4 duration-700">
-        <SettingsNav currentPath="/settings/members" />
-
         <Card className="border-violet-100 shadow-sm overflow-hidden">
           <CardHeader className="p-0">
             <div className="p-5 border-b border-violet-50 bg-violet-50/30">

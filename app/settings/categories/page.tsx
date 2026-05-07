@@ -11,8 +11,6 @@ import { t } from "@/lib/i18n/dictionary";
 import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
 import { createClient } from "@/lib/supabase/server";
 
-import { SettingsNav } from "../_components/settings-nav";
-
 type CategoryRow = {
   id: string;
   kind: "income" | "expense";
@@ -118,8 +116,6 @@ export default async function SettingsCategoriesPage() {
       footer={<BottomTabBar />}
     >
       <section className="space-y-4">
-        <SettingsNav currentPath="/settings/categories" />
-
         <Card>
           <CardHeader>
             <SectionHeader

@@ -84,7 +84,7 @@ export function AssumptionsForm({
             step="0.1"
             suffix="%"
             required
-            className="bg-white font-mono"
+            className="w-full bg-white font-mono"
             description={t("settings.inflation_description")}
           />
           <RHFInput
@@ -95,7 +95,7 @@ export function AssumptionsForm({
             step="0.1"
             suffix="%"
             required
-            className="bg-white font-mono"
+            className="w-full bg-white font-mono"
             description={t("settings.salary_growth_description")}
           />
           <RHFInput
@@ -106,7 +106,7 @@ export function AssumptionsForm({
             step="0.1"
             suffix="%"
             required
-            className="bg-white font-mono"
+            className="w-full bg-white font-mono"
             description={t("settings.cash_return_description")}
           />
           <RHFInput
@@ -117,7 +117,7 @@ export function AssumptionsForm({
             step="0.1"
             suffix="%"
             required
-            className="bg-white font-mono"
+            className="w-full bg-white font-mono"
             description={t("settings.investment_return_description")}
           />
           <RHFInput
@@ -128,7 +128,7 @@ export function AssumptionsForm({
             step="0.1"
             suffix="%"
             required
-            className="bg-white font-mono"
+            className="w-full bg-white font-mono"
             description={t("settings.property_growth_description")}
           />
           <RHFInput
@@ -139,7 +139,7 @@ export function AssumptionsForm({
             step="0.1"
             suffix="%"
             required
-            className="bg-white font-mono"
+            className="w-full bg-white font-mono"
             description={t("settings.gold_growth_description")}
           />
         </div>
