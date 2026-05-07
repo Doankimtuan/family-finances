@@ -14,16 +14,16 @@ export function TopActionBanner({
   const { t } = useI18n();
 
   return (
-    <Card className="border-warning/30 bg-warning/10 shadow-sm">
+    <Card className="border-warning/20 bg-warning/10 shadow-sm">
       <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2 text-warning">
-            <Sparkles className="h-4.5 w-4.5" />
-            <p className="text-xs font-bold uppercase tracking-[0.16em]">
+        <div className="space-y-2">
+          <div className="inline-flex items-center gap-2 rounded-full border border-warning/20 bg-background/70 px-3 py-1 text-warning">
+            <Sparkles className="h-4 w-4" />
+            <p className="text-[11px] font-bold uppercase tracking-[0.16em]">
               {t("dashboard.hero.top_action")}
             </p>
           </div>
-          <p className="text-sm font-semibold leading-6 text-foreground">
+          <p className="text-sm font-semibold leading-6 text-foreground sm:text-base">
             {healthScore === null ? t("dashboard.hero.health_pending") : topAction}
           </p>
         </div>

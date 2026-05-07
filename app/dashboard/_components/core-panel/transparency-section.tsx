@@ -4,19 +4,20 @@ import { ChevronRight, Info } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { SectionHeader } from "@/components/ui/section-header";
 import { useI18n } from "@/lib/providers/i18n-provider";
+import type { DashboardCoreResponse } from "@/lib/dashboard/types";
 import { TransparencyList } from "./ui";
 
 export function TransparencySection({
   drilldowns,
 }: {
-  drilldowns: any;
+  drilldowns: DashboardCoreResponse["drilldowns"] | null | undefined;
 }) {
   const { locale, t } = useI18n();
 
   if (!drilldowns) return null;
 
   return (
-    <Card className="border-border/60">
+    <Card className="border-border/60 shadow-sm">
       <CardHeader className="pb-3">
         <SectionHeader
           icon={Info}
@@ -26,12 +27,12 @@ export function TransparencySection({
         />
       </CardHeader>
       <CardContent className="space-y-3">
-        <details className="group rounded-2xl border border-border/60 bg-muted/10 p-4">
-          <summary className="flex cursor-pointer list-none items-center justify-between">
-            <span className="text-sm font-semibold text-foreground">
+        <details className="group rounded-2xl border border-border/60 bg-muted/10 p-4 transition-colors open:bg-muted/20">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
+            <span className="text-sm font-semibold text-foreground sm:text-base">
               {t("dashboard.transparency.networth")}
             </span>
-            <ChevronRight className="h-4 w-4 text-muted-foreground transition group-open:rotate-90" />
+            <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground transition group-open:rotate-90" />
           </summary>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             <TransparencyList
@@ -49,15 +50,15 @@ export function TransparencySection({
           </div>
         </details>
 
-        <details className="group rounded-2xl border border-border/60 bg-muted/10 p-4">
-          <summary className="flex cursor-pointer list-none items-center justify-between">
-            <span className="text-sm font-semibold text-foreground">
+        <details className="group rounded-2xl border border-border/60 bg-muted/10 p-4 transition-colors open:bg-muted/20">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
+            <span className="text-sm font-semibold text-foreground sm:text-base">
               {t("dashboard.transparency.cashflow")}
             </span>
-            <ChevronRight className="h-4 w-4 text-muted-foreground transition group-open:rotate-90" />
+            <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground transition group-open:rotate-90" />
           </summary>
-          <p className="mt-3 text-xs text-muted-foreground">
-            {t("dashboard.transparency.window")}:{" "}
+          <p className="mt-3 text-xs text-muted-foreground sm:text-sm">
+            {t("dashboard.transparency.window")}: {" "}
             {drilldowns.cashFlow.monthStart} - {drilldowns.cashFlow.monthEnd}
           </p>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">

@@ -18,7 +18,7 @@ export default function DashboardError({
   const { t } = useI18n();
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-6 pb-24">
+    <main className="min-h-screen bg-background px-4 py-6 pb-24">
       <section className="mx-auto w-full max-w-2xl">
         <EmptyState
           icon={HeartPulse}

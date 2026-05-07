@@ -17,7 +17,7 @@ export function HealthFactors({
   if (!healthData) return null;
 
   return (
-    <Card className="border-border/60 bg-linear-to-br from-amber-50 via-orange-50 to-white">
+    <Card className="border-border/60 bg-linear-to-br from-amber-50 via-orange-50 to-white shadow-sm">
       <CardHeader className="pb-3">
         <SectionHeader
           icon={Zap}

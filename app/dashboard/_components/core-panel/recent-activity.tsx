@@ -23,32 +23,32 @@ export function RecentActivity({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-3">
-        <SectionHeader
-          icon={Receipt}
-          label={t("dashboard.activity.label")}
-          title={t("dashboard.activity.title")}
-        />
-        <Link
-          href="/activity"
-          className="text-sm font-medium text-primary hover:underline"
-        >
-          {t("dashboard.activity.view_more")}
-        </Link>
-      </div>
-      <Card className="overflow-hidden border-border/60">
+      <SectionHeader
+        icon={Receipt}
+        label={t("dashboard.activity.label")}
+        title={t("dashboard.activity.title")}
+        rightAction={
+          <Link
+            href="/activity"
+            className="text-sm font-medium text-primary transition-colors hover:text-primary/80 hover:underline"
+          >
+            {t("dashboard.activity.view_more")}
+          </Link>
+        }
+      />
+      <Card className="overflow-hidden border-border/60 shadow-sm">
         <CardContent className="p-0">
           {transactions.map((tx, idx) => (
             <div
               key={tx.id}
               className={cn(
-                "flex items-center gap-3 p-4 transition-colors hover:bg-muted/30",
+                "flex items-center gap-4 px-4 py-4 transition-colors hover:bg-muted/30 sm:px-5",
                 idx !== transactions.length - 1 && "border-b border-border/50",
               )}
             >
               <div
                 className={cn(
-                  "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl",
+                  "flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl",
                   tx.type === "income"
                     ? "bg-emerald-50 text-emerald-600"
                     : "bg-slate-100 text-slate-700",
@@ -73,7 +73,7 @@ export function RecentActivity({
               <div className="text-right">
                 <p
                   className={cn(
-                    "text-sm font-bold",
+                    "text-sm font-bold tabular-nums",
                     tx.type === "income" ? "text-emerald-600" : "text-foreground",
                   )}
                 >

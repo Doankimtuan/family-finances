@@ -36,7 +36,7 @@ export function ActionFeed({
         description={t("dashboard.actions.description")}
       />
       <div className="grid gap-4 lg:grid-cols-[1.35fr_0.95fr]">
-        <Card className="border-border/60">
+        <Card className="border-border/60 shadow-sm">
           <CardContent className="p-4">
             {actionItems.length > 0 ? (
               <div className="space-y-3">
@@ -44,11 +44,11 @@ export function ActionFeed({
                   <Link
                     key={item.id}
                     href={item.href}
-                    className="group flex items-center gap-4 rounded-2xl border border-border/60 bg-card p-4 transition hover:border-primary/40 hover:bg-primary/5"
+                    className="group flex items-center gap-4 rounded-2xl border border-border/60 bg-card px-4 py-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/40 hover:bg-primary/5"
                   >
                     <div
                       className={cn(
-                        "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl",
+                        "flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl",
                         item.tone === "destructive"
                           ? "bg-destructive/10 text-destructive"
                           : "bg-warning/15 text-warning",
@@ -61,10 +61,10 @@ export function ActionFeed({
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-foreground">
+                      <p className="truncate text-sm font-semibold text-foreground sm:text-[15px]">
                         {item.title}
                       </p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="mt-0.5 text-xs leading-5 text-muted-foreground">
                         {item.description}
                       </p>
                     </div>
@@ -76,7 +76,7 @@ export function ActionFeed({
                         {item.metaLabel}
                       </p>
                     </div>
-                    <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground transition group-hover:text-primary group-hover:translate-x-0.5" />
+                    <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground transition group-hover:translate-x-0.5 group-hover:text-primary" />
                   </Link>
                 ))}
               </div>

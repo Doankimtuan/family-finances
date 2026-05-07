@@ -38,7 +38,7 @@ export function SnapshotsSection({
           jarsEnabled ? "lg:grid-cols-2" : "lg:grid-cols-1",
         )}
       >
-        <Card className="border-border/60">
+        <Card className="border-border/60 shadow-sm">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between gap-3">
               <h2 className="text-lg font-semibold text-foreground">
@@ -62,7 +62,7 @@ export function SnapshotsSection({
                 return (
                   <div
                     key={goal.id}
-                    className="rounded-2xl border border-border/60 bg-card p-4"
+                    className="rounded-2xl border border-border/60 bg-card p-4 shadow-sm"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
@@ -80,7 +80,7 @@ export function SnapshotsSection({
                     </div>
                     <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted">
                       <div
-                        className="h-full rounded-full bg-primary"
+                        className="h-full rounded-full bg-linear-to-r from-primary via-primary/90 to-accent transition-all duration-700"
                         style={{ width: `${pct}%` }}
                       />
                     </div>
@@ -98,7 +98,7 @@ export function SnapshotsSection({
         </Card>
 
         {jarsEnabled ? (
-          <Card className="border-border/60">
+          <Card className="border-border/60 shadow-sm">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between gap-3">
                 <h2 className="text-lg font-semibold text-foreground">
@@ -119,7 +119,7 @@ export function SnapshotsSection({
                   return (
                     <div
                       key={jar.jar_id}
-                      className="rounded-2xl border border-border/60 bg-card p-4"
+                      className="rounded-2xl border border-border/60 bg-card p-4 shadow-sm"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
@@ -141,7 +141,7 @@ export function SnapshotsSection({
                       <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted">
                         <div
                           className={cn(
-                            "h-full rounded-full",
+                            "h-full rounded-full transition-all duration-700",
                             coverage >= 100
                               ? "bg-success"
                               : coverage >= 75

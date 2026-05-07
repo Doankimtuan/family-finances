@@ -14,7 +14,7 @@ export function QuickActionsSection({
   const { t } = useI18n();
 
   return (
-    <Card className="border-transparent bg-transparent shadow-none">
+    <Card className="border-border/60 shadow-sm">
       <CardHeader className="px-0">
         <SectionHeader
           icon={History}
@@ -22,7 +22,7 @@ export function QuickActionsSection({
           title={t("dashboard.shortcuts.title")}
         />
       </CardHeader>
-      <CardContent className="grid grid-cols-2 gap-3 px-0 sm:grid-cols-3 lg:grid-cols-4">
+      <CardContent className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
         <QuickAction
           href="/activity"
           icon={History}

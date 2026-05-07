@@ -32,7 +32,7 @@ export function MaturityTimelineWidget() {
 
   if (query.isLoading) {
     return (
-      <Card className="border-border/60">
+      <Card className="border-border/60 shadow-sm">
         <CardContent className="space-y-3 p-4">
           <Skeleton className="h-5 w-32" />
           <Skeleton className="h-24 rounded-2xl" />
@@ -43,7 +43,7 @@ export function MaturityTimelineWidget() {
   }
   if (query.isError || !query.data?.nextMaturity) {
     return (
-      <Card className="border-border/60">
+      <Card className="border-border/60 shadow-sm">
         <CardContent className="p-4">
           <EmptyState
             icon={BellRing}
@@ -58,7 +58,7 @@ export function MaturityTimelineWidget() {
 
   const next = query.data.nextMaturity;
   return (
-    <Card className="border-border/60">
+    <Card className="border-border/60 shadow-sm">
       <CardHeader className="space-y-1 pb-2">
         <h3 className="text-lg font-semibold text-foreground">
           {t("savings.widget.title")}
@@ -70,7 +70,7 @@ export function MaturityTimelineWidget() {
         </p>
       </CardHeader>
       <CardContent className="space-y-3">
-        <div className="rounded-2xl border border-warning/30 bg-warning/10 p-4">
+        <div className="rounded-2xl border border-warning/30 bg-warning/10 p-4 shadow-sm">
           <p className="text-sm font-semibold text-foreground">{next.providerName}</p>
           <p className="mt-1 text-xs text-muted-foreground">
             {formatDate(next.maturityDate, locale)}

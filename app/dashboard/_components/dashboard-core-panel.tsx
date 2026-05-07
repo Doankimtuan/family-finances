@@ -8,10 +8,6 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { isFeatureEnabled } from "@/lib/config/features";
-import {
-  formatDate,
-  formatVndCompact,
-} from "@/lib/dashboard/format";
 import { useI18n } from "@/lib/providers/i18n-provider";
 import { calculateSavingsRateDelta, getDebtPressureNote } from "@/lib/dashboard/utils";
 
@@ -86,7 +82,7 @@ export function DashboardCorePanel() {
   const debtPressureNote = getDebtPressureNote(tdsrValue, t);
 
   return (
-    <section className="space-y-6 pb-12">
+    <section className="space-y-8 pb-16">
       <HeroSection
         metrics={{
           net_worth: Number(metrics.net_worth),

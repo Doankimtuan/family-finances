@@ -4,19 +4,19 @@ import { SkeletonBlock, SkeletonGrid } from "@/components/ui/skeleton-builders";
 export default function DashboardLoading() {
   return (
     <LoadingContainer>
-      <SkeletonGrid cols={3} gap="gap-3" className="sm:grid-cols-3 grid-cols-1">
-        <SkeletonBlock height="h-28" />
-        <SkeletonBlock height="h-28" />
-        <SkeletonBlock height="h-28" />
+      <SkeletonGrid cols={3} gap="gap-4" className="grid-cols-1 sm:grid-cols-3">
+        <SkeletonBlock height="h-32" rounded="rounded-3xl" />
+        <SkeletonBlock height="h-32" rounded="rounded-3xl" />
+        <SkeletonBlock height="h-32" rounded="rounded-3xl" />
       </SkeletonGrid>
-      <SkeletonBlock height="h-80" />
-      <SkeletonBlock height="h-32" />
-      <SkeletonBlock height="h-64" />
-      <SkeletonGrid cols={2} gap="gap-2">
-        <SkeletonBlock height="h-11" rounded="rounded-xl" />
-        <SkeletonBlock height="h-11" rounded="rounded-xl" />
-        <SkeletonBlock height="h-11" rounded="rounded-xl" />
-        <SkeletonBlock height="h-11" rounded="rounded-xl" />
+      <SkeletonBlock height="h-24" rounded="rounded-3xl" />
+      <SkeletonBlock height="h-40" rounded="rounded-3xl" />
+      <SkeletonBlock height="h-72" rounded="rounded-3xl" />
+      <SkeletonGrid cols={2} gap="gap-4">
+        <SkeletonBlock height="h-12" rounded="rounded-2xl" />
+        <SkeletonBlock height="h-12" rounded="rounded-2xl" />
+        <SkeletonBlock height="h-12" rounded="rounded-2xl" />
+        <SkeletonBlock height="h-12" rounded="rounded-2xl" />
       </SkeletonGrid>
     </LoadingContainer>
   );
