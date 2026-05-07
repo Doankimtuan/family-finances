@@ -27,7 +27,7 @@ const assetFormSchema = z
     assetClass: z.string(),
     unitLabel: z.string().min(1, "Unit label is required"),
     quantity: z.number().min(0, "Quantity must be non-negative"),
-    unitPrice: z.number().min(0, "Unit price must be non-negative"),
+    unitPrice: z.string().min(1, "Unit price is required"),
     isLiquid: z.string(),
   })
   .catchall(z.any());
@@ -52,7 +52,7 @@ export function CreateAssetForm({ onSuccess }: CreateAssetFormProps) {
       assetClass: DEFAULT_ASSET_CLASS,
       unitLabel: t("assets.unit.tael"),
       quantity: 1,
-      unitPrice: 0,
+      unitPrice: "",
       isLiquid: BOOLEAN_STRING.TRUE,
     },
   });
@@ -73,7 +73,7 @@ export function CreateAssetForm({ onSuccess }: CreateAssetFormProps) {
     (data: AssetFormValues) => {
       const formData = new FormData();
       Object.entries(data).forEach(([key, value]) => {
-        formData.append(key, String(value));
+        formData.append(key, value == null ? "" : String(value));
       });
       action(formData);
     },
@@ -118,9 +118,13 @@ export function CreateAssetForm({ onSuccess }: CreateAssetFormProps) {
             step="0.001"
           />
 
-          <RHFMoneyInput
+          <RHFInput
             name="unitPrice"
             label={t("assets.unit_price")}
+            placeholder={t("assets.placeholder_unit_price")}
+            type="number"
+            min="1"
+            step="1"
             className="w-full"
           />
         </div>
@@ -137,7 +141,7 @@ export function CreateAssetForm({ onSuccess }: CreateAssetFormProps) {
 
         {/* ── Class-specific metadata fields ── */}
         {classConfig.metadataFields.length > 0 && (
-          <div className="space-y-2 rounded-xl border border-slate-200 bg-slate-50/50 p-3">
+          <div className="mt-6 space-y-3 border-t border-slate-200 pt-6">
             <Label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
               {t("assets.details")}
             </Label>

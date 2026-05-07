@@ -34,7 +34,7 @@ export function SavingsStepDetails({
     "h-12 border-slate-300 bg-white text-slate-950 data-[placeholder]:text-slate-400";
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <FormSection title={t("savings.form.section.basics")}>
         <div className="grid gap-4 md:grid-cols-2">
           <RHFInput

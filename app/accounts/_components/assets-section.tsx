@@ -35,16 +35,20 @@ export async function AssetsSection({
   const t = (key: string) => dictT(language, key);
 
   return (
-    <section className="space-y-1">
-      <div className="flex items-center justify-between mb-3">
-        <div>
-          <h2 className="text-xl font-bold text-foreground">
+    <section className="space-y-4 md:space-y-6">
+      <div className="flex flex-col gap-4 rounded-3xl border border-border/60 bg-card/80 p-4 shadow-sm backdrop-blur-sm sm:flex-row sm:items-end sm:justify-between sm:p-5 md:p-6">
+        <div className="flex-1 space-y-1">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary/70">
             {t("assets.title")}
-          </h2>
-          <p className="text-xs text-muted-foreground font-medium mt-0.5">
-            {t("money.accounts.total")}:{" "}
-            {formatVndCompact(totalAssetValue, householdLocale)}
           </p>
+          <div className="flex items-baseline justify-between gap-x-3">
+            <h2 className="text-2xl font-black tracking-tight text-foreground md:text-3xl">
+              {t("assets.title")}
+            </h2>
+            <p className="text-sm font-semibold text-muted-foreground">
+              {t("money.accounts.total")}: {formatVndCompact(totalAssetValue, householdLocale)}
+            </p>
+          </div>
         </div>
         <CreateAssetDialog />
       </div>
@@ -54,6 +58,8 @@ export async function AssetsSection({
           icon={TrendingUp}
           title={t("money.assets.empty.title")}
           description={t("money.assets.empty.description")}
+          iconClassName="h-7 w-7 text-blue-600"
+          iconWrapperClassName="h-14 w-14 bg-blue-50"
         />
       ) : (
         <>
@@ -82,27 +88,28 @@ export async function AssetsSection({
                 <Link key={asset.id} href={`/assets/${asset.id}`}>
                   <Card
                     className={cn(
-                      "border-none shadow-xs transition-all duration-200 hover:shadow-md",
+                      "group overflow-hidden border border-border/70 bg-card shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg",
+                      colors.border,
                       colors.bg,
                     )}
                   >
-                    <CardContent className="p-4 flex items-center gap-4">
+                    <CardContent className="flex items-center gap-4 p-4 sm:p-5">
                       <div
                         className={cn(
-                          "h-12 w-12 rounded-2xl flex items-center justify-center shrink-0 shadow-xs",
+                          "h-12 w-12 shrink-0 rounded-2xl flex items-center justify-center shadow-sm",
                           colors.icon,
                         )}
                       >
                         <Icon className="h-6 w-6" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
                           {getClassLabel(asset.asset_class, t)}
                         </p>
-                        <h3 className="font-bold text-slate-900 truncate">
+                        <h3 className="truncate text-base font-semibold tracking-tight text-foreground">
                           {asset.name}
                         </h3>
-                        <p className="text-[10px] text-slate-500 mt-0.5">
+                        <p className="mt-1 text-xs text-muted-foreground">
                           {formatNumber(asset.quantity, householdLocale)}{" "}
                           {asset.unit_label} ·{" "}
                           {updatedDate
@@ -111,7 +118,7 @@ export async function AssetsSection({
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm font-black text-slate-900">
+                        <p className="text-sm font-black text-foreground">
                           {formatVndCompact(value, householdLocale)}
                         </p>
                         <div className="flex items-center justify-end text-[10px] mt-0.5">
@@ -169,8 +176,8 @@ function PortfolioAllocationBar({
   const liquidPct = Math.round((liquidTotal / totalAssetValue) * 100);
 
   return (
-    <div className="space-y-2 mb-3">
-      <div className="flex h-2.5 rounded-full overflow-hidden bg-muted">
+    <div className="mb-3 space-y-2">
+      <div className="flex h-2.5 overflow-hidden rounded-full bg-muted">
         {entries.map(([cls, val]) => {
           const pct = (val / totalAssetValue) * 100;
           return (
@@ -198,15 +205,15 @@ function PortfolioAllocationBar({
                   textColor.replace("text-", "bg-"),
                 )}
               />
-              <span className="text-slate-500 uppercase">
+              <span className="uppercase text-muted-foreground">
                 {getClassLabel(cls, t)}
               </span>
-              <span className="text-slate-900">{pct}%</span>
+              <span className="text-foreground">{pct}%</span>
             </div>
           );
         })}
-        <div className="flex items-center gap-1.5 text-[10px] font-bold border-l pl-4 ml-auto">
-          <span className="text-slate-500 uppercase">{t("assets.liquidity.liquid")}</span>
+        <div className="ml-auto flex items-center gap-1.5 border-l pl-4 text-[10px] font-bold">
+          <span className="uppercase text-muted-foreground">{t("assets.liquidity.liquid")}</span>
           <span
             className={cn(
               liquidPct > 50 ? "text-emerald-600" : "text-amber-600",

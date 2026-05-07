@@ -32,19 +32,23 @@ export async function SavingsSection({
   const t = (key: string) => dictT(language, key);
 
   return (
-    <section className="space-y-1">
-      <div className="flex items-center justify-between mb-3">
-        <div>
-          <h2 className="text-xl font-bold text-foreground">
+    <section className="space-y-4 md:space-y-6">
+      <div className="flex flex-col gap-4 rounded-3xl border border-border/60 bg-card/80 p-4 shadow-sm backdrop-blur-sm sm:flex-row sm:items-end sm:justify-between sm:p-5 md:p-6">
+        <div className="flex-1 space-y-1">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary/70">
             {t("money.savings.title")}
-          </h2>
-          <p className="text-xs text-muted-foreground font-medium mt-0.5">
-            {t("money.savings.total")}:{" "}
-            {formatVndCompact(totalSavingsValue, householdLocale)}
           </p>
+          <div className="flex items-baseline justify-between gap-x-3">
+            <h2 className="text-2xl font-black tracking-tight text-foreground md:text-3xl">
+              {t("money.savings.title")}
+            </h2>
+            <p className="text-sm font-semibold text-muted-foreground">
+              {t("money.savings.total")}: {formatVndCompact(totalSavingsValue, householdLocale)}
+            </p>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Button asChild variant="ghost" size="sm" className="rounded-xl px-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <Button asChild variant="ghost" size="sm" className="rounded-full px-4">
             <Link href="/accounts/savings">{t("money.savings.view_all")}</Link>
           </Button>
           <AddSavingsForm
@@ -60,13 +64,8 @@ export async function SavingsSection({
           icon={HandCoins}
           title={t("money.savings.empty.title")}
           description={t("money.savings.empty.description")}
-          action={
-            <AddSavingsForm
-              accounts={accounts}
-              goals={savingsGoalOptions}
-              triggerLabel={t("money.savings.empty.action")}
-            />
-          }
+          iconClassName="h-7 w-7 text-emerald-600"
+          iconWrapperClassName="h-14 w-14 bg-emerald-50"
         />
       ) : (
         <div className="space-y-3">
@@ -79,17 +78,17 @@ export async function SavingsSection({
             />
           ))}
           {hiddenSavingsCount > 0 && (
-            <Card className="border-dashed border-border/70 bg-slate-50/70">
-              <CardContent className="flex items-center justify-between gap-3 p-4">
+            <Card className="border-dashed border-border/70 bg-muted/30">
+              <CardContent className="flex items-center justify-between gap-3 p-4 sm:p-5">
                 <div>
-                  <p className="text-sm font-semibold text-slate-900">
+                  <p className="text-sm font-semibold text-foreground">
                     +{hiddenSavingsCount} {t("money.savings.more_items")}
                   </p>
-                  <p className="mt-1 text-sm text-slate-500">
+                  <p className="mt-1 text-sm text-muted-foreground">
                     {t("money.savings.view_all")}
                   </p>
                 </div>
-                <Button asChild variant="outline" size="sm" className="rounded-xl">
+                <Button asChild variant="outline" size="sm" className="rounded-full">
                   <Link href="/accounts/savings">{t("money.savings.view_all")}</Link>
                 </Button>
               </CardContent>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check } from "lucide-react";
+import { Check, Plus } from "lucide-react";
 import { FormProvider } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
@@ -68,9 +68,12 @@ export function AddSavingsForm({
       }}
     >
       <DialogTrigger asChild>
-        <Button>{triggerLabel ?? t("savings.add")}</Button>
+        <Button className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background px-4 py-2 text-sm font-semibold text-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:bg-primary/5 hover:text-primary">
+          <Plus className="h-4 w-4" />
+          {triggerLabel ?? t("savings.add")}
+        </Button>
       </DialogTrigger>
-      <DialogContent className="max-h-[90vh] overflow-y-auto border-slate-300 bg-white p-6 shadow-2xl sm:max-w-3xl sm:rounded-[28px]">
+      <DialogContent className="max-h-[90vh] overflow-y-auto border-slate-300 bg-white p-6 pb-24 shadow-2xl sm:max-w-3xl sm:rounded-[28px]">
         <DialogHeader>
           <DialogTitle className="text-2xl text-slate-950">
             {t("savings.form.title")}

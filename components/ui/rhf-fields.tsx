@@ -155,7 +155,9 @@ export function RHFMoneyInput({
   required,
   hideLabel,
   ...props
-}: BaseFieldProps & Omit<React.ComponentProps<typeof MoneyInput>, "name">) {
+}: BaseFieldProps &
+  Omit<React.ComponentProps<typeof MoneyInput>, "name"> & {
+  }) {
   const {
     control,
     formState: { errors },

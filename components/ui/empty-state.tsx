@@ -7,6 +7,8 @@ interface EmptyStateProps extends React.HTMLAttributes<HTMLDivElement> {
   title: string;
   description: string;
   action?: React.ReactNode;
+  iconClassName?: string;
+  iconWrapperClassName?: string;
 }
 
 export function EmptyState({
@@ -14,6 +16,8 @@ export function EmptyState({
   title,
   description,
   action,
+  iconClassName,
+  iconWrapperClassName,
   className,
   ...props
 }: EmptyStateProps) {
@@ -26,8 +30,13 @@ export function EmptyState({
       {...props}
     >
       {Icon && (
-        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-background shadow-sm">
-          <Icon className="h-6 w-6 text-muted-foreground" />
+        <div
+          className={cn(
+            "mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-background shadow-sm",
+            iconWrapperClassName,
+          )}
+        >
+          <Icon className={cn("h-6 w-6 text-muted-foreground", iconClassName)} />
         </div>
       )}
       <h3 className="text-base font-bold text-foreground">{title}</h3>

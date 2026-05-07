@@ -6,8 +6,7 @@ import { formatVnd, formatVndCompact } from "@/lib/dashboard/format";
 import { t as dictT } from "@/lib/i18n/dictionary";
 import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
 import { cn } from "@/lib/utils";
-import { Landmark, Plus } from "lucide-react";
-import Link from "next/link";
+import { Landmark } from "lucide-react";
 import {
   getAccountColors,
   getAccountIcon,
@@ -30,16 +29,20 @@ export async function AccountsSection({
   const t = (key: string) => dictT(language, key);
 
   return (
-    <section className="space-y-1">
-      <div className="flex items-center justify-between mb-3">
-        <div>
-          <h2 className="text-xl font-bold text-foreground">
+    <section className="space-y-4 md:space-y-6">
+      <div className="flex flex-col gap-3 rounded-3xl border border-border/60 bg-card/80 p-4 shadow-sm backdrop-blur-sm sm:flex-row sm:items-end sm:justify-between sm:p-5 md:p-6">
+        <div className="flex-1 space-y-1">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary/70">
             {t("money.accounts.title")}
-          </h2>
-          <p className="text-xs text-muted-foreground font-medium mt-0.5">
-            {t("money.accounts.total")}:{" "}
-            {formatVndCompact(totalAccountBalance, householdLocale)}
           </p>
+          <div className="flex items-baseline justify-between gap-x-3">
+            <h2 className="text-2xl font-black tracking-tight text-foreground md:text-3xl">
+              {t("money.accounts.title")}
+            </h2>
+            <p className="text-sm font-semibold text-muted-foreground">
+              {t("money.accounts.total")}: {formatVndCompact(totalAccountBalance, householdLocale)}
+            </p>
+          </div>
         </div>
         <CreateAccountDialog />
       </div>
@@ -51,7 +54,7 @@ export async function AccountsSection({
           description={t("money.accounts.empty.description")}
         />
       ) : (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {standardAccounts.map((account) => {
             const balance = balanceMap.get(account.id) ?? 0;
             const colors = getAccountColors(account.type);
@@ -60,49 +63,54 @@ export async function AccountsSection({
               <Card
                 key={account.id}
                 className={cn(
-                  "border transition-all duration-200 hover:shadow-md",
+                  "group overflow-hidden border border-border/70 bg-card shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg",
                   colors.border,
                   colors.bg,
                 )}
               >
-                <CardContent className="p-4 space-y-3">
-                  <div className="flex items-start justify-between">
+                <CardContent className="space-y-4 p-4 sm:p-5">
+                  <div className={cn("h-1 w-14 rounded-full", colors.icon)} />
+
+                  <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
                       <p
                         className={cn(
-                          "text-[9px] font-bold uppercase tracking-wider",
+                          "text-[10px] font-bold uppercase tracking-[0.18em]",
                           colors.label,
                         )}
                       >
                         {getAccountTypeLabel(account.type, t)}
                       </p>
-                      <p className="text-sm font-bold text-foreground truncate mt-0.5">
+                      <p className="mt-1 truncate text-base font-semibold tracking-tight text-foreground">
                         {account.name}
                       </p>
                     </div>
                     <div
                       className={cn(
-                        "h-8 w-8 rounded-lg flex items-center justify-center shrink-0 ml-2",
+                        "flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl shadow-sm",
                         colors.icon,
                       )}
                     >
-                      <Icon className="h-4 w-4" />
+                      <Icon className="h-4.5 w-4.5" />
                     </div>
                   </div>
-                  <div>
+
+                  <div className="space-y-1">
                     <p
                       className={cn(
-                        "text-xl font-black tracking-tight",
+                        "text-2xl font-black tracking-tight tabular-nums",
                         colors.value,
                       )}
                     >
                       {formatVndCompact(balance, householdLocale)}
                     </p>
-                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                    <p className="text-xs text-muted-foreground">
                       {formatVnd(balance, householdLocale)}
                     </p>
                   </div>
-                  <ArchiveAccountButton accountId={account.id} />
+                  <div className="pt-1">
+                    <ArchiveAccountButton accountId={account.id} />
+                  </div>
                 </CardContent>
               </Card>
             );

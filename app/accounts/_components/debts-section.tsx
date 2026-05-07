@@ -7,8 +7,8 @@ import {
   CreditCard,
 } from "lucide-react";
 
-import { DebtsForm } from "@/app/onboarding/_components/debts-form";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { AddDebtDialog } from "./add-debt-dialog";
+import { Card, CardContent } from "@/components/ui/card";
 import { SectionHeader } from "@/components/ui/section-header";
 import { Progress } from "@/components/ui/progress";
 import { MetricCard } from "@/components/ui/metric-card";
@@ -38,7 +38,6 @@ export async function DebtsSection({
   householdLocale: string;
   language: AppLanguage;
 }) {
-  const vi = language === "vi";
   const t = (key: string) => dictT(language, key);
   const supabase = await createClient();
 
@@ -68,70 +67,59 @@ export async function DebtsSection({
   return (
     <div className="space-y-6">
       <SectionHeader
-        label={vi ? "Quản lý nợ" : "Debt Management"}
+        label={t("debts.management")}
         title={t("debts.title")}
-        description={
-          vi
-            ? "Theo dõi các khoản vay và tiến độ trả nợ."
-            : "Track your loans and repayment progress."
-        }
+        description={t("debts.add_description")}
       />
 
       <section className="grid grid-cols-2 gap-3">
         <MetricCard
-          label={vi ? "Tổng nợ" : "Total Debt"}
+          label={t("debts.total_debt")}
           value={formatVndCompact(totalOutstanding, householdLocale)}
           icon={TrendingDown}
           variant="destructive"
         />
         <MetricCard
-          label={vi ? "Tiến độ trả" : "Paid Off"}
+          label={t("debts.paid_off")}
           value={`${overallProgress}%`}
           icon={TrendingUp}
           variant="success"
-          trend={{ value: overallProgress, label: "total" }}
         />
       </section>
 
-      <Card className="border-primary/20 bg-primary/5">
-        <CardHeader>
-          <SectionHeader
-            label={vi ? "Quản lý" : "Management"}
-            title={vi ? "Thêm khoản nợ mới" : "Add New Debt"}
-            description={
-              vi
-                ? "Theo dõi các khoản vay để quản lý dòng tiền tốt hơn."
-                : "Track liabilities to manage household cash flow effectively."
-            }
-          />
-        </CardHeader>
-        <CardContent>
-          <DebtsForm />
-        </CardContent>
-      </Card>
+      <div className="flex flex-col gap-4 rounded-3xl border border-border/60 bg-card/80 p-4 shadow-sm backdrop-blur-sm sm:flex-row sm:items-end sm:justify-between sm:p-5 md:p-6">
+        <div className="flex-1 space-y-1">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary/70">
+            {t("debts.management_label")}
+          </p>
+          <h2 className="text-2xl font-black tracking-tight text-foreground md:text-3xl">
+            {t("debts.add_new")}
+          </h2>
+          <p className="text-sm font-semibold text-muted-foreground">
+            {t("debts.add_new_description")}
+          </p>
+        </div>
+        <AddDebtDialog />
+      </div>
 
       <div className="space-y-4">
         <SectionHeader
-          label={vi ? "Nghĩa vụ" : "Obligations"}
-          title={vi ? "Nghĩa vụ nợ hiện tại" : "Current Liabilities"}
+          label={t("debts.obligations")}
+          title={t("debts.current_liabilities")}
         />
 
         {debtsResult.error ? (
           <EmptyState
             icon={Info}
-            title={vi ? "Lỗi tải dữ liệu" : "Error loading debts"}
+            title={t("debts.error_loading")}
             description={debtsResult.error.message}
             className="bg-destructive/5 border-destructive/20"
           />
         ) : debts.length === 0 ? (
           <EmptyState
             icon={CreditCard}
-            title={vi ? "Không có nợ" : "No debts tracked"}
-            description={
-              vi
-                ? "Tuyệt vời! Gia đình bạn đang không có nợ hoặc chưa thêm khoản vay nào."
-                : "Excellent! You're either debt-free or haven't tracked loans yet."
-            }
+            title={t("debts.no_debts")}
+            description={t("debts.no_debts_description")}
           />
         ) : (
           <div className="grid grid-cols-1 gap-3">
@@ -174,14 +162,14 @@ export async function DebtsSection({
                           )}
                         </p>
                         <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">
-                          {vi ? "còn lại" : "to go"}
+                          {t("debts.to_go")}
                         </p>
                       </div>
                     </div>
 
                     <div className="space-y-2">
                       <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                        <span>{vi ? "Tiến độ" : "Progress"}</span>
+                        <span>{t("debts.progress")}</span>
                         <span className="text-foreground">{progress}%</span>
                       </div>
                       <Progress
@@ -196,10 +184,8 @@ export async function DebtsSection({
                         <Calendar className="h-3 w-3 text-muted-foreground" />
                         <span className="text-[10px] font-medium text-muted-foreground">
                           {debt.next_payment_date
-                            ? `${vi ? "Kỳ tới" : "Next"}: ${debt.next_payment_date}`
-                            : vi
-                              ? "Không có lịch"
-                              : "No schedule"}
+                            ? `${t("debts.next_payment")}: ${debt.next_payment_date}`
+                            : t("debts.no_schedule")}
                         </span>
                       </div>
                       <Button
@@ -209,7 +195,7 @@ export async function DebtsSection({
                         className="h-8 text-xs font-bold"
                       >
                         <Link href={`/accounts/${debt.id}`}>
-                          {vi ? "Chi tiết" : "Details"}
+                          {t("debts.details")}
                         </Link>
                       </Button>
                     </div>

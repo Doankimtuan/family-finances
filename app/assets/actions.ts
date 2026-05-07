@@ -42,8 +42,9 @@ export async function createAssetAction(
   if (name.length < 2) return fail("common.error.name_length");
   if (!Number.isFinite(quantity) || quantity < 0)
     return fail("common.error.amount_negative");
-  if (!Number.isFinite(unitPrice) || unitPrice < 0)
-    return fail("common.error.amount_negative");
+  const parsedPrice = Number(unitPrice);
+  if (!Number.isFinite(parsedPrice) || parsedPrice <= 0)
+    return fail("errors.amount_positive");
 
   const { supabase, user, householdId, t, error } = await resolveActionContext();
   if (error || !user || !householdId)

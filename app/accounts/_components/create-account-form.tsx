@@ -107,27 +107,40 @@ function CreateAccountFormComponent() {
 
   return (
     <FormProvider {...methods}>
-      <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-3" noValidate>
-        <RHFInput
-          name="name"
-          label={t("accounts.name")}
-          placeholder={t("accounts.placeholder")}
-          required
-        />
+      <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-5" noValidate>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <RHFInput
+            name="name"
+            label={t("accounts.name")}
+            placeholder={t("accounts.placeholder")}
+            required
+            classNameContainer="sm:col-span-2"
+          />
 
-        <RHFSelect
-          name="type"
-          label={t("accounts.type")}
-          options={accountTypeOptions}
-        />
+          <RHFSelect
+            name="type"
+            label={t("accounts.type")}
+            options={accountTypeOptions}
+          />
+
+          <RHFMoneyInput
+            name="openingBalance"
+            label={t("accounts.opening_balance")}
+          />
+        </div>
 
         {accountType === "credit_card" && (
-          <div className="space-y-3 rounded-xl border border-primary/20 bg-primary/5 p-3">
-            <p className="text-xs font-bold text-primary/70 uppercase tracking-wider">
-              {t("accounts.credit_card_settings")}
-            </p>
+          <div className="space-y-4 rounded-2xl border border-primary/15 bg-primary/5 p-4 shadow-sm">
+            <div className="space-y-1">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary/70">
+                {t("accounts.credit_card_settings")}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {t("accounts.select_payment_account")}
+              </p>
+            </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid gap-4 sm:grid-cols-2">
               <RHFMoneyInput
                 name="creditLimit"
                 label={t("accounts.credit_limit")}
@@ -144,19 +157,22 @@ function CreateAccountFormComponent() {
             <RHFSelect
               name="linkedBankAccountId"
               label={t("accounts.linked_bank_account")}
+              description={t("accounts.select_payment_account")}
+              placeholder={t("accounts.select_payment_account")}
               options={bankAccountOptions}
             />
           </div>
         )}
 
-        <RHFMoneyInput
-          name="openingBalance"
-          label={t("accounts.opening_balance")}
-        />
-
-        <Button type="submit" disabled={isPending} className="w-full rounded-xl">
-          {isPending ? t("accounts.saving") : t("accounts.create")}
-        </Button>
+        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+          <Button
+            type="submit"
+            disabled={isPending}
+            className="w-full rounded-full px-5 sm:w-auto sm:min-w-40"
+          >
+            {isPending ? t("accounts.saving") : t("accounts.create")}
+          </Button>
+        </div>
       </form>
     </FormProvider>
   );

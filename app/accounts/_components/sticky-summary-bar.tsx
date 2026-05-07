@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 
 interface StickySummaryBarProps {
   totalAssets: number;
+  totalAssetValue: number;
   totalLiabilities: number;
   netWorth: number;
   householdLocale: string;
@@ -22,32 +23,33 @@ interface StickySummaryBarProps {
  */
 export function StickySummaryBar({
   totalAssets,
+  totalAssetValue,
   totalLiabilities,
   netWorth,
   householdLocale,
   labels,
 }: StickySummaryBarProps) {
   return (
-    <div className="fixed bottom-16 left-0 right-0 z-20 mx-auto max-w-2xl px-4 pb-2 pointer-events-none">
-      <div className="pointer-events-auto bg-background/90 backdrop-blur-md border border-border/60 rounded-2xl shadow-lg p-3 grid grid-cols-3 gap-0 text-center">
-        <div className="border-r border-border/40">
-          <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
+    <div className="pointer-events-none fixed bottom-16 left-0 right-0 z-20 mx-auto max-w-2xl px-4 pb-2">
+      <div className="pointer-events-auto grid grid-cols-3 gap-0 rounded-full border border-border/60 bg-background/90 px-3 py-2 text-center shadow-lg backdrop-blur-md">
+        <div className="border-r border-border/40 px-2 py-1  flex flex-col justify-between">
+          <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
             {labels.assets}
           </p>
           <p className="text-sm font-bold text-success tabular-nums">
-            {formatVndCompact(totalAssets, householdLocale)}
+            {formatVndCompact(totalAssetValue, householdLocale)}
           </p>
         </div>
-        <div className="border-r border-border/40">
-          <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
+        <div className="border-r border-border/40 px-2 py-1  flex flex-col justify-between">
+          <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
             {labels.debt}
           </p>
           <p className="text-sm font-bold text-destructive tabular-nums">
             {formatVndCompact(totalLiabilities, householdLocale)}
           </p>
         </div>
-        <div>
-          <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
+        <div className="px-2 py-1  flex flex-col justify-between">
+          <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
             {labels.net}
           </p>
           <p

@@ -12,13 +12,13 @@ type MoneyInputProps = {
   required?: boolean;
   className?: string;
   autoFocus?: boolean;
-  onValueChange?: (value: number) => void;
+  onValueChange?: (value: number | undefined) => void;
 };
 
 export function MoneyInput({
   id,
   name,
-  defaultValue = 0,
+  defaultValue,
   placeholder,
   required,
   className,
@@ -27,7 +27,9 @@ export function MoneyInput({
 }: MoneyInputProps) {
   const { locale } = useI18n();
   const [raw, setRaw] = useState<string>(
-    String(Math.max(0, Math.round(defaultValue))),
+    defaultValue === undefined || defaultValue === null
+      ? ""
+      : String(Math.max(0, Math.round(defaultValue))),
   );
   const formatter = useMemo(
     () => new Intl.NumberFormat(locale, { maximumFractionDigits: 0 }),
@@ -52,13 +54,13 @@ export function MoneyInput({
         placeholder={placeholder}
         onChange={(event) => {
           const stripped = event.target.value.replace(/\D/g, "");
-          const nextVal = stripped.length === 0 ? 0 : Number(stripped);
-          setRaw(String(nextVal));
+          const nextVal = stripped.length === 0 ? undefined : Number(stripped);
+          setRaw(stripped.length === 0 ? "" : String(nextVal));
           onValueChange?.(nextVal);
         }}
         className={className}
       />
-      <input type="hidden" name={name} value={raw || "0"} />
+      <input type="hidden" name={name} value={raw} />
     </>
   );
 }

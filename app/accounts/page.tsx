@@ -76,7 +76,6 @@ export default async function AccountsPage() {
       header={
         <AppHeader
           title={t("nav.accounts")}
-          subtitle={t("money.summary.total_assets_includes_savings")}
           rightAction={
             <Link
               href="/settings"
@@ -135,6 +134,7 @@ export default async function AccountsPage() {
 
       <StickySummaryBar
         totalAssets={summary.totalAssets}
+        totalAssetValue={summary.totalAssetValue}
         totalLiabilities={summary.totalLiabilities}
         netWorth={summary.netWorth}
         householdLocale={householdLocale}

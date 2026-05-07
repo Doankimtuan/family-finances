@@ -51,7 +51,7 @@ export function MetricCard({
       )}
     >
       <CardContent className="p-5">
-        <div className="flex items-start justify-between gap-2">
+        <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
             {Icon && (
               <div
