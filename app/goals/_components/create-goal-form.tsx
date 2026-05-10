@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useTransition, useEffect } from "react";
+import { useActionState, useTransition, useEffect, useRef } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -16,7 +16,10 @@ import { GOAL_TYPES, PRIORITY_OPTIONS, VALIDATION } from "../_lib/constants";
 const goalSchema = z.object({
   name: z.string().min(VALIDATION.MIN_GOAL_NAME_LENGTH, "Goal name must be at least 2 characters"),
   goalType: z.string(),
-  priority: z.number().min(VALIDATION.MIN_PRIORITY).max(VALIDATION.MAX_PRIORITY),
+  priority: z.string().refine((val) => {
+    const num = Number(val);
+    return num >= VALIDATION.MIN_PRIORITY && num <= VALIDATION.MAX_PRIORITY;
+  }, { message: "Priority must be between 1 and 5" }),
   targetAmount: z.number().positive("Target amount must be positive"),
   targetDate: z.string().optional(),
 });
@@ -26,6 +29,7 @@ type GoalValues = z.infer<typeof goalSchema>;
 export function CreateGoalForm() {
   const { t } = useI18n();
   const [isPending, startTransition] = useTransition();
+  const formRef = useRef<HTMLFormElement>(null);
 
   const [state, action] = useActionState(
     createGoalAction,
@@ -37,7 +41,7 @@ export function CreateGoalForm() {
     defaultValues: {
       name: "",
       goalType: "property_purchase",
-      priority: 3,
+      priority: "3",
       targetAmount: 0,
       targetDate: "",
     },
@@ -67,13 +71,16 @@ export function CreateGoalForm() {
   return (
     <FormProvider {...methods}>
       <form
+        ref={formRef}
         className="space-y-4"
         noValidate
         action={action}
         onSubmit={(e) => {
           e.preventDefault();
           handleSubmit(() => {
-            startTransition(() => action(new FormData(e.currentTarget)));
+            if (formRef.current) {
+              startTransition(() => action(new FormData(formRef.current!)));
+            }
           })(e);
         }}
       >

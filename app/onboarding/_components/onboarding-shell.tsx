@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { AppHeader } from "@/components/layout/app-header";
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
@@ -45,7 +46,7 @@ export function OnboardingShell({
         <div className="grid gap-3 p-4 sm:grid-cols-2">
           {prevHref ? (
             <Button variant="outline" asChild size="lg" className="w-full">
-              <a href={prevHref}>Back</a>
+              <Link href={prevHref}>Back</Link>
             </Button>
           ) : (
             <div className="hidden sm:block" />
@@ -53,7 +54,7 @@ export function OnboardingShell({
 
           {nextHref ? (
             <Button asChild size="lg" className="w-full">
-              <a href={nextHref}>Continue</a>
+              <Link href={nextHref}>Continue</Link>
             </Button>
           ) : null}
         </div>

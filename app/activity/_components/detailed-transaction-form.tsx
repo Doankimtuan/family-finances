@@ -11,12 +11,17 @@ import { FormStatus } from "@/components/ui/form-status";
 import { RHFInput, RHFMoneyInput, RHFSelect } from "@/components/ui/rhf-fields";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { useI18n } from "@/lib/providers/i18n-provider";
+import { transactionKeys } from "@/lib/queries/keys";
+import { format } from "date-fns";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertTriangle } from "lucide-react";
 import { useMemo, useState, useTransition } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
+
+const DATE_INPUT_FORMAT = "yyyy-MM-dd";
 
 const detailedTransactionSchema = z.object({
   type: z.enum(["income", "expense", "transfer"]),
@@ -43,6 +48,7 @@ export function DetailedTransactionForm({
   categories,
 }: DetailedTransactionFormProps) {
   const { language, t } = useI18n();
+  const queryClient = useQueryClient();
   const typeLabel = language === "vi" ? "Loại giao dịch" : "Transaction type";
   const [state, setState] = useState<TransactionActionState>(
     initialTransactionActionState,
@@ -57,7 +63,7 @@ export function DetailedTransactionForm({
       accountId: "",
       counterpartyAccountId: "",
       categoryId: "",
-      transactionDate: new Date().toISOString().slice(0, 10),
+      transactionDate: format(new Date(), DATE_INPUT_FORMAT),
       description: "",
     },
   });
@@ -82,10 +88,15 @@ export function DetailedTransactionForm({
       const result = await addTransactionDetailedAction(state, formData);
       setState(result);
       if (result.status === "success") {
+        await queryClient.invalidateQueries({ queryKey: transactionKeys.list() });
         toast.success(result.message);
         reset({
-          ...data,
+          type: data.type,
           amount: 0,
+          accountId: data.accountId,
+          counterpartyAccountId: "",
+          categoryId: "",
+          transactionDate: format(new Date(), DATE_INPUT_FORMAT),
           description: "",
         });
       } else if (result.status === "error") {

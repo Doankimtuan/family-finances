@@ -5,7 +5,6 @@ import { cookies } from "next/headers";
 import { CACHE } from "@/lib/constants";
 import { LANGUAGE_COOKIE_NAME, languageToLocale, type AppLanguage } from "@/lib/i18n/config";
 import { writeAuditEvent } from "@/lib/server/audit";
-import { createClient } from "@/lib/supabase/server";
 import { fail, ok, revalidateSettingsProfile, revalidateSettingsHousehold, revalidateSettingsAssumptions, revalidatePath } from "@/lib/server/action-helpers";
 import { resolveActionContext } from "@/lib/server/action-context";
 
@@ -58,9 +57,11 @@ export async function updateHouseholdSettingsAction(
   _prev: SettingsActionState,
   formData: FormData,
 ): Promise<SettingsActionState> {
-  const { supabase, user, householdId, t, error } = await resolveActionContext();
+  const { supabase, user, householdId, householdRole, t, error } = await resolveActionContext();
   if (error || !user || !householdId)
     return fail(error ?? t("validation.no_household"));
+  if (householdRole !== "admin")
+    return fail(t("errors.admin_required_household_settings"));
 
   const name = String(formData.get("name") ?? "").trim();
   const timezone = String(formData.get("timezone") ?? "Asia/Ho_Chi_Minh").trim() || "Asia/Ho_Chi_Minh";
@@ -103,9 +104,11 @@ export async function updateAssumptionsAction(
   _prev: SettingsActionState,
   formData: FormData,
 ): Promise<SettingsActionState> {
-  const { supabase, user, householdId, t, error } = await resolveActionContext();
+  const { supabase, user, householdId, householdRole, t, error } = await resolveActionContext();
   if (error || !user || !householdId)
     return fail(error ?? t("validation.no_household"));
+  if (householdRole !== "admin")
+    return fail(t("errors.admin_required_assumptions"));
 
   const inflation = parsePercent(formData.get("inflationAnnual"));
   const cashReturn = parsePercent(formData.get("cashReturnAnnual"));

@@ -132,7 +132,7 @@ export default async function JarReviewPage({
                       </div>
                       <form action={resolveJarReviewAction} className="mt-4">
                         <input type="hidden" name="reviewId" value={review.id} />
-                        <input type="hidden" name="returnTo" value="/goals/jars/review" />
+                        <input type="hidden" name="returnTo" value="/jars/review" />
                         <input type="hidden" name="mode" value="suggested" />
                         <input
                           type="hidden"
@@ -159,7 +159,7 @@ export default async function JarReviewPage({
                       reviewId={review.id}
                       amount={review.amount}
                       jars={data.items}
-                      returnTo="/goals/jars/review"
+                      returnTo="/jars/review"
                     />
                   </div>
                 </CardContent>

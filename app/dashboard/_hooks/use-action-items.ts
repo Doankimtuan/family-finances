@@ -40,7 +40,7 @@ export function useActionItems(
         description: t("dashboard.actions.jar_review_description"),
         amountLabel: `${payload.pendingJarReviews ?? 0} ${t("dashboard.actions.jar_review_count")}`,
         metaLabel: t("dashboard.actions.open_jars"),
-        href: "/goals/jars/review",
+        href: "/jars/review",
         tone: "warning",
       });
     }

@@ -96,7 +96,7 @@ export default async function JarSetupPage({
             </p>
           </div>
           <Button asChild variant="outline" className="rounded-xl">
-            <Link href="/goals/jars/review">{t(language, "jars.review.open_queue")}</Link>
+            <Link href="/jars/review">{t(language, "jars.review.open_queue")}</Link>
           </Button>
         </div>
 
@@ -124,7 +124,7 @@ export default async function JarSetupPage({
                 <input
                   type="hidden"
                   name="returnTo"
-                  value={`/goals/jars/setup?month=${month}`}
+                  value={`/jars/setup?month=${month}`}
                 />
                 <Button type="submit" className="w-full rounded-xl">
                   {t(language, "jars.setup.preset.action")}
@@ -140,7 +140,7 @@ export default async function JarSetupPage({
             <CardContent>
               <JarSetupCreateForm
                 month={month}
-                returnTo={`/goals/jars/setup?month=${month}`}
+                returnTo={`/jars/setup?month=${month}`}
               />
             </CardContent>
           </Card>
@@ -239,7 +239,7 @@ export default async function JarSetupPage({
                       <input
                         type="hidden"
                         name="returnTo"
-                        value={`/goals/jars/setup?month=${month}`}
+                        value={`/jars/setup?month=${month}`}
                       />
                       <Button
                         type="submit"

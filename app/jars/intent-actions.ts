@@ -190,7 +190,7 @@ export async function upsertJarPlanAction(formData: FormData) {
     if (updateJar.error) throw new Error(updateJar.error.message);
 
     revalidatePath("/goals");
-    revalidatePath(`/goals/jars/${jarId}`);
+    revalidatePath(`/jars/${jarId}`);
     redirect(withStatus(returnTo, "success", "Da cap nhat ke hoach thang."));
   } catch (error) {
     redirect(
@@ -271,7 +271,7 @@ export async function resolveJarReviewAction(formData: FormData) {
     });
 
     revalidatePath("/goals");
-    revalidatePath("/goals/jars/review");
+    revalidatePath("/jars/review");
     revalidatePath("/dashboard");
     redirect(withStatus(returnTo, "success", "Da xu ly review item."));
   } catch (error) {
@@ -385,7 +385,7 @@ export async function addManualJarAdjustmentAction(formData: FormData) {
     });
 
     revalidatePath("/goals");
-    revalidatePath(`/goals/jars/${jarId}`);
+    revalidatePath(`/jars/${jarId}`);
     redirect(withStatus(returnTo, "success", "Da ghi nhan dieu chinh thu cong."));
   } catch (error) {
     redirect(

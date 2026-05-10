@@ -2,11 +2,14 @@ import { NextResponse } from "next/server";
 
 import { createClient } from "@/lib/supabase/server";
 
+const DEFAULT_LIMIT = 20;
+const EXTRA_PAGE_ITEM = 1;
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const cursor = searchParams.get("cursor") ?? null;
-    const limit = Number(searchParams.get("limit") ?? "20");
+    const limit = Number(searchParams.get("limit") ?? String(DEFAULT_LIMIT));
 
     const supabase = await createClient();
     const {
@@ -49,15 +52,15 @@ export async function GET(request: Request) {
         transaction_subtype,
         is_non_cash,
         created_at,
-        categories!inner(id, name, kind),
-        accounts!inner(id, name),
-        counterparty_accounts!inner(id, name),
-        household_members!inner(id, name)
+        category:categories(id, name, kind),
+        account:accounts!transactions_account_id_fkey(id, name),
+        counterparty_account:accounts!transactions_counterparty_account_id_fkey(id, name),
+        profile:profiles!transactions_paid_by_member_id_fkey(user_id, full_name)
       `)
       .eq("household_id", householdId)
       .order("transaction_date", { ascending: false })
       .order("created_at", { ascending: false })
-      .limit(limit + 1); // Fetch one extra to determine if there's a next page
+      .limit(limit + EXTRA_PAGE_ITEM);
 
     // Apply cursor if provided
     if (cursor) {
@@ -89,7 +92,7 @@ export async function GET(request: Request) {
     }
 
     // Transform data to match the component's expected format
-    const transformedItems = items.map((item: any) => ({
+    const transformedItems = items.map((item) => ({
       id: item.id,
       type: item.type,
       amount: item.amount,
@@ -98,10 +101,10 @@ export async function GET(request: Request) {
       category_id: item.category_id,
       account_id: item.account_id,
       counterparty_account_id: item.counterparty_account_id,
-      category_name: item.categories?.name ?? null,
-      account_name: item.accounts?.name ?? null,
-      counterparty_account_name: item.counterparty_accounts?.name ?? null,
-      member_name: item.household_members?.name ?? null,
+      category_name: item.category?.name ?? null,
+      account_name: item.account?.name ?? null,
+      counterparty_account_name: item.counterparty_account?.name ?? null,
+      member_name: item.profile?.full_name ?? null,
       transaction_subtype: item.transaction_subtype,
       is_non_cash: item.is_non_cash,
     }));
@@ -110,7 +113,7 @@ export async function GET(request: Request) {
       items: transformedItems,
       nextCursor,
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "Failed to fetch transactions" },
       { status: 500 },

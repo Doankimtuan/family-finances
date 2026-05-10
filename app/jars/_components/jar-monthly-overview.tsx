@@ -5,8 +5,6 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 
-import { JarEntryDialog } from "./jar-entry-dialog";
-import { JarSettingsDialog } from "./jar-settings-dialog";
 import { JarTargetDialog } from "./jar-target-dialog";
 
 import { useI18n } from "@/lib/providers/i18n-provider";
@@ -181,11 +179,6 @@ export function JarMonthlyOverview({
               </div>
 
               <div className="flex flex-wrap gap-2">
-                <JarEntryDialog
-                  jarId={jar.id}
-                  jarName={jar.name}
-                  month={month}
-                />
                 <JarTargetDialog
                   jarId={jar.id}
                   jarName={jar.name}
@@ -194,17 +187,10 @@ export function JarMonthlyOverview({
                   defaultValue={Number(target?.target_value ?? 0)}
                 />
                 <Button variant="outline" size="sm" asChild className="rounded-xl">
-                  <Link href={`/goals/jars/${jar.id}/history`}>
+                  <Link href={`/jars/${jar.id}/history`}>
                     {t("jars.action.view_history")}
                   </Link>
                 </Button>
-                <JarSettingsDialog
-                  jarId={jar.id}
-                  jarName={jar.name}
-                  defaultName={jar.name}
-                  defaultColor={jar.color}
-                  defaultIcon={jar.icon}
-                />
               </div>
             </CardContent>
           </Card>

@@ -1,10 +1,26 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { addDays, addMonths, format, getDay, getDaysInMonth, isBefore, parseISO, setDate } from "date-fns";
 import { z } from "zod";
 
 import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
 import { createClient } from "@/lib/supabase/server";
+
+const MIN_INTERVAL = 1;
+const MIN_DAY_OF_MONTH = 1;
+const MAX_DAY_OF_MONTH = 31;
+const MIN_DAY_OF_WEEK = 0;
+const MAX_DAY_OF_WEEK = 6;
+const MAX_SAFE_DAY_OF_MONTH = 28;
+const MAX_MONTH_LOOKAHEAD = 240;
+const DATE_ONLY_FORMAT = "yyyy-MM-dd";
+const ERROR_MONTHLY_DAY_REQUIRED = "Monthly recurring rules require day_of_month.";
+const ERROR_WEEKLY_DAY_REQUIRED = "Weekly recurring rules require day_of_week.";
+const ERROR_CREATE_RECURRING_RULE = "Failed to create recurring rule";
+const ERROR_UPDATE_RECURRING_RULE = "Failed to update recurring rule";
+const ERROR_DELETE_RECURRING_RULE = "Failed to delete recurring rule";
+const ERROR_TOGGLE_RECURRING_RULE = "Failed to toggle recurring rule";
 
 const RecurringRuleSchema = z.object({
   id: z.string().uuid().optional(),
@@ -16,15 +32,62 @@ const RecurringRuleSchema = z.object({
     category_id: z.string().uuid().optional(),
   }),
   frequency: z.enum(["weekly", "monthly"]),
-  interval: z.coerce.number().int().min(1).default(1),
-  day_of_month: z.coerce.number().int().min(1).max(31).optional(),
-  day_of_week: z.coerce.number().int().min(0).max(6).optional(),
+  interval: z.coerce.number().int().min(MIN_INTERVAL).default(MIN_INTERVAL),
+  day_of_month: z.coerce.number().int().min(MIN_DAY_OF_MONTH).max(MAX_DAY_OF_MONTH).optional(),
+  day_of_week: z.coerce.number().int().min(MIN_DAY_OF_WEEK).max(MAX_DAY_OF_WEEK).optional(),
   start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   end_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   is_active: z.boolean().default(true),
+}).superRefine((value, ctx) => {
+  if (value.frequency === "monthly" && value.day_of_month === undefined) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["day_of_month"],
+      message: ERROR_MONTHLY_DAY_REQUIRED,
+    });
+  }
+
+  if (value.frequency === "weekly" && value.day_of_week === undefined) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["day_of_week"],
+      message: ERROR_WEEKLY_DAY_REQUIRED,
+    });
+  }
 });
 
 export type RecurringRuleInput = z.infer<typeof RecurringRuleSchema>;
+
+function computeNextRunDate(data: RecurringRuleInput): string {
+  const startDate = parseISO(data.start_date);
+
+  if (data.frequency === "monthly" && data.day_of_month !== undefined) {
+    const targetDay = Math.min(data.day_of_month, MAX_SAFE_DAY_OF_MONTH);
+    const interval = Math.max(data.interval, MIN_INTERVAL);
+
+    for (let monthOffset = 0; monthOffset <= MAX_MONTH_LOOKAHEAD; monthOffset += 1) {
+      if (monthOffset % interval !== 0) continue;
+
+      const monthCursor = addMonths(startDate, monthOffset);
+      const dayInMonth = Math.min(targetDay, getDaysInMonth(monthCursor));
+      const candidate = setDate(monthCursor, dayInMonth);
+
+      if (!isBefore(candidate, startDate)) {
+        return format(candidate, DATE_ONLY_FORMAT);
+      }
+    }
+  }
+
+  if (data.frequency === "weekly" && data.day_of_week !== undefined) {
+    let candidate = startDate;
+    while (getDay(candidate) !== data.day_of_week) {
+      candidate = addDays(candidate, 1);
+    }
+    return format(candidate, DATE_ONLY_FORMAT);
+  }
+
+  return data.start_date;
+}
 
 export async function createRecurringRule(
   prevState: unknown,
@@ -61,21 +124,7 @@ export async function createRecurringRule(
 
     const data = validated.data;
 
-    // Calculate next_run_date based on frequency and day settings
-    let nextRunDate = data.start_date;
-    if (data.frequency === "monthly" && data.day_of_month) {
-      const today = new Date();
-      const year = today.getFullYear();
-      const month = today.getMonth() + 1;
-      const targetDay = Math.min(data.day_of_month, 28); // Avoid month-end issues
-      nextRunDate = `${year}-${String(month).padStart(2, "0")}-${String(targetDay).padStart(2, "0")}`;
-      if (new Date(nextRunDate) < today) {
-        // Move to next month
-        const nextMonth = month === 12 ? 1 : month + 1;
-        const nextYear = month === 12 ? year + 1 : year;
-        nextRunDate = `${nextYear}-${String(nextMonth).padStart(2, "0")}-${String(targetDay).padStart(2, "0")}`;
-      }
-    }
+    const nextRunDate = computeNextRunDate(data);
 
     const { data: result, error } = await supabase
       .from("recurring_rules")
@@ -104,7 +153,7 @@ export async function createRecurringRule(
   } catch (err) {
     return {
       success: false,
-      error: err instanceof Error ? err.message : "Failed to create recurring rule",
+      error: err instanceof Error ? err.message : ERROR_CREATE_RECURRING_RULE,
     };
   }
 }
@@ -148,6 +197,7 @@ export async function updateRecurringRule(
     }
 
     const data = validated.data;
+    const nextRunDate = computeNextRunDate(data);
 
     const { error } = await supabase
       .from("recurring_rules")
@@ -159,6 +209,7 @@ export async function updateRecurringRule(
         day_of_week: data.day_of_week,
         start_date: data.start_date,
         end_date: data.end_date || null,
+        next_run_date: nextRunDate,
         is_active: data.is_active,
       })
       .eq("id", id)
@@ -174,7 +225,7 @@ export async function updateRecurringRule(
   } catch (err) {
     return {
       success: false,
-      error: err instanceof Error ? err.message : "Failed to update recurring rule",
+      error: err instanceof Error ? err.message : ERROR_UPDATE_RECURRING_RULE,
     };
   }
 }
@@ -207,7 +258,7 @@ export async function deleteRecurringRule(
   } catch (err) {
     return {
       success: false,
-      error: err instanceof Error ? err.message : "Failed to delete recurring rule",
+      error: err instanceof Error ? err.message : ERROR_DELETE_RECURRING_RULE,
     };
   }
 }
@@ -235,7 +286,7 @@ export async function toggleRecurringRule(
   } catch (err) {
     return {
       success: false,
-      error: err instanceof Error ? err.message : "Failed to toggle recurring rule",
+      error: err instanceof Error ? err.message : ERROR_TOGGLE_RECURRING_RULE,
     };
   }
 }

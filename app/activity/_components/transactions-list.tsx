@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
+import { format, isSameDay, parseISO, subDays } from "date-fns";
+import { enUS, vi } from "date-fns/locale";
 import { formatVnd, formatDate } from "@/lib/dashboard/format";
 import { useI18n } from "@/lib/providers/i18n-provider";
 import { transactionKeys } from "@/lib/queries/keys";
@@ -45,6 +47,12 @@ type InitialTransactionPage = {
   nextCursor: string | null;
 };
 
+const DAY_LABEL_FORMAT = "EEE, d MMM";
+
+function resolveDateFnsLocale(locale: string) {
+  return locale.toLowerCase().startsWith("vi") ? vi : enUS;
+}
+
 function TransactionRow({
   item,
   accounts,
@@ -83,11 +91,11 @@ function TransactionRow({
   };
 
   return (
-    <li className="group border-b border-border/50 last:border-b-0 transition-colors hover:bg-muted/30 focus-within:bg-muted/30">
-      <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-3 px-4 py-4 sm:gap-4">
+    <li className="group px-3 py-3">
+      <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-4 rounded-2xl border border-border/60 bg-background px-4 py-4 shadow-sm transition-all hover:border-primary/20 hover:shadow-md focus-within:border-primary/20 focus-within:shadow-md sm:px-5 sm:py-5">
         <div
           className={cn(
-            "flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl transition-colors sm:h-12 sm:w-12",
+            "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl transition-colors sm:h-14 sm:w-14",
             isIncome
               ? "bg-emerald-500/10 text-emerald-600"
               : isTransfer
@@ -104,17 +112,17 @@ function TransactionRow({
           )}
         </div>
 
-        <div className="min-w-0 space-y-2">
-          <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0 space-y-0.5">
-              <h3 className="truncate text-sm font-semibold text-foreground sm:text-[15px]">
+        <div className="min-w-0 space-y-3">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0 space-y-1">
+              <h3 className="truncate text-base font-semibold text-foreground sm:text-lg">
                 {item.category_name ??
                   (isTransfer
                     ? t("activity.alert.transfer")
                     : t("activity.alert.uncategorized"))}
               </h3>
               {item.description && (
-                <p className="truncate text-xs leading-5 text-muted-foreground sm:text-sm">
+                <p className="truncate text-sm leading-6 text-muted-foreground">
                   {item.description}
                 </p>
               )}
@@ -134,22 +142,22 @@ function TransactionRow({
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
-            <span className="inline-flex items-center gap-1 rounded-full bg-muted/60 px-2 py-1">
+          <div className="flex flex-wrap items-center gap-2.5 text-xs text-muted-foreground">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-muted/60 px-2.5 py-1.5">
               <CreditCard className="h-3.5 w-3.5" />
               <span className="truncate">{item.account_name ?? t("transactions.unknown_account")}</span>
             </span>
-            <span className="inline-flex items-center gap-1 rounded-full bg-muted/60 px-2 py-1">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-muted/60 px-2.5 py-1.5">
               <Tag className="h-3.5 w-3.5" />
               {formatDate(item.transaction_date, locale)}
             </span>
           </div>
         </div>
 
-        <div className="flex flex-col items-end gap-2 text-right">
+        <div className="flex flex-col items-end gap-3 text-right">
           <p
             className={cn(
-              "text-sm font-bold tabular-nums tracking-tight sm:text-base",
+              "text-lg font-bold tabular-nums tracking-tight sm:text-xl",
               isIncome
                 ? "text-emerald-600"
                 : isTransfer
@@ -160,15 +168,16 @@ function TransactionRow({
             {isIncome ? "+" : isTransfer ? "" : "-"}
             {formatVnd(item.amount, locale)}
           </p>
-          <div className="flex items-center justify-end gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
+          <div className="flex items-center justify-end gap-1.5 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
             <Button
               type="button"
               variant="ghost"
               size="icon"
               disabled={item.transaction_subtype?.startsWith(SAVINGS_SUBTYPE_PREFIX)}
               onClick={() => setIsEditing(!isEditing)}
-              className="h-7 w-7 rounded-full text-muted-foreground hover:bg-primary/10 hover:text-primary"
+              className="h-8 w-8 rounded-full text-muted-foreground hover:bg-primary/10 hover:text-primary"
               title={t("activity.edit.edit")}
+              aria-label={t("activity.edit.edit")}
             >
               <Pencil className="h-3.5 w-3.5" />
             </Button>
@@ -178,8 +187,9 @@ function TransactionRow({
               size="icon"
               disabled={isPending || item.transaction_subtype?.startsWith(SAVINGS_SUBTYPE_PREFIX)}
               onClick={handleDelete}
-              className="h-7 w-7 rounded-full text-muted-foreground hover:bg-rose-500/10 hover:text-rose-600"
+              className="h-8 w-8 rounded-full text-muted-foreground hover:bg-rose-500/10 hover:text-rose-600"
               title={t("activity.edit.delete")}
+              aria-label={t("activity.edit.delete")}
             >
               <Trash2 className="h-3.5 w-3.5" />
             </Button>
@@ -188,7 +198,7 @@ function TransactionRow({
       </div>
 
       {isEditing ? (
-        <div className="border-t border-border/50 px-4 pb-4 pt-4 animate-in fade-in slide-in-from-top-2 duration-300">
+        <div className="px-1 pb-1 pt-3 animate-in fade-in slide-in-from-top-2 duration-300">
           <TransactionEditForm
             transaction={item}
             accounts={accounts}
@@ -276,28 +286,19 @@ export function TransactionsList({
   }
 
   const formatDayLabel = (dateStr: string) => {
-    const d = new Date(dateStr + "T00:00:00");
+    const d = parseISO(dateStr);
     const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(today.getDate() - 1);
-
-    const isSameDay = (a: Date, b: Date) =>
-      a.getFullYear() === b.getFullYear() &&
-      a.getMonth() === b.getMonth() &&
-      a.getDate() === b.getDate();
+    const yesterday = subDays(today, 1);
+    const dateLocale = resolveDateFnsLocale(locale);
 
     if (isSameDay(d, today)) return t("activity.list.today");
     if (isSameDay(d, yesterday)) return t("activity.list.yesterday");
 
-    return d.toLocaleDateString(locale, {
-      weekday: "short",
-      day: "numeric",
-      month: "short",
-    });
+    return format(d, DAY_LABEL_FORMAT, { locale: dateLocale });
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 bg-transparent">
       {Array.from(groups.entries()).map(([day, dayItems]) => {
         const dayIncome = dayItems
           .filter((tx) => tx.type === "income")
@@ -329,7 +330,7 @@ export function TransactionsList({
               </div>
             </div>
 
-            <ul className="divide-y divide-border/50">
+            <ul className="space-y-2 bg-muted/20 px-1 py-1.5">
               {dayItems.map((item) => (
                 <TransactionRow
                   key={item.id}

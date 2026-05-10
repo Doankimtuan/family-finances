@@ -148,7 +148,7 @@ export function WithdrawSavingsForm({ savings, computed, accounts, jars = [] }: 
                 id="principalAmount"
                 name="withdrawPrincipalPreview"
                 defaultValue={Number(principalAmount || 0)}
-                onValueChange={(value) => setPrincipalAmount(String(Math.min(value, computed.principal)))}
+                onValueChange={(value) => setPrincipalAmount(String(Math.min(value ?? 0, computed.principal)))}
                 className="h-12 border-slate-300 bg-white text-slate-950 placeholder:text-slate-400"
                 placeholder={t("savings.withdraw.field.amount")}
               />

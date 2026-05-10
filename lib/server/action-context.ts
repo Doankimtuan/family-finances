@@ -15,6 +15,7 @@ export type ActionContext = {
   supabase: Awaited<ReturnType<typeof createClient>>;
   user: User | null;
   householdId: string | null;
+  householdRole: string | null;
   t: (key: string) => string;
   error: string | null;
 };
@@ -38,6 +39,7 @@ export async function resolveActionContext(): Promise<ActionContext> {
       supabase,
       user: null,
       householdId: null,
+      householdRole: null,
       t,
       error: t("errors.unauthorized"),
     };
@@ -45,7 +47,7 @@ export async function resolveActionContext(): Promise<ActionContext> {
 
   const membership = await supabase
     .from("household_members")
-    .select("household_id")
+    .select("household_id, role")
     .eq("user_id", user.id)
     .eq("is_active", true)
     .order("joined_at", { ascending: true })
@@ -57,6 +59,7 @@ export async function resolveActionContext(): Promise<ActionContext> {
       supabase,
       user,
       householdId: null,
+      householdRole: null,
       t,
       error: (membership.error?.message ?? t("errors.household_not_found")) as string,
     };
@@ -66,6 +69,7 @@ export async function resolveActionContext(): Promise<ActionContext> {
     supabase,
     user,
     householdId: membership.data.household_id as string,
+    householdRole: membership.data.role as string,
     t,
     error: null,
   };
@@ -83,6 +87,7 @@ export async function resolveActionContextOrThrow() {
     supabase: ctx.supabase,
     user: ctx.user as User,
     householdId: ctx.householdId as string,
+    householdRole: ctx.householdRole as string,
     t: ctx.t,
   };
 }

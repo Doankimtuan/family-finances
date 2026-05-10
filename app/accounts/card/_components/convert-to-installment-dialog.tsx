@@ -143,7 +143,7 @@ export function ConvertToInstallmentDialog({ item }: Props) {
                   id="conversionFee"
                   name="conversionFee"
                   defaultValue={0}
-                  onValueChange={setConversionFee}
+                  onValueChange={(value) => setConversionFee(value ?? 0)}
                 />
               </div>
             </div>

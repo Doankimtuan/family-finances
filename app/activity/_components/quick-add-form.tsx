@@ -2,6 +2,7 @@
 
 import { useTransition, useState, useMemo } from "react";
 import { useForm, FormProvider, useWatch } from "react-hook-form";
+import { useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { AlertTriangle } from "lucide-react";
@@ -18,6 +19,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { FormStatus } from "@/components/ui/form-status";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { toast } from "sonner";
+import { transactionKeys } from "@/lib/queries/keys";
 
 const quickAddSchema = z.object({
   type: z.enum(["income", "expense"]),
@@ -40,6 +42,7 @@ type QuickAddFormProps = {
 
 export function QuickAddForm({ accountId, categories }: QuickAddFormProps) {
   const { language, t } = useI18n();
+  const queryClient = useQueryClient();
   const [state, setState] = useState<TransactionActionState>(
     initialTransactionActionState,
   );
@@ -82,9 +85,12 @@ export function QuickAddForm({ accountId, categories }: QuickAddFormProps) {
       const result = await quickAddTransactionAction(state, formData);
       setState(result);
       if (result.status === "success") {
+        await queryClient.invalidateQueries({ queryKey: transactionKeys.list() });
         toast.success(result.message);
         reset({
-          ...data,
+          type: data.type,
+          accountId: data.accountId,
+          categoryId: data.type === "expense" ? categories[0]?.id ?? "" : "",
           amount: 0,
         });
       } else if (result.status === "error") {

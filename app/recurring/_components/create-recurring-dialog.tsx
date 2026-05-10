@@ -1,8 +1,9 @@
 "use client";
 
 import { useActionState, useState, useEffect, useCallback } from "react";
+import { format, getDay } from "date-fns";
 import { Plus, Repeat } from "lucide-react";
-import { useForm, FormProvider, Controller } from "react-hook-form";
+import { useForm, FormProvider } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -12,12 +13,27 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Switch } from "@/components/ui/switch";
 import { FormStatus } from "@/components/ui/form-status";
 import { RHFInput, RHFSelect, RHFSwitch } from "@/components/ui/rhf-fields";
 import { useI18n } from "@/lib/providers/i18n-provider";
 
 import { createRecurringRule } from "../actions";
+
+const MONTHLY_MAX_DAY = 28;
+const MIN_AMOUNT = 1;
+const MIN_DAY_OF_MONTH = 1;
+const DEFAULT_INTERVAL = "1";
+const DATE_INPUT_FORMAT = "yyyy-MM-dd";
+const INTERVAL_OPTIONS = [1, 2, 3, 4] as const;
+const WEEKDAY_OPTIONS = [
+  { key: "common.weekday.sunday", value: "0" },
+  { key: "common.weekday.monday", value: "1" },
+  { key: "common.weekday.tuesday", value: "2" },
+  { key: "common.weekday.wednesday", value: "3" },
+  { key: "common.weekday.thursday", value: "4" },
+  { key: "common.weekday.friday", value: "5" },
+  { key: "common.weekday.saturday", value: "6" },
+] as const;
 
 interface FormValues {
   type: "expense" | "income";
@@ -28,6 +44,7 @@ interface FormValues {
   frequency: "monthly" | "weekly";
   interval: string;
   day_of_month: string;
+  day_of_week: string;
   start_date: string;
   end_date: string;
   is_active: boolean;
@@ -43,7 +60,8 @@ export function CreateRecurringDialog({ accounts, categories }: CreateRecurringD
   const [state, action, pending] = useActionState(createRecurringRule, { success: false });
   const { t } = useI18n();
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = format(new Date(), DATE_INPUT_FORMAT);
+  const defaultDayOfWeek = String(getDay(new Date()));
 
   const methods = useForm<FormValues>({
     defaultValues: {
@@ -53,8 +71,9 @@ export function CreateRecurringDialog({ accounts, categories }: CreateRecurringD
       account_id: "",
       category_id: "",
       frequency: "monthly",
-      interval: "1",
+      interval: DEFAULT_INTERVAL,
       day_of_month: "",
+      day_of_week: defaultDayOfWeek,
       start_date: today,
       end_date: "",
       is_active: true,
@@ -82,6 +101,7 @@ export function CreateRecurringDialog({ accounts, categories }: CreateRecurringD
       fd.set("frequency", data.frequency);
       fd.set("interval", data.interval);
       fd.set("day_of_month", data.day_of_month);
+      fd.set("day_of_week", data.day_of_week);
       fd.set("start_date", data.start_date);
       fd.set("end_date", data.end_date);
       if (data.is_active) fd.set("is_active", "true");
@@ -92,6 +112,10 @@ export function CreateRecurringDialog({ accounts, categories }: CreateRecurringD
 
   const accountOptions = accounts.map((acc) => ({ label: acc.name, value: acc.id }));
   const categoryOptions = categories.map((cat) => ({ label: cat.name, value: cat.id }));
+  const dayOfWeekOptions = WEEKDAY_OPTIONS.map((option) => ({
+    label: t(option.key),
+    value: option.value,
+  }));
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -127,8 +151,8 @@ export function CreateRecurringDialog({ accounts, categories }: CreateRecurringD
               name="amount"
               label={t("recurring.form.amount")}
               type="number"
-              min={1}
-              placeholder="1000000"
+              min={MIN_AMOUNT}
+              placeholder={t("recurring.form.placeholder.amount")}
               required
             />
           </div>
@@ -177,11 +201,11 @@ export function CreateRecurringDialog({ accounts, categories }: CreateRecurringD
               name="interval"
               label={t("recurring.form.interval")}
               required
-              options={[1, 2, 3, 4].map((n) => ({
+              options={INTERVAL_OPTIONS.map((n) => ({
                 label: `${n} ${t("recurring.form.times")}`,
                 value: String(n),
               }))}
-              defaultValue="1"
+              defaultValue={DEFAULT_INTERVAL}
             />
           </div>
 
@@ -191,9 +215,18 @@ export function CreateRecurringDialog({ accounts, categories }: CreateRecurringD
               name="day_of_month"
               label={t("recurring.form.day_of_month")}
               type="number"
-              min={1}
-              max={28}
+              min={MIN_DAY_OF_MONTH}
+              max={MONTHLY_MAX_DAY}
               placeholder={t("recurring.form.placeholder.day_of_month")}
+            />
+          )}
+          {frequency === "weekly" && (
+            <RHFSelect
+              name="day_of_week"
+              label={t("recurring.form.day_of_week")}
+              required
+              options={dayOfWeekOptions}
+              defaultValue={defaultDayOfWeek}
             />
           )}
 

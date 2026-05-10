@@ -11,11 +11,16 @@ interface FormStatusProps extends React.HTMLAttributes<HTMLParagraphElement> {
 export function FormStatus({ message, status, className, ...props }: FormStatusProps) {
   if (!message || status === "idle" || status === "pending") return null;
 
+  const isError = status === "error";
+
   return (
     <p
+      role={isError ? "alert" : "status"}
+      aria-live={isError ? "assertive" : "polite"}
+      aria-atomic="true"
       className={cn(
         "text-sm font-medium animate-in fade-in slide-in-from-top-1 duration-300",
-        status === "error" ? "text-rose-600" : "text-emerald-600",
+        isError ? "text-rose-600" : "text-emerald-600",
         className
       )}
       {...props}

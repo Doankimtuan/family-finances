@@ -340,8 +340,7 @@ export async function TransactionsContent({
                 description={t(language, "activity.empty.no_transactions_desc")}
               />
             ) : (
-              <Card className="overflow-hidden border-border/60">
-                <CardContent className="p-0">
+              
                   <TransactionsList
                     accounts={accounts.map((account) => ({
                       id: account.id,
@@ -363,8 +362,6 @@ export async function TransactionsContent({
                       nextCursor: historyNextCursor,
                     }}
                   />
-                </CardContent>
-              </Card>
             )}
           </div>
         </div>
