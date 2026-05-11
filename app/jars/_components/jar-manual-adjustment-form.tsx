@@ -5,7 +5,7 @@ import { useTransition } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import * as z from "zod";
 
-import { addManualJarAdjustmentAction } from "@/app/jars/intent-actions";
+import { createManualJarMovementAction } from "@/app/jars/domain-actions";
 import { Button } from "@/components/ui/button";
 import { RHFInput, RHFSelect } from "@/components/ui/rhf-fields";
 import { useI18n } from "@/lib/providers/i18n-provider";
@@ -24,11 +24,10 @@ type AdjustmentValues = z.infer<typeof adjustmentSchema>;
 
 type Props = {
   jars: { id: string; name: string }[];
-  month: string;
   returnTo: string;
 };
 
-export function JarManualAdjustmentForm({ jars, month, returnTo }: Props) {
+export function JarManualAdjustmentForm({ jars, returnTo }: Props) {
   const [isPending, startTransition] = useTransition();
   const { t } = useI18n();
 
@@ -50,7 +49,7 @@ export function JarManualAdjustmentForm({ jars, month, returnTo }: Props) {
     const formData = objectToFormData(data);
 
     startTransition(async () => {
-      await addManualJarAdjustmentAction(formData);
+      await createManualJarMovementAction(formData);
     });
   };
 

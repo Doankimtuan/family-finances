@@ -1,6 +1,7 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import { JarSuggestion } from "./types";
 import { toMonthStart } from "./utils";
+import { resolveReviewToMovements } from "../domain/allocation-engine";
 
 export async function upsertJarReviewQueue(
   supabase: SupabaseClient,
@@ -84,6 +85,8 @@ export async function createJarMovement(
     metadata?: Record<string, unknown>;
     createdBy?: string | null;
     reviewQueueId?: string | null;
+    movementType?: string | null;
+    idempotencyKey?: string | null;
   },
 ) {
   const result = await supabase
@@ -104,6 +107,8 @@ export async function createJarMovement(
         source_line_key: input.sourceLineKey ?? "default",
         related_transaction_id: input.relatedTransactionId ?? null,
         related_savings_id: input.relatedSavingsId ?? null,
+        movement_type: input.movementType ?? null,
+        idempotency_key: input.idempotencyKey ?? null,
         note: input.note ?? null,
         metadata: input.metadata ?? {},
         created_by: input.createdBy ?? null,
@@ -131,163 +136,10 @@ export async function resolveJarReviewQueue(
     allocations: Array<{ jarId: string; amount: number }>;
   },
 ) {
-  const reviewResult = await supabase
-    .from("jar_review_queue")
-    .select("*")
-    .eq("household_id", input.householdId)
-    .eq("id", input.reviewId)
-    .maybeSingle();
-
-  if (reviewResult.error || !reviewResult.data) {
-    throw new Error(reviewResult.error?.message ?? "Review item not found.");
-  }
-
-  const review = reviewResult.data as Record<string, unknown>;
-  const sourceType = String(review.source_type);
-  const sourceId = String(review.source_id);
-  const movementDate = String(review.movement_date);
-  const context =
-    review.context_json && typeof review.context_json === "object"
-      ? (review.context_json as Record<string, unknown>)
-      : {};
-
-  const normalizedAllocations = input.allocations
-    .map((row) => ({
-      jarId: row.jarId,
-      amount: Math.round(Number(row.amount ?? 0)),
-    }))
-    .filter((row) => row.jarId && row.amount > 0);
-
-  if (normalizedAllocations.length === 0) {
-    throw new Error("At least one jar allocation is required.");
-  }
-
-  for (const [index, allocation] of normalizedAllocations.entries()) {
-    if (sourceType === "income_transaction") {
-      await createJarMovement(supabase, {
-        householdId: input.householdId,
-        jarId: allocation.jarId,
-        movementDate,
-        amount: allocation.amount,
-        balanceDelta: 1,
-        locationFrom: "external",
-        locationTo: "cash",
-        sourceType: "income_transaction",
-        sourceId,
-        sourceLineKey: `alloc-${index}`,
-        relatedTransactionId: sourceId,
-        note: String(context.description ?? "Income allocation"),
-        createdBy: input.userId,
-        reviewQueueId: input.reviewId,
-      });
-    } else if (sourceType === "expense_transaction") {
-      await createJarMovement(supabase, {
-        householdId: input.householdId,
-        jarId: allocation.jarId,
-        movementDate,
-        amount: allocation.amount,
-        balanceDelta: -1,
-        locationFrom: "cash",
-        locationTo: "expense",
-        sourceType: "expense_transaction",
-        sourceId,
-        sourceLineKey: `alloc-${index}`,
-        relatedTransactionId: sourceId,
-        note: String(context.description ?? "Expense allocation"),
-        createdBy: input.userId,
-        reviewQueueId: input.reviewId,
-      });
-    } else if (sourceType === "savings_create") {
-      await createJarMovement(supabase, {
-        householdId: input.householdId,
-        jarId: allocation.jarId,
-        movementDate,
-        amount: allocation.amount,
-        balanceDelta: 0,
-        locationFrom: "cash",
-        locationTo: "savings",
-        sourceType: "savings_create",
-        sourceId,
-        sourceLineKey: `alloc-${index}`,
-        relatedSavingsId: String(context.savingsId ?? sourceId),
-        note: String(context.providerName ?? "Savings create"),
-        createdBy: input.userId,
-        reviewQueueId: input.reviewId,
-      });
-    } else if (
-      sourceType === "savings_withdraw" ||
-      sourceType === "savings_mature"
-    ) {
-      const principalAmount = Math.round(
-        Number(context.principalAmount ?? allocation.amount),
-      );
-      const interestAmount = Math.round(Number(context.interestAmount ?? 0));
-      const taxAmount = Math.round(Number(context.taxAmount ?? 0));
-      await createJarMovement(supabase, {
-        householdId: input.householdId,
-        jarId: allocation.jarId,
-        movementDate,
-        amount: principalAmount,
-        balanceDelta: 0,
-        locationFrom: "savings",
-        locationTo: "cash",
-        sourceType: sourceType as "savings_withdraw" | "savings_mature",
-        sourceId,
-        sourceLineKey: `principal-${index}`,
-        relatedSavingsId: String(context.savingsId ?? sourceId),
-        note: String(context.providerName ?? "Savings release"),
-        createdBy: input.userId,
-        reviewQueueId: input.reviewId,
-      });
-      if (interestAmount > 0) {
-        await createJarMovement(supabase, {
-          householdId: input.householdId,
-          jarId: allocation.jarId,
-          movementDate,
-          amount: interestAmount,
-          balanceDelta: 1,
-          locationFrom: "external",
-          locationTo: "cash",
-          sourceType: sourceType as "savings_withdraw" | "savings_mature",
-          sourceId,
-          sourceLineKey: `interest-${index}`,
-          relatedSavingsId: String(context.savingsId ?? sourceId),
-          note: `Savings interest ${String(context.providerName ?? "")}`.trim(),
-          createdBy: input.userId,
-          reviewQueueId: input.reviewId,
-        });
-      }
-      if (taxAmount > 0) {
-        await createJarMovement(supabase, {
-          householdId: input.householdId,
-          jarId: allocation.jarId,
-          movementDate,
-          amount: taxAmount,
-          balanceDelta: -1,
-          locationFrom: "cash",
-          locationTo: "external",
-          sourceType: sourceType as "savings_withdraw" | "savings_mature",
-          sourceId,
-          sourceLineKey: `tax-${index}`,
-          relatedSavingsId: String(context.savingsId ?? sourceId),
-          note: `Savings tax ${String(context.providerName ?? "")}`.trim(),
-          createdBy: input.userId,
-          reviewQueueId: input.reviewId,
-        });
-      }
-    }
-  }
-
-  const update = await supabase
-    .from("jar_review_queue")
-    .update({
-      status: "resolved",
-      resolved_allocations: normalizedAllocations,
-      resolved_by: input.userId,
-      resolved_at: new Date().toISOString(),
-    })
-    .eq("household_id", input.householdId)
-    .eq("id", input.reviewId);
-
-  if (update.error) throw new Error(update.error.message);
+  await resolveReviewToMovements(supabase, {
+    householdId: input.householdId,
+    reviewId: input.reviewId,
+    userId: input.userId,
+    allocations: input.allocations,
+  });
 }

@@ -15,10 +15,11 @@ import { t } from "@/lib/i18n/dictionary";
 import {
   bootstrapPresetJarsAction,
   deleteIntentJarAction,
-} from "../intent-actions";
+} from "../domain-actions";
 
 import { JarSetupCreateForm } from "../_components/jar-setup-create-form";
 import { JarSetupRuleForm } from "../_components/jar-setup-rule-form";
+import { JarCategoryAssignmentSection } from "../_components/jar-category-assignment-section";
 
 export const metadata = {
   title: "Jar Setup | Family Finances",
@@ -33,7 +34,7 @@ export default async function JarSetupPage({
     error?: string;
   }>;
 }) {
-  const { householdId, householdLocale, language } = await getAuthenticatedHouseholdContext();
+  const { householdId, language } = await getAuthenticatedHouseholdContext();
   const params = searchParams ? await searchParams : undefined;
   const month =
     params?.month && /^\d{4}-\d{2}$/.test(params.month)
@@ -67,8 +68,6 @@ export default async function JarSetupPage({
   const rules = new Map(
     (rulesResult.data ?? []).map((row) => [row.category_id, row.jar_id]),
   );
-  const jarNameMap = new Map(jars.map((jar) => [jar.id, jar.name]));
-
   return (
     <AppShell
       header={<AppHeader title={t(language, "jars.setup.title")} />}
@@ -165,36 +164,13 @@ export default async function JarSetupPage({
                   returnTo={`/jars/setup?month=${month}#rules`}
                 />
 
-                <div className="overflow-hidden rounded-2xl border border-border/60">
-                  <div className="grid grid-cols-[1.2fr_1fr] gap-3 border-b border-border/60 bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    <span>{t(language, "jars.setup.rules.category")}</span>
-                    <span>{t(language, "jars.setup.rules.current_jar")}</span>
-                  </div>
-                  <div className="divide-y divide-border/50 bg-white">
-                    {categories.map((category) => (
-                      <div
-                        key={category.id}
-                        className="grid grid-cols-[1.2fr_1fr] gap-3 px-4 py-3 text-sm"
-                      >
-                        <span className="font-medium text-slate-800">
-                          {category.name}
-                        </span>
-                        <span className="text-slate-600">
-                          {rules.has(category.id) ? (
-                            <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
-                              {jarNameMap.get(rules.get(category.id)!) ??
-                                t(language, "jars.setup.rules.unknown_jar")}
-                            </span>
-                          ) : (
-                            <span className="text-slate-400 italic">
-                              {t(language, "jars.setup.rules.unmapped")}
-                            </span>
-                          )}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                <JarCategoryAssignmentSection
+                  categories={categories}
+                  jars={jars}
+                  rules={rules}
+                  householdId={householdId}
+                  returnTo={`/jars/setup?month=${month}`}
+                />
               </>
             )}
           </CardContent>

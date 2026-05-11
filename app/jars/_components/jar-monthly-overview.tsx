@@ -62,7 +62,7 @@ export function JarMonthlyOverview({
   month,
   householdLocale,
 }: Props) {
-  const { t, language } = useI18n();
+  const { t } = useI18n();
   if (jars.length === 0) {
     return (
       <div className="rounded-xl border p-4 text-sm text-muted-foreground">

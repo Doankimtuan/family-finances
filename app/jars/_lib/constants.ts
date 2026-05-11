@@ -5,7 +5,7 @@ export const JARS_CONSTANTS = {
   },
   DEFAULTS: {
     COLOR: "#2563EB",
-    ICON: "piggy-bank",
+    ICON: "piggy",
     JAR_TYPE: "custom",
     SPEND_POLICY: "flexible",
   },

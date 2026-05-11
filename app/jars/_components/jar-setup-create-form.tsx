@@ -6,8 +6,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useI18n } from "@/lib/providers/i18n-provider";
 
-import { createIntentJarAction } from "@/app/jars/intent-actions";
-import { RHFInput, RHFSelect } from "@/components/ui/rhf-fields";
+import { createIntentJarAction } from "@/app/jars/domain-actions";
+import { RHFInput, RHFSelect, RHFColorInput, RHFMoneyInput } from "@/components/ui/rhf-fields";
+import { IconPicker } from "@/components/ui/icon-picker";
 import { Button } from "@/components/ui/button";
 import { objectToFormDataUnfiltered } from "../_lib/form-helpers";
 import { JARS_CONSTANTS } from "../_lib/constants";
@@ -34,7 +35,7 @@ type Props = {
 export function JarSetupCreateForm({ month, returnTo }: Props) {
   const [isPending, startTransition] = useTransition();
 
-  const { t, language } = useI18n();
+  const { t } = useI18n();
 
   const methods = useForm<Values>({
     resolver: zodResolver(schema),
@@ -106,10 +107,10 @@ export function JarSetupCreateForm({ month, returnTo }: Props) {
           required
         />
 
-        <RHFInput name="fixedAmount" label={t("jars.field.fixed_target")} type="number" min="0" />
+        <RHFMoneyInput name="fixedAmount" label={t("jars.field.fixed_target")} />
         <RHFInput name="incomePercent" label={t("jars.field.income_percent")} type="number" min="0" max="100" step="0.01" />
-        <RHFInput name="color" label={t("common.color")} />
-        <RHFInput name="icon" label={t("common.icon")} />
+        <RHFColorInput name="color" label={t("common.color")} />
+        <IconPicker name="icon" label={t("common.icon")} required />
 
         <div className="sm:col-span-2 flex justify-end">
           <Button type="submit" disabled={isPending} className="rounded-xl">

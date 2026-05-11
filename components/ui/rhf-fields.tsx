@@ -228,13 +228,13 @@ export function RHFColorInput({
       hideLabel={hideLabel}
     >
       <div className="flex items-center gap-3">
-        <input
+        <Input
           id={name}
           type="color"
           {...register(name)}
           {...props}
           className={cn(
-            "h-10 w-20 rounded-xl border border-slate-200 bg-white p-1 cursor-pointer shadow-sm",
+            "h-10 flex-1 rounded-xl border border-slate-200 bg-white p-1 cursor-pointer shadow-sm",
             props.className,
           )}
         />

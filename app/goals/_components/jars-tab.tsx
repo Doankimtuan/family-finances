@@ -15,6 +15,8 @@ import { t } from "@/lib/i18n/dictionary";
 
 import { JarPlanForm } from "@/app/jars/_components/jar-plan-form";
 import { JarManualAdjustmentForm } from "@/app/jars/_components/jar-manual-adjustment-form";
+import { JarFundingDialog } from "@/app/jars/_components/jar-funding-dialog";
+import { JarMonthCloseWizard } from "@/app/jars/_components/jar-month-close-wizard";
 
 export async function JarsTab({
   month: monthProp,
@@ -73,6 +75,12 @@ export async function JarsTab({
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
+              <JarMonthCloseWizard month={month} />
+              <JarFundingDialog
+                jars={data.items.map((j) => ({ id: j.id, name: j.name }))}
+                assets={data.assets}
+                returnTo={backHref}
+              />
               <Button asChild className="rounded-xl">
                 <Link href={`/jars/setup?month=${month}`}>
                   {t(language, "jars.setup_jars")}
@@ -124,7 +132,7 @@ export async function JarsTab({
           }
         />
       ) : (
-        <section className="grid gap-4 xl:grid-cols-[1.35fr_0.95fr]">
+        <section className="flex flex-col gap-4">
           <Card className="border-border/60">
             <CardHeader className="pb-3">
               <CardTitle className="text-lg">
@@ -201,7 +209,7 @@ export async function JarsTab({
                       />
                     </div>
 
-                    <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_auto]">
+                    <div className="mt-4 flex flex-col gap-4">
                       <div className="rounded-2xl bg-slate-50 p-4">
                         <div className="flex items-center justify-between text-sm">
                           <Label className="font-medium text-slate-600">
@@ -305,7 +313,6 @@ export async function JarsTab({
               <CardContent>
                 <JarManualAdjustmentForm
                   jars={data.items}
-                  month={month}
                   returnTo={backHref}
                 />
               </CardContent>
@@ -349,7 +356,7 @@ function MiniMetric({
   value: string;
 }) {
   return (
-    <div className="rounded-2xl border border-border/60 bg-slate-50 p-3">
+    <div className="rounded-2xl border border-border/60 bg-slate-50 p-3 flex flex-col justify-between">
       <div className="flex items-center gap-2 text-slate-500">
         <Icon className="h-4 w-4" />
         <Label className="text-xs font-medium cursor-default">{label}</Label>

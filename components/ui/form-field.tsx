@@ -23,7 +23,7 @@ function FormField({
   ...props
 }: FormFieldProps) {
   return (
-    <div className={cn("flex flex-col gap-1.5", className)} {...props}>
+    <div className={cn("flex flex-col gap-1.5 justify-between", className)} {...props}>
       {!hideLabel && (
         <Label htmlFor={htmlFor}>
           {label}

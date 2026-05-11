@@ -5,9 +5,9 @@ import { useTransition } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import * as z from "zod";
 
-import { upsertJarPlanAction } from "@/app/jars/intent-actions";
+import { upsertJarPlanAction } from "@/app/jars/domain-actions";
 import { Button } from "@/components/ui/button";
-import { RHFInput } from "@/components/ui/rhf-fields";
+import { RHFInput, RHFMoneyInput } from "@/components/ui/rhf-fields";
 import { useI18n } from "@/lib/providers/i18n-provider";
 import { objectToFormData } from "../_lib/form-helpers";
 
@@ -73,11 +73,9 @@ export function JarPlanForm({
         <input type="hidden" {...methods.register("month")} />
         <input type="hidden" {...methods.register("returnTo")} />
 
-        <RHFInput
+        <RHFMoneyInput
           name="fixedAmount"
           label={t("jars.field.fixed_target")}
-          type="number"
-          min="0"
           className="bg-white"
         />
 

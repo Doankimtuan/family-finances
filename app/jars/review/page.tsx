@@ -14,7 +14,7 @@ import { fetchJarCommandCenter } from "@/lib/jars/intent";
 import { getAuthenticatedHouseholdContext } from "@/lib/server/household";
 import { createClient } from "@/lib/supabase/server";
 
-import { resolveJarReviewAction } from "../intent-actions";
+import { resolveJarReviewItemDirectAction } from "../domain-actions";
 import { JarManualReviewForm } from "../_components/jar-manual-review-form";
 
 import { t } from "@/lib/i18n/dictionary";
@@ -130,7 +130,7 @@ export default async function JarReviewPage({
                           </div>
                         ))}
                       </div>
-                      <form action={resolveJarReviewAction} className="mt-4">
+                      <form action={resolveJarReviewItemDirectAction} className="mt-4">
                         <input type="hidden" name="reviewId" value={review.id} />
                         <input type="hidden" name="returnTo" value="/jars/review" />
                         <input type="hidden" name="mode" value="suggested" />

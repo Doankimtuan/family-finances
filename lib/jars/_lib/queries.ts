@@ -7,6 +7,7 @@ import {
   JarRow,
 } from "./types";
 import { normalizeSuggestions, toMonthStart } from "./utils";
+import { resolveCategoryJarIdWithFallback } from "../domain/rule-engine";
 
 export async function fetchJarCommandCenter(
   supabase: SupabaseClient,
@@ -21,6 +22,8 @@ export async function fetchJarCommandCenter(
     monthlyResult,
     reviewResult,
     categoryRulesResult,
+    assetsResult,
+    accountsResult,
   ] = await Promise.all([
     supabase
       .from("jars")
@@ -57,6 +60,20 @@ export async function fetchJarCommandCenter(
       .eq("household_id", householdId)
       .eq("rule_type", "expense_category")
       .eq("is_active", true),
+    supabase
+      .from("assets")
+      .select("id, name")
+      .eq("household_id", householdId)
+      .eq("is_archived", false)
+      .is("deleted_at", null)
+      .order("created_at", { ascending: true }),
+    supabase
+      .from("accounts")
+      .select("id, name")
+      .eq("household_id", householdId)
+      .eq("is_archived", false)
+      .is("deleted_at", null)
+      .order("created_at", { ascending: true }),
   ]);
 
   if (jarsResult.error) throw new Error(jarsResult.error.message);
@@ -66,8 +83,22 @@ export async function fetchJarCommandCenter(
   if (reviewResult.error) throw new Error(reviewResult.error.message);
   if (categoryRulesResult.error)
     throw new Error(categoryRulesResult.error.message);
+  if (assetsResult.error) throw new Error(assetsResult.error.message);
+  if (accountsResult.error) throw new Error(accountsResult.error.message);
 
   const jars = (jarsResult.data ?? []) as JarRow[];
+  const assets = [
+    ...(assetsResult.data ?? []).map((a) => ({
+      id: String(a.id),
+      name: String(a.name),
+      type: "asset" as const,
+    })),
+    ...(accountsResult.data ?? []).map((a) => ({
+      id: String(a.id),
+      name: String(a.name),
+      type: "account" as const,
+    })),
+  ];
   const planMap = new Map(
     ((plansResult.data ?? []) as JarPlanRow[]).map((row) => [row.jar_id, row]),
   );
@@ -129,6 +160,7 @@ export async function fetchJarCommandCenter(
     monthStart,
     items,
     reviews,
+    assets,
     summary: {
       totalBalance: items.reduce((sum, item) => sum + item.currentBalance, 0),
       totalMonthInflow: items.reduce((sum, item) => sum + item.monthInflow, 0),
@@ -156,18 +188,5 @@ export async function getExpenseRuleJarId(
   householdId: string,
   categoryId: string | null,
 ) {
-  if (!categoryId) return null;
-  const result = await supabase
-    .from("jar_rules")
-    .select("jar_id")
-    .eq("household_id", householdId)
-    .eq("rule_type", "expense_category")
-    .eq("category_id", categoryId)
-    .eq("is_active", true)
-    .order("priority", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-
-  if (result.error) throw new Error(result.error.message);
-  return result.data?.jar_id ?? null;
+  return resolveCategoryJarIdWithFallback(supabase, householdId, categoryId);
 }

@@ -5,7 +5,7 @@ import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 
-import { resolveJarReviewAction } from "@/app/jars/intent-actions";
+import { resolveJarReviewItemAction } from "@/app/jars/domain-actions";
 import { RHFInput, RHFSelect } from "@/components/ui/rhf-fields";
 import { Button } from "@/components/ui/button";
 
@@ -49,8 +49,18 @@ export function JarManualReviewForm({ reviewId, amount, jars, returnTo }: Props)
       formData.append(key, String(value));
     });
 
+    formData.set(
+      "allocationsJson",
+      JSON.stringify([
+        {
+          jarId: data.manualJarId,
+          amount: data.manualAmount,
+        },
+      ]),
+    );
+
     startTransition(async () => {
-      await resolveJarReviewAction(formData);
+      await resolveJarReviewItemAction(formData);
     });
   };
 

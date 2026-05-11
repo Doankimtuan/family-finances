@@ -5,7 +5,7 @@ import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 
-import { upsertExpenseRuleAction } from "@/app/jars/intent-actions";
+import { upsertJarCategoryRuleAction } from "@/app/jars/domain-actions";
 import { RHFSelect } from "@/components/ui/rhf-fields";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/providers/i18n-provider";
@@ -44,7 +44,7 @@ export function JarSetupRuleForm({ categories, jars, returnTo }: Props) {
     });
 
     startTransition(async () => {
-      await upsertExpenseRuleAction(formData);
+      await upsertJarCategoryRuleAction(formData);
     });
   };
 

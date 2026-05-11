@@ -76,7 +76,7 @@ export async function resolveActionContext(): Promise<ActionContext> {
 }
 
 /**
- * Strict variant used in jars/intent-actions — throws instead of returning error.
+ * Strict variant used in jars/domain-actions — throws instead of returning error.
  */
 export async function resolveActionContextOrThrow() {
   const ctx = await resolveActionContext();
