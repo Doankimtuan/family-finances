@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, startTransition } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -14,8 +14,16 @@ import { RHFInput, RHFMoneyInput } from "@/components/ui/rhf-fields";
 import { formatDate } from "@/lib/dashboard/format";
 import { useI18n } from "@/lib/providers/i18n-provider";
 
+import { getAssetClassConfig } from "@/lib/assets/class-config";
+
 type QuantityRow = { id: string; as_of_date: string; quantity: number };
-type PriceRow = { id: string; as_of_date: string; unit_price: number };
+type PriceRow = {
+  id: string;
+  as_of_date: string;
+  unit_price: number;
+  bid_price?: number;
+  ask_price?: number;
+};
 
 type QuantityTableProps = {
   assetId: string;
@@ -33,12 +41,13 @@ type PriceTableProps = {
     prev: AssetActionState,
     formData: FormData,
   ) => Promise<AssetActionState>;
+  assetClass?: string;
 };
 
 function EmptyRow({ text }: { text: string }) {
   return (
     <tr>
-      <td colSpan={3} className="px-3 py-4 text-sm text-slate-500">
+      <td colSpan={4} className="px-3 py-4 text-sm text-slate-500">
         {text}
       </td>
     </tr>
@@ -134,7 +143,9 @@ function QuantityRowEditor({
     formData.append("rowId", data.rowId);
     formData.append("assetId", data.assetId);
     formData.append("quantity", String(data.quantity));
-    action(formData);
+    startTransition(() => {
+      action(formData);
+    });
   };
 
   return (
@@ -182,8 +193,12 @@ export function PriceHistoryTable({
   assetId,
   rows,
   updateAction,
+  assetClass,
 }: PriceTableProps) {
   const { locale, t } = useI18n();
+
+  const classConfig = assetClass ? getAssetClassConfig(assetClass) : null;
+  const hasSpread = classConfig?.hasBidAskSpread;
 
   return (
     <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
@@ -193,9 +208,20 @@ export function PriceHistoryTable({
             <th className="px-3 py-2 text-xs uppercase tracking-[0.12em] text-slate-500">
               {t("common.date")}
             </th>
-            <th className="px-3 py-2 text-xs uppercase tracking-[0.12em] text-slate-500">
-              {t("assets.history.unit_price")}
-            </th>
+            {hasSpread ? (
+              <>
+                <th className="px-3 py-2 text-xs uppercase tracking-[0.12em] text-slate-500">
+                  {t("assets.history.bid_price")}
+                </th>
+                <th className="px-3 py-2 text-xs uppercase tracking-[0.12em] text-slate-500">
+                  {t("assets.history.ask_price")}
+                </th>
+              </>
+            ) : (
+              <th className="px-3 py-2 text-xs uppercase tracking-[0.12em] text-slate-500">
+                {t("assets.history.unit_price")}
+              </th>
+            )}
             <th className="px-3 py-2 text-xs uppercase tracking-[0.12em] text-slate-500">
               {t("common.action")}
             </th>
@@ -214,6 +240,7 @@ export function PriceHistoryTable({
                 row={row}
                 updateAction={updateAction}
                 locale={locale}
+                hasSpread={hasSpread}
               />
             ))
           )}
@@ -226,7 +253,9 @@ export function PriceHistoryTable({
 const priceRowSchema = z.object({
   rowId: z.string(),
   assetId: z.string(),
-  unitPrice: z.number().min(0, "Unit price must be non-negative"),
+  unitPrice: z.number().min(0, "Unit price must be non-negative").optional(),
+  bidPrice: z.number().min(0, "Bid price must be non-negative").optional(),
+  askPrice: z.number().min(0, "Ask price must be non-negative").optional(),
 });
 
 type PriceRowFormValues = z.infer<typeof priceRowSchema>;
@@ -236,6 +265,7 @@ function PriceRowEditor({
   row,
   updateAction,
   locale,
+  hasSpread,
 }: {
   assetId: string;
   row: PriceRow;
@@ -244,6 +274,7 @@ function PriceRowEditor({
     formData: FormData,
   ) => Promise<AssetActionState>;
   locale: string;
+  hasSpread?: boolean;
 }) {
   const { t } = useI18n();
   const [state, action, isPending] = useActionState<AssetActionState, FormData>(
@@ -257,6 +288,8 @@ function PriceRowEditor({
       rowId: row.id,
       assetId,
       unitPrice: row.unit_price,
+      bidPrice: row.bid_price ?? row.unit_price,
+      askPrice: row.ask_price ?? row.unit_price,
     },
   });
 
@@ -266,8 +299,12 @@ function PriceRowEditor({
     const formData = new FormData();
     formData.append("rowId", data.rowId);
     formData.append("assetId", data.assetId);
-    formData.append("unitPrice", String(data.unitPrice));
-    action(formData);
+    if (data.unitPrice !== undefined) formData.append("unitPrice", String(data.unitPrice));
+    if (data.bidPrice !== undefined) formData.append("bidPrice", String(data.bidPrice));
+    if (data.askPrice !== undefined) formData.append("askPrice", String(data.askPrice));
+    startTransition(() => {
+      action(formData);
+    });
   };
 
   return (
@@ -275,25 +312,46 @@ function PriceRowEditor({
       <td className="px-3 py-2 text-sm text-slate-700">
         {formatDate(row.as_of_date, locale)}
       </td>
-      <td className="px-3 py-2">
+      <td className="px-3 py-2" colSpan={hasSpread ? 2 : 1}>
         <FormProvider {...methods}>
           <form
             className="flex items-center gap-2"
             noValidate
             onSubmit={handleSubmit(onSubmit)}
           >
-            <div className="w-40">
-              <RHFMoneyInput
-                name="unitPrice"
-                label={t("assets.history.unit_price")}
-                hideLabel
-                className="w-full"
-              />
-            </div>
+            {hasSpread ? (
+              <div className="flex gap-2">
+                <div className="w-28 sm:w-36">
+                  <RHFMoneyInput
+                    name="bidPrice"
+                    label={t("assets.history.bid_price")}
+                    hideLabel
+                    className="w-full"
+                  />
+                </div>
+                <div className="w-28 sm:w-36">
+                  <RHFMoneyInput
+                    name="askPrice"
+                    label={t("assets.history.ask_price")}
+                    hideLabel
+                    className="w-full"
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="w-32 sm:w-40">
+                <RHFMoneyInput
+                  name="unitPrice"
+                  label={t("assets.history.unit_price")}
+                  hideLabel
+                  className="w-full"
+                />
+              </div>
+            )}
             <Button
               type="submit"
               disabled={isPending}
-              className="rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60"
+              className="rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60 shrink-0"
             >
               {t("common.save")}
             </Button>

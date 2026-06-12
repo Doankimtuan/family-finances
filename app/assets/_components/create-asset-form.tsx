@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useCallback, useEffect } from "react";
+import { useActionState, useCallback, useEffect, startTransition } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -9,7 +9,10 @@ import {
   initialAssetActionState,
   type AssetActionState,
 } from "@/app/assets/action-types";
-import { DEFAULT_ASSET_CLASS, BOOLEAN_STRING } from "@/app/assets/_lib/constants";
+import {
+  DEFAULT_ASSET_CLASS,
+  BOOLEAN_STRING,
+} from "@/app/assets/_lib/constants";
 import { useI18n } from "@/lib/providers/i18n-provider";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -27,7 +30,7 @@ const assetFormSchema = z
     assetClass: z.string(),
     unitLabel: z.string().min(1, "Unit label is required"),
     quantity: z.number().min(0, "Quantity must be non-negative"),
-    unitPrice: z.string().min(1, "Unit price is required"),
+    unitPrice: z.number({ message: "Unit price is required" }).min(0, "Unit price must be non-negative"),
     isLiquid: z.string(),
   })
   .catchall(z.any());
@@ -52,7 +55,7 @@ export function CreateAssetForm({ onSuccess }: CreateAssetFormProps) {
       assetClass: DEFAULT_ASSET_CLASS,
       unitLabel: t("assets.unit.tael"),
       quantity: 1,
-      unitPrice: "",
+      unitPrice: undefined,
       isLiquid: BOOLEAN_STRING.TRUE,
     },
   });
@@ -66,7 +69,10 @@ export function CreateAssetForm({ onSuccess }: CreateAssetFormProps) {
   useEffect(() => {
     const config = getAssetClassConfig(selectedClass);
     setValue("unitLabel", t(config.defaultUnitLabel));
-    setValue("isLiquid", config.defaultLiquid ? BOOLEAN_STRING.TRUE : BOOLEAN_STRING.FALSE);
+    setValue(
+      "isLiquid",
+      config.defaultLiquid ? BOOLEAN_STRING.TRUE : BOOLEAN_STRING.FALSE,
+    );
   }, [selectedClass, setValue, t]);
 
   const onSubmit = useCallback(
@@ -75,7 +81,9 @@ export function CreateAssetForm({ onSuccess }: CreateAssetFormProps) {
       Object.entries(data).forEach(([key, value]) => {
         formData.append(key, value == null ? "" : String(value));
       });
-      action(formData);
+      startTransition(() => {
+        action(formData);
+      });
     },
     [action],
   );
@@ -118,13 +126,10 @@ export function CreateAssetForm({ onSuccess }: CreateAssetFormProps) {
             step="0.001"
           />
 
-          <RHFInput
+          <RHFMoneyInput
             name="unitPrice"
             label={t("assets.unit_price")}
             placeholder={t("assets.placeholder_unit_price")}
-            type="number"
-            min="1"
-            step="1"
             className="w-full"
           />
         </div>
@@ -174,7 +179,11 @@ export function CreateAssetForm({ onSuccess }: CreateAssetFormProps) {
                       label={t(field.labelKey)}
                       type={field.type === "number" ? "number" : "text"}
                       step={field.type === "number" ? "any" : undefined}
-                      placeholder={field.placeholderKey ? t(field.placeholderKey) : undefined}
+                      placeholder={
+                        field.placeholderKey
+                          ? t(field.placeholderKey)
+                          : undefined
+                      }
                       className="text-sm"
                     />
                   )}

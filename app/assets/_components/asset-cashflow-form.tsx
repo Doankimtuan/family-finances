@@ -1,19 +1,13 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, startTransition, useEffect } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { addAssetCashflowAction } from "@/app/assets/cashflow-actions";
-import {
-  initialAssetActionState,
-} from "@/app/assets/action-types";
+import { initialAssetActionState } from "@/app/assets/action-types";
 import { useI18n } from "@/lib/providers/i18n-provider";
-import {
-  RHFInput,
-  RHFSelect,
-  RHFMoneyInput,
-} from "@/components/ui/rhf-fields";
+import { RHFInput, RHFSelect, RHFMoneyInput } from "@/components/ui/rhf-fields";
 import { Button } from "@/components/ui/button";
 import { FormStatus } from "@/components/ui/form-status";
 import { toast } from "sonner";
@@ -24,6 +18,8 @@ const cashflowSchema = z.object({
   flowType: z.string(),
   flowDate: z.string().min(1, "assets.errors.date_required"),
   accountId: z.string().min(1, "assets.errors.account_required"),
+  quantity: z.number().min(0, "assets.errors.quantity_non_negative").optional(),
+  unitPrice: z.number().min(0, "assets.errors.price_non_negative").optional(),
   amount: z.number().min(0, "assets.errors.amount_non_negative"),
   note: z.string().optional(),
 });
@@ -34,6 +30,7 @@ type AccountOption = { id: string; name: string };
 
 type AssetCashflowFormProps = {
   assetId: string;
+  assetClass: string;
   accounts: AccountOption[];
 };
 
@@ -44,7 +41,7 @@ export function AssetCashflowForm({
   const { t } = useI18n();
   const [state, formAction, isPending] = useActionState(
     addAssetCashflowAction,
-    initialAssetActionState
+    initialAssetActionState,
   );
 
   const methods = useForm<CashflowValues>({
@@ -54,36 +51,66 @@ export function AssetCashflowForm({
       flowType: ASSET_FLOW_TYPES.CONTRIBUTION,
       flowDate: new Date().toISOString().slice(0, 10),
       accountId: "",
+      quantity: 0,
+      unitPrice: 0,
       amount: 0,
       note: "",
     },
   });
 
-  const { handleSubmit, reset } = methods;
+  const { handleSubmit, reset, watch, setValue } = methods;
+
+  const flowType = watch("flowType");
+  const quantity = watch("quantity") ?? 0;
+  const unitPrice = watch("unitPrice") ?? 0;
+
+  useEffect(() => {
+    if (
+      flowType === ASSET_FLOW_TYPES.CONTRIBUTION ||
+      flowType === ASSET_FLOW_TYPES.WITHDRAWAL
+    ) {
+      setValue("amount", Math.round(quantity * unitPrice));
+    }
+  }, [flowType, quantity, unitPrice, setValue]);
+
+  useEffect(() => {
+    if (state.status === "success") {
+      toast.success(state.message);
+      reset({
+        assetId,
+        flowType: ASSET_FLOW_TYPES.CONTRIBUTION,
+        flowDate: new Date().toISOString().slice(0, 10),
+        accountId: "",
+        quantity: 0,
+        unitPrice: 0,
+        amount: 0,
+        note: "",
+      });
+    } else if (state.status === "error") {
+      toast.error(state.message);
+    }
+  }, [state, reset, assetId]);
 
   const onSubmit = async (data: CashflowValues) => {
     const formData = new FormData();
     Object.entries(data).forEach(([key, value]) => {
-      formData.append(key, String(value));
+      if (value !== undefined) {
+        formData.append(key, String(value));
+      }
     });
 
-    formAction(formData);
-
-    if (state.status === "success") {
-      toast.success(state.message);
-      reset();
-    } else if (state.status === "error") {
-      toast.error(state.message);
-    }
+    startTransition(() => {
+      formAction(formData);
+    });
   };
+
+  const isTradeType =
+    flowType === ASSET_FLOW_TYPES.CONTRIBUTION ||
+    flowType === ASSET_FLOW_TYPES.WITHDRAWAL;
 
   return (
     <FormProvider {...methods}>
-      <form
-        className="space-y-3"
-        noValidate
-        onSubmit={handleSubmit(onSubmit)}
-      >
+      <form className="space-y-3" noValidate onSubmit={handleSubmit(onSubmit)}>
         <input type="hidden" {...methods.register("assetId")} />
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -92,8 +119,14 @@ export function AssetCashflowForm({
             label={t("common.transaction_type")}
             defaultValue={ASSET_FLOW_TYPES.CONTRIBUTION}
             options={[
-              { label: t("assets.contribution"), value: ASSET_FLOW_TYPES.CONTRIBUTION },
-              { label: t("assets.withdrawal"), value: ASSET_FLOW_TYPES.WITHDRAWAL },
+              {
+                label: t("assets.contribution"),
+                value: ASSET_FLOW_TYPES.CONTRIBUTION,
+              },
+              {
+                label: t("assets.withdrawal"),
+                value: ASSET_FLOW_TYPES.WITHDRAWAL,
+              },
               { label: t("assets.income"), value: ASSET_FLOW_TYPES.INCOME },
               { label: t("assets.fee"), value: ASSET_FLOW_TYPES.FEE },
               { label: t("assets.tax"), value: ASSET_FLOW_TYPES.TAX },
@@ -124,10 +157,31 @@ export function AssetCashflowForm({
           </div>
         </div>
 
+        {isTradeType && (
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <RHFInput
+              name="quantity"
+              label={t("assets.quantity")}
+              type="number"
+              min="0"
+              step="any"
+              required
+            />
+
+            <RHFMoneyInput
+              name="unitPrice"
+              label={t("assets.unit_price")}
+              className="w-full"
+              required
+            />
+          </div>
+        )}
+
         <RHFMoneyInput
           name="amount"
-          label={t("assets.amount")}
+          label={t("common.amount")}
           className="w-full"
+          required
         />
 
         <RHFInput
@@ -136,11 +190,7 @@ export function AssetCashflowForm({
           placeholder={t("common.note_placeholder")}
         />
 
-        <Button
-          type="submit"
-          disabled={isPending}
-          className="w-full"
-        >
+        <Button type="submit" disabled={isPending} className="w-full">
           {isPending ? t("common.saving") : t("common.add")}
         </Button>
 

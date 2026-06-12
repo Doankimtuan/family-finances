@@ -9,10 +9,10 @@ export type AssetClassKey =
   | "mutual_fund"
   | "stock"
   | "real_estate"
-  | "savings_deposit"
+  // | "savings_deposit"
   | "crypto"
-  | "vehicle"
-  | "cash_equivalent"
+  // | "vehicle"
+  // | "cash_equivalent"
   | "other";
 
 export type RiskLevel = "low" | "medium" | "high" | "very_high";
@@ -45,6 +45,7 @@ export type AssetClassConfig = {
   isInvestmentTracker: boolean;
   cashflowLabels: Record<CashflowFlowType, string>;
   metadataFields: MetadataFieldDef[];
+  hasBidAskSpread?: boolean;
 };
 
 const SHARED_CASHFLOW_LABELS: AssetClassConfig["cashflowLabels"] = {
@@ -119,9 +120,23 @@ export const ASSET_CLASS_CONFIGS: Record<AssetClassKey, AssetClassConfig> = {
       income: "assets.cashflow.mutual_fund.income",
     },
     metadataFields: [
-      { key: "fund_code", labelKey: "assets.field.fund_code", type: "text", placeholderKey: "assets.field.fund_code" },
-      { key: "fund_manager", labelKey: "assets.field.fund_manager", type: "text" },
-      { key: "platform", labelKey: "assets.field.platform", type: "text", placeholderKey: "assets.field.platform" },
+      {
+        key: "fund_code",
+        labelKey: "assets.field.fund_code",
+        type: "text",
+        placeholderKey: "assets.field.fund_code",
+      },
+      {
+        key: "fund_manager",
+        labelKey: "assets.field.fund_manager",
+        type: "text",
+      },
+      {
+        key: "platform",
+        labelKey: "assets.field.platform",
+        type: "text",
+        placeholderKey: "assets.field.platform",
+      },
       {
         key: "fund_type",
         labelKey: "assets.field.fund_type",
@@ -145,6 +160,7 @@ export const ASSET_CLASS_CONFIGS: Record<AssetClassKey, AssetClassConfig> = {
     defaultRisk: "low",
     defaultValuationMethod: "manual",
     isInvestmentTracker: true,
+    hasBidAskSpread: true,
     cashflowLabels: {
       ...SHARED_CASHFLOW_LABELS,
       contribution: "assets.cashflow.gold.contribution",
@@ -173,7 +189,11 @@ export const ASSET_CLASS_CONFIGS: Record<AssetClassKey, AssetClassConfig> = {
           { value: "other", labelKey: "assets.option.other" },
         ],
       },
-      { key: "storage_location", labelKey: "assets.field.storage_location", type: "text" },
+      {
+        key: "storage_location",
+        labelKey: "assets.field.storage_location",
+        type: "text",
+      },
     ],
   },
 
@@ -192,8 +212,18 @@ export const ASSET_CLASS_CONFIGS: Record<AssetClassKey, AssetClassConfig> = {
       fee: "assets.cashflow.crypto.fee",
     },
     metadataFields: [
-      { key: "symbol", labelKey: "assets.field.symbol", type: "text", placeholderKey: "assets.field.symbol" },
-      { key: "network", labelKey: "assets.field.network", type: "text", placeholderKey: "assets.field.network" },
+      {
+        key: "symbol",
+        labelKey: "assets.field.symbol",
+        type: "text",
+        placeholderKey: "assets.field.symbol",
+      },
+      {
+        key: "network",
+        labelKey: "assets.field.network",
+        type: "text",
+        placeholderKey: "assets.field.network",
+      },
       {
         key: "custody_type",
         labelKey: "assets.field.custody_type",
@@ -204,7 +234,12 @@ export const ASSET_CLASS_CONFIGS: Record<AssetClassKey, AssetClassConfig> = {
           { value: "cold_wallet", labelKey: "assets.option.cold_wallet" },
         ],
       },
-      { key: "wallet_exchange", labelKey: "assets.field.wallet_exchange", type: "text", placeholderKey: "assets.field.wallet_exchange" },
+      {
+        key: "wallet_exchange",
+        labelKey: "assets.field.wallet_exchange",
+        type: "text",
+        placeholderKey: "assets.field.wallet_exchange",
+      },
       {
         key: "is_staking",
         labelKey: "assets.field.is_staking",
@@ -227,50 +262,60 @@ export const ASSET_CLASS_CONFIGS: Record<AssetClassKey, AssetClassConfig> = {
       income: "assets.cashflow.stock.income",
     },
     metadataFields: [
-      { key: "ticker", labelKey: "assets.field.ticker", type: "text", placeholderKey: "assets.field.ticker" },
-      { key: "exchange", labelKey: "assets.field.exchange", type: "text", placeholderKey: "assets.field.exchange" },
+      {
+        key: "ticker",
+        labelKey: "assets.field.ticker",
+        type: "text",
+        placeholderKey: "assets.field.ticker",
+      },
+      {
+        key: "exchange",
+        labelKey: "assets.field.exchange",
+        type: "text",
+        placeholderKey: "assets.field.exchange",
+      },
       { key: "broker", labelKey: "assets.field.broker", type: "text" },
     ],
   },
 
-  savings_deposit: {
-    key: "savings_deposit",
-    labelKey: "assets.class.savings_deposit",
-    iconName: "PiggyBank",
-    defaultUnitLabel: "assets.unit.book",
-    defaultLiquid: false,
-    defaultRisk: "low",
-    defaultValuationMethod: "calculated",
-    isInvestmentTracker: false,
-    cashflowLabels: SHARED_CASHFLOW_LABELS,
-    metadataFields: [],
-  },
+  // savings_deposit: {
+  //   key: "savings_deposit",
+  //   labelKey: "assets.class.savings_deposit",
+  //   iconName: "PiggyBank",
+  //   defaultUnitLabel: "assets.unit.book",
+  //   defaultLiquid: false,
+  //   defaultRisk: "low",
+  //   defaultValuationMethod: "calculated",
+  //   isInvestmentTracker: false,
+  //   cashflowLabels: SHARED_CASHFLOW_LABELS,
+  //   metadataFields: [],
+  // },
 
-  vehicle: {
-    key: "vehicle",
-    labelKey: "assets.class.vehicle",
-    iconName: "Car",
-    defaultUnitLabel: "assets.unit.vehicle",
-    defaultLiquid: false,
-    defaultRisk: "low",
-    defaultValuationMethod: "manual",
-    isInvestmentTracker: false,
-    cashflowLabels: SHARED_CASHFLOW_LABELS,
-    metadataFields: [],
-  },
+  // vehicle: {
+  //   key: "vehicle",
+  //   labelKey: "assets.class.vehicle",
+  //   iconName: "Car",
+  //   defaultUnitLabel: "assets.unit.vehicle",
+  //   defaultLiquid: false,
+  //   defaultRisk: "low",
+  //   defaultValuationMethod: "manual",
+  //   isInvestmentTracker: false,
+  //   cashflowLabels: SHARED_CASHFLOW_LABELS,
+  //   metadataFields: [],
+  // },
 
-  cash_equivalent: {
-    key: "cash_equivalent",
-    labelKey: "assets.class.cash_equivalent",
-    iconName: "Banknote",
-    defaultUnitLabel: "assets.unit.unit",
-    defaultLiquid: true,
-    defaultRisk: "low",
-    defaultValuationMethod: "manual",
-    isInvestmentTracker: false,
-    cashflowLabels: SHARED_CASHFLOW_LABELS,
-    metadataFields: [],
-  },
+  // cash_equivalent: {
+  //   key: "cash_equivalent",
+  //   labelKey: "assets.class.cash_equivalent",
+  //   iconName: "Banknote",
+  //   defaultUnitLabel: "assets.unit.unit",
+  //   defaultLiquid: true,
+  //   defaultRisk: "low",
+  //   defaultValuationMethod: "manual",
+  //   isInvestmentTracker: false,
+  //   cashflowLabels: SHARED_CASHFLOW_LABELS,
+  //   metadataFields: [],
+  // },
 
   other: {
     key: "other",
@@ -296,12 +341,8 @@ export const INVESTMENT_CLASSES: AssetClassKey[] = [
 ];
 
 /** Get config for a class key, falling back to 'other' */
-export function getAssetClassConfig(
-  cls: string,
-): AssetClassConfig {
-  return (
-    ASSET_CLASS_CONFIGS[cls as AssetClassKey] ?? ASSET_CLASS_CONFIGS.other
-  );
+export function getAssetClassConfig(cls: string): AssetClassConfig {
+  return ASSET_CLASS_CONFIGS[cls as AssetClassKey] ?? ASSET_CLASS_CONFIGS.other;
 }
 
 /** Get localized label */

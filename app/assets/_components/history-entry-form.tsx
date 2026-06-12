@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, startTransition, useEffect } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -15,12 +15,15 @@ import { Button } from "@/components/ui/button";
 import { FormStatus } from "@/components/ui/form-status";
 import { toast } from "sonner";
 import { HISTORY_MODE, type HistoryMode } from "../_lib/constants";
+import { getAssetClassConfig } from "@/lib/assets/class-config";
 
 const historySchema = z.object({
   assetId: z.string(),
   asOfDate: z.string().min(1, "assets.errors.date_required"),
   quantity: z.number().min(0, "assets.errors.quantity_non_negative").optional(),
   unitPrice: z.number().min(0, "assets.errors.price_non_negative").optional(),
+  bidPrice: z.number().min(0, "assets.errors.price_non_negative").optional(),
+  askPrice: z.number().min(0, "assets.errors.price_non_negative").optional(),
 });
 
 type HistoryValues = z.infer<typeof historySchema>;
@@ -32,18 +35,23 @@ type HistoryEntryFormProps = {
     prevState: AssetActionState,
     formData: FormData,
   ) => Promise<AssetActionState>;
+  assetClass?: string;
 };
 
 export function HistoryEntryForm({
   assetId,
   mode,
   actionFn,
+  assetClass,
 }: HistoryEntryFormProps) {
   const { t } = useI18n();
   const [state, formAction, isPending] = useActionState(
     actionFn,
-    initialAssetActionState
+    initialAssetActionState,
   );
+
+  const classConfig = assetClass ? getAssetClassConfig(assetClass) : null;
+  const hasSpread = classConfig?.hasBidAskSpread;
 
   const methods = useForm<HistoryValues>({
     resolver: zodResolver(historySchema),
@@ -52,10 +60,28 @@ export function HistoryEntryForm({
       asOfDate: new Date().toISOString().slice(0, 10),
       quantity: 0,
       unitPrice: 0,
+      bidPrice: 0,
+      askPrice: 0,
     },
   });
 
   const { handleSubmit, reset } = methods;
+
+  useEffect(() => {
+    if (state.status === "success") {
+      toast.success(state.message);
+      reset({
+        assetId,
+        asOfDate: new Date().toISOString().slice(0, 10),
+        quantity: 0,
+        unitPrice: 0,
+        bidPrice: 0,
+        askPrice: 0,
+      });
+    } else if (state.status === "error") {
+      toast.error(state.message);
+    }
+  }, [state, reset, assetId]);
 
   const onSubmit = async (data: HistoryValues) => {
     const formData = new FormData();
@@ -65,14 +91,9 @@ export function HistoryEntryForm({
       }
     });
 
-    formAction(formData);
-
-    if (state.status === "success") {
-      toast.success(state.message);
-      reset();
-    } else if (state.status === "error") {
-      toast.error(state.message);
-    }
+    startTransition(() => {
+      formAction(formData);
+    });
   };
 
   return (
@@ -107,6 +128,19 @@ export function HistoryEntryForm({
                 min="0"
                 step="0.001"
               />
+            ) : hasSpread ? (
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <RHFMoneyInput
+                  name="bidPrice"
+                  label={t("assets.history.bid_price")}
+                  className="w-full"
+                />
+                <RHFMoneyInput
+                  name="askPrice"
+                  label={t("assets.history.ask_price")}
+                  className="w-full"
+                />
+              </div>
             ) : (
               <RHFMoneyInput
                 name="unitPrice"

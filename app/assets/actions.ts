@@ -46,7 +46,8 @@ export async function createAssetAction(
   if (!Number.isFinite(parsedPrice) || parsedPrice <= 0)
     return fail("errors.amount_positive");
 
-  const { supabase, user, householdId, t, error } = await resolveActionContext();
+  const { supabase, user, householdId, t, error } =
+    await resolveActionContext();
   if (error || !user || !householdId)
     return fail(error ?? "errors.household_not_found");
 
@@ -90,6 +91,8 @@ export async function createAssetAction(
       household_id: householdId,
       as_of_date: today,
       unit_price: Math.round(unitPrice),
+      bid_price: Math.round(unitPrice),
+      ask_price: Math.round(unitPrice),
       source: "manual",
       price_currency: "VND",
       created_by: user.id,
@@ -133,7 +136,8 @@ export async function upsertQuantityHistoryAction(
   if (!Number.isFinite(quantity) || quantity < 0)
     return fail("common.error.amount_negative");
 
-  const { supabase, user, householdId, t, error } = await resolveActionContext();
+  const { supabase, user, householdId, t, error } =
+    await resolveActionContext();
   if (error || !user || !householdId)
     return fail(error ?? "errors.household_not_found");
 
@@ -171,14 +175,34 @@ export async function upsertPriceHistoryAction(
 ): Promise<AssetActionState> {
   const assetId = String(formData.get("assetId") ?? "").trim();
   const asOfDate = String(formData.get("asOfDate") ?? "").trim();
-  const unitPrice = Number(formData.get("unitPrice") ?? 0);
+
+  const rawUnitPrice = formData.get("unitPrice");
+  const rawBidPrice = formData.get("bidPrice");
+  const rawAskPrice = formData.get("askPrice");
+
+  let unitPrice = rawUnitPrice !== null ? Number(rawUnitPrice) : 0;
+  const bidPrice = rawBidPrice !== null ? Number(rawBidPrice) : unitPrice;
+  const askPrice = rawAskPrice !== null ? Number(rawAskPrice) : unitPrice;
+
+  if (rawUnitPrice === null && rawBidPrice !== null) {
+    unitPrice = bidPrice;
+  }
 
   if (!assetId) return fail("common.error.missing_id");
   if (!asOfDate) return fail("common.error.date_required");
-  if (!Number.isFinite(unitPrice) || unitPrice < 0)
+  if (
+    !Number.isFinite(unitPrice) ||
+    unitPrice < 0 ||
+    !Number.isFinite(bidPrice) ||
+    bidPrice < 0 ||
+    !Number.isFinite(askPrice) ||
+    askPrice < 0
+  ) {
     return fail("common.error.amount_negative");
+  }
 
-  const { supabase, user, householdId, t, error } = await resolveActionContext();
+  const { supabase, user, householdId, t, error } =
+    await resolveActionContext();
   if (error || !user || !householdId)
     return fail(error ?? "errors.household_not_found");
 
@@ -188,6 +212,8 @@ export async function upsertPriceHistoryAction(
       household_id: householdId,
       as_of_date: asOfDate,
       unit_price: Math.round(unitPrice),
+      bid_price: Math.round(bidPrice),
+      ask_price: Math.round(askPrice),
       source: "manual",
       price_currency: "VND",
       created_by: user.id,
@@ -203,7 +229,13 @@ export async function upsertPriceHistoryAction(
     eventType: "asset.price_history_upserted",
     entityType: "asset",
     entityId: assetId,
-    payload: { asOfDate, unitPrice: Math.round(unitPrice), currency: "VND" },
+    payload: {
+      asOfDate,
+      unitPrice: Math.round(unitPrice),
+      bidPrice: Math.round(bidPrice),
+      askPrice: Math.round(askPrice),
+      currency: "VND",
+    },
   });
 
   revalidatePath(`/assets/${assetId}`);
@@ -224,7 +256,8 @@ export async function updateQuantityHistoryRowAction(
   if (!Number.isFinite(quantity) || quantity < 0)
     return fail("common.error.amount_negative");
 
-  const { supabase, user, householdId, t, error } = await resolveActionContext();
+  const { supabase, user, householdId, t, error } =
+    await resolveActionContext();
   if (error || !user || !householdId)
     return fail(error ?? "errors.household_not_found");
 
@@ -255,20 +288,44 @@ export async function updatePriceHistoryRowAction(
 ): Promise<AssetActionState> {
   const rowId = String(formData.get("rowId") ?? "").trim();
   const assetId = String(formData.get("assetId") ?? "").trim();
-  const unitPrice = Number(formData.get("unitPrice") ?? 0);
+
+  const rawUnitPrice = formData.get("unitPrice");
+  const rawBidPrice = formData.get("bidPrice");
+  const rawAskPrice = formData.get("askPrice");
+
+  let unitPrice = rawUnitPrice !== null ? Number(rawUnitPrice) : 0;
+  const bidPrice = rawBidPrice !== null ? Number(rawBidPrice) : unitPrice;
+  const askPrice = rawAskPrice !== null ? Number(rawAskPrice) : unitPrice;
+
+  if (rawUnitPrice === null && rawBidPrice !== null) {
+    unitPrice = bidPrice;
+  }
 
   if (!rowId) return fail("common.error.missing_id");
   if (!assetId) return fail("common.error.missing_id");
-  if (!Number.isFinite(unitPrice) || unitPrice < 0)
+  if (
+    !Number.isFinite(unitPrice) ||
+    unitPrice < 0 ||
+    !Number.isFinite(bidPrice) ||
+    bidPrice < 0 ||
+    !Number.isFinite(askPrice) ||
+    askPrice < 0
+  ) {
     return fail("common.error.amount_negative");
+  }
 
-  const { supabase, user, householdId, t, error } = await resolveActionContext();
+  const { supabase, user, householdId, t, error } =
+    await resolveActionContext();
   if (error || !user || !householdId)
     return fail(error ?? "errors.household_not_found");
 
   const update = await supabase
     .from("asset_price_history")
-    .update({ unit_price: Math.round(unitPrice) })
+    .update({
+      unit_price: Math.round(unitPrice),
+      bid_price: Math.round(bidPrice),
+      ask_price: Math.round(askPrice),
+    })
     .eq("id", rowId);
 
   if (update.error) return fail(update.error.message);
@@ -279,7 +336,13 @@ export async function updatePriceHistoryRowAction(
     eventType: "asset.price_history_updated",
     entityType: "asset",
     entityId: assetId,
-    payload: { rowId, unitPrice: Math.round(unitPrice), currency: "VND" },
+    payload: {
+      rowId,
+      unitPrice: Math.round(unitPrice),
+      bidPrice: Math.round(bidPrice),
+      askPrice: Math.round(askPrice),
+      currency: "VND",
+    },
   });
 
   revalidatePath(`/assets/${assetId}`);
@@ -294,7 +357,8 @@ export async function deleteAssetAction(
   const assetId = String(formData.get("assetId") ?? "").trim();
   if (!assetId) return fail("common.error.missing_id");
 
-  const { supabase, user, householdId, t, error } = await resolveActionContext();
+  const { supabase, user, householdId, t, error } =
+    await resolveActionContext();
   if (error || !user || !householdId)
     return fail(error ?? "errors.household_not_found");
 

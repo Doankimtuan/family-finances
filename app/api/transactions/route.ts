@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from "next/server";
 
 import { createClient } from "@/lib/supabase/server";
@@ -40,7 +41,8 @@ export async function GET(request: Request) {
     // Build query
     let query = supabase
       .from("transactions")
-      .select(`
+      .select(
+        `
         id,
         type,
         amount,
@@ -56,7 +58,8 @@ export async function GET(request: Request) {
         account:accounts!transactions_account_id_fkey(id, name),
         counterparty_account:accounts!transactions_counterparty_account_id_fkey(id, name),
         profile:profiles!transactions_paid_by_member_id_fkey(user_id, full_name)
-      `)
+      `,
+      )
       .eq("household_id", householdId)
       .order("transaction_date", { ascending: false })
       .order("created_at", { ascending: false })
@@ -67,7 +70,9 @@ export async function GET(request: Request) {
       const [cursorDate, cursorCreatedAt] = cursor.split("|");
       query = query
         .lt("transaction_date", cursorDate)
-        .or(`and(transaction_date.eq.${cursorDate},created_at.lt.${cursorCreatedAt})`);
+        .or(
+          `and(transaction_date.eq.${cursorDate},created_at.lt.${cursorCreatedAt})`,
+        );
     }
 
     const { data, error } = await query;
@@ -101,10 +106,18 @@ export async function GET(request: Request) {
       category_id: item.category_id,
       account_id: item.account_id,
       counterparty_account_id: item.counterparty_account_id,
-      category_name: item.category?.name ?? null,
-      account_name: item.account?.name ?? null,
-      counterparty_account_name: item.counterparty_account?.name ?? null,
-      member_name: item.profile?.full_name ?? null,
+      category_name: Array.isArray(item.category)
+        ? (item.category[0]?.name ?? null)
+        : ((item.category as any)?.name ?? null),
+      account_name: Array.isArray(item.account)
+        ? (item.account[0]?.name ?? null)
+        : ((item.account as any)?.name ?? null),
+      counterparty_account_name: Array.isArray(item.counterparty_account)
+        ? (item.counterparty_account[0]?.name ?? null)
+        : ((item.counterparty_account as any)?.name ?? null),
+      member_name: Array.isArray(item.profile)
+        ? (item.profile[0]?.full_name ?? null)
+        : ((item.profile as any)?.full_name ?? null),
       transaction_subtype: item.transaction_subtype,
       is_non_cash: item.is_non_cash,
     }));

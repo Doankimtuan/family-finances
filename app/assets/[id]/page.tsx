@@ -16,9 +16,6 @@ import { ValuationTimeline } from "@/app/assets/_components/valuation-timeline";
 import { DeleteAssetButton } from "@/app/assets/_components/delete-asset-button";
 import { AssetCashflowForm } from "@/app/assets/_components/asset-cashflow-form";
 import { AssetSummaryCards } from "@/app/assets/_components/asset-summary-cards";
-import { InvestmentMetricsBar } from "@/app/assets/_components/investment-metrics-bar";
-import { CashflowHistoryList } from "@/app/assets/_components/cashflow-history-list";
-import { AssetMetadataCard } from "@/app/assets/_components/asset-metadata-card";
 import { Card, CardContent } from "@/components/ui/card";
 import { buildValuationTimeline } from "@/lib/assets/timeline";
 import { formatVnd } from "@/lib/dashboard/format";
@@ -79,7 +76,7 @@ export default async function AssetDetailPage({
         .order("as_of_date", { ascending: false }),
       supabase
         .from("asset_price_history")
-        .select("id, as_of_date, unit_price")
+        .select("id, as_of_date, unit_price, bid_price, ask_price")
         .eq("asset_id", asset.id)
         .eq("household_id", householdId)
         .order("as_of_date", { ascending: false }),
@@ -115,7 +112,7 @@ export default async function AssetDetailPage({
     priceHistory.map((row) => ({
       id: row.id,
       as_of_date: row.as_of_date,
-      unit_price: Number(row.unit_price),
+      unit_price: Number(row.bid_price ?? row.unit_price),
     })),
   );
 
@@ -222,6 +219,7 @@ export default async function AssetDetailPage({
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <AssetCashflowForm
                   assetId={asset.id}
+                  assetClass={asset.asset_class}
                   accounts={accounts.map((a) => ({ id: a.id, name: a.name }))}
                 />
 
@@ -337,11 +335,13 @@ export default async function AssetDetailPage({
             assetId={asset.id}
             mode="quantity"
             actionFn={upsertQuantityHistoryAction}
+            assetClass={asset.asset_class}
           />
           <HistoryEntryForm
             assetId={asset.id}
             mode="price"
             actionFn={upsertPriceHistoryAction}
+            assetClass={asset.asset_class}
           />
         </div>
 
@@ -371,8 +371,11 @@ export default async function AssetDetailPage({
                 id: row.id,
                 as_of_date: row.as_of_date,
                 unit_price: Number(row.unit_price),
+                bid_price: row.bid_price ? Number(row.bid_price) : undefined,
+                ask_price: row.ask_price ? Number(row.ask_price) : undefined,
               }))}
               updateAction={updatePriceHistoryRowAction}
+              assetClass={asset.asset_class}
             />
           </article>
         </div>

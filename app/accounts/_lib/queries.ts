@@ -214,21 +214,30 @@ export async function fetchAssetPrices(
 
   const { data: priceRows } = await supabase
     .from("asset_price_history")
-    .select("asset_id, unit_price, as_of_date")
+    .select("asset_id, unit_price, bid_price, as_of_date")
     .in("asset_id", assets.map((a) => a.id))
     .order("as_of_date", { ascending: false });
 
-  const byAsset = new Map<string, { unit_price: number; as_of_date: string }[]>();
+  const byAsset = new Map<
+    string,
+    { unit_price: number; bid_price?: number; as_of_date: string }[]
+  >();
   for (const row of priceRows ?? []) {
     if (!byAsset.has(row.asset_id)) byAsset.set(row.asset_id, []);
-    byAsset.get(row.asset_id)!.push(row);
+    byAsset.get(row.asset_id)!.push({
+      unit_price: Number(row.unit_price),
+      bid_price: row.bid_price !== null && row.bid_price !== undefined ? Number(row.bid_price) : undefined,
+      as_of_date: row.as_of_date,
+    });
   }
   for (const [assetId, rows] of byAsset) {
     if (rows[0]) {
-      priceMap.set(assetId, Number(rows[0].unit_price));
+      priceMap.set(assetId, rows[0].bid_price ?? rows[0].unit_price);
       lastUpdatedMap.set(assetId, rows[0].as_of_date);
     }
-    if (rows[1]) prevPriceMap.set(assetId, Number(rows[1].unit_price));
+    if (rows[1]) {
+      prevPriceMap.set(assetId, rows[1].bid_price ?? rows[1].unit_price);
+    }
   }
 
   return { priceMap, prevPriceMap, lastUpdatedMap };

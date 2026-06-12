@@ -18,9 +18,17 @@ export async function addAssetCashflowAction(
   const note = String(formData.get("note") ?? "").trim();
   const flowType = String(formData.get("flowType") ?? "contribution").trim();
   const accountId = String(formData.get("accountId") ?? "").trim();
+  const quantity = Number(formData.get("quantity") ?? 0);
+  const unitPrice = Number(formData.get("unitPrice") ?? 0);
+
+  const isOutboundFromAccount = OUTBOUND_FLOW_TYPES.includes(flowType);
+  const isInboundToAccount = INBOUND_FLOW_TYPES.includes(flowType);
+
+  const finalAmount = amount > 0 ? amount : quantity * unitPrice;
+  const amountRounded = Math.round(finalAmount);
 
   if (!assetId) return fail("assets.error.missing_asset_id");
-  if (!Number.isFinite(amount) || amount <= 0)
+  if (!Number.isFinite(amountRounded) || amountRounded <= 0)
     return fail("assets.error.cashflow_amount_positive");
   if (!flowDate) return fail("common.error.date_required");
   if (!accountId) return fail("assets.error.account_required");
@@ -31,7 +39,7 @@ export async function addAssetCashflowAction(
 
   const assetResult = await supabase
     .from("assets")
-    .select("id, name")
+    .select("id, name, asset_class, quantity")
     .eq("household_id", householdId)
     .eq("id", assetId)
     .maybeSingle();
@@ -49,10 +57,6 @@ export async function addAssetCashflowAction(
   if (accountResult.error || !accountResult.data)
     return fail(accountResult.error?.message ?? t("assets.error.account_not_found"));
 
-  const amountRounded = Math.round(amount);
-  const isOutboundFromAccount = OUTBOUND_FLOW_TYPES.includes(flowType);
-  const isInboundToAccount = INBOUND_FLOW_TYPES.includes(flowType);
-
   if (!isOutboundFromAccount && !isInboundToAccount) {
     return fail(t("assets.error.invalid_flow_type"));
   }
@@ -69,6 +73,7 @@ export async function addAssetCashflowAction(
     }
   }
 
+  // 1. Insert into asset_cashflows
   const insert = await supabase
     .from("asset_cashflows")
     .insert({
@@ -88,6 +93,7 @@ export async function addAssetCashflowAction(
   if (insert.error || !insert.data?.id)
     return fail(insert.error?.message ?? t("assets.error.cashflow_failed"));
 
+  // 2. Insert transaction in transactions table
   const txInsert = await supabase
     .from("transactions")
     .insert({
@@ -113,6 +119,85 @@ export async function addAssetCashflowAction(
     );
   }
 
+  // 3. Update asset quantity and price if it is a Contribution or Withdrawal
+  if (flowType === "contribution" || flowType === "withdrawal") {
+    const currentQty = Number(assetResult.data.quantity ?? 0);
+    const qtyChange = flowType === "contribution" ? quantity : -quantity;
+    const newQty = currentQty + qtyChange;
+
+    if (newQty < 0) {
+      // Revert transaction and asset cashflow
+      await supabase.from("transactions").delete().eq("id", txInsert.data.id);
+      await supabase.from("asset_cashflows").delete().eq("id", insert.data.id);
+      return fail(t("assets.error.insufficient_quantity"));
+    }
+
+    if (quantity > 0) {
+      const qUpsert = await supabase.from("asset_quantity_history").upsert(
+        {
+          asset_id: assetId,
+          household_id: householdId,
+          as_of_date: flowDate,
+          quantity: newQty,
+          source: "calculated",
+          created_by: user.id,
+        },
+        { onConflict: "asset_id,as_of_date" },
+      );
+      if (qUpsert.error) {
+        // Revert transaction and asset cashflow
+        await supabase.from("transactions").delete().eq("id", txInsert.data.id);
+        await supabase.from("asset_cashflows").delete().eq("id", insert.data.id);
+        return fail(qUpsert.error.message);
+      }
+    }
+
+    if (unitPrice > 0) {
+      const existingPriceResult = await supabase
+        .from("asset_price_history")
+        .select("id")
+        .eq("asset_id", assetId)
+        .eq("as_of_date", flowDate)
+        .maybeSingle();
+
+      if (existingPriceResult.error) {
+        return fail(existingPriceResult.error.message);
+      }
+
+      const existingPrice = existingPriceResult.data;
+
+      if (existingPrice) {
+        const pUpdate = await supabase
+          .from("asset_price_history")
+          .update(
+            flowType === "contribution"
+              ? { unit_price: Math.round(unitPrice), ask_price: Math.round(unitPrice) }
+              : { unit_price: Math.round(unitPrice), bid_price: Math.round(unitPrice) },
+          )
+          .eq("id", existingPrice.id);
+        if (pUpdate.error) {
+          return fail(pUpdate.error.message);
+        }
+      } else {
+        const pInsert = await supabase.from("asset_price_history").insert({
+          asset_id: assetId,
+          household_id: householdId,
+          as_of_date: flowDate,
+          unit_price: Math.round(unitPrice),
+          bid_price: Math.round(unitPrice),
+          ask_price: Math.round(unitPrice),
+          source: "manual",
+          price_currency: "VND",
+          created_by: user.id,
+        });
+        if (pInsert.error) {
+          return fail(pInsert.error.message);
+        }
+      }
+    }
+  }
+
+  // 4. Audit logging
   await writeAuditEvent(supabase, {
     householdId,
     actorUserId: user.id,
@@ -126,6 +211,8 @@ export async function addAssetCashflowAction(
       flowType,
       accountId,
       transactionId: txInsert.data.id,
+      quantity,
+      unitPrice,
     },
   });
 
