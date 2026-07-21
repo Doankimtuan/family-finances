@@ -2,11 +2,12 @@ import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
-const cardVariants = cva("rounded-2xl border transition-all", {
+const cardVariants = cva("rounded-2xl border transition-all duration-200", {
   variants: {
     variant: {
-      default: "bg-card text-card-foreground border-border shadow-sm",
-      elevated: "bg-card text-card-foreground border-transparent shadow-md",
+      default: "bg-card text-card-foreground border-border/80",
+      elevated:
+        "bg-card text-card-foreground border-primary/10 shadow-[0_8px_24px_-12px_hsl(var(--shadow-color)/0.12)]",
       outlined: "bg-transparent text-card-foreground border-border",
       glass: "bg-card/70 backdrop-blur-md border-card/20 shadow-lg",
       muted: "bg-muted/50 border-muted text-muted-foreground",

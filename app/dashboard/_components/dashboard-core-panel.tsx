@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { HeartPulse, Sparkles } from "lucide-react";
+import { HeartPulse, Wallet } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -61,13 +61,18 @@ export function DashboardCorePanel() {
   if (!payload?.metrics) {
     return (
       <EmptyState
-        icon={Sparkles}
+        icon={Wallet}
         title={t("dashboard.empty.title")}
         description={t("dashboard.empty.description")}
         action={
-          <Button asChild size="sm">
-            <Link href="/accounts">{t("dashboard.empty.action")}</Link>
-          </Button>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Button asChild size="sm">
+              <Link href="/accounts">{t("dashboard.empty.action")}</Link>
+            </Button>
+            <Button asChild size="sm" variant="outline">
+              <Link href="/activity">{t("dashboard.shortcuts.transactions")}</Link>
+            </Button>
+          </div>
         }
       />
     );

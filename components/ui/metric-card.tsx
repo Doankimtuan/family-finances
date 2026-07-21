@@ -70,7 +70,7 @@ export function MetricCard({
             {tooltip ? (
               <ShTooltip>
                 <TooltipTrigger asChild>
-                  <p className="truncate text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground transition-colors group-hover:text-primary/70 cursor-help border-b border-dotted border-muted-foreground/30">
+                  <p className="truncate text-xs font-medium text-muted-foreground transition-colors group-hover:text-primary/70 cursor-help border-b border-dotted border-muted-foreground/30">
                     {label}
                   </p>
                 </TooltipTrigger>
@@ -79,7 +79,7 @@ export function MetricCard({
                 </TooltipContent>
               </ShTooltip>
             ) : (
-              <p className="truncate text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground transition-colors group-hover:text-primary/70">
+              <p className="truncate text-xs font-medium text-muted-foreground transition-colors group-hover:text-primary/70">
                 {label}
               </p>
             )}
@@ -103,7 +103,7 @@ export function MetricCard({
         <div className="mt-4 flex items-baseline gap-2">
           <p
             className={cn(
-              "text-2xl font-bold tracking-tight",
+              "font-serif text-2xl font-semibold tabular-nums tracking-tight",
               variant === "success" && "text-success",
               variant === "destructive" && "text-destructive",
               variant === "warning" && "text-warning",

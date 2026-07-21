@@ -67,10 +67,10 @@ export function BottomTabBar() {
               <Link
                 href={tab.href}
                 className={cn(
-                  "relative flex h-full min-w-0 flex-col items-center justify-center gap-1.5 transition-all duration-300",
+                  "relative flex h-full min-w-0 flex-col items-center justify-center gap-1.5 transition-all duration-200",
                   isActive
-                    ? "text-primary border-t-2 border-primary bg-primary/3"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/5",
+                    ? "text-primary border-t-2 border-primary bg-primary/5"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/30",
                 )}
               >
                 <Icon
@@ -81,7 +81,7 @@ export function BottomTabBar() {
                 />
                 <span
                   className={cn(
-                    "line-clamp-1 px-1 text-[10px] font-bold uppercase tracking-[0.08em] transition-all",
+                    "line-clamp-1 px-1 text-[11px] font-medium transition-all",
                     isActive ? "opacity-100" : "opacity-70",
                   )}
                 >

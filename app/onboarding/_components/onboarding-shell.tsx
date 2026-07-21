@@ -61,29 +61,32 @@ export function OnboardingShell({
       }
     >
       <div className="space-y-5 sm:space-y-6">
-        <Card variant="elevated" className="overflow-hidden border-border/70 shadow-sm">
-          <div className="bg-gradient-to-br from-primary/10 via-background to-secondary/30 p-5 sm:p-6">
+        <Card variant="elevated" className="overflow-hidden border-border/70">
+          <div className="bg-secondary/40 p-5 sm:p-6">
             <div className="flex items-start justify-between gap-4">
               <div className="space-y-3">
-                <Badge variant="outline" className="rounded-full border-primary/20 bg-background/80 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-primary">
+                <Badge
+                  variant="outline"
+                  className="rounded-lg border-primary/20 bg-background/80 px-3 py-1 text-xs font-medium text-primary"
+                >
                   Household setup
                 </Badge>
 
                 <div className="space-y-2">
-                  <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+                  <h1 className="text-balance text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
                     {title}
                   </h1>
-                  <p className="max-w-xl text-sm leading-6 text-muted-foreground sm:text-base">
+                  <p className="max-w-prose text-sm leading-6 text-muted-foreground sm:text-base">
                     {description}
                   </p>
                 </div>
               </div>
 
               <div className="hidden shrink-0 text-right md:block">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                <p className="text-xs font-medium text-muted-foreground">
                   Progress
                 </p>
-                <p className="mt-1 text-2xl font-semibold text-foreground">
+                <p className="mt-1 font-serif text-2xl font-semibold tabular-nums text-foreground">
                   {progress}%
                 </p>
                 <p className="text-xs text-muted-foreground">
@@ -97,9 +100,9 @@ export function OnboardingShell({
                 <span>Progress</span>
                 <span>{progress}% complete</span>
               </div>
-              <div className="h-2 w-full overflow-hidden rounded-full bg-secondary/80">
+              <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-primary via-primary to-primary/70 transition-all duration-500 ease-out"
+                  className="h-full rounded-full bg-primary transition-all duration-500 ease-out"
                   style={{ width: `${progress}%` }}
                 />
               </div>

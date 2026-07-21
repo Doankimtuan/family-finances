@@ -21,9 +21,7 @@ export function SectionHeader({
   return (
     <div className={cn("flex flex-col space-y-1.5", className)} {...props}>
       <div className="flex items-center justify-between gap-3">
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary transition-colors">
-          {label}
-        </p>
+        <p className="text-xs font-medium text-primary">{label}</p>
         {rightAction && <div className="shrink-0">{rightAction}</div>}
       </div>
       {(title || description) && (
@@ -36,13 +34,15 @@ export function SectionHeader({
                   : React.createElement(icon as React.ElementType, {
                       className: "h-5 w-5 text-primary/80",
                     }))}
-              <h2 className="text-xl font-bold tracking-tight text-foreground">
+              <h2 className="text-balance text-xl font-semibold tracking-tight text-foreground">
                 {title}
               </h2>
             </div>
           )}
           {description && (
-            <p className="text-sm text-muted-foreground">{description}</p>
+            <p className="max-w-prose text-sm leading-relaxed text-muted-foreground">
+              {description}
+            </p>
           )}
         </div>
       )}

@@ -89,7 +89,7 @@ export async function DebtsSection({
 
       <div className="flex flex-col gap-4 rounded-3xl border border-border/60 bg-card/80 p-4 shadow-sm backdrop-blur-sm sm:flex-row sm:items-end sm:justify-between sm:p-5 md:p-6">
         <div className="flex-1 space-y-1">
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary/70">
+          <p className="text-xs font-medium text-primary/70">
             {t("debts.management_label")}
           </p>
           <h2 className="text-2xl font-black tracking-tight text-foreground md:text-3xl">
@@ -168,7 +168,7 @@ export async function DebtsSection({
                     </div>
 
                     <div className="space-y-2">
-                      <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                      <div className="flex items-center justify-between text-xs font-medium text-muted-foreground">
                         <span>{t("debts.progress")}</span>
                         <span className="text-foreground">{progress}%</span>
                       </div>

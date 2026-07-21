@@ -32,7 +32,7 @@ export async function CreditCardsSection({
     <section className="space-y-4 md:space-y-6">
       <div className="flex flex-col gap-4 rounded-3xl border border-border/60 bg-card/80 p-4 shadow-sm backdrop-blur-sm sm:flex-row sm:items-end sm:justify-between sm:p-5 md:p-6">
         <div className="flex-1 space-y-1">
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary/70">
+          <p className="text-xs font-medium text-primary/70">
             {t("money.accounts.credit_card.label")}
           </p>
           <div className="flex items-baseline justify-between gap-x-3">
@@ -87,7 +87,7 @@ export async function CreditCardsSection({
               <CardContent className="space-y-5 p-5 sm:p-6">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                    <p className="text-xs font-medium text-muted-foreground">
                       {t("money.accounts.credit_card.label")}
                     </p>
                     <p className="mt-1 truncate text-base font-semibold text-white">
@@ -106,7 +106,7 @@ export async function CreditCardsSection({
 
                 <div className="flex items-end justify-between gap-3">
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                    <p className="text-xs font-medium text-muted-foreground">
                       {t("money.liabilities.outstanding")}
                     </p>
                     <p className="mt-1 text-2xl font-black tracking-tight text-white tabular-nums">

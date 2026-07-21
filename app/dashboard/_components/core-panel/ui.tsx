@@ -17,12 +17,14 @@ export function HeroStat({
   note?: string;
 }) {
   return (
-    <div className="rounded-2xl border border-white/15 bg-white/10 p-4 shadow-sm backdrop-blur-sm transition-transform duration-300 hover:-translate-y-0.5">
-      <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-white/70">
-        {label}
+    <div className="rounded-2xl border border-border/80 bg-card/80 p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/20">
+      <p className="text-xs font-medium text-muted-foreground">{label}</p>
+      <p className="mt-2 font-serif text-xl font-semibold tabular-nums tracking-tight text-foreground">
+        {value}
       </p>
-      <p className="mt-2 text-xl font-bold tracking-tight text-white">{value}</p>
-      {note ? <p className="mt-1 text-xs leading-5 text-white/75">{note}</p> : null}
+      {note ? (
+        <p className="mt-1 text-xs leading-5 text-muted-foreground">{note}</p>
+      ) : null}
     </div>
   );
 }
@@ -75,9 +77,7 @@ export function TransparencyList({
 
   return (
     <div className="space-y-3 rounded-2xl border border-border/60 bg-card/80 p-4 shadow-sm">
-      <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-        {title}
-      </p>
+      <p className="text-xs font-medium text-muted-foreground">{title}</p>
       <div className="space-y-2">
         {rows.map((row, i) => (
           <div

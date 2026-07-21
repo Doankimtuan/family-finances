@@ -34,35 +34,35 @@ const sections = [
     titleKey: "settings.household",
     descriptionKey: "settings.household_description_main",
     icon: Home,
-    color: "bg-emerald-100 text-emerald-600",
+    color: "bg-primary/10 text-primary",
   },
   {
     href: "/settings/members",
     titleKey: "settings.members",
     descriptionKey: "settings.members_description_main",
     icon: Users,
-    color: "bg-violet-100 text-violet-600",
+    color: "bg-primary/10 text-primary",
   },
   {
     href: "/settings/categories",
     titleKey: "settings.categories",
     descriptionKey: "settings.categories_description_main",
     icon: Tag,
-    color: "bg-amber-100 text-amber-600",
+    color: "bg-primary/10 text-primary",
   },
   {
     href: "/settings/cash-flow",
     titleKey: "settings.cash_flow",
     descriptionKey: "settings.cash_flow_description_main",
     icon: ArrowLeftRight,
-    color: "bg-cyan-100 text-cyan-600",
+    color: "bg-primary/10 text-primary",
   },
   {
     href: "/settings/assumptions",
     titleKey: "settings.assumptions",
     descriptionKey: "settings.assumptions_description_main",
     icon: TrendingUp,
-    color: "bg-blue-100 text-blue-600",
+    color: "bg-primary/10 text-primary",
   },
 ];
 
@@ -75,14 +75,14 @@ export default async function SettingsIndexPage() {
       footer={<BottomTabBar />}
     >
       <div className="space-y-6 pb-24 animate-in fade-in slide-in-from-bottom-4 duration-700">
-        <Card className="overflow-hidden border-primary/15 bg-gradient-to-br from-primary/10 via-background to-background shadow-sm">
+        <Card variant="elevated" className="overflow-hidden border-primary/15 bg-secondary/30">
           <CardHeader className="space-y-4 p-5 sm:p-6">
             <div className="flex items-start gap-4">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary ring-1 ring-primary/10">
                 <Settings2 className="h-6 w-6" />
               </div>
               <div className="min-w-0 space-y-1">
-                <Label className="block text-[10px] font-bold uppercase tracking-[0.22em] text-primary">
+                <Label className="block text-xs font-medium text-primary">
                   {t(language, "settings.system_management")}
                 </Label>
                 <CardTitle className="text-2xl leading-tight text-balance sm:text-3xl">

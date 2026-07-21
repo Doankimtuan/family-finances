@@ -5,11 +5,11 @@
 ## 1. Design Principles
 [confirmed from codebase]
 
-- **Pink-forward palette**: "Rose Bloom" theme uses a vivid rose primary (hsl(345 82% 52%)) with violet accent (hsl(280 60% 50%))
+- **Pink-forward palette**: "Rose Bloom" theme uses a vivid rose primary (hsl(345 82% 52%)) — **primary saturation is locked**. UI accent is deep blush (hsl(345 45% 38%)); chart series use separate categorical colors.
 - **Generous whitespace**: Consistent spacing scale with gap-1.5 (6px) as base unit for form fields
 - **Soft, rounded surfaces**: Border radius scale from 4px to 24px, with 12px (rounded-xl) as default for buttons and cards
 - **Subtle elevation**: Shadow system from shadow-xs to shadow-xl, with focus rings using ring-2
-- **Flat surfaces, no gradients** (except skeleton shimmer animation)
+- **Flat surfaces, no hero gradients** (except skeleton shimmer animation)
 - **Semantic color usage**: success/warning/destructive colors for status states only
 - **Mobile-first responsive**: Max-width container at 2rem (512px) for main content, with bottom tab bar navigation
 
@@ -31,7 +31,7 @@
 | `--secondary-foreground` | hsl(345 30% 18%) | Text on secondary background |
 | `--muted` | hsl(345 10% 95%) | Disabled states, subtle backgrounds |
 | `--muted-foreground` | hsl(345 10% 42%) | Helper text, descriptions |
-| `--accent` | hsl(280 60% 50%) | Accent actions, highlights, violet/purple |
+| `--accent` | hsl(345 45% 38%) | UI accent — deep blush (rose family, not violet) |
 | `--accent-foreground` | hsl(0 0% 100%) | Text on accent background |
 | `--success` | hsl(152 60% 36%) | Success states, positive indicators |
 | `--success-foreground` | hsl(0 0% 100%) | Text on success background |
@@ -55,7 +55,7 @@
 | Token | HSL Value | Usage |
 |-------|-----------|-------|
 | `--chart-1` | hsl(345 82% 52%) | Chart series 1 (primary) |
-| `--chart-2` | hsl(280 60% 50%) | Chart series 2 (accent) |
+| `--chart-2` | hsl(168 35% 42%) | Chart series 2 (categorical teal — distinct from UI accent) |
 | `--chart-3` | hsl(152 60% 36%) | Chart series 3 (success) |
 | `--chart-4` | hsl(38 95% 50%) | Chart series 4 (warning) |
 | `--chart-5` | hsl(0 72% 50%) | Chart series 5 (destructive) |

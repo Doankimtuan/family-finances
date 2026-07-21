@@ -32,7 +32,7 @@ export async function AccountsSection({
     <section className="space-y-4 md:space-y-6">
       <div className="flex flex-col gap-3 rounded-3xl border border-border/60 bg-card/80 p-4 shadow-sm backdrop-blur-sm sm:flex-row sm:items-end sm:justify-between sm:p-5 md:p-6">
         <div className="flex-1 space-y-1">
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary/70">
+          <p className="text-xs font-medium text-primary/70">
             {t("money.accounts.title")}
           </p>
           <div className="flex items-baseline justify-between gap-x-3">
@@ -75,7 +75,7 @@ export async function AccountsSection({
                     <div className="min-w-0 flex-1">
                       <p
                         className={cn(
-                          "text-[10px] font-bold uppercase tracking-[0.18em]",
+                          "text-xs font-medium",
                           colors.label,
                         )}
                       >

@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AlertCircle, CheckCircle2, Lock, Mail, Sparkles } from "lucide-react";
+import { AlertCircle, CheckCircle2, Lock, Mail, Users } from "lucide-react";
 import { useActionState, useMemo, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -97,8 +97,8 @@ export function LoginForm({ origin }: { origin: string }) {
   return (
     <div className="w-full rounded-3xl border border-border/70 bg-card/95 p-5 shadow-xl shadow-foreground/5 sm:p-6">
       <div className="mb-6 space-y-4">
-        <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/8 px-3 py-1 text-xs font-semibold text-primary">
-          <Sparkles className="h-3.5 w-3.5" />
+        <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/8 px-3 py-1 text-xs font-medium text-primary">
+          <Users className="h-3.5 w-3.5" />
           {t("login.household_access")}
         </div>
 

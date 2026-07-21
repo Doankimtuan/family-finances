@@ -38,7 +38,7 @@ export async function AssetsSection({
     <section className="space-y-4 md:space-y-6">
       <div className="flex flex-col gap-4 rounded-3xl border border-border/60 bg-card/80 p-4 shadow-sm backdrop-blur-sm sm:flex-row sm:items-end sm:justify-between sm:p-5 md:p-6">
         <div className="flex-1 space-y-1">
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary/70">
+          <p className="text-xs font-medium text-primary/70">
             {t("assets.title")}
           </p>
           <div className="flex items-baseline justify-between gap-x-3">
@@ -103,7 +103,7 @@ export async function AssetsSection({
                         <Icon className="h-6 w-6" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+                        <p className="text-xs font-medium text-muted-foreground">
                           {getClassLabel(asset.asset_class, t)}
                         </p>
                         <h3 className="truncate text-base font-semibold tracking-tight text-foreground">

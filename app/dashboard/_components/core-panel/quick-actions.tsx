@@ -1,6 +1,6 @@
 "use client";
 
-import { History, Sparkles, Target, Wallet } from "lucide-react";
+import { History, Layers, Target, Wallet } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { SectionHeader } from "@/components/ui/section-header";
 import { useI18n } from "@/lib/providers/i18n-provider";
@@ -42,7 +42,7 @@ export function QuickActionsSection({
         {jarsEnabled ? (
           <QuickAction
             href="/goals?tab=jars"
-            icon={Sparkles}
+            icon={Layers}
             label={t("dashboard.shortcuts.jars")}
           />
         ) : null}

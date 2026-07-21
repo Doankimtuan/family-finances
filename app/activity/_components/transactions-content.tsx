@@ -152,54 +152,52 @@ export async function TransactionsContent({
   return (
     <div className="mx-auto w-full max-w-md space-y-8 px-4 pb-28 animate-in fade-in slide-in-from-bottom-4 duration-700 sm:max-w-xl lg:max-w-2xl">
       {listItems.length > 0 && (
-        <Card
-          variant="glass"
-          className="overflow-hidden border-primary/10 bg-gradient-to-br from-primary/10 via-card to-muted/20 shadow-lg"
-        >
-          <CardContent className="relative p-5 sm:p-6">
-            <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-primary/10 blur-3xl" />
-            <div className="relative space-y-5">
+        <Card variant="elevated" className="overflow-hidden border-primary/10 bg-secondary/20">
+          <CardContent className="p-5 sm:p-6">
+            <div className="space-y-5">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+                  <p className="text-xs font-medium text-muted-foreground">
                     {t(language, "activity.summary.this_month")}
                   </p>
                 </div>
-                <div className="rounded-full border border-border/60 bg-background/80 px-3 py-1 text-xs font-medium text-muted-foreground shadow-sm">
+                <div className="rounded-lg border border-border/60 bg-background/80 px-3 py-1 text-xs font-medium text-muted-foreground">
                   {listItems.length} {t(language, "activity.list.recent")}
                 </div>
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-3">
-                <div className="rounded-2xl border border-emerald-500/10 bg-background/80 p-4 shadow-sm backdrop-blur-sm">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-emerald-600/80">
-                    {t(language, "activity.summary.income")}
-                  </p>
-                  <p className="mt-2 text-lg font-semibold tabular-nums text-emerald-600 sm:text-xl">
-                    {formatVndCompact(monthIncome, householdLocale)}
-                  </p>
-                </div>
-                <div className="rounded-2xl border border-rose-500/10 bg-background/80 p-4 shadow-sm backdrop-blur-sm">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-rose-600/80">
-                    {t(language, "activity.summary.expense")}
-                  </p>
-                  <p className="mt-2 text-lg font-semibold tabular-nums text-rose-600 sm:text-xl">
-                    {formatVndCompact(monthExpense, householdLocale)}
-                  </p>
-                </div>
-                <div className="rounded-2xl border border-border/60 bg-background/80 p-4 shadow-sm backdrop-blur-sm">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+              <div className="space-y-3">
+                <div className="rounded-2xl border border-primary/15 bg-primary/5 p-4">
+                  <p className="text-xs font-medium text-muted-foreground">
                     {t(language, "activity.summary.net")}
                   </p>
                   <p
                     className={cn(
-                      "mt-2 text-lg font-semibold tabular-nums sm:text-xl",
-                      monthNet >= 0 ? "text-foreground" : "text-rose-600",
+                      "mt-2 font-serif text-2xl font-semibold tabular-nums",
+                      monthNet >= 0 ? "text-primary" : "text-destructive",
                     )}
                   >
                     {monthNet >= 0 ? "+" : ""}
                     {formatVndCompact(monthNet, householdLocale)}
                   </p>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-2xl border border-success/20 bg-success/5 p-4">
+                    <p className="text-xs font-medium text-success/80">
+                      {t(language, "activity.summary.income")}
+                    </p>
+                    <p className="mt-2 font-serif text-lg font-semibold tabular-nums text-success sm:text-xl">
+                      {formatVndCompact(monthIncome, householdLocale)}
+                    </p>
+                  </div>
+                  <div className="rounded-2xl border border-destructive/20 bg-destructive/5 p-4">
+                    <p className="text-xs font-medium text-destructive/80">
+                      {t(language, "activity.summary.expense")}
+                    </p>
+                    <p className="mt-2 font-serif text-lg font-semibold tabular-nums text-destructive sm:text-xl">
+                      {formatVndCompact(monthExpense, householdLocale)}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -227,7 +225,7 @@ export async function TransactionsContent({
             <div className="grid gap-8">
               <Card
                 variant="elevated"
-                className="w-full border-primary/10 bg-gradient-to-br from-primary/5 via-card to-muted/20"
+                className="w-full border-primary/10 bg-secondary/20"
               >
                 <CardHeader className="pb-3">
                   <SectionHeader
