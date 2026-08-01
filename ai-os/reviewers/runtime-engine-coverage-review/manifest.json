@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0.0",
+  "id": "runtime-engine-coverage-review",
+  "version": "0.1.0",
+  "title": "Runtime Engine Coverage Review",
+  "description": "Qualitative coverage of single-command UX, plan-before-execute, resume/retry.",
+  "applies_to": [
+    "runtime-status",
+    "runtime-plan",
+    "runtime-command",
+    "runtime-execution-report"
+  ],
+  "rubric_ref": "reviewers/runtime-engine-coverage-review/rubric/runtime-engine-coverage.json"
+}

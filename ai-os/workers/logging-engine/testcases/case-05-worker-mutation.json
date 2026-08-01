@@ -1,0 +1,10 @@
+{
+  "case_id": "case-05-worker-mutation",
+  "worker_id": "logging-engine",
+  "input": {
+    "mutate_workers": true
+  },
+  "expect": {
+    "veto": true
+  }
+}

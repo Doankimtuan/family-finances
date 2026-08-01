@@ -1,0 +1,11 @@
+{
+  "case_id": "case-01-happy-path",
+  "worker_id": "command-interpreter",
+  "input": {
+    "command": "@Run full"
+  },
+  "expect": {
+    "min_entries": 1,
+    "requires_folder_mirror": true
+  }
+}

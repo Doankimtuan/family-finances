@@ -1,0 +1,114 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_rt_retry-engine_primary",
+  "type": "runtime-status",
+  "worker_id": "retry-engine",
+  "title": "Retry Engine sample",
+  "summary": "Sample runtime-status for retry-engine (packaging; workers not executed)",
+  "entries": [
+    {
+      "id": "rt_retry-engine_001",
+      "entry_kind": "retry-worker",
+      "statement": "Runtime plan for retry-worker via Retry Engine",
+      "runtime_id": "run_retry-engine_sample",
+      "target": "runtime/execution/retry-engine/",
+      "rule": "retry-worker per Runtime Engine contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "contracts/runtime-engine.md",
+        "pipelines/runtime-engine/RACI.md",
+        "runtime/configs/.ai-os.yaml"
+      ],
+      "impact": "Enables orchestrated retry-worker without manual worker invocation",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual Core invocation (not supported for end users)",
+      "confidence": 0.85,
+      "source_paths": [
+        "workers/",
+        "pipelines/",
+        "schemas/",
+        "configs/",
+        "registry/"
+      ],
+      "unknowns": [
+        "UNKNOWN: runtime execution not opened in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "runtime-engine",
+        "worker": "retry-engine"
+      },
+      "folder_mirror": "runtime/execution/retry-engine/retry-worker.json"
+    },
+    {
+      "id": "rt_retry-engine_002",
+      "entry_kind": "retry-phase",
+      "statement": "Runtime plan for retry-phase via Retry Engine",
+      "runtime_id": "run_retry-engine_sample",
+      "target": "runtime/execution/retry-engine/",
+      "rule": "retry-phase per Runtime Engine contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "contracts/runtime-engine.md",
+        "pipelines/runtime-engine/RACI.md",
+        "runtime/configs/.ai-os.yaml"
+      ],
+      "impact": "Enables orchestrated retry-phase without manual worker invocation",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual Core invocation (not supported for end users)",
+      "confidence": 0.85,
+      "source_paths": [
+        "workers/",
+        "pipelines/",
+        "schemas/",
+        "configs/",
+        "registry/"
+      ],
+      "unknowns": [
+        "UNKNOWN: runtime execution not opened in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "runtime-engine",
+        "worker": "retry-engine"
+      },
+      "folder_mirror": "runtime/execution/retry-engine/retry-phase.json"
+    },
+    {
+      "id": "rt_retry-engine_003",
+      "entry_kind": "retry-validation",
+      "statement": "Runtime plan for retry-validation via Retry Engine",
+      "runtime_id": "run_retry-engine_sample",
+      "target": "runtime/execution/retry-engine/",
+      "rule": "retry-validation per Runtime Engine contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "contracts/runtime-engine.md",
+        "pipelines/runtime-engine/RACI.md",
+        "runtime/configs/.ai-os.yaml"
+      ],
+      "impact": "Enables orchestrated retry-validation without manual worker invocation",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual Core invocation (not supported for end users)",
+      "confidence": 0.85,
+      "source_paths": [
+        "workers/",
+        "pipelines/",
+        "schemas/",
+        "configs/",
+        "registry/"
+      ],
+      "unknowns": [
+        "UNKNOWN: runtime execution not opened in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "runtime-engine",
+        "worker": "retry-engine"
+      },
+      "folder_mirror": "runtime/execution/retry-engine/retry-validation.json"
+    }
+  ],
+  "status": "draft",
+  "created_at": "2026-08-01T11:02:14Z"
+}

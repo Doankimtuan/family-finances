@@ -1,0 +1,250 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_rt_execution-planner_primary",
+  "type": "runtime-plan",
+  "worker_id": "execution-planner",
+  "title": "Execution Planner sample",
+  "summary": "Sample runtime-plan for execution-planner (packaging; workers not executed)",
+  "entries": [
+    {
+      "id": "rt_execution-planner_001",
+      "entry_kind": "execution-graph",
+      "statement": "Execution graph planned; execution deferred (never execute immediately)",
+      "runtime_id": "run_execution-planner_sample",
+      "target": "runtime/execution/execution-planner/",
+      "rule": "execution-graph per Runtime Engine contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "contracts/runtime-engine.md",
+        "pipelines/runtime-engine/RACI.md",
+        "runtime/configs/.ai-os.yaml"
+      ],
+      "impact": "Enables orchestrated execution-graph without manual worker invocation",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual Core invocation (not supported for end users)",
+      "confidence": 0.85,
+      "source_paths": [
+        "workers/",
+        "pipelines/",
+        "schemas/",
+        "configs/",
+        "registry/"
+      ],
+      "unknowns": [
+        "UNKNOWN: runtime execution not opened in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "runtime-engine",
+        "worker": "execution-planner"
+      },
+      "folder_mirror": "runtime/execution/execution-planner/execution-graph.json"
+    },
+    {
+      "id": "rt_execution-planner_002",
+      "entry_kind": "worker-order",
+      "statement": "Runtime plan for worker-order via Execution Planner",
+      "runtime_id": "run_execution-planner_sample",
+      "target": "runtime/execution/execution-planner/",
+      "rule": "worker-order per Runtime Engine contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "contracts/runtime-engine.md",
+        "pipelines/runtime-engine/RACI.md",
+        "runtime/configs/.ai-os.yaml"
+      ],
+      "impact": "Enables orchestrated worker-order without manual worker invocation",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual Core invocation (not supported for end users)",
+      "confidence": 0.85,
+      "source_paths": [
+        "workers/",
+        "pipelines/",
+        "schemas/",
+        "configs/",
+        "registry/"
+      ],
+      "unknowns": [
+        "UNKNOWN: runtime execution not opened in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "runtime-engine",
+        "worker": "execution-planner"
+      },
+      "folder_mirror": "runtime/execution/execution-planner/worker-order.json"
+    },
+    {
+      "id": "rt_execution-planner_003",
+      "entry_kind": "estimated-outputs",
+      "statement": "Runtime plan for estimated-outputs via Execution Planner",
+      "runtime_id": "run_execution-planner_sample",
+      "target": "runtime/execution/execution-planner/",
+      "rule": "estimated-outputs per Runtime Engine contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "contracts/runtime-engine.md",
+        "pipelines/runtime-engine/RACI.md",
+        "runtime/configs/.ai-os.yaml"
+      ],
+      "impact": "Enables orchestrated estimated-outputs without manual worker invocation",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual Core invocation (not supported for end users)",
+      "confidence": 0.85,
+      "source_paths": [
+        "workers/",
+        "pipelines/",
+        "schemas/",
+        "configs/",
+        "registry/"
+      ],
+      "unknowns": [
+        "UNKNOWN: runtime execution not opened in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "runtime-engine",
+        "worker": "execution-planner"
+      },
+      "folder_mirror": "runtime/execution/execution-planner/estimated-outputs.json"
+    },
+    {
+      "id": "rt_execution-planner_004",
+      "entry_kind": "estimated-runtime",
+      "statement": "Runtime plan for estimated-runtime via Execution Planner",
+      "runtime_id": "run_execution-planner_sample",
+      "target": "runtime/execution/execution-planner/",
+      "rule": "estimated-runtime per Runtime Engine contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "contracts/runtime-engine.md",
+        "pipelines/runtime-engine/RACI.md",
+        "runtime/configs/.ai-os.yaml"
+      ],
+      "impact": "Enables orchestrated estimated-runtime without manual worker invocation",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual Core invocation (not supported for end users)",
+      "confidence": 0.85,
+      "source_paths": [
+        "workers/",
+        "pipelines/",
+        "schemas/",
+        "configs/",
+        "registry/"
+      ],
+      "unknowns": [
+        "UNKNOWN: runtime execution not opened in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "runtime-engine",
+        "worker": "execution-planner"
+      },
+      "folder_mirror": "runtime/execution/execution-planner/estimated-runtime.json"
+    },
+    {
+      "id": "rt_execution-planner_005",
+      "entry_kind": "validation-plan",
+      "statement": "Runtime plan for validation-plan via Execution Planner",
+      "runtime_id": "run_execution-planner_sample",
+      "target": "runtime/execution/execution-planner/",
+      "rule": "validation-plan per Runtime Engine contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "contracts/runtime-engine.md",
+        "pipelines/runtime-engine/RACI.md",
+        "runtime/configs/.ai-os.yaml"
+      ],
+      "impact": "Enables orchestrated validation-plan without manual worker invocation",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual Core invocation (not supported for end users)",
+      "confidence": 0.85,
+      "source_paths": [
+        "workers/",
+        "pipelines/",
+        "schemas/",
+        "configs/",
+        "registry/"
+      ],
+      "unknowns": [
+        "UNKNOWN: runtime execution not opened in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "runtime-engine",
+        "worker": "execution-planner"
+      },
+      "folder_mirror": "runtime/execution/execution-planner/validation-plan.json"
+    },
+    {
+      "id": "rt_execution-planner_006",
+      "entry_kind": "review-plan",
+      "statement": "Runtime plan for review-plan via Execution Planner",
+      "runtime_id": "run_execution-planner_sample",
+      "target": "runtime/execution/execution-planner/",
+      "rule": "review-plan per Runtime Engine contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "contracts/runtime-engine.md",
+        "pipelines/runtime-engine/RACI.md",
+        "runtime/configs/.ai-os.yaml"
+      ],
+      "impact": "Enables orchestrated review-plan without manual worker invocation",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual Core invocation (not supported for end users)",
+      "confidence": 0.85,
+      "source_paths": [
+        "workers/",
+        "pipelines/",
+        "schemas/",
+        "configs/",
+        "registry/"
+      ],
+      "unknowns": [
+        "UNKNOWN: runtime execution not opened in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "runtime-engine",
+        "worker": "execution-planner"
+      },
+      "folder_mirror": "runtime/execution/execution-planner/review-plan.json"
+    },
+    {
+      "id": "rt_execution-planner_007",
+      "entry_kind": "checkpoint-plan",
+      "statement": "Runtime plan for checkpoint-plan via Execution Planner",
+      "runtime_id": "run_execution-planner_sample",
+      "target": "runtime/execution/execution-planner/",
+      "rule": "checkpoint-plan per Runtime Engine contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "contracts/runtime-engine.md",
+        "pipelines/runtime-engine/RACI.md",
+        "runtime/configs/.ai-os.yaml"
+      ],
+      "impact": "Enables orchestrated checkpoint-plan without manual worker invocation",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual Core invocation (not supported for end users)",
+      "confidence": 0.85,
+      "source_paths": [
+        "workers/",
+        "pipelines/",
+        "schemas/",
+        "configs/",
+        "registry/"
+      ],
+      "unknowns": [
+        "UNKNOWN: runtime execution not opened in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "runtime-engine",
+        "worker": "execution-planner"
+      },
+      "folder_mirror": "runtime/execution/execution-planner/checkpoint-plan.json"
+    }
+  ],
+  "status": "draft",
+  "created_at": "2026-08-01T11:02:14Z"
+}

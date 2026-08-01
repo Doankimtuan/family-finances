@@ -1,0 +1,10 @@
+{
+  "case_id": "case-02-missing-config",
+  "worker_id": "execution-planner",
+  "input": {
+    "config": null
+  },
+  "expect": {
+    "unknowns_required": true
+  }
+}

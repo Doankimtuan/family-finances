@@ -1,0 +1,10 @@
+{
+  "case_id": "case-04-raci-violation",
+  "worker_id": "logging-engine",
+  "input": {
+    "entry_kind": "foreign-kind"
+  },
+  "expect": {
+    "blocked": true
+  }
+}

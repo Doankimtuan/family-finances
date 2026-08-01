@@ -1,0 +1,10 @@
+{
+  "case_id": "case-03-circular-deps",
+  "worker_id": "artifact-manager",
+  "input": {
+    "cycle": true
+  },
+  "expect": {
+    "severity_min": "critical"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0.0",
+  "id": "execution-context-manager",
+  "version": "0.1.0",
+  "title": "Execution Context Manager",
+  "implements_roles": [
+    "executor"
+  ],
+  "side_effects": [
+    "runtime-write"
+  ],
+  "entrypoint": "skill.md",
+  "status": "draft",
+  "extensions": {
+    "worker_class": "discovery",
+    "pipeline": "runtime-engine",
+    "mutate_workers": false,
+    "mutate_validators": false,
+    "mutate_reviewers": false,
+    "execute_workers": false,
+    "orchestrate_only": true,
+    "remediation": "0.11.0",
+    "partition": "runtime/state/execution-context-manager/"
+  }
+}

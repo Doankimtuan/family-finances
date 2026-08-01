@@ -1,0 +1,1 @@
+See `skills/checkpoint-manager/SKILL.md`.

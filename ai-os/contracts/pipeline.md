@@ -31,6 +31,7 @@ A **pipeline** binds registered workers into ordered waves with an explicit depe
 | `pipelines/review-engine/` | Governance review of validated artifacts → findings / scores / decisions | forbidden |
 | `pipelines/framework-generator/` | Configuration-driven scaffolding of framework components from capability specs | forbidden |
 | `pipelines/qualification-framework/` | Evaluate / benchmark / certify AIOS against reference projects | forbidden |
+| `pipelines/runtime-engine/` | Single-command orchestration of workers / validators / reviewers / pipelines | forbidden |
 
 ### Handoffs
 
@@ -41,5 +42,6 @@ A **pipeline** binds registered workers into ordered waves with an explicit depe
 - Review Engine: assumes Validation Engine PASS; soft-reads validation/reports/scores plus domain packs; writes `reviews/`, `governance/`, `decisions/`, `recommendations/`, `improvements/`. **Never mutates, regenerates, or re-validates sources.**
 - Framework Generator: soft-reads `templates/`, `schemas/`, `workers/`, `validators/`, `reviewers/`, `pipelines/`, `knowledge/`, `configs/`, `artifacts/`, `registry/`; writes scaffold plans to `framework-generator/`. **Never executes generation or mutates prior workers.**
 - Qualification Framework: soft-reads `workers/`, `validators/`, `reviewers/`, `pipelines/`, `artifacts/`, `schemas/`, `templates/`, `reports/`, `knowledge/`, `specifications/`; writes `qualification/` only. **Evaluate only — never modify framework, never regenerate workers, never execute benchmarks in packaging.**
+- Runtime Engine: soft-reads `workers/`, `validators/`, `reviewers/`, `pipelines/`, `workflow/`, `templates/`, `schemas/`, `configs/`, `artifacts/`, `knowledge/`; writes `runtime/` only. **Orchestrate only — never mutate workers/validators/reviewers; Execution Planner never executes immediately; packaging does not execute workers.**
 - Logical `architecture/` consume resolves to `product-architecture/` (never AIOS `architecture/` control-plane docs).
 - Logical `pipeline/` consume resolves to `pipelines/`.

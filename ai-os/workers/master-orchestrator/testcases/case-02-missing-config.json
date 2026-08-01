@@ -1,0 +1,10 @@
+{
+  "case_id": "case-02-missing-config",
+  "worker_id": "master-orchestrator",
+  "input": {
+    "config": null
+  },
+  "expect": {
+    "unknowns_required": true
+  }
+}

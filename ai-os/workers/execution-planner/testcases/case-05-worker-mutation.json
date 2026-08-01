@@ -1,0 +1,10 @@
+{
+  "case_id": "case-05-worker-mutation",
+  "worker_id": "execution-planner",
+  "input": {
+    "mutate_workers": true
+  },
+  "expect": {
+    "veto": true
+  }
+}

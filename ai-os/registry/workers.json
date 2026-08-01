@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "registry_kind": "workers",
-  "updated_at": "2026-08-01T10:32:40Z",
+  "updated_at": "2026-08-01T11:02:14Z",
   "entries": {
     "discover-repo-map": {
       "id": "discover-repo-map",
@@ -1780,6 +1780,448 @@
       ],
       "produces": [
         "qualification/release/release-qualification-board/"
+      ]
+    },
+    "runtime-configuration-loader": {
+      "id": "runtime-configuration-loader",
+      "path": "workers/runtime-configuration-loader",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Load .ai-os.yaml, run.yaml, workspace.yaml, environment variables, and defaults into a normalized runtime config. Never execute workers.",
+      "worker_class": "discovery",
+      "pipeline": "runtime-engine",
+      "skill_id": "runtime-configuration-loader",
+      "depends_on_workers": [],
+      "consumes": [
+        "workers",
+        "validators",
+        "reviewers",
+        "pipelines",
+        "workflow",
+        "templates",
+        "schemas",
+        "configs",
+        "artifacts",
+        "knowledge",
+        "registry"
+      ],
+      "produces": [
+        "runtime/configs/runtime-configuration-loader/"
+      ]
+    },
+    "event-bus": {
+      "id": "event-bus",
+      "path": "workers/event-bus",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Define and plan runtime events: WorkerStarted/Finished, Validation*, Review*, PhaseCompleted, CheckpointCreated, ExecutionCompleted/Failed. Never mutate workers.",
+      "worker_class": "discovery",
+      "pipeline": "runtime-engine",
+      "skill_id": "event-bus",
+      "depends_on_workers": [],
+      "consumes": [
+        "workers",
+        "validators",
+        "reviewers",
+        "pipelines",
+        "workflow",
+        "templates",
+        "schemas",
+        "configs",
+        "artifacts",
+        "knowledge",
+        "registry"
+      ],
+      "produces": [
+        "runtime/events/event-bus/"
+      ]
+    },
+    "logging-engine": {
+      "id": "logging-engine",
+      "path": "workers/logging-engine",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Plan structured execution, worker, validation, review, failure, and performance logs. Never modify worker implementations.",
+      "worker_class": "discovery",
+      "pipeline": "runtime-engine",
+      "skill_id": "logging-engine",
+      "depends_on_workers": [],
+      "consumes": [
+        "workers",
+        "validators",
+        "reviewers",
+        "pipelines",
+        "workflow",
+        "templates",
+        "schemas",
+        "configs",
+        "artifacts",
+        "knowledge",
+        "registry"
+      ],
+      "produces": [
+        "runtime/logs/logging-engine/"
+      ]
+    },
+    "command-interpreter": {
+      "id": "command-interpreter",
+      "path": "workers/command-interpreter",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Parse single-command UX (@Run full|incremental|phase N|resume|retry|validate|review|freeze|status|benchmark) into normalized run intents. Never invoke workers directly.",
+      "worker_class": "discovery",
+      "pipeline": "runtime-engine",
+      "skill_id": "command-interpreter",
+      "depends_on_workers": [
+        "runtime-configuration-loader"
+      ],
+      "consumes": [
+        "workers",
+        "validators",
+        "reviewers",
+        "pipelines",
+        "workflow",
+        "templates",
+        "schemas",
+        "configs",
+        "artifacts",
+        "knowledge",
+        "registry"
+      ],
+      "produces": [
+        "runtime/commands/command-interpreter/"
+      ]
+    },
+    "dependency-resolver": {
+      "id": "dependency-resolver",
+      "path": "workers/dependency-resolver",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Resolve worker, artifact, pipeline, and execution dependencies; reject circular dependencies. Never modify dependency graphs on disk.",
+      "worker_class": "discovery",
+      "pipeline": "runtime-engine",
+      "skill_id": "dependency-resolver",
+      "depends_on_workers": [
+        "runtime-configuration-loader"
+      ],
+      "consumes": [
+        "workers",
+        "validators",
+        "reviewers",
+        "pipelines",
+        "workflow",
+        "templates",
+        "schemas",
+        "configs",
+        "artifacts",
+        "knowledge",
+        "registry"
+      ],
+      "produces": [
+        "runtime/scheduler/dependency-resolver/"
+      ]
+    },
+    "execution-context-manager": {
+      "id": "execution-context-manager",
+      "path": "workers/execution-context-manager",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Maintain current phase, completed workers, execution state, temporary memory, shared context, worker outputs, and global variables. Orchestration state only.",
+      "worker_class": "discovery",
+      "pipeline": "runtime-engine",
+      "skill_id": "execution-context-manager",
+      "depends_on_workers": [
+        "runtime-configuration-loader"
+      ],
+      "consumes": [
+        "workers",
+        "validators",
+        "reviewers",
+        "pipelines",
+        "workflow",
+        "templates",
+        "schemas",
+        "configs",
+        "artifacts",
+        "knowledge",
+        "registry"
+      ],
+      "produces": [
+        "runtime/state/execution-context-manager/"
+      ]
+    },
+    "artifact-manager": {
+      "id": "artifact-manager",
+      "path": "workers/artifact-manager",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Track generated artifacts, versions, lifecycle, ownership, and dependencies during runtime. Never invent business artifacts.",
+      "worker_class": "discovery",
+      "pipeline": "runtime-engine",
+      "skill_id": "artifact-manager",
+      "depends_on_workers": [
+        "runtime-configuration-loader"
+      ],
+      "consumes": [
+        "workers",
+        "validators",
+        "reviewers",
+        "pipelines",
+        "workflow",
+        "templates",
+        "schemas",
+        "configs",
+        "artifacts",
+        "knowledge",
+        "registry"
+      ],
+      "produces": [
+        "runtime/execution/artifact-manager/"
+      ]
+    },
+    "execution-planner": {
+      "id": "execution-planner",
+      "path": "workers/execution-planner",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Before execution, generate execution graph, worker order, estimated outputs/runtime, validation/review/checkpoint plans. Never execute immediately.",
+      "worker_class": "discovery",
+      "pipeline": "runtime-engine",
+      "skill_id": "execution-planner",
+      "depends_on_workers": [
+        "command-interpreter",
+        "dependency-resolver"
+      ],
+      "consumes": [
+        "workers",
+        "validators",
+        "reviewers",
+        "pipelines",
+        "workflow",
+        "templates",
+        "schemas",
+        "configs",
+        "artifacts",
+        "knowledge",
+        "registry"
+      ],
+      "produces": [
+        "runtime/execution/execution-planner/"
+      ]
+    },
+    "checkpoint-manager": {
+      "id": "checkpoint-manager",
+      "path": "workers/checkpoint-manager",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Plan checkpoints before every phase, after validation, before retries, before freeze; support rollback. Never modify workers.",
+      "worker_class": "discovery",
+      "pipeline": "runtime-engine",
+      "skill_id": "checkpoint-manager",
+      "depends_on_workers": [
+        "execution-context-manager",
+        "artifact-manager"
+      ],
+      "consumes": [
+        "workers",
+        "validators",
+        "reviewers",
+        "pipelines",
+        "workflow",
+        "templates",
+        "schemas",
+        "configs",
+        "artifacts",
+        "knowledge",
+        "registry"
+      ],
+      "produces": [
+        "runtime/checkpoint/checkpoint-manager/"
+      ]
+    },
+    "progress-tracker": {
+      "id": "progress-tracker",
+      "path": "workers/progress-tracker",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Track overall progress, current phase, worker status, execution time, ETA, generated artifacts, and quality status.",
+      "worker_class": "discovery",
+      "pipeline": "runtime-engine",
+      "skill_id": "progress-tracker",
+      "depends_on_workers": [
+        "execution-context-manager",
+        "event-bus"
+      ],
+      "consumes": [
+        "workers",
+        "validators",
+        "reviewers",
+        "pipelines",
+        "workflow",
+        "templates",
+        "schemas",
+        "configs",
+        "artifacts",
+        "knowledge",
+        "registry"
+      ],
+      "produces": [
+        "runtime/state/progress-tracker/"
+      ]
+    },
+    "worker-scheduler": {
+      "id": "worker-scheduler",
+      "path": "workers/worker-scheduler",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Select workers, resolve execution order, prevent duplicated execution, support priorities and concurrency. Never implement worker logic.",
+      "worker_class": "discovery",
+      "pipeline": "runtime-engine",
+      "skill_id": "worker-scheduler",
+      "depends_on_workers": [
+        "execution-planner",
+        "dependency-resolver"
+      ],
+      "consumes": [
+        "workers",
+        "validators",
+        "reviewers",
+        "pipelines",
+        "workflow",
+        "templates",
+        "schemas",
+        "configs",
+        "artifacts",
+        "knowledge",
+        "registry"
+      ],
+      "produces": [
+        "runtime/scheduler/worker-scheduler/"
+      ]
+    },
+    "retry-engine": {
+      "id": "retry-engine",
+      "path": "workers/retry-engine",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Plan retries for failed workers/phases/validation/review with updated context and retry limits from runtime config.",
+      "worker_class": "discovery",
+      "pipeline": "runtime-engine",
+      "skill_id": "retry-engine",
+      "depends_on_workers": [
+        "checkpoint-manager",
+        "worker-scheduler"
+      ],
+      "consumes": [
+        "workers",
+        "validators",
+        "reviewers",
+        "pipelines",
+        "workflow",
+        "templates",
+        "schemas",
+        "configs",
+        "artifacts",
+        "knowledge",
+        "registry"
+      ],
+      "produces": [
+        "runtime/execution/retry-engine/"
+      ]
+    },
+    "resume-engine": {
+      "id": "resume-engine",
+      "path": "workers/resume-engine",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Resume from latest checkpoint, failed worker, failed phase, or interrupted execution. Deterministic resume plans only in packaging.",
+      "worker_class": "discovery",
+      "pipeline": "runtime-engine",
+      "skill_id": "resume-engine",
+      "depends_on_workers": [
+        "checkpoint-manager",
+        "execution-context-manager"
+      ],
+      "consumes": [
+        "workers",
+        "validators",
+        "reviewers",
+        "pipelines",
+        "workflow",
+        "templates",
+        "schemas",
+        "configs",
+        "artifacts",
+        "knowledge",
+        "registry"
+      ],
+      "produces": [
+        "runtime/resume/resume-engine/"
+      ]
+    },
+    "pipeline-engine": {
+      "id": "pipeline-engine",
+      "path": "workers/pipeline-engine",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Execute execution graphs: sequential, parallel, conditional, dynamic, resume, and incremental modes. Orchestration only \u2014 never implement business analysis.",
+      "worker_class": "discovery",
+      "pipeline": "runtime-engine",
+      "skill_id": "pipeline-engine",
+      "depends_on_workers": [
+        "worker-scheduler",
+        "retry-engine",
+        "resume-engine",
+        "progress-tracker",
+        "logging-engine"
+      ],
+      "consumes": [
+        "workers",
+        "validators",
+        "reviewers",
+        "pipelines",
+        "workflow",
+        "templates",
+        "schemas",
+        "configs",
+        "artifacts",
+        "knowledge",
+        "registry"
+      ],
+      "produces": [
+        "runtime/execution/pipeline-engine/"
+      ]
+    },
+    "master-orchestrator": {
+      "id": "master-orchestrator",
+      "path": "workers/master-orchestrator",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Single entry point: load config/pipeline/workers, resolve deps, drive pipeline engine, handle failures/retries/resume, freeze phases, produce execution summary. End users invoke only @Run commands \u2014 never individual workers.",
+      "worker_class": "discovery",
+      "pipeline": "runtime-engine",
+      "skill_id": "master-orchestrator",
+      "depends_on_workers": [
+        "pipeline-engine",
+        "execution-planner",
+        "command-interpreter",
+        "runtime-configuration-loader"
+      ],
+      "consumes": [
+        "workers",
+        "validators",
+        "reviewers",
+        "pipelines",
+        "workflow",
+        "templates",
+        "schemas",
+        "configs",
+        "artifacts",
+        "knowledge",
+        "registry"
+      ],
+      "produces": [
+        "runtime/orchestrator/master-orchestrator/"
       ]
     }
   }

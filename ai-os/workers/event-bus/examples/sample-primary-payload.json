@@ -1,0 +1,352 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_rt_event-bus_primary",
+  "type": "runtime-event",
+  "worker_id": "event-bus",
+  "title": "Event Bus sample",
+  "summary": "Sample runtime-event for event-bus (packaging; workers not executed)",
+  "entries": [
+    {
+      "id": "rt_event-bus_001",
+      "entry_kind": "worker-started",
+      "statement": "Runtime plan for worker-started via Event Bus",
+      "runtime_id": "run_event-bus_sample",
+      "target": "runtime/events/event-bus/",
+      "rule": "worker-started per Runtime Engine contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "contracts/runtime-engine.md",
+        "pipelines/runtime-engine/RACI.md",
+        "runtime/configs/.ai-os.yaml"
+      ],
+      "impact": "Enables orchestrated worker-started without manual worker invocation",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual Core invocation (not supported for end users)",
+      "confidence": 0.85,
+      "source_paths": [
+        "workers/",
+        "pipelines/",
+        "schemas/",
+        "configs/",
+        "registry/"
+      ],
+      "unknowns": [
+        "UNKNOWN: runtime execution not opened in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "runtime-engine",
+        "worker": "event-bus"
+      },
+      "folder_mirror": "runtime/events/event-bus/worker-started.json"
+    },
+    {
+      "id": "rt_event-bus_002",
+      "entry_kind": "worker-finished",
+      "statement": "Runtime plan for worker-finished via Event Bus",
+      "runtime_id": "run_event-bus_sample",
+      "target": "runtime/events/event-bus/",
+      "rule": "worker-finished per Runtime Engine contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "contracts/runtime-engine.md",
+        "pipelines/runtime-engine/RACI.md",
+        "runtime/configs/.ai-os.yaml"
+      ],
+      "impact": "Enables orchestrated worker-finished without manual worker invocation",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual Core invocation (not supported for end users)",
+      "confidence": 0.85,
+      "source_paths": [
+        "workers/",
+        "pipelines/",
+        "schemas/",
+        "configs/",
+        "registry/"
+      ],
+      "unknowns": [
+        "UNKNOWN: runtime execution not opened in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "runtime-engine",
+        "worker": "event-bus"
+      },
+      "folder_mirror": "runtime/events/event-bus/worker-finished.json"
+    },
+    {
+      "id": "rt_event-bus_003",
+      "entry_kind": "validation-started",
+      "statement": "Runtime plan for validation-started via Event Bus",
+      "runtime_id": "run_event-bus_sample",
+      "target": "runtime/events/event-bus/",
+      "rule": "validation-started per Runtime Engine contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "contracts/runtime-engine.md",
+        "pipelines/runtime-engine/RACI.md",
+        "runtime/configs/.ai-os.yaml"
+      ],
+      "impact": "Enables orchestrated validation-started without manual worker invocation",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual Core invocation (not supported for end users)",
+      "confidence": 0.85,
+      "source_paths": [
+        "workers/",
+        "pipelines/",
+        "schemas/",
+        "configs/",
+        "registry/"
+      ],
+      "unknowns": [
+        "UNKNOWN: runtime execution not opened in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "runtime-engine",
+        "worker": "event-bus"
+      },
+      "folder_mirror": "runtime/events/event-bus/validation-started.json"
+    },
+    {
+      "id": "rt_event-bus_004",
+      "entry_kind": "validation-finished",
+      "statement": "Runtime plan for validation-finished via Event Bus",
+      "runtime_id": "run_event-bus_sample",
+      "target": "runtime/events/event-bus/",
+      "rule": "validation-finished per Runtime Engine contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "contracts/runtime-engine.md",
+        "pipelines/runtime-engine/RACI.md",
+        "runtime/configs/.ai-os.yaml"
+      ],
+      "impact": "Enables orchestrated validation-finished without manual worker invocation",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual Core invocation (not supported for end users)",
+      "confidence": 0.85,
+      "source_paths": [
+        "workers/",
+        "pipelines/",
+        "schemas/",
+        "configs/",
+        "registry/"
+      ],
+      "unknowns": [
+        "UNKNOWN: runtime execution not opened in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "runtime-engine",
+        "worker": "event-bus"
+      },
+      "folder_mirror": "runtime/events/event-bus/validation-finished.json"
+    },
+    {
+      "id": "rt_event-bus_005",
+      "entry_kind": "review-started",
+      "statement": "Runtime plan for review-started via Event Bus",
+      "runtime_id": "run_event-bus_sample",
+      "target": "runtime/events/event-bus/",
+      "rule": "review-started per Runtime Engine contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "contracts/runtime-engine.md",
+        "pipelines/runtime-engine/RACI.md",
+        "runtime/configs/.ai-os.yaml"
+      ],
+      "impact": "Enables orchestrated review-started without manual worker invocation",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual Core invocation (not supported for end users)",
+      "confidence": 0.85,
+      "source_paths": [
+        "workers/",
+        "pipelines/",
+        "schemas/",
+        "configs/",
+        "registry/"
+      ],
+      "unknowns": [
+        "UNKNOWN: runtime execution not opened in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "runtime-engine",
+        "worker": "event-bus"
+      },
+      "folder_mirror": "runtime/events/event-bus/review-started.json"
+    },
+    {
+      "id": "rt_event-bus_006",
+      "entry_kind": "review-finished",
+      "statement": "Runtime plan for review-finished via Event Bus",
+      "runtime_id": "run_event-bus_sample",
+      "target": "runtime/events/event-bus/",
+      "rule": "review-finished per Runtime Engine contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "contracts/runtime-engine.md",
+        "pipelines/runtime-engine/RACI.md",
+        "runtime/configs/.ai-os.yaml"
+      ],
+      "impact": "Enables orchestrated review-finished without manual worker invocation",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual Core invocation (not supported for end users)",
+      "confidence": 0.85,
+      "source_paths": [
+        "workers/",
+        "pipelines/",
+        "schemas/",
+        "configs/",
+        "registry/"
+      ],
+      "unknowns": [
+        "UNKNOWN: runtime execution not opened in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "runtime-engine",
+        "worker": "event-bus"
+      },
+      "folder_mirror": "runtime/events/event-bus/review-finished.json"
+    },
+    {
+      "id": "rt_event-bus_007",
+      "entry_kind": "phase-completed",
+      "statement": "Runtime plan for phase-completed via Event Bus",
+      "runtime_id": "run_event-bus_sample",
+      "target": "runtime/events/event-bus/",
+      "rule": "phase-completed per Runtime Engine contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "contracts/runtime-engine.md",
+        "pipelines/runtime-engine/RACI.md",
+        "runtime/configs/.ai-os.yaml"
+      ],
+      "impact": "Enables orchestrated phase-completed without manual worker invocation",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual Core invocation (not supported for end users)",
+      "confidence": 0.85,
+      "source_paths": [
+        "workers/",
+        "pipelines/",
+        "schemas/",
+        "configs/",
+        "registry/"
+      ],
+      "unknowns": [
+        "UNKNOWN: runtime execution not opened in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "runtime-engine",
+        "worker": "event-bus"
+      },
+      "folder_mirror": "runtime/events/event-bus/phase-completed.json"
+    },
+    {
+      "id": "rt_event-bus_008",
+      "entry_kind": "checkpoint-created",
+      "statement": "Runtime plan for checkpoint-created via Event Bus",
+      "runtime_id": "run_event-bus_sample",
+      "target": "runtime/events/event-bus/",
+      "rule": "checkpoint-created per Runtime Engine contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "contracts/runtime-engine.md",
+        "pipelines/runtime-engine/RACI.md",
+        "runtime/configs/.ai-os.yaml"
+      ],
+      "impact": "Enables orchestrated checkpoint-created without manual worker invocation",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual Core invocation (not supported for end users)",
+      "confidence": 0.85,
+      "source_paths": [
+        "workers/",
+        "pipelines/",
+        "schemas/",
+        "configs/",
+        "registry/"
+      ],
+      "unknowns": [
+        "UNKNOWN: runtime execution not opened in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "runtime-engine",
+        "worker": "event-bus"
+      },
+      "folder_mirror": "runtime/events/event-bus/checkpoint-created.json"
+    },
+    {
+      "id": "rt_event-bus_009",
+      "entry_kind": "execution-completed",
+      "statement": "Runtime plan for execution-completed via Event Bus",
+      "runtime_id": "run_event-bus_sample",
+      "target": "runtime/events/event-bus/",
+      "rule": "execution-completed per Runtime Engine contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "contracts/runtime-engine.md",
+        "pipelines/runtime-engine/RACI.md",
+        "runtime/configs/.ai-os.yaml"
+      ],
+      "impact": "Enables orchestrated execution-completed without manual worker invocation",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual Core invocation (not supported for end users)",
+      "confidence": 0.85,
+      "source_paths": [
+        "workers/",
+        "pipelines/",
+        "schemas/",
+        "configs/",
+        "registry/"
+      ],
+      "unknowns": [
+        "UNKNOWN: runtime execution not opened in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "runtime-engine",
+        "worker": "event-bus"
+      },
+      "folder_mirror": "runtime/events/event-bus/execution-completed.json"
+    },
+    {
+      "id": "rt_event-bus_010",
+      "entry_kind": "execution-failed",
+      "statement": "Runtime plan for execution-failed via Event Bus",
+      "runtime_id": "run_event-bus_sample",
+      "target": "runtime/events/event-bus/",
+      "rule": "execution-failed per Runtime Engine contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "contracts/runtime-engine.md",
+        "pipelines/runtime-engine/RACI.md",
+        "runtime/configs/.ai-os.yaml"
+      ],
+      "impact": "Enables orchestrated execution-failed without manual worker invocation",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual Core invocation (not supported for end users)",
+      "confidence": 0.85,
+      "source_paths": [
+        "workers/",
+        "pipelines/",
+        "schemas/",
+        "configs/",
+        "registry/"
+      ],
+      "unknowns": [
+        "UNKNOWN: runtime execution not opened in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "runtime-engine",
+        "worker": "event-bus"
+      },
+      "folder_mirror": "runtime/events/event-bus/execution-failed.json"
+    }
+  ],
+  "status": "draft",
+  "created_at": "2026-08-01T11:02:14Z"
+}

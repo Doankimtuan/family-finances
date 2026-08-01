@@ -1,0 +1,1 @@
+See `skills/dependency-resolver/SKILL.md`.

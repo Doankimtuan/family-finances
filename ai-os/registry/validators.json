@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "registry_kind": "validators",
-  "updated_at": "2026-08-01T10:32:40Z",
+  "updated_at": "2026-08-01T11:02:14Z",
   "entries": {
     "discovery-schema-check": {
       "id": "discovery-schema-check",
@@ -58,6 +58,13 @@
       "version": "0.1.0",
       "status": "draft",
       "description": "Deterministic checks for qualification-framework payloads."
+    },
+    "runtime-engine-schema-check": {
+      "id": "runtime-engine-schema-check",
+      "path": "validators/runtime-engine-schema-check",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Deterministic checks for runtime-engine payloads."
     }
   }
 }

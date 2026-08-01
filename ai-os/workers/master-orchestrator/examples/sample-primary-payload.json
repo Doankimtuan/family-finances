@@ -1,0 +1,352 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_rt_master-orchestrator_primary",
+  "type": "runtime-execution-report",
+  "worker_id": "master-orchestrator",
+  "title": "Master Orchestrator sample",
+  "summary": "Sample runtime-execution-report for master-orchestrator (packaging; workers not executed)",
+  "entries": [
+    {
+      "id": "rt_master-orchestrator_001",
+      "entry_kind": "load-config",
+      "statement": "Runtime plan for load-config via Master Orchestrator",
+      "runtime_id": "run_master-orchestrator_sample",
+      "target": "runtime/orchestrator/master-orchestrator/",
+      "rule": "load-config per Runtime Engine contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "contracts/runtime-engine.md",
+        "pipelines/runtime-engine/RACI.md",
+        "runtime/configs/.ai-os.yaml"
+      ],
+      "impact": "Enables orchestrated load-config without manual worker invocation",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual Core invocation (not supported for end users)",
+      "confidence": 0.85,
+      "source_paths": [
+        "workers/",
+        "pipelines/",
+        "schemas/",
+        "configs/",
+        "registry/"
+      ],
+      "unknowns": [
+        "UNKNOWN: runtime execution not opened in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "runtime-engine",
+        "worker": "master-orchestrator"
+      },
+      "folder_mirror": "runtime/orchestrator/master-orchestrator/load-config.json"
+    },
+    {
+      "id": "rt_master-orchestrator_002",
+      "entry_kind": "load-pipeline",
+      "statement": "Runtime plan for load-pipeline via Master Orchestrator",
+      "runtime_id": "run_master-orchestrator_sample",
+      "target": "runtime/orchestrator/master-orchestrator/",
+      "rule": "load-pipeline per Runtime Engine contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "contracts/runtime-engine.md",
+        "pipelines/runtime-engine/RACI.md",
+        "runtime/configs/.ai-os.yaml"
+      ],
+      "impact": "Enables orchestrated load-pipeline without manual worker invocation",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual Core invocation (not supported for end users)",
+      "confidence": 0.85,
+      "source_paths": [
+        "workers/",
+        "pipelines/",
+        "schemas/",
+        "configs/",
+        "registry/"
+      ],
+      "unknowns": [
+        "UNKNOWN: runtime execution not opened in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "runtime-engine",
+        "worker": "master-orchestrator"
+      },
+      "folder_mirror": "runtime/orchestrator/master-orchestrator/load-pipeline.json"
+    },
+    {
+      "id": "rt_master-orchestrator_003",
+      "entry_kind": "load-workers",
+      "statement": "Runtime plan for load-workers via Master Orchestrator",
+      "runtime_id": "run_master-orchestrator_sample",
+      "target": "runtime/orchestrator/master-orchestrator/",
+      "rule": "load-workers per Runtime Engine contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "contracts/runtime-engine.md",
+        "pipelines/runtime-engine/RACI.md",
+        "runtime/configs/.ai-os.yaml"
+      ],
+      "impact": "Enables orchestrated load-workers without manual worker invocation",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual Core invocation (not supported for end users)",
+      "confidence": 0.85,
+      "source_paths": [
+        "workers/",
+        "pipelines/",
+        "schemas/",
+        "configs/",
+        "registry/"
+      ],
+      "unknowns": [
+        "UNKNOWN: runtime execution not opened in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "runtime-engine",
+        "worker": "master-orchestrator"
+      },
+      "folder_mirror": "runtime/orchestrator/master-orchestrator/load-workers.json"
+    },
+    {
+      "id": "rt_master-orchestrator_004",
+      "entry_kind": "resolve-dependencies",
+      "statement": "Runtime plan for resolve-dependencies via Master Orchestrator",
+      "runtime_id": "run_master-orchestrator_sample",
+      "target": "runtime/orchestrator/master-orchestrator/",
+      "rule": "resolve-dependencies per Runtime Engine contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "contracts/runtime-engine.md",
+        "pipelines/runtime-engine/RACI.md",
+        "runtime/configs/.ai-os.yaml"
+      ],
+      "impact": "Enables orchestrated resolve-dependencies without manual worker invocation",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual Core invocation (not supported for end users)",
+      "confidence": 0.85,
+      "source_paths": [
+        "workers/",
+        "pipelines/",
+        "schemas/",
+        "configs/",
+        "registry/"
+      ],
+      "unknowns": [
+        "UNKNOWN: runtime execution not opened in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "runtime-engine",
+        "worker": "master-orchestrator"
+      },
+      "folder_mirror": "runtime/orchestrator/master-orchestrator/resolve-dependencies.json"
+    },
+    {
+      "id": "rt_master-orchestrator_005",
+      "entry_kind": "execute-pipeline",
+      "statement": "Execute pipeline planned \u2014 packaging does not run workers",
+      "runtime_id": "run_master-orchestrator_sample",
+      "target": "runtime/orchestrator/master-orchestrator/",
+      "rule": "execute-pipeline per Runtime Engine contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "contracts/runtime-engine.md",
+        "pipelines/runtime-engine/RACI.md",
+        "runtime/configs/.ai-os.yaml"
+      ],
+      "impact": "Enables orchestrated execute-pipeline without manual worker invocation",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual Core invocation (not supported for end users)",
+      "confidence": 0.85,
+      "source_paths": [
+        "workers/",
+        "pipelines/",
+        "schemas/",
+        "configs/",
+        "registry/"
+      ],
+      "unknowns": [
+        "UNKNOWN: runtime execution not opened in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "runtime-engine",
+        "worker": "master-orchestrator"
+      },
+      "folder_mirror": "runtime/orchestrator/master-orchestrator/execute-pipeline.json"
+    },
+    {
+      "id": "rt_master-orchestrator_006",
+      "entry_kind": "handle-failure",
+      "statement": "Runtime plan for handle-failure via Master Orchestrator",
+      "runtime_id": "run_master-orchestrator_sample",
+      "target": "runtime/orchestrator/master-orchestrator/",
+      "rule": "handle-failure per Runtime Engine contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "contracts/runtime-engine.md",
+        "pipelines/runtime-engine/RACI.md",
+        "runtime/configs/.ai-os.yaml"
+      ],
+      "impact": "Enables orchestrated handle-failure without manual worker invocation",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual Core invocation (not supported for end users)",
+      "confidence": 0.85,
+      "source_paths": [
+        "workers/",
+        "pipelines/",
+        "schemas/",
+        "configs/",
+        "registry/"
+      ],
+      "unknowns": [
+        "UNKNOWN: runtime execution not opened in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "runtime-engine",
+        "worker": "master-orchestrator"
+      },
+      "folder_mirror": "runtime/orchestrator/master-orchestrator/handle-failure.json"
+    },
+    {
+      "id": "rt_master-orchestrator_007",
+      "entry_kind": "handle-retry",
+      "statement": "Runtime plan for handle-retry via Master Orchestrator",
+      "runtime_id": "run_master-orchestrator_sample",
+      "target": "runtime/orchestrator/master-orchestrator/",
+      "rule": "handle-retry per Runtime Engine contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "contracts/runtime-engine.md",
+        "pipelines/runtime-engine/RACI.md",
+        "runtime/configs/.ai-os.yaml"
+      ],
+      "impact": "Enables orchestrated handle-retry without manual worker invocation",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual Core invocation (not supported for end users)",
+      "confidence": 0.85,
+      "source_paths": [
+        "workers/",
+        "pipelines/",
+        "schemas/",
+        "configs/",
+        "registry/"
+      ],
+      "unknowns": [
+        "UNKNOWN: runtime execution not opened in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "runtime-engine",
+        "worker": "master-orchestrator"
+      },
+      "folder_mirror": "runtime/orchestrator/master-orchestrator/handle-retry.json"
+    },
+    {
+      "id": "rt_master-orchestrator_008",
+      "entry_kind": "handle-resume",
+      "statement": "Runtime plan for handle-resume via Master Orchestrator",
+      "runtime_id": "run_master-orchestrator_sample",
+      "target": "runtime/orchestrator/master-orchestrator/",
+      "rule": "handle-resume per Runtime Engine contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "contracts/runtime-engine.md",
+        "pipelines/runtime-engine/RACI.md",
+        "runtime/configs/.ai-os.yaml"
+      ],
+      "impact": "Enables orchestrated handle-resume without manual worker invocation",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual Core invocation (not supported for end users)",
+      "confidence": 0.85,
+      "source_paths": [
+        "workers/",
+        "pipelines/",
+        "schemas/",
+        "configs/",
+        "registry/"
+      ],
+      "unknowns": [
+        "UNKNOWN: runtime execution not opened in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "runtime-engine",
+        "worker": "master-orchestrator"
+      },
+      "folder_mirror": "runtime/orchestrator/master-orchestrator/handle-resume.json"
+    },
+    {
+      "id": "rt_master-orchestrator_009",
+      "entry_kind": "freeze-phase",
+      "statement": "Runtime plan for freeze-phase via Master Orchestrator",
+      "runtime_id": "run_master-orchestrator_sample",
+      "target": "runtime/orchestrator/master-orchestrator/",
+      "rule": "freeze-phase per Runtime Engine contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "contracts/runtime-engine.md",
+        "pipelines/runtime-engine/RACI.md",
+        "runtime/configs/.ai-os.yaml"
+      ],
+      "impact": "Enables orchestrated freeze-phase without manual worker invocation",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual Core invocation (not supported for end users)",
+      "confidence": 0.85,
+      "source_paths": [
+        "workers/",
+        "pipelines/",
+        "schemas/",
+        "configs/",
+        "registry/"
+      ],
+      "unknowns": [
+        "UNKNOWN: runtime execution not opened in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "runtime-engine",
+        "worker": "master-orchestrator"
+      },
+      "folder_mirror": "runtime/orchestrator/master-orchestrator/freeze-phase.json"
+    },
+    {
+      "id": "rt_master-orchestrator_010",
+      "entry_kind": "execution-summary",
+      "statement": "Execution summary template for @Run full single-command UX",
+      "runtime_id": "run_master-orchestrator_sample",
+      "target": "runtime/orchestrator/master-orchestrator/",
+      "rule": "execution-summary per Runtime Engine contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "contracts/runtime-engine.md",
+        "pipelines/runtime-engine/RACI.md",
+        "runtime/configs/.ai-os.yaml"
+      ],
+      "impact": "Enables orchestrated execution-summary without manual worker invocation",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual Core invocation (not supported for end users)",
+      "confidence": 0.85,
+      "source_paths": [
+        "workers/",
+        "pipelines/",
+        "schemas/",
+        "configs/",
+        "registry/"
+      ],
+      "unknowns": [
+        "UNKNOWN: runtime execution not opened in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "runtime-engine",
+        "worker": "master-orchestrator"
+      },
+      "folder_mirror": "runtime/orchestrator/master-orchestrator/execution-summary.json"
+    }
+  ],
+  "status": "draft",
+  "created_at": "2026-08-01T11:02:14Z"
+}

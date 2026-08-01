@@ -1,0 +1,5 @@
+{
+  "command": "@Run full",
+  "config": "runtime/configs/.ai-os.yaml",
+  "mode": "packaging"
+}

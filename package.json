@@ -15,7 +15,8 @@
     "aios:validation-engine:smoke": "npx --yes tsx ai-os/core/scripts/validation-engine-smoke.ts",
     "aios:review-engine:smoke": "npx --yes tsx ai-os/core/scripts/review-engine-smoke.ts",
     "aios:framework-generator:smoke": "npx --yes tsx ai-os/core/scripts/framework-generator-smoke.ts",
-    "aios:qualification-framework:smoke": "npx --yes tsx ai-os/core/scripts/qualification-framework-smoke.ts"
+    "aios:qualification-framework:smoke": "npx --yes tsx ai-os/core/scripts/qualification-framework-smoke.ts",
+    "aios:runtime-engine:smoke": "npx --yes tsx ai-os/core/scripts/runtime-engine-smoke.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

@@ -95,8 +95,8 @@ async function main() {
   assertWaveTopology(result.pipeline.waves, result.graph.edges);
 
   const version = (await fs.readFile(path.join(root, "VERSION"), "utf8")).trim();
-  if (version !== "0.10.0") {
-    throw new Error(`Expected VERSION 0.10.0, got ${version}`);
+  if (version !== "0.11.0") {
+    throw new Error(`Expected VERSION 0.11.0, got ${version}`);
   }
 
   const meta = JSON.parse(
@@ -128,7 +128,7 @@ async function main() {
     "contracts/qualification-framework.md",
     "qualification/reference-projects/catalog.json",
     "qualification/scorecards/metrics-catalog.json",
-    "RELEASE_NOTES_0.10.0.md",
+    "RELEASE_NOTES_0.11.0.md",
   ]) {
     await fs.access(path.join(root, rel));
   }

@@ -14,6 +14,7 @@ Read this before contributing to or operating within AIOS.
 | Maintain Review Engine Workers (`pipelines/review-engine/`) | Mutate sources / regenerate outputs / validate schemas / execute reviews in packaging milestone |
 | Maintain Framework Generator Workers (`pipelines/framework-generator/`) | Execute generation / mutate prior workers / create project-specific workers in packaging milestone |
 | Maintain Qualification Framework Workers (`pipelines/qualification-framework/`) | Execute benchmarks / modify framework / regenerate workers / invent ground truth in packaging milestone |
+| Maintain Runtime Engine Workers (`pipelines/runtime-engine/`) | Execute workers / analyze projects / mutate workers-validators-reviewers / bypass Execution Planner in packaging milestone |
 | Extend reserved skills/validators/reviewers for registered pipelines | Bypass validation/review gates |
 | Load/validate pipelines via KnowledgeBase | Invoke/claim workers from Core |
 | Use / extend Core Engine (`ai-os/core`) | Re-inline enums already in common schemas |
@@ -29,7 +30,7 @@ Import: `@/ai-os/core` → `createAiosCore()`.
 
 Modules: `planner`, `orchestrator`, `artifacts`, `memory`, `knowledge`, `schemas`, `templates`, `configs`.
 
-Smoke: `npm run aios:core:smoke` · Discovery: `npm run aios:discovery:smoke` · Product RE: `npm run aios:product-re:smoke` · Solution Architecture: `npm run aios:solution-architecture:smoke` · Specification Engineering: `npm run aios:specification-engineering:smoke` · Validation Engine: `npm run aios:validation-engine:smoke` · Review Engine: `npm run aios:review-engine:smoke` · Framework Generator: `npm run aios:framework-generator:smoke` · Qualification Framework: `npm run aios:qualification-framework:smoke`
+Smoke: `npm run aios:core:smoke` · Discovery: `npm run aios:discovery:smoke` · Product RE: `npm run aios:product-re:smoke` · Solution Architecture: `npm run aios:solution-architecture:smoke` · Specification Engineering: `npm run aios:specification-engineering:smoke` · Validation Engine: `npm run aios:validation-engine:smoke` · Review Engine: `npm run aios:review-engine:smoke` · Framework Generator: `npm run aios:framework-generator:smoke` · Qualification Framework: `npm run aios:qualification-framework:smoke` · Runtime Engine: `npm run aios:runtime-engine:smoke`
 
 ## Role selection
 

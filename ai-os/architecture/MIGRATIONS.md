@@ -24,6 +24,19 @@ Sprint 7 Validation Engine Product Review Board HOLD remediation (Feature Worker
 | Gold | circular + orphan fail samples; full reporter severity kinds |
 | Schemas | payload constraints tightened; validator/reviewer **0.2.0**; pipeline/workers/skills **0.1.1** |
 
+## 0.10.0 → 0.11.0 (2026-08-01)
+
+Sprint 11 Runtime Engine (workers not executed; prior packages unchanged).
+
+| Change | Detail |
+|--------|--------|
+| Pipeline | New `runtime-engine` with 15 workers in 7 topologically valid waves |
+| Artifact types | `runtime-status`, `runtime-event`, `runtime-log`, `runtime-command`, `runtime-plan`, `runtime-checkpoint`, `runtime-execution-report`, `gate-runtime-report` |
+| Output partition | `runtime/` (orchestrator, execution, commands, state, logs, events, configs, checkpoint, resume, scheduler, templates) |
+| UX | `@Run` command registry + default `.ai-os.yaml` |
+| Gate | `runtime-engine-schema-check`, `runtime-engine-coverage-review` |
+| Smoke | `aios:runtime-engine:smoke` |
+
 ## 0.9.1 → 0.10.0 (2026-08-01)
 
 Sprint 10 Qualification Framework (benchmarks not executed; prior workers unchanged).

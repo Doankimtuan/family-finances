@@ -1,0 +1,4 @@
+{
+  "type": "runtime-event",
+  "worker_id": "event-bus"
+}

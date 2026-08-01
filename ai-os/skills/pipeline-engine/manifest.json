@@ -1,0 +1,128 @@
+{
+  "schema_version": "1.0.0",
+  "id": "pipeline-engine",
+  "version": "0.1.0",
+  "title": "Pipeline Engine",
+  "description": "Execute execution graphs: sequential, parallel, conditional, dynamic, resume, and incremental modes. Orchestration only \u2014 never implement business analysis.",
+  "role": "orchestrator",
+  "grade": "guided",
+  "inputs": [
+    {
+      "name": "goal",
+      "artifact_type": "goal",
+      "required": true,
+      "description": "Runtime goal"
+    },
+    {
+      "name": "workers",
+      "artifact_type": "doc-source",
+      "required": true,
+      "description": "workers/"
+    },
+    {
+      "name": "validators",
+      "artifact_type": "doc-source",
+      "required": false,
+      "description": "validators/"
+    },
+    {
+      "name": "reviewers",
+      "artifact_type": "doc-source",
+      "required": false,
+      "description": "reviewers/"
+    },
+    {
+      "name": "pipelines",
+      "artifact_type": "doc-source",
+      "required": true,
+      "description": "pipelines/"
+    },
+    {
+      "name": "workflow",
+      "artifact_type": "doc-source",
+      "required": false,
+      "description": "workflow/"
+    },
+    {
+      "name": "templates",
+      "artifact_type": "doc-source",
+      "required": false,
+      "description": "templates/"
+    },
+    {
+      "name": "schemas",
+      "artifact_type": "doc-source",
+      "required": true,
+      "description": "schemas/"
+    },
+    {
+      "name": "configs",
+      "artifact_type": "doc-source",
+      "required": true,
+      "description": "configs/"
+    },
+    {
+      "name": "artifacts",
+      "artifact_type": "doc-source",
+      "required": false,
+      "description": "artifacts/"
+    },
+    {
+      "name": "knowledge",
+      "artifact_type": "doc-source",
+      "required": false,
+      "description": "knowledge/"
+    },
+    {
+      "name": "registry",
+      "artifact_type": "doc-source",
+      "required": false,
+      "description": "registry/"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "primary",
+      "artifact_type": "runtime-status",
+      "primary": true,
+      "description": "runtime-status"
+    }
+  ],
+  "requires_skills": [
+    "worker-scheduler",
+    "retry-engine",
+    "resume-engine",
+    "progress-tracker",
+    "logging-engine"
+  ],
+  "validators": [
+    "runtime-engine-schema-check"
+  ],
+  "reviewers": [
+    "runtime-engine-coverage-review"
+  ],
+  "side_effects": [
+    "runtime-write"
+  ],
+  "status": "draft",
+  "entrypoint": "SKILL.md",
+  "extensions": {
+    "pipeline": "runtime-engine",
+    "mutate_workers": false,
+    "mutate_validators": false,
+    "mutate_reviewers": false,
+    "execute_workers": false,
+    "orchestrate_only": true,
+    "partition": "runtime/execution/pipeline-engine/",
+    "raci": "pipelines/runtime-engine/RACI.md",
+    "gate_output_type": "gate-runtime-report",
+    "entry_kinds": [
+      "sequential-execution",
+      "parallel-execution",
+      "conditional-execution",
+      "dynamic-execution",
+      "resume-execution",
+      "incremental-execution"
+    ]
+  }
+}

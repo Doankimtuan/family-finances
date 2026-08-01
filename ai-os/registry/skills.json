@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "registry_kind": "skills",
-  "updated_at": "2026-08-01T10:32:40Z",
+  "updated_at": "2026-08-01T11:02:14Z",
   "entries": {
     "example-skill": {
       "id": "example-skill",
@@ -482,6 +482,111 @@
       "version": "0.1.0",
       "status": "draft",
       "description": "Aggregate all benchmarks into PASS/FAIL, Go/No-Go, release candidate decision, known limitations, production readiness, and improvement backlog."
+    },
+    "runtime-configuration-loader": {
+      "id": "runtime-configuration-loader",
+      "path": "skills/runtime-configuration-loader",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Load .ai-os.yaml, run.yaml, workspace.yaml, environment variables, and defaults into a normalized runtime config. Never execute workers."
+    },
+    "event-bus": {
+      "id": "event-bus",
+      "path": "skills/event-bus",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Define and plan runtime events: WorkerStarted/Finished, Validation*, Review*, PhaseCompleted, CheckpointCreated, ExecutionCompleted/Failed. Never mutate workers."
+    },
+    "logging-engine": {
+      "id": "logging-engine",
+      "path": "skills/logging-engine",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Plan structured execution, worker, validation, review, failure, and performance logs. Never modify worker implementations."
+    },
+    "command-interpreter": {
+      "id": "command-interpreter",
+      "path": "skills/command-interpreter",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Parse single-command UX (@Run full|incremental|phase N|resume|retry|validate|review|freeze|status|benchmark) into normalized run intents. Never invoke workers directly."
+    },
+    "dependency-resolver": {
+      "id": "dependency-resolver",
+      "path": "skills/dependency-resolver",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Resolve worker, artifact, pipeline, and execution dependencies; reject circular dependencies. Never modify dependency graphs on disk."
+    },
+    "execution-context-manager": {
+      "id": "execution-context-manager",
+      "path": "skills/execution-context-manager",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Maintain current phase, completed workers, execution state, temporary memory, shared context, worker outputs, and global variables. Orchestration state only."
+    },
+    "artifact-manager": {
+      "id": "artifact-manager",
+      "path": "skills/artifact-manager",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Track generated artifacts, versions, lifecycle, ownership, and dependencies during runtime. Never invent business artifacts."
+    },
+    "execution-planner": {
+      "id": "execution-planner",
+      "path": "skills/execution-planner",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Before execution, generate execution graph, worker order, estimated outputs/runtime, validation/review/checkpoint plans. Never execute immediately."
+    },
+    "checkpoint-manager": {
+      "id": "checkpoint-manager",
+      "path": "skills/checkpoint-manager",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Plan checkpoints before every phase, after validation, before retries, before freeze; support rollback. Never modify workers."
+    },
+    "progress-tracker": {
+      "id": "progress-tracker",
+      "path": "skills/progress-tracker",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Track overall progress, current phase, worker status, execution time, ETA, generated artifacts, and quality status."
+    },
+    "worker-scheduler": {
+      "id": "worker-scheduler",
+      "path": "skills/worker-scheduler",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Select workers, resolve execution order, prevent duplicated execution, support priorities and concurrency. Never implement worker logic."
+    },
+    "retry-engine": {
+      "id": "retry-engine",
+      "path": "skills/retry-engine",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Plan retries for failed workers/phases/validation/review with updated context and retry limits from runtime config."
+    },
+    "resume-engine": {
+      "id": "resume-engine",
+      "path": "skills/resume-engine",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Resume from latest checkpoint, failed worker, failed phase, or interrupted execution. Deterministic resume plans only in packaging."
+    },
+    "pipeline-engine": {
+      "id": "pipeline-engine",
+      "path": "skills/pipeline-engine",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Execute execution graphs: sequential, parallel, conditional, dynamic, resume, and incremental modes. Orchestration only \u2014 never implement business analysis."
+    },
+    "master-orchestrator": {
+      "id": "master-orchestrator",
+      "path": "skills/master-orchestrator",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Single entry point: load config/pipeline/workers, resolve deps, drive pipeline engine, handle failures/retries/resume, freeze phases, produce execution summary. End users invoke only @Run commands \u2014 never individual workers."
     }
   }
 }

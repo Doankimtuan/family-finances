@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "registry_kind": "artifact-types",
-  "updated_at": "2026-08-01T10:32:40Z",
+  "updated_at": "2026-08-01T11:02:14Z",
   "entries": {
     "goal": {
       "id": "goal",
@@ -521,6 +521,86 @@
         "json",
         "markdown",
         "csv"
+      ],
+      "status": "active"
+    },
+    "runtime-status": {
+      "id": "runtime-status",
+      "description": "Runtime context / progress / scheduler status",
+      "payload_kinds": [
+        "json",
+        "markdown",
+        "yaml"
+      ],
+      "status": "active"
+    },
+    "runtime-event": {
+      "id": "runtime-event",
+      "description": "Runtime event bus event",
+      "payload_kinds": [
+        "json",
+        "markdown",
+        "yaml"
+      ],
+      "status": "active"
+    },
+    "runtime-log": {
+      "id": "runtime-log",
+      "description": "Structured runtime log entry",
+      "payload_kinds": [
+        "json",
+        "markdown",
+        "yaml"
+      ],
+      "status": "active"
+    },
+    "runtime-command": {
+      "id": "runtime-command",
+      "description": "Parsed @Run command intent",
+      "payload_kinds": [
+        "json",
+        "markdown",
+        "yaml"
+      ],
+      "status": "active"
+    },
+    "runtime-plan": {
+      "id": "runtime-plan",
+      "description": "Pre-execution plan (never executes immediately)",
+      "payload_kinds": [
+        "json",
+        "markdown",
+        "yaml"
+      ],
+      "status": "active"
+    },
+    "runtime-checkpoint": {
+      "id": "runtime-checkpoint",
+      "description": "Checkpoint / rollback plan",
+      "payload_kinds": [
+        "json",
+        "markdown",
+        "yaml"
+      ],
+      "status": "active"
+    },
+    "runtime-execution-report": {
+      "id": "runtime-execution-report",
+      "description": "Master orchestrator execution summary",
+      "payload_kinds": [
+        "json",
+        "markdown",
+        "yaml"
+      ],
+      "status": "active"
+    },
+    "gate-runtime-report": {
+      "id": "gate-runtime-report",
+      "description": "Gate envelope for runtime engine",
+      "payload_kinds": [
+        "json",
+        "markdown",
+        "yaml"
       ],
       "status": "active"
     }

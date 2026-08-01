@@ -1,0 +1,128 @@
+{
+  "schema_version": "1.0.0",
+  "id": "command-interpreter",
+  "version": "0.1.0",
+  "title": "Command Interpreter",
+  "description": "Parse single-command UX (@Run full|incremental|phase N|resume|retry|validate|review|freeze|status|benchmark) into normalized run intents. Never invoke workers directly.",
+  "role": "executor",
+  "grade": "guided",
+  "inputs": [
+    {
+      "name": "goal",
+      "artifact_type": "goal",
+      "required": true,
+      "description": "Runtime goal"
+    },
+    {
+      "name": "workers",
+      "artifact_type": "doc-source",
+      "required": true,
+      "description": "workers/"
+    },
+    {
+      "name": "validators",
+      "artifact_type": "doc-source",
+      "required": false,
+      "description": "validators/"
+    },
+    {
+      "name": "reviewers",
+      "artifact_type": "doc-source",
+      "required": false,
+      "description": "reviewers/"
+    },
+    {
+      "name": "pipelines",
+      "artifact_type": "doc-source",
+      "required": true,
+      "description": "pipelines/"
+    },
+    {
+      "name": "workflow",
+      "artifact_type": "doc-source",
+      "required": false,
+      "description": "workflow/"
+    },
+    {
+      "name": "templates",
+      "artifact_type": "doc-source",
+      "required": false,
+      "description": "templates/"
+    },
+    {
+      "name": "schemas",
+      "artifact_type": "doc-source",
+      "required": true,
+      "description": "schemas/"
+    },
+    {
+      "name": "configs",
+      "artifact_type": "doc-source",
+      "required": true,
+      "description": "configs/"
+    },
+    {
+      "name": "artifacts",
+      "artifact_type": "doc-source",
+      "required": false,
+      "description": "artifacts/"
+    },
+    {
+      "name": "knowledge",
+      "artifact_type": "doc-source",
+      "required": false,
+      "description": "knowledge/"
+    },
+    {
+      "name": "registry",
+      "artifact_type": "doc-source",
+      "required": false,
+      "description": "registry/"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "primary",
+      "artifact_type": "runtime-command",
+      "primary": true,
+      "description": "runtime-command"
+    }
+  ],
+  "requires_skills": [
+    "runtime-configuration-loader"
+  ],
+  "validators": [
+    "runtime-engine-schema-check"
+  ],
+  "reviewers": [
+    "runtime-engine-coverage-review"
+  ],
+  "side_effects": [
+    "runtime-write"
+  ],
+  "status": "draft",
+  "entrypoint": "SKILL.md",
+  "extensions": {
+    "pipeline": "runtime-engine",
+    "mutate_workers": false,
+    "mutate_validators": false,
+    "mutate_reviewers": false,
+    "execute_workers": false,
+    "orchestrate_only": true,
+    "partition": "runtime/commands/command-interpreter/",
+    "raci": "pipelines/runtime-engine/RACI.md",
+    "gate_output_type": "gate-runtime-report",
+    "entry_kinds": [
+      "run-full",
+      "run-incremental",
+      "run-phase",
+      "run-resume",
+      "run-retry",
+      "run-validate",
+      "run-review",
+      "run-freeze",
+      "run-status",
+      "run-benchmark"
+    ]
+  }
+}

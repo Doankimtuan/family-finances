@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "registry_kind": "reviewers",
-  "updated_at": "2026-08-01T10:32:40Z",
+  "updated_at": "2026-08-01T11:02:14Z",
   "entries": {
     "discovery-coverage-review": {
       "id": "discovery-coverage-review",
@@ -58,6 +58,13 @@
       "version": "0.1.0",
       "status": "draft",
       "description": "Qualitative coverage of qualification and certification plans."
+    },
+    "runtime-engine-coverage-review": {
+      "id": "runtime-engine-coverage-review",
+      "path": "reviewers/runtime-engine-coverage-review",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Qualitative coverage of runtime orchestration plans."
     }
   }
 }

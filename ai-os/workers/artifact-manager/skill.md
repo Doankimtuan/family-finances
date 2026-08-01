@@ -1,0 +1,1 @@
+See `skills/artifact-manager/SKILL.md`.
