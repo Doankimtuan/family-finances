@@ -44,3 +44,6 @@ next-env.d.ts
 /ai-os/runtime/**
 !/ai-os/runtime/**/
 !/ai-os/runtime/**/.gitkeep
+
+# Legacy retirement backups (large tarballs may be kept locally)
+# archive/backups/*.tar.gz

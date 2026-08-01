@@ -1,12 +1,15 @@
 {
   "name": "family-finances",
-  "version": "0.1.0",
+  "version": "2.0.0-rewrite",
   "private": true,
+  "description": "ViNha rewrite workspace \u2014 Architecture v2.0.0 skeleton (legacy retired to archive/legacy-v1)",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
     "aios:core:smoke": "npx --yes tsx ai-os/core/scripts/smoke.ts",
     "aios:discovery:smoke": "npx --yes tsx ai-os/core/scripts/discovery-smoke.ts",
     "aios:product-re:smoke": "npx --yes tsx ai-os/core/scripts/product-re-smoke.ts",
@@ -20,24 +23,12 @@
     "aios:capabilities:smoke": "npx --yes tsx ai-os/core/scripts/capabilities-smoke.ts"
   },
   "dependencies": {
-    "@hookform/resolvers": "^5.2.2",
-    "@radix-ui/react-slot": "^1.2.4",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.56.0",
     "@tanstack/react-query": "^5.90.21",
-    "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
-    "date-fns": "^4.1.0",
-    "lucide-react": "^0.575.0",
     "next": "16.1.6",
-    "next-themes": "^0.4.6",
-    "radix-ui": "^1.4.3",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "react-hook-form": "^7.71.2",
-    "recharts": "^3.7.0",
-    "sonner": "^2.0.7",
-    "tailwind-merge": "^3.5.0",
     "zod": "^4.3.6",
     "zustand": "^5.0.11"
   },
@@ -48,16 +39,9 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
-    "eslint-plugin-unused-imports": "^4.4.1",
+    "playwright": "^1.50.0",
     "tailwindcss": "^4",
-    "typescript": "^5"
-  },
-  "ignoreScripts": [
-    "sharp",
-    "unrs-resolver"
-  ],
-  "trustedDependencies": [
-    "sharp",
-    "unrs-resolver"
-  ]
+    "typescript": "^5",
+    "vitest": "^3.0.0"
+  }
 }

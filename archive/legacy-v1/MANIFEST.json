@@ -1,0 +1,32 @@
+{
+  "run_id": "run_legacy_retirement_20260801T160000Z",
+  "retired_at": "2026-08-01T15:07:13Z",
+  "archive_path": "archive/legacy-v1",
+  "backup_path": "archive/backups/legacy-v1-complete-run_legacy_retirement_20260801T160000Z.tar.gz",
+  "backup_bytes": 2540190,
+  "moved": [
+    "app",
+    "components",
+    "lib",
+    "public",
+    "proxy.ts",
+    "next.config.ts",
+    "components.json",
+    "bun.lockb",
+    "package-lock.json"
+  ],
+  "copied_into_archive": [
+    "package.json",
+    "supabase",
+    "scripts"
+  ],
+  "kept_at_root_intentionally": [
+    "supabase (strangler DB continuity)",
+    "ai-os",
+    "artifacts",
+    "docs",
+    ".ai-os.yaml",
+    "package.json (replaced with rewrite skeleton)",
+    ".env.local (not archived)"
+  ]
+}
