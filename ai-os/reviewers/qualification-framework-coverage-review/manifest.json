@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0.0",
+  "id": "qualification-framework-coverage-review",
+  "version": "0.1.0",
+  "title": "Qualification Framework Coverage Review",
+  "description": "Qualitative coverage of certification, reproducibility, and RACI.",
+  "applies_to": [
+    "qualification-finding",
+    "qualification-scores",
+    "certification-report",
+    "release-qualification-decision"
+  ],
+  "rubric_ref": "reviewers/qualification-framework-coverage-review/rubric/qualification-framework-coverage.json"
+}

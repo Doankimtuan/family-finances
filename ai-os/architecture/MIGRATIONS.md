@@ -24,6 +24,20 @@ Sprint 7 Validation Engine Product Review Board HOLD remediation (Feature Worker
 | Gold | circular + orphan fail samples; full reporter severity kinds |
 | Schemas | payload constraints tightened; validator/reviewer **0.2.0**; pipeline/workers/skills **0.1.1** |
 
+## 0.9.1 → 0.10.0 (2026-08-01)
+
+Sprint 10 Qualification Framework (benchmarks not executed; prior workers unchanged).
+
+| Change | Detail |
+|--------|--------|
+| Pipeline | New `qualification-framework` with 10 workers in 7 topologically valid waves |
+| Artifact types | `qualification-finding`, `qualification-scores`, `certification-report`, `release-qualification-decision`, `gate-qualification-report` |
+| Output partition | `qualification/` (benchmarks, metrics, certification, reports, scorecards, reference-projects, release, templates) |
+| Catalog | 14 reference project classes with required benchmark modes |
+| Certification | 8 normative thresholds documented in contract |
+| Gate | `qualification-framework-schema-check`, `qualification-framework-coverage-review` |
+| Smoke | `aios:qualification-framework:smoke` |
+
 ## 0.9.0 → 0.9.1 (2026-08-01)
 
 Sprint 9 Framework Generator Board HOLD remediation (generation not executed).

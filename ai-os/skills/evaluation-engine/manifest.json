@@ -1,0 +1,135 @@
+{
+  "schema_version": "1.0.0",
+  "id": "evaluation-engine",
+  "version": "0.1.0",
+  "title": "Evaluation Engine",
+  "description": "Plan evaluation of every generated artifact for accuracy, completeness, consistency, traceability, maintainability, extensibility, AI reliability, and documentation quality.",
+  "role": "executor",
+  "grade": "guided",
+  "inputs": [
+    {
+      "name": "goal",
+      "artifact_type": "goal",
+      "required": true,
+      "description": "Qualification goal"
+    },
+    {
+      "name": "workers",
+      "artifact_type": "doc-source",
+      "required": true,
+      "description": "workers/"
+    },
+    {
+      "name": "validators",
+      "artifact_type": "doc-source",
+      "required": false,
+      "description": "validators/"
+    },
+    {
+      "name": "reviewers",
+      "artifact_type": "doc-source",
+      "required": false,
+      "description": "reviewers/"
+    },
+    {
+      "name": "pipelines",
+      "artifact_type": "doc-source",
+      "required": true,
+      "description": "pipelines/"
+    },
+    {
+      "name": "artifacts",
+      "artifact_type": "doc-source",
+      "required": false,
+      "description": "artifacts/"
+    },
+    {
+      "name": "schemas",
+      "artifact_type": "doc-source",
+      "required": true,
+      "description": "schemas/"
+    },
+    {
+      "name": "templates",
+      "artifact_type": "doc-source",
+      "required": false,
+      "description": "templates/"
+    },
+    {
+      "name": "reports",
+      "artifact_type": "doc-source",
+      "required": false,
+      "description": "reports/"
+    },
+    {
+      "name": "knowledge",
+      "artifact_type": "doc-source",
+      "required": false,
+      "description": "knowledge/"
+    },
+    {
+      "name": "specifications",
+      "artifact_type": "doc-source",
+      "required": false,
+      "description": "specifications/"
+    },
+    {
+      "name": "registry",
+      "artifact_type": "doc-source",
+      "required": false,
+      "description": "registry/"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "primary",
+      "artifact_type": "qualification-finding",
+      "primary": true,
+      "description": "qualification-finding"
+    }
+  ],
+  "requires_skills": [
+    "benchmark-runner"
+  ],
+  "validators": [
+    "qualification-framework-schema-check"
+  ],
+  "reviewers": [
+    "qualification-framework-coverage-review"
+  ],
+  "side_effects": [
+    "runtime-write"
+  ],
+  "status": "draft",
+  "entrypoint": "SKILL.md",
+  "extensions": {
+    "pipeline": "qualification-framework",
+    "mutate_framework_components": false,
+    "regenerate_workers": false,
+    "execute_benchmarks": false,
+    "evaluate_only": true,
+    "partition": "qualification/metrics/evaluation-engine/",
+    "raci": "pipelines/qualification-framework/RACI.md",
+    "gate_output_type": "gate-qualification-report",
+    "entry_kinds": [
+      "accuracy",
+      "completeness",
+      "consistency",
+      "traceability",
+      "maintainability",
+      "extensibility",
+      "ai-reliability",
+      "documentation-quality"
+    ],
+    "certification_thresholds": {
+      "feature_discovery_recall": 0.95,
+      "business_rule_coverage": 0.9,
+      "specification_completeness": 0.95,
+      "traceability": 1.0,
+      "critical_failures": 0,
+      "pipeline_completion": 0.99,
+      "worker_reliability": 0.98,
+      "documentation_coverage": 0.95
+    }
+  }
+}

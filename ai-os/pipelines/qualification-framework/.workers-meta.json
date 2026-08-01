@@ -1,0 +1,164 @@
+{
+  "reference-project-catalog": {
+    "wave": 0,
+    "partition": "qualification/reference-projects/reference-project-catalog/",
+    "entry_kinds": [
+      "catalog-entry",
+      "ground-truth",
+      "expected-outputs",
+      "expected-metrics",
+      "expected-specifications",
+      "acceptance-threshold"
+    ],
+    "produces": [
+      "qualification-finding"
+    ]
+  },
+  "benchmark-runner": {
+    "wave": 1,
+    "partition": "qualification/benchmarks/benchmark-runner/",
+    "entry_kinds": [
+      "full-analysis",
+      "incremental-analysis",
+      "partial-analysis",
+      "repository-comparison",
+      "repeatability-test",
+      "benchmark-report-plan"
+    ],
+    "produces": [
+      "qualification-finding"
+    ]
+  },
+  "qualification-runner": {
+    "wave": 2,
+    "partition": "qualification/benchmarks/qualification-runner/",
+    "entry_kinds": [
+      "pipeline-execution",
+      "worker-cooperation",
+      "artifact-integrity",
+      "knowledge-integrity",
+      "specification-integrity",
+      "execution-stability"
+    ],
+    "produces": [
+      "qualification-finding"
+    ]
+  },
+  "evaluation-engine": {
+    "wave": 2,
+    "partition": "qualification/metrics/evaluation-engine/",
+    "entry_kinds": [
+      "accuracy",
+      "completeness",
+      "consistency",
+      "traceability",
+      "maintainability",
+      "extensibility",
+      "ai-reliability",
+      "documentation-quality"
+    ],
+    "produces": [
+      "qualification-finding"
+    ]
+  },
+  "stress-test-runner": {
+    "wave": 2,
+    "partition": "qualification/benchmarks/stress-test-runner/",
+    "entry_kinds": [
+      "large-repository",
+      "monorepo",
+      "microservice",
+      "huge-dependency-graph",
+      "long-pipeline",
+      "repeated-execution",
+      "memory-pressure"
+    ],
+    "produces": [
+      "qualification-finding"
+    ]
+  },
+  "metrics-engine": {
+    "wave": 3,
+    "partition": "qualification/metrics/metrics-engine/",
+    "entry_kinds": [
+      "repository-coverage",
+      "feature-coverage",
+      "business-rule-coverage",
+      "api-coverage",
+      "database-coverage",
+      "ui-coverage",
+      "specification-coverage",
+      "traceability-coverage",
+      "execution-time",
+      "token-usage",
+      "failure-rate",
+      "retry-count",
+      "confidence-distribution"
+    ],
+    "produces": [
+      "qualification-scores"
+    ]
+  },
+  "coverage-analyzer": {
+    "wave": 4,
+    "partition": "qualification/metrics/coverage-analyzer/",
+    "entry_kinds": [
+      "missing-features",
+      "missing-business-rules",
+      "missing-apis",
+      "missing-requirements",
+      "missing-specifications",
+      "missing-relationships",
+      "missing-traceability"
+    ],
+    "produces": [
+      "qualification-finding"
+    ]
+  },
+  "regression-runner": {
+    "wave": 4,
+    "partition": "qualification/benchmarks/regression-runner/",
+    "entry_kinds": [
+      "regression",
+      "lost-capability",
+      "quality-drop",
+      "performance-drop",
+      "output-difference",
+      "breaking-change"
+    ],
+    "produces": [
+      "qualification-finding"
+    ]
+  },
+  "certification-engine": {
+    "wave": 5,
+    "partition": "qualification/certification/certification-engine/",
+    "entry_kinds": [
+      "certification-report",
+      "capability-matrix",
+      "quality-matrix",
+      "coverage-matrix",
+      "reliability-matrix",
+      "maturity-assessment",
+      "release-recommendation"
+    ],
+    "produces": [
+      "certification-report"
+    ]
+  },
+  "release-qualification-board": {
+    "wave": 6,
+    "partition": "qualification/release/release-qualification-board/",
+    "entry_kinds": [
+      "pass-fail",
+      "go-no-go",
+      "release-candidate-decision",
+      "known-limitations",
+      "production-readiness",
+      "improvement-backlog"
+    ],
+    "produces": [
+      "release-qualification-decision"
+    ]
+  }
+}

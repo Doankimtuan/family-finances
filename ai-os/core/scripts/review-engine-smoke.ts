@@ -108,14 +108,14 @@ async function main() {
     "templates/review/REVIEW_MATRIX.md",
     "validators/review-engine-schema-check/manifest.json",
     "reviewers/review-engine-coverage-review/rubric/review-engine-coverage.json",
-    "RELEASE_NOTES_0.9.1.md",
+    "RELEASE_NOTES_0.10.0.md",
   ]) {
     await fs.access(path.join(root, rel));
   }
 
   const version = (await fs.readFile(path.join(root, "VERSION"), "utf8")).trim();
-  if (version !== "0.9.1") {
-    throw new Error(`Expected VERSION 0.9.1, got ${version}`);
+  if (version !== "0.10.0") {
+    throw new Error(`Expected VERSION 0.10.0, got ${version}`);
   }
 
   const vManifest = JSON.parse(

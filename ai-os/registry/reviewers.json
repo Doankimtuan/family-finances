@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "registry_kind": "reviewers",
-  "updated_at": "2026-08-01T08:10:53Z",
+  "updated_at": "2026-08-01T10:32:40Z",
   "entries": {
     "discovery-coverage-review": {
       "id": "discovery-coverage-review",
@@ -51,6 +51,13 @@
       "version": "0.2.0",
       "status": "draft",
       "description": "Qualitative coverage of generator scaffold plans."
+    },
+    "qualification-framework-coverage-review": {
+      "id": "qualification-framework-coverage-review",
+      "path": "reviewers/qualification-framework-coverage-review",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Qualitative coverage of qualification and certification plans."
     }
   }
 }

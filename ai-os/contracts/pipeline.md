@@ -30,6 +30,7 @@ A **pipeline** binds registered workers into ordered waves with an explicit depe
 | `pipelines/validation-engine/` | Automatic validation of AIOS artifacts → findings / scores / reports | forbidden |
 | `pipelines/review-engine/` | Governance review of validated artifacts → findings / scores / decisions | forbidden |
 | `pipelines/framework-generator/` | Configuration-driven scaffolding of framework components from capability specs | forbidden |
+| `pipelines/qualification-framework/` | Evaluate / benchmark / certify AIOS against reference projects | forbidden |
 
 ### Handoffs
 
@@ -39,5 +40,6 @@ A **pipeline** binds registered workers into ordered waves with an explicit depe
 - Validation Engine: soft-reads `schemas/`, `workers/`, `pipelines/`, `templates/`, `knowledge/`, `artifacts/`, `execution/`; writes only `validation/`, `reports/`, `scores/` (and optional `quality/validation-scorecard/` mirror). **Never mutates source packs.**
 - Review Engine: assumes Validation Engine PASS; soft-reads validation/reports/scores plus domain packs; writes `reviews/`, `governance/`, `decisions/`, `recommendations/`, `improvements/`. **Never mutates, regenerates, or re-validates sources.**
 - Framework Generator: soft-reads `templates/`, `schemas/`, `workers/`, `validators/`, `reviewers/`, `pipelines/`, `knowledge/`, `configs/`, `artifacts/`, `registry/`; writes scaffold plans to `framework-generator/`. **Never executes generation or mutates prior workers.**
+- Qualification Framework: soft-reads `workers/`, `validators/`, `reviewers/`, `pipelines/`, `artifacts/`, `schemas/`, `templates/`, `reports/`, `knowledge/`, `specifications/`; writes `qualification/` only. **Evaluate only — never modify framework, never regenerate workers, never execute benchmarks in packaging.**
 - Logical `architecture/` consume resolves to `product-architecture/` (never AIOS `architecture/` control-plane docs).
 - Logical `pipeline/` consume resolves to `pipelines/`.

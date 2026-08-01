@@ -1,0 +1,282 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_qf_release-qualification-board_primary",
+  "type": "release-qualification-decision",
+  "worker_id": "release-qualification-board",
+  "title": "Release Qualification Board sample",
+  "summary": "Sample release-qualification-decision for release-qualification-board (packaging; benchmarks not executed)",
+  "entries": [
+    {
+      "id": "qf_release-qualification-board_001",
+      "entry_kind": "pass-fail",
+      "statement": "PASS/FAIL: FAIL \u2014 measured metrics UNKNOWN; cannot certify",
+      "qualification_id": "qual_release-qualification-board_sample",
+      "target": "qualification/release/release-qualification-board/",
+      "rule": "pass-fail per Qualification Framework contract + RACI",
+      "result": "fail",
+      "evidence": [
+        "contracts/qualification-framework.md",
+        "pipelines/qualification-framework/RACI.md",
+        "qualification/reference-projects/"
+      ],
+      "impact": "Enables reproducible pass-fail evaluation without mutating the framework",
+      "severity": "high",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual audit against certification thresholds",
+      "confidence": 0.8,
+      "source_paths": [
+        "workers/",
+        "pipelines/",
+        "schemas/",
+        "templates/"
+      ],
+      "unknowns": [
+        "UNKNOWN: no benchmark run results"
+      ],
+      "traceability": {
+        "pipeline": "qualification-framework",
+        "worker": "release-qualification-board",
+        "certification_thresholds": {
+          "feature_discovery_recall": 0.95,
+          "business_rule_coverage": 0.9,
+          "specification_completeness": 0.95,
+          "traceability": 1.0,
+          "critical_failures": 0,
+          "pipeline_completion": 0.99,
+          "worker_reliability": 0.98,
+          "documentation_coverage": 0.95
+        }
+      },
+      "folder_mirror": "qualification/release/release-qualification-board/pass-fail.json",
+      "metric_value": null,
+      "threshold": null
+    },
+    {
+      "id": "qf_release-qualification-board_002",
+      "entry_kind": "go-no-go",
+      "statement": "NO-GO \u2014 packaging milestone; Critical Failures unknown; Traceability unmeasured",
+      "qualification_id": "qual_release-qualification-board_sample",
+      "target": "qualification/release/release-qualification-board/",
+      "rule": "go-no-go per Qualification Framework contract + RACI",
+      "result": "fail",
+      "evidence": [
+        "contracts/qualification-framework.md",
+        "pipelines/qualification-framework/RACI.md",
+        "qualification/reference-projects/"
+      ],
+      "impact": "Enables reproducible go-no-go evaluation without mutating the framework",
+      "severity": "critical",
+      "recommendation": "Execute benchmarks before release consideration",
+      "alternative_solution": "Manual audit against certification thresholds",
+      "confidence": 0.8,
+      "source_paths": [
+        "workers/",
+        "pipelines/",
+        "schemas/",
+        "templates/"
+      ],
+      "unknowns": [
+        "UNKNOWN: benchmarks not executed in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "qualification-framework",
+        "worker": "release-qualification-board",
+        "certification_thresholds": {
+          "feature_discovery_recall": 0.95,
+          "business_rule_coverage": 0.9,
+          "specification_completeness": 0.95,
+          "traceability": 1.0,
+          "critical_failures": 0,
+          "pipeline_completion": 0.99,
+          "worker_reliability": 0.98,
+          "documentation_coverage": 0.95
+        }
+      },
+      "folder_mirror": "qualification/release/release-qualification-board/go-no-go.json",
+      "metric_value": null,
+      "threshold": null
+    },
+    {
+      "id": "qf_release-qualification-board_003",
+      "entry_kind": "release-candidate-decision",
+      "statement": "Not a release candidate until certification thresholds are measured",
+      "qualification_id": "qual_release-qualification-board_sample",
+      "target": "qualification/release/release-qualification-board/",
+      "rule": "release-candidate-decision per Qualification Framework contract + RACI",
+      "result": "fail",
+      "evidence": [
+        "contracts/qualification-framework.md",
+        "pipelines/qualification-framework/RACI.md",
+        "qualification/reference-projects/"
+      ],
+      "impact": "Enables reproducible release-candidate-decision evaluation without mutating the framework",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual audit against certification thresholds",
+      "confidence": 0.8,
+      "source_paths": [
+        "workers/",
+        "pipelines/",
+        "schemas/",
+        "templates/"
+      ],
+      "unknowns": [
+        "UNKNOWN: benchmarks not executed in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "qualification-framework",
+        "worker": "release-qualification-board",
+        "certification_thresholds": {
+          "feature_discovery_recall": 0.95,
+          "business_rule_coverage": 0.9,
+          "specification_completeness": 0.95,
+          "traceability": 1.0,
+          "critical_failures": 0,
+          "pipeline_completion": 0.99,
+          "worker_reliability": 0.98,
+          "documentation_coverage": 0.95
+        }
+      },
+      "folder_mirror": "qualification/release/release-qualification-board/release-candidate-decision.json",
+      "metric_value": null,
+      "threshold": null
+    },
+    {
+      "id": "qf_release-qualification-board_004",
+      "entry_kind": "known-limitations",
+      "statement": "Packaging only: benchmarks, stress, and regression not executed",
+      "qualification_id": "qual_release-qualification-board_sample",
+      "target": "qualification/release/release-qualification-board/",
+      "rule": "known-limitations per Qualification Framework contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "contracts/qualification-framework.md",
+        "pipelines/qualification-framework/RACI.md",
+        "qualification/reference-projects/"
+      ],
+      "impact": "Enables reproducible known-limitations evaluation without mutating the framework",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual audit against certification thresholds",
+      "confidence": 0.8,
+      "source_paths": [
+        "workers/",
+        "pipelines/",
+        "schemas/",
+        "templates/"
+      ],
+      "unknowns": [
+        "UNKNOWN: benchmarks not executed in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "qualification-framework",
+        "worker": "release-qualification-board",
+        "certification_thresholds": {
+          "feature_discovery_recall": 0.95,
+          "business_rule_coverage": 0.9,
+          "specification_completeness": 0.95,
+          "traceability": 1.0,
+          "critical_failures": 0,
+          "pipeline_completion": 0.99,
+          "worker_reliability": 0.98,
+          "documentation_coverage": 0.95
+        }
+      },
+      "folder_mirror": "qualification/release/release-qualification-board/known-limitations.json",
+      "metric_value": null,
+      "threshold": null
+    },
+    {
+      "id": "qf_release-qualification-board_005",
+      "entry_kind": "production-readiness",
+      "statement": "Not production-ready pending measured certification",
+      "qualification_id": "qual_release-qualification-board_sample",
+      "target": "qualification/release/release-qualification-board/",
+      "rule": "production-readiness per Qualification Framework contract + RACI",
+      "result": "fail",
+      "evidence": [
+        "contracts/qualification-framework.md",
+        "pipelines/qualification-framework/RACI.md",
+        "qualification/reference-projects/"
+      ],
+      "impact": "Enables reproducible production-readiness evaluation without mutating the framework",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual audit against certification thresholds",
+      "confidence": 0.8,
+      "source_paths": [
+        "workers/",
+        "pipelines/",
+        "schemas/",
+        "templates/"
+      ],
+      "unknowns": [
+        "UNKNOWN: benchmarks not executed in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "qualification-framework",
+        "worker": "release-qualification-board",
+        "certification_thresholds": {
+          "feature_discovery_recall": 0.95,
+          "business_rule_coverage": 0.9,
+          "specification_completeness": 0.95,
+          "traceability": 1.0,
+          "critical_failures": 0,
+          "pipeline_completion": 0.99,
+          "worker_reliability": 0.98,
+          "documentation_coverage": 0.95
+        }
+      },
+      "folder_mirror": "qualification/release/release-qualification-board/production-readiness.json",
+      "metric_value": null,
+      "threshold": null
+    },
+    {
+      "id": "qf_release-qualification-board_006",
+      "entry_kind": "improvement-backlog",
+      "statement": "Backlog: execute 14 reference projects through full RE + incremental + partial + resume + retry",
+      "qualification_id": "qual_release-qualification-board_sample",
+      "target": "qualification/release/release-qualification-board/",
+      "rule": "improvement-backlog per Qualification Framework contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "contracts/qualification-framework.md",
+        "pipelines/qualification-framework/RACI.md",
+        "qualification/reference-projects/"
+      ],
+      "impact": "Enables reproducible improvement-backlog evaluation without mutating the framework",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual audit against certification thresholds",
+      "confidence": 0.8,
+      "source_paths": [
+        "workers/",
+        "pipelines/",
+        "schemas/",
+        "templates/"
+      ],
+      "unknowns": [
+        "UNKNOWN: benchmarks not executed in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "qualification-framework",
+        "worker": "release-qualification-board",
+        "certification_thresholds": {
+          "feature_discovery_recall": 0.95,
+          "business_rule_coverage": 0.9,
+          "specification_completeness": 0.95,
+          "traceability": 1.0,
+          "critical_failures": 0,
+          "pipeline_completion": 0.99,
+          "worker_reliability": 0.98,
+          "documentation_coverage": 0.95
+        }
+      },
+      "folder_mirror": "qualification/release/release-qualification-board/improvement-backlog.json",
+      "metric_value": null,
+      "threshold": null
+    }
+  ],
+  "status": "draft",
+  "created_at": "2026-08-01T10:32:40Z"
+}

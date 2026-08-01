@@ -1,0 +1,51 @@
+{
+  "schema_version": "1.0.0",
+  "id": "qualification-framework-coverage",
+  "version": "0.1.0",
+  "title": "Qualification Framework Coverage Rubric",
+  "score_mode": "weighted_0_1",
+  "pass_threshold": 0.7,
+  "criteria": [
+    {
+      "id": "certification-threshold-coverage",
+      "description": "All 8 certification rules cited",
+      "weight": 0.2,
+      "scale_min": 0,
+      "scale_max": 1
+    },
+    {
+      "id": "reproducibility",
+      "description": "Reports reproducible; UNKNOWN honest",
+      "weight": 0.2,
+      "scale_min": 0,
+      "scale_max": 1
+    },
+    {
+      "id": "raci-compliance",
+      "description": "No entry_kind overlap",
+      "weight": 0.2,
+      "scale_min": 0,
+      "scale_max": 1
+    },
+    {
+      "id": "evaluate-only",
+      "description": "No framework mutation / worker regeneration",
+      "weight": 0.2,
+      "scale_min": 0,
+      "scale_max": 1
+    },
+    {
+      "id": "benchmark-mode-coverage",
+      "description": "Full/incremental/partial/resume/retry planned",
+      "weight": 0.2,
+      "scale_min": 0,
+      "scale_max": 1
+    }
+  ],
+  "veto_conditions": [
+    "mutate_framework_components",
+    "regenerate_workers",
+    "execute_benchmarks",
+    "invent_ground_truth"
+  ]
+}

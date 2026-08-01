@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aios.dev/schemas/release-qualification-decision.schema.json",
+  "title": "AIOS release-qualification-decision",
+  "allOf": [
+    {
+      "$ref": "https://aios.dev/schemas/qualification-framework-payload.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "release-qualification-decision"
+        }
+      }
+    }
+  ]
+}

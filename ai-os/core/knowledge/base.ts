@@ -1502,6 +1502,209 @@ export class KnowledgeBase {
     };
   }
 
+  /**
+   * Load qualification-framework pipeline and verify workers + packages exist.
+   * Does not invoke workers or execute benchmarks.
+   */
+  async validateQualificationFrameworkPipelineRegistration(): Promise<{
+    pipeline: PipelineDocument;
+    graph: PipelineDependencyGraph;
+    workerCount: number;
+  }> {
+    const pipeline = await this.getPipeline("qualification-framework");
+    if (pipeline.allows_feature_workers) {
+      throw new AiosError(
+        "feature-workers-forbidden",
+        "Qualification framework pipeline must set allows_feature_workers=false",
+      );
+    }
+    if (pipeline.worker_class !== "discovery") {
+      throw new AiosError(
+        "invalid-worker-class",
+        "Qualification framework pipeline worker_class must be discovery",
+      );
+    }
+
+    const workersReg = await this.workers();
+    const graph = await this.getPipelineDependencyGraph("qualification-framework");
+    const nodeIds = new Set(graph.nodes.map((n) => n.id));
+    const workerIds = new Set(pipeline.workers);
+
+    for (const id of pipeline.workers) {
+      const entry = workersReg.entries[id] as
+        | {
+            path?: string;
+            worker_class?: string;
+            skill_id?: string;
+            pipeline?: string;
+          }
+        | undefined;
+      if (!entry) {
+        throw new AiosError(
+          "pipeline-worker-unregistered",
+          `Pipeline worker ${id} missing from registry/workers.json`,
+        );
+      }
+      if (entry.worker_class && entry.worker_class !== "discovery") {
+        throw new AiosError(
+          "feature-workers-forbidden",
+          `Worker ${id} is not discovery class`,
+        );
+      }
+      if (entry.pipeline && entry.pipeline !== "qualification-framework") {
+        throw new AiosError(
+          "pipeline-graph-mismatch",
+          `Worker ${id} registry pipeline must be qualification-framework`,
+        );
+      }
+      await this.assertRegistryPathExists(entry.path ?? `workers/${id}`);
+      if (!nodeIds.has(id)) {
+        throw new AiosError(
+          "pipeline-graph-mismatch",
+          `Worker ${id} missing from dependency graph nodes`,
+        );
+      }
+    }
+
+    for (const node of graph.nodes) {
+      if (!workerIds.has(node.id)) {
+        throw new AiosError(
+          "pipeline-graph-mismatch",
+          `Graph node ${node.id} not listed in pipeline.workers`,
+        );
+      }
+    }
+
+    for (const edge of graph.edges) {
+      if (!workerIds.has(edge.predecessor) || !workerIds.has(edge.successor)) {
+        throw new AiosError(
+          "pipeline-graph-mismatch",
+          `Edge ${edge.predecessor}→${edge.successor} references unknown worker`,
+        );
+      }
+    }
+
+    // Wave topological validity
+    const waveIndex = new Map<string, number>();
+    pipeline.waves.forEach((wave, idx) => {
+      for (const id of wave) waveIndex.set(id, idx);
+    });
+    for (const edge of graph.edges) {
+      const pred = waveIndex.get(edge.predecessor);
+      const succ = waveIndex.get(edge.successor);
+      if (pred === undefined || succ === undefined || pred >= succ) {
+        throw new AiosError(
+          "pipeline-graph-mismatch",
+          `Wave violation: ${edge.predecessor} must precede ${edge.successor}`,
+        );
+      }
+    }
+
+    const skills = await this.skills();
+    const validators = await this.validators();
+    const reviewers = await this.reviewers();
+    for (const id of pipeline.workers) {
+      const entry = workersReg.entries[id] as { skill_id?: string };
+      const skillId = entry.skill_id;
+      if (skillId) {
+        const skill = skills.entries[skillId];
+        if (!skill?.path) {
+          throw new AiosError(
+            "registry-path-missing",
+            `Skill ${skillId} missing path for worker ${id}`,
+          );
+        }
+        await this.assertRegistryPathExists(skill.path);
+      }
+    }
+    if (pipeline.validator_id) {
+      const v = validators.entries[pipeline.validator_id];
+      if (!v?.path) {
+        throw new AiosError(
+          "registry-path-missing",
+          `Validator ${pipeline.validator_id} missing`,
+        );
+      }
+      await this.assertRegistryPathExists(v.path);
+    }
+    if (pipeline.reviewer_id) {
+      const r = reviewers.entries[pipeline.reviewer_id];
+      if (!r?.path) {
+        throw new AiosError(
+          "registry-path-missing",
+          `Reviewer ${pipeline.reviewer_id} missing`,
+        );
+      }
+      await this.assertRegistryPathExists(r.path);
+    }
+
+    for (const typeId of [
+      "qualification-finding",
+      "qualification-scores",
+      "certification-report",
+      "release-qualification-decision",
+      "gate-qualification-report",
+    ]) {
+      if (!(await this.hasArtifactType(typeId))) {
+        throw new AiosError(
+          "unknown-artifact-type",
+          `${typeId} must be registered for qualification-framework`,
+        );
+      }
+    }
+
+    const requiredConsumes = [
+      "workers",
+      "validators",
+      "reviewers",
+      "pipelines",
+      "artifacts",
+      "schemas",
+      "templates",
+      "reports",
+      "knowledge",
+      "specifications",
+      "registry",
+    ];
+    for (const id of pipeline.workers) {
+      const entry = workersReg.entries[id] as { consumes?: string[] } | undefined;
+      const consumes = entry?.consumes ?? [];
+      for (const c of requiredConsumes) {
+        if (!consumes.includes(c)) {
+          throw new AiosError(
+            "pipeline-graph-mismatch",
+            `Worker ${id} must consume ${c}`,
+          );
+        }
+      }
+    }
+
+    await this.assertRegistryPathExists("qualification");
+    await this.assertRegistryPathExists("qualification/reference-projects/catalog.json");
+    await this.assertRegistryPathExists("qualification/scorecards/metrics-catalog.json");
+    await this.assertRegistryPathExists("contracts/qualification-framework.md");
+    await this.assertRegistryPathExists("pipelines/qualification-framework/RACI.md");
+    await this.assertRegistryPathExists(
+      "schemas/qualification-framework-payload.schema.json",
+    );
+    await this.assertRegistryPathExists("schemas/qualification-finding.schema.json");
+    await this.assertRegistryPathExists("schemas/qualification-scores.schema.json");
+    await this.assertRegistryPathExists("schemas/certification-report.schema.json");
+    await this.assertRegistryPathExists(
+      "schemas/release-qualification-decision.schema.json",
+    );
+    await this.assertRegistryPathExists("schemas/gate-qualification-report.schema.json");
+    await this.assertRegistryPathExists(
+      "reviewers/qualification-framework-coverage-review/rubric/qualification-framework-coverage.json",
+    );
+
+    return {
+      pipeline,
+      graph,
+      workerCount: pipeline.workers.length,
+    };
+  }
+
   async gateProfiles(): Promise<GateProfiles> {
     return this.readJson("policies/gate-profiles.json", GateProfileFile);
   }

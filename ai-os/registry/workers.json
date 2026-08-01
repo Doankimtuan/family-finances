@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "registry_kind": "workers",
-  "updated_at": "2026-08-01T08:10:53Z",
+  "updated_at": "2026-08-01T10:32:40Z",
   "entries": {
     "discover-repo-map": {
       "id": "discover-repo-map",
@@ -1485,6 +1485,301 @@
       ],
       "produces": [
         "framework-generator/reports/generation-reporter/"
+      ]
+    },
+    "reference-project-catalog": {
+      "id": "reference-project-catalog",
+      "path": "workers/reference-project-catalog",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Catalog benchmark reference projects with expected outputs, metrics, specifications, ground truth, and acceptance thresholds. Never modify framework components.",
+      "worker_class": "discovery",
+      "pipeline": "qualification-framework",
+      "skill_id": "reference-project-catalog",
+      "depends_on_workers": [],
+      "consumes": [
+        "workers",
+        "validators",
+        "reviewers",
+        "pipelines",
+        "artifacts",
+        "schemas",
+        "templates",
+        "reports",
+        "knowledge",
+        "specifications",
+        "registry"
+      ],
+      "produces": [
+        "qualification/reference-projects/reference-project-catalog/"
+      ]
+    },
+    "benchmark-runner": {
+      "id": "benchmark-runner",
+      "path": "workers/benchmark-runner",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Plan execution of the complete AIOS against benchmark repositories: full, incremental, partial, comparison, and repeatability modes. Never modify framework; never execute in packaging.",
+      "worker_class": "discovery",
+      "pipeline": "qualification-framework",
+      "skill_id": "benchmark-runner",
+      "depends_on_workers": [
+        "reference-project-catalog"
+      ],
+      "consumes": [
+        "workers",
+        "validators",
+        "reviewers",
+        "pipelines",
+        "artifacts",
+        "schemas",
+        "templates",
+        "reports",
+        "knowledge",
+        "specifications",
+        "registry"
+      ],
+      "produces": [
+        "qualification/benchmarks/benchmark-runner/"
+      ]
+    },
+    "qualification-runner": {
+      "id": "qualification-runner",
+      "path": "workers/qualification-runner",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Plan qualification suites verifying pipeline execution, worker cooperation, artifact/knowledge/specification integrity, and execution stability.",
+      "worker_class": "discovery",
+      "pipeline": "qualification-framework",
+      "skill_id": "qualification-runner",
+      "depends_on_workers": [
+        "benchmark-runner"
+      ],
+      "consumes": [
+        "workers",
+        "validators",
+        "reviewers",
+        "pipelines",
+        "artifacts",
+        "schemas",
+        "templates",
+        "reports",
+        "knowledge",
+        "specifications",
+        "registry"
+      ],
+      "produces": [
+        "qualification/benchmarks/qualification-runner/"
+      ]
+    },
+    "evaluation-engine": {
+      "id": "evaluation-engine",
+      "path": "workers/evaluation-engine",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Plan evaluation of every generated artifact for accuracy, completeness, consistency, traceability, maintainability, extensibility, AI reliability, and documentation quality.",
+      "worker_class": "discovery",
+      "pipeline": "qualification-framework",
+      "skill_id": "evaluation-engine",
+      "depends_on_workers": [
+        "benchmark-runner"
+      ],
+      "consumes": [
+        "workers",
+        "validators",
+        "reviewers",
+        "pipelines",
+        "artifacts",
+        "schemas",
+        "templates",
+        "reports",
+        "knowledge",
+        "specifications",
+        "registry"
+      ],
+      "produces": [
+        "qualification/metrics/evaluation-engine/"
+      ]
+    },
+    "stress-test-runner": {
+      "id": "stress-test-runner",
+      "path": "workers/stress-test-runner",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Plan stress tests: large repos, monorepos, microservices, huge dependency graphs, long pipelines, repeated execution, memory pressure.",
+      "worker_class": "discovery",
+      "pipeline": "qualification-framework",
+      "skill_id": "stress-test-runner",
+      "depends_on_workers": [
+        "benchmark-runner"
+      ],
+      "consumes": [
+        "workers",
+        "validators",
+        "reviewers",
+        "pipelines",
+        "artifacts",
+        "schemas",
+        "templates",
+        "reports",
+        "knowledge",
+        "specifications",
+        "registry"
+      ],
+      "produces": [
+        "qualification/benchmarks/stress-test-runner/"
+      ]
+    },
+    "metrics-engine": {
+      "id": "metrics-engine",
+      "path": "workers/metrics-engine",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Plan collection of coverage, performance, and reliability metrics including recall, token usage, failure rate, retry count, and confidence distribution.",
+      "worker_class": "discovery",
+      "pipeline": "qualification-framework",
+      "skill_id": "metrics-engine",
+      "depends_on_workers": [
+        "evaluation-engine",
+        "qualification-runner"
+      ],
+      "consumes": [
+        "workers",
+        "validators",
+        "reviewers",
+        "pipelines",
+        "artifacts",
+        "schemas",
+        "templates",
+        "reports",
+        "knowledge",
+        "specifications",
+        "registry"
+      ],
+      "produces": [
+        "qualification/metrics/metrics-engine/"
+      ]
+    },
+    "coverage-analyzer": {
+      "id": "coverage-analyzer",
+      "path": "workers/coverage-analyzer",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Identify missing features, business rules, APIs, requirements, specifications, relationships, and traceability gaps against ground truth.",
+      "worker_class": "discovery",
+      "pipeline": "qualification-framework",
+      "skill_id": "coverage-analyzer",
+      "depends_on_workers": [
+        "evaluation-engine",
+        "metrics-engine"
+      ],
+      "consumes": [
+        "workers",
+        "validators",
+        "reviewers",
+        "pipelines",
+        "artifacts",
+        "schemas",
+        "templates",
+        "reports",
+        "knowledge",
+        "specifications",
+        "registry"
+      ],
+      "produces": [
+        "qualification/metrics/coverage-analyzer/"
+      ]
+    },
+    "regression-runner": {
+      "id": "regression-runner",
+      "path": "workers/regression-runner",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Compare framework versions to detect regression, lost capabilities, quality/performance drops, output differences, and breaking changes.",
+      "worker_class": "discovery",
+      "pipeline": "qualification-framework",
+      "skill_id": "regression-runner",
+      "depends_on_workers": [
+        "metrics-engine",
+        "evaluation-engine"
+      ],
+      "consumes": [
+        "workers",
+        "validators",
+        "reviewers",
+        "pipelines",
+        "artifacts",
+        "schemas",
+        "templates",
+        "reports",
+        "knowledge",
+        "specifications",
+        "registry"
+      ],
+      "produces": [
+        "qualification/benchmarks/regression-runner/"
+      ]
+    },
+    "certification-engine": {
+      "id": "certification-engine",
+      "path": "workers/certification-engine",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Evaluate framework against certification thresholds and emit certification report, capability/quality/coverage/reliability matrices, maturity assessment, and release recommendation.",
+      "worker_class": "discovery",
+      "pipeline": "qualification-framework",
+      "skill_id": "certification-engine",
+      "depends_on_workers": [
+        "metrics-engine",
+        "coverage-analyzer",
+        "regression-runner",
+        "stress-test-runner",
+        "qualification-runner"
+      ],
+      "consumes": [
+        "workers",
+        "validators",
+        "reviewers",
+        "pipelines",
+        "artifacts",
+        "schemas",
+        "templates",
+        "reports",
+        "knowledge",
+        "specifications",
+        "registry"
+      ],
+      "produces": [
+        "qualification/certification/certification-engine/"
+      ]
+    },
+    "release-qualification-board": {
+      "id": "release-qualification-board",
+      "path": "workers/release-qualification-board",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Aggregate all benchmarks into PASS/FAIL, Go/No-Go, release candidate decision, known limitations, production readiness, and improvement backlog.",
+      "worker_class": "discovery",
+      "pipeline": "qualification-framework",
+      "skill_id": "release-qualification-board",
+      "depends_on_workers": [
+        "certification-engine"
+      ],
+      "consumes": [
+        "workers",
+        "validators",
+        "reviewers",
+        "pipelines",
+        "artifacts",
+        "schemas",
+        "templates",
+        "reports",
+        "knowledge",
+        "specifications",
+        "registry"
+      ],
+      "produces": [
+        "qualification/release/release-qualification-board/"
       ]
     }
   }

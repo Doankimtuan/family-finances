@@ -1,0 +1,147 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_qf_qualification-runner_primary",
+  "type": "qualification-finding",
+  "worker_id": "qualification-runner",
+  "title": "Qualification Runner sample",
+  "summary": "Sample qualification-finding for qualification-runner (packaging; benchmarks not executed)",
+  "entries": [
+    {
+      "id": "qf_qualification-runner_001",
+      "entry_kind": "pipeline-execution",
+      "statement": "Qualification plan for pipeline-execution via Qualification Runner",
+      "qualification_id": "qual_qualification-runner_sample",
+      "target": "qualification/benchmarks/qualification-runner/",
+      "rule": "pipeline-execution per Qualification Framework contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "contracts/qualification-framework.md",
+        "pipelines/qualification-framework/RACI.md",
+        "qualification/reference-projects/"
+      ],
+      "impact": "Enables reproducible pipeline-execution evaluation without mutating the framework",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual audit against certification thresholds",
+      "confidence": 0.8,
+      "source_paths": [
+        "workers/",
+        "pipelines/",
+        "schemas/",
+        "templates/"
+      ],
+      "unknowns": [
+        "UNKNOWN: benchmarks not executed in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "qualification-framework",
+        "worker": "qualification-runner",
+        "certification_thresholds": {
+          "feature_discovery_recall": 0.95,
+          "business_rule_coverage": 0.9,
+          "specification_completeness": 0.95,
+          "traceability": 1.0,
+          "critical_failures": 0,
+          "pipeline_completion": 0.99,
+          "worker_reliability": 0.98,
+          "documentation_coverage": 0.95
+        }
+      },
+      "folder_mirror": "qualification/benchmarks/qualification-runner/pipeline-execution.json",
+      "metric_value": null,
+      "threshold": null
+    },
+    {
+      "id": "qf_qualification-runner_002",
+      "entry_kind": "worker-cooperation",
+      "statement": "Qualification plan for worker-cooperation via Qualification Runner",
+      "qualification_id": "qual_qualification-runner_sample",
+      "target": "qualification/benchmarks/qualification-runner/",
+      "rule": "worker-cooperation per Qualification Framework contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "contracts/qualification-framework.md",
+        "pipelines/qualification-framework/RACI.md",
+        "qualification/reference-projects/"
+      ],
+      "impact": "Enables reproducible worker-cooperation evaluation without mutating the framework",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual audit against certification thresholds",
+      "confidence": 0.8,
+      "source_paths": [
+        "workers/",
+        "pipelines/",
+        "schemas/",
+        "templates/"
+      ],
+      "unknowns": [
+        "UNKNOWN: benchmarks not executed in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "qualification-framework",
+        "worker": "qualification-runner",
+        "certification_thresholds": {
+          "feature_discovery_recall": 0.95,
+          "business_rule_coverage": 0.9,
+          "specification_completeness": 0.95,
+          "traceability": 1.0,
+          "critical_failures": 0,
+          "pipeline_completion": 0.99,
+          "worker_reliability": 0.98,
+          "documentation_coverage": 0.95
+        }
+      },
+      "folder_mirror": "qualification/benchmarks/qualification-runner/worker-cooperation.json",
+      "metric_value": null,
+      "threshold": null
+    },
+    {
+      "id": "qf_qualification-runner_003",
+      "entry_kind": "artifact-integrity",
+      "statement": "Qualification plan for artifact-integrity via Qualification Runner",
+      "qualification_id": "qual_qualification-runner_sample",
+      "target": "qualification/benchmarks/qualification-runner/",
+      "rule": "artifact-integrity per Qualification Framework contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "contracts/qualification-framework.md",
+        "pipelines/qualification-framework/RACI.md",
+        "qualification/reference-projects/"
+      ],
+      "impact": "Enables reproducible artifact-integrity evaluation without mutating the framework",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual audit against certification thresholds",
+      "confidence": 0.8,
+      "source_paths": [
+        "workers/",
+        "pipelines/",
+        "schemas/",
+        "templates/"
+      ],
+      "unknowns": [
+        "UNKNOWN: benchmarks not executed in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "qualification-framework",
+        "worker": "qualification-runner",
+        "certification_thresholds": {
+          "feature_discovery_recall": 0.95,
+          "business_rule_coverage": 0.9,
+          "specification_completeness": 0.95,
+          "traceability": 1.0,
+          "critical_failures": 0,
+          "pipeline_completion": 0.99,
+          "worker_reliability": 0.98,
+          "documentation_coverage": 0.95
+        }
+      },
+      "folder_mirror": "qualification/benchmarks/qualification-runner/artifact-integrity.json",
+      "metric_value": null,
+      "threshold": null
+    }
+  ],
+  "status": "draft",
+  "created_at": "2026-08-01T10:32:40Z"
+}

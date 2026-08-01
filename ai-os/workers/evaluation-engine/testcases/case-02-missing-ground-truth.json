@@ -1,0 +1,10 @@
+{
+  "case_id": "case-02-missing-ground-truth",
+  "worker_id": "evaluation-engine",
+  "input": {
+    "ground_truth": null
+  },
+  "expect": {
+    "unknowns_required": true
+  }
+}

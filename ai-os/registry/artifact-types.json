@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "registry_kind": "artifact-types",
-  "updated_at": "2026-08-01T08:10:53Z",
+  "updated_at": "2026-08-01T10:32:40Z",
   "entries": {
     "goal": {
       "id": "goal",
@@ -471,6 +471,56 @@
         "json",
         "yaml",
         "markdown"
+      ],
+      "status": "active"
+    },
+    "qualification-finding": {
+      "id": "qualification-finding",
+      "description": "Qualification finding / gap / plan entry",
+      "payload_kinds": [
+        "json",
+        "markdown",
+        "csv"
+      ],
+      "status": "active"
+    },
+    "qualification-scores": {
+      "id": "qualification-scores",
+      "description": "Qualification metric scorecard",
+      "payload_kinds": [
+        "json",
+        "markdown",
+        "csv"
+      ],
+      "status": "active"
+    },
+    "certification-report": {
+      "id": "certification-report",
+      "description": "Certification report with matrices",
+      "payload_kinds": [
+        "json",
+        "markdown",
+        "csv"
+      ],
+      "status": "active"
+    },
+    "release-qualification-decision": {
+      "id": "release-qualification-decision",
+      "description": "Release Qualification Board Go/No-Go decision",
+      "payload_kinds": [
+        "json",
+        "markdown",
+        "csv"
+      ],
+      "status": "active"
+    },
+    "gate-qualification-report": {
+      "id": "gate-qualification-report",
+      "description": "Gate envelope for qualification framework",
+      "payload_kinds": [
+        "json",
+        "markdown",
+        "csv"
       ],
       "status": "active"
     }

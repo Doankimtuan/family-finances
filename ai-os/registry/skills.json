@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "registry_kind": "skills",
-  "updated_at": "2026-08-01T08:10:53Z",
+  "updated_at": "2026-08-01T10:32:40Z",
   "entries": {
     "example-skill": {
       "id": "example-skill",
@@ -412,6 +412,76 @@
       "version": "0.1.1",
       "status": "draft",
       "description": "Emit human-readable framework-generation-report and gate-framework-generation-report envelope from merged status."
+    },
+    "reference-project-catalog": {
+      "id": "reference-project-catalog",
+      "path": "skills/reference-project-catalog",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Catalog benchmark reference projects with expected outputs, metrics, specifications, ground truth, and acceptance thresholds. Never modify framework components."
+    },
+    "benchmark-runner": {
+      "id": "benchmark-runner",
+      "path": "skills/benchmark-runner",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Plan execution of the complete AIOS against benchmark repositories: full, incremental, partial, comparison, and repeatability modes. Never modify framework; never execute in packaging."
+    },
+    "qualification-runner": {
+      "id": "qualification-runner",
+      "path": "skills/qualification-runner",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Plan qualification suites verifying pipeline execution, worker cooperation, artifact/knowledge/specification integrity, and execution stability."
+    },
+    "evaluation-engine": {
+      "id": "evaluation-engine",
+      "path": "skills/evaluation-engine",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Plan evaluation of every generated artifact for accuracy, completeness, consistency, traceability, maintainability, extensibility, AI reliability, and documentation quality."
+    },
+    "stress-test-runner": {
+      "id": "stress-test-runner",
+      "path": "skills/stress-test-runner",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Plan stress tests: large repos, monorepos, microservices, huge dependency graphs, long pipelines, repeated execution, memory pressure."
+    },
+    "metrics-engine": {
+      "id": "metrics-engine",
+      "path": "skills/metrics-engine",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Plan collection of coverage, performance, and reliability metrics including recall, token usage, failure rate, retry count, and confidence distribution."
+    },
+    "coverage-analyzer": {
+      "id": "coverage-analyzer",
+      "path": "skills/coverage-analyzer",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Identify missing features, business rules, APIs, requirements, specifications, relationships, and traceability gaps against ground truth."
+    },
+    "regression-runner": {
+      "id": "regression-runner",
+      "path": "skills/regression-runner",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Compare framework versions to detect regression, lost capabilities, quality/performance drops, output differences, and breaking changes."
+    },
+    "certification-engine": {
+      "id": "certification-engine",
+      "path": "skills/certification-engine",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Evaluate framework against certification thresholds and emit certification report, capability/quality/coverage/reliability matrices, maturity assessment, and release recommendation."
+    },
+    "release-qualification-board": {
+      "id": "release-qualification-board",
+      "path": "skills/release-qualification-board",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Aggregate all benchmarks into PASS/FAIL, Go/No-Go, release candidate decision, known limitations, production readiness, and improvement backlog."
     }
   }
 }

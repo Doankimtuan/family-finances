@@ -75,7 +75,8 @@ async function main() {
       entry.pipeline !== "specification-engineering" &&
       entry.pipeline !== "validation-engine" &&
       entry.pipeline !== "review-engine" &&
-      entry.pipeline !== "framework-generator"
+      entry.pipeline !== "framework-generator" &&
+      entry.pipeline !== "qualification-framework"
     ) {
       throw new Error(
         `Unexpected worker pipeline for ${name}: ${entry.pipeline ?? "(missing)"}`,
