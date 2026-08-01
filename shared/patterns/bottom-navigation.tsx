@@ -1,37 +1,25 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import {
-  House,
-  Wallet,
-  CalendarBlank,
-  Tray,
-  UsersThree,
-} from "@phosphor-icons/react";
+import { useTranslations } from "next-intl";
+import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/shared/utils/cn";
 import { SafeArea } from "@/providers/safe-area";
+import { TABS } from "@/shared/patterns/bottom-navigation-tabs";
 
-const TABS = [
-  { href: "/home", label: "Home", icon: House },
-  { href: "/money", label: "Money", icon: Wallet },
-  { href: "/plan", label: "Plan", icon: CalendarBlank },
-  { href: "/inbox", label: "Inbox", icon: Tray },
-  { href: "/together", label: "Together", icon: UsersThree },
-] as const;
-
-export { TABS };
+export { TABS } from "@/shared/patterns/bottom-navigation-tabs";
 
 /**
  * Five IA tabs foundation. Health is not a 6th tab.
  */
 export function BottomNavigation({ className }: { className?: string }) {
   const pathname = usePathname();
+  const t = useTranslations("navigation");
+  const tA11y = useTranslations("a11y");
 
   return (
     <SafeArea edges={["bottom"]}>
       <nav
-        aria-label="Primary"
+        aria-label={tA11y("primaryNav")}
         className={cn(
           "sticky bottom-0 z-(--z-nav) border-t border-border-subtle",
           "bg-surface/95 shadow-[var(--elevation-1)] backdrop-blur-md",
@@ -39,8 +27,9 @@ export function BottomNavigation({ className }: { className?: string }) {
         )}
       >
         <ul className="grid grid-cols-5 px-(--space-1) pt-(--space-1) pb-(--space-1)">
-          {TABS.map(({ href, label, icon: Icon }) => {
+          {TABS.map(({ href, labelKey, icon: Icon }) => {
             const active = pathname === href || pathname.startsWith(`${href}/`);
+            const label = t(labelKey);
             return (
               <li key={href}>
                 <Link

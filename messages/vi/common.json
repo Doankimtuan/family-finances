@@ -1,0 +1,6 @@
+{
+  "brand": "ViNha",
+  "tagline": "Tiền chung, giữ bình yên.",
+  "loading": "Đang tải",
+  "itemsCount": "{count, plural, =0 {Không có mục nào} one {# mục} other {# mục}}"
+}

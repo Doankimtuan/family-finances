@@ -1,20 +1,12 @@
 import type { ReactNode } from "react";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
-import { AppProvider } from "@/providers/app-provider";
 import "@/styles/globals.css";
 
-export const metadata = {
-  title: "ViNha",
-  description: "Family finances — rewrite workspace",
-};
-
-export const viewport = {
-  width: "device-width",
-  initialScale: 1,
-  viewportFit: "cover" as const,
-};
-
+/**
+ * Root document shell for routes outside `[locale]` (e.g. global not-found).
+ * Locale routes also nest under this shell; `[locale]/layout` sets `lang` via a wrapper.
+ */
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html
@@ -22,9 +14,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       className={`${GeistSans.variable} ${GeistMono.variable}`}
       suppressHydrationWarning
     >
-      <body className="font-sans antialiased">
-        <AppProvider>{children}</AppProvider>
-      </body>
+      <body className="font-sans antialiased">{children}</body>
     </html>
   );
 }

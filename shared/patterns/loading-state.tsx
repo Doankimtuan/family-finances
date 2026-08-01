@@ -4,8 +4,14 @@ import { cn } from "@/shared/utils/cn";
 import { Spinner } from "@/shared/ui/spinner";
 import { Text } from "@/shared/ui/text";
 
+const DEFAULT_LABEL = "Loading";
+
+/**
+ * Presentational loading state. Pass a localized `label` from callers.
+ * Default is an English fallback so this works outside NextIntlClientProvider.
+ */
 export function LoadingState({
-  label = "Loading",
+  label = DEFAULT_LABEL,
   className,
 }: {
   label?: string;

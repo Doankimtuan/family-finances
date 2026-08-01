@@ -1,0 +1,28 @@
+import Link from "next/link";
+
+/**
+ * Global not-found outside `[locale]` (invalid paths before locale negotiation
+ * completes). Root layout already provides `<html>` / `<body>`.
+ */
+export default function GlobalNotFound() {
+  return (
+    <div className="flex min-h-dvh flex-col items-center justify-center gap-4 px-6 text-center">
+      <h1 className="text-xl font-semibold tracking-tight">Page not found</h1>
+      <p className="max-w-xs text-sm text-zinc-500">Something went wrong</p>
+      <div className="flex gap-3 text-sm font-medium">
+        <Link
+          href="/en"
+          className="rounded-md bg-teal-700 px-4 py-2.5 text-zinc-50"
+        >
+          English
+        </Link>
+        <Link
+          href="/vi"
+          className="rounded-md border border-zinc-300 px-4 py-2.5 text-zinc-800"
+        >
+          Tiếng Việt
+        </Link>
+      </div>
+    </div>
+  );
+}

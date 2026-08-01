@@ -6,19 +6,24 @@ import { cn } from "@/shared/utils/cn";
 import { IconButton } from "@/shared/ui/icon-button";
 import { Heading } from "@/shared/ui/heading";
 
+const DEFAULT_BACK_LABEL = "Back";
+
 /**
  * Top app bar shell — title + optional back / trailing slots.
+ * Pass localized `backLabel` when using `onBack` (defaults to English "Back").
  */
 export function TopAppBar({
   title,
   onBack,
   trailing,
   className,
+  backLabel = DEFAULT_BACK_LABEL,
 }: {
   title?: ReactNode;
   onBack?: () => void;
   trailing?: ReactNode;
   className?: string;
+  backLabel?: string;
 }) {
   return (
     <header
@@ -31,7 +36,7 @@ export function TopAppBar({
     >
       {onBack ? (
         <IconButton
-          aria-label="Back"
+          aria-label={backLabel}
           variant="ghost"
           size="sm"
           onPress={onBack}

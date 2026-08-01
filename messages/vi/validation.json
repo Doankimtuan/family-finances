@@ -1,0 +1,7 @@
+{
+  "required": "Trường này là bắt buộc",
+  "invalidEmail": "Nhập email hợp lệ",
+  "tooShort": "Phải có ít nhất {min} ký tự",
+  "tooLong": "Tối đa {max} ký tự",
+  "invalidType": "Giá trị không hợp lệ"
+}

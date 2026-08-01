@@ -6,8 +6,14 @@ import { cn } from "@/shared/utils/cn";
 import { Heading } from "@/shared/ui/heading";
 import { Text } from "@/shared/ui/text";
 
+const DEFAULT_TITLE = "Something went wrong";
+
+/**
+ * Presentational error state. Pass localized `title` / `description` from callers.
+ * Defaults are English fallbacks so this works outside NextIntlClientProvider.
+ */
 export function ErrorState({
-  title = "Something went wrong",
+  title = DEFAULT_TITLE,
   description,
   action,
   className,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { TABS } from "@/shared/patterns/bottom-navigation";
+import { TABS } from "@/shared/patterns/bottom-navigation-tabs";
 
 describe("BottomNavigation foundation", () => {
   it("exposes exactly five IA tabs and excludes Health", () => {
@@ -10,6 +10,13 @@ describe("BottomNavigation foundation", () => {
       "/plan",
       "/inbox",
       "/together",
+    ]);
+    expect(TABS.map((t) => t.labelKey)).toEqual([
+      "home",
+      "money",
+      "plan",
+      "inbox",
+      "together",
     ]);
     expect(TABS.some((t) => t.href === "/health")).toBe(false);
   });
