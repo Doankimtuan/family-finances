@@ -1,0 +1,148 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aios.dev/schemas/execution-run.schema.json",
+  "title": "AIOS Execution Run",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "artifact_id",
+    "task_id",
+    "skill_id",
+    "skill_version",
+    "status",
+    "started_at",
+    "inputs",
+    "outputs",
+    "gate_results"
+  ],
+  "properties": {
+    "schema_version": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/schemaVersion"
+    },
+    "artifact_id": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/artifactId"
+    },
+    "orchestration_id": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/artifactId"
+    },
+    "plan_id": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/artifactId"
+    },
+    "task_id": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/artifactId"
+    },
+    "skill_id": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/kebabId"
+    },
+    "skill_version": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/semver"
+    },
+    "attempt": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 1
+    },
+    "allow_parallel_attempts": {
+      "type": "boolean",
+      "default": false
+    },
+    "status": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/runStatus"
+    },
+    "phase": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/runPhase"
+    },
+    "started_at": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/isoDateTime"
+    },
+    "ended_at": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/isoDateTime"
+    },
+    "inputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "artifact_id",
+          "artifact_version"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "artifact_id": {
+            "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/artifactId"
+          },
+          "artifact_version": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      }
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "artifact_id",
+          "artifact_version"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "artifact_id": {
+            "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/artifactId"
+          },
+          "artifact_version": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      }
+    },
+    "gate_results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "kind",
+          "id",
+          "result"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "validation",
+              "review",
+              "quality-gate"
+            ]
+          },
+          "id": {
+            "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/artifactId"
+          },
+          "result": {
+            "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/gateResult"
+          }
+        }
+      }
+    },
+    "error": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/errorObject"
+    },
+    "trace": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/traceContext"
+    },
+    "extensions": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/extensions"
+    }
+  }
+}

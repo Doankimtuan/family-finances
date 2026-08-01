@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aios.dev/schemas/escalation.schema.json",
+  "title": "AIOS Human Escalation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "artifact_id",
+    "reason",
+    "blocking",
+    "created_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/schemaVersion"
+    },
+    "artifact_id": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/artifactId"
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4000
+    },
+    "blocking": {
+      "type": "boolean"
+    },
+    "options": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "trace": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/traceContext"
+    },
+    "created_at": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/isoDateTime"
+    },
+    "extensions": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/extensions"
+    }
+  }
+}

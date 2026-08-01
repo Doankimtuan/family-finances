@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aios.dev/schemas/orchestration-state.schema.json",
+  "title": "AIOS Orchestration State",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "artifact_id",
+    "status",
+    "gate_profile",
+    "goal_ref",
+    "budget",
+    "waves",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/schemaVersion"
+    },
+    "artifact_id": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/artifactId"
+    },
+    "status": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/orchestrationStatus"
+    },
+    "gate_profile": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/gateProfile"
+    },
+    "goal_ref": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/artifactRef"
+    },
+    "plan_ref": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/artifactRef"
+    },
+    "budget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "max_waves",
+        "max_retries_per_task",
+        "allowed_side_effects"
+      ],
+      "properties": {
+        "max_waves": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "max_retries_per_task": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "allowed_side_effects": {
+          "type": "array",
+          "items": {
+            "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/sideEffect"
+          }
+        }
+      }
+    },
+    "waves": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "wave_index",
+          "task_ids",
+          "status"
+        ],
+        "properties": {
+          "wave_index": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "task_ids": {
+            "type": "array",
+            "items": {
+              "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/artifactId"
+            },
+            "uniqueItems": true
+          },
+          "status": {
+            "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/waveStatus"
+          }
+        }
+      }
+    },
+    "decisions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "at",
+          "decision",
+          "reason"
+        ],
+        "properties": {
+          "at": {
+            "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/isoDateTime"
+          },
+          "decision": {
+            "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/controlDecision"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "task_id": {
+            "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/artifactId"
+          }
+        }
+      }
+    },
+    "trace": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/traceContext"
+    },
+    "created_at": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/isoDateTime"
+    },
+    "updated_at": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/isoDateTime"
+    },
+    "extensions": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/extensions"
+    }
+  }
+}

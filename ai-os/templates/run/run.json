@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_example_run",
+  "orchestration_id": "art_example_orc",
+  "plan_id": "art_example_plan",
+  "task_id": "art_example_task",
+  "skill_id": "example-skill",
+  "skill_version": "0.0.0",
+  "attempt": 1,
+  "allow_parallel_attempts": false,
+  "status": "running",
+  "phase": "preparing",
+  "started_at": "2026-08-01T00:00:00Z",
+  "inputs": [
+    {
+      "name": "goal",
+      "artifact_id": "art_example_goal",
+      "artifact_version": 1
+    }
+  ],
+  "outputs": [],
+  "gate_results": []
+}

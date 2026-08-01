@@ -1,0 +1,24 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_example_task",
+  "title": "Example task",
+  "description": "Template task payload — standalone artifact.",
+  "skill_id": "example-skill",
+  "skill_version": "active",
+  "primary_output_type": "doc",
+  "inputs": [
+    {
+      "name": "goal",
+      "artifact_id": "art_example_goal",
+      "artifact_version": 1,
+      "required": true
+    }
+  ],
+  "validators": [],
+  "reviewers": [],
+  "done_when": ["Primary output artifact is ready"],
+  "side_effect_budget": ["runtime-write"],
+  "allow_parallel_attempts": false,
+  "continue_on_cancel": false,
+  "status": "pending"
+}

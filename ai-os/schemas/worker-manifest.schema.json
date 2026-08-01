@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aios.dev/schemas/worker-manifest.schema.json",
+  "title": "AIOS Worker Port Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "id",
+    "version",
+    "title",
+    "implements_roles",
+    "side_effects",
+    "status"
+  ],
+  "properties": {
+    "schema_version": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/schemaVersion"
+    },
+    "id": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/kebabId"
+    },
+    "version": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/semver"
+    },
+    "title": {
+      "type": "string"
+    },
+    "implements_roles": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "enum": [
+          "executor",
+          "validator",
+          "reviewer",
+          "planner",
+          "orchestrator"
+        ]
+      },
+      "uniqueItems": true
+    },
+    "side_effects": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/sideEffect"
+      },
+      "uniqueItems": true
+    },
+    "entrypoint": {
+      "type": "string"
+    },
+    "status": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/packageStatus"
+    },
+    "extensions": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/extensions"
+    }
+  }
+}

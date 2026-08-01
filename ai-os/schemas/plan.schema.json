@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aios.dev/schemas/plan.schema.json",
+  "title": "AIOS Plan Payload",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "artifact_id",
+    "plan_version",
+    "goal_ref",
+    "title",
+    "success_criteria",
+    "non_goals",
+    "task_refs",
+    "dependency_graph_ref",
+    "gate_profile",
+    "status",
+    "created_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/schemaVersion"
+    },
+    "artifact_id": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/artifactId"
+    },
+    "plan_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "goal_ref": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/artifactRef"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "summary": {
+      "type": "string",
+      "maxLength": 2000
+    },
+    "success_criteria": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "description"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/kebabId"
+          },
+          "description": {
+            "type": "string"
+          },
+          "maps_to_task_id": {
+            "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/artifactId"
+          }
+        }
+      }
+    },
+    "non_goals": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "risks": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "task_refs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/artifactRef"
+      },
+      "description": "References to task artifacts. Task bodies are not inlined."
+    },
+    "dependency_graph_ref": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/artifactRef"
+    },
+    "gate_profile": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/gateProfile"
+    },
+    "status": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/artifactStatus"
+    },
+    "trace": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/traceContext"
+    },
+    "created_at": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/isoDateTime"
+    },
+    "updated_at": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/isoDateTime"
+    },
+    "extensions": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/extensions"
+    }
+  }
+}

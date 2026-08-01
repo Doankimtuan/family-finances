@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0.0",
+  "id": "example-skill",
+  "version": "0.0.0",
+  "title": "Example Skill",
+  "description": "Template skill manifest. Reserved stub only. Use when scaffolding a new AIOS skill package.",
+  "role": "executor",
+  "grade": "guided",
+  "inputs": [
+    {
+      "name": "goal",
+      "artifact_type": "goal",
+      "required": true,
+      "description": "Normalized intent"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "primary",
+      "artifact_type": "skill-output",
+      "primary": true,
+      "description": "Primary result artifact"
+    }
+  ],
+  "requires_skills": [],
+  "validators": [],
+  "reviewers": [],
+  "side_effects": ["runtime-write"],
+  "status": "reserved",
+  "entrypoint": "SKILL.md"
+}

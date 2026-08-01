@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aios.dev/schemas/dependency-graph.schema.json",
+  "title": "AIOS Dependency Graph",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "artifact_id",
+    "kind",
+    "nodes",
+    "edges",
+    "created_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/schemaVersion"
+    },
+    "artifact_id": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/artifactId"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "task",
+        "artifact",
+        "mixed"
+      ]
+    },
+    "plan_id": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/artifactId"
+    },
+    "orchestration_id": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/artifactId"
+    },
+    "created_at": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/isoDateTime"
+    },
+    "nodes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "node_type"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/artifactId"
+          },
+          "node_type": {
+            "type": "string",
+            "enum": [
+              "task",
+              "artifact"
+            ]
+          },
+          "label": {
+            "type": "string"
+          },
+          "artifact_version": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "predecessor",
+          "successor",
+          "type"
+        ],
+        "properties": {
+          "predecessor": {
+            "type": "string",
+            "description": "Must complete/satisfy before successor. For blocks/feeds this is a hard dep."
+          },
+          "successor": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/edgeType"
+          },
+          "hard": {
+            "type": "boolean",
+            "default": true
+          }
+        }
+      }
+    },
+    "acyclic": {
+      "type": "boolean",
+      "description": "True if hard edges form a DAG. False allowed for diagnostic graphs."
+    },
+    "extensions": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/extensions"
+    }
+  }
+}
