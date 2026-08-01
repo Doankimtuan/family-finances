@@ -8,7 +8,17 @@ ai-os/
 ├── AGENTS.md
 ├── VERSION
 ├── architecture/
-├── schemas/
+├── core/                   # Core Engine (TypeScript control plane)
+│   ├── planner/
+│   ├── orchestrator/
+│   ├── artifacts/
+│   ├── memory/
+│   ├── knowledge/
+│   ├── schemas/            # Zod mirrors of JSON contracts
+│   ├── templates/
+│   ├── configs/
+│   └── scripts/
+├── schemas/                # JSON Schema contracts
 ├── templates/
 ├── contracts/
 ├── policies/               # Executable policy data (gate profiles)
@@ -18,7 +28,7 @@ ai-os/
 ├── skills/                 # empty until skill phase
 ├── validators/
 ├── reviewers/
-└── workers/                # docs only in framework phase
+└── workers/                # docs only until worker phase
 ```
 
 ## Package layouts (future)
@@ -44,8 +54,9 @@ Prefer writing under `runtime/artifacts/`. Convenience folders may symlink or co
 |---------|----------|
 | Conventions | `architecture/` |
 | Machine contracts | `schemas/` |
+| Core Engine code | `core/` |
 | Policy data | `policies/` |
 | Catalogs | `registry/` (`entries` maps) |
 | Run outputs | `runtime/` (gitignored) |
 | Capability packages | `skills/` `validators/` `reviewers/` |
-| Executors | forbidden in framework phase |
+| Executors | `workers/` (deferred) |

@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "aios:core:smoke": "npx --yes tsx ai-os/core/scripts/smoke.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

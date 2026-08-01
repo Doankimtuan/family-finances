@@ -2,20 +2,21 @@
 
 Framework-only control plane for multi-role AI work.
 
-**Phase:** Framework (`v0.2.0`)  
-**Scope:** architecture, contracts, schemas, templates, registries, policies, role definitions  
+**Phase:** Framework + Core Engine (`v0.3.1`)  
+**Scope:** architecture, contracts, schemas, templates, registries, policies, role definitions, **Core Engine** (`ai-os/core`)  
 **Out of scope:** workers, skill implementations, executable runners
 
 ## What this is
 
 AIOS defines how work is planned, orchestrated, executed, validated, and reviewed — via typed artifacts, shared schemas, and explicit dependencies.
 
-It does **not** run work. `runtime/` is a gitignored mount for future workers.
+The **Core Engine** (`ai-os/core`) is the production TypeScript control plane: planner, orchestrator, artifact store, memory, knowledge. It does **not** run workers.
 
 ## Quick map
 
 | Path | Purpose |
 |------|---------|
+| `core/` | **Core Engine** (planner, orchestrator, artifacts, memory, knowledge) |
 | `architecture/` | Canonical design docs |
 | `schemas/` | JSON Schema contracts (`common.schema.json` = shared defs) |
 | `templates/` | Copy-from starters (`payload.*` canonical) |
@@ -30,9 +31,9 @@ It does **not** run work. `runtime/` is a gitignored mount for future workers.
 ## Start here
 
 1. [AGENTS.md](AGENTS.md)
-2. [architecture/OVERVIEW.md](architecture/OVERVIEW.md)
-3. [architecture/MIGRATIONS.md](architecture/MIGRATIONS.md) — 0.1.0 → 0.2.0 remediation
-4. [architecture/TRACEABILITY.md](architecture/TRACEABILITY.md)
+2. [core/README.md](core/README.md) — Core Engine API
+3. [architecture/OVERVIEW.md](architecture/OVERVIEW.md)
+4. [architecture/MIGRATIONS.md](architecture/MIGRATIONS.md)
 
 ## Non-negotiables
 
@@ -42,3 +43,4 @@ It does **not** run work. `runtime/` is a gitignored mount for future workers.
 4. Validate then review
 5. No workers in this phase
 6. Canonical `payload.*` paths only
+7. Core Engine never invokes skills/workers

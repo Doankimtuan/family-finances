@@ -7,16 +7,16 @@ Own the control plane: accept goals, commission plans, schedule waves, enforce g
 ## States
 
 ```
-idle → accepting → planning → scheduled → running → gating → settling → closed
+idle → accepting → planning → scheduled → running → gating → settling → succeeded|failed|aborted|superseded
 ```
 
-Per-orchestration status in `orchestration-state` artifact.
+Per-orchestration status in `orchestration-state` artifact. Terminal statuses are `succeeded` / `failed` / `aborted` / `superseded` (not a separate `closed` label).
 
 ## Steps
 
 ### 1. Accepting
 
-- Create `orc_<id>`
+- Create orchestration-state artifact (`art_…`, type `orchestration-state`)
 - Ingest goal (create or pin `goal` artifact)
 - Select policy profile: `strict` | `standard` | `advisory`
 - Record budget: max waves, max retries, allowed side effects
@@ -89,7 +89,7 @@ Orchestrator must escalate to human when:
 - two consecutive review fails on same task
 - side effect exceeds budget
 
-Escalations are `doc` artifacts with type note `escalation`.
+Escalations are `escalation` artifacts (`type: escalation`).
 
 ## Control-plane invariants
 
@@ -97,7 +97,21 @@ Escalations are `doc` artifacts with type note `escalation`.
 2. Never schedule dependents of failed hard deps.
 3. Never execute without an accepted plan (except pure intake clarification).
 4. Never implement work itself — only coordinate.
+5. Plan ownership: `plan.trace.orchestration_id` must match the accepting orchestration.
+6. Publish syncs plan payload.status via a new artifact version (create-once bytes).
 
-## Framework-phase note
+## Core Engine (v0.3.x)
 
-Orchestrator is a **role charter + state schema** today. No scheduler process ships in `v0.1.0`.
+`ai-os/core` implements this lifecycle without workers:
+
+| API | Effect |
+|-----|--------|
+| `start` | accepting + orchestration-state |
+| `planAndAttach` | planning via shared Planner |
+| `acceptPlan` | plan-decision + gate (when required) + publish plan version + schedule waves |
+| `startNextWave` | running + stub `run-record` artifacts |
+| `recordTaskOutcome` | terminal stub runs; wave/orc transitions |
+| `recordQualityGate` | gating / settle publish |
+| `escalate` | escalation artifact |
+
+Skill/worker invocation remains forbidden in Core Engine.

@@ -2,5 +2,13 @@
   "schema_version": "1.0.0",
   "registry_kind": "skills",
   "updated_at": "2026-08-01T00:00:00Z",
-  "entries": {}
+  "entries": {
+    "example-skill": {
+      "id": "example-skill",
+      "path": "skills/example-skill",
+      "version": "0.0.0",
+      "status": "reserved",
+      "description": "Placeholder skill for Core Engine planning fixtures; not executable"
+    }
+  }
 }

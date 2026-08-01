@@ -17,6 +17,8 @@ Validator ──► Reviewer ──► Quality gate ──► publish | hold | r
 
 Workers are contracted (`contracts/worker-port.md`) but **not implemented** in this phase.
 
+The **Core Engine** (`ai-os/core`) implements the control plane in TypeScript: planning, wave scheduling, gate recording, stub run-records. It does not invoke skills/workers.
+
 ## Core objects
 
 All durable objects are **artifacts** (`art_…` + `type`).
@@ -61,7 +63,8 @@ See `contracts/cursor-bridge.md`.
 
 ## Versioning
 
-- Framework: `VERSION` (now `0.2.0`)
+- Framework: `VERSION` (now `0.3.0`)
+- Core Engine: `ai-os/core/` (planner, orchestrator, artifacts, memory, knowledge)
 - Breaking changes: `architecture/MIGRATIONS.md`
 - Packages: semver in manifests
 - Artifacts: monotonic `artifact_version`

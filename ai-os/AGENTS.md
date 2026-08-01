@@ -6,10 +6,19 @@ Read this before contributing to or operating within AIOS.
 
 | Allowed now | Forbidden now |
 |-------------|----------------|
-| Extend architecture docs | Implement workers |
-| Add/adjust JSON schemas (via common `$defs`) | Re-inline enums already in `common.schema.json` |
+| Use / extend Core Engine (`ai-os/core`) | Implement workers |
+| Extend architecture docs | Skill bodies that mutate the product repo |
+| Add/adjust JSON + Zod schemas via common defs | Re-inline enums already in common schemas |
 | Add templates & registry entries | Bypass validation/review gates |
 | Clarify role charters | Mix validator/reviewer logic into skills |
+
+## Core Engine
+
+Import: `@/ai-os/core` → `createAiosCore()`.
+
+Modules: `planner`, `orchestrator`, `artifacts`, `memory`, `knowledge`, `schemas`, `templates`, `configs`.
+
+Smoke: `npm run aios:core:smoke`
 
 ## Role selection
 

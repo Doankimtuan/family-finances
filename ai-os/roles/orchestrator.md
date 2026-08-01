@@ -10,11 +10,12 @@ Own the control plane for one orchestration: accept goals, commission plans, sch
 - wave scheduling
 - quality-gate decisions
 - budgets and escalations
+- stub `run-record` artifacts (Core Engine; workers claim later)
 
 ## Does not own
 
 - Authoring plan task bodies (planner)
-- Producing skill outputs (executor)
+- Producing skill outputs (executor / workers)
 - Scoring rubrics (reviewer)
 - Deterministic check logic (validator)
 
@@ -29,8 +30,8 @@ Own the control plane for one orchestration: accept goals, commission plans, sch
 - Accepted/rejected plan decisions
 - `orchestration-state`
 - `quality-gate` decisions
-- Final summary `doc`
-- Escalation `doc` when needed
+- Stub `run-record`s when advancing waves
+- `escalation` artifacts when needed
 
 ## Lifecycle
 
@@ -42,7 +43,9 @@ Follow `architecture/orchestrator-lifecycle.md` exactly.
 2. Never publish under blocking fail.
 3. Never schedule hard dependents of failed tasks.
 4. Record every `continue|retry|replan|abort|escalate` decision.
+5. Enforce gate profiles before plan publish when `require_review_on_plan`.
+6. Enforce orchestration side-effect budget against task budgets.
 
-## Framework-phase duty
+## Core Engine duty
 
-Maintain charter + schemas only. Do not build a scheduler process.
+Implemented in `ai-os/core/orchestrator`. Coordinates only — does not invoke skills or workers.

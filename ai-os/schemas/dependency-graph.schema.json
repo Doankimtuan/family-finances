@@ -79,11 +79,11 @@
         ],
         "properties": {
           "predecessor": {
-            "type": "string",
+            "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/artifactId",
             "description": "Must complete/satisfy before successor. For blocks/feeds this is a hard dep."
           },
           "successor": {
-            "type": "string"
+            "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/artifactId"
           },
           "type": {
             "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/edgeType"
