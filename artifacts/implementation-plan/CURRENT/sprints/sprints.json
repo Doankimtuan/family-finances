@@ -1,0 +1,95 @@
+{
+  "sprints": [
+    {
+      "id": "S1",
+      "goal": "Shell + Auth",
+      "epics": [
+        "E01",
+        "E02"
+      ],
+      "exit": "AppViewport + login session works",
+      "demo": "Open app \u2192 Welcome \u2192 Login \u2192 session established \u2192 shell chrome visible at 440px",
+      "story_ids": [
+        "ST-E01-001",
+        "ST-E01-002",
+        "ST-E01-003",
+        "ST-E02-001",
+        "ST-E02-002",
+        "ST-E02-003"
+      ]
+    },
+    {
+      "id": "S2",
+      "goal": "Household ready",
+      "epics": [
+        "E03"
+      ],
+      "exit": "Onboard \u22643 \u2192 Home gate; invite path",
+      "demo": "Complete onboard \u22643 steps \u2192 Home gate; send/accept invite",
+      "story_ids": [
+        "ST-E03-001",
+        "ST-E03-002",
+        "ST-E03-003"
+      ]
+    },
+    {
+      "id": "S3",
+      "goal": "Capture money",
+      "epics": [
+        "E04"
+      ],
+      "exit": "Add txn <15s; online fail-closed",
+      "demo": "Add expense quickly; offline blocks mutate; unmapped creates Inbox item",
+      "story_ids": [
+        "ST-E04-001",
+        "ST-E04-002",
+        "ST-E04-003"
+      ]
+    },
+    {
+      "id": "S4",
+      "goal": "Intention plan",
+      "epics": [
+        "E05"
+      ],
+      "exit": "Jars Active-only; Ritual preview\u2192approve",
+      "demo": "Teach real\u2260virtual; Active jar only; Assisted ritual approve locks",
+      "story_ids": [
+        "ST-E05-001",
+        "ST-E05-002",
+        "ST-E05-003",
+        "ST-E05-004"
+      ]
+    },
+    {
+      "id": "S5",
+      "goal": "Inbox zero path",
+      "epics": [
+        "E06"
+      ],
+      "exit": "Resolve ReviewItem; maturity/EMI hooks",
+      "demo": "Resolve ReviewItem to Active jar; open maturity/EMI guided card",
+      "story_ids": [
+        "ST-E06-001",
+        "ST-E06-002"
+      ]
+    },
+    {
+      "id": "S6",
+      "goal": "Clarity + polish",
+      "epics": [
+        "E07",
+        "E08",
+        "E04"
+      ],
+      "exit": "Home three answers; Health visible; system shells; money remainder",
+      "demo": "Home three answers; Health chip; debts/savings/cards; offline/error shells",
+      "story_ids": [
+        "ST-E04-004",
+        "ST-E07-001",
+        "ST-E07-002",
+        "ST-E08-001"
+      ]
+    }
+  ]
+}

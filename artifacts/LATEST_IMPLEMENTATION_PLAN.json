@@ -1,0 +1,12 @@
+{
+  "board": "Implementation Planning Board",
+  "run_id": "run_implementation_plan_20260801T210000Z",
+  "at": "2026-08-01T16:25:20Z",
+  "path": "artifacts/implementation-plan/CURRENT",
+  "version": "v1.0.0",
+  "status": "OFFICIAL_IMPLEMENTATION_PLAN_SOURCE_OF_TRUTH",
+  "verdict": "FROZEN",
+  "story_count": 22,
+  "task_count": 104,
+  "ai_os_output": false
+}
