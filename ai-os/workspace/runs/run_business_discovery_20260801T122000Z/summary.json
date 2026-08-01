@@ -1,0 +1,11 @@
+{
+  "run_id": "run_business_discovery_20260801T122000Z",
+  "stage": "business-discovery",
+  "status": "frozen",
+  "confidence": 100,
+  "validation_gate": "PASS",
+  "workers": 8,
+  "packs": 8,
+  "finished_at": "2026-08-01T12:23:25Z",
+  "stopped": true
+}

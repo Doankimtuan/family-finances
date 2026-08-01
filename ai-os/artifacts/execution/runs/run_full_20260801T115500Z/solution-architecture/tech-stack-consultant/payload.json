@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_tech_stack_consultant_T115500Z",
+  "worker_id": "tech-stack-consultant",
+  "title": "Tech stack notes",
+  "summary": "Current stack is appropriate; recommend tightening domain module boundaries.",
+  "entries": [
+    {
+      "id": "ts-next",
+      "entry_kind": "stack",
+      "statement": "Next 16 + React 19 remain primary UI runtime.",
+      "source_paths": [
+        "package.json"
+      ]
+    },
+    {
+      "id": "ts-supabase",
+      "entry_kind": "stack",
+      "statement": "Supabase remains system of record with SQL migrations.",
+      "source_paths": [
+        "supabase/"
+      ]
+    },
+    {
+      "id": "ts-validation",
+      "entry_kind": "stack",
+      "statement": "Zod shared at edges (forms + server actions).",
+      "source_paths": [
+        "package.json",
+        "lib/"
+      ]
+    }
+  ],
+  "status": "ready",
+  "created_at": "2026-08-01T11:57:28Z",
+  "trace": {
+    "orchestration_id": "art_orch_run_full_20260801T115500Z",
+    "plan_id": "art_plan_run_full_20260801T115500Z",
+    "task_id": "art_task_tech-stack-consultant",
+    "run_id": "art_run_tech-stack-consultant",
+    "goal_id": "art_goal_family_finances_full_re"
+  },
+  "extensions": {
+    "pipeline": "solution-architecture",
+    "artifact_type": "tech-stack-notes",
+    "run_id": "run_full_20260801T115500Z"
+  }
+}

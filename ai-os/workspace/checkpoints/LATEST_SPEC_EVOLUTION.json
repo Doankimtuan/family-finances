@@ -1,0 +1,39 @@
+{
+  "schema_version": "1.0.0",
+  "checkpoint_id": "ckpt_run_spec_evolution_20260801T134000Z",
+  "stage": "specification-evolution",
+  "run_id": "run_spec_evolution_20260801T134000Z",
+  "created_at": "2026-08-01T13:39:19Z",
+  "result": "FROZEN",
+  "proposal_adopted": false,
+  "originals_unchanged": true,
+  "business_rules_preserved": [
+    "br-action-context",
+    "br-amount-positive",
+    "br-assumptions-admin",
+    "br-closed-month",
+    "br-expense-allocate",
+    "br-income-allocate",
+    "br-installment-complete",
+    "br-jar-active",
+    "br-month-close-mode",
+    "br-one-household",
+    "br-overspend-policy",
+    "br-real-vs-virtual",
+    "br-rls-member",
+    "br-savings-maturity"
+  ],
+  "improvement_count": 15,
+  "graph_nodes": 292,
+  "graph_edges": 1547,
+  "outputs": {
+    "specification_graph": "ai-os/artifacts/specification-graph/runs/run_spec_evolution_20260801T134000Z/",
+    "improvement_analysis": "ai-os/artifacts/improvement-analysis/runs/run_spec_evolution_20260801T134000Z/",
+    "proposal_v2": "ai-os/artifacts/proposal-v2/runs/run_spec_evolution_20260801T134000Z/",
+    "migration_plan": "ai-os/artifacts/migration-plan/runs/run_spec_evolution_20260801T134000Z/",
+    "impact_analysis": "ai-os/artifacts/impact-analysis/runs/run_spec_evolution_20260801T134000Z/",
+    "dependency_roadmap": "ai-os/artifacts/dependency-roadmap/runs/run_spec_evolution_20260801T134000Z/"
+  },
+  "execution_status": "completed",
+  "frozen": true
+}

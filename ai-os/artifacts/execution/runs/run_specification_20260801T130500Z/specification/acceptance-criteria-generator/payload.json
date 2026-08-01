@@ -1,0 +1,199 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_acceptance_criteria_generator_T130500Z",
+  "type": "acceptance-criteria",
+  "worker_id": "acceptance-criteria-generator",
+  "title": "Acceptance criteria",
+  "summary": "Acceptance criteria derived from validated business rules and features; no new product behavior.",
+  "entries": [
+    {
+      "id": "ac-br-real-vs-virtual",
+      "statement": "Given a jar movement is created, When account balances are queried, Then real ledger balances are unchanged.",
+      "source_paths": [
+        "ai-os/artifacts/business/runs/run_business_discovery_20260801T122000Z/payload.json#br-real-vs-virtual",
+        "ai-os/artifacts/requirements/runs/run_specification_20260801T130500Z/payload.json",
+        "docs/DOMAIN_MODEL.md",
+        "docs/JAR_FINAL_ARCHITECTURE.md"
+      ],
+      "entry_kind": "acceptance",
+      "requirement_id": "REQ-REAL-VS-VIRTUAL"
+    },
+    {
+      "id": "ac-br-jar-active",
+      "statement": "Given a jar is archived or soft-deleted, When a normal movement is attempted, Then validation rejects the movement.",
+      "source_paths": [
+        "ai-os/artifacts/business/runs/run_business_discovery_20260801T122000Z/payload.json#br-jar-active",
+        "ai-os/artifacts/requirements/runs/run_specification_20260801T130500Z/payload.json",
+        "lib/jars/domain/validation.ts",
+        "supabase/migrations/00040_rebuild_jars_intent_layer.sql"
+      ],
+      "entry_kind": "acceptance",
+      "requirement_id": "REQ-JAR-ACTIVE"
+    },
+    {
+      "id": "ac-br-closed-month",
+      "statement": "Given a month close run is approved, When a normal movement is attempted for that month, Then the system requires the correction workflow.",
+      "source_paths": [
+        "ai-os/artifacts/business/runs/run_business_discovery_20260801T122000Z/payload.json#br-closed-month",
+        "ai-os/artifacts/requirements/runs/run_specification_20260801T130500Z/payload.json",
+        "lib/jars/domain/validation.ts",
+        "lib/jars/domain/rollover-engine.ts"
+      ],
+      "entry_kind": "acceptance",
+      "requirement_id": "REQ-CLOSED-MONTH"
+    },
+    {
+      "id": "ac-br-rls-member",
+      "statement": "Given a user without active household membership, When querying household-scoped tables, Then RLS returns no rows.",
+      "source_paths": [
+        "ai-os/artifacts/business/runs/run_business_discovery_20260801T122000Z/payload.json#br-rls-member",
+        "ai-os/artifacts/requirements/runs/run_specification_20260801T130500Z/payload.json",
+        "supabase/migrations/00003_functions_and_rls.sql",
+        "supabase/migrations/00045_rls_simplification.sql"
+      ],
+      "entry_kind": "acceptance",
+      "requirement_id": "REQ-RLS-MEMBER"
+    },
+    {
+      "id": "ac-br-action-context",
+      "statement": "Given an unauthenticated caller, When invoking a server action using resolveActionContext, Then the action fails unauthorized.",
+      "source_paths": [
+        "ai-os/artifacts/business/runs/run_business_discovery_20260801T122000Z/payload.json#br-action-context",
+        "ai-os/artifacts/requirements/runs/run_specification_20260801T130500Z/payload.json",
+        "lib/server/action-context.ts"
+      ],
+      "entry_kind": "acceptance",
+      "requirement_id": "REQ-ACTION-CONTEXT"
+    },
+    {
+      "id": "ac-br-assumptions-admin",
+      "statement": "Given a partner (non-admin) member, When updating household assumptions, Then the settings action denies the update.",
+      "source_paths": [
+        "ai-os/artifacts/business/runs/run_business_discovery_20260801T122000Z/payload.json#br-assumptions-admin",
+        "ai-os/artifacts/requirements/runs/run_specification_20260801T130500Z/payload.json",
+        "app/settings/actions.ts",
+        "supabase/migrations/00008_household_assumptions_settings.sql"
+      ],
+      "entry_kind": "acceptance",
+      "requirement_id": "REQ-ASSUMPTIONS-ADMIN"
+    },
+    {
+      "id": "ac-br-one-household",
+      "statement": "Given a user already in an active household, When create_household_with_owner is called again, Then creation is rejected per RPC rules.",
+      "source_paths": [
+        "ai-os/artifacts/business/runs/run_business_discovery_20260801T122000Z/payload.json#br-one-household",
+        "ai-os/artifacts/requirements/runs/run_specification_20260801T130500Z/payload.json",
+        "supabase/migrations/00008_household_lifecycle_rpc.sql",
+        "app/household/actions.ts"
+      ],
+      "entry_kind": "acceptance",
+      "requirement_id": "REQ-ONE-HOUSEHOLD"
+    },
+    {
+      "id": "ac-br-savings-maturity",
+      "statement": "Given a savings account in a terminal status, When mature/withdraw is invoked, Then RPC/service guards prevent invalid transitions.",
+      "source_paths": [
+        "ai-os/artifacts/business/runs/run_business_discovery_20260801T122000Z/payload.json#br-savings-maturity",
+        "ai-os/artifacts/requirements/runs/run_specification_20260801T130500Z/payload.json",
+        "lib/savings/schemas.ts",
+        "lib/savings/service.ts"
+      ],
+      "entry_kind": "acceptance",
+      "requirement_id": "REQ-SAVINGS-MATURITY"
+    },
+    {
+      "id": "ac-br-installment-complete",
+      "statement": "Given paid_installments reaches num_installments, When settle runs, Then installment plan status becomes completed.",
+      "source_paths": [
+        "ai-os/artifacts/business/runs/run_business_discovery_20260801T122000Z/payload.json#br-installment-complete",
+        "ai-os/artifacts/requirements/runs/run_specification_20260801T130500Z/payload.json",
+        "app/accounts/card/installment-actions.ts",
+        "supabase/migrations/00014_credit_card_installments.sql"
+      ],
+      "entry_kind": "acceptance",
+      "requirement_id": "REQ-INSTALLMENT-COMPLETE"
+    },
+    {
+      "id": "ac-br-expense-allocate",
+      "statement": "Given an expense with a mapped category rule and expense_auto_allocate enabled, When synced, Then a jar movement or resolved allocation occurs without inventing new policy values.",
+      "source_paths": [
+        "ai-os/artifacts/business/runs/run_business_discovery_20260801T122000Z/payload.json#br-expense-allocate",
+        "ai-os/artifacts/requirements/runs/run_specification_20260801T130500Z/payload.json",
+        "lib/jars/domain/rule-engine.ts",
+        "lib/jars/domain/allocation-engine.ts"
+      ],
+      "entry_kind": "acceptance",
+      "requirement_id": "REQ-EXPENSE-ALLOCATE"
+    },
+    {
+      "id": "ac-br-income-allocate",
+      "statement": "Given income and a month plan, When allocation runs under income_auto_allocate=suggest, Then suggestions are produced for review rather than silent invented splits.",
+      "source_paths": [
+        "ai-os/artifacts/business/runs/run_business_discovery_20260801T122000Z/payload.json#br-income-allocate",
+        "ai-os/artifacts/requirements/runs/run_specification_20260801T130500Z/payload.json",
+        "lib/jars/domain/allocation-engine.ts",
+        "lib/jars/_lib/types.ts"
+      ],
+      "entry_kind": "acceptance",
+      "requirement_id": "REQ-INCOME-ALLOCATE"
+    },
+    {
+      "id": "ac-ft-onboarding",
+      "statement": "Given a new household, When onboarding is followed, Then the eight discovered steps (welcome\u2192\u2026\u2192first-insight) are available as documented routes.",
+      "source_paths": [
+        "ai-os/artifacts/features/runs/run_business_discovery_20260801T122000Z/payload.json#ft-onboarding",
+        "ai-os/artifacts/requirements/runs/run_specification_20260801T130500Z/payload.json",
+        "app/onboarding/",
+        "app/onboarding/actions.ts"
+      ],
+      "entry_kind": "acceptance",
+      "requirement_id": "REQ-FEAT-ONBOARDING"
+    },
+    {
+      "id": "ac-ft-jars",
+      "statement": "Given a member, When navigating jars surfaces, Then list/detail/history/setup/review routes exist as discovered.",
+      "source_paths": [
+        "ai-os/artifacts/features/runs/run_business_discovery_20260801T122000Z/payload.json#ft-jars",
+        "ai-os/artifacts/requirements/runs/run_specification_20260801T130500Z/payload.json",
+        "app/jars/",
+        "lib/jars/"
+      ],
+      "entry_kind": "acceptance",
+      "requirement_id": "REQ-FEAT-JARS"
+    },
+    {
+      "id": "ac-ft-auth",
+      "statement": "Given no session, When accessing gated pages, Then redirect to /login as discovered.",
+      "source_paths": [
+        "ai-os/artifacts/features/runs/run_business_discovery_20260801T122000Z/payload.json#ft-auth",
+        "ai-os/artifacts/requirements/runs/run_specification_20260801T130500Z/payload.json",
+        "app/login/",
+        "app/login/actions.ts"
+      ],
+      "entry_kind": "acceptance",
+      "requirement_id": "REQ-FEAT-AUTH"
+    }
+  ],
+  "status": "ready",
+  "created_at": "2026-08-01T13:07:01Z",
+  "trace": {
+    "orchestration_id": "art_orch_run_specification_20260801T130500Z",
+    "plan_id": "art_plan_run_specification_20260801T130500Z",
+    "task_id": "art_task_acceptance-criteria-generator",
+    "run_id": "art_run_acceptance-criteria-generator",
+    "goal_id": "art_goal_specification_generation",
+    "upstream_run_id": "run_business_discovery_20260801T122000Z"
+  },
+  "extensions": {
+    "stage": "specification-generation",
+    "pipeline": "specification-engineering",
+    "run_id": "run_specification_20260801T130500Z",
+    "upstream": "run_business_discovery_20260801T122000Z",
+    "invent_business_logic": false,
+    "redesign": false,
+    "inputs": {
+      "business_discovery_gate": "PASS",
+      "business_discovery_confidence": 100
+    }
+  }
+}

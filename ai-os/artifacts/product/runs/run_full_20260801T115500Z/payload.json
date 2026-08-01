@@ -1,0 +1,61 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_product_analyst_T115500Z",
+  "type": "product-model",
+  "worker_id": "product-analyst",
+  "title": "Product model",
+  "summary": "Reverse-engineered product identity, personas, and capabilities.",
+  "entries": [
+    {
+      "id": "pm-identity",
+      "entry_kind": "identity",
+      "statement": "Family Finances is a household-based personal finance system separating real accounting from virtual jar intents.",
+      "source_paths": [
+        "artifacts/knowledge/",
+        "artifacts/product-architecture/",
+        "app/"
+      ]
+    },
+    {
+      "id": "pm-persona",
+      "entry_kind": "persona",
+      "statement": "Household partners collaborate on shared accounts, jars, goals, and onboarding.",
+      "source_paths": [
+        "app/household/",
+        "app/onboarding/",
+        "artifacts/knowledge/"
+      ]
+    },
+    {
+      "id": "pm-value",
+      "entry_kind": "value-prop",
+      "statement": "Keep real balances accurate while managing virtual jar intents and household decisions together.",
+      "source_paths": [
+        "artifacts/business/",
+        "lib/jars/"
+      ]
+    },
+    {
+      "id": "pm-caps",
+      "entry_kind": "capability",
+      "statement": "Capabilities include dashboard, jars, accounts, goals, assets, debts, recurring, insights, decision-tools, settings.",
+      "source_paths": [
+        "artifacts/features/",
+        "app/"
+      ]
+    }
+  ],
+  "status": "ready",
+  "created_at": "2026-08-01T11:57:28Z",
+  "trace": {
+    "orchestration_id": "art_orch_run_full_20260801T115500Z",
+    "plan_id": "art_plan_run_full_20260801T115500Z",
+    "task_id": "art_task_product-analyst",
+    "run_id": "art_run_product-analyst",
+    "goal_id": "art_goal_family_finances_full_re"
+  },
+  "extensions": {
+    "pipeline": "product-re",
+    "run_id": "run_full_20260801T115500Z"
+  }
+}

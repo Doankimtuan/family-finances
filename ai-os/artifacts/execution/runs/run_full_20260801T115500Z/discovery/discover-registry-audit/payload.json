@@ -1,0 +1,51 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_discover_registry_audit_T115500Z",
+  "report_kind": "registry-audit",
+  "worker_id": "discover-registry-audit",
+  "worker_version": "0.1.0",
+  "title": "AIOS registry audit",
+  "summary": "Audited workers/validators/reviewers/pipelines registries after 0.13.0 layout.",
+  "findings": [
+    {
+      "id": "reg-workers",
+      "severity": "info",
+      "message": "81 workers registered under core/packages/workers/.",
+      "path": "ai-os/core/packages/registry/workers.json"
+    },
+    {
+      "id": "reg-orphan-skill",
+      "severity": "low",
+      "message": "skills/example-skill registry path missing on disk (pre-existing reserved orphan).",
+      "path": "ai-os/core/packages/registry/skills.json",
+      "hint": "Remove or add stub package"
+    }
+  ],
+  "inventory": {
+    "workers": 81,
+    "validators": 9,
+    "reviewers": 9,
+    "pipelines": [
+      "discovery",
+      "framework-generator",
+      "product-re",
+      "qualification-framework",
+      "review-engine",
+      "runtime-engine",
+      "solution-architecture",
+      "specification-engineering",
+      "validation-engine"
+    ],
+    "layout_version": "0.13.0"
+  },
+  "gaps": [],
+  "status": "ready",
+  "created_at": "2026-08-01T11:57:28Z",
+  "trace": {
+    "orchestration_id": "art_orch_run_full_20260801T115500Z",
+    "plan_id": "art_plan_run_full_20260801T115500Z",
+    "task_id": "art_task_discover-registry-audit",
+    "run_id": "art_run_discover-registry-audit",
+    "goal_id": "art_goal_family_finances_full_re"
+  }
+}

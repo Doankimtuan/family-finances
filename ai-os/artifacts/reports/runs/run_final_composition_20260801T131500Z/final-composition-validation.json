@@ -1,0 +1,20 @@
+{
+  "gate": "PASS",
+  "run_id": "run_final_composition_20260801T131500Z",
+  "scores": {
+    "overall_coverage": 100,
+    "architecture_score": 100,
+    "business_score": 100,
+    "specification_score": 100,
+    "documentation_score": 100,
+    "traceability_score": 100,
+    "framework_confidence": 95,
+    "overall_quality_score": 99,
+    "production_readiness": "GO_WITH_NOTES"
+  },
+  "warnings": [
+    "DB entity naming soft-misses: ['dom-category']",
+    "Framework Phase1 discovery coverage HOLD (72%) remains open; product BD+SPEC gates are PASS."
+  ],
+  "critical_issues": []
+}

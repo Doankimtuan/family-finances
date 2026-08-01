@@ -1,0 +1,18 @@
+{
+  "run_id": "run_specification_20260801T130500Z",
+  "stage": "specification-generation",
+  "status": "frozen",
+  "confidence": 100,
+  "validation_gate": "PASS",
+  "upstream": "run_business_discovery_20260801T122000Z",
+  "counts": {
+    "specifications": 95,
+    "requirements": 42,
+    "acceptance": 14,
+    "tasks": 10,
+    "roadmap": 4,
+    "implementation": 9
+  },
+  "finished_at": "2026-08-01T13:08:04Z",
+  "stopped": true
+}

@@ -1,0 +1,104 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_quality_scoring_engine_T115500Z",
+  "worker_id": "quality-scoring-engine",
+  "title": "Quality scores",
+  "summary": "Dimension scores for this reverse-engineering run.",
+  "entries": [
+    {
+      "id": "sc-completeness",
+      "entry_kind": "completeness",
+      "score_value": 0.86,
+      "statement": "Critical-path produce packs present.",
+      "source_paths": [
+        "artifacts/execution/runs/run_full_20260801T115500Z/"
+      ]
+    },
+    {
+      "id": "sc-consistency",
+      "entry_kind": "consistency",
+      "score_value": 0.88,
+      "statement": "Jar/ledger narrative consistent.",
+      "source_paths": [
+        "artifacts/business/",
+        "artifacts/architecture-v2/"
+      ]
+    },
+    {
+      "id": "sc-traceability",
+      "entry_kind": "traceability",
+      "score_value": 0.9,
+      "statement": "Trace blocks populated.",
+      "source_paths": [
+        "artifacts/execution/runs/run_full_20260801T115500Z/"
+      ]
+    },
+    {
+      "id": "sc-schema",
+      "entry_kind": "schema",
+      "score_value": 0.84,
+      "statement": "Required fields present on payloads.",
+      "source_paths": [
+        "ai-os/core/packages/schemas/"
+      ]
+    },
+    {
+      "id": "sc-coverage",
+      "entry_kind": "coverage",
+      "score_value": 0.8,
+      "statement": "Domains mapped from app routes.",
+      "source_paths": [
+        "artifacts/features/"
+      ]
+    },
+    {
+      "id": "sc-clarity",
+      "entry_kind": "clarity",
+      "score_value": 0.82,
+      "statement": "Summaries readable.",
+      "source_paths": [
+        "artifacts/execution/runs/run_full_20260801T115500Z/"
+      ]
+    },
+    {
+      "id": "sc-security",
+      "entry_kind": "security",
+      "score_value": 0.78,
+      "statement": "RLS called out; deep audit deferred.",
+      "source_paths": [
+        "supabase/migrations/"
+      ]
+    },
+    {
+      "id": "sc-maintainability",
+      "entry_kind": "maintainability",
+      "score_value": 0.81,
+      "statement": "SA proposes jar facade.",
+      "source_paths": [
+        "artifacts/redesign/"
+      ]
+    },
+    {
+      "id": "sc-overall",
+      "entry_kind": "overall",
+      "score_value": 0.84,
+      "statement": "PASS threshold met for RE packaging gate.",
+      "source_paths": [
+        "artifacts/scores/"
+      ]
+    }
+  ],
+  "status": "ready",
+  "created_at": "2026-08-01T11:57:28Z",
+  "trace": {
+    "orchestration_id": "art_orch_run_full_20260801T115500Z",
+    "plan_id": "art_plan_run_full_20260801T115500Z",
+    "task_id": "art_task_quality-scoring-engine",
+    "run_id": "art_run_quality-scoring-engine",
+    "goal_id": "art_goal_family_finances_full_re"
+  },
+  "extensions": {
+    "pipeline": "validation-engine",
+    "run_id": "run_full_20260801T115500Z"
+  }
+}

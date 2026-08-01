@@ -1,0 +1,55 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_workflow_analyzer_T115500Z",
+  "type": "workflow-model",
+  "worker_id": "workflow-analyzer",
+  "title": "Workflow model",
+  "summary": "Mapped primary user workflows from observed routes and domain engines.",
+  "entries": [
+    {
+      "id": "wf-onboard",
+      "entry_kind": "workflow",
+      "actor": "member",
+      "step_order": 1,
+      "statement": "Onboarding collects members, money, debts, assets, first goal, first insight.",
+      "source_paths": [
+        "app/onboarding/"
+      ]
+    },
+    {
+      "id": "wf-jar-review",
+      "entry_kind": "workflow",
+      "actor": "partner",
+      "step_order": 2,
+      "statement": "Jar review queue converts spending signals into jar_movements without ledger writes.",
+      "source_paths": [
+        "app/jars/review/",
+        "lib/jars/"
+      ]
+    },
+    {
+      "id": "wf-account",
+      "entry_kind": "workflow",
+      "actor": "partner",
+      "step_order": 3,
+      "statement": "Account detail views show savings/card balances and related activity.",
+      "source_paths": [
+        "app/accounts/",
+        "app/activity/"
+      ]
+    }
+  ],
+  "status": "ready",
+  "created_at": "2026-08-01T11:57:28Z",
+  "trace": {
+    "orchestration_id": "art_orch_run_full_20260801T115500Z",
+    "plan_id": "art_plan_run_full_20260801T115500Z",
+    "task_id": "art_task_workflow-analyzer",
+    "run_id": "art_run_workflow-analyzer",
+    "goal_id": "art_goal_family_finances_full_re"
+  },
+  "extensions": {
+    "pipeline": "product-re",
+    "run_id": "run_full_20260801T115500Z"
+  }
+}

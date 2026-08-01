@@ -1,0 +1,47 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_discover_contract_inventory_T115500Z",
+  "report_kind": "contract-inventory",
+  "worker_id": "discover-contract-inventory",
+  "worker_version": "0.1.0",
+  "title": "AIOS + product contract inventory",
+  "summary": "Listed AIOS JSON schemas, Zod modules, and Supabase SQL contracts.",
+  "findings": [
+    {
+      "id": "ctr-aios-json",
+      "severity": "info",
+      "message": "JSON schemas under ai-os/core/packages/schemas/.",
+      "path": "ai-os/core/packages/schemas/"
+    },
+    {
+      "id": "ctr-zod",
+      "severity": "info",
+      "message": "Engine Zod mirrors under ai-os/core/schemas/.",
+      "path": "ai-os/core/schemas/"
+    },
+    {
+      "id": "ctr-sql",
+      "severity": "info",
+      "message": "51 SQL migrations define product persistence contracts.",
+      "path": "supabase/migrations/"
+    }
+  ],
+  "inventory": {
+    "aios_contracts": [
+      "core/packages/contracts/pipeline.md",
+      "core/packages/contracts/worker-port.md"
+    ],
+    "migration_count": 51,
+    "api_route_count": 17
+  },
+  "gaps": [],
+  "status": "ready",
+  "created_at": "2026-08-01T11:57:28Z",
+  "trace": {
+    "orchestration_id": "art_orch_run_full_20260801T115500Z",
+    "plan_id": "art_plan_run_full_20260801T115500Z",
+    "task_id": "art_task_discover-contract-inventory",
+    "run_id": "art_run_discover-contract-inventory",
+    "goal_id": "art_goal_family_finances_full_re"
+  }
+}

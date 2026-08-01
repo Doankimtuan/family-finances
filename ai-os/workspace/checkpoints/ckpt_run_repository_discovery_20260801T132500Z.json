@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0.0",
+  "checkpoint_id": "ckpt_run_repository_discovery_20260801T132500Z",
+  "stage": "repository-discovery",
+  "run_id": "run_repository_discovery_20260801T132500Z",
+  "created_at": "2026-08-01T13:27:29Z",
+  "result": "FROZEN",
+  "validation_gate": "PASS",
+  "confidence": 100,
+  "generate_specifications": false,
+  "outputs": {
+    "repository": "ai-os/artifacts/repository/runs/run_repository_discovery_20260801T132500Z/payload.json",
+    "knowledge": "ai-os/artifacts/knowledge/runs/run_repository_discovery_20260801T132500Z/payload.json",
+    "architecture": "ai-os/artifacts/product-architecture/runs/run_repository_discovery_20260801T132500Z/payload.json",
+    "dependency_graph": "ai-os/artifacts/repository/runs/run_repository_discovery_20260801T132500Z/dependency-graph.json",
+    "coverage_report": "ai-os/artifacts/reports/runs/run_repository_discovery_20260801T132500Z/REPOSITORY_COVERAGE_REPORT.md"
+  },
+  "scores": {
+    "repository_coverage": 100,
+    "architecture_coverage": 100,
+    "knowledge_coverage": 100,
+    "overall_confidence": 100,
+    "threshold": 95,
+    "gate": "PASS"
+  },
+  "execution_status": "completed",
+  "frozen": true
+}

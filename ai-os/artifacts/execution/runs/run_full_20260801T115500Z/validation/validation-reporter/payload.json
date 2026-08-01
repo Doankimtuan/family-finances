@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_validation_reporter_T115500Z",
+  "worker_id": "validation-reporter",
+  "title": "Gate validation report",
+  "summary": "Family Finances @Run full validation gate: PASS.",
+  "entries": [
+    {
+      "id": "vr-gate",
+      "entry_kind": "gate",
+      "statement": "PASS \u2014 proceed to review.",
+      "severity": "info",
+      "source_paths": [
+        "artifacts/scores/",
+        "artifacts/validation/",
+        "artifacts/execution/runs/run_full_20260801T115500Z/"
+      ]
+    }
+  ],
+  "status": "ready",
+  "created_at": "2026-08-01T11:57:28Z",
+  "trace": {
+    "orchestration_id": "art_orch_run_full_20260801T115500Z",
+    "plan_id": "art_plan_run_full_20260801T115500Z",
+    "task_id": "art_task_validation-reporter",
+    "run_id": "art_run_validation-reporter",
+    "goal_id": "art_goal_family_finances_full_re"
+  },
+  "extensions": {
+    "pipeline": "validation-engine",
+    "gate": "gate-validation-report",
+    "result": "PASS",
+    "run_id": "run_full_20260801T115500Z"
+  }
+}

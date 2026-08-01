@@ -1,0 +1,90 @@
+{
+  "duplicated_features": [],
+  "duplicated_requirements": [],
+  "requirement_id_collisions": [],
+  "conflicting_business_rules": [
+    {
+      "ids": [
+        "br-jar-active"
+      ],
+      "note": "Active-jar constraint must stay consistent with soft-delete/archive semantics documented in BD soft notes — not a removal, clarify in solution specs.",
+      "severity": "low"
+    }
+  ],
+  "missing_acceptance": [
+    "req-br-amount-positive",
+    "req-br-overspend-policy",
+    "req-br-month-close-mode",
+    "req-ft-household",
+    "req-ft-dashboard",
+    "req-ft-accounts",
+    "req-ft-savings",
+    "req-ft-cards",
+    "req-ft-assets",
+    "req-ft-debts",
+    "req-ft-activity",
+    "req-ft-goals",
+    "req-ft-categories",
+    "req-ft-recurring",
+    "req-ft-decision-tools",
+    "req-ft-settings",
+    "req-ft-insights",
+    "req-ft-health",
+    "req-perm-auth-required",
+    "req-perm-household-required",
+    "req-perm-page-gate",
+    "req-perm-rls-member",
+    "req-perm-member-equality",
+    "req-perm-admin-settings",
+    "req-perm-bootstrap-partner",
+    "req-perm-first-member",
+    "req-perm-service-role",
+    "req-perm-categories-system"
+  ],
+  "broken_traceability": {
+    "features_without_requirement": [],
+    "business_rules_without_requirement": [],
+    "requirements_without_upstream": [
+      "req-perm-auth-required",
+      "req-perm-household-required",
+      "req-perm-page-gate",
+      "req-perm-rls-member",
+      "req-perm-member-equality",
+      "req-perm-first-member",
+      "req-perm-service-role",
+      "req-perm-categories-system"
+    ]
+  },
+  "orphan_api_specs": [],
+  "orphan_api_routes": [],
+  "unused_database_entities": [],
+  "unmapped_ui_pages": [],
+  "redundant_tasks": [],
+  "specification_smells": [
+    {
+      "id": "smell-acceptance-thin",
+      "message": "Acceptance (14) << Requirements (42)"
+    },
+    {
+      "id": "smell-severity-skew",
+      "message": "Requirement severity distribution: {'medium': 14, 'unset': 28}"
+    }
+  ],
+  "architecture_smells": [
+    {
+      "id": "arch-smell-observability-gap",
+      "message": "Validated specs emphasize domain/API/security; structured product observability (metrics/traces/SLOs) is thin vs 2026 practice.",
+      "evidence": [
+        "ai-os/artifacts/specifications/runs/run_specification_20260801T130500Z/payload.json"
+      ]
+    },
+    {
+      "id": "arch-smell-actions-vs-api",
+      "message": "Server Actions + Route Handlers dual surface increases contract sprawl; needs explicit API design standards without changing business rules.",
+      "evidence": [
+        "ai-os/artifacts/repository/runs/run_repository_discovery_20260801T132500Z/payload.json",
+        "ai-os/artifacts/final/API.md"
+      ]
+    }
+  ]
+}

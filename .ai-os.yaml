@@ -1,0 +1,20 @@
+project:
+  name: Family Finances
+  root: .
+
+mode: reverse-engineering
+
+pipeline: full
+
+output:
+  root: ./ai-os/artifacts
+
+validation: true
+
+review: true
+
+resume: true
+
+freezeEachPhase: true
+
+parallel: false

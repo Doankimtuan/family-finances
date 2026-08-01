@@ -1,0 +1,145 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_discover_repo_map_T115500Z",
+  "report_kind": "repo-map",
+  "worker_id": "discover-repo-map",
+  "worker_version": "0.1.0",
+  "title": "Family Finances repository map",
+  "summary": "Inventoried Next.js app vs ai-os control plane boundaries for Family Finances.",
+  "findings": [
+    {
+      "id": "repo-app-boundary",
+      "severity": "info",
+      "message": "Product app under app/ with 36 pages; AIOS under ai-os/.",
+      "path": "app/"
+    },
+    {
+      "id": "repo-supabase",
+      "severity": "info",
+      "message": "Supabase schema with 51 migrations.",
+      "path": "supabase/migrations/"
+    },
+    {
+      "id": "repo-lib",
+      "severity": "info",
+      "message": "Domain libs: assets, config, constants.ts, dashboard, debts, errors.ts, health, i18n, insights, jars, loading, queries, savings, server, store, supabase, utils.ts",
+      "path": "lib/"
+    }
+  ],
+  "inventory": {
+    "top_level": [
+      ".agents",
+      ".windsurf",
+      "ai-os",
+      "app",
+      "components",
+      "docs",
+      "lib",
+      "public",
+      "scripts",
+      "supabase"
+    ],
+    "app_pages": [
+      "app/accounts/[id]/page.tsx",
+      "app/accounts/card/[id]/page.tsx",
+      "app/accounts/page.tsx",
+      "app/accounts/savings/[id]/page.tsx",
+      "app/accounts/savings/page.tsx",
+      "app/activity/page.tsx",
+      "app/assets/[id]/page.tsx",
+      "app/categories/page.tsx",
+      "app/dashboard/page.tsx",
+      "app/decision-tools/page.tsx",
+      "app/goals/page.tsx",
+      "app/household/page.tsx",
+      "app/jars/[jarId]/history/page.tsx",
+      "app/jars/[jarId]/page.tsx",
+      "app/jars/page.tsx",
+      "app/jars/review/page.tsx",
+      "app/jars/setup/page.tsx",
+      "app/login/page.tsx",
+      "app/onboarding/assets/page.tsx",
+      "app/onboarding/debts/page.tsx",
+      "app/onboarding/first-goal/page.tsx",
+      "app/onboarding/first-insight/page.tsx",
+      "app/onboarding/income-expenses/page.tsx",
+      "app/onboarding/members/page.tsx",
+      "app/onboarding/money/page.tsx",
+      "app/onboarding/page.tsx",
+      "app/onboarding/welcome/page.tsx",
+      "app/page.tsx",
+      "app/recurring/page.tsx",
+      "app/settings/assumptions/page.tsx",
+      "app/settings/cash-flow/page.tsx",
+      "app/settings/categories/page.tsx",
+      "app/settings/household/page.tsx",
+      "app/settings/members/page.tsx",
+      "app/settings/page.tsx",
+      "app/settings/profile/page.tsx"
+    ],
+    "api_routes": [
+      "app/api/cash-flow/forecast/route.ts",
+      "app/api/dashboard/activity/route.ts",
+      "app/api/dashboard/core/route.ts",
+      "app/api/dashboard/goals/route.ts",
+      "app/api/dashboard/summary/route.ts",
+      "app/api/jars/spending/categories/route.ts",
+      "app/api/jars/spending/history/route.ts",
+      "app/api/jars/spending/map-category/route.ts",
+      "app/api/jars/spending/summary/route.ts",
+      "app/api/jars/spending/transactions/route.ts",
+      "app/api/savings/[id]/mature/route.ts",
+      "app/api/savings/[id]/projection/route.ts",
+      "app/api/savings/[id]/route.ts",
+      "app/api/savings/[id]/withdraw/route.ts",
+      "app/api/savings/route.ts",
+      "app/api/savings/summary/route.ts",
+      "app/api/transactions/route.ts"
+    ],
+    "lib_domains": [
+      "assets",
+      "config",
+      "constants.ts",
+      "dashboard",
+      "debts",
+      "errors.ts",
+      "health",
+      "i18n",
+      "insights",
+      "jars",
+      "loading",
+      "queries",
+      "savings",
+      "server",
+      "store",
+      "supabase",
+      "utils.ts"
+    ],
+    "package": "family-finances@0.1.0",
+    "stack": [
+      "next@16",
+      "react@19",
+      "supabase",
+      "tanstack-query",
+      "zustand",
+      "zod"
+    ]
+  },
+  "gaps": [
+    {
+      "id": "gap-root-readme",
+      "severity": "low",
+      "description": "Root README is still create-next-app boilerplate; product docs live under docs/ and ai-os.",
+      "suggested_owner": "product"
+    }
+  ],
+  "status": "ready",
+  "created_at": "2026-08-01T11:57:28Z",
+  "trace": {
+    "orchestration_id": "art_orch_run_full_20260801T115500Z",
+    "plan_id": "art_plan_run_full_20260801T115500Z",
+    "task_id": "art_task_discover-repo-map",
+    "run_id": "art_run_discover-repo-map",
+    "goal_id": "art_goal_family_finances_full_re"
+  }
+}

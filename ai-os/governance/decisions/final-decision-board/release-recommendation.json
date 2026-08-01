@@ -1,0 +1,39 @@
+{
+  "id": "final-decision-board-release-recommendation-01",
+  "entry_kind": "release-recommendation",
+  "statement": "Do not cut a product release from this RE run alone.",
+  "review_id": "REV-BOARD-RELEASE-",
+  "target": "artifacts/execution/runs/run_full_20260801T115500Z/",
+  "finding": "Use run artifacts as planning inputs only.",
+  "evidence": [
+    "governance/reviews/",
+    "artifacts/reports/",
+    "artifacts/scores/"
+  ],
+  "impact": "Guides next engineering steps.",
+  "severity": "info",
+  "recommendation": "Do not cut a product release from this RE run alone.",
+  "alternative_solution": "Request @Run benchmark or insights deep-dive before R2.",
+  "confidence": 0.86,
+  "source_paths": [
+    "artifacts/validation/",
+    "artifacts/reports/",
+    "artifacts/scores/",
+    "artifacts/knowledge/",
+    "artifacts/specifications/",
+    "governance/reviews/",
+    "governance/"
+  ],
+  "unknowns": [
+    "UNKNOWN: production launch not in scope"
+  ],
+  "traceability": {
+    "source_artifact": "governance/reviews/",
+    "validation_report": "artifacts/reports/runs/run_full_20260801T115500Z/gate-validation-report.json",
+    "pipeline": "review-engine",
+    "worker": "final-decision-board"
+  },
+  "folder_mirror": "governance/decisions/final-decision-board/release-recommendation.json",
+  "run_id": "run_full_20260801T115500Z",
+  "created_at": "2026-08-01T11:57:28Z"
+}

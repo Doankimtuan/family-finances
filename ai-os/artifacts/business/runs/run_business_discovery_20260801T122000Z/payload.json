@@ -1,0 +1,153 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_business_rules_extractor_T122000Z",
+  "type": "business-rules",
+  "worker_id": "business-rules-extractor",
+  "title": "Business rules discovery",
+  "summary": "Extracted durable business rules from jar domain, household policy, RLS, and savings/card logic. Discover only.",
+  "entries": [
+    {
+      "id": "br-real-vs-virtual",
+      "statement": "Jar movements must not be treated as real ledger mutations; real money lives in accounts/transactions.",
+      "source_paths": [
+        "docs/DOMAIN_MODEL.md",
+        "docs/JAR_FINAL_ARCHITECTURE.md",
+        "lib/jars/domain/validation.ts"
+      ],
+      "entry_kind": "rule"
+    },
+    {
+      "id": "br-income-allocate",
+      "statement": "Income allocation uses month plans (percent|fixed) then suggest/auto per income_auto_allocate policy (off|suggest|auto_high_confidence).",
+      "source_paths": [
+        "lib/jars/domain/allocation-engine.ts",
+        "lib/jars/_lib/types.ts"
+      ],
+      "entry_kind": "rule"
+    },
+    {
+      "id": "br-expense-allocate",
+      "statement": "Expense allocation uses jar_category_rules/jar_rules; auto if mapped and expense_auto_allocate!=off, else jar_review_queue pending.",
+      "source_paths": [
+        "lib/jars/domain/rule-engine.ts",
+        "lib/jars/domain/allocation-engine.ts",
+        "lib/jars/_lib/sync-transactions.ts"
+      ],
+      "entry_kind": "rule"
+    },
+    {
+      "id": "br-jar-active",
+      "statement": "Movements require an active jar (not archived / not soft-deleted).",
+      "source_paths": [
+        "lib/jars/domain/validation.ts",
+        "supabase/migrations/00040_rebuild_jars_intent_layer.sql"
+      ],
+      "entry_kind": "rule"
+    },
+    {
+      "id": "br-closed-month",
+      "statement": "Approved month close (jar_month_close_runs.status=approved) blocks normal movements; corrections use correction workflow.",
+      "source_paths": [
+        "lib/jars/domain/validation.ts",
+        "lib/jars/domain/rollover-engine.ts",
+        "supabase/migrations/00046_jar_final_architecture_foundation.sql"
+      ],
+      "entry_kind": "rule"
+    },
+    {
+      "id": "br-amount-positive",
+      "statement": "Movement amounts must be positive; balanceDelta \u2208 {-1,0,1}.",
+      "source_paths": [
+        "lib/jars/domain/validation.ts"
+      ],
+      "entry_kind": "rule"
+    },
+    {
+      "id": "br-overspend-policy",
+      "statement": "Household overspend_policy is warn|block|allow_negative.",
+      "source_paths": [
+        "lib/jars/_lib/types.ts",
+        "lib/jars/domain/allocation-engine.ts"
+      ],
+      "entry_kind": "rule"
+    },
+    {
+      "id": "br-month-close-mode",
+      "statement": "month_close_mode is manual|assisted.",
+      "source_paths": [
+        "lib/jars/_lib/types.ts"
+      ],
+      "entry_kind": "rule"
+    },
+    {
+      "id": "br-assumptions-admin",
+      "statement": "Household planning assumptions (inflation, growth rates) are admin-only updates in settings actions.",
+      "source_paths": [
+        "app/settings/actions.ts",
+        "supabase/migrations/00008_household_assumptions_settings.sql"
+      ],
+      "entry_kind": "rule"
+    },
+    {
+      "id": "br-one-household",
+      "statement": "create_household_with_owner enforces one active household per user.",
+      "source_paths": [
+        "supabase/migrations/00008_household_lifecycle_rpc.sql",
+        "app/household/actions.ts"
+      ],
+      "entry_kind": "rule"
+    },
+    {
+      "id": "br-rls-member",
+      "statement": "RLS grants household-scoped CRUD via is_household_member(household_id) for most product tables.",
+      "source_paths": [
+        "supabase/migrations/00003_functions_and_rls.sql",
+        "supabase/migrations/00045_rls_simplification.sql"
+      ],
+      "entry_kind": "rule"
+    },
+    {
+      "id": "br-savings-maturity",
+      "statement": "Savings maturity actions renew_same|switch_plan|withdraw; withdraw modes partial|full; terminal statuses guarded.",
+      "source_paths": [
+        "lib/savings/schemas.ts",
+        "lib/savings/service.ts",
+        "supabase/migrations/00039_savings_feature.sql"
+      ],
+      "entry_kind": "rule"
+    },
+    {
+      "id": "br-installment-complete",
+      "statement": "Installment plans complete when paid_installments >= num_installments.",
+      "source_paths": [
+        "app/accounts/card/installment-actions.ts",
+        "supabase/migrations/00014_credit_card_installments.sql"
+      ],
+      "entry_kind": "rule"
+    },
+    {
+      "id": "br-action-context",
+      "statement": "Server actions require authenticated user and active household_members row via resolveActionContext.",
+      "source_paths": [
+        "lib/server/action-context.ts"
+      ],
+      "entry_kind": "rule"
+    }
+  ],
+  "status": "ready",
+  "created_at": "2026-08-01T12:22:43Z",
+  "trace": {
+    "orchestration_id": "art_orch_run_business_discovery_20260801T122000Z",
+    "plan_id": "art_plan_run_business_discovery_20260801T122000Z",
+    "task_id": "art_task_business-rules-extractor",
+    "run_id": "art_run_business-rules-extractor",
+    "goal_id": "art_goal_business_discovery"
+  },
+  "extensions": {
+    "stage": "business-discovery",
+    "pipeline": "product-re",
+    "run_id": "run_business_discovery_20260801T122000Z",
+    "redesign": false,
+    "specification": false
+  }
+}

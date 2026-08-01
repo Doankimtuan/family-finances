@@ -1,0 +1,950 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_specification_generator_T130500Z",
+  "type": "project-specification",
+  "worker_id": "specification-generator",
+  "title": "Project specifications bundle",
+  "summary": "Implementation-ready specifications derived only from validated Business Discovery and existing repo contracts.",
+  "entries": [
+    {
+      "id": "spec-product-identity",
+      "statement": "Product: household-based personal finance with strict real-ledger vs virtual-jar separation.",
+      "source_paths": [
+        "ai-os/artifacts/knowledge/runs/run_business_discovery_20260801T122000Z/payload.json#kn-pillar-real-vs-virtual",
+        "docs/DOMAIN_MODEL.md",
+        "ai-os/artifacts/domain/runs/run_business_discovery_20260801T122000Z/payload.json#dom-bounded-ledger"
+      ],
+      "entry_kind": "product-specification"
+    },
+    {
+      "id": "spec-product-tenancy",
+      "statement": "Tenancy model: household root; members partner|admin; invitations pending|accepted|revoked|expired.",
+      "source_paths": [
+        "ai-os/artifacts/knowledge/runs/run_business_discovery_20260801T122000Z/payload.json#kn-household-tenancy",
+        "ai-os/artifacts/domain/runs/run_business_discovery_20260801T122000Z/payload.json#dom-member",
+        "ai-os/artifacts/domain/runs/run_business_discovery_20260801T122000Z/payload.json#dom-invitation"
+      ],
+      "entry_kind": "product-specification"
+    },
+    {
+      "id": "spec-product-features",
+      "statement": "Feature set locked to 18 discovered features (auth through health flags).",
+      "source_paths": [
+        "ai-os/artifacts/features/runs/run_business_discovery_20260801T122000Z/payload.json#ft-auth",
+        "ai-os/artifacts/features/runs/run_business_discovery_20260801T122000Z/payload.json#ft-household",
+        "ai-os/artifacts/features/runs/run_business_discovery_20260801T122000Z/payload.json#ft-onboarding",
+        "ai-os/artifacts/features/runs/run_business_discovery_20260801T122000Z/payload.json#ft-dashboard",
+        "ai-os/artifacts/features/runs/run_business_discovery_20260801T122000Z/payload.json#ft-accounts",
+        "ai-os/artifacts/features/runs/run_business_discovery_20260801T122000Z/payload.json#ft-savings",
+        "ai-os/artifacts/features/runs/run_business_discovery_20260801T122000Z/payload.json"
+      ],
+      "entry_kind": "product-specification"
+    },
+    {
+      "id": "spec-fn-wf-onboarding",
+      "statement": "Functional workflow: Onboarding: welcome\u2192members\u2192money\u2192assets\u2192debts\u2192income/expenses\u2192first-goal\u2192first-insight (8 steps).",
+      "source_paths": [
+        "ai-os/artifacts/workflow/runs/run_business_discovery_20260801T122000Z/payload.json#wf-onboarding",
+        "app/onboarding/",
+        "app/onboarding/_components/onboarding-shell.tsx"
+      ],
+      "entry_kind": "functional-specification",
+      "actor": "new_member",
+      "step_order": 1
+    },
+    {
+      "id": "spec-fn-wf-household-bootstrap",
+      "statement": "Functional workflow: Household lifecycle: auth \u2192 create household RPC \u2192 optional invite \u2192 accept as partner.",
+      "source_paths": [
+        "ai-os/artifacts/workflow/runs/run_business_discovery_20260801T122000Z/payload.json#wf-household-bootstrap",
+        "app/household/actions.ts",
+        "supabase/migrations/00008_household_lifecycle_rpc.sql"
+      ],
+      "entry_kind": "functional-specification",
+      "actor": "creator",
+      "step_order": 2
+    },
+    {
+      "id": "spec-fn-wf-jar-sync",
+      "statement": "Functional workflow: Transaction/savings event \u2192 syncTransactionToJarIntent \u2192 auto-resolve or jar_review_queue pending.",
+      "source_paths": [
+        "ai-os/artifacts/workflow/runs/run_business_discovery_20260801T122000Z/payload.json#wf-jar-sync",
+        "lib/jars/_lib/sync-transactions.ts",
+        "lib/jars/domain/allocation-engine.ts"
+      ],
+      "entry_kind": "functional-specification",
+      "actor": "system",
+      "step_order": 3
+    },
+    {
+      "id": "spec-fn-wf-jar-review",
+      "statement": "Functional workflow: User resolves /jars/review items \u2192 resolveJarReviewItemAction \u2192 resolveReviewToMovements.",
+      "source_paths": [
+        "ai-os/artifacts/workflow/runs/run_business_discovery_20260801T122000Z/payload.json#wf-jar-review",
+        "app/jars/review/page.tsx",
+        "app/jars/domain-actions.ts",
+        "lib/jars/domain/allocation-engine.ts"
+      ],
+      "entry_kind": "functional-specification",
+      "actor": "partner",
+      "step_order": 4
+    },
+    {
+      "id": "spec-fn-wf-month-close",
+      "statement": "Functional workflow: Month close: preview \u2192 approve \u2192 overspend cover + rollover \u2192 snapshots (draft\u2192processing\u2192approved|failed).",
+      "source_paths": [
+        "ai-os/artifacts/workflow/runs/run_business_discovery_20260801T122000Z/payload.json#wf-month-close",
+        "lib/jars/domain/rollover-engine.ts",
+        "lib/jars/domain/snapshot-engine.ts"
+      ],
+      "entry_kind": "functional-specification",
+      "actor": "partner",
+      "step_order": 5
+    },
+    {
+      "id": "spec-fn-wf-activity",
+      "statement": "Functional workflow: Activity: create income/expense/transfer \u2192 may trigger jar sync.",
+      "source_paths": [
+        "ai-os/artifacts/workflow/runs/run_business_discovery_20260801T122000Z/payload.json#wf-activity",
+        "app/activity/actions.ts",
+        "app/api/transactions/route.ts"
+      ],
+      "entry_kind": "functional-specification",
+      "actor": "partner",
+      "step_order": 6
+    },
+    {
+      "id": "spec-fn-wf-savings",
+      "statement": "Functional workflow: Savings: create \u2192 active lifecycle \u2192 mature/withdraw via API/UI forms.",
+      "source_paths": [
+        "ai-os/artifacts/workflow/runs/run_business_discovery_20260801T122000Z/payload.json#wf-savings",
+        "app/accounts/savings/",
+        "lib/savings/service.ts",
+        "app/api/savings/"
+      ],
+      "entry_kind": "functional-specification",
+      "actor": "partner",
+      "step_order": 7
+    },
+    {
+      "id": "spec-fn-wf-card-emi",
+      "statement": "Functional workflow: Card: billing item \u2192 convert to installment \u2192 settle payments until completed/cancelled.",
+      "source_paths": [
+        "ai-os/artifacts/workflow/runs/run_business_discovery_20260801T122000Z/payload.json#wf-card-emi",
+        "app/accounts/card/installment-actions.ts",
+        "app/accounts/card/[id]/page.tsx"
+      ],
+      "entry_kind": "functional-specification",
+      "actor": "partner",
+      "step_order": 8
+    },
+    {
+      "id": "spec-uj-uj-daily-partner",
+      "statement": "User journey must remain supported: Daily partner: login \u2192 dashboard/accounts/activity/goals \u2192 log cashflows \u2192 clear jar review \u2192 manage savings/card/goals.",
+      "source_paths": [
+        "ai-os/artifacts/user-journeys/runs/run_business_discovery_20260801T122000Z/payload.json#uj-daily-partner",
+        "components/layout/bottom-tab-bar.tsx",
+        "app/login/",
+        "app/jars/review/"
+      ],
+      "entry_kind": "functional-specification",
+      "actor": "partner"
+    },
+    {
+      "id": "spec-uj-uj-new-household",
+      "statement": "User journey must remain supported: New household: signup \u2192 create household \u2192 invite partner \u2192 onboarding 8 steps \u2192 first insight.",
+      "source_paths": [
+        "ai-os/artifacts/user-journeys/runs/run_business_discovery_20260801T122000Z/payload.json#uj-new-household",
+        "app/household/",
+        "app/onboarding/",
+        "supabase/migrations/00008_household_lifecycle_rpc.sql"
+      ],
+      "entry_kind": "functional-specification",
+      "actor": "creator"
+    },
+    {
+      "id": "spec-uj-uj-jar-setup-review",
+      "statement": "User journey must remain supported: Jar journey: setup presets/plans/rules \u2192 cashflows enqueue/auto \u2192 resolve review \u2192 optional month close.",
+      "source_paths": [
+        "ai-os/artifacts/user-journeys/runs/run_business_discovery_20260801T122000Z/payload.json#uj-jar-setup-review",
+        "app/jars/setup/",
+        "app/jars/review/",
+        "docs/JAR_ALLOCATION_REVIEW.md"
+      ],
+      "entry_kind": "functional-specification",
+      "actor": "partner"
+    },
+    {
+      "id": "spec-uj-uj-savings-maturity",
+      "statement": "User journey must remain supported: Savings journey: open fixed-term \u2192 track status \u2192 mature/withdraw/renew via savings APIs/UI.",
+      "source_paths": [
+        "ai-os/artifacts/user-journeys/runs/run_business_discovery_20260801T122000Z/payload.json#uj-savings-maturity",
+        "app/accounts/savings/",
+        "lib/savings/service.ts"
+      ],
+      "entry_kind": "functional-specification",
+      "actor": "partner"
+    },
+    {
+      "id": "spec-uj-uj-card-installment",
+      "statement": "User journey must remain supported: Card journey: view billing \u2192 convert to EMI \u2192 settle until completed.",
+      "source_paths": [
+        "ai-os/artifacts/user-journeys/runs/run_business_discovery_20260801T122000Z/payload.json#uj-card-installment",
+        "app/accounts/card/[id]/page.tsx",
+        "app/accounts/card/installment-actions.ts"
+      ],
+      "entry_kind": "functional-specification",
+      "actor": "partner"
+    },
+    {
+      "id": "spec-uj-uj-settings-admin",
+      "statement": "User journey must remain supported: Admin settings journey: household settings + assumptions (admin-gated).",
+      "source_paths": [
+        "ai-os/artifacts/user-journeys/runs/run_business_discovery_20260801T122000Z/payload.json#uj-settings-admin",
+        "app/settings/",
+        "app/settings/actions.ts"
+      ],
+      "entry_kind": "functional-specification",
+      "actor": "admin"
+    },
+    {
+      "id": "spec-arch-pillars",
+      "statement": "Architecture pillars (as-is): Core Accounting, Budgeting/Planning/Goals, Jars Intent Layer \u2014 per DOMAIN_MODEL.",
+      "source_paths": [
+        "docs/DOMAIN_MODEL.md",
+        "docs/JAR_FINAL_ARCHITECTURE.md",
+        "ai-os/artifacts/domain/runs/run_business_discovery_20260801T122000Z/payload.json#dom-bounded-jars"
+      ],
+      "entry_kind": "architecture-specification"
+    },
+    {
+      "id": "spec-arch-stack",
+      "statement": "Technical stack (as-is): Next.js App Router + React, Supabase Postgres/Auth/RLS, TanStack Query, Zustand, Zod, server actions + route handlers.",
+      "source_paths": [
+        "package.json",
+        "docs/DOMAIN_MODEL.md",
+        "lib/server/action-context.ts"
+      ],
+      "entry_kind": "technical-specification"
+    },
+    {
+      "id": "spec-arch-proxy",
+      "statement": "Edge/session entry is proxy.ts (no middleware.ts) as discovered in prior reviews / repo.",
+      "source_paths": [
+        "proxy.ts",
+        "lib/supabase/"
+      ],
+      "entry_kind": "architecture-specification"
+    },
+    {
+      "id": "spec-arch-jars-engine",
+      "statement": "Jar domain engines (as-is): allocation-engine, rule-engine, validation, rollover-engine, snapshot-engine.",
+      "source_paths": [
+        "lib/jars/domain/allocation-engine.ts",
+        "lib/jars/domain/rule-engine.ts",
+        "lib/jars/domain/validation.ts",
+        "docs/JAR_FINAL_ARCHITECTURE.md"
+      ],
+      "entry_kind": "architecture-specification"
+    },
+    {
+      "id": "spec-api-01",
+      "statement": "API route handler exists and is in-scope for implementation maintenance: app/api/cash-flow/forecast/route.ts",
+      "source_paths": [
+        "app/api/cash-flow/forecast/route.ts",
+        "ai-os/artifacts/features/runs/run_business_discovery_20260801T122000Z/payload.json"
+      ],
+      "entry_kind": "api-specification"
+    },
+    {
+      "id": "spec-api-02",
+      "statement": "API route handler exists and is in-scope for implementation maintenance: app/api/dashboard/activity/route.ts",
+      "source_paths": [
+        "app/api/dashboard/activity/route.ts",
+        "ai-os/artifacts/features/runs/run_business_discovery_20260801T122000Z/payload.json"
+      ],
+      "entry_kind": "api-specification"
+    },
+    {
+      "id": "spec-api-03",
+      "statement": "API route handler exists and is in-scope for implementation maintenance: app/api/dashboard/core/route.ts",
+      "source_paths": [
+        "app/api/dashboard/core/route.ts",
+        "ai-os/artifacts/features/runs/run_business_discovery_20260801T122000Z/payload.json"
+      ],
+      "entry_kind": "api-specification"
+    },
+    {
+      "id": "spec-api-04",
+      "statement": "API route handler exists and is in-scope for implementation maintenance: app/api/dashboard/goals/route.ts",
+      "source_paths": [
+        "app/api/dashboard/goals/route.ts",
+        "ai-os/artifacts/features/runs/run_business_discovery_20260801T122000Z/payload.json"
+      ],
+      "entry_kind": "api-specification"
+    },
+    {
+      "id": "spec-api-05",
+      "statement": "API route handler exists and is in-scope for implementation maintenance: app/api/dashboard/summary/route.ts",
+      "source_paths": [
+        "app/api/dashboard/summary/route.ts",
+        "ai-os/artifacts/features/runs/run_business_discovery_20260801T122000Z/payload.json"
+      ],
+      "entry_kind": "api-specification"
+    },
+    {
+      "id": "spec-api-06",
+      "statement": "API route handler exists and is in-scope for implementation maintenance: app/api/jars/spending/categories/route.ts",
+      "source_paths": [
+        "app/api/jars/spending/categories/route.ts",
+        "ai-os/artifacts/features/runs/run_business_discovery_20260801T122000Z/payload.json"
+      ],
+      "entry_kind": "api-specification"
+    },
+    {
+      "id": "spec-api-07",
+      "statement": "API route handler exists and is in-scope for implementation maintenance: app/api/jars/spending/history/route.ts",
+      "source_paths": [
+        "app/api/jars/spending/history/route.ts",
+        "ai-os/artifacts/features/runs/run_business_discovery_20260801T122000Z/payload.json"
+      ],
+      "entry_kind": "api-specification"
+    },
+    {
+      "id": "spec-api-08",
+      "statement": "API route handler exists and is in-scope for implementation maintenance: app/api/jars/spending/map-category/route.ts",
+      "source_paths": [
+        "app/api/jars/spending/map-category/route.ts",
+        "ai-os/artifacts/features/runs/run_business_discovery_20260801T122000Z/payload.json"
+      ],
+      "entry_kind": "api-specification"
+    },
+    {
+      "id": "spec-api-09",
+      "statement": "API route handler exists and is in-scope for implementation maintenance: app/api/jars/spending/summary/route.ts",
+      "source_paths": [
+        "app/api/jars/spending/summary/route.ts",
+        "ai-os/artifacts/features/runs/run_business_discovery_20260801T122000Z/payload.json"
+      ],
+      "entry_kind": "api-specification"
+    },
+    {
+      "id": "spec-api-10",
+      "statement": "API route handler exists and is in-scope for implementation maintenance: app/api/jars/spending/transactions/route.ts",
+      "source_paths": [
+        "app/api/jars/spending/transactions/route.ts",
+        "ai-os/artifacts/features/runs/run_business_discovery_20260801T122000Z/payload.json"
+      ],
+      "entry_kind": "api-specification"
+    },
+    {
+      "id": "spec-api-11",
+      "statement": "API route handler exists and is in-scope for implementation maintenance: app/api/savings/[id]/mature/route.ts",
+      "source_paths": [
+        "app/api/savings/[id]/mature/route.ts",
+        "ai-os/artifacts/features/runs/run_business_discovery_20260801T122000Z/payload.json"
+      ],
+      "entry_kind": "api-specification"
+    },
+    {
+      "id": "spec-api-12",
+      "statement": "API route handler exists and is in-scope for implementation maintenance: app/api/savings/[id]/projection/route.ts",
+      "source_paths": [
+        "app/api/savings/[id]/projection/route.ts",
+        "ai-os/artifacts/features/runs/run_business_discovery_20260801T122000Z/payload.json"
+      ],
+      "entry_kind": "api-specification"
+    },
+    {
+      "id": "spec-api-13",
+      "statement": "API route handler exists and is in-scope for implementation maintenance: app/api/savings/[id]/route.ts",
+      "source_paths": [
+        "app/api/savings/[id]/route.ts",
+        "ai-os/artifacts/features/runs/run_business_discovery_20260801T122000Z/payload.json"
+      ],
+      "entry_kind": "api-specification"
+    },
+    {
+      "id": "spec-api-14",
+      "statement": "API route handler exists and is in-scope for implementation maintenance: app/api/savings/[id]/withdraw/route.ts",
+      "source_paths": [
+        "app/api/savings/[id]/withdraw/route.ts",
+        "ai-os/artifacts/features/runs/run_business_discovery_20260801T122000Z/payload.json"
+      ],
+      "entry_kind": "api-specification"
+    },
+    {
+      "id": "spec-api-15",
+      "statement": "API route handler exists and is in-scope for implementation maintenance: app/api/savings/route.ts",
+      "source_paths": [
+        "app/api/savings/route.ts",
+        "ai-os/artifacts/features/runs/run_business_discovery_20260801T122000Z/payload.json"
+      ],
+      "entry_kind": "api-specification"
+    },
+    {
+      "id": "spec-api-16",
+      "statement": "API route handler exists and is in-scope for implementation maintenance: app/api/savings/summary/route.ts",
+      "source_paths": [
+        "app/api/savings/summary/route.ts",
+        "ai-os/artifacts/features/runs/run_business_discovery_20260801T122000Z/payload.json"
+      ],
+      "entry_kind": "api-specification"
+    },
+    {
+      "id": "spec-api-17",
+      "statement": "API route handler exists and is in-scope for implementation maintenance: app/api/transactions/route.ts",
+      "source_paths": [
+        "app/api/transactions/route.ts",
+        "ai-os/artifacts/features/runs/run_business_discovery_20260801T122000Z/payload.json"
+      ],
+      "entry_kind": "api-specification"
+    },
+    {
+      "id": "spec-api-server-actions",
+      "statement": "Mutation surface includes discovered app/**/actions.ts and *-actions.ts modules (household-scoped via resolveActionContext).",
+      "source_paths": [
+        "ai-os/artifacts/permissions/runs/run_business_discovery_20260801T122000Z/payload.json#perm-action-context",
+        "lib/server/action-context.ts"
+      ],
+      "entry_kind": "api-specification"
+    },
+    {
+      "id": "spec-db-profiles",
+      "statement": "Database entity `profiles` is part of the as-is schema contract (see cited migrations/domain discovery).",
+      "source_paths": [
+        "supabase/migrations/00002_core_schema.sql"
+      ],
+      "entry_kind": "database-specification"
+    },
+    {
+      "id": "spec-db-households",
+      "statement": "Database entity `households` is part of the as-is schema contract (see cited migrations/domain discovery).",
+      "source_paths": [
+        "supabase/migrations/00002_core_schema.sql",
+        "ai-os/artifacts/domain/runs/run_business_discovery_20260801T122000Z/payload.json#dom-household"
+      ],
+      "entry_kind": "database-specification"
+    },
+    {
+      "id": "spec-db-household_members",
+      "statement": "Database entity `household_members` is part of the as-is schema contract (see cited migrations/domain discovery).",
+      "source_paths": [
+        "supabase/migrations/00002_core_schema.sql",
+        "ai-os/artifacts/domain/runs/run_business_discovery_20260801T122000Z/payload.json#dom-household"
+      ],
+      "entry_kind": "database-specification"
+    },
+    {
+      "id": "spec-db-household_invitations",
+      "statement": "Database entity `household_invitations` is part of the as-is schema contract (see cited migrations/domain discovery).",
+      "source_paths": [
+        "supabase/migrations/00002_core_schema.sql",
+        "ai-os/artifacts/domain/runs/run_business_discovery_20260801T122000Z/payload.json#dom-household"
+      ],
+      "entry_kind": "database-specification"
+    },
+    {
+      "id": "spec-db-accounts",
+      "statement": "Database entity `accounts` is part of the as-is schema contract (see cited migrations/domain discovery).",
+      "source_paths": [
+        "supabase/migrations/00002_core_schema.sql"
+      ],
+      "entry_kind": "database-specification"
+    },
+    {
+      "id": "spec-db-categories",
+      "statement": "Database entity `categories` is part of the as-is schema contract (see cited migrations/domain discovery).",
+      "source_paths": [
+        "supabase/migrations/00002_core_schema.sql"
+      ],
+      "entry_kind": "database-specification"
+    },
+    {
+      "id": "spec-db-transactions",
+      "statement": "Database entity `transactions` is part of the as-is schema contract (see cited migrations/domain discovery).",
+      "source_paths": [
+        "supabase/migrations/00002_core_schema.sql"
+      ],
+      "entry_kind": "database-specification"
+    },
+    {
+      "id": "spec-db-recurring_rules",
+      "statement": "Database entity `recurring_rules` is part of the as-is schema contract (see cited migrations/domain discovery).",
+      "source_paths": [
+        "supabase/migrations/00002_core_schema.sql"
+      ],
+      "entry_kind": "database-specification"
+    },
+    {
+      "id": "spec-db-assets",
+      "statement": "Database entity `assets` is part of the as-is schema contract (see cited migrations/domain discovery).",
+      "source_paths": [
+        "supabase/migrations/00002_core_schema.sql"
+      ],
+      "entry_kind": "database-specification"
+    },
+    {
+      "id": "spec-db-liabilities",
+      "statement": "Database entity `liabilities` is part of the as-is schema contract (see cited migrations/domain discovery).",
+      "source_paths": [
+        "supabase/migrations/00002_core_schema.sql"
+      ],
+      "entry_kind": "database-specification"
+    },
+    {
+      "id": "spec-db-goals",
+      "statement": "Database entity `goals` is part of the as-is schema contract (see cited migrations/domain discovery).",
+      "source_paths": [
+        "supabase/migrations/00002_core_schema.sql"
+      ],
+      "entry_kind": "database-specification"
+    },
+    {
+      "id": "spec-db-scenarios",
+      "statement": "Database entity `scenarios` is part of the as-is schema contract (see cited migrations/domain discovery).",
+      "source_paths": [
+        "supabase/migrations/00002_core_schema.sql"
+      ],
+      "entry_kind": "database-specification"
+    },
+    {
+      "id": "spec-db-insights",
+      "statement": "Database entity `insights` is part of the as-is schema contract (see cited migrations/domain discovery).",
+      "source_paths": [
+        "supabase/migrations/00002_core_schema.sql"
+      ],
+      "entry_kind": "database-specification"
+    },
+    {
+      "id": "spec-db-health_score_snapshots",
+      "statement": "Database entity `health_score_snapshots` is part of the as-is schema contract (see cited migrations/domain discovery).",
+      "source_paths": [
+        "supabase/migrations/00002_core_schema.sql"
+      ],
+      "entry_kind": "database-specification"
+    },
+    {
+      "id": "spec-db-jars",
+      "statement": "Database entity `jars` is part of the as-is schema contract (see cited migrations/domain discovery).",
+      "source_paths": [
+        "supabase/migrations/00040_rebuild_jars_intent_layer.sql",
+        "supabase/migrations/00046_jar_final_architecture_foundation.sql",
+        "ai-os/artifacts/domain/runs/run_business_discovery_20260801T122000Z/payload.json#dom-jar-intent"
+      ],
+      "entry_kind": "database-specification"
+    },
+    {
+      "id": "spec-db-jar_movements",
+      "statement": "Database entity `jar_movements` is part of the as-is schema contract (see cited migrations/domain discovery).",
+      "source_paths": [
+        "supabase/migrations/00040_rebuild_jars_intent_layer.sql",
+        "supabase/migrations/00046_jar_final_architecture_foundation.sql",
+        "ai-os/artifacts/domain/runs/run_business_discovery_20260801T122000Z/payload.json#dom-jar-intent"
+      ],
+      "entry_kind": "database-specification"
+    },
+    {
+      "id": "spec-db-jar_review_queue",
+      "statement": "Database entity `jar_review_queue` is part of the as-is schema contract (see cited migrations/domain discovery).",
+      "source_paths": [
+        "supabase/migrations/00040_rebuild_jars_intent_layer.sql",
+        "supabase/migrations/00046_jar_final_architecture_foundation.sql",
+        "ai-os/artifacts/domain/runs/run_business_discovery_20260801T122000Z/payload.json#dom-jar-intent"
+      ],
+      "entry_kind": "database-specification"
+    },
+    {
+      "id": "spec-db-jar_rules",
+      "statement": "Database entity `jar_rules` is part of the as-is schema contract (see cited migrations/domain discovery).",
+      "source_paths": [
+        "supabase/migrations/00040_rebuild_jars_intent_layer.sql",
+        "supabase/migrations/00046_jar_final_architecture_foundation.sql",
+        "ai-os/artifacts/domain/runs/run_business_discovery_20260801T122000Z/payload.json#dom-jar-intent"
+      ],
+      "entry_kind": "database-specification"
+    },
+    {
+      "id": "spec-db-jar_month_plans",
+      "statement": "Database entity `jar_month_plans` is part of the as-is schema contract (see cited migrations/domain discovery).",
+      "source_paths": [
+        "supabase/migrations/00040_rebuild_jars_intent_layer.sql",
+        "supabase/migrations/00046_jar_final_architecture_foundation.sql",
+        "ai-os/artifacts/domain/runs/run_business_discovery_20260801T122000Z/payload.json#dom-jar-intent"
+      ],
+      "entry_kind": "database-specification"
+    },
+    {
+      "id": "spec-db-jar_month_close_runs",
+      "statement": "Database entity `jar_month_close_runs` is part of the as-is schema contract (see cited migrations/domain discovery).",
+      "source_paths": [
+        "supabase/migrations/00040_rebuild_jars_intent_layer.sql",
+        "supabase/migrations/00046_jar_final_architecture_foundation.sql",
+        "ai-os/artifacts/domain/runs/run_business_discovery_20260801T122000Z/payload.json#dom-jar-intent"
+      ],
+      "entry_kind": "database-specification"
+    },
+    {
+      "id": "spec-db-savings_accounts",
+      "statement": "Database entity `savings_accounts` is part of the as-is schema contract (see cited migrations/domain discovery).",
+      "source_paths": [
+        "supabase/migrations/00039_savings_feature.sql",
+        "ai-os/artifacts/domain/runs/run_business_discovery_20260801T122000Z/payload.json#dom-savings"
+      ],
+      "entry_kind": "database-specification"
+    },
+    {
+      "id": "spec-db-savings_withdrawals",
+      "statement": "Database entity `savings_withdrawals` is part of the as-is schema contract (see cited migrations/domain discovery).",
+      "source_paths": [
+        "supabase/migrations/00039_savings_feature.sql",
+        "ai-os/artifacts/domain/runs/run_business_discovery_20260801T122000Z/payload.json#dom-savings"
+      ],
+      "entry_kind": "database-specification"
+    },
+    {
+      "id": "spec-db-savings_maturity_actions",
+      "statement": "Database entity `savings_maturity_actions` is part of the as-is schema contract (see cited migrations/domain discovery).",
+      "source_paths": [
+        "supabase/migrations/00039_savings_feature.sql",
+        "ai-os/artifacts/domain/runs/run_business_discovery_20260801T122000Z/payload.json#dom-savings"
+      ],
+      "entry_kind": "database-specification"
+    },
+    {
+      "id": "spec-db-installment_plans",
+      "statement": "Database entity `installment_plans` is part of the as-is schema contract (see cited migrations/domain discovery).",
+      "source_paths": [
+        "supabase/migrations/00014_credit_card_installments.sql",
+        "ai-os/artifacts/domain/runs/run_business_discovery_20260801T122000Z/payload.json#dom-installment"
+      ],
+      "entry_kind": "database-specification"
+    },
+    {
+      "id": "spec-db-rls",
+      "statement": "Database access control: membership RLS via is_household_member / cached helpers; service_role for select RPCs.",
+      "source_paths": [
+        "ai-os/artifacts/permissions/runs/run_business_discovery_20260801T122000Z/payload.json#perm-rls-member",
+        "supabase/migrations/00003_functions_and_rls.sql",
+        "supabase/migrations/00045_rls_simplification.sql"
+      ],
+      "entry_kind": "database-specification"
+    },
+    {
+      "id": "spec-db-migrations-count",
+      "statement": "Schema evolution is migration-based; repository currently contains 51 SQL migrations under supabase/migrations/.",
+      "source_paths": [
+        "supabase/migrations/",
+        "ai-os/artifacts/domain/runs/run_business_discovery_20260801T122000Z/payload.json"
+      ],
+      "entry_kind": "database-specification"
+    },
+    {
+      "id": "spec-ui-principles",
+      "statement": "UI standards (existing): calm/precise/warm/honest/grounded; 3-tier hierarchy glance\u2192review\u2192deep dive \u2014 docs/DESIGN_PRINCIPLES.md.",
+      "source_paths": [
+        "docs/DESIGN_PRINCIPLES.md",
+        "docs/DESIGN_SYSTEM.md"
+      ],
+      "entry_kind": "ui-specification"
+    },
+    {
+      "id": "spec-ui-routes",
+      "statement": "UI route inventory locked to 36 discovered page.tsx files under app/.",
+      "source_paths": [
+        "ai-os/artifacts/features/runs/run_business_discovery_20260801T122000Z/payload.json",
+        "app/"
+      ],
+      "entry_kind": "ui-specification"
+    },
+    {
+      "id": "spec-ui-nav",
+      "statement": "Primary navigation includes dashboard/accounts/activity/goals patterns per bottom-tab-bar and journeys.",
+      "source_paths": [
+        "ai-os/artifacts/user-journeys/runs/run_business_discovery_20260801T122000Z/payload.json#uj-daily-partner",
+        "components/layout/bottom-tab-bar.tsx"
+      ],
+      "entry_kind": "ui-specification"
+    },
+    {
+      "id": "spec-sec-perm-auth-required",
+      "statement": "Security/authorization requirement: resolveActionContext requires authenticated Supabase user.",
+      "source_paths": [
+        "ai-os/artifacts/permissions/runs/run_business_discovery_20260801T122000Z/payload.json#perm-auth-required",
+        "lib/server/action-context.ts"
+      ],
+      "entry_kind": "security-specification"
+    },
+    {
+      "id": "spec-sec-perm-household-required",
+      "statement": "Security/authorization requirement: Most actions require active household_members row for the user.",
+      "source_paths": [
+        "ai-os/artifacts/permissions/runs/run_business_discovery_20260801T122000Z/payload.json#perm-household-required",
+        "lib/server/action-context.ts",
+        "lib/server/household.ts"
+      ],
+      "entry_kind": "security-specification"
+    },
+    {
+      "id": "spec-sec-perm-page-gate",
+      "statement": "Security/authorization requirement: Pages: no user \u2192 /login; no household \u2192 /household.",
+      "source_paths": [
+        "ai-os/artifacts/permissions/runs/run_business_discovery_20260801T122000Z/payload.json#perm-page-gate",
+        "lib/server/household.ts",
+        "proxy.ts"
+      ],
+      "entry_kind": "security-specification"
+    },
+    {
+      "id": "spec-sec-perm-rls-member",
+      "statement": "Security/authorization requirement: RLS helper is_household_member / is_household_member_cached gates table access by membership.",
+      "source_paths": [
+        "ai-os/artifacts/permissions/runs/run_business_discovery_20260801T122000Z/payload.json#perm-rls-member",
+        "supabase/migrations/00003_functions_and_rls.sql",
+        "supabase/migrations/00045_rls_simplification.sql"
+      ],
+      "entry_kind": "security-specification"
+    },
+    {
+      "id": "spec-sec-perm-member-equality",
+      "statement": "Security/authorization requirement: Partner and admin share most RLS table rights; admin is primarily an app-layer settings gate.",
+      "source_paths": [
+        "ai-os/artifacts/permissions/runs/run_business_discovery_20260801T122000Z/payload.json#perm-member-equality",
+        "supabase/migrations/00003_functions_and_rls.sql",
+        "app/settings/actions.ts"
+      ],
+      "entry_kind": "security-specification"
+    },
+    {
+      "id": "spec-sec-perm-admin-settings",
+      "statement": "Security/authorization requirement: Admin-only app actions: updateHouseholdSettingsAction, updateAssumptionsAction.",
+      "source_paths": [
+        "ai-os/artifacts/permissions/runs/run_business_discovery_20260801T122000Z/payload.json#perm-admin-settings",
+        "app/settings/actions.ts"
+      ],
+      "entry_kind": "security-specification"
+    },
+    {
+      "id": "spec-sec-perm-bootstrap-partner",
+      "statement": "Security/authorization requirement: Household creator is inserted as partner via create_household_with_owner; invite accept also partner.",
+      "source_paths": [
+        "ai-os/artifacts/permissions/runs/run_business_discovery_20260801T122000Z/payload.json#perm-bootstrap-partner",
+        "supabase/migrations/00008_household_lifecycle_rpc.sql",
+        "app/household/actions.ts"
+      ],
+      "entry_kind": "security-specification"
+    },
+    {
+      "id": "spec-sec-perm-first-member",
+      "statement": "Security/authorization requirement: RLS allows first-member insert exception during household setup.",
+      "source_paths": [
+        "ai-os/artifacts/permissions/runs/run_business_discovery_20260801T122000Z/payload.json#perm-first-member",
+        "supabase/migrations/00007_household_lifecycle_rls_fix.sql"
+      ],
+      "entry_kind": "security-specification"
+    },
+    {
+      "id": "spec-sec-perm-service-role",
+      "statement": "Security/authorization requirement: Service-role/admin RPCs for aggregates/insights/jar reporting bypass member RLS.",
+      "source_paths": [
+        "ai-os/artifacts/permissions/runs/run_business_discovery_20260801T122000Z/payload.json#perm-service-role",
+        "supabase/migrations/00006_dashboard_aggregates.sql",
+        "supabase/migrations/00047_jar_reporting_rpcs.sql"
+      ],
+      "entry_kind": "security-specification"
+    },
+    {
+      "id": "spec-sec-perm-categories-system",
+      "statement": "Security/authorization requirement: System categories (null household) readable; household categories member-writable.",
+      "source_paths": [
+        "ai-os/artifacts/permissions/runs/run_business_discovery_20260801T122000Z/payload.json#perm-categories-system",
+        "supabase/migrations/00003_functions_and_rls.sql"
+      ],
+      "entry_kind": "security-specification"
+    },
+    {
+      "id": "spec-deploy-next",
+      "statement": "Deployment target assumed by repo tooling: Next.js application (scripts: dev/build/start) with Supabase backend.",
+      "source_paths": [
+        "package.json",
+        "next.config.ts",
+        "supabase/"
+      ],
+      "entry_kind": "deployment-specification"
+    },
+    {
+      "id": "spec-deploy-env",
+      "statement": "Environment configuration surface documented by .env.local.example (no secret values in specs).",
+      "source_paths": [
+        ".env.local.example"
+      ],
+      "entry_kind": "deployment-specification"
+    },
+    {
+      "id": "spec-code-ts",
+      "statement": "Coding standard: TypeScript strict project (tsconfig.json) with ESLint (eslint.config.mjs / eslint-config-next).",
+      "source_paths": [
+        "tsconfig.json",
+        "eslint.config.mjs",
+        "package.json"
+      ],
+      "entry_kind": "coding-standards"
+    },
+    {
+      "id": "spec-code-zod",
+      "statement": "Coding standard: Zod validation at form/API edges as used across lib/** and actions.",
+      "source_paths": [
+        "package.json",
+        "lib/savings/schemas.ts"
+      ],
+      "entry_kind": "coding-standards"
+    },
+    {
+      "id": "spec-code-server-actions",
+      "statement": "Coding standard: server mutations go through action modules + resolveActionContext/audit helpers.",
+      "source_paths": [
+        "lib/server/action-context.ts",
+        "lib/server/action-helpers.ts",
+        "lib/server/audit.ts"
+      ],
+      "entry_kind": "coding-standards"
+    },
+    {
+      "id": "spec-code-jars-boundary",
+      "statement": "Coding standard: jar business rules live under lib/jars/domain/*; do not re-encode conflicting rules in UI.",
+      "source_paths": [
+        "lib/jars/domain/validation.ts",
+        "docs/JAR_FINAL_ARCHITECTURE.md",
+        "ai-os/artifacts/business/runs/run_business_discovery_20260801T122000Z/payload.json#br-real-vs-virtual"
+      ],
+      "entry_kind": "coding-standards"
+    },
+    {
+      "id": "spec-sm-sm-jar-review",
+      "statement": "State machine constraint (as-is): jar_review_queue: pending \u2192 resolved | dismissed.",
+      "source_paths": [
+        "ai-os/artifacts/state-machines/runs/run_business_discovery_20260801T122000Z/payload.json#sm-jar-review",
+        "supabase/migrations/00040_rebuild_jars_intent_layer.sql",
+        "lib/jars/_lib/types.ts"
+      ],
+      "entry_kind": "functional-specification"
+    },
+    {
+      "id": "spec-sm-sm-jar-lifecycle",
+      "statement": "State machine constraint (as-is): Jar: active (is_archived=false) \u2192 archived / soft-deleted; movements blocked when inactive.",
+      "source_paths": [
+        "ai-os/artifacts/state-machines/runs/run_business_discovery_20260801T122000Z/payload.json#sm-jar-lifecycle",
+        "lib/jars/domain/validation.ts",
+        "supabase/migrations/00040_rebuild_jars_intent_layer.sql"
+      ],
+      "entry_kind": "functional-specification"
+    },
+    {
+      "id": "spec-sm-sm-month-close",
+      "statement": "State machine constraint (as-is): jar_month_close_runs: draft \u2192 processing \u2192 approved | failed.",
+      "source_paths": [
+        "ai-os/artifacts/state-machines/runs/run_business_discovery_20260801T122000Z/payload.json#sm-month-close",
+        "supabase/migrations/00046_jar_final_architecture_foundation.sql",
+        "lib/jars/domain/rollover-engine.ts"
+      ],
+      "entry_kind": "functional-specification"
+    },
+    {
+      "id": "spec-sm-sm-savings",
+      "statement": "State machine constraint (as-is): savings_accounts: active \u2192 maturing_soon \u2192 matured \u2192 renewed|withdrawn | cancelled.",
+      "source_paths": [
+        "ai-os/artifacts/state-machines/runs/run_business_discovery_20260801T122000Z/payload.json#sm-savings",
+        "supabase/migrations/00039_savings_feature.sql",
+        "lib/savings/types.ts"
+      ],
+      "entry_kind": "functional-specification"
+    },
+    {
+      "id": "spec-sm-sm-maturity-action",
+      "statement": "State machine constraint (as-is): savings_maturity_actions: renew_same | switch_plan | withdraw; withdraw partial|full.",
+      "source_paths": [
+        "ai-os/artifacts/state-machines/runs/run_business_discovery_20260801T122000Z/payload.json#sm-maturity-action",
+        "supabase/migrations/00039_savings_feature.sql",
+        "lib/savings/schemas.ts"
+      ],
+      "entry_kind": "functional-specification"
+    },
+    {
+      "id": "spec-sm-sm-installment",
+      "statement": "State machine constraint (as-is): installment_plans: active \u2192 completed | cancelled.",
+      "source_paths": [
+        "ai-os/artifacts/state-machines/runs/run_business_discovery_20260801T122000Z/payload.json#sm-installment",
+        "supabase/migrations/00014_credit_card_installments.sql",
+        "app/accounts/card/installment-actions.ts"
+      ],
+      "entry_kind": "functional-specification"
+    },
+    {
+      "id": "spec-sm-sm-invitation",
+      "statement": "State machine constraint (as-is): invitations: pending \u2192 accepted | revoked | expired.",
+      "source_paths": [
+        "ai-os/artifacts/state-machines/runs/run_business_discovery_20260801T122000Z/payload.json#sm-invitation",
+        "supabase/migrations/00002_core_schema.sql"
+      ],
+      "entry_kind": "functional-specification"
+    },
+    {
+      "id": "spec-sm-sm-goal",
+      "statement": "State machine constraint (as-is): goals: active | paused | completed | cancelled.",
+      "source_paths": [
+        "ai-os/artifacts/state-machines/runs/run_business_discovery_20260801T122000Z/payload.json#sm-goal",
+        "supabase/migrations/00002_core_schema.sql"
+      ],
+      "entry_kind": "functional-specification"
+    },
+    {
+      "id": "spec-sm-sm-scenario",
+      "statement": "State machine constraint (as-is): scenarios: draft | saved | archived.",
+      "source_paths": [
+        "ai-os/artifacts/state-machines/runs/run_business_discovery_20260801T122000Z/payload.json#sm-scenario",
+        "supabase/migrations/00002_core_schema.sql"
+      ],
+      "entry_kind": "functional-specification"
+    },
+    {
+      "id": "spec-sm-sm-transaction",
+      "statement": "State machine constraint (as-is): transactions: cleared | pending.",
+      "source_paths": [
+        "ai-os/artifacts/state-machines/runs/run_business_discovery_20260801T122000Z/payload.json#sm-transaction",
+        "supabase/migrations/00002_core_schema.sql"
+      ],
+      "entry_kind": "functional-specification"
+    },
+    {
+      "id": "spec-sm-sm-onboarding-ui",
+      "statement": "State machine constraint (as-is): Onboarding UI progress steps 1\u20138 (shell TOTAL_STEPS=8); no durable step state found in shell.",
+      "source_paths": [
+        "ai-os/artifacts/state-machines/runs/run_business_discovery_20260801T122000Z/payload.json#sm-onboarding-ui",
+        "app/onboarding/_components/onboarding-shell.tsx"
+      ],
+      "entry_kind": "functional-specification"
+    }
+  ],
+  "status": "ready",
+  "created_at": "2026-08-01T13:07:01Z",
+  "trace": {
+    "orchestration_id": "art_orch_run_specification_20260801T130500Z",
+    "plan_id": "art_plan_run_specification_20260801T130500Z",
+    "task_id": "art_task_specification-generator",
+    "run_id": "art_run_specification-generator",
+    "goal_id": "art_goal_specification_generation",
+    "upstream_run_id": "run_business_discovery_20260801T122000Z"
+  },
+  "extensions": {
+    "stage": "specification-generation",
+    "pipeline": "specification-engineering",
+    "run_id": "run_specification_20260801T130500Z",
+    "upstream": "run_business_discovery_20260801T122000Z",
+    "invent_business_logic": false,
+    "redesign": false,
+    "inputs": {
+      "business_discovery_gate": "PASS",
+      "business_discovery_confidence": 100
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "run_id": "run_specification_20260801T130500Z",
+  "stage": "specification-generation",
+  "kind": "freeze",
+  "result": "FROZEN",
+  "validation_gate": "PASS",
+  "confidence": 100,
+  "upstream_business_discovery": "run_business_discovery_20260801T122000Z",
+  "created_at": "2026-08-01T13:08:04Z",
+  "resume_token": "ckpt_run_specification_20260801T130500Z_specification_generation",
+  "next_allowed": [
+    "implementation verification tasks (explicit)",
+    "@Run validate on spec packs",
+    "Phase1 remediation"
+  ],
+  "blocked": [
+    "automatic Feature Worker execute",
+    "automatic product redesign"
+  ],
+  "ack": "Specification Generation frozen per orchestrator stop instruction"
+}

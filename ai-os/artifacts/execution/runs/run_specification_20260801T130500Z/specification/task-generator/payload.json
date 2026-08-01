@@ -1,0 +1,124 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_task_generator_T130500Z",
+  "type": "engineering-tasks",
+  "worker_id": "task-generator",
+  "title": "Implementation tasks",
+  "summary": "Tasks to harden and verify discovered behavior; no product redesign.",
+  "entries": [
+    {
+      "id": "task-trace-matrix",
+      "statement": "Maintain requirements\u2194acceptance\u2194source trace matrix for this specification run.",
+      "source_paths": [
+        "ai-os/artifacts/requirements/runs/run_specification_20260801T130500Z/payload.json",
+        "ai-os/artifacts/acceptance/runs/run_specification_20260801T130500Z/payload.json"
+      ],
+      "entry_kind": "task"
+    },
+    {
+      "id": "task-jar-invariants-tests",
+      "statement": "Add/extend tests around discovered jar invariants (active jar, closed month, positive amounts) without changing rules.",
+      "source_paths": [
+        "ai-os/artifacts/business/runs/run_business_discovery_20260801T122000Z/payload.json#br-jar-active",
+        "ai-os/artifacts/business/runs/run_business_discovery_20260801T122000Z/payload.json#br-closed-month",
+        "lib/jars/domain/validation.ts"
+      ],
+      "entry_kind": "task"
+    },
+    {
+      "id": "task-rls-regression",
+      "statement": "Add RLS regression checks for is_household_member membership isolation.",
+      "source_paths": [
+        "ai-os/artifacts/permissions/runs/run_business_discovery_20260801T122000Z/payload.json#perm-rls-member",
+        "supabase/migrations/00003_functions_and_rls.sql"
+      ],
+      "entry_kind": "task"
+    },
+    {
+      "id": "task-admin-gate-tests",
+      "statement": "Cover admin-only settings/assumptions gates discovered in permissions.",
+      "source_paths": [
+        "ai-os/artifacts/permissions/runs/run_business_discovery_20260801T122000Z/payload.json#perm-admin-settings",
+        "app/settings/actions.ts"
+      ],
+      "entry_kind": "task"
+    },
+    {
+      "id": "task-savings-transitions",
+      "statement": "Verify savings maturity/withdraw transition guards match discovered state machine.",
+      "source_paths": [
+        "ai-os/artifacts/state-machines/runs/run_business_discovery_20260801T122000Z/payload.json#sm-savings",
+        "ai-os/artifacts/business/runs/run_business_discovery_20260801T122000Z/payload.json#br-savings-maturity",
+        "lib/savings/service.ts"
+      ],
+      "entry_kind": "task"
+    },
+    {
+      "id": "task-installment-complete",
+      "statement": "Verify installment completion condition paid>=num as discovered.",
+      "source_paths": [
+        "ai-os/artifacts/business/runs/run_business_discovery_20260801T122000Z/payload.json#br-installment-complete",
+        "app/accounts/card/installment-actions.ts"
+      ],
+      "entry_kind": "task"
+    },
+    {
+      "id": "task-api-inventory-docs",
+      "statement": "Document the 17 discovered API routes in maintainer docs using API specification entries (no new endpoints).",
+      "source_paths": [
+        "ai-os/artifacts/specifications/runs/run_specification_20260801T130500Z/payload.json",
+        "app/api/"
+      ],
+      "entry_kind": "task"
+    },
+    {
+      "id": "task-transfer-rule-gap",
+      "statement": "Document existing transfer transaction constraints from schema (BD soft gap) into business pack follow-up \u2014 observe only, do not invent.",
+      "source_paths": [
+        "ai-os/artifacts/reports/runs/run_business_discovery_20260801T122000Z/business-discovery-review.json",
+        "supabase/migrations/00002_core_schema.sql"
+      ],
+      "entry_kind": "task"
+    },
+    {
+      "id": "task-soft-delete-gap",
+      "statement": "Trace soft-delete migration 00043 behavior into knowledge/business follow-up discovery (observe only).",
+      "source_paths": [
+        "ai-os/artifacts/reports/runs/run_business_discovery_20260801T122000Z/business-discovery-review.json",
+        "supabase/migrations/00043_soft_deletes.sql"
+      ],
+      "entry_kind": "task"
+    },
+    {
+      "id": "task-onboarding-e2e",
+      "statement": "E2E cover eight discovered onboarding steps routes.",
+      "source_paths": [
+        "ai-os/artifacts/workflow/runs/run_business_discovery_20260801T122000Z/payload.json#wf-onboarding",
+        "app/onboarding/"
+      ],
+      "entry_kind": "task"
+    }
+  ],
+  "status": "ready",
+  "created_at": "2026-08-01T13:07:01Z",
+  "trace": {
+    "orchestration_id": "art_orch_run_specification_20260801T130500Z",
+    "plan_id": "art_plan_run_specification_20260801T130500Z",
+    "task_id": "art_task_task-generator",
+    "run_id": "art_run_task-generator",
+    "goal_id": "art_goal_specification_generation",
+    "upstream_run_id": "run_business_discovery_20260801T122000Z"
+  },
+  "extensions": {
+    "stage": "specification-generation",
+    "pipeline": "specification-engineering",
+    "run_id": "run_specification_20260801T130500Z",
+    "upstream": "run_business_discovery_20260801T122000Z",
+    "invent_business_logic": false,
+    "redesign": false,
+    "inputs": {
+      "business_discovery_gate": "PASS",
+      "business_discovery_confidence": 100
+    }
+  }
+}

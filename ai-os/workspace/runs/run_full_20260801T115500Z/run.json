@@ -1,0 +1,18 @@
+{
+  "run_id": "run_full_20260801T115500Z",
+  "orchestration_id": "art_orch_run_full_20260801T115500Z",
+  "goal_id": "art_goal_family_finances_full_re",
+  "command": "@Run full",
+  "project": "Family Finances",
+  "config": "/Users/doantuan/Desktop/Plan/family-finances/.ai-os.yaml",
+  "framework_version": "0.13.0",
+  "mode": "reverse-engineering",
+  "parallel": false,
+  "validation": true,
+  "review": true,
+  "freezeEachPhase": true,
+  "started_at": "2026-08-01T11:57:28Z",
+  "status": "completed",
+  "finished_at": "2026-08-01T11:57:28Z",
+  "decision": "GO_RE_NOGO_PROD"
+}

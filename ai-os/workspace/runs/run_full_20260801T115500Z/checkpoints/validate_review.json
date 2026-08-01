@@ -1,0 +1,12 @@
+{
+  "run_id": "run_full_20260801T115500Z",
+  "phase": "validate",
+  "kind": "review",
+  "gate_id": "validation-engine-coverage-review",
+  "result": "PASS",
+  "notes": "7 validators + scores + orch + reporter",
+  "created_at": "2026-08-01T11:57:28Z",
+  "freezeEachPhase": true,
+  "freeze_acknowledged": true,
+  "ack_reason": "User approved full plan execution without per-phase pause"
+}

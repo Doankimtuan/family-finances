@@ -1,0 +1,221 @@
+{
+  "rows": [
+    {
+      "business_rule": "br-action-context",
+      "features": [],
+      "requirement": "req-br-action-context",
+      "acceptance": [
+        "ac-br-action-context"
+      ],
+      "ui": [],
+      "api": [
+        "spec-api-server-actions"
+      ],
+      "database": [],
+      "tasks": [],
+      "implementation": []
+    },
+    {
+      "business_rule": "br-amount-positive",
+      "features": [],
+      "requirement": "req-br-amount-positive",
+      "acceptance": [],
+      "ui": [],
+      "api": [],
+      "database": [],
+      "tasks": [],
+      "implementation": []
+    },
+    {
+      "business_rule": "br-assumptions-admin",
+      "features": [
+        "ft-household",
+        "ft-settings"
+      ],
+      "requirement": "req-br-assumptions-admin",
+      "acceptance": [
+        "ac-br-assumptions-admin"
+      ],
+      "ui": [],
+      "api": [],
+      "database": [],
+      "tasks": [],
+      "implementation": []
+    },
+    {
+      "business_rule": "br-closed-month",
+      "features": [
+        "ft-jars"
+      ],
+      "requirement": "req-br-closed-month",
+      "acceptance": [
+        "ac-br-closed-month"
+      ],
+      "ui": [],
+      "api": [],
+      "database": [
+        "spec-db-jar_month_close_runs",
+        "spec-db-jar_month_plans",
+        "spec-db-jar_movements",
+        "spec-db-jar_review_queue",
+        "spec-db-jar_rules",
+        "spec-db-jars"
+      ],
+      "tasks": [],
+      "implementation": []
+    },
+    {
+      "business_rule": "br-expense-allocate",
+      "features": [
+        "ft-jars"
+      ],
+      "requirement": "req-br-expense-allocate",
+      "acceptance": [
+        "ac-br-expense-allocate"
+      ],
+      "ui": [],
+      "api": [],
+      "database": [],
+      "tasks": [],
+      "implementation": []
+    },
+    {
+      "business_rule": "br-income-allocate",
+      "features": [],
+      "requirement": "req-br-income-allocate",
+      "acceptance": [
+        "ac-br-income-allocate"
+      ],
+      "ui": [],
+      "api": [],
+      "database": [],
+      "tasks": [],
+      "implementation": []
+    },
+    {
+      "business_rule": "br-installment-complete",
+      "features": [
+        "ft-cards"
+      ],
+      "requirement": "req-br-installment-complete",
+      "acceptance": [
+        "ac-br-installment-complete"
+      ],
+      "ui": [],
+      "api": [],
+      "database": [
+        "spec-db-installment_plans"
+      ],
+      "tasks": [],
+      "implementation": []
+    },
+    {
+      "business_rule": "br-jar-active",
+      "features": [
+        "ft-jars"
+      ],
+      "requirement": "req-br-jar-active",
+      "acceptance": [
+        "ac-br-jar-active"
+      ],
+      "ui": [],
+      "api": [],
+      "database": [
+        "spec-db-jar_month_close_runs",
+        "spec-db-jar_month_plans",
+        "spec-db-jar_movements",
+        "spec-db-jar_review_queue",
+        "spec-db-jar_rules",
+        "spec-db-jars"
+      ],
+      "tasks": [],
+      "implementation": []
+    },
+    {
+      "business_rule": "br-month-close-mode",
+      "features": [],
+      "requirement": "req-br-month-close-mode",
+      "acceptance": [],
+      "ui": [],
+      "api": [],
+      "database": [],
+      "tasks": [],
+      "implementation": []
+    },
+    {
+      "business_rule": "br-one-household",
+      "features": [
+        "ft-household",
+        "ft-settings"
+      ],
+      "requirement": "req-br-one-household",
+      "acceptance": [
+        "ac-br-one-household"
+      ],
+      "ui": [],
+      "api": [],
+      "database": [],
+      "tasks": [],
+      "implementation": []
+    },
+    {
+      "business_rule": "br-overspend-policy",
+      "features": [],
+      "requirement": "req-br-overspend-policy",
+      "acceptance": [],
+      "ui": [],
+      "api": [],
+      "database": [],
+      "tasks": [],
+      "implementation": []
+    },
+    {
+      "business_rule": "br-real-vs-virtual",
+      "features": [
+        "ft-jars"
+      ],
+      "requirement": "req-br-real-vs-virtual",
+      "acceptance": [
+        "ac-br-real-vs-virtual"
+      ],
+      "ui": [],
+      "api": [],
+      "database": [],
+      "tasks": [],
+      "implementation": []
+    },
+    {
+      "business_rule": "br-rls-member",
+      "features": [],
+      "requirement": "req-br-rls-member",
+      "acceptance": [
+        "ac-br-rls-member"
+      ],
+      "ui": [],
+      "api": [],
+      "database": [
+        "spec-db-rls"
+      ],
+      "tasks": [],
+      "implementation": []
+    },
+    {
+      "business_rule": "br-savings-maturity",
+      "features": [],
+      "requirement": "req-br-savings-maturity",
+      "acceptance": [
+        "ac-br-savings-maturity"
+      ],
+      "ui": [],
+      "api": [],
+      "database": [
+        "spec-db-savings_accounts",
+        "spec-db-savings_maturity_actions",
+        "spec-db-savings_withdrawals"
+      ],
+      "tasks": [],
+      "implementation": []
+    }
+  ],
+  "run_id": "run_spec_evolution_20260801T134000Z"
+}

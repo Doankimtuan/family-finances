@@ -1,0 +1,17 @@
+{
+  "run_id": "run_full_20260801T115500Z",
+  "status": "completed",
+  "finished_at": "2026-08-01T11:57:28Z",
+  "phases": [
+    "discover",
+    "reverse-engineer",
+    "architect",
+    "specify",
+    "validate",
+    "review"
+  ],
+  "workers_executed": 44,
+  "decision": "GO_RE_NOGO_PROD",
+  "output_root": "/Users/doantuan/Desktop/Plan/family-finances/ai-os/artifacts/execution/runs/run_full_20260801T115500Z",
+  "workspace": "/Users/doantuan/Desktop/Plan/family-finances/ai-os/workspace/runs/run_full_20260801T115500Z"
+}

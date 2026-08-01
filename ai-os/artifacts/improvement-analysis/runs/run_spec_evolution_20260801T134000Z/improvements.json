@@ -1,0 +1,820 @@
+{
+  "improvements": [
+    {
+      "id": "IMP-001",
+      "title": "Expand acceptance criteria to cover all requirements",
+      "bucket": "Quick Wins",
+      "priority": "P0",
+      "estimated_impact": "High — closes traceability gap without changing business rules",
+      "current": "14 acceptance vs 42 requirements",
+      "problem": "Thin acceptance leaves implementation unverifiable",
+      "proposal": "Add acceptance entries 1:1 (or scenario bundles) for every requirement ID; keep statements aligned to existing req text",
+      "expected_benefits": "Higher testability; fewer ambiguous done definitions",
+      "trade_offs": "More AC maintenance cost",
+      "risk": "Low — documentation/spec overlay only",
+      "affected_specifications": [
+        "ai-os/artifacts/acceptance/runs/run_specification_20260801T130500Z/payload.json",
+        "ai-os/artifacts/requirements/runs/run_specification_20260801T130500Z/payload.json"
+      ],
+      "migration_plan": "Write proposal overlay ACs; review against BD rules; adopt in a future approved spec adoption run — do not rewrite originals in place",
+      "why": "Missing acceptance is the top consistency smell",
+      "impact": "High — closes traceability gap without changing business rules",
+      "migration": "Write proposal overlay ACs; review against BD rules; adopt in a future approved spec adoption run — do not rewrite originals in place",
+      "affected_artifacts": [
+        "ai-os/artifacts/acceptance/runs/run_specification_20260801T130500Z/payload.json",
+        "ai-os/artifacts/requirements/runs/run_specification_20260801T130500Z/payload.json"
+      ],
+      "depends_on": [],
+      "preserves_business_rules": [
+        "br-action-context",
+        "br-amount-positive",
+        "br-assumptions-admin",
+        "br-closed-month",
+        "br-expense-allocate",
+        "br-income-allocate",
+        "br-installment-complete",
+        "br-jar-active",
+        "br-month-close-mode",
+        "br-one-household",
+        "br-overspend-policy",
+        "br-real-vs-virtual",
+        "br-rls-member",
+        "br-savings-maturity"
+      ],
+      "touches_requirements": [
+        "req-br-amount-positive",
+        "req-br-overspend-policy",
+        "req-br-month-close-mode",
+        "req-ft-household",
+        "req-ft-dashboard",
+        "req-ft-accounts",
+        "req-ft-savings",
+        "req-ft-cards",
+        "req-ft-assets",
+        "req-ft-debts",
+        "req-ft-activity",
+        "req-ft-goals",
+        "req-ft-categories",
+        "req-ft-recurring",
+        "req-ft-decision-tools",
+        "req-ft-settings",
+        "req-ft-insights",
+        "req-ft-health",
+        "req-perm-auth-required",
+        "req-perm-household-required"
+      ]
+    },
+    {
+      "id": "IMP-002",
+      "title": "Standardize API error envelope and idempotency headers",
+      "bucket": "Quick Wins",
+      "priority": "P1",
+      "estimated_impact": "Medium — DX and client reliability",
+      "current": "17 route handlers with heterogeneous JSON shapes",
+      "problem": "Clients cannot rely on uniform error/retry semantics",
+      "proposal": "Solution overlay: standard `{error:{code,message,details}}`, request-id, idempotency-key for mutating routes — behavior of business outcomes unchanged",
+      "expected_benefits": "Easier clients, safer retries",
+      "trade_offs": "Touch all route handlers",
+      "risk": "Low-Medium",
+      "affected_specifications": [
+        "ai-os/artifacts/final/API.md",
+        "ai-os/artifacts/specifications/runs/run_specification_20260801T130500Z/payload.json#spec-api-01",
+        "ai-os/artifacts/specifications/runs/run_specification_20260801T130500Z/payload.json#spec-api-02",
+        "ai-os/artifacts/specifications/runs/run_specification_20260801T130500Z/payload.json#spec-api-03",
+        "ai-os/artifacts/specifications/runs/run_specification_20260801T130500Z/payload.json#spec-api-04",
+        "ai-os/artifacts/specifications/runs/run_specification_20260801T130500Z/payload.json#spec-api-05"
+      ],
+      "migration_plan": "Document envelope; implement behind feature flag; verify against existing acceptance for savings/transactions/jars APIs",
+      "why": "API design score 68; architecture smell actions-vs-api",
+      "impact": "Medium — DX and client reliability",
+      "migration": "Document envelope; implement behind feature flag; verify against existing acceptance for savings/transactions/jars APIs",
+      "affected_artifacts": [
+        "ai-os/artifacts/final/API.md",
+        "ai-os/artifacts/specifications/runs/run_specification_20260801T130500Z/payload.json#spec-api-01",
+        "ai-os/artifacts/specifications/runs/run_specification_20260801T130500Z/payload.json#spec-api-02",
+        "ai-os/artifacts/specifications/runs/run_specification_20260801T130500Z/payload.json#spec-api-03",
+        "ai-os/artifacts/specifications/runs/run_specification_20260801T130500Z/payload.json#spec-api-04",
+        "ai-os/artifacts/specifications/runs/run_specification_20260801T130500Z/payload.json#spec-api-05"
+      ],
+      "depends_on": [
+        "IMP-001"
+      ],
+      "preserves_business_rules": [
+        "br-action-context",
+        "br-amount-positive",
+        "br-assumptions-admin",
+        "br-closed-month",
+        "br-expense-allocate",
+        "br-income-allocate",
+        "br-installment-complete",
+        "br-jar-active",
+        "br-month-close-mode",
+        "br-one-household",
+        "br-overspend-policy",
+        "br-real-vs-virtual",
+        "br-rls-member",
+        "br-savings-maturity"
+      ],
+      "touches_requirements": [
+        "req-br-action-context",
+        "req-br-amount-positive",
+        "req-br-assumptions-admin",
+        "req-br-closed-month",
+        "req-br-expense-allocate"
+      ]
+    },
+    {
+      "id": "IMP-003",
+      "title": "Accessibility acceptance overlay (WCAG 2.2 AA targets)",
+      "bucket": "Medium Improvements",
+      "priority": "P1",
+      "estimated_impact": "High UX/compliance engineering quality",
+      "current": "UI specs exist without systematic a11y AC",
+      "problem": "2026 a11y score 55 — risk for real users",
+      "proposal": "Add non-business acceptance: keyboard, contrast, labels, focus — applied to existing pages/journeys",
+      "expected_benefits": "Inclusive UX; fewer regressions",
+      "trade_offs": "Engineering time on existing screens",
+      "risk": "Low to business logic",
+      "affected_specifications": [
+        "ai-os/artifacts/final/SRS.md",
+        "#spec-ui-principles",
+        "#spec-ui-routes",
+        "#spec-ui-nav"
+      ],
+      "migration_plan": "Overlay AC → implement in UI kit → audit critical journeys (login, jars, onboarding)",
+      "why": "UX/a11y board evaluation",
+      "impact": "High UX/compliance engineering quality",
+      "migration": "Overlay AC → implement in UI kit → audit critical journeys (login, jars, onboarding)",
+      "affected_artifacts": [
+        "ai-os/artifacts/final/SRS.md",
+        "#spec-ui-principles",
+        "#spec-ui-routes",
+        "#spec-ui-nav"
+      ],
+      "depends_on": [
+        "IMP-001"
+      ],
+      "preserves_business_rules": [
+        "br-action-context",
+        "br-amount-positive",
+        "br-assumptions-admin",
+        "br-closed-month",
+        "br-expense-allocate",
+        "br-income-allocate",
+        "br-installment-complete",
+        "br-jar-active",
+        "br-month-close-mode",
+        "br-one-household",
+        "br-overspend-policy",
+        "br-real-vs-virtual",
+        "br-rls-member",
+        "br-savings-maturity"
+      ],
+      "touches_requirements": [
+        "req-br-action-context",
+        "req-br-amount-positive",
+        "req-br-assumptions-admin",
+        "req-br-closed-month",
+        "req-br-expense-allocate"
+      ]
+    },
+    {
+      "id": "IMP-004",
+      "title": "Product observability baseline (logs, traces, metrics)",
+      "bucket": "Medium Improvements",
+      "priority": "P0",
+      "estimated_impact": "High maintainability/ops",
+      "current": "Observability score 40; thin specs",
+      "problem": "Cannot diagnose allocation/month-close failures in production systematically",
+      "proposal": "Specify structured logs + trace ids on actions/API + metrics for jar automation/month-close — no new business features",
+      "expected_benefits": "Faster incident response; safer automation",
+      "trade_offs": "Vendor/cost for telemetry",
+      "risk": "Medium (ops complexity)",
+      "affected_specifications": [
+        "ai-os/artifacts/final/Architecture.md",
+        "ai-os/artifacts/product-architecture/runs/run_repository_discovery_20260801T132500Z/payload.json"
+      ],
+      "migration_plan": "Choose telemetry approach; instrument proxy+actions+API; dashboards for existing BR automation",
+      "why": "Architecture smell observability-gap",
+      "impact": "High maintainability/ops",
+      "migration": "Choose telemetry approach; instrument proxy+actions+API; dashboards for existing BR automation",
+      "affected_artifacts": [
+        "ai-os/artifacts/final/Architecture.md",
+        "ai-os/artifacts/product-architecture/runs/run_repository_discovery_20260801T132500Z/payload.json"
+      ],
+      "depends_on": [
+        "IMP-002"
+      ],
+      "preserves_business_rules": [
+        "br-action-context",
+        "br-amount-positive",
+        "br-assumptions-admin",
+        "br-closed-month",
+        "br-expense-allocate",
+        "br-income-allocate",
+        "br-installment-complete",
+        "br-jar-active",
+        "br-month-close-mode",
+        "br-one-household",
+        "br-overspend-policy",
+        "br-real-vs-virtual",
+        "br-rls-member",
+        "br-savings-maturity"
+      ],
+      "touches_requirements": [
+        "req-br-income-allocate",
+        "req-br-expense-allocate",
+        "req-br-closed-month",
+        "req-br-month-close-mode"
+      ]
+    },
+    {
+      "id": "IMP-005",
+      "title": "Unified contract catalog for Server Actions vs Route Handlers",
+      "bucket": "Medium Improvements",
+      "priority": "P1",
+      "estimated_impact": "High maintainability",
+      "current": "Dual mutation/read surfaces",
+      "problem": "Contract sprawl and duplicated validation",
+      "proposal": "Catalog each action/route with input schema (zod), authz, BR references — solution doc only; keep existing surfaces until major refactor",
+      "expected_benefits": "Clearer ownership; less duplication",
+      "trade_offs": "Doc overhead",
+      "risk": "Low",
+      "affected_specifications": [
+        "ai-os/artifacts/final/API.md",
+        "ai-os/artifacts/repository/runs/run_repository_discovery_20260801T132500Z/payload.json"
+      ],
+      "migration_plan": "Generate catalog from REPO inventory; link each to requirement IDs; use as gate for changes",
+      "why": "Maintainability 62; arch smell actions-vs-api",
+      "impact": "High maintainability",
+      "migration": "Generate catalog from REPO inventory; link each to requirement IDs; use as gate for changes",
+      "affected_artifacts": [
+        "ai-os/artifacts/final/API.md",
+        "ai-os/artifacts/repository/runs/run_repository_discovery_20260801T132500Z/payload.json"
+      ],
+      "depends_on": [
+        "IMP-001",
+        "IMP-002"
+      ],
+      "preserves_business_rules": [
+        "br-action-context",
+        "br-amount-positive",
+        "br-assumptions-admin",
+        "br-closed-month",
+        "br-expense-allocate",
+        "br-income-allocate",
+        "br-installment-complete",
+        "br-jar-active",
+        "br-month-close-mode",
+        "br-one-household",
+        "br-overspend-policy",
+        "br-real-vs-virtual",
+        "br-rls-member",
+        "br-savings-maturity"
+      ],
+      "touches_requirements": [
+        "req-br-action-context",
+        "req-br-amount-positive",
+        "req-br-assumptions-admin",
+        "req-br-closed-month",
+        "req-br-expense-allocate",
+        "req-br-income-allocate",
+        "req-br-installment-complete",
+        "req-br-jar-active",
+        "req-br-month-close-mode",
+        "req-br-one-household",
+        "req-br-overspend-policy",
+        "req-br-real-vs-virtual"
+      ]
+    },
+    {
+      "id": "IMP-006",
+      "title": "Security hardening overlay (CSP, rate limits, admin audit)",
+      "bucket": "Medium Improvements",
+      "priority": "P1",
+      "estimated_impact": "High security",
+      "current": "Security specs + RLS present",
+      "problem": "Missing abuse controls and privileged-action audit trail as solution controls",
+      "proposal": "Add CSP, rate limits on auth/API, audit log for admin-only actions — does not change partner/admin business roles",
+      "expected_benefits": "Better security posture",
+      "trade_offs": "Possible false-positive rate limits",
+      "risk": "Medium",
+      "affected_specifications": [
+        "ai-os/artifacts/specifications/runs/run_specification_20260801T130500Z/payload.json#spec-sec-perm-auth-required",
+        "ai-os/artifacts/specifications/runs/run_specification_20260801T130500Z/payload.json#spec-sec-perm-household-required",
+        "ai-os/artifacts/specifications/runs/run_specification_20260801T130500Z/payload.json#spec-sec-perm-page-gate",
+        "ai-os/artifacts/specifications/runs/run_specification_20260801T130500Z/payload.json#spec-sec-perm-rls-member",
+        "ai-os/artifacts/specifications/runs/run_specification_20260801T130500Z/payload.json#spec-sec-perm-member-equality",
+        "ai-os/artifacts/permissions/runs/run_business_discovery_20260801T122000Z/payload.json"
+      ],
+      "migration_plan": "Threat model memo → controls → verify RLS still matches permissions pack",
+      "why": "Security/authz evaluation",
+      "impact": "High security",
+      "migration": "Threat model memo → controls → verify RLS still matches permissions pack",
+      "affected_artifacts": [
+        "ai-os/artifacts/specifications/runs/run_specification_20260801T130500Z/payload.json#spec-sec-perm-auth-required",
+        "ai-os/artifacts/specifications/runs/run_specification_20260801T130500Z/payload.json#spec-sec-perm-household-required",
+        "ai-os/artifacts/specifications/runs/run_specification_20260801T130500Z/payload.json#spec-sec-perm-page-gate",
+        "ai-os/artifacts/specifications/runs/run_specification_20260801T130500Z/payload.json#spec-sec-perm-rls-member",
+        "ai-os/artifacts/specifications/runs/run_specification_20260801T130500Z/payload.json#spec-sec-perm-member-equality",
+        "ai-os/artifacts/permissions/runs/run_business_discovery_20260801T122000Z/payload.json"
+      ],
+      "depends_on": [
+        "IMP-004"
+      ],
+      "preserves_business_rules": [
+        "br-action-context",
+        "br-amount-positive",
+        "br-assumptions-admin",
+        "br-closed-month",
+        "br-expense-allocate",
+        "br-income-allocate",
+        "br-installment-complete",
+        "br-jar-active",
+        "br-month-close-mode",
+        "br-one-household",
+        "br-overspend-policy",
+        "br-real-vs-virtual",
+        "br-rls-member",
+        "br-savings-maturity"
+      ],
+      "touches_requirements": [
+        "req-br-assumptions-admin",
+        "req-perm-member-equality",
+        "req-perm-admin-settings",
+        "req-perm-service-role"
+      ]
+    },
+    {
+      "id": "IMP-007",
+      "title": "Testing strategy overlay (contract + critical journey tests)",
+      "bucket": "Medium Improvements",
+      "priority": "P1",
+      "estimated_impact": "High implementation quality",
+      "current": "Testing strategy score 45",
+      "problem": "Insufficient automated proof that BR constraints hold",
+      "proposal": "Define test pyramid overlay: unit for allocation engines, contract for API/actions, e2e for journeys — assert existing BR",
+      "expected_benefits": "Regression safety",
+      "trade_offs": "CI time",
+      "risk": "Low-Medium",
+      "affected_specifications": [
+        "ai-os/artifacts/tasks/runs/run_specification_20260801T130500Z/payload.json",
+        "ai-os/artifacts/final/Acceptance.md"
+      ],
+      "migration_plan": "Add test plan overlay; implement tests mapped to AC after IMP-001",
+      "why": "Testing dimension gap",
+      "impact": "High implementation quality",
+      "migration": "Add test plan overlay; implement tests mapped to AC after IMP-001",
+      "affected_artifacts": [
+        "ai-os/artifacts/tasks/runs/run_specification_20260801T130500Z/payload.json",
+        "ai-os/artifacts/final/Acceptance.md"
+      ],
+      "depends_on": [
+        "IMP-001",
+        "IMP-005"
+      ],
+      "preserves_business_rules": [
+        "br-action-context",
+        "br-amount-positive",
+        "br-assumptions-admin",
+        "br-closed-month",
+        "br-expense-allocate",
+        "br-income-allocate",
+        "br-installment-complete",
+        "br-jar-active",
+        "br-month-close-mode",
+        "br-one-household",
+        "br-overspend-policy",
+        "br-real-vs-virtual",
+        "br-rls-member",
+        "br-savings-maturity"
+      ],
+      "touches_requirements": [
+        "req-br-action-context",
+        "req-br-amount-positive",
+        "req-br-assumptions-admin",
+        "req-br-closed-month",
+        "req-br-expense-allocate",
+        "req-br-income-allocate",
+        "req-br-installment-complete",
+        "req-br-jar-active",
+        "req-br-month-close-mode",
+        "req-br-one-household",
+        "req-br-overspend-policy",
+        "req-br-real-vs-virtual"
+      ]
+    },
+    {
+      "id": "IMP-008",
+      "title": "Performance budgets for dashboard and jars spending APIs",
+      "bucket": "Medium Improvements",
+      "priority": "P2",
+      "estimated_impact": "Medium scalability/UX",
+      "current": "No CWV/API latency budgets in specs",
+      "problem": "Dashboard/jars endpoints can regress unnoticed",
+      "proposal": "Set latency/payload budgets on existing dashboard/jars/savings routes; caching guidance without changing payloads semantics",
+      "expected_benefits": "Stable UX under load",
+      "trade_offs": "Caching complexity",
+      "risk": "Medium",
+      "affected_specifications": [
+        "ai-os/artifacts/final/API.md",
+        "ai-os/artifacts/final/Architecture.md"
+      ],
+      "migration_plan": "Measure baselines → set budgets → add checks in CI smoke",
+      "why": "Performance score 65",
+      "impact": "Medium scalability/UX",
+      "migration": "Measure baselines → set budgets → add checks in CI smoke",
+      "affected_artifacts": [
+        "ai-os/artifacts/final/API.md",
+        "ai-os/artifacts/final/Architecture.md"
+      ],
+      "depends_on": [
+        "IMP-004"
+      ],
+      "preserves_business_rules": [
+        "br-action-context",
+        "br-amount-positive",
+        "br-assumptions-admin",
+        "br-closed-month",
+        "br-expense-allocate",
+        "br-income-allocate",
+        "br-installment-complete",
+        "br-jar-active",
+        "br-month-close-mode",
+        "br-one-household",
+        "br-overspend-policy",
+        "br-real-vs-virtual",
+        "br-rls-member",
+        "br-savings-maturity"
+      ],
+      "touches_requirements": [
+        "req-br-action-context",
+        "req-br-amount-positive",
+        "req-br-assumptions-admin",
+        "req-br-closed-month",
+        "req-br-expense-allocate",
+        "req-br-income-allocate"
+      ]
+    },
+    {
+      "id": "IMP-009",
+      "title": "Clarify soft-delete/archive vs active-jar in solution architecture",
+      "bucket": "Quick Wins",
+      "priority": "P1",
+      "estimated_impact": "Medium consistency",
+      "current": "Soft BD note + br-jar-active",
+      "problem": "Risk of conflicting interpretations in implementation",
+      "proposal": "Architecture-v2 clarification overlay: define state matrix for active/archived/soft-deleted — preserve br-jar-active intent",
+      "expected_benefits": "Fewer implementation bugs",
+      "trade_offs": "None to business intent",
+      "risk": "Low",
+      "affected_specifications": [
+        "ai-os/artifacts/business/runs/run_business_discovery_20260801T122000Z/payload.json#br-jar-active",
+        "ai-os/artifacts/final/Business Rules.md"
+      ],
+      "migration_plan": "Publish clarification; add AC; update validation helpers if needed",
+      "why": "Consistency soft conflict",
+      "impact": "Medium consistency",
+      "migration": "Publish clarification; add AC; update validation helpers if needed",
+      "affected_artifacts": [
+        "ai-os/artifacts/business/runs/run_business_discovery_20260801T122000Z/payload.json#br-jar-active",
+        "ai-os/artifacts/final/Business Rules.md"
+      ],
+      "depends_on": [
+        "IMP-001"
+      ],
+      "preserves_business_rules": [
+        "br-action-context",
+        "br-amount-positive",
+        "br-assumptions-admin",
+        "br-closed-month",
+        "br-expense-allocate",
+        "br-income-allocate",
+        "br-installment-complete",
+        "br-jar-active",
+        "br-month-close-mode",
+        "br-one-household",
+        "br-overspend-policy",
+        "br-real-vs-virtual",
+        "br-rls-member",
+        "br-savings-maturity"
+      ],
+      "touches_requirements": [
+        "req-br-jar-active"
+      ]
+    },
+    {
+      "id": "IMP-010",
+      "title": "Error taxonomy for user-facing failures",
+      "bucket": "Quick Wins",
+      "priority": "P2",
+      "estimated_impact": "Medium UX",
+      "current": "lib/errors exists; AC thin",
+      "problem": "Inconsistent user messaging on allocation/review failures",
+      "proposal": "Map domain errors to stable codes/messages (i18n keys) for existing flows",
+      "expected_benefits": "Clearer UX; better supportability",
+      "trade_offs": "i18n work",
+      "risk": "Low",
+      "affected_specifications": [
+        "ai-os/artifacts/final/SRS.md",
+        "ai-os/artifacts/repository/runs/run_repository_discovery_20260801T132500Z/payload.json"
+      ],
+      "migration_plan": "Overlay taxonomy → wire to toasts/forms → tests",
+      "why": "Error handling score 60",
+      "impact": "Medium UX",
+      "migration": "Overlay taxonomy → wire to toasts/forms → tests",
+      "affected_artifacts": [
+        "ai-os/artifacts/final/SRS.md",
+        "ai-os/artifacts/repository/runs/run_repository_discovery_20260801T132500Z/payload.json"
+      ],
+      "depends_on": [
+        "IMP-002",
+        "IMP-003"
+      ],
+      "preserves_business_rules": [
+        "br-action-context",
+        "br-amount-positive",
+        "br-assumptions-admin",
+        "br-closed-month",
+        "br-expense-allocate",
+        "br-income-allocate",
+        "br-installment-complete",
+        "br-jar-active",
+        "br-month-close-mode",
+        "br-one-household",
+        "br-overspend-policy",
+        "br-real-vs-virtual",
+        "br-rls-member",
+        "br-savings-maturity"
+      ],
+      "touches_requirements": [
+        "req-br-action-context",
+        "req-br-amount-positive",
+        "req-br-assumptions-admin",
+        "req-br-closed-month",
+        "req-br-expense-allocate"
+      ]
+    },
+    {
+      "id": "IMP-011",
+      "title": "Major: consolidate read/write contracts behind shared domain modules",
+      "bucket": "Major Refactors",
+      "priority": "P2",
+      "estimated_impact": "High maintainability (longer horizon)",
+      "current": "Actions and API both call overlapping lib domains",
+      "problem": "Duplication and drift risk",
+      "proposal": "Gradually route handlers/actions through shared application services — preserve all BR and external URL/action names during migration",
+      "expected_benefits": "Single validation path; less drift",
+      "trade_offs": "Large refactor cost",
+      "risk": "High if rushed — mitigate with strangler pattern",
+      "affected_specifications": [
+        "ai-os/artifacts/final/Architecture.md",
+        "ai-os/artifacts/repository/runs/run_repository_discovery_20260801T132500Z/payload.json"
+      ],
+      "migration_plan": "Strangler: pick one domain (savings) → shared service → expand; keep compatibility",
+      "why": "Maintainability + arch smell",
+      "impact": "High maintainability (longer horizon)",
+      "migration": "Strangler: pick one domain (savings) → shared service → expand; keep compatibility",
+      "affected_artifacts": [
+        "ai-os/artifacts/final/Architecture.md",
+        "ai-os/artifacts/repository/runs/run_repository_discovery_20260801T132500Z/payload.json"
+      ],
+      "depends_on": [
+        "IMP-005",
+        "IMP-007",
+        "IMP-004"
+      ],
+      "preserves_business_rules": [
+        "br-action-context",
+        "br-amount-positive",
+        "br-assumptions-admin",
+        "br-closed-month",
+        "br-expense-allocate",
+        "br-income-allocate",
+        "br-installment-complete",
+        "br-jar-active",
+        "br-month-close-mode",
+        "br-one-household",
+        "br-overspend-policy",
+        "br-real-vs-virtual",
+        "br-rls-member",
+        "br-savings-maturity"
+      ],
+      "touches_requirements": [
+        "req-br-action-context",
+        "req-br-amount-positive",
+        "req-br-assumptions-admin",
+        "req-br-closed-month",
+        "req-br-expense-allocate",
+        "req-br-income-allocate",
+        "req-br-installment-complete",
+        "req-br-jar-active",
+        "req-br-month-close-mode",
+        "req-br-one-household",
+        "req-br-overspend-policy",
+        "req-br-real-vs-virtual"
+      ]
+    },
+    {
+      "id": "IMP-012",
+      "title": "Major: API versioning policy for public JSON routes",
+      "bucket": "Major Refactors",
+      "priority": "P3",
+      "estimated_impact": "Medium-High scalability/compatibility",
+      "current": "Unversioned /api paths",
+      "problem": "Hard to evolve envelopes without breaking clients",
+      "proposal": "Introduce /api/v1 additive versioning; keep old paths as aliases until deprecated — no business change",
+      "expected_benefits": "Safer evolution",
+      "trade_offs": "Path duplication temporarily",
+      "risk": "Medium",
+      "affected_specifications": [
+        "ai-os/artifacts/final/API.md"
+      ],
+      "migration_plan": "After IMP-002 envelope; add v1; alias legacy; deprecate later",
+      "why": "API design gap",
+      "impact": "Medium-High scalability/compatibility",
+      "migration": "After IMP-002 envelope; add v1; alias legacy; deprecate later",
+      "affected_artifacts": [
+        "ai-os/artifacts/final/API.md"
+      ],
+      "depends_on": [
+        "IMP-002",
+        "IMP-005"
+      ],
+      "preserves_business_rules": [
+        "br-action-context",
+        "br-amount-positive",
+        "br-assumptions-admin",
+        "br-closed-month",
+        "br-expense-allocate",
+        "br-income-allocate",
+        "br-installment-complete",
+        "br-jar-active",
+        "br-month-close-mode",
+        "br-one-household",
+        "br-overspend-policy",
+        "br-real-vs-virtual",
+        "br-rls-member",
+        "br-savings-maturity"
+      ],
+      "touches_requirements": [
+        "req-br-action-context",
+        "req-br-amount-positive",
+        "req-br-assumptions-admin",
+        "req-br-closed-month",
+        "req-br-expense-allocate"
+      ]
+    },
+    {
+      "id": "IMP-013",
+      "title": "Future: assistive insights UX (non-generative ledger changes)",
+      "bucket": "Future Vision",
+      "priority": "P3",
+      "estimated_impact": "Medium UX — must not invent ledger rules",
+      "current": "insights/decision-tools domains exist",
+      "problem": "Users may want clearer guidance UX",
+      "proposal": "Improve presentation/automation trust UI for existing insights — forbid new money-movement semantics",
+      "expected_benefits": "Better decisions UX",
+      "trade_offs": "Scope creep into AI features",
+      "risk": "Medium — gate by BD feature list",
+      "affected_specifications": [
+        "ai-os/artifacts/final/PRD.md",
+        "ai-os/artifacts/features/runs/run_business_discovery_20260801T122000Z/payload.json"
+      ],
+      "migration_plan": "Only after observability+AC; UX prototypes; no BR changes",
+      "why": "AI features score 50 — constrained",
+      "impact": "Medium UX — must not invent ledger rules",
+      "migration": "Only after observability+AC; UX prototypes; no BR changes",
+      "affected_artifacts": [
+        "ai-os/artifacts/final/PRD.md",
+        "ai-os/artifacts/features/runs/run_business_discovery_20260801T122000Z/payload.json"
+      ],
+      "depends_on": [
+        "IMP-004",
+        "IMP-001",
+        "IMP-003"
+      ],
+      "preserves_business_rules": [
+        "br-action-context",
+        "br-amount-positive",
+        "br-assumptions-admin",
+        "br-closed-month",
+        "br-expense-allocate",
+        "br-income-allocate",
+        "br-installment-complete",
+        "br-jar-active",
+        "br-month-close-mode",
+        "br-one-household",
+        "br-overspend-policy",
+        "br-real-vs-virtual",
+        "br-rls-member",
+        "br-savings-maturity"
+      ],
+      "touches_requirements": [
+        "req-ft-decision-tools",
+        "req-ft-insights",
+        "req-perm-service-role"
+      ]
+    },
+    {
+      "id": "IMP-014",
+      "title": "Future: offline read-only cache for dashboard summaries",
+      "bucket": "Future Vision",
+      "priority": "P4",
+      "estimated_impact": "Low-Medium — must not allow offline ledger writes",
+      "current": "Online-first app",
+      "problem": "Mobile flaky networks",
+      "proposal": "Read-only cached summaries; block offline mutations that would violate real-ledger BR",
+      "expected_benefits": "Resilience for viewing",
+      "trade_offs": "Stale data risk",
+      "risk": "High if writes allowed — therefore writes forbidden offline",
+      "affected_specifications": [
+        "ai-os/artifacts/final/Architecture.md",
+        "ai-os/artifacts/business/runs/run_business_discovery_20260801T122000Z/payload.json#br-real-vs-virtual"
+      ],
+      "migration_plan": "After IMP-004/008; explicit non-goals for offline writes",
+      "why": "Offline score 25 — constrained future",
+      "impact": "Low-Medium — must not allow offline ledger writes",
+      "migration": "After IMP-004/008; explicit non-goals for offline writes",
+      "affected_artifacts": [
+        "ai-os/artifacts/final/Architecture.md",
+        "ai-os/artifacts/business/runs/run_business_discovery_20260801T122000Z/payload.json#br-real-vs-virtual"
+      ],
+      "depends_on": [
+        "IMP-004",
+        "IMP-008",
+        "IMP-006"
+      ],
+      "preserves_business_rules": [
+        "br-action-context",
+        "br-amount-positive",
+        "br-assumptions-admin",
+        "br-closed-month",
+        "br-expense-allocate",
+        "br-income-allocate",
+        "br-installment-complete",
+        "br-jar-active",
+        "br-month-close-mode",
+        "br-one-household",
+        "br-overspend-policy",
+        "br-real-vs-virtual",
+        "br-rls-member",
+        "br-savings-maturity"
+      ],
+      "touches_requirements": [
+        "req-br-real-vs-virtual"
+      ]
+    },
+    {
+      "id": "IMP-015",
+      "title": "Privacy engineering runbooks (export/delete within household tenancy)",
+      "bucket": "Medium Improvements",
+      "priority": "P2",
+      "estimated_impact": "Medium privacy",
+      "current": "Household tenancy strong; runbooks thin",
+      "problem": "Operational privacy gaps",
+      "proposal": "Solution runbooks for export/delete aligned to existing household boundaries — no new product compliance claims",
+      "expected_benefits": "Better privacy ops",
+      "trade_offs": "Engineering time",
+      "risk": "Low-Medium",
+      "affected_specifications": [
+        "ai-os/artifacts/final/Architecture.md",
+        "ai-os/artifacts/permissions/runs/run_business_discovery_20260801T122000Z/payload.json"
+      ],
+      "migration_plan": "Document procedures; optional admin-only tools later without new BR",
+      "why": "Privacy/compliance evaluation",
+      "impact": "Medium privacy",
+      "migration": "Document procedures; optional admin-only tools later without new BR",
+      "affected_artifacts": [
+        "ai-os/artifacts/final/Architecture.md",
+        "ai-os/artifacts/permissions/runs/run_business_discovery_20260801T122000Z/payload.json"
+      ],
+      "depends_on": [
+        "IMP-006"
+      ],
+      "preserves_business_rules": [
+        "br-action-context",
+        "br-amount-positive",
+        "br-assumptions-admin",
+        "br-closed-month",
+        "br-expense-allocate",
+        "br-income-allocate",
+        "br-installment-complete",
+        "br-jar-active",
+        "br-month-close-mode",
+        "br-one-household",
+        "br-overspend-policy",
+        "br-real-vs-virtual",
+        "br-rls-member",
+        "br-savings-maturity"
+      ],
+      "touches_requirements": [
+        "req-br-action-context",
+        "req-br-amount-positive",
+        "req-br-assumptions-admin",
+        "req-br-closed-month"
+      ]
+    }
+  ],
+  "count": 15
+}

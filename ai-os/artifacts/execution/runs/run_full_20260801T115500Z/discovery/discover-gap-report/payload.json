@@ -1,0 +1,55 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_discover_gap_report_T115500Z",
+  "report_kind": "gap-report",
+  "worker_id": "discover-gap-report",
+  "worker_version": "0.1.0",
+  "title": "Discovery gap report",
+  "summary": "Consolidated discovery gaps for Family Finances reverse-engineering run.",
+  "findings": [
+    {
+      "id": "gap-exec-runtime",
+      "severity": "medium",
+      "message": "Core Engine still does not auto-invoke workers; this run is agent-orchestrated produce.",
+      "path": "ai-os/core/"
+    },
+    {
+      "id": "gap-product-docs",
+      "severity": "low",
+      "message": "Product narrative is stronger in app/lib than root README.",
+      "path": "README.md"
+    }
+  ],
+  "inventory": {
+    "prior_reports": [
+      "repo-map",
+      "domain-map",
+      "contract-inventory",
+      "registry-audit",
+      "runtime-surface"
+    ]
+  },
+  "gaps": [
+    {
+      "id": "gap-feature-workers",
+      "severity": "info",
+      "description": "Feature Workers remain forbidden; out of scope for this run.",
+      "suggested_owner": "orchestrator"
+    },
+    {
+      "id": "gap-live-benchmarks",
+      "severity": "low",
+      "description": "Qualification benchmarks not on @Run full path.",
+      "suggested_owner": "qualify"
+    }
+  ],
+  "status": "ready",
+  "created_at": "2026-08-01T11:57:28Z",
+  "trace": {
+    "orchestration_id": "art_orch_run_full_20260801T115500Z",
+    "plan_id": "art_plan_run_full_20260801T115500Z",
+    "task_id": "art_task_discover-gap-report",
+    "run_id": "art_run_discover-gap-report",
+    "goal_id": "art_goal_family_finances_full_re"
+  }
+}

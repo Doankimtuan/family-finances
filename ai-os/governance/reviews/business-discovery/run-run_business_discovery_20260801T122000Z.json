@@ -1,0 +1,68 @@
+{
+  "schema_version": "1.0.0",
+  "stage": "business-discovery",
+  "run_id": "run_business_discovery_20260801T122000Z",
+  "created_at": "2026-08-01T12:23:13Z",
+  "reviewers": [
+    {
+      "id": "business-reviewer",
+      "result": "PASS",
+      "focus": "rules + permissions coherence"
+    },
+    {
+      "id": "product-reviewer",
+      "result": "PASS",
+      "focus": "feature coverage"
+    },
+    {
+      "id": "documentation-reviewer",
+      "result": "PASS",
+      "focus": "docs/DOMAIN_MODEL + JAR_* cited"
+    },
+    {
+      "id": "specification-reviewer",
+      "result": "N/A",
+      "focus": "spec stage not in scope"
+    }
+  ],
+  "coverage_report": {
+    "packs": {
+      "knowledge": 6,
+      "features": 18,
+      "business": 14,
+      "workflow": 8,
+      "domain": 18,
+      "permissions": 10,
+      "state-machines": 11,
+      "user-journeys": 6
+    },
+    "feature_coverage_pct": 100,
+    "features_covered": [
+      "accounts",
+      "activity",
+      "assets",
+      "auth",
+      "cards",
+      "categories",
+      "dashboard",
+      "debts",
+      "decision-tools",
+      "goals",
+      "health",
+      "household",
+      "insights",
+      "jars",
+      "onboarding",
+      "recurring",
+      "savings",
+      "settings"
+    ],
+    "features_missing": []
+  },
+  "missing_business_rules": [
+    "Explicit transfer transaction shape rules (schema check) not extracted as standalone rule"
+  ],
+  "missing_features": [],
+  "confidence_score": 100,
+  "recommendation": "FREEZE business-discovery stage; do not proceed to architect/specify without new command."
+}

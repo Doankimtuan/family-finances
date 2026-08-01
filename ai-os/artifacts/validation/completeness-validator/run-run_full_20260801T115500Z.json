@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_completeness_validator_T115500Z",
+  "worker_id": "completeness-validator",
+  "title": "completeness-validator finding",
+  "summary": "44 critical-path workers produced at least one payload.",
+  "entries": [
+    {
+      "id": "completeness-validator-01",
+      "entry_kind": "finding",
+      "statement": "44 critical-path workers produced at least one payload.",
+      "severity": "info",
+      "source_paths": [
+        "artifacts/execution/runs/run_full_20260801T115500Z/"
+      ],
+      "folder_mirror": "artifacts/validation/completeness-validator/run-run_full_20260801T115500Z.json"
+    }
+  ],
+  "status": "ready",
+  "created_at": "2026-08-01T11:57:28Z",
+  "trace": {
+    "orchestration_id": "art_orch_run_full_20260801T115500Z",
+    "plan_id": "art_plan_run_full_20260801T115500Z",
+    "task_id": "art_task_completeness-validator",
+    "run_id": "art_run_completeness-validator",
+    "goal_id": "art_goal_family_finances_full_re"
+  },
+  "extensions": {
+    "pipeline": "validation-engine",
+    "result": "PASS",
+    "run_id": "run_full_20260801T115500Z"
+  }
+}

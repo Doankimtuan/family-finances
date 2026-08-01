@@ -1,0 +1,116 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_workflow_analyzer_T122000Z",
+  "type": "workflow-model",
+  "worker_id": "workflow-analyzer",
+  "title": "Workflow discovery",
+  "summary": "Discovered primary business workflows from routes and domain engines. Discover only.",
+  "entries": [
+    {
+      "id": "wf-onboarding",
+      "statement": "Onboarding: welcome\u2192members\u2192money\u2192assets\u2192debts\u2192income/expenses\u2192first-goal\u2192first-insight (8 steps).",
+      "source_paths": [
+        "app/onboarding/",
+        "app/onboarding/_components/onboarding-shell.tsx"
+      ],
+      "entry_kind": "workflow",
+      "actor": "new_member",
+      "step_order": 1
+    },
+    {
+      "id": "wf-household-bootstrap",
+      "statement": "Household lifecycle: auth \u2192 create household RPC \u2192 optional invite \u2192 accept as partner.",
+      "source_paths": [
+        "app/household/actions.ts",
+        "supabase/migrations/00008_household_lifecycle_rpc.sql"
+      ],
+      "entry_kind": "workflow",
+      "actor": "creator",
+      "step_order": 2
+    },
+    {
+      "id": "wf-jar-sync",
+      "statement": "Transaction/savings event \u2192 syncTransactionToJarIntent \u2192 auto-resolve or jar_review_queue pending.",
+      "source_paths": [
+        "lib/jars/_lib/sync-transactions.ts",
+        "lib/jars/domain/allocation-engine.ts"
+      ],
+      "entry_kind": "workflow",
+      "actor": "system",
+      "step_order": 3
+    },
+    {
+      "id": "wf-jar-review",
+      "statement": "User resolves /jars/review items \u2192 resolveJarReviewItemAction \u2192 resolveReviewToMovements.",
+      "source_paths": [
+        "app/jars/review/page.tsx",
+        "app/jars/domain-actions.ts",
+        "lib/jars/domain/allocation-engine.ts"
+      ],
+      "entry_kind": "workflow",
+      "actor": "partner",
+      "step_order": 4
+    },
+    {
+      "id": "wf-month-close",
+      "statement": "Month close: preview \u2192 approve \u2192 overspend cover + rollover \u2192 snapshots (draft\u2192processing\u2192approved|failed).",
+      "source_paths": [
+        "lib/jars/domain/rollover-engine.ts",
+        "lib/jars/domain/snapshot-engine.ts"
+      ],
+      "entry_kind": "workflow",
+      "actor": "partner",
+      "step_order": 5
+    },
+    {
+      "id": "wf-activity",
+      "statement": "Activity: create income/expense/transfer \u2192 may trigger jar sync.",
+      "source_paths": [
+        "app/activity/actions.ts",
+        "app/api/transactions/route.ts"
+      ],
+      "entry_kind": "workflow",
+      "actor": "partner",
+      "step_order": 6
+    },
+    {
+      "id": "wf-savings",
+      "statement": "Savings: create \u2192 active lifecycle \u2192 mature/withdraw via API/UI forms.",
+      "source_paths": [
+        "app/accounts/savings/",
+        "lib/savings/service.ts",
+        "app/api/savings/"
+      ],
+      "entry_kind": "workflow",
+      "actor": "partner",
+      "step_order": 7
+    },
+    {
+      "id": "wf-card-emi",
+      "statement": "Card: billing item \u2192 convert to installment \u2192 settle payments until completed/cancelled.",
+      "source_paths": [
+        "app/accounts/card/installment-actions.ts",
+        "app/accounts/card/[id]/page.tsx"
+      ],
+      "entry_kind": "workflow",
+      "actor": "partner",
+      "step_order": 8
+    }
+  ],
+  "status": "ready",
+  "created_at": "2026-08-01T12:22:43Z",
+  "trace": {
+    "orchestration_id": "art_orch_run_business_discovery_20260801T122000Z",
+    "plan_id": "art_plan_run_business_discovery_20260801T122000Z",
+    "task_id": "art_task_workflow-analyzer",
+    "run_id": "art_run_workflow-analyzer",
+    "goal_id": "art_goal_business_discovery"
+  },
+  "extensions": {
+    "stage": "business-discovery",
+    "pipeline": "product-re",
+    "run_id": "run_business_discovery_20260801T122000Z",
+    "redesign": false,
+    "specification": false
+  }
+}

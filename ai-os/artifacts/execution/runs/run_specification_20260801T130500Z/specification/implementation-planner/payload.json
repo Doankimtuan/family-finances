@@ -1,0 +1,119 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_implementation_planner_T130500Z",
+  "type": "implementation-plan",
+  "worker_id": "implementation-planner",
+  "title": "Implementation plan & migration guide",
+  "summary": "Ordered implementation/migration constraints from validated domain \u2014 no redesign.",
+  "entries": [
+    {
+      "id": "impl-order-1",
+      "statement": "Implement/verify tenancy+auth gates before feature work (permissions + login/household journeys).",
+      "source_paths": [
+        "ai-os/artifacts/permissions/runs/run_business_discovery_20260801T122000Z/payload.json#perm-page-gate",
+        "ai-os/artifacts/user-journeys/runs/run_business_discovery_20260801T122000Z/payload.json#uj-new-household"
+      ],
+      "entry_kind": "step",
+      "step_order": 1
+    },
+    {
+      "id": "impl-order-2",
+      "statement": "Preserve real ledger modules (accounts/transactions) separately from jar intent layer modules.",
+      "source_paths": [
+        "ai-os/artifacts/business/runs/run_business_discovery_20260801T122000Z/payload.json#br-real-vs-virtual",
+        "docs/JAR_FINAL_ARCHITECTURE.md"
+      ],
+      "entry_kind": "step",
+      "step_order": 2
+    },
+    {
+      "id": "impl-order-3",
+      "statement": "Jar sync \u2192 review \u2192 month close path must follow discovered workflow order.",
+      "source_paths": [
+        "ai-os/artifacts/workflow/runs/run_business_discovery_20260801T122000Z/payload.json#wf-jar-sync",
+        "ai-os/artifacts/workflow/runs/run_business_discovery_20260801T122000Z/payload.json#wf-jar-review",
+        "ai-os/artifacts/workflow/runs/run_business_discovery_20260801T122000Z/payload.json#wf-month-close"
+      ],
+      "entry_kind": "step",
+      "step_order": 3
+    },
+    {
+      "id": "impl-order-4",
+      "statement": "Savings and card installment flows follow discovered state machines; do not add statuses.",
+      "source_paths": [
+        "ai-os/artifacts/state-machines/runs/run_business_discovery_20260801T122000Z/payload.json#sm-savings",
+        "ai-os/artifacts/state-machines/runs/run_business_discovery_20260801T122000Z/payload.json#sm-installment"
+      ],
+      "entry_kind": "step",
+      "step_order": 4
+    },
+    {
+      "id": "impl-order-5",
+      "statement": "Apply coding standards: domain rules in lib/jars/domain; actions via resolveActionContext; Zod at edges.",
+      "source_paths": [
+        "ai-os/artifacts/specifications/runs/run_specification_20260801T130500Z/payload.json#spec-code-jars-boundary"
+      ],
+      "entry_kind": "step",
+      "step_order": 5
+    },
+    {
+      "id": "mig-sql-only",
+      "statement": "Schema changes MUST go through supabase/migrations numbered files; do not edit historical migrations in place.",
+      "source_paths": [
+        "supabase/migrations/",
+        "docs/DOMAIN_MODEL.md"
+      ],
+      "entry_kind": "migration-guide"
+    },
+    {
+      "id": "mig-jar-intent",
+      "statement": "Jar intent layer migrations 00040/00046 define current jar architecture; new jar behavior must extend, not fork, these contracts.",
+      "source_paths": [
+        "supabase/migrations/00040_rebuild_jars_intent_layer.sql",
+        "supabase/migrations/00046_jar_final_architecture_foundation.sql",
+        "docs/JAR_FINAL_ARCHITECTURE.md"
+      ],
+      "entry_kind": "migration-guide"
+    },
+    {
+      "id": "mig-no-dual-write",
+      "statement": "Migration/implementation guide: do not introduce dual-write between jar_movements and transactions balances.",
+      "source_paths": [
+        "ai-os/artifacts/business/runs/run_business_discovery_20260801T122000Z/payload.json#br-real-vs-virtual",
+        "docs/DOMAIN_MODEL.md"
+      ],
+      "entry_kind": "migration-guide"
+    },
+    {
+      "id": "mig-rls-required",
+      "statement": "Any new household-scoped table MUST attach membership RLS consistent with is_household_member pattern.",
+      "source_paths": [
+        "ai-os/artifacts/permissions/runs/run_business_discovery_20260801T122000Z/payload.json#perm-rls-member",
+        "supabase/migrations/00045_rls_simplification.sql"
+      ],
+      "entry_kind": "migration-guide"
+    }
+  ],
+  "status": "ready",
+  "created_at": "2026-08-01T13:07:01Z",
+  "trace": {
+    "orchestration_id": "art_orch_run_specification_20260801T130500Z",
+    "plan_id": "art_plan_run_specification_20260801T130500Z",
+    "task_id": "art_task_implementation-planner",
+    "run_id": "art_run_implementation-planner",
+    "goal_id": "art_goal_specification_generation",
+    "upstream_run_id": "run_business_discovery_20260801T122000Z"
+  },
+  "extensions": {
+    "stage": "specification-generation",
+    "pipeline": "specification-engineering",
+    "run_id": "run_specification_20260801T130500Z",
+    "upstream": "run_business_discovery_20260801T122000Z",
+    "invent_business_logic": false,
+    "redesign": false,
+    "inputs": {
+      "business_discovery_gate": "PASS",
+      "business_discovery_confidence": 100
+    }
+  }
+}

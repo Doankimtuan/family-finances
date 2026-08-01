@@ -1,0 +1,101 @@
+{
+  "schema_version": "1.0.0",
+  "stage": "business-discovery",
+  "run_id": "run_business_discovery_20260801T122000Z",
+  "created_at": "2026-08-01T12:23:13Z",
+  "validators": [
+    {
+      "id": "artifact-validator",
+      "result": "PASS",
+      "detail": "packs present=8/8"
+    },
+    {
+      "id": "completeness-validator",
+      "result": "PASS",
+      "detail": {
+        "knowledge": true,
+        "features": true,
+        "business": true,
+        "workflow": true,
+        "domain": true,
+        "permissions": true,
+        "state-machines": true,
+        "user-journeys": true
+      }
+    },
+    {
+      "id": "traceability-validator",
+      "result": "PASS",
+      "detail": []
+    },
+    {
+      "id": "consistency-validator",
+      "result": "PASS",
+      "detail": []
+    },
+    {
+      "id": "coverage-validator",
+      "result": "PASS",
+      "detail": {
+        "feature_coverage": 1.0,
+        "covered": [
+          "accounts",
+          "activity",
+          "assets",
+          "auth",
+          "cards",
+          "categories",
+          "dashboard",
+          "debts",
+          "decision-tools",
+          "goals",
+          "health",
+          "household",
+          "insights",
+          "jars",
+          "onboarding",
+          "recurring",
+          "savings",
+          "settings"
+        ],
+        "expected": [
+          "accounts",
+          "activity",
+          "assets",
+          "auth",
+          "cards",
+          "categories",
+          "dashboard",
+          "debts",
+          "decision-tools",
+          "goals",
+          "health",
+          "household",
+          "insights",
+          "jars",
+          "onboarding",
+          "recurring",
+          "savings",
+          "settings"
+        ]
+      }
+    },
+    {
+      "id": "source-path-validator",
+      "result": "PASS",
+      "detail": {
+        "checked": 186,
+        "missing": []
+      }
+    }
+  ],
+  "scores": {
+    "coverage": 100,
+    "completeness": 100,
+    "traceability": 100,
+    "consistency": 100,
+    "source_path_validity": 100
+  },
+  "overall_confidence": 100,
+  "gate": "PASS"
+}

@@ -1,0 +1,120 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_state_machine_discovery_T122000Z",
+  "type": "workflow-model",
+  "worker_id": "state-machine-discovery",
+  "title": "State machine discovery",
+  "summary": "Discovered status lifecycles from schema constraints and domain code. Discover only.",
+  "entries": [
+    {
+      "id": "sm-jar-review",
+      "statement": "jar_review_queue: pending \u2192 resolved | dismissed.",
+      "source_paths": [
+        "supabase/migrations/00040_rebuild_jars_intent_layer.sql",
+        "lib/jars/_lib/types.ts"
+      ],
+      "entry_kind": "state-machine"
+    },
+    {
+      "id": "sm-jar-lifecycle",
+      "statement": "Jar: active (is_archived=false) \u2192 archived / soft-deleted; movements blocked when inactive.",
+      "source_paths": [
+        "lib/jars/domain/validation.ts",
+        "supabase/migrations/00040_rebuild_jars_intent_layer.sql"
+      ],
+      "entry_kind": "state-machine"
+    },
+    {
+      "id": "sm-month-close",
+      "statement": "jar_month_close_runs: draft \u2192 processing \u2192 approved | failed.",
+      "source_paths": [
+        "supabase/migrations/00046_jar_final_architecture_foundation.sql",
+        "lib/jars/domain/rollover-engine.ts"
+      ],
+      "entry_kind": "state-machine"
+    },
+    {
+      "id": "sm-savings",
+      "statement": "savings_accounts: active \u2192 maturing_soon \u2192 matured \u2192 renewed|withdrawn | cancelled.",
+      "source_paths": [
+        "supabase/migrations/00039_savings_feature.sql",
+        "lib/savings/types.ts"
+      ],
+      "entry_kind": "state-machine"
+    },
+    {
+      "id": "sm-maturity-action",
+      "statement": "savings_maturity_actions: renew_same | switch_plan | withdraw; withdraw partial|full.",
+      "source_paths": [
+        "supabase/migrations/00039_savings_feature.sql",
+        "lib/savings/schemas.ts"
+      ],
+      "entry_kind": "state-machine"
+    },
+    {
+      "id": "sm-installment",
+      "statement": "installment_plans: active \u2192 completed | cancelled.",
+      "source_paths": [
+        "supabase/migrations/00014_credit_card_installments.sql",
+        "app/accounts/card/installment-actions.ts"
+      ],
+      "entry_kind": "state-machine"
+    },
+    {
+      "id": "sm-invitation",
+      "statement": "invitations: pending \u2192 accepted | revoked | expired.",
+      "source_paths": [
+        "supabase/migrations/00002_core_schema.sql"
+      ],
+      "entry_kind": "state-machine"
+    },
+    {
+      "id": "sm-goal",
+      "statement": "goals: active | paused | completed | cancelled.",
+      "source_paths": [
+        "supabase/migrations/00002_core_schema.sql"
+      ],
+      "entry_kind": "state-machine"
+    },
+    {
+      "id": "sm-scenario",
+      "statement": "scenarios: draft | saved | archived.",
+      "source_paths": [
+        "supabase/migrations/00002_core_schema.sql"
+      ],
+      "entry_kind": "state-machine"
+    },
+    {
+      "id": "sm-transaction",
+      "statement": "transactions: cleared | pending.",
+      "source_paths": [
+        "supabase/migrations/00002_core_schema.sql"
+      ],
+      "entry_kind": "state-machine"
+    },
+    {
+      "id": "sm-onboarding-ui",
+      "statement": "Onboarding UI progress steps 1\u20138 (shell TOTAL_STEPS=8); no durable step state found in shell.",
+      "source_paths": [
+        "app/onboarding/_components/onboarding-shell.tsx"
+      ],
+      "entry_kind": "state-machine"
+    }
+  ],
+  "status": "ready",
+  "created_at": "2026-08-01T12:22:43Z",
+  "trace": {
+    "orchestration_id": "art_orch_run_business_discovery_20260801T122000Z",
+    "plan_id": "art_plan_run_business_discovery_20260801T122000Z",
+    "task_id": "art_task_state-machine-discovery",
+    "run_id": "art_run_state-machine-discovery",
+    "goal_id": "art_goal_business_discovery"
+  },
+  "extensions": {
+    "stage": "business-discovery",
+    "pipeline": "product-re",
+    "run_id": "run_business_discovery_20260801T122000Z",
+    "redesign": false,
+    "specification": false
+  }
+}

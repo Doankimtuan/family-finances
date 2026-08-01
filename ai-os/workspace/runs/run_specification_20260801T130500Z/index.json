@@ -1,0 +1,40 @@
+{
+  "stage": "specification-generation",
+  "run_id": "run_specification_20260801T130500Z",
+  "upstream_business_discovery": "run_business_discovery_20260801T122000Z",
+  "created_at": "2026-08-01T13:07:01Z",
+  "packs": {
+    "specifications": "artifacts/specifications/runs/run_specification_20260801T130500Z",
+    "requirements": "artifacts/requirements/runs/run_specification_20260801T130500Z",
+    "acceptance": "artifacts/acceptance/runs/run_specification_20260801T130500Z",
+    "tasks": "artifacts/tasks/runs/run_specification_20260801T130500Z",
+    "roadmap": "artifacts/roadmap/runs/run_specification_20260801T130500Z",
+    "implementation": "artifacts/implementation/runs/run_specification_20260801T130500Z"
+  },
+  "counts": {
+    "specifications": 95,
+    "requirements": 42,
+    "acceptance": 14,
+    "tasks": 10,
+    "roadmap": 4,
+    "implementation": 9
+  },
+  "inputs_consumed": {
+    "knowledge": 6,
+    "business": 14,
+    "features": 18,
+    "workflow": 8,
+    "domain": 18,
+    "permissions": 10,
+    "state_machines": 11,
+    "user_journeys": 6,
+    "api_routes": 17,
+    "migrations": 51,
+    "bd_validation_gate": "PASS",
+    "architecture_docs": [
+      "docs/DOMAIN_MODEL.md",
+      "docs/JAR_FINAL_ARCHITECTURE.md",
+      "docs/DESIGN_PRINCIPLES.md"
+    ]
+  }
+}

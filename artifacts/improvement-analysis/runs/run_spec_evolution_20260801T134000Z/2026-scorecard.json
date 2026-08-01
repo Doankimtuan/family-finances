@@ -1,0 +1,188 @@
+{
+  "average": 64,
+  "dimensions": [
+    {
+      "dimension": "UX",
+      "score": 72,
+      "evidence": "final/PRD.md + UI specs + journeys",
+      "gap": "Jar/ledger clarity strong; progressive disclosure and empty states underspecified for 2026 UX.",
+      "opportunity_type": "solution"
+    },
+    {
+      "dimension": "Accessibility",
+      "score": 55,
+      "evidence": "ui-specification + components/ui",
+      "gap": "No systematic WCAG 2.2 AA acceptance criteria in validated acceptance pack.",
+      "opportunity_type": "solution"
+    },
+    {
+      "dimension": "Responsive Design",
+      "score": 70,
+      "evidence": "UI specs + app layouts",
+      "gap": "App shell exists; breakpoints/touch targets not first-class in acceptance.",
+      "opportunity_type": "solution"
+    },
+    {
+      "dimension": "Performance",
+      "score": 65,
+      "evidence": "technical/architecture specs + Next 16",
+      "gap": "RSC/proxy stack modern; no Core Web Vitals budgets or server timing SLOs in specs.",
+      "opportunity_type": "solution"
+    },
+    {
+      "dimension": "Security",
+      "score": 78,
+      "evidence": "security-specification (10) + RLS permissions",
+      "gap": "RLS/roles present; need threat model, CSP, secret rotation, abuse rate limits as solution overlays.",
+      "opportunity_type": "solution"
+    },
+    {
+      "dimension": "Authentication",
+      "score": 80,
+      "evidence": "app/auth + proxy + login",
+      "gap": "Supabase SSR + proxy solid; MFA/session fixation/device management not in BD (do not invent as business — optional security hardening proposal only).",
+      "opportunity_type": "solution"
+    },
+    {
+      "dimension": "Authorization",
+      "score": 82,
+      "evidence": "permissions pack",
+      "gap": "partner/admin + RLS mapped; fine-grained audit of privileged actions underspecified.",
+      "opportunity_type": "solution"
+    },
+    {
+      "dimension": "Observability",
+      "score": 40,
+      "evidence": "specs + repository",
+      "gap": "Gap: structured logging, tracing, product metrics, error budgets.",
+      "opportunity_type": "solution"
+    },
+    {
+      "dimension": "Offline Support",
+      "score": 25,
+      "evidence": "repository runtime",
+      "gap": "Online-first household finance app; offline is future vision only — must not break ledger truth.",
+      "opportunity_type": "solution"
+    },
+    {
+      "dimension": "AI Features",
+      "score": 50,
+      "evidence": "insights/decision-tools domains",
+      "gap": "Decision tools/insights exist as product surfaces; generative AI assistants not in validated BD — propose assistive UX only atop existing insights.",
+      "opportunity_type": "solution"
+    },
+    {
+      "dimension": "Automation",
+      "score": 75,
+      "evidence": "jar allocation/auto policies in BR",
+      "gap": "Income/expense auto-allocate policies validated; expand reliability/observability of automation, not new business modes.",
+      "opportunity_type": "solution"
+    },
+    {
+      "dimension": "Developer Experience",
+      "score": 68,
+      "evidence": "coding-standards + monorepo",
+      "gap": "AIOS + app co-located; contract tests between actions/API/DB underspecified.",
+      "opportunity_type": "solution"
+    },
+    {
+      "dimension": "Scalability",
+      "score": 70,
+      "evidence": "architecture + supabase",
+      "gap": "Single-household tenancy OK; fan-out queries/dashboard aggregation need caching guidance.",
+      "opportunity_type": "solution"
+    },
+    {
+      "dimension": "Maintainability",
+      "score": 62,
+      "evidence": "dual actions/API + 95 specs",
+      "gap": "Contract sprawl and thin acceptance hurt maintainability.",
+      "opportunity_type": "solution"
+    },
+    {
+      "dimension": "API Design",
+      "score": 68,
+      "evidence": "API.md + 17 routes",
+      "gap": "JSON routes exist; versioning, idempotency, error envelope standards incomplete.",
+      "opportunity_type": "solution"
+    },
+    {
+      "dimension": "Database Design",
+      "score": 80,
+      "evidence": "Database.md + 51 migrations",
+      "gap": "Strong migration history; soft-delete/archive consistency and naming soft-misses remain.",
+      "opportunity_type": "solution"
+    },
+    {
+      "dimension": "State Management",
+      "score": 74,
+      "evidence": "zustand + react-query + RSC",
+      "gap": "Modern stack; clarify server/client ownership boundaries in architecture-v2 proposal.",
+      "opportunity_type": "solution"
+    },
+    {
+      "dimension": "Error Handling",
+      "score": 60,
+      "evidence": "lib/errors + actions",
+      "gap": "Domain errors exist; user-facing error taxonomy and retry semantics incomplete in acceptance.",
+      "opportunity_type": "solution"
+    },
+    {
+      "dimension": "Logging",
+      "score": 35,
+      "evidence": "repository scan",
+      "gap": "No product logging specification depth.",
+      "opportunity_type": "solution"
+    },
+    {
+      "dimension": "Internationalization",
+      "score": 78,
+      "evidence": "i18n provider + layout locale",
+      "gap": "en/vi path present; completeness of string catalogs vs acceptance not fully traced.",
+      "opportunity_type": "solution"
+    },
+    {
+      "dimension": "Testing Strategy",
+      "score": 45,
+      "evidence": "tasks/implementation packs",
+      "gap": "Tasks exist; automated test pyramid / contract tests not first-class in validated specs.",
+      "opportunity_type": "solution"
+    },
+    {
+      "dimension": "Deployment",
+      "score": 70,
+      "evidence": "deployment-specification",
+      "gap": "Basic deployment specs; env promotion and migration gates can be strengthened.",
+      "opportunity_type": "solution"
+    },
+    {
+      "dimension": "Cloud Architecture",
+      "score": 72,
+      "evidence": "Supabase + Next",
+      "gap": "Pragmatic serverless; multi-region/DR is future vision.",
+      "opportunity_type": "solution"
+    },
+    {
+      "dimension": "Cost Optimization",
+      "score": 60,
+      "evidence": "supabase/next",
+      "gap": "No cost budgets in specs; query/realtime cost controls are solution concerns.",
+      "opportunity_type": "solution"
+    },
+    {
+      "dimension": "Privacy",
+      "score": 75,
+      "evidence": "security + household tenancy",
+      "gap": "Household isolation core; data export/deletion runbooks as solution overlays.",
+      "opportunity_type": "solution"
+    },
+    {
+      "dimension": "Compliance",
+      "score": 50,
+      "evidence": "security specs",
+      "gap": "No formal compliance regime in BD — propose privacy engineering practices without inventing legal product claims.",
+      "opportunity_type": "solution"
+    }
+  ],
+  "run_id": "run_spec_evolution_20260801T134000Z"
+}

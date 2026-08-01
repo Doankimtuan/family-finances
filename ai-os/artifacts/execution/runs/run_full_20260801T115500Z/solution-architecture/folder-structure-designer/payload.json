@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_folder_structure_designer_T115500Z",
+  "worker_id": "folder-structure-designer",
+  "title": "Folder structure",
+  "summary": "Recommend keeping app/ + lib/{domain} + supabase/; AIOS stays under ai-os/.",
+  "entries": [
+    {
+      "id": "fs-keep-app",
+      "entry_kind": "structure",
+      "statement": "Keep route-first app/ tree aligned to user domains.",
+      "source_paths": [
+        "app/",
+        "artifacts/architecture-v2/"
+      ]
+    },
+    {
+      "id": "fs-aios",
+      "entry_kind": "structure",
+      "statement": "AIOS v0.13 domains (artifacts/governance/docs/core/packages) stay isolated from product code.",
+      "source_paths": [
+        "ai-os/",
+        "ai-os/docs/releases/MIGRATION_0.12_to_0.13.md"
+      ]
+    },
+    {
+      "id": "fs-decision",
+      "entry_kind": "decision",
+      "statement": "Do not merge product lib into ai-os; reverse direction only via produce packs.",
+      "source_paths": [
+        "artifacts/product-architecture/",
+        "ai-os/AGENTS.md"
+      ]
+    }
+  ],
+  "status": "ready",
+  "created_at": "2026-08-01T11:57:28Z",
+  "trace": {
+    "orchestration_id": "art_orch_run_full_20260801T115500Z",
+    "plan_id": "art_plan_run_full_20260801T115500Z",
+    "task_id": "art_task_folder-structure-designer",
+    "run_id": "art_run_folder-structure-designer",
+    "goal_id": "art_goal_family_finances_full_re"
+  },
+  "extensions": {
+    "pipeline": "solution-architecture",
+    "artifact_type": "folder-structure-spec",
+    "run_id": "run_full_20260801T115500Z"
+  }
+}

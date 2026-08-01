@@ -1,0 +1,514 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_requirement_generator_T130500Z",
+  "type": "requirement-spec",
+  "worker_id": "requirement-generator",
+  "title": "Requirements specification",
+  "summary": "Requirements traced exclusively to validated Business Discovery rules, features, and permissions.",
+  "entries": [
+    {
+      "id": "req-br-real-vs-virtual",
+      "statement": "Jar movements must not be treated as real ledger mutations; real money lives in accounts/transactions.",
+      "source_paths": [
+        "ai-os/artifacts/business/runs/run_business_discovery_20260801T122000Z/payload.json#br-real-vs-virtual",
+        "docs/DOMAIN_MODEL.md",
+        "docs/JAR_FINAL_ARCHITECTURE.md",
+        "lib/jars/domain/validation.ts"
+      ],
+      "entry_kind": "requirement",
+      "requirement_id": "REQ-REAL-VS-VIRTUAL",
+      "severity": "medium"
+    },
+    {
+      "id": "req-br-income-allocate",
+      "statement": "Income allocation uses month plans (percent|fixed) then suggest/auto per income_auto_allocate policy (off|suggest|auto_high_confidence).",
+      "source_paths": [
+        "ai-os/artifacts/business/runs/run_business_discovery_20260801T122000Z/payload.json#br-income-allocate",
+        "lib/jars/domain/allocation-engine.ts",
+        "lib/jars/_lib/types.ts"
+      ],
+      "entry_kind": "requirement",
+      "requirement_id": "REQ-INCOME-ALLOCATE",
+      "severity": "medium"
+    },
+    {
+      "id": "req-br-expense-allocate",
+      "statement": "Expense allocation uses jar_category_rules/jar_rules; auto if mapped and expense_auto_allocate!=off, else jar_review_queue pending.",
+      "source_paths": [
+        "ai-os/artifacts/business/runs/run_business_discovery_20260801T122000Z/payload.json#br-expense-allocate",
+        "lib/jars/domain/rule-engine.ts",
+        "lib/jars/domain/allocation-engine.ts",
+        "lib/jars/_lib/sync-transactions.ts"
+      ],
+      "entry_kind": "requirement",
+      "requirement_id": "REQ-EXPENSE-ALLOCATE",
+      "severity": "medium"
+    },
+    {
+      "id": "req-br-jar-active",
+      "statement": "Movements require an active jar (not archived / not soft-deleted).",
+      "source_paths": [
+        "ai-os/artifacts/business/runs/run_business_discovery_20260801T122000Z/payload.json#br-jar-active",
+        "lib/jars/domain/validation.ts",
+        "supabase/migrations/00040_rebuild_jars_intent_layer.sql"
+      ],
+      "entry_kind": "requirement",
+      "requirement_id": "REQ-JAR-ACTIVE",
+      "severity": "medium"
+    },
+    {
+      "id": "req-br-closed-month",
+      "statement": "Approved month close (jar_month_close_runs.status=approved) blocks normal movements; corrections use correction workflow.",
+      "source_paths": [
+        "ai-os/artifacts/business/runs/run_business_discovery_20260801T122000Z/payload.json#br-closed-month",
+        "lib/jars/domain/validation.ts",
+        "lib/jars/domain/rollover-engine.ts",
+        "supabase/migrations/00046_jar_final_architecture_foundation.sql"
+      ],
+      "entry_kind": "requirement",
+      "requirement_id": "REQ-CLOSED-MONTH",
+      "severity": "medium"
+    },
+    {
+      "id": "req-br-amount-positive",
+      "statement": "Movement amounts must be positive; balanceDelta \u2208 {-1,0,1}.",
+      "source_paths": [
+        "ai-os/artifacts/business/runs/run_business_discovery_20260801T122000Z/payload.json#br-amount-positive",
+        "lib/jars/domain/validation.ts"
+      ],
+      "entry_kind": "requirement",
+      "requirement_id": "REQ-AMOUNT-POSITIVE",
+      "severity": "medium"
+    },
+    {
+      "id": "req-br-overspend-policy",
+      "statement": "Household overspend_policy is warn|block|allow_negative.",
+      "source_paths": [
+        "ai-os/artifacts/business/runs/run_business_discovery_20260801T122000Z/payload.json#br-overspend-policy",
+        "lib/jars/_lib/types.ts",
+        "lib/jars/domain/allocation-engine.ts"
+      ],
+      "entry_kind": "requirement",
+      "requirement_id": "REQ-OVERSPEND-POLICY",
+      "severity": "medium"
+    },
+    {
+      "id": "req-br-month-close-mode",
+      "statement": "month_close_mode is manual|assisted.",
+      "source_paths": [
+        "ai-os/artifacts/business/runs/run_business_discovery_20260801T122000Z/payload.json#br-month-close-mode",
+        "lib/jars/_lib/types.ts"
+      ],
+      "entry_kind": "requirement",
+      "requirement_id": "REQ-MONTH-CLOSE-MODE",
+      "severity": "medium"
+    },
+    {
+      "id": "req-br-assumptions-admin",
+      "statement": "Household planning assumptions (inflation, growth rates) are admin-only updates in settings actions.",
+      "source_paths": [
+        "ai-os/artifacts/business/runs/run_business_discovery_20260801T122000Z/payload.json#br-assumptions-admin",
+        "app/settings/actions.ts",
+        "supabase/migrations/00008_household_assumptions_settings.sql"
+      ],
+      "entry_kind": "requirement",
+      "requirement_id": "REQ-ASSUMPTIONS-ADMIN",
+      "severity": "medium"
+    },
+    {
+      "id": "req-br-one-household",
+      "statement": "create_household_with_owner enforces one active household per user.",
+      "source_paths": [
+        "ai-os/artifacts/business/runs/run_business_discovery_20260801T122000Z/payload.json#br-one-household",
+        "supabase/migrations/00008_household_lifecycle_rpc.sql",
+        "app/household/actions.ts"
+      ],
+      "entry_kind": "requirement",
+      "requirement_id": "REQ-ONE-HOUSEHOLD",
+      "severity": "medium"
+    },
+    {
+      "id": "req-br-rls-member",
+      "statement": "RLS grants household-scoped CRUD via is_household_member(household_id) for most product tables.",
+      "source_paths": [
+        "ai-os/artifacts/business/runs/run_business_discovery_20260801T122000Z/payload.json#br-rls-member",
+        "supabase/migrations/00003_functions_and_rls.sql",
+        "supabase/migrations/00045_rls_simplification.sql"
+      ],
+      "entry_kind": "requirement",
+      "requirement_id": "REQ-RLS-MEMBER",
+      "severity": "medium"
+    },
+    {
+      "id": "req-br-savings-maturity",
+      "statement": "Savings maturity actions renew_same|switch_plan|withdraw; withdraw modes partial|full; terminal statuses guarded.",
+      "source_paths": [
+        "ai-os/artifacts/business/runs/run_business_discovery_20260801T122000Z/payload.json#br-savings-maturity",
+        "lib/savings/schemas.ts",
+        "lib/savings/service.ts",
+        "supabase/migrations/00039_savings_feature.sql"
+      ],
+      "entry_kind": "requirement",
+      "requirement_id": "REQ-SAVINGS-MATURITY",
+      "severity": "medium"
+    },
+    {
+      "id": "req-br-installment-complete",
+      "statement": "Installment plans complete when paid_installments >= num_installments.",
+      "source_paths": [
+        "ai-os/artifacts/business/runs/run_business_discovery_20260801T122000Z/payload.json#br-installment-complete",
+        "app/accounts/card/installment-actions.ts",
+        "supabase/migrations/00014_credit_card_installments.sql"
+      ],
+      "entry_kind": "requirement",
+      "requirement_id": "REQ-INSTALLMENT-COMPLETE",
+      "severity": "medium"
+    },
+    {
+      "id": "req-br-action-context",
+      "statement": "Server actions require authenticated user and active household_members row via resolveActionContext.",
+      "source_paths": [
+        "ai-os/artifacts/business/runs/run_business_discovery_20260801T122000Z/payload.json#br-action-context",
+        "lib/server/action-context.ts"
+      ],
+      "entry_kind": "requirement",
+      "requirement_id": "REQ-ACTION-CONTEXT",
+      "severity": "medium"
+    },
+    {
+      "id": "req-ft-auth",
+      "statement": "System SHALL provide the discovered feature: Auth login/signup at /login.",
+      "source_paths": [
+        "ai-os/artifacts/features/runs/run_business_discovery_20260801T122000Z/payload.json#ft-auth",
+        "app/login/",
+        "app/login/actions.ts",
+        "app/auth/confirm/route.ts"
+      ],
+      "entry_kind": "requirement",
+      "requirement_id": "REQ-FEAT-AUTH"
+    },
+    {
+      "id": "req-ft-household",
+      "statement": "System SHALL provide the discovered feature: Household create/invite/accept at /household.",
+      "source_paths": [
+        "ai-os/artifacts/features/runs/run_business_discovery_20260801T122000Z/payload.json#ft-household",
+        "app/household/",
+        "app/household/actions.ts"
+      ],
+      "entry_kind": "requirement",
+      "requirement_id": "REQ-FEAT-HOUSEHOLD"
+    },
+    {
+      "id": "req-ft-onboarding",
+      "statement": "System SHALL provide the discovered feature: Eight-step onboarding wizard under /onboarding/*.",
+      "source_paths": [
+        "ai-os/artifacts/features/runs/run_business_discovery_20260801T122000Z/payload.json#ft-onboarding",
+        "app/onboarding/",
+        "app/onboarding/actions.ts",
+        "app/onboarding/_components/onboarding-shell.tsx"
+      ],
+      "entry_kind": "requirement",
+      "requirement_id": "REQ-FEAT-ONBOARDING"
+    },
+    {
+      "id": "req-ft-dashboard",
+      "statement": "System SHALL provide the discovered feature: Dashboard aggregates household financial overview at /dashboard.",
+      "source_paths": [
+        "ai-os/artifacts/features/runs/run_business_discovery_20260801T122000Z/payload.json#ft-dashboard",
+        "app/dashboard/",
+        "lib/dashboard/",
+        "app/api/dashboard/"
+      ],
+      "entry_kind": "requirement",
+      "requirement_id": "REQ-FEAT-DASHBOARD"
+    },
+    {
+      "id": "req-ft-accounts",
+      "statement": "System SHALL provide the discovered feature: Accounts hub including cash/checking and detail at /accounts and /accounts/[id].",
+      "source_paths": [
+        "ai-os/artifacts/features/runs/run_business_discovery_20260801T122000Z/payload.json#ft-accounts",
+        "app/accounts/",
+        "app/accounts/actions.ts"
+      ],
+      "entry_kind": "requirement",
+      "requirement_id": "REQ-FEAT-ACCOUNTS"
+    },
+    {
+      "id": "req-ft-savings",
+      "statement": "System SHALL provide the discovered feature: Fixed-term savings accounts with mature/withdraw at /accounts/savings*.",
+      "source_paths": [
+        "ai-os/artifacts/features/runs/run_business_discovery_20260801T122000Z/payload.json#ft-savings",
+        "app/accounts/savings/",
+        "lib/savings/",
+        "app/api/savings/"
+      ],
+      "entry_kind": "requirement",
+      "requirement_id": "REQ-FEAT-SAVINGS"
+    },
+    {
+      "id": "req-ft-cards",
+      "statement": "System SHALL provide the discovered feature: Credit card detail with billing items and installments at /accounts/card/[id].",
+      "source_paths": [
+        "ai-os/artifacts/features/runs/run_business_discovery_20260801T122000Z/payload.json#ft-cards",
+        "app/accounts/card/",
+        "app/accounts/card/installment-actions.ts"
+      ],
+      "entry_kind": "requirement",
+      "requirement_id": "REQ-FEAT-CARDS"
+    },
+    {
+      "id": "req-ft-assets",
+      "statement": "System SHALL provide the discovered feature: Assets including crypto and investment profiles at /assets/[id].",
+      "source_paths": [
+        "ai-os/artifacts/features/runs/run_business_discovery_20260801T122000Z/payload.json#ft-assets",
+        "app/assets/",
+        "app/assets/actions.ts",
+        "lib/assets/"
+      ],
+      "entry_kind": "requirement",
+      "requirement_id": "REQ-FEAT-ASSETS"
+    },
+    {
+      "id": "req-ft-debts",
+      "statement": "System SHALL provide the discovered feature: Debt/liability management via accounts debt actions and onboarding debts step.",
+      "source_paths": [
+        "ai-os/artifacts/features/runs/run_business_discovery_20260801T122000Z/payload.json#ft-debts",
+        "app/accounts/debt-actions.ts",
+        "app/onboarding/debts/",
+        "lib/debts/"
+      ],
+      "entry_kind": "requirement",
+      "requirement_id": "REQ-FEAT-DEBTS"
+    },
+    {
+      "id": "req-ft-activity",
+      "statement": "System SHALL provide the discovered feature: Transaction activity log at /activity.",
+      "source_paths": [
+        "ai-os/artifacts/features/runs/run_business_discovery_20260801T122000Z/payload.json#ft-activity",
+        "app/activity/",
+        "app/activity/actions.ts",
+        "app/api/transactions/route.ts"
+      ],
+      "entry_kind": "requirement",
+      "requirement_id": "REQ-FEAT-ACTIVITY"
+    },
+    {
+      "id": "req-ft-goals",
+      "statement": "System SHALL provide the discovered feature: Goals with contributions/status at /goals.",
+      "source_paths": [
+        "ai-os/artifacts/features/runs/run_business_discovery_20260801T122000Z/payload.json#ft-goals",
+        "app/goals/",
+        "app/goals/actions.ts"
+      ],
+      "entry_kind": "requirement",
+      "requirement_id": "REQ-FEAT-GOALS"
+    },
+    {
+      "id": "req-ft-jars",
+      "statement": "System SHALL provide the discovered feature: Virtual jars: list, detail, history, setup, review queue.",
+      "source_paths": [
+        "ai-os/artifacts/features/runs/run_business_discovery_20260801T122000Z/payload.json#ft-jars",
+        "app/jars/",
+        "lib/jars/",
+        "app/jars/domain-actions.ts"
+      ],
+      "entry_kind": "requirement",
+      "requirement_id": "REQ-FEAT-JARS"
+    },
+    {
+      "id": "req-ft-categories",
+      "statement": "System SHALL provide the discovered feature: Category management at /categories and settings/categories.",
+      "source_paths": [
+        "ai-os/artifacts/features/runs/run_business_discovery_20260801T122000Z/payload.json#ft-categories",
+        "app/categories/",
+        "app/settings/categories/"
+      ],
+      "entry_kind": "requirement",
+      "requirement_id": "REQ-FEAT-CATEGORIES"
+    },
+    {
+      "id": "req-ft-recurring",
+      "statement": "System SHALL provide the discovered feature: Recurring rules at /recurring.",
+      "source_paths": [
+        "ai-os/artifacts/features/runs/run_business_discovery_20260801T122000Z/payload.json#ft-recurring",
+        "app/recurring/",
+        "app/recurring/actions.ts"
+      ],
+      "entry_kind": "requirement",
+      "requirement_id": "REQ-FEAT-RECURRING"
+    },
+    {
+      "id": "req-ft-decision-tools",
+      "statement": "System SHALL provide the discovered feature: Decision tools / scenarios at /decision-tools.",
+      "source_paths": [
+        "ai-os/artifacts/features/runs/run_business_discovery_20260801T122000Z/payload.json#ft-decision-tools",
+        "app/decision-tools/",
+        "app/decision-tools/actions.ts"
+      ],
+      "entry_kind": "requirement",
+      "requirement_id": "REQ-FEAT-DECISION-TOOLS"
+    },
+    {
+      "id": "req-ft-settings",
+      "statement": "System SHALL provide the discovered feature: Settings: profile, household, members, assumptions, cash-flow, categories.",
+      "source_paths": [
+        "ai-os/artifacts/features/runs/run_business_discovery_20260801T122000Z/payload.json#ft-settings",
+        "app/settings/",
+        "app/settings/actions.ts"
+      ],
+      "entry_kind": "requirement",
+      "requirement_id": "REQ-FEAT-SETTINGS"
+    },
+    {
+      "id": "req-ft-insights",
+      "statement": "System SHALL provide the discovered feature: AI insights foundation (flagged) with migrations and lib/insights.",
+      "source_paths": [
+        "ai-os/artifacts/features/runs/run_business_discovery_20260801T122000Z/payload.json#ft-insights",
+        "lib/insights/",
+        "lib/config/features.ts",
+        "supabase/migrations/00010_ai_insights_foundation.sql"
+      ],
+      "entry_kind": "requirement",
+      "requirement_id": "REQ-FEAT-INSIGHTS"
+    },
+    {
+      "id": "req-ft-health",
+      "statement": "System SHALL provide the discovered feature: Health scoring surface behind feature flag.",
+      "source_paths": [
+        "ai-os/artifacts/features/runs/run_business_discovery_20260801T122000Z/payload.json#ft-health",
+        "lib/health/",
+        "lib/config/features.ts"
+      ],
+      "entry_kind": "requirement",
+      "requirement_id": "REQ-FEAT-HEALTH"
+    },
+    {
+      "id": "req-perm-auth-required",
+      "statement": "System SHALL enforce: resolveActionContext requires authenticated Supabase user.",
+      "source_paths": [
+        "ai-os/artifacts/permissions/runs/run_business_discovery_20260801T122000Z/payload.json#perm-auth-required",
+        "lib/server/action-context.ts"
+      ],
+      "entry_kind": "requirement",
+      "requirement_id": "REQ-PERM-AUTH-REQUIRED"
+    },
+    {
+      "id": "req-perm-household-required",
+      "statement": "System SHALL enforce: Most actions require active household_members row for the user.",
+      "source_paths": [
+        "ai-os/artifacts/permissions/runs/run_business_discovery_20260801T122000Z/payload.json#perm-household-required",
+        "lib/server/action-context.ts",
+        "lib/server/household.ts"
+      ],
+      "entry_kind": "requirement",
+      "requirement_id": "REQ-PERM-HOUSEHOLD-REQUIRED"
+    },
+    {
+      "id": "req-perm-page-gate",
+      "statement": "System SHALL enforce: Pages: no user \u2192 /login; no household \u2192 /household.",
+      "source_paths": [
+        "ai-os/artifacts/permissions/runs/run_business_discovery_20260801T122000Z/payload.json#perm-page-gate",
+        "lib/server/household.ts",
+        "proxy.ts"
+      ],
+      "entry_kind": "requirement",
+      "requirement_id": "REQ-PERM-PAGE-GATE"
+    },
+    {
+      "id": "req-perm-rls-member",
+      "statement": "System SHALL enforce: RLS helper is_household_member / is_household_member_cached gates table access by membership.",
+      "source_paths": [
+        "ai-os/artifacts/permissions/runs/run_business_discovery_20260801T122000Z/payload.json#perm-rls-member",
+        "supabase/migrations/00003_functions_and_rls.sql",
+        "supabase/migrations/00045_rls_simplification.sql"
+      ],
+      "entry_kind": "requirement",
+      "requirement_id": "REQ-PERM-RLS-MEMBER"
+    },
+    {
+      "id": "req-perm-member-equality",
+      "statement": "System SHALL enforce: Partner and admin share most RLS table rights; admin is primarily an app-layer settings gate.",
+      "source_paths": [
+        "ai-os/artifacts/permissions/runs/run_business_discovery_20260801T122000Z/payload.json#perm-member-equality",
+        "supabase/migrations/00003_functions_and_rls.sql",
+        "app/settings/actions.ts"
+      ],
+      "entry_kind": "requirement",
+      "requirement_id": "REQ-PERM-MEMBER-EQUALITY"
+    },
+    {
+      "id": "req-perm-admin-settings",
+      "statement": "System SHALL enforce: Admin-only app actions: updateHouseholdSettingsAction, updateAssumptionsAction.",
+      "source_paths": [
+        "ai-os/artifacts/permissions/runs/run_business_discovery_20260801T122000Z/payload.json#perm-admin-settings",
+        "app/settings/actions.ts"
+      ],
+      "entry_kind": "requirement",
+      "requirement_id": "REQ-PERM-ADMIN-SETTINGS"
+    },
+    {
+      "id": "req-perm-bootstrap-partner",
+      "statement": "System SHALL enforce: Household creator is inserted as partner via create_household_with_owner; invite accept also partner.",
+      "source_paths": [
+        "ai-os/artifacts/permissions/runs/run_business_discovery_20260801T122000Z/payload.json#perm-bootstrap-partner",
+        "supabase/migrations/00008_household_lifecycle_rpc.sql",
+        "app/household/actions.ts"
+      ],
+      "entry_kind": "requirement",
+      "requirement_id": "REQ-PERM-BOOTSTRAP-PARTNER"
+    },
+    {
+      "id": "req-perm-first-member",
+      "statement": "System SHALL enforce: RLS allows first-member insert exception during household setup.",
+      "source_paths": [
+        "ai-os/artifacts/permissions/runs/run_business_discovery_20260801T122000Z/payload.json#perm-first-member",
+        "supabase/migrations/00007_household_lifecycle_rls_fix.sql"
+      ],
+      "entry_kind": "requirement",
+      "requirement_id": "REQ-PERM-FIRST-MEMBER"
+    },
+    {
+      "id": "req-perm-service-role",
+      "statement": "System SHALL enforce: Service-role/admin RPCs for aggregates/insights/jar reporting bypass member RLS.",
+      "source_paths": [
+        "ai-os/artifacts/permissions/runs/run_business_discovery_20260801T122000Z/payload.json#perm-service-role",
+        "supabase/migrations/00006_dashboard_aggregates.sql",
+        "supabase/migrations/00047_jar_reporting_rpcs.sql"
+      ],
+      "entry_kind": "requirement",
+      "requirement_id": "REQ-PERM-SERVICE-ROLE"
+    },
+    {
+      "id": "req-perm-categories-system",
+      "statement": "System SHALL enforce: System categories (null household) readable; household categories member-writable.",
+      "source_paths": [
+        "ai-os/artifacts/permissions/runs/run_business_discovery_20260801T122000Z/payload.json#perm-categories-system",
+        "supabase/migrations/00003_functions_and_rls.sql"
+      ],
+      "entry_kind": "requirement",
+      "requirement_id": "REQ-PERM-CATEGORIES-SYSTEM"
+    }
+  ],
+  "status": "ready",
+  "created_at": "2026-08-01T13:07:01Z",
+  "trace": {
+    "orchestration_id": "art_orch_run_specification_20260801T130500Z",
+    "plan_id": "art_plan_run_specification_20260801T130500Z",
+    "task_id": "art_task_requirement-generator",
+    "run_id": "art_run_requirement-generator",
+    "goal_id": "art_goal_specification_generation",
+    "upstream_run_id": "run_business_discovery_20260801T122000Z"
+  },
+  "extensions": {
+    "stage": "specification-generation",
+    "pipeline": "specification-engineering",
+    "run_id": "run_specification_20260801T130500Z",
+    "upstream": "run_business_discovery_20260801T122000Z",
+    "invent_business_logic": false,
+    "redesign": false,
+    "inputs": {
+      "business_discovery_gate": "PASS",
+      "business_discovery_confidence": 100
+    }
+  }
+}

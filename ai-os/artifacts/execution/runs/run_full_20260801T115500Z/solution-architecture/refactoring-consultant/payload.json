@@ -1,0 +1,49 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_refactoring_consultant_T115500Z",
+  "worker_id": "refactoring-consultant",
+  "title": "Refactoring recommendations",
+  "summary": "Incremental refactors without changing validated business behavior.",
+  "entries": [
+    {
+      "id": "rf-jars-boundary",
+      "entry_kind": "refactor",
+      "statement": "Publish a single jars public API from lib/jars to reduce deep imports into _lib.",
+      "source_paths": [
+        "lib/jars/",
+        "artifacts/architecture-v2/"
+      ]
+    },
+    {
+      "id": "rf-server-actions",
+      "entry_kind": "refactor",
+      "statement": "Standardize server action helpers authz checks (already partially in lib/server).",
+      "source_paths": [
+        "lib/server/"
+      ]
+    },
+    {
+      "id": "rf-readme",
+      "entry_kind": "refactor",
+      "severity": "low",
+      "statement": "Replace root create-next-app README with product-oriented docs.",
+      "source_paths": [
+        "README.md"
+      ]
+    }
+  ],
+  "status": "ready",
+  "created_at": "2026-08-01T11:57:28Z",
+  "trace": {
+    "orchestration_id": "art_orch_run_full_20260801T115500Z",
+    "plan_id": "art_plan_run_full_20260801T115500Z",
+    "task_id": "art_task_refactoring-consultant",
+    "run_id": "art_run_refactoring-consultant",
+    "goal_id": "art_goal_family_finances_full_re"
+  },
+  "extensions": {
+    "pipeline": "solution-architecture",
+    "artifact_type": "redesign-notes",
+    "run_id": "run_full_20260801T115500Z"
+  }
+}
