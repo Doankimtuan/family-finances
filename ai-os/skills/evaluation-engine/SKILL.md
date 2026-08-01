@@ -9,11 +9,11 @@ description: Plan evaluation of every generated artifact for accuracy, completen
 
 ## Consumes
 
-`workers/`, `validators/`, `reviewers/`, `pipelines/` (alias `pipeline/`), `artifacts/`, `schemas/`, `templates/`, `reports/`, `knowledge/`, `specifications/`, `registry/`
+`core/packages/workers/`, `core/packages/validators/`, `core/packages/reviewers/`, `core/packages/pipelines/` (alias `pipeline/`), `artifacts/`, `core/packages/schemas/`, `core/packages/templates/`, `artifacts/reports/`, `artifacts/knowledge/`, `artifacts/specifications/`, `core/packages/registry/`
 
 ## Produces
 
-`qualification/metrics/evaluation-engine/` → `qualification-finding` (required `folder_mirror` under partition)
+`governance/qualification/metrics/evaluation-engine/` → `qualification-finding` (required `folder_mirror` under partition)
 
 ## Ownership
 
@@ -29,7 +29,7 @@ description: Plan evaluation of every generated artifact for accuracy, completen
 | `ai-reliability` | Owned per RACI |
 | `documentation-quality` | Owned per RACI |
 
-See `pipelines/qualification-framework/RACI.md`.
+See `core/packages/pipelines/qualification-framework/RACI.md`.
 
 ## Procedure
 
@@ -54,7 +54,7 @@ See `pipelines/qualification-framework/RACI.md`.
 
 ## Negative examples
 
-- Do not modify workers/, validators/, reviewers/, schemas/ from prior sprints.
+- Do not modify core/packages/workers/, core/packages/validators/, core/packages/reviewers/, core/packages/schemas/ from prior sprints.
 - Do not regenerate Framework Generator outputs.
 - Do not invent ground-truth metrics.
 - Do not execute benchmarks in packaging milestone.

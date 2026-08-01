@@ -80,18 +80,18 @@ async function main() {
   assertWaveTopology(result.pipeline.waves, result.graph.edges);
 
   const version = (await fs.readFile(path.join(root, "VERSION"), "utf8")).trim();
-  if (version !== "0.11.0") {
-    throw new Error(`Expected VERSION 0.11.0, got ${version}`);
+  if (version !== "0.13.0") {
+    throw new Error(`Expected VERSION 0.13.0, got ${version}`);
   }
 
   const meta = JSON.parse(
     await fs.readFile(
-      path.join(root, "pipelines/framework-generator/.workers-meta.json"),
+      path.join(root, "core/packages/pipelines/framework-generator/.workers-meta.json"),
       "utf8",
     ),
   );
   const raci = await fs.readFile(
-    path.join(root, "pipelines/framework-generator/RACI.md"),
+    path.join(root, "core/packages/pipelines/framework-generator/RACI.md"),
     "utf8",
   );
   for (const id of ALL_WORKERS) {
@@ -104,23 +104,23 @@ async function main() {
   }
 
   for (const rel of [
-    "schemas/framework-generator-payload.schema.json",
-    "schemas/framework-generation.schema.json",
-    "schemas/framework-generation-status.schema.json",
-    "schemas/framework-generation-report.schema.json",
-    "schemas/gate-framework-generation-report.schema.json",
-    "schemas/generation-spec.schema.json",
-    "contracts/framework-generator.md",
-    "framework-generator/templates/capability-spec.template.yaml",
-    "configs/examples/worker-generator.yaml",
-    "RELEASE_NOTES_0.11.0.md",
+    "core/packages/schemas/framework-generator-payload.schema.json",
+    "core/packages/schemas/framework-generation.schema.json",
+    "core/packages/schemas/framework-generation-status.schema.json",
+    "core/packages/schemas/framework-generation-report.schema.json",
+    "core/packages/schemas/gate-framework-generation-report.schema.json",
+    "core/packages/schemas/generation-spec.schema.json",
+    "core/packages/contracts/framework-generator.md",
+    "core/packages/scaffold/templates/capability-spec.template.yaml",
+    "core/packages/configs/examples/worker-generator.yaml",
+    "docs/releases/RELEASE_NOTES_0.13.0.md",
   ]) {
     await fs.access(path.join(root, rel));
   }
 
   const vManifest = JSON.parse(
     await fs.readFile(
-      path.join(root, "validators/framework-generator-schema-check/manifest.json"),
+      path.join(root, "core/packages/validators/framework-generator-schema-check/manifest.json"),
       "utf8",
     ),
   );
@@ -139,7 +139,7 @@ async function main() {
   for (const id of GENERATORS) {
     const payload = JSON.parse(
       await fs.readFile(
-        path.join(root, "workers", id, "examples", "sample-primary-payload.json"),
+        path.join(root, "core/packages/workers", id, "examples", "sample-primary-payload.json"),
         "utf8",
       ),
     );
@@ -155,7 +155,7 @@ async function main() {
       if (entry.impact.includes("{g['title']}")) {
         throw new Error(`corrupted impact template in ${id}`);
       }
-      if (!entry.folder_mirror?.startsWith(`framework-generator/generators/${id}/`)) {
+      if (!entry.folder_mirror?.startsWith(`core/packages/scaffold/generators/${id}/`)) {
         throw new Error(`folder_mirror partition invalid for ${id}`);
       }
       if (!Array.isArray(entry.output_plan?.registries) || !entry.output_plan?.semver) {
@@ -164,14 +164,14 @@ async function main() {
     }
 
     const skillMd = await fs.readFile(path.join(root, "skills", id, "SKILL.md"), "utf8");
-    if (skillMd.includes("1. Load capability spec (YAML/JSON) from `configs/` or task input.\n2. Resolve template packs")) {
+    if (skillMd.includes("1. Load capability spec (YAML/JSON) from `core/packages/configs/` or task input.\n2. Resolve template packs")) {
       throw new Error(`clone SKILL shell detected for ${id}`);
     }
   }
 
   const orch = JSON.parse(
     await fs.readFile(
-      path.join(root, "workers/generation-orchestrator/examples/sample-primary-payload.json"),
+      path.join(root, "core/packages/workers/generation-orchestrator/examples/sample-primary-payload.json"),
       "utf8",
     ),
   );
@@ -181,7 +181,7 @@ async function main() {
 
   const repGate = JSON.parse(
     await fs.readFile(
-      path.join(root, "workers/generation-reporter/examples/sample-gate-payload.json"),
+      path.join(root, "core/packages/workers/generation-reporter/examples/sample-gate-payload.json"),
       "utf8",
     ),
   );
@@ -193,7 +193,7 @@ async function main() {
   for (const id of multiIds) {
     const payload = JSON.parse(
       await fs.readFile(
-        path.join(root, "workers", id, "examples", "sample-primary-payload.json"),
+        path.join(root, "core/packages/workers", id, "examples", "sample-primary-payload.json"),
         "utf8",
       ),
     );

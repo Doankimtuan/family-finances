@@ -1,0 +1,62 @@
+{
+  "description": "Claimed run context for Product RE worker acceptance-criteria-generator.",
+  "orchestration_id": "art_product_re_orchestration",
+  "plan_id": "art_product_re_plan",
+  "goal_id": "art_product_re_goal",
+  "task": {
+    "artifact_id": "art_task_acceptance_criteria_generator",
+    "artifact_version": 1,
+    "skill_id": "acceptance-criteria-generator",
+    "skill_version": "0.1.0",
+    "primary_output_type": "acceptance-criteria",
+    "validators": [
+      "product-re-schema-check"
+    ],
+    "reviewers": [
+      "product-re-coverage-review"
+    ],
+    "side_effect_budget": [
+      "runtime-write"
+    ],
+    "done_when": [
+      "ready acceptance-criteria artifact produced"
+    ]
+  },
+  "run": {
+    "artifact_id": "art_run_acceptance_criteria_generator",
+    "status": "claimed",
+    "attempt": 1
+  },
+  "inputs": [
+    {
+      "name": "goal",
+      "artifact_id": "art_product_re_goal",
+      "artifact_version": 1
+    },
+    {
+      "name": "requirements",
+      "path": "artifacts/requirements/",
+      "artifact_id": "art_in_requirements",
+      "artifact_version": 1
+    },
+    {
+      "name": "product",
+      "path": "artifacts/product/",
+      "artifact_id": "art_in_product",
+      "artifact_version": 1
+    },
+    {
+      "name": "workflow",
+      "path": "artifacts/workflow/",
+      "artifact_id": "art_in_workflow",
+      "artifact_version": 1
+    }
+  ],
+  "gate_profile": "standard",
+  "budget": {
+    "allowed_side_effects": [
+      "none",
+      "runtime-write"
+    ]
+  }
+}

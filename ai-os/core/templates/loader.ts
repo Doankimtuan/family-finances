@@ -13,14 +13,14 @@ export type TemplateKind =
   | "worker";
 
 /**
- * Loads markdown/JSON starters from ai-os/templates.
+ * Loads markdown/JSON starters from ai-os/core/packages/templates.
  * Core engine does not mutate templates; it only reads them.
  */
 export class TemplateLoader {
   constructor(private readonly aiosRoot: string) {}
 
   root(): string {
-    return path.join(this.aiosRoot, "templates");
+    return path.join(this.aiosRoot, "core/packages/templates");
   }
 
   async readText(kind: TemplateKind, filename: string): Promise<string> {

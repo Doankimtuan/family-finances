@@ -17,25 +17,25 @@
       "name": "workers",
       "artifact_type": "doc-source",
       "required": true,
-      "description": "workers/"
+      "description": "core/packages/workers/"
     },
     {
       "name": "validators",
       "artifact_type": "doc-source",
       "required": false,
-      "description": "validators/"
+      "description": "core/packages/validators/"
     },
     {
       "name": "reviewers",
       "artifact_type": "doc-source",
       "required": false,
-      "description": "reviewers/"
+      "description": "core/packages/reviewers/"
     },
     {
       "name": "pipelines",
       "artifact_type": "doc-source",
       "required": true,
-      "description": "pipelines/"
+      "description": "core/packages/pipelines/"
     },
     {
       "name": "artifacts",
@@ -47,37 +47,37 @@
       "name": "schemas",
       "artifact_type": "doc-source",
       "required": true,
-      "description": "schemas/"
+      "description": "core/packages/schemas/"
     },
     {
       "name": "templates",
       "artifact_type": "doc-source",
       "required": false,
-      "description": "templates/"
+      "description": "core/packages/templates/"
     },
     {
       "name": "reports",
       "artifact_type": "doc-source",
       "required": false,
-      "description": "reports/"
+      "description": "artifacts/reports/"
     },
     {
       "name": "knowledge",
       "artifact_type": "doc-source",
       "required": false,
-      "description": "knowledge/"
+      "description": "artifacts/knowledge/"
     },
     {
       "name": "specifications",
       "artifact_type": "doc-source",
       "required": false,
-      "description": "specifications/"
+      "description": "artifacts/specifications/"
     },
     {
       "name": "registry",
       "artifact_type": "doc-source",
       "required": false,
-      "description": "registry/"
+      "description": "core/packages/registry/"
     }
   ],
   "outputs": [
@@ -108,8 +108,8 @@
     "regenerate_workers": false,
     "execute_benchmarks": false,
     "evaluate_only": true,
-    "partition": "qualification/benchmarks/qualification-runner/",
-    "raci": "pipelines/qualification-framework/RACI.md",
+    "partition": "governance/qualification/benchmarks/qualification-runner/",
+    "raci": "core/packages/pipelines/qualification-framework/RACI.md",
     "gate_output_type": "gate-qualification-report",
     "entry_kinds": [
       "pipeline-execution",

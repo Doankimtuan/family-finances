@@ -9,23 +9,23 @@ description: Extract ordered workflow-model steps from product, product-architec
 
 ## Consumes
 
-`product/`, `product-architecture/`, `features/`
+`artifacts/product/`, `artifacts/product-architecture/`, `artifacts/features/`
 
 ## Produces
 
-`workflow/` → `workflow-model`
+`artifacts/workflow/` → `workflow-model`
 
 ## Ownership
 
 - **Owns:** ordered steps with actor + step_order
-- **Does not** re-ingest knowledge/ or business/
+- **Does not** re-ingest artifacts/knowledge/ or artifacts/business/
 
 ## Procedure
 
 1. Load product-model plus product-architecture and features packs.
 2. Map end-to-end flows with actor + step_order on each step.
-3. Cite `source_paths`; write `workflow-model` under `workflow/`.
-4. Stop for validation/review.
+3. Cite `source_paths`; write `workflow-model` under `artifacts/workflow/`.
+4. Stop for artifacts/validation/review.
 
 ## Heuristics
 
@@ -43,4 +43,4 @@ description: Extract ordered workflow-model steps from product, product-architec
 
 ## Lock
 
-Acquire `task:{task_id}` per `architecture/CONCURRENCY.md` before mutating run-record state.
+Acquire `task:{task_id}` per `docs/architecture/CONCURRENCY.md` before mutating run-record state.

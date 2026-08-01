@@ -9,11 +9,11 @@ description: Generate artifact definitions: folder structure, contracts, naming 
 
 ## Consumes
 
-`templates/`, `schemas/`, `workers/`, `validators/`, `reviewers/`, `pipelines/`, `knowledge/`, `configs/`, `artifacts/`, `registry/`
+`core/packages/templates/`, `core/packages/schemas/`, `core/packages/workers/`, `core/packages/validators/`, `core/packages/reviewers/`, `core/packages/pipelines/`, `artifacts/knowledge/`, `core/packages/configs/`, `artifacts/`, `core/packages/registry/`
 
 ## Produces
 
-`framework-generator/generators/artifact-generator/` → `framework-generation` (required `folder_mirror` under partition)
+`core/packages/scaffold/generators/artifact-generator/` → `framework-generation` (required `folder_mirror` under partition)
 
 ## Ownership
 
@@ -26,19 +26,19 @@ description: Generate artifact definitions: folder structure, contracts, naming 
 | `lifecycle` | Rule for `lifecycle` per RACI |
 | `retention-policy` | Rule for `retention-policy` per RACI |
 
-See `pipelines/framework-generator/RACI.md` and `contracts/framework-generator.md` overlap table.
+See `core/packages/pipelines/framework-generator/RACI.md` and `core/packages/contracts/framework-generator.md` overlap table.
 
 ## Procedure
 
-1. Require upstream `schema-generator` plans or `schemas/` refs in evidence.
-2. Plan artifact-contract + folder-structure from `templates/artifact/`.
-3. Derive naming-rules from `architecture/TRACEABILITY.md` + registry conventions.
+1. Require upstream `schema-generator` plans or `core/packages/schemas/` refs in evidence.
+2. Plan artifact-contract + folder-structure from `core/packages/templates/artifact/`.
+3. Derive naming-rules from `docs/architecture/TRACEABILITY.md` + registry conventions.
 4. Document lifecycle, retention-policy with semver + deprecation in `output_plan.migration`.
 5. Never plan JSON Schema field typing (owned by schema-generator).
 
 ## Heuristics
 
-- Reuse `templates/` packs; never duplicate template file contents in plans.
+- Reuse `core/packages/templates/` packs; never duplicate template file contents in plans.
 - Every `output_plan` requires `artifacts`, `registries`, `semver`; add `migration` when breaking.
 - Mark skipped modes `UNKNOWN: …`; never invent spec fields.
 - Dedupe key for orchestrator: `generation_id` + `entry_kind`.

@@ -9,11 +9,11 @@ description: Evaluate framework against certification thresholds and emit certif
 
 ## Consumes
 
-`workers/`, `validators/`, `reviewers/`, `pipelines/` (alias `pipeline/`), `artifacts/`, `schemas/`, `templates/`, `reports/`, `knowledge/`, `specifications/`, `registry/`
+`core/packages/workers/`, `core/packages/validators/`, `core/packages/reviewers/`, `core/packages/pipelines/` (alias `pipeline/`), `artifacts/`, `core/packages/schemas/`, `core/packages/templates/`, `artifacts/reports/`, `artifacts/knowledge/`, `artifacts/specifications/`, `core/packages/registry/`
 
 ## Produces
 
-`qualification/certification/certification-engine/` → `certification-report` (required `folder_mirror` under partition)
+`governance/qualification/certification/certification-engine/` → `certification-report` (required `folder_mirror` under partition)
 
 ## Ownership
 
@@ -28,14 +28,14 @@ description: Evaluate framework against certification thresholds and emit certif
 | `maturity-assessment` | Owned per RACI |
 | `release-recommendation` | Owned per RACI |
 
-See `pipelines/qualification-framework/RACI.md`.
+See `core/packages/pipelines/qualification-framework/RACI.md`.
 
 ## Procedure
 
 1. Aggregate metrics, coverage, regression, stress, qualification evidence.
 2. Apply certification thresholds; fail closed on critical_failures > 0 or unmet thresholds.
 3. Emit certification-report + four matrices + maturity-assessment + release-recommendation.
-4. Matrices as structured entries with folder_mirror under qualification/certification/.
+4. Matrices as structured entries with folder_mirror under governance/qualification/certification/.
 5. Seven entry_kinds required.
 
 ## Heuristics
@@ -53,7 +53,7 @@ See `pipelines/qualification-framework/RACI.md`.
 
 ## Negative examples
 
-- Do not modify workers/, validators/, reviewers/, schemas/ from prior sprints.
+- Do not modify core/packages/workers/, core/packages/validators/, core/packages/reviewers/, core/packages/schemas/ from prior sprints.
 - Do not regenerate Framework Generator outputs.
 - Do not invent ground-truth metrics.
 - Do not execute benchmarks in packaging milestone.

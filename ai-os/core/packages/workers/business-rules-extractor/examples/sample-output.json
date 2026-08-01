@@ -1,0 +1,43 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_out_product_analyst_envelope",
+  "worker_id": "business-rules-extractor",
+  "worker_version": "0.1.0",
+  "run_id": "art_run_product_analyst",
+  "task_id": "art_task_product_analyst",
+  "orchestration_id": "art_product_re_orchestration",
+  "status": "ready",
+  "primary_output_ref": {
+    "artifact_id": "art_out_product_analyst",
+    "artifact_version": 1,
+    "relation": "derived-from"
+  },
+  "validation_report_refs": [
+    {
+      "artifact_id": "art_val_product_analyst",
+      "artifact_version": 1
+    }
+  ],
+  "review_report_refs": [
+    {
+      "artifact_id": "art_rev_product_analyst",
+      "artifact_version": 1
+    }
+  ],
+  "summary": "Extract observed business rules from DOMAIN_MODEL and domain engines into artifacts/business/. Discover only \u2014 do not invent rules.",
+  "created_at": "2026-08-01T07:00:00Z",
+  "trace": {
+    "orchestration_id": "art_product_re_orchestration",
+    "plan_id": "art_product_re_plan",
+    "task_id": "art_task_product_analyst",
+    "run_id": "art_run_product_analyst",
+    "goal_id": "art_product_re_goal"
+  },
+  "extensions": {
+    "pipeline": "product-re",
+    "primary_output_type": "business-rules",
+    "produces": [
+      "business"
+    ]
+  }
+}

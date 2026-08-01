@@ -1,0 +1,68 @@
+{
+  "schema_version": "1.0.0",
+  "id": "discovery",
+  "title": "AIOS Discovery Pipeline",
+  "version": "0.1.0",
+  "status": "draft",
+  "worker_class": "discovery",
+  "gate_profile": "standard",
+  "allows_feature_workers": false,
+  "side_effect_ceiling": [
+    "none",
+    "runtime-write"
+  ],
+  "workers": [
+    "discover-repo-map",
+    "discover-domain-map",
+    "discover-contract-inventory",
+    "discover-registry-audit",
+    "discover-runtime-surface",
+    "discover-gap-report"
+  ],
+  "dependency_graph_ref": {
+    "path": "core/packages/pipelines/discovery/dependency-graph.json",
+    "artifact_id": "art_discovery_pipeline_deps",
+    "schema": "core/packages/schemas/pipeline-dependency-graph.schema.json"
+  },
+  "waves": [
+    [
+      "discover-contract-inventory",
+      "discover-domain-map",
+      "discover-repo-map"
+    ],
+    [
+      "discover-registry-audit",
+      "discover-runtime-surface"
+    ],
+    [
+      "discover-gap-report"
+    ]
+  ],
+  "primary_output_type": "discovery-report",
+  "validator_id": "discovery-schema-check",
+  "reviewer_id": "discovery-coverage-review",
+  "goal": {
+    "title": "Discover system state for AIOS planning",
+    "problem": "Operators need an accurate inventory of repo, domains, contracts, registries, and Core surfaces before Feature Workers may run.",
+    "success_criteria": [
+      {
+        "id": "wave0-complete",
+        "description": "Parallel discovery workers produce ready discovery-reports"
+      },
+      {
+        "id": "gap-report-ready",
+        "description": "discover-gap-report synthesizes gaps without implementing features"
+      }
+    ],
+    "non_goals": [
+      "Implement product features",
+      "Create Feature Workers",
+      "Mutate application source under repo-write"
+    ]
+  },
+  "created_at": "2026-08-01T00:00:00Z",
+  "extensions": {
+    "schema": "core/packages/schemas/pipeline.schema.json",
+    "contract": "core/packages/contracts/pipeline.md"
+  }
+}

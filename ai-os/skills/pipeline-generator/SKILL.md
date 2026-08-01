@@ -9,11 +9,11 @@ description: Generate pipeline.json, dependency-graph.json, waves, retry/checkpo
 
 ## Consumes
 
-`templates/`, `schemas/`, `workers/`, `validators/`, `reviewers/`, `pipelines/`, `knowledge/`, `configs/`, `artifacts/`, `registry/`
+`core/packages/templates/`, `core/packages/schemas/`, `core/packages/workers/`, `core/packages/validators/`, `core/packages/reviewers/`, `core/packages/pipelines/`, `artifacts/knowledge/`, `core/packages/configs/`, `artifacts/`, `core/packages/registry/`
 
 ## Produces
 
-`framework-generator/generators/pipeline-generator/` → `framework-generation` (required `folder_mirror` under partition)
+`core/packages/scaffold/generators/pipeline-generator/` → `framework-generation` (required `folder_mirror` under partition)
 
 ## Ownership
 
@@ -29,19 +29,19 @@ description: Generate pipeline.json, dependency-graph.json, waves, retry/checkpo
 | `checkpoint-strategy` | Rule for `checkpoint-strategy` per RACI |
 | `rollback-strategy` | Rule for `rollback-strategy` per RACI |
 
-See `pipelines/framework-generator/RACI.md` and `contracts/framework-generator.md` overlap table.
+See `core/packages/pipelines/framework-generator/RACI.md` and `core/packages/contracts/framework-generator.md` overlap table.
 
 ## Procedure
 
 1. Require worker ids for `pipeline.workers[]` from spec.outputs.
 2. Plan pipeline.json + dependency-graph.json; compute waves via topological sort (never same-wave hard edges).
 3. Map strategy modes: retry/checkpoint/rollback as extensions metadata entries.
-4. Cite `schemas/pipeline.schema.json` and `schemas/pipeline-dependency-graph.schema.json`.
+4. Cite `core/packages/schemas/pipeline.schema.json` and `core/packages/schemas/pipeline-dependency-graph.schema.json`.
 5. Registration patches owned by project-bootstrap-generator.
 
 ## Heuristics
 
-- Reuse `templates/` packs; never duplicate template file contents in plans.
+- Reuse `core/packages/templates/` packs; never duplicate template file contents in plans.
 - Every `output_plan` requires `artifacts`, `registries`, `semver`; add `migration` when breaking.
 - Mark skipped modes `UNKNOWN: …`; never invent spec fields.
 - Dedupe key for orchestrator: `generation_id` + `entry_kind`.

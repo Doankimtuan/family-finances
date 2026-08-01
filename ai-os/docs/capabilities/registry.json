@@ -1,0 +1,221 @@
+{
+  "schema_version": "1.0.0",
+  "updated_at": "2026-08-01T12:00:00Z",
+  "framework_version": "0.13.0",
+  "capabilities": [
+    {
+      "id": "discover",
+      "title": "Discover",
+      "purpose": "Map repository, contracts, registry, domain, runtime surface, gaps",
+      "pipeline": "discovery",
+      "workers": [
+        "discover-repo-map",
+        "discover-domain-map",
+        "discover-contract-inventory",
+        "discover-registry-audit",
+        "discover-runtime-surface",
+        "discover-gap-report"
+      ],
+      "decision": "KEEP",
+      "run_commands": [
+        "@Run full"
+      ]
+    },
+    {
+      "id": "reverse-engineer",
+      "title": "Reverse Engineer",
+      "purpose": "Extract product knowledge: features, business rules, workflows, requirements, acceptance",
+      "pipeline": "product-re",
+      "workers": [
+        "product-knowledge-ingest",
+        "feature-surface-inventory",
+        "business-rules-extractor",
+        "product-architecture-observer",
+        "product-analyst",
+        "workflow-analyzer",
+        "requirement-generator",
+        "acceptance-criteria-generator",
+        "product-re-gap-report"
+      ],
+      "decision": "KEEP",
+      "run_commands": [
+        "@Run full",
+        "@Run incremental"
+      ]
+    },
+    {
+      "id": "architect",
+      "title": "Architect",
+      "purpose": "Solution redesign: architecture-v2, tech stack, migration, folder structure",
+      "pipeline": "solution-architecture",
+      "workers": [
+        "architecture-consultant",
+        "tech-stack-consultant",
+        "refactoring-consultant",
+        "folder-structure-designer"
+      ],
+      "decision": "KEEP",
+      "run_commands": [
+        "@Run full"
+      ]
+    },
+    {
+      "id": "specify",
+      "title": "Specify",
+      "purpose": "Specifications, tasks, roadmap, implementation plan",
+      "pipeline": "specification-engineering",
+      "workers": [
+        "specification-generator",
+        "task-generator",
+        "roadmap-generator",
+        "implementation-planner"
+      ],
+      "decision": "KEEP",
+      "run_commands": [
+        "@Run full"
+      ]
+    },
+    {
+      "id": "validate",
+      "title": "Validate",
+      "purpose": "Deterministic artifact / schema / dependency / consistency validation + scores + report",
+      "pipeline": "validation-engine",
+      "workers": [
+        "artifact-validator",
+        "schema-validator",
+        "dependency-validator",
+        "pipeline-validator",
+        "traceability-validator",
+        "completeness-validator",
+        "consistency-validator",
+        "quality-scoring-engine",
+        "validation-orchestrator",
+        "validation-reporter"
+      ],
+      "decision": "GENERALIZE",
+      "run_commands": [
+        "@Run validate",
+        "@Run full"
+      ],
+      "future": "Collapse 7 specialized validators into rule-pack driven validation-engine; keep orchestrator+reporter"
+    },
+    {
+      "id": "review",
+      "title": "Review",
+      "purpose": "Qualitative multi-dimension review + governance decision",
+      "pipeline": "review-engine",
+      "workers": [
+        "architecture-reviewer",
+        "product-reviewer",
+        "business-reviewer",
+        "specification-reviewer",
+        "documentation-reviewer",
+        "maintainability-reviewer",
+        "scalability-reviewer",
+        "extensibility-reviewer",
+        "ai-quality-reviewer",
+        "review-orchestrator",
+        "final-decision-board"
+      ],
+      "decision": "GENERALIZE",
+      "run_commands": [
+        "@Run review",
+        "@Run full"
+      ],
+      "future": "Collapse 9 reviewers into rubric-driven review-engine; keep orchestrator+board"
+    },
+    {
+      "id": "qualify",
+      "title": "Qualify",
+      "purpose": "Benchmark, metrics, certification, release Go/No-Go",
+      "pipeline": "qualification-framework",
+      "workers": [
+        "reference-project-catalog",
+        "benchmark-runner",
+        "qualification-runner",
+        "evaluation-engine",
+        "stress-test-runner",
+        "metrics-engine",
+        "coverage-analyzer",
+        "regression-runner",
+        "certification-engine",
+        "release-qualification-board"
+      ],
+      "decision": "MERGE",
+      "run_commands": [
+        "@Run benchmark"
+      ],
+      "future": "Merge evaluation+metrics+coverage into quality-metrics; merge stress+regression into resilience-bench"
+    },
+    {
+      "id": "runtime",
+      "title": "Runtime",
+      "purpose": "Single-command orchestration: config, plan, schedule, execute, checkpoint, resume, retry",
+      "pipeline": "runtime-engine",
+      "workers": [
+        "runtime-configuration-loader",
+        "event-bus",
+        "logging-engine",
+        "command-interpreter",
+        "dependency-resolver",
+        "execution-context-manager",
+        "artifact-manager",
+        "execution-planner",
+        "checkpoint-manager",
+        "progress-tracker",
+        "worker-scheduler",
+        "retry-engine",
+        "resume-engine",
+        "pipeline-engine",
+        "master-orchestrator"
+      ],
+      "decision": "MERGE",
+      "run_commands": [
+        "@Run full",
+        "@Run incremental",
+        "@Run resume",
+        "@Run retry",
+        "@Run validate",
+        "@Run review",
+        "@Run benchmark",
+        "@Run status",
+        "@Run freeze"
+      ],
+      "future": "4 subsystems: config-commands, planning, resilience(checkpoint+retry+resume), execute"
+    }
+  ],
+  "optional": {
+    "id": "scaffold",
+    "title": "Scaffold (optional meta)",
+    "purpose": "Generate new framework packages from capability specs",
+    "pipeline": "framework-generator",
+    "decision": "MOVE",
+    "note": "Move off critical path; invoke only via explicit @Run scaffold (future). Not required for RE/Spec/Validate/Review.",
+    "workers": [
+      "schema-generator",
+      "artifact-generator",
+      "prompt-generator",
+      "worker-generator",
+      "validator-generator",
+      "reviewer-generator",
+      "pipeline-generator",
+      "test-generator",
+      "documentation-generator",
+      "project-bootstrap-generator",
+      "generation-orchestrator",
+      "generation-reporter"
+    ]
+  },
+  "run_full_order": [
+    "discover",
+    "reverse-engineer",
+    "architect",
+    "specify",
+    "validate",
+    "review"
+  ],
+  "notes": [
+    "Capability layer is additive for DX; underlying workers preserved for BC.",
+    "Physical worker merges deferred until execution phase + adapter layer exist."
+  ]
+}

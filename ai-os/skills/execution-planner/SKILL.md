@@ -1,15 +1,15 @@
 ---
 name: execution-planner
-description: Before execution, generate execution graph, worker order, estimated outputs/runtime, validation/review/checkpoint plans. Never execute immediately.
+description: Before execution, generate execution graph, worker order, estimated outputs/runtime, artifacts/validation/review/checkpoint plans. Never execute immediately.
 ---
 
 # Execution Planner
 
-> Orchestrate only. Never modify workers/validators/reviewers. Never execute in packaging milestone. Never analyze product repos.
+> Orchestrate only. Never modify core/packages/workers/validators/reviewers. Never execute in packaging milestone. Never analyze product repos.
 
 ## Consumes
 
-`workers/`, `validators/`, `reviewers/`, `pipelines/` (alias `pipeline/`), `workflow/`, `templates/`, `schemas/`, `configs/`, `artifacts/`, `knowledge/`, `registry/`
+`core/packages/workers/`, `core/packages/validators/`, `core/packages/reviewers/`, `core/packages/pipelines/` (alias `pipeline/`), `artifacts/workflow/`, `core/packages/templates/`, `core/packages/schemas/`, `core/packages/configs/`, `artifacts/`, `artifacts/knowledge/`, `core/packages/registry/`
 
 ## Produces
 
@@ -28,7 +28,7 @@ description: Before execution, generate execution graph, worker order, estimated
 | `review-plan` | Owned per RACI |
 | `checkpoint-plan` | Owned per RACI |
 
-See `pipelines/runtime-engine/RACI.md`.
+See `core/packages/pipelines/runtime-engine/RACI.md`.
 
 ## Procedure
 
@@ -40,7 +40,7 @@ See `pipelines/runtime-engine/RACI.md`.
 
 ## Heuristics
 
-- Prefer registry/path evidence; mark gaps `UNKNOWN: …`.
+- Prefer core/packages/registry/path evidence; mark gaps `UNKNOWN: …`.
 - Deterministic plans; reproducible given same config + command.
 - Single-command UX: never require users to invoke workers by id.
 - Respect RACI; never duplicate another runtime worker's kinds.
@@ -53,7 +53,7 @@ See `pipelines/runtime-engine/RACI.md`.
 
 ## Negative examples
 
-- Do not modify `workers/`, `validators/`, `reviewers/` implementations.
+- Do not modify `core/packages/workers/`, `core/packages/validators/`, `core/packages/reviewers/` implementations.
 - Do not analyze product repositories or invent business specs.
 - Do not execute pipelines in packaging milestone.
 - Do not bypass Execution Planner for immediate execution.

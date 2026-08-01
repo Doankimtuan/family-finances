@@ -1,0 +1,12 @@
+{
+  "case_id": "case-01-happy-path",
+  "worker_id": "prompt-generator",
+  "input": {
+    "spec_ref": "core/packages/configs/examples/prompt-generator.yaml"
+  },
+  "expect": {
+    "min_entries": 1,
+    "severity_max": "info",
+    "requires_folder_mirror": true
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0.0",
+  "kind": "acceptance",
+  "title": "Extracted acceptance criteria (fixture)",
+  "summary": "GWT criteria linked to extracted requirements.",
+  "criteria": [
+    {
+      "id": "ac-req-household-tenant-gwt",
+      "requirement_id": "req-household-tenant",
+      "statement": "Given a user in household H, when they list accounts, then only H-scoped accounts are returned.",
+      "sources": [
+        "artifacts/requirements/",
+        "artifacts/product/"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "path": "artifacts/requirements/"
+    },
+    {
+      "path": "artifacts/product/"
+    }
+  ],
+  "created_at": "2026-08-01T14:00:00Z",
+  "extensions": {
+    "fixture": true,
+    "pipeline": "product-re",
+    "runtime_shape": "entries[]"
+  }
+}

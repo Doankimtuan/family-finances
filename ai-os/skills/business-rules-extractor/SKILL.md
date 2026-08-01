@@ -9,11 +9,11 @@ description: Extract observed business rules from doc-source and discovery-repor
 
 ## Consumes
 
-`doc-source`, `discovery-report` → produces `business/`
+`doc-source`, `discovery-report` → produces `artifacts/business/`
 
 ## Produces
 
-`business/` → `business-rules`
+`artifacts/business/` → `business-rules`
 
 ## Ownership
 
@@ -26,8 +26,8 @@ description: Extract observed business rules from doc-source and discovery-repor
 1. Soft-read `doc-source` and `discovery-report`.
 2. Extract only rules/invariants present in sources.
 3. Set `entry_kind` ∈ {rule, invariant, policy}; cite `source_paths`.
-4. Write `business-rules`; optionally mirror under `business/`.
-5. Stop for validation/review.
+4. Write `business-rules`; optionally mirror under `artifacts/business/`.
+5. Stop for artifacts/validation/review.
 
 ## Heuristics
 
@@ -45,4 +45,4 @@ description: Extract observed business rules from doc-source and discovery-repor
 
 ## Lock
 
-Acquire `task:{task_id}` per `architecture/CONCURRENCY.md` before mutating run-record state.
+Acquire `task:{task_id}` per `docs/architecture/CONCURRENCY.md` before mutating run-record state.

@@ -1,0 +1,127 @@
+{
+  "schema_version": "1.0.0",
+  "id": "framework-generator",
+  "title": "Framework Generator Pipeline",
+  "version": "0.1.1",
+  "status": "draft",
+  "worker_class": "discovery",
+  "gate_profile": "standard",
+  "allows_feature_workers": false,
+  "side_effect_ceiling": [
+    "none",
+    "runtime-write"
+  ],
+  "workers": [
+    "schema-generator",
+    "artifact-generator",
+    "prompt-generator",
+    "worker-generator",
+    "validator-generator",
+    "reviewer-generator",
+    "pipeline-generator",
+    "test-generator",
+    "documentation-generator",
+    "project-bootstrap-generator",
+    "generation-orchestrator",
+    "generation-reporter"
+  ],
+  "dependency_graph_ref": {
+    "path": "core/packages/pipelines/framework-generator/dependency-graph.json",
+    "artifact_id": "art_fg_pipeline_deps",
+    "schema": "core/packages/schemas/pipeline-dependency-graph.schema.json"
+  },
+  "waves": [
+    [
+      "schema-generator",
+      "prompt-generator"
+    ],
+    [
+      "artifact-generator"
+    ],
+    [
+      "worker-generator"
+    ],
+    [
+      "validator-generator",
+      "reviewer-generator"
+    ],
+    [
+      "pipeline-generator"
+    ],
+    [
+      "test-generator",
+      "documentation-generator"
+    ],
+    [
+      "project-bootstrap-generator"
+    ],
+    [
+      "generation-orchestrator"
+    ],
+    [
+      "generation-reporter"
+    ]
+  ],
+  "created_at": "2026-08-01T08:08:00Z",
+  "primary_output_type": "framework-generation-report",
+  "validator_id": "framework-generator-schema-check",
+  "reviewer_id": "framework-generator-coverage-review",
+  "goal": {
+    "title": "Self-extensible framework generation from capability specs",
+    "problem": "Enable configuration-driven creation of Workers, Validators, Reviewers, Pipelines, and artifacts without manual coding.",
+    "success_criteria": [
+      {
+        "id": "ten-generators",
+        "description": "Ten generator workers registered with full worker packages"
+      },
+      {
+        "id": "config-driven",
+        "description": "YAML/JSON capability specs drive scaffold plans"
+      },
+      {
+        "id": "self-registration",
+        "description": "Output plans include registry targets"
+      },
+      {
+        "id": "partitioned",
+        "description": "Outputs under core/packages/scaffold/generators/<id>/"
+      },
+      {
+        "id": "no-execution",
+        "description": "Packaging only \u2014 generation not executed"
+      }
+    ],
+    "non_goals": [
+      "Execute generation in this milestone",
+      "Modify previous pipeline workers",
+      "Create project-specific business workers"
+    ]
+  },
+  "extensions": {
+    "schema": "core/packages/schemas/framework-generator-payload.schema.json",
+    "contract": "core/packages/contracts/framework-generator.md",
+    "output_types": [
+      "framework-generation",
+      "framework-generation-status",
+      "framework-generation-report",
+      "gate-framework-generation-report"
+    ],
+    "consumes": [
+      "templates",
+      "schemas",
+      "workers",
+      "validators",
+      "reviewers",
+      "pipelines",
+      "knowledge",
+      "configs",
+      "artifacts",
+      "registry"
+    ],
+    "produces": [
+      "core/packages/scaffold/"
+    ],
+    "configuration_driven": true,
+    "semver_policy": "semantic"
+  }
+}

@@ -9,11 +9,11 @@ description: Extract glossary/entity/fact knowledge-notes from doc-source and di
 
 ## Consumes
 
-`doc-source` (docs), `discovery-report` (soft) → produces `knowledge/`
+`doc-source` (docs), `discovery-report` (soft) → produces `artifacts/knowledge/`
 
 ## Produces
 
-`knowledge/` → artifact type `knowledge-notes`
+`artifacts/knowledge/` → artifact type `knowledge-notes`
 
 ## Ownership
 
@@ -23,11 +23,11 @@ description: Extract glossary/entity/fact knowledge-notes from doc-source and di
 
 ## Procedure
 
-1. Soft-read `doc-source` and any published `discovery-report` inputs. Never treat AIOS `architecture/` as product input.
+1. Soft-read `doc-source` and any published `discovery-report` inputs. Never treat AIOS `docs/architecture/` as product input.
 2. Extract only glossary/entity/fact statements already present in sources.
 3. Set `entry_kind` ∈ {glossary, entity, fact}; require `source_paths` on every entry.
-4. Write `knowledge-notes` staging artifact; optionally mirror under `knowledge/`.
-5. Stop for validation/review.
+4. Write `knowledge-notes` staging artifact; optionally mirror under `artifacts/knowledge/`.
+5. Stop for artifacts/validation/review.
 
 ## Heuristics
 
@@ -46,4 +46,4 @@ description: Extract glossary/entity/fact knowledge-notes from doc-source and di
 
 ## Lock
 
-Acquire `task:{task_id}` per `architecture/CONCURRENCY.md` before mutating run-record state.
+Acquire `task:{task_id}` per `docs/architecture/CONCURRENCY.md` before mutating run-record state.

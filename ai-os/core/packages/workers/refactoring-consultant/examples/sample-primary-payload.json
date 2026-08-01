@@ -1,0 +1,51 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_out_refactoring_consultant",
+  "type": "migration-plan",
+  "worker_id": "refactoring-consultant",
+  "title": "Refactoring Consultant output",
+  "summary": "Identify refactoring opportunities and propose a migration strategy that preserves validated business behavior while reducing technical debt. Never invent business logic or change business rules.",
+  "entries": [
+    {
+      "id": "mig-wave-intent-isolation",
+      "entry_kind": "wave",
+      "statement": "Phase 1: Isolate jar intent modules behind clear ports without changing review-queue resolution behavior.",
+      "source_paths": [
+        "artifacts/architecture-v2/",
+        "artifacts/business/",
+        "artifacts/requirements/",
+        "artifacts/features/"
+      ],
+      "confidence": 0.78,
+      "preserves_behavior": true
+    },
+    {
+      "id": "ref-remove-v1-map-debt",
+      "entry_kind": "refactor",
+      "statement": "Refactor opportunity: retire duplicated v1 spending_jar_category_map paths only after feature parity with jar_rules is verified from validated sources.",
+      "source_paths": [
+        "artifacts/business/",
+        "governance/quality/",
+        "artifacts/features/"
+      ],
+      "confidence": 0.7,
+      "preserves_behavior": true
+    }
+  ],
+  "status": "ready",
+  "created_at": "2026-08-01T13:00:00Z",
+  "trace": {
+    "orchestration_id": "art_sa_orchestration",
+    "plan_id": "art_sa_plan",
+    "task_id": "art_task_refactoring_consultant",
+    "run_id": "art_run_refactoring_consultant",
+    "goal_id": "art_sa_goal"
+  },
+  "extensions": {
+    "pipeline": "solution-architecture",
+    "role_alias": "refactoring-consultant",
+    "preserve_business_behavior": true,
+    "invent_business_logic": false,
+    "overwrite_discovery": false
+  }
+}

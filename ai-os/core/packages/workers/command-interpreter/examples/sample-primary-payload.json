@@ -1,0 +1,352 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_rt_command-interpreter_primary",
+  "type": "runtime-command",
+  "worker_id": "command-interpreter",
+  "title": "Command Interpreter sample",
+  "summary": "Sample runtime-command for command-interpreter (packaging; workers not executed)",
+  "entries": [
+    {
+      "id": "rt_command-interpreter_001",
+      "entry_kind": "run-full",
+      "statement": "Runtime plan for run-full via Command Interpreter",
+      "runtime_id": "run_command-interpreter_sample",
+      "target": "runtime/commands/command-interpreter/",
+      "rule": "run-full per Runtime Engine contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "core/packages/contracts/runtime-engine.md",
+        "core/packages/pipelines/runtime-engine/RACI.md",
+        "runtime/configs/.ai-os.yaml"
+      ],
+      "impact": "Enables orchestrated run-full without manual worker invocation",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual Core invocation (not supported for end users)",
+      "confidence": 0.85,
+      "source_paths": [
+        "core/packages/workers/",
+        "core/packages/pipelines/",
+        "core/packages/schemas/",
+        "core/packages/configs/",
+        "core/packages/registry/"
+      ],
+      "unknowns": [
+        "UNKNOWN: runtime execution not opened in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "runtime-engine",
+        "worker": "command-interpreter"
+      },
+      "folder_mirror": "runtime/commands/command-interpreter/run-full.json"
+    },
+    {
+      "id": "rt_command-interpreter_002",
+      "entry_kind": "run-incremental",
+      "statement": "Runtime plan for run-incremental via Command Interpreter",
+      "runtime_id": "run_command-interpreter_sample",
+      "target": "runtime/commands/command-interpreter/",
+      "rule": "run-incremental per Runtime Engine contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "core/packages/contracts/runtime-engine.md",
+        "core/packages/pipelines/runtime-engine/RACI.md",
+        "runtime/configs/.ai-os.yaml"
+      ],
+      "impact": "Enables orchestrated run-incremental without manual worker invocation",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual Core invocation (not supported for end users)",
+      "confidence": 0.85,
+      "source_paths": [
+        "core/packages/workers/",
+        "core/packages/pipelines/",
+        "core/packages/schemas/",
+        "core/packages/configs/",
+        "core/packages/registry/"
+      ],
+      "unknowns": [
+        "UNKNOWN: runtime execution not opened in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "runtime-engine",
+        "worker": "command-interpreter"
+      },
+      "folder_mirror": "runtime/commands/command-interpreter/run-incremental.json"
+    },
+    {
+      "id": "rt_command-interpreter_003",
+      "entry_kind": "run-phase",
+      "statement": "Runtime plan for run-phase via Command Interpreter",
+      "runtime_id": "run_command-interpreter_sample",
+      "target": "runtime/commands/command-interpreter/",
+      "rule": "run-phase per Runtime Engine contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "core/packages/contracts/runtime-engine.md",
+        "core/packages/pipelines/runtime-engine/RACI.md",
+        "runtime/configs/.ai-os.yaml"
+      ],
+      "impact": "Enables orchestrated run-phase without manual worker invocation",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual Core invocation (not supported for end users)",
+      "confidence": 0.85,
+      "source_paths": [
+        "core/packages/workers/",
+        "core/packages/pipelines/",
+        "core/packages/schemas/",
+        "core/packages/configs/",
+        "core/packages/registry/"
+      ],
+      "unknowns": [
+        "UNKNOWN: runtime execution not opened in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "runtime-engine",
+        "worker": "command-interpreter"
+      },
+      "folder_mirror": "runtime/commands/command-interpreter/run-phase.json"
+    },
+    {
+      "id": "rt_command-interpreter_004",
+      "entry_kind": "run-resume",
+      "statement": "Runtime plan for run-resume via Command Interpreter",
+      "runtime_id": "run_command-interpreter_sample",
+      "target": "runtime/commands/command-interpreter/",
+      "rule": "run-resume per Runtime Engine contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "core/packages/contracts/runtime-engine.md",
+        "core/packages/pipelines/runtime-engine/RACI.md",
+        "runtime/configs/.ai-os.yaml"
+      ],
+      "impact": "Enables orchestrated run-resume without manual worker invocation",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual Core invocation (not supported for end users)",
+      "confidence": 0.85,
+      "source_paths": [
+        "core/packages/workers/",
+        "core/packages/pipelines/",
+        "core/packages/schemas/",
+        "core/packages/configs/",
+        "core/packages/registry/"
+      ],
+      "unknowns": [
+        "UNKNOWN: runtime execution not opened in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "runtime-engine",
+        "worker": "command-interpreter"
+      },
+      "folder_mirror": "runtime/commands/command-interpreter/run-resume.json"
+    },
+    {
+      "id": "rt_command-interpreter_005",
+      "entry_kind": "run-retry",
+      "statement": "Runtime plan for run-retry via Command Interpreter",
+      "runtime_id": "run_command-interpreter_sample",
+      "target": "runtime/commands/command-interpreter/",
+      "rule": "run-retry per Runtime Engine contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "core/packages/contracts/runtime-engine.md",
+        "core/packages/pipelines/runtime-engine/RACI.md",
+        "runtime/configs/.ai-os.yaml"
+      ],
+      "impact": "Enables orchestrated run-retry without manual worker invocation",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual Core invocation (not supported for end users)",
+      "confidence": 0.85,
+      "source_paths": [
+        "core/packages/workers/",
+        "core/packages/pipelines/",
+        "core/packages/schemas/",
+        "core/packages/configs/",
+        "core/packages/registry/"
+      ],
+      "unknowns": [
+        "UNKNOWN: runtime execution not opened in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "runtime-engine",
+        "worker": "command-interpreter"
+      },
+      "folder_mirror": "runtime/commands/command-interpreter/run-retry.json"
+    },
+    {
+      "id": "rt_command-interpreter_006",
+      "entry_kind": "run-validate",
+      "statement": "Runtime plan for run-validate via Command Interpreter",
+      "runtime_id": "run_command-interpreter_sample",
+      "target": "runtime/commands/command-interpreter/",
+      "rule": "run-validate per Runtime Engine contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "core/packages/contracts/runtime-engine.md",
+        "core/packages/pipelines/runtime-engine/RACI.md",
+        "runtime/configs/.ai-os.yaml"
+      ],
+      "impact": "Enables orchestrated run-validate without manual worker invocation",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual Core invocation (not supported for end users)",
+      "confidence": 0.85,
+      "source_paths": [
+        "core/packages/workers/",
+        "core/packages/pipelines/",
+        "core/packages/schemas/",
+        "core/packages/configs/",
+        "core/packages/registry/"
+      ],
+      "unknowns": [
+        "UNKNOWN: runtime execution not opened in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "runtime-engine",
+        "worker": "command-interpreter"
+      },
+      "folder_mirror": "runtime/commands/command-interpreter/run-validate.json"
+    },
+    {
+      "id": "rt_command-interpreter_007",
+      "entry_kind": "run-review",
+      "statement": "Runtime plan for run-review via Command Interpreter",
+      "runtime_id": "run_command-interpreter_sample",
+      "target": "runtime/commands/command-interpreter/",
+      "rule": "run-review per Runtime Engine contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "core/packages/contracts/runtime-engine.md",
+        "core/packages/pipelines/runtime-engine/RACI.md",
+        "runtime/configs/.ai-os.yaml"
+      ],
+      "impact": "Enables orchestrated run-review without manual worker invocation",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual Core invocation (not supported for end users)",
+      "confidence": 0.85,
+      "source_paths": [
+        "core/packages/workers/",
+        "core/packages/pipelines/",
+        "core/packages/schemas/",
+        "core/packages/configs/",
+        "core/packages/registry/"
+      ],
+      "unknowns": [
+        "UNKNOWN: runtime execution not opened in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "runtime-engine",
+        "worker": "command-interpreter"
+      },
+      "folder_mirror": "runtime/commands/command-interpreter/run-review.json"
+    },
+    {
+      "id": "rt_command-interpreter_008",
+      "entry_kind": "run-freeze",
+      "statement": "Runtime plan for run-freeze via Command Interpreter",
+      "runtime_id": "run_command-interpreter_sample",
+      "target": "runtime/commands/command-interpreter/",
+      "rule": "run-freeze per Runtime Engine contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "core/packages/contracts/runtime-engine.md",
+        "core/packages/pipelines/runtime-engine/RACI.md",
+        "runtime/configs/.ai-os.yaml"
+      ],
+      "impact": "Enables orchestrated run-freeze without manual worker invocation",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual Core invocation (not supported for end users)",
+      "confidence": 0.85,
+      "source_paths": [
+        "core/packages/workers/",
+        "core/packages/pipelines/",
+        "core/packages/schemas/",
+        "core/packages/configs/",
+        "core/packages/registry/"
+      ],
+      "unknowns": [
+        "UNKNOWN: runtime execution not opened in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "runtime-engine",
+        "worker": "command-interpreter"
+      },
+      "folder_mirror": "runtime/commands/command-interpreter/run-freeze.json"
+    },
+    {
+      "id": "rt_command-interpreter_009",
+      "entry_kind": "run-status",
+      "statement": "Runtime plan for run-status via Command Interpreter",
+      "runtime_id": "run_command-interpreter_sample",
+      "target": "runtime/commands/command-interpreter/",
+      "rule": "run-status per Runtime Engine contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "core/packages/contracts/runtime-engine.md",
+        "core/packages/pipelines/runtime-engine/RACI.md",
+        "runtime/configs/.ai-os.yaml"
+      ],
+      "impact": "Enables orchestrated run-status without manual worker invocation",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual Core invocation (not supported for end users)",
+      "confidence": 0.85,
+      "source_paths": [
+        "core/packages/workers/",
+        "core/packages/pipelines/",
+        "core/packages/schemas/",
+        "core/packages/configs/",
+        "core/packages/registry/"
+      ],
+      "unknowns": [
+        "UNKNOWN: runtime execution not opened in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "runtime-engine",
+        "worker": "command-interpreter"
+      },
+      "folder_mirror": "runtime/commands/command-interpreter/run-status.json"
+    },
+    {
+      "id": "rt_command-interpreter_010",
+      "entry_kind": "run-benchmark",
+      "statement": "Runtime plan for run-benchmark via Command Interpreter",
+      "runtime_id": "run_command-interpreter_sample",
+      "target": "runtime/commands/command-interpreter/",
+      "rule": "run-benchmark per Runtime Engine contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "core/packages/contracts/runtime-engine.md",
+        "core/packages/pipelines/runtime-engine/RACI.md",
+        "runtime/configs/.ai-os.yaml"
+      ],
+      "impact": "Enables orchestrated run-benchmark without manual worker invocation",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual Core invocation (not supported for end users)",
+      "confidence": 0.85,
+      "source_paths": [
+        "core/packages/workers/",
+        "core/packages/pipelines/",
+        "core/packages/schemas/",
+        "core/packages/configs/",
+        "core/packages/registry/"
+      ],
+      "unknowns": [
+        "UNKNOWN: runtime execution not opened in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "runtime-engine",
+        "worker": "command-interpreter"
+      },
+      "folder_mirror": "runtime/commands/command-interpreter/run-benchmark.json"
+    }
+  ],
+  "status": "draft",
+  "created_at": "2026-08-01T11:02:14Z"
+}

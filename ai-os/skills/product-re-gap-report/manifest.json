@@ -3,7 +3,7 @@
   "id": "product-re-gap-report",
   "version": "0.1.1",
   "title": "Product RE Gap Report",
-  "description": "Synthesize product-re-gap coverage gaps across ingest and transform outputs into gaps/.",
+  "description": "Synthesize product-re-gap coverage gaps across ingest and transform outputs into artifacts/gaps/.",
   "role": "executor",
   "grade": "guided",
   "inputs": [

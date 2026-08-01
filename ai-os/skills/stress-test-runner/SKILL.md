@@ -9,11 +9,11 @@ description: Plan stress tests: large repos, monorepos, microservices, huge depe
 
 ## Consumes
 
-`workers/`, `validators/`, `reviewers/`, `pipelines/` (alias `pipeline/`), `artifacts/`, `schemas/`, `templates/`, `reports/`, `knowledge/`, `specifications/`, `registry/`
+`core/packages/workers/`, `core/packages/validators/`, `core/packages/reviewers/`, `core/packages/pipelines/` (alias `pipeline/`), `artifacts/`, `core/packages/schemas/`, `core/packages/templates/`, `artifacts/reports/`, `artifacts/knowledge/`, `artifacts/specifications/`, `core/packages/registry/`
 
 ## Produces
 
-`qualification/benchmarks/stress-test-runner/` → `qualification-finding` (required `folder_mirror` under partition)
+`governance/qualification/benchmarks/stress-test-runner/` → `qualification-finding` (required `folder_mirror` under partition)
 
 ## Ownership
 
@@ -28,7 +28,7 @@ description: Plan stress tests: large repos, monorepos, microservices, huge depe
 | `repeated-execution` | Owned per RACI |
 | `memory-pressure` | Owned per RACI |
 
-See `pipelines/qualification-framework/RACI.md`.
+See `core/packages/pipelines/qualification-framework/RACI.md`.
 
 ## Procedure
 
@@ -53,7 +53,7 @@ See `pipelines/qualification-framework/RACI.md`.
 
 ## Negative examples
 
-- Do not modify workers/, validators/, reviewers/, schemas/ from prior sprints.
+- Do not modify core/packages/workers/, core/packages/validators/, core/packages/reviewers/, core/packages/schemas/ from prior sprints.
 - Do not regenerate Framework Generator outputs.
 - Do not invent ground-truth metrics.
 - Do not execute benchmarks in packaging milestone.

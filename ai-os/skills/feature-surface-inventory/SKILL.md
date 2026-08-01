@@ -9,11 +9,11 @@ description: Inventory feature surfaces from doc-source, app-surface, and discov
 
 ## Consumes
 
-`doc-source`, `app-surface`, `discovery-report` → produces `features/`
+`doc-source`, `app-surface`, `discovery-report` → produces `artifacts/features/`
 
 ## Produces
 
-`features/` → `feature-inventory`
+`artifacts/features/` → `feature-inventory`
 
 ## Ownership
 
@@ -26,8 +26,8 @@ description: Inventory feature surfaces from doc-source, app-surface, and discov
 1. Soft-read `doc-source`, `app-surface`, and `discovery-report`.
 2. Inventory surfaces as they exist (e.g. jar review queue, accounts, budgets).
 3. Set `entry_kind` ∈ {surface, route, action}; cite `source_paths`.
-4. Write `feature-inventory`; optionally mirror under `features/`.
-5. Stop for validation/review.
+4. Write `feature-inventory`; optionally mirror under `artifacts/features/`.
+5. Stop for artifacts/validation/review.
 
 ## Heuristics
 
@@ -45,4 +45,4 @@ description: Inventory feature surfaces from doc-source, app-surface, and discov
 
 ## Lock
 
-Acquire `task:{task_id}` per `architecture/CONCURRENCY.md` before mutating run-record state.
+Acquire `task:{task_id}` per `docs/architecture/CONCURRENCY.md` before mutating run-record state.

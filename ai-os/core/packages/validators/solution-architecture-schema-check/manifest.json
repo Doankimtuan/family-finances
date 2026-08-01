@@ -1,0 +1,71 @@
+{
+  "schema_version": "1.0.0",
+  "id": "solution-architecture-schema-check",
+  "version": "0.1.0",
+  "title": "Solution Architecture Schema Check",
+  "description": "Deterministic schema/type checks for solution-architecture payloads.",
+  "applies_to": [
+    "architecture-v2-spec",
+    "architecture-decision-record",
+    "tech-stack-recommendation",
+    "migration-plan",
+    "folder-structure-spec",
+    "redesign-overview",
+    "quality-notes"
+  ],
+  "checks": [
+    {
+      "check_id": "schema-valid",
+      "severity": "critical",
+      "rule": "payload validates against core/packages/schemas/solution-architecture-payload.schema.json",
+      "path": "payload.json"
+    },
+    {
+      "check_id": "source-paths-required",
+      "severity": "critical",
+      "rule": "every entry has non-empty source_paths[]",
+      "path": "$.entries[*].source_paths"
+    },
+    {
+      "check_id": "confidence-required",
+      "severity": "critical",
+      "rule": "every entry has confidence in [0,1]",
+      "path": "$.entries[*].confidence"
+    },
+    {
+      "check_id": "no-invent-business-logic",
+      "severity": "critical",
+      "rule": "extensions.invent_business_logic is not true",
+      "path": "$.extensions.invent_business_logic"
+    },
+    {
+      "check_id": "no-overwrite-discovery",
+      "severity": "critical",
+      "rule": "extensions.overwrite_discovery is not true",
+      "path": "$.extensions.overwrite_discovery"
+    },
+    {
+      "check_id": "migration-preserves-behavior",
+      "severity": "high",
+      "rule": "when type=migration-plan, preserves_behavior is true on each entry",
+      "path": "$.entries[*].preserves_behavior"
+    },
+    {
+      "check_id": "no-aios-architecture-as-product",
+      "severity": "critical",
+      "rule": "source_paths must not treat ai-os/architecture control-plane docs as product architecture",
+      "path": "$.entries[*].source_paths"
+    }
+  ],
+  "fail_fast": true,
+  "side_effects": [
+    "none"
+  ],
+  "outputs": [
+    "validation-report"
+  ],
+  "status": "reserved",
+  "extensions": {
+    "pipeline": "solution-architecture"
+  }
+}

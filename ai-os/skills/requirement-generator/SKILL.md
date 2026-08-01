@@ -9,11 +9,11 @@ description: Extract requirement-spec SHALL/MUST statements (role_alias=requirem
 
 ## Consumes
 
-`product/`, `workflow/`, `business/`
+`artifacts/product/`, `artifacts/workflow/`, `artifacts/business/`
 
 ## Produces
 
-`requirements/` → `requirement-spec`
+`artifacts/requirements/` → `requirement-spec`
 
 ## Ownership
 
@@ -24,8 +24,8 @@ description: Extract requirement-spec SHALL/MUST statements (role_alias=requirem
 
 1. Load product, workflow, and business packs only.
 2. Extract requirements with `entry_kind=shall` and SHALL/MUST language.
-3. Cite `source_paths`; write `requirement-spec` under `requirements/`.
-4. Stop for validation/review.
+3. Cite `source_paths`; write `requirement-spec` under `artifacts/requirements/`.
+4. Stop for artifacts/validation/review.
 
 ## Heuristics
 
@@ -43,4 +43,4 @@ description: Extract requirement-spec SHALL/MUST statements (role_alias=requirem
 
 ## Lock
 
-Acquire `task:{task_id}` per `architecture/CONCURRENCY.md` before mutating run-record state.
+Acquire `task:{task_id}` per `docs/architecture/CONCURRENCY.md` before mutating run-record state.

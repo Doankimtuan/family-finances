@@ -87,45 +87,45 @@ async function main() {
   }
 
   for (const rel of [
-    "schemas/validation-engine-payload.schema.json",
-    "schemas/validation-finding.schema.json",
-    "schemas/validation-status.schema.json",
-    "schemas/quality-scores.schema.json",
-    "schemas/validation-report.schema.json",
-    "schemas/gate-validation-report.schema.json",
-    "validation/README.md",
-    "validation/TEMPLATE.md",
-    "reports/README.md",
-    "reports/TEMPLATE.md",
-    "scores/README.md",
-    "scores/TEMPLATE.md",
+    "core/packages/schemas/validation-engine-payload.schema.json",
+    "core/packages/schemas/validation-finding.schema.json",
+    "core/packages/schemas/validation-status.schema.json",
+    "core/packages/schemas/quality-scores.schema.json",
+    "core/packages/schemas/validation-report.schema.json",
+    "core/packages/schemas/gate-validation-report.schema.json",
+    "artifacts/validation/README.md",
+    "artifacts/validation/TEMPLATE.md",
+    "artifacts/reports/README.md",
+    "artifacts/reports/TEMPLATE.md",
+    "artifacts/scores/README.md",
+    "artifacts/scores/TEMPLATE.md",
     "artifacts/README.md",
-    "execution/README.md",
-    "quality/validation-scorecard/README.md",
-    "contracts/validation-engine.md",
-    "pipelines/validation-engine/pipeline.json",
-    "pipelines/validation-engine/dependency-graph.json",
-    "pipelines/validation-engine/execution-graph.md",
-    "pipelines/validation-engine/RACI.md",
-    "validators/validation-engine-schema-check/manifest.json",
-    "reviewers/validation-engine-coverage-review/manifest.json",
-    "reviewers/validation-engine-coverage-review/rubric/validation-engine-coverage.json",
-    "RELEASE_NOTES_0.11.0.md",
+    "artifacts/execution/README.md",
+    "governance/quality/validation-scorecard/README.md",
+    "core/packages/contracts/validation-engine.md",
+    "core/packages/pipelines/validation-engine/pipeline.json",
+    "core/packages/pipelines/validation-engine/dependency-graph.json",
+    "core/packages/pipelines/validation-engine/execution-graph.md",
+    "core/packages/pipelines/validation-engine/RACI.md",
+    "core/packages/validators/validation-engine-schema-check/manifest.json",
+    "core/packages/reviewers/validation-engine-coverage-review/manifest.json",
+    "core/packages/reviewers/validation-engine-coverage-review/rubric/validation-engine-coverage.json",
+    "docs/releases/RELEASE_NOTES_0.13.0.md",
   ]) {
     await fs.access(path.join(root, rel));
   }
 
   // SA quality template must remain intact (additive scorecard only)
-  await fs.access(path.join(root, "quality/TEMPLATE.md"));
+  await fs.access(path.join(root, "governance/quality/TEMPLATE.md"));
 
   const version = (await fs.readFile(path.join(root, "VERSION"), "utf8")).trim();
-  if (version !== "0.11.0") {
-    throw new Error(`Expected VERSION 0.11.0, got ${version}`);
+  if (version !== "0.13.0") {
+    throw new Error(`Expected VERSION 0.13.0, got ${version}`);
   }
 
   const vManifest = JSON.parse(
     await fs.readFile(
-      path.join(root, "validators/validation-engine-schema-check/manifest.json"),
+      path.join(root, "core/packages/validators/validation-engine-schema-check/manifest.json"),
       "utf8",
     ),
   );
@@ -146,7 +146,7 @@ async function main() {
   }
 
   const workersReg = JSON.parse(
-    await fs.readFile(path.join(root, "registry/workers.json"), "utf8"),
+    await fs.readFile(path.join(root, "core/packages/registry/workers.json"), "utf8"),
   );
 
   for (const id of ["traceability-validator", "completeness-validator", "consistency-validator"]) {
@@ -167,7 +167,7 @@ async function main() {
   for (const id of result.pipeline.workers) {
     const payloadPath = path.join(
       root,
-      "workers",
+      "core/packages/workers",
       id,
       "examples",
       "sample-primary-payload.json",
@@ -209,12 +209,12 @@ async function main() {
       for (const entry of payload.entries) {
         if (
           typeof entry.folder_mirror !== "string" ||
-          !entry.folder_mirror.startsWith(`validation/${id}/`)
+          !entry.folder_mirror.startsWith(`artifacts/validation/${id}/`)
         ) {
-          throw new Error(`folder_mirror must start with validation/${id}/ in ${id}`);
+          throw new Error(`folder_mirror must start with artifacts/validation/${id}/ in ${id}`);
         }
       }
-      await fs.access(path.join(root, "validation", id, "README.md"));
+      await fs.access(path.join(root, "artifacts/validation", id, "README.md"));
     }
 
     if (id === "quality-scoring-engine") {
@@ -273,7 +273,7 @@ async function main() {
       "testcases.md",
       "manifest.json",
     ]) {
-      await fs.access(path.join(root, "workers", id, rel));
+      await fs.access(path.join(root, "core/packages/workers", id, rel));
     }
     await fs.access(path.join(root, "skills", id, "manifest.json"));
     await fs.access(path.join(root, "skills", id, "SKILL.md"));
@@ -324,7 +324,7 @@ async function main() {
 
   // Artifact type registry
   const atypes = JSON.parse(
-    await fs.readFile(path.join(root, "registry/artifact-types.json"), "utf8"),
+    await fs.readFile(path.join(root, "core/packages/registry/artifact-types.json"), "utf8"),
   );
   if (!atypes.entries["gate-validation-report"]) {
     throw new Error("gate-validation-report must be registered");

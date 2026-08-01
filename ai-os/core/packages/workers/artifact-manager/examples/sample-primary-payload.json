@@ -1,0 +1,114 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_rt_artifact-manager_primary",
+  "type": "runtime-status",
+  "worker_id": "artifact-manager",
+  "title": "Artifact Manager sample",
+  "summary": "Sample runtime-status for artifact-manager (packaging; workers not executed)",
+  "entries": [
+    {
+      "id": "rt_artifact-manager_001",
+      "entry_kind": "artifact-track",
+      "statement": "Runtime plan for artifact-track via Artifact Manager",
+      "runtime_id": "run_artifact-manager_sample",
+      "target": "runtime/execution/artifact-manager/",
+      "rule": "artifact-track per Runtime Engine contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "core/packages/contracts/runtime-engine.md",
+        "core/packages/pipelines/runtime-engine/RACI.md",
+        "runtime/configs/.ai-os.yaml"
+      ],
+      "impact": "Enables orchestrated artifact-track without manual worker invocation",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual Core invocation (not supported for end users)",
+      "confidence": 0.85,
+      "source_paths": [
+        "core/packages/workers/",
+        "core/packages/pipelines/",
+        "core/packages/schemas/",
+        "core/packages/configs/",
+        "core/packages/registry/"
+      ],
+      "unknowns": [
+        "UNKNOWN: runtime execution not opened in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "runtime-engine",
+        "worker": "artifact-manager"
+      },
+      "folder_mirror": "runtime/execution/artifact-manager/artifact-track.json"
+    },
+    {
+      "id": "rt_artifact-manager_002",
+      "entry_kind": "artifact-version",
+      "statement": "Runtime plan for artifact-version via Artifact Manager",
+      "runtime_id": "run_artifact-manager_sample",
+      "target": "runtime/execution/artifact-manager/",
+      "rule": "artifact-version per Runtime Engine contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "core/packages/contracts/runtime-engine.md",
+        "core/packages/pipelines/runtime-engine/RACI.md",
+        "runtime/configs/.ai-os.yaml"
+      ],
+      "impact": "Enables orchestrated artifact-version without manual worker invocation",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual Core invocation (not supported for end users)",
+      "confidence": 0.85,
+      "source_paths": [
+        "core/packages/workers/",
+        "core/packages/pipelines/",
+        "core/packages/schemas/",
+        "core/packages/configs/",
+        "core/packages/registry/"
+      ],
+      "unknowns": [
+        "UNKNOWN: runtime execution not opened in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "runtime-engine",
+        "worker": "artifact-manager"
+      },
+      "folder_mirror": "runtime/execution/artifact-manager/artifact-version.json"
+    },
+    {
+      "id": "rt_artifact-manager_003",
+      "entry_kind": "artifact-lifecycle",
+      "statement": "Runtime plan for artifact-lifecycle via Artifact Manager",
+      "runtime_id": "run_artifact-manager_sample",
+      "target": "runtime/execution/artifact-manager/",
+      "rule": "artifact-lifecycle per Runtime Engine contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "core/packages/contracts/runtime-engine.md",
+        "core/packages/pipelines/runtime-engine/RACI.md",
+        "runtime/configs/.ai-os.yaml"
+      ],
+      "impact": "Enables orchestrated artifact-lifecycle without manual worker invocation",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual Core invocation (not supported for end users)",
+      "confidence": 0.85,
+      "source_paths": [
+        "core/packages/workers/",
+        "core/packages/pipelines/",
+        "core/packages/schemas/",
+        "core/packages/configs/",
+        "core/packages/registry/"
+      ],
+      "unknowns": [
+        "UNKNOWN: runtime execution not opened in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "runtime-engine",
+        "worker": "artifact-manager"
+      },
+      "folder_mirror": "runtime/execution/artifact-manager/artifact-lifecycle.json"
+    }
+  ],
+  "status": "draft",
+  "created_at": "2026-08-01T11:02:14Z"
+}

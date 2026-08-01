@@ -9,11 +9,11 @@ description: Extract acceptance-criteria GWT linked to requirements (role_alias=
 
 ## Consumes
 
-`requirements/`, `product/`, `workflow/`
+`artifacts/requirements/`, `artifacts/product/`, `artifacts/workflow/`
 
 ## Produces
 
-`acceptance/` → `acceptance-criteria`
+`artifacts/acceptance/` → `acceptance-criteria`
 
 ## Ownership
 
@@ -23,8 +23,8 @@ description: Extract acceptance-criteria GWT linked to requirements (role_alias=
 
 1. Load requirements plus product and workflow context.
 2. Extract observable GWT criteria (`entry_kind` ∈ given|when|then|gwt).
-3. Require `requirement_id`; cite `source_paths`; write under `acceptance/`.
-4. Stop for validation/review.
+3. Require `requirement_id`; cite `source_paths`; write under `artifacts/acceptance/`.
+4. Stop for artifacts/validation/review.
 
 ## Heuristics
 
@@ -42,4 +42,4 @@ description: Extract acceptance-criteria GWT linked to requirements (role_alias=
 
 ## Lock
 
-Acquire `task:{task_id}` per `architecture/CONCURRENCY.md` before mutating run-record state.
+Acquire `task:{task_id}` per `docs/architecture/CONCURRENCY.md` before mutating run-record state.

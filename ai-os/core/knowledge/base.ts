@@ -167,29 +167,29 @@ export class KnowledgeBase {
   }
 
   async artifactTypes(): Promise<RegistryDocument> {
-    return this.readJson("registry/artifact-types.json", RegistryDocument);
+    return this.readJson("core/packages/registry/artifact-types.json", RegistryDocument);
   }
 
   async skills(): Promise<RegistryDocument> {
-    return this.readJson("registry/skills.json", RegistryDocument);
+    return this.readJson("core/packages/registry/skills.json", RegistryDocument);
   }
 
   async validators(): Promise<RegistryDocument> {
-    return this.readJson("registry/validators.json", RegistryDocument);
+    return this.readJson("core/packages/registry/validators.json", RegistryDocument);
   }
 
   async reviewers(): Promise<RegistryDocument> {
-    return this.readJson("registry/reviewers.json", RegistryDocument);
+    return this.readJson("core/packages/registry/reviewers.json", RegistryDocument);
   }
 
   async workers(): Promise<RegistryDocument> {
-    return this.readJson("registry/workers.json", RegistryDocument);
+    return this.readJson("core/packages/registry/workers.json", RegistryDocument);
   }
 
   async getPipeline(pipelineId: string): Promise<PipelineDocument> {
     KebabId.parse(pipelineId);
     return this.readJson(
-      path.posix.join("pipelines", pipelineId, "pipeline.json"),
+      path.posix.join("core/packages/pipelines", pipelineId, "pipeline.json"),
       PipelineDocument,
     );
   }
@@ -264,7 +264,7 @@ export class KnowledgeBase {
       if (!entry) {
         throw new AiosError(
           "pipeline-worker-unregistered",
-          `Pipeline worker ${id} missing from registry/workers.json`,
+          `Pipeline worker ${id} missing from core/packages/registry/workers.json`,
         );
       }
       if (entry.worker_class && entry.worker_class !== "discovery") {
@@ -273,7 +273,7 @@ export class KnowledgeBase {
           `Worker ${id} is not discovery class`,
         );
       }
-      await this.assertRegistryPathExists(entry.path ?? `workers/${id}`);
+      await this.assertRegistryPathExists(entry.path ?? `core/packages/workers/${id}`);
       if (!nodeIds.has(id)) {
         throw new AiosError(
           "pipeline-graph-mismatch",
@@ -354,7 +354,7 @@ export class KnowledgeBase {
 
   /**
    * Load product-re pipeline and verify workers + capability package paths exist.
-   * Does not invoke workers. Enforces no architecture/ consume and no Feature Workers.
+   * Does not invoke workers. Enforces no docs/architecture/ consume and no Feature Workers.
    */
   async validateProductRePipelineRegistration(): Promise<{
     pipeline: PipelineDocument;
@@ -393,7 +393,7 @@ export class KnowledgeBase {
       if (!entry) {
         throw new AiosError(
           "pipeline-worker-unregistered",
-          `Pipeline worker ${id} missing from registry/workers.json`,
+          `Pipeline worker ${id} missing from core/packages/registry/workers.json`,
         );
       }
       if (entry.worker_class && entry.worker_class !== "discovery") {
@@ -412,10 +412,10 @@ export class KnowledgeBase {
       if (consumes.includes("architecture")) {
         throw new AiosError(
           "invalid-consume-path",
-          `Worker ${id} must not consume architecture/ (use product-architecture/)`,
+          `Worker ${id} must not consume docs/architecture/ (use artifacts/product-architecture/)`,
         );
       }
-      await this.assertRegistryPathExists(entry.path ?? `workers/${id}`);
+      await this.assertRegistryPathExists(entry.path ?? `core/packages/workers/${id}`);
       if (!nodeIds.has(id)) {
         throw new AiosError(
           "pipeline-graph-mismatch",
@@ -499,10 +499,10 @@ export class KnowledgeBase {
       }
     }
 
-    await this.assertRegistryPathExists("product-architecture");
-    await this.assertRegistryPathExists("gaps");
-    await this.assertRegistryPathExists("schemas/product-re-payload.schema.json");
-    await this.assertRegistryPathExists("schemas/product-model.schema.json");
+    await this.assertRegistryPathExists("artifacts/product-architecture");
+    await this.assertRegistryPathExists("artifacts/gaps");
+    await this.assertRegistryPathExists("core/packages/schemas/product-re-payload.schema.json");
+    await this.assertRegistryPathExists("core/packages/schemas/product-model.schema.json");
 
     for (const typeId of ["doc-source", "app-surface"]) {
       if (!(await this.hasArtifactType(typeId))) {
@@ -561,7 +561,7 @@ export class KnowledgeBase {
       if (!entry) {
         throw new AiosError(
           "pipeline-worker-unregistered",
-          `Pipeline worker ${id} missing from registry/workers.json`,
+          `Pipeline worker ${id} missing from core/packages/registry/workers.json`,
         );
       }
       if (entry.worker_class && entry.worker_class !== "discovery") {
@@ -580,10 +580,10 @@ export class KnowledgeBase {
       if (consumes.includes("architecture")) {
         throw new AiosError(
           "invalid-consume-path",
-          `Worker ${id} must consume product-architecture/ (alias for architecture/), not architecture/`,
+          `Worker ${id} must consume artifacts/product-architecture/ (alias for docs/architecture/), not docs/architecture/`,
         );
       }
-      await this.assertRegistryPathExists(entry.path ?? `workers/${id}`);
+      await this.assertRegistryPathExists(entry.path ?? `core/packages/workers/${id}`);
       if (!nodeIds.has(id)) {
         throw new AiosError(
           "pipeline-graph-mismatch",
@@ -663,15 +663,15 @@ export class KnowledgeBase {
       }
     }
 
-    await this.assertRegistryPathExists("quality");
-    await this.assertRegistryPathExists("architecture-v2");
-    await this.assertRegistryPathExists("tech-stack");
-    await this.assertRegistryPathExists("migration");
-    await this.assertRegistryPathExists("folder-structure");
-    await this.assertRegistryPathExists("decision-records");
-    await this.assertRegistryPathExists("redesign");
+    await this.assertRegistryPathExists("governance/quality");
+    await this.assertRegistryPathExists("artifacts/architecture-v2");
+    await this.assertRegistryPathExists("artifacts/tech-stack");
+    await this.assertRegistryPathExists("artifacts/migration");
+    await this.assertRegistryPathExists("artifacts/folder-structure");
+    await this.assertRegistryPathExists("governance/decision-records");
+    await this.assertRegistryPathExists("artifacts/redesign");
     await this.assertRegistryPathExists(
-      "schemas/solution-architecture-payload.schema.json",
+      "core/packages/schemas/solution-architecture-payload.schema.json",
     );
 
     return {
@@ -724,7 +724,7 @@ export class KnowledgeBase {
       if (!entry) {
         throw new AiosError(
           "pipeline-worker-unregistered",
-          `Pipeline worker ${id} missing from registry/workers.json`,
+          `Pipeline worker ${id} missing from core/packages/registry/workers.json`,
         );
       }
       if (entry.worker_class && entry.worker_class !== "discovery") {
@@ -743,10 +743,10 @@ export class KnowledgeBase {
       if (consumes.includes("architecture")) {
         throw new AiosError(
           "invalid-consume-path",
-          `Worker ${id} must consume product-architecture/ (alias for architecture/), not architecture/`,
+          `Worker ${id} must consume artifacts/product-architecture/ (alias for docs/architecture/), not docs/architecture/`,
         );
       }
-      await this.assertRegistryPathExists(entry.path ?? `workers/${id}`);
+      await this.assertRegistryPathExists(entry.path ?? `core/packages/workers/${id}`);
       if (!nodeIds.has(id)) {
         throw new AiosError(
           "pipeline-graph-mismatch",
@@ -826,25 +826,25 @@ export class KnowledgeBase {
       }
     }
 
-    await this.assertRegistryPathExists("repository");
-    await this.assertRegistryPathExists("specifications");
-    await this.assertRegistryPathExists("tasks");
-    await this.assertRegistryPathExists("roadmap");
-    await this.assertRegistryPathExists("implementation");
-    await this.assertRegistryPathExists("decision-records");
-    await this.assertRegistryPathExists("tech-stack");
-    await this.assertRegistryPathExists("migration");
-    await this.assertRegistryPathExists("folder-structure");
+    await this.assertRegistryPathExists("artifacts/repository");
+    await this.assertRegistryPathExists("artifacts/specifications");
+    await this.assertRegistryPathExists("artifacts/tasks");
+    await this.assertRegistryPathExists("artifacts/roadmap");
+    await this.assertRegistryPathExists("artifacts/implementation");
+    await this.assertRegistryPathExists("governance/decision-records");
+    await this.assertRegistryPathExists("artifacts/tech-stack");
+    await this.assertRegistryPathExists("artifacts/migration");
+    await this.assertRegistryPathExists("artifacts/folder-structure");
     await this.assertRegistryPathExists(
-      "pipelines/specification-engineering/RACI.md",
+      "core/packages/pipelines/specification-engineering/RACI.md",
     );
     await this.assertRegistryPathExists(
-      "reviewers/specification-engineering-coverage-review/rubric/specification-engineering-coverage.json",
+      "core/packages/reviewers/specification-engineering-coverage-review/rubric/specification-engineering-coverage.json",
     );
     await this.assertRegistryPathExists(
-      "schemas/specification-engineering-payload.schema.json",
+      "core/packages/schemas/specification-engineering-payload.schema.json",
     );
-    await this.assertRegistryPathExists("schemas/repository-notes.schema.json");
+    await this.assertRegistryPathExists("core/packages/schemas/repository-notes.schema.json");
 
     for (const id of pipeline.workers) {
       const entry = workersReg.entries[id] as { consumes?: string[] };
@@ -912,7 +912,7 @@ export class KnowledgeBase {
       if (!entry) {
         throw new AiosError(
           "pipeline-worker-unregistered",
-          `Pipeline worker ${id} missing from registry/workers.json`,
+          `Pipeline worker ${id} missing from core/packages/registry/workers.json`,
         );
       }
       if (entry.worker_class && entry.worker_class !== "discovery") {
@@ -927,7 +927,7 @@ export class KnowledgeBase {
           `Worker ${id} registry pipeline must be validation-engine`,
         );
       }
-      await this.assertRegistryPathExists(entry.path ?? `workers/${id}`);
+      await this.assertRegistryPathExists(entry.path ?? `core/packages/workers/${id}`);
       if (!nodeIds.has(id)) {
         throw new AiosError(
           "pipeline-graph-mismatch",
@@ -1034,22 +1034,22 @@ export class KnowledgeBase {
       }
     }
 
-    await this.assertRegistryPathExists("validation");
-    await this.assertRegistryPathExists("reports");
-    await this.assertRegistryPathExists("scores");
+    await this.assertRegistryPathExists("artifacts/validation");
+    await this.assertRegistryPathExists("artifacts/reports");
+    await this.assertRegistryPathExists("artifacts/scores");
     await this.assertRegistryPathExists("artifacts");
-    await this.assertRegistryPathExists("execution");
-    await this.assertRegistryPathExists("quality/validation-scorecard");
-    await this.assertRegistryPathExists("contracts/validation-engine.md");
-    await this.assertRegistryPathExists("pipelines/validation-engine/RACI.md");
+    await this.assertRegistryPathExists("artifacts/execution");
+    await this.assertRegistryPathExists("governance/quality/validation-scorecard");
+    await this.assertRegistryPathExists("core/packages/contracts/validation-engine.md");
+    await this.assertRegistryPathExists("core/packages/pipelines/validation-engine/RACI.md");
     await this.assertRegistryPathExists(
-      "schemas/validation-engine-payload.schema.json",
+      "core/packages/schemas/validation-engine-payload.schema.json",
     );
     await this.assertRegistryPathExists(
-      "schemas/gate-validation-report.schema.json",
+      "core/packages/schemas/gate-validation-report.schema.json",
     );
     await this.assertRegistryPathExists(
-      "reviewers/validation-engine-coverage-review/rubric/validation-engine-coverage.json",
+      "core/packages/reviewers/validation-engine-coverage-review/rubric/validation-engine-coverage.json",
     );
 
     return {
@@ -1099,7 +1099,7 @@ export class KnowledgeBase {
       if (!entry) {
         throw new AiosError(
           "pipeline-worker-unregistered",
-          `Pipeline worker ${id} missing from registry/workers.json`,
+          `Pipeline worker ${id} missing from core/packages/registry/workers.json`,
         );
       }
       if (entry.worker_class && entry.worker_class !== "discovery") {
@@ -1114,7 +1114,7 @@ export class KnowledgeBase {
           `Worker ${id} registry pipeline must be review-engine`,
         );
       }
-      await this.assertRegistryPathExists(entry.path ?? `workers/${id}`);
+      await this.assertRegistryPathExists(entry.path ?? `core/packages/workers/${id}`);
       if (!nodeIds.has(id)) {
         throw new AiosError(
           "pipeline-graph-mismatch",
@@ -1272,20 +1272,20 @@ export class KnowledgeBase {
       }
     }
 
-    await this.assertRegistryPathExists("reviews");
+    await this.assertRegistryPathExists("governance/reviews");
     await this.assertRegistryPathExists("governance");
-    await this.assertRegistryPathExists("recommendations");
-    await this.assertRegistryPathExists("decisions");
-    await this.assertRegistryPathExists("improvements");
-    await this.assertRegistryPathExists("contracts/review-engine.md");
-    await this.assertRegistryPathExists("pipelines/review-engine/RACI.md");
-    await this.assertRegistryPathExists("templates/review/DECISION_RECORD.md");
+    await this.assertRegistryPathExists("governance/recommendations");
+    await this.assertRegistryPathExists("governance/decisions");
+    await this.assertRegistryPathExists("governance/improvements");
+    await this.assertRegistryPathExists("core/packages/contracts/review-engine.md");
+    await this.assertRegistryPathExists("core/packages/pipelines/review-engine/RACI.md");
+    await this.assertRegistryPathExists("core/packages/templates/review/DECISION_RECORD.md");
     await this.assertRegistryPathExists(
-      "schemas/review-engine-payload.schema.json",
+      "core/packages/schemas/review-engine-payload.schema.json",
     );
-    await this.assertRegistryPathExists("schemas/gate-review-report.schema.json");
+    await this.assertRegistryPathExists("core/packages/schemas/gate-review-report.schema.json");
     await this.assertRegistryPathExists(
-      "reviewers/review-engine-coverage-review/rubric/review-engine-coverage.json",
+      "core/packages/reviewers/review-engine-coverage-review/rubric/review-engine-coverage.json",
     );
 
     return {
@@ -1335,7 +1335,7 @@ export class KnowledgeBase {
       if (!entry) {
         throw new AiosError(
           "pipeline-worker-unregistered",
-          `Pipeline worker ${id} missing from registry/workers.json`,
+          `Pipeline worker ${id} missing from core/packages/registry/workers.json`,
         );
       }
       if (entry.worker_class && entry.worker_class !== "discovery") {
@@ -1350,7 +1350,7 @@ export class KnowledgeBase {
           `Worker ${id} registry pipeline must be framework-generator`,
         );
       }
-      await this.assertRegistryPathExists(entry.path ?? `workers/${id}`);
+      await this.assertRegistryPathExists(entry.path ?? `core/packages/workers/${id}`);
       if (!nodeIds.has(id)) {
         throw new AiosError(
           "pipeline-graph-mismatch",
@@ -1467,32 +1467,32 @@ export class KnowledgeBase {
       }
     }
 
-    await this.assertRegistryPathExists("framework-generator");
-    await this.assertRegistryPathExists("framework-generator/catalog");
-    await this.assertRegistryPathExists("configs/sample-capability.yaml");
-    await this.assertRegistryPathExists("configs/examples/worker-generator.yaml");
-    await this.assertRegistryPathExists("framework-generator/templates/capability-spec.template.yaml");
+    await this.assertRegistryPathExists("core/packages/scaffold");
+    await this.assertRegistryPathExists("core/packages/scaffold/catalog");
+    await this.assertRegistryPathExists("core/packages/configs/sample-capability.yaml");
+    await this.assertRegistryPathExists("core/packages/configs/examples/worker-generator.yaml");
+    await this.assertRegistryPathExists("core/packages/scaffold/templates/capability-spec.template.yaml");
     await this.assertRegistryPathExists(
-      "workers/generation-orchestrator/examples/sample-primary-payload.json",
+      "core/packages/workers/generation-orchestrator/examples/sample-primary-payload.json",
     );
     await this.assertRegistryPathExists(
-      "workers/generation-reporter/examples/sample-gate-payload.json",
+      "core/packages/workers/generation-reporter/examples/sample-gate-payload.json",
     );
-    await this.assertRegistryPathExists("contracts/framework-generator.md");
-    await this.assertRegistryPathExists("pipelines/framework-generator/RACI.md");
+    await this.assertRegistryPathExists("core/packages/contracts/framework-generator.md");
+    await this.assertRegistryPathExists("core/packages/pipelines/framework-generator/RACI.md");
     await this.assertRegistryPathExists(
-      "schemas/framework-generator-payload.schema.json",
+      "core/packages/schemas/framework-generator-payload.schema.json",
     );
-    await this.assertRegistryPathExists("schemas/framework-generation.schema.json");
+    await this.assertRegistryPathExists("core/packages/schemas/framework-generation.schema.json");
     await this.assertRegistryPathExists(
-      "schemas/framework-generation-status.schema.json",
+      "core/packages/schemas/framework-generation-status.schema.json",
     );
     await this.assertRegistryPathExists(
-      "schemas/framework-generation-report.schema.json",
+      "core/packages/schemas/framework-generation-report.schema.json",
     );
-    await this.assertRegistryPathExists("schemas/generation-spec.schema.json");
+    await this.assertRegistryPathExists("core/packages/schemas/generation-spec.schema.json");
     await this.assertRegistryPathExists(
-      "schemas/gate-framework-generation-report.schema.json",
+      "core/packages/schemas/gate-framework-generation-report.schema.json",
     );
 
     return {
@@ -1542,7 +1542,7 @@ export class KnowledgeBase {
       if (!entry) {
         throw new AiosError(
           "pipeline-worker-unregistered",
-          `Pipeline worker ${id} missing from registry/workers.json`,
+          `Pipeline worker ${id} missing from core/packages/registry/workers.json`,
         );
       }
       if (entry.worker_class && entry.worker_class !== "discovery") {
@@ -1557,7 +1557,7 @@ export class KnowledgeBase {
           `Worker ${id} registry pipeline must be qualification-framework`,
         );
       }
-      await this.assertRegistryPathExists(entry.path ?? `workers/${id}`);
+      await this.assertRegistryPathExists(entry.path ?? `core/packages/workers/${id}`);
       if (!nodeIds.has(id)) {
         throw new AiosError(
           "pipeline-graph-mismatch",
@@ -1679,23 +1679,23 @@ export class KnowledgeBase {
       }
     }
 
-    await this.assertRegistryPathExists("qualification");
-    await this.assertRegistryPathExists("qualification/reference-projects/catalog.json");
-    await this.assertRegistryPathExists("qualification/scorecards/metrics-catalog.json");
-    await this.assertRegistryPathExists("contracts/qualification-framework.md");
-    await this.assertRegistryPathExists("pipelines/qualification-framework/RACI.md");
+    await this.assertRegistryPathExists("governance/qualification");
+    await this.assertRegistryPathExists("governance/qualification/reference-projects/catalog.json");
+    await this.assertRegistryPathExists("governance/qualification/scorecards/metrics-catalog.json");
+    await this.assertRegistryPathExists("core/packages/contracts/qualification-framework.md");
+    await this.assertRegistryPathExists("core/packages/pipelines/qualification-framework/RACI.md");
     await this.assertRegistryPathExists(
-      "schemas/qualification-framework-payload.schema.json",
+      "core/packages/schemas/qualification-framework-payload.schema.json",
     );
-    await this.assertRegistryPathExists("schemas/qualification-finding.schema.json");
-    await this.assertRegistryPathExists("schemas/qualification-scores.schema.json");
-    await this.assertRegistryPathExists("schemas/certification-report.schema.json");
+    await this.assertRegistryPathExists("core/packages/schemas/qualification-finding.schema.json");
+    await this.assertRegistryPathExists("core/packages/schemas/qualification-scores.schema.json");
+    await this.assertRegistryPathExists("core/packages/schemas/certification-report.schema.json");
     await this.assertRegistryPathExists(
-      "schemas/release-qualification-decision.schema.json",
+      "core/packages/schemas/release-qualification-decision.schema.json",
     );
-    await this.assertRegistryPathExists("schemas/gate-qualification-report.schema.json");
+    await this.assertRegistryPathExists("core/packages/schemas/gate-qualification-report.schema.json");
     await this.assertRegistryPathExists(
-      "reviewers/qualification-framework-coverage-review/rubric/qualification-framework-coverage.json",
+      "core/packages/reviewers/qualification-framework-coverage-review/rubric/qualification-framework-coverage.json",
     );
 
     return {
@@ -1745,7 +1745,7 @@ export class KnowledgeBase {
       if (!entry) {
         throw new AiosError(
           "pipeline-worker-unregistered",
-          `Pipeline worker ${id} missing from registry/workers.json`,
+          `Pipeline worker ${id} missing from core/packages/registry/workers.json`,
         );
       }
       if (entry.worker_class && entry.worker_class !== "discovery") {
@@ -1760,7 +1760,7 @@ export class KnowledgeBase {
           `Worker ${id} registry pipeline must be runtime-engine`,
         );
       }
-      await this.assertRegistryPathExists(entry.path ?? `workers/${id}`);
+      await this.assertRegistryPathExists(entry.path ?? `core/packages/workers/${id}`);
       if (!nodeIds.has(id)) {
         throw new AiosError(
           "pipeline-graph-mismatch",
@@ -1887,18 +1887,18 @@ export class KnowledgeBase {
     await this.assertRegistryPathExists("runtime");
     await this.assertRegistryPathExists("runtime/configs/.ai-os.yaml");
     await this.assertRegistryPathExists("runtime/commands/command-registry.json");
-    await this.assertRegistryPathExists("contracts/runtime-engine.md");
-    await this.assertRegistryPathExists("pipelines/runtime-engine/RACI.md");
+    await this.assertRegistryPathExists("core/packages/contracts/runtime-engine.md");
+    await this.assertRegistryPathExists("core/packages/pipelines/runtime-engine/RACI.md");
     await this.assertRegistryPathExists(
-      "schemas/runtime-engine-payload.schema.json",
+      "core/packages/schemas/runtime-engine-payload.schema.json",
     );
-    await this.assertRegistryPathExists("schemas/runtime-plan.schema.json");
+    await this.assertRegistryPathExists("core/packages/schemas/runtime-plan.schema.json");
     await this.assertRegistryPathExists(
-      "schemas/runtime-execution-report.schema.json",
+      "core/packages/schemas/runtime-execution-report.schema.json",
     );
-    await this.assertRegistryPathExists("schemas/gate-runtime-report.schema.json");
+    await this.assertRegistryPathExists("core/packages/schemas/gate-runtime-report.schema.json");
     await this.assertRegistryPathExists(
-      "reviewers/runtime-engine-coverage-review/rubric/runtime-engine-coverage.json",
+      "core/packages/reviewers/runtime-engine-coverage-review/rubric/runtime-engine-coverage.json",
     );
 
     return {
@@ -1909,7 +1909,7 @@ export class KnowledgeBase {
   }
 
   async gateProfiles(): Promise<GateProfiles> {
-    return this.readJson("policies/gate-profiles.json", GateProfileFile);
+    return this.readJson("governance/policies/gate-profiles.json", GateProfileFile);
   }
 
   async hasArtifactType(typeId: string): Promise<boolean> {
@@ -1968,15 +1968,15 @@ export class KnowledgeBase {
 
   frameworkPointers(): Record<string, string> {
     return {
-      overview: path.join(this.aiosRoot, "architecture/OVERVIEW.md"),
+      overview: path.join(this.aiosRoot, "docs/architecture/OVERVIEW.md"),
       agents: path.join(this.aiosRoot, "AGENTS.md"),
-      traceability: path.join(this.aiosRoot, "architecture/TRACEABILITY.md"),
-      migrations: path.join(this.aiosRoot, "architecture/MIGRATIONS.md"),
-      jsonSchemas: path.join(this.aiosRoot, "schemas"),
-      templates: path.join(this.aiosRoot, "templates"),
+      traceability: path.join(this.aiosRoot, "docs/architecture/TRACEABILITY.md"),
+      migrations: path.join(this.aiosRoot, "docs/architecture/MIGRATIONS.md"),
+      jsonSchemas: path.join(this.aiosRoot, "core/packages/schemas"),
+      templates: path.join(this.aiosRoot, "core/packages/templates"),
       core: path.join(this.aiosRoot, "core"),
-      workers: path.join(this.aiosRoot, "workers"),
-      pipelines: path.join(this.aiosRoot, "pipelines"),
+      workers: path.join(this.aiosRoot, "core/packages/workers"),
+      pipelines: path.join(this.aiosRoot, "core/packages/pipelines"),
     };
   }
 }

@@ -9,11 +9,11 @@ description: Generate production-quality prompts for builder, reviewer, validato
 
 ## Consumes
 
-`templates/`, `schemas/`, `workers/`, `validators/`, `reviewers/`, `pipelines/`, `knowledge/`, `configs/`, `artifacts/`, `registry/`
+`core/packages/templates/`, `core/packages/schemas/`, `core/packages/workers/`, `core/packages/validators/`, `core/packages/reviewers/`, `core/packages/pipelines/`, `artifacts/knowledge/`, `core/packages/configs/`, `artifacts/`, `core/packages/registry/`
 
 ## Produces
 
-`framework-generator/generators/prompt-generator/` → `framework-generation` (required `folder_mirror` under partition)
+`core/packages/scaffold/generators/prompt-generator/` → `framework-generation` (required `folder_mirror` under partition)
 
 ## Ownership
 
@@ -27,19 +27,19 @@ description: Generate production-quality prompts for builder, reviewer, validato
 | `freeze-prompt` | Rule for `freeze-prompt` per RACI |
 | `execution-prompt` | Rule for `execution-prompt` per RACI |
 
-See `pipelines/framework-generator/RACI.md` and `contracts/framework-generator.md` overlap table.
+See `core/packages/pipelines/framework-generator/RACI.md` and `core/packages/contracts/framework-generator.md` overlap table.
 
 ## Procedure
 
 1. Load role from spec (`builder` | `reviewer` | `validator` | `improve` | `freeze` | `execution`).
 2. Bind prompt sections: ROLE, GOAL, INPUT, OUTPUT, STOP, NEGATIVE examples.
-3. Reference `templates/skill/SKILL.md` structure for builder prompts only.
+3. Reference `core/packages/templates/skill/SKILL.md` structure for builder prompts only.
 4. Emit all six prompt entry_kinds when spec.mode=full; else UNKNOWN for skipped roles.
 5. Do not embed worker business logic — framework prompts only.
 
 ## Heuristics
 
-- Reuse `templates/` packs; never duplicate template file contents in plans.
+- Reuse `core/packages/templates/` packs; never duplicate template file contents in plans.
 - Every `output_plan` requires `artifacts`, `registries`, `semver`; add `migration` when breaking.
 - Mark skipped modes `UNKNOWN: …`; never invent spec fields.
 - Dedupe key for orchestrator: `generation_id` + `entry_kind`.

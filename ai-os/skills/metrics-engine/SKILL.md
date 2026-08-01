@@ -9,11 +9,11 @@ description: Plan collection of coverage, performance, and reliability metrics i
 
 ## Consumes
 
-`workers/`, `validators/`, `reviewers/`, `pipelines/` (alias `pipeline/`), `artifacts/`, `schemas/`, `templates/`, `reports/`, `knowledge/`, `specifications/`, `registry/`
+`core/packages/workers/`, `core/packages/validators/`, `core/packages/reviewers/`, `core/packages/pipelines/` (alias `pipeline/`), `artifacts/`, `core/packages/schemas/`, `core/packages/templates/`, `artifacts/reports/`, `artifacts/knowledge/`, `artifacts/specifications/`, `core/packages/registry/`
 
 ## Produces
 
-`qualification/metrics/metrics-engine/` → `qualification-scores` (required `folder_mirror` under partition)
+`governance/qualification/metrics/metrics-engine/` → `qualification-scores` (required `folder_mirror` under partition)
 
 ## Ownership
 
@@ -34,7 +34,7 @@ description: Plan collection of coverage, performance, and reliability metrics i
 | `retry-count` | Owned per RACI |
 | `confidence-distribution` | Owned per RACI |
 
-See `pipelines/qualification-framework/RACI.md`.
+See `core/packages/pipelines/qualification-framework/RACI.md`.
 
 ## Procedure
 
@@ -42,7 +42,7 @@ See `pipelines/qualification-framework/RACI.md`.
 2. Emit qualification-scores with metric_id, metric_value (or UNKNOWN), unit, threshold, result.
 3. Cover coverage metrics, performance (execution-time, token-usage), reliability (failure-rate, retry-count, confidence-distribution).
 4. All 13 metric entry_kinds represented or UNKNOWN.
-5. CSV/JSON scorecard paths planned under qualification/metrics/ and scorecards/.
+5. CSV/JSON scorecard paths planned under governance/qualification/metrics/ and scorecards/.
 
 ## Heuristics
 
@@ -59,7 +59,7 @@ See `pipelines/qualification-framework/RACI.md`.
 
 ## Negative examples
 
-- Do not modify workers/, validators/, reviewers/, schemas/ from prior sprints.
+- Do not modify core/packages/workers/, core/packages/validators/, core/packages/reviewers/, core/packages/schemas/ from prior sprints.
 - Do not regenerate Framework Generator outputs.
 - Do not invent ground-truth metrics.
 - Do not execute benchmarks in packaging milestone.

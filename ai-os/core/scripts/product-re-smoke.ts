@@ -43,17 +43,17 @@ async function main() {
   }
 
   for (const rel of [
-    "schemas/product-re-payload.schema.json",
-    "schemas/product-model.schema.json",
-    "schemas/workflow-model.schema.json",
-    "schemas/requirement-spec.schema.json",
-    "schemas/acceptance-criteria.schema.json",
-    "schemas/product-re-ingest.schema.json",
-    "schemas/product-re-gap.schema.json",
-    "product-architecture/README.md",
-    "gaps/README.md",
-    "contracts/pipeline.md",
-    "contracts/worker-port.md",
+    "core/packages/schemas/product-re-payload.schema.json",
+    "core/packages/schemas/product-model.schema.json",
+    "core/packages/schemas/workflow-model.schema.json",
+    "core/packages/schemas/requirement-spec.schema.json",
+    "core/packages/schemas/acceptance-criteria.schema.json",
+    "core/packages/schemas/product-re-ingest.schema.json",
+    "core/packages/schemas/product-re-gap.schema.json",
+    "artifacts/product-architecture/README.md",
+    "artifacts/gaps/README.md",
+    "core/packages/contracts/pipeline.md",
+    "core/packages/contracts/worker-port.md",
   ]) {
     await fs.access(path.join(root, rel));
   }
@@ -68,7 +68,7 @@ async function main() {
   for (const id of result.pipeline.workers) {
     const payloadPath = path.join(
       root,
-      "workers",
+      "core/packages/workers",
       id,
       "examples",
       "sample-primary-payload.json",
@@ -89,12 +89,12 @@ async function main() {
         if (
           typeof sp === "string" &&
           (sp === "architecture" ||
-            sp === "architecture/" ||
-            sp.startsWith("architecture/") ||
+            sp === "docs/architecture/" ||
+            sp.startsWith("docs/architecture/") ||
             sp.includes("ai-os/architecture"))
         ) {
           throw new Error(
-            `sample payload for ${id} cites architecture/ as product source: ${sp}`,
+            `sample payload for ${id} cites docs/architecture/ as product source: ${sp}`,
           );
         }
       }
@@ -168,25 +168,25 @@ async function main() {
 
   // Domain fixtures present
   for (const rel of [
-    "knowledge/examples/household-glossary.json",
-    "features/examples/jar-review-queue.json",
-    "business/examples/jar-intent-rules.json",
-    "product-architecture/examples/domain-pillars.json",
-    "product/examples/household-product-model.json",
-    "workflow/examples/expense-to-jar-workflow.json",
-    "requirements/examples/household-requirements.json",
-    "acceptance/examples/household-acceptance.json",
-    "gaps/examples/coverage-gaps.json",
+    "artifacts/knowledge/examples/household-glossary.json",
+    "artifacts/features/examples/jar-review-queue.json",
+    "artifacts/business/examples/jar-intent-rules.json",
+    "artifacts/product-architecture/examples/domain-pillars.json",
+    "artifacts/product/examples/household-product-model.json",
+    "artifacts/workflow/examples/expense-to-jar-workflow.json",
+    "artifacts/requirements/examples/household-requirements.json",
+    "artifacts/acceptance/examples/household-acceptance.json",
+    "artifacts/gaps/examples/coverage-gaps.json",
   ]) {
     await fs.access(path.join(root, rel));
   }
 
   // No Feature Worker packages
   const workersReg = await core.knowledge.workers();
-  const workerDirs = await fs.readdir(path.join(root, "workers"));
+  const workerDirs = await fs.readdir(path.join(root, "core/packages/workers"));
   for (const name of workerDirs) {
     if (name === "README.md") continue;
-    const full = path.join(root, "workers", name);
+    const full = path.join(root, "core/packages/workers", name);
     const st = await fs.stat(full);
     if (!st.isDirectory()) continue;
     const entry = workersReg.entries[name] as

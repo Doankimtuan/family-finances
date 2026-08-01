@@ -9,29 +9,29 @@ description: Transform validated project knowledge into implementation-ready sof
 
 ## Consumes
 
-`knowledge/`, `repository/` (soft human/pre-step), `features/`, `business/`, `product-architecture/` (logical `architecture/`), `architecture-v2/`, `decision-records/`, `tech-stack/`, `migration/`, `folder-structure/`, `requirements/`, `quality/`, `redesign/`, `workflow/`, `acceptance/`
+`artifacts/knowledge/`, `artifacts/repository/` (soft human/pre-step), `artifacts/features/`, `artifacts/business/`, `artifacts/product-architecture/` (logical `docs/architecture/`), `artifacts/architecture-v2/`, `governance/decision-records/`, `artifacts/tech-stack/`, `artifacts/migration/`, `artifacts/folder-structure/`, `artifacts/requirements/`, `governance/quality/`, `artifacts/redesign/`, `artifacts/workflow/`, `artifacts/acceptance/`
 
 ## Produces
 
-`specifications/` → `project-specification`
+`artifacts/specifications/` → `project-specification`
 
 ## Ownership
 
 - **Owns:** all 13 specification section kinds (+ conflict/gap)
-- **Does not:** invent APIs/tables/rules; redesign architecture; overwrite Product RE / SA packs; author `repository/` (human/pre-step)
+- **Does not:** invent APIs/tables/rules; redesign architecture; overwrite Product RE / SA packs; author `artifacts/repository/` (human/pre-step)
 - **Must:** purpose/scope/actors/pre/post/workflow/business_rules/validation_rules/error_handling/edge_cases/dependencies/acceptance_criteria on every non-gap section; full traceability matrix; `UNKNOWN:` when missing
 
 ## Procedure
 
 1. Load declared consume packs (soft packs may be absent → UNKNOWN).
 2. Emit one entry per required section kind (or explicit `gap` naming the missing kind).
-3. Restate requirements/acceptance/business with pointers — do not duplicate sprawl.
-4. Cross-reference architecture-v2 + decision-records + tech-stack/migration/folder-structure for architecture/module/deployment/coding-standards.
-5. Write `project-specification` under `specifications/`. Stop for validation/review.
+3. Restate artifacts/requirements/acceptance/business with pointers — do not duplicate sprawl.
+4. Cross-reference architecture-v2 + decision-records + artifacts/tech-stack/migration/folder-structure for docs/architecture/module/deployment/coding-standards.
+5. Write `project-specification` under `artifacts/specifications/`. Stop for artifacts/validation/review.
 
 ## Heuristics
 
-- Prefer pointing at `requirements/` / `acceptance/` over copying prose.
+- Prefer pointing at `artifacts/requirements/` / `artifacts/acceptance/` over copying prose.
 - If SA pack missing, emit section with `UNKNOWN:` body fields rather than inventing.
 - `conflict` when upstream packs disagree; never pick a winner by inventing.
 
@@ -47,10 +47,10 @@ project-overview, functional, non-functional, architecture, module, feature, api
 
 ## Negative examples
 
-- Do not invent API fields absent from features/workflow.
-- Do not treat AIOS `architecture/` as product architecture.
+- Do not invent API fields absent from artifacts/features/workflow.
+- Do not treat AIOS `docs/architecture/` as product architecture.
 - Do not rewrite Product RE requirements as if Spec Eng owns them.
 
 ## Lock
 
-Acquire `task:{task_id}` per `architecture/CONCURRENCY.md` before mutating run-record state.
+Acquire `task:{task_id}` per `docs/architecture/CONCURRENCY.md` before mutating run-record state.

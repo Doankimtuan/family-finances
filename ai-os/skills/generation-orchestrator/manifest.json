@@ -47,7 +47,7 @@
   "entrypoint": "SKILL.md",
   "extensions": {
     "pipeline": "framework-generator",
-    "partition": "framework-generator/status/generation-orchestrator/",
+    "partition": "core/packages/scaffold/status/generation-orchestrator/",
     "entry_kinds": [
       "plan",
       "order",

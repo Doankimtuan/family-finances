@@ -9,11 +9,11 @@ description: Generate validator packages (artifact, schema, traceability, depend
 
 ## Consumes
 
-`templates/`, `schemas/`, `workers/`, `validators/`, `reviewers/`, `pipelines/`, `knowledge/`, `configs/`, `artifacts/`, `registry/`
+`core/packages/templates/`, `core/packages/schemas/`, `core/packages/workers/`, `core/packages/validators/`, `core/packages/reviewers/`, `core/packages/pipelines/`, `artifacts/knowledge/`, `core/packages/configs/`, `artifacts/`, `core/packages/registry/`
 
 ## Produces
 
-`framework-generator/generators/validator-generator/` → `framework-generation` (required `folder_mirror` under partition)
+`core/packages/scaffold/generators/validator-generator/` → `framework-generation` (required `folder_mirror` under partition)
 
 ## Ownership
 
@@ -28,19 +28,19 @@ description: Generate validator packages (artifact, schema, traceability, depend
 | `consistency-validation` | Rule for `consistency-validation` per RACI |
 | `quality-validation` | Rule for `quality-validation` per RACI |
 
-See `pipelines/framework-generator/RACI.md` and `contracts/framework-generator.md` overlap table.
+See `core/packages/pipelines/framework-generator/RACI.md` and `core/packages/contracts/framework-generator.md` overlap table.
 
 ## Procedure
 
 1. Require planned worker id from spec or upstream worker-generator evidence.
-2. For each validation mode, plan `validators/<id>/manifest.json` + SPEC.md from `templates/validation/`.
-3. Map entry_kind → check_id list; cite `schemas/validator-spec.schema.json`.
+2. For each validation mode, plan `core/packages/validators/<id>/manifest.json` + SPEC.md from `core/packages/templates/validation/`.
+3. Map entry_kind → check_id list; cite `core/packages/schemas/validator-spec.schema.json`.
 4. Seven validation modes must appear as entries or explicit UNKNOWN.
 5. Never plan reviewer rubrics or worker skills.
 
 ## Heuristics
 
-- Reuse `templates/` packs; never duplicate template file contents in plans.
+- Reuse `core/packages/templates/` packs; never duplicate template file contents in plans.
 - Every `output_plan` requires `artifacts`, `registries`, `semver`; add `migration` when breaking.
 - Mark skipped modes `UNKNOWN: …`; never invent spec fields.
 - Dedupe key for orchestrator: `generation_id` + `entry_kind`.

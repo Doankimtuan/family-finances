@@ -3,7 +3,7 @@
   "id": "consistency-validator",
   "version": "0.1.1",
   "title": "Consistency Validator",
-  "description": "Detect contradictions, duplications, conflicting requirements/architecture/business rules, naming inconsistencies. Never modify artifacts.",
+  "description": "Detect contradictions, duplications, conflicting artifacts/requirements/architecture/business rules, naming inconsistencies. Never modify artifacts.",
   "role": "executor",
   "grade": "guided",
   "inputs": [
@@ -17,7 +17,7 @@
       "name": "schemas",
       "artifact_type": "doc-source",
       "required": true,
-      "description": "schemas/"
+      "description": "core/packages/schemas/"
     },
     {
       "name": "artifacts",
@@ -29,79 +29,79 @@
       "name": "workers",
       "artifact_type": "doc-source",
       "required": true,
-      "description": "workers/"
+      "description": "core/packages/workers/"
     },
     {
       "name": "pipelines",
       "artifact_type": "doc-source",
       "required": true,
-      "description": "pipelines/"
+      "description": "core/packages/pipelines/"
     },
     {
       "name": "execution",
       "artifact_type": "doc-source",
       "required": false,
-      "description": "execution/ soft"
+      "description": "artifacts/execution/ soft"
     },
     {
       "name": "templates",
       "artifact_type": "doc-source",
       "required": true,
-      "description": "templates/"
+      "description": "core/packages/templates/"
     },
     {
       "name": "knowledge",
       "artifact_type": "knowledge-notes",
       "required": false,
-      "description": "knowledge/ soft"
+      "description": "artifacts/knowledge/ soft"
     },
     {
       "name": "registry",
       "artifact_type": "doc-source",
       "required": true,
-      "description": "registry/"
+      "description": "core/packages/registry/"
     },
     {
       "name": "features",
       "artifact_type": "feature-inventory",
       "required": false,
-      "description": "features/ soft"
+      "description": "artifacts/features/ soft"
     },
     {
       "name": "business",
       "artifact_type": "business-rules",
       "required": false,
-      "description": "business/ soft"
+      "description": "artifacts/business/ soft"
     },
     {
       "name": "requirements",
       "artifact_type": "requirement-spec",
       "required": false,
-      "description": "requirements/ soft"
+      "description": "artifacts/requirements/ soft"
     },
     {
       "name": "acceptance",
       "artifact_type": "acceptance-criteria",
       "required": false,
-      "description": "acceptance/ soft"
+      "description": "artifacts/acceptance/ soft"
     },
     {
       "name": "product-architecture",
       "artifact_type": "product-architecture-notes",
       "required": false,
-      "description": "product-architecture/ soft"
+      "description": "artifacts/product-architecture/ soft"
     },
     {
       "name": "architecture-v2",
       "artifact_type": "architecture-v2-spec",
       "required": false,
-      "description": "architecture-v2/ soft"
+      "description": "artifacts/architecture-v2/ soft"
     },
     {
       "name": "specifications",
       "artifact_type": "project-specification",
       "required": false,
-      "description": "specifications/ soft"
+      "description": "artifacts/specifications/ soft"
     }
   ],
   "outputs": [
@@ -130,8 +130,8 @@
     "invent_missing_information": false,
     "incremental": true,
     "partial": true,
-    "partition": "validation/consistency-validator/",
-    "raci": "pipelines/validation-engine/RACI.md",
+    "partition": "artifacts/validation/consistency-validator/",
+    "raci": "core/packages/pipelines/validation-engine/RACI.md",
     "gate_output_type": "gate-validation-report"
   }
 }

@@ -5,15 +5,15 @@ description: Generate implementation order, critical path, parallel work, blocke
 
 # Implementation Planner
 
-> **Owns build-order / critical-path / parallel-work / blocked / graph**. Must respect `tasks/` + `roadmap/` + architecture-v2. No redesign.
+> **Owns build-order / critical-path / parallel-work / blocked / graph**. Must respect `artifacts/tasks/` + `artifacts/roadmap/` + architecture-v2. No redesign.
 
 ## Consumes
 
-`specifications/`, `tasks/`, `roadmap/`, plus upstream packs
+`artifacts/specifications/`, `artifacts/tasks/`, `artifacts/roadmap/`, plus upstream packs
 
 ## Produces
 
-`implementation/` → `implementation-plan`
+`artifacts/implementation/` → `implementation-plan`
 
 ## Ownership
 
@@ -22,10 +22,10 @@ description: Generate implementation order, critical path, parallel work, blocke
 
 ## Procedure
 
-1. Load specifications, tasks, roadmap, architecture-v2/redesign/folder-structure.
+1. Load specifications, tasks, roadmap, artifacts/architecture-v2/redesign/folder-structure.
 2. Emit build-order + critical-path + parallel-work|blocked (+ graph nodes/edges).
 3. Prefer Mermaid in graph-edge statements when helpful.
-4. Write `implementation-plan`. Stop for validation/review.
+4. Write `implementation-plan`. Stop for artifacts/validation/review.
 
 ## Heuristics
 
@@ -46,4 +46,4 @@ description: Generate implementation order, critical path, parallel work, blocke
 
 ## Lock
 
-Acquire `task:{task_id}` per `architecture/CONCURRENCY.md` before mutating run-record state.
+Acquire `task:{task_id}` per `docs/architecture/CONCURRENCY.md` before mutating run-record state.

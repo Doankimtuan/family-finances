@@ -1,0 +1,80 @@
+{
+  "description": "Claimed run context for Solution Architecture worker architecture-consultant.",
+  "orchestration_id": "art_sa_orchestration",
+  "plan_id": "art_sa_plan",
+  "goal_id": "art_sa_goal",
+  "task": {
+    "artifact_id": "art_task_architecture_consultant",
+    "artifact_version": 1,
+    "skill_id": "architecture-consultant",
+    "skill_version": "0.1.0",
+    "primary_output_type": "architecture-v2-spec",
+    "validators": [
+      "solution-architecture-schema-check"
+    ],
+    "reviewers": [
+      "solution-architecture-coverage-review"
+    ],
+    "side_effect_budget": [
+      "runtime-write"
+    ],
+    "done_when": [
+      "ready architecture-v2-spec produced without inventing business logic"
+    ]
+  },
+  "run": {
+    "artifact_id": "art_run_architecture_consultant",
+    "status": "claimed",
+    "attempt": 1
+  },
+  "inputs": [
+    {
+      "name": "goal",
+      "artifact_id": "art_sa_goal",
+      "artifact_version": 1
+    },
+    {
+      "name": "knowledge",
+      "path": "artifacts/knowledge/",
+      "artifact_id": "art_in_knowledge",
+      "artifact_version": 1
+    },
+    {
+      "name": "features",
+      "path": "artifacts/features/",
+      "artifact_id": "art_in_features",
+      "artifact_version": 1
+    },
+    {
+      "name": "business",
+      "path": "artifacts/business/",
+      "artifact_id": "art_in_business",
+      "artifact_version": 1
+    },
+    {
+      "name": "architecture",
+      "path": "artifacts/product-architecture/",
+      "artifact_id": "art_in_product_architecture",
+      "artifact_version": 1
+    },
+    {
+      "name": "requirements",
+      "path": "artifacts/requirements/",
+      "artifact_id": "art_in_requirements",
+      "artifact_version": 1
+    },
+    {
+      "name": "quality",
+      "path": "governance/quality/",
+      "artifact_id": "art_in_quality",
+      "artifact_version": 1
+    }
+  ],
+  "gate_profile": "standard",
+  "budget": {
+    "allowed_side_effects": [
+      "none",
+      "runtime-write"
+    ]
+  }
+}

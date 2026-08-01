@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_out_tech_stack_consultant",
+  "type": "tech-stack-recommendation",
+  "worker_id": "tech-stack-consultant",
+  "title": "Tech Stack Consultant output",
+  "summary": "Recommend modern technologies with alternatives and trade-offs for the target architecture. Produce tech-stack recommendations and tech-related migration notes. Preserve business behavior; never invent business logic.",
+  "entries": [
+    {
+      "id": "ts-next-app-router",
+      "entry_kind": "recommendation",
+      "statement": "Retain Next.js App Router for UI surfaces (e.g. /jars/review) with Server Actions for mutations that must preserve household scoping.",
+      "source_paths": [
+        "artifacts/features/",
+        "artifacts/architecture-v2/",
+        "governance/quality/"
+      ],
+      "confidence": 0.8,
+      "alternatives": [
+        "Remix",
+        "separate SPA + API"
+      ],
+      "trade_offs": "Keeps existing route map; migration cost lower than full SPA split."
+    }
+  ],
+  "status": "ready",
+  "created_at": "2026-08-01T13:00:00Z",
+  "trace": {
+    "orchestration_id": "art_sa_orchestration",
+    "plan_id": "art_sa_plan",
+    "task_id": "art_task_tech_stack_consultant",
+    "run_id": "art_run_tech_stack_consultant",
+    "goal_id": "art_sa_goal"
+  },
+  "extensions": {
+    "pipeline": "solution-architecture",
+    "role_alias": "tech-stack-consultant",
+    "preserve_business_behavior": true,
+    "invent_business_logic": false,
+    "overwrite_discovery": false
+  }
+}

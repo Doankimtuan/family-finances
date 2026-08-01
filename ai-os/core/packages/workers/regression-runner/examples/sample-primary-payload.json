@@ -1,0 +1,147 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_qf_regression-runner_primary",
+  "type": "qualification-finding",
+  "worker_id": "regression-runner",
+  "title": "Regression Runner sample",
+  "summary": "Sample qualification-finding for regression-runner (packaging; benchmarks not executed)",
+  "entries": [
+    {
+      "id": "qf_regression-runner_001",
+      "entry_kind": "regression",
+      "statement": "Qualification plan for regression via Regression Runner",
+      "qualification_id": "qual_regression-runner_sample",
+      "target": "governance/qualification/benchmarks/regression-runner/",
+      "rule": "regression per Qualification Framework contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "core/packages/contracts/qualification-framework.md",
+        "core/packages/pipelines/qualification-framework/RACI.md",
+        "governance/qualification/reference-projects/"
+      ],
+      "impact": "Enables reproducible regression evaluation without mutating the framework",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual audit against certification thresholds",
+      "confidence": 0.8,
+      "source_paths": [
+        "core/packages/workers/",
+        "core/packages/pipelines/",
+        "core/packages/schemas/",
+        "core/packages/templates/"
+      ],
+      "unknowns": [
+        "UNKNOWN: benchmarks not executed in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "qualification-framework",
+        "worker": "regression-runner",
+        "certification_thresholds": {
+          "feature_discovery_recall": 0.95,
+          "business_rule_coverage": 0.9,
+          "specification_completeness": 0.95,
+          "traceability": 1.0,
+          "critical_failures": 0,
+          "pipeline_completion": 0.99,
+          "worker_reliability": 0.98,
+          "documentation_coverage": 0.95
+        }
+      },
+      "folder_mirror": "governance/qualification/benchmarks/regression-runner/regression.json",
+      "metric_value": null,
+      "threshold": null
+    },
+    {
+      "id": "qf_regression-runner_002",
+      "entry_kind": "lost-capability",
+      "statement": "Qualification plan for lost-capability via Regression Runner",
+      "qualification_id": "qual_regression-runner_sample",
+      "target": "governance/qualification/benchmarks/regression-runner/",
+      "rule": "lost-capability per Qualification Framework contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "core/packages/contracts/qualification-framework.md",
+        "core/packages/pipelines/qualification-framework/RACI.md",
+        "governance/qualification/reference-projects/"
+      ],
+      "impact": "Enables reproducible lost-capability evaluation without mutating the framework",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual audit against certification thresholds",
+      "confidence": 0.8,
+      "source_paths": [
+        "core/packages/workers/",
+        "core/packages/pipelines/",
+        "core/packages/schemas/",
+        "core/packages/templates/"
+      ],
+      "unknowns": [
+        "UNKNOWN: benchmarks not executed in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "qualification-framework",
+        "worker": "regression-runner",
+        "certification_thresholds": {
+          "feature_discovery_recall": 0.95,
+          "business_rule_coverage": 0.9,
+          "specification_completeness": 0.95,
+          "traceability": 1.0,
+          "critical_failures": 0,
+          "pipeline_completion": 0.99,
+          "worker_reliability": 0.98,
+          "documentation_coverage": 0.95
+        }
+      },
+      "folder_mirror": "governance/qualification/benchmarks/regression-runner/lost-capability.json",
+      "metric_value": null,
+      "threshold": null
+    },
+    {
+      "id": "qf_regression-runner_003",
+      "entry_kind": "quality-drop",
+      "statement": "Qualification plan for quality-drop via Regression Runner",
+      "qualification_id": "qual_regression-runner_sample",
+      "target": "governance/qualification/benchmarks/regression-runner/",
+      "rule": "quality-drop per Qualification Framework contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "core/packages/contracts/qualification-framework.md",
+        "core/packages/pipelines/qualification-framework/RACI.md",
+        "governance/qualification/reference-projects/"
+      ],
+      "impact": "Enables reproducible quality-drop evaluation without mutating the framework",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual audit against certification thresholds",
+      "confidence": 0.8,
+      "source_paths": [
+        "core/packages/workers/",
+        "core/packages/pipelines/",
+        "core/packages/schemas/",
+        "core/packages/templates/"
+      ],
+      "unknowns": [
+        "UNKNOWN: benchmarks not executed in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "qualification-framework",
+        "worker": "regression-runner",
+        "certification_thresholds": {
+          "feature_discovery_recall": 0.95,
+          "business_rule_coverage": 0.9,
+          "specification_completeness": 0.95,
+          "traceability": 1.0,
+          "critical_failures": 0,
+          "pipeline_completion": 0.99,
+          "worker_reliability": 0.98,
+          "documentation_coverage": 0.95
+        }
+      },
+      "folder_mirror": "governance/qualification/benchmarks/regression-runner/quality-drop.json",
+      "metric_value": null,
+      "threshold": null
+    }
+  ],
+  "status": "draft",
+  "created_at": "2026-08-01T10:32:40Z"
+}

@@ -23,43 +23,43 @@
       "name": "validation",
       "artifact_type": "validation-finding",
       "required": true,
-      "description": "validation/"
+      "description": "artifacts/validation/"
     },
     {
       "name": "reports",
       "artifact_type": "validation-report",
       "required": true,
-      "description": "reports/ (assume validation PASS)"
+      "description": "artifacts/reports/ (assume validation PASS)"
     },
     {
       "name": "scores",
       "artifact_type": "quality-scores",
       "required": true,
-      "description": "scores/"
+      "description": "artifacts/scores/"
     },
     {
       "name": "knowledge",
       "artifact_type": "knowledge-notes",
       "required": false,
-      "description": "knowledge/ soft"
+      "description": "artifacts/knowledge/ soft"
     },
     {
       "name": "specifications",
       "artifact_type": "project-specification",
       "required": false,
-      "description": "specifications/ soft"
+      "description": "artifacts/specifications/ soft"
     },
     {
       "name": "pipelines",
       "artifact_type": "doc-source",
       "required": true,
-      "description": "pipelines/ (alias pipeline/)"
+      "description": "core/packages/pipelines/ (alias pipeline/)"
     },
     {
       "name": "workers",
       "artifact_type": "doc-source",
       "required": true,
-      "description": "workers/"
+      "description": "core/packages/workers/"
     },
     {
       "name": "skills",
@@ -71,19 +71,19 @@
       "name": "schemas",
       "artifact_type": "doc-source",
       "required": true,
-      "description": "schemas/"
+      "description": "core/packages/schemas/"
     },
     {
       "name": "registry",
       "artifact_type": "doc-source",
       "required": true,
-      "description": "registry/"
+      "description": "core/packages/registry/"
     },
     {
       "name": "templates",
       "artifact_type": "doc-source",
       "required": true,
-      "description": "templates/"
+      "description": "core/packages/templates/"
     }
   ],
   "outputs": [
@@ -114,8 +114,8 @@
     "invent_missing_information": false,
     "incremental": true,
     "partial": true,
-    "raci": "pipelines/review-engine/RACI.md",
+    "raci": "core/packages/pipelines/review-engine/RACI.md",
     "gate_output_type": "gate-review-report",
-    "partition": "reviews/ai-quality-reviewer/"
+    "partition": "governance/reviews/ai-quality-reviewer/"
   }
 }

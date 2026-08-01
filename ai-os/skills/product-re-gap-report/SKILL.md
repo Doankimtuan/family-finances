@@ -1,6 +1,6 @@
 ---
 name: product-re-gap-report
-description: Synthesize product-re-gap coverage gaps across ingest and transform outputs into gaps/.
+description: Synthesize product-re-gap coverage gaps across ingest and transform outputs into artifacts/gaps/.
 ---
 
 # Product RE Gap Report
@@ -9,11 +9,11 @@ description: Synthesize product-re-gap coverage gaps across ingest and transform
 
 ## Consumes
 
-`product/`, `workflow/`, `requirements/`, `acceptance/`, `knowledge/`, `features/`, `business/`, `product-architecture/`
+`artifacts/product/`, `artifacts/workflow/`, `artifacts/requirements/`, `artifacts/acceptance/`, `artifacts/knowledge/`, `artifacts/features/`, `artifacts/business/`, `artifacts/product-architecture/`
 
 ## Produces
 
-`gaps/` → `product-re-gap`
+`artifacts/gaps/` → `product-re-gap`
 
 ## Ownership
 
@@ -24,8 +24,8 @@ description: Synthesize product-re-gap coverage gaps across ingest and transform
 
 1. Load transform and ingest mirrors.
 2. List gaps with `severity` and `source_paths`.
-3. Write `product-re-gap`; mirror under `gaps/`.
-4. Stop for validation/review.
+3. Write `product-re-gap`; mirror under `artifacts/gaps/`.
+4. Stop for artifacts/validation/review.
 
 ## Heuristics
 
@@ -43,4 +43,4 @@ description: Synthesize product-re-gap coverage gaps across ingest and transform
 
 ## Lock
 
-Acquire `task:{task_id}` per `architecture/CONCURRENCY.md` before mutating run-record state.
+Acquire `task:{task_id}` per `docs/architecture/CONCURRENCY.md` before mutating run-record state.

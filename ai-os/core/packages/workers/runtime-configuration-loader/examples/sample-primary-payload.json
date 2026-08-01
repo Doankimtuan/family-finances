@@ -1,0 +1,114 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_rt_runtime-configuration-loader_primary",
+  "type": "runtime-status",
+  "worker_id": "runtime-configuration-loader",
+  "title": "Runtime Configuration Loader sample",
+  "summary": "Sample runtime-status for runtime-configuration-loader (packaging; workers not executed)",
+  "entries": [
+    {
+      "id": "rt_runtime-configuration-loader_001",
+      "entry_kind": "aios-yaml",
+      "statement": "Runtime plan for aios-yaml via Runtime Configuration Loader",
+      "runtime_id": "run_runtime-configuration-loader_sample",
+      "target": "runtime/configs/runtime-configuration-loader/",
+      "rule": "aios-yaml per Runtime Engine contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "core/packages/contracts/runtime-engine.md",
+        "core/packages/pipelines/runtime-engine/RACI.md",
+        "runtime/configs/.ai-os.yaml"
+      ],
+      "impact": "Enables orchestrated aios-yaml without manual worker invocation",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual Core invocation (not supported for end users)",
+      "confidence": 0.85,
+      "source_paths": [
+        "core/packages/workers/",
+        "core/packages/pipelines/",
+        "core/packages/schemas/",
+        "core/packages/configs/",
+        "core/packages/registry/"
+      ],
+      "unknowns": [
+        "UNKNOWN: runtime execution not opened in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "runtime-engine",
+        "worker": "runtime-configuration-loader"
+      },
+      "folder_mirror": "runtime/configs/runtime-configuration-loader/aios-yaml.json"
+    },
+    {
+      "id": "rt_runtime-configuration-loader_002",
+      "entry_kind": "run-yaml",
+      "statement": "Runtime plan for run-yaml via Runtime Configuration Loader",
+      "runtime_id": "run_runtime-configuration-loader_sample",
+      "target": "runtime/configs/runtime-configuration-loader/",
+      "rule": "run-yaml per Runtime Engine contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "core/packages/contracts/runtime-engine.md",
+        "core/packages/pipelines/runtime-engine/RACI.md",
+        "runtime/configs/.ai-os.yaml"
+      ],
+      "impact": "Enables orchestrated run-yaml without manual worker invocation",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual Core invocation (not supported for end users)",
+      "confidence": 0.85,
+      "source_paths": [
+        "core/packages/workers/",
+        "core/packages/pipelines/",
+        "core/packages/schemas/",
+        "core/packages/configs/",
+        "core/packages/registry/"
+      ],
+      "unknowns": [
+        "UNKNOWN: runtime execution not opened in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "runtime-engine",
+        "worker": "runtime-configuration-loader"
+      },
+      "folder_mirror": "runtime/configs/runtime-configuration-loader/run-yaml.json"
+    },
+    {
+      "id": "rt_runtime-configuration-loader_003",
+      "entry_kind": "workspace-yaml",
+      "statement": "Runtime plan for workspace-yaml via Runtime Configuration Loader",
+      "runtime_id": "run_runtime-configuration-loader_sample",
+      "target": "runtime/configs/runtime-configuration-loader/",
+      "rule": "workspace-yaml per Runtime Engine contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "core/packages/contracts/runtime-engine.md",
+        "core/packages/pipelines/runtime-engine/RACI.md",
+        "runtime/configs/.ai-os.yaml"
+      ],
+      "impact": "Enables orchestrated workspace-yaml without manual worker invocation",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual Core invocation (not supported for end users)",
+      "confidence": 0.85,
+      "source_paths": [
+        "core/packages/workers/",
+        "core/packages/pipelines/",
+        "core/packages/schemas/",
+        "core/packages/configs/",
+        "core/packages/registry/"
+      ],
+      "unknowns": [
+        "UNKNOWN: runtime execution not opened in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "runtime-engine",
+        "worker": "runtime-configuration-loader"
+      },
+      "folder_mirror": "runtime/configs/runtime-configuration-loader/workspace-yaml.json"
+    }
+  ],
+  "status": "draft",
+  "created_at": "2026-08-01T11:02:14Z"
+}

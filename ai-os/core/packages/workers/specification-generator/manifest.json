@@ -1,0 +1,47 @@
+{
+  "schema_version": "1.0.0",
+  "id": "specification-generator",
+  "version": "0.1.1",
+  "title": "Specification Generator",
+  "implements_roles": [
+    "executor"
+  ],
+  "side_effects": [
+    "runtime-write"
+  ],
+  "entrypoint": "skill.md",
+  "status": "draft",
+  "extensions": {
+    "worker_class": "discovery",
+    "pipeline": "specification-engineering",
+    "role_alias": "specification-generator",
+    "skill_id": "specification-generator",
+    "primary_output_type": "project-specification",
+    "consumes": [
+      "knowledge",
+      "repository",
+      "features",
+      "business",
+      "product-architecture",
+      "architecture-v2",
+      "requirements",
+      "quality",
+      "redesign",
+      "workflow",
+      "acceptance"
+    ],
+    "produces": [
+      "specifications"
+    ],
+    "depends_on_workers": [],
+    "feature_worker": false,
+    "invent_business_logic": false,
+    "redesign_system": false,
+    "overwrite_validated": false,
+    "consume_aliases": {
+      "architecture": "product-architecture"
+    },
+    "mission_verb": "specify",
+    "raci_doc": "core/packages/pipelines/specification-engineering/RACI.md"
+  }
+}

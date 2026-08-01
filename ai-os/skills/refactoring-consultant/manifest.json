@@ -35,7 +35,7 @@
       "name": "architecture",
       "artifact_type": "product-architecture-notes",
       "required": true,
-      "description": "Consume input: product-architecture (logical architecture/ \u2192 product-architecture/)"
+      "description": "Consume input: product-architecture (logical docs/architecture/ \u2192 artifacts/product-architecture/)"
     },
     {
       "name": "requirements",

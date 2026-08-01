@@ -23,43 +23,43 @@
       "name": "validation",
       "artifact_type": "validation-finding",
       "required": true,
-      "description": "validation/"
+      "description": "artifacts/validation/"
     },
     {
       "name": "reports",
       "artifact_type": "validation-report",
       "required": true,
-      "description": "reports/ (assume validation PASS)"
+      "description": "artifacts/reports/ (assume validation PASS)"
     },
     {
       "name": "scores",
       "artifact_type": "quality-scores",
       "required": true,
-      "description": "scores/"
+      "description": "artifacts/scores/"
     },
     {
       "name": "knowledge",
       "artifact_type": "knowledge-notes",
       "required": false,
-      "description": "knowledge/ soft"
+      "description": "artifacts/knowledge/ soft"
     },
     {
       "name": "specifications",
       "artifact_type": "project-specification",
       "required": false,
-      "description": "specifications/ soft"
+      "description": "artifacts/specifications/ soft"
     },
     {
       "name": "pipelines",
       "artifact_type": "doc-source",
       "required": true,
-      "description": "pipelines/ (alias pipeline/)"
+      "description": "core/packages/pipelines/ (alias pipeline/)"
     },
     {
       "name": "reviews",
       "artifact_type": "review-finding",
       "required": true,
-      "description": "reviews/ partitioned"
+      "description": "governance/reviews/ partitioned"
     }
   ],
   "outputs": [
@@ -96,7 +96,7 @@
     "invent_missing_information": false,
     "incremental": true,
     "partial": true,
-    "raci": "pipelines/review-engine/RACI.md",
+    "raci": "core/packages/pipelines/review-engine/RACI.md",
     "gate_output_type": "gate-review-report"
   }
 }

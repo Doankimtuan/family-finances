@@ -9,11 +9,11 @@ description: Generate JSON Schemas, markdown templates, configuration schemas, v
 
 ## Consumes
 
-`templates/`, `schemas/`, `workers/`, `validators/`, `reviewers/`, `pipelines/`, `knowledge/`, `configs/`, `artifacts/`, `registry/`
+`core/packages/templates/`, `core/packages/schemas/`, `core/packages/workers/`, `core/packages/validators/`, `core/packages/reviewers/`, `core/packages/pipelines/`, `artifacts/knowledge/`, `core/packages/configs/`, `artifacts/`, `core/packages/registry/`
 
 ## Produces
 
-`framework-generator/generators/schema-generator/` → `framework-generation` (required `folder_mirror` under partition)
+`core/packages/scaffold/generators/schema-generator/` → `framework-generation` (required `folder_mirror` under partition)
 
 ## Ownership
 
@@ -26,19 +26,19 @@ description: Generate JSON Schemas, markdown templates, configuration schemas, v
 | `artifact-schema` | Rule for `artifact-schema` per RACI |
 | `markdown-template` | Rule for `markdown-template` per RACI |
 
-See `pipelines/framework-generator/RACI.md` and `contracts/framework-generator.md` overlap table.
+See `core/packages/pipelines/framework-generator/RACI.md` and `core/packages/contracts/framework-generator.md` overlap table.
 
 ## Procedure
 
 1. Parse `generation-spec` (`capability`, `target_generator`, `modes[]`).
-2. Map each mode to schema template under `templates/` + `$ref` targets in `schemas/common.schema.json`.
+2. Map each mode to schema template under `core/packages/templates/` + `$ref` targets in `core/packages/schemas/common.schema.json`.
 3. Plan `json-schema` / `config-schema` / `validation-schema` / `artifact-schema` / `markdown-template` entries.
 4. Emit one entry per owned entry_kind (or UNKNOWN for out-of-scope modes).
 5. `output_plan.artifacts` lists planned schema paths; `output_plan.registries` must include `schemas`.
 
 ## Heuristics
 
-- Reuse `templates/` packs; never duplicate template file contents in plans.
+- Reuse `core/packages/templates/` packs; never duplicate template file contents in plans.
 - Every `output_plan` requires `artifacts`, `registries`, `semver`; add `migration` when breaking.
 - Mark skipped modes `UNKNOWN: …`; never invent spec fields.
 - Dedupe key for orchestrator: `generation_id` + `entry_kind`.

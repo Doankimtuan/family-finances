@@ -3,7 +3,7 @@
   "id": "product-architecture-observer",
   "version": "0.1.1",
   "title": "Product Architecture Observer",
-  "description": "Observe product architecture into product-architecture/ from doc-source and discovery-report. Never AIOS architecture/.",
+  "description": "Observe product architecture into artifacts/product-architecture/ from doc-source and discovery-report. Never AIOS docs/architecture/.",
   "role": "executor",
   "grade": "guided",
   "inputs": [

@@ -17,49 +17,49 @@
       "name": "workers",
       "artifact_type": "doc-source",
       "required": true,
-      "description": "workers/"
+      "description": "core/packages/workers/"
     },
     {
       "name": "validators",
       "artifact_type": "doc-source",
       "required": false,
-      "description": "validators/"
+      "description": "core/packages/validators/"
     },
     {
       "name": "reviewers",
       "artifact_type": "doc-source",
       "required": false,
-      "description": "reviewers/"
+      "description": "core/packages/reviewers/"
     },
     {
       "name": "pipelines",
       "artifact_type": "doc-source",
       "required": true,
-      "description": "pipelines/"
+      "description": "core/packages/pipelines/"
     },
     {
       "name": "workflow",
       "artifact_type": "doc-source",
       "required": false,
-      "description": "workflow/"
+      "description": "artifacts/workflow/"
     },
     {
       "name": "templates",
       "artifact_type": "doc-source",
       "required": false,
-      "description": "templates/"
+      "description": "core/packages/templates/"
     },
     {
       "name": "schemas",
       "artifact_type": "doc-source",
       "required": true,
-      "description": "schemas/"
+      "description": "core/packages/schemas/"
     },
     {
       "name": "configs",
       "artifact_type": "doc-source",
       "required": true,
-      "description": "configs/"
+      "description": "core/packages/configs/"
     },
     {
       "name": "artifacts",
@@ -71,13 +71,13 @@
       "name": "knowledge",
       "artifact_type": "doc-source",
       "required": false,
-      "description": "knowledge/"
+      "description": "artifacts/knowledge/"
     },
     {
       "name": "registry",
       "artifact_type": "doc-source",
       "required": false,
-      "description": "registry/"
+      "description": "core/packages/registry/"
     }
   ],
   "outputs": [
@@ -110,7 +110,7 @@
     "execute_workers": false,
     "orchestrate_only": true,
     "partition": "runtime/state/execution-context-manager/",
-    "raci": "pipelines/runtime-engine/RACI.md",
+    "raci": "core/packages/pipelines/runtime-engine/RACI.md",
     "gate_output_type": "gate-runtime-report",
     "entry_kinds": [
       "current-phase",

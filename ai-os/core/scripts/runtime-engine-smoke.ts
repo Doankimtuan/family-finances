@@ -97,18 +97,18 @@ async function main() {
   assertWaveTopology(result.pipeline.waves, result.graph.edges);
 
   const version = (await fs.readFile(path.join(root, "VERSION"), "utf8")).trim();
-  if (version !== "0.11.0") {
-    throw new Error(`Expected VERSION 0.11.0, got ${version}`);
+  if (version !== "0.13.0") {
+    throw new Error(`Expected VERSION 0.13.0, got ${version}`);
   }
 
   const meta = JSON.parse(
     await fs.readFile(
-      path.join(root, "pipelines/runtime-engine/.workers-meta.json"),
+      path.join(root, "core/packages/pipelines/runtime-engine/.workers-meta.json"),
       "utf8",
     ),
   );
   const raci = await fs.readFile(
-    path.join(root, "pipelines/runtime-engine/RACI.md"),
+    path.join(root, "core/packages/pipelines/runtime-engine/RACI.md"),
     "utf8",
   );
   for (const id of WORKERS) {
@@ -121,19 +121,19 @@ async function main() {
   }
 
   for (const rel of [
-    "schemas/runtime-engine-payload.schema.json",
-    "schemas/runtime-status.schema.json",
-    "schemas/runtime-plan.schema.json",
-    "schemas/runtime-command.schema.json",
-    "schemas/runtime-execution-report.schema.json",
-    "schemas/gate-runtime-report.schema.json",
-    "contracts/runtime-engine.md",
+    "core/packages/schemas/runtime-engine-payload.schema.json",
+    "core/packages/schemas/runtime-status.schema.json",
+    "core/packages/schemas/runtime-plan.schema.json",
+    "core/packages/schemas/runtime-command.schema.json",
+    "core/packages/schemas/runtime-execution-report.schema.json",
+    "core/packages/schemas/gate-runtime-report.schema.json",
+    "core/packages/contracts/runtime-engine.md",
     "runtime/configs/.ai-os.yaml",
     "runtime/configs/run.yaml",
     "runtime/configs/workspace.yaml",
     "runtime/commands/command-registry.json",
     "runtime/execution/execution-model.md",
-    "RELEASE_NOTES_0.11.0.md",
+    "docs/releases/RELEASE_NOTES_0.13.0.md",
   ]) {
     await fs.access(path.join(root, rel));
   }
@@ -174,7 +174,7 @@ async function main() {
 
   const vManifest = JSON.parse(
     await fs.readFile(
-      path.join(root, "validators/runtime-engine-schema-check/manifest.json"),
+      path.join(root, "core/packages/validators/runtime-engine-schema-check/manifest.json"),
       "utf8",
     ),
   );
@@ -195,7 +195,7 @@ async function main() {
   for (const id of WORKERS) {
     const payload = JSON.parse(
       await fs.readFile(
-        path.join(root, "workers", id, "examples", "sample-primary-payload.json"),
+        path.join(root, "core/packages/workers", id, "examples", "sample-primary-payload.json"),
         "utf8",
       ),
     );
@@ -239,7 +239,7 @@ async function main() {
     await fs.readFile(
       path.join(
         root,
-        "workers/execution-planner/examples/sample-primary-payload.json",
+        "core/packages/workers/execution-planner/examples/sample-primary-payload.json",
       ),
       "utf8",
     ),
@@ -258,7 +258,7 @@ async function main() {
     await fs.readFile(
       path.join(
         root,
-        "workers/master-orchestrator/examples/sample-primary-payload.json",
+        "core/packages/workers/master-orchestrator/examples/sample-primary-payload.json",
       ),
       "utf8",
     ),
@@ -274,7 +274,7 @@ async function main() {
     await fs.readFile(
       path.join(
         root,
-        "workers/command-interpreter/examples/sample-primary-payload.json",
+        "core/packages/workers/command-interpreter/examples/sample-primary-payload.json",
       ),
       "utf8",
     ),

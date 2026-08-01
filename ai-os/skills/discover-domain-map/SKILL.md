@@ -27,9 +27,9 @@ description: Reserved discovery skill for worker discover-domain-map. Emits disc
 
 1. Load declared inputs only (goal + any prior discovery-report refs).
 2. Inventory the scoped surface for this skill (see worker `discover-domain-map` README).
-3. Write staging `discovery-report` (`draft`) validating `schemas/discovery-report.schema.json`.
+3. Write staging `discovery-report` (`draft`) validating `core/packages/schemas/discovery-report.schema.json`.
 4. Finalize payload + `meta.json` (`ready`).
-5. Stop — validators/reviewers run outside this skill.
+5. Stop — core/packages/validators/reviewers run outside this skill.
 
 ## Reserved policy
 

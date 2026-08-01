@@ -23,11 +23,11 @@ async function main() {
 
   // Schemas present
   for (const rel of [
-    "schemas/discovery-report.schema.json",
-    "schemas/pipeline.schema.json",
-    "schemas/pipeline-dependency-graph.schema.json",
-    "schemas/worker-output-envelope.schema.json",
-    "contracts/pipeline.md",
+    "core/packages/schemas/discovery-report.schema.json",
+    "core/packages/schemas/pipeline.schema.json",
+    "core/packages/schemas/pipeline-dependency-graph.schema.json",
+    "core/packages/schemas/worker-output-envelope.schema.json",
+    "core/packages/contracts/pipeline.md",
   ]) {
     await fs.access(path.join(root, rel));
   }
@@ -35,11 +35,11 @@ async function main() {
   // Sample discovery-report exists per worker
   for (const id of result.pipeline.workers) {
     await fs.access(
-      path.join(root, "workers", id, "examples", "sample-discovery-report.json"),
+      path.join(root, "core/packages/workers", id, "examples", "sample-discovery-report.json"),
     );
     const report = JSON.parse(
       await fs.readFile(
-        path.join(root, "workers", id, "examples", "sample-discovery-report.json"),
+        path.join(root, "core/packages/workers", id, "examples", "sample-discovery-report.json"),
         "utf8",
       ),
     );
@@ -53,10 +53,10 @@ async function main() {
 
   // Allow Discovery + Product RE packages; forbid Feature Workers
   const workersReg = await core.knowledge.workers();
-  const workerDirs = await fs.readdir(path.join(root, "workers"));
+  const workerDirs = await fs.readdir(path.join(root, "core/packages/workers"));
   for (const name of workerDirs) {
     if (name === "README.md") continue;
-    const full = path.join(root, "workers", name);
+    const full = path.join(root, "core/packages/workers", name);
     const st = await fs.stat(full);
     if (!st.isDirectory()) continue;
     const entry = workersReg.entries[name] as

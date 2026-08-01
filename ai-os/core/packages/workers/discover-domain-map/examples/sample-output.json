@@ -1,0 +1,41 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_out_discover_domain_map_envelope",
+  "worker_id": "discover-domain-map",
+  "worker_version": "0.1.0",
+  "run_id": "art_run_discover_domain_map",
+  "task_id": "art_task_discover_domain_map",
+  "orchestration_id": "art_discovery_orchestration",
+  "status": "ready",
+  "primary_output_ref": {
+    "artifact_id": "art_out_discover_domain_map",
+    "artifact_version": 1,
+    "relation": "derived-from"
+  },
+  "validation_report_refs": [
+    {
+      "artifact_id": "art_val_discover_domain_map",
+      "artifact_version": 1
+    }
+  ],
+  "review_report_refs": [
+    {
+      "artifact_id": "art_rev_discover_domain_map",
+      "artifact_version": 1
+    }
+  ],
+  "summary": "Normalize business domain boundaries from DOMAIN_MAP and product docs into a discovery-report without proposing feature implementations.",
+  "created_at": "2026-08-01T00:00:00Z",
+  "trace": {
+    "orchestration_id": "art_discovery_orchestration",
+    "plan_id": "art_discovery_plan",
+    "task_id": "art_task_discover_domain_map",
+    "run_id": "art_run_discover_domain_map",
+    "goal_id": "art_discovery_goal"
+  },
+  "extensions": {
+    "worker_class": "discovery",
+    "pipeline": "discovery",
+    "primary_payload_schema": "core/packages/schemas/discovery-report.schema.json"
+  }
+}

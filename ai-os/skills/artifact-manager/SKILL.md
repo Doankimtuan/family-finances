@@ -5,11 +5,11 @@ description: Track generated artifacts, versions, lifecycle, ownership, and depe
 
 # Artifact Manager
 
-> Orchestrate only. Never modify workers/validators/reviewers. Never execute in packaging milestone. Never analyze product repos.
+> Orchestrate only. Never modify core/packages/workers/validators/reviewers. Never execute in packaging milestone. Never analyze product repos.
 
 ## Consumes
 
-`workers/`, `validators/`, `reviewers/`, `pipelines/` (alias `pipeline/`), `workflow/`, `templates/`, `schemas/`, `configs/`, `artifacts/`, `knowledge/`, `registry/`
+`core/packages/workers/`, `core/packages/validators/`, `core/packages/reviewers/`, `core/packages/pipelines/` (alias `pipeline/`), `artifacts/workflow/`, `core/packages/templates/`, `core/packages/schemas/`, `core/packages/configs/`, `artifacts/`, `artifacts/knowledge/`, `core/packages/registry/`
 
 ## Produces
 
@@ -26,19 +26,19 @@ description: Track generated artifacts, versions, lifecycle, ownership, and depe
 | `artifact-ownership` | Owned per RACI |
 | `artifact-dependency` | Owned per RACI |
 
-See `pipelines/runtime-engine/RACI.md`.
+See `core/packages/pipelines/runtime-engine/RACI.md`.
 
 ## Procedure
 
 1. Index planned/generated artifact refs from context (paths only).
 2. Track version, lifecycle, ownership, dependency edges.
-3. Never invent product/business artifacts; orchestration metadata only.
+3. Never invent artifacts/product/business artifacts; orchestration metadata only.
 4. Five entry_kinds required.
 5. Partition under `runtime/execution/artifact-manager/`.
 
 ## Heuristics
 
-- Prefer registry/path evidence; mark gaps `UNKNOWN: …`.
+- Prefer core/packages/registry/path evidence; mark gaps `UNKNOWN: …`.
 - Deterministic plans; reproducible given same config + command.
 - Single-command UX: never require users to invoke workers by id.
 - Respect RACI; never duplicate another runtime worker's kinds.
@@ -51,7 +51,7 @@ See `pipelines/runtime-engine/RACI.md`.
 
 ## Negative examples
 
-- Do not modify `workers/`, `validators/`, `reviewers/` implementations.
+- Do not modify `core/packages/workers/`, `core/packages/validators/`, `core/packages/reviewers/` implementations.
 - Do not analyze product repositories or invent business specs.
 - Do not execute pipelines in packaging milestone.
 - Do not bypass Execution Planner for immediate execution.

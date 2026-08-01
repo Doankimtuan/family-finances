@@ -23,49 +23,49 @@
       "name": "templates",
       "artifact_type": "doc-source",
       "required": true,
-      "description": "templates/"
+      "description": "core/packages/templates/"
     },
     {
       "name": "schemas",
       "artifact_type": "doc-source",
       "required": true,
-      "description": "schemas/"
+      "description": "core/packages/schemas/"
     },
     {
       "name": "workers",
       "artifact_type": "doc-source",
       "required": true,
-      "description": "workers/"
+      "description": "core/packages/workers/"
     },
     {
       "name": "validators",
       "artifact_type": "doc-source",
       "required": false,
-      "description": "validators/"
+      "description": "core/packages/validators/"
     },
     {
       "name": "reviewers",
       "artifact_type": "doc-source",
       "required": false,
-      "description": "reviewers/"
+      "description": "core/packages/reviewers/"
     },
     {
       "name": "pipelines",
       "artifact_type": "doc-source",
       "required": false,
-      "description": "pipelines/"
+      "description": "core/packages/pipelines/"
     },
     {
       "name": "knowledge",
       "artifact_type": "doc-source",
       "required": false,
-      "description": "knowledge/"
+      "description": "artifacts/knowledge/"
     },
     {
       "name": "configs",
       "artifact_type": "doc-source",
       "required": false,
-      "description": "configs/"
+      "description": "core/packages/configs/"
     },
     {
       "name": "artifacts",
@@ -77,7 +77,7 @@
       "name": "registry",
       "artifact_type": "doc-source",
       "required": false,
-      "description": "registry/"
+      "description": "core/packages/registry/"
     }
   ],
   "outputs": [
@@ -108,8 +108,8 @@
     "mutate_source_artifacts": false,
     "execute_generation": false,
     "configuration_driven": true,
-    "partition": "framework-generator/generators/documentation-generator/",
-    "raci": "pipelines/framework-generator/RACI.md",
+    "partition": "core/packages/scaffold/generators/documentation-generator/",
+    "raci": "core/packages/pipelines/framework-generator/RACI.md",
     "gate_output_type": "gate-framework-generation-report",
     "entry_kinds": [
       "architecture-doc",

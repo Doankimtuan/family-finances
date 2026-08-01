@@ -9,11 +9,11 @@ description: Generate reviewer packages and rubrics for architecture, business, 
 
 ## Consumes
 
-`templates/`, `schemas/`, `workers/`, `validators/`, `reviewers/`, `pipelines/`, `knowledge/`, `configs/`, `artifacts/`, `registry/`
+`core/packages/templates/`, `core/packages/schemas/`, `core/packages/workers/`, `core/packages/validators/`, `core/packages/reviewers/`, `core/packages/pipelines/`, `artifacts/knowledge/`, `core/packages/configs/`, `artifacts/`, `core/packages/registry/`
 
 ## Produces
 
-`framework-generator/generators/reviewer-generator/` → `framework-generation` (required `folder_mirror` under partition)
+`core/packages/scaffold/generators/reviewer-generator/` → `framework-generation` (required `folder_mirror` under partition)
 
 ## Ownership
 
@@ -28,19 +28,19 @@ description: Generate reviewer packages and rubrics for architecture, business, 
 | `security-review` | Rule for `security-review` per RACI |
 | `performance-review` | Rule for `performance-review` per RACI |
 
-See `pipelines/framework-generator/RACI.md` and `contracts/framework-generator.md` overlap table.
+See `core/packages/pipelines/framework-generator/RACI.md` and `core/packages/contracts/framework-generator.md` overlap table.
 
 ## Procedure
 
 1. Require worker id + pipeline context from spec.
-2. Plan `reviewers/<id>/manifest.json` + `rubric/*.json` with criteria, weights, veto_conditions.
+2. Plan `core/packages/reviewers/<id>/manifest.json` + `rubric/*.json` with criteria, weights, veto_conditions.
 3. Seven review modes as separate entries; security/performance require explicit spec flags.
-4. Rubric must reference `schemas/reviewer-spec.schema.json`.
+4. Rubric must reference `core/packages/schemas/reviewer-spec.schema.json`.
 5. Never plan deterministic validator checks.
 
 ## Heuristics
 
-- Reuse `templates/` packs; never duplicate template file contents in plans.
+- Reuse `core/packages/templates/` packs; never duplicate template file contents in plans.
 - Every `output_plan` requires `artifacts`, `registries`, `semver`; add `migration` when breaking.
 - Mark skipped modes `UNKNOWN: …`; never invent spec fields.
 - Dedupe key for orchestrator: `generation_id` + `entry_kind`.

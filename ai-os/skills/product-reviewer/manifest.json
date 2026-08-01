@@ -23,67 +23,67 @@
       "name": "validation",
       "artifact_type": "validation-finding",
       "required": true,
-      "description": "validation/"
+      "description": "artifacts/validation/"
     },
     {
       "name": "reports",
       "artifact_type": "validation-report",
       "required": true,
-      "description": "reports/ (assume validation PASS)"
+      "description": "artifacts/reports/ (assume validation PASS)"
     },
     {
       "name": "scores",
       "artifact_type": "quality-scores",
       "required": true,
-      "description": "scores/"
+      "description": "artifacts/scores/"
     },
     {
       "name": "knowledge",
       "artifact_type": "knowledge-notes",
       "required": false,
-      "description": "knowledge/ soft"
+      "description": "artifacts/knowledge/ soft"
     },
     {
       "name": "specifications",
       "artifact_type": "project-specification",
       "required": false,
-      "description": "specifications/ soft"
+      "description": "artifacts/specifications/ soft"
     },
     {
       "name": "pipelines",
       "artifact_type": "doc-source",
       "required": true,
-      "description": "pipelines/ (alias pipeline/)"
+      "description": "core/packages/pipelines/ (alias pipeline/)"
     },
     {
       "name": "features",
       "artifact_type": "feature-inventory",
       "required": false,
-      "description": "features/ soft"
+      "description": "artifacts/features/ soft"
     },
     {
       "name": "requirements",
       "artifact_type": "requirement-spec",
       "required": false,
-      "description": "requirements/ soft"
+      "description": "artifacts/requirements/ soft"
     },
     {
       "name": "acceptance",
       "artifact_type": "acceptance-criteria",
       "required": false,
-      "description": "acceptance/ soft"
+      "description": "artifacts/acceptance/ soft"
     },
     {
       "name": "product-architecture",
       "artifact_type": "product-architecture-notes",
       "required": false,
-      "description": "product-architecture/ soft"
+      "description": "artifacts/product-architecture/ soft"
     },
     {
       "name": "business",
       "artifact_type": "business-rules",
       "required": false,
-      "description": "business/ soft"
+      "description": "artifacts/business/ soft"
     }
   ],
   "outputs": [
@@ -114,8 +114,8 @@
     "invent_missing_information": false,
     "incremental": true,
     "partial": true,
-    "raci": "pipelines/review-engine/RACI.md",
+    "raci": "core/packages/pipelines/review-engine/RACI.md",
     "gate_output_type": "gate-review-report",
-    "partition": "reviews/product-reviewer/"
+    "partition": "governance/reviews/product-reviewer/"
   }
 }

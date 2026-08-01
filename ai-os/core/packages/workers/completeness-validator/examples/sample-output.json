@@ -1,0 +1,136 @@
+{
+  "primary": {
+    "schema_version": "1.0.0",
+    "artifact_id": "art_out_completeness_validator",
+    "type": "validation-finding",
+    "worker_id": "completeness-validator",
+    "title": "completeness-validator output",
+    "summary": "Report missing documents, fields, modules, specifications, workers, examples, schemas. Never invent missing info.",
+    "entries": [
+      {
+        "id": "completeness-validator-missing-document-01",
+        "entry_kind": "missing-document",
+        "statement": "Sample `missing-document` for completeness-validator.",
+        "validation_id": "VAL-CV-missing-docu",
+        "target": "ai-os/workers/completeness-validator/",
+        "rule": "missing-document per Validation Engine contract + RACI",
+        "result": "pass",
+        "evidence": [
+          "core/packages/schemas/validation-engine-payload.schema.json",
+          "core/packages/workers/completeness-validator/",
+          "core/packages/pipelines/validation-engine/RACI.md"
+        ],
+        "severity": "info",
+        "recommendation": "Do not mutate sources; remediate upstream packages if fail.",
+        "confidence": 0.85,
+        "source_paths": [
+          "core/packages/schemas/",
+          "core/packages/workers/",
+          "core/packages/pipelines/",
+          "core/packages/registry/",
+          "core/packages/templates/"
+        ],
+        "unknowns": [
+          "UNKNOWN: none noted"
+        ],
+        "traceability": {
+          "source_artifact": "core/packages/workers/completeness-validator/",
+          "knowledge": "artifacts/knowledge/",
+          "pipeline": "validation-engine",
+          "worker": "completeness-validator"
+        },
+        "folder_mirror": "artifacts/validation/completeness-validator/missing-document.json"
+      },
+      {
+        "id": "completeness-validator-missing-field-01",
+        "entry_kind": "missing-field",
+        "statement": "Sample `missing-field` for completeness-validator.",
+        "validation_id": "VAL-CV-missing-fiel",
+        "target": "ai-os/workers/completeness-validator/",
+        "rule": "missing-field per Validation Engine contract + RACI",
+        "result": "pass",
+        "evidence": [
+          "core/packages/schemas/validation-engine-payload.schema.json",
+          "core/packages/workers/completeness-validator/",
+          "core/packages/pipelines/validation-engine/RACI.md"
+        ],
+        "severity": "info",
+        "recommendation": "Do not mutate sources; remediate upstream packages if fail.",
+        "confidence": 0.85,
+        "source_paths": [
+          "core/packages/schemas/",
+          "core/packages/workers/",
+          "core/packages/pipelines/",
+          "core/packages/registry/",
+          "core/packages/templates/"
+        ],
+        "unknowns": [
+          "UNKNOWN: none noted"
+        ],
+        "traceability": {
+          "source_artifact": "core/packages/workers/completeness-validator/",
+          "knowledge": "artifacts/knowledge/",
+          "pipeline": "validation-engine",
+          "worker": "completeness-validator"
+        },
+        "folder_mirror": "artifacts/validation/completeness-validator/missing-field.json"
+      },
+      {
+        "id": "completeness-validator-missing-module-01",
+        "entry_kind": "missing-module",
+        "statement": "Sample `missing-module` for completeness-validator.",
+        "validation_id": "VAL-CV-missing-modu",
+        "target": "ai-os/workers/completeness-validator/",
+        "rule": "missing-module per Validation Engine contract + RACI",
+        "result": "pass",
+        "evidence": [
+          "core/packages/schemas/validation-engine-payload.schema.json",
+          "core/packages/workers/completeness-validator/",
+          "core/packages/pipelines/validation-engine/RACI.md"
+        ],
+        "severity": "info",
+        "recommendation": "Do not mutate sources; remediate upstream packages if fail.",
+        "confidence": 0.85,
+        "source_paths": [
+          "core/packages/schemas/",
+          "core/packages/workers/",
+          "core/packages/pipelines/",
+          "core/packages/registry/",
+          "core/packages/templates/"
+        ],
+        "unknowns": [
+          "UNKNOWN: none noted"
+        ],
+        "traceability": {
+          "source_artifact": "core/packages/workers/completeness-validator/",
+          "knowledge": "artifacts/knowledge/",
+          "pipeline": "validation-engine",
+          "worker": "completeness-validator"
+        },
+        "folder_mirror": "artifacts/validation/completeness-validator/missing-module.json"
+      }
+    ],
+    "status": "ready",
+    "created_at": "2026-08-01T18:00:00Z",
+    "trace": {
+      "orchestration_id": "art_ve_orchestration",
+      "plan_id": "art_ve_plan",
+      "task_id": "art_task_completeness_validator",
+      "run_id": "art_run_completeness_validator",
+      "goal_id": "art_ve_goal"
+    },
+    "extensions": {
+      "pipeline": "validation-engine",
+      "mutate_source_artifacts": false,
+      "invent_missing_information": false,
+      "incremental": true,
+      "partial": true,
+      "folder_partition": "artifacts/validation/completeness-validator/",
+      "validation_scope": {
+        "mode": "full",
+        "note": "Sample is full-scope; scoped runs set paths here"
+      }
+    }
+  },
+  "note": "Packaging sample; validations not executed"
+}

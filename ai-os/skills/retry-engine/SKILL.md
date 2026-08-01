@@ -1,15 +1,15 @@
 ---
 name: retry-engine
-description: Plan retries for failed workers/phases/validation/review with updated context and retry limits from runtime config.
+description: Plan retries for failed core/packages/workers/phases/validation/review with updated context and retry limits from runtime config.
 ---
 
 # Retry Engine
 
-> Orchestrate only. Never modify workers/validators/reviewers. Never execute in packaging milestone. Never analyze product repos.
+> Orchestrate only. Never modify core/packages/workers/validators/reviewers. Never execute in packaging milestone. Never analyze product repos.
 
 ## Consumes
 
-`workers/`, `validators/`, `reviewers/`, `pipelines/` (alias `pipeline/`), `workflow/`, `templates/`, `schemas/`, `configs/`, `artifacts/`, `knowledge/`, `registry/`
+`core/packages/workers/`, `core/packages/validators/`, `core/packages/reviewers/`, `core/packages/pipelines/` (alias `pipeline/`), `artifacts/workflow/`, `core/packages/templates/`, `core/packages/schemas/`, `core/packages/configs/`, `artifacts/`, `artifacts/knowledge/`, `core/packages/registry/`
 
 ## Produces
 
@@ -27,7 +27,7 @@ description: Plan retries for failed workers/phases/validation/review with updat
 | `retry-updated-context` | Owned per RACI |
 | `retry-limits` | Owned per RACI |
 
-See `pipelines/runtime-engine/RACI.md`.
+See `core/packages/pipelines/runtime-engine/RACI.md`.
 
 ## Procedure
 
@@ -39,7 +39,7 @@ See `pipelines/runtime-engine/RACI.md`.
 
 ## Heuristics
 
-- Prefer registry/path evidence; mark gaps `UNKNOWN: …`.
+- Prefer core/packages/registry/path evidence; mark gaps `UNKNOWN: …`.
 - Deterministic plans; reproducible given same config + command.
 - Single-command UX: never require users to invoke workers by id.
 - Respect RACI; never duplicate another runtime worker's kinds.
@@ -52,7 +52,7 @@ See `pipelines/runtime-engine/RACI.md`.
 
 ## Negative examples
 
-- Do not modify `workers/`, `validators/`, `reviewers/` implementations.
+- Do not modify `core/packages/workers/`, `core/packages/validators/`, `core/packages/reviewers/` implementations.
 - Do not analyze product repositories or invent business specs.
 - Do not execute pipelines in packaging milestone.
 - Do not bypass Execution Planner for immediate execution.

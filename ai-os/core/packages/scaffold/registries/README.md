@@ -1,0 +1,1 @@
+Self-registration plans target core/packages/registry/*.json — applied only in execution phase.

@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0.0",
+  "id": "project-bootstrap-generator",
+  "version": "0.1.1",
+  "title": "Project Bootstrap Generator",
+  "implements_roles": [
+    "executor"
+  ],
+  "side_effects": [
+    "runtime-write"
+  ],
+  "entrypoint": "skill.md",
+  "status": "draft",
+  "extensions": {
+    "worker_class": "discovery",
+    "pipeline": "framework-generator",
+    "mutate_source_artifacts": false,
+    "execute_generation": false,
+    "configuration_driven": true,
+    "remediation": "0.9.1",
+    "partition": "core/packages/scaffold/generators/project-bootstrap-generator/"
+  }
+}

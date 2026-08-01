@@ -1,0 +1,282 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_qf_reference-project-catalog_primary",
+  "type": "qualification-finding",
+  "worker_id": "reference-project-catalog",
+  "title": "Reference Project Catalog sample",
+  "summary": "Sample qualification-finding for reference-project-catalog (packaging; benchmarks not executed)",
+  "entries": [
+    {
+      "id": "qf_reference-project-catalog_001",
+      "entry_kind": "catalog-entry",
+      "statement": "Qualification plan for catalog-entry via Reference Project Catalog",
+      "qualification_id": "qual_reference-project-catalog_sample",
+      "target": "governance/qualification/reference-projects/reference-project-catalog/",
+      "rule": "catalog-entry per Qualification Framework contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "core/packages/contracts/qualification-framework.md",
+        "core/packages/pipelines/qualification-framework/RACI.md",
+        "governance/qualification/reference-projects/"
+      ],
+      "impact": "Enables reproducible catalog-entry evaluation without mutating the framework",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual audit against certification thresholds",
+      "confidence": 0.8,
+      "source_paths": [
+        "core/packages/workers/",
+        "core/packages/pipelines/",
+        "core/packages/schemas/",
+        "core/packages/templates/"
+      ],
+      "unknowns": [
+        "UNKNOWN: benchmarks not executed in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "qualification-framework",
+        "worker": "reference-project-catalog",
+        "certification_thresholds": {
+          "feature_discovery_recall": 0.95,
+          "business_rule_coverage": 0.9,
+          "specification_completeness": 0.95,
+          "traceability": 1.0,
+          "critical_failures": 0,
+          "pipeline_completion": 0.99,
+          "worker_reliability": 0.98,
+          "documentation_coverage": 0.95
+        }
+      },
+      "folder_mirror": "governance/qualification/reference-projects/reference-project-catalog/catalog-entry.json",
+      "metric_value": null,
+      "threshold": null
+    },
+    {
+      "id": "qf_reference-project-catalog_002",
+      "entry_kind": "ground-truth",
+      "statement": "Qualification plan for ground-truth via Reference Project Catalog",
+      "qualification_id": "qual_reference-project-catalog_sample",
+      "target": "governance/qualification/reference-projects/reference-project-catalog/",
+      "rule": "ground-truth per Qualification Framework contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "core/packages/contracts/qualification-framework.md",
+        "core/packages/pipelines/qualification-framework/RACI.md",
+        "governance/qualification/reference-projects/"
+      ],
+      "impact": "Enables reproducible ground-truth evaluation without mutating the framework",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual audit against certification thresholds",
+      "confidence": 0.8,
+      "source_paths": [
+        "core/packages/workers/",
+        "core/packages/pipelines/",
+        "core/packages/schemas/",
+        "core/packages/templates/"
+      ],
+      "unknowns": [
+        "UNKNOWN: benchmarks not executed in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "qualification-framework",
+        "worker": "reference-project-catalog",
+        "certification_thresholds": {
+          "feature_discovery_recall": 0.95,
+          "business_rule_coverage": 0.9,
+          "specification_completeness": 0.95,
+          "traceability": 1.0,
+          "critical_failures": 0,
+          "pipeline_completion": 0.99,
+          "worker_reliability": 0.98,
+          "documentation_coverage": 0.95
+        }
+      },
+      "folder_mirror": "governance/qualification/reference-projects/reference-project-catalog/ground-truth.json",
+      "metric_value": null,
+      "threshold": null
+    },
+    {
+      "id": "qf_reference-project-catalog_003",
+      "entry_kind": "expected-outputs",
+      "statement": "Qualification plan for expected-outputs via Reference Project Catalog",
+      "qualification_id": "qual_reference-project-catalog_sample",
+      "target": "governance/qualification/reference-projects/reference-project-catalog/",
+      "rule": "expected-outputs per Qualification Framework contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "core/packages/contracts/qualification-framework.md",
+        "core/packages/pipelines/qualification-framework/RACI.md",
+        "governance/qualification/reference-projects/"
+      ],
+      "impact": "Enables reproducible expected-outputs evaluation without mutating the framework",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual audit against certification thresholds",
+      "confidence": 0.8,
+      "source_paths": [
+        "core/packages/workers/",
+        "core/packages/pipelines/",
+        "core/packages/schemas/",
+        "core/packages/templates/"
+      ],
+      "unknowns": [
+        "UNKNOWN: benchmarks not executed in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "qualification-framework",
+        "worker": "reference-project-catalog",
+        "certification_thresholds": {
+          "feature_discovery_recall": 0.95,
+          "business_rule_coverage": 0.9,
+          "specification_completeness": 0.95,
+          "traceability": 1.0,
+          "critical_failures": 0,
+          "pipeline_completion": 0.99,
+          "worker_reliability": 0.98,
+          "documentation_coverage": 0.95
+        }
+      },
+      "folder_mirror": "governance/qualification/reference-projects/reference-project-catalog/expected-outputs.json",
+      "metric_value": null,
+      "threshold": null
+    },
+    {
+      "id": "qf_reference-project-catalog_004",
+      "entry_kind": "expected-metrics",
+      "statement": "Qualification plan for expected-metrics via Reference Project Catalog",
+      "qualification_id": "qual_reference-project-catalog_sample",
+      "target": "governance/qualification/reference-projects/reference-project-catalog/",
+      "rule": "expected-metrics per Qualification Framework contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "core/packages/contracts/qualification-framework.md",
+        "core/packages/pipelines/qualification-framework/RACI.md",
+        "governance/qualification/reference-projects/"
+      ],
+      "impact": "Enables reproducible expected-metrics evaluation without mutating the framework",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual audit against certification thresholds",
+      "confidence": 0.8,
+      "source_paths": [
+        "core/packages/workers/",
+        "core/packages/pipelines/",
+        "core/packages/schemas/",
+        "core/packages/templates/"
+      ],
+      "unknowns": [
+        "UNKNOWN: benchmarks not executed in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "qualification-framework",
+        "worker": "reference-project-catalog",
+        "certification_thresholds": {
+          "feature_discovery_recall": 0.95,
+          "business_rule_coverage": 0.9,
+          "specification_completeness": 0.95,
+          "traceability": 1.0,
+          "critical_failures": 0,
+          "pipeline_completion": 0.99,
+          "worker_reliability": 0.98,
+          "documentation_coverage": 0.95
+        }
+      },
+      "folder_mirror": "governance/qualification/reference-projects/reference-project-catalog/expected-metrics.json",
+      "metric_value": null,
+      "threshold": null
+    },
+    {
+      "id": "qf_reference-project-catalog_005",
+      "entry_kind": "expected-specifications",
+      "statement": "Qualification plan for expected-specifications via Reference Project Catalog",
+      "qualification_id": "qual_reference-project-catalog_sample",
+      "target": "governance/qualification/reference-projects/reference-project-catalog/",
+      "rule": "expected-specifications per Qualification Framework contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "core/packages/contracts/qualification-framework.md",
+        "core/packages/pipelines/qualification-framework/RACI.md",
+        "governance/qualification/reference-projects/"
+      ],
+      "impact": "Enables reproducible expected-specifications evaluation without mutating the framework",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual audit against certification thresholds",
+      "confidence": 0.8,
+      "source_paths": [
+        "core/packages/workers/",
+        "core/packages/pipelines/",
+        "core/packages/schemas/",
+        "core/packages/templates/"
+      ],
+      "unknowns": [
+        "UNKNOWN: benchmarks not executed in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "qualification-framework",
+        "worker": "reference-project-catalog",
+        "certification_thresholds": {
+          "feature_discovery_recall": 0.95,
+          "business_rule_coverage": 0.9,
+          "specification_completeness": 0.95,
+          "traceability": 1.0,
+          "critical_failures": 0,
+          "pipeline_completion": 0.99,
+          "worker_reliability": 0.98,
+          "documentation_coverage": 0.95
+        }
+      },
+      "folder_mirror": "governance/qualification/reference-projects/reference-project-catalog/expected-specifications.json",
+      "metric_value": null,
+      "threshold": null
+    },
+    {
+      "id": "qf_reference-project-catalog_006",
+      "entry_kind": "acceptance-threshold",
+      "statement": "Qualification plan for acceptance-threshold via Reference Project Catalog",
+      "qualification_id": "qual_reference-project-catalog_sample",
+      "target": "governance/qualification/reference-projects/reference-project-catalog/",
+      "rule": "acceptance-threshold per Qualification Framework contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "core/packages/contracts/qualification-framework.md",
+        "core/packages/pipelines/qualification-framework/RACI.md",
+        "governance/qualification/reference-projects/"
+      ],
+      "impact": "Enables reproducible acceptance-threshold evaluation without mutating the framework",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual audit against certification thresholds",
+      "confidence": 0.8,
+      "source_paths": [
+        "core/packages/workers/",
+        "core/packages/pipelines/",
+        "core/packages/schemas/",
+        "core/packages/templates/"
+      ],
+      "unknowns": [
+        "UNKNOWN: benchmarks not executed in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "qualification-framework",
+        "worker": "reference-project-catalog",
+        "certification_thresholds": {
+          "feature_discovery_recall": 0.95,
+          "business_rule_coverage": 0.9,
+          "specification_completeness": 0.95,
+          "traceability": 1.0,
+          "critical_failures": 0,
+          "pipeline_completion": 0.99,
+          "worker_reliability": 0.98,
+          "documentation_coverage": 0.95
+        }
+      },
+      "folder_mirror": "governance/qualification/reference-projects/reference-project-catalog/acceptance-threshold.json",
+      "metric_value": null,
+      "threshold": null
+    }
+  ],
+  "status": "draft",
+  "created_at": "2026-08-01T10:32:40Z"
+}

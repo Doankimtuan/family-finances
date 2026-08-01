@@ -5,15 +5,15 @@ description: Generate release plan, phases, sprints, release milestones, risks, 
 
 # Roadmap Generator
 
-> **Owns delivery sequencing** (releases/phases/delivery-order/risks/release milestones). Respects `tasks/` depends_on. Never invent ship dates.
+> **Owns delivery sequencing** (releases/phases/delivery-order/risks/release milestones). Respects `artifacts/tasks/` depends_on. Never invent ship dates.
 
 ## Consumes
 
-`specifications/`, `tasks/`, plus upstream validated packs
+`artifacts/specifications/`, `artifacts/tasks/`, plus upstream validated packs
 
 ## Produces
 
-`roadmap/` → `delivery-roadmap`
+`artifacts/roadmap/` → `delivery-roadmap`
 
 ## Ownership
 
@@ -25,12 +25,12 @@ description: Generate release plan, phases, sprints, release milestones, risks, 
 1. Load specifications + task graph.
 2. Emit release/phase/delivery-order/risk (+ optional sprint/timeline/release milestones).
 3. Align order with architecture-v2 and business priority from validated sources.
-4. Write `delivery-roadmap`. Stop for validation/review.
+4. Write `delivery-roadmap`. Stop for artifacts/validation/review.
 
 ## Heuristics
 
 - Delivery-order must not contradict task `depends_on`.
-- If quality/redesign lack calendar constraints, keep dates as `UNKNOWN: …`.
+- If governance/quality/redesign lack calendar constraints, keep dates as `UNKNOWN: …`.
 - Risks may recommend clarification, not new business rules.
 
 ## Done when
@@ -46,4 +46,4 @@ description: Generate release plan, phases, sprints, release milestones, risks, 
 
 ## Lock
 
-Acquire `task:{task_id}` per `architecture/CONCURRENCY.md` before mutating run-record state.
+Acquire `task:{task_id}` per `docs/architecture/CONCURRENCY.md` before mutating run-record state.

@@ -9,11 +9,11 @@ description: Generate architecture docs, usage guides, developer guides, migrati
 
 ## Consumes
 
-`templates/`, `schemas/`, `workers/`, `validators/`, `reviewers/`, `pipelines/`, `knowledge/`, `configs/`, `artifacts/`, `registry/`
+`core/packages/templates/`, `core/packages/schemas/`, `core/packages/workers/`, `core/packages/validators/`, `core/packages/reviewers/`, `core/packages/pipelines/`, `artifacts/knowledge/`, `core/packages/configs/`, `artifacts/`, `core/packages/registry/`
 
 ## Produces
 
-`framework-generator/generators/documentation-generator/` → `framework-generation` (required `folder_mirror` under partition)
+`core/packages/scaffold/generators/documentation-generator/` → `framework-generation` (required `folder_mirror` under partition)
 
 ## Ownership
 
@@ -28,19 +28,19 @@ description: Generate architecture docs, usage guides, developer guides, migrati
 | `changelog` | Rule for `changelog` per RACI |
 | `release-notes` | Rule for `release-notes` per RACI |
 
-See `pipelines/framework-generator/RACI.md` and `contracts/framework-generator.md` overlap table.
+See `core/packages/pipelines/framework-generator/RACI.md` and `core/packages/contracts/framework-generator.md` overlap table.
 
 ## Procedure
 
 1. Require worker/pipeline ids from spec evidence paths.
 2. Plan architecture-doc, usage-guide, developer-guide, migration-guide, changelog, release-notes entries.
-3. Migration entries must reference semver bump + `architecture/MIGRATIONS.md` row template.
+3. Migration entries must reference semver bump + `docs/architecture/MIGRATIONS.md` row template.
 4. example-doc points to `examples/` not duplicate worker-generator scaffold.
 5. Never plan validator/reviewer specs.
 
 ## Heuristics
 
-- Reuse `templates/` packs; never duplicate template file contents in plans.
+- Reuse `core/packages/templates/` packs; never duplicate template file contents in plans.
 - Every `output_plan` requires `artifacts`, `registries`, `semver`; add `migration` when breaking.
 - Mark skipped modes `UNKNOWN: …`; never invent spec fields.
 - Dedupe key for orchestrator: `generation_id` + `entry_kind`.

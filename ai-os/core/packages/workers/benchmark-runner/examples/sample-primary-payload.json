@@ -1,0 +1,147 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_qf_benchmark-runner_primary",
+  "type": "qualification-finding",
+  "worker_id": "benchmark-runner",
+  "title": "Benchmark Runner sample",
+  "summary": "Sample qualification-finding for benchmark-runner (packaging; benchmarks not executed)",
+  "entries": [
+    {
+      "id": "qf_benchmark-runner_001",
+      "entry_kind": "full-analysis",
+      "statement": "Qualification plan for full-analysis via Benchmark Runner",
+      "qualification_id": "qual_benchmark-runner_sample",
+      "target": "governance/qualification/benchmarks/benchmark-runner/",
+      "rule": "full-analysis per Qualification Framework contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "core/packages/contracts/qualification-framework.md",
+        "core/packages/pipelines/qualification-framework/RACI.md",
+        "governance/qualification/reference-projects/"
+      ],
+      "impact": "Enables reproducible full-analysis evaluation without mutating the framework",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual audit against certification thresholds",
+      "confidence": 0.8,
+      "source_paths": [
+        "core/packages/workers/",
+        "core/packages/pipelines/",
+        "core/packages/schemas/",
+        "core/packages/templates/"
+      ],
+      "unknowns": [
+        "UNKNOWN: benchmarks not executed in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "qualification-framework",
+        "worker": "benchmark-runner",
+        "certification_thresholds": {
+          "feature_discovery_recall": 0.95,
+          "business_rule_coverage": 0.9,
+          "specification_completeness": 0.95,
+          "traceability": 1.0,
+          "critical_failures": 0,
+          "pipeline_completion": 0.99,
+          "worker_reliability": 0.98,
+          "documentation_coverage": 0.95
+        }
+      },
+      "folder_mirror": "governance/qualification/benchmarks/benchmark-runner/full-analysis.json",
+      "metric_value": null,
+      "threshold": null
+    },
+    {
+      "id": "qf_benchmark-runner_002",
+      "entry_kind": "incremental-analysis",
+      "statement": "Qualification plan for incremental-analysis via Benchmark Runner",
+      "qualification_id": "qual_benchmark-runner_sample",
+      "target": "governance/qualification/benchmarks/benchmark-runner/",
+      "rule": "incremental-analysis per Qualification Framework contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "core/packages/contracts/qualification-framework.md",
+        "core/packages/pipelines/qualification-framework/RACI.md",
+        "governance/qualification/reference-projects/"
+      ],
+      "impact": "Enables reproducible incremental-analysis evaluation without mutating the framework",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual audit against certification thresholds",
+      "confidence": 0.8,
+      "source_paths": [
+        "core/packages/workers/",
+        "core/packages/pipelines/",
+        "core/packages/schemas/",
+        "core/packages/templates/"
+      ],
+      "unknowns": [
+        "UNKNOWN: benchmarks not executed in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "qualification-framework",
+        "worker": "benchmark-runner",
+        "certification_thresholds": {
+          "feature_discovery_recall": 0.95,
+          "business_rule_coverage": 0.9,
+          "specification_completeness": 0.95,
+          "traceability": 1.0,
+          "critical_failures": 0,
+          "pipeline_completion": 0.99,
+          "worker_reliability": 0.98,
+          "documentation_coverage": 0.95
+        }
+      },
+      "folder_mirror": "governance/qualification/benchmarks/benchmark-runner/incremental-analysis.json",
+      "metric_value": null,
+      "threshold": null
+    },
+    {
+      "id": "qf_benchmark-runner_003",
+      "entry_kind": "partial-analysis",
+      "statement": "Qualification plan for partial-analysis via Benchmark Runner",
+      "qualification_id": "qual_benchmark-runner_sample",
+      "target": "governance/qualification/benchmarks/benchmark-runner/",
+      "rule": "partial-analysis per Qualification Framework contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "core/packages/contracts/qualification-framework.md",
+        "core/packages/pipelines/qualification-framework/RACI.md",
+        "governance/qualification/reference-projects/"
+      ],
+      "impact": "Enables reproducible partial-analysis evaluation without mutating the framework",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual audit against certification thresholds",
+      "confidence": 0.8,
+      "source_paths": [
+        "core/packages/workers/",
+        "core/packages/pipelines/",
+        "core/packages/schemas/",
+        "core/packages/templates/"
+      ],
+      "unknowns": [
+        "UNKNOWN: benchmarks not executed in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "qualification-framework",
+        "worker": "benchmark-runner",
+        "certification_thresholds": {
+          "feature_discovery_recall": 0.95,
+          "business_rule_coverage": 0.9,
+          "specification_completeness": 0.95,
+          "traceability": 1.0,
+          "critical_failures": 0,
+          "pipeline_completion": 0.99,
+          "worker_reliability": 0.98,
+          "documentation_coverage": 0.95
+        }
+      },
+      "folder_mirror": "governance/qualification/benchmarks/benchmark-runner/partial-analysis.json",
+      "metric_value": null,
+      "threshold": null
+    }
+  ],
+  "status": "draft",
+  "created_at": "2026-08-01T10:32:40Z"
+}

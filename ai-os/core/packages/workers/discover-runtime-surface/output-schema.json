@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aios.dev/schemas/workers/discover-runtime-surface/output.schema.json",
+  "title": "AIOS Discovery Worker Output \u2014 discover-runtime-surface",
+  "description": "Run envelope for discover-runtime-surface. Primary durable payload MUST validate core/packages/schemas/discovery-report.schema.json.",
+  "allOf": [
+    {
+      "$ref": "https://aios.dev/schemas/worker-output-envelope.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "worker_id": {
+          "const": "discover-runtime-surface"
+        },
+        "extensions": {
+          "type": "object",
+          "properties": {
+            "worker_class": {
+              "const": "discovery"
+            },
+            "pipeline": {
+              "const": "discovery"
+            },
+            "primary_payload_schema": {
+              "const": "core/packages/schemas/discovery-report.schema.json"
+            }
+          }
+        }
+      }
+    }
+  ]
+}

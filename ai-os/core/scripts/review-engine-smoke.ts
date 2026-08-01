@@ -101,26 +101,26 @@ async function main() {
   }
 
   for (const rel of [
-    "schemas/review-engine-payload.schema.json",
-    "pipelines/review-engine/RACI.md",
-    "contracts/review-engine.md",
-    "templates/review/DECISION_RECORD.md",
-    "templates/review/REVIEW_MATRIX.md",
-    "validators/review-engine-schema-check/manifest.json",
-    "reviewers/review-engine-coverage-review/rubric/review-engine-coverage.json",
-    "RELEASE_NOTES_0.11.0.md",
+    "core/packages/schemas/review-engine-payload.schema.json",
+    "core/packages/pipelines/review-engine/RACI.md",
+    "core/packages/contracts/review-engine.md",
+    "core/packages/templates/review/DECISION_RECORD.md",
+    "core/packages/templates/review/REVIEW_MATRIX.md",
+    "core/packages/validators/review-engine-schema-check/manifest.json",
+    "core/packages/reviewers/review-engine-coverage-review/rubric/review-engine-coverage.json",
+    "docs/releases/RELEASE_NOTES_0.13.0.md",
   ]) {
     await fs.access(path.join(root, rel));
   }
 
   const version = (await fs.readFile(path.join(root, "VERSION"), "utf8")).trim();
-  if (version !== "0.11.0") {
-    throw new Error(`Expected VERSION 0.11.0, got ${version}`);
+  if (version !== "0.13.0") {
+    throw new Error(`Expected VERSION 0.13.0, got ${version}`);
   }
 
   const vManifest = JSON.parse(
     await fs.readFile(
-      path.join(root, "validators/review-engine-schema-check/manifest.json"),
+      path.join(root, "core/packages/validators/review-engine-schema-check/manifest.json"),
       "utf8",
     ),
   );
@@ -144,14 +144,14 @@ async function main() {
 
   const workersMeta = JSON.parse(
     await fs.readFile(
-      path.join(root, "pipelines/review-engine/.workers-meta.json"),
+      path.join(root, "core/packages/pipelines/review-engine/.workers-meta.json"),
       "utf8",
     ),
   );
 
   for (const id of REVIEWER_WORKERS) {
     await fs.access(
-      path.join(root, "reviews/examples", `${id}-finding.json`),
+      path.join(root, "governance/reviews/examples", `${id}-finding.json`),
     );
   }
   if (
@@ -179,7 +179,7 @@ async function main() {
   for (const id of result.pipeline.workers) {
     const payloadPath = path.join(
       root,
-      "workers",
+      "core/packages/workers",
       id,
       "examples",
       "sample-primary-payload.json",
@@ -205,19 +205,19 @@ async function main() {
 
     if ((REVIEWER_WORKERS as readonly string[]).includes(id)) {
       for (const entry of payload.entries) {
-        if (!entry.folder_mirror?.startsWith(`reviews/${id}/`)) {
-          throw new Error(`folder_mirror must start with reviews/${id}/`);
+        if (!entry.folder_mirror?.startsWith(`governance/reviews/${id}/`)) {
+          throw new Error(`folder_mirror must start with governance/reviews/${id}/`);
         }
       }
     }
 
     if (id === "review-orchestrator") {
       await fs.access(
-        path.join(root, "workers/review-orchestrator/examples/sample-secondary-payload.json"),
+        path.join(root, "core/packages/workers/review-orchestrator/examples/sample-secondary-payload.json"),
       );
       const scores = JSON.parse(
         await fs.readFile(
-          path.join(root, "workers/review-orchestrator/examples/sample-secondary-payload.json"),
+          path.join(root, "core/packages/workers/review-orchestrator/examples/sample-secondary-payload.json"),
           "utf8",
         ),
       );
@@ -249,7 +249,7 @@ async function main() {
       for (const entry of payload.entries) {
         if (
           !entry.folder_mirror?.match(
-            /^(decisions|recommendations|improvements|governance)\/final-decision-board\//,
+            /^governance\/((decisions|recommendations|improvements)\/)?final-decision-board\//,
           )
         ) {
           throw new Error("decision folder_mirror partition invalid");
@@ -285,7 +285,7 @@ async function main() {
     );
     if (
       typeof skillMan.description !== "string" ||
-      skillMan.description.startsWith("pipelines/ Never")
+      skillMan.description.startsWith("core/packages/pipelines/ Never")
     ) {
       throw new Error(`skill manifest description corrupt for ${id}`);
     }

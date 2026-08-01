@@ -14,10 +14,10 @@
       "target": "ai-os/pipelines/review-engine/",
       "finding": "Packaging milestone; reviews not executed live.",
       "evidence": [
-        "reviews/",
+        "governance/reviews/",
         "governance/",
-        "reports/",
-        "reviews/product-reviewer/"
+        "artifacts/reports/",
+        "governance/reviews/product-reviewer/"
       ],
       "impact": "Release and governance impact.",
       "severity": "info",
@@ -39,8 +39,8 @@
         "UNKNOWN: live review not executed in packaging milestone"
       ],
       "traceability": {
-        "source_artifact": "reports/",
-        "validation_report": "reports/",
+        "source_artifact": "artifacts/reports/",
+        "validation_report": "artifacts/reports/",
         "pipeline": "review-engine",
         "worker": "final-decision-board"
       },
@@ -54,10 +54,10 @@
       "target": "ai-os/pipelines/review-engine/",
       "finding": "Illustrative critical finding from product-reviewer partition.",
       "evidence": [
-        "reviews/",
+        "governance/reviews/",
         "governance/",
-        "reports/",
-        "reviews/product-reviewer/"
+        "artifacts/reports/",
+        "governance/reviews/product-reviewer/"
       ],
       "impact": "Release and governance impact.",
       "severity": "critical",
@@ -79,8 +79,8 @@
         "UNKNOWN: live review not executed in packaging milestone"
       ],
       "traceability": {
-        "source_artifact": "reports/",
-        "validation_report": "reports/",
+        "source_artifact": "artifacts/reports/",
+        "validation_report": "artifacts/reports/",
         "pipeline": "review-engine",
         "worker": "final-decision-board"
       },

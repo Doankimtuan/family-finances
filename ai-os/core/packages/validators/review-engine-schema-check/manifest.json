@@ -1,0 +1,123 @@
+{
+  "schema_version": "1.0.0",
+  "id": "review-engine-schema-check",
+  "version": "0.3.0",
+  "title": "Review Engine Schema Check",
+  "description": "Deterministic checks for review-engine payloads (partition, RACI, scores, governance folders).",
+  "applies_to": [
+    "review-finding",
+    "review-status",
+    "review-scores",
+    "governance-decision"
+  ],
+  "checks": [
+    {
+      "check_id": "schema-valid",
+      "severity": "critical",
+      "rule": "payload validates against core/packages/schemas/review-engine-payload.schema.json",
+      "path": "payload.json"
+    },
+    {
+      "check_id": "review-fields-required",
+      "severity": "critical",
+      "rule": "every entry has review_id,target,finding,evidence,impact,severity,recommendation,alternative_solution,confidence,traceability,unknowns,source_paths",
+      "path": "$.entries[*]"
+    },
+    {
+      "check_id": "folder-mirror-finding",
+      "severity": "critical",
+      "rule": "type=review-finding: folder_mirror matches governance/reviews/<worker_id>/",
+      "path": "$.entries[*].folder_mirror"
+    },
+    {
+      "check_id": "folder-mirror-decision",
+      "severity": "critical",
+      "rule": "type=governance-decision: folder_mirror matches decisions|recommendations|improvements|governance/final-decision-board/",
+      "path": "$.entries[*].folder_mirror"
+    },
+    {
+      "check_id": "score-dimension-coverage",
+      "severity": "critical",
+      "rule": "type=review-scores: all 10 dimensions with score_value",
+      "path": "$.entries[*].entry_kind"
+    },
+    {
+      "check_id": "status-kinds",
+      "severity": "critical",
+      "rule": "type=review-status: plan,order,merge,dedupe,overall-status,consolidated-result",
+      "path": "$.entries[*].entry_kind"
+    },
+    {
+      "check_id": "decision-kinds",
+      "severity": "critical",
+      "rule": "type=governance-decision: all 7 decision kinds",
+      "path": "$.entries[*].entry_kind"
+    },
+    {
+      "check_id": "raci-entry-kind",
+      "severity": "medium",
+      "rule": "review-finding entry_kind owned by worker per core/packages/pipelines/review-engine/RACI.md",
+      "path": "$.entries[*].entry_kind"
+    },
+    {
+      "check_id": "impact-not-severity",
+      "severity": "medium",
+      "rule": "impact must not equal severity enum literal",
+      "path": "$.entries[*].impact"
+    },
+    {
+      "check_id": "priority-rank-high",
+      "severity": "medium",
+      "rule": "severity critical|high should include priority_rank",
+      "path": "$.entries[*].priority_rank"
+    },
+    {
+      "check_id": "no-mutate",
+      "severity": "critical",
+      "rule": "extensions.mutate_source_artifacts is not true",
+      "path": "$.extensions.mutate_source_artifacts"
+    },
+    {
+      "check_id": "no-regenerate",
+      "severity": "critical",
+      "rule": "extensions.regenerate_outputs is not true",
+      "path": "$.extensions.regenerate_outputs"
+    },
+    {
+      "check_id": "no-validate-schemas",
+      "severity": "critical",
+      "rule": "extensions.validate_schemas is not true",
+      "path": "$.extensions.validate_schemas"
+    },
+    {
+      "check_id": "no-invent",
+      "severity": "critical",
+      "rule": "extensions.invent_missing_information is not true",
+      "path": "$.extensions.invent_missing_information"
+    },
+    {
+      "check_id": "unknowns-prefix",
+      "severity": "high",
+      "rule": "unknowns[] start with UNKNOWN:",
+      "path": "$.entries[*].unknowns"
+    },
+    {
+      "check_id": "dedupe-evidence",
+      "severity": "high",
+      "rule": "review-status merge entry cites governance/reviews/*/ paths",
+      "path": "$.entries[*].entry_kind"
+    }
+  ],
+  "fail_fast": true,
+  "side_effects": [
+    "none"
+  ],
+  "outputs": [
+    "gate-review-report"
+  ],
+  "status": "reserved",
+  "extensions": {
+    "pipeline": "review-engine",
+    "note": "Gate output is gate-review-report \u2014 distinct from governance-decision"
+  }
+}

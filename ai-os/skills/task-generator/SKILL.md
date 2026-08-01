@@ -9,11 +9,11 @@ description: Convert validated specifications into executable engineering work i
 
 ## Consumes
 
-Upstream Spec Eng packs + `specifications/` (+ soft SA packs as declared)
+Upstream Spec Eng packs + `artifacts/specifications/` (+ soft SA packs as declared)
 
 ## Produces
 
-`tasks/` → `engineering-task-graph` (folder name ≠ Core `task` artifacts)
+`artifacts/tasks/` → `engineering-task-graph` (folder name ≠ Core `task` artifacts)
 
 ## Ownership
 
@@ -22,11 +22,11 @@ Upstream Spec Eng packs + `specifications/` (+ soft SA packs as declared)
 
 ## Procedure
 
-1. Load `specifications/` (must be ready with section coverage).
+1. Load `artifacts/specifications/` (must be ready with section coverage).
 2. Decompose into epic→feature→story→task(+subtask) with depends_on.
 3. Emit work-item milestones and dependency edges per RACI.
 4. Trace every item to specifications + sources; mark estimate gaps UNKNOWN.
-5. Write under `tasks/`. Stop for validation/review.
+5. Write under `artifacts/tasks/`. Stop for artifacts/validation/review.
 
 ## Heuristics
 
@@ -47,4 +47,4 @@ Upstream Spec Eng packs + `specifications/` (+ soft SA packs as declared)
 
 ## Lock
 
-Acquire `task:{task_id}` per `architecture/CONCURRENCY.md` before mutating run-record state.
+Acquire `task:{task_id}` per `docs/architecture/CONCURRENCY.md` before mutating run-record state.

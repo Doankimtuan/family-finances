@@ -1,0 +1,136 @@
+{
+  "primary": {
+    "schema_version": "1.0.0",
+    "artifact_id": "art_out_pipeline_validator",
+    "type": "validation-finding",
+    "worker_id": "pipeline-validator",
+    "title": "pipeline-validator output",
+    "summary": "Verify execution order, stage dependencies, registration, lifecycle, resume and incremental support.",
+    "entries": [
+      {
+        "id": "pipeline-validator-execution-order-01",
+        "entry_kind": "execution-order",
+        "statement": "Sample `execution-order` for pipeline-validator.",
+        "validation_id": "VAL-PV-execution-or",
+        "target": "ai-os/workers/pipeline-validator/",
+        "rule": "execution-order per Validation Engine contract + RACI",
+        "result": "pass",
+        "evidence": [
+          "core/packages/schemas/validation-engine-payload.schema.json",
+          "core/packages/workers/pipeline-validator/",
+          "core/packages/pipelines/validation-engine/RACI.md"
+        ],
+        "severity": "info",
+        "recommendation": "Do not mutate sources; remediate upstream packages if fail.",
+        "confidence": 0.85,
+        "source_paths": [
+          "core/packages/schemas/",
+          "core/packages/workers/",
+          "core/packages/pipelines/",
+          "core/packages/registry/",
+          "core/packages/templates/"
+        ],
+        "unknowns": [
+          "UNKNOWN: none noted"
+        ],
+        "traceability": {
+          "source_artifact": "core/packages/workers/pipeline-validator/",
+          "knowledge": "artifacts/knowledge/",
+          "pipeline": "validation-engine",
+          "worker": "pipeline-validator"
+        },
+        "folder_mirror": "artifacts/validation/pipeline-validator/execution-order.json"
+      },
+      {
+        "id": "pipeline-validator-stage-dependency-01",
+        "entry_kind": "stage-dependency",
+        "statement": "Sample `stage-dependency` for pipeline-validator.",
+        "validation_id": "VAL-PV-stage-depend",
+        "target": "ai-os/workers/pipeline-validator/",
+        "rule": "stage-dependency per Validation Engine contract + RACI",
+        "result": "pass",
+        "evidence": [
+          "core/packages/schemas/validation-engine-payload.schema.json",
+          "core/packages/workers/pipeline-validator/",
+          "core/packages/pipelines/validation-engine/RACI.md"
+        ],
+        "severity": "info",
+        "recommendation": "Do not mutate sources; remediate upstream packages if fail.",
+        "confidence": 0.85,
+        "source_paths": [
+          "core/packages/schemas/",
+          "core/packages/workers/",
+          "core/packages/pipelines/",
+          "core/packages/registry/",
+          "core/packages/templates/"
+        ],
+        "unknowns": [
+          "UNKNOWN: none noted"
+        ],
+        "traceability": {
+          "source_artifact": "core/packages/workers/pipeline-validator/",
+          "knowledge": "artifacts/knowledge/",
+          "pipeline": "validation-engine",
+          "worker": "pipeline-validator"
+        },
+        "folder_mirror": "artifacts/validation/pipeline-validator/stage-dependency.json"
+      },
+      {
+        "id": "pipeline-validator-pipeline-registration-01",
+        "entry_kind": "pipeline-registration",
+        "statement": "Sample `pipeline-registration` for pipeline-validator.",
+        "validation_id": "VAL-PV-pipeline-reg",
+        "target": "ai-os/workers/pipeline-validator/",
+        "rule": "pipeline-registration per Validation Engine contract + RACI",
+        "result": "pass",
+        "evidence": [
+          "core/packages/schemas/validation-engine-payload.schema.json",
+          "core/packages/workers/pipeline-validator/",
+          "core/packages/pipelines/validation-engine/RACI.md"
+        ],
+        "severity": "info",
+        "recommendation": "Do not mutate sources; remediate upstream packages if fail.",
+        "confidence": 0.85,
+        "source_paths": [
+          "core/packages/schemas/",
+          "core/packages/workers/",
+          "core/packages/pipelines/",
+          "core/packages/registry/",
+          "core/packages/templates/"
+        ],
+        "unknowns": [
+          "UNKNOWN: none noted"
+        ],
+        "traceability": {
+          "source_artifact": "core/packages/workers/pipeline-validator/",
+          "knowledge": "artifacts/knowledge/",
+          "pipeline": "validation-engine",
+          "worker": "pipeline-validator"
+        },
+        "folder_mirror": "artifacts/validation/pipeline-validator/pipeline-registration.json"
+      }
+    ],
+    "status": "ready",
+    "created_at": "2026-08-01T18:00:00Z",
+    "trace": {
+      "orchestration_id": "art_ve_orchestration",
+      "plan_id": "art_ve_plan",
+      "task_id": "art_task_pipeline_validator",
+      "run_id": "art_run_pipeline_validator",
+      "goal_id": "art_ve_goal"
+    },
+    "extensions": {
+      "pipeline": "validation-engine",
+      "mutate_source_artifacts": false,
+      "invent_missing_information": false,
+      "incremental": true,
+      "partial": true,
+      "folder_partition": "artifacts/validation/pipeline-validator/",
+      "validation_scope": {
+        "mode": "full",
+        "note": "Sample is full-scope; scoped runs set paths here"
+      }
+    }
+  },
+  "note": "Packaging sample; validations not executed"
+}

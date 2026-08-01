@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.0.0",
+  "id": "task-generator",
+  "version": "0.1.1",
+  "title": "Task Generator",
+  "implements_roles": [
+    "executor"
+  ],
+  "side_effects": [
+    "runtime-write"
+  ],
+  "entrypoint": "skill.md",
+  "status": "draft",
+  "extensions": {
+    "worker_class": "discovery",
+    "pipeline": "specification-engineering",
+    "role_alias": "task-generator",
+    "skill_id": "task-generator",
+    "primary_output_type": "engineering-task-graph",
+    "consumes": [
+      "knowledge",
+      "repository",
+      "features",
+      "business",
+      "product-architecture",
+      "architecture-v2",
+      "requirements",
+      "quality",
+      "redesign",
+      "workflow",
+      "acceptance",
+      "specifications"
+    ],
+    "produces": [
+      "tasks"
+    ],
+    "depends_on_workers": [
+      "specification-generator"
+    ],
+    "feature_worker": false,
+    "invent_business_logic": false,
+    "redesign_system": false,
+    "overwrite_validated": false,
+    "consume_aliases": {
+      "architecture": "product-architecture"
+    },
+    "mission_verb": "plan",
+    "raci_doc": "core/packages/pipelines/specification-engineering/RACI.md"
+  }
+}

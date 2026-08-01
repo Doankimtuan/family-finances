@@ -1,0 +1,17 @@
+# Capability spec template for Prompt Generator
+capability: Prompt Generator
+version: 0.1.0
+generator: prompt-generator
+modes:
+  - Builder Prompt
+  - Reviewer Prompt
+  - Validator Prompt
+  - Improve Prompt
+  - Freeze Prompt
+  - Execution Prompt
+outputs:
+  partition: core/packages/scaffold/generators/prompt-generator/
+registries:
+  - workers
+  - skills
+  - schemas

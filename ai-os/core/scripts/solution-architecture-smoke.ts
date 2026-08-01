@@ -28,18 +28,18 @@ async function main() {
   }
 
   for (const rel of [
-    "schemas/solution-architecture-payload.schema.json",
-    "schemas/architecture-v2-spec.schema.json",
-    "schemas/tech-stack-recommendation.schema.json",
-    "schemas/migration-plan.schema.json",
-    "schemas/folder-structure-spec.schema.json",
-    "quality/README.md",
-    "architecture-v2/README.md",
-    "tech-stack/README.md",
-    "migration/README.md",
-    "folder-structure/README.md",
-    "decision-records/README.md",
-    "redesign/README.md",
+    "core/packages/schemas/solution-architecture-payload.schema.json",
+    "core/packages/schemas/architecture-v2-spec.schema.json",
+    "core/packages/schemas/tech-stack-recommendation.schema.json",
+    "core/packages/schemas/migration-plan.schema.json",
+    "core/packages/schemas/folder-structure-spec.schema.json",
+    "governance/quality/README.md",
+    "artifacts/architecture-v2/README.md",
+    "artifacts/tech-stack/README.md",
+    "artifacts/migration/README.md",
+    "artifacts/folder-structure/README.md",
+    "governance/decision-records/README.md",
+    "artifacts/redesign/README.md",
   ]) {
     await fs.access(path.join(root, rel));
   }
@@ -47,7 +47,7 @@ async function main() {
   for (const id of result.pipeline.workers) {
     const payloadPath = path.join(
       root,
-      "workers",
+      "core/packages/workers",
       id,
       "examples",
       "sample-primary-payload.json",
@@ -65,7 +65,7 @@ async function main() {
         throw new Error(`entry missing confidence for ${id}`);
       }
     }
-    await fs.access(path.join(root, "workers", id, "testcases.md"));
+    await fs.access(path.join(root, "core/packages/workers", id, "testcases.md"));
     await fs.access(path.join(root, "skills", id, "manifest.json"));
   }
 

@@ -1,0 +1,13 @@
+{
+  "$comment": "Shape mirror for validation-report; validate against core/packages/schemas/validation-report.schema.json",
+  "type": "validation-report",
+  "required_entry_kinds": [
+    "summary",
+    "critical",
+    "high",
+    "medium",
+    "low",
+    "recommended-fix",
+    "decision"
+  ]
+}

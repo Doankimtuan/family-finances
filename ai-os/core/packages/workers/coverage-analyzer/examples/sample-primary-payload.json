@@ -1,0 +1,147 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_qf_coverage-analyzer_primary",
+  "type": "qualification-finding",
+  "worker_id": "coverage-analyzer",
+  "title": "Coverage Analyzer sample",
+  "summary": "Sample qualification-finding for coverage-analyzer (packaging; benchmarks not executed)",
+  "entries": [
+    {
+      "id": "qf_coverage-analyzer_001",
+      "entry_kind": "missing-features",
+      "statement": "Qualification plan for missing-features via Coverage Analyzer",
+      "qualification_id": "qual_coverage-analyzer_sample",
+      "target": "governance/qualification/metrics/coverage-analyzer/",
+      "rule": "missing-features per Qualification Framework contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "core/packages/contracts/qualification-framework.md",
+        "core/packages/pipelines/qualification-framework/RACI.md",
+        "governance/qualification/reference-projects/"
+      ],
+      "impact": "Enables reproducible missing-features evaluation without mutating the framework",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual audit against certification thresholds",
+      "confidence": 0.8,
+      "source_paths": [
+        "core/packages/workers/",
+        "core/packages/pipelines/",
+        "core/packages/schemas/",
+        "core/packages/templates/"
+      ],
+      "unknowns": [
+        "UNKNOWN: benchmarks not executed in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "qualification-framework",
+        "worker": "coverage-analyzer",
+        "certification_thresholds": {
+          "feature_discovery_recall": 0.95,
+          "business_rule_coverage": 0.9,
+          "specification_completeness": 0.95,
+          "traceability": 1.0,
+          "critical_failures": 0,
+          "pipeline_completion": 0.99,
+          "worker_reliability": 0.98,
+          "documentation_coverage": 0.95
+        }
+      },
+      "folder_mirror": "governance/qualification/metrics/coverage-analyzer/missing-features.json",
+      "metric_value": null,
+      "threshold": null
+    },
+    {
+      "id": "qf_coverage-analyzer_002",
+      "entry_kind": "missing-business-rules",
+      "statement": "Qualification plan for missing-business-rules via Coverage Analyzer",
+      "qualification_id": "qual_coverage-analyzer_sample",
+      "target": "governance/qualification/metrics/coverage-analyzer/",
+      "rule": "missing-business-rules per Qualification Framework contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "core/packages/contracts/qualification-framework.md",
+        "core/packages/pipelines/qualification-framework/RACI.md",
+        "governance/qualification/reference-projects/"
+      ],
+      "impact": "Enables reproducible missing-business-rules evaluation without mutating the framework",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual audit against certification thresholds",
+      "confidence": 0.8,
+      "source_paths": [
+        "core/packages/workers/",
+        "core/packages/pipelines/",
+        "core/packages/schemas/",
+        "core/packages/templates/"
+      ],
+      "unknowns": [
+        "UNKNOWN: benchmarks not executed in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "qualification-framework",
+        "worker": "coverage-analyzer",
+        "certification_thresholds": {
+          "feature_discovery_recall": 0.95,
+          "business_rule_coverage": 0.9,
+          "specification_completeness": 0.95,
+          "traceability": 1.0,
+          "critical_failures": 0,
+          "pipeline_completion": 0.99,
+          "worker_reliability": 0.98,
+          "documentation_coverage": 0.95
+        }
+      },
+      "folder_mirror": "governance/qualification/metrics/coverage-analyzer/missing-business-rules.json",
+      "metric_value": null,
+      "threshold": null
+    },
+    {
+      "id": "qf_coverage-analyzer_003",
+      "entry_kind": "missing-apis",
+      "statement": "Qualification plan for missing-apis via Coverage Analyzer",
+      "qualification_id": "qual_coverage-analyzer_sample",
+      "target": "governance/qualification/metrics/coverage-analyzer/",
+      "rule": "missing-apis per Qualification Framework contract + RACI",
+      "result": "planned",
+      "evidence": [
+        "core/packages/contracts/qualification-framework.md",
+        "core/packages/pipelines/qualification-framework/RACI.md",
+        "governance/qualification/reference-projects/"
+      ],
+      "impact": "Enables reproducible missing-apis evaluation without mutating the framework",
+      "severity": "info",
+      "recommendation": "Review plan before execution phase opens",
+      "alternative_solution": "Manual audit against certification thresholds",
+      "confidence": 0.8,
+      "source_paths": [
+        "core/packages/workers/",
+        "core/packages/pipelines/",
+        "core/packages/schemas/",
+        "core/packages/templates/"
+      ],
+      "unknowns": [
+        "UNKNOWN: benchmarks not executed in packaging milestone"
+      ],
+      "traceability": {
+        "pipeline": "qualification-framework",
+        "worker": "coverage-analyzer",
+        "certification_thresholds": {
+          "feature_discovery_recall": 0.95,
+          "business_rule_coverage": 0.9,
+          "specification_completeness": 0.95,
+          "traceability": 1.0,
+          "critical_failures": 0,
+          "pipeline_completion": 0.99,
+          "worker_reliability": 0.98,
+          "documentation_coverage": 0.95
+        }
+      },
+      "folder_mirror": "governance/qualification/metrics/coverage-analyzer/missing-apis.json",
+      "metric_value": null,
+      "threshold": null
+    }
+  ],
+  "status": "draft",
+  "created_at": "2026-08-01T10:32:40Z"
+}

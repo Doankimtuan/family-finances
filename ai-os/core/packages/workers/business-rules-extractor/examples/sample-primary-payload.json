@@ -1,0 +1,34 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_out_business_rules_extractor",
+  "type": "business-rules",
+  "worker_id": "business-rules-extractor",
+  "title": "Business Rules Extractor output",
+  "summary": "Extract observed business rules from DOMAIN_MODEL and domain engines into artifacts/business/. Discover only \u2014 do not invent rules.",
+  "entries": [
+    {
+      "id": "br-jars-virtual",
+      "entry_kind": "rule",
+      "statement": "Jars hold virtual balances only; real money location remains accounts/transactions.",
+      "source_paths": [
+        "docs/DOMAIN_MODEL.md",
+        "artifacts/business/examples/jar-intent-rules.json"
+      ],
+      "folder_mirror": "artifacts/business/"
+    }
+  ],
+  "status": "ready",
+  "created_at": "2026-08-01T12:00:00Z",
+  "trace": {
+    "orchestration_id": "art_product_re_orchestration",
+    "plan_id": "art_product_re_plan",
+    "task_id": "art_task_business_rules_extractor",
+    "run_id": "art_run_business_rules_extractor",
+    "goal_id": "art_product_re_goal"
+  },
+  "extensions": {
+    "pipeline": "product-re",
+    "role_alias": "business-rules-extractor",
+    "redesign": false
+  }
+}

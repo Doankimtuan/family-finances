@@ -9,11 +9,11 @@ description: Bootstrap full AI OS projects: repo init, folders, worker/pipeline 
 
 ## Consumes
 
-`templates/`, `schemas/`, `workers/`, `validators/`, `reviewers/`, `pipelines/`, `knowledge/`, `configs/`, `artifacts/`, `registry/`
+`core/packages/templates/`, `core/packages/schemas/`, `core/packages/workers/`, `core/packages/validators/`, `core/packages/reviewers/`, `core/packages/pipelines/`, `artifacts/knowledge/`, `core/packages/configs/`, `artifacts/`, `core/packages/registry/`
 
 ## Produces
 
-`framework-generator/generators/project-bootstrap-generator/` → `framework-generation` (required `folder_mirror` under partition)
+`core/packages/scaffold/generators/project-bootstrap-generator/` → `framework-generation` (required `folder_mirror` under partition)
 
 ## Ownership
 
@@ -27,19 +27,19 @@ description: Bootstrap full AI OS projects: repo init, folders, worker/pipeline 
 | `config-generation` | Rule for `config-generation` per RACI |
 | `default-templates` | Rule for `default-templates` per RACI |
 
-See `pipelines/framework-generator/RACI.md` and `contracts/framework-generator.md` overlap table.
+See `core/packages/pipelines/framework-generator/RACI.md` and `core/packages/contracts/framework-generator.md` overlap table.
 
 ## Procedure
 
-1. Aggregate plans from all upstream generators (glob `framework-generator/generators/*/`).
-2. Plan repo-init + folder-scaffold from `framework-generator/scaffolding/`.
-3. Sole owner of worker-registration + pipeline-registration registry patch plans under `framework-generator/registries/`.
-4. config-generation emits `configs/` starter files; default-templates copies from `templates/`.
+1. Aggregate plans from all upstream generators (glob `core/packages/scaffold/generators/*/`).
+2. Plan repo-init + folder-scaffold from `core/packages/scaffold/scaffolding/`.
+3. Sole owner of worker-registration + pipeline-registration registry patch plans under `core/packages/scaffold/registries/`.
+4. config-generation emits `core/packages/configs/` starter files; default-templates copies from `core/packages/templates/`.
 5. Emit six entry_kinds minimum for full bootstrap spec.
 
 ## Heuristics
 
-- Reuse `templates/` packs; never duplicate template file contents in plans.
+- Reuse `core/packages/templates/` packs; never duplicate template file contents in plans.
 - Every `output_plan` requires `artifacts`, `registries`, `semver`; add `migration` when breaking.
 - Mark skipped modes `UNKNOWN: …`; never invent spec fields.
 - Dedupe key for orchestrator: `generation_id` + `entry_kind`.

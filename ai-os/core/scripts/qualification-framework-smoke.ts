@@ -95,18 +95,18 @@ async function main() {
   assertWaveTopology(result.pipeline.waves, result.graph.edges);
 
   const version = (await fs.readFile(path.join(root, "VERSION"), "utf8")).trim();
-  if (version !== "0.11.0") {
-    throw new Error(`Expected VERSION 0.11.0, got ${version}`);
+  if (version !== "0.13.0") {
+    throw new Error(`Expected VERSION 0.13.0, got ${version}`);
   }
 
   const meta = JSON.parse(
     await fs.readFile(
-      path.join(root, "pipelines/qualification-framework/.workers-meta.json"),
+      path.join(root, "core/packages/pipelines/qualification-framework/.workers-meta.json"),
       "utf8",
     ),
   );
   const raci = await fs.readFile(
-    path.join(root, "pipelines/qualification-framework/RACI.md"),
+    path.join(root, "core/packages/pipelines/qualification-framework/RACI.md"),
     "utf8",
   );
   for (const id of WORKERS) {
@@ -119,23 +119,23 @@ async function main() {
   }
 
   for (const rel of [
-    "schemas/qualification-framework-payload.schema.json",
-    "schemas/qualification-finding.schema.json",
-    "schemas/qualification-scores.schema.json",
-    "schemas/certification-report.schema.json",
-    "schemas/release-qualification-decision.schema.json",
-    "schemas/gate-qualification-report.schema.json",
-    "contracts/qualification-framework.md",
-    "qualification/reference-projects/catalog.json",
-    "qualification/scorecards/metrics-catalog.json",
-    "RELEASE_NOTES_0.11.0.md",
+    "core/packages/schemas/qualification-framework-payload.schema.json",
+    "core/packages/schemas/qualification-finding.schema.json",
+    "core/packages/schemas/qualification-scores.schema.json",
+    "core/packages/schemas/certification-report.schema.json",
+    "core/packages/schemas/release-qualification-decision.schema.json",
+    "core/packages/schemas/gate-qualification-report.schema.json",
+    "core/packages/contracts/qualification-framework.md",
+    "governance/qualification/reference-projects/catalog.json",
+    "governance/qualification/scorecards/metrics-catalog.json",
+    "docs/releases/RELEASE_NOTES_0.13.0.md",
   ]) {
     await fs.access(path.join(root, rel));
   }
 
   const catalog = JSON.parse(
     await fs.readFile(
-      path.join(root, "qualification/reference-projects/catalog.json"),
+      path.join(root, "governance/qualification/reference-projects/catalog.json"),
       "utf8",
     ),
   );
@@ -144,7 +144,7 @@ async function main() {
   }
   for (const proj of REFERENCE_PROJECTS) {
     await fs.access(
-      path.join(root, "qualification/reference-projects", proj, "manifest.json"),
+      path.join(root, "governance/qualification/reference-projects", proj, "manifest.json"),
     );
   }
 
@@ -152,7 +152,7 @@ async function main() {
     await fs.readFile(
       path.join(
         root,
-        "validators/qualification-framework-schema-check/manifest.json",
+        "core/packages/validators/qualification-framework-schema-check/manifest.json",
       ),
       "utf8",
     ),
@@ -174,7 +174,7 @@ async function main() {
   for (const id of WORKERS) {
     const payload = JSON.parse(
       await fs.readFile(
-        path.join(root, "workers", id, "examples", "sample-primary-payload.json"),
+        path.join(root, "core/packages/workers", id, "examples", "sample-primary-payload.json"),
         "utf8",
       ),
     );
@@ -184,8 +184,8 @@ async function main() {
           throw new Error(`entry missing ${f} for ${id}`);
         }
       }
-      if (!String(entry.folder_mirror ?? "").startsWith("qualification/")) {
-        throw new Error(`folder_mirror must be under qualification/ for ${id}`);
+      if (!String(entry.folder_mirror ?? "").startsWith("governance/qualification/")) {
+        throw new Error(`folder_mirror must be under governance/qualification/ for ${id}`);
       }
       for (const u of entry.unknowns ?? []) {
         if (!String(u).startsWith("UNKNOWN:")) {
@@ -210,13 +210,13 @@ async function main() {
     }
 
     await fs.access(
-      path.join(root, "qualification/templates", id, "report.template.md"),
+      path.join(root, "governance/qualification/templates", id, "report.template.md"),
     );
   }
 
   const metrics = JSON.parse(
     await fs.readFile(
-      path.join(root, "workers/metrics-engine/examples/sample-primary-payload.json"),
+      path.join(root, "core/packages/workers/metrics-engine/examples/sample-primary-payload.json"),
       "utf8",
     ),
   );
@@ -231,7 +231,7 @@ async function main() {
     await fs.readFile(
       path.join(
         root,
-        "workers/release-qualification-board/examples/sample-primary-payload.json",
+        "core/packages/workers/release-qualification-board/examples/sample-primary-payload.json",
       ),
       "utf8",
     ),
@@ -247,7 +247,7 @@ async function main() {
   }
 
   const contract = await fs.readFile(
-    path.join(root, "contracts/qualification-framework.md"),
+    path.join(root, "core/packages/contracts/qualification-framework.md"),
     "utf8",
   );
   for (const needle of [

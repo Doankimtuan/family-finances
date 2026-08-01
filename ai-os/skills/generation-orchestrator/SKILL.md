@@ -9,11 +9,11 @@ description: Record wave order, merge partitioned scaffold plans, dedupe by gene
 
 ## Consumes
 
-`templates/`, `schemas/`, `workers/`, `validators/`, `reviewers/`, `pipelines/`, `knowledge/`, `configs/`, `artifacts/`, `registry/`
+`core/packages/templates/`, `core/packages/schemas/`, `core/packages/workers/`, `core/packages/validators/`, `core/packages/reviewers/`, `core/packages/pipelines/`, `artifacts/knowledge/`, `core/packages/configs/`, `artifacts/`, `core/packages/registry/`
 
 ## Produces
 
-`framework-generator/status/generation-orchestrator/` → `framework-generation-status` (required `folder_mirror` under partition)
+`core/packages/scaffold/status/generation-orchestrator/` → `framework-generation-status` (required `folder_mirror` under partition)
 
 ## Ownership
 
@@ -26,19 +26,19 @@ description: Record wave order, merge partitioned scaffold plans, dedupe by gene
 | `dedupe` | Rule for `dedupe` per RACI |
 | `overall-status` | Rule for `overall-status` per RACI |
 
-See `pipelines/framework-generator/RACI.md` and `contracts/framework-generator.md` overlap table.
+See `core/packages/pipelines/framework-generator/RACI.md` and `core/packages/contracts/framework-generator.md` overlap table.
 
 ## Procedure
 
-1. Read `pipelines/framework-generator/pipeline.json` waves → emit plan + order entries.
-2. Glob `framework-generator/generators/*/**` scaffold plans; cite paths in merge evidence.
+1. Read `core/packages/pipelines/framework-generator/pipeline.json` waves → emit plan + order entries.
+2. Glob `core/packages/scaffold/generators/*/**` scaffold plans; cite paths in merge evidence.
 3. Dedupe key: `generation_id` + `entry_kind`; emit dedupe summary entry.
 4. overall-status aggregates severity counts; never mutate generator outputs.
-5. Emit `framework-generation-status` under `framework-generator/status/generation-orchestrator/`.
+5. Emit `framework-generation-status` under `core/packages/scaffold/status/generation-orchestrator/`.
 
 ## Heuristics
 
-- Reuse `templates/` packs; never duplicate template file contents in plans.
+- Reuse `core/packages/templates/` packs; never duplicate template file contents in plans.
 - Every `output_plan` requires `artifacts`, `registries`, `semver`; add `migration` when breaking.
 - Mark skipped modes `UNKNOWN: …`; never invent spec fields.
 - Dedupe key for orchestrator: `generation_id` + `entry_kind`.

@@ -38,7 +38,7 @@
   "entrypoint": "SKILL.md",
   "extensions": {
     "pipeline": "framework-generator",
-    "partition": "framework-generator/reports/generation-reporter/",
+    "partition": "core/packages/scaffold/reports/generation-reporter/",
     "entry_kinds": [
       "summary",
       "critical-gaps",

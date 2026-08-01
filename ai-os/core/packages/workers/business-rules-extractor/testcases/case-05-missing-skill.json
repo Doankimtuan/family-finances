@@ -1,0 +1,42 @@
+{
+  "id": "case-05-missing-skill",
+  "title": "Unknown skill fails preparing",
+  "description": "Worker must fail in preparing when skill_id is not in core/packages/registry/skills.json.",
+  "given": {
+    "gate_profile": "standard",
+    "orchestration_budget": {
+      "allowed_side_effects": [
+        "none",
+        "runtime-write"
+      ]
+    },
+    "task": {
+      "artifact_id": "art_tc05_task",
+      "skill_id": "business-rules-extractor",
+      "skill_version": "0.1.0",
+      "primary_output_type": "business-rules",
+      "validators": [
+        "product-re-schema-check"
+      ],
+      "reviewers": [
+        "product-re-coverage-review"
+      ],
+      "side_effect_budget": [
+        "runtime-write"
+      ]
+    },
+    "inputs": []
+  },
+  "when": {
+    "action": "run-worker",
+    "worker_id": "business-rules-extractor",
+    "worker_version": "0.1.0"
+  },
+  "expect": {
+    "run_status": "failed",
+    "failed_phase": "preparing",
+    "error_code": "unknown-skill",
+    "published": false,
+    "primary_output_created": false
+  }
+}

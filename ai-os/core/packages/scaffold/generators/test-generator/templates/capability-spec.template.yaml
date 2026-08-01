@@ -1,0 +1,17 @@
+# Capability spec template for Test Generator
+capability: Test Generator
+version: 0.1.0
+generator: test-generator
+modes:
+  - Test Cases
+  - Validation Cases
+  - Edge Cases
+  - Regression Tests
+  - Sample Projects
+  - Acceptance Tests
+outputs:
+  partition: core/packages/scaffold/generators/test-generator/
+registries:
+  - workers
+  - skills
+  - schemas

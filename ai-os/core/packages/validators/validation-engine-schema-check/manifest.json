@@ -1,0 +1,93 @@
+{
+  "schema_version": "1.0.0",
+  "id": "validation-engine-schema-check",
+  "version": "0.2.0",
+  "title": "Validation Engine Schema Check",
+  "description": "Deterministic checks for validation-engine payloads (partition, scores, finding fields).",
+  "applies_to": [
+    "validation-finding",
+    "validation-status",
+    "quality-scores",
+    "validation-report"
+  ],
+  "checks": [
+    {
+      "check_id": "schema-valid",
+      "severity": "critical",
+      "rule": "payload validates against core/packages/schemas/validation-engine-payload.schema.json",
+      "path": "payload.json"
+    },
+    {
+      "check_id": "finding-fields-required",
+      "severity": "critical",
+      "rule": "every entry has validation_id,target,rule,result,evidence,severity,recommendation,confidence,traceability,unknowns,source_paths",
+      "path": "$.entries[*]"
+    },
+    {
+      "check_id": "folder-mirror-required",
+      "severity": "critical",
+      "rule": "when type=validation-finding every entry.folder_mirror matches artifacts/validation/<worker_id>/",
+      "path": "$.entries[*].folder_mirror"
+    },
+    {
+      "check_id": "score-dimension-coverage",
+      "severity": "critical",
+      "rule": "when type=quality-scores and status=ready: all 9 score entry_kinds present with score_value",
+      "path": "$.entries[*].entry_kind"
+    },
+    {
+      "check_id": "report-decision-required",
+      "severity": "critical",
+      "rule": "when type=validation-report and status=ready: include summary, decision, and severity kinds or recommended-fix",
+      "path": "$.entries[*].entry_kind"
+    },
+    {
+      "check_id": "no-mutate-sources",
+      "severity": "critical",
+      "rule": "extensions.mutate_source_artifacts is not true",
+      "path": "$.extensions.mutate_source_artifacts"
+    },
+    {
+      "check_id": "no-invent-missing",
+      "severity": "critical",
+      "rule": "extensions.invent_missing_information is not true",
+      "path": "$.extensions.invent_missing_information"
+    },
+    {
+      "check_id": "unknowns-prefix",
+      "severity": "high",
+      "rule": "unknowns[] items start with UNKNOWN:",
+      "path": "$.entries[*].unknowns"
+    },
+    {
+      "check_id": "evidence-required",
+      "severity": "critical",
+      "rule": "every entry.evidence has \u22651 path",
+      "path": "$.entries[*].evidence"
+    },
+    {
+      "check_id": "result-authoritative",
+      "severity": "medium",
+      "rule": "entry_kind must not be pass|fail; use result field",
+      "path": "$.entries[*].entry_kind"
+    },
+    {
+      "check_id": "raci-overlap",
+      "severity": "medium",
+      "rule": "findings respect core/packages/pipelines/validation-engine/RACI.md ownership",
+      "path": "$.entries[*].entry_kind"
+    }
+  ],
+  "fail_fast": true,
+  "side_effects": [
+    "none"
+  ],
+  "outputs": [
+    "gate-validation-report"
+  ],
+  "status": "reserved",
+  "extensions": {
+    "pipeline": "validation-engine",
+    "note": "Gate output type is gate-validation-report \u2014 distinct from worker validation-report"
+  }
+}

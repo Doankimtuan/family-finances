@@ -1,0 +1,134 @@
+{
+  "schema_version": "1.0.0",
+  "id": "product-re",
+  "title": "Product Reverse Engineering Pipeline",
+  "version": "0.2.1",
+  "status": "draft",
+  "worker_class": "discovery",
+  "gate_profile": "standard",
+  "allows_feature_workers": false,
+  "side_effect_ceiling": [
+    "none",
+    "runtime-write"
+  ],
+  "workers": [
+    "product-knowledge-ingest",
+    "feature-surface-inventory",
+    "business-rules-extractor",
+    "product-architecture-observer",
+    "product-analyst",
+    "workflow-analyzer",
+    "requirement-generator",
+    "acceptance-criteria-generator",
+    "product-re-gap-report"
+  ],
+  "dependency_graph_ref": {
+    "path": "core/packages/pipelines/product-re/dependency-graph.json",
+    "artifact_id": "art_product_re_pipeline_deps",
+    "schema": "core/packages/schemas/pipeline-dependency-graph.schema.json"
+  },
+  "waves": [
+    [
+      "product-knowledge-ingest",
+      "feature-surface-inventory",
+      "business-rules-extractor",
+      "product-architecture-observer"
+    ],
+    [
+      "product-analyst"
+    ],
+    [
+      "workflow-analyzer"
+    ],
+    [
+      "requirement-generator"
+    ],
+    [
+      "acceptance-criteria-generator"
+    ],
+    [
+      "product-re-gap-report"
+    ]
+  ],
+  "primary_output_type": "product-model",
+  "validator_id": "product-re-schema-check",
+  "reviewer_id": "product-re-coverage-review",
+  "goal": {
+    "title": "Reverse-engineer product knowledge from implementation",
+    "problem": "Transform implementation into artifacts/knowledge/features/business/product-architecture consume packs and artifacts/product/workflow/requirements/acceptance produce packs without redesign.",
+    "success_criteria": [
+      {
+        "id": "ingest-ready",
+        "description": "Wave-0 ingest workers emit ready artifacts/knowledge/feature/business/architecture notes"
+      },
+      {
+        "id": "product-ready",
+        "description": "product-analyst emits ready product-model"
+      },
+      {
+        "id": "workflow-ready",
+        "description": "workflow-analyzer emits ready workflow-model"
+      },
+      {
+        "id": "requirements-ready",
+        "description": "requirement-generator emits ready requirement-spec"
+      },
+      {
+        "id": "acceptance-ready",
+        "description": "acceptance-criteria-generator emits ready acceptance-criteria"
+      },
+      {
+        "id": "gaps-ready",
+        "description": "product-re-gap-report emits ready product-re-gap"
+      }
+    ],
+    "non_goals": [
+      "Redesign the product",
+      "Implement Feature Workers",
+      "Mutate application source under repo-write",
+      "Treat ai-os/architecture/ as product architecture input"
+    ]
+  },
+  "created_at": "2026-08-01T14:00:00Z",
+  "extensions": {
+    "schema": "core/packages/schemas/pipeline.schema.json",
+    "contract": "core/packages/contracts/pipeline.md",
+    "output_types": [
+      "knowledge-notes",
+      "feature-inventory",
+      "business-rules",
+      "product-architecture-notes",
+      "product-model",
+      "workflow-model",
+      "requirement-spec",
+      "acceptance-criteria",
+      "product-re-gap"
+    ],
+    "consumes": [
+      "docs",
+      "discovery-report",
+      "app",
+      "knowledge",
+      "features",
+      "business",
+      "product-architecture"
+    ],
+    "produces": [
+      "knowledge",
+      "features",
+      "business",
+      "product-architecture",
+      "product",
+      "workflow",
+      "requirements",
+      "acceptance",
+      "gaps"
+    ],
+    "discovery_handoff": "soft-read only; no hard cross-pipeline edges",
+    "soft_input_types": {
+      "docs": "doc-source",
+      "app": "app-surface",
+      "discovery-report": "discovery-report"
+    }
+  }
+}

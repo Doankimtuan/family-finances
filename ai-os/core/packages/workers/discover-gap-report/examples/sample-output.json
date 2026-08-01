@@ -1,0 +1,41 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_out_discover_gap_report_envelope",
+  "worker_id": "discover-gap-report",
+  "worker_version": "0.1.0",
+  "run_id": "art_run_discover_gap_report",
+  "task_id": "art_task_discover_gap_report",
+  "orchestration_id": "art_discovery_orchestration",
+  "status": "ready",
+  "primary_output_ref": {
+    "artifact_id": "art_out_discover_gap_report",
+    "artifact_version": 1,
+    "relation": "derived-from"
+  },
+  "validation_report_refs": [
+    {
+      "artifact_id": "art_val_discover_gap_report",
+      "artifact_version": 1
+    }
+  ],
+  "review_report_refs": [
+    {
+      "artifact_id": "art_rev_discover_gap_report",
+      "artifact_version": 1
+    }
+  ],
+  "summary": "Synthesize prior discovery reports into a single gap/risk report for orchestrator planning. Does not implement features.",
+  "created_at": "2026-08-01T00:00:00Z",
+  "trace": {
+    "orchestration_id": "art_discovery_orchestration",
+    "plan_id": "art_discovery_plan",
+    "task_id": "art_task_discover_gap_report",
+    "run_id": "art_run_discover_gap_report",
+    "goal_id": "art_discovery_goal"
+  },
+  "extensions": {
+    "worker_class": "discovery",
+    "pipeline": "discovery",
+    "primary_payload_schema": "core/packages/schemas/discovery-report.schema.json"
+  }
+}

@@ -1,0 +1,108 @@
+{
+  "primary": {
+    "schema_version": "1.0.0",
+    "artifact_id": "art_out_documentation_reviewer",
+    "type": "review-finding",
+    "worker_id": "documentation-reviewer",
+    "title": "documentation-reviewer output",
+    "summary": "Review readability, consistency, examples, cross references, naming, formatting, and documentation quality.",
+    "entries": [
+      {
+        "id": "documentation-reviewer-readability-01",
+        "entry_kind": "readability",
+        "statement": "Review finding for `readability` from documentation-reviewer.",
+        "review_id": "REV-DOCUMENT-readabilit",
+        "target": "ai-os/pipelines/",
+        "finding": "Sample qualitative review for readability.",
+        "evidence": [
+          "artifacts/validation/",
+          "artifacts/reports/",
+          "artifacts/scores/",
+          "core/packages/workers/documentation-reviewer/"
+        ],
+        "impact": "info",
+        "severity": "info",
+        "recommendation": "Provide actionable remediation guidance without modifying or regenerating source artifacts.",
+        "alternative_solution": "Remediate upstream artifact packages; do not mutate via Review Engine.",
+        "confidence": 0.75,
+        "source_paths": [
+          "artifacts/",
+          "artifacts/validation/",
+          "artifacts/reports/",
+          "artifacts/scores/",
+          "artifacts/knowledge/",
+          "artifacts/specifications/",
+          "core/packages/pipelines/"
+        ],
+        "unknowns": [
+          "UNKNOWN: live review not executed in packaging milestone"
+        ],
+        "traceability": {
+          "source_artifact": "artifacts/validation/reports/",
+          "validation": "artifacts/reports/",
+          "pipeline": "review-engine",
+          "worker": "documentation-reviewer"
+        },
+        "folder_mirror": "governance/reviews/documentation-reviewer/readability.json"
+      },
+      {
+        "id": "documentation-reviewer-consistency-01",
+        "entry_kind": "consistency",
+        "statement": "Review finding for `consistency` from documentation-reviewer.",
+        "review_id": "REV-DOCUMENT-consistenc",
+        "target": "ai-os/pipelines/",
+        "finding": "Sample qualitative review for consistency.",
+        "evidence": [
+          "artifacts/validation/",
+          "artifacts/reports/",
+          "artifacts/scores/",
+          "core/packages/workers/documentation-reviewer/"
+        ],
+        "impact": "Engineering quality risk if unaddressed.",
+        "severity": "high",
+        "recommendation": "Provide actionable remediation guidance without modifying or regenerating source artifacts.",
+        "alternative_solution": "Remediate upstream artifact packages; do not mutate via Review Engine.",
+        "confidence": 0.75,
+        "source_paths": [
+          "artifacts/",
+          "artifacts/validation/",
+          "artifacts/reports/",
+          "artifacts/scores/",
+          "artifacts/knowledge/",
+          "artifacts/specifications/",
+          "core/packages/pipelines/"
+        ],
+        "unknowns": [
+          "UNKNOWN: live review not executed in packaging milestone"
+        ],
+        "traceability": {
+          "source_artifact": "artifacts/validation/reports/",
+          "validation": "artifacts/reports/",
+          "pipeline": "review-engine",
+          "worker": "documentation-reviewer"
+        },
+        "folder_mirror": "governance/reviews/documentation-reviewer/consistency.json"
+      }
+    ],
+    "status": "ready",
+    "created_at": "2026-08-01T19:00:00Z",
+    "trace": {
+      "orchestration_id": "art_re_orchestration",
+      "plan_id": "art_re_plan",
+      "task_id": "art_task_documentation_reviewer",
+      "run_id": "art_run_documentation_reviewer",
+      "goal_id": "art_re_goal"
+    },
+    "extensions": {
+      "pipeline": "review-engine",
+      "mutate_source_artifacts": false,
+      "regenerate_outputs": false,
+      "validate_schemas": false,
+      "invent_missing_information": false,
+      "incremental": true,
+      "partial": true,
+      "folder_partition": "governance/reviews/documentation-reviewer/"
+    }
+  },
+  "note": "Packaging sample; reviews not executed"
+}

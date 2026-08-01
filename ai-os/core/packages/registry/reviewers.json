@@ -1,0 +1,70 @@
+{
+  "schema_version": "1.0.0",
+  "registry_kind": "reviewers",
+  "updated_at": "2026-08-01T11:02:14Z",
+  "entries": {
+    "discovery-coverage-review": {
+      "id": "discovery-coverage-review",
+      "path": "core/packages/reviewers/discovery-coverage-review",
+      "version": "0.1.0",
+      "status": "reserved",
+      "description": "Coverage/quality review for discovery reports (no feature design)"
+    },
+    "product-re-coverage-review": {
+      "id": "product-re-coverage-review",
+      "path": "core/packages/reviewers/product-re-coverage-review",
+      "version": "0.2.0",
+      "status": "reserved",
+      "description": "Coverage review for product-re outputs including ingest and gap"
+    },
+    "solution-architecture-coverage-review": {
+      "id": "solution-architecture-coverage-review",
+      "path": "core/packages/reviewers/solution-architecture-coverage-review",
+      "version": "0.1.0",
+      "status": "reserved",
+      "description": "Coverage review for solution-architecture redesign outputs"
+    },
+    "specification-engineering-coverage-review": {
+      "id": "specification-engineering-coverage-review",
+      "path": "core/packages/reviewers/specification-engineering-coverage-review",
+      "version": "0.2.0",
+      "status": "reserved",
+      "description": "Coverage review for specification-engineering outputs"
+    },
+    "validation-engine-coverage-review": {
+      "id": "validation-engine-coverage-review",
+      "path": "core/packages/reviewers/validation-engine-coverage-review",
+      "version": "0.2.0",
+      "status": "reserved",
+      "description": "Coverage review for validation-engine outputs"
+    },
+    "review-engine-coverage-review": {
+      "id": "review-engine-coverage-review",
+      "path": "core/packages/reviewers/review-engine-coverage-review",
+      "version": "0.3.0",
+      "status": "reserved",
+      "description": "Qualitative coverage rubric for review-engine payloads."
+    },
+    "framework-generator-coverage-review": {
+      "id": "framework-generator-coverage-review",
+      "path": "core/packages/reviewers/framework-generator-coverage-review",
+      "version": "0.2.0",
+      "status": "draft",
+      "description": "Qualitative coverage of generator scaffold plans."
+    },
+    "qualification-framework-coverage-review": {
+      "id": "qualification-framework-coverage-review",
+      "path": "core/packages/reviewers/qualification-framework-coverage-review",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Qualitative coverage of qualification and certification plans."
+    },
+    "runtime-engine-coverage-review": {
+      "id": "runtime-engine-coverage-review",
+      "path": "core/packages/reviewers/runtime-engine-coverage-review",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Qualitative coverage of runtime orchestration plans."
+    }
+  }
+}

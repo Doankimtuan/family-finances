@@ -1,6 +1,6 @@
 ---
 name: worker-generator
-description: Generate Worker package skeleton (README, skill, manifest, examples pointers) from capability specs. Does NOT generate validators, reviewers, tests, or docs — see overlap table in contracts/framework-generator.md.
+description: Generate Worker package skeleton (README, skill, manifest, examples pointers) from capability specs. Does NOT generate validators, reviewers, tests, or docs — see overlap table in core/packages/contracts/framework-generator.md.
 ---
 
 # Worker Generator
@@ -9,11 +9,11 @@ description: Generate Worker package skeleton (README, skill, manifest, examples
 
 ## Consumes
 
-`templates/`, `schemas/`, `workers/`, `validators/`, `reviewers/`, `pipelines/`, `knowledge/`, `configs/`, `artifacts/`, `registry/`
+`core/packages/templates/`, `core/packages/schemas/`, `core/packages/workers/`, `core/packages/validators/`, `core/packages/reviewers/`, `core/packages/pipelines/`, `artifacts/knowledge/`, `core/packages/configs/`, `artifacts/`, `core/packages/registry/`
 
 ## Produces
 
-`framework-generator/generators/worker-generator/` → `framework-generation` (required `folder_mirror` under partition)
+`core/packages/scaffold/generators/worker-generator/` → `framework-generation` (required `folder_mirror` under partition)
 
 ## Ownership
 
@@ -25,19 +25,19 @@ description: Generate Worker package skeleton (README, skill, manifest, examples
 | `worker-skill` | Rule for `worker-skill` per RACI |
 | `worker-manifest` | Rule for `worker-manifest` per RACI |
 
-See `pipelines/framework-generator/RACI.md` and `contracts/framework-generator.md` overlap table.
+See `core/packages/pipelines/framework-generator/RACI.md` and `core/packages/contracts/framework-generator.md` overlap table.
 
 ## Procedure
 
-1. Copy plan from `templates/worker/` layout (README, skill.md, manifest.json, examples/, testcases/).
-2. Map spec.outputs.worker_id → kebab-case; validate against `schemas/worker-manifest.schema.json`.
+1. Copy plan from `core/packages/templates/worker/` layout (README, skill.md, manifest.json, examples/, testcases/).
+2. Map spec.outputs.worker_id → kebab-case; validate against `core/packages/schemas/worker-manifest.schema.json`.
 3. Plan worker-package + worker-readme + worker-skill + worker-manifest entries only.
 4. Do NOT plan validator.md, reviewer.md, tests, or release docs (other generators own those).
 5. `output_plan.registries`: workers + skills only (registration patches owned by bootstrap).
 
 ## Heuristics
 
-- Reuse `templates/` packs; never duplicate template file contents in plans.
+- Reuse `core/packages/templates/` packs; never duplicate template file contents in plans.
 - Every `output_plan` requires `artifacts`, `registries`, `semver`; add `migration` when breaking.
 - Mark skipped modes `UNKNOWN: …`; never invent spec fields.
 - Dedupe key for orchestrator: `generation_id` + `entry_kind`.

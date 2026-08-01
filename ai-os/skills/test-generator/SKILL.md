@@ -9,11 +9,11 @@ description: Generate testcases, validation cases, edge cases, regression tests,
 
 ## Consumes
 
-`templates/`, `schemas/`, `workers/`, `validators/`, `reviewers/`, `pipelines/`, `knowledge/`, `configs/`, `artifacts/`, `registry/`
+`core/packages/templates/`, `core/packages/schemas/`, `core/packages/workers/`, `core/packages/validators/`, `core/packages/reviewers/`, `core/packages/pipelines/`, `artifacts/knowledge/`, `core/packages/configs/`, `artifacts/`, `core/packages/registry/`
 
 ## Produces
 
-`framework-generator/generators/test-generator/` → `framework-generation` (required `folder_mirror` under partition)
+`core/packages/scaffold/generators/test-generator/` → `framework-generation` (required `folder_mirror` under partition)
 
 ## Ownership
 
@@ -27,11 +27,11 @@ description: Generate testcases, validation cases, edge cases, regression tests,
 | `sample-project` | Rule for `sample-project` per RACI |
 | `acceptance-test` | Rule for `acceptance-test` per RACI |
 
-See `pipelines/framework-generator/RACI.md` and `contracts/framework-generator.md` overlap table.
+See `core/packages/pipelines/framework-generator/RACI.md` and `core/packages/contracts/framework-generator.md` overlap table.
 
 ## Procedure
 
-1. Bind to worker id from spec; load `templates/worker/testcases/` as baseline.
+1. Bind to worker id from spec; load `core/packages/templates/worker/testcases/` as baseline.
 2. Plan case-01..05 JSON fixtures with input spec + expected entry_kind + severity.
 3. Cover happy path, missing spec, invalid schema ref, registry gap, budget exceed.
 4. sample-project entry_kind plans minimal ai-os/ tree scaffold only.
@@ -39,7 +39,7 @@ See `pipelines/framework-generator/RACI.md` and `contracts/framework-generator.m
 
 ## Heuristics
 
-- Reuse `templates/` packs; never duplicate template file contents in plans.
+- Reuse `core/packages/templates/` packs; never duplicate template file contents in plans.
 - Every `output_plan` requires `artifacts`, `registries`, `semver`; add `migration` when breaking.
 - Mark skipped modes `UNKNOWN: …`; never invent spec fields.
 - Dedupe key for orchestrator: `generation_id` + `entry_kind`.

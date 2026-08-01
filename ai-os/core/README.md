@@ -10,22 +10,22 @@ Production control plane for AIOS **v0.4.1**.
 | `orchestrator/` (waves + stub runs + gates) | Real executor workers |
 | `artifacts/` | Product repo mutations |
 | `memory/` | |
-| `knowledge/` | |
-| `schemas/` (Zod runtime, strict) | |
-| `templates/` (loader) | |
-| `configs/` | |
+| `artifacts/knowledge/` | |
+| `core/packages/schemas/` (Zod runtime, strict) | |
+| `core/packages/templates/` (loader) | |
+| `core/packages/configs/` | |
 
 ## Layout
 
 ```
 ai-os/core/
   index.ts              # createAiosCore()
-  configs/
-  schemas/              # Zod mirrors of ai-os/schemas JSON contracts
-  templates/            # reads ai-os/templates
+  core/packages/configs/
+  core/packages/schemas/              # Zod mirrors of ai-os/schemas JSON contracts
+  core/packages/templates/            # reads ai-os/templates
   artifacts/            # filesystem store under runtime/artifacts
   memory/               # namespaced working memory (MemoryManager)
-  knowledge/            # registries + gate profiles (read-only)
+  artifacts/knowledge/            # registries + gate profiles (read-only)
   planner/              # goal → tasks → dependency-graph → plan
   orchestrator/         # waves, plan-decision, quality-gate, escalation, stub runs
   lib/                  # ids, hash, graph, errors

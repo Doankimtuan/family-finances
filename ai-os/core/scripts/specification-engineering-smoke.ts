@@ -72,8 +72,8 @@ function assertNoAiosArchitecturePaths(paths: string[], workerId: string) {
   for (const p of paths) {
     if (
       p.includes("ai-os/architecture") ||
-      p === "architecture/" ||
-      p.startsWith("architecture/")
+      p === "docs/architecture/" ||
+      p.startsWith("docs/architecture/")
     ) {
       throw new Error(
         `forbidden architecture path in ${workerId} sample: ${p}`,
@@ -104,27 +104,27 @@ async function main() {
   }
 
   for (const rel of [
-    "schemas/specification-engineering-payload.schema.json",
-    "schemas/project-specification.schema.json",
-    "schemas/engineering-task-graph.schema.json",
-    "schemas/delivery-roadmap.schema.json",
-    "schemas/implementation-plan.schema.json",
-    "schemas/repository-notes.schema.json",
-    "repository/README.md",
-    "specifications/README.md",
-    "specifications/examples/household-project-specification.json",
-    "tasks/README.md",
-    "tasks/examples/jar-engineering-task-graph.json",
-    "roadmap/README.md",
-    "roadmap/examples/r1-delivery-roadmap.json",
-    "implementation/README.md",
-    "implementation/examples/jar-implementation-plan.json",
-    "pipelines/specification-engineering/pipeline.json",
-    "pipelines/specification-engineering/dependency-graph.json",
-    "pipelines/specification-engineering/RACI.md",
-    "validators/specification-engineering-schema-check/manifest.json",
-    "reviewers/specification-engineering-coverage-review/manifest.json",
-    "reviewers/specification-engineering-coverage-review/rubric/specification-engineering-coverage.json",
+    "core/packages/schemas/specification-engineering-payload.schema.json",
+    "core/packages/schemas/project-specification.schema.json",
+    "core/packages/schemas/engineering-task-graph.schema.json",
+    "core/packages/schemas/delivery-roadmap.schema.json",
+    "core/packages/schemas/implementation-plan.schema.json",
+    "core/packages/schemas/repository-notes.schema.json",
+    "artifacts/repository/README.md",
+    "artifacts/specifications/README.md",
+    "artifacts/specifications/examples/household-project-specification.json",
+    "artifacts/tasks/README.md",
+    "artifacts/tasks/examples/jar-engineering-task-graph.json",
+    "artifacts/roadmap/README.md",
+    "artifacts/roadmap/examples/r1-delivery-roadmap.json",
+    "artifacts/implementation/README.md",
+    "artifacts/implementation/examples/jar-implementation-plan.json",
+    "core/packages/pipelines/specification-engineering/pipeline.json",
+    "core/packages/pipelines/specification-engineering/dependency-graph.json",
+    "core/packages/pipelines/specification-engineering/RACI.md",
+    "core/packages/validators/specification-engineering-schema-check/manifest.json",
+    "core/packages/reviewers/specification-engineering-coverage-review/manifest.json",
+    "core/packages/reviewers/specification-engineering-coverage-review/rubric/specification-engineering-coverage.json",
   ]) {
     await fs.access(path.join(root, rel));
   }
@@ -133,7 +133,7 @@ async function main() {
     await fs.readFile(
       path.join(
         root,
-        "validators/specification-engineering-schema-check/manifest.json",
+        "core/packages/validators/specification-engineering-schema-check/manifest.json",
       ),
       "utf8",
     ),
@@ -170,12 +170,12 @@ async function main() {
       }
     }
     if ((entry.consumes ?? []).includes("architecture")) {
-      throw new Error(`Worker ${id} must not consume architecture/`);
+      throw new Error(`Worker ${id} must not consume docs/architecture/`);
     }
 
     const payloadPath = path.join(
       root,
-      "workers",
+      "core/packages/workers",
       id,
       "examples",
       "sample-primary-payload.json",
@@ -281,7 +281,7 @@ async function main() {
       "testcases.md",
       "manifest.json",
     ]) {
-      await fs.access(path.join(root, "workers", id, rel));
+      await fs.access(path.join(root, "core/packages/workers", id, rel));
     }
 
     const skillPath = path.join(root, "skills", id, "manifest.json");

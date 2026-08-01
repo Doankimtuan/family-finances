@@ -1,0 +1,161 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_out_documentation_reviewer",
+  "type": "review-finding",
+  "worker_id": "documentation-reviewer",
+  "title": "documentation-reviewer output",
+  "summary": "Review readability, consistency, examples, cross references, naming, formatting, and documentation quality.",
+  "entries": [
+    {
+      "id": "documentation-reviewer-readability-01",
+      "entry_kind": "readability",
+      "statement": "Summary: readability review pass sample.",
+      "review_id": "REV-DOCUMENTATIO-readabil",
+      "target": "ai-os/pipelines/review-engine/",
+      "finding": "Detailed finding for readability: structure meets contract based on validation reports.",
+      "evidence": [
+        "artifacts/reports/",
+        "artifacts/validation/",
+        "artifacts/scores/",
+        "core/packages/workers/documentation-reviewer/",
+        "core/packages/pipelines/review-engine/RACI.md"
+      ],
+      "impact": "Low governance risk if unchanged.",
+      "severity": "info",
+      "recommendation": "Remediate upstream packages; do not mutate or regenerate via Review Engine.",
+      "alternative_solution": "Accept as-is for packaging; re-review after execute phase.",
+      "confidence": 0.82,
+      "source_paths": [
+        "artifacts",
+        "validation",
+        "reports",
+        "scores",
+        "knowledge",
+        "specifications",
+        "pipelines",
+        "templates",
+        "workers",
+        "schemas",
+        "features"
+      ],
+      "unknowns": [
+        "UNKNOWN: live review not executed in packaging milestone"
+      ],
+      "traceability": {
+        "source_artifact": "artifacts/reports/",
+        "validation_report": "artifacts/reports/",
+        "pipeline": "review-engine",
+        "worker": "documentation-reviewer"
+      },
+      "folder_mirror": "governance/reviews/documentation-reviewer/readability.json"
+    },
+    {
+      "id": "documentation-reviewer-consistency-01",
+      "entry_kind": "consistency",
+      "statement": "Summary: consistency review pass sample.",
+      "review_id": "REV-DOCUMENTATIO-consiste",
+      "target": "ai-os/pipelines/review-engine/",
+      "finding": "Detailed finding for consistency: structure meets contract based on validation reports.",
+      "evidence": [
+        "artifacts/reports/",
+        "artifacts/validation/",
+        "artifacts/scores/",
+        "core/packages/workers/documentation-reviewer/",
+        "core/packages/pipelines/review-engine/RACI.md"
+      ],
+      "impact": "Low governance risk if unchanged.",
+      "severity": "info",
+      "recommendation": "Remediate upstream packages; do not mutate or regenerate via Review Engine.",
+      "alternative_solution": "Accept as-is for packaging; re-review after execute phase.",
+      "confidence": 0.82,
+      "source_paths": [
+        "artifacts",
+        "validation",
+        "reports",
+        "scores",
+        "knowledge",
+        "specifications",
+        "pipelines",
+        "templates",
+        "workers",
+        "schemas",
+        "features"
+      ],
+      "unknowns": [
+        "UNKNOWN: live review not executed in packaging milestone"
+      ],
+      "traceability": {
+        "source_artifact": "artifacts/reports/",
+        "validation_report": "artifacts/reports/",
+        "pipeline": "review-engine",
+        "worker": "documentation-reviewer"
+      },
+      "folder_mirror": "governance/reviews/documentation-reviewer/consistency.json"
+    },
+    {
+      "id": "documentation-reviewer-examples-01",
+      "entry_kind": "examples",
+      "statement": "Summary: examples review pass sample.",
+      "review_id": "REV-DOCUMENTATIO-examples",
+      "target": "ai-os/pipelines/review-engine/",
+      "finding": "Detailed finding for examples: structure meets contract based on validation reports.",
+      "evidence": [
+        "artifacts/reports/",
+        "artifacts/validation/",
+        "artifacts/scores/",
+        "core/packages/workers/documentation-reviewer/",
+        "core/packages/pipelines/review-engine/RACI.md"
+      ],
+      "impact": "Low governance risk if unchanged.",
+      "severity": "info",
+      "recommendation": "Remediate upstream packages; do not mutate or regenerate via Review Engine.",
+      "alternative_solution": "Accept as-is for packaging; re-review after execute phase.",
+      "confidence": 0.82,
+      "source_paths": [
+        "artifacts",
+        "validation",
+        "reports",
+        "scores",
+        "knowledge",
+        "specifications",
+        "pipelines",
+        "templates",
+        "workers",
+        "schemas",
+        "features"
+      ],
+      "unknowns": [
+        "UNKNOWN: live review not executed in packaging milestone"
+      ],
+      "traceability": {
+        "source_artifact": "artifacts/reports/",
+        "validation_report": "artifacts/reports/",
+        "pipeline": "review-engine",
+        "worker": "documentation-reviewer"
+      },
+      "folder_mirror": "governance/reviews/documentation-reviewer/examples.json"
+    }
+  ],
+  "status": "ready",
+  "created_at": "2026-08-01T20:00:00Z",
+  "trace": {
+    "orchestration_id": "art_re_orchestration",
+    "plan_id": "art_re_plan",
+    "task_id": "art_task_documentation_reviewer",
+    "run_id": "art_run_documentation_reviewer",
+    "goal_id": "art_re_goal"
+  },
+  "extensions": {
+    "pipeline": "review-engine",
+    "mutate_source_artifacts": false,
+    "regenerate_outputs": false,
+    "validate_schemas": false,
+    "invent_missing_information": false,
+    "incremental": true,
+    "partial": true,
+    "validation_scope": {
+      "mode": "full"
+    },
+    "folder_partition": "governance/reviews/documentation-reviewer/"
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_improvements_mirror",
+  "type": "governance-decision",
+  "worker_id": "final-decision-board",
+  "title": "improvements mirror",
+  "summary": "Partition mirror under governance/improvements/",
+  "entries": [
+    {
+      "id": "final-decision-board-improvement-plan-01",
+      "entry_kind": "improvement-plan",
+      "statement": "1. Close artifacts/features/ gap or UNKNOWN. 2. Re-run reviewers. 3. Re-merge.",
+      "review_id": "REV-FINALDECISI-improvem",
+      "target": "ai-os/pipelines/review-engine/",
+      "finding": "Structured improvement steps referencing upstream packs.",
+      "evidence": [
+        "governance/reviews/",
+        "governance/",
+        "artifacts/reports/",
+        "governance/reviews/product-reviewer/"
+      ],
+      "impact": "Release and governance impact.",
+      "severity": "info",
+      "recommendation": "Remediate upstream packages; do not mutate or regenerate via Review Engine.",
+      "alternative_solution": "Revise upstream artifacts; board does not regenerate outputs.",
+      "confidence": 0.82,
+      "source_paths": [
+        "artifacts",
+        "validation",
+        "reports",
+        "scores",
+        "knowledge",
+        "specifications",
+        "pipelines",
+        "reviews",
+        "governance"
+      ],
+      "unknowns": [
+        "UNKNOWN: live review not executed in packaging milestone"
+      ],
+      "traceability": {
+        "source_artifact": "artifacts/reports/",
+        "validation_report": "artifacts/reports/",
+        "pipeline": "review-engine",
+        "worker": "final-decision-board"
+      },
+      "folder_mirror": "governance/improvements/final-decision-board/improvement-plan.json"
+    }
+  ],
+  "status": "ready",
+  "created_at": "2026-08-01T20:00:00Z",
+  "extensions": {
+    "pipeline": "review-engine",
+    "mirror_of": "governance-decision",
+    "folder": "governance/improvements/"
+  }
+}

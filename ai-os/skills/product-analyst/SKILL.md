@@ -9,11 +9,11 @@ description: Extract product-model identity/personas/value-prop/capabilities fro
 
 ## Consumes
 
-`knowledge/`, `features/`, `business/`, `product-architecture/`
+`artifacts/knowledge/`, `artifacts/features/`, `artifacts/business/`, `artifacts/product-architecture/`
 
 ## Produces
 
-`product/` → `product-model`
+`artifacts/product/` → `product-model`
 
 ## Ownership
 
@@ -25,8 +25,8 @@ description: Extract product-model identity/personas/value-prop/capabilities fro
 1. Load knowledge, features, business, and product-architecture packs/mirrors.
 2. Extract identity, personas, value-prop, and capabilities (`entry_kind` required).
 3. Every entry needs `source_paths` into consume packs.
-4. Write `product-model` under `product/`.
-5. Stop for validation/review.
+4. Write `product-model` under `artifacts/product/`.
+5. Stop for artifacts/validation/review.
 
 ## Heuristics
 
@@ -44,4 +44,4 @@ description: Extract product-model identity/personas/value-prop/capabilities fro
 
 ## Lock
 
-Acquire `task:{task_id}` per `architecture/CONCURRENCY.md` before mutating run-record state.
+Acquire `task:{task_id}` per `docs/architecture/CONCURRENCY.md` before mutating run-record state.

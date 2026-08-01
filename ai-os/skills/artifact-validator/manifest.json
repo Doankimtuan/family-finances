@@ -17,7 +17,7 @@
       "name": "schemas",
       "artifact_type": "doc-source",
       "required": true,
-      "description": "schemas/"
+      "description": "core/packages/schemas/"
     },
     {
       "name": "artifacts",
@@ -29,37 +29,37 @@
       "name": "workers",
       "artifact_type": "doc-source",
       "required": true,
-      "description": "workers/"
+      "description": "core/packages/workers/"
     },
     {
       "name": "pipelines",
       "artifact_type": "doc-source",
       "required": true,
-      "description": "pipelines/"
+      "description": "core/packages/pipelines/"
     },
     {
       "name": "execution",
       "artifact_type": "doc-source",
       "required": false,
-      "description": "execution/ soft"
+      "description": "artifacts/execution/ soft"
     },
     {
       "name": "templates",
       "artifact_type": "doc-source",
       "required": true,
-      "description": "templates/"
+      "description": "core/packages/templates/"
     },
     {
       "name": "knowledge",
       "artifact_type": "knowledge-notes",
       "required": false,
-      "description": "knowledge/ soft"
+      "description": "artifacts/knowledge/ soft"
     },
     {
       "name": "registry",
       "artifact_type": "doc-source",
       "required": true,
-      "description": "registry/"
+      "description": "core/packages/registry/"
     }
   ],
   "outputs": [
@@ -88,8 +88,8 @@
     "invent_missing_information": false,
     "incremental": true,
     "partial": true,
-    "partition": "validation/artifact-validator/",
-    "raci": "pipelines/validation-engine/RACI.md",
+    "partition": "artifacts/validation/artifact-validator/",
+    "raci": "core/packages/pipelines/validation-engine/RACI.md",
     "gate_output_type": "gate-validation-report"
   }
 }

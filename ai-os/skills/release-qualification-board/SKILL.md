@@ -9,11 +9,11 @@ description: Aggregate all benchmarks into PASS/FAIL, Go/No-Go, release candidat
 
 ## Consumes
 
-`workers/`, `validators/`, `reviewers/`, `pipelines/` (alias `pipeline/`), `artifacts/`, `schemas/`, `templates/`, `reports/`, `knowledge/`, `specifications/`, `registry/`
+`core/packages/workers/`, `core/packages/validators/`, `core/packages/reviewers/`, `core/packages/pipelines/` (alias `pipeline/`), `artifacts/`, `core/packages/schemas/`, `core/packages/templates/`, `artifacts/reports/`, `artifacts/knowledge/`, `artifacts/specifications/`, `core/packages/registry/`
 
 ## Produces
 
-`qualification/release/release-qualification-board/` → `release-qualification-decision` (required `folder_mirror` under partition)
+`governance/qualification/release/release-qualification-board/` → `release-qualification-decision` (required `folder_mirror` under partition)
 
 ## Ownership
 
@@ -27,14 +27,14 @@ description: Aggregate all benchmarks into PASS/FAIL, Go/No-Go, release candidat
 | `production-readiness` | Owned per RACI |
 | `improvement-backlog` | Owned per RACI |
 
-See `pipelines/qualification-framework/RACI.md`.
+See `core/packages/pipelines/qualification-framework/RACI.md`.
 
 ## Procedure
 
 1. Consume certification-engine primary payload.
 2. Emit pass-fail, go-no-go, release-candidate-decision, known-limitations, production-readiness, improvement-backlog.
 3. GO only if all certification thresholds met and critical_failures == 0.
-4. Partition under qualification/release/; mirror scorecards/ and reports/.
+4. Partition under governance/qualification/release/; mirror scorecards/ and artifacts/reports/.
 5. Six entry_kinds required; packaging sample demonstrates NO-GO with UNKNOWN measured metrics.
 
 ## Heuristics
@@ -52,7 +52,7 @@ See `pipelines/qualification-framework/RACI.md`.
 
 ## Negative examples
 
-- Do not modify workers/, validators/, reviewers/, schemas/ from prior sprints.
+- Do not modify core/packages/workers/, core/packages/validators/, core/packages/reviewers/, core/packages/schemas/ from prior sprints.
 - Do not regenerate Framework Generator outputs.
 - Do not invent ground-truth metrics.
 - Do not execute benchmarks in packaging milestone.
