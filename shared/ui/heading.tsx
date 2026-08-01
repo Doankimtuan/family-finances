@@ -2,13 +2,13 @@ import { tv, type VariantProps } from "tailwind-variants";
 import { cn } from "@/shared/utils/cn";
 
 const headingStyles = tv({
-  base: "text-[var(--color-text-primary)] font-semibold tracking-tight",
+  base: "font-semibold tracking-tight text-text-primary",
   variants: {
     level: {
-      1: "text-3xl",
-      2: "text-2xl",
-      3: "text-xl",
-      4: "text-lg",
+      1: "text-3xl leading-tight",
+      2: "text-2xl leading-snug",
+      3: "text-xl leading-snug",
+      4: "text-lg leading-snug",
     },
   },
   defaultVariants: {

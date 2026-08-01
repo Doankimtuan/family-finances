@@ -27,9 +27,11 @@ export function EmptyState({
       )}
     >
       {icon}
-      <Heading level={3}>{title}</Heading>
+      <Heading level={3} className="text-lg text-text-primary">
+        {title}
+      </Heading>
       {description ? (
-        <Text tone="secondary" size="sm">
+        <Text tone="muted" size="sm" className="max-w-[16rem]">
           {description}
         </Text>
       ) : null}

@@ -8,6 +8,25 @@ import { cn } from "@/shared/utils/cn";
 
 export type ButtonProps = HeroButtonProps;
 
-export function Button({ className, ...props }: ButtonProps) {
-  return <HeroButton className={cn(className)} {...props} />;
+/**
+ * HeroUI Button with Calm Ledger token classes.
+ * Prefer variant="primary" for brand CTAs.
+ */
+export function Button({
+  className,
+  variant = "primary",
+  ...props
+}: ButtonProps) {
+  return (
+    <HeroButton
+      variant={variant}
+      className={cn(
+        "rounded-[var(--radius-md)] font-medium transition-[transform,background-color,color,opacity]",
+        "duration-[var(--duration-fast)] ease-[var(--ease-standard)]",
+        "motion-reduce:transition-none motion-reduce:active:transform-none",
+        className,
+      )}
+      {...props}
+    />
+  );
 }

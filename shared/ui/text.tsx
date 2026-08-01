@@ -2,15 +2,15 @@ import { tv, type VariantProps } from "tailwind-variants";
 import { cn } from "@/shared/utils/cn";
 
 const textStyles = tv({
-  base: "text-[var(--color-text-primary)]",
+  base: "leading-relaxed text-text-primary",
   variants: {
     tone: {
-      primary: "text-[var(--color-text-primary)]",
-      secondary: "text-[var(--color-text-secondary)]",
-      muted: "text-[var(--color-text-muted)]",
-      accent: "text-[var(--color-accent)]",
-      danger: "text-[var(--color-danger)]",
-      success: "text-[var(--color-success)]",
+      primary: "text-text-primary",
+      secondary: "text-text-secondary",
+      muted: "text-text-muted",
+      accent: "text-accent",
+      danger: "text-danger",
+      success: "text-success",
     },
     size: {
       xs: "text-xs",

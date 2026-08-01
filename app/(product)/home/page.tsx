@@ -1,16 +1,18 @@
-import { Heading } from "@/shared/ui/heading";
+import { ProductStub } from "@/shared/patterns/product-stub";
 import { Text } from "@/shared/ui/text";
 
 /** IA route scaffold — home. No business logic. */
 export default function Page() {
   return (
-    <div className="flex flex-col gap-(--space-2)">
-      <Heading level={2} className="capitalize">
-        home
-      </Heading>
-      <Text tone="secondary" size="sm">
-        Foundation stub — Sprint 0
-      </Text>
-    </div>
+    <ProductStub
+      title="Home"
+      lead={
+        <Text tone="secondary" size="sm" className="leading-relaxed">
+          A quiet place for what matters today.
+        </Text>
+      }
+      emptyTitle="No activity yet"
+      emptyDescription="When something needs attention, it will show up here."
+    />
   );
 }

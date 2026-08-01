@@ -29,7 +29,7 @@ export function AppViewport({
   return (
     <div
       className={cn(
-        "flex min-h-dvh w-full justify-center bg-[var(--color-canvas-outer)]",
+        "flex min-h-dvh w-full justify-center bg-transparent",
         className,
       )}
     >
@@ -39,8 +39,8 @@ export function AppViewport({
         className={cn(
           "relative flex min-h-dvh w-full flex-col overflow-hidden",
           "min-w-[var(--app-viewport-min)] max-w-[var(--app-viewport-max)]",
-          "bg-[var(--color-canvas)] text-[var(--color-text-primary)]",
-          "shadow-[var(--elevation-1)]",
+          "bg-canvas text-text-primary",
+          "shadow-[var(--elevation-2)]",
           "isolate [transform:translateZ(0)]",
         )}
       >

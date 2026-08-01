@@ -1,13 +1,12 @@
 @import "tailwindcss";
 @import "@heroui/styles";
 
-/* ViNha Calm Ledger semantic tokens — override HeroUI defaults */
+/* ViNha Calm Ledger — semantic tokens override HeroUI defaults */
 
 @theme inline {
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 
-  /* Map utilities → semantic tokens defined on :root / .dark (no self-refs) */
   --color-canvas-outer: var(--vinha-canvas-outer);
   --color-canvas: var(--vinha-canvas);
   --color-surface: var(--vinha-surface);
@@ -36,25 +35,47 @@
 :root {
   color-scheme: light;
 
-  --vinha-canvas-outer: #f5f5f4; /* stone-100 */
-  --vinha-canvas: #fafaf9; /* stone-50 */
+  --vinha-canvas-outer: #f5f5f4;
+  --vinha-canvas: #fafaf9;
   --vinha-surface: #ffffff;
   --vinha-surface-elevated: #ffffff;
-  --vinha-border-subtle: #e7e5e4; /* stone-200 */
-  --vinha-border-strong: #d6d3d1; /* stone-300 */
-  --vinha-text-primary: #18181b; /* zinc-900 */
-  --vinha-text-secondary: #52525b; /* zinc-600 */
-  --vinha-text-muted: #71717a; /* zinc-500 */
+  --vinha-border-subtle: #e7e5e4;
+  --vinha-border-strong: #d6d3d1;
+  --vinha-text-primary: #18181b;
+  --vinha-text-secondary: #52525b;
+  --vinha-text-muted: #71717a;
   --vinha-accent: #0f766e;
   --vinha-accent-fg: #fafafa;
-  --vinha-danger: #be123c; /* rose-700 */
-  --vinha-warning: #b45309; /* amber-700 */
-  --vinha-success: #047857; /* emerald-700 */
+  --vinha-danger: #be123c;
+  --vinha-warning: #b45309;
+  --vinha-success: #047857;
   --vinha-credit: #047857;
-  --vinha-debit: #27272a; /* zinc-800 */
+  --vinha-debit: #27272a;
   --vinha-focus-ring: #0f766e;
 
-  /* Public semantic aliases used in components */
+  /* Bridge HeroUI theme vars → Calm Ledger (keeps wrappers on brand) */
+  --background: var(--vinha-canvas);
+  --foreground: var(--vinha-text-primary);
+  --surface: var(--vinha-surface);
+  --surface-foreground: var(--vinha-text-primary);
+  --overlay: var(--vinha-surface-elevated);
+  --overlay-foreground: var(--vinha-text-primary);
+  --muted: var(--vinha-text-muted);
+  --default: var(--vinha-border-subtle);
+  --default-foreground: var(--vinha-text-primary);
+  --accent: var(--vinha-accent);
+  --accent-foreground: var(--vinha-accent-fg);
+  --border: var(--vinha-border-subtle);
+  --separator: var(--vinha-border-subtle);
+  --focus: var(--vinha-focus-ring);
+  --success: var(--vinha-success);
+  --warning: var(--vinha-warning);
+  --danger: var(--vinha-danger);
+  --field-background: var(--vinha-surface);
+  --field-foreground: var(--vinha-text-primary);
+  --field-placeholder: var(--vinha-text-muted);
+  --radius: 10px;
+
   --color-canvas-outer: var(--vinha-canvas-outer);
   --color-canvas: var(--vinha-canvas);
   --color-surface: var(--vinha-surface);
@@ -115,41 +136,83 @@
   --opacity-overlay: 0.4;
 
   --elevation-0: none;
-  --elevation-1: 0 1px 2px rgb(15 23 42 / 0.06);
-  --elevation-2: 0 8px 24px rgb(15 23 42 / 0.1);
-  --elevation-3: 0 16px 40px rgb(15 23 42 / 0.16);
+  --elevation-1: 0 1px 2px rgb(28 25 23 / 0.06);
+  --elevation-2: 0 8px 24px rgb(28 25 23 / 0.1);
+  --elevation-3: 0 16px 40px rgb(28 25 23 / 0.14);
 
   --safe-area-top: env(safe-area-inset-top, 0px);
   --safe-area-right: env(safe-area-inset-right, 0px);
   --safe-area-bottom: env(safe-area-inset-bottom, 0px);
   --safe-area-left: env(safe-area-inset-left, 0px);
+
+  /* Soft outer-canvas wash (decorative only) */
+  --canvas-atmosphere:
+    radial-gradient(
+      120% 80% at 50% -10%,
+      rgb(15 118 110 / 0.08),
+      transparent 55%
+    ),
+    radial-gradient(
+      90% 60% at 100% 100%,
+      rgb(120 113 108 / 0.08),
+      transparent 50%
+    );
 }
 
 .dark,
 [data-theme="dark"] {
   color-scheme: dark;
 
-  --vinha-canvas-outer: #09090b; /* zinc-950 */
+  --vinha-canvas-outer: #09090b;
   --vinha-canvas: #09090b;
-  --vinha-surface: #18181b; /* zinc-900 */
-  --vinha-surface-elevated: #27272a; /* zinc-800 */
-  --vinha-border-subtle: #3f3f46; /* zinc-700 */
-  --vinha-border-strong: #52525b; /* zinc-600 */
-  --vinha-text-primary: #fafafa; /* zinc-50 */
-  --vinha-text-secondary: #a1a1aa; /* zinc-400 */
-  --vinha-text-muted: #71717a; /* zinc-500 */
-  --vinha-accent: #2dd4bf; /* teal-400 */
+  --vinha-surface: #18181b;
+  --vinha-surface-elevated: #27272a;
+  --vinha-border-subtle: #3f3f46;
+  --vinha-border-strong: #52525b;
+  --vinha-text-primary: #fafafa;
+  --vinha-text-secondary: #a1a1aa;
+  --vinha-text-muted: #71717a;
+  --vinha-accent: #2dd4bf;
   --vinha-accent-fg: #09090b;
-  --vinha-danger: #fb7185; /* rose-400 */
-  --vinha-warning: #fbbf24; /* amber-400 */
-  --vinha-success: #34d399; /* emerald-400 */
+  --vinha-danger: #fb7185;
+  --vinha-warning: #fbbf24;
+  --vinha-success: #34d399;
   --vinha-credit: #34d399;
-  --vinha-debit: #e4e4e7; /* zinc-200 */
+  --vinha-debit: #e4e4e7;
   --vinha-focus-ring: #2dd4bf;
+
+  --background: var(--vinha-canvas);
+  --foreground: var(--vinha-text-primary);
+  --surface: var(--vinha-surface);
+  --surface-foreground: var(--vinha-text-primary);
+  --overlay: var(--vinha-surface-elevated);
+  --overlay-foreground: var(--vinha-text-primary);
+  --muted: var(--vinha-text-muted);
+  --default: var(--vinha-border-subtle);
+  --default-foreground: var(--vinha-text-primary);
+  --accent: var(--vinha-accent);
+  --accent-foreground: var(--vinha-accent-fg);
+  --border: var(--vinha-border-subtle);
+  --separator: var(--vinha-border-subtle);
+  --focus: var(--vinha-focus-ring);
+  --success: var(--vinha-success);
+  --warning: var(--vinha-warning);
+  --danger: var(--vinha-danger);
+  --field-background: var(--vinha-surface);
+  --field-foreground: var(--vinha-text-primary);
+  --field-placeholder: var(--vinha-text-muted);
 
   --elevation-1: 0 1px 2px rgb(0 0 0 / 0.35);
   --elevation-2: 0 8px 24px rgb(0 0 0 / 0.45);
   --elevation-3: 0 16px 40px rgb(0 0 0 / 0.55);
+
+  --canvas-atmosphere:
+    radial-gradient(
+      120% 80% at 50% -10%,
+      rgb(45 212 191 / 0.1),
+      transparent 55%
+    ),
+    radial-gradient(90% 60% at 0% 100%, rgb(39 39 42 / 0.8), transparent 50%);
 }
 
 *,
@@ -162,7 +225,9 @@ html,
 body {
   margin: 0;
   min-height: 100%;
-  background: var(--color-canvas-outer);
+  background-color: var(--color-canvas-outer);
+  background-image: var(--canvas-atmosphere);
+  background-attachment: fixed;
   color: var(--color-text-primary);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
@@ -173,8 +238,34 @@ body {
   min-height: 100dvh;
 }
 
+::selection {
+  background: color-mix(in srgb, var(--color-accent) 28%, transparent);
+  color: var(--color-text-primary);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 #app-viewport-root {
   isolation: isolate;
-  /* Contain fixed-position portals (toasts / modals) to the phone canvas */
   transform: translateZ(0);
+}
+
+/* Press feedback — respects prefers-reduced-motion via global rule */
+@layer components {
+  .button:active:not(:disabled):not([aria-disabled="true"]) {
+    transform: scale(0.98);
+  }
 }

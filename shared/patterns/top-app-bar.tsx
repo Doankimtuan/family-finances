@@ -23,9 +23,9 @@ export function TopAppBar({
   return (
     <header
       className={cn(
-        "sticky top-0 z-(--z-sticky) flex h-14 items-center gap-(--space-2)",
+        "sticky top-0 z-(--z-sticky) flex h-14 shrink-0 items-center gap-(--space-2)",
         "border-b border-border-subtle bg-surface/95 px-(--space-4)",
-        "backdrop-blur-sm",
+        "shadow-[var(--elevation-1)] backdrop-blur-md",
         className,
       )}
     >
@@ -35,22 +35,25 @@ export function TopAppBar({
           variant="ghost"
           size="sm"
           onPress={onBack}
+          className="min-h-11 min-w-11"
         >
-          <CaretLeft size={20} />
+          <CaretLeft size={20} weight="bold" />
         </IconButton>
       ) : (
-        <span className="w-8" aria-hidden />
+        <span className="w-2" aria-hidden />
       )}
       <div className="min-w-0 flex-1">
         {typeof title === "string" ? (
-          <Heading level={3} className="truncate text-base">
+          <Heading level={3} className="truncate text-base font-semibold">
             {title}
           </Heading>
         ) : (
           title
         )}
       </div>
-      <div className="flex shrink-0 items-center gap-1">{trailing}</div>
+      <div className="flex shrink-0 items-center gap-1">
+        {trailing ?? <span className="w-2" aria-hidden />}
+      </div>
     </header>
   );
 }
