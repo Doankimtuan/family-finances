@@ -1,0 +1,20 @@
+# Capability spec template for Worker Generator
+capability: Worker Generator
+version: 0.1.0
+generator: worker-generator
+modes:
+  - README
+  - skill
+  - validator
+  - reviewer
+  - examples
+  - schemas
+  - tests
+  - registration
+  - documentation
+outputs:
+  partition: framework-generator/generators/worker-generator/
+registries:
+  - workers
+  - skills
+  - schemas

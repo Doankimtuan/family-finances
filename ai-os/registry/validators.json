@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "registry_kind": "validators",
-  "updated_at": "2026-08-01T18:00:00Z",
+  "updated_at": "2026-08-01T08:10:53Z",
   "entries": {
     "discovery-schema-check": {
       "id": "discovery-schema-check",
@@ -37,6 +37,20 @@
       "version": "0.2.0",
       "status": "reserved",
       "description": "Deterministic checks for validation-engine payloads (partition, scores, finding fields)."
+    },
+    "review-engine-schema-check": {
+      "id": "review-engine-schema-check",
+      "path": "validators/review-engine-schema-check",
+      "version": "0.3.0",
+      "status": "reserved",
+      "description": "Deterministic checks for review-engine payloads (partition, scores, review fields)."
+    },
+    "framework-generator-schema-check": {
+      "id": "framework-generator-schema-check",
+      "path": "validators/framework-generator-schema-check",
+      "version": "0.2.0",
+      "status": "draft",
+      "description": "Deterministic checks for framework-generator payloads."
     }
   }
 }

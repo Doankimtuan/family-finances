@@ -1,0 +1,14 @@
+capability: Project Bootstrap Generator
+version: 0.1.0
+target_generator: project-bootstrap-generator
+modes:
+  - Repo Init
+  - Folder Scaffold
+  - Worker Registration
+  - Pipeline Registration
+outputs:
+  worker_id: sample-project-bootstrap
+registries:
+  - workers
+  - skills
+semver: 0.1.0

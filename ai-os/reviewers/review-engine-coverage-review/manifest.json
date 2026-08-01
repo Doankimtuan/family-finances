@@ -1,0 +1,71 @@
+{
+  "schema_version": "1.0.0",
+  "id": "review-engine-coverage-review",
+  "version": "0.3.0",
+  "title": "Review Engine Coverage Review",
+  "description": "Qualitative coverage rubric for review-engine payloads.",
+  "applies_to": [
+    "review-finding",
+    "review-status",
+    "review-scores",
+    "governance-decision"
+  ],
+  "criteria": [
+    {
+      "id": "review-structure",
+      "description": "Full review fields + folder mirrors",
+      "weight": 0.18,
+      "scale_min": 0,
+      "scale_max": 1
+    },
+    {
+      "id": "score-coverage",
+      "description": "All 10 review score dimensions",
+      "weight": 0.15,
+      "scale_min": 0,
+      "scale_max": 1
+    },
+    {
+      "id": "reasoning-quality",
+      "description": "statement vs finding; evidence + alternatives",
+      "weight": 0.15,
+      "scale_min": 0,
+      "scale_max": 1
+    },
+    {
+      "id": "no-mutation",
+      "description": "No mutation/regeneration/schema validation",
+      "weight": 0.2,
+      "scale_min": 0,
+      "scale_max": 1
+    },
+    {
+      "id": "honesty",
+      "description": "UNKNOWN honest; RACI respected",
+      "weight": 0.17,
+      "scale_min": 0,
+      "scale_max": 1
+    },
+    {
+      "id": "actionability",
+      "description": "Recommendations actionable",
+      "weight": 0.15,
+      "scale_min": 0,
+      "scale_max": 1
+    }
+  ],
+  "veto_conditions": [
+    "mutate_source_artifacts",
+    "regenerate_outputs",
+    "validate_schemas",
+    "invent_missing_information"
+  ],
+  "outputs": [
+    "review-report"
+  ],
+  "status": "reserved",
+  "extensions": {
+    "pipeline": "review-engine",
+    "gate_output_type": "gate-review-report"
+  }
+}

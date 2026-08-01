@@ -1,0 +1,415 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_out_review_orchestrator_scores",
+  "type": "review-scores",
+  "worker_id": "review-orchestrator",
+  "title": "review-orchestrator scores",
+  "summary": "Ten-dimension review scores from merged findings.",
+  "entries": [
+    {
+      "id": "review-orchestrator-architecture-01",
+      "entry_kind": "architecture",
+      "statement": "Score dimension architecture.",
+      "review_id": "REV-REVIEWORCHE-architec",
+      "target": "ai-os/pipelines/review-engine/",
+      "finding": "Aggregated score for architecture from merged reviewer findings.",
+      "evidence": [
+        "reviews/",
+        "governance/",
+        "reports/"
+      ],
+      "impact": "Engineering quality indicator for governance.",
+      "severity": "info",
+      "recommendation": "Remediate upstream packages; do not mutate or regenerate via Review Engine.",
+      "alternative_solution": "Adjust upstream artifacts; scores do not mutate sources.",
+      "confidence": 0.82,
+      "source_paths": [
+        "artifacts",
+        "validation",
+        "reports",
+        "scores",
+        "knowledge",
+        "specifications",
+        "pipelines",
+        "reviews"
+      ],
+      "unknowns": [
+        "UNKNOWN: live review not executed in packaging milestone"
+      ],
+      "traceability": {
+        "source_artifact": "reports/",
+        "validation_report": "reports/",
+        "pipeline": "review-engine",
+        "worker": "review-orchestrator"
+      },
+      "score_value": 0.79
+    },
+    {
+      "id": "review-orchestrator-business-01",
+      "entry_kind": "business",
+      "statement": "Score dimension business.",
+      "review_id": "REV-REVIEWORCHE-business",
+      "target": "ai-os/pipelines/review-engine/",
+      "finding": "Aggregated score for business from merged reviewer findings.",
+      "evidence": [
+        "reviews/",
+        "governance/",
+        "reports/"
+      ],
+      "impact": "Engineering quality indicator for governance.",
+      "severity": "info",
+      "recommendation": "Remediate upstream packages; do not mutate or regenerate via Review Engine.",
+      "alternative_solution": "Adjust upstream artifacts; scores do not mutate sources.",
+      "confidence": 0.82,
+      "source_paths": [
+        "artifacts",
+        "validation",
+        "reports",
+        "scores",
+        "knowledge",
+        "specifications",
+        "pipelines",
+        "reviews"
+      ],
+      "unknowns": [
+        "UNKNOWN: live review not executed in packaging milestone"
+      ],
+      "traceability": {
+        "source_artifact": "reports/",
+        "validation_report": "reports/",
+        "pipeline": "review-engine",
+        "worker": "review-orchestrator"
+      },
+      "score_value": 0.79
+    },
+    {
+      "id": "review-orchestrator-product-01",
+      "entry_kind": "product",
+      "statement": "Score dimension product.",
+      "review_id": "REV-REVIEWORCHE-product",
+      "target": "ai-os/pipelines/review-engine/",
+      "finding": "Aggregated score for product from merged reviewer findings.",
+      "evidence": [
+        "reviews/",
+        "governance/",
+        "reports/"
+      ],
+      "impact": "Engineering quality indicator for governance.",
+      "severity": "info",
+      "recommendation": "Remediate upstream packages; do not mutate or regenerate via Review Engine.",
+      "alternative_solution": "Adjust upstream artifacts; scores do not mutate sources.",
+      "confidence": 0.82,
+      "source_paths": [
+        "artifacts",
+        "validation",
+        "reports",
+        "scores",
+        "knowledge",
+        "specifications",
+        "pipelines",
+        "reviews"
+      ],
+      "unknowns": [
+        "UNKNOWN: live review not executed in packaging milestone"
+      ],
+      "traceability": {
+        "source_artifact": "reports/",
+        "validation_report": "reports/",
+        "pipeline": "review-engine",
+        "worker": "review-orchestrator"
+      },
+      "score_value": 0.79
+    },
+    {
+      "id": "review-orchestrator-documentation-01",
+      "entry_kind": "documentation",
+      "statement": "Score dimension documentation.",
+      "review_id": "REV-REVIEWORCHE-document",
+      "target": "ai-os/pipelines/review-engine/",
+      "finding": "Aggregated score for documentation from merged reviewer findings.",
+      "evidence": [
+        "reviews/",
+        "governance/",
+        "reports/"
+      ],
+      "impact": "Engineering quality indicator for governance.",
+      "severity": "info",
+      "recommendation": "Remediate upstream packages; do not mutate or regenerate via Review Engine.",
+      "alternative_solution": "Adjust upstream artifacts; scores do not mutate sources.",
+      "confidence": 0.82,
+      "source_paths": [
+        "artifacts",
+        "validation",
+        "reports",
+        "scores",
+        "knowledge",
+        "specifications",
+        "pipelines",
+        "reviews"
+      ],
+      "unknowns": [
+        "UNKNOWN: live review not executed in packaging milestone"
+      ],
+      "traceability": {
+        "source_artifact": "reports/",
+        "validation_report": "reports/",
+        "pipeline": "review-engine",
+        "worker": "review-orchestrator"
+      },
+      "score_value": 0.79
+    },
+    {
+      "id": "review-orchestrator-specifications-01",
+      "entry_kind": "specifications",
+      "statement": "Score dimension specifications.",
+      "review_id": "REV-REVIEWORCHE-specific",
+      "target": "ai-os/pipelines/review-engine/",
+      "finding": "Aggregated score for specifications from merged reviewer findings.",
+      "evidence": [
+        "reviews/",
+        "governance/",
+        "reports/"
+      ],
+      "impact": "Engineering quality indicator for governance.",
+      "severity": "info",
+      "recommendation": "Remediate upstream packages; do not mutate or regenerate via Review Engine.",
+      "alternative_solution": "Adjust upstream artifacts; scores do not mutate sources.",
+      "confidence": 0.82,
+      "source_paths": [
+        "artifacts",
+        "validation",
+        "reports",
+        "scores",
+        "knowledge",
+        "specifications",
+        "pipelines",
+        "reviews"
+      ],
+      "unknowns": [
+        "UNKNOWN: live review not executed in packaging milestone"
+      ],
+      "traceability": {
+        "source_artifact": "reports/",
+        "validation_report": "reports/",
+        "pipeline": "review-engine",
+        "worker": "review-orchestrator"
+      },
+      "score_value": 0.79
+    },
+    {
+      "id": "review-orchestrator-maintainability-01",
+      "entry_kind": "maintainability",
+      "statement": "Score dimension maintainability.",
+      "review_id": "REV-REVIEWORCHE-maintain",
+      "target": "ai-os/pipelines/review-engine/",
+      "finding": "Aggregated score for maintainability from merged reviewer findings.",
+      "evidence": [
+        "reviews/",
+        "governance/",
+        "reports/"
+      ],
+      "impact": "Engineering quality indicator for governance.",
+      "severity": "info",
+      "recommendation": "Remediate upstream packages; do not mutate or regenerate via Review Engine.",
+      "alternative_solution": "Adjust upstream artifacts; scores do not mutate sources.",
+      "confidence": 0.82,
+      "source_paths": [
+        "artifacts",
+        "validation",
+        "reports",
+        "scores",
+        "knowledge",
+        "specifications",
+        "pipelines",
+        "reviews"
+      ],
+      "unknowns": [
+        "UNKNOWN: live review not executed in packaging milestone"
+      ],
+      "traceability": {
+        "source_artifact": "reports/",
+        "validation_report": "reports/",
+        "pipeline": "review-engine",
+        "worker": "review-orchestrator"
+      },
+      "score_value": 0.79
+    },
+    {
+      "id": "review-orchestrator-scalability-01",
+      "entry_kind": "scalability",
+      "statement": "Score dimension scalability.",
+      "review_id": "REV-REVIEWORCHE-scalabil",
+      "target": "ai-os/pipelines/review-engine/",
+      "finding": "Aggregated score for scalability from merged reviewer findings.",
+      "evidence": [
+        "reviews/",
+        "governance/",
+        "reports/"
+      ],
+      "impact": "Engineering quality indicator for governance.",
+      "severity": "info",
+      "recommendation": "Remediate upstream packages; do not mutate or regenerate via Review Engine.",
+      "alternative_solution": "Adjust upstream artifacts; scores do not mutate sources.",
+      "confidence": 0.82,
+      "source_paths": [
+        "artifacts",
+        "validation",
+        "reports",
+        "scores",
+        "knowledge",
+        "specifications",
+        "pipelines",
+        "reviews"
+      ],
+      "unknowns": [
+        "UNKNOWN: live review not executed in packaging milestone"
+      ],
+      "traceability": {
+        "source_artifact": "reports/",
+        "validation_report": "reports/",
+        "pipeline": "review-engine",
+        "worker": "review-orchestrator"
+      },
+      "score_value": 0.79
+    },
+    {
+      "id": "review-orchestrator-extensibility-01",
+      "entry_kind": "extensibility",
+      "statement": "Score dimension extensibility.",
+      "review_id": "REV-REVIEWORCHE-extensib",
+      "target": "ai-os/pipelines/review-engine/",
+      "finding": "Aggregated score for extensibility from merged reviewer findings.",
+      "evidence": [
+        "reviews/",
+        "governance/",
+        "reports/"
+      ],
+      "impact": "Engineering quality indicator for governance.",
+      "severity": "info",
+      "recommendation": "Remediate upstream packages; do not mutate or regenerate via Review Engine.",
+      "alternative_solution": "Adjust upstream artifacts; scores do not mutate sources.",
+      "confidence": 0.82,
+      "source_paths": [
+        "artifacts",
+        "validation",
+        "reports",
+        "scores",
+        "knowledge",
+        "specifications",
+        "pipelines",
+        "reviews"
+      ],
+      "unknowns": [
+        "UNKNOWN: live review not executed in packaging milestone"
+      ],
+      "traceability": {
+        "source_artifact": "reports/",
+        "validation_report": "reports/",
+        "pipeline": "review-engine",
+        "worker": "review-orchestrator"
+      },
+      "score_value": 0.79
+    },
+    {
+      "id": "review-orchestrator-ai-reliability-01",
+      "entry_kind": "ai-reliability",
+      "statement": "Score dimension ai-reliability.",
+      "review_id": "REV-REVIEWORCHE-ai-relia",
+      "target": "ai-os/pipelines/review-engine/",
+      "finding": "Aggregated score for ai-reliability from merged reviewer findings.",
+      "evidence": [
+        "reviews/",
+        "governance/",
+        "reports/"
+      ],
+      "impact": "Engineering quality indicator for governance.",
+      "severity": "info",
+      "recommendation": "Remediate upstream packages; do not mutate or regenerate via Review Engine.",
+      "alternative_solution": "Adjust upstream artifacts; scores do not mutate sources.",
+      "confidence": 0.82,
+      "source_paths": [
+        "artifacts",
+        "validation",
+        "reports",
+        "scores",
+        "knowledge",
+        "specifications",
+        "pipelines",
+        "reviews"
+      ],
+      "unknowns": [
+        "UNKNOWN: live review not executed in packaging milestone"
+      ],
+      "traceability": {
+        "source_artifact": "reports/",
+        "validation_report": "reports/",
+        "pipeline": "review-engine",
+        "worker": "review-orchestrator"
+      },
+      "score_value": 0.79
+    },
+    {
+      "id": "review-orchestrator-overall-engineering-quality-01",
+      "entry_kind": "overall-engineering-quality",
+      "statement": "Score dimension overall-engineering-quality.",
+      "review_id": "REV-REVIEWORCHE-overall-",
+      "target": "ai-os/pipelines/review-engine/",
+      "finding": "Aggregated score for overall-engineering-quality from merged reviewer findings.",
+      "evidence": [
+        "reviews/",
+        "governance/",
+        "reports/"
+      ],
+      "impact": "Engineering quality indicator for governance.",
+      "severity": "info",
+      "recommendation": "Remediate upstream packages; do not mutate or regenerate via Review Engine.",
+      "alternative_solution": "Adjust upstream artifacts; scores do not mutate sources.",
+      "confidence": 0.82,
+      "source_paths": [
+        "artifacts",
+        "validation",
+        "reports",
+        "scores",
+        "knowledge",
+        "specifications",
+        "pipelines",
+        "reviews"
+      ],
+      "unknowns": [
+        "UNKNOWN: live review not executed in packaging milestone"
+      ],
+      "traceability": {
+        "source_artifact": "reports/",
+        "validation_report": "reports/",
+        "pipeline": "review-engine",
+        "worker": "review-orchestrator"
+      },
+      "score_value": 0.77
+    }
+  ],
+  "status": "ready",
+  "created_at": "2026-08-01T20:00:00Z",
+  "trace": {
+    "orchestration_id": "art_re_orchestration",
+    "plan_id": "art_re_plan",
+    "task_id": "art_task_review_scores",
+    "run_id": "art_run_review_scores",
+    "goal_id": "art_re_goal"
+  },
+  "extensions": {
+    "pipeline": "review-engine",
+    "score_dimensions": [
+      "architecture",
+      "business",
+      "product",
+      "documentation",
+      "specifications",
+      "maintainability",
+      "scalability",
+      "extensibility",
+      "ai-reliability",
+      "overall-engineering-quality"
+    ],
+    "produces_folder": "governance/"
+  }
+}

@@ -1,0 +1,1 @@
+# Test cases — `schema-generator`

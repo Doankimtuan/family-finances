@@ -1,0 +1,11 @@
+{
+  "case_id": "case-03-invalid-schema-ref",
+  "worker_id": "documentation-generator",
+  "input": {
+    "spec_ref": "configs/examples/invalid.yaml"
+  },
+  "expect": {
+    "severity_min": "critical",
+    "entry_kind": null
+  }
+}

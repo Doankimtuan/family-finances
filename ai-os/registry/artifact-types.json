@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "registry_kind": "artifact-types",
-  "updated_at": "2026-08-01T18:00:00Z",
+  "updated_at": "2026-08-01T08:10:53Z",
   "entries": {
     "goal": {
       "id": "goal",
@@ -375,6 +375,101 @@
       "description": "Deterministic gate package report from validators/* (distinct from worker validation-report)",
       "payload_kinds": [
         "json",
+        "markdown"
+      ],
+      "status": "active"
+    },
+    "review-finding": {
+      "id": "review-finding",
+      "description": "Qualitative review finding from Review Engine reviewers",
+      "payload_kinds": [
+        "json",
+        "markdown"
+      ],
+      "status": "active"
+    },
+    "review-status": {
+      "id": "review-status",
+      "description": "Merged review orchestration status",
+      "payload_kinds": [
+        "json",
+        "markdown"
+      ],
+      "status": "active"
+    },
+    "review-scores": {
+      "id": "review-scores",
+      "description": "Ten-dimension review scores",
+      "payload_kinds": [
+        "json",
+        "markdown"
+      ],
+      "status": "active"
+    },
+    "governance-decision": {
+      "id": "governance-decision",
+      "description": "Final Decision Board governance output",
+      "payload_kinds": [
+        "json",
+        "markdown"
+      ],
+      "status": "active"
+    },
+    "gate-review-report": {
+      "id": "gate-review-report",
+      "description": "Deterministic gate package report from validators/* (Review Engine)",
+      "payload_kinds": [
+        "json",
+        "markdown"
+      ],
+      "status": "active"
+    },
+    "framework-generation": {
+      "id": "framework-generation",
+      "description": "Scaffold plan for generated framework component",
+      "payload_kinds": [
+        "json",
+        "yaml",
+        "markdown"
+      ],
+      "status": "active"
+    },
+    "framework-generation-status": {
+      "id": "framework-generation-status",
+      "description": "Rollup status for framework generation",
+      "payload_kinds": [
+        "json",
+        "yaml",
+        "markdown"
+      ],
+      "status": "active"
+    },
+    "framework-generation-report": {
+      "id": "framework-generation-report",
+      "description": "Human-readable framework generation report",
+      "payload_kinds": [
+        "json",
+        "yaml",
+        "markdown"
+      ],
+      "status": "active"
+    },
+    "gate-framework-generation-report": {
+      "id": "gate-framework-generation-report",
+      "description": "Gate envelope for framework generation",
+      "payload_kinds": [
+        "json",
+        "yaml",
+        "markdown"
+      ],
+      "status": "active"
+    },
+    "generation-spec": {
+      "id": "generation-spec",
+      "description": "YAML/JSON capability specification for generators",
+      "payload_kinds": [
+        "json",
+        "yaml",
         "markdown"
       ],
       "status": "active"

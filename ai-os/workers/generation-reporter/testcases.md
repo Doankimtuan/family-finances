@@ -1,0 +1,1 @@
+# Test cases — `generation-reporter`

@@ -1,0 +1,14 @@
+capability: Reviewer Generator
+version: 0.1.0
+target_generator: reviewer-generator
+modes:
+  - Architecture
+  - Business
+  - Specification
+  - Quality
+outputs:
+  worker_id: sample-reviewer
+registries:
+  - workers
+  - skills
+semver: 0.1.0

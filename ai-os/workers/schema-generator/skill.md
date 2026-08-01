@@ -1,0 +1,1 @@
+See `skills/schema-generator/SKILL.md`.

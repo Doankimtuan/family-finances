@@ -1,0 +1,284 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_fg_pipeline_deps",
+  "kind": "worker",
+  "pipeline_id": "framework-generator",
+  "title": "Framework Generator Worker Dependency Graph",
+  "created_at": "2026-08-01T08:14:44Z",
+  "notes": [
+    "v0.9.1 \u2014 topologically valid waves",
+    "Packaging only"
+  ],
+  "nodes": [
+    {
+      "id": "schema-generator",
+      "node_type": "worker",
+      "label": "schema-generator",
+      "worker_class": "discovery"
+    },
+    {
+      "id": "artifact-generator",
+      "node_type": "worker",
+      "label": "artifact-generator",
+      "worker_class": "discovery"
+    },
+    {
+      "id": "prompt-generator",
+      "node_type": "worker",
+      "label": "prompt-generator",
+      "worker_class": "discovery"
+    },
+    {
+      "id": "worker-generator",
+      "node_type": "worker",
+      "label": "worker-generator",
+      "worker_class": "discovery"
+    },
+    {
+      "id": "validator-generator",
+      "node_type": "worker",
+      "label": "validator-generator",
+      "worker_class": "discovery"
+    },
+    {
+      "id": "reviewer-generator",
+      "node_type": "worker",
+      "label": "reviewer-generator",
+      "worker_class": "discovery"
+    },
+    {
+      "id": "pipeline-generator",
+      "node_type": "worker",
+      "label": "pipeline-generator",
+      "worker_class": "discovery"
+    },
+    {
+      "id": "test-generator",
+      "node_type": "worker",
+      "label": "test-generator",
+      "worker_class": "discovery"
+    },
+    {
+      "id": "documentation-generator",
+      "node_type": "worker",
+      "label": "documentation-generator",
+      "worker_class": "discovery"
+    },
+    {
+      "id": "project-bootstrap-generator",
+      "node_type": "worker",
+      "label": "project-bootstrap-generator",
+      "worker_class": "discovery"
+    },
+    {
+      "id": "generation-orchestrator",
+      "node_type": "worker",
+      "label": "generation-orchestrator",
+      "worker_class": "discovery"
+    },
+    {
+      "id": "generation-reporter",
+      "node_type": "worker",
+      "label": "generation-reporter",
+      "worker_class": "discovery"
+    }
+  ],
+  "edges": [
+    {
+      "predecessor": "schema-generator",
+      "successor": "artifact-generator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "schema-generator",
+      "successor": "worker-generator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "worker-generator",
+      "successor": "validator-generator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "schema-generator",
+      "successor": "validator-generator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "worker-generator",
+      "successor": "reviewer-generator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "schema-generator",
+      "successor": "reviewer-generator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "worker-generator",
+      "successor": "pipeline-generator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "validator-generator",
+      "successor": "pipeline-generator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "reviewer-generator",
+      "successor": "pipeline-generator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "worker-generator",
+      "successor": "test-generator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "worker-generator",
+      "successor": "documentation-generator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "pipeline-generator",
+      "successor": "documentation-generator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "schema-generator",
+      "successor": "project-bootstrap-generator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "artifact-generator",
+      "successor": "project-bootstrap-generator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "prompt-generator",
+      "successor": "project-bootstrap-generator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "worker-generator",
+      "successor": "project-bootstrap-generator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "validator-generator",
+      "successor": "project-bootstrap-generator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "reviewer-generator",
+      "successor": "project-bootstrap-generator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "pipeline-generator",
+      "successor": "project-bootstrap-generator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "test-generator",
+      "successor": "project-bootstrap-generator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "documentation-generator",
+      "successor": "project-bootstrap-generator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "schema-generator",
+      "successor": "generation-orchestrator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "artifact-generator",
+      "successor": "generation-orchestrator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "prompt-generator",
+      "successor": "generation-orchestrator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "worker-generator",
+      "successor": "generation-orchestrator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "validator-generator",
+      "successor": "generation-orchestrator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "reviewer-generator",
+      "successor": "generation-orchestrator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "pipeline-generator",
+      "successor": "generation-orchestrator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "test-generator",
+      "successor": "generation-orchestrator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "documentation-generator",
+      "successor": "generation-orchestrator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "project-bootstrap-generator",
+      "successor": "generation-orchestrator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "generation-orchestrator",
+      "successor": "generation-reporter",
+      "type": "blocks",
+      "relation": "requires"
+    }
+  ],
+  "extensions": {
+    "schema": "pipeline-dependency-graph.schema.json",
+    "allows_feature_workers": false
+  }
+}

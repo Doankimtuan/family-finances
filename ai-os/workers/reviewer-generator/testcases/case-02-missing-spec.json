@@ -1,0 +1,11 @@
+{
+  "case_id": "case-02-missing-spec",
+  "worker_id": "reviewer-generator",
+  "input": {
+    "spec_ref": "UNKNOWN"
+  },
+  "expect": {
+    "unknowns_required": true,
+    "severity_min": "medium"
+  }
+}

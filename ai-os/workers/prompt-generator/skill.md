@@ -1,0 +1,1 @@
+See `skills/prompt-generator/SKILL.md`.

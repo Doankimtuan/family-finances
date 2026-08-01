@@ -1,0 +1,218 @@
+{
+  "architecture-reviewer": {
+    "wave": 0,
+    "depends": [],
+    "produces": [
+      "reviews"
+    ],
+    "primary": "review-finding",
+    "entry_kinds": [
+      "architecture-quality",
+      "module-boundaries",
+      "layering",
+      "patterns",
+      "coupling",
+      "cohesion",
+      "complexity",
+      "architecture-decisions"
+    ],
+    "partition": "reviews/architecture-reviewer/"
+  },
+  "product-reviewer": {
+    "wave": 0,
+    "depends": [],
+    "produces": [
+      "reviews"
+    ],
+    "primary": "review-finding",
+    "entry_kinds": [
+      "product-vision",
+      "feature-coverage",
+      "user-journey",
+      "business-alignment",
+      "missing-product-features"
+    ],
+    "partition": "reviews/product-reviewer/"
+  },
+  "business-reviewer": {
+    "wave": 0,
+    "depends": [],
+    "produces": [
+      "reviews"
+    ],
+    "primary": "review-finding",
+    "entry_kinds": [
+      "business-rules",
+      "workflow-consistency",
+      "edge-cases",
+      "permission-rules",
+      "state-transitions",
+      "domain-logic",
+      "business-completeness"
+    ],
+    "partition": "reviews/business-reviewer/"
+  },
+  "specification-reviewer": {
+    "wave": 0,
+    "depends": [],
+    "produces": [
+      "reviews"
+    ],
+    "primary": "review-finding",
+    "entry_kinds": [
+      "specifications",
+      "requirements",
+      "requirement-coverage",
+      "acceptance-criteria",
+      "api-contracts",
+      "database-contracts",
+      "ui-specifications",
+      "deployment-specifications",
+      "coding-standards",
+      "testing-strategy"
+    ],
+    "partition": "reviews/specification-reviewer/"
+  },
+  "documentation-reviewer": {
+    "wave": 0,
+    "depends": [],
+    "produces": [
+      "reviews"
+    ],
+    "primary": "review-finding",
+    "entry_kinds": [
+      "readability",
+      "consistency",
+      "examples",
+      "cross-references",
+      "naming",
+      "formatting",
+      "documentation-quality"
+    ],
+    "partition": "reviews/documentation-reviewer/"
+  },
+  "maintainability-reviewer": {
+    "wave": 0,
+    "depends": [],
+    "produces": [
+      "reviews"
+    ],
+    "primary": "review-finding",
+    "entry_kinds": [
+      "code-organization",
+      "module-size",
+      "separation-of-concerns",
+      "future-maintainability",
+      "technical-debt-risk"
+    ],
+    "partition": "reviews/maintainability-reviewer/"
+  },
+  "scalability-reviewer": {
+    "wave": 0,
+    "depends": [],
+    "produces": [
+      "reviews"
+    ],
+    "primary": "review-finding",
+    "entry_kinds": [
+      "architecture-scalability",
+      "deployment-scalability",
+      "performance-risks",
+      "future-growth"
+    ],
+    "partition": "reviews/scalability-reviewer/"
+  },
+  "extensibility-reviewer": {
+    "wave": 0,
+    "depends": [],
+    "produces": [
+      "reviews"
+    ],
+    "primary": "review-finding",
+    "entry_kinds": [
+      "plugin-support",
+      "customization",
+      "future-features",
+      "module-isolation",
+      "reuse-potential"
+    ],
+    "partition": "reviews/extensibility-reviewer/"
+  },
+  "ai-quality-reviewer": {
+    "wave": 0,
+    "depends": [],
+    "produces": [
+      "reviews"
+    ],
+    "primary": "review-finding",
+    "entry_kinds": [
+      "prompt-quality",
+      "worker-responsibilities",
+      "pipeline-design",
+      "artifact-design",
+      "execution-model",
+      "hallucination-risks",
+      "traceability-review",
+      "ai-reliability"
+    ],
+    "partition": "reviews/ai-quality-reviewer/"
+  },
+  "review-orchestrator": {
+    "wave": 1,
+    "depends": [
+      "architecture-reviewer",
+      "product-reviewer",
+      "business-reviewer",
+      "specification-reviewer",
+      "documentation-reviewer",
+      "maintainability-reviewer",
+      "scalability-reviewer",
+      "extensibility-reviewer",
+      "ai-quality-reviewer"
+    ],
+    "produces": [
+      "reviews",
+      "governance"
+    ],
+    "primary": "review-status",
+    "secondary": "review-scores",
+    "entry_kinds": [
+      "plan",
+      "order",
+      "merge",
+      "dedupe",
+      "overall-status",
+      "consolidated-result",
+      "partial",
+      "incremental"
+    ]
+  },
+  "final-decision-board": {
+    "wave": 2,
+    "depends": [
+      "review-orchestrator"
+    ],
+    "produces": [
+      "decisions",
+      "recommendations",
+      "improvements",
+      "governance"
+    ],
+    "primary": "governance-decision",
+    "entry_kinds": [
+      "summary",
+      "overall-recommendation",
+      "critical-risks",
+      "improvement-plan",
+      "go-no-go",
+      "release-recommendation",
+      "decision"
+    ],
+    "folder_mirror_prefixes": [
+      "decisions/",
+      "recommendations/",
+      "improvements/",
+      "governance/"
+    ]
+  }
+}

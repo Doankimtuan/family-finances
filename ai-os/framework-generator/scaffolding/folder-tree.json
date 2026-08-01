@@ -1,0 +1,11 @@
+{
+  "folders": [
+    "workers",
+    "skills",
+    "schemas",
+    "pipelines",
+    "registry",
+    "templates",
+    "contracts"
+  ]
+}

@@ -1,0 +1,17 @@
+# Capability spec template for Project Bootstrap Generator
+capability: Project Bootstrap Generator
+version: 0.1.0
+generator: project-bootstrap-generator
+modes:
+  - Repository Initialization
+  - Folder Creation
+  - Worker Registration
+  - Pipeline Registration
+  - Configuration Generation
+  - Default Templates
+outputs:
+  partition: framework-generator/generators/project-bootstrap-generator/
+registries:
+  - workers
+  - skills
+  - schemas

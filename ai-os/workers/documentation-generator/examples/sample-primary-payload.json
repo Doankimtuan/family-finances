@@ -1,0 +1,54 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_fg_documentation-generator_primary",
+  "type": "framework-generation",
+  "worker_id": "documentation-generator",
+  "title": "Documentation Generator sample scaffold",
+  "summary": "Sample framework-generation for documentation-generator",
+  "entries": [
+    {
+      "id": "fg_documentation-generator_001",
+      "entry_kind": "architecture-doc",
+      "statement": "Scaffold plan for architecture-doc via Documentation Generator",
+      "generation_id": "gen_documentation-generator_sample",
+      "target": "framework-generator/generators/documentation-generator/",
+      "spec_ref": "configs/examples/documentation-generator.yaml",
+      "output_plan": {
+        "artifacts": [
+          "framework-generator/generators/documentation-generator/architecture-doc.json"
+        ],
+        "registries": [
+          "workers",
+          "skills",
+          "schemas"
+        ],
+        "semver": "0.1.0",
+        "migration": null,
+        "deprecation": null
+      },
+      "evidence": [
+        "templates/worker/",
+        "schemas/worker-manifest.schema.json"
+      ],
+      "impact": "Enables configuration-driven Documentation Generator without manual coding",
+      "severity": "info",
+      "recommendation": "Review scaffold plan before execution phase",
+      "alternative_solution": "Manual copy from templates/",
+      "confidence": 0.85,
+      "source_paths": [
+        "configs/examples/documentation-generator.yaml",
+        "templates/worker/"
+      ],
+      "unknowns": [
+        "UNKNOWN: execution phase not open"
+      ],
+      "traceability": {
+        "spec_version": "0.1.0",
+        "generator": "documentation-generator"
+      },
+      "folder_mirror": "framework-generator/generators/documentation-generator/architecture-doc.json"
+    }
+  ],
+  "status": "draft",
+  "created_at": "2026-08-01T08:14:44Z"
+}

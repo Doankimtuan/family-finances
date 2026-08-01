@@ -1,0 +1,18 @@
+# Capability spec template for Artifact Generator
+capability: Artifact Generator
+version: 0.1.0
+generator: artifact-generator
+modes:
+  - Folder Structure
+  - Artifact Contracts
+  - Naming Rules
+  - Lifecycle
+  - Dependencies
+  - Versioning
+  - Retention Policy
+outputs:
+  partition: framework-generator/generators/artifact-generator/
+registries:
+  - workers
+  - skills
+  - schemas

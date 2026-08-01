@@ -110,7 +110,7 @@ async function main() {
     "validators/validation-engine-schema-check/manifest.json",
     "reviewers/validation-engine-coverage-review/manifest.json",
     "reviewers/validation-engine-coverage-review/rubric/validation-engine-coverage.json",
-    "RELEASE_NOTES_0.7.1.md",
+    "RELEASE_NOTES_0.9.1.md",
   ]) {
     await fs.access(path.join(root, rel));
   }
@@ -119,8 +119,8 @@ async function main() {
   await fs.access(path.join(root, "quality/TEMPLATE.md"));
 
   const version = (await fs.readFile(path.join(root, "VERSION"), "utf8")).trim();
-  if (version !== "0.7.1") {
-    throw new Error(`Expected VERSION 0.7.1, got ${version}`);
+  if (version !== "0.9.1") {
+    throw new Error(`Expected VERSION 0.9.1, got ${version}`);
   }
 
   const vManifest = JSON.parse(

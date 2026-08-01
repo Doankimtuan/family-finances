@@ -1,0 +1,18 @@
+# Capability spec template for Validator Generator
+capability: Validator Generator
+version: 0.1.0
+generator: validator-generator
+modes:
+  - Artifact Validation
+  - Schema Validation
+  - Traceability Validation
+  - Dependency Validation
+  - Completeness Validation
+  - Consistency Validation
+  - Quality Validation
+outputs:
+  partition: framework-generator/generators/validator-generator/
+registries:
+  - workers
+  - skills
+  - schemas

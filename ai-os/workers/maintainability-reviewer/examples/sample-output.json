@@ -1,0 +1,108 @@
+{
+  "primary": {
+    "schema_version": "1.0.0",
+    "artifact_id": "art_out_maintainability_reviewer",
+    "type": "review-finding",
+    "worker_id": "maintainability-reviewer",
+    "title": "maintainability-reviewer output",
+    "summary": "Review code organization, module size, separation of concerns, future maintainability, and technical debt risk.",
+    "entries": [
+      {
+        "id": "maintainability-reviewer-code-organization-01",
+        "entry_kind": "code-organization",
+        "statement": "Review finding for `code-organization` from maintainability-reviewer.",
+        "review_id": "REV-MAINTAIN-code-organ",
+        "target": "ai-os/pipelines/",
+        "finding": "Sample qualitative review for code-organization.",
+        "evidence": [
+          "validation/",
+          "reports/",
+          "scores/",
+          "workers/maintainability-reviewer/"
+        ],
+        "impact": "info",
+        "severity": "info",
+        "recommendation": "Provide actionable remediation guidance without modifying or regenerating source artifacts.",
+        "alternative_solution": "Remediate upstream artifact packages; do not mutate via Review Engine.",
+        "confidence": 0.75,
+        "source_paths": [
+          "artifacts/",
+          "validation/",
+          "reports/",
+          "scores/",
+          "knowledge/",
+          "specifications/",
+          "pipelines/"
+        ],
+        "unknowns": [
+          "UNKNOWN: live review not executed in packaging milestone"
+        ],
+        "traceability": {
+          "source_artifact": "validation/reports/",
+          "validation": "reports/",
+          "pipeline": "review-engine",
+          "worker": "maintainability-reviewer"
+        },
+        "folder_mirror": "reviews/maintainability-reviewer/code-organization.json"
+      },
+      {
+        "id": "maintainability-reviewer-module-size-01",
+        "entry_kind": "module-size",
+        "statement": "Review finding for `module-size` from maintainability-reviewer.",
+        "review_id": "REV-MAINTAIN-module-siz",
+        "target": "ai-os/pipelines/",
+        "finding": "Sample qualitative review for module-size.",
+        "evidence": [
+          "validation/",
+          "reports/",
+          "scores/",
+          "workers/maintainability-reviewer/"
+        ],
+        "impact": "Engineering quality risk if unaddressed.",
+        "severity": "high",
+        "recommendation": "Provide actionable remediation guidance without modifying or regenerating source artifacts.",
+        "alternative_solution": "Remediate upstream artifact packages; do not mutate via Review Engine.",
+        "confidence": 0.75,
+        "source_paths": [
+          "artifacts/",
+          "validation/",
+          "reports/",
+          "scores/",
+          "knowledge/",
+          "specifications/",
+          "pipelines/"
+        ],
+        "unknowns": [
+          "UNKNOWN: live review not executed in packaging milestone"
+        ],
+        "traceability": {
+          "source_artifact": "validation/reports/",
+          "validation": "reports/",
+          "pipeline": "review-engine",
+          "worker": "maintainability-reviewer"
+        },
+        "folder_mirror": "reviews/maintainability-reviewer/module-size.json"
+      }
+    ],
+    "status": "ready",
+    "created_at": "2026-08-01T19:00:00Z",
+    "trace": {
+      "orchestration_id": "art_re_orchestration",
+      "plan_id": "art_re_plan",
+      "task_id": "art_task_maintainability_reviewer",
+      "run_id": "art_run_maintainability_reviewer",
+      "goal_id": "art_re_goal"
+    },
+    "extensions": {
+      "pipeline": "review-engine",
+      "mutate_source_artifacts": false,
+      "regenerate_outputs": false,
+      "validate_schemas": false,
+      "invent_missing_information": false,
+      "incremental": true,
+      "partial": true,
+      "folder_partition": "reviews/maintainability-reviewer/"
+    }
+  },
+  "note": "Packaging sample; reviews not executed"
+}

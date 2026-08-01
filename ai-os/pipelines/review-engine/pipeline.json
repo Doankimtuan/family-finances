@@ -1,0 +1,167 @@
+{
+  "schema_version": "1.0.0",
+  "id": "review-engine",
+  "title": "Review Engine Pipeline",
+  "version": "0.1.1",
+  "status": "draft",
+  "worker_class": "discovery",
+  "gate_profile": "standard",
+  "allows_feature_workers": false,
+  "side_effect_ceiling": [
+    "none",
+    "runtime-write"
+  ],
+  "workers": [
+    "architecture-reviewer",
+    "product-reviewer",
+    "business-reviewer",
+    "specification-reviewer",
+    "documentation-reviewer",
+    "maintainability-reviewer",
+    "scalability-reviewer",
+    "extensibility-reviewer",
+    "ai-quality-reviewer",
+    "review-orchestrator",
+    "final-decision-board"
+  ],
+  "dependency_graph_ref": {
+    "path": "pipelines/review-engine/dependency-graph.json",
+    "artifact_id": "art_re_pipeline_deps",
+    "schema": "schemas/pipeline-dependency-graph.schema.json"
+  },
+  "waves": [
+    [
+      "architecture-reviewer",
+      "product-reviewer",
+      "business-reviewer",
+      "specification-reviewer",
+      "documentation-reviewer",
+      "maintainability-reviewer",
+      "scalability-reviewer",
+      "extensibility-reviewer",
+      "ai-quality-reviewer"
+    ],
+    [
+      "review-orchestrator"
+    ],
+    [
+      "final-decision-board"
+    ]
+  ],
+  "primary_output_type": "governance-decision",
+  "validator_id": "review-engine-schema-check",
+  "reviewer_id": "review-engine-coverage-review",
+  "goal": {
+    "title": "Governance review of every AIOS artifact",
+    "problem": "Provide critical engineering review of validated artifacts without mutating sources, regenerating outputs, or running schema validation.",
+    "success_criteria": [
+      {
+        "id": "findings-partitioned",
+        "description": "Reviewers emit ready review-finding under reviews/<worker_id>/"
+      },
+      {
+        "id": "scores-ten",
+        "description": "Orchestrator emits 10-dimension review-scores with score_value"
+      },
+      {
+        "id": "status-merged",
+        "description": "Orchestrator merges partitioned findings and dedupes"
+      },
+      {
+        "id": "decision-ready",
+        "description": "Final Decision Board emits governance-decision with go/no-go"
+      },
+      {
+        "id": "governance-partitioned",
+        "description": "Final Decision Board partitions governance-decision via folder_mirror"
+      }
+    ],
+    "non_goals": [
+      "Execute reviews in this packaging milestone",
+      "Modify existing artifacts",
+      "Regenerate outputs",
+      "Validate schemas",
+      "Invent missing data",
+      "Implement Feature Workers"
+    ]
+  },
+  "created_at": "2026-08-01T19:00:00Z",
+  "extensions": {
+    "schema": "schemas/pipeline.schema.json",
+    "contract": "contracts/review-engine.md",
+    "output_types": [
+      "review-finding",
+      "review-status",
+      "review-scores",
+      "governance-decision"
+    ],
+    "consumes": [
+      "acceptance",
+      "architecture-v2",
+      "artifacts",
+      "business",
+      "decision-records",
+      "features",
+      "folder-structure",
+      "governance",
+      "knowledge",
+      "migration",
+      "pipelines",
+      "product-architecture",
+      "registry",
+      "reports",
+      "requirements",
+      "reviews",
+      "schemas",
+      "scores",
+      "skills",
+      "specifications",
+      "tech-stack",
+      "templates",
+      "validation",
+      "workers",
+      "workflow"
+    ],
+    "produces": [
+      "reviews",
+      "governance",
+      "recommendations",
+      "decisions",
+      "improvements"
+    ],
+    "mutate_source_artifacts": false,
+    "regenerate_outputs": false,
+    "validate_schemas": false,
+    "invent_missing_information": false,
+    "execute_workers": false,
+    "incremental": true,
+    "partial": true,
+    "partition": "reviews/<worker_id>/",
+    "raci": "pipelines/review-engine/RACI.md",
+    "gate_output_type": "gate-review-report",
+    "order_owner": "pipeline.waves",
+    "remediation": "0.8.1",
+    "pipeline_alias": "pipeline/",
+    "orchestrator_dual_emit": [
+      "review-status",
+      "review-scores"
+    ],
+    "governance_partitions": {
+      "decisions/": [
+        "go-no-go",
+        "release-recommendation",
+        "decision"
+      ],
+      "recommendations/": [
+        "overall-recommendation"
+      ],
+      "improvements/": [
+        "improvement-plan"
+      ],
+      "governance/": [
+        "summary",
+        "critical-risks"
+      ]
+    }
+  }
+}

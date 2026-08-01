@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "registry_kind": "reviewers",
-  "updated_at": "2026-08-01T18:00:00Z",
+  "updated_at": "2026-08-01T08:10:53Z",
   "entries": {
     "discovery-coverage-review": {
       "id": "discovery-coverage-review",
@@ -37,6 +37,20 @@
       "version": "0.2.0",
       "status": "reserved",
       "description": "Coverage review for validation-engine outputs"
+    },
+    "review-engine-coverage-review": {
+      "id": "review-engine-coverage-review",
+      "path": "reviewers/review-engine-coverage-review",
+      "version": "0.3.0",
+      "status": "reserved",
+      "description": "Qualitative coverage rubric for review-engine payloads."
+    },
+    "framework-generator-coverage-review": {
+      "id": "framework-generator-coverage-review",
+      "path": "reviewers/framework-generator-coverage-review",
+      "version": "0.2.0",
+      "status": "draft",
+      "description": "Qualitative coverage of generator scaffold plans."
     }
   }
 }

@@ -1,0 +1,66 @@
+{
+  "id": "case-03-blocking-validation-fail",
+  "title": "Happy path stub run for artifact-validator",
+  "description": "Template conformance case. Replace placeholders. Does not execute a worker \u2014 documents expected transitions.",
+  "given": {
+    "gate_profile": "standard",
+    "orchestration_budget": {
+      "allowed_side_effects": [
+        "none",
+        "runtime-write"
+      ]
+    },
+    "task": {
+      "artifact_id": "art_tc01_task",
+      "skill_id": "{{skill_id}}",
+      "skill_version": "0.0.0",
+      "primary_output_type": "review-finding",
+      "validators": [
+        "review-engine-schema-check"
+      ],
+      "reviewers": [
+        "review-engine-coverage-review"
+      ],
+      "side_effect_budget": [
+        "runtime-write"
+      ]
+    },
+    "inputs": [
+      {
+        "name": "goal",
+        "artifact_id": "art_tc01_goal",
+        "artifact_version": 1
+      }
+    ]
+  },
+  "when": {
+    "action": "run-worker",
+    "worker_id": "scalability-reviewer",
+    "worker_version": "0.0.0"
+  },
+  "expect": {
+    "run_status": "succeeded",
+    "artifact_statuses": {
+      "primary_output": "ready",
+      "validation_report": "ready",
+      "review_report": "ready"
+    },
+    "published": false,
+    "output_envelope_validates_against": "../output-schema.json",
+    "events_include": [
+      "claimed",
+      "preparing",
+      "executing",
+      "persisting",
+      "validating",
+      "reviewing",
+      "terminal"
+    ],
+    "trace_fields_present": [
+      "orchestration_id",
+      "plan_id",
+      "task_id",
+      "run_id"
+    ]
+  }
+}

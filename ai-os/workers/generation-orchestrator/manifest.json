@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0.0",
+  "id": "generation-orchestrator",
+  "version": "0.1.1",
+  "title": "Generation Orchestrator",
+  "implements_roles": [
+    "orchestrator"
+  ],
+  "side_effects": [
+    "runtime-write"
+  ],
+  "entrypoint": "skill.md",
+  "status": "draft",
+  "extensions": {
+    "worker_class": "discovery",
+    "pipeline": "framework-generator",
+    "mutate_source_artifacts": false,
+    "execute_generation": false,
+    "remediation": "0.9.1",
+    "partition": "framework-generator/status/generation-orchestrator/"
+  }
+}

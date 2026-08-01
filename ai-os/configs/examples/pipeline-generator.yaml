@@ -1,0 +1,14 @@
+capability: Pipeline Generator
+version: 0.1.0
+target_generator: pipeline-generator
+modes:
+  - Sequential
+  - Parallel
+  - Conditional
+  - Resume
+outputs:
+  worker_id: sample-pipeline
+registries:
+  - workers
+  - skills
+semver: 0.1.0

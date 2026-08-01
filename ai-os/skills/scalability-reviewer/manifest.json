@@ -1,0 +1,109 @@
+{
+  "schema_version": "1.0.0",
+  "id": "scalability-reviewer",
+  "version": "0.1.1",
+  "title": "Scalability Reviewer",
+  "description": "Review architecture scalability, deployment scalability, performance risks, and future growth. Never modify artifacts.",
+  "role": "executor",
+  "grade": "guided",
+  "inputs": [
+    {
+      "name": "goal",
+      "artifact_type": "goal",
+      "required": true,
+      "description": "Review engine goal"
+    },
+    {
+      "name": "artifacts",
+      "artifact_type": "doc-source",
+      "required": false,
+      "description": "artifacts/ soft"
+    },
+    {
+      "name": "validation",
+      "artifact_type": "validation-finding",
+      "required": true,
+      "description": "validation/"
+    },
+    {
+      "name": "reports",
+      "artifact_type": "validation-report",
+      "required": true,
+      "description": "reports/ (assume validation PASS)"
+    },
+    {
+      "name": "scores",
+      "artifact_type": "quality-scores",
+      "required": true,
+      "description": "scores/"
+    },
+    {
+      "name": "knowledge",
+      "artifact_type": "knowledge-notes",
+      "required": false,
+      "description": "knowledge/ soft"
+    },
+    {
+      "name": "specifications",
+      "artifact_type": "project-specification",
+      "required": false,
+      "description": "specifications/ soft"
+    },
+    {
+      "name": "pipelines",
+      "artifact_type": "doc-source",
+      "required": true,
+      "description": "pipelines/ (alias pipeline/)"
+    },
+    {
+      "name": "architecture-v2",
+      "artifact_type": "architecture-v2-spec",
+      "required": false,
+      "description": "architecture-v2/ soft"
+    },
+    {
+      "name": "tech-stack",
+      "artifact_type": "tech-stack-recommendation",
+      "required": false,
+      "description": "tech-stack/ soft"
+    },
+    {
+      "name": "migration",
+      "artifact_type": "migration-plan",
+      "required": false,
+      "description": "migration/ soft"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "primary",
+      "artifact_type": "review-finding",
+      "primary": true,
+      "description": "review-finding"
+    }
+  ],
+  "requires_skills": [],
+  "validators": [
+    "review-engine-schema-check"
+  ],
+  "reviewers": [
+    "review-engine-coverage-review"
+  ],
+  "side_effects": [
+    "runtime-write"
+  ],
+  "status": "reserved",
+  "entrypoint": "SKILL.md",
+  "extensions": {
+    "pipeline": "review-engine",
+    "mutate_source_artifacts": false,
+    "regenerate_outputs": false,
+    "validate_schemas": false,
+    "invent_missing_information": false,
+    "incremental": true,
+    "partial": true,
+    "raci": "pipelines/review-engine/RACI.md",
+    "gate_output_type": "gate-review-report",
+    "partition": "reviews/scalability-reviewer/"
+  }
+}

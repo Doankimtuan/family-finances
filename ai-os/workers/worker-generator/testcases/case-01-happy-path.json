@@ -1,0 +1,12 @@
+{
+  "case_id": "case-01-happy-path",
+  "worker_id": "worker-generator",
+  "input": {
+    "spec_ref": "configs/examples/worker-generator.yaml"
+  },
+  "expect": {
+    "min_entries": 1,
+    "severity_max": "info",
+    "requires_folder_mirror": true
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "registry_kind": "workers",
+  "planned_entries": [
+    "example-worker"
+  ],
+  "note": "Not applied in packaging"
+}

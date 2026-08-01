@@ -1,0 +1,13 @@
+{
+  "goal_id": "art_re_goal",
+  "worker_id": "scalability-reviewer",
+  "consumes": [
+    "artifacts",
+    "validation",
+    "reports",
+    "scores",
+    "knowledge",
+    "specifications",
+    "pipelines"
+  ]
+}

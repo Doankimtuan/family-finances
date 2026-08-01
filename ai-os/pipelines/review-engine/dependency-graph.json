@@ -1,0 +1,147 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_re_pipeline_deps",
+  "kind": "worker",
+  "pipeline_id": "review-engine",
+  "title": "Review Engine Worker Dependency Graph",
+  "nodes": [
+    {
+      "id": "architecture-reviewer",
+      "node_type": "worker",
+      "label": "architecture-reviewer",
+      "worker_class": "discovery"
+    },
+    {
+      "id": "product-reviewer",
+      "node_type": "worker",
+      "label": "product-reviewer",
+      "worker_class": "discovery"
+    },
+    {
+      "id": "business-reviewer",
+      "node_type": "worker",
+      "label": "business-reviewer",
+      "worker_class": "discovery"
+    },
+    {
+      "id": "specification-reviewer",
+      "node_type": "worker",
+      "label": "specification-reviewer",
+      "worker_class": "discovery"
+    },
+    {
+      "id": "documentation-reviewer",
+      "node_type": "worker",
+      "label": "documentation-reviewer",
+      "worker_class": "discovery"
+    },
+    {
+      "id": "maintainability-reviewer",
+      "node_type": "worker",
+      "label": "maintainability-reviewer",
+      "worker_class": "discovery"
+    },
+    {
+      "id": "scalability-reviewer",
+      "node_type": "worker",
+      "label": "scalability-reviewer",
+      "worker_class": "discovery"
+    },
+    {
+      "id": "extensibility-reviewer",
+      "node_type": "worker",
+      "label": "extensibility-reviewer",
+      "worker_class": "discovery"
+    },
+    {
+      "id": "ai-quality-reviewer",
+      "node_type": "worker",
+      "label": "ai-quality-reviewer",
+      "worker_class": "discovery"
+    },
+    {
+      "id": "review-orchestrator",
+      "node_type": "worker",
+      "label": "review-orchestrator",
+      "worker_class": "discovery"
+    },
+    {
+      "id": "final-decision-board",
+      "node_type": "worker",
+      "label": "final-decision-board",
+      "worker_class": "discovery"
+    }
+  ],
+  "edges": [
+    {
+      "predecessor": "architecture-reviewer",
+      "successor": "review-orchestrator",
+      "type": "feeds",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "product-reviewer",
+      "successor": "review-orchestrator",
+      "type": "feeds",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "business-reviewer",
+      "successor": "review-orchestrator",
+      "type": "feeds",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "specification-reviewer",
+      "successor": "review-orchestrator",
+      "type": "feeds",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "documentation-reviewer",
+      "successor": "review-orchestrator",
+      "type": "feeds",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "maintainability-reviewer",
+      "successor": "review-orchestrator",
+      "type": "feeds",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "scalability-reviewer",
+      "successor": "review-orchestrator",
+      "type": "feeds",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "extensibility-reviewer",
+      "successor": "review-orchestrator",
+      "type": "feeds",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "ai-quality-reviewer",
+      "successor": "review-orchestrator",
+      "type": "feeds",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "review-orchestrator",
+      "successor": "final-decision-board",
+      "type": "blocks",
+      "relation": "requires"
+    }
+  ],
+  "created_at": "2026-08-01T19:00:00Z",
+  "notes": [
+    "Workers packaged only — reviews not executed in this milestone.",
+    "Never modify source artifacts; qualitative review only.",
+    "Waves: [9 parallel reviewers, review-orchestrator, final-decision-board]"
+  ],
+  "extensions": {
+    "schema": "pipeline-dependency-graph.schema.json",
+    "allows_feature_workers": false
+  }
+}

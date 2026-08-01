@@ -1,0 +1,1 @@
+Self-registration plans target registry/*.json — applied only in execution phase.

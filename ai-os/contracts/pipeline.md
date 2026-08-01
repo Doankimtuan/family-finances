@@ -28,6 +28,8 @@ A **pipeline** binds registered workers into ordered waves with an explicit depe
 | `pipelines/solution-architecture/` | Solution redesign → architecture-v2 / tech-stack / migration / folder-structure | forbidden |
 | `pipelines/specification-engineering/` | Specs / tasks / roadmap / implementation plan from validated knowledge | forbidden |
 | `pipelines/validation-engine/` | Automatic validation of AIOS artifacts → findings / scores / reports | forbidden |
+| `pipelines/review-engine/` | Governance review of validated artifacts → findings / scores / decisions | forbidden |
+| `pipelines/framework-generator/` | Configuration-driven scaffolding of framework components from capability specs | forbidden |
 
 ### Handoffs
 
@@ -35,4 +37,7 @@ A **pipeline** binds registered workers into ordered waves with an explicit depe
 - Product RE → Solution Architecture: soft-read validated consume packs. Do not overwrite Product RE outputs.
 - Solution Architecture → Specification Engineering: soft-read validated packs. Do not overwrite upstream.
 - Validation Engine: soft-reads `schemas/`, `workers/`, `pipelines/`, `templates/`, `knowledge/`, `artifacts/`, `execution/`; writes only `validation/`, `reports/`, `scores/` (and optional `quality/validation-scorecard/` mirror). **Never mutates source packs.**
+- Review Engine: assumes Validation Engine PASS; soft-reads validation/reports/scores plus domain packs; writes `reviews/`, `governance/`, `decisions/`, `recommendations/`, `improvements/`. **Never mutates, regenerates, or re-validates sources.**
+- Framework Generator: soft-reads `templates/`, `schemas/`, `workers/`, `validators/`, `reviewers/`, `pipelines/`, `knowledge/`, `configs/`, `artifacts/`, `registry/`; writes scaffold plans to `framework-generator/`. **Never executes generation or mutates prior workers.**
 - Logical `architecture/` consume resolves to `product-architecture/` (never AIOS `architecture/` control-plane docs).
+- Logical `pipeline/` consume resolves to `pipelines/`.

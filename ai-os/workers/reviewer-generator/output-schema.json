@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aios.dev/schemas/workers/reviewer-generator/output-schema.json",
+  "allOf": [
+    {
+      "$ref": "https://aios.dev/schemas/framework-generation.schema.json"
+    }
+  ]
+}

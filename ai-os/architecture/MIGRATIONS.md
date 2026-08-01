@@ -24,6 +24,67 @@ Sprint 7 Validation Engine Product Review Board HOLD remediation (Feature Worker
 | Gold | circular + orphan fail samples; full reporter severity kinds |
 | Schemas | payload constraints tightened; validator/reviewer **0.2.0**; pipeline/workers/skills **0.1.1** |
 
+## 0.9.0 → 0.9.1 (2026-08-01)
+
+Sprint 9 Framework Generator Board HOLD remediation (generation not executed).
+
+| Change | Detail |
+|--------|--------|
+| C1 | 9 topologically valid waves (was 4 with same-wave hard edges) |
+| C2 | Added generation-orchestrator + generation-reporter |
+| C3 | Complete RACI + overlap table in contract |
+| C4 | Fixed sample payload template leak |
+| H1–H6 | Domain skills, validator/reviewer 0.2.0, real testcases, typed output_plan |
+| Schemas | framework-generation*.schema.json wrappers; gate type fixed |
+| Pipeline | v0.1.1; 12 workers |
+
+## 0.8.1 → 0.9.0 (2026-08-01)
+
+Sprint 9 Framework Generator (generation not executed; prior workers unchanged).
+
+| Change | Detail |
+|--------|--------|
+| Pipeline | New `framework-generator` with 10 generator workers in 4 waves |
+| Artifact types | `framework-generation`, `framework-generation-status`, `framework-generation-report`, `gate-framework-generation-report`, `generation-spec` |
+| Output partition | `framework-generator/` (generators, bootstrap, scaffolding, templates, registries, catalog) |
+| Schemas | `framework-generator-payload.schema.json`, `generation-spec.schema.json` |
+| Gate | `framework-generator-schema-check`, `framework-generator-coverage-review` |
+| Config | `configs/sample-capability.yaml` capability spec example |
+| Smoke | `aios:framework-generator:smoke` |
+
+## 0.8.0 → 0.8.1 (2026-08-01)
+
+Sprint 8 Review Engine Product Review Board HOLD remediation (reviews not executed).
+
+| Change | Detail |
+|--------|--------|
+| C1 | Expanded per-reviewer consumes (features/, business/, workers/, skills/, schemas/, registry/, …) |
+| C2 | Entry_kind RACI: removed architecture overlap; spec owns requirement-coverage/acceptance-criteria |
+| C3 | Worker-specific SKILL.md rule catalogs, dedupe/NO-GO algorithms |
+| C4 | Orchestrator dual emit: sample-primary (status) + sample-secondary (scores) |
+| C5 | governance-decision folder_mirror partitions for decisions/recommendations/improvements/governance |
+| H1 | Fixed skill manifest descriptions |
+| H2 | Gold samples: critical product gap, high hallucination risk, NO-GO decision path |
+| H5 | Validator/reviewer **0.3.0**; hardened smoke |
+| H7 | pipeline/ alias documented; VE→RE handoff in contract |
+| P2 | Specialized TEMPLATEs + templates/review/ |
+
+## 0.7.1 → 0.8.0 (2026-08-01)
+
+Review Engine packaging (Feature Workers still forbidden; Core still does not invoke workers; reviews not executed).
+
+| Change | Detail |
+|--------|--------|
+| Pipeline | `pipelines/review-engine/` — 11 workers, 3 waves, 10 edges |
+| Workers | 9 `*-reviewer` + `review-orchestrator` + `final-decision-board` |
+| I/O | Consume artifacts/validation/reports/scores/knowledge/specifications/pipelines; produce reviews/governance/recommendations/decisions/improvements |
+| Contract | `contracts/review-engine.md` |
+| Schemas | `review-engine-payload.schema.json` + typed finding/status/scores/governance-decision |
+| Gates | `review-engine-schema-check` / `review-engine-coverage-review` (+ rubric) |
+| Knowledge | `validateReviewEnginePipelineRegistration()` |
+| Smoke | `npm run aios:review-engine:smoke` |
+| Invariants | Never mutate sources; never regenerate; never validate schemas; never invent missing data |
+
 ## 0.6.1 → 0.7.0 (2026-08-01)
 
 Validation Engine packaging (Feature Workers still forbidden; Core still does not invoke workers). Validations are **not executed** in this milestone.

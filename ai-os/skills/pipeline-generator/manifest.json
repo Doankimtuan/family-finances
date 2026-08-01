@@ -1,0 +1,126 @@
+{
+  "schema_version": "1.0.0",
+  "id": "pipeline-generator",
+  "version": "0.1.1",
+  "title": "Pipeline Generator",
+  "description": "Generate pipeline.json, dependency-graph.json, waves, retry/checkpoint/rollback strategies.",
+  "role": "executor",
+  "grade": "guided",
+  "inputs": [
+    {
+      "name": "goal",
+      "artifact_type": "goal",
+      "required": true,
+      "description": "Framework generator goal"
+    },
+    {
+      "name": "generation_spec",
+      "artifact_type": "generation-spec",
+      "required": true,
+      "description": "Capability spec"
+    },
+    {
+      "name": "templates",
+      "artifact_type": "doc-source",
+      "required": true,
+      "description": "templates/"
+    },
+    {
+      "name": "schemas",
+      "artifact_type": "doc-source",
+      "required": true,
+      "description": "schemas/"
+    },
+    {
+      "name": "workers",
+      "artifact_type": "doc-source",
+      "required": true,
+      "description": "workers/"
+    },
+    {
+      "name": "validators",
+      "artifact_type": "doc-source",
+      "required": false,
+      "description": "validators/"
+    },
+    {
+      "name": "reviewers",
+      "artifact_type": "doc-source",
+      "required": false,
+      "description": "reviewers/"
+    },
+    {
+      "name": "pipelines",
+      "artifact_type": "doc-source",
+      "required": false,
+      "description": "pipelines/"
+    },
+    {
+      "name": "knowledge",
+      "artifact_type": "doc-source",
+      "required": false,
+      "description": "knowledge/"
+    },
+    {
+      "name": "configs",
+      "artifact_type": "doc-source",
+      "required": false,
+      "description": "configs/"
+    },
+    {
+      "name": "artifacts",
+      "artifact_type": "doc-source",
+      "required": false,
+      "description": "artifacts/"
+    },
+    {
+      "name": "registry",
+      "artifact_type": "doc-source",
+      "required": false,
+      "description": "registry/"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "primary",
+      "artifact_type": "framework-generation",
+      "primary": true,
+      "description": "framework-generation scaffold plan"
+    }
+  ],
+  "requires_skills": [
+    "worker-generator",
+    "validator-generator",
+    "reviewer-generator"
+  ],
+  "validators": [
+    "framework-generator-schema-check"
+  ],
+  "reviewers": [
+    "framework-generator-coverage-review"
+  ],
+  "side_effects": [
+    "runtime-write"
+  ],
+  "status": "draft",
+  "entrypoint": "SKILL.md",
+  "extensions": {
+    "pipeline": "framework-generator",
+    "mutate_source_artifacts": false,
+    "execute_generation": false,
+    "configuration_driven": true,
+    "partition": "framework-generator/generators/pipeline-generator/",
+    "raci": "pipelines/framework-generator/RACI.md",
+    "gate_output_type": "gate-framework-generation-report",
+    "entry_kinds": [
+      "sequential-pipeline",
+      "parallel-pipeline",
+      "conditional-pipeline",
+      "resume-pipeline",
+      "incremental-pipeline",
+      "retry-strategy",
+      "checkpoint-strategy",
+      "rollback-strategy"
+    ]
+  }
+}

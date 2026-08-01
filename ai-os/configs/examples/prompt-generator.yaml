@@ -1,0 +1,14 @@
+capability: Prompt Generator
+version: 0.1.0
+target_generator: prompt-generator
+modes:
+  - Builder Prompt
+  - Reviewer Prompt
+  - Validator Prompt
+  - Improve Prompt
+outputs:
+  worker_id: sample-prompt
+registries:
+  - workers
+  - skills
+semver: 0.1.0

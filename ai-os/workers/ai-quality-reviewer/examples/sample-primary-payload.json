@@ -1,0 +1,208 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_out_ai_quality_reviewer",
+  "type": "review-finding",
+  "worker_id": "ai-quality-reviewer",
+  "title": "ai-quality-reviewer output",
+  "summary": "Review prompt quality, worker responsibilities, pipeline design, artifact design, execution model, hallucination risks, traceability, and AI reliability.",
+  "entries": [
+    {
+      "id": "ai-quality-reviewer-prompt-quality-01",
+      "entry_kind": "prompt-quality",
+      "statement": "Summary: prompt-quality review pass sample.",
+      "review_id": "REV-AIQUALITYR-prompt-q",
+      "target": "ai-os/pipelines/review-engine/",
+      "finding": "Detailed finding for prompt-quality: structure meets contract based on validation reports.",
+      "evidence": [
+        "reports/",
+        "validation/",
+        "scores/",
+        "workers/ai-quality-reviewer/",
+        "pipelines/review-engine/RACI.md"
+      ],
+      "impact": "Low governance risk if unchanged.",
+      "severity": "info",
+      "recommendation": "Remediate upstream packages; do not mutate or regenerate via Review Engine.",
+      "alternative_solution": "Accept as-is for packaging; re-review after execute phase.",
+      "confidence": 0.82,
+      "source_paths": [
+        "artifacts",
+        "validation",
+        "reports",
+        "scores",
+        "knowledge",
+        "specifications",
+        "pipelines",
+        "workers",
+        "skills",
+        "schemas",
+        "registry",
+        "templates"
+      ],
+      "unknowns": [
+        "UNKNOWN: live review not executed in packaging milestone"
+      ],
+      "traceability": {
+        "source_artifact": "reports/",
+        "validation_report": "reports/",
+        "pipeline": "review-engine",
+        "worker": "ai-quality-reviewer"
+      },
+      "folder_mirror": "reviews/ai-quality-reviewer/prompt-quality.json"
+    },
+    {
+      "id": "ai-quality-reviewer-worker-responsibilities-01",
+      "entry_kind": "worker-responsibilities",
+      "statement": "Summary: worker-responsibilities review pass sample.",
+      "review_id": "REV-AIQUALITYR-worker-r",
+      "target": "ai-os/pipelines/review-engine/",
+      "finding": "Detailed finding for worker-responsibilities: structure meets contract based on validation reports.",
+      "evidence": [
+        "reports/",
+        "validation/",
+        "scores/",
+        "workers/ai-quality-reviewer/",
+        "pipelines/review-engine/RACI.md"
+      ],
+      "impact": "Low governance risk if unchanged.",
+      "severity": "info",
+      "recommendation": "Remediate upstream packages; do not mutate or regenerate via Review Engine.",
+      "alternative_solution": "Accept as-is for packaging; re-review after execute phase.",
+      "confidence": 0.82,
+      "source_paths": [
+        "artifacts",
+        "validation",
+        "reports",
+        "scores",
+        "knowledge",
+        "specifications",
+        "pipelines",
+        "workers",
+        "skills",
+        "schemas",
+        "registry",
+        "templates"
+      ],
+      "unknowns": [
+        "UNKNOWN: live review not executed in packaging milestone"
+      ],
+      "traceability": {
+        "source_artifact": "reports/",
+        "validation_report": "reports/",
+        "pipeline": "review-engine",
+        "worker": "ai-quality-reviewer"
+      },
+      "folder_mirror": "reviews/ai-quality-reviewer/worker-responsibilities.json"
+    },
+    {
+      "id": "ai-quality-reviewer-pipeline-design-01",
+      "entry_kind": "pipeline-design",
+      "statement": "Summary: pipeline-design review pass sample.",
+      "review_id": "REV-AIQUALITYR-pipeline",
+      "target": "ai-os/pipelines/review-engine/",
+      "finding": "Detailed finding for pipeline-design: structure meets contract based on validation reports.",
+      "evidence": [
+        "reports/",
+        "validation/",
+        "scores/",
+        "workers/ai-quality-reviewer/",
+        "pipelines/review-engine/RACI.md"
+      ],
+      "impact": "Low governance risk if unchanged.",
+      "severity": "info",
+      "recommendation": "Remediate upstream packages; do not mutate or regenerate via Review Engine.",
+      "alternative_solution": "Accept as-is for packaging; re-review after execute phase.",
+      "confidence": 0.82,
+      "source_paths": [
+        "artifacts",
+        "validation",
+        "reports",
+        "scores",
+        "knowledge",
+        "specifications",
+        "pipelines",
+        "workers",
+        "skills",
+        "schemas",
+        "registry",
+        "templates"
+      ],
+      "unknowns": [
+        "UNKNOWN: live review not executed in packaging milestone"
+      ],
+      "traceability": {
+        "source_artifact": "reports/",
+        "validation_report": "reports/",
+        "pipeline": "review-engine",
+        "worker": "ai-quality-reviewer"
+      },
+      "folder_mirror": "reviews/ai-quality-reviewer/pipeline-design.json"
+    },
+    {
+      "id": "ai-quality-reviewer-hallucination-risks-01",
+      "entry_kind": "hallucination-risks",
+      "statement": "High: invented field risk in sample worker.",
+      "review_id": "REV-AIQUALITYR-hallucin",
+      "target": "ai-os/pipelines/review-engine/",
+      "finding": "Gold example: worker output cites data not in source_paths.",
+      "evidence": [
+        "reports/",
+        "validation/",
+        "scores/",
+        "workers/ai-quality-reviewer/",
+        "pipelines/review-engine/RACI.md"
+      ],
+      "impact": "Governance trust erosion if live reviews invent facts.",
+      "severity": "high",
+      "recommendation": "Remediate upstream packages; do not mutate or regenerate via Review Engine.",
+      "alternative_solution": "Enforce UNKNOWN: prefix and source_paths on every entry.",
+      "confidence": 0.82,
+      "source_paths": [
+        "artifacts",
+        "validation",
+        "reports",
+        "scores",
+        "knowledge",
+        "specifications",
+        "pipelines",
+        "workers",
+        "skills",
+        "schemas",
+        "registry",
+        "templates"
+      ],
+      "unknowns": [
+        "UNKNOWN: live review not executed in packaging milestone"
+      ],
+      "traceability": {
+        "source_artifact": "workers/",
+        "worker": "example-worker",
+        "pipeline": "review-engine"
+      },
+      "folder_mirror": "reviews/ai-quality-reviewer/hallucination-risks.json",
+      "priority_rank": 2
+    }
+  ],
+  "status": "ready",
+  "created_at": "2026-08-01T20:00:00Z",
+  "trace": {
+    "orchestration_id": "art_re_orchestration",
+    "plan_id": "art_re_plan",
+    "task_id": "art_task_ai_quality_reviewer",
+    "run_id": "art_run_ai_quality_reviewer",
+    "goal_id": "art_re_goal"
+  },
+  "extensions": {
+    "pipeline": "review-engine",
+    "mutate_source_artifacts": false,
+    "regenerate_outputs": false,
+    "validate_schemas": false,
+    "invent_missing_information": false,
+    "incremental": true,
+    "partial": true,
+    "validation_scope": {
+      "mode": "full"
+    },
+    "folder_partition": "reviews/ai-quality-reviewer/"
+  }
+}

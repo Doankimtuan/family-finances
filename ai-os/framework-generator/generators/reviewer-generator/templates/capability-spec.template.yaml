@@ -1,0 +1,18 @@
+# Capability spec template for Reviewer Generator
+capability: Reviewer Generator
+version: 0.1.0
+generator: reviewer-generator
+modes:
+  - Architecture Review
+  - Business Review
+  - Specification Review
+  - Quality Review
+  - Documentation Review
+  - Security Review
+  - Performance Review
+outputs:
+  partition: framework-generator/generators/reviewer-generator/
+registries:
+  - workers
+  - skills
+  - schemas

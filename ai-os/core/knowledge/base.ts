@@ -1059,6 +1059,449 @@ export class KnowledgeBase {
     };
   }
 
+  /**
+   * Load review-engine pipeline and verify workers + packages exist.
+   * Does not invoke workers. Enforces no-mutate / no-regenerate / no-schema-validation invariants.
+   */
+  async validateReviewEnginePipelineRegistration(): Promise<{
+    pipeline: PipelineDocument;
+    graph: PipelineDependencyGraph;
+    workerCount: number;
+  }> {
+    const pipeline = await this.getPipeline("review-engine");
+    if (pipeline.allows_feature_workers) {
+      throw new AiosError(
+        "feature-workers-forbidden",
+        "Review engine pipeline must set allows_feature_workers=false",
+      );
+    }
+    if (pipeline.worker_class !== "discovery") {
+      throw new AiosError(
+        "invalid-worker-class",
+        "Review engine pipeline worker_class must be discovery",
+      );
+    }
+
+    const workersReg = await this.workers();
+    const graph = await this.getPipelineDependencyGraph("review-engine");
+    const nodeIds = new Set(graph.nodes.map((n) => n.id));
+    const workerIds = new Set(pipeline.workers);
+
+    for (const id of pipeline.workers) {
+      const entry = workersReg.entries[id] as
+        | {
+            path?: string;
+            worker_class?: string;
+            skill_id?: string;
+            pipeline?: string;
+          }
+        | undefined;
+      if (!entry) {
+        throw new AiosError(
+          "pipeline-worker-unregistered",
+          `Pipeline worker ${id} missing from registry/workers.json`,
+        );
+      }
+      if (entry.worker_class && entry.worker_class !== "discovery") {
+        throw new AiosError(
+          "feature-workers-forbidden",
+          `Worker ${id} is not discovery class`,
+        );
+      }
+      if (entry.pipeline && entry.pipeline !== "review-engine") {
+        throw new AiosError(
+          "pipeline-graph-mismatch",
+          `Worker ${id} registry pipeline must be review-engine`,
+        );
+      }
+      await this.assertRegistryPathExists(entry.path ?? `workers/${id}`);
+      if (!nodeIds.has(id)) {
+        throw new AiosError(
+          "pipeline-graph-mismatch",
+          `Worker ${id} missing from dependency graph nodes`,
+        );
+      }
+    }
+
+    for (const node of graph.nodes) {
+      if (!workerIds.has(node.id)) {
+        throw new AiosError(
+          "pipeline-graph-mismatch",
+          `Graph node ${node.id} not listed in pipeline.workers`,
+        );
+      }
+    }
+
+    for (const edge of graph.edges) {
+      if (!workerIds.has(edge.predecessor) || !workerIds.has(edge.successor)) {
+        throw new AiosError(
+          "pipeline-graph-mismatch",
+          `Edge ${edge.predecessor}→${edge.successor} references unknown worker`,
+        );
+      }
+    }
+
+    const skills = await this.skills();
+    const validators = await this.validators();
+    const reviewers = await this.reviewers();
+    for (const id of pipeline.workers) {
+      const entry = workersReg.entries[id] as { skill_id?: string };
+      const skillId = entry.skill_id;
+      if (skillId) {
+        const skill = skills.entries[skillId];
+        if (!skill?.path) {
+          throw new AiosError(
+            "registry-path-missing",
+            `Skill ${skillId} missing path for worker ${id}`,
+          );
+        }
+        await this.assertRegistryPathExists(skill.path);
+      }
+    }
+    if (pipeline.validator_id) {
+      const v = validators.entries[pipeline.validator_id];
+      if (!v?.path) {
+        throw new AiosError(
+          "registry-path-missing",
+          `Validator ${pipeline.validator_id} missing`,
+        );
+      }
+      await this.assertRegistryPathExists(v.path);
+    }
+    if (pipeline.reviewer_id) {
+      const r = reviewers.entries[pipeline.reviewer_id];
+      if (!r?.path) {
+        throw new AiosError(
+          "registry-path-missing",
+          `Reviewer ${pipeline.reviewer_id} missing`,
+        );
+      }
+      await this.assertRegistryPathExists(r.path);
+    }
+
+    for (const typeId of [
+      "review-finding",
+      "review-status",
+      "review-scores",
+      "governance-decision",
+      "gate-review-report",
+    ]) {
+      if (!(await this.hasArtifactType(typeId))) {
+        throw new AiosError(
+          "unknown-artifact-type",
+          `${typeId} must be registered for review-engine`,
+        );
+      }
+    }
+
+    const requiredConsumes = [
+      "artifacts",
+      "validation",
+      "reports",
+      "scores",
+      "knowledge",
+      "specifications",
+      "pipelines",
+    ];
+    const domainConsumes: Record<string, string[]> = {
+      "architecture-reviewer": [
+        "architecture-v2",
+        "product-architecture",
+        "decision-records",
+        "workers",
+        "schemas",
+        "registry",
+      ],
+      "product-reviewer": [
+        "features",
+        "requirements",
+        "acceptance",
+        "product-architecture",
+        "business",
+      ],
+      "business-reviewer": ["business", "workflow", "acceptance", "features"],
+      "specification-reviewer": [
+        "requirements",
+        "acceptance",
+        "architecture-v2",
+        "tech-stack",
+        "migration",
+        "folder-structure",
+        "features",
+      ],
+      "documentation-reviewer": ["templates", "workers", "schemas", "features"],
+      "maintainability-reviewer": ["workers", "architecture-v2", "templates"],
+      "scalability-reviewer": ["architecture-v2", "tech-stack", "migration"],
+      "extensibility-reviewer": ["architecture-v2", "workers", "templates"],
+      "ai-quality-reviewer": [
+        "workers",
+        "skills",
+        "schemas",
+        "registry",
+        "templates",
+      ],
+    };
+    for (const id of [
+      "architecture-reviewer",
+      "product-reviewer",
+      "business-reviewer",
+      "specification-reviewer",
+      "documentation-reviewer",
+      "maintainability-reviewer",
+      "scalability-reviewer",
+      "extensibility-reviewer",
+      "ai-quality-reviewer",
+    ]) {
+      const entry = workersReg.entries[id] as { consumes?: string[] } | undefined;
+      const consumes = entry?.consumes ?? [];
+      for (const c of requiredConsumes) {
+        if (!consumes.includes(c)) {
+          throw new AiosError(
+            "pipeline-graph-mismatch",
+            `Worker ${id} must consume ${c}`,
+          );
+        }
+      }
+      for (const c of domainConsumes[id] ?? []) {
+        if (!consumes.includes(c)) {
+          throw new AiosError(
+            "pipeline-graph-mismatch",
+            `Worker ${id} must consume ${c} (Review Engine C1)`,
+          );
+        }
+      }
+    }
+
+    await this.assertRegistryPathExists("reviews");
+    await this.assertRegistryPathExists("governance");
+    await this.assertRegistryPathExists("recommendations");
+    await this.assertRegistryPathExists("decisions");
+    await this.assertRegistryPathExists("improvements");
+    await this.assertRegistryPathExists("contracts/review-engine.md");
+    await this.assertRegistryPathExists("pipelines/review-engine/RACI.md");
+    await this.assertRegistryPathExists("templates/review/DECISION_RECORD.md");
+    await this.assertRegistryPathExists(
+      "schemas/review-engine-payload.schema.json",
+    );
+    await this.assertRegistryPathExists("schemas/gate-review-report.schema.json");
+    await this.assertRegistryPathExists(
+      "reviewers/review-engine-coverage-review/rubric/review-engine-coverage.json",
+    );
+
+    return {
+      pipeline,
+      graph,
+      workerCount: pipeline.workers.length,
+    };
+  }
+
+  /**
+   * Load framework-generator pipeline and verify workers + packages exist.
+   * Does not invoke workers or execute generation.
+   */
+  async validateFrameworkGeneratorPipelineRegistration(): Promise<{
+    pipeline: PipelineDocument;
+    graph: PipelineDependencyGraph;
+    workerCount: number;
+  }> {
+    const pipeline = await this.getPipeline("framework-generator");
+    if (pipeline.allows_feature_workers) {
+      throw new AiosError(
+        "feature-workers-forbidden",
+        "Framework generator pipeline must set allows_feature_workers=false",
+      );
+    }
+    if (pipeline.worker_class !== "discovery") {
+      throw new AiosError(
+        "invalid-worker-class",
+        "Framework generator pipeline worker_class must be discovery",
+      );
+    }
+
+    const workersReg = await this.workers();
+    const graph = await this.getPipelineDependencyGraph("framework-generator");
+    const nodeIds = new Set(graph.nodes.map((n) => n.id));
+    const workerIds = new Set(pipeline.workers);
+
+    for (const id of pipeline.workers) {
+      const entry = workersReg.entries[id] as
+        | {
+            path?: string;
+            worker_class?: string;
+            skill_id?: string;
+            pipeline?: string;
+          }
+        | undefined;
+      if (!entry) {
+        throw new AiosError(
+          "pipeline-worker-unregistered",
+          `Pipeline worker ${id} missing from registry/workers.json`,
+        );
+      }
+      if (entry.worker_class && entry.worker_class !== "discovery") {
+        throw new AiosError(
+          "feature-workers-forbidden",
+          `Worker ${id} is not discovery class`,
+        );
+      }
+      if (entry.pipeline && entry.pipeline !== "framework-generator") {
+        throw new AiosError(
+          "pipeline-graph-mismatch",
+          `Worker ${id} registry pipeline must be framework-generator`,
+        );
+      }
+      await this.assertRegistryPathExists(entry.path ?? `workers/${id}`);
+      if (!nodeIds.has(id)) {
+        throw new AiosError(
+          "pipeline-graph-mismatch",
+          `Worker ${id} missing from dependency graph nodes`,
+        );
+      }
+    }
+
+    for (const node of graph.nodes) {
+      if (!workerIds.has(node.id)) {
+        throw new AiosError(
+          "pipeline-graph-mismatch",
+          `Graph node ${node.id} not listed in pipeline.workers`,
+        );
+      }
+    }
+
+    for (const edge of graph.edges) {
+      if (!workerIds.has(edge.predecessor) || !workerIds.has(edge.successor)) {
+        throw new AiosError(
+          "pipeline-graph-mismatch",
+          `Edge ${edge.predecessor}→${edge.successor} references unknown worker`,
+        );
+      }
+    }
+
+    const skills = await this.skills();
+    const validators = await this.validators();
+    const reviewers = await this.reviewers();
+    for (const id of pipeline.workers) {
+      const entry = workersReg.entries[id] as { skill_id?: string };
+      const skillId = entry.skill_id;
+      if (skillId) {
+        const skill = skills.entries[skillId];
+        if (!skill?.path) {
+          throw new AiosError(
+            "registry-path-missing",
+            `Skill ${skillId} missing path for worker ${id}`,
+          );
+        }
+        await this.assertRegistryPathExists(skill.path);
+      }
+    }
+    if (pipeline.validator_id) {
+      const v = validators.entries[pipeline.validator_id];
+      if (!v?.path) {
+        throw new AiosError(
+          "registry-path-missing",
+          `Validator ${pipeline.validator_id} missing`,
+        );
+      }
+      await this.assertRegistryPathExists(v.path);
+    }
+    if (pipeline.reviewer_id) {
+      const r = reviewers.entries[pipeline.reviewer_id];
+      if (!r?.path) {
+        throw new AiosError(
+          "registry-path-missing",
+          `Reviewer ${pipeline.reviewer_id} missing`,
+        );
+      }
+      await this.assertRegistryPathExists(r.path);
+    }
+
+    for (const typeId of [
+      "framework-generation",
+      "framework-generation-status",
+      "framework-generation-report",
+      "gate-framework-generation-report",
+      "generation-spec",
+    ]) {
+      if (!(await this.hasArtifactType(typeId))) {
+        throw new AiosError(
+          "unknown-artifact-type",
+          `${typeId} must be registered for framework-generator`,
+        );
+      }
+    }
+
+    const requiredConsumes = [
+      "templates",
+      "schemas",
+      "workers",
+      "validators",
+      "reviewers",
+      "pipelines",
+      "knowledge",
+      "configs",
+      "artifacts",
+      "registry",
+    ];
+    const generatorIds = [
+      "schema-generator",
+      "artifact-generator",
+      "prompt-generator",
+      "worker-generator",
+      "validator-generator",
+      "reviewer-generator",
+      "pipeline-generator",
+      "test-generator",
+      "documentation-generator",
+      "project-bootstrap-generator",
+    ];
+    for (const id of generatorIds) {
+      const entry = workersReg.entries[id] as { consumes?: string[] } | undefined;
+      const consumes = entry?.consumes ?? [];
+      for (const c of requiredConsumes) {
+        if (!consumes.includes(c)) {
+          throw new AiosError(
+            "pipeline-graph-mismatch",
+            `Worker ${id} must consume ${c}`,
+          );
+        }
+      }
+    }
+
+    await this.assertRegistryPathExists("framework-generator");
+    await this.assertRegistryPathExists("framework-generator/catalog");
+    await this.assertRegistryPathExists("configs/sample-capability.yaml");
+    await this.assertRegistryPathExists("configs/examples/worker-generator.yaml");
+    await this.assertRegistryPathExists("framework-generator/templates/capability-spec.template.yaml");
+    await this.assertRegistryPathExists(
+      "workers/generation-orchestrator/examples/sample-primary-payload.json",
+    );
+    await this.assertRegistryPathExists(
+      "workers/generation-reporter/examples/sample-gate-payload.json",
+    );
+    await this.assertRegistryPathExists("contracts/framework-generator.md");
+    await this.assertRegistryPathExists("pipelines/framework-generator/RACI.md");
+    await this.assertRegistryPathExists(
+      "schemas/framework-generator-payload.schema.json",
+    );
+    await this.assertRegistryPathExists("schemas/framework-generation.schema.json");
+    await this.assertRegistryPathExists(
+      "schemas/framework-generation-status.schema.json",
+    );
+    await this.assertRegistryPathExists(
+      "schemas/framework-generation-report.schema.json",
+    );
+    await this.assertRegistryPathExists("schemas/generation-spec.schema.json");
+    await this.assertRegistryPathExists(
+      "schemas/gate-framework-generation-report.schema.json",
+    );
+
+    return {
+      pipeline,
+      graph,
+      workerCount: pipeline.workers.length,
+    };
+  }
+
   async gateProfiles(): Promise<GateProfiles> {
     return this.readJson("policies/gate-profiles.json", GateProfileFile);
   }

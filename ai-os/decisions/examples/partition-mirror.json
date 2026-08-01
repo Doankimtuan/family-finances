@@ -1,0 +1,139 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_decisions_mirror",
+  "type": "governance-decision",
+  "worker_id": "final-decision-board",
+  "title": "decisions mirror",
+  "summary": "Partition mirror under decisions/",
+  "entries": [
+    {
+      "id": "final-decision-board-go-no-go-01",
+      "entry_kind": "go-no-go",
+      "statement": "NO-GO",
+      "review_id": "REV-FINALDECISI-go-no-go",
+      "target": "ai-os/pipelines/review-engine/",
+      "finding": "NO-GO while any critical reviewer finding unresolved (gold path demonstrates rule).",
+      "evidence": [
+        "reviews/",
+        "governance/",
+        "reports/",
+        "reviews/product-reviewer/"
+      ],
+      "impact": "Release and governance impact.",
+      "severity": "critical",
+      "recommendation": "Remediate upstream packages; do not mutate or regenerate via Review Engine.",
+      "alternative_solution": "Revise upstream artifacts; board does not regenerate outputs.",
+      "confidence": 0.82,
+      "source_paths": [
+        "artifacts",
+        "validation",
+        "reports",
+        "scores",
+        "knowledge",
+        "specifications",
+        "pipelines",
+        "reviews",
+        "governance"
+      ],
+      "unknowns": [
+        "UNKNOWN: live review not executed in packaging milestone"
+      ],
+      "traceability": {
+        "source_artifact": "reports/",
+        "validation_report": "reports/",
+        "pipeline": "review-engine",
+        "worker": "final-decision-board"
+      },
+      "priority_rank": 1,
+      "folder_mirror": "decisions/final-decision-board/go-no-go.json"
+    },
+    {
+      "id": "final-decision-board-release-recommendation-01",
+      "entry_kind": "release-recommendation",
+      "statement": "Do not release until board GO.",
+      "review_id": "REV-FINALDECISI-release-",
+      "target": "ai-os/pipelines/review-engine/",
+      "finding": "Release blocked until critical risks cleared.",
+      "evidence": [
+        "reviews/",
+        "governance/",
+        "reports/",
+        "reviews/product-reviewer/"
+      ],
+      "impact": "Release and governance impact.",
+      "severity": "info",
+      "recommendation": "Remediate upstream packages; do not mutate or regenerate via Review Engine.",
+      "alternative_solution": "Revise upstream artifacts; board does not regenerate outputs.",
+      "confidence": 0.82,
+      "source_paths": [
+        "artifacts",
+        "validation",
+        "reports",
+        "scores",
+        "knowledge",
+        "specifications",
+        "pipelines",
+        "reviews",
+        "governance"
+      ],
+      "unknowns": [
+        "UNKNOWN: live review not executed in packaging milestone"
+      ],
+      "traceability": {
+        "source_artifact": "reports/",
+        "validation_report": "reports/",
+        "pipeline": "review-engine",
+        "worker": "final-decision-board"
+      },
+      "folder_mirror": "decisions/final-decision-board/release-recommendation.json"
+    },
+    {
+      "id": "final-decision-board-decision-01",
+      "entry_kind": "decision",
+      "statement": "NO-GO",
+      "review_id": "REV-FINALDECISI-decision",
+      "target": "ai-os/pipelines/review-engine/",
+      "finding": "Decision follows go-no-go rule: critical finding \u2192 NO-GO.",
+      "evidence": [
+        "reviews/",
+        "governance/",
+        "reports/",
+        "reviews/product-reviewer/"
+      ],
+      "impact": "Release and governance impact.",
+      "severity": "critical",
+      "recommendation": "Remediate upstream packages; do not mutate or regenerate via Review Engine.",
+      "alternative_solution": "Revise upstream artifacts; board does not regenerate outputs.",
+      "confidence": 0.82,
+      "source_paths": [
+        "artifacts",
+        "validation",
+        "reports",
+        "scores",
+        "knowledge",
+        "specifications",
+        "pipelines",
+        "reviews",
+        "governance"
+      ],
+      "unknowns": [
+        "UNKNOWN: live review not executed in packaging milestone"
+      ],
+      "traceability": {
+        "source_artifact": "reports/",
+        "validation_report": "reports/",
+        "pipeline": "review-engine",
+        "worker": "final-decision-board"
+      },
+      "priority_rank": 1,
+      "folder_mirror": "decisions/final-decision-board/decision.json"
+    }
+  ],
+  "status": "ready",
+  "created_at": "2026-08-01T20:00:00Z",
+  "extensions": {
+    "pipeline": "review-engine",
+    "mirror_of": "governance-decision",
+    "folder": "decisions/"
+  }
+}

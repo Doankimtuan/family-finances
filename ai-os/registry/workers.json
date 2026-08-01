@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "registry_kind": "workers",
-  "updated_at": "2026-08-01T18:00:00Z",
+  "updated_at": "2026-08-01T08:10:53Z",
   "entries": {
     "discover-repo-map": {
       "id": "discover-repo-map",
@@ -817,6 +817,674 @@
       ],
       "produces": [
         "reports"
+      ]
+    },
+    "architecture-reviewer": {
+      "id": "architecture-reviewer",
+      "path": "workers/architecture-reviewer",
+      "version": "0.1.1",
+      "status": "draft",
+      "description": "Review architecture quality, module boundaries, layering, patterns, coupling, cohesion, complexity, and architecture decisions.",
+      "worker_class": "discovery",
+      "pipeline": "review-engine",
+      "skill_id": "architecture-reviewer",
+      "depends_on_workers": [],
+      "consumes": [
+        "artifacts",
+        "validation",
+        "reports",
+        "scores",
+        "knowledge",
+        "specifications",
+        "pipelines",
+        "architecture-v2",
+        "product-architecture",
+        "decision-records",
+        "workers",
+        "schemas",
+        "registry"
+      ],
+      "produces": [
+        "reviews"
+      ]
+    },
+    "product-reviewer": {
+      "id": "product-reviewer",
+      "path": "workers/product-reviewer",
+      "version": "0.1.1",
+      "status": "draft",
+      "description": "Review product vision, feature coverage, user journey, business alignment, and missing product features.",
+      "worker_class": "discovery",
+      "pipeline": "review-engine",
+      "skill_id": "product-reviewer",
+      "depends_on_workers": [],
+      "consumes": [
+        "artifacts",
+        "validation",
+        "reports",
+        "scores",
+        "knowledge",
+        "specifications",
+        "pipelines",
+        "features",
+        "requirements",
+        "acceptance",
+        "product-architecture",
+        "business"
+      ],
+      "produces": [
+        "reviews"
+      ]
+    },
+    "business-reviewer": {
+      "id": "business-reviewer",
+      "path": "workers/business-reviewer",
+      "version": "0.1.1",
+      "status": "draft",
+      "description": "Review business rules, workflow consistency, edge cases, permission rules, state transitions, domain logic, and business completeness.",
+      "worker_class": "discovery",
+      "pipeline": "review-engine",
+      "skill_id": "business-reviewer",
+      "depends_on_workers": [],
+      "consumes": [
+        "artifacts",
+        "validation",
+        "reports",
+        "scores",
+        "knowledge",
+        "specifications",
+        "pipelines",
+        "business",
+        "workflow",
+        "acceptance",
+        "features"
+      ],
+      "produces": [
+        "reviews"
+      ]
+    },
+    "specification-reviewer": {
+      "id": "specification-reviewer",
+      "path": "workers/specification-reviewer",
+      "version": "0.1.1",
+      "status": "draft",
+      "description": "Review specifications, requirements, acceptance criteria, API/database/UI/deployment specs, coding standards, and testing strategy.",
+      "worker_class": "discovery",
+      "pipeline": "review-engine",
+      "skill_id": "specification-reviewer",
+      "depends_on_workers": [],
+      "consumes": [
+        "artifacts",
+        "validation",
+        "reports",
+        "scores",
+        "knowledge",
+        "specifications",
+        "pipelines",
+        "requirements",
+        "acceptance",
+        "architecture-v2",
+        "tech-stack",
+        "migration",
+        "folder-structure",
+        "features"
+      ],
+      "produces": [
+        "reviews"
+      ]
+    },
+    "documentation-reviewer": {
+      "id": "documentation-reviewer",
+      "path": "workers/documentation-reviewer",
+      "version": "0.1.1",
+      "status": "draft",
+      "description": "Review readability, consistency, examples, cross references, naming, formatting, and documentation quality.",
+      "worker_class": "discovery",
+      "pipeline": "review-engine",
+      "skill_id": "documentation-reviewer",
+      "depends_on_workers": [],
+      "consumes": [
+        "artifacts",
+        "validation",
+        "reports",
+        "scores",
+        "knowledge",
+        "specifications",
+        "pipelines",
+        "templates",
+        "workers",
+        "schemas",
+        "features"
+      ],
+      "produces": [
+        "reviews"
+      ]
+    },
+    "maintainability-reviewer": {
+      "id": "maintainability-reviewer",
+      "path": "workers/maintainability-reviewer",
+      "version": "0.1.1",
+      "status": "draft",
+      "description": "Review code organization, module size, separation of concerns, future maintainability, and technical debt risk.",
+      "worker_class": "discovery",
+      "pipeline": "review-engine",
+      "skill_id": "maintainability-reviewer",
+      "depends_on_workers": [],
+      "consumes": [
+        "artifacts",
+        "validation",
+        "reports",
+        "scores",
+        "knowledge",
+        "specifications",
+        "pipelines",
+        "workers",
+        "architecture-v2",
+        "templates"
+      ],
+      "produces": [
+        "reviews"
+      ]
+    },
+    "scalability-reviewer": {
+      "id": "scalability-reviewer",
+      "path": "workers/scalability-reviewer",
+      "version": "0.1.1",
+      "status": "draft",
+      "description": "Review architecture scalability, deployment scalability, performance risks, and future growth.",
+      "worker_class": "discovery",
+      "pipeline": "review-engine",
+      "skill_id": "scalability-reviewer",
+      "depends_on_workers": [],
+      "consumes": [
+        "artifacts",
+        "validation",
+        "reports",
+        "scores",
+        "knowledge",
+        "specifications",
+        "pipelines",
+        "architecture-v2",
+        "tech-stack",
+        "migration"
+      ],
+      "produces": [
+        "reviews"
+      ]
+    },
+    "extensibility-reviewer": {
+      "id": "extensibility-reviewer",
+      "path": "workers/extensibility-reviewer",
+      "version": "0.1.1",
+      "status": "draft",
+      "description": "Review plugin support, customization, future features, module isolation, and reuse potential.",
+      "worker_class": "discovery",
+      "pipeline": "review-engine",
+      "skill_id": "extensibility-reviewer",
+      "depends_on_workers": [],
+      "consumes": [
+        "artifacts",
+        "validation",
+        "reports",
+        "scores",
+        "knowledge",
+        "specifications",
+        "pipelines",
+        "architecture-v2",
+        "workers",
+        "templates"
+      ],
+      "produces": [
+        "reviews"
+      ]
+    },
+    "ai-quality-reviewer": {
+      "id": "ai-quality-reviewer",
+      "path": "workers/ai-quality-reviewer",
+      "version": "0.1.1",
+      "status": "draft",
+      "description": "Review prompt quality, worker responsibilities, pipeline design, artifact design, execution model, hallucination risks, traceability, and AI reliability.",
+      "worker_class": "discovery",
+      "pipeline": "review-engine",
+      "skill_id": "ai-quality-reviewer",
+      "depends_on_workers": [],
+      "consumes": [
+        "artifacts",
+        "validation",
+        "reports",
+        "scores",
+        "knowledge",
+        "specifications",
+        "pipelines",
+        "workers",
+        "skills",
+        "schemas",
+        "registry",
+        "templates"
+      ],
+      "produces": [
+        "reviews"
+      ]
+    },
+    "review-orchestrator": {
+      "id": "review-orchestrator",
+      "path": "workers/review-orchestrator",
+      "version": "0.1.1",
+      "status": "draft",
+      "description": "Coordinate reviewers, merge partitioned findings, dedupe, emit review-status and ten-dimension review-scores.",
+      "worker_class": "discovery",
+      "pipeline": "review-engine",
+      "skill_id": "review-orchestrator",
+      "depends_on_workers": [
+        "architecture-reviewer",
+        "product-reviewer",
+        "business-reviewer",
+        "specification-reviewer",
+        "documentation-reviewer",
+        "maintainability-reviewer",
+        "scalability-reviewer",
+        "extensibility-reviewer",
+        "ai-quality-reviewer"
+      ],
+      "consumes": [
+        "artifacts",
+        "validation",
+        "reports",
+        "scores",
+        "knowledge",
+        "specifications",
+        "pipelines",
+        "reviews"
+      ],
+      "produces": [
+        "reviews",
+        "governance"
+      ]
+    },
+    "final-decision-board": {
+      "id": "final-decision-board",
+      "path": "workers/final-decision-board",
+      "version": "0.1.1",
+      "status": "draft",
+      "description": "Collect merged reviews; emit overall recommendation, critical risks, improvement plan, go/no-go, and release recommendation.",
+      "worker_class": "discovery",
+      "pipeline": "review-engine",
+      "skill_id": "final-decision-board",
+      "depends_on_workers": [
+        "review-orchestrator"
+      ],
+      "consumes": [
+        "artifacts",
+        "validation",
+        "reports",
+        "scores",
+        "knowledge",
+        "specifications",
+        "pipelines",
+        "reviews",
+        "governance"
+      ],
+      "produces": [
+        "decisions",
+        "recommendations",
+        "improvements",
+        "governance"
+      ]
+    },
+    "schema-generator": {
+      "id": "schema-generator",
+      "path": "workers/schema-generator",
+      "version": "0.1.1",
+      "status": "draft",
+      "description": "Generate JSON Schemas, markdown templates, configuration schemas, validation schemas, and artifact schemas from capability specs.",
+      "worker_class": "discovery",
+      "pipeline": "framework-generator",
+      "skill_id": "schema-generator",
+      "depends_on_workers": [],
+      "consumes": [
+        "templates",
+        "schemas",
+        "workers",
+        "validators",
+        "reviewers",
+        "pipelines",
+        "knowledge",
+        "configs",
+        "artifacts",
+        "registry"
+      ],
+      "produces": [
+        "framework-generator/generators/schema-generator/"
+      ]
+    },
+    "artifact-generator": {
+      "id": "artifact-generator",
+      "path": "workers/artifact-generator",
+      "version": "0.1.1",
+      "status": "draft",
+      "description": "Generate artifact definitions: folder structure, contracts, naming rules, lifecycle, dependencies, versioning, retention policy.",
+      "worker_class": "discovery",
+      "pipeline": "framework-generator",
+      "skill_id": "artifact-generator",
+      "depends_on_workers": [
+        "schema-generator"
+      ],
+      "consumes": [
+        "templates",
+        "schemas",
+        "workers",
+        "validators",
+        "reviewers",
+        "pipelines",
+        "knowledge",
+        "configs",
+        "artifacts",
+        "registry"
+      ],
+      "produces": [
+        "framework-generator/generators/artifact-generator/"
+      ]
+    },
+    "prompt-generator": {
+      "id": "prompt-generator",
+      "path": "workers/prompt-generator",
+      "version": "0.1.1",
+      "status": "draft",
+      "description": "Generate production-quality prompts for builder, reviewer, validator, improve, freeze, and execution roles.",
+      "worker_class": "discovery",
+      "pipeline": "framework-generator",
+      "skill_id": "prompt-generator",
+      "depends_on_workers": [],
+      "consumes": [
+        "templates",
+        "schemas",
+        "workers",
+        "validators",
+        "reviewers",
+        "pipelines",
+        "knowledge",
+        "configs",
+        "artifacts",
+        "registry"
+      ],
+      "produces": [
+        "framework-generator/generators/prompt-generator/"
+      ]
+    },
+    "worker-generator": {
+      "id": "worker-generator",
+      "path": "workers/worker-generator",
+      "version": "0.1.1",
+      "status": "draft",
+      "description": "Generate Worker package skeleton (README, skill, manifest, examples pointers) from capability specs. Does NOT generate validators, reviewers, tests, or docs \u2014 see overlap table in contracts/framework-generator.md.",
+      "worker_class": "discovery",
+      "pipeline": "framework-generator",
+      "skill_id": "worker-generator",
+      "depends_on_workers": [
+        "schema-generator"
+      ],
+      "consumes": [
+        "templates",
+        "schemas",
+        "workers",
+        "validators",
+        "reviewers",
+        "pipelines",
+        "knowledge",
+        "configs",
+        "artifacts",
+        "registry"
+      ],
+      "produces": [
+        "framework-generator/generators/worker-generator/"
+      ]
+    },
+    "validator-generator": {
+      "id": "validator-generator",
+      "path": "workers/validator-generator",
+      "version": "0.1.1",
+      "status": "draft",
+      "description": "Generate validator packages (artifact, schema, traceability, dependency, completeness, consistency, quality checks).",
+      "worker_class": "discovery",
+      "pipeline": "framework-generator",
+      "skill_id": "validator-generator",
+      "depends_on_workers": [
+        "worker-generator",
+        "schema-generator"
+      ],
+      "consumes": [
+        "templates",
+        "schemas",
+        "workers",
+        "validators",
+        "reviewers",
+        "pipelines",
+        "knowledge",
+        "configs",
+        "artifacts",
+        "registry"
+      ],
+      "produces": [
+        "framework-generator/generators/validator-generator/"
+      ]
+    },
+    "reviewer-generator": {
+      "id": "reviewer-generator",
+      "path": "workers/reviewer-generator",
+      "version": "0.1.1",
+      "status": "draft",
+      "description": "Generate reviewer packages and rubrics for architecture, business, specification, quality, documentation, security, performance review.",
+      "worker_class": "discovery",
+      "pipeline": "framework-generator",
+      "skill_id": "reviewer-generator",
+      "depends_on_workers": [
+        "worker-generator",
+        "schema-generator"
+      ],
+      "consumes": [
+        "templates",
+        "schemas",
+        "workers",
+        "validators",
+        "reviewers",
+        "pipelines",
+        "knowledge",
+        "configs",
+        "artifacts",
+        "registry"
+      ],
+      "produces": [
+        "framework-generator/generators/reviewer-generator/"
+      ]
+    },
+    "pipeline-generator": {
+      "id": "pipeline-generator",
+      "path": "workers/pipeline-generator",
+      "version": "0.1.1",
+      "status": "draft",
+      "description": "Generate pipeline.json, dependency-graph.json, waves, retry/checkpoint/rollback strategies.",
+      "worker_class": "discovery",
+      "pipeline": "framework-generator",
+      "skill_id": "pipeline-generator",
+      "depends_on_workers": [
+        "worker-generator",
+        "validator-generator",
+        "reviewer-generator"
+      ],
+      "consumes": [
+        "templates",
+        "schemas",
+        "workers",
+        "validators",
+        "reviewers",
+        "pipelines",
+        "knowledge",
+        "configs",
+        "artifacts",
+        "registry"
+      ],
+      "produces": [
+        "framework-generator/generators/pipeline-generator/"
+      ]
+    },
+    "test-generator": {
+      "id": "test-generator",
+      "path": "workers/test-generator",
+      "version": "0.1.1",
+      "status": "draft",
+      "description": "Generate testcases, validation cases, edge cases, regression tests, sample projects, acceptance tests for generated components.",
+      "worker_class": "discovery",
+      "pipeline": "framework-generator",
+      "skill_id": "test-generator",
+      "depends_on_workers": [
+        "worker-generator"
+      ],
+      "consumes": [
+        "templates",
+        "schemas",
+        "workers",
+        "validators",
+        "reviewers",
+        "pipelines",
+        "knowledge",
+        "configs",
+        "artifacts",
+        "registry"
+      ],
+      "produces": [
+        "framework-generator/generators/test-generator/"
+      ]
+    },
+    "documentation-generator": {
+      "id": "documentation-generator",
+      "path": "workers/documentation-generator",
+      "version": "0.1.1",
+      "status": "draft",
+      "description": "Generate architecture docs, usage guides, developer guides, migration guides, changelogs, release notes for generated components.",
+      "worker_class": "discovery",
+      "pipeline": "framework-generator",
+      "skill_id": "documentation-generator",
+      "depends_on_workers": [
+        "worker-generator",
+        "pipeline-generator"
+      ],
+      "consumes": [
+        "templates",
+        "schemas",
+        "workers",
+        "validators",
+        "reviewers",
+        "pipelines",
+        "knowledge",
+        "configs",
+        "artifacts",
+        "registry"
+      ],
+      "produces": [
+        "framework-generator/generators/documentation-generator/"
+      ]
+    },
+    "project-bootstrap-generator": {
+      "id": "project-bootstrap-generator",
+      "path": "workers/project-bootstrap-generator",
+      "version": "0.1.1",
+      "status": "draft",
+      "description": "Bootstrap full AI OS projects: repo init, folders, worker/pipeline registration patches, configs, default templates.",
+      "worker_class": "discovery",
+      "pipeline": "framework-generator",
+      "skill_id": "project-bootstrap-generator",
+      "depends_on_workers": [
+        "schema-generator",
+        "artifact-generator",
+        "prompt-generator",
+        "worker-generator",
+        "validator-generator",
+        "reviewer-generator",
+        "pipeline-generator",
+        "test-generator",
+        "documentation-generator"
+      ],
+      "consumes": [
+        "templates",
+        "schemas",
+        "workers",
+        "validators",
+        "reviewers",
+        "pipelines",
+        "knowledge",
+        "configs",
+        "artifacts",
+        "registry"
+      ],
+      "produces": [
+        "framework-generator/generators/project-bootstrap-generator/"
+      ]
+    },
+    "generation-orchestrator": {
+      "id": "generation-orchestrator",
+      "path": "workers/generation-orchestrator",
+      "version": "0.1.1",
+      "status": "draft",
+      "description": "Record wave order, merge partitioned scaffold plans, dedupe by generation_id+entry_kind, emit framework-generation-status.",
+      "worker_class": "discovery",
+      "pipeline": "framework-generator",
+      "skill_id": "generation-orchestrator",
+      "depends_on_workers": [
+        "schema-generator",
+        "artifact-generator",
+        "prompt-generator",
+        "worker-generator",
+        "validator-generator",
+        "reviewer-generator",
+        "pipeline-generator",
+        "test-generator",
+        "documentation-generator",
+        "project-bootstrap-generator"
+      ],
+      "consumes": [
+        "templates",
+        "schemas",
+        "workers",
+        "validators",
+        "reviewers",
+        "pipelines",
+        "knowledge",
+        "configs",
+        "artifacts",
+        "registry",
+        "framework-generator"
+      ],
+      "produces": [
+        "framework-generator/status/generation-orchestrator/"
+      ]
+    },
+    "generation-reporter": {
+      "id": "generation-reporter",
+      "path": "workers/generation-reporter",
+      "version": "0.1.1",
+      "status": "draft",
+      "description": "Emit human-readable framework-generation-report and gate-framework-generation-report envelope from merged status.",
+      "worker_class": "discovery",
+      "pipeline": "framework-generator",
+      "skill_id": "generation-reporter",
+      "depends_on_workers": [
+        "generation-orchestrator"
+      ],
+      "consumes": [
+        "templates",
+        "schemas",
+        "workers",
+        "validators",
+        "reviewers",
+        "pipelines",
+        "knowledge",
+        "configs",
+        "artifacts",
+        "registry",
+        "framework-generator"
+      ],
+      "produces": [
+        "framework-generator/reports/generation-reporter/"
       ]
     }
   }

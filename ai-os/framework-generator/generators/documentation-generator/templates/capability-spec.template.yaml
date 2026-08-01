@@ -1,0 +1,18 @@
+# Capability spec template for Documentation Generator
+capability: Documentation Generator
+version: 0.1.0
+generator: documentation-generator
+modes:
+  - Architecture Docs
+  - Usage Guides
+  - Examples
+  - Developer Guides
+  - Migration Guides
+  - Changelogs
+  - Release Notes
+outputs:
+  partition: framework-generator/generators/documentation-generator/
+registries:
+  - workers
+  - skills
+  - schemas

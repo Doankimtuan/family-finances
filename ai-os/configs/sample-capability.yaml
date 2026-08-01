@@ -1,0 +1,12 @@
+# Sample capability spec — Architecture Consultant → Worker package
+capability: Architecture Consultant
+version: 0.1.0
+target_generator: worker-generator
+outputs:
+  worker_id: architecture-consultant
+  pipeline: solution-architecture
+registries:
+  - workers
+  - skills
+  - schemas
+semver: 0.1.0

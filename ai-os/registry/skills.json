@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "registry_kind": "skills",
-  "updated_at": "2026-08-01T18:00:00Z",
+  "updated_at": "2026-08-01T08:10:53Z",
   "entries": {
     "example-skill": {
       "id": "example-skill",
@@ -240,6 +240,178 @@
       "version": "0.1.1",
       "status": "reserved",
       "description": "Generate validation summary, severity-ranked issues, recommended fixes, and PASS/FAIL decision. Machine-readable only."
+    },
+    "architecture-reviewer": {
+      "id": "architecture-reviewer",
+      "path": "skills/architecture-reviewer",
+      "version": "0.1.1",
+      "status": "reserved",
+      "description": "Review architecture quality, module boundaries, layering, patterns, coupling, cohesion, complexity, and architecture decisions.",
+      "pipeline": "review-engine"
+    },
+    "product-reviewer": {
+      "id": "product-reviewer",
+      "path": "skills/product-reviewer",
+      "version": "0.1.1",
+      "status": "reserved",
+      "description": "Review product vision, feature coverage, user journey, business alignment, and missing product features.",
+      "pipeline": "review-engine"
+    },
+    "business-reviewer": {
+      "id": "business-reviewer",
+      "path": "skills/business-reviewer",
+      "version": "0.1.1",
+      "status": "reserved",
+      "description": "Review business rules, workflow consistency, edge cases, permission rules, state transitions, domain logic, and business completeness.",
+      "pipeline": "review-engine"
+    },
+    "specification-reviewer": {
+      "id": "specification-reviewer",
+      "path": "skills/specification-reviewer",
+      "version": "0.1.1",
+      "status": "reserved",
+      "description": "Review specifications, requirements, acceptance criteria, API/database/UI/deployment specs, coding standards, and testing strategy.",
+      "pipeline": "review-engine"
+    },
+    "documentation-reviewer": {
+      "id": "documentation-reviewer",
+      "path": "skills/documentation-reviewer",
+      "version": "0.1.1",
+      "status": "reserved",
+      "description": "Review readability, consistency, examples, cross references, naming, formatting, and documentation quality.",
+      "pipeline": "review-engine"
+    },
+    "maintainability-reviewer": {
+      "id": "maintainability-reviewer",
+      "path": "skills/maintainability-reviewer",
+      "version": "0.1.1",
+      "status": "reserved",
+      "description": "Review code organization, module size, separation of concerns, future maintainability, and technical debt risk.",
+      "pipeline": "review-engine"
+    },
+    "scalability-reviewer": {
+      "id": "scalability-reviewer",
+      "path": "skills/scalability-reviewer",
+      "version": "0.1.1",
+      "status": "reserved",
+      "description": "Review architecture scalability, deployment scalability, performance risks, and future growth.",
+      "pipeline": "review-engine"
+    },
+    "extensibility-reviewer": {
+      "id": "extensibility-reviewer",
+      "path": "skills/extensibility-reviewer",
+      "version": "0.1.1",
+      "status": "reserved",
+      "description": "Review plugin support, customization, future features, module isolation, and reuse potential.",
+      "pipeline": "review-engine"
+    },
+    "ai-quality-reviewer": {
+      "id": "ai-quality-reviewer",
+      "path": "skills/ai-quality-reviewer",
+      "version": "0.1.1",
+      "status": "reserved",
+      "description": "Review prompt quality, worker responsibilities, pipeline design, artifact design, execution model, hallucination risks, traceability, and AI reliability.",
+      "pipeline": "review-engine"
+    },
+    "review-orchestrator": {
+      "id": "review-orchestrator",
+      "path": "skills/review-orchestrator",
+      "version": "0.1.1",
+      "status": "reserved",
+      "description": "Coordinate reviewers, merge partitioned findings, dedupe, emit review-status and ten-dimension review-scores.",
+      "pipeline": "review-engine"
+    },
+    "final-decision-board": {
+      "id": "final-decision-board",
+      "path": "skills/final-decision-board",
+      "version": "0.1.1",
+      "status": "reserved",
+      "description": "Collect merged reviews; emit overall recommendation, critical risks, improvement plan, go/no-go, and release recommendation.",
+      "pipeline": "review-engine"
+    },
+    "schema-generator": {
+      "id": "schema-generator",
+      "path": "skills/schema-generator",
+      "version": "0.1.1",
+      "status": "draft",
+      "description": "Generate JSON Schemas, markdown templates, configuration schemas, validation schemas, and artifact schemas from capability specs."
+    },
+    "artifact-generator": {
+      "id": "artifact-generator",
+      "path": "skills/artifact-generator",
+      "version": "0.1.1",
+      "status": "draft",
+      "description": "Generate artifact definitions: folder structure, contracts, naming rules, lifecycle, dependencies, versioning, retention policy."
+    },
+    "prompt-generator": {
+      "id": "prompt-generator",
+      "path": "skills/prompt-generator",
+      "version": "0.1.1",
+      "status": "draft",
+      "description": "Generate production-quality prompts for builder, reviewer, validator, improve, freeze, and execution roles."
+    },
+    "worker-generator": {
+      "id": "worker-generator",
+      "path": "skills/worker-generator",
+      "version": "0.1.1",
+      "status": "draft",
+      "description": "Generate Worker package skeleton (README, skill, manifest, examples pointers) from capability specs. Does NOT generate validators, reviewers, tests, or docs \u2014 see overlap table in contracts/framework-generator.md."
+    },
+    "validator-generator": {
+      "id": "validator-generator",
+      "path": "skills/validator-generator",
+      "version": "0.1.1",
+      "status": "draft",
+      "description": "Generate validator packages (artifact, schema, traceability, dependency, completeness, consistency, quality checks)."
+    },
+    "reviewer-generator": {
+      "id": "reviewer-generator",
+      "path": "skills/reviewer-generator",
+      "version": "0.1.1",
+      "status": "draft",
+      "description": "Generate reviewer packages and rubrics for architecture, business, specification, quality, documentation, security, performance review."
+    },
+    "pipeline-generator": {
+      "id": "pipeline-generator",
+      "path": "skills/pipeline-generator",
+      "version": "0.1.1",
+      "status": "draft",
+      "description": "Generate pipeline.json, dependency-graph.json, waves, retry/checkpoint/rollback strategies."
+    },
+    "test-generator": {
+      "id": "test-generator",
+      "path": "skills/test-generator",
+      "version": "0.1.1",
+      "status": "draft",
+      "description": "Generate testcases, validation cases, edge cases, regression tests, sample projects, acceptance tests for generated components."
+    },
+    "documentation-generator": {
+      "id": "documentation-generator",
+      "path": "skills/documentation-generator",
+      "version": "0.1.1",
+      "status": "draft",
+      "description": "Generate architecture docs, usage guides, developer guides, migration guides, changelogs, release notes for generated components."
+    },
+    "project-bootstrap-generator": {
+      "id": "project-bootstrap-generator",
+      "path": "skills/project-bootstrap-generator",
+      "version": "0.1.1",
+      "status": "draft",
+      "description": "Bootstrap full AI OS projects: repo init, folders, worker/pipeline registration patches, configs, default templates."
+    },
+    "generation-orchestrator": {
+      "id": "generation-orchestrator",
+      "path": "skills/generation-orchestrator",
+      "version": "0.1.1",
+      "status": "draft",
+      "description": "Record wave order, merge partitioned scaffold plans, dedupe by generation_id+entry_kind, emit framework-generation-status."
+    },
+    "generation-reporter": {
+      "id": "generation-reporter",
+      "path": "skills/generation-reporter",
+      "version": "0.1.1",
+      "status": "draft",
+      "description": "Emit human-readable framework-generation-report and gate-framework-generation-report envelope from merged status."
     }
   }
 }

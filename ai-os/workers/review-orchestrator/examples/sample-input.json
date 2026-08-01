@@ -1,0 +1,14 @@
+{
+  "goal_id": "art_re_goal",
+  "worker_id": "review-orchestrator",
+  "consumes": [
+    "artifacts",
+    "validation",
+    "reports",
+    "scores",
+    "knowledge",
+    "specifications",
+    "pipelines",
+    "reviews"
+  ]
+}

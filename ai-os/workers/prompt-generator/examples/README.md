@@ -1,0 +1,1 @@
+# Examples — `prompt-generator`

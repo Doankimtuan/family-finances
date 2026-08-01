@@ -1,0 +1,14 @@
+capability: Validator Generator
+version: 0.1.0
+target_generator: validator-generator
+modes:
+  - Artifact
+  - Schema
+  - Traceability
+  - Dependency
+outputs:
+  worker_id: sample-validator
+registries:
+  - workers
+  - skills
+semver: 0.1.0

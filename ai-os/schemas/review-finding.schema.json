@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aios.dev/schemas/review-finding.schema.json",
+  "title": "AIOS review-finding",
+  "allOf": [
+    {
+      "$ref": "https://aios.dev/schemas/review-engine-payload.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "review-finding"
+        }
+      }
+    }
+  ]
+}

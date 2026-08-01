@@ -1,0 +1,161 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_out_business_reviewer",
+  "type": "review-finding",
+  "worker_id": "business-reviewer",
+  "title": "business-reviewer output",
+  "summary": "Review business rules, workflow consistency, edge cases, permission rules, state transitions, domain logic, and business completeness.",
+  "entries": [
+    {
+      "id": "business-reviewer-business-rules-01",
+      "entry_kind": "business-rules",
+      "statement": "Summary: business-rules review pass sample.",
+      "review_id": "REV-BUSINESSREV-business",
+      "target": "ai-os/pipelines/review-engine/",
+      "finding": "Detailed finding for business-rules: structure meets contract based on validation reports.",
+      "evidence": [
+        "reports/",
+        "validation/",
+        "scores/",
+        "workers/business-reviewer/",
+        "pipelines/review-engine/RACI.md"
+      ],
+      "impact": "Low governance risk if unchanged.",
+      "severity": "info",
+      "recommendation": "Remediate upstream packages; do not mutate or regenerate via Review Engine.",
+      "alternative_solution": "Accept as-is for packaging; re-review after execute phase.",
+      "confidence": 0.82,
+      "source_paths": [
+        "artifacts",
+        "validation",
+        "reports",
+        "scores",
+        "knowledge",
+        "specifications",
+        "pipelines",
+        "business",
+        "workflow",
+        "acceptance",
+        "features"
+      ],
+      "unknowns": [
+        "UNKNOWN: live review not executed in packaging milestone"
+      ],
+      "traceability": {
+        "source_artifact": "reports/",
+        "validation_report": "reports/",
+        "pipeline": "review-engine",
+        "worker": "business-reviewer"
+      },
+      "folder_mirror": "reviews/business-reviewer/business-rules.json"
+    },
+    {
+      "id": "business-reviewer-workflow-consistency-01",
+      "entry_kind": "workflow-consistency",
+      "statement": "Summary: workflow-consistency review pass sample.",
+      "review_id": "REV-BUSINESSREV-workflow",
+      "target": "ai-os/pipelines/review-engine/",
+      "finding": "Detailed finding for workflow-consistency: structure meets contract based on validation reports.",
+      "evidence": [
+        "reports/",
+        "validation/",
+        "scores/",
+        "workers/business-reviewer/",
+        "pipelines/review-engine/RACI.md"
+      ],
+      "impact": "Low governance risk if unchanged.",
+      "severity": "info",
+      "recommendation": "Remediate upstream packages; do not mutate or regenerate via Review Engine.",
+      "alternative_solution": "Accept as-is for packaging; re-review after execute phase.",
+      "confidence": 0.82,
+      "source_paths": [
+        "artifacts",
+        "validation",
+        "reports",
+        "scores",
+        "knowledge",
+        "specifications",
+        "pipelines",
+        "business",
+        "workflow",
+        "acceptance",
+        "features"
+      ],
+      "unknowns": [
+        "UNKNOWN: live review not executed in packaging milestone"
+      ],
+      "traceability": {
+        "source_artifact": "reports/",
+        "validation_report": "reports/",
+        "pipeline": "review-engine",
+        "worker": "business-reviewer"
+      },
+      "folder_mirror": "reviews/business-reviewer/workflow-consistency.json"
+    },
+    {
+      "id": "business-reviewer-edge-cases-01",
+      "entry_kind": "edge-cases",
+      "statement": "Summary: edge-cases review pass sample.",
+      "review_id": "REV-BUSINESSREV-edge-cas",
+      "target": "ai-os/pipelines/review-engine/",
+      "finding": "Detailed finding for edge-cases: structure meets contract based on validation reports.",
+      "evidence": [
+        "reports/",
+        "validation/",
+        "scores/",
+        "workers/business-reviewer/",
+        "pipelines/review-engine/RACI.md"
+      ],
+      "impact": "Low governance risk if unchanged.",
+      "severity": "info",
+      "recommendation": "Remediate upstream packages; do not mutate or regenerate via Review Engine.",
+      "alternative_solution": "Accept as-is for packaging; re-review after execute phase.",
+      "confidence": 0.82,
+      "source_paths": [
+        "artifacts",
+        "validation",
+        "reports",
+        "scores",
+        "knowledge",
+        "specifications",
+        "pipelines",
+        "business",
+        "workflow",
+        "acceptance",
+        "features"
+      ],
+      "unknowns": [
+        "UNKNOWN: live review not executed in packaging milestone"
+      ],
+      "traceability": {
+        "source_artifact": "reports/",
+        "validation_report": "reports/",
+        "pipeline": "review-engine",
+        "worker": "business-reviewer"
+      },
+      "folder_mirror": "reviews/business-reviewer/edge-cases.json"
+    }
+  ],
+  "status": "ready",
+  "created_at": "2026-08-01T20:00:00Z",
+  "trace": {
+    "orchestration_id": "art_re_orchestration",
+    "plan_id": "art_re_plan",
+    "task_id": "art_task_business_reviewer",
+    "run_id": "art_run_business_reviewer",
+    "goal_id": "art_re_goal"
+  },
+  "extensions": {
+    "pipeline": "review-engine",
+    "mutate_source_artifacts": false,
+    "regenerate_outputs": false,
+    "validate_schemas": false,
+    "invent_missing_information": false,
+    "incremental": true,
+    "partial": true,
+    "validation_scope": {
+      "mode": "full"
+    },
+    "folder_partition": "reviews/business-reviewer/"
+  }
+}

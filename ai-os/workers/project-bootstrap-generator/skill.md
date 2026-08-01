@@ -1,0 +1,1 @@
+See `skills/project-bootstrap-generator/SKILL.md`.

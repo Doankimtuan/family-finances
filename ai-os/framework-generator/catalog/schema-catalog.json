@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "updated_at": "2026-08-01T08:10:53Z",
+  "schemas": [
+    "framework-generator-payload.schema.json",
+    "generation-spec.schema.json"
+  ]
+}
