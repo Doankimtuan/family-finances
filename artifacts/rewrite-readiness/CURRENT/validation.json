@@ -1,0 +1,36 @@
+{
+  "run_id": "run_rewrite_readiness_20260801T220000Z",
+  "created_at": "2026-08-01T16:31:34Z",
+  "verdict": "GO_WITH_CONDITIONS",
+  "critical_blocking_count": 0,
+  "ac_coverage": 1.0,
+  "req_coverage": 1.0,
+  "all_sots_frozen": true,
+  "phase2_excluded_from_mvp_sprints": true,
+  "scores": {
+    "overall": 88,
+    "product": 95,
+    "architecture": 90,
+    "technical": 90,
+    "ux": 92,
+    "design": 93,
+    "security": 85,
+    "performance": 82,
+    "testing": 86,
+    "maintainability": 88,
+    "developer_experience": 80,
+    "release_readiness": 84
+  },
+  "area_verdicts": {
+    "Product Readiness": "PASS",
+    "Architecture Readiness": "PASS WITH NOTES",
+    "Technical Readiness": "PASS",
+    "Design Readiness": "PASS",
+    "Implementation Readiness": "PASS WITH NOTES",
+    "Testing Readiness": "PASS WITH NOTES",
+    "Security Readiness": "PASS WITH NOTES",
+    "Deployment Readiness": "PASS WITH NOTES"
+  },
+  "conditions_count": 7,
+  "pass": true
+}
