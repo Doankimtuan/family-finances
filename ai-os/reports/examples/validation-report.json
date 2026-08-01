@@ -1,0 +1,122 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_out_validation_reporter",
+  "type": "validation-report",
+  "worker_id": "validation-reporter",
+  "title": "validation-reporter output",
+  "summary": "Generate validation summary, severity-ranked issues, recommended fixes, and PASS/FAIL decision. Machine-readable only.",
+  "entries": [
+    {
+      "id": "validation-reporter-summary-01",
+      "entry_kind": "summary",
+      "statement": "Sample finding `summary` for validation-reporter.",
+      "validation_id": "VAL-VR-summary",
+      "target": "ai-os/workers/",
+      "rule": "summary must satisfy Validation Engine contract",
+      "result": "pass",
+      "evidence": [
+        "schemas/validation-engine-payload.schema.json",
+        "workers/validation-reporter/"
+      ],
+      "severity": "info",
+      "recommendation": "Do not mutate sources; remediate upstream packages if fail.",
+      "confidence": 0.8,
+      "source_paths": [
+        "schemas/",
+        "workers/",
+        "pipelines/",
+        "knowledge/",
+        "templates/"
+      ],
+      "unknowns": [
+        "UNKNOWN: none noted"
+      ],
+      "traceability": {
+        "source_artifact": "schemas/",
+        "knowledge": "knowledge/",
+        "pipeline": "validation-engine",
+        "worker": "validation-reporter"
+      }
+    },
+    {
+      "id": "validation-reporter-critical-01",
+      "entry_kind": "critical",
+      "statement": "Sample finding `critical` for validation-reporter.",
+      "validation_id": "VAL-VR-critical",
+      "target": "ai-os/workers/",
+      "rule": "critical must satisfy Validation Engine contract",
+      "result": "pass",
+      "evidence": [
+        "schemas/validation-engine-payload.schema.json",
+        "workers/validation-reporter/"
+      ],
+      "severity": "info",
+      "recommendation": "Do not mutate sources; remediate upstream packages if fail.",
+      "confidence": 0.8,
+      "source_paths": [
+        "schemas/",
+        "workers/",
+        "pipelines/",
+        "knowledge/",
+        "templates/"
+      ],
+      "unknowns": [
+        "UNKNOWN: none noted"
+      ],
+      "traceability": {
+        "source_artifact": "schemas/",
+        "knowledge": "knowledge/",
+        "pipeline": "validation-engine",
+        "worker": "validation-reporter"
+      }
+    },
+    {
+      "id": "validation-reporter-decision-01",
+      "entry_kind": "decision",
+      "statement": "Sample finding `decision` for validation-reporter.",
+      "validation_id": "VAL-VR-decision",
+      "target": "ai-os/workers/",
+      "rule": "decision must satisfy Validation Engine contract",
+      "result": "pass",
+      "evidence": [
+        "schemas/validation-engine-payload.schema.json",
+        "workers/validation-reporter/"
+      ],
+      "severity": "info",
+      "recommendation": "Do not mutate sources; remediate upstream packages if fail.",
+      "confidence": 0.8,
+      "source_paths": [
+        "schemas/",
+        "workers/",
+        "pipelines/",
+        "knowledge/",
+        "templates/"
+      ],
+      "unknowns": [
+        "UNKNOWN: none noted"
+      ],
+      "traceability": {
+        "source_artifact": "schemas/",
+        "knowledge": "knowledge/",
+        "pipeline": "validation-engine",
+        "worker": "validation-reporter"
+      }
+    }
+  ],
+  "status": "ready",
+  "created_at": "2026-08-01T17:00:00Z",
+  "trace": {
+    "orchestration_id": "art_ve_orchestration",
+    "plan_id": "art_ve_plan",
+    "task_id": "art_task_validation_reporter",
+    "run_id": "art_run_validation_reporter",
+    "goal_id": "art_ve_goal"
+  },
+  "extensions": {
+    "pipeline": "validation-engine",
+    "mutate_source_artifacts": false,
+    "invent_missing_information": false,
+    "incremental": true,
+    "partial": true
+  }
+}

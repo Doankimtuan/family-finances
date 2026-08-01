@@ -1,0 +1,1032 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_out_specification_generator",
+  "type": "project-specification",
+  "worker_id": "specification-generator",
+  "title": "Specification Generator output",
+  "summary": "Implementation-ready specifications from validated Product RE + Solution Architecture. Restate with pointers; never invent business logic.",
+  "entries": [
+    {
+      "id": "spec-project-overview",
+      "entry_kind": "project-overview",
+      "statement": "Project overview: household finance system preserving real accounting vs virtual jar intents.",
+      "purpose": "Specify project-overview from validated Product RE + SA inputs only.",
+      "scope": "Implementation-ready documentation; no redesign; no invented business logic.",
+      "actors": [
+        "household-member",
+        "partner"
+      ],
+      "preconditions": [
+        "Validated Product RE packs present",
+        "Validated architecture-v2 soft-available or UNKNOWN"
+      ],
+      "postconditions": [
+        "Section draft\u2192ready with full traceability"
+      ],
+      "workflow": "Load validated packs \u2192 restate with pointers \u2192 mark gaps UNKNOWN \u2192 stop for validation.",
+      "business_rules": "Restate only rules present in business/; never invent.",
+      "validation_rules": "Every claim cites source_paths; UNKNOWN when missing.",
+      "error_handling": "Conflicts \u2192 entry_kind=conflict; missing \u2192 UNKNOWN or gap.",
+      "edge_cases": "UNKNOWN: edge cases not enumerated in acceptance/ are listed as UNKNOWN.",
+      "dependencies": [
+        "requirements/",
+        "acceptance/",
+        "workflow/",
+        "business/"
+      ],
+      "acceptance_criteria": [
+        "Traceability matrix complete or UNKNOWN",
+        "No invented business rules"
+      ],
+      "source_paths": [
+        "knowledge/",
+        "features/",
+        "business/",
+        "product-architecture/",
+        "architecture-v2/",
+        "requirements/",
+        "workflow/",
+        "acceptance/",
+        "decision-records/",
+        "tech-stack/",
+        "migration/",
+        "folder-structure/",
+        "quality/",
+        "redesign/"
+      ],
+      "confidence": 0.78,
+      "unknowns": [
+        "UNKNOWN: none noted"
+      ],
+      "traceability": {
+        "feature": "features/",
+        "business_rule": "business/",
+        "api": "UNKNOWN: public API inventory incomplete in features/",
+        "database": "UNKNOWN: exact schema DDL not in validated packs",
+        "workflow": "workflow/",
+        "architecture_decision": "decision-records/",
+        "source_artifact": "requirements/"
+      },
+      "business_rules_refs": [
+        "business/"
+      ],
+      "acceptance_refs": [
+        "acceptance/"
+      ],
+      "workflow_refs": [
+        "workflow/"
+      ],
+      "architecture_refs": [
+        "architecture-v2/",
+        "product-architecture/",
+        "decision-records/"
+      ]
+    },
+    {
+      "id": "spec-functional",
+      "entry_kind": "functional",
+      "statement": "Functional specs restate validated workflows/requirements/acceptance (e.g. jar review queue); do not rewrite Product RE.",
+      "purpose": "Specify functional from validated Product RE + SA inputs only.",
+      "scope": "Implementation-ready documentation; no redesign; no invented business logic.",
+      "actors": [
+        "household-member",
+        "partner"
+      ],
+      "preconditions": [
+        "Validated Product RE packs present",
+        "Validated architecture-v2 soft-available or UNKNOWN"
+      ],
+      "postconditions": [
+        "Section draft\u2192ready with full traceability"
+      ],
+      "workflow": "Load validated packs \u2192 restate with pointers \u2192 mark gaps UNKNOWN \u2192 stop for validation.",
+      "business_rules": "Restate only rules present in business/; never invent.",
+      "validation_rules": "Every claim cites source_paths; UNKNOWN when missing.",
+      "error_handling": "Conflicts \u2192 entry_kind=conflict; missing \u2192 UNKNOWN or gap.",
+      "edge_cases": "UNKNOWN: edge cases not enumerated in acceptance/ are listed as UNKNOWN.",
+      "dependencies": [
+        "requirements/",
+        "acceptance/",
+        "workflow/",
+        "business/"
+      ],
+      "acceptance_criteria": [
+        "Traceability matrix complete or UNKNOWN",
+        "No invented business rules"
+      ],
+      "source_paths": [
+        "knowledge/",
+        "features/",
+        "business/",
+        "product-architecture/",
+        "architecture-v2/",
+        "requirements/",
+        "workflow/",
+        "acceptance/",
+        "decision-records/",
+        "tech-stack/",
+        "migration/",
+        "folder-structure/",
+        "quality/",
+        "redesign/"
+      ],
+      "confidence": 0.78,
+      "unknowns": [
+        "UNKNOWN: none noted"
+      ],
+      "traceability": {
+        "feature": "features/",
+        "business_rule": "business/",
+        "api": "UNKNOWN: public API inventory incomplete in features/",
+        "database": "UNKNOWN: exact schema DDL not in validated packs",
+        "workflow": "workflow/",
+        "architecture_decision": "decision-records/",
+        "source_artifact": "requirements/"
+      },
+      "business_rules_refs": [
+        "business/"
+      ],
+      "acceptance_refs": [
+        "acceptance/"
+      ],
+      "workflow_refs": [
+        "workflow/"
+      ],
+      "architecture_refs": [
+        "architecture-v2/",
+        "product-architecture/",
+        "decision-records/"
+      ]
+    },
+    {
+      "id": "spec-non-functional",
+      "entry_kind": "non-functional",
+      "statement": "Non-functional requirements from quality/ + validated NFRs in requirements/; mark absent SLOs UNKNOWN.",
+      "purpose": "Specify non-functional from validated Product RE + SA inputs only.",
+      "scope": "Implementation-ready documentation; no redesign; no invented business logic.",
+      "actors": [
+        "household-member",
+        "partner"
+      ],
+      "preconditions": [
+        "Validated Product RE packs present",
+        "Validated architecture-v2 soft-available or UNKNOWN"
+      ],
+      "postconditions": [
+        "Section draft\u2192ready with full traceability"
+      ],
+      "workflow": "Load validated packs \u2192 restate with pointers \u2192 mark gaps UNKNOWN \u2192 stop for validation.",
+      "business_rules": "Restate only rules present in business/; never invent.",
+      "validation_rules": "Every claim cites source_paths; UNKNOWN when missing.",
+      "error_handling": "Conflicts \u2192 entry_kind=conflict; missing \u2192 UNKNOWN or gap.",
+      "edge_cases": "UNKNOWN: edge cases not enumerated in acceptance/ are listed as UNKNOWN.",
+      "dependencies": [
+        "requirements/",
+        "acceptance/",
+        "workflow/",
+        "business/"
+      ],
+      "acceptance_criteria": [
+        "Traceability matrix complete or UNKNOWN",
+        "No invented business rules"
+      ],
+      "source_paths": [
+        "knowledge/",
+        "features/",
+        "business/",
+        "product-architecture/",
+        "architecture-v2/",
+        "requirements/",
+        "workflow/",
+        "acceptance/",
+        "decision-records/",
+        "tech-stack/",
+        "migration/",
+        "folder-structure/",
+        "quality/",
+        "redesign/"
+      ],
+      "confidence": 0.78,
+      "unknowns": [
+        "UNKNOWN: numeric SLO targets if absent from quality/requirements"
+      ],
+      "traceability": {
+        "feature": "features/",
+        "business_rule": "business/",
+        "api": "UNKNOWN: public API inventory incomplete in features/",
+        "database": "UNKNOWN: exact schema DDL not in validated packs",
+        "workflow": "workflow/",
+        "architecture_decision": "decision-records/",
+        "source_artifact": "requirements/"
+      },
+      "business_rules_refs": [
+        "business/"
+      ],
+      "acceptance_refs": [
+        "acceptance/"
+      ],
+      "workflow_refs": [
+        "workflow/"
+      ],
+      "architecture_refs": [
+        "architecture-v2/",
+        "product-architecture/",
+        "decision-records/"
+      ]
+    },
+    {
+      "id": "spec-architecture",
+      "entry_kind": "architecture",
+      "statement": "Architecture specification points at architecture-v2/ + decision-records/; does not redesign.",
+      "purpose": "Specify architecture from validated Product RE + SA inputs only.",
+      "scope": "Implementation-ready documentation; no redesign; no invented business logic.",
+      "actors": [
+        "household-member",
+        "partner"
+      ],
+      "preconditions": [
+        "Validated Product RE packs present",
+        "Validated architecture-v2 soft-available or UNKNOWN"
+      ],
+      "postconditions": [
+        "Section draft\u2192ready with full traceability"
+      ],
+      "workflow": "Load validated packs \u2192 restate with pointers \u2192 mark gaps UNKNOWN \u2192 stop for validation.",
+      "business_rules": "Restate only rules present in business/; never invent.",
+      "validation_rules": "Every claim cites source_paths; UNKNOWN when missing.",
+      "error_handling": "Conflicts \u2192 entry_kind=conflict; missing \u2192 UNKNOWN or gap.",
+      "edge_cases": "UNKNOWN: edge cases not enumerated in acceptance/ are listed as UNKNOWN.",
+      "dependencies": [
+        "requirements/",
+        "acceptance/",
+        "workflow/",
+        "business/"
+      ],
+      "acceptance_criteria": [
+        "Traceability matrix complete or UNKNOWN",
+        "No invented business rules"
+      ],
+      "source_paths": [
+        "knowledge/",
+        "features/",
+        "business/",
+        "product-architecture/",
+        "architecture-v2/",
+        "requirements/",
+        "workflow/",
+        "acceptance/",
+        "decision-records/",
+        "tech-stack/",
+        "migration/",
+        "folder-structure/",
+        "quality/",
+        "redesign/"
+      ],
+      "confidence": 0.78,
+      "unknowns": [
+        "UNKNOWN: none noted"
+      ],
+      "traceability": {
+        "feature": "features/",
+        "business_rule": "business/",
+        "api": "UNKNOWN: public API inventory incomplete in features/",
+        "database": "UNKNOWN: exact schema DDL not in validated packs",
+        "workflow": "workflow/",
+        "architecture_decision": "decision-records/",
+        "source_artifact": "architecture-v2/"
+      },
+      "business_rules_refs": [
+        "business/"
+      ],
+      "acceptance_refs": [
+        "acceptance/"
+      ],
+      "workflow_refs": [
+        "workflow/"
+      ],
+      "architecture_refs": [
+        "architecture-v2/",
+        "product-architecture/",
+        "decision-records/"
+      ]
+    },
+    {
+      "id": "spec-module",
+      "entry_kind": "module",
+      "statement": "Module boundaries from architecture-v2/ + folder-structure/; no new modules invented.",
+      "purpose": "Specify module from validated Product RE + SA inputs only.",
+      "scope": "Implementation-ready documentation; no redesign; no invented business logic.",
+      "actors": [
+        "household-member",
+        "partner"
+      ],
+      "preconditions": [
+        "Validated Product RE packs present",
+        "Validated architecture-v2 soft-available or UNKNOWN"
+      ],
+      "postconditions": [
+        "Section draft\u2192ready with full traceability"
+      ],
+      "workflow": "Load validated packs \u2192 restate with pointers \u2192 mark gaps UNKNOWN \u2192 stop for validation.",
+      "business_rules": "Restate only rules present in business/; never invent.",
+      "validation_rules": "Every claim cites source_paths; UNKNOWN when missing.",
+      "error_handling": "Conflicts \u2192 entry_kind=conflict; missing \u2192 UNKNOWN or gap.",
+      "edge_cases": "UNKNOWN: edge cases not enumerated in acceptance/ are listed as UNKNOWN.",
+      "dependencies": [
+        "requirements/",
+        "acceptance/",
+        "workflow/",
+        "business/"
+      ],
+      "acceptance_criteria": [
+        "Traceability matrix complete or UNKNOWN",
+        "No invented business rules"
+      ],
+      "source_paths": [
+        "knowledge/",
+        "features/",
+        "business/",
+        "product-architecture/",
+        "architecture-v2/",
+        "requirements/",
+        "workflow/",
+        "acceptance/",
+        "decision-records/",
+        "tech-stack/",
+        "migration/",
+        "folder-structure/",
+        "quality/",
+        "redesign/"
+      ],
+      "confidence": 0.78,
+      "unknowns": [
+        "UNKNOWN: none noted"
+      ],
+      "traceability": {
+        "feature": "features/",
+        "business_rule": "business/",
+        "api": "UNKNOWN: public API inventory incomplete in features/",
+        "database": "UNKNOWN: exact schema DDL not in validated packs",
+        "workflow": "workflow/",
+        "architecture_decision": "decision-records/",
+        "source_artifact": "folder-structure/"
+      },
+      "business_rules_refs": [
+        "business/"
+      ],
+      "acceptance_refs": [
+        "acceptance/"
+      ],
+      "workflow_refs": [
+        "workflow/"
+      ],
+      "architecture_refs": [
+        "architecture-v2/",
+        "product-architecture/",
+        "decision-records/"
+      ]
+    },
+    {
+      "id": "spec-feature",
+      "entry_kind": "feature",
+      "statement": "Feature specs map features/ inventory to requirements/acceptance with pointers.",
+      "purpose": "Specify feature from validated Product RE + SA inputs only.",
+      "scope": "Implementation-ready documentation; no redesign; no invented business logic.",
+      "actors": [
+        "household-member",
+        "partner"
+      ],
+      "preconditions": [
+        "Validated Product RE packs present",
+        "Validated architecture-v2 soft-available or UNKNOWN"
+      ],
+      "postconditions": [
+        "Section draft\u2192ready with full traceability"
+      ],
+      "workflow": "Load validated packs \u2192 restate with pointers \u2192 mark gaps UNKNOWN \u2192 stop for validation.",
+      "business_rules": "Restate only rules present in business/; never invent.",
+      "validation_rules": "Every claim cites source_paths; UNKNOWN when missing.",
+      "error_handling": "Conflicts \u2192 entry_kind=conflict; missing \u2192 UNKNOWN or gap.",
+      "edge_cases": "UNKNOWN: edge cases not enumerated in acceptance/ are listed as UNKNOWN.",
+      "dependencies": [
+        "requirements/",
+        "acceptance/",
+        "workflow/",
+        "business/"
+      ],
+      "acceptance_criteria": [
+        "Traceability matrix complete or UNKNOWN",
+        "No invented business rules"
+      ],
+      "source_paths": [
+        "knowledge/",
+        "features/",
+        "business/",
+        "product-architecture/",
+        "architecture-v2/",
+        "requirements/",
+        "workflow/",
+        "acceptance/",
+        "decision-records/",
+        "tech-stack/",
+        "migration/",
+        "folder-structure/",
+        "quality/",
+        "redesign/"
+      ],
+      "confidence": 0.78,
+      "unknowns": [
+        "UNKNOWN: none noted"
+      ],
+      "traceability": {
+        "feature": "features/",
+        "business_rule": "business/",
+        "api": "UNKNOWN: public API inventory incomplete in features/",
+        "database": "UNKNOWN: exact schema DDL not in validated packs",
+        "workflow": "workflow/",
+        "architecture_decision": "decision-records/",
+        "source_artifact": "requirements/"
+      },
+      "business_rules_refs": [
+        "business/"
+      ],
+      "acceptance_refs": [
+        "acceptance/"
+      ],
+      "workflow_refs": [
+        "workflow/"
+      ],
+      "architecture_refs": [
+        "architecture-v2/",
+        "product-architecture/",
+        "decision-records/"
+      ]
+    },
+    {
+      "id": "spec-api",
+      "entry_kind": "api",
+      "statement": "API specifications only for surfaces evidenced in features/workflow; else UNKNOWN.",
+      "purpose": "Specify api from validated Product RE + SA inputs only.",
+      "scope": "Implementation-ready documentation; no redesign; no invented business logic.",
+      "actors": [
+        "household-member",
+        "partner"
+      ],
+      "preconditions": [
+        "Validated Product RE packs present",
+        "Validated architecture-v2 soft-available or UNKNOWN"
+      ],
+      "postconditions": [
+        "Section draft\u2192ready with full traceability"
+      ],
+      "workflow": "Load validated packs \u2192 restate with pointers \u2192 mark gaps UNKNOWN \u2192 stop for validation.",
+      "business_rules": "Restate only rules present in business/; never invent.",
+      "validation_rules": "Every claim cites source_paths; UNKNOWN when missing.",
+      "error_handling": "Conflicts \u2192 entry_kind=conflict; missing \u2192 UNKNOWN or gap.",
+      "edge_cases": "UNKNOWN: edge cases not enumerated in acceptance/ are listed as UNKNOWN.",
+      "dependencies": [
+        "requirements/",
+        "acceptance/",
+        "workflow/",
+        "business/"
+      ],
+      "acceptance_criteria": [
+        "Traceability matrix complete or UNKNOWN",
+        "No invented business rules"
+      ],
+      "source_paths": [
+        "knowledge/",
+        "features/",
+        "business/",
+        "product-architecture/",
+        "architecture-v2/",
+        "requirements/",
+        "workflow/",
+        "acceptance/",
+        "decision-records/",
+        "tech-stack/",
+        "migration/",
+        "folder-structure/",
+        "quality/",
+        "redesign/"
+      ],
+      "confidence": 0.78,
+      "unknowns": [
+        "UNKNOWN: exact public API field list if not in features/"
+      ],
+      "traceability": {
+        "feature": "features/",
+        "business_rule": "business/",
+        "api": "UNKNOWN: public API inventory incomplete in features/",
+        "database": "UNKNOWN: exact schema DDL not in validated packs",
+        "workflow": "workflow/",
+        "architecture_decision": "decision-records/",
+        "source_artifact": "features/"
+      },
+      "business_rules_refs": [
+        "business/"
+      ],
+      "acceptance_refs": [
+        "acceptance/"
+      ],
+      "workflow_refs": [
+        "workflow/"
+      ],
+      "architecture_refs": [
+        "architecture-v2/",
+        "product-architecture/",
+        "decision-records/"
+      ]
+    },
+    {
+      "id": "spec-database",
+      "entry_kind": "database",
+      "statement": "Database specifications only for entities evidenced in knowledge/business; else UNKNOWN.",
+      "purpose": "Specify database from validated Product RE + SA inputs only.",
+      "scope": "Implementation-ready documentation; no redesign; no invented business logic.",
+      "actors": [
+        "household-member",
+        "partner"
+      ],
+      "preconditions": [
+        "Validated Product RE packs present",
+        "Validated architecture-v2 soft-available or UNKNOWN"
+      ],
+      "postconditions": [
+        "Section draft\u2192ready with full traceability"
+      ],
+      "workflow": "Load validated packs \u2192 restate with pointers \u2192 mark gaps UNKNOWN \u2192 stop for validation.",
+      "business_rules": "Restate only rules present in business/; never invent.",
+      "validation_rules": "Every claim cites source_paths; UNKNOWN when missing.",
+      "error_handling": "Conflicts \u2192 entry_kind=conflict; missing \u2192 UNKNOWN or gap.",
+      "edge_cases": "UNKNOWN: edge cases not enumerated in acceptance/ are listed as UNKNOWN.",
+      "dependencies": [
+        "requirements/",
+        "acceptance/",
+        "workflow/",
+        "business/"
+      ],
+      "acceptance_criteria": [
+        "Traceability matrix complete or UNKNOWN",
+        "No invented business rules"
+      ],
+      "source_paths": [
+        "knowledge/",
+        "features/",
+        "business/",
+        "product-architecture/",
+        "architecture-v2/",
+        "requirements/",
+        "workflow/",
+        "acceptance/",
+        "decision-records/",
+        "tech-stack/",
+        "migration/",
+        "folder-structure/",
+        "quality/",
+        "redesign/"
+      ],
+      "confidence": 0.78,
+      "unknowns": [
+        "UNKNOWN: exact schema DDL if not in validated packs"
+      ],
+      "traceability": {
+        "feature": "features/",
+        "business_rule": "business/",
+        "api": "UNKNOWN: public API inventory incomplete in features/",
+        "database": "UNKNOWN: exact schema DDL not in validated packs",
+        "workflow": "workflow/",
+        "architecture_decision": "decision-records/",
+        "source_artifact": "knowledge/"
+      },
+      "business_rules_refs": [
+        "business/"
+      ],
+      "acceptance_refs": [
+        "acceptance/"
+      ],
+      "workflow_refs": [
+        "workflow/"
+      ],
+      "architecture_refs": [
+        "architecture-v2/",
+        "product-architecture/",
+        "decision-records/"
+      ]
+    },
+    {
+      "id": "spec-ui",
+      "entry_kind": "ui",
+      "statement": "UI specifications from app-surface evidence in features/workflow; else UNKNOWN.",
+      "purpose": "Specify ui from validated Product RE + SA inputs only.",
+      "scope": "Implementation-ready documentation; no redesign; no invented business logic.",
+      "actors": [
+        "household-member",
+        "partner"
+      ],
+      "preconditions": [
+        "Validated Product RE packs present",
+        "Validated architecture-v2 soft-available or UNKNOWN"
+      ],
+      "postconditions": [
+        "Section draft\u2192ready with full traceability"
+      ],
+      "workflow": "Load validated packs \u2192 restate with pointers \u2192 mark gaps UNKNOWN \u2192 stop for validation.",
+      "business_rules": "Restate only rules present in business/; never invent.",
+      "validation_rules": "Every claim cites source_paths; UNKNOWN when missing.",
+      "error_handling": "Conflicts \u2192 entry_kind=conflict; missing \u2192 UNKNOWN or gap.",
+      "edge_cases": "UNKNOWN: edge cases not enumerated in acceptance/ are listed as UNKNOWN.",
+      "dependencies": [
+        "requirements/",
+        "acceptance/",
+        "workflow/",
+        "business/"
+      ],
+      "acceptance_criteria": [
+        "Traceability matrix complete or UNKNOWN",
+        "No invented business rules"
+      ],
+      "source_paths": [
+        "knowledge/",
+        "features/",
+        "business/",
+        "product-architecture/",
+        "architecture-v2/",
+        "requirements/",
+        "workflow/",
+        "acceptance/",
+        "decision-records/",
+        "tech-stack/",
+        "migration/",
+        "folder-structure/",
+        "quality/",
+        "redesign/"
+      ],
+      "confidence": 0.78,
+      "unknowns": [
+        "UNKNOWN: none noted"
+      ],
+      "traceability": {
+        "feature": "features/",
+        "business_rule": "business/",
+        "api": "UNKNOWN: public API inventory incomplete in features/",
+        "database": "UNKNOWN: exact schema DDL not in validated packs",
+        "workflow": "workflow/",
+        "architecture_decision": "decision-records/",
+        "source_artifact": "requirements/"
+      },
+      "business_rules_refs": [
+        "business/"
+      ],
+      "acceptance_refs": [
+        "acceptance/"
+      ],
+      "workflow_refs": [
+        "workflow/"
+      ],
+      "architecture_refs": [
+        "architecture-v2/",
+        "product-architecture/",
+        "decision-records/"
+      ]
+    },
+    {
+      "id": "spec-security",
+      "entry_kind": "security",
+      "statement": "Security specs from validated requirements/quality; else UNKNOWN.",
+      "purpose": "Specify security from validated Product RE + SA inputs only.",
+      "scope": "Implementation-ready documentation; no redesign; no invented business logic.",
+      "actors": [
+        "household-member",
+        "partner"
+      ],
+      "preconditions": [
+        "Validated Product RE packs present",
+        "Validated architecture-v2 soft-available or UNKNOWN"
+      ],
+      "postconditions": [
+        "Section draft\u2192ready with full traceability"
+      ],
+      "workflow": "Load validated packs \u2192 restate with pointers \u2192 mark gaps UNKNOWN \u2192 stop for validation.",
+      "business_rules": "Restate only rules present in business/; never invent.",
+      "validation_rules": "Every claim cites source_paths; UNKNOWN when missing.",
+      "error_handling": "Conflicts \u2192 entry_kind=conflict; missing \u2192 UNKNOWN or gap.",
+      "edge_cases": "UNKNOWN: edge cases not enumerated in acceptance/ are listed as UNKNOWN.",
+      "dependencies": [
+        "requirements/",
+        "acceptance/",
+        "workflow/",
+        "business/"
+      ],
+      "acceptance_criteria": [
+        "Traceability matrix complete or UNKNOWN",
+        "No invented business rules"
+      ],
+      "source_paths": [
+        "knowledge/",
+        "features/",
+        "business/",
+        "product-architecture/",
+        "architecture-v2/",
+        "requirements/",
+        "workflow/",
+        "acceptance/",
+        "decision-records/",
+        "tech-stack/",
+        "migration/",
+        "folder-structure/",
+        "quality/",
+        "redesign/"
+      ],
+      "confidence": 0.78,
+      "unknowns": [
+        "UNKNOWN: none noted"
+      ],
+      "traceability": {
+        "feature": "features/",
+        "business_rule": "business/",
+        "api": "UNKNOWN: public API inventory incomplete in features/",
+        "database": "UNKNOWN: exact schema DDL not in validated packs",
+        "workflow": "workflow/",
+        "architecture_decision": "decision-records/",
+        "source_artifact": "requirements/"
+      },
+      "business_rules_refs": [
+        "business/"
+      ],
+      "acceptance_refs": [
+        "acceptance/"
+      ],
+      "workflow_refs": [
+        "workflow/"
+      ],
+      "architecture_refs": [
+        "architecture-v2/",
+        "product-architecture/",
+        "decision-records/"
+      ]
+    },
+    {
+      "id": "spec-deployment",
+      "entry_kind": "deployment",
+      "statement": "Deployment specs from migration/ + folder-structure/ + tech-stack/; else UNKNOWN.",
+      "purpose": "Specify deployment from validated Product RE + SA inputs only.",
+      "scope": "Implementation-ready documentation; no redesign; no invented business logic.",
+      "actors": [
+        "household-member",
+        "partner"
+      ],
+      "preconditions": [
+        "Validated Product RE packs present",
+        "Validated architecture-v2 soft-available or UNKNOWN"
+      ],
+      "postconditions": [
+        "Section draft\u2192ready with full traceability"
+      ],
+      "workflow": "Load validated packs \u2192 restate with pointers \u2192 mark gaps UNKNOWN \u2192 stop for validation.",
+      "business_rules": "Restate only rules present in business/; never invent.",
+      "validation_rules": "Every claim cites source_paths; UNKNOWN when missing.",
+      "error_handling": "Conflicts \u2192 entry_kind=conflict; missing \u2192 UNKNOWN or gap.",
+      "edge_cases": "UNKNOWN: edge cases not enumerated in acceptance/ are listed as UNKNOWN.",
+      "dependencies": [
+        "requirements/",
+        "acceptance/",
+        "workflow/",
+        "business/"
+      ],
+      "acceptance_criteria": [
+        "Traceability matrix complete or UNKNOWN",
+        "No invented business rules"
+      ],
+      "source_paths": [
+        "knowledge/",
+        "features/",
+        "business/",
+        "product-architecture/",
+        "architecture-v2/",
+        "requirements/",
+        "workflow/",
+        "acceptance/",
+        "decision-records/",
+        "tech-stack/",
+        "migration/",
+        "folder-structure/",
+        "quality/",
+        "redesign/"
+      ],
+      "confidence": 0.78,
+      "unknowns": [
+        "UNKNOWN: none noted"
+      ],
+      "traceability": {
+        "feature": "features/",
+        "business_rule": "business/",
+        "api": "UNKNOWN: public API inventory incomplete in features/",
+        "database": "UNKNOWN: exact schema DDL not in validated packs",
+        "workflow": "workflow/",
+        "architecture_decision": "decision-records/",
+        "source_artifact": "migration/"
+      },
+      "business_rules_refs": [
+        "business/"
+      ],
+      "acceptance_refs": [
+        "acceptance/"
+      ],
+      "workflow_refs": [
+        "workflow/"
+      ],
+      "architecture_refs": [
+        "architecture-v2/",
+        "product-architecture/",
+        "decision-records/"
+      ]
+    },
+    {
+      "id": "spec-coding-standards",
+      "entry_kind": "coding-standards",
+      "statement": "Coding standards from tech-stack/ recommendations; else UNKNOWN.",
+      "purpose": "Specify coding-standards from validated Product RE + SA inputs only.",
+      "scope": "Implementation-ready documentation; no redesign; no invented business logic.",
+      "actors": [
+        "household-member",
+        "partner"
+      ],
+      "preconditions": [
+        "Validated Product RE packs present",
+        "Validated architecture-v2 soft-available or UNKNOWN"
+      ],
+      "postconditions": [
+        "Section draft\u2192ready with full traceability"
+      ],
+      "workflow": "Load validated packs \u2192 restate with pointers \u2192 mark gaps UNKNOWN \u2192 stop for validation.",
+      "business_rules": "Restate only rules present in business/; never invent.",
+      "validation_rules": "Every claim cites source_paths; UNKNOWN when missing.",
+      "error_handling": "Conflicts \u2192 entry_kind=conflict; missing \u2192 UNKNOWN or gap.",
+      "edge_cases": "UNKNOWN: edge cases not enumerated in acceptance/ are listed as UNKNOWN.",
+      "dependencies": [
+        "requirements/",
+        "acceptance/",
+        "workflow/",
+        "business/"
+      ],
+      "acceptance_criteria": [
+        "Traceability matrix complete or UNKNOWN",
+        "No invented business rules"
+      ],
+      "source_paths": [
+        "knowledge/",
+        "features/",
+        "business/",
+        "product-architecture/",
+        "architecture-v2/",
+        "requirements/",
+        "workflow/",
+        "acceptance/",
+        "decision-records/",
+        "tech-stack/",
+        "migration/",
+        "folder-structure/",
+        "quality/",
+        "redesign/"
+      ],
+      "confidence": 0.78,
+      "unknowns": [
+        "UNKNOWN: none noted"
+      ],
+      "traceability": {
+        "feature": "features/",
+        "business_rule": "business/",
+        "api": "UNKNOWN: public API inventory incomplete in features/",
+        "database": "UNKNOWN: exact schema DDL not in validated packs",
+        "workflow": "workflow/",
+        "architecture_decision": "decision-records/",
+        "source_artifact": "tech-stack/"
+      },
+      "business_rules_refs": [
+        "business/"
+      ],
+      "acceptance_refs": [
+        "acceptance/"
+      ],
+      "workflow_refs": [
+        "workflow/"
+      ],
+      "architecture_refs": [
+        "architecture-v2/",
+        "product-architecture/",
+        "decision-records/"
+      ]
+    },
+    {
+      "id": "spec-testing-strategy",
+      "entry_kind": "testing-strategy",
+      "statement": "Testing strategy from acceptance/ + quality/; else UNKNOWN.",
+      "purpose": "Specify testing-strategy from validated Product RE + SA inputs only.",
+      "scope": "Implementation-ready documentation; no redesign; no invented business logic.",
+      "actors": [
+        "household-member",
+        "partner"
+      ],
+      "preconditions": [
+        "Validated Product RE packs present",
+        "Validated architecture-v2 soft-available or UNKNOWN"
+      ],
+      "postconditions": [
+        "Section draft\u2192ready with full traceability"
+      ],
+      "workflow": "Load validated packs \u2192 restate with pointers \u2192 mark gaps UNKNOWN \u2192 stop for validation.",
+      "business_rules": "Restate only rules present in business/; never invent.",
+      "validation_rules": "Every claim cites source_paths; UNKNOWN when missing.",
+      "error_handling": "Conflicts \u2192 entry_kind=conflict; missing \u2192 UNKNOWN or gap.",
+      "edge_cases": "UNKNOWN: edge cases not enumerated in acceptance/ are listed as UNKNOWN.",
+      "dependencies": [
+        "requirements/",
+        "acceptance/",
+        "workflow/",
+        "business/"
+      ],
+      "acceptance_criteria": [
+        "Traceability matrix complete or UNKNOWN",
+        "No invented business rules"
+      ],
+      "source_paths": [
+        "knowledge/",
+        "features/",
+        "business/",
+        "product-architecture/",
+        "architecture-v2/",
+        "requirements/",
+        "workflow/",
+        "acceptance/",
+        "decision-records/",
+        "tech-stack/",
+        "migration/",
+        "folder-structure/",
+        "quality/",
+        "redesign/"
+      ],
+      "confidence": 0.78,
+      "unknowns": [
+        "UNKNOWN: none noted"
+      ],
+      "traceability": {
+        "feature": "features/",
+        "business_rule": "business/",
+        "api": "UNKNOWN: public API inventory incomplete in features/",
+        "database": "UNKNOWN: exact schema DDL not in validated packs",
+        "workflow": "workflow/",
+        "architecture_decision": "decision-records/",
+        "source_artifact": "acceptance/"
+      },
+      "business_rules_refs": [
+        "business/"
+      ],
+      "acceptance_refs": [
+        "acceptance/"
+      ],
+      "workflow_refs": [
+        "workflow/"
+      ],
+      "architecture_refs": [
+        "architecture-v2/",
+        "product-architecture/",
+        "decision-records/"
+      ]
+    },
+    {
+      "id": "spec-gap-calendar",
+      "entry_kind": "gap",
+      "statement": "Gap: calendar sprint dates and team capacity not present in quality/redesign \u2014 must stay UNKNOWN in roadmap/implementation.",
+      "source_paths": [
+        "quality/",
+        "redesign/",
+        "requirements/"
+      ],
+      "confidence": 0.9,
+      "unknowns": [
+        "UNKNOWN: calendar sprint dates",
+        "UNKNOWN: engineering team parallel capacity"
+      ],
+      "traceability": {
+        "source_artifact": "quality/"
+      }
+    }
+  ],
+  "status": "ready",
+  "created_at": "2026-08-01T16:00:00Z",
+  "trace": {
+    "orchestration_id": "art_se_orchestration",
+    "plan_id": "art_se_plan",
+    "task_id": "art_task_specification_generator",
+    "run_id": "art_run_specification_generator",
+    "goal_id": "art_se_goal"
+  },
+  "extensions": {
+    "pipeline": "specification-engineering",
+    "invent_business_logic": false,
+    "redesign_system": false,
+    "overwrite_validated": false,
+    "restate_not_rewrite": true
+  }
+}

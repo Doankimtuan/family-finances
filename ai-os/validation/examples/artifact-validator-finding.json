@@ -1,0 +1,122 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_out_artifact_validator",
+  "type": "validation-finding",
+  "worker_id": "artifact-validator",
+  "title": "artifact-validator output",
+  "summary": "Verify folder structure, required files, artifact existence, naming, output locations, and artifact contracts. Never modify artifacts.",
+  "entries": [
+    {
+      "id": "artifact-validator-folder-structure-01",
+      "entry_kind": "folder-structure",
+      "statement": "Sample finding `folder-structure` for artifact-validator.",
+      "validation_id": "VAL-AV-folder-str",
+      "target": "ai-os/workers/",
+      "rule": "folder-structure must satisfy Validation Engine contract",
+      "result": "pass",
+      "evidence": [
+        "schemas/validation-engine-payload.schema.json",
+        "workers/artifact-validator/"
+      ],
+      "severity": "info",
+      "recommendation": "Do not mutate sources; remediate upstream packages if fail.",
+      "confidence": 0.8,
+      "source_paths": [
+        "schemas/",
+        "workers/",
+        "pipelines/",
+        "knowledge/",
+        "templates/"
+      ],
+      "unknowns": [
+        "UNKNOWN: none noted"
+      ],
+      "traceability": {
+        "source_artifact": "schemas/",
+        "knowledge": "knowledge/",
+        "pipeline": "validation-engine",
+        "worker": "artifact-validator"
+      }
+    },
+    {
+      "id": "artifact-validator-required-files-01",
+      "entry_kind": "required-files",
+      "statement": "Sample finding `required-files` for artifact-validator.",
+      "validation_id": "VAL-AV-required-f",
+      "target": "ai-os/workers/",
+      "rule": "required-files must satisfy Validation Engine contract",
+      "result": "pass",
+      "evidence": [
+        "schemas/validation-engine-payload.schema.json",
+        "workers/artifact-validator/"
+      ],
+      "severity": "info",
+      "recommendation": "Do not mutate sources; remediate upstream packages if fail.",
+      "confidence": 0.8,
+      "source_paths": [
+        "schemas/",
+        "workers/",
+        "pipelines/",
+        "knowledge/",
+        "templates/"
+      ],
+      "unknowns": [
+        "UNKNOWN: none noted"
+      ],
+      "traceability": {
+        "source_artifact": "schemas/",
+        "knowledge": "knowledge/",
+        "pipeline": "validation-engine",
+        "worker": "artifact-validator"
+      }
+    },
+    {
+      "id": "artifact-validator-artifact-existence-01",
+      "entry_kind": "artifact-existence",
+      "statement": "Sample finding `artifact-existence` for artifact-validator.",
+      "validation_id": "VAL-AV-artifact-e",
+      "target": "ai-os/workers/",
+      "rule": "artifact-existence must satisfy Validation Engine contract",
+      "result": "pass",
+      "evidence": [
+        "schemas/validation-engine-payload.schema.json",
+        "workers/artifact-validator/"
+      ],
+      "severity": "info",
+      "recommendation": "Do not mutate sources; remediate upstream packages if fail.",
+      "confidence": 0.8,
+      "source_paths": [
+        "schemas/",
+        "workers/",
+        "pipelines/",
+        "knowledge/",
+        "templates/"
+      ],
+      "unknowns": [
+        "UNKNOWN: none noted"
+      ],
+      "traceability": {
+        "source_artifact": "schemas/",
+        "knowledge": "knowledge/",
+        "pipeline": "validation-engine",
+        "worker": "artifact-validator"
+      }
+    }
+  ],
+  "status": "ready",
+  "created_at": "2026-08-01T17:00:00Z",
+  "trace": {
+    "orchestration_id": "art_ve_orchestration",
+    "plan_id": "art_ve_plan",
+    "task_id": "art_task_artifact_validator",
+    "run_id": "art_run_artifact_validator",
+    "goal_id": "art_ve_goal"
+  },
+  "extensions": {
+    "pipeline": "validation-engine",
+    "mutate_source_artifacts": false,
+    "invent_missing_information": false,
+    "incremental": true,
+    "partial": true
+  }
+}

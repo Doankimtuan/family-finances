@@ -1,0 +1,381 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aios.dev/schemas/validation-engine-payload.schema.json",
+  "title": "AIOS Validation Engine Payload",
+  "description": "Primary payloads for validation-engine. Never modify source artifacts. Never invent missing information. Report findings only.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "artifact_id",
+    "type",
+    "worker_id",
+    "title",
+    "summary",
+    "entries",
+    "status",
+    "created_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/schemaVersion"
+    },
+    "artifact_id": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/artifactId"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "validation-finding",
+        "validation-status",
+        "quality-scores",
+        "validation-report"
+      ]
+    },
+    "worker_id": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/kebabId"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1
+    },
+    "entries": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "entry_kind",
+          "statement",
+          "validation_id",
+          "target",
+          "rule",
+          "result",
+          "evidence",
+          "severity",
+          "recommendation",
+          "confidence",
+          "source_paths",
+          "unknowns",
+          "traceability"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 2
+          },
+          "entry_kind": {
+            "type": "string",
+            "minLength": 1
+          },
+          "statement": {
+            "type": "string",
+            "minLength": 1
+          },
+          "validation_id": {
+            "type": "string",
+            "minLength": 2
+          },
+          "target": {
+            "type": "string",
+            "minLength": 1
+          },
+          "rule": {
+            "type": "string",
+            "minLength": 1
+          },
+          "result": {
+            "type": "string",
+            "enum": [
+              "pass",
+              "fail",
+              "warn",
+              "skip",
+              "info"
+            ]
+          },
+          "evidence": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "critical",
+              "high",
+              "medium",
+              "low",
+              "info"
+            ]
+          },
+          "recommendation": {
+            "type": "string",
+            "minLength": 1
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "source_paths": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "unknowns": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "traceability": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "source_artifact"
+            ],
+            "properties": {
+              "feature": {
+                "type": "string"
+              },
+              "business_rule": {
+                "type": "string"
+              },
+              "architecture_decision": {
+                "type": "string"
+              },
+              "requirement": {
+                "type": "string"
+              },
+              "knowledge": {
+                "type": "string"
+              },
+              "worker": {
+                "type": "string"
+              },
+              "pipeline": {
+                "type": "string"
+              },
+              "source_artifact": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "score_value": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "folder_mirror": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "ready",
+        "failed"
+      ]
+    },
+    "created_at": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/isoDateTime"
+    },
+    "trace": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/traceContext"
+    },
+    "extensions": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/extensions"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "validation-finding"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "entries": {
+            "items": {
+              "properties": {
+                "entry_kind": {
+                  "enum": [
+                    "architecture-trace",
+                    "artifact-contract",
+                    "artifact-existence",
+                    "business-rule-trace",
+                    "circular",
+                    "conflicting-architecture",
+                    "conflicting-business-rule",
+                    "conflicting-requirement",
+                    "contradiction",
+                    "data-types",
+                    "duplication",
+                    "execution-order",
+                    "fail",
+                    "feature-trace",
+                    "folder-structure",
+                    "incremental",
+                    "invalid-reference",
+                    "json-schema",
+                    "knowledge-trace",
+                    "lifecycle",
+                    "markdown-structure",
+                    "missing-dependency",
+                    "missing-document",
+                    "missing-example",
+                    "missing-field",
+                    "missing-module",
+                    "missing-schema",
+                    "missing-specification",
+                    "missing-worker",
+                    "naming",
+                    "naming-inconsistency",
+                    "orphan",
+                    "output-location",
+                    "pass",
+                    "pipeline-dependency",
+                    "pipeline-registration",
+                    "required-fields",
+                    "required-files",
+                    "requirement-trace",
+                    "resume",
+                    "schema-compatibility",
+                    "stage-dependency",
+                    "worker-dependency",
+                    "worker-registration"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "validation-status"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "entries": {
+            "items": {
+              "properties": {
+                "entry_kind": {
+                  "enum": [
+                    "plan",
+                    "order",
+                    "merge",
+                    "overall-status",
+                    "incremental",
+                    "partial"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "quality-scores"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "entries": {
+            "items": {
+              "properties": {
+                "entry_kind": {
+                  "enum": [
+                    "overall",
+                    "architecture",
+                    "documentation",
+                    "consistency",
+                    "completeness",
+                    "maintainability",
+                    "extensibility",
+                    "reliability",
+                    "confidence"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "validation-report"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "entries": {
+            "items": {
+              "properties": {
+                "entry_kind": {
+                  "enum": [
+                    "summary",
+                    "critical",
+                    "high",
+                    "medium",
+                    "low",
+                    "recommended-fix",
+                    "decision"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

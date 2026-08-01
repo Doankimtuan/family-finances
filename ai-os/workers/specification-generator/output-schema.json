@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aios.dev/schemas/workers/specification-generator/output.schema.json",
+  "title": "AIOS Specification Engineering Worker Output \u2014 specification-generator",
+  "allOf": [
+    {
+      "$ref": "https://aios.dev/schemas/worker-output-envelope.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "worker_id": {
+          "const": "specification-generator"
+        },
+        "extensions": {
+          "type": "object",
+          "properties": {
+            "pipeline": {
+              "const": "specification-engineering"
+            },
+            "primary_output_type": {
+              "const": "project-specification"
+            },
+            "produces": {
+              "const": [
+                "specifications"
+              ]
+            }
+          }
+        }
+      }
+    }
+  ]
+}

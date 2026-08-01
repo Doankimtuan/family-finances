@@ -8,17 +8,19 @@ Workers claim runs, load skill/validator/reviewer packages, respect side-effect 
 
 Required: `id`, `version`, `implements_roles`, `side_effects`, `status`.
 
-## Phase gate (v0.5.0)
+## Phase gate (v0.7.0)
 
 | Allowed | Forbidden |
 |---------|-----------|
 | Discovery Workers under `workers/discover-*` bound by `pipelines/discovery/` | Feature Workers |
 | Product RE Workers with `extensions.pipeline: product-re` | `repo-write` / `external` without a later phase bump |
 | Solution Architecture Workers with `extensions.pipeline: solution-architecture` | Inventing business logic / overwriting discovery artifacts |
+| Specification Engineering Workers with `extensions.pipeline: specification-engineering` | Redesigning the system / changing business requirements |
+| Validation Engine Workers with `extensions.pipeline: validation-engine` | Mutating source artifacts / inventing missing information |
 | Side effects ⊆ `runtime-write` | Ad-hoc scripts outside the template tree |
 | Registration in `registry/workers.json` + matching pipeline | Invoking workers from Core |
 
-`worker_class` remains `discovery` for Discovery, Product RE, and Solution Architecture packages (Feature Workers deferred). Pipelines are distinguished by `extensions.pipeline` / registry `pipeline`.
+`worker_class` remains `discovery` for Discovery, Product RE, Solution Architecture, Specification Engineering, and Validation Engine packages (Feature Workers deferred). Pipelines are distinguished by `extensions.pipeline` / registry `pipeline`.
 
 ## Conformance checklist
 
@@ -78,3 +80,19 @@ Product RE **must not** consume `architecture/` (AIOS control-plane docs). Use `
 3. `pipelines/solution-architecture/dependency-graph.json`
 
 Logical consume `architecture/` resolves to `product-architecture/`. Solution Architecture workers must preserve validated business behavior, require `source_paths` + `confidence` on entries, and must not invent business logic or overwrite discovery/Product RE artifacts.
+
+### Specification engineering
+
+1. `registry/workers.json`
+2. `pipelines/specification-engineering/pipeline.json`
+3. `pipelines/specification-engineering/dependency-graph.json`
+
+Logical consume `architecture/` resolves to `product-architecture/` (+ soft `architecture-v2/`, `decision-records/`, `tech-stack/`, `migration/`, `folder-structure/`). Specification Engineering workers require full spec body fields + traceability matrix on non-gap entries; must not invent business logic, redesign, change requirements, or overwrite validated upstream artifacts. Soft `repository/` is human/pre-step authored. Ordering ownership: `pipelines/specification-engineering/RACI.md`. Core does not execute these workers by default.
+
+### Validation engine
+
+1. `registry/workers.json`
+2. `pipelines/validation-engine/pipeline.json`
+3. `pipelines/validation-engine/dependency-graph.json`
+
+Validation Engine workers **never modify** source artifacts and **never invent** missing information. Outputs are structured findings (`validation-finding` / `validation-status` / `quality-scores` / `validation-report`) under `validation/`, `scores/`, `reports/` (optional mirror `quality/validation-scorecard/`). Contract: `contracts/validation-engine.md`. Packaging only — Core does not execute validations in v0.7.0.

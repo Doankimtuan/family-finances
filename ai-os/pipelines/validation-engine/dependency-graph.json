@@ -1,0 +1,243 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_ve_pipeline_deps",
+  "kind": "worker",
+  "pipeline_id": "validation-engine",
+  "title": "Validation Engine Worker Dependency Graph",
+  "nodes": [
+    {
+      "id": "artifact-validator",
+      "node_type": "worker",
+      "label": "artifact-validator",
+      "worker_class": "discovery"
+    },
+    {
+      "id": "schema-validator",
+      "node_type": "worker",
+      "label": "schema-validator",
+      "worker_class": "discovery"
+    },
+    {
+      "id": "dependency-validator",
+      "node_type": "worker",
+      "label": "dependency-validator",
+      "worker_class": "discovery"
+    },
+    {
+      "id": "pipeline-validator",
+      "node_type": "worker",
+      "label": "pipeline-validator",
+      "worker_class": "discovery"
+    },
+    {
+      "id": "traceability-validator",
+      "node_type": "worker",
+      "label": "traceability-validator",
+      "worker_class": "discovery"
+    },
+    {
+      "id": "completeness-validator",
+      "node_type": "worker",
+      "label": "completeness-validator",
+      "worker_class": "discovery"
+    },
+    {
+      "id": "consistency-validator",
+      "node_type": "worker",
+      "label": "consistency-validator",
+      "worker_class": "discovery"
+    },
+    {
+      "id": "quality-scoring-engine",
+      "node_type": "worker",
+      "label": "quality-scoring-engine",
+      "worker_class": "discovery"
+    },
+    {
+      "id": "validation-orchestrator",
+      "node_type": "worker",
+      "label": "validation-orchestrator",
+      "worker_class": "discovery"
+    },
+    {
+      "id": "validation-reporter",
+      "node_type": "worker",
+      "label": "validation-reporter",
+      "worker_class": "discovery"
+    }
+  ],
+  "edges": [
+    {
+      "predecessor": "artifact-validator",
+      "successor": "dependency-validator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "schema-validator",
+      "successor": "dependency-validator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "artifact-validator",
+      "successor": "pipeline-validator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "schema-validator",
+      "successor": "pipeline-validator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "dependency-validator",
+      "successor": "traceability-validator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "pipeline-validator",
+      "successor": "traceability-validator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "dependency-validator",
+      "successor": "completeness-validator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "pipeline-validator",
+      "successor": "completeness-validator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "dependency-validator",
+      "successor": "consistency-validator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "pipeline-validator",
+      "successor": "consistency-validator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "artifact-validator",
+      "successor": "quality-scoring-engine",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "schema-validator",
+      "successor": "quality-scoring-engine",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "dependency-validator",
+      "successor": "quality-scoring-engine",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "pipeline-validator",
+      "successor": "quality-scoring-engine",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "traceability-validator",
+      "successor": "quality-scoring-engine",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "completeness-validator",
+      "successor": "quality-scoring-engine",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "consistency-validator",
+      "successor": "quality-scoring-engine",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "artifact-validator",
+      "successor": "validation-orchestrator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "schema-validator",
+      "successor": "validation-orchestrator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "dependency-validator",
+      "successor": "validation-orchestrator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "pipeline-validator",
+      "successor": "validation-orchestrator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "traceability-validator",
+      "successor": "validation-orchestrator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "completeness-validator",
+      "successor": "validation-orchestrator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "consistency-validator",
+      "successor": "validation-orchestrator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "quality-scoring-engine",
+      "successor": "validation-orchestrator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "validation-orchestrator",
+      "successor": "validation-reporter",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "quality-scoring-engine",
+      "successor": "validation-reporter",
+      "type": "blocks",
+      "relation": "requires"
+    }
+  ],
+  "created_at": "2026-08-01T17:00:00Z",
+  "notes": [
+    "Workers packaged only \u2014 not executed in this milestone.",
+    "Never modify source artifacts; findings only.",
+    "Waves: [['artifact-validator', 'schema-validator'], ['dependency-validator', 'pipeline-validator'], ['traceability-validator', 'completeness-validator', 'consistency-validator'], ['quality-scoring-engine'], ['validation-orchestrator'], ['validation-reporter']]"
+  ],
+  "extensions": {
+    "schema": "pipeline-dependency-graph.schema.json",
+    "allows_feature_workers": false
+  }
+}

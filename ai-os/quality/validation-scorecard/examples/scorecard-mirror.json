@@ -1,0 +1,125 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_out_quality_scoring_engine",
+  "type": "quality-scores",
+  "worker_id": "quality-scoring-engine",
+  "title": "quality-scoring-engine output",
+  "summary": "Generate structured quality scores from validation findings. Never modify source artifacts; never invent missing data.",
+  "entries": [
+    {
+      "id": "quality-scoring-engine-overall-01",
+      "entry_kind": "overall",
+      "statement": "Sample finding `overall` for quality-scoring-engine.",
+      "validation_id": "VAL-QSE-overall",
+      "target": "ai-os/workers/",
+      "rule": "overall must satisfy Validation Engine contract",
+      "result": "pass",
+      "evidence": [
+        "schemas/validation-engine-payload.schema.json",
+        "workers/quality-scoring-engine/"
+      ],
+      "severity": "info",
+      "recommendation": "Do not mutate sources; remediate upstream packages if fail.",
+      "confidence": 0.8,
+      "source_paths": [
+        "schemas/",
+        "workers/",
+        "pipelines/",
+        "knowledge/",
+        "templates/"
+      ],
+      "unknowns": [
+        "UNKNOWN: none noted"
+      ],
+      "traceability": {
+        "source_artifact": "schemas/",
+        "knowledge": "knowledge/",
+        "pipeline": "validation-engine",
+        "worker": "quality-scoring-engine"
+      },
+      "score_value": 0.85
+    },
+    {
+      "id": "quality-scoring-engine-completeness-01",
+      "entry_kind": "completeness",
+      "statement": "Sample finding `completeness` for quality-scoring-engine.",
+      "validation_id": "VAL-QSE-completene",
+      "target": "ai-os/workers/",
+      "rule": "completeness must satisfy Validation Engine contract",
+      "result": "pass",
+      "evidence": [
+        "schemas/validation-engine-payload.schema.json",
+        "workers/quality-scoring-engine/"
+      ],
+      "severity": "info",
+      "recommendation": "Do not mutate sources; remediate upstream packages if fail.",
+      "confidence": 0.8,
+      "source_paths": [
+        "schemas/",
+        "workers/",
+        "pipelines/",
+        "knowledge/",
+        "templates/"
+      ],
+      "unknowns": [
+        "UNKNOWN: none noted"
+      ],
+      "traceability": {
+        "source_artifact": "schemas/",
+        "knowledge": "knowledge/",
+        "pipeline": "validation-engine",
+        "worker": "quality-scoring-engine"
+      },
+      "score_value": 0.85
+    },
+    {
+      "id": "quality-scoring-engine-confidence-01",
+      "entry_kind": "confidence",
+      "statement": "Sample finding `confidence` for quality-scoring-engine.",
+      "validation_id": "VAL-QSE-confidence",
+      "target": "ai-os/workers/",
+      "rule": "confidence must satisfy Validation Engine contract",
+      "result": "pass",
+      "evidence": [
+        "schemas/validation-engine-payload.schema.json",
+        "workers/quality-scoring-engine/"
+      ],
+      "severity": "info",
+      "recommendation": "Do not mutate sources; remediate upstream packages if fail.",
+      "confidence": 0.8,
+      "source_paths": [
+        "schemas/",
+        "workers/",
+        "pipelines/",
+        "knowledge/",
+        "templates/"
+      ],
+      "unknowns": [
+        "UNKNOWN: none noted"
+      ],
+      "traceability": {
+        "source_artifact": "schemas/",
+        "knowledge": "knowledge/",
+        "pipeline": "validation-engine",
+        "worker": "quality-scoring-engine"
+      },
+      "score_value": 0.85
+    }
+  ],
+  "status": "ready",
+  "created_at": "2026-08-01T17:00:00Z",
+  "trace": {
+    "orchestration_id": "art_ve_orchestration",
+    "plan_id": "art_ve_plan",
+    "task_id": "art_task_quality_scoring_engine",
+    "run_id": "art_run_quality_scoring_engine",
+    "goal_id": "art_ve_goal"
+  },
+  "extensions": {
+    "pipeline": "validation-engine",
+    "mutate_source_artifacts": false,
+    "invent_missing_information": false,
+    "incremental": true,
+    "partial": true
+  }
+}

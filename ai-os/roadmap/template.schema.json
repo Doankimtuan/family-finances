@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aios.dev/schemas/specification-engineering/roadmap.template.schema.json",
+  "title": "Specification engineering roadmap human-mirror template",
+  "description": "Human mirror for roadmap/ (delivery-roadmap).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "kind", "title", "summary", "required_kinds", "created_at"],
+  "properties": {
+    "schema_version": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/schemaVersion"
+    },
+    "kind": { "const": "roadmap" },
+    "title": { "type": "string", "minLength": 1 },
+    "summary": { "type": "string", "minLength": 1 },
+    "required_kinds": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["release", "phase", "sprint", "milestone", "risk", "timeline", "delivery-order"]
+      }
+    },
+    "raci_note": {
+      "type": "string",
+      "const": "Owns delivery-order, release milestones, risks — not work-item depends_on"
+    },
+    "unknowns": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "created_at": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/isoDateTime"
+    },
+    "extensions": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/extensions"
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0.0",
+  "id": "quality-scoring-engine",
+  "version": "0.1.0",
+  "title": "Quality Scoring Engine",
+  "implements_roles": [
+    "executor"
+  ],
+  "side_effects": [
+    "runtime-write"
+  ],
+  "entrypoint": "skill.md",
+  "status": "draft",
+  "extensions": {
+    "worker_class": "discovery",
+    "pipeline": "validation-engine",
+    "mutate_source_artifacts": false,
+    "invent_missing_information": false,
+    "incremental": true,
+    "partial": true
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "schema_version": "1.0.0",
+  "id": "validation-engine-coverage-review",
+  "version": "0.1.0",
+  "title": "Validation Engine Coverage Review",
+  "description": "Coverage review for validation-engine outputs. Veto source mutation or invented information.",
+  "applies_to": [
+    "validation-finding",
+    "validation-status",
+    "quality-scores",
+    "validation-report"
+  ],
+  "requires_validations": [
+    "validation-engine-schema-check"
+  ],
+  "rubric_id": "validation-engine-coverage",
+  "rubric_version": "0.1.0",
+  "score_mode": "weighted_0_1",
+  "pass_threshold": 0.7,
+  "criteria": [
+    {
+      "id": "finding-structure",
+      "description": "Entries include full validation fields",
+      "weight": 0.3,
+      "scale_min": 0,
+      "scale_max": 1
+    },
+    {
+      "id": "no-mutation",
+      "description": "No source artifact mutation",
+      "weight": 0.25,
+      "scale_min": 0,
+      "scale_max": 1
+    },
+    {
+      "id": "honesty",
+      "description": "Unknowns honest; no invented missing info",
+      "weight": 0.25,
+      "scale_min": 0,
+      "scale_max": 1
+    },
+    {
+      "id": "actionability",
+      "description": "Recommendations are actionable without rewriting sources",
+      "weight": 0.2,
+      "scale_min": 0,
+      "scale_max": 1
+    }
+  ],
+  "veto_conditions": [
+    {
+      "id": "mutate-sources",
+      "description": "Modified source artifacts"
+    },
+    {
+      "id": "invent-missing",
+      "description": "Invented missing information"
+    }
+  ],
+  "outputs": [
+    "review-report"
+  ],
+  "status": "reserved",
+  "extensions": {
+    "pipeline": "validation-engine",
+    "rubric_path": "reviewers/validation-engine-coverage-review/rubric/validation-engine-coverage.json"
+  }
+}

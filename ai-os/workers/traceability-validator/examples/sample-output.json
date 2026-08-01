@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_env_traceability_validator",
+  "type": "run-record",
+  "worker_id": "traceability-validator",
+  "status": "succeeded",
+  "summary": "Verify every artifact traces to features, business rules, architecture, requirements, knowledge. Reject orphans. Never modify artifacts.",
+  "created_at": "2026-08-01T17:00:00Z",
+  "extensions": {
+    "pipeline": "validation-engine",
+    "primary_output_type": "validation-finding",
+    "produces": [
+      "validation"
+    ]
+  }
+}

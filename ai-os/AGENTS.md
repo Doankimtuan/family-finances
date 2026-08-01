@@ -9,6 +9,8 @@ Read this before contributing to or operating within AIOS.
 | Maintain Discovery Workers (`workers/discover-*`) | Implement **Feature Workers** |
 | Maintain Product RE Workers (`pipelines/product-re/`) | Skill bodies that mutate the product repo |
 | Maintain Solution Architecture Workers (`pipelines/solution-architecture/`) | Invent business logic / change business rules |
+| Maintain Specification Engineering Workers (`pipelines/specification-engineering/`) | Redesign the system / invent requirements |
+| Maintain Validation Engine Workers (`pipelines/validation-engine/`) | Mutate source artifacts / invent missing info / execute validations in packaging milestone |
 | Extend reserved skills/validators/reviewers for registered pipelines | Bypass validation/review gates |
 | Load/validate pipelines via KnowledgeBase | Invoke/claim workers from Core |
 | Use / extend Core Engine (`ai-os/core`) | Re-inline enums already in common schemas |
@@ -24,7 +26,7 @@ Import: `@/ai-os/core` → `createAiosCore()`.
 
 Modules: `planner`, `orchestrator`, `artifacts`, `memory`, `knowledge`, `schemas`, `templates`, `configs`.
 
-Smoke: `npm run aios:core:smoke` · Discovery: `npm run aios:discovery:smoke` · Product RE: `npm run aios:product-re:smoke` · Solution Architecture: `npm run aios:solution-architecture:smoke`
+Smoke: `npm run aios:core:smoke` · Discovery: `npm run aios:discovery:smoke` · Product RE: `npm run aios:product-re:smoke` · Solution Architecture: `npm run aios:solution-architecture:smoke` · Specification Engineering: `npm run aios:specification-engineering:smoke` · Validation Engine: `npm run aios:validation-engine:smoke`
 
 ## Role selection
 
@@ -35,6 +37,8 @@ Smoke: `npm run aios:core:smoke` · Discovery: `npm run aios:discovery:smoke` ·
 | Produce a discovery artifact from a task | `executor` via Discovery Workers |
 | Reverse-engineer product knowledge | `executor` via Product RE Workers |
 | Redesign solution architecture (preserve behavior) | `executor` via Solution Architecture Workers |
+| Produce specs / tasks / roadmap / implementation plan | `executor` via Specification Engineering Workers (packaged; not invoked yet) |
+| Automatically validate AIOS artifacts | `executor` via Validation Engine Workers (packaged; not invoked yet) |
 | Produce a product feature artifact | deferred Feature Workers |
 | Run deterministic checks | `validator` |
 | Apply qualitative judgment | `reviewer` |

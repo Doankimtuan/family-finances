@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "registry_kind": "workers",
-  "updated_at": "2026-08-01T14:00:00Z",
+  "updated_at": "2026-08-01T17:00:00Z",
   "entries": {
     "discover-repo-map": {
       "id": "discover-repo-map",
@@ -380,6 +380,415 @@
       ],
       "produces": [
         "folder-structure"
+      ]
+    },
+    "specification-generator": {
+      "id": "specification-generator",
+      "path": "workers/specification-generator",
+      "version": "0.1.1",
+      "status": "draft",
+      "description": "Transform validated project knowledge into implementation-ready software specifications with full traceability. Never invent business logic or redesign. Mark missing info as UNKNOWN.",
+      "worker_class": "discovery",
+      "pipeline": "specification-engineering",
+      "skill_id": "specification-generator",
+      "depends_on_workers": [],
+      "consumes": [
+        "knowledge",
+        "repository",
+        "features",
+        "business",
+        "product-architecture",
+        "architecture-v2",
+        "requirements",
+        "quality",
+        "redesign",
+        "workflow",
+        "acceptance",
+        "decision-records",
+        "tech-stack",
+        "migration",
+        "folder-structure"
+      ],
+      "produces": [
+        "specifications"
+      ]
+    },
+    "task-generator": {
+      "id": "task-generator",
+      "path": "workers/task-generator",
+      "version": "0.1.1",
+      "status": "draft",
+      "description": "Convert validated specifications into executable engineering work items with dependencies, complexity, priority, work-item milestones, and DoD. Never invent business logic.",
+      "worker_class": "discovery",
+      "pipeline": "specification-engineering",
+      "skill_id": "task-generator",
+      "depends_on_workers": [
+        "specification-generator"
+      ],
+      "consumes": [
+        "knowledge",
+        "repository",
+        "features",
+        "business",
+        "product-architecture",
+        "architecture-v2",
+        "requirements",
+        "quality",
+        "redesign",
+        "workflow",
+        "acceptance",
+        "decision-records",
+        "tech-stack",
+        "migration",
+        "folder-structure",
+        "specifications"
+      ],
+      "produces": [
+        "tasks"
+      ]
+    },
+    "roadmap-generator": {
+      "id": "roadmap-generator",
+      "path": "workers/roadmap-generator",
+      "version": "0.1.1",
+      "status": "draft",
+      "description": "Generate release plan, phases, sprints, release milestones, risks, timeline, and delivery order. Never invent business logic or calendar dates when UNKNOWN.",
+      "worker_class": "discovery",
+      "pipeline": "specification-engineering",
+      "skill_id": "roadmap-generator",
+      "depends_on_workers": [
+        "specification-generator",
+        "task-generator"
+      ],
+      "consumes": [
+        "knowledge",
+        "repository",
+        "features",
+        "business",
+        "product-architecture",
+        "architecture-v2",
+        "requirements",
+        "quality",
+        "redesign",
+        "workflow",
+        "acceptance",
+        "decision-records",
+        "tech-stack",
+        "migration",
+        "folder-structure",
+        "specifications",
+        "tasks"
+      ],
+      "produces": [
+        "roadmap"
+      ]
+    },
+    "implementation-planner": {
+      "id": "implementation-planner",
+      "path": "workers/implementation-planner",
+      "version": "0.1.1",
+      "status": "draft",
+      "description": "Generate implementation graph, critical path, parallel work, blocked tasks, and build order. Never invent business logic.",
+      "worker_class": "discovery",
+      "pipeline": "specification-engineering",
+      "skill_id": "implementation-planner",
+      "depends_on_workers": [
+        "specification-generator",
+        "task-generator",
+        "roadmap-generator"
+      ],
+      "consumes": [
+        "knowledge",
+        "repository",
+        "features",
+        "business",
+        "product-architecture",
+        "architecture-v2",
+        "requirements",
+        "quality",
+        "redesign",
+        "workflow",
+        "acceptance",
+        "decision-records",
+        "tech-stack",
+        "migration",
+        "folder-structure",
+        "specifications",
+        "tasks",
+        "roadmap"
+      ],
+      "produces": [
+        "implementation"
+      ]
+    },
+    "artifact-validator": {
+      "id": "artifact-validator",
+      "path": "workers/artifact-validator",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Verify folder structure, required files, artifact existence, naming, output locations, and artifact contracts. Never modify artifacts.",
+      "worker_class": "discovery",
+      "pipeline": "validation-engine",
+      "skill_id": "artifact-validator",
+      "depends_on_workers": [],
+      "consumes": [
+        "schemas",
+        "artifacts",
+        "workers",
+        "pipelines",
+        "execution",
+        "templates",
+        "knowledge"
+      ],
+      "produces": [
+        "validation"
+      ]
+    },
+    "schema-validator": {
+      "id": "schema-validator",
+      "path": "workers/schema-validator",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Validate JSON Schemas, markdown structure, required fields, data types, and schema compatibility. Never modify artifacts.",
+      "worker_class": "discovery",
+      "pipeline": "validation-engine",
+      "skill_id": "schema-validator",
+      "depends_on_workers": [],
+      "consumes": [
+        "schemas",
+        "artifacts",
+        "workers",
+        "pipelines",
+        "execution",
+        "templates",
+        "knowledge"
+      ],
+      "produces": [
+        "validation"
+      ]
+    },
+    "dependency-validator": {
+      "id": "dependency-validator",
+      "path": "workers/dependency-validator",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Verify worker/pipeline dependencies, detect circular and missing dependencies and invalid references. Never modify artifacts.",
+      "worker_class": "discovery",
+      "pipeline": "validation-engine",
+      "skill_id": "dependency-validator",
+      "depends_on_workers": [
+        "artifact-validator",
+        "schema-validator"
+      ],
+      "consumes": [
+        "schemas",
+        "artifacts",
+        "workers",
+        "pipelines",
+        "execution",
+        "templates",
+        "knowledge"
+      ],
+      "produces": [
+        "validation"
+      ]
+    },
+    "pipeline-validator": {
+      "id": "pipeline-validator",
+      "path": "workers/pipeline-validator",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Verify execution order, stage dependencies, pipeline/worker registration, lifecycle, resume and incremental support. Never modify artifacts.",
+      "worker_class": "discovery",
+      "pipeline": "validation-engine",
+      "skill_id": "pipeline-validator",
+      "depends_on_workers": [
+        "artifact-validator",
+        "schema-validator"
+      ],
+      "consumes": [
+        "schemas",
+        "artifacts",
+        "workers",
+        "pipelines",
+        "execution",
+        "templates",
+        "knowledge"
+      ],
+      "produces": [
+        "validation"
+      ]
+    },
+    "traceability-validator": {
+      "id": "traceability-validator",
+      "path": "workers/traceability-validator",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Verify every artifact traces to features, business rules, architecture, requirements, knowledge. Reject orphans. Never modify artifacts.",
+      "worker_class": "discovery",
+      "pipeline": "validation-engine",
+      "skill_id": "traceability-validator",
+      "depends_on_workers": [
+        "dependency-validator",
+        "pipeline-validator"
+      ],
+      "consumes": [
+        "schemas",
+        "artifacts",
+        "workers",
+        "pipelines",
+        "execution",
+        "templates",
+        "knowledge"
+      ],
+      "produces": [
+        "validation"
+      ]
+    },
+    "completeness-validator": {
+      "id": "completeness-validator",
+      "path": "workers/completeness-validator",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Verify missing documents, fields, modules, specifications, workers, examples, schemas. Never invent missing information \u2014 only report.",
+      "worker_class": "discovery",
+      "pipeline": "validation-engine",
+      "skill_id": "completeness-validator",
+      "depends_on_workers": [
+        "dependency-validator",
+        "pipeline-validator"
+      ],
+      "consumes": [
+        "schemas",
+        "artifacts",
+        "workers",
+        "pipelines",
+        "execution",
+        "templates",
+        "knowledge"
+      ],
+      "produces": [
+        "validation"
+      ]
+    },
+    "consistency-validator": {
+      "id": "consistency-validator",
+      "path": "workers/consistency-validator",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Detect contradictions, duplications, conflicting requirements/architecture/business rules, naming inconsistencies. Never modify artifacts.",
+      "worker_class": "discovery",
+      "pipeline": "validation-engine",
+      "skill_id": "consistency-validator",
+      "depends_on_workers": [
+        "dependency-validator",
+        "pipeline-validator"
+      ],
+      "consumes": [
+        "schemas",
+        "artifacts",
+        "workers",
+        "pipelines",
+        "execution",
+        "templates",
+        "knowledge"
+      ],
+      "produces": [
+        "validation"
+      ]
+    },
+    "quality-scoring-engine": {
+      "id": "quality-scoring-engine",
+      "path": "workers/quality-scoring-engine",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Generate structured quality scores from validation findings. Never modify source artifacts; never invent missing data.",
+      "worker_class": "discovery",
+      "pipeline": "validation-engine",
+      "skill_id": "quality-scoring-engine",
+      "depends_on_workers": [
+        "artifact-validator",
+        "schema-validator",
+        "dependency-validator",
+        "pipeline-validator",
+        "traceability-validator",
+        "completeness-validator",
+        "consistency-validator"
+      ],
+      "consumes": [
+        "schemas",
+        "artifacts",
+        "workers",
+        "pipelines",
+        "execution",
+        "templates",
+        "knowledge",
+        "validation"
+      ],
+      "produces": [
+        "scores"
+      ]
+    },
+    "validation-orchestrator": {
+      "id": "validation-orchestrator",
+      "path": "workers/validation-orchestrator",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Coordinate validation order (from pipeline waves), merge findings, emit overall validation status. Never modify source artifacts.",
+      "worker_class": "discovery",
+      "pipeline": "validation-engine",
+      "skill_id": "validation-orchestrator",
+      "depends_on_workers": [
+        "artifact-validator",
+        "schema-validator",
+        "dependency-validator",
+        "pipeline-validator",
+        "traceability-validator",
+        "completeness-validator",
+        "consistency-validator",
+        "quality-scoring-engine"
+      ],
+      "consumes": [
+        "schemas",
+        "artifacts",
+        "workers",
+        "pipelines",
+        "execution",
+        "templates",
+        "knowledge",
+        "validation",
+        "scores"
+      ],
+      "produces": [
+        "validation"
+      ]
+    },
+    "validation-reporter": {
+      "id": "validation-reporter",
+      "path": "workers/validation-reporter",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Generate validation summary, severity-ranked issues, recommended fixes, and PASS/FAIL decision. Machine-readable only.",
+      "worker_class": "discovery",
+      "pipeline": "validation-engine",
+      "skill_id": "validation-reporter",
+      "depends_on_workers": [
+        "validation-orchestrator",
+        "quality-scoring-engine"
+      ],
+      "consumes": [
+        "schemas",
+        "artifacts",
+        "workers",
+        "pipelines",
+        "execution",
+        "templates",
+        "knowledge",
+        "validation",
+        "scores"
+      ],
+      "produces": [
+        "reports"
       ]
     }
   }

@@ -1,0 +1,122 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_out_validation_orchestrator",
+  "type": "validation-status",
+  "worker_id": "validation-orchestrator",
+  "title": "validation-orchestrator output",
+  "summary": "Coordinate validation order (from pipeline waves), merge findings, emit overall validation status. Never modify source artifacts.",
+  "entries": [
+    {
+      "id": "validation-orchestrator-order-01",
+      "entry_kind": "order",
+      "statement": "Sample finding `order` for validation-orchestrator.",
+      "validation_id": "VAL-VO-order",
+      "target": "ai-os/workers/",
+      "rule": "order must satisfy Validation Engine contract",
+      "result": "pass",
+      "evidence": [
+        "schemas/validation-engine-payload.schema.json",
+        "workers/validation-orchestrator/"
+      ],
+      "severity": "info",
+      "recommendation": "Do not mutate sources; remediate upstream packages if fail.",
+      "confidence": 0.8,
+      "source_paths": [
+        "schemas/",
+        "workers/",
+        "pipelines/",
+        "knowledge/",
+        "templates/"
+      ],
+      "unknowns": [
+        "UNKNOWN: none noted"
+      ],
+      "traceability": {
+        "source_artifact": "schemas/",
+        "knowledge": "knowledge/",
+        "pipeline": "validation-engine",
+        "worker": "validation-orchestrator"
+      }
+    },
+    {
+      "id": "validation-orchestrator-merge-01",
+      "entry_kind": "merge",
+      "statement": "Sample finding `merge` for validation-orchestrator.",
+      "validation_id": "VAL-VO-merge",
+      "target": "ai-os/workers/",
+      "rule": "merge must satisfy Validation Engine contract",
+      "result": "pass",
+      "evidence": [
+        "schemas/validation-engine-payload.schema.json",
+        "workers/validation-orchestrator/"
+      ],
+      "severity": "info",
+      "recommendation": "Do not mutate sources; remediate upstream packages if fail.",
+      "confidence": 0.8,
+      "source_paths": [
+        "schemas/",
+        "workers/",
+        "pipelines/",
+        "knowledge/",
+        "templates/"
+      ],
+      "unknowns": [
+        "UNKNOWN: none noted"
+      ],
+      "traceability": {
+        "source_artifact": "schemas/",
+        "knowledge": "knowledge/",
+        "pipeline": "validation-engine",
+        "worker": "validation-orchestrator"
+      }
+    },
+    {
+      "id": "validation-orchestrator-overall-status-01",
+      "entry_kind": "overall-status",
+      "statement": "Sample finding `overall-status` for validation-orchestrator.",
+      "validation_id": "VAL-VO-overall-st",
+      "target": "ai-os/workers/",
+      "rule": "overall-status must satisfy Validation Engine contract",
+      "result": "pass",
+      "evidence": [
+        "schemas/validation-engine-payload.schema.json",
+        "workers/validation-orchestrator/"
+      ],
+      "severity": "info",
+      "recommendation": "Do not mutate sources; remediate upstream packages if fail.",
+      "confidence": 0.8,
+      "source_paths": [
+        "schemas/",
+        "workers/",
+        "pipelines/",
+        "knowledge/",
+        "templates/"
+      ],
+      "unknowns": [
+        "UNKNOWN: none noted"
+      ],
+      "traceability": {
+        "source_artifact": "schemas/",
+        "knowledge": "knowledge/",
+        "pipeline": "validation-engine",
+        "worker": "validation-orchestrator"
+      }
+    }
+  ],
+  "status": "ready",
+  "created_at": "2026-08-01T17:00:00Z",
+  "trace": {
+    "orchestration_id": "art_ve_orchestration",
+    "plan_id": "art_ve_plan",
+    "task_id": "art_task_validation_orchestrator",
+    "run_id": "art_run_validation_orchestrator",
+    "goal_id": "art_ve_goal"
+  },
+  "extensions": {
+    "pipeline": "validation-engine",
+    "mutate_source_artifacts": false,
+    "invent_missing_information": false,
+    "incremental": true,
+    "partial": true
+  }
+}

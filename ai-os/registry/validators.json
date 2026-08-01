@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "registry_kind": "validators",
-  "updated_at": "2026-08-01T14:00:00Z",
+  "updated_at": "2026-08-01T17:00:00Z",
   "entries": {
     "discovery-schema-check": {
       "id": "discovery-schema-check",
@@ -23,6 +23,20 @@
       "version": "0.1.0",
       "status": "reserved",
       "description": "Deterministic schema/type checks for solution-architecture payloads"
+    },
+    "specification-engineering-schema-check": {
+      "id": "specification-engineering-schema-check",
+      "path": "validators/specification-engineering-schema-check",
+      "version": "0.2.0",
+      "status": "reserved",
+      "description": "Deterministic checks for specification-engineering payloads (section coverage, spec body, traceability matrix, path bans)."
+    },
+    "validation-engine-schema-check": {
+      "id": "validation-engine-schema-check",
+      "path": "validators/validation-engine-schema-check",
+      "version": "0.1.0",
+      "status": "reserved",
+      "description": "Deterministic checks for validation-engine payloads"
     }
   }
 }

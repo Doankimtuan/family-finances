@@ -1,0 +1,122 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_out_pipeline_validator",
+  "type": "validation-finding",
+  "worker_id": "pipeline-validator",
+  "title": "pipeline-validator output",
+  "summary": "Verify execution order, stage dependencies, pipeline/worker registration, lifecycle, resume and incremental support. Never modify artifacts.",
+  "entries": [
+    {
+      "id": "pipeline-validator-execution-order-01",
+      "entry_kind": "execution-order",
+      "statement": "Sample finding `execution-order` for pipeline-validator.",
+      "validation_id": "VAL-PV-execution-",
+      "target": "ai-os/workers/",
+      "rule": "execution-order must satisfy Validation Engine contract",
+      "result": "pass",
+      "evidence": [
+        "schemas/validation-engine-payload.schema.json",
+        "workers/pipeline-validator/"
+      ],
+      "severity": "info",
+      "recommendation": "Do not mutate sources; remediate upstream packages if fail.",
+      "confidence": 0.8,
+      "source_paths": [
+        "schemas/",
+        "workers/",
+        "pipelines/",
+        "knowledge/",
+        "templates/"
+      ],
+      "unknowns": [
+        "UNKNOWN: none noted"
+      ],
+      "traceability": {
+        "source_artifact": "schemas/",
+        "knowledge": "knowledge/",
+        "pipeline": "validation-engine",
+        "worker": "pipeline-validator"
+      }
+    },
+    {
+      "id": "pipeline-validator-stage-dependency-01",
+      "entry_kind": "stage-dependency",
+      "statement": "Sample finding `stage-dependency` for pipeline-validator.",
+      "validation_id": "VAL-PV-stage-depe",
+      "target": "ai-os/workers/",
+      "rule": "stage-dependency must satisfy Validation Engine contract",
+      "result": "pass",
+      "evidence": [
+        "schemas/validation-engine-payload.schema.json",
+        "workers/pipeline-validator/"
+      ],
+      "severity": "info",
+      "recommendation": "Do not mutate sources; remediate upstream packages if fail.",
+      "confidence": 0.8,
+      "source_paths": [
+        "schemas/",
+        "workers/",
+        "pipelines/",
+        "knowledge/",
+        "templates/"
+      ],
+      "unknowns": [
+        "UNKNOWN: none noted"
+      ],
+      "traceability": {
+        "source_artifact": "schemas/",
+        "knowledge": "knowledge/",
+        "pipeline": "validation-engine",
+        "worker": "pipeline-validator"
+      }
+    },
+    {
+      "id": "pipeline-validator-pipeline-registration-01",
+      "entry_kind": "pipeline-registration",
+      "statement": "Sample finding `pipeline-registration` for pipeline-validator.",
+      "validation_id": "VAL-PV-pipeline-r",
+      "target": "ai-os/workers/",
+      "rule": "pipeline-registration must satisfy Validation Engine contract",
+      "result": "pass",
+      "evidence": [
+        "schemas/validation-engine-payload.schema.json",
+        "workers/pipeline-validator/"
+      ],
+      "severity": "info",
+      "recommendation": "Do not mutate sources; remediate upstream packages if fail.",
+      "confidence": 0.8,
+      "source_paths": [
+        "schemas/",
+        "workers/",
+        "pipelines/",
+        "knowledge/",
+        "templates/"
+      ],
+      "unknowns": [
+        "UNKNOWN: none noted"
+      ],
+      "traceability": {
+        "source_artifact": "schemas/",
+        "knowledge": "knowledge/",
+        "pipeline": "validation-engine",
+        "worker": "pipeline-validator"
+      }
+    }
+  ],
+  "status": "ready",
+  "created_at": "2026-08-01T17:00:00Z",
+  "trace": {
+    "orchestration_id": "art_ve_orchestration",
+    "plan_id": "art_ve_plan",
+    "task_id": "art_task_pipeline_validator",
+    "run_id": "art_run_pipeline_validator",
+    "goal_id": "art_ve_goal"
+  },
+  "extensions": {
+    "pipeline": "validation-engine",
+    "mutate_source_artifacts": false,
+    "invent_missing_information": false,
+    "incremental": true,
+    "partial": true
+  }
+}

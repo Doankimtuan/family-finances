@@ -1,0 +1,122 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_out_dependency_validator",
+  "type": "validation-finding",
+  "worker_id": "dependency-validator",
+  "title": "dependency-validator output",
+  "summary": "Verify worker/pipeline dependencies, detect circular and missing dependencies and invalid references. Never modify artifacts.",
+  "entries": [
+    {
+      "id": "dependency-validator-worker-dependency-01",
+      "entry_kind": "worker-dependency",
+      "statement": "Sample finding `worker-dependency` for dependency-validator.",
+      "validation_id": "VAL-DV-worker-dep",
+      "target": "ai-os/workers/",
+      "rule": "worker-dependency must satisfy Validation Engine contract",
+      "result": "pass",
+      "evidence": [
+        "schemas/validation-engine-payload.schema.json",
+        "workers/dependency-validator/"
+      ],
+      "severity": "info",
+      "recommendation": "Do not mutate sources; remediate upstream packages if fail.",
+      "confidence": 0.8,
+      "source_paths": [
+        "schemas/",
+        "workers/",
+        "pipelines/",
+        "knowledge/",
+        "templates/"
+      ],
+      "unknowns": [
+        "UNKNOWN: none noted"
+      ],
+      "traceability": {
+        "source_artifact": "schemas/",
+        "knowledge": "knowledge/",
+        "pipeline": "validation-engine",
+        "worker": "dependency-validator"
+      }
+    },
+    {
+      "id": "dependency-validator-pipeline-dependency-01",
+      "entry_kind": "pipeline-dependency",
+      "statement": "Sample finding `pipeline-dependency` for dependency-validator.",
+      "validation_id": "VAL-DV-pipeline-d",
+      "target": "ai-os/workers/",
+      "rule": "pipeline-dependency must satisfy Validation Engine contract",
+      "result": "pass",
+      "evidence": [
+        "schemas/validation-engine-payload.schema.json",
+        "workers/dependency-validator/"
+      ],
+      "severity": "info",
+      "recommendation": "Do not mutate sources; remediate upstream packages if fail.",
+      "confidence": 0.8,
+      "source_paths": [
+        "schemas/",
+        "workers/",
+        "pipelines/",
+        "knowledge/",
+        "templates/"
+      ],
+      "unknowns": [
+        "UNKNOWN: none noted"
+      ],
+      "traceability": {
+        "source_artifact": "schemas/",
+        "knowledge": "knowledge/",
+        "pipeline": "validation-engine",
+        "worker": "dependency-validator"
+      }
+    },
+    {
+      "id": "dependency-validator-circular-01",
+      "entry_kind": "circular",
+      "statement": "Sample finding `circular` for dependency-validator.",
+      "validation_id": "VAL-DV-circular",
+      "target": "ai-os/workers/",
+      "rule": "circular must satisfy Validation Engine contract",
+      "result": "pass",
+      "evidence": [
+        "schemas/validation-engine-payload.schema.json",
+        "workers/dependency-validator/"
+      ],
+      "severity": "info",
+      "recommendation": "Do not mutate sources; remediate upstream packages if fail.",
+      "confidence": 0.8,
+      "source_paths": [
+        "schemas/",
+        "workers/",
+        "pipelines/",
+        "knowledge/",
+        "templates/"
+      ],
+      "unknowns": [
+        "UNKNOWN: none noted"
+      ],
+      "traceability": {
+        "source_artifact": "schemas/",
+        "knowledge": "knowledge/",
+        "pipeline": "validation-engine",
+        "worker": "dependency-validator"
+      }
+    }
+  ],
+  "status": "ready",
+  "created_at": "2026-08-01T17:00:00Z",
+  "trace": {
+    "orchestration_id": "art_ve_orchestration",
+    "plan_id": "art_ve_plan",
+    "task_id": "art_task_dependency_validator",
+    "run_id": "art_run_dependency_validator",
+    "goal_id": "art_ve_goal"
+  },
+  "extensions": {
+    "pipeline": "validation-engine",
+    "mutate_source_artifacts": false,
+    "invent_missing_information": false,
+    "incremental": true,
+    "partial": true
+  }
+}

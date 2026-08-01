@@ -32,3 +32,16 @@ All schemas are JSON Schema Draft 2020-12.
 | `worker-output-envelope.schema.json` | Shared worker run envelope |
 | `worker-manifest.schema.json` | Worker port manifest |
 | `product-re-payload.schema.json` | Product reverse-engineering primary payloads |
+| `solution-architecture-payload.schema.json` | Solution Architecture primary payloads |
+| `specification-engineering-payload.schema.json` | Specification Engineering primary payloads |
+| `validation-engine-payload.schema.json` | Validation Engine primary payloads |
+| `validation-finding.schema.json` | Typed validation-finding wrapper |
+| `validation-status.schema.json` | Typed validation-status wrapper |
+| `quality-scores.schema.json` | Typed quality-scores wrapper |
+| `validation-report.schema.json` | Typed validation-report wrapper |
+| `project-specification.schema.json` | Typed project-specification wrapper |
+| `engineering-task-graph.schema.json` | Typed engineering-task-graph wrapper |
+| `delivery-roadmap.schema.json` | Typed delivery-roadmap wrapper |
+| `implementation-plan.schema.json` | Typed implementation-plan wrapper |
+| `repository-notes.schema.json` | Typed repository-notes wrapper |
+

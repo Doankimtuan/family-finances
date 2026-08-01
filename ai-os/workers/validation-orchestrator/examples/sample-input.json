@@ -1,0 +1,24 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "art_task_validation_orchestrator",
+  "worker_id": "validation-orchestrator",
+  "skill_id": "validation-orchestrator",
+  "consumes": [
+    "schemas",
+    "artifacts",
+    "workers",
+    "pipelines",
+    "execution",
+    "templates",
+    "knowledge"
+  ],
+  "validators": [
+    "validation-engine-schema-check"
+  ],
+  "reviewers": [
+    "validation-engine-coverage-review"
+  ],
+  "extensions": {
+    "pipeline": "validation-engine"
+  }
+}

@@ -1,0 +1,86 @@
+{
+  "schema_version": "1.0.0",
+  "id": "completeness-validator",
+  "version": "0.1.0",
+  "title": "Completeness Validator",
+  "description": "Verify missing documents, fields, modules, specifications, workers, examples, schemas. Never invent missing information \u2014 only report.",
+  "role": "executor",
+  "grade": "guided",
+  "inputs": [
+    {
+      "name": "goal",
+      "artifact_type": "goal",
+      "required": true,
+      "description": "Validation engine goal"
+    },
+    {
+      "name": "schemas",
+      "artifact_type": "doc-source",
+      "required": true,
+      "description": "schemas/"
+    },
+    {
+      "name": "artifacts",
+      "artifact_type": "doc-source",
+      "required": false,
+      "description": "artifacts/ soft"
+    },
+    {
+      "name": "workers",
+      "artifact_type": "doc-source",
+      "required": true,
+      "description": "workers/"
+    },
+    {
+      "name": "pipelines",
+      "artifact_type": "doc-source",
+      "required": true,
+      "description": "pipelines/"
+    },
+    {
+      "name": "execution",
+      "artifact_type": "doc-source",
+      "required": false,
+      "description": "execution/ soft"
+    },
+    {
+      "name": "templates",
+      "artifact_type": "doc-source",
+      "required": true,
+      "description": "templates/"
+    },
+    {
+      "name": "knowledge",
+      "artifact_type": "knowledge-notes",
+      "required": false,
+      "description": "knowledge/ soft"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "primary",
+      "artifact_type": "validation-finding",
+      "primary": true,
+      "description": "validation-finding"
+    }
+  ],
+  "requires_skills": [],
+  "validators": [
+    "validation-engine-schema-check"
+  ],
+  "reviewers": [
+    "validation-engine-coverage-review"
+  ],
+  "side_effects": [
+    "runtime-write"
+  ],
+  "status": "reserved",
+  "entrypoint": "SKILL.md",
+  "extensions": {
+    "pipeline": "validation-engine",
+    "mutate_source_artifacts": false,
+    "invent_missing_information": false,
+    "incremental": true,
+    "partial": true
+  }
+}

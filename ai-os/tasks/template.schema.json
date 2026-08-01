@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aios.dev/schemas/specification-engineering/tasks.template.schema.json",
+  "title": "Specification engineering tasks human-mirror template",
+  "description": "Human mirror for tasks/ (engineering-task-graph). Not Core task artifacts.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "kind", "title", "summary", "hierarchy_kinds", "created_at"],
+  "properties": {
+    "schema_version": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/schemaVersion"
+    },
+    "kind": { "const": "tasks" },
+    "title": { "type": "string", "minLength": 1 },
+    "summary": { "type": "string", "minLength": 1 },
+    "hierarchy_kinds": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["epic", "feature", "story", "task", "subtask", "milestone", "dependency"]
+      }
+    },
+    "raci_note": {
+      "type": "string",
+      "const": "Owns work-item depends_on and work-item milestones only"
+    },
+    "unknowns": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "created_at": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/isoDateTime"
+    },
+    "extensions": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/extensions"
+    }
+  }
+}

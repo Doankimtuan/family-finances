@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "registry_kind": "skills",
-  "updated_at": "2026-08-01T14:00:00Z",
+  "updated_at": "2026-08-01T17:00:00Z",
   "entries": {
     "example-skill": {
       "id": "example-skill",
@@ -142,6 +142,104 @@
       "version": "0.1.0",
       "status": "reserved",
       "description": "Design feature-based repository layout and module boundaries. Produce folder conventions. Preserve business capabilities."
+    },
+    "specification-generator": {
+      "id": "specification-generator",
+      "path": "skills/specification-generator",
+      "version": "0.1.1",
+      "status": "reserved",
+      "description": "Transform validated project knowledge into implementation-ready software specifications with full traceability. Never invent business logic or redesign. Mark missing info as UNKNOWN."
+    },
+    "task-generator": {
+      "id": "task-generator",
+      "path": "skills/task-generator",
+      "version": "0.1.1",
+      "status": "reserved",
+      "description": "Convert validated specifications into executable engineering work items with dependencies, complexity, priority, work-item milestones, and DoD. Never invent business logic."
+    },
+    "roadmap-generator": {
+      "id": "roadmap-generator",
+      "path": "skills/roadmap-generator",
+      "version": "0.1.1",
+      "status": "reserved",
+      "description": "Generate release plan, phases, sprints, release milestones, risks, timeline, and delivery order. Never invent business logic or calendar dates when UNKNOWN."
+    },
+    "implementation-planner": {
+      "id": "implementation-planner",
+      "path": "skills/implementation-planner",
+      "version": "0.1.1",
+      "status": "reserved",
+      "description": "Generate implementation graph, critical path, parallel work, blocked tasks, and build order. Never invent business logic."
+    },
+    "artifact-validator": {
+      "id": "artifact-validator",
+      "path": "skills/artifact-validator",
+      "version": "0.1.0",
+      "status": "reserved",
+      "description": "Verify folder structure, required files, artifact existence, naming, output locations, and artifact contracts. Never modify artifacts."
+    },
+    "schema-validator": {
+      "id": "schema-validator",
+      "path": "skills/schema-validator",
+      "version": "0.1.0",
+      "status": "reserved",
+      "description": "Validate JSON Schemas, markdown structure, required fields, data types, and schema compatibility. Never modify artifacts."
+    },
+    "dependency-validator": {
+      "id": "dependency-validator",
+      "path": "skills/dependency-validator",
+      "version": "0.1.0",
+      "status": "reserved",
+      "description": "Verify worker/pipeline dependencies, detect circular and missing dependencies and invalid references. Never modify artifacts."
+    },
+    "pipeline-validator": {
+      "id": "pipeline-validator",
+      "path": "skills/pipeline-validator",
+      "version": "0.1.0",
+      "status": "reserved",
+      "description": "Verify execution order, stage dependencies, pipeline/worker registration, lifecycle, resume and incremental support. Never modify artifacts."
+    },
+    "traceability-validator": {
+      "id": "traceability-validator",
+      "path": "skills/traceability-validator",
+      "version": "0.1.0",
+      "status": "reserved",
+      "description": "Verify every artifact traces to features, business rules, architecture, requirements, knowledge. Reject orphans. Never modify artifacts."
+    },
+    "completeness-validator": {
+      "id": "completeness-validator",
+      "path": "skills/completeness-validator",
+      "version": "0.1.0",
+      "status": "reserved",
+      "description": "Verify missing documents, fields, modules, specifications, workers, examples, schemas. Never invent missing information \u2014 only report."
+    },
+    "consistency-validator": {
+      "id": "consistency-validator",
+      "path": "skills/consistency-validator",
+      "version": "0.1.0",
+      "status": "reserved",
+      "description": "Detect contradictions, duplications, conflicting requirements/architecture/business rules, naming inconsistencies. Never modify artifacts."
+    },
+    "quality-scoring-engine": {
+      "id": "quality-scoring-engine",
+      "path": "skills/quality-scoring-engine",
+      "version": "0.1.0",
+      "status": "reserved",
+      "description": "Generate structured quality scores from validation findings. Never modify source artifacts; never invent missing data."
+    },
+    "validation-orchestrator": {
+      "id": "validation-orchestrator",
+      "path": "skills/validation-orchestrator",
+      "version": "0.1.0",
+      "status": "reserved",
+      "description": "Coordinate validation order (from pipeline waves), merge findings, emit overall validation status. Never modify source artifacts."
+    },
+    "validation-reporter": {
+      "id": "validation-reporter",
+      "path": "skills/validation-reporter",
+      "version": "0.1.0",
+      "status": "reserved",
+      "description": "Generate validation summary, severity-ranked issues, recommended fixes, and PASS/FAIL decision. Machine-readable only."
     }
   }
 }

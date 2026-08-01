@@ -1,0 +1,150 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_out_roadmap_generator",
+  "type": "delivery-roadmap",
+  "worker_id": "roadmap-generator",
+  "title": "Roadmap Generator output",
+  "summary": "Delivery roadmap owning release/phase sequencing and risks (RACI). No invented calendar dates.",
+  "entries": [
+    {
+      "id": "release-r1-foundation",
+      "entry_kind": "release",
+      "statement": "Release R1: foundation delivery of epic-jar-intent without inventing scope.",
+      "source_paths": [
+        "specifications/",
+        "tasks/",
+        "architecture-v2/",
+        "quality/"
+      ],
+      "confidence": 0.74,
+      "unknowns": [
+        "UNKNOWN: calendar ship date"
+      ],
+      "traceability": {
+        "feature": "features/",
+        "business_rule": "business/",
+        "api": "UNKNOWN: public API inventory incomplete in features/",
+        "database": "UNKNOWN: exact schema DDL not in validated packs",
+        "workflow": "workflow/",
+        "architecture_decision": "architecture-v2/",
+        "source_artifact": "tasks/"
+      }
+    },
+    {
+      "id": "phase-foundation",
+      "entry_kind": "phase",
+      "statement": "Phase: foundation \u2014 sequence work-items from tasks/ under R1.",
+      "source_paths": [
+        "tasks/",
+        "specifications/",
+        "architecture-v2/"
+      ],
+      "confidence": 0.76,
+      "depends_on": [
+        "release-r1-foundation"
+      ],
+      "unknowns": [
+        "UNKNOWN: calendar sprint dates"
+      ],
+      "traceability": {
+        "feature": "features/",
+        "business_rule": "business/",
+        "api": "UNKNOWN: public API inventory incomplete in features/",
+        "database": "UNKNOWN: exact schema DDL not in validated packs",
+        "workflow": "workflow/",
+        "architecture_decision": "decision-records/",
+        "source_artifact": "tasks/"
+      }
+    },
+    {
+      "id": "delivery-order-r1",
+      "entry_kind": "delivery-order",
+      "statement": "Delivery order: phase-foundation before later phases; respects task depends_on (epic\u2192feature\u2192story\u2192task).",
+      "source_paths": [
+        "tasks/",
+        "roadmap/",
+        "architecture-v2/"
+      ],
+      "confidence": 0.8,
+      "depends_on": [
+        "phase-foundation"
+      ],
+      "unknowns": [
+        "UNKNOWN: none noted"
+      ],
+      "traceability": {
+        "feature": "features/",
+        "business_rule": "business/",
+        "api": "UNKNOWN: public API inventory incomplete in features/",
+        "database": "UNKNOWN: exact schema DDL not in validated packs",
+        "workflow": "workflow/",
+        "architecture_decision": "decision-records/",
+        "source_artifact": "tasks/"
+      }
+    },
+    {
+      "id": "risk-api-unknown",
+      "entry_kind": "risk",
+      "statement": "Risk: API field UNKNOWN in specs may block task-review-api \u2014 mitigate by clarifying features/ not inventing fields.",
+      "source_paths": [
+        "specifications/",
+        "tasks/",
+        "quality/"
+      ],
+      "confidence": 0.85,
+      "unknowns": [
+        "UNKNOWN: residual API inventory"
+      ],
+      "traceability": {
+        "feature": "features/",
+        "business_rule": "business/",
+        "api": "UNKNOWN: public API inventory incomplete in features/",
+        "database": "UNKNOWN: exact schema DDL not in validated packs",
+        "workflow": "workflow/",
+        "architecture_decision": "decision-records/",
+        "source_artifact": "specifications/"
+      }
+    },
+    {
+      "id": "milestone-r1-phase-complete",
+      "entry_kind": "milestone",
+      "statement": "Release milestone: phase-foundation complete (not a work-item milestone).",
+      "source_paths": [
+        "roadmap/",
+        "tasks/"
+      ],
+      "confidence": 0.7,
+      "depends_on": [
+        "phase-foundation"
+      ],
+      "unknowns": [
+        "UNKNOWN: calendar date for milestone"
+      ],
+      "traceability": {
+        "source_artifact": "roadmap/",
+        "feature": "features/",
+        "business_rule": "UNKNOWN: n/a",
+        "api": "UNKNOWN: n/a",
+        "database": "UNKNOWN: n/a",
+        "workflow": "workflow/",
+        "architecture_decision": "architecture-v2/"
+      }
+    }
+  ],
+  "status": "ready",
+  "created_at": "2026-08-01T16:00:00Z",
+  "trace": {
+    "orchestration_id": "art_se_orchestration",
+    "plan_id": "art_se_plan",
+    "task_id": "art_task_roadmap_generator",
+    "run_id": "art_run_roadmap_generator",
+    "goal_id": "art_se_goal"
+  },
+  "extensions": {
+    "pipeline": "specification-engineering",
+    "invent_business_logic": false,
+    "redesign_system": false,
+    "overwrite_validated": false,
+    "raci_role": "delivery-sequencing"
+  }
+}

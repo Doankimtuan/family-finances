@@ -1,0 +1,122 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_out_schema_validator",
+  "type": "validation-finding",
+  "worker_id": "schema-validator",
+  "title": "schema-validator output",
+  "summary": "Validate JSON Schemas, markdown structure, required fields, data types, and schema compatibility. Never modify artifacts.",
+  "entries": [
+    {
+      "id": "schema-validator-json-schema-01",
+      "entry_kind": "json-schema",
+      "statement": "Sample finding `json-schema` for schema-validator.",
+      "validation_id": "VAL-SV-json-schem",
+      "target": "ai-os/schemas/",
+      "rule": "json-schema must satisfy Validation Engine contract",
+      "result": "pass",
+      "evidence": [
+        "schemas/validation-engine-payload.schema.json",
+        "workers/schema-validator/"
+      ],
+      "severity": "info",
+      "recommendation": "Do not mutate sources; remediate upstream packages if fail.",
+      "confidence": 0.8,
+      "source_paths": [
+        "schemas/",
+        "workers/",
+        "pipelines/",
+        "knowledge/",
+        "templates/"
+      ],
+      "unknowns": [
+        "UNKNOWN: none noted"
+      ],
+      "traceability": {
+        "source_artifact": "schemas/",
+        "knowledge": "knowledge/",
+        "pipeline": "validation-engine",
+        "worker": "schema-validator"
+      }
+    },
+    {
+      "id": "schema-validator-markdown-structure-01",
+      "entry_kind": "markdown-structure",
+      "statement": "Sample finding `markdown-structure` for schema-validator.",
+      "validation_id": "VAL-SV-markdown-s",
+      "target": "ai-os/workers/",
+      "rule": "markdown-structure must satisfy Validation Engine contract",
+      "result": "pass",
+      "evidence": [
+        "schemas/validation-engine-payload.schema.json",
+        "workers/schema-validator/"
+      ],
+      "severity": "info",
+      "recommendation": "Do not mutate sources; remediate upstream packages if fail.",
+      "confidence": 0.8,
+      "source_paths": [
+        "schemas/",
+        "workers/",
+        "pipelines/",
+        "knowledge/",
+        "templates/"
+      ],
+      "unknowns": [
+        "UNKNOWN: none noted"
+      ],
+      "traceability": {
+        "source_artifact": "schemas/",
+        "knowledge": "knowledge/",
+        "pipeline": "validation-engine",
+        "worker": "schema-validator"
+      }
+    },
+    {
+      "id": "schema-validator-required-fields-01",
+      "entry_kind": "required-fields",
+      "statement": "Sample finding `required-fields` for schema-validator.",
+      "validation_id": "VAL-SV-required-f",
+      "target": "ai-os/workers/",
+      "rule": "required-fields must satisfy Validation Engine contract",
+      "result": "pass",
+      "evidence": [
+        "schemas/validation-engine-payload.schema.json",
+        "workers/schema-validator/"
+      ],
+      "severity": "info",
+      "recommendation": "Do not mutate sources; remediate upstream packages if fail.",
+      "confidence": 0.8,
+      "source_paths": [
+        "schemas/",
+        "workers/",
+        "pipelines/",
+        "knowledge/",
+        "templates/"
+      ],
+      "unknowns": [
+        "UNKNOWN: none noted"
+      ],
+      "traceability": {
+        "source_artifact": "schemas/",
+        "knowledge": "knowledge/",
+        "pipeline": "validation-engine",
+        "worker": "schema-validator"
+      }
+    }
+  ],
+  "status": "ready",
+  "created_at": "2026-08-01T17:00:00Z",
+  "trace": {
+    "orchestration_id": "art_ve_orchestration",
+    "plan_id": "art_ve_plan",
+    "task_id": "art_task_schema_validator",
+    "run_id": "art_run_schema_validator",
+    "goal_id": "art_ve_goal"
+  },
+  "extensions": {
+    "pipeline": "validation-engine",
+    "mutate_source_artifacts": false,
+    "invent_missing_information": false,
+    "incremental": true,
+    "partial": true
+  }
+}

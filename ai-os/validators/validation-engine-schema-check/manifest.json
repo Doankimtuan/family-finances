@@ -1,0 +1,62 @@
+{
+  "schema_version": "1.0.0",
+  "id": "validation-engine-schema-check",
+  "version": "0.1.0",
+  "title": "Validation Engine Schema Check",
+  "description": "Deterministic checks for validation-engine payloads.",
+  "applies_to": [
+    "validation-finding",
+    "validation-status",
+    "quality-scores",
+    "validation-report"
+  ],
+  "checks": [
+    {
+      "check_id": "schema-valid",
+      "severity": "critical",
+      "rule": "payload validates against schemas/validation-engine-payload.schema.json",
+      "path": "payload.json"
+    },
+    {
+      "check_id": "finding-fields-required",
+      "severity": "critical",
+      "rule": "every entry has validation_id,target,rule,result,evidence,severity,recommendation,confidence,traceability,unknowns,source_paths",
+      "path": "$.entries[*]"
+    },
+    {
+      "check_id": "no-mutate-sources",
+      "severity": "critical",
+      "rule": "extensions.mutate_source_artifacts is not true",
+      "path": "$.extensions.mutate_source_artifacts"
+    },
+    {
+      "check_id": "no-invent-missing",
+      "severity": "critical",
+      "rule": "extensions.invent_missing_information is not true",
+      "path": "$.extensions.invent_missing_information"
+    },
+    {
+      "check_id": "unknowns-prefix",
+      "severity": "high",
+      "rule": "unknowns[] items start with UNKNOWN:",
+      "path": "$.entries[*].unknowns"
+    },
+    {
+      "check_id": "evidence-required",
+      "severity": "critical",
+      "rule": "every entry.evidence has \u22651 path",
+      "path": "$.entries[*].evidence"
+    }
+  ],
+  "fail_fast": true,
+  "side_effects": [
+    "none"
+  ],
+  "outputs": [
+    "validation-report"
+  ],
+  "status": "reserved",
+  "extensions": {
+    "pipeline": "validation-engine"
+  }
+}

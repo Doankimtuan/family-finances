@@ -1,0 +1,37 @@
+{
+  "id": "case-04-blocking-review-fail",
+  "title": "Blocking review prevents publish",
+  "description": "When reviews_blocking is true, a fail/veto must fail the run and leave outputs unpublished.",
+  "given": {
+    "gate_profile": "standard",
+    "orchestration_budget": {
+      "allowed_side_effects": ["none", "runtime-write"]
+    },
+    "task": {
+      "artifact_id": "art_tc04_task",
+      "skill_id": "{{skill_id}}",
+      "skill_version": "0.0.0",
+      "primary_output_type": "{{artifact_type}}",
+      "validators": ["{{validator_id}}"],
+      "reviewers": ["{{reviewer_id}}"],
+      "side_effect_budget": ["runtime-write"]
+    },
+    "validator_stub_result": "pass",
+    "reviewer_stub_result": "fail"
+  },
+  "when": {
+    "action": "run-worker",
+    "worker_id": "quality-scoring-engine",
+    "worker_version": "0.0.0"
+  },
+  "expect": {
+    "run_status": "failed",
+    "failed_phase": "reviewing",
+    "artifact_statuses": {
+      "primary_output": "ready",
+      "validation_report": "ready",
+      "review_report": "ready"
+    },
+    "published": false
+  }
+}

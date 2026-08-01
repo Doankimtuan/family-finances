@@ -1,0 +1,116 @@
+{
+  "description": "Claimed run context for Specification Engineering worker task-generator.",
+  "orchestration_id": "art_se_orchestration",
+  "plan_id": "art_se_plan",
+  "goal_id": "art_se_goal",
+  "task": {
+    "artifact_id": "art_task_task_generator",
+    "artifact_version": 1,
+    "skill_id": "task-generator",
+    "skill_version": "0.1.0",
+    "primary_output_type": "engineering-task-graph",
+    "validators": [
+      "specification-engineering-schema-check"
+    ],
+    "reviewers": [
+      "specification-engineering-coverage-review"
+    ],
+    "side_effect_budget": [
+      "runtime-write"
+    ],
+    "done_when": [
+      "ready engineering-task-graph with traceability + unknowns"
+    ]
+  },
+  "run": {
+    "artifact_id": "art_run_task_generator",
+    "status": "claimed",
+    "attempt": 1
+  },
+  "inputs": [
+    {
+      "name": "goal",
+      "artifact_id": "art_se_goal",
+      "artifact_version": 1
+    },
+    {
+      "name": "knowledge",
+      "path": "knowledge/",
+      "artifact_id": "art_in_knowledge",
+      "artifact_version": 1
+    },
+    {
+      "name": "repository",
+      "path": "repository/",
+      "artifact_id": "art_in_repository",
+      "artifact_version": 1
+    },
+    {
+      "name": "features",
+      "path": "features/",
+      "artifact_id": "art_in_features",
+      "artifact_version": 1
+    },
+    {
+      "name": "business",
+      "path": "business/",
+      "artifact_id": "art_in_business",
+      "artifact_version": 1
+    },
+    {
+      "name": "architecture",
+      "path": "product-architecture/",
+      "artifact_id": "art_in_product_architecture",
+      "artifact_version": 1
+    },
+    {
+      "name": "architecture-v2",
+      "path": "architecture-v2/",
+      "artifact_id": "art_in_architecture_v2",
+      "artifact_version": 1
+    },
+    {
+      "name": "requirements",
+      "path": "requirements/",
+      "artifact_id": "art_in_requirements",
+      "artifact_version": 1
+    },
+    {
+      "name": "quality",
+      "path": "quality/",
+      "artifact_id": "art_in_quality",
+      "artifact_version": 1
+    },
+    {
+      "name": "redesign",
+      "path": "redesign/",
+      "artifact_id": "art_in_redesign",
+      "artifact_version": 1
+    },
+    {
+      "name": "workflow",
+      "path": "workflow/",
+      "artifact_id": "art_in_workflow",
+      "artifact_version": 1
+    },
+    {
+      "name": "acceptance",
+      "path": "acceptance/",
+      "artifact_id": "art_in_acceptance",
+      "artifact_version": 1
+    },
+    {
+      "name": "specifications",
+      "path": "specifications/",
+      "artifact_id": "art_in_specifications",
+      "artifact_version": 1
+    }
+  ],
+  "gate_profile": "standard",
+  "budget": {
+    "allowed_side_effects": [
+      "none",
+      "runtime-write"
+    ]
+  }
+}

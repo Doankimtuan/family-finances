@@ -1,0 +1,24 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "art_task_validation_reporter",
+  "worker_id": "validation-reporter",
+  "skill_id": "validation-reporter",
+  "consumes": [
+    "schemas",
+    "artifacts",
+    "workers",
+    "pipelines",
+    "execution",
+    "templates",
+    "knowledge"
+  ],
+  "validators": [
+    "validation-engine-schema-check"
+  ],
+  "reviewers": [
+    "validation-engine-coverage-review"
+  ],
+  "extensions": {
+    "pipeline": "validation-engine"
+  }
+}

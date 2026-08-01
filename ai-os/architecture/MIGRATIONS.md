@@ -7,6 +7,56 @@
 - Additive schema fields may stay on the same `schema_version` const when optional.
 - Removing/renaming required fields or changing enum membership is breaking.
 
+## 0.6.1 → 0.7.0 (2026-08-01)
+
+Validation Engine packaging (Feature Workers still forbidden; Core still does not invoke workers). Validations are **not executed** in this milestone.
+
+| Change | Detail |
+|--------|--------|
+| Pipeline | `pipelines/validation-engine/` — 10 workers, 6 waves, 27 edges |
+| Workers | artifact/schema/dependency/pipeline/traceability/completeness/consistency validators + quality-scoring-engine + validation-orchestrator + validation-reporter |
+| I/O | Soft `artifacts/`, `execution/`; produce `validation/`, `reports/`, `scores/`; additive `quality/validation-scorecard/` (SA `quality/` templates untouched) |
+| Contract | `contracts/validation-engine.md` |
+| Schemas | `validation-engine-payload.schema.json` + typed finding/status/scores/report wrappers |
+| Validator/Reviewer | `validation-engine-schema-check` / `validation-engine-coverage-review` |
+| Knowledge | `validateValidationEnginePipelineRegistration()` |
+| Smoke | `npm run aios:validation-engine:smoke` |
+| Invariants | Never mutate sources; never invent missing info; structured findings only |
+
+## 0.6.0 → 0.6.1 (2026-08-01)
+
+Sprint 6 Specification Engineering Product Review Board HOLD remediation (Feature Workers still forbidden; Core still does not invoke workers).
+
+| Change | Detail |
+|--------|--------|
+| C1–C3 | Spec body fields + full traceability matrix in schema; section coverage + body/matrix validator checks |
+| C4 / H8 | Workers/skills consume `decision-records/`, `tech-stack/`, `migration/`, `folder-structure/` |
+| H1 | `pipelines/specification-engineering/RACI.md` ordering ownership |
+| H2 | `repository/` documented as human/pre-step soft input (not Spec Eng produce) |
+| H3 | Mandatory section gaps via `gap` entries + coverage validator (no new worker) |
+| H4 | Skill Heuristics / stronger Done-when / restate-not-rewrite |
+| H5 | Hardened `aios:specification-engineering:smoke` (section coverage, skill types, rubric path) |
+| H6 | On-disk rubric under `reviewers/.../rubric/` |
+| H7 / M1–M2 | Produce-folder examples + specialized TEMPLATEs / template.schema.json |
+| M3 | Pipeline `extensions.consumes` drops bare `architecture` (alias only) |
+| M5 | Documented `tasks/` ≠ Core `task` |
+| Schemas | `repository-notes.schema.json`; payload schema v extended; validator **0.2.0**; pipeline **0.1.1** |
+
+## 0.5.1 → 0.6.0 (2026-08-01)
+
+Specification Engineering phase (Feature Workers still forbidden; Core still does not invoke workers). Workers packaged only — not executed; no live project specifications generated.
+
+| Change | Detail |
+|--------|--------|
+| Pipeline | `pipelines/specification-engineering/` — 4 workers, 4 waves, 6 edges |
+| Workers | `specification-generator`, `task-generator`, `roadmap-generator`, `implementation-planner` |
+| I/O | Consume knowledge/, repository/, features/, business/, product-architecture/ (alias architecture/), architecture-v2/, requirements/, quality/, redesign/, workflow/, acceptance/; produce specifications/, tasks/, roadmap/, implementation/ |
+| Schemas | `specification-engineering-payload.schema.json` + typed specs; entries require `source_paths`, `confidence`, `traceability`, `unknowns` |
+| Validator/Reviewer | `specification-engineering-schema-check` / `specification-engineering-coverage-review` |
+| Knowledge | `validateSpecificationEngineeringPipelineRegistration()` |
+| Smoke | `npm run aios:specification-engineering:smoke` |
+| Invariants | Never invent business logic; never redesign; never change requirements; mark gaps `UNKNOWN`; never overwrite validated upstream artifacts |
+
 ## 0.5.0 → 0.5.1 (2026-08-01)
 
 Product Review Board HOLD remediation for Sprint 4 Product RE (Feature Workers still forbidden; Core still does not invoke workers). Solution Architecture pipeline unchanged.

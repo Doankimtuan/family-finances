@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "registry_kind": "artifact-types",
-  "updated_at": "2026-08-01T14:00:00Z",
+  "updated_at": "2026-08-01T17:00:00Z",
   "entries": {
     "goal": {
       "id": "goal",
@@ -60,7 +60,7 @@
     },
     "validation-report": {
       "id": "validation-report",
-      "description": "Deterministic gate result",
+      "description": "Validation Engine PASS/FAIL report",
       "payload_kinds": [
         "json",
         "markdown"
@@ -273,7 +273,7 @@
     },
     "redesign-overview": {
       "id": "redesign-overview",
-      "description": "Solution redesign overview notes",
+      "description": "Solution redesign overview notes (Solution Architecture produce)",
       "payload_kinds": [
         "json",
         "markdown"
@@ -292,6 +292,78 @@
     "app-surface": {
       "id": "app-surface",
       "description": "Soft input: application route/UI surface references for Product RE feature inventory",
+      "payload_kinds": [
+        "json",
+        "markdown"
+      ],
+      "status": "active"
+    },
+    "repository-notes": {
+      "id": "repository-notes",
+      "description": "Validated repository layout notes for specification engineering",
+      "payload_kinds": [
+        "json",
+        "markdown"
+      ],
+      "status": "active"
+    },
+    "project-specification": {
+      "id": "project-specification",
+      "description": "Implementation-ready software specification pack",
+      "payload_kinds": [
+        "json",
+        "markdown"
+      ],
+      "status": "active"
+    },
+    "engineering-task-graph": {
+      "id": "engineering-task-graph",
+      "description": "Executable engineering task graph (epics\u2192subtasks)",
+      "payload_kinds": [
+        "json",
+        "markdown"
+      ],
+      "status": "active"
+    },
+    "delivery-roadmap": {
+      "id": "delivery-roadmap",
+      "description": "Release/roadmap planning artifact",
+      "payload_kinds": [
+        "json",
+        "markdown"
+      ],
+      "status": "active"
+    },
+    "implementation-plan": {
+      "id": "implementation-plan",
+      "description": "Implementation order / critical path / parallel work plan",
+      "payload_kinds": [
+        "json",
+        "markdown"
+      ],
+      "status": "active"
+    },
+    "validation-finding": {
+      "id": "validation-finding",
+      "description": "Validation Engine finding entry pack",
+      "payload_kinds": [
+        "json",
+        "markdown"
+      ],
+      "status": "active"
+    },
+    "validation-status": {
+      "id": "validation-status",
+      "description": "Merged validation status / order / overall result",
+      "payload_kinds": [
+        "json",
+        "markdown"
+      ],
+      "status": "active"
+    },
+    "quality-scores": {
+      "id": "quality-scores",
+      "description": "Validation Engine quality dimension scores",
       "payload_kinds": [
         "json",
         "markdown"

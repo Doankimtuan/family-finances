@@ -24,6 +24,16 @@ ai-os/
 ├── migration/              # Solution Architecture produce
 ├── folder-structure/       # Solution Architecture produce
 ├── decision-records/       # Solution Architecture produce (ADRs)
+├── repository/             # Specification Engineering soft input
+├── specifications/         # Specification Engineering produce
+├── tasks/                  # Specification Engineering produce
+├── roadmap/                # Specification Engineering produce
+├── implementation/         # Specification Engineering produce
+├── validation/             # Validation Engine produce (findings/status)
+├── reports/                # Validation Engine produce (PASS/FAIL reports)
+├── scores/                 # Validation Engine produce (quality-scores)
+├── artifacts/              # Validation Engine soft consume (→ runtime/artifacts)
+├── execution/              # Validation Engine soft consume (lifecycle notes)
 ├── core/                   # Core Engine (TypeScript control plane)
 │   ├── planner/
 │   ├── orchestrator/
@@ -39,14 +49,14 @@ ai-os/
 │   └── worker/
 ├── contracts/
 ├── policies/
-├── pipelines/              # discovery + product-re + solution-architecture
+├── pipelines/              # discovery + product-re + solution-architecture + specification-engineering + validation-engine
 ├── registry/
 ├── roles/
 ├── runtime/
 ├── skills/
 ├── validators/
 ├── reviewers/
-└── workers/                # Discovery + Product RE + Solution Architecture (Feature Workers forbidden)
+└── workers/                # Discovery + Product RE + SA + Spec Eng + Validation Engine (Feature Workers forbidden)
 ```
 
 ## Runtime layout
@@ -63,10 +73,12 @@ Prefer writing under `runtime/artifacts/`. Working folders hold templates + publ
 |---------|----------|
 | AIOS conventions | `architecture/` |
 | Product architecture observations | `product-architecture/` |
-| Quality / debt inputs | `quality/` |
+| Quality / debt inputs | `quality/` (SA); additive `quality/validation-scorecard/` for VE |
 | Solution redesign outputs | `redesign/`, `architecture-v2/`, `tech-stack/`, `migration/`, `folder-structure/`, `decision-records/` |
+| Spec engineering outputs | `specifications/`, `tasks/`, `roadmap/`, `implementation/` (+ soft `repository/`) |
+| Validation engine outputs | `validation/`, `reports/`, `scores/` |
 | Machine contracts | `schemas/` |
 | Core Engine code | `core/` |
 | Catalogs | `registry/` |
 | Executors | `workers/` |
-| Pipelines | `pipelines/discovery/`, `pipelines/product-re/`, `pipelines/solution-architecture/` |
+| Pipelines | `pipelines/discovery/`, `pipelines/product-re/`, `pipelines/solution-architecture/`, `pipelines/specification-engineering/`, `pipelines/validation-engine/` |

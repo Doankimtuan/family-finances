@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aios.dev/schemas/workers/quality-scoring-engine/output.schema.json",
+  "title": "AIOS Validation Engine Worker Output \u2014 quality-scoring-engine",
+  "allOf": [
+    {
+      "$ref": "https://aios.dev/schemas/worker-output-envelope.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "worker_id": {
+          "const": "quality-scoring-engine"
+        },
+        "extensions": {
+          "type": "object",
+          "properties": {
+            "pipeline": {
+              "const": "validation-engine"
+            },
+            "primary_output_type": {
+              "const": "quality-scores"
+            },
+            "produces": {
+              "const": [
+                "scores"
+              ]
+            },
+            "mutate_source_artifacts": {
+              "const": false
+            }
+          }
+        }
+      }
+    }
+  ]
+}

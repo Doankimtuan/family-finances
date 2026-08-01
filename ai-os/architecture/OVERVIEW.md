@@ -13,6 +13,12 @@ Orchestrator ──► Planner ──► Plan + Task artifacts + Dependency grap
     ├─ Product RE Workers ──► product knowledge chain
     │
     └─ Solution Architecture Workers ──► architecture-v2 / tech-stack / migration / folder-structure
+         │
+         └─ Specification Engineering Workers ──► specifications / tasks / roadmap / implementation
+                                                  (packaged; not invoked yet)
+              │
+              └─ Validation Engine Workers ──► validation / scores / reports
+                                               (packaged; never mutate sources; not invoked yet)
                                          ▲
                                          │
           Core loads/validates registries/pipelines
@@ -21,7 +27,7 @@ Orchestrator ──► Planner ──► Plan + Task artifacts + Dependency grap
 Validator ──► Reviewer ──► Quality gate ──► publish | hold | retry | replan | abort | escalate
 ```
 
-Workers are contracted (`contracts/worker-port.md`). **Discovery Workers** live under `workers/discover-*` + `pipelines/discovery/`. **Product RE Workers** live under `pipelines/product-re/` (still `worker_class: discovery`). **Feature Workers are not implemented**. Core Engine **loads and validates** pipelines; it does not claim/run workers.
+Workers are contracted (`contracts/worker-port.md`). **Discovery**, **Product RE**, **Solution Architecture**, and **Specification Engineering** packages use `worker_class: discovery`. **Feature Workers are not implemented**. Core Engine **loads and validates** pipelines; it does not claim/run workers.
 
 ## Core objects
 
@@ -37,6 +43,8 @@ All durable objects are **artifacts** (`art_…` + `type`).
 | `knowledge-notes` / `feature-inventory` / `business-rules` / `product-architecture-notes` | Product RE ingest |
 | `product-model` / `workflow-model` / `requirement-spec` / `acceptance-criteria` | Product RE transforms |
 | `product-re-gap` | Product RE gap synthesizer |
+| `project-specification` / `engineering-task-graph` / `delivery-roadmap` / `implementation-plan` | Specification Engineering (packaged) |
+| `validation-finding` / `validation-status` / `quality-scores` / `validation-report` | Validation Engine (packaged) |
 | `run-record` | executor / orchestrator |
 | `validation-report` | validator |
 | `review-report` | reviewer |
@@ -51,10 +59,10 @@ All durable objects are **artifacts** (`art_…` + `type`).
 |-------|----------|
 | Control | orchestration, plans, tasks, runs, gates, decisions |
 | Data | artifacts, dependency graphs, registries |
-| Capability | skills, validators, reviewers (discovery + product-re reserved stubs) |
+| Capability | skills, validators, reviewers (registered pipeline stubs) |
 | Policy | `policies/gate-profiles.json` |
-| Execution | Discovery + Product RE Worker packages; Feature Workers deferred |
-| Pipelines | `pipelines/discovery/`, `pipelines/product-re/` |
+| Execution | Discovery + Product RE + SA + Spec Eng packages; Feature Workers deferred |
+| Pipelines | `pipelines/discovery/`, `pipelines/product-re/`, `pipelines/solution-architecture/`, `pipelines/specification-engineering/`, `pipelines/validation-engine/` |
 
 ## Design principles
 
@@ -74,8 +82,8 @@ See `contracts/cursor-bridge.md`.
 
 ## Versioning
 
-- Framework: `VERSION` (now `0.5.1`)
-- Release notes: `RELEASE_NOTES_0.5.1.md` (Sprint 4 HOLD remediation); see also `MIGRATIONS.md`
+- Framework: `VERSION` (now `0.7.0`)
+- Release notes: `RELEASE_NOTES_0.7.0.md` (Validation Engine packaged); see also `MIGRATIONS.md`
 - Core Engine: `ai-os/core/` (planner, orchestrator, artifacts, memory, knowledge)
 - Breaking changes: `architecture/MIGRATIONS.md`
 - Packages: semver in manifests

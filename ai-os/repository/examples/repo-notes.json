@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_repository_notes_human",
+  "type": "repository-notes",
+  "worker_id": "repository-prestep",
+  "title": "Repository layout notes (human/pre-step)",
+  "summary": "Soft input authored by human or pre-step before Spec Eng. Not produced by Spec Eng workers.",
+  "entries": [
+    {
+      "id": "repo-layout-app",
+      "entry_kind": "layout",
+      "statement": "App source under app/; domain under DOMAIN_MODEL \u2014 soft notes only.",
+      "source_paths": [
+        "repository/",
+        "knowledge/"
+      ],
+      "confidence": 0.7,
+      "unknowns": [
+        "UNKNOWN: none noted"
+      ],
+      "traceability": {
+        "source_artifact": "repository/"
+      }
+    }
+  ],
+  "status": "ready",
+  "created_at": "2026-08-01T16:00:00Z",
+  "extensions": {
+    "pipeline": "specification-engineering",
+    "ownership": "human-or-prestep",
+    "invent_business_logic": false
+  }
+}

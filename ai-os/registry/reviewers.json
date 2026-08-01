@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "registry_kind": "reviewers",
-  "updated_at": "2026-08-01T13:00:00Z",
+  "updated_at": "2026-08-01T17:00:00Z",
   "entries": {
     "discovery-coverage-review": {
       "id": "discovery-coverage-review",
@@ -23,6 +23,20 @@
       "version": "0.1.0",
       "status": "reserved",
       "description": "Coverage review for solution-architecture redesign outputs"
+    },
+    "specification-engineering-coverage-review": {
+      "id": "specification-engineering-coverage-review",
+      "path": "reviewers/specification-engineering-coverage-review",
+      "version": "0.2.0",
+      "status": "reserved",
+      "description": "Coverage review for specification-engineering outputs"
+    },
+    "validation-engine-coverage-review": {
+      "id": "validation-engine-coverage-review",
+      "path": "reviewers/validation-engine-coverage-review",
+      "version": "0.1.0",
+      "status": "reserved",
+      "description": "Coverage review for validation-engine outputs"
     }
   }
 }

@@ -1,0 +1,24 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "art_task_traceability_validator",
+  "worker_id": "traceability-validator",
+  "skill_id": "traceability-validator",
+  "consumes": [
+    "schemas",
+    "artifacts",
+    "workers",
+    "pipelines",
+    "execution",
+    "templates",
+    "knowledge"
+  ],
+  "validators": [
+    "validation-engine-schema-check"
+  ],
+  "reviewers": [
+    "validation-engine-coverage-review"
+  ],
+  "extensions": {
+    "pipeline": "validation-engine"
+  }
+}

@@ -1,0 +1,155 @@
+{
+  "schema_version": "1.0.0",
+  "id": "implementation-planner",
+  "version": "0.1.1",
+  "title": "Implementation Planner",
+  "description": "Generate implementation order, critical path, parallel work, blocked tasks, and build order. Never invent business logic.",
+  "role": "executor",
+  "grade": "guided",
+  "inputs": [
+    {
+      "name": "goal",
+      "artifact_type": "goal",
+      "required": true,
+      "description": "Specification engineering orchestration goal"
+    },
+    {
+      "name": "knowledge",
+      "artifact_type": "knowledge-notes",
+      "required": true,
+      "description": "Consume: knowledge"
+    },
+    {
+      "name": "repository",
+      "artifact_type": "repository-notes",
+      "required": false,
+      "description": "Soft: human/pre-step repository notes"
+    },
+    {
+      "name": "features",
+      "artifact_type": "feature-inventory",
+      "required": true,
+      "description": "Consume: features"
+    },
+    {
+      "name": "business",
+      "artifact_type": "business-rules",
+      "required": true,
+      "description": "Consume: business"
+    },
+    {
+      "name": "architecture",
+      "artifact_type": "product-architecture-notes",
+      "required": true,
+      "description": "Consume: product-architecture (logical architecture/)"
+    },
+    {
+      "name": "architecture-v2",
+      "artifact_type": "architecture-v2-spec",
+      "required": false,
+      "description": "Soft: architecture-v2"
+    },
+    {
+      "name": "decision-records",
+      "artifact_type": "architecture-decision-record",
+      "required": false,
+      "description": "Soft: decision-records ADRs"
+    },
+    {
+      "name": "tech-stack",
+      "artifact_type": "tech-stack-recommendation",
+      "required": false,
+      "description": "Soft: tech-stack"
+    },
+    {
+      "name": "migration",
+      "artifact_type": "migration-plan",
+      "required": false,
+      "description": "Soft: migration"
+    },
+    {
+      "name": "folder-structure",
+      "artifact_type": "folder-structure-spec",
+      "required": false,
+      "description": "Soft: folder-structure"
+    },
+    {
+      "name": "requirements",
+      "artifact_type": "requirement-spec",
+      "required": true,
+      "description": "Consume: requirements"
+    },
+    {
+      "name": "quality",
+      "artifact_type": "quality-notes",
+      "required": false,
+      "description": "Soft: quality"
+    },
+    {
+      "name": "redesign",
+      "artifact_type": "redesign-overview",
+      "required": false,
+      "description": "Soft: redesign"
+    },
+    {
+      "name": "workflow",
+      "artifact_type": "workflow-model",
+      "required": true,
+      "description": "Consume: workflow"
+    },
+    {
+      "name": "acceptance",
+      "artifact_type": "acceptance-criteria",
+      "required": true,
+      "description": "Consume: acceptance"
+    },
+    {
+      "name": "specifications",
+      "artifact_type": "project-specification",
+      "required": true,
+      "description": "Consume: specifications"
+    },
+    {
+      "name": "tasks",
+      "artifact_type": "engineering-task-graph",
+      "required": true,
+      "description": "Consume: tasks"
+    },
+    {
+      "name": "roadmap",
+      "artifact_type": "delivery-roadmap",
+      "required": true,
+      "description": "Consume: roadmap"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "primary",
+      "artifact_type": "implementation-plan",
+      "primary": true,
+      "description": "implementation-plan"
+    }
+  ],
+  "requires_skills": [],
+  "validators": [
+    "specification-engineering-schema-check"
+  ],
+  "reviewers": [
+    "specification-engineering-coverage-review"
+  ],
+  "side_effects": [
+    "runtime-write"
+  ],
+  "status": "reserved",
+  "entrypoint": "SKILL.md",
+  "extensions": {
+    "pipeline": "specification-engineering",
+    "role_alias": "implementation-planner",
+    "invent_business_logic": false,
+    "consume_aliases": {
+      "architecture": "product-architecture"
+    },
+    "raci_doc": "pipelines/specification-engineering/RACI.md",
+    "restate_not_rewrite": true
+  }
+}
