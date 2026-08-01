@@ -1,0 +1,12 @@
+{
+  "board": "Mobile Experience & Design System Board",
+  "run_id": "run_mobile_design_system_20260801T180000Z",
+  "at": "2026-08-01T16:01:24Z",
+  "path": "artifacts/design-foundation/CURRENT",
+  "version": "v1.1.0",
+  "status": "OFFICIAL_DESIGN_SOURCE_OF_TRUTH",
+  "verdict": "FROZEN",
+  "application_viewport_max_px": 440,
+  "ui_kit": "HeroUI v3",
+  "supersedes": "v1.0.0"
+}

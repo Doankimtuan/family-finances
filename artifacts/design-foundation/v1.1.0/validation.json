@@ -1,0 +1,59 @@
+{
+  "run_id": "run_mobile_design_system_20260801T180000Z",
+  "created_at": "2026-08-01T16:01:24Z",
+  "version": "v1.1.0",
+  "pass": true,
+  "supersedes": "v1.0.0",
+  "checks": [
+    {
+      "id": "product_ia",
+      "pass": true
+    },
+    {
+      "id": "br01_real_virtual",
+      "pass": true
+    },
+    {
+      "id": "br15_offline",
+      "pass": true
+    },
+    {
+      "id": "req019_a11y",
+      "pass": true
+    },
+    {
+      "id": "mobile_native_canvas_440",
+      "pass": true
+    },
+    {
+      "id": "no_sidebar",
+      "pass": true
+    },
+    {
+      "id": "heroui_v3_only",
+      "pass": true
+    },
+    {
+      "id": "phosphor_only",
+      "pass": true
+    },
+    {
+      "id": "calm_ledger_inherited",
+      "pass": true
+    },
+    {
+      "id": "overlays_in_viewport",
+      "pass": true
+    },
+    {
+      "id": "no_product_arch_tech_edits",
+      "pass": true
+    },
+    {
+      "id": "no_enterprise_patterns",
+      "pass": true
+    }
+  ],
+  "contradictions": [],
+  "ready_for_sot": true
+}
