@@ -1,4 +1,16 @@
-/** IA route scaffold — money. No legacy UI. */
+import { Heading } from "@/shared/ui/heading";
+import { Text } from "@/shared/ui/text";
+
+/** IA route scaffold — money. No business logic. */
 export default function Page() {
-  return <main><h1>money</h1></main>;
+  return (
+    <div className="flex flex-col gap-(--space-2)">
+      <Heading level={2} className="capitalize">
+        money
+      </Heading>
+      <Text tone="secondary" size="sm">
+        Foundation stub — Sprint 0
+      </Text>
+    </div>
+  );
 }

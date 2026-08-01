@@ -2,10 +2,12 @@ import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
 import unusedImports from "eslint-plugin-unused-imports";
+import eslintConfigPrettier from "eslint-config-prettier";
 
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
+  eslintConfigPrettier,
   {
     plugins: {
       "unused-imports": unusedImports,
@@ -29,6 +31,11 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    "archive/**",
+    "ai-os/**",
+    "artifacts/**",
+    "node_modules/**",
+    "coverage/**",
   ]),
 ]);
 

@@ -1,4 +1,16 @@
-/** IA route scaffold — health. No legacy UI. */
+import { Heading } from "@/shared/ui/heading";
+import { Text } from "@/shared/ui/text";
+
+/** IA route scaffold — health. No business logic. */
 export default function Page() {
-  return <main><h1>health</h1></main>;
+  return (
+    <div className="flex flex-col gap-(--space-2)">
+      <Heading level={2} className="capitalize">
+        health
+      </Heading>
+      <Text tone="secondary" size="sm">
+        Foundation stub — Sprint 0
+      </Text>
+    </div>
+  );
 }

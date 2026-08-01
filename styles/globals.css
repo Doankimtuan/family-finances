@@ -1,0 +1,180 @@
+@import "tailwindcss";
+@import "@heroui/styles";
+
+/* ViNha Calm Ledger semantic tokens — override HeroUI defaults */
+
+@theme inline {
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  /* Map utilities → semantic tokens defined on :root / .dark (no self-refs) */
+  --color-canvas-outer: var(--vinha-canvas-outer);
+  --color-canvas: var(--vinha-canvas);
+  --color-surface: var(--vinha-surface);
+  --color-surface-elevated: var(--vinha-surface-elevated);
+  --color-border-subtle: var(--vinha-border-subtle);
+  --color-border-strong: var(--vinha-border-strong);
+  --color-text-primary: var(--vinha-text-primary);
+  --color-text-secondary: var(--vinha-text-secondary);
+  --color-text-muted: var(--vinha-text-muted);
+  --color-accent: var(--vinha-accent);
+  --color-accent-fg: var(--vinha-accent-fg);
+  --color-danger: var(--vinha-danger);
+  --color-warning: var(--vinha-warning);
+  --color-success: var(--vinha-success);
+  --color-credit: var(--vinha-credit);
+  --color-debit: var(--vinha-debit);
+  --color-focus-ring: var(--vinha-focus-ring);
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+}
+
+:root {
+  color-scheme: light;
+
+  --vinha-canvas-outer: #f5f5f4; /* stone-100 */
+  --vinha-canvas: #fafaf9; /* stone-50 */
+  --vinha-surface: #ffffff;
+  --vinha-surface-elevated: #ffffff;
+  --vinha-border-subtle: #e7e5e4; /* stone-200 */
+  --vinha-border-strong: #d6d3d1; /* stone-300 */
+  --vinha-text-primary: #18181b; /* zinc-900 */
+  --vinha-text-secondary: #52525b; /* zinc-600 */
+  --vinha-text-muted: #71717a; /* zinc-500 */
+  --vinha-accent: #0f766e;
+  --vinha-accent-fg: #fafafa;
+  --vinha-danger: #be123c; /* rose-700 */
+  --vinha-warning: #b45309; /* amber-700 */
+  --vinha-success: #047857; /* emerald-700 */
+  --vinha-credit: #047857;
+  --vinha-debit: #27272a; /* zinc-800 */
+  --vinha-focus-ring: #0f766e;
+
+  /* Public semantic aliases used in components */
+  --color-canvas-outer: var(--vinha-canvas-outer);
+  --color-canvas: var(--vinha-canvas);
+  --color-surface: var(--vinha-surface);
+  --color-surface-elevated: var(--vinha-surface-elevated);
+  --color-border-subtle: var(--vinha-border-subtle);
+  --color-border-strong: var(--vinha-border-strong);
+  --color-text-primary: var(--vinha-text-primary);
+  --color-text-secondary: var(--vinha-text-secondary);
+  --color-text-muted: var(--vinha-text-muted);
+  --color-accent: var(--vinha-accent);
+  --color-accent-fg: var(--vinha-accent-fg);
+  --color-danger: var(--vinha-danger);
+  --color-warning: var(--vinha-warning);
+  --color-success: var(--vinha-success);
+  --color-credit: var(--vinha-credit);
+  --color-debit: var(--vinha-debit);
+  --color-focus-ring: var(--vinha-focus-ring);
+
+  --space-0: 0px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  --app-viewport-max: 440px;
+  --app-viewport-min: 320px;
+  --app-viewport-band-max: 480px;
+  --app-viewport-tablet-optional: 640px;
+
+  --duration-fast: 150ms;
+  --duration-normal: 200ms;
+  --duration-slow: 250ms;
+  --duration-celebrate: 600ms;
+  --ease-standard: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --z-base: 0;
+  --z-sticky: 10;
+  --z-nav: 20;
+  --z-dropdown: 30;
+  --z-overlay: 40;
+  --z-modal: 50;
+  --z-toast: 60;
+
+  --opacity-disabled: 0.5;
+  --opacity-muted: 0.7;
+  --opacity-overlay: 0.4;
+
+  --elevation-0: none;
+  --elevation-1: 0 1px 2px rgb(15 23 42 / 0.06);
+  --elevation-2: 0 8px 24px rgb(15 23 42 / 0.1);
+  --elevation-3: 0 16px 40px rgb(15 23 42 / 0.16);
+
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-right: env(safe-area-inset-right, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-left: env(safe-area-inset-left, 0px);
+}
+
+.dark,
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --vinha-canvas-outer: #09090b; /* zinc-950 */
+  --vinha-canvas: #09090b;
+  --vinha-surface: #18181b; /* zinc-900 */
+  --vinha-surface-elevated: #27272a; /* zinc-800 */
+  --vinha-border-subtle: #3f3f46; /* zinc-700 */
+  --vinha-border-strong: #52525b; /* zinc-600 */
+  --vinha-text-primary: #fafafa; /* zinc-50 */
+  --vinha-text-secondary: #a1a1aa; /* zinc-400 */
+  --vinha-text-muted: #71717a; /* zinc-500 */
+  --vinha-accent: #2dd4bf; /* teal-400 */
+  --vinha-accent-fg: #09090b;
+  --vinha-danger: #fb7185; /* rose-400 */
+  --vinha-warning: #fbbf24; /* amber-400 */
+  --vinha-success: #34d399; /* emerald-400 */
+  --vinha-credit: #34d399;
+  --vinha-debit: #e4e4e7; /* zinc-200 */
+  --vinha-focus-ring: #2dd4bf;
+
+  --elevation-1: 0 1px 2px rgb(0 0 0 / 0.35);
+  --elevation-2: 0 8px 24px rgb(0 0 0 / 0.45);
+  --elevation-3: 0 16px 40px rgb(0 0 0 / 0.55);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--color-canvas-outer);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  min-height: 100dvh;
+}
+
+#app-viewport-root {
+  isolation: isolate;
+  /* Contain fixed-position portals (toasts / modals) to the phone canvas */
+  transform: translateZ(0);
+}

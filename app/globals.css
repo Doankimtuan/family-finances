@@ -1,9 +1,1 @@
-/* Rewrite workspace — design tokens TBD per Product Definition v2 */
-:root {
-  color-scheme: light;
-}
-
-body {
-  margin: 0;
-  font-family: ui-sans-serif, system-ui, sans-serif;
-}
+/* Global styles live in styles/globals.css (Constitution). */
