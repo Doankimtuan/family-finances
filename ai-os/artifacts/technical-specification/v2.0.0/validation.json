@@ -1,0 +1,14 @@
+{
+  "every_requirement_maps_to_implementation": true,
+  "orphan_requirements": [],
+  "every_api_maps_to_module": true,
+  "every_db_entity_maps_to_module": true,
+  "every_module_has_test_strategy": true,
+  "every_business_rule_has_guidance": true,
+  "no_orphan_artifacts": true,
+  "redesign_product": false,
+  "redesign_architecture": false,
+  "requirement_count": 20,
+  "module_spec_count": 7,
+  "pass": true
+}
