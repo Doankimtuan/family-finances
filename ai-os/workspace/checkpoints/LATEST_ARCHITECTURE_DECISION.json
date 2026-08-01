@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0.0",
+  "checkpoint_id": "ckpt_run_architecture_decision_20260801T151000Z",
+  "stage": "architecture-decision-board",
+  "run_id": "run_architecture_decision_20260801T151000Z",
+  "created_at": "2026-08-01T14:53:32Z",
+  "result": "FROZEN",
+  "selected_architecture": "Candidate-B-Balanced",
+  "verdict": "APPROVE WITH MODIFICATIONS",
+  "execution_status": "completed",
+  "frozen": true,
+  "outputs": {
+    "canonical": "ai-os/artifacts/architecture-decision/runs/run_architecture_decision_20260801T151000Z/",
+    "current": "artifacts/architecture-decision/CURRENT/"
+  }
+}

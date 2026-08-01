@@ -1,0 +1,36 @@
+{
+  "selected": {
+    "id": "Candidate-B-Balanced",
+    "name": "Balanced Modular Monolith + Application Services + Optional Workers",
+    "verdict": "APPROVE WITH MODIFICATIONS",
+    "modifications": [
+      "MVP ships as a single Next.js deployable (A-style runtime) while enforcing B seams: bounded-context packages, application services, shared Zod contracts.",
+      "Async workers are optional until Health/insights/notification load requires them; spike allowed, not mandatory for MVP cut.",
+      "Typed API facade (/api/v1 or oRPC) is mandatory for new read models and any cross-client contracts; existing Server Actions may strangler-migrate, not big-bang delete.",
+      "Candidate C service split is explicitly NOT authorized now; only allowed later via a new Architecture Decision Board if metrics/org demand."
+    ]
+  },
+  "proposals": [
+    {
+      "id": "Candidate-A-Simple",
+      "verdict": "REJECT",
+      "why": "Insufficient as the 5-year architecture: weak seams for Inbox/Health/AI Phase-2, high risk of Actions/API sprawl continuing, under-invests in maintainability relative to Product Definition growth."
+    },
+    {
+      "id": "Candidate-B-Balanced",
+      "verdict": "APPROVE WITH MODIFICATIONS",
+      "why": "Best balance of maintainability, DX, business fit, cost, and migration complexity while enabling future growth without premature microservices.",
+      "modifications": [
+        "MVP ships as a single Next.js deployable (A-style runtime) while enforcing B seams: bounded-context packages, application services, shared Zod contracts.",
+        "Async workers are optional until Health/insights/notification load requires them; spike allowed, not mandatory for MVP cut.",
+        "Typed API facade (/api/v1 or oRPC) is mandatory for new read models and any cross-client contracts; existing Server Actions may strangler-migrate, not big-bang delete.",
+        "Candidate C service split is explicitly NOT authorized now; only allowed later via a new Architecture Decision Board if metrics/org demand."
+      ]
+    },
+    {
+      "id": "Candidate-C-Highly-Scalable",
+      "verdict": "REJECT",
+      "why": "Over-engineered for current household scale and team shape; high migration/ops cost; distributed Month Ritual risk. May be revisited only after B seams exist and load/org justify split."
+    }
+  ]
+}

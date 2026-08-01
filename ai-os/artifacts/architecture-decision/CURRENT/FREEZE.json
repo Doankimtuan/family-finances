@@ -1,0 +1,72 @@
+{
+  "schema_version": "1.0.0",
+  "run_id": "run_architecture_decision_20260801T151000Z",
+  "created_at": "2026-08-01T14:53:32Z",
+  "status": "FROZEN",
+  "selected_architecture": "Candidate-B-Balanced",
+  "verdict": "APPROVE WITH MODIFICATIONS",
+  "proposals": [
+    {
+      "id": "Candidate-A-Simple",
+      "verdict": "REJECT",
+      "why": "Insufficient as the 5-year architecture: weak seams for Inbox/Health/AI Phase-2, high risk of Actions/API sprawl continuing, under-invests in maintainability relative to Product Definition growth."
+    },
+    {
+      "id": "Candidate-B-Balanced",
+      "verdict": "APPROVE WITH MODIFICATIONS",
+      "why": "Best balance of maintainability, DX, business fit, cost, and migration complexity while enabling future growth without premature microservices.",
+      "modifications": [
+        "MVP ships as a single Next.js deployable (A-style runtime) while enforcing B seams: bounded-context packages, application services, shared Zod contracts.",
+        "Async workers are optional until Health/insights/notification load requires them; spike allowed, not mandatory for MVP cut.",
+        "Typed API facade (/api/v1 or oRPC) is mandatory for new read models and any cross-client contracts; existing Server Actions may strangler-migrate, not big-bang delete.",
+        "Candidate C service split is explicitly NOT authorized now; only allowed later via a new Architecture Decision Board if metrics/org demand."
+      ]
+    },
+    {
+      "id": "Candidate-C-Highly-Scalable",
+      "verdict": "REJECT",
+      "why": "Over-engineered for current household scale and team shape; high migration/ops cost; distributed Month Ritual risk. May be revisited only after B seams exist and load/org justify split."
+    }
+  ],
+  "technology_stack": {
+    "frontend": "Next.js App Router + React 19",
+    "backend": "Next.js server (Server Actions + Route Handlers) with application-service layer per bounded context",
+    "database": "PostgreSQL via Supabase",
+    "orm_data_access": "Supabase client + SQL; Drizzle optional for typed server repositories (not mandatory rewrite)",
+    "authentication": "Supabase Auth SSR with proxy.ts session refresh",
+    "authorization": "Supabase RLS (is_household_member) + app-layer admin gates per Product Permission Matrix",
+    "api_style": "Zod-validated application commands/queries; HTTP JSON facade under /api/v1 (or oRPC equivalent) for read models and externalizable contracts; Server Actions allowed as UI adapters calling the same services",
+    "folder_structure": "Monorepo single app + packages/modules sliced by bounded context: tenancy, ledger, plan, inbox, health; app routes grouped by product IA (home, money, plan, inbox, together)",
+    "state_management": "RSC as server truth; TanStack Query for client server-state; Zustand only for ephemeral UI state",
+    "caching": "HTTP/CDN caching for public assets; TanStack Query cache for client; server-side request memoization; no offline write cache; Future offline-read is out of scope for this decision",
+    "infrastructure": "Managed Supabase + Vercel (or equivalent Node host for Next); managed worker platform when workers enabled (e.g. Inngest/Trigger.dev/Edge Functions)",
+    "deployment": "Git-based preview + production deploys for web; Supabase migrations via controlled pipeline",
+    "testing": "Unit (Vitest) for domain/services; contract tests for API/facade; Playwright e2e for Home/Money/Plan/Inbox/Ritual critical paths",
+    "monitoring": "Error tracking (Sentry or equivalent) + OpenTelemetry traces/metrics when workers/API facade land",
+    "logging": "Structured JSON logs with request_id + household_id; PII redaction required",
+    "package_manager": "npm as the single standard (lockfile source of truth); discontinue dual bun/npm ambiguity for CI",
+    "monorepo_strategy": "Single repository; app at root (or apps/web later if needed); domain code in packages/* or modules/*; ai-os remains control-plane colocated but not product runtime"
+  },
+  "principles": [
+    "Product Definition v2 is SoT; architecture serves Home/Money/Plan/Inbox/Together and BR-01 real≠virtual.",
+    "Bounded contexts: Tenancy, Real Ledger, Intention Plan/Inbox, Insight/Health — enforced as module seams.",
+    "One domain path for mutations: UI adapters (Actions) and HTTP facade call the same application services.",
+    "Online-first money mutations; offline writes forbidden (BR-15).",
+    "Strangler over big-bang; expand/contract data changes.",
+    "Security: RLS tenancy non-negotiable; admin elevation remains app-layer.",
+    "Observability is part of the architecture, not an afterthought.",
+    "No microservices until a future Architecture Decision Board authorizes C-style split."
+  ],
+  "migration_authorized": [
+    "M0",
+    "M1",
+    "M2",
+    "M3"
+  ],
+  "migration_unauthorized": [
+    "M4-service-split-Candidate-C"
+  ],
+  "product_sot": "artifacts/product-definition/CURRENT",
+  "strategy_run": "run_architecture_strategy_20260801T150000Z",
+  "frozen": true
+}

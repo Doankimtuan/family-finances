@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0.0",
+  "architecture_version": "v2.0.0",
+  "run_id": "run_architecture_definition_20260801T152000Z",
+  "created_at": "2026-08-01T14:55:28Z",
+  "status": "OFFICIAL_IMPLEMENTATION_BLUEPRINT",
+  "frozen": true,
+  "selected_architecture": "Candidate-B-Balanced-Modified",
+  "validation": "PASS",
+  "product_sot": "artifacts/product-definition/CURRENT",
+  "architecture_decision": "artifacts/architecture-decision/CURRENT",
+  "modules": [
+    "shared-kernel",
+    "tenancy",
+    "ledger",
+    "plan",
+    "inbox",
+    "health",
+    "app-shell",
+    "api-facade",
+    "ui-adapters",
+    "platform"
+  ],
+  "paths": {
+    "canonical": "ai-os/artifacts/architecture-definition/v2.0.0/",
+    "public": "artifacts/architecture-definition/v2.0.0/",
+    "current": "artifacts/architecture-definition/CURRENT/"
+  }
+}
