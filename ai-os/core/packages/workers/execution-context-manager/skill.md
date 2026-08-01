@@ -1,1 +1,0 @@
-See `skills/execution-context-manager/SKILL.md`.

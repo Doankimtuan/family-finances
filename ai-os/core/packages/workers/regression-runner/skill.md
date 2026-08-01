@@ -1,1 +1,0 @@
-See `skills/regression-runner/SKILL.md`.

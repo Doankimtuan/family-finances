@@ -1,1 +1,0 @@
-# Testcases — `project-bootstrap-generator`

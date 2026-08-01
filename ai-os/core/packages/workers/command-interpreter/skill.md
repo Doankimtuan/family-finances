@@ -1,1 +1,0 @@
-See `skills/command-interpreter/SKILL.md`.

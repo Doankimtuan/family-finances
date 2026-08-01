@@ -1,1 +1,0 @@
-See `skills/documentation-generator/SKILL.md`.

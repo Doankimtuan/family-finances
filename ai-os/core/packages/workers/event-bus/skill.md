@@ -1,1 +1,0 @@
-See `skills/event-bus/SKILL.md`.

@@ -1,1 +1,0 @@
-See `skills/test-generator/SKILL.md`.

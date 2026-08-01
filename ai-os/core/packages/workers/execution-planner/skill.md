@@ -1,1 +1,0 @@
-See `skills/execution-planner/SKILL.md`.

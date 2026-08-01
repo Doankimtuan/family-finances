@@ -1,1 +1,0 @@
-See `skills/metrics-engine/SKILL.md`.

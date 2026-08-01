@@ -1,1 +1,0 @@
-See `skills/artifact-generator/SKILL.md`.

@@ -1,1 +1,0 @@
-See `skills/release-qualification-board/SKILL.md`.

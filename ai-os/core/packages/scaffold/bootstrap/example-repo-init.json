@@ -1,8 +1,0 @@
-{
-  "entry_kind": "repo-init",
-  "planned_paths": [
-    "ai-os/",
-    "ai-os/workers/",
-    "ai-os/pipelines/"
-  ]
-}

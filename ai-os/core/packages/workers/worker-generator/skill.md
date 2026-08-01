@@ -1,1 +1,0 @@
-See `skills/worker-generator/SKILL.md`.

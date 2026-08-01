@@ -1,1 +1,0 @@
-Shared folder scaffolds and naming conventions.

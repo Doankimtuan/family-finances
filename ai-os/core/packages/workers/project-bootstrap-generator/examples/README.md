@@ -1,1 +1,0 @@
-# Examples — `project-bootstrap-generator`

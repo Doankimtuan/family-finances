@@ -1,1 +1,0 @@
-# Examples — `progress-tracker`

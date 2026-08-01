@@ -1,1 +1,0 @@
-See skills/generation-reporter/SKILL.md

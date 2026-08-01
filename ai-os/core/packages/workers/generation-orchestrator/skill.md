@@ -1,1 +1,0 @@
-See skills/generation-orchestrator/SKILL.md

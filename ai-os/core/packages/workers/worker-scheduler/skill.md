@@ -1,1 +1,0 @@
-See `skills/worker-scheduler/SKILL.md`.

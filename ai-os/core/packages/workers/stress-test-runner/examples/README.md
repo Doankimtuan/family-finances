@@ -1,1 +1,0 @@
-# Examples — `stress-test-runner`

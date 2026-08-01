@@ -1,1 +1,0 @@
-# Testcases — `coverage-analyzer`

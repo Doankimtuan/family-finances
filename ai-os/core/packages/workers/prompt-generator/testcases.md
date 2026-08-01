@@ -1,1 +1,0 @@
-# Test cases — `prompt-generator`

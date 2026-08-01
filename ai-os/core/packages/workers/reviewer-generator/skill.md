@@ -1,1 +1,0 @@
-See `skills/reviewer-generator/SKILL.md`.

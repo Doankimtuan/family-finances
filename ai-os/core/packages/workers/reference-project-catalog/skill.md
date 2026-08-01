@@ -1,1 +1,0 @@
-See `skills/reference-project-catalog/SKILL.md`.

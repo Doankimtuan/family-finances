@@ -1,8 +1,0 @@
-{
-  "pass": true,
-  "critical": [],
-  "warnings": [
-    "DB entity naming soft-misses: ['dom-category']",
-    "Framework Phase1 discovery coverage HOLD (72%) remains open; product BD+SPEC gates are PASS."
-  ]
-}

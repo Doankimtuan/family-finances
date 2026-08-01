@@ -1,1 +1,0 @@
-# Examples — `documentation-generator`

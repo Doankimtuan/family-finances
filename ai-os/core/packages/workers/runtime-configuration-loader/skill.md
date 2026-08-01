@@ -1,1 +1,0 @@
-See `skills/runtime-configuration-loader/SKILL.md`.

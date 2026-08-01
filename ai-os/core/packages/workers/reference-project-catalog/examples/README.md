@@ -1,1 +1,0 @@
-# Examples — `reference-project-catalog`

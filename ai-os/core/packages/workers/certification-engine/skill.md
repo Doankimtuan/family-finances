@@ -1,1 +1,0 @@
-See `skills/certification-engine/SKILL.md`.

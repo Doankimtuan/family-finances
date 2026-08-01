@@ -1,1 +1,0 @@
-Repository initialization scaffolds produced by `project-bootstrap-generator`.

@@ -1,1 +1,0 @@
-See `skills/pipeline-generator/SKILL.md`.

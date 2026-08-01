@@ -1,1 +1,0 @@
-See `skills/validator-generator/SKILL.md`.

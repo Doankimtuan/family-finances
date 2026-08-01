@@ -1,1 +1,0 @@
-# Examples — `checkpoint-manager`

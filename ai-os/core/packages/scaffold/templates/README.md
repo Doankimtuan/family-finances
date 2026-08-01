@@ -1,1 +1,0 @@
-Generator template overrides; canonical templates remain under `ai-os/templates/`.

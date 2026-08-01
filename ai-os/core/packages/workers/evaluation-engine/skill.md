@@ -1,1 +1,0 @@
-See `skills/evaluation-engine/SKILL.md`.

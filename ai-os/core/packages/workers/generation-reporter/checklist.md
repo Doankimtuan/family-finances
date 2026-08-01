@@ -1,1 +1,0 @@
-# Checklist — `generation-reporter`

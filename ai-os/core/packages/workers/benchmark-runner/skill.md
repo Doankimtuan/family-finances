@@ -1,1 +1,0 @@
-See `skills/benchmark-runner/SKILL.md`.

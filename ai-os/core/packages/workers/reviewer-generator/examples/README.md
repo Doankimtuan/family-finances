@@ -1,1 +1,0 @@
-# Examples — `reviewer-generator`

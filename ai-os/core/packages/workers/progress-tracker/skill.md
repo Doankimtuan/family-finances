@@ -1,1 +1,0 @@
-See `skills/progress-tracker/SKILL.md`.

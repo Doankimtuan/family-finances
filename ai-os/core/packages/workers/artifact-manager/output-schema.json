@@ -1,9 +1,0 @@
-{
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://aios.dev/schemas/workers/artifact-manager/output-schema.json",
-  "allOf": [
-    {
-      "$ref": "https://aios.dev/schemas/runtime-status.schema.json"
-    }
-  ]
-}
