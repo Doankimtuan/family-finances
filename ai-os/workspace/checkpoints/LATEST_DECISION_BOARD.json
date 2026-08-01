@@ -1,0 +1,41 @@
+{
+  "schema_version": "1.0.0",
+  "checkpoint_id": "ckpt_run_decision_board_20260801T135000Z",
+  "stage": "product-evolution-decision-board",
+  "run_id": "run_decision_board_20260801T135000Z",
+  "evolution_run": "run_spec_evolution_20260801T134000Z",
+  "created_at": "2026-08-01T13:47:04Z",
+  "result": "FROZEN",
+  "originals_unchanged": true,
+  "counts": {
+    "APPROVE": 7,
+    "APPROVE WITH MODIFICATIONS": 4,
+    "DEFER": 3,
+    "REJECT": 1
+  },
+  "approved_ids": [
+    "IMP-001",
+    "IMP-003",
+    "IMP-004",
+    "IMP-005",
+    "IMP-007",
+    "IMP-009",
+    "IMP-010",
+    "IMP-002",
+    "IMP-006",
+    "IMP-008",
+    "IMP-015"
+  ],
+  "deferred_ids": [
+    "IMP-011",
+    "IMP-012",
+    "IMP-013"
+  ],
+  "rejected_ids": [
+    "IMP-014"
+  ],
+  "outputs": "ai-os/artifacts/decision-board/runs/run_decision_board_20260801T135000Z/",
+  "execution_status": "completed",
+  "frozen": true,
+  "modify_specifications": false
+}

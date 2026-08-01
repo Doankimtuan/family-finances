@@ -1,0 +1,57 @@
+{
+  "id": "IMP-013",
+  "title": "Future: assistive insights UX (non-generative ledger changes)",
+  "bucket": "Future Vision",
+  "evolution_priority": "P3",
+  "depends_on": [
+    "IMP-004",
+    "IMP-001",
+    "IMP-003"
+  ],
+  "dependency_status": [
+    {
+      "id": "IMP-004",
+      "verdict": "APPROVE",
+      "approved_for_v2": true
+    },
+    {
+      "id": "IMP-001",
+      "verdict": "APPROVE",
+      "approved_for_v2": true
+    },
+    {
+      "id": "IMP-003",
+      "verdict": "APPROVE",
+      "approved_for_v2": true
+    }
+  ],
+  "scores": {
+    "business_value": 45,
+    "user_value": 65,
+    "developer_experience": 50,
+    "maintenance_cost": 50,
+    "implementation_cost": 60,
+    "migration_complexity": 45,
+    "risk": 40,
+    "long_term_value": 55,
+    "relevance_2026": 60,
+    "dependency_note": "See dependency_status; composite excludes binary dep gate."
+  },
+  "composite_score": 14,
+  "verdict": "DEFER",
+  "why": "Assistive insights UX is nice-to-have; weak urgency vs foundations; avoid trend-led scope expansion.",
+  "modifications": null,
+  "revisit_when": "After acceptance, a11y, and observability baselines are adopted and insights surfaces show clear UX friction.",
+  "reject_or_defer_reasons": [
+    "little immediate business value vs foundations",
+    "risk of trend-chasing AI UX"
+  ],
+  "preserves": {
+    "business_rules": true,
+    "domain_model": true,
+    "validated_requirements": true,
+    "accepted_architecture": true
+  },
+  "breaking_changes": false,
+  "source_imp_card": "ai-os/artifacts/improvement-analysis/runs/run_spec_evolution_20260801T134000Z/improvements/IMP-013.md"
+}

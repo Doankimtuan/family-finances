@@ -1,0 +1,34 @@
+{
+  "id": "IMP-001",
+  "title": "Expand acceptance criteria to cover all requirements",
+  "bucket": "Quick Wins",
+  "evolution_priority": "P0",
+  "depends_on": [],
+  "dependency_status": [],
+  "scores": {
+    "business_value": 88,
+    "user_value": 70,
+    "developer_experience": 92,
+    "maintenance_cost": 35,
+    "implementation_cost": 30,
+    "migration_complexity": 20,
+    "risk": 15,
+    "long_term_value": 90,
+    "relevance_2026": 85,
+    "dependency_note": "See dependency_status; composite excludes binary dep gate."
+  },
+  "composite_score": 40,
+  "verdict": "APPROVE",
+  "why": "Highest leverage for verified delivery; closes thin acceptance gap; low risk; no business-rule change.",
+  "modifications": null,
+  "revisit_when": null,
+  "reject_or_defer_reasons": [],
+  "preserves": {
+    "business_rules": true,
+    "domain_model": true,
+    "validated_requirements": true,
+    "accepted_architecture": true
+  },
+  "breaking_changes": false,
+  "source_imp_card": "ai-os/artifacts/improvement-analysis/runs/run_spec_evolution_20260801T134000Z/improvements/IMP-001.md"
+}

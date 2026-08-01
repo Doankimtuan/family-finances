@@ -1,0 +1,48 @@
+{
+  "id": "IMP-007",
+  "title": "Testing strategy overlay (contract + critical journey tests)",
+  "bucket": "Medium Improvements",
+  "evolution_priority": "P1",
+  "depends_on": [
+    "IMP-001",
+    "IMP-005"
+  ],
+  "dependency_status": [
+    {
+      "id": "IMP-001",
+      "verdict": "APPROVE",
+      "approved_for_v2": true
+    },
+    {
+      "id": "IMP-005",
+      "verdict": "APPROVE",
+      "approved_for_v2": true
+    }
+  ],
+  "scores": {
+    "business_value": 85,
+    "user_value": 55,
+    "developer_experience": 90,
+    "maintenance_cost": 45,
+    "implementation_cost": 55,
+    "migration_complexity": 40,
+    "risk": 30,
+    "long_term_value": 92,
+    "relevance_2026": 88,
+    "dependency_note": "See dependency_status; composite excludes binary dep gate."
+  },
+  "composite_score": 31,
+  "verdict": "APPROVE",
+  "why": "Testing overlay proves BR constraints hold; justified cost vs regression risk on allocation/month-close.",
+  "modifications": null,
+  "revisit_when": null,
+  "reject_or_defer_reasons": [],
+  "preserves": {
+    "business_rules": true,
+    "domain_model": true,
+    "validated_requirements": true,
+    "accepted_architecture": true
+  },
+  "breaking_changes": false,
+  "source_imp_card": "ai-os/artifacts/improvement-analysis/runs/run_spec_evolution_20260801T134000Z/improvements/IMP-007.md"
+}

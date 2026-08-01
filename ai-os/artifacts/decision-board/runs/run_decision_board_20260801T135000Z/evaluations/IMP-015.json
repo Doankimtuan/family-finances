@@ -1,0 +1,42 @@
+{
+  "id": "IMP-015",
+  "title": "Privacy engineering runbooks (export/delete within household tenancy)",
+  "bucket": "Medium Improvements",
+  "evolution_priority": "P2",
+  "depends_on": [
+    "IMP-006"
+  ],
+  "dependency_status": [
+    {
+      "id": "IMP-006",
+      "verdict": "APPROVE WITH MODIFICATIONS",
+      "approved_for_v2": true
+    }
+  ],
+  "scores": {
+    "business_value": 72,
+    "user_value": 55,
+    "developer_experience": 60,
+    "maintenance_cost": 35,
+    "implementation_cost": 30,
+    "migration_complexity": 25,
+    "risk": 25,
+    "long_term_value": 70,
+    "relevance_2026": 75,
+    "dependency_note": "See dependency_status; composite excludes binary dep gate."
+  },
+  "composite_score": 28,
+  "verdict": "APPROVE WITH MODIFICATIONS",
+  "why": "Privacy ops runbooks add value within existing household tenancy; new admin product UI is unjustified scope for v2.",
+  "modifications": "Approve documentation/runbooks only. Defer any new admin export/delete product UI or tools.",
+  "revisit_when": null,
+  "reject_or_defer_reasons": [],
+  "preserves": {
+    "business_rules": true,
+    "domain_model": true,
+    "validated_requirements": true,
+    "accepted_architecture": true
+  },
+  "breaking_changes": false,
+  "source_imp_card": "ai-os/artifacts/improvement-analysis/runs/run_spec_evolution_20260801T134000Z/improvements/IMP-015.md"
+}

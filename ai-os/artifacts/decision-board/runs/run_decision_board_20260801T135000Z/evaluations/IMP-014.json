@@ -1,0 +1,59 @@
+{
+  "id": "IMP-014",
+  "title": "Future: offline read-only cache for dashboard summaries",
+  "bucket": "Future Vision",
+  "evolution_priority": "P4",
+  "depends_on": [
+    "IMP-004",
+    "IMP-008",
+    "IMP-006"
+  ],
+  "dependency_status": [
+    {
+      "id": "IMP-004",
+      "verdict": "APPROVE",
+      "approved_for_v2": true
+    },
+    {
+      "id": "IMP-008",
+      "verdict": "APPROVE WITH MODIFICATIONS",
+      "approved_for_v2": true
+    },
+    {
+      "id": "IMP-006",
+      "verdict": "APPROVE WITH MODIFICATIONS",
+      "approved_for_v2": true
+    }
+  ],
+  "scores": {
+    "business_value": 25,
+    "user_value": 40,
+    "developer_experience": 35,
+    "maintenance_cost": 70,
+    "implementation_cost": 80,
+    "migration_complexity": 85,
+    "risk": 90,
+    "long_term_value": 30,
+    "relevance_2026": 40,
+    "dependency_note": "See dependency_status; composite excludes binary dep gate."
+  },
+  "composite_score": 0,
+  "verdict": "REJECT",
+  "why": "Offline cache near ledger/dashboard creates stale-data and architectural risk for little business value in an online household app; fails cost/risk test.",
+  "modifications": null,
+  "revisit_when": null,
+  "reject_or_defer_reasons": [
+    "architectural risk near ledger domain",
+    "unnecessary complexity",
+    "little business value",
+    "implementation cost not justified"
+  ],
+  "preserves": {
+    "business_rules": true,
+    "domain_model": true,
+    "validated_requirements": true,
+    "accepted_architecture": true
+  },
+  "breaking_changes": false,
+  "source_imp_card": "ai-os/artifacts/improvement-analysis/runs/run_spec_evolution_20260801T134000Z/improvements/IMP-014.md"
+}

@@ -1,0 +1,17 @@
+{
+  "no_conflicting_business_rules": true,
+  "no_duplicated_features": true,
+  "no_missing_acceptance": true,
+  "no_missing_workflow": true,
+  "no_inconsistent_terminology": true,
+  "no_ambiguous_requirement": true,
+  "no_unresolved_proposal": true,
+  "no_conflicting_ux": true,
+  "no_conflicting_permissions": true,
+  "no_unresolved_dependencies": true,
+  "all_v1_rules_decided": true,
+  "all_v1_features_mapped": true,
+  "orphan_requirements": 0,
+  "requirement_count": 20,
+  "pass": true
+}

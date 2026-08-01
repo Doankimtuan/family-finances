@@ -1,0 +1,42 @@
+{
+  "id": "IMP-004",
+  "title": "Product observability baseline (logs, traces, metrics)",
+  "bucket": "Medium Improvements",
+  "evolution_priority": "P0",
+  "depends_on": [
+    "IMP-002"
+  ],
+  "dependency_status": [
+    {
+      "id": "IMP-002",
+      "verdict": "APPROVE WITH MODIFICATIONS",
+      "approved_for_v2": true
+    }
+  ],
+  "scores": {
+    "business_value": 82,
+    "user_value": 50,
+    "developer_experience": 88,
+    "maintenance_cost": 50,
+    "implementation_cost": 55,
+    "migration_complexity": 45,
+    "risk": 35,
+    "long_term_value": 92,
+    "relevance_2026": 95,
+    "dependency_note": "See dependency_status; composite excludes binary dep gate."
+  },
+  "composite_score": 29,
+  "verdict": "APPROVE",
+  "why": "Critical 2026 gap (observability 40 / logging 35); enables safe ops for validated automation without new business modes.",
+  "modifications": null,
+  "revisit_when": null,
+  "reject_or_defer_reasons": [],
+  "preserves": {
+    "business_rules": true,
+    "domain_model": true,
+    "validated_requirements": true,
+    "accepted_architecture": true
+  },
+  "breaking_changes": false,
+  "source_imp_card": "ai-os/artifacts/improvement-analysis/runs/run_spec_evolution_20260801T134000Z/improvements/IMP-004.md"
+}
