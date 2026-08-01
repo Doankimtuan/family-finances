@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "registry_kind": "reviewers",
-  "updated_at": "2026-08-01T12:00:00Z",
+  "updated_at": "2026-08-01T13:00:00Z",
   "entries": {
     "discovery-coverage-review": {
       "id": "discovery-coverage-review",
@@ -16,6 +16,13 @@
       "version": "0.2.0",
       "status": "reserved",
       "description": "Coverage review for product-re outputs including ingest and gap"
+    },
+    "solution-architecture-coverage-review": {
+      "id": "solution-architecture-coverage-review",
+      "path": "reviewers/solution-architecture-coverage-review",
+      "version": "0.1.0",
+      "status": "reserved",
+      "description": "Coverage review for solution-architecture redesign outputs"
     }
   }
 }

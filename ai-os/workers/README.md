@@ -18,15 +18,27 @@ Workers: `discover-*`
 | `product-architecture-observer` | 0 | `product-architecture/` |
 | `product-analyst` | 1 | `product/` |
 | `workflow-analyzer` | 2 | `workflow/` |
-| `requirement-generator` (alias: requirement-extractor) | 3 | `requirements/` |
-| `acceptance-criteria-generator` (alias: acceptance-criteria-extractor) | 4 | `acceptance/` |
-| `product-re-gap-report` | 5 | `product-re-gap` artifact |
+| `requirement-generator` (extract; BC id) | 3 | `requirements/` |
+| `acceptance-criteria-generator` (extract; BC id) | 4 | `acceptance/` |
+| `product-re-gap-report` | 5 | `gaps/` |
+
+Soft ingest inputs use `doc-source` / `app-surface` / `discovery-report` — never `goal`.
+
+### Solution architecture redesign (`pipelines/solution-architecture/`)
+
+| Worker | Wave | Produces |
+|--------|------|----------|
+| `architecture-consultant` | 0 | `architecture-v2/`, `decision-records/`, `redesign/` |
+| `tech-stack-consultant` | 1 | `tech-stack/`, `migration/` |
+| `refactoring-consultant` | 1 | `migration/`, `redesign/` |
+| `folder-structure-designer` | 2 | `folder-structure/` |
 
 ## Forbidden
 
 - **Feature Workers**
-- Redesign or product mutation (`repo-write`)
-- Consuming `architecture/` as product architecture (use `product-architecture/`)
+- Inventing business logic or changing business rules
+- Overwriting discovery / Product RE artifacts
+- Consuming AIOS `architecture/` as product architecture (use `product-architecture/`)
 - Packages that do not match the Worker Template tree
 
 ## Template

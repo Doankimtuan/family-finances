@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_env_architecture_consultant",
+  "type": "run-record",
+  "worker_id": "architecture-consultant",
+  "status": "succeeded",
+  "summary": "Design the target solution architecture that preserves validated business capabilities. Improve modularity and recommend patterns. Produce architecture-v2 specs and Architecture Decision Records. Never invent business logic.",
+  "created_at": "2026-08-01T13:00:00Z",
+  "extensions": {
+    "pipeline": "solution-architecture",
+    "primary_output_type": "architecture-v2-spec",
+    "produces": [
+      "architecture-v2",
+      "decision-records",
+      "redesign"
+    ]
+  }
+}

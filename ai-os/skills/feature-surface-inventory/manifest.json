@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0.0",
   "id": "feature-surface-inventory",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "title": "Feature Surface Inventory",
-  "description": "Inventory product feature surfaces from routes/UI/domain actions into features/. Discover only \u2014 do not redesign.",
+  "description": "Inventory feature surfaces from doc-source, app-surface, and discovery-report soft inputs.",
   "role": "executor",
   "grade": "guided",
   "inputs": [
@@ -15,21 +15,21 @@
     },
     {
       "name": "docs",
-      "artifact_type": "goal",
+      "artifact_type": "doc-source",
       "required": false,
-      "description": "Consume input: docs"
+      "description": "Consume input: docs (doc-source)"
     },
     {
       "name": "discovery-report",
-      "artifact_type": "goal",
+      "artifact_type": "discovery-report",
       "required": false,
-      "description": "Consume input: discovery-report"
+      "description": "Consume input: discovery-report (discovery-report)"
     },
     {
       "name": "app",
-      "artifact_type": "goal",
+      "artifact_type": "app-surface",
       "required": false,
-      "description": "Consume input: app"
+      "description": "Consume input: app (app-surface)"
     }
   ],
   "outputs": [
@@ -55,6 +55,7 @@
   "extensions": {
     "pipeline": "product-re",
     "role_alias": "feature-surface-inventory",
+    "mission_verb": "extract",
     "soft_discovery_handoff": true
   }
 }

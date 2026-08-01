@@ -1,4 +1,4 @@
-# Requirements — Discovery Notes
+# Requirements — Product RE Notes
 
 > Status: draft · Kind: produce · Discovery only · Artifact: `requirement-spec`  
 > Extract only. Use SHALL/MUST. Do not invent.

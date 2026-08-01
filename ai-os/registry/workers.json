@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "registry_kind": "workers",
-  "updated_at": "2026-08-01T12:00:00Z",
+  "updated_at": "2026-08-01T14:00:00Z",
   "entries": {
     "discover-repo-map": {
       "id": "discover-repo-map",
@@ -82,7 +82,7 @@
     "product-knowledge-ingest": {
       "id": "product-knowledge-ingest",
       "path": "workers/product-knowledge-ingest",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "status": "draft",
       "description": "Populate knowledge/ notes from docs and soft discovery-report inputs. Discover only \u2014 do not redesign.",
       "worker_class": "discovery",
@@ -100,7 +100,7 @@
     "feature-surface-inventory": {
       "id": "feature-surface-inventory",
       "path": "workers/feature-surface-inventory",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "status": "draft",
       "description": "Inventory product feature surfaces from routes/UI/domain actions into features/. Discover only \u2014 do not redesign.",
       "worker_class": "discovery",
@@ -119,7 +119,7 @@
     "business-rules-extractor": {
       "id": "business-rules-extractor",
       "path": "workers/business-rules-extractor",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "status": "draft",
       "description": "Extract observed business rules from DOMAIN_MODEL and domain engines into business/. Discover only \u2014 do not invent rules.",
       "worker_class": "discovery",
@@ -137,7 +137,7 @@
     "product-architecture-observer": {
       "id": "product-architecture-observer",
       "path": "workers/product-architecture-observer",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "status": "draft",
       "description": "Observe product architecture into product-architecture/ (never ai-os/architecture/). Discover only \u2014 do not redesign.",
       "worker_class": "discovery",
@@ -155,7 +155,7 @@
     "product-analyst": {
       "id": "product-analyst",
       "path": "workers/product-analyst",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "status": "draft",
       "description": "Reverse-engineer product identity, personas, value proposition, and capability map from knowledge/, features/, business/, and product-architecture/ inputs. Discover only \u2014 do not redesign or implement.",
       "worker_class": "discovery",
@@ -180,14 +180,16 @@
     "workflow-analyzer": {
       "id": "workflow-analyzer",
       "path": "workers/workflow-analyzer",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "status": "draft",
       "description": "Discover end-to-end user and system workflows from product-model plus product-architecture/ and features/. Map steps, actors, and handoffs without inventing new product behavior.",
       "worker_class": "discovery",
       "pipeline": "product-re",
       "skill_id": "workflow-analyzer",
       "depends_on_workers": [
-        "product-analyst"
+        "product-analyst",
+        "feature-surface-inventory",
+        "product-architecture-observer"
       ],
       "consumes": [
         "product",
@@ -201,9 +203,9 @@
     "requirement-generator": {
       "id": "requirement-generator",
       "path": "workers/requirement-generator",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "status": "draft",
-      "description": "Extract structured product requirements (SHALL/MUST) from discovered product and workflow knowledge plus business rules. Traceable only; no redesign. role_alias=requirement-extractor.",
+      "description": "Extract (not invent) structured product requirements (SHALL/MUST). Worker id retained for BC; role_alias=requirement-extractor.",
       "worker_class": "discovery",
       "pipeline": "product-re",
       "skill_id": "requirement-generator",
@@ -224,9 +226,9 @@
     "acceptance-criteria-generator": {
       "id": "acceptance-criteria-generator",
       "path": "workers/acceptance-criteria-generator",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "status": "draft",
-      "description": "Extract testable acceptance criteria (Given/When/Then) for each discovered requirement. Observable and falsifiable; no invention. role_alias=acceptance-criteria-extractor.",
+      "description": "Extract (not invent) testable acceptance criteria. Worker id retained for BC; role_alias=acceptance-criteria-extractor.",
       "worker_class": "discovery",
       "pipeline": "product-re",
       "skill_id": "acceptance-criteria-generator",
@@ -247,13 +249,17 @@
     "product-re-gap-report": {
       "id": "product-re-gap-report",
       "path": "workers/product-re-gap-report",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "status": "draft",
-      "description": "Synthesize coverage gaps across Product RE ingest and transform outputs. Discover only \u2014 do not redesign.",
+      "description": "Synthesize coverage gaps into gaps/ as product-re-gap. Discover only \u2014 do not redesign.",
       "worker_class": "discovery",
       "pipeline": "product-re",
       "skill_id": "product-re-gap-report",
       "depends_on_workers": [
+        "product-knowledge-ingest",
+        "feature-surface-inventory",
+        "business-rules-extractor",
+        "product-architecture-observer",
         "product-analyst",
         "workflow-analyzer",
         "requirement-generator",
@@ -269,7 +275,112 @@
         "business",
         "product-architecture"
       ],
-      "produces": []
+      "produces": [
+        "gaps"
+      ]
+    },
+    "architecture-consultant": {
+      "id": "architecture-consultant",
+      "path": "workers/architecture-consultant",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Design the target solution architecture that preserves validated business capabilities. Improve modularity and recommend patterns. Produce architecture-v2 specs and ADRs. Never invent business logic.",
+      "worker_class": "discovery",
+      "pipeline": "solution-architecture",
+      "skill_id": "architecture-consultant",
+      "depends_on_workers": [],
+      "consumes": [
+        "knowledge",
+        "features",
+        "business",
+        "product-architecture",
+        "requirements",
+        "quality"
+      ],
+      "produces": [
+        "architecture-v2",
+        "decision-records",
+        "redesign"
+      ]
+    },
+    "tech-stack-consultant": {
+      "id": "tech-stack-consultant",
+      "path": "workers/tech-stack-consultant",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Recommend modern technologies with alternatives and trade-offs. Produce tech-stack recommendations and migration notes. Preserve business behavior.",
+      "worker_class": "discovery",
+      "pipeline": "solution-architecture",
+      "skill_id": "tech-stack-consultant",
+      "depends_on_workers": [
+        "architecture-consultant"
+      ],
+      "consumes": [
+        "knowledge",
+        "features",
+        "business",
+        "product-architecture",
+        "requirements",
+        "quality",
+        "architecture-v2"
+      ],
+      "produces": [
+        "tech-stack",
+        "migration"
+      ]
+    },
+    "refactoring-consultant": {
+      "id": "refactoring-consultant",
+      "path": "workers/refactoring-consultant",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Identify refactoring opportunities and propose migration strategy preserving validated business behavior. Reduce technical debt without changing business rules.",
+      "worker_class": "discovery",
+      "pipeline": "solution-architecture",
+      "skill_id": "refactoring-consultant",
+      "depends_on_workers": [
+        "architecture-consultant"
+      ],
+      "consumes": [
+        "knowledge",
+        "features",
+        "business",
+        "product-architecture",
+        "requirements",
+        "quality",
+        "architecture-v2"
+      ],
+      "produces": [
+        "migration",
+        "redesign"
+      ]
+    },
+    "folder-structure-designer": {
+      "id": "folder-structure-designer",
+      "path": "workers/folder-structure-designer",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Design feature-based repository layout and module boundaries. Produce folder conventions. Preserve business capabilities.",
+      "worker_class": "discovery",
+      "pipeline": "solution-architecture",
+      "skill_id": "folder-structure-designer",
+      "depends_on_workers": [
+        "architecture-consultant",
+        "tech-stack-consultant"
+      ],
+      "consumes": [
+        "knowledge",
+        "features",
+        "business",
+        "product-architecture",
+        "requirements",
+        "quality",
+        "architecture-v2",
+        "tech-stack"
+      ],
+      "produces": [
+        "folder-structure"
+      ]
     }
   }
 }

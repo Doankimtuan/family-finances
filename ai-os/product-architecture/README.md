@@ -21,3 +21,7 @@ Observed **product** architecture notes extracted from the application domain â€
 ## Consumers / producers
 
 Produced by `product-architecture-observer`. Consumed by `product-analyst` and (narrowly) `workflow-analyzer`. See `pipelines/product-re/`.
+
+## Mirror rule
+
+Folder `TEMPLATE.md` / `template.schema.json` are human-oriented mirrors. Runtime artifacts use `entries[]` per `schemas/product-re-payload.schema.json`.

@@ -1,4 +1,4 @@
-# Features — Discovery Notes
+# Features — Product RE Notes
 
 > Status: draft · Kind: consume · Discovery only · Artifact: `feature-inventory`
 

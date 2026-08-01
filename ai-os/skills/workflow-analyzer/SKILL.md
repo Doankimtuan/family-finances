@@ -1,11 +1,11 @@
 ---
 name: workflow-analyzer
-description: Reserved product reverse-engineering skill for workflow-analyzer (alias: workflow-analyzer).
+description: Extract ordered workflow-model steps from product, product-architecture, and features packs.
 ---
 
 # Workflow Analyzer
 
-> Discovery only. Extract what exists. Do not redesign. Do not implement features.
+> Discovery only. Map observed flows. Do not invent steps.
 
 ## Consumes
 
@@ -13,14 +13,33 @@ description: Reserved product reverse-engineering skill for workflow-analyzer (a
 
 ## Produces
 
-`workflow/` → artifact type `workflow-model`
+`workflow/` → `workflow-model`
+
+## Ownership
+
+- **Owns:** ordered steps with actor + step_order
+- **Does not** re-ingest knowledge/ or business/
 
 ## Procedure
 
-1. Load product/ plus product-architecture/ and features/ (do not re-ingest raw knowledge/business).
-2. Map end-to-end workflows with actor + step_order on each step entry.
-3. Write workflow-model under workflow/.
-4. Stop for validation/review. Do not invent steps.
+1. Load product-model plus product-architecture and features packs.
+2. Map end-to-end flows with actor + step_order on each step.
+3. Cite `source_paths`; write `workflow-model` under `workflow/`.
+4. Stop for validation/review.
+
+## Heuristics
+
+- Steps must be observable in sources.
+- Keep step_order contiguous starting at 1 within a flow.
+
+## Done when
+
+- ≥1 step with actor + step_order + sources
+- No invented steps
+
+## Negative examples
+
+- Do not add an unmentioned approval committee step.
 
 ## Lock
 

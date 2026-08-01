@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "registry_kind": "skills",
-  "updated_at": "2026-08-01T12:00:00Z",
+  "updated_at": "2026-08-01T14:00:00Z",
   "entries": {
     "example-skill": {
       "id": "example-skill",
@@ -55,65 +55,93 @@
     "product-analyst": {
       "id": "product-analyst",
       "path": "skills/product-analyst",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "status": "reserved",
-      "description": "Reverse-engineer product identity, personas, value proposition, and capability map from knowledge/, features/, business/, and product-architecture/ inputs. Discover only \u2014 do not redesign or implement."
+      "description": "Extract product-model identity/personas/value-prop/capabilities from ingest packs."
     },
     "workflow-analyzer": {
       "id": "workflow-analyzer",
       "path": "skills/workflow-analyzer",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "status": "reserved",
-      "description": "Discover end-to-end user and system workflows from product-model plus product-architecture/ and features/. Map steps, actors, and handoffs without inventing new product behavior."
+      "description": "Extract ordered workflow-model steps from product, product-architecture, and features packs."
     },
     "requirement-generator": {
       "id": "requirement-generator",
       "path": "skills/requirement-generator",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "status": "reserved",
-      "description": "Extract structured product requirements (SHALL/MUST) from discovered product and workflow knowledge plus business rules. Traceable only; no redesign. role_alias=requirement-extractor."
+      "description": "Extract requirement-spec SHALL/MUST statements (role_alias=requirement-extractor; id retained for BC)."
     },
     "acceptance-criteria-generator": {
       "id": "acceptance-criteria-generator",
       "path": "skills/acceptance-criteria-generator",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "status": "reserved",
-      "description": "Extract testable acceptance criteria (Given/When/Then) for each discovered requirement. Observable and falsifiable; no invention. role_alias=acceptance-criteria-extractor."
+      "description": "Extract acceptance-criteria GWT linked to requirements (role_alias=acceptance-criteria-extractor; id retained for BC)."
     },
     "product-knowledge-ingest": {
       "id": "product-knowledge-ingest",
       "path": "skills/product-knowledge-ingest",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "status": "reserved",
-      "description": "Populate knowledge/ notes from docs and soft discovery-report inputs. Discover only \u2014 do not redesign."
+      "description": "Extract glossary/entity/fact knowledge-notes from doc-source and discovery-report soft inputs."
     },
     "feature-surface-inventory": {
       "id": "feature-surface-inventory",
       "path": "skills/feature-surface-inventory",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "status": "reserved",
-      "description": "Inventory product feature surfaces from routes/UI/domain actions into features/. Discover only \u2014 do not redesign."
+      "description": "Inventory feature surfaces from doc-source, app-surface, and discovery-report soft inputs."
     },
     "business-rules-extractor": {
       "id": "business-rules-extractor",
       "path": "skills/business-rules-extractor",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "status": "reserved",
-      "description": "Extract observed business rules from DOMAIN_MODEL and domain engines into business/. Discover only \u2014 do not invent rules."
+      "description": "Extract observed business rules from doc-source and discovery-report soft inputs."
     },
     "product-architecture-observer": {
       "id": "product-architecture-observer",
       "path": "skills/product-architecture-observer",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "status": "reserved",
-      "description": "Observe product architecture into product-architecture/ (never ai-os/architecture/). Discover only \u2014 do not redesign."
+      "description": "Observe product architecture into product-architecture/ from doc-source and discovery-report. Never AIOS architecture/."
     },
     "product-re-gap-report": {
       "id": "product-re-gap-report",
       "path": "skills/product-re-gap-report",
+      "version": "0.1.1",
+      "status": "reserved",
+      "description": "Synthesize product-re-gap coverage gaps across ingest and transform outputs into gaps/."
+    },
+    "architecture-consultant": {
+      "id": "architecture-consultant",
+      "path": "skills/architecture-consultant",
       "version": "0.1.0",
       "status": "reserved",
-      "description": "Synthesize coverage gaps across Product RE ingest and transform outputs. Discover only \u2014 do not redesign."
+      "description": "Design the target solution architecture that preserves validated business capabilities. Improve modularity and recommend patterns. Produce architecture-v2 specs and ADRs. Never invent business logic."
+    },
+    "tech-stack-consultant": {
+      "id": "tech-stack-consultant",
+      "path": "skills/tech-stack-consultant",
+      "version": "0.1.0",
+      "status": "reserved",
+      "description": "Recommend modern technologies with alternatives and trade-offs. Produce tech-stack recommendations and migration notes. Preserve business behavior."
+    },
+    "refactoring-consultant": {
+      "id": "refactoring-consultant",
+      "path": "skills/refactoring-consultant",
+      "version": "0.1.0",
+      "status": "reserved",
+      "description": "Identify refactoring opportunities and propose migration strategy preserving validated business behavior. Reduce technical debt without changing business rules."
+    },
+    "folder-structure-designer": {
+      "id": "folder-structure-designer",
+      "path": "skills/folder-structure-designer",
+      "version": "0.1.0",
+      "status": "reserved",
+      "description": "Design feature-based repository layout and module boundaries. Produce folder conventions. Preserve business capabilities."
     }
   }
 }

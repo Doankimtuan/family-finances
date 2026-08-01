@@ -1,0 +1,105 @@
+{
+  "schema_version": "1.0.0",
+  "id": "solution-architecture",
+  "title": "Solution Architecture Redesign Pipeline",
+  "version": "0.1.0",
+  "status": "draft",
+  "worker_class": "discovery",
+  "gate_profile": "standard",
+  "allows_feature_workers": false,
+  "side_effect_ceiling": [
+    "none",
+    "runtime-write"
+  ],
+  "workers": [
+    "architecture-consultant",
+    "tech-stack-consultant",
+    "refactoring-consultant",
+    "folder-structure-designer"
+  ],
+  "dependency_graph_ref": {
+    "path": "pipelines/solution-architecture/dependency-graph.json",
+    "artifact_id": "art_sa_pipeline_deps",
+    "schema": "schemas/pipeline-dependency-graph.schema.json"
+  },
+  "waves": [
+    [
+      "architecture-consultant"
+    ],
+    [
+      "tech-stack-consultant",
+      "refactoring-consultant"
+    ],
+    [
+      "folder-structure-designer"
+    ]
+  ],
+  "primary_output_type": "architecture-v2-spec",
+  "validator_id": "solution-architecture-schema-check",
+  "reviewer_id": "solution-architecture-coverage-review",
+  "goal": {
+    "title": "Redesign the solution while preserving validated business behavior",
+    "problem": "Produce target architecture, tech stack, migration plan, and folder structure without inventing business logic or overwriting discovery artifacts.",
+    "success_criteria": [
+      {
+        "id": "architecture-v2-ready",
+        "description": "architecture-consultant emits ready architecture-v2-spec + ADRs"
+      },
+      {
+        "id": "tech-stack-ready",
+        "description": "tech-stack-consultant emits ready tech-stack-recommendation"
+      },
+      {
+        "id": "migration-ready",
+        "description": "refactoring-consultant emits ready migration-plan with preserves_behavior"
+      },
+      {
+        "id": "folder-structure-ready",
+        "description": "folder-structure-designer emits ready folder-structure-spec"
+      }
+    ],
+    "non_goals": [
+      "Discover new product features",
+      "Modify business rules",
+      "Review/re-litigate prior discovery implementations",
+      "Implement Feature Workers",
+      "Overwrite discovery or Product RE artifacts",
+      "Treat AIOS architecture/ control-plane docs as product architecture input"
+    ]
+  },
+  "created_at": "2026-08-01T13:00:00Z",
+  "extensions": {
+    "schema": "schemas/pipeline.schema.json",
+    "contract": "contracts/pipeline.md",
+    "output_types": [
+      "architecture-v2-spec",
+      "architecture-decision-record",
+      "tech-stack-recommendation",
+      "migration-plan",
+      "folder-structure-spec",
+      "redesign-overview"
+    ],
+    "consumes": [
+      "knowledge",
+      "features",
+      "business",
+      "architecture",
+      "product-architecture",
+      "requirements",
+      "quality"
+    ],
+    "consume_aliases": {
+      "architecture": "product-architecture"
+    },
+    "produces": [
+      "redesign",
+      "architecture-v2",
+      "tech-stack",
+      "migration",
+      "folder-structure",
+      "decision-records"
+    ],
+    "preserve_business_behavior": true,
+    "invent_business_logic": false
+  }
+}

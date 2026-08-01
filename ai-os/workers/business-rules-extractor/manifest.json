@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "id": "business-rules-extractor",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "title": "Business Rules Extractor",
   "implements_roles": [
     "executor"
@@ -28,6 +28,7 @@
     "depends_on_workers": [],
     "feature_worker": false,
     "redesign": false,
-    "soft_discovery_handoff": true
+    "soft_discovery_handoff": true,
+    "mission_verb": "extract"
   }
 }

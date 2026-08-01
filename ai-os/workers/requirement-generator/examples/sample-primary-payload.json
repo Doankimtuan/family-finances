@@ -12,8 +12,7 @@
       "statement": "The system SHALL scope accounts, transactions, jars, and budgets to a household tenant.",
       "source_paths": [
         "product/",
-        "business/",
-        "docs/DOMAIN_MODEL.md"
+        "business/"
       ]
     },
     {
@@ -22,8 +21,7 @@
       "statement": "Jar balances MUST be derived from jar_movements and MUST NOT alter real account balances.",
       "source_paths": [
         "workflow/",
-        "business/",
-        "docs/DOMAIN_MODEL.md"
+        "business/"
       ]
     }
   ],

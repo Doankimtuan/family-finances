@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "id": "acceptance-criteria-generator",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "title": "Acceptance Criteria Extractor",
   "implements_roles": [
     "executor"
@@ -33,6 +33,7 @@
     ],
     "feature_worker": false,
     "redesign": false,
-    "soft_discovery_handoff": true
+    "soft_discovery_handoff": false,
+    "mission_verb": "extract"
   }
 }

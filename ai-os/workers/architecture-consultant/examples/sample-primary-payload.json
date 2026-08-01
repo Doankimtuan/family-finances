@@ -1,0 +1,55 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_out_architecture_consultant",
+  "type": "architecture-v2-spec",
+  "worker_id": "architecture-consultant",
+  "title": "Architecture Consultant output",
+  "summary": "Design the target solution architecture that preserves validated business capabilities. Improve modularity and recommend patterns. Produce architecture-v2 specs and Architecture Decision Records. Never invent business logic.",
+  "entries": [
+    {
+      "id": "av2-modular-hex",
+      "entry_kind": "pattern",
+      "statement": "Target modular boundaries separating real accounting (accounts/transactions) from virtual jar intent (jars/review queue/movements) while preserving household multitenancy.",
+      "source_paths": [
+        "product-architecture/",
+        "business/",
+        "requirements/",
+        "knowledge/"
+      ],
+      "confidence": 0.86,
+      "preserves_capabilities": [
+        "household-tenant",
+        "jar-review-queue",
+        "real-vs-virtual-balances"
+      ]
+    },
+    {
+      "id": "adr-001-intent-layer",
+      "entry_kind": "adr",
+      "statement": "ADR: Keep jars as virtual intent envelopes derived from jar_movements; do not merge jar balances into account ledgers.",
+      "source_paths": [
+        "business/",
+        "requirements/",
+        "product-architecture/"
+      ],
+      "confidence": 0.92,
+      "decision_status": "proposed"
+    }
+  ],
+  "status": "ready",
+  "created_at": "2026-08-01T13:00:00Z",
+  "trace": {
+    "orchestration_id": "art_sa_orchestration",
+    "plan_id": "art_sa_plan",
+    "task_id": "art_task_architecture_consultant",
+    "run_id": "art_run_architecture_consultant",
+    "goal_id": "art_sa_goal"
+  },
+  "extensions": {
+    "pipeline": "solution-architecture",
+    "role_alias": "architecture-consultant",
+    "preserve_business_behavior": true,
+    "invent_business_logic": false,
+    "overwrite_discovery": false
+  }
+}

@@ -27,3 +27,7 @@ Working folder for Product RE `workflow-model` mirrors and templates.
 | Artifact type | `workflow-model` |
 
 See `pipelines/product-re/` and `architecture/folder-structure.md`.
+
+## Mirror rule
+
+Folder `TEMPLATE.md` / `template.schema.json` are human-oriented mirrors. Runtime artifacts use `entries[]` per `schemas/product-re-payload.schema.json`.

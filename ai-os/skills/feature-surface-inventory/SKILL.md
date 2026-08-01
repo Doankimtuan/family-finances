@@ -1,26 +1,47 @@
 ---
 name: feature-surface-inventory
-description: Reserved product reverse-engineering skill for feature-surface-inventory (alias: feature-surface-inventory).
+description: Inventory feature surfaces from doc-source, app-surface, and discovery-report soft inputs.
 ---
 
 # Feature Surface Inventory
 
-> Discovery only. Extract what exists. Do not redesign. Do not implement features.
+> Discovery only. Inventory what exists. Do not invent screens.
 
 ## Consumes
 
-docs, discovery-report, app
+`doc-source`, `app-surface`, `discovery-report` → produces `features/`
 
 ## Produces
 
-`features/` → artifact type `feature-inventory`
+`features/` → `feature-inventory`
+
+## Ownership
+
+- **Owns:** routes, screens, user-visible actions, feature surfaces
+- **Excludes:** glossary; business rules; architecture pillars
+- **Sources:** DOMAIN_MODEL flow/UI mentions; app route maps; discovery-report
 
 ## Procedure
 
-1. Soft-read docs + app route/UI surfaces and discovery-report soft inputs.
-2. Inventory features/screens/actions as they exist (routes, review queue, jars, budgets).
-3. Write feature-inventory staging artifact; optionally mirror under features/.
-4. Stop for validation/review. Do not invent features.
+1. Soft-read `doc-source`, `app-surface`, and `discovery-report`.
+2. Inventory surfaces as they exist (e.g. jar review queue, accounts, budgets).
+3. Set `entry_kind` ∈ {surface, route, action}; cite `source_paths`.
+4. Write `feature-inventory`; optionally mirror under `features/`.
+5. Stop for validation/review.
+
+## Heuristics
+
+- Prefer concrete routes/actions over marketing language.
+- Rule-like statements defer to `business-rules-extractor`.
+
+## Done when
+
+- ≥1 surface/route/action entry with sources
+- No invented screens
+
+## Negative examples
+
+- Do not add a hypothetical “AI coach” surface.
 
 ## Lock
 

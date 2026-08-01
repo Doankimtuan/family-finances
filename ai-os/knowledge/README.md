@@ -27,3 +27,7 @@ Working folder for Product RE `knowledge-notes` mirrors and templates.
 | Artifact type | `knowledge-notes` |
 
 See `pipelines/product-re/` and `architecture/folder-structure.md`.
+
+## Mirror rule
+
+Folder `TEMPLATE.md` / `template.schema.json` are human-oriented mirrors. Runtime artifacts use `entries[]` per `schemas/product-re-payload.schema.json`.

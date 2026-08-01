@@ -1,0 +1,42 @@
+{
+  "id": "case-05-missing-skill",
+  "title": "Unknown skill fails preparing",
+  "description": "Worker must fail in preparing when skill_id is not in registry/skills.json.",
+  "given": {
+    "gate_profile": "standard",
+    "orchestration_budget": {
+      "allowed_side_effects": [
+        "none",
+        "runtime-write"
+      ]
+    },
+    "task": {
+      "artifact_id": "art_tc05_task",
+      "skill_id": "architecture-consultant",
+      "skill_version": "0.1.0",
+      "primary_output_type": "architecture-v2-spec",
+      "validators": [
+        "solution-architecture-schema-check"
+      ],
+      "reviewers": [
+        "solution-architecture-coverage-review"
+      ],
+      "side_effect_budget": [
+        "runtime-write"
+      ]
+    },
+    "inputs": []
+  },
+  "when": {
+    "action": "run-worker",
+    "worker_id": "architecture-consultant",
+    "worker_version": "0.1.0"
+  },
+  "expect": {
+    "run_status": "failed",
+    "failed_phase": "preparing",
+    "error_code": "unknown-skill",
+    "published": false,
+    "primary_output_created": false
+  }
+}

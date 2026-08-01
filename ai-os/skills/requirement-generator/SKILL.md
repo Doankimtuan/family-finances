@@ -1,11 +1,11 @@
 ---
 name: requirement-generator
-description: Reserved product reverse-engineering skill for requirement-generator (alias: requirement-extractor).
+description: Extract requirement-spec SHALL/MUST statements (role_alias=requirement-extractor; id retained for BC).
 ---
 
 # Requirement Extractor
 
-> Discovery only. Extract what exists. Do not redesign. Do not implement features.
+> Worker id `requirement-generator` retained for backward compatibility. **Mission verb: extract.** Do not invent requirements.
 
 ## Consumes
 
@@ -13,14 +13,33 @@ description: Reserved product reverse-engineering skill for requirement-generato
 
 ## Produces
 
-`requirements/` → artifact type `requirement-spec`
+`requirements/` → `requirement-spec`
+
+## Ownership
+
+- **Owns:** SHALL/MUST requirements extracted from validated packs
+- **Does not** invent requirements or redesign behavior
 
 ## Procedure
 
-1. Load product/, workflow/, and business/ only (narrow consumes).
-2. Extract SHALL/MUST requirements traceable to those sources; set entry_kind=shall.
-3. Write requirement-spec under requirements/. Worker id is historical; behave as extractor.
-4. Stop for validation/review. Do not invent requirements.
+1. Load product, workflow, and business packs only.
+2. Extract requirements with `entry_kind=shall` and SHALL/MUST language.
+3. Cite `source_paths`; write `requirement-spec` under `requirements/`.
+4. Stop for validation/review.
+
+## Heuristics
+
+- Each requirement must be traceable to an observed capability/rule/step.
+- Prefer one capability → one requirement.
+
+## Done when
+
+- ≥1 SHALL/MUST entry with sources
+- No invented requirements
+
+## Negative examples
+
+- Do not write “The system SHALL add AI forecasting” unless sourced.
 
 ## Lock
 

@@ -2,6 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://aios.dev/schemas/product-re/features.template.schema.json",
   "title": "Product RE features template",
+  "description": "Human mirror for feature-inventory. Runtime uses entries[] with entry_kind surface|route|action.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -9,8 +10,8 @@
     "kind",
     "title",
     "summary",
+    "surfaces",
     "sources",
-    "observations",
     "created_at"
   ],
   "properties": {
@@ -28,8 +29,38 @@
       "type": "string",
       "minLength": 1
     },
+    "surfaces": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "behavior"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "route": {
+            "type": "string"
+          },
+          "behavior": {
+            "type": "string"
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
     "sources": {
       "type": "array",
+      "minItems": 1,
       "items": {
         "type": "object",
         "additionalProperties": false,
@@ -48,13 +79,6 @@
           }
         }
       }
-    },
-    "observations": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      },
-      "minItems": 1
     },
     "open_questions": {
       "type": "array",

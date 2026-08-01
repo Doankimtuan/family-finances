@@ -27,3 +27,7 @@ Working folder for Product RE `business-rules` mirrors and templates.
 | Artifact type | `business-rules` |
 
 See `pipelines/product-re/` and `architecture/folder-structure.md`.
+
+## Mirror rule
+
+Folder `TEMPLATE.md` / `template.schema.json` are human-oriented mirrors. Runtime artifacts use `entries[]` per `schemas/product-re-payload.schema.json`.

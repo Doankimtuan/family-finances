@@ -92,6 +92,18 @@
       "relation": "requires"
     },
     {
+      "predecessor": "feature-surface-inventory",
+      "successor": "workflow-analyzer",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "product-architecture-observer",
+      "successor": "workflow-analyzer",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
       "predecessor": "product-analyst",
       "successor": "requirement-generator",
       "type": "blocks",
@@ -128,6 +140,30 @@
       "relation": "requires"
     },
     {
+      "predecessor": "product-knowledge-ingest",
+      "successor": "product-re-gap-report",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "feature-surface-inventory",
+      "successor": "product-re-gap-report",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "business-rules-extractor",
+      "successor": "product-re-gap-report",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "product-architecture-observer",
+      "successor": "product-re-gap-report",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
       "predecessor": "product-analyst",
       "successor": "product-re-gap-report",
       "type": "blocks",
@@ -152,13 +188,15 @@
       "relation": "requires"
     }
   ],
-  "created_at": "2026-08-01T12:00:00Z",
+  "created_at": "2026-08-01T14:00:00Z",
   "notes": [
     "Hard edges only within product-re. Feature Workers excluded.",
-    "Discovery handoff is soft (docs + discovery-report), not graph edges.",
+    "Discovery handoff is soft (doc-source + discovery-report + app-surface), not graph edges.",
     "architecture/ (AIOS) is never a consume node; use product-architecture/.",
+    "workflow-analyzer hard-deps include feature-surface-inventory + product-architecture-observer.",
+    "product-re-gap-report hard-deps include all ingest + transform workers; produces gaps/.",
     "Waves: [['product-knowledge-ingest', 'feature-surface-inventory', 'business-rules-extractor', 'product-architecture-observer'], ['product-analyst'], ['workflow-analyzer'], ['requirement-generator'], ['acceptance-criteria-generator'], ['product-re-gap-report']]",
-    "requirement-generator / acceptance-criteria-generator ids retained; role_alias = *-extractor."
+    "requirement-generator / acceptance-criteria-generator ids retained; mission_verb=extract."
   ],
   "extensions": {
     "schema": "pipeline-dependency-graph.schema.json",

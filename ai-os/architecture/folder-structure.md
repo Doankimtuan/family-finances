@@ -8,77 +8,54 @@ ai-os/
 ├── AGENTS.md
 ├── VERSION
 ├── architecture/           # AIOS framework docs (NOT product architecture input)
-├── product-architecture/   # Product RE consume: observed product architecture
-├── knowledge/              # Product RE consume (ingest → notes)
-├── features/               # Product RE consume (ingest → surface inventory)
-├── business/               # Product RE consume (ingest → rules)
-├── product/                # Product RE produce (product-model)
-├── workflow/               # Product RE produce (workflow-model)
-├── requirements/           # Product RE produce (requirement-spec)
-├── acceptance/             # Product RE produce (acceptance-criteria)
+├── product-architecture/   # Product architecture observations (logical architecture/ for SA)
+├── knowledge/              # Product RE / SA consume
+├── features/               # Product RE / SA consume
+├── business/               # Product RE / SA consume
+├── quality/                # Solution Architecture consume
+├── product/                # Product RE produce
+├── workflow/               # Product RE produce
+├── requirements/           # Product RE produce / SA consume
+├── acceptance/             # Product RE produce
+├── gaps/                   # Product RE produce (product-re-gap mirrors)
+├── redesign/               # Solution Architecture produce
+├── architecture-v2/        # Solution Architecture produce
+├── tech-stack/             # Solution Architecture produce
+├── migration/              # Solution Architecture produce
+├── folder-structure/       # Solution Architecture produce
+├── decision-records/       # Solution Architecture produce (ADRs)
 ├── core/                   # Core Engine (TypeScript control plane)
 │   ├── planner/
 │   ├── orchestrator/
 │   ├── artifacts/
 │   ├── memory/
 │   ├── knowledge/
-│   ├── schemas/            # Zod mirrors of JSON contracts
+│   ├── schemas/
 │   ├── templates/
 │   ├── configs/
 │   └── scripts/
-├── schemas/                # JSON Schema contracts
+├── schemas/
 ├── templates/
-│   ├── artifact/
-│   ├── plan/
-│   ├── task/
-│   ├── run/
-│   ├── skill/
-│   ├── validation/
-│   ├── review/
-│   └── worker/             # reusable worker package template
+│   └── worker/
 ├── contracts/
-├── policies/               # Executable policy data (gate profiles)
-├── pipelines/              # discovery + product-re
-├── registry/               # entries maps keyed by id
+├── policies/
+├── pipelines/              # discovery + product-re + solution-architecture
+├── registry/
 ├── roles/
-├── runtime/                # gitignored outputs (placeholders kept)
-├── skills/                 # reserved skill packages
+├── runtime/
+├── skills/
 ├── validators/
 ├── reviewers/
-└── workers/                # Discovery + Product RE (Feature Workers forbidden)
+└── workers/                # Discovery + Product RE + Solution Architecture (Feature Workers forbidden)
 ```
-
-## Package layouts (future)
-
-Unchanged from framework design: `manifest.json` + role doc + optional schemas/fixtures.
 
 ## Runtime layout
 
 ```
 runtime/artifacts/<art_id>/v<n>/meta.json + payload.*
-runtime/plans/     # optional convenience mirrors; source of truth is artifacts/
-runtime/runs/
-runtime/validations/
-runtime/reviews/
-runtime/logs/
 ```
 
-Prefer writing under `runtime/artifacts/`. Convenience folders may symlink or copy refs later; do not create a second source of truth.
-
-### Product RE folder ↔ runtime mapping
-
-| Working folder | Primary artifact type | When to mirror |
-|----------------|----------------------|----------------|
-| `knowledge/` | `knowledge-notes` | After ingest publish |
-| `features/` | `feature-inventory` | After ingest publish |
-| `business/` | `business-rules` | After ingest publish |
-| `product-architecture/` | `product-architecture-notes` | After ingest publish |
-| `product/` | `product-model` | After product-analyst publish |
-| `workflow/` | `workflow-model` | After workflow-analyzer publish |
-| `requirements/` | `requirement-spec` | After requirement-generator publish |
-| `acceptance/` | `acceptance-criteria` | After acceptance-criteria-generator publish |
-
-Source of truth remains `runtime/artifacts/`; folders hold templates + published mirrors only.
+Prefer writing under `runtime/artifacts/`. Working folders hold templates + published mirrors only.
 
 ## Placement rules
 
@@ -86,11 +63,10 @@ Source of truth remains `runtime/artifacts/`; folders hold templates + published
 |---------|----------|
 | AIOS conventions | `architecture/` |
 | Product architecture observations | `product-architecture/` |
+| Quality / debt inputs | `quality/` |
+| Solution redesign outputs | `redesign/`, `architecture-v2/`, `tech-stack/`, `migration/`, `folder-structure/`, `decision-records/` |
 | Machine contracts | `schemas/` |
 | Core Engine code | `core/` |
-| Policy data | `policies/` |
-| Catalogs | `registry/` (`entries` maps) |
-| Run outputs | `runtime/` (gitignored) |
-| Capability packages | `skills/` `validators/` `reviewers/` |
-| Executors | `workers/` (Discovery + Product RE; Feature Workers forbidden) |
-| Pipelines | `pipelines/discovery/`, `pipelines/product-re/` |
+| Catalogs | `registry/` |
+| Executors | `workers/` |
+| Pipelines | `pipelines/discovery/`, `pipelines/product-re/`, `pipelines/solution-architecture/` |

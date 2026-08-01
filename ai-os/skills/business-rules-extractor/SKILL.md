@@ -1,26 +1,47 @@
 ---
 name: business-rules-extractor
-description: Reserved product reverse-engineering skill for business-rules-extractor (alias: business-rules-extractor).
+description: Extract observed business rules from doc-source and discovery-report soft inputs.
 ---
 
 # Business Rules Extractor
 
-> Discovery only. Extract what exists. Do not redesign. Do not implement features.
+> Discovery only. Extract rules as-is. Do not invent policy.
 
 ## Consumes
 
-docs, discovery-report
+`doc-source`, `discovery-report` → produces `business/`
 
 ## Produces
 
-`business/` → artifact type `business-rules`
+`business/` → `business-rules`
+
+## Ownership
+
+- **Owns:** observed rules, invariants, policies
+- **Excludes:** glossary; UI inventory; architecture pillars
+- **Sources:** DOMAIN_MODEL consistency/allocation/jar logic; discovery-report
 
 ## Procedure
 
-1. Soft-read docs/DOMAIN_MODEL.md and domain engines described therein.
-2. Extract observed rules (virtual jars, review queue resolution, tenant scope).
-3. Write business-rules staging artifact; optionally mirror under business/.
-4. Stop for validation/review. Do not invent policies.
+1. Soft-read `doc-source` and `discovery-report`.
+2. Extract only rules/invariants present in sources.
+3. Set `entry_kind` ∈ {rule, invariant, policy}; cite `source_paths`.
+4. Write `business-rules`; optionally mirror under `business/`.
+5. Stop for validation/review.
+
+## Heuristics
+
+- Prefer observed MUST/SHOULD language over new policy design.
+- Do not “improve” the rule — extract as-is.
+
+## Done when
+
+- ≥1 rule/invariant/policy with sources
+- No invented policies
+
+## Negative examples
+
+- Do not invent auto-resolve-all-queue-items as a new rule.
 
 ## Lock
 

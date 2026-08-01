@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0.0",
   "id": "workflow-analyzer",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "title": "Workflow Analyzer",
-  "description": "Discover end-to-end user and system workflows from product-model plus product-architecture/ and features/. Map steps, actors, and handoffs without inventing new product behavior.",
+  "description": "Extract ordered workflow-model steps from product, product-architecture, and features packs.",
   "role": "executor",
   "grade": "guided",
   "inputs": [
@@ -17,19 +17,19 @@
       "name": "product",
       "artifact_type": "product-model",
       "required": true,
-      "description": "Consume input: product"
+      "description": "Consume input: product (product-model)"
     },
     {
       "name": "product-architecture",
       "artifact_type": "product-architecture-notes",
       "required": true,
-      "description": "Consume input: product-architecture"
+      "description": "Consume input: product-architecture (product-architecture-notes)"
     },
     {
       "name": "features",
       "artifact_type": "feature-inventory",
       "required": true,
-      "description": "Consume input: features"
+      "description": "Consume input: features (feature-inventory)"
     }
   ],
   "outputs": [
@@ -55,6 +55,7 @@
   "extensions": {
     "pipeline": "product-re",
     "role_alias": "workflow-analyzer",
-    "soft_discovery_handoff": true
+    "mission_verb": "extract",
+    "soft_discovery_handoff": false
   }
 }

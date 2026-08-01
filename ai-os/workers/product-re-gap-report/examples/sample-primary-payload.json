@@ -14,7 +14,8 @@
         "features/",
         "product-architecture/",
         "docs/DOMAIN_MODEL.md"
-      ]
+      ],
+      "folder_mirror": "gaps/"
     }
   ],
   "status": "ready",
@@ -29,6 +30,9 @@
   "extensions": {
     "pipeline": "product-re",
     "role_alias": "product-re-gap-report",
-    "redesign": false
+    "redesign": false,
+    "produces": [
+      "gaps"
+    ]
   }
 }

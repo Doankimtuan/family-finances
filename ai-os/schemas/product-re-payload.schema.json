@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://aios.dev/schemas/product-re-payload.schema.json",
   "title": "AIOS Product Reverse Engineering Payload",
-  "description": "Umbrella primary payload for product-re artifact types. Type-specific constraints via allOf if/then. Backward compatible: unknown optional entry fields remain allowed only when listed.",
+  "description": "Umbrella primary payload for product-re artifact types. Type-specific constraints via allOf if/then. Folder TEMPLATE.md / template.schema.json are human mirrors; runtime source of truth is entries[] payloads.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -277,12 +277,7 @@
       "if": {
         "properties": {
           "type": {
-            "enum": [
-              "knowledge-notes",
-              "feature-inventory",
-              "business-rules",
-              "product-architecture-notes"
-            ]
+            "const": "knowledge-notes"
           }
         }
       },
@@ -295,7 +290,112 @@
                 "statement",
                 "source_paths",
                 "entry_kind"
-              ]
+              ],
+              "properties": {
+                "entry_kind": {
+                  "enum": [
+                    "glossary",
+                    "entity",
+                    "fact"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "feature-inventory"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "entries": {
+            "items": {
+              "required": [
+                "id",
+                "statement",
+                "source_paths",
+                "entry_kind"
+              ],
+              "properties": {
+                "entry_kind": {
+                  "enum": [
+                    "surface",
+                    "route",
+                    "action"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "business-rules"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "entries": {
+            "items": {
+              "required": [
+                "id",
+                "statement",
+                "source_paths",
+                "entry_kind"
+              ],
+              "properties": {
+                "entry_kind": {
+                  "enum": [
+                    "rule",
+                    "invariant",
+                    "policy"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "product-architecture-notes"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "entries": {
+            "items": {
+              "required": [
+                "id",
+                "statement",
+                "source_paths",
+                "entry_kind"
+              ],
+              "properties": {
+                "entry_kind": {
+                  "enum": [
+                    "pillar",
+                    "boundary",
+                    "module"
+                  ]
+                }
+              }
             }
           }
         }

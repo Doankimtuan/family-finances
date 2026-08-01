@@ -1,11 +1,11 @@
 ---
 name: product-re-gap-report
-description: Reserved product reverse-engineering skill for product-re-gap-report (alias: product-re-gap-report).
+description: Synthesize product-re-gap coverage gaps across ingest and transform outputs into gaps/.
 ---
 
 # Product RE Gap Report
 
-> Discovery only. Extract what exists. Do not redesign. Do not implement features.
+> Discovery only. List coverage gaps. Do not redesign to close them.
 
 ## Consumes
 
@@ -13,14 +13,33 @@ description: Reserved product reverse-engineering skill for product-re-gap-repor
 
 ## Produces
 
-(gap report artifact only) → artifact type `product-re-gap`
+`gaps/` → `product-re-gap`
+
+## Ownership
+
+- **Owns:** coverage gaps with severity
+- **Hard-deps:** ingest + transform workers
 
 ## Procedure
 
-1. Load product/, workflow/, requirements/, acceptance/ and ingest mirrors.
-2. List coverage gaps, missing source_paths, and unresolved open questions with severity.
-3. Write product-re-gap staging artifact.
-4. Stop for validation/review. Do not redesign.
+1. Load transform and ingest mirrors.
+2. List gaps with `severity` and `source_paths`.
+3. Write `product-re-gap`; mirror under `gaps/`.
+4. Stop for validation/review.
+
+## Heuristics
+
+- Prefer concrete missing coverage over vague research asks.
+- Do not invent features as gap-closures.
+
+## Done when
+
+- ≥1 gap entry with severity + sources
+- No redesign proposals
+
+## Negative examples
+
+- Do not recommend a new Feature Worker as the gap fix.
 
 ## Lock
 

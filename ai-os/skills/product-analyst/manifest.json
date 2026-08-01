@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0.0",
   "id": "product-analyst",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "title": "Product Analyst",
-  "description": "Reverse-engineer product identity, personas, value proposition, and capability map from knowledge/, features/, business/, and product-architecture/ inputs. Discover only \u2014 do not redesign or implement.",
+  "description": "Extract product-model identity/personas/value-prop/capabilities from ingest packs.",
   "role": "executor",
   "grade": "guided",
   "inputs": [
@@ -17,25 +17,25 @@
       "name": "knowledge",
       "artifact_type": "knowledge-notes",
       "required": true,
-      "description": "Consume input: knowledge"
+      "description": "Consume input: knowledge (knowledge-notes)"
     },
     {
       "name": "features",
       "artifact_type": "feature-inventory",
       "required": true,
-      "description": "Consume input: features"
+      "description": "Consume input: features (feature-inventory)"
     },
     {
       "name": "business",
       "artifact_type": "business-rules",
       "required": true,
-      "description": "Consume input: business"
+      "description": "Consume input: business (business-rules)"
     },
     {
       "name": "product-architecture",
       "artifact_type": "product-architecture-notes",
       "required": true,
-      "description": "Consume input: product-architecture"
+      "description": "Consume input: product-architecture (product-architecture-notes)"
     }
   ],
   "outputs": [
@@ -61,6 +61,7 @@
   "extensions": {
     "pipeline": "product-re",
     "role_alias": "product-analyst",
-    "soft_discovery_handoff": true
+    "mission_verb": "extract",
+    "soft_discovery_handoff": false
   }
 }

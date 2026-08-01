@@ -1,0 +1,41 @@
+{
+  "schema_version": "1.0.0",
+  "kind": "requirements",
+  "title": "Extracted household requirements (fixture)",
+  "summary": "SHALL/MUST requirements extracted from product/workflow/business.",
+  "requirements": [
+    {
+      "id": "req-household-tenant",
+      "statement": "The system SHALL scope accounts and jars to a household tenant.",
+      "sources": [
+        "product/",
+        "business/"
+      ]
+    },
+    {
+      "id": "req-jar-virtual",
+      "statement": "Jar balances MUST derive from jar_movements and MUST NOT alter real account balances.",
+      "sources": [
+        "workflow/",
+        "business/"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "path": "product/"
+    },
+    {
+      "path": "workflow/"
+    },
+    {
+      "path": "business/"
+    }
+  ],
+  "created_at": "2026-08-01T14:00:00Z",
+  "extensions": {
+    "fixture": true,
+    "pipeline": "product-re",
+    "runtime_shape": "entries[]"
+  }
+}

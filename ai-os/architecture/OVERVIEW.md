@@ -10,8 +10,9 @@ Orchestrator ──► Planner ──► Plan + Task artifacts + Dependency grap
     │
     ├─ Discovery Workers ──► discovery-report (ready)
     │
-    └─ Product RE Workers ──► knowledge/features/business/product-architecture
-                              → product/workflow/requirements/acceptance
+    ├─ Product RE Workers ──► product knowledge chain
+    │
+    └─ Solution Architecture Workers ──► architecture-v2 / tech-stack / migration / folder-structure
                                          ▲
                                          │
           Core loads/validates registries/pipelines
@@ -73,8 +74,8 @@ See `contracts/cursor-bridge.md`.
 
 ## Versioning
 
-- Framework: `VERSION` (now `0.4.2`)
-- Release notes: `RELEASE_NOTES_0.4.2.md`
+- Framework: `VERSION` (now `0.5.1`)
+- Release notes: `RELEASE_NOTES_0.5.1.md` (Sprint 4 HOLD remediation); see also `MIGRATIONS.md`
 - Core Engine: `ai-os/core/` (planner, orchestrator, artifacts, memory, knowledge)
 - Breaking changes: `architecture/MIGRATIONS.md`
 - Packages: semver in manifests

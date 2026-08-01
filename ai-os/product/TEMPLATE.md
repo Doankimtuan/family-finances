@@ -1,4 +1,4 @@
-# Product — Discovery Notes
+# Product — Product RE Notes
 
 > Status: draft · Kind: produce · Discovery only · Artifact: `product-model`
 

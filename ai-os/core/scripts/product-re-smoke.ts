@@ -6,6 +6,24 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { createAiosCore } from "../index";
 
+const SOFT_INPUT_TYPES: Record<string, string> = {
+  docs: "doc-source",
+  app: "app-surface",
+  "discovery-report": "discovery-report",
+};
+
+const FOLDER_INPUT_TYPES: Record<string, string> = {
+  knowledge: "knowledge-notes",
+  features: "feature-inventory",
+  business: "business-rules",
+  "product-architecture": "product-architecture-notes",
+  product: "product-model",
+  workflow: "workflow-model",
+  requirements: "requirement-spec",
+  acceptance: "acceptance-criteria",
+  gaps: "product-re-gap",
+};
+
 async function main() {
   const root = path.resolve(process.cwd(), "ai-os");
   const core = createAiosCore({ aiosRoot: root });
@@ -20,6 +38,9 @@ async function main() {
   if (result.pipeline.waves.length !== 6) {
     throw new Error(`Expected 6 waves, got ${result.pipeline.waves.length}`);
   }
+  if (result.graph.edges.length !== 21) {
+    throw new Error(`Expected 21 graph edges, got ${result.graph.edges.length}`);
+  }
 
   for (const rel of [
     "schemas/product-re-payload.schema.json",
@@ -30,10 +51,18 @@ async function main() {
     "schemas/product-re-ingest.schema.json",
     "schemas/product-re-gap.schema.json",
     "product-architecture/README.md",
+    "gaps/README.md",
     "contracts/pipeline.md",
     "contracts/worker-port.md",
   ]) {
     await fs.access(path.join(root, rel));
+  }
+
+  // Soft-input artifact types registered
+  for (const typeId of ["doc-source", "app-surface", "discovery-report"]) {
+    if (!(await core.knowledge.hasArtifactType(typeId))) {
+      throw new Error(`Missing artifact type ${typeId}`);
+    }
   }
 
   for (const id of result.pipeline.workers) {
@@ -71,15 +100,23 @@ async function main() {
       }
     }
 
+    if (id === "product-analyst") {
+      const kinds = new Set(
+        payload.entries.map((e: { entry_kind?: string }) => e.entry_kind),
+      );
+      if (!kinds.has("value-prop")) {
+        throw new Error("product-analyst sample missing value-prop entry_kind");
+      }
+    }
+
     const skillManifest = JSON.parse(
       await fs.readFile(
         path.join(root, "skills", id, "manifest.json"),
         "utf8",
       ),
     );
-    const inputNames = (skillManifest.inputs ?? []).map(
-      (i: { name: string }) => i.name,
-    );
+    const inputs = skillManifest.inputs ?? [];
+    const inputNames = inputs.map((i: { name: string }) => i.name);
     if (!inputNames.includes("goal")) {
       throw new Error(`skill ${id} missing goal input`);
     }
@@ -87,6 +124,45 @@ async function main() {
       throw new Error(
         `skill ${id} still goal-only; expected consume inputs aligned with worker`,
       );
+    }
+
+    for (const input of inputs as Array<{
+      name: string;
+      artifact_type: string;
+    }>) {
+      if (input.name === "goal") {
+        if (input.artifact_type !== "goal") {
+          throw new Error(`skill ${id} goal input must be artifact_type goal`);
+        }
+        continue;
+      }
+      if (input.artifact_type === "goal") {
+        throw new Error(
+          `skill ${id} input "${input.name}" must not use artifact_type goal`,
+        );
+      }
+      const expectedSoft = SOFT_INPUT_TYPES[input.name];
+      if (expectedSoft && input.artifact_type !== expectedSoft) {
+        throw new Error(
+          `skill ${id} soft input "${input.name}" expected ${expectedSoft}, got ${input.artifact_type}`,
+        );
+      }
+      const expectedFolder = FOLDER_INPUT_TYPES[input.name];
+      if (expectedFolder && input.artifact_type !== expectedFolder) {
+        throw new Error(
+          `skill ${id} folder input "${input.name}" expected ${expectedFolder}, got ${input.artifact_type}`,
+        );
+      }
+    }
+
+    const skillMd = await fs.readFile(
+      path.join(root, "skills", id, "SKILL.md"),
+      "utf8",
+    );
+    for (const section of ["## Ownership", "## Procedure", "## Done when", "## Negative examples"]) {
+      if (!skillMd.includes(section)) {
+        throw new Error(`skill ${id} SKILL.md missing ${section}`);
+      }
     }
   }
 
@@ -96,6 +172,11 @@ async function main() {
     "features/examples/jar-review-queue.json",
     "business/examples/jar-intent-rules.json",
     "product-architecture/examples/domain-pillars.json",
+    "product/examples/household-product-model.json",
+    "workflow/examples/expense-to-jar-workflow.json",
+    "requirements/examples/household-requirements.json",
+    "acceptance/examples/household-acceptance.json",
+    "gaps/examples/coverage-gaps.json",
   ]) {
     await fs.access(path.join(root, rel));
   }

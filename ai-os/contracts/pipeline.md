@@ -17,15 +17,18 @@ A **pipeline** binds registered workers into ordered waves with an explicit depe
 4. `waves` is a valid topological partition of the hard graph (no edge from later wave into earlier).
 5. `allows_feature_workers: false` forbids any worker with `worker_class: feature`.
 6. `side_effect_ceiling` is the max side effect any worker in the pipeline may declare.
-7. Core Engine may **load and validate** pipelines; it still does not invoke workers in v0.4.x.
+7. Core Engine may **load and validate** pipelines; it still does not invoke workers in v0.5.x.
 
-## Registered pipelines (v0.4.2)
+## Registered pipelines (v0.5.0)
 
 | Pipeline | Purpose | Feature Workers |
 |----------|---------|-----------------|
 | `pipelines/discovery/` | Framework/repo discovery → `discovery-report` | forbidden |
 | `pipelines/product-re/` | Product reverse engineering → product knowledge chain | forbidden |
+| `pipelines/solution-architecture/` | Solution redesign → architecture-v2 / tech-stack / migration / folder-structure | forbidden |
 
-### Discovery → Product RE handoff
+### Handoffs
 
-There is **no hard graph edge** across pipelines. Product RE ingest workers **MAY** soft-read published `discovery-report` artifacts and product docs (`docs/DOMAIN_MODEL.md`, app routes) as sources. Ownership of truth for product folders is Product RE ingest + transform workers, not `discover-domain-map`.
+- Discovery → Product RE: soft-read only (no hard cross-pipeline edges).
+- Product RE → Solution Architecture: soft-read validated consume packs (`knowledge/`, `features/`, `business/`, `product-architecture/`, `requirements/`, `quality/`). Do not overwrite Product RE outputs.
+- Logical `architecture/` consume for Solution Architecture resolves to `product-architecture/`.

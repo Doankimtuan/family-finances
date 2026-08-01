@@ -27,6 +27,12 @@
 - [x] Reviewer `product-re-coverage-review` reserved
 - [ ] Heartbeats / executable claim loop (deferred)
 
+## Worker-specific gates
+
+- [x] Primary output `product-architecture-notes`
+- [x] soft_discovery_handoff = `true`
+- [x] Mission verb documented as extract/discover (not invent)
+
 ## Sign-off
 
 | Role | Name | Date | Notes |

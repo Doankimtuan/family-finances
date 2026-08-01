@@ -8,16 +8,17 @@ Workers claim runs, load skill/validator/reviewer packages, respect side-effect 
 
 Required: `id`, `version`, `implements_roles`, `side_effects`, `status`.
 
-## Phase gate (v0.4.2)
+## Phase gate (v0.5.0)
 
 | Allowed | Forbidden |
 |---------|-----------|
 | Discovery Workers under `workers/discover-*` bound by `pipelines/discovery/` | Feature Workers |
-| Product RE Workers under `workers/` with `extensions.pipeline: product-re`, bound by `pipelines/product-re/` | `repo-write` / `external` without a later phase bump |
+| Product RE Workers with `extensions.pipeline: product-re` | `repo-write` / `external` without a later phase bump |
+| Solution Architecture Workers with `extensions.pipeline: solution-architecture` | Inventing business logic / overwriting discovery artifacts |
 | Side effects ⊆ `runtime-write` | Ad-hoc scripts outside the template tree |
 | Registration in `registry/workers.json` + matching pipeline | Invoking workers from Core |
 
-`worker_class` remains `discovery` for both Discovery and Product RE packages (Feature Workers deferred). Product RE is distinguished by `extensions.pipeline` / registry `pipeline: product-re`.
+`worker_class` remains `discovery` for Discovery, Product RE, and Solution Architecture packages (Feature Workers deferred). Pipelines are distinguished by `extensions.pipeline` / registry `pipeline`.
 
 ## Conformance checklist
 
@@ -32,7 +33,7 @@ Minimum:
 - [ ] Fills `trace` per TRACEABILITY.md
 - [ ] Never publishes on blocking gate fail
 - [ ] `testcases/` cover happy path + budget + blocking validation
-- [ ] `extensions.worker_class` is `discovery`; Product RE sets `extensions.pipeline` = `product-re`
+- [ ] `extensions.worker_class` is `discovery`; set `extensions.pipeline` to the owning pipeline
 
 ## Package template
 
@@ -69,3 +70,11 @@ Registered skills/validators/reviewers for a pipeline must exist on disk under `
 3. `pipelines/product-re/dependency-graph.json`
 
 Product RE **must not** consume `architecture/` (AIOS control-plane docs). Use `product-architecture/` for product architecture observations.
+
+### Solution architecture redesign
+
+1. `registry/workers.json`
+2. `pipelines/solution-architecture/pipeline.json`
+3. `pipelines/solution-architecture/dependency-graph.json`
+
+Logical consume `architecture/` resolves to `product-architecture/`. Solution Architecture workers must preserve validated business behavior, require `source_paths` + `confidence` on entries, and must not invent business logic or overwrite discovery/Product RE artifacts.

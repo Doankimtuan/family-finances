@@ -7,6 +7,38 @@
 - Additive schema fields may stay on the same `schema_version` const when optional.
 - Removing/renaming required fields or changing enum membership is breaking.
 
+## 0.5.0 → 0.5.1 (2026-08-01)
+
+Product Review Board HOLD remediation for Sprint 4 Product RE (Feature Workers still forbidden; Core still does not invoke workers). Solution Architecture pipeline unchanged.
+
+| Change | Detail |
+|--------|--------|
+| C3-R | Soft inputs typed as `doc-source` / `app-surface` / `discovery-report` (never `goal`) |
+| H1-R | Worker-specific SKILL.md with Ownership, Heuristics, Done when, Negative examples |
+| H2-R | `aios:product-re:smoke` asserts skill input `artifact_type` |
+| H3-R | Generator ids retained (BC); `mission_verb=extract` + extractor titles |
+| H4-R | Wave-0 ownership/exclusion rules in skills |
+| M1 | `gaps/` produce folder for `product-re-gap-report` |
+| M2–M3 | Produce-folder examples; specialized knowledge/features/business JSON templates |
+| M4–M5 | `soft_discovery_handoff` ingest-only; hard edges for workflow/gap ↔ ingest |
+| M7–M8 | Ingest `entry_kind` enums + validator check; product-analyst `value-prop` sample |
+| Docs | Mirror rule (folder templates vs `entries[]`); pipeline README 0.2.1 |
+
+## 0.4.2 → 0.5.0 (2026-08-01)
+
+Solution Architecture redesign phase (Feature Workers still forbidden; Core still does not invoke workers).
+
+| Change | Detail |
+|--------|--------|
+| Pipeline | `pipelines/solution-architecture/` — 4 workers, 3 waves |
+| Workers | `architecture-consultant`, `tech-stack-consultant`, `refactoring-consultant`, `folder-structure-designer` |
+| I/O | Consume quality/ + product-architecture/ (alias for architecture/); produce redesign/, architecture-v2/, tech-stack/, migration/, folder-structure/, decision-records/ |
+| Schemas | `solution-architecture-payload.schema.json` + typed specs; entries require `source_paths` + `confidence` |
+| Validator/Reviewer | `solution-architecture-schema-check` / `solution-architecture-coverage-review` |
+| Knowledge | `validateSolutionArchitecturePipelineRegistration()` |
+| Smoke | `npm run aios:solution-architecture:smoke` |
+| Invariants | Preserve business behavior; never invent business logic; never overwrite discovery/Product RE artifacts |
+
 ## 0.4.1 → 0.4.2 (2026-08-01)
 
 Product Review Board FAIL remediation for Product Reverse Engineering (Feature Workers still forbidden; Core still does not invoke workers).

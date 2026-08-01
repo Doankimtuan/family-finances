@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_env_refactoring_consultant",
+  "type": "run-record",
+  "worker_id": "refactoring-consultant",
+  "status": "succeeded",
+  "summary": "Identify refactoring opportunities and propose a migration strategy that preserves validated business behavior while reducing technical debt. Never invent business logic or change business rules.",
+  "created_at": "2026-08-01T13:00:00Z",
+  "extensions": {
+    "pipeline": "solution-architecture",
+    "primary_output_type": "migration-plan",
+    "produces": [
+      "migration",
+      "redesign"
+    ]
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aios.dev/schemas/workers/folder-structure-designer/output.schema.json",
+  "title": "AIOS Solution Architecture Worker Output \u2014 folder-structure-designer",
+  "description": "Run envelope for folder-structure-designer. Primary: folder-structure-spec.",
+  "allOf": [
+    {
+      "$ref": "https://aios.dev/schemas/worker-output-envelope.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "worker_id": {
+          "const": "folder-structure-designer"
+        },
+        "extensions": {
+          "type": "object",
+          "properties": {
+            "pipeline": {
+              "const": "solution-architecture"
+            },
+            "primary_output_type": {
+              "const": "folder-structure-spec"
+            },
+            "produces": {
+              "const": [
+                "folder-structure"
+              ]
+            }
+          }
+        }
+      }
+    }
+  ]
+}

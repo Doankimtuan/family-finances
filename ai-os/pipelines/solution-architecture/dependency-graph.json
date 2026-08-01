@@ -1,0 +1,70 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_sa_pipeline_deps",
+  "kind": "worker",
+  "pipeline_id": "solution-architecture",
+  "title": "Solution Architecture Worker Dependency Graph",
+  "nodes": [
+    {
+      "id": "architecture-consultant",
+      "node_type": "worker",
+      "label": "architecture-consultant",
+      "worker_class": "discovery"
+    },
+    {
+      "id": "tech-stack-consultant",
+      "node_type": "worker",
+      "label": "tech-stack-consultant",
+      "worker_class": "discovery"
+    },
+    {
+      "id": "refactoring-consultant",
+      "node_type": "worker",
+      "label": "refactoring-consultant",
+      "worker_class": "discovery"
+    },
+    {
+      "id": "folder-structure-designer",
+      "node_type": "worker",
+      "label": "folder-structure-designer",
+      "worker_class": "discovery"
+    }
+  ],
+  "edges": [
+    {
+      "predecessor": "architecture-consultant",
+      "successor": "tech-stack-consultant",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "architecture-consultant",
+      "successor": "refactoring-consultant",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "architecture-consultant",
+      "successor": "folder-structure-designer",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "tech-stack-consultant",
+      "successor": "folder-structure-designer",
+      "type": "blocks",
+      "relation": "requires"
+    }
+  ],
+  "created_at": "2026-08-01T13:00:00Z",
+  "notes": [
+    "Hard edges only within solution-architecture. Feature Workers excluded.",
+    "Logical consume architecture/ \u2192 product-architecture/.",
+    "Preserve business behavior; never invent business logic.",
+    "Waves: [['architecture-consultant'], ['tech-stack-consultant', 'refactoring-consultant'], ['folder-structure-designer']]"
+  ],
+  "extensions": {
+    "schema": "pipeline-dependency-graph.schema.json",
+    "allows_feature_workers": false
+  }
+}

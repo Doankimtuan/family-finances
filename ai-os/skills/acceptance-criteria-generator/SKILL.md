@@ -1,11 +1,11 @@
 ---
 name: acceptance-criteria-generator
-description: Reserved product reverse-engineering skill for acceptance-criteria-generator (alias: acceptance-criteria-extractor).
+description: Extract acceptance-criteria GWT linked to requirements (role_alias=acceptance-criteria-extractor; id retained for BC).
 ---
 
 # Acceptance Criteria Extractor
 
-> Discovery only. Extract what exists. Do not redesign. Do not implement features.
+> Worker id `acceptance-criteria-generator` retained for backward compatibility. **Mission verb: extract.** Do not invent features.
 
 ## Consumes
 
@@ -13,14 +13,32 @@ description: Reserved product reverse-engineering skill for acceptance-criteria-
 
 ## Produces
 
-`acceptance/` → artifact type `acceptance-criteria`
+`acceptance/` → `acceptance-criteria`
+
+## Ownership
+
+- **Owns:** Given/When/Then criteria linked via `requirement_id`
 
 ## Procedure
 
-1. Load requirements/, product/, and workflow/.
-2. For each requirement, extract observable Given/When/Then criteria with requirement_id.
-3. Write acceptance-criteria under acceptance/. Worker id is historical; behave as extractor.
-4. Stop for validation/review. Do not invent features.
+1. Load requirements plus product and workflow context.
+2. Extract observable GWT criteria (`entry_kind` ∈ given|when|then|gwt).
+3. Require `requirement_id`; cite `source_paths`; write under `acceptance/`.
+4. Stop for validation/review.
+
+## Heuristics
+
+- Criteria must be falsifiable from current behavior.
+- Do not invent features to make criteria pass.
+
+## Done when
+
+- ≥1 criterion with requirement_id + sources
+- No invented features
+
+## Negative examples
+
+- Do not invent “Then an email is sent” if sources never mention email.
 
 ## Lock
 

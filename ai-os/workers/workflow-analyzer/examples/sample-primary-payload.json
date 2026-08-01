@@ -14,8 +14,7 @@
       "statement": "Member records an expense transaction against a real account and category.",
       "source_paths": [
         "product/",
-        "features/",
-        "docs/DOMAIN_MODEL.md"
+        "features/"
       ]
     },
     {
@@ -26,8 +25,7 @@
       "statement": "System stages a jar review queue item for the expense.",
       "source_paths": [
         "product/",
-        "product-architecture/",
-        "docs/DOMAIN_MODEL.md"
+        "product-architecture/"
       ]
     },
     {
@@ -38,8 +36,7 @@
       "statement": "Member resolves the queue item to a jar, creating an outflow jar_movement.",
       "source_paths": [
         "features/",
-        "product/",
-        "docs/DOMAIN_MODEL.md"
+        "product/"
       ]
     }
   ],

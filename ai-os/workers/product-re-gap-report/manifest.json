@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "id": "product-re-gap-report",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "title": "Product RE Gap Report",
   "implements_roles": [
     "executor"
@@ -28,8 +28,14 @@
       "business",
       "product-architecture"
     ],
-    "produces": [],
+    "produces": [
+      "gaps"
+    ],
     "depends_on_workers": [
+      "product-knowledge-ingest",
+      "feature-surface-inventory",
+      "business-rules-extractor",
+      "product-architecture-observer",
       "product-analyst",
       "workflow-analyzer",
       "requirement-generator",
@@ -37,6 +43,7 @@
     ],
     "feature_worker": false,
     "redesign": false,
-    "soft_discovery_handoff": true
+    "soft_discovery_handoff": false,
+    "mission_verb": "extract"
   }
 }

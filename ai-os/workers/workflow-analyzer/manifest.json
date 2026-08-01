@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "id": "workflow-analyzer",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "title": "Workflow Analyzer",
   "implements_roles": [
     "executor"
@@ -27,10 +27,13 @@
       "workflow"
     ],
     "depends_on_workers": [
-      "product-analyst"
+      "product-analyst",
+      "feature-surface-inventory",
+      "product-architecture-observer"
     ],
     "feature_worker": false,
     "redesign": false,
-    "soft_discovery_handoff": true
+    "soft_discovery_handoff": false,
+    "mission_verb": "extract"
   }
 }

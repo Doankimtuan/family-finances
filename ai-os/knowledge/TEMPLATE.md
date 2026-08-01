@@ -1,4 +1,4 @@
-# Knowledge — Discovery Notes
+# Knowledge — Product RE Notes
 
 > Status: draft · Kind: consume · Discovery only · Artifact: `knowledge-notes`
 

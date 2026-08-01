@@ -1,4 +1,4 @@
-# Business Rules — Discovery Notes
+# Business Rules — Product RE Notes
 
 > Status: draft · Kind: consume · Discovery only · Artifact: `business-rules`  
 > Extract observed rules only. Do not invent policy.

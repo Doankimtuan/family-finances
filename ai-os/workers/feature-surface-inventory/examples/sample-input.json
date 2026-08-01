@@ -35,21 +35,24 @@
     },
     {
       "name": "docs",
-      "path": "docs",
+      "path": "docs/",
       "artifact_id": "art_in_docs",
-      "artifact_version": 1
+      "artifact_version": 1,
+      "artifact_type": "doc-source"
     },
     {
       "name": "discovery-report",
       "path": "discovery-report",
       "artifact_id": "art_in_discovery_report",
-      "artifact_version": 1
+      "artifact_version": 1,
+      "artifact_type": "discovery-report"
     },
     {
       "name": "app",
-      "path": "app",
+      "path": "app/",
       "artifact_id": "art_in_app",
-      "artifact_version": 1
+      "artifact_version": 1,
+      "artifact_type": "app-surface"
     }
   ],
   "gate_profile": "standard",

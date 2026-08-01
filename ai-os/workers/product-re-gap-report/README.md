@@ -22,7 +22,7 @@ Synthesize coverage gaps across ingest and transform Product RE outputs. Discove
 
 ## Produces
 
-(gap report artifact only)
+`gaps/`
 
 ## Rules
 

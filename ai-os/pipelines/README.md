@@ -4,5 +4,6 @@
 |----------|-------|-----------------|
 | [`discovery/`](discovery/) | system discovery | **forbidden** |
 | [`product-re/`](product-re/) | product reverse engineering | **forbidden** |
+| [`solution-architecture/`](solution-architecture/) | solution redesign (preserve business behavior) | **forbidden** |
 
-Both pipelines are discovery-only. Feature Workers are out of scope.
+All pipelines are discovery-class packages. Feature Workers are out of scope.

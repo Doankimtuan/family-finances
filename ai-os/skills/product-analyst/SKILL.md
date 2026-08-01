@@ -1,11 +1,11 @@
 ---
 name: product-analyst
-description: Reserved product reverse-engineering skill for product-analyst (alias: product-analyst).
+description: Extract product-model identity/personas/value-prop/capabilities from ingest packs.
 ---
 
 # Product Analyst
 
-> Discovery only. Extract what exists. Do not redesign. Do not implement features.
+> Discovery only. Extract from ingest packs. Do not redesign.
 
 ## Consumes
 
@@ -13,14 +13,34 @@ description: Reserved product reverse-engineering skill for product-analyst (ali
 
 ## Produces
 
-`product/` → artifact type `product-model`
+`product/` → `product-model`
+
+## Ownership
+
+- **Owns:** identity, personas, value-prop, capabilities
+- **Does not** soft-read raw docs when ingest packs exist
 
 ## Procedure
 
-1. Load knowledge/, features/, business/, product-architecture/ (and their upstream ingest artifacts).
-2. Extract identity, personas, value props, and capabilities with entry_kind.
-3. Cite source_paths on every entry; write product-model under product/.
-4. Stop for validation/review. Do not redesign.
+1. Load knowledge, features, business, and product-architecture packs/mirrors.
+2. Extract identity, personas, value-prop, and capabilities (`entry_kind` required).
+3. Every entry needs `source_paths` into consume packs.
+4. Write `product-model` under `product/`.
+5. Stop for validation/review.
+
+## Heuristics
+
+- Cover all four entry_kinds when sources support them (identity, persona, value-prop, capability).
+- Prefer ingest mirrors over re-parsing DOMAIN_MODEL.
+
+## Done when
+
+- Entries include identity and at least one of persona|value-prop|capability
+- No invented capabilities
+
+## Negative examples
+
+- Do not propose a persona absent from sources.
 
 ## Lock
 

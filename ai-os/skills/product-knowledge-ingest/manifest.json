@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0.0",
   "id": "product-knowledge-ingest",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "title": "Product Knowledge Ingest",
-  "description": "Populate knowledge/ notes from docs and soft discovery-report inputs. Discover only \u2014 do not redesign.",
+  "description": "Extract glossary/entity/fact knowledge-notes from doc-source and discovery-report soft inputs.",
   "role": "executor",
   "grade": "guided",
   "inputs": [
@@ -15,15 +15,15 @@
     },
     {
       "name": "docs",
-      "artifact_type": "goal",
+      "artifact_type": "doc-source",
       "required": false,
-      "description": "Consume input: docs"
+      "description": "Consume input: docs (doc-source)"
     },
     {
       "name": "discovery-report",
-      "artifact_type": "goal",
+      "artifact_type": "discovery-report",
       "required": false,
-      "description": "Consume input: discovery-report"
+      "description": "Consume input: discovery-report (discovery-report)"
     }
   ],
   "outputs": [
@@ -49,6 +49,7 @@
   "extensions": {
     "pipeline": "product-re",
     "role_alias": "product-knowledge-ingest",
+    "mission_verb": "extract",
     "soft_discovery_handoff": true
   }
 }

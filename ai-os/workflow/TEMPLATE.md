@@ -1,4 +1,4 @@
-# Workflow — Discovery Notes
+# Workflow — Product RE Notes
 
 > Status: draft · Kind: produce · Discovery only · Artifact: `workflow-model`
 

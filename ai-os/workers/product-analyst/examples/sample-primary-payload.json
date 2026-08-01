@@ -12,8 +12,7 @@
       "statement": "Family Finances is a household-based personal finance system separating real accounting from virtual jar intents.",
       "source_paths": [
         "knowledge/",
-        "product-architecture/",
-        "docs/DOMAIN_MODEL.md"
+        "product-architecture/"
       ]
     },
     {
@@ -21,8 +20,7 @@
       "entry_kind": "persona",
       "statement": "Household partners collaborate on shared accounts and jar allocations.",
       "source_paths": [
-        "knowledge/",
-        "docs/DOMAIN_MODEL.md"
+        "knowledge/"
       ]
     },
     {
@@ -31,6 +29,16 @@
       "statement": "Users resolve jar review queue items to create jar_movements without changing real ledger balances.",
       "source_paths": [
         "features/",
+        "business/"
+      ]
+    },
+    {
+      "id": "pm-value-prop",
+      "entry_kind": "value-prop",
+      "statement": "Partners get a shared view of real balances while allocating virtual jar intents without conflating the two ledgers.",
+      "source_paths": [
+        "knowledge/",
+        "product-architecture/",
         "business/"
       ]
     }

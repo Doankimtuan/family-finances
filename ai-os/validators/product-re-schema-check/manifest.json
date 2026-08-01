@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "id": "product-re-schema-check",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "title": "Product RE Schema Check",
   "description": "Deterministic schema and type-specific checks for product-re primary payloads.",
   "applies_to": [
@@ -69,6 +69,18 @@
       "severity": "medium",
       "rule": "extensions.redesign is not true",
       "path": "$.extensions.redesign"
+    },
+    {
+      "check_id": "ingest-entry-kind-known",
+      "severity": "high",
+      "rule": "when type is ingest, entry_kind is in the type allow-list (glossary/entity/fact, surface/route/action, rule/invariant/policy, pillar/boundary/module)",
+      "path": "$.entries[*].entry_kind"
+    },
+    {
+      "check_id": "product-model-kinds-present",
+      "severity": "medium",
+      "rule": "when type=product-model, entry_kind set should cover identity and preferably persona|value-prop|capability",
+      "path": "$.entries[*].entry_kind"
     }
   ],
   "fail_fast": true,

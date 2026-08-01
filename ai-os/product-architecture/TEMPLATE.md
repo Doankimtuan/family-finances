@@ -1,4 +1,4 @@
-# Product Architecture — Discovery Notes
+# Product Architecture — Product RE Notes
 
 > Status: draft · Kind: consume · Discovery only · **Not** AIOS `architecture/` docs
 

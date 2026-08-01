@@ -1,26 +1,42 @@
 ---
 name: product-architecture-observer
-description: Reserved product reverse-engineering skill for product-architecture-observer (alias: product-architecture-observer).
+description: Observe product architecture into product-architecture/ from doc-source and discovery-report. Never AIOS architecture/.
 ---
 
 # Product Architecture Observer
 
-> Discovery only. Extract what exists. Do not redesign. Do not implement features.
+> Discovery only. Product architecture only. Never AIOS control-plane docs.
 
 ## Consumes
 
-docs, discovery-report
+`doc-source`, `discovery-report` → produces `product-architecture/`
 
 ## Produces
 
-`product-architecture/` → artifact type `product-architecture-notes`
+`product-architecture/` → `product-architecture-notes`
+
+## Ownership
+
+- **Owns:** product pillars, module boundaries, real-vs-virtual split
+- **Excludes:** glossary; rule text; feature routes
+- **Forbidden:** AIOS `architecture/` as product sources
 
 ## Procedure
 
-1. Soft-read docs/DOMAIN_MODEL.md and product modules/routes.
-2. Record product pillars and boundaries into product-architecture/ only.
-3. Never cite ai-os/architecture/ as product architecture source.
-4. Write product-architecture-notes; stop for validation/review.
+1. Soft-read `doc-source` and `discovery-report` for product structure only.
+2. Record pillars/boundaries/modules as `product-architecture-notes`.
+3. Set `entry_kind` ∈ {pillar, boundary, module}; cite product sources only.
+4. Optionally mirror under `product-architecture/`.
+5. Stop for validation/review.
+
+## Done when
+
+- ≥1 pillar/boundary/module with sources
+- Zero citations to AIOS control-plane architecture docs
+
+## Negative examples
+
+- Do not ingest OVERVIEW.md / TRACEABILITY.md as product architecture.
 
 ## Lock
 

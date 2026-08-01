@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "registry_kind": "artifact-types",
-  "updated_at": "2026-08-01T12:00:00Z",
+  "updated_at": "2026-08-01T14:00:00Z",
   "entries": {
     "goal": {
       "id": "goal",
@@ -211,6 +211,87 @@
     "product-re-gap": {
       "id": "product-re-gap",
       "description": "Product RE coverage gap synthesis",
+      "payload_kinds": [
+        "json",
+        "markdown"
+      ],
+      "status": "active"
+    },
+    "quality-notes": {
+      "id": "quality-notes",
+      "description": "Validated quality/debt notes consumed by solution-architecture",
+      "payload_kinds": [
+        "json",
+        "markdown"
+      ],
+      "status": "active"
+    },
+    "architecture-v2-spec": {
+      "id": "architecture-v2-spec",
+      "description": "Target solution architecture specification",
+      "payload_kinds": [
+        "json",
+        "markdown"
+      ],
+      "status": "active"
+    },
+    "architecture-decision-record": {
+      "id": "architecture-decision-record",
+      "description": "Architecture Decision Record (ADR)",
+      "payload_kinds": [
+        "json",
+        "markdown"
+      ],
+      "status": "active"
+    },
+    "tech-stack-recommendation": {
+      "id": "tech-stack-recommendation",
+      "description": "Technology recommendations with trade-offs",
+      "payload_kinds": [
+        "json",
+        "markdown"
+      ],
+      "status": "active"
+    },
+    "migration-plan": {
+      "id": "migration-plan",
+      "description": "Refactoring/migration plan preserving business behavior",
+      "payload_kinds": [
+        "json",
+        "markdown"
+      ],
+      "status": "active"
+    },
+    "folder-structure-spec": {
+      "id": "folder-structure-spec",
+      "description": "Target repository folder structure and conventions",
+      "payload_kinds": [
+        "json",
+        "markdown"
+      ],
+      "status": "active"
+    },
+    "redesign-overview": {
+      "id": "redesign-overview",
+      "description": "Solution redesign overview notes",
+      "payload_kinds": [
+        "json",
+        "markdown"
+      ],
+      "status": "active"
+    },
+    "doc-source": {
+      "id": "doc-source",
+      "description": "Soft input: product documentation sources (e.g. docs/DOMAIN_MODEL.md) for Product RE ingest",
+      "payload_kinds": [
+        "json",
+        "markdown"
+      ],
+      "status": "active"
+    },
+    "app-surface": {
+      "id": "app-surface",
+      "description": "Soft input: application route/UI surface references for Product RE feature inventory",
       "payload_kinds": [
         "json",
         "markdown"
