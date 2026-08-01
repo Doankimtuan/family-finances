@@ -2,7 +2,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { z } from "zod";
 import { AiosError } from "../lib/errors";
-import { GateProfile, KebabId, Severity } from "../schemas/common";
+import { GateProfile, KebabId, Semver, Severity } from "../schemas/common";
 
 const PackageStatus = z.enum(["reserved", "draft", "active", "deprecated"]);
 
@@ -115,6 +115,28 @@ export class KnowledgeBase {
     KebabId.parse(skillId);
     const reg = await this.skills();
     return reg.entries[skillId]?.status;
+  }
+
+  /** Resolve `"active"` pin to registry version, or return explicit semver. */
+  async resolveSkillVersion(
+    skillId: string,
+    pin: string,
+  ): Promise<string> {
+    if (pin !== "active") {
+      Semver.parse(pin);
+      return pin;
+    }
+    const reg = await this.skills();
+    const entry = reg.entries[skillId];
+    const version = entry?.version;
+    if (!version) {
+      throw new AiosError(
+        "skill-version-unresolved",
+        `Cannot resolve active version for skill "${skillId}"`,
+      );
+    }
+    Semver.parse(version);
+    return version;
   }
 
   async getGateProfile(name: z.infer<typeof GateProfile>): Promise<GateProfileEntry> {

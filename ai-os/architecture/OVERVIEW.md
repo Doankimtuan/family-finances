@@ -63,7 +63,7 @@ See `contracts/cursor-bridge.md`.
 
 ## Versioning
 
-- Framework: `VERSION` (now `0.3.0`)
+- Framework: `VERSION` (now `0.3.3`)
 - Core Engine: `ai-os/core/` (planner, orchestrator, artifacts, memory, knowledge)
 - Breaking changes: `architecture/MIGRATIONS.md`
 - Packages: semver in manifests

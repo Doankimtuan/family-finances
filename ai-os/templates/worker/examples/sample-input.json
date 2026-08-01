@@ -1,0 +1,33 @@
+{
+  "description": "Template example — claimed run context for {{worker_id}}. Replace before use.",
+  "orchestration_id": "art_example_orchestration",
+  "plan_id": "art_example_plan",
+  "goal_id": "art_example_goal",
+  "task": {
+    "artifact_id": "art_example_task",
+    "artifact_version": 1,
+    "skill_id": "{{skill_id}}",
+    "skill_version": "active",
+    "primary_output_type": "{{artifact_type}}",
+    "validators": ["{{validator_id}}"],
+    "reviewers": ["{{reviewer_id}}"],
+    "side_effect_budget": ["runtime-write"],
+    "done_when": ["{{done_when_criterion}}"]
+  },
+  "run": {
+    "artifact_id": "art_example_run",
+    "status": "claimed",
+    "attempt": 1
+  },
+  "inputs": [
+    {
+      "name": "goal",
+      "artifact_id": "art_example_goal",
+      "artifact_version": 1
+    }
+  ],
+  "gate_profile": "standard",
+  "budget": {
+    "allowed_side_effects": ["none", "runtime-write"]
+  }
+}

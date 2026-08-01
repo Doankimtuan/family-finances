@@ -23,7 +23,9 @@ export function resolveAiosRoot(fromCwd = process.cwd()): string {
 }
 
 export function createDefaultConfig(
-  overrides: Partial<AiosCoreConfig> = {},
+  overrides: Omit<Partial<AiosCoreConfig>, "budget"> & {
+    budget?: Partial<AiosCoreConfig["budget"]>;
+  } = {},
 ): AiosCoreConfig {
   const aiosRoot = overrides.aiosRoot ?? resolveAiosRoot();
   return {

@@ -87,6 +87,37 @@
         }
       }
     },
+    "task_outcomes": {
+      "type": "array",
+      "description": "Per-task terminal/progress records for wave scheduling without workers.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "task_id",
+          "status",
+          "at"
+        ],
+        "properties": {
+          "task_id": {
+            "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/artifactId"
+          },
+          "status": {
+            "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/taskStatus"
+          },
+          "run_id": {
+            "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/artifactId"
+          },
+          "attempt": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "at": {
+            "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/isoDateTime"
+          }
+        }
+      }
+    },
     "decisions": {
       "type": "array",
       "items": {

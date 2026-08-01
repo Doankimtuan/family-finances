@@ -55,9 +55,11 @@ After task success (or wave completion, per policy):
 
 ### 6. Settling
 
+Entered when `recordQualityGate({ decision: "publish" })` succeeds from `gating`.
+
 - Ensure all required success criteria artifacts are `published`
-- Write final orchestration summary `doc`
-- Mark unused drafts `archived` or leave `draft` per policy
+- Write final orchestration summary `doc` (operator / future worker)
+- Complete via `settle()` or `markSucceeded()` → `succeeded`
 
 ### 7. Closed
 
@@ -107,11 +109,13 @@ Escalations are `escalation` artifacts (`type: escalation`).
 | API | Effect |
 |-----|--------|
 | `start` | accepting + orchestration-state |
-| `planAndAttach` | planning via shared Planner |
-| `acceptPlan` | plan-decision + gate (when required) + publish plan version + schedule waves |
-| `startNextWave` | running + stub `run-record` artifacts |
-| `recordTaskOutcome` | terminal stub runs; wave/orc transitions |
-| `recordQualityGate` | gating / settle publish |
-| `escalate` | escalation artifact |
+| `planAndAttach` | from `accepting` \| `planning` only |
+| `acceptPlan` | from `planning` only; plan-decision + gate (when required) + publish plan version + schedule waves |
+| `startNextWave` | running + stub `run-record` artifacts (`runPhase` contract) |
+| `recordTaskOutcome` | terminal stub runs; soft-fail when retries remain; fail-fast cancels siblings when exhausted; all waves done → `gating` |
+| `retryTask` | requeue soft-failed task (new stub run, attempt+1) while wave running |
+| `recordQualityGate` | from gating/settling/running; publish from gating → `settling` |
+| `settle` / `markSucceeded` | from `settling` → `succeeded` |
+| `escalate` | non-terminal statuses only |
 
 Skill/worker invocation remains forbidden in Core Engine.

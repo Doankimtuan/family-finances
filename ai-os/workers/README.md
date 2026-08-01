@@ -1,6 +1,28 @@
-# Workers — Out of Scope
+# Workers — Out of Scope (implementations)
 
-This directory is intentionally empty of implementations.
+This directory has **no concrete workers**.
+
+## Templates (use these)
+
+Reusable worker package structure lives at:
+
+[`ai-os/templates/worker/`](../templates/worker/)
+
+Mandatory files for every future worker:
+
+```
+README.md
+skill.md
+validator.md
+reviewer.md
+checklist.md
+output-schema.json
+manifest.json
+examples/
+testcases/
+```
+
+Copy that pack when the worker phase opens. Do not invent a different layout.
 
 ## Framework phase rule
 
@@ -13,16 +35,17 @@ Workers are future processes/agents that:
 - call validators/reviewers
 - persist artifacts under `runtime/`
 
-Until the worker phase is explicitly opened, only this boundary document may exist in `workers/`.
+Until the worker phase is explicitly opened, only this boundary document may exist under `workers/` (plus links to templates).
 
 ## When workers are allowed
 
 A later phase must provide:
 
-1. Worker interface contract (input/output)
-2. Permission model for side effects
-3. Conformance tests against execution + orchestrator lifecycles
-4. Explicit version bump of AIOS beyond framework-only
+1. Instantiation from `templates/worker/` (unchanged structure)
+2. `manifest.json` validating `schemas/worker-manifest.schema.json`
+3. Permission model for side effects
+4. Conformance tests from each package’s `testcases/`
+5. Explicit AIOS version bump opening the worker phase
 
 ## Temporary exceptions
 

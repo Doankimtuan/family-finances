@@ -2,7 +2,7 @@
 
 Framework-only control plane for multi-role AI work.
 
-**Phase:** Framework + Core Engine (`v0.3.1`)  
+**Phase:** Framework + Core Engine (`v0.3.3`)
 **Scope:** architecture, contracts, schemas, templates, registries, policies, role definitions, **Core Engine** (`ai-os/core`)  
 **Out of scope:** workers, skill implementations, executable runners
 

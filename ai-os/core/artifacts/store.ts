@@ -44,8 +44,8 @@ export type StoredArtifact = {
 };
 
 export type ArtifactStoreOptions = {
-  /** Registry gate — required for production writes. */
-  assertArtifactType?: (typeId: string) => Promise<void>;
+  /** Registry gate — required; every write must validate artifact type. */
+  assertArtifactType: (typeId: string) => Promise<void>;
 };
 
 function payloadPathFor(kind: PayloadKind): PayloadPath {
@@ -80,8 +80,15 @@ function encodePayload(kind: PayloadKind, payload: string | Buffer | unknown): B
 export class ArtifactStore {
   constructor(
     private readonly runtimeRoot: string,
-    private readonly options: ArtifactStoreOptions = {},
-  ) {}
+    private readonly options: ArtifactStoreOptions,
+  ) {
+    if (!options.assertArtifactType) {
+      throw new AiosError(
+        "artifact-store-misconfigured",
+        "ArtifactStore requires assertArtifactType",
+      );
+    }
+  }
 
   artifactDir(artifactId: string, version: number): string {
     if (!isArtifactId(artifactId)) {
@@ -94,9 +101,7 @@ export class ArtifactStore {
   }
 
   async write(input: WriteArtifactInput): Promise<StoredArtifact> {
-    if (this.options.assertArtifactType) {
-      await this.options.assertArtifactType(input.type);
-    }
+    await this.options.assertArtifactType(input.type);
 
     const version = input.version ?? 1;
     const dir = this.artifactDir(input.artifactId, version);

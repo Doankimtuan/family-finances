@@ -18,7 +18,9 @@ export type AiosCoreEngine = {
 
 /** Construct the Core Engine (no workers). */
 export function createAiosCore(
-  overrides: Partial<AiosCoreConfig> = {},
+  overrides: Omit<Partial<AiosCoreConfig>, "budget"> & {
+    budget?: Partial<AiosCoreConfig["budget"]>;
+  } = {},
 ): AiosCoreEngine {
   const config = createDefaultConfig(overrides);
   const knowledge = new KnowledgeBase(config.aiosRoot);

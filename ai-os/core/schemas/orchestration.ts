@@ -19,6 +19,7 @@ export const TaskOutcome = z
     task_id: ArtifactId,
     status: TaskStatus,
     run_id: ArtifactId.optional(),
+    attempt: z.number().int().min(1).optional(),
     at: IsoDateTime,
   })
   .strict();
@@ -36,24 +37,28 @@ export const OrchestrationStatePayload = z
       max_retries_per_task: z.number().int().min(0),
       allowed_side_effects: z.array(SideEffect),
     }),
-    waves: z.array(
-      z.object({
+  waves: z.array(
+    z
+      .object({
         wave_index: z.number().int().min(0),
         task_ids: z.array(ArtifactId),
         status: WaveStatus,
-      }),
-    ),
-    task_outcomes: z.array(TaskOutcome).optional(),
-    decisions: z
-      .array(
-        z.object({
+      })
+      .strict(),
+  ),
+  task_outcomes: z.array(TaskOutcome).optional(),
+  decisions: z
+    .array(
+      z
+        .object({
           at: IsoDateTime,
           decision: ControlDecision,
           reason: z.string().min(1),
           task_id: ArtifactId.optional(),
-        }),
-      )
-      .optional(),
+        })
+        .strict(),
+    )
+    .optional(),
     trace: TraceContext.optional(),
     created_at: IsoDateTime,
     updated_at: IsoDateTime,

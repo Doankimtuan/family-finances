@@ -41,7 +41,8 @@
         "blocking_severities",
         "require_review_on_repo_write",
         "allow_publish_with_warn",
-        "validators_blocking"
+        "validators_blocking",
+        "reviews_blocking"
       ],
       "properties": {
         "blocking_severities": {

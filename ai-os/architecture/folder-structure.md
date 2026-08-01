@@ -20,6 +20,14 @@ ai-os/
 │   └── scripts/
 ├── schemas/                # JSON Schema contracts
 ├── templates/
+│   ├── artifact/
+│   ├── plan/
+│   ├── task/
+│   ├── run/
+│   ├── skill/
+│   ├── validation/
+│   ├── review/
+│   └── worker/             # reusable worker package template (no implementations)
 ├── contracts/
 ├── policies/               # Executable policy data (gate profiles)
 ├── registry/               # entries maps keyed by id

@@ -43,6 +43,28 @@ export const RunStatus = z.enum([
   "failed",
   "cancelled",
 ]);
+export const RunPhase = z.enum([
+  "claimed",
+  "preparing",
+  "executing",
+  "persisting",
+  "validating",
+  "reviewing",
+  "terminal",
+]);
+/** Mirrors common.schema.json#/$defs/errorPhase exactly. */
+export const ErrorPhase = z.enum([
+  "intake",
+  "claimed",
+  "preparing",
+  "executing",
+  "persisting",
+  "validating",
+  "reviewing",
+  "gating",
+  "settling",
+  "terminal",
+]);
 export const OrchestrationStatus = z.enum([
   "idle",
   "accepting",
@@ -108,24 +130,30 @@ export const ProducerRole = z.enum([
   "human",
 ]);
 
-export const ArtifactRef = z.object({
-  artifact_id: ArtifactId,
-  artifact_version: z.number().int().min(1),
-  relation: ArtifactRelation.optional(),
-});
+export const ArtifactRef = z
+  .object({
+    artifact_id: ArtifactId,
+    artifact_version: z.number().int().min(1),
+    relation: ArtifactRelation.optional(),
+  })
+  .strict();
 
-export const TraceContext = z.object({
-  orchestration_id: ArtifactId.optional(),
-  goal_id: ArtifactId.optional(),
-  plan_id: ArtifactId.optional(),
-  task_id: ArtifactId.optional(),
-  run_id: ArtifactId.optional(),
-});
+export const TraceContext = z
+  .object({
+    orchestration_id: ArtifactId.optional(),
+    goal_id: ArtifactId.optional(),
+    plan_id: ArtifactId.optional(),
+    task_id: ArtifactId.optional(),
+    run_id: ArtifactId.optional(),
+  })
+  .strict();
 
 export type ArtifactId = z.infer<typeof ArtifactId>;
 export type ArtifactStatus = z.infer<typeof ArtifactStatus>;
 export type TaskStatus = z.infer<typeof TaskStatus>;
 export type RunStatus = z.infer<typeof RunStatus>;
+export type RunPhase = z.infer<typeof RunPhase>;
+export type ErrorPhase = z.infer<typeof ErrorPhase>;
 export type OrchestrationStatus = z.infer<typeof OrchestrationStatus>;
 export type WaveStatus = z.infer<typeof WaveStatus>;
 export type GateResult = z.infer<typeof GateResult>;

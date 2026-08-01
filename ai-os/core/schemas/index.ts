@@ -9,6 +9,8 @@ export {
   ArtifactStatus,
   TaskStatus,
   RunStatus,
+  RunPhase,
+  ErrorPhase,
   OrchestrationStatus,
   WaveStatus,
   GateResult,

@@ -9,7 +9,8 @@ export type TemplateKind =
   | "validation"
   | "review"
   | "run"
-  | "skill";
+  | "skill"
+  | "worker";
 
 /**
  * Loads markdown/JSON starters from ai-os/templates.

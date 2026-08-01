@@ -1,6 +1,6 @@
 # AIOS Core Engine
 
-Production control plane for AIOS **v0.3.1**.
+Production control plane for AIOS **v0.3.3**.
 
 ## Scope
 
@@ -94,5 +94,5 @@ await core.orchestrator.recordTaskOutcome({
 - Plan meta/payload status stay synced via publish versioning
 - Orchestration state is append-only (new versions)
 - Hard dependency cycles are rejected
-- Wave lifecycle reaches settling without workers (stub run-records)
+- Wave lifecycle reaches `gating` → `settling` → `succeeded` without workers (stub run-records)
 - No worker invocation paths exist in this package

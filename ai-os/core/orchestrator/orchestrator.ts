@@ -45,7 +45,7 @@ export type AcceptPlanInput = {
   planId: string;
   planVersion?: number;
   reason?: string;
-  /** Required when gate profile has require_review_on_plan + reviews_blocking. */
+  /** Required when gate profile has validators_blocking and/or reviews_blocking / require_review_on_plan. */
   planGate?: PlanGateInput;
 };
 
@@ -164,10 +164,17 @@ export class Orchestrator {
     orchestrationId: string,
     planInput: Omit<CreatePlanInput, "orchestrationId">,
   ): Promise<ReturnType<Planner["createPlan"]>> {
+    const prior = await this.readState(orchestrationId);
+    this.assertOrchestrationStatus(
+      prior.status,
+      ["accepting", "planning"],
+      "planAndAttach",
+    );
     await this.setStatus(orchestrationId, "planning");
     const result = await this.planner.createPlan({
       ...planInput,
       orchestrationId,
+      gateProfile: planInput.gateProfile ?? prior.gate_profile,
     });
 
     const state = await this.readState(orchestrationId);
@@ -216,6 +223,13 @@ export class Orchestrator {
     planVersion: number;
     gateId?: string;
   }> {
+    const state = await this.readState(input.orchestrationId);
+    this.assertOrchestrationStatus(
+      state.status,
+      ["planning"],
+      "acceptPlan",
+    );
+
     const planVersion = input.planVersion ?? 1;
     const plan = await this.artifacts.readPayloadJson(
       input.planId,
@@ -248,20 +262,32 @@ export class Orchestrator {
       );
     }
 
-    const state = await this.readState(input.orchestrationId);
+    const stateAfterChecks = state;
     await this.assertSideEffectBudgets(input.orchestrationId, plan);
 
     const profile = await this.knowledge.getGateProfile(plan.gate_profile);
     let gateId: string | undefined;
 
-    if (profile.require_review_on_plan) {
+    const requiresPlanReview =
+      Boolean(profile.require_review_on_plan) ||
+      (Boolean(profile.require_review_on_repo_write) &&
+        (await this.planRequestsRepoWrite(plan)));
+
+    const requiresPlanGate =
+      requiresPlanReview ||
+      profile.reviews_blocking ||
+      profile.validators_blocking;
+
+    if (requiresPlanGate) {
       if (!input.planGate) {
         throw new AiosError(
           "plan-gate-required",
           `Gate profile "${plan.gate_profile}" requires planGate before accept/publish`,
         );
       }
-      this.assertGateAllowsPublish(profile, input.planGate);
+      this.assertGateAllowsPublish(profile, input.planGate, {
+        requireReviews: requiresPlanReview || profile.reviews_blocking,
+      });
       gateId = await this.writeQualityGateArtifact({
         orchestrationId: input.orchestrationId,
         profileName: plan.gate_profile,
@@ -343,12 +369,13 @@ export class Orchestrator {
       taskIds.map((task_id) => ({
         task_id,
         status: "pending" as const,
+        attempt: 1,
         at: nowIso(),
       })),
     );
 
     const updated: OrchestrationStatePayload = {
-      ...state,
+      ...stateAfterChecks,
       status: "scheduled",
       gate_profile: plan.gate_profile,
       plan_ref: {
@@ -364,7 +391,7 @@ export class Orchestrator {
       })),
       task_outcomes: taskOutcomes,
       decisions: [
-        ...(state.decisions ?? []),
+        ...(stateAfterChecks.decisions ?? []),
         {
           at: nowIso(),
           decision: "continue",
@@ -397,6 +424,13 @@ export class Orchestrator {
     reason: string;
     requestedChanges?: string[];
   }): Promise<string> {
+    const state = await this.readState(input.orchestrationId);
+    this.assertOrchestrationStatus(
+      state.status,
+      ["planning", "scheduled"],
+      "rejectOrRevisePlan",
+    );
+
     const planVersion = input.planVersion ?? 1;
     const plan = await this.artifacts.readPayloadJson(
       input.planId,
@@ -438,10 +472,12 @@ export class Orchestrator {
       trace: payload.trace,
     });
 
-    const state = await this.readState(input.orchestrationId);
     await this.writeStateVersion(input.orchestrationId, {
       ...state,
       status: input.decision === "revise" ? "planning" : "aborted",
+      plan_ref: input.decision === "revise" ? undefined : state.plan_ref,
+      waves: input.decision === "revise" ? [] : state.waves,
+      task_outcomes: input.decision === "revise" ? [] : state.task_outcomes,
       decisions: [
         ...(state.decisions ?? []),
         {
@@ -503,9 +539,22 @@ export class Orchestrator {
     }
 
     const runIds: Record<string, string> = {};
+    const attemptsByTask: Record<string, number> = {};
     const runIdOrchestrator = createArtifactId("orc-run");
 
     for (const taskId of next.task_ids) {
+      const priorAttempt = outcomes.get(taskId)?.attempt ?? 0;
+      const attempt = priorAttempt > 0 && outcomes.get(taskId)?.status === "failed"
+        ? priorAttempt + 1
+        : Math.max(1, priorAttempt || 1);
+      if (attempt > state.budget.max_retries_per_task + 1) {
+        throw new AiosError(
+          "budget-exceeded",
+          `Task ${taskId} exceeded max_retries_per_task=${state.budget.max_retries_per_task}`,
+        );
+      }
+      attemptsByTask[taskId] = attempt;
+
       const taskVersion = (await this.artifacts.latestVersion(taskId)) ?? 1;
       const task = await this.artifacts.readPayloadJson(
         taskId,
@@ -514,8 +563,10 @@ export class Orchestrator {
       );
       const runArtifactId = createArtifactId("run");
       runIds[taskId] = runArtifactId;
-      const skillVersion =
-        task.skill_version === "active" ? "0.0.0" : task.skill_version;
+      const skillVersion = await this.knowledge.resolveSkillVersion(
+        task.skill_id,
+        task.skill_version,
+      );
       const runPayload: ExecutionRunPayload = {
         schema_version: "1.0.0",
         artifact_id: runArtifactId,
@@ -524,10 +575,10 @@ export class Orchestrator {
         task_id: taskId,
         skill_id: task.skill_id,
         skill_version: skillVersion,
-        attempt: 1,
+        attempt,
         allow_parallel_attempts: task.allow_parallel_attempts ?? false,
         status: "claimed",
-        phase: "claim",
+        phase: "claimed",
         started_at: nowIso(),
         inputs: (task.inputs ?? [])
           .filter((i) => i.artifact_id && typeof i.artifact_version === "number")
@@ -538,8 +589,10 @@ export class Orchestrator {
           })),
         outputs: [],
         gate_results: [],
-        stub: true,
-        notes: "Core Engine stub run — no worker invocation",
+        extensions: {
+          core_stub: true,
+          note: "Core Engine stub run — no worker invocation",
+        },
         trace: {
           orchestration_id: orchestrationId,
           plan_id: state.plan_ref.artifact_id,
@@ -586,6 +639,7 @@ export class Orchestrator {
             ...o,
             status: "running" as const,
             run_id: runIds[o.task_id],
+            attempt: attemptsByTask[o.task_id] ?? 1,
             at: nowIso(),
           }
         : o,
@@ -661,18 +715,27 @@ export class Orchestrator {
       ExecutionRunPayload,
     );
     const ended = nowIso();
+    const runStatus =
+      input.status === "succeeded"
+        ? ("succeeded" as const)
+        : input.status === "cancelled"
+          ? ("cancelled" as const)
+          : ("failed" as const);
     const nextRun: ExecutionRunPayload = {
       ...prevRun,
-      status: input.status === "succeeded" ? "succeeded" : "failed",
-      phase: "complete",
+      status: runStatus,
+      phase: "terminal",
       ended_at: ended,
       outputs: (input.outputs ?? []).map((o) => ({
+        name: "primary",
         artifact_id: o.artifact_id,
         artifact_version: o.artifact_version,
-        relation: "derived-from" as const,
       })),
-      notes: input.notes ?? prevRun.notes,
-      stub: true,
+      extensions: {
+        ...(prevRun.extensions ?? {}),
+        core_stub: true,
+        outcome_notes: input.notes,
+      },
     };
     ExecutionRunPayload.parse(nextRun);
     await this.artifacts.write({
@@ -722,6 +785,22 @@ export class Orchestrator {
     const decisions = [...(state.decisions ?? [])];
 
     if (input.status !== "succeeded" && failFast) {
+      const attempt = existing?.attempt ?? 1;
+      const retriesRemain = attempt <= state.budget.max_retries_per_task;
+
+      if (retriesRemain) {
+        // Soft fail: keep wave running; caller may retryTask()
+        decisions.push({
+          at: nowIso(),
+          decision: "retry",
+          reason:
+            input.notes ??
+            `Task ${input.taskId} failed attempt ${attempt}; retries remain`,
+          task_id: input.taskId,
+        });
+        waveComplete = false;
+        orchestrationStatus = "running";
+      } else {
       waves = waves.map((w) => {
         if (w.wave_index === wave.wave_index) {
           return { ...w, status: "failed" as const };
@@ -731,15 +810,57 @@ export class Orchestrator {
         }
         return w;
       });
+      const siblingsToCancel = wave.task_ids.filter((id) => id !== input.taskId);
+      for (const siblingId of siblingsToCancel) {
+        const sibling = task_outcomes.find((o) => o.task_id === siblingId);
+        if (
+          sibling &&
+          (sibling.status === "running" ||
+            sibling.status === "pending" ||
+            sibling.status === "ready")
+        ) {
+          await this.cancelStubRunAndTask(
+            input.orchestrationId,
+            siblingId,
+            sibling.run_id,
+            state,
+          );
+        }
+      }
+      for (const later of waves) {
+        if (later.status !== "cancelled") continue;
+        for (const laterTaskId of later.task_ids) {
+          const outcome = task_outcomes.find((o) => o.task_id === laterTaskId);
+          if (
+            outcome &&
+            (outcome.status === "pending" || outcome.status === "ready")
+          ) {
+            await this.writeTaskStatusVersion(
+              laterTaskId,
+              (await this.artifacts.latestVersion(laterTaskId)) ?? 1,
+              "cancelled",
+              {
+                orchestration_id: input.orchestrationId,
+                plan_id: state.plan_ref?.artifact_id,
+                task_id: laterTaskId,
+                goal_id: state.goal_ref.artifact_id,
+              },
+            );
+          }
+        }
+      }
       task_outcomes = task_outcomes.map((o) => {
         if (wave.task_ids.includes(o.task_id) && o.task_id !== input.taskId) {
-          if (o.status === "running" || o.status === "pending") {
+          if (
+            o.status === "running" ||
+            o.status === "pending" ||
+            o.status === "ready"
+          ) {
             return { ...o, status: "cancelled" as const, at: nowIso() };
           }
         }
         const later = waves.find(
-          (w) =>
-            w.status === "cancelled" && w.task_ids.includes(o.task_id),
+          (w) => w.status === "cancelled" && w.task_ids.includes(o.task_id),
         );
         if (later && (o.status === "pending" || o.status === "ready")) {
           return { ...o, status: "cancelled" as const, at: nowIso() };
@@ -750,11 +871,22 @@ export class Orchestrator {
       decisions.push({
         at: nowIso(),
         decision: "abort",
-        reason: input.notes ?? `Task ${input.taskId} failed (fail-fast)`,
+        reason:
+          input.notes ??
+          `Task ${input.taskId} failed (fail-fast; retries exhausted)`,
         task_id: input.taskId,
       });
       waveComplete = true;
+      }
     } else {
+      if (input.status !== "succeeded") {
+        decisions.push({
+          at: nowIso(),
+          decision: "continue",
+          reason: input.notes ?? `Task ${input.taskId} ${input.status}`,
+          task_id: input.taskId,
+        });
+      }
       const waveOutcomes = task_outcomes.filter((o) =>
         wave.task_ids.includes(o.task_id),
       );
@@ -785,13 +917,13 @@ export class Orchestrator {
             (w) => w.status === "pending" || w.status === "running",
           );
           if (!remaining) {
-            orchestrationStatus = "settling";
+            orchestrationStatus = "gating";
             decisions.push({
               at: nowIso(),
               decision: "continue",
-              reason: "All waves succeeded; entering settling",
+              reason: "All waves succeeded; entering gating",
             });
-          } else {
+          } else if (input.status === "succeeded") {
             decisions.push({
               at: nowIso(),
               decision: "continue",
@@ -800,7 +932,7 @@ export class Orchestrator {
             });
           }
         }
-      } else {
+      } else if (input.status === "succeeded") {
         decisions.push({
           at: nowIso(),
           decision: "continue",
@@ -825,6 +957,158 @@ export class Orchestrator {
     return { runId, waveComplete, orchestrationStatus };
   }
 
+  /**
+   * Requeue a soft-failed task within max_retries_per_task.
+   * Creates a new stub run (attempt+1) while the wave remains running.
+   */
+  async retryTask(input: {
+    orchestrationId: string;
+    taskId: string;
+  }): Promise<{ runId: string; attempt: number }> {
+    const state = await this.readState(input.orchestrationId);
+    this.assertOrchestrationStatus(state.status, ["running"], "retryTask");
+    if (!state.plan_ref) {
+      throw new AiosError("plan-required", "Orchestration has no accepted plan");
+    }
+
+    const outcome = (state.task_outcomes ?? []).find(
+      (o) => o.task_id === input.taskId,
+    );
+    if (!outcome || outcome.status !== "failed") {
+      throw new AiosError(
+        "retry-not-failed",
+        `Task ${input.taskId} is not in failed status for retry`,
+      );
+    }
+    if ((outcome.attempt ?? 1) > state.budget.max_retries_per_task) {
+      throw new AiosError(
+        "retry-exhausted",
+        `Task ${input.taskId} has exhausted max_retries_per_task (${state.budget.max_retries_per_task})`,
+      );
+    }
+
+    const wave = state.waves.find((w) => w.task_ids.includes(input.taskId));
+    if (!wave || wave.status !== "running") {
+      throw new AiosError(
+        "retry-wave-not-running",
+        `Task ${input.taskId} is not in a running wave`,
+      );
+    }
+
+    const nextAttempt = (outcome.attempt ?? 1) + 1;
+    if (nextAttempt > state.budget.max_retries_per_task + 1) {
+      throw new AiosError(
+        "budget-exceeded",
+        `Task ${input.taskId} exceeded max_retries_per_task=${state.budget.max_retries_per_task}`,
+      );
+    }
+
+    const taskVersion = (await this.artifacts.latestVersion(input.taskId)) ?? 1;
+    const task = await this.artifacts.readPayloadJson(
+      input.taskId,
+      taskVersion,
+      TaskPayload,
+    );
+    const skillVersion = await this.knowledge.resolveSkillVersion(
+      task.skill_id,
+      task.skill_version,
+    );
+    const runArtifactId = createArtifactId("run");
+    const runIdOrchestrator = createArtifactId("orc-run");
+    const runPayload: ExecutionRunPayload = {
+      schema_version: "1.0.0",
+      artifact_id: runArtifactId,
+      orchestration_id: input.orchestrationId,
+      plan_id: state.plan_ref.artifact_id,
+      task_id: input.taskId,
+      skill_id: task.skill_id,
+      skill_version: skillVersion,
+      attempt: nextAttempt,
+      allow_parallel_attempts: task.allow_parallel_attempts ?? false,
+      status: "claimed",
+      phase: "claimed",
+      started_at: nowIso(),
+      inputs: (task.inputs ?? [])
+        .filter((i) => i.artifact_id && typeof i.artifact_version === "number")
+        .map((i) => ({
+          name: i.name,
+          artifact_id: i.artifact_id!,
+          artifact_version: i.artifact_version as number,
+        })),
+      outputs: [],
+      gate_results: [],
+      extensions: {
+        core_stub: true,
+        note: "Core Engine stub run — no worker invocation",
+        retry: true,
+      },
+      trace: {
+        orchestration_id: input.orchestrationId,
+        plan_id: state.plan_ref.artifact_id,
+        task_id: input.taskId,
+        goal_id: state.goal_ref.artifact_id,
+        run_id: runArtifactId,
+      },
+    };
+    ExecutionRunPayload.parse(runPayload);
+    await this.artifacts.write({
+      artifactId: runArtifactId,
+      type: "run-record",
+      title: `Stub retry for ${task.title}`,
+      status: "ready",
+      payloadKind: "json",
+      payload: runPayload,
+      producedBy: {
+        role: "orchestrator",
+        runId: runIdOrchestrator,
+        taskId: input.taskId,
+      },
+      dependsOn: [
+        {
+          artifact_id: input.taskId,
+          artifact_version: taskVersion,
+          relation: "requires",
+        },
+      ],
+      trace: runPayload.trace,
+    });
+
+    await this.writeTaskStatusVersion(input.taskId, taskVersion, "running", {
+      orchestration_id: input.orchestrationId,
+      plan_id: state.plan_ref.artifact_id,
+      task_id: input.taskId,
+      goal_id: state.goal_ref.artifact_id,
+      run_id: runArtifactId,
+    });
+
+    await this.writeStateVersion(input.orchestrationId, {
+      ...state,
+      task_outcomes: (state.task_outcomes ?? []).map((o) =>
+        o.task_id === input.taskId
+          ? {
+              ...o,
+              status: "running" as const,
+              attempt: nextAttempt,
+              run_id: runArtifactId,
+              at: nowIso(),
+            }
+          : o,
+      ),
+      decisions: [
+        ...(state.decisions ?? []),
+        {
+          at: nowIso(),
+          decision: "retry",
+          reason: `Retry task ${input.taskId} attempt ${nextAttempt}`,
+          task_id: input.taskId,
+        },
+      ],
+      updated_at: nowIso(),
+    });
+
+    return { runId: runArtifactId, attempt: nextAttempt };
+  }
+
   async recordQualityGate(input: {
     orchestrationId: string;
     subject: QualityGatePayload["subject"];
@@ -835,12 +1119,25 @@ export class Orchestrator {
     notes?: string;
   }): Promise<string> {
     const state = await this.readState(input.orchestrationId);
+    this.assertOrchestrationStatus(
+      state.status,
+      ["gating", "settling", "running"],
+      "recordQualityGate",
+    );
     const profile = await this.knowledge.getGateProfile(state.gate_profile);
-    this.assertGateAllowsDecision(profile, {
-      result: input.result,
-      validationResults: input.validationResults,
-      reviewResults: input.reviewResults,
-    }, input.decision);
+    this.assertGateAllowsDecision(
+      profile,
+      {
+        result: input.result,
+        validationResults: input.validationResults,
+        reviewResults: input.reviewResults,
+      },
+      input.decision,
+      {
+        requireReviews:
+          profile.reviews_blocking || Boolean(profile.require_review_on_plan),
+      },
+    );
 
     const gateId = await this.writeQualityGateArtifact({
       orchestrationId: input.orchestrationId,
@@ -857,14 +1154,24 @@ export class Orchestrator {
       planId: state.plan_ref?.artifact_id,
     });
 
-    let nextStatus: OrchestrationStatePayload["status"] = "gating";
-    if (input.decision === "abort") nextStatus = "aborted";
-    else if (input.decision === "publish" && state.status === "settling") {
+    let nextStatus: OrchestrationStatePayload["status"] = state.status;
+    if (input.decision === "abort") {
+      nextStatus = "aborted";
+    } else if (input.decision === "hold") {
+      nextStatus = "gating";
+    } else if (input.decision === "publish" && state.status === "gating") {
+      // Publish from gating → settling (terminal publish settles in a follow-up)
+      nextStatus = "settling";
+    } else if (input.decision === "publish" && state.status === "settling") {
       nextStatus = "succeeded";
-    } else if (input.decision === "hold" || input.result === "fail") {
-      nextStatus = profile.allow_publish_with_warn && input.result === "warn"
-        ? state.status
-        : "failed";
+    } else if (input.decision === "continue" && state.status === "settling") {
+      nextStatus = "succeeded";
+    } else if (input.result === "fail") {
+      nextStatus = "failed";
+    } else if (input.result === "warn" && !profile.allow_publish_with_warn) {
+      nextStatus = "failed";
+    } else if (state.status === "running") {
+      nextStatus = "gating";
     }
 
     await this.writeStateVersion(input.orchestrationId, {
@@ -887,15 +1194,50 @@ export class Orchestrator {
     return gateId;
   }
 
+  /**
+   * Complete settling after a publish gate: gating→settling→succeeded.
+   * Call after recordQualityGate({ decision: "publish" }) while status is settling.
+   */
+  async settle(orchestrationId: string, notes?: string): Promise<void> {
+    const state = await this.readState(orchestrationId);
+    this.assertOrchestrationStatus(state.status, ["settling"], "settle");
+    await this.writeStateVersion(orchestrationId, {
+      ...state,
+      status: "succeeded",
+      decisions: [
+        ...(state.decisions ?? []),
+        {
+          at: nowIso(),
+          decision: "continue",
+          reason: notes ?? "Settling complete",
+        },
+      ],
+      updated_at: nowIso(),
+    });
+    this.memory.forNamespace(orchestrationId).set("phase", "succeeded");
+  }
+
   async escalate(input: {
     orchestrationId: string;
     reason: string;
     blocking?: boolean;
     options?: string[];
   }): Promise<string> {
+    const state = await this.readState(input.orchestrationId);
+    this.assertOrchestrationStatus(
+      state.status,
+      [
+        "accepting",
+        "planning",
+        "scheduled",
+        "running",
+        "gating",
+        "settling",
+      ],
+      "escalate",
+    );
     const escalationId = createArtifactId("escalation");
     const runId = createArtifactId("orc-run");
-    const state = await this.readState(input.orchestrationId);
     const payload: EscalationPayload = {
       schema_version: "1.0.0",
       artifact_id: escalationId,
@@ -939,24 +1281,16 @@ export class Orchestrator {
   }
 
   /**
-   * Terminal success — only from settling after waves complete.
-   * Prefer recordQualityGate({ decision: publish }) for gated settle.
+   * Terminal success from settling after publish gate (gating→settling→succeeded).
+   * Prefer settle() after recordQualityGate({ decision: "publish" }).
    */
   async markSucceeded(orchestrationId: string, reason?: string): Promise<void> {
     const state = await this.readState(orchestrationId);
-    if (state.status !== "settling") {
-      throw new AiosError(
-        "illegal-orchestration-status",
-        `markSucceeded only allowed from settling (got ${state.status})`,
-      );
-    }
-    const profile = await this.knowledge.getGateProfile(state.gate_profile);
-    if (profile.validators_blocking || profile.reviews_blocking) {
-      throw new AiosError(
-        "settle-gate-required",
-        `Profile "${state.gate_profile}" requires recordQualityGate before success`,
-      );
-    }
+    this.assertOrchestrationStatus(
+      state.status,
+      ["settling"],
+      "markSucceeded",
+    );
     await this.writeStateVersion(orchestrationId, {
       ...state,
       status: "succeeded",
@@ -965,11 +1299,12 @@ export class Orchestrator {
         {
           at: nowIso(),
           decision: "continue",
-          reason: reason ?? "Orchestration succeeded (advisory settle)",
+          reason: reason ?? "Orchestration marked succeeded",
         },
       ],
       updated_at: nowIso(),
     });
+    this.memory.forNamespace(orchestrationId).set("phase", "succeeded");
   }
 
   async readState(orchestrationId: string): Promise<OrchestrationStatePayload> {
@@ -1023,17 +1358,44 @@ export class Orchestrator {
     }
   }
 
+  private assertOrchestrationStatus(
+    actual: OrchestrationStatePayload["status"],
+    allowed: OrchestrationStatePayload["status"][],
+    action: string,
+  ): void {
+    if (!allowed.includes(actual)) {
+      throw new AiosError(
+        "illegal-orchestration-status",
+        `Cannot ${action} from status ${actual}; allowed: ${allowed.join(", ")}`,
+      );
+    }
+  }
+
+  private async planRequestsRepoWrite(plan: PlanPayload): Promise<boolean> {
+    for (const ref of plan.task_refs) {
+      const task = await this.artifacts.readPayloadJson(
+        ref.artifact_id,
+        ref.artifact_version,
+        TaskPayload,
+      );
+      if (task.side_effect_budget.includes("repo-write")) return true;
+    }
+    return false;
+  }
+
   private assertGateAllowsPublish(
     profile: GateProfileEntry,
     gate: PlanGateInput,
+    opts?: { requireReviews?: boolean },
   ): void {
-    this.assertGateAllowsDecision(profile, gate, "publish");
+    this.assertGateAllowsDecision(profile, gate, "publish", opts);
   }
 
   private assertGateAllowsDecision(
     profile: GateProfileEntry,
     gate: PlanGateInput,
     decision: ControlDecision,
+    opts?: { requireReviews?: boolean },
   ): void {
     if (decision === "abort" || decision === "hold" || decision === "escalate") {
       return;
@@ -1041,28 +1403,67 @@ export class Orchestrator {
 
     const validations = gate.validationResults ?? [];
     const reviews = gate.reviewResults ?? [];
+    const requireReviews =
+      opts?.requireReviews ??
+      (profile.reviews_blocking || Boolean(profile.require_review_on_plan));
 
     if (profile.validators_blocking) {
-      const blocked = validations.some((v) => v.result === "fail");
-      if (blocked || gate.result === "fail") {
+      if (validations.length === 0) {
+        throw new AiosError(
+          "validation-required",
+          "Gate profile requires at least one validation result when validators_blocking",
+        );
+      }
+      for (const v of validations) {
+        if (this.isBlockedBySeverity(profile, v.result)) {
+          throw new AiosError(
+            "blocking-validation-fail",
+            `Cannot publish/continue: validation ${v.artifact_id} result=${v.result} hits blocking_severities`,
+          );
+        }
+      }
+      if (this.isBlockedBySeverity(profile, gate.result)) {
         throw new AiosError(
           "blocking-validation-fail",
-          "Cannot publish/continue under validators_blocking with fail",
+          "Cannot publish/continue under validators_blocking with blocking gate result",
         );
       }
     }
 
-    if (profile.reviews_blocking || profile.require_review_on_plan) {
-      if (reviews.length === 0 && profile.require_review_on_plan) {
+    if (requireReviews) {
+      if (reviews.length === 0) {
         throw new AiosError(
           "review-required",
           "Gate profile requires at least one review result",
         );
       }
-      if (reviews.some((r) => r.result === "fail") || gate.result === "fail") {
+      for (const r of reviews) {
+        if (this.isBlockedBySeverity(profile, r.result)) {
+          throw new AiosError(
+            "blocking-review-fail",
+            `Cannot publish/continue: review ${r.artifact_id} result=${r.result} hits blocking_severities`,
+          );
+        }
+      }
+      if (this.isBlockedBySeverity(profile, gate.result)) {
         throw new AiosError(
           "blocking-review-fail",
-          "Cannot publish/continue under reviews_blocking with fail",
+          "Cannot publish/continue under reviews_blocking with blocking gate result",
+        );
+      }
+    } else if (profile.reviews_blocking) {
+      for (const r of reviews) {
+        if (this.isBlockedBySeverity(profile, r.result)) {
+          throw new AiosError(
+            "blocking-review-fail",
+            `Cannot publish/continue: review ${r.artifact_id} result=${r.result} hits blocking_severities`,
+          );
+        }
+      }
+      if (this.isBlockedBySeverity(profile, gate.result)) {
+        throw new AiosError(
+          "blocking-review-fail",
+          "Cannot publish/continue under reviews_blocking with blocking gate result",
         );
       }
     }
@@ -1074,6 +1475,98 @@ export class Orchestrator {
           "Profile does not allow publish/continue with warn",
         );
       }
+    }
+  }
+
+  /** Map gate result → severity and consult profile.blocking_severities. */
+  private isBlockedBySeverity(
+    profile: GateProfileEntry,
+    result: GateResult,
+  ): boolean {
+    const severity =
+      result === "fail" ? "critical" : result === "warn" ? "high" : "info";
+    if (!profile.blocking_severities.includes(severity)) {
+      return false;
+    }
+    if (result === "warn" && profile.allow_publish_with_warn) {
+      return false;
+    }
+    return result === "fail" || result === "warn";
+  }
+
+  private async cancelStubRunAndTask(
+    orchestrationId: string,
+    taskId: string,
+    runId: string | undefined,
+    state: OrchestrationStatePayload,
+  ): Promise<void> {
+    if (runId) {
+      try {
+        const runVersion = (await this.artifacts.latestVersion(runId)) ?? 1;
+        const prevRun = await this.artifacts.readPayloadJson(
+          runId,
+          runVersion,
+          ExecutionRunPayload,
+        );
+        if (
+          prevRun.status === "claimed" ||
+          prevRun.status === "running" ||
+          prevRun.status === "pending"
+        ) {
+          const cancelled: ExecutionRunPayload = {
+            ...prevRun,
+            status: "cancelled",
+            phase: "terminal",
+            ended_at: nowIso(),
+            extensions: {
+              ...(prevRun.extensions ?? {}),
+              core_stub: true,
+              cancelled_by: "fail-fast",
+            },
+          };
+          ExecutionRunPayload.parse(cancelled);
+          await this.artifacts.write({
+            artifactId: runId,
+            type: "run-record",
+            title: "Stub run cancelled",
+            status: "published",
+            version: runVersion + 1,
+            payloadKind: "json",
+            payload: cancelled,
+            producedBy: {
+              role: "orchestrator",
+              runId: createArtifactId("orc-run"),
+              taskId,
+            },
+            supersedes: {
+              artifact_id: runId,
+              artifact_version: runVersion,
+              relation: "derived-from",
+            },
+            trace: cancelled.trace,
+          });
+          const meta = await this.artifacts.readMeta(runId, runVersion);
+          if (meta.status === "ready") {
+            await this.artifacts.transitionStatus(runId, runVersion, "published");
+          }
+          await this.artifacts.transitionStatus(runId, runVersion, "superseded");
+        }
+      } catch {
+        // best-effort cancel
+      }
+    }
+
+    try {
+      const taskVersion = (await this.artifacts.latestVersion(taskId)) ?? 1;
+      await this.writeTaskStatusVersion(taskId, taskVersion, "cancelled", {
+        orchestration_id: orchestrationId,
+        plan_id: state.plan_ref?.artifact_id,
+        task_id: taskId,
+        goal_id: state.goal_ref.artifact_id,
+        run_id: runId,
+      });
+    } catch {
+      // best-effort cancel
     }
   }
 

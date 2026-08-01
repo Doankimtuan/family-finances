@@ -7,6 +7,37 @@
 - Additive schema fields may stay on the same `schema_version` const when optional.
 - Removing/renaming required fields or changing enum membership is breaking.
 
+## 0.3.2 → 0.3.3 (2026-08-01)
+
+Architect FAIL remediation (still no workers).
+
+| Change | Detail |
+|--------|--------|
+| Run contract | Shared Zod `ErrorPhase` ≡ `common.schema.json#/$defs/errorPhase` (incl. `gating`/`settling`; no `control`) |
+| Settling | Publish gate from `gating` → `settling`; `settle()` / `markSucceeded()` → `succeeded` |
+| Gates | `validators_blocking` requires ≥1 validation; `blocking_severities` consulted via fail→critical / warn→high |
+| Gate profile JSON | `reviews_blocking` required on profile (parity with Zod) |
+| Retries | Soft-fail when attempts remain; `retryTask` requeues stub run; fail-fast cancel only when retries exhausted |
+| FSM | `planAndAttach` only from `accepting`\|`planning`; revise clears waves/`plan_ref`/`task_outcomes`; `escalate` non-terminal only |
+| Smoke | Settling asserted; validation evidence required; fail-fast / soft-retry / illegal planAndAttach / escalate negatives |
+| Docs | OVERVIEW / VERSION `0.3.3` |
+
+## 0.3.1 → 0.3.2 (2026-08-01)
+
+Architect FAIL remediation (still no workers).
+
+| Change | Detail |
+|--------|--------|
+| Run contract | Zod `ExecutionRunPayload` mirrors JSON `runPhase` + gate_results/outputs shape; stub marker in `extensions` |
+| Orchestration schema | `task_outcomes` (+ optional `attempt`) added to `orchestration-state.schema.json` |
+| FSM | `acceptPlan` only from `planning`; `rejectOrRevisePlan` from `planning\|scheduled`; waves complete → `gating` |
+| Fail-fast | Cancels sibling stub runs + task artifacts |
+| Gates | `reviews_blocking` requires reviews; `require_review_on_repo_write` triggers planGate when tasks request `repo-write` |
+| Skills | `resolveSkillVersion` for `"active"` pins; retries bounded by `max_retries_per_task` |
+| Store | `assertArtifactType` required on `ArtifactStore` |
+| Worker templates | `manifest.json`; cases 04–05; mandatory tree synced |
+| Docs | OVERVIEW / VERSION `0.3.2` |
+
 ## 0.3.0 → 0.3.1 (2026-08-01)
 
 Core Engine FAIL remediation (still no workers).
