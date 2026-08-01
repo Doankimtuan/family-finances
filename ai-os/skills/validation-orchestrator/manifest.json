@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0.0",
   "id": "validation-orchestrator",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "title": "Validation Orchestrator",
-  "description": "Coordinate validation order (from pipeline waves), merge findings, emit overall validation status. Never modify source artifacts.",
+  "description": "Record pipeline-wave order, merge partitioned findings, emit overall validation-status. Never modify artifacts.",
   "role": "executor",
   "grade": "guided",
   "inputs": [
@@ -56,16 +56,16 @@
       "description": "knowledge/ soft"
     },
     {
-      "name": "validation-findings",
+      "name": "validation",
       "artifact_type": "validation-finding",
       "required": true,
-      "description": "Findings"
+      "description": "validation/<worker_id>/ partitioned findings"
     },
     {
       "name": "scores",
       "artifact_type": "quality-scores",
       "required": true,
-      "description": "Scores"
+      "description": "scores/"
     }
   ],
   "outputs": [
@@ -93,6 +93,8 @@
     "mutate_source_artifacts": false,
     "invent_missing_information": false,
     "incremental": true,
-    "partial": true
+    "partial": true,
+    "raci": "pipelines/validation-engine/RACI.md",
+    "gate_output_type": "gate-validation-report"
   }
 }

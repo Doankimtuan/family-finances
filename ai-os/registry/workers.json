@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "registry_kind": "workers",
-  "updated_at": "2026-08-01T17:00:00Z",
+  "updated_at": "2026-08-01T18:00:00Z",
   "entries": {
     "discover-repo-map": {
       "id": "discover-repo-map",
@@ -524,7 +524,7 @@
     "artifact-validator": {
       "id": "artifact-validator",
       "path": "workers/artifact-validator",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "status": "draft",
       "description": "Verify folder structure, required files, artifact existence, naming, output locations, and artifact contracts. Never modify artifacts.",
       "worker_class": "discovery",
@@ -538,7 +538,8 @@
         "pipelines",
         "execution",
         "templates",
-        "knowledge"
+        "knowledge",
+        "registry"
       ],
       "produces": [
         "validation"
@@ -547,7 +548,7 @@
     "schema-validator": {
       "id": "schema-validator",
       "path": "workers/schema-validator",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "status": "draft",
       "description": "Validate JSON Schemas, markdown structure, required fields, data types, and schema compatibility. Never modify artifacts.",
       "worker_class": "discovery",
@@ -561,7 +562,8 @@
         "pipelines",
         "execution",
         "templates",
-        "knowledge"
+        "knowledge",
+        "registry"
       ],
       "produces": [
         "validation"
@@ -570,7 +572,7 @@
     "dependency-validator": {
       "id": "dependency-validator",
       "path": "workers/dependency-validator",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "status": "draft",
       "description": "Verify worker/pipeline dependencies, detect circular and missing dependencies and invalid references. Never modify artifacts.",
       "worker_class": "discovery",
@@ -587,7 +589,8 @@
         "pipelines",
         "execution",
         "templates",
-        "knowledge"
+        "knowledge",
+        "registry"
       ],
       "produces": [
         "validation"
@@ -596,7 +599,7 @@
     "pipeline-validator": {
       "id": "pipeline-validator",
       "path": "workers/pipeline-validator",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "status": "draft",
       "description": "Verify execution order, stage dependencies, pipeline/worker registration, lifecycle, resume and incremental support. Never modify artifacts.",
       "worker_class": "discovery",
@@ -613,7 +616,8 @@
         "pipelines",
         "execution",
         "templates",
-        "knowledge"
+        "knowledge",
+        "registry"
       ],
       "produces": [
         "validation"
@@ -622,7 +626,7 @@
     "traceability-validator": {
       "id": "traceability-validator",
       "path": "workers/traceability-validator",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "status": "draft",
       "description": "Verify every artifact traces to features, business rules, architecture, requirements, knowledge. Reject orphans. Never modify artifacts.",
       "worker_class": "discovery",
@@ -639,7 +643,15 @@
         "pipelines",
         "execution",
         "templates",
-        "knowledge"
+        "knowledge",
+        "registry",
+        "features",
+        "business",
+        "requirements",
+        "acceptance",
+        "product-architecture",
+        "architecture-v2",
+        "specifications"
       ],
       "produces": [
         "validation"
@@ -648,7 +660,7 @@
     "completeness-validator": {
       "id": "completeness-validator",
       "path": "workers/completeness-validator",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "status": "draft",
       "description": "Verify missing documents, fields, modules, specifications, workers, examples, schemas. Never invent missing information \u2014 only report.",
       "worker_class": "discovery",
@@ -665,7 +677,15 @@
         "pipelines",
         "execution",
         "templates",
-        "knowledge"
+        "knowledge",
+        "registry",
+        "features",
+        "business",
+        "requirements",
+        "acceptance",
+        "product-architecture",
+        "architecture-v2",
+        "specifications"
       ],
       "produces": [
         "validation"
@@ -674,7 +694,7 @@
     "consistency-validator": {
       "id": "consistency-validator",
       "path": "workers/consistency-validator",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "status": "draft",
       "description": "Detect contradictions, duplications, conflicting requirements/architecture/business rules, naming inconsistencies. Never modify artifacts.",
       "worker_class": "discovery",
@@ -691,7 +711,15 @@
         "pipelines",
         "execution",
         "templates",
-        "knowledge"
+        "knowledge",
+        "registry",
+        "features",
+        "business",
+        "requirements",
+        "acceptance",
+        "product-architecture",
+        "architecture-v2",
+        "specifications"
       ],
       "produces": [
         "validation"
@@ -700,7 +728,7 @@
     "quality-scoring-engine": {
       "id": "quality-scoring-engine",
       "path": "workers/quality-scoring-engine",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "status": "draft",
       "description": "Generate structured quality scores from validation findings. Never modify source artifacts; never invent missing data.",
       "worker_class": "discovery",
@@ -732,7 +760,7 @@
     "validation-orchestrator": {
       "id": "validation-orchestrator",
       "path": "workers/validation-orchestrator",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "status": "draft",
       "description": "Coordinate validation order (from pipeline waves), merge findings, emit overall validation status. Never modify source artifacts.",
       "worker_class": "discovery",
@@ -766,7 +794,7 @@
     "validation-reporter": {
       "id": "validation-reporter",
       "path": "workers/validation-reporter",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "status": "draft",
       "description": "Generate validation summary, severity-ranked issues, recommended fixes, and PASS/FAIL decision. Machine-readable only.",
       "worker_class": "discovery",

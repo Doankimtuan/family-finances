@@ -997,12 +997,40 @@ export class KnowledgeBase {
       "validation-status",
       "quality-scores",
       "validation-report",
+      "gate-validation-report",
     ]) {
       if (!(await this.hasArtifactType(typeId))) {
         throw new AiosError(
           "unknown-artifact-type",
           `${typeId} must be registered for validation-engine`,
         );
+      }
+    }
+
+    const requiredSoftConsumes = [
+      "features",
+      "business",
+      "requirements",
+      "acceptance",
+      "product-architecture",
+      "architecture-v2",
+      "specifications",
+      "registry",
+    ];
+    for (const id of [
+      "traceability-validator",
+      "completeness-validator",
+      "consistency-validator",
+    ]) {
+      const entry = workersReg.entries[id] as { consumes?: string[] } | undefined;
+      const consumes = entry?.consumes ?? [];
+      for (const c of requiredSoftConsumes) {
+        if (!consumes.includes(c)) {
+          throw new AiosError(
+            "pipeline-graph-mismatch",
+            `Worker ${id} must consume ${c} (Validation Engine C1)`,
+          );
+        }
       }
     }
 
@@ -1013,8 +1041,12 @@ export class KnowledgeBase {
     await this.assertRegistryPathExists("execution");
     await this.assertRegistryPathExists("quality/validation-scorecard");
     await this.assertRegistryPathExists("contracts/validation-engine.md");
+    await this.assertRegistryPathExists("pipelines/validation-engine/RACI.md");
     await this.assertRegistryPathExists(
       "schemas/validation-engine-payload.schema.json",
+    );
+    await this.assertRegistryPathExists(
+      "schemas/gate-validation-report.schema.json",
     );
     await this.assertRegistryPathExists(
       "reviewers/validation-engine-coverage-review/rubric/validation-engine-coverage.json",

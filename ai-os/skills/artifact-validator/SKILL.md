@@ -9,40 +9,53 @@ description: Verify folder structure, required files, artifact existence, naming
 
 ## Consumes
 
-`schemas/`, `artifacts/` (soft), `workers/`, `pipelines/`, `execution/` (soft), `templates/`, `knowledge/` (soft)
+`schemas/`, `artifacts/` (soft), `workers/`, `pipelines/`, `execution/` (soft), `templates/`, `knowledge/` (soft), `registry/`
 
 ## Produces
 
-`validation/` → `validation-finding`
+`validation/artifact-validator/` → `validation-finding` (required `folder_mirror`: `validation/artifact-validator/…`)
 
 ## Ownership
 
-- **Owns:** folder-structure, required-files, artifact-existence, naming, output-location…
-- **Does not:** mutate sources; invent gaps; run business workers
+### Rule catalog (owns)
+| Kind | Rule |
+|------|------|
+| folder-structure | Declared produce/consume folders exist per manifests |
+| required-files | Worker package files present |
+| artifact-existence | Referenced paths resolve under ai-os/ |
+| naming | kebab-id / art_* conventions |
+| output-location | Outputs only under declared produce folders |
+| artifact-contract | Artifact type matches registry |
+
+**Does not own:** schema field typing; dependency edges. See `pipelines/validation-engine/RACI.md`.
 
 ## Procedure
 
-1. Load declared consume paths (honor partial/incremental scopes).
-2. Evaluate rules; emit entries with full validation fields.
-3. Mark unknowns `UNKNOWN: …`.
-4. Write `validation-finding` under produce folder(s) only.
-5. Stop for validation/review.
+1. Load declared consume paths (honor `extensions.partial` / `incremental` + `validation_scope`).
+2. Evaluate **only** owned rule kinds (RACI); skip others.
+3. Emit entries with full fields + `folder_mirror` under `validation/artifact-validator/`.
+4. Mark gaps `UNKNOWN: …`. Never mutate sources.
+5. Stop for validation/review (`validators/validation-engine-schema-check` → `gate-validation-report`).
 
 ## Heuristics
 
-- Prefer path/schema evidence.
-- Fail closed on orphans / critical contract breaks.
+- Prefer path/schema evidence; fail closed on critical contract breaks.
 - Partial runs must emit unknowns for skipped targets.
+- Respect RACI — do not duplicate another validator's kinds.
+- `result` is authoritative; never use entry_kind `pass`/`fail`.
 
 ## Done when
 
-- ≥1 structured entry with full validation fields
-- No source mutation; no invented missing info
+- ≥1 structured entry covering owned kinds (or explicit skip/UNKNOWN for scoped runs)
+- Every entry has full fields + `folder_mirror` matching `validation/artifact-validator/`
+- No source mutation; no invented missing info; RACI respected
 
 ## Negative examples
 
-- Do not rewrite schemas/workers to “fix” findings.
-- Do not fabricate traceability.
+- Do not rewrite schemas/workers/packs to “fix” findings.
+- Do not fabricate traceability or invent missing documents.
+- Do not write findings outside `validation/<worker_id>/` partition.
+- Do not emit gate-shaped `gate-validation-report` from this worker (reporter emits `validation-report`).
 
 ## Lock
 

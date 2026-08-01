@@ -1,15 +1,20 @@
-# Validation findings & status — Template
+# Validation Finding Template
 
-> Never invent missing information · Never mutate sources · Structured findings only
+Use for `validation-finding` under **`validation/<worker_id>/`**.
 
-## Entries
+## Required per entry
 
-| validation_id | target | rule | result | severity | evidence | recommendation | confidence | unknowns |
-|---------------|--------|------|--------|----------|----------|----------------|------------|----------|
-| | | | | | | | | |
+- `entry_kind` — owned kinds only (see `pipelines/validation-engine/RACI.md`)
+- `validation_id`, `target`, `rule`, `result` (`pass|fail|warn|skip|info`)
+- `evidence[]`, `severity`, `recommendation`, `confidence`
+- `source_paths[]`, `unknowns[]` (prefix `UNKNOWN:`)
+- `traceability.source_artifact`
+- **`folder_mirror`** — must match `validation/<worker_id>/…`
 
-## Traceability
+## Partition
 
-| source_artifact | feature | business_rule | requirement | architecture | knowledge |
-|-----------------|---------|---------------|-------------|--------------|-----------|
-| | | | | | |
+Do not write undifferentiated files into bare `validation/`. Orchestrator merges partitions.
+
+## Invariants
+
+Never mutate sources. Never invent missing information.

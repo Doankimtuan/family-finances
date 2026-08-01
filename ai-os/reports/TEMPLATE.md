@@ -1,15 +1,11 @@
-# Validation reports — Template
+# Validation Report Template
 
-> Never invent missing information · Never mutate sources · Structured findings only
+Worker type: **`validation-report`** (not `gate-validation-report`).
 
-## Entries
+## Required kinds
 
-| validation_id | target | rule | result | severity | evidence | recommendation | confidence | unknowns |
-|---------------|--------|------|--------|----------|----------|----------------|------------|----------|
-| | | | | | | | | |
+summary, critical, high, medium, low, recommended-fix, decision
 
-## Traceability
+## PASS/FAIL
 
-| source_artifact | feature | business_rule | requirement | architecture | knowledge |
-|-----------------|---------|---------------|-------------|--------------|-----------|
-| | | | | | |
+`decision` = **FAIL** if any merged finding has `result=fail` and `severity=critical`; else **PASS**.

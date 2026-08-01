@@ -1,15 +1,13 @@
-# Quality scores — Template
+# Quality Scores Template
 
-> Never invent missing information · Never mutate sources · Structured findings only
+`quality-scores` under `scores/`.
 
-## Entries
+## Required
 
-| validation_id | target | rule | result | severity | evidence | recommendation | confidence | unknowns |
-|---------------|--------|------|--------|----------|----------|----------------|------------|----------|
-| | | | | | | | | |
+All 9 `entry_kind`s with **`score_value`** (0–1):
 
-## Traceability
+overall, architecture, documentation, consistency, completeness, maintainability, extensibility, reliability, confidence
 
-| source_artifact | feature | business_rule | requirement | architecture | knowledge |
-|-----------------|---------|---------------|-------------|--------------|-----------|
-| | | | | | |
+If unscorable: `result=skip`, `score_value=0`, `UNKNOWN:` reason — do not omit the kind.
+
+Optional mirror: `quality/validation-scorecard/` (never overwrite SA `quality/` templates).

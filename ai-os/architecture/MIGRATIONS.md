@@ -7,6 +7,23 @@
 - Additive schema fields may stay on the same `schema_version` const when optional.
 - Removing/renaming required fields or changing enum membership is breaking.
 
+## 0.7.0 → 0.7.1 (2026-08-01)
+
+Sprint 7 Validation Engine Product Review Board HOLD remediation (Feature Workers still forbidden; Core still does not invoke workers; validations not executed).
+
+| Change | Detail |
+|--------|--------|
+| C1 | Expanded soft consumes: features/, business/, requirements/, acceptance/, product-architecture/, architecture-v2/, specifications/, registry/ |
+| C2 | Partition `validation/<worker_id>/` + required `folder_mirror`; orchestrator merge_glob |
+| C3 | Worker-specific SKILL.md (rule catalogs, scoring, PASS/FAIL, Done-when) |
+| C4 | quality-scores requires 9 dimensions + `score_value`; smoke enforces |
+| C5 | Gate output renamed to `gate-validation-report` (worker `validation-report` unchanged) |
+| H1 | `pipelines/validation-engine/RACI.md` |
+| H2 | Order ownership documented as `pipeline.waves`; orchestrator records + merges |
+| H5 | Hardened `aios:validation-engine:smoke` |
+| Gold | circular + orphan fail samples; full reporter severity kinds |
+| Schemas | payload constraints tightened; validator/reviewer **0.2.0**; pipeline/workers/skills **0.1.1** |
+
 ## 0.6.1 → 0.7.0 (2026-08-01)
 
 Validation Engine packaging (Feature Workers still forbidden; Core still does not invoke workers). Validations are **not executed** in this milestone.

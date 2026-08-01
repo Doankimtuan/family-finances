@@ -4,107 +4,114 @@
   "type": "validation-finding",
   "worker_id": "traceability-validator",
   "title": "traceability-validator output",
-  "summary": "Verify every artifact traces to features, business rules, architecture, requirements, knowledge. Reject orphans. Never modify artifacts.",
+  "summary": "Verify every artifact traces to features, business rules, architecture, requirements, knowledge. Reject orphans.",
   "entries": [
     {
       "id": "traceability-validator-feature-trace-01",
       "entry_kind": "feature-trace",
-      "statement": "Sample finding `feature-trace` for traceability-validator.",
-      "validation_id": "VAL-TV-feature-tr",
-      "target": "ai-os/workers/",
-      "rule": "feature-trace must satisfy Validation Engine contract",
+      "statement": "Sample `feature-trace` for traceability-validator.",
+      "validation_id": "VAL-TV-feature-trac",
+      "target": "ai-os/workers/traceability-validator/",
+      "rule": "feature-trace per Validation Engine contract + RACI",
       "result": "pass",
       "evidence": [
         "schemas/validation-engine-payload.schema.json",
-        "workers/traceability-validator/"
+        "workers/traceability-validator/",
+        "pipelines/validation-engine/RACI.md"
       ],
       "severity": "info",
       "recommendation": "Do not mutate sources; remediate upstream packages if fail.",
-      "confidence": 0.8,
+      "confidence": 0.85,
       "source_paths": [
         "schemas/",
         "workers/",
         "pipelines/",
-        "knowledge/",
+        "registry/",
         "templates/"
       ],
       "unknowns": [
         "UNKNOWN: none noted"
       ],
       "traceability": {
-        "source_artifact": "schemas/",
+        "source_artifact": "workers/traceability-validator/",
         "knowledge": "knowledge/",
         "pipeline": "validation-engine",
         "worker": "traceability-validator"
-      }
+      },
+      "folder_mirror": "validation/traceability-validator/feature-trace.json"
     },
     {
       "id": "traceability-validator-business-rule-trace-01",
       "entry_kind": "business-rule-trace",
-      "statement": "Sample finding `business-rule-trace` for traceability-validator.",
-      "validation_id": "VAL-TV-business-r",
-      "target": "ai-os/workers/",
-      "rule": "business-rule-trace must satisfy Validation Engine contract",
+      "statement": "Sample `business-rule-trace` for traceability-validator.",
+      "validation_id": "VAL-TV-business-rul",
+      "target": "ai-os/workers/traceability-validator/",
+      "rule": "business-rule-trace per Validation Engine contract + RACI",
       "result": "pass",
       "evidence": [
         "schemas/validation-engine-payload.schema.json",
-        "workers/traceability-validator/"
+        "workers/traceability-validator/",
+        "pipelines/validation-engine/RACI.md"
       ],
       "severity": "info",
       "recommendation": "Do not mutate sources; remediate upstream packages if fail.",
-      "confidence": 0.8,
+      "confidence": 0.85,
       "source_paths": [
         "schemas/",
         "workers/",
         "pipelines/",
-        "knowledge/",
+        "registry/",
         "templates/"
       ],
       "unknowns": [
         "UNKNOWN: none noted"
       ],
       "traceability": {
-        "source_artifact": "schemas/",
+        "source_artifact": "workers/traceability-validator/",
         "knowledge": "knowledge/",
         "pipeline": "validation-engine",
         "worker": "traceability-validator"
-      }
+      },
+      "folder_mirror": "validation/traceability-validator/business-rule-trace.json"
     },
     {
-      "id": "traceability-validator-architecture-trace-01",
-      "entry_kind": "architecture-trace",
-      "statement": "Sample finding `architecture-trace` for traceability-validator.",
-      "validation_id": "VAL-TV-architectu",
-      "target": "ai-os/workers/",
-      "rule": "architecture-trace must satisfy Validation Engine contract",
-      "result": "pass",
+      "id": "traceability-validator-orphan-01",
+      "entry_kind": "orphan",
+      "statement": "Gold example: orphan artifact with no upstream feature/requirement/architecture pointer.",
+      "validation_id": "VAL-TV-orphan",
+      "target": "ai-os/artifacts/example-orphan",
+      "rule": "orphan per Validation Engine contract + RACI",
+      "result": "fail",
       "evidence": [
         "schemas/validation-engine-payload.schema.json",
-        "workers/traceability-validator/"
+        "workers/traceability-validator/",
+        "pipelines/validation-engine/RACI.md"
       ],
-      "severity": "info",
+      "severity": "critical",
       "recommendation": "Do not mutate sources; remediate upstream packages if fail.",
-      "confidence": 0.8,
+      "confidence": 0.85,
       "source_paths": [
-        "schemas/",
-        "workers/",
-        "pipelines/",
-        "knowledge/",
-        "templates/"
+        "features/",
+        "requirements/",
+        "product-architecture/",
+        "architecture-v2/",
+        "specifications/",
+        "knowledge/"
       ],
       "unknowns": [
-        "UNKNOWN: none noted"
+        "UNKNOWN: packaging sample \u2014 live orphan scan not executed"
       ],
       "traceability": {
-        "source_artifact": "schemas/",
-        "knowledge": "knowledge/",
+        "source_artifact": "artifacts/example-orphan",
         "pipeline": "validation-engine",
-        "worker": "traceability-validator"
-      }
+        "worker": "traceability-validator",
+        "feature": "UNKNOWN: no feature link"
+      },
+      "folder_mirror": "validation/traceability-validator/orphan.json"
     }
   ],
   "status": "ready",
-  "created_at": "2026-08-01T17:00:00Z",
+  "created_at": "2026-08-01T18:00:00Z",
   "trace": {
     "orchestration_id": "art_ve_orchestration",
     "plan_id": "art_ve_plan",
@@ -117,6 +124,11 @@
     "mutate_source_artifacts": false,
     "invent_missing_information": false,
     "incremental": true,
-    "partial": true
+    "partial": true,
+    "folder_partition": "validation/traceability-validator/",
+    "validation_scope": {
+      "mode": "full",
+      "note": "Sample is full-scope; scoped runs set paths here"
+    }
   }
 }

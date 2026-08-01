@@ -4,107 +4,113 @@
   "type": "validation-finding",
   "worker_id": "artifact-validator",
   "title": "artifact-validator output",
-  "summary": "Verify folder structure, required files, artifact existence, naming, output locations, and artifact contracts. Never modify artifacts.",
+  "summary": "Verify folder structure, required files, artifact existence, naming, output locations, and artifact contracts.",
   "entries": [
     {
       "id": "artifact-validator-folder-structure-01",
       "entry_kind": "folder-structure",
-      "statement": "Sample finding `folder-structure` for artifact-validator.",
-      "validation_id": "VAL-AV-folder-str",
-      "target": "ai-os/workers/",
-      "rule": "folder-structure must satisfy Validation Engine contract",
+      "statement": "Sample `folder-structure` for artifact-validator.",
+      "validation_id": "VAL-AV-folder-struc",
+      "target": "ai-os/workers/artifact-validator/",
+      "rule": "folder-structure per Validation Engine contract + RACI",
       "result": "pass",
       "evidence": [
         "schemas/validation-engine-payload.schema.json",
-        "workers/artifact-validator/"
+        "workers/artifact-validator/",
+        "pipelines/validation-engine/RACI.md"
       ],
       "severity": "info",
       "recommendation": "Do not mutate sources; remediate upstream packages if fail.",
-      "confidence": 0.8,
+      "confidence": 0.85,
       "source_paths": [
         "schemas/",
         "workers/",
         "pipelines/",
-        "knowledge/",
+        "registry/",
         "templates/"
       ],
       "unknowns": [
         "UNKNOWN: none noted"
       ],
       "traceability": {
-        "source_artifact": "schemas/",
+        "source_artifact": "workers/artifact-validator/",
         "knowledge": "knowledge/",
         "pipeline": "validation-engine",
         "worker": "artifact-validator"
-      }
+      },
+      "folder_mirror": "validation/artifact-validator/folder-structure.json"
     },
     {
       "id": "artifact-validator-required-files-01",
       "entry_kind": "required-files",
-      "statement": "Sample finding `required-files` for artifact-validator.",
-      "validation_id": "VAL-AV-required-f",
-      "target": "ai-os/workers/",
-      "rule": "required-files must satisfy Validation Engine contract",
+      "statement": "Sample `required-files` for artifact-validator.",
+      "validation_id": "VAL-AV-required-fil",
+      "target": "ai-os/workers/artifact-validator/",
+      "rule": "required-files per Validation Engine contract + RACI",
       "result": "pass",
       "evidence": [
         "schemas/validation-engine-payload.schema.json",
-        "workers/artifact-validator/"
+        "workers/artifact-validator/",
+        "pipelines/validation-engine/RACI.md"
       ],
       "severity": "info",
       "recommendation": "Do not mutate sources; remediate upstream packages if fail.",
-      "confidence": 0.8,
+      "confidence": 0.85,
       "source_paths": [
         "schemas/",
         "workers/",
         "pipelines/",
-        "knowledge/",
+        "registry/",
         "templates/"
       ],
       "unknowns": [
         "UNKNOWN: none noted"
       ],
       "traceability": {
-        "source_artifact": "schemas/",
+        "source_artifact": "workers/artifact-validator/",
         "knowledge": "knowledge/",
         "pipeline": "validation-engine",
         "worker": "artifact-validator"
-      }
+      },
+      "folder_mirror": "validation/artifact-validator/required-files.json"
     },
     {
       "id": "artifact-validator-artifact-existence-01",
       "entry_kind": "artifact-existence",
-      "statement": "Sample finding `artifact-existence` for artifact-validator.",
-      "validation_id": "VAL-AV-artifact-e",
-      "target": "ai-os/workers/",
-      "rule": "artifact-existence must satisfy Validation Engine contract",
+      "statement": "Sample `artifact-existence` for artifact-validator.",
+      "validation_id": "VAL-AV-artifact-exi",
+      "target": "ai-os/workers/artifact-validator/",
+      "rule": "artifact-existence per Validation Engine contract + RACI",
       "result": "pass",
       "evidence": [
         "schemas/validation-engine-payload.schema.json",
-        "workers/artifact-validator/"
+        "workers/artifact-validator/",
+        "pipelines/validation-engine/RACI.md"
       ],
       "severity": "info",
       "recommendation": "Do not mutate sources; remediate upstream packages if fail.",
-      "confidence": 0.8,
+      "confidence": 0.85,
       "source_paths": [
         "schemas/",
         "workers/",
         "pipelines/",
-        "knowledge/",
+        "registry/",
         "templates/"
       ],
       "unknowns": [
         "UNKNOWN: none noted"
       ],
       "traceability": {
-        "source_artifact": "schemas/",
+        "source_artifact": "workers/artifact-validator/",
         "knowledge": "knowledge/",
         "pipeline": "validation-engine",
         "worker": "artifact-validator"
-      }
+      },
+      "folder_mirror": "validation/artifact-validator/artifact-existence.json"
     }
   ],
   "status": "ready",
-  "created_at": "2026-08-01T17:00:00Z",
+  "created_at": "2026-08-01T18:00:00Z",
   "trace": {
     "orchestration_id": "art_ve_orchestration",
     "plan_id": "art_ve_plan",
@@ -117,6 +123,11 @@
     "mutate_source_artifacts": false,
     "invent_missing_information": false,
     "incremental": true,
-    "partial": true
+    "partial": true,
+    "folder_partition": "validation/artifact-validator/",
+    "validation_scope": {
+      "mode": "full",
+      "note": "Sample is full-scope; scoped runs set paths here"
+    }
   }
 }

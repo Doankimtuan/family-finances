@@ -12,11 +12,10 @@
       "artifact-existence",
       "naming",
       "output-location",
-      "artifact-contract",
-      "pass",
-      "fail"
+      "artifact-contract"
     ],
-    "description": "Verify folder structure, required files, artifact existence, naming, output locations, and artifact contracts. Never modify artifacts."
+    "description": "Verify folder structure, required files, artifact existence, naming, output locations, and artifact contracts. Never modify artifacts.",
+    "partition": "validation/artifact-validator/"
   },
   "schema-validator": {
     "wave": 0,
@@ -30,11 +29,10 @@
       "markdown-structure",
       "required-fields",
       "data-types",
-      "schema-compatibility",
-      "pass",
-      "fail"
+      "schema-compatibility"
     ],
-    "description": "Validate JSON Schemas, markdown structure, required fields, data types, and schema compatibility. Never modify artifacts."
+    "description": "Validate JSON Schemas, markdown structure, required fields, data types, and schema compatibility. Never modify artifacts.",
+    "partition": "validation/schema-validator/"
   },
   "dependency-validator": {
     "wave": 1,
@@ -51,11 +49,10 @@
       "pipeline-dependency",
       "circular",
       "missing-dependency",
-      "invalid-reference",
-      "pass",
-      "fail"
+      "invalid-reference"
     ],
-    "description": "Verify worker/pipeline dependencies, detect circular and missing dependencies and invalid references. Never modify artifacts."
+    "description": "Verify worker/pipeline dependencies, detect circular and missing dependencies and invalid references. Never modify artifacts.",
+    "partition": "validation/dependency-validator/"
   },
   "pipeline-validator": {
     "wave": 1,
@@ -74,11 +71,10 @@
       "worker-registration",
       "lifecycle",
       "resume",
-      "incremental",
-      "pass",
-      "fail"
+      "incremental"
     ],
-    "description": "Verify execution order, stage dependencies, pipeline/worker registration, lifecycle, resume and incremental support. Never modify artifacts."
+    "description": "Verify execution order, stage dependencies, pipeline/worker registration, lifecycle, resume and incremental support. Never modify artifacts.",
+    "partition": "validation/pipeline-validator/"
   },
   "traceability-validator": {
     "wave": 2,
@@ -96,11 +92,10 @@
       "architecture-trace",
       "requirement-trace",
       "knowledge-trace",
-      "orphan",
-      "pass",
-      "fail"
+      "orphan"
     ],
-    "description": "Verify every artifact traces to features, business rules, architecture, requirements, knowledge. Reject orphans. Never modify artifacts."
+    "description": "Verify every artifact traces to features, business rules, architecture, requirements, knowledge. Reject orphans. Never modify artifacts.",
+    "partition": "validation/traceability-validator/"
   },
   "completeness-validator": {
     "wave": 2,
@@ -119,11 +114,10 @@
       "missing-specification",
       "missing-worker",
       "missing-example",
-      "missing-schema",
-      "pass",
-      "fail"
+      "missing-schema"
     ],
-    "description": "Verify missing documents, fields, modules, specifications, workers, examples, schemas. Never invent missing information \u2014 only report."
+    "description": "Verify missing documents, fields, modules, specifications, workers, examples, schemas. Never invent missing information \u2014 only report.",
+    "partition": "validation/completeness-validator/"
   },
   "consistency-validator": {
     "wave": 2,
@@ -141,11 +135,10 @@
       "conflicting-requirement",
       "conflicting-architecture",
       "conflicting-business-rule",
-      "naming-inconsistency",
-      "pass",
-      "fail"
+      "naming-inconsistency"
     ],
-    "description": "Detect contradictions, duplications, conflicting requirements/architecture/business rules, naming inconsistencies. Never modify artifacts."
+    "description": "Detect contradictions, duplications, conflicting requirements/architecture/business rules, naming inconsistencies. Never modify artifacts.",
+    "partition": "validation/consistency-validator/"
   },
   "quality-scoring-engine": {
     "wave": 3,

@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0.0",
   "id": "validation-reporter",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "title": "Validation Reporter",
-  "description": "Generate validation summary, severity-ranked issues, recommended fixes, and PASS/FAIL decision. Machine-readable only.",
+  "description": "Emit severity-ranked validation-report with summary + PASS/FAIL decision. Machine-readable only. Never modify artifacts.",
   "role": "executor",
   "grade": "guided",
   "inputs": [
@@ -56,16 +56,16 @@
       "description": "knowledge/ soft"
     },
     {
-      "name": "validation-status",
-      "artifact_type": "validation-status",
+      "name": "validation",
+      "artifact_type": "validation-finding",
       "required": true,
-      "description": "Status"
+      "description": "validation/<worker_id>/ partitioned findings"
     },
     {
       "name": "scores",
       "artifact_type": "quality-scores",
       "required": true,
-      "description": "Scores"
+      "description": "scores/"
     }
   ],
   "outputs": [
@@ -93,6 +93,8 @@
     "mutate_source_artifacts": false,
     "invent_missing_information": false,
     "incremental": true,
-    "partial": true
+    "partial": true,
+    "raci": "pipelines/validation-engine/RACI.md",
+    "gate_output_type": "gate-validation-report"
   }
 }

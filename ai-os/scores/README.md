@@ -1,8 +1,5 @@
-# Quality scores
+# scores/
 
-> Pipeline: `validation-engine` · Kind: produce · **Never modify source artifacts** · Report only
+Primary produce for `quality-scoring-engine` → `quality-scores`.
 
-quality-scores from quality-scoring-engine.
-
-Runtime payloads: `schemas/validation-engine-payload.schema.json` (`entries[]`).
-Folder TEMPLATE is a human mirror.
+Additive mirror: `quality/validation-scorecard/` (SA `quality/TEMPLATE.md` remains intact).

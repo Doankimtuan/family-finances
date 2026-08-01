@@ -1,30 +1,57 @@
-# Skill Binding — `quality-scoring-engine`
+---
+name: quality-scoring-engine
+description: Generate structured quality scores (9 dimensions) from partitioned validation findings. Never modify artifacts.
+---
 
-Skill claim/execute binding for Validation Engine worker `quality-scoring-engine`.
-Skills live under `skills/quality-scoring-engine`.
+# Quality Scoring Engine
 
-## Allowed skill roles
-
-- `planner` · `executor` · `orchestrator-helper`
-
-Reject `validator` / `reviewer` skill roles.
-
-## Claim protocol
-
-1. Claim `task_id` with unique `run_id`.
-2. Update run-record; acquire `task:{task_id}` lock.
-3. Load skill; verify `mutate_source_artifacts` is false.
-4. Execute skill procedure; write produce staging only.
-5. Stop for package validator/reviewer.
+> Never modify source artifacts. Never invent missing information. Report structured findings only. Packaging only — do not execute unless a later phase opens execute.
 
 ## Consumes
 
-`schemas/`, `artifacts/`, `workers/`, `pipelines/`, `execution/`, `templates/`, `knowledge/`
+`schemas/`, `artifacts/` (soft), `workers/`, `pipelines/`, `execution/` (soft), `templates/`, `knowledge/` (soft), `validation/`
 
 ## Produces
 
-`scores/`
+`scores/` → `quality-scores` (all 9 dimensions + `score_value`). Optional mirror: `quality/validation-scorecard/` (do not overwrite SA `quality/` templates).
 
-## Rule
+## Ownership
 
-Never modify artifacts. Never invent missing information. Structured findings only.
+### Scoring (owns all 9)
+overall, architecture, documentation, consistency, completeness, maintainability, extensibility, reliability, confidence
+
+Each ready payload **must** include all 9 `entry_kind`s with required `score_value` (0–1). If a dimension cannot be scored, emit it with `result: skip`, `score_value: 0`, and `UNKNOWN:` reason — never omit the kind.
+
+**Weights (default):** overall=0.20; others=0.10 each (document deviations in `extensions.score_weights`).
+
+**Inputs:** merge-ready findings from `validation/<worker_id>/` only.
+
+## Procedure
+
+1. Read partitioned findings under `validation/*/`.
+2. Score all 9 dimensions; require `score_value` on each.
+3. Write `quality-scores` under `scores/`. Optional scorecard mirror under `quality/validation-scorecard/` only.
+4. Stop for gates.
+
+## Heuristics
+
+- Prefer path/schema evidence; fail closed on critical contract breaks.
+- Partial runs must emit unknowns for skipped targets.
+- Respect RACI — do not duplicate another validator's kinds.
+- `result` is authoritative; never use entry_kind `pass`/`fail`.
+
+## Done when
+
+- All 9 score kinds present with `score_value`
+- Findings consumed from partitions only
+
+## Negative examples
+
+- Do not rewrite schemas/workers/packs to “fix” findings.
+- Do not fabricate traceability or invent missing documents.
+- Do not write findings outside `validation/<worker_id>/` partition.
+- Do not emit gate-shaped `gate-validation-report` from this worker (reporter emits `validation-report`).
+
+## Lock
+
+Acquire `task:{task_id}` per `architecture/CONCURRENCY.md` before mutating run-record state.

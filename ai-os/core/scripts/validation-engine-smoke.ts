@@ -20,6 +20,49 @@ const REQUIRED_FINDING_FIELDS = [
   "traceability",
 ] as const;
 
+const SCORE_KINDS = [
+  "overall",
+  "architecture",
+  "documentation",
+  "consistency",
+  "completeness",
+  "maintainability",
+  "extensibility",
+  "reliability",
+  "confidence",
+] as const;
+
+const REPORT_KINDS = [
+  "summary",
+  "critical",
+  "high",
+  "medium",
+  "low",
+  "recommended-fix",
+  "decision",
+] as const;
+
+const TRACE_CONSUMES = [
+  "features",
+  "business",
+  "requirements",
+  "acceptance",
+  "product-architecture",
+  "architecture-v2",
+  "specifications",
+  "registry",
+] as const;
+
+const FINDING_WORKERS = [
+  "artifact-validator",
+  "schema-validator",
+  "dependency-validator",
+  "pipeline-validator",
+  "traceability-validator",
+  "completeness-validator",
+  "consistency-validator",
+] as const;
+
 async function main() {
   const root = path.resolve(process.cwd(), "ai-os");
   const core = createAiosCore({ aiosRoot: root });
@@ -49,9 +92,13 @@ async function main() {
     "schemas/validation-status.schema.json",
     "schemas/quality-scores.schema.json",
     "schemas/validation-report.schema.json",
+    "schemas/gate-validation-report.schema.json",
     "validation/README.md",
+    "validation/TEMPLATE.md",
     "reports/README.md",
+    "reports/TEMPLATE.md",
     "scores/README.md",
+    "scores/TEMPLATE.md",
     "artifacts/README.md",
     "execution/README.md",
     "quality/validation-scorecard/README.md",
@@ -59,15 +106,63 @@ async function main() {
     "pipelines/validation-engine/pipeline.json",
     "pipelines/validation-engine/dependency-graph.json",
     "pipelines/validation-engine/execution-graph.md",
+    "pipelines/validation-engine/RACI.md",
     "validators/validation-engine-schema-check/manifest.json",
     "reviewers/validation-engine-coverage-review/manifest.json",
     "reviewers/validation-engine-coverage-review/rubric/validation-engine-coverage.json",
+    "RELEASE_NOTES_0.7.1.md",
   ]) {
     await fs.access(path.join(root, rel));
   }
 
   // SA quality template must remain intact (additive scorecard only)
   await fs.access(path.join(root, "quality/TEMPLATE.md"));
+
+  const version = (await fs.readFile(path.join(root, "VERSION"), "utf8")).trim();
+  if (version !== "0.7.1") {
+    throw new Error(`Expected VERSION 0.7.1, got ${version}`);
+  }
+
+  const vManifest = JSON.parse(
+    await fs.readFile(
+      path.join(root, "validators/validation-engine-schema-check/manifest.json"),
+      "utf8",
+    ),
+  );
+  if (!vManifest.outputs?.includes("gate-validation-report")) {
+    throw new Error("validator must output gate-validation-report");
+  }
+  const checkIds = new Set(
+    (vManifest.checks ?? []).map((c: { check_id: string }) => c.check_id),
+  );
+  for (const id of [
+    "folder-mirror-required",
+    "score-dimension-coverage",
+    "report-decision-required",
+  ]) {
+    if (!checkIds.has(id)) {
+      throw new Error(`validator missing check ${id}`);
+    }
+  }
+
+  const workersReg = JSON.parse(
+    await fs.readFile(path.join(root, "registry/workers.json"), "utf8"),
+  );
+
+  for (const id of ["traceability-validator", "completeness-validator", "consistency-validator"]) {
+    const consumes: string[] = workersReg.entries[id]?.consumes ?? [];
+    for (const c of TRACE_CONSUMES) {
+      if (!consumes.includes(c)) {
+        throw new Error(`${id} must consume ${c}`);
+      }
+    }
+  }
+  for (const id of ["artifact-validator", "dependency-validator", "pipeline-validator"]) {
+    const consumes: string[] = workersReg.entries[id]?.consumes ?? [];
+    if (!consumes.includes("registry")) {
+      throw new Error(`${id} must consume registry`);
+    }
+  }
 
   for (const id of result.pipeline.workers) {
     const payloadPath = path.join(
@@ -105,7 +200,69 @@ async function main() {
           throw new Error(`unknowns must start with UNKNOWN: in ${id}`);
         }
       }
+      if (entry.entry_kind === "pass" || entry.entry_kind === "fail") {
+        throw new Error(`entry_kind must not be pass|fail in ${id}; use result`);
+      }
     }
+
+    if ((FINDING_WORKERS as readonly string[]).includes(id)) {
+      for (const entry of payload.entries) {
+        if (
+          typeof entry.folder_mirror !== "string" ||
+          !entry.folder_mirror.startsWith(`validation/${id}/`)
+        ) {
+          throw new Error(`folder_mirror must start with validation/${id}/ in ${id}`);
+        }
+      }
+      await fs.access(path.join(root, "validation", id, "README.md"));
+    }
+
+    if (id === "quality-scoring-engine") {
+      const kinds = new Set(payload.entries.map((e: { entry_kind: string }) => e.entry_kind));
+      for (const k of SCORE_KINDS) {
+        if (!kinds.has(k)) {
+          throw new Error(`quality-scores missing dimension ${k}`);
+        }
+      }
+      for (const entry of payload.entries) {
+        if (typeof entry.score_value !== "number") {
+          throw new Error(`score_value required on quality-scores entries`);
+        }
+      }
+      if (payload.entries.length < 9) {
+        throw new Error("quality-scores must have ≥9 entries");
+      }
+    }
+
+    if (id === "validation-reporter") {
+      const kinds = new Set(payload.entries.map((e: { entry_kind: string }) => e.entry_kind));
+      for (const k of REPORT_KINDS) {
+        if (!kinds.has(k)) {
+          throw new Error(`validation-report missing kind ${k}`);
+        }
+      }
+    }
+
+    if (id === "validation-orchestrator") {
+      const kinds = new Set(payload.entries.map((e: { entry_kind: string }) => e.entry_kind));
+      for (const k of ["plan", "order", "merge", "overall-status"]) {
+        if (!kinds.has(k)) {
+          throw new Error(`validation-status missing ${k}`);
+        }
+      }
+    }
+
+    if (id === "dependency-validator") {
+      if (!payload.entries.some((e: { entry_kind: string }) => e.entry_kind === "circular")) {
+        throw new Error("dependency-validator sample must include circular gold example");
+      }
+    }
+    if (id === "traceability-validator") {
+      if (!payload.entries.some((e: { entry_kind: string }) => e.entry_kind === "orphan")) {
+        throw new Error("traceability-validator sample must include orphan gold example");
+      }
+    }
+
     for (const rel of [
       "README.md",
       "skill.md",
@@ -124,15 +281,60 @@ async function main() {
       path.join(root, "skills", id, "SKILL.md"),
       "utf8",
     );
-    if (!skillMd.includes("## Heuristics")) {
-      throw new Error(`SKILL.md missing Heuristics for ${id}`);
+    for (const section of [
+      "## Heuristics",
+      "## Done when",
+      "## Ownership",
+      "## Negative examples",
+    ]) {
+      if (!skillMd.includes(section)) {
+        throw new Error(`SKILL.md missing ${section} for ${id}`);
+      }
     }
+
+    const skillMan = JSON.parse(
+      await fs.readFile(path.join(root, "skills", id, "manifest.json"), "utf8"),
+    );
+    const inputTypes = new Set(
+      (skillMan.inputs ?? []).map((i: { artifact_type: string }) => i.artifact_type),
+    );
+    if (!inputTypes.has("goal")) {
+      throw new Error(`skill ${id} must accept goal input`);
+    }
+    if (
+      ["traceability-validator", "completeness-validator", "consistency-validator"].includes(
+        id,
+      )
+    ) {
+      for (const t of [
+        "feature-inventory",
+        "business-rules",
+        "requirement-spec",
+        "acceptance-criteria",
+        "product-architecture-notes",
+        "architecture-v2-spec",
+        "project-specification",
+      ]) {
+        if (!inputTypes.has(t)) {
+          throw new Error(`skill ${id} missing input type ${t}`);
+        }
+      }
+    }
+  }
+
+  // Artifact type registry
+  const atypes = JSON.parse(
+    await fs.readFile(path.join(root, "registry/artifact-types.json"), "utf8"),
+  );
+  if (!atypes.entries["gate-validation-report"]) {
+    throw new Error("gate-validation-report must be registered");
   }
 
   console.log(
     JSON.stringify(
       {
         ok: true,
+        version,
         pipelineId: result.pipeline.id,
         workerCount: result.workerCount,
         waves: result.pipeline.waves.length,

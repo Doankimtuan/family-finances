@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0.0",
   "id": "pipeline-validator",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "title": "Pipeline Validator",
-  "description": "Verify execution order, stage dependencies, pipeline/worker registration, lifecycle, resume and incremental support. Never modify artifacts.",
+  "description": "Verify execution order, stage dependencies, registration, lifecycle, resume and incremental support. Never modify artifacts.",
   "role": "executor",
   "grade": "guided",
   "inputs": [
@@ -54,6 +54,12 @@
       "artifact_type": "knowledge-notes",
       "required": false,
       "description": "knowledge/ soft"
+    },
+    {
+      "name": "registry",
+      "artifact_type": "doc-source",
+      "required": true,
+      "description": "registry/"
     }
   ],
   "outputs": [
@@ -81,6 +87,9 @@
     "mutate_source_artifacts": false,
     "invent_missing_information": false,
     "incremental": true,
-    "partial": true
+    "partial": true,
+    "partition": "validation/pipeline-validator/",
+    "raci": "pipelines/validation-engine/RACI.md",
+    "gate_output_type": "gate-validation-report"
   }
 }

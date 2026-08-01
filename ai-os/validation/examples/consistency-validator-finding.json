@@ -4,107 +4,113 @@
   "type": "validation-finding",
   "worker_id": "consistency-validator",
   "title": "consistency-validator output",
-  "summary": "Detect contradictions, duplications, conflicting requirements/architecture/business rules, naming inconsistencies. Never modify artifacts.",
+  "summary": "Detect contradictions, duplications, conflicting requirements/architecture/business rules, naming inconsistencies.",
   "entries": [
     {
       "id": "consistency-validator-contradiction-01",
       "entry_kind": "contradiction",
-      "statement": "Sample finding `contradiction` for consistency-validator.",
-      "validation_id": "VAL-CV-contradict",
-      "target": "ai-os/workers/",
-      "rule": "contradiction must satisfy Validation Engine contract",
+      "statement": "Sample `contradiction` for consistency-validator.",
+      "validation_id": "VAL-CV-contradictio",
+      "target": "ai-os/workers/consistency-validator/",
+      "rule": "contradiction per Validation Engine contract + RACI",
       "result": "pass",
       "evidence": [
         "schemas/validation-engine-payload.schema.json",
-        "workers/consistency-validator/"
+        "workers/consistency-validator/",
+        "pipelines/validation-engine/RACI.md"
       ],
       "severity": "info",
       "recommendation": "Do not mutate sources; remediate upstream packages if fail.",
-      "confidence": 0.8,
+      "confidence": 0.85,
       "source_paths": [
         "schemas/",
         "workers/",
         "pipelines/",
-        "knowledge/",
+        "registry/",
         "templates/"
       ],
       "unknowns": [
         "UNKNOWN: none noted"
       ],
       "traceability": {
-        "source_artifact": "schemas/",
+        "source_artifact": "workers/consistency-validator/",
         "knowledge": "knowledge/",
         "pipeline": "validation-engine",
         "worker": "consistency-validator"
-      }
+      },
+      "folder_mirror": "validation/consistency-validator/contradiction.json"
     },
     {
       "id": "consistency-validator-duplication-01",
       "entry_kind": "duplication",
-      "statement": "Sample finding `duplication` for consistency-validator.",
-      "validation_id": "VAL-CV-duplicatio",
-      "target": "ai-os/workers/",
-      "rule": "duplication must satisfy Validation Engine contract",
+      "statement": "Sample `duplication` for consistency-validator.",
+      "validation_id": "VAL-CV-duplication",
+      "target": "ai-os/workers/consistency-validator/",
+      "rule": "duplication per Validation Engine contract + RACI",
       "result": "pass",
       "evidence": [
         "schemas/validation-engine-payload.schema.json",
-        "workers/consistency-validator/"
+        "workers/consistency-validator/",
+        "pipelines/validation-engine/RACI.md"
       ],
       "severity": "info",
       "recommendation": "Do not mutate sources; remediate upstream packages if fail.",
-      "confidence": 0.8,
+      "confidence": 0.85,
       "source_paths": [
         "schemas/",
         "workers/",
         "pipelines/",
-        "knowledge/",
+        "registry/",
         "templates/"
       ],
       "unknowns": [
         "UNKNOWN: none noted"
       ],
       "traceability": {
-        "source_artifact": "schemas/",
+        "source_artifact": "workers/consistency-validator/",
         "knowledge": "knowledge/",
         "pipeline": "validation-engine",
         "worker": "consistency-validator"
-      }
+      },
+      "folder_mirror": "validation/consistency-validator/duplication.json"
     },
     {
       "id": "consistency-validator-conflicting-requirement-01",
       "entry_kind": "conflicting-requirement",
-      "statement": "Sample finding `conflicting-requirement` for consistency-validator.",
-      "validation_id": "VAL-CV-conflictin",
-      "target": "ai-os/workers/",
-      "rule": "conflicting-requirement must satisfy Validation Engine contract",
+      "statement": "Sample `conflicting-requirement` for consistency-validator.",
+      "validation_id": "VAL-CV-conflicting-",
+      "target": "ai-os/workers/consistency-validator/",
+      "rule": "conflicting-requirement per Validation Engine contract + RACI",
       "result": "pass",
       "evidence": [
         "schemas/validation-engine-payload.schema.json",
-        "workers/consistency-validator/"
+        "workers/consistency-validator/",
+        "pipelines/validation-engine/RACI.md"
       ],
       "severity": "info",
       "recommendation": "Do not mutate sources; remediate upstream packages if fail.",
-      "confidence": 0.8,
+      "confidence": 0.85,
       "source_paths": [
         "schemas/",
         "workers/",
         "pipelines/",
-        "knowledge/",
+        "registry/",
         "templates/"
       ],
       "unknowns": [
         "UNKNOWN: none noted"
       ],
       "traceability": {
-        "source_artifact": "schemas/",
+        "source_artifact": "workers/consistency-validator/",
         "knowledge": "knowledge/",
         "pipeline": "validation-engine",
         "worker": "consistency-validator"
-      }
+      },
+      "folder_mirror": "validation/consistency-validator/conflicting-requirement.json"
     }
   ],
   "status": "ready",
-  "created_at": "2026-08-01T17:00:00Z",
+  "created_at": "2026-08-01T18:00:00Z",
   "trace": {
     "orchestration_id": "art_ve_orchestration",
     "plan_id": "art_ve_plan",
@@ -117,6 +123,11 @@
     "mutate_source_artifacts": false,
     "invent_missing_information": false,
     "incremental": true,
-    "partial": true
+    "partial": true,
+    "folder_partition": "validation/consistency-validator/",
+    "validation_scope": {
+      "mode": "full",
+      "note": "Sample is full-scope; scoped runs set paths here"
+    }
   }
 }

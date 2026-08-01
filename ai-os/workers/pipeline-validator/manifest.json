@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "id": "pipeline-validator",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "title": "Pipeline Validator",
   "implements_roles": [
     "executor"
@@ -17,6 +17,8 @@
     "mutate_source_artifacts": false,
     "invent_missing_information": false,
     "incremental": true,
-    "partial": true
+    "partial": true,
+    "remediation": "0.7.1",
+    "partition": "validation/pipeline-validator/"
   }
 }

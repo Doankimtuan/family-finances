@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0.0",
   "id": "dependency-validator",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "title": "Dependency Validator",
-  "description": "Verify worker/pipeline dependencies, detect circular and missing dependencies and invalid references. Never modify artifacts.",
+  "description": "Verify worker/pipeline dependencies; detect circular and missing dependencies and invalid references. Never modify artifacts.",
   "role": "executor",
   "grade": "guided",
   "inputs": [
@@ -54,6 +54,12 @@
       "artifact_type": "knowledge-notes",
       "required": false,
       "description": "knowledge/ soft"
+    },
+    {
+      "name": "registry",
+      "artifact_type": "doc-source",
+      "required": true,
+      "description": "registry/"
     }
   ],
   "outputs": [
@@ -81,6 +87,9 @@
     "mutate_source_artifacts": false,
     "invent_missing_information": false,
     "incremental": true,
-    "partial": true
+    "partial": true,
+    "partition": "validation/dependency-validator/",
+    "raci": "pipelines/validation-engine/RACI.md",
+    "gate_output_type": "gate-validation-report"
   }
 }

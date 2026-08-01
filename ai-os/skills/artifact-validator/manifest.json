@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "id": "artifact-validator",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "title": "Artifact Validator",
   "description": "Verify folder structure, required files, artifact existence, naming, output locations, and artifact contracts. Never modify artifacts.",
   "role": "executor",
@@ -54,6 +54,12 @@
       "artifact_type": "knowledge-notes",
       "required": false,
       "description": "knowledge/ soft"
+    },
+    {
+      "name": "registry",
+      "artifact_type": "doc-source",
+      "required": true,
+      "description": "registry/"
     }
   ],
   "outputs": [
@@ -81,6 +87,9 @@
     "mutate_source_artifacts": false,
     "invent_missing_information": false,
     "incremental": true,
-    "partial": true
+    "partial": true,
+    "partition": "validation/artifact-validator/",
+    "raci": "pipelines/validation-engine/RACI.md",
+    "gate_output_type": "gate-validation-report"
   }
 }

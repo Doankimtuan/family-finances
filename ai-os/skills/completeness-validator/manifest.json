@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0.0",
   "id": "completeness-validator",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "title": "Completeness Validator",
-  "description": "Verify missing documents, fields, modules, specifications, workers, examples, schemas. Never invent missing information \u2014 only report.",
+  "description": "Report missing documents, fields, modules, specifications, workers, examples, schemas. Never invent missing info. Never modify artifacts.",
   "role": "executor",
   "grade": "guided",
   "inputs": [
@@ -54,6 +54,54 @@
       "artifact_type": "knowledge-notes",
       "required": false,
       "description": "knowledge/ soft"
+    },
+    {
+      "name": "registry",
+      "artifact_type": "doc-source",
+      "required": true,
+      "description": "registry/"
+    },
+    {
+      "name": "features",
+      "artifact_type": "feature-inventory",
+      "required": false,
+      "description": "features/ soft"
+    },
+    {
+      "name": "business",
+      "artifact_type": "business-rules",
+      "required": false,
+      "description": "business/ soft"
+    },
+    {
+      "name": "requirements",
+      "artifact_type": "requirement-spec",
+      "required": false,
+      "description": "requirements/ soft"
+    },
+    {
+      "name": "acceptance",
+      "artifact_type": "acceptance-criteria",
+      "required": false,
+      "description": "acceptance/ soft"
+    },
+    {
+      "name": "product-architecture",
+      "artifact_type": "product-architecture-notes",
+      "required": false,
+      "description": "product-architecture/ soft"
+    },
+    {
+      "name": "architecture-v2",
+      "artifact_type": "architecture-v2-spec",
+      "required": false,
+      "description": "architecture-v2/ soft"
+    },
+    {
+      "name": "specifications",
+      "artifact_type": "project-specification",
+      "required": false,
+      "description": "specifications/ soft"
     }
   ],
   "outputs": [
@@ -81,6 +129,9 @@
     "mutate_source_artifacts": false,
     "invent_missing_information": false,
     "incremental": true,
-    "partial": true
+    "partial": true,
+    "partition": "validation/completeness-validator/",
+    "raci": "pipelines/validation-engine/RACI.md",
+    "gate_output_type": "gate-validation-report"
   }
 }

@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0.0",
   "id": "quality-scoring-engine",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "title": "Quality Scoring Engine",
-  "description": "Generate structured quality scores from validation findings. Never modify source artifacts; never invent missing data.",
+  "description": "Generate structured quality scores (9 dimensions) from partitioned validation findings. Never modify artifacts.",
   "role": "executor",
   "grade": "guided",
   "inputs": [
@@ -56,10 +56,10 @@
       "description": "knowledge/ soft"
     },
     {
-      "name": "validation-findings",
+      "name": "validation",
       "artifact_type": "validation-finding",
       "required": true,
-      "description": "Validator findings"
+      "description": "validation/<worker_id>/ partitioned findings"
     }
   ],
   "outputs": [
@@ -87,6 +87,8 @@
     "mutate_source_artifacts": false,
     "invent_missing_information": false,
     "incremental": true,
-    "partial": true
+    "partial": true,
+    "raci": "pipelines/validation-engine/RACI.md",
+    "gate_output_type": "gate-validation-report"
   }
 }

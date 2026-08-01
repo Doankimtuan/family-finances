@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://aios.dev/schemas/validation-engine-payload.schema.json",
   "title": "AIOS Validation Engine Payload",
-  "description": "Primary payloads for validation-engine. Never modify source artifacts. Never invent missing information. Report findings only.",
+  "description": "Validation Engine payloads v0.7.1. Never mutate sources. Never invent missing info. Findings require folder_mirror. Scores require all 9 dimensions (or gap). result field is authoritative (not entry_kind pass/fail).",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -183,7 +183,15 @@
             "maximum": 1
           },
           "folder_mirror": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1,
+            "description": "Partition path under validation/<worker_id>/ for findings"
+          },
+          "depends_on_findings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       }
@@ -222,6 +230,23 @@
         "properties": {
           "entries": {
             "items": {
+              "required": [
+                "id",
+                "entry_kind",
+                "statement",
+                "validation_id",
+                "target",
+                "rule",
+                "result",
+                "evidence",
+                "severity",
+                "recommendation",
+                "confidence",
+                "source_paths",
+                "unknowns",
+                "traceability",
+                "folder_mirror"
+              ],
               "properties": {
                 "entry_kind": {
                   "enum": [
@@ -237,7 +262,6 @@
                     "data-types",
                     "duplication",
                     "execution-order",
-                    "fail",
                     "feature-trace",
                     "folder-structure",
                     "incremental",
@@ -258,7 +282,6 @@
                     "naming-inconsistency",
                     "orphan",
                     "output-location",
-                    "pass",
                     "pipeline-dependency",
                     "pipeline-registration",
                     "required-fields",
@@ -270,6 +293,10 @@
                     "worker-dependency",
                     "worker-registration"
                   ]
+                },
+                "folder_mirror": {
+                  "type": "string",
+                  "pattern": "^validation/[a-z0-9-]+/"
                 }
               }
             }
@@ -291,6 +318,7 @@
       "then": {
         "properties": {
           "entries": {
+            "minItems": 3,
             "items": {
               "properties": {
                 "entry_kind": {
@@ -323,7 +351,25 @@
       "then": {
         "properties": {
           "entries": {
+            "minItems": 9,
             "items": {
+              "required": [
+                "id",
+                "entry_kind",
+                "statement",
+                "validation_id",
+                "target",
+                "rule",
+                "result",
+                "evidence",
+                "severity",
+                "recommendation",
+                "confidence",
+                "source_paths",
+                "unknowns",
+                "traceability",
+                "score_value"
+              ],
               "properties": {
                 "entry_kind": {
                   "enum": [
@@ -337,6 +383,11 @@
                     "reliability",
                     "confidence"
                   ]
+                },
+                "score_value": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
                 }
               }
             }
@@ -358,6 +409,7 @@
       "then": {
         "properties": {
           "entries": {
+            "minItems": 7,
             "items": {
               "properties": {
                 "entry_kind": {

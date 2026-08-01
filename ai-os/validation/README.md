@@ -1,8 +1,10 @@
-# Validation findings & status
+# validation/
 
-> Pipeline: `validation-engine` · Kind: produce · **Never modify source artifacts** · Report only
+Partitioned Validation Engine findings + orchestrator status.
 
-Findings from Validation Engine workers + merged validation-status.
+| Path | Type | Writer |
+|------|------|--------|
+| `validation/<worker_id>/` | `validation-finding` | specialized `*-validator` workers |
+| `validation/` (status pack) | `validation-status` | `validation-orchestrator` |
 
-Runtime payloads: `schemas/validation-engine-payload.schema.json` (`entries[]`).
-Folder TEMPLATE is a human mirror.
+See [RACI.md](../pipelines/validation-engine/RACI.md). Gate packages emit `gate-validation-report`, not worker findings.

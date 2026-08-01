@@ -1,6 +1,6 @@
 ---
 name: validation-orchestrator
-description: Coordinate validation order (from pipeline waves), merge findings, emit overall validation status. Never modify source artifacts.
+description: Record pipeline-wave order, merge partitioned findings, emit overall validation-status. Never modify artifacts.
 ---
 
 # Validation Orchestrator
@@ -9,40 +9,47 @@ description: Coordinate validation order (from pipeline waves), merge findings, 
 
 ## Consumes
 
-`schemas/`, `artifacts/` (soft), `workers/`, `pipelines/`, `execution/` (soft), `templates/`, `knowledge/` (soft)
+`schemas/`, `artifacts/` (soft), `workers/`, `pipelines/`, `execution/` (soft), `templates/`, `knowledge/` (soft), `validation/`, `scores/`
 
 ## Produces
 
-`validation/` → `validation-status`
+`validation/` → `validation-status` (merge of `validation/*/`; does not rewrite finding files)
 
 ## Ownership
 
-- **Owns:** plan, order, merge, overall-status, incremental…
-- **Does not:** mutate sources; invent gaps; run business workers
+### Owns
+- `plan` / `order` — **record** `pipeline.json` waves (waves own order; orchestrator does not re-plan)
+- `merge` — glob `validation/*/…` findings + cite `scores/`; emit merge summary evidence
+- `overall-status` — aggregate pass/fail/warn counts (no mutation of finding files)
+- `incremental` / `partial` — echo `extensions.validation_scope` when scoped
+
+**Does not:** invent findings; rewrite validator outputs; change wave order.
 
 ## Procedure
 
-1. Load declared consume paths (honor partial/incremental scopes).
-2. Evaluate rules; emit entries with full validation fields.
-3. Mark unknowns `UNKNOWN: …`.
-4. Write `validation-status` under produce folder(s) only.
-5. Stop for validation/review.
+1. Read `pipelines/validation-engine/pipeline.json` waves → emit `plan`/`order` mirroring waves.
+2. Glob `validation/<worker_id>/**` findings; cite paths in `merge` evidence.
+3. Aggregate counts → `overall-status`.
+4. Echo partial/incremental scope flags. Write `validation-status` under `validation/` (orchestrator id folder optional).
 
 ## Heuristics
 
-- Prefer path/schema evidence.
-- Fail closed on orphans / critical contract breaks.
+- Prefer path/schema evidence; fail closed on critical contract breaks.
 - Partial runs must emit unknowns for skipped targets.
+- Respect RACI — do not duplicate another validator's kinds.
+- `result` is authoritative; never use entry_kind `pass`/`fail`.
 
 ## Done when
 
-- ≥1 structured entry with full validation fields
-- No source mutation; no invented missing info
+- Entries include plan, order, merge, overall-status (partial/incremental when scoped)
+- Merge evidence lists partition paths
 
 ## Negative examples
 
-- Do not rewrite schemas/workers to “fix” findings.
-- Do not fabricate traceability.
+- Do not rewrite schemas/workers/packs to “fix” findings.
+- Do not fabricate traceability or invent missing documents.
+- Do not write findings outside `validation/<worker_id>/` partition.
+- Do not emit gate-shaped `gate-validation-report` from this worker (reporter emits `validation-report`).
 
 ## Lock
 

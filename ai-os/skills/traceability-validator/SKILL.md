@@ -9,40 +9,55 @@ description: Verify every artifact traces to features, business rules, architect
 
 ## Consumes
 
-`schemas/`, `artifacts/` (soft), `workers/`, `pipelines/`, `execution/` (soft), `templates/`, `knowledge/` (soft)
+`schemas/`, `artifacts/` (soft), `workers/`, `pipelines/`, `execution/` (soft), `templates/`, `knowledge/` (soft), `registry/`, `features/` (soft), `business/` (soft), `requirements/` (soft), `acceptance/` (soft), `product-architecture/` (soft), `architecture-v2/` (soft), `specifications/` (soft)
 
 ## Produces
 
-`validation/` → `validation-finding`
+`validation/traceability-validator/` → `validation-finding` (required `folder_mirror`: `validation/traceability-validator/…`)
 
 ## Ownership
 
-- **Owns:** feature-trace, business-rule-trace, architecture-trace, requirement-trace, knowledge-trace…
-- **Does not:** mutate sources; invent gaps; run business workers
+### Rule catalog (owns)
+| Kind | Rule |
+|------|------|
+| feature-trace | Feature claims → features/ |
+| business-rule-trace | Business claims → business/ |
+| architecture-trace | Arch claims → product-architecture/ or architecture-v2/ |
+| requirement-trace | Req claims → requirements/ or acceptance/ |
+| knowledge-trace | Knowledge claims → knowledge/ |
+| orphan | No upstream pointer → **fail** orphan (critical)
+
+**Does not own:** missing-document inventory (completeness-validator).
 
 ## Procedure
 
-1. Load declared consume paths (honor partial/incremental scopes).
-2. Evaluate rules; emit entries with full validation fields.
-3. Mark unknowns `UNKNOWN: …`.
-4. Write `validation-finding` under produce folder(s) only.
-5. Stop for validation/review.
+1. Load declared consume paths (honor `extensions.partial` / `incremental` + `validation_scope`).
+2. Evaluate **only** owned rule kinds (RACI); skip others.
+3. Emit entries with full fields + `folder_mirror` under `validation/traceability-validator/`.
+4. Mark gaps `UNKNOWN: …`. Never mutate sources.
+5. Stop for validation/review (`validators/validation-engine-schema-check` → `gate-validation-report`).
 
 ## Heuristics
 
-- Prefer path/schema evidence.
-- Fail closed on orphans / critical contract breaks.
+- Prefer path/schema evidence; fail closed on critical contract breaks.
 - Partial runs must emit unknowns for skipped targets.
+- Respect RACI — do not duplicate another validator's kinds.
+- `result` is authoritative; never use entry_kind `pass`/`fail`.
+
+- Orphans without upstream pointer → `result=fail`, `severity=critical`, kind `orphan`.
 
 ## Done when
 
-- ≥1 structured entry with full validation fields
-- No source mutation; no invented missing info
+- ≥1 structured entry covering owned kinds (or explicit skip/UNKNOWN for scoped runs)
+- Every entry has full fields + `folder_mirror` matching `validation/traceability-validator/`
+- No source mutation; no invented missing info; RACI respected
 
 ## Negative examples
 
-- Do not rewrite schemas/workers to “fix” findings.
-- Do not fabricate traceability.
+- Do not rewrite schemas/workers/packs to “fix” findings.
+- Do not fabricate traceability or invent missing documents.
+- Do not write findings outside `validation/<worker_id>/` partition.
+- Do not emit gate-shaped `gate-validation-report` from this worker (reporter emits `validation-report`).
 
 ## Lock
 

@@ -1,16 +1,240 @@
 {
-  "schema_version": "1.0.0",
-  "artifact_id": "art_env_validation_orchestrator",
-  "type": "run-record",
-  "worker_id": "validation-orchestrator",
-  "status": "succeeded",
-  "summary": "Coordinate validation order (from pipeline waves), merge findings, emit overall validation status. Never modify source artifacts.",
-  "created_at": "2026-08-01T17:00:00Z",
-  "extensions": {
-    "pipeline": "validation-engine",
-    "primary_output_type": "validation-status",
-    "produces": [
-      "validation"
-    ]
-  }
+  "primary": {
+    "schema_version": "1.0.0",
+    "artifact_id": "art_out_validation_orchestrator",
+    "type": "validation-status",
+    "worker_id": "validation-orchestrator",
+    "title": "validation-orchestrator output",
+    "summary": "Record pipeline-wave order, merge partitioned findings, emit overall validation-status.",
+    "entries": [
+      {
+        "id": "validation-orchestrator-plan-01",
+        "entry_kind": "plan",
+        "statement": "Recorded plan mirrors pipeline waves 0\u20135.",
+        "validation_id": "VAL-VO-plan",
+        "target": "ai-os/workers/validation-orchestrator/",
+        "rule": "plan per Validation Engine contract + RACI",
+        "result": "pass",
+        "evidence": [
+          "schemas/validation-engine-payload.schema.json",
+          "workers/validation-orchestrator/",
+          "pipelines/validation-engine/RACI.md"
+        ],
+        "severity": "info",
+        "recommendation": "Do not mutate sources; remediate upstream packages if fail.",
+        "confidence": 0.85,
+        "source_paths": [
+          "schemas/",
+          "workers/",
+          "pipelines/",
+          "registry/",
+          "templates/"
+        ],
+        "unknowns": [
+          "UNKNOWN: none noted"
+        ],
+        "traceability": {
+          "source_artifact": "workers/validation-orchestrator/",
+          "knowledge": "knowledge/",
+          "pipeline": "validation-engine",
+          "worker": "validation-orchestrator"
+        }
+      },
+      {
+        "id": "validation-orchestrator-order-01",
+        "entry_kind": "order",
+        "statement": "Order: wave0 validators \u2192 \u2026 \u2192 reporter (from pipeline.waves).",
+        "validation_id": "VAL-VO-order",
+        "target": "ai-os/workers/validation-orchestrator/",
+        "rule": "order per Validation Engine contract + RACI",
+        "result": "pass",
+        "evidence": [
+          "pipelines/validation-engine/pipeline.json",
+          "pipelines/validation-engine/RACI.md"
+        ],
+        "severity": "info",
+        "recommendation": "Do not mutate sources; remediate upstream packages if fail.",
+        "confidence": 0.85,
+        "source_paths": [
+          "schemas/",
+          "workers/",
+          "pipelines/",
+          "registry/",
+          "templates/"
+        ],
+        "unknowns": [
+          "UNKNOWN: none noted"
+        ],
+        "traceability": {
+          "source_artifact": "workers/validation-orchestrator/",
+          "knowledge": "knowledge/",
+          "pipeline": "validation-engine",
+          "worker": "validation-orchestrator"
+        }
+      },
+      {
+        "id": "validation-orchestrator-merge-01",
+        "entry_kind": "merge",
+        "statement": "Merged partitions under validation/<worker_id>/.",
+        "validation_id": "VAL-VO-merge",
+        "target": "ai-os/workers/validation-orchestrator/",
+        "rule": "merge per Validation Engine contract + RACI",
+        "result": "pass",
+        "evidence": [
+          "validation/artifact-validator/",
+          "validation/schema-validator/",
+          "validation/dependency-validator/",
+          "validation/traceability-validator/",
+          "scores/",
+          "pipelines/validation-engine/pipeline.json"
+        ],
+        "severity": "info",
+        "recommendation": "Do not mutate sources; remediate upstream packages if fail.",
+        "confidence": 0.85,
+        "source_paths": [
+          "schemas/",
+          "workers/",
+          "pipelines/",
+          "registry/",
+          "templates/"
+        ],
+        "unknowns": [
+          "UNKNOWN: none noted"
+        ],
+        "traceability": {
+          "source_artifact": "workers/validation-orchestrator/",
+          "knowledge": "knowledge/",
+          "pipeline": "validation-engine",
+          "worker": "validation-orchestrator"
+        },
+        "depends_on_findings": [
+          "artifact-validator",
+          "schema-validator",
+          "dependency-validator",
+          "traceability-validator"
+        ]
+      },
+      {
+        "id": "validation-orchestrator-overall-status-01",
+        "entry_kind": "overall-status",
+        "statement": "Aggregate: sample PASS with illustrated fail findings in gold examples.",
+        "validation_id": "VAL-VO-overall-stat",
+        "target": "ai-os/workers/validation-orchestrator/",
+        "rule": "overall-status per Validation Engine contract + RACI",
+        "result": "pass",
+        "evidence": [
+          "schemas/validation-engine-payload.schema.json",
+          "workers/validation-orchestrator/",
+          "pipelines/validation-engine/RACI.md"
+        ],
+        "severity": "info",
+        "recommendation": "Do not mutate sources; remediate upstream packages if fail.",
+        "confidence": 0.85,
+        "source_paths": [
+          "schemas/",
+          "workers/",
+          "pipelines/",
+          "registry/",
+          "templates/"
+        ],
+        "unknowns": [
+          "UNKNOWN: none noted"
+        ],
+        "traceability": {
+          "source_artifact": "workers/validation-orchestrator/",
+          "knowledge": "knowledge/",
+          "pipeline": "validation-engine",
+          "worker": "validation-orchestrator"
+        }
+      },
+      {
+        "id": "validation-orchestrator-partial-01",
+        "entry_kind": "partial",
+        "statement": "partial=true supported via extensions.validation_scope.",
+        "validation_id": "VAL-VO-partial",
+        "target": "ai-os/workers/validation-orchestrator/",
+        "rule": "partial per Validation Engine contract + RACI",
+        "result": "info",
+        "evidence": [
+          "schemas/validation-engine-payload.schema.json",
+          "workers/validation-orchestrator/",
+          "pipelines/validation-engine/RACI.md"
+        ],
+        "severity": "info",
+        "recommendation": "Do not mutate sources; remediate upstream packages if fail.",
+        "confidence": 0.85,
+        "source_paths": [
+          "schemas/",
+          "workers/",
+          "pipelines/",
+          "registry/",
+          "templates/"
+        ],
+        "unknowns": [
+          "UNKNOWN: none noted"
+        ],
+        "traceability": {
+          "source_artifact": "workers/validation-orchestrator/",
+          "knowledge": "knowledge/",
+          "pipeline": "validation-engine",
+          "worker": "validation-orchestrator"
+        }
+      },
+      {
+        "id": "validation-orchestrator-incremental-01",
+        "entry_kind": "incremental",
+        "statement": "incremental=true supported; unchanged partitions may be skipped.",
+        "validation_id": "VAL-VO-incremental",
+        "target": "ai-os/workers/validation-orchestrator/",
+        "rule": "incremental per Validation Engine contract + RACI",
+        "result": "info",
+        "evidence": [
+          "schemas/validation-engine-payload.schema.json",
+          "workers/validation-orchestrator/",
+          "pipelines/validation-engine/RACI.md"
+        ],
+        "severity": "info",
+        "recommendation": "Do not mutate sources; remediate upstream packages if fail.",
+        "confidence": 0.85,
+        "source_paths": [
+          "schemas/",
+          "workers/",
+          "pipelines/",
+          "registry/",
+          "templates/"
+        ],
+        "unknowns": [
+          "UNKNOWN: none noted"
+        ],
+        "traceability": {
+          "source_artifact": "workers/validation-orchestrator/",
+          "knowledge": "knowledge/",
+          "pipeline": "validation-engine",
+          "worker": "validation-orchestrator"
+        }
+      }
+    ],
+    "status": "ready",
+    "created_at": "2026-08-01T18:00:00Z",
+    "trace": {
+      "orchestration_id": "art_ve_orchestration",
+      "plan_id": "art_ve_plan",
+      "task_id": "art_task_validation_orchestrator",
+      "run_id": "art_run_validation_orchestrator",
+      "goal_id": "art_ve_goal"
+    },
+    "extensions": {
+      "pipeline": "validation-engine",
+      "mutate_source_artifacts": false,
+      "invent_missing_information": false,
+      "incremental": true,
+      "partial": true,
+      "order_owner": "pipeline.waves",
+      "merge_glob": "validation/*/",
+      "validation_scope": {
+        "mode": "full"
+      }
+    }
+  },
+  "note": "Packaging sample; validations not executed"
 }
