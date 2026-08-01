@@ -1,0 +1,46 @@
+# Screen → Modules
+
+| Screen | Module |
+|--------|--------|
+| `auth.splash` | `tenancy` |
+| `auth.welcome` | `tenancy` |
+| `auth.login` | `tenancy` |
+| `auth.register` | `tenancy` |
+| `auth.forgot-password` | `tenancy` |
+| `auth.confirm` | `tenancy` |
+| `onboard.wizard` | `tenancy` |
+| `home.index` | `ledger+plan+inbox+health` |
+| `money.hub` | `ledger` |
+| `money.transactions` | `ledger` |
+| `money.transaction-detail` | `ledger` |
+| `money.transaction-add` | `ledger` |
+| `money.transaction-edit` | `ledger` |
+| `money.accounts` | `ledger` |
+| `money.account-detail` | `ledger` |
+| `money.debts` | `ledger` |
+| `money.debt-detail` | `ledger` |
+| `money.savings` | `ledger` |
+| `money.savings-detail` | `ledger` |
+| `money.cards` | `ledger` |
+| `plan.hub` | `plan` |
+| `plan.jars` | `plan` |
+| `plan.jar-detail` | `plan` |
+| `plan.goals` | `plan` |
+| `plan.goal-detail` | `plan` |
+| `plan.recurring` | `plan` |
+| `plan.recurring-detail` | `plan` |
+| `plan.month-ritual` | `plan` |
+| `inbox.queue` | `inbox` |
+| `inbox.review-detail` | `inbox` |
+| `inbox.approval-detail` | `inbox` |
+| `together.members` | `tenancy` |
+| `together.invitations` | `tenancy` |
+| `together.invite-accept` | `tenancy` |
+| `together.policies` | `tenancy` |
+| `together.preferences` | `tenancy` |
+| `health.overview` | `health` |
+| `health.insights` | `health` |
+| `system.error` | `platform` |
+| `system.offline` | `platform` |
+| `system.permission` | `tenancy` |
+| `system.maintenance` | `platform` |

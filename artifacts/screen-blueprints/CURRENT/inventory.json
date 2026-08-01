@@ -1,0 +1,300 @@
+{
+  "version": "v1.0.0",
+  "count": 42,
+  "screens": [
+    {
+      "id": "auth.splash",
+      "group": "authentication",
+      "route": "/splash",
+      "phase": "MVP",
+      "file": "authentication/splash.md"
+    },
+    {
+      "id": "auth.welcome",
+      "group": "authentication",
+      "route": "/welcome",
+      "phase": "MVP",
+      "file": "authentication/welcome.md"
+    },
+    {
+      "id": "auth.login",
+      "group": "authentication",
+      "route": "/login",
+      "phase": "MVP",
+      "file": "authentication/login.md"
+    },
+    {
+      "id": "auth.register",
+      "group": "authentication",
+      "route": "/register",
+      "phase": "MVP",
+      "file": "authentication/register.md"
+    },
+    {
+      "id": "auth.forgot-password",
+      "group": "authentication",
+      "route": "/forgot-password",
+      "phase": "MVP",
+      "file": "authentication/forgot-password.md"
+    },
+    {
+      "id": "auth.confirm",
+      "group": "authentication",
+      "route": "/auth/confirm",
+      "phase": "MVP",
+      "file": "authentication/confirm.md"
+    },
+    {
+      "id": "onboard.wizard",
+      "group": "onboarding",
+      "route": "/(product)/together/onboard",
+      "phase": "MVP",
+      "file": "onboarding/wizard.md"
+    },
+    {
+      "id": "home.index",
+      "group": "home",
+      "route": "/(product)/home",
+      "phase": "MVP",
+      "file": "home/index.md"
+    },
+    {
+      "id": "money.hub",
+      "group": "money",
+      "route": "/(product)/money",
+      "phase": "MVP",
+      "file": "money/hub.md"
+    },
+    {
+      "id": "money.transactions",
+      "group": "money",
+      "route": "/(product)/money/transactions",
+      "phase": "MVP",
+      "file": "money/transactions.md"
+    },
+    {
+      "id": "money.transaction-detail",
+      "group": "money",
+      "route": "/(product)/money/transactions/[id]",
+      "phase": "MVP",
+      "file": "money/transaction-detail.md"
+    },
+    {
+      "id": "money.transaction-add",
+      "group": "money",
+      "route": "/(product)/money/transactions/new",
+      "phase": "MVP",
+      "file": "money/transaction-add.md"
+    },
+    {
+      "id": "money.transaction-edit",
+      "group": "money",
+      "route": "/(product)/money/transactions/[id]/edit",
+      "phase": "MVP",
+      "file": "money/transaction-edit.md"
+    },
+    {
+      "id": "money.accounts",
+      "group": "money",
+      "route": "/(product)/money/accounts",
+      "phase": "MVP",
+      "file": "money/accounts.md"
+    },
+    {
+      "id": "money.account-detail",
+      "group": "money",
+      "route": "/(product)/money/accounts/[id]",
+      "phase": "MVP",
+      "file": "money/account-detail.md"
+    },
+    {
+      "id": "money.debts",
+      "group": "money",
+      "route": "/(product)/money/debts",
+      "phase": "MVP",
+      "file": "money/debts.md"
+    },
+    {
+      "id": "money.debt-detail",
+      "group": "money",
+      "route": "/(product)/money/debts/[id]",
+      "phase": "MVP",
+      "file": "money/debt-detail.md"
+    },
+    {
+      "id": "money.savings",
+      "group": "money",
+      "route": "/(product)/money/savings",
+      "phase": "MVP",
+      "file": "money/savings.md"
+    },
+    {
+      "id": "money.savings-detail",
+      "group": "money",
+      "route": "/(product)/money/savings/[id]",
+      "phase": "MVP",
+      "file": "money/savings-detail.md"
+    },
+    {
+      "id": "money.cards",
+      "group": "money",
+      "route": "/(product)/money/cards",
+      "phase": "MVP",
+      "file": "money/cards.md"
+    },
+    {
+      "id": "plan.hub",
+      "group": "plan",
+      "route": "/(product)/plan",
+      "phase": "MVP",
+      "file": "plan/hub.md"
+    },
+    {
+      "id": "plan.jars",
+      "group": "plan",
+      "route": "/(product)/plan/jars",
+      "phase": "MVP",
+      "file": "plan/jars.md"
+    },
+    {
+      "id": "plan.jar-detail",
+      "group": "plan",
+      "route": "/(product)/plan/jars/[id]",
+      "phase": "MVP",
+      "file": "plan/jar-detail.md"
+    },
+    {
+      "id": "plan.goals",
+      "group": "plan",
+      "route": "/(product)/plan/goals",
+      "phase": "MVP",
+      "file": "plan/goals.md"
+    },
+    {
+      "id": "plan.goal-detail",
+      "group": "plan",
+      "route": "/(product)/plan/goals/[id]",
+      "phase": "MVP",
+      "file": "plan/goal-detail.md"
+    },
+    {
+      "id": "plan.recurring",
+      "group": "plan",
+      "route": "/(product)/plan/recurring",
+      "phase": "MVP",
+      "file": "plan/recurring.md"
+    },
+    {
+      "id": "plan.recurring-detail",
+      "group": "plan",
+      "route": "/(product)/plan/recurring/[id]",
+      "phase": "MVP",
+      "file": "plan/recurring-detail.md"
+    },
+    {
+      "id": "plan.month-ritual",
+      "group": "plan",
+      "route": "/(product)/plan/ritual",
+      "phase": "MVP",
+      "file": "plan/month-ritual.md"
+    },
+    {
+      "id": "inbox.queue",
+      "group": "inbox",
+      "route": "/(product)/inbox",
+      "phase": "MVP",
+      "file": "inbox/queue.md"
+    },
+    {
+      "id": "inbox.review-detail",
+      "group": "inbox",
+      "route": "/(product)/inbox/[id]",
+      "phase": "MVP",
+      "file": "inbox/review-detail.md"
+    },
+    {
+      "id": "inbox.approval-detail",
+      "group": "inbox",
+      "route": "/(product)/inbox/approvals/[id]",
+      "phase": "Phase2",
+      "file": "inbox/approval-detail.md"
+    },
+    {
+      "id": "together.members",
+      "group": "together",
+      "route": "/(product)/together",
+      "phase": "MVP",
+      "file": "together/members.md"
+    },
+    {
+      "id": "together.invitations",
+      "group": "together",
+      "route": "/(product)/together/invitations",
+      "phase": "MVP",
+      "file": "together/invitations.md"
+    },
+    {
+      "id": "together.invite-accept",
+      "group": "together",
+      "route": "/invite/[token]",
+      "phase": "MVP",
+      "file": "together/invite-accept.md"
+    },
+    {
+      "id": "together.policies",
+      "group": "together",
+      "route": "/(product)/together/policies",
+      "phase": "MVP",
+      "file": "together/policies.md"
+    },
+    {
+      "id": "together.preferences",
+      "group": "together",
+      "route": "/(product)/together/preferences",
+      "phase": "MVP",
+      "file": "together/preferences.md"
+    },
+    {
+      "id": "health.overview",
+      "group": "health",
+      "route": "/(product)/health",
+      "phase": "MVP",
+      "file": "health/overview.md"
+    },
+    {
+      "id": "health.insights",
+      "group": "health",
+      "route": "/(product)/health/insights",
+      "phase": "MVP",
+      "file": "health/insights.md"
+    },
+    {
+      "id": "system.error",
+      "group": "system",
+      "route": "/error",
+      "phase": "System",
+      "file": "system/error.md"
+    },
+    {
+      "id": "system.offline",
+      "group": "system",
+      "route": "/offline",
+      "phase": "System",
+      "file": "system/offline.md"
+    },
+    {
+      "id": "system.permission",
+      "group": "system",
+      "route": "/permission",
+      "phase": "System",
+      "file": "system/permission.md"
+    },
+    {
+      "id": "system.maintenance",
+      "group": "system",
+      "route": "/maintenance",
+      "phase": "System",
+      "file": "system/maintenance.md"
+    }
+  ]
+}

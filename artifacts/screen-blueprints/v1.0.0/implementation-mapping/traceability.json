@@ -1,0 +1,345 @@
+{
+  "requirements": {
+    "REQ-001": [
+      "home.index",
+      "money.accounts",
+      "money.account-detail",
+      "plan.hub",
+      "plan.goals"
+    ],
+    "REQ-002": [
+      "auth.splash",
+      "auth.welcome",
+      "auth.login",
+      "auth.register",
+      "auth.forgot-password",
+      "auth.confirm",
+      "together.invite-accept",
+      "together.preferences"
+    ],
+    "REQ-003": [
+      "plan.hub",
+      "plan.jars",
+      "plan.jar-detail",
+      "inbox.review-detail"
+    ],
+    "REQ-004": [
+      "plan.jar-detail",
+      "plan.recurring"
+    ],
+    "REQ-005": [
+      "money.transaction-add",
+      "inbox.queue",
+      "inbox.review-detail"
+    ],
+    "REQ-006": [
+      "money.transactions",
+      "money.transaction-detail",
+      "money.transaction-add",
+      "money.transaction-edit",
+      "money.debts",
+      "money.debt-detail",
+      "plan.goal-detail",
+      "plan.recurring-detail"
+    ],
+    "REQ-007": [
+      "together.policies"
+    ],
+    "REQ-008": [
+      "plan.hub",
+      "plan.jar-detail",
+      "plan.month-ritual"
+    ],
+    "REQ-009": [
+      "plan.hub",
+      "plan.month-ritual",
+      "together.policies"
+    ],
+    "REQ-010": [
+      "money.savings",
+      "money.savings-detail",
+      "inbox.queue",
+      "inbox.review-detail"
+    ],
+    "REQ-011": [
+      "money.cards",
+      "inbox.review-detail",
+      "health.overview"
+    ],
+    "REQ-012": [
+      "onboard.wizard",
+      "together.members",
+      "together.invitations",
+      "together.invite-accept"
+    ],
+    "REQ-013": [
+      "inbox.approval-detail",
+      "together.policies"
+    ],
+    "REQ-014": [
+      "onboard.wizard"
+    ],
+    "REQ-015": [
+      "home.index",
+      "health.overview",
+      "health.insights"
+    ],
+    "REQ-016": [
+      "money.hub",
+      "money.transaction-add"
+    ],
+    "REQ-017": [
+      "inbox.approval-detail",
+      "health.insights"
+    ],
+    "REQ-018": [
+      "money.hub",
+      "money.transactions",
+      "money.transaction-add",
+      "money.transaction-edit",
+      "money.debt-detail",
+      "plan.recurring-detail",
+      "plan.month-ritual",
+      "inbox.review-detail",
+      "system.offline"
+    ],
+    "REQ-019": [
+      "home.index",
+      "money.transaction-add",
+      "plan.month-ritual",
+      "inbox.review-detail"
+    ],
+    "REQ-020": [
+      "inbox.queue",
+      "inbox.review-detail",
+      "together.members",
+      "together.policies",
+      "system.permission"
+    ]
+  },
+  "business_rules": {
+    "BR-01": [
+      "home.index",
+      "money.hub",
+      "money.transaction-detail",
+      "money.accounts",
+      "money.account-detail",
+      "plan.hub",
+      "plan.jar-detail",
+      "plan.goals",
+      "plan.goal-detail",
+      "health.overview"
+    ],
+    "BR-02": [
+      "auth.splash",
+      "auth.welcome",
+      "auth.login",
+      "auth.register",
+      "auth.forgot-password",
+      "auth.confirm",
+      "onboard.wizard",
+      "together.members",
+      "together.invite-accept",
+      "together.preferences"
+    ],
+    "BR-03": [
+      "plan.hub",
+      "plan.jars",
+      "plan.jar-detail",
+      "inbox.review-detail"
+    ],
+    "BR-04": [
+      "money.transaction-add",
+      "plan.jar-detail",
+      "plan.recurring"
+    ],
+    "BR-05": [
+      "money.transaction-add",
+      "inbox.queue",
+      "inbox.review-detail"
+    ],
+    "BR-06": [
+      "money.transactions",
+      "money.transaction-detail",
+      "money.transaction-add",
+      "money.transaction-edit",
+      "money.debts",
+      "money.debt-detail",
+      "plan.goal-detail",
+      "plan.recurring-detail"
+    ],
+    "BR-07": [
+      "together.policies"
+    ],
+    "BR-08": [
+      "plan.hub",
+      "plan.jar-detail",
+      "plan.month-ritual"
+    ],
+    "BR-09": [
+      "plan.hub",
+      "plan.month-ritual",
+      "together.policies"
+    ],
+    "BR-10": [
+      "money.savings",
+      "money.savings-detail",
+      "inbox.queue",
+      "inbox.review-detail"
+    ],
+    "BR-11": [
+      "money.cards",
+      "inbox.review-detail",
+      "health.overview"
+    ],
+    "BR-12": [
+      "onboard.wizard",
+      "together.members",
+      "together.invitations",
+      "together.invite-accept"
+    ],
+    "BR-13": [
+      "inbox.approval-detail",
+      "together.policies",
+      "system.permission"
+    ],
+    "BR-14": [
+      "inbox.approval-detail",
+      "health.insights"
+    ],
+    "BR-15": [
+      "money.hub",
+      "money.transactions",
+      "money.transaction-add",
+      "money.transaction-edit",
+      "money.debt-detail",
+      "plan.recurring-detail",
+      "plan.month-ritual",
+      "inbox.review-detail",
+      "system.offline"
+    ],
+    "BR-02a": [
+      "auth.login"
+    ]
+  },
+  "acceptance": {
+    "AC-001": [
+      "home.index",
+      "money.accounts",
+      "money.account-detail",
+      "plan.hub",
+      "plan.goals"
+    ],
+    "AC-002": [
+      "auth.splash",
+      "auth.welcome",
+      "auth.login",
+      "auth.register",
+      "auth.forgot-password",
+      "auth.confirm",
+      "together.invite-accept",
+      "together.preferences"
+    ],
+    "AC-003": [
+      "plan.hub",
+      "plan.jars",
+      "plan.jar-detail",
+      "inbox.review-detail"
+    ],
+    "AC-004": [
+      "plan.jar-detail",
+      "plan.recurring"
+    ],
+    "AC-005": [
+      "money.transaction-add",
+      "inbox.queue",
+      "inbox.review-detail"
+    ],
+    "AC-006": [
+      "money.transactions",
+      "money.transaction-detail",
+      "money.transaction-add",
+      "money.transaction-edit",
+      "money.debts",
+      "money.debt-detail",
+      "plan.goal-detail",
+      "plan.recurring-detail"
+    ],
+    "AC-007": [
+      "together.policies"
+    ],
+    "AC-008": [
+      "plan.hub",
+      "plan.jar-detail",
+      "plan.month-ritual"
+    ],
+    "AC-009": [
+      "plan.hub",
+      "plan.month-ritual",
+      "together.policies"
+    ],
+    "AC-010": [
+      "money.savings",
+      "money.savings-detail",
+      "inbox.queue",
+      "inbox.review-detail"
+    ],
+    "AC-011": [
+      "money.cards",
+      "inbox.review-detail",
+      "health.overview"
+    ],
+    "AC-012": [
+      "onboard.wizard",
+      "together.members",
+      "together.invitations",
+      "together.invite-accept"
+    ],
+    "AC-013": [
+      "inbox.approval-detail",
+      "together.policies"
+    ],
+    "AC-014": [
+      "onboard.wizard"
+    ],
+    "AC-015": [
+      "home.index",
+      "health.overview",
+      "health.insights"
+    ],
+    "AC-016": [
+      "money.hub",
+      "money.transaction-add"
+    ],
+    "AC-017": [
+      "inbox.approval-detail",
+      "health.insights"
+    ],
+    "AC-018": [
+      "money.hub",
+      "money.transactions",
+      "money.transaction-add",
+      "money.transaction-edit",
+      "money.debt-detail",
+      "plan.recurring-detail",
+      "plan.month-ritual",
+      "inbox.review-detail",
+      "system.offline"
+    ],
+    "AC-019": [
+      "home.index",
+      "money.transaction-add",
+      "plan.month-ritual",
+      "inbox.review-detail"
+    ],
+    "AC-020": [
+      "inbox.queue",
+      "inbox.review-detail",
+      "together.members",
+      "together.policies",
+      "system.permission"
+    ]
+  },
+  "req_coverage": 1.0,
+  "ac_coverage": 1.0
+}

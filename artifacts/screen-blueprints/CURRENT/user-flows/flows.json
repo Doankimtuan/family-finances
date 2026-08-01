@@ -1,0 +1,81 @@
+{
+  "flows": [
+    {
+      "id": "flow.auth-onboard-home",
+      "title": "Auth \u2192 Onboard \u2192 Home",
+      "screens": [
+        "auth.splash",
+        "auth.login",
+        "onboard.wizard",
+        "home.index"
+      ]
+    },
+    {
+      "id": "flow.daily-capture",
+      "title": "Daily capture Suggest/Inbox",
+      "screens": [
+        "home.index",
+        "money.transaction-add",
+        "inbox.queue"
+      ]
+    },
+    {
+      "id": "flow.inbox-resolve",
+      "title": "Inbox resolve ReviewItem",
+      "screens": [
+        "inbox.queue",
+        "inbox.review-detail"
+      ]
+    },
+    {
+      "id": "flow.month-ritual",
+      "title": "Month Ritual Assisted",
+      "screens": [
+        "plan.hub",
+        "plan.month-ritual"
+      ]
+    },
+    {
+      "id": "flow.invite-partner",
+      "title": "Invite partner",
+      "screens": [
+        "together.members",
+        "together.invitations",
+        "together.invite-accept"
+      ]
+    },
+    {
+      "id": "flow.savings-maturity",
+      "title": "Savings maturity via Inbox",
+      "screens": [
+        "money.savings-detail",
+        "inbox.review-detail"
+      ]
+    },
+    {
+      "id": "flow.emi-complete",
+      "title": "EMI complete celebration",
+      "screens": [
+        "money.cards",
+        "health.overview",
+        "inbox.queue"
+      ]
+    },
+    {
+      "id": "flow.closed-month-correction",
+      "title": "Closed-month correction",
+      "screens": [
+        "plan.month-ritual",
+        "plan.jar-detail"
+      ]
+    },
+    {
+      "id": "flow.offline-mutation",
+      "title": "Offline mutation blocked",
+      "screens": [
+        "money.transaction-add",
+        "system.offline"
+      ]
+    }
+  ]
+}

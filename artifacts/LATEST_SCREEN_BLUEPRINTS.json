@@ -1,0 +1,11 @@
+{
+  "board": "Screen Blueprint Board",
+  "run_id": "run_screen_blueprints_20260801T200000Z",
+  "at": "2026-08-01T16:20:23Z",
+  "path": "artifacts/screen-blueprints/CURRENT",
+  "version": "v1.0.0",
+  "status": "OFFICIAL_SCREEN_BLUEPRINT_SOURCE_OF_TRUTH",
+  "verdict": "FROZEN",
+  "screen_count": 42,
+  "ai_os_output": false
+}
