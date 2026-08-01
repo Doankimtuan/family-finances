@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0.0",
+  "kind": "business",
+  "title": "Jar intent rules (fixture)",
+  "summary": "Observed business rules separating real accounting from virtual jar intent.",
+  "sources": [
+    {
+      "path": "docs/DOMAIN_MODEL.md",
+      "notes": "Accounting Consistency Review + Current Jar Logic"
+    }
+  ],
+  "observations": [
+    "Real balances are calculated entirely from accounts and transactions.",
+    "Virtual balances are calculated entirely from jar_movements.",
+    "Jar types include essential, investment, play with spend policies flexible or invest_only."
+  ],
+  "open_questions": [
+    "Do monthly_budgets still gate spending or are they reporting-only?"
+  ],
+  "created_at": "2026-08-01T12:00:00Z",
+  "extensions": {
+    "fixture": true,
+    "pipeline": "product-re",
+    "rules": [
+      {
+        "id": "br-jars-virtual",
+        "statement": "Jars MUST NOT hold real money; only virtual balances."
+      },
+      {
+        "id": "br-queue-before-movement",
+        "statement": "Jar movements for expenses SHOULD originate from resolved review queue items."
+      }
+    ]
+  }
+}

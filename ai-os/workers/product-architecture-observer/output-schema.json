@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aios.dev/schemas/workers/product-architecture-observer/output.schema.json",
+  "title": "AIOS Product RE Worker Output \u2014 product-architecture-observer",
+  "description": "Run envelope for product-architecture-observer. Primary payload type: product-architecture-notes.",
+  "allOf": [
+    {
+      "$ref": "https://aios.dev/schemas/worker-output-envelope.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "worker_id": {
+          "const": "product-architecture-observer"
+        },
+        "extensions": {
+          "type": "object",
+          "properties": {
+            "pipeline": {
+              "const": "product-re"
+            },
+            "primary_output_type": {
+              "const": "product-architecture-notes"
+            },
+            "produces": {
+              "const": [
+                "product-architecture"
+              ]
+            }
+          }
+        }
+      }
+    }
+  ]
+}

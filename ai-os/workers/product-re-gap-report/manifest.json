@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0.0",
+  "id": "product-re-gap-report",
+  "version": "0.1.0",
+  "title": "Product RE Gap Report",
+  "implements_roles": [
+    "executor"
+  ],
+  "side_effects": [
+    "runtime-write"
+  ],
+  "entrypoint": "skill.md",
+  "status": "draft",
+  "extensions": {
+    "worker_class": "discovery",
+    "pipeline": "product-re",
+    "product_re_role": "product-re-gap-report",
+    "role_alias": "product-re-gap-report",
+    "skill_id": "product-re-gap-report",
+    "primary_output_type": "product-re-gap",
+    "consumes": [
+      "product",
+      "workflow",
+      "requirements",
+      "acceptance",
+      "knowledge",
+      "features",
+      "business",
+      "product-architecture"
+    ],
+    "produces": [],
+    "depends_on_workers": [
+      "product-analyst",
+      "workflow-analyzer",
+      "requirement-generator",
+      "acceptance-criteria-generator"
+    ],
+    "feature_worker": false,
+    "redesign": false,
+    "soft_discovery_handoff": true
+  }
+}

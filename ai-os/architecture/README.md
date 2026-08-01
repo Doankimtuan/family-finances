@@ -19,3 +19,8 @@
 | [MIGRATIONS.md](MIGRATIONS.md) | Breaking change log |
 | [CONCURRENCY.md](CONCURRENCY.md) | Claims, locks, waves |
 | [SECURITY.md](SECURITY.md) | Secrets, side effects, trust |
+
+## Product reverse-engineering inputs
+
+**Do not** use this folder as Product RE consume input. Product architecture observations live under `ai-os/product-architecture/`. This folder is AIOS control-plane documentation only.
+

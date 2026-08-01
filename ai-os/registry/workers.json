@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "registry_kind": "workers",
-  "updated_at": "2026-08-01T00:00:00Z",
+  "updated_at": "2026-08-01T12:00:00Z",
   "entries": {
     "discover-repo-map": {
       "id": "discover-repo-map",
@@ -78,6 +78,198 @@
         "discover-registry-audit",
         "discover-runtime-surface"
       ]
+    },
+    "product-knowledge-ingest": {
+      "id": "product-knowledge-ingest",
+      "path": "workers/product-knowledge-ingest",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Populate knowledge/ notes from docs and soft discovery-report inputs. Discover only \u2014 do not redesign.",
+      "worker_class": "discovery",
+      "pipeline": "product-re",
+      "skill_id": "product-knowledge-ingest",
+      "depends_on_workers": [],
+      "consumes": [
+        "docs",
+        "discovery-report"
+      ],
+      "produces": [
+        "knowledge"
+      ]
+    },
+    "feature-surface-inventory": {
+      "id": "feature-surface-inventory",
+      "path": "workers/feature-surface-inventory",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Inventory product feature surfaces from routes/UI/domain actions into features/. Discover only \u2014 do not redesign.",
+      "worker_class": "discovery",
+      "pipeline": "product-re",
+      "skill_id": "feature-surface-inventory",
+      "depends_on_workers": [],
+      "consumes": [
+        "docs",
+        "discovery-report",
+        "app"
+      ],
+      "produces": [
+        "features"
+      ]
+    },
+    "business-rules-extractor": {
+      "id": "business-rules-extractor",
+      "path": "workers/business-rules-extractor",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Extract observed business rules from DOMAIN_MODEL and domain engines into business/. Discover only \u2014 do not invent rules.",
+      "worker_class": "discovery",
+      "pipeline": "product-re",
+      "skill_id": "business-rules-extractor",
+      "depends_on_workers": [],
+      "consumes": [
+        "docs",
+        "discovery-report"
+      ],
+      "produces": [
+        "business"
+      ]
+    },
+    "product-architecture-observer": {
+      "id": "product-architecture-observer",
+      "path": "workers/product-architecture-observer",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Observe product architecture into product-architecture/ (never ai-os/architecture/). Discover only \u2014 do not redesign.",
+      "worker_class": "discovery",
+      "pipeline": "product-re",
+      "skill_id": "product-architecture-observer",
+      "depends_on_workers": [],
+      "consumes": [
+        "docs",
+        "discovery-report"
+      ],
+      "produces": [
+        "product-architecture"
+      ]
+    },
+    "product-analyst": {
+      "id": "product-analyst",
+      "path": "workers/product-analyst",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Reverse-engineer product identity, personas, value proposition, and capability map from knowledge/, features/, business/, and product-architecture/ inputs. Discover only \u2014 do not redesign or implement.",
+      "worker_class": "discovery",
+      "pipeline": "product-re",
+      "skill_id": "product-analyst",
+      "depends_on_workers": [
+        "product-knowledge-ingest",
+        "feature-surface-inventory",
+        "business-rules-extractor",
+        "product-architecture-observer"
+      ],
+      "consumes": [
+        "knowledge",
+        "features",
+        "business",
+        "product-architecture"
+      ],
+      "produces": [
+        "product"
+      ]
+    },
+    "workflow-analyzer": {
+      "id": "workflow-analyzer",
+      "path": "workers/workflow-analyzer",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Discover end-to-end user and system workflows from product-model plus product-architecture/ and features/. Map steps, actors, and handoffs without inventing new product behavior.",
+      "worker_class": "discovery",
+      "pipeline": "product-re",
+      "skill_id": "workflow-analyzer",
+      "depends_on_workers": [
+        "product-analyst"
+      ],
+      "consumes": [
+        "product",
+        "product-architecture",
+        "features"
+      ],
+      "produces": [
+        "workflow"
+      ]
+    },
+    "requirement-generator": {
+      "id": "requirement-generator",
+      "path": "workers/requirement-generator",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Extract structured product requirements (SHALL/MUST) from discovered product and workflow knowledge plus business rules. Traceable only; no redesign. role_alias=requirement-extractor.",
+      "worker_class": "discovery",
+      "pipeline": "product-re",
+      "skill_id": "requirement-generator",
+      "depends_on_workers": [
+        "product-analyst",
+        "workflow-analyzer",
+        "business-rules-extractor"
+      ],
+      "consumes": [
+        "product",
+        "workflow",
+        "business"
+      ],
+      "produces": [
+        "requirements"
+      ]
+    },
+    "acceptance-criteria-generator": {
+      "id": "acceptance-criteria-generator",
+      "path": "workers/acceptance-criteria-generator",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Extract testable acceptance criteria (Given/When/Then) for each discovered requirement. Observable and falsifiable; no invention. role_alias=acceptance-criteria-extractor.",
+      "worker_class": "discovery",
+      "pipeline": "product-re",
+      "skill_id": "acceptance-criteria-generator",
+      "depends_on_workers": [
+        "requirement-generator",
+        "product-analyst",
+        "workflow-analyzer"
+      ],
+      "consumes": [
+        "requirements",
+        "product",
+        "workflow"
+      ],
+      "produces": [
+        "acceptance"
+      ]
+    },
+    "product-re-gap-report": {
+      "id": "product-re-gap-report",
+      "path": "workers/product-re-gap-report",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Synthesize coverage gaps across Product RE ingest and transform outputs. Discover only \u2014 do not redesign.",
+      "worker_class": "discovery",
+      "pipeline": "product-re",
+      "skill_id": "product-re-gap-report",
+      "depends_on_workers": [
+        "product-analyst",
+        "workflow-analyzer",
+        "requirement-generator",
+        "acceptance-criteria-generator"
+      ],
+      "consumes": [
+        "product",
+        "workflow",
+        "requirements",
+        "acceptance",
+        "knowledge",
+        "features",
+        "business",
+        "product-architecture"
+      ],
+      "produces": []
     }
   }
 }

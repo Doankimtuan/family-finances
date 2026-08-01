@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "registry_kind": "skills",
-  "updated_at": "2026-08-01T00:00:00Z",
+  "updated_at": "2026-08-01T12:00:00Z",
   "entries": {
     "example-skill": {
       "id": "example-skill",
@@ -51,6 +51,69 @@
       "version": "0.1.0",
       "status": "reserved",
       "description": "Reserved executor skill bound by Discovery Worker discover-gap-report"
+    },
+    "product-analyst": {
+      "id": "product-analyst",
+      "path": "skills/product-analyst",
+      "version": "0.1.0",
+      "status": "reserved",
+      "description": "Reverse-engineer product identity, personas, value proposition, and capability map from knowledge/, features/, business/, and product-architecture/ inputs. Discover only \u2014 do not redesign or implement."
+    },
+    "workflow-analyzer": {
+      "id": "workflow-analyzer",
+      "path": "skills/workflow-analyzer",
+      "version": "0.1.0",
+      "status": "reserved",
+      "description": "Discover end-to-end user and system workflows from product-model plus product-architecture/ and features/. Map steps, actors, and handoffs without inventing new product behavior."
+    },
+    "requirement-generator": {
+      "id": "requirement-generator",
+      "path": "skills/requirement-generator",
+      "version": "0.1.0",
+      "status": "reserved",
+      "description": "Extract structured product requirements (SHALL/MUST) from discovered product and workflow knowledge plus business rules. Traceable only; no redesign. role_alias=requirement-extractor."
+    },
+    "acceptance-criteria-generator": {
+      "id": "acceptance-criteria-generator",
+      "path": "skills/acceptance-criteria-generator",
+      "version": "0.1.0",
+      "status": "reserved",
+      "description": "Extract testable acceptance criteria (Given/When/Then) for each discovered requirement. Observable and falsifiable; no invention. role_alias=acceptance-criteria-extractor."
+    },
+    "product-knowledge-ingest": {
+      "id": "product-knowledge-ingest",
+      "path": "skills/product-knowledge-ingest",
+      "version": "0.1.0",
+      "status": "reserved",
+      "description": "Populate knowledge/ notes from docs and soft discovery-report inputs. Discover only \u2014 do not redesign."
+    },
+    "feature-surface-inventory": {
+      "id": "feature-surface-inventory",
+      "path": "skills/feature-surface-inventory",
+      "version": "0.1.0",
+      "status": "reserved",
+      "description": "Inventory product feature surfaces from routes/UI/domain actions into features/. Discover only \u2014 do not redesign."
+    },
+    "business-rules-extractor": {
+      "id": "business-rules-extractor",
+      "path": "skills/business-rules-extractor",
+      "version": "0.1.0",
+      "status": "reserved",
+      "description": "Extract observed business rules from DOMAIN_MODEL and domain engines into business/. Discover only \u2014 do not invent rules."
+    },
+    "product-architecture-observer": {
+      "id": "product-architecture-observer",
+      "path": "skills/product-architecture-observer",
+      "version": "0.1.0",
+      "status": "reserved",
+      "description": "Observe product architecture into product-architecture/ (never ai-os/architecture/). Discover only \u2014 do not redesign."
+    },
+    "product-re-gap-report": {
+      "id": "product-re-gap-report",
+      "path": "skills/product-re-gap-report",
+      "version": "0.1.0",
+      "status": "reserved",
+      "description": "Synthesize coverage gaps across Product RE ingest and transform outputs. Discover only \u2014 do not redesign."
     }
   }
 }

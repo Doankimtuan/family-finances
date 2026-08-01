@@ -1,0 +1,60 @@
+{
+  "schema_version": "1.0.0",
+  "id": "feature-surface-inventory",
+  "version": "0.1.0",
+  "title": "Feature Surface Inventory",
+  "description": "Inventory product feature surfaces from routes/UI/domain actions into features/. Discover only \u2014 do not redesign.",
+  "role": "executor",
+  "grade": "guided",
+  "inputs": [
+    {
+      "name": "goal",
+      "artifact_type": "goal",
+      "required": true,
+      "description": "Product RE goal"
+    },
+    {
+      "name": "docs",
+      "artifact_type": "goal",
+      "required": false,
+      "description": "Consume input: docs"
+    },
+    {
+      "name": "discovery-report",
+      "artifact_type": "goal",
+      "required": false,
+      "description": "Consume input: discovery-report"
+    },
+    {
+      "name": "app",
+      "artifact_type": "goal",
+      "required": false,
+      "description": "Consume input: app"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "primary",
+      "artifact_type": "feature-inventory",
+      "primary": true,
+      "description": "feature-inventory"
+    }
+  ],
+  "requires_skills": [],
+  "validators": [
+    "product-re-schema-check"
+  ],
+  "reviewers": [
+    "product-re-coverage-review"
+  ],
+  "side_effects": [
+    "runtime-write"
+  ],
+  "status": "reserved",
+  "entrypoint": "SKILL.md",
+  "extensions": {
+    "pipeline": "product-re",
+    "role_alias": "feature-surface-inventory",
+    "soft_discovery_handoff": true
+  }
+}

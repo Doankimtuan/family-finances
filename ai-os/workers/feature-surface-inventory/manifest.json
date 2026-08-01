@@ -1,0 +1,34 @@
+{
+  "schema_version": "1.0.0",
+  "id": "feature-surface-inventory",
+  "version": "0.1.0",
+  "title": "Feature Surface Inventory",
+  "implements_roles": [
+    "executor"
+  ],
+  "side_effects": [
+    "runtime-write"
+  ],
+  "entrypoint": "skill.md",
+  "status": "draft",
+  "extensions": {
+    "worker_class": "discovery",
+    "pipeline": "product-re",
+    "product_re_role": "feature-surface-inventory",
+    "role_alias": "feature-surface-inventory",
+    "skill_id": "feature-surface-inventory",
+    "primary_output_type": "feature-inventory",
+    "consumes": [
+      "docs",
+      "discovery-report",
+      "app"
+    ],
+    "produces": [
+      "features"
+    ],
+    "depends_on_workers": [],
+    "feature_worker": false,
+    "redesign": false,
+    "soft_discovery_handoff": true
+  }
+}

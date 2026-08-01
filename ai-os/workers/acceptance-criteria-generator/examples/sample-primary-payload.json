@@ -1,0 +1,44 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_out_acceptance_criteria_generator",
+  "type": "acceptance-criteria",
+  "worker_id": "acceptance-criteria-generator",
+  "title": "Acceptance Criteria Extractor output",
+  "summary": "Extract testable acceptance criteria (Given/When/Then) for each discovered requirement. Criteria must be observable and falsifiable; do not invent features. Worker id retained for backward compatibility (role_alias=acceptance-criteria-extractor).",
+  "entries": [
+    {
+      "id": "ac-req-household-tenant-gwt",
+      "entry_kind": "gwt",
+      "requirement_id": "req-household-tenant",
+      "statement": "Given a user in household H, when they list accounts, then only H-scoped accounts are returned.",
+      "source_paths": [
+        "requirements/",
+        "product/"
+      ]
+    },
+    {
+      "id": "ac-req-jar-virtual-gwt",
+      "entry_kind": "gwt",
+      "requirement_id": "req-jar-virtual",
+      "statement": "Given an expense is resolved to a jar, when jar_movement is created, then the linked account balance is unchanged by that movement alone.",
+      "source_paths": [
+        "requirements/",
+        "workflow/"
+      ]
+    }
+  ],
+  "status": "ready",
+  "created_at": "2026-08-01T12:00:00Z",
+  "trace": {
+    "orchestration_id": "art_product_re_orchestration",
+    "plan_id": "art_product_re_plan",
+    "task_id": "art_task_acceptance_criteria_generator",
+    "run_id": "art_run_acceptance_criteria_generator",
+    "goal_id": "art_product_re_goal"
+  },
+  "extensions": {
+    "pipeline": "product-re",
+    "role_alias": "acceptance-criteria-extractor",
+    "redesign": false
+  }
+}

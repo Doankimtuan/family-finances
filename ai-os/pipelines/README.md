@@ -1,9 +1,8 @@
 # AIOS Pipelines
 
-Pipelines bind registered workers into ordered waves with an explicit dependency graph.
-
 | Pipeline | Class | Feature Workers |
 |----------|-------|-----------------|
-| [`discovery/`](discovery/) | discovery | **forbidden** |
+| [`discovery/`](discovery/) | system discovery | **forbidden** |
+| [`product-re/`](product-re/) | product reverse engineering | **forbidden** |
 
-Only Discovery Workers are registered in this phase.
+Both pipelines are discovery-only. Feature Workers are out of scope.

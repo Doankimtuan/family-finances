@@ -1,0 +1,60 @@
+{
+  "schema_version": "1.0.0",
+  "id": "acceptance-criteria-generator",
+  "version": "0.1.0",
+  "title": "Acceptance Criteria Extractor",
+  "description": "Extract testable acceptance criteria (Given/When/Then) for each discovered requirement. Criteria must be observable and falsifiable; do not invent features. Worker id retained for backward compatibility (role_alias=acceptance-criteria-extractor).",
+  "role": "executor",
+  "grade": "guided",
+  "inputs": [
+    {
+      "name": "goal",
+      "artifact_type": "goal",
+      "required": true,
+      "description": "Product RE goal"
+    },
+    {
+      "name": "requirements",
+      "artifact_type": "requirement-spec",
+      "required": true,
+      "description": "Consume input: requirements"
+    },
+    {
+      "name": "product",
+      "artifact_type": "product-model",
+      "required": true,
+      "description": "Consume input: product"
+    },
+    {
+      "name": "workflow",
+      "artifact_type": "workflow-model",
+      "required": true,
+      "description": "Consume input: workflow"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "primary",
+      "artifact_type": "acceptance-criteria",
+      "primary": true,
+      "description": "acceptance-criteria"
+    }
+  ],
+  "requires_skills": [],
+  "validators": [
+    "product-re-schema-check"
+  ],
+  "reviewers": [
+    "product-re-coverage-review"
+  ],
+  "side_effects": [
+    "runtime-write"
+  ],
+  "status": "reserved",
+  "entrypoint": "SKILL.md",
+  "extensions": {
+    "pipeline": "product-re",
+    "role_alias": "acceptance-criteria-extractor",
+    "soft_discovery_handoff": true
+  }
+}

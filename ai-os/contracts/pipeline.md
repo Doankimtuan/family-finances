@@ -19,6 +19,13 @@ A **pipeline** binds registered workers into ordered waves with an explicit depe
 6. `side_effect_ceiling` is the max side effect any worker in the pipeline may declare.
 7. Core Engine may **load and validate** pipelines; it still does not invoke workers in v0.4.x.
 
-## Discovery pipeline
+## Registered pipelines (v0.4.2)
 
-`pipelines/discovery/` is the only registered pipeline in this phase. Feature Workers are forbidden.
+| Pipeline | Purpose | Feature Workers |
+|----------|---------|-----------------|
+| `pipelines/discovery/` | Framework/repo discovery → `discovery-report` | forbidden |
+| `pipelines/product-re/` | Product reverse engineering → product knowledge chain | forbidden |
+
+### Discovery → Product RE handoff
+
+There is **no hard graph edge** across pipelines. Product RE ingest workers **MAY** soft-read published `discovery-report` artifacts and product docs (`docs/DOMAIN_MODEL.md`, app routes) as sources. Ownership of truth for product folders is Product RE ingest + transform workers, not `discover-domain-map`.

@@ -2,42 +2,32 @@
 
 Concrete worker packages live here. Instantiation **must** copy `templates/worker/` unchanged in layout.
 
-## Allowed in this phase
+## Pipelines
 
-**Discovery Workers only** (`worker_class: discovery`).
+### System discovery (`pipelines/discovery/`)
 
-| Worker | Pipeline | Status |
-|--------|----------|--------|
-| `discover-repo-map` | discovery | draft |
-| `discover-domain-map` | discovery | draft |
-| `discover-contract-inventory` | discovery | draft |
-| `discover-registry-audit` | discovery | draft |
-| `discover-runtime-surface` | discovery | draft |
-| `discover-gap-report` | discovery | draft |
+Workers: `discover-*`
 
-Registry: [`registry/workers.json`](../registry/workers.json)  
-Pipeline: [`pipelines/discovery/`](../pipelines/discovery/)  
-Dependency graph: [`pipelines/discovery/dependency-graph.json`](../pipelines/discovery/dependency-graph.json)
+### Product reverse engineering (`pipelines/product-re/`)
+
+| Worker | Wave | Produces |
+|--------|------|----------|
+| `product-knowledge-ingest` | 0 | `knowledge/` |
+| `feature-surface-inventory` | 0 | `features/` |
+| `business-rules-extractor` | 0 | `business/` |
+| `product-architecture-observer` | 0 | `product-architecture/` |
+| `product-analyst` | 1 | `product/` |
+| `workflow-analyzer` | 2 | `workflow/` |
+| `requirement-generator` (alias: requirement-extractor) | 3 | `requirements/` |
+| `acceptance-criteria-generator` (alias: acceptance-criteria-extractor) | 4 | `acceptance/` |
+| `product-re-gap-report` | 5 | `product-re-gap` artifact |
 
 ## Forbidden
 
-- **Feature Workers** (any worker that implements product features, mutates app source, or raises side effects to `repo-write` / `external` without a later phase bump)
-- Packages that do not match the mandatory template tree
-- Executables that bypass `contracts/worker-port.md`
-
-## Mandatory package tree
-
-```
-README.md
-skill.md
-validator.md
-reviewer.md
-checklist.md
-output-schema.json
-manifest.json
-examples/
-testcases/
-```
+- **Feature Workers**
+- Redesign or product mutation (`repo-write`)
+- Consuming `architecture/` as product architecture (use `product-architecture/`)
+- Packages that do not match the Worker Template tree
 
 ## Template
 

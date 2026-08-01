@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "aios:core:smoke": "npx --yes tsx ai-os/core/scripts/smoke.ts",
-    "aios:discovery:smoke": "npx --yes tsx ai-os/core/scripts/discovery-smoke.ts"
+    "aios:discovery:smoke": "npx --yes tsx ai-os/core/scripts/discovery-smoke.ts",
+    "aios:product-re:smoke": "npx --yes tsx ai-os/core/scripts/product-re-smoke.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

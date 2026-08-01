@@ -1,0 +1,40 @@
+{
+  "schema_version": "1.0.0",
+  "id": "product-analyst",
+  "version": "0.1.0",
+  "title": "Product Analyst",
+  "implements_roles": [
+    "executor"
+  ],
+  "side_effects": [
+    "runtime-write"
+  ],
+  "entrypoint": "skill.md",
+  "status": "draft",
+  "extensions": {
+    "worker_class": "discovery",
+    "pipeline": "product-re",
+    "product_re_role": "product-analyst",
+    "role_alias": "product-analyst",
+    "skill_id": "product-analyst",
+    "primary_output_type": "product-model",
+    "consumes": [
+      "knowledge",
+      "features",
+      "business",
+      "product-architecture"
+    ],
+    "produces": [
+      "product"
+    ],
+    "depends_on_workers": [
+      "product-knowledge-ingest",
+      "feature-surface-inventory",
+      "business-rules-extractor",
+      "product-architecture-observer"
+    ],
+    "feature_worker": false,
+    "redesign": false,
+    "soft_discovery_handoff": true
+  }
+}

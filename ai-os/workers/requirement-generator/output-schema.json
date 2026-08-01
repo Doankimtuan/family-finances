@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aios.dev/schemas/workers/requirement-generator/output.schema.json",
+  "title": "AIOS Product RE Worker Output \u2014 requirement-generator",
+  "description": "Run envelope for requirement-generator. Primary payload type: requirement-spec.",
+  "allOf": [
+    {
+      "$ref": "https://aios.dev/schemas/worker-output-envelope.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "worker_id": {
+          "const": "requirement-generator"
+        },
+        "extensions": {
+          "type": "object",
+          "properties": {
+            "pipeline": {
+              "const": "product-re"
+            },
+            "primary_output_type": {
+              "const": "requirement-spec"
+            },
+            "produces": {
+              "const": [
+                "requirements"
+              ]
+            }
+          }
+        }
+      }
+    }
+  ]
+}

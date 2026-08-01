@@ -1,0 +1,60 @@
+{
+  "schema_version": "1.0.0",
+  "id": "workflow-analyzer",
+  "version": "0.1.0",
+  "title": "Workflow Analyzer",
+  "description": "Discover end-to-end user and system workflows from product-model plus product-architecture/ and features/. Map steps, actors, and handoffs without inventing new product behavior.",
+  "role": "executor",
+  "grade": "guided",
+  "inputs": [
+    {
+      "name": "goal",
+      "artifact_type": "goal",
+      "required": true,
+      "description": "Product RE goal"
+    },
+    {
+      "name": "product",
+      "artifact_type": "product-model",
+      "required": true,
+      "description": "Consume input: product"
+    },
+    {
+      "name": "product-architecture",
+      "artifact_type": "product-architecture-notes",
+      "required": true,
+      "description": "Consume input: product-architecture"
+    },
+    {
+      "name": "features",
+      "artifact_type": "feature-inventory",
+      "required": true,
+      "description": "Consume input: features"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "primary",
+      "artifact_type": "workflow-model",
+      "primary": true,
+      "description": "workflow-model"
+    }
+  ],
+  "requires_skills": [],
+  "validators": [
+    "product-re-schema-check"
+  ],
+  "reviewers": [
+    "product-re-coverage-review"
+  ],
+  "side_effects": [
+    "runtime-write"
+  ],
+  "status": "reserved",
+  "entrypoint": "SKILL.md",
+  "extensions": {
+    "pipeline": "product-re",
+    "role_alias": "workflow-analyzer",
+    "soft_discovery_handoff": true
+  }
+}

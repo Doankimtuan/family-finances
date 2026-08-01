@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aios.dev/schemas/product-model.schema.json",
+  "title": "AIOS Product Model Payload",
+  "description": "Typed product-model primary payload (product-re).",
+  "allOf": [
+    {
+      "$ref": "https://aios.dev/schemas/product-re-payload.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "product-model"
+        }
+      }
+    }
+  ]
+}

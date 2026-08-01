@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0.0",
+  "kind": "knowledge",
+  "title": "Household glossary (fixture)",
+  "summary": "Core glossary terms from Family Finances domain model.",
+  "sources": [
+    {
+      "path": "docs/DOMAIN_MODEL.md",
+      "notes": "Executive summary + entity sections"
+    }
+  ],
+  "observations": [
+    "Household is the multitenancy root.",
+    "Accounts hold real liquid balances; jars hold virtual intent balances."
+  ],
+  "open_questions": [
+    "Is category taxonomy shared across households or global?"
+  ],
+  "created_at": "2026-08-01T12:00:00Z",
+  "extensions": {
+    "fixture": true,
+    "pipeline": "product-re",
+    "terms": [
+      {
+        "term": "Household",
+        "meaning": "Tenant root for members, accounts, jars, budgets"
+      },
+      {
+        "term": "Jar",
+        "meaning": "Virtual envelope; balance from jar_movements only"
+      },
+      {
+        "term": "Jar Review Queue",
+        "meaning": "Staging area for allocating real events to jars"
+      }
+    ]
+  }
+}

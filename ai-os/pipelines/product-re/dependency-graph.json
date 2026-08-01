@@ -1,0 +1,167 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_product_re_pipeline_deps",
+  "kind": "worker",
+  "pipeline_id": "product-re",
+  "title": "Product Reverse Engineering Worker Dependency Graph",
+  "nodes": [
+    {
+      "id": "product-knowledge-ingest",
+      "node_type": "worker",
+      "label": "product-knowledge-ingest",
+      "worker_class": "discovery"
+    },
+    {
+      "id": "feature-surface-inventory",
+      "node_type": "worker",
+      "label": "feature-surface-inventory",
+      "worker_class": "discovery"
+    },
+    {
+      "id": "business-rules-extractor",
+      "node_type": "worker",
+      "label": "business-rules-extractor",
+      "worker_class": "discovery"
+    },
+    {
+      "id": "product-architecture-observer",
+      "node_type": "worker",
+      "label": "product-architecture-observer",
+      "worker_class": "discovery"
+    },
+    {
+      "id": "product-analyst",
+      "node_type": "worker",
+      "label": "product-analyst",
+      "worker_class": "discovery"
+    },
+    {
+      "id": "workflow-analyzer",
+      "node_type": "worker",
+      "label": "workflow-analyzer",
+      "worker_class": "discovery"
+    },
+    {
+      "id": "requirement-generator",
+      "node_type": "worker",
+      "label": "requirement-generator",
+      "worker_class": "discovery"
+    },
+    {
+      "id": "acceptance-criteria-generator",
+      "node_type": "worker",
+      "label": "acceptance-criteria-generator",
+      "worker_class": "discovery"
+    },
+    {
+      "id": "product-re-gap-report",
+      "node_type": "worker",
+      "label": "product-re-gap-report",
+      "worker_class": "discovery"
+    }
+  ],
+  "edges": [
+    {
+      "predecessor": "product-knowledge-ingest",
+      "successor": "product-analyst",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "feature-surface-inventory",
+      "successor": "product-analyst",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "business-rules-extractor",
+      "successor": "product-analyst",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "product-architecture-observer",
+      "successor": "product-analyst",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "product-analyst",
+      "successor": "workflow-analyzer",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "product-analyst",
+      "successor": "requirement-generator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "workflow-analyzer",
+      "successor": "requirement-generator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "business-rules-extractor",
+      "successor": "requirement-generator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "requirement-generator",
+      "successor": "acceptance-criteria-generator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "product-analyst",
+      "successor": "acceptance-criteria-generator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "workflow-analyzer",
+      "successor": "acceptance-criteria-generator",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "product-analyst",
+      "successor": "product-re-gap-report",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "workflow-analyzer",
+      "successor": "product-re-gap-report",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "requirement-generator",
+      "successor": "product-re-gap-report",
+      "type": "blocks",
+      "relation": "requires"
+    },
+    {
+      "predecessor": "acceptance-criteria-generator",
+      "successor": "product-re-gap-report",
+      "type": "blocks",
+      "relation": "requires"
+    }
+  ],
+  "created_at": "2026-08-01T12:00:00Z",
+  "notes": [
+    "Hard edges only within product-re. Feature Workers excluded.",
+    "Discovery handoff is soft (docs + discovery-report), not graph edges.",
+    "architecture/ (AIOS) is never a consume node; use product-architecture/.",
+    "Waves: [['product-knowledge-ingest', 'feature-surface-inventory', 'business-rules-extractor', 'product-architecture-observer'], ['product-analyst'], ['workflow-analyzer'], ['requirement-generator'], ['acceptance-criteria-generator'], ['product-re-gap-report']]",
+    "requirement-generator / acceptance-criteria-generator ids retained; role_alias = *-extractor."
+  ],
+  "extensions": {
+    "schema": "pipeline-dependency-graph.schema.json",
+    "allows_feature_workers": false
+  }
+}

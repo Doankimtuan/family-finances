@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "registry_kind": "reviewers",
-  "updated_at": "2026-08-01T00:00:00Z",
+  "updated_at": "2026-08-01T12:00:00Z",
   "entries": {
     "discovery-coverage-review": {
       "id": "discovery-coverage-review",
@@ -9,6 +9,13 @@
       "version": "0.1.0",
       "status": "reserved",
       "description": "Coverage/quality review for discovery reports (no feature design)"
+    },
+    "product-re-coverage-review": {
+      "id": "product-re-coverage-review",
+      "path": "reviewers/product-re-coverage-review",
+      "version": "0.2.0",
+      "status": "reserved",
+      "description": "Coverage review for product-re outputs including ingest and gap"
     }
   }
 }

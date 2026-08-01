@@ -1,0 +1,54 @@
+{
+  "schema_version": "1.0.0",
+  "id": "product-knowledge-ingest",
+  "version": "0.1.0",
+  "title": "Product Knowledge Ingest",
+  "description": "Populate knowledge/ notes from docs and soft discovery-report inputs. Discover only \u2014 do not redesign.",
+  "role": "executor",
+  "grade": "guided",
+  "inputs": [
+    {
+      "name": "goal",
+      "artifact_type": "goal",
+      "required": true,
+      "description": "Product RE goal"
+    },
+    {
+      "name": "docs",
+      "artifact_type": "goal",
+      "required": false,
+      "description": "Consume input: docs"
+    },
+    {
+      "name": "discovery-report",
+      "artifact_type": "goal",
+      "required": false,
+      "description": "Consume input: discovery-report"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "primary",
+      "artifact_type": "knowledge-notes",
+      "primary": true,
+      "description": "knowledge-notes"
+    }
+  ],
+  "requires_skills": [],
+  "validators": [
+    "product-re-schema-check"
+  ],
+  "reviewers": [
+    "product-re-coverage-review"
+  ],
+  "side_effects": [
+    "runtime-write"
+  ],
+  "status": "reserved",
+  "entrypoint": "SKILL.md",
+  "extensions": {
+    "pipeline": "product-re",
+    "role_alias": "product-knowledge-ingest",
+    "soft_discovery_handoff": true
+  }
+}

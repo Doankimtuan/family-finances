@@ -1,6 +1,6 @@
 # Skills package root
 
-Discovery reserved skill stubs live here (`skills/discover-*`).
+Reserved skill stubs for Discovery (`skills/discover-*`) and Product RE (`skills/product-*`, generator/extractor ids).
 
 | Status | Meaning |
 |--------|---------|
@@ -10,3 +10,4 @@ Discovery reserved skill stubs live here (`skills/discover-*`).
 Follow `architecture/skill-conventions.md` and `templates/skill/` for new packages.
 
 Do not add skill bodies that mutate the product repo.
+Product RE skills must declare consume inputs (not goal-only) and must not treat `architecture/` as product architecture input.

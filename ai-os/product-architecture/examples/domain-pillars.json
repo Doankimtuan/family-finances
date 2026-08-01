@@ -1,0 +1,43 @@
+{
+  "schema_version": "1.0.0",
+  "kind": "product-architecture",
+  "title": "Family Finances domain pillars (fixture)",
+  "summary": "Observed split between real accounting, traditional budgets, and jars intent layer.",
+  "pillars": [
+    "Core accounting (accounts, transactions, assets)",
+    "Budgeting & planning (monthly budgets, goals)",
+    "Jars intent layer (jars, review queue, movements)"
+  ],
+  "boundaries": [
+    "Household is the multitenancy root",
+    "Real balances derive from accounts/transactions; virtual balances from jar_movements"
+  ],
+  "modules": [
+    {
+      "path": "docs/DOMAIN_MODEL.md",
+      "role": "Canonical domain narrative"
+    },
+    {
+      "path": "app/(dashboard)/jars/review",
+      "role": "Jar review queue UI (observed)"
+    }
+  ],
+  "sources": [
+    {
+      "path": "docs/DOMAIN_MODEL.md",
+      "notes": "Primary product architecture narrative"
+    }
+  ],
+  "observations": [
+    "Jars are virtual envelopes; they do not hold real money.",
+    "Jar review queue stages real-world events before virtual allocation."
+  ],
+  "open_questions": [
+    "Which routes are authoritative for savings-account-to-jar funding?"
+  ],
+  "created_at": "2026-08-01T12:00:00Z",
+  "extensions": {
+    "fixture": true,
+    "pipeline": "product-re"
+  }
+}

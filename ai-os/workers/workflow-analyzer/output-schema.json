@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aios.dev/schemas/workers/workflow-analyzer/output.schema.json",
+  "title": "AIOS Product RE Worker Output \u2014 workflow-analyzer",
+  "description": "Run envelope for workflow-analyzer. Primary payload type: workflow-model.",
+  "allOf": [
+    {
+      "$ref": "https://aios.dev/schemas/worker-output-envelope.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "worker_id": {
+          "const": "workflow-analyzer"
+        },
+        "extensions": {
+          "type": "object",
+          "properties": {
+            "pipeline": {
+              "const": "product-re"
+            },
+            "primary_output_type": {
+              "const": "workflow-model"
+            },
+            "produces": {
+              "const": [
+                "workflow"
+              ]
+            }
+          }
+        }
+      }
+    }
+  ]
+}

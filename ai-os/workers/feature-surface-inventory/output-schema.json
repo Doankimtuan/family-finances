@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aios.dev/schemas/workers/feature-surface-inventory/output.schema.json",
+  "title": "AIOS Product RE Worker Output \u2014 feature-surface-inventory",
+  "description": "Run envelope for feature-surface-inventory. Primary payload type: feature-inventory.",
+  "allOf": [
+    {
+      "$ref": "https://aios.dev/schemas/worker-output-envelope.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "worker_id": {
+          "const": "feature-surface-inventory"
+        },
+        "extensions": {
+          "type": "object",
+          "properties": {
+            "pipeline": {
+              "const": "product-re"
+            },
+            "primary_output_type": {
+              "const": "feature-inventory"
+            },
+            "produces": {
+              "const": [
+                "features"
+              ]
+            }
+          }
+        }
+      }
+    }
+  ]
+}

@@ -90,6 +90,6 @@ Optional siblings (allowed, not required by this template pack):
 
 ## Phase rule
 
-- **Discovery Workers** (`worker_class: discovery`) may be instantiated under `ai-os/workers/discover-*` in the current phase.
+- **Discovery Workers** (`worker_class: discovery`) may be instantiated under `ai-os/workers/discover-*` or Product RE packages bound by `pipelines/product-re/` in the current phase.
 - **Feature Workers** remain forbidden until a later VERSION bump explicitly opens that class.
 - Packages are declarative port bindings. Executable claim/run loops are a separate runtime milestone; Core does not invoke workers yet.

@@ -1,0 +1,79 @@
+{
+  "schema_version": "1.0.0",
+  "id": "product-re-coverage-review",
+  "version": "0.2.0",
+  "title": "Product RE Coverage Review",
+  "description": "Coverage review for product reverse-engineering outputs (ingest + transform + gap). Veto redesign, feature invention, or AIOS architecture/ misuse.",
+  "applies_to": [
+    "knowledge-notes",
+    "feature-inventory",
+    "business-rules",
+    "product-architecture-notes",
+    "product-model",
+    "workflow-model",
+    "requirement-spec",
+    "acceptance-criteria",
+    "product-re-gap"
+  ],
+  "requires_validations": [
+    "product-re-schema-check"
+  ],
+  "rubric_id": "product-re-coverage",
+  "rubric_version": "0.2.0",
+  "score_mode": "weighted_0_1",
+  "pass_threshold": 0.7,
+  "criteria": [
+    {
+      "id": "traceability",
+      "description": "Entries cite consume paths or upstream artifacts via source_paths",
+      "weight": 0.3,
+      "scale_min": 0,
+      "scale_max": 1
+    },
+    {
+      "id": "fidelity",
+      "description": "Statements reflect implementation-as-is",
+      "weight": 0.25,
+      "scale_min": 0,
+      "scale_max": 1
+    },
+    {
+      "id": "type-fit",
+      "description": "Entry shape matches type (personas/steps/SHALL/GWT/ingest kinds)",
+      "weight": 0.25,
+      "scale_min": 0,
+      "scale_max": 1
+    },
+    {
+      "id": "no-invention",
+      "description": "No invented features or redesign proposals",
+      "weight": 0.2,
+      "scale_min": 0,
+      "scale_max": 1
+    }
+  ],
+  "veto_conditions": [
+    {
+      "id": "redesign",
+      "description": "Output proposes redesign or Feature Worker implementation"
+    },
+    {
+      "id": "aios-architecture-as-product",
+      "description": "Treats ai-os/architecture/ control-plane docs as product architecture sources"
+    }
+  ],
+  "outputs": [
+    "review-report"
+  ],
+  "status": "reserved",
+  "extensions": {
+    "pipeline": "product-re",
+    "type_notes": {
+      "product-model": "Expect identity/persona/capability entry_kinds",
+      "workflow-model": "Expect actor + step_order",
+      "requirement-spec": "Expect SHALL/MUST",
+      "acceptance-criteria": "Expect requirement_id + GWT",
+      "product-re-gap": "Expect severity on gaps"
+    }
+  }
+}

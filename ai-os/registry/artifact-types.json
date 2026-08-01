@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "registry_kind": "artifact-types",
-  "updated_at": "2026-08-01T00:00:00Z",
+  "updated_at": "2026-08-01T12:00:00Z",
   "entries": {
     "goal": {
       "id": "goal",
@@ -130,6 +130,87 @@
     "discovery-report": {
       "id": "discovery-report",
       "description": "Read-only discovery inventory/gap report (not a feature design)",
+      "payload_kinds": [
+        "json",
+        "markdown"
+      ],
+      "status": "active"
+    },
+    "product-model": {
+      "id": "product-model",
+      "description": "Discovered product identity/personas/capabilities model",
+      "payload_kinds": [
+        "json",
+        "markdown"
+      ],
+      "status": "active"
+    },
+    "workflow-model": {
+      "id": "workflow-model",
+      "description": "Discovered user/system workflow model with ordered steps",
+      "payload_kinds": [
+        "json",
+        "markdown"
+      ],
+      "status": "active"
+    },
+    "requirement-spec": {
+      "id": "requirement-spec",
+      "description": "Traceable extracted requirement specification (SHALL/MUST)",
+      "payload_kinds": [
+        "json",
+        "markdown"
+      ],
+      "status": "active"
+    },
+    "acceptance-criteria": {
+      "id": "acceptance-criteria",
+      "description": "Testable acceptance criteria linked to requirements",
+      "payload_kinds": [
+        "json",
+        "markdown"
+      ],
+      "status": "active"
+    },
+    "knowledge-notes": {
+      "id": "knowledge-notes",
+      "description": "Ingested product knowledge notes for Product RE",
+      "payload_kinds": [
+        "json",
+        "markdown"
+      ],
+      "status": "active"
+    },
+    "feature-inventory": {
+      "id": "feature-inventory",
+      "description": "Inventoried product feature surfaces for Product RE",
+      "payload_kinds": [
+        "json",
+        "markdown"
+      ],
+      "status": "active"
+    },
+    "business-rules": {
+      "id": "business-rules",
+      "description": "Extracted business rules for Product RE",
+      "payload_kinds": [
+        "json",
+        "markdown"
+      ],
+      "status": "active"
+    },
+    "product-architecture-notes": {
+      "id": "product-architecture-notes",
+      "description": "Observed product architecture notes (not AIOS architecture/)",
+      "payload_kinds": [
+        "json",
+        "markdown"
+      ],
+      "status": "active"
+    },
+    "product-re-gap": {
+      "id": "product-re-gap",
+      "description": "Product RE coverage gap synthesis",
       "payload_kinds": [
         "json",
         "markdown"

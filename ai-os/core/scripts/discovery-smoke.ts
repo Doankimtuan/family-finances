@@ -51,14 +51,30 @@ async function main() {
     }
   }
 
-  // No Feature Worker packages
+  // Allow Discovery + Product RE packages; forbid Feature Workers
+  const workersReg = await core.knowledge.workers();
   const workerDirs = await fs.readdir(path.join(root, "workers"));
   for (const name of workerDirs) {
     if (name === "README.md") continue;
     const full = path.join(root, "workers", name);
     const st = await fs.stat(full);
-    if (st.isDirectory() && !name.startsWith("discover-")) {
-      throw new Error(`Unexpected non-discovery worker package: ${name}`);
+    if (!st.isDirectory()) continue;
+    const entry = workersReg.entries[name] as
+      | { worker_class?: string; pipeline?: string }
+      | undefined;
+    if (!entry) {
+      throw new Error(`Worker package ${name} not registered`);
+    }
+    if (entry.worker_class === "feature") {
+      throw new Error(`Feature Worker package forbidden: ${name}`);
+    }
+    if (
+      entry.pipeline !== "discovery" &&
+      entry.pipeline !== "product-re"
+    ) {
+      throw new Error(
+        `Unexpected worker pipeline for ${name}: ${entry.pipeline ?? "(missing)"}`,
+      );
     }
   }
 

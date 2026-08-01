@@ -1,0 +1,60 @@
+{
+  "schema_version": "1.0.0",
+  "id": "requirement-generator",
+  "version": "0.1.0",
+  "title": "Requirement Extractor",
+  "description": "Extract structured product requirements (SHALL/MUST) from discovered product and workflow knowledge plus business rules. Requirements must be traceable to source inputs; no redesign. Worker id retained for backward compatibility (role_alias=requirement-extractor).",
+  "role": "executor",
+  "grade": "guided",
+  "inputs": [
+    {
+      "name": "goal",
+      "artifact_type": "goal",
+      "required": true,
+      "description": "Product RE goal"
+    },
+    {
+      "name": "product",
+      "artifact_type": "product-model",
+      "required": true,
+      "description": "Consume input: product"
+    },
+    {
+      "name": "workflow",
+      "artifact_type": "workflow-model",
+      "required": true,
+      "description": "Consume input: workflow"
+    },
+    {
+      "name": "business",
+      "artifact_type": "business-rules",
+      "required": true,
+      "description": "Consume input: business"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "primary",
+      "artifact_type": "requirement-spec",
+      "primary": true,
+      "description": "requirement-spec"
+    }
+  ],
+  "requires_skills": [],
+  "validators": [
+    "product-re-schema-check"
+  ],
+  "reviewers": [
+    "product-re-coverage-review"
+  ],
+  "side_effects": [
+    "runtime-write"
+  ],
+  "status": "reserved",
+  "entrypoint": "SKILL.md",
+  "extensions": {
+    "pipeline": "product-re",
+    "role_alias": "requirement-extractor",
+    "soft_discovery_handoff": true
+  }
+}

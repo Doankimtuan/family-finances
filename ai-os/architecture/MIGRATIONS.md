@@ -7,6 +7,21 @@
 - Additive schema fields may stay on the same `schema_version` const when optional.
 - Removing/renaming required fields or changing enum membership is breaking.
 
+## 0.4.1 → 0.4.2 (2026-08-01)
+
+Product Review Board FAIL remediation for Product Reverse Engineering (Feature Workers still forbidden; Core still does not invoke workers).
+
+| Change | Detail |
+|--------|--------|
+| Phase | `worker-port` / `AGENTS` / `folder-structure` / `pipeline` contracts legalize `pipelines/product-re/` |
+| Path | Product architecture consume → `product-architecture/`; remove product-RE templates from `architecture/` |
+| Workers | Ingest wave 0 + `product-re-gap-report`; narrow transform consumes; extractor `role_alias` on generator ids |
+| Schemas | Typed product-re payloads; `source_paths` required; type if/then for product/workflow/requirements/acceptance |
+| Validator/Reviewer | `product-re-schema-check` / `product-re-coverage-review` v0.2.0 |
+| Knowledge | `validateProductRePipelineRegistration()` |
+| Smoke | `npm run aios:product-re:smoke`; discovery smoke allows registered product-re packages |
+| Docs | `RELEASE_NOTES_0.4.2.md`; I/O templates specialized; domain fixtures under `examples/` |
+
 ## 0.4.0 → 0.4.1 (2026-08-01)
 
 Architect FAIL remediation for Discovery Worker phase (still no Feature Workers / no invoke).

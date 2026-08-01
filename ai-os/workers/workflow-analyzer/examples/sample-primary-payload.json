@@ -1,0 +1,60 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_out_workflow_analyzer",
+  "type": "workflow-model",
+  "worker_id": "workflow-analyzer",
+  "title": "Workflow Analyzer output",
+  "summary": "Discover end-to-end user and system workflows from product-model plus product-architecture/ and features/. Map steps, actors, and handoffs without inventing new product behavior.",
+  "entries": [
+    {
+      "id": "wf-expense-step-1",
+      "entry_kind": "step",
+      "actor": "member",
+      "step_order": 1,
+      "statement": "Member records an expense transaction against a real account and category.",
+      "source_paths": [
+        "product/",
+        "features/",
+        "docs/DOMAIN_MODEL.md"
+      ]
+    },
+    {
+      "id": "wf-expense-step-2",
+      "entry_kind": "step",
+      "actor": "system",
+      "step_order": 2,
+      "statement": "System stages a jar review queue item for the expense.",
+      "source_paths": [
+        "product/",
+        "product-architecture/",
+        "docs/DOMAIN_MODEL.md"
+      ]
+    },
+    {
+      "id": "wf-expense-step-3",
+      "entry_kind": "step",
+      "actor": "member",
+      "step_order": 3,
+      "statement": "Member resolves the queue item to a jar, creating an outflow jar_movement.",
+      "source_paths": [
+        "features/",
+        "product/",
+        "docs/DOMAIN_MODEL.md"
+      ]
+    }
+  ],
+  "status": "ready",
+  "created_at": "2026-08-01T12:00:00Z",
+  "trace": {
+    "orchestration_id": "art_product_re_orchestration",
+    "plan_id": "art_product_re_plan",
+    "task_id": "art_task_workflow_analyzer",
+    "run_id": "art_run_workflow_analyzer",
+    "goal_id": "art_product_re_goal"
+  },
+  "extensions": {
+    "pipeline": "product-re",
+    "role_alias": "workflow-analyzer",
+    "redesign": false
+  }
+}

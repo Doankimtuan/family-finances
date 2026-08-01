@@ -31,3 +31,4 @@ All schemas are JSON Schema Draft 2020-12.
 | `discovery-report.schema.json` | Discovery Worker primary payload |
 | `worker-output-envelope.schema.json` | Shared worker run envelope |
 | `worker-manifest.schema.json` | Worker port manifest |
+| `product-re-payload.schema.json` | Product reverse-engineering primary payloads |

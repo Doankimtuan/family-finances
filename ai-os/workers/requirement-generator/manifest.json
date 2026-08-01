@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0.0",
+  "id": "requirement-generator",
+  "version": "0.1.0",
+  "title": "Requirement Extractor",
+  "implements_roles": [
+    "executor"
+  ],
+  "side_effects": [
+    "runtime-write"
+  ],
+  "entrypoint": "skill.md",
+  "status": "draft",
+  "extensions": {
+    "worker_class": "discovery",
+    "pipeline": "product-re",
+    "product_re_role": "requirement-extractor",
+    "role_alias": "requirement-extractor",
+    "skill_id": "requirement-generator",
+    "primary_output_type": "requirement-spec",
+    "consumes": [
+      "product",
+      "workflow",
+      "business"
+    ],
+    "produces": [
+      "requirements"
+    ],
+    "depends_on_workers": [
+      "product-analyst",
+      "workflow-analyzer",
+      "business-rules-extractor"
+    ],
+    "feature_worker": false,
+    "redesign": false,
+    "soft_discovery_handoff": true
+  }
+}

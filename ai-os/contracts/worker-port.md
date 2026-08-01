@@ -8,13 +8,16 @@ Workers claim runs, load skill/validator/reviewer packages, respect side-effect 
 
 Required: `id`, `version`, `implements_roles`, `side_effects`, `status`.
 
-## Phase gate (v0.4.1)
+## Phase gate (v0.4.2)
 
 | Allowed | Forbidden |
 |---------|-----------|
-| Discovery Workers under `workers/discover-*` | Feature Workers |
-| Side effects ⊆ `runtime-write` | `repo-write` / `external` without a later phase bump |
-| Registration in `registry/workers.json` + `pipelines/discovery/` | Ad-hoc scripts outside the template tree |
+| Discovery Workers under `workers/discover-*` bound by `pipelines/discovery/` | Feature Workers |
+| Product RE Workers under `workers/` with `extensions.pipeline: product-re`, bound by `pipelines/product-re/` | `repo-write` / `external` without a later phase bump |
+| Side effects ⊆ `runtime-write` | Ad-hoc scripts outside the template tree |
+| Registration in `registry/workers.json` + matching pipeline | Invoking workers from Core |
+
+`worker_class` remains `discovery` for both Discovery and Product RE packages (Feature Workers deferred). Product RE is distinguished by `extensions.pipeline` / registry `pipeline: product-re`.
 
 ## Conformance checklist
 
@@ -29,7 +32,7 @@ Minimum:
 - [ ] Fills `trace` per TRACEABILITY.md
 - [ ] Never publishes on blocking gate fail
 - [ ] `testcases/` cover happy path + budget + blocking validation
-- [ ] `extensions.worker_class` is `discovery` for this phase
+- [ ] `extensions.worker_class` is `discovery`; Product RE sets `extensions.pipeline` = `product-re`
 
 ## Package template
 
@@ -49,12 +52,20 @@ Canonical copy-from pack: `templates/worker/`
 
 ## Capability packages
 
-Registered discovery skills/validators/reviewers must exist on disk under `skills/`, `validators/`, `reviewers/` (reserved stubs allowed).
+Registered skills/validators/reviewers for a pipeline must exist on disk under `skills/`, `validators/`, `reviewers/` (reserved stubs allowed).
 
 ## Pipeline registration
 
-Discovery Workers must appear in:
+### Discovery
 
 1. `registry/workers.json`
 2. `pipelines/discovery/pipeline.json`
-3. `pipelines/discovery/dependency-graph.json` (schema: `pipeline-dependency-graph.schema.json`)
+3. `pipelines/discovery/dependency-graph.json`
+
+### Product reverse engineering
+
+1. `registry/workers.json`
+2. `pipelines/product-re/pipeline.json`
+3. `pipelines/product-re/dependency-graph.json`
+
+Product RE **must not** consume `architecture/` (AIOS control-plane docs). Use `product-architecture/` for product architecture observations.
