@@ -1,0 +1,41 @@
+{
+  "schema_version": "1.0.0",
+  "id": "discover-domain-map",
+  "version": "0.1.0",
+  "title": "Discover Domain Map",
+  "description": "Reserved discovery executor skill bound by worker discover-domain-map. No product mutation.",
+  "role": "executor",
+  "grade": "guided",
+  "inputs": [
+    {
+      "name": "goal",
+      "artifact_type": "goal",
+      "required": true,
+      "description": "Discovery goal"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "primary",
+      "artifact_type": "discovery-report",
+      "primary": true,
+      "description": "Discovery report payload"
+    }
+  ],
+  "requires_skills": [],
+  "validators": [
+    "discovery-schema-check"
+  ],
+  "reviewers": [
+    "discovery-coverage-review"
+  ],
+  "side_effects": [
+    "runtime-write"
+  ],
+  "status": "reserved",
+  "entrypoint": "SKILL.md",
+  "extensions": {
+    "worker_class": "discovery",
+    "pipeline": "discovery"
+  }
+}

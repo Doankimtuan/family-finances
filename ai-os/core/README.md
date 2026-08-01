@@ -1,6 +1,6 @@
 # AIOS Core Engine
 
-Production control plane for AIOS **v0.3.3**.
+Production control plane for AIOS **v0.4.1**.
 
 ## Scope
 

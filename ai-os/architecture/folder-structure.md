@@ -27,16 +27,17 @@ ai-os/
 │   ├── skill/
 │   ├── validation/
 │   ├── review/
-│   └── worker/             # reusable worker package template (no implementations)
+│   └── worker/             # reusable worker package template
 ├── contracts/
 ├── policies/               # Executable policy data (gate profiles)
+├── pipelines/              # Registered worker pipelines (discovery first)
 ├── registry/               # entries maps keyed by id
 ├── roles/
 ├── runtime/                # gitignored outputs (placeholders kept)
-├── skills/                 # empty until skill phase
+├── skills/                 # reserved discovery skill paths (bodies deferred)
 ├── validators/
 ├── reviewers/
-└── workers/                # docs only until worker phase
+└── workers/                # Discovery Workers only (Feature Workers forbidden)
 ```
 
 ## Package layouts (future)
@@ -67,4 +68,5 @@ Prefer writing under `runtime/artifacts/`. Convenience folders may symlink or co
 | Catalogs | `registry/` (`entries` maps) |
 | Run outputs | `runtime/` (gitignored) |
 | Capability packages | `skills/` `validators/` `reviewers/` |
-| Executors | `workers/` (deferred) |
+| Executors | `workers/` (Discovery Workers only in v0.4.x) |
+| Pipelines | `pipelines/` |

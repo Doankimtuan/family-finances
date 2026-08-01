@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0.0",
+  "id": "discover-contract-inventory",
+  "version": "0.1.0",
+  "title": "Discover Contract Inventory",
+  "implements_roles": [
+    "executor"
+  ],
+  "side_effects": [
+    "runtime-write"
+  ],
+  "entrypoint": "skill.md",
+  "status": "draft",
+  "extensions": {
+    "worker_class": "discovery",
+    "pipeline": "discovery",
+    "skill_id": "discover-contract-inventory",
+    "primary_output_type": "discovery-report",
+    "depends_on_workers": [],
+    "feature_worker": false
+  }
+}

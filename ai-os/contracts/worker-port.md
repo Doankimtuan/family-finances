@@ -1,10 +1,6 @@
 # Worker Port Contract
 
-Workers are deferred. This port is the DIP boundary they must implement later.
-
-## Responsibilities
-
-A worker claims runs, loads skill/validator/reviewer packages, respects side-effect budgets, writes artifacts under `runtime/`, and emits `events.jsonl`.
+Workers claim runs, load skill/validator/reviewer packages, respect side-effect budgets, write artifacts under `runtime/`, and emit `events.jsonl`.
 
 ## Manifest
 
@@ -12,12 +8,15 @@ A worker claims runs, loads skill/validator/reviewer packages, respects side-eff
 
 Required: `id`, `version`, `implements_roles`, `side_effects`, `status`.
 
-## Forbidden until worker phase opens
+## Phase gate (v0.4.1)
 
-- Any executable under `ai-os/workers/` beyond documentation
-- “Temporary scripts” that mutate the product repo
+| Allowed | Forbidden |
+|---------|-----------|
+| Discovery Workers under `workers/discover-*` | Feature Workers |
+| Side effects ⊆ `runtime-write` | `repo-write` / `external` without a later phase bump |
+| Registration in `registry/workers.json` + `pipelines/discovery/` | Ad-hoc scripts outside the template tree |
 
-## Conformance checklist (future)
+## Conformance checklist
 
 Instantiate from `templates/worker/` and complete that pack’s `checklist.md`.
 
@@ -30,6 +29,7 @@ Minimum:
 - [ ] Fills `trace` per TRACEABILITY.md
 - [ ] Never publishes on blocking gate fail
 - [ ] `testcases/` cover happy path + budget + blocking validation
+- [ ] `extensions.worker_class` is `discovery` for this phase
 
 ## Package template
 
@@ -46,3 +46,15 @@ Canonical copy-from pack: `templates/worker/`
 | `manifest.json` | `worker-manifest.schema.json` |
 | `examples/` | Human illustrations |
 | `testcases/` | Conformance fixtures |
+
+## Capability packages
+
+Registered discovery skills/validators/reviewers must exist on disk under `skills/`, `validators/`, `reviewers/` (reserved stubs allowed).
+
+## Pipeline registration
+
+Discovery Workers must appear in:
+
+1. `registry/workers.json`
+2. `pipelines/discovery/pipeline.json`
+3. `pipelines/discovery/dependency-graph.json` (schema: `pipeline-dependency-graph.schema.json`)

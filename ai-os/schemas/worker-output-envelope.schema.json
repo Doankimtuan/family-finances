@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aios.dev/schemas/worker-output-envelope.schema.json",
+  "title": "AIOS Worker Output Envelope",
+  "description": "Shared envelope for worker run outputs before orchestrator publish. Per-worker packages may $ref this and add extensions.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "artifact_id",
+    "worker_id",
+    "worker_version",
+    "run_id",
+    "status",
+    "created_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/schemaVersion"
+    },
+    "artifact_id": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/artifactId"
+    },
+    "worker_id": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/kebabId"
+    },
+    "worker_version": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/semver"
+    },
+    "run_id": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/artifactId"
+    },
+    "task_id": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/artifactId"
+    },
+    "orchestration_id": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/artifactId"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "ready",
+        "failed"
+      ],
+      "description": "Envelope status before orchestrator publish. Never set published here."
+    },
+    "primary_output_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact_id",
+        "artifact_version"
+      ],
+      "properties": {
+        "artifact_id": {
+          "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/artifactId"
+        },
+        "artifact_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "relation": {
+          "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/artifactRelation"
+        }
+      }
+    },
+    "validation_report_refs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "artifact_id",
+          "artifact_version"
+        ],
+        "properties": {
+          "artifact_id": {
+            "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/artifactId"
+          },
+          "artifact_version": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      }
+    },
+    "review_report_refs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "artifact_id",
+          "artifact_version"
+        ],
+        "properties": {
+          "artifact_id": {
+            "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/artifactId"
+          },
+          "artifact_version": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "string",
+      "maxLength": 4000
+    },
+    "created_at": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/isoDateTime"
+    },
+    "trace": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/traceContext"
+    },
+    "extensions": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/extensions"
+    }
+  }
+}

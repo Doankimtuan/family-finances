@@ -1,0 +1,49 @@
+{
+  "description": "Claimed run context for Discovery Worker discover-runtime-surface.",
+  "orchestration_id": "art_discovery_orchestration",
+  "plan_id": "art_discovery_plan",
+  "goal_id": "art_discovery_goal",
+  "task": {
+    "artifact_id": "art_task_discover_runtime_surface",
+    "artifact_version": 1,
+    "skill_id": "discover-runtime-surface",
+    "skill_version": "0.1.0",
+    "primary_output_type": "discovery-report",
+    "validators": [
+      "discovery-schema-check"
+    ],
+    "reviewers": [
+      "discovery-coverage-review"
+    ],
+    "side_effect_budget": [
+      "runtime-write"
+    ],
+    "done_when": [
+      "Runtime surface discovery-report lists Core modules, lifecycle transitions, and mounts"
+    ]
+  },
+  "run": {
+    "artifact_id": "art_run_discover_runtime_surface",
+    "status": "claimed",
+    "attempt": 1
+  },
+  "inputs": [
+    {
+      "name": "goal",
+      "artifact_id": "art_discovery_goal",
+      "artifact_version": 1
+    },
+    {
+      "name": "discover-repo-map",
+      "artifact_id": "art_out_discover_repo_map",
+      "artifact_version": 1
+    }
+  ],
+  "gate_profile": "standard",
+  "budget": {
+    "allowed_side_effects": [
+      "none",
+      "runtime-write"
+    ]
+  }
+}

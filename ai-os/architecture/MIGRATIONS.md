@@ -7,6 +7,34 @@
 - Additive schema fields may stay on the same `schema_version` const when optional.
 - Removing/renaming required fields or changing enum membership is breaking.
 
+## 0.4.0 → 0.4.1 (2026-08-01)
+
+Architect FAIL remediation for Discovery Worker phase (still no Feature Workers / no invoke).
+
+| Change | Detail |
+|--------|--------|
+| Docs | README non-negotiable #5; template phase rule; OVERVIEW diagram + `discovery-report`; skills/validators/reviewers READMEs |
+| Packages | Reserved stubs on disk for all registered `skills/discover-*`, `validators/discovery-schema-check`, `reviewers/discovery-coverage-review` |
+| Schemas | `discovery-report.schema.json`, `pipeline.schema.json`, `worker-output-envelope.schema.json` |
+| Contracts | `contracts/pipeline.md` |
+| Workers | CONCURRENCY lock wording; reserved-skill claim policy; checklists honest; sample discovery-report payloads; purge “Replace placeholders” |
+| Knowledge | `getPipeline`, `getPipelineDependencyGraph`, `validateDiscoveryPipelineRegistration`, `assertRegistryPathExists` |
+| Smoke | `npm run aios:discovery:smoke` — registry/pipeline/graph/path validation only |
+
+## 0.3.3 → 0.4.0 (2026-08-01)
+
+Discovery Worker phase open (Feature Workers still forbidden).
+
+| Change | Detail |
+|--------|--------|
+| Workers | Six Discovery Worker packages under `workers/discover-*` from `templates/worker/` |
+| Registry | `registry/workers.json`; `registry_kind` adds `workers`; reserved discovery skills/validator/reviewer |
+| Artifact type | `discovery-report` |
+| Pipeline | `pipelines/discovery/` with `pipeline.json` + `dependency-graph.json` (3 waves) |
+| Schema | `pipeline-dependency-graph.schema.json` for worker-kebab dependency graphs |
+| Knowledge | `KnowledgeBase.workers()` |
+| Policy | Feature Workers must not be added; side-effect ceiling remains `runtime-write` |
+
 ## 0.3.2 → 0.3.3 (2026-08-01)
 
 Architect FAIL remediation (still no workers).

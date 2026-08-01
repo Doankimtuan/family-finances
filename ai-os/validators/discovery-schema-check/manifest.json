@@ -1,0 +1,41 @@
+{
+  "schema_version": "1.0.0",
+  "id": "discovery-schema-check",
+  "version": "0.1.0",
+  "title": "Discovery Schema Check",
+  "description": "Deterministic checks that discovery-report payloads validate and required fields are present.",
+  "applies_to": [
+    "discovery-report"
+  ],
+  "checks": [
+    {
+      "check_id": "schema-valid",
+      "severity": "critical",
+      "rule": "payload validates against schemas/discovery-report.schema.json",
+      "path": "payload.json"
+    },
+    {
+      "check_id": "report-kind-known",
+      "severity": "high",
+      "rule": "report_kind is one of the discovery enum values",
+      "path": "$.report_kind"
+    },
+    {
+      "check_id": "findings-nonempty",
+      "severity": "medium",
+      "rule": "findings array has at least one entry",
+      "path": "$.findings"
+    }
+  ],
+  "fail_fast": true,
+  "side_effects": [
+    "none"
+  ],
+  "outputs": [
+    "validation-report"
+  ],
+  "status": "reserved",
+  "extensions": {
+    "pipeline": "discovery"
+  }
+}

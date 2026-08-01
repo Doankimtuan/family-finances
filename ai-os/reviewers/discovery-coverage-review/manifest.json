@@ -1,0 +1,53 @@
+{
+  "schema_version": "1.0.0",
+  "id": "discovery-coverage-review",
+  "version": "0.1.0",
+  "title": "Discovery Coverage Review",
+  "description": "Qualitative coverage review for discovery reports. Must not invent feature designs.",
+  "applies_to": [
+    "discovery-report"
+  ],
+  "requires_validations": [
+    "discovery-schema-check"
+  ],
+  "rubric_id": "discovery-coverage",
+  "rubric_version": "0.1.0",
+  "score_mode": "weighted_0_1",
+  "pass_threshold": 0.7,
+  "criteria": [
+    {
+      "id": "coverage",
+      "description": "Report covers the declared discovery scope",
+      "weight": 0.5,
+      "scale_min": 0,
+      "scale_max": 1
+    },
+    {
+      "id": "actionability",
+      "description": "Gaps are specific and non-feature (no product implementation plans)",
+      "weight": 0.3,
+      "scale_min": 0,
+      "scale_max": 1
+    },
+    {
+      "id": "traceability",
+      "description": "Findings cite paths or artifact refs where applicable",
+      "weight": 0.2,
+      "scale_min": 0,
+      "scale_max": 1
+    }
+  ],
+  "veto_conditions": [
+    {
+      "id": "feature-design",
+      "description": "Report proposes Feature Worker work or product code changes as deliverables"
+    }
+  ],
+  "outputs": [
+    "review-report"
+  ],
+  "status": "reserved",
+  "extensions": {
+    "pipeline": "discovery"
+  }
+}

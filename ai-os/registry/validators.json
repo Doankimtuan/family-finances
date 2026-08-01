@@ -2,5 +2,13 @@
   "schema_version": "1.0.0",
   "registry_kind": "validators",
   "updated_at": "2026-08-01T00:00:00Z",
-  "entries": {}
+  "entries": {
+    "discovery-schema-check": {
+      "id": "discovery-schema-check",
+      "path": "validators/discovery-schema-check",
+      "version": "0.1.0",
+      "status": "reserved",
+      "description": "Deterministic schema/shape checks for discovery-report artifacts"
+    }
+  }
 }

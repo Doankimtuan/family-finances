@@ -6,11 +6,14 @@ Read this before contributing to or operating within AIOS.
 
 | Allowed now | Forbidden now |
 |-------------|----------------|
-| Use / extend Core Engine (`ai-os/core`) | Implement workers |
-| Extend architecture docs | Skill bodies that mutate the product repo |
-| Add/adjust JSON + Zod schemas via common defs | Re-inline enums already in common schemas |
-| Add templates & registry entries | Bypass validation/review gates |
-| Clarify role charters | Mix validator/reviewer logic into skills |
+| Maintain Discovery Workers (`workers/discover-*`) | Implement **Feature Workers** |
+| Extend reserved discovery skills/validators/reviewers | Skill bodies that mutate the product repo |
+| Load/validate pipelines via KnowledgeBase | Invoke/claim workers from Core |
+| Use / extend Core Engine (`ai-os/core`) | Bypass validation/review gates |
+| Extend architecture docs | Re-inline enums already in common schemas |
+| Add/adjust JSON + Zod schemas via common defs | Mix validator/reviewer logic into skills |
+| Add templates & registry entries | Raise discovery side effects above `runtime-write` |
+| Clarify role charters | Register package paths that do not exist on disk |
 
 ## Core Engine
 
@@ -18,7 +21,7 @@ Import: `@/ai-os/core` → `createAiosCore()`.
 
 Modules: `planner`, `orchestrator`, `artifacts`, `memory`, `knowledge`, `schemas`, `templates`, `configs`.
 
-Smoke: `npm run aios:core:smoke`
+Smoke: `npm run aios:core:smoke` · Discovery registration: `npm run aios:discovery:smoke`
 
 ## Role selection
 
@@ -26,7 +29,8 @@ Smoke: `npm run aios:core:smoke`
 |------|------|
 | Decompose a goal into tasks + deps | `planner` |
 | Coordinate lifecycle / gates / retries | `orchestrator` |
-| Produce a work artifact from a task | `executor` (future workers) |
+| Produce a discovery artifact from a task | `executor` via Discovery Workers |
+| Produce a product feature artifact | deferred Feature Workers |
 | Run deterministic checks | `validator` |
 | Apply qualitative judgment | `reviewer` |
 

@@ -1,8 +1,8 @@
 # Worker Package Template
 
 > **Copy this entire directory** when scaffolding a new worker.  
-> Replace every `{{placeholder}}`. Do **not** leave template markers in an active package.  
-> This pack is structure-only — it is not a runnable worker.
+> Replace every template marker before activation. Do **not** leave template markers in an active package.  
+> This pack is structure-only — it is not a runnable worker runtime.
 
 ## Canonical layout (mandatory)
 
@@ -81,13 +81,15 @@ Optional siblings (allowed, not required by this template pack):
 
 ## Instantiation recipe
 
-1. Copy `ai-os/templates/worker/` → `ai-os/workers/{{worker_id}}/` (only when worker phase is open).
-2. Replace all `{{…}}` placeholders.
+1. Copy `ai-os/templates/worker/` → `ai-os/workers/{{worker_id}}/`.
+2. Replace all template markers.
 3. Fill `examples/` and `testcases/` with real fixtures.
-4. Add `manifest.json` conforming to `worker-manifest.schema.json`.
-5. Register the worker when a worker registry exists (future).
-6. Pass every item in `checklist.md`.
+4. Ensure `manifest.json` conforms to `worker-manifest.schema.json`.
+5. Register in `registry/workers.json` and the appropriate `pipelines/<id>/`.
+6. Pass every item in `checklist.md` before promoting to `active`.
 
-## Framework rule
+## Phase rule
 
-Until the worker phase is explicitly opened, **do not** create concrete packages under `ai-os/workers/` except documentation that points here.
+- **Discovery Workers** (`worker_class: discovery`) may be instantiated under `ai-os/workers/discover-*` in the current phase.
+- **Feature Workers** remain forbidden until a later VERSION bump explicitly opens that class.
+- Packages are declarative port bindings. Executable claim/run loops are a separate runtime milestone; Core does not invoke workers yet.

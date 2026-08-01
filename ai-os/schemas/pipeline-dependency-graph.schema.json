@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aios.dev/schemas/pipeline-dependency-graph.schema.json",
+  "title": "AIOS Pipeline Worker Dependency Graph",
+  "description": "Hard edges among registered workers in a named pipeline. Node ids are worker kebab ids (not art_ task ids).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "artifact_id",
+    "kind",
+    "pipeline_id",
+    "nodes",
+    "edges",
+    "created_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/schemaVersion"
+    },
+    "artifact_id": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/artifactId"
+    },
+    "kind": {
+      "type": "string",
+      "const": "worker"
+    },
+    "pipeline_id": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/kebabId"
+    },
+    "title": {
+      "type": "string"
+    },
+    "created_at": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/isoDateTime"
+    },
+    "nodes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "node_type"],
+        "properties": {
+          "id": {
+            "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/kebabId"
+          },
+          "node_type": {
+            "type": "string",
+            "const": "worker"
+          },
+          "label": {
+            "type": "string"
+          },
+          "worker_class": {
+            "type": "string",
+            "enum": ["discovery", "feature"]
+          }
+        }
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["predecessor", "successor", "type"],
+        "properties": {
+          "predecessor": {
+            "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/kebabId"
+          },
+          "successor": {
+            "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/kebabId"
+          },
+          "type": {
+            "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/edgeType"
+          },
+          "relation": {
+            "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/artifactRelation"
+          }
+        }
+      }
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "extensions": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/extensions"
+    }
+  }
+}

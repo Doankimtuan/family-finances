@@ -1,0 +1,83 @@
+{
+  "schema_version": "1.0.0",
+  "registry_kind": "workers",
+  "updated_at": "2026-08-01T00:00:00Z",
+  "entries": {
+    "discover-repo-map": {
+      "id": "discover-repo-map",
+      "path": "workers/discover-repo-map",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Inventory the repository layout (packages, entrypoints, app vs ai-os boundaries) and emit a discovery-report locating durable paths agents must respect.",
+      "worker_class": "discovery",
+      "pipeline": "discovery",
+      "skill_id": "discover-repo-map",
+      "depends_on_workers": []
+    },
+    "discover-domain-map": {
+      "id": "discover-domain-map",
+      "path": "workers/discover-domain-map",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Normalize business domain boundaries from DOMAIN_MAP and product docs into a discovery-report without proposing feature implementations.",
+      "worker_class": "discovery",
+      "pipeline": "discovery",
+      "skill_id": "discover-domain-map",
+      "depends_on_workers": []
+    },
+    "discover-contract-inventory": {
+      "id": "discover-contract-inventory",
+      "path": "workers/discover-contract-inventory",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Catalog AIOS JSON schemas, contracts, policies, and Zod mirrors; flag reinlined enums and missing $refs without changing product features.",
+      "worker_class": "discovery",
+      "pipeline": "discovery",
+      "skill_id": "discover-contract-inventory",
+      "depends_on_workers": []
+    },
+    "discover-registry-audit": {
+      "id": "discover-registry-audit",
+      "path": "workers/discover-registry-audit",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Compare registry entries (skills, validators, reviewers, workers, artifact-types) to on-disk packages and report gaps or reserved-only stubs.",
+      "worker_class": "discovery",
+      "pipeline": "discovery",
+      "skill_id": "discover-registry-audit",
+      "depends_on_workers": [
+        "discover-contract-inventory"
+      ]
+    },
+    "discover-runtime-surface": {
+      "id": "discover-runtime-surface",
+      "path": "workers/discover-runtime-surface",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Map Core Engine public APIs, orchestration lifecycle states, and runtime mounts so later work targets the control plane correctly.",
+      "worker_class": "discovery",
+      "pipeline": "discovery",
+      "skill_id": "discover-runtime-surface",
+      "depends_on_workers": [
+        "discover-repo-map"
+      ]
+    },
+    "discover-gap-report": {
+      "id": "discover-gap-report",
+      "path": "workers/discover-gap-report",
+      "version": "0.1.0",
+      "status": "draft",
+      "description": "Synthesize prior discovery reports into a single gap/risk report for orchestrator planning. Does not implement features.",
+      "worker_class": "discovery",
+      "pipeline": "discovery",
+      "skill_id": "discover-gap-report",
+      "depends_on_workers": [
+        "discover-repo-map",
+        "discover-domain-map",
+        "discover-contract-inventory",
+        "discover-registry-audit",
+        "discover-runtime-surface"
+      ]
+    }
+  }
+}

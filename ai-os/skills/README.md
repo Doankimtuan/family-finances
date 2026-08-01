@@ -1,13 +1,12 @@
 # Skills package root
 
-Empty in framework phase.
+Discovery reserved skill stubs live here (`skills/discover-*`).
 
-Skill packages will live at:
+| Status | Meaning |
+|--------|---------|
+| `reserved` | Package exists; may be claimed only with `acceptReservedSkills` / explicit exception |
+| `draft` / `active` | Later skill phases |
 
-```
-ai-os/skills/<skill-id>/
-```
+Follow `architecture/skill-conventions.md` and `templates/skill/` for new packages.
 
-Follow `architecture/skill-conventions.md` and `templates/skill/` when the skill phase opens.
-
-Do not add executable skill bodies now.
+Do not add skill bodies that mutate the product repo.

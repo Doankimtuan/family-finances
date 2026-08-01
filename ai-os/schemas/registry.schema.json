@@ -20,7 +20,8 @@
         "skills",
         "validators",
         "reviewers",
-        "artifact-types"
+        "artifact-types",
+        "workers"
       ]
     },
     "updated_at": {

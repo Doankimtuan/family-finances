@@ -1,0 +1,69 @@
+{
+  "description": "Claimed run context for Discovery Worker discover-gap-report.",
+  "orchestration_id": "art_discovery_orchestration",
+  "plan_id": "art_discovery_plan",
+  "goal_id": "art_discovery_goal",
+  "task": {
+    "artifact_id": "art_task_discover_gap_report",
+    "artifact_version": 1,
+    "skill_id": "discover-gap-report",
+    "skill_version": "0.1.0",
+    "primary_output_type": "discovery-report",
+    "validators": [
+      "discovery-schema-check"
+    ],
+    "reviewers": [
+      "discovery-coverage-review"
+    ],
+    "side_effect_budget": [
+      "runtime-write"
+    ],
+    "done_when": [
+      "Gap report discovery-report ranks missing contracts, packages, and pipeline holes"
+    ]
+  },
+  "run": {
+    "artifact_id": "art_run_discover_gap_report",
+    "status": "claimed",
+    "attempt": 1
+  },
+  "inputs": [
+    {
+      "name": "goal",
+      "artifact_id": "art_discovery_goal",
+      "artifact_version": 1
+    },
+    {
+      "name": "discover-repo-map",
+      "artifact_id": "art_out_discover_repo_map",
+      "artifact_version": 1
+    },
+    {
+      "name": "discover-domain-map",
+      "artifact_id": "art_out_discover_domain_map",
+      "artifact_version": 1
+    },
+    {
+      "name": "discover-contract-inventory",
+      "artifact_id": "art_out_discover_contract_inventory",
+      "artifact_version": 1
+    },
+    {
+      "name": "discover-registry-audit",
+      "artifact_id": "art_out_discover_registry_audit",
+      "artifact_version": 1
+    },
+    {
+      "name": "discover-runtime-surface",
+      "artifact_id": "art_out_discover_runtime_surface",
+      "artifact_version": 1
+    }
+  ],
+  "gate_profile": "standard",
+  "budget": {
+    "allowed_side_effects": [
+      "none",
+      "runtime-write"
+    ]
+  }
+}

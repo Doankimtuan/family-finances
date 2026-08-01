@@ -1,0 +1,41 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_out_discover_runtime_surface_envelope",
+  "worker_id": "discover-runtime-surface",
+  "worker_version": "0.1.0",
+  "run_id": "art_run_discover_runtime_surface",
+  "task_id": "art_task_discover_runtime_surface",
+  "orchestration_id": "art_discovery_orchestration",
+  "status": "ready",
+  "primary_output_ref": {
+    "artifact_id": "art_out_discover_runtime_surface",
+    "artifact_version": 1,
+    "relation": "derived-from"
+  },
+  "validation_report_refs": [
+    {
+      "artifact_id": "art_val_discover_runtime_surface",
+      "artifact_version": 1
+    }
+  ],
+  "review_report_refs": [
+    {
+      "artifact_id": "art_rev_discover_runtime_surface",
+      "artifact_version": 1
+    }
+  ],
+  "summary": "Map Core Engine public APIs, orchestration lifecycle states, and runtime mounts so later work targets the control plane correctly.",
+  "created_at": "2026-08-01T00:00:00Z",
+  "trace": {
+    "orchestration_id": "art_discovery_orchestration",
+    "plan_id": "art_discovery_plan",
+    "task_id": "art_task_discover_runtime_surface",
+    "run_id": "art_run_discover_runtime_surface",
+    "goal_id": "art_discovery_goal"
+  },
+  "extensions": {
+    "worker_class": "discovery",
+    "pipeline": "discovery",
+    "primary_payload_schema": "schemas/discovery-report.schema.json"
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_id": "art_out_discover_domain_map",
+  "report_kind": "domain-map",
+  "worker_id": "discover-domain-map",
+  "worker_version": "0.1.0",
+  "title": "discover-domain-map discovery report",
+  "summary": "Sample discovery-report payload for discover-domain-map.",
+  "findings": [
+    {
+      "id": "sample-finding",
+      "severity": "info",
+      "message": "Sample finding for discover-domain-map",
+      "path": "workers/discover-domain-map"
+    }
+  ],
+  "inventory": {
+    "worker_id": "discover-domain-map",
+    "report_kind": "domain-map"
+  },
+  "gaps": [
+    {
+      "id": "sample-gap",
+      "severity": "low",
+      "description": "Executable runtime still deferred for Discovery Workers",
+      "suggested_owner": "core"
+    }
+  ],
+  "status": "ready",
+  "created_at": "2026-08-01T06:00:00Z",
+  "trace": {
+    "orchestration_id": "art_discovery_orchestration",
+    "plan_id": "art_discovery_plan",
+    "task_id": "art_task_discover_domain_map",
+    "run_id": "art_run_discover_domain_map",
+    "goal_id": "art_discovery_goal"
+  }
+}

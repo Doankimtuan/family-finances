@@ -26,4 +26,8 @@ All schemas are JSON Schema Draft 2020-12.
 | `run-event.schema.json` | `events.jsonl` line |
 | `plan-decision.schema.json` | Accept/reject/revise |
 | `escalation.schema.json` | Human escalation |
+| `pipeline-dependency-graph.schema.json` | Worker edges inside a named pipeline |
+| `pipeline.schema.json` | Named worker pipeline registration |
+| `discovery-report.schema.json` | Discovery Worker primary payload |
+| `worker-output-envelope.schema.json` | Shared worker run envelope |
 | `worker-manifest.schema.json` | Worker port manifest |

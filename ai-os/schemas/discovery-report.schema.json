@@ -1,0 +1,138 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aios.dev/schemas/discovery-report.schema.json",
+  "title": "AIOS Discovery Report Payload",
+  "description": "Primary payload for artifact type discovery-report. Read-only inventory/gap output; not a feature design.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "artifact_id",
+    "report_kind",
+    "worker_id",
+    "title",
+    "summary",
+    "findings",
+    "status",
+    "created_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/schemaVersion"
+    },
+    "artifact_id": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/artifactId"
+    },
+    "report_kind": {
+      "type": "string",
+      "enum": [
+        "repo-map",
+        "domain-map",
+        "contract-inventory",
+        "registry-audit",
+        "runtime-surface",
+        "gap-report"
+      ]
+    },
+    "worker_id": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/kebabId"
+    },
+    "worker_version": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/semver"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4000
+    },
+    "findings": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "severity",
+          "message"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 64
+          },
+          "severity": {
+            "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/severity"
+          },
+          "message": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "path": {
+            "type": "string"
+          },
+          "hint": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "inventory": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Structured inventory map; shape varies by report_kind"
+    },
+    "gaps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "severity",
+          "description"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 64
+          },
+          "severity": {
+            "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/severity"
+          },
+          "description": {
+            "type": "string"
+          },
+          "suggested_owner": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "ready",
+        "failed"
+      ]
+    },
+    "created_at": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/isoDateTime"
+    },
+    "trace": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/traceContext"
+    },
+    "extensions": {
+      "$ref": "https://aios.dev/schemas/common.schema.json#/$defs/extensions"
+    }
+  }
+}

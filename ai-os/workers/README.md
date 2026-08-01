@@ -1,14 +1,31 @@
-# Workers — Out of Scope (implementations)
+# Workers
 
-This directory has **no concrete workers**.
+Concrete worker packages live here. Instantiation **must** copy `templates/worker/` unchanged in layout.
 
-## Templates (use these)
+## Allowed in this phase
 
-Reusable worker package structure lives at:
+**Discovery Workers only** (`worker_class: discovery`).
 
-[`ai-os/templates/worker/`](../templates/worker/)
+| Worker | Pipeline | Status |
+|--------|----------|--------|
+| `discover-repo-map` | discovery | draft |
+| `discover-domain-map` | discovery | draft |
+| `discover-contract-inventory` | discovery | draft |
+| `discover-registry-audit` | discovery | draft |
+| `discover-runtime-surface` | discovery | draft |
+| `discover-gap-report` | discovery | draft |
 
-Mandatory files for every future worker:
+Registry: [`registry/workers.json`](../registry/workers.json)  
+Pipeline: [`pipelines/discovery/`](../pipelines/discovery/)  
+Dependency graph: [`pipelines/discovery/dependency-graph.json`](../pipelines/discovery/dependency-graph.json)
+
+## Forbidden
+
+- **Feature Workers** (any worker that implements product features, mutates app source, or raises side effects to `repo-write` / `external` without a later phase bump)
+- Packages that do not match the mandatory template tree
+- Executables that bypass `contracts/worker-port.md`
+
+## Mandatory package tree
 
 ```
 README.md
@@ -22,31 +39,6 @@ examples/
 testcases/
 ```
 
-Copy that pack when the worker phase opens. Do not invent a different layout.
+## Template
 
-## Framework phase rule
-
-**Do not implement workers here.**
-
-Workers are future processes/agents that:
-
-- claim runs
-- invoke skills
-- call validators/reviewers
-- persist artifacts under `runtime/`
-
-Until the worker phase is explicitly opened, only this boundary document may exist under `workers/` (plus links to templates).
-
-## When workers are allowed
-
-A later phase must provide:
-
-1. Instantiation from `templates/worker/` (unchanged structure)
-2. `manifest.json` validating `schemas/worker-manifest.schema.json`
-3. Permission model for side effects
-4. Conformance tests from each package’s `testcases/`
-5. Explicit AIOS version bump opening the worker phase
-
-## Temporary exceptions
-
-None. “Just a small script” is still a worker.
+[`ai-os/templates/worker/`](../templates/worker/)

@@ -9,6 +9,48 @@
       "version": "0.0.0",
       "status": "reserved",
       "description": "Placeholder skill for Core Engine planning fixtures; not executable"
+    },
+    "discover-repo-map": {
+      "id": "discover-repo-map",
+      "path": "skills/discover-repo-map",
+      "version": "0.1.0",
+      "status": "reserved",
+      "description": "Reserved executor skill bound by Discovery Worker discover-repo-map"
+    },
+    "discover-domain-map": {
+      "id": "discover-domain-map",
+      "path": "skills/discover-domain-map",
+      "version": "0.1.0",
+      "status": "reserved",
+      "description": "Reserved executor skill bound by Discovery Worker discover-domain-map"
+    },
+    "discover-contract-inventory": {
+      "id": "discover-contract-inventory",
+      "path": "skills/discover-contract-inventory",
+      "version": "0.1.0",
+      "status": "reserved",
+      "description": "Reserved executor skill bound by Discovery Worker discover-contract-inventory"
+    },
+    "discover-registry-audit": {
+      "id": "discover-registry-audit",
+      "path": "skills/discover-registry-audit",
+      "version": "0.1.0",
+      "status": "reserved",
+      "description": "Reserved executor skill bound by Discovery Worker discover-registry-audit"
+    },
+    "discover-runtime-surface": {
+      "id": "discover-runtime-surface",
+      "path": "skills/discover-runtime-surface",
+      "version": "0.1.0",
+      "status": "reserved",
+      "description": "Reserved executor skill bound by Discovery Worker discover-runtime-surface"
+    },
+    "discover-gap-report": {
+      "id": "discover-gap-report",
+      "path": "skills/discover-gap-report",
+      "version": "0.1.0",
+      "status": "reserved",
+      "description": "Reserved executor skill bound by Discovery Worker discover-gap-report"
     }
   }
 }
