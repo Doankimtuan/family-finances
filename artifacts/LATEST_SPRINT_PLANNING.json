@@ -1,0 +1,21 @@
+{
+  "pack": "sprint-planning",
+  "status": "READY_FOR_IMPLEMENTATION",
+  "current": "artifacts/sprint-planning/CURRENT",
+  "immutable": "artifacts/sprint-planning/sprint-001",
+  "sprint": "S1",
+  "sprint_folder": "sprint-001",
+  "version": "v1.0.0",
+  "frozen": true,
+  "run_id": "run_sprint_planning_001_20260802T001701Z",
+  "updated_at": "2026-08-02T00:17:01Z",
+  "stories_committed": [
+    "ST-E01-001",
+    "ST-E01-002",
+    "ST-E01-003",
+    "ST-E02-001",
+    "ST-E02-002",
+    "ST-E02-003"
+  ],
+  "exit_criteria": "AppViewport + login session works"
+}
