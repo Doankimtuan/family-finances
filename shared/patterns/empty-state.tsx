@@ -30,7 +30,7 @@ export function EmptyState({
       <div
         className={cn(
           "mb-(--space-1) flex size-14 items-center justify-center",
-          "rounded-[var(--radius-xl)] bg-surface",
+          "rounded-xl bg-surface",
           "border border-border-subtle shadow-[var(--elevation-1)]",
           "text-text-muted",
         )}

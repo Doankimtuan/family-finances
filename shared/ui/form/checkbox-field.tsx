@@ -29,7 +29,7 @@ export function CheckboxField({
           id={id}
           type="checkbox"
           className={cn(
-            "mt-0.5 size-5 shrink-0 rounded-[var(--radius-sm)]",
+            "mt-0.5 size-5 shrink-0 rounded-sm",
             "border border-border-strong bg-surface accent-[var(--color-accent)]",
             "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring",
           )}

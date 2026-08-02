@@ -27,7 +27,7 @@ export function DialogContent({
       <Modal.Container className={cn("max-w-[min(100%,400px)]", className)}>
         <Modal.Dialog
           className={cn(
-            "rounded-[var(--radius-xl)] bg-surface-elevated",
+            "rounded-xl bg-surface-elevated",
             "border border-border-subtle shadow-[var(--elevation-2)]",
           )}
         >

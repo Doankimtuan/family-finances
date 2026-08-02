@@ -73,7 +73,7 @@ export function BrandMark({
       <div
         {...a11y}
         className={cn(
-          "inline-flex items-center justify-center rounded-[var(--radius-xl)]",
+          "inline-flex items-center justify-center rounded-xl",
           "bg-accent text-accent-fg shadow-[var(--elevation-1)]",
           box,
           className,
@@ -89,7 +89,7 @@ export function BrandMark({
     <div
       {...a11y}
       className={cn(
-        "inline-flex items-center justify-center rounded-[var(--radius-xl)]",
+        "inline-flex items-center justify-center rounded-xl",
         "bg-accent/12 text-accent ring-1 ring-accent/25",
         "shadow-[0_0_24px_color-mix(in_srgb,var(--color-accent)_28%,transparent)]",
         box,

@@ -163,7 +163,7 @@ export function OnboardWizardScreen() {
             ).map(([value, labelKey]) => (
               <label
                 key={value}
-                className="flex cursor-pointer items-start gap-(--space-3) rounded-[var(--radius-lg)] border border-border-subtle bg-surface px-(--space-4) py-(--space-3)"
+                className="flex cursor-pointer items-start gap-(--space-3) rounded-lg border border-border-subtle bg-surface px-(--space-4) py-(--space-3)"
               >
                 <input
                   type="radio"
@@ -171,7 +171,7 @@ export function OnboardWizardScreen() {
                   value={value}
                   checked={planPreset === value}
                   onChange={() => setPlanPreset(value)}
-                  className="mt-1 size-4 accent-[var(--color-accent)]"
+                  className="mt-1 size-4 accent-(--color-accent)"
                 />
                 <span className="flex flex-col gap-0.5">
                   <span className="text-sm font-medium text-text-primary">

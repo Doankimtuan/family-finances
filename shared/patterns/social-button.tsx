@@ -60,7 +60,7 @@ export function SocialButton({
     <Button
       variant="secondary"
       className={cn(
-        "button min-h-14 w-full gap-(--space-3) rounded-[var(--radius-lg)] text-[15px] font-semibold",
+        "button min-h-14 w-full gap-(--space-3) rounded-lg text-[15px] font-semibold",
         "shadow-none transition-[transform,background-color,opacity] duration-(--duration-fast)",
         // OAuth chrome uses semantic tokens (Google brand glyph colors stay as brand IP).
         isGoogle

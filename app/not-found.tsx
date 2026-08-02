@@ -18,13 +18,13 @@ export default function GlobalNotFound() {
       <div className="flex gap-3 text-sm font-medium">
         <Link
           href="/en"
-          className="rounded-[var(--radius-md)] bg-accent px-4 py-2.5 text-accent-fg"
+          className="rounded-md bg-accent px-4 py-2.5 text-accent-fg"
         >
           English
         </Link>
         <Link
           href="/vi"
-          className="rounded-[var(--radius-md)] border border-border-strong px-4 py-2.5 text-text-primary"
+          className="rounded-md border border-border-strong px-4 py-2.5 text-text-primary"
         >
           Tiếng Việt
         </Link>

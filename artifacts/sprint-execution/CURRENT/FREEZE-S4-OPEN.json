@@ -1,0 +1,19 @@
+{
+  "pack": "sprint-execution",
+  "sprint": "S4",
+  "sprint_folder": "sprint-004",
+  "status": "IN_PROGRESS",
+  "frozen": false,
+  "last_frozen_story": null,
+  "next_story": "ST-E05-001",
+  "previous_sprint": "S3",
+  "run_id": "run_sprint_open_S4_20260802T121500Z",
+  "updated_at": "2026-08-02T12:15:00Z",
+  "implementation_plan": "artifacts/implementation-plan/CURRENT/sprints/S4.md",
+  "stories": {
+    "ST-E05-001": "PENDING",
+    "ST-E05-002": "PENDING",
+    "ST-E05-003": "PENDING",
+    "ST-E05-004": "PENDING"
+  }
+}

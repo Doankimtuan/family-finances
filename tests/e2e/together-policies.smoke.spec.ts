@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { APP_PATH } from "@/modules/tenancy/application/app-path";
 
 test.describe("Together policies + preferences (ST-E03-003)", () => {
   test("unauthenticated policies redirects to login", async ({ page }) => {
@@ -26,7 +27,7 @@ test.describe("Together policies + preferences (ST-E03-003)", () => {
       timeout: 20_000,
     });
     test.skip(
-      page.url().includes("/together/onboard"),
+      page.url().includes(APP_PATH.ONBOARD),
       "E2E user has no household — complete onboard first",
     );
 

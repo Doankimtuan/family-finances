@@ -32,7 +32,7 @@ export function LocaleSwitcher({ className }: { className?: string }) {
             key={code}
             type="button"
             className={cn(
-              "min-h-9 rounded-[var(--radius-md)] px-3 font-medium",
+              "min-h-9 rounded-md px-3 font-medium",
               "transition-colors duration-(--duration-fast) ease-(--ease-standard)",
               "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring",
               active

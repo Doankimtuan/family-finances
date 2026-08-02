@@ -1,3 +1,55 @@
 {
-  "title": "Plan"
+  "title": "Plan",
+  "subtitle": "Where money is meant to go",
+  "teaching": {
+    "title": "Intention is not your bank balance",
+    "body": "Jars are envelopes for intention. Real cash and accounts live in Money. Never read jar totals as bank balance."
+  },
+  "jars": {
+    "title": "Active jars",
+    "subtitle": "Allocation targets only — paused and archived stay out of placement.",
+    "seeAll": "Open jars",
+    "emptyTitle": "No active jars",
+    "emptyDescription": "Finish onboard or restore an active jar to place money.",
+    "kinds": {
+      "spending": "Spending",
+      "savings": "Savings",
+      "buffer": "Buffer",
+      "income": "Income"
+    },
+    "stateActive": "Active"
+  },
+  "goals": {
+    "title": "Goals",
+    "body": "Intention targets for the months ahead.",
+    "cta": "Open goals"
+  },
+  "recurring": {
+    "title": "Recurring",
+    "body": "Expected rhythms that feed the plan.",
+    "cta": "Open recurring"
+  },
+  "ritual": {
+    "title": "Month Ritual",
+    "body": "Close the period with Assisted preview → approve.",
+    "modeLabel": "Mode: {mode}",
+    "modes": {
+      "assisted": "Assisted",
+      "auto": "Auto",
+      "manual": "Manual"
+    },
+    "cta": "Open Month Ritual"
+  },
+  "moneyLink": "See Real Ledger in Money",
+  "stub": {
+    "jarsTitle": "Jars",
+    "jarsBody": "Active-only jar list and detail land in the next Plan story.",
+    "goalsTitle": "Goals",
+    "goalsBody": "Goals arrive with the Goals & recurring story.",
+    "recurringTitle": "Recurring",
+    "recurringBody": "Recurring rules arrive with the Goals & recurring story.",
+    "ritualTitle": "Month Ritual",
+    "ritualBody": "Assisted preview → approve → lock lands in the Month Ritual story.",
+    "back": "Back to Plan"
+  }
 }

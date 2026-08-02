@@ -1,5 +1,5 @@
-# Execution Summary — ST-E03-003
+# Execution Summary — ST-E05-001
 
-Frozen household policies + preferences. Admin saves overspend/ritual/income with partner-visible audit; partners read-only. Preferences hosts profile, theme/locale, and account security.
+Plan hub teaches real≠virtual, previews Active jars only (never as bank balance), and offers Goals / Recurring / Month Ritual entry points (stubs until later S4 stories).
 
-**S2 = COMPLETE** (3/3). Next run opens S3 only.
+**S4** 1/4 frozen. Next: **`ST-E05-002`**.

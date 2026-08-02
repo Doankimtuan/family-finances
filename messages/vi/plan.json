@@ -1,3 +1,55 @@
 {
-  "title": "Kế hoạch"
+  "title": "Plan",
+  "subtitle": "Tiền được dành để đi đâu",
+  "teaching": {
+    "title": "Kế hoạch không phải số dư ngân hàng",
+    "body": "Hũ là phong bì ý định. Tiền mặt và tài khoản thật nằm ở Money. Không bao giờ đọc tổng hũ như số dư ngân hàng."
+  },
+  "jars": {
+    "title": "Hũ đang hoạt động",
+    "subtitle": "Chỉ đích phân bổ — hũ tạm dừng/lưu trữ không phải đích gắn.",
+    "seeAll": "Mở hũ",
+    "emptyTitle": "Chưa có hũ hoạt động",
+    "emptyDescription": "Hoàn tất onboard hoặc khôi phục hũ để phân bổ tiền.",
+    "kinds": {
+      "spending": "Chi tiêu",
+      "savings": "Tiết kiệm",
+      "buffer": "Đệm",
+      "income": "Thu"
+    },
+    "stateActive": "Hoạt động"
+  },
+  "goals": {
+    "title": "Mục tiêu",
+    "body": "Đích ý định cho các tháng tới.",
+    "cta": "Mở mục tiêu"
+  },
+  "recurring": {
+    "title": "Định kỳ",
+    "body": "Nhịp kỳ vọng nuôi kế hoạch.",
+    "cta": "Mở định kỳ"
+  },
+  "ritual": {
+    "title": "Nghi thức tháng",
+    "body": "Đóng kỳ với xem trước Assisted → duyệt.",
+    "modeLabel": "Chế độ: {mode}",
+    "modes": {
+      "assisted": "Assisted",
+      "auto": "Tự động",
+      "manual": "Thủ công"
+    },
+    "cta": "Mở Nghi thức tháng"
+  },
+  "moneyLink": "Xem sổ cái thật ở Money",
+  "stub": {
+    "jarsTitle": "Hũ",
+    "jarsBody": "Danh sách và chi tiết hũ Active-only sẽ có ở story Plan tiếp theo.",
+    "goalsTitle": "Mục tiêu",
+    "goalsBody": "Mục tiêu sẽ có ở story Mục tiêu & định kỳ.",
+    "recurringTitle": "Định kỳ",
+    "recurringBody": "Quy tắc định kỳ sẽ có ở story Mục tiêu & định kỳ.",
+    "ritualTitle": "Nghi thức tháng",
+    "ritualBody": "Xem trước Assisted → duyệt → khoá sẽ có ở story Nghi thức tháng.",
+    "back": "Về Plan"
+  }
 }

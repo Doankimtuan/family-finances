@@ -48,7 +48,7 @@ export function BottomNavigation({ className }: { className?: string }) {
                   href={href}
                   className={cn(
                     "relative flex min-h-12 min-w-0 flex-col items-center justify-center",
-                    "gap-(--space-1) rounded-[var(--radius-lg)] px-(--space-1) py-(--space-2)",
+                    "gap-(--space-1) rounded-lg px-(--space-1) py-(--space-2)",
                     "text-center text-xs font-medium leading-tight tracking-tight",
                     "transition-[color,background-color,transform] duration-(--duration-fast) ease-(--ease-standard)",
                     "motion-reduce:transition-none",

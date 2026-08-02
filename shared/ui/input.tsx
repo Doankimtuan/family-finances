@@ -9,7 +9,7 @@ import { cn } from "@/shared/utils/cn";
 export type InputProps = HeroInputProps;
 
 const fieldChrome = cn(
-  "min-h-11 w-full rounded-[var(--radius-md)]",
+  "min-h-11 w-full rounded-md",
   "border border-border-subtle bg-surface text-text-primary",
   "shadow-[var(--elevation-0)]",
   "transition-[border-color,box-shadow,background-color] duration-(--duration-fast) ease-(--ease-standard)",

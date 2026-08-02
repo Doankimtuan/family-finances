@@ -2,7 +2,9 @@
 
 | Item | Status |
 |------|--------|
-| S3 epic stories | **NEXT** (sprint not opened) |
-| S4+ | Not opened |
+| `ST-E05-002` | **NEXT** |
+| `ST-E05-003` | PENDING |
+| `ST-E05-004` | PENDING |
+| S5+ | Not opened |
 
-Updated: `2026-08-02T10:51:30Z`
+Updated: `2026-08-02T13:45:00Z`

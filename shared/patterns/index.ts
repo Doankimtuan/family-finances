@@ -30,3 +30,6 @@ export { LocaleSwitcher } from "./locale-switcher";
 export { ThemeToggle } from "./theme-toggle";
 export { TogetherPreferences } from "./together-preferences";
 export { SectionHeader, type SectionHeaderProps } from "./section-header";
+export { Balance, type BalanceProps } from "./balance";
+export { QuickAction, type QuickActionProps } from "./quick-action";
+export { TransactionRow, type TransactionRowProps } from "./transaction-row";

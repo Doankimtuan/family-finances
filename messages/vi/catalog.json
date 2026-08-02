@@ -1,0 +1,22 @@
+{
+  "accounts": {
+    "cash": "Tiền mặt"
+  },
+  "tags": {
+    "food": "Ăn uống",
+    "transport": "Di chuyển",
+    "home": "Nhà cửa",
+    "health": "Sức khoẻ",
+    "other": "Khác",
+    "salary": "Lương",
+    "bonus": "Thưởng"
+  },
+  "jars": {
+    "essentials": "Thiết yếu",
+    "lifestyle": "Sinh hoạt",
+    "buffer": "Đệm",
+    "savings": "Tiết kiệm",
+    "needs": "Cần thiết",
+    "wants": "Mong muốn"
+  }
+}

@@ -1,19 +1,14 @@
 # Story Status
 
-## S1 (complete)
+## S1–S3
 
-| Story | Status |
-|-------|--------|
-| `ST-E01-001` … `ST-E02-006` | **FROZEN** (all 9) |
+COMPLETE (all committed stories FROZEN).
 
-## S2 (complete)
+## S4 (in progress)
 
 | Story | Status | Notes |
 |-------|--------|-------|
-| `ST-E03-001` | **FROZEN** | Onboarding wizard ≤3 steps |
-| `ST-E03-002` | **FROZEN** | Members hub and invitations |
-| `ST-E03-003` | **FROZEN** | Policies roles and preferences |
-
-## S3
-
-Not opened.
+| `ST-E05-001` | **FROZEN** | Plan hub with real≠virtual teaching |
+| `ST-E05-002` | **NEXT** | Jars list and detail Active-only targets |
+| `ST-E05-003` | PENDING | Goals and recurring |
+| `ST-E05-004` | PENDING | Month Ritual Assisted preview approve lock |

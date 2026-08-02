@@ -2,11 +2,12 @@
 
 | Field | Value |
 |-------|--------|
-| Sprint | **S3** (not opened yet) |
-| Story | First S3 story per Implementation Plan |
-| Mode | Open sprint pack → implement one story |
+| Sprint | **S4** (`sprint-004`) |
+| Story | **`ST-E05-002`** — Jars list and detail Active-only targets |
+| Mode | `full_implement` |
+| Plan | `artifacts/implementation-plan/CURRENT/stories/detail/ST-E05-002.md` |
 
 ## Do not
 
-- Implement S3 stories before opening `artifacts/sprint-execution/sprint-003/`  
-- Re-open frozen S2 stories unless a gate fails  
+- Implement `ST-E05-003+` in the same run  
+- Re-open frozen `ST-E05-001` unless a gate fails  

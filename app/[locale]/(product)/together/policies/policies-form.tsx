@@ -233,7 +233,7 @@ export function PoliciesForm({
             {events.map((event) => (
               <li
                 key={event.id}
-                className="rounded-[var(--radius-lg)] border border-border-subtle bg-surface px-(--space-4) py-(--space-3)"
+                className="rounded-lg border border-border-subtle bg-surface px-(--space-4) py-(--space-3)"
               >
                 <Text size="sm" className="font-medium text-text-primary">
                   {t("auditEvent")}
@@ -250,7 +250,7 @@ export function PoliciesForm({
       {initial.canEdit ? (
         confirmOpen ? (
           <div
-            className="flex flex-col gap-(--space-3) rounded-[var(--radius-lg)] border border-border-subtle bg-surface p-(--space-4)"
+            className="flex flex-col gap-(--space-3) rounded-lg border border-border-subtle bg-surface p-(--space-4)"
             data-testid="policies-confirm"
           >
             <Text size="sm" className="font-semibold text-text-primary">

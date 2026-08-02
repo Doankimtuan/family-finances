@@ -71,7 +71,7 @@ export default async function PreferencesPage({ params }: Props) {
 
         <Link
           href={TOGETHER_PATH.ROOT}
-          className="inline-flex min-h-11 w-full items-center justify-center rounded-[var(--radius-md)] border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary"
+          className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary"
         >
           {t("back")}
         </Link>

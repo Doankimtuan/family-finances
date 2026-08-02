@@ -135,6 +135,10 @@ export const HTTP_STATUS = {
 
 export const LOCALE_COOKIE_NAME = "NEXT_LOCALE";
 
+export const AUTH_STORAGE_KEY = {
+  REMEMBER_EMAIL: "vinha.auth.rememberEmail",
+} as const;
+
 export const OTP_VERIFY_TYPE = {
   EMAIL: "email",
   SIGNUP: "signup",

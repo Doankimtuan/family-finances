@@ -1,0 +1,22 @@
+{
+  "accounts": {
+    "cash": "Cash"
+  },
+  "tags": {
+    "food": "Food",
+    "transport": "Transport",
+    "home": "Home",
+    "health": "Health",
+    "other": "Other",
+    "salary": "Salary",
+    "bonus": "Bonus"
+  },
+  "jars": {
+    "essentials": "Essentials",
+    "lifestyle": "Lifestyle",
+    "buffer": "Buffer",
+    "savings": "Savings",
+    "needs": "Needs",
+    "wants": "Wants"
+  }
+}

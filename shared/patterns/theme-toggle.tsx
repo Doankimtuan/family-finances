@@ -42,7 +42,7 @@ export function ThemeToggle({ className }: { className?: string }) {
       aria-label={tA11y("themeSwitcher")}
       aria-busy={!mounted}
       className={cn(
-        "grid w-full grid-cols-3 gap-(--space-1) rounded-[var(--radius-lg)]",
+        "grid w-full grid-cols-3 gap-(--space-1) rounded-lg",
         "border border-border-subtle bg-surface p-(--space-1)",
         className,
       )}
@@ -56,7 +56,7 @@ export function ThemeToggle({ className }: { className?: string }) {
             disabled={!mounted}
             className={cn(
               "flex min-h-11 min-w-0 flex-col items-center justify-center gap-(--space-1)",
-              "rounded-[var(--radius-md)] px-(--space-1) py-(--space-2)",
+              "rounded-md px-(--space-1) py-(--space-2)",
               "text-center text-xs font-medium leading-tight tracking-tight",
               "transition-colors duration-(--duration-fast) ease-(--ease-standard)",
               "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring",

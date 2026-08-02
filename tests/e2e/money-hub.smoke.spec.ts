@@ -1,0 +1,48 @@
+import { test, expect } from "@playwright/test";
+import { APP_PATH } from "@/modules/tenancy/application/app-path";
+
+test.describe("Money hub + accounts (ST-E04-001)", () => {
+  // Avoid parallel compile races against a shared dev server on first hit.
+  test.describe.configure({ mode: "serial" });
+
+  test("unauthenticated money redirects to login", async ({ page }) => {
+    await page.goto("/en/money", { waitUntil: "domcontentloaded" });
+    await expect(page).toHaveURL(/\/en\/login/, { timeout: 20_000 });
+  });
+
+  test("unauthenticated accounts redirects to login", async ({ page }) => {
+    await page.goto("/en/money/accounts", { waitUntil: "domcontentloaded" });
+    await expect(page).toHaveURL(/\/en\/login/, { timeout: 20_000 });
+  });
+
+  test("money hub and accounts when E2E credentials exist", async ({
+    page,
+  }) => {
+    const email = process.env.E2E_USER_EMAIL;
+    const password = process.env.E2E_USER_PASSWORD;
+    test.skip(!email || !password, "E2E credentials not provided");
+
+    await page.goto("/en/login");
+    await page.getByLabel("Email").fill(email!);
+    await page.locator("#login-password").fill(password!);
+    await page.getByRole("button", { name: "Log in" }).click();
+    await expect(page).toHaveURL(/\/en\/(home|together\/onboard)/, {
+      timeout: 20_000,
+    });
+    test.skip(
+      page.url().includes(APP_PATH.ONBOARD),
+      "E2E user has no household",
+    );
+
+    await page.goto("/en/money");
+    await expect(page.getByTestId("money-hub")).toBeVisible();
+    await expect(page.getByTestId("ledger-balance")).toBeVisible();
+    await expect(page.getByTestId("money-capture")).toBeVisible();
+    await expect(page.getByText(/Real position|jar plans/i)).toBeVisible();
+
+    await page.getByTestId("money-see-accounts").click();
+    await expect(page).toHaveURL(/\/en\/money\/accounts/);
+    await expect(page.getByTestId("money-accounts")).toBeVisible();
+    await expect(page.getByTestId("account-add-open")).toBeVisible();
+  });
+});

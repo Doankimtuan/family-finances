@@ -1,3 +1,22 @@
 {
-  "title": "Inbox"
+  "title": "Inbox",
+  "subtitle": "Review items waiting for a jar",
+  "resolve": "Assign to jar",
+  "resolving": "Assigning…",
+  "jarLabel": "Active jar",
+  "loadErrorTitle": "Could not load Inbox",
+  "loadErrorBody": "Check your connection and try again.",
+  "noJarsTitle": "No active jars",
+  "noJarsBody": "Unarchive or create a jar in Plan before you can assign these items.",
+  "kinds": {
+    "unmapped_expense": "Unmapped expense",
+    "income_suggest": "Place income (Suggest)"
+  },
+  "errors": {
+    "unauthenticated": "Sign in again.",
+    "no_membership": "Finish household setup first.",
+    "invalid": "Choose a jar.",
+    "offline": "Connect to resolve.",
+    "unknown": "Could not resolve. Try again."
+  }
 }

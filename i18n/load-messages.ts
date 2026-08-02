@@ -24,6 +24,7 @@ export const MESSAGE_NAMESPACES = [
   "toast",
   "metadata",
   "a11y",
+  "catalog",
 ] as const;
 
 export type MessageNamespace = (typeof MESSAGE_NAMESPACES)[number];

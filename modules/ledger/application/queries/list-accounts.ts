@@ -1,0 +1,108 @@
+import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
+import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
+import { mapAccountRow, type LedgerAccount } from "../account-types";
+import { applyTransactionDeltas } from "../transaction-types";
+
+export async function listAccounts(): Promise<{
+  currency: string;
+  accounts: LedgerAccount[];
+} | null> {
+  const gate = await assertMoneyActionAllowed();
+  if (!gate.ok) {
+    return null;
+  }
+
+  try {
+    const supabase = await createSupabaseServerClient();
+    const [{ data: household }, { data: rows, error }, { data: txRows }] =
+      await Promise.all([
+        supabase
+          .from("households")
+          .select("base_currency")
+          .eq("id", gate.householdId)
+          .maybeSingle(),
+        supabase
+          .from("accounts")
+          .select("id, name, type, opening_balance, is_archived")
+          .eq("household_id", gate.householdId)
+          .eq("is_archived", false)
+          .order("created_at", { ascending: true }),
+        supabase
+          .from("transactions")
+          .select("account_id, type, amount")
+          .eq("household_id", gate.householdId)
+          .eq("status", "cleared"),
+      ]);
+
+    if (error) {
+      return null;
+    }
+
+    return {
+      currency: (household?.base_currency ?? "VND").toUpperCase(),
+      accounts: applyTransactionDeltas(
+        (rows ?? []).map(mapAccountRow),
+        (txRows ?? []).map((row) => ({
+          accountId: row.account_id,
+          type: row.type,
+          amount: row.amount,
+        })),
+      ),
+    };
+  } catch {
+    return null;
+  }
+}
+
+export async function getAccount(
+  accountId: string,
+): Promise<{ currency: string; account: LedgerAccount } | null> {
+  const gate = await assertMoneyActionAllowed();
+  if (!gate.ok || !accountId) {
+    return null;
+  }
+
+  try {
+    const supabase = await createSupabaseServerClient();
+    const [{ data: household }, { data: row, error }, { data: txRows }] =
+      await Promise.all([
+        supabase
+          .from("households")
+          .select("base_currency")
+          .eq("id", gate.householdId)
+          .maybeSingle(),
+        supabase
+          .from("accounts")
+          .select("id, name, type, opening_balance, is_archived")
+          .eq("household_id", gate.householdId)
+          .eq("id", accountId)
+          .maybeSingle(),
+        supabase
+          .from("transactions")
+          .select("account_id, type, amount")
+          .eq("household_id", gate.householdId)
+          .eq("account_id", accountId)
+          .eq("status", "cleared"),
+      ]);
+
+    if (error || !row || row.is_archived) {
+      return null;
+    }
+
+    const [account] = applyTransactionDeltas(
+      [mapAccountRow(row)],
+      (txRows ?? []).map((tx) => ({
+        accountId: tx.account_id,
+        type: tx.type,
+        amount: tx.amount,
+      })),
+    );
+
+    return {
+      currency: (household?.base_currency ?? "VND").toUpperCase(),
+      account,
+    };
+  } catch {
+    return null;
+  }
+}

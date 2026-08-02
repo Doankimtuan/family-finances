@@ -23,7 +23,7 @@ export function Button({
       variant={variant}
       isIconOnly={isIconOnly}
       className={cn(
-        "button rounded-[var(--radius-md)] font-medium tracking-tight",
+        "button rounded-md font-medium tracking-tight",
         "transition-[transform,background-color,color,opacity,box-shadow]",
         "duration-[var(--duration-fast)] ease-[var(--ease-standard)]",
         "motion-reduce:transition-none motion-reduce:active:transform-none",

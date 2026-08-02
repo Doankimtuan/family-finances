@@ -1,11 +1,11 @@
-# Quality Report — ST-E03-003
+# Quality Report — ST-E05-001
 
 | Gate | Result |
 |------|--------|
 | lint | PASS |
 | typecheck | PASS |
-| unit | PASS (102) |
-| e2e policies + related smoke | PASS (13 passed, 4 skipped) |
-| build | PASS (`/together/policies`, `/together/preferences`) |
+| unit | PASS (122) |
+| e2e plan-hub | PASS (1 passed, 1 skipped) |
+| build | PASS (`/plan`, `/plan/jars`, `/plan/goals`, `/plan/recurring`, `/plan/ritual`) |
 
-Run: `run_sprint_exec_ST-E03-003_20260802T105130Z`
+Run: `run_sprint_exec_ST-E05-001_20260802T134500Z`

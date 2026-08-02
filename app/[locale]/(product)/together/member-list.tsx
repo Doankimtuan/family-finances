@@ -31,7 +31,7 @@ export function MemberList({
       {members.map((member) => (
         <li
           key={member.id}
-          className="flex items-center gap-(--space-3) rounded-[var(--radius-lg)] border border-border-subtle bg-surface px-(--space-4) py-(--space-3)"
+          className="flex items-center gap-(--space-3) rounded-lg border border-border-subtle bg-surface px-(--space-4) py-(--space-3)"
         >
           <span
             className="flex size-10 shrink-0 items-center justify-center rounded-full bg-surface-hover text-xs font-semibold text-text-primary"

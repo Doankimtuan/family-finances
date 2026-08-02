@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import {
   AUTH_ADAPTER_SIGNOUT_PATH,
   HTTP_STATUS,
@@ -53,7 +54,7 @@ test.describe("Sign-out + delete account (ST-E02-006)", () => {
       timeout: 20_000,
     });
     test.skip(
-      page.url().includes("/together/onboard"),
+      page.url().includes(APP_PATH.ONBOARD),
       "E2E user has no household yet — account lifecycle lives on Together after onboard",
     );
 

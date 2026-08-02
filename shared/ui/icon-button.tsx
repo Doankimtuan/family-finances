@@ -15,7 +15,7 @@ export function IconButton({ className, ...props }: IconButtonProps) {
     <HeroButton
       isIconOnly
       className={cn(
-        "button min-h-11 min-w-11 rounded-[var(--radius-md)]",
+        "button min-h-11 min-w-11 rounded-md",
         "transition-[transform,background-color] duration-(--duration-fast) ease-(--ease-standard)",
         "motion-reduce:transition-none motion-reduce:active:transform-none",
         className,

@@ -12,7 +12,7 @@ export function Card({ className, ...props }: CardProps) {
   return (
     <HeroCard
       className={cn(
-        "rounded-[var(--radius-lg)] bg-surface",
+        "rounded-lg bg-surface",
         "border border-border-subtle shadow-[var(--elevation-1)]",
         className,
       )}

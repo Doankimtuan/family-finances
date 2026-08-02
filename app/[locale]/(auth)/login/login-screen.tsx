@@ -17,6 +17,7 @@ import { isSafeInAppNextPath } from "@/modules/tenancy/application/auth-redirect
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import {
   AUTH_ACTION_ERROR_CODE,
+  AUTH_STORAGE_KEY,
   type AuthActionErrorCode,
 } from "@/modules/tenancy/application/auth-constants";
 import { StatusAlert } from "@/shared/ui/status-alert";
@@ -35,8 +36,6 @@ import {
   authConfirmRedirectUrl,
   startBrowserOAuthSignIn,
 } from "@/modules/tenancy/application/start-browser-oauth-sign-in";
-
-const REMEMBER_KEY = "vinha.auth.rememberEmail";
 
 const loginFormSchema = signInInputSchema.extend({
   remember: z.boolean(),
@@ -75,7 +74,9 @@ export function LoginScreen() {
 
   useEffect(() => {
     try {
-      const saved = window.localStorage.getItem(REMEMBER_KEY);
+      const saved = window.localStorage.getItem(
+        AUTH_STORAGE_KEY.REMEMBER_EMAIL,
+      );
       if (saved) {
         setValue("email", saved);
         setValue("remember", true);
@@ -109,9 +110,12 @@ export function LoginScreen() {
     startTransition(async () => {
       try {
         if (values.remember) {
-          window.localStorage.setItem(REMEMBER_KEY, values.email.trim());
+          window.localStorage.setItem(
+            AUTH_STORAGE_KEY.REMEMBER_EMAIL,
+            values.email.trim(),
+          );
         } else {
-          window.localStorage.removeItem(REMEMBER_KEY);
+          window.localStorage.removeItem(AUTH_STORAGE_KEY.REMEMBER_EMAIL);
         }
       } catch {
         /* ignore */

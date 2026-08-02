@@ -17,6 +17,7 @@ import type enEmptyStates from "./messages/en/emptyStates.json";
 import type enToast from "./messages/en/toast.json";
 import type enMetadata from "./messages/en/metadata.json";
 import type enA11y from "./messages/en/a11y.json";
+import type enCatalog from "./messages/en/catalog.json";
 import type { routing } from "./i18n/routing";
 
 /** Merged English messages — source of truth for typed keys */
@@ -40,6 +41,7 @@ export type AppMessages = {
   toast: typeof enToast;
   metadata: typeof enMetadata;
   a11y: typeof enA11y;
+  catalog: typeof enCatalog;
 };
 
 type AppLocale = (typeof routing.locales)[number];

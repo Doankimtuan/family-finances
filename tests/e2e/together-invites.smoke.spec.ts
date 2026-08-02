@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { APP_PATH } from "@/modules/tenancy/application/app-path";
 
 test.describe("Together members + invitations (ST-E03-002)", () => {
   test("unauthenticated invitations redirects to login", async ({ page }) => {
@@ -30,7 +31,7 @@ test.describe("Together members + invitations (ST-E03-002)", () => {
       timeout: 20_000,
     });
     test.skip(
-      page.url().includes("/together/onboard"),
+      page.url().includes(APP_PATH.ONBOARD),
       "E2E user has no household — complete onboard first",
     );
 

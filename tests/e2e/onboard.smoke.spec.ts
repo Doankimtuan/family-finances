@@ -1,8 +1,9 @@
 import { test, expect } from "@playwright/test";
+import { APP_PATH } from "@/modules/tenancy/application/app-path";
 
 test.describe("Onboard wizard chrome (ST-E03-001)", () => {
   test("unauthenticated onboard redirects to login", async ({ page }) => {
-    await page.goto("/en/together/onboard");
+    await page.goto(`/en${APP_PATH.ONBOARD}`);
     await expect(page).toHaveURL(/\/en\/login/);
     await expect(page.getByTestId("auth-login")).toBeVisible();
   });
@@ -27,7 +28,7 @@ test.describe("Onboard wizard chrome (ST-E03-001)", () => {
       timeout: 20_000,
     });
 
-    if (page.url().includes("/together/onboard")) {
+    if (page.url().includes(APP_PATH.ONBOARD)) {
       await expect(page.locator('[data-chrome="auth"]')).toBeVisible();
       await expect(page.getByTestId("onboard-wizard")).toBeVisible();
       await expect(

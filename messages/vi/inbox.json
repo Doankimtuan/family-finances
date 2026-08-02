@@ -1,3 +1,22 @@
 {
-  "title": "Hộp thư"
+  "title": "Inbox",
+  "subtitle": "Mục cần gắn vào hũ",
+  "resolve": "Gán vào hũ",
+  "resolving": "Đang gán…",
+  "jarLabel": "Hũ đang hoạt động",
+  "loadErrorTitle": "Không tải được Inbox",
+  "loadErrorBody": "Kiểm tra kết nối và thử lại.",
+  "noJarsTitle": "Không có hũ đang hoạt động",
+  "noJarsBody": "Bỏ lưu trữ hoặc tạo hũ trong Plan trước khi gán các mục này.",
+  "kinds": {
+    "unmapped_expense": "Chi chưa gắn hũ",
+    "income_suggest": "Phân bổ thu (Suggest)"
+  },
+  "errors": {
+    "unauthenticated": "Đăng nhập lại.",
+    "no_membership": "Hoàn tất thiết lập hộ trước.",
+    "invalid": "Chọn một hũ.",
+    "offline": "Cần kết nối để xử lý.",
+    "unknown": "Không xử lý được. Thử lại."
+  }
 }
