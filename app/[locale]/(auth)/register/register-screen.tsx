@@ -23,7 +23,12 @@ import {
   DividerWithText,
   SocialButton,
 } from "@/shared/patterns";
-import { registerAction, startOAuthAction } from "./actions";
+import { registerAction } from "./actions";
+import {
+  authConfirmRedirectUrl,
+  startBrowserOAuthSignIn,
+} from "@/modules/tenancy/application/start-browser-oauth-sign-in";
+import { AUTH_LOCALE_HOME_SEGMENT } from "@/modules/tenancy/application/auth-constants";
 
 const registerFormSchema = registerInputSchema
   .extend({
@@ -45,10 +50,6 @@ type RegisterErrorCode =
   "unconfigured" | "invalid" | "already_registered" | "unknown";
 
 type OAuthErrorCode = "unconfigured" | "invalid" | "provider_error" | "unknown";
-
-function authConfirmRedirectUrl(): string {
-  return `${window.location.origin}/auth/confirm`;
-}
 
 export function RegisterScreen() {
   const t = useTranslations("auth.register");
@@ -86,16 +87,12 @@ export function RegisterScreen() {
     setOauthErrorCode(null);
     setOauthPending(provider);
     startTransition(async () => {
-      const result = await startOAuthAction({
+      const result = await startBrowserOAuthSignIn({
         provider,
         redirectTo: authConfirmRedirectUrl(),
       });
-      setOauthPending(null);
-      if (result.status === "success") {
-        window.location.assign(result.url);
-        return;
-      }
-      if (result.status === "error") {
+      if (!result.ok) {
+        setOauthPending(null);
         setOauthErrorCode(result.code);
       }
     });
@@ -112,11 +109,11 @@ export function RegisterScreen() {
       };
       const result = await registerAction({
         ...payload,
-        emailRedirectTo: `${window.location.origin}/auth/confirm`,
+        emailRedirectTo: authConfirmRedirectUrl(),
       });
       if (result.status === "success") {
         if (result.next === "home") {
-          router.replace("/home");
+          router.replace(`/${AUTH_LOCALE_HOME_SEGMENT}`);
           router.refresh();
           return;
         }

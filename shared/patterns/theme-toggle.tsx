@@ -6,6 +6,8 @@ import { useTranslations } from "next-intl";
 import { Desktop, Moon, Sun } from "@phosphor-icons/react";
 import { cn } from "@/shared/utils/cn";
 
+const THEME_OPTION_ICON_SIZE = 16;
+
 const OPTIONS = [
   { value: "system", icon: Desktop, labelKey: "themeSystem" as const },
   { value: "light", icon: Sun, labelKey: "themeLight" as const },
@@ -23,6 +25,7 @@ function useIsClient() {
 
 /**
  * System / Light / Dark segmented control.
+ * Icon-above-label so longer locales (e.g. VI "Hệ thống") never overflow the shell.
  * Hydration-safe: inert until client snapshot so SSR and first paint match.
  */
 export function ThemeToggle({ className }: { className?: string }) {
@@ -39,8 +42,8 @@ export function ThemeToggle({ className }: { className?: string }) {
       aria-label={tA11y("themeSwitcher")}
       aria-busy={!mounted}
       className={cn(
-        "inline-flex w-full items-stretch gap-1 rounded-[var(--radius-lg)]",
-        "border border-border-subtle bg-surface p-1",
+        "grid w-full grid-cols-3 gap-(--space-1) rounded-[var(--radius-lg)]",
+        "border border-border-subtle bg-surface p-(--space-1)",
         className,
       )}
     >
@@ -52,8 +55,9 @@ export function ThemeToggle({ className }: { className?: string }) {
             type="button"
             disabled={!mounted}
             className={cn(
-              "inline-flex min-h-10 flex-1 items-center justify-center gap-1.5",
-              "rounded-[var(--radius-md)] px-2 text-sm font-medium",
+              "flex min-h-11 min-w-0 flex-col items-center justify-center gap-(--space-1)",
+              "rounded-[var(--radius-md)] px-(--space-1) py-(--space-2)",
+              "text-center text-xs font-medium leading-tight tracking-tight",
               "transition-colors duration-(--duration-fast) ease-(--ease-standard)",
               "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring",
               "disabled:cursor-default disabled:opacity-(--opacity-disabled)",
@@ -65,11 +69,11 @@ export function ThemeToggle({ className }: { className?: string }) {
             onClick={() => setTheme(value)}
           >
             <Icon
-              size={16}
+              size={THEME_OPTION_ICON_SIZE}
               weight={isActive ? "fill" : "regular"}
               aria-hidden
             />
-            <span>{t(labelKey)}</span>
+            <span className="max-w-full truncate">{t(labelKey)}</span>
           </button>
         );
       })}

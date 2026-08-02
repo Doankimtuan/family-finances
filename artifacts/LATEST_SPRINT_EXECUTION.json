@@ -1,14 +1,14 @@
 {
   "pack": "sprint-execution",
   "status": "IN_PROGRESS",
-  "current": "artifacts/sprint-execution/CURRENT",
-  "immutable": "artifacts/sprint-execution/sprint-001",
-  "sprint": "S1",
-  "sprint_folder": "sprint-001",
-  "last_frozen_story": "ST-E02-004",
-  "next_story": "ST-E02-005",
-  "planning_version": "v1.2.0",
-  "run_id": "run_sprint_exec_ST-E02-004_20260802T020739Z",
-  "updated_at": "2026-08-02T02:07:39Z",
-  "adoption": "AUTHENTICATION_STRATEGY_V2"
+  "current": "artifacts/sprint-execution/sprint-002",
+  "immutable_s1": "artifacts/sprint-execution/sprint-001",
+  "sprint": "S2",
+  "sprint_folder": "sprint-002",
+  "last_frozen_story": "ST-E02-006",
+  "next_story": "ST-E03-001",
+  "s1_status": "COMPLETE",
+  "planning_version": "implementation-plan CURRENT S2 (sprint-002 bootstrap)",
+  "run_id": "run_sprint_open_S2_20260802T082630Z",
+  "updated_at": "2026-08-02T08:26:30Z"
 }

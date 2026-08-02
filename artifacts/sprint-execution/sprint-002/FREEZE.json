@@ -1,0 +1,18 @@
+{
+  "pack": "sprint-execution",
+  "sprint": "S2",
+  "sprint_folder": "sprint-002",
+  "status": "IN_PROGRESS",
+  "frozen": false,
+  "last_frozen_story": null,
+  "next_story": "ST-E03-001",
+  "previous_sprint": "S1",
+  "run_id": "run_sprint_open_S2_20260802T082630Z",
+  "updated_at": "2026-08-02T08:26:30Z",
+  "implementation_plan": "artifacts/implementation-plan/CURRENT/sprints/S2.md",
+  "stories": {
+    "ST-E03-001": "NEXT",
+    "ST-E03-002": "PENDING",
+    "ST-E03-003": "PENDING"
+  }
+}

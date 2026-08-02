@@ -1,10 +1,33 @@
-import { NextResponse } from "next/server";
-import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { getSupabaseEnv } from "@/modules/platform/supabase/env";
-import { routing } from "@/i18n/routing";
+import { createSupabaseRouteHandlerClient } from "@/modules/platform/supabase/route-handler";
+import { routing, locales, type AppLocale } from "@/i18n/routing";
+import {
+  mapAuthLinkingError,
+  mapOAuthCallbackQuery,
+} from "@/modules/tenancy/application/map-auth-linking-error";
+import { isSafeInAppNextPath } from "@/modules/tenancy/application/auth-redirect";
+import {
+  AUTH_CONFIRM_ERROR_CODE,
+  AUTH_CONFIRM_QUERY,
+  AUTH_CONFIRM_STATUS,
+  AUTH_LOCALE_HOME_SEGMENT,
+  LOCALE_COOKIE_NAME,
+  OTP_VERIFY_TYPES,
+  localeConfirmPath,
+  type OtpVerifyType,
+} from "@/modules/tenancy/application/auth-constants";
 
-function localeHomePath(locale: string, next: string | null): string {
-  if (next && next.startsWith("/") && !next.startsWith("//")) {
+function resolveConfirmLocale(request: NextRequest): AppLocale {
+  const fromCookie = request.cookies.get(LOCALE_COOKIE_NAME)?.value ?? null;
+  if (fromCookie && (locales as readonly string[]).includes(fromCookie)) {
+    return fromCookie as AppLocale;
+  }
+  return routing.defaultLocale;
+}
+
+function resolvePostConfirmPath(locale: string, next: string | null): string {
+  if (next && isSafeInAppNextPath(next)) {
     if (
       routing.locales.some((l) => next === `/${l}` || next.startsWith(`/${l}/`))
     ) {
@@ -12,55 +35,93 @@ function localeHomePath(locale: string, next: string | null): string {
     }
     return `/${locale}${next}`;
   }
-  return `/${locale}/home`;
+  return `/${locale}/${AUTH_LOCALE_HOME_SEGMENT}`;
+}
+
+function confirmErrorUrl(origin: string, locale: string, code: string): string {
+  const qs = new URLSearchParams({
+    [AUTH_CONFIRM_QUERY.STATUS]: AUTH_CONFIRM_STATUS.ERROR,
+    [AUTH_CONFIRM_QUERY.CODE]: code,
+  });
+  return `${origin}${localeConfirmPath(locale)}?${qs.toString()}`;
 }
 
 /**
  * Auth confirm adapter (Architecture: app/auth).
  * Exchanges OAuth PKCE `code` or email OTP `token_hash`, then redirects into locale routes.
+ *
+ * Important: this path must stay outside next-intl locale rewriting (see `proxy.ts`).
+ * Cookie writes must land on the redirect `NextResponse` (see route-handler client).
  */
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
-  const code = searchParams.get("code");
-  const tokenHash = searchParams.get("token_hash");
-  const type = searchParams.get("type");
-  const next = searchParams.get("next");
-  const locale = routing.defaultLocale;
-
-  const confirmUi = `${origin}/${locale}/auth/confirm`;
+  const code = searchParams.get(AUTH_CONFIRM_QUERY.CODE);
+  const tokenHash = searchParams.get(AUTH_CONFIRM_QUERY.TOKEN_HASH);
+  const type = searchParams.get(AUTH_CONFIRM_QUERY.TYPE);
+  const next = searchParams.get(AUTH_CONFIRM_QUERY.NEXT);
+  const oauthError = searchParams.get(AUTH_CONFIRM_QUERY.ERROR);
+  const oauthErrorDescription = searchParams.get(
+    AUTH_CONFIRM_QUERY.ERROR_DESCRIPTION,
+  );
+  const locale = resolveConfirmLocale(request);
 
   if (!getSupabaseEnv().isConfigured) {
-    return NextResponse.redirect(`${confirmUi}?status=error&code=unconfigured`);
+    return NextResponse.redirect(
+      confirmErrorUrl(origin, locale, AUTH_CONFIRM_ERROR_CODE.UNCONFIGURED),
+    );
+  }
+
+  if (oauthError || oauthErrorDescription) {
+    const mapped = mapOAuthCallbackQuery({
+      error: oauthError,
+      errorDescription: oauthErrorDescription,
+    });
+    return NextResponse.redirect(confirmErrorUrl(origin, locale, mapped));
   }
 
   try {
-    const supabase = await createSupabaseServerClient();
-
     if (code) {
+      const successRedirect = NextResponse.redirect(
+        `${origin}${resolvePostConfirmPath(locale, next)}`,
+      );
+      const supabase = createSupabaseRouteHandlerClient(
+        request,
+        successRedirect,
+      );
       const { error } = await supabase.auth.exchangeCodeForSession(code);
       if (!error) {
-        return NextResponse.redirect(
-          `${origin}${localeHomePath(locale, next)}`,
-        );
+        return successRedirect;
       }
-      return NextResponse.redirect(`${confirmUi}?status=error&code=invalid`);
+      const mapped = mapAuthLinkingError(error);
+      return NextResponse.redirect(confirmErrorUrl(origin, locale, mapped));
     }
 
-    if (tokenHash && type) {
+    if (tokenHash && type && OTP_VERIFY_TYPES.has(type)) {
+      const successRedirect = NextResponse.redirect(
+        `${origin}${resolvePostConfirmPath(locale, next)}`,
+      );
+      const supabase = createSupabaseRouteHandlerClient(
+        request,
+        successRedirect,
+      );
       const { error } = await supabase.auth.verifyOtp({
-        type: type as "email" | "signup" | "invite" | "magiclink" | "recovery",
+        type: type as OtpVerifyType,
         token_hash: tokenHash,
       });
       if (!error) {
-        return NextResponse.redirect(
-          `${origin}${localeHomePath(locale, next)}`,
-        );
+        return successRedirect;
       }
-      return NextResponse.redirect(`${confirmUi}?status=error&code=invalid`);
+      return NextResponse.redirect(
+        confirmErrorUrl(origin, locale, AUTH_CONFIRM_ERROR_CODE.INVALID),
+      );
     }
   } catch {
-    return NextResponse.redirect(`${confirmUi}?status=error&code=unknown`);
+    return NextResponse.redirect(
+      confirmErrorUrl(origin, locale, AUTH_CONFIRM_ERROR_CODE.UNKNOWN),
+    );
   }
 
-  return NextResponse.redirect(`${confirmUi}?status=error&code=invalid`);
+  return NextResponse.redirect(
+    confirmErrorUrl(origin, locale, AUTH_CONFIRM_ERROR_CODE.INVALID),
+  );
 }

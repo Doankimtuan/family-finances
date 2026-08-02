@@ -7,7 +7,7 @@ test.describe("Register + forgot password (ST-E02-003)", () => {
     await expect(page.getByTestId("auth-register")).toBeVisible();
     await expect(page.locator("#app-viewport-root")).toBeVisible();
     await expect(page.getByLabel("Email")).toBeVisible();
-    await expect(page.getByLabel("Password")).toBeVisible();
+    await expect(page.locator("#register-password")).toBeVisible();
     await expect(
       page.getByRole("button", { name: "Create account" }),
     ).toBeVisible();

@@ -30,7 +30,7 @@ export function ChromeShell({
         <main className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain">
           {children}
         </main>
-        {footer}
+        {footer ? <div className="shrink-0">{footer}</div> : null}
       </div>
     </AppViewport>
   );

@@ -10,9 +10,9 @@ Strict sequence (see [story-order.md](./story-order.md)):
 4. `ST-E02-001` — DONE  
 5. `ST-E02-002` — DONE  
 6. `ST-E02-003` — DONE  
-7. `ST-E02-004` — **NEXT** (Google Login + Apple Login)  
-8. `ST-E02-005` — Account Linking  
-9. `ST-E02-006` — Sign-out + delete  
+7. `ST-E02-004` — DONE (Google Login + Apple Login)  
+8. `ST-E02-005` — DONE (Account Linking)  
+9. `ST-E02-006` — **NEXT** (Sign-out + delete)  
 
 ## Within each residual auth story (layering)
 

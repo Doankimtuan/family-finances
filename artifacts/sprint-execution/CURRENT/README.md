@@ -1,9 +1,7 @@
-# Sprint Execution Pack
+# Sprint Execution Pack (S1 pointer)
 
-Working pointer for sprint-001 story freezes. Planning SoT: `artifacts/sprint-planning/CURRENT` (v1.2.0).
+S1 (`sprint-001`) is **COMPLETE**. Active execution moved to **S2**.
 
-## Current
-
-- Last frozen: [`story-ST-E02-004/`](./story-ST-E02-004/)
-- Progress: [`progress.md`](./progress.md)
-- Next (awaiting approval): **`ST-E02-005`** — Account Linking
+- Immutable S1 freezes: `artifacts/sprint-execution/sprint-001/`
+- Active sprint: [`../sprint-002/`](../sprint-002/)
+- Execution checkpoint: `artifacts/execution/CURRENT/`

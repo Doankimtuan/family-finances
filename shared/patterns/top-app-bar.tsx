@@ -7,18 +7,23 @@ import { cn } from "@/shared/utils/cn";
 import { IconButton } from "@/shared/ui/icon-button";
 import { Heading } from "@/shared/ui/heading";
 
+const BACK_ICON_SIZE = 20;
+
 /**
- * Top app bar shell — title + optional back / trailing slots.
- * Default back label uses `a11y.back`; override with `backLabel` when needed.
+ * Top app bar — title + optional subtitle / back / trailing.
+ * Seamless canvas blur (no hard rule) so page content reads as one surface.
  */
 export function TopAppBar({
   title,
+  subtitle,
   onBack,
   trailing,
   className,
   backLabel,
 }: {
   title?: ReactNode;
+  /** Soft supporting line under the title (e.g. Home lead). */
+  subtitle?: ReactNode;
   onBack?: () => void;
   trailing?: ReactNode;
   className?: string;
@@ -30,38 +35,54 @@ export function TopAppBar({
   return (
     <header
       className={cn(
-        "sticky top-0 z-(--z-sticky) flex h-14 shrink-0 items-center gap-(--space-2)",
-        "border-b border-border-subtle bg-surface/90 px-(--space-4)",
-        "backdrop-blur-md",
+        "sticky top-0 z-(--z-sticky) shrink-0",
+        "bg-canvas/80 backdrop-blur-md",
+        "px-(--space-4) pt-(--space-3) pb-(--space-3)",
+        "shadow-[inset_0_-1px_0_0_color-mix(in_srgb,var(--color-border-subtle)_55%,transparent)]",
         className,
       )}
     >
-      {onBack ? (
-        <IconButton
-          aria-label={resolvedBackLabel}
-          variant="ghost"
-          size="sm"
-          onPress={onBack}
-        >
-          <CaretLeft size={20} weight="bold" />
-        </IconButton>
-      ) : (
-        <span className="w-2" aria-hidden />
-      )}
-      <div className="min-w-0 flex-1">
-        {typeof title === "string" ? (
-          <Heading
-            level={3}
-            className="truncate text-base font-semibold tracking-tight"
-          >
-            {title}
-          </Heading>
-        ) : (
-          title
+      <div
+        className={cn(
+          "flex items-start gap-(--space-2)",
+          subtitle ? "min-h-0" : "min-h-11 items-center",
         )}
-      </div>
-      <div className="flex shrink-0 items-center gap-1">
-        {trailing ?? <span className="w-2" aria-hidden />}
+      >
+        {onBack ? (
+          <IconButton
+            aria-label={resolvedBackLabel}
+            variant="ghost"
+            size="sm"
+            className="shrink-0 self-center"
+            onPress={onBack}
+          >
+            <CaretLeft size={BACK_ICON_SIZE} weight="bold" />
+          </IconButton>
+        ) : null}
+
+        <div className="min-w-0 flex-1">
+          {typeof title === "string" ? (
+            <Heading
+              level={1}
+              className="truncate text-lg font-semibold tracking-tight text-text-primary"
+            >
+              {title}
+            </Heading>
+          ) : (
+            title
+          )}
+          {subtitle ? (
+            <div className="mt-(--space-1) max-w-[36ch] text-sm leading-snug text-text-secondary">
+              {typeof subtitle === "string" ? <p>{subtitle}</p> : subtitle}
+            </div>
+          ) : null}
+        </div>
+
+        {trailing ? (
+          <div className="flex shrink-0 items-center gap-(--space-1) self-center">
+            {trailing}
+          </div>
+        ) : null}
       </div>
     </header>
   );

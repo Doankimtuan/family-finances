@@ -29,7 +29,7 @@ export function AppViewport({
   return (
     <div
       className={cn(
-        "flex min-h-dvh w-full justify-center bg-transparent",
+        "flex h-dvh max-h-dvh w-full justify-center overflow-hidden bg-transparent",
         className,
       )}
     >
@@ -37,7 +37,7 @@ export function AppViewport({
         ref={setViewportRef}
         id="app-viewport-root"
         className={cn(
-          "relative flex min-h-dvh w-full flex-col overflow-hidden",
+          "relative flex h-full max-h-dvh w-full flex-col overflow-hidden",
           "min-w-[var(--app-viewport-min)] max-w-[var(--app-viewport-max)]",
           "bg-canvas text-text-primary",
           "shadow-[var(--elevation-2)]",
@@ -45,7 +45,10 @@ export function AppViewport({
         )}
       >
         <UNSAFE_PortalProvider getContainer={() => portalRoot}>
-          <SafeArea edges={["top"]} className="flex min-h-0 flex-1 flex-col">
+          <SafeArea
+            edges={["top"]}
+            className="flex min-h-0 flex-1 flex-col overflow-hidden"
+          >
             {children}
           </SafeArea>
           <ToastProvider />

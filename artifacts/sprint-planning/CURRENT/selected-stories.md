@@ -12,9 +12,9 @@ Exactly the Implementation Plan S1 committed stories (`artifacts/implementation-
 | `ST-E02-001` | E02 | Splash and Welcome screens | P0 | **full_implement** | Baseline |
 | `ST-E02-002` | E02 | Login and session establishment | P0 | **full_implement** | Baseline |
 | `ST-E02-003` | E02 | Register and forgot password | P1 | **full_implement** | Baseline |
-| `ST-E02-004` | E02 | Google Login + Apple Login (OAuth-first) | P0 | **full_implement** | **NEXT** |
-| `ST-E02-005` | E02 | Account Linking | P0 | **full_implement** | PENDING |
-| `ST-E02-006` | E02 | Sign-out + delete account | P1 | **full_implement** | PENDING |
+| `ST-E02-004` | E02 | Google Login + Apple Login (OAuth-first) | P0 | **full_implement** | **DONE** (frozen) |
+| `ST-E02-005` | E02 | Account Linking | P0 | **full_implement** | **DONE** (frozen) |
+| `ST-E02-006` | E02 | Sign-out + delete account | P1 | **full_implement** | **DONE** (frozen) |
 
 ## Story detail refs (SoT)
 

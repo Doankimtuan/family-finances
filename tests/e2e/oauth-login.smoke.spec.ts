@@ -15,8 +15,8 @@ test.describe("OAuth-first login (ST-E02-004)", () => {
     await expect(apple).toHaveText("Continue with Apple");
     await expect(page.getByText("Continue with Email")).toBeVisible();
     await expect(page.getByLabel("Email")).toBeVisible();
-    await expect(page.getByLabel("Password")).toBeVisible();
-    await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
+    await expect(page.locator("#login-password")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Log in" })).toBeVisible();
     await expect(page.getByRole("navigation", { name: "Primary" })).toHaveCount(
       0,
     );

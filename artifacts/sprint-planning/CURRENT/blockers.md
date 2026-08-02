@@ -12,7 +12,7 @@
 | B-ENV-02 | Auth providers/email not enabled in Supabase project | Register / confirm / forgot flows | Enable Email provider (and confirm redirect URLs) in Supabase dashboard |
 | B-ENV-03 | Google OAuth client not configured in Supabase | `ST-E02-004` | Enable Google provider + redirect URLs |
 | B-ENV-04 | Apple Sign In not configured in Supabase | `ST-E02-004` | Enable Apple provider (Services ID + key) |
-| B-ENV-05 | Automatic identity linking policy unset | `ST-E02-005` | Enable/document Supabase automatic linking for BR-02b |
+| B-ENV-05 | Automatic identity linking policy unset | `ST-E02-005` | **CLEARED** — policy recorded in `artifacts/sprint-execution/CURRENT/story-ST-E02-005/ops-linking-policy.md`; dashboard toggles remain operator-owned |
 
 ## Non-blockers (explicit)
 

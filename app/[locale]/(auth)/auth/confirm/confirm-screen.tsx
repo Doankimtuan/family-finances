@@ -8,18 +8,31 @@ import { Heading } from "@/shared/ui/heading";
 import { LoadingState } from "@/shared/patterns/loading-state";
 import { AuthScreenShell } from "@/shared/patterns/auth-screen-shell";
 import { BrandMark } from "@/shared/patterns/brand-mark";
+import {
+  isAuthConfirmErrorCode,
+  isAuthLinkingConflictCode,
+} from "@/modules/tenancy/application/map-auth-linking-error";
+import {
+  AUTH_CONFIRM_ERROR_CODE,
+  AUTH_CONFIRM_STATUS,
+  AUTH_LOCALE_HOME_SEGMENT,
+  AUTH_LOCALE_LOGIN_SEGMENT,
+} from "@/modules/tenancy/application/auth-constants";
 
 export function ConfirmScreen({
   status,
   code,
 }: {
-  status: "error" | "ok" | "pending";
+  status:
+    | typeof AUTH_CONFIRM_STATUS.ERROR
+    | typeof AUTH_CONFIRM_STATUS.OK
+    | typeof AUTH_CONFIRM_STATUS.PENDING;
   code?: string;
 }) {
   const t = useTranslations("auth.confirm");
   const router = useRouter();
 
-  if (status === "pending") {
+  if (status === AUTH_CONFIRM_STATUS.PENDING) {
     return (
       <AuthScreenShell testId="auth-confirm" centered className="items-center">
         <BrandMark variant="soft" size="md" />
@@ -31,7 +44,7 @@ export function ConfirmScreen({
     );
   }
 
-  if (status === "ok") {
+  if (status === AUTH_CONFIRM_STATUS.OK) {
     return (
       <AuthScreenShell testId="auth-confirm" centered>
         <div className="flex justify-center">
@@ -45,7 +58,7 @@ export function ConfirmScreen({
         <Button
           variant="primary"
           className="w-full"
-          onPress={() => router.replace("/home")}
+          onPress={() => router.replace(`/${AUTH_LOCALE_HOME_SEGMENT}`)}
         >
           {t("continue")}
         </Button>
@@ -53,10 +66,12 @@ export function ConfirmScreen({
     );
   }
 
-  const errorKey =
-    code === "unconfigured" || code === "invalid" || code === "unknown"
-      ? code
-      : "invalid";
+  const errorKey = isAuthConfirmErrorCode(code)
+    ? code
+    : AUTH_CONFIRM_ERROR_CODE.INVALID;
+  const alertTitle = isAuthLinkingConflictCode(errorKey)
+    ? t("conflictTitle")
+    : t("errorTitle");
 
   return (
     <AuthScreenShell testId="auth-confirm" centered>
@@ -65,13 +80,13 @@ export function ConfirmScreen({
       </div>
       <StatusAlert
         variant="danger"
-        title={t("errorTitle")}
+        title={alertTitle}
         description={t(`errors.${errorKey}`)}
       />
       <Button
         variant="primary"
         className="w-full"
-        onPress={() => router.replace("/login")}
+        onPress={() => router.replace(`/${AUTH_LOCALE_LOGIN_SEGMENT}`)}
       >
         {t("continue")}
       </Button>

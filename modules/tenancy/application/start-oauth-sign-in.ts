@@ -1,28 +1,33 @@
 import { getSupabaseEnv } from "@/modules/platform/supabase/env";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { startOAuthInputSchema, type StartOAuthInput } from "./oauth.schema";
+import { AUTH_ACTION_ERROR_CODE } from "./auth-constants";
 
 export type StartOAuthResult =
   | { ok: true; url: string }
   | {
       ok: false;
-      code: "unconfigured" | "invalid" | "provider_error" | "unknown";
+      code:
+        | typeof AUTH_ACTION_ERROR_CODE.UNCONFIGURED
+        | typeof AUTH_ACTION_ERROR_CODE.INVALID
+        | typeof AUTH_ACTION_ERROR_CODE.PROVIDER_ERROR
+        | typeof AUTH_ACTION_ERROR_CODE.UNKNOWN;
     };
 
 /**
- * Start Supabase OAuth (Google / Apple) with PKCE.
- * Returns the IdP URL for the browser to navigate; callback reuses /auth/confirm.
+ * Server-side OAuth start (legacy). Prefer `startBrowserOAuthSignIn` so the
+ * PKCE verifier is stored in the browser cookie jar used by `/auth/confirm`.
  */
 export async function startOAuthSignIn(
   raw: StartOAuthInput,
 ): Promise<StartOAuthResult> {
   const parsed = startOAuthInputSchema.safeParse(raw);
   if (!parsed.success) {
-    return { ok: false, code: "invalid" };
+    return { ok: false, code: AUTH_ACTION_ERROR_CODE.INVALID };
   }
 
   if (!getSupabaseEnv().isConfigured) {
-    return { ok: false, code: "unconfigured" };
+    return { ok: false, code: AUTH_ACTION_ERROR_CODE.UNCONFIGURED };
   }
 
   try {
@@ -36,11 +41,11 @@ export async function startOAuthSignIn(
     });
 
     if (error || !data.url) {
-      return { ok: false, code: "provider_error" };
+      return { ok: false, code: AUTH_ACTION_ERROR_CODE.PROVIDER_ERROR };
     }
 
     return { ok: true, url: data.url };
   } catch {
-    return { ok: false, code: "unknown" };
+    return { ok: false, code: AUTH_ACTION_ERROR_CODE.UNKNOWN };
   }
 }

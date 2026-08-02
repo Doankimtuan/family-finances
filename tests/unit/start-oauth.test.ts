@@ -11,6 +11,12 @@ vi.mock("@/modules/platform/supabase/server", () => ({
 import { getSupabaseEnv } from "@/modules/platform/supabase/env";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { startOAuthSignIn } from "@/modules/tenancy/application/start-oauth-sign-in";
+import {
+  AUTH_ACTION_ERROR_CODE,
+  AUTH_ADAPTER_CONFIRM_PATH,
+} from "@/modules/tenancy/application/auth-constants";
+
+const VALID_REDIRECT = `http://localhost:3000${AUTH_ADAPTER_CONFIRM_PATH}`;
 
 describe("startOAuthSignIn", () => {
   beforeEach(() => {
@@ -27,9 +33,12 @@ describe("startOAuthSignIn", () => {
     await expect(
       startOAuthSignIn({
         provider: "google",
-        redirectTo: "http://localhost:3000/auth/confirm",
+        redirectTo: VALID_REDIRECT,
       }),
-    ).resolves.toEqual({ ok: false, code: "unconfigured" });
+    ).resolves.toEqual({
+      ok: false,
+      code: AUTH_ACTION_ERROR_CODE.UNCONFIGURED,
+    });
   });
 
   it("rejects invalid provider or redirect", async () => {
@@ -44,7 +53,7 @@ describe("startOAuthSignIn", () => {
         provider: "google",
         redirectTo: "not-a-url",
       }),
-    ).resolves.toEqual({ ok: false, code: "invalid" });
+    ).resolves.toEqual({ ok: false, code: AUTH_ACTION_ERROR_CODE.INVALID });
   });
 
   it("returns IdP url for google", async () => {
@@ -56,7 +65,7 @@ describe("startOAuthSignIn", () => {
     vi.mocked(createSupabaseServerClient).mockResolvedValue({
       auth: {
         signInWithOAuth: async () => ({
-          data: { url: "https://accounts.google.com/o/oauth2" },
+          data: { url: "https://accounts.google.com/o/oauth2/v2/auth?x=1" },
           error: null,
         }),
       },
@@ -65,41 +74,15 @@ describe("startOAuthSignIn", () => {
     await expect(
       startOAuthSignIn({
         provider: "google",
-        redirectTo: "http://localhost:3000/auth/confirm",
+        redirectTo: VALID_REDIRECT,
       }),
     ).resolves.toEqual({
       ok: true,
-      url: "https://accounts.google.com/o/oauth2",
+      url: "https://accounts.google.com/o/oauth2/v2/auth?x=1",
     });
   });
 
-  it("returns IdP url for apple", async () => {
-    vi.mocked(getSupabaseEnv).mockReturnValue({
-      url: "https://example.supabase.co",
-      key: "key",
-      isConfigured: true,
-    });
-    vi.mocked(createSupabaseServerClient).mockResolvedValue({
-      auth: {
-        signInWithOAuth: async () => ({
-          data: { url: "https://appleid.apple.com/auth" },
-          error: null,
-        }),
-      },
-    } as never);
-
-    await expect(
-      startOAuthSignIn({
-        provider: "apple",
-        redirectTo: "http://localhost:3000/auth/confirm",
-      }),
-    ).resolves.toEqual({
-      ok: true,
-      url: "https://appleid.apple.com/auth",
-    });
-  });
-
-  it("maps provider errors", async () => {
+  it("returns provider_error when Supabase fails", async () => {
     vi.mocked(getSupabaseEnv).mockReturnValue({
       url: "https://example.supabase.co",
       key: "key",
@@ -109,16 +92,35 @@ describe("startOAuthSignIn", () => {
       auth: {
         signInWithOAuth: async () => ({
           data: { url: null },
-          error: { message: "Provider not enabled" },
+          error: { message: "provider down" },
         }),
       },
     } as never);
 
     await expect(
       startOAuthSignIn({
-        provider: "google",
-        redirectTo: "http://localhost:3000/auth/confirm",
+        provider: "apple",
+        redirectTo: VALID_REDIRECT,
       }),
-    ).resolves.toEqual({ ok: false, code: "provider_error" });
+    ).resolves.toEqual({
+      ok: false,
+      code: AUTH_ACTION_ERROR_CODE.PROVIDER_ERROR,
+    });
+  });
+
+  it("returns unknown on unexpected throw", async () => {
+    vi.mocked(getSupabaseEnv).mockReturnValue({
+      url: "https://example.supabase.co",
+      key: "key",
+      isConfigured: true,
+    });
+    vi.mocked(createSupabaseServerClient).mockRejectedValue(new Error("boom"));
+
+    await expect(
+      startOAuthSignIn({
+        provider: "google",
+        redirectTo: VALID_REDIRECT,
+      }),
+    ).resolves.toEqual({ ok: false, code: AUTH_ACTION_ERROR_CODE.UNKNOWN });
   });
 });

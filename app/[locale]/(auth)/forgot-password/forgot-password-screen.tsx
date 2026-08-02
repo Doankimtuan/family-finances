@@ -18,6 +18,10 @@ import { AuthScreenShell } from "@/shared/patterns/auth-screen-shell";
 import { BrandMark } from "@/shared/patterns/brand-mark";
 import { toast } from "@/shared/patterns/toast";
 import { forgotPasswordAction } from "./actions";
+import {
+  AUTH_LOCALE_LOGIN_SEGMENT,
+  buildAuthConfirmAdapterUrl,
+} from "@/modules/tenancy/application/auth-constants";
 
 export function ForgotPasswordScreen() {
   const t = useTranslations("auth.forgotPassword");
@@ -42,7 +46,10 @@ export function ForgotPasswordScreen() {
     startTransition(async () => {
       const result = await forgotPasswordAction({
         ...values,
-        redirectTo: `${window.location.origin}/auth/confirm?next=/login`,
+        redirectTo: buildAuthConfirmAdapterUrl(
+          window.location.origin,
+          `/${AUTH_LOCALE_LOGIN_SEGMENT}`,
+        ),
       });
       if (result.status === "success") {
         toast.success(t("toastSent"));

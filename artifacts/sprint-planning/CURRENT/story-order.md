@@ -12,9 +12,9 @@ Implement **exactly one story at a time**, in this order. Never start the next s
 | 4 | `ST-E02-001` | full | Splash + Welcome | **DONE** (frozen) |
 | 5 | `ST-E02-002` | full | Email login + session | **DONE** (frozen) |
 | 6 | `ST-E02-003` | full | Register + forgot | **DONE** (frozen) |
-| 7 | `ST-E02-004` | full | **Google Login + Apple Login** (OAuth-first) | **NEXT** |
-| 8 | `ST-E02-005` | full | **Account Linking** | PENDING |
-| 9 | `ST-E02-006` | full | Sign-out + delete account | PENDING |
+| 7 | `ST-E02-004` | full | **Google Login + Apple Login** (OAuth-first) | **DONE** (frozen) |
+| 8 | `ST-E02-005` | full | **Account Linking** | **DONE** (frozen) |
+| 9 | `ST-E02-006` | full | Sign-out + delete account | **DONE** (frozen) |
 
 ## Forbidden
 
@@ -26,4 +26,4 @@ Implement **exactly one story at a time**, in this order. Never start the next s
 
 ## After sprint-001
 
-Next delivery sprint is S2 (Household / Together / Onboard) — **not** planned in this pack.
+S1 **COMPLETE**. Active sprint: **S2** — `artifacts/sprint-execution/sprint-002/` (next `ST-E03-001`).

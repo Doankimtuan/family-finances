@@ -2,11 +2,11 @@ import type { ReactNode } from "react";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { BrandMark } from "@/shared/patterns/brand-mark";
 import { EmptyState } from "@/shared/patterns/empty-state";
-import { Text } from "@/shared/ui/text";
+import { Heading } from "@/shared/ui/heading";
 
 /**
- * Shared IA stub shell — TopAppBar + optional lead + EmptyState.
- * No domain data.
+ * Shared IA stub shell — seamless page header + EmptyState.
+ * String `lead` becomes the header subtitle (one composition, no hairline break).
  */
 export function ProductStub({
   title,
@@ -22,12 +22,18 @@ export function ProductStub({
   /** When true, prepend Cradle & Seed mark to the top bar title (Home). */
   showBrand?: boolean;
 }) {
+  const stringLead = typeof lead === "string" ? lead : null;
+  const blockLead = stringLead ? null : lead;
+
   const barTitle = showBrand ? (
     <div className="flex min-w-0 items-center gap-(--space-2)">
       <BrandMark variant="mark" size="sm" className="shrink-0" />
-      <span className="truncate text-base font-semibold tracking-tight text-text-primary">
+      <Heading
+        level={1}
+        className="truncate text-lg font-semibold tracking-tight text-text-primary"
+      >
         {title}
-      </span>
+      </Heading>
     </div>
   ) : (
     title
@@ -35,23 +41,17 @@ export function ProductStub({
 
   return (
     <div className="flex min-h-full flex-col">
-      <TopAppBar title={barTitle} />
-      <div className="flex flex-1 flex-col px-(--space-4) pb-(--space-6) pt-(--space-5)">
-        {lead ? (
-          <div className="mb-(--space-5)">
-            {typeof lead === "string" ? (
-              <Text tone="secondary" size="sm" className="leading-relaxed">
-                {lead}
-              </Text>
-            ) : (
-              lead
-            )}
+      <TopAppBar title={barTitle} subtitle={stringLead ?? undefined} />
+      <div className="flex flex-1 flex-col gap-(--space-5) px-(--space-4) pb-(--space-6) pt-(--space-4)">
+        {blockLead ? (
+          <div className="flex min-w-0 flex-col gap-(--space-3)">
+            {blockLead}
           </div>
         ) : null}
         <EmptyState
           title={emptyTitle}
           description={emptyDescription}
-          className="flex-1"
+          className={blockLead ? "flex-none py-(--space-6)" : "flex-1"}
         />
       </div>
     </div>

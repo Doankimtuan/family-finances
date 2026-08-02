@@ -23,7 +23,11 @@ import {
   DividerWithText,
   SocialButton,
 } from "@/shared/patterns";
-import { loginAction, startOAuthAction } from "./actions";
+import { loginAction } from "./actions";
+import {
+  authConfirmRedirectUrl,
+  startBrowserOAuthSignIn,
+} from "@/modules/tenancy/application/start-browser-oauth-sign-in";
 
 const REMEMBER_KEY = "vinha.auth.rememberEmail";
 
@@ -39,10 +43,6 @@ type LoginErrorCode =
   | "invalid"
   | "provider_error"
   | "unknown";
-
-function authConfirmRedirectUrl(): string {
-  return `${window.location.origin}/auth/confirm`;
-}
 
 export function LoginScreen() {
   const t = useTranslations("auth.login");
@@ -82,18 +82,15 @@ export function LoginScreen() {
     setErrorCode(null);
     setOauthPending(provider);
     startTransition(async () => {
-      const result = await startOAuthAction({
+      const result = await startBrowserOAuthSignIn({
         provider,
         redirectTo: authConfirmRedirectUrl(),
       });
-      setOauthPending(null);
-      if (result.status === "success") {
-        window.location.assign(result.url);
-        return;
-      }
-      if (result.status === "error") {
+      if (!result.ok) {
+        setOauthPending(null);
         setErrorCode(result.code);
       }
+      // On success the browser navigates to the IdP; keep pending UI until unload.
     });
   };
 
@@ -219,7 +216,7 @@ export function LoginScreen() {
         <Button
           type="submit"
           variant="primary"
-          className="min-h-14 w-full rounded-[var(--radius-lg)] text-base font-semibold"
+          className="min-h-14 w-full rounded-(--radius-lg) text-base font-semibold"
           isDisabled={busy}
         >
           {isPending && !oauthPending ? t("submitting") : t("submit")}
