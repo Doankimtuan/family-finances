@@ -8,6 +8,8 @@ export const MESSAGE_NAMESPACES = [
   "common",
   "navigation",
   "auth",
+  "onboard",
+  "together",
   "money",
   "plan",
   "inbox",

@@ -1,13 +1,8 @@
-# Remaining Backlog
+# Remaining Backlog (execution view)
 
-## S2 committed
+| Item | Status |
+|------|--------|
+| S3 epic stories | **NEXT** (sprint not opened) |
+| S4+ | Not opened |
 
-| Story | Priority | Title |
-|-------|----------|-------|
-| `ST-E03-001` | P0 | Onboarding wizard ≤3 steps |
-| `ST-E03-002` | P0 | Members hub and invitations |
-| `ST-E03-003` | P0 | Policies roles and preferences |
-
-## Later sprints
-
-S3–S6 per `artifacts/implementation-plan/CURRENT/sprints/`.
+Updated: `2026-08-02T10:51:30Z`

@@ -1,14 +1,17 @@
 "use server";
 
-import { signInWithPassword } from "@/modules/tenancy/application/sign-in";
+import { pathForAuthEntry } from "@/modules/tenancy/application/auth-entry-path";
+import type { AuthEntryAppPath } from "@/modules/tenancy/application/auth-entry-path";
+import { resolveAuthEntry } from "@/modules/tenancy/application/resolve-auth-entry";
+import {
+  signInWithPassword,
+  type SignInErrorCode,
+} from "@/modules/tenancy/application/sign-in";
 
 export type LoginActionState =
   | { status: "idle" }
-  | { status: "success" }
-  | {
-      status: "error";
-      code: "unconfigured" | "invalid_credentials" | "unknown";
-    };
+  | { status: "success"; next: AuthEntryAppPath }
+  | { status: "error"; code: SignInErrorCode };
 
 export async function loginAction(input: {
   email: string;
@@ -16,7 +19,8 @@ export async function loginAction(input: {
 }): Promise<LoginActionState> {
   const result = await signInWithPassword(input);
   if (result.ok) {
-    return { status: "success" };
+    const destination = await resolveAuthEntry();
+    return { status: "success", next: pathForAuthEntry(destination) };
   }
   return { status: "error", code: result.code };
 }

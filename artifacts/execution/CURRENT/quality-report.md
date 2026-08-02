@@ -1,13 +1,11 @@
-# Quality Report — ST-E02-006 (S1 close)
+# Quality Report — ST-E03-003
 
 | Gate | Result |
 |------|--------|
-| Business / AC (`AC-002a` lifecycle) | PASS |
-| Architecture (`app/auth` signout) | PASS |
-| Security (service role server-only) | PASS |
-| Localization en/vi | PASS |
-| Unit tests | PASS (72) |
-| E2E account-lifecycle | PASS (3) |
-| Lint / typecheck / build | PASS |
+| lint | PASS |
+| typecheck | PASS |
+| unit | PASS (102) |
+| e2e policies + related smoke | PASS (13 passed, 4 skipped) |
+| build | PASS (`/together/policies`, `/together/preferences`) |
 
-S2 not yet quality-gated (no S2 story implemented this run).
+Run: `run_sprint_exec_ST-E03-003_20260802T105130Z`

@@ -28,7 +28,12 @@ import {
   authConfirmRedirectUrl,
   startBrowserOAuthSignIn,
 } from "@/modules/tenancy/application/start-browser-oauth-sign-in";
-import { AUTH_LOCALE_HOME_SEGMENT } from "@/modules/tenancy/application/auth-constants";
+import { APP_PATH } from "@/modules/tenancy/application/app-path";
+import {
+  AUTH_ACTION_ERROR_CODE,
+  AUTH_SIGN_UP_NEXT,
+  type AuthActionErrorCode,
+} from "@/modules/tenancy/application/auth-constants";
 
 const registerFormSchema = registerInputSchema
   .extend({
@@ -46,10 +51,21 @@ const registerFormSchema = registerInputSchema
 
 type RegisterFormValues = z.infer<typeof registerFormSchema>;
 
-type RegisterErrorCode =
-  "unconfigured" | "invalid" | "already_registered" | "unknown";
+type RegisterErrorCode = Extract<
+  AuthActionErrorCode,
+  | typeof AUTH_ACTION_ERROR_CODE.UNCONFIGURED
+  | typeof AUTH_ACTION_ERROR_CODE.INVALID
+  | typeof AUTH_ACTION_ERROR_CODE.ALREADY_REGISTERED
+  | typeof AUTH_ACTION_ERROR_CODE.UNKNOWN
+>;
 
-type OAuthErrorCode = "unconfigured" | "invalid" | "provider_error" | "unknown";
+type OAuthErrorCode = Extract<
+  AuthActionErrorCode,
+  | typeof AUTH_ACTION_ERROR_CODE.UNCONFIGURED
+  | typeof AUTH_ACTION_ERROR_CODE.INVALID
+  | typeof AUTH_ACTION_ERROR_CODE.PROVIDER_ERROR
+  | typeof AUTH_ACTION_ERROR_CODE.UNKNOWN
+>;
 
 export function RegisterScreen() {
   const t = useTranslations("auth.register");
@@ -112,8 +128,8 @@ export function RegisterScreen() {
         emailRedirectTo: authConfirmRedirectUrl(),
       });
       if (result.status === "success") {
-        if (result.next === "home") {
-          router.replace(`/${AUTH_LOCALE_HOME_SEGMENT}`);
+        if (result.next === AUTH_SIGN_UP_NEXT.ONBOARD) {
+          router.replace(APP_PATH.ONBOARD);
           router.refresh();
           return;
         }
@@ -170,10 +186,11 @@ export function RegisterScreen() {
           variant="danger"
           title={t("errorTitle")}
           description={
-            oauthErrorCode === "provider_error" || oauthErrorCode === "invalid"
+            oauthErrorCode === AUTH_ACTION_ERROR_CODE.PROVIDER_ERROR ||
+            oauthErrorCode === AUTH_ACTION_ERROR_CODE.INVALID
               ? t("oauthProviderError")
               : t(
-                  oauthErrorCode === "unconfigured"
+                  oauthErrorCode === AUTH_ACTION_ERROR_CODE.UNCONFIGURED
                     ? "errors.unconfigured"
                     : "errors.unknown",
                 )
@@ -283,7 +300,7 @@ export function RegisterScreen() {
       <Text tone="muted" size="sm" className="text-center">
         {t("loginPrompt")}{" "}
         <Link
-          href="/login"
+          href={APP_PATH.LOGIN}
           className="font-semibold text-accent underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
         >
           {t("login")}

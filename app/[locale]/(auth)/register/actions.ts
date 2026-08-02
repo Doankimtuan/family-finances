@@ -1,13 +1,17 @@
 "use server";
 
-import { signUpWithPassword } from "@/modules/tenancy/application/sign-up";
+import {
+  signUpWithPassword,
+  type SignUpErrorCode,
+} from "@/modules/tenancy/application/sign-up";
+import type { AuthSignUpNext } from "@/modules/tenancy/application/auth-constants";
 
 export type RegisterActionState =
   | { status: "idle" }
-  | { status: "success"; next: "home" | "confirm" }
+  | { status: "success"; next: AuthSignUpNext }
   | {
       status: "error";
-      code: "unconfigured" | "invalid" | "already_registered" | "unknown";
+      code: SignUpErrorCode;
     };
 
 export async function registerAction(input: {

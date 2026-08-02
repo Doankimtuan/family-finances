@@ -1,17 +1,18 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import { TABS } from "@/shared/patterns/bottom-navigation-tabs";
 
 describe("BottomNavigation foundation", () => {
   it("exposes exactly five IA tabs and excludes Health", () => {
     expect(TABS).toHaveLength(5);
     expect(TABS.map((t) => t.href)).toEqual([
-      "/home",
-      "/money",
-      "/plan",
-      "/inbox",
-      "/together",
+      APP_PATH.HOME,
+      APP_PATH.MONEY,
+      APP_PATH.PLAN,
+      APP_PATH.INBOX,
+      APP_PATH.TOGETHER,
     ]);
     expect(TABS.map((t) => t.labelKey)).toEqual([
       "home",

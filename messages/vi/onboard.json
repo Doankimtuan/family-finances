@@ -1,0 +1,31 @@
+{
+  "stepOf": "Bước {current} / {total}",
+  "continue": "Tiếp tục",
+  "back": "Quay lại",
+  "finish": "Hoàn tất và vào Home",
+  "finishing": "Đang tạo hộ gia đình…",
+  "errorTitle": "Không thể hoàn tất thiết lập",
+  "step1Title": "Đặt tên hộ gia đình",
+  "step1Description": "Một hộ gia đình đang hoạt động cho bạn và đối tác.",
+  "householdNameLabel": "Tên hộ gia đình",
+  "householdNamePlaceholder": "vd. Nhà mình",
+  "step2Title": "Mời đối tác sau",
+  "step2Description": "Mời khi bạn sẵn sàng.",
+  "step2Body": "Bạn có thể mời đối tác từ Together sau khi thiết lập. Money, Plan và Inbox hằng ngày vẫn bình đẳng giữa các đối tác.",
+  "step3Title": "Hạt giống tiền và kế hoạch",
+  "step3Description": "Tạo tài khoản tiền mặt đầu tiên và bố cục hũ khởi đầu.",
+  "accountNameLabel": "Tên tài khoản tiền mặt",
+  "accountNamePlaceholder": "Tiền mặt",
+  "planPresetLabel": "Gói kế hoạch",
+  "planBalanced": "Cân bằng",
+  "planBalancedHint": "Thiết yếu, Sinh hoạt, Dự phòng, Tiết kiệm",
+  "planSimple": "Đơn giản",
+  "planSimpleHint": "Cần, Muốn, Tiết kiệm",
+  "errors": {
+    "unconfigured": "Thiết lập chưa sẵn sàng. Kiểm tra cấu hình Auth và cơ sở dữ liệu.",
+    "unauthenticated": "Đăng nhập lại để hoàn tất thiết lập.",
+    "already_member": "Bạn đã có hộ gia đình. Đang mở Home.",
+    "invalid": "Kiểm tra tên hộ và tài khoản rồi thử lại.",
+    "unknown": "Đã xảy ra lỗi. Thử lại."
+  }
+}

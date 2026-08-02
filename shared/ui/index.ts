@@ -10,6 +10,7 @@ export { Badge, type BadgeProps } from "./badge";
 export { Divider, type DividerProps } from "./divider";
 export { Spinner, type SpinnerProps } from "./spinner";
 export { Skeleton, type SkeletonProps } from "./skeleton";
+export { Progress, type ProgressProps } from "./progress";
 export { Alert, type AlertProps, type AlertVariant } from "./alert";
 export { StatusAlert, type StatusAlertProps } from "./status-alert";
 export {

@@ -18,18 +18,27 @@ import { AuthScreenShell } from "@/shared/patterns/auth-screen-shell";
 import { BrandMark } from "@/shared/patterns/brand-mark";
 import { toast } from "@/shared/patterns/toast";
 import { forgotPasswordAction } from "./actions";
+import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import {
-  AUTH_LOCALE_LOGIN_SEGMENT,
+  AUTH_ACTION_ERROR_CODE,
   buildAuthConfirmAdapterUrl,
+  type AuthActionErrorCode,
 } from "@/modules/tenancy/application/auth-constants";
+
+type ForgotPasswordErrorCode = Extract<
+  AuthActionErrorCode,
+  | typeof AUTH_ACTION_ERROR_CODE.UNCONFIGURED
+  | typeof AUTH_ACTION_ERROR_CODE.INVALID
+  | typeof AUTH_ACTION_ERROR_CODE.UNKNOWN
+>;
 
 export function ForgotPasswordScreen() {
   const t = useTranslations("auth.forgotPassword");
   const tValidation = useTranslations("validation");
   const [isPending, startTransition] = useTransition();
-  const [errorCode, setErrorCode] = useState<
-    "unconfigured" | "invalid" | "unknown" | null
-  >(null);
+  const [errorCode, setErrorCode] = useState<ForgotPasswordErrorCode | null>(
+    null,
+  );
 
   const {
     register,
@@ -48,7 +57,7 @@ export function ForgotPasswordScreen() {
         ...values,
         redirectTo: buildAuthConfirmAdapterUrl(
           window.location.origin,
-          `/${AUTH_LOCALE_LOGIN_SEGMENT}`,
+          APP_PATH.LOGIN,
         ),
       });
       if (result.status === "success") {
@@ -109,7 +118,7 @@ export function ForgotPasswordScreen() {
 
       <Text tone="muted" size="sm" className="text-center">
         <Link
-          href="/login"
+          href={APP_PATH.LOGIN}
           className="min-h-11 content-center text-accent underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
         >
           {t("backToLogin")}

@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
+import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import { AuthScreenShell } from "@/shared/patterns/auth-screen-shell";
 import { BrandMark } from "@/shared/patterns/brand-mark";
 import { Button } from "@/shared/ui/button";
@@ -38,7 +39,7 @@ export function WelcomeScreen() {
           variant="primary"
           size="md"
           className="w-full"
-          onPress={() => router.push("/login")}
+          onPress={() => router.push(APP_PATH.LOGIN)}
         >
           {t("login")}
         </Button>
@@ -46,7 +47,7 @@ export function WelcomeScreen() {
           variant="secondary"
           size="md"
           className="w-full"
-          onPress={() => router.push("/register")}
+          onPress={() => router.push(APP_PATH.REGISTER)}
         >
           {t("register")}
         </Button>

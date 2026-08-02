@@ -1,13 +1,16 @@
 "use server";
 
-import { requestPasswordReset } from "@/modules/tenancy/application/request-password-reset";
+import {
+  requestPasswordReset,
+  type ResetPasswordErrorCode,
+} from "@/modules/tenancy/application/request-password-reset";
 
 export type ForgotPasswordActionState =
   | { status: "idle" }
   | { status: "success" }
   | {
       status: "error";
-      code: "unconfigured" | "invalid" | "unknown";
+      code: ResetPasswordErrorCode;
     };
 
 export async function forgotPasswordAction(input: {

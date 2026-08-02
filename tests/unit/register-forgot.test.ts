@@ -95,7 +95,7 @@ describe("signUpWithPassword", () => {
         password: "password1",
         emailRedirectTo: "http://localhost/auth/confirm",
       }),
-    ).resolves.toEqual({ ok: true, next: "home" });
+    ).resolves.toEqual({ ok: true, next: "onboard" });
   });
 
   it("maps already-registered errors", async () => {

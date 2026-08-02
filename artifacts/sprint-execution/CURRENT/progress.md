@@ -1,28 +1,23 @@
-# Sprint Execution Progress — sprint-001 (S1)
+# Sprint Execution Progress — sprint-002 (S2)
 
 | Field | Value |
 |-------|--------|
-| Sprint | S1 / `sprint-001` |
-| Planning | `artifacts/sprint-planning/CURRENT` **v1.2.0** |
-| Updated | `2026-08-02T08:26:30Z` |
+| Sprint | S2 / `sprint-002` |
+| Goal | Household ready (E03) |
+| Plan SoT | `artifacts/implementation-plan/CURRENT/sprints/S2.md` |
+| Opened | `2026-08-02T08:26:30Z` |
+| Completed | `2026-08-02T10:51:30Z` |
 | Status | **COMPLETE** |
-| Last frozen story | `ST-E02-006` |
-| Next sprint | **S2** (`sprint-002`) — Household ready |
+| Last frozen | **`ST-E03-003`** |
 
 ## Story status
 
-| Seq | Story | Mode | Status |
-|-----|-------|------|--------|
-| 1 | `ST-E01-001` | verify_gap_close | **FROZEN** |
-| 2 | `ST-E01-003` | verify + auth primitives | **FROZEN** |
-| 3 | `ST-E01-002` | verify chrome | **FROZEN** |
-| 4 | `ST-E02-001` | full_implement | **FROZEN** |
-| 5 | `ST-E02-002` | full_implement | **FROZEN** |
-| 6 | `ST-E02-003` | full_implement | **FROZEN** |
-| 7 | `ST-E02-004` | full_implement | **FROZEN** |
-| 8 | `ST-E02-005` | full_implement | **FROZEN** |
-| 9 | `ST-E02-006` | full_implement | **FROZEN** |
+| Seq | Story | Priority | Status |
+|-----|-------|----------|--------|
+| 1 | `ST-E03-001` | P0 | **DONE** (frozen) |
+| 2 | `ST-E03-002` | P0 | **DONE** (frozen) |
+| 3 | `ST-E03-003` | P0 | **DONE** (frozen) — Policies roles and preferences |
 
-## Remaining work
+## After sprint-002
 
-None in S1. S2 opened at `artifacts/sprint-execution/sprint-002/` — next story `ST-E03-001` (not started this run).
+S2 **COMPLETE**. Next sprint: **S3** (open on next orchestrator run / explicit approval). Do not auto-start S3 stories in this run.

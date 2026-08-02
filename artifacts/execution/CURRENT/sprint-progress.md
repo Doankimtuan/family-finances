@@ -1,18 +1,9 @@
 # Sprint Progress
 
-## S1 — COMPLETE
+| Sprint | Status | Frozen | Next |
+|--------|--------|--------|------|
+| S1 | COMPLETE | `ST-E02-006` | — |
+| S2 | COMPLETE | `ST-E03-003` | Open S3 |
+| S3 | NOT OPENED | — | — |
 
-```
-E01 verify ████████████████████ 3/3
-E02 auth   ████████████████████ 6/6
-S1 total   ████████████████████ 9/9
-```
-
-## S2 — OPENED (0/3)
-
-```
-E03 together ░░░░░░░░░░░░░░░░░░░░ 0/3
-S2 total     ░░░░░░░░░░░░░░░░░░░░ 0/3
-```
-
-Next: `ST-E03-001`.
+Updated: `2026-08-02T10:51:30Z`

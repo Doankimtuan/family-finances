@@ -9,6 +9,7 @@ import { TABS } from "@/shared/patterns/bottom-navigation-tabs";
 export { TABS } from "@/shared/patterns/bottom-navigation-tabs";
 
 const NAV_TAB_ICON_SIZE = 22;
+const NAV_TAB_COUNT = TABS.length;
 
 /**
  * Five IA tabs foundation. Health is not a 6th tab.
@@ -26,12 +27,18 @@ export function BottomNavigation({ className }: { className?: string }) {
         className={cn(
           "z-(--z-nav)",
           "border-t border-border-subtle/50",
-          "bg-canvas/88 backdrop-blur-xl",
-          "shadow-[inset_0_1px_0_0_color-mix(in_srgb,var(--color-text-primary)_6%,transparent)]",
+          "backdrop-blur-xl",
+          "[background-color:color-mix(in_srgb,var(--color-canvas)_calc(var(--opacity-nav-chrome)*100%),transparent)]",
+          "shadow-[inset_0_1px_0_0_color-mix(in_srgb,var(--color-text-primary)_calc(var(--opacity-nav-highlight)*100%),transparent)]",
           className,
         )}
       >
-        <ul className="grid grid-cols-5 gap-(--space-1) px-(--space-2) pt-(--space-2) pb-(--space-2)">
+        <ul
+          className="grid gap-(--space-1) px-(--space-2) pt-(--space-2) pb-(--space-2)"
+          style={{
+            gridTemplateColumns: `repeat(${NAV_TAB_COUNT}, minmax(0, 1fr))`,
+          }}
+        >
           {TABS.map(({ href, labelKey, icon: Icon }) => {
             const active = pathname === href || pathname.startsWith(`${href}/`);
             const label = t(labelKey);
@@ -45,10 +52,10 @@ export function BottomNavigation({ className }: { className?: string }) {
                     "text-center text-xs font-medium leading-tight tracking-tight",
                     "transition-[color,background-color,transform] duration-(--duration-fast) ease-(--ease-standard)",
                     "motion-reduce:transition-none",
-                    "active:scale-[0.98] motion-reduce:active:scale-100",
+                    "active:scale-[var(--press-scale)] motion-reduce:active:scale-100",
                     "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring",
                     active
-                      ? "bg-accent/12 text-accent"
+                      ? "[background-color:color-mix(in_srgb,var(--color-accent)_calc(var(--opacity-accent-wash)*100%),transparent)] text-accent"
                       : "text-text-muted hover:bg-surface-hover/70 hover:text-text-secondary",
                   )}
                   aria-current={active ? "page" : undefined}

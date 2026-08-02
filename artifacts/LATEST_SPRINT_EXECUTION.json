@@ -1,14 +1,16 @@
 {
   "pack": "sprint-execution",
-  "status": "IN_PROGRESS",
+  "status": "COMPLETE",
   "current": "artifacts/sprint-execution/sprint-002",
   "immutable_s1": "artifacts/sprint-execution/sprint-001",
   "sprint": "S2",
   "sprint_folder": "sprint-002",
-  "last_frozen_story": "ST-E02-006",
-  "next_story": "ST-E03-001",
+  "last_frozen_story": "ST-E03-003",
+  "next_story": null,
+  "next_sprint": "S3",
   "s1_status": "COMPLETE",
-  "planning_version": "implementation-plan CURRENT S2 (sprint-002 bootstrap)",
-  "run_id": "run_sprint_open_S2_20260802T082630Z",
-  "updated_at": "2026-08-02T08:26:30Z"
+  "s2_status": "COMPLETE",
+  "planning_version": "implementation-plan CURRENT S2",
+  "run_id": "run_sprint_exec_ST-E03-003_20260802T105130Z",
+  "updated_at": "2026-08-02T10:51:30Z"
 }

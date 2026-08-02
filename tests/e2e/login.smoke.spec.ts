@@ -71,10 +71,16 @@ test.describe("Login + money gates (ST-E02-002)", () => {
     await page.getByLabel("Email").fill(email!);
     await page.locator("#login-password").fill(password!);
     await page.getByRole("button", { name: "Log in" }).click();
-    await expect(page).toHaveURL(/\/en\/home/, { timeout: 20_000 });
+    await expect(page).toHaveURL(/\/en\/(home|together\/onboard)/, {
+      timeout: 20_000,
+    });
     await expect(page.locator("#app-viewport-root")).toBeVisible();
-    await expect(
-      page.getByRole("navigation", { name: "Primary" }),
-    ).toBeVisible();
+    if (page.url().includes("/home")) {
+      await expect(
+        page.getByRole("navigation", { name: "Primary" }),
+      ).toBeVisible();
+    } else {
+      await expect(page.getByTestId("onboard-wizard")).toBeVisible();
+    }
   });
 });

@@ -29,3 +29,4 @@ export { ProductStub } from "./product-stub";
 export { LocaleSwitcher } from "./locale-switcher";
 export { ThemeToggle } from "./theme-toggle";
 export { TogetherPreferences } from "./together-preferences";
+export { SectionHeader, type SectionHeaderProps } from "./section-header";

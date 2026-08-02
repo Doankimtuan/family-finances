@@ -1,25 +1,19 @@
 {
   "pack": "sprint-execution",
-  "sprint": "S1",
-  "sprint_folder": "sprint-001",
+  "sprint": "S2",
+  "sprint_folder": "sprint-002",
   "status": "COMPLETE",
   "frozen": true,
-  "last_frozen_story": "ST-E02-006",
+  "last_frozen_story": "ST-E03-003",
   "next_story": null,
-  "next_sprint": "S2",
-  "run_id": "run_sprint_exec_ST-E02-006_20260802T082630Z",
-  "updated_at": "2026-08-02T08:26:30Z",
-  "planning_version": "v1.2.0",
-  "adoption": "AUTHENTICATION_STRATEGY_V2",
+  "next_sprint": "S3",
+  "previous_sprint": "S1",
+  "run_id": "run_sprint_exec_ST-E03-003_20260802T105130Z",
+  "updated_at": "2026-08-02T10:51:30Z",
+  "implementation_plan": "artifacts/implementation-plan/CURRENT/sprints/S2.md",
   "stories": {
-    "ST-E01-001": "FROZEN",
-    "ST-E01-003": "FROZEN",
-    "ST-E01-002": "FROZEN",
-    "ST-E02-001": "FROZEN",
-    "ST-E02-002": "FROZEN",
-    "ST-E02-003": "FROZEN",
-    "ST-E02-004": "FROZEN",
-    "ST-E02-005": "FROZEN",
-    "ST-E02-006": "FROZEN"
+    "ST-E03-001": "FROZEN",
+    "ST-E03-002": "FROZEN",
+    "ST-E03-003": "FROZEN"
   }
 }

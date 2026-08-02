@@ -1,13 +1,25 @@
 import { getSupabaseEnv } from "@/modules/platform/supabase/env";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
+import {
+  AUTH_ACTION_ERROR_CODE,
+  AUTH_ERROR_MESSAGE_NEEDLE,
+  AUTH_SIGN_UP_NEXT,
+  SUPABASE_AUTH_ERROR_CODE,
+  type AuthActionErrorCode,
+  type AuthSignUpNext,
+} from "./auth-constants";
 import { registerInputSchema, type RegisterInput } from "./register.schema";
 
+export type SignUpErrorCode = Extract<
+  AuthActionErrorCode,
+  | typeof AUTH_ACTION_ERROR_CODE.UNCONFIGURED
+  | typeof AUTH_ACTION_ERROR_CODE.INVALID
+  | typeof AUTH_ACTION_ERROR_CODE.ALREADY_REGISTERED
+  | typeof AUTH_ACTION_ERROR_CODE.UNKNOWN
+>;
+
 export type SignUpResult =
-  | { ok: true; next: "home" | "confirm" }
-  | {
-      ok: false;
-      code: "unconfigured" | "invalid" | "already_registered" | "unknown";
-    };
+  { ok: true; next: AuthSignUpNext } | { ok: false; code: SignUpErrorCode };
 
 /**
  * Create Auth account via email/password. Confirm path reuses /auth/confirm.
@@ -17,11 +29,11 @@ export async function signUpWithPassword(
 ): Promise<SignUpResult> {
   const parsed = registerInputSchema.safeParse(raw);
   if (!parsed.success) {
-    return { ok: false, code: "invalid" };
+    return { ok: false, code: AUTH_ACTION_ERROR_CODE.INVALID };
   }
 
   if (!getSupabaseEnv().isConfigured) {
-    return { ok: false, code: "unconfigured" };
+    return { ok: false, code: AUTH_ACTION_ERROR_CODE.UNCONFIGURED };
   }
 
   try {
@@ -37,20 +49,21 @@ export async function signUpWithPassword(
     if (error) {
       const message = error.message.toLowerCase();
       if (
-        message.includes("already") ||
-        message.includes("registered") ||
-        error.code === "user_already_exists"
+        message.includes(AUTH_ERROR_MESSAGE_NEEDLE.ALREADY) ||
+        message.includes(AUTH_ERROR_MESSAGE_NEEDLE.REGISTERED) ||
+        error.code === SUPABASE_AUTH_ERROR_CODE.USER_ALREADY_EXISTS
       ) {
-        return { ok: false, code: "already_registered" };
+        return { ok: false, code: AUTH_ACTION_ERROR_CODE.ALREADY_REGISTERED };
       }
-      return { ok: false, code: "invalid" };
+      return { ok: false, code: AUTH_ACTION_ERROR_CODE.INVALID };
     }
 
     if (data.session) {
-      return { ok: true, next: "home" };
+      // New accounts have no household yet → onboard (AC-014).
+      return { ok: true, next: AUTH_SIGN_UP_NEXT.ONBOARD };
     }
-    return { ok: true, next: "confirm" };
+    return { ok: true, next: AUTH_SIGN_UP_NEXT.CONFIRM };
   } catch {
-    return { ok: false, code: "unknown" };
+    return { ok: false, code: AUTH_ACTION_ERROR_CODE.UNKNOWN };
   }
 }

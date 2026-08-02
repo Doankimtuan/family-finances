@@ -1,7 +1,11 @@
 import { getSessionUser } from "./get-session-user";
 import { resolveActiveMembership } from "./resolve-active-membership";
+import {
+  MONEY_ACTION_DENIED_REASON,
+  type MoneyActionDeniedReason,
+} from "./tenancy-constants";
 
-export type MoneyActionDeniedReason = "unauthenticated" | "no_membership";
+export type { MoneyActionDeniedReason };
 
 export type MoneyActionAllowance =
   | { ok: true; userId: string; householdId: string }
@@ -14,12 +18,12 @@ export type MoneyActionAllowance =
 export async function assertMoneyActionAllowed(): Promise<MoneyActionAllowance> {
   const user = await getSessionUser();
   if (!user) {
-    return { ok: false, reason: "unauthenticated" };
+    return { ok: false, reason: MONEY_ACTION_DENIED_REASON.UNAUTHENTICATED };
   }
 
   const membership = await resolveActiveMembership(user.id);
   if (!membership) {
-    return { ok: false, reason: "no_membership" };
+    return { ok: false, reason: MONEY_ACTION_DENIED_REASON.NO_MEMBERSHIP };
   }
 
   return {

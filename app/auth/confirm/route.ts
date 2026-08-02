@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { getSupabaseEnv } from "@/modules/platform/supabase/env";
 import { createSupabaseRouteHandlerClient } from "@/modules/platform/supabase/route-handler";
 import { routing, locales, type AppLocale } from "@/i18n/routing";
@@ -7,14 +8,16 @@ import {
   mapOAuthCallbackQuery,
 } from "@/modules/tenancy/application/map-auth-linking-error";
 import { isSafeInAppNextPath } from "@/modules/tenancy/application/auth-redirect";
+import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
 import {
   AUTH_CONFIRM_ERROR_CODE,
   AUTH_CONFIRM_QUERY,
   AUTH_CONFIRM_STATUS,
-  AUTH_LOCALE_HOME_SEGMENT,
   LOCALE_COOKIE_NAME,
   OTP_VERIFY_TYPES,
   localeConfirmPath,
+  localeHomePath,
+  localeOnboardPath,
   type OtpVerifyType,
 } from "@/modules/tenancy/application/auth-constants";
 
@@ -26,16 +29,33 @@ function resolveConfirmLocale(request: NextRequest): AppLocale {
   return routing.defaultLocale;
 }
 
-function resolvePostConfirmPath(locale: string, next: string | null): string {
-  if (next && isSafeInAppNextPath(next)) {
-    if (
-      routing.locales.some((l) => next === `/${l}` || next.startsWith(`/${l}/`))
-    ) {
-      return next;
-    }
-    return `/${locale}${next}`;
+function resolveExplicitNextPath(
+  locale: string,
+  next: string | null,
+): string | null {
+  if (!next || !isSafeInAppNextPath(next)) {
+    return null;
   }
-  return `/${locale}/${AUTH_LOCALE_HOME_SEGMENT}`;
+  if (
+    routing.locales.some((l) => next === `/${l}` || next.startsWith(`/${l}/`))
+  ) {
+    return next;
+  }
+  return `/${locale}${next}`;
+}
+
+async function resolveDefaultPostAuthPath(
+  supabase: SupabaseClient,
+  locale: string,
+): Promise<string> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return localeHomePath(locale);
+  }
+  const membership = await resolveActiveMembership(user.id, supabase);
+  return membership ? localeHomePath(locale) : localeOnboardPath(locale);
 }
 
 function confirmErrorUrl(origin: string, locale: string, code: string): string {
@@ -81,8 +101,9 @@ export async function GET(request: NextRequest) {
 
   try {
     if (code) {
+      // Location rewritten after exchange; cookies must stay on this response.
       const successRedirect = NextResponse.redirect(
-        `${origin}${resolvePostConfirmPath(locale, next)}`,
+        `${origin}${localeHomePath(locale)}`,
       );
       const supabase = createSupabaseRouteHandlerClient(
         request,
@@ -90,6 +111,10 @@ export async function GET(request: NextRequest) {
       );
       const { error } = await supabase.auth.exchangeCodeForSession(code);
       if (!error) {
+        const dest =
+          resolveExplicitNextPath(locale, next) ??
+          (await resolveDefaultPostAuthPath(supabase, locale));
+        successRedirect.headers.set("Location", `${origin}${dest}`);
         return successRedirect;
       }
       const mapped = mapAuthLinkingError(error);
@@ -98,7 +123,7 @@ export async function GET(request: NextRequest) {
 
     if (tokenHash && type && OTP_VERIFY_TYPES.has(type)) {
       const successRedirect = NextResponse.redirect(
-        `${origin}${resolvePostConfirmPath(locale, next)}`,
+        `${origin}${localeHomePath(locale)}`,
       );
       const supabase = createSupabaseRouteHandlerClient(
         request,
@@ -109,6 +134,10 @@ export async function GET(request: NextRequest) {
         token_hash: tokenHash,
       });
       if (!error) {
+        const dest =
+          resolveExplicitNextPath(locale, next) ??
+          (await resolveDefaultPostAuthPath(supabase, locale));
+        successRedirect.headers.set("Location", `${origin}${dest}`);
         return successRedirect;
       }
       return NextResponse.redirect(

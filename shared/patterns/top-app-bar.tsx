@@ -36,9 +36,10 @@ export function TopAppBar({
     <header
       className={cn(
         "sticky top-0 z-(--z-sticky) shrink-0",
-        "bg-canvas/80 backdrop-blur-md",
+        "backdrop-blur-md",
+        "[background-color:color-mix(in_srgb,var(--color-canvas)_calc(var(--opacity-chrome)*100%),transparent)]",
         "px-(--space-4) pt-(--space-3) pb-(--space-3)",
-        "shadow-[inset_0_-1px_0_0_color-mix(in_srgb,var(--color-border-subtle)_55%,transparent)]",
+        "shadow-[inset_0_-1px_0_0_color-mix(in_srgb,var(--color-border-subtle)_calc(var(--opacity-chrome-hairline)*100%),transparent)]",
         className,
       )}
     >
@@ -72,7 +73,7 @@ export function TopAppBar({
             title
           )}
           {subtitle ? (
-            <div className="mt-(--space-1) max-w-[36ch] text-sm leading-snug text-text-secondary">
+            <div className="mt-(--space-1) max-w-(--subtitle-max-width) text-sm leading-snug text-text-secondary">
               {typeof subtitle === "string" ? <p>{subtitle}</p> : subtitle}
             </div>
           ) : null}

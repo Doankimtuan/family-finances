@@ -1,6 +1,8 @@
 import type enCommon from "./messages/en/common.json";
 import type enNavigation from "./messages/en/navigation.json";
 import type enAuth from "./messages/en/auth.json";
+import type enOnboard from "./messages/en/onboard.json";
+import type enTogether from "./messages/en/together.json";
 import type enMoney from "./messages/en/money.json";
 import type enPlan from "./messages/en/plan.json";
 import type enInbox from "./messages/en/inbox.json";
@@ -22,6 +24,8 @@ export type AppMessages = {
   common: typeof enCommon;
   navigation: typeof enNavigation;
   auth: typeof enAuth;
+  onboard: typeof enOnboard;
+  together: typeof enTogether;
   money: typeof enMoney;
   plan: typeof enPlan;
   inbox: typeof enInbox;

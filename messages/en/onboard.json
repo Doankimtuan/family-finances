@@ -1,0 +1,31 @@
+{
+  "stepOf": "Step {current} of {total}",
+  "continue": "Continue",
+  "back": "Back",
+  "finish": "Finish and go to Home",
+  "finishing": "Creating household…",
+  "errorTitle": "Could not finish setup",
+  "step1Title": "Name your household",
+  "step1Description": "One active household for you and your partner.",
+  "householdNameLabel": "Household name",
+  "householdNamePlaceholder": "e.g. Our home",
+  "step2Title": "Partners later",
+  "step2Description": "Invite when you are ready.",
+  "step2Body": "You can invite a partner from Together after setup. Daily Money, Plan, and Inbox stay equal for partners.",
+  "step3Title": "Money and plan seeds",
+  "step3Description": "Create your first cash account and a starter jar layout.",
+  "accountNameLabel": "Cash account name",
+  "accountNamePlaceholder": "Cash",
+  "planPresetLabel": "Plan preset",
+  "planBalanced": "Balanced",
+  "planBalancedHint": "Essentials, Lifestyle, Buffer, Savings",
+  "planSimple": "Simple",
+  "planSimpleHint": "Needs, Wants, Savings",
+  "errors": {
+    "unconfigured": "Setup is unavailable. Check Auth and database configuration.",
+    "unauthenticated": "Sign in again to finish setup.",
+    "already_member": "You already have a household. Opening Home.",
+    "invalid": "Check your household and account names and try again.",
+    "unknown": "Something went wrong. Try again."
+  }
+}

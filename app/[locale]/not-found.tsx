@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
+import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import { BrandMark } from "@/shared/patterns/brand-mark";
 import { Heading } from "@/shared/ui/heading";
 import { Text } from "@/shared/ui/text";
@@ -16,8 +17,8 @@ export default async function LocaleNotFound() {
         {tErrors("generic")}
       </Text>
       <Link
-        href="/home"
-        className="inline-flex min-h-11 items-center justify-center rounded-[var(--radius-md)] bg-accent px-(--space-6) text-sm font-medium text-accent-fg"
+        href={APP_PATH.HOME}
+        className="inline-flex min-h-11 items-center justify-center rounded-rounded-md bg-accent px-(--space-6) text-sm font-medium text-accent-fg"
       >
         {tButtons("openApp")}
       </Link>

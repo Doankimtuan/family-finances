@@ -268,6 +268,13 @@
   --opacity-disabled: 0.5;
   --opacity-muted: 0.7;
   --opacity-overlay: 0.4;
+  --opacity-chrome: 0.8;
+  --opacity-nav-chrome: 0.88;
+  --opacity-chrome-hairline: 0.55;
+  --opacity-nav-highlight: 0.06;
+  --opacity-accent-wash: 0.12;
+  --press-scale: 0.98;
+  --subtitle-max-width: 36ch;
 
   --elevation-0: none;
   --elevation-1: 0 1px 2px rgb(28 25 23 / 0.05);
@@ -451,7 +458,7 @@ body {
 
 @layer components {
   .button:active:not(:disabled):not([aria-disabled="true"]) {
-    transform: scale(0.98);
+    transform: scale(var(--press-scale));
   }
 
   .skeleton-bone {

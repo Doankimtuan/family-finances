@@ -7,11 +7,18 @@ import { z } from "zod";
 import { useTranslations } from "next-intl";
 import { EnvelopeSimple, LockSimple } from "@phosphor-icons/react";
 import { Link, useRouter } from "@/i18n/navigation";
+import { useSearchParams } from "next/navigation";
 import {
   signInInputSchema,
   type SignInInput,
 } from "@/modules/tenancy/application/sign-in.schema";
 import type { OAuthProvider } from "@/modules/tenancy/application/oauth.schema";
+import { isSafeInAppNextPath } from "@/modules/tenancy/application/auth-redirect";
+import { APP_PATH } from "@/modules/tenancy/application/app-path";
+import {
+  AUTH_ACTION_ERROR_CODE,
+  type AuthActionErrorCode,
+} from "@/modules/tenancy/application/auth-constants";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
@@ -37,17 +44,20 @@ const loginFormSchema = signInInputSchema.extend({
 
 type LoginFormValues = z.infer<typeof loginFormSchema>;
 
-type LoginErrorCode =
-  | "unconfigured"
-  | "invalid_credentials"
-  | "invalid"
-  | "provider_error"
-  | "unknown";
+type LoginErrorCode = Extract<
+  AuthActionErrorCode,
+  | typeof AUTH_ACTION_ERROR_CODE.UNCONFIGURED
+  | typeof AUTH_ACTION_ERROR_CODE.INVALID_CREDENTIALS
+  | typeof AUTH_ACTION_ERROR_CODE.INVALID
+  | typeof AUTH_ACTION_ERROR_CODE.PROVIDER_ERROR
+  | typeof AUTH_ACTION_ERROR_CODE.UNKNOWN
+>;
 
 export function LoginScreen() {
   const t = useTranslations("auth.login");
   const tValidation = useTranslations("validation");
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
   const [oauthPending, setOauthPending] = useState<OAuthProvider | null>(null);
   const [errorCode, setErrorCode] = useState<LoginErrorCode | null>(null);
@@ -113,7 +123,12 @@ export function LoginScreen() {
       };
       const result = await loginAction(payload);
       if (result.status === "success") {
-        router.replace("/home");
+        const next = searchParams.get("next");
+        if (next && isSafeInAppNextPath(next)) {
+          router.replace(next);
+        } else {
+          router.replace(result.next);
+        }
         router.refresh();
         return;
       }
@@ -206,7 +221,7 @@ export function LoginScreen() {
             className="flex-1"
           />
           <Link
-            href="/forgot-password"
+            href={APP_PATH.FORGOT_PASSWORD}
             className="shrink-0 text-sm font-medium text-accent underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
           >
             {t("forgot")}
@@ -226,7 +241,7 @@ export function LoginScreen() {
       <Text tone="muted" size="sm" className="text-center">
         {t("registerPrompt")}{" "}
         <Link
-          href="/register"
+          href={APP_PATH.REGISTER}
           className="font-semibold text-accent underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
         >
           {t("register")}

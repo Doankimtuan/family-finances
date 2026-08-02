@@ -6,11 +6,8 @@ import {
 
 test.describe("Sign-out + delete account (ST-E02-006)", () => {
   test("account lifecycle is hidden when signed out", async ({ page }) => {
-    await page.goto("/en/together");
-    await expect(page.getByTestId("account-lifecycle")).toHaveCount(0);
-    await expect(
-      page.getByRole("navigation", { name: "Primary" }),
-    ).toBeVisible();
+    await page.goto("/en/together/preferences");
+    await expect(page).toHaveURL(/\/en\/login/);
   });
 
   test("sign-out POST from same origin redirects to login", async ({
@@ -52,9 +49,15 @@ test.describe("Sign-out + delete account (ST-E02-006)", () => {
     await page.getByLabel("Email").fill(email!);
     await page.locator("#login-password").fill(password!);
     await page.getByRole("button", { name: "Log in" }).click();
-    await expect(page).toHaveURL(/\/en\/home/, { timeout: 20_000 });
+    await expect(page).toHaveURL(/\/en\/(home|together\/onboard)/, {
+      timeout: 20_000,
+    });
+    test.skip(
+      page.url().includes("/together/onboard"),
+      "E2E user has no household yet — account lifecycle lives on Together after onboard",
+    );
 
-    await page.goto("/en/together");
+    await page.goto("/en/together/preferences");
     await expect(page.getByTestId("account-lifecycle")).toBeVisible();
     await expect(page.getByTestId("sign-out")).toBeVisible();
     await page.getByTestId("delete-account").click();

@@ -2,6 +2,11 @@
  * Auth route, query, status, and error constants — avoid inline magic strings.
  */
 
+import { COMMON_ACTION_ERROR_CODE } from "./common-action-error";
+
+export { COMMON_ACTION_ERROR_CODE } from "./common-action-error";
+export type { CommonActionErrorCode } from "./common-action-error";
+
 export const AUTH_ADAPTER_ROOT_PATH = "/auth";
 export const AUTH_ADAPTER_CONFIRM_PATH = "/auth/confirm";
 export const AUTH_ADAPTER_SIGNOUT_PATH = "/auth/signout";
@@ -9,7 +14,10 @@ export const AUTH_ADAPTER_SIGNOUT_PATH = "/auth/signout";
 export const AUTH_LOCALE_LOGIN_SEGMENT = "login";
 export const AUTH_LOCALE_HOME_SEGMENT = "home";
 export const AUTH_LOCALE_WELCOME_SEGMENT = "welcome";
+export const AUTH_LOCALE_ONBOARD_SEGMENT = "together/onboard";
 export const AUTH_LOCALE_CONFIRM_SEGMENT = "auth/confirm";
+export const AUTH_LOCALE_REGISTER_SEGMENT = "register";
+export const AUTH_LOCALE_FORGOT_PASSWORD_SEGMENT = "forgot-password";
 
 export const AUTH_CONFIRM_STATUS = {
   OK: "ok",
@@ -31,9 +39,9 @@ export const AUTH_CONFIRM_QUERY = {
 } as const;
 
 export const AUTH_CONFIRM_ERROR_CODE = {
-  UNCONFIGURED: "unconfigured",
-  INVALID: "invalid",
-  UNKNOWN: "unknown",
+  UNCONFIGURED: COMMON_ACTION_ERROR_CODE.UNCONFIGURED,
+  INVALID: COMMON_ACTION_ERROR_CODE.INVALID,
+  UNKNOWN: COMMON_ACTION_ERROR_CODE.UNKNOWN,
   CANCELLED: "cancelled",
   IDENTITY_CONFLICT: "identity_conflict",
   LINKING_DISABLED: "linking_disabled",
@@ -55,12 +63,22 @@ export type AuthConfirmErrorCode =
   (typeof AUTH_CONFIRM_ERROR_CODE)[keyof typeof AUTH_CONFIRM_ERROR_CODE];
 
 export const AUTH_ACTION_ERROR_CODE = {
-  UNCONFIGURED: "unconfigured",
-  UNAUTHENTICATED: "unauthenticated",
-  INVALID: "invalid",
+  ...COMMON_ACTION_ERROR_CODE,
   PROVIDER_ERROR: "provider_error",
-  UNKNOWN: "unknown",
+  INVALID_CREDENTIALS: "invalid_credentials",
+  ALREADY_REGISTERED: "already_registered",
 } as const;
+
+export type AuthActionErrorCode =
+  (typeof AUTH_ACTION_ERROR_CODE)[keyof typeof AUTH_ACTION_ERROR_CODE];
+
+export const AUTH_SIGN_UP_NEXT = {
+  ONBOARD: "onboard",
+  CONFIRM: "confirm",
+} as const;
+
+export type AuthSignUpNext =
+  (typeof AUTH_SIGN_UP_NEXT)[keyof typeof AUTH_SIGN_UP_NEXT];
 
 export const SUPABASE_AUTH_ERROR_CODE = {
   ACCESS_DENIED: "access_denied",
@@ -100,6 +118,8 @@ export const AUTH_ERROR_MESSAGE_NEEDLE = {
   AUTH_CODE_AND_VERIFIER: "both auth code and code verifier",
   EXPIRED: "expired",
   INVALID: "invalid",
+  ALREADY: "already",
+  REGISTERED: "registered",
 } as const;
 
 export const HTTP_HEADER = {
@@ -138,6 +158,10 @@ export function localeHomePath(locale: string): string {
 
 export function localeWelcomePath(locale: string): string {
   return `/${locale}/${AUTH_LOCALE_WELCOME_SEGMENT}`;
+}
+
+export function localeOnboardPath(locale: string): string {
+  return `/${locale}/${AUTH_LOCALE_ONBOARD_SEGMENT}`;
 }
 
 export function localeConfirmPath(locale: string): string {
