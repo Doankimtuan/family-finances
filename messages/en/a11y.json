@@ -1,5 +1,6 @@
 {
   "primaryNav": "Primary",
   "back": "Back",
-  "localeSwitcher": "Choose language"
+  "localeSwitcher": "Choose language",
+  "themeSwitcher": "Choose appearance"
 }

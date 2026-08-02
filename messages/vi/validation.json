@@ -3,5 +3,7 @@
   "invalidEmail": "Nhập email hợp lệ",
   "tooShort": "Phải có ít nhất {min} ký tự",
   "tooLong": "Tối đa {max} ký tự",
-  "invalidType": "Giá trị không hợp lệ"
+  "invalidType": "Giá trị không hợp lệ",
+  "passwordMismatch": "Mật khẩu không khớp",
+  "acceptTerms": "Hãy đồng ý với điều khoản để tiếp tục"
 }

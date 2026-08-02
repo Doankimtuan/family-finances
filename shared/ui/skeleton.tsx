@@ -9,5 +9,10 @@ import { cn } from "@/shared/utils/cn";
 export type SkeletonProps = HeroSkeletonProps;
 
 export function Skeleton({ className, ...props }: SkeletonProps) {
-  return <HeroSkeleton className={cn(className)} {...props} />;
+  return (
+    <HeroSkeleton
+      className={cn("bg-skeleton text-skeleton", className)}
+      {...props}
+    />
+  );
 }

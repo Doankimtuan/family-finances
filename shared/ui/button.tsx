@@ -23,10 +23,12 @@ export function Button({
       variant={variant}
       isIconOnly={isIconOnly}
       className={cn(
-        "rounded-[var(--radius-md)] font-medium transition-[transform,background-color,color,opacity]",
+        "button rounded-[var(--radius-md)] font-medium tracking-tight",
+        "transition-[transform,background-color,color,opacity,box-shadow]",
         "duration-[var(--duration-fast)] ease-[var(--ease-standard)]",
         "motion-reduce:transition-none motion-reduce:active:transform-none",
-        !isIconOnly && "min-h-11",
+        !isIconOnly && "min-h-11 px-(--space-4)",
+        variant === "primary" && "shadow-[var(--elevation-1)]",
         className,
       )}
       {...props}

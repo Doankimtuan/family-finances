@@ -22,7 +22,7 @@ export function LoadingState({
       role="status"
       aria-live="polite"
       className={cn(
-        "flex flex-col items-center justify-center gap-[var(--space-3)] px-[var(--space-6)] py-[var(--space-10)]",
+        "flex flex-col items-center justify-center gap-(--space-3) px-(--space-6) py-(--space-8)",
         className,
       )}
     >

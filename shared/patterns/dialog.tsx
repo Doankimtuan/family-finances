@@ -25,7 +25,14 @@ export function DialogContent({
     <>
       <Modal.Backdrop />
       <Modal.Container className={cn("max-w-[min(100%,400px)]", className)}>
-        <Modal.Dialog>{children}</Modal.Dialog>
+        <Modal.Dialog
+          className={cn(
+            "rounded-[var(--radius-xl)] bg-surface-elevated",
+            "border border-border-subtle shadow-[var(--elevation-2)]",
+          )}
+        >
+          {children}
+        </Modal.Dialog>
       </Modal.Container>
     </>
   );

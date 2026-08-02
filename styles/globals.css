@@ -1,29 +1,81 @@
 @import "tailwindcss";
 @import "@heroui/styles";
 
-/* ViNha Calm Ledger — semantic tokens override HeroUI defaults */
+/* Class-based dark (next-themes) — not prefers-color-scheme alone */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ViNha Calm Ledger — semantic tokens; single source of truth for light + dark */
 
 @theme inline {
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 
+  /* Surfaces */
   --color-canvas-outer: var(--vinha-canvas-outer);
   --color-canvas: var(--vinha-canvas);
   --color-surface: var(--vinha-surface);
   --color-surface-elevated: var(--vinha-surface-elevated);
+  --color-surface-hover: var(--vinha-surface-hover);
+
+  /* Borders / chrome */
   --color-border-subtle: var(--vinha-border-subtle);
   --color-border-strong: var(--vinha-border-strong);
+  --color-divider: var(--vinha-divider);
+
+  /* Text */
   --color-text-primary: var(--vinha-text-primary);
   --color-text-secondary: var(--vinha-text-secondary);
+  --color-text-tertiary: var(--vinha-text-tertiary);
   --color-text-muted: var(--vinha-text-muted);
+  --color-placeholder: var(--vinha-placeholder);
+  --color-disabled: var(--vinha-disabled);
+
+  /* Brand / actions */
+  --color-primary: var(--vinha-primary);
+  --color-primary-hover: var(--vinha-primary-hover);
+  --color-primary-fg: var(--vinha-primary-fg);
+  --color-secondary: var(--vinha-secondary);
+  --color-secondary-fg: var(--vinha-secondary-fg);
   --color-accent: var(--vinha-accent);
   --color-accent-fg: var(--vinha-accent-fg);
-  --color-danger: var(--vinha-danger);
-  --color-warning: var(--vinha-warning);
+  --color-accent-strong: var(--vinha-accent-strong);
+
+  /* Status */
   --color-success: var(--vinha-success);
+  --color-warning: var(--vinha-warning);
+  --color-danger: var(--vinha-danger);
+  --color-info: var(--vinha-info);
+
+  /* Money direction (existing) + domain aliases */
   --color-credit: var(--vinha-credit);
   --color-debit: var(--vinha-debit);
+  --color-income: var(--vinha-income);
+  --color-expense: var(--vinha-expense);
+  --color-saving: var(--vinha-saving);
+  --color-installment: var(--vinha-installment);
+
+  /* Health scale */
+  --color-health-excellent: var(--vinha-health-excellent);
+  --color-health-good: var(--vinha-health-good);
+  --color-health-warning: var(--vinha-health-warning);
+  --color-health-critical: var(--vinha-health-critical);
+
+  /* Charts */
+  --color-chart-ink: var(--vinha-chart-ink);
+  --color-chart-grid: var(--vinha-chart-grid);
+  --color-chart-positive: var(--vinha-chart-positive);
+  --color-chart-negative: var(--vinha-chart-negative);
+  --color-chart-neutral: var(--vinha-chart-neutral);
+  --color-chart-series-real: var(--vinha-chart-series-real);
+  --color-chart-series-intention: var(--vinha-chart-series-intention);
+
+  /* Overlays / feedback */
+  --color-skeleton: var(--vinha-skeleton);
+  --color-overlay: var(--vinha-overlay);
+  --color-backdrop: var(--vinha-backdrop);
   --color-focus-ring: var(--vinha-focus-ring);
+  --color-inverse: var(--vinha-inverse);
+  --color-inverse-fg: var(--vinha-inverse-fg);
 
   --radius-sm: 6px;
   --radius-md: 10px;
@@ -35,25 +87,74 @@
 :root {
   color-scheme: light;
 
+  /* --- Surfaces (warm stone neutrals) --- */
   --vinha-canvas-outer: #f5f5f4;
   --vinha-canvas: #fafaf9;
   --vinha-surface: #ffffff;
   --vinha-surface-elevated: #ffffff;
+  --vinha-surface-hover: #f5f5f4;
+
+  /* --- Borders --- */
   --vinha-border-subtle: #e7e5e4;
   --vinha-border-strong: #d6d3d1;
+  --vinha-divider: #e7e5e4;
+
+  /* --- Text --- */
   --vinha-text-primary: #18181b;
   --vinha-text-secondary: #52525b;
+  --vinha-text-tertiary: #71717a;
   --vinha-text-muted: #71717a;
+  --vinha-placeholder: #a1a1aa;
+  --vinha-disabled: #a1a1aa;
+
+  /* --- Brand (deep teal) --- */
   --vinha-accent: #0f766e;
   --vinha-accent-fg: #fafafa;
-  --vinha-danger: #be123c;
-  --vinha-warning: #b45309;
+  --vinha-accent-strong: #134e4a;
+  --vinha-primary: #0f766e;
+  --vinha-primary-hover: #0d9488;
+  --vinha-primary-fg: #fafafa;
+  --vinha-secondary: #f5f5f4;
+  --vinha-secondary-fg: #18181b;
+
+  /* --- Status --- */
   --vinha-success: #047857;
+  --vinha-warning: #b45309;
+  --vinha-danger: #be123c;
+  --vinha-info: #0369a1;
+
+  /* --- Money --- */
   --vinha-credit: #047857;
   --vinha-debit: #27272a;
-  --vinha-focus-ring: #0f766e;
+  --vinha-income: #047857;
+  --vinha-expense: #27272a;
+  --vinha-saving: #0f766e;
+  --vinha-installment: #b45309;
 
-  /* Bridge HeroUI theme vars → Calm Ledger (keeps wrappers on brand) */
+  /* --- Health --- */
+  --vinha-health-excellent: #047857;
+  --vinha-health-good: #0f766e;
+  --vinha-health-warning: #b45309;
+  --vinha-health-critical: #be123c;
+
+  /* --- Charts --- */
+  --vinha-chart-ink: #18181b;
+  --vinha-chart-grid: #e7e5e4;
+  --vinha-chart-positive: #047857;
+  --vinha-chart-negative: #be123c;
+  --vinha-chart-neutral: #71717a;
+  --vinha-chart-series-real: #0f766e;
+  --vinha-chart-series-intention: #a8a29e;
+
+  /* --- Feedback / overlays --- */
+  --vinha-skeleton: #e7e5e4;
+  --vinha-overlay: rgb(24 24 27 / 0.4);
+  --vinha-backdrop: rgb(24 24 27 / 0.45);
+  --vinha-focus-ring: #0f766e;
+  --vinha-inverse: #18181b;
+  --vinha-inverse-fg: #fafafa;
+
+  /* Bridge HeroUI theme vars → Calm Ledger */
   --background: var(--vinha-canvas);
   --foreground: var(--vinha-text-primary);
   --surface: var(--vinha-surface);
@@ -66,33 +167,66 @@
   --accent: var(--vinha-accent);
   --accent-foreground: var(--vinha-accent-fg);
   --border: var(--vinha-border-subtle);
-  --separator: var(--vinha-border-subtle);
+  --separator: var(--vinha-divider);
   --focus: var(--vinha-focus-ring);
   --success: var(--vinha-success);
   --warning: var(--vinha-warning);
   --danger: var(--vinha-danger);
   --field-background: var(--vinha-surface);
   --field-foreground: var(--vinha-text-primary);
-  --field-placeholder: var(--vinha-text-muted);
+  --field-placeholder: var(--vinha-placeholder);
   --radius: 10px;
 
+  /* Semantic aliases (consumed by components + Tailwind) */
   --color-canvas-outer: var(--vinha-canvas-outer);
   --color-canvas: var(--vinha-canvas);
   --color-surface: var(--vinha-surface);
   --color-surface-elevated: var(--vinha-surface-elevated);
+  --color-surface-hover: var(--vinha-surface-hover);
   --color-border-subtle: var(--vinha-border-subtle);
   --color-border-strong: var(--vinha-border-strong);
+  --color-divider: var(--vinha-divider);
   --color-text-primary: var(--vinha-text-primary);
   --color-text-secondary: var(--vinha-text-secondary);
+  --color-text-tertiary: var(--vinha-text-tertiary);
   --color-text-muted: var(--vinha-text-muted);
+  --color-placeholder: var(--vinha-placeholder);
+  --color-disabled: var(--vinha-disabled);
+  --color-primary: var(--vinha-primary);
+  --color-primary-hover: var(--vinha-primary-hover);
+  --color-primary-fg: var(--vinha-primary-fg);
+  --color-secondary: var(--vinha-secondary);
+  --color-secondary-fg: var(--vinha-secondary-fg);
   --color-accent: var(--vinha-accent);
   --color-accent-fg: var(--vinha-accent-fg);
+  --color-accent-strong: var(--vinha-accent-strong);
   --color-danger: var(--vinha-danger);
   --color-warning: var(--vinha-warning);
   --color-success: var(--vinha-success);
+  --color-info: var(--vinha-info);
   --color-credit: var(--vinha-credit);
   --color-debit: var(--vinha-debit);
+  --color-income: var(--vinha-income);
+  --color-expense: var(--vinha-expense);
+  --color-saving: var(--vinha-saving);
+  --color-installment: var(--vinha-installment);
+  --color-health-excellent: var(--vinha-health-excellent);
+  --color-health-good: var(--vinha-health-good);
+  --color-health-warning: var(--vinha-health-warning);
+  --color-health-critical: var(--vinha-health-critical);
+  --color-chart-ink: var(--vinha-chart-ink);
+  --color-chart-grid: var(--vinha-chart-grid);
+  --color-chart-positive: var(--vinha-chart-positive);
+  --color-chart-negative: var(--vinha-chart-negative);
+  --color-chart-neutral: var(--vinha-chart-neutral);
+  --color-chart-series-real: var(--vinha-chart-series-real);
+  --color-chart-series-intention: var(--vinha-chart-series-intention);
+  --color-skeleton: var(--vinha-skeleton);
+  --color-overlay: var(--vinha-overlay);
+  --color-backdrop: var(--vinha-backdrop);
   --color-focus-ring: var(--vinha-focus-ring);
+  --color-inverse: var(--vinha-inverse);
+  --color-inverse-fg: var(--vinha-inverse-fg);
 
   --space-0: 0px;
   --space-1: 4px;
@@ -136,9 +270,9 @@
   --opacity-overlay: 0.4;
 
   --elevation-0: none;
-  --elevation-1: 0 1px 2px rgb(28 25 23 / 0.06);
-  --elevation-2: 0 8px 24px rgb(28 25 23 / 0.1);
-  --elevation-3: 0 16px 40px rgb(28 25 23 / 0.14);
+  --elevation-1: 0 1px 2px rgb(28 25 23 / 0.05);
+  --elevation-2: 0 8px 24px rgb(28 25 23 / 0.08);
+  --elevation-3: 0 16px 40px rgb(28 25 23 / 0.12);
 
   --safe-area-top: env(safe-area-inset-top, 0px);
   --safe-area-right: env(safe-area-inset-right, 0px);
@@ -163,23 +297,64 @@
 [data-theme="dark"] {
   color-scheme: dark;
 
-  --vinha-canvas-outer: #09090b;
-  --vinha-canvas: #09090b;
-  --vinha-surface: #18181b;
-  --vinha-surface-elevated: #27272a;
+  /* Deep charcoal — not OLED pure black */
+  --vinha-canvas-outer: #111113;
+  --vinha-canvas: #141416;
+  --vinha-surface: #1c1c1f;
+  --vinha-surface-elevated: #27272b;
+  --vinha-surface-hover: #232326;
+
   --vinha-border-subtle: #3f3f46;
   --vinha-border-strong: #52525b;
-  --vinha-text-primary: #fafafa;
+  --vinha-divider: #3f3f46;
+
+  --vinha-text-primary: #f4f4f5;
   --vinha-text-secondary: #a1a1aa;
+  --vinha-text-tertiary: #71717a;
   --vinha-text-muted: #71717a;
+  --vinha-placeholder: #71717a;
+  --vinha-disabled: #52525b;
+
   --vinha-accent: #2dd4bf;
-  --vinha-accent-fg: #09090b;
-  --vinha-danger: #fb7185;
-  --vinha-warning: #fbbf24;
+  --vinha-accent-fg: #111113;
+  --vinha-accent-strong: #5eead4;
+  --vinha-primary: #2dd4bf;
+  --vinha-primary-hover: #5eead4;
+  --vinha-primary-fg: #111113;
+  --vinha-secondary: #27272b;
+  --vinha-secondary-fg: #f4f4f5;
+
   --vinha-success: #34d399;
+  --vinha-warning: #fbbf24;
+  --vinha-danger: #fb7185;
+  --vinha-info: #38bdf8;
+
   --vinha-credit: #34d399;
   --vinha-debit: #e4e4e7;
+  --vinha-income: #34d399;
+  --vinha-expense: #e4e4e7;
+  --vinha-saving: #2dd4bf;
+  --vinha-installment: #fbbf24;
+
+  --vinha-health-excellent: #34d399;
+  --vinha-health-good: #2dd4bf;
+  --vinha-health-warning: #fbbf24;
+  --vinha-health-critical: #fb7185;
+
+  --vinha-chart-ink: #f4f4f5;
+  --vinha-chart-grid: #3f3f46;
+  --vinha-chart-positive: #34d399;
+  --vinha-chart-negative: #fb7185;
+  --vinha-chart-neutral: #71717a;
+  --vinha-chart-series-real: #2dd4bf;
+  --vinha-chart-series-intention: #71717a;
+
+  --vinha-skeleton: #27272b;
+  --vinha-overlay: rgb(0 0 0 / 0.5);
+  --vinha-backdrop: rgb(0 0 0 / 0.55);
   --vinha-focus-ring: #2dd4bf;
+  --vinha-inverse: #f4f4f5;
+  --vinha-inverse-fg: #141416;
 
   --background: var(--vinha-canvas);
   --foreground: var(--vinha-text-primary);
@@ -193,26 +368,26 @@
   --accent: var(--vinha-accent);
   --accent-foreground: var(--vinha-accent-fg);
   --border: var(--vinha-border-subtle);
-  --separator: var(--vinha-border-subtle);
+  --separator: var(--vinha-divider);
   --focus: var(--vinha-focus-ring);
   --success: var(--vinha-success);
   --warning: var(--vinha-warning);
   --danger: var(--vinha-danger);
   --field-background: var(--vinha-surface);
   --field-foreground: var(--vinha-text-primary);
-  --field-placeholder: var(--vinha-text-muted);
+  --field-placeholder: var(--vinha-placeholder);
 
-  --elevation-1: 0 1px 2px rgb(0 0 0 / 0.35);
-  --elevation-2: 0 8px 24px rgb(0 0 0 / 0.45);
-  --elevation-3: 0 16px 40px rgb(0 0 0 / 0.55);
+  --elevation-1: 0 1px 2px rgb(0 0 0 / 0.28);
+  --elevation-2: 0 8px 24px rgb(0 0 0 / 0.4);
+  --elevation-3: 0 16px 40px rgb(0 0 0 / 0.5);
 
   --canvas-atmosphere:
     radial-gradient(
       120% 80% at 50% -10%,
-      rgb(45 212 191 / 0.1),
+      rgb(45 212 191 / 0.09),
       transparent 55%
     ),
-    radial-gradient(90% 60% at 0% 100%, rgb(39 39 42 / 0.8), transparent 50%);
+    radial-gradient(90% 60% at 0% 100%, rgb(39 39 42 / 0.65), transparent 50%);
 }
 
 *,
@@ -236,6 +411,17 @@ body {
 
 body {
   min-height: 100dvh;
+}
+
+/* Calm theme-switch fade (intentional only; see ThemeProvider) */
+@media (prefers-reduced-motion: no-preference) {
+  html.theme-transitioning,
+  html.theme-transitioning body,
+  html.theme-transitioning #app-viewport-root {
+    transition:
+      background-color var(--duration-normal) var(--ease-standard),
+      color var(--duration-normal) var(--ease-standard);
+  }
 }
 
 ::selection {
@@ -263,9 +449,13 @@ body {
   transform: translateZ(0);
 }
 
-/* Press feedback — respects prefers-reduced-motion via global rule */
 @layer components {
   .button:active:not(:disabled):not([aria-disabled="true"]) {
     transform: scale(0.98);
+  }
+
+  .skeleton-bone {
+    background-color: var(--color-skeleton);
+    border-radius: var(--radius-md);
   }
 }

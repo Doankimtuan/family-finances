@@ -26,7 +26,8 @@ export function SheetContent({
       <Drawer.Content
         placement="bottom"
         className={cn(
-          "max-h-[85%] rounded-t-xl bg-surface-elevated",
+          "max-h-[85%] rounded-t-[var(--radius-xl)] bg-surface-elevated",
+          "border-t border-border-subtle shadow-[var(--elevation-2)]",
           className,
         )}
       >

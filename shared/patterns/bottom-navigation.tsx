@@ -22,11 +22,11 @@ export function BottomNavigation({ className }: { className?: string }) {
         aria-label={tA11y("primaryNav")}
         className={cn(
           "sticky bottom-0 z-(--z-nav) border-t border-border-subtle",
-          "bg-surface/95 shadow-[var(--elevation-1)] backdrop-blur-md",
+          "bg-surface/90 backdrop-blur-md",
           className,
         )}
       >
-        <ul className="grid grid-cols-5 px-(--space-1) pt-(--space-1) pb-(--space-1)">
+        <ul className="grid grid-cols-5 px-(--space-2) pt-(--space-1) pb-(--space-1)">
           {TABS.map(({ href, labelKey, icon: Icon }) => {
             const active = pathname === href || pathname.startsWith(`${href}/`);
             const label = t(labelKey);
@@ -35,8 +35,8 @@ export function BottomNavigation({ className }: { className?: string }) {
                 <Link
                   href={href}
                   className={cn(
-                    "relative flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-md px-1 py-1.5",
-                    "text-[10px] font-medium",
+                    "relative flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-[var(--radius-md)] px-1 py-1.5",
+                    "text-xs font-medium tracking-tight",
                     "transition-colors duration-(--duration-fast) ease-(--ease-standard)",
                     "motion-reduce:transition-none",
                     "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring",
@@ -49,12 +49,12 @@ export function BottomNavigation({ className }: { className?: string }) {
                   {active ? (
                     <span
                       aria-hidden
-                      className="absolute inset-x-3 top-0 h-0.5 rounded-full bg-accent"
+                      className="absolute inset-x-4 top-0 h-0.5 rounded-full bg-accent"
                     />
                   ) : null}
                   <span className="relative inline-flex">
                     <Icon
-                      size={24}
+                      size={22}
                       weight={active ? "fill" : "regular"}
                       aria-hidden
                     />

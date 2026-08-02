@@ -17,6 +17,7 @@ export default async function Page({ params }: Props) {
       lead={tEmpty("homeLead")}
       emptyTitle={tEmpty("homeTitle")}
       emptyDescription={tEmpty("homeDescription")}
+      showBrand
     />
   );
 }

@@ -1,0 +1,10 @@
+{
+  "board": "Design Director",
+  "run_id": "run_design_review_20260802T061600Z",
+  "at": "2026-08-02T06:18:47Z",
+  "path": "artifacts/design-review/CURRENT",
+  "version": "v1.0.0",
+  "status": "DESIGN_REVIEW_V1",
+  "visual_polish_applied": true,
+  "overall_after": 7.8
+}

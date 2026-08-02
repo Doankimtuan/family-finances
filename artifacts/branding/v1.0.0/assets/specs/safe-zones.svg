@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="ViNha safe zone reference">
+  <!-- Reference diagram only, not a shipped asset. Shows the unscaled master mark against
+       the maskable (80% diameter) and Android adaptive (~61% diameter) safe-zone circles. -->
+  <rect width="32" height="32" fill="#0F766E" />
+  <circle cx="16" cy="16" r="12.8" fill="none" stroke="#FAFAFA" stroke-opacity="0.35" stroke-width="0.3" />
+  <circle cx="16" cy="16" r="9.79" fill="none" stroke="#FAFAFA" stroke-opacity="0.6" stroke-width="0.3" stroke-dasharray="1,1" />
+  <path
+    fill="#FAFAFA"
+    fill-opacity="0.5"
+    d="M4,25 L4,19 A8,8 0 0 1 20,19 L20,25 Z M12,25 L12,19 A8,8 0 0 1 28,19 L28,25 Z"
+  />
+</svg>

@@ -1,5 +1,11 @@
 {
   "language": "Ngôn ngữ",
   "english": "Tiếng Anh",
-  "vietnamese": "Tiếng Việt"
+  "vietnamese": "Tiếng Việt",
+  "appearance": "Giao diện",
+  "theme": "Chủ đề",
+  "themeSystem": "Hệ thống",
+  "themeLight": "Sáng",
+  "themeDark": "Tối",
+  "preferences": "Tuỳ chọn"
 }

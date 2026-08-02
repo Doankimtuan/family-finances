@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="ViNha">
+  <!-- Cradle & Seed master mark. Thick protective cradle with a nested floating seed. See icon-decision.md. -->
+  <path
+    fill="#0F766E"
+    d="M6,18 L6,20 A10,10 0 0,0 26,20 L26,18 A2,2 0 0,0 22,18 L22,20 A6,6 0 0,1 10,20 L10,18 A2,2 0 0,0 6,18 Z M16,5 A4,4 0 1,1 16,13 A4,4 0 1,1 16,5 Z"
+  />
+</svg>

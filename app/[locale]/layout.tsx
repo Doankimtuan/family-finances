@@ -37,6 +37,8 @@ export const viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover" as const,
+  // Brand accent (Cradle & Seed / Calm Ledger teal) — see artifacts/branding/CURRENT/color-system.md
+  themeColor: "#0F766E",
 };
 
 export default async function LocaleLayout({ children, params }: Props) {

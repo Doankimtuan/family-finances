@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { setLocale } from "@/i18n/set-locale";
+import { BrandMark } from "@/shared/patterns/brand-mark";
 import { Heading } from "@/shared/ui/heading";
 import { Text } from "@/shared/ui/text";
 import { LocaleSwitcher } from "@/shared/patterns/locale-switcher";
@@ -21,6 +22,12 @@ export default async function LandingPage({ params }: Props) {
         <LocaleSwitcher />
       </div>
       <div className="flex w-full max-w-[var(--app-viewport-max)] flex-col items-center gap-(--space-5)">
+        <BrandMark
+          variant="plate"
+          size="xl"
+          decorative={false}
+          title={t("brand")}
+        />
         <Heading
           level={1}
           className="text-[2.75rem] leading-none tracking-tight text-text-primary sm:text-5xl"

@@ -7,6 +7,7 @@ import { Button } from "@/shared/ui/button";
 import { Heading } from "@/shared/ui/heading";
 import { LoadingState } from "@/shared/patterns/loading-state";
 import { AuthScreenShell } from "@/shared/patterns/auth-screen-shell";
+import { BrandMark } from "@/shared/patterns/brand-mark";
 
 export function ConfirmScreen({
   status,
@@ -21,7 +22,8 @@ export function ConfirmScreen({
   if (status === "pending") {
     return (
       <AuthScreenShell testId="auth-confirm" centered className="items-center">
-        <Heading level={1} className="text-xl">
+        <BrandMark variant="soft" size="md" />
+        <Heading level={1} className="text-xl tracking-tight">
           {t("title")}
         </Heading>
         <LoadingState label={t("loadingLabel")} className="py-0" />
@@ -32,6 +34,9 @@ export function ConfirmScreen({
   if (status === "ok") {
     return (
       <AuthScreenShell testId="auth-confirm" centered>
+        <div className="flex justify-center">
+          <BrandMark variant="soft" size="md" />
+        </div>
         <StatusAlert
           variant="success"
           title={t("successTitle")}
@@ -55,6 +60,9 @@ export function ConfirmScreen({
 
   return (
     <AuthScreenShell testId="auth-confirm" centered>
+      <div className="flex justify-center">
+        <BrandMark variant="soft" size="md" />
+      </div>
       <StatusAlert
         variant="danger"
         title={t("errorTitle")}

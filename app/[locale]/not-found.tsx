@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
+import { BrandMark } from "@/shared/patterns/brand-mark";
 import { Heading } from "@/shared/ui/heading";
 import { Text } from "@/shared/ui/text";
 
@@ -9,6 +10,7 @@ export default async function LocaleNotFound() {
 
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center gap-(--space-4) px-(--space-6) text-center">
+      <BrandMark variant="soft" size="md" />
       <Heading level={2}>{tErrors("notFound")}</Heading>
       <Text tone="secondary" size="sm" className="max-w-[16rem]">
         {tErrors("generic")}

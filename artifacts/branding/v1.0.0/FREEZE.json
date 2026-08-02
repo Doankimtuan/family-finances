@@ -1,0 +1,29 @@
+{
+  "run_id": "run_branding_20260802T133600Z",
+  "created_at": "2026-08-02T14:25:00Z",
+  "board": "Brand & Icon Design",
+  "version": "v1.0.0",
+  "frozen": true,
+  "status": "OFFICIAL_BRAND_SOURCE_OF_TRUTH",
+  "product": "ViNha",
+  "symbol_direction": "cradle_and_seed",
+  "selected_concept": "Cradle & Seed",
+  "color_extends": "artifacts/design-foundation CURRENT Calm Ledger (deep teal, no new hue)",
+  "sot_untouched": {
+    "design_foundation": true,
+    "design_system": true,
+    "product_definition": true
+  },
+  "icon_system_documents": [
+    "brand-strategy.md",
+    "brand-personality.md",
+    "logo-concepts.md",
+    "icon-exploration.md",
+    "icon-decision.md",
+    "color-system.md",
+    "favicon-guidelines.md",
+    "app-icon-guidelines.md",
+    "export-specifications.md",
+    "design-rationale.md"
+  ]
+}

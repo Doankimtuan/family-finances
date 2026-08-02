@@ -15,6 +15,7 @@ import { Text } from "@/shared/ui/text";
 import { Heading } from "@/shared/ui/heading";
 import { TextField } from "@/shared/ui/form";
 import { AuthScreenShell } from "@/shared/patterns/auth-screen-shell";
+import { BrandMark } from "@/shared/patterns/brand-mark";
 import { toast } from "@/shared/patterns/toast";
 import { forgotPasswordAction } from "./actions";
 
@@ -56,13 +57,16 @@ export function ForgotPasswordScreen() {
 
   return (
     <AuthScreenShell testId="auth-forgot-password" centered>
-      <div className="flex flex-col gap-(--space-2)">
-        <Heading level={1} className="text-2xl">
-          {t("title")}
-        </Heading>
-        <Text tone="secondary" size="sm">
-          {t("subtitle")}
-        </Text>
+      <div className="flex flex-col items-center gap-(--space-3) text-center">
+        <BrandMark variant="soft" size="md" />
+        <div className="flex flex-col gap-(--space-2)">
+          <Heading level={2} className="tracking-tight">
+            {t("title")}
+          </Heading>
+          <Text tone="secondary" size="sm" className="leading-relaxed">
+            {t("subtitle")}
+          </Text>
+        </div>
       </div>
 
       {errorCode ? (

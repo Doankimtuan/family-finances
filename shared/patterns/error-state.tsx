@@ -39,7 +39,11 @@ export function ErrorState({
       />
       <Heading level={3}>{title}</Heading>
       {description ? (
-        <Text tone="secondary" size="sm">
+        <Text
+          tone="secondary"
+          size="sm"
+          className="max-w-[20rem] leading-relaxed"
+        >
           {description}
         </Text>
       ) : null}

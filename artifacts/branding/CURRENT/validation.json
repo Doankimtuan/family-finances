@@ -1,0 +1,30 @@
+{
+  "run_id": "run_branding_20260802T133600Z",
+  "created_at": "2026-08-02T14:25:00Z",
+  "version": "v1.0.0",
+  "status": "OFFICIAL_BRAND_SOURCE_OF_TRUTH",
+  "pass": true,
+  "concept": "Cradle & Seed",
+  "scores": {
+    "recognition": 10,
+    "scalability": 9.5,
+    "memorability": 9.5,
+    "uniqueness": 10,
+    "timelessness": 9.5,
+    "accessibility": 9.5,
+    "dark_mode": 9.5,
+    "light_mode": 9.5,
+    "brand_consistency": 10,
+    "visual_balance": 10,
+    "average": 9.7
+  },
+  "gate_16px_legible": true,
+  "gate_no_phosphor_clash": true,
+  "gate_no_second_brand_hue": true,
+  "gate_no_letters_currency_piggybank_wallet_literal_house": true,
+  "gate_sot_untouched": true,
+  "code_touch": [
+    "public/*",
+    "app/layout.tsx"
+  ]
+}
