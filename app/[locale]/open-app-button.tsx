@@ -12,8 +12,8 @@ export function OpenAppButton() {
     <Button
       variant="primary"
       size="md"
-      className="min-h-11 min-w-[10rem] px-(--space-6)"
-      onPress={() => router.push("/home")}
+      className="min-w-[10rem] px-(--space-6)"
+      onPress={() => router.push("/welcome")}
     >
       {t("openApp")}
     </Button>

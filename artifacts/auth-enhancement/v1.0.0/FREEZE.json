@@ -1,0 +1,43 @@
+{
+  "pack": "auth-enhancement",
+  "status": "AUTH_READY_FOR_IMPLEMENTATION",
+  "version": "v1.0.0",
+  "frozen": true,
+  "run_id": "run_auth_enhancement_20260802T014240Z",
+  "adopted_run_id": "run_sot_auth_v2_adoption_20260802T014716Z",
+  "created_at": "2026-08-02T01:42:40Z",
+  "updated_at": "2026-08-02T01:47:16Z",
+  "scope": "Authentication Strategy v2: Google + Apple + Email/Password via Supabase Auth; account linking; security review; sprint impact — ADOPTED into official SoTs",
+  "providers": ["google", "apple", "email_password"],
+  "guest_mode": false,
+  "documents": [
+    "README.md",
+    "authentication-v2.md",
+    "oauth-flow.md",
+    "account-linking.md",
+    "security-review.md",
+    "sprint-impact.md"
+  ],
+  "proposed_stories": [
+    "ST-E02-004",
+    "ST-E02-005",
+    "ST-E02-006"
+  ],
+  "proposed_requirements": [
+    "REQ-002a",
+    "BR-02b"
+  ],
+  "sot_untouched": false,
+  "sot_adopted": true,
+  "implementation_started": false,
+  "ready_for_implementation": true,
+  "adopted_into": [
+    "artifacts/product-definition/v2.1.0",
+    "artifacts/architecture-definition/v2.1.0",
+    "artifacts/technical-specification/v2.1.0",
+    "artifacts/screen-blueprints/v1.1.0",
+    "artifacts/implementation-plan/v1.1.0",
+    "artifacts/sprint-planning/v1.1.0"
+  ],
+  "change_log": "artifacts/change-log/authentication-v2-adoption.md"
+}

@@ -1,0 +1,16 @@
+{
+  "board": "Implementation Governance Board",
+  "run_id": "run_implementation_governance_20260802T021300Z",
+  "at": "2026-08-02T02:14:36Z",
+  "path": "artifacts/implementation-governance/CURRENT",
+  "version": "v1.0.0",
+  "status": "OFFICIAL_IMPLEMENTATION_GOVERNANCE",
+  "mandatory": true,
+  "pipeline": [
+    "artifacts/implementation-governance/CURRENT",
+    "artifacts/developer-constitution/CURRENT",
+    "artifacts/engineering-review/CURRENT",
+    "artifacts/localization/CURRENT",
+    "artifacts/sprint-planning/CURRENT"
+  ]
+}

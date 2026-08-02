@@ -15,15 +15,18 @@ export type ButtonProps = HeroButtonProps;
 export function Button({
   className,
   variant = "primary",
+  isIconOnly,
   ...props
 }: ButtonProps) {
   return (
     <HeroButton
       variant={variant}
+      isIconOnly={isIconOnly}
       className={cn(
         "rounded-[var(--radius-md)] font-medium transition-[transform,background-color,color,opacity]",
         "duration-[var(--duration-fast)] ease-[var(--ease-standard)]",
         "motion-reduce:transition-none motion-reduce:active:transform-none",
+        !isIconOnly && "min-h-11",
         className,
       )}
       {...props}

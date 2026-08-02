@@ -52,11 +52,21 @@ export function BottomNavigation({ className }: { className?: string }) {
                       className="absolute inset-x-3 top-0 h-0.5 rounded-full bg-accent"
                     />
                   ) : null}
-                  <Icon
-                    size={24}
-                    weight={active ? "fill" : "regular"}
-                    aria-hidden
-                  />
+                  <span className="relative inline-flex">
+                    <Icon
+                      size={24}
+                      weight={active ? "fill" : "regular"}
+                      aria-hidden
+                    />
+                    {labelKey === "inbox" ? (
+                      <span
+                        data-testid="inbox-badge-placeholder"
+                        data-slot="nav-tab-badge"
+                        className="pointer-events-none absolute -top-0.5 -end-1.5 size-2 rounded-full bg-accent opacity-0"
+                        aria-hidden
+                      />
+                    ) : null}
+                  </span>
                   <span className={cn(active && "font-semibold")}>{label}</span>
                 </Link>
               </li>

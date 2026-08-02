@@ -10,7 +10,8 @@ import { getSupabaseEnv } from "./env";
  * stamped onto that response — never replace it with a fresh `NextResponse.next()`,
  * or locale rewrites/redirects from next-intl are lost.
  *
- * Does not redirect unauthenticated users — auth gating is a later sprint.
+ * Does not redirect unauthenticated users — route-level gates own redirects
+ * (e.g. money paths in ST-E02-002).
  */
 export async function updateSession(
   request: NextRequest,

@@ -1,0 +1,55 @@
+{
+  "epics": [
+    {
+      "id": "E01",
+      "name": "App Shell & Design System Wiring",
+      "sprint": "S1",
+      "story_count": 3
+    },
+    {
+      "id": "E02",
+      "name": "Auth & Session",
+      "sprint": "S1",
+      "story_count": 3
+    },
+    {
+      "id": "E03",
+      "name": "Together & Onboarding",
+      "sprint": "S2",
+      "story_count": 3
+    },
+    {
+      "id": "E04",
+      "name": "Money Ledger",
+      "sprint": "S3",
+      "story_count": 4
+    },
+    {
+      "id": "E05",
+      "name": "Plan & Month Ritual",
+      "sprint": "S4",
+      "story_count": 4
+    },
+    {
+      "id": "E06",
+      "name": "Inbox Decisions",
+      "sprint": "S5",
+      "story_count": 2
+    },
+    {
+      "id": "E07",
+      "name": "Home & Health",
+      "sprint": "S6",
+      "story_count": 2
+    },
+    {
+      "id": "E08",
+      "name": "System Shells",
+      "sprint": "S6",
+      "story_count": 1
+    }
+  ],
+  "phase2": [
+    "E09"
+  ]
+}

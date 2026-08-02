@@ -1,23 +1,22 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { useTranslations } from "next-intl";
 import { CaretLeft } from "@phosphor-icons/react";
 import { cn } from "@/shared/utils/cn";
 import { IconButton } from "@/shared/ui/icon-button";
 import { Heading } from "@/shared/ui/heading";
 
-const DEFAULT_BACK_LABEL = "Back";
-
 /**
  * Top app bar shell — title + optional back / trailing slots.
- * Pass localized `backLabel` when using `onBack` (defaults to English "Back").
+ * Default back label uses `a11y.back`; override with `backLabel` when needed.
  */
 export function TopAppBar({
   title,
   onBack,
   trailing,
   className,
-  backLabel = DEFAULT_BACK_LABEL,
+  backLabel,
 }: {
   title?: ReactNode;
   onBack?: () => void;
@@ -25,6 +24,9 @@ export function TopAppBar({
   className?: string;
   backLabel?: string;
 }) {
+  const tA11y = useTranslations("a11y");
+  const resolvedBackLabel = backLabel ?? tA11y("back");
+
   return (
     <header
       className={cn(
@@ -36,7 +38,7 @@ export function TopAppBar({
     >
       {onBack ? (
         <IconButton
-          aria-label={backLabel}
+          aria-label={resolvedBackLabel}
           variant="ghost"
           size="sm"
           onPress={onBack}

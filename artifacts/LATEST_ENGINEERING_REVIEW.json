@@ -1,0 +1,10 @@
+{
+  "pack": "engineering-review",
+  "status": "ENGINEERING_PATTERN_V1",
+  "current": "artifacts/engineering-review/CURRENT",
+  "immutable": "artifacts/engineering-review/v1.0.0",
+  "version": "v1.0.0",
+  "frozen": true,
+  "run_id": "run_engineering_review_20260802T011833Z",
+  "updated_at": "2026-08-02T01:22:00Z"
+}
