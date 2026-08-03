@@ -2,21 +2,20 @@
 
 | Field | Value |
 |-------|--------|
-| Updated | `2026-08-03T02:44:00Z` |
-| Run | `run_sprint_exec_ST-E06-002_20260803T024400Z` |
-| Sprint | **S5** (`sprint-005`) — **COMPLETE** |
-| Last frozen story | **`ST-E06-002`** Review item resolve dismiss acknowledge |
-| Next story | **`ST-E07-001`** Home three answers and Health chip (S6) |
-| Implemented this run | **`ST-E06-002`** only |
+| Updated | `2026-08-03T06:51:38Z` |
+| Run | `run_sprint_exec_ST-E04-004_20260803T065138Z` |
+| Sprint | **S6** (`sprint-006`) — **COMPLETE** |
+| Last frozen story | **`ST-E04-004`** Debts savings and cards/EMI surfaces |
+| Next story | — (implementation-plan sprints end at S6) |
+| Implemented this run | **`ST-E04-004`** only |
 
 ## Implementation vs plan
 
 | Source | Alignment |
 |--------|-----------|
-| S1–S4 | COMPLETE |
-| S5 | 2/2 frozen **COMPLETE** |
-| S6 | NEXT |
+| S1–S5 | COMPLETE |
+| S6 | 4/4 frozen **COMPLETE** |
 
 ## Resume pointer
 
-Next orchestrator run: implement **`ST-E07-001`** only. Do not multi-story.
+S6 complete. Remote migration `ledger_debts_savings_installments` applied via MCP to `bbzffxvgocjwsdbujvgn`. Await product planning for any post-MVP sprint.

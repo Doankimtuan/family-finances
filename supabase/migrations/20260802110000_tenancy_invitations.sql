@@ -234,8 +234,11 @@ begin
     'pending',
     v_expires
   )
-  returning id, token, expires_at
-    into v_id, v_token, v_expires;
+  returning
+    public.household_invitations.id,
+    public.household_invitations.token,
+    public.household_invitations.expires_at
+  into v_id, v_token, v_expires;
 
   invitation_id := v_id;
   token := v_token;

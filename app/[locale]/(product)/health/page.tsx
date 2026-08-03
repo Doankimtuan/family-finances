@@ -1,21 +1,116 @@
 import { getTranslations } from "next-intl/server";
+import { hasLocale } from "next-intl";
 import { setLocale } from "@/i18n/set-locale";
-import { ProductStub } from "@/shared/patterns/product-stub";
+import { redirect, Link } from "@/i18n/navigation";
+import { routing } from "@/i18n/routing";
+import { APP_PATH } from "@/modules/tenancy/application/app-path";
+import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
+import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
+import { getHealthOverview } from "@/modules/health/application";
+import { TopAppBar } from "@/shared/patterns/top-app-bar";
+import { SectionHeader } from "@/shared/patterns/section-header";
+import { StatusAlert } from "@/shared/ui/status-alert";
+import { Text } from "@/shared/ui/text";
+import { HealthOverviewCard } from "./health-overview-card";
+import { HealthViewInsightsAction } from "./health-view-insights-action";
 
 type Props = { params: Promise<{ locale: string }> };
 
-export default async function Page({ params }: Props) {
-  const { locale } = await params;
+/**
+ * health.overview — score + narrative + insights entry (ST-E07-002 / AC-015).
+ */
+export default async function HealthPage({ params }: Props) {
+  const { locale: rawLocale } = await params;
+  const locale = hasLocale(routing.locales, rawLocale)
+    ? rawLocale
+    : routing.defaultLocale;
   setLocale(locale);
 
-  const t = await getTranslations("health");
-  const tEmpty = await getTranslations("emptyStates");
+  const user = await getSessionUser();
+  if (!user) {
+    return redirect({ href: APP_PATH.LOGIN, locale });
+  }
+  const membership = await resolveActiveMembership(user.id);
+  if (!membership) {
+    return redirect({ href: APP_PATH.ONBOARD, locale });
+  }
+
+  const [t, overview] = await Promise.all([
+    getTranslations("health"),
+    getHealthOverview(),
+  ]);
+
+  const loadFailed = overview == null;
 
   return (
-    <ProductStub
-      title={t("title")}
-      emptyTitle={tEmpty("healthTitle")}
-      emptyDescription={tEmpty("healthDescription")}
-    />
+    <div className="flex min-h-full flex-col" data-testid="health-overview">
+      <TopAppBar title={t("title")} subtitle={t("subtitle")} />
+      <div className="flex flex-1 flex-col gap-(--space-5) px-(--space-4) pb-(--space-6) pt-(--space-4)">
+        {loadFailed ? (
+          <StatusAlert
+            variant="danger"
+            title={t("loadErrorTitle")}
+            description={t("loadErrorBody")}
+          />
+        ) : (
+          <>
+            <HealthOverviewCard
+              score={overview.health.score}
+              level={overview.health.level}
+            />
+
+            {overview.hasEmiCompletePending ? (
+              <div data-testid="health-emi-celebrate">
+                <StatusAlert
+                  variant="info"
+                  title={t("emiCelebrateTitle")}
+                  description={t("emiCelebrateBody")}
+                />
+                <Link
+                  href={APP_PATH.INBOX}
+                  className="mt-(--space-2) inline-flex min-h-11 items-center text-sm font-medium text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+                  data-testid="health-emi-inbox-link"
+                >
+                  {t("insights.openInbox")}
+                </Link>
+              </div>
+            ) : null}
+
+            <section className="flex flex-col gap-(--space-3)">
+              <SectionHeader title={t("factorsTitle")} />
+              <ul className="flex flex-col gap-(--space-2)">
+                <li>
+                  <Text size="sm" tone="secondary">
+                    {t("factors.accounts", {
+                      count: overview.accountCount,
+                    })}
+                  </Text>
+                </li>
+                <li>
+                  <Text size="sm" tone="secondary">
+                    {t("factors.jars", { count: overview.activeJarCount })}
+                  </Text>
+                </li>
+                <li>
+                  <Text size="sm" tone="secondary">
+                    {t("factors.inbox", { count: overview.openInboxCount })}
+                  </Text>
+                </li>
+              </ul>
+            </section>
+
+            <HealthViewInsightsAction />
+          </>
+        )}
+
+        <Link
+          href={APP_PATH.HOME}
+          className="text-sm font-medium text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+          data-testid="health-back-home"
+        >
+          {t("backHome")}
+        </Link>
+      </div>
+    </div>
   );
 }

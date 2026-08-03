@@ -26,8 +26,21 @@ import {
   createAccount,
   createAccountInputSchema,
 } from "@/modules/ledger/application/commands/create-account";
+import {
+  archiveAccount,
+  archiveAccountInputSchema,
+} from "@/modules/ledger/application/commands/archive-account";
+import {
+  updateAccount,
+  updateAccountInputSchema,
+} from "@/modules/ledger/application/commands/update-account";
+import {
+  accountHealthFromBalance,
+  AccountHealthSignal,
+} from "@/modules/ledger/application/account-health";
 import { mapAccountRow } from "@/modules/ledger/application/account-types";
 import { getRealPosition } from "@/modules/ledger/application/queries/get-real-position";
+import { AccountType } from "@/modules/ledger/application/ledger-constants";
 
 describe("createAccountInputSchema", () => {
   it("accepts cash account defaults", () => {
@@ -40,6 +53,57 @@ describe("createAccountInputSchema", () => {
     expect(createAccountInputSchema.safeParse({ name: " " }).success).toBe(
       false,
     );
+  });
+
+  it("rejects negative opening balance", () => {
+    expect(
+      createAccountInputSchema.safeParse({
+        name: "Cash",
+        openingBalance: -1,
+      }).success,
+    ).toBe(false);
+  });
+});
+
+describe("archiveAccountInputSchema", () => {
+  it("requires uuid accountId", () => {
+    expect(
+      archiveAccountInputSchema.safeParse({ accountId: "not-uuid" }).success,
+    ).toBe(false);
+    expect(
+      archiveAccountInputSchema.safeParse({
+        accountId: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+      }).success,
+    ).toBe(true);
+  });
+});
+
+describe("updateAccountInputSchema", () => {
+  it("accepts rename + type", () => {
+    expect(
+      updateAccountInputSchema.safeParse({
+        accountId: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+        name: "Wallet",
+        type: AccountType.EWALLET,
+      }).success,
+    ).toBe(true);
+  });
+
+  it("rejects blank name", () => {
+    expect(
+      updateAccountInputSchema.safeParse({
+        accountId: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+        name: " ",
+        type: AccountType.CASH,
+      }).success,
+    ).toBe(false);
+  });
+});
+
+describe("accountHealthFromBalance", () => {
+  it("signals zero vs ok", () => {
+    expect(accountHealthFromBalance(0)).toBe(AccountHealthSignal.ZERO);
+    expect(accountHealthFromBalance(1)).toBe(AccountHealthSignal.OK);
   });
 });
 
@@ -100,6 +164,116 @@ describe("createAccount", () => {
       ok: true,
       accountId: "acc-1",
     });
+  });
+});
+
+describe("archiveAccount", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("archives active account", async () => {
+    vi.mocked(assertMoneyActionAllowed).mockResolvedValue({
+      ok: true,
+      userId: "u1",
+      householdId: "h1",
+    });
+    vi.mocked(createSupabaseServerClient).mockResolvedValue({
+      from: () => ({
+        update: () => ({
+          eq: () => ({
+            eq: () => ({
+              eq: () => ({
+                select: () => ({
+                  maybeSingle: async () => ({
+                    data: { id: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11" },
+                    error: null,
+                  }),
+                }),
+              }),
+            }),
+          }),
+        }),
+      }),
+    } as never);
+
+    await expect(
+      archiveAccount({
+        accountId: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+      }),
+    ).resolves.toEqual({ ok: true });
+  });
+
+  it("returns invalid when account missing", async () => {
+    vi.mocked(assertMoneyActionAllowed).mockResolvedValue({
+      ok: true,
+      userId: "u1",
+      householdId: "h1",
+    });
+    vi.mocked(createSupabaseServerClient).mockResolvedValue({
+      from: () => ({
+        update: () => ({
+          eq: () => ({
+            eq: () => ({
+              eq: () => ({
+                select: () => ({
+                  maybeSingle: async () => ({ data: null, error: null }),
+                }),
+              }),
+            }),
+          }),
+        }),
+      }),
+    } as never);
+
+    await expect(
+      archiveAccount({
+        accountId: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+      }),
+    ).resolves.toEqual({
+      ok: false,
+      code: PRODUCT_ACTION_ERROR_CODE.INVALID,
+    });
+  });
+});
+
+describe("updateAccount", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("updates name and type", async () => {
+    vi.mocked(assertMoneyActionAllowed).mockResolvedValue({
+      ok: true,
+      userId: "u1",
+      householdId: "h1",
+    });
+    vi.mocked(createSupabaseServerClient).mockResolvedValue({
+      from: () => ({
+        update: () => ({
+          eq: () => ({
+            eq: () => ({
+              eq: () => ({
+                select: () => ({
+                  maybeSingle: async () => ({
+                    data: { id: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11" },
+                    error: null,
+                  }),
+                }),
+              }),
+            }),
+          }),
+        }),
+      }),
+    } as never);
+
+    await expect(
+      updateAccount({
+        accountId: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+        name: "Bank",
+        type: AccountType.CHECKING,
+      }),
+    ).resolves.toEqual({ ok: true });
   });
 });
 

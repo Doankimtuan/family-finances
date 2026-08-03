@@ -44,5 +44,12 @@ test.describe("Money hub + accounts (ST-E04-001)", () => {
     await expect(page).toHaveURL(/\/en\/money\/accounts/);
     await expect(page.getByTestId("money-accounts")).toBeVisible();
     await expect(page.getByTestId("account-add-open")).toBeVisible();
+    await expect(page.getByTestId("accounts-link-debts")).toBeVisible();
+    await expect(page.getByTestId("accounts-link-cards")).toBeVisible();
+
+    await page.getByTestId("account-add-open").click();
+    await expect(page.getByTestId("account-add-form")).toBeVisible();
+    await page.locator('input[name="accountType"][value="checking"]').check();
+    await expect(page.getByTestId("account-opening-balance")).toBeVisible();
   });
 });

@@ -7,9 +7,11 @@ import { TextField } from "@/shared/ui/form";
 import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
 import { StatusAlert } from "@/shared/ui/status-alert";
+import { AmountField } from "@/shared/patterns/amount-field";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import {
   CLIENT_ACTION_ERROR_CODE,
+  PRODUCT_ACTION_ERROR_CODE,
   type ProductActionErrorCode,
 } from "@/modules/tenancy/application/product-action-error";
 import { createAccountAction } from "./actions";
@@ -24,7 +26,7 @@ type ErrorCode =
 const TYPES = ACCOUNT_TYPE_CREATE_OPTIONS;
 
 /**
- * Inline add-account form (money.accounts secondary action).
+ * Progressive add-account form: name → type → optional opening balance.
  */
 export function AddAccountForm() {
   const t = useTranslations("money.accountsPage");
@@ -34,8 +36,18 @@ export function AddAccountForm() {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [type, setType] = useState<AccountTypeValue>(AccountType.CASH);
+  const [showOpening, setShowOpening] = useState(false);
+  const [openingBalance, setOpeningBalance] = useState<number | null>(0);
   const [errorCode, setErrorCode] = useState<ErrorCode | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  const reset = () => {
+    setName("");
+    setType(AccountType.CASH);
+    setShowOpening(false);
+    setOpeningBalance(0);
+    setErrorCode(null);
+  };
 
   if (!open) {
     return (
@@ -64,15 +76,24 @@ export function AddAccountForm() {
       setErrorCode(CLIENT_ACTION_ERROR_CODE.OFFLINE);
       return;
     }
+    const balance = openingBalance ?? 0;
+    if (
+      !Number.isFinite(balance) ||
+      balance < 0 ||
+      !Number.isInteger(balance)
+    ) {
+      setErrorCode(PRODUCT_ACTION_ERROR_CODE.INVALID);
+      return;
+    }
     startTransition(async () => {
       const result = await createAccountAction({
         name: name.trim(),
         type,
-        openingBalance: 0,
+        openingBalance: balance,
       });
       if (result.status === "success") {
         setOpen(false);
-        setName("");
+        reset();
         router.refresh();
         return;
       }
@@ -106,20 +127,37 @@ export function AddAccountForm() {
         {TYPES.map((value) => (
           <label
             key={value}
-            className="flex cursor-pointer items-center gap-(--space-3)"
+            className="flex min-h-11 cursor-pointer items-center gap-(--space-3)"
           >
             <input
               type="radio"
               name="accountType"
               value={value}
               checked={type === value}
-              onChange={() => setType(value)}
+              onChange={() => {
+                setType(value);
+                setShowOpening(true);
+              }}
               className="size-4 accent-[var(--color-accent)]"
             />
             <span className="text-sm text-text-primary">{tTypes(value)}</span>
           </label>
         ))}
       </fieldset>
+      {showOpening ? (
+        <div className="flex flex-col gap-(--space-1)">
+          <AmountField
+            id="account-opening-balance"
+            label={t("openingBalanceLabel")}
+            value={openingBalance}
+            onValueChange={setOpeningBalance}
+            data-testid="account-opening-balance"
+          />
+          <Text size="sm" tone="secondary">
+            {t("openingBalanceHint")}
+          </Text>
+        </div>
+      ) : null}
       <Button
         variant="primary"
         className="w-full"
@@ -133,7 +171,10 @@ export function AddAccountForm() {
         variant="secondary"
         className="w-full"
         isDisabled={isPending}
-        onPress={() => setOpen(false)}
+        onPress={() => {
+          setOpen(false);
+          reset();
+        }}
       >
         {t("cancel")}
       </Button>

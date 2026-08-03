@@ -11,7 +11,7 @@ import { ACCOUNT_TYPE_VALUES, AccountType } from "../ledger-constants";
 export const createAccountInputSchema = z.object({
   name: z.string().trim().min(1).max(80),
   type: z.enum(ACCOUNT_TYPE_VALUES).default(AccountType.CASH),
-  openingBalance: z.number().finite().int().default(0),
+  openingBalance: z.number().finite().int().min(0).default(0),
 });
 
 export type CreateAccountInput = z.infer<typeof createAccountInputSchema>;

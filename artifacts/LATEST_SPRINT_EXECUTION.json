@@ -2,10 +2,11 @@
   "pack": "sprint-execution",
   "status": "CHECKPOINT",
   "current": "artifacts/sprint-execution/CURRENT",
-  "sprint": "S4",
-  "sprint_folder": "sprint-004",
-  "last_frozen_story": "ST-E05-003",
-  "next_story": "ST-E05-004",
-  "run_id": "run_sprint_exec_ST-E05-003_20260803T001018Z",
-  "updated_at": "2026-08-03T00:10:18Z"
+  "sprint": "S6",
+  "sprint_folder": "sprint-006",
+  "last_frozen_story": "ST-E04-004",
+  "next_story": null,
+  "sprint_status": "COMPLETE",
+  "run_id": "run_sprint_exec_ST-E04-004_20260803T065138Z",
+  "updated_at": "2026-08-03T06:51:38Z"
 }

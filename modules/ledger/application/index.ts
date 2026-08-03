@@ -19,6 +19,23 @@ export {
   type CreateAccountResult,
 } from "./commands/create-account";
 export {
+  archiveAccount,
+  archiveAccountInputSchema,
+  type ArchiveAccountInput,
+  type ArchiveAccountResult,
+} from "./commands/archive-account";
+export {
+  updateAccount,
+  updateAccountInputSchema,
+  type UpdateAccountInput,
+  type UpdateAccountResult,
+} from "./commands/update-account";
+export {
+  AccountHealthSignal,
+  ACCOUNT_HEALTH_SIGNAL_VALUES,
+  accountHealthFromBalance,
+} from "./account-health";
+export {
   recordTransaction,
   recordTransactionInputSchema,
   type RecordTransactionInput,
@@ -41,6 +58,48 @@ export type {
   CaptureJarOption,
 } from "./transaction-types";
 export { applyTransactionDeltas, mapTransactionRow } from "./transaction-types";
+export {
+  listLiabilities,
+  getLiability,
+  listSavingsProducts,
+  getSavingsProduct,
+  listInstallmentPlans,
+  getInstallmentPlan,
+} from "./queries/list-money-products";
+export {
+  createLiability,
+  createLiabilityInputSchema,
+  recordLiabilityPayment,
+  recordLiabilityPaymentInputSchema,
+  createSavingsProduct,
+  createSavingsInputSchema,
+  enqueueSavingsMaturity,
+  enqueueSavingsMaturityInputSchema,
+  createInstallmentPlan,
+  createInstallmentInputSchema,
+  recordInstallmentPayment,
+  recordInstallmentPaymentInputSchema,
+  type CreateLiabilityInput,
+  type RecordLiabilityPaymentInput,
+  type CreateSavingsInput,
+  type EnqueueSavingsMaturityInput,
+  type CreateInstallmentInput,
+  type RecordInstallmentPaymentInput,
+  type MoneyProductMutationResult,
+} from "./commands/money-products";
+export type {
+  Liability,
+  SavingsProduct,
+  InstallmentPlan,
+} from "./money-product-types";
+export {
+  LiabilityStatus,
+  SavingsProductStatus,
+  InstallmentPlanStatus,
+  mapLiabilityRow,
+  mapSavingsRow,
+  mapInstallmentRow,
+} from "./money-product-types";
 export {
   DEFAULT_CURRENCY,
   TransactionDirection,

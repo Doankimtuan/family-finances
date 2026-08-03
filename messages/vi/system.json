@@ -1,0 +1,28 @@
+{
+  "error": {
+    "title": "Đã xảy ra lỗi",
+    "body": "Không hoàn tất được bước đó. Thử lại hoặc về trang chủ. Thay đổi tiền bạc không bao giờ im lặng khi thất bại.",
+    "retry": "Thử lại",
+    "home": "Về trang chủ"
+  },
+  "offline": {
+    "title": "Bạn đang ngoại tuyến",
+    "body": "Thay đổi Tiền và Kế hoạch cần kết nối. Đọc vẫn có thể khi sẵn sàng — ghi ngoại tuyến vẫn bị chặn.",
+    "retry": "Thử lại khi có mạng",
+    "readOnly": "Tiếp tục chỉ đọc",
+    "escalate": "Vì sao không ghi được",
+    "stillOffline": "Vẫn ngoại tuyến — hãy kết nối để đổi Tiền hoặc Kế hoạch."
+  },
+  "permission": {
+    "title": "Cần quyền",
+    "body": "Đối tác cùng quyền Tiền, Kế hoạch và Hộp thư hàng ngày. Một số mục Together cần Admin — thay đổi vẫn hiển thị cho đối tác.",
+    "adminBody": "Thao tác này cần vai Admin hộ. Hãy nhờ đối tác Admin, hoặc mở Together để xem vai trò.",
+    "backTogether": "Về Together",
+    "home": "Về trang chủ",
+    "learnRoles": "Vì sao bị chặn"
+  },
+  "maintenance": {
+    "title": "Đang bảo trì",
+    "body": "ViNha tạm nghỉ để chăm sổ cái hộ gia đình. Vui lòng quay lại sau — sẽ không xếp hàng ghi ngoại tuyến."
+  }
+}

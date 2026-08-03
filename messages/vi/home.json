@@ -1,0 +1,48 @@
+{
+  "title": "Trang chủ",
+  "subtitle": "Chúng ta có gì, muốn gì, và cần quyết gì?",
+  "loadErrorTitle": "Không tải được Trang chủ",
+  "loadErrorBody": "Kiểm tra kết nối rồi thử lại.",
+  "realPosition": {
+    "title": "Vị thế thật",
+    "hint": "Chỉ số dư sổ cái — không phải kế hoạch hũ."
+  },
+  "planPulse": {
+    "title": "Nhịp kế hoạch",
+    "hint": "Phong bì ý định — không phải số dư ngân hàng.",
+    "jarsCount": "{count, plural, =0 {Chưa có hũ đang dùng} one {# hũ đang dùng} other {# hũ đang dùng}}",
+    "allocate": {
+      "off": "Phân bổ thu nhập: Tắt",
+      "suggest": "Phân bổ thu nhập: Gợi ý",
+      "auto": "Phân bổ thu nhập: Tự động"
+    },
+    "openPlan": "Mở Kế hoạch"
+  },
+  "inbox": {
+    "title": "Hộp thư",
+    "clear": "Hộp thư trống — chưa có quyết định nào.",
+    "pending": "{count, plural, one {# việc cần quyết định} other {# việc cần quyết định}}",
+    "open": "Mở Hộp thư"
+  },
+  "health": {
+    "title": "Sức khỏe tài chính",
+    "levels": {
+      "starting": "Bắt đầu",
+      "steady": "Ổn định",
+      "strong": "Vững"
+    },
+    "narratives": {
+      "starting": "Thiết lập Tiền và Kế hoạch để củng cố nhịp hộ gia đình.",
+      "steady": "Nền tảng ổn — xử lý Hộp thư để giữ đà.",
+      "strong": "Nhịp tốt — giữ đối tác cùng nhịp quyết định."
+    }
+  },
+  "capture": "Thêm chi tiêu",
+  "dayZero": {
+    "title": "Bắt đầu hộ gia đình",
+    "description": "Ba bước đầu êm dịu — không cần vội.",
+    "invite": "Mời đối tác",
+    "setupPlan": "Thiết lập Kế hoạch",
+    "addExpense": "Thêm chi tiêu"
+  }
+}

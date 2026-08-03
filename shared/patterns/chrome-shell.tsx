@@ -3,7 +3,8 @@ import { cn } from "@/shared/utils/cn";
 import { AppViewport } from "@/shared/patterns/app-viewport";
 
 export type ChromeShellProps = {
-  chrome: "auth" | "product";
+  /** auth/system — no bottom nav; product — five-tab chrome. */
+  chrome: "auth" | "system" | "product";
   children: ReactNode;
   footer?: ReactNode;
   className?: string;

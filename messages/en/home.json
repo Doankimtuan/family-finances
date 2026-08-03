@@ -1,0 +1,48 @@
+{
+  "title": "Home",
+  "subtitle": "What we have, mean, and need to decide",
+  "loadErrorTitle": "Could not load Home",
+  "loadErrorBody": "Check your connection and try again.",
+  "realPosition": {
+    "title": "Real position",
+    "hint": "Ledger balances only — not jar plans."
+  },
+  "planPulse": {
+    "title": "Plan pulse",
+    "hint": "Intention envelopes — never bank balance.",
+    "jarsCount": "{count, plural, =0 {No active jars yet} one {# active jar} other {# active jars}}",
+    "allocate": {
+      "off": "Income allocate: Off",
+      "suggest": "Income allocate: Suggest",
+      "auto": "Income allocate: Auto"
+    },
+    "openPlan": "Open Plan"
+  },
+  "inbox": {
+    "title": "Inbox",
+    "clear": "Inbox is clear — nothing to decide right now.",
+    "pending": "{count, plural, one {# item needs a decision} other {# items need a decision}}",
+    "open": "Open Inbox"
+  },
+  "health": {
+    "title": "Financial Health",
+    "levels": {
+      "starting": "Starting",
+      "steady": "Steady",
+      "strong": "Strong"
+    },
+    "narratives": {
+      "starting": "Set up Money and Plan to strengthen the household pulse.",
+      "steady": "Solid footing — clear Inbox items to keep momentum.",
+      "strong": "Strong pulse — keep partners aligned on decisions."
+    }
+  },
+  "capture": "Add expense",
+  "dayZero": {
+    "title": "Start your household",
+    "description": "Three calm first steps — no rush.",
+    "invite": "Invite partner",
+    "setupPlan": "Set up Plan",
+    "addExpense": "Add expense"
+  }
+}

@@ -81,7 +81,16 @@ export async function createInvitation(
     });
 
     if (error) {
-      return { ok: false, code: mapCreateError(error.message ?? "") };
+      const message = [error.message, error.details, error.hint, error.code]
+        .filter(Boolean)
+        .join(" ");
+      console.error("[createInvitation] rpc failed", {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code,
+      });
+      return { ok: false, code: mapCreateError(message) };
     }
 
     const row = Array.isArray(data) ? data[0] : data;
@@ -90,6 +99,7 @@ export async function createInvitation(
       typeof row.invitation_id !== "string" ||
       typeof row.token !== "string"
     ) {
+      console.error("[createInvitation] unexpected rpc payload", { data });
       return { ok: false, code: INVITATION_ERROR_CODE.UNKNOWN };
     }
 

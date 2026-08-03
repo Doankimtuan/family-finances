@@ -21,7 +21,7 @@ import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { SectionHeader } from "@/shared/patterns/section-header";
 import { Balance } from "@/shared/patterns/balance";
-import { Card } from "@/shared/patterns/card";
+import { AccountCard } from "@/shared/patterns/account-card";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { TransactionRow } from "@/shared/patterns/transaction-row";
 import { StatusAlert } from "@/shared/ui/status-alert";
@@ -115,31 +115,24 @@ export default async function MoneyHubPage({ params }: Props) {
             <ul className="flex flex-col gap-(--space-2)">
               {previewAccounts.map((account) => (
                 <li key={account.id}>
-                  <Link href={moneyAccountPath(account.id)} className="block">
-                    <Card className="gap-0 p-(--space-4)">
-                      <div className="flex items-center justify-between gap-(--space-3)">
-                        <div className="min-w-0">
-                          <Text
-                            size="sm"
-                            className="truncate font-medium text-text-primary"
-                          >
-                            {localizeCatalogName(
-                              tCatalog,
-                              "accounts",
-                              account.name,
-                            )}
-                          </Text>
-                          <Text size="sm" tone="secondary">
-                            {t(`types.${account.type}`)}
-                          </Text>
-                        </div>
-                        <span className="shrink-0 text-sm font-semibold tabular-nums text-text-primary">
-                          {formatCurrency(account.balance, currency, locale, {
-                            maximumFractionDigits: 0,
-                          })}
-                        </span>
-                      </div>
-                    </Card>
+                  <Link
+                    href={moneyAccountPath(account.id)}
+                    className="block focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+                  >
+                    <AccountCard
+                      title={localizeCatalogName(
+                        tCatalog,
+                        "accounts",
+                        account.name,
+                      )}
+                      typeLabel={t(`types.${account.type}`)}
+                      balanceLabel={formatCurrency(
+                        account.balance,
+                        currency,
+                        locale,
+                        { maximumFractionDigits: 0 },
+                      )}
+                    />
                   </Link>
                 </li>
               ))}
@@ -205,18 +198,26 @@ export default async function MoneyHubPage({ params }: Props) {
 
         <section className="flex flex-col gap-(--space-2)">
           <SectionHeader title={t("more")} />
-          {(["debts", "savings", "cards"] as const).map((key) => (
-            <div
+          {(
+            [
+              ["debts", APP_PATH.MONEY_DEBTS, "money-link-debts"],
+              ["savings", APP_PATH.MONEY_SAVINGS, "money-link-savings"],
+              ["cards", APP_PATH.MONEY_CARDS, "money-link-cards"],
+            ] as const
+          ).map(([key, href, testId]) => (
+            <Link
               key={key}
-              className="flex items-center justify-between rounded-(--radius-lg) border border-border-subtle bg-surface px-(--space-4) py-(--space-3)"
+              href={href}
+              className="flex min-h-11 items-center justify-between rounded-(--radius-lg) border border-border-subtle bg-surface px-(--space-4) py-(--space-3) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+              data-testid={testId}
             >
               <Text size="sm" className="font-medium text-text-primary">
                 {t(key)}
               </Text>
               <Text size="sm" tone="secondary">
-                {t("comingSoon")}
+                →
               </Text>
-            </div>
+            </Link>
           ))}
         </section>
       </div>

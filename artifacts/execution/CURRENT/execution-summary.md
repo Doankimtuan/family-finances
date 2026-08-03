@@ -1,3 +1,3 @@
 # Execution Summary
 
-**S5** 2/2 frozen — **COMPLETE**. Next: **`ST-E07-001`** (S6 Home three answers and Health chip).
+**S6 COMPLETE** (4/4). Last frozen: **`ST-E04-004`**. Implementation-plan CURRENT sprints end at S6.

@@ -18,11 +18,20 @@ export const APP_PATH = {
   PLAN_RECURRING: "/plan/recurring",
   PLAN_RITUAL: "/plan/ritual",
   INBOX: "/inbox",
+  HEALTH: "/health",
+  HEALTH_INSIGHTS: "/health/insights",
+  MONEY_DEBTS: "/money/debts",
+  MONEY_SAVINGS: "/money/savings",
+  MONEY_CARDS: "/money/cards",
   TOGETHER: "/together",
   ONBOARD: "/together/onboard",
   INVITATIONS: "/together/invitations",
   POLICIES: "/together/policies",
   PREFERENCES: "/together/preferences",
+  ERROR: "/error",
+  OFFLINE: "/offline",
+  PERMISSION: "/permission",
+  MAINTENANCE: "/maintenance",
 } as const;
 
 export type AppPath = (typeof APP_PATH)[keyof typeof APP_PATH];
@@ -66,4 +75,16 @@ export function planRecurringPath(ruleId: string): string {
 
 export function inboxItemPath(inboxItemId: string): string {
   return `${APP_PATH.INBOX}/${inboxItemId}`;
+}
+
+export function moneyDebtPath(debtId: string): string {
+  return `${APP_PATH.MONEY_DEBTS}/${debtId}`;
+}
+
+export function moneySavingsPath(savingsId: string): string {
+  return `${APP_PATH.MONEY_SAVINGS}/${savingsId}`;
+}
+
+export function moneyCardPath(planId: string): string {
+  return `${APP_PATH.MONEY_CARDS}/${planId}`;
 }

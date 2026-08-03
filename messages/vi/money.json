@@ -17,11 +17,109 @@
   "more": "Thêm",
   "debts": "Nợ",
   "savings": "Tiết kiệm",
-  "cards": "Thẻ",
+  "cards": "Thẻ / Trả góp",
   "comingSoon": "Sẽ có sau",
   "offlineTitle": "Bạn đang ngoại tuyến",
   "offlineBody": "Thay đổi tiền cần kết nối. Vẫn xem được số dư.",
   "backToMoney": "Về Money",
+  "products": {
+    "owedLabel": "Số còn nợ",
+    "principalLabel": "Gốc",
+    "installmentLabel": "Mỗi kỳ",
+    "notBankBalance": "Không phải số dư ngân hàng — sổ cái thật vẫn tách riêng.",
+    "errors": {
+      "unauthenticated": "Đăng nhập lại.",
+      "no_membership": "Hoàn tất thiết lập hộ trước.",
+      "invalid": "Kiểm tra số tiền rồi thử lại.",
+      "month_locked": "Kế hoạch tháng đã khoá.",
+      "offline": "Cần kết nối để lưu.",
+      "unknown": "Không lưu được. Thử lại."
+    }
+  },
+  "debtsPage": {
+    "title": "Nợ",
+    "subtitle": "Chúng ta còn nợ gì — không gắn nhãn số dư ngân hàng",
+    "emptyTitle": "Chưa có nợ mở",
+    "emptyDescription": "Thêm khoản nợ để theo dõi số còn lại.",
+    "add": "Thêm nợ",
+    "nameLabel": "Tên",
+    "creditorLabel": "Chủ nợ (tuỳ chọn)",
+    "amountLabel": "Gốc còn nợ",
+    "dueDayLabel": "Ngày đến hạn trong tháng (tuỳ chọn)",
+    "save": "Lưu nợ",
+    "saving": "Đang lưu…",
+    "cancel": "Huỷ",
+    "remaining": "Còn lại",
+    "dueDay": "Ngày {day}"
+  },
+  "debtDetail": {
+    "title": "Nợ",
+    "pay": "Ghi thanh toán",
+    "paying": "Đang ghi…",
+    "payAmount": "Số thanh toán",
+    "back": "Về danh sách nợ",
+    "notFound": "Không tìm thấy khoản nợ",
+    "paidOff": "Khoản nợ đã trả xong."
+  },
+  "savingsPage": {
+    "title": "Tiết kiệm",
+    "subtitle": "Sản phẩm tiết kiệm — đáo hạn vào Hộp thư",
+    "emptyTitle": "Chưa có tiết kiệm",
+    "emptyDescription": "Thêm sản phẩm để theo dõi đáo hạn.",
+    "add": "Thêm tiết kiệm",
+    "nameLabel": "Tên",
+    "amountLabel": "Gốc",
+    "maturityLabel": "Ngày đáo hạn",
+    "save": "Lưu",
+    "saving": "Đang lưu…",
+    "cancel": "Huỷ",
+    "maturityBadge": "Đến hạn",
+    "status": {
+      "active": "Đang chạy",
+      "matured": "Đáo hạn",
+      "closed": "Đã đóng"
+    }
+  },
+  "savingsDetail": {
+    "title": "Tiết kiệm",
+    "maturityDate": "Đáo hạn {date}",
+    "handleMaturity": "Xử lý đáo hạn trong Hộp thư",
+    "handling": "Đang mở Hộp thư…",
+    "maturityHint": "Gia hạn, chuyển, hoặc rút — hướng dẫn trong Hộp thư. Không bịa số dư ở đây.",
+    "back": "Về tiết kiệm",
+    "notFound": "Không tìm thấy tiết kiệm",
+    "alreadyGuided": "Đáo hạn đã có trong Hộp thư."
+  },
+  "cardsPage": {
+    "title": "Thẻ / Trả góp",
+    "subtitle": "Tiến độ trả góp — xong khi đủ số kỳ",
+    "emptyTitle": "Chưa có trả góp",
+    "emptyDescription": "Thêm kế hoạch trả góp thẻ để theo dõi EMI.",
+    "add": "Thêm trả góp",
+    "nameLabel": "Tên",
+    "cardLabel": "Nhãn thẻ (tuỳ chọn)",
+    "totalLabel": "Tổng",
+    "installmentAmountLabel": "Mỗi kỳ",
+    "countLabel": "Số kỳ",
+    "save": "Lưu",
+    "saving": "Đang lưu…",
+    "cancel": "Huỷ",
+    "progress": "Đã trả {paid}/{total}",
+    "status": {
+      "active": "Đang trả",
+      "completed": "Hoàn tất"
+    }
+  },
+  "cardDetail": {
+    "title": "Trả góp",
+    "recordPayment": "Ghi đã trả một kỳ",
+    "recording": "Đang ghi…",
+    "completeHint": "Khi số kỳ đã trả đủ tổng, chúc mừng trong Hộp thư.",
+    "completed": "Trả góp xong — mở Hộp thư để chúc mừng.",
+    "openInbox": "Mở Hộp thư",
+    "back": "Về thẻ",
+    "notFound": "Không tìm thấy trả góp"
+  },
   "direction": {
     "expense": "Chi",
     "income": "Thu"
@@ -62,7 +160,15 @@
   },
   "accountsPage": {
     "title": "Tài khoản",
-    "subtitle": "Ví và tài khoản ngân hàng",
+    "subtitle": "Ví và tài khoản ngân hàng của hộ",
+    "ownershipHint": "Sổ cái thật dùng chung trong hộ — không phải ví cá nhân hay hũ kế hoạch.",
+    "liquidTitle": "Số dư khả dụng",
+    "plansTitle": "Kế hoạch & tín dụng",
+    "plansHint": "Không phải số dư ngân hàng — sổ cái thật vẫn tách riêng.",
+    "plansDebts": "Khoản nợ",
+    "plansSavings": "Tiết kiệm có kỳ hạn",
+    "plansCards": "Thẻ & trả góp",
+    "healthZero": "Số dư bằng 0",
     "emptyTitle": "Chưa có tài khoản",
     "emptyDescription": "Thêm tài khoản tiền mặt để theo dõi tiền thật.",
     "add": "Thêm tài khoản",
@@ -70,6 +176,8 @@
     "nameLabel": "Tên tài khoản",
     "namePlaceholder": "Tiền mặt",
     "typeLabel": "Loại",
+    "openingBalanceLabel": "Số dư đầu",
+    "openingBalanceHint": "Tuỳ chọn — số tiền bắt đầu trên sổ cái thật (đồng nguyên).",
     "typeCash": "Tiền mặt",
     "typeChecking": "Thanh toán",
     "typeSavings": "Tiết kiệm",
@@ -79,18 +187,43 @@
     "errors": {
       "unauthenticated": "Đăng nhập lại.",
       "no_membership": "Hoàn tất thiết lập hộ trước.",
-      "invalid": "Kiểm tra tên tài khoản.",
+      "invalid": "Kiểm tra tên tài khoản và số dư đầu.",
       "month_locked": "Kế hoạch tháng đã khoá. Mở Nghi thức tháng để chỉnh.",
       "offline": "Cần kết nối để thêm tài khoản.",
       "unknown": "Không thêm được tài khoản. Thử lại."
     }
   },
   "accountDetail": {
-    "balanceLabel": "Số dư",
+    "balanceLabel": "Số dư khả dụng",
+    "ownershipHint": "Một phần vị thế thật của hộ.",
+    "healthZero": "Tài khoản này đang có số dư bằng 0.",
+    "quickActions": "Thao tác nhanh",
+    "capture": "Thêm giao dịch",
+    "viewActivity": "Xem toàn bộ hoạt động",
+    "edit": "Sửa tài khoản",
+    "editing": "Đang lưu…",
+    "editTitle": "Sửa tài khoản",
+    "nameLabel": "Tên tài khoản",
+    "typeLabel": "Loại",
+    "saveEdit": "Lưu thay đổi",
+    "archive": "Lưu trữ tài khoản",
+    "archiving": "Đang lưu trữ…",
+    "archiveConfirmTitle": "Lưu trữ tài khoản này?",
+    "archiveConfirmBody": "Tài khoản sẽ khỏi danh sách vị thế thật. Giao dịch cũ vẫn còn trong Hoạt động.",
+    "archiveConfirmYes": "Lưu trữ",
+    "cancel": "Huỷ",
     "recentTitle": "Hoạt động gần đây",
     "recentEmpty": "Chưa có hoạt động trên tài khoản này",
     "back": "Về danh sách tài khoản",
-    "notFound": "Không tìm thấy tài khoản"
+    "notFound": "Không tìm thấy tài khoản",
+    "errors": {
+      "unauthenticated": "Đăng nhập lại.",
+      "no_membership": "Hoàn tất thiết lập hộ trước.",
+      "invalid": "Kiểm tra tên tài khoản.",
+      "month_locked": "Kế hoạch tháng đã khoá. Mở Nghi thức tháng để chỉnh.",
+      "offline": "Cần kết nối để lưu.",
+      "unknown": "Không lưu được. Thử lại."
+    }
   },
   "types": {
     "cash": "Tiền mặt",

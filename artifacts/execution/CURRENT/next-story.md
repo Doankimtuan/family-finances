@@ -2,12 +2,16 @@
 
 | Field | Value |
 |-------|--------|
-| Sprint | **S6** (`sprint-006`) |
-| Story | **`ST-E07-001`** — Home three answers and Health chip |
-| Mode | `full_implement` |
-| Plan | `artifacts/implementation-plan/CURRENT/stories/detail/ST-E07-001.md` |
+| Sprint | **S6 COMPLETE** |
+| Story | — |
+| Mode | — |
+| Plan | `artifacts/implementation-plan/CURRENT/sprints/S6.md` |
+
+## Notes
+
+All S6 committed stories are frozen. No S7 pack in CURRENT implementation plan.
 
 ## Do not
 
-- Implement multi-story in one run  
-- Re-open frozen S5 stories unless a gate fails  
+- Invent a new sprint without planning artifacts  
+- Re-open frozen S6 stories unless a gate fails  

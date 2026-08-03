@@ -22,6 +22,104 @@
   "offlineTitle": "You are offline",
   "offlineBody": "Money changes need a connection. Reading balances is still available.",
   "backToMoney": "Back to Money",
+  "products": {
+    "owedLabel": "Amount owed",
+    "principalLabel": "Principal",
+    "installmentLabel": "Per installment",
+    "notBankBalance": "Not a bank balance — Money Real Ledger stays separate.",
+    "errors": {
+      "unauthenticated": "Sign in again.",
+      "no_membership": "Finish household setup first.",
+      "invalid": "Check the amounts and try again.",
+      "month_locked": "Plan is locked for this month.",
+      "offline": "Connect to save.",
+      "unknown": "Could not save. Try again."
+    }
+  },
+  "debtsPage": {
+    "title": "Debts",
+    "subtitle": "What we owe — never labeled as bank balance",
+    "emptyTitle": "No open debts",
+    "emptyDescription": "Add a debt to track what remains owed.",
+    "add": "Add debt",
+    "nameLabel": "Name",
+    "creditorLabel": "Creditor (optional)",
+    "amountLabel": "Principal owed",
+    "dueDayLabel": "Due day of month (optional)",
+    "save": "Save debt",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "remaining": "Remaining",
+    "dueDay": "Due day {day}"
+  },
+  "debtDetail": {
+    "title": "Debt",
+    "pay": "Record payment",
+    "paying": "Recording…",
+    "payAmount": "Payment amount",
+    "back": "Back to debts",
+    "notFound": "Debt not found",
+    "paidOff": "This debt is paid off."
+  },
+  "savingsPage": {
+    "title": "Savings",
+    "subtitle": "Term savings — maturity goes to Inbox",
+    "emptyTitle": "No savings products",
+    "emptyDescription": "Add a savings product to track maturity.",
+    "add": "Add savings",
+    "nameLabel": "Name",
+    "amountLabel": "Principal",
+    "maturityLabel": "Maturity date",
+    "save": "Save",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "maturityBadge": "Maturity due",
+    "status": {
+      "active": "Active",
+      "matured": "Matured",
+      "closed": "Closed"
+    }
+  },
+  "savingsDetail": {
+    "title": "Savings",
+    "maturityDate": "Matures {date}",
+    "handleMaturity": "Handle maturity in Inbox",
+    "handling": "Opening Inbox…",
+    "maturityHint": "Renew, switch, or withdraw — guided in Inbox. No new balance is invented here.",
+    "back": "Back to savings",
+    "notFound": "Savings not found",
+    "alreadyGuided": "Maturity is already in Inbox."
+  },
+  "cardsPage": {
+    "title": "Cards / Installments",
+    "subtitle": "EMI progress — complete when paid equals total",
+    "emptyTitle": "No installments",
+    "emptyDescription": "Add a card installment plan to track EMI.",
+    "add": "Add installment",
+    "nameLabel": "Name",
+    "cardLabel": "Card label (optional)",
+    "totalLabel": "Total amount",
+    "installmentAmountLabel": "Each installment",
+    "countLabel": "Number of installments",
+    "save": "Save",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "progress": "{paid} of {total} paid",
+    "status": {
+      "active": "Active",
+      "completed": "Complete"
+    }
+  },
+  "cardDetail": {
+    "title": "Installment",
+    "recordPayment": "Record installment paid",
+    "recording": "Recording…",
+    "completeHint": "When paid installments reach the total, celebrate in Inbox.",
+    "completed": "Installment complete — open Inbox to celebrate.",
+    "openInbox": "Open Inbox",
+    "back": "Back to cards",
+    "notFound": "Installment not found"
+  },
   "direction": {
     "expense": "Expense",
     "income": "Income"
@@ -62,7 +160,15 @@
   },
   "accountsPage": {
     "title": "Accounts",
-    "subtitle": "Wallets and bank accounts",
+    "subtitle": "Household wallets and bank accounts",
+    "ownershipHint": "Shared household Real Ledger — not personal wallets or jar plans.",
+    "liquidTitle": "Available balances",
+    "plansTitle": "Plans & credit",
+    "plansHint": "Not a bank balance — Money Real Ledger stays separate.",
+    "plansDebts": "Debts",
+    "plansSavings": "Term savings",
+    "plansCards": "Cards & installments",
+    "healthZero": "Zero balance",
     "emptyTitle": "No accounts yet",
     "emptyDescription": "Add a cash account to track real money.",
     "add": "Add account",
@@ -70,6 +176,8 @@
     "nameLabel": "Account name",
     "namePlaceholder": "Cash",
     "typeLabel": "Type",
+    "openingBalanceLabel": "Opening balance",
+    "openingBalanceHint": "Optional starting amount in the Real Ledger (whole đồng).",
     "typeCash": "Cash",
     "typeChecking": "Checking",
     "typeSavings": "Savings",
@@ -79,18 +187,43 @@
     "errors": {
       "unauthenticated": "Sign in again.",
       "no_membership": "Finish household setup first.",
-      "invalid": "Check the account name.",
+      "invalid": "Check the account name and opening balance.",
       "month_locked": "Plan is locked for this month. Open Month Ritual to correct.",
       "offline": "Connect to add an account.",
       "unknown": "Could not add account. Try again."
     }
   },
   "accountDetail": {
-    "balanceLabel": "Balance",
+    "balanceLabel": "Available balance",
+    "ownershipHint": "Part of household Real Position.",
+    "healthZero": "This account has a zero balance.",
+    "quickActions": "Quick actions",
+    "capture": "Add transaction",
+    "viewActivity": "View all activity",
+    "edit": "Edit account",
+    "editing": "Saving…",
+    "editTitle": "Edit account",
+    "nameLabel": "Account name",
+    "typeLabel": "Type",
+    "saveEdit": "Save changes",
+    "archive": "Archive account",
+    "archiving": "Archiving…",
+    "archiveConfirmTitle": "Archive this account?",
+    "archiveConfirmBody": "It leaves Real Position lists. Past transactions stay in Activity.",
+    "archiveConfirmYes": "Archive",
+    "cancel": "Cancel",
     "recentTitle": "Recent activity",
     "recentEmpty": "No activity on this account yet",
     "back": "Back to accounts",
-    "notFound": "Account not found"
+    "notFound": "Account not found",
+    "errors": {
+      "unauthenticated": "Sign in again.",
+      "no_membership": "Finish household setup first.",
+      "invalid": "Check the account name.",
+      "month_locked": "Plan is locked for this month. Open Month Ritual to correct.",
+      "offline": "Connect to save.",
+      "unknown": "Could not save. Try again."
+    }
   },
   "types": {
     "cash": "Cash",

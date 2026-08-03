@@ -20,3 +20,8 @@ export {
   ACCOUNT_TYPE_VALUES,
   ACCOUNT_TYPE_CREATE_OPTIONS,
 } from "./ledger-constants";
+export {
+  AccountHealthSignal,
+  ACCOUNT_HEALTH_SIGNAL_VALUES,
+  accountHealthFromBalance,
+} from "./account-health";

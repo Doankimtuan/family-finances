@@ -1,3 +1,79 @@
 {
-  "title": "Health"
+  "title": "Health",
+  "subtitle": "Household financial pulse",
+  "loadErrorTitle": "Could not load Health",
+  "loadErrorBody": "Check your connection and try again.",
+  "chipTitle": "Financial Health",
+  "levels": {
+    "starting": "Starting",
+    "steady": "Steady",
+    "strong": "Strong"
+  },
+  "narratives": {
+    "starting": "Set up Money and Plan to strengthen the household pulse.",
+    "steady": "Solid footing — clear Inbox items to keep momentum.",
+    "strong": "Strong pulse — keep partners aligned on decisions."
+  },
+  "factorsTitle": "What shapes this score",
+  "factors": {
+    "accounts": "{count, plural, =0 {No accounts yet} one {# account} other {# accounts}}",
+    "jars": "{count, plural, =0 {No active jars} one {# active jar} other {# active jars}}",
+    "inbox": "{count, plural, =0 {Inbox clear} one {# open Inbox item} other {# open Inbox items}}"
+  },
+  "emiCelebrateTitle": "Installment complete",
+  "emiCelebrateBody": "Celebrate in Inbox — paid installments mark completion. Health never invents a new balance.",
+  "viewInsights": "View insights",
+  "backHome": "Back to Home",
+  "insights": {
+    "title": "Insights",
+    "subtitle": "What we should notice — from household facts only",
+    "loadErrorTitle": "Could not load insights",
+    "loadErrorBody": "Check your connection and try again.",
+    "emptyTitle": "Nothing to notice yet",
+    "emptyDescription": "As Money, Plan, and Inbox grow, light insights appear here.",
+    "sectionInsights": "Notices",
+    "sectionScenarios": "Light scenarios",
+    "backHealth": "Back to Health",
+    "openInbox": "Open Inbox",
+    "items": {
+      "emi_complete": {
+        "title": "Installment complete",
+        "body": "An EMI completion is waiting in Inbox. Celebrate with your partner — no new ledger balance is invented here."
+      },
+      "setup": {
+        "title": "Finish household setup",
+        "body": "Accounts: {accountCount}. Active jars: {jarCount}. Real position lives in Money; jars stay intention."
+      },
+      "inbox": {
+        "title": "Inbox needs attention",
+        "body": "{count, plural, one {# open item is waiting for a decision.} other {# open items are waiting for a decision.}}"
+      },
+      "activity": {
+        "title": "Recent ledger activity",
+        "body": "{count, plural, =0 {No recent cleared moves yet — capture when ready.} one {# recent ledger move (real position only).} other {# recent ledger moves (real position only).}}"
+      },
+      "plan": {
+        "title": "Plan intention is active",
+        "body": "{count, plural, one {# Active jar is guiding intention — not bank balance.} other {# Active jars are guiding intention — not bank balance.}}"
+      },
+      "ai_guardrail": {
+        "title": "Assist stays honest",
+        "body": "Phase 2 AI may explain from household data only. It must not invent balances or move money without an explicit path."
+      }
+    },
+    "scenarios": {
+      "clear_inbox": {
+        "title": "If Inbox clears",
+        "body": "Clearing {count, plural, one {# open item} other {# open items}} lifts the pulse without changing ledger totals."
+      },
+      "add_jar": {
+        "title": "If you add an Active jar",
+        "body": "An Active jar strengthens intention. It never becomes unlabeled bank balance."
+      },
+      "keep_rhythm": {
+        "title": "If rhythm holds",
+        "body": "Partners deciding together keeps Health visible — score from setup and Inbox load, not invented cash."
+      }
+    }
+  }
 }

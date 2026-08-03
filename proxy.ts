@@ -7,6 +7,8 @@ import {
   AUTH_CONFIRM_QUERY,
   isAuthAdapterPath,
 } from "@/modules/tenancy/application/auth-constants";
+import { shouldRedirectToMaintenance } from "@/modules/platform/application/maintenance-mode";
+import { APP_PATH } from "@/modules/tenancy/application/app-path";
 
 const handleI18nRouting = createMiddleware(routing);
 
@@ -21,6 +23,8 @@ const handleI18nRouting = createMiddleware(routing);
  * Skip session refresh on the confirm callback itself — the route handler
  * owns `exchangeCodeForSession` / OTP verify and must stamp cookies onto
  * its redirect response without middleware interference.
+ *
+ * Maintenance mode (ST-E08-001) redirects product surfaces to `/maintenance`.
  */
 export async function proxy(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
@@ -35,6 +39,14 @@ export async function proxy(request: NextRequest) {
       return NextResponse.next({ request });
     }
     return updateSession(request);
+  }
+
+  if (shouldRedirectToMaintenance(pathname)) {
+    const parts = pathname.split("/").filter(Boolean);
+    const locale = parts[0] ?? routing.defaultLocale;
+    const url = request.nextUrl.clone();
+    url.pathname = `/${locale}${APP_PATH.MAINTENANCE}`;
+    return NextResponse.redirect(url);
   }
 
   const response = handleI18nRouting(request);

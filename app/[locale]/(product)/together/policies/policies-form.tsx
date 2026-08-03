@@ -2,7 +2,9 @@
 
 import { useState, useTransition } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { useRouter } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
+import { APP_PATH } from "@/modules/tenancy/application/app-path";
+import { HOUSEHOLD_ERROR_CODE } from "@/modules/tenancy/application/tenancy-constants";
 import { SectionHeader } from "@/shared/patterns/section-header";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Button } from "@/shared/ui/button";
@@ -78,6 +80,7 @@ export function PoliciesForm({
   events: PolicyEventRow[];
 }) {
   const t = useTranslations("together.policies");
+  const tPermission = useTranslations("system.permission");
   const locale = useLocale();
   const router = useRouter();
   const [overspend, setOverspend] = useState<OverspendPolicy>(
@@ -116,6 +119,10 @@ export function PoliciesForm({
         router.refresh();
         return;
       }
+      if (result.code === HOUSEHOLD_ERROR_CODE.FORBIDDEN) {
+        router.push(`${APP_PATH.PERMISSION}?reason=admin`);
+        return;
+      }
       setErrorCode(result.code);
     });
   };
@@ -126,11 +133,20 @@ export function PoliciesForm({
       data-testid="together-policies"
     >
       {!initial.canEdit ? (
-        <StatusAlert
-          variant="info"
-          title={t("readOnlyTitle")}
-          description={t("readOnlyBody")}
-        />
+        <div data-testid="policies-readonly">
+          <StatusAlert
+            variant="info"
+            title={t("readOnlyTitle")}
+            description={t("readOnlyBody")}
+          />
+          <Link
+            href={`${APP_PATH.PERMISSION}?reason=admin`}
+            className="mt-(--space-2) inline-flex min-h-11 items-center text-sm font-medium text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+            data-testid="policies-permission-link"
+          >
+            {tPermission("learnRoles")}
+          </Link>
+        </div>
       ) : null}
 
       {errorCode ? (
