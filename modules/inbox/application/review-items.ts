@@ -7,23 +7,20 @@ import {
   type ProductActionErrorCode,
 } from "@/modules/tenancy/application/product-action-error";
 import { DEFAULT_CURRENCY } from "@/modules/ledger/application/ledger-constants";
-import {
+import { InboxItemStatus, mapInboxKind } from "./inbox-constants";
+import type { InboxReviewItem } from "./inbox-types";
+
+export {
   InboxItemKind,
   InboxItemStatus,
-  type InboxItemKind as InboxItemKindValue,
+  MaturityAckAction,
+  EmiAckAction,
+  isJarResolvableKind,
+  isGuidedKind,
+  mapInboxKind,
 } from "./inbox-constants";
-
-export { InboxItemKind, InboxItemStatus } from "./inbox-constants";
-
-export type InboxReviewItem = {
-  id: string;
-  kind: InboxItemKindValue;
-  title: string;
-  amount: number;
-  currency: string;
-  sourceId: string;
-  createdAt: string;
-};
+export type { InboxAckAction } from "./inbox-constants";
+export type { InboxReviewItem } from "./inbox-types";
 
 export async function listOpenInboxItems(): Promise<InboxReviewItem[] | null> {
   const gate = await assertMoneyActionAllowed();
@@ -44,24 +41,59 @@ export async function listOpenInboxItems(): Promise<InboxReviewItem[] | null> {
       return null;
     }
 
-    return (data ?? []).map((row) => ({
-      id: row.id,
-      kind:
-        row.kind === InboxItemKind.INCOME_SUGGEST
-          ? InboxItemKind.INCOME_SUGGEST
-          : InboxItemKind.UNMAPPED_EXPENSE,
-      title: row.title,
-      amount:
-        typeof row.amount === "string"
-          ? Number(row.amount)
-          : Number(row.amount),
-      currency: (row.currency ?? DEFAULT_CURRENCY).toUpperCase(),
-      sourceId: row.source_id,
-      createdAt: row.created_at,
-    }));
+    return (data ?? []).map(mapInboxRow);
   } catch {
     return null;
   }
+}
+
+export async function getInboxItem(
+  inboxItemId: string,
+): Promise<InboxReviewItem | null> {
+  const gate = await assertMoneyActionAllowed();
+  if (!gate.ok) {
+    return null;
+  }
+
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { data, error } = await supabase
+      .from("inbox_items")
+      .select("id, kind, title, amount, currency, source_id, created_at")
+      .eq("household_id", gate.householdId)
+      .eq("id", inboxItemId)
+      .eq("status", InboxItemStatus.PENDING)
+      .maybeSingle();
+
+    if (error || !data) {
+      return null;
+    }
+
+    return mapInboxRow(data);
+  } catch {
+    return null;
+  }
+}
+
+function mapInboxRow(row: {
+  id: string;
+  kind: string;
+  title: string;
+  amount: number | string;
+  currency: string | null;
+  source_id: string;
+  created_at: string;
+}): InboxReviewItem {
+  return {
+    id: row.id,
+    kind: mapInboxKind(row.kind),
+    title: row.title,
+    amount:
+      typeof row.amount === "string" ? Number(row.amount) : Number(row.amount),
+    currency: (row.currency ?? DEFAULT_CURRENCY).toUpperCase(),
+    sourceId: row.source_id,
+    createdAt: row.created_at,
+  };
 }
 
 export const resolveInboxItemInputSchema = z.object({
@@ -71,8 +103,10 @@ export const resolveInboxItemInputSchema = z.object({
 
 export type ResolveInboxItemInput = z.infer<typeof resolveInboxItemInputSchema>;
 
-export type ResolveInboxItemResult =
+export type InboxMutationResult =
   { ok: true; status: string } | { ok: false; code: ProductActionErrorCode };
+
+export type ResolveInboxItemResult = InboxMutationResult;
 
 export async function resolveInboxItemToJar(
   raw: ResolveInboxItemInput,
@@ -103,6 +137,91 @@ export async function resolveInboxItemToJar(
 
     const payload = data as { status?: string };
     return { ok: true, status: payload.status ?? InboxItemStatus.RESOLVED };
+  } catch {
+    return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+  }
+}
+
+export const dismissInboxItemInputSchema = z.object({
+  inboxItemId: z.string().uuid(),
+});
+
+export type DismissInboxItemInput = z.infer<typeof dismissInboxItemInputSchema>;
+
+export async function dismissInboxItem(
+  raw: DismissInboxItemInput,
+): Promise<InboxMutationResult> {
+  const parsed = dismissInboxItemInputSchema.safeParse(raw);
+  if (!parsed.success) {
+    return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
+  }
+
+  const gate = await assertMoneyActionAllowed();
+  if (!gate.ok) {
+    return {
+      ok: false,
+      code: productActionErrorFromDeniedReason(gate.reason),
+    };
+  }
+
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { data, error } = await supabase.rpc("dismiss_inbox_item", {
+      p_inbox_item_id: parsed.data.inboxItemId,
+    });
+
+    if (error || !data) {
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    }
+
+    const payload = data as { status?: string };
+    return { ok: true, status: payload.status ?? InboxItemStatus.DISMISSED };
+  } catch {
+    return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+  }
+}
+
+export const acknowledgeInboxItemInputSchema = z.object({
+  inboxItemId: z.string().uuid(),
+  action: z.enum(["renew", "switch", "withdraw", "celebrate", "later"]),
+});
+
+export type AcknowledgeInboxItemInput = z.infer<
+  typeof acknowledgeInboxItemInputSchema
+>;
+
+export async function acknowledgeInboxItem(
+  raw: AcknowledgeInboxItemInput,
+): Promise<InboxMutationResult> {
+  const parsed = acknowledgeInboxItemInputSchema.safeParse(raw);
+  if (!parsed.success) {
+    return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
+  }
+
+  const gate = await assertMoneyActionAllowed();
+  if (!gate.ok) {
+    return {
+      ok: false,
+      code: productActionErrorFromDeniedReason(gate.reason),
+    };
+  }
+
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { data, error } = await supabase.rpc("acknowledge_inbox_item", {
+      p_inbox_item_id: parsed.data.inboxItemId,
+      p_action: parsed.data.action,
+    });
+
+    if (error || !data) {
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    }
+
+    const payload = data as { status?: string };
+    return {
+      ok: true,
+      status: payload.status ?? InboxItemStatus.ACKNOWLEDGED,
+    };
   } catch {
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }

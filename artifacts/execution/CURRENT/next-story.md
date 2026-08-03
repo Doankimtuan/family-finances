@@ -2,12 +2,12 @@
 
 | Field | Value |
 |-------|--------|
-| Sprint | **S5** (`sprint-005`) |
-| Story | **`ST-E06-001`** — Inbox queue |
+| Sprint | **S6** (`sprint-006`) |
+| Story | **`ST-E07-001`** — Home three answers and Health chip |
 | Mode | `full_implement` |
-| Plan | `artifacts/implementation-plan/CURRENT/stories/detail/ST-E06-001.md` |
+| Plan | `artifacts/implementation-plan/CURRENT/stories/detail/ST-E07-001.md` |
 
 ## Do not
 
-- Implement S5+ multi-story in one run  
-- Re-open frozen S4 stories unless a gate fails  
+- Implement multi-story in one run  
+- Re-open frozen S5 stories unless a gate fails  

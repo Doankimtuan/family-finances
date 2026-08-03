@@ -63,3 +63,7 @@ export function planGoalPath(goalId: string): string {
 export function planRecurringPath(ruleId: string): string {
   return `${APP_PATH.PLAN_RECURRING}/${ruleId}`;
 }
+
+export function inboxItemPath(inboxItemId: string): string {
+  return `${APP_PATH.INBOX}/${inboxItemId}`;
+}

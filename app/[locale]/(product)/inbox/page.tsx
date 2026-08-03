@@ -7,14 +7,17 @@ import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
 import { listOpenInboxItems } from "@/modules/inbox/application";
-import { listCaptureJars } from "@/modules/ledger/application";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { StatusAlert } from "@/shared/ui/status-alert";
-import { InboxResolveRow } from "./inbox-resolve-row";
+import { InboxOfflineBanner } from "./inbox-offline-banner";
+import { InboxQueueList } from "./inbox-queue-list";
 
 type Props = { params: Promise<{ locale: string }> };
 
+/**
+ * inbox.queue — ReviewCard list with kind filter (ST-E06-001 / AC-005 / AC-020).
+ */
 export default async function InboxPage({ params }: Props) {
   const { locale: rawLocale } = await params;
   const locale = hasLocale(routing.locales, rawLocale)
@@ -31,21 +34,21 @@ export default async function InboxPage({ params }: Props) {
     return redirect({ href: APP_PATH.ONBOARD, locale });
   }
 
-  const [t, tEmpty, items, jars] = await Promise.all([
+  const [t, tEmpty, items] = await Promise.all([
     getTranslations("inbox"),
     getTranslations("emptyStates"),
     listOpenInboxItems(),
-    listCaptureJars(),
   ]);
 
   const loadFailed = items == null;
   const pending = items ?? [];
-  const activeJars = jars ?? [];
 
   return (
     <div className="flex min-h-full flex-col" data-testid="inbox-queue">
       <TopAppBar title={t("title")} subtitle={t("subtitle")} />
       <div className="flex flex-1 flex-col gap-(--space-4) px-(--space-4) pb-(--space-6) pt-(--space-4)">
+        <InboxOfflineBanner />
+
         {loadFailed ? (
           <StatusAlert
             variant="danger"
@@ -58,25 +61,7 @@ export default async function InboxPage({ params }: Props) {
             description={tEmpty("inboxDescription")}
           />
         ) : (
-          <>
-            {activeJars.length === 0 ? (
-              <StatusAlert
-                variant="warning"
-                title={t("noJarsTitle")}
-                description={t("noJarsBody")}
-              />
-            ) : null}
-            <ul className="flex flex-col gap-(--space-3)">
-              {pending.map((item) => (
-                <InboxResolveRow
-                  key={item.id}
-                  item={item}
-                  jars={activeJars}
-                  locale={locale}
-                />
-              ))}
-            </ul>
-          </>
+          <InboxQueueList items={pending} locale={locale} />
         )}
       </div>
     </div>

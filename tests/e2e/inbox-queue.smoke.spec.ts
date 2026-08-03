@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
 
-test.describe("Inbox review queue (ST-E04-002 / ST-E06-001)", () => {
+test.describe("Inbox queue (ST-E06-001)", () => {
   test.describe.configure({ mode: "serial" });
 
   test("unauthenticated inbox redirects to login", async ({ page }) => {
@@ -29,9 +29,26 @@ test.describe("Inbox review queue (ST-E04-002 / ST-E06-001)", () => {
     await page.goto("/en/inbox");
     await expect(page.getByTestId("inbox-queue")).toBeVisible();
     await expect(
-      page.getByText(
-        /What needs a decision|Việc nào cần quyết định|Review items waiting|Mục cần gắn/i,
-      ),
+      page.getByText(/What needs a decision|Việc nào cần quyết định/i),
     ).toBeVisible();
+
+    const list = page.getByTestId("inbox-queue-list");
+    if ((await list.count()) > 0) {
+      await expect(page.getByTestId("inbox-kind-filter")).toBeVisible();
+      await expect(page.getByTestId("inbox-search")).toBeVisible();
+      await expect(page.getByTestId("inbox-partner-note")).toBeVisible();
+      await expect(page.getByTestId("inbox-filter-all")).toBeVisible();
+
+      const firstLink = page
+        .locator("[data-testid^='inbox-item-link-']")
+        .first();
+      if ((await firstLink.count()) > 0) {
+        await firstLink.click();
+        await expect(page.getByTestId("inbox-detail")).toBeVisible();
+        await expect(page.getByTestId("inbox-decision-panel")).toBeVisible();
+        await expect(page.getByTestId("inbox-dismiss")).toBeVisible();
+        await expect(page.getByTestId("inbox-partner-equal")).toBeVisible();
+      }
+    }
   });
 });

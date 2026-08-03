@@ -2,9 +2,7 @@
 
 | Story | Status | Title |
 |-------|--------|-------|
-| `ST-E05-001` | FROZEN | Plan hub with real≠virtual teaching |
-| `ST-E05-002` | FROZEN | Jars list and detail Active-only targets |
-| `ST-E05-003` | FROZEN | Goals and recurring |
-| `ST-E05-004` | FROZEN | Month Ritual Assisted preview approve lock |
-| `ST-E06-001` | **NEXT** | Inbox queue |
-| `ST-E06-002` | Queued | Review item resolve dismiss acknowledge |
+| `ST-E06-001` | FROZEN | Inbox queue |
+| `ST-E06-002` | FROZEN | Review item resolve dismiss acknowledge |
+| `ST-E07-001` | **NEXT** | Home three answers and Health chip |
+| `ST-E07-002` | Queued | Health overview and insights |

@@ -37,3 +37,4 @@ export { JarCard, type JarCardProps } from "./jar-card";
 export { GoalCard, type GoalCardProps } from "./goal-card";
 export { QuickAction, type QuickActionProps } from "./quick-action";
 export { TransactionRow, type TransactionRowProps } from "./transaction-row";
+export { ReviewCard, type ReviewCardProps } from "./review-card";
