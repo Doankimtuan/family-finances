@@ -2,12 +2,11 @@ import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import { mapAccountRow, type LedgerAccount } from "../account-types";
 import { applyTransactionDeltas } from "../transaction-types";
-import { DEFAULT_CURRENCY } from "../ledger-constants";
+import { AccountType, DEFAULT_CURRENCY } from "../ledger-constants";
 
-export async function listAccounts(): Promise<{
-  currency: string;
-  accounts: LedgerAccount[];
-} | null> {
+async function loadAccounts(options: {
+  includeCreditCards: boolean;
+}): Promise<{ currency: string; accounts: LedgerAccount[] } | null> {
   const gate = await assertMoneyActionAllowed();
   if (!gate.ok) {
     return null;
@@ -15,6 +14,17 @@ export async function listAccounts(): Promise<{
 
   try {
     const supabase = await createSupabaseServerClient();
+    let accountsQuery = supabase
+      .from("accounts")
+      .select("id, name, type, opening_balance, is_archived")
+      .eq("household_id", gate.householdId)
+      .eq("is_archived", false)
+      .order("created_at", { ascending: true });
+
+    if (!options.includeCreditCards) {
+      accountsQuery = accountsQuery.neq("type", AccountType.CREDIT_CARD);
+    }
+
     const [{ data: household }, { data: rows, error }, { data: txRows }] =
       await Promise.all([
         supabase
@@ -22,12 +32,7 @@ export async function listAccounts(): Promise<{
           .select("base_currency")
           .eq("id", gate.householdId)
           .maybeSingle(),
-        supabase
-          .from("accounts")
-          .select("id, name, type, opening_balance, is_archived")
-          .eq("household_id", gate.householdId)
-          .eq("is_archived", false)
-          .order("created_at", { ascending: true }),
+        accountsQuery,
         supabase
           .from("transactions")
           .select("account_id, type, amount")
@@ -53,6 +58,22 @@ export async function listAccounts(): Promise<{
   } catch {
     return null;
   }
+}
+
+/** Liquid wallets only — excludes credit cards (BR-01). */
+export async function listAccounts(): Promise<{
+  currency: string;
+  accounts: LedgerAccount[];
+} | null> {
+  return loadAccounts({ includeCreditCards: false });
+}
+
+/** Capture picker — includes credit cards. */
+export async function listAccountsForCapture(): Promise<{
+  currency: string;
+  accounts: LedgerAccount[];
+} | null> {
+  return loadAccounts({ includeCreditCards: true });
 }
 
 export async function getAccount(

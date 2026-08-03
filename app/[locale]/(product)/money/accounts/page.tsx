@@ -11,6 +11,7 @@ import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
 import {
   listAccounts,
+  listCreditCards,
   DEFAULT_CURRENCY,
   accountHealthFromBalance,
   AccountHealthSignal,
@@ -19,6 +20,7 @@ import { formatCurrency } from "@/shared/i18n/formatters";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { AccountCard } from "@/shared/patterns/account-card";
+import { CreditCardCard } from "@/shared/patterns/credit-card-card";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { Balance } from "@/shared/patterns/balance";
 import { SectionHeader } from "@/shared/patterns/section-header";
@@ -44,14 +46,17 @@ export default async function AccountsPage({ params }: Props) {
     return redirect({ href: APP_PATH.ONBOARD, locale });
   }
 
-  const [t, tCatalog, listed] = await Promise.all([
+  const [t, tCatalog, listed, cardsListed] = await Promise.all([
     getTranslations("money"),
     getTranslations("catalog"),
     listAccounts(),
+    listCreditCards(),
   ]);
 
-  const currency = listed?.currency ?? DEFAULT_CURRENCY;
+  const currency =
+    listed?.currency ?? cardsListed?.currency ?? DEFAULT_CURRENCY;
   const accounts = listed?.accounts ?? [];
+  const cards = cardsListed?.cards ?? [];
   const total = accounts.reduce((sum, a) => sum + a.balance, 0);
 
   return (
@@ -120,7 +125,70 @@ export default async function AccountsPage({ params }: Props) {
           )}
         </section>
 
-        <AddAccountForm />
+        <section className="flex flex-col gap-(--space-3)">
+          <SectionHeader title={t("accountsPage.creditCardsTitle")} />
+          <Text size="sm" tone="secondary">
+            {t("accountsPage.creditCardsHint")}
+          </Text>
+          {cards.length === 0 ? (
+            <EmptyState
+              title={t("accountsPage.creditCardsEmpty")}
+              className="flex-none py-(--space-4)"
+            />
+          ) : (
+            <ul className="flex flex-col gap-(--space-2)">
+              {cards.map((card) => (
+                <li key={card.accountId}>
+                  <Link
+                    href={moneyAccountPath(card.accountId)}
+                    className="block focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+                    data-testid="credit-card-row"
+                  >
+                    <CreditCardCard
+                      title={localizeCatalogName(
+                        tCatalog,
+                        "accounts",
+                        card.name,
+                      )}
+                      outstandingCaption={t("accountsPage.outstanding")}
+                      outstandingLabel={formatCurrency(
+                        card.outstanding,
+                        currency,
+                        locale,
+                        { maximumFractionDigits: 0 },
+                      )}
+                      availableCaption={t("accountsPage.availableCredit")}
+                      availableLabel={formatCurrency(
+                        card.availableCredit,
+                        currency,
+                        locale,
+                        { maximumFractionDigits: 0 },
+                      )}
+                      utilizationPct={card.utilizationPct}
+                      utilizationLabel={t("accountsPage.utilization", {
+                        pct: card.utilizationPct,
+                      })}
+                      dueLabel={
+                        card.nextDueDate
+                          ? t("accountsPage.nextDue", {
+                              date: card.nextDueDate,
+                            })
+                          : undefined
+                      }
+                    />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <AddAccountForm
+          liquidAccounts={accounts.map((a) => ({
+            id: a.id,
+            name: localizeCatalogName(tCatalog, "accounts", a.name),
+          }))}
+        />
 
         <section className="flex flex-col gap-(--space-2)">
           <SectionHeader title={t("accountsPage.plansTitle")} />

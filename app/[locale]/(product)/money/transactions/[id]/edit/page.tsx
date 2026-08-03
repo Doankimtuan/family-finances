@@ -8,7 +8,7 @@ import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
 import {
   getTransaction,
-  listAccounts,
+  listAccountsForCapture,
   listCaptureJars,
   listCategoryTags,
   TransactionDirection,
@@ -41,7 +41,7 @@ export default async function TransactionEditPage({ params }: Props) {
   const [t, tx, listed, expenseTags, incomeTags, jars] = await Promise.all([
     getTranslations("money"),
     getTransaction(id),
-    listAccounts(),
+    listAccountsForCapture(),
     listCategoryTags(TransactionDirection.EXPENSE),
     listCategoryTags(TransactionDirection.INCOME),
     listCaptureJars(),

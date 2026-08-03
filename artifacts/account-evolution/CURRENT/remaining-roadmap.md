@@ -3,8 +3,9 @@
 | Item | Notes | Gate |
 |------|-------|------|
 | Account transfers | Tech spec lists transfer; no Product AC | Product + ledger command + capture UX |
-| Credit card accounts + billing | Full analysis in `credit-card-analysis.md` | Product SoT change (override D-01) |
-| Convert txn → installment | Tech spec `ConvertToInstallment` | Product + cards surface |
+| Credit card accounts + billing | **Shipped (D-04)** — see `implemented-features.md` | User override of D-01 |
+| Auto-pay / min payment / interest | Deferred | Product definition |
+| Convert txn → installment | **Shipped** via billing item convert | — |
 | Restore archived accounts | Legacy had no restore | Product + list archived UX |
 | Brokerage in create UI | Schema allows; Scope lists trading OOS | Product Wealth / F-Wealth |
 | Stale-activity health | MVP uses balance-only chips | Cheap last-tx enrichment |

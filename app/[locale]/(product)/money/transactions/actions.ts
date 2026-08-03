@@ -1,8 +1,10 @@
 "use server";
 
 import { recordTransaction } from "@/modules/ledger/application";
-import type { RecordTransactionInput } from "@/modules/ledger/application";
-import type { ProductActionErrorCode } from "@/modules/tenancy/application/product-action-error";
+import type {
+  RecordTransactionInput,
+  RecordTransactionErrorCode,
+} from "@/modules/ledger/application";
 
 export type RecordTransactionActionState =
   | {
@@ -12,7 +14,7 @@ export type RecordTransactionActionState =
     }
   | {
       status: "error";
-      code: ProductActionErrorCode;
+      code: RecordTransactionErrorCode;
     };
 
 export async function recordTransactionAction(

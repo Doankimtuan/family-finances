@@ -1,8 +1,8 @@
 # Credit card analysis (legacy → Product v2)
 
-## Verdict (D-01)
+## Verdict
 
-**Do not implement** legacy credit-card billing in this evolution. Preserve EMI as money product under `/money/cards`. Treat full billing as a **Product proposal** only.
+**D-01 deferred implementation; D-04 (2026-08-03) overrides and ships** `mvp_plus_emi` + cashback with over-limit block. See `decision-log.md` and `implemented-features.md`.
 
 ## Legacy behaviors audited
 

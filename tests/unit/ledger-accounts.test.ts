@@ -315,24 +315,26 @@ describe("getRealPosition", () => {
           select: () => ({
             eq: () => ({
               eq: () => ({
-                order: async () => ({
-                  data: [
-                    {
-                      id: "a1",
-                      name: "Cash",
-                      type: "cash",
-                      opening_balance: 100,
-                      is_archived: false,
-                    },
-                    {
-                      id: "a2",
-                      name: "Bank",
-                      type: "checking",
-                      opening_balance: 50,
-                      is_archived: false,
-                    },
-                  ],
-                  error: null,
+                neq: () => ({
+                  order: async () => ({
+                    data: [
+                      {
+                        id: "a1",
+                        name: "Cash",
+                        type: "cash",
+                        opening_balance: 100,
+                        is_archived: false,
+                      },
+                      {
+                        id: "a2",
+                        name: "Bank",
+                        type: "checking",
+                        opening_balance: 50,
+                        is_archived: false,
+                      },
+                    ],
+                    error: null,
+                  }),
                 }),
               }),
             }),

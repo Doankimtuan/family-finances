@@ -31,3 +31,13 @@ Decided: 2026-08-03
 **Decision:** Do not edit Product Definition, Architecture, or Tech Spec CURRENT packs to re-authorize billing-cycle credit cards.
 
 **Rationale:** Developer Constitution forbids redesigning Product/Architecture. Valuable legacy behaviors missing from Product are proposals only until Product owns them.
+
+## D-04 — Override D-01: ship credit cards (1B)
+
+**Decision (2026-08-03):** Implement first-class credit cards despite Product SIMPLIFY.
+
+**Scope:** `mvp_plus_emi` + **cashback** (required); over-limit **block** on expense; app-layer billing (no DB triggers); FIFO settle; convert→EMI linked to `installment_plans`; CC excluded from Real Position (BR-01).
+
+**Still deferred:** auto-pay, min-payment product field, interest accrual, Product SoT pack rewrite (D-03 stands).
+
+**Supersedes:** D-01 implementation ban for this codebase slice. D-01 remains historical context for Product conflict.

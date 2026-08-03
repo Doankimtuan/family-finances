@@ -24,8 +24,10 @@ import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
 import {
   CLIENT_ACTION_ERROR_CODE,
   PRODUCT_ACTION_ERROR_CODE,
-  type ProductFormErrorCode,
+  type ClientActionErrorCode,
+  type ProductActionErrorCode,
 } from "@/modules/tenancy/application/product-action-error";
+import type { LedgerActionErrorCode } from "@/modules/ledger/application/client";
 import { recordTransactionAction } from "./actions";
 import { Link } from "@/i18n/navigation";
 
@@ -61,7 +63,12 @@ export function CaptureTransactionForm({
   const [categoryId, setCategoryId] = useState("");
   const [jarId, setJarId] = useState("");
   const [note, setNote] = useState("");
-  const [errorCode, setErrorCode] = useState<ProductFormErrorCode | null>(null);
+  const [errorCode, setErrorCode] = useState<
+    | ProductActionErrorCode
+    | ClientActionErrorCode
+    | LedgerActionErrorCode
+    | null
+  >(null);
   const [isPending, startTransition] = useTransition();
   const [idempotencyKey] = useState(() => crypto.randomUUID());
 

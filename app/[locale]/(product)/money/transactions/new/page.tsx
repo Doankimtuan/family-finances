@@ -7,7 +7,7 @@ import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
 import {
-  listAccounts,
+  listAccountsForCapture,
   listCaptureJars,
   listCategoryTags,
   DEFAULT_CURRENCY,
@@ -40,7 +40,7 @@ export default async function MoneyTransactionAddPage({ params }: Props) {
 
   const [t, listed, expenseTags, incomeTags, jars] = await Promise.all([
     getTranslations("money"),
-    listAccounts(),
+    listAccountsForCapture(),
     listCategoryTags(TransactionDirection.EXPENSE),
     listCategoryTags(TransactionDirection.INCOME),
     listCaptureJars(),

@@ -14,7 +14,7 @@ import {
   type ProductActionErrorCode,
 } from "@/modules/tenancy/application/product-action-error";
 import {
-  ACCOUNT_TYPE_VALUES,
+  ACCOUNT_TYPE_LIQUID_VALUES,
   AccountType,
   type AccountType as AccountTypeValue,
 } from "@/modules/ledger/application/client";
@@ -29,10 +29,13 @@ type Props = {
   initialType: AccountTypeValue;
 };
 
-const TYPES = ACCOUNT_TYPE_VALUES;
+const TYPES = ACCOUNT_TYPE_LIQUID_VALUES;
 
 function resolveEditableType(value: AccountTypeValue): AccountTypeValue {
-  return TYPES.includes(value) ? value : AccountType.CASH;
+  if (value === AccountType.CREDIT_CARD) return AccountType.CREDIT_CARD;
+  return TYPES.includes(value as (typeof TYPES)[number])
+    ? (value as (typeof TYPES)[number])
+    : AccountType.CASH;
 }
 
 /**
@@ -135,27 +138,35 @@ export function AccountDetailActions({
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
-        <fieldset className="flex flex-col gap-(--space-2)">
-          <Text size="sm" className="font-semibold text-text-primary">
-            {t("typeLabel")}
+        {initialType === AccountType.CREDIT_CARD ? (
+          <Text size="sm" tone="secondary">
+            {tTypes(AccountType.CREDIT_CARD)}
           </Text>
-          {TYPES.map((value) => (
-            <label
-              key={value}
-              className="flex min-h-11 cursor-pointer items-center gap-(--space-3)"
-            >
-              <input
-                type="radio"
-                name="accountEditType"
-                value={value}
-                checked={type === value}
-                onChange={() => setType(value)}
-                className="size-4 accent-[var(--color-accent)]"
-              />
-              <span className="text-sm text-text-primary">{tTypes(value)}</span>
-            </label>
-          ))}
-        </fieldset>
+        ) : (
+          <fieldset className="flex flex-col gap-(--space-2)">
+            <Text size="sm" className="font-semibold text-text-primary">
+              {t("typeLabel")}
+            </Text>
+            {TYPES.map((value) => (
+              <label
+                key={value}
+                className="flex min-h-11 cursor-pointer items-center gap-(--space-3)"
+              >
+                <input
+                  type="radio"
+                  name="accountEditType"
+                  value={value}
+                  checked={type === value}
+                  onChange={() => setType(value)}
+                  className="size-4 accent-[var(--color-accent)]"
+                />
+                <span className="text-sm text-text-primary">
+                  {tTypes(value)}
+                </span>
+              </label>
+            ))}
+          </fieldset>
+        )}
         <Button
           variant="primary"
           className="w-full"
@@ -171,7 +182,10 @@ export function AccountDetailActions({
               const result = await updateAccountAction({
                 accountId,
                 name: name.trim(),
-                type,
+                type:
+                  initialType === AccountType.CREDIT_CARD
+                    ? AccountType.CREDIT_CARD
+                    : type,
               });
               if (result.status === "success") {
                 setMode("idle");

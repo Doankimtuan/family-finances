@@ -1,20 +1,30 @@
-# Implemented features — Accounts MVP
+# Implemented features — Accounts MVP + Credit Card 1B
 
 Status: **DONE** (2026-08-03)
 
-## Delivered
+## Accounts MVP (prior)
 
-- [x] Evolution artifacts (`artifacts/account-evolution/CURRENT/`) including D-01/D-02/D-03 and CC proposal
-- [x] `archiveAccount` / `updateAccount` commands + Zod + barrel + server actions
-- [x] `accountHealthFromBalance` (zero / ok) — presentation helper
-- [x] Shared `AccountCard` (list + Money hub preview)
-- [x] Accounts list: Real Position hero, ownership hint, liquid section, health chips, plans & credit IA strip, progressive create + opening balance
-- [x] Account detail: available balance, ownership/health copy, quick actions (capture, activity), edit name/type, archive confirm
-- [x] EN/VI `money.accountsPage` / `money.accountDetail` messages
-- [x] Unit coverage in `tests/unit/ledger-accounts.test.ts`; e2e smoke extends `money-hub.smoke.spec.ts`
+- [x] Evolution artifacts folder
+- [x] `archiveAccount` / `updateAccount` + server actions
+- [x] Account health helper (zero / ok)
+- [x] Shared `AccountCard`
+- [x] Accounts list: Real Position hero, ownership hint, liquid section, health chips, plans strip, progressive create + opening balance
+- [x] Account detail: available balance, quick actions, edit, archive confirm
+- [x] EN/VI messages + unit/e2e for accounts lifecycle
 
-## Explicitly not shipped (by decision)
+## Credit Card 1B (D-04)
 
-- Credit card account type / billing cycles / FIFO / utilization (D-01)
-- Transfers, restore archived, post-create opening balance mutation
-- Product / Architecture SoT changes
+- [x] Migration `20260803160000_ledger_credit_cards.sql` — type, settings, billing months/items, installment FKs, RLS
+- [x] Constants + pure billing helpers (`credit-card-billing.ts`)
+- [x] Real Position / liquid `listAccounts` exclude `credit_card`
+- [x] `listCreditCards` / `getCreditCardDetail`
+- [x] Create account with CC settings; `recordTransaction` over-limit **block** + billing assign; cashback; FIFO settle; convert→EMI
+- [x] UI: progressive CC create, Accounts credit section, CC detail (util/settle/cashback/convert), capture error `credit_limit_exceeded`
+- [x] Shared `CreditCardCard`; unit `credit-card-billing.test.ts`; e2e create-settings smoke
+- [x] Decision log D-04
+
+## Explicitly not shipped
+
+- Auto-pay, min payment field, interest accrual
+- DB billing triggers
+- Product Definition / Architecture SoT edits

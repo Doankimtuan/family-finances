@@ -47,3 +47,4 @@ export {
 } from "./mutation-offline-banner";
 export { InstallmentCard, type InstallmentCardProps } from "./installment-card";
 export { AccountCard, type AccountCardProps } from "./account-card";
+export { CreditCardCard, type CreditCardCardProps } from "./credit-card-card";

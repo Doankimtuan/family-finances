@@ -51,5 +51,12 @@ test.describe("Money hub + accounts (ST-E04-001)", () => {
     await expect(page.getByTestId("account-add-form")).toBeVisible();
     await page.locator('input[name="accountType"][value="checking"]').check();
     await expect(page.getByTestId("account-opening-balance")).toBeVisible();
+    await page
+      .locator('input[name="accountType"][value="credit_card"]')
+      .check();
+    await expect(
+      page.getByTestId("account-credit-card-settings"),
+    ).toBeVisible();
+    await expect(page.getByTestId("account-credit-limit")).toBeVisible();
   });
 });

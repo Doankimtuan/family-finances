@@ -2,10 +2,11 @@ import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import { mapAccountRow, type RealPosition } from "../account-types";
 import { applyTransactionDeltas } from "../transaction-types";
-import { DEFAULT_CURRENCY } from "../ledger-constants";
+import { AccountType, DEFAULT_CURRENCY } from "../ledger-constants";
 
 /**
  * Real position = opening balances ± cleared ledger transactions (BR-01).
+ * Credit cards are excluded — outstanding lives on the billing ledger.
  */
 export async function getRealPosition(): Promise<RealPosition | null> {
   const gate = await assertMoneyActionAllowed();
@@ -27,6 +28,7 @@ export async function getRealPosition(): Promise<RealPosition | null> {
           .select("id, name, type, opening_balance, is_archived")
           .eq("household_id", gate.householdId)
           .eq("is_archived", false)
+          .neq("type", AccountType.CREDIT_CARD)
           .order("created_at", { ascending: true }),
         supabase
           .from("transactions")

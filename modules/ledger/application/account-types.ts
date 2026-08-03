@@ -28,6 +28,7 @@ function asAccountType(value: string): AccountTypeValue {
     case AccountType.SAVINGS:
     case AccountType.EWALLET:
     case AccountType.BROKERAGE:
+    case AccountType.CREDIT_CARD:
     case AccountType.OTHER:
       return value;
     default:

@@ -1,29 +1,37 @@
 "use server";
 
 import {
+  addCardCashback,
   archiveAccount,
+  convertToInstallment,
   createAccount,
+  settleCard,
   updateAccount,
 } from "@/modules/ledger/application";
 import type {
+  AddCardCashbackInput,
   ArchiveAccountInput,
+  ConvertToInstallmentInput,
   CreateAccountInput,
+  SettleCardInput,
   UpdateAccountInput,
 } from "@/modules/ledger/application";
 import type { ProductActionErrorCode } from "@/modules/tenancy/application/product-action-error";
+import type { LedgerActionErrorCode } from "@/modules/ledger/application";
 
 export type CreateAccountActionState =
   | { status: "success"; accountId: string }
-  | {
-      status: "error";
-      code: ProductActionErrorCode;
-    };
+  | { status: "error"; code: ProductActionErrorCode };
 
 export type UpdateAccountActionState =
   { status: "success" } | { status: "error"; code: ProductActionErrorCode };
 
 export type ArchiveAccountActionState =
   { status: "success" } | { status: "error"; code: ProductActionErrorCode };
+
+export type CardMutationActionState =
+  | { status: "success"; id?: string }
+  | { status: "error"; code: ProductActionErrorCode | LedgerActionErrorCode };
 
 export async function createAccountAction(
   input: CreateAccountInput,
@@ -51,6 +59,36 @@ export async function archiveAccountAction(
   const result = await archiveAccount(input);
   if (result.ok) {
     return { status: "success" };
+  }
+  return { status: "error", code: result.code };
+}
+
+export async function settleCardAction(
+  input: SettleCardInput,
+): Promise<CardMutationActionState> {
+  const result = await settleCard(input);
+  if (result.ok) {
+    return { status: "success", id: result.transactionId };
+  }
+  return { status: "error", code: result.code };
+}
+
+export async function addCardCashbackAction(
+  input: AddCardCashbackInput,
+): Promise<CardMutationActionState> {
+  const result = await addCardCashback(input);
+  if (result.ok) {
+    return { status: "success", id: result.transactionId };
+  }
+  return { status: "error", code: result.code };
+}
+
+export async function convertToInstallmentAction(
+  input: ConvertToInstallmentInput,
+): Promise<CardMutationActionState> {
+  const result = await convertToInstallment(input);
+  if (result.ok) {
+    return { status: "success", id: result.planId };
   }
   return { status: "error", code: result.code };
 }
