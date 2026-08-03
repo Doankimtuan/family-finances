@@ -11,6 +11,7 @@ import {
   INVITATION_RPC_MESSAGE_NEEDLE,
   type HouseholdErrorCode,
 } from "./tenancy-constants";
+import { DEFAULT_CURRENCY } from "@/modules/ledger/application/ledger-constants";
 
 export type CreateHouseholdErrorCode = Extract<
   HouseholdErrorCode,
@@ -58,7 +59,7 @@ export async function createHousehold(
         p_name: parsed.data.name,
         p_account_name: parsed.data.accountName,
         p_plan_preset: parsed.data.planPreset,
-        p_base_currency: parsed.data.baseCurrency ?? "VND",
+        p_base_currency: parsed.data.baseCurrency ?? DEFAULT_CURRENCY,
         p_locale: parsed.data.locale ?? "en-VN",
         p_timezone: parsed.data.timezone ?? "Asia/Ho_Chi_Minh",
       },

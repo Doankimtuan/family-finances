@@ -19,6 +19,10 @@ vi.mock("@/modules/tenancy/application/assert-money-action-allowed", () => ({
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import {
+  MONEY_ACTION_DENIED_REASON,
+  PRODUCT_ACTION_ERROR_CODE,
+} from "@/modules/tenancy/application/tenancy-constants";
+import {
   recordTransaction,
   recordTransactionInputSchema,
 } from "@/modules/ledger/application/commands/record-transaction";
@@ -113,7 +117,7 @@ describe("recordTransaction", () => {
   it("returns no_membership when gate fails", async () => {
     vi.mocked(assertMoneyActionAllowed).mockResolvedValue({
       ok: false,
-      reason: "no_membership",
+      reason: MONEY_ACTION_DENIED_REASON.NO_MEMBERSHIP,
     });
 
     await expect(
@@ -122,7 +126,10 @@ describe("recordTransaction", () => {
         type: "expense",
         amount: 10,
       }),
-    ).resolves.toEqual({ ok: false, code: "no_membership" });
+    ).resolves.toEqual({
+      ok: false,
+      code: PRODUCT_ACTION_ERROR_CODE.NO_MEMBERSHIP,
+    });
   });
 
   it("calls record_transaction rpc when allowed", async () => {

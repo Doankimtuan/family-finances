@@ -5,10 +5,22 @@
 import { AUTH_CONFIRM_QUERY } from "./auth-constants";
 import { APP_PATH } from "./app-path";
 import { COMMON_ACTION_ERROR_CODE } from "./common-action-error";
+import { PRODUCT_ACTION_ERROR_CODE } from "./product-action-error";
 
 export { APP_PATH, invitePath } from "./app-path";
 export { COMMON_ACTION_ERROR_CODE } from "./common-action-error";
 export type { CommonActionErrorCode } from "./common-action-error";
+export {
+  PRODUCT_ACTION_ERROR_CODE,
+  CLIENT_ACTION_ERROR_CODE,
+  PRODUCT_FORM_ERROR_CODE,
+  productActionErrorFromDeniedReason,
+} from "./product-action-error";
+export type {
+  ProductActionErrorCode,
+  ClientActionErrorCode,
+  ProductFormErrorCode,
+} from "./product-action-error";
 
 export const TOGETHER_PATH = {
   ROOT: APP_PATH.TOGETHER,
@@ -65,8 +77,8 @@ export type HouseholdErrorCode =
   (typeof HOUSEHOLD_ERROR_CODE)[keyof typeof HOUSEHOLD_ERROR_CODE];
 
 export const MONEY_ACTION_DENIED_REASON = {
-  UNAUTHENTICATED: COMMON_ACTION_ERROR_CODE.UNAUTHENTICATED,
-  NO_MEMBERSHIP: "no_membership",
+  UNAUTHENTICATED: PRODUCT_ACTION_ERROR_CODE.UNAUTHENTICATED,
+  NO_MEMBERSHIP: PRODUCT_ACTION_ERROR_CODE.NO_MEMBERSHIP,
 } as const;
 
 export type MoneyActionDeniedReason =

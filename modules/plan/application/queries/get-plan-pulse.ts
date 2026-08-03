@@ -1,6 +1,17 @@
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
-import { mapJarRow, type PlanJar, type PlanPulse } from "../jar-types";
+import { DEFAULT_CURRENCY } from "@/modules/ledger/application/ledger-constants";
+import {
+  mapIncomeAllocateMode,
+  mapJarRow,
+  mapMonthCloseMode,
+  JarState,
+  type PlanJar,
+  type PlanPulse,
+} from "../jar-types";
+
+const JAR_SELECT =
+  "id, name, kind, sort_order, is_archived, is_paused, jar_plans(plan_kind, percent_bps, fixed_amount)";
 
 /**
  * Plan hub read model — Active jars only in preview (AC-003 / BR-03).
@@ -22,7 +33,7 @@ export async function getPlanPulse(): Promise<PlanPulse | null> {
         .maybeSingle(),
       supabase
         .from("jars")
-        .select("id, name, kind, sort_order, is_archived")
+        .select(JAR_SELECT)
         .eq("household_id", gate.householdId)
         .order("sort_order", { ascending: true }),
     ]);
@@ -32,24 +43,23 @@ export async function getPlanPulse(): Promise<PlanPulse | null> {
     }
 
     const jars = (rows ?? []).map(mapJarRow);
-    const activeJars = jars.filter((jar) => jar.state === "active");
-    const archivedJarCount = jars.length - activeJars.length;
-
-    const monthCloseMode = household?.month_close_mode;
-    const incomeAllocateMode = household?.income_allocate_mode;
+    const activeJars = jars.filter((jar) => jar.state === JarState.ACTIVE);
+    const pausedJarCount = jars.filter(
+      (jar) => jar.state === JarState.PAUSED,
+    ).length;
+    const archivedJarCount = jars.filter(
+      (jar) => jar.state === JarState.ARCHIVED,
+    ).length;
 
     return {
       householdId: gate.householdId,
-      currency: (household?.base_currency ?? "VND").toUpperCase(),
-      monthCloseMode:
-        monthCloseMode === "auto" || monthCloseMode === "manual"
-          ? monthCloseMode
-          : "assisted",
-      incomeAllocateMode:
-        incomeAllocateMode === "off" || incomeAllocateMode === "auto"
-          ? incomeAllocateMode
-          : "suggest",
+      currency: (household?.base_currency ?? DEFAULT_CURRENCY).toUpperCase(),
+      monthCloseMode: mapMonthCloseMode(household?.month_close_mode),
+      incomeAllocateMode: mapIncomeAllocateMode(
+        household?.income_allocate_mode,
+      ),
       activeJars,
+      pausedJarCount,
       archivedJarCount,
     };
   } catch {

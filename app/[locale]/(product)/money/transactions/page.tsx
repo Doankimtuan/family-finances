@@ -9,8 +9,11 @@ import {
 } from "@/modules/tenancy/application/app-path";
 import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
-import { listTransactions } from "@/modules/ledger/application";
-import type { TransactionDirection } from "@/modules/ledger/application";
+import {
+  listTransactions,
+  TransactionDirection,
+  TransactionFilterType,
+} from "@/modules/ledger/application";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
@@ -45,9 +48,12 @@ export default async function TransactionsListPage({
 
   const sp = await searchParams;
   const q = sp.q?.trim() ?? "";
-  const typeRaw = sp.type ?? "all";
-  const type: TransactionDirection | "all" =
-    typeRaw === "income" || typeRaw === "expense" ? typeRaw : "all";
+  const typeRaw = sp.type ?? TransactionFilterType.ALL;
+  const type: (typeof TransactionFilterType)[keyof typeof TransactionFilterType] =
+    typeRaw === TransactionDirection.INCOME ||
+    typeRaw === TransactionDirection.EXPENSE
+      ? typeRaw
+      : TransactionFilterType.ALL;
 
   const [t, tCatalog, rows] = await Promise.all([
     getTranslations("money"),
@@ -92,8 +98,12 @@ export default async function TransactionsListPage({
                       "accounts",
                       tx.accountName,
                     )}
-                    amountLabel={`${tx.type === "expense" ? "−" : "+"}${formatCurrency(tx.amount, tx.currency, locale, { maximumFractionDigits: 0 })}`}
-                    tone={tx.type === "expense" ? "debit" : "credit"}
+                    amountLabel={`${tx.type === TransactionDirection.EXPENSE ? "−" : "+"}${formatCurrency(tx.amount, tx.currency, locale, { maximumFractionDigits: 0 })}`}
+                    tone={
+                      tx.type === TransactionDirection.EXPENSE
+                        ? "debit"
+                        : "credit"
+                    }
                   />
                 </Link>
               </li>

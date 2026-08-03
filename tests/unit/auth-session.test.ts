@@ -13,6 +13,7 @@ import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { signInWithPassword } from "@/modules/tenancy/application/sign-in";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
+import { MONEY_ACTION_DENIED_REASON } from "@/modules/tenancy/application/tenancy-constants";
 
 describe("signInWithPassword", () => {
   beforeEach(() => {
@@ -88,7 +89,7 @@ describe("assertMoneyActionAllowed", () => {
 
     await expect(assertMoneyActionAllowed()).resolves.toEqual({
       ok: false,
-      reason: "unauthenticated",
+      reason: MONEY_ACTION_DENIED_REASON.UNAUTHENTICATED,
     });
   });
 
@@ -110,7 +111,7 @@ describe("assertMoneyActionAllowed", () => {
     await expect(resolveActiveMembership("u1")).resolves.toBeNull();
     await expect(assertMoneyActionAllowed()).resolves.toEqual({
       ok: false,
-      reason: "no_membership",
+      reason: MONEY_ACTION_DENIED_REASON.NO_MEMBERSHIP,
     });
   });
 });

@@ -1,36 +1,51 @@
 import { getSupabaseEnv } from "@/modules/platform/supabase/env";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
+import {
+  IncomeAllocateMode as IncomeAllocateModeConst,
+  RitualMode,
+} from "@/modules/plan/application/plan-constants";
 import { getSessionUser } from "./get-session-user";
 import { resolveActiveMembership } from "./resolve-active-membership";
-import type {
-  IncomeAllocateMode,
-  MonthCloseMode,
+import {
   OverspendPolicy,
+  type IncomeAllocateMode,
+  type MonthCloseMode,
+  type OverspendPolicy as OverspendPolicyValue,
 } from "./household-policies.schema";
 
 export type HouseholdPolicies = {
   householdId: string;
   householdName: string;
-  overspendPolicy: OverspendPolicy;
+  overspendPolicy: OverspendPolicyValue;
   monthCloseMode: MonthCloseMode;
   incomeAllocateMode: IncomeAllocateMode;
   canEdit: boolean;
   role: "partner" | "admin";
 };
 
-function asOverspend(value: string): OverspendPolicy {
-  if (value === "block" || value === "allow_negative") return value;
-  return "warn";
+function asOverspend(value: string): OverspendPolicyValue {
+  if (
+    value === OverspendPolicy.BLOCK ||
+    value === OverspendPolicy.ALLOW_NEGATIVE
+  ) {
+    return value;
+  }
+  return OverspendPolicy.WARN;
 }
 
 function asMonthClose(value: string): MonthCloseMode {
-  if (value === "auto" || value === "manual") return value;
-  return "assisted";
+  if (value === RitualMode.AUTO || value === RitualMode.MANUAL) return value;
+  return RitualMode.ASSISTED;
 }
 
 function asIncome(value: string): IncomeAllocateMode {
-  if (value === "off" || value === "auto") return value;
-  return "suggest";
+  if (
+    value === IncomeAllocateModeConst.OFF ||
+    value === IncomeAllocateModeConst.AUTO
+  ) {
+    return value;
+  }
+  return IncomeAllocateModeConst.SUGGEST;
 }
 
 /**

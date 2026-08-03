@@ -5,6 +5,10 @@ import {
   type LedgerTransaction,
   type TransactionDirection,
 } from "../transaction-types";
+import {
+  TransactionDirection as Direction,
+  TransactionFilterType,
+} from "../ledger-constants";
 
 function normalizeJoinedRow(row: Record<string, unknown>) {
   return mapTransactionRow({
@@ -53,7 +57,7 @@ export async function getTransaction(
 
 export type ListTransactionsFilter = {
   q?: string;
-  type?: TransactionDirection | "all";
+  type?: TransactionDirection | typeof TransactionFilterType.ALL;
   limit?: number;
 };
 
@@ -74,7 +78,7 @@ export async function listTransactions(
       .order("created_at", { ascending: false })
       .limit(filter.limit ?? 100);
 
-    if (filter.type === "income" || filter.type === "expense") {
+    if (filter.type === Direction.INCOME || filter.type === Direction.EXPENSE) {
       query = query.eq("type", filter.type);
     }
 

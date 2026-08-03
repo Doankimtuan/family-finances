@@ -1,7 +1,18 @@
 import { z } from "zod";
 
-export const planPresetSchema = z.enum(["balanced", "simple"]);
-export type PlanPreset = z.infer<typeof planPresetSchema>;
+export const PlanPreset = {
+  BALANCED: "balanced",
+  SIMPLE: "simple",
+} as const;
+
+export type PlanPreset = (typeof PlanPreset)[keyof typeof PlanPreset];
+
+export const PLAN_PRESET_VALUES = [
+  PlanPreset.BALANCED,
+  PlanPreset.SIMPLE,
+] as const;
+
+export const planPresetSchema = z.enum(PLAN_PRESET_VALUES);
 
 export const createHouseholdInputSchema = z.object({
   name: z.string().trim().min(2).max(80),

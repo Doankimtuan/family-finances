@@ -9,7 +9,10 @@ import {
 } from "@/modules/tenancy/application/app-path";
 import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
-import { getTransaction } from "@/modules/ledger/application";
+import {
+  getTransaction,
+  TransactionDirection,
+} from "@/modules/ledger/application";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
@@ -63,7 +66,7 @@ export default async function TransactionDetailPage({ params }: Props) {
     );
   }
 
-  const signed = `${tx.type === "expense" ? "−" : "+"}${formatCurrency(tx.amount, tx.currency, locale, { maximumFractionDigits: 0 })}`;
+  const signed = `${tx.type === TransactionDirection.EXPENSE ? "−" : "+"}${formatCurrency(tx.amount, tx.currency, locale, { maximumFractionDigits: 0 })}`;
 
   return (
     <div

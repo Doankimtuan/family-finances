@@ -2,12 +2,13 @@
 
 import { createAccount } from "@/modules/ledger/application";
 import type { CreateAccountInput } from "@/modules/ledger/application";
+import type { ProductActionErrorCode } from "@/modules/tenancy/application/product-action-error";
 
 export type CreateAccountActionState =
   | { status: "success"; accountId: string }
   | {
       status: "error";
-      code: "unauthenticated" | "no_membership" | "invalid" | "unknown";
+      code: ProductActionErrorCode;
     };
 
 export async function createAccountAction(

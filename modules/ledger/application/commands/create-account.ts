@@ -1,19 +1,22 @@
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
+import {
+  PRODUCT_ACTION_ERROR_CODE,
+  productActionErrorFromDeniedReason,
+  type ProductActionErrorCode,
+} from "@/modules/tenancy/application/product-action-error";
+import { ACCOUNT_TYPE_VALUES, AccountType } from "../ledger-constants";
 
 export const createAccountInputSchema = z.object({
   name: z.string().trim().min(1).max(80),
-  type: z
-    .enum(["cash", "checking", "savings", "ewallet", "brokerage", "other"])
-    .default("cash"),
+  type: z.enum(ACCOUNT_TYPE_VALUES).default(AccountType.CASH),
   openingBalance: z.number().finite().int().default(0),
 });
 
 export type CreateAccountInput = z.infer<typeof createAccountInputSchema>;
 
-export type CreateAccountErrorCode =
-  "unauthenticated" | "no_membership" | "invalid" | "unknown";
+export type CreateAccountErrorCode = ProductActionErrorCode;
 
 export type CreateAccountResult =
   { ok: true; accountId: string } | { ok: false; code: CreateAccountErrorCode };
@@ -26,15 +29,14 @@ export async function createAccount(
 ): Promise<CreateAccountResult> {
   const parsed = createAccountInputSchema.safeParse(raw);
   if (!parsed.success) {
-    return { ok: false, code: "invalid" };
+    return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
   }
 
   const gate = await assertMoneyActionAllowed();
   if (!gate.ok) {
     return {
       ok: false,
-      code:
-        gate.reason === "unauthenticated" ? "unauthenticated" : "no_membership",
+      code: productActionErrorFromDeniedReason(gate.reason),
     };
   }
 
@@ -53,11 +55,11 @@ export async function createAccount(
       .single();
 
     if (error || !data?.id) {
-      return { ok: false, code: "unknown" };
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
     }
 
     return { ok: true, accountId: data.id };
   } catch {
-    return { ok: false, code: "unknown" };
+    return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }
 }

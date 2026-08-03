@@ -10,6 +10,8 @@ import {
   listAccounts,
   listCaptureJars,
   listCategoryTags,
+  DEFAULT_CURRENCY,
+  TransactionDirection,
 } from "@/modules/ledger/application";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { MoneyOfflineBanner } from "../../money-offline-banner";
@@ -39,8 +41,8 @@ export default async function MoneyTransactionAddPage({ params }: Props) {
   const [t, listed, expenseTags, incomeTags, jars] = await Promise.all([
     getTranslations("money"),
     listAccounts(),
-    listCategoryTags("expense"),
-    listCategoryTags("income"),
+    listCategoryTags(TransactionDirection.EXPENSE),
+    listCategoryTags(TransactionDirection.INCOME),
     listCaptureJars(),
   ]);
 
@@ -57,7 +59,7 @@ export default async function MoneyTransactionAddPage({ params }: Props) {
           expenseTags={expenseTags ?? []}
           incomeTags={incomeTags ?? []}
           jars={jars ?? []}
-          currency={listed?.currency ?? "VND"}
+          currency={listed?.currency ?? DEFAULT_CURRENCY}
         />
       </div>
     </div>

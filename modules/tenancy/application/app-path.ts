@@ -51,3 +51,15 @@ export function moneyTransactionPath(transactionId: string): string {
 export function moneyTransactionEditPath(transactionId: string): string {
   return `${moneyTransactionPath(transactionId)}/edit`;
 }
+
+export function planJarPath(jarId: string): string {
+  return `${APP_PATH.PLAN_JARS}/${jarId}`;
+}
+
+export function planGoalPath(goalId: string): string {
+  return `${APP_PATH.PLAN_GOALS}/${goalId}`;
+}
+
+export function planRecurringPath(ruleId: string): string {
+  return `${APP_PATH.PLAN_RECURRING}/${ruleId}`;
+}

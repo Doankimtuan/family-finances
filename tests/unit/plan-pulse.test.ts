@@ -18,32 +18,59 @@ vi.mock("@/modules/tenancy/application/assert-money-action-allowed", () => ({
 
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
-import { mapJarRow } from "@/modules/plan/application/jar-types";
+import {
+  MONEY_ACTION_DENIED_REASON,
+  PRODUCT_ACTION_ERROR_CODE,
+} from "@/modules/tenancy/application/tenancy-constants";
+import {
+  mapJarRow,
+  resolveJarState,
+  isAllocationTarget,
+} from "@/modules/plan/application/jar-types";
 import { getPlanPulse } from "@/modules/plan/application/queries/get-plan-pulse";
+import { setJarState } from "@/modules/plan/application/commands/set-jar-state";
+import { upsertJarPlan } from "@/modules/plan/application/commands/upsert-jar-plan";
 
-describe("mapJarRow", () => {
-  it("marks non-archived jars as active allocation targets", () => {
-    expect(
-      mapJarRow({
-        id: "j1",
-        name: "Needs",
-        kind: "spending",
-        sort_order: 1,
-        is_archived: false,
-      }),
-    ).toMatchObject({ state: "active", kind: "spending" });
+describe("jar state matrix", () => {
+  it("resolves Active / Paused / Archived with archive winning", () => {
+    expect(resolveJarState({ is_archived: false, is_paused: false })).toBe(
+      "active",
+    );
+    expect(resolveJarState({ is_archived: false, is_paused: true })).toBe(
+      "paused",
+    );
+    expect(resolveJarState({ is_archived: true, is_paused: true })).toBe(
+      "archived",
+    );
   });
 
-  it("marks archived jars as non-targets", () => {
-    expect(
-      mapJarRow({
-        id: "j2",
-        name: "Old",
-        kind: "buffer",
-        sort_order: 9,
-        is_archived: true,
-      }).state,
-    ).toBe("archived");
+  it("only Active jars are allocation targets (BR-03)", () => {
+    expect(isAllocationTarget({ state: "active" })).toBe(true);
+    expect(isAllocationTarget({ state: "paused" })).toBe(false);
+    expect(isAllocationTarget({ state: "archived" })).toBe(false);
+  });
+
+  it("maps plan without inventing a bank balance field", () => {
+    const jar = mapJarRow({
+      id: "j1",
+      name: "Essentials",
+      kind: "spending",
+      sort_order: 1,
+      is_archived: false,
+      is_paused: false,
+      jar_plans: {
+        plan_kind: "percent",
+        percent_bps: 5000,
+        fixed_amount: 0,
+      },
+    });
+    expect(jar.state).toBe("active");
+    expect(jar.plan).toEqual({
+      kind: "percent",
+      percentBps: 5000,
+      fixedAmount: 0,
+    });
+    expect(jar).not.toHaveProperty("balance");
   });
 });
 
@@ -55,12 +82,12 @@ describe("getPlanPulse", () => {
   it("returns null without membership", async () => {
     vi.mocked(assertMoneyActionAllowed).mockResolvedValue({
       ok: false,
-      reason: "no_membership",
+      reason: MONEY_ACTION_DENIED_REASON.NO_MEMBERSHIP,
     });
     await expect(getPlanPulse()).resolves.toBeNull();
   });
 
-  it("exposes only active jars in pulse preview", async () => {
+  it("exposes only active jars and counts paused/archived", async () => {
     vi.mocked(assertMoneyActionAllowed).mockResolvedValue({
       ok: true,
       userId: "u1",
@@ -95,13 +122,30 @@ describe("getPlanPulse", () => {
                     kind: "spending",
                     sort_order: 1,
                     is_archived: false,
+                    is_paused: false,
+                    jar_plans: {
+                      plan_kind: "percent",
+                      percent_bps: 5000,
+                      fixed_amount: 0,
+                    },
                   },
                   {
                     id: "a2",
+                    name: "Paused",
+                    kind: "spending",
+                    sort_order: 2,
+                    is_archived: false,
+                    is_paused: true,
+                    jar_plans: null,
+                  },
+                  {
+                    id: "a3",
                     name: "Old",
                     kind: "savings",
-                    sort_order: 2,
+                    sort_order: 3,
                     is_archived: true,
+                    is_paused: false,
+                    jar_plans: null,
                   },
                 ],
                 error: null,
@@ -116,11 +160,55 @@ describe("getPlanPulse", () => {
     expect(pulse).toMatchObject({
       householdId: "h1",
       monthCloseMode: "assisted",
+      incomeAllocateMode: "suggest",
+      pausedJarCount: 1,
       archivedJarCount: 1,
     });
     expect(pulse?.activeJars).toHaveLength(1);
     expect(pulse?.activeJars[0]?.name).toBe("Needs");
-    // BR-01: pulse never invents a bank-style jar balance field
     expect(pulse?.activeJars[0]).not.toHaveProperty("balance");
+  });
+});
+
+describe("setJarState / upsertJarPlan", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("rejects invalid plan input", async () => {
+    await expect(
+      upsertJarPlan({ jarId: "not-uuid", planKind: "percent", percent: 10 }),
+    ).resolves.toEqual({
+      ok: false,
+      code: PRODUCT_ACTION_ERROR_CODE.INVALID,
+    });
+  });
+
+  it("maps pause flags on update", async () => {
+    vi.mocked(assertMoneyActionAllowed).mockResolvedValue({
+      ok: true,
+      userId: "u1",
+      householdId: "h1",
+    });
+    const maybeSingle = vi.fn(async () => ({
+      data: { id: "j1" },
+      error: null,
+    }));
+    const select = vi.fn(() => ({ maybeSingle }));
+    const eq2 = vi.fn(() => ({ select }));
+    const eq1 = vi.fn(() => ({ eq: eq2 }));
+    const update = vi.fn(() => ({ eq: eq1 }));
+    vi.mocked(createSupabaseServerClient).mockResolvedValue({
+      from: () => ({ update }),
+    } as never);
+
+    const result = await setJarState({
+      jarId: "550e8400-e29b-41d4-a716-446655440000",
+      state: "paused",
+    });
+    expect(result).toEqual({ ok: true, state: "paused" });
+    expect(update).toHaveBeenCalledWith(
+      expect.objectContaining({ is_paused: true, is_archived: false }),
+    );
   });
 });

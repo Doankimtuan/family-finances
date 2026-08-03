@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/navigation";
 import {
@@ -13,12 +13,22 @@ import type {
   LedgerAccount,
   LedgerTransaction,
   TransactionDirection,
-} from "@/modules/ledger/application";
+} from "@/modules/ledger/application/client";
+import {
+  TransactionDirection as Direction,
+  TRANSACTION_DIRECTION_OPTIONS,
+} from "@/modules/ledger/application/client";
 import { TextField } from "@/shared/ui/form";
+import { AmountField } from "@/shared/patterns/amount-field";
 import { Button } from "@/shared/ui/button";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
+import {
+  CLIENT_ACTION_ERROR_CODE,
+  PRODUCT_ACTION_ERROR_CODE,
+  type ProductFormErrorCode,
+} from "@/modules/tenancy/application/product-action-error";
 import {
   deleteTransactionAction,
   updateTransactionAction,
@@ -32,15 +42,6 @@ type Props = {
   jars: CaptureJarOption[];
   currency: string;
 };
-
-type ErrorCode =
-  | "unauthenticated"
-  | "no_membership"
-  | "invalid"
-  | "offline"
-  | "unknown"
-  | "no_account";
-
 /**
  * Edit transaction — confirm before save/delete; offline fail-closed (AC-018).
  */
@@ -59,39 +60,32 @@ export function EditTransactionForm({
   const [direction, setDirection] = useState<TransactionDirection>(
     transaction.type,
   );
-  const [amount, setAmount] = useState(String(transaction.amount));
+  const [amount, setAmount] = useState<number | null>(transaction.amount);
   const [accountId, setAccountId] = useState(transaction.accountId);
   const [categoryId, setCategoryId] = useState(transaction.categoryId ?? "");
   const [jarId, setJarId] = useState(transaction.jarId ?? "");
   const [note, setNote] = useState(transaction.note ?? "");
   const [confirmSave, setConfirmSave] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const [errorCode, setErrorCode] = useState<ErrorCode | null>(null);
+  const [errorCode, setErrorCode] = useState<ProductFormErrorCode | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  const tags = direction === "income" ? incomeTags : expenseTags;
-
-  const parsedAmount = useMemo(() => {
-    const digits = amount.replace(/[^\d]/g, "");
-    if (!digits) return null;
-    const value = Number(digits);
-    return Number.isFinite(value) && value > 0 ? value : null;
-  }, [amount]);
+  const tags = direction === Direction.INCOME ? incomeTags : expenseTags;
 
   const detailHref = moneyTransactionPath(transaction.id);
 
   const runSave = () => {
     setErrorCode(null);
     if (!online) {
-      setErrorCode("offline");
+      setErrorCode(CLIENT_ACTION_ERROR_CODE.OFFLINE);
       return;
     }
     if (!accountId) {
-      setErrorCode("no_account");
+      setErrorCode(CLIENT_ACTION_ERROR_CODE.NO_ACCOUNT);
       return;
     }
-    if (parsedAmount == null) {
-      setErrorCode("invalid");
+    if (amount == null || amount <= 0) {
+      setErrorCode(PRODUCT_ACTION_ERROR_CODE.INVALID);
       return;
     }
 
@@ -100,15 +94,14 @@ export function EditTransactionForm({
         transactionId: transaction.id,
         accountId,
         type: direction,
-        amount: parsedAmount,
+        amount,
         transactionDate: transaction.transactionDate,
         note: note.trim() || undefined,
         categoryId: categoryId || null,
         jarId: jarId || null,
       });
       if (result.status === "success") {
-        router.push(detailHref);
-        router.refresh();
+        router.replace(detailHref);
         return;
       }
       setConfirmSave(false);
@@ -119,7 +112,7 @@ export function EditTransactionForm({
   const runDelete = () => {
     setErrorCode(null);
     if (!online) {
-      setErrorCode("offline");
+      setErrorCode(CLIENT_ACTION_ERROR_CODE.OFFLINE);
       return;
     }
     startTransition(async () => {
@@ -127,8 +120,7 @@ export function EditTransactionForm({
         transactionId: transaction.id,
       });
       if (result.status === "success") {
-        router.push(APP_PATH.MONEY_TRANSACTIONS);
-        router.refresh();
+        router.replace(APP_PATH.MONEY_TRANSACTIONS);
         return;
       }
       setConfirmDelete(false);
@@ -226,7 +218,7 @@ export function EditTransactionForm({
           {t("directionLabel")}
         </legend>
         <div className="grid grid-cols-2 gap-(--space-2)" role="radiogroup">
-          {(["expense", "income"] as const).map((value) => (
+          {TRANSACTION_DIRECTION_OPTIONS.map((value) => (
             <button
               key={value}
               type="button"
@@ -249,13 +241,11 @@ export function EditTransactionForm({
         </div>
       </fieldset>
 
-      <TextField
+      <AmountField
         id="edit-amount"
         label={t("amountLabel")}
-        inputMode="numeric"
-        autoComplete="off"
         value={amount}
-        onChange={(e) => setAmount(e.target.value)}
+        onValueChange={setAmount}
         required
         data-testid="edit-amount"
         description={t("amountHint", { currency })}
@@ -359,11 +349,11 @@ export function EditTransactionForm({
         onPress={() => {
           setErrorCode(null);
           if (!online) {
-            setErrorCode("offline");
+            setErrorCode(CLIENT_ACTION_ERROR_CODE.OFFLINE);
             return;
           }
-          if (parsedAmount == null) {
-            setErrorCode("invalid");
+          if (amount == null || amount <= 0) {
+            setErrorCode(PRODUCT_ACTION_ERROR_CODE.INVALID);
             return;
           }
           setConfirmSave(true);
@@ -387,7 +377,7 @@ export function EditTransactionForm({
         onPress={() => {
           setErrorCode(null);
           if (!online) {
-            setErrorCode("offline");
+            setErrorCode(CLIENT_ACTION_ERROR_CODE.OFFLINE);
             return;
           }
           setConfirmDelete(true);

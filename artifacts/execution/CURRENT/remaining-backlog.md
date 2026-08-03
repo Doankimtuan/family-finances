@@ -1,10 +1,6 @@
-# Remaining Backlog (execution view)
+# Remaining Backlog (near-term)
 
-| Item | Status |
-|------|--------|
-| `ST-E05-002` | **NEXT** |
-| `ST-E05-003` | PENDING |
-| `ST-E05-004` | PENDING |
-| S5+ | Not opened |
-
-Updated: `2026-08-02T13:45:00Z`
+| Story | Status |
+|-------|--------|
+| `ST-E06-001` | **NEXT** (S5) |
+| `ST-E06-002` | Queued |

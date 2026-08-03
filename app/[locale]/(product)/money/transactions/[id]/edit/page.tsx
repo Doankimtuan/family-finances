@@ -11,6 +11,7 @@ import {
   listAccounts,
   listCaptureJars,
   listCategoryTags,
+  TransactionDirection,
 } from "@/modules/ledger/application";
 import { Link } from "@/i18n/navigation";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
@@ -41,8 +42,8 @@ export default async function TransactionEditPage({ params }: Props) {
     getTranslations("money"),
     getTransaction(id),
     listAccounts(),
-    listCategoryTags("expense"),
-    listCategoryTags("income"),
+    listCategoryTags(TransactionDirection.EXPENSE),
+    listCategoryTags(TransactionDirection.INCOME),
     listCaptureJars(),
   ]);
 

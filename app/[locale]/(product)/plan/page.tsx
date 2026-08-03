@@ -3,7 +3,7 @@ import { setLocale } from "@/i18n/set-locale";
 import { redirect, Link } from "@/i18n/navigation";
 import { hasLocale } from "next-intl";
 import { routing } from "@/i18n/routing";
-import { APP_PATH } from "@/modules/tenancy/application/app-path";
+import { APP_PATH, planJarPath } from "@/modules/tenancy/application/app-path";
 import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
 import { getPlanPulse } from "@/modules/plan/application";
@@ -92,27 +92,32 @@ export default async function PlanHubPage({ params }: Props) {
             <ul className="flex flex-col gap-(--space-2)">
               {previewJars.map((jar) => (
                 <li key={jar.id}>
-                  <Card
-                    className="gap-0 p-(--space-4)"
-                    data-testid={`plan-jar-${jar.id}`}
+                  <Link
+                    href={planJarPath(jar.id)}
+                    className="block focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
                   >
-                    <div className="flex items-center justify-between gap-(--space-3)">
-                      <div className="min-w-0">
-                        <Text
-                          size="sm"
-                          className="truncate font-medium text-text-primary"
-                        >
-                          {localizeCatalogName(tCatalog, "jars", jar.name)}
-                        </Text>
-                        <Text size="sm" tone="secondary">
-                          {t(`jars.kinds.${jar.kind}`)}
-                        </Text>
+                    <Card
+                      className="gap-0 p-(--space-4)"
+                      data-testid={`plan-jar-${jar.id}`}
+                    >
+                      <div className="flex items-center justify-between gap-(--space-3)">
+                        <div className="min-w-0">
+                          <Text
+                            size="sm"
+                            className="truncate font-medium text-text-primary"
+                          >
+                            {localizeCatalogName(tCatalog, "jars", jar.name)}
+                          </Text>
+                          <Text size="sm" tone="secondary">
+                            {t(`jars.kinds.${jar.kind}`)}
+                          </Text>
+                        </div>
+                        <span className="shrink-0 rounded-md border border-border-subtle px-(--space-2) py-(--space-1) text-xs font-medium text-text-secondary">
+                          {t("jars.stateActive")}
+                        </span>
                       </div>
-                      <span className="shrink-0 rounded-md border border-border-subtle px-(--space-2) py-(--space-1) text-xs font-medium text-text-secondary">
-                        {t("jars.stateActive")}
-                      </span>
-                    </div>
-                  </Card>
+                    </Card>
+                  </Link>
                 </li>
               ))}
             </ul>

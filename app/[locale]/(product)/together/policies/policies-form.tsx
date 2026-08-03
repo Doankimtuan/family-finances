@@ -13,6 +13,11 @@ import type {
   MonthCloseMode,
   OverspendPolicy,
 } from "@/modules/tenancy/application/household-policies.schema";
+import { OverspendPolicy as OverspendPolicyConst } from "@/modules/tenancy/application/household-policies.schema";
+import {
+  IncomeAllocateMode as IncomeAllocateModeConst,
+  RitualMode,
+} from "@/modules/plan/application/client";
 import type { PolicyEventRow } from "@/modules/tenancy/application/list-policy-events";
 import type { UpdatePoliciesActionState } from "./actions";
 import { updatePoliciesAction } from "./actions";
@@ -151,9 +156,17 @@ export function PoliciesForm({
         />
         {(
           [
-            ["warn", "overspendWarn", "overspendWarnHint"],
-            ["block", "overspendBlock", "overspendBlockHint"],
-            ["allow_negative", "overspendAllow", "overspendAllowHint"],
+            [OverspendPolicyConst.WARN, "overspendWarn", "overspendWarnHint"],
+            [
+              OverspendPolicyConst.BLOCK,
+              "overspendBlock",
+              "overspendBlockHint",
+            ],
+            [
+              OverspendPolicyConst.ALLOW_NEGATIVE,
+              "overspendAllow",
+              "overspendAllowHint",
+            ],
           ] as const
         ).map(([value, labelKey, hintKey]) => (
           <RadioOption
@@ -176,9 +189,9 @@ export function PoliciesForm({
         />
         {(
           [
-            ["assisted", "ritualAssisted", "ritualAssistedHint"],
-            ["auto", "ritualAuto", "ritualAutoHint"],
-            ["manual", "ritualManual", "ritualManualHint"],
+            [RitualMode.ASSISTED, "ritualAssisted", "ritualAssistedHint"],
+            [RitualMode.AUTO, "ritualAuto", "ritualAutoHint"],
+            [RitualMode.MANUAL, "ritualManual", "ritualManualHint"],
           ] as const
         ).map(([value, labelKey, hintKey]) => (
           <RadioOption
@@ -201,9 +214,13 @@ export function PoliciesForm({
         />
         {(
           [
-            ["suggest", "incomeSuggest", "incomeSuggestHint"],
-            ["auto", "incomeAuto", "incomeAutoHint"],
-            ["off", "incomeOff", "incomeOffHint"],
+            [
+              IncomeAllocateModeConst.SUGGEST,
+              "incomeSuggest",
+              "incomeSuggestHint",
+            ],
+            [IncomeAllocateModeConst.AUTO, "incomeAuto", "incomeAutoHint"],
+            [IncomeAllocateModeConst.OFF, "incomeOff", "incomeOffHint"],
           ] as const
         ).map(([value, labelKey, hintKey]) => (
           <RadioOption

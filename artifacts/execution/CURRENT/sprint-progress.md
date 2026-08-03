@@ -1,10 +1,7 @@
 # Sprint Progress
 
-| Sprint | Status | Frozen | Next |
-|--------|--------|--------|------|
-| S1 | COMPLETE | `ST-E02-006` | — |
-| S2 | COMPLETE | `ST-E03-003` | — |
-| S3 | COMPLETE | `ST-E04-003` | — |
-| S4 | IN_PROGRESS | `ST-E05-001` | `ST-E05-002` |
-
-Updated: `2026-08-02T13:45:00Z`
+| Sprint | Status | Last frozen | Next |
+|--------|--------|-------------|------|
+| S1–S3 | COMPLETE | — | — |
+| S4 | **COMPLETE** | `ST-E05-004` | — |
+| S5 | NEXT | — | `ST-E06-001` |

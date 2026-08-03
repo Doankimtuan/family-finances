@@ -1,10 +1,16 @@
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
+import {
+  PRODUCT_ACTION_ERROR_CODE,
+  productActionErrorFromDeniedReason,
+  type ProductActionErrorCode,
+} from "@/modules/tenancy/application/product-action-error";
+import { TRANSACTION_DIRECTION_VALUES } from "../ledger-constants";
 
 export const recordTransactionInputSchema = z.object({
   accountId: z.string().uuid(),
-  type: z.enum(["income", "expense"]),
+  type: z.enum(TRANSACTION_DIRECTION_VALUES),
   /** Positive whole currency units (BR-06). */
   amount: z.number().int().positive(),
   transactionDate: z
@@ -21,8 +27,7 @@ export type RecordTransactionInput = z.infer<
   typeof recordTransactionInputSchema
 >;
 
-export type RecordTransactionErrorCode =
-  "unauthenticated" | "no_membership" | "invalid" | "unknown";
+export type RecordTransactionErrorCode = ProductActionErrorCode;
 
 export type RecordTransactionResult =
   | {
@@ -42,15 +47,14 @@ export async function recordTransaction(
 ): Promise<RecordTransactionResult> {
   const parsed = recordTransactionInputSchema.safeParse(raw);
   if (!parsed.success) {
-    return { ok: false, code: "invalid" };
+    return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
   }
 
   const gate = await assertMoneyActionAllowed();
   if (!gate.ok) {
     return {
       ok: false,
-      code:
-        gate.reason === "unauthenticated" ? "unauthenticated" : "no_membership",
+      code: productActionErrorFromDeniedReason(gate.reason),
     };
   }
 
@@ -69,7 +73,7 @@ export async function recordTransaction(
     });
 
     if (error || !data || typeof data !== "object") {
-      return { ok: false, code: "unknown" };
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
     }
 
     const payload = data as {
@@ -79,7 +83,7 @@ export async function recordTransaction(
     };
 
     if (!payload.transaction_id) {
-      return { ok: false, code: "unknown" };
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
     }
 
     return {
@@ -89,6 +93,6 @@ export async function recordTransaction(
       idempotent: Boolean(payload.idempotent),
     };
   } catch {
-    return { ok: false, code: "unknown" };
+    return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }
 }

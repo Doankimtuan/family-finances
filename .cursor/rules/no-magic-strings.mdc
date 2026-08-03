@@ -1,0 +1,82 @@
+---
+description: HARD FAIL — no magic strings/domain literals; use shared as-const constants
+alwaysApply: true
+---
+
+# No Magic Strings (HARD FAIL)
+
+This is a **blocking** project law. Violations fail the change — do not ship and do not ask to waive.
+
+Full policy: `artifacts/coding-standards/CURRENT/magic-string-policy.md` + `constants-policy.md`.
+
+## Before every edit / PR
+
+1. Search the touch set for product literals (routes, statuses, types, roles, currencies, error codes, storage/query keys, locales, themes, cookies).
+2. If a constant exists → **import and use it**. Never re-type the literal.
+3. If it does not exist → **add it once** at the documented home, then import.
+4. Comparisons, `switch`, Zod `z.enum`, defaults, and UI option arrays are all call sites — same rule.
+
+## Constant homes (extend; do not invent a 4th)
+
+| Scope | Path |
+|-------|------|
+| Routes / path builders | `modules/tenancy/application/app-path.ts` (`APP_PATH`, `moneyTransactionPath`, …) |
+| Auth / tenancy | `modules/tenancy/application/*-constants.ts`, `product-action-error.ts` |
+| Ledger | `modules/ledger/application/ledger-constants.ts` |
+| Plan | `modules/plan/application/plan-constants.ts` |
+| Inbox | `modules/inbox/application/inbox-constants.ts` |
+| App-wide keys/config | `shared/constants/`, `shared/config/` |
+
+## Shape (required)
+
+```ts
+export const TransactionDirection = {
+  INCOME: "income",
+  EXPENSE: "expense",
+} as const;
+
+export type TransactionDirection =
+  (typeof TransactionDirection)[keyof typeof TransactionDirection];
+
+export const TRANSACTION_DIRECTION_VALUES = [
+  TransactionDirection.INCOME,
+  TransactionDirection.EXPENSE,
+] as const;
+
+// Zod must share the same source:
+z.enum(TRANSACTION_DIRECTION_VALUES)
+```
+
+Re-export values from barrels with `export { X }` only (merged const+type). Do **not** also `export type { X }` for the same name.
+
+## Forbidden (examples)
+
+```ts
+// ❌
+href={`/money/transactions/${id}`}
+listCategoryTags("expense")
+z.enum(["income", "expense"])
+status === "pending"
+currency ?? "VND"
+;(["expense", "income"] as const).map(...)
+
+// ✅
+href={moneyTransactionPath(id)}
+listCategoryTags(TransactionDirection.EXPENSE)
+z.enum(TRANSACTION_DIRECTION_VALUES)
+status === InboxItemStatus.PENDING
+currency ?? DEFAULT_CURRENCY
+TRANSACTION_DIRECTION_OPTIONS.map(...)
+```
+
+## Allowed exceptions only
+
+- `t("…")` message keys and `data-testid` values
+- One-off strings with **no** product meaning and **no** reuse
+- Test fixtures may assert via the **constant** (`expect(x).toBe(TransactionDirection.EXPENSE)`), never a fresh literal that duplicates a domain constant
+
+## Self-check (must pass before finishing)
+
+- [ ] No new hardcoded route / status / type / role / currency / error-code / key literal at a call site
+- [ ] New domain values added to the correct `*-constants.ts` (or shared home) first
+- [ ] Zod / UI option lists import the same `*_VALUES` / `*_OPTIONS` arrays

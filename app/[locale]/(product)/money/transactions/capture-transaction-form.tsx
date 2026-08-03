@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useMemo, useState, useTransition } from "react";
+import { useId, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
@@ -9,13 +9,23 @@ import type {
   CategoryTag,
   LedgerAccount,
   TransactionDirection,
-} from "@/modules/ledger/application";
+} from "@/modules/ledger/application/client";
+import {
+  TransactionDirection as Direction,
+  TRANSACTION_DIRECTION_OPTIONS,
+} from "@/modules/ledger/application/client";
 import { TextField } from "@/shared/ui/form";
+import { AmountField } from "@/shared/patterns/amount-field";
 import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
+import {
+  CLIENT_ACTION_ERROR_CODE,
+  PRODUCT_ACTION_ERROR_CODE,
+  type ProductFormErrorCode,
+} from "@/modules/tenancy/application/product-action-error";
 import { recordTransactionAction } from "./actions";
 import { Link } from "@/i18n/navigation";
 
@@ -26,15 +36,6 @@ type Props = {
   jars: CaptureJarOption[];
   currency: string;
 };
-
-type ErrorCode =
-  | "unauthenticated"
-  | "no_membership"
-  | "invalid"
-  | "offline"
-  | "unknown"
-  | "no_account";
-
 /**
  * Fast capture form — amount, direction, account, tags, note (money.transaction-add).
  */
@@ -51,37 +52,31 @@ export function CaptureTransactionForm({
   const { online } = useOnlineStatusClient();
   const amountId = useId();
   const noteId = useId();
-  const [direction, setDirection] = useState<TransactionDirection>("expense");
-  const [amount, setAmount] = useState("");
+  const [direction, setDirection] = useState<TransactionDirection>(
+    Direction.EXPENSE,
+  );
+  const tags = direction === Direction.INCOME ? incomeTags : expenseTags;
+  const [amount, setAmount] = useState<number | null>(null);
   const [accountId, setAccountId] = useState(accounts[0]?.id ?? "");
   const [categoryId, setCategoryId] = useState("");
   const [jarId, setJarId] = useState("");
   const [note, setNote] = useState("");
-  const [errorCode, setErrorCode] = useState<ErrorCode | null>(null);
+  const [errorCode, setErrorCode] = useState<ProductFormErrorCode | null>(null);
   const [isPending, startTransition] = useTransition();
   const [idempotencyKey] = useState(() => crypto.randomUUID());
-
-  const tags = direction === "income" ? incomeTags : expenseTags;
-
-  const parsedAmount = useMemo(() => {
-    const digits = amount.replace(/[^\d]/g, "");
-    if (!digits) return null;
-    const value = Number(digits);
-    return Number.isFinite(value) && value > 0 ? value : null;
-  }, [amount]);
 
   const onSubmit = () => {
     setErrorCode(null);
     if (!online) {
-      setErrorCode("offline");
+      setErrorCode(CLIENT_ACTION_ERROR_CODE.OFFLINE);
       return;
     }
     if (!accountId) {
-      setErrorCode("no_account");
+      setErrorCode(CLIENT_ACTION_ERROR_CODE.NO_ACCOUNT);
       return;
     }
-    if (parsedAmount == null) {
-      setErrorCode("invalid");
+    if (amount == null || amount <= 0) {
+      setErrorCode(PRODUCT_ACTION_ERROR_CODE.INVALID);
       return;
     }
 
@@ -89,7 +84,7 @@ export function CaptureTransactionForm({
       const result = await recordTransactionAction({
         accountId,
         type: direction,
-        amount: parsedAmount,
+        amount,
         note: note.trim() || undefined,
         categoryId: categoryId || null,
         jarId: jarId || null,
@@ -97,13 +92,8 @@ export function CaptureTransactionForm({
       });
 
       if (result.status === "success") {
-        if (result.inboxItemId) {
-          router.push(APP_PATH.INBOX);
-          router.refresh();
-          return;
-        }
-        router.push(APP_PATH.MONEY);
-        router.refresh();
+        // replace only — push+refresh races and can leave isPending stuck
+        router.replace(result.inboxItemId ? APP_PATH.INBOX : APP_PATH.MONEY);
         return;
       }
       setErrorCode(result.code);
@@ -136,7 +126,7 @@ export function CaptureTransactionForm({
           {t("directionLabel")}
         </legend>
         <div className="grid grid-cols-2 gap-(--space-2)" role="radiogroup">
-          {(["expense", "income"] as const).map((value) => (
+          {TRANSACTION_DIRECTION_OPTIONS.map((value) => (
             <button
               key={value}
               type="button"
@@ -159,14 +149,12 @@ export function CaptureTransactionForm({
         </div>
       </fieldset>
 
-      <TextField
+      <AmountField
         id={amountId}
         label={t("amountLabel")}
-        inputMode="numeric"
-        autoComplete="off"
         placeholder="0"
         value={amount}
-        onChange={(e) => setAmount(e.target.value)}
+        onValueChange={setAmount}
         required
         data-testid="capture-amount"
         description={t("amountHint", { currency })}
@@ -250,7 +238,9 @@ export function CaptureTransactionForm({
           {t("jarLabel")}
         </legend>
         <Text size="sm" tone="secondary">
-          {direction === "expense" ? t("jarHintExpense") : t("jarHintIncome")}
+          {direction === Direction.EXPENSE
+            ? t("jarHintExpense")
+            : t("jarHintIncome")}
         </Text>
         <select
           className="min-h-11 w-full rounded-md border border-border-subtle bg-surface px-(--space-3) text-sm text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"

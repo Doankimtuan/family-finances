@@ -8,19 +8,20 @@ import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
+import {
+  CLIENT_ACTION_ERROR_CODE,
+  type ProductActionErrorCode,
+} from "@/modules/tenancy/application/product-action-error";
 import { createAccountAction } from "./actions";
-import type { AccountType } from "@/modules/ledger/application";
+import {
+  AccountType,
+  ACCOUNT_TYPE_CREATE_OPTIONS,
+  type AccountType as AccountTypeValue,
+} from "@/modules/ledger/application/client";
 
 type ErrorCode =
-  "unauthenticated" | "no_membership" | "invalid" | "offline" | "unknown";
-
-const TYPES: AccountType[] = [
-  "cash",
-  "checking",
-  "savings",
-  "ewallet",
-  "other",
-];
+  ProductActionErrorCode | typeof CLIENT_ACTION_ERROR_CODE.OFFLINE;
+const TYPES = ACCOUNT_TYPE_CREATE_OPTIONS;
 
 /**
  * Inline add-account form (money.accounts secondary action).
@@ -32,7 +33,7 @@ export function AddAccountForm() {
   const { online } = useOnlineStatusClient();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
-  const [type, setType] = useState<AccountType>("cash");
+  const [type, setType] = useState<AccountTypeValue>(AccountType.CASH);
   const [errorCode, setErrorCode] = useState<ErrorCode | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -45,7 +46,7 @@ export function AddAccountForm() {
         isDisabled={!online}
         onPress={() => {
           if (!online) {
-            setErrorCode("offline");
+            setErrorCode(CLIENT_ACTION_ERROR_CODE.OFFLINE);
             return;
           }
           setErrorCode(null);
@@ -60,7 +61,7 @@ export function AddAccountForm() {
   const onSubmit = () => {
     setErrorCode(null);
     if (!online) {
-      setErrorCode("offline");
+      setErrorCode(CLIENT_ACTION_ERROR_CODE.OFFLINE);
       return;
     }
     startTransition(async () => {

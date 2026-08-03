@@ -9,7 +9,7 @@ import {
 } from "@/modules/tenancy/application/app-path";
 import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
-import { listAccounts } from "@/modules/ledger/application";
+import { listAccounts, DEFAULT_CURRENCY } from "@/modules/ledger/application";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
@@ -44,7 +44,7 @@ export default async function AccountsPage({ params }: Props) {
     listAccounts(),
   ]);
 
-  const currency = listed?.currency ?? "VND";
+  const currency = listed?.currency ?? DEFAULT_CURRENCY;
   const accounts = listed?.accounts ?? [];
   const total = accounts.reduce((sum, a) => sum + a.balance, 0);
 

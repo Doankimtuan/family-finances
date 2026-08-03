@@ -1,12 +1,22 @@
 import type { AccountType, LedgerAccount } from "./account-types";
+import {
+  DEFAULT_CURRENCY,
+  TransactionDirection,
+  type TransactionDirection as TransactionDirectionValue,
+} from "./ledger-constants";
 
-export type TransactionDirection = "income" | "expense";
+export {
+  TransactionDirection,
+  TRANSACTION_DIRECTION_OPTIONS,
+  TRANSACTION_DIRECTION_VALUES,
+  DEFAULT_CURRENCY,
+} from "./ledger-constants";
 
 export type LedgerTransaction = {
   id: string;
   accountId: string;
   accountName?: string;
-  type: TransactionDirection;
+  type: TransactionDirectionValue;
   amount: number;
   currency: string;
   transactionDate: string;
@@ -20,7 +30,7 @@ export type LedgerTransaction = {
 
 export type CategoryTag = {
   id: string;
-  kind: TransactionDirection;
+  kind: TransactionDirectionValue;
   name: string;
 };
 
@@ -41,8 +51,8 @@ export function applyTransactionDeltas(
     const amount =
       typeof row.amount === "string" ? Number(row.amount) : row.amount;
     if (!Number.isFinite(amount)) continue;
-    if (row.type === "income") account.balance += amount;
-    if (row.type === "expense") account.balance -= amount;
+    if (row.type === TransactionDirection.INCOME) account.balance += amount;
+    if (row.type === TransactionDirection.EXPENSE) account.balance -= amount;
   }
   return Array.from(byId.values());
 }
@@ -68,9 +78,12 @@ export function mapTransactionRow(row: {
     id: row.id,
     accountId: row.account_id,
     accountName: row.accounts?.name,
-    type: row.type === "income" ? "income" : "expense",
+    type:
+      row.type === TransactionDirection.INCOME
+        ? TransactionDirection.INCOME
+        : TransactionDirection.EXPENSE,
     amount: Number.isFinite(amount) ? amount : 0,
-    currency: (row.currency ?? "VND").toUpperCase(),
+    currency: (row.currency ?? DEFAULT_CURRENCY).toUpperCase(),
     transactionDate: row.transaction_date,
     note: row.note,
     categoryId: row.category_id,

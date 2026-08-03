@@ -54,6 +54,7 @@
       "unauthenticated": "Sign in again.",
       "no_membership": "Finish household setup first.",
       "invalid": "Enter a positive whole amount.",
+      "month_locked": "Plan is locked for this month. Open Month Ritual to correct.",
       "offline": "Connect to save.",
       "no_account": "Add an account first.",
       "unknown": "Could not save. Try again."
@@ -79,6 +80,7 @@
       "unauthenticated": "Sign in again.",
       "no_membership": "Finish household setup first.",
       "invalid": "Check the account name.",
+      "month_locked": "Plan is locked for this month. Open Month Ritual to correct.",
       "offline": "Connect to add an account.",
       "unknown": "Could not add account. Try again."
     }
@@ -161,6 +163,7 @@
       "unauthenticated": "Sign in again.",
       "no_membership": "Finish household setup first.",
       "invalid": "Enter a positive whole amount.",
+      "month_locked": "Plan is locked for this month. Open Month Ritual to correct.",
       "offline": "Connect to save.",
       "no_account": "Choose an account.",
       "unknown": "Could not save. Try again."

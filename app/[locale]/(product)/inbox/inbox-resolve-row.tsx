@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
-import type { CaptureJarOption } from "@/modules/ledger/application";
+import type { CaptureJarOption } from "@/modules/ledger/application/client";
 import type { InboxReviewItem } from "@/modules/inbox/application";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import { Button } from "@/shared/ui/button";
@@ -11,6 +11,11 @@ import { Text } from "@/shared/ui/text";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
+import {
+  CLIENT_ACTION_ERROR_CODE,
+  PRODUCT_ACTION_ERROR_CODE,
+  type ProductActionErrorCode,
+} from "@/modules/tenancy/application/product-action-error";
 import { resolveInboxAction } from "./actions";
 
 type Props = {
@@ -19,23 +24,28 @@ type Props = {
   locale: string;
 };
 
+type InboxResolveErrorCode =
+  ProductActionErrorCode | typeof CLIENT_ACTION_ERROR_CODE.OFFLINE;
+
 export function InboxResolveRow({ item, jars, locale }: Props) {
   const t = useTranslations("inbox");
   const tCatalog = useTranslations("catalog");
   const router = useRouter();
   const { online } = useOnlineStatusClient();
   const [jarId, setJarId] = useState(jars[0]?.id ?? "");
-  const [error, setError] = useState<string | null>(null);
+  const [errorCode, setErrorCode] = useState<InboxResolveErrorCode | null>(
+    null,
+  );
   const [isPending, startTransition] = useTransition();
 
   const onResolve = () => {
-    setError(null);
+    setErrorCode(null);
     if (!online) {
-      setError(t("errors.offline"));
+      setErrorCode(CLIENT_ACTION_ERROR_CODE.OFFLINE);
       return;
     }
     if (!jarId) {
-      setError(t("errors.invalid"));
+      setErrorCode(PRODUCT_ACTION_ERROR_CODE.INVALID);
       return;
     }
     startTransition(async () => {
@@ -47,7 +57,7 @@ export function InboxResolveRow({ item, jars, locale }: Props) {
         router.refresh();
         return;
       }
-      setError(t(`errors.${result.code}`));
+      setErrorCode(result.code);
     });
   };
 
@@ -72,11 +82,11 @@ export function InboxResolveRow({ item, jars, locale }: Props) {
         </span>
       </div>
 
-      {error ? (
+      {errorCode ? (
         <StatusAlert
           variant="danger"
           title={t("resolve")}
-          description={error}
+          description={t(`errors.${errorCode}`)}
         />
       ) : null}
 

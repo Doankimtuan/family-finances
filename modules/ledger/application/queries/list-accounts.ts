@@ -2,6 +2,7 @@ import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import { mapAccountRow, type LedgerAccount } from "../account-types";
 import { applyTransactionDeltas } from "../transaction-types";
+import { DEFAULT_CURRENCY } from "../ledger-constants";
 
 export async function listAccounts(): Promise<{
   currency: string;
@@ -39,7 +40,7 @@ export async function listAccounts(): Promise<{
     }
 
     return {
-      currency: (household?.base_currency ?? "VND").toUpperCase(),
+      currency: (household?.base_currency ?? DEFAULT_CURRENCY).toUpperCase(),
       accounts: applyTransactionDeltas(
         (rows ?? []).map(mapAccountRow),
         (txRows ?? []).map((row) => ({
@@ -99,7 +100,7 @@ export async function getAccount(
     );
 
     return {
-      currency: (household?.base_currency ?? "VND").toUpperCase(),
+      currency: (household?.base_currency ?? DEFAULT_CURRENCY).toUpperCase(),
       account,
     };
   } catch {

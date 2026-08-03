@@ -2,20 +2,21 @@
 
 | Field | Value |
 |-------|--------|
-| Updated | `2026-08-02T13:45:00Z` |
-| Run | `run_sprint_exec_ST-E05-001_20260802T134500Z` |
-| Sprint | **S4** (`sprint-004`) — **IN_PROGRESS** |
-| Last frozen story | **`ST-E05-001`** Plan hub with real≠virtual teaching |
-| Next story | **`ST-E05-002`** Jars list and detail Active-only targets |
-| Implemented this run | **`ST-E05-001`** only |
+| Updated | `2026-08-03T00:30:00Z` |
+| Run | `run_sprint_exec_ST-E05-004_20260803T003000Z` |
+| Sprint | **S4** (`sprint-004`) — **COMPLETE** |
+| Last frozen story | **`ST-E05-004`** Month Ritual Assisted preview approve lock |
+| Next story | **`ST-E06-001`** Inbox queue (S5) |
+| Implemented this run | **`ST-E05-004`** only |
 
 ## Implementation vs plan
 
 | Source | Alignment |
 |--------|-----------|
 | S1–S3 | COMPLETE |
-| S4 | 1/4 frozen (`ST-E05-001`) |
+| S4 | 4/4 frozen (`ST-E05-001`…`ST-E05-004`) **COMPLETE** |
+| S5 | NEXT |
 
 ## Resume pointer
 
-Next orchestrator run: implement **`ST-E05-002`** only. Do not multi-story.
+Next orchestrator run: implement **`ST-E06-001`** only. Do not multi-story.

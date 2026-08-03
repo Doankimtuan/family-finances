@@ -4,16 +4,16 @@
   "sprint_folder": "sprint-004",
   "status": "IN_PROGRESS",
   "frozen": false,
-  "last_frozen_story": "ST-E05-001",
-  "next_story": "ST-E05-002",
+  "last_frozen_story": "ST-E05-003",
+  "next_story": "ST-E05-004",
   "previous_sprint": "S3",
-  "run_id": "run_sprint_exec_ST-E05-001_20260802T134500Z",
-  "updated_at": "2026-08-02T13:45:00Z",
+  "run_id": "run_sprint_exec_ST-E05-003_20260803T001018Z",
+  "updated_at": "2026-08-03T00:10:18Z",
   "implementation_plan": "artifacts/implementation-plan/CURRENT/sprints/S4.md",
   "stories": {
     "ST-E05-001": "FROZEN",
-    "ST-E05-002": "PENDING",
-    "ST-E05-003": "PENDING",
+    "ST-E05-002": "FROZEN",
+    "ST-E05-003": "FROZEN",
     "ST-E05-004": "PENDING"
   }
 }

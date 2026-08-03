@@ -12,6 +12,7 @@ import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-a
 import {
   getAccount,
   listRecentTransactions,
+  TransactionDirection,
 } from "@/modules/ledger/application";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
@@ -119,8 +120,12 @@ export default async function AccountDetailPage({ params }: Props) {
                         ) ||
                         t(`direction.${tx.type}`)
                       }
-                      amountLabel={`${tx.type === "expense" ? "−" : "+"}${formatCurrency(tx.amount, tx.currency, locale, { maximumFractionDigits: 0 })}`}
-                      tone={tx.type === "expense" ? "debit" : "credit"}
+                      amountLabel={`${tx.type === TransactionDirection.EXPENSE ? "−" : "+"}${formatCurrency(tx.amount, tx.currency, locale, { maximumFractionDigits: 0 })}`}
+                      tone={
+                        tx.type === TransactionDirection.EXPENSE
+                          ? "debit"
+                          : "credit"
+                      }
                     />
                   </Link>
                 </li>

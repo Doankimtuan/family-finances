@@ -13,6 +13,8 @@ import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-a
 import {
   getRealPosition,
   listRecentTransactions,
+  DEFAULT_CURRENCY,
+  TransactionDirection,
 } from "@/modules/ledger/application";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
@@ -54,7 +56,7 @@ export default async function MoneyHubPage({ params }: Props) {
   ]);
 
   const loadFailed = position == null;
-  const currency = position?.currency ?? "VND";
+  const currency = position?.currency ?? DEFAULT_CURRENCY;
   const total = position?.totalBalance ?? 0;
   const previewAccounts = (position?.accounts ?? []).slice(0, 3);
   const activity = recent ?? [];
@@ -187,8 +189,12 @@ export default async function MoneyHubPage({ params }: Props) {
                         "accounts",
                         tx.accountName,
                       )}
-                      amountLabel={`${tx.type === "expense" ? "−" : "+"}${formatCurrency(tx.amount, tx.currency, locale, { maximumFractionDigits: 0 })}`}
-                      tone={tx.type === "expense" ? "debit" : "credit"}
+                      amountLabel={`${tx.type === TransactionDirection.EXPENSE ? "−" : "+"}${formatCurrency(tx.amount, tx.currency, locale, { maximumFractionDigits: 0 })}`}
+                      tone={
+                        tx.type === TransactionDirection.EXPENSE
+                          ? "debit"
+                          : "credit"
+                      }
                     />
                   </Link>
                 </li>

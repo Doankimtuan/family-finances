@@ -16,6 +16,7 @@
     "unauthenticated": "Sign in again.",
     "no_membership": "Finish household setup first.",
     "invalid": "Choose a jar.",
+    "month_locked": "Plan is locked for this month. Open Month Ritual to correct.",
     "offline": "Connect to resolve.",
     "unknown": "Could not resolve. Try again."
   }

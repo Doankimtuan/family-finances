@@ -2,12 +2,13 @@
 
 import { resolveInboxItemToJar } from "@/modules/inbox/application";
 import type { ResolveInboxItemInput } from "@/modules/inbox/application";
+import type { ProductActionErrorCode } from "@/modules/tenancy/application/product-action-error";
 
 export type ResolveInboxActionState =
   | { status: "success" }
   | {
       status: "error";
-      code: "unauthenticated" | "no_membership" | "invalid" | "unknown";
+      code: ProductActionErrorCode;
     };
 
 export async function resolveInboxAction(

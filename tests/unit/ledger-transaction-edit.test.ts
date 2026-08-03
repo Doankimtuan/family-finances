@@ -19,6 +19,10 @@ vi.mock("@/modules/tenancy/application/assert-money-action-allowed", () => ({
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import {
+  MONEY_ACTION_DENIED_REASON,
+  PRODUCT_ACTION_ERROR_CODE,
+} from "@/modules/tenancy/application/tenancy-constants";
+import {
   updateTransaction,
   updateTransactionInputSchema,
   deleteTransaction,
@@ -77,7 +81,7 @@ describe("updateTransaction / deleteTransaction", () => {
   it("blocks update without membership", async () => {
     vi.mocked(assertMoneyActionAllowed).mockResolvedValue({
       ok: false,
-      reason: "no_membership",
+      reason: MONEY_ACTION_DENIED_REASON.NO_MEMBERSHIP,
     });
     await expect(
       updateTransaction({
@@ -86,7 +90,10 @@ describe("updateTransaction / deleteTransaction", () => {
         type: "expense",
         amount: 20,
       }),
-    ).resolves.toEqual({ ok: false, code: "no_membership" });
+    ).resolves.toEqual({
+      ok: false,
+      code: PRODUCT_ACTION_ERROR_CODE.NO_MEMBERSHIP,
+    });
   });
 
   it("calls update_transaction rpc", async () => {

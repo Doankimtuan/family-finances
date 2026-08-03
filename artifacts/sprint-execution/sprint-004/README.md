@@ -4,7 +4,7 @@ Intention plan — Plan hub, jars, goals/recurring, Month Ritual.
 
 | Field | Value |
 |-------|--------|
-| Status | **IN_PROGRESS** (1/4) |
-| Last frozen | `ST-E05-001` |
-| Next | `ST-E05-002` |
+| Status | **IN_PROGRESS** (3/4) |
+| Last frozen | `ST-E05-003` |
+| Next | `ST-E05-004` |
 | Plan | `artifacts/implementation-plan/CURRENT/sprints/S4.md` |

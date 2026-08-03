@@ -2,6 +2,7 @@ import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import { mapAccountRow, type RealPosition } from "../account-types";
 import { applyTransactionDeltas } from "../transaction-types";
+import { DEFAULT_CURRENCY } from "../ledger-constants";
 
 /**
  * Real position = opening balances ± cleared ledger transactions (BR-01).
@@ -50,7 +51,7 @@ export async function getRealPosition(): Promise<RealPosition | null> {
 
     return {
       householdId: gate.householdId,
-      currency: (household?.base_currency ?? "VND").toUpperCase(),
+      currency: (household?.base_currency ?? DEFAULT_CURRENCY).toUpperCase(),
       totalBalance,
       accounts,
     };

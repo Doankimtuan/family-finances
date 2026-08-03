@@ -7,6 +7,7 @@ import {
   type LedgerTransaction,
   type TransactionDirection,
 } from "../transaction-types";
+import { TransactionDirection as Direction } from "../ledger-constants";
 
 export async function listRecentTransactions(
   limit = 20,
@@ -75,7 +76,8 @@ export async function listCategoryTags(
 
     return (data ?? []).map((row) => ({
       id: row.id,
-      kind: row.kind === "income" ? "income" : "expense",
+      kind:
+        row.kind === Direction.INCOME ? Direction.INCOME : Direction.EXPENSE,
       name: row.name,
     }));
   } catch {
@@ -96,6 +98,7 @@ export async function listCaptureJars(): Promise<CaptureJarOption[] | null> {
       .select("id, name, kind")
       .eq("household_id", gate.householdId)
       .eq("is_archived", false)
+      .eq("is_paused", false)
       .order("sort_order", { ascending: true });
 
     if (error) {

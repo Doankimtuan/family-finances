@@ -2,8 +2,9 @@ export {
   listOpenInboxItems,
   resolveInboxItemToJar,
   resolveInboxItemInputSchema,
+  InboxItemKind,
+  InboxItemStatus,
   type InboxReviewItem,
-  type InboxItemKind,
   type ResolveInboxItemInput,
   type ResolveInboxItemResult,
 } from "./review-items";

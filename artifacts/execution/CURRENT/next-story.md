@@ -2,12 +2,12 @@
 
 | Field | Value |
 |-------|--------|
-| Sprint | **S4** (`sprint-004`) |
-| Story | **`ST-E05-002`** — Jars list and detail Active-only targets |
+| Sprint | **S5** (`sprint-005`) |
+| Story | **`ST-E06-001`** — Inbox queue |
 | Mode | `full_implement` |
-| Plan | `artifacts/implementation-plan/CURRENT/stories/detail/ST-E05-002.md` |
+| Plan | `artifacts/implementation-plan/CURRENT/stories/detail/ST-E06-001.md` |
 
 ## Do not
 
-- Implement `ST-E05-003+` in the same run  
-- Re-open frozen `ST-E05-001` unless a gate fails  
+- Implement S5+ multi-story in one run  
+- Re-open frozen S4 stories unless a gate fails  

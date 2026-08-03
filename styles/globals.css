@@ -1,6 +1,13 @@
 @import "tailwindcss";
 @import "@heroui/styles";
 
+/* Exclude docs/archives — they mention banned radius bracket anti-patterns as text,
+   which Tailwind would otherwise emit as invalid CSS. */
+@source not "../artifacts/**/*";
+@source not "../archive/**/*";
+@source not "../.agents/**/*";
+@source not "../ai-os/**/*";
+
 /* Class-based dark (next-themes) — not prefers-color-scheme alone */
 @custom-variant dark (&:where(.dark, .dark *));
 

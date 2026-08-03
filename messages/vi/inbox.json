@@ -16,6 +16,7 @@
     "unauthenticated": "Đăng nhập lại.",
     "no_membership": "Hoàn tất thiết lập hộ trước.",
     "invalid": "Chọn một hũ.",
+    "month_locked": "Kế hoạch tháng đã khoá. Mở Nghi thức tháng để chỉnh.",
     "offline": "Cần kết nối để xử lý.",
     "unknown": "Không xử lý được. Thử lại."
   }

@@ -1,10 +1,14 @@
-export type AccountType =
-  "cash" | "checking" | "savings" | "ewallet" | "brokerage" | "other";
+import {
+  AccountType,
+  type AccountType as AccountTypeValue,
+} from "./ledger-constants";
+
+export { AccountType } from "./ledger-constants";
 
 export type LedgerAccount = {
   id: string;
   name: string;
-  type: AccountType;
+  type: AccountTypeValue;
   /** Minor-unit integer (VND whole đồng). Real ledger position for this account. */
   balance: number;
   isArchived: boolean;
@@ -18,16 +22,16 @@ export type RealPosition = {
   accounts: LedgerAccount[];
 };
 
-function asAccountType(value: string): AccountType {
+function asAccountType(value: string): AccountTypeValue {
   switch (value) {
-    case "checking":
-    case "savings":
-    case "ewallet":
-    case "brokerage":
-    case "other":
+    case AccountType.CHECKING:
+    case AccountType.SAVINGS:
+    case AccountType.EWALLET:
+    case AccountType.BROKERAGE:
+    case AccountType.OTHER:
       return value;
     default:
-      return "cash";
+      return AccountType.CASH;
   }
 }
 

@@ -8,6 +8,10 @@ import { TextField } from "@/shared/ui/form";
 import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
 import { Link } from "@/i18n/navigation";
+import {
+  TransactionFilterType,
+  TRANSACTION_FILTER_OPTIONS,
+} from "@/modules/ledger/application/client";
 
 type Props = {
   q: string;
@@ -27,10 +31,10 @@ export function TransactionsFilterBar({ q, type }: Props) {
     if (!form) return;
     const data = new FormData(form);
     const nextQ = String(data.get("q") ?? "").trim();
-    const nextType = String(data.get("type") ?? "all");
+    const nextType = String(data.get("type") ?? TransactionFilterType.ALL);
     const params = new URLSearchParams();
     if (nextQ) params.set("q", nextQ);
-    if (nextType !== "all") params.set("type", nextType);
+    if (nextType !== TransactionFilterType.ALL) params.set("type", nextType);
     const qs = params.toString();
     router.push(
       qs ? `${APP_PATH.MONEY_TRANSACTIONS}?${qs}` : APP_PATH.MONEY_TRANSACTIONS,
@@ -60,7 +64,7 @@ export function TransactionsFilterBar({ q, type }: Props) {
           {t("filterLabel")}
         </legend>
         <div className="grid grid-cols-3 gap-(--space-2)">
-          {(["all", "expense", "income"] as const).map((value) => (
+          {TRANSACTION_FILTER_OPTIONS.map((value) => (
             <label
               key={value}
               className="flex min-h-11 cursor-pointer items-center justify-center gap-(--space-2) rounded-md border border-border-subtle bg-surface px-(--space-2) text-sm"

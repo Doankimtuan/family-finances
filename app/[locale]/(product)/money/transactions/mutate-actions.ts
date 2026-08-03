@@ -8,13 +8,13 @@ import type {
   UpdateTransactionInput,
   DeleteTransactionInput,
 } from "@/modules/ledger/application";
+import type { ProductActionErrorCode } from "@/modules/tenancy/application/product-action-error";
 
 export type MutateTransactionActionState =
   | { status: "success"; transactionId?: string; deleted?: boolean }
   | {
       status: "error";
-      code:
-        "unauthenticated" | "no_membership" | "invalid" | "offline" | "unknown";
+      code: ProductActionErrorCode;
     };
 
 export async function updateTransactionAction(

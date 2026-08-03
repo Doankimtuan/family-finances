@@ -19,6 +19,10 @@ vi.mock("@/modules/tenancy/application/assert-money-action-allowed", () => ({
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import {
+  MONEY_ACTION_DENIED_REASON,
+  PRODUCT_ACTION_ERROR_CODE,
+} from "@/modules/tenancy/application/tenancy-constants";
+import {
   createAccount,
   createAccountInputSchema,
 } from "@/modules/ledger/application/commands/create-account";
@@ -67,12 +71,12 @@ describe("createAccount", () => {
   it("returns no_membership when gate fails", async () => {
     vi.mocked(assertMoneyActionAllowed).mockResolvedValue({
       ok: false,
-      reason: "no_membership",
+      reason: MONEY_ACTION_DENIED_REASON.NO_MEMBERSHIP,
     });
 
     await expect(createAccount({ name: "Cash" })).resolves.toEqual({
       ok: false,
-      code: "no_membership",
+      code: PRODUCT_ACTION_ERROR_CODE.NO_MEMBERSHIP,
     });
   });
 

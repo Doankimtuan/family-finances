@@ -54,6 +54,7 @@
       "unauthenticated": "Đăng nhập lại.",
       "no_membership": "Hoàn tất thiết lập hộ trước.",
       "invalid": "Nhập số tiền nguyên dương.",
+      "month_locked": "Kế hoạch tháng đã khoá. Mở Nghi thức tháng để chỉnh.",
       "offline": "Cần kết nối để lưu.",
       "no_account": "Thêm tài khoản trước.",
       "unknown": "Không lưu được. Thử lại."
@@ -79,6 +80,7 @@
       "unauthenticated": "Đăng nhập lại.",
       "no_membership": "Hoàn tất thiết lập hộ trước.",
       "invalid": "Kiểm tra tên tài khoản.",
+      "month_locked": "Kế hoạch tháng đã khoá. Mở Nghi thức tháng để chỉnh.",
       "offline": "Cần kết nối để thêm tài khoản.",
       "unknown": "Không thêm được tài khoản. Thử lại."
     }
@@ -161,6 +163,7 @@
       "unauthenticated": "Đăng nhập lại.",
       "no_membership": "Hoàn tất thiết lập hộ trước.",
       "invalid": "Nhập số tiền nguyên dương.",
+      "month_locked": "Kế hoạch tháng đã khoá. Mở Nghi thức tháng để chỉnh.",
       "offline": "Cần kết nối để lưu.",
       "no_account": "Chọn tài khoản.",
       "unknown": "Không lưu được. Thử lại."

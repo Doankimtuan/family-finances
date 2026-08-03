@@ -12,6 +12,7 @@ import { getSupabaseEnv } from "@/modules/platform/supabase/env";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { signUpWithPassword } from "@/modules/tenancy/application/sign-up";
 import { requestPasswordReset } from "@/modules/tenancy/application/request-password-reset";
+import { AUTH_ACTION_ERROR_CODE } from "@/modules/tenancy/application/auth-constants";
 
 describe("signUpWithPassword", () => {
   beforeEach(() => {
@@ -31,7 +32,10 @@ describe("signUpWithPassword", () => {
         password: "password1",
         emailRedirectTo: "http://localhost/auth/confirm",
       }),
-    ).resolves.toEqual({ ok: false, code: "unconfigured" });
+    ).resolves.toEqual({
+      ok: false,
+      code: AUTH_ACTION_ERROR_CODE.UNCONFIGURED,
+    });
   });
 
   it("rejects invalid input", async () => {
@@ -47,7 +51,7 @@ describe("signUpWithPassword", () => {
         password: "short",
         emailRedirectTo: "http://localhost/auth/confirm",
       }),
-    ).resolves.toEqual({ ok: false, code: "invalid" });
+    ).resolves.toEqual({ ok: false, code: AUTH_ACTION_ERROR_CODE.INVALID });
   });
 
   it("returns confirm when session is absent after sign-up", async () => {
@@ -143,7 +147,10 @@ describe("requestPasswordReset", () => {
         email: "a@b.com",
         redirectTo: "http://localhost/auth/confirm",
       }),
-    ).resolves.toEqual({ ok: false, code: "unconfigured" });
+    ).resolves.toEqual({
+      ok: false,
+      code: AUTH_ACTION_ERROR_CODE.UNCONFIGURED,
+    });
   });
 
   it("returns ok when reset email is accepted", async () => {
