@@ -7,8 +7,10 @@ import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
 import { getInboxItem } from "@/modules/inbox/application";
+import { InboxItemStatus } from "@/modules/inbox/application/inbox-constants";
 import { listCaptureJars } from "@/modules/ledger/application";
 import { formatCurrency } from "@/shared/i18n/formatters";
+import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { ReviewCard } from "@/shared/patterns/review-card";
 import { EmptyState } from "@/shared/patterns/empty-state";
@@ -39,8 +41,9 @@ export default async function InboxItemDetailPage({ params }: Props) {
     return redirect({ href: APP_PATH.ONBOARD, locale });
   }
 
-  const [t, item, jars] = await Promise.all([
+  const [t, tCatalog, item, jars] = await Promise.all([
     getTranslations("inbox"),
+    getTranslations("catalog"),
     getInboxItem(id),
     listCaptureJars(),
   ]);
@@ -70,6 +73,23 @@ export default async function InboxItemDetailPage({ params }: Props) {
   }
 
   const activeJars = jars ?? [];
+  const localizedCategory = item.categoryName
+    ? localizeCatalogName(tCatalog, "tags", item.categoryName) ||
+      item.categoryName
+    : null;
+  const localizedAccount = item.accountName
+    ? localizeCatalogName(tCatalog, "accounts", item.accountName) ||
+      item.accountName
+    : null;
+  const displayTitle =
+    item.note?.trim() ||
+    localizedCategory ||
+    item.displayTitle ||
+    t(`kinds.${item.kind}`);
+  const detailParts = [
+    localizedAccount,
+    localizedCategory && item.note?.trim() ? localizedCategory : null,
+  ].filter(Boolean);
 
   return (
     <div className="flex min-h-full flex-col" data-testid="inbox-detail">
@@ -78,13 +98,48 @@ export default async function InboxItemDetailPage({ params }: Props) {
         <InboxOfflineBanner />
 
         <ReviewCard
-          title={item.title}
-          kindLabel={t(`kinds.${item.kind}`)}
+          title={displayTitle}
+          kindLabel={
+            item.type ? t(`types.${item.type}`) : t(`kinds.${item.kind}`)
+          }
           amountLabel={formatCurrency(item.amount, item.currency, locale, {
             maximumFractionDigits: 0,
           })}
+          subtitle={
+            detailParts.length > 0
+              ? detailParts.join(" · ")
+              : item.type
+                ? t("typeHeader", { type: t(`types.${item.type}`) })
+                : undefined
+          }
           data-testid="inbox-detail-card"
         />
+
+        {localizedCategory || localizedAccount || item.note ? (
+          <section
+            className="flex flex-col gap-(--space-2)"
+            data-testid="inbox-item-details"
+          >
+            <Text size="sm" className="font-semibold text-text-primary">
+              {t("detailsHeading")}
+            </Text>
+            {localizedCategory ? (
+              <Text size="sm" tone="secondary">
+                {t("detailCategory", { name: localizedCategory })}
+              </Text>
+            ) : null}
+            {localizedAccount ? (
+              <Text size="sm" tone="secondary">
+                {t("detailAccount", { name: localizedAccount })}
+              </Text>
+            ) : null}
+            {item.note?.trim() ? (
+              <Text size="sm" tone="secondary">
+                {t("detailNote", { note: item.note.trim() })}
+              </Text>
+            ) : null}
+          </section>
+        ) : null}
 
         <section className="flex flex-col gap-(--space-2)">
           <Text size="sm" className="font-semibold text-text-primary">
@@ -98,7 +153,13 @@ export default async function InboxItemDetailPage({ params }: Props) {
           </Text>
         </section>
 
-        <InboxDecisionPanel item={item} jars={activeJars} />
+        {item.status === InboxItemStatus.PENDING ? (
+          <InboxDecisionPanel item={item} jars={activeJars} />
+        ) : (
+          <Text size="sm" tone="secondary" data-testid="inbox-archived-status">
+            {t(`statuses.${item.status}`)}
+          </Text>
+        )}
 
         <Link
           href={APP_PATH.INBOX}

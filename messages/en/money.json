@@ -164,6 +164,7 @@
       "refund_invalid": "That refund cannot be linked.",
       "correction_invalid": "That correction cannot be applied.",
       "immutable": "Transactions cannot be changed in place. Use Correct or Refund.",
+      "convert_after_payment": "Finish or reverse the card payment before converting to installments.",
       "unknown": "Could not save. Try again."
     }
   },

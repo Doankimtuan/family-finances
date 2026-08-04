@@ -9,6 +9,7 @@
   "activeJarOnlyHint": "Only Active jars are allocation targets. Paused and archived stay out.",
   "jarLabel": "Active jar",
   "dismiss": "Dismiss",
+  "dismissing": "Dismissing…",
   "dismissConfirmTitle": "Dismiss this item?",
   "dismissConfirmBody": "It leaves the queue without assigning a jar. You can still find the transaction in Money.",
   "dismissConfirmYes": "Dismiss item",
@@ -28,11 +29,28 @@
     "income_suggest": "Income is waiting for Suggest placement into Active jars.",
     "savings_maturity": "A savings product is at maturity. Choose renew, switch, or withdraw.",
     "emi_complete": "An installment plan is fully paid. Acknowledge the milestone.",
-    "emergency_declaration": "A partner declared an emergency jar reallocation. Review the intent note."
+    "emergency_declaration": "A partner declared an emergency jar reallocation. Review the intent note.",
+    "payment_reminder": "A card or bill payment is due. Confirm or dismiss when handled."
   },
   "emergencyHeading": "Emergency declaration",
   "emergencyHint": "A household partner declared an emergency reallocation. Dismiss after you have seen it.",
   "emergencyHintWithNote": "Intent: {note}",
+  "paymentReminderHeading": "Payment reminder",
+  "paymentReminderHint": "Mark handled by dismissing when the payment is done.",
+  "paymentReminderHintWithExpiry": "Expires after grace period ({expiresAt}). Dismiss when paid.",
+  "patternSuggestionTitle": "Pattern suggestion",
+  "patternSuggestionBody": "Pre-filled from merchant/pattern history ({confidence}% confidence; auto-resolve at {threshold}%).",
+  "suggestedSuffix": "suggested",
+  "typeHeader": "Type: {type}",
+  "detailsHeading": "Transaction details",
+  "detailCategory": "Category: {name}",
+  "detailAccount": "Account: {name}",
+  "detailNote": "Note: {note}",
+  "tabOpen": "Open",
+  "tabArchived": "Archived",
+  "tabListLabel": "Inbox views",
+  "archivedEmptyTitle": "No archived items",
+  "archivedEmptyBody": "Expired, auto-resolved, and completed items will appear here.",
   "openHint": "Open to decide",
   "searchLabel": "Search",
   "searchPlaceholder": "Title…",
@@ -56,7 +74,24 @@
     "income_suggest": "Place income (Suggest)",
     "savings_maturity": "Savings maturity",
     "emi_complete": "Installment complete",
-    "emergency_declaration": "Emergency declaration"
+    "emergency_declaration": "Emergency declaration",
+    "payment_reminder": "Payment reminder"
+  },
+  "types": {
+    "UnmappedExpense": "Unmapped expense",
+    "MaturityDecision": "Maturity decision",
+    "PaymentReminder": "Payment reminder",
+    "InstallmentComplete": "Installment complete",
+    "EmergencyDeclaration": "Emergency declaration"
+  },
+  "statuses": {
+    "pending": "Pending",
+    "resolved": "Resolved",
+    "dismissed": "Dismissed",
+    "acknowledged": "Acknowledged",
+    "auto_resolved": "Auto-resolved",
+    "expired": "Expired",
+    "archived": "Archived"
   },
   "errors": {
     "unauthenticated": "Sign in again.",

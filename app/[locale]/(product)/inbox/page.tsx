@@ -6,20 +6,29 @@ import { routing } from "@/i18n/routing";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
-import { listOpenInboxItems } from "@/modules/inbox/application";
+import {
+  listOpenInboxItems,
+  listArchivedInboxItems,
+  runInboxStalenessWorker,
+} from "@/modules/inbox/application";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { InboxOfflineBanner } from "./inbox-offline-banner";
 import { InboxQueueList } from "./inbox-queue-list";
+import { InboxQueueTabs } from "./inbox-queue-tabs";
 
-type Props = { params: Promise<{ locale: string }> };
+type Props = {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ tab?: string }>;
+};
 
 /**
- * inbox.queue — ReviewCard list with kind filter (ST-E06-001 / AC-005 / AC-020).
+ * inbox.queue — ReviewCard list with kind filter + Archived tab (ST-E03).
  */
-export default async function InboxPage({ params }: Props) {
+export default async function InboxPage({ params, searchParams }: Props) {
   const { locale: rawLocale } = await params;
+  const { tab: rawTab } = await searchParams;
   const locale = hasLocale(routing.locales, rawLocale)
     ? rawLocale
     : routing.defaultLocale;
@@ -34,14 +43,21 @@ export default async function InboxPage({ params }: Props) {
     return redirect({ href: APP_PATH.ONBOARD, locale });
   }
 
+  const showArchived = rawTab === "archived";
+
+  // Best-effort sweep — do not block Inbox render / navigation (BR-15).
+  if (!showArchived) {
+    void runInboxStalenessWorker();
+  }
+
   const [t, tEmpty, items] = await Promise.all([
     getTranslations("inbox"),
     getTranslations("emptyStates"),
-    listOpenInboxItems(),
+    showArchived ? listArchivedInboxItems() : listOpenInboxItems(),
   ]);
 
   const loadFailed = items == null;
-  const pending = items ?? [];
+  const list = items ?? [];
 
   return (
     <div className="flex min-h-full flex-col" data-testid="inbox-queue">
@@ -49,19 +65,29 @@ export default async function InboxPage({ params }: Props) {
       <div className="flex flex-1 flex-col gap-(--space-4) px-(--space-4) pb-(--space-6) pt-(--space-4)">
         <InboxOfflineBanner />
 
+        <InboxQueueTabs active={showArchived ? "archived" : "open"} />
+
         {loadFailed ? (
           <StatusAlert
             variant="danger"
             title={t("loadErrorTitle")}
             description={t("loadErrorBody")}
           />
-        ) : pending.length === 0 ? (
+        ) : list.length === 0 ? (
           <EmptyState
-            title={tEmpty("inboxTitle")}
-            description={tEmpty("inboxDescription")}
+            title={
+              showArchived ? t("archivedEmptyTitle") : tEmpty("inboxTitle")
+            }
+            description={
+              showArchived ? t("archivedEmptyBody") : tEmpty("inboxDescription")
+            }
           />
         ) : (
-          <InboxQueueList items={pending} locale={locale} />
+          <InboxQueueList
+            items={list}
+            locale={locale}
+            readOnly={showArchived}
+          />
         )}
       </div>
     </div>

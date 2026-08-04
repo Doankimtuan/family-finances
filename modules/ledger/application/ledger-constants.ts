@@ -173,3 +173,19 @@ export const TRANSACTION_FILTER_OPTIONS = [
   TransactionFilterType.EXPENSE,
   TransactionFilterType.INCOME,
 ] as const;
+
+/** REQ-TRN-03 — transaction provenance for pattern auto-resolution. */
+export const TransactionSource = {
+  MANUAL: "manual",
+  BANK_FEED: "bank_feed",
+  RECURRING_PATTERN: "recurring_pattern",
+} as const;
+
+export type TransactionSource =
+  (typeof TransactionSource)[keyof typeof TransactionSource];
+
+export const TRANSACTION_SOURCE_VALUES = [
+  TransactionSource.MANUAL,
+  TransactionSource.BANK_FEED,
+  TransactionSource.RECURRING_PATTERN,
+] as const;

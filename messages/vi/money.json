@@ -164,6 +164,7 @@
       "refund_invalid": "Không gắn được khoản hoàn đó.",
       "correction_invalid": "Không áp dụng được hiệu chỉnh đó.",
       "immutable": "Không thể sửa giao dịch tại chỗ. Hãy dùng Sửa đúng hoặc Hoàn tiền.",
+      "convert_after_payment": "Hãy hoàn tất hoặc hoàn lại khoản thanh toán thẻ trước khi chuyển sang trả góp.",
       "unknown": "Không lưu được. Thử lại."
     }
   },

@@ -35,8 +35,13 @@ export {
   CARD_UTILIZATION_WARN_PCT,
   CARD_UTILIZATION_DANGER_PCT,
   LEDGER_ACTION_ERROR_CODE,
+  TransactionSource,
+  TRANSACTION_SOURCE_VALUES,
 } from "./ledger-constants";
-export type { LedgerActionErrorCode } from "./ledger-constants";
+export type {
+  LedgerActionErrorCode,
+  TransactionSource as TransactionSourceValue,
+} from "./ledger-constants";
 export {
   AccountHealthSignal,
   ACCOUNT_HEALTH_SIGNAL_VALUES,
