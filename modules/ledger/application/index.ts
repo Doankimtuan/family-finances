@@ -126,6 +126,8 @@ export {
   computeAvailableCredit,
   wouldExceedCreditLimit,
   applyFifoSettlement,
+  applyBillingItemConversion,
+  canConvertBillingItemOnMonth,
   utilizationPercent,
 } from "./credit-card-billing";
 export {

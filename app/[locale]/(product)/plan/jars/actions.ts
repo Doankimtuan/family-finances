@@ -4,9 +4,12 @@ import {
   createJar,
   setJarState,
   upsertJarPlan,
+  reallocateJarCapacity,
   type CreateJarInput,
   type SetJarStateInput,
   type UpsertJarPlanInput,
+  type ReallocateJarCapacityInput,
+  type ReallocateJarCapacityErrorCode,
 } from "@/modules/plan/application";
 import {
   createCategory,
@@ -79,6 +82,37 @@ export async function createCategoryAction(
   const result = await createCategory(input);
   if (result.ok) {
     return { status: "success", categoryId: result.categoryId };
+  }
+  return { status: "error", code: result.code };
+}
+
+export type ReallocateJarCapacityActionState =
+  | {
+      status: "success";
+      planMovementId: string;
+      ledgerImpact: number;
+      ledgerTransactionsCreated: number;
+      inboxItemId: string | null;
+      isEmergency: boolean;
+    }
+  | {
+      status: "error";
+      code: ReallocateJarCapacityErrorCode;
+    };
+
+export async function reallocateJarCapacityAction(
+  input: ReallocateJarCapacityInput,
+): Promise<ReallocateJarCapacityActionState> {
+  const result = await reallocateJarCapacity(input);
+  if (result.ok) {
+    return {
+      status: "success",
+      planMovementId: result.planMovementId,
+      ledgerImpact: result.ledgerImpact,
+      ledgerTransactionsCreated: result.ledgerTransactionsCreated,
+      inboxItemId: result.inboxItemId,
+      isEmergency: result.isEmergency,
+    };
   }
   return { status: "error", code: result.code };
 }

@@ -5,13 +5,13 @@ import { hasLocale } from "next-intl";
 import { routing } from "@/i18n/routing";
 import {
   APP_PATH,
-  moneyAccountPath,
   moneyTransactionPath,
 } from "@/modules/tenancy/application/app-path";
 import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
 import {
   getRealPosition,
+  listCreditCards,
   listRecentTransactions,
   DEFAULT_CURRENCY,
   TransactionDirection,
@@ -21,13 +21,13 @@ import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { SectionHeader } from "@/shared/patterns/section-header";
 import { Balance } from "@/shared/patterns/balance";
-import { AccountCard } from "@/shared/patterns/account-card";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { TransactionRow } from "@/shared/patterns/transaction-row";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Text } from "@/shared/ui/text";
 import { MoneyOfflineBanner } from "./money-offline-banner";
 import { MoneyCaptureAction } from "./money-capture-action";
+import { MoneyHubAccounts } from "./money-hub-accounts";
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -48,18 +48,53 @@ export default async function MoneyHubPage({ params }: Props) {
     return redirect({ href: APP_PATH.ONBOARD, locale });
   }
 
-  const [t, tCatalog, position, recent] = await Promise.all([
+  const [t, tCatalog, position, cardsListed, recent] = await Promise.all([
     getTranslations("money"),
     getTranslations("catalog"),
     getRealPosition(),
+    listCreditCards(),
     listRecentTransactions(8),
   ]);
 
   const loadFailed = position == null;
-  const currency = position?.currency ?? DEFAULT_CURRENCY;
+  const currency =
+    position?.currency ?? cardsListed?.currency ?? DEFAULT_CURRENCY;
   const total = position?.totalBalance ?? 0;
-  const previewAccounts = (position?.accounts ?? []).slice(0, 3);
+  const liquidAccounts = position?.accounts ?? [];
+  const creditCards = cardsListed?.cards ?? [];
   const activity = recent ?? [];
+
+  const cardOutstandingTotal = creditCards.reduce(
+    (sum, card) => sum + card.outstanding,
+    0,
+  );
+
+  const liquidRows = liquidAccounts.map((account) => ({
+    id: account.id,
+    title: localizeCatalogName(tCatalog, "accounts", account.name),
+    typeLabel: t(`types.${account.type}`),
+    balanceLabel: formatCurrency(account.balance, currency, locale, {
+      maximumFractionDigits: 0,
+    }),
+  }));
+
+  const cardRows = creditCards.map((card) => ({
+    id: card.accountId,
+    title: localizeCatalogName(tCatalog, "accounts", card.name),
+    outstandingLabel: formatCurrency(card.outstanding, currency, locale, {
+      maximumFractionDigits: 0,
+    }),
+    availableLabel: formatCurrency(card.availableCredit, currency, locale, {
+      maximumFractionDigits: 0,
+    }),
+    utilizationPct: card.utilizationPct,
+    utilizationLabel: t("accountsPage.utilization", {
+      pct: card.utilizationPct,
+    }),
+    dueLabel: card.nextDueDate
+      ? t("accountsPage.nextDue", { date: card.nextDueDate })
+      : undefined,
+  }));
 
   return (
     <div className="flex min-h-full flex-col" data-testid="money-hub">
@@ -86,59 +121,44 @@ export default async function MoneyHubPage({ params }: Props) {
           </section>
         )}
 
-        <section className="flex flex-col gap-(--space-3)">
-          <SectionHeader
-            title={t("accounts")}
-            action={
-              <Link
-                href={APP_PATH.MONEY_ACCOUNTS}
-                className="text-sm font-medium text-accent"
-                data-testid="money-see-accounts"
-              >
-                {t("seeAccounts")}
-              </Link>
-            }
-          />
-          {loadFailed ? (
-            <EmptyState
-              title={t("loadErrorTitle")}
-              description={t("loadErrorBody")}
-              className="flex-none py-(--space-4)"
-            />
-          ) : previewAccounts.length === 0 ? (
-            <EmptyState
-              title={t("accountsPage.emptyTitle")}
-              description={t("accountsPage.emptyDescription")}
-              className="flex-none py-(--space-4)"
-            />
-          ) : (
-            <ul className="flex flex-col gap-(--space-2)">
-              {previewAccounts.map((account) => (
-                <li key={account.id}>
-                  <Link
-                    href={moneyAccountPath(account.id)}
-                    className="block focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-                  >
-                    <AccountCard
-                      title={localizeCatalogName(
-                        tCatalog,
-                        "accounts",
-                        account.name,
-                      )}
-                      typeLabel={t(`types.${account.type}`)}
-                      balanceLabel={formatCurrency(
-                        account.balance,
-                        currency,
-                        locale,
-                        { maximumFractionDigits: 0 },
-                      )}
-                    />
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+        <MoneyHubAccounts
+          loadFailed={loadFailed}
+          liquidAccounts={liquidRows}
+          creditCards={cardRows}
+          liquidOptions={liquidAccounts.map((account) => ({
+            id: account.id,
+            name: localizeCatalogName(tCatalog, "accounts", account.name),
+          }))}
+          createLabel={t("createAccount")}
+          createOfflineLabel={t("createAccountOffline")}
+          labels={{
+            sectionTitle: t("accounts"),
+            liquidTitle: t("accountsPage.liquidTitle"),
+            creditCardsTitle: t("accountsPage.creditCardsTitle"),
+            creditCardsHint: t("accountsPage.creditCardsHint"),
+            outstanding: t("accountsPage.outstanding"),
+            availableCredit: t("accountsPage.availableCredit"),
+            collapse: t("hubAccountsCollapse"),
+            expand: t("hubAccountsExpand"),
+            collapsedSummary: t("hubAccountsCollapsedSummary", {
+              liquidCount: liquidAccounts.length,
+              liquidTotal: formatCurrency(total, currency, locale, {
+                maximumFractionDigits: 0,
+              }),
+              cardCount: creditCards.length,
+              cardOutstanding: formatCurrency(
+                cardOutstandingTotal,
+                currency,
+                locale,
+                { maximumFractionDigits: 0 },
+              ),
+            }),
+            emptyTitle: t("accountsPage.emptyTitle"),
+            emptyDescription: t("accountsPage.emptyDescription"),
+            loadErrorTitle: t("loadErrorTitle"),
+            loadErrorBody: t("loadErrorBody"),
+          }}
+        />
 
         <section className="flex flex-col gap-(--space-3)">
           <SectionHeader

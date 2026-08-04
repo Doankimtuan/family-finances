@@ -7,6 +7,7 @@ import { APP_PATH, planJarPath } from "@/modules/tenancy/application/app-path";
 import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
 import { getPlanPulse } from "@/modules/plan/application";
+import { listOpenInboxItems } from "@/modules/inbox/application";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { SectionHeader } from "@/shared/patterns/section-header";
@@ -14,6 +15,7 @@ import { Card } from "@/shared/patterns/card";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Text } from "@/shared/ui/text";
+import { EmergencyInboxBanner } from "./emergency-inbox-banner";
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -36,10 +38,11 @@ export default async function PlanHubPage({ params }: Props) {
     return redirect({ href: APP_PATH.ONBOARD, locale });
   }
 
-  const [t, tCatalog, pulse] = await Promise.all([
+  const [t, tCatalog, pulse, inboxItems] = await Promise.all([
     getTranslations("plan"),
     getTranslations("catalog"),
     getPlanPulse(),
+    listOpenInboxItems(),
   ]);
 
   const activeJars = pulse?.activeJars ?? [];
@@ -50,6 +53,14 @@ export default async function PlanHubPage({ params }: Props) {
     <div className="flex min-h-full flex-col" data-testid="plan-hub">
       <TopAppBar title={t("title")} subtitle={t("subtitle")} />
       <div className="flex flex-1 flex-col gap-(--space-5) px-(--space-4) pb-(--space-6) pt-(--space-4)">
+        <EmergencyInboxBanner
+          items={inboxItems ?? []}
+          viewerUserId={user.id}
+          title={t("jars.reallocate.emergencyBannerTitle")}
+          body={t("jars.reallocate.emergencyBannerBody")}
+          openLabel={t("jars.reallocate.emergencyBannerOpen")}
+        />
+
         <div data-testid="plan-teaching">
           <StatusAlert
             variant="info"

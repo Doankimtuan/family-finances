@@ -58,6 +58,7 @@ describe("jar state matrix", () => {
       sort_order: 1,
       is_archived: false,
       is_paused: false,
+      capacity_delta: 0,
       jar_plans: {
         plan_kind: "percent",
         percent_bps: 5000,
@@ -65,6 +66,7 @@ describe("jar state matrix", () => {
       },
     });
     expect(jar.state).toBe("active");
+    expect(jar.capacityDelta).toBe(0);
     expect(jar.plan).toEqual({
       kind: "percent",
       percentBps: 5000,

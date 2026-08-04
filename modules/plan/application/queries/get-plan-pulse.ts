@@ -11,7 +11,7 @@ import {
 } from "../jar-types";
 
 const JAR_SELECT =
-  "id, name, kind, sort_order, is_archived, is_paused, jar_plans(plan_kind, percent_bps, fixed_amount)";
+  "id, name, kind, sort_order, is_archived, is_paused, capacity_delta, jar_plans(plan_kind, percent_bps, fixed_amount)";
 
 /**
  * Plan hub read model — Active jars only in preview (AC-003 / BR-03).

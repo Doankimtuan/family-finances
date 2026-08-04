@@ -9,7 +9,11 @@
   "captureSoonTitle": "Ghi nhận sắp có",
   "captureSoonBody": "Ghi nhận giao dịch sẽ có ở story Money tiếp theo. Tài khoản và vị trí thực đã sẵn sàng.",
   "accounts": "Tài khoản",
-  "seeAccounts": "Xem tất cả tài khoản",
+  "createAccount": "Tạo tài khoản",
+  "createAccountOffline": "Cần kết nối để tạo",
+  "hubAccountsCollapse": "Thu gọn",
+  "hubAccountsExpand": "Mở rộng",
+  "hubAccountsCollapsedSummary": "{liquidCount} số dư ({liquidTotal}) · {cardCount} thẻ · dư nợ {cardOutstanding}",
   "seeActivity": "Xem tất cả hoạt động",
   "activity": "Hoạt động gần đây",
   "activityEmpty": "Chưa có giao dịch",
@@ -228,7 +232,7 @@
     "cancel": "Huỷ",
     "recentTitle": "Hoạt động gần đây",
     "recentEmpty": "Chưa có hoạt động trên tài khoản này",
-    "back": "Về danh sách tài khoản",
+    "back": "Về Money",
     "notFound": "Không tìm thấy tài khoản",
     "errors": {
       "unauthenticated": "Đăng nhập lại.",
@@ -284,6 +288,7 @@
       "refund_invalid": "Không gắn được khoản hoàn đó.",
       "correction_invalid": "Không áp dụng được hiệu chỉnh đó.",
       "immutable": "Không thể sửa giao dịch tại chỗ. Hãy dùng Sửa đúng hoặc Hoàn tiền.",
+      "convert_after_payment": "Hãy hoàn tất hoặc hoàn lại khoản thanh toán thẻ trước khi chuyển sang trả góp.",
       "unknown": "Không lưu được. Thử lại."
     }
   },

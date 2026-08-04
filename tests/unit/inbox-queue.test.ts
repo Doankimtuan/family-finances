@@ -12,5 +12,6 @@ describe("inbox queue helpers (ST-E06-001)", () => {
   it("keeps ReviewItem kind constants for filter chips", () => {
     expect(InboxItemKind.UNMAPPED_EXPENSE).toBe("unmapped_expense");
     expect(InboxItemKind.INCOME_SUGGEST).toBe("income_suggest");
+    expect(InboxItemKind.EMERGENCY_DECLARATION).toBe("emergency_declaration");
   });
 });

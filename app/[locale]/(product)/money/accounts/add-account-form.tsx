@@ -8,6 +8,7 @@ import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { AmountField } from "@/shared/patterns/amount-field";
+import { Dialog, DialogContent } from "@/shared/patterns/dialog";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import {
   CLIENT_ACTION_ERROR_CODE,
@@ -31,17 +32,37 @@ type LiquidOption = { id: string; name: string };
 
 type Props = {
   liquidAccounts: LiquidOption[];
+  /** When set with onOpenChange, form open state is controlled by the parent. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  /** Hide the default full-width open button (parent supplies the trigger). */
+  hideDefaultTrigger?: boolean;
+  /** Present form in a centered dialog (Money hub create CTA). */
+  presentation?: "card" | "dialog";
 };
 
 /**
  * Progressive add-account form: name → type → opening balance or CC settings.
+ * Savings is not a create option here (term savings is a separate Money section).
  */
-export function AddAccountForm({ liquidAccounts }: Props) {
+export function AddAccountForm({
+  liquidAccounts,
+  open: openProp,
+  onOpenChange,
+  hideDefaultTrigger = false,
+  presentation = "card",
+}: Props) {
   const t = useTranslations("money.accountsPage");
   const tTypes = useTranslations("money.types");
   const router = useRouter();
   const { online } = useOnlineStatusClient();
-  const [open, setOpen] = useState(false);
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const isControlled = openProp !== undefined;
+  const open = isControlled ? openProp : uncontrolledOpen;
+  const setOpen = (next: boolean) => {
+    if (!isControlled) setUncontrolledOpen(next);
+    onOpenChange?.(next);
+  };
   const [name, setName] = useState("");
   const [type, setType] = useState<AccountTypeValue>(AccountType.CASH);
   const [showExtras, setShowExtras] = useState(false);
@@ -67,26 +88,10 @@ export function AddAccountForm({ liquidAccounts }: Props) {
     setErrorCode(null);
   };
 
-  if (!open) {
-    return (
-      <Button
-        variant="secondary"
-        className="w-full"
-        data-testid="account-add-open"
-        isDisabled={!online}
-        onPress={() => {
-          if (!online) {
-            setErrorCode(CLIENT_ACTION_ERROR_CODE.OFFLINE);
-            return;
-          }
-          setErrorCode(null);
-          setOpen(true);
-        }}
-      >
-        {online ? t("add") : t("errors.offline")}
-      </Button>
-    );
-  }
+  const close = () => {
+    setOpen(false);
+    reset();
+  };
 
   const onSubmit = () => {
     setErrorCode(null);
@@ -114,8 +119,7 @@ export function AddAccountForm({ liquidAccounts }: Props) {
           },
         });
         if (result.status === "success") {
-          setOpen(false);
-          reset();
+          close();
           router.refresh();
           return;
         }
@@ -140,8 +144,7 @@ export function AddAccountForm({ liquidAccounts }: Props) {
         openingBalance: balance,
       });
       if (result.status === "success") {
-        setOpen(false);
-        reset();
+        close();
         router.refresh();
         return;
       }
@@ -149,9 +152,9 @@ export function AddAccountForm({ liquidAccounts }: Props) {
     });
   };
 
-  return (
+  const fields = (
     <div
-      className="flex flex-col gap-(--space-3) rounded-lg border border-border-subtle bg-surface p-(--space-4)"
+      className="flex flex-col gap-(--space-3)"
       data-testid="account-add-form"
     >
       {errorCode ? (
@@ -270,6 +273,11 @@ export function AddAccountForm({ liquidAccounts }: Props) {
           </Text>
         </div>
       ) : null}
+    </div>
+  );
+
+  const actions = (
+    <div className="flex flex-col gap-(--space-2)">
       <Button
         variant="primary"
         className="w-full"
@@ -283,13 +291,67 @@ export function AddAccountForm({ liquidAccounts }: Props) {
         variant="secondary"
         className="w-full"
         isDisabled={isPending}
-        onPress={() => {
-          setOpen(false);
-          reset();
-        }}
+        onPress={close}
       >
         {t("cancel")}
       </Button>
+    </div>
+  );
+
+  if (presentation === "dialog") {
+    if (!open) return null;
+    return (
+      <Dialog
+        isOpen
+        onOpenChange={(next) => {
+          if (!next) close();
+        }}
+      >
+        <DialogContent className="mx-(--space-4) max-h-[min(90dvh,720px)]">
+          <Dialog.Header className="px-(--space-4) pt-(--space-4)">
+            <Dialog.Heading className="text-lg font-semibold tracking-tight text-text-primary">
+              {t("add")}
+            </Dialog.Heading>
+          </Dialog.Header>
+          <Dialog.Body className="max-h-[min(60dvh,480px)] overflow-y-auto px-(--space-4) py-(--space-3)">
+            {fields}
+          </Dialog.Body>
+          <Dialog.Footer className="flex flex-col gap-(--space-2) px-(--space-4) pb-(--space-4)">
+            {actions}
+          </Dialog.Footer>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  if (!open) {
+    if (hideDefaultTrigger) {
+      return null;
+    }
+    return (
+      <Button
+        variant="secondary"
+        className="w-full"
+        data-testid="account-add-open"
+        isDisabled={!online}
+        onPress={() => {
+          if (!online) {
+            setErrorCode(CLIENT_ACTION_ERROR_CODE.OFFLINE);
+            return;
+          }
+          setErrorCode(null);
+          setOpen(true);
+        }}
+      >
+        {online ? t("add") : t("errors.offline")}
+      </Button>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-(--space-3) rounded-lg border border-border-subtle bg-surface p-(--space-4)">
+      {fields}
+      {actions}
     </div>
   );
 }

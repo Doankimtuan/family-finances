@@ -13,13 +13,18 @@ import type { InboxReviewItem } from "./inbox-types";
 export {
   InboxItemKind,
   InboxItemStatus,
+  InboxSourceType,
+  INBOX_SOURCE_TYPE_VALUES,
   MaturityAckAction,
   EmiAckAction,
   isJarResolvableKind,
   isGuidedKind,
   mapInboxKind,
 } from "./inbox-constants";
-export type { InboxAckAction } from "./inbox-constants";
+export type {
+  InboxAckAction,
+  InboxSourceType as InboxSourceTypeValue,
+} from "./inbox-constants";
 export type { InboxReviewItem } from "./inbox-types";
 
 export async function listOpenInboxItems(): Promise<InboxReviewItem[] | null> {
@@ -32,9 +37,12 @@ export async function listOpenInboxItems(): Promise<InboxReviewItem[] | null> {
     const supabase = await createSupabaseServerClient();
     const { data, error } = await supabase
       .from("inbox_items")
-      .select("id, kind, title, amount, currency, source_id, created_at")
+      .select(
+        "id, kind, title, amount, currency, source_id, created_at, context_json, assigned_to_user_id",
+      )
       .eq("household_id", gate.householdId)
       .eq("status", InboxItemStatus.PENDING)
+      .or(`assigned_to_user_id.is.null,assigned_to_user_id.eq.${gate.userId}`)
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -59,10 +67,13 @@ export async function getInboxItem(
     const supabase = await createSupabaseServerClient();
     const { data, error } = await supabase
       .from("inbox_items")
-      .select("id, kind, title, amount, currency, source_id, created_at")
+      .select(
+        "id, kind, title, amount, currency, source_id, created_at, context_json, assigned_to_user_id",
+      )
       .eq("household_id", gate.householdId)
       .eq("id", inboxItemId)
       .eq("status", InboxItemStatus.PENDING)
+      .or(`assigned_to_user_id.is.null,assigned_to_user_id.eq.${gate.userId}`)
       .maybeSingle();
 
     if (error || !data) {
@@ -83,7 +94,13 @@ function mapInboxRow(row: {
   currency: string | null;
   source_id: string;
   created_at: string;
+  context_json?: Record<string, unknown> | null;
+  assigned_to_user_id?: string | null;
 }): InboxReviewItem {
+  const context = row.context_json ?? null;
+  const intentRaw = context?.intent_note;
+  const executedRaw = context?.executed_by_user_id;
+  const assignedFromContext = context?.assigned_to_user_id;
   return {
     id: row.id,
     kind: mapInboxKind(row.kind),
@@ -93,6 +110,11 @@ function mapInboxRow(row: {
     currency: (row.currency ?? DEFAULT_CURRENCY).toUpperCase(),
     sourceId: row.source_id,
     createdAt: row.created_at,
+    intentNote: typeof intentRaw === "string" ? intentRaw : null,
+    executedByUserId: typeof executedRaw === "string" ? executedRaw : null,
+    assignedToUserId:
+      row.assigned_to_user_id ??
+      (typeof assignedFromContext === "string" ? assignedFromContext : null),
   };
 }
 

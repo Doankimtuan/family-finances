@@ -69,10 +69,10 @@ export default async function AccountDetailPage({ params }: Props) {
         <TopAppBar title={t("accountDetail.notFound")} />
         <div className="px-(--space-4) py-(--space-6)">
           <Link
-            href={APP_PATH.MONEY_ACCOUNTS}
+            href={APP_PATH.MONEY}
             className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary"
           >
-            {t("accountDetail.back")}
+            {t("backToMoney")}
           </Link>
         </div>
       </div>
@@ -151,10 +151,10 @@ export default async function AccountDetailPage({ params }: Props) {
           />
 
           <Link
-            href={APP_PATH.MONEY_ACCOUNTS}
+            href={APP_PATH.MONEY}
             className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary"
           >
-            {t("accountDetail.back")}
+            {t("backToMoney")}
           </Link>
         </div>
       </div>
@@ -253,10 +253,10 @@ export default async function AccountDetailPage({ params }: Props) {
         </section>
 
         <Link
-          href={APP_PATH.MONEY_ACCOUNTS}
+          href={APP_PATH.MONEY}
           className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary"
         >
-          {t("accountDetail.back")}
+          {t("backToMoney")}
         </Link>
       </div>
     </div>

@@ -17,7 +17,8 @@ type KindFilter =
   | typeof InboxItemKind.UNMAPPED_EXPENSE
   | typeof InboxItemKind.INCOME_SUGGEST
   | typeof InboxItemKind.SAVINGS_MATURITY
-  | typeof InboxItemKind.EMI_COMPLETE;
+  | typeof InboxItemKind.EMI_COMPLETE
+  | typeof InboxItemKind.EMERGENCY_DECLARATION;
 
 type Props = {
   items: InboxReviewItem[];
@@ -56,6 +57,10 @@ export function InboxQueueList({ items, locale }: Props) {
     {
       id: InboxItemKind.EMI_COMPLETE,
       label: t("kinds.emi_complete"),
+    },
+    {
+      id: InboxItemKind.EMERGENCY_DECLARATION,
+      label: t("kinds.emergency_declaration"),
     },
   ];
 

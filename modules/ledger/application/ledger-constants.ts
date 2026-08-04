@@ -102,11 +102,10 @@ export const ACCOUNT_TYPE_LIQUID_VALUES = [
   AccountType.OTHER,
 ] as const;
 
-/** Account create form options (brokerage omitted from MVP UI). */
+/** Account create form options (brokerage + savings omitted; savings is a separate section). */
 export const ACCOUNT_TYPE_CREATE_OPTIONS = [
   AccountType.CASH,
   AccountType.CHECKING,
-  AccountType.SAVINGS,
   AccountType.EWALLET,
   AccountType.CREDIT_CARD,
   AccountType.OTHER,
@@ -155,6 +154,7 @@ export const LEDGER_ACTION_ERROR_CODE = {
   REFUND_INVALID: "refund_invalid",
   CORRECTION_INVALID: "correction_invalid",
   IMMUTABLE: "immutable",
+  CONVERT_AFTER_PAYMENT: "convert_after_payment",
 } as const;
 
 export type LedgerActionErrorCode =

@@ -91,7 +91,7 @@ export function AccountDetailActions({
             startTransition(async () => {
               const result = await archiveAccountAction({ accountId });
               if (result.status === "success") {
-                router.replace(APP_PATH.MONEY_ACCOUNTS);
+                router.replace(APP_PATH.MONEY);
                 router.refresh();
                 return;
               }

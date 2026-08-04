@@ -14,6 +14,31 @@ export {
 } from "./jar-types";
 
 export {
+  PLAN_MOVEMENT_LEDGER_IMPACT,
+  CapacityMovementDirection,
+  CAPACITY_MOVEMENT_DIRECTION_VALUES,
+  PlanMovementEvent,
+  PLAN_ACTION_ERROR_CODE,
+  type PlanActionErrorCode,
+  type CapacityMovementDirection as CapacityMovementDirectionValue,
+} from "./plan-constants";
+
+export {
+  shouldShowOverspendWarning,
+  isCapacityMoveBlocked,
+  isEmergencyIntentValid,
+  isZeroLedgerImpact,
+  applyCapacityDelta,
+  areBankBalancesUnchanged,
+  isPartnerEmergencyAlert,
+} from "./plan-movement-policy";
+
+export {
+  reallocateJarCapacityInputSchema,
+  type ReallocateJarCapacityInput,
+} from "./commands/reallocate-jar-capacity.schema";
+
+export {
   RitualMode,
   RitualStatus,
   IncomeAllocateMode,

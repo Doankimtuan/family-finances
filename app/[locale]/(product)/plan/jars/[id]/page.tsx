@@ -6,11 +6,16 @@ import { routing } from "@/i18n/routing";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
+import { getHouseholdPolicies } from "@/modules/tenancy/application/get-household-policies";
+import { OverspendPolicy } from "@/modules/tenancy/application/household-policies.schema";
 import {
   getJar,
+  listActiveJars,
   JarState,
+  JarPlanKind,
   type JarState as JarStateValue,
 } from "@/modules/plan/application";
+import { listOpenInboxItems } from "@/modules/inbox/application";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
@@ -19,7 +24,9 @@ import { SectionHeader } from "@/shared/patterns/section-header";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Text } from "@/shared/ui/text";
 import { PlanOfflineBanner } from "../../plan-offline-banner";
+import { EmergencyInboxBanner } from "../../emergency-inbox-banner";
 import { JarDetailControls } from "./jar-detail-controls";
+import { ReallocateJarForm } from "../reallocate-jar-form";
 
 type Props = {
   params: Promise<{ locale: string; id: string }>;
@@ -50,11 +57,15 @@ export default async function PlanJarDetailPage({ params }: Props) {
     return redirect({ href: APP_PATH.ONBOARD, locale });
   }
 
-  const [t, tCatalog, jar] = await Promise.all([
-    getTranslations("plan.jars"),
-    getTranslations("catalog"),
-    getJar(id),
-  ]);
+  const [t, tCatalog, jar, activeJars, policies, inboxItems] =
+    await Promise.all([
+      getTranslations("plan.jars"),
+      getTranslations("catalog"),
+      getJar(id),
+      listActiveJars(),
+      getHouseholdPolicies(),
+      listOpenInboxItems(),
+    ]);
 
   if (!jar) {
     return (
@@ -74,15 +85,26 @@ export default async function PlanJarDetailPage({ params }: Props) {
 
   const displayName = localizeCatalogName(tCatalog, "jars", jar.name);
   let plannedLabel = t("planNone");
-  if (jar.plan?.kind === "percent") {
+  if (jar.plan?.kind === JarPlanKind.PERCENT) {
     plannedLabel = t("planPercent", {
       percent: Math.round(jar.plan.percentBps / 100),
     });
-  } else if (jar.plan?.kind === "fixed") {
+  } else if (jar.plan?.kind === JarPlanKind.FIXED) {
     plannedLabel = formatCurrency(jar.plan.fixedAmount, jar.currency, locale, {
       maximumFractionDigits: 0,
     });
   }
+
+  const targetJars = (activeJars ?? [])
+    .filter((candidate) => candidate.id !== jar.id)
+    .map((candidate) => ({ id: candidate.id, name: candidate.name }));
+
+  const capacityLabel = formatCurrency(
+    jar.capacityDelta,
+    jar.currency,
+    locale,
+    { maximumFractionDigits: 0 },
+  );
 
   return (
     <div className="flex min-h-full flex-col" data-testid="plan-jar-detail">
@@ -90,10 +112,23 @@ export default async function PlanJarDetailPage({ params }: Props) {
       <div className="flex flex-1 flex-col gap-(--space-5) px-(--space-4) pb-(--space-6) pt-(--space-4)">
         <PlanOfflineBanner />
 
+        <EmergencyInboxBanner
+          items={inboxItems ?? []}
+          viewerUserId={user.id}
+          title={t("reallocate.emergencyBannerTitle")}
+          body={t("reallocate.emergencyBannerBody")}
+          openLabel={t("reallocate.emergencyBannerOpen")}
+        />
+
         <Amount
           label={t("plannedHeading")}
           amountLabel={plannedLabel}
           size="lg"
+        />
+
+        <Amount
+          label={t("reallocate.capacityDeltaHeading")}
+          amountLabel={capacityLabel}
         />
 
         <div className="flex items-center justify-between gap-(--space-3)">
@@ -133,6 +168,16 @@ export default async function PlanJarDetailPage({ params }: Props) {
             {t("ritualLockOpen")}
           </Link>
         </div>
+
+        {jar.state === JarState.ACTIVE ? (
+          <ReallocateJarForm
+            sourceJarId={jar.id}
+            capacityDelta={jar.capacityDelta}
+            currency={jar.currency}
+            targetJars={targetJars}
+            overspendPolicy={policies?.overspendPolicy ?? OverspendPolicy.WARN}
+          />
+        ) : null}
 
         <JarDetailControls jarId={jar.id} state={jar.state} plan={jar.plan} />
 

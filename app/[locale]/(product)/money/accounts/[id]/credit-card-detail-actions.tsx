@@ -6,10 +6,10 @@ import { useRouter, Link } from "@/i18n/navigation";
 import { moneyCardPath } from "@/modules/tenancy/application/app-path";
 import type { CreditCardDetail } from "@/modules/ledger/application/client";
 import {
-  CardBillingItemType,
   CardBillingMonthStatus,
   DEFAULT_CARD_INSTALLMENT_COUNT,
 } from "@/modules/ledger/application/client";
+import { canConvertBillingItemOnMonth } from "@/modules/ledger/application/credit-card-billing";
 import { AmountField } from "@/shared/patterns/amount-field";
 import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
@@ -65,13 +65,19 @@ export function CreditCardDetailActions({
   const [errorCode, setErrorCode] = useState<ErrorCode | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  const convertibleItems = card.items.filter(
-    (item) =>
-      item.itemType === CardBillingItemType.STANDARD &&
-      !item.isConvertedToInstallment &&
-      !item.isPaid &&
-      item.amount > 0,
-  );
+  const monthsById = new Map(card.months.map((month) => [month.id, month]));
+  const convertibleItems = card.items.filter((item) => {
+    const month = monthsById.get(item.billingMonthId);
+    if (!month) return false;
+    return canConvertBillingItemOnMonth({
+      monthPaidAmount: month.paidAmount,
+      monthStatus: month.status,
+      isPaid: item.isPaid,
+      isConvertedToInstallment: item.isConvertedToInstallment,
+      itemType: item.itemType,
+      itemAmount: item.amount,
+    });
+  });
 
   return (
     <div

@@ -3,6 +3,7 @@
  */
 
 import {
+  CardBillingItemType,
   CardBillingMonthStatus,
   type CardBillingMonthStatus as CardBillingMonthStatusValue,
 } from "./ledger-constants";
@@ -161,4 +162,53 @@ export function refreshMonthStatus(
   }
   if (paidAmount > 0) return CardBillingMonthStatus.PARTIAL;
   return CardBillingMonthStatus.OPEN;
+}
+
+/**
+ * Remove a converted billing item from the statement and keep paid/statement
+ * consistent (clamp orphaned payments that would exceed the new statement).
+ */
+export function applyBillingItemConversion(input: {
+  statementAmount: number;
+  paidAmount: number;
+  itemAmount: number;
+}): {
+  statementAmount: number;
+  paidAmount: number;
+  status: CardBillingMonthStatusValue;
+} {
+  const itemAmount = Math.abs(input.itemAmount);
+  const statementAmount = Math.max(0, input.statementAmount - itemAmount);
+  const paidAmount = Math.min(Math.max(0, input.paidAmount), statementAmount);
+  return {
+    statementAmount,
+    paidAmount,
+    status: refreshMonthStatus(statementAmount, paidAmount),
+  };
+}
+
+/**
+ * Convert-to-installment is only safe before any FIFO payment hits the month.
+ * After a partial pay, converting the full charge zeros statement while leaving
+ * paid_amount intact and falsely settles the card.
+ */
+export function canConvertBillingItemOnMonth(input: {
+  monthPaidAmount: number;
+  monthStatus: string;
+  isPaid: boolean;
+  isConvertedToInstallment: boolean;
+  itemType: string;
+  itemAmount: number;
+}): boolean {
+  if (input.isPaid || input.isConvertedToInstallment) return false;
+  if (input.itemType !== CardBillingItemType.STANDARD) return false;
+  if (input.itemAmount <= 0) return false;
+  if (input.monthPaidAmount > 0) return false;
+  if (
+    input.monthStatus === CardBillingMonthStatus.PARTIAL ||
+    input.monthStatus === CardBillingMonthStatus.SETTLED
+  ) {
+    return false;
+  }
+  return true;
 }

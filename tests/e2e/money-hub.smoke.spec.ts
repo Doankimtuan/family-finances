@@ -10,12 +10,14 @@ test.describe("Money hub + accounts (ST-E04-001)", () => {
     await expect(page).toHaveURL(/\/en\/login/, { timeout: 20_000 });
   });
 
-  test("unauthenticated accounts redirects to login", async ({ page }) => {
+  test("unauthenticated accounts index redirects toward login", async ({
+    page,
+  }) => {
     await page.goto("/en/money/accounts", { waitUntil: "domcontentloaded" });
     await expect(page).toHaveURL(/\/en\/login/, { timeout: 20_000 });
   });
 
-  test("money hub and accounts when E2E credentials exist", async ({
+  test("money hub create account when E2E credentials exist", async ({
     page,
   }) => {
     const email = process.env.E2E_USER_EMAIL;
@@ -39,15 +41,9 @@ test.describe("Money hub + accounts (ST-E04-001)", () => {
     await expect(page.getByTestId("ledger-balance")).toBeVisible();
     await expect(page.getByTestId("money-capture")).toBeVisible();
     await expect(page.getByText(/Real position|jar plans/i)).toBeVisible();
+    await expect(page.getByTestId("money-accounts-scan")).toBeVisible();
 
-    await page.getByTestId("money-see-accounts").click();
-    await expect(page).toHaveURL(/\/en\/money\/accounts/);
-    await expect(page.getByTestId("money-accounts")).toBeVisible();
-    await expect(page.getByTestId("account-add-open")).toBeVisible();
-    await expect(page.getByTestId("accounts-link-debts")).toBeVisible();
-    await expect(page.getByTestId("accounts-link-cards")).toBeVisible();
-
-    await page.getByTestId("account-add-open").click();
+    await page.getByTestId("money-create-account").click();
     await expect(page.getByTestId("account-add-form")).toBeVisible();
     await page.locator('input[name="accountType"][value="checking"]').check();
     await expect(page.getByTestId("account-opening-balance")).toBeVisible();
@@ -58,5 +54,9 @@ test.describe("Money hub + accounts (ST-E04-001)", () => {
       page.getByTestId("account-credit-card-settings"),
     ).toBeVisible();
     await expect(page.getByTestId("account-credit-limit")).toBeVisible();
+
+    await page.goto("/en/money/accounts");
+    await expect(page).toHaveURL(/\/en\/money\/?$/);
+    await expect(page.getByTestId("money-hub")).toBeVisible();
   });
 });

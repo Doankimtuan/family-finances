@@ -17,9 +17,25 @@ export const InboxItemKind = {
   INCOME_SUGGEST: "income_suggest",
   SAVINGS_MATURITY: "savings_maturity",
   EMI_COMPLETE: "emi_complete",
+  EMERGENCY_DECLARATION: "emergency_declaration",
 } as const;
 
 export type InboxItemKind = (typeof InboxItemKind)[keyof typeof InboxItemKind];
+
+export const InboxSourceType = {
+  TRANSACTION: "transaction",
+  GUIDED: "guided",
+  PLAN_MOVEMENT: "plan_movement",
+} as const;
+
+export type InboxSourceType =
+  (typeof InboxSourceType)[keyof typeof InboxSourceType];
+
+export const INBOX_SOURCE_TYPE_VALUES = [
+  InboxSourceType.TRANSACTION,
+  InboxSourceType.GUIDED,
+  InboxSourceType.PLAN_MOVEMENT,
+] as const;
 
 export const MaturityAckAction = {
   RENEW: "renew",
@@ -49,7 +65,8 @@ export function isJarResolvableKind(kind: InboxItemKind): boolean {
 export function isGuidedKind(kind: InboxItemKind): boolean {
   return (
     kind === InboxItemKind.SAVINGS_MATURITY ||
-    kind === InboxItemKind.EMI_COMPLETE
+    kind === InboxItemKind.EMI_COMPLETE ||
+    kind === InboxItemKind.EMERGENCY_DECLARATION
   );
 }
 
@@ -61,6 +78,8 @@ export function mapInboxKind(value: string | null | undefined): InboxItemKind {
       return InboxItemKind.SAVINGS_MATURITY;
     case InboxItemKind.EMI_COMPLETE:
       return InboxItemKind.EMI_COMPLETE;
+    case InboxItemKind.EMERGENCY_DECLARATION:
+      return InboxItemKind.EMERGENCY_DECLARATION;
     default:
       return InboxItemKind.UNMAPPED_EXPENSE;
   }

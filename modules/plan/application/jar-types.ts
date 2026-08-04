@@ -35,6 +35,8 @@ export type PlanJar = {
   kind: JarKindValue;
   state: JarStateValue;
   sortOrder: number;
+  /** Virtual capacity shifts from plan movements (BR-01). */
+  capacityDelta: number;
   plan: JarPlan | null;
 };
 
@@ -111,6 +113,7 @@ export function mapJarRow(row: {
   sort_order: number;
   is_archived: boolean;
   is_paused?: boolean | null;
+  capacity_delta?: number | string | null;
   jar_plans?:
     | {
         plan_kind: string;
@@ -133,6 +136,7 @@ export function mapJarRow(row: {
     kind: asJarKind(row.kind),
     state: resolveJarState(row),
     sortOrder: row.sort_order,
+    capacityDelta: Number(row.capacity_delta) || 0,
     plan: mapJarPlan(planRaw),
   };
 }

@@ -51,6 +51,7 @@ export function InboxDecisionPanel({ item, jars }: Props) {
   const jarResolvable = isJarResolvableKind(item.kind);
   const isMaturity = item.kind === InboxItemKind.SAVINGS_MATURITY;
   const isEmi = item.kind === InboxItemKind.EMI_COMPLETE;
+  const isEmergency = item.kind === InboxItemKind.EMERGENCY_DECLARATION;
 
   const finishOk = () => {
     router.push(APP_PATH.INBOX);
@@ -218,6 +219,23 @@ export function InboxDecisionPanel({ item, jars }: Props) {
           >
             {t("emiLater")}
           </Button>
+        </section>
+      ) : null}
+
+      {isEmergency ? (
+        <section
+          className="flex flex-col gap-(--space-3)"
+          data-testid="inbox-emergency-panel"
+        >
+          <StatusAlert
+            variant="warning"
+            title={t("emergencyHeading")}
+            description={
+              item.intentNote
+                ? t("emergencyHintWithNote", { note: item.intentNote })
+                : t("emergencyHint")
+            }
+          />
         </section>
       ) : null}
 

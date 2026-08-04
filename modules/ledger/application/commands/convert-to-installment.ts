@@ -8,12 +8,15 @@ import {
 } from "@/modules/tenancy/application/product-action-error";
 import {
   CardBillingItemType,
-  CardBillingMonthStatus,
   DEFAULT_CARD_INSTALLMENT_COUNT,
   DEFAULT_CURRENCY,
+  LEDGER_ACTION_ERROR_CODE,
 } from "../ledger-constants";
 import { InstallmentPlanStatus } from "../money-product-types";
-import { refreshMonthStatus } from "../credit-card-billing";
+import {
+  applyBillingItemConversion,
+  canConvertBillingItemOnMonth,
+} from "../credit-card-billing";
 
 export const convertToInstallmentInputSchema = z.object({
   billingItemId: z.string().uuid(),
@@ -32,11 +35,18 @@ export type ConvertToInstallmentInput = z.infer<
 >;
 
 export type ConvertToInstallmentResult =
-  { ok: true; planId: string } | { ok: false; code: ProductActionErrorCode };
+  | { ok: true; planId: string }
+  | {
+      ok: false;
+      code:
+        | ProductActionErrorCode
+        | typeof LEDGER_ACTION_ERROR_CODE.CONVERT_AFTER_PAYMENT;
+    };
 
 /**
  * Convert a standard billing item into an installment plan (legacy EMI convert).
  * monthly = round(original / N); fee charged conceptually on plan total metadata.
+ * Blocked after any FIFO payment on the billing month (partial settle).
  */
 export async function convertToInstallment(
   raw: ConvertToInstallmentInput,
@@ -79,11 +89,6 @@ export async function convertToInstallment(
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
     }
 
-    const n = parsed.data.numInstallments;
-    const fee = parsed.data.conversionFee;
-    const monthlyAmount = Math.round(originalAmount / n);
-    const totalAmount = originalAmount + fee;
-
     const { data: month } = await supabase
       .from("card_billing_months")
       .select("id, statement_amount, paid_amount, status")
@@ -93,6 +98,31 @@ export async function convertToInstallment(
     if (!month) {
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
     }
+
+    const monthPaidAmount = Number(month.paid_amount);
+    if (
+      !canConvertBillingItemOnMonth({
+        monthPaidAmount,
+        monthStatus: month.status,
+        isPaid: item.is_paid,
+        isConvertedToInstallment: item.is_converted_to_installment,
+        itemType: item.item_type,
+        itemAmount: originalAmount,
+      })
+    ) {
+      if (monthPaidAmount > 0) {
+        return {
+          ok: false,
+          code: LEDGER_ACTION_ERROR_CODE.CONVERT_AFTER_PAYMENT,
+        };
+      }
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
+    }
+
+    const n = parsed.data.numInstallments;
+    const fee = parsed.data.conversionFee;
+    const monthlyAmount = Math.round(originalAmount / n);
+    const totalAmount = originalAmount + fee;
 
     const { data: plan, error: planError } = await supabase
       .from("installment_plans")
@@ -133,18 +163,18 @@ export async function convertToInstallment(
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
     }
 
-    const nextStatement = Math.max(
-      0,
-      Number(month.statement_amount) - originalAmount,
-    );
-    const paidAmount = Number(month.paid_amount);
-    const status = refreshMonthStatus(nextStatement, paidAmount);
+    const next = applyBillingItemConversion({
+      statementAmount: Number(month.statement_amount),
+      paidAmount: monthPaidAmount,
+      itemAmount: originalAmount,
+    });
 
     const { error: monthError } = await supabase
       .from("card_billing_months")
       .update({
-        statement_amount: nextStatement,
-        status: nextStatement <= 0 ? CardBillingMonthStatus.SETTLED : status,
+        statement_amount: next.statementAmount,
+        paid_amount: next.paidAmount,
+        status: next.status,
         updated_at: new Date().toISOString(),
       })
       .eq("id", month.id);

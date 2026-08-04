@@ -1,13 +1,18 @@
 import { describe, expect, it } from "vitest";
 import {
+  applyBillingItemConversion,
   applyFifoSettlement,
+  canConvertBillingItemOnMonth,
   computeAvailableCredit,
   computeOutstanding,
   resolveBillingDueDate,
   resolveBillingMonthKey,
   wouldExceedCreditLimit,
 } from "@/modules/ledger/application/credit-card-billing";
-import { CardBillingMonthStatus } from "@/modules/ledger/application/ledger-constants";
+import {
+  CardBillingItemType,
+  CardBillingMonthStatus,
+} from "@/modules/ledger/application/ledger-constants";
 
 describe("resolveBillingMonthKey", () => {
   it("keeps month when day is on or before statement day", () => {
@@ -85,5 +90,79 @@ describe("applyFifoSettlement", () => {
     expect(result.months[1]?.status).toBe(CardBillingMonthStatus.PARTIAL);
     expect(result.months[1]?.paidAmount).toBe(20);
     expect(result.remainingPayment).toBe(0);
+  });
+
+  it("leaves remaining debt after partial payment on a 3M statement", () => {
+    const result = applyFifoSettlement(
+      [
+        {
+          id: "m1",
+          statementAmount: 3_000_000,
+          paidAmount: 0,
+          status: CardBillingMonthStatus.OPEN,
+        },
+      ],
+      1_500_000,
+    );
+    expect(result.months[0]?.status).toBe(CardBillingMonthStatus.PARTIAL);
+    expect(result.months[0]?.paidAmount).toBe(1_500_000);
+    expect(
+      computeOutstanding([
+        {
+          statementAmount: result.months[0]!.statementAmount,
+          paidAmount: result.months[0]!.paidAmount,
+          status: result.months[0]!.status,
+        },
+      ]),
+    ).toBe(1_500_000);
+    expect(result.remainingPayment).toBe(0);
+  });
+});
+
+describe("convert after partial payment", () => {
+  it("blocks convert when the month already has paid_amount", () => {
+    expect(
+      canConvertBillingItemOnMonth({
+        monthPaidAmount: 1_500_000,
+        monthStatus: CardBillingMonthStatus.PARTIAL,
+        isPaid: false,
+        isConvertedToInstallment: false,
+        itemType: CardBillingItemType.STANDARD,
+        itemAmount: 3_000_000,
+      }),
+    ).toBe(false);
+  });
+
+  it("allows convert on an unpaid open month", () => {
+    expect(
+      canConvertBillingItemOnMonth({
+        monthPaidAmount: 0,
+        monthStatus: CardBillingMonthStatus.OPEN,
+        isPaid: false,
+        isConvertedToInstallment: false,
+        itemType: CardBillingItemType.STANDARD,
+        itemAmount: 3_000_000,
+      }),
+    ).toBe(true);
+  });
+
+  it("clamps paid_amount when converting so outstanding cannot go negative-settled", () => {
+    const next = applyBillingItemConversion({
+      statementAmount: 3_000_000,
+      paidAmount: 1_500_000,
+      itemAmount: 3_000_000,
+    });
+    expect(next.statementAmount).toBe(0);
+    expect(next.paidAmount).toBe(0);
+    expect(next.status).toBe(CardBillingMonthStatus.SETTLED);
+    expect(
+      computeOutstanding([
+        {
+          statementAmount: next.statementAmount,
+          paidAmount: next.paidAmount,
+          status: next.status,
+        },
+      ]),
+    ).toBe(0);
   });
 });
