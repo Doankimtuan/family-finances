@@ -5,11 +5,14 @@ import { JarState, mapIncomeAllocateMode, resolveJarState } from "../jar-types";
 import { GoalStatus, RitualStatus } from "../plan-constants";
 import { currentPeriodMonth } from "../ritual-period";
 import {
+  isRitualLockedStatus,
   mapRitualMode,
   mapRitualStatus,
+  resolveQuickCloseEligible,
   type MonthRitual,
   type RitualPreview,
 } from "../ritual-types";
+import { listRitualDivergence, listRitualEmergencies } from "./ritual-gates";
 
 type RitualRow = {
   id: string;
@@ -20,6 +23,7 @@ type RitualRow = {
   preview_json: unknown;
   approved_at: string | null;
   correction_note: string | null;
+  auto_locked_at: string | null;
 };
 
 function emptyPreview(
@@ -151,13 +155,15 @@ export async function getMonthRitual(
     const [{ data: household }, { data: row, error }] = await Promise.all([
       supabase
         .from("households")
-        .select("month_close_mode, income_allocate_mode")
+        .select(
+          "month_close_mode, income_allocate_mode, consecutive_completed_rituals",
+        )
         .eq("id", gate.householdId)
         .maybeSingle(),
       supabase
         .from("month_ritual_runs")
         .select(
-          "id, household_id, period_month, status, mode, preview_json, approved_at, correction_note",
+          "id, household_id, period_month, status, mode, preview_json, approved_at, correction_note, auto_locked_at",
         )
         .eq("household_id", gate.householdId)
         .eq("period_month", periodMonth)
@@ -168,17 +174,46 @@ export async function getMonthRitual(
     const incomeAllocateMode = mapIncomeAllocateMode(
       household?.income_allocate_mode,
     );
+    const consecutiveCompletedRituals = Number(
+      household?.consecutive_completed_rituals ?? 0,
+    );
+    const quickCloseEligible = resolveQuickCloseEligible(
+      consecutiveCompletedRituals,
+    );
     const fallback = emptyPreview(
       periodMonth,
       monthCloseMode,
       incomeAllocateMode,
     );
 
+    const [divergence, emergencies] = await Promise.all([
+      listRitualDivergence(gate.householdId, periodMonth),
+      listRitualEmergencies(gate.householdId, periodMonth),
+    ]);
+
+    const enrich = (
+      base: Omit<
+        MonthRitual,
+        | "divergence"
+        | "emergencies"
+        | "consecutiveCompletedRituals"
+        | "quickCloseEligible"
+        | "autoLockedAt"
+      > & { autoLockedAt?: string | null },
+    ): MonthRitual => ({
+      ...base,
+      autoLockedAt: base.autoLockedAt ?? null,
+      divergence,
+      emergencies,
+      consecutiveCompletedRituals,
+      quickCloseEligible,
+    });
+
     // Table may not exist until migration is applied
     if (error) {
       const live =
         (await buildRitualPreview(gate.householdId, periodMonth)) ?? fallback;
-      return {
+      return enrich({
         id: null,
         householdId: gate.householdId,
         periodMonth,
@@ -188,13 +223,13 @@ export async function getMonthRitual(
         approvedAt: null,
         correctionNote: null,
         isLocked: false,
-      };
+      });
     }
 
     if (!row) {
       const live =
         (await buildRitualPreview(gate.householdId, periodMonth)) ?? fallback;
-      return {
+      return enrich({
         id: null,
         householdId: gate.householdId,
         periodMonth,
@@ -204,7 +239,7 @@ export async function getMonthRitual(
         approvedAt: null,
         correctionNote: null,
         isLocked: false,
-      };
+      });
     }
 
     const ritual = row as RitualRow;
@@ -215,7 +250,7 @@ export async function getMonthRitual(
           parseStoredPreview(ritual.preview_json, fallback))
         : parseStoredPreview(ritual.preview_json, fallback);
 
-    return {
+    return enrich({
       id: ritual.id,
       householdId: ritual.household_id,
       periodMonth: ritual.period_month,
@@ -224,8 +259,9 @@ export async function getMonthRitual(
       preview,
       approvedAt: ritual.approved_at,
       correctionNote: ritual.correction_note,
-      isLocked: status === RitualStatus.APPROVED,
-    };
+      autoLockedAt: ritual.auto_locked_at,
+      isLocked: isRitualLockedStatus(status),
+    });
   } catch {
     return null;
   }

@@ -103,6 +103,7 @@ export const RitualMode = {
   ASSISTED: "assisted",
   AUTO: "auto",
   MANUAL: "manual",
+  QUICK_CLOSE: "quick_close",
 } as const;
 
 export type RitualMode = (typeof RitualMode)[keyof typeof RitualMode];
@@ -111,6 +112,7 @@ export const RITUAL_MODE_VALUES = [
   RitualMode.ASSISTED,
   RitualMode.AUTO,
   RitualMode.MANUAL,
+  RitualMode.QUICK_CLOSE,
 ] as const;
 
 export const RitualStatus = {
@@ -118,6 +120,8 @@ export const RitualStatus = {
   PREVIEWED: "previewed",
   APPROVED: "approved",
   CORRECTED: "corrected",
+  /** Spec PendingReview — 30-day temporal auto-lock (BR-08). */
+  PENDING_REVIEW: "pending_review",
 } as const;
 
 export type RitualStatus = (typeof RitualStatus)[keyof typeof RitualStatus];
@@ -127,7 +131,33 @@ export const RITUAL_STATUS_VALUES = [
   RitualStatus.PREVIEWED,
   RitualStatus.APPROVED,
   RitualStatus.CORRECTED,
+  RitualStatus.PENDING_REVIEW,
 ] as const;
+
+/** Statuses that lock normal plan mutations (BR-08). */
+export const RITUAL_LOCKED_STATUSES = [
+  RitualStatus.APPROVED,
+  RitualStatus.PENDING_REVIEW,
+] as const;
+
+/** Unapproved statuses eligible for temporal auto-lock. */
+export const RITUAL_AUTOLOCK_ELIGIBLE_STATUSES = [
+  RitualStatus.DRAFT,
+  RitualStatus.PREVIEWED,
+  RitualStatus.CORRECTED,
+] as const;
+
+/** Days after month-end before unapproved rituals auto-lock (BR-08 / AC-RIT-01). */
+export const RITUAL_AUTOLOCK_DAYS_AFTER_MONTH_END = 30;
+
+/** Consecutive Assisted approvals required before Quick Close (BR-23). */
+export const QUICK_CLOSE_CONSECUTIVE_RITUALS = 6;
+
+/**
+ * Spec "Miscellaneous Jar" fallback for BR-15 month-lock triage.
+ * Seeded household name remains `General` (Sprint 1).
+ */
+export const MISCELLANEOUS_JAR_NAME = "General";
 
 /** Plan movements never touch the Real Ledger (BR-01 / AC-JAR-01). */
 export const PLAN_MOVEMENT_LEDGER_IMPACT = 0;
@@ -163,3 +193,12 @@ export const PLAN_ACTION_ERROR_CODE = {
 
 export type PlanActionErrorCode =
   (typeof PLAN_ACTION_ERROR_CODE)[keyof typeof PLAN_ACTION_ERROR_CODE];
+
+/** Month Ritual gate failures (ST-E04-002 / BR-23). */
+export const RITUAL_GATE_ERROR_CODE = {
+  RITUAL_DIVERGENCE: "ritual_divergence",
+  QUICK_CLOSE_LOCKED: "quick_close_locked",
+} as const;
+
+export type RitualGateErrorCode =
+  (typeof RITUAL_GATE_ERROR_CODE)[keyof typeof RITUAL_GATE_ERROR_CODE];

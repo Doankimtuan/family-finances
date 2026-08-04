@@ -5,11 +5,11 @@ import {
   approveMonthRitual,
   correctMonthRitual,
   type CorrectMonthRitualInput,
+  type RitualActionErrorCode,
 } from "@/modules/plan/application";
-import type { ProductActionErrorCode } from "@/modules/tenancy/application/product-action-error";
 import type { RitualStatus } from "@/modules/plan/application/ritual-types";
 
-type Err = { status: "error"; code: ProductActionErrorCode };
+type Err = { status: "error"; code: RitualActionErrorCode };
 type Ok = { status: "success"; ritualStatus: RitualStatus };
 
 export async function previewRitualAction(): Promise<Ok | Err> {
@@ -20,8 +20,12 @@ export async function previewRitualAction(): Promise<Ok | Err> {
   return { status: "error", code: result.code };
 }
 
-export async function approveRitualAction(): Promise<Ok | Err> {
-  const result = await approveMonthRitual();
+export async function approveRitualAction(
+  options: { quickClose?: boolean } = {},
+): Promise<Ok | Err> {
+  const result = await approveMonthRitual({
+    quickClose: options.quickClose === true,
+  });
   if (result.ok) {
     return { status: "success", ritualStatus: result.status };
   }

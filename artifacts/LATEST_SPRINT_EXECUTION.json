@@ -1,14 +1,14 @@
 {
   "pack": "sprint-execution",
   "status": "CHECKPOINT",
-  "current": "artifacts/sprint-execution/Sprint-3",
-  "sprint": "Sprint-3",
-  "sprint_folder": "Sprint-3",
+  "current": "artifacts/sprint-execution/Sprint-4",
+  "sprint": "Sprint-4",
+  "sprint_folder": "Sprint-4",
   "plan": "artifacts/implementation-planning/CURRENT",
-  "last_frozen_story": "ST-E03-003",
+  "last_frozen_story": "ST-E04-003",
   "next_story": null,
   "sprint_status": "COMPLETE",
-  "run_id": "run_sprint_exec_v21_S3_20260804T043338Z",
-  "updated_at": "2026-08-04T04:33:38Z",
-  "note": "Spec v2.1 Implementation Planning Sprint 3. Distinct from rewrite sprint-003. Stop — do not auto-start Sprint 4."
+  "run_id": "run_sprint_exec_v21_S4_20260804T051000Z",
+  "updated_at": "2026-08-04T05:10:00Z",
+  "note": "Spec v2.1 Implementation Planning Sprint 4. Distinct from rewrite ST-E04 Money stories. Stop — do not auto-start Sprint 5."
 }

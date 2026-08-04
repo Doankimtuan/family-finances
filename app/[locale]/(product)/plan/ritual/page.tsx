@@ -6,7 +6,10 @@ import { routing } from "@/i18n/routing";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
-import { getMonthRitual } from "@/modules/plan/application";
+import {
+  getMonthRitual,
+  runMonthRitualAutolockWorker,
+} from "@/modules/plan/application";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { PlanOfflineBanner } from "../plan-offline-banner";
@@ -28,6 +31,9 @@ export default async function PlanRitualPage({ params }: Props) {
   if (!user) return redirect({ href: APP_PATH.LOGIN, locale });
   const membership = await resolveActiveMembership(user.id);
   if (!membership) return redirect({ href: APP_PATH.ONBOARD, locale });
+
+  // Best-effort BR-08 sweep — do not block ritual render.
+  void runMonthRitualAutolockWorker();
 
   const [t, ritual] = await Promise.all([
     getTranslations("plan.ritual"),

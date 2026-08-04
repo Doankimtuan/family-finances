@@ -38,13 +38,22 @@ export {
   type ReallocateJarCapacityInput,
 } from "./commands/reallocate-jar-capacity.schema";
 
-export {
-  RitualMode,
-  RitualStatus,
-  IncomeAllocateMode,
-  type MonthRitual,
-  type RitualPreview,
+export type {
+  MonthRitual,
+  RitualPreview,
+  RitualDivergenceItem,
+  RitualEmergencyItem,
+  RitualActionErrorCode,
 } from "./ritual-types";
+
+export { RitualMode, RitualStatus, IncomeAllocateMode } from "./ritual-types";
+
+export {
+  QUICK_CLOSE_CONSECUTIVE_RITUALS,
+  RITUAL_AUTOLOCK_DAYS_AFTER_MONTH_END,
+  MISCELLANEOUS_JAR_NAME,
+  RITUAL_LOCKED_STATUSES,
+} from "./plan-constants";
 
 export {
   GoalStatus,
@@ -55,4 +64,10 @@ export {
   RECURRING_FREQUENCY_VALUES,
 } from "./goal-recurring-types";
 
-export { currentPeriodMonth, formatPeriodLabel } from "./ritual-period";
+export {
+  currentPeriodMonth,
+  formatPeriodLabel,
+  periodMonthEndDate,
+  isRitualAutolockDue,
+  isQuickCloseEligible,
+} from "./ritual-period";

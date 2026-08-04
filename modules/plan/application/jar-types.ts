@@ -158,6 +158,12 @@ export function mapIncomeAllocateMode(
 export function mapMonthCloseMode(
   value: string | null | undefined,
 ): RitualModeValue {
-  if (value === RitualMode.AUTO || value === RitualMode.MANUAL) return value;
+  if (
+    value === RitualMode.AUTO ||
+    value === RitualMode.MANUAL ||
+    value === RitualMode.QUICK_CLOSE
+  ) {
+    return value;
+  }
   return RitualMode.ASSISTED;
 }

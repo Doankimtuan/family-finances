@@ -6,13 +6,14 @@ import {
   type ProductActionErrorCode,
 } from "@/modules/tenancy/application/product-action-error";
 import { currentPeriodMonth } from "./ritual-period";
+import { RitualStatus, RITUAL_LOCKED_STATUSES } from "./plan-constants";
 
 export type PlanLockGate =
   | { ok: true }
   | { ok: false; code: typeof PRODUCT_ACTION_ERROR_CODE.MONTH_LOCKED };
 
 /**
- * BR-08 / AC-008 — approved Month Ritual locks normal plan mutations.
+ * BR-08 / AC-008 — approved or pending_review Month Ritual locks normal plan mutations.
  * If the ritual table is missing (migration pending), fail open so Plan stays usable.
  */
 export async function assertPlanPeriodUnlocked(
@@ -26,7 +27,7 @@ export async function assertPlanPeriodUnlocked(
       .select("id")
       .eq("household_id", householdId)
       .eq("period_month", periodMonth)
-      .eq("status", "approved")
+      .in("status", [...RITUAL_LOCKED_STATUSES])
       .maybeSingle();
 
     if (error) {
@@ -47,4 +48,10 @@ export function isMonthLockedCode(
   code: ProductActionErrorCode,
 ): code is typeof PRODUCT_ACTION_ERROR_CODE.MONTH_LOCKED {
   return code === PRODUCT_ACTION_ERROR_CODE.MONTH_LOCKED;
+}
+
+export function isPendingReviewStatus(
+  status: string | null | undefined,
+): boolean {
+  return status === RitualStatus.PENDING_REVIEW;
 }

@@ -6,6 +6,10 @@ export { listGoals, getGoal } from "./queries/list-goals";
 export { listRecurring, getRecurring } from "./queries/list-recurring";
 export { getMonthRitual, buildRitualPreview } from "./queries/get-month-ritual";
 export {
+  listRitualDivergence,
+  listRitualEmergencies,
+} from "./queries/ritual-gates";
+export {
   setJarState,
   setJarStateInputSchema,
   type SetJarStateInput,
@@ -84,10 +88,19 @@ export {
   correctMonthRitual,
   correctMonthRitualInputSchema,
   type CorrectMonthRitualInput,
+  type ApproveMonthRitualOptions,
   type RitualMutationResult,
 } from "./commands/month-ritual";
+export { runMonthRitualAutolockWorker } from "./commands/run-month-ritual-autolock";
 export { assertPlanPeriodUnlocked } from "./assert-plan-unlocked";
-export { currentPeriodMonth, formatPeriodLabel } from "./ritual-period";
+export {
+  currentPeriodMonth,
+  formatPeriodLabel,
+  periodMonthEndDate,
+  periodMonthExclusiveEnd,
+  isRitualAutolockDue,
+  isQuickCloseEligible,
+} from "./ritual-period";
 export type {
   PlanJar,
   PlanPulse,
@@ -127,10 +140,18 @@ export {
   RECURRING_DIRECTION_OPTIONS,
   RECURRING_FREQUENCY_VALUES,
 } from "./goal-recurring-types";
-export type { MonthRitual, RitualPreview } from "./ritual-types";
+export type {
+  MonthRitual,
+  RitualPreview,
+  RitualDivergenceItem,
+  RitualEmergencyItem,
+  RitualActionErrorCode,
+} from "./ritual-types";
 export {
   mapRitualMode,
   mapRitualStatus,
+  isRitualLockedStatus,
+  resolveQuickCloseEligible,
   RitualMode,
   RitualStatus,
   IncomeAllocateMode,
@@ -139,5 +160,10 @@ export {
   INCOME_ALLOCATE_MODE_VALUES,
   RITUAL_MODE_VALUES,
   RITUAL_STATUS_VALUES,
+  RITUAL_LOCKED_STATUSES,
+  RITUAL_AUTOLOCK_ELIGIBLE_STATUSES,
+  RITUAL_AUTOLOCK_DAYS_AFTER_MONTH_END,
+  QUICK_CLOSE_CONSECUTIVE_RITUALS,
+  MISCELLANEOUS_JAR_NAME,
 } from "./plan-constants";
 export { DEFAULT_CURRENCY } from "@/modules/ledger/application/ledger-constants";
