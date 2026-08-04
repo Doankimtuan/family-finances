@@ -21,6 +21,10 @@ export {
   type ListTransactionsFilter,
 } from "./queries/get-transaction";
 export {
+  getTransactionAuditChain,
+  type TransactionAuditChain,
+} from "./queries/get-transaction-audit-chain";
+export {
   createAccount,
   createAccountInputSchema,
   type CreateAccountInput,
@@ -50,6 +54,45 @@ export {
   type RecordTransactionResult,
   type RecordTransactionErrorCode,
 } from "./commands/record-transaction";
+export {
+  createCategory,
+  createCategoryInputSchema,
+  type CreateCategoryInput,
+  type CreateCategoryResult,
+  type CreateCategoryErrorCode,
+} from "./commands/create-category";
+export {
+  refundTransaction,
+  refundTransactionInputSchema,
+  type RefundTransactionInput,
+  type RefundTransactionResult,
+  type RefundTransactionErrorCode,
+} from "./commands/refund-transaction";
+export {
+  correctTransaction,
+  correctTransactionInputSchema,
+  type CorrectTransactionInput,
+  type CorrectTransactionResult,
+  type CorrectTransactionErrorCode,
+} from "./commands/correct-transaction";
+export {
+  resolveRefundedStatus,
+  jarCapacityRestoredByRefund,
+  isRefundableStatus,
+} from "./refund-policy";
+export {
+  countsTowardMonthlyIncome,
+  sumMonthlyIncome,
+  jarCapacityDelta,
+  sumJarCapacity,
+} from "./income-exclusion-policy";
+export {
+  buildCorrectionChain,
+  correctionChainNetImpact,
+  oppositeDirection,
+  signedAmount,
+} from "./correction-policy";
+export { isCategoryJarMapped, requiresJarMapping } from "./category-jar-policy";
 export {
   settleCard,
   settleCardInputSchema,
@@ -149,6 +192,11 @@ export {
   TransactionDirection,
   TRANSACTION_DIRECTION_OPTIONS,
   TRANSACTION_DIRECTION_VALUES,
+  TransactionStatus,
+  TRANSACTION_STATUS_VALUES,
+  TRANSACTION_REFUNDABLE_STATUS_VALUES,
+  TRANSACTION_CORRECTABLE_STATUS_VALUES,
+  TRANSACTION_BALANCE_STATUS_VALUES,
   TransactionFilterType,
   TRANSACTION_FILTER_OPTIONS,
   AccountType,

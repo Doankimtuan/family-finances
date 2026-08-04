@@ -13,6 +13,7 @@ import {
   JAR_KIND_VALUES,
   type JarKind as JarKindValue,
 } from "../plan-constants";
+import { TransactionDirection } from "@/modules/ledger/application/ledger-constants";
 
 export const createJarInputSchema = z.object({
   name: z.string().trim().min(2).max(80),
@@ -81,6 +82,21 @@ export async function createJar(raw: CreateJarInput): Promise<CreateJarResult> {
       plan_kind: JarPlanKind.PERCENT,
       percent_bps: 0,
       fixed_amount: 0,
+    });
+
+    // BR-12 Rule 2: creating a jar seeds a matching household category.
+    const categoryKind =
+      parsed.data.kind === JarKind.INCOME
+        ? TransactionDirection.INCOME
+        : TransactionDirection.EXPENSE;
+    await supabase.from("categories").insert({
+      household_id: gate.householdId,
+      kind: categoryKind,
+      name: parsed.data.name,
+      is_system: false,
+      is_active: true,
+      sort_order: sortOrder,
+      jar_id: data.id,
     });
 
     return { ok: true, jarId: data.id };

@@ -61,6 +61,14 @@ export function moneyTransactionEditPath(transactionId: string): string {
   return `${moneyTransactionPath(transactionId)}/edit`;
 }
 
+export function moneyTransactionRefundPath(transactionId: string): string {
+  return `${moneyTransactionPath(transactionId)}/refund`;
+}
+
+export function moneyTransactionCorrectPath(transactionId: string): string {
+  return `${moneyTransactionPath(transactionId)}/correct`;
+}
+
 export function planJarPath(jarId: string): string {
   return `${APP_PATH.PLAN_JARS}/${jarId}`;
 }

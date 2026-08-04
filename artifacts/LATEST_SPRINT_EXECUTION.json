@@ -1,12 +1,14 @@
 {
   "pack": "sprint-execution",
   "status": "CHECKPOINT",
-  "current": "artifacts/sprint-execution/CURRENT",
-  "sprint": "S6",
-  "sprint_folder": "sprint-006",
-  "last_frozen_story": "ST-E04-004",
+  "current": "artifacts/sprint-execution/Sprint-1",
+  "sprint": "Sprint-1",
+  "sprint_folder": "Sprint-1",
+  "plan": "artifacts/implementation-planning/CURRENT",
+  "last_frozen_story": "ST-E01-003",
   "next_story": null,
   "sprint_status": "COMPLETE",
-  "run_id": "run_sprint_exec_ST-E04-004_20260803T065138Z",
-  "updated_at": "2026-08-03T06:51:38Z"
+  "run_id": "run_sprint_exec_v21_S1_20260803T152510Z",
+  "updated_at": "2026-08-03T15:25:10Z",
+  "note": "Spec v2.1 Implementation Planning Sprint 1. Distinct from rewrite sprint-001..006."
 }

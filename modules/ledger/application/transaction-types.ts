@@ -2,6 +2,7 @@ import type { AccountType, LedgerAccount } from "./account-types";
 import {
   DEFAULT_CURRENCY,
   TransactionDirection,
+  TransactionStatus,
   type TransactionDirection as TransactionDirectionValue,
 } from "./ledger-constants";
 
@@ -9,6 +10,8 @@ export {
   TransactionDirection,
   TRANSACTION_DIRECTION_OPTIONS,
   TRANSACTION_DIRECTION_VALUES,
+  TransactionStatus,
+  TRANSACTION_STATUS_VALUES,
   DEFAULT_CURRENCY,
 } from "./ledger-constants";
 
@@ -25,6 +28,10 @@ export type LedgerTransaction = {
   categoryName: string | null;
   jarId: string | null;
   jarName: string | null;
+  status: string;
+  reversesTransactionId: string | null;
+  correctsTransactionId: string | null;
+  isReversal: boolean;
   createdAt: string;
 };
 
@@ -32,6 +39,7 @@ export type CategoryTag = {
   id: string;
   kind: TransactionDirectionValue;
   name: string;
+  jarId: string | null;
 };
 
 export type CaptureJarOption = {
@@ -67,6 +75,10 @@ export function mapTransactionRow(row: {
   note: string | null;
   category_id: string | null;
   jar_id: string | null;
+  status?: string | null;
+  reverses_transaction_id?: string | null;
+  corrects_transaction_id?: string | null;
+  is_reversal?: boolean | null;
   created_at: string;
   accounts?: { name: string } | null;
   categories?: { name: string } | null;
@@ -74,6 +86,7 @@ export function mapTransactionRow(row: {
 }): LedgerTransaction {
   const amount =
     typeof row.amount === "string" ? Number(row.amount) : row.amount;
+  const reversesTransactionId = row.reverses_transaction_id ?? null;
   return {
     id: row.id,
     accountId: row.account_id,
@@ -90,6 +103,10 @@ export function mapTransactionRow(row: {
     categoryName: row.categories?.name ?? null,
     jarId: row.jar_id,
     jarName: row.jars?.name ?? null,
+    status: row.status ?? TransactionStatus.POSTED,
+    reversesTransactionId,
+    correctsTransactionId: row.corrects_transaction_id ?? null,
+    isReversal: Boolean(row.is_reversal) || reversesTransactionId != null,
     createdAt: row.created_at,
   };
 }

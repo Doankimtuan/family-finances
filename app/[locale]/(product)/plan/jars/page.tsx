@@ -21,6 +21,8 @@ import { EmptyState } from "@/shared/patterns/empty-state";
 import { Text } from "@/shared/ui/text";
 import { PlanOfflineBanner } from "../plan-offline-banner";
 import { CreateJarForm } from "./create-jar-form";
+import { CreateCategoryForm } from "./create-category-form";
+import type { CaptureJarOption } from "@/modules/ledger/application/client";
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -78,6 +80,11 @@ export default async function PlanJarsPage({ params }: Props) {
   const active = listed?.active ?? [];
   const nonTargets = [...(listed?.paused ?? []), ...(listed?.archived ?? [])];
   const incomeMode = listed?.incomeAllocateMode ?? "suggest";
+  const categoryJars: CaptureJarOption[] = active.map((jar) => ({
+    id: jar.id,
+    name: jar.name,
+    kind: jar.kind,
+  }));
 
   return (
     <div className="flex min-h-full flex-col" data-testid="plan-jars">
@@ -146,6 +153,7 @@ export default async function PlanJarsPage({ params }: Props) {
         </section>
 
         <CreateJarForm />
+        <CreateCategoryForm jars={categoryJars} />
 
         <Link
           href={APP_PATH.PLAN}

@@ -2,7 +2,11 @@ import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import { mapAccountRow, type LedgerAccount } from "../account-types";
 import { applyTransactionDeltas } from "../transaction-types";
-import { AccountType, DEFAULT_CURRENCY } from "../ledger-constants";
+import {
+  AccountType,
+  DEFAULT_CURRENCY,
+  TRANSACTION_BALANCE_STATUS_VALUES,
+} from "../ledger-constants";
 
 async function loadAccounts(options: {
   includeCreditCards: boolean;
@@ -37,7 +41,7 @@ async function loadAccounts(options: {
           .from("transactions")
           .select("account_id, type, amount")
           .eq("household_id", gate.householdId)
-          .eq("status", "cleared"),
+          .in("status", [...TRANSACTION_BALANCE_STATUS_VALUES]),
       ]);
 
     if (error) {
@@ -104,7 +108,7 @@ export async function getAccount(
           .select("account_id, type, amount")
           .eq("household_id", gate.householdId)
           .eq("account_id", accountId)
-          .eq("status", "cleared"),
+          .in("status", [...TRANSACTION_BALANCE_STATUS_VALUES]),
       ]);
 
     if (error || !row || row.is_archived) {

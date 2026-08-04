@@ -76,7 +76,34 @@
       "offline": "You're offline — try again when connected.",
       "unknown": "Something went wrong. Try again."
     },
-    "notFound": "Jar not found"
+    "notFound": "Jar not found",
+    "categoryForm": {
+      "open": "Create category",
+      "nameLabel": "Category name",
+      "namePlaceholder": "e.g. Pet Grooming",
+      "kindLabel": "Kind",
+      "kinds": {
+        "expense": "Expense",
+        "income": "Income"
+      },
+      "jarLabel": "Mapped jar",
+      "jarRequired": "Select a jar (required)",
+      "submit": "Save category",
+      "cancel": "Cancel",
+      "errors": {
+        "unauthenticated": "Sign in to continue.",
+        "no_membership": "Join or create a household first.",
+        "invalid": "Check the category details and try again.",
+        "category_unmapped": "A jar mapping is required before saving.",
+        "month_locked": "This month is locked. Open Month Ritual to correct.",
+        "offline": "You're offline — try again when connected.",
+        "credit_limit_exceeded": "This would exceed the credit limit.",
+        "refund_invalid": "That refund cannot be linked.",
+        "correction_invalid": "That correction cannot be applied.",
+        "immutable": "Transactions cannot be changed in place. Use Correct or Refund.",
+        "unknown": "Something went wrong. Try again."
+      }
+    }
   },
   "goals": {
     "title": "Goals",

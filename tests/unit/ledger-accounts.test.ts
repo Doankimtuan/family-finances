@@ -306,7 +306,7 @@ describe("getRealPosition", () => {
           return {
             select: () => ({
               eq: () => ({
-                eq: async () => ({ data: [], error: null }),
+                in: async () => ({ data: [], error: null }),
               }),
             }),
           };

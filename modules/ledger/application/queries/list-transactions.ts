@@ -23,7 +23,7 @@ export async function listRecentTransactions(
     let query = supabase
       .from("transactions")
       .select(
-        "id, account_id, type, amount, currency, transaction_date, note, category_id, jar_id, created_at, accounts(name), categories(name), jars(name)",
+        "id, account_id, type, amount, currency, transaction_date, note, category_id, jar_id, status, reverses_transaction_id, corrects_transaction_id, is_reversal, created_at, accounts(name), categories(name), jars(name)",
       )
       .eq("household_id", gate.householdId)
       .order("created_at", { ascending: false })
@@ -64,7 +64,7 @@ export async function listCategoryTags(
     const supabase = await createSupabaseServerClient();
     const { data, error } = await supabase
       .from("categories")
-      .select("id, kind, name, household_id")
+      .select("id, kind, name, household_id, jar_id")
       .eq("kind", kind)
       .eq("is_active", true)
       .or(`household_id.is.null,household_id.eq.${gate.householdId}`)
@@ -79,6 +79,7 @@ export async function listCategoryTags(
       kind:
         row.kind === Direction.INCOME ? Direction.INCOME : Direction.EXPENSE,
       name: row.name,
+      jarId: row.jar_id ?? null,
     }));
   } catch {
     return null;

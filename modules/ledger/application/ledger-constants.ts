@@ -23,6 +23,53 @@ export const TRANSACTION_DIRECTION_VALUES = [
   TransactionDirection.EXPENSE,
 ] as const;
 
+/**
+ * Ledger posting lifecycle (BR-02 / BR-03).
+ * Snake_case storage matches rewrite DB enum convention; Spec PascalCase maps 1:1.
+ */
+export const TransactionStatus = {
+  PENDING_MAPPING: "pending_mapping",
+  POSTED: "posted",
+  PARTIALLY_REFUNDED: "partially_refunded",
+  FULLY_REFUNDED: "fully_refunded",
+  REVERSED: "reversed",
+} as const;
+
+export type TransactionStatus =
+  (typeof TransactionStatus)[keyof typeof TransactionStatus];
+
+export const TRANSACTION_STATUS_VALUES = [
+  TransactionStatus.PENDING_MAPPING,
+  TransactionStatus.POSTED,
+  TransactionStatus.PARTIALLY_REFUNDED,
+  TransactionStatus.FULLY_REFUNDED,
+  TransactionStatus.REVERSED,
+] as const;
+
+/** Statuses that may still accept a refund (BR-02). */
+export const TRANSACTION_REFUNDABLE_STATUS_VALUES = [
+  TransactionStatus.POSTED,
+  TransactionStatus.PARTIALLY_REFUNDED,
+] as const;
+
+/** Statuses that may be corrected via 3-way chain (BR-03). */
+export const TRANSACTION_CORRECTABLE_STATUS_VALUES = [
+  TransactionStatus.POSTED,
+  TransactionStatus.PENDING_MAPPING,
+] as const;
+
+/**
+ * Statuses that affect account cash / jar capacity math.
+ * Includes reversed originals so reversal legs can offset them (BR-03).
+ */
+export const TRANSACTION_BALANCE_STATUS_VALUES = [
+  TransactionStatus.PENDING_MAPPING,
+  TransactionStatus.POSTED,
+  TransactionStatus.PARTIALLY_REFUNDED,
+  TransactionStatus.FULLY_REFUNDED,
+  TransactionStatus.REVERSED,
+] as const;
+
 export const AccountType = {
   CASH: "cash",
   CHECKING: "checking",
@@ -104,6 +151,10 @@ export const CARD_UTILIZATION_DANGER_PCT = 80;
 /** Ledger-only mutation errors (not shared across plan/inbox forms). */
 export const LEDGER_ACTION_ERROR_CODE = {
   CREDIT_LIMIT_EXCEEDED: "credit_limit_exceeded",
+  CATEGORY_UNMAPPED: "category_unmapped",
+  REFUND_INVALID: "refund_invalid",
+  CORRECTION_INVALID: "correction_invalid",
+  IMMUTABLE: "immutable",
 } as const;
 
 export type LedgerActionErrorCode =

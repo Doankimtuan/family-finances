@@ -28,6 +28,10 @@ import {
   deleteTransaction,
 } from "@/modules/ledger/application/commands/update-transaction";
 import { mapTransactionRow } from "@/modules/ledger/application/transaction-types";
+import {
+  LEDGER_ACTION_ERROR_CODE,
+  TransactionDirection,
+} from "@/modules/ledger/application/ledger-constants";
 
 const accountId = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11";
 const transactionId = "c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a33";
@@ -38,7 +42,7 @@ describe("updateTransactionInputSchema", () => {
       updateTransactionInputSchema.safeParse({
         transactionId,
         accountId,
-        type: "income",
+        type: TransactionDirection.INCOME,
         amount: 1000,
       }).success,
     ).toBe(true);
@@ -46,7 +50,7 @@ describe("updateTransactionInputSchema", () => {
       updateTransactionInputSchema.safeParse({
         transactionId,
         accountId,
-        type: "income",
+        type: TransactionDirection.INCOME,
         amount: 0,
       }).success,
     ).toBe(false);
@@ -59,7 +63,7 @@ describe("mapTransactionRow jar name", () => {
       mapTransactionRow({
         id: transactionId,
         account_id: accountId,
-        type: "expense",
+        type: TransactionDirection.EXPENSE,
         amount: 10,
         currency: "VND",
         transaction_date: "2026-08-02",
@@ -70,6 +74,27 @@ describe("mapTransactionRow jar name", () => {
         jars: { name: "Needs" },
       }).jarName,
     ).toBe("Needs");
+  });
+
+  it("marks linked refund legs as isReversal", () => {
+    const mapped = mapTransactionRow({
+      id: transactionId,
+      account_id: accountId,
+      type: TransactionDirection.INCOME,
+      amount: 50,
+      currency: "VND",
+      transaction_date: "2026-08-02",
+      note: null,
+      category_id: null,
+      jar_id: "j1",
+      reverses_transaction_id: "b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22",
+      is_reversal: true,
+      created_at: "2026-08-02T00:00:00Z",
+    });
+    expect(mapped.isReversal).toBe(true);
+    expect(mapped.reversesTransactionId).toBe(
+      "b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22",
+    );
   });
 });
 
@@ -87,7 +112,7 @@ describe("updateTransaction / deleteTransaction", () => {
       updateTransaction({
         transactionId,
         accountId,
-        type: "expense",
+        type: TransactionDirection.EXPENSE,
         amount: 20,
       }),
     ).resolves.toEqual({
@@ -96,45 +121,41 @@ describe("updateTransaction / deleteTransaction", () => {
     });
   });
 
-  it("calls update_transaction rpc", async () => {
+  it("blocks in-place update under BR-02 immutability", async () => {
     vi.mocked(assertMoneyActionAllowed).mockResolvedValue({
       ok: true,
       userId: "u1",
       householdId: "h1",
     });
+    const rpc = vi.fn();
     vi.mocked(createSupabaseServerClient).mockResolvedValue({
-      rpc: async () => ({
-        data: { transaction_id: transactionId },
-        error: null,
-      }),
+      rpc,
     } as never);
 
     await expect(
       updateTransaction({
         transactionId,
         accountId,
-        type: "expense",
+        type: TransactionDirection.EXPENSE,
         amount: 20,
       }),
-    ).resolves.toEqual({ ok: true, transactionId });
+    ).resolves.toEqual({
+      ok: false,
+      code: LEDGER_ACTION_ERROR_CODE.IMMUTABLE,
+    });
+    expect(rpc).not.toHaveBeenCalled();
   });
 
-  it("calls delete_transaction rpc", async () => {
+  it("blocks hard delete under BR-02 immutability", async () => {
     vi.mocked(assertMoneyActionAllowed).mockResolvedValue({
       ok: true,
       userId: "u1",
       householdId: "h1",
     });
-    vi.mocked(createSupabaseServerClient).mockResolvedValue({
-      rpc: async () => ({
-        data: { transaction_id: transactionId, deleted: true },
-        error: null,
-      }),
-    } as never);
 
     await expect(deleteTransaction({ transactionId })).resolves.toEqual({
-      ok: true,
-      transactionId,
+      ok: false,
+      code: LEDGER_ACTION_ERROR_CODE.IMMUTABLE,
     });
   });
 });

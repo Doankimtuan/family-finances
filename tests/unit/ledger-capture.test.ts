@@ -138,7 +138,22 @@ describe("recordTransaction", () => {
       userId: "u1",
       householdId: "h1",
     });
+    const maybeSingle = vi.fn().mockResolvedValue({
+      data: { id: accountId, type: "cash" },
+      error: null,
+    });
     vi.mocked(createSupabaseServerClient).mockResolvedValue({
+      from: () => ({
+        select: () => ({
+          eq: () => ({
+            eq: () => ({
+              eq: () => ({ maybeSingle }),
+              maybeSingle,
+            }),
+            maybeSingle,
+          }),
+        }),
+      }),
       rpc: async () => ({
         data: {
           transaction_id: "tx-1",

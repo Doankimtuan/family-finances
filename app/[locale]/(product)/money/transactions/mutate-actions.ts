@@ -3,18 +3,31 @@
 import {
   updateTransaction,
   deleteTransaction,
+  refundTransaction,
+  correctTransaction,
 } from "@/modules/ledger/application";
 import type {
   UpdateTransactionInput,
   DeleteTransactionInput,
+  RefundTransactionInput,
+  CorrectTransactionInput,
 } from "@/modules/ledger/application";
 import type { ProductActionErrorCode } from "@/modules/tenancy/application/product-action-error";
+import type { LedgerActionErrorCode } from "@/modules/ledger/application/ledger-constants";
 
 export type MutateTransactionActionState =
-  | { status: "success"; transactionId?: string; deleted?: boolean }
+  | {
+      status: "success";
+      transactionId?: string;
+      deleted?: boolean;
+      refundTransactionId?: string;
+      reversalTransactionId?: string;
+      correctionTransactionId?: string;
+      capacityRestored?: number;
+    }
   | {
       status: "error";
-      code: ProductActionErrorCode;
+      code: ProductActionErrorCode | LedgerActionErrorCode;
     };
 
 export async function updateTransactionAction(
@@ -36,6 +49,36 @@ export async function deleteTransactionAction(
       status: "success",
       transactionId: result.transactionId,
       deleted: true,
+    };
+  }
+  return { status: "error", code: result.code };
+}
+
+export async function refundTransactionAction(
+  input: RefundTransactionInput,
+): Promise<MutateTransactionActionState> {
+  const result = await refundTransaction(input);
+  if (result.ok) {
+    return {
+      status: "success",
+      transactionId: result.originalTransactionId,
+      refundTransactionId: result.refundTransactionId,
+      capacityRestored: result.capacityRestored,
+    };
+  }
+  return { status: "error", code: result.code };
+}
+
+export async function correctTransactionAction(
+  input: CorrectTransactionInput,
+): Promise<MutateTransactionActionState> {
+  const result = await correctTransaction(input);
+  if (result.ok) {
+    return {
+      status: "success",
+      transactionId: result.correctionTransactionId,
+      reversalTransactionId: result.reversalTransactionId,
+      correctionTransactionId: result.correctionTransactionId,
     };
   }
   return { status: "error", code: result.code };

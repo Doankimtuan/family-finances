@@ -26,7 +26,7 @@ function normalizeJoinedRow(row: Record<string, unknown>) {
 }
 
 const TX_SELECT =
-  "id, account_id, type, amount, currency, transaction_date, note, category_id, jar_id, created_at, accounts(name), categories(name), jars(name)";
+  "id, account_id, type, amount, currency, transaction_date, note, category_id, jar_id, status, reverses_transaction_id, corrects_transaction_id, is_reversal, created_at, accounts(name), categories(name), jars(name)";
 
 export async function getTransaction(
   transactionId: string,

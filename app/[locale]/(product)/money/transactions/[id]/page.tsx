@@ -5,13 +5,19 @@ import { hasLocale } from "next-intl";
 import { routing } from "@/i18n/routing";
 import {
   APP_PATH,
-  moneyTransactionEditPath,
+  moneyTransactionCorrectPath,
+  moneyTransactionRefundPath,
 } from "@/modules/tenancy/application/app-path";
 import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
 import {
   getTransaction,
+  getTransactionAuditChain,
+  isRefundableStatus,
   TransactionDirection,
+  TransactionStatus,
+  TRANSACTION_STATUS_VALUES,
+  type TransactionStatus as TransactionStatusValue,
 } from "@/modules/ledger/application";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
@@ -41,10 +47,11 @@ export default async function TransactionDetailPage({ params }: Props) {
     return redirect({ href: APP_PATH.ONBOARD, locale });
   }
 
-  const [t, tCatalog, tx] = await Promise.all([
+  const [t, tCatalog, tx, chain] = await Promise.all([
     getTranslations("money"),
     getTranslations("catalog"),
     getTransaction(id),
+    getTransactionAuditChain(id),
   ]);
 
   if (!tx) {
@@ -67,6 +74,20 @@ export default async function TransactionDetailPage({ params }: Props) {
   }
 
   const signed = `${tx.type === TransactionDirection.EXPENSE ? "−" : "+"}${formatCurrency(tx.amount, tx.currency, locale, { maximumFractionDigits: 0 })}`;
+  const statusKey = (TRANSACTION_STATUS_VALUES as readonly string[]).includes(
+    tx.status,
+  )
+    ? (tx.status as TransactionStatusValue)
+    : TransactionStatus.POSTED;
+  const canRefund =
+    tx.type === TransactionDirection.EXPENSE && isRefundableStatus(tx.status);
+  const canCorrect =
+    (tx.status === TransactionStatus.POSTED ||
+      tx.status === TransactionStatus.PENDING_MAPPING) &&
+    !tx.reversesTransactionId &&
+    !tx.correctsTransactionId;
+  const hasChain =
+    (chain?.reversals.length ?? 0) > 0 || (chain?.corrections.length ?? 0) > 0;
 
   return (
     <div
@@ -107,6 +128,14 @@ export default async function TransactionDetailPage({ params }: Props) {
             </div>
             <div className="flex justify-between gap-(--space-3)">
               <Text size="sm" tone="secondary">
+                {t("detailPage.status")}
+              </Text>
+              <Text size="sm" className="font-medium text-text-primary">
+                {t(`status.${statusKey}`)}
+              </Text>
+            </div>
+            <div className="flex justify-between gap-(--space-3)">
+              <Text size="sm" tone="secondary">
                 {t("detailPage.note")}
               </Text>
               <Text
@@ -142,13 +171,72 @@ export default async function TransactionDetailPage({ params }: Props) {
           )}
         </section>
 
-        <Link
-          href={moneyTransactionEditPath(tx.id)}
-          className="inline-flex min-h-11 w-full items-center justify-center rounded-md bg-accent px-(--space-4) text-sm font-medium text-accent-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-          data-testid="transaction-edit"
-        >
-          {t("detailPage.edit")}
-        </Link>
+        {hasChain ? (
+          <section
+            className="flex flex-col gap-(--space-3)"
+            data-testid="transaction-audit-chain"
+          >
+            <SectionHeader title={t("detailPage.auditChain")} />
+            <ul className="flex flex-col gap-(--space-2) rounded-lg border border-border-subtle bg-surface p-(--space-4)">
+              <li className="text-sm text-text-primary">
+                {t("detailPage.auditOriginal", {
+                  status: t(
+                    `status.${
+                      (TRANSACTION_STATUS_VALUES as readonly string[]).includes(
+                        chain!.original.status,
+                      )
+                        ? (chain!.original.status as TransactionStatusValue)
+                        : TransactionStatus.POSTED
+                    }`,
+                  ),
+                  amount: formatCurrency(
+                    chain!.original.amount,
+                    chain!.original.currency,
+                    locale,
+                    { maximumFractionDigits: 0 },
+                  ),
+                })}
+              </li>
+              {chain!.reversals.map((leg) => (
+                <li key={leg.id} className="text-sm text-text-secondary">
+                  {t("detailPage.auditReversal", {
+                    amount: formatCurrency(leg.amount, leg.currency, locale, {
+                      maximumFractionDigits: 0,
+                    }),
+                  })}
+                </li>
+              ))}
+              {chain!.corrections.map((leg) => (
+                <li key={leg.id} className="text-sm text-text-secondary">
+                  {t("detailPage.auditCorrection", {
+                    amount: formatCurrency(leg.amount, leg.currency, locale, {
+                      maximumFractionDigits: 0,
+                    }),
+                  })}
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
+
+        {canCorrect ? (
+          <Link
+            href={moneyTransactionCorrectPath(tx.id)}
+            className="inline-flex min-h-11 w-full items-center justify-center rounded-md bg-accent px-(--space-4) text-sm font-medium text-accent-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+            data-testid="transaction-correct"
+          >
+            {t("detailPage.correct")}
+          </Link>
+        ) : null}
+        {canRefund ? (
+          <Link
+            href={moneyTransactionRefundPath(tx.id)}
+            className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary"
+            data-testid="transaction-refund"
+          >
+            {t("detailPage.refund")}
+          </Link>
+        ) : null}
         <Link
           href={APP_PATH.MONEY_TRANSACTIONS}
           className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle text-sm font-medium text-text-primary"

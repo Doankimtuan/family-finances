@@ -232,7 +232,10 @@ export function CaptureTransactionForm({
                   ? "min-h-11 rounded-md bg-accent px-(--space-3) text-sm text-accent-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
                   : "min-h-11 rounded-md border border-border-subtle px-(--space-3) text-sm text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
               }
-              onClick={() => setCategoryId(tag.id)}
+              onClick={() => {
+                setCategoryId(tag.id);
+                if (tag.jarId) setJarId(tag.jarId);
+              }}
             >
               {localizeCatalogName(tCatalog, "tags", tag.name)}
             </button>

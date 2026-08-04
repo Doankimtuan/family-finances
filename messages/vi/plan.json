@@ -76,7 +76,34 @@
       "offline": "Đang ngoại tuyến — thử lại khi có mạng.",
       "unknown": "Có lỗi. Thử lại."
     },
-    "notFound": "Không tìm thấy hũ"
+    "notFound": "Không tìm thấy hũ",
+    "categoryForm": {
+      "open": "Tạo danh mục",
+      "nameLabel": "Tên danh mục",
+      "namePlaceholder": "vd. Chăm sóc thú cưng",
+      "kindLabel": "Loại",
+      "kinds": {
+        "expense": "Chi",
+        "income": "Thu"
+      },
+      "jarLabel": "Hũ gắn kết",
+      "jarRequired": "Chọn hũ (bắt buộc)",
+      "submit": "Lưu danh mục",
+      "cancel": "Hủy",
+      "errors": {
+        "unauthenticated": "Đăng nhập để tiếp tục.",
+        "no_membership": "Hãy tham gia hoặc tạo hộ gia đình trước.",
+        "invalid": "Kiểm tra thông tin danh mục và thử lại.",
+        "category_unmapped": "Bắt buộc chọn hũ trước khi lưu.",
+        "month_locked": "Tháng này đã khóa. Mở Month Ritual để chỉnh.",
+        "offline": "Bạn đang offline — thử lại khi có mạng.",
+        "credit_limit_exceeded": "Giao dịch sẽ vượt hạn mức tín dụng.",
+        "refund_invalid": "Không gắn được khoản hoàn đó.",
+        "correction_invalid": "Không áp dụng được hiệu chỉnh đó.",
+        "immutable": "Không thể sửa giao dịch tại chỗ. Hãy dùng Sửa đúng hoặc Hoàn tiền.",
+        "unknown": "Có lỗi xảy ra. Thử lại."
+      }
+    }
   },
   "goals": {
     "title": "Mục tiêu",

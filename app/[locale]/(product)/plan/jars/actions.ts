@@ -8,7 +8,12 @@ import {
   type SetJarStateInput,
   type UpsertJarPlanInput,
 } from "@/modules/plan/application";
+import {
+  createCategory,
+  type CreateCategoryInput,
+} from "@/modules/ledger/application";
 import type { ProductActionErrorCode } from "@/modules/tenancy/application/product-action-error";
+import type { LedgerActionErrorCode } from "@/modules/ledger/application/ledger-constants";
 
 export type CreateJarActionState =
   | { status: "success"; jarId: string }
@@ -57,6 +62,23 @@ export async function upsertJarPlanAction(
   const result = await upsertJarPlan(input);
   if (result.ok) {
     return { status: "success" };
+  }
+  return { status: "error", code: result.code };
+}
+
+export type CreateCategoryActionState =
+  | { status: "success"; categoryId: string }
+  | {
+      status: "error";
+      code: ProductActionErrorCode | LedgerActionErrorCode;
+    };
+
+export async function createCategoryAction(
+  input: CreateCategoryInput,
+): Promise<CreateCategoryActionState> {
+  const result = await createCategory(input);
+  if (result.ok) {
+    return { status: "success", categoryId: result.categoryId };
   }
   return { status: "error", code: result.code };
 }
