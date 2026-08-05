@@ -15,7 +15,11 @@ import {
   mapInboxStatus,
   toReviewItemType,
   MaturityAckAction,
+  SavingsMaturityAckAction,
+  EarlyWithdrawalAckAction,
   EmiAckAction,
+  SAVINGS_MATURITY_ACK_ACTION_VALUES,
+  EARLY_WITHDRAWAL_ACK_ACTION_VALUES,
 } from "./inbox-constants";
 import { instantiateTypedReviewItem } from "./review-item-schemas";
 import { shouldAutoResolveInboxItem } from "./inbox-resolution-policy";
@@ -36,7 +40,11 @@ export {
   MERCHANT_CONFIRMATION_THRESHOLD,
   PAYMENT_REMINDER_EXPIRE_DAYS,
   MaturityAckAction,
+  SavingsMaturityAckAction,
+  EarlyWithdrawalAckAction,
   EmiAckAction,
+  SAVINGS_MATURITY_ACK_ACTION_VALUES,
+  EARLY_WITHDRAWAL_ACK_ACTION_VALUES,
   isJarResolvableKind,
   isGuidedKind,
   isArchivedStatus,
@@ -156,6 +164,7 @@ function mapInboxRow(
         ? context.target_jar_id
         : undefined,
     executedByUserId,
+    contextJson: context,
   });
 
   const displayTitle = resolveInboxDisplayTitle({
@@ -430,16 +439,24 @@ export async function dismissInboxItem(
 }
 
 const ACK_ACTION_VALUES = [
+  ...SAVINGS_MATURITY_ACK_ACTION_VALUES,
+  ...EARLY_WITHDRAWAL_ACK_ACTION_VALUES,
+  EmiAckAction.CELEBRATE,
+  EmiAckAction.LATER,
   MaturityAckAction.RENEW,
   MaturityAckAction.SWITCH,
   MaturityAckAction.WITHDRAW,
-  EmiAckAction.CELEBRATE,
-  EmiAckAction.LATER,
+  SavingsMaturityAckAction.CONFIRM_CONFIGURED,
+  EarlyWithdrawalAckAction.CONFIRM,
 ] as const;
+
+const ACK_ACTION_ENUM = [
+  ...new Set(ACK_ACTION_VALUES),
+] as unknown as [string, ...string[]];
 
 export const acknowledgeInboxItemInputSchema = z.object({
   inboxItemId: z.string().uuid(),
-  action: z.enum(ACK_ACTION_VALUES),
+  action: z.enum(ACK_ACTION_ENUM),
 });
 
 export type AcknowledgeInboxItemInput = z.infer<

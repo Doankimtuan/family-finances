@@ -77,6 +77,7 @@ export const AccountType = {
   EWALLET: "ewallet",
   BROKERAGE: "brokerage",
   CREDIT_CARD: "credit_card",
+  SAVINGS_PRODUCT: "savings_product",
   OTHER: "other",
 } as const;
 
@@ -89,6 +90,7 @@ export const ACCOUNT_TYPE_VALUES = [
   AccountType.EWALLET,
   AccountType.BROKERAGE,
   AccountType.CREDIT_CARD,
+  AccountType.SAVINGS_PRODUCT,
   AccountType.OTHER,
 ] as const;
 

@@ -8,12 +8,24 @@ import type { CaptureJarOption } from "@/modules/ledger/application/client";
 import type { InboxReviewItem } from "@/modules/inbox/application/inbox-types";
 import {
   InboxItemKind,
-  MaturityAckAction,
+  SavingsMaturityAckAction,
+  EarlyWithdrawalAckAction,
   EmiAckAction,
   isJarResolvableKind,
   AUTO_RESOLVE_CONFIDENCE_THRESHOLD,
+  ReviewItemType,
   type InboxAckAction,
 } from "@/modules/inbox/application/inbox-constants";
+import {
+  acknowledgeSavingsMaturityAction,
+  acknowledgeEarlyWithdrawalAction,
+} from "../money/savings/savings-actions";
+import {
+  SettlementRule,
+  RenewalSuggestedAction,
+  RenewalPolicy,
+  RecommendationReasonCode,
+} from "@/modules/savings/application/savings-constants";
 import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
 import { StatusAlert } from "@/shared/ui/status-alert";
@@ -60,15 +72,83 @@ export function InboxDecisionPanel({ item, jars }: Props) {
   );
 
   const jarResolvable = isJarResolvableKind(item.kind);
-  const isMaturity = item.kind === InboxItemKind.SAVINGS_MATURITY;
+  const isMaturity =
+    item.kind === InboxItemKind.SAVINGS_MATURITY ||
+    item.kind === InboxItemKind.SAVINGS_MATURED ||
+    item.kind === InboxItemKind.RENEWAL_REQUIRED;
+  const isEarlyWithdrawal =
+    item.kind === InboxItemKind.EARLY_WITHDRAWAL_CONFIRMATION;
   const isEmi = item.kind === InboxItemKind.EMI_COMPLETE;
   const isEmergency = item.kind === InboxItemKind.EMERGENCY_DECLARATION;
   const isPaymentReminder = item.kind === InboxItemKind.PAYMENT_REMINDER;
+  const maturityPayload =
+    item.typed?.type === ReviewItemType.SAVINGS_MATURITY_DECISION
+      ? item.typed.payload
+      : null;
+  const earlyPayload =
+    item.typed?.type === ReviewItemType.EARLY_WITHDRAWAL_CONFIRMATION
+      ? item.typed.payload
+      : null;
+
+  const [selectedPackageId, setSelectedPackageId] = useState(
+    maturityPayload?.preselectedPackageId ??
+      maturityPayload?.recommendedPackages[0]?.packageId ??
+      "",
+  );
+  const [selectedSettlementRule, setSelectedSettlementRule] = useState(
+    maturityPayload?.preselectedSettlementRule ??
+      maturityPayload?.settlementRule ??
+      SettlementRule.ROLL_PRINCIPAL_INTEREST,
+  );
+
   const showPatternSuggestion =
     jarResolvable &&
     item.suggestedJarId != null &&
     item.confidenceScore != null;
   const busy = pendingAction != null;
+
+  const suggestedAction =
+    maturityPayload?.suggestedAction ?? RenewalSuggestedAction.NONE;
+  const highlightConfirm =
+    suggestedAction === RenewalSuggestedAction.CONFIRM_CONFIGURED;
+  const highlightWithdraw =
+    suggestedAction === RenewalSuggestedAction.WITHDRAW;
+  const equalWeight = suggestedAction === RenewalSuggestedAction.NONE;
+
+  const policyLabelKey = (() => {
+    const raw =
+      maturityPayload?.renewalPolicy ??
+      maturityPayload?.configuredRenewalPreference ??
+      RenewalPolicy.ALWAYS_ASK;
+    switch (raw) {
+      case RenewalPolicy.USE_SAVED_PREFERENCE:
+        return "renewalPolicies.use_saved_preference" as const;
+      case RenewalPolicy.AUTO_RENEW_UNTIL_CANCELLED:
+        return "renewalPolicies.auto_renew_until_cancelled" as const;
+      case RenewalPolicy.ONE_TIME_RENEWAL:
+        return "renewalPolicies.one_time_renewal" as const;
+      case RenewalPolicy.ALWAYS_ASK:
+      default:
+        return "renewalPolicies.always_ask" as const;
+    }
+  })();
+
+  const reasonLabel = (code: string | undefined) => {
+    switch (code) {
+      case RecommendationReasonCode.HIGHER_RETURN:
+        return t("recommendationReasons.higher_return");
+      case RecommendationReasonCode.BETTER_LIQUIDITY:
+        return t("recommendationReasons.better_liquidity");
+      case RecommendationReasonCode.LONGER_DURATION:
+        return t("recommendationReasons.longer_duration");
+      case RecommendationReasonCode.PACKAGE_UNAVAILABLE:
+        return t("recommendationReasons.package_unavailable");
+      case RecommendationReasonCode.RATE_CHANGED:
+        return t("recommendationReasons.rate_changed");
+      default:
+        return null;
+    }
+  };
 
   const run = (
     action: PendingAction,
@@ -113,6 +193,44 @@ export function InboxDecisionPanel({ item, jars }: Props) {
 
   const onAck = (action: InboxAckAction) => {
     run("ack", () => acknowledgeInboxAction({ inboxItemId: item.id, action }));
+  };
+
+  const onSavingsMaturityAck = (action: string) => {
+    if (!maturityPayload) {
+      onAck(action as InboxAckAction);
+      return;
+    }
+    const ruleForAction =
+      action === SavingsMaturityAckAction.WITHDRAW
+        ? SettlementRule.WITHDRAW_EVERYTHING
+        : selectedSettlementRule;
+    run("ack", () =>
+      acknowledgeSavingsMaturityAction({
+        inboxItemId: item.id,
+        action,
+        cycleId: maturityPayload.cycleId,
+        savingId: maturityPayload.savingId,
+        settlementRule: ruleForAction,
+        packageId: selectedPackageId || undefined,
+        settlementAccountId:
+          maturityPayload.preselectedSettlementAccountId ?? undefined,
+      }),
+    );
+  };
+
+  const onEarlyWithdrawAck = (action: string) => {
+    if (!earlyPayload) {
+      onAck(action as InboxAckAction);
+      return;
+    }
+    run("ack", () =>
+      acknowledgeEarlyWithdrawalAction({
+        inboxItemId: item.id,
+        action,
+        savingId: earlyPayload.savingId,
+        cycleId: earlyPayload.cycleId,
+      }),
+    );
   };
 
   return (
@@ -205,26 +323,165 @@ export function InboxDecisionPanel({ item, jars }: Props) {
           <Text size="sm" tone="secondary">
             {t("maturityHint")}
           </Text>
+          {maturityPayload ? (
+            <div className="flex flex-col gap-(--space-1) text-sm text-text-secondary">
+              <span>
+                {maturityPayload.providerName} · {maturityPayload.currentPackage}
+              </span>
+              <span>
+                {maturityPayload.currentRate}% · {t(policyLabelKey)}
+              </span>
+              {maturityPayload.recommendationReason
+                ? (() => {
+                    const label = reasonLabel(
+                      maturityPayload.recommendationReason,
+                    );
+                    return label ? <span>{label}</span> : null;
+                  })()
+                : null}
+            </div>
+          ) : null}
+          {maturityPayload?.warnings && maturityPayload.warnings.length > 0 ? (
+            <StatusAlert
+              variant="warning"
+              title={t("maturityWarningsTitle")}
+              description={maturityPayload.warnings
+                .map((w) => t(`maturityWarnings.${w.code}`))
+                .join(" · ")}
+            />
+          ) : null}
+          {maturityPayload &&
+          maturityPayload.recommendedPackages.length > 0 ? (
+            <label className="flex flex-col gap-(--space-2)">
+              <Text size="sm" className="font-semibold text-text-primary">
+                {t("maturityPackageLabel")}
+              </Text>
+              <select
+                className="min-h-11 w-full rounded-md border border-border-subtle bg-canvas px-(--space-3) text-sm"
+                value={selectedPackageId}
+                onChange={(e) => setSelectedPackageId(e.target.value)}
+                data-testid="inbox-maturity-package"
+                disabled={busy}
+              >
+                {maturityPayload.recommendedPackages.map((pkg) => {
+                  const reason = reasonLabel(pkg.reasonCode);
+                  return (
+                    <option key={pkg.packageId} value={pkg.packageId}>
+                      {pkg.packageName} · {pkg.annualRate}% · {pkg.durationDays}
+                      d{reason ? ` — ${reason}` : ""}
+                    </option>
+                  );
+                })}
+              </select>
+            </label>
+          ) : null}
+          {maturityPayload ? (
+            <label className="flex flex-col gap-(--space-2)">
+              <Text size="sm" className="font-semibold text-text-primary">
+                {t("maturitySettlementLabel")}
+              </Text>
+              <select
+                className="min-h-11 w-full rounded-md border border-border-subtle bg-canvas px-(--space-3) text-sm"
+                value={selectedSettlementRule}
+                onChange={(e) => setSelectedSettlementRule(e.target.value)}
+                data-testid="inbox-maturity-settlement"
+                disabled={busy}
+              >
+                <option value={SettlementRule.ROLL_PRINCIPAL_INTEREST}>
+                  {t("maturityRenew")}
+                </option>
+                <option value={SettlementRule.ROLL_PRINCIPAL_ONLY}>
+                  {t("maturityRollPrincipalOnly")}
+                </option>
+                <option value={SettlementRule.WITHDRAW_EVERYTHING}>
+                  {t("maturityWithdraw")}
+                </option>
+              </select>
+            </label>
+          ) : null}
           {(
             [
-              [MaturityAckAction.RENEW, "maturityRenew"],
-              [MaturityAckAction.SWITCH, "maturitySwitch"],
-              [MaturityAckAction.WITHDRAW, "maturityWithdraw"],
+              [
+                SavingsMaturityAckAction.CONFIRM_CONFIGURED,
+                "maturityConfirm",
+                highlightConfirm || equalWeight ? "primary" : "secondary",
+              ],
+              [
+                SavingsMaturityAckAction.SWITCH,
+                "maturitySwitch",
+                "secondary",
+              ],
+              [
+                SavingsMaturityAckAction.WITHDRAW,
+                "maturityWithdraw",
+                highlightWithdraw ? "primary" : "secondary",
+              ],
+              [
+                SavingsMaturityAckAction.REMIND_TOMORROW,
+                "maturityRemind",
+                "secondary",
+              ],
             ] as const
-          ).map(([action, labelKey]) => (
+          ).map(([action, labelKey, variant]) => (
             <Button
               key={action}
-              variant={
-                action === MaturityAckAction.RENEW ? "primary" : "secondary"
-              }
+              variant={variant}
               className="w-full"
               data-testid={`inbox-ack-${action}`}
               isDisabled={busy || !online}
-              onPress={() => onAck(action)}
+              onPress={() => onSavingsMaturityAck(action)}
             >
               {t(labelKey)}
             </Button>
           ))}
+        </section>
+      ) : null}
+
+      {isEarlyWithdrawal ? (
+        <section
+          className="flex flex-col gap-(--space-3)"
+          data-testid="inbox-early-withdrawal-panel"
+        >
+          <Text size="sm" className="font-semibold text-text-primary">
+            {t("earlyWithdrawalHeading")}
+          </Text>
+          <Text size="sm" tone="secondary">
+            {t("earlyWithdrawalHint")}
+          </Text>
+          {earlyPayload ? (
+            <div className="flex flex-col gap-(--space-1) text-sm text-text-secondary">
+              <span>
+                {t("earlyWithdrawalNet", {
+                  amount: earlyPayload.netReturned,
+                })}
+              </span>
+              <span>
+                {t("earlyWithdrawalPenalty", {
+                  amount: earlyPayload.penaltyAmount,
+                })}
+              </span>
+            </div>
+          ) : null}
+          <Button
+            variant="primary"
+            className="w-full"
+            data-testid="inbox-ack-confirm-early"
+            isDisabled={busy || !online}
+            onPress={() =>
+              onEarlyWithdrawAck(EarlyWithdrawalAckAction.CONFIRM)
+            }
+          >
+            {t("earlyWithdrawalConfirm")}
+          </Button>
+          <Button
+            variant="secondary"
+            className="w-full"
+            data-testid="inbox-ack-cancel-early"
+            isDisabled={busy || !online}
+            onPress={() => onEarlyWithdrawAck(EarlyWithdrawalAckAction.CANCEL)}
+          >
+            {t("earlyWithdrawalCancel")}
+          </Button>
         </section>
       ) : null}
 

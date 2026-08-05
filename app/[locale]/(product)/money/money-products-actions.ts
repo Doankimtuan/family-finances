@@ -3,8 +3,6 @@
 import {
   createLiability,
   recordLiabilityPayment,
-  createSavingsProduct,
-  enqueueSavingsMaturity,
   createLoan,
   recordLoanPayment,
   updateLoanMetadata,
@@ -13,8 +11,6 @@ import {
   LoanPaymentMode,
   type CreateLiabilityInput,
   type RecordLiabilityPaymentInput,
-  type CreateSavingsInput,
-  type EnqueueSavingsMaturityInput,
   type CreateLoanInput,
   type RecordLoanPaymentInput,
   type UpdateLoanMetadataInput,
@@ -26,6 +22,10 @@ import {
   PRODUCT_ACTION_ERROR_CODE,
   type ProductActionErrorCode,
 } from "@/modules/tenancy/application/product-action-error";
+import {
+  createSavingAction,
+  createSavingsAction as deprecatedCreateSavingsAction,
+} from "./savings/savings-actions";
 
 export type MoneyProductActionState =
   | {
@@ -60,16 +60,23 @@ export async function recordLiabilityPaymentAction(
   return toState(await recordLiabilityPayment(input));
 }
 
-export async function createSavingsAction(
-  input: CreateSavingsInput,
-): Promise<MoneyProductActionState> {
-  return toState(await createSavingsProduct(input));
+/** @deprecated Use createSavingAction from savings-actions. */
+export async function createSavingsAction(input: {
+  name: string;
+  principalAmount: number;
+  maturityDate: string;
+  note?: string;
+}): Promise<MoneyProductActionState> {
+  return deprecatedCreateSavingsAction(input);
 }
 
-export async function enqueueSavingsMaturityAction(
-  input: EnqueueSavingsMaturityInput,
-): Promise<MoneyProductActionState> {
-  return toState(await enqueueSavingsMaturity(input));
+export { createSavingAction };
+
+/** @deprecated Maturity is handled by Inbox integration. */
+export async function enqueueSavingsMaturityAction(_input: {
+  savingsId: string;
+}): Promise<MoneyProductActionState> {
+  return { status: "error", code: PRODUCT_ACTION_ERROR_CODE.INVALID };
 }
 
 export async function createLoanAction(

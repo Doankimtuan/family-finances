@@ -3,7 +3,7 @@ screen_id: money.savings-detail
 title: Savings Detail
 nav_group: money
 feature_ids: ["F-Money"]
-module: ledger
+module: savings (ledger-owned)
 phase: MVP
 route: /(product)/money/savings/[id]
 design_foundation: v1.1.0
@@ -19,15 +19,15 @@ frozen: true
 
 ## Purpose
 
-One savings + maturity CTA
+One savings product: snapshot, cycle history, money timeline, early withdrawal, Inbox maturity CTA.
 
 ## Primary Question
 
-Mature actions?
+What is locked, when does it mature, and what decision is pending?
 
 ## Business Goal
 
-Guide to Inbox flows
+Guide to Inbox flows (BR-10); never invent balances (BR-01).
 
 ## Primary User
 
@@ -39,8 +39,13 @@ money.savings; Deep link maturity
 
 ## Exit Points
 
-inbox.review-detail; money.savings
+inbox.review-detail; money.savings; money.savings-early-withdraw
 
+## Composition notes (evolution)
+
+- Shows immutable product/package snapshot and locked rate.
+- Money timeline: funded → active → accrual → maturity → Inbox → settlement.
+- Early withdrawal previews penalty then enqueues Inbox confirmation.
 ## Navigation
 
 - Nav group: **money**

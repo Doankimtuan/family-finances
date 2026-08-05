@@ -70,8 +70,8 @@
     "title": "Savings",
     "subtitle": "Term savings — maturity goes to Inbox",
     "emptyTitle": "No savings products",
-    "emptyDescription": "Add a savings product to track maturity.",
-    "add": "Add savings",
+    "emptyDescription": "Open a savings product to track funding, interest, and maturity.",
+    "add": "Open savings product",
     "nameLabel": "Name",
     "amountLabel": "Principal",
     "maturityLabel": "Maturity date",
@@ -79,21 +79,100 @@
     "saving": "Saving…",
     "cancel": "Cancel",
     "maturityBadge": "Maturity due",
+    "rateLabel": "{rate}% / year",
+    "termLabel": "{days} days",
     "status": {
       "active": "Active",
       "matured": "Matured",
+      "early_closed": "Early closed",
       "closed": "Closed"
+    }
+  },
+  "savingsWizard": {
+    "title": "Open savings",
+    "subtitle": "Fund a real product through the ledger",
+    "stepFunding": "Funding account",
+    "stepProvider": "Provider",
+    "stepProduct": "Product",
+    "stepPackage": "Package",
+    "stepReview": "Review",
+    "next": "Continue",
+    "back": "Back",
+    "confirm": "Confirm & fund",
+    "confirming": "Funding…",
+    "principalLabel": "Principal",
+    "settlementAccountLabel": "Settlement account",
+    "settlementRuleLabel": "Settlement rule",
+    "renewalPolicyLabel": "Renewal policy (suggestion only)",
+    "preferredPackageLabel": "Preferred package",
+    "estimatedInterest": "Estimated interest: {amount}",
+    "reviewHint": "Money leaves the funding account immediately. Renewal never runs automatically.",
+    "settlementRules": {
+      "roll_principal_interest": "Roll principal + interest",
+      "roll_principal_only": "Roll principal only",
+      "withdraw_everything": "Withdraw everything"
+    },
+    "renewalPolicies": {
+      "always_ask": "Always ask (default)",
+      "use_saved_preference": "Use saved preference",
+      "auto_renew_until_cancelled": "Auto renew until cancelled",
+      "one_time_renewal": "One-time renewal"
     }
   },
   "savingsDetail": {
     "title": "Savings",
     "maturityDate": "Matures {date}",
-    "handleMaturity": "Handle maturity in Inbox",
+    "handleMaturity": "Open Inbox decisions",
     "handling": "Opening Inbox…",
     "maturityHint": "Renew, switch, or withdraw — guided in Inbox. No new balance is invented here.",
     "back": "Back to savings",
     "notFound": "Savings not found",
-    "alreadyGuided": "Maturity is already in Inbox."
+    "alreadyGuided": "Maturity is already in Inbox.",
+    "providerLabel": "Provider",
+    "packageLabel": "Package",
+    "rateLabel": "Locked rate",
+    "accruedLabel": "Accrued interest",
+    "cycleLabel": "Cycle {number}",
+    "timelineTitle": "Money timeline",
+    "timelineFunded": "Funded from {account}",
+    "timelineActive": "Saving active",
+    "timelineAccrual": "Interest accruing",
+    "timelineMaturity": "Maturity {date}",
+    "timelineInbox": "Inbox review",
+    "timelineSettled": "Settled",
+    "earlyWithdraw": "Early withdrawal",
+    "legacyBanner": "Imported legacy product — tracking only until settled via Inbox.",
+    "renewalPolicyTitle": "Renewal policy",
+    "renewalPolicyHint": "Guides Inbox suggestions only. Never moves money automatically.",
+    "renewalPolicyLabel": "Policy",
+    "preferredSettlementRuleLabel": "Preferred settlement",
+    "preferredPackageLabel": "Preferred package",
+    "savePolicy": "Save policy",
+    "savingPolicy": "Saving…",
+    "renewalPolicies": {
+      "always_ask": "Always ask",
+      "use_saved_preference": "Use saved preference",
+      "auto_renew_until_cancelled": "Auto renew until cancelled",
+      "one_time_renewal": "One-time renewal"
+    },
+    "settlementRules": {
+      "roll_principal_interest": "Roll principal + interest",
+      "roll_principal_only": "Roll principal only",
+      "withdraw_everything": "Withdraw everything"
+    }
+  },
+  "savingsEarlyWithdraw": {
+    "title": "Early withdrawal",
+    "subtitle": "Preview penalty before confirming in Inbox",
+    "principal": "Principal",
+    "accrued": "Accrued interest",
+    "eligible": "Eligible interest",
+    "penalty": "Penalty",
+    "net": "Estimated return",
+    "request": "Send to Inbox",
+    "requesting": "Sending…",
+    "back": "Back",
+    "warnPenalty": "Penalty is high relative to accrued interest."
   },
   "loansPage": {
     "title": "Loan / Installment",
@@ -388,6 +467,7 @@
     "ewallet": "E-wallet",
     "brokerage": "Brokerage",
     "credit_card": "Credit card",
+    "savings_product": "Savings products",
     "other": "Other"
   },
   "creditCard": {

@@ -70,8 +70,8 @@
     "title": "Tiết kiệm",
     "subtitle": "Sản phẩm tiết kiệm — đáo hạn vào Hộp thư",
     "emptyTitle": "Chưa có tiết kiệm",
-    "emptyDescription": "Thêm sản phẩm để theo dõi đáo hạn.",
-    "add": "Thêm tiết kiệm",
+    "emptyDescription": "Mở sản phẩm tiết kiệm để theo dõi vốn, lãi và đáo hạn.",
+    "add": "Mở sản phẩm tiết kiệm",
     "nameLabel": "Tên",
     "amountLabel": "Gốc",
     "maturityLabel": "Ngày đáo hạn",
@@ -79,21 +79,100 @@
     "saving": "Đang lưu…",
     "cancel": "Huỷ",
     "maturityBadge": "Đến hạn",
+    "rateLabel": "{rate}% / năm",
+    "termLabel": "{days} ngày",
     "status": {
       "active": "Đang chạy",
       "matured": "Đáo hạn",
+      "early_closed": "Đóng sớm",
       "closed": "Đã đóng"
+    }
+  },
+  "savingsWizard": {
+    "title": "Mở tiết kiệm",
+    "subtitle": "Nạp vốn qua sổ cái thật",
+    "stepFunding": "Tài khoản nguồn",
+    "stepProvider": "Nhà cung cấp",
+    "stepProduct": "Sản phẩm",
+    "stepPackage": "Gói",
+    "stepReview": "Xem lại",
+    "next": "Tiếp",
+    "back": "Quay lại",
+    "confirm": "Xác nhận & nạp",
+    "confirming": "Đang nạp…",
+    "principalLabel": "Số tiền gốc",
+    "settlementAccountLabel": "Tài khoản tất toán",
+    "settlementRuleLabel": "Quy tắc tất toán",
+    "renewalPolicyLabel": "Chính sách gia hạn (chỉ gợi ý)",
+    "preferredPackageLabel": "Gói ưu tiên",
+    "estimatedInterest": "Lãi ước tính: {amount}",
+    "reviewHint": "Tiền rời tài khoản nguồn ngay. Gia hạn không bao giờ chạy tự động.",
+    "settlementRules": {
+      "roll_principal_interest": "Cuốn gốc + lãi",
+      "roll_principal_only": "Chỉ cuốn gốc",
+      "withdraw_everything": "Rút toàn bộ"
+    },
+    "renewalPolicies": {
+      "always_ask": "Luôn hỏi (mặc định)",
+      "use_saved_preference": "Dùng ưu tiên đã lưu",
+      "auto_renew_until_cancelled": "Tự gia hạn đến khi hủy",
+      "one_time_renewal": "Gia hạn một lần"
     }
   },
   "savingsDetail": {
     "title": "Tiết kiệm",
     "maturityDate": "Đáo hạn {date}",
-    "handleMaturity": "Xử lý đáo hạn trong Hộp thư",
+    "handleMaturity": "Mở quyết định Hộp thư",
     "handling": "Đang mở Hộp thư…",
     "maturityHint": "Gia hạn, chuyển, hoặc rút — hướng dẫn trong Hộp thư. Không bịa số dư ở đây.",
     "back": "Về tiết kiệm",
     "notFound": "Không tìm thấy tiết kiệm",
-    "alreadyGuided": "Đáo hạn đã có trong Hộp thư."
+    "alreadyGuided": "Đáo hạn đã có trong Hộp thư.",
+    "providerLabel": "Nhà cung cấp",
+    "packageLabel": "Gói",
+    "rateLabel": "Lãi suất khóa",
+    "accruedLabel": "Lãi tích lũy",
+    "cycleLabel": "Kỳ {number}",
+    "timelineTitle": "Dòng tiền",
+    "timelineFunded": "Nạp từ {account}",
+    "timelineActive": "Đang gửi",
+    "timelineAccrual": "Đang tích lãi",
+    "timelineMaturity": "Đáo hạn {date}",
+    "timelineInbox": "Xem xét Hộp thư",
+    "timelineSettled": "Đã tất toán",
+    "earlyWithdraw": "Rút trước hạn",
+    "legacyBanner": "Sản phẩm nhập legacy — chỉ theo dõi đến khi tất toán qua Hộp thư.",
+    "renewalPolicyTitle": "Chính sách gia hạn",
+    "renewalPolicyHint": "Chỉ hướng dẫn gợi ý Inbox. Không bao giờ tự chuyển tiền.",
+    "renewalPolicyLabel": "Chính sách",
+    "preferredSettlementRuleLabel": "Tất toán ưu tiên",
+    "preferredPackageLabel": "Gói ưu tiên",
+    "savePolicy": "Lưu chính sách",
+    "savingPolicy": "Đang lưu…",
+    "renewalPolicies": {
+      "always_ask": "Luôn hỏi",
+      "use_saved_preference": "Dùng ưu tiên đã lưu",
+      "auto_renew_until_cancelled": "Tự gia hạn đến khi hủy",
+      "one_time_renewal": "Gia hạn một lần"
+    },
+    "settlementRules": {
+      "roll_principal_interest": "Cuốn gốc + lãi",
+      "roll_principal_only": "Chỉ cuốn gốc",
+      "withdraw_everything": "Rút toàn bộ"
+    }
+  },
+  "savingsEarlyWithdraw": {
+    "title": "Rút trước hạn",
+    "subtitle": "Xem phạt trước khi xác nhận trong Hộp thư",
+    "principal": "Gốc",
+    "accrued": "Lãi tích lũy",
+    "eligible": "Lãi được nhận",
+    "penalty": "Phạt",
+    "net": "Ước tính nhận về",
+    "request": "Gửi Hộp thư",
+    "requesting": "Đang gửi…",
+    "back": "Quay lại",
+    "warnPenalty": "Phạt cao so với lãi tích lũy."
   },
   "cardsPage": {
     "title": "Vay / Trả góp",
@@ -388,6 +467,7 @@
     "ewallet": "Ví điện tử",
     "brokerage": "Chứng khoán",
     "credit_card": "Thẻ tín dụng",
+    "savings_product": "Sản phẩm tiết kiệm",
     "other": "Khác"
   },
   "creditCard": {

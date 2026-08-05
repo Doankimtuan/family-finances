@@ -6,6 +6,8 @@
 export const ReviewItemType = {
   UNMAPPED_EXPENSE: "UnmappedExpense",
   MATURITY_DECISION: "MaturityDecision",
+  SAVINGS_MATURITY_DECISION: "SavingsMaturityDecision",
+  EARLY_WITHDRAWAL_CONFIRMATION: "EarlyWithdrawalConfirmation",
   PAYMENT_REMINDER: "PaymentReminder",
   INSTALLMENT_COMPLETE: "InstallmentComplete",
   EMERGENCY_DECLARATION: "EmergencyDeclaration",
@@ -17,6 +19,8 @@ export type ReviewItemType =
 export const REVIEW_ITEM_TYPE_VALUES = [
   ReviewItemType.UNMAPPED_EXPENSE,
   ReviewItemType.MATURITY_DECISION,
+  ReviewItemType.SAVINGS_MATURITY_DECISION,
+  ReviewItemType.EARLY_WITHDRAWAL_CONFIRMATION,
   ReviewItemType.PAYMENT_REMINDER,
   ReviewItemType.INSTALLMENT_COMPLETE,
   ReviewItemType.EMERGENCY_DECLARATION,
@@ -59,6 +63,12 @@ export const InboxItemKind = {
   UNMAPPED_EXPENSE: "unmapped_expense",
   INCOME_SUGGEST: "income_suggest",
   SAVINGS_MATURITY: "savings_maturity",
+  SAVINGS_MATURED: "savings_matured",
+  RENEWAL_REQUIRED: "renewal_required",
+  EARLY_WITHDRAWAL_CONFIRMATION: "early_withdrawal_confirmation",
+  PENALTY_WARNING: "penalty_warning",
+  RATE_CHANGED_SUGGESTION: "rate_changed_suggestion",
+  PACKAGE_EXPIRED: "package_expired",
   EMI_COMPLETE: "emi_complete",
   EMERGENCY_DECLARATION: "emergency_declaration",
   PAYMENT_REMINDER: "payment_reminder",
@@ -70,6 +80,12 @@ export const INBOX_ITEM_KIND_VALUES = [
   InboxItemKind.UNMAPPED_EXPENSE,
   InboxItemKind.INCOME_SUGGEST,
   InboxItemKind.SAVINGS_MATURITY,
+  InboxItemKind.SAVINGS_MATURED,
+  InboxItemKind.RENEWAL_REQUIRED,
+  InboxItemKind.EARLY_WITHDRAWAL_CONFIRMATION,
+  InboxItemKind.PENALTY_WARNING,
+  InboxItemKind.RATE_CHANGED_SUGGESTION,
+  InboxItemKind.PACKAGE_EXPIRED,
   InboxItemKind.EMI_COMPLETE,
   InboxItemKind.EMERGENCY_DECLARATION,
   InboxItemKind.PAYMENT_REMINDER,
@@ -99,6 +115,47 @@ export const MaturityAckAction = {
 export type MaturityAckAction =
   (typeof MaturityAckAction)[keyof typeof MaturityAckAction];
 
+/** Extended savings maturity / early-withdraw ack actions (Inbox orchestration). */
+export const SavingsMaturityAckAction = {
+  RENEW: "renew",
+  SWITCH: "switch",
+  WITHDRAW: "withdraw",
+  CONFIRM_CONFIGURED: "confirm_configured",
+  CHOOSE_PACKAGE: "choose_package",
+  CHANGE_SETTLEMENT: "change_settlement",
+  REMIND_TOMORROW: "remind_tomorrow",
+  DISMISS: "dismiss",
+} as const;
+
+export type SavingsMaturityAckAction =
+  (typeof SavingsMaturityAckAction)[keyof typeof SavingsMaturityAckAction];
+
+export const SAVINGS_MATURITY_ACK_ACTION_VALUES = [
+  SavingsMaturityAckAction.RENEW,
+  SavingsMaturityAckAction.SWITCH,
+  SavingsMaturityAckAction.WITHDRAW,
+  SavingsMaturityAckAction.CONFIRM_CONFIGURED,
+  SavingsMaturityAckAction.CHOOSE_PACKAGE,
+  SavingsMaturityAckAction.CHANGE_SETTLEMENT,
+  SavingsMaturityAckAction.REMIND_TOMORROW,
+  SavingsMaturityAckAction.DISMISS,
+] as const;
+
+export const EarlyWithdrawalAckAction = {
+  CONFIRM: "confirm",
+  CANCEL: "cancel",
+  DISMISS: "dismiss",
+} as const;
+
+export type EarlyWithdrawalAckAction =
+  (typeof EarlyWithdrawalAckAction)[keyof typeof EarlyWithdrawalAckAction];
+
+export const EARLY_WITHDRAWAL_ACK_ACTION_VALUES = [
+  EarlyWithdrawalAckAction.CONFIRM,
+  EarlyWithdrawalAckAction.CANCEL,
+  EarlyWithdrawalAckAction.DISMISS,
+] as const;
+
 export const EmiAckAction = {
   CELEBRATE: "celebrate",
   LATER: "later",
@@ -106,7 +163,11 @@ export const EmiAckAction = {
 
 export type EmiAckAction = (typeof EmiAckAction)[keyof typeof EmiAckAction];
 
-export type InboxAckAction = MaturityAckAction | EmiAckAction;
+export type InboxAckAction =
+  | MaturityAckAction
+  | SavingsMaturityAckAction
+  | EarlyWithdrawalAckAction
+  | EmiAckAction;
 
 /** BR-16 — silent auto-resolve when confidence meets this floor. */
 export const AUTO_RESOLVE_CONFIDENCE_THRESHOLD = 0.9;
@@ -127,6 +188,12 @@ export function isJarResolvableKind(kind: InboxItemKind): boolean {
 export function isGuidedKind(kind: InboxItemKind): boolean {
   return (
     kind === InboxItemKind.SAVINGS_MATURITY ||
+    kind === InboxItemKind.SAVINGS_MATURED ||
+    kind === InboxItemKind.RENEWAL_REQUIRED ||
+    kind === InboxItemKind.EARLY_WITHDRAWAL_CONFIRMATION ||
+    kind === InboxItemKind.PENALTY_WARNING ||
+    kind === InboxItemKind.RATE_CHANGED_SUGGESTION ||
+    kind === InboxItemKind.PACKAGE_EXPIRED ||
     kind === InboxItemKind.EMI_COMPLETE ||
     kind === InboxItemKind.EMERGENCY_DECLARATION ||
     kind === InboxItemKind.PAYMENT_REMINDER
@@ -143,6 +210,18 @@ export function mapInboxKind(value: string | null | undefined): InboxItemKind {
       return InboxItemKind.INCOME_SUGGEST;
     case InboxItemKind.SAVINGS_MATURITY:
       return InboxItemKind.SAVINGS_MATURITY;
+    case InboxItemKind.SAVINGS_MATURED:
+      return InboxItemKind.SAVINGS_MATURED;
+    case InboxItemKind.RENEWAL_REQUIRED:
+      return InboxItemKind.RENEWAL_REQUIRED;
+    case InboxItemKind.EARLY_WITHDRAWAL_CONFIRMATION:
+      return InboxItemKind.EARLY_WITHDRAWAL_CONFIRMATION;
+    case InboxItemKind.PENALTY_WARNING:
+      return InboxItemKind.PENALTY_WARNING;
+    case InboxItemKind.RATE_CHANGED_SUGGESTION:
+      return InboxItemKind.RATE_CHANGED_SUGGESTION;
+    case InboxItemKind.PACKAGE_EXPIRED:
+      return InboxItemKind.PACKAGE_EXPIRED;
     case InboxItemKind.EMI_COMPLETE:
       return InboxItemKind.EMI_COMPLETE;
     case InboxItemKind.EMERGENCY_DECLARATION:
@@ -184,7 +263,11 @@ export function toReviewItemType(kind: InboxItemKind): ReviewItemType | null {
     case InboxItemKind.UNMAPPED_EXPENSE:
       return ReviewItemType.UNMAPPED_EXPENSE;
     case InboxItemKind.SAVINGS_MATURITY:
-      return ReviewItemType.MATURITY_DECISION;
+    case InboxItemKind.SAVINGS_MATURED:
+    case InboxItemKind.RENEWAL_REQUIRED:
+      return ReviewItemType.SAVINGS_MATURITY_DECISION;
+    case InboxItemKind.EARLY_WITHDRAWAL_CONFIRMATION:
+      return ReviewItemType.EARLY_WITHDRAWAL_CONFIRMATION;
     case InboxItemKind.PAYMENT_REMINDER:
       return ReviewItemType.PAYMENT_REMINDER;
     case InboxItemKind.EMI_COMPLETE:
@@ -199,7 +282,10 @@ export function toReviewItemType(kind: InboxItemKind): ReviewItemType | null {
 export function reviewItemTypeToKind(type: ReviewItemType): InboxItemKind {
   switch (type) {
     case ReviewItemType.MATURITY_DECISION:
-      return InboxItemKind.SAVINGS_MATURITY;
+    case ReviewItemType.SAVINGS_MATURITY_DECISION:
+      return InboxItemKind.SAVINGS_MATURED;
+    case ReviewItemType.EARLY_WITHDRAWAL_CONFIRMATION:
+      return InboxItemKind.EARLY_WITHDRAWAL_CONFIRMATION;
     case ReviewItemType.PAYMENT_REMINDER:
       return InboxItemKind.PAYMENT_REMINDER;
     case ReviewItemType.INSTALLMENT_COMPLETE:

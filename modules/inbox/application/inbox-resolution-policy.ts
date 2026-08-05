@@ -44,12 +44,18 @@ export function shouldAutoResolveInboxItem(input: {
 
 /**
  * BR-21 — resolving one maturity alert cancels sibling cascade timers.
+ * Applies to all savings maturity-related kinds.
  */
 export function shouldCancelMaturityCascade(input: {
   kind: InboxItemKindValue;
   resolved: boolean;
 }): boolean {
-  return input.resolved && input.kind === InboxItemKind.SAVINGS_MATURITY;
+  if (!input.resolved) return false;
+  return (
+    input.kind === InboxItemKind.SAVINGS_MATURITY ||
+    input.kind === InboxItemKind.SAVINGS_MATURED ||
+    input.kind === InboxItemKind.RENEWAL_REQUIRED
+  );
 }
 
 /**

@@ -3,7 +3,7 @@ screen_id: money.savings
 title: Savings
 nav_group: money
 feature_ids: ["F-Money"]
-module: ledger
+module: savings (ledger-owned)
 phase: MVP
 route: /(product)/money/savings
 design_foundation: v1.1.0
@@ -19,15 +19,15 @@ frozen: true
 
 ## Purpose
 
-Savings products list
+Savings products list — ledger-funded financial products with providers, packages, and cycles.
 
 ## Primary Question
 
-Where is savings?
+Where is household wealth locked in term savings?
 
 ## Business Goal
 
-Track savings
+Track real savings products (BR-01); maturity decisions go to Inbox (BR-10).
 
 ## Primary User
 
@@ -39,7 +39,13 @@ money.hub
 
 ## Exit Points
 
-money.savings-detail; money.hub; inbox.queue
+money.savings-new (progressive open wizard), money.savings-detail
+
+## Composition notes (evolution)
+
+- List uses `modules/savings` aggregates (not legacy `savings_accounts` CRUD).
+- CTA opens `/money/savings/new` wizard: Funding → Provider → Product → Package → Review.
+- Maturity detection runs on entry; decisions never auto-settle.
 
 ## Navigation
 
@@ -59,7 +65,7 @@ Follow hierarchy order above; one primary question; calm adult voice; glossary t
 
 ## Primary Actions
 
-Open
+Open savings product
 
 ## Secondary Actions
 
