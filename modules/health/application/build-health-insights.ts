@@ -1,7 +1,18 @@
 /**
- * Light Health insights + scenarios from household facts only (ST-E07-002).
- * Never invents ledger balances (BR-01 / BR-14 / AC-017).
+ * Light Health insights + scenarios from household facts only (ST-E07-002 / ST-E06-002).
+ * Never invents ledger balances (BR-01 / BR-14 / AC-017 / AC-HLT-01).
  */
+
+import {
+  assertAiSuggestionGrounded,
+  type AiPolicyErrorCode,
+} from "@/modules/platform/application/ai-policy";
+
+export type HealthPolicyBlock = {
+  target: "insight" | "scenario";
+  kind: string;
+  code: AiPolicyErrorCode;
+};
 
 export const InsightKind = {
   EMI_COMPLETE: "emi_complete",
@@ -39,6 +50,8 @@ export type BuildHealthInsightsInput = {
   openInboxCount: number;
   recentTransactionCount: number;
   hasEmiCompletePending: boolean;
+  /** BR-14: optional audit hook when grounding rejects params. */
+  onPolicyBlock?: (block: HealthPolicyBlock) => void;
 };
 
 export type BuiltHealthInsights = {
@@ -46,56 +59,96 @@ export type BuiltHealthInsights = {
   scenarios: HealthScenario[];
 };
 
+function groundedInsight(
+  kind: InsightKind,
+  params: Record<string, number>,
+  onPolicyBlock?: (block: HealthPolicyBlock) => void,
+): HealthInsight {
+  const gate = assertAiSuggestionGrounded({
+    countsOnly: true,
+    params,
+  });
+  if (!gate.ok) {
+    onPolicyBlock?.({ target: "insight", kind, code: gate.code });
+    return { kind, params: {} };
+  }
+  return { kind, params };
+}
+
 /**
  * Deterministic insight/scenario list for Health screens.
  */
 export function buildHealthInsights(
   input: BuildHealthInsightsInput,
 ): BuiltHealthInsights {
+  const onPolicyBlock = input.onPolicyBlock;
   const insights: HealthInsight[] = [];
 
   if (input.hasEmiCompletePending) {
-    insights.push({ kind: InsightKind.EMI_COMPLETE, params: {} });
+    insights.push(groundedInsight(InsightKind.EMI_COMPLETE, {}, onPolicyBlock));
   }
 
   if (input.accountCount === 0 || input.activeJarCount === 0) {
-    insights.push({
-      kind: InsightKind.SETUP,
-      params: {
-        accountCount: input.accountCount,
-        jarCount: input.activeJarCount,
-      },
-    });
+    insights.push(
+      groundedInsight(
+        InsightKind.SETUP,
+        {
+          accountCount: input.accountCount,
+          jarCount: input.activeJarCount,
+        },
+        onPolicyBlock,
+      ),
+    );
   }
 
   if (input.openInboxCount > 0) {
-    insights.push({
-      kind: InsightKind.INBOX,
-      params: { count: input.openInboxCount },
-    });
+    insights.push(
+      groundedInsight(
+        InsightKind.INBOX,
+        { count: input.openInboxCount },
+        onPolicyBlock,
+      ),
+    );
   }
 
-  insights.push({
-    kind: InsightKind.ACTIVITY,
-    params: { count: input.recentTransactionCount },
-  });
+  insights.push(
+    groundedInsight(
+      InsightKind.ACTIVITY,
+      {
+        count: input.recentTransactionCount,
+      },
+      onPolicyBlock,
+    ),
+  );
 
   if (input.activeJarCount > 0) {
-    insights.push({
-      kind: InsightKind.PLAN,
-      params: { count: input.activeJarCount },
-    });
+    insights.push(
+      groundedInsight(
+        InsightKind.PLAN,
+        { count: input.activeJarCount },
+        onPolicyBlock,
+      ),
+    );
   }
 
   // Always last — Phase 2 AI must not invent balances (AC-017 / BR-14).
-  insights.push({ kind: InsightKind.AI_GUARDRAIL, params: {} });
+  insights.push(groundedInsight(InsightKind.AI_GUARDRAIL, {}, onPolicyBlock));
 
   const scenarios: HealthScenario[] = [];
 
   if (input.openInboxCount > 0) {
+    const params = { count: input.openInboxCount };
+    const gate = assertAiSuggestionGrounded({ countsOnly: true, params });
+    if (!gate.ok) {
+      onPolicyBlock?.({
+        target: "scenario",
+        kind: ScenarioKind.CLEAR_INBOX,
+        code: gate.code,
+      });
+    }
     scenarios.push({
       kind: ScenarioKind.CLEAR_INBOX,
-      params: { count: input.openInboxCount },
+      params: gate.ok ? params : {},
     });
   }
 

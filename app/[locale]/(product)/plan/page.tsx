@@ -167,6 +167,22 @@ export default async function PlanHubPage({ params }: Props) {
               {t("recurring.cta")}
             </Text>
           </Link>
+
+          <Link
+            href={APP_PATH.PLAN_CALENDAR}
+            className="block rounded-lg border border-border-subtle bg-surface p-(--space-4) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+            data-testid="plan-entry-calendar"
+          >
+            <Text size="sm" className="font-semibold text-text-primary">
+              {t("calendar.title")}
+            </Text>
+            <Text size="sm" tone="secondary">
+              {t("calendar.body")}
+            </Text>
+            <Text size="sm" className="mt-(--space-2) font-medium text-accent">
+              {t("calendar.cta")}
+            </Text>
+          </Link>
         </section>
 
         <section className="flex flex-col gap-(--space-3)">

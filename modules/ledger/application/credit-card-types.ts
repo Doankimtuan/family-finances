@@ -54,6 +54,8 @@ export type CreditCardSummary = {
   dueDay: number;
   linkedBankAccountId: string | null;
   outstanding: number;
+  /** Remaining on the next open billing month (preferred calendar due amount). */
+  nextDueRemaining: number;
   availableCredit: number;
   utilizationPct: number;
   nextDueDate: string | null;
@@ -62,12 +64,6 @@ export type CreditCardSummary = {
 export type CreditCardDetail = CreditCardSummary & {
   months: CardBillingMonth[];
   items: CardBillingItem[];
-  linkedInstallments: Array<{
-    id: string;
-    name: string;
-    remainingInstallments: number;
-    status: string;
-  }>;
 };
 
 function asBillingStatus(value: string): CardBillingMonthStatusValue {
@@ -195,6 +191,7 @@ export function buildCreditCardSummary(input: {
     dueDay: input.settings.dueDay,
     linkedBankAccountId: input.settings.linkedBankAccountId,
     outstanding,
+    nextDueRemaining: openMonths[0]?.remaining ?? 0,
     availableCredit,
     utilizationPct: utilizationPercent(input.settings.creditLimit, outstanding),
     nextDueDate: openMonths[0]?.dueDate ?? null,

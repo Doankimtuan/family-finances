@@ -222,7 +222,7 @@ export default async function MoneyHubPage({ params }: Props) {
             [
               ["debts", APP_PATH.MONEY_DEBTS, "money-link-debts"],
               ["savings", APP_PATH.MONEY_SAVINGS, "money-link-savings"],
-              ["cards", APP_PATH.MONEY_CARDS, "money-link-cards"],
+              ["loans", APP_PATH.MONEY_LOANS, "money-link-loans"],
             ] as const
           ).map(([key, href, testId]) => (
             <Link

@@ -13,8 +13,10 @@ export type PlanLockGate =
   | { ok: false; code: typeof PRODUCT_ACTION_ERROR_CODE.MONTH_LOCKED };
 
 /**
- * BR-08 / AC-008 — approved or pending_review Month Ritual locks normal plan mutations.
- * If the ritual table is missing (migration pending), fail open so Plan stays usable.
+ * BR-08 — plan mutations blocked when:
+ * 1. The target period is approved or pending_review, OR
+ * 2. Any period is pending_review (unresolved auto-lock must be corrected first).
+ * Fail closed on query errors (money-domain safety).
  */
 export async function assertPlanPeriodUnlocked(
   householdId: string,
@@ -22,7 +24,8 @@ export async function assertPlanPeriodUnlocked(
 ): Promise<PlanLockGate> {
   try {
     const supabase = await createSupabaseServerClient();
-    const { data, error } = await supabase
+
+    const { data: periodLock, error: periodError } = await supabase
       .from("month_ritual_runs")
       .select("id")
       .eq("household_id", householdId)
@@ -30,17 +33,33 @@ export async function assertPlanPeriodUnlocked(
       .in("status", [...RITUAL_LOCKED_STATUSES])
       .maybeSingle();
 
-    if (error) {
-      return { ok: true };
+    if (periodError) {
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.MONTH_LOCKED };
     }
 
-    if (data?.id) {
+    if (periodLock?.id) {
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.MONTH_LOCKED };
+    }
+
+    const { data: pendingReview, error: pendingError } = await supabase
+      .from("month_ritual_runs")
+      .select("id")
+      .eq("household_id", householdId)
+      .eq("status", RitualStatus.PENDING_REVIEW)
+      .limit(1)
+      .maybeSingle();
+
+    if (pendingError) {
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.MONTH_LOCKED };
+    }
+
+    if (pendingReview?.id) {
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.MONTH_LOCKED };
     }
 
     return { ok: true };
   } catch {
-    return { ok: true };
+    return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.MONTH_LOCKED };
   }
 }
 

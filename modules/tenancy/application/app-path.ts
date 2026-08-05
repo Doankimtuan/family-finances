@@ -17,12 +17,15 @@ export const APP_PATH = {
   PLAN_GOALS: "/plan/goals",
   PLAN_RECURRING: "/plan/recurring",
   PLAN_RITUAL: "/plan/ritual",
+  PLAN_CALENDAR: "/plan/calendar",
   INBOX: "/inbox",
   HEALTH: "/health",
   HEALTH_INSIGHTS: "/health/insights",
   MONEY_DEBTS: "/money/debts",
   MONEY_SAVINGS: "/money/savings",
-  MONEY_CARDS: "/money/cards",
+  MONEY_LOANS: "/money/loans",
+  /** @deprecated Use MONEY_LOANS — old Cards/EMI route. */
+  MONEY_CARDS: "/money/loans",
   TOGETHER: "/together",
   ONBOARD: "/together/onboard",
   INVITATIONS: "/together/invitations",
@@ -93,6 +96,11 @@ export function moneySavingsPath(savingsId: string): string {
   return `${APP_PATH.MONEY_SAVINGS}/${savingsId}`;
 }
 
+export function moneyLoanPath(loanId: string): string {
+  return `${APP_PATH.MONEY_LOANS}/${loanId}`;
+}
+
+/** @deprecated Use moneyLoanPath. */
 export function moneyCardPath(planId: string): string {
-  return `${APP_PATH.MONEY_CARDS}/${planId}`;
+  return moneyLoanPath(planId);
 }

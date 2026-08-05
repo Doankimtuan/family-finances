@@ -1,0 +1,18 @@
+{
+  "pack": "sprint-execution",
+  "sprint": "Sprint-6",
+  "sprint_folder": "Sprint-6",
+  "plan": "artifacts/implementation-planning/CURRENT",
+  "status": "COMPLETE",
+  "frozen": true,
+  "stories": {
+    "ST-E06-001": "FROZEN",
+    "ST-E06-002": "FROZEN",
+    "ST-E06-003": "FROZEN"
+  },
+  "next_sprint": null,
+  "milestone": "v2.1-GA",
+  "run_id": "run_sprint_exec_v21_S6_20260804T073716Z",
+  "updated_at": "2026-08-04T07:37:16Z",
+  "tests_passed": 244
+}

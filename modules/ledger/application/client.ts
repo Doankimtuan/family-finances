@@ -37,10 +37,40 @@ export {
   LEDGER_ACTION_ERROR_CODE,
   TransactionSource,
   TRANSACTION_SOURCE_VALUES,
+  LoanType,
+  LOAN_TYPE_VALUES,
+  LOAN_TYPE_OPTIONS,
+  LoanStatus,
+  LOAN_STATUS_VALUES,
+  LoanRepaymentFrequency,
+  LOAN_REPAYMENT_FREQUENCY_VALUES,
+  LoanRepaymentMethod,
+  LOAN_REPAYMENT_METHOD_VALUES,
+  LOAN_REPAYMENT_METHOD_OPTIONS,
+  LoanInterestStrategy,
+  LOAN_INTEREST_STRATEGY_VALUES,
+  LOAN_INTEREST_STRATEGY_OPTIONS,
+  LoanInterestRatePeriodKind,
+  LOAN_INTEREST_RATE_PERIOD_KIND_VALUES,
+  LoanTermUnit,
+  LOAN_TERM_UNIT_VALUES,
+  LoanScheduleEntryStatus,
+  LOAN_SCHEDULE_ENTRY_STATUS_VALUES,
+  LoanPaymentMode,
+  LOAN_PAYMENT_MODE_VALUES,
 } from "./ledger-constants";
 export type {
   LedgerActionErrorCode,
   TransactionSource as TransactionSourceValue,
+  LoanType as LoanTypeValue,
+  LoanStatus as LoanStatusValue,
+  LoanRepaymentFrequency as LoanRepaymentFrequencyValue,
+  LoanRepaymentMethod as LoanRepaymentMethodValue,
+  LoanInterestStrategy as LoanInterestStrategyValue,
+  LoanInterestRatePeriodKind as LoanInterestRatePeriodKindValue,
+  LoanTermUnit as LoanTermUnitValue,
+  LoanScheduleEntryStatus as LoanScheduleEntryStatusValue,
+  LoanPaymentMode as LoanPaymentModeValue,
 } from "./ledger-constants";
 export {
   AccountHealthSignal,
@@ -55,3 +85,17 @@ export type {
   CardBillingMonth,
   CardBillingItem,
 } from "./credit-card-types";
+export type {
+  Loan,
+  LoanPayment,
+  LoanScheduleEntry,
+  LoanInterestRatePeriod,
+} from "./money-product-types";
+export {
+  buildAmortizationSchedule,
+  simulateLoanPreview,
+  normalizeTermToMonths,
+  computeEarlyPayoffAmount,
+  buildRateSegmentsFromStrategy,
+  addMonthsYmd,
+} from "./loan-amortization";

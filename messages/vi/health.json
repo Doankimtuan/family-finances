@@ -21,7 +21,7 @@
     "inbox": "{count, plural, =0 {Hộp thư trống} one {# việc mở trong Hộp thư} other {# việc mở trong Hộp thư}}"
   },
   "emiCelebrateTitle": "Trả góp đã xong",
-  "emiCelebrateBody": "Chúc mừng trong Hộp thư — đủ kỳ đã trả là hoàn tất. Sức khỏe không bịa số dư mới.",
+  "emiCelebrateBody": "Chúc mừng trong Hộp thư — hết gốc còn lại là hoàn tất. Sức khỏe không bịa số dư mới.",
   "viewInsights": "Xem nhận định",
   "backHome": "Về Trang chủ",
   "insights": {

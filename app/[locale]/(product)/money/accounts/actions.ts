@@ -3,7 +3,6 @@
 import {
   addCardCashback,
   archiveAccount,
-  convertToInstallment,
   createAccount,
   settleCard,
   updateAccount,
@@ -11,7 +10,6 @@ import {
 import type {
   AddCardCashbackInput,
   ArchiveAccountInput,
-  ConvertToInstallmentInput,
   CreateAccountInput,
   SettleCardInput,
   UpdateAccountInput,
@@ -79,16 +77,6 @@ export async function addCardCashbackAction(
   const result = await addCardCashback(input);
   if (result.ok) {
     return { status: "success", id: result.transactionId };
-  }
-  return { status: "error", code: result.code };
-}
-
-export async function convertToInstallmentAction(
-  input: ConvertToInstallmentInput,
-): Promise<CardMutationActionState> {
-  const result = await convertToInstallment(input);
-  if (result.ok) {
-    return { status: "success", id: result.planId };
   }
   return { status: "error", code: result.code };
 }

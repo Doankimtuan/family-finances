@@ -1,3 +1,5 @@
+import "server-only";
+
 import { getHealthDetail, type HealthDetail } from "./get-health-detail";
 
 export type HealthOverview = Pick<

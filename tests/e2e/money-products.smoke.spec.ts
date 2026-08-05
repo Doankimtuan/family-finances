@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
 
-test.describe("Money debts/savings/cards (ST-E04-004)", () => {
+test.describe("Money debts/savings/loans (Loan domain evolution)", () => {
   test.describe.configure({ mode: "serial" });
 
   test("unauthenticated debts redirects to login", async ({ page }) => {
@@ -31,7 +31,7 @@ test.describe("Money debts/savings/cards (ST-E04-004)", () => {
     await page.goto("/en/money");
     await expect(page.getByTestId("money-link-debts")).toBeVisible();
     await expect(page.getByTestId("money-link-savings")).toBeVisible();
-    await expect(page.getByTestId("money-link-cards")).toBeVisible();
+    await expect(page.getByTestId("money-link-loans")).toBeVisible();
 
     await page.getByTestId("money-link-debts").click();
     await expect(page.getByTestId("money-debts")).toBeVisible();
@@ -42,7 +42,11 @@ test.describe("Money debts/savings/cards (ST-E04-004)", () => {
     await page.goto("/en/money/savings");
     await expect(page.getByTestId("money-savings")).toBeVisible();
 
+    await page.goto("/en/money/loans");
+    await expect(page.getByTestId("money-loans")).toBeVisible();
+    await expect(page.getByTestId("loan-add-open")).toBeVisible();
+
     await page.goto("/en/money/cards");
-    await expect(page.getByTestId("money-cards")).toBeVisible();
+    await expect(page).toHaveURL(/\/en\/money\/loans/);
   });
 });

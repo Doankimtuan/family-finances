@@ -18,9 +18,15 @@ import {
   QUICK_CLOSE_CONSECUTIVE_RITUALS,
   RITUAL_AUTOLOCK_DAYS_AFTER_MONTH_END,
   RITUAL_GATE_ERROR_CODE,
+  RitualMode,
   RitualStatus,
 } from "@/modules/plan/application/plan-constants";
 import { PRODUCT_ACTION_ERROR_CODE } from "@/modules/tenancy/application/product-action-error";
+import {
+  ReviewItemType,
+  toReviewItemType,
+  InboxItemKind,
+} from "@/modules/inbox/application/inbox-constants";
 
 describe("ritual period helpers", () => {
   it("formats UTC month start as YYYY-MM-01", () => {
@@ -51,12 +57,14 @@ describe("ritual period helpers", () => {
 
 describe("ritual status / mode mapping", () => {
   it("defaults to draft and assisted", () => {
-    expect(mapRitualStatus(undefined)).toBe("draft");
-    expect(mapRitualStatus("approved")).toBe("approved");
-    expect(mapRitualStatus("pending_review")).toBe("pending_review");
-    expect(mapRitualMode(undefined)).toBe("assisted");
-    expect(mapRitualMode("manual")).toBe("manual");
-    expect(mapRitualMode("quick_close")).toBe("quick_close");
+    expect(mapRitualStatus(undefined)).toBe(RitualStatus.DRAFT);
+    expect(mapRitualStatus(RitualStatus.APPROVED)).toBe(RitualStatus.APPROVED);
+    expect(mapRitualStatus(RitualStatus.PENDING_REVIEW)).toBe(
+      RitualStatus.PENDING_REVIEW,
+    );
+    expect(mapRitualMode(undefined)).toBe(RitualMode.ASSISTED);
+    expect(mapRitualMode(RitualMode.MANUAL)).toBe(RitualMode.MANUAL);
+    expect(mapRitualMode(RitualMode.QUICK_CLOSE)).toBe(RitualMode.QUICK_CLOSE);
   });
 
   it("treats approved and pending_review as locked", () => {
@@ -100,6 +108,17 @@ describe("month lock error codes", () => {
     expect(RITUAL_GATE_ERROR_CODE.RITUAL_DIVERGENCE).toBe("ritual_divergence");
     expect(RITUAL_GATE_ERROR_CODE.QUICK_CLOSE_LOCKED).toBe(
       "quick_close_locked",
+    );
+    expect(RITUAL_GATE_ERROR_CODE.EMERGENCIES_UNACKNOWLEDGED).toBe(
+      "emergencies_unacknowledged",
+    );
+  });
+});
+
+describe("BR-11 InstallmentComplete mapping", () => {
+  it("maps emi_complete inbox kind to InstallmentComplete ReviewItem", () => {
+    expect(toReviewItemType(InboxItemKind.EMI_COMPLETE)).toBe(
+      ReviewItemType.INSTALLMENT_COMPLETE,
     );
   });
 });

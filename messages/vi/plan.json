@@ -242,6 +242,49 @@
       "unknown": "Có lỗi. Thử lại."
     }
   },
+  "calendar": {
+    "title": "Lịch",
+    "subtitle": "Định kỳ, đến hạn thẻ và trả góp",
+    "body": "Một lịch hộ chung giữa Plan và Money.",
+    "cta": "Mở lịch",
+    "startingBalance": "Dự báo từ tiền thật: {amount}",
+    "deficitTitle": "Cảnh báo dòng tiền sớm",
+    "deficitBody": "{count} ngày có thể về ≤ 0. Ngày đầu: {first}.",
+    "deficitClearTitle": "Không thấy thâm hụt",
+    "deficitClearBody": "Thu và chi đã lên lịch vẫn trên 0 trong cửa sổ này.",
+    "gridLabel": "Lịch tháng",
+    "monthHeading": "{month}",
+    "dayLabel": "{date}, {events} mục",
+    "dayEventsHeading": "Sự kiện ngày {date}",
+    "dayEmpty": "Không có lịch ngày này.",
+    "dayDeficitTitle": "Ngày số dư thấp",
+    "dayDeficitBody": "Tiền thật dự báo có thể ≤ 0 vào {date}.",
+    "payoffTitle": "Mốc trả xong",
+    "payoffBody": "Kỳ cuối của {title} vào {date}. Ăn mừng và phân bổ lại dòng tiền giải phóng.",
+    "payoffInboxCta": "Mở Hộp thư ăn mừng",
+    "payoffReallocateCta": "Realloc sức chứa hũ",
+    "milestoneBadge": "Trả xong",
+    "backToPlan": "Về Plan",
+    "unavailableTitle": "Lịch chưa sẵn sàng",
+    "unavailableBody": "Tham gia hộ và thử lại.",
+    "weekdays": {
+      "sun": "CN",
+      "mon": "T2",
+      "tue": "T3",
+      "wed": "T4",
+      "thu": "T5",
+      "fri": "T6",
+      "sat": "T7"
+    },
+    "sources": {
+      "recurring": "Định kỳ",
+      "card_due": "Đến hạn thẻ",
+      "loan": "Khoản vay",
+      "installment": "Khoản vay",
+      "liability": "Nợ đến hạn",
+      "payoff_milestone": "Mốc trả xong"
+    }
+  },
   "ritual": {
     "title": "Nghi thức tháng",
     "subtitle": "Xem trước Assisted → duyệt → khoá",
@@ -286,6 +329,12 @@
     "emergencyAmount": "Số tiền {amount}",
     "emergencyNote": "Ý định: {note}",
     "emergencyNoteMissing": "Chưa có ghi chú ý định.",
+    "emergencyClearTitle": "Không có khẩn cấp trong kỳ",
+    "emergencyClearBody": "Không có realloc khẩn cấp giữa tháng cần phản tư.",
+    "emergencyAckCta": "Chúng tôi đã xem các khẩn cấp này",
+    "emergencyAcking": "Đang lưu…",
+    "emergencyAckedTitle": "Đã xác nhận phản tư khẩn cấp",
+    "emergencyAckedBody": "Bạn có thể duyệt hoặc Đóng nhanh sau bước phản tư này.",
     "assistedHeading": "Các bước Assisted",
     "assisted": {
       "stepDivergence": "Xác nhận ánh xạ Category ↔ Hũ sạch",
@@ -329,6 +378,7 @@
       "month_locked": "Tháng này đã khoá.",
       "ritual_divergence": "Giải quyết ánh xạ Category ↔ Hũ trước khi tiếp tục.",
       "quick_close_locked": "Hoàn thành sáu nghi thức Assisted trước khi Đóng nhanh mở.",
+      "emergencies_unacknowledged": "Xác nhận phản tư khẩn cấp Bước 3 trước khi duyệt.",
       "offline": "Đang ngoại tuyến — thử lại khi có mạng.",
       "unknown": "Có lỗi. Thử lại."
     }

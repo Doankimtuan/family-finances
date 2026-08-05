@@ -4,6 +4,7 @@ import {
   previewMonthRitual,
   approveMonthRitual,
   correctMonthRitual,
+  acknowledgeRitualEmergencies,
   type CorrectMonthRitualInput,
   type RitualActionErrorCode,
 } from "@/modules/plan/application";
@@ -26,6 +27,14 @@ export async function approveRitualAction(
   const result = await approveMonthRitual({
     quickClose: options.quickClose === true,
   });
+  if (result.ok) {
+    return { status: "success", ritualStatus: result.status };
+  }
+  return { status: "error", code: result.code };
+}
+
+export async function acknowledgeEmergenciesAction(): Promise<Ok | Err> {
+  const result = await acknowledgeRitualEmergencies();
   if (result.ok) {
     return { status: "success", ritualStatus: result.status };
   }

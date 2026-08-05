@@ -46,5 +46,6 @@ export {
   type MutationOfflineBannerProps,
 } from "./mutation-offline-banner";
 export { InstallmentCard, type InstallmentCardProps } from "./installment-card";
+export { LoanCard, type LoanCardProps } from "./loan-card";
 export { AccountCard, type AccountCardProps } from "./account-card";
 export { CreditCardCard, type CreditCardCardProps } from "./credit-card-card";

@@ -18,7 +18,7 @@ import { RitualWizard } from "./ritual-wizard";
 type Props = { params: Promise<{ locale: string }> };
 
 /**
- * plan.month-ritual — Assisted preview → approve → lock (ST-E05-004).
+ * plan.month-ritual — Assisted preview → approve → lock (ST-E04).
  */
 export default async function PlanRitualPage({ params }: Props) {
   const { locale: rawLocale } = await params;

@@ -20,7 +20,7 @@
   "maturitySwitch": "Switch product",
   "maturityWithdraw": "Withdraw",
   "emiHeading": "Installment complete",
-  "emiHint": "Paid installments reached the plan. Celebrate or come back later.",
+  "emiHint": "This loan is fully paid. Celebrate or come back later.",
   "emiCelebrate": "Acknowledge celebration",
   "emiLater": "Later",
   "whyHeading": "Why is this here?",
@@ -28,7 +28,7 @@
     "unmapped_expense": "This expense has no jar yet. Pick an Active jar to place it.",
     "income_suggest": "Income is waiting for Suggest placement into Active jars.",
     "savings_maturity": "A savings product is at maturity. Choose renew, switch, or withdraw.",
-    "emi_complete": "An installment plan is fully paid. Acknowledge the milestone.",
+    "emi_complete": "A loan is fully paid. Acknowledge the milestone.",
     "emergency_declaration": "A partner declared an emergency jar reallocation. Review the intent note.",
     "payment_reminder": "A card or bill payment is due. Confirm or dismiss when handled."
   },

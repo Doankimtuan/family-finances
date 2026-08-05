@@ -21,7 +21,7 @@
     "inbox": "{count, plural, =0 {Inbox clear} one {# open Inbox item} other {# open Inbox items}}"
   },
   "emiCelebrateTitle": "Installment complete",
-  "emiCelebrateBody": "Celebrate in Inbox — paid installments mark completion. Health never invents a new balance.",
+  "emiCelebrateBody": "Celebrate in Inbox — clearing remaining principal marks completion. Health never invents a new balance.",
   "viewInsights": "View insights",
   "backHome": "Back to Home",
   "insights": {

@@ -16,3 +16,4 @@ export {
   type BuildHealthInsightsInput,
   type BuiltHealthInsights,
 } from "./build-health-insights";
+export { HEALTH_BC_CONTRACT } from "./health-readonly-contract";

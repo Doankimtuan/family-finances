@@ -5,17 +5,27 @@ import {
   recordLiabilityPayment,
   createSavingsProduct,
   enqueueSavingsMaturity,
-  createInstallmentPlan,
-  recordInstallmentPayment,
+  createLoan,
+  recordLoanPayment,
+  updateLoanMetadata,
+  setLoanStatus,
+  updateLoanInterestRate,
+  LoanPaymentMode,
   type CreateLiabilityInput,
   type RecordLiabilityPaymentInput,
   type CreateSavingsInput,
   type EnqueueSavingsMaturityInput,
-  type CreateInstallmentInput,
-  type RecordInstallmentPaymentInput,
+  type CreateLoanInput,
+  type RecordLoanPaymentInput,
+  type UpdateLoanMetadataInput,
+  type SetLoanStatusInput,
+  type UpdateLoanInterestRateInput,
   type MoneyProductMutationResult,
 } from "@/modules/ledger/application";
-import type { ProductActionErrorCode } from "@/modules/tenancy/application/product-action-error";
+import {
+  PRODUCT_ACTION_ERROR_CODE,
+  type ProductActionErrorCode,
+} from "@/modules/tenancy/application/product-action-error";
 
 export type MoneyProductActionState =
   | {
@@ -62,14 +72,49 @@ export async function enqueueSavingsMaturityAction(
   return toState(await enqueueSavingsMaturity(input));
 }
 
-export async function createInstallmentAction(
-  input: CreateInstallmentInput,
+export async function createLoanAction(
+  input: CreateLoanInput,
 ): Promise<MoneyProductActionState> {
-  return toState(await createInstallmentPlan(input));
+  return toState(await createLoan(input));
 }
 
-export async function recordInstallmentPaymentAction(
-  input: RecordInstallmentPaymentInput,
+export async function recordLoanPaymentAction(
+  input: RecordLoanPaymentInput,
 ): Promise<MoneyProductActionState> {
-  return toState(await recordInstallmentPayment(input));
+  return toState(await recordLoanPayment(input));
+}
+
+export async function updateLoanMetadataAction(
+  input: UpdateLoanMetadataInput,
+): Promise<MoneyProductActionState> {
+  return toState(await updateLoanMetadata(input));
+}
+
+export async function setLoanStatusAction(
+  input: SetLoanStatusInput,
+): Promise<MoneyProductActionState> {
+  return toState(await setLoanStatus(input));
+}
+
+export async function updateLoanInterestRateAction(
+  input: UpdateLoanInterestRateInput,
+): Promise<MoneyProductActionState> {
+  return toState(await updateLoanInterestRate(input));
+}
+
+/** @deprecated Use createLoanAction. */
+export const createInstallmentAction = createLoanAction;
+/** @deprecated Use recordLoanPaymentAction. */
+export async function recordInstallmentPaymentAction(input: {
+  planId: string;
+  accountId?: string;
+}): Promise<MoneyProductActionState> {
+  if (!input.accountId) {
+    return { status: "error", code: PRODUCT_ACTION_ERROR_CODE.INVALID };
+  }
+  return recordLoanPaymentAction({
+    loanId: input.planId,
+    accountId: input.accountId,
+    mode: LoanPaymentMode.SCHEDULED,
+  });
 }

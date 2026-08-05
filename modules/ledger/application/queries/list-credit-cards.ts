@@ -9,7 +9,6 @@ import {
   type CreditCardDetail,
   type CreditCardSummary,
 } from "../credit-card-types";
-import { InstallmentPlanStatus } from "../money-product-types";
 
 export async function listCreditCards(): Promise<{
   currency: string;
@@ -122,7 +121,6 @@ export async function getCreditCardDetail(
       { data: settingsRow },
       { data: monthRows },
       { data: itemRows },
-      { data: installmentRows },
     ] = await Promise.all([
       supabase
         .from("households")
@@ -162,12 +160,6 @@ export async function getCreditCardDetail(
         .eq("card_account_id", accountId)
         .order("created_at", { ascending: false })
         .limit(40),
-      supabase
-        .from("installment_plans")
-        .select("id, name, num_installments, paid_installments, status")
-        .eq("household_id", gate.householdId)
-        .eq("card_account_id", accountId)
-        .order("created_at", { ascending: false }),
     ]);
 
     if (!account || account.is_archived || !settingsRow) {
@@ -189,15 +181,6 @@ export async function getCreditCardDetail(
         ...summary,
         months,
         items: (itemRows ?? []).map(mapBillingItemRow),
-        linkedInstallments: (installmentRows ?? []).map((row) => ({
-          id: row.id,
-          name: row.name,
-          remainingInstallments: Math.max(
-            0,
-            row.num_installments - row.paid_installments,
-          ),
-          status: row.status ?? InstallmentPlanStatus.ACTIVE,
-        })),
       },
     };
   } catch {

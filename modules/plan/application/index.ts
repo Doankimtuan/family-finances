@@ -5,6 +5,7 @@ export { listJars, getJar } from "./queries/list-jars";
 export { listGoals, getGoal } from "./queries/list-goals";
 export { listRecurring, getRecurring } from "./queries/list-recurring";
 export { getMonthRitual, buildRitualPreview } from "./queries/get-month-ritual";
+export { getHouseholdCalendar } from "./queries/get-household-calendar";
 export {
   listRitualDivergence,
   listRitualEmergencies,
@@ -86,6 +87,7 @@ export {
   previewMonthRitual,
   approveMonthRitual,
   correctMonthRitual,
+  acknowledgeRitualEmergencies,
   correctMonthRitualInputSchema,
   type CorrectMonthRitualInput,
   type ApproveMonthRitualOptions,
@@ -165,5 +167,26 @@ export {
   RITUAL_AUTOLOCK_DAYS_AFTER_MONTH_END,
   QUICK_CLOSE_CONSECUTIVE_RITUALS,
   MISCELLANEOUS_JAR_NAME,
+  CalendarEventSource,
+  CALENDAR_EVENT_SOURCE_VALUES,
+  CalendarCashFlowSign,
+  CALENDAR_CASH_FLOW_SIGN_VALUES,
+  CALENDAR_PROJECTION_MONTHS,
+  CASH_FLOW_DEFICIT_THRESHOLD,
 } from "./plan-constants";
+export {
+  projectRecurringEvents,
+  projectCardDueEvents,
+  projectLoanEvents,
+  projectInstallmentEvents,
+  projectLiabilityEvents,
+  buildCashFlowForecast,
+  mergeAndSortEvents,
+  monthRange,
+  payoffMilestoneDates,
+  type CalendarEvent,
+  type CalendarProjection,
+  type CashFlowDayForecast,
+} from "./calendar-projection";
+export type { HouseholdCalendar } from "./queries/get-household-calendar";
 export { DEFAULT_CURRENCY } from "@/modules/ledger/application/ledger-constants";

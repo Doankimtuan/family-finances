@@ -53,7 +53,28 @@ export {
   RITUAL_AUTOLOCK_DAYS_AFTER_MONTH_END,
   MISCELLANEOUS_JAR_NAME,
   RITUAL_LOCKED_STATUSES,
+  CalendarEventSource,
+  CALENDAR_EVENT_SOURCE_VALUES,
+  CalendarCashFlowSign,
+  CALENDAR_CASH_FLOW_SIGN_VALUES,
+  CALENDAR_PROJECTION_MONTHS,
+  CASH_FLOW_DEFICIT_THRESHOLD,
 } from "./plan-constants";
+
+export {
+  projectRecurringEvents,
+  projectCardDueEvents,
+  projectLoanEvents,
+  projectInstallmentEvents,
+  projectLiabilityEvents,
+  buildCashFlowForecast,
+  mergeAndSortEvents,
+  monthRange,
+  payoffMilestoneDates,
+  type CalendarEvent,
+  type CalendarProjection,
+  type CashFlowDayForecast,
+} from "./calendar-projection";
 
 export {
   GoalStatus,

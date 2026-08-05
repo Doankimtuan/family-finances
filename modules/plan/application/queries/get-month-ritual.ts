@@ -24,6 +24,7 @@ type RitualRow = {
   approved_at: string | null;
   correction_note: string | null;
   auto_locked_at: string | null;
+  emergencies_acknowledged_at: string | null;
 };
 
 function emptyPreview(
@@ -163,7 +164,7 @@ export async function getMonthRitual(
       supabase
         .from("month_ritual_runs")
         .select(
-          "id, household_id, period_month, status, mode, preview_json, approved_at, correction_note, auto_locked_at",
+          "id, household_id, period_month, status, mode, preview_json, approved_at, correction_note, auto_locked_at, emergencies_acknowledged_at",
         )
         .eq("household_id", gate.householdId)
         .eq("period_month", periodMonth)
@@ -187,8 +188,8 @@ export async function getMonthRitual(
     );
 
     const [divergence, emergencies] = await Promise.all([
-      listRitualDivergence(gate.householdId, periodMonth),
-      listRitualEmergencies(gate.householdId, periodMonth),
+      listRitualDivergence(gate.householdId, periodMonth).catch(() => []),
+      listRitualEmergencies(gate.householdId, periodMonth).catch(() => []),
     ]);
 
     const enrich = (
@@ -196,15 +197,21 @@ export async function getMonthRitual(
         MonthRitual,
         | "divergence"
         | "emergencies"
+        | "emergenciesAcknowledged"
         | "consecutiveCompletedRituals"
         | "quickCloseEligible"
         | "autoLockedAt"
-      > & { autoLockedAt?: string | null },
+      > & {
+        autoLockedAt?: string | null;
+        emergenciesAcknowledgedAt?: string | null;
+      },
     ): MonthRitual => ({
       ...base,
       autoLockedAt: base.autoLockedAt ?? null,
       divergence,
       emergencies,
+      emergenciesAcknowledged:
+        emergencies.length === 0 || Boolean(base.emergenciesAcknowledgedAt),
       consecutiveCompletedRituals,
       quickCloseEligible,
     });
@@ -260,6 +267,7 @@ export async function getMonthRitual(
       approvedAt: ritual.approved_at,
       correctionNote: ritual.correction_note,
       autoLockedAt: ritual.auto_locked_at,
+      emergenciesAcknowledgedAt: ritual.emergencies_acknowledged_at,
       isLocked: isRitualLockedStatus(status),
     });
   } catch {

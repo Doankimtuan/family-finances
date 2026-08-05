@@ -2,14 +2,9 @@
 
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { useRouter, Link } from "@/i18n/navigation";
-import { moneyCardPath } from "@/modules/tenancy/application/app-path";
+import { useRouter } from "@/i18n/navigation";
 import type { CreditCardDetail } from "@/modules/ledger/application/client";
-import {
-  CardBillingMonthStatus,
-  DEFAULT_CARD_INSTALLMENT_COUNT,
-} from "@/modules/ledger/application/client";
-import { canConvertBillingItemOnMonth } from "@/modules/ledger/application/credit-card-billing";
+import { CardBillingMonthStatus } from "@/modules/ledger/application/client";
 import { AmountField } from "@/shared/patterns/amount-field";
 import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
@@ -22,11 +17,7 @@ import {
   type ProductActionErrorCode,
 } from "@/modules/tenancy/application/product-action-error";
 import type { LedgerActionErrorCode } from "@/modules/ledger/application/client";
-import {
-  addCardCashbackAction,
-  convertToInstallmentAction,
-  settleCardAction,
-} from "../actions";
+import { addCardCashbackAction, settleCardAction } from "../actions";
 
 type ErrorCode =
   | ProductActionErrorCode
@@ -44,7 +35,8 @@ type Props = {
 };
 
 /**
- * Credit card actions: settle FIFO, cashback, convert statement lines to EMI.
+ * Credit card actions: settle FIFO and cashback.
+ * Card Installment convert is deferred to the Card BC (not Loan).
  */
 export function CreditCardDetailActions({
   card,
@@ -64,20 +56,6 @@ export function CreditCardDetailActions({
   const [cashbackAmount, setCashbackAmount] = useState<number | null>(null);
   const [errorCode, setErrorCode] = useState<ErrorCode | null>(null);
   const [isPending, startTransition] = useTransition();
-
-  const monthsById = new Map(card.months.map((month) => [month.id, month]));
-  const convertibleItems = card.items.filter((item) => {
-    const month = monthsById.get(item.billingMonthId);
-    if (!month) return false;
-    return canConvertBillingItemOnMonth({
-      monthPaidAmount: month.paidAmount,
-      monthStatus: month.status,
-      isPaid: item.isPaid,
-      isConvertedToInstallment: item.isConvertedToInstallment,
-      itemType: item.itemType,
-      itemAmount: item.amount,
-    });
-  });
 
   return (
     <div
@@ -231,87 +209,6 @@ export function CreditCardDetailActions({
                     due: month.dueDate,
                   })}
                 </Text>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <section className="flex flex-col gap-(--space-3)">
-        <SectionHeader title={t("convertTitle")} />
-        {convertibleItems.length === 0 ? (
-          <Text size="sm" tone="secondary">
-            {t("convertEmpty")}
-          </Text>
-        ) : (
-          <ul className="flex flex-col gap-(--space-2)">
-            {convertibleItems.map((item) => (
-              <li
-                key={item.id}
-                className="flex flex-col gap-(--space-2) rounded-md border border-border-subtle p-(--space-3)"
-              >
-                <Text size="sm" className="font-medium">
-                  {item.description || t("convertItemFallback")}
-                </Text>
-                <Text size="sm" tone="secondary">
-                  {item.amount}
-                </Text>
-                <Button
-                  variant="secondary"
-                  className="w-full"
-                  data-testid={`card-convert-${item.id}`}
-                  isDisabled={isPending || !online}
-                  onPress={() => {
-                    setErrorCode(null);
-                    if (!online) {
-                      setErrorCode(CLIENT_ACTION_ERROR_CODE.OFFLINE);
-                      return;
-                    }
-                    startTransition(async () => {
-                      const result = await convertToInstallmentAction({
-                        billingItemId: item.id,
-                        numInstallments: DEFAULT_CARD_INSTALLMENT_COUNT,
-                        conversionFee: 0,
-                      });
-                      if (result.status === "success") {
-                        router.refresh();
-                        return;
-                      }
-                      setErrorCode(result.code);
-                    });
-                  }}
-                >
-                  {t("convertSubmit", {
-                    count: DEFAULT_CARD_INSTALLMENT_COUNT,
-                  })}
-                </Button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <section className="flex flex-col gap-(--space-3)">
-        <SectionHeader title={t("emiTitle")} />
-        {card.linkedInstallments.length === 0 ? (
-          <Text size="sm" tone="secondary">
-            {t("emiEmpty")}
-          </Text>
-        ) : (
-          <ul className="flex flex-col gap-(--space-2)">
-            {card.linkedInstallments.map((plan) => (
-              <li key={plan.id}>
-                <Link
-                  href={moneyCardPath(plan.id)}
-                  className="flex min-h-11 items-center justify-between rounded-md border border-border-subtle px-(--space-3) py-(--space-2)"
-                >
-                  <Text size="sm" className="font-medium">
-                    {plan.name}
-                  </Text>
-                  <Text size="sm" tone="secondary">
-                    {t("emiRemaining", { count: plan.remainingInstallments })}
-                  </Text>
-                </Link>
               </li>
             ))}
           </ul>

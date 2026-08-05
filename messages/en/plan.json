@@ -242,6 +242,49 @@
       "unknown": "Something went wrong. Try again."
     }
   },
+  "calendar": {
+    "title": "Calendar",
+    "subtitle": "Recurring, card dues, and loan dates",
+    "body": "One household schedule across Plan and Money.",
+    "cta": "Open calendar",
+    "startingBalance": "Projected from real cash: {amount}",
+    "deficitTitle": "Early cash-flow warning",
+    "deficitBody": "{count} day(s) may dip at or below zero. First: {first}.",
+    "deficitClearTitle": "No deficit projected",
+    "deficitClearBody": "Scheduled inflows and outflows stay above zero in this window.",
+    "gridLabel": "Month calendar",
+    "monthHeading": "{month}",
+    "dayLabel": "{date}, {events} events",
+    "dayEventsHeading": "Events on {date}",
+    "dayEmpty": "Nothing scheduled this day.",
+    "dayDeficitTitle": "Low-balance day",
+    "dayDeficitBody": "Projected real cash may be at or below zero on {date}.",
+    "payoffTitle": "Payoff milestone",
+    "payoffBody": "{title} final payment lands on {date}. Celebrate and reallocate freed cash flow.",
+    "payoffInboxCta": "Open Inbox celebration",
+    "payoffReallocateCta": "Reallocate jar capacity",
+    "milestoneBadge": "Final payoff",
+    "backToPlan": "Back to Plan",
+    "unavailableTitle": "Calendar unavailable",
+    "unavailableBody": "Join a household and try again.",
+    "weekdays": {
+      "sun": "Su",
+      "mon": "Mo",
+      "tue": "Tu",
+      "wed": "We",
+      "thu": "Th",
+      "fri": "Fr",
+      "sat": "Sa"
+    },
+    "sources": {
+      "recurring": "Recurring",
+      "card_due": "Card due",
+      "loan": "Loan",
+      "installment": "Loan",
+      "liability": "Debt due",
+      "payoff_milestone": "Payoff milestone"
+    }
+  },
   "ritual": {
     "title": "Month Ritual",
     "subtitle": "Assisted preview → approve → lock",
@@ -286,6 +329,12 @@
     "emergencyAmount": "Amount {amount}",
     "emergencyNote": "Intent: {note}",
     "emergencyNoteMissing": "No intent note recorded.",
+    "emergencyClearTitle": "No emergencies this period",
+    "emergencyClearBody": "No mid-month emergency reallocations to reflect on.",
+    "emergencyAckCta": "We reviewed these emergencies",
+    "emergencyAcking": "Saving…",
+    "emergencyAckedTitle": "Emergencies acknowledged",
+    "emergencyAckedBody": "You can approve or Quick Close after this reflection step.",
     "assistedHeading": "Assisted steps",
     "assisted": {
       "stepDivergence": "Confirm Category ↔ Jar mappings are clean",
@@ -329,6 +378,7 @@
       "month_locked": "This month is already locked.",
       "ritual_divergence": "Resolve Category ↔ Jar mappings before continuing.",
       "quick_close_locked": "Complete six Assisted rituals before Quick Close unlocks.",
+      "emergencies_unacknowledged": "Acknowledge Step 3 emergency reflection before approving.",
       "offline": "You're offline — try again when connected.",
       "unknown": "Something went wrong. Try again."
     }

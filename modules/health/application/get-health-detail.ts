@@ -1,3 +1,5 @@
+import "server-only";
+
 import {
   getRealPosition,
   listRecentTransactions,
@@ -14,6 +16,7 @@ import {
   type HealthInsight,
   type HealthScenario,
 } from "@/modules/health/application/build-health-insights";
+import { logHealthAiPolicyBlock } from "@/modules/health/application/log-health-ai-policy-block";
 
 export type HealthDetail = {
   health: HealthPulse;
@@ -65,6 +68,9 @@ export async function getHealthDetail(): Promise<HealthDetail | null> {
     openInboxCount,
     recentTransactionCount,
     hasEmiCompletePending,
+    onPolicyBlock: (block) => {
+      void logHealthAiPolicyBlock(block);
+    },
   });
 
   return {

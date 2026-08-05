@@ -194,11 +194,61 @@ export const PLAN_ACTION_ERROR_CODE = {
 export type PlanActionErrorCode =
   (typeof PLAN_ACTION_ERROR_CODE)[keyof typeof PLAN_ACTION_ERROR_CODE];
 
-/** Month Ritual gate failures (ST-E04-002 / BR-23). */
+/** Month Ritual gate failures (ST-E04-002 / BR-23 / REQ-RIT-02). */
 export const RITUAL_GATE_ERROR_CODE = {
   RITUAL_DIVERGENCE: "ritual_divergence",
   QUICK_CLOSE_LOCKED: "quick_close_locked",
+  EMERGENCIES_UNACKNOWLEDGED: "emergencies_unacknowledged",
 } as const;
 
 export type RitualGateErrorCode =
   (typeof RITUAL_GATE_ERROR_CODE)[keyof typeof RITUAL_GATE_ERROR_CODE];
+
+/**
+ * Household Financial Calendar event sources (REQ-CAL-01 / BR-17 / BR-20).
+ * Lives under Plan as CalendarSchedule — not a separate BC.
+ */
+export const CalendarEventSource = {
+  RECURRING: "recurring",
+  CARD_DUE: "card_due",
+  LOAN: "loan",
+  /** @deprecated Use LOAN. */
+  INSTALLMENT: "loan",
+  LIABILITY: "liability",
+  PAYOFF_MILESTONE: "payoff_milestone",
+} as const;
+
+export type CalendarEventSource =
+  (typeof CalendarEventSource)[keyof typeof CalendarEventSource];
+
+export const CALENDAR_EVENT_SOURCE_VALUES = [
+  CalendarEventSource.RECURRING,
+  CalendarEventSource.CARD_DUE,
+  CalendarEventSource.LOAN,
+  CalendarEventSource.LIABILITY,
+  CalendarEventSource.PAYOFF_MILESTONE,
+] as const;
+
+export const CalendarCashFlowSign = {
+  INFLOW: "inflow",
+  OUTFLOW: "outflow",
+  NEUTRAL: "neutral",
+} as const;
+
+export type CalendarCashFlowSign =
+  (typeof CalendarCashFlowSign)[keyof typeof CalendarCashFlowSign];
+
+export const CALENDAR_CASH_FLOW_SIGN_VALUES = [
+  CalendarCashFlowSign.INFLOW,
+  CalendarCashFlowSign.OUTFLOW,
+  CalendarCashFlowSign.NEUTRAL,
+] as const;
+
+/** Default projection horizon in months from the anchor month start. */
+export const CALENDAR_PROJECTION_MONTHS = 3;
+
+/**
+ * Warn when projected real cash (not jar intention) would fall at or below
+ * this threshold after scheduled outflows (ST-E05-002 / Spec Sync override of EO-03 R1).
+ */
+export const CASH_FLOW_DEFICIT_THRESHOLD = 0;

@@ -61,6 +61,7 @@ export type MonthRitual = {
   isLocked: boolean;
   divergence: RitualDivergenceItem[];
   emergencies: RitualEmergencyItem[];
+  emergenciesAcknowledged: boolean;
   consecutiveCompletedRituals: number;
   quickCloseEligible: boolean;
 };

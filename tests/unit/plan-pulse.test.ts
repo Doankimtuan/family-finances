@@ -192,16 +192,32 @@ describe("setJarState / upsertJarPlan", () => {
       userId: "u1",
       householdId: "h1",
     });
-    const maybeSingle = vi.fn(async () => ({
+    const unlockedMaybeSingle = vi.fn(async () => ({
+      data: null,
+      error: null,
+    }));
+    const jarMaybeSingle = vi.fn(async () => ({
       data: { id: "j1" },
       error: null,
     }));
-    const select = vi.fn(() => ({ maybeSingle }));
-    const eq2 = vi.fn(() => ({ select }));
-    const eq1 = vi.fn(() => ({ eq: eq2 }));
-    const update = vi.fn(() => ({ eq: eq1 }));
+    const jarSelect = vi.fn(() => ({ maybeSingle: jarMaybeSingle }));
+    const jarEq2 = vi.fn(() => ({ select: jarSelect }));
+    const jarEq1 = vi.fn(() => ({ eq: jarEq2 }));
+    const update = vi.fn(() => ({ eq: jarEq1 }));
+
+    const ritualChain = {
+      select: vi.fn(() => ritualChain),
+      eq: vi.fn(() => ritualChain),
+      in: vi.fn(() => ritualChain),
+      limit: vi.fn(() => ritualChain),
+      maybeSingle: unlockedMaybeSingle,
+    };
+
     vi.mocked(createSupabaseServerClient).mockResolvedValue({
-      from: () => ({ update }),
+      from: (table: string) => {
+        if (table === "month_ritual_runs") return ritualChain;
+        return { update };
+      },
     } as never);
 
     const result = await setJarState({

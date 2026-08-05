@@ -7,7 +7,10 @@ import {
 } from "@/modules/tenancy/application/product-action-error";
 import { currentPeriodMonth } from "../ritual-period";
 import { buildRitualPreview } from "../queries/get-month-ritual";
-import { listRitualDivergence } from "../queries/ritual-gates";
+import {
+  listRitualDivergence,
+  listRitualEmergencies,
+} from "../queries/ritual-gates";
 import {
   RitualMode,
   RitualStatus,
@@ -17,6 +20,7 @@ import {
 } from "../plan-constants";
 import {
   resolveQuickCloseEligible,
+  mapRitualStatus,
   type RitualActionErrorCode,
 } from "../ritual-types";
 
@@ -30,11 +34,30 @@ async function assertNoDivergence(
   householdId: string,
   periodMonth: string,
 ): Promise<RitualActionErrorCode | null> {
-  const divergence = await listRitualDivergence(householdId, periodMonth);
-  if (divergence.length > 0) {
-    return RITUAL_GATE_ERROR_CODE.RITUAL_DIVERGENCE;
+  try {
+    const divergence = await listRitualDivergence(householdId, periodMonth);
+    if (divergence.length > 0) {
+      return RITUAL_GATE_ERROR_CODE.RITUAL_DIVERGENCE;
+    }
+    return null;
+  } catch {
+    return PRODUCT_ACTION_ERROR_CODE.UNKNOWN;
   }
-  return null;
+}
+
+async function assertEmergenciesAcknowledged(
+  householdId: string,
+  periodMonth: string,
+  emergenciesAcknowledgedAt: string | null | undefined,
+): Promise<RitualActionErrorCode | null> {
+  try {
+    const emergencies = await listRitualEmergencies(householdId, periodMonth);
+    if (emergencies.length === 0) return null;
+    if (emergenciesAcknowledgedAt) return null;
+    return RITUAL_GATE_ERROR_CODE.EMERGENCIES_UNACKNOWLEDGED;
+  } catch {
+    return PRODUCT_ACTION_ERROR_CODE.UNKNOWN;
+  }
 }
 
 /**
@@ -165,7 +188,7 @@ export async function approveMonthRitual(
 
     let { data: existing } = await supabase
       .from("month_ritual_runs")
-      .select("id, status, mode")
+      .select("id, status, mode, emergencies_acknowledged_at")
       .eq("household_id", gate.householdId)
       .eq("period_month", periodMonth)
       .maybeSingle();
@@ -177,17 +200,35 @@ export async function approveMonthRitual(
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.MONTH_LOCKED };
     }
 
+    const emergencyCode = await assertEmergenciesAcknowledged(
+      gate.householdId,
+      periodMonth,
+      existing?.emergencies_acknowledged_at as string | null | undefined,
+    );
+    if (emergencyCode) {
+      return { ok: false, code: emergencyCode };
+    }
+
     // Quick Close may approve from draft by generating preview first.
     if (quickClose && existing?.status !== RitualStatus.PREVIEWED) {
       const previewed = await previewMonthRitual(periodMonth);
       if (!previewed.ok) return previewed;
       const refreshed = await supabase
         .from("month_ritual_runs")
-        .select("id, status, mode")
+        .select("id, status, mode, emergencies_acknowledged_at")
         .eq("household_id", gate.householdId)
         .eq("period_month", periodMonth)
         .maybeSingle();
       existing = refreshed.data;
+
+      const afterPreviewEmergency = await assertEmergenciesAcknowledged(
+        gate.householdId,
+        periodMonth,
+        existing?.emergencies_acknowledged_at as string | null | undefined,
+      );
+      if (afterPreviewEmergency) {
+        return { ok: false, code: afterPreviewEmergency };
+      }
     }
 
     if (!existing?.id || existing.status !== RitualStatus.PREVIEWED) {
@@ -305,12 +346,98 @@ export async function correctMonthRitual(
         corrected_by: gate.userId,
         corrected_at: now,
         auto_locked_at: null,
+        emergencies_acknowledged_at: null,
         updated_at: now,
       })
       .eq("id", existing.id);
 
     if (error) return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+
+    await supabase
+      .from("households")
+      .update({ consecutive_completed_rituals: 0 })
+      .eq("id", gate.householdId);
+
     return { ok: true, status: RitualStatus.CORRECTED, ritualId: existing.id };
+  } catch {
+    return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+  }
+}
+
+/**
+ * REQ-RIT-02 — acknowledge Step 3 emergency reflection before approve.
+ */
+export async function acknowledgeRitualEmergencies(
+  periodMonth: string = currentPeriodMonth(),
+): Promise<RitualMutationResult> {
+  const gate = await assertMoneyActionAllowed();
+  if (!gate.ok) {
+    return {
+      ok: false,
+      code: productActionErrorFromDeniedReason(gate.reason),
+    };
+  }
+
+  try {
+    const emergencies = await listRitualEmergencies(
+      gate.householdId,
+      periodMonth,
+    );
+    if (emergencies.length === 0) {
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
+    }
+
+    const supabase = await createSupabaseServerClient();
+    const { data: existing } = await supabase
+      .from("month_ritual_runs")
+      .select("id, status")
+      .eq("household_id", gate.householdId)
+      .eq("period_month", periodMonth)
+      .maybeSingle();
+
+    if (
+      existing?.status === RitualStatus.APPROVED ||
+      existing?.status === RitualStatus.PENDING_REVIEW
+    ) {
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.MONTH_LOCKED };
+    }
+
+    const now = new Date().toISOString();
+    if (existing?.id) {
+      const { error } = await supabase
+        .from("month_ritual_runs")
+        .update({
+          emergencies_acknowledged_at: now,
+          updated_at: now,
+        })
+        .eq("id", existing.id);
+      if (error) return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+      return {
+        ok: true,
+        status: mapRitualStatus(existing.status),
+        ritualId: existing.id,
+      };
+    }
+
+    const preview = await buildRitualPreview(gate.householdId, periodMonth);
+    const { data, error } = await supabase
+      .from("month_ritual_runs")
+      .insert({
+        household_id: gate.householdId,
+        period_month: periodMonth,
+        status: RitualStatus.DRAFT,
+        mode: RitualMode.ASSISTED,
+        preview_json: preview,
+        emergencies_acknowledged_at: now,
+        updated_at: now,
+      })
+      .select("id")
+      .single();
+
+    if (error || !data?.id) {
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    }
+    return { ok: true, status: RitualStatus.DRAFT, ritualId: data.id };
   } catch {
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }

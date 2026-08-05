@@ -27,6 +27,7 @@ import {
   previewRitualAction,
   approveRitualAction,
   correctRitualAction,
+  acknowledgeEmergenciesAction,
 } from "./actions";
 
 type ErrorCode =
@@ -36,7 +37,8 @@ type Props = {
   ritual: MonthRitual;
 };
 
-type PendingAction = "preview" | "approve" | "quickClose" | "correct";
+type PendingAction =
+  "preview" | "approve" | "quickClose" | "correct" | "acknowledgeEmergencies";
 
 function stepValue(status: MonthRitual["status"]): number {
   switch (status) {
@@ -68,6 +70,8 @@ export function RitualWizard({ ritual }: Props) {
   const preview = ritual.preview;
   const busy = pendingAction != null;
   const hasDivergence = ritual.divergence.length > 0;
+  const needsEmergencyAck =
+    ritual.emergencies.length > 0 && !ritual.emergenciesAcknowledged;
   const isLockedView =
     ritual.status === RitualStatus.APPROVED ||
     ritual.status === RitualStatus.PENDING_REVIEW;
@@ -340,10 +344,9 @@ export function RitualWizard({ ritual }: Props) {
             </Button>
           </section>
 
-          {(ritual.status === RitualStatus.PREVIEWED ||
-            ritual.status === RitualStatus.CORRECTED ||
-            ritual.status === RitualStatus.DRAFT) &&
-          ritual.emergencies.length > 0 ? (
+          {ritual.status === RitualStatus.PREVIEWED ||
+          ritual.status === RitualStatus.CORRECTED ||
+          ritual.status === RitualStatus.DRAFT ? (
             <section
               className="flex flex-col gap-(--space-3)"
               data-testid="ritual-emergency-reflection"
@@ -352,24 +355,59 @@ export function RitualWizard({ ritual }: Props) {
               <Text size="sm" tone="secondary">
                 {t("emergencyHint")}
               </Text>
-              <ul className="flex flex-col gap-(--space-2)">
-                {ritual.emergencies.map((item) => (
-                  <li
-                    key={item.id}
-                    className="flex flex-col gap-(--space-1) rounded-md border border-border-subtle bg-surface px-(--space-3) py-(--space-2)"
-                    data-testid="ritual-emergency-item"
-                  >
-                    <span className="text-sm font-semibold tabular-nums text-text-primary">
-                      {t("emergencyAmount", { amount: String(item.amount) })}
-                    </span>
-                    <span className="text-sm text-text-secondary">
-                      {item.intentNote
-                        ? t("emergencyNote", { note: item.intentNote })
-                        : t("emergencyNoteMissing")}
-                    </span>
-                  </li>
-                ))}
-              </ul>
+              {ritual.emergencies.length === 0 ? (
+                <StatusAlert
+                  variant="success"
+                  title={t("emergencyClearTitle")}
+                  description={t("emergencyClearBody")}
+                />
+              ) : (
+                <>
+                  <ul className="flex flex-col gap-(--space-2)">
+                    {ritual.emergencies.map((item) => (
+                      <li
+                        key={item.id}
+                        className="flex flex-col gap-(--space-1) rounded-md border border-border-subtle bg-surface px-(--space-3) py-(--space-2)"
+                        data-testid="ritual-emergency-item"
+                      >
+                        <span className="text-sm font-semibold tabular-nums text-text-primary">
+                          {t("emergencyAmount", {
+                            amount: String(item.amount),
+                          })}
+                        </span>
+                        <span className="text-sm text-text-secondary">
+                          {item.intentNote
+                            ? t("emergencyNote", { note: item.intentNote })
+                            : t("emergencyNoteMissing")}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                  {ritual.emergenciesAcknowledged ? (
+                    <StatusAlert
+                      variant="success"
+                      title={t("emergencyAckedTitle")}
+                      description={t("emergencyAckedBody")}
+                    />
+                  ) : (
+                    <Button
+                      variant="secondary"
+                      className="w-full"
+                      data-testid="ritual-emergency-ack"
+                      isDisabled={busy || !online}
+                      onPress={() =>
+                        run("acknowledgeEmergencies", () =>
+                          acknowledgeEmergenciesAction(),
+                        )
+                      }
+                    >
+                      {pendingAction === "acknowledgeEmergencies"
+                        ? t("emergencyAcking")
+                        : t("emergencyAckCta")}
+                    </Button>
+                  )}
+                </>
+              )}
             </section>
           ) : null}
 
@@ -404,7 +442,9 @@ export function RitualWizard({ ritual }: Props) {
                 variant="primary"
                 className="w-full"
                 data-testid="ritual-quick-close-cta"
-                isDisabled={busy || !online || hasDivergence}
+                isDisabled={
+                  busy || !online || hasDivergence || needsEmergencyAck
+                }
                 onPress={() =>
                   run("quickClose", () =>
                     approveRitualAction({ quickClose: true }),
@@ -433,7 +473,9 @@ export function RitualWizard({ ritual }: Props) {
                   variant="primary"
                   className="w-full"
                   data-testid="ritual-approve-yes"
-                  isDisabled={busy || !online || hasDivergence}
+                  isDisabled={
+                    busy || !online || hasDivergence || needsEmergencyAck
+                  }
                   onPress={() =>
                     run(
                       "approve",
@@ -460,7 +502,9 @@ export function RitualWizard({ ritual }: Props) {
                 variant="primary"
                 className="w-full"
                 data-testid="ritual-approve"
-                isDisabled={busy || !online || hasDivergence}
+                isDisabled={
+                  busy || !online || hasDivergence || needsEmergencyAck
+                }
                 onPress={() => {
                   if (!online) {
                     setErrorCode(CLIENT_ACTION_ERROR_CODE.OFFLINE);

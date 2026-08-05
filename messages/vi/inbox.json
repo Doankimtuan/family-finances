@@ -20,7 +20,7 @@
   "maturitySwitch": "Đổi sản phẩm",
   "maturityWithdraw": "Rút",
   "emiHeading": "Trả góp hoàn tất",
-  "emiHint": "Số kỳ đã trả đủ kế hoạch. Ăn mừng hoặc để sau.",
+  "emiHint": "Khoản vay đã trả xong. Ăn mừng hoặc để sau.",
   "emiCelebrate": "Xác nhận ăn mừng",
   "emiLater": "Để sau",
   "whyHeading": "Vì sao mục này ở đây?",
@@ -28,7 +28,7 @@
     "unmapped_expense": "Khoản chi này chưa có hũ. Chọn hũ Active để gắn.",
     "income_suggest": "Thu nhập đang chờ phân bổ Suggest vào hũ Active.",
     "savings_maturity": "Sản phẩm tiết kiệm đã đáo hạn. Chọn gia hạn, đổi hoặc rút.",
-    "emi_complete": "Kế hoạch trả góp đã trả đủ. Xác nhận cột mốc.",
+    "emi_complete": "Khoản vay đã trả xong. Xác nhận cột mốc.",
     "emergency_declaration": "Partner đã khai báo realloc khẩn cấp. Xem ghi chú ý định.",
     "payment_reminder": "Có khoản thanh toán thẻ/hóa đơn đến hạn. Xác nhận hoặc bỏ qua khi đã xử lý."
   },
