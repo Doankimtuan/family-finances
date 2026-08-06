@@ -12,6 +12,7 @@ import { BrandMark } from "@/shared/patterns/brand-mark";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Balance } from "@/shared/patterns/balance";
 import { KpiBlock } from "@/shared/patterns/kpi-block";
+import { Page } from "@/shared/patterns/page";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Text } from "@/shared/ui/text";
 import { Heading } from "@/shared/ui/heading";
@@ -48,83 +49,95 @@ export default async function HomePage({ params }: Props) {
 
   const loadFailed = dashboard == null;
 
-  return (
-    <div className="flex min-h-full flex-col" data-testid="home-dashboard">
-      <TopAppBar
-        title={
-          <div className="flex min-w-0 items-center gap-(--space-2)">
-            <BrandMark variant="mark" size="sm" className="shrink-0" />
-            <Heading
-              level={1}
-              className="truncate text-lg font-semibold tracking-tight text-text-primary"
-            >
-              {t("title")}
-            </Heading>
-          </div>
-        }
-        subtitle={t("subtitle")}
-      />
-      <div className="flex flex-1 flex-col gap-(--space-5) px-(--space-4) pb-(--space-6) pt-(--space-4)">
-        {loadFailed ? (
-          <StatusAlert
-            variant="danger"
-            title={t("loadErrorTitle")}
-            description={t("loadErrorBody")}
-          />
-        ) : (
-          <>
-            <KpiBlock
-              title={t("realPosition.title")}
-              description={t("realPosition.hint")}
-              data-testid="home-real-position"
-            >
-              <Balance
-                amountLabel={formatCurrency(
-                  dashboard.realBalance,
-                  dashboard.currency,
-                  locale,
-                  { maximumFractionDigits: 0 },
-                )}
-                size="lg"
-              />
-              {!dashboard.isDayZero ? <HomeCaptureAction /> : null}
-            </KpiBlock>
+  const topBar = (
+    <TopAppBar
+      title={
+        <div className="flex min-w-0 items-center gap-(--space-2)">
+          <BrandMark variant="mark" size="sm" className="shrink-0" />
+          <Heading
+            level={1}
+            className="truncate text-lg font-semibold tracking-tight text-text-primary"
+          >
+            {t("title")}
+          </Heading>
+        </div>
+      }
+      subtitle={t("subtitle")}
+    />
+  );
 
-            <KpiBlock
-              title={t("planPulse.title")}
-              description={t("planPulse.hint")}
-              data-testid="home-plan-pulse"
-            >
-              <Text size="sm" className="font-medium text-text-primary">
-                {t("planPulse.jarsCount", {
-                  count: dashboard.activeJarCount,
-                })}
-              </Text>
-              <Text size="sm" tone="secondary">
-                {t(`planPulse.allocate.${dashboard.incomeAllocateMode}`)}
-              </Text>
+  return (
+    <Page testId="home-dashboard" topBar={topBar}>
+      {loadFailed ? (
+        <StatusAlert
+          variant="danger"
+          title={t("loadErrorTitle")}
+          description={t("loadErrorBody")}
+        />
+      ) : (
+        <>
+          <KpiBlock
+            title={t("realPosition.title")}
+            description={t("realPosition.hint")}
+            variant="prominent"
+            data-testid="home-real-position"
+          >
+            <Balance
+              amountLabel={formatCurrency(
+                dashboard.realBalance,
+                dashboard.currency,
+                locale,
+                { maximumFractionDigits: 0 },
+              )}
+              size="lg"
+              amountClassName="text-[2.5rem] leading-none"
+            />
+            {!dashboard.isDayZero ? <HomeCaptureAction /> : null}
+          </KpiBlock>
+
+          <KpiBlock
+            title={t("planPulse.title")}
+            description={t("planPulse.hint")}
+            variant="surface"
+            data-testid="home-plan-pulse"
+          >
+            <div className="flex items-end justify-between gap-(--space-3)">
+              <div className="min-w-0">
+                <Text size="lg" className="font-semibold text-text-primary">
+                  {t("planPulse.jarsCount", {
+                    count: dashboard.activeJarCount,
+                  })}
+                </Text>
+                <Text size="sm" tone="secondary">
+                  {t(`planPulse.allocate.${dashboard.incomeAllocateMode}`)}
+                </Text>
+              </div>
               <Link
                 href={APP_PATH.PLAN}
-                className="text-sm font-medium text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+                className="shrink-0 rounded-md border border-accent/30 bg-accent/10 px-(--space-3) py-(--space-2) text-sm font-medium text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
                 data-testid="home-plan-link"
               >
                 {t("planPulse.openPlan")}
               </Link>
-            </KpiBlock>
+            </div>
+          </KpiBlock>
 
-            <KpiBlock title={t("inbox.title")} data-testid="home-inbox-block">
-              <HomeInboxCta openCount={dashboard.openInboxCount} />
-            </KpiBlock>
+          <KpiBlock
+            title={t("inbox.title")}
+            variant="surface"
+            data-testid="home-inbox-block"
+          >
+            <HomeInboxCta openCount={dashboard.openInboxCount} />
+          </KpiBlock>
 
-            <HomeHealthChip
-              score={dashboard.health.score}
-              level={dashboard.health.level}
-            />
+          <HomeHealthChip
+            score={dashboard.health.score}
+            level={dashboard.health.level}
+          />
 
-            {dashboard.isDayZero ? <HomeDayZeroTrio /> : null}
-          </>
-        )}
-      </div>
-    </div>
+          {dashboard.isDayZero ? <HomeDayZeroTrio /> : null}
+        </>
+      )}
+    </Page>
   );
 }

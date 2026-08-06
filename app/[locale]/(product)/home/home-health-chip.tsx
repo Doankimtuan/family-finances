@@ -22,6 +22,7 @@ export function HomeHealthChip({
       score={score}
       levelLabel={t(`health.levels.${level}`)}
       narrative={t(`health.narratives.${level}`)}
+      className="bg-surface-elevated shadow-[var(--elevation-1)]"
       data-testid="home-health-chip"
       onPress={() => router.push(APP_PATH.HEALTH)}
     />

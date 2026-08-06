@@ -14,20 +14,22 @@ import {
   listCreditCards,
   listRecentTransactions,
   DEFAULT_CURRENCY,
+  TRANSACTION_AMOUNT_PREFIX,
   TransactionDirection,
 } from "@/modules/ledger/application";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
-import { SectionHeader } from "@/shared/patterns/section-header";
+import { Section } from "@/shared/patterns/section";
 import { Balance } from "@/shared/patterns/balance";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { TransactionRow } from "@/shared/patterns/transaction-row";
 import { StatusAlert } from "@/shared/ui/status-alert";
-import { Text } from "@/shared/ui/text";
+import { Page } from "@/shared/patterns/page";
 import { MoneyOfflineBanner } from "./money-offline-banner";
 import { MoneyCaptureAction } from "./money-capture-action";
 import { MoneyHubAccounts } from "./money-hub-accounts";
+import { MoneyMoreLink } from "./money-more-link";
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -97,150 +99,158 @@ export default async function MoneyHubPage({ params }: Props) {
   }));
 
   return (
-    <div className="flex min-h-full flex-col" data-testid="money-hub">
-      <TopAppBar title={t("title")} subtitle={t("realPositionHint")} />
-      <div className="flex flex-1 flex-col gap-(--space-5) px-(--space-4) pb-(--space-6) pt-(--space-4)">
-        <MoneyOfflineBanner />
+    <Page
+      testId="money-hub"
+      topBar={<TopAppBar title={t("title")} subtitle={t("realPositionHint")} />}
+    >
+      <MoneyOfflineBanner />
 
-        {loadFailed ? (
-          <StatusAlert
-            variant="danger"
-            title={t("loadErrorTitle")}
-            description={t("loadErrorBody")}
-          />
-        ) : (
-          <section className="flex flex-col gap-(--space-3)">
+      {loadFailed ? (
+        <StatusAlert
+          variant="danger"
+          title={t("loadErrorTitle")}
+          description={t("loadErrorBody")}
+        />
+      ) : (
+        <Section variant="emphasized" testId="money-real-position-summary">
+          <div className="flex flex-col gap-(--space-4)">
             <Balance
               label={t("realPosition")}
               amountLabel={formatCurrency(total, currency, locale, {
                 maximumFractionDigits: 0,
               })}
               size="lg"
+              amountClassName="text-[2.5rem] leading-none"
             />
+            <div className="grid grid-cols-2 gap-(--space-2)">
+              <div className="rounded-lg border border-accent/20 bg-surface/70 p-(--space-3)">
+                <p className="text-xs font-medium text-text-secondary">
+                  {t("accounts")}
+                </p>
+                <p className="text-lg font-semibold tabular-nums text-text-primary">
+                  {liquidAccounts.length}
+                </p>
+              </div>
+              <div className="rounded-lg border border-accent/20 bg-surface/70 p-(--space-3)">
+                <p className="text-xs font-medium text-text-secondary">
+                  {t("activity")}
+                </p>
+                <p className="text-lg font-semibold tabular-nums text-text-primary">
+                  {activity.length}
+                </p>
+              </div>
+            </div>
             <MoneyCaptureAction />
-          </section>
-        )}
+          </div>
+        </Section>
+      )}
 
-        <MoneyHubAccounts
-          loadFailed={loadFailed}
-          liquidAccounts={liquidRows}
-          creditCards={cardRows}
-          liquidOptions={liquidAccounts.map((account) => ({
-            id: account.id,
-            name: localizeCatalogName(tCatalog, "accounts", account.name),
-          }))}
-          createLabel={t("createAccount")}
-          createOfflineLabel={t("createAccountOffline")}
-          labels={{
-            sectionTitle: t("accounts"),
-            liquidTitle: t("accountsPage.liquidTitle"),
-            creditCardsTitle: t("accountsPage.creditCardsTitle"),
-            creditCardsHint: t("accountsPage.creditCardsHint"),
-            outstanding: t("accountsPage.outstanding"),
-            availableCredit: t("accountsPage.availableCredit"),
-            collapse: t("hubAccountsCollapse"),
-            expand: t("hubAccountsExpand"),
-            collapsedSummary: t("hubAccountsCollapsedSummary", {
-              liquidCount: liquidAccounts.length,
-              liquidTotal: formatCurrency(total, currency, locale, {
-                maximumFractionDigits: 0,
-              }),
-              cardCount: creditCards.length,
-              cardOutstanding: formatCurrency(
-                cardOutstandingTotal,
-                currency,
-                locale,
-                { maximumFractionDigits: 0 },
-              ),
+      <MoneyHubAccounts
+        loadFailed={loadFailed}
+        liquidAccounts={liquidRows}
+        creditCards={cardRows}
+        liquidOptions={liquidAccounts.map((account) => ({
+          id: account.id,
+          name: localizeCatalogName(tCatalog, "accounts", account.name),
+        }))}
+        createLabel={t("createAccount")}
+        createOfflineLabel={t("createAccountOffline")}
+        labels={{
+          sectionTitle: t("accounts"),
+          liquidTitle: t("accountsPage.liquidTitle"),
+          creditCardsTitle: t("accountsPage.creditCardsTitle"),
+          creditCardsHint: t("accountsPage.creditCardsHint"),
+          outstanding: t("accountsPage.outstanding"),
+          availableCredit: t("accountsPage.availableCredit"),
+          collapse: t("hubAccountsCollapse"),
+          expand: t("hubAccountsExpand"),
+          collapsedSummary: t("hubAccountsCollapsedSummary", {
+            liquidCount: liquidAccounts.length,
+            liquidTotal: formatCurrency(total, currency, locale, {
+              maximumFractionDigits: 0,
             }),
-            emptyTitle: t("accountsPage.emptyTitle"),
-            emptyDescription: t("accountsPage.emptyDescription"),
-            loadErrorTitle: t("loadErrorTitle"),
-            loadErrorBody: t("loadErrorBody"),
-          }}
-        />
+            cardCount: creditCards.length,
+            cardOutstanding: formatCurrency(
+              cardOutstandingTotal,
+              currency,
+              locale,
+              { maximumFractionDigits: 0 },
+            ),
+          }),
+          emptyTitle: t("accountsPage.emptyTitle"),
+          emptyDescription: t("accountsPage.emptyDescription"),
+          loadErrorTitle: t("loadErrorTitle"),
+          loadErrorBody: t("loadErrorBody"),
+        }}
+      />
 
-        <section className="flex flex-col gap-(--space-3)">
-          <SectionHeader
-            title={t("activity")}
-            action={
-              <Link
-                href={APP_PATH.MONEY_TRANSACTIONS}
-                className="text-sm font-medium text-accent"
-                data-testid="money-see-activity"
-              >
-                {t("seeActivity")}
-              </Link>
-            }
+      <Section
+        title={t("activity")}
+        variant="surface"
+        action={
+          <Link
+            href={APP_PATH.MONEY_TRANSACTIONS}
+            className="text-sm font-medium text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+            data-testid="money-see-activity"
+          >
+            {t("seeActivity")}
+          </Link>
+        }
+      >
+        {activity.length === 0 ? (
+          <EmptyState
+            title={t("activityEmpty")}
+            description={t("activityEmptyHint")}
+            className="flex-none py-(--space-4)"
           />
-          {activity.length === 0 ? (
-            <EmptyState
-              title={t("activityEmpty")}
-              description={t("activityEmptyHint")}
-              className="flex-none py-(--space-4)"
-            />
-          ) : (
-            <ul className="flex flex-col gap-(--space-2)">
-              {activity.map((tx) => (
-                <li key={tx.id}>
-                  <Link
-                    href={moneyTransactionPath(tx.id)}
-                    className="block focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-                  >
-                    <TransactionRow
-                      title={
-                        tx.note ||
-                        localizeCatalogName(
-                          tCatalog,
-                          "tags",
-                          tx.categoryName,
-                        ) ||
-                        t(`direction.${tx.type}`)
-                      }
-                      subtitle={localizeCatalogName(
-                        tCatalog,
-                        "accounts",
-                        tx.accountName,
-                      )}
-                      amountLabel={`${tx.type === TransactionDirection.EXPENSE ? "−" : "+"}${formatCurrency(tx.amount, tx.currency, locale, { maximumFractionDigits: 0 })}`}
-                      tone={
-                        tx.type === TransactionDirection.EXPENSE
-                          ? "debit"
-                          : "credit"
-                      }
-                    />
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+        ) : (
+          <ul className="flex flex-col gap-(--space-2)">
+            {activity.map((tx) => (
+              <li key={tx.id}>
+                <Link
+                  href={moneyTransactionPath(tx.id)}
+                  className="block focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+                >
+                  <TransactionRow
+                    title={
+                      tx.note ||
+                      localizeCatalogName(tCatalog, "tags", tx.categoryName) ||
+                      t(`direction.${tx.type}`)
+                    }
+                    subtitle={localizeCatalogName(
+                      tCatalog,
+                      "accounts",
+                      tx.accountName,
+                    )}
+                    amountLabel={`${TRANSACTION_AMOUNT_PREFIX[tx.type]}${formatCurrency(tx.amount, tx.currency, locale, { maximumFractionDigits: 0 })}`}
+                    tone={
+                      tx.type === TransactionDirection.EXPENSE
+                        ? "debit"
+                        : "credit"
+                    }
+                  />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Section>
 
-        <section className="flex flex-col gap-(--space-2)">
-          <SectionHeader title={t("more")} />
-          {(
-            [
-              ["debts", APP_PATH.MONEY_DEBTS, "money-link-debts"],
-              ["savings", APP_PATH.MONEY_SAVINGS, "money-link-savings"],
-              ["loans", APP_PATH.MONEY_LOANS, "money-link-loans"],
-            ] as const
-          ).map(([key, href, testId]) => (
-            <Link
-              key={key}
-              href={href}
-              className="flex min-h-11 items-center justify-between rounded-(--radius-lg) border border-border-subtle bg-surface px-(--space-4) py-(--space-3) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-              data-testid={testId}
-            >
-              <Text size="sm" className="font-medium text-text-primary">
-                {t(key)}
-              </Text>
-              <Text size="sm" tone="secondary">
-                →
-              </Text>
-            </Link>
-          ))}
-        </section>
-      </div>
-    </div>
+      <Section
+        title={t("more")}
+        variant="surface"
+        contentClassName="gap-(--space-2)"
+      >
+        {(
+          [
+            ["debts", APP_PATH.MONEY_DEBTS, "money-link-debts"],
+            ["savings", APP_PATH.MONEY_SAVINGS, "money-link-savings"],
+            ["loans", APP_PATH.MONEY_LOANS, "money-link-loans"],
+          ] as const
+        ).map(([key, href, testId]) => (
+          <MoneyMoreLink key={key} href={href} label={t(key)} testId={testId} />
+        ))}
+      </Section>
+    </Page>
   );
 }

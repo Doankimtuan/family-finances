@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useState, useTransition } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import type {
@@ -16,10 +16,12 @@ import {
 } from "@/modules/ledger/application/client";
 import { TextField } from "@/shared/ui/form";
 import { AmountField } from "@/shared/patterns/amount-field";
+import { BottomActionBar } from "@/shared/patterns/bottom-action-bar";
 import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
+import { formatCurrency } from "@/shared/i18n/formatters";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
 import {
   CLIENT_ACTION_ERROR_CODE,
@@ -50,6 +52,7 @@ export function CaptureTransactionForm({
 }: Props) {
   const t = useTranslations("money.captureForm");
   const tCatalog = useTranslations("catalog");
+  const locale = useLocale();
   const router = useRouter();
   const { online } = useOnlineStatusClient();
   const amountId = useId();
@@ -71,6 +74,14 @@ export function CaptureTransactionForm({
   >(null);
   const [isPending, startTransition] = useTransition();
   const [idempotencyKey] = useState(() => crypto.randomUUID());
+  const selectedAccount = accounts.find((account) => account.id === accountId);
+  const selectedAccountName = selectedAccount
+    ? localizeCatalogName(tCatalog, "accounts", selectedAccount.name)
+    : "";
+  const amountLabel =
+    amount != null && amount > 0
+      ? formatCurrency(amount, currency, locale, { maximumFractionDigits: 0 })
+      : null;
 
   const onSubmit = () => {
     setErrorCode(null);
@@ -84,6 +95,7 @@ export function CaptureTransactionForm({
     }
     if (amount == null || amount <= 0) {
       setErrorCode(PRODUCT_ACTION_ERROR_CODE.INVALID);
+      document.getElementById(amountId)?.focus();
       return;
     }
 
@@ -115,7 +127,7 @@ export function CaptureTransactionForm({
       {errorCode ? (
         <StatusAlert
           variant="danger"
-          title={t("save")}
+          title={t("errorTitle")}
           description={t(`errors.${errorCode}`)}
         />
       ) : null}
@@ -128,46 +140,52 @@ export function CaptureTransactionForm({
         />
       ) : null}
 
-      <fieldset className="flex flex-col gap-(--space-2)">
-        <legend className="text-sm font-semibold text-text-primary">
-          {t("directionLabel")}
-        </legend>
-        <div className="grid grid-cols-2 gap-(--space-2)" role="radiogroup">
-          {TRANSACTION_DIRECTION_OPTIONS.map((value) => (
-            <button
-              key={value}
-              type="button"
-              role="radio"
-              aria-checked={direction === value}
-              data-testid={`capture-direction-${value}`}
-              className={
-                direction === value
-                  ? "min-h-11 rounded-md bg-accent px-(--space-3) text-sm font-medium text-accent-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-                  : "min-h-11 rounded-md border border-border-subtle bg-surface px-(--space-3) text-sm font-medium text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-              }
-              onClick={() => {
-                setDirection(value);
-                setCategoryId("");
-              }}
-            >
-              {t(`direction.${value}`)}
-            </button>
-          ))}
-        </div>
-      </fieldset>
+      <div className="rounded-xl border border-accent/25 bg-accent/10 p-(--space-4) shadow-[var(--elevation-1)]">
+        <AmountField
+          id={amountId}
+          label={t("amountLabel")}
+          placeholder="0"
+          value={amount}
+          onValueChange={setAmount}
+          required
+          data-testid="capture-amount"
+          description={t("amountHint", { currency })}
+          className="min-h-14 text-2xl font-semibold tabular-nums tracking-tight"
+        />
 
-      <AmountField
-        id={amountId}
-        label={t("amountLabel")}
-        placeholder="0"
-        value={amount}
-        onValueChange={setAmount}
-        required
-        data-testid="capture-amount"
-        description={t("amountHint", { currency })}
-      />
+        <fieldset className="mt-(--space-4) flex flex-col gap-(--space-2)">
+          <legend className="text-sm font-semibold text-text-primary">
+            {t("directionLabel")}
+          </legend>
+          <div
+            className="grid grid-cols-2 gap-(--space-2) rounded-lg bg-surface/70 p-(--space-1)"
+            role="radiogroup"
+          >
+            {TRANSACTION_DIRECTION_OPTIONS.map((value) => (
+              <button
+                key={value}
+                type="button"
+                role="radio"
+                aria-checked={direction === value}
+                data-testid={`capture-direction-${value}`}
+                className={
+                  direction === value
+                    ? "min-h-11 rounded-md border border-accent/40 bg-surface px-(--space-3) text-sm font-semibold text-text-primary shadow-[var(--elevation-1)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+                    : "min-h-11 rounded-md px-(--space-3) text-sm font-medium text-text-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+                }
+                onClick={() => {
+                  setDirection(value);
+                  setCategoryId("");
+                }}
+              >
+                {t(`direction.${value}`)}
+              </button>
+            ))}
+          </div>
+        </fieldset>
+      </div>
 
-      <fieldset className="flex flex-col gap-(--space-2)">
+      <fieldset className="flex flex-col gap-(--space-2) rounded-xl border border-border-subtle bg-surface p-(--space-4)">
         <legend className="text-sm font-semibold text-text-primary">
           {t("accountLabel")}
         </legend>
@@ -182,7 +200,7 @@ export function CaptureTransactionForm({
             {accounts.map((account) => (
               <label
                 key={account.id}
-                className="flex min-h-11 cursor-pointer items-center gap-(--space-3) rounded-md border border-border-subtle bg-surface px-(--space-3)"
+                className="flex min-h-11 cursor-pointer items-center gap-(--space-3) rounded-md border border-border-subtle bg-canvas px-(--space-3) has-[:checked]:border-accent/40 has-[:checked]:bg-accent/10"
               >
                 <input
                   type="radio"
@@ -201,7 +219,7 @@ export function CaptureTransactionForm({
         )}
       </fieldset>
 
-      <fieldset className="flex flex-col gap-(--space-2)">
+      <fieldset className="flex flex-col gap-(--space-2) rounded-xl border border-border-subtle bg-surface p-(--space-4)">
         <legend className="text-sm font-semibold text-text-primary">
           {t("tagLabel")}
         </legend>
@@ -230,7 +248,7 @@ export function CaptureTransactionForm({
               className={
                 categoryId === tag.id
                   ? "min-h-11 rounded-md bg-accent px-(--space-3) text-sm text-accent-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-                  : "min-h-11 rounded-md border border-border-subtle px-(--space-3) text-sm text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+                  : "min-h-11 rounded-md border border-border-subtle bg-canvas px-(--space-3) text-sm text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
               }
               onClick={() => {
                 setCategoryId(tag.id);
@@ -243,7 +261,7 @@ export function CaptureTransactionForm({
         </div>
       </fieldset>
 
-      <fieldset className="flex flex-col gap-(--space-2)">
+      <fieldset className="flex flex-col gap-(--space-2) rounded-xl border border-border-subtle bg-surface p-(--space-4)">
         <legend className="text-sm font-semibold text-text-primary">
           {t("jarLabel")}
         </legend>
@@ -253,7 +271,7 @@ export function CaptureTransactionForm({
             : t("jarHintIncome")}
         </Text>
         <select
-          className="min-h-11 w-full rounded-md border border-border-subtle bg-surface px-(--space-3) text-sm text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+          className="min-h-11 w-full rounded-md border border-border-subtle bg-canvas px-(--space-3) text-sm text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
           value={jarId}
           onChange={(e) => setJarId(e.target.value)}
           data-testid="capture-jar"
@@ -268,31 +286,54 @@ export function CaptureTransactionForm({
         </select>
       </fieldset>
 
-      <TextField
-        id={noteId}
-        label={t("noteLabel")}
-        value={note}
-        onChange={(e) => setNote(e.target.value)}
-        placeholder={t("notePlaceholder")}
-        data-testid="capture-note"
-      />
+      <div className="rounded-xl border border-border-subtle bg-surface p-(--space-4)">
+        <TextField
+          id={noteId}
+          label={t("noteLabel")}
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          placeholder={t("notePlaceholder")}
+          data-testid="capture-note"
+        />
+      </div>
 
-      <Button
-        variant="primary"
-        className="w-full"
-        data-testid="capture-save"
-        isDisabled={isPending || !online || accounts.length === 0}
-        onPress={onSubmit}
+      <div
+        className="rounded-xl border border-accent/25 bg-accent/10 px-(--space-4) py-(--space-3)"
+        aria-live="polite"
+        data-testid="capture-preview"
       >
-        {isPending ? t("saving") : t("save")}
-      </Button>
+        <Text size="sm" weight="medium">
+          {t("previewTitle")}
+        </Text>
+        <Text size="sm" tone="secondary" className="mt-(--space-1)">
+          {amountLabel && selectedAccountName
+            ? t("previewReady", {
+                direction: t(`direction.${direction}`).toLowerCase(),
+                amount: amountLabel,
+                account: selectedAccountName,
+              })
+            : t("previewEmpty")}
+        </Text>
+      </div>
 
-      <Link
-        href={APP_PATH.MONEY}
-        className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle text-sm font-medium text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-      >
-        {t("cancel")}
-      </Link>
+      <BottomActionBar>
+        <Button
+          variant="primary"
+          className="w-full"
+          data-testid="capture-save"
+          isDisabled={isPending || !online || accounts.length === 0}
+          onPress={onSubmit}
+        >
+          {isPending ? t("saving") : t("save")}
+        </Button>
+
+        <Link
+          href={APP_PATH.MONEY}
+          className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface text-sm font-medium text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+        >
+          {t("cancel")}
+        </Link>
+      </BottomActionBar>
     </div>
   );
 }

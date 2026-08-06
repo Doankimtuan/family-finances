@@ -363,9 +363,13 @@
     "jarUnmapped": "Chưa gắn → Inbox",
     "noteLabel": "Ghi chú",
     "notePlaceholder": "Ghi chú tuỳ chọn",
+    "previewTitle": "Trước khi lưu",
+    "previewEmpty": "Nhập số tiền và tài khoản để xem thay đổi trên sổ cái thật.",
+    "previewReady": "Việc này ghi {direction} {amount} trên {account}.",
     "save": "Lưu",
     "saving": "Đang lưu…",
     "cancel": "Huỷ",
+    "errorTitle": "Không lưu được giao dịch",
     "offlineHint": "Cần kết nối để lưu. Không xếp hàng ngoại tuyến.",
     "addAccountHint": "Thêm tài khoản ở Money → Tài khoản trước.",
     "errors": {

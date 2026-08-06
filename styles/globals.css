@@ -5,6 +5,7 @@
    which Tailwind would otherwise emit as invalid CSS. */
 @source not "../artifacts/**/*";
 @source not "../archive/**/*";
+@source not "../history/**/*";
 @source not "../.agents/**/*";
 @source not "../ai-os/**/*";
 

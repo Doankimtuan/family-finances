@@ -70,7 +70,7 @@ export function MoneyAccountsScan({
 
   return (
     <section
-      className="flex flex-col gap-(--space-3)"
+      className="flex flex-col gap-(--space-3) rounded-xl border border-border-subtle bg-surface p-(--space-4)"
       data-testid="money-accounts-scan"
     >
       <SectionHeader
@@ -119,14 +119,14 @@ export function MoneyAccountsScan({
             <Text
               size="sm"
               tone="secondary"
-              className="leading-relaxed"
+              className="rounded-lg border border-border-subtle bg-canvas px-(--space-3) py-(--space-2) leading-relaxed"
               data-testid="money-accounts-collapsed-summary"
             >
               {labels.collapsedSummary}
             </Text>
           ) : (
             <div className="flex flex-col gap-(--space-4)">
-              <div className="flex flex-col gap-(--space-2)">
+              <div className="flex flex-col gap-(--space-2) rounded-lg bg-canvas/70 p-(--space-3)">
                 <Text size="sm" className="font-medium text-text-primary">
                   {labels.liquidTitle}
                 </Text>
@@ -157,7 +157,7 @@ export function MoneyAccountsScan({
               </div>
 
               {creditCards.length > 0 ? (
-                <div className="flex flex-col gap-(--space-2)">
+                <div className="flex flex-col gap-(--space-2) rounded-lg bg-canvas/70 p-(--space-3)">
                   <div className="flex flex-col gap-(--space-1)">
                     <Text size="sm" className="font-medium text-text-primary">
                       {labels.creditCardsTitle}

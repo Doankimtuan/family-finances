@@ -232,6 +232,7 @@ export type {
 export {
   DEFAULT_CURRENCY,
   TransactionDirection,
+  TRANSACTION_AMOUNT_PREFIX,
   TRANSACTION_DIRECTION_OPTIONS,
   TRANSACTION_DIRECTION_VALUES,
   TransactionStatus,

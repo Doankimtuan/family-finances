@@ -14,6 +14,7 @@ import {
   TransactionDirection,
 } from "@/modules/ledger/application";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
+import { Page } from "@/shared/patterns/page";
 import { MoneyOfflineBanner } from "../../money-offline-banner";
 import { CaptureTransactionForm } from "../capture-transaction-form";
 
@@ -47,21 +48,21 @@ export default async function MoneyTransactionAddPage({ params }: Props) {
   ]);
 
   return (
-    <div
-      className="flex min-h-full flex-col"
-      data-testid="money-transaction-add"
+    <Page
+      testId="money-transaction-add"
+      contentClassName="pb-0"
+      topBar={
+        <TopAppBar title={t("capture")} subtitle={t("captureForm.subtitle")} />
+      }
     >
-      <TopAppBar title={t("capture")} subtitle={t("captureForm.subtitle")} />
-      <div className="flex flex-1 flex-col gap-(--space-5) px-(--space-4) pb-(--space-6) pt-(--space-4)">
-        <MoneyOfflineBanner />
-        <CaptureTransactionForm
-          accounts={listed?.accounts ?? []}
-          expenseTags={expenseTags ?? []}
-          incomeTags={incomeTags ?? []}
-          jars={jars ?? []}
-          currency={listed?.currency ?? DEFAULT_CURRENCY}
-        />
-      </div>
-    </div>
+      <MoneyOfflineBanner />
+      <CaptureTransactionForm
+        accounts={listed?.accounts ?? []}
+        expenseTags={expenseTags ?? []}
+        incomeTags={incomeTags ?? []}
+        jars={jars ?? []}
+        currency={listed?.currency ?? DEFAULT_CURRENCY}
+      />
+    </Page>
   );
 }

@@ -1,4 +1,10 @@
 export { AppViewport } from "./app-viewport";
+export { Page, type PageProps } from "./page";
+export { Section, type SectionProps } from "./section";
+export {
+  BottomActionBar,
+  type BottomActionBarProps,
+} from "./bottom-action-bar";
 export { BottomNavigation } from "./bottom-navigation";
 export { TopAppBar } from "./top-app-bar";
 export { ChromeShell, type ChromeShellProps } from "./chrome-shell";

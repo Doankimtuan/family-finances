@@ -10,6 +10,8 @@ export type BalanceProps = {
   label?: ReactNode;
   size?: "md" | "lg";
   className?: string;
+  labelClassName?: string;
+  amountClassName?: string;
 };
 
 /**
@@ -20,11 +22,13 @@ export function Balance({
   label,
   size = "md",
   className,
+  labelClassName,
+  amountClassName,
 }: BalanceProps) {
   return (
     <div className={cn("flex flex-col gap-(--space-1)", className)}>
       {label ? (
-        <Text size="sm" tone="secondary">
+        <Text size="sm" tone="secondary" className={labelClassName}>
           {label}
         </Text>
       ) : null}
@@ -32,6 +36,7 @@ export function Balance({
         className={cn(
           "font-semibold tabular-nums tracking-tight text-text-primary",
           size === "lg" ? "text-3xl" : "text-xl",
+          amountClassName,
         )}
         data-testid="ledger-balance"
       >

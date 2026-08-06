@@ -18,6 +18,11 @@ export const TRANSACTION_DIRECTION_OPTIONS = [
   TransactionDirection.INCOME,
 ] as const;
 
+export const TRANSACTION_AMOUNT_PREFIX = {
+  [TransactionDirection.EXPENSE]: "-",
+  [TransactionDirection.INCOME]: "+",
+} as const;
+
 export const TRANSACTION_DIRECTION_VALUES = [
   TransactionDirection.INCOME,
   TransactionDirection.EXPENSE,

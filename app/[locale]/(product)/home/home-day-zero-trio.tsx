@@ -15,7 +15,10 @@ export function HomeDayZeroTrio() {
   const { online } = useOnlineStatusClient();
 
   return (
-    <div className="flex flex-col gap-(--space-3)" data-testid="home-day-zero">
+    <div
+      className="flex flex-col gap-(--space-3) rounded-xl border border-border-subtle bg-surface p-(--space-4)"
+      data-testid="home-day-zero"
+    >
       <EmptyState
         title={t("dayZero.title")}
         description={t("dayZero.description")}

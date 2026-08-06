@@ -11,6 +11,7 @@ import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
 import {
   listTransactions,
+  TRANSACTION_AMOUNT_PREFIX,
   TransactionDirection,
   TransactionFilterType,
 } from "@/modules/ledger/application";
@@ -19,6 +20,7 @@ import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { TransactionRow } from "@/shared/patterns/transaction-row";
+import { Page } from "@/shared/patterns/page";
 import { MoneyOfflineBanner } from "../money-offline-banner";
 import { TransactionsFilterBar } from "./transactions-filter-bar";
 
@@ -64,60 +66,62 @@ export default async function TransactionsListPage({
   const activity = rows ?? [];
 
   return (
-    <div className="flex min-h-full flex-col" data-testid="money-transactions">
-      <TopAppBar
-        title={t("transactionsPage.title")}
-        subtitle={t("transactionsPage.subtitle")}
-      />
-      <div className="flex flex-1 flex-col gap-(--space-5) px-(--space-4) pb-(--space-6) pt-(--space-4)">
-        <MoneyOfflineBanner />
-        <TransactionsFilterBar q={q} type={type} />
+    <Page
+      testId="money-transactions"
+      topBar={
+        <TopAppBar
+          title={t("transactionsPage.title")}
+          subtitle={t("transactionsPage.subtitle")}
+        />
+      }
+    >
+      <MoneyOfflineBanner />
+      <TransactionsFilterBar q={q} type={type} />
 
-        {activity.length === 0 ? (
-          <EmptyState
-            title={t("transactionsPage.emptyTitle")}
-            description={t("transactionsPage.emptyDescription")}
-          />
-        ) : (
-          <ul className="flex flex-col gap-(--space-2)">
-            {activity.map((tx) => (
-              <li key={tx.id}>
-                <Link
-                  href={moneyTransactionPath(tx.id)}
-                  className="block focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-                  data-testid={`transaction-row-${tx.id}`}
-                >
-                  <TransactionRow
-                    title={
-                      tx.note ||
-                      localizeCatalogName(tCatalog, "tags", tx.categoryName) ||
-                      t(`direction.${tx.type}`)
-                    }
-                    subtitle={localizeCatalogName(
-                      tCatalog,
-                      "accounts",
-                      tx.accountName,
-                    )}
-                    amountLabel={`${tx.type === TransactionDirection.EXPENSE ? "−" : "+"}${formatCurrency(tx.amount, tx.currency, locale, { maximumFractionDigits: 0 })}`}
-                    tone={
-                      tx.type === TransactionDirection.EXPENSE
-                        ? "debit"
-                        : "credit"
-                    }
-                  />
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
+      {activity.length === 0 ? (
+        <EmptyState
+          title={t("transactionsPage.emptyTitle")}
+          description={t("transactionsPage.emptyDescription")}
+        />
+      ) : (
+        <ul className="flex flex-col gap-(--space-2) rounded-xl border border-border-subtle bg-surface p-(--space-2)">
+          {activity.map((tx) => (
+            <li key={tx.id}>
+              <Link
+                href={moneyTransactionPath(tx.id)}
+                className="block focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+                data-testid={`transaction-row-${tx.id}`}
+              >
+                <TransactionRow
+                  title={
+                    tx.note ||
+                    localizeCatalogName(tCatalog, "tags", tx.categoryName) ||
+                    t(`direction.${tx.type}`)
+                  }
+                  subtitle={localizeCatalogName(
+                    tCatalog,
+                    "accounts",
+                    tx.accountName,
+                  )}
+                  amountLabel={`${TRANSACTION_AMOUNT_PREFIX[tx.type]}${formatCurrency(tx.amount, tx.currency, locale, { maximumFractionDigits: 0 })}`}
+                  tone={
+                    tx.type === TransactionDirection.EXPENSE
+                      ? "debit"
+                      : "credit"
+                  }
+                />
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
 
-        <Link
-          href={APP_PATH.MONEY}
-          className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle text-sm font-medium text-text-primary"
-        >
-          {t("backToMoney")}
-        </Link>
-      </div>
-    </div>
+      <Link
+        href={APP_PATH.MONEY}
+        className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface text-sm font-medium text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+      >
+        {t("backToMoney")}
+      </Link>
+    </Page>
   );
 }

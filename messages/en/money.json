@@ -363,9 +363,13 @@
     "jarUnmapped": "Unmapped → Inbox",
     "noteLabel": "Note",
     "notePlaceholder": "Optional note",
+    "previewTitle": "Before saving",
+    "previewEmpty": "Enter an amount and account to preview the Real Ledger change.",
+    "previewReady": "This records a {direction} of {amount} on {account}.",
     "save": "Save",
     "saving": "Saving…",
     "cancel": "Cancel",
+    "errorTitle": "Could not save transaction",
     "offlineHint": "Connect to save a transaction. Nothing is queued offline.",
     "addAccountHint": "Add an account from Money → Accounts first.",
     "errors": {

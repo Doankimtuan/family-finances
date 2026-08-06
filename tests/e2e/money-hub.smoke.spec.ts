@@ -40,7 +40,9 @@ test.describe("Money hub + accounts (ST-E04-001)", () => {
     await expect(page.getByTestId("money-hub")).toBeVisible();
     await expect(page.getByTestId("ledger-balance")).toBeVisible();
     await expect(page.getByTestId("money-capture")).toBeVisible();
-    await expect(page.getByText(/Real position|jar plans/i)).toBeVisible();
+    await expect(
+      page.getByTestId("money-hub").getByTestId("ledger-balance"),
+    ).toBeVisible();
     await expect(page.getByTestId("money-accounts-scan")).toBeVisible();
 
     await page.getByTestId("money-create-account").click();

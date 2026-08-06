@@ -44,7 +44,7 @@ export function TransactionsFilterBar({ q, type }: Props) {
   return (
     <form
       ref={formRef}
-      className="flex flex-col gap-(--space-3)"
+      className="flex flex-col gap-(--space-3) rounded-xl border border-border-subtle bg-surface-elevated p-(--space-4) shadow-[var(--elevation-1)]"
       data-testid="transactions-filter"
       onSubmit={(e) => {
         e.preventDefault();
@@ -63,11 +63,11 @@ export function TransactionsFilterBar({ q, type }: Props) {
         <legend className="text-sm font-semibold text-text-primary">
           {t("filterLabel")}
         </legend>
-        <div className="grid grid-cols-3 gap-(--space-2)">
+        <div className="grid grid-cols-3 gap-(--space-2) rounded-lg bg-canvas p-(--space-1)">
           {TRANSACTION_FILTER_OPTIONS.map((value) => (
             <label
               key={value}
-              className="flex min-h-11 cursor-pointer items-center justify-center gap-(--space-2) rounded-md border border-border-subtle bg-surface px-(--space-2) text-sm"
+              className="flex min-h-11 cursor-pointer items-center justify-center gap-(--space-2) rounded-md border border-border-subtle bg-surface px-(--space-2) text-sm has-[:checked]:border-accent/40 has-[:checked]:bg-accent/10"
             >
               <input
                 type="radio"
