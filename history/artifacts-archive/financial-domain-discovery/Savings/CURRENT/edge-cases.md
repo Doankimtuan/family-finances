@@ -1,0 +1,61 @@
+# Real-World Edge Cases
+
+- Early closure with no interest paid.
+- Early closure with demand-rate interest.
+- Early closure with fixed penalty.
+- Early closure with provider-specific formula.
+- Partial withdrawal where remaining principal continues.
+- Partial withdrawal where product must be closed and reopened.
+- Maturity date falls on weekend or bank holiday.
+- Grace period after maturity.
+- Silent provider auto-renewal.
+- User misses maturity window.
+- Provider changes rate before renewal.
+- Provider package discontinued.
+- Provider becomes inactive or merged.
+- Provider bankruptcy or resolution.
+- Deposit insurance limit exceeded.
+- Product balance spread across multiple legal owners.
+- Joint savings account requires all owners to sign.
+- Household member is not legal depositor.
+- Legal depositor dies or becomes incapacitated.
+- Savings book/card is lost, damaged, or disputed.
+- Account is pledged as collateral.
+- Account is frozen by court, bank, or regulator.
+- Funding account is closed before transfer completes.
+- Settlement account is closed before maturity.
+- Funding transfer interrupted.
+- Settlement transfer duplicated.
+- Duplicate maturity decision created.
+- Duplicate settlement posted.
+- Interest credited separately from principal.
+- Interest compounded into principal but not visible as a separate cash transaction.
+- Currency mismatch between household base currency and deposit currency.
+- Foreign-currency savings eligibility restriction.
+- Foreign individual eligible for term deposit but not savings deposit.
+- Tax law changes and interest becomes taxable.
+- Business entity uses a product with different tax treatment.
+- Provider statement has rounding differences.
+- Day-count convention differs from assumed actual/365.
+- Leap year calculations.
+- Rate advertised as promotional, then reverts.
+- Product has tiered interest by balance.
+- Product has bonus interest requiring conditions.
+- Product has withdrawal limits.
+- Product supports top-ups during active term.
+- Product does not support top-ups.
+- Product supports monthly interest payout.
+- Product supports interest at maturity only.
+- Product supports principal-only rollover.
+- Product supports principal-and-interest rollover.
+- Renewal is accepted but later rejected.
+- User wants to switch provider at maturity.
+- Emergency withdrawal overrides yield optimization.
+- Fraudulent or unauthorized withdrawal.
+- Provider data import creates stale package/rate data.
+- Manual savings record diverges from bank truth.
+- Household dispute over shared savings.
+- Product migrated from old provider system.
+- Product contract number changes on renewal.
+- Historical product lacks full contract metadata.
+

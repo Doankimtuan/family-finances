@@ -1,26 +1,23 @@
-# Family Finances (ViNha) — Rewrite Workspace
+# Family Finances (ViNha)
 
-**Status:** Legacy v1 retired. Rewrite scaffold per Architecture Definition **v2.0.0**.
+This repository uses `artifacts/current/` as the single implementation knowledge base.
 
-## Sources of truth (frozen)
+## Official Knowledge Base
 
-| Pack | Path |
-|------|------|
-| Product Definition v2 | `artifacts/product-definition/CURRENT/` |
-| Architecture Decision | `artifacts/architecture-decision/CURRENT/` |
-| Architecture Definition v2 | `artifacts/architecture-definition/CURRENT/` |
-| Technical Specification v2 | `artifacts/technical-specification/CURRENT/` |
+- `artifacts/current/specification/`
+- `artifacts/current/domains/`
+- `artifacts/current/product/`
+- `artifacts/current/planning/`
+- `artifacts/current/architecture/`
 
-## Legacy
+See `artifacts/README.md` and `artifacts/index.json` before implementing product behavior.
 
-- Archive (read-only): `archive/legacy-v1/`
-- Full backup: `archive/backups/`
-- **Do not import** from `archive/legacy-v1` into product modules.
+## History
 
-## Workspace
+Historical boards and obsolete artifact packs live under `history/`.
+They are immutable reference material and must not drive implementation.
 
-See `artifacts/legacy-retirement/CURRENT/` for retirement reports.
+## Legacy Code Archive
 
-IA routes: Home · Money · Plan · Inbox · Together (+ Health secondary).
-
-Retired: `2026-08-01T15:07:36Z` · Run: `run_legacy_retirement_20260801T160000Z`
+- Read-only legacy code archive: `archive/legacy-v1/`
+- Do not import from `archive/legacy-v1` into product modules.

@@ -1,0 +1,39 @@
+{
+  "repositoryKnowledgeBase": "artifacts/current",
+  "currentSpecificationVersion": "v2.1",
+  "businessModelVersion": "v2",
+  "developerConstitutionVersion": "v1.1",
+  "supportedDomains": [
+    "Accounts",
+    "Transactions",
+    "Categories",
+    "Planning",
+    "Cards",
+    "Loans",
+    "Savings",
+    "Investments",
+    "Goals",
+    "Inbox",
+    "Together",
+    "Health",
+    "Net Worth"
+  ],
+  "activeSprint": {
+    "status": "none",
+    "lastCompletedSprint": "Sprint-6",
+    "milestone": "v2.1-GA"
+  },
+  "officialFolders": {
+    "specification": "artifacts/current/specification",
+    "domains": "artifacts/current/domains",
+    "planning": "artifacts/current/planning",
+    "architecture": "artifacts/current/architecture",
+    "product": "artifacts/current/product",
+    "finalization": "artifacts/finalization"
+  },
+  "historicalFolders": {
+    "archive": "history/artifacts-archive",
+    "compressed": "history/compressed"
+  },
+  "lastUpdate": "2026-08-06"
+}
