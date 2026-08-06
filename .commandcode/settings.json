@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Shell(npm:*)",
+      "Shell(npx vitest run tests/unit/bottom-navigation.test.ts)",
+      "Shell(npx vitest run tests/unit/i18n-messages.test.ts tests/unit/theme/theme.test.ts tests/unit/i18n-routing.test.ts)"
+    ],
+    "deny": [],
+    "defaultMode": "default"
+  }
+}

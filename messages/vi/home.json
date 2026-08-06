@@ -3,6 +3,29 @@
   "subtitle": "Chúng ta có gì, muốn gì, và cần quyết gì?",
   "loadErrorTitle": "Không tải được Trang chủ",
   "loadErrorBody": "Kiểm tra kết nối rồi thử lại.",
+  "status": {
+    "offline": {
+      "title": "Bạn đang ngoại tuyến",
+      "description": "Thay đổi Tiền và Kế hoạch cần kết nối. Đọc vẫn tiếp tục khi có mạng."
+    },
+    "stale": {
+      "title": "Dữ liệu có thể đã cũ",
+      "description": "Kéo để làm mới hoặc mở module nguồn để xem mới nhất."
+    },
+    "partial": {
+      "title": "Một số thông tin còn thiếu",
+      "description": "Hoàn tất thiết lập trong module liên quan để thấy đầy đủ."
+    },
+    "permission": {
+      "title": "Quyền bị giới hạn",
+      "description": "Hỏi quản trị viên hộ gia đình hoặc mở Together để xem vai trò."
+    },
+    "error": {
+      "title": "Không tải được Trang chủ",
+      "description": "Kiểm tra kết nối rồi thử lại."
+    },
+    "retry": "Thử lại"
+  },
   "realPosition": {
     "title": "Vị thế thật",
     "hint": "Chỉ số dư sổ cái — không phải kế hoạch hũ."

@@ -1,6 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import { TABS } from "@/shared/patterns/bottom-navigation-tabs";
 
@@ -21,15 +19,12 @@ describe("BottomNavigation foundation", () => {
       "inbox",
       "together",
     ]);
-    expect(TABS.some((t) => t.href === "/health")).toBe(false);
+    expect(TABS.some((t) => t.href === APP_PATH.HEALTH)).toBe(false);
   });
 
-  it("keeps an Inbox badge placeholder slot in the pattern", () => {
-    const source = readFileSync(
-      join(process.cwd(), "shared/patterns/bottom-navigation.tsx"),
-      "utf8",
-    );
-    expect(source).toContain("inbox-badge-placeholder");
-    expect(source).toContain('labelKey === "inbox"');
+  it("keeps an Inbox tab that can carry a badge count", () => {
+    const inboxTab = TABS.find((t) => t.labelKey === "inbox");
+    expect(inboxTab).toBeDefined();
+    expect(inboxTab!.href).toBe(APP_PATH.INBOX);
   });
 });

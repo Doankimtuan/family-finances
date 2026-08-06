@@ -8,6 +8,11 @@ Phase E0 validates the Phase D design system against three representative ViNha 
 2. Money activity surface: `/money` and its canonical activity list `/money/transactions`
 3. Daily money capture flow: `/money/transactions/new`
 
+## Phase E1 Blueprint
+
+- Canonical CommandCode handoff package: [../../screen-blueprints/app-shell-home/CURRENT/README.md](../../screen-blueprints/app-shell-home/CURRENT/README.md).
+- Historical calibration copy: [app-shell-home-blueprint.md](./app-shell-home-blueprint.md).
+
 The Money activity surface is treated as one reference because the hub owns the summary entry point and the transactions route owns the dense list behavior.
 
 ## Phase D Conditions Checklist
@@ -34,4 +39,3 @@ The Money activity surface is treated as one reference because the hub owns the 
 - Playwright CLI browser snapshots confirmed protected routes redirect to login at 390px and 440px, English and Vietnamese, including dark-mode login shell.
 
 Final verdict: `DESIGN_CALIBRATED_WITH_REMAINING_CONDITIONS`.
-

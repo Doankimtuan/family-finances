@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
+import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import { cn } from "@/shared/utils/cn";
 import { SafeArea } from "@/providers/safe-area";
 import { TABS } from "@/shared/patterns/bottom-navigation-tabs";
@@ -11,11 +12,19 @@ export { TABS } from "@/shared/patterns/bottom-navigation-tabs";
 const NAV_TAB_ICON_SIZE = 22;
 const NAV_TAB_COUNT = TABS.length;
 
+export type BottomNavigationProps = {
+  className?: string;
+  inboxCount?: number;
+};
+
 /**
  * Five IA tabs foundation. Health is not a 6th tab.
  * Soft dock: canvas blur + accent wash on the active tab (no top hairline).
  */
-export function BottomNavigation({ className }: { className?: string }) {
+export function BottomNavigation({
+  className,
+  inboxCount,
+}: BottomNavigationProps) {
   const pathname = usePathname();
   const t = useTranslations("navigation");
   const tA11y = useTranslations("a11y");
@@ -42,6 +51,9 @@ export function BottomNavigation({ className }: { className?: string }) {
           {TABS.map(({ href, labelKey, icon: Icon }) => {
             const active = pathname === href || pathname.startsWith(`${href}/`);
             const label = t(labelKey);
+            const isInbox = href === APP_PATH.INBOX;
+            const showBadge =
+              isInbox && inboxCount !== undefined && inboxCount > 0;
             return (
               <li key={href} className="min-w-0">
                 <Link
@@ -66,13 +78,15 @@ export function BottomNavigation({ className }: { className?: string }) {
                       weight={active ? "fill" : "duotone"}
                       aria-hidden
                     />
-                    {labelKey === "inbox" ? (
+                    {showBadge ? (
                       <span
-                        data-testid="inbox-badge-placeholder"
+                        data-testid="inbox-badge"
                         data-slot="nav-tab-badge"
-                        className="pointer-events-none absolute -top-0.5 -end-1.5 size-2 rounded-full bg-accent opacity-0"
-                        aria-hidden
-                      />
+                        className="pointer-events-none absolute -top-0.5 -end-1.5 flex min-w-[18px] items-center justify-center rounded-full bg-accent px-1 py-0.5 text-[10px] font-bold text-accent-fg shadow-sm"
+                        aria-label={tA11y("inboxBadge", { count: inboxCount })}
+                      >
+                        {inboxCount}
+                      </span>
                     ) : null}
                   </span>
                   <span

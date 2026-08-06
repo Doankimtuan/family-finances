@@ -2,5 +2,6 @@
   "primaryNav": "Primary",
   "back": "Back",
   "localeSwitcher": "Choose language",
-  "themeSwitcher": "Choose appearance"
+  "themeSwitcher": "Choose appearance",
+  "inboxBadge": "{count, plural, one {# open Inbox item} other {# open Inbox items}}"
 }

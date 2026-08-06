@@ -3,6 +3,29 @@
   "subtitle": "What we have, mean, and need to decide",
   "loadErrorTitle": "Could not load Home",
   "loadErrorBody": "Check your connection and try again.",
+  "status": {
+    "offline": {
+      "title": "You're offline",
+      "description": "Money and Plan changes need a connection. Reading can continue when available."
+    },
+    "stale": {
+      "title": "Data may be out of date",
+      "description": "Pull to refresh or open the source module for the latest."
+    },
+    "partial": {
+      "title": "Some facts are missing",
+      "description": "Finish setup in the relevant module to see the full picture."
+    },
+    "permission": {
+      "title": "Permission limited",
+      "description": "Ask your household admin for access, or open Together to review roles."
+    },
+    "error": {
+      "title": "Could not load Home",
+      "description": "Check your connection and try again."
+    },
+    "retry": "Try again"
+  },
   "realPosition": {
     "title": "Real position",
     "hint": "Ledger balances only — not jar plans."

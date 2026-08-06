@@ -2,5 +2,6 @@
   "primaryNav": "Điều hướng chính",
   "back": "Quay lại",
   "localeSwitcher": "Chọn ngôn ngữ",
-  "themeSwitcher": "Chọn giao diện"
+  "themeSwitcher": "Chọn giao diện",
+  "inboxBadge": "{count, plural, one {# việc cần quyết định} other {# việc cần quyết định}}"
 }
