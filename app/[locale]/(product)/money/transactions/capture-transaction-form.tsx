@@ -2,8 +2,11 @@
 
 import { useId, useState, useTransition } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { useRouter } from "@/i18n/navigation";
-import { APP_PATH } from "@/modules/tenancy/application/app-path";
+import { Link } from "@/i18n/navigation";
+import {
+  APP_PATH,
+  moneyTransactionPath,
+} from "@/modules/tenancy/application/app-path";
 import type {
   CaptureJarOption,
   CategoryTag,
@@ -31,7 +34,7 @@ import {
 } from "@/modules/tenancy/application/product-action-error";
 import type { LedgerActionErrorCode } from "@/modules/ledger/application/client";
 import { recordTransactionAction } from "./actions";
-import { Link } from "@/i18n/navigation";
+import { TransactionReceipt } from "./transaction-receipt";
 
 type Props = {
   accounts: LedgerAccount[];
@@ -40,6 +43,11 @@ type Props = {
   jars: CaptureJarOption[];
   currency: string;
 };
+
+function todayInputValue() {
+  return new Date().toISOString().slice(0, 10);
+}
+
 /**
  * Fast capture form — amount, direction, account, tags, note (money.transaction-add).
  */
@@ -53,10 +61,10 @@ export function CaptureTransactionForm({
   const t = useTranslations("money.captureForm");
   const tCatalog = useTranslations("catalog");
   const locale = useLocale();
-  const router = useRouter();
   const { online } = useOnlineStatusClient();
   const amountId = useId();
   const noteId = useId();
+  const dateId = useId();
   const [direction, setDirection] = useState<TransactionDirection>(
     Direction.EXPENSE,
   );
@@ -66,6 +74,7 @@ export function CaptureTransactionForm({
   const [categoryId, setCategoryId] = useState("");
   const [jarId, setJarId] = useState("");
   const [note, setNote] = useState("");
+  const [transactionDate, setTransactionDate] = useState(todayInputValue);
   const [errorCode, setErrorCode] = useState<
     | ProductActionErrorCode
     | ClientActionErrorCode
@@ -73,15 +82,36 @@ export function CaptureTransactionForm({
     | null
   >(null);
   const [isPending, startTransition] = useTransition();
-  const [idempotencyKey] = useState(() => crypto.randomUUID());
+  const [idempotencyKey, setIdempotencyKey] = useState(() =>
+    crypto.randomUUID(),
+  );
+  const [receipt, setReceipt] = useState<{
+    transactionId: string;
+    inboxItemId: string | null;
+  } | null>(null);
+
   const selectedAccount = accounts.find((account) => account.id === accountId);
   const selectedAccountName = selectedAccount
     ? localizeCatalogName(tCatalog, "accounts", selectedAccount.name)
     : "";
+  const selectedCategory = tags.find((tag) => tag.id === categoryId);
+  const selectedJar = jars.find((jar) => jar.id === jarId);
   const amountLabel =
     amount != null && amount > 0
       ? formatCurrency(amount, currency, locale, { maximumFractionDigits: 0 })
       : null;
+
+  const resetForm = () => {
+    setAmount(null);
+    setAccountId(accounts[0]?.id ?? "");
+    setCategoryId("");
+    setJarId("");
+    setNote("");
+    setTransactionDate(todayInputValue());
+    setErrorCode(null);
+    setReceipt(null);
+    setIdempotencyKey(crypto.randomUUID());
+  };
 
   const onSubmit = () => {
     setErrorCode(null);
@@ -104,6 +134,7 @@ export function CaptureTransactionForm({
         accountId,
         type: direction,
         amount,
+        transactionDate,
         note: note.trim() || undefined,
         categoryId: categoryId || null,
         jarId: jarId || null,
@@ -111,13 +142,118 @@ export function CaptureTransactionForm({
       });
 
       if (result.status === "success") {
-        // replace only — push+refresh races and can leave isPending stuck
-        router.replace(result.inboxItemId ? APP_PATH.INBOX : APP_PATH.MONEY);
+        setReceipt({
+          transactionId: result.transactionId,
+          inboxItemId: result.inboxItemId,
+        });
         return;
       }
       setErrorCode(result.code);
     });
   };
+
+  if (receipt && amount != null && amount > 0) {
+    const formattedAmount = formatCurrency(amount, currency, locale, {
+      maximumFractionDigits: 0,
+    });
+    const signedAmount =
+      direction === Direction.EXPENSE
+        ? `−${formattedAmount}`
+        : `+${formattedAmount}`;
+
+    const relatedRecords: { id: string; label: string; href?: string }[] = [];
+    if (receipt.inboxItemId) {
+      relatedRecords.push({
+        id: "inbox",
+        label: t("receipt.inboxReview"),
+        href: APP_PATH.INBOX,
+      });
+    }
+
+    return (
+      <TransactionReceipt
+        title={t("receipt.title")}
+        outcome={t("receipt.outcome")}
+        rows={[
+          { id: "amount", label: t("receipt.amount"), value: signedAmount },
+          {
+            id: "account",
+            label: t("receipt.account"),
+            value: selectedAccountName || "—",
+          },
+          {
+            id: "category",
+            label: t("receipt.category"),
+            value: selectedCategory
+              ? localizeCatalogName(tCatalog, "tags", selectedCategory.name)
+              : t("tagNone"),
+          },
+          {
+            id: "jar",
+            label: t("receipt.jar"),
+            value: selectedJar
+              ? localizeCatalogName(tCatalog, "jars", selectedJar.name)
+              : t("jarUnmapped"),
+          },
+          {
+            id: "note",
+            label: t("receipt.note"),
+            value: note.trim() || "—",
+          },
+          { id: "date", label: t("receipt.date"), value: transactionDate },
+        ]}
+        relatedRecords={
+          relatedRecords.length > 0 ? relatedRecords : undefined
+        }
+        relatedRecordsTitle={
+          relatedRecords.length > 0 ? t("receipt.relatedRecords") : undefined
+        }
+        nextActions={[
+          {
+            id: "view",
+            label: t("receipt.viewTransaction"),
+            href: moneyTransactionPath(receipt.transactionId),
+            variant: "primary",
+          },
+          {
+            id: "record-another",
+            label: t("receipt.recordAnother"),
+            onPress: resetForm,
+            variant: "secondary",
+          },
+          {
+            id: "money",
+            label: t("receipt.goToMoney"),
+            href: APP_PATH.MONEY,
+            variant: "secondary",
+          },
+          ...(receipt.inboxItemId
+            ? [
+                {
+                  id: "inbox",
+                  label: t("receipt.goToInbox"),
+                  href: APP_PATH.INBOX,
+                  variant: "secondary" as const,
+                },
+              ]
+            : []),
+        ]}
+      >
+        <div className="rounded-lg border border-success/25 bg-success/10 p-(--space-3)">
+          <Text size="sm" className="font-medium text-text-primary">
+            {direction === Direction.EXPENSE
+              ? t("receipt.accountEffectExpense", { amount: formattedAmount })
+              : t("receipt.accountEffectIncome", { amount: formattedAmount })}
+          </Text>
+          <Text size="sm" tone="secondary">
+            {receipt.inboxItemId
+              ? t("receipt.inboxReview")
+              : t("receipt.noInbox")}
+          </Text>
+        </div>
+      </TransactionReceipt>
+    );
+  }
 
   return (
     <div
@@ -137,6 +273,14 @@ export function CaptureTransactionForm({
           variant="warning"
           title={t("errors.offline")}
           description={t("offlineHint")}
+        />
+      ) : null}
+
+      {errorCode ? (
+        <StatusAlert
+          variant="info"
+          title={t("errorTitle")}
+          description={t("saveFailedBody")}
         />
       ) : null}
 
@@ -217,6 +361,19 @@ export function CaptureTransactionForm({
             ))}
           </div>
         )}
+      </fieldset>
+
+      <fieldset className="flex flex-col gap-(--space-2) rounded-xl border border-border-subtle bg-surface p-(--space-4)">
+        <legend className="text-sm font-semibold text-text-primary">
+          {t("receipt.date")}
+        </legend>
+        <input
+          id={dateId}
+          type="date"
+          value={transactionDate}
+          onChange={(e) => setTransactionDate(e.target.value)}
+          className="min-h-11 w-full rounded-md border border-border-subtle bg-canvas px-(--space-3) text-sm text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+        />
       </fieldset>
 
       <fieldset className="flex flex-col gap-(--space-2) rounded-xl border border-border-subtle bg-surface p-(--space-4)">

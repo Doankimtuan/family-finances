@@ -30,8 +30,14 @@ test.describe("Plan hub (ST-E05-001)", () => {
 
     await page.goto("/en/plan");
     await expect(page.getByTestId("plan-hub")).toBeVisible();
+    await expect(page.getByTestId("plan-period-pulse")).toBeVisible();
     await expect(page.getByTestId("plan-teaching")).toBeVisible();
-    await expect(page.getByText(/bank balance|số dư ngân hàng/i)).toBeVisible();
+    await expect(
+      page
+        .getByTestId("plan-teaching")
+        .getByText(/bank balance|số dư ngân hàng/i)
+        .first(),
+    ).toBeVisible();
     await expect(page.getByTestId("plan-see-jars")).toBeVisible();
     await expect(page.getByTestId("plan-entry-goals")).toBeVisible();
     await expect(page.getByTestId("plan-entry-recurring")).toBeVisible();

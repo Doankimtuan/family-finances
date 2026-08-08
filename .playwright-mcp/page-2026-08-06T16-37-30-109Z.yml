@@ -1,0 +1,68 @@
+- generic [active] [ref=f3e1]:
+  - generic [ref=f3e6]:
+    - main [ref=f3e7]:
+      - generic [ref=f3e8]:
+        - generic [ref=f3e11]:
+          - heading "Activity" [level=1] [ref=f3e12]
+          - paragraph [ref=f3e14]: What moved in the Real Ledger
+        - main [ref=f3e15]:
+          - generic [ref=f3e16]:
+            - generic [ref=f3e17]:
+              - generic [ref=f3e18]: Search
+              - textbox "Search" [ref=f3e19]:
+                - /placeholder: Note, tag, account…
+            - group "Direction" [ref=f3e20]:
+              - generic [ref=f3e22]:
+                - generic [ref=f3e23] [cursor=pointer]:
+                  - radio "All" [checked] [ref=f3e24]
+                  - paragraph [ref=f3e25]: All
+                - generic [ref=f3e26] [cursor=pointer]:
+                  - radio "Expense" [ref=f3e27]
+                  - paragraph [ref=f3e28]: Expense
+                - generic [ref=f3e29] [cursor=pointer]:
+                  - radio "Income" [ref=f3e30]
+                  - paragraph [ref=f3e31]: Income
+            - button "Apply" [ref=f3e32] [cursor=pointer]
+            - link "Add transaction" [ref=f3e33] [cursor=pointer]:
+              - /url: /en/money/transactions/new
+          - list [ref=f3e34]:
+            - listitem [ref=f3e35]:
+              - link "Expense Cash -₫1,000" [ref=f3e36] [cursor=pointer]:
+                - /url: /en/money/transactions/73ab7c7b-4dcd-45b8-9678-1065e7f22ef8
+                - generic [ref=f3e37]:
+                  - generic [ref=f3e39]:
+                    - paragraph [ref=f3e40]: Expense
+                    - paragraph [ref=f3e41]: Cash
+                  - generic [ref=f3e42]: "-₫1,000"
+            - listitem [ref=f3e43]:
+              - link "Expense Cash -₫1,000" [ref=f3e44] [cursor=pointer]:
+                - /url: /en/money/transactions/ef968384-fa6d-4bcc-a06b-31b49fe111d7
+                - generic [ref=f3e45]:
+                  - generic [ref=f3e47]:
+                    - paragraph [ref=f3e48]: Expense
+                    - paragraph [ref=f3e49]: Cash
+                  - generic [ref=f3e50]: "-₫1,000"
+          - link "Back to Money" [ref=f3e51] [cursor=pointer]:
+            - /url: /en/money
+    - navigation "Primary" [ref=f3e54]:
+      - list [ref=f3e55]:
+        - listitem [ref=f3e56]:
+          - link "Home" [ref=f3e57] [cursor=pointer]:
+            - /url: /en/home
+        - listitem [ref=f3e63]:
+          - link "Money" [ref=f3e64] [cursor=pointer]:
+            - /url: /en/money
+        - listitem [ref=f3e69]:
+          - link "Plan" [ref=f3e70] [cursor=pointer]:
+            - /url: /en/plan
+        - listitem [ref=f3e76]:
+          - link "2 open Inbox items Inbox" [ref=f3e77] [cursor=pointer]:
+            - /url: /en/inbox
+            - generic [ref=f3e78]:
+              - generic "2 open Inbox items": "2"
+            - generic [ref=f3e82]: Inbox
+        - listitem [ref=f3e83]:
+          - link "Together" [ref=f3e84] [cursor=pointer]:
+            - /url: /en/together
+  - button "Open Next.js Dev Tools" [ref=f3e95] [cursor=pointer]
+  - alert [ref=f3e99]

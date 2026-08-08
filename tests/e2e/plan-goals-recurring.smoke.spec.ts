@@ -37,12 +37,12 @@ test.describe("Plan goals & recurring (ST-E05-003)", () => {
     await expect(page.getByTestId("plan-goals")).toBeVisible();
     await expect(page.getByTestId("goal-create-open")).toBeVisible();
     await expect(
-      page.getByText(/intention|ý định|bank balance|số dư ngân hàng/i),
+      page.getByText(/intention|ý định|bank balance|số dư ngân hàng/i).first(),
     ).toBeVisible();
 
     await page.goto("/en/plan/recurring");
     await expect(page.getByTestId("plan-recurring")).toBeVisible();
     await expect(page.getByTestId("recurring-create-open")).toBeVisible();
-    await expect(page.getByText(/Suggest|Gợi ý/i)).toBeVisible();
+    await expect(page.getByText(/Suggest|Gợi ý/i).first()).toBeVisible();
   });
 });

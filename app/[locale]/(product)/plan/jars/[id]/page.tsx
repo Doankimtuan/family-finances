@@ -19,8 +19,9 @@ import { listOpenInboxItems } from "@/modules/inbox/application";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
+import { Page } from "@/shared/patterns/page";
+import { Section } from "@/shared/patterns/section";
 import { Amount } from "@/shared/patterns/amount";
-import { SectionHeader } from "@/shared/patterns/section-header";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Text } from "@/shared/ui/text";
 import { PlanOfflineBanner } from "../../plan-offline-banner";
@@ -39,7 +40,7 @@ function stateKey(state: JarStateValue) {
 }
 
 /**
- * plan.jar-detail — Planned amount (not Balance), state, allocation (ST-E05-002).
+ * plan.jar-detail — Planned amount (not Balance), state, allocation (ST-E05-002 / F3).
  */
 export default async function PlanJarDetailPage({ params }: Props) {
   const { locale: rawLocale, id } = await params;
@@ -69,17 +70,17 @@ export default async function PlanJarDetailPage({ params }: Props) {
 
   if (!jar) {
     return (
-      <div className="flex min-h-full flex-col" data-testid="plan-jar-detail">
-        <TopAppBar title={t("notFound")} />
-        <div className="px-(--space-4) py-(--space-6)">
-          <Link
-            href={APP_PATH.PLAN_JARS}
-            className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary"
-          >
-            {t("backToList")}
-          </Link>
-        </div>
-      </div>
+      <Page
+        testId="plan-jar-detail"
+        topBar={<TopAppBar title={t("notFound")} />}
+      >
+        <Link
+          href={APP_PATH.PLAN_JARS}
+          className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary"
+        >
+          {t("backToList")}
+        </Link>
+      </Page>
     );
   }
 
@@ -97,7 +98,10 @@ export default async function PlanJarDetailPage({ params }: Props) {
 
   const targetJars = (activeJars ?? [])
     .filter((candidate) => candidate.id !== jar.id)
-    .map((candidate) => ({ id: candidate.id, name: candidate.name }));
+    .map((candidate) => ({
+      id: candidate.id,
+      name: candidate.name,
+    }));
 
   const capacityLabel = formatCurrency(
     jar.capacityDelta,
@@ -107,88 +111,96 @@ export default async function PlanJarDetailPage({ params }: Props) {
   );
 
   return (
-    <div className="flex min-h-full flex-col" data-testid="plan-jar-detail">
-      <TopAppBar title={displayName} subtitle={t("detailSubtitle")} />
-      <div className="flex flex-1 flex-col gap-(--space-5) px-(--space-4) pb-(--space-6) pt-(--space-4)">
-        <PlanOfflineBanner />
+    <Page
+      testId="plan-jar-detail"
+      topBar={
+        <TopAppBar title={displayName} subtitle={t("detailSubtitle")} />
+      }
+    >
+      <PlanOfflineBanner />
 
-        <EmergencyInboxBanner
-          items={inboxItems ?? []}
-          viewerUserId={user.id}
-          title={t("reallocate.emergencyBannerTitle")}
-          body={t("reallocate.emergencyBannerBody")}
-          openLabel={t("reallocate.emergencyBannerOpen")}
-        />
+      <EmergencyInboxBanner
+        items={inboxItems ?? []}
+        viewerUserId={user.id}
+        title={t("reallocate.emergencyBannerTitle")}
+        body={t("reallocate.emergencyBannerBody")}
+        openLabel={t("reallocate.emergencyBannerOpen")}
+      />
 
-        <Amount
-          label={t("plannedHeading")}
-          amountLabel={plannedLabel}
-          size="lg"
-        />
+      <StatusAlert
+        variant="info"
+        title={t("notBalanceTitle")}
+        description={t("notBalanceBody")}
+      />
 
-        <Amount
-          label={t("reallocate.capacityDeltaHeading")}
-          amountLabel={capacityLabel}
-        />
+      <Amount
+        label={t("plannedHeading")}
+        amountLabel={plannedLabel}
+        size="lg"
+      />
 
-        <div className="flex items-center justify-between gap-(--space-3)">
-          <Text size="sm" tone="secondary">
-            {t(`kinds.${jar.kind}`)}
-          </Text>
-          <span
-            className="rounded-md border border-border-subtle px-(--space-2) py-(--space-1) text-xs font-medium text-text-secondary"
-            data-testid="jar-state-badge"
-          >
-            {t(stateKey(jar.state))}
-          </span>
-        </div>
+      <Amount
+        label={t("reallocate.capacityDeltaHeading")}
+        amountLabel={capacityLabel}
+      />
 
-        <section className="flex flex-col gap-(--space-2)">
-          <SectionHeader title={t("allocationHeading")} />
-          <Text size="sm" tone="secondary">
-            {t("incomeModeLabel", {
-              mode: t(`incomeModes.${jar.incomeAllocateMode}`),
-            })}
-          </Text>
-          <Text size="sm" tone="secondary">
-            {t("incomeModeHint")}
-          </Text>
-        </section>
-
-        <div data-testid="jar-ritual-lock">
-          <StatusAlert
-            variant="info"
-            title={t("ritualLockTitle")}
-            description={t("ritualLockBody")}
-          />
-          <Link
-            href={APP_PATH.PLAN_RITUAL}
-            className="mt-(--space-2) inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-          >
-            {t("ritualLockOpen")}
-          </Link>
-        </div>
-
-        {jar.state === JarState.ACTIVE ? (
-          <ReallocateJarForm
-            sourceJarId={jar.id}
-            capacityDelta={jar.capacityDelta}
-            currency={jar.currency}
-            targetJars={targetJars}
-            overspendPolicy={policies?.overspendPolicy ?? OverspendPolicy.WARN}
-          />
-        ) : null}
-
-        <JarDetailControls jarId={jar.id} state={jar.state} plan={jar.plan} />
-
-        <Link
-          href={APP_PATH.PLAN_JARS}
-          className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-          data-testid="jar-back-list"
+      <div className="flex items-center justify-between gap-(--space-3)">
+        <Text size="sm" tone="secondary">
+          {t(`kinds.${jar.kind}`)}
+        </Text>
+        <span
+          className="rounded-md border border-border-subtle px-(--space-2) py-(--space-1) text-xs font-medium text-text-secondary"
+          data-testid="jar-state-badge"
         >
-          {t("backToList")}
+          {t(stateKey(jar.state))}
+        </span>
+      </div>
+
+      <Section title={t("allocationHeading")}>
+        <Text size="sm" tone="secondary">
+          {t("incomeModeLabel", {
+            mode: t(`incomeModes.${jar.incomeAllocateMode}`),
+          })}
+        </Text>
+        <Text size="sm" tone="secondary">
+          {t("incomeModeHint")}
+        </Text>
+      </Section>
+
+      <div data-testid="jar-ritual-lock">
+        <StatusAlert
+          variant="info"
+          title={t("ritualLockTitle")}
+          description={t("ritualLockBody")}
+        />
+        <Link
+          href={APP_PATH.PLAN_RITUAL}
+          className="mt-(--space-2) inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+        >
+          {t("ritualLockOpen")}
         </Link>
       </div>
-    </div>
+
+      {jar.state === JarState.ACTIVE ? (
+        <ReallocateJarForm
+          sourceJarId={jar.id}
+          sourceJarName={displayName}
+          capacityDelta={jar.capacityDelta}
+          currency={jar.currency}
+          targetJars={targetJars}
+          overspendPolicy={policies?.overspendPolicy ?? OverspendPolicy.WARN}
+        />
+      ) : null}
+
+      <JarDetailControls jarId={jar.id} state={jar.state} plan={jar.plan} />
+
+      <Link
+        href={APP_PATH.PLAN_JARS}
+        className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+        data-testid="jar-back-list"
+      >
+        {t("backToList")}
+      </Link>
+    </Page>
   );
 }

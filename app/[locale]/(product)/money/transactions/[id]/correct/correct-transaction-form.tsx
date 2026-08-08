@@ -1,8 +1,8 @@
 "use client";
 
 import { useId, useState, useTransition } from "react";
-import { useTranslations } from "next-intl";
-import { Link, useRouter } from "@/i18n/navigation";
+import { useLocale, useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import {
   APP_PATH,
   moneyTransactionPath,
@@ -22,9 +22,11 @@ import {
 import { TextField } from "@/shared/ui/form";
 import { AmountField } from "@/shared/patterns/amount-field";
 import { Button } from "@/shared/ui/button";
+import { Text } from "@/shared/ui/text";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
+import { formatCurrency } from "@/shared/i18n/formatters";
 import {
   CLIENT_ACTION_ERROR_CODE,
   PRODUCT_ACTION_ERROR_CODE,
@@ -32,6 +34,7 @@ import {
   type ProductActionErrorCode,
 } from "@/modules/tenancy/application/product-action-error";
 import { correctTransactionAction } from "../../mutate-actions";
+import { TransactionReceipt } from "../../transaction-receipt";
 
 type CorrectFormError =
   | ProductActionErrorCode
@@ -63,8 +66,9 @@ export function CorrectTransactionForm({
   currency,
 }: Props) {
   const t = useTranslations("money.correctForm");
+  const tMoney = useTranslations("money");
   const tCatalog = useTranslations("catalog");
-  const router = useRouter();
+  const locale = useLocale();
   const { online } = useOnlineStatusClient();
   const amountId = useId();
   const noteId = useId();
@@ -79,19 +83,32 @@ export function CorrectTransactionForm({
   const [confirm, setConfirm] = useState(false);
   const [errorCode, setErrorCode] = useState<CorrectFormError | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [receipt, setReceipt] = useState<{
+    correctionTransactionId: string;
+    reversalTransactionId: string;
+  } | null>(null);
 
   const tags = direction === Direction.INCOME ? incomeTags : expenseTags;
+  const selectedAccount = accounts.find((account) => account.id === accountId);
+  const selectedAccountName = selectedAccount
+    ? localizeCatalogName(tCatalog, "accounts", selectedAccount.name)
+    : "";
 
-  const runCorrect = () => {
-    setErrorCode(null);
+  const validate = () => {
     if (!online) {
       setErrorCode(CLIENT_ACTION_ERROR_CODE.OFFLINE);
-      return;
+      return false;
     }
     if (!accountId || amount == null || amount <= 0) {
       setErrorCode(PRODUCT_ACTION_ERROR_CODE.INVALID);
-      return;
+      return false;
     }
+    return true;
+  };
+
+  const runCorrect = () => {
+    setErrorCode(null);
+    if (!validate() || amount == null || amount <= 0) return;
 
     startTransition(async () => {
       const result = await correctTransactionAction({
@@ -104,8 +121,10 @@ export function CorrectTransactionForm({
         note: note.trim() || undefined,
       });
       if (result.status === "success" && result.correctionTransactionId) {
-        router.replace(moneyTransactionPath(result.correctionTransactionId));
-        router.refresh();
+        setReceipt({
+          correctionTransactionId: result.correctionTransactionId,
+          reversalTransactionId: result.reversalTransactionId ?? "",
+        });
         return;
       }
       if (result.status === "error") {
@@ -113,6 +132,74 @@ export function CorrectTransactionForm({
       }
     });
   };
+
+  if (receipt && amount != null && amount > 0) {
+    const formattedAmount = formatCurrency(amount, currency, locale, {
+      maximumFractionDigits: 0,
+    });
+
+    return (
+      <TransactionReceipt
+        title={t("receipt.title")}
+        rows={[
+          { id: "amount", label: t("receipt.amount"), value: formattedAmount },
+          {
+            id: "account",
+            label: t("receipt.account"),
+            value: selectedAccountName || "—",
+          },
+          {
+            id: "date",
+            label: t("receipt.date"),
+            value: transaction.transactionDate,
+          },
+          {
+            id: "original",
+            label: t("receipt.original"),
+            value: `${formatCurrency(transaction.amount, currency, locale, {
+              maximumFractionDigits: 0,
+            })} → ${tMoney("status.reversed")}`,
+          },
+          {
+            id: "reversal",
+            label: t("receipt.reversal"),
+            value: receipt.reversalTransactionId.slice(0, 8),
+          },
+          {
+            id: "correction",
+            label: t("receipt.correction"),
+            value: receipt.correctionTransactionId.slice(0, 8),
+          },
+        ]}
+        nextActions={[
+          {
+            id: "view-correction",
+            label: t("receipt.viewCorrection"),
+            href: moneyTransactionPath(receipt.correctionTransactionId),
+            variant: "primary",
+          },
+          {
+            id: "view-original",
+            label: t("receipt.viewOriginal"),
+            href: moneyTransactionPath(transaction.id),
+            variant: "secondary",
+          },
+          {
+            id: "activity",
+            label: t("receipt.backToActivity"),
+            href: APP_PATH.MONEY_TRANSACTIONS,
+            variant: "secondary",
+          },
+        ]}
+      >
+        <div className="rounded-lg border border-success/25 bg-success/10 p-(--space-3)">
+          <Text size="sm" tone="secondary">
+            {t("confirmBody")}
+          </Text>
+        </div>
+      </TransactionReceipt>
+    );
+  }
 
   return (
     <div
@@ -221,12 +308,13 @@ export function CorrectTransactionForm({
       />
 
       {confirm ? (
-        <div className="flex flex-col gap-(--space-2) rounded-lg border border-border-subtle p-(--space-3)">
-          <StatusAlert
-            variant="warning"
-            title={t("confirmTitle")}
-            description={t("confirmBody")}
-          />
+        <div className="flex flex-col gap-(--space-3) rounded-xl border border-border-subtle bg-surface p-(--space-4)">
+          <Text size="sm" weight="medium" className="text-text-primary">
+            {t("confirmTitle")}
+          </Text>
+          <Text size="sm" tone="secondary">
+            {t("confirmBody")}
+          </Text>
           <Button
             variant="primary"
             className="w-full"
@@ -251,7 +339,9 @@ export function CorrectTransactionForm({
           className="w-full"
           data-testid="correct-submit"
           isDisabled={isPending || !online}
-          onPress={() => setConfirm(true)}
+          onPress={() => {
+            if (validate()) setConfirm(true);
+          }}
         >
           {t("submit")}
         </Button>

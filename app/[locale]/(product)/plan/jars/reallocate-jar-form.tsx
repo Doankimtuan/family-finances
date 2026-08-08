@@ -5,9 +5,10 @@ import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useTranslations } from "next-intl";
-import { useRouter } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import {
   PLAN_ACTION_ERROR_CODE,
+  PLAN_MOVEMENT_LEDGER_IMPACT,
   isEmergencyIntentValid,
   shouldShowOverspendWarning,
   type PlanActionErrorCode,
@@ -16,11 +17,13 @@ import {
   OverspendPolicy,
   type OverspendPolicy as OverspendPolicyValue,
 } from "@/modules/tenancy/application/household-policies.schema";
+import { APP_PATH, inboxItemPath } from "@/modules/tenancy/application/app-path";
 import { AmountField } from "@/shared/patterns/amount-field";
 import { TextField, CheckboxField } from "@/shared/ui/form";
 import { Button } from "@/shared/ui/button";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Text } from "@/shared/ui/text";
+import { Section } from "@/shared/patterns/section";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
 import {
@@ -78,8 +81,17 @@ type JarOption = {
   name: string;
 };
 
+type ReceiptState = {
+  amount: number;
+  sourceName: string;
+  targetName: string;
+  inboxItemId: string | null;
+  isEmergency: boolean;
+};
+
 type Props = {
   sourceJarId: string;
+  sourceJarName: string;
   capacityDelta: number;
   currency: string;
   targetJars: JarOption[];
@@ -101,6 +113,7 @@ function asFieldErrorKey(message: string | undefined): FieldErrorKey {
  */
 export function ReallocateJarForm({
   sourceJarId,
+  sourceJarName,
   capacityDelta,
   currency,
   targetJars,
@@ -118,6 +131,7 @@ export function ReallocateJarForm({
   const [open, setOpen] = useState(false);
   const [awaitingWarn, setAwaitingWarn] = useState(false);
   const [errorCode, setErrorCode] = useState<ErrorCode | null>(null);
+  const [receipt, setReceipt] = useState<ReceiptState | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const {
@@ -144,6 +158,86 @@ export function ReallocateJarForm({
 
   if (targetJars.length === 0) {
     return null;
+  }
+
+  if (receipt) {
+    return (
+      <Section variant="surface" testId="jar-reallocate-receipt">
+        <StatusAlert
+          variant="success"
+          title={t("receiptTitle")}
+          description={t("receiptOutcome")}
+        />
+        <dl className="flex flex-col gap-(--space-3)">
+          <div className="flex justify-between gap-(--space-3)">
+            <Text size="sm" tone="secondary">
+              {t("receiptPlan")}
+            </Text>
+            <Text size="sm" className="font-medium text-text-primary">
+              {t("receiptPlanChanged")}
+            </Text>
+          </div>
+          <div className="flex justify-between gap-(--space-3)">
+            <Text size="sm" tone="secondary">
+              {t("receiptMoney")}
+            </Text>
+            <Text size="sm" className="font-medium text-text-primary">
+              {t("receiptMoneyUnchanged")}
+            </Text>
+          </div>
+          <div className="flex justify-between gap-(--space-3)">
+            <Text size="sm" tone="secondary">
+              {t("amountLabel")}
+            </Text>
+            <Text size="sm" className="tabular-nums font-medium text-text-primary">
+              {receipt.amount} {currency}
+            </Text>
+          </div>
+          <div className="flex justify-between gap-(--space-3)">
+            <Text size="sm" tone="secondary">
+              {t("receiptFrom")}
+            </Text>
+            <Text size="sm" className="text-right font-medium text-text-primary">
+              {receipt.sourceName}
+            </Text>
+          </div>
+          <div className="flex justify-between gap-(--space-3)">
+            <Text size="sm" tone="secondary">
+              {t("receiptTo")}
+            </Text>
+            <Text size="sm" className="text-right font-medium text-text-primary">
+              {receipt.targetName}
+            </Text>
+          </div>
+        </dl>
+        {receipt.inboxItemId ? (
+          <Link
+            href={inboxItemPath(receipt.inboxItemId)}
+            className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary"
+            data-testid="jar-reallocate-inbox-link"
+          >
+            {t("receiptInbox")}
+          </Link>
+        ) : null}
+        <Button
+          variant="primary"
+          className="w-full"
+          data-testid="jar-reallocate-receipt-done"
+          onPress={() => {
+            setReceipt(null);
+            router.refresh();
+          }}
+        >
+          {t("receiptDone")}
+        </Button>
+        <Link
+          href={APP_PATH.PLAN_JARS}
+          className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary"
+        >
+          {t("receiptBackJars")}
+        </Link>
+      </Section>
+    );
   }
 
   if (!open) {
@@ -201,6 +295,21 @@ export function ReallocateJarForm({
       });
 
       if (result.status === "success") {
+        if (
+          result.ledgerTransactionsCreated !== 0 ||
+          result.ledgerImpact !== PLAN_MOVEMENT_LEDGER_IMPACT
+        ) {
+          setErrorCode(PRODUCT_ACTION_ERROR_CODE.UNKNOWN);
+          return;
+        }
+
+        const target =
+          targetJars.find((jar) => jar.id === result.targetJarId) ??
+          targetJars.find((jar) => jar.id === values.targetJarId);
+        const targetName = target
+          ? localizeCatalogName(tCatalog, "jars", target.name) || target.name
+          : values.targetJarId;
+
         reset({
           sourceJarId,
           targetJarId: targetJars[0]?.id ?? "",
@@ -211,7 +320,13 @@ export function ReallocateJarForm({
         });
         setAwaitingWarn(false);
         setOpen(false);
-        router.refresh();
+        setReceipt({
+          amount: result.amount,
+          sourceName: sourceJarName,
+          targetName,
+          inboxItemId: result.inboxItemId,
+          isEmergency: result.isEmergency,
+        });
         return;
       }
 

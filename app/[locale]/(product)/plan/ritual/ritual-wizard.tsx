@@ -179,6 +179,7 @@ export function RitualWizard({ ritual }: Props) {
             label={t("correctionNoteLabel")}
             value={correctionNote}
             onChange={(e) => setCorrectionNote(e.target.value)}
+            data-testid="ritual-correction-note"
           />
           <Button
             variant="primary"
@@ -220,6 +221,7 @@ export function RitualWizard({ ritual }: Props) {
             label={t("correctionNoteLabel")}
             value={correctionNote}
             onChange={(e) => setCorrectionNote(e.target.value)}
+            data-testid="ritual-correction-note"
           />
           <Button
             variant="primary"
@@ -468,6 +470,11 @@ export function RitualWizard({ ritual }: Props) {
                   variant="warning"
                   title={t("approveConfirmTitle")}
                   description={t("approveConfirmBody")}
+                />
+                <StatusAlert
+                  variant="info"
+                  title={t("moneyUnchangedTitle")}
+                  description={t("moneyUnchangedBody")}
                 />
                 <Button
                   variant="primary"

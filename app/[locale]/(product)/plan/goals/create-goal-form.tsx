@@ -3,6 +3,7 @@
 import { useId, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
+import { planGoalPath } from "@/modules/tenancy/application/app-path";
 import { TextField } from "@/shared/ui/form";
 import { AmountField } from "@/shared/patterns/amount-field";
 import { Button } from "@/shared/ui/button";
@@ -72,7 +73,7 @@ export function CreateGoalForm() {
         setName("");
         setTarget(null);
         setTargetDate("");
-        router.refresh();
+        router.push(planGoalPath(result.goalId));
         return;
       }
       setErrorCode(result.code);

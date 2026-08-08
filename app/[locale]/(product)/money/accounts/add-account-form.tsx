@@ -2,7 +2,6 @@
 
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { useRouter } from "@/i18n/navigation";
 import { TextField } from "@/shared/ui/form";
 import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
@@ -23,6 +22,11 @@ import {
   DEFAULT_CARD_STATEMENT_DAY,
   type AccountType as AccountTypeValue,
 } from "@/modules/ledger/application/client";
+import {
+  APP_PATH,
+  moneyAccountPath,
+} from "@/modules/tenancy/application/app-path";
+import { TransactionReceipt } from "../transactions/transaction-receipt";
 
 type ErrorCode =
   ProductActionErrorCode | typeof CLIENT_ACTION_ERROR_CODE.OFFLINE;
@@ -54,7 +58,6 @@ export function AddAccountForm({
 }: Props) {
   const t = useTranslations("money.accountsPage");
   const tTypes = useTranslations("money.types");
-  const router = useRouter();
   const { online } = useOnlineStatusClient();
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
   const isControlled = openProp !== undefined;
@@ -73,6 +76,13 @@ export function AddAccountForm({
   const [linkedBankAccountId, setLinkedBankAccountId] = useState("");
   const [errorCode, setErrorCode] = useState<ErrorCode | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [receipt, setReceipt] = useState<{
+    accountId: string;
+    accountName: string;
+    accountType: AccountTypeValue;
+    openingBalance: number;
+    creditLimit: number | null;
+  } | null>(null);
 
   const isCard = type === AccountType.CREDIT_CARD;
 
@@ -86,6 +96,7 @@ export function AddAccountForm({
     setDueDay(DEFAULT_CARD_DUE_DAY);
     setLinkedBankAccountId("");
     setErrorCode(null);
+    setReceipt(null);
   };
 
   const close = () => {
@@ -119,8 +130,13 @@ export function AddAccountForm({
           },
         });
         if (result.status === "success") {
-          close();
-          router.refresh();
+          setReceipt({
+            accountId: result.accountId,
+            accountName: name.trim(),
+            accountType: AccountType.CREDIT_CARD,
+            openingBalance: 0,
+            creditLimit: limit,
+          });
           return;
         }
         setErrorCode(result.code);
@@ -144,13 +160,90 @@ export function AddAccountForm({
         openingBalance: balance,
       });
       if (result.status === "success") {
-        close();
-        router.refresh();
+        setReceipt({
+          accountId: result.accountId,
+          accountName: name.trim(),
+          accountType: type,
+          openingBalance: balance,
+          creditLimit: null,
+        });
         return;
       }
       setErrorCode(result.code);
     });
   };
+
+  if (receipt) {
+    const receiptContent = (
+      <TransactionReceipt
+        title={t("receipt.title")}
+        rows={[
+          { id: "name", label: t("receipt.name"), value: receipt.accountName },
+          {
+            id: "type",
+            label: t("receipt.type"),
+            value: tTypes(receipt.accountType),
+          },
+          ...(receipt.accountType === AccountType.CREDIT_CARD
+            ? [
+                {
+                  id: "creditLimit",
+                  label: t("receipt.creditLimit"),
+                  value: receipt.creditLimit ?? 0,
+                },
+              ]
+            : [
+                {
+                  id: "openingBalance",
+                  label: t("receipt.openingBalance"),
+                  value: receipt.openingBalance,
+                },
+              ]),
+        ]}
+        nextActions={[
+          {
+            id: "view-account",
+            label: t("receipt.viewAccount"),
+            href: moneyAccountPath(receipt.accountId),
+            variant: "primary",
+          },
+          {
+            id: "add-another",
+            label: t("receipt.addAnother"),
+            onPress: reset,
+            variant: "secondary",
+          },
+          {
+            id: "money",
+            label: t("receipt.goToMoney"),
+            href: APP_PATH.MONEY,
+            variant: "secondary",
+          },
+        ]}
+      >
+        <div className="rounded-lg border border-success/25 bg-success/10 p-(--space-3)">
+          <Text size="sm" tone="secondary">
+            {receipt.accountType === AccountType.CREDIT_CARD
+              ? t("creditCardHint")
+              : t("openingBalanceHint")}
+          </Text>
+        </div>
+      </TransactionReceipt>
+    );
+
+    if (presentation === "dialog") {
+      return (
+        <Dialog isOpen onOpenChange={() => {}}>
+          <DialogContent className="mx-(--space-4) max-h-[min(90dvh,720px)]">
+            <div className="max-h-[min(60dvh,480px)] overflow-y-auto p-(--space-4)">
+              {receiptContent}
+            </div>
+          </DialogContent>
+        </Dialog>
+      );
+    }
+    return receiptContent;
+  }
 
   const fields = (
     <div
@@ -255,7 +348,7 @@ export function AddAccountForm({
               {t("linkedBankLabel")}
             </Text>
             <select
-              className="min-h-11 rounded-md border border-border-subtle bg-surface px-(--space-3) text-sm"
+              className="min-h-11 w-full rounded-md border border-border-subtle bg-surface px-(--space-3) text-sm"
               value={linkedBankAccountId}
               onChange={(e) => setLinkedBankAccountId(e.target.value)}
               data-testid="account-linked-bank"

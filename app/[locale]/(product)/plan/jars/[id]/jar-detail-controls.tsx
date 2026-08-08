@@ -46,6 +46,7 @@ export function JarDetailControls({ jarId, state, plan }: Props) {
     plan?.fixedAmount ?? 0,
   );
   const [confirmArchive, setConfirmArchive] = useState(false);
+  const [showAllocateReceipt, setShowAllocateReceipt] = useState(false);
   const [errorCode, setErrorCode] = useState<ErrorCode | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -94,6 +95,7 @@ export function JarDetailControls({ jarId, state, plan }: Props) {
       );
       if (result.status === "success") {
         setEditing(false);
+        setShowAllocateReceipt(true);
         router.refresh();
         return;
       }
@@ -143,11 +145,34 @@ export function JarDetailControls({ jarId, state, plan }: Props) {
         />
       ) : null}
 
+      {showAllocateReceipt ? (
+        <div data-testid="jar-allocate-receipt">
+          <StatusAlert
+            variant="success"
+            title={t("allocateReceiptTitle")}
+            description={t("allocateReceiptBody")}
+          />
+          <Button
+            variant="secondary"
+            className="mt-(--space-2) w-full"
+            data-testid="jar-allocate-receipt-dismiss"
+            onPress={() => setShowAllocateReceipt(false)}
+          >
+            {t("allocateReceiptDismiss")}
+          </Button>
+        </div>
+      ) : null}
+
       {editing ? (
         <div
           className="flex flex-col gap-(--space-3) rounded-lg border border-border-subtle bg-surface p-(--space-4)"
           data-testid="jar-plan-form"
         >
+          <StatusAlert
+            variant="info"
+            title={t("allocateVirtualTitle")}
+            description={t("allocateVirtualBody")}
+          />
           <fieldset className="flex flex-col gap-(--space-2)">
             <legend className="text-sm font-semibold text-text-primary">
               {t("planKindLabel")}
@@ -219,7 +244,10 @@ export function JarDetailControls({ jarId, state, plan }: Props) {
           className="w-full"
           data-testid="jar-plan-edit"
           isDisabled={!online}
-          onPress={() => setEditing(true)}
+          onPress={() => {
+            setShowAllocateReceipt(false);
+            setEditing(true);
+          }}
         >
           {t("editPlan")}
         </Button>

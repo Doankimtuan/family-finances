@@ -4,8 +4,8 @@ import { useId, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import {
-  GOAL_STATUS_VALUES,
-  type GoalStatus,
+  GoalStatus,
+  type GoalStatus as GoalStatusValue,
 } from "@/modules/plan/application/client";
 import { TextField } from "@/shared/ui/form";
 import { AmountField } from "@/shared/patterns/amount-field";
@@ -22,12 +22,17 @@ import { contributeToGoalAction, updateGoalAction } from "../actions";
 type ErrorCode =
   ProductActionErrorCode | typeof CLIENT_ACTION_ERROR_CODE.OFFLINE;
 
+type ConfirmAction =
+  | typeof GoalStatus.COMPLETED
+  | typeof GoalStatus.CANCELLED
+  | null;
+
 type Props = {
   goalId: string;
   name: string;
   targetAmount: number;
   targetDate: string | null;
-  status: GoalStatus;
+  status: GoalStatusValue;
 };
 
 export function GoalDetailControls({
@@ -51,12 +56,46 @@ export function GoalDetailControls({
   const [name, setName] = useState(initialName);
   const [target, setTarget] = useState<number | null>(initialTarget);
   const [targetDate, setTargetDate] = useState(initialDate ?? "");
-  const [status, setStatus] = useState(initialStatus);
+  const [confirmAction, setConfirmAction] = useState<ConfirmAction>(null);
+  const [contributeReceiptAmount, setContributeReceiptAmount] = useState<
+    number | null
+  >(null);
   const [errorCode, setErrorCode] = useState<ErrorCode | null>(null);
   const [isPending, startTransition] = useTransition();
 
+  const isTerminal =
+    initialStatus === GoalStatus.COMPLETED ||
+    initialStatus === GoalStatus.CANCELLED;
+  const canMutate =
+    initialStatus === GoalStatus.ACTIVE ||
+    initialStatus === GoalStatus.PAUSED;
+
+  const runStatus = (next: GoalStatusValue) => {
+    setErrorCode(null);
+    if (!online) {
+      setErrorCode(CLIENT_ACTION_ERROR_CODE.OFFLINE);
+      return;
+    }
+    startTransition(async () => {
+      const result = await updateGoalAction({
+        goalId,
+        name: initialName,
+        targetAmount: initialTarget,
+        targetDate: initialDate,
+        status: next,
+      });
+      if (result.status === "success") {
+        setConfirmAction(null);
+        router.refresh();
+        return;
+      }
+      setErrorCode(result.code);
+    });
+  };
+
   const onContribute = () => {
     setErrorCode(null);
+    setContributeReceiptAmount(null);
     if (!online) {
       setErrorCode(CLIENT_ACTION_ERROR_CODE.OFFLINE);
       return;
@@ -73,6 +112,7 @@ export function GoalDetailControls({
       if (result.status === "success") {
         setAmount(null);
         setNote("");
+        setContributeReceiptAmount(result.fundedAmount);
         router.refresh();
         return;
       }
@@ -95,7 +135,7 @@ export function GoalDetailControls({
         name: name.trim(),
         targetAmount: target,
         targetDate: targetDate || null,
-        status,
+        status: initialStatus,
       });
       if (result.status === "success") {
         setEditing(false);
@@ -105,6 +145,47 @@ export function GoalDetailControls({
       setErrorCode(result.code);
     });
   };
+
+  if (confirmAction) {
+    const isComplete = confirmAction === GoalStatus.COMPLETED;
+    return (
+      <div
+        className="flex flex-col gap-(--space-4)"
+        data-testid={
+          isComplete ? "goal-complete-confirm" : "goal-cancel-confirm"
+        }
+      >
+        <StatusAlert
+          variant="warning"
+          title={
+            isComplete ? t("completeConfirmTitle") : t("cancelConfirmTitle")
+          }
+          description={
+            isComplete ? t("completeConfirmBody") : t("cancelConfirmBody")
+          }
+        />
+        <Button
+          variant="primary"
+          className="w-full"
+          data-testid={
+            isComplete ? "goal-complete-confirm-yes" : "goal-cancel-confirm-yes"
+          }
+          isDisabled={isPending || !online}
+          onPress={() => runStatus(confirmAction)}
+        >
+          {isComplete ? t("completeConfirmYes") : t("cancelConfirmYes")}
+        </Button>
+        <Button
+          variant="secondary"
+          className="w-full"
+          isDisabled={isPending}
+          onPress={() => setConfirmAction(null)}
+        >
+          {t("createCancel")}
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-(--space-4)" data-testid="goal-controls">
@@ -116,38 +197,54 @@ export function GoalDetailControls({
         />
       ) : null}
 
-      <section className="flex flex-col gap-(--space-3)">
-        <Text size="sm" className="font-semibold text-text-primary">
-          {t("contributeHeading")}
-        </Text>
-        <Text size="sm" tone="secondary">
-          {t("contributeDirection")}
-        </Text>
-        <AmountField
-          id={amountId}
-          label={t("contributeAmountLabel")}
-          value={amount}
-          onValueChange={setAmount}
-          data-testid="goal-contribute-amount"
-        />
-        <TextField
-          id={noteId}
-          label={t("contributeNoteLabel")}
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-        />
-        <Button
-          variant="primary"
-          className="w-full"
-          data-testid="goal-contribute-submit"
-          isDisabled={isPending || !online || amount == null || amount <= 0}
-          onPress={onContribute}
-        >
-          {t("contributeSubmit")}
-        </Button>
-      </section>
+      {contributeReceiptAmount != null ? (
+        <div data-testid="goal-contribute-receipt">
+          <StatusAlert
+            variant="success"
+            title={t("contributeReceiptTitle")}
+            description={t("contributeReceiptBody", {
+              amount: String(contributeReceiptAmount),
+            })}
+          />
+        </div>
+      ) : null}
 
-      {editing ? (
+      {canMutate ? (
+        <section className="flex flex-col gap-(--space-3)">
+          <Text size="sm" className="font-semibold text-text-primary">
+            {t("contributeHeading")}
+          </Text>
+          <StatusAlert
+            variant="info"
+            title={t("contributeProgressTitle")}
+            description={t("contributeDirection")}
+          />
+          <AmountField
+            id={amountId}
+            label={t("contributeAmountLabel")}
+            value={amount}
+            onValueChange={setAmount}
+            data-testid="goal-contribute-amount"
+          />
+          <TextField
+            id={noteId}
+            label={t("contributeNoteLabel")}
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+          />
+          <Button
+            variant="primary"
+            className="w-full"
+            data-testid="goal-contribute-submit"
+            isDisabled={isPending || !online || amount == null || amount <= 0}
+            onPress={onContribute}
+          >
+            {t("contributeSubmit")}
+          </Button>
+        </section>
+      ) : null}
+
+      {canMutate && editing ? (
         <div
           className="flex flex-col gap-(--space-3) rounded-lg border border-border-subtle bg-surface p-(--space-4)"
           data-testid="goal-edit-form"
@@ -171,22 +268,6 @@ export function GoalDetailControls({
             value={targetDate}
             onChange={(e) => setTargetDate(e.target.value)}
           />
-          <label className="flex flex-col gap-(--space-2)">
-            <span className="text-sm font-medium text-text-primary">
-              {t("status.active")}
-            </span>
-            <select
-              className="min-h-11 w-full rounded-md border border-border-subtle bg-surface px-(--space-3) text-sm text-text-primary"
-              value={status}
-              onChange={(e) => setStatus(e.target.value as GoalStatus)}
-            >
-              {GOAL_STATUS_VALUES.map((s) => (
-                <option key={s} value={s}>
-                  {t(`status.${s}`)}
-                </option>
-              ))}
-            </select>
-          </label>
           <Button
             variant="primary"
             className="w-full"
@@ -205,7 +286,9 @@ export function GoalDetailControls({
             {t("createCancel")}
           </Button>
         </div>
-      ) : (
+      ) : null}
+
+      {canMutate && !editing ? (
         <Button
           variant="secondary"
           className="w-full"
@@ -215,7 +298,67 @@ export function GoalDetailControls({
         >
           {t("edit")}
         </Button>
-      )}
+      ) : null}
+
+      {canMutate ? (
+        <div className="flex flex-col gap-(--space-2)" data-testid="goal-lifecycle">
+          <Text size="sm" className="font-semibold text-text-primary">
+            {t("lifecycleHeading")}
+          </Text>
+          {initialStatus === GoalStatus.ACTIVE ? (
+            <Button
+              variant="secondary"
+              className="w-full"
+              data-testid="goal-pause"
+              isDisabled={isPending || !online}
+              onPress={() => runStatus(GoalStatus.PAUSED)}
+            >
+              {t("pause")}
+            </Button>
+          ) : null}
+          {initialStatus === GoalStatus.PAUSED ? (
+            <Button
+              variant="secondary"
+              className="w-full"
+              data-testid="goal-resume"
+              isDisabled={isPending || !online}
+              onPress={() => runStatus(GoalStatus.ACTIVE)}
+            >
+              {t("resume")}
+            </Button>
+          ) : null}
+          <Button
+            variant="secondary"
+            className="w-full"
+            data-testid="goal-complete"
+            isDisabled={isPending || !online}
+            onPress={() => setConfirmAction(GoalStatus.COMPLETED)}
+          >
+            {t("complete")}
+          </Button>
+          <Button
+            variant="secondary"
+            className="w-full"
+            data-testid="goal-cancel"
+            isDisabled={isPending || !online}
+            onPress={() => setConfirmAction(GoalStatus.CANCELLED)}
+          >
+            {t("cancelGoal")}
+          </Button>
+        </div>
+      ) : null}
+
+      {isTerminal ? (
+        <StatusAlert
+          variant="info"
+          title={t(`status.${initialStatus}`)}
+          description={
+            initialStatus === GoalStatus.COMPLETED
+              ? t("terminalCompletedBody")
+              : t("terminalCancelledBody")
+          }
+        />
+      ) : null}
     </div>
   );
 }

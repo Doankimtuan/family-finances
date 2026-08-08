@@ -1,0 +1,77 @@
+- generic [active] [ref=f4e1]:
+  - generic [ref=f4e6]:
+    - main [ref=f4e7]:
+      - generic [ref=f4e8]:
+        - generic [ref=f4e11]:
+          - heading "Add transaction" [level=1] [ref=f4e12]
+          - paragraph [ref=f4e14]: Amount, direction, account — under 15 seconds
+        - main [ref=f4e15]:
+          - generic [ref=f4e16]:
+            - generic [ref=f4e17]:
+              - generic [ref=f4e18]:
+                - generic [ref=f4e19]:
+                  - text: Amount
+                  - generic [ref=f4e20]: "*"
+                - textbox "Amount" [ref=f4e21]:
+                  - /placeholder: "0"
+                - paragraph [ref=f4e22]: Positive amount in VND
+              - group "Direction" [ref=f4e23]:
+                - radiogroup [ref=f4e25]:
+                  - radio "Expense" [checked] [ref=f4e26]
+                  - radio "Income" [ref=f4e27]
+            - group "Account" [ref=f4e28]:
+              - generic [ref=f4e31] [cursor=pointer]:
+                - radio "Cash" [checked] [ref=f4e32]
+                - generic [ref=f4e33]: Cash
+            - generic [ref=f4e35]:
+              - generic [ref=f4e36]: Date
+              - textbox "Date" [ref=f4e37]: 2026-08-06
+            - group "Tag" [ref=f4e38]:
+              - paragraph [ref=f4e40]: Tags live here — not a separate Categories tab.
+              - generic [ref=f4e41]:
+                - button "No tag" [pressed] [ref=f4e42]
+                - button "Food" [ref=f4e43]
+                - button "Transport" [ref=f4e44]
+                - button "Home" [ref=f4e45]
+                - button "Health" [ref=f4e46]
+                - button "Other" [ref=f4e47]
+            - group "Jar (optional)" [ref=f4e48]:
+              - paragraph [ref=f4e50]: Leave unmapped to send a ReviewItem to Inbox.
+              - combobox "Jar (optional)" [ref=f4e51]:
+                - option "Unmapped → Inbox" [selected]
+                - option "Essentials"
+                - option "Lifestyle"
+                - option "Buffer"
+                - option "Savings"
+            - generic [ref=f4e53]:
+              - generic [ref=f4e54]: Note
+              - textbox "Note" [ref=f4e55]:
+                - /placeholder: Optional note
+            - generic [ref=f4e56]:
+              - paragraph [ref=f4e57]: Before saving
+              - paragraph [ref=f4e58]: Enter an amount and account to preview the Real Ledger change.
+            - generic [ref=f4e60]:
+              - button "Save" [ref=f4e61] [cursor=pointer]
+              - link "Cancel" [ref=f4e62] [cursor=pointer]:
+                - /url: /en/money
+    - navigation "Primary" [ref=f4e65]:
+      - list [ref=f4e66]:
+        - listitem [ref=f4e67]:
+          - link "Home" [ref=f4e68] [cursor=pointer]:
+            - /url: /en/home
+        - listitem [ref=f4e74]:
+          - link "Money" [ref=f4e75] [cursor=pointer]:
+            - /url: /en/money
+        - listitem [ref=f4e80]:
+          - link "Plan" [ref=f4e81] [cursor=pointer]:
+            - /url: /en/plan
+        - listitem [ref=f4e87]:
+          - link "2 open Inbox items Inbox" [ref=f4e88] [cursor=pointer]:
+            - /url: /en/inbox
+            - generic [ref=f4e89]:
+              - generic "2 open Inbox items": "2"
+            - generic [ref=f4e93]: Inbox
+        - listitem [ref=f4e94]:
+          - link "Together" [ref=f4e95] [cursor=pointer]:
+            - /url: /en/together
+  - button "Open Next.js Dev Tools" [ref=f4e106] [cursor=pointer]

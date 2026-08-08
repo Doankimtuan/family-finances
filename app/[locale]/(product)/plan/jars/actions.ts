@@ -90,6 +90,9 @@ export type ReallocateJarCapacityActionState =
   | {
       status: "success";
       planMovementId: string;
+      sourceJarId: string;
+      targetJarId: string;
+      amount: number;
       ledgerImpact: number;
       ledgerTransactionsCreated: number;
       inboxItemId: string | null;
@@ -108,6 +111,9 @@ export async function reallocateJarCapacityAction(
     return {
       status: "success",
       planMovementId: result.planMovementId,
+      sourceJarId: result.sourceJarId,
+      targetJarId: result.targetJarId,
+      amount: result.amount,
       ledgerImpact: result.ledgerImpact,
       ledgerTransactionsCreated: result.ledgerTransactionsCreated,
       inboxItemId: result.inboxItemId,

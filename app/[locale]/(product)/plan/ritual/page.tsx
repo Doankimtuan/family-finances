@@ -11,14 +11,16 @@ import {
   runMonthRitualAutolockWorker,
 } from "@/modules/plan/application";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
+import { Page } from "@/shared/patterns/page";
 import { EmptyState } from "@/shared/patterns/empty-state";
+import { StatusAlert } from "@/shared/ui/status-alert";
 import { PlanOfflineBanner } from "../plan-offline-banner";
 import { RitualWizard } from "./ritual-wizard";
 
 type Props = { params: Promise<{ locale: string }> };
 
 /**
- * plan.month-ritual — Assisted preview → approve → lock (ST-E04).
+ * plan.month-ritual — Assisted preview → approve → lock (ST-E04 / F3).
  */
 export default async function PlanRitualPage({ params }: Props) {
   const { locale: rawLocale } = await params;
@@ -41,29 +43,35 @@ export default async function PlanRitualPage({ params }: Props) {
   ]);
 
   return (
-    <div className="flex min-h-full flex-col" data-testid="plan-ritual-page">
-      <TopAppBar title={t("title")} subtitle={t("subtitle")} />
-      <div className="flex flex-1 flex-col gap-(--space-5) px-(--space-4) pb-(--space-6) pt-(--space-4)">
-        <PlanOfflineBanner />
+    <Page
+      testId="plan-ritual-page"
+      topBar={<TopAppBar title={t("title")} subtitle={t("subtitle")} />}
+    >
+      <PlanOfflineBanner />
 
-        {ritual ? (
-          <RitualWizard ritual={ritual} />
-        ) : (
-          <EmptyState
-            title={t("unavailableTitle")}
-            description={t("unavailableBody")}
-            className="flex-none py-(--space-4)"
-          />
-        )}
+      <StatusAlert
+        variant="info"
+        title={t("moneyUnchangedTitle")}
+        description={t("moneyUnchangedBody")}
+      />
 
-        <Link
-          href={APP_PATH.PLAN}
-          className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-          data-testid="ritual-back-plan"
-        >
-          {t("backToPlan")}
-        </Link>
-      </div>
-    </div>
+      {ritual ? (
+        <RitualWizard ritual={ritual} />
+      ) : (
+        <EmptyState
+          title={t("unavailableTitle")}
+          description={t("unavailableBody")}
+          className="flex-none py-(--space-4)"
+        />
+      )}
+
+      <Link
+        href={APP_PATH.PLAN}
+        className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+        data-testid="ritual-back-plan"
+      >
+        {t("backToPlan")}
+      </Link>
+    </Page>
   );
 }

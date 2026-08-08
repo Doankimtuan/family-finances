@@ -50,7 +50,7 @@
     },
     "incomeModeHint": "New households default to Suggest. Partners place income with explainable suggestions.",
     "ritualLockTitle": "Month Ritual lock",
-    "ritualLockBody": "When a Month Ritual is approved, normal plan movements lock. Corrections use an explicit path.",
+    "ritualLockBody": "When a Month Ritual is approved, normal plan movements lock. Corrections use an explicit path. Real Ledger stays unchanged.",
     "ritualLockOpen": "Open Month Ritual",
     "editPlan": "Edit plan",
     "planKindLabel": "Plan type",
@@ -64,7 +64,7 @@
     "archive": "Archive",
     "unarchive": "Restore to Active",
     "archiveConfirmTitle": "Archive this jar?",
-    "archiveConfirmBody": "Archived jars leave allocation. You can restore later.",
+    "archiveConfirmBody": "Archived jars leave allocation. You can restore later. No money moves.",
     "archiveConfirmYes": "Archive jar",
     "offlineTitle": "You're offline",
     "offlineBody": "Plan changes need a connection. Nothing was saved.",
@@ -112,7 +112,18 @@
         "same_jar": "Choose a different target jar.",
         "warning_required": "Confirm the overspend warning to continue.",
         "capacity_blocked": "Not enough virtual capacity in the source jar (household BLOCK policy)."
-      }
+      },
+      "receiptTitle": "Capacity moved",
+      "receiptOutcome": "Plan changed. Real money unchanged.",
+      "receiptPlan": "Plan",
+      "receiptPlanChanged": "Changed",
+      "receiptMoney": "Real money",
+      "receiptMoneyUnchanged": "Unchanged",
+      "receiptFrom": "From",
+      "receiptTo": "To",
+      "receiptInbox": "Open Inbox item",
+      "receiptDone": "Done",
+      "receiptBackJars": "Back to jars"
     },
     "categoryForm": {
       "open": "Create category",
@@ -140,7 +151,14 @@
         "immutable": "Transactions cannot be changed in place. Use Correct or Refund.",
         "unknown": "Something went wrong. Try again."
       }
-    }
+    },
+    "notBalanceTitle": "Not a bank balance",
+    "notBalanceBody": "Planned amounts and capacity shifts are intention only. Real cash stays in Money.",
+    "allocateVirtualTitle": "Virtual allocation",
+    "allocateVirtualBody": "Saving this plan updates intention only. No account balance or transaction is created.",
+    "allocateReceiptTitle": "Plan updated",
+    "allocateReceiptBody": "Plan changed. Real money unchanged.",
+    "allocateReceiptDismiss": "Dismiss"
   },
   "goals": {
     "title": "Goals",
@@ -157,18 +175,18 @@
     "createDateLabel": "Target date (optional)",
     "createSubmit": "Save goal",
     "createCancel": "Cancel",
-    "fundedLabel": "Funded {amount}",
+    "fundedLabel": "Progress {amount}",
     "targetLabel": "Target {amount}",
     "backToPlan": "Back to Plan",
     "backToList": "Back to goals",
     "detailSubtitle": "Intention progress — not bank balance",
     "progressHeading": "Progress",
     "targetHeading": "Target",
-    "contributeHeading": "Contribute",
-    "contributeDirection": "Direction: contribute (inflow to goal)",
-    "contributeAmountLabel": "Amount (positive)",
+    "contributeHeading": "Record progress",
+    "contributeDirection": "This increases goal progress intention. It does not move money, create a transfer, or change account balances.",
+    "contributeAmountLabel": "Progress amount",
     "contributeNoteLabel": "Note (optional)",
-    "contributeSubmit": "Add contribution",
+    "contributeSubmit": "Save progress",
     "edit": "Edit goal",
     "editSubmit": "Save changes",
     "status": {
@@ -185,7 +203,26 @@
       "month_locked": "This month is locked. Open Month Ritual to correct.",
       "offline": "You're offline — try again when connected.",
       "unknown": "Something went wrong. Try again."
-    }
+    },
+    "notBalanceTitle": "Not a bank balance",
+    "notBalanceBody": "Goal progress is household intention. Real cash movement happens in Money.",
+    "progressIntentionHint": "Progress updates intention only. It is not a transfer or payment.",
+    "contributeProgressTitle": "Progress only",
+    "contributeReceiptTitle": "Progress saved",
+    "contributeReceiptBody": "Intention progress is now {amount}. Real money unchanged.",
+    "lifecycleHeading": "Goal status",
+    "pause": "Pause",
+    "resume": "Resume",
+    "complete": "Mark complete",
+    "cancelGoal": "Cancel goal",
+    "completeConfirmTitle": "Mark this goal complete?",
+    "completeConfirmBody": "Completion is intention only. No payment or purchase is created.",
+    "completeConfirmYes": "Complete goal",
+    "cancelConfirmTitle": "Cancel this goal?",
+    "cancelConfirmBody": "Pursuit ends and history remains. No money moves.",
+    "cancelConfirmYes": "Cancel goal",
+    "terminalCompletedBody": "Completed means intention fulfilled. It does not prove payment or purchase.",
+    "terminalCancelledBody": "Cancelled means pursuit ended. History remains. No money moved."
   },
   "recurring": {
     "title": "Recurring",
@@ -352,15 +389,15 @@
     "approveCta": "Approve ritual",
     "approving": "Approving…",
     "approveConfirmTitle": "Lock this month?",
-    "approveConfirmBody": "Approving locks jar plans, goals, and recurring changes until you use the correction path.",
+    "approveConfirmBody": "Approving locks jar plans, goals, and recurring changes until you use the correction path. Real money stays unchanged.",
     "approveConfirmYes": "Approve and lock",
     "cancel": "Cancel",
     "celebrationTitle": "Month closed",
-    "celebrationBody": "The Assisted ritual is approved. Intention for this period is locked.",
+    "celebrationBody": "The Assisted ritual is approved. Intention for this period is locked. Real money unchanged.",
     "pendingReviewTitle": "Auto-locked — Pending review",
     "pendingReviewBody": "This month stayed open past 30 days after month-end. Allocations are locked until you correct and re-approve.",
     "lockedTitle": "Plan locked",
-    "lockedBody": "Normal plan movements are blocked. Use correction below to unlock.",
+    "lockedBody": "Normal plan movements are blocked. Use correction below to unlock. Ledger history is untouched.",
     "correctionHeading": "Correction path",
     "correctionNoteLabel": "Why are you correcting?",
     "correctionCta": "Unlock with correction",
@@ -381,7 +418,9 @@
       "emergencies_unacknowledged": "Acknowledge Step 3 emergency reflection before approving.",
       "offline": "You're offline — try again when connected.",
       "unknown": "Something went wrong. Try again."
-    }
+    },
+    "moneyUnchangedTitle": "Planning lock only",
+    "moneyUnchangedBody": "Month Ritual locks plan intention. It does not change account balances or create transactions."
   },
   "moneyLink": "See Real Ledger in Money",
   "stub": {
@@ -394,5 +433,9 @@
     "ritualTitle": "Month Ritual",
     "ritualBody": "Assisted preview → approve → lock lands in the Month Ritual story.",
     "back": "Back to Plan"
+  },
+  "period": {
+    "heading": "Current period {period}",
+    "summary": "{active} active jars · {paused} paused"
   }
 }

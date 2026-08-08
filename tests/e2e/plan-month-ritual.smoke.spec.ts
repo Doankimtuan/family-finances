@@ -31,7 +31,7 @@ test.describe("Plan Month Ritual (ST-E05-004)", () => {
     await expect(page.getByTestId("plan-ritual")).toBeVisible();
     await expect(page.getByTestId("ritual-preview")).toBeVisible();
     await expect(
-      page.getByText(/Assisted|Assisted|ý định|intention/i),
+      page.getByText(/Assisted|ý định|intention/i).first(),
     ).toBeVisible();
     await expect(page.getByTestId("ritual-preview-cta")).toBeVisible();
   });

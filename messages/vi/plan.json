@@ -50,7 +50,7 @@
     },
     "incomeModeHint": "Hộ mới mặc định Gợi ý. Partner gắn thu nhập với đề xuất giải thích được.",
     "ritualLockTitle": "Khoá Nghi thức tháng",
-    "ritualLockBody": "Khi Nghi thức tháng được duyệt, chuyển động kế hoạch thường bị khoá. Chỉnh sửa dùng đường dẫn tường minh.",
+    "ritualLockBody": "Khi Nghi thức tháng được duyệt, thay đổi kế hoạch thường bị khoá. Chỉnh sửa dùng đường sửa rõ ràng. Sổ cái thật không đổi.",
     "ritualLockOpen": "Mở Nghi thức tháng",
     "editPlan": "Sửa kế hoạch",
     "planKindLabel": "Kiểu kế hoạch",
@@ -64,7 +64,7 @@
     "archive": "Lưu trữ",
     "unarchive": "Khôi phục Hoạt động",
     "archiveConfirmTitle": "Lưu trữ hũ này?",
-    "archiveConfirmBody": "Hũ lưu trữ rời khỏi phân bổ. Bạn có thể khôi phục sau.",
+    "archiveConfirmBody": "Hũ lưu trữ rời khỏi phân bổ. Có thể khôi phục sau. Không có tiền di chuyển.",
     "archiveConfirmYes": "Lưu trữ hũ",
     "offlineTitle": "Bạn đang ngoại tuyến",
     "offlineBody": "Thay đổi kế hoạch cần kết nối. Chưa lưu gì cả.",
@@ -112,7 +112,18 @@
         "same_jar": "Chọn hũ đích khác.",
         "warning_required": "Xác nhận cảnh báo vượt chi để tiếp tục.",
         "capacity_blocked": "Hũ nguồn không đủ sức chứa ảo (chính sách BLOCK của hộ)."
-      }
+      },
+      "receiptTitle": "Đã chuyển năng lực",
+      "receiptOutcome": "Plan đã đổi. Tiền thật không đổi.",
+      "receiptPlan": "Plan",
+      "receiptPlanChanged": "Đã đổi",
+      "receiptMoney": "Tiền thật",
+      "receiptMoneyUnchanged": "Không đổi",
+      "receiptFrom": "Từ",
+      "receiptTo": "Sang",
+      "receiptInbox": "Mở mục Inbox",
+      "receiptDone": "Xong",
+      "receiptBackJars": "Về danh sách hũ"
     },
     "categoryForm": {
       "open": "Tạo danh mục",
@@ -140,7 +151,14 @@
         "immutable": "Không thể sửa giao dịch tại chỗ. Hãy dùng Sửa đúng hoặc Hoàn tiền.",
         "unknown": "Có lỗi xảy ra. Thử lại."
       }
-    }
+    },
+    "notBalanceTitle": "Không phải số dư ngân hàng",
+    "notBalanceBody": "Số kế hoạch và dịch chuyển năng lực chỉ là ý định. Tiền thật nằm ở Money.",
+    "allocateVirtualTitle": "Phân bổ ảo",
+    "allocateVirtualBody": "Lưu kế hoạch này chỉ cập nhật ý định. Không tạo số dư tài khoản hay giao dịch.",
+    "allocateReceiptTitle": "Đã cập nhật Plan",
+    "allocateReceiptBody": "Plan đã đổi. Tiền thật không đổi.",
+    "allocateReceiptDismiss": "Đóng"
   },
   "goals": {
     "title": "Mục tiêu",
@@ -157,18 +175,18 @@
     "createDateLabel": "Ngày đích (tuỳ chọn)",
     "createSubmit": "Lưu mục tiêu",
     "createCancel": "Huỷ",
-    "fundedLabel": "Đã góp {amount}",
+    "fundedLabel": "Tiến độ {amount}",
     "targetLabel": "Mục tiêu {amount}",
     "backToPlan": "Về Plan",
     "backToList": "Về mục tiêu",
     "detailSubtitle": "Tiến độ ý định — không phải số dư ngân hàng",
     "progressHeading": "Tiến độ",
     "targetHeading": "Mục tiêu",
-    "contributeHeading": "Góp thêm",
-    "contributeDirection": "Chiều: góp (vào mục tiêu)",
-    "contributeAmountLabel": "Số tiền (dương)",
+    "contributeHeading": "Ghi tiến độ",
+    "contributeDirection": "Thao tác này tăng tiến độ ý định của mục tiêu. Không di chuyển tiền, không tạo chuyển khoản, không đổi số dư tài khoản.",
+    "contributeAmountLabel": "Số tiến độ",
     "contributeNoteLabel": "Ghi chú (tuỳ chọn)",
-    "contributeSubmit": "Thêm đóng góp",
+    "contributeSubmit": "Lưu tiến độ",
     "edit": "Sửa mục tiêu",
     "editSubmit": "Lưu thay đổi",
     "status": {
@@ -185,7 +203,26 @@
       "month_locked": "Tháng này đã khoá. Mở Nghi thức tháng để chỉnh.",
       "offline": "Đang ngoại tuyến — thử lại khi có mạng.",
       "unknown": "Có lỗi. Thử lại."
-    }
+    },
+    "notBalanceTitle": "Không phải số dư ngân hàng",
+    "notBalanceBody": "Tiến độ mục tiêu là ý định của hộ. Di chuyển tiền thật diễn ra ở Money.",
+    "progressIntentionHint": "Cập nhật tiến độ chỉ là ý định. Không phải chuyển khoản hay thanh toán.",
+    "contributeProgressTitle": "Chỉ là tiến độ",
+    "contributeReceiptTitle": "Đã lưu tiến độ",
+    "contributeReceiptBody": "Tiến độ ý định hiện là {amount}. Tiền thật không đổi.",
+    "lifecycleHeading": "Trạng thái mục tiêu",
+    "pause": "Tạm dừng",
+    "resume": "Tiếp tục",
+    "complete": "Đánh dấu hoàn thành",
+    "cancelGoal": "Huỷ mục tiêu",
+    "completeConfirmTitle": "Đánh dấu hoàn thành mục tiêu này?",
+    "completeConfirmBody": "Hoàn thành chỉ là ý định. Không tạo thanh toán hay mua hàng.",
+    "completeConfirmYes": "Hoàn thành mục tiêu",
+    "cancelConfirmTitle": "Huỷ mục tiêu này?",
+    "cancelConfirmBody": "Việc theo đuổi kết thúc và lịch sử được giữ. Không có tiền di chuyển.",
+    "cancelConfirmYes": "Huỷ mục tiêu",
+    "terminalCompletedBody": "Hoàn thành nghĩa là ý định đã xong. Không chứng minh đã thanh toán hay mua hàng.",
+    "terminalCancelledBody": "Huỷ nghĩa là dừng theo đuổi. Lịch sử vẫn còn. Không có tiền di chuyển."
   },
   "recurring": {
     "title": "Định kỳ",
@@ -352,15 +389,15 @@
     "approveCta": "Duyệt nghi thức",
     "approving": "Đang duyệt…",
     "approveConfirmTitle": "Khoá tháng này?",
-    "approveConfirmBody": "Duyệt sẽ khoá thay đổi kế hoạch hũ, mục tiêu và định kỳ cho đến khi bạn dùng đường chỉnh sửa.",
+    "approveConfirmBody": "Duyệt sẽ khoá thay đổi kế hoạch hũ, mục tiêu và định kỳ cho đến khi dùng đường sửa. Tiền thật không đổi.",
     "approveConfirmYes": "Duyệt và khoá",
     "cancel": "Huỷ",
     "celebrationTitle": "Đã đóng tháng",
-    "celebrationBody": "Nghi thức Assisted đã được duyệt. Ý định kỳ này đã khoá.",
+    "celebrationBody": "Nghi thức Assisted đã được duyệt. Ý định kỳ này đã khoá. Tiền thật không đổi.",
     "pendingReviewTitle": "Tự khoá — Chờ xem lại",
     "pendingReviewBody": "Tháng này còn mở quá 30 ngày sau cuối tháng. Phân bổ đã khoá đến khi bạn chỉnh và duyệt lại.",
     "lockedTitle": "Kế hoạch đã khoá",
-    "lockedBody": "Chuyển động kế hoạch thường bị chặn. Dùng chỉnh sửa bên dưới để mở khoá.",
+    "lockedBody": "Thay đổi kế hoạch thường bị chặn. Dùng đường sửa bên dưới để mở. Lịch sử sổ cái không bị đụng.",
     "correctionHeading": "Đường chỉnh sửa",
     "correctionNoteLabel": "Vì sao bạn chỉnh?",
     "correctionCta": "Mở khoá bằng chỉnh sửa",
@@ -381,7 +418,9 @@
       "emergencies_unacknowledged": "Xác nhận phản tư khẩn cấp Bước 3 trước khi duyệt.",
       "offline": "Đang ngoại tuyến — thử lại khi có mạng.",
       "unknown": "Có lỗi. Thử lại."
-    }
+    },
+    "moneyUnchangedTitle": "Chỉ khoá kế hoạch",
+    "moneyUnchangedBody": "Nghi thức tháng khoá ý định kế hoạch. Không đổi số dư tài khoản và không tạo giao dịch."
   },
   "moneyLink": "Xem sổ cái thật ở Money",
   "stub": {
@@ -394,5 +433,9 @@
     "ritualTitle": "Nghi thức tháng",
     "ritualBody": "Xem trước Assisted → duyệt → khoá sẽ có ở story Nghi thức tháng.",
     "back": "Về Plan"
+  },
+  "period": {
+    "heading": "Kỳ hiện tại {period}",
+    "summary": "{active} hũ hoạt động · {paused} tạm dừng"
   }
 }
