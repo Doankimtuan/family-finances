@@ -8,6 +8,7 @@ type DrawerRootProps = ComponentProps<typeof Drawer>;
 
 /**
  * Design System Sheet → HeroUI Drawer (bottom placement).
+ * Nest Content inside Backdrop so the overlay owns the panel tree.
  */
 export function Sheet({ children, ...props }: DrawerRootProps) {
   return <Drawer {...props}>{children}</Drawer>;
@@ -21,22 +22,20 @@ export function SheetContent({
   className?: string;
 }) {
   return (
-    <>
-      <Drawer.Backdrop />
-      <Drawer.Content
-        placement="bottom"
-        className={cn(
-          "max-h-[85%] rounded-t-xl bg-surface-elevated",
-          "border-t border-border-subtle shadow-[var(--elevation-2)]",
-          className,
-        )}
-      >
-        <Drawer.Dialog>
+    <Drawer.Backdrop>
+      <Drawer.Content placement="bottom">
+        <Drawer.Dialog
+          className={cn(
+            "bg-surface-elevated",
+            "border-t border-border-subtle shadow-[var(--elevation-2)]",
+            className,
+          )}
+        >
           <Drawer.Handle />
           {children}
         </Drawer.Dialog>
       </Drawer.Content>
-    </>
+    </Drawer.Backdrop>
   );
 }
 

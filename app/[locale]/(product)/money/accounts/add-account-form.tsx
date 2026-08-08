@@ -8,6 +8,7 @@ import { Text } from "@/shared/ui/text";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { AmountField } from "@/shared/patterns/amount-field";
 import { Dialog, DialogContent } from "@/shared/patterns/dialog";
+import { Sheet, SheetContent } from "@/shared/patterns/sheet";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import {
   CLIENT_ACTION_ERROR_CODE,
@@ -41,8 +42,11 @@ type Props = {
   onOpenChange?: (open: boolean) => void;
   /** Hide the default full-width open button (parent supplies the trigger). */
   hideDefaultTrigger?: boolean;
-  /** Present form in a centered dialog (Money hub create CTA). */
-  presentation?: "card" | "dialog";
+  /**
+   * Present form as inline card, centered dialog, or bottom sheet.
+   * Money hub create CTA uses sheet (UX: short sheet).
+   */
+  presentation?: "card" | "dialog" | "sheet";
 };
 
 /**
@@ -234,12 +238,23 @@ export function AddAccountForm({
     if (presentation === "dialog") {
       return (
         <Dialog isOpen onOpenChange={() => {}}>
-          <DialogContent className="mx-(--space-4) max-h-[min(90dvh,720px)]">
+          <DialogContent className="max-h-[min(90dvh,720px)]">
             <div className="max-h-[min(60dvh,480px)] overflow-y-auto p-(--space-4)">
               {receiptContent}
             </div>
           </DialogContent>
         </Dialog>
+      );
+    }
+    if (presentation === "sheet") {
+      return (
+        <Sheet isOpen onOpenChange={() => {}}>
+          <SheetContent>
+            <Sheet.Body className="max-h-[min(70dvh,560px)] overflow-y-auto px-(--space-4) py-(--space-3)">
+              {receiptContent}
+            </Sheet.Body>
+          </SheetContent>
+        </Sheet>
       );
     }
     return receiptContent;
@@ -391,8 +406,32 @@ export function AddAccountForm({
     </div>
   );
 
-  if (presentation === "dialog") {
+  if (presentation === "dialog" || presentation === "sheet") {
     if (!open) return null;
+    if (presentation === "sheet") {
+      return (
+        <Sheet
+          isOpen
+          onOpenChange={(next) => {
+            if (!next) close();
+          }}
+        >
+          <SheetContent>
+            <Sheet.Header className="px-(--space-4) pt-(--space-2)">
+              <Sheet.Heading className="text-lg font-semibold tracking-tight text-text-primary">
+                {t("add")}
+              </Sheet.Heading>
+            </Sheet.Header>
+            <Sheet.Body className="max-h-[min(60dvh,480px)] overflow-y-auto px-(--space-4) py-(--space-3)">
+              {fields}
+            </Sheet.Body>
+            <Sheet.Footer className="flex flex-col gap-(--space-2) px-(--space-4) pb-(--space-4)">
+              {actions}
+            </Sheet.Footer>
+          </SheetContent>
+        </Sheet>
+      );
+    }
     return (
       <Dialog
         isOpen
@@ -400,7 +439,7 @@ export function AddAccountForm({
           if (!next) close();
         }}
       >
-        <DialogContent className="mx-(--space-4) max-h-[min(90dvh,720px)]">
+        <DialogContent className="max-h-[min(90dvh,720px)]">
           <Dialog.Header className="px-(--space-4) pt-(--space-4)">
             <Dialog.Heading className="text-lg font-semibold tracking-tight text-text-primary">
               {t("add")}

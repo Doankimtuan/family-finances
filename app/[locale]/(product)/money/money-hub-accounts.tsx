@@ -69,7 +69,7 @@ export function MoneyHubAccounts({
         open={formOpen}
         onOpenChange={setFormOpen}
         hideDefaultTrigger
-        presentation="dialog"
+        presentation="sheet"
       />
     </div>
   );

@@ -9,6 +9,10 @@ type ModalRootProps = ComponentProps<typeof Modal>;
 /**
  * Design System Dialog → HeroUI Modal.
  * Keep overlays visually constrained to AppViewport.
+ *
+ * HeroUI requires Container nested inside Backdrop (not siblings),
+ * otherwise the panel portals as a static flex child under the chrome
+ * and sits above the bottom nav instead of overlaying it.
  */
 export function Dialog({ children, ...props }: ModalRootProps) {
   return <Modal {...props}>{children}</Modal>;
@@ -22,9 +26,11 @@ export function DialogContent({
   className?: string;
 }) {
   return (
-    <>
-      <Modal.Backdrop />
-      <Modal.Container className={cn("max-w-[min(100%,400px)]", className)}>
+    <Modal.Backdrop>
+      <Modal.Container
+        placement="center"
+        className={cn("max-w-[min(100%,400px)]", className)}
+      >
         <Modal.Dialog
           className={cn(
             "rounded-xl bg-surface-elevated",
@@ -34,7 +40,7 @@ export function DialogContent({
           {children}
         </Modal.Dialog>
       </Modal.Container>
-    </>
+    </Modal.Backdrop>
   );
 }
 
