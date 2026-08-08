@@ -3,29 +3,33 @@
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
-
-type TabId = "open" | "archived";
+import { InboxQueueTab, INBOX_TAB_QUERY } from "@/modules/inbox/application/inbox-constants";
 
 type Props = {
-  active: TabId;
+  active: InboxQueueTab;
 };
 
 /**
- * Open vs Archived inbox tabs (BR-15 / ST-E03-003).
+ * Open vs Archived inbox tabs (BR-15 / ST-E03-003 / F4).
  */
 export function InboxQueueTabs({ active }: Props) {
   const t = useTranslations("inbox");
 
-  const tabs: { id: TabId; href: string; label: string; testId: string }[] = [
+  const tabs: {
+    id: InboxQueueTab;
+    href: string;
+    label: string;
+    testId: string;
+  }[] = [
     {
-      id: "open",
+      id: InboxQueueTab.OPEN,
       href: APP_PATH.INBOX,
       label: t("tabOpen"),
       testId: "inbox-tab-open",
     },
     {
-      id: "archived",
-      href: `${APP_PATH.INBOX}?tab=archived`,
+      id: InboxQueueTab.ARCHIVED,
+      href: `${APP_PATH.INBOX}?${INBOX_TAB_QUERY}=${InboxQueueTab.ARCHIVED}`,
       label: t("tabArchived"),
       testId: "inbox-tab-archived",
     },

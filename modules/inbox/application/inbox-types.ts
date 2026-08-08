@@ -1,6 +1,7 @@
 import type {
   InboxItemKind,
   InboxItemStatus,
+  InboxSourceType,
   ReviewItemType,
 } from "./inbox-constants";
 import type { TypedReviewItem } from "./review-item-schemas";
@@ -18,6 +19,8 @@ export type InboxReviewItem = {
   amount: number;
   currency: string;
   sourceId: string;
+  /** Owning-domain source discriminator when known. */
+  sourceType: InboxSourceType | null;
   createdAt: string;
   expiresAt: string | null;
   autoResolved: boolean;

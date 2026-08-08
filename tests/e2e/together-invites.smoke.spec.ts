@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
 
-test.describe("Together members + invitations (ST-E03-002)", () => {
+test.describe("Together members + invitations (ST-E03-002 / F4)", () => {
   test("unauthenticated invitations redirects to login", async ({ page }) => {
     await page.goto("/en/together/invitations");
     await expect(page).toHaveURL(/\/en\/login/);
@@ -39,6 +39,13 @@ test.describe("Together members + invitations (ST-E03-002)", () => {
     await expect(page.getByTestId("together-members-page")).toBeVisible();
     await expect(page.getByTestId("together-members")).toBeVisible();
     await expect(page.getByTestId("together-invite-cta")).toBeVisible();
+    await expect(
+      page.locator(
+        "[data-testid='together-role-admin'], [data-testid='together-role-partner']",
+      ).first(),
+    ).toBeVisible();
+    await expect(page.getByTestId("together-change-role")).toHaveCount(0);
+    await expect(page.getByTestId("together-ownership-transfer")).toHaveCount(0);
 
     await page.getByTestId("together-invite-cta").click();
     await expect(page).toHaveURL(/\/en\/together\/invitations/);

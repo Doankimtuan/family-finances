@@ -149,6 +149,14 @@ export function PoliciesForm({
         </div>
       ) : null}
 
+      <div data-testid="policies-money-none">
+        <StatusAlert
+          variant="info"
+          title={t("moneyNoneTitle")}
+          description={t("moneyNoneBody")}
+        />
+      </div>
+
       {errorCode ? (
         <StatusAlert
           variant="danger"
@@ -291,6 +299,9 @@ export function PoliciesForm({
             </Text>
             <Text size="sm" tone="secondary">
               {t("confirmBody")}
+            </Text>
+            <Text size="sm" tone="secondary" data-testid="policies-confirm-money-none">
+              {t("confirmMoneyNone")}
             </Text>
             <Button
               variant="primary"

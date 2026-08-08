@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
 
-test.describe("Inbox decisions (ST-E06-002)", () => {
+test.describe("Inbox decisions (ST-E06-002 / F4)", () => {
   test.describe.configure({ mode: "serial" });
 
   test("unauthenticated detail redirects to login", async ({ page }) => {
@@ -37,10 +37,34 @@ test.describe("Inbox decisions (ST-E06-002)", () => {
     await firstLink.click();
     await expect(page.getByTestId("inbox-decision-panel")).toBeVisible();
     await expect(page.getByTestId("inbox-dismiss")).toBeVisible();
+    await expect(page.getByTestId("inbox-batch")).toHaveCount(0);
+    await expect(page.getByTestId("inbox-delegate")).toHaveCount(0);
 
     const resolve = page.getByTestId("inbox-resolve");
     if ((await resolve.count()) > 0) {
-      await expect(page.getByText(/Active jar|hũ Active/i)).toBeVisible();
+      await expect(
+        page.getByText(/Real money unchanged|Tiền thật không đổi/i).first(),
+      ).toBeVisible();
+      await expect(page.getByTestId("inbox-jar-select")).toBeVisible();
+
+      await resolve.click();
+      await expect(page).toHaveURL(/\/en\/inbox(\?|$)/, { timeout: 20_000 });
+      await expect(page.getByTestId("inbox-receipt-jar")).toBeVisible({
+        timeout: 10_000,
+      });
+      await expect(
+        page.getByText(/Real money unchanged|Tiền thật không đổi/i).first(),
+      ).toBeVisible();
+      return;
     }
+
+    const dismiss = page.getByTestId("inbox-dismiss");
+    await dismiss.click();
+    await expect(page.getByTestId("inbox-dismiss-confirm")).toBeVisible();
+    await page.getByTestId("inbox-dismiss-yes").click();
+    await expect(page).toHaveURL(/\/en\/inbox(\?|$)/, { timeout: 20_000 });
+    await expect(page.getByTestId("inbox-receipt-attention")).toBeVisible({
+      timeout: 10_000,
+    });
   });
 });

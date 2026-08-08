@@ -11,6 +11,7 @@ import {
   TOGETHER_PATH,
 } from "@/modules/tenancy/application/tenancy-constants";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
+import { Page as ProductPage } from "@/shared/patterns/page";
 import { SectionHeader } from "@/shared/patterns/section-header";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { MemberList } from "./member-list";
@@ -39,69 +40,68 @@ export default async function Page({ params }: Props) {
     : { household: null, members: [] };
 
   return (
-    <div
-      className="flex min-h-full flex-col"
-      data-testid="together-members-page"
+    <ProductPage
+      testId="together-members-page"
+      topBar={
+        <TopAppBar
+          title={t("title")}
+          subtitle={
+            household ? `${t("householdLabel")}: ${household.name}` : undefined
+          }
+        />
+      }
     >
-      <TopAppBar
-        title={t("title")}
-        subtitle={
-          household ? `${t("householdLabel")}: ${household.name}` : undefined
-        }
-      />
-      <div className="flex flex-1 flex-col gap-(--space-5) px-(--space-4) pb-(--space-6) pt-(--space-4)">
-        <section className="flex flex-col gap-(--space-4)">
-          <SectionHeader
-            title={t("membersTitle")}
-            description={t("membersDescription")}
+      <section className="flex flex-col gap-(--space-4)">
+        <SectionHeader
+          title={t("membersTitle")}
+          description={t("membersDescription")}
+        />
+        {members.length > 0 ? (
+          <MemberList
+            members={members}
+            youLabel={t("you")}
+            roleAdminLabel={t("roleAdmin")}
+            rolePartnerLabel={t("rolePartner")}
           />
-          {members.length > 0 ? (
-            <MemberList
-              members={members}
-              youLabel={t("you")}
-              roleAdminLabel={t("roleAdmin")}
-              rolePartnerLabel={t("rolePartner")}
-            />
-          ) : (
-            <EmptyState
-              title={t("emptyMembersTitle")}
-              description={t("emptyMembersDescription")}
-              className="flex-none py-(--space-6)"
-            />
-          )}
-          {sessionUser && household ? (
-            <div className="flex flex-col gap-(--space-2)">
-              <Link
-                href={TOGETHER_PATH.INVITATIONS}
-                data-testid="together-invite-cta"
-                className="inline-flex min-h-11 w-full items-center justify-center rounded-md bg-accent px-(--space-4) text-sm font-medium text-accent-fg"
-              >
-                {t("inviteCta")}
-              </Link>
-              <Link
-                href={TOGETHER_PATH.INVITATIONS}
-                className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary"
-              >
-                {t("invitationsLink")}
-              </Link>
-              <Link
-                href={TOGETHER_PATH.POLICIES}
-                data-testid="together-policies-link"
-                className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary"
-              >
-                {t("policiesLink")}
-              </Link>
-              <Link
-                href={TOGETHER_PATH.PREFERENCES}
-                data-testid="together-preferences-link"
-                className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary"
-              >
-                {t("preferencesLink")}
-              </Link>
-            </div>
-          ) : null}
-        </section>
-      </div>
-    </div>
+        ) : (
+          <EmptyState
+            title={t("emptyMembersTitle")}
+            description={t("emptyMembersDescription")}
+            className="flex-none py-(--space-6)"
+          />
+        )}
+        {sessionUser && household ? (
+          <div className="flex flex-col gap-(--space-2)">
+            <Link
+              href={TOGETHER_PATH.INVITATIONS}
+              data-testid="together-invite-cta"
+              className="inline-flex min-h-11 w-full items-center justify-center rounded-md bg-accent px-(--space-4) text-sm font-medium text-accent-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+            >
+              {t("inviteCta")}
+            </Link>
+            <Link
+              href={TOGETHER_PATH.INVITATIONS}
+              className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+            >
+              {t("invitationsLink")}
+            </Link>
+            <Link
+              href={TOGETHER_PATH.POLICIES}
+              data-testid="together-policies-link"
+              className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+            >
+              {t("policiesLink")}
+            </Link>
+            <Link
+              href={TOGETHER_PATH.PREFERENCES}
+              data-testid="together-preferences-link"
+              className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+            >
+              {t("preferencesLink")}
+            </Link>
+          </div>
+        ) : null}
+      </section>
+    </ProductPage>
   );
 }

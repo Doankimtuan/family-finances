@@ -1,5 +1,6 @@
 import { Text } from "@/shared/ui/text";
 import type { HouseholdMemberRow } from "@/modules/tenancy/application/list-household-members";
+import { HOUSEHOLD_ROLE } from "@/modules/tenancy/application/tenancy-constants";
 
 function initials(email: string | null, displayName: string | null): string {
   const source = (displayName ?? email ?? "?").trim();
@@ -32,6 +33,7 @@ export function MemberList({
         <li
           key={member.id}
           className="flex items-center gap-(--space-3) rounded-lg border border-border-subtle bg-surface px-(--space-4) py-(--space-3)"
+          data-testid={`together-member-${member.id}`}
         >
           <span
             className="flex size-10 shrink-0 items-center justify-center rounded-full bg-surface-hover text-xs font-semibold text-text-primary"
@@ -52,8 +54,17 @@ export function MemberList({
               </Text>
             ) : null}
           </div>
-          <span className="shrink-0 rounded-full bg-surface-hover px-2.5 py-1 text-xs font-medium text-text-secondary">
-            {member.role === "admin" ? roleAdminLabel : rolePartnerLabel}
+          <span
+            className="shrink-0 rounded-full bg-surface-hover px-2.5 py-1 text-xs font-medium text-text-secondary"
+            data-testid={
+              member.role === HOUSEHOLD_ROLE.ADMIN
+                ? "together-role-admin"
+                : "together-role-partner"
+            }
+          >
+            {member.role === HOUSEHOLD_ROLE.ADMIN
+              ? roleAdminLabel
+              : rolePartnerLabel}
           </span>
         </li>
       ))}

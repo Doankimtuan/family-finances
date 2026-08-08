@@ -12,18 +12,21 @@ import { listCaptureJars } from "@/modules/ledger/application";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
+import { Page } from "@/shared/patterns/page";
 import { ReviewCard } from "@/shared/patterns/review-card";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { Text } from "@/shared/ui/text";
+import { StatusAlert } from "@/shared/ui/status-alert";
 import { InboxOfflineBanner } from "../inbox-offline-banner";
 import { InboxDecisionPanel } from "../inbox-decision-panel";
+import { InboxSourceLink } from "../inbox-source-link";
 
 type Props = {
   params: Promise<{ locale: string; id: string }>;
 };
 
 /**
- * inbox.review-detail — resolve / dismiss / acknowledge (ST-E06-002).
+ * inbox.review-detail — resolve / dismiss / acknowledge (ST-E06-002 / F4).
  */
 export default async function InboxItemDetailPage({ params }: Props) {
   const { locale: rawLocale, id } = await params;
@@ -50,25 +53,24 @@ export default async function InboxItemDetailPage({ params }: Props) {
 
   if (!item) {
     return (
-      <div
-        className="flex min-h-full flex-col"
-        data-testid="inbox-detail-missing"
+      <Page
+        testId="inbox-detail-missing"
+        topBar={
+          <TopAppBar title={t("detailTitle")} subtitle={t("detailSubtitle")} />
+        }
       >
-        <TopAppBar title={t("detailTitle")} subtitle={t("detailSubtitle")} />
-        <div className="flex flex-1 flex-col gap-(--space-4) px-(--space-4) pb-(--space-6) pt-(--space-4)">
-          <EmptyState
-            title={t("notFoundTitle")}
-            description={t("notFoundBody")}
-            className="flex-none py-(--space-4)"
-          />
-          <Link
-            href={APP_PATH.INBOX}
-            className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-          >
-            {t("backToQueue")}
-          </Link>
-        </div>
-      </div>
+        <EmptyState
+          title={t("notFoundTitle")}
+          description={t("notFoundBody")}
+          className="flex-none py-(--space-4)"
+        />
+        <Link
+          href={APP_PATH.INBOX}
+          className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+        >
+          {t("backToQueue")}
+        </Link>
+      </Page>
     );
   }
 
@@ -92,83 +94,92 @@ export default async function InboxItemDetailPage({ params }: Props) {
   ].filter(Boolean);
 
   return (
-    <div className="flex min-h-full flex-col" data-testid="inbox-detail">
-      <TopAppBar title={t("detailTitle")} subtitle={t("detailSubtitle")} />
-      <div className="flex flex-1 flex-col gap-(--space-5) px-(--space-4) pb-(--space-6) pt-(--space-4)">
-        <InboxOfflineBanner />
+    <Page
+      testId="inbox-detail"
+      topBar={
+        <TopAppBar title={t("detailTitle")} subtitle={t("detailSubtitle")} />
+      }
+    >
+      <InboxOfflineBanner />
 
-        <ReviewCard
-          title={displayTitle}
-          kindLabel={
-            item.type ? t(`types.${item.type}`) : t(`kinds.${item.kind}`)
-          }
-          amountLabel={formatCurrency(item.amount, item.currency, locale, {
-            maximumFractionDigits: 0,
-          })}
-          subtitle={
-            detailParts.length > 0
-              ? detailParts.join(" · ")
-              : item.type
-                ? t("typeHeader", { type: t(`types.${item.type}`) })
-                : undefined
-          }
-          data-testid="inbox-detail-card"
-        />
+      <section className="flex flex-col gap-(--space-2)">
+        <Text size="sm" className="font-semibold text-text-primary">
+          {t("decisionQuestionHeading")}
+        </Text>
+        <Text size="sm" tone="secondary" data-testid="inbox-decision-question">
+          {t(`why.${item.kind}`)}
+        </Text>
+        <Text size="sm" tone="secondary" data-testid="inbox-partner-equal">
+          {t("partnerEqualNote")}
+        </Text>
+      </section>
 
-        {localizedCategory || localizedAccount || item.note ? (
-          <section
-            className="flex flex-col gap-(--space-2)"
-            data-testid="inbox-item-details"
-          >
-            <Text size="sm" className="font-semibold text-text-primary">
-              {t("detailsHeading")}
-            </Text>
-            {localizedCategory ? (
-              <Text size="sm" tone="secondary">
-                {t("detailCategory", { name: localizedCategory })}
-              </Text>
-            ) : null}
-            {localizedAccount ? (
-              <Text size="sm" tone="secondary">
-                {t("detailAccount", { name: localizedAccount })}
-              </Text>
-            ) : null}
-            {item.note?.trim() ? (
-              <Text size="sm" tone="secondary">
-                {t("detailNote", { note: item.note.trim() })}
-              </Text>
-            ) : null}
-          </section>
-        ) : null}
+      <ReviewCard
+        title={displayTitle}
+        kindLabel={
+          item.type ? t(`types.${item.type}`) : t(`kinds.${item.kind}`)
+        }
+        amountLabel={formatCurrency(item.amount, item.currency, locale, {
+          maximumFractionDigits: 0,
+        })}
+        subtitle={
+          detailParts.length > 0
+            ? detailParts.join(" · ")
+            : item.type
+              ? t("typeHeader", { type: t(`types.${item.type}`) })
+              : undefined
+        }
+        data-testid="inbox-detail-card"
+      />
+      <StatusAlert
+        variant="info"
+        title={t("amountContextTitle")}
+        description={t("amountContextBody")}
+      />
 
-        <section className="flex flex-col gap-(--space-2)">
-          <Text size="sm" className="font-semibold text-text-primary">
-            {t("whyHeading")}
-          </Text>
-          <Text size="sm" tone="secondary">
-            {t(`why.${item.kind}`)}
-          </Text>
-          <Text size="sm" tone="secondary" data-testid="inbox-partner-equal">
-            {t("partnerEqualNote")}
-          </Text>
-        </section>
-
-        {item.status === InboxItemStatus.PENDING ? (
-          <InboxDecisionPanel item={item} jars={activeJars} />
-        ) : (
-          <Text size="sm" tone="secondary" data-testid="inbox-archived-status">
-            {t(`statuses.${item.status}`)}
-          </Text>
-        )}
-
-        <Link
-          href={APP_PATH.INBOX}
-          className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-          data-testid="inbox-back-queue"
+      {localizedCategory || localizedAccount || item.note ? (
+        <section
+          className="flex flex-col gap-(--space-2)"
+          data-testid="inbox-item-details"
         >
-          {t("backToQueue")}
-        </Link>
-      </div>
-    </div>
+          <Text size="sm" className="font-semibold text-text-primary">
+            {t("detailsHeading")}
+          </Text>
+          {localizedCategory ? (
+            <Text size="sm" tone="secondary">
+              {t("detailCategory", { name: localizedCategory })}
+            </Text>
+          ) : null}
+          {localizedAccount ? (
+            <Text size="sm" tone="secondary">
+              {t("detailAccount", { name: localizedAccount })}
+            </Text>
+          ) : null}
+          {item.note?.trim() ? (
+            <Text size="sm" tone="secondary">
+              {t("detailNote", { note: item.note.trim() })}
+            </Text>
+          ) : null}
+        </section>
+      ) : null}
+
+      <InboxSourceLink item={item} />
+
+      {item.status === InboxItemStatus.PENDING ? (
+        <InboxDecisionPanel item={item} jars={activeJars} />
+      ) : (
+        <Text size="sm" tone="secondary" data-testid="inbox-archived-status">
+          {t(`statuses.${item.status}`)}
+        </Text>
+      )}
+
+      <Link
+        href={APP_PATH.INBOX}
+        className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+        data-testid="inbox-back-queue"
+      >
+        {t("backToQueue")}
+      </Link>
+    </Page>
   );
 }

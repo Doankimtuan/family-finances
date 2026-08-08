@@ -8,6 +8,8 @@ import type { CaptureJarOption } from "@/modules/ledger/application/client";
 import type { InboxReviewItem } from "@/modules/inbox/application/inbox-types";
 import {
   InboxItemKind,
+  InboxReceiptKind,
+  INBOX_RECEIPT_QUERY,
   SavingsMaturityAckAction,
   EarlyWithdrawalAckAction,
   EmiAckAction,
@@ -15,6 +17,7 @@ import {
   AUTO_RESOLVE_CONFIDENCE_THRESHOLD,
   ReviewItemType,
   type InboxAckAction,
+  type InboxReceiptKind as InboxReceiptKindType,
 } from "@/modules/inbox/application/inbox-constants";
 import {
   acknowledgeSavingsMaturityAction,
@@ -29,6 +32,7 @@ import {
 import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
 import { StatusAlert } from "@/shared/ui/status-alert";
+import { BottomActionBar } from "@/shared/patterns/bottom-action-bar";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
 import {
@@ -111,8 +115,7 @@ export function InboxDecisionPanel({ item, jars }: Props) {
     maturityPayload?.suggestedAction ?? RenewalSuggestedAction.NONE;
   const highlightConfirm =
     suggestedAction === RenewalSuggestedAction.CONFIRM_CONFIGURED;
-  const highlightWithdraw =
-    suggestedAction === RenewalSuggestedAction.WITHDRAW;
+  const highlightWithdraw = suggestedAction === RenewalSuggestedAction.WITHDRAW;
   const equalWeight = suggestedAction === RenewalSuggestedAction.NONE;
 
   const policyLabelKey = (() => {
@@ -150,11 +153,17 @@ export function InboxDecisionPanel({ item, jars }: Props) {
     }
   };
 
+  const goToQueueReceipt = (receipt: InboxReceiptKindType) => {
+    // Replace only — avoid push+refresh loops that leave the UI hanging.
+    router.replace(`${APP_PATH.INBOX}?${INBOX_RECEIPT_QUERY}=${receipt}`);
+  };
+
   const run = (
     action: PendingAction,
     fn: () => Promise<
       { status: "success" } | { status: "error"; code: ProductActionErrorCode }
     >,
+    receipt: InboxReceiptKindType,
   ) => {
     setErrorCode(null);
     if (!online) {
@@ -166,8 +175,7 @@ export function InboxDecisionPanel({ item, jars }: Props) {
       try {
         const result = await fn();
         if (result.status === "success") {
-          // Replace only — avoid push+refresh loops that leave the UI hanging.
-          router.replace(APP_PATH.INBOX);
+          goToQueueReceipt(receipt);
           return;
         }
         setErrorCode(result.code);
@@ -184,52 +192,77 @@ export function InboxDecisionPanel({ item, jars }: Props) {
       setErrorCode(PRODUCT_ACTION_ERROR_CODE.INVALID);
       return;
     }
-    run("resolve", () => resolveInboxAction({ inboxItemId: item.id, jarId }));
+    run(
+      "resolve",
+      () => resolveInboxAction({ inboxItemId: item.id, jarId }),
+      InboxReceiptKind.JAR,
+    );
   };
 
   const onDismiss = () => {
-    run("dismiss", () => dismissInboxAction({ inboxItemId: item.id }));
+    run(
+      "dismiss",
+      () => dismissInboxAction({ inboxItemId: item.id }),
+      InboxReceiptKind.ATTENTION,
+    );
   };
 
   const onAck = (action: InboxAckAction) => {
-    run("ack", () => acknowledgeInboxAction({ inboxItemId: item.id, action }));
+    run(
+      "ack",
+      () => acknowledgeInboxAction({ inboxItemId: item.id, action }),
+      InboxReceiptKind.ATTENTION,
+    );
   };
 
-  const onSavingsMaturityAck = (action: string) => {
+  const onSavingsMaturityAck = (action: SavingsMaturityAckAction) => {
     if (!maturityPayload) {
-      onAck(action as InboxAckAction);
+      onAck(action);
       return;
     }
     const ruleForAction =
       action === SavingsMaturityAckAction.WITHDRAW
         ? SettlementRule.WITHDRAW_EVERYTHING
         : selectedSettlementRule;
-    run("ack", () =>
-      acknowledgeSavingsMaturityAction({
-        inboxItemId: item.id,
-        action,
-        cycleId: maturityPayload.cycleId,
-        savingId: maturityPayload.savingId,
-        settlementRule: ruleForAction,
-        packageId: selectedPackageId || undefined,
-        settlementAccountId:
-          maturityPayload.preselectedSettlementAccountId ?? undefined,
-      }),
+    const moneyMoving =
+      action === SavingsMaturityAckAction.WITHDRAW ||
+      action === SavingsMaturityAckAction.CONFIRM_CONFIGURED ||
+      action === SavingsMaturityAckAction.SWITCH ||
+      action === SavingsMaturityAckAction.CHANGE_SETTLEMENT;
+    run(
+      "ack",
+      () =>
+        acknowledgeSavingsMaturityAction({
+          inboxItemId: item.id,
+          action,
+          cycleId: maturityPayload.cycleId,
+          savingId: maturityPayload.savingId,
+          settlementRule: ruleForAction,
+          packageId: selectedPackageId || undefined,
+          settlementAccountId:
+            maturityPayload.preselectedSettlementAccountId ?? undefined,
+        }),
+      moneyMoving ? InboxReceiptKind.SAVINGS : InboxReceiptKind.ATTENTION,
     );
   };
 
-  const onEarlyWithdrawAck = (action: string) => {
+  const onEarlyWithdrawAck = (action: EarlyWithdrawalAckAction) => {
     if (!earlyPayload) {
-      onAck(action as InboxAckAction);
+      onAck(action);
       return;
     }
-    run("ack", () =>
-      acknowledgeEarlyWithdrawalAction({
-        inboxItemId: item.id,
-        action,
-        savingId: earlyPayload.savingId,
-        cycleId: earlyPayload.cycleId,
-      }),
+    run(
+      "ack",
+      () =>
+        acknowledgeEarlyWithdrawalAction({
+          inboxItemId: item.id,
+          action,
+          savingId: earlyPayload.savingId,
+          cycleId: earlyPayload.cycleId,
+        }),
+      action === EarlyWithdrawalAckAction.CONFIRM
+        ? InboxReceiptKind.SAVINGS
+        : InboxReceiptKind.ATTENTION,
     );
   };
 
@@ -257,6 +290,11 @@ export function InboxDecisionPanel({ item, jars }: Props) {
           <Text size="sm" tone="secondary">
             {t("activeJarOnlyHint")}
           </Text>
+          <StatusAlert
+            variant="info"
+            title={t("resolveMoneySafeTitle")}
+            description={t("resolveMoneySafeBody")}
+          />
 
           {showPatternSuggestion ? (
             <StatusAlert
@@ -300,15 +338,17 @@ export function InboxDecisionPanel({ item, jars }: Props) {
             </label>
           )}
 
-          <Button
-            variant="primary"
-            className="w-full"
-            data-testid="inbox-resolve"
-            isDisabled={busy || !online || jars.length === 0}
-            onPress={onResolve}
-          >
-            {pendingAction === "resolve" ? t("resolving") : t("resolve")}
-          </Button>
+          <BottomActionBar>
+            <Button
+              variant="primary"
+              className="w-full"
+              data-testid="inbox-resolve"
+              isDisabled={busy || !online || jars.length === 0}
+              onPress={onResolve}
+            >
+              {pendingAction === "resolve" ? t("resolving") : t("resolve")}
+            </Button>
+          </BottomActionBar>
         </section>
       ) : null}
 
@@ -323,10 +363,16 @@ export function InboxDecisionPanel({ item, jars }: Props) {
           <Text size="sm" tone="secondary">
             {t("maturityHint")}
           </Text>
+          <StatusAlert
+            variant="info"
+            title={t("maturitySourceTitle")}
+            description={t("maturitySourceBody")}
+          />
           {maturityPayload ? (
             <div className="flex flex-col gap-(--space-1) text-sm text-text-secondary">
               <span>
-                {maturityPayload.providerName} · {maturityPayload.currentPackage}
+                {maturityPayload.providerName} ·{" "}
+                {maturityPayload.currentPackage}
               </span>
               <span>
                 {maturityPayload.currentRate}% · {t(policyLabelKey)}
@@ -350,8 +396,7 @@ export function InboxDecisionPanel({ item, jars }: Props) {
                 .join(" · ")}
             />
           ) : null}
-          {maturityPayload &&
-          maturityPayload.recommendedPackages.length > 0 ? (
+          {maturityPayload && maturityPayload.recommendedPackages.length > 0 ? (
             <label className="flex flex-col gap-(--space-2)">
               <Text size="sm" className="font-semibold text-text-primary">
                 {t("maturityPackageLabel")}
@@ -406,11 +451,7 @@ export function InboxDecisionPanel({ item, jars }: Props) {
                 "maturityConfirm",
                 highlightConfirm || equalWeight ? "primary" : "secondary",
               ],
-              [
-                SavingsMaturityAckAction.SWITCH,
-                "maturitySwitch",
-                "secondary",
-              ],
+              [SavingsMaturityAckAction.SWITCH, "maturitySwitch", "secondary"],
               [
                 SavingsMaturityAckAction.WITHDRAW,
                 "maturityWithdraw",
@@ -448,6 +489,11 @@ export function InboxDecisionPanel({ item, jars }: Props) {
           <Text size="sm" tone="secondary">
             {t("earlyWithdrawalHint")}
           </Text>
+          <StatusAlert
+            variant="info"
+            title={t("earlyWithdrawalSourceTitle")}
+            description={t("earlyWithdrawalSourceBody")}
+          />
           {earlyPayload ? (
             <div className="flex flex-col gap-(--space-1) text-sm text-text-secondary">
               <span>
@@ -467,9 +513,7 @@ export function InboxDecisionPanel({ item, jars }: Props) {
             className="w-full"
             data-testid="inbox-ack-confirm-early"
             isDisabled={busy || !online}
-            onPress={() =>
-              onEarlyWithdrawAck(EarlyWithdrawalAckAction.CONFIRM)
-            }
+            onPress={() => onEarlyWithdrawAck(EarlyWithdrawalAckAction.CONFIRM)}
           >
             {t("earlyWithdrawalConfirm")}
           </Button>

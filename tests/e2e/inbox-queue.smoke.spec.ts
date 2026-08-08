@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
 
-test.describe("Inbox queue (ST-E06-001)", () => {
+test.describe("Inbox queue (ST-E06-001 / F4)", () => {
   test.describe.configure({ mode: "serial" });
 
   test("unauthenticated inbox redirects to login", async ({ page }) => {
@@ -32,6 +32,10 @@ test.describe("Inbox queue (ST-E06-001)", () => {
       page.getByText(/What needs a decision|Việc nào cần quyết định/i),
     ).toBeVisible();
 
+    // F4: batch/delegate must not appear.
+    await expect(page.getByTestId("inbox-batch")).toHaveCount(0);
+    await expect(page.getByTestId("inbox-delegate")).toHaveCount(0);
+
     const list = page.getByTestId("inbox-queue-list");
     if ((await list.count()) > 0) {
       await expect(page.getByTestId("inbox-kind-filter")).toBeVisible();
@@ -45,9 +49,21 @@ test.describe("Inbox queue (ST-E06-001)", () => {
       if ((await firstLink.count()) > 0) {
         await firstLink.click();
         await expect(page.getByTestId("inbox-detail")).toBeVisible();
+        await expect(page.getByTestId("inbox-decision-question")).toBeVisible();
         await expect(page.getByTestId("inbox-decision-panel")).toBeVisible();
         await expect(page.getByTestId("inbox-dismiss")).toBeVisible();
         await expect(page.getByTestId("inbox-partner-equal")).toBeVisible();
+        await expect(page.getByTestId("inbox-batch")).toHaveCount(0);
+        await expect(page.getByTestId("inbox-delegate")).toHaveCount(0);
+
+        const viewSource = page.getByTestId("inbox-view-source");
+        if ((await viewSource.count()) > 0) {
+          await viewSource.click();
+          await expect(page).not.toHaveURL(/\/en\/inbox\/[^/]+$/);
+          await page.goBack();
+          await expect(page.getByTestId("inbox-detail")).toBeVisible();
+          await expect(page.getByTestId("inbox-back-queue")).toBeVisible();
+        }
       }
     }
   });

@@ -59,6 +59,36 @@ export const INBOX_ARCHIVED_STATUS_VALUES = [
   InboxItemStatus.ACKNOWLEDGED,
 ] as const;
 
+/** Open vs Archived queue tabs (query `tab`). */
+export const InboxQueueTab = {
+  OPEN: "open",
+  ARCHIVED: "archived",
+} as const;
+
+export type InboxQueueTab = (typeof InboxQueueTab)[keyof typeof InboxQueueTab];
+
+/** Receipt query values after a successful Inbox outcome. */
+export const InboxReceiptKind = {
+  JAR: "jar",
+  SAVINGS: "savings",
+  ATTENTION: "attention",
+} as const;
+
+export type InboxReceiptKind =
+  (typeof InboxReceiptKind)[keyof typeof InboxReceiptKind];
+
+export const INBOX_RECEIPT_KIND_VALUES = [
+  InboxReceiptKind.JAR,
+  InboxReceiptKind.SAVINGS,
+  InboxReceiptKind.ATTENTION,
+] as const;
+
+/** Query key for post-decision receipt on the Inbox queue. */
+export const INBOX_RECEIPT_QUERY = "receipt";
+
+/** Query key for Open/Archived queue tabs. */
+export const INBOX_TAB_QUERY = "tab";
+
 export const InboxItemKind = {
   UNMAPPED_EXPENSE: "unmapped_expense",
   INCOME_SUGGEST: "income_suggest",

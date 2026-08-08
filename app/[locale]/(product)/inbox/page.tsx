@@ -11,7 +11,15 @@ import {
   listArchivedInboxItems,
   runInboxStalenessWorker,
 } from "@/modules/inbox/application";
+import {
+  InboxQueueTab,
+  InboxReceiptKind,
+  INBOX_RECEIPT_KIND_VALUES,
+  INBOX_RECEIPT_QUERY,
+  INBOX_TAB_QUERY,
+} from "@/modules/inbox/application/inbox-constants";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
+import { Page } from "@/shared/patterns/page";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { InboxOfflineBanner } from "./inbox-offline-banner";
@@ -20,15 +28,15 @@ import { InboxQueueTabs } from "./inbox-queue-tabs";
 
 type Props = {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ tab?: string }>;
+  searchParams: Promise<{ tab?: string; receipt?: string }>;
 };
 
 /**
- * inbox.queue — ReviewCard list with kind filter + Archived tab (ST-E03).
+ * inbox.queue — ReviewCard list with kind filter + Archived tab (ST-E03 / F4).
  */
 export default async function InboxPage({ params, searchParams }: Props) {
   const { locale: rawLocale } = await params;
-  const { tab: rawTab } = await searchParams;
+  const query = await searchParams;
   const locale = hasLocale(routing.locales, rawLocale)
     ? rawLocale
     : routing.defaultLocale;
@@ -43,16 +51,21 @@ export default async function InboxPage({ params, searchParams }: Props) {
     return redirect({ href: APP_PATH.ONBOARD, locale });
   }
 
-  const showArchived = rawTab === "archived";
+  const showArchived = query[INBOX_TAB_QUERY] === InboxQueueTab.ARCHIVED;
+  const rawReceipt = query[INBOX_RECEIPT_QUERY];
+  const receipt =
+    rawReceipt &&
+    (INBOX_RECEIPT_KIND_VALUES as readonly string[]).includes(rawReceipt)
+      ? (rawReceipt as (typeof INBOX_RECEIPT_KIND_VALUES)[number])
+      : null;
 
   // Best-effort sweep — do not block Inbox render / navigation (BR-15).
   if (!showArchived) {
     void runInboxStalenessWorker();
   }
 
-  const [t, tEmpty, items] = await Promise.all([
+  const [t, items] = await Promise.all([
     getTranslations("inbox"),
-    getTranslations("emptyStates"),
     showArchived ? listArchivedInboxItems() : listOpenInboxItems(),
   ]);
 
@@ -60,36 +73,67 @@ export default async function InboxPage({ params, searchParams }: Props) {
   const list = items ?? [];
 
   return (
-    <div className="flex min-h-full flex-col" data-testid="inbox-queue">
-      <TopAppBar title={t("title")} subtitle={t("subtitle")} />
-      <div className="flex flex-1 flex-col gap-(--space-4) px-(--space-4) pb-(--space-6) pt-(--space-4)">
-        <InboxOfflineBanner />
+    <Page
+      testId="inbox-queue"
+      topBar={<TopAppBar title={t("title")} subtitle={t("subtitle")} />}
+      contentClassName="gap-(--space-4)"
+    >
+      <InboxOfflineBanner />
 
-        <InboxQueueTabs active={showArchived ? "archived" : "open"} />
-
-        {loadFailed ? (
+      {receipt === InboxReceiptKind.JAR ? (
+        <div data-testid="inbox-receipt-jar">
           <StatusAlert
-            variant="danger"
-            title={t("loadErrorTitle")}
-            description={t("loadErrorBody")}
+            variant="success"
+            title={t("receiptJarTitle")}
+            description={t("receiptJarBody")}
           />
-        ) : list.length === 0 ? (
-          <EmptyState
-            title={
-              showArchived ? t("archivedEmptyTitle") : tEmpty("inboxTitle")
-            }
-            description={
-              showArchived ? t("archivedEmptyBody") : tEmpty("inboxDescription")
-            }
+        </div>
+      ) : null}
+      {receipt === InboxReceiptKind.SAVINGS ? (
+        <div data-testid="inbox-receipt-savings">
+          <StatusAlert
+            variant="success"
+            title={t("receiptSavingsTitle")}
+            description={t("receiptSavingsBody")}
           />
-        ) : (
-          <InboxQueueList
-            items={list}
-            locale={locale}
-            readOnly={showArchived}
+        </div>
+      ) : null}
+      {receipt === InboxReceiptKind.ATTENTION ? (
+        <div data-testid="inbox-receipt-attention">
+          <StatusAlert
+            variant="success"
+            title={t("receiptAttentionTitle")}
+            description={t("receiptAttentionBody")}
           />
-        )}
-      </div>
-    </div>
+        </div>
+      ) : null}
+
+      <InboxQueueTabs
+        active={showArchived ? InboxQueueTab.ARCHIVED : InboxQueueTab.OPEN}
+      />
+
+      {loadFailed ? (
+        <StatusAlert
+          variant="danger"
+          title={t("loadErrorTitle")}
+          description={t("loadErrorBody")}
+        />
+      ) : list.length === 0 ? (
+        <EmptyState
+          title={
+            showArchived ? t("archivedEmptyTitle") : t("emptyOpenTitle")
+          }
+          description={
+            showArchived ? t("archivedEmptyBody") : t("emptyOpenBody")
+          }
+        />
+      ) : (
+        <InboxQueueList
+          items={list}
+          locale={locale}
+          readOnly={showArchived}
+        />
+      )}
+    </Page>
   );
 }

@@ -34,6 +34,11 @@ export {
   INBOX_ITEM_KIND_VALUES,
   INBOX_ITEM_STATUS_VALUES,
   INBOX_ARCHIVED_STATUS_VALUES,
+  InboxQueueTab,
+  InboxReceiptKind,
+  INBOX_RECEIPT_KIND_VALUES,
+  INBOX_RECEIPT_QUERY,
+  INBOX_TAB_QUERY,
   ReviewItemType,
   REVIEW_ITEM_TYPE_VALUES,
   AUTO_RESOLVE_CONFIDENCE_THRESHOLD,
@@ -185,6 +190,13 @@ function mapInboxRow(
       typeof row.amount === "string" ? Number(row.amount) : Number(row.amount),
     currency: (row.currency ?? DEFAULT_CURRENCY).toUpperCase(),
     sourceId: row.source_id,
+    sourceType: [
+      InboxSourceType.TRANSACTION,
+      InboxSourceType.GUIDED,
+      InboxSourceType.PLAN_MOVEMENT,
+    ].includes(row.source_type as InboxSourceType)
+      ? (row.source_type as InboxSourceType)
+      : null,
     createdAt: row.created_at,
     expiresAt,
     autoResolved: Boolean(row.auto_resolved),
@@ -450,9 +462,10 @@ const ACK_ACTION_VALUES = [
   EarlyWithdrawalAckAction.CONFIRM,
 ] as const;
 
-const ACK_ACTION_ENUM = [
-  ...new Set(ACK_ACTION_VALUES),
-] as unknown as [string, ...string[]];
+const ACK_ACTION_ENUM = [...new Set(ACK_ACTION_VALUES)] as unknown as [
+  string,
+  ...string[],
+];
 
 export const acknowledgeInboxItemInputSchema = z.object({
   inboxItemId: z.string().uuid(),

@@ -38,7 +38,11 @@ test.describe("Together policies + preferences (ST-E03-003)", () => {
     await page.getByTestId("together-policies-link").click();
     await expect(page).toHaveURL(/\/en\/together\/policies/);
     await expect(page.getByTestId("together-policies")).toBeVisible();
-    await expect(page.getByText(/Overspend policy|Warn/i)).toBeVisible();
+    await expect(page.getByTestId("policies-money-none")).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: /Overspend policy|chi vượt/i }),
+    ).toBeVisible();
+    await expect(page.getByTestId("together-change-role")).toHaveCount(0);
 
     await page.goto("/en/together/preferences");
     await expect(page.getByTestId("together-preferences-page")).toBeVisible();
