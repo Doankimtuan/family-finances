@@ -8,6 +8,9 @@ import {
 } from "@/modules/tenancy/application/product-action-error";
 import {
   DEFAULT_CURRENCY,
+  ISO_DATE_PATTERN,
+  LedgerRelation,
+  LedgerRpcName,
   LoanInterestRatePeriodKind,
   LoanInterestStrategy,
   LoanPaymentMode,
@@ -17,10 +20,11 @@ import {
   LoanTermUnit,
   LoanType,
   LOAN_INTEREST_STRATEGY_VALUES,
-  LOAN_PAYMENT_MODE_VALUES,
+  LOAN_PAYMENT_EXECUTABLE_MODE_VALUES,
   LOAN_REPAYMENT_METHOD_VALUES,
   LOAN_TERM_UNIT_VALUES,
   LOAN_TYPE_VALUES,
+  RECORD_LOAN_PAYMENT_INVALID_ERROR_NEEDLES,
 } from "../ledger-constants";
 import {
   addMonthsYmd,
@@ -31,7 +35,26 @@ import {
 } from "../loan-amortization";
 
 export type MoneyProductMutationResult =
-  | { ok: true; id?: string; inboxItemId?: string; completed?: boolean }
+  | {
+      ok: true;
+      id?: string;
+      inboxItemId?: string;
+      completed?: boolean;
+      transactionId?: string;
+      paymentId?: string;
+      sourceDelta?: number;
+      amount?: number;
+      principalPaid?: number;
+      interestPaid?: number;
+      feePaid?: number;
+      remainingPrincipal?: number;
+      scheduleEntryId?: string;
+      effectiveFrom?: string;
+      newRate?: number;
+      futureEntriesBefore?: number;
+      futureEntriesAfter?: number;
+      historicalUnchanged?: boolean;
+    }
   | { ok: false; code: ProductActionErrorCode };
 
 export const createLiabilityInputSchema = z.object({
@@ -112,10 +135,13 @@ export async function recordLiabilityPayment(
 
   try {
     const supabase = await createSupabaseServerClient();
-    const { data, error } = await supabase.rpc("record_liability_payment", {
-      p_liability_id: parsed.data.liabilityId,
-      p_amount: parsed.data.amount,
-    });
+    const { data, error } = await supabase.rpc(
+      LedgerRpcName.RECORD_LIABILITY_PAYMENT,
+      {
+        p_liability_id: parsed.data.liabilityId,
+        p_amount: parsed.data.amount,
+      },
+    );
     if (error) {
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
     }
@@ -431,7 +457,9 @@ export async function createLoan(
 
   try {
     const supabase = await createSupabaseServerClient();
-    const { data, error } = await supabase.rpc("create_loan_with_schedule", {
+    const { data, error } = await supabase.rpc(
+      LedgerRpcName.CREATE_LOAN_WITH_SCHEDULE,
+      {
       p_name: parsed.data.name,
       p_lender: parsed.data.lender ?? null,
       p_loan_type: parsed.data.loanType,
@@ -487,13 +515,10 @@ export const recordLoanPaymentInputSchema = z.object({
   loanId: z.string().uuid(),
   accountId: z.string().uuid(),
   mode: z
-    .enum(LOAN_PAYMENT_MODE_VALUES)
+    .enum(LOAN_PAYMENT_EXECUTABLE_MODE_VALUES)
     .optional()
     .default(LoanPaymentMode.SCHEDULED),
-  paidAt: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/)
-    .optional(),
+  paidAt: z.string().regex(ISO_DATE_PATTERN).optional(),
 });
 
 export type RecordLoanPaymentInput = z.infer<
@@ -533,19 +558,21 @@ export async function recordLoanPayment(
 
   try {
     const supabase = await createSupabaseServerClient();
-    const { data, error } = await supabase.rpc("record_loan_payment", {
-      p_loan_id: parsed.data.loanId,
-      p_account_id: parsed.data.accountId,
-      p_mode: parsed.data.mode,
-      p_paid_at: parsed.data.paidAt ?? null,
-    });
+    const { data, error } = await supabase.rpc(
+      LedgerRpcName.RECORD_LOAN_PAYMENT,
+      {
+        p_loan_id: parsed.data.loanId,
+        p_account_id: parsed.data.accountId,
+        p_mode: parsed.data.mode,
+        p_paid_at: parsed.data.paidAt ?? null,
+      },
+    );
     if (error) {
       const message = error.message?.toLowerCase() ?? "";
       if (
-        message.includes("already completed") ||
-        message.includes("invalid") ||
-        message.includes("credit card") ||
-        message.includes("no upcoming")
+        RECORD_LOAN_PAYMENT_INVALID_ERROR_NEEDLES.some((needle) =>
+          message.includes(needle),
+        )
       ) {
         return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
       }
@@ -556,6 +583,14 @@ export async function recordLoanPayment(
       completed?: boolean;
       inboxItemId?: string;
       transactionId?: string;
+      paymentId?: string;
+      sourceDelta?: number;
+      amount?: number;
+      principalPaid?: number;
+      interestPaid?: number;
+      feePaid?: number;
+      remainingPrincipal?: number;
+      scheduleEntryId?: string;
     } | null;
     if (!payload?.ok) {
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
@@ -565,6 +600,15 @@ export async function recordLoanPayment(
       id: parsed.data.loanId,
       completed: Boolean(payload.completed),
       inboxItemId: payload.inboxItemId,
+      transactionId: payload.transactionId,
+      paymentId: payload.paymentId,
+      sourceDelta: payload.sourceDelta,
+      amount: payload.amount,
+      principalPaid: payload.principalPaid,
+      interestPaid: payload.interestPaid,
+      feePaid: payload.feePaid ?? 0,
+      remainingPrincipal: payload.remainingPrincipal,
+      scheduleEntryId: payload.scheduleEntryId,
     };
   } catch {
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
@@ -614,7 +658,7 @@ export async function updateLoanMetadata(
   try {
     const supabase = await createSupabaseServerClient();
     const { data: payments } = await supabase
-      .from("loan_payments")
+      .from(LedgerRelation.LOAN_PAYMENTS)
       .select("id")
       .eq("loan_id", parsed.data.loanId)
       .eq("household_id", gate.householdId)
@@ -677,7 +721,7 @@ export async function setLoanStatus(
 
   try {
     const supabase = await createSupabaseServerClient();
-    const { data, error } = await supabase.rpc("set_loan_status", {
+    const { data, error } = await supabase.rpc(LedgerRpcName.SET_LOAN_STATUS, {
       p_loan_id: parsed.data.loanId,
       p_status: parsed.data.status,
     });
@@ -697,7 +741,7 @@ export async function setLoanStatus(
 export const updateLoanInterestRateInputSchema = z.object({
   loanId: z.string().uuid(),
   annualInterestRate: z.number().finite().min(0).max(100),
-  effectiveFrom: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  effectiveFrom: z.string().regex(ISO_DATE_PATTERN),
   note: z.string().trim().max(200).optional().nullable(),
 });
 
@@ -739,6 +783,9 @@ export async function updateLoanInterestRate(
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
     }
     const today = new Date().toISOString().slice(0, 10);
+    if (parsed.data.effectiveFrom <= today) {
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
+    }
     if (
       strategy === LoanInterestStrategy.PROMO_FIXED_TO_FLOATING &&
       loanRow.promo_rate_effective_on &&
@@ -748,21 +795,51 @@ export async function updateLoanInterestRate(
     }
 
     const { data: periods } = await supabase
-      .from("loan_interest_rate_periods")
+      .from(LedgerRelation.LOAN_INTEREST_RATE_PERIODS)
       .select("effective_from, effective_to, annual_rate")
       .eq("loan_id", parsed.data.loanId)
       .eq("household_id", gate.householdId)
       .order("sequence", { ascending: true });
 
+    const { count: paidOnOrAfter } = await supabase
+      .from(LedgerRelation.LOAN_SCHEDULE_ENTRIES)
+      .select("id", { count: "exact", head: true })
+      .eq("loan_id", parsed.data.loanId)
+      .eq("household_id", gate.householdId)
+      .in("status", [
+        LoanScheduleEntryStatus.PAID,
+        LoanScheduleEntryStatus.WAIVED,
+      ])
+      .gte("due_date", parsed.data.effectiveFrom);
+
+    if ((paidOnOrAfter ?? 0) > 0) {
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
+    }
+
+    const { count: unpaidOnOrAfter } = await supabase
+      .from(LedgerRelation.LOAN_SCHEDULE_ENTRIES)
+      .select("id", { count: "exact", head: true })
+      .eq("loan_id", parsed.data.loanId)
+      .eq("household_id", gate.householdId)
+      .in("status", [
+        LoanScheduleEntryStatus.UPCOMING,
+        LoanScheduleEntryStatus.PARTIAL,
+      ])
+      .gte("due_date", parsed.data.effectiveFrom);
+
+    if ((unpaidOnOrAfter ?? 0) === 0) {
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
+    }
+
     const { count: paidCount } = await supabase
-      .from("loan_schedule_entries")
+      .from(LedgerRelation.LOAN_SCHEDULE_ENTRIES)
       .select("id", { count: "exact", head: true })
       .eq("loan_id", parsed.data.loanId)
       .eq("household_id", gate.householdId)
       .eq("status", LoanScheduleEntryStatus.PAID);
 
     const { count: upcomingCount } = await supabase
-      .from("loan_schedule_entries")
+      .from(LedgerRelation.LOAN_SCHEDULE_ENTRIES)
       .select("id", { count: "exact", head: true })
       .eq("loan_id", parsed.data.loanId)
       .eq("household_id", gate.householdId)
@@ -804,7 +881,9 @@ export async function updateLoanInterestRate(
       sequenceStart,
     });
 
-    const { data, error } = await supabase.rpc("update_loan_interest_rate", {
+    const { data, error } = await supabase.rpc(
+      LedgerRpcName.UPDATE_LOAN_INTEREST_RATE,
+      {
       p_loan_id: parsed.data.loanId,
       p_new_annual_rate: parsed.data.annualInterestRate,
       p_effective_from: parsed.data.effectiveFrom,
@@ -823,11 +902,26 @@ export async function updateLoanInterestRate(
     if (error) {
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
     }
-    const payload = data as { ok?: boolean } | null;
+    const payload = data as {
+      ok?: boolean;
+      effectiveFrom?: string;
+      newRate?: number;
+      futureEntriesBefore?: number;
+      futureEntriesAfter?: number;
+      historicalUnchanged?: boolean;
+    } | null;
     if (!payload?.ok) {
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
     }
-    return { ok: true, id: parsed.data.loanId };
+    return {
+      ok: true,
+      id: parsed.data.loanId,
+      effectiveFrom: payload.effectiveFrom ?? parsed.data.effectiveFrom,
+      newRate: payload.newRate ?? parsed.data.annualInterestRate,
+      futureEntriesBefore: payload.futureEntriesBefore,
+      futureEntriesAfter: payload.futureEntriesAfter,
+      historicalUnchanged: payload.historicalUnchanged ?? true,
+    };
   } catch {
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }

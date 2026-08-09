@@ -42,8 +42,24 @@ export { AmountField, type AmountFieldProps } from "./amount-field";
 export { JarCard, type JarCardProps } from "./jar-card";
 export { GoalCard, type GoalCardProps } from "./goal-card";
 export { QuickAction, type QuickActionProps } from "./quick-action";
-export { TransactionRow, type TransactionRowProps } from "./transaction-row";
+export {
+  TransactionRow,
+  TransactionAmountTone,
+  type TransactionRowProps,
+} from "./transaction-row";
 export { ReviewCard, type ReviewCardProps } from "./review-card";
+export {
+  ConfirmSummary,
+  type ConfirmSummaryProps,
+  type ConfirmSummaryRow,
+} from "./confirm-summary";
+export {
+  LabeledSelect,
+  LabeledDateInput,
+  type LabeledSelectProps,
+  type LabeledDateInputProps,
+  type LabeledSelectOption,
+} from "./labeled-native-field";
 export { KpiBlock, type KpiBlockProps } from "./kpi-block";
 export { HealthCard, type HealthCardProps } from "./health-card";
 export { SystemShell, type SystemShellProps } from "./system-shell";

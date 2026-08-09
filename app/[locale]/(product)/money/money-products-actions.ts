@@ -20,6 +20,7 @@ import {
 } from "@/modules/ledger/application";
 import {
   PRODUCT_ACTION_ERROR_CODE,
+  ProductActionStatus,
   type ProductActionErrorCode,
 } from "@/modules/tenancy/application/product-action-error";
 import {
@@ -29,23 +30,51 @@ import {
 
 export type MoneyProductActionState =
   | {
-      status: "success";
+      status: typeof ProductActionStatus.SUCCESS;
       id?: string;
       inboxItemId?: string;
       completed?: boolean;
+      transactionId?: string;
+      paymentId?: string;
+      sourceDelta?: number;
+      amount?: number;
+      principalPaid?: number;
+      interestPaid?: number;
+      feePaid?: number;
+      remainingPrincipal?: number;
+      scheduleEntryId?: string;
+      effectiveFrom?: string;
+      newRate?: number;
+      futureEntriesBefore?: number;
+      futureEntriesAfter?: number;
+      historicalUnchanged?: boolean;
     }
-  | { status: "error"; code: ProductActionErrorCode };
+  | { status: typeof ProductActionStatus.ERROR; code: ProductActionErrorCode };
 
 function toState(result: MoneyProductMutationResult): MoneyProductActionState {
   if (result.ok) {
     return {
-      status: "success",
+      status: ProductActionStatus.SUCCESS,
       id: result.id,
       inboxItemId: result.inboxItemId,
       completed: result.completed,
+      transactionId: result.transactionId,
+      paymentId: result.paymentId,
+      sourceDelta: result.sourceDelta,
+      amount: result.amount,
+      principalPaid: result.principalPaid,
+      interestPaid: result.interestPaid,
+      feePaid: result.feePaid,
+      remainingPrincipal: result.remainingPrincipal,
+      scheduleEntryId: result.scheduleEntryId,
+      effectiveFrom: result.effectiveFrom,
+      newRate: result.newRate,
+      futureEntriesBefore: result.futureEntriesBefore,
+      futureEntriesAfter: result.futureEntriesAfter,
+      historicalUnchanged: result.historicalUnchanged,
     };
   }
-  return { status: "error", code: result.code };
+  return { status: ProductActionStatus.ERROR, code: result.code };
 }
 
 export async function createLiabilityAction(

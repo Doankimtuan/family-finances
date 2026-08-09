@@ -73,7 +73,9 @@ export function CorrectTransactionForm({
   const amountId = useId();
   const noteId = useId();
   const [direction, setDirection] = useState<TransactionDirection>(
-    transaction.type,
+    transaction.type === Direction.INCOME
+      ? Direction.INCOME
+      : Direction.EXPENSE,
   );
   const [amount, setAmount] = useState<number | null>(transaction.amount);
   const [accountId, setAccountId] = useState(transaction.accountId);

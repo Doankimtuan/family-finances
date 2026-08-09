@@ -2,14 +2,17 @@ import type { AccountType, LedgerAccount } from "./account-types";
 import {
   DEFAULT_CURRENCY,
   TransactionDirection,
+  TransactionLedgerType,
   TransactionStatus,
-  type TransactionDirection as TransactionDirectionValue,
+  type TransactionLedgerType as TransactionLedgerTypeValue,
 } from "./ledger-constants";
 
 export {
   TransactionDirection,
   TRANSACTION_DIRECTION_OPTIONS,
   TRANSACTION_DIRECTION_VALUES,
+  TransactionLedgerType,
+  TRANSACTION_LEDGER_TYPE_VALUES,
   TransactionStatus,
   TRANSACTION_STATUS_VALUES,
   DEFAULT_CURRENCY,
@@ -19,7 +22,7 @@ export type LedgerTransaction = {
   id: string;
   accountId: string;
   accountName?: string;
-  type: TransactionDirectionValue;
+  type: TransactionLedgerTypeValue;
   amount: number;
   currency: string;
   transactionDate: string;
@@ -37,7 +40,7 @@ export type LedgerTransaction = {
 
 export type CategoryTag = {
   id: string;
-  kind: TransactionDirectionValue;
+  kind: TransactionDirection;
   name: string;
   jarId: string | null;
 };
@@ -59,8 +62,13 @@ export function applyTransactionDeltas(
     const amount =
       typeof row.amount === "string" ? Number(row.amount) : row.amount;
     if (!Number.isFinite(amount)) continue;
-    if (row.type === TransactionDirection.INCOME) account.balance += amount;
-    if (row.type === TransactionDirection.EXPENSE) account.balance -= amount;
+    if (row.type === TransactionLedgerType.INCOME) account.balance += amount;
+    if (
+      row.type === TransactionLedgerType.EXPENSE ||
+      row.type === TransactionLedgerType.LIABILITY_PAYMENT
+    ) {
+      account.balance -= amount;
+    }
   }
   return Array.from(byId.values());
 }
@@ -87,14 +95,17 @@ export function mapTransactionRow(row: {
   const amount =
     typeof row.amount === "string" ? Number(row.amount) : row.amount;
   const reversesTransactionId = row.reverses_transaction_id ?? null;
+  const type =
+    row.type === TransactionLedgerType.INCOME
+      ? TransactionLedgerType.INCOME
+      : row.type === TransactionLedgerType.LIABILITY_PAYMENT
+        ? TransactionLedgerType.LIABILITY_PAYMENT
+        : TransactionLedgerType.EXPENSE;
   return {
     id: row.id,
     accountId: row.account_id,
     accountName: row.accounts?.name,
-    type:
-      row.type === TransactionDirection.INCOME
-        ? TransactionDirection.INCOME
-        : TransactionDirection.EXPENSE,
+    type,
     amount: Number.isFinite(amount) ? amount : 0,
     currency: (row.currency ?? DEFAULT_CURRENCY).toUpperCase(),
     transactionDate: row.transaction_date,

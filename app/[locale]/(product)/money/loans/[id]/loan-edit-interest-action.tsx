@@ -6,6 +6,7 @@ import { useRouter } from "@/i18n/navigation";
 import { TextField } from "@/shared/ui/form";
 import { Button } from "@/shared/ui/button";
 import { StatusAlert } from "@/shared/ui/status-alert";
+import { Text } from "@/shared/ui/text";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import {
   CLIENT_ACTION_ERROR_CODE,
@@ -81,6 +82,9 @@ export function LoanEditInterestAction({
         value={effectiveFrom}
         onChange={(e) => setEffectiveFrom(e.target.value)}
       />
+      <Text size="sm" tone="secondary">
+        {t("editInterestFutureHint")}
+      </Text>
       <TextField
         id="loan-edit-interest-note"
         label={t("editInterestNoteLabel")}

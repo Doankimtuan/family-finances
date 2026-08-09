@@ -4,11 +4,20 @@ import type { ReactNode } from "react";
 import { cn } from "@/shared/utils/cn";
 import { Text } from "@/shared/ui/text";
 
+export const TransactionAmountTone = {
+  CREDIT: "credit",
+  DEBIT: "debit",
+  NEUTRAL: "neutral",
+} as const;
+
+export type TransactionAmountTone =
+  (typeof TransactionAmountTone)[keyof typeof TransactionAmountTone];
+
 export type TransactionRowProps = {
   title: ReactNode;
   subtitle?: ReactNode;
   amountLabel: string;
-  tone?: "credit" | "debit" | "neutral";
+  tone?: TransactionAmountTone;
   className?: string;
 };
 
@@ -19,19 +28,19 @@ export function TransactionRow({
   title,
   subtitle,
   amountLabel,
-  tone = "neutral",
+  tone = TransactionAmountTone.NEUTRAL,
   className,
 }: TransactionRowProps) {
   const amountClass =
-    tone === "credit"
+    tone === TransactionAmountTone.CREDIT
       ? "text-credit"
-      : tone === "debit"
+      : tone === TransactionAmountTone.DEBIT
         ? "text-debit"
         : "text-text-primary";
   const railClass =
-    tone === "credit"
+    tone === TransactionAmountTone.CREDIT
       ? "bg-credit"
-      : tone === "debit"
+      : tone === TransactionAmountTone.DEBIT
         ? "bg-debit"
         : "bg-border-strong";
 

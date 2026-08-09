@@ -60,12 +60,13 @@ export async function updateRenewalPolicyAction(
 }
 
 /** @deprecated Legacy path disabled — use createSavingAction. */
-export async function createSavingsAction(_input: {
+export async function createSavingsAction(input: {
   name: string;
   principalAmount: number;
   maturityDate: string;
   note?: string;
 }): Promise<SavingsActionState> {
+  void input;
   return { status: "error", code: PRODUCT_ACTION_ERROR_CODE.INVALID };
 }
 
@@ -132,6 +133,15 @@ export async function requestEarlyWithdrawalAction(input: {
   const previewed = await previewEarlyWithdrawalForSaving(input);
   if (!previewed.ok) return { status: "error", code: previewed.code };
 
+  if (
+    !previewed.preview.quoteReady ||
+    previewed.preview.netReturned == null ||
+    previewed.preview.eligibleInterest == null ||
+    previewed.preview.penaltyAmount == null
+  ) {
+    return { status: "error", code: PRODUCT_ACTION_ERROR_CODE.INVALID };
+  }
+
   const gate = await assertMoneyActionAllowed();
   if (!gate.ok) {
     return { status: "error", code: PRODUCT_ACTION_ERROR_CODE.UNAUTHENTICATED };
@@ -160,10 +170,13 @@ export async function requestEarlyWithdrawalAction(input: {
       penaltyStrategy: previewed.preview.penaltyStrategy,
       daysHeld: previewed.preview.daysHeld,
       totalTermDays: previewed.preview.totalTermDays,
+      quoteReady: previewed.preview.quoteReady,
       settlementAccountId: previewed.settlementAccountId,
       warnPenalty: previewed.warnPenalty,
       cascadeDay: "early",
     };
+
+    const title = `${previewed.productName} - Early withdrawal`;
 
     const { data, error } = await supabase
       .from("inbox_items")
@@ -175,7 +188,7 @@ export async function requestEarlyWithdrawalAction(input: {
         source_id: input.savingId,
         amount: previewed.preview.netReturned,
         currency,
-        title: `${previewed.productName} — Early withdrawal`,
+        title,
         context_json: context,
       })
       .select("id")
@@ -187,7 +200,7 @@ export async function requestEarlyWithdrawalAction(input: {
         .update({
           status: InboxItemStatus.PENDING,
           amount: previewed.preview.netReturned,
-          title: `${previewed.productName} — Early withdrawal`,
+          title,
           context_json: context,
           updated_at: new Date().toISOString(),
         })
@@ -239,7 +252,8 @@ export async function confirmEarlyWithdrawalAction(input: {
 }
 
 /**
- * Ack Inbox maturity item, then move money via savings commands (BR-01 / BR-10).
+ * Move money via savings commands first, then resolve Inbox (BR-01 / BR-10).
+ * Non-money actions may acknowledge immediately.
  */
 export async function acknowledgeSavingsMaturityAction(input: {
   inboxItemId: string;
@@ -252,16 +266,15 @@ export async function acknowledgeSavingsMaturityAction(input: {
   renewalPolicyAfter?: UpdateRenewalPolicyInput["renewalPolicy"];
   renewalConfig?: UpdateRenewalPolicyInput["renewalConfig"];
 }): Promise<SavingsActionState> {
-  const ack = await acknowledgeInboxItem({
-    inboxItemId: input.inboxItemId,
-    action: input.action,
-  });
-  if (!ack.ok) return { status: "error", code: ack.code };
-
   if (
     input.action === SavingsMaturityAckAction.REMIND_TOMORROW ||
     input.action === SavingsMaturityAckAction.DISMISS
   ) {
+    const ack = await acknowledgeInboxItem({
+      inboxItemId: input.inboxItemId,
+      action: input.action,
+    });
+    if (!ack.ok) return { status: "error", code: ack.code };
     return { status: "success" };
   }
 
@@ -292,6 +305,11 @@ export async function acknowledgeSavingsMaturityAction(input: {
         renewalConfig: input.renewalConfig,
       });
     }
+
+    await acknowledgeInboxItem({
+      inboxItemId: input.inboxItemId,
+      action: input.action,
+    });
 
     return {
       status: "success",
@@ -324,6 +342,11 @@ export async function acknowledgeSavingsMaturityAction(input: {
     });
   }
 
+  await acknowledgeInboxItem({
+    inboxItemId: input.inboxItemId,
+    action: input.action,
+  });
+
   return {
     status: "success",
     id: renewed.savingId,
@@ -338,13 +361,12 @@ export async function acknowledgeEarlyWithdrawalAction(input: {
   cycleId: string;
   settlementAccountId?: string;
 }): Promise<SavingsActionState> {
-  const ack = await acknowledgeInboxItem({
-    inboxItemId: input.inboxItemId,
-    action: input.action,
-  });
-  if (!ack.ok) return { status: "error", code: ack.code };
-
   if (input.action !== EarlyWithdrawalAckAction.CONFIRM) {
+    const ack = await acknowledgeInboxItem({
+      inboxItemId: input.inboxItemId,
+      action: input.action,
+    });
+    if (!ack.ok) return { status: "error", code: ack.code };
     return { status: "success" };
   }
 
@@ -354,6 +376,12 @@ export async function acknowledgeEarlyWithdrawalAction(input: {
     settlementAccountId: input.settlementAccountId,
   });
   if (!confirmed.ok) return { status: "error", code: confirmed.code };
+
+  await acknowledgeInboxItem({
+    inboxItemId: input.inboxItemId,
+    action: input.action,
+  });
+
   return {
     status: "success",
     id: confirmed.savingId,

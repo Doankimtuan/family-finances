@@ -6,7 +6,7 @@ import {
   type Saving,
   type SavingCycle,
 } from "../savings-types";
-import { SavingStatus, InterestCalcMethod, CycleStatus } from "../savings-constants";
+import { InterestCalcMethod, CycleStatus } from "../savings-constants";
 import { computeAccruedInterest } from "../savings-interest";
 
 export async function listSavings(): Promise<Saving[] | null> {
@@ -25,7 +25,6 @@ export async function listSavings(): Promise<Saving[] | null> {
          saving_providers:provider_id(display_name, provider_key, saving_type)`,
       )
       .eq("household_id", gate.householdId)
-      .neq("status", SavingStatus.CLOSED)
       .order("created_at", { ascending: false });
 
     if (error) return null;
@@ -70,9 +69,7 @@ export async function listSavings(): Promise<Saving[] | null> {
   }
 }
 
-export async function getSaving(
-  savingId: string,
-): Promise<Saving | null> {
+export async function getSaving(savingId: string): Promise<Saving | null> {
   const gate = await assertMoneyActionAllowed();
   if (!gate.ok) return null;
 
@@ -123,8 +120,7 @@ export async function getSaving(
         }
       }
 
-      saving.latestCycle =
-        mappedCycles[mappedCycles.length - 1] ?? null;
+      saving.latestCycle = mappedCycles[mappedCycles.length - 1] ?? null;
     }
 
     return saving;

@@ -28,15 +28,24 @@ export type EarlyWithdrawalInput = {
 
 export type EarlyWithdrawalPreview = {
   principal: number;
+  /** Accrued estimate only — never posted as settlement interest. */
   accruedInterest: number;
-  eligibleInterest: number;
-  penaltyAmount: number;
-  netReturned: number;
+  /** Eligible interest when quote is ready; null when provider/manual actual required. */
+  eligibleInterest: number | null;
+  /** Penalty when quote is ready; null when provider/manual actual required. */
+  penaltyAmount: number | null;
+  /** Net payout when quote is ready; null when provider/manual actual required. */
+  netReturned: number | null;
   penaltyStrategy: string;
   /** Number of days since start. */
   daysHeld: number;
   /** Total days in term. */
   totalTermDays: number;
+  /**
+   * False when settlement amounts cannot be derived from an approved package
+   * rule (provider formula/custom). Confirmation must not post in that case.
+   */
+  quoteReady: boolean;
 };
 
 function daysBetween(startDate: string, endDate: string): number {
@@ -83,7 +92,8 @@ function calcDemandInterest(
 ): { eligibleInterest: number; penaltyAmount: number } {
   const demandRate = rule.demandRate ?? 0.5;
   const eligible = Math.floor(
-    (principal * (demandRate / INTEREST_RATE_DENOMINATOR) *
+    (principal *
+      (demandRate / INTEREST_RATE_DENOMINATOR) *
       accrued.daysElapsed) /
       DAYS_PER_YEAR,
   );
@@ -108,46 +118,6 @@ function calcFixedPenalty(
 }
 
 /**
- * Provider Formula penalty: evaluate a simple formula expression.
- * Supported variables: principal, accruedInterest, daysHeld, totalTermDays
- * Example: "accruedInterest * 0.7" means keep 70%, penalty = 30%
- */
-function calcProviderFormula(
-  principal: number,
-  accrued: InterestResult,
-  totalTermDays: number,
-  rule: PenaltyRule,
-): { eligibleInterest: number; penaltyAmount: number } {
-  const expr = rule.formulaExpression;
-  if (!expr) {
-    return calcNoInterest(principal, accrued);
-  }
-
-  try {
-    // Simple formula: support basic arithmetic
-    // Replace variables with values
-    const replaced = expr
-      .replace(/principal/g, String(principal))
-      .replace(/accruedInterest/g, String(accrued.totalInterest))
-      .replace(/daysHeld/g, String(accrued.daysElapsed))
-      .replace(/totalTermDays/g, String(totalTermDays));
-
-    // Safe evaluation using Function
-    const result = new Function(`return ${replaced}`)();
-    const eligible = Math.max(0, Math.floor(Number(result) || 0));
-    return {
-      eligibleInterest: Math.min(eligible, accrued.totalInterest),
-      penaltyAmount: Math.max(
-        0,
-        accrued.totalInterest - eligible,
-      ),
-    };
-  } catch {
-    return calcNoInterest(principal, accrued);
-  }
-}
-
-/**
  * Find the applicable penalty rule from package configuration.
  */
 function findPenaltyRule(packageSnapshot: PackageSnapshot): PenaltyRule {
@@ -161,13 +131,23 @@ function findPenaltyRule(packageSnapshot: PackageSnapshot): PenaltyRule {
       r.strategy === PenaltyStrategy.NO_INTEREST ||
       r.strategy === PenaltyStrategy.DEMAND_INTEREST ||
       r.strategy === PenaltyStrategy.FIXED_PENALTY ||
-      r.strategy === PenaltyStrategy.PROVIDER_FORMULA,
+      r.strategy === PenaltyStrategy.PROVIDER_FORMULA ||
+      r.strategy === PenaltyStrategy.PROVIDER_CUSTOM,
   );
   return valid ?? rules[0];
 }
 
+function requiresProviderOrManualQuote(strategy: string): boolean {
+  return (
+    strategy === PenaltyStrategy.PROVIDER_FORMULA ||
+    strategy === PenaltyStrategy.PROVIDER_CUSTOM
+  );
+}
+
 /**
- * Main early withdrawal preview calculation.
+ * Early withdrawal preview from approved package penalty rules only.
+ * Does not evaluate provider formula expressions. Provider/custom strategies
+ * leave eligible/penalty/net unknown until a durable provider/manual quote exists.
  */
 export function previewEarlyWithdrawal(
   input: EarlyWithdrawalInput,
@@ -175,6 +155,20 @@ export function previewEarlyWithdrawal(
   const accrued = accruedToDate(input);
   const totalTermDays = daysBetween(input.startDate, input.endDate);
   const penaltyRule = findPenaltyRule(input.packageSnapshot);
+
+  if (requiresProviderOrManualQuote(penaltyRule.strategy)) {
+    return {
+      principal: input.principal,
+      accruedInterest: accrued.totalInterest,
+      eligibleInterest: null,
+      penaltyAmount: null,
+      netReturned: null,
+      penaltyStrategy: penaltyRule.strategy,
+      daysHeld: accrued.daysElapsed,
+      totalTermDays,
+      quoteReady: false,
+    };
+  }
 
   let eligibleInterest: number;
   let penaltyAmount: number;
@@ -199,22 +193,18 @@ export function previewEarlyWithdrawal(
         penaltyRule,
       ));
       break;
-    case PenaltyStrategy.PROVIDER_FORMULA:
-      ({ eligibleInterest, penaltyAmount } = calcProviderFormula(
-        input.principal,
-        accrued,
-        totalTermDays,
-        penaltyRule,
-      ));
-      break;
-    case PenaltyStrategy.PROVIDER_CUSTOM:
-      // Custom is a placeholder for future provider-specific logic
-      // For now, fall through to no interest
     default:
-      ({ eligibleInterest, penaltyAmount } = calcNoInterest(
-        input.principal,
-        accrued,
-      ));
+      return {
+        principal: input.principal,
+        accruedInterest: accrued.totalInterest,
+        eligibleInterest: null,
+        penaltyAmount: null,
+        netReturned: null,
+        penaltyStrategy: penaltyRule.strategy,
+        daysHeld: accrued.daysElapsed,
+        totalTermDays,
+        quoteReady: false,
+      };
   }
 
   const netReturned = input.principal + eligibleInterest;
@@ -228,6 +218,7 @@ export function previewEarlyWithdrawal(
     penaltyStrategy: penaltyRule.strategy,
     daysHeld: accrued.daysElapsed,
     totalTermDays,
+    quoteReady: true,
   };
 }
 
@@ -235,8 +226,9 @@ export function previewEarlyWithdrawal(
  * Check if penalty exceeds warning threshold (> 50% of accrued interest).
  */
 export function shouldWarnPenalty(preview: EarlyWithdrawalPreview): boolean {
+  if (!preview.quoteReady) return false;
   if (preview.accruedInterest <= 0) return false;
-  const ratio =
-    (preview.penaltyAmount / preview.accruedInterest) * 100;
+  if (preview.penaltyAmount == null) return false;
+  const ratio = (preview.penaltyAmount / preview.accruedInterest) * 100;
   return ratio >= PENALTY_WARNING_THRESHOLD_PCT;
 }

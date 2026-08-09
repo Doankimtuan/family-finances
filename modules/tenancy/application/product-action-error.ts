@@ -8,6 +8,15 @@
 
 import { COMMON_ACTION_ERROR_CODE } from "./common-action-error";
 
+/** Discriminator for product server-action results (forms + commands). */
+export const ProductActionStatus = {
+  SUCCESS: "success",
+  ERROR: "error",
+} as const;
+
+export type ProductActionStatus =
+  (typeof ProductActionStatus)[keyof typeof ProductActionStatus];
+
 /** Server-side mutation failures shared by money / plan / inbox commands. */
 export const PRODUCT_ACTION_ERROR_CODE = {
   UNAUTHENTICATED: COMMON_ACTION_ERROR_CODE.UNAUTHENTICATED,

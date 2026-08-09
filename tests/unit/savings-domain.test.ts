@@ -55,9 +55,7 @@ describe("savings early withdrawal penalty", () => {
     durationDays: 90,
     annualInterestRate: 4.5,
     settlementRules: [SettlementRule.WITHDRAW_EVERYTHING],
-    penaltyRules: [
-      { strategy: PenaltyStrategy.NO_INTEREST },
-    ],
+    penaltyRules: [{ strategy: PenaltyStrategy.NO_INTEREST }],
     renewableAvailable: true,
     minAmount: null,
     maxAmount: null,
@@ -73,6 +71,7 @@ describe("savings early withdrawal penalty", () => {
       interestMethod: InterestCalcMethod.SIMPLE,
       packageSnapshot,
     });
+    expect(preview.quoteReady).toBe(true);
     expect(preview.eligibleInterest).toBe(0);
     expect(preview.netReturned).toBe(preview.principal);
     expect(shouldWarnPenalty(preview)).toBe(preview.accruedInterest > 0);
@@ -93,8 +92,36 @@ describe("savings early withdrawal penalty", () => {
         ],
       },
     });
+    expect(preview.quoteReady).toBe(true);
     expect(preview.eligibleInterest).toBeGreaterThanOrEqual(0);
-    expect(preview.eligibleInterest).toBeLessThanOrEqual(preview.accruedInterest);
+    expect(preview.eligibleInterest ?? -1).toBeLessThanOrEqual(
+      preview.accruedInterest,
+    );
+  });
+
+  it("leaves provider formula amounts unknown without evaluating expressions", () => {
+    const preview = previewEarlyWithdrawal({
+      principal: 10_000_000,
+      annualRate: 4.5,
+      startDate: "2026-01-01",
+      endDate: "2026-04-01",
+      withdrawalDate: "2026-02-01",
+      interestMethod: InterestCalcMethod.SIMPLE,
+      packageSnapshot: {
+        ...packageSnapshot,
+        penaltyRules: [
+          {
+            strategy: PenaltyStrategy.PROVIDER_FORMULA,
+            formulaExpression: "accruedInterest * 0.7",
+          },
+        ],
+      },
+    });
+    expect(preview.quoteReady).toBe(false);
+    expect(preview.eligibleInterest).toBeNull();
+    expect(preview.penaltyAmount).toBeNull();
+    expect(preview.netReturned).toBeNull();
+    expect(shouldWarnPenalty(preview)).toBe(false);
   });
 });
 
@@ -125,9 +152,9 @@ describe("savings inbox typing", () => {
     expect(typed && "payload" in typed ? typed.payload.providerName : "").toBe(
       "Manual Saving",
     );
-    expect(
-      typed && "payload" in typed ? typed.payload.principal : 0,
-    ).toBe(1_000_000);
+    expect(typed && "payload" in typed ? typed.payload.principal : 0).toBe(
+      1_000_000,
+    );
   });
 
   it("never auto-resolves savings maturity kinds", () => {

@@ -7,27 +7,50 @@ import {
   type ProductActionErrorCode,
 } from "@/modules/tenancy/application/product-action-error";
 import {
-  AccountType,
-  CardBillingMonthStatus,
-  TransactionDirection,
+  CARD_PAYMENT_IDEMPOTENCY_KEY_MAX_LEN,
+  CARD_PAYMENT_IDEMPOTENCY_KEY_MIN_LEN,
+  createCardPaymentIdempotencyKey,
+  ISO_DATE_PATTERN,
+  LedgerRpcName,
+  SETTLE_CARD_INVALID_ERROR_NEEDLES,
 } from "../ledger-constants";
-import { applyFifoSettlement } from "../credit-card-billing";
-import { mapBillingMonthRow } from "../credit-card-types";
 
 export const settleCardInputSchema = z.object({
   cardAccountId: z.string().uuid(),
   sourceAccountId: z.string().uuid(),
   amount: z.number().int().positive(),
+  effectiveDate: z.string().regex(ISO_DATE_PATTERN).optional(),
+  idempotencyKey: z
+    .string()
+    .trim()
+    .min(CARD_PAYMENT_IDEMPOTENCY_KEY_MIN_LEN)
+    .max(CARD_PAYMENT_IDEMPOTENCY_KEY_MAX_LEN)
+    .optional(),
 });
 
 export type SettleCardInput = z.infer<typeof settleCardInputSchema>;
 
 export type SettleCardResult =
-  | { ok: true; transactionId: string }
+  | {
+      ok: true;
+      transactionId: string;
+      paymentId: string;
+      sourceDelta: number;
+      appliedAmount: number;
+      remainingDue: number;
+      idempotentReplay: boolean;
+    }
   | { ok: false; code: ProductActionErrorCode };
 
+function isSettleCardInvalidMessage(message: string): boolean {
+  return SETTLE_CARD_INVALID_ERROR_NEEDLES.some((needle) =>
+    message.includes(needle),
+  );
+}
+
 /**
- * FIFO settle credit card from a liquid source account (expense on source).
+ * Atomic card liability payment via settle_card_payment RPC.
+ * Not income or expense; one source balance change + payment link.
  */
 export async function settleCard(
   raw: SettleCardInput,
@@ -51,108 +74,62 @@ export async function settleCard(
 
   try {
     const supabase = await createSupabaseServerClient();
-    const [{ data: card }, { data: source }, { data: settings }] =
-      await Promise.all([
-        supabase
-          .from("accounts")
-          .select("id, type")
-          .eq("household_id", gate.householdId)
-          .eq("id", parsed.data.cardAccountId)
-          .eq("type", AccountType.CREDIT_CARD)
-          .eq("is_archived", false)
-          .maybeSingle(),
-        supabase
-          .from("accounts")
-          .select("id, type")
-          .eq("household_id", gate.householdId)
-          .eq("id", parsed.data.sourceAccountId)
-          .eq("is_archived", false)
-          .maybeSingle(),
-        supabase
-          .from("credit_card_settings")
-          .select("account_id")
-          .eq("household_id", gate.householdId)
-          .eq("account_id", parsed.data.cardAccountId)
-          .maybeSingle(),
-      ]);
+    const idempotencyKey =
+      parsed.data.idempotencyKey ?? createCardPaymentIdempotencyKey();
 
-    if (!card || !source || !settings) {
-      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
-    }
-    if (source.type === AccountType.CREDIT_CARD) {
-      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
-    }
-
-    const { data: monthRows } = await supabase
-      .from("card_billing_months")
-      .select(
-        "id, card_account_id, billing_month, statement_amount, paid_amount, due_date, status",
-      )
-      .eq("household_id", gate.householdId)
-      .eq("card_account_id", parsed.data.cardAccountId)
-      .neq("status", CardBillingMonthStatus.SETTLED)
-      .order("billing_month", { ascending: true });
-
-    const months = (monthRows ?? []).map(mapBillingMonthRow);
-    if (months.length === 0) {
-      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
-    }
-
-    const { data: rpcData, error: rpcError } = await supabase.rpc(
-      "record_transaction",
+    const { data, error } = await supabase.rpc(
+      LedgerRpcName.SETTLE_CARD_PAYMENT,
       {
-        p_account_id: parsed.data.sourceAccountId,
-        p_type: TransactionDirection.EXPENSE,
+        p_card_account_id: parsed.data.cardAccountId,
+        p_source_account_id: parsed.data.sourceAccountId,
         p_amount: parsed.data.amount,
-        p_transaction_date: new Date().toISOString().slice(0, 10),
-        p_note: "Credit card payment (FIFO)",
-        p_category_id: null,
-        p_jar_id: null,
-        p_idempotency_key: null,
+        p_effective_date: parsed.data.effectiveDate ?? null,
+        p_idempotency_key: idempotencyKey,
       },
     );
 
-    if (rpcError || !rpcData || typeof rpcData !== "object") {
+    if (error) {
+      const message = error.message?.toLowerCase() ?? "";
+      if (isSettleCardInvalidMessage(message)) {
+        return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
+      }
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
     }
-    const payload = rpcData as { transaction_id?: string };
-    if (!payload.transaction_id) {
+
+    const payload = data as {
+      ok?: boolean;
+      transactionId?: string;
+      paymentId?: string;
+      sourceDelta?: number;
+      appliedAmount?: number;
+      remainingDue?: number;
+      idempotentReplay?: boolean;
+    } | null;
+
+    const sourceDelta = Number(payload?.sourceDelta);
+    const appliedAmount = Number(payload?.appliedAmount);
+    const remainingDue = Number(payload?.remainingDue);
+
+    if (
+      !payload?.ok ||
+      !payload.transactionId ||
+      !payload.paymentId ||
+      !Number.isFinite(sourceDelta) ||
+      !Number.isFinite(appliedAmount) ||
+      !Number.isFinite(remainingDue)
+    ) {
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
     }
 
-    const fifo = applyFifoSettlement(
-      months.map((m) => ({
-        id: m.id,
-        statementAmount: m.statementAmount,
-        paidAmount: m.paidAmount,
-        status: m.status,
-      })),
-      parsed.data.amount,
-    );
-
-    for (const month of fifo.months) {
-      const { error } = await supabase
-        .from("card_billing_months")
-        .update({
-          paid_amount: month.paidAmount,
-          status: month.status,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", month.id);
-      if (error) {
-        return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
-      }
-
-      if (month.status === CardBillingMonthStatus.SETTLED) {
-        await supabase
-          .from("card_billing_items")
-          .update({ is_paid: true, updated_at: new Date().toISOString() })
-          .eq("billing_month_id", month.id)
-          .eq("is_converted_to_installment", false);
-      }
-    }
-
-    return { ok: true, transactionId: payload.transaction_id };
+    return {
+      ok: true,
+      transactionId: payload.transactionId,
+      paymentId: payload.paymentId,
+      sourceDelta,
+      appliedAmount,
+      remainingDue,
+      idempotentReplay: Boolean(payload.idempotentReplay),
+    };
   } catch {
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }

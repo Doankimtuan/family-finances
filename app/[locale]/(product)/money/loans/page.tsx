@@ -53,7 +53,6 @@ export default async function LoansPage({ params }: Props) {
           <Text size="sm" tone="secondary">
             {tProducts("notBankBalance")}
           </Text>
-          <CreateLoanForm />
           {loadFailed ? (
             <StatusAlert
               variant="danger"
@@ -67,7 +66,7 @@ export default async function LoansPage({ params }: Props) {
               className="flex-none py-(--space-4)"
             />
           ) : (
-            <ul className="flex flex-col gap-(--space-2)">
+            <ul className="flex flex-col gap-(--space-2)" data-testid="loans-list">
               {list.map((loan) => (
                 <li key={loan.id}>
                   <Link
@@ -125,6 +124,7 @@ export default async function LoansPage({ params }: Props) {
               ))}
             </ul>
           )}
+          <CreateLoanForm />
           <Link
             href={APP_PATH.MONEY}
             className="text-sm font-medium text-accent"

@@ -5,6 +5,7 @@ import {
   buildRateSegmentsFromStrategy,
   buildReducingBalanceSchedule,
   computeEarlyPayoffAmount,
+  estimateEarlyPayoffComponents,
   normalizeTermToMonths,
   recomputeUpcomingSchedule,
   simulateLoanPreview,
@@ -224,7 +225,20 @@ describe("loan amortization engine", () => {
     expect(preview!.monthlyPaymentAfterChange).toBeGreaterThan(0);
   });
 
-  it("computes early payoff amount", () => {
+  it("computes legacy early payoff amount helper", () => {
     expect(computeEarlyPayoffAmount(10_000_000, 500_000)).toBe(10_500_000);
+  });
+
+  it("estimates early payoff without inventing accrued interest", () => {
+    const estimate = estimateEarlyPayoffComponents({
+      remainingPrincipal: 10_000_000,
+      asOfDate: "2026-08-09",
+    });
+    expect(estimate.remainingPrincipal).toBe(10_000_000);
+    expect(estimate.accruedInterest).toBeNull();
+    expect(estimate.fee).toBeNull();
+    expect(estimate.estimateTotal).toBeNull();
+    expect(estimate.isComplete).toBe(false);
+    expect(estimate.isLenderQuote).toBe(false);
   });
 });

@@ -14,8 +14,8 @@ import {
   listCreditCards,
   listRecentTransactions,
   DEFAULT_CURRENCY,
-  TRANSACTION_AMOUNT_PREFIX,
-  TransactionDirection,
+  TRANSACTION_LEDGER_AMOUNT_PREFIX,
+  TransactionLedgerType,
 } from "@/modules/ledger/application";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
@@ -23,7 +23,7 @@ import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Section } from "@/shared/patterns/section";
 import { Balance } from "@/shared/patterns/balance";
 import { EmptyState } from "@/shared/patterns/empty-state";
-import { TransactionRow } from "@/shared/patterns/transaction-row";
+import { TransactionRow, TransactionAmountTone } from "@/shared/patterns/transaction-row";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Page } from "@/shared/patterns/page";
 import { MoneyOfflineBanner } from "./money-offline-banner";
@@ -222,11 +222,11 @@ export default async function MoneyHubPage({ params }: Props) {
                       "accounts",
                       tx.accountName,
                     )}
-                    amountLabel={`${TRANSACTION_AMOUNT_PREFIX[tx.type]}${formatCurrency(tx.amount, tx.currency, locale, { maximumFractionDigits: 0 })}`}
+                    amountLabel={`${TRANSACTION_LEDGER_AMOUNT_PREFIX[tx.type]}${formatCurrency(tx.amount, tx.currency, locale, { maximumFractionDigits: 0 })}`}
                     tone={
-                      tx.type === TransactionDirection.EXPENSE
-                        ? "debit"
-                        : "credit"
+                      tx.type === TransactionLedgerType.INCOME
+                        ? TransactionAmountTone.CREDIT
+                        : TransactionAmountTone.DEBIT
                     }
                   />
                 </Link>

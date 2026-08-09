@@ -10,13 +10,18 @@ import {
 import {
   RenewalPolicy,
   SettlementRule,
+  InterestCalcMethod,
+  SavingType,
   RENEWAL_POLICY_VALUES,
   SETTLEMENT_RULE_VALUES,
 } from "@/modules/savings/application/savings-constants";
+import { computeFullTermInterest } from "@/modules/savings/application/savings-interest";
 import { TextField } from "@/shared/ui/form";
 import { Button } from "@/shared/ui/button";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Text } from "@/shared/ui/text";
+import { ConfirmSummary } from "@/shared/patterns/confirm-summary";
+import { BottomActionBar } from "@/shared/patterns/bottom-action-bar";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import { DEFAULT_CURRENCY } from "@/modules/ledger/application/client";
@@ -60,6 +65,24 @@ function needsRenewalConfig(policy: string): boolean {
   );
 }
 
+function savingTypeLabel(
+  t: ReturnType<typeof useTranslations<"money.savingsWizard">>,
+  savingType: string,
+): string {
+  switch (savingType) {
+    case SavingType.BANK_DEPOSIT:
+      return t("savingTypes.bank_deposit");
+    case SavingType.DIGITAL_SAVING:
+      return t("savingTypes.digital_saving");
+    case SavingType.FLEXIBLE_SAVING:
+      return t("savingTypes.flexible_saving");
+    case SavingType.MANUAL_SAVING:
+      return t("savingTypes.manual_saving");
+    default:
+      return t("savingTypes.manual_saving");
+  }
+}
+
 export function CreateSavingWizard({
   accounts,
   providers,
@@ -96,19 +119,27 @@ export function CreateSavingWizard({
     [packagesByProvider, providerId],
   );
   const selectedPackage = packages.find((p) => p.id === packageId) ?? null;
-  const selectedProvider =
-    providers.find((p) => p.id === providerId) ?? null;
+  const selectedProvider = providers.find((p) => p.id === providerId) ?? null;
+  const fundingAccount =
+    accounts.find((a) => a.id === fundingAccountId) ?? null;
+  const settlementAccount =
+    accounts.find((a) => a.id === settlementAccountId) ?? null;
   const showConfig = needsRenewalConfig(renewalPolicy);
 
+  const principalAmount = Number(principal.replace(/\D/g, ""));
   const estimatedInterest = useMemo(() => {
     if (!selectedPackage) return 0;
-    const p = Number(principal.replace(/\D/g, ""));
-    if (!Number.isFinite(p) || p <= 0) return 0;
-    return Math.floor(
-      (p * selectedPackage.annualInterestRate * selectedPackage.durationDays) /
-        (100 * 365),
-    );
-  }, [principal, selectedPackage]);
+    if (!Number.isFinite(principalAmount) || principalAmount <= 0) return 0;
+    return computeFullTermInterest({
+      principal: principalAmount,
+      annualRate: selectedPackage.annualInterestRate,
+      durationDays: selectedPackage.durationDays,
+      method: InterestCalcMethod.SIMPLE,
+    });
+  }, [principalAmount, selectedPackage]);
+
+  const money = (n: number) =>
+    formatCurrency(n, DEFAULT_CURRENCY, locale, { maximumFractionDigits: 0 });
 
   const goNext = () => {
     if (step === "provider" && !packageId && packages[0]) {
@@ -195,7 +226,7 @@ export function CreateSavingWizard({
             {selectedProvider?.displayName}
           </Text>
           <Text size="sm" tone="secondary">
-            {selectedProvider?.savingType}
+            {savingTypeLabel(t, selectedProvider?.savingType ?? "")}
           </Text>
         </div>
       ) : null}
@@ -217,7 +248,13 @@ export function CreateSavingWizard({
                 if (!preferredPackageId) setPreferredPackageId(pkg.id);
               }}
             >
-              {pkg.packageName} · {pkg.annualInterestRate}% · {pkg.durationDays}d
+              <span className="font-medium">{pkg.packageName}</span>
+              <span className="mt-1 block text-text-secondary">
+                {t("packageMeta", {
+                  rate: pkg.annualInterestRate,
+                  days: pkg.durationDays,
+                })}
+              </span>
             </button>
           ))}
           <TextField
@@ -235,19 +272,69 @@ export function CreateSavingWizard({
           <Text size="sm" tone="secondary">
             {t("reviewHint")}
           </Text>
-          <Text size="sm">
-            {selectedProvider?.displayName} · {selectedPackage?.packageName}
+          <Text size="sm" tone="secondary">
+            {t("receiptHint")}
           </Text>
-          <Text size="sm">
-            {t("estimatedInterest", {
-              amount: formatCurrency(
-                estimatedInterest,
-                DEFAULT_CURRENCY,
-                locale,
-                { maximumFractionDigits: 0 },
-              ),
-            })}
-          </Text>
+          <ConfirmSummary
+            data-testid="savings-wizard-preview"
+            rows={[
+              {
+                id: "funding",
+                label: t("stepFunding"),
+                value: fundingAccount?.name ?? "",
+              },
+              {
+                id: "provider",
+                label: t("stepProvider"),
+                value: selectedProvider?.displayName ?? "",
+              },
+              {
+                id: "package",
+                label: t("stepPackage"),
+                value: selectedPackage?.packageName ?? "",
+              },
+              {
+                id: "principal",
+                label: t("principalLabel"),
+                value: money(
+                  Number.isFinite(principalAmount) ? principalAmount : 0,
+                ),
+              },
+              {
+                id: "expected",
+                label: t("estimatedInterest"),
+                value: t("estimatedInterestValue", {
+                  amount: money(estimatedInterest),
+                }),
+              },
+              {
+                id: "settlement",
+                label: t("settlementAccountLabel"),
+                value: settlementAccount?.name ?? "",
+              },
+              {
+                id: "rule",
+                label: t("settlementRuleLabel"),
+                value: t(
+                  `settlementRules.${settlementRule}` as
+                    | "settlementRules.roll_principal_interest"
+                    | "settlementRules.roll_principal_only"
+                    | "settlementRules.withdraw_everything",
+                ),
+              },
+              {
+                id: "renewal",
+                label: t("renewalPolicyLabel"),
+                value: t(
+                  `renewalPolicies.${renewalPolicy}` as
+                    | "renewalPolicies.always_ask"
+                    | "renewalPolicies.use_saved_preference"
+                    | "renewalPolicies.auto_renew_until_cancelled"
+                    | "renewalPolicies.one_time_renewal",
+                ),
+              },
+            ]}
+          />
           <label className="flex flex-col gap-(--space-2)">
             <Text size="sm" className="font-semibold">
               {t("settlementAccountLabel")}
@@ -319,7 +406,7 @@ export function CreateSavingWizard({
         </div>
       ) : null}
 
-      <div className="flex flex-col gap-(--space-2)">
+      <BottomActionBar>
         {step !== "review" ? (
           <Button
             variant="primary"
@@ -397,7 +484,7 @@ export function CreateSavingWizard({
             {t("back")}
           </Button>
         )}
-      </div>
+      </BottomActionBar>
     </div>
   );
 }

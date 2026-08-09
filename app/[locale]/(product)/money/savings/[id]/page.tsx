@@ -14,13 +14,15 @@ import {
   listSavingCycles,
   listProviderPackages,
   SavingStatus,
-  CycleStatus,
 } from "@/modules/savings/application";
 import { DEFAULT_CURRENCY } from "@/modules/ledger/application/ledger-constants";
-import { formatCurrency } from "@/shared/i18n/formatters";
+import { formatCurrency, formatDate } from "@/shared/i18n/formatters";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
+import { Page } from "@/shared/patterns/page";
+import { Section } from "@/shared/patterns/section";
 import { Amount } from "@/shared/patterns/amount";
 import { EmptyState } from "@/shared/patterns/empty-state";
+import { BottomActionBar } from "@/shared/patterns/bottom-action-bar";
 import { Text } from "@/shared/ui/text";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { MoneyOfflineBanner } from "../../money-offline-banner";
@@ -28,7 +30,11 @@ import { RenewalPolicyEditor } from "./renewal-policy-editor";
 
 type Props = { params: Promise<{ locale: string; id: string }> };
 
-/** money.savings-detail — timeline + Inbox guidance. */
+function formatIsoDate(iso: string, locale: string) {
+  return formatDate(new Date(`${iso}T12:00:00`), locale);
+}
+
+/** money.savings-detail — principal, maturity, immutable cycle history. */
 export default async function SavingsDetailPage({ params }: Props) {
   const { locale: raw, id } = await params;
   const locale = hasLocale(routing.locales, raw) ? raw : routing.defaultLocale;
@@ -49,24 +55,21 @@ export default async function SavingsDetailPage({ params }: Props) {
 
   if (!item) {
     return (
-      <div
-        className="flex min-h-full flex-col"
-        data-testid="savings-detail-missing"
+      <Page
+        testId="savings-detail-missing"
+        topBar={<TopAppBar title={t("title")} />}
       >
-        <TopAppBar title={t("title")} />
-        <div className="px-(--space-4) pt-(--space-4)">
-          <EmptyState
-            title={t("notFound")}
-            className="flex-none py-(--space-4)"
-          />
-          <Link
-            href={APP_PATH.MONEY_SAVINGS}
-            className="text-sm font-medium text-accent"
-          >
-            {t("back")}
-          </Link>
-        </div>
-      </div>
+        <EmptyState
+          title={t("notFound")}
+          className="flex-none py-(--space-4)"
+        />
+        <Link
+          href={APP_PATH.MONEY_SAVINGS}
+          className="text-sm font-medium text-accent"
+        >
+          {t("back")}
+        </Link>
+      </Page>
     );
   }
 
@@ -76,133 +79,151 @@ export default async function SavingsDetailPage({ params }: Props) {
   );
   const money = (n: number) =>
     formatCurrency(n, DEFAULT_CURRENCY, locale, { maximumFractionDigits: 0 });
+  const isTerminal =
+    item.status === SavingStatus.CLOSED ||
+    item.status === SavingStatus.EARLY_CLOSED;
+  const canAct =
+    item.status === SavingStatus.ACTIVE || item.status === SavingStatus.MATURED;
 
-  const packages =
-    item.status === SavingStatus.ACTIVE || item.status === SavingStatus.MATURED
-      ? ((await listProviderPackages(item.providerId)) ?? []).map((p) => ({
-          id: p.id,
-          packageName: p.packageName,
-        }))
-      : [];
+  const packages = canAct
+    ? ((await listProviderPackages(item.providerId)) ?? []).map((p) => ({
+        id: p.id,
+        packageName: p.packageName,
+      }))
+    : [];
 
   return (
-    <div className="flex min-h-full flex-col" data-testid="savings-detail">
-      <TopAppBar title={item.productName || t("title")} />
-      <div className="flex flex-1 flex-col gap-(--space-4) px-(--space-4) pb-(--space-6) pt-(--space-4)">
-        <MoneyOfflineBanner />
-        <Text size="sm" tone="secondary">
-          {tProducts("notBankBalance")}
-        </Text>
-        {legacyImport ? (
-          <StatusAlert variant="info" title={t("legacyBanner")} />
-        ) : null}
+    <Page
+      testId="savings-detail"
+      topBar={<TopAppBar title={item.productName || t("title")} />}
+    >
+      <MoneyOfflineBanner />
+      <Text size="sm" tone="secondary">
+        {tProducts("notBankBalance")}
+      </Text>
+      {legacyImport ? (
+        <StatusAlert variant="info" title={t("legacyBanner")} />
+      ) : null}
+
+      <Section title={t("identityTitle")} testId="savings-identity">
         <Amount
           label={tProducts("principalLabel")}
           amountLabel={money(cycle?.principal ?? 0)}
           size="lg"
         />
         <Text size="sm" tone="secondary">
-          {t("providerLabel")}: {item.providerName}
+          {t("statusLine", { status: t(`status.${item.status}`) })}
         </Text>
         <Text size="sm" tone="secondary">
-          {t("packageLabel")}: {item.productSnapshot.packageName}
+          {t("providerLine", { provider: item.providerName || t("title") })}
         </Text>
-        {cycle ? (
-          <>
-            <Text size="sm" tone="secondary">
-              {t("rateLabel")}: {cycle.lockedRate}%
-            </Text>
-            <Text size="sm" tone="secondary">
-              {t("accruedLabel")}: {money(cycle.accruedInterest)}
-            </Text>
-            <Text size="sm" tone="secondary">
-              {t("maturityDate", { date: cycle.endDate })}
-            </Text>
-            <Text size="sm" tone="secondary">
-              {t("cycleLabel", { number: cycle.cycleNumber })}
-            </Text>
-          </>
-        ) : null}
+        <Text size="sm" tone="secondary">
+          {t("packageLine", {
+            package: item.productSnapshot.packageName || t("title"),
+          })}
+        </Text>
+      </Section>
 
-        <section className="flex flex-col gap-(--space-2)">
-          <Text size="sm" className="font-semibold text-text-primary">
-            {t("timelineTitle")}
+      {cycle ? (
+        <Section title={t("cycleFactsTitle")} testId="savings-cycle-facts">
+          <Text size="sm" tone="secondary">
+            {t("rateLine", { rate: cycle.lockedRate })}
           </Text>
-          <ol className="flex flex-col gap-(--space-2) text-sm text-text-secondary">
-            <li>
-              {t("timelineFunded", {
-                account: item.fundingAccountName ?? "—",
-              })}
-            </li>
-            <li>{t("timelineActive")}</li>
-            <li>{t("timelineAccrual")}</li>
-            <li>
-              {t("timelineMaturity", { date: cycle?.endDate ?? "—" })}
-            </li>
-            {(item.status === SavingStatus.MATURED ||
-              cycle?.status === CycleStatus.MATURED) && (
-              <li>{t("timelineInbox")}</li>
-            )}
-            {(item.status === SavingStatus.CLOSED ||
-              item.status === SavingStatus.EARLY_CLOSED) && (
-              <li>{t("timelineSettled")}</li>
-            )}
-          </ol>
-        </section>
+          <Amount
+            label={t("accruedNonPostedLabel")}
+            amountLabel={money(cycle.accruedInterest)}
+          />
+          <Text size="sm" tone="secondary">
+            {t("maturityDate", {
+              date: formatIsoDate(cycle.endDate, locale),
+            })}
+          </Text>
+          <Text size="sm" tone="secondary">
+            {t("cycleLabel", { number: cycle.cycleNumber })}
+          </Text>
+          <Text size="sm" tone="secondary">
+            {t("cycleStatusLine", {
+              status: t(`cycleStatus.${cycle.status}`),
+            })}
+          </Text>
+        </Section>
+      ) : null}
 
-        {cycles && cycles.length > 1 ? (
-          <section className="flex flex-col gap-(--space-2)">
+      {cycles && cycles.length > 0 ? (
+        <Section title={t("historyTitle")} testId="savings-cycle-history">
+          <ul className="flex flex-col gap-(--space-2)">
             {cycles.map((c) => (
-              <Text key={c.id} size="sm" tone="secondary">
-                {t("cycleLabel", { number: c.cycleNumber })} · {c.status} ·{" "}
-                {money(c.principal)}
-              </Text>
+              <li
+                key={c.id}
+                className="rounded-md border border-border-subtle px-(--space-3) py-(--space-2)"
+                data-testid={`savings-cycle-row-${c.id}`}
+              >
+                <Text size="sm" className="font-medium text-text-primary">
+                  {t("cycleLabel", { number: c.cycleNumber })}
+                </Text>
+                <Text size="sm" tone="secondary">
+                  {t("cycleHistoryLine", {
+                    status: t(`cycleStatus.${c.status}`),
+                    principal: money(c.principal),
+                    start: formatIsoDate(c.startDate, locale),
+                    end: formatIsoDate(c.endDate, locale),
+                  })}
+                </Text>
+              </li>
             ))}
-          </section>
-        ) : null}
+          </ul>
+        </Section>
+      ) : null}
 
-        <Text size="sm" tone="secondary">
-          {t("maturityHint")}
-        </Text>
-
-        {(item.status === SavingStatus.ACTIVE ||
-          item.status === SavingStatus.MATURED) && (
+      {canAct ? (
+        <Section title={t("renewalPolicyTitle")}>
+          <Text size="sm" tone="secondary">
+            {t("renewalPolicyHint")}
+          </Text>
           <RenewalPolicyEditor
             savingId={item.id}
             renewalPolicy={item.renewalPolicy}
             renewalConfig={item.renewalConfig}
             packages={packages}
           />
-        )}
+        </Section>
+      ) : null}
 
+      {isTerminal ? (
+        <StatusAlert variant="info" title={t("terminalReadOnly")} />
+      ) : (
+        <Text size="sm" tone="secondary">
+          {t("maturityHint")}
+        </Text>
+      )}
+
+      <BottomActionBar>
         {item.status === SavingStatus.MATURED ? (
           <Link
             href={APP_PATH.INBOX}
-            className="inline-flex min-h-11 items-center justify-center rounded-md bg-accent px-(--space-4) text-sm font-medium text-accent-fg"
+            className="inline-flex min-h-11 w-full items-center justify-center rounded-md bg-accent px-(--space-4) text-sm font-medium text-accent-fg"
             data-testid="savings-open-inbox"
           >
             {t("handleMaturity")}
           </Link>
         ) : null}
-
         {item.status === SavingStatus.ACTIVE && cycle ? (
           <Link
             href={moneySavingsEarlyWithdrawPath(item.id)}
-            className="text-sm font-medium text-accent"
+            className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary"
             data-testid="savings-early-withdraw"
           >
             {t("earlyWithdraw")}
           </Link>
         ) : null}
-
         <Link
           href={APP_PATH.MONEY_SAVINGS}
-          className="text-sm font-medium text-accent"
+          className="inline-flex min-h-11 w-full items-center justify-center text-sm font-medium text-accent"
           data-testid="savings-detail-back"
         >
           {t("back")}
         </Link>
-      </div>
-    </div>
+      </BottomActionBar>
+    </Page>
   );
 }

@@ -23,10 +23,35 @@ export const TRANSACTION_AMOUNT_PREFIX = {
   [TransactionDirection.INCOME]: "+",
 } as const;
 
+/** Capture / correct / category kinds — income and expense only. */
 export const TRANSACTION_DIRECTION_VALUES = [
   TransactionDirection.INCOME,
   TransactionDirection.EXPENSE,
 ] as const;
+
+/**
+ * Persisted ledger movement kinds.
+ * Liability payment is a real-money repayment that is not income or expense.
+ */
+export const TransactionLedgerType = {
+  ...TransactionDirection,
+  LIABILITY_PAYMENT: "liability_payment",
+} as const;
+
+export type TransactionLedgerType =
+  (typeof TransactionLedgerType)[keyof typeof TransactionLedgerType];
+
+export const TRANSACTION_LEDGER_TYPE_VALUES = [
+  TransactionLedgerType.INCOME,
+  TransactionLedgerType.EXPENSE,
+  TransactionLedgerType.LIABILITY_PAYMENT,
+] as const;
+
+export const TRANSACTION_LEDGER_AMOUNT_PREFIX = {
+  [TransactionLedgerType.EXPENSE]: "-",
+  [TransactionLedgerType.INCOME]: "+",
+  [TransactionLedgerType.LIABILITY_PAYMENT]: "-",
+} as const;
 
 /**
  * Ledger posting lifecycle (BR-02 / BR-03).
@@ -299,15 +324,83 @@ export const LOAN_SCHEDULE_ENTRY_STATUS_VALUES = [
 
 export const LoanPaymentMode = {
   SCHEDULED: "scheduled",
+  /** @deprecated Mutating early payoff is not authorized; estimate-only in UI. */
   EARLY_PAYOFF: "early_payoff",
 } as const;
 
 export type LoanPaymentMode =
   (typeof LoanPaymentMode)[keyof typeof LoanPaymentMode];
 
+/** Modes accepted by record_loan_payment in Phase F5 (scheduled only). */
+export const LOAN_PAYMENT_EXECUTABLE_MODE_VALUES = [
+  LoanPaymentMode.SCHEDULED,
+] as const;
+
 export const LOAN_PAYMENT_MODE_VALUES = [
   LoanPaymentMode.SCHEDULED,
   LoanPaymentMode.EARLY_PAYOFF,
+] as const;
+
+/**
+ * Preview → confirm → receipt flow for liability payments (card settle, loan pay).
+ */
+export const MoneyPaymentFlowStep = {
+  FORM: "form",
+  CONFIRM: "confirm",
+  RECEIPT: "receipt",
+} as const;
+
+export type MoneyPaymentFlowStep =
+  (typeof MoneyPaymentFlowStep)[keyof typeof MoneyPaymentFlowStep];
+
+/** YYYY-MM-DD calendar date (Zod + HTML date inputs). */
+export const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
+export const CARD_PAYMENT_IDEMPOTENCY_KEY_PREFIX = "card-pay:";
+export const CARD_PAYMENT_IDEMPOTENCY_KEY_MIN_LEN = 8;
+export const CARD_PAYMENT_IDEMPOTENCY_KEY_MAX_LEN = 160;
+
+export function createCardPaymentIdempotencyKey(): string {
+  return `${CARD_PAYMENT_IDEMPOTENCY_KEY_PREFIX}${crypto.randomUUID()}`;
+}
+
+/** Supabase RPC names used by ledger money-product commands. */
+export const LedgerRpcName = {
+  SETTLE_CARD_PAYMENT: "settle_card_payment",
+  RECORD_LOAN_PAYMENT: "record_loan_payment",
+  UPDATE_LOAN_INTEREST_RATE: "update_loan_interest_rate",
+  RECORD_LIABILITY_PAYMENT: "record_liability_payment",
+  CREATE_LOAN_WITH_SCHEDULE: "create_loan_with_schedule",
+  SET_LOAN_STATUS: "set_loan_status",
+} as const;
+
+export type LedgerRpcName =
+  (typeof LedgerRpcName)[keyof typeof LedgerRpcName];
+
+/** Public relation names for ledger queries / mutations. */
+export const LedgerRelation = {
+  LOAN_SCHEDULE_ENTRIES: "loan_schedule_entries",
+  LOAN_PAYMENTS: "loan_payments",
+  LOAN_INTEREST_RATE_PERIODS: "loan_interest_rate_periods",
+} as const;
+
+export type LedgerRelation =
+  (typeof LedgerRelation)[keyof typeof LedgerRelation];
+
+/** Lowercased PostgREST / RPC message needles mapped to INVALID. */
+export const SETTLE_CARD_INVALID_ERROR_NEEDLES = [
+  "invalid",
+  "not found",
+  "exceeds",
+  "no remaining",
+  "cannot be",
+] as const;
+
+export const RECORD_LOAN_PAYMENT_INVALID_ERROR_NEEDLES = [
+  "already completed",
+  "invalid",
+  "credit card",
+  "no upcoming",
 ] as const;
 
 /** Ledger-only mutation errors (not shared across plan/inbox forms). */

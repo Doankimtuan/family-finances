@@ -17,6 +17,7 @@ import {
   InterestCalcMethod,
 } from "@/modules/savings/application";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
+import { Page } from "@/shared/patterns/page";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { MoneyOfflineBanner } from "../../../money-offline-banner";
 import { EarlyWithdrawForm } from "./early-withdraw-form";
@@ -42,18 +43,15 @@ export default async function EarlyWithdrawPage({ params }: Props) {
   const cycle = saving?.latestCycle;
   if (!saving || !cycle || cycle.status !== CycleStatus.ACTIVE) {
     return (
-      <div className="flex min-h-full flex-col">
-        <TopAppBar title={t("title")} />
-        <div className="px-(--space-4) pt-(--space-4)">
-          <EmptyState title={t("title")} className="flex-none py-(--space-4)" />
-          <Link
-            href={moneySavingsPath(id)}
-            className="text-sm font-medium text-accent"
-          >
-            {t("back")}
-          </Link>
-        </div>
-      </div>
+      <Page topBar={<TopAppBar title={t("title")} />}>
+        <EmptyState title={t("title")} className="flex-none py-(--space-4)" />
+        <Link
+          href={moneySavingsPath(id)}
+          className="text-sm font-medium text-accent"
+        >
+          {t("back")}
+        </Link>
+      </Page>
     );
   }
 
@@ -70,22 +68,19 @@ export default async function EarlyWithdrawPage({ params }: Props) {
   });
 
   return (
-    <div
-      className="flex min-h-full flex-col"
-      data-testid="money-savings-early-withdraw"
+    <Page
+      testId="money-savings-early-withdraw"
+      topBar={<TopAppBar title={t("title")} subtitle={t("subtitle")} />}
     >
-      <TopAppBar title={t("title")} subtitle={t("subtitle")} />
-      <div className="flex flex-1 flex-col gap-(--space-4) px-(--space-4) pb-(--space-6) pt-(--space-4)">
-        <MoneyOfflineBanner />
-        <EarlyWithdrawForm
-          savingId={saving.id}
-          cycleId={cycle.id}
-          preview={{
-            ...preview,
-            warnPenalty: shouldWarnPenalty(preview),
-          }}
-        />
-      </div>
-    </div>
+      <MoneyOfflineBanner />
+      <EarlyWithdrawForm
+        savingId={saving.id}
+        cycleId={cycle.id}
+        preview={{
+          ...preview,
+          warnPenalty: shouldWarnPenalty(preview),
+        }}
+      />
+    </Page>
   );
 }

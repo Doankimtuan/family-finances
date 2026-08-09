@@ -11,15 +11,16 @@ import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
 import {
   listTransactions,
-  TRANSACTION_AMOUNT_PREFIX,
+  TRANSACTION_LEDGER_AMOUNT_PREFIX,
   TransactionDirection,
   TransactionFilterType,
+  TransactionLedgerType,
 } from "@/modules/ledger/application";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { EmptyState } from "@/shared/patterns/empty-state";
-import { TransactionRow } from "@/shared/patterns/transaction-row";
+import { TransactionRow, TransactionAmountTone } from "@/shared/patterns/transaction-row";
 import { Page } from "@/shared/patterns/page";
 import { MoneyOfflineBanner } from "../money-offline-banner";
 import { TransactionsFilterBar } from "./transactions-filter-bar";
@@ -103,11 +104,11 @@ export default async function TransactionsListPage({
                     "accounts",
                     tx.accountName,
                   )}
-                  amountLabel={`${TRANSACTION_AMOUNT_PREFIX[tx.type]}${formatCurrency(tx.amount, tx.currency, locale, { maximumFractionDigits: 0 })}`}
+                  amountLabel={`${TRANSACTION_LEDGER_AMOUNT_PREFIX[tx.type]}${formatCurrency(tx.amount, tx.currency, locale, { maximumFractionDigits: 0 })}`}
                   tone={
-                    tx.type === TransactionDirection.EXPENSE
-                      ? "debit"
-                      : "credit"
+                    tx.type === TransactionLedgerType.INCOME
+                      ? TransactionAmountTone.CREDIT
+                      : TransactionAmountTone.DEBIT
                   }
                 />
               </Link>

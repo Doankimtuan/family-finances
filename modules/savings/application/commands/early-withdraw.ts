@@ -101,9 +101,7 @@ export async function previewEarlyWithdrawalForSaving(
 }
 
 /** @deprecated Prefer previewEarlyWithdrawalForSaving + app Inbox enqueue. */
-export async function requestEarlyWithdrawal(
-  raw: EarlyWithdrawInput,
-): Promise<
+export async function requestEarlyWithdrawal(raw: EarlyWithdrawInput): Promise<
   | {
       ok: true;
       preview: EarlyWithdrawalPreview;
@@ -139,6 +137,14 @@ export async function confirmEarlyWithdrawal(
   }
 
   const { preview } = built;
+  if (
+    !preview.quoteReady ||
+    preview.eligibleInterest == null ||
+    preview.penaltyAmount == null ||
+    preview.netReturned == null
+  ) {
+    return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
+  }
 
   try {
     const supabase = await createSupabaseServerClient();

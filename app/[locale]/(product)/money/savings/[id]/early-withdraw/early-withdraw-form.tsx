@@ -10,7 +10,8 @@ import {
 import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
 import { StatusAlert } from "@/shared/ui/status-alert";
-import { Amount } from "@/shared/patterns/amount";
+import { ConfirmSummary } from "@/shared/patterns/confirm-summary";
+import { BottomActionBar } from "@/shared/patterns/bottom-action-bar";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import { DEFAULT_CURRENCY } from "@/modules/ledger/application/client";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
@@ -23,10 +24,11 @@ import { requestEarlyWithdrawalAction } from "../../savings-actions";
 type Preview = {
   principal: number;
   accruedInterest: number;
-  eligibleInterest: number;
-  penaltyAmount: number;
-  netReturned: number;
+  eligibleInterest: number | null;
+  penaltyAmount: number | null;
+  netReturned: number | null;
   warnPenalty: boolean;
+  quoteReady: boolean;
 };
 
 type Props = {
@@ -49,6 +51,8 @@ export function EarlyWithdrawForm({ savingId, cycleId, preview }: Props) {
 
   const money = (n: number) =>
     formatCurrency(n, DEFAULT_CURRENCY, locale, { maximumFractionDigits: 0 });
+  const amountOrUnknown = (n: number | null) =>
+    n == null ? t("unknown") : money(n);
 
   return (
     <div
@@ -58,52 +62,76 @@ export function EarlyWithdrawForm({ savingId, cycleId, preview }: Props) {
       {errorCode ? (
         <StatusAlert variant="danger" title={tErr(errorCode)} />
       ) : null}
+      {!preview.quoteReady ? (
+        <StatusAlert variant="warning" title={t("quoteUnavailable")} />
+      ) : null}
       {preview.warnPenalty ? (
         <StatusAlert variant="warning" title={t("warnPenalty")} />
       ) : null}
-      <Amount label={t("principal")} amountLabel={money(preview.principal)} />
-      <Amount
-        label={t("accrued")}
-        amountLabel={money(preview.accruedInterest)}
+      <ConfirmSummary
+        data-testid="savings-early-withdraw-preview"
+        rows={[
+          {
+            id: "principal",
+            label: t("principal"),
+            value: money(preview.principal),
+          },
+          {
+            id: "accrued",
+            label: t("accrued"),
+            value: money(preview.accruedInterest),
+          },
+          {
+            id: "eligible",
+            label: t("eligible"),
+            value: amountOrUnknown(preview.eligibleInterest),
+          },
+          {
+            id: "penalty",
+            label: t("penalty"),
+            value: amountOrUnknown(preview.penaltyAmount),
+          },
+          {
+            id: "net",
+            label: t("net"),
+            value: amountOrUnknown(preview.netReturned),
+          },
+        ]}
       />
-      <Amount
-        label={t("eligible")}
-        amountLabel={money(preview.eligibleInterest)}
-      />
-      <Amount label={t("penalty")} amountLabel={money(preview.penaltyAmount)} />
-      <Amount label={t("net")} amountLabel={money(preview.netReturned)} size="lg" />
-      <Button
-        variant="primary"
-        className="min-h-11 w-full"
-        data-testid="savings-early-withdraw-request"
-        isDisabled={isPending || !online}
-        onPress={() => {
-          if (!online) {
-            setErrorCode(CLIENT_ACTION_ERROR_CODE.OFFLINE);
-            return;
-          }
-          startTransition(async () => {
-            const result = await requestEarlyWithdrawalAction({
-              savingId,
-              cycleId,
-            });
-            if (result.status === "success") {
-              router.replace(APP_PATH.INBOX);
+      <BottomActionBar>
+        <Button
+          variant="primary"
+          className="min-h-11 w-full"
+          data-testid="savings-early-withdraw-request"
+          isDisabled={isPending || !online || !preview.quoteReady}
+          onPress={() => {
+            if (!online) {
+              setErrorCode(CLIENT_ACTION_ERROR_CODE.OFFLINE);
               return;
             }
-            setErrorCode(result.code);
-          });
-        }}
-      >
-        {isPending ? t("requesting") : t("request")}
-      </Button>
-      <Button
-        variant="secondary"
-        className="min-h-11 w-full"
-        onPress={() => router.push(moneySavingsPath(savingId))}
-      >
-        {t("back")}
-      </Button>
+            startTransition(async () => {
+              const result = await requestEarlyWithdrawalAction({
+                savingId,
+                cycleId,
+              });
+              if (result.status === "success") {
+                router.replace(APP_PATH.INBOX);
+                return;
+              }
+              setErrorCode(result.code);
+            });
+          }}
+        >
+          {isPending ? t("requesting") : t("request")}
+        </Button>
+        <Button
+          variant="secondary"
+          className="min-h-11 w-full"
+          onPress={() => router.push(moneySavingsPath(savingId))}
+        >
+          {t("back")}
+        </Button>
+      </BottomActionBar>
       <Text size="sm" tone="secondary">
         {t("subtitle")}
       </Text>

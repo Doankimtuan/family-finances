@@ -13,6 +13,7 @@ import {
   listProviderPackages,
 } from "@/modules/savings/application";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
+import { Page } from "@/shared/patterns/page";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { MoneyOfflineBanner } from "../../money-offline-banner";
 import { CreateSavingWizard } from "./create-saving-wizard";
@@ -65,32 +66,32 @@ export default async function NewSavingPage({ params }: Props) {
   }
 
   return (
-    <div className="flex min-h-full flex-col" data-testid="money-savings-new">
-      <TopAppBar title={t("title")} subtitle={t("subtitle")} />
-      <div className="flex flex-1 flex-col gap-(--space-4) px-(--space-4) pb-(--space-6) pt-(--space-4)">
-        <MoneyOfflineBanner />
-        {accounts.length === 0 || !providers?.length ? (
-          <EmptyState
-            title={t("title")}
-            description={t("reviewHint")}
-            className="flex-none py-(--space-4)"
-          />
-        ) : (
-          <CreateSavingWizard
-            accounts={accounts.map((a) => ({
-              id: a.id,
-              name: a.name,
-              type: a.type,
-            }))}
-            providers={providers.map((p) => ({
-              id: p.id,
-              displayName: p.displayName,
-              savingType: p.savingType,
-            }))}
-            packagesByProvider={packagesByProvider}
-          />
-        )}
-      </div>
-    </div>
+    <Page
+      testId="money-savings-new"
+      topBar={<TopAppBar title={t("title")} subtitle={t("subtitle")} />}
+    >
+      <MoneyOfflineBanner />
+      {accounts.length === 0 || !providers?.length ? (
+        <EmptyState
+          title={t("title")}
+          description={t("reviewHint")}
+          className="flex-none py-(--space-4)"
+        />
+      ) : (
+        <CreateSavingWizard
+          accounts={accounts.map((a) => ({
+            id: a.id,
+            name: a.name,
+            type: a.type,
+          }))}
+          providers={providers.map((p) => ({
+            id: p.id,
+            displayName: p.displayName,
+            savingType: p.savingType,
+          }))}
+          packagesByProvider={packagesByProvider}
+        />
+      )}
+    </Page>
   );
 }

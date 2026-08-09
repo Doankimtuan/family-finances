@@ -472,7 +472,10 @@ export function recomputeScheduleAfterEarlyPayoff(input: {
   });
 }
 
-/** Early payoff = remaining principal + sum of interest on unpaid schedule entries. */
+/**
+ * @deprecated Unsafe for payoff estimates — treats future scheduled interest as
+ * accrued. Prefer {@link estimateEarlyPayoffComponents}. Kept for legacy tests.
+ */
 export function computeEarlyPayoffAmount(
   remainingPrincipal: number,
   upcomingInterestTotal: number,
@@ -481,4 +484,32 @@ export function computeEarlyPayoffAmount(
     Math.max(0, Math.trunc(remainingPrincipal)) +
     Math.max(0, Math.trunc(upcomingInterestTotal))
   );
+}
+
+/**
+ * Canonical early-payoff estimate for F5: recorded principal only.
+ * Accrued interest and fees are unknown without a date-sensitive source.
+ * Never invents a formula from future schedule interest.
+ */
+export function estimateEarlyPayoffComponents(input: {
+  remainingPrincipal: number;
+  asOfDate: string;
+}): {
+  remainingPrincipal: number;
+  accruedInterest: null;
+  fee: null;
+  estimateTotal: null;
+  asOfDate: string;
+  isComplete: false;
+  isLenderQuote: false;
+} {
+  return {
+    remainingPrincipal: Math.max(0, Math.trunc(input.remainingPrincipal)),
+    accruedInterest: null,
+    fee: null,
+    estimateTotal: null,
+    asOfDate: input.asOfDate,
+    isComplete: false,
+    isLenderQuote: false,
+  };
 }

@@ -12,7 +12,6 @@ import {
   listLoanSchedule,
   listLoanInterestRatePeriods,
   listAccounts,
-  computeEarlyPayoffAmount,
 } from "@/modules/ledger/application";
 import {
   AccountType,
@@ -21,15 +20,22 @@ import {
   LoanStatus,
 } from "@/modules/ledger/application/ledger-constants";
 import { formatCurrency } from "@/shared/i18n/formatters";
+import { todayIsoDate } from "@/shared/utils/iso-date";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Amount } from "@/shared/patterns/amount";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { Text } from "@/shared/ui/text";
 import { MoneyOfflineBanner } from "../../money-offline-banner";
 import { LoanPayAction } from "./loan-pay-action";
+import { LoanPayoffEstimate } from "./loan-payoff-estimate";
 import { LoanEditAction } from "./loan-edit-action";
 import { LoanEditInterestAction } from "./loan-edit-interest-action";
 import { LoanCloseAction } from "./loan-close-action";
+import {
+  LoanPaymentHistoryPanel,
+  LoanRateHistoryPanel,
+  LoanSchedulePanel,
+} from "./loan-detail-panels";
 
 type Props = { params: Promise<{ locale: string; id: string }> };
 
@@ -94,22 +100,21 @@ export default async function LoanDetailPage({ params }: Props) {
     (account) => account.type !== AccountType.CREDIT_CARD,
   );
 
-  const upcoming = (schedule ?? []).filter(
+  const scheduleList = schedule ?? [];
+  const upcoming = scheduleList.filter(
     (entry) =>
       entry.status === LoanScheduleEntryStatus.UPCOMING ||
       entry.status === LoanScheduleEntryStatus.PARTIAL,
   );
+  const paid = scheduleList.filter(
+    (entry) =>
+      entry.status === LoanScheduleEntryStatus.PAID ||
+      entry.status === LoanScheduleEntryStatus.WAIVED,
+  );
+  const orderedSchedule = [...upcoming, ...paid];
   const nextEntry = upcoming[0] ?? null;
-  const upcomingInterest = upcoming.reduce(
-    (sum, entry) => sum + entry.interestDue,
-    0,
-  );
-  const earlyPayoff = computeEarlyPayoffAmount(
-    loan.remainingPrincipal,
-    upcomingInterest,
-  );
   const isActive = loan.status === LoanStatus.ACTIVE;
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayIsoDate();
   const canEditInterest =
     isActive &&
     (loan.interestStrategy === LoanInterestStrategy.FLOATING ||
@@ -118,6 +123,9 @@ export default async function LoanDetailPage({ params }: Props) {
 
   const money = (n: number) =>
     formatCurrency(n, loan.currency, locale, { maximumFractionDigits: 0 });
+
+  const nextTotal = nextEntry?.totalDue ?? loan.monthlyPayment;
+  const feeDue = 0;
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
@@ -146,36 +154,29 @@ export default async function LoanDetailPage({ params }: Props) {
               size="lg"
             />
             <Text size="sm" tone="secondary">
-              {tLoans("progress", { percent: Math.round(loan.progress * 100) })}
+              {t("recordedPrincipalCaveat")}
             </Text>
-            {loan.nextPaymentDate ? (
+            {nextEntry ? (
+              <>
+                <Text size="sm" className="font-medium">
+                  {t("nextDueLead", {
+                    amount: money(nextTotal),
+                    date: nextEntry.dueDate,
+                  })}
+                </Text>
+                <Text size="sm" tone="secondary">
+                  {t("nextDueSplit", {
+                    principal: money(nextEntry.principalDue),
+                    interest: money(nextEntry.interestDue),
+                    fee: money(feeDue),
+                  })}
+                </Text>
+              </>
+            ) : loan.nextPaymentDate ? (
               <Text size="sm" tone="secondary">
                 {t("nextPaymentLabel", { date: loan.nextPaymentDate })}
               </Text>
             ) : null}
-            <Text size="sm" tone="secondary">
-              {t("monthlyPaymentLabel", { amount: money(loan.monthlyPayment) })}
-            </Text>
-            <Text size="sm" tone="secondary">
-              {t("principalPaidLabel", { amount: money(loan.principalPaid) })}
-            </Text>
-            <Text size="sm" tone="secondary">
-              {t("interestPaidLabel", { amount: money(loan.interestPaid) })}
-            </Text>
-            <Text size="sm" tone="secondary">
-              {t("totalInterestLabel", { amount: money(loan.totalInterest) })}
-            </Text>
-            {loan.expectedEndDate ? (
-              <Text size="sm" tone="secondary">
-                {t("endDateLabel", { date: loan.expectedEndDate })}
-              </Text>
-            ) : null}
-            <Text size="sm" tone="secondary">
-              {tLoans(`repaymentMethods.${loan.repaymentMethod}`)}
-            </Text>
-            <Text size="sm" tone="secondary">
-              {tLoans(`interestStrategies.${loan.interestStrategy}`)}
-            </Text>
             {loan.annualInterestRate != null ? (
               <Text size="sm" tone="secondary">
                 {t("currentRateLabel", {
@@ -183,11 +184,9 @@ export default async function LoanDetailPage({ params }: Props) {
                 })}
               </Text>
             ) : null}
-            {loan.promoRateEffectiveOn ? (
-              <Text size="sm" tone="secondary">
-                {t("promoSwitchLabel", { date: loan.promoRateEffectiveOn })}
-              </Text>
-            ) : null}
+            <Text size="sm" tone="secondary">
+              {tLoans("progress", { percent: Math.round(loan.progress * 100) })}
+            </Text>
           </section>
 
           {loan.status === LoanStatus.COMPLETED ? (
@@ -203,20 +202,72 @@ export default async function LoanDetailPage({ params }: Props) {
             </>
           ) : isActive ? (
             <>
-              <Text size="sm" tone="secondary">
-                {t("completeHint")}
-              </Text>
-              <LoanPayAction
-                loanId={loan.id}
-                scheduledAmountLabel={money(
-                  nextEntry?.totalDue ?? loan.monthlyPayment,
-                )}
-                earlyPayoffAmountLabel={money(earlyPayoff)}
-                accounts={liquidAccounts.map((a) => ({
-                  id: a.id,
-                  name: a.name,
-                }))}
+              {nextEntry ? (
+                <LoanPayAction
+                  loanId={loan.id}
+                  loanName={loan.name}
+                  currency={loan.currency}
+                  principalDue={nextEntry.principalDue}
+                  interestDue={nextEntry.interestDue}
+                  feeDue={feeDue}
+                  totalDue={nextTotal}
+                  remainingPrincipal={loan.remainingPrincipal}
+                  accounts={liquidAccounts.map((a) => ({
+                    id: a.id,
+                    name: a.name,
+                  }))}
+                  paidAtDefault={today}
+                />
+              ) : (
+                <Text size="sm" tone="secondary">
+                  {t("noUpcomingPayment")}
+                </Text>
+              )}
+              <LoanPayoffEstimate
+                remainingPrincipal={loan.remainingPrincipal}
+                currency={loan.currency}
+                asOfDate={today}
               />
+            </>
+          ) : (
+            <Text size="sm" tone="secondary">
+              {tLoans(`status.${loan.status}`)}
+            </Text>
+          )}
+
+          <LoanSchedulePanel
+            title={t("scheduleTitle")}
+            emptyLabel={t("scheduleEmpty")}
+            entries={orderedSchedule}
+            formatMoney={money}
+            t={t}
+          />
+
+          <LoanPaymentHistoryPanel
+            title={t("historyTitle")}
+            payments={payments ?? []}
+            formatMoney={money}
+            t={t}
+          />
+
+          <LoanRateHistoryPanel
+            title={t("rateHistoryTitle")}
+            periods={ratePeriods ?? []}
+            openLabel={t("rateHistoryOpen")}
+            kindLabel={(kind) =>
+              tLoans(`ratePeriodKinds.${kind}` as "ratePeriodKinds.fixed")
+            }
+            t={t}
+          />
+
+          {isActive ? (
+            <section
+              className="flex flex-col gap-(--space-3)"
+              data-testid="loan-secondary-actions"
+            >
+              <Text size="sm" className="font-medium">
+                {t("secondaryActions")}
+              </Text>
               <LoanEditAction
                 loanId={loan.id}
                 initialName={loan.name}
@@ -227,127 +278,22 @@ export default async function LoanDetailPage({ params }: Props) {
                 <LoanEditInterestAction
                   loanId={loan.id}
                   currentRate={loan.annualInterestRate ?? 0}
-                  defaultEffectiveFrom={loan.nextPaymentDate ?? today}
+                  defaultEffectiveFrom={
+                    nextEntry?.dueDate && nextEntry.dueDate > today
+                      ? nextEntry.dueDate
+                      : loan.nextPaymentDate && loan.nextPaymentDate > today
+                        ? loan.nextPaymentDate
+                        : today
+                  }
                 />
               ) : null}
               <LoanCloseAction loanId={loan.id} />
-            </>
-          ) : (
-            <Text size="sm" tone="secondary">
-              {tLoans(`status.${loan.status}`)}
-            </Text>
-          )}
-
-          {(ratePeriods ?? []).length > 0 ? (
-            <section
-              className="flex flex-col gap-(--space-2)"
-              data-testid="loan-rate-history"
-            >
-              <Text size="sm" className="font-medium">
-                {t("rateHistoryTitle")}
-              </Text>
-              <ul className="flex flex-col gap-(--space-2)">
-                {(ratePeriods ?? []).map((period) => (
-                  <li
-                    key={period.id}
-                    className="rounded-md border border-border-subtle px-(--space-3) py-(--space-2)"
-                    data-testid={`loan-rate-period-${period.sequence}`}
-                  >
-                    <Text size="sm">
-                      {t("rateHistoryRow", {
-                        rate: String(period.annualRate),
-                        from: period.effectiveFrom,
-                        to: period.effectiveTo ?? t("rateHistoryOpen"),
-                        kind: tLoans(`ratePeriodKinds.${period.kind}`),
-                      })}
-                    </Text>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ) : null}
-
-          <section
-            id="loan-schedule"
-            className="flex flex-col gap-(--space-2)"
-            data-testid="loan-schedule"
-          >
-            <Text size="sm" className="font-medium">
-              {t("scheduleTitle")}
-            </Text>
-            {(schedule ?? []).length === 0 ? (
-              <Text size="sm" tone="secondary">
-                {t("scheduleEmpty")}
-              </Text>
-            ) : (
-              <ul className="flex flex-col gap-(--space-2)">
-                {(schedule ?? []).map((entry) => (
-                  <li
-                    key={entry.id}
-                    className="rounded-md border border-border-subtle px-(--space-3) py-(--space-2)"
-                    data-testid={`loan-schedule-${entry.sequence}`}
-                  >
-                    <div className="flex justify-between gap-(--space-2)">
-                      <Text size="sm">
-                        {t("scheduleMonth", {
-                          month: entry.sequence,
-                          date: entry.dueDate,
-                        })}
-                      </Text>
-                      <Text size="sm" className="tabular-nums font-medium">
-                        {money(entry.totalDue)}
-                      </Text>
-                    </div>
-                    <Text size="sm" tone="secondary">
-                      {t("scheduleSplit", {
-                        principal: money(entry.principalDue),
-                        interest: money(entry.interestDue),
-                        remaining: money(entry.remainingBalanceAfter),
-                      })}
-                    </Text>
-                    <Text size="sm" tone="secondary">
-                      {t(`scheduleStatus.${entry.status}`)}
-                    </Text>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-
-          {(payments ?? []).length > 0 ? (
-            <section className="flex flex-col gap-(--space-2)">
-              <Text size="sm" className="font-medium">
-                {t("historyTitle")}
-              </Text>
-              <ul className="flex flex-col gap-(--space-2)">
-                {(payments ?? []).map((payment) => (
-                  <li
-                    key={payment.id}
-                    className="rounded-md border border-border-subtle px-(--space-3) py-(--space-2)"
-                    data-testid={`loan-payment-${payment.id}`}
-                  >
-                    <div className="flex justify-between gap-(--space-2)">
-                      <Text size="sm">{payment.paidAt}</Text>
-                      <Text size="sm" className="tabular-nums font-medium">
-                        {money(payment.amount)}
-                      </Text>
-                    </div>
-                    <Text size="sm" tone="secondary">
-                      {t("historySplit", {
-                        principal: money(payment.principalPaid),
-                        interest: money(payment.interestPaid),
-                      })}
-                    </Text>
-                  </li>
-                ))}
-              </ul>
             </section>
           ) : null}
 
           <Link
             href={APP_PATH.MONEY_LOANS}
             className="text-sm font-medium text-accent"
-            data-testid="loan-detail-back"
           >
             {t("back")}
           </Link>
