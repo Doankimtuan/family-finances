@@ -1,9 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
-vi.mock("@/modules/tenancy/application/assert-money-action-allowed", () => ({
-  assertMoneyActionAllowed: vi.fn(),
-}));
-
 vi.mock("@/modules/ledger/application", () => ({
   getRealPosition: vi.fn(),
   listRecentTransactions: vi.fn(),
@@ -22,7 +18,6 @@ vi.mock("@/modules/health/application/log-health-ai-policy-block", () => ({
   logHealthAiPolicyBlock: vi.fn(),
 }));
 
-import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import {
   getRealPosition,
   listRecentTransactions,
@@ -39,12 +34,6 @@ describe("getHealthDetail integration (ST-E06-001 / B2)", () => {
   });
 
   it("aggregates ledger, plan, and inbox reads without writes", async () => {
-    vi.mocked(assertMoneyActionAllowed).mockResolvedValue({
-      ok: true,
-      userId: "user-1",
-      householdId: "hh-1",
-    });
-
     vi.mocked(getRealPosition).mockResolvedValue({
       accounts: [{ id: "a1" }, { id: "a2" }],
       totalBalance: 1_000_000,
@@ -80,23 +69,15 @@ describe("getHealthDetail integration (ST-E06-001 / B2)", () => {
     expect(listRecentTransactions).toHaveBeenCalledWith(8);
   });
 
-  it("returns null when tenancy gate fails", async () => {
-    vi.mocked(assertMoneyActionAllowed).mockResolvedValue({
-      ok: false,
-      reason: "no_session",
-    } as never);
-
+  it("returns null when an approved source read is unavailable", async () => {
+    vi.mocked(getRealPosition).mockResolvedValue(null);
+    vi.mocked(getPlanPulse).mockResolvedValue({ activeJars: [] } as never);
+    vi.mocked(listOpenInboxItems).mockResolvedValue([]);
+    vi.mocked(listRecentTransactions).mockResolvedValue([]);
     await expect(getHealthDetail()).resolves.toBeNull();
-    expect(getRealPosition).not.toHaveBeenCalled();
   });
 
   it("wires BR-14 audit hook for policy blocks", async () => {
-    vi.mocked(assertMoneyActionAllowed).mockResolvedValue({
-      ok: true,
-      userId: "user-1",
-      householdId: "hh-1",
-    });
-
     vi.mocked(getRealPosition).mockResolvedValue({
       accounts: [{ id: "a1" }],
       totalBalance: 0,

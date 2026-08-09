@@ -1,107 +1,108 @@
 import { getTranslations } from "next-intl/server";
-import { hasLocale } from "next-intl";
-import { setLocale } from "@/i18n/set-locale";
-import { redirect, Link } from "@/i18n/navigation";
-import { routing } from "@/i18n/routing";
-import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
-import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
+import { Link } from "@/i18n/navigation";
+import { requireTogetherMembership } from "@/modules/tenancy/application/require-together-membership";
 import { listHouseholdMembers } from "@/modules/tenancy/application/list-household-members";
 import {
-  APP_PATH,
+  HOUSEHOLD_MEMBER_LIMIT,
+  HOUSEHOLD_ROLE,
   TOGETHER_PATH,
 } from "@/modules/tenancy/application/tenancy-constants";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Page as ProductPage } from "@/shared/patterns/page";
 import { SectionHeader } from "@/shared/patterns/section-header";
-import { EmptyState } from "@/shared/patterns/empty-state";
-import { MemberList } from "./member-list";
+import { Card } from "@/shared/patterns/card";
+import { Text } from "@/shared/ui/text";
 
 type Props = { params: Promise<{ locale: string }> };
 
+const secondaryLinkClassName =
+  "inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring";
+
 export default async function Page({ params }: Props) {
-  const { locale: rawLocale } = await params;
-  const locale = hasLocale(routing.locales, rawLocale)
-    ? rawLocale
-    : routing.defaultLocale;
-  setLocale(locale);
+  const { locale: localeParam } = await params;
+  const { membership } = await requireTogetherMembership({
+    localeParam,
+    nextPath: TOGETHER_PATH.ROOT,
+  });
+  const [t, result] = await Promise.all([
+    getTranslations("together"),
+    listHouseholdMembers(),
+  ]);
 
-  const t = await getTranslations("together");
-  const sessionUser = await getSessionUser();
-
-  if (sessionUser) {
-    const membership = await resolveActiveMembership(sessionUser.id);
-    if (!membership) {
-      return redirect({ href: APP_PATH.ONBOARD, locale });
-    }
-  }
-
-  const { household, members } = sessionUser
-    ? await listHouseholdMembers()
-    : { household: null, members: [] };
+  const canInvite =
+    result.household !== null && result.members.length < HOUSEHOLD_MEMBER_LIMIT;
 
   return (
     <ProductPage
-      testId="together-members-page"
+      testId="together-overview-page"
       topBar={
         <TopAppBar
           title={t("title")}
           subtitle={
-            household ? `${t("householdLabel")}: ${household.name}` : undefined
+            result.household
+              ? `${t("householdLabel")}: ${result.household.name}`
+              : undefined
           }
         />
       }
     >
-      <section className="flex flex-col gap-(--space-4)">
+      <section className="flex flex-col gap-(--space-3)">
         <SectionHeader
-          title={t("membersTitle")}
-          description={t("membersDescription")}
+          title={t("overviewTitle")}
+          description={t("overviewDescription")}
         />
-        {members.length > 0 ? (
-          <MemberList
-            members={members}
-            youLabel={t("you")}
-            roleAdminLabel={t("roleAdmin")}
-            rolePartnerLabel={t("rolePartner")}
-          />
-        ) : (
-          <EmptyState
-            title={t("emptyMembersTitle")}
-            description={t("emptyMembersDescription")}
-            className="flex-none py-(--space-6)"
-          />
-        )}
-        {sessionUser && household ? (
-          <div className="flex flex-col gap-(--space-2)">
-            <Link
-              href={TOGETHER_PATH.INVITATIONS}
-              data-testid="together-invite-cta"
-              className="inline-flex min-h-11 w-full items-center justify-center rounded-md bg-accent px-(--space-4) text-sm font-medium text-accent-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-            >
-              {t("inviteCta")}
-            </Link>
-            <Link
-              href={TOGETHER_PATH.INVITATIONS}
-              className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-            >
-              {t("invitationsLink")}
-            </Link>
-            <Link
-              href={TOGETHER_PATH.POLICIES}
-              data-testid="together-policies-link"
-              className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-            >
-              {t("policiesLink")}
-            </Link>
-            <Link
-              href={TOGETHER_PATH.PREFERENCES}
-              data-testid="together-preferences-link"
-              className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-            >
-              {t("preferencesLink")}
-            </Link>
-          </div>
-        ) : null}
+        <Card className="gap-(--space-2) p-(--space-4)">
+          <Text size="sm" tone="secondary">
+            {t("memberCountLabel")}
+          </Text>
+          <Text className="text-2xl font-semibold tabular-nums text-text-primary">
+            {result.members.length}
+          </Text>
+          <Text size="sm" tone="secondary">
+            {membership.role === HOUSEHOLD_ROLE.ADMIN
+              ? t("roleAdmin")
+              : t("rolePartner")}
+          </Text>
+        </Card>
       </section>
+
+      {canInvite ? (
+        <Link
+          href={TOGETHER_PATH.INVITATIONS_NEW}
+          data-testid="together-invite-cta"
+          className="inline-flex min-h-11 w-full items-center justify-center rounded-md bg-accent px-(--space-4) text-sm font-medium text-accent-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+        >
+          {t("inviteCta")}
+        </Link>
+      ) : null}
+
+      <div className="flex flex-col gap-(--space-2)">
+        <Link
+          href={TOGETHER_PATH.MEMBERS}
+          data-testid="together-members-link"
+          className={secondaryLinkClassName}
+        >
+          {t("membersLink")}
+        </Link>
+        <Link
+          href={TOGETHER_PATH.INVITATIONS}
+          className={secondaryLinkClassName}
+        >
+          {t("invitationsLink")}
+        </Link>
+        <Link href={TOGETHER_PATH.POLICIES} className={secondaryLinkClassName}>
+          {t("policiesLink")}
+        </Link>
+        <Link
+          href={TOGETHER_PATH.PREFERENCES}
+          className={secondaryLinkClassName}
+        >
+          {t("preferencesLink")}
+        </Link>
+        <Link href={TOGETHER_PATH.SETTINGS} className={secondaryLinkClassName}>
+          {t("settingsLink")}
+        </Link>
+      </div>
     </ProductPage>
   );
 }

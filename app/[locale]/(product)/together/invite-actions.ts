@@ -15,30 +15,20 @@ import {
   type DeclineInvitationErrorCode,
 } from "@/modules/tenancy/application/accept-invitation";
 import { pathForAuthEntry } from "@/modules/tenancy/application/auth-entry-path";
+import { TOGETHER_PATH } from "@/modules/tenancy/application/tenancy-constants";
 
-export type CreateInvitationActionState =
-  | {
-      status: "success";
-      invitationId: string;
-      token: string;
-      expiresAt: string;
-    }
-  | {
-      status: "error";
-      code: CreateInvitationErrorCode;
-    };
+export type CreateInvitationActionState = {
+  status: "error";
+  code: CreateInvitationErrorCode;
+};
 
 export async function createInvitationAction(input: {
   email: string;
 }): Promise<CreateInvitationActionState> {
   const result = await createInvitation(input);
   if (result.ok) {
-    return {
-      status: "success",
-      invitationId: result.invitationId,
-      token: result.token,
-      expiresAt: result.expiresAt,
-    };
+    const locale = await getLocale();
+    return redirect({ href: TOGETHER_PATH.INVITATIONS, locale });
   }
   return { status: "error", code: result.code };
 }

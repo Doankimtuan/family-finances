@@ -1,4 +1,6 @@
 {
+  "title": "Settings",
+  "subtitle": "Your account and app preferences",
   "language": "Language",
   "english": "English",
   "vietnamese": "Vietnamese",
@@ -7,5 +9,22 @@
   "themeSystem": "System",
   "themeLight": "Light",
   "themeDark": "Dark",
-  "preferences": "Preferences"
+  "preferences": "Preferences",
+  "profileTitle": "Profile",
+  "profileDescription": "Your signed-in identity is read-only here.",
+  "emailLabel": "Email",
+  "emailMissing": "No email on this account",
+  "roleNote": "Household role: {role}",
+  "roleAdmin": "Admin",
+  "rolePartner": "Partner",
+  "appTitle": "App preferences",
+  "appDescription": "Theme stays on this device. Language keeps the current page.",
+  "householdPreferencesLink": "Household preferences",
+  "accountSettingsLink": "Account settings",
+  "back": "Back to Together",
+  "account": {
+    "title": "Account settings",
+    "subtitle": "Sign out or manage account lifecycle",
+    "back": "Back to Settings"
+  }
 }

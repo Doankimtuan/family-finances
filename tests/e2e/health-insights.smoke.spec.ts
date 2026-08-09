@@ -32,6 +32,11 @@ test.describe("Health overview and insights (ST-E07-002)", () => {
       "E2E user has no household",
     );
 
+    await page.goto("/en/money");
+    const financialStateBefore = await page
+      .getByTestId("ledger-balance")
+      .innerText();
+
     await page.goto("/en/health");
     await expect(page.getByTestId("health-overview")).toBeVisible();
     await expect(page.getByTestId("health-overview-card")).toBeVisible();
@@ -46,7 +51,21 @@ test.describe("Health overview and insights (ST-E07-002)", () => {
       page.getByText(/must not invent balances|không được bịa số dư/i),
     ).toBeVisible();
 
+    const sourceLink = page.locator("[data-testid^='health-source-']").first();
+    await expect(sourceLink).toBeVisible();
+    await sourceLink.click();
+    await expect(page).not.toHaveURL(/\/health\/insights/);
+    await expect(page).toHaveURL(/origin=%2Fhealth%2Finsights&factor=/);
+    await page.goBack();
+    await expect(page.getByTestId("health-insights")).toBeVisible();
+
     await page.getByTestId("health-insights-back").click();
     await expect(page.getByTestId("health-overview")).toBeVisible();
+
+    await page.goto("/en/money");
+    const financialStateAfter = await page
+      .getByTestId("ledger-balance")
+      .innerText();
+    expect(financialStateAfter).toBe(financialStateBefore);
   });
 });

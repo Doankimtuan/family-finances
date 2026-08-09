@@ -13,6 +13,8 @@ import { Card } from "@/shared/patterns/card";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Text } from "@/shared/ui/text";
+import { HealthAssessmentState } from "@/modules/health/application/health-constants";
+import { HealthSourceLink } from "./health-source-link";
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -57,13 +59,23 @@ export default async function HealthInsightsPage({ params }: Props) {
             title={t("insights.loadErrorTitle")}
             description={t("insights.loadErrorBody")}
           />
-        ) : insights.length === 0 ? (
+        ) : detail.state === HealthAssessmentState.NO_VISIBLE_FACTS ? (
           <EmptyState
             title={t("insights.emptyTitle")}
             description={t("insights.emptyDescription")}
           />
         ) : (
           <>
+            {detail.state === HealthAssessmentState.PARTIAL ? (
+              <StatusAlert
+                variant="info"
+                title={t("states.partialTitle")}
+                description={t("states.partialBody", {
+                  visible: detail.completeness.visibleSourceCount,
+                  total: detail.completeness.totalSourceCount,
+                })}
+              />
+            ) : null}
             <section
               className="flex flex-col gap-(--space-3)"
               data-testid="health-insight-list"
@@ -89,6 +101,14 @@ export default async function HealthInsightsPage({ params }: Props) {
                           insight.params,
                         )}
                       </Text>
+                      {insight.source ? (
+                        <HealthSourceLink
+                          source={insight.source}
+                          label={t(`insights.sources.${insight.source}`)}
+                          factor={insight.kind}
+                          testId={`health-source-${insight.kind}`}
+                        />
+                      ) : null}
                     </Card>
                   </li>
                 ))}
@@ -100,6 +120,9 @@ export default async function HealthInsightsPage({ params }: Props) {
               data-testid="health-scenario-list"
             >
               <SectionHeader title={t("insights.sectionScenarios")} />
+              <Text size="sm" tone="secondary">
+                {t("insights.scenarioReadOnly")}
+              </Text>
               <ul className="flex flex-col gap-(--space-2)">
                 {scenarios.map((scenario) => (
                   <li key={scenario.kind}>

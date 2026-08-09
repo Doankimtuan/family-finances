@@ -4,6 +4,7 @@ import {
   InsightKind,
   ScenarioKind,
 } from "@/modules/health/application/build-health-insights";
+import { HealthSourceKind } from "@/modules/health/application/health-constants";
 
 describe("buildHealthInsights", () => {
   it("always ends with AI guardrail and never invents amounts", () => {
@@ -33,7 +34,23 @@ describe("buildHealthInsights", () => {
     });
 
     expect(built.insights[0]?.kind).toBe(InsightKind.EMI_COMPLETE);
+    expect(built.insights[0]?.source).toBe(HealthSourceKind.INBOX);
     expect(built.insights.some((i) => i.kind === InsightKind.INBOX)).toBe(true);
+  });
+
+  it("maps grounded insights to owner-domain sources only", () => {
+    const built = buildHealthInsights({
+      accountCount: 1,
+      activeJarCount: 1,
+      openInboxCount: 1,
+      recentTransactionCount: 1,
+      hasEmiCompletePending: false,
+    });
+
+    expect(
+      built.insights.find((item) => item.kind === InsightKind.ACTIVITY)?.source,
+    ).toBe(HealthSourceKind.TRANSACTIONS);
+    expect(built.insights.at(-1)?.source).toBeNull();
   });
 
   it("offers setup insight and add-jar scenario when jars missing", () => {

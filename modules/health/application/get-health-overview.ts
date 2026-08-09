@@ -5,6 +5,8 @@ import { getHealthDetail, type HealthDetail } from "./get-health-detail";
 export type HealthOverview = Pick<
   HealthDetail,
   | "health"
+  | "state"
+  | "completeness"
   | "accountCount"
   | "activeJarCount"
   | "openInboxCount"
@@ -21,6 +23,8 @@ export async function getHealthOverview(): Promise<HealthOverview | null> {
   }
   return {
     health: detail.health,
+    state: detail.state,
+    completeness: detail.completeness,
     accountCount: detail.accountCount,
     activeJarCount: detail.activeJarCount,
     openInboxCount: detail.openInboxCount,

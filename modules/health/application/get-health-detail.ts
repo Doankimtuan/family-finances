@@ -6,11 +6,12 @@ import {
 } from "@/modules/ledger/application";
 import { getPlanPulse } from "@/modules/plan/application";
 import { listOpenInboxItems, InboxItemKind } from "@/modules/inbox/application";
-import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import {
-  computeHealthPulse,
+  assessHealthPulse,
   type HealthPulse,
+  type HealthCompleteness,
 } from "@/modules/health/application/health-pulse";
+import type { HealthAssessmentState } from "./health-constants";
 import {
   buildHealthInsights,
   type HealthInsight,
@@ -19,7 +20,9 @@ import {
 import { logHealthAiPolicyBlock } from "@/modules/health/application/log-health-ai-policy-block";
 
 export type HealthDetail = {
-  health: HealthPulse;
+  health: HealthPulse | null;
+  state: HealthAssessmentState;
+  completeness: HealthCompleteness;
   accountCount: number;
   activeJarCount: number;
   openInboxCount: number;
@@ -34,11 +37,6 @@ export type HealthDetail = {
  * Facts only from ledger / plan / inbox — no invented balances (BR-14).
  */
 export async function getHealthDetail(): Promise<HealthDetail | null> {
-  const gate = await assertMoneyActionAllowed();
-  if (!gate.ok) {
-    return null;
-  }
-
   const [position, pulse, inbox, recent] = await Promise.all([
     getRealPosition(),
     getPlanPulse(),
@@ -57,10 +55,11 @@ export async function getHealthDetail(): Promise<HealthDetail | null> {
   const hasEmiCompletePending = inbox.some(
     (item) => item.kind === InboxItemKind.EMI_COMPLETE,
   );
-  const health = computeHealthPulse({
+  const assessment = assessHealthPulse({
     accountCount,
     activeJarCount,
     openInboxCount,
+    recentTransactionCount,
   });
   const built = buildHealthInsights({
     accountCount,
@@ -74,7 +73,9 @@ export async function getHealthDetail(): Promise<HealthDetail | null> {
   });
 
   return {
-    health,
+    health: assessment.health,
+    state: assessment.state,
+    completeness: assessment.completeness,
     accountCount,
     activeJarCount,
     openInboxCount,

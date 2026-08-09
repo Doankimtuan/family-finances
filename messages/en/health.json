@@ -3,6 +3,12 @@
   "subtitle": "Household financial pulse",
   "loadErrorTitle": "Could not load Health",
   "loadErrorBody": "Check your connection and try again.",
+  "states": {
+    "noVisibleFactsTitle": "No visible financial facts yet",
+    "noVisibleFactsBody": "Health cannot assess risk until usable Money, Plan, or Inbox facts are visible.",
+    "partialTitle": "Health is partial",
+    "partialBody": "{visible} of {total} source areas have visible facts. Review the available factors without treating this as a complete assessment."
+  },
   "chipTitle": "Financial Health",
   "levels": {
     "starting": "Starting",
@@ -33,8 +39,15 @@
     "emptyDescription": "As Money, Plan, and Inbox grow, light insights appear here.",
     "sectionInsights": "Notices",
     "sectionScenarios": "Light scenarios",
+    "scenarioReadOnly": "These scenarios are read-only and do not change money, plans, or decisions.",
     "backHealth": "Back to Health",
     "openInbox": "Open Inbox",
+    "sources": {
+      "accounts": "View Accounts source",
+      "transactions": "View Transactions source",
+      "plan_jars": "View Plan source",
+      "inbox": "View Inbox source"
+    },
     "items": {
       "emi_complete": {
         "title": "Installment complete",

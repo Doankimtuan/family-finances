@@ -24,10 +24,14 @@ export type {
 
 export const TOGETHER_PATH = {
   ROOT: APP_PATH.TOGETHER,
+  MEMBERS: APP_PATH.TOGETHER_MEMBERS,
   ONBOARD: APP_PATH.ONBOARD,
   INVITATIONS: APP_PATH.INVITATIONS,
+  INVITATIONS_NEW: APP_PATH.INVITATIONS_NEW,
   POLICIES: APP_PATH.POLICIES,
   PREFERENCES: APP_PATH.PREFERENCES,
+  SETTINGS: APP_PATH.SETTINGS,
+  SETTINGS_ACCOUNT: APP_PATH.SETTINGS_ACCOUNT,
 } as const;
 
 export const INVITATION_STATUS = {
@@ -44,6 +48,29 @@ export type InvitationStatus =
 export const HOUSEHOLD_ROLE = {
   ADMIN: "admin",
   PARTNER: "partner",
+} as const;
+
+export const HOUSEHOLD_ROLE_VALUES = [
+  HOUSEHOLD_ROLE.ADMIN,
+  HOUSEHOLD_ROLE.PARTNER,
+] as const;
+
+export const HOUSEHOLD_LOCALE = {
+  ENGLISH_VIETNAM: "en-VN",
+  VIETNAMESE_VIETNAM: "vi-VN",
+} as const;
+
+export const HOUSEHOLD_LOCALE_VALUES = [
+  HOUSEHOLD_LOCALE.ENGLISH_VIETNAM,
+  HOUSEHOLD_LOCALE.VIETNAMESE_VIETNAM,
+] as const;
+
+export const HOUSEHOLD_TIMEZONE = {
+  VIETNAM: "Asia/Ho_Chi_Minh",
+} as const;
+
+export const HOUSEHOLD_BASE_CURRENCY = {
+  VIETNAM_DONG: "VND",
 } as const;
 
 export const HOUSEHOLD_MEMBER_LIMIT = 2;
@@ -71,6 +98,7 @@ export const HOUSEHOLD_ERROR_CODE = {
   ALREADY_MEMBER: "already_member",
   NO_HOUSEHOLD: "no_household",
   FORBIDDEN: "forbidden",
+  MEMBER_NOT_FOUND: "member_not_found",
 } as const;
 
 export type HouseholdErrorCode =

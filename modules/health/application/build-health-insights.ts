@@ -7,6 +7,10 @@ import {
   assertAiSuggestionGrounded,
   type AiPolicyErrorCode,
 } from "@/modules/platform/application/ai-policy";
+import {
+  HealthSourceKind,
+  type HealthSourceKind as HealthSourceKindValue,
+} from "./health-constants";
 
 export type HealthPolicyBlock = {
   target: "insight" | "scenario";
@@ -35,6 +39,7 @@ export type ScenarioKind = (typeof ScenarioKind)[keyof typeof ScenarioKind];
 
 export type HealthInsight = {
   kind: InsightKind;
+  source: HealthSourceKindValue | null;
   /** ICU params for message catalogs — counts only, never invented amounts. */
   params: Record<string, number>;
 };
@@ -62,6 +67,7 @@ export type BuiltHealthInsights = {
 function groundedInsight(
   kind: InsightKind,
   params: Record<string, number>,
+  source: HealthSourceKindValue | null,
   onPolicyBlock?: (block: HealthPolicyBlock) => void,
 ): HealthInsight {
   const gate = assertAiSuggestionGrounded({
@@ -70,9 +76,9 @@ function groundedInsight(
   });
   if (!gate.ok) {
     onPolicyBlock?.({ target: "insight", kind, code: gate.code });
-    return { kind, params: {} };
+    return { kind, params: {}, source: null };
   }
-  return { kind, params };
+  return { kind, params, source };
 }
 
 /**
@@ -85,7 +91,14 @@ export function buildHealthInsights(
   const insights: HealthInsight[] = [];
 
   if (input.hasEmiCompletePending) {
-    insights.push(groundedInsight(InsightKind.EMI_COMPLETE, {}, onPolicyBlock));
+    insights.push(
+      groundedInsight(
+        InsightKind.EMI_COMPLETE,
+        {},
+        HealthSourceKind.INBOX,
+        onPolicyBlock,
+      ),
+    );
   }
 
   if (input.accountCount === 0 || input.activeJarCount === 0) {
@@ -96,6 +109,9 @@ export function buildHealthInsights(
           accountCount: input.accountCount,
           jarCount: input.activeJarCount,
         },
+        input.accountCount === 0
+          ? HealthSourceKind.ACCOUNTS
+          : HealthSourceKind.PLAN_JARS,
         onPolicyBlock,
       ),
     );
@@ -106,6 +122,7 @@ export function buildHealthInsights(
       groundedInsight(
         InsightKind.INBOX,
         { count: input.openInboxCount },
+        HealthSourceKind.INBOX,
         onPolicyBlock,
       ),
     );
@@ -117,6 +134,7 @@ export function buildHealthInsights(
       {
         count: input.recentTransactionCount,
       },
+      HealthSourceKind.TRANSACTIONS,
       onPolicyBlock,
     ),
   );
@@ -126,13 +144,16 @@ export function buildHealthInsights(
       groundedInsight(
         InsightKind.PLAN,
         { count: input.activeJarCount },
+        HealthSourceKind.PLAN_JARS,
         onPolicyBlock,
       ),
     );
   }
 
   // Always last — Phase 2 AI must not invent balances (AC-017 / BR-14).
-  insights.push(groundedInsight(InsightKind.AI_GUARDRAIL, {}, onPolicyBlock));
+  insights.push(
+    groundedInsight(InsightKind.AI_GUARDRAIL, {}, null, onPolicyBlock),
+  );
 
   const scenarios: HealthScenario[] = [];
 

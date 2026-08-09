@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
+  assessHealthPulse,
   computeHealthPulse,
   HealthLevel,
 } from "@/modules/health/application/health-pulse";
+import { HealthAssessmentState } from "@/modules/health/application/health-constants";
 
 describe("computeHealthPulse", () => {
   it("scores starting when household is empty", () => {
@@ -47,5 +49,35 @@ describe("computeHealthPulse", () => {
     });
     expect(a).toEqual(b);
     expect(a.score).toBeLessThanOrEqual(100);
+  });
+});
+
+describe("assessHealthPulse", () => {
+  it("does not emit a score when no source facts are visible", () => {
+    expect(
+      assessHealthPulse({
+        accountCount: 0,
+        activeJarCount: 0,
+        openInboxCount: 0,
+        recentTransactionCount: 0,
+      }),
+    ).toMatchObject({
+      state: HealthAssessmentState.NO_VISIBLE_FACTS,
+      health: null,
+    });
+  });
+
+  it("marks missing account or plan context as partial", () => {
+    expect(
+      assessHealthPulse({
+        accountCount: 1,
+        activeJarCount: 0,
+        openInboxCount: 1,
+        recentTransactionCount: 1,
+      }),
+    ).toMatchObject({
+      state: HealthAssessmentState.PARTIAL,
+      health: null,
+    });
   });
 });

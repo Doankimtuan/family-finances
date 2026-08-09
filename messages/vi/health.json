@@ -3,6 +3,12 @@
   "subtitle": "Nhịp tài chính hộ gia đình",
   "loadErrorTitle": "Không tải được Sức khỏe",
   "loadErrorBody": "Kiểm tra kết nối rồi thử lại.",
+  "states": {
+    "noVisibleFactsTitle": "Chưa có dữ liệu tài chính khả dụng",
+    "noVisibleFactsBody": "Sức khỏe chưa thể đánh giá rủi ro cho đến khi có dữ liệu khả dụng từ Tiền, Kế hoạch hoặc Hộp thư.",
+    "partialTitle": "Đánh giá chưa đầy đủ",
+    "partialBody": "Có dữ liệu ở {visible} trên {total} khu vực nguồn. Hãy xem các yếu tố hiện có nhưng đừng coi đây là đánh giá đầy đủ."
+  },
   "chipTitle": "Sức khỏe tài chính",
   "levels": {
     "starting": "Bắt đầu",
@@ -33,8 +39,15 @@
     "emptyDescription": "Khi Tiền, Kế hoạch và Hộp thư có dữ liệu, nhận định nhẹ sẽ hiện ở đây.",
     "sectionInsights": "Thông báo",
     "sectionScenarios": "Kịch bản nhẹ",
+    "scenarioReadOnly": "Các kịch bản này chỉ để xem và không thay đổi tiền, kế hoạch hay quyết định.",
     "backHealth": "Về Sức khỏe",
     "openInbox": "Mở Hộp thư",
+    "sources": {
+      "accounts": "Xem nguồn Tài khoản",
+      "transactions": "Xem nguồn Giao dịch",
+      "plan_jars": "Xem nguồn Kế hoạch",
+      "inbox": "Xem nguồn Hộp thư"
+    },
     "items": {
       "emi_complete": {
         "title": "Trả góp đã xong",

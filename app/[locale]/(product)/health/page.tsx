@@ -7,10 +7,12 @@ import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
 import { getHealthOverview } from "@/modules/health/application";
+import { HealthAssessmentState } from "@/modules/health/application/health-constants";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { SectionHeader } from "@/shared/patterns/section-header";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Text } from "@/shared/ui/text";
+import { EmptyState } from "@/shared/patterns/empty-state";
 import { HealthOverviewCard } from "./health-overview-card";
 import { HealthViewInsightsAction } from "./health-view-insights-action";
 
@@ -54,10 +56,26 @@ export default async function HealthPage({ params }: Props) {
           />
         ) : (
           <>
-            <HealthOverviewCard
-              score={overview.health.score}
-              level={overview.health.level}
-            />
+            {overview.state === HealthAssessmentState.NO_VISIBLE_FACTS ? (
+              <EmptyState
+                title={t("states.noVisibleFactsTitle")}
+                description={t("states.noVisibleFactsBody")}
+              />
+            ) : overview.state === HealthAssessmentState.PARTIAL ? (
+              <StatusAlert
+                variant="info"
+                title={t("states.partialTitle")}
+                description={t("states.partialBody", {
+                  visible: overview.completeness.visibleSourceCount,
+                  total: overview.completeness.totalSourceCount,
+                })}
+              />
+            ) : overview.health ? (
+              <HealthOverviewCard
+                score={overview.health.score}
+                level={overview.health.level}
+              />
+            ) : null}
 
             {overview.hasEmiCompletePending ? (
               <div data-testid="health-emi-celebrate">
@@ -99,7 +117,9 @@ export default async function HealthPage({ params }: Props) {
               </ul>
             </section>
 
-            <HealthViewInsightsAction />
+            {overview.state !== HealthAssessmentState.NO_VISIBLE_FACTS ? (
+              <HealthViewInsightsAction />
+            ) : null}
           </>
         )}
 

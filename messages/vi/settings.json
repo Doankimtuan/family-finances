@@ -1,4 +1,6 @@
 {
+  "title": "Cài đặt",
+  "subtitle": "Tài khoản và tuỳ chọn ứng dụng",
   "language": "Ngôn ngữ",
   "english": "Tiếng Anh",
   "vietnamese": "Tiếng Việt",
@@ -7,5 +9,22 @@
   "themeSystem": "Hệ thống",
   "themeLight": "Sáng",
   "themeDark": "Tối",
-  "preferences": "Tuỳ chọn"
+  "preferences": "Tuỳ chọn",
+  "profileTitle": "Hồ sơ",
+  "profileDescription": "Danh tính đăng nhập chỉ để xem tại đây.",
+  "emailLabel": "Email",
+  "emailMissing": "Tài khoản chưa có email",
+  "roleNote": "Vai trò hộ: {role}",
+  "roleAdmin": "Quản trị",
+  "rolePartner": "Đối tác",
+  "appTitle": "Tuỳ chọn ứng dụng",
+  "appDescription": "Giao diện lưu trên thiết bị. Ngôn ngữ giữ nguyên trang hiện tại.",
+  "householdPreferencesLink": "Tuỳ chọn hộ gia đình",
+  "accountSettingsLink": "Cài đặt tài khoản",
+  "back": "Về Together",
+  "account": {
+    "title": "Cài đặt tài khoản",
+    "subtitle": "Đăng xuất hoặc quản lý vòng đời tài khoản",
+    "back": "Về Cài đặt"
+  }
 }
