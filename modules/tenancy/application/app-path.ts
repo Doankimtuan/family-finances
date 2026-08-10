@@ -24,6 +24,9 @@ export const APP_PATH = {
   MONEY_DEBTS: "/money/debts",
   MONEY_SAVINGS: "/money/savings",
   MONEY_SAVINGS_NEW: "/money/savings/new",
+  MONEY_INVESTMENTS: "/money/investments",
+  MONEY_INVESTMENTS_NEW: "/money/investments/new",
+  MONEY_INVESTMENTS_CONVERT: "/money/investments/convert",
   MONEY_LOANS: "/money/loans",
   /** @deprecated Use MONEY_LOANS — old Cards/EMI route. */
   MONEY_CARDS: "/money/loans",
@@ -107,6 +110,26 @@ export function moneySavingsNewPath(): string {
 
 export function moneySavingsEarlyWithdrawPath(savingsId: string): string {
   return `${moneySavingsPath(savingsId)}/early-withdraw`;
+}
+
+export function moneyInvestmentPath(holdingId: string): string {
+  return `${APP_PATH.MONEY_INVESTMENTS}/${holdingId}`;
+}
+
+export function moneyInvestmentBuyPath(holdingId: string): string {
+  return `${moneyInvestmentPath(holdingId)}/buy`;
+}
+
+export function moneyInvestmentSellPath(holdingId: string): string {
+  return `${moneyInvestmentPath(holdingId)}/sell`;
+}
+
+export function moneyInvestmentIncomePath(holdingId: string): string {
+  return `${moneyInvestmentPath(holdingId)}/income`;
+}
+
+export function moneyInvestmentValuationPath(holdingId: string): string {
+  return `${moneyInvestmentPath(holdingId)}/valuation`;
 }
 
 export function moneyLoanPath(loanId: string): string {

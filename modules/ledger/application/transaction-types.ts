@@ -4,6 +4,8 @@ import {
   TransactionDirection,
   TransactionLedgerType,
   TransactionStatus,
+  TRANSACTION_LEDGER_CREDIT_TYPES,
+  TRANSACTION_LEDGER_DEBIT_TYPES,
   type TransactionLedgerType as TransactionLedgerTypeValue,
 } from "./ledger-constants";
 
@@ -32,6 +34,7 @@ export type LedgerTransaction = {
   jarId: string | null;
   jarName: string | null;
   status: string;
+  transferGroupId: string | null;
   reversesTransactionId: string | null;
   correctsTransactionId: string | null;
   isReversal: boolean;
@@ -62,15 +65,42 @@ export function applyTransactionDeltas(
     const amount =
       typeof row.amount === "string" ? Number(row.amount) : row.amount;
     if (!Number.isFinite(amount)) continue;
-    if (row.type === TransactionLedgerType.INCOME) account.balance += amount;
-    if (
-      row.type === TransactionLedgerType.EXPENSE ||
-      row.type === TransactionLedgerType.LIABILITY_PAYMENT
-    ) {
+    if ((TRANSACTION_LEDGER_CREDIT_TYPES as readonly string[]).includes(row.type)) {
+      account.balance += amount;
+    }
+    if ((TRANSACTION_LEDGER_DEBIT_TYPES as readonly string[]).includes(row.type)) {
       account.balance -= amount;
     }
   }
   return Array.from(byId.values());
+}
+
+function mapLedgerType(type: string): TransactionLedgerTypeValue {
+  if (type === TransactionLedgerType.INCOME) {
+    return TransactionLedgerType.INCOME;
+  }
+  if (type === TransactionLedgerType.LIABILITY_PAYMENT) {
+    return TransactionLedgerType.LIABILITY_PAYMENT;
+  }
+  if (type === TransactionLedgerType.TRANSFER_OUT) {
+    return TransactionLedgerType.TRANSFER_OUT;
+  }
+  if (type === TransactionLedgerType.TRANSFER_IN) {
+    return TransactionLedgerType.TRANSFER_IN;
+  }
+  if (type === TransactionLedgerType.INVESTMENT_BUY) {
+    return TransactionLedgerType.INVESTMENT_BUY;
+  }
+  if (type === TransactionLedgerType.INVESTMENT_SELL_PROCEEDS) {
+    return TransactionLedgerType.INVESTMENT_SELL_PROCEEDS;
+  }
+  if (type === TransactionLedgerType.INVESTMENT_INCOME) {
+    return TransactionLedgerType.INVESTMENT_INCOME;
+  }
+  if (type === TransactionLedgerType.INVESTMENT_FEE) {
+    return TransactionLedgerType.INVESTMENT_FEE;
+  }
+  return TransactionLedgerType.EXPENSE;
 }
 
 export function mapTransactionRow(row: {
@@ -84,6 +114,7 @@ export function mapTransactionRow(row: {
   category_id: string | null;
   jar_id: string | null;
   status?: string | null;
+  transfer_group_id?: string | null;
   reverses_transaction_id?: string | null;
   corrects_transaction_id?: string | null;
   is_reversal?: boolean | null;
@@ -95,17 +126,11 @@ export function mapTransactionRow(row: {
   const amount =
     typeof row.amount === "string" ? Number(row.amount) : row.amount;
   const reversesTransactionId = row.reverses_transaction_id ?? null;
-  const type =
-    row.type === TransactionLedgerType.INCOME
-      ? TransactionLedgerType.INCOME
-      : row.type === TransactionLedgerType.LIABILITY_PAYMENT
-        ? TransactionLedgerType.LIABILITY_PAYMENT
-        : TransactionLedgerType.EXPENSE;
   return {
     id: row.id,
     accountId: row.account_id,
     accountName: row.accounts?.name,
-    type,
+    type: mapLedgerType(row.type),
     amount: Number.isFinite(amount) ? amount : 0,
     currency: (row.currency ?? DEFAULT_CURRENCY).toUpperCase(),
     transactionDate: row.transaction_date,
@@ -115,6 +140,7 @@ export function mapTransactionRow(row: {
     jarId: row.jar_id,
     jarName: row.jars?.name ?? null,
     status: row.status ?? TransactionStatus.POSTED,
+    transferGroupId: row.transfer_group_id ?? null,
     reversesTransactionId,
     correctsTransactionId: row.corrects_transaction_id ?? null,
     isReversal: Boolean(row.is_reversal) || reversesTransactionId != null,

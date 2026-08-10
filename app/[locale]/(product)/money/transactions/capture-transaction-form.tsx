@@ -42,6 +42,7 @@ type Props = {
   incomeTags: CategoryTag[];
   jars: CaptureJarOption[];
   currency: string;
+  initialDirection?: TransactionDirection;
 };
 
 function todayInputValue() {
@@ -57,6 +58,7 @@ export function CaptureTransactionForm({
   incomeTags,
   jars,
   currency,
+  initialDirection = Direction.EXPENSE,
 }: Props) {
   const t = useTranslations("money.captureForm");
   const tCatalog = useTranslations("catalog");
@@ -66,7 +68,7 @@ export function CaptureTransactionForm({
   const noteId = useId();
   const dateId = useId();
   const [direction, setDirection] = useState<TransactionDirection>(
-    Direction.EXPENSE,
+    initialDirection,
   );
   const tags = direction === Direction.INCOME ? incomeTags : expenseTags;
   const [amount, setAmount] = useState<number | null>(null);

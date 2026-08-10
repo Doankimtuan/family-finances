@@ -63,7 +63,7 @@ export function TransactionsFilterBar({ q, type }: Props) {
         <legend className="text-sm font-semibold text-text-primary">
           {t("filterLabel")}
         </legend>
-        <div className="grid grid-cols-3 gap-(--space-2) rounded-lg bg-canvas p-(--space-1)">
+        <div className="grid grid-cols-2 gap-(--space-2) rounded-lg bg-canvas p-(--space-1) sm:grid-cols-4">
           {TRANSACTION_FILTER_OPTIONS.map((value) => (
             <label
               key={value}

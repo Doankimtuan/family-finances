@@ -8,6 +8,7 @@ import {
 import {
   TransactionDirection as Direction,
   TransactionFilterType,
+  TRANSACTION_LEDGER_TYPE_VALUES,
 } from "../ledger-constants";
 
 function normalizeJoinedRow(row: Record<string, unknown>) {
@@ -26,7 +27,7 @@ function normalizeJoinedRow(row: Record<string, unknown>) {
 }
 
 const TX_SELECT =
-  "id, account_id, type, amount, currency, transaction_date, note, category_id, jar_id, status, reverses_transaction_id, corrects_transaction_id, is_reversal, created_at, accounts(name), categories(name), jars(name)";
+  "id, account_id, type, amount, currency, transaction_date, note, category_id, jar_id, status, transfer_group_id, reverses_transaction_id, corrects_transaction_id, is_reversal, created_at, accounts(name), categories(name), jars(name)";
 
 export async function getTransaction(
   transactionId: string,
@@ -57,7 +58,7 @@ export async function getTransaction(
 
 export type ListTransactionsFilter = {
   q?: string;
-  type?: TransactionDirection | typeof TransactionFilterType.ALL;
+  type?: TransactionDirection | typeof TransactionFilterType.ALL | typeof TransactionFilterType.INVESTMENT;
   limit?: number;
 };
 
@@ -80,6 +81,14 @@ export async function listTransactions(
 
     if (filter.type === Direction.INCOME || filter.type === Direction.EXPENSE) {
       query = query.eq("type", filter.type);
+    }
+    if (filter.type === TransactionFilterType.INVESTMENT) {
+      query = query.in(
+        "type",
+        TRANSACTION_LEDGER_TYPE_VALUES.filter((type) =>
+          type.startsWith(TransactionFilterType.INVESTMENT),
+        ),
+      );
     }
 
     const { data, error } = await query;

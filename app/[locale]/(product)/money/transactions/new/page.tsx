@@ -16,12 +16,12 @@ import {
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Page } from "@/shared/patterns/page";
 import { MoneyOfflineBanner } from "../../money-offline-banner";
-import { CaptureTransactionForm } from "../capture-transaction-form";
+import { MoneyCaptureEntry } from "../money-capture-entry";
 
 type Props = { params: Promise<{ locale: string }> };
 
 /**
- * money.transaction-add — capture <15s (ST-E04-002).
+ * money.transaction-add — capture <15s (ST-E04-002) + owned-account transfer.
  */
 export default async function MoneyTransactionAddPage({ params }: Props) {
   const { locale: rawLocale } = await params;
@@ -56,7 +56,7 @@ export default async function MoneyTransactionAddPage({ params }: Props) {
       }
     >
       <MoneyOfflineBanner />
-      <CaptureTransactionForm
+      <MoneyCaptureEntry
         accounts={listed?.accounts ?? []}
         expenseTags={expenseTags ?? []}
         incomeTags={incomeTags ?? []}

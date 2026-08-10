@@ -94,32 +94,30 @@ export function CreditCardDetailActions({
     />
   ) : null;
 
-  if (payStep !== MoneyPaymentFlowStep.FORM) {
-    return settleFlow;
-  }
-
   return (
     <div
       className="flex flex-col gap-(--space-5)"
       data-testid="credit-card-actions"
     >
-      <section className="flex flex-col gap-(--space-2)">
-        <Text size="sm" tone="secondary">
-          {t("heroHint", {
-            outstanding: outstandingLabel,
-            available: availableLabel,
-          })}
-        </Text>
-        {errorCode ? (
-          <StatusAlert
-            variant="danger"
-            title={t("actionErrorTitle")}
-            description={t(`errors.${errorCode}`)}
-          />
-        ) : null}
-      </section>
+      {payStep === MoneyPaymentFlowStep.FORM ? (
+        <section className="flex flex-col gap-(--space-2)">
+          <Text size="sm" tone="secondary">
+            {t("heroHint", {
+              outstanding: outstandingLabel,
+              available: availableLabel,
+            })}
+          </Text>
+          {errorCode ? (
+            <StatusAlert
+              variant="danger"
+              title={t("actionErrorTitle")}
+              description={t(`errors.${errorCode}`)}
+            />
+          ) : null}
+        </section>
+      ) : null}
 
-      {leadMonth ? (
+      {payStep === MoneyPaymentFlowStep.FORM && leadMonth ? (
         <CreditCardDueLead
           leadMonth={leadMonth}
           remainingDueLabel={formatMoney(remainingDue)}
@@ -130,22 +128,26 @@ export function CreditCardDetailActions({
 
       {settleFlow}
 
-      <CreditCardCashbackSection
-        cardAccountId={card.accountId}
-        onError={setErrorCode}
-      />
-      <CreditCardStatementsSection
-        months={card.months}
-        formatMoney={formatMoney}
-      />
-      <CreditCardActivitySection
-        items={activityItems}
-        formatMoney={formatMoney}
-      />
-      <CreditCardInstallmentsSection
-        items={installmentItems}
-        formatMoney={formatMoney}
-      />
+      {payStep === MoneyPaymentFlowStep.FORM ? (
+        <>
+          <CreditCardCashbackSection
+            cardAccountId={card.accountId}
+            onError={setErrorCode}
+          />
+          <CreditCardStatementsSection
+            months={card.months}
+            formatMoney={formatMoney}
+          />
+          <CreditCardActivitySection
+            items={activityItems}
+            formatMoney={formatMoney}
+          />
+          <CreditCardInstallmentsSection
+            items={installmentItems}
+            formatMoney={formatMoney}
+          />
+        </>
+      ) : null}
     </div>
   );
 }

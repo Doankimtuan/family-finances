@@ -14,7 +14,8 @@ import {
   getCreditCardDetail,
   listAccounts,
   listRecentTransactions,
-  TransactionDirection,
+  TRANSACTION_LEDGER_AMOUNT_PREFIX,
+  TRANSACTION_LEDGER_CREDIT_TYPES,
   accountHealthFromBalance,
   AccountHealthSignal,
   AccountType,
@@ -238,11 +239,11 @@ export default async function AccountDetailPage({ params }: Props) {
                         ) ||
                         t(`direction.${tx.type}`)
                       }
-                      amountLabel={`${tx.type === TransactionDirection.EXPENSE ? "−" : "+"}${formatCurrency(tx.amount, tx.currency, locale, { maximumFractionDigits: 0 })}`}
+                      amountLabel={`${TRANSACTION_LEDGER_AMOUNT_PREFIX[tx.type]}${formatCurrency(tx.amount, tx.currency, locale, { maximumFractionDigits: 0 })}`}
                       tone={
-                        tx.type === TransactionDirection.EXPENSE
-                          ? "debit"
-                          : "credit"
+                        (TRANSACTION_LEDGER_CREDIT_TYPES as readonly string[]).includes(tx.type)
+                          ? "credit"
+                          : "debit"
                       }
                     />
                   </Link>

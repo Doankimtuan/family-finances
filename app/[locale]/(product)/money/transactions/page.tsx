@@ -12,9 +12,9 @@ import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-a
 import {
   listTransactions,
   TRANSACTION_LEDGER_AMOUNT_PREFIX,
+  TRANSACTION_LEDGER_CREDIT_TYPES,
   TransactionDirection,
   TransactionFilterType,
-  TransactionLedgerType,
 } from "@/modules/ledger/application";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
@@ -106,7 +106,7 @@ export default async function TransactionsListPage({
                   )}
                   amountLabel={`${TRANSACTION_LEDGER_AMOUNT_PREFIX[tx.type]}${formatCurrency(tx.amount, tx.currency, locale, { maximumFractionDigits: 0 })}`}
                   tone={
-                    tx.type === TransactionLedgerType.INCOME
+                    (TRANSACTION_LEDGER_CREDIT_TYPES as readonly string[]).includes(tx.type)
                       ? TransactionAmountTone.CREDIT
                       : TransactionAmountTone.DEBIT
                   }

@@ -15,7 +15,7 @@ import {
   listRecentTransactions,
   DEFAULT_CURRENCY,
   TRANSACTION_LEDGER_AMOUNT_PREFIX,
-  TransactionLedgerType,
+  TRANSACTION_LEDGER_CREDIT_TYPES,
 } from "@/modules/ledger/application";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
@@ -224,7 +224,7 @@ export default async function MoneyHubPage({ params }: Props) {
                     )}
                     amountLabel={`${TRANSACTION_LEDGER_AMOUNT_PREFIX[tx.type]}${formatCurrency(tx.amount, tx.currency, locale, { maximumFractionDigits: 0 })}`}
                     tone={
-                      tx.type === TransactionLedgerType.INCOME
+                      (TRANSACTION_LEDGER_CREDIT_TYPES as readonly string[]).includes(tx.type)
                         ? TransactionAmountTone.CREDIT
                         : TransactionAmountTone.DEBIT
                     }
@@ -245,6 +245,7 @@ export default async function MoneyHubPage({ params }: Props) {
           [
             ["debts", APP_PATH.MONEY_DEBTS, "money-link-debts"],
             ["savings", APP_PATH.MONEY_SAVINGS, "money-link-savings"],
+            ["investmentsLabel", APP_PATH.MONEY_INVESTMENTS, "money-link-investments"],
             ["loans", APP_PATH.MONEY_LOANS, "money-link-loans"],
           ] as const
         ).map(([key, href, testId]) => (

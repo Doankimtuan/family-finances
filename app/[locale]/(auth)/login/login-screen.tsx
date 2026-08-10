@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState, useSyncExternalStore, useTransition } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -43,6 +43,13 @@ const loginFormSchema = signInInputSchema.extend({
 
 type LoginFormValues = z.infer<typeof loginFormSchema>;
 
+const subscribeToHydration = (onStoreChange: () => void) => {
+  queueMicrotask(onStoreChange);
+  return () => undefined;
+};
+const getHydratedSnapshot = () => true;
+const getServerHydratedSnapshot = () => false;
+
 type LoginErrorCode = Extract<
   AuthActionErrorCode,
   | typeof AUTH_ACTION_ERROR_CODE.UNCONFIGURED
@@ -60,6 +67,11 @@ export function LoginScreen() {
   const [isPending, startTransition] = useTransition();
   const [oauthPending, setOauthPending] = useState<OAuthProvider | null>(null);
   const [errorCode, setErrorCode] = useState<LoginErrorCode | null>(null);
+  const hydrated = useSyncExternalStore(
+    subscribeToHydration,
+    getHydratedSnapshot,
+    getServerHydratedSnapshot,
+  );
 
   const {
     register,
@@ -167,7 +179,7 @@ export function LoginScreen() {
       <div className="flex flex-col gap-(--space-3)">
         <SocialButton
           provider="google"
-          isDisabled={busy}
+          isDisabled={busy || !hydrated}
           data-testid="oauth-google"
           onPress={() => onOAuth("google")}
         >
@@ -177,7 +189,7 @@ export function LoginScreen() {
         </SocialButton>
         <SocialButton
           provider="apple"
-          isDisabled={busy}
+          isDisabled={busy || !hydrated}
           data-testid="oauth-apple"
           onPress={() => onOAuth("apple")}
         >
@@ -188,6 +200,7 @@ export function LoginScreen() {
       <DividerWithText>{t("continueWithEmail")}</DividerWithText>
 
       <form
+        method="post"
         onSubmit={onSubmit}
         className="flex flex-col gap-(--space-4)"
         noValidate
@@ -236,7 +249,7 @@ export function LoginScreen() {
           type="submit"
           variant="primary"
           className="min-h-14 w-full rounded-(--radius-lg) text-base font-semibold"
-          isDisabled={busy}
+          isDisabled={busy || !hydrated}
         >
           {isPending && !oauthPending ? t("submitting") : t("submit")}
         </Button>

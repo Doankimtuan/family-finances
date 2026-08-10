@@ -32,10 +32,19 @@ export const TRANSACTION_DIRECTION_VALUES = [
 /**
  * Persisted ledger movement kinds.
  * Liability payment is a real-money repayment that is not income or expense.
+ * Transfer legs are owned-account location changes — never income or expense.
+ * Investment movements remain neutral ledger semantics; investment income is
+ * reported by Investments and does not enter ordinary salary logic.
  */
 export const TransactionLedgerType = {
   ...TransactionDirection,
   LIABILITY_PAYMENT: "liability_payment",
+  TRANSFER_OUT: "transfer_out",
+  TRANSFER_IN: "transfer_in",
+  INVESTMENT_BUY: "investment_buy",
+  INVESTMENT_SELL_PROCEEDS: "investment_sell_proceeds",
+  INVESTMENT_INCOME: "investment_income",
+  INVESTMENT_FEE: "investment_fee",
 } as const;
 
 export type TransactionLedgerType =
@@ -45,13 +54,55 @@ export const TRANSACTION_LEDGER_TYPE_VALUES = [
   TransactionLedgerType.INCOME,
   TransactionLedgerType.EXPENSE,
   TransactionLedgerType.LIABILITY_PAYMENT,
+  TransactionLedgerType.TRANSFER_OUT,
+  TransactionLedgerType.TRANSFER_IN,
+  TransactionLedgerType.INVESTMENT_BUY,
+  TransactionLedgerType.INVESTMENT_SELL_PROCEEDS,
+  TransactionLedgerType.INVESTMENT_INCOME,
+  TransactionLedgerType.INVESTMENT_FEE,
 ] as const;
 
 export const TRANSACTION_LEDGER_AMOUNT_PREFIX = {
   [TransactionLedgerType.EXPENSE]: "-",
   [TransactionLedgerType.INCOME]: "+",
   [TransactionLedgerType.LIABILITY_PAYMENT]: "-",
+  [TransactionLedgerType.TRANSFER_OUT]: "-",
+  [TransactionLedgerType.TRANSFER_IN]: "+",
+  [TransactionLedgerType.INVESTMENT_BUY]: "-",
+  [TransactionLedgerType.INVESTMENT_SELL_PROCEEDS]: "+",
+  [TransactionLedgerType.INVESTMENT_INCOME]: "+",
+  [TransactionLedgerType.INVESTMENT_FEE]: "-",
 } as const;
+
+export const TRANSACTION_LEDGER_CREDIT_TYPES = [
+  TransactionLedgerType.INCOME,
+  TransactionLedgerType.TRANSFER_IN,
+  TransactionLedgerType.INVESTMENT_SELL_PROCEEDS,
+  TransactionLedgerType.INVESTMENT_INCOME,
+] as const;
+
+export const TRANSACTION_LEDGER_DEBIT_TYPES = [
+  TransactionLedgerType.EXPENSE,
+  TransactionLedgerType.LIABILITY_PAYMENT,
+  TransactionLedgerType.TRANSFER_OUT,
+  TransactionLedgerType.INVESTMENT_BUY,
+  TransactionLedgerType.INVESTMENT_FEE,
+] as const;
+
+/** Capture surface modes — income/expense fast path plus neutral transfer. */
+export const MoneyCaptureMode = {
+  ...TransactionDirection,
+  TRANSFER: "transfer",
+} as const;
+
+export type MoneyCaptureMode =
+  (typeof MoneyCaptureMode)[keyof typeof MoneyCaptureMode];
+
+export const MONEY_CAPTURE_MODE_OPTIONS = [
+  MoneyCaptureMode.EXPENSE,
+  MoneyCaptureMode.INCOME,
+  MoneyCaptureMode.TRANSFER,
+] as const;
 
 /**
  * Ledger posting lifecycle (BR-02 / BR-03).
@@ -364,6 +415,14 @@ export function createCardPaymentIdempotencyKey(): string {
   return `${CARD_PAYMENT_IDEMPOTENCY_KEY_PREFIX}${crypto.randomUUID()}`;
 }
 
+export const TRANSFER_IDEMPOTENCY_KEY_PREFIX = "xfer:";
+export const TRANSFER_IDEMPOTENCY_KEY_MIN_LEN = 8;
+export const TRANSFER_IDEMPOTENCY_KEY_MAX_LEN = 160;
+
+export function createTransferIdempotencyKey(): string {
+  return `${TRANSFER_IDEMPOTENCY_KEY_PREFIX}${crypto.randomUUID()}`;
+}
+
 /** Supabase RPC names used by ledger money-product commands. */
 export const LedgerRpcName = {
   SETTLE_CARD_PAYMENT: "settle_card_payment",
@@ -372,6 +431,7 @@ export const LedgerRpcName = {
   RECORD_LIABILITY_PAYMENT: "record_liability_payment",
   CREATE_LOAN_WITH_SCHEDULE: "create_loan_with_schedule",
   SET_LOAN_STATUS: "set_loan_status",
+  RECORD_OWNED_ACCOUNT_TRANSFER: "record_owned_account_transfer",
 } as const;
 
 export type LedgerRpcName =
@@ -403,6 +463,15 @@ export const RECORD_LOAN_PAYMENT_INVALID_ERROR_NEEDLES = [
   "no upcoming",
 ] as const;
 
+export const RECORD_TRANSFER_INVALID_ERROR_NEEDLES = [
+  "invalid",
+  "not found",
+  "must differ",
+  "cannot be",
+  "authentication",
+  "household",
+] as const;
+
 /** Ledger-only mutation errors (not shared across plan/inbox forms). */
 export const LEDGER_ACTION_ERROR_CODE = {
   CREDIT_LIMIT_EXCEEDED: "credit_limit_exceeded",
@@ -419,6 +488,7 @@ export type LedgerActionErrorCode =
 export const TransactionFilterType = {
   ALL: "all",
   ...TransactionDirection,
+  INVESTMENT: "investment",
 } as const;
 
 export type TransactionFilterType =
@@ -428,6 +498,7 @@ export const TRANSACTION_FILTER_OPTIONS = [
   TransactionFilterType.ALL,
   TransactionFilterType.EXPENSE,
   TransactionFilterType.INCOME,
+  TransactionFilterType.INVESTMENT,
 ] as const;
 
 /** REQ-TRN-03 — transaction provenance for pattern auto-resolution. */

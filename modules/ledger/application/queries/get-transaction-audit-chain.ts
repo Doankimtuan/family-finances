@@ -12,7 +12,7 @@ export type TransactionAuditChain = {
 };
 
 const TX_SELECT =
-  "id, account_id, type, amount, currency, transaction_date, note, category_id, jar_id, status, reverses_transaction_id, corrects_transaction_id, is_reversal, created_at, accounts(name), categories(name), jars(name)";
+  "id, account_id, type, amount, currency, transaction_date, note, category_id, jar_id, status, transfer_group_id, reverses_transaction_id, corrects_transaction_id, is_reversal, created_at, accounts(name), categories(name), jars(name)";
 
 function normalize(row: Record<string, unknown>): LedgerTransaction {
   return mapTransactionRow({
