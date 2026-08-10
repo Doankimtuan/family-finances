@@ -95,8 +95,8 @@ export default async function SavingsPage({ params }: Props) {
       </Link>
       {loadFailed ? (
         <ErrorState
-          title={t("emptyTitle")}
-          description={tProducts("errors.unknown")}
+          title={t("loadErrorTitle")}
+          description={t("loadErrorDescription")}
           className="flex-none py-(--space-4)"
         />
       ) : list.length === 0 ? (

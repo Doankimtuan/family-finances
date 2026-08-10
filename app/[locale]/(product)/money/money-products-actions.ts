@@ -105,6 +105,7 @@ export { createSavingAction };
 export async function enqueueSavingsMaturityAction(_input: {
   savingsId: string;
 }): Promise<MoneyProductActionState> {
+  void _input;
   return { status: "error", code: PRODUCT_ACTION_ERROR_CODE.INVALID };
 }
 

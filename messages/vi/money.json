@@ -183,6 +183,8 @@
     "rowMeta": "{rate}% / năm · đáo hạn {date}",
     "emptyTitle": "Chưa có tiết kiệm",
     "emptyDescription": "Mở sản phẩm tiết kiệm để theo dõi vốn, lãi và đáo hạn.",
+    "loadErrorTitle": "Chưa thể tải tiết kiệm",
+    "loadErrorDescription": "Hiện chưa thể tải dữ liệu tiết kiệm. Vui lòng thử lại.",
     "add": "Mở sản phẩm tiết kiệm",
     "nameLabel": "Tên",
     "amountLabel": "Gốc",

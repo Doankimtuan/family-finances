@@ -183,6 +183,8 @@
     "rowMeta": "{rate}% / year · matures {date}",
     "emptyTitle": "No savings products",
     "emptyDescription": "Open a savings product to track funding, interest, and maturity.",
+    "loadErrorTitle": "Savings unavailable",
+    "loadErrorDescription": "We couldn't load savings right now. Try again.",
     "add": "Open savings product",
     "nameLabel": "Name",
     "amountLabel": "Principal",

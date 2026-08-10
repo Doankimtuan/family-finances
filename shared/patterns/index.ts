@@ -31,7 +31,6 @@ export { Toast, toast, type ToastProps } from "./toast";
 export { EmptyState } from "./empty-state";
 export { LoadingState } from "./loading-state";
 export { ErrorState } from "./error-state";
-export { ProductStub } from "./product-stub";
 export { LocaleSwitcher } from "./locale-switcher";
 export { ThemeToggle } from "./theme-toggle";
 export { TogetherPreferences } from "./together-preferences";
