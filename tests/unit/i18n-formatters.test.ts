@@ -26,4 +26,10 @@ describe("i18n formatters", () => {
     expect(formatDate(date, "en").length).toBeGreaterThan(0);
     expect(formatRelativeTime(-1, "day", "en").length).toBeGreaterThan(0);
   });
+  it("formats compact date components without conflicting with the default style", () => {
+    const date = new Date("2026-08-13T12:00:00Z");
+    expect(formatDate(date, "en", { month: "short", day: "numeric" })).toMatch(
+      /Aug/,
+    );
+  });
 });

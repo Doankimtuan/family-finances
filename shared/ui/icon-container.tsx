@@ -10,6 +10,7 @@ export type IconContainerTone =
   | "investment"
   | "savings"
   | "debt"
+  | "info"
   | "refund";
 
 export type IconContainerProps = {
@@ -27,6 +28,7 @@ const toneClassName: Record<IconContainerTone, string> = {
   transfer: "bg-transfer-soft text-transfer",
   investment: "bg-investment-soft text-investment",
   savings: "bg-savings-soft text-savings",
+  info: "bg-info/10 text-info",
   debt: "bg-debt-soft text-debt",
   refund: "bg-refund-soft text-refund",
 };

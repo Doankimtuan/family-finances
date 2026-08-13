@@ -6,6 +6,23 @@ function resolveLocale(locale?: FormatLocale) {
   return toIntlLocale(locale ?? "en");
 }
 
+const DATE_COMPONENT_OPTION_KEYS = [
+  "weekday",
+  "era",
+  "year",
+  "month",
+  "day",
+  "hour",
+  "minute",
+  "second",
+  "fractionalSecondDigits",
+  "timeZoneName",
+] as const;
+
+function hasExplicitDateComponents(options?: Intl.DateTimeFormatOptions) {
+  return DATE_COMPONENT_OPTION_KEYS.some((key) => options?.[key] !== undefined);
+}
+
 /** Locale-aware currency (minor units as major number — callers pass major units). */
 export function formatCurrency(
   amount: number,
@@ -39,15 +56,23 @@ export function formatPercent(
   }).format(value);
 }
 
+/**
+ * Default to a medium date, while allowing explicit date parts for compact
+ * chart ticks and other component-level views without an Intl style conflict.
+ */
 export function formatDate(
   value: Date | number,
   locale?: FormatLocale,
   options?: Intl.DateTimeFormatOptions,
 ) {
-  return new Intl.DateTimeFormat(resolveLocale(locale), {
-    dateStyle: "medium",
-    ...options,
-  }).format(value);
+  const formatOptions: Intl.DateTimeFormatOptions = hasExplicitDateComponents(
+    options,
+  )
+    ? (options ?? {})
+    : { dateStyle: "medium", ...(options ?? {}) };
+  return new Intl.DateTimeFormat(resolveLocale(locale), formatOptions).format(
+    value,
+  );
 }
 
 export function formatTime(

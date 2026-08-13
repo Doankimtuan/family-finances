@@ -11,10 +11,7 @@ export type KpiBlockProps = {
   "data-testid"?: string;
 };
 
-/**
- * Home answer metric zone (Design System KPIBlock).
- * Prefer over wrapping every metric in Card.
- */
+/** Answer-oriented metric zone; keeps financial hierarchy consistent without forcing every section into a card. */
 export function KpiBlock({
   title,
   description,
@@ -28,9 +25,9 @@ export function KpiBlock({
       className={cn(
         "flex flex-col gap-(--space-3)",
         variant === "surface" &&
-          "rounded-[var(--radius-card)] bg-surface-muted/55 p-(--space-4)",
+          "rounded-[var(--radius-card)] border border-border-subtle/70 bg-surface-muted/70 p-(--space-4)",
         variant === "prominent" &&
-          "rounded-[var(--radius-card)] border border-accent/20 bg-accent/10 p-(--space-5)",
+          "rounded-[var(--radius-card)] border border-accent/20 bg-accent/10 p-(--space-4)",
         className,
       )}
       data-testid={testId ?? "kpi-block"}

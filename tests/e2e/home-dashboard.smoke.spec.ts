@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
 
-test.describe("Home three answers (ST-E07-001)", () => {
+test.describe("Home decision dashboard", () => {
   test.describe.configure({ mode: "serial" });
 
   test("unauthenticated home redirects to login", async ({ page }) => {
@@ -9,7 +9,9 @@ test.describe("Home three answers (ST-E07-001)", () => {
     await expect(page).toHaveURL(/\/en\/login/, { timeout: 20_000 });
   });
 
-  test("home dashboard chrome when E2E credentials exist", async ({ page }) => {
+  test("shows the financial pulse and period controls when E2E credentials exist", async ({
+    page,
+  }) => {
     const email = process.env.E2E_USER_EMAIL;
     const password = process.env.E2E_USER_PASSWORD;
     test.skip(!email || !password, "E2E credentials not provided");
@@ -28,20 +30,16 @@ test.describe("Home three answers (ST-E07-001)", () => {
 
     await page.goto("/en/home");
     await expect(page.getByTestId("home-dashboard")).toBeVisible();
-    await expect(page.getByTestId("home-real-position")).toBeVisible();
-    await expect(page.getByTestId("ledger-balance")).toBeVisible();
-    await expect(page.getByTestId("home-plan-pulse")).toBeVisible();
-    await expect(
-      page.getByText(
-        /A simple plan|Một kế hoạch nhẹ nhàng|Intention envelopes|Phong bì ý định/i,
-      ),
-    ).toBeVisible();
-    await expect(page.getByTestId("home-inbox-cta")).toBeVisible();
-    await expect(page.getByTestId("home-health-chip")).toBeVisible();
-
-    await page.getByTestId("home-health-chip").click();
-    await expect(page.getByTestId("health-overview")).toBeVisible();
-    await expect(page.getByTestId("health-overview-card")).toBeVisible();
-    await expect(page.getByTestId("health-back-home")).toBeVisible();
+    await expect(page.getByTestId("home-period-control")).toBeVisible();
+    const quarterButton = page.getByRole("button", { name: "Quarter" });
+    await quarterButton.click();
+    await expect(quarterButton).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByTestId("home-period-content")).toBeVisible();
+    await expect(page).toHaveURL(/period=quarter/);
+    await expect(page.getByTestId("home-period-content")).toHaveAttribute(
+      "aria-busy",
+      "false",
+    );
+    await expect(page.getByTestId("home-financial-pulse")).toBeVisible();
   });
 });

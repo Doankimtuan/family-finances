@@ -21,6 +21,13 @@
     "meta": {
       "available": "{accountCount, plural, =0 {No accounts yet} one {# account in view} other {# accounts in view}} · {openInboxCount, plural, =0 {nothing waiting} one {# thing to review} other {# things to review}}",
       "unavailable": "Your household view will appear here when it is ready."
+    },
+    "dashboardHeadline": "Your financial picture, at a glance",
+    "dashboardSupporting": "See today’s position, money flow, and what needs attention.",
+    "cashFlowStory": {
+      "positive": "Money is moving in a positive direction this period",
+      "attention": "Spending is ahead of income this period",
+      "unavailable": "A clear view of your household, ready when money moves"
     }
   },
   "loadErrorTitle": "Could not load Home",
@@ -47,6 +54,55 @@
       "description": "Check your connection and try again."
     },
     "retry": "Try again"
+  },
+  "common": {
+    "unavailable": "Not available"
+  },
+  "periodControl": {
+    "label": "Dashboard period",
+    "month": "Month",
+    "quarter": "Quarter",
+    "loading": "Loading selected period"
+  },
+  "financialPulse": {
+    "title": "Current position",
+    "hint": "Available money across your active non-card accounts.",
+    "netLabel": {
+      "month": "Net cash flow this month",
+      "quarter": "Net cash flow this quarter"
+    },
+    "status": {
+      "positive": "Cash flow positive",
+      "attention": "Spending exceeds income",
+      "unavailable": "Cash flow unavailable"
+    },
+    "comparison": "{value} vs prior period"
+  },
+  "cashFlow": {
+    "title": "How is money moving this period?",
+    "hint": "Income and spending only. Transfers and refunds are excluded.",
+    "income": "Income",
+    "expense": "Expense",
+    "net": "Net",
+    "chartSummary": {
+      "day": "Daily income and expense trend for the selected period.",
+      "week": "Weekly income and expense trend for the selected period."
+    },
+    "chartAria": {
+      "day": "Daily income and expense chart for the selected period.",
+      "week": "Weekly income and expense chart for the selected period."
+    },
+    "lowData": "Only one money day has been recorded so far in this period."
+  },
+  "spending": {
+    "title": "Where is money going?",
+    "hint": "Largest spending categories in the selected period.",
+    "uncategorized": "Uncategorized",
+    "insight": {
+      "higher": "Spending is {amount} higher than the prior period.",
+      "lower": "Spending is {amount} lower than the prior period."
+    },
+    "share": "{category}: {percentage} of spending"
   },
   "realPosition": {
     "title": "Real position",

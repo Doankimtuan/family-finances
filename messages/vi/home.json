@@ -21,6 +21,13 @@
     "meta": {
       "available": "{accountCount, plural, =0 {Chưa có tài khoản} one {# tài khoản đang hiển thị} other {# tài khoản đang hiển thị}} · {openInboxCount, plural, =0 {chưa có việc chờ} one {# việc cần xem} other {# việc cần xem}}",
       "unavailable": "Góc nhìn hộ gia đình sẽ xuất hiện khi dữ liệu sẵn sàng."
+    },
+    "dashboardHeadline": "Toàn cảnh tài chính, trong một cái nhìn",
+    "dashboardSupporting": "Xem vị thế hiện tại, dòng tiền và điều cần chú ý.",
+    "cashFlowStory": {
+      "positive": "Kỳ này tiền đang đi theo chiều hướng tích cực",
+      "attention": "Kỳ này chi tiêu đang cao hơn thu vào",
+      "unavailable": "Góc nhìn rõ ràng về gia đình, sẵn sàng khi tiền bắt đầu chuyển động"
     }
   },
   "loadErrorTitle": "Không tải được Trang chủ",
@@ -47,6 +54,55 @@
       "description": "Kiểm tra kết nối rồi thử lại."
     },
     "retry": "Thử lại"
+  },
+  "common": {
+    "unavailable": "Chưa có dữ liệu"
+  },
+  "periodControl": {
+    "label": "Khoảng thời gian xem tổng quan",
+    "month": "Tháng",
+    "quarter": "Quý",
+    "loading": "Đang tải khoảng thời gian đã chọn"
+  },
+  "financialPulse": {
+    "title": "Vị thế hiện tại",
+    "hint": "Tiền đang có trong các tài khoản không phải thẻ tín dụng.",
+    "netLabel": {
+      "month": "Dòng tiền ròng tháng này",
+      "quarter": "Dòng tiền ròng quý này"
+    },
+    "status": {
+      "positive": "Dòng tiền đang dương",
+      "attention": "Chi nhiều hơn thu",
+      "unavailable": "Chưa có dòng tiền"
+    },
+    "comparison": "{value} so với kỳ trước"
+  },
+  "cashFlow": {
+    "title": "Tiền vào ra kỳ này thế nào?",
+    "hint": "Chỉ tính thu và chi. Chuyển khoản, hoàn tiền không được tính.",
+    "income": "Thu vào",
+    "expense": "Chi ra",
+    "net": "Còn lại",
+    "chartSummary": {
+      "day": "Xu hướng thu vào và chi ra theo ngày trong kỳ đã chọn.",
+      "week": "Xu hướng thu vào và chi ra theo tuần trong kỳ đã chọn."
+    },
+    "chartAria": {
+      "day": "Biểu đồ thu vào và chi ra theo ngày trong kỳ đã chọn.",
+      "week": "Biểu đồ thu vào và chi ra theo tuần trong kỳ đã chọn."
+    },
+    "lowData": "Kỳ này mới ghi nhận tiền vào ra trong một ngày."
+  },
+  "spending": {
+    "title": "Tiền kỳ này đi đâu?",
+    "hint": "Những nhóm chi tiêu lớn nhất trong kỳ đã chọn.",
+    "uncategorized": "Chưa phân loại",
+    "insight": {
+      "higher": "Chi tiêu cao hơn kỳ trước {amount}.",
+      "lower": "Chi tiêu thấp hơn kỳ trước {amount}."
+    },
+    "share": "{category}: {percentage} chi tiêu"
   },
   "realPosition": {
     "title": "Vị thế thật",

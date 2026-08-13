@@ -12,6 +12,7 @@ export {
 } from "./queries/list-credit-cards";
 export {
   listRecentTransactions,
+  listTransactionsForDateRange,
   listCategoryTags,
   listCaptureJars,
 } from "./queries/list-transactions";
