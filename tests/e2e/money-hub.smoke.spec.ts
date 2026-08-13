@@ -39,7 +39,7 @@ test.describe("Money hub + accounts (ST-E04-001)", () => {
     await page.goto("/en/money");
     await expect(page.getByTestId("money-hub")).toBeVisible();
     await expect(page.getByTestId("ledger-balance")).toBeVisible();
-    await expect(page.getByTestId("money-capture")).toBeVisible();
+    await expect(page.getByTestId("money-see-activity")).toBeVisible();
     await expect(
       page.getByTestId("money-hub").getByTestId("ledger-balance"),
     ).toBeVisible();

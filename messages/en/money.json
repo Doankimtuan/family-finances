@@ -4,7 +4,8 @@
     "eyebrow": "Money",
     "headline": "Your money, all in one place",
     "supporting": "See what you have, where it lives, and what is moving.",
-    "meta": "{accountCount, plural, =0 {No accounts yet} one {# account in view} other {# accounts in view}} · {activityCount, plural, =0 {No recent activity} one {# recent item} other {# recent items}}"
+    "meta": "{accountCount, plural, =0 {No accounts yet} one {# account in view} other {# accounts in view}} · {activityCount, plural, =0 {No recent activity} one {# recent item} other {# recent items}}",
+    "accountsMeta": "{accountCount, plural, =0 {No accounts to manage} one {# account managed} other {# accounts managed}}"
   },
   "realPosition": "Real position",
   "realPositionHint": "Money available across your accounts.",
@@ -20,11 +21,11 @@
   "hubAccountsCollapse": "Collapse",
   "hubAccountsExpand": "Expand",
   "hubAccountsCollapsedSummary": "{liquidCount} balances ({liquidTotal}) · {cardCount} cards · outstanding {cardOutstanding}",
-  "seeActivity": "See all activity",
+  "seeActivity": "View transactions",
   "activity": "Recent activity",
   "activityEmpty": "No transactions yet",
   "activityEmptyHint": "Add a transaction to update real position.",
-  "more": "More",
+  "more": "Related finances",
   "debts": "Debts",
   "savings": "Savings",
   "investmentsLabel": "Investments",
@@ -34,6 +35,40 @@
   "offlineTitle": "You are offline",
   "offlineBody": "Money changes need a connection. Reading balances is still available.",
   "backToMoney": "Back to Money",
+  "hub": {
+    "retry": "Try again",
+    "activeAccounts": "{count, plural, =0 {No active accounts} one {# active account} other {# active accounts}}",
+    "totalCreditOutstanding": "Card debt: {amount}",
+    "composition": "Where your money sits",
+    "percentage": "{value}%",
+    "lessThanOnePercent": "<1%",
+    "groups": {
+      "cash": "Cash",
+      "bank": "Bank",
+      "wallet": "E-wallet",
+      "savings": "Savings accounts",
+      "investment": "Investment accounts",
+      "other": "Other accounts"
+    },
+    "creditLimit": "Credit limit",
+    "utilizationUnavailable": "No credit limit",
+    "utilizationAria": "{pct}% of the card credit limit used",
+    "emptyTitle": "Start with where your money is held",
+    "emptyDescription": "Add a cash, bank, or e-wallet account to see where your money sits.",
+    "showAllAccounts": "See all accounts",
+    "showLessAccounts": "Show fewer accounts",
+    "attention": {
+      "overdue": "Payment overdue",
+      "dueSoon": "Payment due soon",
+      "highUtilization": "High credit use"
+    },
+    "related": {
+      "debts": "Track what you owe",
+      "savings": "Set money aside",
+      "investments": "Follow long-term assets",
+      "loans": "Manage repayment plans"
+    }
+  },
   "investments": {
     "overview": {
       "title": "Investments",

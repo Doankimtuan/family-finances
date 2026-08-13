@@ -108,8 +108,8 @@ export function utilizationPercent(
   creditLimit: number,
   outstanding: number,
 ): number {
-  if (creditLimit <= 0) return outstanding > 0 ? 100 : 0;
-  return Math.min(100, Math.round((outstanding / creditLimit) * 100));
+  if (creditLimit <= 0) return 0;
+  return Math.round((Math.max(0, outstanding) / creditLimit) * 100);
 }
 
 export type FifoMonthState = {

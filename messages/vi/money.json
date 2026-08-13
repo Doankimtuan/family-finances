@@ -4,7 +4,8 @@
     "eyebrow": "Money",
     "headline": "Tiền của bạn, tất cả ở một nơi",
     "supporting": "Cùng xem tiền đang ở đâu và đang chuyển động thế nào nhé.",
-    "meta": "{accountCount, plural, =0 {Chưa có tài khoản} one {# tài khoản đang hiển thị} other {# tài khoản đang hiển thị}} · {activityCount, plural, =0 {Chưa có hoạt động gần đây} one {# hoạt động gần đây} other {# hoạt động gần đây}}"
+    "meta": "{accountCount, plural, =0 {Chưa có tài khoản} one {# tài khoản đang hiển thị} other {# tài khoản đang hiển thị}} · {activityCount, plural, =0 {Chưa có hoạt động gần đây} one {# hoạt động gần đây} other {# hoạt động gần đây}}",
+    "accountsMeta": "{accountCount, plural, =0 {Chưa có tài khoản để quản lý} one {# tài khoản đang quản lý} other {# tài khoản đang quản lý}}"
   },
   "realPosition": "Vị trí thực",
   "realPositionHint": "Tiền đang có trong các tài khoản của bạn.",
@@ -20,11 +21,11 @@
   "hubAccountsCollapse": "Thu gọn",
   "hubAccountsExpand": "Mở rộng",
   "hubAccountsCollapsedSummary": "{liquidCount} số dư ({liquidTotal}) · {cardCount} thẻ · dư nợ {cardOutstanding}",
-  "seeActivity": "Xem tất cả hoạt động",
+  "seeActivity": "Xem giao dịch",
   "activity": "Hoạt động gần đây",
   "activityEmpty": "Chưa có giao dịch",
   "activityEmptyHint": "Thêm giao dịch để cập nhật vị trí thực.",
-  "more": "Thêm",
+  "more": "Tài chính khác",
   "debts": "Nợ",
   "savings": "Tiết kiệm",
   "investmentsLabel": "Đầu tư",
@@ -34,6 +35,40 @@
   "offlineTitle": "Bạn đang ngoại tuyến",
   "offlineBody": "Thay đổi tiền cần kết nối. Vẫn xem được số dư.",
   "backToMoney": "Về Money",
+  "hub": {
+    "retry": "Thử tải lại",
+    "activeAccounts": "{count, plural, =0 {Chưa có tài khoản hoạt động} one {# tài khoản hoạt động} other {# tài khoản hoạt động}}",
+    "totalCreditOutstanding": "Dư nợ thẻ: {amount}",
+    "composition": "Tiền đang ở đâu",
+    "percentage": "{value}%",
+    "lessThanOnePercent": "<1%",
+    "groups": {
+      "cash": "Tiền mặt",
+      "bank": "Ngân hàng",
+      "wallet": "Ví điện tử",
+      "savings": "Tài khoản tiết kiệm",
+      "investment": "Tài khoản đầu tư",
+      "other": "Tài khoản khác"
+    },
+    "creditLimit": "Hạn mức",
+    "utilizationUnavailable": "Chưa có hạn mức",
+    "utilizationAria": "Đã dùng {pct}% hạn mức thẻ",
+    "emptyTitle": "Bắt đầu từ nơi tiền của bạn đang nằm",
+    "emptyDescription": "Thêm tài khoản tiền mặt, ngân hàng hoặc ví điện tử để xem tiền đang ở đâu.",
+    "showAllAccounts": "Xem tất cả tài khoản",
+    "showLessAccounts": "Thu gọn danh sách",
+    "attention": {
+      "overdue": "Đã quá hạn thanh toán",
+      "dueSoon": "Sắp đến hạn thanh toán",
+      "highUtilization": "Đang dùng nhiều hạn mức"
+    },
+    "related": {
+      "debts": "Theo dõi khoản nợ đang có",
+      "savings": "Dành tiền cho mục tiêu",
+      "investments": "Theo dõi tài sản dài hạn",
+      "loans": "Quản lý kế hoạch trả góp"
+    }
+  },
   "investments": {
     "overview": {
       "title": "Đầu tư",

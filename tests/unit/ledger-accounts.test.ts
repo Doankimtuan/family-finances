@@ -282,7 +282,7 @@ describe("getRealPosition", () => {
     vi.clearAllMocks();
   });
 
-  it("sums active account balances", async () => {
+  it("sums active liquid account balances and excludes savings products", async () => {
     vi.mocked(assertMoneyActionAllowed).mockResolvedValue({
       ok: true,
       userId: "u1",
@@ -330,6 +330,13 @@ describe("getRealPosition", () => {
                         name: "Bank",
                         type: "checking",
                         opening_balance: 50,
+                        is_archived: false,
+                      },
+                      {
+                        id: "a3",
+                        name: "Term deposit",
+                        type: "savings_product",
+                        opening_balance: 500,
                         is_archived: false,
                       },
                     ],

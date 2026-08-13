@@ -121,18 +121,18 @@
   color-scheme: light;
 
   /* --- Surfaces (warm stone neutrals) --- */
-  --vinha-canvas-outer: #f5f5f4;
+  --vinha-canvas-outer: #f1f3f2;
   --vinha-canvas: #fafaf9;
   --vinha-surface: #ffffff;
   --vinha-surface-elevated: #ffffff;
-  --vinha-surface-hover: #f5f5f4;
-  --vinha-surface-soft: #f4f7f5;
-  --vinha-surface-highlight: #e7f5f1;
+  --vinha-surface-hover: #f1f5f3;
+  --vinha-surface-soft: #eef3f1;
+  --vinha-surface-highlight: #e0f0eb;
 
   /* --- Borders --- */
-  --vinha-border-subtle: #e7e5e4;
-  --vinha-border-strong: #d6d3d1;
-  --vinha-divider: #e7e5e4;
+  --vinha-border-subtle: #dde4e1;
+  --vinha-border-strong: #c8d1cd;
+  --vinha-divider: #dde4e1;
 
   /* --- Text --- */
   --vinha-text-primary: #18181b;
@@ -200,6 +200,8 @@
   --vinha-backdrop: rgb(24 24 27 / 0.45);
   --vinha-focus-ring: #0f766e;
   --vinha-focus-ring-soft: rgb(15 118 110 / 0.22);
+  --vinha-scrollbar-thumb: rgb(120 113 108 / 0.48);
+  --vinha-scrollbar-thumb-hover: var(--vinha-accent);
   --vinha-inverse: #18181b;
   --vinha-inverse-fg: #fafafa;
 
@@ -342,6 +344,9 @@
   --opacity-nav-highlight: 0.06;
   --opacity-accent-wash: 0.12;
   --press-scale: 0.98;
+  --scrollbar-width: 8px;
+  --scrollbar-thumb-inset: 2px;
+  --scrollbar-thumb-min-length: 32px;
   --subtitle-max-width: 36ch;
 
   --elevation-0: none;
@@ -444,6 +449,8 @@
   --vinha-backdrop: rgb(0 0 0 / 0.55);
   --vinha-focus-ring: #2dd4bf;
   --vinha-focus-ring-soft: rgb(45 212 191 / 0.28);
+  --vinha-scrollbar-thumb: rgb(161 161 170 / 0.48);
+  --vinha-scrollbar-thumb-hover: var(--vinha-accent);
   --vinha-inverse: #f4f4f5;
   --vinha-inverse-fg: #141416;
 
@@ -502,6 +509,48 @@ body {
 
 body {
   min-height: 100dvh;
+}
+
+/* Quiet scroll chrome applies only to deliberate application scroll owners. */
+[data-slot="shell-scroll-region"],
+[data-slot="auth-scroll-region"],
+.scroll-chrome {
+  scrollbar-width: thin;
+  scrollbar-color: var(--vinha-scrollbar-thumb) transparent;
+}
+
+[data-slot="shell-scroll-region"]::-webkit-scrollbar,
+[data-slot="auth-scroll-region"]::-webkit-scrollbar,
+.scroll-chrome::-webkit-scrollbar {
+  width: var(--scrollbar-width);
+  height: var(--scrollbar-width);
+}
+
+[data-slot="shell-scroll-region"]::-webkit-scrollbar-track,
+[data-slot="shell-scroll-region"]::-webkit-scrollbar-corner,
+[data-slot="auth-scroll-region"]::-webkit-scrollbar-track,
+[data-slot="auth-scroll-region"]::-webkit-scrollbar-corner,
+.scroll-chrome::-webkit-scrollbar-track,
+.scroll-chrome::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+[data-slot="shell-scroll-region"]::-webkit-scrollbar-thumb,
+[data-slot="auth-scroll-region"]::-webkit-scrollbar-thumb,
+.scroll-chrome::-webkit-scrollbar-thumb {
+  min-height: var(--scrollbar-thumb-min-length);
+  border: var(--scrollbar-thumb-inset) solid transparent;
+  border-radius: var(--radius-full);
+  background: var(--vinha-scrollbar-thumb);
+  background-clip: padding-box;
+  transition: background-color var(--duration-fast) var(--ease-standard);
+}
+
+[data-slot="shell-scroll-region"]::-webkit-scrollbar-thumb:hover,
+[data-slot="auth-scroll-region"]::-webkit-scrollbar-thumb:hover,
+.scroll-chrome::-webkit-scrollbar-thumb:hover {
+  background: var(--vinha-scrollbar-thumb-hover);
+  background-clip: padding-box;
 }
 
 /* Calm theme-switch fade (intentional only; see ThemeProvider) */

@@ -4,6 +4,7 @@ import { mapAccountRow, type RealPosition } from "../account-types";
 import { applyTransactionDeltas } from "../transaction-types";
 import {
   AccountType,
+  ACCOUNT_TYPE_LIQUID_VALUES,
   DEFAULT_CURRENCY,
   TRANSACTION_BALANCE_STATUS_VALUES,
 } from "../ledger-constants";
@@ -52,8 +53,13 @@ export async function getRealPosition(): Promise<RealPosition | null> {
         type: row.type,
         amount: row.amount,
       })),
+    ).filter((account) =>
+      ACCOUNT_TYPE_LIQUID_VALUES.some((type) => type === account.type),
     );
-    const totalBalance = accounts.reduce((sum, a) => sum + a.balance, 0);
+    const totalBalance = accounts.reduce(
+      (sum, account) => sum + account.balance,
+      0,
+    );
 
     return {
       householdId: gate.householdId,

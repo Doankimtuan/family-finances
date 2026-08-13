@@ -9,30 +9,32 @@ import { AddAccountForm } from "./accounts/add-account-form";
 import {
   MoneyAccountsScan,
   type MoneyAccountsScanLabels,
+  type MoneyHubAccountGroup,
   type MoneyHubCardRow,
-  type MoneyHubLiquidRow,
 } from "./money-accounts-scan";
 
 type LiquidOption = { id: string; name: string };
 
 type Props = {
   labels: MoneyAccountsScanLabels;
-  liquidAccounts: MoneyHubLiquidRow[];
+  accountGroups: MoneyHubAccountGroup[];
+  initialAccountGroups: MoneyHubAccountGroup[];
+  accountPresentation: "flat" | "grouped";
+  hasMoreAccounts: boolean;
   creditCards: MoneyHubCardRow[];
-  loadFailed: boolean;
   liquidOptions: LiquidOption[];
   createLabel: string;
   createOfflineLabel: string;
 };
 
-/**
- * Money hub accounts: scan list + create-account CTA (replaces /money/accounts index).
- */
+/** Money hub accounts: a grouped scan with the existing create-account sheet. */
 export function MoneyHubAccounts({
   labels,
-  liquidAccounts,
+  accountGroups,
+  initialAccountGroups,
+  accountPresentation,
+  hasMoreAccounts,
   creditCards,
-  loadFailed,
   liquidOptions,
   createLabel,
   createOfflineLabel,
@@ -44,9 +46,11 @@ export function MoneyHubAccounts({
     <div className="flex flex-col gap-(--space-3)">
       <MoneyAccountsScan
         labels={labels}
-        liquidAccounts={liquidAccounts}
+        accountGroups={accountGroups}
+        initialAccountGroups={initialAccountGroups}
+        accountPresentation={accountPresentation}
+        hasMoreAccounts={hasMoreAccounts}
         creditCards={creditCards}
-        loadFailed={loadFailed}
         createAction={
           <Button
             variant="ghost"

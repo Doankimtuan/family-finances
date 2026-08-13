@@ -7,6 +7,7 @@ import {
   computeOutstanding,
   resolveBillingDueDate,
   resolveBillingMonthKey,
+  utilizationPercent,
   wouldExceedCreditLimit,
 } from "@/modules/ledger/application/credit-card-billing";
 import {
@@ -63,6 +64,11 @@ describe("credit limit helpers", () => {
   it("blocks over-limit expenses", () => {
     expect(wouldExceedCreditLimit(100, 80, 30)).toBe(true);
     expect(wouldExceedCreditLimit(100, 80, 20)).toBe(false);
+  });
+
+  it("reports a truthful over-limit percentage and handles a zero limit", () => {
+    expect(utilizationPercent(100, 125)).toBe(125);
+    expect(utilizationPercent(0, 25)).toBe(0);
   });
 });
 

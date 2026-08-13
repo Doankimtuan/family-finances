@@ -1,32 +1,51 @@
 "use client";
 
+import type { IconSvgElement } from "@hugeicons/react";
 import { ChevronRightIcon } from "@hugeicons/core-free-icons";
 import { Link } from "@/i18n/navigation";
-import { Text } from "@/shared/ui/text";
 import { AppIcon } from "@/shared/ui/app-icon";
+import {
+  IconContainer,
+  type IconContainerTone,
+} from "@/shared/ui/icon-container";
+import { Text } from "@/shared/ui/text";
 
 export function MoneyMoreLink({
   href,
   label,
+  description,
+  icon,
+  iconTone,
   testId,
 }: {
   href: string;
   label: string;
+  description: string;
+  icon: IconSvgElement;
+  iconTone: IconContainerTone;
   testId: string;
 }) {
   return (
     <Link
       href={href}
-      className="flex min-h-11 items-center justify-between rounded-[var(--radius-card)] border border-border-subtle/60 bg-surface-muted/45 px-(--space-4) py-(--space-3) transition-[background-color,border-color,transform] duration-(--duration-fast) hover:border-border-default hover:bg-surface-hover active:scale-[var(--press-scale)] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+      className="flex min-h-12 items-center gap-(--space-3) rounded-[var(--radius-control)] px-(--space-3) py-(--space-3) transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-[var(--press-scale)] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
       data-testid={testId}
     >
-      <Text size="sm" className="font-medium text-text-primary">
-        {label}
-      </Text>
+      <IconContainer tone={iconTone} size="sm">
+        <AppIcon icon={icon} size="sm" />
+      </IconContainer>
+      <div className="min-w-0 flex-1">
+        <Text size="sm" className="font-medium text-text-primary">
+          {label}
+        </Text>
+        <Text size="sm" tone="secondary" className="truncate">
+          {description}
+        </Text>
+      </div>
       <AppIcon
         icon={ChevronRightIcon}
         size="sm"
-        className="text-text-secondary"
+        className="shrink-0 text-text-tertiary"
       />
     </Link>
   );

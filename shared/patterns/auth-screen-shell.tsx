@@ -32,6 +32,7 @@ export function AuthScreenShell({
     >
       {withGlow ? <AuthHouseGlow /> : null}
       <div
+        data-slot="auth-scroll-region"
         className={cn(
           "relative z-10 flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain",
           centered && "justify-center px-(--space-4) py-(--space-6)",
