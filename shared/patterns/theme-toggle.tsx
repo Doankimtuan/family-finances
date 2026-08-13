@@ -3,15 +3,14 @@
 import { useSyncExternalStore } from "react";
 import { useTheme } from "next-themes";
 import { useTranslations } from "next-intl";
-import { Desktop, Moon, Sun } from "@phosphor-icons/react";
+import { ComputerIcon, Moon02Icon, Sun03Icon } from "@hugeicons/core-free-icons";
+import { AppIcon } from "@/shared/ui/app-icon";
 import { cn } from "@/shared/utils/cn";
 
-const THEME_OPTION_ICON_SIZE = 16;
-
 const OPTIONS = [
-  { value: "system", icon: Desktop, labelKey: "themeSystem" as const },
-  { value: "light", icon: Sun, labelKey: "themeLight" as const },
-  { value: "dark", icon: Moon, labelKey: "themeDark" as const },
+  { value: "system", icon: ComputerIcon, labelKey: "themeSystem" as const },
+  { value: "light", icon: Sun03Icon, labelKey: "themeLight" as const },
+  { value: "dark", icon: Moon02Icon, labelKey: "themeDark" as const },
 ] as const;
 
 /** SSR-safe client flag — avoids setState-in-effect hydration gates. */
@@ -68,11 +67,7 @@ export function ThemeToggle({ className }: { className?: string }) {
             aria-pressed={isActive}
             onClick={() => setTheme(value)}
           >
-            <Icon
-              size={THEME_OPTION_ICON_SIZE}
-              weight={isActive ? "fill" : "regular"}
-              aria-hidden
-            />
+            <AppIcon icon={Icon} size="xs" emphasized={isActive} />
             <span className="max-w-full truncate">{t(labelKey)}</span>
           </button>
         );

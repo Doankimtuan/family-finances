@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useState, type ReactNode } from "react";
-import { CaretDown, CaretUp } from "@phosphor-icons/react";
+import { ChevronDownIcon, ChevronUpIcon } from "@hugeicons/core-free-icons";
 import { Link } from "@/i18n/navigation";
 import { moneyAccountPath } from "@/modules/tenancy/application/app-path";
 import { AccountCard } from "@/shared/patterns/account-card";
@@ -10,6 +10,7 @@ import { EmptyState } from "@/shared/patterns/empty-state";
 import { SectionHeader } from "@/shared/patterns/section-header";
 import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
+import { AppIcon } from "@/shared/ui/app-icon";
 
 export type MoneyHubLiquidRow = {
   id: string;
@@ -89,9 +90,9 @@ export function MoneyAccountsScan({
                 <span className="inline-flex items-center gap-(--space-1)">
                   {expanded ? labels.collapse : labels.expand}
                   {expanded ? (
-                    <CaretUp size={14} weight="bold" aria-hidden />
+                    <AppIcon icon={ChevronUpIcon} size="xs" />
                   ) : (
-                    <CaretDown size={14} weight="bold" aria-hidden />
+                    <AppIcon icon={ChevronDownIcon} size="xs" />
                   )}
                 </span>
               </Button>

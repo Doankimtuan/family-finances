@@ -7,23 +7,50 @@ import { cn } from "@/shared/utils/cn";
 export type SelectProps = ComponentProps<typeof HeroSelect>;
 
 const fieldChrome = cn(
-  "min-h-11 w-full rounded-md",
+  "min-h-11 w-full rounded-[var(--radius-control)]",
   "border border-border-subtle bg-surface text-text-primary",
   "transition-[border-color,box-shadow,background-color] duration-(--duration-fast) ease-(--ease-standard)",
-  "focus-visible:border-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring",
+  "focus-visible:border-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring focus-visible:shadow-[0_0_0_3px_var(--color-focus-ring-soft)]",
   "motion-reduce:transition-none",
 );
 
 export function Select({ className, children, ...props }: SelectProps) {
   return (
-    <HeroSelect className={cn(fieldChrome, className)} {...props}>
+    <HeroSelect className={cn("w-full", className)} {...props}>
       {children}
     </HeroSelect>
   );
 }
 
-Select.Trigger = HeroSelect.Trigger;
+const SelectTrigger = ({
+  className,
+  ...props
+}: ComponentProps<typeof HeroSelect.Trigger>) => (
+  <HeroSelect.Trigger
+    className={cn(fieldChrome, "w-full", className)}
+    {...props}
+  />
+);
+SelectTrigger.displayName = "SelectTrigger";
+Select.Trigger = SelectTrigger;
 Select.Value = HeroSelect.Value;
 Select.Indicator = HeroSelect.Indicator;
-Select.Popover = HeroSelect.Popover;
+const SelectPopover = ({
+  className,
+  children,
+  ...props
+}: ComponentProps<typeof HeroSelect.Popover>) => (
+  <HeroSelect.Popover
+    className={cn(
+      "z-(--z-dropdown) max-h-[min(18rem,50dvh)] overflow-y-auto rounded-[var(--radius-overlay)]",
+      "border border-border-subtle bg-surface-elevated text-text-primary shadow-[var(--elevation-2)]",
+      className,
+    )}
+    {...props}
+  >
+    {children}
+  </HeroSelect.Popover>
+);
+SelectPopover.displayName = "SelectPopover";
+Select.Popover = SelectPopover;
 Select.ListBox = ListBox;

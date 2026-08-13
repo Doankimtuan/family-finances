@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { WifiSlash } from "@phosphor-icons/react";
+import { WifiOff01Icon } from "@hugeicons/core-free-icons";
 import { useRouter } from "@/i18n/navigation";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import { SystemShell } from "@/shared/patterns/system-shell";
 import { Button } from "@/shared/ui/button";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
+import { AppIcon } from "@/shared/ui/app-icon";
 
 /**
  * system.offline — mutations fail closed (AC-018 / BR-15).
@@ -26,12 +27,7 @@ export function SystemOfflineScreen() {
       title={t("title")}
       description={showStillOffline ? t("stillOffline") : t("body")}
       icon={
-        <WifiSlash
-          size={36}
-          weight="duotone"
-          className="text-warning"
-          aria-hidden
-        />
+        <AppIcon icon={WifiOff01Icon} size="xl" className="text-warning" />
       }
       actions={
         <>

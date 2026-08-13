@@ -21,13 +21,19 @@
   /* Surfaces */
   --color-canvas-outer: var(--vinha-canvas-outer);
   --color-canvas: var(--vinha-canvas);
+  --color-background: var(--vinha-canvas);
   --color-surface: var(--vinha-surface);
   --color-surface-elevated: var(--vinha-surface-elevated);
   --color-surface-hover: var(--vinha-surface-hover);
+  --color-surface-muted: var(--vinha-surface-soft);
+  --color-surface-soft: var(--vinha-surface-soft);
+  --color-surface-highlight: var(--vinha-surface-highlight);
 
   /* Borders / chrome */
   --color-border-subtle: var(--vinha-border-subtle);
   --color-border-strong: var(--vinha-border-strong);
+  --color-border-default: var(--vinha-border-strong);
+  --color-border-focus: var(--vinha-focus-ring);
   --color-divider: var(--vinha-divider);
 
   /* Text */
@@ -35,12 +41,14 @@
   --color-text-secondary: var(--vinha-text-secondary);
   --color-text-tertiary: var(--vinha-text-tertiary);
   --color-text-muted: var(--vinha-text-muted);
+  --color-text-inverse: var(--vinha-inverse-fg);
   --color-placeholder: var(--vinha-placeholder);
   --color-disabled: var(--vinha-disabled);
 
   /* Brand / actions */
   --color-primary: var(--vinha-primary);
   --color-primary-hover: var(--vinha-primary-hover);
+  --color-primary-soft: var(--vinha-primary-soft);
   --color-primary-fg: var(--vinha-primary-fg);
   --color-secondary: var(--vinha-secondary);
   --color-secondary-fg: var(--vinha-secondary-fg);
@@ -59,6 +67,18 @@
   --color-debit: var(--vinha-debit);
   --color-income: var(--vinha-income);
   --color-expense: var(--vinha-expense);
+  --color-income-soft: var(--vinha-income-soft);
+  --color-expense-soft: var(--vinha-expense-soft);
+  --color-transfer: var(--vinha-transfer);
+  --color-transfer-soft: var(--vinha-transfer-soft);
+  --color-investment: var(--vinha-investment);
+  --color-investment-soft: var(--vinha-investment-soft);
+  --color-savings: var(--vinha-savings);
+  --color-savings-soft: var(--vinha-savings-soft);
+  --color-debt: var(--vinha-debt);
+  --color-debt-soft: var(--vinha-debt-soft);
+  --color-refund: var(--vinha-refund);
+  --color-refund-soft: var(--vinha-refund-soft);
   --color-saving: var(--vinha-saving);
   --color-installment: var(--vinha-installment);
 
@@ -79,9 +99,11 @@
 
   /* Overlays / feedback */
   --color-skeleton: var(--vinha-skeleton);
-  --color-overlay: var(--vinha-overlay);
+  /* HeroUI uses `bg-overlay` for opaque popover surfaces. The translucent scrim is `bg-backdrop`. */
+  --color-overlay: var(--vinha-surface-elevated);
   --color-backdrop: var(--vinha-backdrop);
   --color-focus-ring: var(--vinha-focus-ring);
+  --color-focus-ring-soft: var(--vinha-focus-ring-soft);
   --color-inverse: var(--vinha-inverse);
   --color-inverse-fg: var(--vinha-inverse-fg);
 
@@ -90,6 +112,9 @@
   --radius-lg: 12px;
   --radius-xl: 16px;
   --radius-full: 9999px;
+  --radius-control: 12px;
+  --radius-card: 18px;
+  --radius-overlay: 22px;
 }
 
 :root {
@@ -101,6 +126,8 @@
   --vinha-surface: #ffffff;
   --vinha-surface-elevated: #ffffff;
   --vinha-surface-hover: #f5f5f4;
+  --vinha-surface-soft: #f4f7f5;
+  --vinha-surface-highlight: #e7f5f1;
 
   /* --- Borders --- */
   --vinha-border-subtle: #e7e5e4;
@@ -121,6 +148,7 @@
   --vinha-accent-strong: #134e4a;
   --vinha-primary: #0f766e;
   --vinha-primary-hover: #0d9488;
+  --vinha-primary-soft: #e7f5f1;
   --vinha-primary-fg: #fafafa;
   --vinha-secondary: #f5f5f4;
   --vinha-secondary-fg: #18181b;
@@ -138,6 +166,18 @@
   --vinha-expense: #27272a;
   --vinha-saving: #0f766e;
   --vinha-installment: #b45309;
+  --vinha-income-soft: #d1fae5;
+  --vinha-expense-soft: #ffe4e6;
+  --vinha-transfer: #0369a1;
+  --vinha-transfer-soft: #e0f2fe;
+  --vinha-investment: #7c3aed;
+  --vinha-investment-soft: #ede9fe;
+  --vinha-savings: #0f766e;
+  --vinha-savings-soft: #ccfbf1;
+  --vinha-debt: #be123c;
+  --vinha-debt-soft: #ffe4e6;
+  --vinha-refund: #0891b2;
+  --vinha-refund-soft: #cffafe;
 
   /* --- Health --- */
   --vinha-health-excellent: #047857;
@@ -159,6 +199,7 @@
   --vinha-overlay: rgb(24 24 27 / 0.4);
   --vinha-backdrop: rgb(24 24 27 / 0.45);
   --vinha-focus-ring: #0f766e;
+  --vinha-focus-ring-soft: rgb(15 118 110 / 0.22);
   --vinha-inverse: #18181b;
   --vinha-inverse-fg: #fafafa;
 
@@ -188,20 +229,26 @@
   /* Semantic aliases (consumed by components + Tailwind) */
   --color-canvas-outer: var(--vinha-canvas-outer);
   --color-canvas: var(--vinha-canvas);
+  --color-background: var(--vinha-canvas);
   --color-surface: var(--vinha-surface);
   --color-surface-elevated: var(--vinha-surface-elevated);
   --color-surface-hover: var(--vinha-surface-hover);
+  --color-surface-muted: var(--vinha-surface-soft);
   --color-border-subtle: var(--vinha-border-subtle);
   --color-border-strong: var(--vinha-border-strong);
+  --color-border-default: var(--vinha-border-strong);
+  --color-border-focus: var(--vinha-focus-ring);
   --color-divider: var(--vinha-divider);
   --color-text-primary: var(--vinha-text-primary);
   --color-text-secondary: var(--vinha-text-secondary);
   --color-text-tertiary: var(--vinha-text-tertiary);
   --color-text-muted: var(--vinha-text-muted);
+  --color-text-inverse: var(--vinha-inverse-fg);
   --color-placeholder: var(--vinha-placeholder);
   --color-disabled: var(--vinha-disabled);
   --color-primary: var(--vinha-primary);
   --color-primary-hover: var(--vinha-primary-hover);
+  --color-primary-soft: var(--vinha-primary-soft);
   --color-primary-fg: var(--vinha-primary-fg);
   --color-secondary: var(--vinha-secondary);
   --color-secondary-fg: var(--vinha-secondary-fg);
@@ -216,6 +263,18 @@
   --color-debit: var(--vinha-debit);
   --color-income: var(--vinha-income);
   --color-expense: var(--vinha-expense);
+  --color-income-soft: var(--vinha-income-soft);
+  --color-expense-soft: var(--vinha-expense-soft);
+  --color-transfer: var(--vinha-transfer);
+  --color-transfer-soft: var(--vinha-transfer-soft);
+  --color-investment: var(--vinha-investment);
+  --color-investment-soft: var(--vinha-investment-soft);
+  --color-savings: var(--vinha-savings);
+  --color-savings-soft: var(--vinha-savings-soft);
+  --color-debt: var(--vinha-debt);
+  --color-debt-soft: var(--vinha-debt-soft);
+  --color-refund: var(--vinha-refund);
+  --color-refund-soft: var(--vinha-refund-soft);
   --color-saving: var(--vinha-saving);
   --color-installment: var(--vinha-installment);
   --color-health-excellent: var(--vinha-health-excellent);
@@ -230,7 +289,7 @@
   --color-chart-series-real: var(--vinha-chart-series-real);
   --color-chart-series-intention: var(--vinha-chart-series-intention);
   --color-skeleton: var(--vinha-skeleton);
-  --color-overlay: var(--vinha-overlay);
+  --color-overlay: var(--vinha-surface-elevated);
   --color-backdrop: var(--vinha-backdrop);
   --color-focus-ring: var(--vinha-focus-ring);
   --color-inverse: var(--vinha-inverse);
@@ -318,6 +377,8 @@
   --vinha-surface: #1c1c1f;
   --vinha-surface-elevated: #27272b;
   --vinha-surface-hover: #232326;
+  --vinha-surface-soft: #202b2a;
+  --vinha-surface-highlight: #173b37;
 
   --vinha-border-subtle: #3f3f46;
   --vinha-border-strong: #52525b;
@@ -335,6 +396,7 @@
   --vinha-accent-strong: #5eead4;
   --vinha-primary: #2dd4bf;
   --vinha-primary-hover: #5eead4;
+  --vinha-primary-soft: #173b37;
   --vinha-primary-fg: #111113;
   --vinha-secondary: #27272b;
   --vinha-secondary-fg: #f4f4f5;
@@ -350,6 +412,18 @@
   --vinha-expense: #e4e4e7;
   --vinha-saving: #2dd4bf;
   --vinha-installment: #fbbf24;
+  --vinha-income-soft: #133c32;
+  --vinha-expense-soft: #451c2a;
+  --vinha-transfer: #38bdf8;
+  --vinha-transfer-soft: #15324a;
+  --vinha-investment: #a78bfa;
+  --vinha-investment-soft: #302550;
+  --vinha-savings: #2dd4bf;
+  --vinha-savings-soft: #173b37;
+  --vinha-debt: #fb7185;
+  --vinha-debt-soft: #451c2a;
+  --vinha-refund: #22d3ee;
+  --vinha-refund-soft: #153640;
 
   --vinha-health-excellent: #34d399;
   --vinha-health-good: #2dd4bf;
@@ -368,6 +442,7 @@
   --vinha-overlay: rgb(0 0 0 / 0.5);
   --vinha-backdrop: rgb(0 0 0 / 0.55);
   --vinha-focus-ring: #2dd4bf;
+  --vinha-focus-ring-soft: rgb(45 212 191 / 0.28);
   --vinha-inverse: #f4f4f5;
   --vinha-inverse-fg: #141416;
 

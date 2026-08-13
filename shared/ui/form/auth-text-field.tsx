@@ -2,7 +2,8 @@
 
 import { useState, type ReactNode } from "react";
 import type { FieldError, UseFormRegisterReturn } from "react-hook-form";
-import { Eye, EyeSlash } from "@phosphor-icons/react";
+import { ViewOffIcon, ViewIcon } from "@hugeicons/core-free-icons";
+import { AppIcon } from "@/shared/ui/app-icon";
 import { cn } from "@/shared/utils/cn";
 import { FormField, formFieldA11y } from "./form-field";
 
@@ -110,7 +111,7 @@ export function AuthTextField({
             aria-label={revealed ? revealHideLabel : revealShowLabel}
             onClick={() => setRevealed((v) => !v)}
           >
-            {revealed ? <EyeSlash size={20} /> : <Eye size={20} />}
+            <AppIcon icon={revealed ? ViewOffIcon : ViewIcon} size="sm" />
           </button>
         ) : null}
       </div>

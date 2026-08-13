@@ -5,6 +5,8 @@ import type { FieldError, UseFormRegisterReturn } from "react-hook-form";
 import { Input, type InputProps } from "@/shared/ui/input";
 import { FormField, formFieldA11y } from "./form-field";
 import { cn } from "@/shared/utils/cn";
+import { DatePickerField, TimeField } from "./date-time-field";
+import { NumberField as NumericField } from "./number-field";
 
 export type TextFieldProps = Omit<
   InputProps,
@@ -42,6 +44,61 @@ export function TextField({
   const hasError = Boolean(error);
   const errorMessage = resolveErrorMessage(error);
   const a11y = formFieldA11y(id, hasError);
+
+  if (inputProps.type === "date" || inputProps.type === "time") {
+    const value = typeof inputProps.value === "string" ? inputProps.value : "";
+    const handleValueChange = (next: string) => {
+      const event = {
+        target: { value: next },
+      } as React.ChangeEvent<HTMLInputElement>;
+      inputProps.onChange?.(event);
+      registration?.onChange?.(event);
+    };
+    const fieldProps = {
+      id,
+      label,
+      value,
+      onChange: handleValueChange,
+      description,
+      error: errorMessage,
+      required,
+      isDisabled: inputProps.disabled,
+    };
+    return inputProps.type === "date" ? (
+      <DatePickerField {...fieldProps} />
+    ) : (
+      <TimeField {...fieldProps} />
+    );
+  }
+
+  if (inputProps.type === "number") {
+    const rawValue = inputProps.value;
+    const numericValue =
+      rawValue === "" || rawValue == null ? undefined : Number(rawValue);
+    const handleNumericChange = (next: number) => {
+      const event = {
+        target: { value: String(next) },
+      } as React.ChangeEvent<HTMLInputElement>;
+      inputProps.onChange?.(event);
+      registration?.onChange?.(event);
+    };
+    return (
+      <NumericField
+        id={id}
+        label={label}
+        value={Number.isFinite(numericValue) ? numericValue : undefined}
+        onChange={handleNumericChange}
+        minValue={typeof inputProps.min === "number" ? inputProps.min : undefined}
+        maxValue={typeof inputProps.max === "number" ? inputProps.max : undefined}
+        step={typeof inputProps.step === "number" ? inputProps.step : undefined}
+        isDisabled={inputProps.disabled}
+        description={description}
+        error={errorMessage}
+        required={required}
+        data-testid={(inputProps as { "data-testid"?: string })["data-testid"]}
+      />
+    );
+  }
 
   return (
     <FormField

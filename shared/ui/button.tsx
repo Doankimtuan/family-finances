@@ -23,11 +23,11 @@ export function Button({
       variant={variant}
       isIconOnly={isIconOnly}
       className={cn(
-        "button rounded-md font-medium tracking-tight",
+        "button rounded-[var(--radius-control)] font-medium tracking-tight",
         "transition-[transform,background-color,color,opacity,box-shadow]",
         "duration-[var(--duration-fast)] ease-[var(--ease-standard)]",
         "motion-reduce:transition-none motion-reduce:active:transform-none",
-        !isIconOnly && "min-h-11 px-(--space-4)",
+        !isIconOnly && "min-h-11 px-(--space-4) shadow-none",
         variant === "primary" && "shadow-[var(--elevation-1)]",
         className,
       )}

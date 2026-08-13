@@ -24,7 +24,7 @@ export {
 export { AuthHouseGlow } from "./auth-house-glow";
 export { DividerWithText } from "./divider-with-text";
 export { SocialButton, type SocialButtonProps } from "./social-button";
-export { Card, type CardProps } from "./card";
+export { Card, type CardProps, type CardTone } from "./card";
 export { Sheet, SheetContent } from "./sheet";
 export { Dialog, DialogContent } from "./dialog";
 export { Toast, toast, type ToastProps } from "./toast";

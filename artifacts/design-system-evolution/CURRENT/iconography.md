@@ -2,14 +2,14 @@
 
 ## Family
 
-Use Phosphor as the canonical icon family because it is already available and matches the desired friendly, rounded, modern product tone.
+Use Hugeicons Free Stroke Rounded as the canonical icon family. Import icons only from `@hugeicons/core-free-icons` and render them through `AppIcon` when a reusable wrapper is useful.
 
-Do not mix icon families in the same screen unless a legacy component has not yet migrated.
+Do not use Pro, solid, duotone, paid, or additional icon libraries. `AppIcon` is the low-level renderer; semantic registries are reserved for navigation, finance concepts, transaction types, and persisted category keys.
 
 ## Style
 
-- Default weight: regular.
-- Emphasis weight: duotone or fill only for selected navigation, success, or important status.
+- Default stroke: subtle rounded stroke inherited from `currentColor`.
+- Emphasis: a small stroke-weight increase or semantic tonal treatment for selected navigation, success, or important status.
 - Avoid overly detailed icons below 20px.
 - Avoid decorative icons that do not support scanning.
 
@@ -36,5 +36,6 @@ Category icons are aids for recognition, not the category definition. They must 
 - Hand-drawn SVG paths for common icons.
 - Emoji as core navigation.
 - Random icon style per module.
+- Phosphor imports in active application code.
+- Pro, solid, duotone, or paid Hugeicons styles.
 - Cute icons for serious warnings.
-

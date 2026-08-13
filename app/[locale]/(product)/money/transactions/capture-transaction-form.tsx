@@ -35,6 +35,7 @@ import {
 import type { LedgerActionErrorCode } from "@/modules/ledger/application/client";
 import { recordTransactionAction } from "./actions";
 import { TransactionReceipt } from "./transaction-receipt";
+import { LabeledDateInput, LabeledSelect } from "@/shared/patterns/labeled-native-field";
 
 type Props = {
   accounts: LedgerAccount[];
@@ -365,18 +366,14 @@ export function CaptureTransactionForm({
         )}
       </fieldset>
 
-      <fieldset className="flex flex-col gap-(--space-2) rounded-xl border border-border-subtle bg-surface p-(--space-4)">
-        <legend className="text-sm font-semibold text-text-primary">
-          {t("receipt.date")}
-        </legend>
-        <input
-          id={dateId}
-          type="date"
+      <div className="rounded-xl border border-border-subtle bg-surface p-(--space-4)">
+        <LabeledDateInput
+          label={t("receipt.date")}
           value={transactionDate}
           onChange={(e) => setTransactionDate(e.target.value)}
-          className="min-h-11 w-full rounded-md border border-border-subtle bg-canvas px-(--space-3) text-sm text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+          data-testid={dateId}
         />
-      </fieldset>
+      </div>
 
       <fieldset className="flex flex-col gap-(--space-2) rounded-xl border border-border-subtle bg-surface p-(--space-4)">
         <legend className="text-sm font-semibold text-text-primary">
@@ -429,20 +426,20 @@ export function CaptureTransactionForm({
             ? t("jarHintExpense")
             : t("jarHintIncome")}
         </Text>
-        <select
-          className="min-h-11 w-full rounded-md border border-border-subtle bg-canvas px-(--space-3) text-sm text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+        <LabeledSelect
+          label={t("jarLabel")}
           value={jarId}
           onChange={(e) => setJarId(e.target.value)}
+          hideLabel
           data-testid="capture-jar"
-          aria-label={t("jarLabel")}
-        >
-          <option value="">{t("jarUnmapped")}</option>
-          {jars.map((jar) => (
-            <option key={jar.id} value={jar.id}>
-              {localizeCatalogName(tCatalog, "jars", jar.name)}
-            </option>
-          ))}
-        </select>
+          options={[
+            { id: "", label: t("jarUnmapped") },
+            ...jars.map((jar) => ({
+              id: jar.id,
+              label: localizeCatalogName(tCatalog, "jars", jar.name),
+            })),
+          ]}
+        />
       </fieldset>
 
       <div className="rounded-xl border border-border-subtle bg-surface p-(--space-4)">

@@ -5,7 +5,7 @@ import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useTranslations } from "next-intl";
-import { EnvelopeSimple, LockSimple } from "@phosphor-icons/react";
+import { Mail01Icon, LockPasswordIcon } from "@hugeicons/core-free-icons";
 import { Link, useRouter } from "@/i18n/navigation";
 import {
   registerInputSchema,
@@ -17,6 +17,7 @@ import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
 import { Heading } from "@/shared/ui/heading";
 import { AuthTextField, CheckboxField } from "@/shared/ui/form";
+import { AppIcon } from "@/shared/ui/app-icon";
 import {
   AuthBrandMark,
   AuthScreenShell,
@@ -236,7 +237,7 @@ export function RegisterScreen() {
               type="email"
               autoComplete="email"
               placeholder={t("emailPlaceholder")}
-              startIcon={<EnvelopeSimple size={20} weight="regular" />}
+              startIcon={<AppIcon icon={Mail01Icon} size="sm" />}
               registration={register("email")}
               error={errors.email ? tValidation("invalidEmail") : undefined}
             />
@@ -246,7 +247,7 @@ export function RegisterScreen() {
               type="password"
               autoComplete="new-password"
               placeholder={t("passwordPlaceholder")}
-              startIcon={<LockSimple size={20} weight="regular" />}
+              startIcon={<AppIcon icon={LockPasswordIcon} size="sm" />}
               revealable
               revealShowLabel={t("showPassword")}
               revealHideLabel={t("hidePassword")}
@@ -263,7 +264,7 @@ export function RegisterScreen() {
               type="password"
               autoComplete="new-password"
               placeholder={t("confirmPasswordPlaceholder")}
-              startIcon={<LockSimple size={20} weight="regular" />}
+              startIcon={<AppIcon icon={LockPasswordIcon} size="sm" />}
               revealable
               revealShowLabel={t("showPassword")}
               revealHideLabel={t("hidePassword")}

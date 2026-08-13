@@ -1,12 +1,13 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { UsersThree, PiggyBank, Plus } from "@phosphor-icons/react";
+import { UserGroupIcon, PiggyBankIcon, PlusSignIcon } from "@hugeicons/core-free-icons";
 import { useRouter } from "@/i18n/navigation";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { QuickAction } from "@/shared/patterns/quick-action";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
+import { AppIcon } from "@/shared/ui/app-icon";
 
 /** Day-0 empty trio — invite / set up plan / add expense. */
 export function HomeDayZeroTrio() {
@@ -26,19 +27,19 @@ export function HomeDayZeroTrio() {
       />
       <QuickAction
         label={t("dayZero.invite")}
-        icon={<UsersThree size={20} weight="bold" />}
+        icon={<AppIcon icon={UserGroupIcon} size="sm" />}
         data-testid="home-day-zero-invite"
         onPress={() => router.push(APP_PATH.INVITATIONS)}
       />
       <QuickAction
         label={t("dayZero.setupPlan")}
-        icon={<PiggyBank size={20} weight="bold" />}
+        icon={<AppIcon icon={PiggyBankIcon} size="sm" />}
         data-testid="home-day-zero-plan"
         onPress={() => router.push(APP_PATH.PLAN)}
       />
       <QuickAction
         label={t("dayZero.addExpense")}
-        icon={<Plus size={20} weight="bold" />}
+        icon={<AppIcon icon={PlusSignIcon} size="sm" />}
         isDisabled={!online}
         data-testid="home-day-zero-capture"
         onPress={() => router.push(APP_PATH.MONEY_ADD)}

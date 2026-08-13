@@ -27,7 +27,7 @@ Use the existing stack:
 - HeroUI wrappers.
 - Tailwind v4 and semantic tokens.
 - Geist typography.
-- Phosphor icons.
+- Hugeicons Free Stroke Rounded through the shared `AppIcon` boundary.
 - Motion only for purposeful feedback.
 - Recharts only when a chart answers a real question.
 
@@ -37,10 +37,13 @@ Use the existing stack:
 - One primary action per state.
 - One screen or one flow per task.
 - No hardcoded strings or colors.
+- No arbitrary radius values or icon libraries.
+- Keep the centered app shell at `max-width: 440px` on every viewport; desktop preserves the mobile interaction model.
+- Use HeroUI v3 for primary inputs, selects, dates, times, numbers, buttons, and overlays.
+- Do not keep native primary Select, Date, or Time controls when HeroUI equivalents exist.
 - No imports from `archive/legacy-v1`.
 - No business redesign.
 - No card soup.
 - No marketing-page composition inside product screens.
 - No hidden real money movement.
 - No unlabeled estimated or stale values.
-

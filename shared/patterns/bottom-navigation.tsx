@@ -6,10 +6,10 @@ import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import { cn } from "@/shared/utils/cn";
 import { SafeArea } from "@/providers/safe-area";
 import { TABS } from "@/shared/patterns/bottom-navigation-tabs";
+import { AppIcon } from "@/shared/ui/app-icon";
 
 export { TABS } from "@/shared/patterns/bottom-navigation-tabs";
 
-const NAV_TAB_ICON_SIZE = 22;
 const NAV_TAB_COUNT = TABS.length;
 
 export type BottomNavigationProps = {
@@ -73,11 +73,7 @@ export function BottomNavigation({
                   aria-current={active ? "page" : undefined}
                 >
                   <span className="relative inline-flex shrink-0">
-                    <Icon
-                      size={NAV_TAB_ICON_SIZE}
-                      weight={active ? "fill" : "duotone"}
-                      aria-hidden
-                    />
+                    <AppIcon icon={Icon} size="lg" emphasized={active} />
                     {showBadge ? (
                       <span
                         data-testid="inbox-badge"

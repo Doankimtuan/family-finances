@@ -1,8 +1,9 @@
 "use client";
 
-import { CaretRight } from "@phosphor-icons/react";
+import { ChevronRightIcon } from "@hugeicons/core-free-icons";
 import { Link } from "@/i18n/navigation";
 import { Text } from "@/shared/ui/text";
+import { AppIcon } from "@/shared/ui/app-icon";
 
 export function MoneyMoreLink({
   href,
@@ -22,7 +23,7 @@ export function MoneyMoreLink({
       <Text size="sm" className="font-medium text-text-primary">
         {label}
       </Text>
-      <CaretRight size={18} className="text-text-secondary" aria-hidden />
+      <AppIcon icon={ChevronRightIcon} size="sm" className="text-text-secondary" />
     </Link>
   );
 }

@@ -2,10 +2,11 @@
 
 import type { ReactNode } from "react";
 import { EmptyState as HeroEmptyState } from "@heroui/react";
-import { Tray } from "@phosphor-icons/react";
+import { InboxIcon } from "@hugeicons/core-free-icons";
 import { cn } from "@/shared/utils/cn";
 import { Text } from "@/shared/ui/text";
 import { Heading } from "@/shared/ui/heading";
+import { AppIcon } from "@/shared/ui/app-icon";
 
 export function EmptyState({
   title,
@@ -36,7 +37,7 @@ export function EmptyState({
         )}
         aria-hidden
       >
-        {icon ?? <Tray size={28} weight="duotone" />}
+        {icon ?? <AppIcon icon={InboxIcon} size="display" />}
       </div>
       <Heading level={3} className="text-lg font-semibold text-text-primary">
         {title}

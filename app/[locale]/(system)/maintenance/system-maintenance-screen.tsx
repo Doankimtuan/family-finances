@@ -1,7 +1,8 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Wrench } from "@phosphor-icons/react";
+import { Wrench01Icon } from "@hugeicons/core-free-icons";
+import { AppIcon } from "@/shared/ui/app-icon";
 import { SystemShell } from "@/shared/patterns/system-shell";
 
 /**
@@ -16,12 +17,7 @@ export function SystemMaintenanceScreen() {
       title={t("title")}
       description={t("body")}
       icon={
-        <Wrench
-          size={36}
-          weight="duotone"
-          className="text-text-secondary"
-          aria-hidden
-        />
+        <AppIcon icon={Wrench01Icon} size="xl" className="text-text-secondary" />
       }
     />
   );

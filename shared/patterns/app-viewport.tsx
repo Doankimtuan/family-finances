@@ -38,7 +38,7 @@ export function AppViewport({
         id="app-viewport-root"
         className={cn(
           "relative flex h-full max-h-dvh w-full flex-col overflow-hidden",
-          "min-w-[var(--app-viewport-min)] max-w-[var(--app-viewport-max)]",
+          "min-w-0 max-w-[var(--app-viewport-max)]",
           "bg-canvas text-text-primary",
           "shadow-[var(--elevation-2)]",
           "isolate [transform:translateZ(0)]",

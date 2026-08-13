@@ -2,12 +2,11 @@
 
 import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
-import { CaretLeft } from "@phosphor-icons/react";
+import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
 import { cn } from "@/shared/utils/cn";
 import { IconButton } from "@/shared/ui/icon-button";
 import { Heading } from "@/shared/ui/heading";
-
-const BACK_ICON_SIZE = 20;
+import { AppIcon } from "@/shared/ui/app-icon";
 
 /**
  * Top app bar — title + optional subtitle / back / trailing.
@@ -57,7 +56,7 @@ export function TopAppBar({
             className="shrink-0 self-center"
             onPress={onBack}
           >
-            <CaretLeft size={BACK_ICON_SIZE} weight="bold" />
+            <AppIcon icon={ArrowLeft01Icon} size="sm" emphasized />
           </IconButton>
         ) : null}
 

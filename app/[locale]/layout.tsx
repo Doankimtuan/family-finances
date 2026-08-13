@@ -9,6 +9,7 @@ import { notFound } from "next/navigation";
 import { AppProvider } from "@/providers/app-provider";
 import { routing } from "@/i18n/routing";
 import { SetHtmlLang } from "./set-html-lang";
+import { LocaleProvider } from "@/providers/locale-provider";
 
 type Props = {
   children: ReactNode;
@@ -52,10 +53,12 @@ export default async function LocaleLayout({ children, params }: Props) {
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
-      <AppProvider>
-        {/* Sync document language for a11y without nesting <html> */}
-        <LocaleLang locale={locale}>{children}</LocaleLang>
-      </AppProvider>
+      <LocaleProvider locale={locale}>
+        <AppProvider>
+          {/* Sync document language for a11y without nesting <html> */}
+          <LocaleLang locale={locale}>{children}</LocaleLang>
+        </AppProvider>
+      </LocaleProvider>
     </NextIntlClientProvider>
   );
 }

@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Plus } from "@phosphor-icons/react";
+import { PlusSignIcon } from "@hugeicons/core-free-icons";
 import { Button } from "@/shared/ui/button";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
+import { AppIcon } from "@/shared/ui/app-icon";
 import { AddAccountForm } from "./accounts/add-account-form";
 import {
   MoneyAccountsScan,
@@ -58,7 +59,7 @@ export function MoneyHubAccounts({
             }}
           >
             <span className="inline-flex items-center gap-(--space-1)">
-              <Plus size={14} weight="bold" aria-hidden />
+              <AppIcon icon={PlusSignIcon} size="xs" />
               {online ? createLabel : createOfflineLabel}
             </span>
           </Button>

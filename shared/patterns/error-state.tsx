@@ -1,10 +1,11 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { WarningCircle } from "@phosphor-icons/react";
+import { Alert02Icon } from "@hugeicons/core-free-icons";
 import { cn } from "@/shared/utils/cn";
 import { Heading } from "@/shared/ui/heading";
 import { Text } from "@/shared/ui/text";
+import { AppIcon } from "@/shared/ui/app-icon";
 
 const DEFAULT_TITLE = "Something went wrong";
 
@@ -31,12 +32,7 @@ export function ErrorState({
         className,
       )}
     >
-      <WarningCircle
-        size={32}
-        className="text-danger"
-        weight="duotone"
-        aria-hidden
-      />
+      <AppIcon icon={Alert02Icon} size="xl" className="text-danger" />
       <Heading level={3}>{title}</Heading>
       {description ? (
         <Text

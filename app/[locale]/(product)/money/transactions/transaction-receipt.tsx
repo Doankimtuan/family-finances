@@ -4,7 +4,8 @@ import { Link } from "@/i18n/navigation";
 import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
 import { Section } from "@/shared/patterns/section";
-import { CheckCircle } from "@phosphor-icons/react";
+import { CheckmarkCircle02Icon } from "@hugeicons/core-free-icons";
+import { AppIcon } from "@/shared/ui/app-icon";
 
 type RelatedRecord = {
   id: string;
@@ -46,12 +47,7 @@ export function TransactionReceipt({
     >
       <div className="flex flex-col items-center gap-(--space-3) py-(--space-2)">
         <div className="flex h-14 w-14 items-center justify-center rounded-full bg-success/15">
-          <CheckCircle
-            size={32}
-            weight="fill"
-            className="text-success"
-            aria-hidden
-          />
+          <AppIcon icon={CheckmarkCircle02Icon} size="xl" className="text-success" />
         </div>
         <div className="flex flex-col items-center gap-(--space-1)">
           <Text size="lg" weight="semibold" className="text-text-primary">
