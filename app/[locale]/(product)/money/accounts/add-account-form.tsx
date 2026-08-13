@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useTranslations } from "next-intl";
-import { TextField } from "@/shared/ui/form";
+import { useLocale, useTranslations } from "next-intl";
+import { NumberField, TextField } from "@/shared/ui/form";
 import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { AmountField } from "@/shared/patterns/amount-field";
+import { LabeledSelect } from "@/shared/patterns/labeled-native-field";
 import { Dialog, DialogContent } from "@/shared/patterns/dialog";
 import { Sheet, SheetContent } from "@/shared/patterns/sheet";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
@@ -28,6 +29,8 @@ import {
   moneyAccountPath,
 } from "@/modules/tenancy/application/app-path";
 import { TransactionReceipt } from "../transactions/transaction-receipt";
+import { formatCurrency } from "@/shared/i18n/formatters";
+import { DEFAULT_CURRENCY } from "@/modules/ledger/application/ledger-constants";
 
 type ErrorCode =
   ProductActionErrorCode | typeof CLIENT_ACTION_ERROR_CODE.OFFLINE;
@@ -62,6 +65,7 @@ export function AddAccountForm({
 }: Props) {
   const t = useTranslations("money.accountsPage");
   const tTypes = useTranslations("money.types");
+  const locale = useLocale();
   const { online } = useOnlineStatusClient();
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
   const isControlled = openProp !== undefined;
@@ -193,14 +197,24 @@ export function AddAccountForm({
                 {
                   id: "creditLimit",
                   label: t("receipt.creditLimit"),
-                  value: receipt.creditLimit ?? 0,
+                  value: formatCurrency(
+                    receipt.creditLimit ?? 0,
+                    DEFAULT_CURRENCY,
+                    locale,
+                    { maximumFractionDigits: 0 },
+                  ),
                 },
               ]
             : [
                 {
                   id: "openingBalance",
                   label: t("receipt.openingBalance"),
-                  value: receipt.openingBalance,
+                  value: formatCurrency(
+                    receipt.openingBalance,
+                    DEFAULT_CURRENCY,
+                    locale,
+                    { maximumFractionDigits: 0 },
+                  ),
                 },
               ]),
         ]}
@@ -279,35 +293,17 @@ export function AddAccountForm({
         value={name}
         onChange={(e) => setName(e.target.value)}
       />
-      <fieldset className="flex flex-col gap-(--space-2)">
-        <Text size="sm" className="font-semibold text-text-primary">
-          {t("typeLabel")}
-        </Text>
-        {TYPES.map((value) => (
-          <label
-            key={value}
-            className="flex min-h-11 cursor-pointer items-center gap-(--space-3)"
-          >
-            <input
-              type="radio"
-              name="accountType"
-              value={value}
-              checked={type === value}
-              onChange={() => {
-                setType(value);
-                setShowExtras(true);
-              }}
-              className="size-4 accent-[var(--color-accent)]"
-              data-testid={
-                value === AccountType.CREDIT_CARD
-                  ? "account-type-credit-card"
-                  : undefined
-              }
-            />
-            <span className="text-sm text-text-primary">{tTypes(value)}</span>
-          </label>
-        ))}
-      </fieldset>
+      <LabeledSelect
+        label={t("typeLabel")}
+        value={type}
+        options={TYPES.map((value) => ({ id: value, label: tTypes(value) }))}
+        onChange={(event) => {
+          setType(event.target.value as AccountTypeValue);
+          setShowExtras(true);
+        }}
+        required
+        data-testid="account-type"
+      />
       {showExtras && !isCard ? (
         <div className="flex flex-col gap-(--space-1)">
           <AmountField
@@ -334,48 +330,41 @@ export function AddAccountForm({
             onValueChange={setCreditLimit}
             data-testid="account-credit-limit"
           />
-          <TextField
+          <NumberField
             id="account-statement-day"
             label={t("statementDayLabel")}
-            type="number"
-            inputMode="numeric"
-            value={String(statementDay)}
-            onChange={(e) => {
-              const n = Number(e.target.value);
-              if (Number.isFinite(n)) setStatementDay(n);
-            }}
+            value={statementDay}
+            onChange={setStatementDay}
+            minValue={1}
+            maxValue={31}
+            step={1}
+            required
             data-testid="account-statement-day"
           />
-          <TextField
+          <NumberField
             id="account-due-day"
             label={t("dueDayLabel")}
-            type="number"
-            inputMode="numeric"
-            value={String(dueDay)}
-            onChange={(e) => {
-              const n = Number(e.target.value);
-              if (Number.isFinite(n)) setDueDay(n);
-            }}
+            value={dueDay}
+            onChange={setDueDay}
+            minValue={1}
+            maxValue={31}
+            step={1}
+            required
             data-testid="account-due-day"
           />
-          <div className="flex flex-col gap-(--space-2)">
-            <Text size="sm" className="font-semibold text-text-primary">
-              {t("linkedBankLabel")}
-            </Text>
-            <select
-              className="min-h-11 w-full rounded-md border border-border-subtle bg-surface px-(--space-3) text-sm"
-              value={linkedBankAccountId}
-              onChange={(e) => setLinkedBankAccountId(e.target.value)}
-              data-testid="account-linked-bank"
-            >
-              <option value="">{t("linkedBankNone")}</option>
-              {liquidAccounts.map((account) => (
-                <option key={account.id} value={account.id}>
-                  {account.name}
-                </option>
-              ))}
-            </select>
-          </div>
+          <LabeledSelect
+            label={t("linkedBankLabel")}
+            value={linkedBankAccountId}
+            options={[
+              { id: "", label: t("linkedBankNone") },
+              ...liquidAccounts.map((account) => ({
+                id: account.id,
+                label: account.name,
+              })),
+            ]}
+            onChange={(event) => setLinkedBankAccountId(event.target.value)}
+            data-testid="account-linked-bank"
+          />
           <Text size="sm" tone="secondary">
             {t("creditCardHint")}
           </Text>
@@ -385,10 +374,10 @@ export function AddAccountForm({
   );
 
   const actions = (
-    <div className="flex flex-col gap-(--space-2)">
+    <div className="flex items-center justify-end gap-(--space-2)">
       <Button
         variant="primary"
-        className="w-full"
+        size="sm"
         data-testid="account-add-submit"
         isDisabled={isPending || !online}
         onPress={onSubmit}
@@ -397,7 +386,7 @@ export function AddAccountForm({
       </Button>
       <Button
         variant="secondary"
-        className="w-full"
+        size="sm"
         isDisabled={isPending}
         onPress={close}
       >

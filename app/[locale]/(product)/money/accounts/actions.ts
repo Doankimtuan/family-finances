@@ -5,12 +5,16 @@ import {
   archiveAccount,
   createAccount,
   settleCard,
+  registerCreditCardInstallment,
+  stopCreditCardInstallmentTracking,
   updateAccount,
 } from "@/modules/ledger/application";
 import type {
   AddCardCashbackInput,
   ArchiveAccountInput,
   CreateAccountInput,
+  RegisterCreditCardInstallmentInput,
+  StopCreditCardInstallmentTrackingInput,
   SettleCardInput,
   UpdateAccountInput,
 } from "@/modules/ledger/application";
@@ -110,5 +114,24 @@ export async function addCardCashbackAction(
       id: result.transactionId,
     };
   }
+
+  return { status: ProductActionStatus.ERROR, code: result.code };
+}
+
+export async function registerCreditCardInstallmentAction(
+  input: RegisterCreditCardInstallmentInput,
+): Promise<CardMutationActionState> {
+  const result = await registerCreditCardInstallment(input);
+  if (result.ok) {
+    return { status: ProductActionStatus.SUCCESS, id: result.installmentId };
+  }
+  return { status: ProductActionStatus.ERROR, code: result.code };
+}
+
+export async function stopCreditCardInstallmentTrackingAction(
+  input: StopCreditCardInstallmentTrackingInput,
+): Promise<CardMutationActionState> {
+  const result = await stopCreditCardInstallmentTracking(input);
+  if (result.ok) return { status: ProductActionStatus.SUCCESS };
   return { status: ProductActionStatus.ERROR, code: result.code };
 }

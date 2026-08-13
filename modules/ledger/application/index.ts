@@ -24,6 +24,11 @@ export {
   getCreditCardDetail,
 } from "./queries/list-credit-cards";
 export {
+  listCreditCardInstallments,
+  listEligibleCreditCardPurchases,
+  type EligibleCreditCardPurchase,
+} from "./queries/list-credit-card-installments";
+export {
   listRecentTransactions,
   listTransactionsForDateRange,
   listCategoryTags,
@@ -125,6 +130,19 @@ export {
   type AddCardCashbackInput,
   type AddCardCashbackResult,
 } from "./commands/add-card-cashback";
+export {
+  registerCreditCardInstallment,
+  registerCreditCardInstallmentInputSchema,
+  type RegisterCreditCardInstallmentInput,
+  type RegisterCreditCardInstallmentResult,
+} from "./commands/register-credit-card-installment";
+export {
+  stopCreditCardInstallmentTracking,
+  stopCreditCardInstallmentTrackingInputSchema,
+  type StopCreditCardInstallmentTrackingInput,
+  type StopCreditCardInstallmentTrackingResult,
+} from "./commands/stop-credit-card-installment-tracking";
+
 export type {
   CreditCardSummary,
   CreditCardDetail,
@@ -132,6 +150,18 @@ export type {
   CardBillingMonth,
   CardBillingItem,
 } from "./credit-card-types";
+export type {
+  CreditCardInstallment,
+  CreditCardInstallmentViewModel,
+} from "./credit-card-installments";
+export {
+  allocateCreditCardInstallments,
+  buildCreditCardInstallmentPreview,
+  buildCreditCardInstallmentViewModel,
+  percentageToBasisPoints,
+  isStructurallyEligibleCardPurchase,
+  mapCreditCardInstallmentRow,
+} from "./credit-card-installments";
 export { buildCreditCardSummary, isCreditCardType } from "./credit-card-types";
 export {
   resolveBillingMonthKey,

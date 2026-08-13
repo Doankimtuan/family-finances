@@ -18,17 +18,20 @@ export type TransactionRowProps = {
   subtitle?: ReactNode;
   amountLabel: string;
   tone?: TransactionAmountTone;
+  leading?: ReactNode;
   className?: string;
 };
 
 /**
- * Activity list row — ledger amounts only (BR-01).
+ * Activity list row for real ledger movement. A leading semantic visual is
+ * optional so existing compact list uses remain unchanged.
  */
 export function TransactionRow({
   title,
   subtitle,
   amountLabel,
   tone = TransactionAmountTone.NEUTRAL,
+  leading,
   className,
 }: TransactionRowProps) {
   const amountClass =
@@ -49,17 +52,21 @@ export function TransactionRow({
       className={cn(
         "group relative flex items-center gap-(--space-3) overflow-hidden rounded-[var(--radius-card)] border border-border-subtle/60 bg-surface/90 px-(--space-4) py-(--space-3)",
         "transition-[background-color,border-color,transform] duration-[var(--duration-fast)] ease-[var(--ease-standard)]",
-        "hover:border-border-default hover:bg-surface-hover active:scale-[0.99] motion-reduce:transition-none motion-reduce:active:scale-100",
+        "hover:border-border-default hover:bg-surface-hover active:scale-[var(--press-scale)] motion-reduce:transition-none motion-reduce:active:scale-100",
         className,
       )}
     >
-      <span
-        className={cn(
-          "absolute inset-y-(--space-3) left-0 w-1 rounded-r-full",
-          railClass,
-        )}
-        aria-hidden
-      />
+      {leading ? (
+        leading
+      ) : (
+        <span
+          className={cn(
+            "absolute inset-y-(--space-3) left-0 w-1 rounded-r-full",
+            railClass,
+          )}
+          aria-hidden
+        />
+      )}
       <div className="min-w-0 flex-1">
         <Text size="sm" className="truncate font-medium text-text-primary">
           {title}

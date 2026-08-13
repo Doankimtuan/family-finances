@@ -1,43 +1,56 @@
 import { getTranslations } from "next-intl/server";
-import { setLocale } from "@/i18n/set-locale";
-import { redirect, Link } from "@/i18n/navigation";
 import { hasLocale } from "next-intl";
 import { routing } from "@/i18n/routing";
+import { setLocale } from "@/i18n/set-locale";
+import { Link, redirect } from "@/i18n/navigation";
+import {
+  AccountHealthSignal,
+  AccountType,
+  accountHealthFromBalance,
+  getAccount,
+  getCreditCardDetail,
+  listAccounts,
+  listCreditCardInstallments,
+  listEligibleCreditCardPurchases,
+  listRecentTransactions,
+  TRANSACTION_LEDGER_AMOUNT_PREFIX,
+  TRANSACTION_LEDGER_CREDIT_TYPES,
+} from "@/modules/ledger/application";
 import {
   APP_PATH,
   moneyTransactionPath,
 } from "@/modules/tenancy/application/app-path";
 import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
-import {
-  getAccount,
-  getCreditCardDetail,
-  listAccounts,
-  listRecentTransactions,
-  TRANSACTION_LEDGER_AMOUNT_PREFIX,
-  TRANSACTION_LEDGER_CREDIT_TYPES,
-  accountHealthFromBalance,
-  AccountHealthSignal,
-  AccountType,
-} from "@/modules/ledger/application";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
-import { TopAppBar } from "@/shared/patterns/top-app-bar";
-import { Balance } from "@/shared/patterns/balance";
-import { CreditCardCard } from "@/shared/patterns/credit-card-card";
-import { SectionHeader } from "@/shared/patterns/section-header";
+import { FinancialAccountHero } from "@/shared/patterns/financial-account-hero";
 import { EmptyState } from "@/shared/patterns/empty-state";
-import { TransactionRow } from "@/shared/patterns/transaction-row";
+import { SectionHeader } from "@/shared/patterns/section-header";
+import { TopAppBar } from "@/shared/patterns/top-app-bar";
+import {
+  TransactionAmountTone,
+  TransactionRow,
+} from "@/shared/patterns/transaction-row";
+import { AppIcon } from "@/shared/ui/app-icon";
+import { IconContainer } from "@/shared/ui/icon-container";
+import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
 import { Text } from "@/shared/ui/text";
 import { MoneyOfflineBanner } from "../../money-offline-banner";
-import { AccountDetailActions } from "./account-detail-actions";
+import { moneyAccountVisualFor } from "../../money-account-visuals";
+import { AccountDetailManagement } from "./account-detail-management";
+import { ACCOUNT_DETAIL_PREVIEW_CONFIG } from "./detail-constants";
 import { CreditCardDetailActions } from "./credit-card-detail-actions";
+import { CreditCardHero } from "./credit-card-hero";
+import { CreditCardRefundAction } from "./credit-card-refund-action";
 
-type Props = {
+type AccountDetailPageProps = {
   params: Promise<{ locale: string; id: string }>;
 };
 
-export default async function AccountDetailPage({ params }: Props) {
+export default async function AccountDetailPage({
+  params,
+}: AccountDetailPageProps) {
   const { locale: rawLocale, id } = await params;
   const locale = hasLocale(routing.locales, rawLocale)
     ? rawLocale
@@ -57,7 +70,10 @@ export default async function AccountDetailPage({ params }: Props) {
     getTranslations("money"),
     getTranslations("catalog"),
     getAccount(id),
-    listRecentTransactions(12, id),
+    listRecentTransactions(
+      ACCOUNT_DETAIL_PREVIEW_CONFIG.RECENT_ACTIVITY_LIMIT,
+      id,
+    ),
     listAccounts(),
   ]);
 
@@ -85,29 +101,57 @@ export default async function AccountDetailPage({ params }: Props) {
   }
 
   const { account, currency } = result;
-  const isCard = account.type === AccountType.CREDIT_CARD;
-  const cardDetail = isCard ? await getCreditCardDetail(id) : null;
+  const isCreditCard = account.type === AccountType.CREDIT_CARD;
+  const [cardDetail, installments, eligiblePurchases] = isCreditCard
+    ? await Promise.all([
+        getCreditCardDetail(id),
+        listCreditCardInstallments(id),
+        listEligibleCreditCardPurchases(id),
+      ])
+    : [null, [], []];
   const activity = recent ?? [];
-  const health = accountHealthFromBalance(account.balance);
-  const liquidAccounts = (liquidListed?.accounts ?? []).map((a) => ({
-    id: a.id,
-    name: localizeCatalogName(tCatalog, "accounts", a.name),
-  }));
+  const liquidAccounts = (liquidListed?.accounts ?? []).map(
+    (liquidAccount) => ({
+      id: liquidAccount.id,
+      name: localizeCatalogName(tCatalog, "accounts", liquidAccount.name),
+    }),
+  );
+  const accountName = localizeCatalogName(tCatalog, "accounts", account.name);
+  const accountTypeLabel = t(`types.${account.type}`);
+  const accountManagement = (
+    <AccountDetailManagement
+      accountId={account.id}
+      initialName={account.name}
+      initialType={account.type}
+    >
+      {isCreditCard ? (
+        <CreditCardRefundAction cardAccountId={account.id} />
+      ) : null}
+    </AccountDetailManagement>
+  );
 
-  if (isCard && cardDetail) {
+  if (isCreditCard && cardDetail) {
     const { card } = cardDetail;
     const outstandingLabel = formatCurrency(
       card.outstanding,
       currency,
       locale,
-      { maximumFractionDigits: 0 },
+      {
+        maximumFractionDigits: 0,
+      },
     );
     const availableLabel = formatCurrency(
       card.availableCredit,
       currency,
       locale,
-      { maximumFractionDigits: 0 },
+      {
+        maximumFractionDigits: 0,
+      },
     );
+    const limitLabel = formatCurrency(card.creditLimit, currency, locale, {
+      maximumFractionDigits: 0,
+    });
+    const hasCreditLimit = card.creditLimit > 0;
 
     return (
       <div
@@ -118,55 +162,54 @@ export default async function AccountDetailPage({ params }: Props) {
         <TopAppBar
           variant="detail"
           backHref={APP_PATH.MONEY_ACCOUNTS}
-          title={localizeCatalogName(tCatalog, "accounts", account.name)}
-          subtitle={t(`types.${account.type}`)}
+          title={accountName}
+          subtitle={accountTypeLabel}
+          trailing={accountManagement}
         />
-        <div className="flex flex-1 flex-col gap-(--space-5) px-(--page-gutter) pb-(--space-6) pt-(--space-4)">
+        <div className="flex flex-1 flex-col gap-(--space-6) px-(--page-gutter) pb-(--space-6) pt-(--space-4)">
           <MoneyOfflineBanner />
-          <CreditCardCard
-            title={localizeCatalogName(tCatalog, "accounts", card.name)}
-            outstandingCaption={t("accountsPage.outstanding")}
+          <CreditCardHero
+            title={accountName}
             outstandingLabel={outstandingLabel}
-            availableCaption={t("accountsPage.availableCredit")}
+            outstandingCaption={t("accountsPage.outstanding")}
+            utilizationPct={hasCreditLimit ? card.utilizationPct : null}
+            utilizationLabel={
+              hasCreditLimit
+                ? t("accountsPage.utilization", { pct: card.utilizationPct })
+                : t("hub.utilizationUnavailable")
+            }
+            utilizationAriaLabel={
+              hasCreditLimit
+                ? t("hub.utilizationAria", { pct: card.utilizationPct })
+                : undefined
+            }
             availableLabel={availableLabel}
-            utilizationPct={card.utilizationPct}
-            utilizationLabel={t("accountsPage.utilization", {
-              pct: card.utilizationPct,
-            })}
+            availableCaption={t("accountsPage.availableCredit")}
+            limitLabel={limitLabel}
+            limitCaption={t("hub.creditLimit")}
             dueLabel={
               card.nextDueDate
                 ? t("accountsPage.nextDue", { date: card.nextDueDate })
                 : undefined
             }
           />
-          <Text size="sm" tone="secondary">
-            {t("creditCard.notBankBalance")}
-          </Text>
-
           <CreditCardDetailActions
             card={card}
             liquidAccounts={liquidAccounts}
-            outstandingLabel={outstandingLabel}
-            availableLabel={availableLabel}
             currency={currency}
+            installments={installments ?? []}
+            eligiblePurchases={eligiblePurchases ?? []}
           />
-
-          <AccountDetailActions
-            accountId={account.id}
-            initialName={account.name}
-            initialType={account.type}
-          />
-
-          <Link
-            href={APP_PATH.MONEY}
-            className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary"
-          >
-            {t("backToMoney")}
-          </Link>
         </div>
       </div>
     );
   }
+
+  const accountVisual = moneyAccountVisualFor(account.type);
+  const health = accountHealthFromBalance(account.balance);
+  const balanceLabel = formatCurrency(account.balance, currency, locale, {
+    maximumFractionDigits: 0,
+  });
 
   return (
     <div
@@ -176,54 +219,53 @@ export default async function AccountDetailPage({ params }: Props) {
       <TopAppBar
         variant="detail"
         backHref={APP_PATH.MONEY_ACCOUNTS}
-        title={localizeCatalogName(tCatalog, "accounts", account.name)}
-        subtitle={t(`types.${account.type}`)}
+        title={accountName}
+        subtitle={accountTypeLabel}
+        trailing={accountManagement}
       />
-      <div className="flex flex-1 flex-col gap-(--space-5) px-(--page-gutter) pb-(--space-6) pt-(--space-4)">
+      <div className="flex flex-1 flex-col gap-(--space-6) px-(--page-gutter) pb-(--space-6) pt-(--space-4)">
         <MoneyOfflineBanner />
-        <section className="flex flex-col gap-(--space-2)">
-          <Balance
-            label={t("accountDetail.balanceLabel")}
-            amountLabel={formatCurrency(account.balance, currency, locale, {
-              maximumFractionDigits: 0,
-            })}
-            size="lg"
-          />
-          <Text size="sm" tone="secondary">
-            {t("accountDetail.ownershipHint")}
-          </Text>
-          {health === AccountHealthSignal.ZERO ? (
-            <Text size="sm" tone="secondary" data-testid="account-health-zero">
-              {t("accountDetail.healthZero")}
-            </Text>
-          ) : null}
-        </section>
-
-        <section className="flex flex-col gap-(--space-2)">
+        <FinancialAccountHero
+          icon={accountVisual.icon}
+          iconTone={accountVisual.tone}
+          eyebrow={accountTypeLabel}
+          title={accountName}
+          amountLabel={balanceLabel}
+          amountCaption={t("accountDetail.balanceLabel")}
+          supporting={
+            health === AccountHealthSignal.ZERO ? (
+              <Text
+                size="sm"
+                tone="secondary"
+                data-testid="account-health-zero"
+              >
+                {t("accountDetail.healthZero")}
+              </Text>
+            ) : undefined
+          }
+        />
+        <section className="flex flex-col gap-(--space-3)">
           <SectionHeader title={t("accountDetail.quickActions")} />
           <Link
             href={APP_PATH.MONEY_ADD}
-            className="inline-flex min-h-11 w-full items-center justify-center rounded-md bg-accent px-(--space-4) text-sm font-medium text-accent-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+            className="inline-flex min-h-11 w-full items-center justify-center rounded-[var(--radius-control)] bg-accent px-(--space-4) text-sm font-medium text-accent-fg shadow-[var(--elevation-1)] transition-[transform,background-color] duration-[var(--duration-fast)] hover:-translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none"
             data-testid="account-quick-capture"
           >
             {t("accountDetail.capture")}
           </Link>
-          <Link
-            href={APP_PATH.MONEY_TRANSACTIONS}
-            className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-            data-testid="account-quick-activity"
-          >
-            {t("accountDetail.viewActivity")}
-          </Link>
-          <AccountDetailActions
-            accountId={account.id}
-            initialName={account.name}
-            initialType={account.type}
-          />
         </section>
-
         <section className="flex flex-col gap-(--space-3)">
-          <SectionHeader title={t("accountDetail.recentTitle")} />
+          <SectionHeader
+            title={t("accountDetail.recentTitle")}
+            action={
+              <Link
+                href={APP_PATH.MONEY_TRANSACTIONS}
+                data-testid="account-quick-activity"
+              >
+                {t("accountDetail.viewActivity")}
+              </Link>
+            }
+          />
           {activity.length === 0 ? (
             <EmptyState
               title={t("accountDetail.recentEmpty")}
@@ -231,44 +273,55 @@ export default async function AccountDetailPage({ params }: Props) {
             />
           ) : (
             <ul className="flex flex-col gap-(--space-2)">
-              {activity.map((tx) => (
-                <li key={tx.id}>
-                  <Link
-                    href={moneyTransactionPath(tx.id)}
-                    className="block focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-                  >
-                    <TransactionRow
-                      title={
-                        tx.note ||
-                        localizeCatalogName(
-                          tCatalog,
-                          "tags",
-                          tx.categoryName,
-                        ) ||
-                        t(`direction.${tx.type}`)
-                      }
-                      amountLabel={`${TRANSACTION_LEDGER_AMOUNT_PREFIX[tx.type]}${formatCurrency(tx.amount, tx.currency, locale, { maximumFractionDigits: 0 })}`}
-                      tone={
-                        (
-                          TRANSACTION_LEDGER_CREDIT_TYPES as readonly string[]
-                        ).includes(tx.type)
-                          ? "credit"
-                          : "debit"
-                      }
-                    />
-                  </Link>
-                </li>
-              ))}
+              {activity.map((transaction) => {
+                const isCredit = (
+                  TRANSACTION_LEDGER_CREDIT_TYPES as readonly string[]
+                ).includes(transaction.type);
+                const transactionTone = isCredit
+                  ? TransactionAmountTone.CREDIT
+                  : TransactionAmountTone.DEBIT;
+                const transactionIcon = isCredit
+                  ? FINANCE_ICONS.income
+                  : FINANCE_ICONS.expense;
+                const transactionIconTone = isCredit ? "income" : "expense";
+
+                return (
+                  <li key={transaction.id}>
+                    <Link
+                      href={moneyTransactionPath(transaction.id)}
+                      className="block focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+                    >
+                      <TransactionRow
+                        leading={
+                          <IconContainer tone={transactionIconTone} size="sm">
+                            <AppIcon icon={transactionIcon} size="sm" />
+                          </IconContainer>
+                        }
+                        title={
+                          transaction.note ||
+                          localizeCatalogName(
+                            tCatalog,
+                            "tags",
+                            transaction.categoryName,
+                          ) ||
+                          t(`direction.${transaction.type}`)
+                        }
+                        subtitle={`${t(`direction.${transaction.type}`)} · ${transaction.transactionDate}`}
+                        amountLabel={`${TRANSACTION_LEDGER_AMOUNT_PREFIX[transaction.type]}${formatCurrency(
+                          transaction.amount,
+                          transaction.currency,
+                          locale,
+                          { maximumFractionDigits: 0 },
+                        )}`}
+                        tone={transactionTone}
+                      />
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </section>
-
-        <Link
-          href={APP_PATH.MONEY}
-          className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary"
-        >
-          {t("backToMoney")}
-        </Link>
       </div>
     </div>
   );

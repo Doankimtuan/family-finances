@@ -50,6 +50,7 @@ export function DatePickerField({
   const dateValue = value ? parseDate(value) : null;
   const minDateValue = minValue ? parseDate(minValue) : undefined;
   const maxDateValue = maxValue ? parseDate(maxValue) : undefined;
+
   return (
     <FormField
       id={id}
@@ -69,26 +70,24 @@ export function DatePickerField({
         data-testid={testId}
         className="w-full"
       >
-        <div className="flex w-full items-center gap-(--space-2)">
-          <HeroDateField
-            id={id}
-            aria-label={typeof label === "string" ? label : id}
-            className="min-w-0 flex-1"
-          >
-            <HeroDateField.Group className={cn(fieldClassName, "w-full")}>
-              <HeroDateField.Input>
-                {(segment) => <HeroDateField.Segment segment={segment} />}
-              </HeroDateField.Input>
-            </HeroDateField.Group>
-          </HeroDateField>
-          <DatePicker.Trigger
-            aria-label={typeof label === "string" ? label : id}
-            className="!w-auto inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-[var(--radius-control)] text-text-secondary hover:bg-surface-hover focus-visible:outline-2 focus-visible:outline-focus-ring"
-          >
-            <AppIcon icon={Calendar03Icon} size="sm" />
-          </DatePicker.Trigger>
-        </div>
+        <HeroDateField.Group
+          fullWidth
+          className={cn(
+            fieldClassName,
+            "flex w-full items-center px-(--space-2)",
+          )}
+        >
+          <HeroDateField.Input className="min-w-0 flex-1 px-(--space-1)">
+            {(segment) => <HeroDateField.Segment segment={segment} />}
+          </HeroDateField.Input>
+          <HeroDateField.Suffix>
+            <DatePicker.Trigger className="ml-(--space-1) inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-[var(--radius-control)] text-text-secondary hover:bg-surface-hover focus-visible:outline-2 focus-visible:outline-focus-ring">
+              <AppIcon icon={Calendar03Icon} size="sm" />
+            </DatePicker.Trigger>
+          </HeroDateField.Suffix>
+        </HeroDateField.Group>
         <DatePicker.Popover
+          placement="bottom start"
           className={cn(
             "z-(--z-dropdown) rounded-[var(--radius-overlay)] border border-border-subtle",
             "bg-surface-elevated p-(--space-3) text-text-primary shadow-[var(--elevation-2)]",

@@ -106,6 +106,16 @@ export type {
   CardBillingItem,
 } from "./credit-card-types";
 export type {
+  CreditCardInstallment,
+  CreditCardInstallmentViewModel,
+} from "./credit-card-installments";
+export {
+  allocateCreditCardInstallments,
+  buildCreditCardInstallmentPreview,
+  buildCreditCardInstallmentViewModel,
+  percentageToBasisPoints,
+} from "./credit-card-installments";
+export type {
   Loan,
   LoanPayment,
   LoanScheduleEntry,

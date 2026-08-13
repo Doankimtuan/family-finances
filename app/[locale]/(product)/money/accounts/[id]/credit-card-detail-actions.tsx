@@ -2,26 +2,28 @@
 
 import { useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import type { CreditCardDetail } from "@/modules/ledger/application/client";
+import type {
+  CreditCardDetail,
+  CreditCardInstallment,
+} from "@/modules/ledger/application/client";
 import {
   CardBillingItemType,
   CardBillingMonthStatus,
   MoneyPaymentFlowStep,
 } from "@/modules/ledger/application/client";
-import { Text } from "@/shared/ui/text";
-import { StatusAlert } from "@/shared/ui/status-alert";
 import { formatCurrency } from "@/shared/i18n/formatters";
+import { Sheet, SheetContent } from "@/shared/patterns/sheet";
+import { Button } from "@/shared/ui/button";
+import { StatusAlert } from "@/shared/ui/status-alert";
 import {
   CLIENT_ACTION_ERROR_CODE,
   type ProductActionErrorCode,
 } from "@/modules/tenancy/application/product-action-error";
 import type { LedgerActionErrorCode } from "@/modules/ledger/application/client";
-import { CreditCardDueLead } from "./credit-card-due-lead";
-import { CreditCardSettleFlow } from "./credit-card-settle-flow";
-import { CreditCardCashbackSection } from "./credit-card-cashback-section";
-import { CreditCardStatementsSection } from "./credit-card-statements-section";
 import { CreditCardActivitySection } from "./credit-card-activity-section";
+import { CreditCardDueLead } from "./credit-card-due-lead";
 import { CreditCardInstallmentsSection } from "./credit-card-installments-section";
+import { CreditCardSettleFlow } from "./credit-card-settle-flow";
 
 type ErrorCode =
   | ProductActionErrorCode
@@ -30,34 +32,42 @@ type ErrorCode =
 
 type LiquidOption = { id: string; name: string };
 
-type Props = {
+type CreditCardDetailActionsProps = {
   card: CreditCardDetail;
   liquidAccounts: LiquidOption[];
-  outstandingLabel: string;
-  availableLabel: string;
   currency: string;
+  installments: CreditCardInstallment[];
+  eligiblePurchases: Array<{
+    id: string;
+    description: string | null;
+    amount: number;
+    transactionDate: string;
+    categoryId: string | null;
+    status: string;
+  }>;
 };
 
 /**
- * Credit card actions: liability payment (preview → confirm → receipt) and cashback.
+ * Decision layer for credit cards. It keeps the overview focused on the open
+ * statement, defers mutation forms to a sheet, and retains existing ledger flows.
  */
 export function CreditCardDetailActions({
   card,
   liquidAccounts,
-  outstandingLabel,
-  availableLabel,
   currency,
-}: Props) {
+  installments,
+  eligiblePurchases,
+}: CreditCardDetailActionsProps) {
   const t = useTranslations("money.creditCard");
   const locale = useLocale();
   const [errorCode, setErrorCode] = useState<ErrorCode | null>(null);
   const [payStep, setPayStep] = useState<MoneyPaymentFlowStep>(
     MoneyPaymentFlowStep.FORM,
   );
+  const [isPaymentOpen, setIsPaymentOpen] = useState(false);
 
   const formatMoney = (amount: number) =>
     formatCurrency(amount, currency, locale, { maximumFractionDigits: 0 });
-
   const openMonths = useMemo(
     () =>
       [...card.months]
@@ -67,87 +77,114 @@ export function CreditCardDetailActions({
   );
   const leadMonth = openMonths[0] ?? null;
   const remainingDue = leadMonth?.remaining ?? card.outstanding;
-
-  const installmentItems = card.items.filter(
-    (item) =>
-      item.itemType === CardBillingItemType.INSTALLMENT ||
-      item.installmentPlanId != null,
-  );
+  const statementAmount = leadMonth?.statementAmount ?? 0;
+  const paymentProgress =
+    statementAmount > 0
+      ? Math.min(
+          Math.max(
+            Math.round(((leadMonth?.paidAmount ?? 0) / statementAmount) * 100),
+            0,
+          ),
+          100,
+        )
+      : 0;
   const activityItems = card.items.filter(
     (item) => item.itemType === CardBillingItemType.STANDARD,
   );
-
   const canPay = card.outstanding > 0 && liquidAccounts.length > 0;
 
-  const settleFlow = canPay ? (
-    <CreditCardSettleFlow
-      cardAccountId={card.accountId}
-      cardName={card.name}
-      outstanding={card.outstanding}
-      liquidAccounts={liquidAccounts}
-      linkedBankAccountId={card.linkedBankAccountId}
-      formatMoney={formatMoney}
-      errorCode={errorCode}
-      onError={setErrorCode}
-      payStep={payStep}
-      onPayStepChange={setPayStep}
-    />
-  ) : null;
+  const closePayment = () => {
+    setErrorCode(null);
+    setPayStep(MoneyPaymentFlowStep.FORM);
+    setIsPaymentOpen(false);
+  };
 
   return (
     <div
-      className="flex flex-col gap-(--space-5)"
+      className="flex flex-col gap-(--space-6)"
       data-testid="credit-card-actions"
     >
-      {payStep === MoneyPaymentFlowStep.FORM ? (
-        <section className="flex flex-col gap-(--space-2)">
-          <Text size="sm" tone="secondary">
-            {t("heroHint", {
-              outstanding: outstandingLabel,
-              available: availableLabel,
-            })}
-          </Text>
-          {errorCode ? (
-            <StatusAlert
-              variant="danger"
-              title={t("actionErrorTitle")}
-              description={t(`errors.${errorCode}`)}
-            />
-          ) : null}
-        </section>
+      {errorCode && payStep === MoneyPaymentFlowStep.FORM ? (
+        <StatusAlert
+          variant="danger"
+          title={t("actionErrorTitle")}
+          description={t(`errors.${errorCode}`)}
+        />
       ) : null}
-
-      {payStep === MoneyPaymentFlowStep.FORM && leadMonth ? (
+      {leadMonth ? (
         <CreditCardDueLead
           leadMonth={leadMonth}
           remainingDueLabel={formatMoney(remainingDue)}
           statementLabel={formatMoney(leadMonth.statementAmount)}
           paidLabel={formatMoney(leadMonth.paidAmount)}
+          paymentProgress={paymentProgress}
         />
-      ) : null}
-
-      {settleFlow}
-
-      {payStep === MoneyPaymentFlowStep.FORM ? (
-        <>
-          <CreditCardCashbackSection
-            cardAccountId={card.accountId}
-            onError={setErrorCode}
-          />
-          <CreditCardStatementsSection
-            months={card.months}
-            formatMoney={formatMoney}
-          />
-          <CreditCardActivitySection
-            items={activityItems}
-            formatMoney={formatMoney}
-          />
-          <CreditCardInstallmentsSection
-            items={installmentItems}
-            formatMoney={formatMoney}
-          />
-        </>
-      ) : null}
+      ) : (
+        <section className="rounded-[var(--radius-card)] bg-surface-muted px-(--space-4) py-(--space-4)">
+          <p className="text-sm text-text-secondary">
+            {t("noCurrentStatement")}
+          </p>
+        </section>
+      )}
+      <section className="flex flex-col gap-(--space-2)">
+        <Button
+          variant="primary"
+          className="w-full"
+          data-testid="card-payment-open"
+          isDisabled={!canPay}
+          onPress={() => {
+            setErrorCode(null);
+            setIsPaymentOpen(true);
+          }}
+        >
+          {t("settleTitle")}
+        </Button>
+        {!canPay ? (
+          <p className="text-sm text-text-secondary">
+            {t("paymentUnavailable")}
+          </p>
+        ) : null}
+      </section>
+      <CreditCardInstallmentsSection
+        cardAccountId={card.accountId}
+        installments={installments}
+        eligiblePurchases={eligiblePurchases}
+        currency={currency}
+      />
+      <CreditCardActivitySection
+        items={activityItems}
+        formatMoney={formatMoney}
+      />
+      <Sheet
+        isOpen={isPaymentOpen}
+        onOpenChange={(next) => {
+          if (!next) closePayment();
+        }}
+      >
+        <SheetContent>
+          <Sheet.Header className="px-(--space-4) pt-(--space-3)">
+            <Sheet.Heading className="text-lg font-semibold tracking-tight text-text-primary">
+              {t("settleTitle")}
+            </Sheet.Heading>
+          </Sheet.Header>
+          <Sheet.Body className="max-h-[min(64dvh,560px)] overflow-y-auto px-(--space-4) py-(--space-3)">
+            {canPay ? (
+              <CreditCardSettleFlow
+                cardAccountId={card.accountId}
+                cardName={card.name}
+                outstanding={card.outstanding}
+                liquidAccounts={liquidAccounts}
+                linkedBankAccountId={card.linkedBankAccountId}
+                formatMoney={formatMoney}
+                errorCode={errorCode}
+                onError={setErrorCode}
+                payStep={payStep}
+                onPayStepChange={setPayStep}
+              />
+            ) : null}
+          </Sheet.Body>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

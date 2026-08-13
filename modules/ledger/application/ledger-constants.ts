@@ -222,6 +222,101 @@ export const CARD_BILLING_ITEM_TYPE_VALUES = [
   CardBillingItemType.INSTALLMENT,
 ] as const;
 
+/** Card purchase trackers are distinct from the Loan bounded context. */
+export const CreditCardInstallmentOrigin = {
+  POST_PURCHASE: "post_purchase",
+  PARTNER_MERCHANT: "partner_merchant",
+  OTHER: "other",
+} as const;
+export type CreditCardInstallmentOrigin =
+  (typeof CreditCardInstallmentOrigin)[keyof typeof CreditCardInstallmentOrigin];
+export const CREDIT_CARD_INSTALLMENT_ORIGIN_VALUES = [
+  CreditCardInstallmentOrigin.POST_PURCHASE,
+  CreditCardInstallmentOrigin.PARTNER_MERCHANT,
+  CreditCardInstallmentOrigin.OTHER,
+] as const;
+
+export const CreditCardInstallmentProgram = {
+  ZERO_INTEREST_ZERO_FEE: "zero_interest_zero_fee",
+  ZERO_INTEREST_WITH_CONVERSION_FEE: "zero_interest_with_conversion_fee",
+  FLAT_INTEREST_WITHOUT_CONVERSION_FEE: "flat_interest_without_conversion_fee",
+  FLAT_INTEREST_WITH_CONVERSION_FEE: "flat_interest_with_conversion_fee",
+  BANK_QUOTED: "bank_quoted",
+} as const;
+export type CreditCardInstallmentProgram =
+  (typeof CreditCardInstallmentProgram)[keyof typeof CreditCardInstallmentProgram];
+export const CREDIT_CARD_INSTALLMENT_PROGRAM_VALUES = [
+  CreditCardInstallmentProgram.ZERO_INTEREST_ZERO_FEE,
+  CreditCardInstallmentProgram.ZERO_INTEREST_WITH_CONVERSION_FEE,
+  CreditCardInstallmentProgram.FLAT_INTEREST_WITHOUT_CONVERSION_FEE,
+  CreditCardInstallmentProgram.FLAT_INTEREST_WITH_CONVERSION_FEE,
+  CreditCardInstallmentProgram.BANK_QUOTED,
+] as const;
+
+export const CreditCardInstallmentFeeType = {
+  NONE: "none",
+  FIXED: "fixed",
+  PERCENTAGE: "percentage",
+} as const;
+export type CreditCardInstallmentFeeType =
+  (typeof CreditCardInstallmentFeeType)[keyof typeof CreditCardInstallmentFeeType];
+export const CREDIT_CARD_INSTALLMENT_FEE_TYPE_VALUES = [
+  CreditCardInstallmentFeeType.NONE,
+  CreditCardInstallmentFeeType.FIXED,
+  CreditCardInstallmentFeeType.PERCENTAGE,
+] as const;
+
+export const CreditCardInstallmentFeeTiming = {
+  FIRST_EXPECTED_PERIOD: "first_expected_period",
+  SPREAD_ACROSS_PERIODS: "spread_across_periods",
+  INCLUDED_IN_BANK_QUOTE: "included_in_bank_quote",
+} as const;
+export type CreditCardInstallmentFeeTiming =
+  (typeof CreditCardInstallmentFeeTiming)[keyof typeof CreditCardInstallmentFeeTiming];
+export const CREDIT_CARD_INSTALLMENT_FEE_TIMING_VALUES = [
+  CreditCardInstallmentFeeTiming.FIRST_EXPECTED_PERIOD,
+  CreditCardInstallmentFeeTiming.SPREAD_ACROSS_PERIODS,
+  CreditCardInstallmentFeeTiming.INCLUDED_IN_BANK_QUOTE,
+] as const;
+export const CreditCardInstallmentCalculationSource = {
+  DERIVED: "derived",
+  BANK_QUOTED: "bank_quoted",
+} as const;
+export type CreditCardInstallmentCalculationSource =
+  (typeof CreditCardInstallmentCalculationSource)[keyof typeof CreditCardInstallmentCalculationSource];
+export const CREDIT_CARD_INSTALLMENT_CALCULATION_SOURCE_VALUES = [
+  CreditCardInstallmentCalculationSource.DERIVED,
+  CreditCardInstallmentCalculationSource.BANK_QUOTED,
+] as const;
+
+export const CreditCardInstallmentStatus = {
+  ACTIVE: "active",
+  STOPPED: "stopped",
+  REVIEW_REQUIRED: "review_required",
+  COMPLETED: "completed",
+} as const;
+export type CreditCardInstallmentStatus =
+  (typeof CreditCardInstallmentStatus)[keyof typeof CreditCardInstallmentStatus];
+export const CREDIT_CARD_INSTALLMENT_STATUS_VALUES = [
+  CreditCardInstallmentStatus.ACTIVE,
+  CreditCardInstallmentStatus.STOPPED,
+  CreditCardInstallmentStatus.REVIEW_REQUIRED,
+  CreditCardInstallmentStatus.COMPLETED,
+] as const;
+
+export const CreditCardInstallmentScheduleStatus = {
+  EXPECTED: "expected",
+  CONFIRMED: "confirmed",
+} as const;
+export type CreditCardInstallmentScheduleStatus =
+  (typeof CreditCardInstallmentScheduleStatus)[keyof typeof CreditCardInstallmentScheduleStatus];
+export const CREDIT_CARD_INSTALLMENT_SCHEDULE_STATUS_VALUES = [
+  CreditCardInstallmentScheduleStatus.EXPECTED,
+  CreditCardInstallmentScheduleStatus.CONFIRMED,
+] as const;
+
+export const CARD_INSTALLMENT_TERM_PRESETS = [3, 6, 9, 12, 18, 24] as const;
+
 /** Legacy-compatible defaults for new credit cards. */
 export const DEFAULT_CARD_STATEMENT_DAY = 25;
 export const DEFAULT_CARD_DUE_DAY = 15;
@@ -434,8 +529,7 @@ export const LedgerRpcName = {
   RECORD_OWNED_ACCOUNT_TRANSFER: "record_owned_account_transfer",
 } as const;
 
-export type LedgerRpcName =
-  (typeof LedgerRpcName)[keyof typeof LedgerRpcName];
+export type LedgerRpcName = (typeof LedgerRpcName)[keyof typeof LedgerRpcName];
 
 /** Public relation names for ledger queries / mutations. */
 export const LedgerRelation = {

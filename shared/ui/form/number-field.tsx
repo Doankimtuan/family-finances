@@ -67,17 +67,18 @@ export function NumberField({
         isDisabled={isDisabled}
         aria-label={typeof label === "string" ? label : id}
         data-testid={testId}
+        fullWidth
         className="w-full"
       >
         <HeroNumberField.Group
           className={cn(
-            "min-h-11 w-full rounded-[var(--radius-control)] border border-border-subtle bg-surface text-text-primary",
+            "min-h-11 w-full grid-cols-[minmax(0,1fr)] rounded-[var(--radius-control)] border border-border-subtle bg-surface text-text-primary",
             "focus-within:border-accent focus-within:shadow-[0_0_0_3px_var(--color-focus-ring-soft)]",
             "transition-[border-color,box-shadow,background-color] duration-(--duration-fast)",
             className,
           )}
         >
-          <HeroNumberField.Input className="min-h-11 w-full px-(--space-3) text-sm tabular-nums outline-none" />
+          <HeroNumberField.Input className="col-span-full min-h-11 w-full px-(--space-3) text-sm tabular-nums outline-none" />
         </HeroNumberField.Group>
       </HeroNumberField>
     </FormField>

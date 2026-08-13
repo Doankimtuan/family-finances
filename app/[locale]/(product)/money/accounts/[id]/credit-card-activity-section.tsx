@@ -2,16 +2,36 @@
 
 import { useTranslations } from "next-intl";
 import type { CardBillingItem } from "@/modules/ledger/application/client";
+import {
+  TransactionDirection,
+  TRANSACTION_LEDGER_AMOUNT_PREFIX,
+} from "@/modules/ledger/application/client";
 import { SectionHeader } from "@/shared/patterns/section-header";
+import {
+  TransactionAmountTone,
+  TransactionRow,
+} from "@/shared/patterns/transaction-row";
+import { AppIcon } from "@/shared/ui/app-icon";
+import { IconContainer } from "@/shared/ui/icon-container";
+import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
 import { Text } from "@/shared/ui/text";
+import { ACCOUNT_DETAIL_PREVIEW_CONFIG } from "./detail-constants";
 
-type Props = {
+type CreditCardActivitySectionProps = {
   items: CardBillingItem[];
   formatMoney: (amount: number) => string;
 };
 
-export function CreditCardActivitySection({ items, formatMoney }: Props) {
+/** A bounded card-purchase preview; the transactions domain remains authoritative. */
+export function CreditCardActivitySection({
+  items,
+  formatMoney,
+}: CreditCardActivitySectionProps) {
   const t = useTranslations("money.creditCard");
+  const previewItems = items.slice(
+    0,
+    ACCOUNT_DETAIL_PREVIEW_CONFIG.CARD_ACTIVITY_LIMIT,
+  );
 
   return (
     <section
@@ -19,28 +39,25 @@ export function CreditCardActivitySection({ items, formatMoney }: Props) {
       data-testid="card-activity"
     >
       <SectionHeader title={t("activityTitle")} />
-      {items.length === 0 ? (
+      {previewItems.length === 0 ? (
         <Text size="sm" tone="secondary">
           {t("activityEmpty")}
         </Text>
       ) : (
         <ul className="flex flex-col gap-(--space-2)">
-          {items.map((item) => (
-            <li
-              key={item.id}
-              className="rounded-md border border-border-subtle px-(--space-3) py-(--space-2)"
-            >
-              <div className="flex justify-between gap-(--space-2)">
-                <Text size="sm">
-                  {item.description ?? t("activityFallback")}
-                </Text>
-                <Text size="sm" className="tabular-nums font-medium">
-                  {formatMoney(item.amount)}
-                </Text>
-              </div>
-              <Text size="sm" tone="secondary">
-                {item.isPaid ? t("activityPaid") : t("activityUnpaid")}
-              </Text>
+          {previewItems.map((item) => (
+            <li key={item.id}>
+              <TransactionRow
+                leading={
+                  <IconContainer tone="debt" size="sm">
+                    <AppIcon icon={FINANCE_ICONS.card} size="sm" />
+                  </IconContainer>
+                }
+                title={item.description ?? t("activityFallback")}
+                subtitle={item.isPaid ? t("activityPaid") : t("activityUnpaid")}
+                amountLabel={`${TRANSACTION_LEDGER_AMOUNT_PREFIX[TransactionDirection.EXPENSE]}${formatMoney(item.amount)}`}
+                tone={TransactionAmountTone.DEBIT}
+              />
             </li>
           ))}
         </ul>

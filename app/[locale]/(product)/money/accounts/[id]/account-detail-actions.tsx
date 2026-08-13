@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import { TextField } from "@/shared/ui/form";
+import { LabeledSelect } from "@/shared/patterns/labeled-native-field";
 import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
 import { StatusAlert } from "@/shared/ui/status-alert";
@@ -143,29 +144,19 @@ export function AccountDetailActions({
             {tTypes(AccountType.CREDIT_CARD)}
           </Text>
         ) : (
-          <fieldset className="flex flex-col gap-(--space-2)">
-            <Text size="sm" className="font-semibold text-text-primary">
-              {t("typeLabel")}
-            </Text>
-            {TYPES.map((value) => (
-              <label
-                key={value}
-                className="flex min-h-11 cursor-pointer items-center gap-(--space-3)"
-              >
-                <input
-                  type="radio"
-                  name="accountEditType"
-                  value={value}
-                  checked={type === value}
-                  onChange={() => setType(value)}
-                  className="size-4 accent-[var(--color-accent)]"
-                />
-                <span className="text-sm text-text-primary">
-                  {tTypes(value)}
-                </span>
-              </label>
-            ))}
-          </fieldset>
+          <LabeledSelect
+            label={t("typeLabel")}
+            value={type}
+            options={TYPES.map((value) => ({
+              id: value,
+              label: tTypes(value),
+            }))}
+            onChange={(event) =>
+              setType(event.target.value as AccountTypeValue)
+            }
+            required
+            data-testid="account-edit-type"
+          />
         )}
         <Button
           variant="primary"

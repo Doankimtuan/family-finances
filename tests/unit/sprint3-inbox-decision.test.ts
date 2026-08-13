@@ -30,7 +30,7 @@ describe("AC-INB-01 GWT — typed ReviewItem instantiation", () => {
       ReviewItemType.UNMAPPED_EXPENSE,
     );
     expect(toReviewItemType(InboxItemKind.SAVINGS_MATURITY)).toBe(
-      ReviewItemType.MATURITY_DECISION,
+      ReviewItemType.SAVINGS_MATURITY_DECISION,
     );
     expect(toReviewItemType(InboxItemKind.PAYMENT_REMINDER)).toBe(
       ReviewItemType.PAYMENT_REMINDER,
@@ -61,7 +61,7 @@ describe("AC-INB-01 GWT — typed ReviewItem instantiation", () => {
         sourceId: TX,
         cascadeDay: 14,
       })?.type,
-    ).toBe(ReviewItemType.MATURITY_DECISION);
+    ).toBe(ReviewItemType.SAVINGS_MATURITY_DECISION);
 
     expect(
       instantiateTypedReviewItem({
