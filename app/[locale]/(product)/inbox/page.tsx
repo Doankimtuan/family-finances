@@ -19,6 +19,7 @@ import {
   INBOX_TAB_QUERY,
 } from "@/modules/inbox/application/inbox-constants";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
+import { NAVIGATION_ICONS } from "@/shared/ui/icon-registry";
 import { Page } from "@/shared/patterns/page";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { StatusAlert } from "@/shared/ui/status-alert";
@@ -71,11 +72,43 @@ export default async function InboxPage({ params, searchParams }: Props) {
 
   const loadFailed = items == null;
   const list = items ?? [];
+  const headerState = showArchived
+    ? "archived"
+    : list.length === 0
+      ? "clear"
+      : "open";
+  const headerHeadline =
+    headerState === "clear"
+      ? t("header.headline.clear")
+      : headerState === "open"
+        ? t("header.headline.open")
+        : t("header.headline.archived");
+  const headerSupporting =
+    headerState === "clear"
+      ? t("header.supporting.clear")
+      : headerState === "open"
+        ? t("header.supporting.open")
+        : t("header.supporting.archived");
+  const headerMeta =
+    headerState === "open"
+      ? t("header.meta.open", { count: list.length })
+      : headerState === "clear"
+        ? t("header.meta.clear")
+        : t("header.meta.archived");
 
   return (
     <Page
       testId="inbox-queue"
-      topBar={<TopAppBar title={t("title")} subtitle={t("subtitle")} />}
+      topBar={
+        <TopAppBar
+          variant="contextual"
+          eyebrow={t("header.eyebrow")}
+          title={headerHeadline}
+          subtitle={headerSupporting}
+          icon={NAVIGATION_ICONS.inbox}
+          meta={headerMeta}
+        />
+      }
       contentClassName="gap-(--space-4)"
     >
       <InboxOfflineBanner />
@@ -120,19 +153,13 @@ export default async function InboxPage({ params, searchParams }: Props) {
         />
       ) : list.length === 0 ? (
         <EmptyState
-          title={
-            showArchived ? t("archivedEmptyTitle") : t("emptyOpenTitle")
-          }
+          title={showArchived ? t("archivedEmptyTitle") : t("emptyOpenTitle")}
           description={
             showArchived ? t("archivedEmptyBody") : t("emptyOpenBody")
           }
         />
       ) : (
-        <InboxQueueList
-          items={list}
-          locale={locale}
-          readOnly={showArchived}
-        />
+        <InboxQueueList items={list} locale={locale} readOnly={showArchived} />
       )}
     </Page>
   );

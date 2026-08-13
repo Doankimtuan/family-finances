@@ -30,7 +30,11 @@ export function SectionHeader({
     >
       <div className="flex min-w-0 flex-1 flex-col gap-(--space-1)">
         {typeof title === "string" ? (
-          <Heading level={2} className="text-xl tracking-tight">
+          <Heading
+            level={2}
+            className="text-lg font-semibold tracking-tight"
+            data-slot="section-title"
+          >
             {title}
           </Heading>
         ) : (
@@ -46,7 +50,11 @@ export function SectionHeader({
           )
         ) : null}
       </div>
-      {action ? <div className="shrink-0">{action}</div> : null}
+      {action ? (
+        <div className="shrink-0 text-sm font-semibold text-accent [&_a]:inline-flex [&_a]:min-h-9 [&_a]:items-center [&_a]:rounded-md [&_a]:px-(--space-2) [&_a]:transition-colors [&_a]:hover:bg-surface-hover [&_button]:min-h-9 [&_button]:px-(--space-2)">
+          {action}
+        </div>
+      ) : null}
     </div>
   );
 }

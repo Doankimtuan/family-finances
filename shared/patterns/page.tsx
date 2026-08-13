@@ -11,7 +11,7 @@ export type PageProps = {
 
 /**
  * Product screen layout inside the 440px AppViewport.
- * TopAppBar stays outside; content owns scroll rhythm and bottom padding.
+ * The shell owns scrolling and bottom-navigation clearance; pages own gutters.
  */
 export function Page({
   topBar,
@@ -23,18 +23,19 @@ export function Page({
   return (
     <div
       className={cn("flex min-h-full flex-col", className)}
+      data-slot="page"
       data-testid={testId}
     >
       {topBar}
-      <main
+      <div
         className={cn(
-          "flex flex-1 flex-col gap-(--space-5)",
-          "px-(--space-4) pb-(--space-6) pt-(--space-4)",
+          "flex flex-1 flex-col gap-(--space-4)",
+          "px-(--page-gutter) pb-(--space-5) pt-(--space-3)",
           contentClassName,
         )}
       >
         {children}
-      </main>
+      </div>
     </div>
   );
 }

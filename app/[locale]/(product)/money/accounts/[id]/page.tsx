@@ -67,7 +67,11 @@ export default async function AccountDetailPage({ params }: Props) {
         className="flex min-h-full flex-col"
         data-testid="money-account-detail"
       >
-        <TopAppBar title={t("accountDetail.notFound")} />
+        <TopAppBar
+          variant="detail"
+          backHref={APP_PATH.MONEY_ACCOUNTS}
+          title={t("accountDetail.notFound")}
+        />
         <div className="px-(--space-4) py-(--space-6)">
           <Link
             href={APP_PATH.MONEY}
@@ -112,10 +116,12 @@ export default async function AccountDetailPage({ params }: Props) {
         data-account-kind="credit-card"
       >
         <TopAppBar
+          variant="detail"
+          backHref={APP_PATH.MONEY_ACCOUNTS}
           title={localizeCatalogName(tCatalog, "accounts", account.name)}
           subtitle={t(`types.${account.type}`)}
         />
-        <div className="flex flex-1 flex-col gap-(--space-5) px-(--space-4) pb-(--space-6) pt-(--space-4)">
+        <div className="flex flex-1 flex-col gap-(--space-5) px-(--page-gutter) pb-(--space-6) pt-(--space-4)">
           <MoneyOfflineBanner />
           <CreditCardCard
             title={localizeCatalogName(tCatalog, "accounts", card.name)}
@@ -168,10 +174,12 @@ export default async function AccountDetailPage({ params }: Props) {
       data-testid="money-account-detail"
     >
       <TopAppBar
+        variant="detail"
+        backHref={APP_PATH.MONEY_ACCOUNTS}
         title={localizeCatalogName(tCatalog, "accounts", account.name)}
         subtitle={t(`types.${account.type}`)}
       />
-      <div className="flex flex-1 flex-col gap-(--space-5) px-(--space-4) pb-(--space-6) pt-(--space-4)">
+      <div className="flex flex-1 flex-col gap-(--space-5) px-(--page-gutter) pb-(--space-6) pt-(--space-4)">
         <MoneyOfflineBanner />
         <section className="flex flex-col gap-(--space-2)">
           <Balance
@@ -241,7 +249,9 @@ export default async function AccountDetailPage({ params }: Props) {
                       }
                       amountLabel={`${TRANSACTION_LEDGER_AMOUNT_PREFIX[tx.type]}${formatCurrency(tx.amount, tx.currency, locale, { maximumFractionDigits: 0 })}`}
                       tone={
-                        (TRANSACTION_LEDGER_CREDIT_TYPES as readonly string[]).includes(tx.type)
+                        (
+                          TRANSACTION_LEDGER_CREDIT_TYPES as readonly string[]
+                        ).includes(tx.type)
                           ? "credit"
                           : "debit"
                       }

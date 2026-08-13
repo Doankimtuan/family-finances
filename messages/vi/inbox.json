@@ -1,6 +1,24 @@
 {
   "title": "Hộp thư",
   "subtitle": "Việc nào cần quyết định?",
+  "header": {
+    "eyebrow": "Hộp thư",
+    "headline": {
+      "clear": "Chưa có gì cần bạn xử lý",
+      "open": "Có vài việc đang chờ bạn xem",
+      "archived": "Những quyết định đã xong"
+    },
+    "supporting": {
+      "clear": "Hộp thư sạch bong. Giữ nhịp nhẹ nhàng này nhé.",
+      "open": "Xem nhanh một chút để cả hộ gia đình giữ nhịp.",
+      "archived": "Nơi nhìn lại những việc đã cùng nhau quyết định."
+    },
+    "meta": {
+      "clear": "Chưa có quyết định nào đang chờ",
+      "open": "{count, plural, one {# việc cần xem} other {# việc cần xem}}",
+      "archived": "Đang xem các mục đã hoàn tất"
+    }
+  },
   "detailTitle": "Mục cần xem",
   "detailSubtitle": "Quyết định mà không đổi quyền sở hữu Money",
   "resolve": "Gán vào hũ",

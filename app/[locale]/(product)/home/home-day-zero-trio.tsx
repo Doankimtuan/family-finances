@@ -1,7 +1,11 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { UserGroupIcon, PiggyBankIcon, PlusSignIcon } from "@hugeicons/core-free-icons";
+import {
+  UserGroupIcon,
+  PiggyBankIcon,
+  PlusSignIcon,
+} from "@hugeicons/core-free-icons";
 import { useRouter } from "@/i18n/navigation";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import { EmptyState } from "@/shared/patterns/empty-state";
@@ -17,7 +21,7 @@ export function HomeDayZeroTrio() {
 
   return (
     <div
-      className="flex flex-col gap-(--space-3) rounded-xl border border-border-subtle bg-surface p-(--space-4)"
+      className="flex flex-col gap-(--space-3) rounded-[var(--radius-card)] bg-surface-muted/45 p-(--space-4)"
       data-testid="home-day-zero"
     >
       <EmptyState
@@ -34,12 +38,14 @@ export function HomeDayZeroTrio() {
       <QuickAction
         label={t("dayZero.setupPlan")}
         icon={<AppIcon icon={PiggyBankIcon} size="sm" />}
+        variant="secondary"
         data-testid="home-day-zero-plan"
         onPress={() => router.push(APP_PATH.PLAN)}
       />
       <QuickAction
         label={t("dayZero.addExpense")}
         icon={<AppIcon icon={PlusSignIcon} size="sm" />}
+        variant="ghost"
         isDisabled={!online}
         data-testid="home-day-zero-capture"
         onPress={() => router.push(APP_PATH.MONEY_ADD)}

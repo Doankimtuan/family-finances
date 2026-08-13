@@ -91,3 +91,25 @@ Each component must define purpose, allowed usage, forbidden usage, variants, st
 | FinancialPreview | Consequence preview. | Confirmations. | Decorative before harmless actions. | Real, plan, decision, mixed. | Ready, changed, invalid. | `shared/patterns`. | Explicit affected records. |
 | MoneyMovementPreview | Source to destination preview. | Transfers, payments, funding. | Plan-only movement. | Transfer, payment, refund, correction. | Valid, warning, blocked. | `shared/patterns`. | Source, destination, amount, date. |
 
+
+## Global Polish Contracts
+
+### Section and Action Hierarchy
+
+`SectionHeader` is the canonical section-heading pattern. It combines a concise title, an optional muted description, and an optional trailing action. Section titles are presentational signposts rather than page headlines; they use a restrained `text-lg` hierarchy and must not be uppercased. Trailing actions use the shared compact text-action treatment and remain secondary to the page or section’s single primary CTA.
+
+### Surface and List Hierarchy
+
+Use `Card` tones deliberately. `highlighted` and `KpiBlock` `prominent` are reserved for the current primary financial state. `default` groups a meaningful independent object. `interactive` is for a tappable object and includes subtle border/background/press feedback. `soft` and `metric` provide tonal grouping for explanation, supporting facts, and compact summaries without a visible border. Do not create nested default cards simply to separate content; prefer a `Section`, whitespace, or a soft surface.
+
+Financial object rows use the shared account, credit-card, jar, transaction, and review-card patterns. They show title, secondary context, amount or state, and optional metadata while staying visually lighter than a primary financial summary. A row must retain a 44px minimum touch target, focus visibility, and a restrained press response when interactive.
+
+### Status and Filter Controls
+
+`StatusBadge` is the reusable semantic label primitive. Its tones are `neutral`, `positive`, `info`, `warning`, `attention`, and `selected`; labels remain concise and should not rely only on color. `FilterChip` owns filter selection semantics through `aria-pressed`, the selected/unselected visual distinction, compact wrapping, focus treatment, and reduced-motion-safe feedback. Feature code owns filter state and labels, not chip styling.
+
+### Empty States and Page Rhythm
+
+`EmptyState` uses one modest Hugeicons Free Stroke Rounded accent, a human title, a short explanation, and at most one useful next action. Empty states are calm and supportive; they must not introduce large illustrations, decorative hero art, or generic “No data” copy when a clearer explanation is available.
+
+`Page` uses the shared gutter plus a compact body rhythm: 12px header-to-content offset, 16px standard content gaps, and 20px bottom spacing before the shell-reserved navigation area. Use `space-3` within compact metadata groups, `space-4` between related blocks, and `space-5` or above only when a clear region boundary warrants it.

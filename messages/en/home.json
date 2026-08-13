@@ -1,6 +1,28 @@
 {
   "title": "Home",
   "subtitle": "What we have, mean, and need to decide",
+  "header": {
+    "eyebrow": "Home",
+    "greeting": {
+      "morning": "Good morning",
+      "afternoon": "Good afternoon",
+      "evening": "Good evening"
+    },
+    "headline": {
+      "starting": "A calm place to start",
+      "steady": "Your money is moving in a good direction",
+      "strong": "Your money is looking strong today"
+    },
+    "supporting": {
+      "starting": "A simple view to get your household moving.",
+      "steady": "A clear view of what you have, plan, and decide.",
+      "strong": "A clear view of what is working across your household."
+    },
+    "meta": {
+      "available": "{accountCount, plural, =0 {No accounts yet} one {# account in view} other {# accounts in view}} · {openInboxCount, plural, =0 {nothing waiting} one {# thing to review} other {# things to review}}",
+      "unavailable": "Your household view will appear here when it is ready."
+    }
+  },
   "loadErrorTitle": "Could not load Home",
   "loadErrorBody": "Check your connection and try again.",
   "status": {
@@ -28,16 +50,16 @@
   },
   "realPosition": {
     "title": "Real position",
-    "hint": "Ledger balances only — not jar plans."
+    "hint": "Money available across your accounts."
   },
   "planPulse": {
     "title": "Plan pulse",
-    "hint": "Intention envelopes — never bank balance.",
+    "hint": "A simple plan for what your money needs to do.",
     "jarsCount": "{count, plural, =0 {No active jars yet} one {# active jar} other {# active jars}}",
     "allocate": {
-      "off": "Income allocate: Off",
-      "suggest": "Income allocate: Suggest",
-      "auto": "Income allocate: Auto"
+      "off": "Income plan: Off",
+      "suggest": "Income plan: Suggestions on",
+      "auto": "Income plan: Auto"
     },
     "openPlan": "Open Plan"
   },

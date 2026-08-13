@@ -13,7 +13,8 @@ import {
 } from "@/modules/plan/application";
 import { listOpenInboxItems } from "@/modules/inbox/application";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
-import { TopAppBar } from "@/shared/patterns/top-app-bar";
+import { HeaderPill, TopAppBar } from "@/shared/patterns/top-app-bar";
+import { NAVIGATION_ICONS } from "@/shared/ui/icon-registry";
 import { Page } from "@/shared/patterns/page";
 import { Section } from "@/shared/patterns/section";
 import { JarCard } from "@/shared/patterns/jar-card";
@@ -59,7 +60,30 @@ export default async function PlanHubPage({ params }: Props) {
   return (
     <Page
       testId="plan-hub"
-      topBar={<TopAppBar title={t("title")} subtitle={t("subtitle")} />}
+      topBar={
+        <TopAppBar
+          variant="contextual"
+          eyebrow={t("header.eyebrow")}
+          title={t("header.headline")}
+          subtitle={t("header.supporting")}
+          icon={NAVIGATION_ICONS.plan}
+          status={
+            <HeaderPill tone="info">
+              {t(
+                ("ritual.modes." + ritualMode) as
+                  | "ritual.modes.assisted"
+                  | "ritual.modes.auto"
+                  | "ritual.modes.manual"
+                  | "ritual.modes.quick_close",
+              )}
+            </HeaderPill>
+          }
+          meta={t("header.meta", {
+            active: activeJars.length,
+            paused: pulse?.pausedJarCount ?? 0,
+          })}
+        />
+      }
     >
       <PlanOfflineBanner />
       <EmergencyInboxBanner
@@ -149,7 +173,7 @@ export default async function PlanHubPage({ params }: Props) {
       <Section>
         <Link
           href={APP_PATH.PLAN_GOALS}
-          className="block rounded-lg border border-border-subtle bg-surface p-(--space-4) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+          className="block rounded-[var(--radius-card)] bg-surface-muted/45 p-(--space-4) transition-[background-color,border-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-[var(--press-scale)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none motion-reduce:active:scale-100"
           data-testid="plan-entry-goals"
         >
           <Text size="sm" className="font-semibold text-text-primary">
@@ -165,7 +189,7 @@ export default async function PlanHubPage({ params }: Props) {
 
         <Link
           href={APP_PATH.PLAN_RECURRING}
-          className="block rounded-lg border border-border-subtle bg-surface p-(--space-4) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+          className="block rounded-[var(--radius-card)] bg-surface-muted/45 p-(--space-4) transition-[background-color,border-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-[var(--press-scale)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none motion-reduce:active:scale-100"
           data-testid="plan-entry-recurring"
         >
           <Text size="sm" className="font-semibold text-text-primary">
@@ -181,7 +205,7 @@ export default async function PlanHubPage({ params }: Props) {
 
         <Link
           href={APP_PATH.PLAN_CALENDAR}
-          className="block rounded-lg border border-border-subtle bg-surface p-(--space-4) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+          className="block rounded-[var(--radius-card)] bg-surface-muted/45 p-(--space-4) transition-[background-color,border-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-[var(--press-scale)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none motion-reduce:active:scale-100"
           data-testid="plan-entry-calendar"
         >
           <Text size="sm" className="font-semibold text-text-primary">

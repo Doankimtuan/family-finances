@@ -32,7 +32,9 @@ test.describe("Home three answers (ST-E07-001)", () => {
     await expect(page.getByTestId("ledger-balance")).toBeVisible();
     await expect(page.getByTestId("home-plan-pulse")).toBeVisible();
     await expect(
-      page.getByText(/Intention envelopes|Phong bì ý định/i),
+      page.getByText(
+        /A simple plan|Một kế hoạch nhẹ nhàng|Intention envelopes|Phong bì ý định/i,
+      ),
     ).toBeVisible();
     await expect(page.getByTestId("home-inbox-cta")).toBeVisible();
     await expect(page.getByTestId("home-health-chip")).toBeVisible();

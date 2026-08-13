@@ -24,22 +24,25 @@ export function EmptyState({
   return (
     <HeroEmptyState
       className={cn(
-        "flex flex-col items-center justify-center gap-(--space-3) px-(--space-6) py-(--space-8) text-center",
+        "flex flex-col items-center justify-center gap-(--space-3) px-(--space-5) py-(--space-6) text-center",
         className,
       )}
     >
       <div
         className={cn(
-          "mb-(--space-1) flex size-14 items-center justify-center",
-          "rounded-xl bg-surface",
-          "border border-border-subtle shadow-[var(--elevation-1)]",
-          "text-text-muted",
+          "mb-(--space-1) flex size-12 items-center justify-center",
+          "rounded-2xl bg-primary-soft",
+          "text-primary",
         )}
         aria-hidden
       >
         {icon ?? <AppIcon icon={InboxIcon} size="display" />}
       </div>
-      <Heading level={3} className="text-lg font-semibold text-text-primary">
+      <Heading
+        level={3}
+        className="text-lg font-semibold text-text-primary"
+        data-slot="empty-state-title"
+      >
         {title}
       </Heading>
       {description ? (

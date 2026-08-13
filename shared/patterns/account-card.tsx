@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { cn } from "@/shared/utils/cn";
 import { Text } from "@/shared/ui/text";
+import { StatusBadge } from "@/shared/ui/status-badge";
 import {
   AccountHealthSignal,
   type AccountHealthSignal as AccountHealthSignalValue,
@@ -34,7 +35,7 @@ export function AccountCard({
   return (
     <div
       className={cn(
-        "flex flex-col gap-(--space-2) rounded-lg border border-border-subtle bg-surface p-(--space-4)",
+        "flex flex-col gap-(--space-2) rounded-[var(--radius-card)] border border-border-subtle/60 bg-surface/90 transition-[background-color,border-color,transform] duration-(--duration-fast) hover:border-border-default hover:bg-surface-hover active:scale-[var(--press-scale)] motion-reduce:transition-none motion-reduce:active:scale-100 p-(--space-4)",
         className,
       )}
       data-testid={testId ?? "account-card"}
@@ -57,12 +58,9 @@ export function AccountCard({
         </span>
       </div>
       {showHealth ? (
-        <span
-          className="w-fit rounded-md border border-border-subtle px-(--space-2) py-(--space-1) text-xs font-medium text-text-secondary"
-          data-testid="account-card-health"
-        >
+        <StatusBadge tone="warning" data-testid="account-card-health">
           {healthLabel}
-        </span>
+        </StatusBadge>
       ) : null}
     </div>
   );

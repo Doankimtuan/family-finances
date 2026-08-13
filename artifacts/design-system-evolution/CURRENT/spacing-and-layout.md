@@ -50,3 +50,11 @@ Use the existing 4px scale from CSS variables.
 
 Use compact rhythm for metadata, review rows, schedule rows, and source labels. Keep the relationship tight, but never below accessible touch and readability minimums.
 
+
+## Application Shell Contract
+
+The authenticated canvas is centered and capped at 440px on every viewport. Use `--page-gutter` through the shared `Page` pattern for canonical horizontal alignment. The shared shell is the only scroll owner and reserves persistent navigation space; `SafeArea` adds the device insets. Do not create desktop-only columns, arbitrary gutter overrides, nested viewport scrollers, or page-specific bottom-navigation spacers. See [app-shell.md](./app-shell.md) for the full contract.
+
+## Global Polish Rhythm
+
+The shared `Page` pattern begins content 12px after the header, separates standard body groups by 16px, and retains 20px of bottom composition space before the shell’s navigation reservation. This compact rhythm is the default for the constrained 440px canvas; increase spacing only to signal a real shift in hierarchy. Use tonal surfaces rather than extra nested padding and borders when a supporting group needs separation.

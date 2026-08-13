@@ -1,3 +1,5 @@
+import { HOUSEHOLD_TIMEZONE } from "@/modules/tenancy/application/tenancy-constants";
+
 /**
  * Home domain constants — dashboard status lane kinds, test IDs, and formatting.
  */
@@ -46,3 +48,25 @@ export const HOME_TEST_ID = {
 
 /** Fraction digits used when displaying large home balances without cents. */
 export const HOME_CURRENCY_FRACTION_DIGITS = 0;
+
+export const HOME_GREETING_PERIOD = {
+  MORNING: "morning",
+  AFTERNOON: "afternoon",
+  EVENING: "evening",
+} as const;
+export type HomeGreetingPeriod =
+  (typeof HOME_GREETING_PERIOD)[keyof typeof HOME_GREETING_PERIOD];
+
+/** Deterministic greeting period using the household's canonical local timezone. */
+export function homeGreetingPeriod(date = new Date()): HomeGreetingPeriod {
+  const hour = Number(
+    new Intl.DateTimeFormat("en-US", {
+      hour: "2-digit",
+      hour12: false,
+      timeZone: HOUSEHOLD_TIMEZONE.VIETNAM,
+    }).format(date),
+  );
+  if (hour < 12) return HOME_GREETING_PERIOD.MORNING;
+  if (hour < 18) return HOME_GREETING_PERIOD.AFTERNOON;
+  return HOME_GREETING_PERIOD.EVENING;
+}

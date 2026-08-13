@@ -10,6 +10,7 @@ import { formatCurrency } from "@/shared/i18n/formatters";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
 import { ReviewCard } from "@/shared/patterns/review-card";
 import { EmptyState } from "@/shared/patterns/empty-state";
+import { FilterChip } from "@/shared/patterns/filter-chip";
 import { TextField } from "@/shared/ui/form";
 import { Text } from "@/shared/ui/text";
 
@@ -106,20 +107,14 @@ export function InboxQueueList({ items, locale, readOnly = false }: Props) {
         {filters.map((filter) => {
           const pressed = kind === filter.id;
           return (
-            <button
+            <FilterChip
               key={filter.id}
-              type="button"
-              aria-pressed={pressed}
-              className={
-                pressed
-                  ? "min-h-11 rounded-md bg-accent px-(--space-3) text-sm font-medium text-accent-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-                  : "min-h-11 rounded-md border border-border-subtle bg-surface px-(--space-3) text-sm font-medium text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-              }
-              onClick={() => setKind(filter.id)}
-              data-testid={`inbox-filter-${filter.id}`}
+              selected={pressed}
+              onPress={() => setKind(filter.id)}
+              data-testid={`inbox-filter-`}
             >
               {filter.label}
-            </button>
+            </FilterChip>
           );
         })}
       </div>

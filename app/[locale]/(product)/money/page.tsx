@@ -20,10 +20,14 @@ import {
 import { formatCurrency } from "@/shared/i18n/formatters";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
+import { NAVIGATION_ICONS } from "@/shared/ui/icon-registry";
 import { Section } from "@/shared/patterns/section";
 import { Balance } from "@/shared/patterns/balance";
 import { EmptyState } from "@/shared/patterns/empty-state";
-import { TransactionRow, TransactionAmountTone } from "@/shared/patterns/transaction-row";
+import {
+  TransactionRow,
+  TransactionAmountTone,
+} from "@/shared/patterns/transaction-row";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Page } from "@/shared/patterns/page";
 import { MoneyOfflineBanner } from "./money-offline-banner";
@@ -101,7 +105,19 @@ export default async function MoneyHubPage({ params }: Props) {
   return (
     <Page
       testId="money-hub"
-      topBar={<TopAppBar title={t("title")} subtitle={t("realPositionHint")} />}
+      topBar={
+        <TopAppBar
+          variant="contextual"
+          eyebrow={t("header.eyebrow")}
+          title={t("header.headline")}
+          subtitle={t("header.supporting")}
+          icon={NAVIGATION_ICONS.money}
+          meta={t("header.meta", {
+            accountCount: liquidAccounts.length + creditCards.length,
+            activityCount: activity.length,
+          })}
+        />
+      }
     >
       <MoneyOfflineBanner />
 
@@ -123,7 +139,7 @@ export default async function MoneyHubPage({ params }: Props) {
               amountClassName="text-[2.5rem] leading-none"
             />
             <div className="grid grid-cols-2 gap-(--space-2)">
-              <div className="rounded-lg border border-accent/20 bg-surface/70 p-(--space-3)">
+              <div className="rounded-xl bg-surface/65 p-(--space-3)">
                 <p className="text-xs font-medium text-text-secondary">
                   {t("accounts")}
                 </p>
@@ -131,7 +147,7 @@ export default async function MoneyHubPage({ params }: Props) {
                   {liquidAccounts.length}
                 </p>
               </div>
-              <div className="rounded-lg border border-accent/20 bg-surface/70 p-(--space-3)">
+              <div className="rounded-xl bg-surface/65 p-(--space-3)">
                 <p className="text-xs font-medium text-text-secondary">
                   {t("activity")}
                 </p>
@@ -224,7 +240,9 @@ export default async function MoneyHubPage({ params }: Props) {
                     )}
                     amountLabel={`${TRANSACTION_LEDGER_AMOUNT_PREFIX[tx.type]}${formatCurrency(tx.amount, tx.currency, locale, { maximumFractionDigits: 0 })}`}
                     tone={
-                      (TRANSACTION_LEDGER_CREDIT_TYPES as readonly string[]).includes(tx.type)
+                      (
+                        TRANSACTION_LEDGER_CREDIT_TYPES as readonly string[]
+                      ).includes(tx.type)
                         ? TransactionAmountTone.CREDIT
                         : TransactionAmountTone.DEBIT
                     }
@@ -245,7 +263,11 @@ export default async function MoneyHubPage({ params }: Props) {
           [
             ["debts", APP_PATH.MONEY_DEBTS, "money-link-debts"],
             ["savings", APP_PATH.MONEY_SAVINGS, "money-link-savings"],
-            ["investmentsLabel", APP_PATH.MONEY_INVESTMENTS, "money-link-investments"],
+            [
+              "investmentsLabel",
+              APP_PATH.MONEY_INVESTMENTS,
+              "money-link-investments",
+            ],
             ["loans", APP_PATH.MONEY_LOANS, "money-link-loans"],
           ] as const
         ).map(([key, href, testId]) => (

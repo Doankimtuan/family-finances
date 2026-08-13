@@ -29,7 +29,7 @@ export function AppViewport({
   return (
     <div
       className={cn(
-        "flex h-dvh max-h-dvh w-full justify-center overflow-hidden bg-transparent",
+        "flex h-dvh max-h-dvh w-full justify-center overflow-hidden bg-canvas-outer [background-image:var(--canvas-atmosphere)] min-[481px]:p-(--space-4)",
         className,
       )}
     >
@@ -40,7 +40,7 @@ export function AppViewport({
           "relative flex h-full max-h-dvh w-full flex-col overflow-hidden",
           "min-w-0 max-w-[var(--app-viewport-max)]",
           "bg-canvas text-text-primary",
-          "shadow-[var(--elevation-2)]",
+          "min-[481px]:rounded-[var(--radius-xl)] min-[481px]:shadow-[var(--elevation-2)]",
           "isolate [transform:translateZ(0)]",
         )}
       >

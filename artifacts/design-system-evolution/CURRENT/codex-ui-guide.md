@@ -47,3 +47,7 @@ Use the existing stack:
 - No marketing-page composition inside product screens.
 - No hidden real money movement.
 - No unlabeled estimated or stale values.
+
+## Shell, Header, and Navigation Contract
+
+Before changing shared chrome, read [app-shell.md](./app-shell.md). Reuse `AppViewport`, `ChromeShell`, `Page`, `TopAppBar`, `BottomNavigation`, `AppIcon`, and the tab registry. Do not create alternate app shells, header styles, bottom navigation components, desktop layouts, arbitrary gutters, or an additional icon family. Verify shared-chrome work at 390px, 440px, 768px, and 1280px with keyboard focus, reduced motion, light/dark themes, English/Vietnamese text, and overlay behavior.

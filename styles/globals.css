@@ -306,6 +306,7 @@
   --space-10: 40px;
   --space-12: 48px;
   --space-16: 64px;
+  --page-gutter: var(--space-4);
 
   --radius-sm: 6px;
   --radius-md: 10px;
@@ -548,4 +549,31 @@ body {
     background-color: var(--color-skeleton);
     border-radius: var(--radius-md);
   }
+}
+
+@keyframes vinha-header-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.vinha-header-contextual {
+  animation: vinha-header-enter var(--duration-standard) var(--ease-standard)
+    both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vinha-header-contextual {
+    animation: none;
+  }
+}
+
+.vinha-header-title {
+  overflow-wrap: anywhere;
+  text-wrap: balance;
 }

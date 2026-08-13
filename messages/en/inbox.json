@@ -1,6 +1,24 @@
 {
   "title": "Inbox",
   "subtitle": "What needs a decision?",
+  "header": {
+    "eyebrow": "Inbox",
+    "headline": {
+      "clear": "Nothing needs you right now",
+      "open": "A few things are ready for you",
+      "archived": "A few decisions already made"
+    },
+    "supporting": {
+      "clear": "Your queue is clear. Keep the good rhythm going.",
+      "open": "A quick look now can keep the household moving.",
+      "archived": "A quiet record of decisions already made."
+    },
+    "meta": {
+      "clear": "No decisions waiting",
+      "open": "{count, plural, one {# item to review} other {# items to review}}",
+      "archived": "Looking back at completed items"
+    }
+  },
   "detailTitle": "Review item",
   "detailSubtitle": "Decide without changing Money ownership",
   "resolve": "Assign to jar",

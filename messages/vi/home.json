@@ -1,6 +1,28 @@
 {
   "title": "Trang chủ",
   "subtitle": "Chúng ta có gì, muốn gì, và cần quyết gì?",
+  "header": {
+    "eyebrow": "Trang chủ",
+    "greeting": {
+      "morning": "Chào buổi sáng",
+      "afternoon": "Chào buổi chiều",
+      "evening": "Chào buổi tối"
+    },
+    "headline": {
+      "starting": "Một nơi êm để bắt đầu",
+      "steady": "Tiền của bạn đang đi đúng hướng",
+      "strong": "Hôm nay tiền của bạn đang khá vững"
+    },
+    "supporting": {
+      "starting": "Một góc nhìn đơn giản để cùng bắt đầu.",
+      "steady": "Cùng xem mình có gì, đang lên kế hoạch gì và cần quyết gì.",
+      "strong": "Cùng nhìn rõ những điều đang chạy tốt trong hộ gia đình."
+    },
+    "meta": {
+      "available": "{accountCount, plural, =0 {Chưa có tài khoản} one {# tài khoản đang hiển thị} other {# tài khoản đang hiển thị}} · {openInboxCount, plural, =0 {chưa có việc chờ} one {# việc cần xem} other {# việc cần xem}}",
+      "unavailable": "Góc nhìn hộ gia đình sẽ xuất hiện khi dữ liệu sẵn sàng."
+    }
+  },
   "loadErrorTitle": "Không tải được Trang chủ",
   "loadErrorBody": "Kiểm tra kết nối rồi thử lại.",
   "status": {
@@ -28,16 +50,16 @@
   },
   "realPosition": {
     "title": "Vị thế thật",
-    "hint": "Chỉ số dư sổ cái — không phải kế hoạch hũ."
+    "hint": "Tiền đang có trong các tài khoản của bạn."
   },
   "planPulse": {
     "title": "Nhịp kế hoạch",
-    "hint": "Phong bì ý định — không phải số dư ngân hàng.",
+    "hint": "Một kế hoạch nhẹ nhàng cho từng khoản tiền.",
     "jarsCount": "{count, plural, =0 {Chưa có hũ đang dùng} one {# hũ đang dùng} other {# hũ đang dùng}}",
     "allocate": {
-      "off": "Phân bổ thu nhập: Tắt",
-      "suggest": "Phân bổ thu nhập: Gợi ý",
-      "auto": "Phân bổ thu nhập: Tự động"
+      "off": "Gợi ý chia tiền: Tắt",
+      "suggest": "Gợi ý chia tiền: Bật",
+      "auto": "Tự động chia tiền"
     },
     "openPlan": "Mở Kế hoạch"
   },

@@ -1,7 +1,13 @@
 {
   "title": "Money",
+  "header": {
+    "eyebrow": "Money",
+    "headline": "Tiền của bạn, tất cả ở một nơi",
+    "supporting": "Cùng xem tiền đang ở đâu và đang chuyển động thế nào nhé.",
+    "meta": "{accountCount, plural, =0 {Chưa có tài khoản} one {# tài khoản đang hiển thị} other {# tài khoản đang hiển thị}} · {activityCount, plural, =0 {Chưa có hoạt động gần đây} one {# hoạt động gần đây} other {# hoạt động gần đây}}"
+  },
   "realPosition": "Vị trí thực",
-  "realPositionHint": "Chỉ số dư sổ cái — không phải kế hoạch hũ.",
+  "realPositionHint": "Tiền đang có trong các tài khoản của bạn.",
   "loadErrorTitle": "Không tải được Money",
   "loadErrorBody": "Kiểm tra kết nối và thử lại.",
   "capture": "Thêm giao dịch",
@@ -51,7 +57,13 @@
       "addOpening": "Nhập vị thế",
       "convert": "Chuyển đổi tài sản",
       "back": "Về Money",
-      "assetClass": { "crypto": "Tiền mã hoá", "stock": "Cổ phiếu", "fund": "Quỹ", "gold": "Vàng", "bond": "Trái phiếu" }
+      "assetClass": {
+        "crypto": "Tiền mã hoá",
+        "stock": "Cổ phiếu",
+        "fund": "Quỹ",
+        "gold": "Vàng",
+        "bond": "Trái phiếu"
+      }
     },
     "opening": {
       "title": "Nhập vị thế đang có",
@@ -71,8 +83,21 @@
       "confirm": "Nhập vị thế",
       "saving": "Đang nhập...",
       "edit": "Sửa",
-      "assetClass": { "crypto": "Tiền mã hoá", "stock": "Cổ phiếu", "fund": "Quỹ", "gold": "Vàng", "bond": "Trái phiếu" },
-      "errors": { "invalid": "Kiểm tra thông tin vị thế.", "forbidden": "Hiện tại bạn không thể đổi tiền hộ gia đình.", "not_found": "Không tìm thấy vị thế.", "insufficient_quantity": "Không đủ số lượng.", "basis_unavailable": "Chưa có giá vốn.", "unknown": "Không nhập được vị thế." }
+      "assetClass": {
+        "crypto": "Tiền mã hoá",
+        "stock": "Cổ phiếu",
+        "fund": "Quỹ",
+        "gold": "Vàng",
+        "bond": "Trái phiếu"
+      },
+      "errors": {
+        "invalid": "Kiểm tra thông tin vị thế.",
+        "forbidden": "Hiện tại bạn không thể đổi tiền hộ gia đình.",
+        "not_found": "Không tìm thấy vị thế.",
+        "insufficient_quantity": "Không đủ số lượng.",
+        "basis_unavailable": "Chưa có giá vốn.",
+        "unknown": "Không nhập được vị thế."
+      }
     },
     "detail": {
       "title": "Vị thế đầu tư",
@@ -92,17 +117,34 @@
       "slippage": "Trượt giá (suy ra)",
       "unavailable": "Chưa có",
       "status": "Trạng thái: {status}",
-      "lifecycle": { "active": "Đang nắm giữ", "exited": "Đã thoát", "under_review": "Cần xem lại" },
+      "lifecycle": {
+        "active": "Đang nắm giữ",
+        "exited": "Đã thoát",
+        "under_review": "Cần xem lại"
+      },
       "buy": "Mua",
       "sell": "Bán",
       "income": "Thu nhập",
       "valuation": "Định giá",
       "activityTitle": "Hoạt động bất biến",
       "activityEmpty": "Chưa có hoạt động đầu tư.",
-      "operation": { "opening_position": "Vị thế đầu kỳ", "buy": "Mua", "sell": "Bán", "asset_conversion": "Chuyển đổi tài sản", "investment_income": "Thu nhập đầu tư", "valuation": "Định giá" }
+      "operation": {
+        "opening_position": "Vị thế đầu kỳ",
+        "buy": "Mua",
+        "sell": "Bán",
+        "asset_conversion": "Chuyển đổi tài sản",
+        "investment_income": "Thu nhập đầu tư",
+        "valuation": "Định giá"
+      }
     },
     "operation": {
-      "title": { "buy": "Ghi nhận mua", "sell": "Ghi nhận bán", "asset_conversion": "Chuyển đổi tài sản", "investment_income": "Ghi thu nhập đầu tư", "valuation": "Ghi định giá" },
+      "title": {
+        "buy": "Ghi nhận mua",
+        "sell": "Ghi nhận bán",
+        "asset_conversion": "Chuyển đổi tài sản",
+        "investment_income": "Ghi thu nhập đầu tư",
+        "valuation": "Ghi định giá"
+      },
       "notAvailable": "Thao tác đầu tư này chưa khả dụng.",
       "back": "Về vị thế",
       "holding": "Tài sản",
@@ -121,7 +163,12 @@
       "oneLedgerMovement": "Một dịch chuyển sổ cái",
       "addFee": "Ghi phí rõ ràng",
       "feeSourceLabel": "Nguồn trả phí",
-      "feeSource": { "cash": "Tiền", "source_asset": "Tài sản nguồn", "destination_asset": "Tài sản nhận", "other_investment": "Tài sản đầu tư khác" },
+      "feeSource": {
+        "cash": "Tiền",
+        "source_asset": "Tài sản nguồn",
+        "destination_asset": "Tài sản nhận",
+        "other_investment": "Tài sản đầu tư khác"
+      },
       "feeAmount": "Số tiền phí",
       "feeQuantity": "Số lượng phí",
       "feeHolding": "Tài sản trả phí",
@@ -130,7 +177,14 @@
       "confirm": "Xác nhận nghiệp vụ",
       "saving": "Đang lưu...",
       "edit": "Sửa",
-      "errors": { "invalid": "Kiểm tra số lượng, số tiền và thông tin phí.", "forbidden": "Hiện tại bạn không thể đổi tiền hộ gia đình.", "not_found": "Không tìm thấy tài sản hoặc tài khoản.", "insufficient_quantity": "Tài sản không đủ số lượng.", "basis_unavailable": "Chưa có giá vốn.", "unknown": "Không lưu được nghiệp vụ đầu tư." }
+      "errors": {
+        "invalid": "Kiểm tra số lượng, số tiền và thông tin phí.",
+        "forbidden": "Hiện tại bạn không thể đổi tiền hộ gia đình.",
+        "not_found": "Không tìm thấy tài sản hoặc tài khoản.",
+        "insufficient_quantity": "Tài sản không đủ số lượng.",
+        "basis_unavailable": "Chưa có giá vốn.",
+        "unknown": "Không lưu được nghiệp vụ đầu tư."
+      }
     }
   },
   "products": {

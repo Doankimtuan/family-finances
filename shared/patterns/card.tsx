@@ -1,27 +1,25 @@
 "use client";
 
-import { Card as HeroCard, type CardProps as HeroCardProps } from "@heroui/react";
+import {
+  Card as HeroCard,
+  type CardProps as HeroCardProps,
+} from "@heroui/react";
 import { cn } from "@/shared/utils/cn";
 
 export type CardTone =
-  | "default"
-  | "interactive"
-  | "metric"
-  | "soft"
-  | "highlighted"
-  | "warning";
+  "default" | "interactive" | "metric" | "soft" | "highlighted" | "warning";
 
 export type CardProps = HeroCardProps & {
   tone?: CardTone;
 };
 
 const toneClassName: Record<CardTone, string> = {
-  default: "bg-surface border border-border-subtle/80 shadow-[var(--elevation-1)]",
+  default: "bg-surface/90 border border-border-subtle/60 shadow-none",
   interactive:
-    "bg-surface border border-border-subtle/80 shadow-[var(--elevation-1)] transition-[transform,box-shadow,border-color] duration-(--duration-fast) hover:-translate-y-px hover:border-border-default hover:shadow-[var(--elevation-2)] motion-reduce:transform-none motion-reduce:transition-none",
-  metric: "bg-surface border border-border-subtle/60 shadow-none",
-  soft: "bg-surface-muted border border-transparent shadow-none",
-  highlighted: "bg-surface-highlight border border-primary/15 shadow-none",
+    "bg-surface border border-border-subtle/60 shadow-none transition-[transform,background-color,border-color] duration-(--duration-fast) hover:-translate-y-px hover:border-border-default hover:bg-surface-hover active:scale-[var(--press-scale)] motion-reduce:transform-none motion-reduce:transition-none motion-reduce:active:scale-100",
+  metric: "bg-surface-muted/60 border border-transparent shadow-none",
+  soft: "bg-surface-muted/70 border border-transparent shadow-none",
+  highlighted: "bg-surface-highlight/80 border border-primary/15 shadow-none",
   warning: "bg-warning/10 border border-warning/25 shadow-none",
 };
 

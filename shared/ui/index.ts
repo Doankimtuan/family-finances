@@ -13,6 +13,7 @@ export { Skeleton, type SkeletonProps } from "./skeleton";
 export { Progress, type ProgressProps } from "./progress";
 export { Alert, type AlertProps, type AlertVariant } from "./alert";
 export { StatusAlert, type StatusAlertProps } from "./status-alert";
+export { StatusBadge, type StatusBadgeTone } from "./status-badge";
 export { AppIcon, type AppIconProps, ICON_SIZES } from "./app-icon";
 export {
   FormField,

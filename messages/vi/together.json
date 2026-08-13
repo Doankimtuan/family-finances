@@ -1,5 +1,11 @@
 {
   "title": "Together",
+  "header": {
+    "eyebrow": "Together",
+    "headline": "Cùng nhau, tiền bạc nhẹ hơn",
+    "supporting": "Cùng nhìn rõ, cùng quyết định và giữ nhịp cho hộ gia đình.",
+    "meta": "{count, plural, one {# người trong hộ gia đình này} other {# người trong hộ gia đình này}}"
+  },
   "householdLabel": "Hộ gia đình",
   "membersTitle": "Ai đang cùng bạn?",
   "membersDescription": "Đối tác chia sẻ quyền Money, Plan và Inbox hằng ngày.",

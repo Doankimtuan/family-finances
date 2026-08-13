@@ -47,9 +47,9 @@ export function TransactionRow({
   return (
     <div
       className={cn(
-        "group relative flex items-center gap-(--space-3) overflow-hidden rounded-xl border border-border-subtle bg-surface px-(--space-4) py-(--space-3)",
+        "group relative flex items-center gap-(--space-3) overflow-hidden rounded-[var(--radius-card)] border border-border-subtle/60 bg-surface/90 px-(--space-4) py-(--space-3)",
         "transition-[background-color,border-color,transform] duration-[var(--duration-fast)] ease-[var(--ease-standard)]",
-        "hover:border-border-strong hover:bg-surface-hover active:scale-[0.99] motion-reduce:transition-none motion-reduce:active:scale-100",
+        "hover:border-border-default hover:bg-surface-hover active:scale-[0.99] motion-reduce:transition-none motion-reduce:active:scale-100",
         className,
       )}
     >

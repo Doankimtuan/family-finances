@@ -24,11 +24,12 @@ export function Button({
       isIconOnly={isIconOnly}
       className={cn(
         "button rounded-[var(--radius-control)] font-medium tracking-tight",
-        "transition-[transform,background-color,color,opacity,box-shadow]",
+        "transition-[transform,background-color,color,opacity,box-shadow] active:scale-[var(--press-scale)]",
         "duration-[var(--duration-fast)] ease-[var(--ease-standard)]",
         "motion-reduce:transition-none motion-reduce:active:transform-none",
         !isIconOnly && "min-h-11 px-(--space-4) shadow-none",
-        variant === "primary" && "shadow-[var(--elevation-1)]",
+        variant === "primary" &&
+          "shadow-[var(--elevation-1)] hover:-translate-y-px",
         className,
       )}
       {...props}

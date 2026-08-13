@@ -44,7 +44,7 @@ export function CreditCardCard({
   return (
     <div
       className={cn(
-        "flex flex-col gap-(--space-3) rounded-lg border border-border-subtle bg-surface p-(--space-4)",
+        "flex flex-col gap-(--space-3) rounded-[var(--radius-card)] border border-border-subtle/60 bg-surface/90 transition-[background-color,border-color,transform] duration-(--duration-fast) hover:border-border-default hover:bg-surface-hover active:scale-[var(--press-scale)] motion-reduce:transition-none motion-reduce:active:scale-100 p-(--space-4)",
         className,
       )}
       data-testid={testId ?? "credit-card-card"}

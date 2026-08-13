@@ -1,5 +1,11 @@
 {
   "title": "Together",
+  "header": {
+    "eyebrow": "Together",
+    "headline": "Money feels easier together",
+    "supporting": "Share the view, make decisions, and keep the household in sync.",
+    "meta": "{count, plural, one {# person in this household} other {# people in this household}}"
+  },
   "householdLabel": "Household",
   "membersTitle": "Who is with us?",
   "membersDescription": "Partners share daily Money, Plan, and Inbox.",

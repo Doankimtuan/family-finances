@@ -1,7 +1,13 @@
 {
   "title": "Money",
+  "header": {
+    "eyebrow": "Money",
+    "headline": "Your money, all in one place",
+    "supporting": "See what you have, where it lives, and what is moving.",
+    "meta": "{accountCount, plural, =0 {No accounts yet} one {# account in view} other {# accounts in view}} · {activityCount, plural, =0 {No recent activity} one {# recent item} other {# recent items}}"
+  },
   "realPosition": "Real position",
-  "realPositionHint": "Ledger balances only — not jar plans.",
+  "realPositionHint": "Money available across your accounts.",
   "loadErrorTitle": "Could not load Money",
   "loadErrorBody": "Check your connection and try again.",
   "capture": "Add transaction",
@@ -51,7 +57,13 @@
       "addOpening": "Import position",
       "convert": "Convert assets",
       "back": "Back to Money",
-      "assetClass": { "crypto": "Crypto", "stock": "Stocks", "fund": "Funds", "gold": "Gold", "bond": "Bonds" }
+      "assetClass": {
+        "crypto": "Crypto",
+        "stock": "Stocks",
+        "fund": "Funds",
+        "gold": "Gold",
+        "bond": "Bonds"
+      }
     },
     "opening": {
       "title": "Import existing position",
@@ -71,8 +83,21 @@
       "confirm": "Import position",
       "saving": "Importing...",
       "edit": "Edit",
-      "assetClass": { "crypto": "Crypto", "stock": "Stocks", "fund": "Funds", "gold": "Gold", "bond": "Bonds" },
-      "errors": { "invalid": "Check the position details.", "forbidden": "You cannot change household money right now.", "not_found": "The position was not found.", "insufficient_quantity": "The quantity is insufficient.", "basis_unavailable": "Cost basis is unavailable.", "unknown": "Could not import the position." }
+      "assetClass": {
+        "crypto": "Crypto",
+        "stock": "Stocks",
+        "fund": "Funds",
+        "gold": "Gold",
+        "bond": "Bonds"
+      },
+      "errors": {
+        "invalid": "Check the position details.",
+        "forbidden": "You cannot change household money right now.",
+        "not_found": "The position was not found.",
+        "insufficient_quantity": "The quantity is insufficient.",
+        "basis_unavailable": "Cost basis is unavailable.",
+        "unknown": "Could not import the position."
+      }
     },
     "detail": {
       "title": "Investment position",
@@ -92,17 +117,34 @@
       "slippage": "Slippage (derived)",
       "unavailable": "Unavailable",
       "status": "Status: {status}",
-      "lifecycle": { "active": "Active", "exited": "Exited", "under_review": "Under review" },
+      "lifecycle": {
+        "active": "Active",
+        "exited": "Exited",
+        "under_review": "Under review"
+      },
       "buy": "Buy",
       "sell": "Sell",
       "income": "Income",
       "valuation": "Valuation",
       "activityTitle": "Immutable activity",
       "activityEmpty": "No investment activity yet.",
-      "operation": { "opening_position": "Opening position", "buy": "Buy", "sell": "Sell", "asset_conversion": "Asset conversion", "investment_income": "Investment income", "valuation": "Valuation" }
+      "operation": {
+        "opening_position": "Opening position",
+        "buy": "Buy",
+        "sell": "Sell",
+        "asset_conversion": "Asset conversion",
+        "investment_income": "Investment income",
+        "valuation": "Valuation"
+      }
     },
     "operation": {
-      "title": { "buy": "Record buy", "sell": "Record sell", "asset_conversion": "Convert assets", "investment_income": "Record investment income", "valuation": "Record valuation" },
+      "title": {
+        "buy": "Record buy",
+        "sell": "Record sell",
+        "asset_conversion": "Convert assets",
+        "investment_income": "Record investment income",
+        "valuation": "Record valuation"
+      },
       "notAvailable": "This investment action is not available.",
       "back": "Back to position",
       "holding": "Holding",
@@ -121,7 +163,12 @@
       "oneLedgerMovement": "One ledger movement",
       "addFee": "Record an explicit fee",
       "feeSourceLabel": "Fee payment source",
-      "feeSource": { "cash": "Cash", "source_asset": "Source asset", "destination_asset": "Destination asset", "other_investment": "Another tracked asset" },
+      "feeSource": {
+        "cash": "Cash",
+        "source_asset": "Source asset",
+        "destination_asset": "Destination asset",
+        "other_investment": "Another tracked asset"
+      },
       "feeAmount": "Cash fee amount",
       "feeQuantity": "Fee quantity",
       "feeHolding": "Fee holding",
@@ -130,7 +177,14 @@
       "confirm": "Confirm operation",
       "saving": "Saving...",
       "edit": "Edit",
-      "errors": { "invalid": "Check quantities, amounts, and fee details.", "forbidden": "You cannot change household money right now.", "not_found": "A holding or account was not found.", "insufficient_quantity": "The holding does not have enough quantity.", "basis_unavailable": "Cost basis is unavailable.", "unknown": "Could not save the investment operation." }
+      "errors": {
+        "invalid": "Check quantities, amounts, and fee details.",
+        "forbidden": "You cannot change household money right now.",
+        "not_found": "A holding or account was not found.",
+        "insufficient_quantity": "The holding does not have enough quantity.",
+        "basis_unavailable": "Cost basis is unavailable.",
+        "unknown": "Could not save the investment operation."
+      }
     }
   },
   "products": {

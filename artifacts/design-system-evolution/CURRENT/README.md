@@ -26,6 +26,7 @@ ViNha should feel like a Gen Z financial life companion for young Vietnamese hou
 - [color-system.md](./color-system.md)
 - [typography-system.md](./typography-system.md)
 - [spacing-and-layout.md](./spacing-and-layout.md)
+- [app-shell.md](./app-shell.md)
 - [shape-and-elevation.md](./shape-and-elevation.md)
 - [component-taxonomy.md](./component-taxonomy.md)
 - [component-contracts.md](./component-contracts.md)

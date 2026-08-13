@@ -29,9 +29,9 @@ export function Section({
       className={cn(
         "flex flex-col gap-(--space-3)",
         variant === "surface" &&
-          "rounded-xl border border-border-subtle bg-surface p-(--space-4)",
+          "rounded-[var(--radius-card)] bg-surface-muted/55 p-(--space-4)",
         variant === "emphasized" &&
-          "rounded-xl border border-accent/25 bg-accent/10 p-(--space-4) shadow-[var(--elevation-1)]",
+          "rounded-[var(--radius-card)] border border-accent/20 bg-accent/10 p-(--space-4)",
         className,
       )}
       data-testid={testId}

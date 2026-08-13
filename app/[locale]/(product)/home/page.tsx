@@ -10,16 +10,16 @@ import { getHomeDashboard } from "@/modules/home/application";
 import {
   HomeStatusLaneKind,
   HOME_CURRENCY_FRACTION_DIGITS,
+  homeGreetingPeriod,
   HOME_TEST_ID,
   HOME_TRANSLATION_NAMESPACE,
 } from "@/modules/home/application/home-constants";
 import { formatCurrency } from "@/shared/i18n/formatters";
-import { BrandMark } from "@/shared/patterns/brand-mark";
-import { TopAppBar } from "@/shared/patterns/top-app-bar";
+import { HeaderPill, TopAppBar } from "@/shared/patterns/top-app-bar";
+import { NAVIGATION_ICONS } from "@/shared/ui/icon-registry";
 import { Balance } from "@/shared/patterns/balance";
 import { KpiBlock } from "@/shared/patterns/kpi-block";
 import { Page } from "@/shared/patterns/page";
-import { Heading } from "@/shared/ui/heading";
 import { Text } from "@/shared/ui/text";
 import { HomeCaptureAction } from "./home-capture-action";
 import { HomeInboxCta } from "./home-inbox-cta";
@@ -57,15 +57,40 @@ export default async function HomePage({ params }: Props) {
 
   const topBar = (
     <TopAppBar
+      variant="contextual"
+      eyebrow={`${t(`header.greeting.${homeGreetingPeriod()}`)} · ${t("header.eyebrow")}`}
       title={
-        <div className="flex min-w-0 items-center gap-(--space-2)">
-          <BrandMark variant="mark" size="sm" className="shrink-0" />
-          <Heading level={1} className="truncate text-lg">
-            {t("title")}
-          </Heading>
-        </div>
+        dashboard ? t(`header.headline.${dashboard.health.level}`) : t("title")
       }
-      subtitle={t("subtitle")}
+      subtitle={
+        dashboard
+          ? t(`header.supporting.${dashboard.health.level}`)
+          : t("header.meta.unavailable")
+      }
+      icon={NAVIGATION_ICONS.home}
+      status={
+        dashboard ? (
+          <HeaderPill
+            tone={
+              dashboard.health.level === "strong"
+                ? "positive"
+                : dashboard.health.level === "steady"
+                  ? "info"
+                  : "neutral"
+            }
+          >
+            {t(`health.levels.${dashboard.health.level}`)}
+          </HeaderPill>
+        ) : null
+      }
+      meta={
+        dashboard
+          ? t("header.meta.available", {
+              accountCount: dashboard.accountCount,
+              openInboxCount: dashboard.openInboxCount,
+            })
+          : t("header.meta.unavailable")
+      }
     />
   );
 
@@ -120,7 +145,7 @@ export default async function HomePage({ params }: Props) {
               </div>
               <Link
                 href={APP_PATH.PLAN}
-                className="shrink-0 rounded-md border border-accent/30 bg-accent/10 px-(--space-3) py-(--space-2) text-sm font-medium text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+                className="shrink-0 rounded-full bg-primary-soft px-(--space-3) py-(--space-2) text-sm font-semibold text-primary transition-[background-color,transform] duration-(--duration-fast) hover:bg-primary/15 active:scale-[var(--press-scale)] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
                 data-testid={HOME_TEST_ID.PLAN_LINK}
               >
                 {t("planPulse.openPlan")}

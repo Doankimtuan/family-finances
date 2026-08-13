@@ -11,7 +11,7 @@ export type ChromeShellProps = {
 };
 
 /**
- * AppViewport + chrome region + scrollable main + optional footer (e.g. BottomNav).
+ * AppViewport + chrome region + one scroll owner + optional footer (e.g. BottomNav).
  */
 export function ChromeShell({
   chrome,
@@ -28,7 +28,10 @@ export function ChromeShell({
           className,
         )}
       >
-        <main className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain">
+        <main
+          data-slot="shell-scroll-region"
+          className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain"
+        >
           {children}
         </main>
         {footer ? <div className="shrink-0">{footer}</div> : null}

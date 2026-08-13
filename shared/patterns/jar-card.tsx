@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { cn } from "@/shared/utils/cn";
 import { Text } from "@/shared/ui/text";
+import { StatusBadge } from "@/shared/ui/status-badge";
 
 export type JarCardProps = {
   name: ReactNode;
@@ -27,7 +28,7 @@ export function JarCard({
   return (
     <div
       className={cn(
-        "flex flex-col gap-(--space-2) rounded-lg border border-border-subtle bg-surface p-(--space-4)",
+        "flex flex-col gap-(--space-2) rounded-[var(--radius-card)] border border-border-subtle/60 bg-surface/90 transition-[background-color,border-color,transform] duration-(--duration-fast) hover:border-border-default hover:bg-surface-hover active:scale-[var(--press-scale)] motion-reduce:transition-none motion-reduce:active:scale-100 p-(--space-4)",
         className,
       )}
       data-testid={testId}
@@ -42,17 +43,9 @@ export function JarCard({
             {kindLabel}
           </Text>
         </div>
-        <span
-          className={cn(
-            "shrink-0 rounded-md border px-(--space-2) py-(--space-1) text-xs font-medium",
-            state === "active" &&
-              "border-accent/40 bg-accent/10 text-text-primary",
-            state === "paused" && "border-border-subtle text-text-secondary",
-            state === "archived" && "border-border-subtle text-text-secondary",
-          )}
-        >
+        <StatusBadge tone={state === "active" ? "positive" : "neutral"}>
           {stateLabel}
-        </span>
+        </StatusBadge>
       </div>
       {planLabel ? (
         <Text size="sm" tone="secondary" className="tabular-nums">

@@ -1,6 +1,12 @@
 {
   "title": "Plan",
   "subtitle": "Where money is meant to go",
+  "header": {
+    "eyebrow": "Plan",
+    "headline": "Give every đồng a job",
+    "supporting": "Small intentions make the month easier to steer.",
+    "meta": "{active, plural, =0 {No active jars yet} one {# active jar} other {# active jars}} · {paused, plural, =0 {nothing paused} one {# paused} other {# paused}}"
+  },
   "teaching": {
     "title": "Intention is not your bank balance",
     "body": "Jars are envelopes for intention. Real cash and accounts live in Money. Never read jar totals as bank balance."

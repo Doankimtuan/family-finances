@@ -3,6 +3,7 @@ import { cn } from "@/shared/utils/cn";
 
 export type IconContainerTone =
   | "neutral"
+  | "primary"
   | "income"
   | "expense"
   | "transfer"
@@ -20,6 +21,7 @@ export type IconContainerProps = {
 
 const toneClassName: Record<IconContainerTone, string> = {
   neutral: "bg-surface-muted text-text-secondary",
+  primary: "bg-primary-soft text-primary",
   income: "bg-income-soft text-income",
   expense: "bg-expense-soft text-expense",
   transfer: "bg-transfer-soft text-transfer",

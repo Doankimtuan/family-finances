@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { cn } from "@/shared/utils/cn";
 import { Text } from "@/shared/ui/text";
+import { StatusBadge } from "@/shared/ui/status-badge";
 
 export type HealthCardProps = {
   title: ReactNode;
@@ -44,12 +45,9 @@ export function HealthCard({
             </span>
           </p>
         </div>
-        <span
-          className="shrink-0 rounded-md border border-border-subtle bg-canvas px-(--space-2) py-(--space-1) text-xs font-medium text-text-secondary"
-          data-testid="health-card-level"
-        >
+        <StatusBadge className="shrink-0" data-testid="health-card-level">
           {levelLabel}
-        </span>
+        </StatusBadge>
       </div>
       {narrative ? (
         <Text size="sm" tone="secondary" className="leading-relaxed">
@@ -60,9 +58,9 @@ export function HealthCard({
   );
 
   const shellClass = cn(
-    "flex w-full min-h-11 flex-col gap-(--space-2) rounded-lg border border-border-subtle bg-surface p-(--space-4) text-left",
+    "flex w-full min-h-11 flex-col gap-(--space-2) rounded-[var(--radius-card)] border border-border-subtle/60 bg-surface/90 p-(--space-4) text-left",
     interactive &&
-      "transition-transform duration-150 ease-out active:scale-[0.99] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring",
+      "transition-[background-color,border-color,transform] duration-(--duration-fast) ease-(--ease-standard) hover:border-border-default hover:bg-surface-hover active:scale-[var(--press-scale)] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring",
     className,
   );
 
