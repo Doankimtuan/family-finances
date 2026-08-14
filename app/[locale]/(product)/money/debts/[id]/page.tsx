@@ -19,6 +19,7 @@ import {
   formatCurrency,
   formatDate as formatLocalizedDate,
 } from "@/shared/i18n/formatters";
+import { MotionReveal } from "@/shared/motion";
 import { Amount } from "@/shared/patterns/amount";
 import { Card } from "@/shared/patterns/card";
 import { EmptyState } from "@/shared/patterns/empty-state";
@@ -112,96 +113,104 @@ export default async function DebtDetailPage({ params }: Props) {
       />
       <div className="flex flex-1 flex-col gap-(--space-4) px-(--space-4) pb-(--space-6) pt-(--space-4)">
         <MoneyOfflineBanner />
-        <Card className="gap-(--space-4) p-(--space-4)">
-          <IconContainer tone={isBorrowed ? "debt" : "income"} size="md">
-            <AppIcon
-              icon={isBorrowed ? FINANCE_ICONS.debt : FINANCE_ICONS.income}
-              size="lg"
-            />
-          </IconContainer>
-          <div className="flex items-start justify-between gap-(--space-3)">
-            <div>
-              <Amount
-                label={remainingLabel}
-                amountLabel={formatCurrency(
-                  debt.remainingAmount,
-                  debt.currency,
-                  locale,
-                  { maximumFractionDigits: 0 },
-                )}
+        <MotionReveal>
+          <Card className="gap-(--space-4) p-(--space-4)">
+            <IconContainer tone={isBorrowed ? "debt" : "income"} size="md">
+              <AppIcon
+                icon={isBorrowed ? FINANCE_ICONS.debt : FINANCE_ICONS.income}
                 size="lg"
               />
+            </IconContainer>
+            <div className="flex items-start justify-between gap-(--space-3)">
+              <div>
+                <Amount
+                  label={remainingLabel}
+                  amountLabel={formatCurrency(
+                    debt.remainingAmount,
+                    debt.currency,
+                    locale,
+                    { maximumFractionDigits: 0 },
+                  )}
+                  size="lg"
+                />
+              </div>
+              <DebtDueBadge
+                due={due}
+                dueDate={debt.dueDate}
+                labels={dueLabels}
+                locale={locale}
+              />
             </div>
-            <DebtDueBadge
-              due={due}
-              dueDate={debt.dueDate}
-              labels={dueLabels}
+            <DebtProgressSummary
+              direction={debt.direction}
+              progress={progress}
+              currency={debt.currency}
               locale={locale}
+              labels={progressLabels}
             />
-          </div>
-          <DebtProgressSummary
-            direction={debt.direction}
-            progress={progress}
-            currency={debt.currency}
-            locale={locale}
-            labels={progressLabels}
-          />
-          <div className="flex items-center justify-between gap-(--space-3) border-t border-border-subtle pt-(--space-3)">
-            <Text size="sm" tone="secondary">
-              {tDebts("amountLabel")}
-            </Text>
-            <Text
-              size="sm"
-              weight="medium"
-              className="tabular-nums text-text-primary"
-            >
-              {formatCurrency(debt.principalAmount, debt.currency, locale, {
-                maximumFractionDigits: 0,
-              })}
-            </Text>
-          </div>
-        </Card>
+            <div className="flex items-center justify-between gap-(--space-3) border-t border-border-subtle pt-(--space-3)">
+              <Text size="sm" tone="secondary">
+                {tDebts("amountLabel")}
+              </Text>
+              <Text
+                size="sm"
+                weight="medium"
+                className="tabular-nums text-text-primary"
+              >
+                {formatCurrency(debt.principalAmount, debt.currency, locale, {
+                  maximumFractionDigits: 0,
+                })}
+              </Text>
+            </div>
+          </Card>
+        </MotionReveal>
         {debt.status === DebtStatus.ACTIVE ? (
-          <DebtPaymentSheet
-            debtId={debt.id}
-            direction={debt.direction}
-            remainingAmount={debt.remainingAmount}
-            currency={debt.currency}
-            locale={locale}
-            accounts={accounts}
-            today={today}
-          />
+          <MotionReveal>
+            <DebtPaymentSheet
+              debtId={debt.id}
+              direction={debt.direction}
+              remainingAmount={debt.remainingAmount}
+              currency={debt.currency}
+              locale={locale}
+              accounts={accounts}
+              today={today}
+            />
+          </MotionReveal>
         ) : (
-          <Text size="sm" tone="secondary">
-            {t("paidOff")}
-          </Text>
+          <MotionReveal>
+            <Text size="sm" tone="secondary">
+              {t("paidOff")}
+            </Text>
+          </MotionReveal>
         )}
-        <DebtPaymentHistory
-          title={t("history")}
-          countLabel={t("historyCount", { count: payments.length })}
-          emptyTitle={
-            debt.status === DebtStatus.COMPLETED
-              ? t("paidOff")
-              : isBorrowed
-                ? t("noRepayments")
-                : t("noReceipts")
-          }
-          accountFallback={t("historyAccountFallback")}
-          isBorrowed={isBorrowed}
-          payments={payments}
-          formatAmount={(amount) =>
-            formatCurrency(amount, debt.currency, locale, {
-              maximumFractionDigits: 0,
-            })
-          }
-          formatDate={(isoDate) =>
-            formatLocalizedDate(new Date(`${isoDate}T00:00:00Z`), locale, {
-              day: "2-digit",
-              month: "2-digit",
-              year: "numeric",
-            })
-          }
-        />
+        <MotionReveal>
+          <DebtPaymentHistory
+            title={t("history")}
+            countLabel={t("historyCount", { count: payments.length })}
+            emptyTitle={
+              debt.status === DebtStatus.COMPLETED
+                ? t("paidOff")
+                : isBorrowed
+                  ? t("noRepayments")
+                  : t("noReceipts")
+            }
+            accountFallback={t("historyAccountFallback")}
+            isBorrowed={isBorrowed}
+            payments={payments}
+            formatAmount={(amount) =>
+              formatCurrency(amount, debt.currency, locale, {
+                maximumFractionDigits: 0,
+              })
+            }
+            formatDate={(isoDate) =>
+              formatLocalizedDate(new Date(`${isoDate}T00:00:00Z`), locale, {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+              })
+            }
+          />
+        </MotionReveal>
       </div>
     </div>
   );

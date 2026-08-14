@@ -9,6 +9,7 @@ import { KpiBlock } from "@/shared/patterns/kpi-block";
 import { AppIcon } from "@/shared/ui/app-icon";
 import { IconContainer } from "@/shared/ui/icon-container";
 import { categoryVisualFor } from "@/shared/ui/icon-registry";
+import { Progress } from "@/shared/ui/progress";
 import { Text } from "@/shared/ui/text";
 
 export function HomeSpendingSection({
@@ -67,22 +68,17 @@ export function HomeSpendingSection({
                 >
                   {categoryName}
                 </Text>
-                <div
-                  className="mt-(--space-2) h-1.5 overflow-hidden rounded-full bg-surface-muted"
-                  role="progressbar"
-                  aria-label={t("spending.share", {
+                <Progress
+                  value={category.progressPercent}
+                  label={t("spending.share", {
                     category: categoryName,
                     percentage,
                   })}
-                  aria-valuemin={0}
-                  aria-valuemax={100}
-                  aria-valuenow={category.progressPercent}
-                >
-                  <div
-                    className="h-full rounded-full bg-expense"
-                    style={{ width: `${category.progressPercent}%` }}
-                  />
-                </div>
+                  showLabel={false}
+                  className="mt-(--space-2)"
+                  trackClassName="h-1.5 bg-surface-muted"
+                  indicatorClassName="bg-expense"
+                />
               </div>
               <div className="text-right">
                 <Text

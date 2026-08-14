@@ -6,7 +6,6 @@ import {
   HOME_TEST_ID,
 } from "@/modules/home/application/home-constants";
 import { FilterChip } from "@/shared/patterns/filter-chip";
-import { Spinner } from "@/shared/ui/spinner";
 import { useHomePeriodTransition } from "./home-period-transition";
 
 export function HomePeriodControl() {
@@ -37,23 +36,6 @@ export function HomePeriodControl() {
         >
           {t("periodControl.quarter")}
         </FilterChip>
-      </div>
-      <div
-        className="flex min-h-6 items-center"
-        role="status"
-        aria-live="polite"
-        data-testid={HOME_TEST_ID.PERIOD_LOADING}
-      >
-        {isPending ? (
-          <>
-            <Spinner
-              size="sm"
-              color="accent"
-              aria-label={t("periodControl.loading")}
-            />
-            <span className="sr-only">{t("periodControl.loading")}</span>
-          </>
-        ) : null}
       </div>
     </div>
   );

@@ -10,6 +10,7 @@ import {
 import {
   DebtDirection,
   DEBT_PAYMENT_IDEMPOTENCY_KEY_PREFIX,
+  MoneyPaymentFlowStep,
   createDebtIdempotencyKey,
 } from "@/modules/ledger/application/ledger-constants";
 import {
@@ -20,6 +21,7 @@ import {
 } from "@/modules/tenancy/application/product-action-error";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import { formatCurrency, formatDate } from "@/shared/i18n/formatters";
+import { MotionStep } from "@/shared/motion";
 import { Amount } from "@/shared/patterns/amount";
 import { AmountField } from "@/shared/patterns/amount-field";
 import { ConfirmSummary } from "@/shared/patterns/confirm-summary";
@@ -171,57 +173,69 @@ export function DebtPaymentSheet({
           {errorCode ? (
             <StatusAlert variant="danger" title={tErrors(errorCode)} />
           ) : null}
-          {isConfirming ? (
-            <PaymentReview
-              title={confirmTitle}
-              hint={t("reviewHint")}
-              amountLabel={paymentAmountLabel}
-              accountLabel={reviewAccountLabel}
-              accountName={selectedAccountName}
-              dateLabel={paymentDateLabel}
-              effectiveDate={effectiveDate}
-              afterLabel={t("afterPayment")}
-              remainingLabel={remainingContextLabel}
-              review={paymentReview}
-              currency={currency}
-              locale={locale}
-            />
-          ) : (
-            <>
-              <Amount
-                size="md"
-                label={remainingContextLabel}
-                amountLabel={formatCurrency(remainingAmount, currency, locale)}
+          <MotionStep
+            stepKey={
+              isConfirming
+                ? MoneyPaymentFlowStep.CONFIRM
+                : MoneyPaymentFlowStep.FORM
+            }
+          >
+            {isConfirming ? (
+              <PaymentReview
+                title={confirmTitle}
+                hint={t("reviewHint")}
+                amountLabel={paymentAmountLabel}
+                accountLabel={reviewAccountLabel}
+                accountName={selectedAccountName}
+                dateLabel={paymentDateLabel}
+                effectiveDate={effectiveDate}
+                afterLabel={t("afterPayment")}
+                remainingLabel={remainingContextLabel}
+                review={paymentReview}
+                currency={currency}
+                locale={locale}
               />
-              <AmountField
-                id="debt-payment-amount"
-                label={paymentAmountLabel}
-                value={amount}
-                onValueChange={setAmount}
-                required
-              />
-              <LabeledSelect
-                label={isBorrowed ? t("payFrom") : t("receiveInto")}
-                value={accountId}
-                onChange={(event) => setAccountId(event.target.value)}
-                options={accounts.map((account) => ({
-                  id: account.id,
-                  label: account.name,
-                }))}
-              />
-              <LabeledDateInput
-                label={paymentDateLabel}
-                value={effectiveDate}
-                onChange={(event) => setEffectiveDate(event.target.value)}
-              />
-              <TextField
-                id="debt-payment-note"
-                label={t("note")}
-                value={note}
-                onChange={(event) => setNote(event.target.value)}
-              />
-            </>
-          )}
+            ) : (
+              <>
+                <Amount
+                  size="md"
+                  label={remainingContextLabel}
+                  amountLabel={formatCurrency(
+                    remainingAmount,
+                    currency,
+                    locale,
+                  )}
+                />
+                <AmountField
+                  id="debt-payment-amount"
+                  label={paymentAmountLabel}
+                  value={amount}
+                  onValueChange={setAmount}
+                  required
+                />
+                <LabeledSelect
+                  label={isBorrowed ? t("payFrom") : t("receiveInto")}
+                  value={accountId}
+                  onChange={(event) => setAccountId(event.target.value)}
+                  options={accounts.map((account) => ({
+                    id: account.id,
+                    label: account.name,
+                  }))}
+                />
+                <LabeledDateInput
+                  label={paymentDateLabel}
+                  value={effectiveDate}
+                  onChange={(event) => setEffectiveDate(event.target.value)}
+                />
+                <TextField
+                  id="debt-payment-note"
+                  label={t("note")}
+                  value={note}
+                  onChange={(event) => setNote(event.target.value)}
+                />
+              </>
+            )}
+          </MotionStep>
         </Sheet.Body>
         <SheetActionFooter
           secondaryLabel={isConfirming ? t("backToForm") : t("cancel")}
@@ -296,15 +310,11 @@ function PaymentReview({
           {
             id: "date",
             label: dateLabel,
-            value: formatDate(
-              new Date(`${effectiveDate}T00:00:00Z`),
-              locale,
-              {
-                day: "2-digit",
-                month: "2-digit",
-                year: "numeric",
-              },
-            ),
+            value: formatDate(new Date(`${effectiveDate}T00:00:00Z`), locale, {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+            }),
           },
           {
             id: "after",

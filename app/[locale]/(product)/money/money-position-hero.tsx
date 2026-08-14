@@ -5,6 +5,7 @@ import { Section } from "@/shared/patterns/section";
 import { AppIcon } from "@/shared/ui/app-icon";
 import { IconContainer } from "@/shared/ui/icon-container";
 import { Text } from "@/shared/ui/text";
+import { Progress } from "@/shared/ui/progress";
 import { moneyAccountVisualFor } from "./money-account-visuals";
 
 type MoneyPositionCompositionSegment = {
@@ -103,15 +104,14 @@ export function MoneyPositionHero({
                     <span className="shrink-0 text-sm font-medium tabular-nums text-text-primary">
                       {segment.balanceLabel}
                     </span>
-                    <div
-                      aria-hidden
-                      className="col-span-2 h-1 overflow-hidden rounded-full bg-surface/75"
-                    >
-                      <div
-                        className="h-full rounded-full bg-accent"
-                        style={{ width: `${segment.percentage}%` }}
-                      />
-                    </div>
+                    <Progress
+                      value={segment.percentage}
+                      label={segment.label}
+                      showLabel={false}
+                      className="col-span-2"
+                      trackClassName="h-1 bg-surface/75"
+                      indicatorClassName="bg-accent"
+                    />
                   </li>
                 );
               })}

@@ -20,6 +20,7 @@ import { HeaderPill, TopAppBar } from "@/shared/patterns/top-app-bar";
 import { KpiBlock } from "@/shared/patterns/kpi-block";
 import { Page } from "@/shared/patterns/page";
 import { Text } from "@/shared/ui/text";
+import { MotionReveal } from "@/shared/motion";
 import { HomeCaptureAction } from "./home-capture-action";
 import { HomeCashFlowSection } from "./home-cash-flow-section";
 import { HomeDayZeroTrio } from "./home-day-zero-trio";
@@ -122,31 +123,41 @@ export default async function HomePage({ params, searchParams }: Props) {
       ) : (
         <>
           <HomePeriodTransition period={dashboard.period}>
-            <HomePeriodControl />
+            <MotionReveal>
+              <HomePeriodControl />
+            </MotionReveal>
             <HomePeriodData>
-              <HomeFinancialPulse
-                balance={dashboard.realBalance}
-                currency={dashboard.currency}
-                action={<HomeCaptureAction />}
-                locale={locale}
-                period={dashboard.period}
-                metrics={dashboard.financialMetrics}
-              />
+              <MotionReveal>
+                <HomeFinancialPulse
+                  balance={dashboard.realBalance}
+                  currency={dashboard.currency}
+                  action={<HomeCaptureAction />}
+                  locale={locale}
+                  period={dashboard.period}
+                  metrics={dashboard.financialMetrics}
+                />
+              </MotionReveal>
               {hasCashFlow && dashboard.financialMetrics ? (
                 <>
-                  <HomeCashFlowSection
-                    metrics={dashboard.financialMetrics}
-                    currency={dashboard.currency}
-                    locale={locale}
-                  />
-                  <HomeSpendingSection
-                    metrics={dashboard.financialMetrics}
-                    currency={dashboard.currency}
-                    locale={locale}
-                  />
+                  <MotionReveal>
+                    <HomeCashFlowSection
+                      metrics={dashboard.financialMetrics}
+                      currency={dashboard.currency}
+                      locale={locale}
+                    />
+                  </MotionReveal>
+                  <MotionReveal>
+                    <HomeSpendingSection
+                      metrics={dashboard.financialMetrics}
+                      currency={dashboard.currency}
+                      locale={locale}
+                    />
+                  </MotionReveal>
                 </>
               ) : null}
-              {dashboard.activeJarCount > 0 ? (
+            </HomePeriodData>
+            {dashboard.activeJarCount > 0 ? (
+              <MotionReveal>
                 <KpiBlock
                   title={t("planPulse.title")}
                   description={t("planPulse.hint")}
@@ -178,8 +189,10 @@ export default async function HomePage({ params, searchParams }: Props) {
                     </Link>
                   </div>
                 </KpiBlock>
-              ) : null}
-              {dashboard.openInboxCount > 0 ? (
+              </MotionReveal>
+            ) : null}
+            {dashboard.openInboxCount > 0 ? (
+              <MotionReveal>
                 <KpiBlock
                   title={t("inbox.title")}
                   variant="surface"
@@ -187,8 +200,8 @@ export default async function HomePage({ params, searchParams }: Props) {
                 >
                   <HomeInboxCta openCount={dashboard.openInboxCount} />
                 </KpiBlock>
-              ) : null}
-            </HomePeriodData>
+              </MotionReveal>
+            ) : null}
           </HomePeriodTransition>
         </>
       )}

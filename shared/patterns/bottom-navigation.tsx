@@ -6,9 +6,12 @@ import { cn } from "@/shared/utils/cn";
 import { SafeArea } from "@/providers/safe-area";
 import { TABS } from "@/shared/patterns/bottom-navigation-tabs";
 import { AppIcon } from "@/shared/ui/app-icon";
+import { motion } from "motion/react";
+import { motionTokens, springs, useMotionPolicy } from "@/shared/motion";
 
 export { TABS } from "@/shared/patterns/bottom-navigation-tabs";
 const NAV_TAB_COUNT = TABS.length;
+const ACTIVE_INDICATOR_ID = "bottom-navigation-active-indicator";
 
 export type BottomNavigationProps = {
   className?: string;
@@ -26,6 +29,7 @@ export function BottomNavigation({
   const pathname = usePathname();
   const t = useTranslations("navigation");
   const tA11y = useTranslations("a11y");
+  const motionPolicy = useMotionPolicy();
   return (
     <SafeArea edges={["bottom"]} className="shrink-0">
       <nav
@@ -62,13 +66,36 @@ export function BottomNavigation({
                     "active:scale-[var(--press-scale)] motion-reduce:active:scale-100",
                     "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring",
                     active
-                      ? "bg-primary-soft text-primary"
+                      ? "text-primary"
                       : "text-text-muted hover:bg-surface-hover/70 hover:text-text-secondary",
                   )}
                   aria-current={active ? "page" : undefined}
                   data-active={active ? "true" : "false"}
                 >
-                  <span className="relative inline-flex shrink-0">
+                  {active ? (
+                    motionPolicy.enabled && !motionPolicy.reducedMotion ? (
+                      <motion.span
+                        aria-hidden="true"
+                        className="pointer-events-none absolute inset-0 rounded-[var(--radius-lg)] bg-primary-soft"
+                        layoutId={ACTIVE_INDICATOR_ID}
+                        transition={springs.snappy}
+                      />
+                    ) : (
+                      <span
+                        aria-hidden="true"
+                        className="pointer-events-none absolute inset-0 rounded-[var(--radius-lg)] bg-primary-soft"
+                      />
+                    )
+                  ) : null}
+                  <motion.span
+                    className="relative z-10 inline-flex shrink-0"
+                    animate={
+                      motionPolicy.enabled && !motionPolicy.reducedMotion
+                        ? { scale: active ? motionTokens.scale.pop : 1 }
+                        : undefined
+                    }
+                    transition={springs.snappy}
+                  >
                     <AppIcon icon={Icon} size="lg" emphasized={active} />
                     {showBadge ? (
                       <span
@@ -80,10 +107,10 @@ export function BottomNavigation({
                         {inboxCount}
                       </span>
                     ) : null}
-                  </span>
+                  </motion.span>
                   <span
                     className={cn(
-                      "max-w-full text-balance",
+                      "relative z-10 max-w-full text-balance",
                       active && "font-semibold",
                     )}
                   >

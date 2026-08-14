@@ -19,6 +19,7 @@ import {
 import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
 import { formatCurrency } from "@/shared/i18n/formatters";
+import { MotionReveal } from "@/shared/motion";
 import { Card } from "@/shared/patterns/card";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
@@ -102,153 +103,162 @@ export default async function DebtsPage({ params }: Props) {
                 ? t("contextAttention", { count: attentionCount })
                 : t("contextCalm")}
             </Text>
-            <section
-              className="grid grid-cols-2 divide-x divide-border-subtle rounded-[var(--radius-card)] border border-border-subtle bg-surface-muted/45"
-              aria-label={t("title")}
-            >
-              <DebtSummaryMetric
-                icon={FINANCE_ICONS.expense}
-                iconTone="expense"
-                label={t("payable")}
-                amount={formatCurrency(
-                  summary.totalBorrowed,
-                  currency,
-                  locale,
-                  { maximumFractionDigits: 0 },
-                )}
-              />
-              <DebtSummaryMetric
-                icon={FINANCE_ICONS.income}
-                iconTone="income"
-                label={t("receivable")}
-                amount={formatCurrency(summary.totalLent, currency, locale, {
-                  maximumFractionDigits: 0,
-                })}
-              />
-            </section>
+            <MotionReveal>
+              <section
+                className="grid grid-cols-2 divide-x divide-border-subtle rounded-[var(--radius-card)] border border-border-subtle bg-surface-muted/45"
+                aria-label={t("title")}
+              >
+                <DebtSummaryMetric
+                  icon={FINANCE_ICONS.expense}
+                  iconTone="expense"
+                  label={t("payable")}
+                  amount={formatCurrency(
+                    summary.totalBorrowed,
+                    currency,
+                    locale,
+                    { maximumFractionDigits: 0 },
+                  )}
+                />
+                <DebtSummaryMetric
+                  icon={FINANCE_ICONS.income}
+                  iconTone="income"
+                  label={t("receivable")}
+                  amount={formatCurrency(summary.totalLent, currency, locale, {
+                    maximumFractionDigits: 0,
+                  })}
+                />
+              </section>
+            </MotionReveal>
             {attentionCount > 0 ? (
-              <StatusAlert
-                variant={summary.overdueCount > 0 ? "danger" : "warning"}
-                title={t("attention", { count: attentionCount })}
-              />
+              <MotionReveal>
+                <StatusAlert
+                  variant={summary.overdueCount > 0 ? "danger" : "warning"}
+                  title={t("attention", { count: attentionCount })}
+                />
+              </MotionReveal>
             ) : null}
-            <section className="flex flex-col gap-(--space-2)">
-              <Text size="sm" className="font-medium text-text-primary">
-                {t("active")}
-              </Text>
-              <ul className="flex flex-col gap-(--space-2)">
-                {activeRows.map((debt) => {
-                  const isBorrowed = debt.direction === DebtDirection.BORROWED;
-                  const remainingLabel = isBorrowed
-                    ? t("remainingToPay")
-                    : t("remainingToReceive");
-                  return (
-                    <li key={debt.id}>
-                      <Link
-                        href={moneyDebtPath(debt.id)}
-                        className="block focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-                      >
-                        <Card
-                          className="gap-(--space-3) p-(--space-3)"
-                          data-testid={`debt-row-${debt.id}`}
-                        >
-                          <div className="flex items-start gap-(--space-3)">
-                            <IconContainer
-                              tone={isBorrowed ? "debt" : "income"}
-                              size="sm"
-                            >
-                              <AppIcon
-                                icon={
-                                  isBorrowed
-                                    ? FINANCE_ICONS.debt
-                                    : FINANCE_ICONS.income
-                                }
-                                size="sm"
-                              />
-                            </IconContainer>
-                            <div className="min-w-0 flex-1">
-                              <div className="flex items-start justify-between gap-(--space-2)">
-                                <div className="min-w-0">
-                                  <Text
-                                    size="sm"
-                                    weight="medium"
-                                    className="truncate text-text-primary"
-                                  >
-                                    {debt.counterparty}
-                                  </Text>
-                                  <Text size="sm" tone="secondary">
-                                    {isBorrowed
-                                      ? t("create.borrowed")
-                                      : t("create.lent")}
-                                  </Text>
-                                </div>
-                                <div className="shrink-0 text-right">
-                                  <Text size="sm" tone="secondary">
-                                    {remainingLabel}
-                                  </Text>
-                                  <Text
-                                    size="sm"
-                                    weight="semibold"
-                                    className="tabular-nums text-text-primary"
-                                  >
-                                    {formatCurrency(
-                                      debt.remainingAmount,
-                                      debt.currency,
-                                      locale,
-                                      { maximumFractionDigits: 0 },
-                                    )}
-                                  </Text>
-                                </div>
-                              </div>
-                              <div className="mt-(--space-3) flex flex-col gap-(--space-2)">
-                                <DebtDueBadge
-                                  due={debt.due}
-                                  dueDate={debt.dueDate}
-                                  labels={dueLabels}
-                                  locale={locale}
-                                />
-                                <DebtProgressSummary
-                                  direction={debt.direction}
-                                  progress={debt.progress}
-                                  currency={debt.currency}
-                                  locale={locale}
-                                  labels={progressLabels}
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        </Card>
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            </section>
-            {historyRows.length > 0 ? (
+            <MotionReveal>
               <section className="flex flex-col gap-(--space-2)">
                 <Text size="sm" className="font-medium text-text-primary">
-                  {t("history")}
+                  {t("active")}
                 </Text>
-                <div className="flex flex-col divide-y divide-border-subtle">
-                  {historyRows.map((debt) => (
-                    <Link
-                      key={debt.id}
-                      href={moneyDebtPath(debt.id)}
-                      className="flex min-h-11 items-center justify-between py-(--space-2) text-sm text-text-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-                    >
-                      <span>{debt.counterparty}</span>
-                      <span className="tabular-nums">
-                        {formatCurrency(
-                          debt.principalAmount,
-                          debt.currency,
-                          locale,
-                          { maximumFractionDigits: 0 },
-                        )}
-                      </span>
-                    </Link>
-                  ))}
-                </div>
+                <ul className="flex flex-col gap-(--space-2)">
+                  {activeRows.map((debt) => {
+                    const isBorrowed =
+                      debt.direction === DebtDirection.BORROWED;
+                    const remainingLabel = isBorrowed
+                      ? t("remainingToPay")
+                      : t("remainingToReceive");
+                    return (
+                      <li key={debt.id}>
+                        <Link
+                          href={moneyDebtPath(debt.id)}
+                          className="block focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+                        >
+                          <Card
+                            className="gap-(--space-3) p-(--space-3)"
+                            data-testid={`debt-row-${debt.id}`}
+                          >
+                            <div className="flex items-start gap-(--space-3)">
+                              <IconContainer
+                                tone={isBorrowed ? "debt" : "income"}
+                                size="sm"
+                              >
+                                <AppIcon
+                                  icon={
+                                    isBorrowed
+                                      ? FINANCE_ICONS.debt
+                                      : FINANCE_ICONS.income
+                                  }
+                                  size="sm"
+                                />
+                              </IconContainer>
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-start justify-between gap-(--space-2)">
+                                  <div className="min-w-0">
+                                    <Text
+                                      size="sm"
+                                      weight="medium"
+                                      className="truncate text-text-primary"
+                                    >
+                                      {debt.counterparty}
+                                    </Text>
+                                    <Text size="sm" tone="secondary">
+                                      {isBorrowed
+                                        ? t("create.borrowed")
+                                        : t("create.lent")}
+                                    </Text>
+                                  </div>
+                                  <div className="shrink-0 text-right">
+                                    <Text size="sm" tone="secondary">
+                                      {remainingLabel}
+                                    </Text>
+                                    <Text
+                                      size="sm"
+                                      weight="semibold"
+                                      className="tabular-nums text-text-primary"
+                                    >
+                                      {formatCurrency(
+                                        debt.remainingAmount,
+                                        debt.currency,
+                                        locale,
+                                        { maximumFractionDigits: 0 },
+                                      )}
+                                    </Text>
+                                  </div>
+                                </div>
+                                <div className="mt-(--space-3) flex flex-col gap-(--space-2)">
+                                  <DebtDueBadge
+                                    due={debt.due}
+                                    dueDate={debt.dueDate}
+                                    labels={dueLabels}
+                                    locale={locale}
+                                  />
+                                  <DebtProgressSummary
+                                    direction={debt.direction}
+                                    progress={debt.progress}
+                                    currency={debt.currency}
+                                    locale={locale}
+                                    labels={progressLabels}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          </Card>
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
               </section>
+            </MotionReveal>
+            {historyRows.length > 0 ? (
+              <MotionReveal>
+                <section className="flex flex-col gap-(--space-2)">
+                  <Text size="sm" className="font-medium text-text-primary">
+                    {t("history")}
+                  </Text>
+                  <div className="flex flex-col divide-y divide-border-subtle">
+                    {historyRows.map((debt) => (
+                      <Link
+                        key={debt.id}
+                        href={moneyDebtPath(debt.id)}
+                        className="flex min-h-11 items-center justify-between py-(--space-2) text-sm text-text-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+                      >
+                        <span>{debt.counterparty}</span>
+                        <span className="tabular-nums">
+                          {formatCurrency(
+                            debt.principalAmount,
+                            debt.currency,
+                            locale,
+                            { maximumFractionDigits: 0 },
+                          )}
+                        </span>
+                      </Link>
+                    ))}
+                  </div>
+                </section>
+              </MotionReveal>
             ) : null}
           </>
         )}

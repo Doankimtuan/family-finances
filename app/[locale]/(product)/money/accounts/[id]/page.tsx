@@ -23,6 +23,7 @@ import {
 import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
 import { formatCurrency } from "@/shared/i18n/formatters";
+import { MotionReveal } from "@/shared/motion";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
 import { FinancialAccountHero } from "@/shared/patterns/financial-account-hero";
 import { EmptyState } from "@/shared/patterns/empty-state";
@@ -168,38 +169,42 @@ export default async function AccountDetailPage({
         />
         <div className="flex flex-1 flex-col gap-(--space-6) px-(--page-gutter) pb-(--space-6) pt-(--space-4)">
           <MoneyOfflineBanner />
-          <CreditCardHero
-            title={accountName}
-            outstandingLabel={outstandingLabel}
-            outstandingCaption={t("accountsPage.outstanding")}
-            utilizationPct={hasCreditLimit ? card.utilizationPct : null}
-            utilizationLabel={
-              hasCreditLimit
-                ? t("accountsPage.utilization", { pct: card.utilizationPct })
-                : t("hub.utilizationUnavailable")
-            }
-            utilizationAriaLabel={
-              hasCreditLimit
-                ? t("hub.utilizationAria", { pct: card.utilizationPct })
-                : undefined
-            }
-            availableLabel={availableLabel}
-            availableCaption={t("accountsPage.availableCredit")}
-            limitLabel={limitLabel}
-            limitCaption={t("hub.creditLimit")}
-            dueLabel={
-              card.nextDueDate
-                ? t("accountsPage.nextDue", { date: card.nextDueDate })
-                : undefined
-            }
-          />
-          <CreditCardDetailActions
-            card={card}
-            liquidAccounts={liquidAccounts}
-            currency={currency}
-            installments={installments ?? []}
-            eligiblePurchases={eligiblePurchases ?? []}
-          />
+          <MotionReveal>
+            <CreditCardHero
+              title={accountName}
+              outstandingLabel={outstandingLabel}
+              outstandingCaption={t("accountsPage.outstanding")}
+              utilizationPct={hasCreditLimit ? card.utilizationPct : null}
+              utilizationLabel={
+                hasCreditLimit
+                  ? t("accountsPage.utilization", { pct: card.utilizationPct })
+                  : t("hub.utilizationUnavailable")
+              }
+              utilizationAriaLabel={
+                hasCreditLimit
+                  ? t("hub.utilizationAria", { pct: card.utilizationPct })
+                  : undefined
+              }
+              availableLabel={availableLabel}
+              availableCaption={t("accountsPage.availableCredit")}
+              limitLabel={limitLabel}
+              limitCaption={t("hub.creditLimit")}
+              dueLabel={
+                card.nextDueDate
+                  ? t("accountsPage.nextDue", { date: card.nextDueDate })
+                  : undefined
+              }
+            />
+          </MotionReveal>
+          <MotionReveal>
+            <CreditCardDetailActions
+              card={card}
+              liquidAccounts={liquidAccounts}
+              currency={currency}
+              installments={installments ?? []}
+              eligiblePurchases={eligiblePurchases ?? []}
+            />
+          </MotionReveal>
         </div>
       </div>
     );
@@ -225,103 +230,109 @@ export default async function AccountDetailPage({
       />
       <div className="flex flex-1 flex-col gap-(--space-6) px-(--page-gutter) pb-(--space-6) pt-(--space-4)">
         <MoneyOfflineBanner />
-        <FinancialAccountHero
-          icon={accountVisual.icon}
-          iconTone={accountVisual.tone}
-          eyebrow={accountTypeLabel}
-          title={accountName}
-          amountLabel={balanceLabel}
-          amountCaption={t("accountDetail.balanceLabel")}
-          supporting={
-            health === AccountHealthSignal.ZERO ? (
-              <Text
-                size="sm"
-                tone="secondary"
-                data-testid="account-health-zero"
-              >
-                {t("accountDetail.healthZero")}
-              </Text>
-            ) : undefined
-          }
-        />
-        <section className="flex flex-col gap-(--space-3)">
-          <SectionHeader title={t("accountDetail.quickActions")} />
-          <Link
-            href={APP_PATH.MONEY_ADD}
-            className="inline-flex min-h-11 w-full items-center justify-center rounded-[var(--radius-control)] bg-accent px-(--space-4) text-sm font-medium text-accent-fg shadow-[var(--elevation-1)] transition-[transform,background-color] duration-[var(--duration-fast)] hover:-translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none"
-            data-testid="account-quick-capture"
-          >
-            {t("accountDetail.capture")}
-          </Link>
-        </section>
-        <section className="flex flex-col gap-(--space-3)">
-          <SectionHeader
-            title={t("accountDetail.recentTitle")}
-            action={
-              <Link
-                href={APP_PATH.MONEY_TRANSACTIONS}
-                data-testid="account-quick-activity"
-              >
-                {t("accountDetail.viewActivity")}
-              </Link>
+        <MotionReveal>
+          <FinancialAccountHero
+            icon={accountVisual.icon}
+            iconTone={accountVisual.tone}
+            eyebrow={accountTypeLabel}
+            title={accountName}
+            amountLabel={balanceLabel}
+            amountCaption={t("accountDetail.balanceLabel")}
+            supporting={
+              health === AccountHealthSignal.ZERO ? (
+                <Text
+                  size="sm"
+                  tone="secondary"
+                  data-testid="account-health-zero"
+                >
+                  {t("accountDetail.healthZero")}
+                </Text>
+              ) : undefined
             }
           />
-          {activity.length === 0 ? (
-            <EmptyState
-              title={t("accountDetail.recentEmpty")}
-              className="flex-none py-(--space-4)"
+        </MotionReveal>
+        <MotionReveal>
+          <section className="flex flex-col gap-(--space-3)">
+            <SectionHeader title={t("accountDetail.quickActions")} />
+            <Link
+              href={APP_PATH.MONEY_ADD}
+              className="inline-flex min-h-11 w-full items-center justify-center rounded-[var(--radius-control)] bg-accent px-(--space-4) text-sm font-medium text-accent-fg shadow-[var(--elevation-1)] transition-[transform,background-color] duration-[var(--duration-fast)] hover:-translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none"
+              data-testid="account-quick-capture"
+            >
+              {t("accountDetail.capture")}
+            </Link>
+          </section>
+        </MotionReveal>
+        <MotionReveal>
+          <section className="flex flex-col gap-(--space-3)">
+            <SectionHeader
+              title={t("accountDetail.recentTitle")}
+              action={
+                <Link
+                  href={APP_PATH.MONEY_TRANSACTIONS}
+                  data-testid="account-quick-activity"
+                >
+                  {t("accountDetail.viewActivity")}
+                </Link>
+              }
             />
-          ) : (
-            <ul className="flex flex-col gap-(--space-2)">
-              {activity.map((transaction) => {
-                const isCredit = (
-                  TRANSACTION_LEDGER_CREDIT_TYPES as readonly string[]
-                ).includes(transaction.type);
-                const transactionTone = isCredit
-                  ? TransactionAmountTone.CREDIT
-                  : TransactionAmountTone.DEBIT;
-                const transactionIcon = isCredit
-                  ? FINANCE_ICONS.income
-                  : FINANCE_ICONS.expense;
-                const transactionIconTone = isCredit ? "income" : "expense";
+            {activity.length === 0 ? (
+              <EmptyState
+                title={t("accountDetail.recentEmpty")}
+                className="flex-none py-(--space-4)"
+              />
+            ) : (
+              <ul className="flex flex-col gap-(--space-2)">
+                {activity.map((transaction) => {
+                  const isCredit = (
+                    TRANSACTION_LEDGER_CREDIT_TYPES as readonly string[]
+                  ).includes(transaction.type);
+                  const transactionTone = isCredit
+                    ? TransactionAmountTone.CREDIT
+                    : TransactionAmountTone.DEBIT;
+                  const transactionIcon = isCredit
+                    ? FINANCE_ICONS.income
+                    : FINANCE_ICONS.expense;
+                  const transactionIconTone = isCredit ? "income" : "expense";
 
-                return (
-                  <li key={transaction.id}>
-                    <Link
-                      href={moneyTransactionPath(transaction.id)}
-                      className="block focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-                    >
-                      <TransactionRow
-                        leading={
-                          <IconContainer tone={transactionIconTone} size="sm">
-                            <AppIcon icon={transactionIcon} size="sm" />
-                          </IconContainer>
-                        }
-                        title={
-                          transaction.note ||
-                          localizeCatalogName(
-                            tCatalog,
-                            "tags",
-                            transaction.categoryName,
-                          ) ||
-                          t(`direction.${transaction.type}`)
-                        }
-                        subtitle={`${t(`direction.${transaction.type}`)} · ${transaction.transactionDate}`}
-                        amountLabel={`${TRANSACTION_LEDGER_AMOUNT_PREFIX[transaction.type]}${formatCurrency(
-                          transaction.amount,
-                          transaction.currency,
-                          locale,
-                          { maximumFractionDigits: 0 },
-                        )}`}
-                        tone={transactionTone}
-                      />
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </section>
+                  return (
+                    <li key={transaction.id}>
+                      <Link
+                        href={moneyTransactionPath(transaction.id)}
+                        className="block focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+                      >
+                        <TransactionRow
+                          leading={
+                            <IconContainer tone={transactionIconTone} size="sm">
+                              <AppIcon icon={transactionIcon} size="sm" />
+                            </IconContainer>
+                          }
+                          title={
+                            transaction.note ||
+                            localizeCatalogName(
+                              tCatalog,
+                              "tags",
+                              transaction.categoryName,
+                            ) ||
+                            t(`direction.${transaction.type}`)
+                          }
+                          subtitle={`${t(`direction.${transaction.type}`)} · ${transaction.transactionDate}`}
+                          amountLabel={`${TRANSACTION_LEDGER_AMOUNT_PREFIX[transaction.type]}${formatCurrency(
+                            transaction.amount,
+                            transaction.currency,
+                            locale,
+                            { maximumFractionDigits: 0 },
+                          )}`}
+                          tone={transactionTone}
+                        />
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </section>
+        </MotionReveal>
       </div>
     </div>
   );
