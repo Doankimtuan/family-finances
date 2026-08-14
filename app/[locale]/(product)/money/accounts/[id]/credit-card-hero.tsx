@@ -2,6 +2,7 @@ import { AppIcon } from "@/shared/ui/app-icon";
 import { IconContainer } from "@/shared/ui/icon-container";
 import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
 import { Text } from "@/shared/ui/text";
+import { Progress } from "@/shared/ui/progress";
 
 export type CreditCardHeroProps = {
   title: string;
@@ -69,19 +70,14 @@ export function CreditCardHero({
         </Text>
       </div>
       {utilizationValue != null ? (
-        <div
-          role="progressbar"
-          aria-label={utilizationAriaLabel}
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-valuenow={utilizationValue}
-          className="mt-(--space-4) h-2 overflow-hidden rounded-full bg-surface-muted"
-        >
-          <div
-            className="h-full rounded-full bg-debt transition-[width] duration-[var(--duration-fast)] motion-reduce:transition-none"
-            style={{ width: `${utilizationValue}%` }}
-          />
-        </div>
+        <Progress
+          value={utilizationValue}
+          label={utilizationAriaLabel}
+          showLabel={false}
+          className="mt-(--space-4)"
+          trackClassName="bg-surface-muted"
+          indicatorClassName="bg-debt"
+        />
       ) : null}
       <div className="mt-(--space-4) grid grid-cols-2 gap-(--space-3) border-t border-border-subtle/70 pt-(--space-3)">
         <div className="min-w-0">

@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import type { CardBillingMonth } from "@/modules/ledger/application/client";
 import { SectionHeader } from "@/shared/patterns/section-header";
 import { Text } from "@/shared/ui/text";
+import { Progress } from "@/shared/ui/progress";
 import { toYearMonth } from "@/shared/utils/iso-date";
 
 type CreditCardDueLeadProps = {
@@ -51,19 +52,13 @@ export function CreditCardDueLead({
           {remainingDueLabel}
         </p>
       </div>
-      <div
-        role="progressbar"
-        aria-label={t("paymentProgressLabel", { percent: paymentProgress })}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-valuenow={paymentProgress}
-        className="h-2 overflow-hidden rounded-full bg-surface"
-      >
-        <div
-          className="h-full rounded-full bg-debt transition-[width] duration-[var(--duration-fast)] motion-reduce:transition-none"
-          style={{ width: `${paymentProgress}%` }}
-        />
-      </div>
+      <Progress
+        value={paymentProgress}
+        label={t("paymentProgressLabel", { percent: paymentProgress })}
+        showLabel={false}
+        trackClassName="bg-surface"
+        indicatorClassName="bg-debt"
+      />
       <div className="grid grid-cols-2 gap-(--space-3)">
         <div>
           <Text size="sm" tone="secondary">

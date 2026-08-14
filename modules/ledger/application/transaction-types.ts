@@ -65,10 +65,14 @@ export function applyTransactionDeltas(
     const amount =
       typeof row.amount === "string" ? Number(row.amount) : row.amount;
     if (!Number.isFinite(amount)) continue;
-    if ((TRANSACTION_LEDGER_CREDIT_TYPES as readonly string[]).includes(row.type)) {
+    if (
+      (TRANSACTION_LEDGER_CREDIT_TYPES as readonly string[]).includes(row.type)
+    ) {
       account.balance += amount;
     }
-    if ((TRANSACTION_LEDGER_DEBIT_TYPES as readonly string[]).includes(row.type)) {
+    if (
+      (TRANSACTION_LEDGER_DEBIT_TYPES as readonly string[]).includes(row.type)
+    ) {
       account.balance -= amount;
     }
   }
@@ -81,6 +85,15 @@ function mapLedgerType(type: string): TransactionLedgerTypeValue {
   }
   if (type === TransactionLedgerType.LIABILITY_PAYMENT) {
     return TransactionLedgerType.LIABILITY_PAYMENT;
+  }
+  if (type === TransactionLedgerType.DEBT_BORROWING) {
+    return TransactionLedgerType.DEBT_BORROWING;
+  }
+  if (type === TransactionLedgerType.DEBT_LENDING) {
+    return TransactionLedgerType.DEBT_LENDING;
+  }
+  if (type === TransactionLedgerType.DEBT_RECEIVABLE_PAYMENT) {
+    return TransactionLedgerType.DEBT_RECEIVABLE_PAYMENT;
   }
   if (type === TransactionLedgerType.TRANSFER_OUT) {
     return TransactionLedgerType.TRANSFER_OUT;

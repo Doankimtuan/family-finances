@@ -26,6 +26,13 @@ export { DividerWithText } from "./divider-with-text";
 export { SocialButton, type SocialButtonProps } from "./social-button";
 export { Card, type CardProps, type CardTone } from "./card";
 export { Sheet, SheetContent } from "./sheet";
+export { SheetActionFooter } from "./sheet-action-footer";
+export {
+  ChoiceTile,
+  ChoiceTileGroup,
+  type ChoiceTileProps,
+  type ChoiceTileGroupProps,
+} from "./choice-tile";
 export { Dialog, DialogContent } from "./dialog";
 export { Toast, toast, type ToastProps } from "./toast";
 export { EmptyState } from "./empty-state";

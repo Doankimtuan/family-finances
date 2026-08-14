@@ -78,3 +78,20 @@ For every UI task:
 - Do not introduce arbitrary HEX values, spacing, radius, shadow, icon size, or stroke width inside feature screens.
 - Do not create one-off form controls, duplicate labels outside a field component, format money ad hoc, or persist localized money display strings.
 - Do not use raw SVG or icon component names as persisted Tag or Category data.
+
+### Ephemeral Create and Action Forms
+Create/action forms are ephemeral by default. Closing a create/action Sheet or Modal discards unsaved state, conditional hidden values, preview state, validation errors, and mutation errors. Reopening starts from canonical fresh defaults. Edit forms reopen from persisted data, not abandoned local edits.
+
+### Motion Foundation
+
+- Use `motion/react` only. Do not import `framer-motion` or add another animation library.
+- Use tokens and named spring presets from `shared/motion`; do not inline durations, easings, distances, scales, stiffness, or damping.
+- Prefer `transform` and `opacity`; never animate layout properties such as width, height, margin, padding, top, or left.
+- Respect `prefers-reduced-motion`. Reduced motion disables transforms and allows only short opacity fallbacks.
+- Non-essential motion is disabled on low-end hardware. Responsiveness outranks smoothness.
+- Motion components remain client leaves. Initial server output must match the hydrated first render.
+- Conditional motion uses `AnimatePresence`, stable keys, and explicit exit states. Scroll reveals run once only.
+- Do not add infinite decorative motion, parallax, scroll hijacking, animated financial values, or motion for serious warnings.
+- HeroUI owns Drawer, Modal, Popover, Select, and other built-in transitions. Do not stack Motion over them.
+- Use CSS for simple hover/press state changes when existing shared styles are sufficient.
+- Verify meaningful motion changes in Chromium at 390px, 440px, 768px, and 1280px, in light/dark themes and with reduced motion enabled.

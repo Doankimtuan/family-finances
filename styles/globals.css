@@ -321,10 +321,12 @@
   --app-viewport-band-max: 480px;
   --app-viewport-tablet-optional: 640px;
 
+  --duration-instant: 80ms;
   --duration-fast: 150ms;
   --duration-normal: 200ms;
   --duration-slow: 250ms;
-  --duration-celebrate: 600ms;
+  --duration-deliberate: 600ms;
+  --duration-celebrate: var(--duration-deliberate);
   --ease-standard: cubic-bezier(0.16, 1, 0.3, 1);
 
   --z-base: 0;

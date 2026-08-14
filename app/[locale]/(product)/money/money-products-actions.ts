@@ -2,7 +2,9 @@
 
 import {
   createLiability,
+  createDebt,
   recordLiabilityPayment,
+  recordDebtPayment,
   createLoan,
   recordLoanPayment,
   updateLoanMetadata,
@@ -10,7 +12,9 @@ import {
   updateLoanInterestRate,
   LoanPaymentMode,
   type CreateLiabilityInput,
+  type CreateDebtInput,
   type RecordLiabilityPaymentInput,
+  type RecordDebtPaymentInput,
   type CreateLoanInput,
   type RecordLoanPaymentInput,
   type UpdateLoanMetadataInput,
@@ -87,6 +91,38 @@ export async function recordLiabilityPaymentAction(
   input: RecordLiabilityPaymentInput,
 ): Promise<MoneyProductActionState> {
   return toState(await recordLiabilityPayment(input));
+}
+
+export async function createDebtAction(
+  input: CreateDebtInput,
+): Promise<MoneyProductActionState> {
+  const result = await createDebt(input);
+  if (!result.ok) {
+    return { status: ProductActionStatus.ERROR, code: result.code };
+  }
+  return {
+    status: ProductActionStatus.SUCCESS,
+    id: result.debtId,
+    transactionId: result.transactionId,
+  };
+}
+
+export async function recordDebtPaymentAction(
+  input: RecordDebtPaymentInput,
+): Promise<MoneyProductActionState> {
+  const result = await recordDebtPayment(input);
+  if (!result.ok) {
+    return { status: ProductActionStatus.ERROR, code: result.code };
+  }
+  return {
+    status: ProductActionStatus.SUCCESS,
+    id: result.debtId,
+    transactionId: result.transactionId,
+    paymentId: result.paymentId,
+    amount: result.amount,
+    remainingPrincipal: result.remainingAmount,
+    completed: result.completed,
+  };
 }
 
 /** @deprecated Use createSavingAction from savings-actions. */

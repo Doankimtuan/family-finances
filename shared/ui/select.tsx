@@ -27,13 +27,28 @@ const SelectTrigger = ({
   ...props
 }: ComponentProps<typeof HeroSelect.Trigger>) => (
   <HeroSelect.Trigger
-    className={cn(fieldChrome, "w-full", className)}
+    className={cn(
+      fieldChrome,
+      "flex h-11 w-full items-center px-(--space-3) py-0",
+      className,
+    )}
     {...props}
   />
 );
 SelectTrigger.displayName = "SelectTrigger";
 Select.Trigger = SelectTrigger;
-Select.Value = HeroSelect.Value;
+
+const SelectValue = ({
+  className,
+  ...props
+}: ComponentProps<typeof HeroSelect.Value>) => (
+  <HeroSelect.Value
+    className={cn("flex min-h-0 flex-1 items-center leading-none", className)}
+    {...props}
+  />
+);
+SelectValue.displayName = "SelectValue";
+Select.Value = SelectValue;
 Select.Indicator = HeroSelect.Indicator;
 const SelectPopover = ({
   className,

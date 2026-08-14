@@ -29,7 +29,6 @@ export function ReviewCard({
     <div
       className={cn(
         "flex min-h-11 flex-col gap-(--space-2) rounded-[var(--radius-card)] border border-border-subtle/60 bg-surface/90 transition-[background-color,border-color,transform] duration-(--duration-fast) hover:border-border-default hover:bg-surface-hover active:scale-[var(--press-scale)] motion-reduce:transition-none motion-reduce:active:scale-100 p-(--space-4)",
-        "transition-transform duration-150 ease-out active:scale-[0.99]",
         className,
       )}
       data-testid={testId ?? "review-card"}

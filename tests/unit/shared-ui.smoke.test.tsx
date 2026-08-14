@@ -3,6 +3,8 @@ import { render, screen } from "@testing-library/react";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Button } from "@/shared/ui/button";
 import { DatePickerField, NumberField, TextField } from "@/shared/ui/form";
+import { Select } from "@/shared/ui/select";
+import { Progress } from "@/shared/ui/progress";
 
 describe("shared/ui Pattern v1", () => {
   it("renders StatusAlert compound", () => {
@@ -41,6 +43,27 @@ describe("shared/ui Pattern v1", () => {
     ).toBeInTheDocument();
   });
 
+  it("renders Progress with a transform-based indicator", () => {
+    const { container } = render(
+      <Progress
+        value={25}
+        label="Setup progress"
+        showLabel={false}
+        indicatorClassName="bg-debt"
+      />,
+    );
+    const indicator = container.querySelector(
+      "[data-slot='progress-indicator']",
+    );
+
+    expect(indicator).toBeInTheDocument();
+    expect(indicator).toHaveClass("origin-left", "bg-debt");
+    expect(indicator).not.toHaveAttribute(
+      "style",
+      expect.stringContaining("width"),
+    );
+  });
+
   it("gives a NumberField one full-width editable grid column", () => {
     const { container } = render(
       <NumberField id="conversion-fee" label="Conversion fee (%)" value={0} />,
@@ -62,11 +85,36 @@ describe("shared/ui Pattern v1", () => {
       />,
     );
     const group = container.querySelector("[data-slot='date-input-group']");
-    const trigger = container.querySelector("[data-slot='date-picker-trigger']");
+    const trigger = container.querySelector(
+      "[data-slot='date-picker-trigger']",
+    );
 
     expect(group).toHaveClass("px-(--space-2)");
     expect(group).not.toHaveClass("px-(--space-3)");
     expect(trigger).toBeInstanceOf(HTMLButtonElement);
     expect(group).toContainElement(trigger);
+  });
+
+  it("vertically centers the select trigger value", () => {
+    const { container } = render(
+      <Select selectedKey="tpbank" aria-label="Payment from account">
+        <Select.Trigger>
+          <Select.Value />
+          <Select.Indicator />
+        </Select.Trigger>
+        <Select.Popover>
+          <Select.ListBox>
+            <Select.ListBox.Item id="tpbank" textValue="TPBank">
+              TPBank
+            </Select.ListBox.Item>
+          </Select.ListBox>
+        </Select.Popover>
+      </Select>,
+    );
+    const trigger = container.querySelector("[data-slot='select-trigger']");
+    const value = container.querySelector("[data-slot='select-value']");
+
+    expect(trigger).toHaveClass("flex", "h-11", "items-center", "py-0");
+    expect(value).toHaveClass("items-center", "leading-none");
   });
 });

@@ -33,12 +33,15 @@ export function ConfirmSummary({
       {rows.map((row) => (
         <div
           key={row.id}
-          className="flex justify-between gap-(--space-3)"
+          className="flex items-start justify-between gap-(--space-3)"
         >
-          <Text size="sm" tone="secondary">
+          <Text size="sm" tone="secondary" className="min-w-0 shrink-0">
             {row.label}
           </Text>
-          <Text size="sm" className="font-medium">
+          <Text
+            size="sm"
+            className="min-w-0 text-right font-medium tabular-nums"
+          >
             {row.value}
           </Text>
         </div>

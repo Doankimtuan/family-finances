@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { cn } from "@/shared/utils/cn";
 import { Text } from "@/shared/ui/text";
+import { Progress } from "@/shared/ui/progress";
 import { AppIcon } from "@/shared/ui/app-icon";
 import { IconContainer } from "@/shared/ui/icon-container";
 import { StatusBadge, type StatusBadgeTone } from "@/shared/ui/status-badge";
@@ -81,19 +82,13 @@ export function CreditCardCard({
         </Text>
       </div>
       {progressValue != null ? (
-        <div
-          role="progressbar"
-          aria-label={utilizationAriaLabel}
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-valuenow={progressValue}
-          className="h-2 overflow-hidden rounded-full bg-border-subtle"
-        >
-          <div
-            className={cn("h-full rounded-full transition-[width]", barTone)}
-            style={{ width: `${progressValue}%` }}
-          />
-        </div>
+        <Progress
+          value={progressValue}
+          label={utilizationAriaLabel}
+          showLabel={false}
+          trackClassName="bg-border-subtle"
+          indicatorClassName={barTone}
+        />
       ) : null}
       <div className="flex items-end justify-between gap-(--space-3)">
         <div className="min-w-0">

@@ -353,3 +353,45 @@ export {
   LEDGER_ACTION_ERROR_CODE,
   type LedgerActionErrorCode,
 } from "./ledger-constants";
+
+export { listDebts, getDebt, listDebtPayments } from "./queries/debt-queries";
+export {
+  createDebt,
+  createDebtInputSchema,
+  recordDebtPayment,
+  recordDebtPaymentInputSchema,
+  type CreateDebtInput,
+  type DebtMutationResult,
+  type RecordDebtPaymentInput,
+} from "./commands/debt-commands";
+export type {
+  Debt,
+  DebtPayment,
+  DebtProgress,
+  DebtDue,
+  DebtSummary,
+  DebtViewModel,
+  DebtPaymentReview,
+} from "./debt-domain";
+export {
+  buildDebtSummary,
+  buildDebtPaymentReview,
+  buildDebtViewModels,
+  getDebtDueState,
+  getDebtDueInfo,
+  getDebtProgress,
+  mapDebtPaymentRow,
+  mapDebtRow,
+} from "./debt-domain";
+export {
+  DebtCreationMode,
+  DebtDirection,
+  DebtDueState,
+  DebtPaymentDirection,
+  DebtStatus,
+  DebtProgressState,
+  DEBT_NO_DUE_SORT_DATE,
+  DEBT_CREATE_IDEMPOTENCY_KEY_PREFIX,
+  DEBT_PAYMENT_IDEMPOTENCY_KEY_PREFIX,
+  createDebtIdempotencyKey,
+} from "./ledger-constants";

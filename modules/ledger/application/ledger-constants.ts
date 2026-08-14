@@ -39,6 +39,9 @@ export const TRANSACTION_DIRECTION_VALUES = [
 export const TransactionLedgerType = {
   ...TransactionDirection,
   LIABILITY_PAYMENT: "liability_payment",
+  DEBT_BORROWING: "debt_borrowing",
+  DEBT_LENDING: "debt_lending",
+  DEBT_RECEIVABLE_PAYMENT: "debt_receivable_payment",
   TRANSFER_OUT: "transfer_out",
   TRANSFER_IN: "transfer_in",
   INVESTMENT_BUY: "investment_buy",
@@ -54,6 +57,9 @@ export const TRANSACTION_LEDGER_TYPE_VALUES = [
   TransactionLedgerType.INCOME,
   TransactionLedgerType.EXPENSE,
   TransactionLedgerType.LIABILITY_PAYMENT,
+  TransactionLedgerType.DEBT_BORROWING,
+  TransactionLedgerType.DEBT_LENDING,
+  TransactionLedgerType.DEBT_RECEIVABLE_PAYMENT,
   TransactionLedgerType.TRANSFER_OUT,
   TransactionLedgerType.TRANSFER_IN,
   TransactionLedgerType.INVESTMENT_BUY,
@@ -66,6 +72,9 @@ export const TRANSACTION_LEDGER_AMOUNT_PREFIX = {
   [TransactionLedgerType.EXPENSE]: "-",
   [TransactionLedgerType.INCOME]: "+",
   [TransactionLedgerType.LIABILITY_PAYMENT]: "-",
+  [TransactionLedgerType.DEBT_BORROWING]: "+",
+  [TransactionLedgerType.DEBT_LENDING]: "-",
+  [TransactionLedgerType.DEBT_RECEIVABLE_PAYMENT]: "+",
   [TransactionLedgerType.TRANSFER_OUT]: "-",
   [TransactionLedgerType.TRANSFER_IN]: "+",
   [TransactionLedgerType.INVESTMENT_BUY]: "-",
@@ -76,6 +85,8 @@ export const TRANSACTION_LEDGER_AMOUNT_PREFIX = {
 
 export const TRANSACTION_LEDGER_CREDIT_TYPES = [
   TransactionLedgerType.INCOME,
+  TransactionLedgerType.DEBT_BORROWING,
+  TransactionLedgerType.DEBT_RECEIVABLE_PAYMENT,
   TransactionLedgerType.TRANSFER_IN,
   TransactionLedgerType.INVESTMENT_SELL_PROCEEDS,
   TransactionLedgerType.INVESTMENT_INCOME,
@@ -83,6 +94,7 @@ export const TRANSACTION_LEDGER_CREDIT_TYPES = [
 
 export const TRANSACTION_LEDGER_DEBIT_TYPES = [
   TransactionLedgerType.EXPENSE,
+  TransactionLedgerType.DEBT_LENDING,
   TransactionLedgerType.LIABILITY_PAYMENT,
   TransactionLedgerType.TRANSFER_OUT,
   TransactionLedgerType.INVESTMENT_BUY,
@@ -185,6 +197,78 @@ export const ACCOUNT_TYPE_LIQUID_VALUES = [
   AccountType.OTHER,
 ] as const;
 
+/** Informal personal-debt relationship from the household's perspective. */
+export const DebtDirection = {
+  BORROWED: "borrowed",
+  LENT: "lent",
+} as const;
+export type DebtDirection = (typeof DebtDirection)[keyof typeof DebtDirection];
+export const DEBT_DIRECTION_VALUES = [
+  DebtDirection.BORROWED,
+  DebtDirection.LENT,
+] as const;
+
+/** Whether ViNha records a historical balance or a movement happening now. */
+export const DebtCreationMode = {
+  EXISTING_BALANCE: "existing_balance",
+  MONEY_MOVED: "money_moved",
+} as const;
+export type DebtCreationMode =
+  (typeof DebtCreationMode)[keyof typeof DebtCreationMode];
+export const DEBT_CREATION_MODE_VALUES = [
+  DebtCreationMode.EXISTING_BALANCE,
+  DebtCreationMode.MONEY_MOVED,
+] as const;
+
+/** Persisted debt lifecycle. Due state remains derived from this and due date. */
+export const DebtStatus = {
+  ACTIVE: "active",
+  COMPLETED: "completed",
+  ARCHIVED: "archived",
+} as const;
+export type DebtStatus = (typeof DebtStatus)[keyof typeof DebtStatus];
+export const DEBT_STATUS_VALUES = [
+  DebtStatus.ACTIVE,
+  DebtStatus.COMPLETED,
+  DebtStatus.ARCHIVED,
+] as const;
+
+/** Direction of a principal settlement record. */
+export const DebtPaymentDirection = {
+  REPAY_BORROWED: "repay_borrowed",
+  RECEIVE_LENT: "receive_lent",
+} as const;
+export type DebtPaymentDirection =
+  (typeof DebtPaymentDirection)[keyof typeof DebtPaymentDirection];
+export const DEBT_PAYMENT_DIRECTION_VALUES = [
+  DebtPaymentDirection.REPAY_BORROWED,
+  DebtPaymentDirection.RECEIVE_LENT,
+] as const;
+
+/** Derived debt timing state; it is intentionally not persisted. */
+export const DebtDueState = {
+  NONE: "none",
+  UPCOMING: "upcoming",
+  DUE_SOON: "due_soon",
+  DUE_TODAY: "due_today",
+  OVERDUE: "overdue",
+  COMPLETED: "completed",
+} as const;
+export type DebtDueState = (typeof DebtDueState)[keyof typeof DebtDueState];
+export const DEBT_DUE_SOON_DAYS = 7;
+export const DebtProgressState = {
+  NOT_STARTED: "not_started",
+  IN_PROGRESS: "in_progress",
+  COMPLETED: "completed",
+} as const;
+export type DebtProgressState =
+  (typeof DebtProgressState)[keyof typeof DebtProgressState];
+export const DEBT_NO_DUE_SORT_DATE = "9999-12-31";
+export const DEBT_CREATE_IDEMPOTENCY_KEY_PREFIX = "debt-create:";
+export const DEBT_PAYMENT_IDEMPOTENCY_KEY_PREFIX = "debt-payment:";
+export function createDebtIdempotencyKey(prefix: string): string {
+  return `${prefix}${crypto.randomUUID()}`;
+}
 /** Account create form options (brokerage + savings omitted; savings is a separate section). */
 export const ACCOUNT_TYPE_CREATE_OPTIONS = [
   AccountType.CASH,
@@ -524,6 +608,8 @@ export const LedgerRpcName = {
   RECORD_LOAN_PAYMENT: "record_loan_payment",
   UPDATE_LOAN_INTEREST_RATE: "update_loan_interest_rate",
   RECORD_LIABILITY_PAYMENT: "record_liability_payment",
+  CREATE_DEBT: "create_debt",
+  RECORD_DEBT_PAYMENT: "record_debt_payment",
   CREATE_LOAN_WITH_SCHEDULE: "create_loan_with_schedule",
   SET_LOAN_STATUS: "set_loan_status",
   RECORD_OWNED_ACCOUNT_TRANSFER: "record_owned_account_transfer",
@@ -533,6 +619,7 @@ export type LedgerRpcName = (typeof LedgerRpcName)[keyof typeof LedgerRpcName];
 
 /** Public relation names for ledger queries / mutations. */
 export const LedgerRelation = {
+  DEBT_PAYMENTS: "debt_payments",
   LOAN_SCHEDULE_ENTRIES: "loan_schedule_entries",
   LOAN_PAYMENTS: "loan_payments",
   LOAN_INTEREST_RATE_PERIODS: "loan_interest_rate_periods",

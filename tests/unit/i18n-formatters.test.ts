@@ -32,4 +32,16 @@ describe("i18n formatters", () => {
       /Aug/,
     );
   });
+  it("uses Vietnamese number placement and compact day-first dates", () => {
+    const vietnameseCurrency = formatCurrency(1_000, "VND", "vi");
+    expect(vietnameseCurrency).toContain("₫");
+    expect(vietnameseCurrency).toContain("1.000");
+    expect(
+      formatDate(new Date("2026-08-14T00:00:00Z"), "vi", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      }),
+    ).toBe("14/08/2026");
+  });
 });
