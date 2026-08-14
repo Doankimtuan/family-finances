@@ -40,6 +40,17 @@ export {
   type ListTransactionsFilter,
 } from "./queries/get-transaction";
 export {
+  archiveTransactionTag,
+  createTransactionTag,
+  updateTransactionTag,
+  listTransactionTags,
+  setTransactionTags,
+  transactionTagInputSchema,
+  type TransactionTagActionErrorCode,
+  type TransactionTagActionResult,
+  type TransactionTagInput,
+} from "./transaction-tags";
+export {
   getTransactionAuditChain,
   type TransactionAuditChain,
 } from "./queries/get-transaction-audit-chain";
@@ -187,10 +198,22 @@ export {
 export type { LedgerAccount, RealPosition } from "./account-types";
 export type {
   LedgerTransaction,
+  TransactionTag,
   CategoryTag,
   CaptureJarOption,
 } from "./transaction-types";
-export { applyTransactionDeltas, mapTransactionRow } from "./transaction-types";
+export {
+  applyTransactionDeltas,
+  mapTransactionRow,
+  transactionMatchesTagFilter,
+} from "./transaction-types";
+export {
+  createTransactionActivities,
+  transactionActivityCanUseGenericActions,
+  TransactionActivityKind,
+  TransactionActivityTone,
+  type TransactionActivity,
+} from "./transaction-activity";
 export {
   listLiabilities,
   getLiability,

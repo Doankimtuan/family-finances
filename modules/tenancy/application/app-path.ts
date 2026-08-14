@@ -12,6 +12,7 @@ export const APP_PATH = {
   MONEY_ACCOUNTS: "/money/accounts",
   MONEY_ADD: "/money/transactions/new",
   MONEY_TRANSACTIONS: "/money/transactions",
+  MONEY_TRANSACTION_TAGS: "/money/transactions/tags",
   PLAN: "/plan",
   PLAN_JARS: "/plan/jars",
   PLAN_GOALS: "/plan/goals",
@@ -66,6 +67,10 @@ export function moneyAccountPath(accountId: string): string {
 
 export function moneyTransactionPath(transactionId: string): string {
   return `${APP_PATH.MONEY_TRANSACTIONS}/${transactionId}`;
+}
+
+export function moneyTransactionTagsPath(): string {
+  return APP_PATH.MONEY_TRANSACTION_TAGS;
 }
 
 export function moneyTransactionEditPath(transactionId: string): string {

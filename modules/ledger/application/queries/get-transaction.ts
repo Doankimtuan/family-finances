@@ -2,6 +2,7 @@ import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import {
   mapTransactionRow,
+  transactionMatchesTagFilter,
   type LedgerTransaction,
   type TransactionDirection,
 } from "../transaction-types";
@@ -9,6 +10,7 @@ import {
   TransactionDirection as Direction,
   TransactionFilterType,
   TRANSACTION_LEDGER_TYPE_VALUES,
+  TransactionLedgerType,
 } from "../ledger-constants";
 
 function normalizeJoinedRow(row: Record<string, unknown>) {
@@ -27,7 +29,7 @@ function normalizeJoinedRow(row: Record<string, unknown>) {
 }
 
 const TX_SELECT =
-  "id, account_id, type, amount, currency, transaction_date, note, category_id, jar_id, status, transfer_group_id, reverses_transaction_id, corrects_transaction_id, is_reversal, created_at, accounts(name), categories(name), jars(name)";
+  "id, account_id, type, amount, currency, transaction_date, note, category_id, jar_id, status, transfer_group_id, reverses_transaction_id, corrects_transaction_id, is_reversal, created_at, accounts(name), categories(name), jars(name), transaction_tag_assignments(tag_id, transaction_tags(id, name, icon_key, color_key, archived_at))";
 
 export async function getTransaction(
   transactionId: string,
@@ -58,7 +60,12 @@ export async function getTransaction(
 
 export type ListTransactionsFilter = {
   q?: string;
-  type?: TransactionDirection | typeof TransactionFilterType.ALL | typeof TransactionFilterType.INVESTMENT;
+  tagIds?: readonly string[];
+  type?:
+    | TransactionDirection
+    | typeof TransactionFilterType.ALL
+    | typeof TransactionFilterType.TRANSFER
+    | typeof TransactionFilterType.INVESTMENT;
   limit?: number;
 };
 
@@ -82,6 +89,12 @@ export async function listTransactions(
     if (filter.type === Direction.INCOME || filter.type === Direction.EXPENSE) {
       query = query.eq("type", filter.type);
     }
+    if (filter.type === TransactionFilterType.TRANSFER) {
+      query = query.in("type", [
+        TransactionLedgerType.TRANSFER_OUT,
+        TransactionLedgerType.TRANSFER_IN,
+      ]);
+    }
     if (filter.type === TransactionFilterType.INVESTMENT) {
       query = query.in(
         "type",
@@ -101,22 +114,22 @@ export async function listTransactions(
     );
 
     const q = filter.q?.trim().toLowerCase();
-    if (!q) {
-      return rows;
-    }
-
     return rows.filter((tx) => {
-      const haystack = [
+      const matchesQuery = [
         tx.note,
         tx.categoryName,
         tx.accountName,
         tx.jarName,
+        ...tx.tags.map((tag) => tag.name),
         tx.type,
       ]
         .filter(Boolean)
         .join(" ")
         .toLowerCase();
-      return haystack.includes(q);
+      return (
+        (!q || matchesQuery.includes(q)) &&
+        transactionMatchesTagFilter(tx.tags, filter.tagIds)
+      );
     });
   } catch {
     return null;

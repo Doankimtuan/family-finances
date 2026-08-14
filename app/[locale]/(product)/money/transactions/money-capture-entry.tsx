@@ -6,6 +6,7 @@ import type {
   CaptureJarOption,
   CategoryTag,
   LedgerAccount,
+  TransactionTag,
 } from "@/modules/ledger/application/client";
 import {
   MoneyCaptureMode,
@@ -19,6 +20,7 @@ type Props = {
   expenseTags: CategoryTag[];
   incomeTags: CategoryTag[];
   jars: CaptureJarOption[];
+  transactionTags: TransactionTag[];
   currency: string;
 };
 
@@ -30,13 +32,17 @@ export function MoneyCaptureEntry({
   expenseTags,
   incomeTags,
   jars,
+  transactionTags,
   currency,
 }: Props) {
   const t = useTranslations("money.captureForm");
   const [mode, setMode] = useState<MoneyCaptureMode>(MoneyCaptureMode.EXPENSE);
 
   return (
-    <div className="flex flex-col gap-(--space-4)" data-testid="money-capture-entry">
+    <div
+      className="flex flex-col gap-(--space-4)"
+      data-testid="money-capture-entry"
+    >
       <fieldset className="flex flex-col gap-(--space-2) rounded-xl border border-border-subtle bg-surface p-(--space-4)">
         <legend className="text-sm font-semibold text-text-primary">
           {t("modeLabel")}
@@ -79,6 +85,7 @@ export function MoneyCaptureEntry({
           expenseTags={expenseTags}
           incomeTags={incomeTags}
           jars={jars}
+          transactionTags={transactionTags}
           currency={currency}
           initialDirection={mode}
         />

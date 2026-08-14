@@ -28,6 +28,10 @@ export function SheetContent({
           className={cn(
             "bg-surface-elevated",
             "border-t border-border-subtle shadow-[var(--elevation-2)]",
+            "overflow-hidden [backface-visibility:hidden] [contain:layout_paint]",
+            "[--drawer-enter-duration:var(--duration-normal)] [--drawer-exit-duration:var(--duration-fast)]",
+            "[--drawer-enter-ease:var(--ease-standard)] [--drawer-exit-ease:var(--ease-standard)]",
+            "motion-reduce:[will-change:auto]",
             className,
           )}
         >

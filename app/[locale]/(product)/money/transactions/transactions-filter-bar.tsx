@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
@@ -11,20 +11,31 @@ import { Link } from "@/i18n/navigation";
 import {
   TransactionFilterType,
   TRANSACTION_FILTER_OPTIONS,
+  TRANSACTION_TAG_FILTER_QUERY_PARAM,
 } from "@/modules/ledger/application/client";
+import type { TransactionTag } from "@/modules/ledger/application/client";
+import { TransactionTagSelector } from "./transaction-tag-ui";
 
 type Props = {
   q: string;
   type: string;
+  availableTags: TransactionTag[];
+  selectedTagIds: string[];
 };
 
 /**
  * Search + direction filter for money.transactions activity feed.
  */
-export function TransactionsFilterBar({ q, type }: Props) {
+export function TransactionsFilterBar({
+  q,
+  type,
+  availableTags,
+  selectedTagIds: initialSelectedTagIds,
+}: Props) {
   const t = useTranslations("money.transactionsPage");
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
+  const [selectedTagIds, setSelectedTagIds] = useState(initialSelectedTagIds);
 
   const apply = () => {
     const form = formRef.current;
@@ -35,6 +46,9 @@ export function TransactionsFilterBar({ q, type }: Props) {
     const params = new URLSearchParams();
     if (nextQ) params.set("q", nextQ);
     if (nextType !== TransactionFilterType.ALL) params.set("type", nextType);
+    if (selectedTagIds.length > 0) {
+      params.set(TRANSACTION_TAG_FILTER_QUERY_PARAM, selectedTagIds.join(","));
+    }
     const qs = params.toString();
     router.push(
       qs ? `${APP_PATH.MONEY_TRANSACTIONS}?${qs}` : APP_PATH.MONEY_TRANSACTIONS,
@@ -81,6 +95,16 @@ export function TransactionsFilterBar({ q, type }: Props) {
           ))}
         </div>
       </fieldset>
+      <fieldset className="flex flex-col gap-(--space-2)">
+        <legend className="text-sm font-semibold text-text-primary">
+          {t("tagFilterLabel")}
+        </legend>
+        <TransactionTagSelector
+          availableTags={availableTags}
+          selectedIds={selectedTagIds}
+          onChange={setSelectedTagIds}
+        />
+      </fieldset>
       <Button variant="secondary" className="w-full" onPress={apply}>
         {t("applyFilter")}
       </Button>
@@ -90,6 +114,12 @@ export function TransactionsFilterBar({ q, type }: Props) {
         data-testid="transactions-add"
       >
         {t("add")}
+      </Link>
+      <Link
+        href={APP_PATH.MONEY_TRANSACTION_TAGS}
+        className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface text-sm font-medium text-text-primary transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-[0.99] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none"
+      >
+        {t("manageTags")}
       </Link>
     </form>
   );

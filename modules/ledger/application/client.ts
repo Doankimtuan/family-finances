@@ -6,9 +6,16 @@
 export type { LedgerAccount, RealPosition } from "./account-types";
 export type {
   LedgerTransaction,
+  TransactionTag,
   CategoryTag,
   CaptureJarOption,
 } from "./transaction-types";
+export { transactionMatchesTagFilter } from "./transaction-types";
+export {
+  TransactionActivityKind,
+  TransactionActivityTone,
+} from "./transaction-activity";
+export type { TransactionActivity } from "./transaction-activity";
 export {
   DEFAULT_CURRENCY,
   TransactionDirection,
@@ -26,6 +33,14 @@ export {
   TRANSACTION_BALANCE_STATUS_VALUES,
   TransactionFilterType,
   TRANSACTION_FILTER_OPTIONS,
+  TRANSACTION_TAG_FILTER_QUERY_PARAM,
+  TransactionTagIconKey,
+  TRANSACTION_TAG_ICON_KEYS,
+  TransactionTagColorKey,
+  TRANSACTION_TAG_COLOR_KEYS,
+  DEFAULT_TRANSACTION_TAG_COLOR_KEY,
+  DEFAULT_TRANSACTION_TAG_ICON_KEY,
+  MAX_TRANSACTION_TAGS,
   AccountType,
   ACCOUNT_TYPE_VALUES,
   ACCOUNT_TYPE_LIQUID_VALUES,
@@ -91,6 +106,8 @@ export type {
   LoanPaymentMode as LoanPaymentModeValue,
   MoneyPaymentFlowStep as MoneyPaymentFlowStepValue,
   MoneyCaptureMode as MoneyCaptureModeValue,
+  TransactionTagIconKey as TransactionTagIconKeyValue,
+  TransactionTagColorKey as TransactionTagColorKeyValue,
 } from "./ledger-constants";
 export {
   AccountHealthSignal,

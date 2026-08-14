@@ -10,6 +10,7 @@ import {
   listAccountsForCapture,
   listCaptureJars,
   listCategoryTags,
+  listTransactionTags,
   DEFAULT_CURRENCY,
   TransactionDirection,
 } from "@/modules/ledger/application";
@@ -39,13 +40,15 @@ export default async function MoneyTransactionAddPage({ params }: Props) {
     return redirect({ href: APP_PATH.ONBOARD, locale });
   }
 
-  const [t, listed, expenseTags, incomeTags, jars] = await Promise.all([
-    getTranslations("money"),
-    listAccountsForCapture(),
-    listCategoryTags(TransactionDirection.EXPENSE),
-    listCategoryTags(TransactionDirection.INCOME),
-    listCaptureJars(),
-  ]);
+  const [t, listed, expenseTags, incomeTags, jars, transactionTags] =
+    await Promise.all([
+      getTranslations("money"),
+      listAccountsForCapture(),
+      listCategoryTags(TransactionDirection.EXPENSE),
+      listCategoryTags(TransactionDirection.INCOME),
+      listCaptureJars(),
+      listTransactionTags(),
+    ]);
 
   return (
     <Page
@@ -61,6 +64,7 @@ export default async function MoneyTransactionAddPage({ params }: Props) {
         expenseTags={expenseTags ?? []}
         incomeTags={incomeTags ?? []}
         jars={jars ?? []}
+        transactionTags={transactionTags ?? []}
         currency={listed?.currency ?? DEFAULT_CURRENCY}
       />
     </Page>

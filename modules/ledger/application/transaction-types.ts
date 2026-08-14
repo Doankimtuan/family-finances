@@ -6,6 +6,10 @@ import {
   TransactionStatus,
   TRANSACTION_LEDGER_CREDIT_TYPES,
   TRANSACTION_LEDGER_DEBIT_TYPES,
+  normalizeTransactionTagColorKey,
+  normalizeTransactionTagIconKey,
+  type TransactionTagColorKey,
+  type TransactionTagIconKey,
   type TransactionLedgerType as TransactionLedgerTypeValue,
 } from "./ledger-constants";
 
@@ -20,6 +24,14 @@ export {
   DEFAULT_CURRENCY,
 } from "./ledger-constants";
 
+export type TransactionTag = {
+  id: string;
+  name: string;
+  iconKey: TransactionTagIconKey;
+  colorKey: TransactionTagColorKey | null;
+  archivedAt: string | null;
+};
+
 export type LedgerTransaction = {
   id: string;
   accountId: string;
@@ -33,6 +45,7 @@ export type LedgerTransaction = {
   categoryName: string | null;
   jarId: string | null;
   jarName: string | null;
+  tags: TransactionTag[];
   status: string;
   transferGroupId: string | null;
   reversesTransactionId: string | null;
@@ -53,6 +66,16 @@ export type CaptureJarOption = {
   name: string;
   kind: string;
 };
+
+export function transactionMatchesTagFilter(
+  tags: TransactionTag[],
+  tagIds: readonly string[] = [],
+): boolean {
+  return (
+    tagIds.length === 0 ||
+    tagIds.some((tagId) => tags.some((tag) => tag.id === tagId))
+  );
+}
 
 export function applyTransactionDeltas(
   accounts: LedgerAccount[],
@@ -135,6 +158,15 @@ export function mapTransactionRow(row: {
   accounts?: { name: string } | null;
   categories?: { name: string } | null;
   jars?: { name: string } | null;
+  transaction_tag_assignments?: Array<{
+    transaction_tags?: {
+      id: string;
+      name: string;
+      icon_key: string;
+      color_key: string | null;
+      archived_at?: string | null;
+    } | null;
+  }> | null;
 }): LedgerTransaction {
   const amount =
     typeof row.amount === "string" ? Number(row.amount) : row.amount;
@@ -152,6 +184,16 @@ export function mapTransactionRow(row: {
     categoryName: row.categories?.name ?? null,
     jarId: row.jar_id,
     jarName: row.jars?.name ?? null,
+    tags: (row.transaction_tag_assignments ?? [])
+      .map((assignment) => assignment.transaction_tags ?? null)
+      .filter((tag): tag is NonNullable<typeof tag> => tag != null)
+      .map((tag) => ({
+        id: tag.id,
+        name: tag.name,
+        iconKey: normalizeTransactionTagIconKey(tag.icon_key),
+        colorKey: normalizeTransactionTagColorKey(tag.color_key),
+        archivedAt: tag.archived_at ?? null,
+      })),
     status: row.status ?? TransactionStatus.POSTED,
     transferGroupId: row.transfer_group_id ?? null,
     reversesTransactionId,

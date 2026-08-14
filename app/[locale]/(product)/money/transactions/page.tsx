@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { z } from "zod";
 import { setLocale } from "@/i18n/set-locale";
 import { redirect, Link } from "@/i18n/navigation";
 import { hasLocale } from "next-intl";
@@ -10,24 +11,29 @@ import {
 import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
 import {
+  createTransactionActivities,
   listTransactions,
-  TRANSACTION_LEDGER_AMOUNT_PREFIX,
-  TRANSACTION_LEDGER_CREDIT_TYPES,
+  TransactionActivityTone,
   TransactionDirection,
   TransactionFilterType,
+  listTransactionTags,
 } from "@/modules/ledger/application";
+import { TRANSACTION_TAG_FILTER_QUERY_PARAM } from "@/modules/ledger/application/client";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { EmptyState } from "@/shared/patterns/empty-state";
-import { TransactionRow, TransactionAmountTone } from "@/shared/patterns/transaction-row";
+import {
+  TransactionRow,
+  TransactionAmountTone,
+} from "@/shared/patterns/transaction-row";
 import { Page } from "@/shared/patterns/page";
 import { MoneyOfflineBanner } from "../money-offline-banner";
 import { TransactionsFilterBar } from "./transactions-filter-bar";
 
 type Props = {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ q?: string; type?: string }>;
+  searchParams: Promise<{ q?: string; type?: string; tags?: string }>;
 };
 
 export default async function TransactionsListPage({
@@ -54,17 +60,23 @@ export default async function TransactionsListPage({
   const typeRaw = sp.type ?? TransactionFilterType.ALL;
   const type: (typeof TransactionFilterType)[keyof typeof TransactionFilterType] =
     typeRaw === TransactionDirection.INCOME ||
-    typeRaw === TransactionDirection.EXPENSE
+    typeRaw === TransactionDirection.EXPENSE ||
+    typeRaw === TransactionFilterType.TRANSFER ||
+    typeRaw === TransactionFilterType.INVESTMENT
       ? typeRaw
       : TransactionFilterType.ALL;
+  const tagIds = (sp[TRANSACTION_TAG_FILTER_QUERY_PARAM] ?? "")
+    .split(",")
+    .filter((id) => z.string().uuid().safeParse(id).success);
 
-  const [t, tCatalog, rows] = await Promise.all([
+  const [t, tCatalog, rows, availableTags] = await Promise.all([
     getTranslations("money"),
     getTranslations("catalog"),
-    listTransactions({ q, type, limit: 100 }),
+    listTransactions({ q, type, tagIds, limit: 100 }),
+    listTransactionTags({ includeArchived: true }),
   ]);
 
-  const activity = rows ?? [];
+  const activity = createTransactionActivities(rows ?? []);
 
   return (
     <Page
@@ -77,7 +89,12 @@ export default async function TransactionsListPage({
       }
     >
       <MoneyOfflineBanner />
-      <TransactionsFilterBar q={q} type={type} />
+      <TransactionsFilterBar
+        q={q}
+        type={type}
+        availableTags={availableTags ?? []}
+        selectedTagIds={tagIds}
+      />
 
       {activity.length === 0 ? (
         <EmptyState
@@ -89,7 +106,7 @@ export default async function TransactionsListPage({
           {activity.map((tx) => (
             <li key={tx.id}>
               <Link
-                href={moneyTransactionPath(tx.id)}
+                href={moneyTransactionPath(tx.relatedTransactionIds[0])}
                 className="block focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
                 data-testid={`transaction-row-${tx.id}`}
               >
@@ -97,18 +114,35 @@ export default async function TransactionsListPage({
                   title={
                     tx.note ||
                     localizeCatalogName(tCatalog, "tags", tx.categoryName) ||
-                    t(`direction.${tx.type}`)
+                    t(`transactionsPage.activityKind.${tx.kind}`)
                   }
-                  subtitle={localizeCatalogName(
-                    tCatalog,
-                    "accounts",
-                    tx.accountName,
-                  )}
-                  amountLabel={`${TRANSACTION_LEDGER_AMOUNT_PREFIX[tx.type]}${formatCurrency(tx.amount, tx.currency, locale, { maximumFractionDigits: 0 })}`}
+                  subtitle={
+                    tx.kind === "transfer"
+                      ? [tx.sourceAccount?.name, tx.destinationAccount?.name]
+                          .filter(Boolean)
+                          .map((name) =>
+                            localizeCatalogName(tCatalog, "accounts", name),
+                          )
+                          .join(" → ")
+                      : [
+                          localizeCatalogName(
+                            tCatalog,
+                            "accounts",
+                            tx.sourceAccount?.name ??
+                              tx.destinationAccount?.name,
+                          ),
+                          tx.tags.map((tag) => tag.name).join(" · "),
+                        ]
+                          .filter(Boolean)
+                          .join(" · ")
+                  }
+                  amountLabel={`${tx.tone === TransactionActivityTone.CREDIT ? "+" : tx.tone === TransactionActivityTone.DEBIT ? "−" : ""}${formatCurrency(tx.amount, tx.currency, locale, { maximumFractionDigits: 0 })}`}
                   tone={
-                    (TRANSACTION_LEDGER_CREDIT_TYPES as readonly string[]).includes(tx.type)
+                    tx.tone === TransactionActivityTone.CREDIT
                       ? TransactionAmountTone.CREDIT
-                      : TransactionAmountTone.DEBIT
+                      : tx.tone === TransactionActivityTone.DEBIT
+                        ? TransactionAmountTone.DEBIT
+                        : TransactionAmountTone.NEUTRAL
                   }
                 />
               </Link>

@@ -13,6 +13,7 @@ import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-a
 import {
   getTransaction,
   getTransactionAuditChain,
+  listTransactionTags,
   isRefundableStatus,
   TransactionDirection,
   TransactionStatus,
@@ -26,6 +27,7 @@ import { Balance } from "@/shared/patterns/balance";
 import { SectionHeader } from "@/shared/patterns/section-header";
 import { Text } from "@/shared/ui/text";
 import { MoneyOfflineBanner } from "../../money-offline-banner";
+import { TransactionTagEditor } from "../transaction-tag-editor";
 
 type Props = {
   params: Promise<{ locale: string; id: string }>;
@@ -47,11 +49,12 @@ export default async function TransactionDetailPage({ params }: Props) {
     return redirect({ href: APP_PATH.ONBOARD, locale });
   }
 
-  const [t, tCatalog, tx, chain] = await Promise.all([
+  const [t, tCatalog, tx, chain, availableTags] = await Promise.all([
     getTranslations("money"),
     getTranslations("catalog"),
     getTransaction(id),
     getTransactionAuditChain(id),
+    listTransactionTags({ includeArchived: true }),
   ]);
 
   if (!tx) {
@@ -159,7 +162,7 @@ export default async function TransactionDetailPage({ params }: Props) {
         </section>
 
         <section className="flex flex-col gap-(--space-3)">
-          <SectionHeader title={t("detailPage.tags")} />
+          <SectionHeader title={t("detailPage.category")} />
           {tx.categoryName ? (
             <span className="inline-flex min-h-11 items-center rounded-md border border-border-subtle bg-surface px-(--space-3) text-sm font-medium text-text-primary">
               {localizeCatalogName(tCatalog, "tags", tx.categoryName)}
@@ -170,6 +173,12 @@ export default async function TransactionDetailPage({ params }: Props) {
             </Text>
           )}
         </section>
+
+        <TransactionTagEditor
+          transactionId={tx.id}
+          initialTags={tx.tags}
+          availableTags={availableTags ?? []}
+        />
 
         {hasChain ? (
           <section

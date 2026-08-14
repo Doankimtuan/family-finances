@@ -576,6 +576,12 @@ body {
   outline-offset: 2px;
 }
 
+/* The modal scope receives focus on open; keep the panel edge calm and let
+   the first actual control own the visible focus ring. */
+[data-slot="drawer-dialog"]:focus-visible {
+  outline: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

@@ -53,6 +53,67 @@ export const TransactionLedgerType = {
 export type TransactionLedgerType =
   (typeof TransactionLedgerType)[keyof typeof TransactionLedgerType];
 
+/** Stable persisted values for optional, cross-cutting transaction tags. */
+export const TransactionTagIconKey = {
+  BRIEFCASE: "briefcase",
+  BOOKMARK: "bookmark",
+  EDUCATION: "education",
+  FAMILY: "family",
+  FOOD: "food",
+  GIFT: "gift",
+  HEALTH: "health",
+  HOME: "home",
+  SHOPPING: "shopping",
+  STAR: "star",
+  SUBSCRIPTION: "subscription",
+  TRANSPORT: "transport",
+  TRAVEL: "travel",
+  WORK: "work",
+} as const;
+
+export type TransactionTagIconKey =
+  (typeof TransactionTagIconKey)[keyof typeof TransactionTagIconKey];
+
+export const TRANSACTION_TAG_ICON_KEYS = Object.values(TransactionTagIconKey);
+
+export const TransactionTagColorKey = {
+  AMBER: "amber",
+  BLUE: "blue",
+  EMERALD: "emerald",
+  ROSE: "rose",
+  SLATE: "slate",
+  VIOLET: "violet",
+} as const;
+
+export type TransactionTagColorKey =
+  (typeof TransactionTagColorKey)[keyof typeof TransactionTagColorKey];
+
+export const TRANSACTION_TAG_COLOR_KEYS = Object.values(TransactionTagColorKey);
+
+export const MAX_TRANSACTION_TAGS = 10;
+
+export const DEFAULT_TRANSACTION_TAG_ICON_KEY = TransactionTagIconKey.BOOKMARK;
+export const DEFAULT_TRANSACTION_TAG_COLOR_KEY = TransactionTagColorKey.SLATE;
+
+export function normalizeTransactionTagIconKey(
+  value: string,
+): TransactionTagIconKey {
+  return (TRANSACTION_TAG_ICON_KEYS as readonly string[]).includes(value)
+    ? (value as TransactionTagIconKey)
+    : DEFAULT_TRANSACTION_TAG_ICON_KEY;
+}
+
+export function normalizeTransactionTagColorKey(
+  value: string | null,
+): TransactionTagColorKey | null {
+  return value &&
+    (TRANSACTION_TAG_COLOR_KEYS as readonly string[]).includes(value)
+    ? (value as TransactionTagColorKey)
+    : value == null
+      ? null
+      : DEFAULT_TRANSACTION_TAG_COLOR_KEY;
+}
+
 export const TRANSACTION_LEDGER_TYPE_VALUES = [
   TransactionLedgerType.INCOME,
   TransactionLedgerType.EXPENSE,
@@ -669,8 +730,11 @@ export type LedgerActionErrorCode =
 export const TransactionFilterType = {
   ALL: "all",
   ...TransactionDirection,
+  TRANSFER: "transfer",
   INVESTMENT: "investment",
 } as const;
+
+export const TRANSACTION_TAG_FILTER_QUERY_PARAM = "tags";
 
 export type TransactionFilterType =
   (typeof TransactionFilterType)[keyof typeof TransactionFilterType];
@@ -679,6 +743,7 @@ export const TRANSACTION_FILTER_OPTIONS = [
   TransactionFilterType.ALL,
   TransactionFilterType.EXPENSE,
   TransactionFilterType.INCOME,
+  TransactionFilterType.TRANSFER,
   TransactionFilterType.INVESTMENT,
 ] as const;
 

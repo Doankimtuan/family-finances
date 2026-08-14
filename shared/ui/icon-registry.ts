@@ -27,6 +27,7 @@ import {
   Restaurant01Icon,
   Search01Icon,
   ShoppingBag01Icon,
+  Tick01Icon,
   TravelBagIcon,
   UserGroupIcon,
   Wallet02Icon,
@@ -188,6 +189,7 @@ export const ACTION_ICONS = {
   more: MoreHorizontalIcon,
   back: ArrowLeft01Icon,
   forward: ArrowRight01Icon,
+  check: Tick01Icon,
 } as const;
 export const UTILITY_ICONS = {
   calendar: Calendar03Icon,

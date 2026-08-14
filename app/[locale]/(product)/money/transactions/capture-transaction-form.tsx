@@ -12,6 +12,7 @@ import type {
   CategoryTag,
   LedgerAccount,
   TransactionDirection,
+  TransactionTag,
 } from "@/modules/ledger/application/client";
 import {
   TransactionDirection as Direction,
@@ -34,14 +35,20 @@ import {
 } from "@/modules/tenancy/application/product-action-error";
 import type { LedgerActionErrorCode } from "@/modules/ledger/application/client";
 import { recordTransactionAction } from "./actions";
+import { setTransactionTagsAction } from "./tag-actions";
 import { TransactionReceipt } from "./transaction-receipt";
-import { LabeledDateInput, LabeledSelect } from "@/shared/patterns/labeled-native-field";
+import { TransactionTagSelector } from "./transaction-tag-ui";
+import {
+  LabeledDateInput,
+  LabeledSelect,
+} from "@/shared/patterns/labeled-native-field";
 
 type Props = {
   accounts: LedgerAccount[];
   expenseTags: CategoryTag[];
   incomeTags: CategoryTag[];
   jars: CaptureJarOption[];
+  transactionTags: TransactionTag[];
   currency: string;
   initialDirection?: TransactionDirection;
 };
@@ -58,6 +65,7 @@ export function CaptureTransactionForm({
   expenseTags,
   incomeTags,
   jars,
+  transactionTags,
   currency,
   initialDirection = Direction.EXPENSE,
 }: Props) {
@@ -68,14 +76,17 @@ export function CaptureTransactionForm({
   const amountId = useId();
   const noteId = useId();
   const dateId = useId();
-  const [direction, setDirection] = useState<TransactionDirection>(
-    initialDirection,
-  );
+  const [direction, setDirection] =
+    useState<TransactionDirection>(initialDirection);
   const tags = direction === Direction.INCOME ? incomeTags : expenseTags;
   const [amount, setAmount] = useState<number | null>(null);
   const [accountId, setAccountId] = useState(accounts[0]?.id ?? "");
   const [categoryId, setCategoryId] = useState("");
   const [jarId, setJarId] = useState("");
+  const [selectedTransactionTagIds, setSelectedTransactionTagIds] = useState<
+    string[]
+  >([]);
+  const [tagAssignmentFailed, setTagAssignmentFailed] = useState(false);
   const [note, setNote] = useState("");
   const [transactionDate, setTransactionDate] = useState(todayInputValue);
   const [errorCode, setErrorCode] = useState<
@@ -109,6 +120,8 @@ export function CaptureTransactionForm({
     setAccountId(accounts[0]?.id ?? "");
     setCategoryId("");
     setJarId("");
+    setSelectedTransactionTagIds([]);
+    setTagAssignmentFailed(false);
     setNote("");
     setTransactionDate(todayInputValue());
     setErrorCode(null);
@@ -145,6 +158,13 @@ export function CaptureTransactionForm({
       });
 
       if (result.status === "success") {
+        if (selectedTransactionTagIds.length > 0) {
+          const tagResult = await setTransactionTagsAction(
+            result.transactionId,
+            selectedTransactionTagIds,
+          );
+          setTagAssignmentFailed(tagResult.status === "error");
+        }
         setReceipt({
           transactionId: result.transactionId,
           inboxItemId: result.inboxItemId,
@@ -205,9 +225,7 @@ export function CaptureTransactionForm({
           },
           { id: "date", label: t("receipt.date"), value: transactionDate },
         ]}
-        relatedRecords={
-          relatedRecords.length > 0 ? relatedRecords : undefined
-        }
+        relatedRecords={relatedRecords.length > 0 ? relatedRecords : undefined}
         relatedRecordsTitle={
           relatedRecords.length > 0 ? t("receipt.relatedRecords") : undefined
         }
@@ -242,6 +260,9 @@ export function CaptureTransactionForm({
             : []),
         ]}
       >
+        {tagAssignmentFailed ? (
+          <StatusAlert variant="warning" title={t("tagAssignmentFailed")} />
+        ) : null}
         <div className="rounded-lg border border-success/25 bg-success/10 p-(--space-3)">
           <Text size="sm" className="font-medium text-text-primary">
             {direction === Direction.EXPENSE
@@ -415,6 +436,20 @@ export function CaptureTransactionForm({
             </button>
           ))}
         </div>
+      </fieldset>
+
+      <fieldset className="flex flex-col gap-(--space-2) rounded-xl border border-border-subtle bg-surface p-(--space-4)">
+        <legend className="text-sm font-semibold text-text-primary">
+          {t("transactionTagsLabel")}
+        </legend>
+        <Text size="sm" tone="secondary">
+          {t("transactionTagsHint")}
+        </Text>
+        <TransactionTagSelector
+          availableTags={transactionTags}
+          selectedIds={selectedTransactionTagIds}
+          onChange={setSelectedTransactionTagIds}
+        />
       </fieldset>
 
       <fieldset className="flex flex-col gap-(--space-2) rounded-xl border border-border-subtle bg-surface p-(--space-4)">
