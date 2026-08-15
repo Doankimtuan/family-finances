@@ -31,6 +31,7 @@ const feeSchema = z
     amountVnd: positiveVndSchema.optional(),
     quantity: quantitySchema.optional(),
     feeValueVnd: positiveVndSchema,
+    feeAsset: z.string().trim().max(40).nullable().optional(),
     holdingId: z.string().uuid().optional(),
     cashAccountId: z.string().uuid().optional(),
   })
@@ -72,6 +73,22 @@ export const openingPositionInputSchema = z.object({
   idempotencyKey: z.string().trim().min(1).max(200),
 });
 
+export const initialPurchaseInputSchema = z.object({
+  assetName: z.string().trim().min(1).max(160),
+  assetClass: z.enum(INVESTMENT_ASSET_CLASS_VALUES),
+  quantity: quantitySchema,
+  unitPriceVnd: positiveVndSchema,
+  cashAccountId: z.string().uuid(),
+  asOfDate: dateSchema,
+  symbol: z.string().trim().max(40).nullable().optional(),
+  providerCustodian: z.string().trim().max(160).nullable().optional(),
+  fees: z.array(feeSchema).default([]),
+  notes: optionalText,
+  visibilityContext: z
+    .enum(INVESTMENT_VISIBILITY_CONTEXT_VALUES)
+    .default(InvestmentVisibilityContext.HOUSEHOLD),
+  idempotencyKey: z.string().trim().min(1).max(200),
+});
 export const investmentBuyInputSchema = z.object({
   holdingId: z.string().uuid(),
   cashAccountId: z.string().uuid(),
@@ -151,8 +168,7 @@ function mapReceipt(value: unknown): InvestmentCommandReceipt | null {
     beforeQuantity:
       row.beforeQuantity == null ? null : String(row.beforeQuantity),
     afterQuantity: row.afterQuantity == null ? null : String(row.afterQuantity),
-    beforeBasis:
-      row.beforeBasis == null ? null : Number(row.beforeBasis),
+    beforeBasis: row.beforeBasis == null ? null : Number(row.beforeBasis),
     afterBasis: row.afterBasis == null ? null : Number(row.afterBasis),
     cashDelta: Number(row.cashDelta ?? 0),
     realizedResult:
@@ -164,7 +180,9 @@ function mapReceipt(value: unknown): InvestmentCommandReceipt | null {
             source: String(item.source) as InvestmentFeeInput["source"],
             feeValueVnd: Number(item.feeValueVnd),
             transactionId:
-              typeof item.transactionId === "string" ? item.transactionId : null,
+              typeof item.transactionId === "string"
+                ? item.transactionId
+                : null,
           };
         })
       : [],
@@ -205,7 +223,8 @@ export async function createOpeningPosition(
   raw: z.input<typeof openingPositionInputSchema>,
 ): Promise<InvestmentCommandResult> {
   const parsed = openingPositionInputSchema.safeParse(raw);
-  if (!parsed.success) return { ok: false, code: INVESTMENT_ERROR_CODE.INVALID };
+  if (!parsed.success)
+    return { ok: false, code: INVESTMENT_ERROR_CODE.INVALID };
   const value = parsed.data;
   return invokeInvestmentRpc(INVESTMENT_RPC.OPENING_POSITION, {
     p_asset_name: value.assetName,
@@ -226,7 +245,8 @@ export async function recordInvestmentBuy(
   raw: z.input<typeof investmentBuyInputSchema>,
 ): Promise<InvestmentCommandResult> {
   const parsed = investmentBuyInputSchema.safeParse(raw);
-  if (!parsed.success) return { ok: false, code: INVESTMENT_ERROR_CODE.INVALID };
+  if (!parsed.success)
+    return { ok: false, code: INVESTMENT_ERROR_CODE.INVALID };
   const value = parsed.data;
   return invokeInvestmentRpc(INVESTMENT_RPC.BUY, {
     p_holding_id: value.holdingId,
@@ -245,7 +265,8 @@ export async function recordInvestmentSell(
   raw: z.input<typeof investmentSellInputSchema>,
 ): Promise<InvestmentCommandResult> {
   const parsed = investmentSellInputSchema.safeParse(raw);
-  if (!parsed.success) return { ok: false, code: INVESTMENT_ERROR_CODE.INVALID };
+  if (!parsed.success)
+    return { ok: false, code: INVESTMENT_ERROR_CODE.INVALID };
   const value = parsed.data;
   return invokeInvestmentRpc(INVESTMENT_RPC.SELL, {
     p_holding_id: value.holdingId,
@@ -264,7 +285,8 @@ export async function recordAssetConversion(
   raw: z.input<typeof assetConversionInputSchema>,
 ): Promise<InvestmentCommandResult> {
   const parsed = assetConversionInputSchema.safeParse(raw);
-  if (!parsed.success) return { ok: false, code: INVESTMENT_ERROR_CODE.INVALID };
+  if (!parsed.success)
+    return { ok: false, code: INVESTMENT_ERROR_CODE.INVALID };
   const value = parsed.data;
   return invokeInvestmentRpc(INVESTMENT_RPC.CONVERSION, {
     p_source_holding_id: value.sourceHoldingId,
@@ -284,7 +306,8 @@ export async function recordInvestmentIncome(
   raw: z.input<typeof investmentIncomeInputSchema>,
 ): Promise<InvestmentCommandResult> {
   const parsed = investmentIncomeInputSchema.safeParse(raw);
-  if (!parsed.success) return { ok: false, code: INVESTMENT_ERROR_CODE.INVALID };
+  if (!parsed.success)
+    return { ok: false, code: INVESTMENT_ERROR_CODE.INVALID };
   const value = parsed.data;
   return invokeInvestmentRpc(INVESTMENT_RPC.INCOME, {
     p_holding_id: value.holdingId,
@@ -301,7 +324,8 @@ export async function recordInvestmentValuation(
   raw: z.input<typeof investmentValuationInputSchema>,
 ): Promise<InvestmentCommandResult> {
   const parsed = investmentValuationInputSchema.safeParse(raw);
-  if (!parsed.success) return { ok: false, code: INVESTMENT_ERROR_CODE.INVALID };
+  if (!parsed.success)
+    return { ok: false, code: INVESTMENT_ERROR_CODE.INVALID };
   const value = parsed.data;
   return invokeInvestmentRpc(INVESTMENT_RPC.VALUATION, {
     p_holding_id: value.holdingId,
@@ -309,6 +333,29 @@ export async function recordInvestmentValuation(
     p_valuation_date: value.valuationDate,
     p_source: value.source,
     p_notes: value.notes ?? null,
+    p_idempotency_key: value.idempotencyKey,
+  });
+}
+
+export async function createInitialPurchase(
+  raw: z.input<typeof initialPurchaseInputSchema>,
+): Promise<InvestmentCommandResult> {
+  const parsed = initialPurchaseInputSchema.safeParse(raw);
+  if (!parsed.success)
+    return { ok: false, code: INVESTMENT_ERROR_CODE.INVALID };
+  const value = parsed.data;
+  return invokeInvestmentRpc(INVESTMENT_RPC.INITIAL_PURCHASE, {
+    p_asset_name: value.assetName,
+    p_asset_class: value.assetClass,
+    p_quantity: value.quantity,
+    p_unit_price_vnd: value.unitPriceVnd,
+    p_cash_account_id: value.cashAccountId,
+    p_as_of_date: value.asOfDate,
+    p_symbol: value.symbol ?? null,
+    p_provider_custodian: value.providerCustodian ?? null,
+    p_fees: value.fees,
+    p_notes: value.notes ?? null,
+    p_visibility_context: value.visibilityContext,
     p_idempotency_key: value.idempotencyKey,
   });
 }

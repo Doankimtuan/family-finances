@@ -2,6 +2,7 @@
 
 import {
   createOpeningPosition,
+  createInitialPurchase,
   recordAssetConversion,
   recordInvestmentBuy,
   recordInvestmentIncome,
@@ -14,6 +15,11 @@ export async function createOpeningPositionAction(
   input: Parameters<typeof createOpeningPosition>[0],
 ): Promise<InvestmentCommandResult> {
   return createOpeningPosition(input);
+}
+export async function createInitialPurchaseAction(
+  input: Parameters<typeof createInitialPurchase>[0],
+): Promise<InvestmentCommandResult> {
+  return createInitialPurchase(input);
 }
 
 export async function recordInvestmentBuyAction(

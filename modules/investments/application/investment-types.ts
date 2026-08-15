@@ -14,6 +14,7 @@ export type InvestmentFeeInput = {
   amountVnd?: number;
   quantity?: string;
   feeValueVnd: number;
+  feeAsset?: string | null;
   holdingId?: string;
   cashAccountId?: string;
 };
@@ -65,6 +66,10 @@ export type InvestmentValuation = {
 
 export type InvestmentPortfolio = {
   holdings: InvestmentHolding[];
+  activeHoldings: InvestmentHolding[];
+  closedHoldings: InvestmentHolding[];
+  incompleteBasisCount: number;
+  closedPositionCount: number;
   totalCurrentValue: number | null;
   totalRemainingCostBasis: number | null;
   unrealizedResult: number | null;

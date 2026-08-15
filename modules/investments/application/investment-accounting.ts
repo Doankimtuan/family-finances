@@ -1,22 +1,26 @@
 import {
-  addQuantities,
-  consumeWeightedAverageBasis,
-  subtractQuantities,
-} from "./decimal-quantity";
+  AccountingMethod,
+  applyAcquisition,
+  deriveUnrealizedPnl,
+  disposeCostBasis,
+} from "../domain/investment-domain";
 
+/** Backward-compatible facade for existing v1 commands. New lifecycle code should use the domain strategy registry directly. */
 export function applyInvestmentBuy(input: {
   oldQuantity: string;
   oldBasis: number | null;
   boughtQuantity: string;
   totalAcquisitionCost: number;
 }) {
-  return {
-    quantity: addQuantities(input.oldQuantity, input.boughtQuantity),
-    basis:
-      input.oldBasis == null
-        ? null
-        : input.oldBasis + input.totalAcquisitionCost,
-  };
+  const result = applyAcquisition({
+    position: {
+      quantity: input.oldQuantity,
+      remainingCostBasis: input.oldBasis,
+    },
+    quantity: input.boughtQuantity,
+    totalCost: input.totalAcquisitionCost,
+  });
+  return { quantity: result.quantity, basis: result.remainingCostBasis };
 }
 
 export function applyInvestmentConsumption(input: {
@@ -24,22 +28,18 @@ export function applyInvestmentConsumption(input: {
   oldBasis: number | null;
   consumedQuantity: string;
 }) {
-  const consumedBasis = consumeWeightedAverageBasis({
-    basis: input.oldBasis,
-    priorQuantity: input.oldQuantity,
-    consumedQuantity: input.consumedQuantity,
+  const result = disposeCostBasis({
+    position: {
+      quantity: input.oldQuantity,
+      remainingCostBasis: input.oldBasis,
+      accountingMethod: AccountingMethod.WEIGHTED_AVERAGE,
+    },
+    quantity: input.consumedQuantity,
   });
-  const quantity = subtractQuantities(
-    input.oldQuantity,
-    input.consumedQuantity,
-  );
   return {
-    quantity,
-    consumedBasis,
-    basis:
-      input.oldBasis == null || consumedBasis == null
-        ? null
-        : input.oldBasis - consumedBasis,
+    quantity: result.remainingQuantity,
+    consumedBasis: result.disposedCostBasis,
+    basis: result.remainingCostBasis,
   };
 }
 
@@ -47,11 +47,8 @@ export function deriveUnrealizedResult(
   currentValue: number | null,
   remainingBasis: number | null,
 ): number | null {
-  return currentValue == null || remainingBasis == null
-    ? null
-    : currentValue - remainingBasis;
+  return deriveUnrealizedPnl(currentValue, remainingBasis);
 }
-
 export function deriveSlippage(input: {
   quotedValue: number | null;
   executedValue: number;
