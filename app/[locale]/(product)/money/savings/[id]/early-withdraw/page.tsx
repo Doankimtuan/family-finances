@@ -15,6 +15,7 @@ import {
   shouldWarnPenalty,
   CycleStatus,
   InterestCalcMethod,
+  EarlySettlementRule,
 } from "@/modules/savings/application";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Page } from "@/shared/patterns/page";
@@ -28,23 +29,28 @@ export default async function EarlyWithdrawPage({ params }: Props) {
   const { locale: raw, id } = await params;
   const locale = hasLocale(routing.locales, raw) ? raw : routing.defaultLocale;
   setLocale(locale);
-
   const user = await getSessionUser();
   if (!user) return redirect({ href: APP_PATH.LOGIN, locale });
-  if (!(await resolveActiveMembership(user.id))) {
+  if (!(await resolveActiveMembership(user.id)))
     return redirect({ href: APP_PATH.ONBOARD, locale });
-  }
-
   const [t, saving] = await Promise.all([
     getTranslations("money.savingsEarlyWithdraw"),
     getSaving(id),
   ]);
-
   const cycle = saving?.latestCycle;
-  if (!saving || !cycle || cycle.status !== CycleStatus.ACTIVE) {
+  if (
+    !saving ||
+    !cycle ||
+    cycle.status !== CycleStatus.ACTIVE ||
+    saving.productSnapshot.earlySettlementRule ===
+      EarlySettlementRule.NOT_ALLOWED
+  ) {
     return (
       <Page topBar={<TopAppBar title={t("title")} />}>
-        <EmptyState title={t("title")} className="flex-none py-(--space-4)" />
+        <EmptyState
+          title={!saving || !cycle ? t("title") : t("capabilityUnavailable")}
+          className="flex-none py-(--space-4)"
+        />
         <Link
           href={moneySavingsPath(id)}
           className="text-sm font-medium text-accent"
@@ -54,7 +60,6 @@ export default async function EarlyWithdrawPage({ params }: Props) {
       </Page>
     );
   }
-
   const preview = previewEarlyWithdrawal({
     principal: cycle.principal,
     annualRate: cycle.lockedRate,
@@ -66,7 +71,6 @@ export default async function EarlyWithdrawPage({ params }: Props) {
       InterestCalcMethod.SIMPLE,
     packageSnapshot: cycle.packageSnapshot,
   });
-
   return (
     <Page
       testId="money-savings-early-withdraw"
@@ -76,10 +80,7 @@ export default async function EarlyWithdrawPage({ params }: Props) {
       <EarlyWithdrawForm
         savingId={saving.id}
         cycleId={cycle.id}
-        preview={{
-          ...preview,
-          warnPenalty: shouldWarnPenalty(preview),
-        }}
+        preview={{ ...preview, warnPenalty: shouldWarnPenalty(preview) }}
       />
     </Page>
   );

@@ -2,6 +2,7 @@ import type {
   SavingStatus,
   CycleStatus,
   SavingType,
+  SavingsFamily,
   InterestCalcMethod,
   SettlementRule,
   SettlementAction,
@@ -12,6 +13,8 @@ import type {
   RecommendationReasonCode,
   MaturityWarningCode,
   RenewalSuggestedAction,
+  MaturityTargetMode,
+  MaturityFallbackPolicy,
 } from "./savings-constants";
 import {
   SavingStatus as SavingStatusConst,
@@ -22,23 +25,45 @@ import {
   InterestCalcMethod as InterestCalcMethodConst,
   PenaltyStrategy as PenaltyStrategyConst,
   SAVING_TYPE_VALUES,
+  savingsFamilyForType,
   SETTLEMENT_RULE_VALUES,
   RENEWAL_POLICY_VALUES,
+  MaturityTargetMode as MaturityTargetModeConst,
+  MaturityFallbackPolicy as MaturityFallbackPolicyConst,
 } from "./savings-constants";
 import {
   mapLegacyRenewalPreference,
   defaultRenewalConfigForLegacyPreference,
 } from "./renewal-policy-map";
+import type {
+  SavingsFamily as CanonicalSavingsFamily,
+  SavingsTermUnit,
+  SavingsTaxRule,
+  EarlySettlementRule,
+} from "./savings-domain-rules";
 
 /** Saved preference config — never auto-executes ledger (BR-01). */
 export type RenewalConfig = {
   preferredPackageId: string | null;
   preferredSettlementRule: SettlementRule;
   preferredSettlementAccountId: string | null;
+  targetMode?: MaturityTargetMode;
+  targetPackageId?: string | null;
+  payoutAccountId?: string | null;
+  fallbackPolicy?: MaturityFallbackPolicy;
+};
+
+export type MaturityInstruction = {
+  strategy: SettlementRule;
+  targetMode: MaturityTargetMode;
+  targetPackageId: string | null;
+  payoutAccountId: string | null;
+  fallbackPolicy: MaturityFallbackPolicy;
 };
 
 /** Immutable product configuration snapshot at creation time. */
 export type ProductSnapshot = {
+  packageId?: string;
   providerId: string;
   productName: string;
   packageName: string;
@@ -51,10 +76,23 @@ export type ProductSnapshot = {
   renewalPolicy?: RenewalPolicy;
   penaltyStrategy: PenaltyStrategy;
   providerRules: Record<string, unknown>;
+  savingsFamily?: CanonicalSavingsFamily;
+  providerNameSnapshot?: string;
+  providerKey?: string;
+  currency?: string;
+  taxRule?: SavingsTaxRule;
+  taxRatePercent?: number;
+  termAmount?: number;
+  termUnit?: SavingsTermUnit;
+  settlementRules?: SettlementRule[];
+  earlySettlementRule?: EarlySettlementRule;
+  earlySettlementRatePercent?: number | null;
+  supportsPartialSettlement?: boolean;
 };
 
 /** Immutable package configuration snapshot at cycle start. */
 export type PackageSnapshot = {
+  packageId?: string;
   packageName: string;
   durationDays: number;
   annualInterestRate: number;
@@ -63,6 +101,15 @@ export type PackageSnapshot = {
   renewableAvailable: boolean;
   minAmount: number | null;
   maxAmount: number | null;
+  termAmount?: number;
+  termUnit?: SavingsTermUnit;
+  interestCalculationMethod?: InterestCalcMethod;
+  currency?: string;
+  taxRule?: SavingsTaxRule;
+  taxRatePercent?: number;
+  earlySettlementRule?: EarlySettlementRule;
+  earlySettlementRatePercent?: number | null;
+  supportsPartialSettlement?: boolean;
 };
 
 /** Penalty rule from provider configuration. */
@@ -82,6 +129,16 @@ export type SettlementResult = {
   netAmount: number;
   settledAt: string;
   settledToAccountId: string;
+  grossInterest?: number;
+  tax?: number;
+  fee?: number;
+  netInterest?: number;
+  totalCashReceived?: number;
+  taxRule?: string;
+  taxRatePercent?: number;
+  transferGroupId?: string;
+  interestTransactionId?: string;
+  taxTransactionId?: string;
 };
 
 /** Immutable renewal decision recorded on a closed/rolled cycle. */
@@ -116,14 +173,18 @@ export type Saving = {
   settlementAccountName: string | null;
   providerId: string;
   providerName: string | null;
+  providerSavingType: SavingType;
+  savingsFamily: SavingsFamily;
   productName: string;
   productSnapshot: ProductSnapshot;
   renewalPolicy: RenewalPolicy;
   renewalConfig: RenewalConfig;
+  maturityInstruction: MaturityInstruction;
   /** @deprecated Use renewalPolicy. */
   renewalPreference: RenewalPolicy;
   createdAt: string;
   latestCycle: SavingCycle | null;
+  maturityActionRequired?: boolean;
 };
 
 /** Individual cycle within a saving. */
@@ -143,7 +204,36 @@ export type SavingCycle = {
   fundingTransactionId: string | null;
   settlementTransactionId: string | null;
   createdAt: string;
+  previousCycleId: string | null;
+  nextCycleId: string | null;
 };
+
+export type SavingsFinancialActivity = {
+  id: string;
+  eventKind: string;
+  amount: number;
+  currency: string;
+  date: string;
+  note: string | null;
+};
+
+export function selectCurrentSavingCycle(
+  cycles: readonly SavingCycle[],
+): SavingCycle | null {
+  const byNewest = (left: SavingCycle, right: SavingCycle) =>
+    right.cycleNumber - left.cycleNumber ||
+    right.createdAt.localeCompare(left.createdAt);
+  return (
+    [...cycles]
+      .filter((cycle) => cycle.status === CycleStatusConst.ACTIVE)
+      .sort(byNewest)[0] ??
+    [...cycles]
+      .filter((cycle) => cycle.status === CycleStatusConst.MATURED)
+      .sort(byNewest)[0] ??
+    [...cycles].sort(byNewest)[0] ??
+    null
+  );
+}
 
 /** Provider entity. */
 export type SavingProvider = {
@@ -153,6 +243,10 @@ export type SavingProvider = {
   savingType: SavingType;
   isActive: boolean;
   metadata: Record<string, unknown>;
+  family?: CanonicalSavingsFamily;
+  iconKey?: string;
+  householdId?: string | null;
+  isSystem?: boolean;
 };
 
 /** Provider package entity. */
@@ -168,6 +262,15 @@ export type SavingPackage = {
   penaltyRules: PenaltyRule[];
   renewableAvailable: boolean;
   isActive: boolean;
+  termAmount?: number;
+  termUnit?: SavingsTermUnit;
+  interestCalculationMethod?: InterestCalcMethod;
+  currency?: string;
+  taxRule?: SavingsTaxRule;
+  taxRatePercent?: number;
+  earlySettlementRule?: EarlySettlementRule;
+  earlySettlementRatePercent?: number | null;
+  supportsPartialSettlement?: boolean;
 };
 
 /** Early withdrawal audit record. */
@@ -253,6 +356,52 @@ function parseRenewalConfig(
       typeof obj.preferredSettlementAccountId === "string"
         ? obj.preferredSettlementAccountId
         : null,
+    targetMode:
+      obj.targetMode === MaturityTargetModeConst.SELECT_PACKAGE ||
+      obj.targetMode === MaturityTargetModeConst.KEEP_CURRENT_PACKAGE
+        ? obj.targetMode
+        : undefined,
+    targetPackageId:
+      typeof obj.targetPackageId === "string" ? obj.targetPackageId : null,
+    payoutAccountId:
+      typeof obj.payoutAccountId === "string" ? obj.payoutAccountId : null,
+    fallbackPolicy: MaturityFallbackPolicyConst.ASK_USER,
+  };
+}
+
+function parseMaturityInstruction(
+  raw: unknown,
+  config: RenewalConfig,
+  productSnapshot: ProductSnapshot,
+): MaturityInstruction {
+  const value =
+    raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
+  const strategy = (SETTLEMENT_RULE_VALUES as readonly string[]).includes(
+    String(value.strategy),
+  )
+    ? (String(value.strategy) as SettlementRule)
+    : (config.preferredSettlementRule ?? productSnapshot.settlementRule);
+  const targetMode =
+    value.targetMode === MaturityTargetModeConst.SELECT_PACKAGE
+      ? MaturityTargetModeConst.SELECT_PACKAGE
+      : MaturityTargetModeConst.KEEP_CURRENT_PACKAGE;
+  return {
+    strategy,
+    targetMode,
+    targetPackageId:
+      typeof value.targetPackageId === "string"
+        ? value.targetPackageId
+        : (config.targetPackageId ??
+          config.preferredPackageId ??
+          productSnapshot.packageId ??
+          null),
+    payoutAccountId:
+      typeof value.payoutAccountId === "string"
+        ? value.payoutAccountId
+        : (config.payoutAccountId ??
+          config.preferredSettlementAccountId ??
+          null),
+    fallbackPolicy: MaturityFallbackPolicyConst.ASK_USER,
   };
 }
 
@@ -261,6 +410,10 @@ export function emptyRenewalConfig(): RenewalConfig {
     preferredPackageId: null,
     preferredSettlementRule: SettlementRuleConst.ROLL_PRINCIPAL_INTEREST,
     preferredSettlementAccountId: null,
+    targetMode: MaturityTargetModeConst.KEEP_CURRENT_PACKAGE,
+    targetPackageId: null,
+    payoutAccountId: null,
+    fallbackPolicy: MaturityFallbackPolicyConst.ASK_USER,
   };
 }
 
@@ -271,6 +424,10 @@ export function mapProviderRow(row: {
   saving_type: string;
   is_active: boolean;
   metadata: Record<string, unknown> | null;
+  family?: string | null;
+  icon_key?: string | null;
+  household_id?: string | null;
+  is_system?: boolean;
 }): SavingProvider {
   return {
     id: row.id,
@@ -279,6 +436,13 @@ export function mapProviderRow(row: {
     savingType: asSavingType(row.saving_type),
     isActive: Boolean(row.is_active),
     metadata: row.metadata ?? {},
+    family:
+      row.family === "BANK" || row.family === "PLATFORM"
+        ? (row.family as CanonicalSavingsFamily)
+        : undefined,
+    iconKey: row.icon_key ?? undefined,
+    householdId: row.household_id ?? null,
+    isSystem: row.is_system ?? row.household_id == null,
   };
 }
 
@@ -294,6 +458,15 @@ export function mapPackageRow(row: {
   penalty_rules: unknown;
   renewable_available: boolean;
   is_active: boolean;
+  term_amount?: number | null;
+  term_unit?: string | null;
+  interest_calculation_method?: string | null;
+  currency?: string | null;
+  tax_rule?: string | null;
+  tax_rate_percent?: number | string | null;
+  early_settlement_rule?: string | null;
+  early_settlement_rate_percent?: number | string | null;
+  supports_partial_settlement?: boolean | null;
 }): SavingPackage {
   const toNum = (v: number | string | null) =>
     v == null ? null : typeof v === "string" ? Number(v) : Number(v);
@@ -322,6 +495,36 @@ export function mapPackageRow(row: {
     penaltyRules,
     renewableAvailable: Boolean(row.renewable_available),
     isActive: Boolean(row.is_active),
+    termAmount: row.term_amount == null ? undefined : Number(row.term_amount),
+    termUnit:
+      row.term_unit === "DAY" || row.term_unit === "MONTH"
+        ? (row.term_unit as SavingsTermUnit)
+        : undefined,
+    interestCalculationMethod:
+      row.interest_calculation_method === "simple" ||
+      row.interest_calculation_method === "compound_daily" ||
+      row.interest_calculation_method === "compound_monthly"
+        ? (row.interest_calculation_method as InterestCalcMethod)
+        : undefined,
+    currency: row.currency ?? undefined,
+    taxRule:
+      row.tax_rule === "NONE" || row.tax_rule === "PROFIT_PERCENTAGE"
+        ? (row.tax_rule as SavingsTaxRule)
+        : undefined,
+    taxRatePercent: toNum(row.tax_rate_percent ?? null) ?? undefined,
+    earlySettlementRule:
+      row.early_settlement_rule === "NOT_ALLOWED" ||
+      row.early_settlement_rule === "RETURN_PRINCIPAL_ONLY" ||
+      row.early_settlement_rule === "CUSTOM_RATE" ||
+      row.early_settlement_rule === "PENALTY" ||
+      row.early_settlement_rule === "CUSTOM"
+        ? (row.early_settlement_rule as EarlySettlementRule)
+        : undefined,
+    earlySettlementRatePercent:
+      row.early_settlement_rate_percent == null
+        ? undefined
+        : toNum(row.early_settlement_rate_percent),
+    supportsPartialSettlement: row.supports_partial_settlement ?? undefined,
   };
 }
 
@@ -337,6 +540,7 @@ export function mapSavingRow(row: {
   renewal_preference?: string;
   renewal_policy?: string;
   renewal_config?: unknown;
+  maturity_instruction?: unknown;
   created_at: string;
   funding_accounts?: { name: string }[] | { name: string } | null;
   settlement_accounts?: { name: string }[] | { name: string } | null;
@@ -368,14 +572,20 @@ export function mapSavingRow(row: {
   }
 
   const rawPolicy = row.renewal_policy ?? row.renewal_preference ?? "";
-  const renewalPolicy =
-    (RENEWAL_POLICY_VALUES as readonly string[]).includes(rawPolicy)
-      ? (rawPolicy as RenewalPolicy)
-      : mapLegacyRenewalPreference(rawPolicy);
+  const renewalPolicy = (RENEWAL_POLICY_VALUES as readonly string[]).includes(
+    rawPolicy,
+  )
+    ? (rawPolicy as RenewalPolicy)
+    : mapLegacyRenewalPreference(rawPolicy);
 
   const renewalConfig = parseRenewalConfig(
     row.renewal_config,
     row.renewal_preference ?? row.renewal_policy,
+  );
+  const maturityInstruction = parseMaturityInstruction(
+    row.maturity_instruction,
+    renewalConfig,
+    productSnapshot,
   );
 
   const fundingAccount =
@@ -406,14 +616,23 @@ export function mapSavingRow(row: {
     settlementAccountId: row.settlement_account_id,
     settlementAccountName: settlementAccount?.name ?? null,
     providerId: row.provider_id,
-    providerName: provider?.display_name ?? null,
+    providerName:
+      (typeof productSnapshot.providerNameSnapshot === "string"
+        ? productSnapshot.providerNameSnapshot
+        : provider?.display_name) ?? null,
+    providerSavingType: asSavingType(provider?.saving_type ?? ""),
+    savingsFamily:
+      productSnapshot.savingsFamily ??
+      savingsFamilyForType(asSavingType(provider?.saving_type ?? "")),
     productName: row.product_name,
     productSnapshot,
     renewalPolicy,
     renewalConfig,
+    maturityInstruction,
     renewalPreference: renewalPolicy,
     createdAt: row.created_at,
     latestCycle: null,
+    maturityActionRequired: false,
   };
 }
 
@@ -429,6 +648,8 @@ export function mapSavingCycleRow(row: {
   accrued_interest: number | string;
   settlement_result: unknown;
   renewal_decision?: unknown;
+  previous_cycle_id?: string | null;
+  next_cycle_id?: string | null;
   status: string;
   funding_transaction_id: string | null;
   settlement_transaction_id: string | null;
@@ -509,6 +730,8 @@ export function mapSavingCycleRow(row: {
     fundingTransactionId: row.funding_transaction_id,
     settlementTransactionId: row.settlement_transaction_id,
     createdAt: row.created_at,
+    previousCycleId: row.previous_cycle_id ?? null,
+    nextCycleId: row.next_cycle_id ?? null,
   };
 }
 

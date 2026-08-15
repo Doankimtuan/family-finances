@@ -1,19 +1,26 @@
 "use client";
 
+import { AnimatePresence, motion } from "motion/react";
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
+import { CheckmarkCircle02Icon } from "@hugeicons/core-free-icons";
 import {
+  MaturityFallbackPolicy,
+  MaturityTargetMode,
   RenewalPolicy,
   RENEWAL_POLICY_VALUES,
   SETTLEMENT_RULE_VALUES,
-  type RenewalPolicy as RenewalPolicyType,
-  type SettlementRule as SettlementRuleType,
+  SettlementRule,
 } from "@/modules/savings/application/savings-constants";
 import type { RenewalConfig } from "@/modules/savings/application/savings-types";
+import { AppIcon } from "@/shared/ui/app-icon";
 import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
 import { StatusAlert } from "@/shared/ui/status-alert";
+import { Sheet, SheetContent } from "@/shared/patterns/sheet";
+import { SheetActionFooter } from "@/shared/patterns/sheet-action-footer";
+import { motionTokens } from "@/shared/motion";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import {
   CLIENT_ACTION_ERROR_CODE,
@@ -22,153 +29,311 @@ import {
 import { updateRenewalPolicyAction } from "../savings-actions";
 
 type PackageOption = { id: string; packageName: string };
-
+type AccountOption = { id: string; name: string };
 type Props = {
   savingId: string;
-  renewalPolicy: RenewalPolicyType;
+  renewalPolicy: RenewalPolicy;
   renewalConfig: RenewalConfig;
   packages: PackageOption[];
+  accounts: AccountOption[];
 };
-
 type ErrorCode =
   ProductActionErrorCode | typeof CLIENT_ACTION_ERROR_CODE.OFFLINE;
 
-function needsConfig(policy: string): boolean {
+function Card({
+  selected,
+  onPress,
+  children,
+  testId,
+}: {
+  selected: boolean;
+  onPress: () => void;
+  children: React.ReactNode;
+  testId: string;
+}) {
   return (
-    policy === RenewalPolicy.USE_SAVED_PREFERENCE ||
-    policy === RenewalPolicy.AUTO_RENEW_UNTIL_CANCELLED ||
-    policy === RenewalPolicy.ONE_TIME_RENEWAL
+    <button
+      type="button"
+      aria-pressed={selected}
+      data-testid={testId}
+      onClick={onPress}
+      className={`flex min-h-11 w-full items-center justify-between gap-(--space-3) rounded-[var(--radius-control)] border px-(--space-3) py-(--space-3) text-left focus-visible:outline-2 focus-visible:outline-focus-ring ${selected ? "border-accent bg-accent-soft" : "border-border-subtle bg-surface hover:border-accent/50"}`}
+    >
+      {children}
+      {selected ? (
+        <AppIcon
+          icon={CheckmarkCircle02Icon}
+          size="sm"
+          className="shrink-0 text-accent"
+        />
+      ) : null}
+    </button>
   );
 }
 
-/** Edit renewal policy on an active saving (recommendation only). */
 export function RenewalPolicyEditor({
   savingId,
   renewalPolicy: initialPolicy,
   renewalConfig: initialConfig,
   packages,
+  accounts,
 }: Props) {
   const t = useTranslations("money.savingsDetail");
   const tErr = useTranslations("money.products.errors");
   const router = useRouter();
   const { online } = useOnlineStatusClient();
-  const [policy, setPolicy] = useState<string>(initialPolicy);
-  const [settlementRule, setSettlementRule] = useState<string>(
+  const [isOpen, setIsOpen] = useState(false);
+  const [policy, setPolicy] = useState(initialPolicy);
+  const [strategy, setStrategy] = useState(
     initialConfig.preferredSettlementRule,
   );
-  const [preferredPackageId, setPreferredPackageId] = useState(
-    initialConfig.preferredPackageId ?? packages[0]?.id ?? "",
+  const [targetMode, setTargetMode] = useState<MaturityTargetMode>(
+    initialConfig.targetMode ??
+      (initialConfig.preferredPackageId
+        ? MaturityTargetMode.SELECT_PACKAGE
+        : MaturityTargetMode.KEEP_CURRENT_PACKAGE),
+  );
+  const [packageId, setPackageId] = useState(
+    initialConfig.targetPackageId ??
+      initialConfig.preferredPackageId ??
+      packages[0]?.id ??
+      "",
+  );
+  const [accountId, setAccountId] = useState(
+    initialConfig.payoutAccountId ??
+      initialConfig.preferredSettlementAccountId ??
+      accounts[0]?.id ??
+      "",
   );
   const [errorCode, setErrorCode] = useState<ErrorCode | null>(null);
   const [isPending, startTransition] = useTransition();
+  const needsPayout = strategy !== SettlementRule.ROLL_PRINCIPAL_INTEREST;
+  const needsTarget = strategy !== SettlementRule.WITHDRAW_EVERYTHING;
+
+  function reset() {
+    setPolicy(initialPolicy);
+    setStrategy(initialConfig.preferredSettlementRule);
+    setTargetMode(
+      initialConfig.targetMode ??
+        (initialConfig.preferredPackageId
+          ? MaturityTargetMode.SELECT_PACKAGE
+          : MaturityTargetMode.KEEP_CURRENT_PACKAGE),
+    );
+    setPackageId(
+      initialConfig.targetPackageId ??
+        initialConfig.preferredPackageId ??
+        packages[0]?.id ??
+        "",
+    );
+    setAccountId(
+      initialConfig.payoutAccountId ??
+        initialConfig.preferredSettlementAccountId ??
+        accounts[0]?.id ??
+        "",
+    );
+    setErrorCode(null);
+  }
+
+  function close() {
+    reset();
+    setIsOpen(false);
+  }
+
+  function save() {
+    if (!online) {
+      setErrorCode(CLIENT_ACTION_ERROR_CODE.OFFLINE);
+      return;
+    }
+    startTransition(async () => {
+      const result = await updateRenewalPolicyAction({
+        savingId,
+        renewalPolicy: policy,
+        renewalConfig: {
+          preferredPackageId:
+            needsTarget && targetMode === MaturityTargetMode.SELECT_PACKAGE
+              ? packageId
+              : null,
+          preferredSettlementRule: strategy,
+          preferredSettlementAccountId: needsPayout ? accountId : null,
+          targetMode,
+          targetPackageId:
+            needsTarget && targetMode === MaturityTargetMode.SELECT_PACKAGE
+              ? packageId
+              : null,
+          payoutAccountId: needsPayout ? accountId : null,
+          fallbackPolicy: MaturityFallbackPolicy.ASK_USER,
+        },
+      });
+      if (result.status === "success") {
+        close();
+        router.refresh();
+      } else {
+        setErrorCode(result.code);
+      }
+    });
+  }
 
   return (
-    <section
-      className="flex flex-col gap-(--space-3)"
-      data-testid="savings-renewal-policy-editor"
+    <Sheet
+      isOpen={isOpen}
+      onOpenChange={(open) => {
+        if (open) {
+          reset();
+          setIsOpen(true);
+        } else {
+          close();
+        }
+      }}
     >
-      <Text size="sm" className="font-semibold text-text-primary">
-        {t("renewalPolicyTitle")}
-      </Text>
-      <Text size="sm" tone="secondary">
-        {t("renewalPolicyHint")}
-      </Text>
-      {errorCode ? (
-        <StatusAlert variant="danger" title={tErr(errorCode)} />
-      ) : null}
-      <label className="flex flex-col gap-(--space-2)">
-        <Text size="sm" className="font-semibold">
-          {t("renewalPolicyLabel")}
-        </Text>
-        <select
-          className="min-h-11 w-full rounded-md border border-border-subtle bg-canvas px-(--space-3) text-sm"
-          value={policy}
-          onChange={(e) => setPolicy(e.target.value)}
-          data-testid="savings-detail-renewal-policy"
-        >
-          {RENEWAL_POLICY_VALUES.map((value) => (
-            <option key={value} value={value}>
-              {t(`renewalPolicies.${value}`)}
-            </option>
-          ))}
-        </select>
-      </label>
-      {needsConfig(policy) ? (
-        <>
-          <label className="flex flex-col gap-(--space-2)">
-            <Text size="sm" className="font-semibold">
-              {t("preferredSettlementRuleLabel")}
-            </Text>
-            <select
-              className="min-h-11 w-full rounded-md border border-border-subtle bg-canvas px-(--space-3) text-sm"
-              value={settlementRule}
-              onChange={(e) => setSettlementRule(e.target.value)}
-            >
-              {SETTLEMENT_RULE_VALUES.map((value) => (
-                <option key={value} value={value}>
-                  {t(`settlementRules.${value}`)}
-                </option>
-              ))}
-            </select>
-          </label>
-          {packages.length > 0 ? (
-            <label className="flex flex-col gap-(--space-2)">
-              <Text size="sm" className="font-semibold">
-                {t("preferredPackageLabel")}
-              </Text>
-              <select
-                className="min-h-11 w-full rounded-md border border-border-subtle bg-canvas px-(--space-3) text-sm"
-                value={preferredPackageId}
-                onChange={(e) => setPreferredPackageId(e.target.value)}
-              >
-                {packages.map((pkg) => (
-                  <option key={pkg.id} value={pkg.id}>
-                    {pkg.packageName}
-                  </option>
-                ))}
-              </select>
-            </label>
-          ) : null}
-        </>
-      ) : null}
       <Button
         variant="secondary"
         className="min-h-11 w-full"
-        data-testid="savings-detail-save-policy"
-        isDisabled={isPending || !online}
-        onPress={() => {
-          if (!online) {
-            setErrorCode(CLIENT_ACTION_ERROR_CODE.OFFLINE);
-            return;
-          }
-          startTransition(async () => {
-            const result = await updateRenewalPolicyAction({
-              savingId,
-              renewalPolicy: policy as RenewalPolicyType,
-              renewalConfig: needsConfig(policy)
-                ? {
-                    preferredPackageId: preferredPackageId || null,
-                    preferredSettlementRule:
-                      settlementRule as SettlementRuleType,
-                    preferredSettlementAccountId:
-                      initialConfig.preferredSettlementAccountId,
-                  }
-                : undefined,
-            });
-            if (result.status === "success") {
-              router.refresh();
-              return;
-            }
-            setErrorCode(
-              result.status === "error"
-                ? result.code
-                : CLIENT_ACTION_ERROR_CODE.OFFLINE,
-            );
-          });
-        }}
+        data-testid="savings-edit-maturity"
+        onPress={() => setIsOpen(true)}
       >
-        {isPending ? t("savingPolicy") : t("savePolicy")}
+        {t("editMaturity")}
       </Button>
-    </section>
+      <SheetContent>
+        <Sheet.Header>
+          <Sheet.Heading>{t("maturityInstructionTitle")}</Sheet.Heading>
+        </Sheet.Header>
+        <Sheet.Body className="flex max-h-[70dvh] flex-col gap-(--space-4) overflow-y-auto">
+          {errorCode ? (
+            <StatusAlert variant="danger" title={tErr(errorCode)} />
+          ) : null}
+          <div
+            className="flex flex-col gap-(--space-2)"
+            role="group"
+            aria-label={t("renewalPolicyLabel")}
+          >
+            <Text size="sm" weight="semibold">
+              {t("renewalPolicyLabel")}
+            </Text>
+            {RENEWAL_POLICY_VALUES.map((value) => (
+              <Card
+                key={value}
+                selected={policy === value}
+                onPress={() => setPolicy(value)}
+                testId={`savings-detail-policy-${value}`}
+              >
+                <Text size="sm" weight="medium">
+                  {t(`renewalPolicies.${value}` as never)}
+                </Text>
+              </Card>
+            ))}
+          </div>
+          <div
+            className="flex flex-col gap-(--space-2)"
+            role="group"
+            aria-label={t("maturityStrategyLabel")}
+          >
+            <Text size="sm" weight="semibold">
+              {t("maturityStrategyLabel")}
+            </Text>
+            {SETTLEMENT_RULE_VALUES.map((value) => (
+              <Card
+                key={value}
+                selected={strategy === value}
+                onPress={() => setStrategy(value)}
+                testId={`savings-detail-strategy-${value}`}
+              >
+                <Text size="sm" weight="medium">
+                  {t(`settlementRules.${value}` as never)}
+                </Text>
+              </Card>
+            ))}
+          </div>
+          <AnimatePresence initial={false} mode="wait">
+            {needsTarget ? (
+              <motion.div
+                key="target"
+                initial={{ opacity: 0, y: motionTokens.distance.xs }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -motionTokens.distance.xs }}
+                transition={{
+                  duration: motionTokens.duration.fast,
+                  ease: motionTokens.easing.standard,
+                }}
+                className="flex flex-col gap-(--space-2)"
+              >
+                <Text size="sm" weight="semibold">
+                  {t("targetPackageLabel")}
+                </Text>
+                <Card
+                  selected={
+                    targetMode === MaturityTargetMode.KEEP_CURRENT_PACKAGE
+                  }
+                  onPress={() =>
+                    setTargetMode(MaturityTargetMode.KEEP_CURRENT_PACKAGE)
+                  }
+                  testId="savings-detail-target-current"
+                >
+                  <Text size="sm" weight="medium">
+                    {t("keepCurrentPackage")}
+                  </Text>
+                </Card>
+                <Card
+                  selected={targetMode === MaturityTargetMode.SELECT_PACKAGE}
+                  onPress={() =>
+                    setTargetMode(MaturityTargetMode.SELECT_PACKAGE)
+                  }
+                  testId="savings-detail-target-other"
+                >
+                  <Text size="sm" weight="medium">
+                    {t("chooseOtherPackage")}
+                  </Text>
+                </Card>
+                {targetMode === MaturityTargetMode.SELECT_PACKAGE
+                  ? packages.map((pkg) => (
+                      <Card
+                        key={pkg.id}
+                        selected={packageId === pkg.id}
+                        onPress={() => setPackageId(pkg.id)}
+                        testId={`savings-detail-target-package-${pkg.id}`}
+                      >
+                        <Text size="sm" weight="medium">
+                          {pkg.packageName}
+                        </Text>
+                      </Card>
+                    ))
+                  : null}
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
+          {needsPayout ? (
+            <div className="flex flex-col gap-(--space-2)">
+              <Text size="sm" weight="semibold">
+                {t("payoutAccountLabel")}
+              </Text>
+              {accounts.map((account) => (
+                <Card
+                  key={account.id}
+                  selected={accountId === account.id}
+                  onPress={() => setAccountId(account.id)}
+                  testId={`savings-detail-payout-${account.id}`}
+                >
+                  <Text size="sm" weight="medium">
+                    {account.name}
+                  </Text>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <Text size="xs" tone="secondary">
+              {t("noPayoutNeeded")}
+            </Text>
+          )}
+        </Sheet.Body>
+        <SheetActionFooter
+          secondaryLabel={t("back")}
+          primaryLabel={isPending ? t("savingPolicy") : t("savePolicy")}
+          primaryTestId="savings-detail-save-policy"
+          isDisabled={!online}
+          isPending={isPending}
+          onSecondary={close}
+          onPrimary={save}
+        />
+      </SheetContent>
+    </Sheet>
   );
 }

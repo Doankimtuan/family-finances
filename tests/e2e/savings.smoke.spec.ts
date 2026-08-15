@@ -36,19 +36,46 @@ test.describe("Savings Phase F6 smoke", () => {
     const wizard = page.getByTestId("savings-create-wizard");
     if ((await wizard.count()) > 0) {
       await expect(wizard).toBeVisible();
-      await expect(page.getByTestId("savings-wizard-funding")).toBeVisible();
-      await page.getByTestId("savings-wizard-next").click();
-      await page.getByTestId("savings-wizard-next").click();
-      await page.getByTestId("savings-wizard-next").click();
+      await expect(page.getByTestId("savings-step-indicator")).toBeVisible();
+      await expect(
+        page.getByTestId(
+          "savings-provider-" +
+            (
+              await page
+                .locator("[data-testid^=savings-provider-]")
+                .first()
+                .getAttribute("data-testid")
+            ).replace("savings-provider-", ""),
+        ),
+      ).toBeVisible();
       const firstPackage = page
-        .locator("[data-testid^=savings-wizard-package-]")
+        .locator("[data-testid^=savings-package-]")
         .first();
       if ((await firstPackage.count()) > 0) {
         await firstPackage.click();
-        await page.locator("#savings-principal").fill("1000000");
+        await page.screenshot({
+          path: test.info().outputPath("savings-product.png"),
+          fullPage: true,
+        });
         await page.getByTestId("savings-wizard-next").click();
-        await expect(page.getByTestId("savings-wizard-preview")).toBeVisible();
-        await expect(page.getByTestId("savings-wizard-confirm")).toBeVisible();
+        await expect(page.getByTestId("savings-estimate")).toBeVisible();
+        await page.locator("#savings-principal").fill("1000000");
+        await expect(page.getByTestId("savings-estimate")).toContainText(
+          "1,000,000",
+        );
+        await page.screenshot({
+          path: test.info().outputPath("savings-deposit.png"),
+          fullPage: true,
+        });
+        await page.getByTestId("savings-wizard-next").click();
+        await expect(page.getByTestId("savings-review-summary")).toBeVisible();
+        await expect(
+          page.getByText(/You receive at maturity|Maturity amount/).first(),
+        ).toBeVisible();
+        await page.screenshot({
+          path: test.info().outputPath("savings-review.png"),
+          fullPage: true,
+        });
       }
     }
 

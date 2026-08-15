@@ -11,6 +11,11 @@ export {
   INTEREST_CALC_METHOD_VALUES,
   SettlementRule,
   SETTLEMENT_RULE_VALUES,
+  MaturityTargetMode,
+  MATURITY_TARGET_MODE_VALUES,
+  MaturityFallbackPolicy,
+  SavingsMaturityState,
+  SavingsEventKind,
   SettlementAction,
   SETTLEMENT_ACTION_VALUES,
   RenewalPolicy,
@@ -44,9 +49,11 @@ export type {
   PenaltyRule,
   EarlyWithdrawal,
   RenewalConfig,
+  MaturityInstruction,
   RenewalDecision,
   PackageRecommendation,
   MaturityWarning,
+  SavingsFinancialActivity,
 } from "./savings-types";
 
 export {
@@ -56,6 +63,7 @@ export {
   mapPackageRow,
   mapEarlyWithdrawalRow,
   emptyRenewalConfig,
+  selectCurrentSavingCycle,
 } from "./savings-types";
 
 export {
@@ -147,9 +155,35 @@ export {
   listSavings,
   getSaving,
   listSavingCycles,
+  listSavingsFinancialActivities,
 } from "./queries/list-savings";
 
 export {
   getSavingsHealthMetrics,
   type SavingsHealthMetrics,
 } from "./queries/savings-health-metrics";
+export {
+  listProviderCatalog,
+  type SavingCatalogProvider,
+} from "./savings-provider-registry";
+export * from "./savings-domain-rules";
+export {
+  createSavingsProvider,
+  updateSavingsProvider,
+  archiveSavingsProvider,
+  createSavingsProduct,
+  updateSavingsProduct,
+  archiveSavingsProduct,
+} from "./commands/manage-savings-catalog";
+export {
+  MaturityPresentationState,
+  buildSavingsOverviewModel,
+  buildSavingsPresentationItem,
+  deriveMaturityPresentationState,
+  maturityDaysRemaining,
+  sortSavingsPresentationItems,
+  type SavingsOverviewModel,
+  type SavingsPresentationItem,
+  type SavingsDetailModel,
+  buildSavingsDetailModel,
+} from "./savings-presentation";

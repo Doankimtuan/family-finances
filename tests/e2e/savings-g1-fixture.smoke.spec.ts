@@ -38,23 +38,26 @@ test.describe("Savings funding fixture (G1)", () => {
       timeout: 20_000,
     });
     const wizard = page.getByTestId("savings-create-wizard");
-    test.skip((await wizard.count()) === 0, "Savings create wizard unavailable");
+    test.skip(
+      (await wizard.count()) === 0,
+      "Savings create wizard unavailable",
+    );
 
-    await expect(page.getByTestId("savings-wizard-funding")).toBeVisible();
-    await page.getByTestId("savings-wizard-next").click();
-    await page.getByTestId("savings-wizard-next").click();
-    await page.getByTestId("savings-wizard-next").click();
-
+    await expect(page.getByTestId("savings-step-indicator")).toBeVisible();
     const firstPackage = page
-      .locator("[data-testid^=savings-wizard-package-]")
+      .locator("[data-testid^=savings-package-]")
       .first();
     test.skip((await firstPackage.count()) === 0, "No savings packages");
     await firstPackage.click();
-
+    await page.getByTestId("savings-wizard-next").click();
+    await expect(page.getByTestId("savings-estimate")).toBeVisible();
     const principal = 1_000_000;
     await page.locator("#savings-principal").fill(String(principal));
+    await expect(page.getByTestId("savings-estimate")).toContainText(
+      "1,000,000",
+    );
     await page.getByTestId("savings-wizard-next").click();
-    await expect(page.getByTestId("savings-wizard-preview")).toBeVisible();
+    await expect(page.getByTestId("savings-review-summary")).toBeVisible();
     await page.getByTestId("savings-wizard-confirm").click();
 
     await expect(
@@ -76,9 +79,9 @@ test.describe("Savings funding fixture (G1)", () => {
     await expect(page.getByTestId("money-savings")).toBeVisible({
       timeout: 20_000,
     });
-    await expect(page.locator("[data-testid^=savings-row-]").first()).toBeVisible(
-      { timeout: 20_000 },
-    );
+    await expect(
+      page.locator("[data-testid^=savings-row-]").first(),
+    ).toBeVisible({ timeout: 20_000 });
 
     // Capture before/after for money-safety evidence in report.
     expect(beforePosition.length).toBeGreaterThan(0);

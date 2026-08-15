@@ -50,6 +50,21 @@ export const SAVING_TYPE_VALUES = [
   SavingType.MANUAL_SAVING,
 ] as const;
 
+export const SavingsFamily = {
+  BANK: "BANK",
+  PLATFORM: "PLATFORM",
+} as const;
+export type SavingsFamily = (typeof SavingsFamily)[keyof typeof SavingsFamily];
+export const SAVINGS_FAMILY_VALUES = [
+  SavingsFamily.BANK,
+  SavingsFamily.PLATFORM,
+] as const;
+export function savingsFamilyForType(type: SavingType): SavingsFamily {
+  return type === SavingType.BANK_DEPOSIT
+    ? SavingsFamily.BANK
+    : SavingsFamily.PLATFORM;
+}
+
 export const InterestCalcMethod = {
   SIMPLE: "simple",
   COMPOUND_DAILY: "compound_daily",
@@ -80,6 +95,46 @@ export const SETTLEMENT_RULE_VALUES = [
   SettlementRule.WITHDRAW_EVERYTHING,
 ] as const;
 
+/** Canonical maturity instruction values; kept aligned with stored settlement rules. */
+export const MaturityTargetMode = {
+  KEEP_CURRENT_PACKAGE: "keep_current_package",
+  SELECT_PACKAGE: "select_package",
+} as const;
+export type MaturityTargetMode =
+  (typeof MaturityTargetMode)[keyof typeof MaturityTargetMode];
+export const MATURITY_TARGET_MODE_VALUES = [
+  MaturityTargetMode.KEEP_CURRENT_PACKAGE,
+  MaturityTargetMode.SELECT_PACKAGE,
+] as const;
+
+export const MaturityFallbackPolicy = {
+  ASK_USER: "ask_user",
+} as const;
+export type MaturityFallbackPolicy =
+  (typeof MaturityFallbackPolicy)[keyof typeof MaturityFallbackPolicy];
+
+export const SavingsMaturityState = {
+  ACTIVE: "active",
+  MATURING_SOON: "maturing_soon",
+  MATURE_TODAY: "mature_today",
+  MATURED: "matured",
+  ACTION_REQUIRED: "action_required",
+  SETTLED: "settled",
+  EARLY_SETTLED: "early_settled",
+} as const;
+export type SavingsMaturityState =
+  (typeof SavingsMaturityState)[keyof typeof SavingsMaturityState];
+
+export const SavingsEventKind = {
+  PRINCIPAL_PLACEMENT: "SAVINGS_PRINCIPAL_PLACEMENT",
+  PRINCIPAL_RETURN: "SAVINGS_PRINCIPAL_RETURN",
+  INTEREST: "SAVINGS_INTEREST",
+  TAX: "SAVINGS_TAX",
+  FEE: "SAVINGS_FEE",
+} as const;
+export type SavingsEventKind =
+  (typeof SavingsEventKind)[keyof typeof SavingsEventKind];
+
 export const SettlementAction = {
   ROLL_PRINCIPAL_INTEREST: "roll_principal_interest",
   ROLL_PRINCIPAL_ONLY: "roll_principal_only",
@@ -103,8 +158,7 @@ export const RenewalPolicy = {
   ONE_TIME_RENEWAL: "one_time_renewal",
 } as const;
 
-export type RenewalPolicy =
-  (typeof RenewalPolicy)[keyof typeof RenewalPolicy];
+export type RenewalPolicy = (typeof RenewalPolicy)[keyof typeof RenewalPolicy];
 
 export const RENEWAL_POLICY_VALUES = [
   RenewalPolicy.ALWAYS_ASK,
@@ -197,9 +251,9 @@ export const MATURITY_WARNING_CODE_VALUES = [
 
 /** BR-10 + near-maturity escalation: Spec 30/14/7 union brief 7/3/1. */
 export const MATURITY_CASCADE_DAY_VALUES = [30, 14, 7, 3, 1] as const;
+export const MATURING_SOON_THRESHOLD_DAYS = 7;
 
-export type MaturityCascadeDay =
-  (typeof MATURITY_CASCADE_DAY_VALUES)[number];
+export type MaturityCascadeDay = (typeof MATURITY_CASCADE_DAY_VALUES)[number];
 
 export const PenaltyStrategy = {
   NO_INTEREST: "no_interest",

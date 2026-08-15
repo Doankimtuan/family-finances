@@ -10,16 +10,20 @@ import {
   RenewalPolicy,
   RENEWAL_POLICY_VALUES,
   SETTLEMENT_RULE_VALUES,
+  MATURITY_TARGET_MODE_VALUES,
+  MaturityTargetMode,
+  MaturityFallbackPolicy,
 } from "../savings-constants";
-import {
-  emptyRenewalConfig,
-  type RenewalConfig,
-} from "../savings-types";
+import { emptyRenewalConfig, type RenewalConfig } from "../savings-types";
 
 const renewalConfigSchema = z.object({
   preferredPackageId: z.string().uuid().nullable().optional(),
   preferredSettlementRule: z.enum(SETTLEMENT_RULE_VALUES).optional(),
   preferredSettlementAccountId: z.string().uuid().nullable().optional(),
+  targetMode: z.enum(MATURITY_TARGET_MODE_VALUES).optional(),
+  targetPackageId: z.string().uuid().nullable().optional(),
+  payoutAccountId: z.string().uuid().nullable().optional(),
+  fallbackPolicy: z.literal(MaturityFallbackPolicy.ASK_USER).optional(),
 });
 
 export const updateRenewalPolicyInputSchema = z.object({
@@ -33,8 +37,7 @@ export type UpdateRenewalPolicyInput = z.infer<
 >;
 
 export type UpdateRenewalPolicyResult =
-  | { ok: true; savingId: string }
-  | { ok: false; code: ProductActionErrorCode };
+  { ok: true; savingId: string } | { ok: false; code: ProductActionErrorCode };
 
 /** Edit Renewal Policy on an existing saving (recommendation only). */
 export async function updateRenewalPolicy(
@@ -55,17 +58,29 @@ export async function updateRenewalPolicy(
 
   const base = emptyRenewalConfig();
   const renewalConfig: RenewalConfig = {
-    preferredPackageId:
-      parsed.data.renewalConfig?.preferredPackageId ?? null,
+    preferredPackageId: parsed.data.renewalConfig?.preferredPackageId ?? null,
     preferredSettlementRule:
       parsed.data.renewalConfig?.preferredSettlementRule ??
       base.preferredSettlementRule,
     preferredSettlementAccountId:
       parsed.data.renewalConfig?.preferredSettlementAccountId ?? null,
+    targetMode:
+      parsed.data.renewalConfig?.targetMode ??
+      MaturityTargetMode.KEEP_CURRENT_PACKAGE,
+    targetPackageId:
+      parsed.data.renewalConfig?.targetPackageId ??
+      parsed.data.renewalConfig?.preferredPackageId ??
+      null,
+    payoutAccountId:
+      parsed.data.renewalConfig?.payoutAccountId ??
+      parsed.data.renewalConfig?.preferredSettlementAccountId ??
+      null,
+    fallbackPolicy: MaturityFallbackPolicy.ASK_USER,
   };
 
   if (parsed.data.renewalPolicy === RenewalPolicy.ALWAYS_ASK) {
     renewalConfig.preferredPackageId = null;
+    renewalConfig.targetPackageId = null;
   }
 
   try {
@@ -75,6 +90,13 @@ export async function updateRenewalPolicy(
       .update({
         renewal_policy: parsed.data.renewalPolicy,
         renewal_config: renewalConfig,
+        maturity_instruction: {
+          strategy: renewalConfig.preferredSettlementRule,
+          targetMode: renewalConfig.targetMode,
+          targetPackageId: renewalConfig.targetPackageId,
+          payoutAccountId: renewalConfig.payoutAccountId,
+          fallbackPolicy: MaturityFallbackPolicy.ASK_USER,
+        },
         updated_at: new Date().toISOString(),
       })
       .eq("id", parsed.data.savingId)

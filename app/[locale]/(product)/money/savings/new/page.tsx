@@ -8,10 +8,7 @@ import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
 import { listAccounts } from "@/modules/ledger/application";
 import { AccountType } from "@/modules/ledger/application/ledger-constants";
-import {
-  listProviders,
-  listProviderPackages,
-} from "@/modules/savings/application";
+import { listProviderCatalog } from "@/modules/savings/application/savings-provider-registry";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Page } from "@/shared/patterns/page";
 import { EmptyState } from "@/shared/patterns/empty-state";
@@ -31,39 +28,37 @@ export default async function NewSavingPage({ params }: Props) {
     return redirect({ href: APP_PATH.ONBOARD, locale });
   }
 
-  const [t, accountsResult, providers] = await Promise.all([
+  const [t, accountsResult, catalog] = await Promise.all([
     getTranslations("money.savingsWizard"),
     listAccounts(),
-    listProviders(),
+    listProviderCatalog(),
   ]);
 
   const accounts = (accountsResult?.accounts ?? []).filter(
-    (a) => a.type !== AccountType.SAVINGS_PRODUCT,
+    (account) => account.type !== AccountType.SAVINGS_PRODUCT,
   );
-
-  const packagesByProvider: Record<
-    string,
-    Array<{
-      id: string;
-      packageName: string;
-      durationDays: number;
-      annualInterestRate: number;
-      minAmount: number | null;
-      maxAmount: number | null;
-    }>
-  > = {};
-
-  for (const provider of providers ?? []) {
-    const packages = await listProviderPackages(provider.id);
-    packagesByProvider[provider.id] = (packages ?? []).map((p) => ({
-      id: p.id,
-      packageName: p.packageName,
-      durationDays: p.durationDays,
-      annualInterestRate: p.annualInterestRate,
-      minAmount: p.minAmount,
-      maxAmount: p.maxAmount,
-    }));
-  }
+  const providers = catalog ?? [];
+  const packagesByProvider = Object.fromEntries(
+    providers.map((provider) => [
+      provider.id,
+      provider.packages.map((pkg) => ({
+        id: pkg.id,
+        packageName: pkg.packageName,
+        durationDays: pkg.durationDays,
+        annualInterestRate: pkg.annualInterestRate,
+        minAmount: pkg.minAmount,
+        maxAmount: pkg.maxAmount,
+        renewableAvailable: pkg.renewableAvailable,
+        termAmount: pkg.termAmount,
+        termUnit: pkg.termUnit,
+        taxRule: pkg.taxRule,
+        taxRatePercent: pkg.taxRatePercent,
+        earlySettlementRule: pkg.earlySettlementRule,
+        earlySettlementRatePercent: pkg.earlySettlementRatePercent,
+        supportsPartialSettlement: pkg.supportsPartialSettlement,
+      })),
+    ]),
+  );
 
   return (
     <Page
@@ -71,7 +66,7 @@ export default async function NewSavingPage({ params }: Props) {
       topBar={<TopAppBar title={t("title")} subtitle={t("subtitle")} />}
     >
       <MoneyOfflineBanner />
-      {accounts.length === 0 || !providers?.length ? (
+      {accounts.length === 0 || providers.length === 0 ? (
         <EmptyState
           title={t("title")}
           description={t("reviewHint")}
@@ -79,15 +74,16 @@ export default async function NewSavingPage({ params }: Props) {
         />
       ) : (
         <CreateSavingWizard
-          accounts={accounts.map((a) => ({
-            id: a.id,
-            name: a.name,
-            type: a.type,
+          accounts={accounts.map((account) => ({
+            id: account.id,
+            name: account.name,
+            type: account.type,
+            balance: account.balance,
           }))}
-          providers={providers.map((p) => ({
-            id: p.id,
-            displayName: p.displayName,
-            savingType: p.savingType,
+          providers={providers.map((provider) => ({
+            id: provider.id,
+            displayName: provider.displayName,
+            savingType: provider.savingType,
           }))}
           packagesByProvider={packagesByProvider}
         />

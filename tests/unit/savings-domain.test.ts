@@ -4,6 +4,12 @@ import {
   PenaltyStrategy,
   SettlementRule,
   RenewalPolicy,
+  SavingType,
+  SavingsFamily,
+  savingsFamilyForType,
+  CycleStatus,
+  SavingStatus,
+  SavingsTaxRule,
 } from "@/modules/savings/application/savings-constants";
 import {
   calculateInterest,
@@ -13,7 +19,17 @@ import {
   previewEarlyWithdrawal,
   shouldWarnPenalty,
 } from "@/modules/savings/application/savings-penalty";
-import type { PackageSnapshot } from "@/modules/savings/application/savings-types";
+import type {
+  PackageSnapshot,
+  Saving,
+  SavingCycle,
+} from "@/modules/savings/application/savings-types";
+import { selectCurrentSavingCycle } from "@/modules/savings/application/savings-types";
+import {
+  buildSavingsDetailModel,
+  buildSavingsOverviewModel,
+  MaturityPresentationState,
+} from "@/modules/savings/application/savings-presentation";
 import { instantiateTypedReviewItem } from "@/modules/inbox/application/review-item-schemas";
 import {
   InboxItemKind,
@@ -23,6 +39,7 @@ import {
   shouldAutoResolveInboxItem,
   shouldCancelMaturityCascade,
 } from "@/modules/inbox/application/inbox-resolution-policy";
+import { calculateSettlementBreakdown } from "@/modules/savings/application/savings-domain-rules";
 
 describe("savings interest engine", () => {
   it("computes simple interest for a full term", () => {
@@ -46,6 +63,40 @@ describe("savings interest engine", () => {
     });
     expect(result.daysElapsed).toBe(10);
     expect(result.totalInterest).toBe(10_000);
+  });
+});
+
+describe("maturity rollover money", () => {
+  it("rolls only after tax is deducted", () => {
+    const result = calculateSettlementBreakdown({
+      principal: 100_000,
+      grossInterest: 150,
+      taxRule: SavingsTaxRule.PROFIT_PERCENTAGE,
+      taxRatePercent: 10,
+    });
+    expect(result.tax).toBe(15);
+    expect(result.netInterest).toBe(135);
+    expect(result.totalCashReceived).toBe(100_135);
+  });
+});
+
+describe("savings product family", () => {
+  it("maps bank deposits to the bank family", () => {
+    expect(savingsFamilyForType(SavingType.BANK_DEPOSIT)).toBe(
+      SavingsFamily.BANK,
+    );
+  });
+
+  it("maps digital, flexible, and manual products to the platform family", () => {
+    expect(savingsFamilyForType(SavingType.DIGITAL_SAVING)).toBe(
+      SavingsFamily.PLATFORM,
+    );
+    expect(savingsFamilyForType(SavingType.FLEXIBLE_SAVING)).toBe(
+      SavingsFamily.PLATFORM,
+    );
+    expect(savingsFamilyForType(SavingType.MANUAL_SAVING)).toBe(
+      SavingsFamily.PLATFORM,
+    );
   });
 });
 
@@ -129,9 +180,9 @@ describe("savings inbox typing", () => {
   it("hydrates SavingsMaturityDecision from context_json", () => {
     const typed = instantiateTypedReviewItem({
       kind: InboxItemKind.SAVINGS_MATURED,
-      sourceId: "11111111-1111-1111-1111-111111111111",
+      sourceId: "11111111-1111-4111-8111-111111111111",
       contextJson: {
-        savingId: "11111111-1111-1111-1111-111111111111",
+        savingId: "11111111-1111-4111-8111-111111111111",
         cycleId: "22222222-2222-2222-2222-222222222222",
         providerName: "Manual Saving",
         currentPackage: "90 Days",
@@ -162,7 +213,7 @@ describe("savings inbox typing", () => {
       shouldAutoResolveInboxItem({
         kind: InboxItemKind.SAVINGS_MATURED,
         confidenceScore: 1,
-        suggestedJarId: "11111111-1111-1111-1111-111111111111",
+        suggestedJarId: "11111111-1111-4111-8111-111111111111",
       }),
     ).toBe(false);
     expect(
@@ -171,5 +222,301 @@ describe("savings inbox typing", () => {
         resolved: true,
       }),
     ).toBe(true);
+  });
+});
+
+import {
+  addSavingsTerm,
+  assertCompatibleSavingsAccounts,
+  calculateSettlementBreakdown,
+  SavingsFamily as CanonicalSavingsFamily,
+  SavingsTaxRule,
+  EarlySettlementRule,
+  PLATFORM_DEFAULT_TAX_RATE_PERCENT,
+  getEarlyWithdrawalDefaults,
+  getSavingsProductDefaults,
+  savingsProductInputSchema,
+} from "@/modules/savings/application/savings-domain-rules";
+
+describe("configurable Savings domain rules", () => {
+  it("derives fixed-term maturity from structured day and month terms", () => {
+    expect(addSavingsTerm("2026-01-15", { amount: 30, unit: "DAY" })).toBe(
+      "2026-02-14",
+    );
+    expect(addSavingsTerm("2026-01-15", { amount: 3, unit: "MONTH" })).toBe(
+      "2026-04-15",
+    );
+  });
+
+  it("does not tax BANK interest", () => {
+    const settlement = calculateSettlementBreakdown({
+      principal: 10_000_000,
+      grossInterest: 500_000,
+      taxRule: SavingsTaxRule.NONE,
+      taxRatePercent: 0,
+    });
+    expect(settlement.tax).toBe(0);
+    expect(settlement.netInterest).toBe(500_000);
+    expect(settlement.totalCashReceived).toBe(10_500_000);
+  });
+
+  it("taxes PLATFORM interest at the configured 5 percent profit rule", () => {
+    const settlement = calculateSettlementBreakdown({
+      principal: 10_000_000,
+      grossInterest: 500_000,
+      taxRule: SavingsTaxRule.PROFIT_PERCENTAGE,
+      taxRatePercent: 5,
+    });
+    expect(settlement.tax).toBe(25_000);
+    expect(settlement.netInterest).toBe(475_000);
+    expect(settlement.totalCashReceived).toBe(10_475_000);
+  });
+
+  it("keeps source and settlement accounts in the real-money eligibility set", () => {
+    expect(
+      assertCompatibleSavingsAccounts({
+        fundingAccountType: "cash",
+        settlementAccountType: "checking",
+        fundingAccountId: "source",
+        settlementAccountId: "destination",
+      }),
+    ).toEqual({ ok: true });
+    expect(
+      assertCompatibleSavingsAccounts({
+        fundingAccountType: "credit_card",
+        settlementAccountType: "checking",
+        fundingAccountId: "source",
+        settlementAccountId: "destination",
+      }),
+    ).toEqual({ ok: false, reason: "ACCOUNT_TYPE" });
+    expect(
+      assertCompatibleSavingsAccounts({
+        fundingAccountType: "cash",
+        settlementAccountType: "cash",
+        fundingAccountId: "same",
+        settlementAccountId: "same",
+      }),
+    ).toEqual({ ok: false, reason: "ACCOUNT_SAME" });
+  });
+
+  it("accepts multiple products with typed numeric terms and rate precision", () => {
+    const parsed = savingsProductInputSchema.safeParse({
+      providerId: "11111111-1111-4111-8111-111111111111",
+      name: "Linh hoạt 90 ngày",
+      term: { amount: 90, unit: "DAY" },
+      annualInterestRatePercent: 4.25,
+      interestCalculationMethod: "simple",
+      taxRule: "PROFIT_PERCENTAGE",
+      taxRatePercent: 5,
+      currency: "vnd",
+      minAmount: 1_000_000,
+      maxAmount: null,
+      settlementRules: ["withdraw_everything"],
+      earlySettlementRule: "RETURN_PRINCIPAL_ONLY",
+    });
+    expect(parsed.success).toBe(true);
+    if (parsed.success) {
+      expect(parsed.data.currency).toBe("VND");
+      expect(parsed.data.annualInterestRatePercent).toBe(4.25);
+    }
+    expect(CanonicalSavingsFamily.BANK).toBe("BANK");
+    expect(CanonicalSavingsFamily.PLATFORM).toBe("PLATFORM");
+  });
+});
+
+describe("Savings catalog defaults", () => {
+  it("keeps BANK tax-free and applies the canonical PLATFORM default", () => {
+    const bank = getSavingsProductDefaults(CanonicalSavingsFamily.BANK);
+    const platform = getSavingsProductDefaults(CanonicalSavingsFamily.PLATFORM);
+    expect(bank.taxRule).toBe(SavingsTaxRule.NONE);
+    expect(bank.taxRatePercent).toBe(0);
+    expect(platform.taxRule).toBe(SavingsTaxRule.PROFIT_PERCENTAGE);
+    expect(platform.taxRatePercent).toBe(PLATFORM_DEFAULT_TAX_RATE_PERCENT);
+  });
+
+  it("uses a typed early-withdrawal default and requires a custom rate only when selected", () => {
+    expect(getEarlyWithdrawalDefaults()).toEqual({
+      earlySettlementRule: EarlySettlementRule.PRINCIPAL_ONLY,
+      earlySettlementRatePercent: null,
+    });
+    const base = {
+      providerId: "11111111-1111-4111-8111-111111111111",
+      name: "Custom early rate",
+      term: { amount: 90, unit: "DAY" as const },
+      annualInterestRatePercent: 4.25,
+      interestCalculationMethod: "simple" as const,
+      taxRule: SavingsTaxRule.NONE,
+      taxRatePercent: 0,
+      currency: "VND",
+      minAmount: null,
+      maxAmount: null,
+      settlementRules: ["withdraw_everything"],
+      penaltyRules: [],
+      renewableAvailable: true,
+      supportsPartialSettlement: false,
+    };
+    expect(
+      savingsProductInputSchema.safeParse({
+        ...base,
+        earlySettlementRule: EarlySettlementRule.CUSTOM_INTEREST_RATE,
+      }).success,
+    ).toBe(false);
+    expect(
+      savingsProductInputSchema.safeParse({
+        ...base,
+        earlySettlementRule: EarlySettlementRule.CUSTOM_INTEREST_RATE,
+        earlySettlementRatePercent: 0.5,
+      }).success,
+    ).toBe(true);
+  });
+});
+const makePresentationSaving = (overrides: Partial<Saving> = {}) =>
+  ({
+    status: SavingStatus.ACTIVE,
+    savingsFamily: SavingsFamily.BANK,
+    createdAt: "2026-08-01T00:00:00.000Z",
+    productSnapshot: {
+      packageName: "Product",
+      durationDays: 30,
+      annualInterestRate: 5,
+      settlementRules: [SettlementRule.WITHDRAW_EVERYTHING],
+      penaltyRules: [],
+      renewableAvailable: true,
+      minAmount: null,
+      maxAmount: null,
+      currency: "VND",
+      taxRule: SavingsTaxRule.NONE,
+      taxRatePercent: 0,
+    },
+    latestCycle: {
+      status: CycleStatus.ACTIVE,
+      startDate: "2026-08-01",
+      endDate: "2026-08-31",
+      principal: 10_000_000,
+      lockedRate: 5,
+      accruedInterest: 500_000,
+    },
+    ...overrides,
+  }) as unknown as Saving;
+
+describe("savings presentation model", () => {
+  it("selects the active cycle over newer historical cycles and sorts history newest-first", () => {
+    const cycle = (overrides: Partial<SavingCycle>) =>
+      ({
+        id: "cycle",
+        savingId: "saving",
+        cycleNumber: 1,
+        startDate: "2026-01-01",
+        endDate: "2026-02-01",
+        principal: 10_000_000,
+        lockedRate: 5,
+        packageSnapshot: {} as PackageSnapshot,
+        accruedInterest: 0,
+        settlementResult: null,
+        renewalDecision: null,
+        status: CycleStatus.ROLLED,
+        fundingTransactionId: null,
+        settlementTransactionId: null,
+        createdAt: "2026-01-01T00:00:00.000Z",
+        previousCycleId: null,
+        nextCycleId: null,
+        ...overrides,
+      }) satisfies SavingCycle;
+    const rolled = cycle({ cycleNumber: 3, id: "rolled" });
+    const active = cycle({
+      cycleNumber: 2,
+      id: "active",
+      status: CycleStatus.ACTIVE,
+    });
+    expect(selectCurrentSavingCycle([rolled, active])?.id).toBe("active");
+  });
+
+  it("sorts action-required maturity ahead of ordinary matured items", () => {
+    const actionRequired = makePresentationSaving({
+      status: SavingStatus.MATURED,
+      maturityActionRequired: true,
+      latestCycle: {
+        ...makePresentationSaving().latestCycle,
+        status: CycleStatus.MATURED,
+      },
+    });
+    const matured = makePresentationSaving({
+      status: SavingStatus.MATURED,
+      latestCycle: {
+        ...makePresentationSaving().latestCycle,
+        status: CycleStatus.MATURED,
+      },
+    });
+    const model = buildSavingsOverviewModel(
+      [matured, actionRequired],
+      "2026-08-15",
+    );
+    expect(model.items[0]?.actionRequired).toBe(true);
+    expect(model.attentionCount).toBe(2);
+    expect(
+      buildSavingsDetailModel(actionRequired, "2026-08-15").canSettle,
+    ).toBe(true);
+  });
+
+  it("prioritizes matured items and counts maturity attention", () => {
+    const matured = makePresentationSaving({
+      status: SavingStatus.MATURED,
+      latestCycle: {
+        ...makePresentationSaving().latestCycle,
+        status: CycleStatus.MATURED,
+        endDate: "2026-08-15",
+      },
+    });
+    const active = makePresentationSaving({
+      latestCycle: {
+        ...makePresentationSaving().latestCycle,
+        endDate: "2026-12-31",
+      },
+    });
+    const model = buildSavingsOverviewModel([active, matured], "2026-08-15");
+    expect(model.items[0]?.maturityState).toBe(
+      MaturityPresentationState.MATURE_TODAY,
+    );
+    expect(model.attentionCount).toBe(1);
+  });
+
+  it("shows PLATFORM tax but keeps BANK tax at zero", () => {
+    const platform = makePresentationSaving({
+      savingsFamily: SavingsFamily.PLATFORM,
+      productSnapshot: {
+        ...makePresentationSaving().productSnapshot,
+        taxRule: SavingsTaxRule.PROFIT_PERCENTAGE,
+        taxRatePercent: 5,
+      },
+    });
+    const platformModel = buildSavingsDetailModel(platform, "2026-08-15");
+    const bankModel = buildSavingsDetailModel(
+      makePresentationSaving(),
+      "2026-08-15",
+    );
+    expect(platformModel.tax).toBe(25_000);
+    expect(platformModel.netInterest).toBe(475_000);
+    expect(bankModel.tax).toBe(0);
+  });
+
+  it("exposes early and partial settlement only when configured", () => {
+    const unsupported = buildSavingsDetailModel(
+      makePresentationSaving(),
+      "2026-08-15",
+    );
+    const supported = buildSavingsDetailModel(
+      makePresentationSaving({
+        productSnapshot: {
+          ...makePresentationSaving().productSnapshot,
+          earlySettlementRule: "RETURN_PRINCIPAL_ONLY",
+          supportsPartialSettlement: true,
+        },
+      }),
+      "2026-08-15",
+    );
+    expect(unsupported.canSettleEarly).toBe(false);
+    expect(unsupported.canSettlePartially).toBe(false);
+    expect(supported.canSettleEarly).toBe(true);
+    expect(supported.canSettlePartially).toBe(true);
   });
 });

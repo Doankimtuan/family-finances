@@ -55,26 +55,11 @@ export default async function LocaleLayout({ children, params }: Props) {
     <NextIntlClientProvider locale={locale} messages={messages}>
       <LocaleProvider locale={locale}>
         <AppProvider>
-          {/* Sync document language for a11y without nesting <html> */}
-          <LocaleLang locale={locale}>{children}</LocaleLang>
+          {/* Sync document language for a11y without adding a DOM wrapper. */}
+          <SetHtmlLang locale={locale} />
+          {children}
         </AppProvider>
       </LocaleProvider>
     </NextIntlClientProvider>
-  );
-}
-
-/** Sets `document.documentElement.lang` on the client; SSR uses root `lang="en"` then hydrates. */
-function LocaleLang({
-  locale,
-  children,
-}: {
-  locale: string;
-  children: ReactNode;
-}) {
-  return (
-    <div lang={locale} className="contents">
-      <SetHtmlLang locale={locale} />
-      {children}
-    </div>
   );
 }

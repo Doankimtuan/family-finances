@@ -6,6 +6,8 @@ import {
   ArrowTurnBackwardIcon,
   BankIcon,
   BanknoteIcon,
+  Building02Icon,
+  Coins01Icon,
   BanknoteXIcon,
   Calendar03Icon,
   Car01Icon,
@@ -20,12 +22,16 @@ import {
   Home01Icon,
   InboxIcon,
   MoneyReceive01Icon,
+  MoneySafeIcon,
   MoneySend01Icon,
   MoreHorizontalIcon,
   Notification03Icon,
   PiggyBankIcon,
   Restaurant01Icon,
+  SafeBoxIcon,
   Search01Icon,
+  Shield01Icon,
+  SmartPhone01Icon,
   ShoppingBag01Icon,
   Tick01Icon,
   TravelBagIcon,
@@ -44,6 +50,20 @@ export const NAVIGATION_ICONS = {
 } as const;
 
 /** Finance concepts are semantic roles, not presentation-specific icon names. */
+export const SAVINGS_PROVIDER_ICONS = {
+  bank: BankIcon,
+  wallet: Wallet02Icon,
+  building: Building02Icon,
+  piggy_bank: PiggyBankIcon,
+  coins: Coins01Icon,
+  chart: ChartBarLineIcon,
+  smartphone: SmartPhone01Icon,
+  shield: Shield01Icon,
+  vault: SafeBoxIcon,
+  finance: MoneySafeIcon,
+} as const;
+export type SavingsProviderIconKey = keyof typeof SAVINGS_PROVIDER_ICONS;
+
 export const FINANCE_ICONS = {
   account: BankIcon,
   wallet: Wallet02Icon,

@@ -16,7 +16,7 @@ import {
   RENEWAL_POLICY_VALUES,
 } from "../savings-constants";
 import { resolvePackageSnapshot } from "../savings-provider-registry";
-import type { ProductSnapshot, RenewalDecision } from "../savings-types";
+import type { RenewalDecision } from "../savings-types";
 import { mapLegacyRenewalPreference } from "../renewal-policy-map";
 
 export const settleSavingInputSchema = z.object({
@@ -177,50 +177,27 @@ export async function renewSaving(
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
     }
 
-    let packageSnapshot = cycleRow.package_snapshot as Record<string, unknown>;
-    let lockedRate = Number(cycleRow.locked_rate);
-    let productSnapshot = saving.product_snapshot as ProductSnapshot;
-    const priorPolicy = mapLegacyRenewalPreference(saving.renewal_policy);
-
-    if (parsed.data.packageId) {
-      const resolved = await resolvePackageSnapshot(parsed.data.packageId);
-      if (!resolved) {
-        return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
-      }
-      packageSnapshot = resolved.packageSnapshot as unknown as Record<
-        string,
-        unknown
-      >;
-      lockedRate = resolved.packageSnapshot.annualInterestRate;
-      productSnapshot = {
-        ...productSnapshot,
-        providerId: resolved.providerId,
-        productName: resolved.productName,
-        packageName: resolved.packageSnapshot.packageName,
-        depositTermDays: resolved.packageSnapshot.durationDays,
-        annualInterestRate: resolved.packageSnapshot.annualInterestRate,
-      };
+    const cyclePackage = (cycleRow.package_snapshot ?? {}) as {
+      packageId?: string;
+      packageName?: string;
+      annualInterestRate?: number;
+    };
+    const targetPackageId = parsed.data.packageId ?? cyclePackage.packageId;
+    if (!targetPackageId)
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
+    const resolved = await resolvePackageSnapshot(targetPackageId);
+    if (!resolved || resolved.providerId !== saving.provider_id) {
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
     }
-
-    const durationDays = Number(
-      (packageSnapshot as { durationDays?: number }).durationDays ??
-        productSnapshot.depositTermDays ??
-        30,
-    );
-    const startDate = new Date().toISOString().slice(0, 10);
-    const endDateObj = new Date();
-    endDateObj.setDate(endDateObj.getDate() + durationDays);
-    const endDate = endDateObj.toISOString().slice(0, 10);
-
-    const { data, error } = await supabase.rpc("renew_saving_cycle", {
+    const priorPolicy = mapLegacyRenewalPreference(saving.renewal_policy);
+    const { data, error } = await supabase.rpc("rollover_saving_cycle", {
       p_cycle_id: parsed.data.cycleId,
       p_action: parsed.data.action,
-      p_package_snapshot: packageSnapshot,
-      p_locked_rate: lockedRate,
-      p_cycle_start_date: startDate,
-      p_cycle_end_date: endDate,
+      p_target_package_id: targetPackageId,
       p_settlement_account_id: parsed.data.settlementAccountId ?? null,
-      p_product_snapshot: productSnapshot,
+      p_cycle_start_date: null,
+      p_cycle_end_date: null,
+      p_idempotency_key: null,
     });
 
     if (error) {
@@ -247,9 +224,9 @@ export async function renewSaving(
       renewalPolicy: priorPolicy,
       settlementRule,
       packageName: String(
-        (packageSnapshot as { packageName?: string }).packageName ?? "",
+        resolved.packageSnapshot.packageName ?? cyclePackage.packageName ?? "",
       ),
-      lockedRate,
+      lockedRate: resolved.packageSnapshot.annualInterestRate,
       decidedAt: new Date().toISOString(),
       decisionSource:
         parsed.data.decisionSource ?? RenewalDecisionSource.POLICY_APPLIED,

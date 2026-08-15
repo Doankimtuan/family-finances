@@ -45,6 +45,7 @@ export { SectionHeader, type SectionHeaderProps } from "./section-header";
 export { Balance, type BalanceProps } from "./balance";
 export { Amount, type AmountProps } from "./amount";
 export { AmountField, type AmountFieldProps } from "./amount-field";
+export { PercentageField, type PercentageFieldProps } from "./percentage-field";
 export { JarCard, type JarCardProps } from "./jar-card";
 export { GoalCard, type GoalCardProps } from "./goal-card";
 export { QuickAction, type QuickActionProps } from "./quick-action";

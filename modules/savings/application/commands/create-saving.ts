@@ -14,11 +14,19 @@ import {
   PenaltyStrategy,
   RENEWAL_POLICY_VALUES,
   SETTLEMENT_RULE_VALUES,
+  MATURITY_TARGET_MODE_VALUES,
+  MaturityTargetMode,
+  MaturityFallbackPolicy,
   INTEREST_CALC_METHOD_VALUES,
   PENALTY_STRATEGY_VALUES,
 } from "../savings-constants";
 import { resolvePackageSnapshot } from "../savings-provider-registry";
-import { computeFullTermInterest } from "../savings-interest";
+import {
+  addSavingsTerm,
+  assertCompatibleSavingsAccounts,
+  familyForLegacySavingType,
+} from "../savings-domain-rules";
+import { calculateInterest } from "../savings-interest";
 import {
   emptyRenewalConfig,
   type ProductSnapshot,
@@ -30,6 +38,10 @@ const renewalConfigSchema = z.object({
   preferredPackageId: z.string().uuid().nullable().optional(),
   preferredSettlementRule: z.enum(SETTLEMENT_RULE_VALUES).optional(),
   preferredSettlementAccountId: z.string().uuid().nullable().optional(),
+  targetMode: z.enum(MATURITY_TARGET_MODE_VALUES).optional(),
+  targetPackageId: z.string().uuid().nullable().optional(),
+  payoutAccountId: z.string().uuid().nullable().optional(),
+  fallbackPolicy: z.literal(MaturityFallbackPolicy.ASK_USER).optional(),
 });
 
 export const createSavingInputSchema = z.object({
@@ -38,6 +50,10 @@ export const createSavingInputSchema = z.object({
   providerId: z.string().uuid(),
   packageId: z.string().uuid(),
   principal: z.number().finite().int().positive(),
+  startDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
   renewalPolicy: z
     .enum(RENEWAL_POLICY_VALUES)
     .default(RenewalPolicy.ALWAYS_ASK),
@@ -53,6 +69,7 @@ export const createSavingInputSchema = z.object({
   penaltyStrategy: z
     .enum(PENALTY_STRATEGY_VALUES)
     .default(PenaltyStrategy.NO_INTEREST),
+  idempotencyKey: z.string().uuid().optional(),
 });
 
 export type CreateSavingInput = z.input<typeof createSavingInputSchema>;
@@ -84,7 +101,7 @@ export async function createSaving(
   }
 
   const resolved = await resolvePackageSnapshot(parsed.data.packageId);
-  if (!resolved) {
+  if (!resolved || resolved.providerId !== parsed.data.providerId) {
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
   }
 
@@ -107,12 +124,30 @@ export async function createSaving(
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
   }
 
-  const estimatedInterest = computeFullTermInterest({
+  const startDate =
+    parsed.data.startDate ?? new Date().toISOString().slice(0, 10);
+  const endDate =
+    packageSnapshot.termAmount && packageSnapshot.termUnit
+      ? addSavingsTerm(startDate, {
+          amount: packageSnapshot.termAmount,
+          unit: packageSnapshot.termUnit,
+        })
+      : (() => {
+          const endDateObj = new Date(`${startDate}T00:00:00Z`);
+          endDateObj.setUTCDate(
+            endDateObj.getUTCDate() + packageSnapshot.durationDays,
+          );
+          return endDateObj.toISOString().slice(0, 10);
+        })();
+  const interestCalculationMethod =
+    packageSnapshot.interestCalculationMethod ?? parsed.data.interestCalcMethod;
+  const estimatedInterest = calculateInterest({
     principal: parsed.data.principal,
     annualRate: packageSnapshot.annualInterestRate,
-    durationDays: packageSnapshot.durationDays,
-    method: parsed.data.interestCalcMethod,
-  });
+    startDate,
+    endDate,
+    method: interestCalculationMethod,
+  }).totalInterest;
 
   const baseConfig = emptyRenewalConfig();
   const renewalConfig: RenewalConfig = {
@@ -127,27 +162,52 @@ export async function createSaving(
     preferredSettlementAccountId:
       parsed.data.renewalConfig?.preferredSettlementAccountId ??
       parsed.data.settlementAccountId,
+    targetMode:
+      parsed.data.renewalConfig?.targetMode ??
+      MaturityTargetMode.KEEP_CURRENT_PACKAGE,
+    targetPackageId:
+      parsed.data.renewalConfig?.targetPackageId ??
+      parsed.data.renewalConfig?.preferredPackageId ??
+      parsed.data.packageId,
+    payoutAccountId:
+      parsed.data.renewalConfig?.payoutAccountId ??
+      parsed.data.renewalConfig?.preferredSettlementAccountId ??
+      parsed.data.settlementAccountId,
+    fallbackPolicy: MaturityFallbackPolicy.ASK_USER,
   };
 
   const productSnapshot: ProductSnapshot = {
+    packageId: parsed.data.packageId,
     providerId: resolved.providerId,
     productName: resolved.productName,
     packageName: packageSnapshot.packageName,
     depositTermDays: packageSnapshot.durationDays,
     annualInterestRate: packageSnapshot.annualInterestRate,
-    interestCalculationMethod: parsed.data.interestCalcMethod,
+    interestCalculationMethod,
     settlementRule: parsed.data.settlementRule,
     renewalPolicy,
     penaltyStrategy: parsed.data.penaltyStrategy,
     providerRules: {},
+    savingsFamily:
+      resolved.providerFamily === "BANK"
+        ? "BANK"
+        : familyForLegacySavingType(
+            resolved.providerFamily ?? "digital_saving",
+          ),
+    providerNameSnapshot: resolved.productName,
+    providerKey: resolved.providerKey,
+    currency: packageSnapshot.currency ?? "VND",
+    taxRule: packageSnapshot.taxRule,
+    taxRatePercent: packageSnapshot.taxRatePercent,
+    termAmount: packageSnapshot.termAmount,
+    termUnit: packageSnapshot.termUnit,
+    settlementRules: packageSnapshot.settlementRules,
+    earlySettlementRule: packageSnapshot.earlySettlementRule,
+    earlySettlementRatePercent: packageSnapshot.earlySettlementRatePercent,
+    supportsPartialSettlement: packageSnapshot.supportsPartialSettlement,
   };
 
   const cyclePackageSnapshot: PackageSnapshot = { ...packageSnapshot };
-
-  const startDate = new Date().toISOString().slice(0, 10);
-  const endDateObj = new Date();
-  endDateObj.setDate(endDateObj.getDate() + packageSnapshot.durationDays);
-  const endDate = endDateObj.toISOString().slice(0, 10);
 
   try {
     const supabase = await createSupabaseServerClient();
@@ -170,13 +230,22 @@ export async function createSaving(
 
     const { data: settlementAccount } = await supabase
       .from("accounts")
-      .select("id")
+      .select("id, type")
       .eq("household_id", gate.householdId)
       .eq("id", parsed.data.settlementAccountId)
       .eq("is_archived", false)
       .maybeSingle();
 
     if (!settlementAccount) {
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
+    }
+    const accountCompatibility = assertCompatibleSavingsAccounts({
+      fundingAccountType: fundingAccount.type,
+      settlementAccountType: settlementAccount.type,
+      fundingAccountId: fundingAccount.id,
+      settlementAccountId: settlementAccount.id,
+    });
+    if (!accountCompatibility.ok) {
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
     }
 
@@ -192,6 +261,7 @@ export async function createSaving(
       p_cycle_end_date: endDate,
       p_package_snapshot: cyclePackageSnapshot,
       p_renewal_config: renewalConfig ?? baseConfig,
+      p_idempotency_key: parsed.data.idempotencyKey ?? null,
     });
 
     if (error) {

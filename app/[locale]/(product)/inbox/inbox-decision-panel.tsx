@@ -33,6 +33,7 @@ import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { BottomActionBar } from "@/shared/patterns/bottom-action-bar";
+import { LabeledSelect } from "@/shared/patterns/labeled-native-field";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
 import {
@@ -397,52 +398,47 @@ export function InboxDecisionPanel({ item, jars }: Props) {
             />
           ) : null}
           {maturityPayload && maturityPayload.recommendedPackages.length > 0 ? (
-            <label className="flex flex-col gap-(--space-2)">
-              <Text size="sm" className="font-semibold text-text-primary">
-                {t("maturityPackageLabel")}
-              </Text>
-              <select
-                className="min-h-11 w-full rounded-md border border-border-subtle bg-canvas px-(--space-3) text-sm"
-                value={selectedPackageId}
-                onChange={(e) => setSelectedPackageId(e.target.value)}
-                data-testid="inbox-maturity-package"
-                disabled={busy}
-              >
-                {maturityPayload.recommendedPackages.map((pkg) => {
-                  const reason = reasonLabel(pkg.reasonCode);
-                  return (
-                    <option key={pkg.packageId} value={pkg.packageId}>
-                      {pkg.packageName} · {pkg.annualRate}% · {pkg.durationDays}
-                      d{reason ? ` — ${reason}` : ""}
-                    </option>
-                  );
-                })}
-              </select>
-            </label>
+            <LabeledSelect
+              label={t("maturityPackageLabel")}
+              value={selectedPackageId}
+              options={maturityPayload.recommendedPackages.map((pkg) => {
+                const reason = reasonLabel(pkg.reasonCode);
+                return {
+                  id: pkg.packageId,
+                  label: `${pkg.packageName} · ${pkg.annualRate}% · ${pkg.durationDays}d${reason ? ` — ${reason}` : ""}`,
+                };
+              })}
+              onChange={(event) => setSelectedPackageId(event.target.value)}
+              disabled={busy}
+              required
+              data-testid="inbox-maturity-package"
+            />
           ) : null}
           {maturityPayload ? (
-            <label className="flex flex-col gap-(--space-2)">
-              <Text size="sm" className="font-semibold text-text-primary">
-                {t("maturitySettlementLabel")}
-              </Text>
-              <select
-                className="min-h-11 w-full rounded-md border border-border-subtle bg-canvas px-(--space-3) text-sm"
-                value={selectedSettlementRule}
-                onChange={(e) => setSelectedSettlementRule(e.target.value)}
-                data-testid="inbox-maturity-settlement"
-                disabled={busy}
-              >
-                <option value={SettlementRule.ROLL_PRINCIPAL_INTEREST}>
-                  {t("maturityRenew")}
-                </option>
-                <option value={SettlementRule.ROLL_PRINCIPAL_ONLY}>
-                  {t("maturityRollPrincipalOnly")}
-                </option>
-                <option value={SettlementRule.WITHDRAW_EVERYTHING}>
-                  {t("maturityWithdraw")}
-                </option>
-              </select>
-            </label>
+            <LabeledSelect
+              label={t("maturitySettlementLabel")}
+              value={selectedSettlementRule}
+              options={[
+                {
+                  id: SettlementRule.ROLL_PRINCIPAL_INTEREST,
+                  label: t("maturityRenew"),
+                },
+                {
+                  id: SettlementRule.ROLL_PRINCIPAL_ONLY,
+                  label: t("maturityRollPrincipalOnly"),
+                },
+                {
+                  id: SettlementRule.WITHDRAW_EVERYTHING,
+                  label: t("maturityWithdraw"),
+                },
+              ]}
+              onChange={(event) =>
+                setSelectedSettlementRule(event.target.value)
+              }
+              disabled={busy}
+              required
+              data-testid="inbox-maturity-settlement"
+            />
           ) : null}
           {(
             [

@@ -634,3 +634,8 @@ body {
   overflow-wrap: anywhere;
   text-wrap: balance;
 }
+
+/* Focused Savings creation flow owns its own sticky actions. */
+body:has([data-testid="money-savings-new"]) [data-slot="bottom-navigation"] {
+  display: none;
+}

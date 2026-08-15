@@ -34,6 +34,7 @@ export function BottomNavigation({
     <SafeArea edges={["bottom"]} className="shrink-0">
       <nav
         aria-label={tA11y("primaryNav")}
+        data-slot="bottom-navigation"
         className={cn(
           "z-(--z-nav) border-t border-border-subtle/60 bg-canvas/95",
           "min-[481px]:m-(--space-2) min-[481px]:rounded-[var(--radius-xl)] min-[481px]:border",

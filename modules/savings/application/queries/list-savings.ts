@@ -3,11 +3,42 @@ import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-m
 import {
   mapSavingRow,
   mapSavingCycleRow,
+  selectCurrentSavingCycle,
   type Saving,
   type SavingCycle,
+  type SavingsFinancialActivity,
 } from "../savings-types";
-import { InterestCalcMethod, CycleStatus } from "../savings-constants";
+import {
+  InterestCalcMethod,
+  CycleStatus,
+  SavingStatus,
+  SettlementRule,
+} from "../savings-constants";
 import { computeAccruedInterest } from "../savings-interest";
+import { listProviderPackages } from "../savings-provider-registry";
+
+const SAVING_CYCLE_SELECT =
+  "id, saving_id, cycle_number, start_date, end_date, principal, locked_rate, package_snapshot, accrued_interest, settlement_result, renewal_decision, status, funding_transaction_id, settlement_transaction_id, previous_cycle_id, next_cycle_id, created_at";
+
+async function setMaturityActionRequired(saving: Saving) {
+  if (
+    saving.status !== SavingStatus.MATURED ||
+    saving.maturityInstruction.strategy === SettlementRule.WITHDRAW_EVERYTHING
+  ) {
+    return;
+  }
+  const targetPackageId =
+    saving.maturityInstruction.targetPackageId ??
+    saving.productSnapshot.packageId ??
+    null;
+  const packages = await listProviderPackages(saving.providerId);
+  saving.maturityActionRequired =
+    !targetPackageId ||
+    !(packages ?? []).some(
+      (pkg) =>
+        pkg.id === targetPackageId && pkg.isActive && pkg.renewableAvailable,
+    );
+}
 
 export async function listSavings(): Promise<Saving[] | null> {
   const gate = await assertMoneyActionAllowed();
@@ -19,7 +50,7 @@ export async function listSavings(): Promise<Saving[] | null> {
       .from("savings")
       .select(
         `id, household_id, status, funding_account_id, settlement_account_id,
-         provider_id, product_name, product_snapshot, renewal_policy, renewal_config, created_at,
+         provider_id, product_name, product_snapshot, renewal_policy, renewal_config, maturity_instruction, created_at,
          funding_accounts:funding_account_id(name),
          settlement_accounts:settlement_account_id(name),
          saving_providers:provider_id(display_name, provider_key, saving_type)`,
@@ -31,19 +62,17 @@ export async function listSavings(): Promise<Saving[] | null> {
 
     const savings = (data ?? []).map(mapSavingRow);
 
-    // Enrich with latest cycle
+    // Enrich with the current lifecycle cycle, not merely the newest row.
     for (const saving of savings) {
       const { data: cycles } = await supabase
         .from("saving_cycles")
-        .select(
-          "id, saving_id, cycle_number, start_date, end_date, principal, locked_rate, package_snapshot, accrued_interest, settlement_result, renewal_decision, status, funding_transaction_id, settlement_transaction_id, created_at",
-        )
+        .select(SAVING_CYCLE_SELECT)
         .eq("saving_id", saving.id)
-        .order("cycle_number", { ascending: false })
-        .limit(1);
+        .order("cycle_number", { ascending: false });
 
       if (cycles && cycles.length > 0) {
-        const cycle = mapSavingCycleRow(cycles[0]);
+        const cycle = selectCurrentSavingCycle(cycles.map(mapSavingCycleRow));
+        if (!cycle) continue;
 
         // Compute current accrued interest for active cycles
         if (cycle.status === CycleStatus.ACTIVE) {
@@ -53,6 +82,7 @@ export async function listSavings(): Promise<Saving[] | null> {
             startDate: cycle.startDate,
             endDate: cycle.endDate,
             method:
+              cycle.packageSnapshot.interestCalculationMethod ||
               saving.productSnapshot.interestCalculationMethod ||
               InterestCalcMethod.SIMPLE,
           });
@@ -61,6 +91,7 @@ export async function listSavings(): Promise<Saving[] | null> {
 
         saving.latestCycle = cycle;
       }
+      await setMaturityActionRequired(saving);
     }
 
     return savings;
@@ -79,7 +110,7 @@ export async function getSaving(savingId: string): Promise<Saving | null> {
       .from("savings")
       .select(
         `id, household_id, status, funding_account_id, settlement_account_id,
-         provider_id, product_name, product_snapshot, renewal_policy, renewal_config, created_at,
+         provider_id, product_name, product_snapshot, renewal_policy, renewal_config, maturity_instruction, created_at,
          funding_accounts:funding_account_id(name),
          settlement_accounts:settlement_account_id(name),
          saving_providers:provider_id(display_name, provider_key, saving_type)`,
@@ -95,9 +126,7 @@ export async function getSaving(savingId: string): Promise<Saving | null> {
     // Load all cycles
     const { data: cycles } = await supabase
       .from("saving_cycles")
-      .select(
-        "id, saving_id, cycle_number, start_date, end_date, principal, locked_rate, package_snapshot, accrued_interest, settlement_result, renewal_decision, status, funding_transaction_id, settlement_transaction_id, created_at",
-      )
+      .select(SAVING_CYCLE_SELECT)
       .eq("saving_id", saving.id)
       .order("cycle_number", { ascending: true });
 
@@ -113,6 +142,7 @@ export async function getSaving(savingId: string): Promise<Saving | null> {
             startDate: cycle.startDate,
             endDate: cycle.endDate,
             method:
+              cycle.packageSnapshot.interestCalculationMethod ||
               saving.productSnapshot.interestCalculationMethod ||
               InterestCalcMethod.SIMPLE,
           });
@@ -120,8 +150,10 @@ export async function getSaving(savingId: string): Promise<Saving | null> {
         }
       }
 
-      saving.latestCycle = mappedCycles[mappedCycles.length - 1] ?? null;
+      saving.latestCycle = selectCurrentSavingCycle(mappedCycles);
     }
+
+    await setMaturityActionRequired(saving);
 
     return saving;
   } catch {
@@ -150,9 +182,7 @@ export async function listSavingCycles(
 
     const { data, error } = await supabase
       .from("saving_cycles")
-      .select(
-        "id, saving_id, cycle_number, start_date, end_date, principal, locked_rate, package_snapshot, accrued_interest, settlement_result, renewal_decision, status, funding_transaction_id, settlement_transaction_id, created_at",
-      )
+      .select(SAVING_CYCLE_SELECT)
       .eq("saving_id", savingId)
       .order("cycle_number", { ascending: true });
 
@@ -182,7 +212,93 @@ export async function listSavingCycles(
       }
     }
 
-    return cycles;
+    return cycles.sort(
+      (left, right) =>
+        right.cycleNumber - left.cycleNumber ||
+        right.createdAt.localeCompare(left.createdAt),
+    );
+  } catch {
+    return null;
+  }
+}
+
+export async function listSavingsFinancialActivities(
+  savingId: string,
+  cycles: readonly SavingCycle[],
+): Promise<SavingsFinancialActivity[] | null> {
+  const gate = await assertMoneyActionAllowed();
+  if (!gate.ok) return null;
+
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { data: saving } = await supabase
+      .from("savings")
+      .select("id")
+      .eq("id", savingId)
+      .eq("household_id", gate.householdId)
+      .maybeSingle();
+    if (!saving) return null;
+
+    const ids = new Set<string>();
+    for (const cycle of cycles) {
+      if (cycle.fundingTransactionId) ids.add(cycle.fundingTransactionId);
+      if (cycle.settlementTransactionId) ids.add(cycle.settlementTransactionId);
+      const result = cycle.settlementResult;
+      for (const id of [
+        result?.interestTransactionId,
+        result?.taxTransactionId,
+      ]) {
+        if (id) ids.add(id);
+      }
+    }
+    if (ids.size === 0) return [];
+
+    const select =
+      "id, type, amount, currency, transaction_date, note, transfer_group_id, savings_event_kind";
+    const { data: seedRows, error: seedError } = await supabase
+      .from("transactions")
+      .select(select)
+      .eq("household_id", gate.householdId)
+      .in("id", [...ids]);
+    if (seedError) return null;
+
+    const groups = new Set(
+      (seedRows ?? [])
+        .map((row) => row.transfer_group_id)
+        .filter((id): id is string => Boolean(id)),
+    );
+    const { data: groupRows, error: groupError } = groups.size
+      ? await supabase
+          .from("transactions")
+          .select(select)
+          .eq("household_id", gate.householdId)
+          .in("transfer_group_id", [...groups])
+      : { data: [], error: null };
+    if (groupError) return null;
+
+    const rows = [...(seedRows ?? []), ...(groupRows ?? [])];
+    const unique = new Map<string, (typeof rows)[number]>();
+    for (const row of rows) unique.set(row.id, row);
+
+    const activities = new Map<string, SavingsFinancialActivity>();
+    for (const row of unique.values()) {
+      if (!row.savings_event_kind) continue;
+      const key = row.transfer_group_id
+        ? `${row.transfer_group_id}:${row.savings_event_kind}`
+        : row.id;
+      if (activities.has(key)) continue;
+      activities.set(key, {
+        id: key,
+        eventKind: row.savings_event_kind,
+        amount: Number(row.amount),
+        currency: row.currency,
+        date: row.transaction_date,
+        note: row.note,
+      });
+    }
+    return [...activities.values()].sort((left, right) =>
+      right.date.localeCompare(left.date),
+    );
   } catch {
     return null;
   }

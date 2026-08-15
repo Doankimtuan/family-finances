@@ -51,6 +51,31 @@ export async function createSavingAction(
   return { status: "success", id: result.savingId, cycleId: result.cycleId };
 }
 
+export async function settleSavingAction(input: {
+  cycleId: string;
+  settlementAccountId?: string;
+}): Promise<SavingsActionState> {
+  const result = await settleSaving(input);
+  if (!result.ok) return { status: "error", code: result.code };
+  return {
+    status: "success",
+    id: result.savingId,
+    cycleId: result.cycleId,
+    netAmount: result.netAmount,
+  };
+}
+export async function renewSavingAction(
+  input: Parameters<typeof renewSaving>[0],
+): Promise<SavingsActionState> {
+  const result = await renewSaving(input);
+  if (!result.ok) return { status: "error", code: result.code };
+  return {
+    status: "success",
+    id: result.savingId,
+    cycleId: result.cycleId,
+    netAmount: result.principal,
+  };
+}
 export async function updateRenewalPolicyAction(
   input: UpdateRenewalPolicyInput,
 ): Promise<SavingsActionState> {

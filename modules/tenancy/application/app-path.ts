@@ -25,6 +25,7 @@ export const APP_PATH = {
   MONEY_DEBTS: "/money/debts",
   MONEY_SAVINGS: "/money/savings",
   MONEY_SAVINGS_NEW: "/money/savings/new",
+  MONEY_SAVINGS_PROVIDERS: "/money/savings/providers",
   MONEY_INVESTMENTS: "/money/investments",
   MONEY_INVESTMENTS_NEW: "/money/investments/new",
   MONEY_INVESTMENTS_CONVERT: "/money/investments/convert",
@@ -111,6 +112,10 @@ export function moneySavingsPath(savingsId: string): string {
 
 export function moneySavingsNewPath(): string {
   return APP_PATH.MONEY_SAVINGS_NEW;
+}
+
+export function moneySavingsProvidersPath(): string {
+  return APP_PATH.MONEY_SAVINGS_PROVIDERS;
 }
 
 export function moneySavingsEarlyWithdrawPath(savingsId: string): string {
