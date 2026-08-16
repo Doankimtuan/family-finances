@@ -172,3 +172,67 @@ describe("canonical financial semantics", () => {
     });
   });
 });
+
+describe("reversed transaction states", () => {
+  it("keeps a reversed expense original's cash semantics but stops it counting toward totals", () => {
+    expect(
+      classifyFinancialEvent({
+        type: TransactionLedgerType.EXPENSE,
+        status: TransactionStatus.REVERSED,
+      }),
+    ).toMatchObject({
+      classification: FinancialClassification.EXPENSE,
+      cashDirection: FinancialCashDirection.OUTFLOW,
+      countsTowardIncome: false,
+      countsTowardExpense: false,
+    });
+  });
+
+  it("keeps a reversed income original's cash semantics but stops it counting toward totals", () => {
+    expect(
+      classifyFinancialEvent({
+        type: TransactionLedgerType.INCOME,
+        status: TransactionStatus.REVERSED,
+      }),
+    ).toMatchObject({
+      classification: FinancialClassification.INCOME,
+      cashDirection: FinancialCashDirection.INFLOW,
+      countsTowardIncome: false,
+      countsTowardExpense: false,
+    });
+  });
+
+  it("classifies a reversal leg as a refund that never counts toward totals", () => {
+    expect(
+      classifyFinancialEvent({
+        type: TransactionLedgerType.INCOME,
+        isReversal: true,
+        reversesTransactionId: "expense-original",
+      }),
+    ).toMatchObject({
+      category: FinancialEventCategory.REFUND,
+      classification: FinancialClassification.REFUND,
+      countsTowardIncome: false,
+      countsTowardExpense: false,
+    });
+  });
+
+  it("still counts non-reversed statuses toward monthly totals", () => {
+    for (const status of [
+      TransactionStatus.POSTED,
+      TransactionStatus.PENDING_MAPPING,
+      TransactionStatus.PARTIALLY_REFUNDED,
+      TransactionStatus.FULLY_REFUNDED,
+    ]) {
+      expect(
+        classifyFinancialEvent({
+          type: TransactionLedgerType.EXPENSE,
+          status,
+        }),
+      ).toMatchObject({
+        countsTowardIncome: false,
+        countsTowardExpense: true,
+      });
+    }
+  });
+});

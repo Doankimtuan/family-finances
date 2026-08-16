@@ -9,12 +9,13 @@ import {
   type HomeDashboardPeriod as HomeDashboardPeriodValue,
 } from "./home-constants";
 import {
-  TransactionStatus,
   type LedgerTransaction,
 } from "@/modules/ledger/application";
 import {
   countsTowardMonthlyExpense,
   countsTowardMonthlyIncome,
+  sumMonthlyExpense,
+  sumMonthlyIncome,
 } from "@/modules/ledger/application/income-exclusion-policy";
 
 export type HomeDashboardDateRange = {
@@ -164,34 +165,6 @@ function fallsWithin(
   return transactionDate >= startDate && transactionDate <= endDate;
 }
 
-function isCountableTransaction(transaction: LedgerTransaction): boolean {
-  return (
-    transaction.status !== TransactionStatus.REVERSED && !transaction.isReversal
-  );
-}
-
-function isCountableExpense(transaction: LedgerTransaction): boolean {
-  return (
-    isCountableTransaction(transaction) &&
-    countsTowardMonthlyExpense(transaction)
-  );
-}
-
-function sumIncome(transactions: LedgerTransaction[]): number {
-  return transactions.reduce((sum, transaction) => {
-    if (!isCountableTransaction(transaction)) return sum;
-    return countsTowardMonthlyIncome(transaction)
-      ? sum + transaction.amount
-      : sum;
-  }, 0);
-}
-
-function sumExpense(transactions: LedgerTransaction[]): number {
-  return transactions.reduce((sum, transaction) => {
-    return isCountableExpense(transaction) ? sum + transaction.amount : sum;
-  }, 0);
-}
-
 /** Return a comparison only when a positive, meaningful baseline exists. */
 export function calculatePeriodComparison(
   currentValue: number,
@@ -210,9 +183,8 @@ export function calculatePeriodComparison(
 function hasReportableCashFlow(transactions: LedgerTransaction[]): boolean {
   return transactions.some(
     (transaction) =>
-      isCountableExpense(transaction) ||
-      (isCountableTransaction(transaction) &&
-        countsTowardMonthlyIncome(transaction)),
+      countsTowardMonthlyIncome(transaction) ||
+      countsTowardMonthlyExpense(transaction),
   );
 }
 
@@ -242,8 +214,8 @@ function buildDailyTrend(
       key: date,
       startDate: date,
       endDate: date,
-      income: sumIncome(dateTransactions),
-      expense: sumExpense(dateTransactions),
+      income: sumMonthlyIncome(dateTransactions),
+      expense: sumMonthlyExpense(dateTransactions),
     });
   }
   return points;
@@ -306,7 +278,7 @@ function buildSpendingCategories(
     { id: string | null; name: string | null; amount: number }
   >();
   for (const transaction of transactions) {
-    if (!isCountableExpense(transaction)) continue;
+    if (!countsTowardMonthlyExpense(transaction)) continue;
     const key = transaction.categoryId ?? "";
     const current = categories.get(key) ?? {
       id: transaction.categoryId,
@@ -347,10 +319,10 @@ export function calculateHomeFinancialMetrics(input: {
       input.range.previousEndDate,
     ),
   );
-  const income = sumIncome(currentTransactions);
-  const expense = sumExpense(currentTransactions);
-  const previousIncome = sumIncome(previousTransactions);
-  const previousExpense = sumExpense(previousTransactions);
+  const income = sumMonthlyIncome(currentTransactions);
+  const expense = sumMonthlyExpense(currentTransactions);
+  const previousIncome = sumMonthlyIncome(previousTransactions);
+  const previousExpense = sumMonthlyExpense(previousTransactions);
   const netCashFlow = income - expense;
   const previousNetCashFlow = previousIncome - previousExpense;
   const expenseComparison = calculatePeriodComparison(expense, previousExpense);

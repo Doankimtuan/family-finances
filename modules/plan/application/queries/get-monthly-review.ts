@@ -167,6 +167,7 @@ export function summarizeCashFlow(rows: ReviewTransaction[]) {
     const value = amount(row.amount);
     const semantics = classifyFinancialEvent({
       type: row.type,
+      status: row.status,
       savingsEventKind: row.savings_event_kind,
       isReversal: row.is_reversal ?? false,
       reversesTransactionId: row.reverses_transaction_id,

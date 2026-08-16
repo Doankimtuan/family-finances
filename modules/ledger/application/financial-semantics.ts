@@ -1,4 +1,7 @@
-import { TransactionLedgerType } from "./ledger-constants";
+import {
+  TransactionLedgerType,
+  TransactionStatus,
+} from "./ledger-constants";
 
 export const FinancialEventCategory = {
   INCOME: "income",
@@ -36,6 +39,7 @@ export type FinancialCashDirection =
 
 export type FinancialSemanticRow = {
   type: string;
+  status?: string | null;
   isReversal?: boolean | null;
   reversesTransactionId?: string | null;
   savingsEventKind?: string | null;
@@ -54,7 +58,26 @@ function savingsCategory(row: FinancialSemanticRow): boolean {
   return row.savingsEventKind?.toUpperCase().startsWith("SAVINGS_") ?? false;
 }
 
+/**
+ * Canonical classification for one ledger row, shared by every reporting
+ * surface (Home dashboard, Monthly Review, jar budgets). A `reversed` original
+ * keeps its type-based cash semantics — BR-03 keeps it in balance math so the
+ * reversal leg can offset it — but never counts toward monthly income or
+ * expense totals.
+ */
 export function classifyFinancialEvent(
+  row: FinancialSemanticRow,
+): FinancialEventSemantics {
+  const semantics = classifyEventSemantics(row);
+  if (row.status !== TransactionStatus.REVERSED) return semantics;
+  return {
+    ...semantics,
+    countsTowardIncome: false,
+    countsTowardExpense: false,
+  };
+}
+
+function classifyEventSemantics(
   row: FinancialSemanticRow,
 ): FinancialEventSemantics {
   const reversed = Boolean(row.isReversal || row.reversesTransactionId);

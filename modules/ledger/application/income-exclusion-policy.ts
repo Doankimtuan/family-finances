@@ -14,8 +14,9 @@ export type IncomeCountableRow = FinancialSemanticRow & {
 
 /**
  * Earned-income policy shared by Home and reporting selectors. Principal
- * returns, borrowing, transfers, investment sale proceeds, and refunds are
- * deliberately excluded even when they increase cash.
+ * returns, borrowing, transfers, investment sale proceeds, refunds, and
+ * reversed originals/reversal legs are deliberately excluded even when they
+ * increase cash.
  */
 export function countsTowardMonthlyIncome(row: IncomeCountableRow): boolean {
   return classifyIncome(row);
@@ -30,7 +31,7 @@ export function coerceAmount(amount: number | string): number {
   return Number.isFinite(value) ? value : 0;
 }
 
-/** Sum of earned income, excluding principal and reversal legs. */
+/** Sum of earned income, excluding principal, reversed originals, and reversal legs. */
 export function sumMonthlyIncome(rows: IncomeCountableRow[]): number {
   return rows.reduce((sum, row) => {
     if (!countsTowardMonthlyIncome(row)) return sum;

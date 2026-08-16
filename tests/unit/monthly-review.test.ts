@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { summarizeCashFlow } from "@/modules/plan/application/queries/get-monthly-review";
+import {
+  TransactionLedgerType,
+  TransactionStatus,
+} from "@/modules/ledger/application/ledger-constants";
 
 type ReviewRow = Parameters<typeof summarizeCashFlow>[0][number];
 
@@ -8,7 +12,7 @@ function row(type: string, amount: number, extras: Partial<ReviewRow> = {}): Rev
     id: crypto.randomUUID(),
     type,
     amount,
-    status: "posted",
+    status: TransactionStatus.POSTED,
     transaction_date: "2026-08-12",
     created_at: "2026-08-12T12:00:00.000Z",
     transfer_group_id: null,
@@ -48,5 +52,45 @@ describe("Monthly Review cash-flow semantics", () => {
 
     expect(summary.savingsAdded).toBe(2_000_000);
     expect(summary.activityCount).toBe(1);
+  });
+
+  it("counts normal posted income and expenses", () => {
+    const summary = summarizeCashFlow([
+      row(TransactionLedgerType.INCOME, 10_000_000),
+      row(TransactionLedgerType.EXPENSE, 3_000_000),
+    ]);
+
+    expect(summary.income).toBe(10_000_000);
+    expect(summary.expenses).toBe(3_000_000);
+  });
+
+  it("excludes reversed originals and reversal legs from income and expenses", () => {
+    const summary = summarizeCashFlow([
+      row(TransactionLedgerType.INCOME, 10_000_000),
+      row(TransactionLedgerType.EXPENSE, 2_000_000),
+      row(TransactionLedgerType.EXPENSE, 4_000_000, {
+        status: TransactionStatus.REVERSED,
+      }),
+      row(TransactionLedgerType.INCOME, 9_000_000, {
+        status: TransactionStatus.REVERSED,
+      }),
+      row(TransactionLedgerType.INCOME, 700_000, {
+        is_reversal: true,
+        reverses_transaction_id: "expense-original",
+      }),
+    ]);
+
+    expect(summary.income).toBe(10_000_000);
+    expect(summary.expenses).toBe(2_000_000);
+  });
+
+  it("does not count non-income inflows as income", () => {
+    const summary = summarizeCashFlow([
+      row(TransactionLedgerType.INVESTMENT_SELL_PROCEEDS, 12_000_000),
+      row(TransactionLedgerType.DEBT_BORROWING, 5_000_000),
+      row(TransactionLedgerType.INCOME, 6_000_000),
+    ]);
+
+    expect(summary.income).toBe(6_000_000);
   });
 });
