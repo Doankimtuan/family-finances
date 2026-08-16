@@ -1,3 +1,4 @@
+const PLAN_PULSE_LOG_CONTEXT = "[plan.plan-pulse]";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import { DEFAULT_CURRENCY } from "@/modules/ledger/application/ledger-constants";
@@ -11,7 +12,7 @@ import {
 } from "../jar-types";
 
 const JAR_SELECT =
-  "id, name, kind, sort_order, is_archived, is_paused, capacity_delta, jar_plans(plan_kind, percent_bps, fixed_amount)";
+  "id, name, kind, sort_order, is_archived, is_paused, rollover_mode, jar_plans(plan_kind, percent_bps, fixed_amount)";
 
 /**
  * Plan hub read model — Active jars only in preview (AC-003 / BR-03).
@@ -62,7 +63,8 @@ export async function getPlanPulse(): Promise<PlanPulse | null> {
       pausedJarCount,
       archivedJarCount,
     };
-  } catch {
+  } catch (error) {
+    console.error(PLAN_PULSE_LOG_CONTEXT, error);
     return null;
   }
 }

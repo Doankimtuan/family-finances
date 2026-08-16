@@ -8,6 +8,7 @@ import {
   contributeToGoalInputSchema,
 } from "@/modules/plan/application/commands/upsert-goal";
 import { createRecurringInputSchema } from "@/modules/plan/application/commands/upsert-recurring";
+import { GoalType } from "@/modules/plan/application/plan-constants";
 
 describe("mapGoalRow", () => {
   it("computes progress without inventing a bank balance field", () => {
@@ -23,7 +24,7 @@ describe("mapGoalRow", () => {
     expect(goal).not.toHaveProperty("balance");
   });
 
-  it("caps progress at 100", () => {
+  it("allows linked-value progress above 100", () => {
     expect(
       mapGoalRow({
         id: "g2",
@@ -33,7 +34,7 @@ describe("mapGoalRow", () => {
         target_date: null,
         status: "completed",
       }).progressPercent,
-    ).toBe(100);
+    ).toBe(150);
   });
 });
 
@@ -84,12 +85,14 @@ describe("goal / recurring schemas", () => {
       createGoalInputSchema.safeParse({
         name: "Trip",
         targetAmount: 0,
+        goalType: GoalType.SAVE_UP,
       }).success,
     ).toBe(false);
     expect(
       createGoalInputSchema.safeParse({
         name: "Trip",
         targetAmount: 5_000_000,
+        goalType: GoalType.SAVE_UP,
       }).success,
     ).toBe(true);
   });
@@ -165,6 +168,15 @@ describe("listGoals", () => {
                   data: { base_currency: "VND" },
                   error: null,
                 }),
+              }),
+            }),
+          };
+        }
+        if (table === "goal_funding_links") {
+          return {
+            select: () => ({
+              eq: () => ({
+                eq: async () => ({ data: [], error: null }),
               }),
             }),
           };

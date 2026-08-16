@@ -5,11 +5,15 @@ import {
   setJarState,
   upsertJarPlan,
   reallocateJarCapacity,
+  renameJar,
+  updateJarConfiguration,
   type CreateJarInput,
+  type JarConfigurationInput,
   type SetJarStateInput,
   type UpsertJarPlanInput,
   type ReallocateJarCapacityInput,
   type ReallocateJarCapacityErrorCode,
+  type RenameJarInput,
 } from "@/modules/plan/application";
 import {
   createCategory,
@@ -17,6 +21,19 @@ import {
 } from "@/modules/ledger/application";
 import type { ProductActionErrorCode } from "@/modules/tenancy/application/product-action-error";
 import type { LedgerActionErrorCode } from "@/modules/ledger/application/ledger-constants";
+
+export type UpdateJarConfigurationActionState =
+  | { status: "success"; jarId: string }
+  | { status: "error"; code: ProductActionErrorCode };
+
+export async function updateJarConfigurationAction(
+  jarId: string,
+  input: JarConfigurationInput,
+): Promise<UpdateJarConfigurationActionState> {
+  const result = await updateJarConfiguration(jarId, input);
+  if (result.ok) return { status: "success", jarId: result.jarId };
+  return { status: "error", code: result.code };
+}
 
 export type CreateJarActionState =
   | { status: "success"; jarId: string }
@@ -31,6 +48,16 @@ export async function createJarAction(
   const result = await createJar(input);
   if (result.ok) {
     return { status: "success", jarId: result.jarId };
+  }
+  return { status: "error", code: result.code };
+}
+
+export async function renameJarAction(
+  input: RenameJarInput,
+): Promise<{ status: "success"; name: string } | { status: "error"; code: ProductActionErrorCode }> {
+  const result = await renameJar(input);
+  if (result.ok) {
+    return { status: "success", name: result.name };
   }
   return { status: "error", code: result.code };
 }

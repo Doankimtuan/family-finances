@@ -8,10 +8,13 @@ import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
 import {
   listJars,
+  getCurrentJarBudgets,
+  calculateAllocationHealth,
   type PlanJar,
   DEFAULT_CURRENCY,
   JarState,
   JarPlanKind,
+  listJarCategories,
 } from "@/modules/plan/application";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
@@ -20,6 +23,7 @@ import { Page } from "@/shared/patterns/page";
 import { Section } from "@/shared/patterns/section";
 import { JarCard } from "@/shared/patterns/jar-card";
 import { EmptyState } from "@/shared/patterns/empty-state";
+import { StatusAlert } from "@/shared/ui/status-alert";
 import { Text } from "@/shared/ui/text";
 import { PlanOfflineBanner } from "../plan-offline-banner";
 import { CreateJarForm } from "./create-jar-form";
@@ -72,10 +76,12 @@ export default async function PlanJarsPage({ params }: Props) {
     return redirect({ href: APP_PATH.ONBOARD, locale });
   }
 
-  const [t, tCatalog, listed] = await Promise.all([
+  const [t, tCatalog, listed, budgets, listedCategories] = await Promise.all([
     getTranslations("plan.jars"),
     getTranslations("catalog"),
     listJars(),
+    getCurrentJarBudgets(),
+    listJarCategories(),
   ]);
 
   const currency = listed?.currency ?? DEFAULT_CURRENCY;
@@ -87,6 +93,22 @@ export default async function PlanJarsPage({ params }: Props) {
     name: jar.name,
     kind: jar.kind,
   }));
+  const allocationHealth = calculateAllocationHealth(
+    active,
+    budgets?.periodIncome ?? 0,
+  );
+  const allocationDescription =
+    allocationHealth.status === "over_allocated"
+      ? t("allocationHealthOver", {
+          percent: allocationHealth.utilizationPercent,
+        })
+      : allocationHealth.status === "under_allocated"
+        ? t("allocationHealthUnder", {
+            percent: allocationHealth.utilizationPercent,
+          })
+        : allocationHealth.status === "no_income"
+          ? t("allocationHealthNoIncome")
+          : t("allocationHealthBalanced");
 
   return (
     <Page
@@ -94,6 +116,16 @@ export default async function PlanJarsPage({ params }: Props) {
       topBar={<TopAppBar title={t("listTitle")} subtitle={t("listSubtitle")} />}
     >
       <PlanOfflineBanner />
+
+      {active.length > 0 ? (
+        <StatusAlert
+          variant={
+            allocationHealth.status === "over_allocated" ? "warning" : "info"
+          }
+          title={t("allocationHealthTitle")}
+          description={allocationDescription}
+        />
+      ) : null}
 
       <Text size="sm" tone="secondary">
         {t("incomeModeLabel", {
@@ -114,7 +146,7 @@ export default async function PlanJarsPage({ params }: Props) {
               <li key={jar.id}>
                 <Link href={planJarPath(jar.id)} className="block">
                   <JarCard
-                    name={localizeCatalogName(tCatalog, "jars", jar.name)}
+                    name={jar.isNameCustom ? jar.name : localizeCatalogName(tCatalog, "jars", jar.name)}
                     kindLabel={t(`kinds.${jar.kind}`)}
                     stateLabel={t(stateLabelKey(jar.state))}
                     state={jar.state}
@@ -139,7 +171,7 @@ export default async function PlanJarsPage({ params }: Props) {
               <li key={jar.id}>
                 <Link href={planJarPath(jar.id)} className="block">
                   <JarCard
-                    name={localizeCatalogName(tCatalog, "jars", jar.name)}
+                    name={jar.isNameCustom ? jar.name : localizeCatalogName(tCatalog, "jars", jar.name)}
                     kindLabel={t(`kinds.${jar.kind}`)}
                     stateLabel={t(stateLabelKey(jar.state))}
                     state={jar.state}
@@ -153,7 +185,12 @@ export default async function PlanJarsPage({ params }: Props) {
         )}
       </Section>
 
-      <CreateJarForm />
+      <CreateJarForm
+        categories={listedCategories ?? []}
+        availableJars={active.map((jar) => ({ id: jar.id, name: jar.name }))}
+        currency={currency}
+        qualifyingIncome={budgets?.qualifyingIncome ?? null}
+      />
       <CreateCategoryForm jars={categoryJars} />
 
       <Link

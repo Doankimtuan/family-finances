@@ -10,6 +10,7 @@ import { assertPlanPeriodUnlocked } from "../assert-plan-unlocked";
 import {
   JarPlanKind,
   JAR_PLAN_KIND_VALUES,
+  JAR_ROLLOVER_MODE_VALUES,
   type JarPlanKind as JarPlanKindValue,
 } from "../plan-constants";
 
@@ -20,6 +21,7 @@ export const upsertJarPlanInputSchema = z
     /** Whole percent 0–100 when planKind=percent */
     percent: z.number().finite().min(0).max(100).optional(),
     fixedAmount: z.number().finite().int().min(0).optional(),
+    rolloverMode: z.enum(JAR_ROLLOVER_MODE_VALUES).optional(),
   })
   .superRefine((value, ctx) => {
     if (value.planKind === JarPlanKind.PERCENT && value.percent === undefined) {
@@ -107,6 +109,20 @@ export async function upsertJarPlan(
 
     if (error) {
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    }
+
+    if (parsed.data.rolloverMode) {
+      const { error: rolloverError } = await supabase
+        .from("jars")
+        .update({
+          rollover_mode: parsed.data.rolloverMode,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", parsed.data.jarId)
+        .eq("household_id", gate.householdId);
+      if (rolloverError) {
+        return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+      }
     }
 
     return { ok: true, planKind: parsed.data.planKind };

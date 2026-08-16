@@ -6,7 +6,9 @@ import { routing } from "@/i18n/routing";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
-import { getGoal } from "@/modules/plan/application";
+import { getGoal, listGoals } from "@/modules/plan/application/queries/list-goals";
+import { listGoalFundingOptions } from "@/modules/plan/application/queries/list-goal-funding-options";
+import { GoalType } from "@/modules/plan/application/plan-constants";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Page } from "@/shared/patterns/page";
@@ -17,7 +19,6 @@ import { StatusAlert } from "@/shared/ui/status-alert";
 import { Text } from "@/shared/ui/text";
 import { PlanOfflineBanner } from "../../plan-offline-banner";
 import { GoalDetailControls } from "./goal-detail-controls";
-
 type Props = {
   params: Promise<{ locale: string; id: string }>;
 };
@@ -58,12 +59,28 @@ export default async function PlanGoalDetailPage({ params }: Props) {
     );
   }
 
+  const fundingOptions =
+    (await listGoalFundingOptions({
+      goalType: goal.goalType,
+      goalId: goal.id,
+    })) ?? [];
+  const listedGoals = await listGoals();
+  const reassignmentOptions = (listedGoals?.goals ?? [])
+    .filter(
+      (candidate) =>
+        candidate.id !== goal.id &&
+        candidate.goalType === goal.goalType &&
+        ["active", "ready"].includes(candidate.status),
+    )
+    .map((candidate) => ({
+      id: candidate.id,
+      name: candidate.name,
+      goalType: candidate.goalType,
+    }));
   return (
     <Page
       testId="plan-goal-detail"
-      topBar={
-        <TopAppBar title={goal.name} subtitle={t("detailSubtitle")} />
-      }
+      topBar={<TopAppBar title={goal.name} subtitle={t("detailSubtitle")} />}
     >
       <PlanOfflineBanner />
 
@@ -96,6 +113,82 @@ export default async function PlanGoalDetailPage({ params }: Props) {
         <Text size="sm" tone="secondary">
           {t("progressIntentionHint")}
         </Text>
+        {goal.fundingSummary ? (
+          <div className="flex flex-col gap-(--space-1) text-sm text-text-secondary">
+            {goal.goalType === GoalType.PAYOFF ? (
+              <>
+                <span>
+                  {t("originalPrincipalLabel", {
+                    amount: formatCurrency(
+                      goal.fundingSummary.originalPrincipalTotal,
+                      goal.currency,
+                      locale,
+                      { maximumFractionDigits: 0 },
+                    ),
+                  })}
+                </span>
+                <span>
+                  {t("remainingPrincipalLabel", {
+                    amount: formatCurrency(
+                      goal.fundingSummary.remainingPrincipalTotal,
+                      goal.currency,
+                      locale,
+                      { maximumFractionDigits: 0 },
+                    ),
+                  })}
+                </span>
+                <span>
+                  {t("principalPaidLabel", {
+                    amount: formatCurrency(
+                      goal.fundingSummary.principalPaidTotal,
+                      goal.currency,
+                      locale,
+                      { maximumFractionDigits: 0 },
+                    ),
+                  })}
+                </span>
+              </>
+            ) : (
+              <>
+                <span>
+                  {t("marketValueLabel", {
+                    amount: formatCurrency(
+                      goal.fundingSummary.marketValue,
+                      goal.currency,
+                      locale,
+                      { maximumFractionDigits: 0 },
+                    ),
+                  })}
+                </span>
+                {goal.fundingSummary.costBasis > 0 ? (
+                  <span>
+                    {t("costBasisLabel", {
+                      amount: formatCurrency(
+                        goal.fundingSummary.costBasis,
+                        goal.currency,
+                        locale,
+                        { maximumFractionDigits: 0 },
+                      ),
+                    })}
+                  </span>
+                ) : null}
+                {goal.fundingSummary.unrealizedGainLoss != null ? (
+                  <span>
+                    {t("gainLossLabel", {
+                      amount: formatCurrency(
+                        goal.fundingSummary.unrealizedGainLoss,
+                        goal.currency,
+                        locale,
+                        { maximumFractionDigits: 0, signDisplay: "always" },
+                      ),
+                    })}
+                  </span>
+                ) : null}
+              </>
+            )}
+            <span>{t(`fundingValueQuality.${goal.fundingValueStatus}`)}</span>
+          </div>
+        ) : null}
       </Section>
 
       <Section title={t("targetHeading")}>
@@ -115,10 +208,19 @@ export default async function PlanGoalDetailPage({ params }: Props) {
         goalId={goal.id}
         name={goal.name}
         targetAmount={goal.targetAmount}
+        fundedAmount={goal.fundedAmount}
+        remainingPrincipal={goal.fundingSummary?.remainingPrincipalTotal ?? null}
         targetDate={goal.targetDate}
         status={goal.status}
+        goalType={goal.goalType}
+        fundingLinks={goal.fundingLinks}
+        fundingOptions={fundingOptions.filter(
+          (option) => option.linkedGoalId !== goal.id,
+        )}
+        reassignmentOptions={reassignmentOptions}
+        isLegacyIntention={goal.isLegacyIntention}
+        fundingValueStatus={goal.fundingValueStatus}
       />
-
       <Link
         href={APP_PATH.PLAN_GOALS}
         className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary"

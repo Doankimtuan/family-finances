@@ -31,11 +31,11 @@
     "activeSection": "Active",
     "nonTargetSection": "Paused & archived",
     "nonTargetEmpty": "No paused or archived jars.",
-    "create": "Create jar",
+    "create": "Create Jar",
     "createNameLabel": "Name",
     "createNamePlaceholder": "e.g. Travel",
     "createKindLabel": "Kind",
-    "createSubmit": "Save jar",
+    "createSubmit": "Create Jar",
     "createCancel": "Cancel",
     "backToPlan": "Back to Plan",
     "backToList": "Back to jars",
@@ -129,7 +129,8 @@
       "receiptTo": "To",
       "receiptInbox": "Open Inbox item",
       "receiptDone": "Done",
-      "receiptBackJars": "Back to jars"
+      "receiptBackJars": "Back to jars",
+      "availableToMoveLabel": "Available to move"
     },
     "categoryForm": {
       "open": "Create category",
@@ -164,7 +165,61 @@
     "allocateVirtualBody": "Saving this plan updates intention only. No account balance or transaction is created.",
     "allocateReceiptTitle": "Plan updated",
     "allocateReceiptBody": "Plan changed. Real money unchanged.",
-    "allocateReceiptDismiss": "Dismiss"
+    "allocateReceiptDismiss": "Dismiss",
+    "editJar": "Edit Jar",
+    "createHeading": "Create Jar",
+    "editHeading": "Edit Jar",
+    "saveChanges": "Save changes",
+    "kindDescriptions": {
+      "spending": "Everyday spending",
+      "savings": "Money set aside",
+      "buffer": "Flexible capacity",
+      "income": "Income placement"
+    },
+    "budget": {
+      "heading": "This month's Jar budget",
+      "notAvailable": "Budget is not available for this period.",
+      "overBy": "Over by {amount}",
+      "remaining": "{amount} remaining",
+      "setIncome": "Set an income base to calculate this budget.",
+      "spent": "{amount} spent",
+      "used": "{percent}% used"
+    },
+    "allocationHealthOver": "Allocation is above income",
+    "allocationHealthUnder": "Some income is still unallocated",
+    "allocationHealthNoIncome": "No income base",
+    "allocationHealthBalanced": "Allocation is balanced",
+    "allocationHealthTitle": "Allocation health",
+    "configurationIntro": "Set the Jar rules.",
+    "confirmReassignment": "Confirm reassignment",
+    "enabledHint": "Used for the next planning period.",
+    "fixedHint": "A fixed amount stays the same.",
+    "pauseHint": "Paused Jars receive no new placement.",
+    "percentHint": "Percentages use the income base.",
+    "previewTitle": "Budget preview",
+    "previewNoIncome": "No income base is available.",
+    "previewAmount": "Preview amount",
+    "categoriesHeading": "Category mapping",
+    "categoriesHint": "Keep categories mapped to the intended Jar.",
+    "categoriesEmpty": "No categories need attention.",
+    "categoryMappedElsewhere": "Category mapped elsewhere",
+    "removedCategoriesHeading": "Removed category mappings",
+    "removedCategoriesHint": "These mappings no longer apply.",
+    "removedCategoriesTargetLabel": "Target Jar",
+    "moreOptions": "More options",
+    "typeLabel": "Type",
+    "typeHint": "Choose how this Jar is funded.",
+    "rolloverLabel": "Rollover",
+    "rolloverReset": "Reset each period",
+    "rolloverCarry": "Carry remaining budget",
+    "rolloverHint": "Rollover changes the next period intention only.",
+    "availableToMoveLabel": "Available to move",
+    "resumeHint": "Resuming makes this Jar an active allocation target.",
+    "budgetLabel": "Budget",
+    "spentLabel": "Spent",
+    "remainingLabel": "Remaining",
+    "enabledLabel": "Enabled",
+    "allocationMeaning": "Allocation is a Plan intention, not a bank balance."
   },
   "goals": {
     "title": "Goals",
@@ -197,9 +252,10 @@
     "editSubmit": "Save changes",
     "status": {
       "active": "Active",
-      "paused": "Paused",
+      "cancelled": "Cancelled",
       "completed": "Completed",
-      "cancelled": "Cancelled"
+      "paused": "Paused",
+      "ready": "Ready"
     },
     "notFound": "Goal not found",
     "errors": {
@@ -228,7 +284,82 @@
     "cancelConfirmBody": "Pursuit ends and history remains. No money moves.",
     "cancelConfirmYes": "Cancel goal",
     "terminalCompletedBody": "Completed means intention fulfilled. It does not prove payment or purchase.",
-    "terminalCancelledBody": "Cancelled means pursuit ended. History remains. No money moved."
+    "terminalCancelledBody": "Cancelled means pursuit ended. History remains. No money moved.",
+    "fundingKind": {
+      "saving": "Savings",
+      "holding": "Investment",
+      "loan": "Loan",
+      "debt": "Debt",
+      "savings_account": "Savings account"
+    },
+    "type": {
+      "save_up": "Save up",
+      "invest": "Invest",
+      "payoff": "Pay off"
+    },
+    "backing": {
+      "linked": "Linked funding",
+      "legacy": "Legacy progress",
+      "needs_backing": "Needs funding source"
+    },
+    "fundingGroup": {
+      "savings": "Savings",
+      "investments": "Investments",
+      "debt": "Debt"
+    },
+    "createFundingLabel": "Funding source",
+    "createFundingHint": "Link a whole Savings, Investment, or Debt source. Nothing is moved.",
+    "createFundingOptional": "Optional for now. An unlinked Goal stays marked as needing a funding source.",
+    "fundingAlreadyLinked": "Already linked to another Goal",
+    "fundingDeferredHint": "Some linked Money data needs review before this value is complete",
+    "marketValueLabel": "Market value {amount}",
+    "costBasisLabel": "Invested {amount}",
+    "gainLossLabel": "Gain/loss {amount}",
+    "originalPrincipalLabel": "Original {amount}",
+    "remainingPrincipalLabel": "Remaining {amount}",
+    "principalPaidLabel": "Paid down {amount}",
+    "fundingValueQuality": {
+      "current": "Value updated",
+      "stale": "Value may be outdated",
+      "partial": "Some linked values need updating",
+      "missing": "Market value unavailable",
+      "incomplete": "Debt information needs review",
+      "legacy": "Legacy progress"
+    },
+    "createTypeLabel": "Goal type",
+    "fundingHeading": "Funding source",
+    "moneyMovementTitle": "Money movement",
+    "moneyMovementBody": "Money actions remain in Money; this link only explains the Goal.",
+    "unlinkFunding": "Unlink source",
+    "linkFundingSource": "Link a funding source",
+    "linkFundingSubmit": "Link source",
+    "noFundingSources": "No compatible funding sources yet.",
+    "fundInMoney": "Fund in Money",
+    "withdrawInMoney": "Withdraw in Money",
+    "actionHeading": "Goal actions",
+    "sourcePickerTitle": "Which source do you want to use?",
+    "fundGoal": "Fund Goal",
+    "addMoreFunds": "Add more funds",
+    "withdrawGoal": "Withdraw",
+    "makePayment": "Make payment",
+    "buyMore": "Buy more",
+    "sellInvestment": "Sell investment",
+    "reassignFunding": "Reassign",
+    "reassignDestinationLabel": "Move it to",
+    "reassignConfirmTitle": "Move this funding source?",
+    "reassignConfirmBody": "{source} will support {goal}. No money will be moved; only the Goal assignment changes.",
+    "reassignConfirmYes": "Move funding source",
+    "noReassignDestinations": "No compatible open Goals are available.",
+    "unlinkConfirmTitle": "Stop counting {source} toward this Goal?",
+    "unlinkConfirmBody": "The financial source will stay unchanged. It will simply stop counting toward Goal progress.",
+    "unlinkConfirmYes": "Unlink source",
+    "needsBackingTitle": "This Goal needs a funding source",
+    "needsBackingBody": "Link a Savings, Investment, or debt source to continue tracking real progress.",
+    "legacyContributeHeading": "Legacy manual progress",
+    "legacyManualLabel": "Compatibility mode",
+    "legacyManualBody": "This Goal has no linked Money source yet. Link a real source to make funding the preferred path.",
+    "completeBelowTargetBody": "This Goal is currently {percent}% funded. Complete it anyway?",
+    "completeWithRemainingBody": "This debt still has {amount} remaining. Complete the Goal anyway?"
   },
   "recurring": {
     "title": "Recurring",
@@ -442,6 +573,183 @@
   },
   "period": {
     "heading": "Current period {period}",
-    "summary": "{active} active jars · {paused} paused"
+    "summary": "{active} active jars · {paused} paused",
+    "label": "Planning period"
+  },
+  "monthlyReview": {
+    "eyebrow": "Monthly Review",
+    "subtitle": "See how your household's plan and money performed this month.",
+    "inProgress": "Month in progress · data recorded so far",
+    "currentMonth": "Current month",
+    "historicalMonth": "Historical month",
+    "previousMonth": "Previous",
+    "nextMonth": "Next",
+    "reviewed": "Reviewed",
+    "notReviewed": "Not marked reviewed",
+    "summaryHeading": "Cash-flow summary",
+    "income": "Income",
+    "expenses": "Expenses",
+    "savingsAdded": "Added to Savings",
+    "netInvested": "Net invested",
+    "debtReduced": "Debt reduced",
+    "netCashFlow": "Net cash flow",
+    "summaryNote": "Expenses, savings placement, investments, and debt reduction are kept separate so the story stays factual.",
+    "jarsHeading": "Jar performance",
+    "jarsAttention": "{count, plural, =0 {On track} one {# needs attention} other {# need attention}}",
+    "noJars": "No active Jars for this month.",
+    "setupJars": "Set up Jars",
+    "jarRemaining": "{amount} remaining",
+    "jarOver": "{amount} over budget",
+    "goalsHeading": "Goal progress",
+    "legacyProgress": "Legacy progress · not verified Money funding",
+    "missingBacking": "Missing backing",
+    "linkedFunding": "Linked funding",
+    "changesHeading": "Important changes",
+    "changeLabels": {
+      "expenses": "Monthly expenses",
+      "savings": "Savings placement",
+      "investment": "Investment activity",
+      "debt": "Debt principal",
+      "jar": "Jar usage"
+    },
+    "issuesHeading": "Things to review",
+    "uncategorized": "{count, plural, one {# transaction still needs a category} other {# transactions still need categories}}",
+    "overspentJar": "{name} was over budget by {amount}",
+    "goalBacking": "{name} has no linked funding source",
+    "missingIncome": "Percentage Jars are missing an income base",
+    "reviewWithoutBlocking": "This is informational. Plan and Money remain available.",
+    "open": "Open",
+    "actionsHeading": "Suggested actions",
+    "actionUncategorized": "Review {count} uncategorized transactions",
+    "actionJar": "Review {name} budget",
+    "actionGoal": "Link a funding source to {name}",
+    "emptyTitle": "No recorded activity this month",
+    "emptyBody": "Your Jars and Goals are still available, but there are no Money transactions to summarize yet.",
+    "updatedAfterReviewTitle": "Updated after review",
+    "updatedAfterReviewBody": "Transactions were changed after this review. Live numbers may differ from what was previously marked reviewed.",
+    "markReviewed": "Mark as reviewed",
+    "saving": "Saving…",
+    "reviewedBody": "This only records review metadata. Plan and Money remain fully editable.",
+    "backToPlan": "Back to Plan"
+  },
+  "allocationHealthBalanced": "Allocation matches income",
+  "allocationHealthNoIncome": "Add an income base to see allocation",
+  "allocationHealthOver": "Allocation is above income",
+  "allocationHealthTitle": "Allocation health",
+  "allocationHealthUnder": "Some income is still unallocated",
+  "allocationMeaning": "Allocation is a Plan intention, not a bank balance.",
+  "review": {
+    "title": "Monthly Review",
+    "body": "See how your household's plan and money performed this month.",
+    "cta": "Open Monthly Review"
+  },
+  "home": {
+    "assistManual": "Manual",
+    "assistAssisted": "Assisted",
+    "attentionFallback": "one item needs attention",
+    "createGoal": "Create Goal",
+    "createJar": "Create Jar",
+    "exceptionGoalBacking": "{name} needs a funding source",
+    "exceptionNearLimit": "{name} is close to its budget",
+    "exceptionNearLimitBody": "{amount} remaining",
+    "exceptionNoIncome": "Set qualifying income",
+    "exceptionOpenGoal": "Open Goal",
+    "exceptionOpenInbox": "Open Inbox",
+    "exceptionOpenJar": "Open Jar",
+    "exceptionOpenPlan": "Open Plan",
+    "exceptionOverAllocated": "Plan exceeds income ({percent}%)",
+    "exceptionOverspent": "{name} is over budget",
+    "exceptionOverspentBody": "Over by {amount}",
+    "exceptionUncategorized": "{count, plural, one {# transaction needs a category} other {# transactions need categories}}",
+    "exceptionsTitle": "Things to review",
+    "goalFallbackName": "Goal",
+    "goalLegacy": "Legacy progress",
+    "goalLinked": "Linked funding",
+    "goalProgress": "{funded} of {target}",
+    "goalsEmptyBody": "Goals help the household name what it is preparing for.",
+    "goalsEmptyTitle": "No Goals yet",
+    "goalsSeeAll": "See all Goals",
+    "goalsTitle": "Goals",
+    "healthAttention": "Needs attention",
+    "healthAttentionBody": "Review {issue} when you have a moment.",
+    "healthHealthy": "On track",
+    "healthHealthyBody": "Your current Plan is ready for the month.",
+    "healthNoPlan": "Plan is not set up",
+    "healthNoPlanBody": "Add a Jar to start giving income a clear destination.",
+    "healthOffTrack": "Needs a closer look",
+    "healthOffTrackBody": "{count} Jars are over budget.",
+    "jarsUnavailableBody": "Jar budgets are not available right now.",
+    "jarsUnavailableTitle": "Jars unavailable",
+    "modeHint": "{mode} suggestions are available.",
+    "recurringLink": "Recurring",
+    "upcomingDue": "Due",
+    "upcomingEmpty": "Nothing expected soon.",
+    "upcomingExpected": "Expected",
+    "upcomingTitle": "Coming up",
+    "viewAll": "View all",
+    "viewAllJars": "View all Jars"
+  },
+  "recommendations": {
+    "title": "Suggestions",
+    "jarOverspent": {
+      "title": "{name} is over budget",
+      "withDonor": "Consider moving up to {amount} from {donorName} to {name}.",
+      "withoutDonor": "Review this Jar's budget; no unused active Jar is available to cover it."
+    },
+    "jarNearLimit": {
+      "title": "{name} is close to its budget",
+      "description": "{name} has used {percent}% of its budget. Review upcoming spending."
+    },
+    "uncategorized": {
+      "title": "Transactions need categories",
+      "description": "{count} transaction(s) still need categories."
+    },
+    "missingIncome": {
+      "title": "Set qualifying income",
+      "description": "Percentage-based Jars need a qualifying monthly income to calculate budgets."
+    },
+    "overAllocated": {
+      "title": "Plan exceeds income",
+      "description": "Planned Jar budgets exceed qualifying income by {amount}. Review fixed amounts or percentage allocations."
+    },
+    "goalMissingBacking": {
+      "title": "{name} needs a funding source",
+      "description": "Link a Savings, Investment, or Debt source to track real progress."
+    },
+    "goalSourceUnavailable": {
+      "title": "Funding source unavailable",
+      "description": "Review the funding source for {name}; it is missing or unavailable."
+    },
+    "goalValuationMissing": {
+      "title": "Investment value unavailable",
+      "description": "Market value is unavailable for one Goal investment. Goal progress may be incomplete."
+    },
+    "goalValuationStale": {
+      "title": "Investment value may be outdated",
+      "description": "Update the investment value for {name} to improve Goal accuracy."
+    },
+    "goalReadyRegression": {
+      "title": "{name} is below its target again",
+      "description": "This Goal is below its target after an investment value change. Review the Goal."
+    },
+    "goalTargetDate": {
+      "title": "{name} is approaching its target date",
+      "description": "This Goal is not fully funded. Review the target or funding sources."
+    },
+    "recurringMismatch": {
+      "title": "Recurring amount changed",
+      "description": "The recurring amount changed from {expected} to {actual}. Review the recurring amount."
+    },
+    "actions": {
+      "reallocate": "Reallocate budget",
+      "reviewBudget": "Review budget",
+      "reviewJarRule": "Review Jar rule",
+      "reviewTransactions": "Review transactions",
+      "planSettings": "Plan settings",
+      "goalFunding": "Add funding source",
+      "openInvestment": "Open Investment",
+      "openRecurring": "Open Recurring",
+      "openGoal": "Open Goal"
+    }
   }
 }

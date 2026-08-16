@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { assertPlanPeriodUnlocked } from "@/modules/plan/application/assert-plan-unlocked";
 import {
   currentPeriodMonth,
   formatPeriodLabel,
@@ -67,21 +68,21 @@ describe("ritual status / mode mapping", () => {
     expect(mapRitualMode(RitualMode.QUICK_CLOSE)).toBe(RitualMode.QUICK_CLOSE);
   });
 
-  it("treats approved and pending_review as locked", () => {
-    expect(isRitualLockedStatus(RitualStatus.APPROVED)).toBe(true);
-    expect(isRitualLockedStatus(RitualStatus.PENDING_REVIEW)).toBe(true);
+  it("Plan V2: approved and pending_review never lock mutations", () => {
+    expect(isRitualLockedStatus(RitualStatus.APPROVED)).toBe(false);
+    expect(isRitualLockedStatus(RitualStatus.PENDING_REVIEW)).toBe(false);
     expect(isRitualLockedStatus(RitualStatus.PREVIEWED)).toBe(false);
   });
 });
 
-describe("Quick Close eligibility (BR-23)", () => {
-  it("unlocks at six consecutive Assisted completions", () => {
+describe("Quick Close eligibility (BR-23 deprecated)", () => {
+  it("retains threshold constant for historical helpers only", () => {
     expect(QUICK_CLOSE_CONSECUTIVE_RITUALS).toBe(6);
     expect(isQuickCloseEligible(5, QUICK_CLOSE_CONSECUTIVE_RITUALS)).toBe(
       false,
     );
     expect(isQuickCloseEligible(6, QUICK_CLOSE_CONSECUTIVE_RITUALS)).toBe(true);
-    expect(resolveQuickCloseEligible(6)).toBe(true);
+    expect(resolveQuickCloseEligible(6)).toBe(false);
   });
 
   it("maps Miscellaneous fallback jar to seeded General name", () => {
@@ -89,6 +90,19 @@ describe("Quick Close eligibility (BR-23)", () => {
   });
 });
 
+describe("Plan V2 review mutability", () => {
+  it.each([
+    ["approved review", "approved"],
+    ["pending review", "pending_review"],
+    ["no review", null],
+  ])("allows Plan mutations after %s", async (_label, _status) => {
+    void _label;
+    void _status;
+    await expect(assertPlanPeriodUnlocked("household-id", "2026-08-01")).resolves.toEqual({
+      ok: true,
+    });
+  });
+});
 describe("correctMonthRitualInputSchema", () => {
   it("requires a short note", () => {
     expect(

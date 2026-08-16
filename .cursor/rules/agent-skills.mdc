@@ -1,0 +1,21 @@
+---
+description: Canonical AI instructions and Agent Skills live in .agents/ — load relevant skills before implementing
+alwaysApply: true
+---
+
+# Agent Skills System (canonical)
+
+Canonical project AI instructions live in:
+
+- `.agents/instructions/PROJECT.md`
+
+Reusable skills live in:
+
+- `.agents/skills/`
+
+Cursor loads `.agents/skills/` natively as Agent Skills. Before implementing
+code, read `PROJECT.md` and apply the relevant skills — at minimum
+`code-quality` and `typescript-quality`, plus framework skills as listed in
+`PROJECT.md`, and `refactor-review` before finishing a refactor.
+
+Do not copy skill bodies into `.cursor/`; this rule is only a pointer.

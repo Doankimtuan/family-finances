@@ -1,3 +1,6 @@
+/** @deprecated Historical query adapter; V2 screens use getMonthlyReview. */
+const LEGACY_RITUAL_QUERY_LOG_CONTEXT = "[plan.legacy-ritual-query]";
+
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import { InboxItemStatus } from "@/modules/inbox/application/inbox-constants";
@@ -8,7 +11,6 @@ import {
   isRitualLockedStatus,
   mapRitualMode,
   mapRitualStatus,
-  resolveQuickCloseEligible,
   type MonthRitual,
   type RitualPreview,
 } from "../ritual-types";
@@ -137,7 +139,8 @@ export async function buildRitualPreview(
       incomeAllocateMode,
       monthCloseMode,
     };
-  } catch {
+  } catch (error) {
+    console.error(LEGACY_RITUAL_QUERY_LOG_CONTEXT, error);
     return null;
   }
 }
@@ -175,12 +178,6 @@ export async function getMonthRitual(
     const incomeAllocateMode = mapIncomeAllocateMode(
       household?.income_allocate_mode,
     );
-    const consecutiveCompletedRituals = Number(
-      household?.consecutive_completed_rituals ?? 0,
-    );
-    const quickCloseEligible = resolveQuickCloseEligible(
-      consecutiveCompletedRituals,
-    );
     const fallback = emptyPreview(
       periodMonth,
       monthCloseMode,
@@ -198,8 +195,6 @@ export async function getMonthRitual(
         | "divergence"
         | "emergencies"
         | "emergenciesAcknowledged"
-        | "consecutiveCompletedRituals"
-        | "quickCloseEligible"
         | "autoLockedAt"
       > & {
         autoLockedAt?: string | null;
@@ -212,8 +207,6 @@ export async function getMonthRitual(
       emergencies,
       emergenciesAcknowledged:
         emergencies.length === 0 || Boolean(base.emergenciesAcknowledgedAt),
-      consecutiveCompletedRituals,
-      quickCloseEligible,
     });
 
     // Table may not exist until migration is applied
@@ -270,7 +263,8 @@ export async function getMonthRitual(
       emergenciesAcknowledgedAt: ritual.emergencies_acknowledged_at,
       isLocked: isRitualLockedStatus(status),
     });
-  } catch {
+  } catch (error) {
+    console.error(LEGACY_RITUAL_QUERY_LOG_CONTEXT, error);
     return null;
   }
 }

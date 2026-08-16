@@ -214,7 +214,6 @@ export function PoliciesForm({
         {(
           [
             [RitualMode.ASSISTED, "ritualAssisted", "ritualAssistedHint"],
-            [RitualMode.AUTO, "ritualAuto", "ritualAutoHint"],
             [RitualMode.MANUAL, "ritualManual", "ritualManualHint"],
           ] as const
         ).map(([value, labelKey, hintKey]) => (
@@ -300,7 +299,11 @@ export function PoliciesForm({
             <Text size="sm" tone="secondary">
               {t("confirmBody")}
             </Text>
-            <Text size="sm" tone="secondary" data-testid="policies-confirm-money-none">
+            <Text
+              size="sm"
+              tone="secondary"
+              data-testid="policies-confirm-money-none"
+            >
               {t("confirmMoneyNone")}
             </Text>
             <Button

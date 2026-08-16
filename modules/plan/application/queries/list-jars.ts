@@ -1,3 +1,4 @@
+const PLAN_JAR_LIST_LOG_CONTEXT = "[plan.jar-list]";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import { DEFAULT_CURRENCY } from "@/modules/ledger/application/ledger-constants";
@@ -11,7 +12,7 @@ import {
 } from "../jar-types";
 
 const JAR_SELECT =
-  "id, name, kind, sort_order, is_archived, is_paused, capacity_delta, jar_plans(plan_kind, percent_bps, fixed_amount)";
+  "id, name, is_name_custom, kind, sort_order, is_archived, is_paused, rollover_mode, jar_plans(plan_kind, percent_bps, fixed_amount)";
 
 async function fetchHouseholdJars(householdId: string): Promise<{
   currency: string;
@@ -64,7 +65,8 @@ export async function listJars(): Promise<JarList | null> {
       paused: packed.jars.filter((j) => j.state === JarState.PAUSED),
       archived: packed.jars.filter((j) => j.state === JarState.ARCHIVED),
     };
-  } catch {
+  } catch (error) {
+    console.error(PLAN_JAR_LIST_LOG_CONTEXT, error);
     return null;
   }
 }
@@ -104,7 +106,8 @@ export async function getJar(jarId: string): Promise<JarDetail | null> {
         household?.income_allocate_mode,
       ),
     };
-  } catch {
+  } catch (error) {
+    console.error(PLAN_JAR_LIST_LOG_CONTEXT, error);
     return null;
   }
 }

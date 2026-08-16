@@ -92,7 +92,7 @@ type ReceiptState = {
 type Props = {
   sourceJarId: string;
   sourceJarName: string;
-  capacityDelta: number;
+  availableToMove: number;
   currency: string;
   targetJars: JarOption[];
   overspendPolicy: OverspendPolicyValue;
@@ -114,7 +114,7 @@ function asFieldErrorKey(message: string | undefined): FieldErrorKey {
 export function ReallocateJarForm({
   sourceJarId,
   sourceJarName,
-  capacityDelta,
+  availableToMove,
   currency,
   targetJars,
   overspendPolicy,
@@ -264,6 +264,10 @@ export function ReallocateJarForm({
       setErrorCode(CLIENT_ACTION_ERROR_CODE.OFFLINE);
       return;
     }
+    if (values.amount > availableToMove) {
+      setErrorCode(PLAN_ACTION_ERROR_CODE.CAPACITY_BLOCKED);
+      return;
+    }
 
     const needsWarn = shouldShowOverspendWarning({
       isEmergency: values.isEmergency,
@@ -350,9 +354,9 @@ export function ReallocateJarForm({
         description={t("virtualBannerBody")}
       />
 
-      <Text size="sm" tone="secondary" data-testid="jar-capacity-delta">
-        {t("capacityDeltaLabel", {
-          amount: capacityDelta,
+      <Text size="sm" tone="secondary" data-testid="jar-available-to-move">
+        {t("availableToMoveLabel", {
+          amount: availableToMove,
           currency,
         })}
       </Text>
@@ -461,7 +465,7 @@ export function ReallocateJarForm({
         variant="primary"
         className="w-full"
         data-testid="jar-reallocate-submit"
-        isDisabled={isPending || !online || amount == null || amount <= 0}
+        isDisabled={isPending || !online || amount == null || amount <= 0 || amount > availableToMove}
         onPress={() => {
           void handleSubmit(submitReallocate)();
         }}

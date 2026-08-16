@@ -1,8 +1,53 @@
 import "server-only";
 
 export { getPlanPulse, listActiveJars } from "./queries/get-plan-pulse";
+export {
+  getCurrentJarBudgets,
+  getJarBudgetsForPeriod,
+  jarBudgetPeriodBounds,
+  type CurrentJarBudgetSummary,
+  type JarBudgetPeriod,
+} from "./queries/get-current-jar-budgets";
+export {
+  calculateAllocationHealth,
+  type AllocationHealth,
+  type AllocationHealthStatus,
+} from "./allocation-health";
+export {
+  calculateJarBudgetMetrics,
+  type JarBudgetMetrics,
+  type JarBudgetState,
+} from "./jar-budget";
+export {
+  buildAssistedSuggestions,
+  PlanAssistedSuggestionKind,
+  type PlanAssistedSuggestion,
+} from "./assisted-suggestions";
+export {
+  getPlanRecommendations,
+  PlanRecommendationType,
+  type PlanRecommendation,
+  type PlanRecommendationAction,
+  type PlanRecommendationInput,
+  type RecurringMismatchInput,
+} from "./plan-recommendations";
+export { ensureJarPeriodRuleSnapshots } from "./commands/ensure-jar-period-snapshots";
+export {
+  resolvePlanHomeHealth,
+  collectPlanHomeExceptions,
+  prioritizePlanHomeExceptions,
+  PlanHomeHealthStatus,
+} from "./plan-home-health";
 export { listJars, getJar } from "./queries/list-jars";
+export {
+  listJarCategories,
+  type JarCategoryOption,
+} from "./queries/list-jar-categories";
 export { listGoals, getGoal } from "./queries/list-goals";
+export {
+  listGoalFundingOptions,
+  type GoalFundingOption,
+} from "./queries/list-goal-funding-options";
 export { listRecurring, getRecurring } from "./queries/list-recurring";
 export { getMonthRitual, buildRitualPreview } from "./queries/get-month-ritual";
 export { getHouseholdCalendar } from "./queries/get-household-calendar";
@@ -28,6 +73,18 @@ export {
   type CreateJarInput,
   type CreateJarResult,
 } from "./commands/create-jar";
+export {
+  updateJarConfiguration,
+  jarConfigurationInputSchema,
+  type JarConfigurationInput,
+  type ConfigureJarResult,
+} from "./commands/configure-jar";
+export {
+  renameJar,
+  renameJarInputSchema,
+  type RenameJarInput,
+  type RenameJarResult,
+} from "./commands/rename-jar";
 export {
   reallocateJarCapacity,
   type ReallocateJarCapacityResult,
@@ -69,6 +126,15 @@ export {
   type UpdateGoalInput,
   type UpdateGoalResult,
 } from "./commands/upsert-goal";
+export {
+  linkGoalFunding,
+  unlinkGoalFunding,
+  linkGoalFundingInputSchema,
+  unlinkGoalFundingInputSchema,
+  type LinkGoalFundingInput,
+  type UnlinkGoalFundingInput,
+  type GoalFundingMutationResult,
+} from "./commands/link-goal-funding";
 export {
   createRecurring,
   createRecurringInputSchema,
@@ -127,6 +193,7 @@ export {
 export type {
   PlanGoal,
   GoalDetail,
+  GoalFundingLink,
   GoalsList,
   PlanRecurring,
   RecurringDetail,
@@ -136,12 +203,26 @@ export {
   mapGoalRow,
   mapRecurringRow,
   GoalStatus,
+  GoalType,
+  GoalFundingSourceKind,
   RecurringDirection,
   RecurringFrequency,
   GOAL_STATUS_VALUES,
+  GOAL_TYPE_VALUES,
+  GOAL_FUNDING_SOURCE_KIND_VALUES,
   RECURRING_DIRECTION_OPTIONS,
   RECURRING_FREQUENCY_VALUES,
 } from "./goal-recurring-types";
+export {
+  deriveGoalFundedAmount,
+  calculateGoalProgressPercent,
+  resolveGoalFundingStatus,
+  goalFundingSourceKey,
+  hasExclusiveGoalFundingConflict,
+  isPayoffFundingSource,
+  type GoalFundingSourceValue,
+  type GoalFundingLinkIdentity,
+} from "./goal-funding";
 export type {
   MonthRitual,
   RitualPreview,
@@ -167,6 +248,11 @@ export {
   RITUAL_AUTOLOCK_DAYS_AFTER_MONTH_END,
   QUICK_CLOSE_CONSECUTIVE_RITUALS,
   MISCELLANEOUS_JAR_NAME,
+  GOAL_FUNDING_LINKABLE_STATUS_VALUES,
+  PlanAssistMode,
+  PLAN_ASSIST_MODE_VALUES,
+  MonthlyReviewStatus,
+  MONTHLY_REVIEW_STATUS_VALUES,
   CalendarEventSource,
   CALENDAR_EVENT_SOURCE_VALUES,
   CalendarCashFlowSign,
@@ -190,3 +276,9 @@ export {
 } from "./calendar-projection";
 export type { HouseholdCalendar } from "./queries/get-household-calendar";
 export { DEFAULT_CURRENCY } from "@/modules/ledger/application/ledger-constants";
+
+export { reallocateJarBudget } from "./commands/reallocate-jar-capacity";
+export {
+  getMonthlyReview,
+  type MonthlyReview,
+} from "./queries/get-monthly-review";

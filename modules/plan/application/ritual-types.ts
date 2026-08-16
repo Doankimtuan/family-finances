@@ -2,7 +2,6 @@ import {
   RitualMode,
   RitualStatus,
   RITUAL_LOCKED_STATUSES,
-  QUICK_CLOSE_CONSECUTIVE_RITUALS,
   RITUAL_GATE_ERROR_CODE,
   type RitualMode as RitualModeValue,
   type RitualStatus as RitualStatusValue,
@@ -10,7 +9,6 @@ import {
   type RitualGateErrorCode,
 } from "./plan-constants";
 import type { ProductActionErrorCode } from "@/modules/tenancy/application/product-action-error";
-import { isQuickCloseEligible } from "./ritual-period";
 
 export { RitualMode, RitualStatus, IncomeAllocateMode } from "./plan-constants";
 export { RITUAL_GATE_ERROR_CODE };
@@ -62,11 +60,14 @@ export type MonthRitual = {
   divergence: RitualDivergenceItem[];
   emergencies: RitualEmergencyItem[];
   emergenciesAcknowledged: boolean;
-  consecutiveCompletedRituals: number;
-  quickCloseEligible: boolean;
 };
 
+/**
+ * Plan V2: review statuses never lock Plan mutations.
+ * Returns false for all statuses; RITUAL_LOCKED_STATUSES is intentionally empty.
+ */
 export function isRitualLockedStatus(status: RitualStatusValue): boolean {
+  void status;
   return (RITUAL_LOCKED_STATUSES as readonly string[]).includes(status);
 }
 
@@ -97,11 +98,8 @@ export function mapRitualMode(
   return RitualMode.ASSISTED;
 }
 
-export function resolveQuickCloseEligible(
-  consecutiveCompleted: number,
-): boolean {
-  return isQuickCloseEligible(
-    consecutiveCompleted,
-    QUICK_CLOSE_CONSECUTIVE_RITUALS,
-  );
+/** @deprecated Plan V2 has no Quick Close eligibility. */
+export function resolveQuickCloseEligible(_consecutiveCompleted: number): false {
+  void _consecutiveCompleted;
+  return false;
 }

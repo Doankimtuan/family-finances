@@ -11,9 +11,11 @@ import { OverspendPolicy } from "@/modules/tenancy/application/household-policie
 import {
   getJar,
   listActiveJars,
+  getCurrentJarBudgets,
   JarState,
   JarPlanKind,
   type JarState as JarStateValue,
+  listJarCategories,
 } from "@/modules/plan/application";
 import { listOpenInboxItems } from "@/modules/inbox/application";
 import { formatCurrency } from "@/shared/i18n/formatters";
@@ -58,15 +60,27 @@ export default async function PlanJarDetailPage({ params }: Props) {
     return redirect({ href: APP_PATH.ONBOARD, locale });
   }
 
-  const [t, tCatalog, jar, activeJars, policies, inboxItems] =
-    await Promise.all([
-      getTranslations("plan.jars"),
-      getTranslations("catalog"),
-      getJar(id),
-      listActiveJars(),
-      getHouseholdPolicies(),
-      listOpenInboxItems(),
-    ]);
+  const [
+    t,
+    tReview,
+    tCatalog,
+    jar,
+    activeJars,
+    policies,
+    inboxItems,
+    categories,
+    budgets,
+  ] = await Promise.all([
+    getTranslations("plan.jars"),
+    getTranslations("plan.monthlyReview"),
+    getTranslations("catalog"),
+    getJar(id),
+    listActiveJars(),
+    getHouseholdPolicies(),
+    listOpenInboxItems(),
+    listJarCategories(),
+    getCurrentJarBudgets(),
+  ]);
 
   if (!jar) {
     return (
@@ -84,7 +98,9 @@ export default async function PlanJarDetailPage({ params }: Props) {
     );
   }
 
-  const displayName = localizeCatalogName(tCatalog, "jars", jar.name);
+  const displayName = jar.isNameCustom
+    ? jar.name
+    : localizeCatalogName(tCatalog, "jars", jar.name);
   let plannedLabel = t("planNone");
   if (jar.plan?.kind === JarPlanKind.PERCENT) {
     plannedLabel = t("planPercent", {
@@ -103,8 +119,21 @@ export default async function PlanJarDetailPage({ params }: Props) {
       name: candidate.name,
     }));
 
-  const capacityLabel = formatCurrency(
-    jar.capacityDelta,
+  const budgetMetrics = budgets?.byJarId[jar.id];
+  const budgetLabel = formatCurrency(
+    budgetMetrics?.budgetAmount ?? 0,
+    jar.currency,
+    locale,
+    { maximumFractionDigits: 0 },
+  );
+  const spentLabel = formatCurrency(
+    budgetMetrics?.spentAmount ?? 0,
+    jar.currency,
+    locale,
+    { maximumFractionDigits: 0 },
+  );
+  const remainingLabel = formatCurrency(
+    budgetMetrics?.remainingAmount ?? 0,
     jar.currency,
     locale,
     { maximumFractionDigits: 0 },
@@ -113,9 +142,7 @@ export default async function PlanJarDetailPage({ params }: Props) {
   return (
     <Page
       testId="plan-jar-detail"
-      topBar={
-        <TopAppBar title={displayName} subtitle={t("detailSubtitle")} />
-      }
+      topBar={<TopAppBar title={displayName} subtitle={t("detailSubtitle")} />}
     >
       <PlanOfflineBanner />
 
@@ -139,10 +166,14 @@ export default async function PlanJarDetailPage({ params }: Props) {
         size="lg"
       />
 
-      <Amount
-        label={t("reallocate.capacityDeltaHeading")}
-        amountLabel={capacityLabel}
-      />
+      <div
+        className="grid grid-cols-3 gap-(--space-2)"
+        data-testid="jar-budget-metrics"
+      >
+        <Amount label={t("budgetLabel")} amountLabel={budgetLabel} />
+        <Amount label={t("spentLabel")} amountLabel={spentLabel} />
+        <Amount label={t("remainingLabel")} amountLabel={remainingLabel} />
+      </div>
 
       <div className="flex items-center justify-between gap-(--space-3)">
         <Text size="sm" tone="secondary">
@@ -167,17 +198,17 @@ export default async function PlanJarDetailPage({ params }: Props) {
         </Text>
       </Section>
 
-      <div data-testid="jar-ritual-lock">
+      <div data-testid="jar-monthly-review-info">
         <StatusAlert
           variant="info"
-          title={t("ritualLockTitle")}
-          description={t("ritualLockBody")}
+          title={tReview("reviewWithoutBlocking")}
+          description={tReview("reviewedBody")}
         />
         <Link
           href={APP_PATH.PLAN_RITUAL}
           className="mt-(--space-2) inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
         >
-          {t("ritualLockOpen")}
+          {tReview("open")}
         </Link>
       </div>
 
@@ -185,14 +216,30 @@ export default async function PlanJarDetailPage({ params }: Props) {
         <ReallocateJarForm
           sourceJarId={jar.id}
           sourceJarName={displayName}
-          capacityDelta={jar.capacityDelta}
+          availableToMove={Math.max(
+            0,
+            budgets?.byJarId[jar.id]?.remainingAmount ?? 0,
+          )}
           currency={jar.currency}
           targetJars={targetJars}
           overspendPolicy={policies?.overspendPolicy ?? OverspendPolicy.WARN}
         />
       ) : null}
 
-      <JarDetailControls jarId={jar.id} state={jar.state} plan={jar.plan} />
+      <JarDetailControls
+        jarId={jar.id}
+        state={jar.state}
+        kind={jar.kind}
+        plan={jar.plan}
+        rolloverMode={jar.rolloverMode}
+        name={jar.name}
+        categories={categories ?? []}
+        availableJars={(activeJars ?? [])
+          .filter((candidate) => candidate.id !== jar.id)
+          .map((candidate) => ({ id: candidate.id, name: candidate.name }))}
+        currency={jar.currency}
+        qualifyingIncome={budgets?.qualifyingIncome ?? null}
+      />
 
       <Link
         href={APP_PATH.PLAN_JARS}

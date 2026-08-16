@@ -6,7 +6,9 @@ import { routing } from "@/i18n/routing";
 import { APP_PATH, planGoalPath } from "@/modules/tenancy/application/app-path";
 import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
-import { listGoals, DEFAULT_CURRENCY } from "@/modules/plan/application";
+import { listGoals } from "@/modules/plan/application/queries/list-goals";
+import { listGoalFundingOptions } from "@/modules/plan/application/queries/list-goal-funding-options";
+import { DEFAULT_CURRENCY } from "@/modules/ledger/application/ledger-constants";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Page } from "@/shared/patterns/page";
@@ -32,12 +34,14 @@ export default async function PlanGoalsPage({ params }: Props) {
   const membership = await resolveActiveMembership(user.id);
   if (!membership) return redirect({ href: APP_PATH.ONBOARD, locale });
 
-  const [t, listed] = await Promise.all([
+  const [t, listed, options] = await Promise.all([
     getTranslations("plan.goals"),
     listGoals(),
+    listGoalFundingOptions(),
   ]);
 
   const currency = listed?.currency ?? DEFAULT_CURRENCY;
+  const fundingOptions = options ?? [];
   const goals = listed?.goals ?? [];
 
   return (
@@ -77,7 +81,7 @@ export default async function PlanGoalsPage({ params }: Props) {
                     ),
                   })}
                   progressPercent={goal.progressPercent}
-                  statusLabel={t(`status.${goal.status}`)}
+                  statusLabel={`${t(`status.${goal.status}`)} · ${t(`backing.${goal.backingState}`)}`}
                   data-testid={`goal-card-${goal.id}`}
                 />
               </Link>
@@ -86,7 +90,7 @@ export default async function PlanGoalsPage({ params }: Props) {
         </ul>
       )}
 
-      <CreateGoalForm />
+      <CreateGoalForm fundingOptions={fundingOptions} />
 
       <Link
         href={APP_PATH.PLAN}

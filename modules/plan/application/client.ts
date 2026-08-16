@@ -7,11 +7,33 @@ export {
   JarKind,
   JarState,
   JarPlanKind,
+  JarRolloverMode,
   JAR_KIND_VALUES,
   JAR_STATE_VALUES,
   JAR_PLAN_KIND_VALUES,
+  JAR_ROLLOVER_MODE_VALUES,
   type JarPlan,
 } from "./jar-types";
+
+export {
+  calculateAllocationHealth,
+  type AllocationHealth,
+  type AllocationHealthStatus,
+} from "./allocation-health";
+
+export {
+  calculateJarBudgetMetrics,
+  calculateJarBudgetAmount,
+  calculateJarSpentAmount,
+  calculatePeriodIncome,
+  calculateQualifyingPostedIncome,
+  calculateJarRuleBudget,
+  classifyJarEnvelopeEffect,
+  resolveQualifyingMonthlyIncome,
+  resolveJarBudgetState,
+  type JarBudgetMetrics,
+  type JarBudgetState,
+} from "./jar-budget";
 
 export {
   PLAN_MOVEMENT_LEDGER_IMPACT,
@@ -78,12 +100,26 @@ export {
 
 export {
   GoalStatus,
+  GoalType,
+  GoalFundingSourceKind,
   RecurringDirection,
   RecurringFrequency,
   GOAL_STATUS_VALUES,
+  GOAL_TYPE_VALUES,
+  GOAL_FUNDING_SOURCE_KIND_VALUES,
   RECURRING_DIRECTION_OPTIONS,
   RECURRING_FREQUENCY_VALUES,
 } from "./goal-recurring-types";
+
+export {
+  calculateGoalProgressPercent,
+  resolveGoalFundingStatus,
+  goalFundingSourceKey,
+  hasExclusiveGoalFundingConflict,
+  isPayoffFundingSource,
+  type GoalFundingSourceValue,
+  type GoalFundingLinkIdentity,
+} from "./goal-funding";
 
 export {
   currentPeriodMonth,

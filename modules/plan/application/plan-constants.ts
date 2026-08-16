@@ -46,9 +46,24 @@ export const JAR_PLAN_KIND_VALUES = [
   JarPlanKind.FIXED,
 ] as const;
 
+/** Plan V2 envelope rollover behavior (not a savings balance). */
+export const JarRolloverMode = {
+  RESET: "reset",
+  CARRY: "carry",
+} as const;
+
+export type JarRolloverMode =
+  (typeof JarRolloverMode)[keyof typeof JarRolloverMode];
+
+export const JAR_ROLLOVER_MODE_VALUES = [
+  JarRolloverMode.RESET,
+  JarRolloverMode.CARRY,
+] as const;
+
 export const GoalStatus = {
   ACTIVE: "active",
   PAUSED: "paused",
+  READY: "ready",
   COMPLETED: "completed",
   CANCELLED: "cancelled",
 } as const;
@@ -58,8 +73,47 @@ export type GoalStatus = (typeof GoalStatus)[keyof typeof GoalStatus];
 export const GOAL_STATUS_VALUES = [
   GoalStatus.ACTIVE,
   GoalStatus.PAUSED,
+  GoalStatus.READY,
   GoalStatus.COMPLETED,
   GoalStatus.CANCELLED,
+] as const;
+
+export const GOAL_FUNDING_LINKABLE_STATUS_VALUES = [
+  GoalStatus.ACTIVE,
+  GoalStatus.READY,
+] as const;
+
+export const GoalType = {
+  SAVE_UP: "save_up",
+  INVEST: "invest",
+  PAYOFF: "payoff",
+} as const;
+
+export type GoalType = (typeof GoalType)[keyof typeof GoalType];
+
+export const GOAL_TYPE_VALUES = [
+  GoalType.SAVE_UP,
+  GoalType.INVEST,
+  GoalType.PAYOFF,
+] as const;
+
+export const GoalFundingSourceKind = {
+  SAVING: "saving",
+  SAVINGS_ACCOUNT: "savings_account",
+  HOLDING: "holding",
+  LOAN: "loan",
+  DEBT: "debt",
+} as const;
+
+export type GoalFundingSourceKind =
+  (typeof GoalFundingSourceKind)[keyof typeof GoalFundingSourceKind];
+
+export const GOAL_FUNDING_SOURCE_KIND_VALUES = [
+  GoalFundingSourceKind.SAVING,
+  GoalFundingSourceKind.SAVINGS_ACCOUNT,
+  GoalFundingSourceKind.HOLDING,
+  GoalFundingSourceKind.LOAN,
+  GoalFundingSourceKind.DEBT,
 ] as const;
 
 export const RecurringDirection = TransactionDirection;
@@ -134,24 +188,58 @@ export const RITUAL_STATUS_VALUES = [
   RitualStatus.PENDING_REVIEW,
 ] as const;
 
-/** Statuses that lock normal plan mutations (BR-08). */
-export const RITUAL_LOCKED_STATUSES = [
-  RitualStatus.APPROVED,
-  RitualStatus.PENDING_REVIEW,
+/** Plan V2 optional Monthly Review mark — never locks Plan. */
+export const MonthlyReviewStatus = {
+  NOT_STARTED: "not_started",
+  VIEWED: "viewed",
+  MARKED_REVIEWED: "marked_reviewed",
+} as const;
+
+export type MonthlyReviewStatus =
+  (typeof MonthlyReviewStatus)[keyof typeof MonthlyReviewStatus];
+
+export const MONTHLY_REVIEW_STATUS_VALUES = [
+  MonthlyReviewStatus.NOT_STARTED,
+  MonthlyReviewStatus.VIEWED,
+  MonthlyReviewStatus.MARKED_REVIEWED,
 ] as const;
 
-/** Unapproved statuses eligible for temporal auto-lock. */
+/**
+ * V1 statuses that previously locked plan mutations (BR-08).
+ * Plan V2: empty — Monthly Review never locks Plan usage.
+ * Kept as a named constant so call sites and tests stay explicit.
+ */
+export const RITUAL_LOCKED_STATUSES = [] as const;
+
+/** @deprecated Plan V2 — auto-lock no longer runs. Retained for historical helpers. */
 export const RITUAL_AUTOLOCK_ELIGIBLE_STATUSES = [
   RitualStatus.DRAFT,
   RitualStatus.PREVIEWED,
   RitualStatus.CORRECTED,
 ] as const;
 
-/** Days after month-end before unapproved rituals auto-lock (BR-08 / AC-RIT-01). */
+/** @deprecated Plan V2 — auto-lock disabled. */
 export const RITUAL_AUTOLOCK_DAYS_AFTER_MONTH_END = 30;
 
-/** Consecutive Assisted approvals required before Quick Close (BR-23). */
+/** @deprecated Plan V2 — Quick Close deprecated (BR-23). */
 export const QUICK_CLOSE_CONSECUTIVE_RITUALS = 6;
+
+/**
+ * Household Plan assistance mode (Plan V2).
+ * Replaces user-facing month_close_mode auto/quick_close semantics.
+ */
+export const PlanAssistMode = {
+  ASSISTED: "assisted",
+  MANUAL: "manual",
+} as const;
+
+export type PlanAssistMode =
+  (typeof PlanAssistMode)[keyof typeof PlanAssistMode];
+
+export const PLAN_ASSIST_MODE_VALUES = [
+  PlanAssistMode.ASSISTED,
+  PlanAssistMode.MANUAL,
+] as const;
 
 /**
  * Spec "Miscellaneous Jar" fallback for BR-15 month-lock triage.

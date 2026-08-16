@@ -1,3 +1,6 @@
+/** @deprecated Plan V2 compatibility adapter only. Monthly Review owns active behavior. */
+const LEGACY_RITUAL_LOG_CONTEXT = "[plan.legacy-ritual]";
+
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
@@ -14,15 +17,12 @@ import {
 import {
   RitualMode,
   RitualStatus,
+  MonthlyReviewStatus,
+  GoalStatus,
   RITUAL_GATE_ERROR_CODE,
-  QUICK_CLOSE_CONSECUTIVE_RITUALS,
   type RitualStatus as RitualStatusValue,
 } from "../plan-constants";
-import {
-  resolveQuickCloseEligible,
-  mapRitualStatus,
-  type RitualActionErrorCode,
-} from "../ritual-types";
+import { mapRitualStatus, type RitualActionErrorCode } from "../ritual-types";
 
 export type { RitualActionErrorCode };
 
@@ -40,7 +40,8 @@ async function assertNoDivergence(
       return RITUAL_GATE_ERROR_CODE.RITUAL_DIVERGENCE;
     }
     return null;
-  } catch {
+  } catch (error) {
+    console.error(LEGACY_RITUAL_LOG_CONTEXT, error);
     return PRODUCT_ACTION_ERROR_CODE.UNKNOWN;
   }
 }
@@ -55,7 +56,8 @@ async function assertEmergenciesAcknowledged(
     if (emergencies.length === 0) return null;
     if (emergenciesAcknowledgedAt) return null;
     return RITUAL_GATE_ERROR_CODE.EMERGENCIES_UNACKNOWLEDGED;
-  } catch {
+  } catch (error) {
+    console.error(LEGACY_RITUAL_LOG_CONTEXT, error);
     return PRODUCT_ACTION_ERROR_CODE.UNKNOWN;
   }
 }
@@ -137,25 +139,28 @@ export async function previewMonthRitual(
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
     }
     return { ok: true, status: RitualStatus.PREVIEWED, ritualId: data.id };
-  } catch {
+  } catch (error) {
+    console.error(LEGACY_RITUAL_LOG_CONTEXT, error);
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }
 }
 
 export type ApproveMonthRitualOptions = {
   periodMonth?: string;
-  /** BR-23 1-tap Quick Close path. */
+  /** @deprecated Plan V2 removed Quick Close. Retained for old callers only. */
   quickClose?: boolean;
 };
 
 /**
- * Approve Assisted (or Quick Close) ritual → lock period (BR-08 / BR-23).
+ * Mark the optional Monthly Review as reviewed. This never locks Plan.
  */
 export async function approveMonthRitual(
   options: ApproveMonthRitualOptions = {},
 ): Promise<RitualMutationResult> {
   const periodMonth = options.periodMonth ?? currentPeriodMonth();
-  const quickClose = options.quickClose === true;
+  if (options.quickClose === true) {
+    return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
+  }
 
   const gate = await assertMoneyActionAllowed();
   if (!gate.ok) {
@@ -175,18 +180,7 @@ export async function approveMonthRitual(
 
   try {
     const supabase = await createSupabaseServerClient();
-    const { data: household } = await supabase
-      .from("households")
-      .select("consecutive_completed_rituals, month_close_mode")
-      .eq("id", gate.householdId)
-      .maybeSingle();
-
-    const consecutive = Number(household?.consecutive_completed_rituals ?? 0);
-    if (quickClose && !resolveQuickCloseEligible(consecutive)) {
-      return { ok: false, code: RITUAL_GATE_ERROR_CODE.QUICK_CLOSE_LOCKED };
-    }
-
-    let { data: existing } = await supabase
+    const { data: existing } = await supabase
       .from("month_ritual_runs")
       .select("id, status, mode, emergencies_acknowledged_at")
       .eq("household_id", gate.householdId)
@@ -209,42 +203,19 @@ export async function approveMonthRitual(
       return { ok: false, code: emergencyCode };
     }
 
-    // Quick Close may approve from draft by generating preview first.
-    if (quickClose && existing?.status !== RitualStatus.PREVIEWED) {
-      const previewed = await previewMonthRitual(periodMonth);
-      if (!previewed.ok) return previewed;
-      const refreshed = await supabase
-        .from("month_ritual_runs")
-        .select("id, status, mode, emergencies_acknowledged_at")
-        .eq("household_id", gate.householdId)
-        .eq("period_month", periodMonth)
-        .maybeSingle();
-      existing = refreshed.data;
-
-      const afterPreviewEmergency = await assertEmergenciesAcknowledged(
-        gate.householdId,
-        periodMonth,
-        existing?.emergencies_acknowledged_at as string | null | undefined,
-      );
-      if (afterPreviewEmergency) {
-        return { ok: false, code: afterPreviewEmergency };
-      }
-    }
-
     if (!existing?.id || existing.status !== RitualStatus.PREVIEWED) {
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
     }
 
     const now = new Date().toISOString();
-    const approveMode = quickClose
-      ? RitualMode.QUICK_CLOSE
-      : mapApproveMode(existing.mode);
+    const approveMode = mapApproveMode(existing.mode);
 
     const { error } = await supabase
       .from("month_ritual_runs")
       .update({
         status: RitualStatus.APPROVED,
         mode: approveMode,
+        review_status: MonthlyReviewStatus.MARKED_REVIEWED,
         approved_by: gate.userId,
         approved_at: now,
         updated_at: now,
@@ -253,25 +224,29 @@ export async function approveMonthRitual(
 
     if (error) return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
 
-    // BR-23 streak: Assisted (or Quick Close after unlock) counts as completed.
-    const nextConsecutive = consecutive + 1;
-    const householdPatch: {
-      consecutive_completed_rituals: number;
-      month_close_mode?: string;
-    } = {
-      consecutive_completed_rituals: nextConsecutive,
-    };
-    if (nextConsecutive >= QUICK_CLOSE_CONSECUTIVE_RITUALS) {
-      householdPatch.month_close_mode = RitualMode.QUICK_CLOSE;
+    // Legacy completion-streak data is preserved but no longer updated or
+    // consulted because Quick Close is not a Plan V2 behavior.
+    // Snapshot derived goal funded amounts for historical Monthly Review deltas.
+    const { data: goals } = await supabase
+      .from("goals")
+      .select("id, funded_amount")
+      .eq("household_id", gate.householdId)
+      .neq("status", GoalStatus.CANCELLED);
+    if (goals && goals.length > 0) {
+      await supabase.from("goal_period_funded_snapshots").upsert(
+        goals.map((goal) => ({
+          household_id: gate.householdId,
+          goal_id: goal.id,
+          period_month: periodMonth,
+          funded_amount: Number(goal.funded_amount) || 0,
+        })),
+        { onConflict: "goal_id,period_month" },
+      );
     }
 
-    await supabase
-      .from("households")
-      .update(householdPatch)
-      .eq("id", gate.householdId);
-
     return { ok: true, status: RitualStatus.APPROVED, ritualId: existing.id };
-  } catch {
+  } catch (error) {
+    console.error(LEGACY_RITUAL_LOG_CONTEXT, error);
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }
 }
@@ -359,7 +334,8 @@ export async function correctMonthRitual(
       .eq("id", gate.householdId);
 
     return { ok: true, status: RitualStatus.CORRECTED, ritualId: existing.id };
-  } catch {
+  } catch (error) {
+    console.error(LEGACY_RITUAL_LOG_CONTEXT, error);
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }
 }
@@ -438,7 +414,8 @@ export async function acknowledgeRitualEmergencies(
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
     }
     return { ok: true, status: RitualStatus.DRAFT, ritualId: data.id };
-  } catch {
+  } catch (error) {
+    console.error(LEGACY_RITUAL_LOG_CONTEXT, error);
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }
 }

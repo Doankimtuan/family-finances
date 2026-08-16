@@ -2,11 +2,13 @@ import {
   JarKind,
   JarState,
   JarPlanKind,
+  JarRolloverMode,
   IncomeAllocateMode,
   RitualMode,
   type JarKind as JarKindValue,
   type JarState as JarStateValue,
   type JarPlanKind as JarPlanKindValue,
+  type JarRolloverMode as JarRolloverModeValue,
   type IncomeAllocateMode as IncomeAllocateModeValue,
   type RitualMode as RitualModeValue,
 } from "./plan-constants";
@@ -15,11 +17,13 @@ export {
   JarKind,
   JarState,
   JarPlanKind,
+  JarRolloverMode,
   IncomeAllocateMode,
   RitualMode,
   JAR_KIND_VALUES,
   JAR_STATE_VALUES,
   JAR_PLAN_KIND_VALUES,
+  JAR_ROLLOVER_MODE_VALUES,
 } from "./plan-constants";
 
 export type JarPlan = {
@@ -32,11 +36,15 @@ export type JarPlan = {
 export type PlanJar = {
   id: string;
   name: string;
+  /** True after a user creates or renames a Jar; custom names bypass catalog localization. */
+  isNameCustom?: boolean;
   kind: JarKindValue;
   state: JarStateValue;
   sortOrder: number;
-  /** Virtual capacity shifts from plan movements (BR-01). */
+  /** @deprecated V1 compatibility shape; V2 budgets use period adjustments. */
   capacityDelta: number;
+  /** Plan V2: reset or carry unused budget (not a bank balance). */
+  rolloverMode: JarRolloverModeValue;
   plan: JarPlan | null;
 };
 
@@ -106,14 +114,29 @@ export function mapJarPlan(
   };
 }
 
+export function mapJarRolloverMode(
+  value: string | null | undefined,
+  kind: JarKindValue,
+): JarRolloverModeValue {
+  if (value === JarRolloverMode.CARRY || value === JarRolloverMode.RESET) {
+    return value;
+  }
+  return kind === JarKind.BUFFER || kind === JarKind.SAVINGS
+    ? JarRolloverMode.CARRY
+    : JarRolloverMode.RESET;
+}
+
 export function mapJarRow(row: {
   id: string;
   name: string;
+  is_name_custom?: boolean | null;
   kind: string;
   sort_order: number;
   is_archived: boolean;
   is_paused?: boolean | null;
+  /** @deprecated V1 row shape; active queries intentionally do not select it. */
   capacity_delta?: number | string | null;
+  rollover_mode?: string | null;
   jar_plans?:
     | {
         plan_kind: string;
@@ -130,13 +153,16 @@ export function mapJarRow(row: {
   const planRaw = Array.isArray(row.jar_plans)
     ? row.jar_plans[0]
     : row.jar_plans;
+  const kind = asJarKind(row.kind);
   return {
     id: row.id,
     name: row.name,
-    kind: asJarKind(row.kind),
+    isNameCustom: Boolean(row.is_name_custom),
+    kind,
     state: resolveJarState(row),
     sortOrder: row.sort_order,
-    capacityDelta: Number(row.capacity_delta) || 0,
+    capacityDelta: 0,
+    rolloverMode: mapJarRolloverMode(row.rollover_mode, kind),
     plan: mapJarPlan(planRaw),
   };
 }
@@ -158,12 +184,5 @@ export function mapIncomeAllocateMode(
 export function mapMonthCloseMode(
   value: string | null | undefined,
 ): RitualModeValue {
-  if (
-    value === RitualMode.AUTO ||
-    value === RitualMode.MANUAL ||
-    value === RitualMode.QUICK_CLOSE
-  ) {
-    return value;
-  }
-  return RitualMode.ASSISTED;
+  return value === RitualMode.MANUAL ? RitualMode.MANUAL : RitualMode.ASSISTED;
 }

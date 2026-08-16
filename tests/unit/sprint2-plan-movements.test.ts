@@ -252,6 +252,7 @@ describe("reallocateJarCapacity command ↔ RPC mapping", () => {
             }),
           }),
         }),
+        insert: vi.fn().mockResolvedValue({ error: null }),
       }),
       rpc,
     } as never);
@@ -298,7 +299,7 @@ describe("reallocateJarCapacity command ↔ RPC mapping", () => {
       role: "admin",
     } as never);
 
-    const rpc = vi.fn();
+    const rpc = vi.fn().mockResolvedValue({ data: null, error: { message: "ERR_INSUFFICIENT_REALLOCATABLE_BUDGET" } });
     vi.mocked(createSupabaseServerClient).mockResolvedValue({
       from: () => ({
         select: () => ({
@@ -327,7 +328,7 @@ describe("reallocateJarCapacity command ↔ RPC mapping", () => {
       ok: false,
       code: PLAN_ACTION_ERROR_CODE.CAPACITY_BLOCKED,
     });
-    expect(rpc).not.toHaveBeenCalled();
+    expect(rpc).toHaveBeenCalled();
   });
 
   it("fails closed without membership", async () => {

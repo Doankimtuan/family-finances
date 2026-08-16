@@ -18,8 +18,8 @@
 | **BR-05** | Unmapped Expense to Inbox | Inbox | **MODIFIED** | Transactions with unmapped categories generate typed `UnmappedExpense` ReviewItems in Inbox. |
 | **BR-06** | Jar Balance Non-Negativity | Budgets/Jars | **RETAINED** | Jars represent allocation capacity; overspends trigger reallocation or mid-month warning. |
 | **BR-07** | Mid-Month Overspend & Emergency Bypass | Budgets/Jars | **MODIFIED** | Overspends require Jar reallocation. Reallocations declared with an `EmergencyDeclaration` bypass warning modals. |
-| **BR-08** | Month Lock & 30-Day Auto-Lock | Month Ritual | **MODIFIED** | Ritual locks month allocations. Unapproved rituals auto-lock after 30 days as `PendingReview`. |
-| **BR-09** | Default Assisted Ritual Mode | Month Ritual | **RETAINED** | Assisted mode is the default; Quick Close unlocks after 6 consecutive completed rituals. |
+| **BR-08** | Monthly Review (non-locking) | Plan / Monthly Review | **SUPERSEDED (Plan V2)** | Monthly Review is optional. Approved, skipped, or historical V1 ritual statuses never lock Plan or Money mutations. |
+| **BR-09** | Default Assisted Planning Mode | Plan | **SUPERSEDED (Plan V2)** | Assisted mode is the default recommendation layer; it never moves money. Quick Close is deprecated. |
 | **BR-10** | Savings Maturity Alert Cascade | Savings | **MODIFIED** | Savings CD maturities trigger alert cascades at 30, 14, and 7 days. |
 | **BR-11** | Installment Payoff Notification | Debt/Installments | **RETAINED** | Final payoff triggers typed `InstallmentComplete` ReviewItem to reallocate freed cash flow. |
 | **BR-12** | Category ↔ Jar Mapping Contract | Categories | **SYNCHRONIZED** | Categories map $N:1$ to Jars. Category creation requires Jar mapping. |
@@ -33,5 +33,5 @@
 | **BR-20** | Installment Schedule Integration | Debt/Installments | **MODIFIED** | Debt payment schedules are integrated into the Household Financial Calendar. |
 | **BR-21** | Savings Alert Cascade Cancellation | Savings | **SYNCHRONIZED** | Resolving a maturity decision cancels pending 30/14/7 day notification timers. |
 | **BR-22** | Credit Card Interest Visibility | Cards | **RETAINED** | Monthly credit card interest costs are explicitly surfaced to users. |
-| **BR-23** | Quick Close Ritual Eligibility | Month Ritual | **SYNCHRONIZED** | Requires 6 consecutive completed assisted rituals before Quick Close mode is enabled. |
+| **BR-23** | Quick Close Ritual Eligibility | Plan / Monthly Review | **DEPRECATED (Plan V2)** | Quick Close streak/autolock is removed. Skipping Monthly Review must not block Plan usage. |
 | **BR-24** | Health Read-Only Policy (`Health-RO`) | Health | **SYNCHRONIZED** | Health domain reads operational data but NEVER writes back or modifies ledger/jars. |

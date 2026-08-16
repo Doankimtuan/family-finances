@@ -10,6 +10,18 @@
 
 If a required constant is missing, **add it at the documented home first**, then use it. Never hardcode and “clean up later.”
 
+# Agent Skills System (canonical)
+
+Before modifying production code:
+
+1. Read `.agents/instructions/PROJECT.md` (canonical AI instructions).
+2. Load relevant skills from `.agents/skills/` (one `SKILL.md` per skill).
+3. For substantial implementation/refactoring, always apply `code-quality` and `typescript-quality`.
+4. Apply framework-specific skills when relevant: `react-quality`, `nextjs-architecture`, `form-architecture`, `error-handling`, `testing-quality`.
+5. Before completion, apply `refactor-review` to the changed-file set.
+
+Codex, Cursor, ZCode, and Zed discover `.agents/skills/` natively. Do not duplicate skill bodies into tool-specific directories. New machine setup / verification: `./scripts/setup-agent-skills.sh` (idempotent; see `.agents/README.md`).
+
 # UI Implementation Rules
 
 Before modifying UI, read:
@@ -80,6 +92,7 @@ For every UI task:
 - Do not use raw SVG or icon component names as persisted Tag or Category data.
 
 ### Ephemeral Create and Action Forms
+
 Create/action forms are ephemeral by default. Closing a create/action Sheet or Modal discards unsaved state, conditional hidden values, preview state, validation errors, and mutation errors. Reopening starts from canonical fresh defaults. Edit forms reopen from persisted data, not abandoned local edits.
 
 ### Motion Foundation

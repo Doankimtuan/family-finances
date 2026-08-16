@@ -1,3 +1,4 @@
+const HOUSEHOLD_POLICIES_LOG_CONTEXT = "[tenancy.household-policies]";
 import { getSupabaseEnv } from "@/modules/platform/supabase/env";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import {
@@ -34,8 +35,7 @@ function asOverspend(value: string): OverspendPolicyValue {
 }
 
 function asMonthClose(value: string): MonthCloseMode {
-  if (value === RitualMode.AUTO || value === RitualMode.MANUAL) return value;
-  return RitualMode.ASSISTED;
+  return value === RitualMode.MANUAL ? RitualMode.MANUAL : RitualMode.ASSISTED;
 }
 
 function asIncome(value: string): IncomeAllocateMode {
@@ -89,7 +89,8 @@ export async function getHouseholdPolicies(): Promise<HouseholdPolicies | null> 
       canEdit: membership.role === "admin",
       role: membership.role,
     };
-  } catch {
+  } catch (error) {
+    console.error(HOUSEHOLD_POLICIES_LOG_CONTEXT, error);
     return null;
   }
 }
