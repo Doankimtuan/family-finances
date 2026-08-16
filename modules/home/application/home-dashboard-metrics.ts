@@ -9,11 +9,13 @@ import {
   type HomeDashboardPeriod as HomeDashboardPeriodValue,
 } from "./home-constants";
 import {
-  TransactionLedgerType,
   TransactionStatus,
   type LedgerTransaction,
 } from "@/modules/ledger/application";
-import { countsTowardMonthlyIncome } from "@/modules/ledger/application/income-exclusion-policy";
+import {
+  countsTowardMonthlyExpense,
+  countsTowardMonthlyIncome,
+} from "@/modules/ledger/application/income-exclusion-policy";
 
 export type HomeDashboardDateRange = {
   period: HomeDashboardPeriodValue;
@@ -171,7 +173,7 @@ function isCountableTransaction(transaction: LedgerTransaction): boolean {
 function isCountableExpense(transaction: LedgerTransaction): boolean {
   return (
     isCountableTransaction(transaction) &&
-    transaction.type === TransactionLedgerType.EXPENSE
+    countsTowardMonthlyExpense(transaction)
   );
 }
 

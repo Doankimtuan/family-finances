@@ -17,6 +17,14 @@ export {
 } from "./transaction-activity";
 export type { TransactionActivity } from "./transaction-activity";
 export {
+  FinancialEventCategory,
+  FinancialClassification,
+  FinancialCashDirection,
+  classifyFinancialEvent,
+  type FinancialEventSemantics,
+  type FinancialSemanticRow,
+} from "./financial-semantics";
+export {
   DEFAULT_CURRENCY,
   TransactionDirection,
   TRANSACTION_DIRECTION_OPTIONS,

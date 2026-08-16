@@ -197,7 +197,12 @@ export async function renewSaving(
       p_settlement_account_id: parsed.data.settlementAccountId ?? null,
       p_cycle_start_date: null,
       p_cycle_end_date: null,
-      p_idempotency_key: null,
+      p_idempotency_key: [
+        "saving:rollover",
+        parsed.data.cycleId,
+        parsed.data.action,
+        targetPackageId,
+      ].join(":"),
     });
 
     if (error) {

@@ -1,4 +1,11 @@
 import {
+  FinancialEventCategory,
+  FinancialClassification,
+  FinancialCashDirection,
+  classifyFinancialEvent,
+  type FinancialEventSemantics,
+} from "./financial-semantics";
+import {
   TransactionLedgerType,
   type TransactionLedgerType as TransactionLedgerTypeValue,
 } from "./ledger-constants";
@@ -13,6 +20,7 @@ export const TransactionActivityKind = {
   INCOME: "income",
   EXPENSE: "expense",
   TRANSFER: "transfer",
+  SAVINGS: "savings",
   REFUND: "refund",
   LIABILITY_PAYMENT: "liability_payment",
   DEBT_BORROWING: "debt_borrowing",
@@ -21,7 +29,6 @@ export const TransactionActivityKind = {
   INVESTMENT: "investment",
   OTHER: "other",
 } as const;
-
 export type TransactionActivityKind =
   (typeof TransactionActivityKind)[keyof typeof TransactionActivityKind];
 
@@ -30,7 +37,6 @@ export const TransactionActivityTone = {
   DEBIT: "debit",
   NEUTRAL: "neutral",
 } as const;
-
 export type TransactionActivityTone =
   (typeof TransactionActivityTone)[keyof typeof TransactionActivityTone];
 
@@ -50,7 +56,14 @@ export type TransactionActivity = {
   destinationAccount: { id: string; name?: string } | null;
   relatedTransactionIds: readonly string[];
   transferGroupId: string | null;
+  savingsEventKind: string | null;
   isReversal: boolean;
+  semanticCategory: (typeof FinancialEventCategory)[keyof typeof FinancialEventCategory];
+  classification: (typeof FinancialClassification)[keyof typeof FinancialClassification];
+  cashDirection: (typeof FinancialCashDirection)[keyof typeof FinancialCashDirection];
+  countsTowardIncome: boolean;
+  countsTowardExpense: boolean;
+  sign: "+" | "−" | "";
 };
 
 const INVESTMENT_LEDGER_TYPES = new Set<TransactionLedgerTypeValue>([
@@ -60,11 +73,17 @@ const INVESTMENT_LEDGER_TYPES = new Set<TransactionLedgerTypeValue>([
   TransactionLedgerType.INVESTMENT_FEE,
 ]);
 
-function kindForLedgerRow(row: LedgerTransaction): TransactionActivityKind {
+function kindForLedgerRow(
+  row: LedgerTransaction,
+  semantics: FinancialEventSemantics,
+): TransactionActivityKind {
   if (row.isReversal) return TransactionActivityKind.REFUND;
-  if (INVESTMENT_LEDGER_TYPES.has(row.type))
+  if (semantics.category === FinancialEventCategory.SAVINGS) {
+    return TransactionActivityKind.SAVINGS;
+  }
+  if (INVESTMENT_LEDGER_TYPES.has(row.type)) {
     return TransactionActivityKind.INVESTMENT;
-
+  }
   switch (row.type) {
     case TransactionLedgerType.INCOME:
       return TransactionActivityKind.INCOME;
@@ -86,31 +105,48 @@ function kindForLedgerRow(row: LedgerTransaction): TransactionActivityKind {
   }
 }
 
-function toneForKind(kind: TransactionActivityKind): TransactionActivityTone {
-  if (
-    kind === TransactionActivityKind.INCOME ||
-    kind === TransactionActivityKind.REFUND ||
-    kind === TransactionActivityKind.DEBT_BORROWING ||
-    kind === TransactionActivityKind.DEBT_RECEIPT
-  ) {
+function toneForSemantics(
+  semantics: FinancialEventSemantics,
+): TransactionActivityTone {
+  if (semantics.cashDirection === FinancialCashDirection.INFLOW) {
     return TransactionActivityTone.CREDIT;
   }
-  if (
-    kind === TransactionActivityKind.EXPENSE ||
-    kind === TransactionActivityKind.DEBT_LENDING ||
-    kind === TransactionActivityKind.LIABILITY_PAYMENT
-  ) {
+  if (semantics.cashDirection === FinancialCashDirection.OUTFLOW) {
     return TransactionActivityTone.DEBIT;
   }
   return TransactionActivityTone.NEUTRAL;
 }
 
+function accountEffectForRow(
+  row: LedgerTransaction,
+  semantics: FinancialEventSemantics,
+): {
+  sourceAccount: { id: string; name?: string } | null;
+  destinationAccount: { id: string; name?: string } | null;
+} {
+  if (semantics.cashDirection === FinancialCashDirection.OUTFLOW) {
+    return {
+      sourceAccount: { id: row.accountId, name: row.accountName },
+      destinationAccount: null,
+    };
+  }
+  if (semantics.cashDirection === FinancialCashDirection.INFLOW) {
+    return {
+      sourceAccount: null,
+      destinationAccount: { id: row.accountId, name: row.accountName },
+    };
+  }
+  return { sourceAccount: null, destinationAccount: null };
+}
+
 function activityFromRow(row: LedgerTransaction): TransactionActivity {
-  const kind = kindForLedgerRow(row);
+  const semantics = classifyFinancialEvent(row);
+  const kind = kindForLedgerRow(row, semantics);
+  const accounts = accountEffectForRow(row, semantics);
   return {
     id: row.id,
     kind,
-    tone: toneForKind(kind),
+    tone: toneForSemantics(semantics),
     amount: row.amount,
     currency: row.currency,
     effectiveDate: row.transactionDate,
@@ -119,26 +155,56 @@ function activityFromRow(row: LedgerTransaction): TransactionActivity {
     categoryName: row.categoryName,
     tags: row.tags,
     status: row.status,
-    sourceAccount:
-      kind === TransactionActivityKind.EXPENSE ||
-      kind === TransactionActivityKind.DEBT_LENDING ||
-      kind === TransactionActivityKind.LIABILITY_PAYMENT
-        ? { id: row.accountId, name: row.accountName }
-        : null,
-    destinationAccount:
-      kind === TransactionActivityKind.INCOME ||
-      kind === TransactionActivityKind.REFUND ||
-      kind === TransactionActivityKind.DEBT_BORROWING ||
-      kind === TransactionActivityKind.DEBT_RECEIPT
-        ? { id: row.accountId, name: row.accountName }
-        : null,
+    ...accounts,
     relatedTransactionIds: [row.id],
     transferGroupId: row.transferGroupId,
+    savingsEventKind: row.savingsEventKind ?? null,
     isReversal: row.isReversal,
+    semanticCategory: semantics.category,
+    classification: semantics.classification,
+    cashDirection: semantics.cashDirection,
+    countsTowardIncome: semantics.countsTowardIncome,
+    countsTowardExpense: semantics.countsTowardExpense,
+    sign: semantics.sign,
   };
 }
 
-/** Projects raw ledger rows into a global activity list without double-counting transfers. */
+function groupedSemantics(
+  rows: readonly LedgerTransaction[],
+): FinancialEventSemantics {
+  const savingsRow = rows.find((row) => row.savingsEventKind) ?? null;
+  if (!savingsRow) {
+    return {
+      category: FinancialEventCategory.TRANSFER,
+      classification: FinancialClassification.TRANSFER,
+      cashDirection: FinancialCashDirection.NEUTRAL,
+      countsTowardIncome: false,
+      countsTowardExpense: false,
+      sign: "",
+    };
+  }
+
+  const eventKind = savingsRow.savingsEventKind?.toUpperCase() ?? "";
+  const preferredRow = eventKind.includes("PLACEMENT")
+    ? rows.find((row) => row.type === TransactionLedgerType.TRANSFER_OUT)
+    : rows.find((row) => row.type === TransactionLedgerType.TRANSFER_IN);
+  const legSemantics = classifyFinancialEvent(preferredRow ?? savingsRow);
+  const isInterest = eventKind.includes("INTEREST");
+  return {
+    category: FinancialEventCategory.SAVINGS,
+    classification: isInterest
+      ? FinancialClassification.INCOME
+      : legSemantics.cashDirection === FinancialCashDirection.INFLOW
+        ? FinancialClassification.NON_INCOME_INFLOW
+        : FinancialClassification.NON_EXPENSE_OUTFLOW,
+    cashDirection: legSemantics.cashDirection,
+    countsTowardIncome: isInterest,
+    countsTowardExpense: false,
+    sign: legSemantics.sign,
+  };
+}
+
+/** Projects raw ledger rows into one user-level activity per grouped action. */
 export function createTransactionActivities(
   rows: readonly LedgerTransaction[],
 ): TransactionActivity[] {
@@ -170,10 +236,17 @@ export function createTransactionActivities(
       ) ?? null;
     const representative = source ?? destination;
     if (!representative) continue;
+
+    const semantics = groupedSemantics(rowsInGroup);
+    const isSavings = semantics.category === FinancialEventCategory.SAVINGS;
     activities.push({
       id: transferGroupId,
-      kind: TransactionActivityKind.TRANSFER,
-      tone: TransactionActivityTone.NEUTRAL,
+      kind: isSavings
+        ? TransactionActivityKind.SAVINGS
+        : TransactionActivityKind.TRANSFER,
+      tone: isSavings
+        ? toneForSemantics(semantics)
+        : TransactionActivityTone.NEUTRAL,
       amount: representative.amount,
       currency: representative.currency,
       effectiveDate: representative.transactionDate,
@@ -190,7 +263,14 @@ export function createTransactionActivities(
         : null,
       relatedTransactionIds: rowsInGroup.map((row) => row.id),
       transferGroupId,
+      savingsEventKind: representative.savingsEventKind ?? null,
       isReversal: false,
+      semanticCategory: semantics.category,
+      classification: semantics.classification,
+      cashDirection: semantics.cashDirection,
+      countsTowardIncome: semantics.countsTowardIncome,
+      countsTowardExpense: semantics.countsTowardExpense,
+      sign: semantics.sign,
     });
   }
 

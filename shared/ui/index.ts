@@ -26,16 +26,17 @@ export {
   ACTION_ICONS,
   CATEGORY_ICONS,
   FINANCE_ICONS,
+  FinanceIconKey,
   NAVIGATION_ICONS,
   UTILITY_ICONS,
   categoryIconFor,
   financeIconFor,
 } from "./icon-registry";
-export type { CategoryIconKey, FinanceIconKey } from "./icon-registry";
+export type { CategoryIconKey } from "./icon-registry";
 export {
   IconContainer,
+  IconContainerTone,
   type IconContainerProps,
-  type IconContainerTone,
 } from "./icon-container";
 export {
   DatePickerField,

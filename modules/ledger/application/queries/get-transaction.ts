@@ -29,7 +29,7 @@ function normalizeJoinedRow(row: Record<string, unknown>) {
 }
 
 const TX_SELECT =
-  "id, account_id, type, amount, currency, transaction_date, note, category_id, jar_id, status, transfer_group_id, reverses_transaction_id, corrects_transaction_id, is_reversal, created_at, accounts(name), categories(name), jars(name), transaction_tag_assignments(tag_id, transaction_tags(id, name, icon_key, color_key, archived_at))";
+  "id, account_id, type, amount, currency, transaction_date, note, category_id, jar_id, status, transfer_group_id, savings_event_kind, reverses_transaction_id, corrects_transaction_id, is_reversal, created_at, accounts(name), categories(name), jars(name), transaction_tag_assignments(tag_id, transaction_tags(id, name, icon_key, color_key, archived_at))";
 
 export async function getTransaction(
   transactionId: string,
@@ -65,7 +65,9 @@ export type ListTransactionsFilter = {
     | TransactionDirection
     | typeof TransactionFilterType.ALL
     | typeof TransactionFilterType.TRANSFER
-    | typeof TransactionFilterType.INVESTMENT;
+    | typeof TransactionFilterType.INVESTMENT
+    | typeof TransactionFilterType.SAVINGS
+    | typeof TransactionFilterType.DEBT;
   limit?: number;
 };
 
@@ -102,6 +104,16 @@ export async function listTransactions(
           type.startsWith(TransactionFilterType.INVESTMENT),
         ),
       );
+    }
+    if (filter.type === TransactionFilterType.SAVINGS) {
+      query = query.like("savings_event_kind", "SAVINGS_%");
+    }
+    if (filter.type === TransactionFilterType.DEBT) {
+      query = query.in("type", [
+        TransactionLedgerType.DEBT_BORROWING,
+        TransactionLedgerType.DEBT_LENDING,
+        TransactionLedgerType.DEBT_RECEIVABLE_PAYMENT,
+      ]);
     }
 
     const { data, error } = await query;

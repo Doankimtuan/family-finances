@@ -216,11 +216,31 @@ export const UTILITY_ICONS = {
   notification: Notification03Icon,
 } as const;
 
-export type FinanceIconKey = keyof typeof FINANCE_ICONS;
+export const FinanceIconKey = {
+  ACCOUNT: "account",
+  WALLET: "wallet",
+  CASH: "cash",
+  BANK: "bank",
+  CARD: "card",
+  INCOME: "income",
+  EXPENSE: "expense",
+  TRANSFER: "transfer",
+  INVESTMENT: "investment",
+  SAVINGS: "savings",
+  DEBT: "debt",
+  LOAN: "loan",
+  REFUND: "refund",
+} as const;
+
+export type FinanceIconKey =
+  (typeof FinanceIconKey)[keyof typeof FinanceIconKey];
+
 export type CategoryIconKey = keyof typeof CATEGORY_ICONS;
 
 export function financeIconFor(key: string) {
-  return FINANCE_ICONS[key as FinanceIconKey] ?? FINANCE_ICONS.expense;
+  return (
+    FINANCE_ICONS[key as keyof typeof FINANCE_ICONS] ?? FINANCE_ICONS.expense
+  );
 }
 
 export function categoryIconFor(key: string) {

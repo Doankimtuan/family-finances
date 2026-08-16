@@ -732,6 +732,8 @@ export const TransactionFilterType = {
   ...TransactionDirection,
   TRANSFER: "transfer",
   INVESTMENT: "investment",
+  SAVINGS: "savings",
+  DEBT: "debt",
 } as const;
 
 export const TRANSACTION_TAG_FILTER_QUERY_PARAM = "tags";
@@ -745,6 +747,8 @@ export const TRANSACTION_FILTER_OPTIONS = [
   TransactionFilterType.INCOME,
   TransactionFilterType.TRANSFER,
   TransactionFilterType.INVESTMENT,
+  TransactionFilterType.SAVINGS,
+  TransactionFilterType.DEBT,
 ] as const;
 
 /** REQ-TRN-03 — transaction provenance for pattern auto-resolution. */

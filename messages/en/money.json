@@ -1383,7 +1383,9 @@
       "expense": "Expense",
       "income": "Income",
       "transfer": "Transfer",
-      "investment": "Investments"
+      "investment": "Investments",
+      "savings": "Savings",
+      "debt": "Debt"
     },
     "activityKind": {
       "income": "Income",
@@ -1394,6 +1396,7 @@
       "debt_borrowing": "Borrowed money",
       "debt_lending": "Money lent",
       "debt_receipt": "Debt repayment received",
+      "savings": "Savings activity",
       "investment": "Investment activity",
       "other": "Financial activity"
     },

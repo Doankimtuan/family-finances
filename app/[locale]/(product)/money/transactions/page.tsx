@@ -13,14 +13,26 @@ import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-a
 import {
   createTransactionActivities,
   listTransactions,
+  FinancialEventCategory,
+  TransactionActivityKind,
   TransactionActivityTone,
   TransactionDirection,
   TransactionFilterType,
   listTransactionTags,
 } from "@/modules/ledger/application";
 import { TRANSACTION_TAG_FILTER_QUERY_PARAM } from "@/modules/ledger/application/client";
+import {
+  AppIcon,
+  FinanceIconKey,
+  IconContainer,
+  IconContainerTone,
+  financeIconFor,
+} from "@/shared/ui";
 import { formatCurrency } from "@/shared/i18n/formatters";
-import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
+import {
+  CatalogGroup,
+  localizeCatalogName,
+} from "@/shared/i18n/localize-catalog-name";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import {
@@ -31,6 +43,39 @@ import { Page } from "@/shared/patterns/page";
 import { MoneyOfflineBanner } from "../money-offline-banner";
 import { TransactionsFilterBar } from "./transactions-filter-bar";
 
+function activityIconKey(category: FinancialEventCategory): FinanceIconKey {
+  return category === FinancialEventCategory.LIABILITY
+    ? FinanceIconKey.LOAN
+    : (category as FinanceIconKey);
+}
+
+function activityIconTone(category: FinancialEventCategory): IconContainerTone {
+  if (category === FinancialEventCategory.INCOME) {
+    return IconContainerTone.INCOME;
+  }
+  if (category === FinancialEventCategory.EXPENSE) {
+    return IconContainerTone.EXPENSE;
+  }
+  if (category === FinancialEventCategory.TRANSFER) {
+    return IconContainerTone.TRANSFER;
+  }
+  if (category === FinancialEventCategory.INVESTMENT) {
+    return IconContainerTone.INVESTMENT;
+  }
+  if (category === FinancialEventCategory.SAVINGS) {
+    return IconContainerTone.SAVINGS;
+  }
+  if (
+    category === FinancialEventCategory.DEBT ||
+    category === FinancialEventCategory.LIABILITY
+  ) {
+    return IconContainerTone.DEBT;
+  }
+  if (category === FinancialEventCategory.REFUND) {
+    return IconContainerTone.REFUND;
+  }
+  return IconContainerTone.NEUTRAL;
+}
 type Props = {
   params: Promise<{ locale: string }>;
   searchParams: Promise<{ q?: string; type?: string; tags?: string }>;
@@ -62,7 +107,9 @@ export default async function TransactionsListPage({
     typeRaw === TransactionDirection.INCOME ||
     typeRaw === TransactionDirection.EXPENSE ||
     typeRaw === TransactionFilterType.TRANSFER ||
-    typeRaw === TransactionFilterType.INVESTMENT
+    typeRaw === TransactionFilterType.INVESTMENT ||
+    typeRaw === TransactionFilterType.SAVINGS ||
+    typeRaw === TransactionFilterType.DEBT
       ? typeRaw
       : TransactionFilterType.ALL;
   const tagIds = (sp[TRANSACTION_TAG_FILTER_QUERY_PARAM] ?? "")
@@ -111,23 +158,44 @@ export default async function TransactionsListPage({
                 data-testid={`transaction-row-${tx.id}`}
               >
                 <TransactionRow
+                  leading={
+                    <IconContainer
+                      tone={activityIconTone(tx.semanticCategory)}
+                      size="sm"
+                    >
+                      <AppIcon
+                        icon={financeIconFor(
+                          activityIconKey(tx.semanticCategory),
+                        )}
+                        size="sm"
+                      />
+                    </IconContainer>
+                  }
                   title={
                     tx.note ||
-                    localizeCatalogName(tCatalog, "tags", tx.categoryName) ||
+                    localizeCatalogName(
+                      tCatalog,
+                      CatalogGroup.TAGS,
+                      tx.categoryName,
+                    ) ||
                     t(`transactionsPage.activityKind.${tx.kind}`)
                   }
                   subtitle={
-                    tx.kind === "transfer"
+                    tx.kind === TransactionActivityKind.TRANSFER
                       ? [tx.sourceAccount?.name, tx.destinationAccount?.name]
                           .filter(Boolean)
                           .map((name) =>
-                            localizeCatalogName(tCatalog, "accounts", name),
+                            localizeCatalogName(
+                              tCatalog,
+                              CatalogGroup.ACCOUNTS,
+                              name,
+                            ),
                           )
                           .join(" → ")
                       : [
                           localizeCatalogName(
                             tCatalog,
-                            "accounts",
+                            CatalogGroup.ACCOUNTS,
                             tx.sourceAccount?.name ??
                               tx.destinationAccount?.name,
                           ),
@@ -136,7 +204,7 @@ export default async function TransactionsListPage({
                           .filter(Boolean)
                           .join(" · ")
                   }
-                  amountLabel={`${tx.tone === TransactionActivityTone.CREDIT ? "+" : tx.tone === TransactionActivityTone.DEBIT ? "−" : ""}${formatCurrency(tx.amount, tx.currency, locale, { maximumFractionDigits: 0 })}`}
+                  amountLabel={`${tx.sign}${formatCurrency(tx.amount, tx.currency, locale, { maximumFractionDigits: 0 })}`}
                   tone={
                     tx.tone === TransactionActivityTone.CREDIT
                       ? TransactionAmountTone.CREDIT

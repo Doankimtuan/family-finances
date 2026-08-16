@@ -1,17 +1,21 @@
 import type { ReactNode } from "react";
 import { cn } from "@/shared/utils/cn";
 
+export const IconContainerTone = {
+  NEUTRAL: "neutral",
+  PRIMARY: "primary",
+  INCOME: "income",
+  EXPENSE: "expense",
+  TRANSFER: "transfer",
+  INVESTMENT: "investment",
+  SAVINGS: "savings",
+  DEBT: "debt",
+  INFO: "info",
+  REFUND: "refund",
+} as const;
+
 export type IconContainerTone =
-  | "neutral"
-  | "primary"
-  | "income"
-  | "expense"
-  | "transfer"
-  | "investment"
-  | "savings"
-  | "debt"
-  | "info"
-  | "refund";
+  (typeof IconContainerTone)[keyof typeof IconContainerTone];
 
 export type IconContainerProps = {
   children: ReactNode;

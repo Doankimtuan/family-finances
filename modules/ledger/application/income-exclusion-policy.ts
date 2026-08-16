@@ -2,29 +2,27 @@ import {
   TransactionDirection,
   type TransactionDirection as TransactionDirectionValue,
 } from "./ledger-constants";
+import {
+  countsTowardMonthlyExpense as classifyExpense,
+  countsTowardMonthlyIncome as classifyIncome,
+  type FinancialSemanticRow,
+} from "./financial-semantics";
 
-export type IncomeCountableRow = {
-  type: string;
+export type IncomeCountableRow = FinancialSemanticRow & {
   amount: number | string;
-  isReversal?: boolean | null;
-  reversesTransactionId?: string | null;
 };
 
 /**
- * Refund / correction-reversal legs restore cash and jar capacity but must not
- * inflate monthly income (BR-02 / REQ-JAR-01 / refund lifecycle S2).
+ * Earned-income policy shared by Home and reporting selectors. Principal
+ * returns, borrowing, transfers, investment sale proceeds, and refunds are
+ * deliberately excluded even when they increase cash.
  */
 export function countsTowardMonthlyIncome(row: IncomeCountableRow): boolean {
-  if (row.type !== TransactionDirection.INCOME) {
-    return false;
-  }
-  if (row.isReversal) {
-    return false;
-  }
-  if (row.reversesTransactionId) {
-    return false;
-  }
-  return true;
+  return classifyIncome(row);
+}
+
+export function countsTowardMonthlyExpense(row: IncomeCountableRow): boolean {
+  return classifyExpense(row);
 }
 
 export function coerceAmount(amount: number | string): number {
@@ -32,35 +30,34 @@ export function coerceAmount(amount: number | string): number {
   return Number.isFinite(value) ? value : 0;
 }
 
-/** Sum of income that counts toward monthly income reporting (excludes reversals). */
+/** Sum of earned income, excluding principal and reversal legs. */
 export function sumMonthlyIncome(rows: IncomeCountableRow[]): number {
   return rows.reduce((sum, row) => {
-    if (!countsTowardMonthlyIncome(row)) {
-      return sum;
-    }
+    if (!countsTowardMonthlyIncome(row)) return sum;
+    return sum + coerceAmount(row.amount);
+  }, 0);
+}
+
+export function sumMonthlyExpense(rows: IncomeCountableRow[]): number {
+  return rows.reduce((sum, row) => {
+    if (!countsTowardMonthlyExpense(row)) return sum;
     return sum + coerceAmount(row.amount);
   }, 0);
 }
 
 /**
  * Jar capacity delta for a ledger leg on a mapped jar.
- * Expense reduces capacity; income (including is_reversal refunds) restores it.
+ * Expense reduces capacity; income (including reversal refunds) restores it.
  */
 export function jarCapacityDelta(row: {
   type: string;
   amount: number | string;
   jarId?: string | null;
 }): number {
-  if (!row.jarId) {
-    return 0;
-  }
+  if (!row.jarId) return 0;
   const amount = coerceAmount(row.amount);
-  if (row.type === TransactionDirection.EXPENSE) {
-    return -amount;
-  }
-  if (row.type === TransactionDirection.INCOME) {
-    return amount;
-  }
+  if (row.type === TransactionDirection.EXPENSE) return -amount;
+  if (row.type === TransactionDirection.INCOME) return amount;
   return 0;
 }
 

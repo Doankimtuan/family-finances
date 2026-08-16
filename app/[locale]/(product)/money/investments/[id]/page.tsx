@@ -83,14 +83,13 @@ export default async function InvestmentDetailPage({
   params,
   searchParams,
 }: Props) {
-  const [{ locale, id }, { receipt }, t, holding, activities] =
-    await Promise.all([
-      params,
-      searchParams,
-      getTranslations("money.investments.detail"),
-      params.then(({ id: value }) => getInvestmentHolding(value)),
-      params.then(({ id: value }) => listInvestmentActivities(value)),
-    ]);
+  const [{ locale }, { receipt }, t, holding, activities] = await Promise.all([
+    params,
+    searchParams,
+    getTranslations("money.investments.detail"),
+    params.then(({ id: value }) => getInvestmentHolding(value)),
+    params.then(({ id: value }) => listInvestmentActivities(value)),
+  ]);
   if (!holding)
     return (
       <Page topBar={<TopAppBar title={t("title")} />}>

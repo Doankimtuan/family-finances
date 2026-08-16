@@ -5,7 +5,13 @@
 
 import type enCatalog from "@/messages/en/catalog.json";
 
-export type CatalogGroup = "accounts" | "tags" | "jars";
+export const CatalogGroup = {
+  ACCOUNTS: "accounts",
+  TAGS: "tags",
+  JARS: "jars",
+} as const;
+
+export type CatalogGroup = (typeof CatalogGroup)[keyof typeof CatalogGroup];
 
 type CatalogKey =
   | `accounts.${keyof typeof enCatalog.accounts}`
@@ -13,8 +19,8 @@ type CatalogKey =
   | `jars.${keyof typeof enCatalog.jars}`;
 
 const KNOWN: Record<CatalogGroup, ReadonlySet<string>> = {
-  accounts: new Set(["cash"]),
-  tags: new Set([
+  [CatalogGroup.ACCOUNTS]: new Set(["cash"]),
+  [CatalogGroup.TAGS]: new Set([
     "food",
     "transport",
     "home",

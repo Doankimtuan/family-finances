@@ -21,10 +21,6 @@ import {
   normalizeAvailableQuantity,
 } from "@/modules/investments/application/investment-operation-view-model";
 import type { InvestmentUxType } from "@/modules/investments/application/investment-ux";
-import {
-  addQuantities,
-  subtractQuantities,
-} from "@/modules/investments/application/decimal-quantity";
 import { TextField } from "@/shared/ui/form";
 import { Button } from "@/shared/ui/button";
 import { StatusAlert } from "@/shared/ui/status-alert";
@@ -116,20 +112,6 @@ export function InvestmentOperationForm({
     label: account.name,
   }));
   const ux = investmentUxConfig(holding.assetClass as InvestmentUxType);
-  const resultingQuantity = (() => {
-    if (
-      !quantity ||
-      (mode !== InvestmentFormMode.BUY && mode !== InvestmentFormMode.SELL)
-    )
-      return null;
-    try {
-      return mode === InvestmentFormMode.BUY
-        ? addQuantities(holding.quantity, quantity)
-        : subtractQuantities(holding.quantity, quantity);
-    } catch {
-      return null;
-    }
-  })();
   const valuationPreview =
     mode === InvestmentFormMode.VALUATION
       ? buildUnitPricePreview({

@@ -267,3 +267,43 @@ describe("Home financial metrics", () => {
     expect(metrics.spendingCategories).toEqual([]);
   });
 });
+
+describe("cross-domain reporting semantics", () => {
+  const range = {
+    period: HomeDashboardPeriod.MONTH,
+    startDate: "2026-08-01",
+    endDate: "2026-08-31",
+    previousStartDate: "2026-07-01",
+    previousEndDate: "2026-07-31",
+  };
+  it("counts investment income but excludes investment sale proceeds and buys", () => {
+    const metrics = calculateHomeFinancialMetrics({
+      range,
+      transactions: [
+        transaction({
+          id: "investment-income",
+          type: TransactionLedgerType.INVESTMENT_INCOME,
+          amount: 2_000_000,
+        }),
+        transaction({
+          id: "investment-sale",
+          type: TransactionLedgerType.INVESTMENT_SELL_PROCEEDS,
+          amount: 12_000_000,
+        }),
+        transaction({
+          id: "investment-buy",
+          type: TransactionLedgerType.INVESTMENT_BUY,
+          amount: 10_000_000,
+        }),
+        transaction({
+          id: "investment-fee",
+          type: TransactionLedgerType.INVESTMENT_FEE,
+          amount: 100_000,
+        }),
+      ],
+    });
+    expect(metrics.income).toBe(2_000_000);
+    expect(metrics.expense).toBe(100_000);
+    expect(metrics.netCashFlow).toBe(1_900_000);
+  });
+});

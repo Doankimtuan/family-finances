@@ -118,10 +118,20 @@ export {
 } from "./refund-policy";
 export {
   countsTowardMonthlyIncome,
+  countsTowardMonthlyExpense,
   sumMonthlyIncome,
+  sumMonthlyExpense,
   jarCapacityDelta,
   sumJarCapacity,
 } from "./income-exclusion-policy";
+export {
+  FinancialEventCategory,
+  FinancialClassification,
+  FinancialCashDirection,
+  classifyFinancialEvent,
+  type FinancialEventSemantics,
+  type FinancialSemanticRow,
+} from "./financial-semantics";
 export {
   buildCorrectionChain,
   correctionChainNetImpact,

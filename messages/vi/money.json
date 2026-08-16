@@ -1383,7 +1383,9 @@
       "expense": "Chi",
       "income": "Thu",
       "transfer": "Chuyển khoản",
-      "investment": "Đầu tư"
+      "investment": "Đầu tư",
+      "savings": "Tiết kiệm",
+      "debt": "Nợ"
     },
     "activityKind": {
       "income": "Thu nhập",
@@ -1394,6 +1396,7 @@
       "debt_borrowing": "Nhận tiền vay",
       "debt_lending": "Cho vay",
       "debt_receipt": "Nhận tiền trả nợ",
+      "savings": "Hoạt động tiết kiệm",
       "investment": "Hoạt động đầu tư",
       "other": "Chuyển động tài chính"
     },
