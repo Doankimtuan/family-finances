@@ -42,7 +42,8 @@ test.describe("Plan jars (ST-E05-002)", () => {
     await expect(page.getByTestId("plan-jar-detail")).toBeVisible();
     await expect(page.getByTestId("intention-amount").first()).toBeVisible();
     await expect(page.getByTestId("jar-state-badge")).toBeVisible();
-    await expect(page.getByTestId("jar-ritual-lock")).toBeVisible();
+    await expect(page.getByTestId("jar-monthly-review-info")).toBeVisible();
+    await expect(page.getByTestId("jar-ritual-lock")).toHaveCount(0);
     await expect(page.getByTestId("jar-plan-edit")).toBeVisible();
     await expect(page.getByText(/bank balance|số dư ngân hàng/i).first()).toBeVisible();
   });

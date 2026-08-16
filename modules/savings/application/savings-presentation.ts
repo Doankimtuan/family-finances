@@ -2,6 +2,7 @@ import {
   CycleStatus,
   MATURING_SOON_THRESHOLD_DAYS,
   SavingStatus,
+  SavingsFamily,
   SavingsMaturityState,
 } from "./savings-constants";
 import {
@@ -13,6 +14,29 @@ import type { Saving } from "./savings-types";
 
 export const MaturityPresentationState = SavingsMaturityState;
 export type MaturityPresentationState = SavingsMaturityState;
+
+const MATURITY_ATTENTION_STATES: ReadonlySet<MaturityPresentationState> =
+  new Set([
+    MaturityPresentationState.MATURED,
+    MaturityPresentationState.MATURE_TODAY,
+    MaturityPresentationState.ACTION_REQUIRED,
+  ]);
+
+const MATURITY_SETTLED_STATES: ReadonlySet<MaturityPresentationState> =
+  new Set([
+    MaturityPresentationState.SETTLED,
+    MaturityPresentationState.EARLY_SETTLED,
+  ]);
+
+export function isMaturityAttention(
+  state: MaturityPresentationState,
+): boolean {
+  return MATURITY_ATTENTION_STATES.has(state);
+}
+
+function isMaturitySettled(state: MaturityPresentationState): boolean {
+  return MATURITY_SETTLED_STATES.has(state);
+}
 
 export type SavingsPresentationItem = {
   saving: Saving;
@@ -64,6 +88,13 @@ function dayDifference(from: Date, to: Date): number {
   return Math.round((to.getTime() - from.getTime()) / 86_400_000);
 }
 
+/**
+ * Maturity presentation is derived from the cycle end date, not only from the
+ * persisted `matured` status: flipping that status is a lifecycle mutation
+ * (detect_matured_savings RPC), so a read-only render must stay truthful even
+ * before detection has run. Persisted lifecycle actions (settle/renew) still
+ * gate on the stored status.
+ */
 export function deriveMaturityPresentationState(
   saving: Saving,
   today = todayIso(),
@@ -76,23 +107,20 @@ export function deriveMaturityPresentationState(
     return MaturityPresentationState.ACTION_REQUIRED;
   const cycle = saving.latestCycle;
   if (!cycle) return MaturityPresentationState.ACTIVE;
-  if (
-    cycle.status === CycleStatus.MATURED ||
-    saving.status === SavingStatus.MATURED
-  ) {
-    const days = dayDifference(toUtcDay(today), toUtcDay(cycle.endDate));
-    return days === 0
-      ? MaturityPresentationState.MATURE_TODAY
-      : MaturityPresentationState.MATURED;
-  }
   const daysUntilMaturity = dayDifference(
     toUtcDay(today),
     toUtcDay(cycle.endDate),
   );
-  if (
-    daysUntilMaturity >= 0 &&
-    daysUntilMaturity <= MATURING_SOON_THRESHOLD_DAYS
-  ) {
+  const isMatured =
+    cycle.status === CycleStatus.MATURED ||
+    saving.status === SavingStatus.MATURED ||
+    daysUntilMaturity <= 0;
+  if (isMatured) {
+    return daysUntilMaturity === 0
+      ? MaturityPresentationState.MATURE_TODAY
+      : MaturityPresentationState.MATURED;
+  }
+  if (daysUntilMaturity <= MATURING_SOON_THRESHOLD_DAYS) {
     return MaturityPresentationState.MATURING_SOON;
   }
   return MaturityPresentationState.ACTIVE;
@@ -183,18 +211,13 @@ export function buildSavingsDetailModel(
   const elapsedDays = cycle
     ? Math.max(0, dayDifference(toUtcDay(cycle.startDate), toUtcDay(today)))
     : null;
-  const isTerminal =
-    base.maturityState === MaturityPresentationState.SETTLED ||
-    base.maturityState === MaturityPresentationState.EARLY_SETTLED;
+  const isTerminal = isMaturitySettled(base.maturityState);
   const earlyRule = saving.productSnapshot.earlySettlementRule;
   return {
     ...base,
     elapsedDays,
     totalTermDays,
-    canSettle:
-      base.maturityState === MaturityPresentationState.MATURED ||
-      base.maturityState === MaturityPresentationState.MATURE_TODAY ||
-      base.maturityState === MaturityPresentationState.ACTION_REQUIRED,
+    canSettle: isMaturityAttention(base.maturityState),
     canSettleEarly:
       base.maturityState === MaturityPresentationState.ACTIVE ||
       base.maturityState === MaturityPresentationState.MATURING_SOON
@@ -230,17 +253,13 @@ export function buildSavingsOverviewModel(
     savings.map((saving) => buildSavingsPresentationItem(saving, today)),
   );
   const activeItems = items.filter(
-    ({ maturityState }) =>
-      maturityState !== MaturityPresentationState.SETTLED &&
-      maturityState !== MaturityPresentationState.EARLY_SETTLED,
+    ({ maturityState }) => !isMaturitySettled(maturityState),
   );
-  const historyItems = items.filter(
-    ({ maturityState }) =>
-      maturityState === MaturityPresentationState.SETTLED ||
-      maturityState === MaturityPresentationState.EARLY_SETTLED,
+  const historyItems = items.filter(({ maturityState }) =>
+    isMaturitySettled(maturityState),
   );
   const bankItems = activeItems.filter(
-    ({ saving }) => saving.savingsFamily === "BANK",
+    ({ saving }) => saving.savingsFamily === SavingsFamily.BANK,
   );
   const platformItems = activeItems.filter(
     ({ saving }) => saving.savingsFamily === "PLATFORM",
@@ -265,11 +284,8 @@ export function buildSavingsOverviewModel(
       (sum, item) => sum + item.totalCashReceived,
       0,
     ),
-    attentionCount: activeItems.filter(
-      ({ maturityState }) =>
-        maturityState === MaturityPresentationState.MATURED ||
-        maturityState === MaturityPresentationState.MATURE_TODAY ||
-        maturityState === MaturityPresentationState.ACTION_REQUIRED,
+    attentionCount: activeItems.filter(({ maturityState }) =>
+      isMaturityAttention(maturityState),
     ).length,
   };
 }

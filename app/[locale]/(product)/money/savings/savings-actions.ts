@@ -149,6 +149,35 @@ export async function backfillLegacySavingsAction(): Promise<SavingsActionState>
   return { status: "success" };
 }
 
+export type SavingsLifecycleSyncState =
+  | {
+      status: "success";
+      migratedCount: number;
+      maturedCount: number;
+      cascadeCount: number;
+    }
+  | { status: "error"; code: ProductActionErrorCode };
+
+/**
+ * One explicit trigger for the household savings lifecycle writes (legacy
+ * backfill, then maturity detection + cascade reminders). Runs as a server
+ * action POST after a real browser visit — never during a page render or
+ * prefetch, which must stay free of business-data mutations.
+ */
+export async function syncSavingsLifecycleAction(): Promise<SavingsLifecycleSyncState> {
+  // Backfill failure must not block detection; both ran independently when
+  // the page triggered them during render.
+  const backfill = await backfillLegacySavingsAccounts();
+  const detected = await detectMaturedSavings();
+  if (!detected.ok) return { status: "error", code: detected.code };
+  return {
+    status: "success",
+    migratedCount: backfill.ok ? backfill.migratedCount : 0,
+    maturedCount: detected.maturedCount,
+    cascadeCount: detected.cascadeCount,
+  };
+}
+
 /** Preview + enqueue typed Inbox early-withdrawal confirmation (orchestration). */
 export async function requestEarlyWithdrawalAction(input: {
   savingId: string;

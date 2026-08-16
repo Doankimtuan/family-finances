@@ -28,6 +28,7 @@ Prefer when appropriate:
 
 - guard clauses and early returns
 - named predicates (`const isAllocationOverLimit = ...`)
+- semantic membership sets for equality chains
 - lookup maps and command/handler maps
 - discriminated unions
 - exhaustive `switch` statements
@@ -39,6 +40,36 @@ Principle:
 Do not encode multiple business decisions inside one giant condition.
 Name business decisions explicitly.
 ```
+
+## Semantic Membership Checks
+
+Detect repetitive equality chains that actually mean "this value belongs to
+a semantic category":
+
+```ts
+// BAD: three comparisons hiding one concept
+state === State.MATURED ||
+state === State.MATURE_TODAY ||
+state === State.ACTION_REQUIRED
+```
+
+Prefer a named semantic collection plus a predicate when it improves intent:
+
+```ts
+const MATURITY_ATTENTION_STATES = new Set<MaturityPresentationState>([
+  MaturityPresentationState.MATURED,
+  MaturityPresentationState.MATURE_TODAY,
+  MaturityPresentationState.ACTION_REQUIRED,
+]);
+
+function isMaturityAttention(state: MaturityPresentationState) {
+  return MATURITY_ATTENTION_STATES.has(state);
+}
+```
+
+`.includes()` on a typed array is also acceptable when TypeScript inference
+stays clean. Do not extract arbitrary one-off comparisons merely to reduce
+line count — extract when the category has a domain name.
 
 ## Magic Values
 
@@ -58,6 +89,41 @@ themes, cookies) must come from the documented constant homes:
 If a constant is missing, add it once at the documented home first, then use
 it. Never hardcode and "clean up later". See `.cursor/rules/no-magic-strings.mdc`
 for the full policy (as-const objects, `*_VALUES` arrays shared with Zod).
+
+### Reusable Domain Values
+
+Do not leave anonymous string unions or repeated string literals when they
+represent a meaningful, reusable domain concept:
+
+```ts
+// BAD: re-declares a domain concept inline
+function familyIcon(family: "BANK" | "PLATFORM") {
+  ...
+}
+```
+
+Before creating anything new, search the existing codebase for an existing:
+
+- type
+- enum
+- `as const` object
+- Zod schema
+- domain constant
+
+Reuse the existing definition when possible. Only create a new domain
+constant/type when no canonical definition already exists, and place it at
+the documented constants home:
+
+```ts
+const ProviderFamily = {
+  BANK: "BANK",
+  PLATFORM: "PLATFORM",
+} as const;
+
+type ProviderFamily = (typeof ProviderFamily)[keyof typeof ProviderFamily];
+```
+
+Do not create meaningless constants merely to eliminate every literal.
 
 For non-domain code, extract literals only when the name adds meaning:
 
@@ -107,19 +173,41 @@ by `map`, `filter`, `find`, `findIndex`, `some`, `every`, `flatMap`, `reduce`,
 const uniqueIds = [...new Set(items.map((item) => item.id))];
 ```
 
+The same applies to manual grouping, deduplication, and indexing: a `Map` /
+`Object.fromEntries` keyed by identity usually expresses the intent better
+than an accumulator loop with `push`.
+
 Do not force functional one-liners. Do not replace an obvious loop with a
 clever `reduce` merely to make the code shorter. Prefer the clearest
 expression.
+
+## Language Capabilities Before Manual Branching
+
+Before writing repetitive condition logic, consider TypeScript/JavaScript
+constructs that express it directly:
+
+- discriminated unions and literal unions
+- `as const` and `satisfies`
+- `Record` and mapped types
+- type guards and assertion functions
+- exhaustive `switch` statements
+- lookup tables and handler maps
+
+Prefer making invalid states unrepresentable over re-validating optional
+fields at every call site (see `typescript-quality`). Avoid boolean-flag-heavy
+domain models where mutually exclusive variants can be modeled as a
+discriminated union.
 
 ## Utility Libraries
 
 Do NOT introduce lodash automatically. Priority:
 
 ```text
-1. Native JavaScript / TypeScript
-2. Existing project utility (shared/, modules/<bc>/application)
-3. Existing installed library
-4. New dependency only when clearly justified
+1. Existing domain abstraction (modules/<bc>/application)
+2. Native JavaScript / TypeScript
+3. Existing project utility (shared/, modules/<bc>/application)
+4. Existing installed library
+5. New dependency only when clearly justified
 ```
 
 If lodash were already installed, use `groupBy`, `keyBy`, `uniqBy`,

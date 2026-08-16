@@ -1,15 +1,15 @@
 import { test, expect } from "@playwright/test";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
 
-test.describe("Plan Month Ritual (ST-E05-004)", () => {
+test.describe("Plan Monthly Review (ST-E05-004)", () => {
   test.describe.configure({ mode: "serial" });
 
-  test("unauthenticated ritual redirects to login", async ({ page }) => {
+  test("unauthenticated Monthly Review redirects to login", async ({ page }) => {
     await page.goto("/en/plan/ritual", { waitUntil: "domcontentloaded" });
     await expect(page).toHaveURL(/\/en\/login/, { timeout: 20_000 });
   });
 
-  test("ritual screen when E2E credentials exist", async ({ page }) => {
+  test("Monthly Review screen when E2E credentials exist", async ({ page }) => {
     const email = process.env.E2E_USER_EMAIL;
     const password = process.env.E2E_USER_PASSWORD;
     test.skip(!email || !password, "E2E credentials not provided");
@@ -28,11 +28,11 @@ test.describe("Plan Month Ritual (ST-E05-004)", () => {
 
     await page.goto("/en/plan/ritual");
     await expect(page.getByTestId("plan-ritual-page")).toBeVisible();
-    await expect(page.getByTestId("plan-ritual")).toBeVisible();
-    await expect(page.getByTestId("ritual-preview")).toBeVisible();
+    await expect(page.getByTestId("monthly-review-report")).toBeVisible();
+    await expect(page.getByTestId("monthly-review-cash-flow")).toBeVisible();
     await expect(
-      page.getByText(/Assisted|ý định|intention/i).first(),
+      page.getByText(/Monthly Review|Tổng kết tháng|in progress/i).first(),
     ).toBeVisible();
-    await expect(page.getByTestId("ritual-preview-cta")).toBeVisible();
+    await expect(page.getByText(/Plan and Money remain/i).first()).toBeVisible();
   });
 });

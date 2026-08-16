@@ -35,8 +35,51 @@ Avoid:
 - unjustified `unknown as X`
 - unnecessary type assertions
 - generic `string` when a domain union is known
+- anonymous string unions duplicating an existing domain concept
 - large objects with many unrelated optional properties
 - boolean flags representing mutually exclusive states
+
+### Reusable Domain Unions
+
+Never hand-write `"BANK" | "PLATFORM"` when the concept already exists as a
+domain constant, type, enum, or Zod schema. Search the codebase first:
+
+```ts
+// BAD: anonymous duplicate of an existing domain concept
+function familyIcon(family: "BANK" | "PLATFORM") { ... }
+
+// BETTER: reuse the canonical as-const object and derived type
+import { SavingsFamily, type SavingsFamily } from "../savings-constants";
+
+function familyIcon(family: SavingsFamily) {
+  return family === SavingsFamily.BANK ? BankIcon : SmartPhoneIcon;
+}
+```
+
+Only define a new as-const object + derived type when no canonical definition
+exists, and place it at the documented constants home.
+
+## Model Membership, Don't Chain It
+
+An equality chain over the same value means membership in a semantic
+category. Model the category once as a typed set (or use `.includes()` when
+inference stays clean) and give it the domain name:
+
+```ts
+const MATURITY_ATTENTION_STATES = new Set<MaturityPresentationState>([
+  MaturityPresentationState.MATURED,
+  MaturityPresentationState.MATURE_TODAY,
+  MaturityPresentationState.ACTION_REQUIRED,
+]);
+
+function isMaturityAttention(state: MaturityPresentationState) {
+  return MATURITY_ATTENTION_STATES.has(state);
+}
+```
+
+Prefer lookup tables and handler maps (`Record<Variant, Handler>`) over
+switch-like ternary chains and repeated branch logic. Do not extract
+one-off comparisons that have no domain name.
 
 ## Model State, Don't Guard It
 

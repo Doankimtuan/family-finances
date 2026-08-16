@@ -13,10 +13,9 @@ import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
 import {
   listSavings,
-  detectMaturedSavings,
-  backfillLegacySavingsAccounts,
   buildSavingsOverviewModel,
-  MaturityPresentationState,
+  isMaturityAttention,
+  SavingsFamily,
   type SavingsPresentationItem,
 } from "@/modules/savings/application";
 import { DEFAULT_CURRENCY } from "@/modules/ledger/application/ledger-constants";
@@ -36,6 +35,7 @@ import { Text } from "@/shared/ui/text";
 import { AppIcon } from "@/shared/ui/app-icon";
 import { BankIcon, SmartPhoneIcon } from "@hugeicons/core-free-icons";
 import { MoneyOfflineBanner } from "../money-offline-banner";
+import { SavingsLifecycleSync } from "./savings-lifecycle-sync";
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -43,16 +43,8 @@ function formatIsoDate(iso: string, locale: string) {
   return formatDate(new Date(`${iso}T12:00:00`), locale);
 }
 
-function familyIcon(family: "BANK" | "PLATFORM") {
-  return family === "BANK" ? BankIcon : SmartPhoneIcon;
-}
-
-function isMaturityAttention(state: MaturityPresentationState) {
-  return (
-    state === MaturityPresentationState.MATURED ||
-    state === MaturityPresentationState.MATURE_TODAY ||
-    state === MaturityPresentationState.ACTION_REQUIRED
-  );
+function familyIcon(family: SavingsFamily) {
+  return family === SavingsFamily.BANK ? BankIcon : SmartPhoneIcon;
 }
 
 export default async function SavingsPage({ params }: Props) {
@@ -64,8 +56,6 @@ export default async function SavingsPage({ params }: Props) {
   if (!(await resolveActiveMembership(user.id)))
     return redirect({ href: APP_PATH.ONBOARD, locale });
 
-  await backfillLegacySavingsAccounts();
-  await detectMaturedSavings();
   const [t, tMoney, tProducts, tCatalog, items] = await Promise.all([
     getTranslations("money.savingsPage"),
     getTranslations("money"),
@@ -96,7 +86,7 @@ export default async function SavingsPage({ params }: Props) {
             const item = entry.saving;
             const cycle = item.latestCycle;
             const state = entry.maturityState;
-            const family = item.savingsFamily === "BANK" ? "BANK" : "PLATFORM";
+            const family = item.savingsFamily;
             const currency = item.productSnapshot.currency ?? DEFAULT_CURRENCY;
             const rate = cycle?.lockedRate ?? 0;
             const attention = isMaturityAttention(state);
@@ -114,7 +104,7 @@ export default async function SavingsPage({ params }: Props) {
                           icon={familyIcon(family)}
                           size="sm"
                           label={
-                            family === "BANK"
+                            family === SavingsFamily.BANK
                               ? t("bankGroup")
                               : t("platformGroup")
                           }
@@ -214,6 +204,7 @@ export default async function SavingsPage({ params }: Props) {
       topBar={<TopAppBar title={t("title")} subtitle={t("subtitle")} />}
     >
       <MoneyOfflineBanner />
+      <SavingsLifecycleSync />
       <Text size="sm" tone="secondary">
         {t("orientation", {
           active: model.activeItems.length,

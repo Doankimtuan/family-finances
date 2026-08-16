@@ -1,6 +1,6 @@
 ---
 name: refactor-review
-description: Final self-review gate for refactors and substantial changes — scans the changed-file set for magic values, nested conditions, duplication, weak typing, hook misuse, business logic in UI, silent catches, premature abstraction, and dead code. Use at the end of every refactor or substantial implementation, before reporting completion.
+description: Final self-review gate for refactors and substantial changes — scans the changed-file set for magic values, anonymous unions, equality chains, missed Set/Map/Record and discriminated-union opportunities, nested conditions, duplication, weak typing, hook misuse, business logic in UI, silent catches, premature abstraction, and dead code. Use at the end of every refactor or substantial implementation, before reporting completion.
 ---
 
 # Refactor Review
@@ -16,6 +16,8 @@ Scan every changed file for:
 ```text
 magic strings
 magic numbers
+anonymous string unions duplicating a domain concept
+duplicated domain constants (re-defined instead of reused)
 
 nested conditions
 nested ternaries
@@ -24,6 +26,13 @@ condition pyramids
 duplicated logic
 duplicated validation
 duplicated state
+duplicated condition branches
+
+equality chains (x === A || x === B || x === C)
+manually implemented membership checks
+missed Set / Map / Record opportunities
+missed discriminated-union opportunities
+manual grouping / deduplication / indexing loops
 
 weak TypeScript modeling
 any
@@ -47,6 +56,7 @@ missed native JS/TS utilities
 
 premature abstractions
 unnecessary wrappers
+newly introduced abstractions that duplicate existing ones
 dead code introduced by the refactor
 ```
 
@@ -55,7 +65,9 @@ dead code introduced by the refactor
 1. `git status` / `git diff` — enumerate the touch set. Nothing outside it
    should change (no broad unrelated cleanup).
 2. Domain literals must resolve to the documented constant homes
-   (`.cursor/rules/no-magic-strings.mdc`).
+   (`.cursor/rules/no-magic-strings.mdc`). Before defining a new constant or
+   union, search for an existing type, enum, `as const` object, Zod schema, or
+   domain constant to reuse.
 3. Hooks audit: every `useState`/`useEffect`/`useMemo`/`useCallback` can name
    the concrete reason it exists; otherwise remove it.
 4. Types audit: no new `any`, `as X` without local proof, optional-field
@@ -74,6 +86,18 @@ Is the resulting implementation simpler than the code it replaced?
 ```
 
 If not, reconsider the refactor — smaller steps, less abstraction, or revert.
+
+## The Language Question
+
+```text
+Does this implementation use the language and existing domain model
+effectively, or is it manually re-implementing concepts TypeScript /
+JavaScript already expresses well?
+```
+
+Check equality chains, manual membership/grouping/dedup logic, and anonymous
+unions against the semantic-membership and reusable-domain-value rules in
+`code-quality` and `typescript-quality` before answering.
 
 ## Behavior Preservation
 

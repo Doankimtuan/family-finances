@@ -480,6 +480,28 @@ describe("savings presentation model", () => {
     expect(model.attentionCount).toBe(1);
   });
 
+  it("derives matured presentation from past end dates without a persisted status flip", () => {
+    const pastDue = makePresentationSaving({
+      latestCycle: {
+        ...makePresentationSaving().latestCycle,
+        endDate: "2026-08-10",
+      },
+    });
+    const dueToday = makePresentationSaving({
+      latestCycle: {
+        ...makePresentationSaving().latestCycle,
+        endDate: "2026-08-15",
+      },
+    });
+    const model = buildSavingsOverviewModel([pastDue, dueToday], "2026-08-15");
+    expect(model.items.map((item) => item.maturityState)).toEqual([
+      MaturityPresentationState.MATURED,
+      MaturityPresentationState.MATURE_TODAY,
+    ]);
+    expect(model.attentionCount).toBe(2);
+    expect(buildSavingsDetailModel(pastDue, "2026-08-15").canSettle).toBe(true);
+  });
+
   it("shows PLATFORM tax but keeps BANK tax at zero", () => {
     const platform = makePresentationSaving({
       savingsFamily: SavingsFamily.PLATFORM,
