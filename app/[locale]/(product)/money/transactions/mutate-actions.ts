@@ -14,6 +14,7 @@ import type {
 } from "@/modules/ledger/application";
 import type { ProductActionErrorCode } from "@/modules/tenancy/application/product-action-error";
 import type { LedgerActionErrorCode } from "@/modules/ledger/application/ledger-constants";
+import { revalidateTransactionViews } from "@/app/mutation-revalidation";
 
 export type MutateTransactionActionState =
   | {
@@ -59,6 +60,7 @@ export async function refundTransactionAction(
 ): Promise<MutateTransactionActionState> {
   const result = await refundTransaction(input);
   if (result.ok) {
+    revalidateTransactionViews();
     return {
       status: "success",
       transactionId: result.originalTransactionId,
@@ -74,6 +76,7 @@ export async function correctTransactionAction(
 ): Promise<MutateTransactionActionState> {
   const result = await correctTransaction(input);
   if (result.ok) {
+    revalidateTransactionViews();
     return {
       status: "success",
       transactionId: result.correctionTransactionId,

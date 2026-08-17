@@ -1,10 +1,5 @@
-"use client";
-
-import { useEffect, useMemo, useTransition } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
 import { Link } from "@/i18n/navigation";
-import { Button } from "@/shared/ui/button";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Progress } from "@/shared/ui/progress";
 import { Section } from "@/shared/patterns/section";
@@ -13,12 +8,9 @@ import { Text } from "@/shared/ui/text";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import type { MonthlyReview } from "@/modules/plan/application/queries/get-monthly-review";
-import {
-  markMonthlyReviewReviewed,
-  markMonthlyReviewViewed,
-} from "./actions-review";
 import { RecommendationList } from "../recommendation-list";
 import type { PlanRecommendation } from "@/modules/plan/application/plan-recommendations";
+import { MonthlyReviewActions } from "./monthly-review-actions";
 
 type Props = { review: MonthlyReview };
 
@@ -56,21 +48,15 @@ function Metric({
 export function MonthlyReviewReport({ review }: Props) {
   const t = useTranslations("plan.monthlyReview");
   const locale = useLocale();
-  const router = useRouter();
-  const [isPending, startTransition] = useTransition();
   const money = (value: number) =>
     formatCurrency(value, review.currency, locale, {
       maximumFractionDigits: 0,
     });
-  const monthLabel = useMemo(
-    () =>
-      new Intl.DateTimeFormat(locale, {
-        month: "long",
-        year: "numeric",
-        timeZone: "UTC",
-      }).format(new Date(`${review.periodMonth}T00:00:00.000Z`)),
-    [locale, review.periodMonth],
-  );
+  const monthLabel = new Intl.DateTimeFormat(locale, {
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(`${review.periodMonth}T00:00:00.000Z`));
   const previousMonth = monthStep(review.periodMonth, -1);
   const nextMonth = monthStep(review.periodMonth, 1);
   const canGoNext = nextMonth <= review.currentPeriodMonth;
@@ -102,24 +88,6 @@ export function MonthlyReviewReport({ review }: Props) {
       return `${APP_PATH.PLAN_RECURRING}/${action.entityId}`;
     return APP_PATH.PLAN;
   };
-  useEffect(() => {
-    if (review.review.state === "not_started") {
-      void markMonthlyReviewViewed(review.periodMonth);
-    }
-  }, [review.periodMonth, review.review.state]);
-
-  function markReviewed() {
-    startTransition(async () => {
-      await markMonthlyReviewReviewed(review.periodMonth, {
-        capturedAt: new Date().toISOString(),
-        cashFlow: review.cashFlow,
-        jars: review.jars,
-        goals: review.goals,
-      });
-      router.refresh();
-    });
-  }
-
   return (
     <div
       className="flex flex-col gap-(--space-5)"
@@ -417,21 +385,15 @@ export function MonthlyReviewReport({ review }: Props) {
       ) : null}
 
       <div className="flex flex-col gap-2 border-t border-border-subtle pt-(--space-4)">
-        {review.review.state === "marked_reviewed" ? (
-          <StatusAlert
-            variant="success"
-            title={t("reviewed")}
-            description={t("reviewedBody")}
-          />
-        ) : (
-          <Button
-            onPress={markReviewed}
-            isDisabled={isPending}
-            className="w-full"
-          >
-            {isPending ? t("saving") : t("markReviewed")}
-          </Button>
-        )}
+        <MonthlyReviewActions
+          periodMonth={review.periodMonth}
+          reviewState={review.review.state}
+          snapshot={{
+            cashFlow: review.cashFlow,
+            jars: review.jars,
+            goals: review.goals,
+          }}
+        />
         <Link
           href={APP_PATH.PLAN}
           className="inline-flex min-h-11 w-full items-center justify-center rounded-[var(--radius-control)] border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"

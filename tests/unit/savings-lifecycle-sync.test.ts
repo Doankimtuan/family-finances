@@ -1,5 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+const { revalidatePathMock } = vi.hoisted(() => ({
+  revalidatePathMock: vi.fn(),
+}));
+
+vi.mock("next/cache", () => ({
+  revalidatePath: revalidatePathMock,
+}));
+
 vi.mock("@/modules/savings/application", async (importOriginal) => {
   const actual =
     await importOriginal<typeof import("@/modules/savings/application")>();
@@ -15,6 +23,7 @@ import {
   backfillLegacySavingsAccounts,
 } from "@/modules/savings/application";
 import { PRODUCT_ACTION_ERROR_CODE } from "@/modules/tenancy/application/product-action-error";
+import { APP_ROUTE } from "@/modules/tenancy/application/app-path";
 import { syncSavingsLifecycleAction } from "@/app/[locale]/(product)/money/savings/savings-actions";
 
 describe("syncSavingsLifecycleAction", () => {
@@ -41,8 +50,10 @@ describe("syncSavingsLifecycleAction", () => {
     });
     expect(
       vi.mocked(backfillLegacySavingsAccounts).mock.invocationCallOrder[0],
-    ).toBeLessThan(
-      vi.mocked(detectMaturedSavings).mock.invocationCallOrder[0],
+    ).toBeLessThan(vi.mocked(detectMaturedSavings).mock.invocationCallOrder[0]);
+    expect(revalidatePathMock).toHaveBeenCalledWith(
+      APP_ROUTE.MONEY_TRANSACTIONS,
+      "page",
     );
   });
 
@@ -83,5 +94,6 @@ describe("syncSavingsLifecycleAction", () => {
       status: "error",
       code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN,
     });
+    expect(revalidatePathMock).not.toHaveBeenCalled();
   });
 });

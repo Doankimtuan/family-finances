@@ -9,6 +9,7 @@ import {
 } from "@/modules/ledger/application";
 import type { TransactionTag } from "@/modules/ledger/application/client";
 import type { ProductActionErrorCode } from "@/modules/tenancy/application/product-action-error";
+import { revalidateTransactionTagViews } from "@/app/mutation-revalidation";
 
 export type TransactionTagActionState =
   | { status: "success"; tag?: TransactionTag }
@@ -18,6 +19,7 @@ export async function createTransactionTagAction(
   input: TransactionTagInput,
 ): Promise<TransactionTagActionState> {
   const result = await createTransactionTag(input);
+  if (result.ok) revalidateTransactionTagViews();
   return result.ok
     ? { status: "success", tag: result.tag }
     : { status: "error", code: result.code };
@@ -27,6 +29,7 @@ export async function archiveTransactionTagAction(
   tagId: string,
 ): Promise<TransactionTagActionState> {
   const result = await archiveTransactionTag(tagId);
+  if (result.ok) revalidateTransactionTagViews();
   return result.ok
     ? { status: "success" }
     : { status: "error", code: result.code };
@@ -37,6 +40,7 @@ export async function updateTransactionTagAction(
   input: TransactionTagInput,
 ): Promise<TransactionTagActionState> {
   const result = await updateTransactionTag(tagId, input);
+  if (result.ok) revalidateTransactionTagViews();
   return result.ok
     ? { status: "success", tag: result.tag }
     : { status: "error", code: result.code };
@@ -47,6 +51,7 @@ export async function setTransactionTagsAction(
   tagIds: string[],
 ): Promise<TransactionTagActionState> {
   const result = await setTransactionTags(transactionId, tagIds);
+  if (result.ok) revalidateTransactionTagViews();
   return result.ok
     ? { status: "success" }
     : { status: "error", code: result.code };

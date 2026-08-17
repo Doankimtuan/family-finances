@@ -166,6 +166,12 @@ export {
   type ApproveMonthRitualOptions,
   type RitualMutationResult,
 } from "./commands/month-ritual";
+export {
+  updateMonthlyReviewMetadata,
+  monthlyReviewMetadataInputSchema,
+  type MonthlyReviewMetadataInput,
+  type MonthlyReviewMetadataResult,
+} from "./commands/update-monthly-review";
 export { runMonthRitualAutolockWorker } from "./commands/run-month-ritual-autolock";
 export { assertPlanPeriodUnlocked } from "./assert-plan-unlocked";
 export {

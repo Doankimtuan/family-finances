@@ -37,6 +37,11 @@ import {
   classifySavingsRpcError,
   logSavingsFailure,
 } from "@/modules/savings/application/savings-error";
+import {
+  revalidateInboxViews,
+  revalidateSavingsInboxViews,
+  revalidateSavingsViews,
+} from "@/app/mutation-revalidation";
 
 export type SavingsActionState =
   | {
@@ -58,6 +63,7 @@ export async function createSavingAction(
 ): Promise<SavingsActionState> {
   const result = await createSaving(input);
   if (!result.ok) return { status: "error", code: result.code };
+  revalidateSavingsViews();
   return { status: "success", id: result.savingId, cycleId: result.cycleId };
 }
 
@@ -67,6 +73,7 @@ export async function settleSavingAction(input: {
 }): Promise<SavingsActionState> {
   const result = await settleSaving(input);
   if (!result.ok) return { status: "error", code: result.code };
+  revalidateSavingsViews();
   return {
     status: "success",
     id: result.savingId,
@@ -79,6 +86,7 @@ export async function renewSavingAction(
 ): Promise<SavingsActionState> {
   const result = await renewSaving(input);
   if (!result.ok) return { status: "error", code: result.code };
+  revalidateSavingsViews();
   return {
     status: "success",
     id: result.savingId,
@@ -91,6 +99,7 @@ export async function updateRenewalPolicyAction(
 ): Promise<SavingsActionState> {
   const result = await updateRenewalPolicy(input);
   if (!result.ok) return { status: "error", code: result.code };
+  revalidateSavingsViews();
   return { status: "success", id: result.savingId };
 }
 
@@ -167,12 +176,16 @@ export async function detectMaturedSavingsAction(): Promise<SavingsActionState> 
     }
   }
 
+  if (result.maturedCount > 0 || result.cascadeCount > 0) {
+    revalidateSavingsInboxViews();
+  }
   return { status: "success" };
 }
 
 export async function backfillLegacySavingsAction(): Promise<SavingsActionState> {
   const result = await backfillLegacySavingsAccounts();
   if (!result.ok) return { status: "error", code: result.code };
+  if (result.migratedCount > 0) revalidateSavingsViews();
   return { status: "success" };
 }
 
@@ -197,9 +210,17 @@ export async function syncSavingsLifecycleAction(): Promise<SavingsLifecycleSync
   const backfill = await backfillLegacySavingsAccounts();
   const detected = await detectMaturedSavings();
   if (!detected.ok) return { status: "error", code: detected.code };
+  const migratedCount = backfill.ok ? backfill.migratedCount : 0;
+  if (
+    migratedCount > 0 ||
+    detected.maturedCount > 0 ||
+    detected.cascadeCount > 0
+  ) {
+    revalidateSavingsInboxViews();
+  }
   return {
     status: "success",
-    migratedCount: backfill.ok ? backfill.migratedCount : 0,
+    migratedCount,
     maturedCount: detected.maturedCount,
     cascadeCount: detected.cascadeCount,
   };
@@ -313,6 +334,7 @@ export async function requestEarlyWithdrawalAction(input: {
         return { status: "error", code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
       }
 
+      revalidateInboxViews();
       return {
         status: "success",
         id: updated.id,
@@ -330,6 +352,7 @@ export async function requestEarlyWithdrawalAction(input: {
       return { status: "error", code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
     }
 
+    revalidateInboxViews();
     return {
       status: "success",
       id: data.id,
@@ -352,6 +375,7 @@ export async function confirmEarlyWithdrawalAction(input: {
 }): Promise<SavingsActionState> {
   const result = await confirmEarlyWithdrawal(input);
   if (!result.ok) return { status: "error", code: result.code };
+  revalidateSavingsInboxViews();
   return {
     status: "success",
     id: result.savingId,
@@ -384,6 +408,7 @@ export async function acknowledgeSavingsMaturityAction(input: {
       action: input.action,
     });
     if (!ack.ok) return { status: "error", code: ack.code };
+    revalidateInboxViews();
     return { status: "success" };
   }
 
@@ -420,6 +445,7 @@ export async function acknowledgeSavingsMaturityAction(input: {
       action: input.action,
     });
 
+    revalidateSavingsInboxViews();
     return {
       status: "success",
       id: settled.savingId,
@@ -456,6 +482,7 @@ export async function acknowledgeSavingsMaturityAction(input: {
     action: input.action,
   });
 
+  revalidateSavingsInboxViews();
   return {
     status: "success",
     id: renewed.savingId,
@@ -476,6 +503,7 @@ export async function acknowledgeEarlyWithdrawalAction(input: {
       action: input.action,
     });
     if (!ack.ok) return { status: "error", code: ack.code };
+    revalidateInboxViews();
     return { status: "success" };
   }
 
@@ -491,6 +519,7 @@ export async function acknowledgeEarlyWithdrawalAction(input: {
     action: input.action,
   });
 
+  revalidateSavingsInboxViews();
   return {
     status: "success",
     id: confirmed.savingId,

@@ -1,18 +1,18 @@
 "use server";
 
 import { recordTransaction } from "@/modules/ledger/application";
-import type {
-  RecordTransactionInput,
-  RecordTransactionErrorCode,
-} from "@/modules/ledger/application";
+import type { RecordTransactionErrorCode } from "@/modules/ledger/application";
 import {
   recordTransfer,
-  type RecordTransferInput,
+  recordTransactionInputSchema,
+  recordTransferInputSchema,
 } from "@/modules/ledger/application";
 import {
+  PRODUCT_ACTION_ERROR_CODE,
   ProductActionStatus,
   type ProductActionErrorCode,
 } from "@/modules/tenancy/application/product-action-error";
+import { revalidateTransactionViews } from "@/app/mutation-revalidation";
 
 export type RecordTransactionActionState =
   | {
@@ -26,10 +26,16 @@ export type RecordTransactionActionState =
     };
 
 export async function recordTransactionAction(
-  input: RecordTransactionInput,
+  input: unknown,
 ): Promise<RecordTransactionActionState> {
-  const result = await recordTransaction(input);
+  const parsed = recordTransactionInputSchema.safeParse(input);
+  if (!parsed.success) {
+    return { status: "error", code: PRODUCT_ACTION_ERROR_CODE.INVALID };
+  }
+
+  const result = await recordTransaction(parsed.data);
   if (result.ok) {
+    revalidateTransactionViews();
     return {
       status: "success",
       transactionId: result.transactionId,
@@ -54,10 +60,19 @@ export type RecordTransferActionState =
     };
 
 export async function recordTransferAction(
-  input: RecordTransferInput,
+  input: unknown,
 ): Promise<RecordTransferActionState> {
-  const result = await recordTransfer(input);
+  const parsed = recordTransferInputSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      status: ProductActionStatus.ERROR,
+      code: PRODUCT_ACTION_ERROR_CODE.INVALID,
+    };
+  }
+
+  const result = await recordTransfer(parsed.data);
   if (result.ok) {
+    revalidateTransactionViews();
     return {
       status: ProductActionStatus.SUCCESS,
       transferGroupId: result.transferGroupId,

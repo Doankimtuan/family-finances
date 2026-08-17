@@ -3,7 +3,6 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { useRouter } from "@/i18n/navigation";
 import { CheckmarkCircle02Icon } from "@hugeicons/core-free-icons";
 import {
   MaturityFallbackPolicy,
@@ -80,7 +79,6 @@ export function RenewalPolicyEditor({
 }: Props) {
   const t = useTranslations("money.savingsDetail");
   const tErr = useTranslations("money.products.errors");
-  const router = useRouter();
   const { online } = useOnlineStatusClient();
   const [isOpen, setIsOpen] = useState(false);
   const [policy, setPolicy] = useState(initialPolicy);
@@ -166,7 +164,6 @@ export function RenewalPolicyEditor({
       });
       if (result.status === "success") {
         close();
-        router.refresh();
       } else {
         setErrorCode(result.code);
       }

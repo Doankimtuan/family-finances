@@ -407,6 +407,7 @@ export const PLAN_OPERATION = {
   REALLOCATE_JAR_CAPACITY: "reallocateJarCapacity",
   SET_JAR_STATE: "setJarState",
   UPSERT_JAR_PLAN: "upsertJarPlan",
+  MONTHLY_REVIEW_METADATA: "monthlyReviewMetadata",
 } as const;
 
 export type PlanOperation =

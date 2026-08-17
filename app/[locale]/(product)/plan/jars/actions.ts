@@ -21,6 +21,7 @@ import {
 } from "@/modules/ledger/application";
 import type { ProductActionErrorCode } from "@/modules/tenancy/application/product-action-error";
 import type { LedgerActionErrorCode } from "@/modules/ledger/application/ledger-constants";
+import { revalidateJarViews } from "@/app/mutation-revalidation";
 
 export type UpdateJarConfigurationActionState =
   | { status: "success"; jarId: string }
@@ -54,7 +55,10 @@ export async function createJarAction(
 
 export async function renameJarAction(
   input: RenameJarInput,
-): Promise<{ status: "success"; name: string } | { status: "error"; code: ProductActionErrorCode }> {
+): Promise<
+  | { status: "success"; name: string }
+  | { status: "error"; code: ProductActionErrorCode }
+> {
   const result = await renameJar(input);
   if (result.ok) {
     return { status: "success", name: result.name };
@@ -135,6 +139,7 @@ export async function reallocateJarCapacityAction(
 ): Promise<ReallocateJarCapacityActionState> {
   const result = await reallocateJarCapacity(input);
   if (result.ok) {
+    revalidateJarViews();
     return {
       status: "success",
       planMovementId: result.planMovementId,

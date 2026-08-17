@@ -55,6 +55,30 @@ export type AppPath = (typeof APP_PATH)[keyof typeof APP_PATH];
  */
 export const RoutePath = APP_PATH;
 
+/** Filesystem route patterns used by server-side mutation revalidation. */
+export const APP_ROUTE = {
+  HOME: "/[locale]/(product)/home",
+  MONEY: "/[locale]/(product)/money",
+  MONEY_ACCOUNTS: "/[locale]/(product)/money/accounts",
+  MONEY_ACCOUNT_DETAIL: "/[locale]/(product)/money/accounts/[id]",
+  MONEY_TRANSACTIONS: "/[locale]/(product)/money/transactions",
+  MONEY_TRANSACTION_DETAIL: "/[locale]/(product)/money/transactions/[id]",
+  MONEY_TRANSACTION_TAGS: "/[locale]/(product)/money/transactions/tags",
+  MONEY_INVESTMENTS: "/[locale]/(product)/money/investments",
+  MONEY_INVESTMENT_DETAIL: "/[locale]/(product)/money/investments/[id]",
+  PLAN: "/[locale]/(product)/plan",
+  PLAN_GOALS: "/[locale]/(product)/plan/goals",
+  PLAN_GOAL_DETAIL: "/[locale]/(product)/plan/goals/[id]",
+  PLAN_JARS: "/[locale]/(product)/plan/jars",
+  PLAN_JAR_DETAIL: "/[locale]/(product)/plan/jars/[id]",
+  PLAN_RITUAL: "/[locale]/(product)/plan/ritual",
+  INBOX: "/[locale]/(product)/inbox",
+  MONEY_SAVINGS: "/[locale]/(product)/money/savings",
+  MONEY_SAVINGS_DETAIL: "/[locale]/(product)/money/savings/[id]",
+} as const;
+
+export type AppRoutePattern = (typeof APP_ROUTE)[keyof typeof APP_ROUTE];
+
 export const INVITE_PATH_SEGMENT = "invite";
 
 /** Locale-relative invite deep link. */

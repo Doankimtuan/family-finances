@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import type { TransactionTag } from "@/modules/ledger/application/client";
 import { Button } from "@/shared/ui/button";
@@ -23,7 +22,6 @@ export function TransactionTagEditor({
   availableTags,
 }: Props) {
   const t = useTranslations("money.detailPage");
-  const router = useRouter();
   const [selectedIds, setSelectedIds] = useState(() =>
     initialTags.map((tag) => tag.id),
   );
@@ -54,7 +52,6 @@ export function TransactionTagEditor({
         return;
       }
       setSaved(true);
-      router.refresh();
     });
   };
 

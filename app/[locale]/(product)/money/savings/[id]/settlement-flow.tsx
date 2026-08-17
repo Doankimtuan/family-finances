@@ -2,7 +2,6 @@
 
 import { useState, useTransition } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { useRouter } from "@/i18n/navigation";
 import { CheckmarkCircle02Icon } from "@hugeicons/core-free-icons";
 import {
   MaturityTargetMode,
@@ -90,7 +89,6 @@ export function SavingsSettlementFlow({
 }: Props) {
   const t = useTranslations("money.savingsSettlement");
   const locale = useLocale();
-  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<Step>("form");
   const [strategy, setStrategy] = useState<SettlementRule>(
@@ -168,7 +166,6 @@ export function SavingsSettlementFlow({
             });
       if (result.status === "success") {
         close();
-        router.refresh();
       } else {
         setError(true);
         setStep("form");
