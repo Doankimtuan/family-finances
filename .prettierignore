@@ -3,7 +3,6 @@ out
 build
 node_modules
 archive
-ai-os
 artifacts
 coverage
 package-lock.json

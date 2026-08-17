@@ -12,6 +12,9 @@
 
 # testing
 /coverage
+/test-results/
+/.playwright-cli/
+/.playwright-mcp/
 
 # next.js
 /.next/
@@ -42,11 +45,6 @@ supabase/.temp/
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-
-# AIOS runtime outputs (keep directory placeholders)
-/ai-os/runtime/**
-!/ai-os/runtime/**/
-!/ai-os/runtime/**/.gitkeep
 
 # Legacy retirement backups (large tarballs may be kept locally)
 # archive/backups/*.tar.gz

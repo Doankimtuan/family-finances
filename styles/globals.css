@@ -7,7 +7,6 @@
 @source not "../archive/**/*";
 @source not "../history/**/*";
 @source not "../.agents/**/*";
-@source not "../ai-os/**/*";
 
 /* Class-based dark (next-themes) — not prefers-color-scheme alone */
 @custom-variant dark (&:where(.dark, .dark *));

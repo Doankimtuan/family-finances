@@ -23,7 +23,7 @@ The product owner's observation is valid. Phase E0 made the implementation clean
    - Server cwd: `/Users/doantuan/Desktop/Plan/family-finances`
    - Build cache: `.next/dev`, not production `.next/server`
    - Git commit: `ed9ab1f`
-   - Tailwind source includes app and shared component files; `history/`, `archive/`, `artifacts/`, `.agents/`, and `ai-os/` are excluded intentionally.
+   - Tailwind source includes app and shared component files; `history/`, `archive/`, `artifacts/`, and `.agents/` are excluded intentionally.
 
 4. Authenticated acceptance is blocked in this shell.
    - `E2E_USER_EMAIL` is missing.
@@ -55,4 +55,3 @@ The product owner's observation is valid. Phase E0 made the implementation clean
 - Phase E0 issue: the sticky action existed, but the form still read as a conventional field stack.
 - E0.1 change: amount is visually first and prominent; direction is a compact segmented control inside the amount zone; account/tag/jar/note groups are visibly bounded; preview is highlighted as financial consequence.
 - Remaining blocker: initial, filled, validation, preview, and success states need authenticated browser evidence.
-

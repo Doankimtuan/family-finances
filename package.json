@@ -16,18 +16,7 @@
     "test:e2e": "playwright test",
     "test:e2e:smoke": "playwright test tests/e2e/auth-entry.smoke.spec.ts tests/e2e/health-insights.smoke.spec.ts tests/e2e/home-dashboard.smoke.spec.ts",
     "test:constitution": "vitest run tests/unit/health-readonly-shield.test.ts tests/unit/ai-policy.test.ts tests/unit/health-insights.test.ts tests/unit/health-pulse.test.ts tests/unit/get-health-detail.integration.test.ts tests/unit/health-insights-policy-block.test.ts tests/unit/log-health-ai-policy-block.test.ts",
-    "prepare": "husky",
-    "aios:core:smoke": "npx --yes tsx ai-os/core/scripts/smoke.ts",
-    "aios:discovery:smoke": "npx --yes tsx ai-os/core/scripts/discovery-smoke.ts",
-    "aios:product-re:smoke": "npx --yes tsx ai-os/core/scripts/product-re-smoke.ts",
-    "aios:solution-architecture:smoke": "npx --yes tsx ai-os/core/scripts/solution-architecture-smoke.ts",
-    "aios:specification-engineering:smoke": "npx --yes tsx ai-os/core/scripts/specification-engineering-smoke.ts",
-    "aios:validation-engine:smoke": "npx --yes tsx ai-os/core/scripts/validation-engine-smoke.ts",
-    "aios:review-engine:smoke": "npx --yes tsx ai-os/core/scripts/review-engine-smoke.ts",
-    "aios:framework-generator:smoke": "npx --yes tsx ai-os/core/scripts/framework-generator-smoke.ts",
-    "aios:qualification-framework:smoke": "npx --yes tsx ai-os/core/scripts/qualification-framework-smoke.ts",
-    "aios:runtime-engine:smoke": "npx --yes tsx ai-os/core/scripts/runtime-engine-smoke.ts",
-    "aios:capabilities:smoke": "npx --yes tsx ai-os/core/scripts/capabilities-smoke.ts"
+    "prepare": "husky"
   },
   "dependencies": {
     "@heroui/react": "^3.0.0",
@@ -39,7 +28,6 @@
     "@supabase/ssr": "0.8.0",
     "@supabase/supabase-js": "2.109.0",
     "@tanstack/react-query": "^5.90.21",
-    "date-fns": "^4.1.0",
     "geist": "^1.3.1",
     "lodash-es": "^4.18.1",
     "motion": "^12.0.0",
@@ -53,8 +41,7 @@
     "recharts": "^2.15.0",
     "server-only": "^0.0.1",
     "tailwind-variants": "^1.0.0",
-    "zod": "^4.3.6",
-    "zustand": "^5.0.11"
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@playwright/test": "^1.50.0",
