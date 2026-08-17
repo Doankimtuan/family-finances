@@ -1,5 +1,6 @@
 export {
   listOpenInboxItems,
+  countOpenInboxItems,
   listArchivedInboxItems,
   getInboxItem,
 } from "./queries/review-items";

@@ -230,7 +230,14 @@ export function InvestmentOperationForm({
     resolver: zodResolver(operationFormSchema),
     defaultValues: defaults,
   });
-  const values = useWatch({ control });
+  const quantity = useWatch({ control, name: "quantity" });
+  const value = useWatch({ control, name: "value" });
+  const unitPrice = useWatch({ control, name: "unitPrice" });
+  const destinationId = useWatch({ control, name: "destinationId" });
+  const sourceId = useWatch({ control, name: "sourceId" });
+  const hasFee = useWatch({ control, name: "hasFee" });
+  const feeSource = useWatch({ control, name: "feeSource" });
+  const feeValue = useWatch({ control, name: "feeValue" });
   const ux = investmentUxConfig(holding.assetClass as InvestmentUxType);
   const accountsOptions = accounts.map((account) => ({
     id: account.id,
@@ -249,7 +256,7 @@ export function InvestmentOperationForm({
     mode === InvestmentFormMode.VALUATION
       ? buildUnitPricePreview({
           quantity: holding.quantity,
-          unitPrice: values.unitPrice ?? null,
+          unitPrice: unitPrice ?? null,
           costBasis: holding.remainingTotalCostBasis,
           manualTotalValue: holding.assetClass === InvestmentAssetClass.BOND,
         })
@@ -258,10 +265,10 @@ export function InvestmentOperationForm({
     mode === InvestmentFormMode.SELL
       ? buildDisposalPreview({
           availableQuantity: holding.quantity,
-          soldQuantity: values.quantity ?? "",
-          executionPricePerUnit: values.unitPrice ?? null,
+          soldQuantity: quantity ?? "",
+          executionPricePerUnit: unitPrice ?? null,
           remainingCostBasis: holding.remainingTotalCostBasis,
-          feeAmount: values.feeValue ?? null,
+          feeAmount: feeValue ?? null,
           manualTotalValue: holding.assetClass === InvestmentAssetClass.BOND,
         })
       : null;
@@ -270,7 +277,7 @@ export function InvestmentOperationForm({
       ? (valuationPreview?.totalValue ?? null)
       : mode === InvestmentFormMode.SELL
         ? (disposalPreview?.grossProceeds ?? null)
-        : values.value;
+        : value;
   const money = (value: number | null | undefined) =>
     value == null
       ? t("unknown")
@@ -426,7 +433,7 @@ export function InvestmentOperationForm({
                   {
                     id: "quantity",
                     label: ux.quantityLabel,
-                    value: values.quantity || t("unknown"),
+                    value: quantity || t("unknown"),
                   },
                 ]
               : []),
@@ -441,8 +448,8 @@ export function InvestmentOperationForm({
               value: display(
                 mode === InvestmentFormMode.VALUATION ||
                   mode === InvestmentFormMode.SELL
-                  ? values.unitPrice
-                  : values.value,
+                  ? unitPrice
+                  : value,
               ),
             },
             ...(valuationPreview
@@ -509,7 +516,7 @@ export function InvestmentOperationForm({
                     onChange={(event) => {
                       const next = event.target.value;
                       field.onChange(next);
-                      if (next === values.destinationId)
+                      if (next === destinationId)
                         setValue(
                           "destinationId",
                           holdings.find((item) => item.id !== next)?.id ?? "",
@@ -526,7 +533,7 @@ export function InvestmentOperationForm({
                     label={t("destination")}
                     value={field.value}
                     options={holdings
-                      .filter((item) => item.id !== values.sourceId)
+                      .filter((item) => item.id !== sourceId)
                       .map((item) => ({
                         id: item.id,
                         label: item.symbol || item.name,
@@ -713,7 +720,7 @@ export function InvestmentOperationForm({
                 <input type="checkbox" {...register("hasFee")} />
                 {t("addFee")}
               </label>
-              {values.hasFee ? (
+              {hasFee ? (
                 <>
                   <Controller
                     name="feeSource"
@@ -734,16 +741,16 @@ export function InvestmentOperationForm({
                       registration={register("feeAsset")}
                     />
                   ) : null}
-                  {values.feeSource === InvestmentFeeSource.CASH ? (
-                  <ControlledField
-                    control={control}
-                    field={{
-                      type: "amount",
-                      name: "feeAmount",
-                      id: "investment-fee-amount",
-                      label: t("feeAmount"),
-                    }}
-                  />
+                  {feeSource === InvestmentFeeSource.CASH ? (
+                    <ControlledField
+                      control={control}
+                      field={{
+                        type: "amount",
+                        name: "feeAmount",
+                        id: "investment-fee-amount",
+                        label: t("feeAmount"),
+                      }}
+                    />
                   ) : (
                     <TextField
                       id="investment-fee-quantity"
@@ -751,7 +758,7 @@ export function InvestmentOperationForm({
                       registration={register("feeQuantity")}
                     />
                   )}
-                  {values.feeSource === InvestmentFeeSource.OTHER_INVESTMENT ? (
+                  {feeSource === InvestmentFeeSource.OTHER_INVESTMENT ? (
                     <Controller
                       name="feeHoldingId"
                       control={control}

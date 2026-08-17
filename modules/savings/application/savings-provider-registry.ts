@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { PRODUCT_ACTION_ERROR_CODE } from "@/modules/tenancy/application/product-action-error";
 import type { SavingProvider, SavingPackage } from "./savings-types";
@@ -146,7 +147,7 @@ export async function getProviderByKey(
   }
 }
 
-export async function listProviderPackages(
+async function loadProviderPackages(
   providerId: string,
 ): Promise<SavingPackage[] | null> {
   try {
@@ -176,6 +177,8 @@ export async function listProviderPackages(
     return null;
   }
 }
+
+export const listProviderPackages = cache(loadProviderPackages);
 
 export async function getPackage(
   packageId: string,

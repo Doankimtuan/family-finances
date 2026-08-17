@@ -6,7 +6,10 @@ import { routing } from "@/i18n/routing";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
-import { getGoal, listGoals } from "@/modules/plan/application/queries/list-goals";
+import {
+  getGoal,
+  listGoals,
+} from "@/modules/plan/application/queries/list-goals";
 import { listGoalFundingOptions } from "@/modules/plan/application/queries/list-goal-funding-options";
 import { GoalType } from "@/modules/plan/application/plan-constants";
 import { formatCurrency } from "@/shared/i18n/formatters";
@@ -59,12 +62,14 @@ export default async function PlanGoalDetailPage({ params }: Props) {
     );
   }
 
-  const fundingOptions =
-    (await listGoalFundingOptions({
+  const [fundingOptionsResult, listedGoals] = await Promise.all([
+    listGoalFundingOptions({
       goalType: goal.goalType,
       goalId: goal.id,
-    })) ?? [];
-  const listedGoals = await listGoals();
+    }),
+    listGoals(),
+  ]);
+  const fundingOptions = fundingOptionsResult ?? [];
   const reassignmentOptions = (listedGoals?.goals ?? [])
     .filter(
       (candidate) =>
@@ -209,7 +214,9 @@ export default async function PlanGoalDetailPage({ params }: Props) {
         name={goal.name}
         targetAmount={goal.targetAmount}
         fundedAmount={goal.fundedAmount}
-        remainingPrincipal={goal.fundingSummary?.remainingPrincipalTotal ?? null}
+        remainingPrincipal={
+          goal.fundingSummary?.remainingPrincipalTotal ?? null
+        }
         targetDate={goal.targetDate}
         status={goal.status}
         goalType={goal.goalType}

@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import {
@@ -185,7 +186,7 @@ async function loadHoldings(): Promise<InvestmentHolding[] | null> {
   }
 }
 
-export async function listInvestmentPortfolio(): Promise<InvestmentPortfolio | null> {
+async function loadInvestmentPortfolio(): Promise<InvestmentPortfolio | null> {
   const holdings = await loadHoldings();
   if (!holdings) return null;
   const activities = (await listInvestmentActivities()) ?? [];
@@ -268,6 +269,8 @@ export async function listInvestmentPortfolio(): Promise<InvestmentPortfolio | n
     ),
   };
 }
+
+export const listInvestmentPortfolio = cache(loadInvestmentPortfolio);
 
 export async function getInvestmentHolding(
   holdingId: string,

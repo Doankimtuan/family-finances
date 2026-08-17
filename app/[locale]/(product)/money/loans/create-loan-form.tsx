@@ -86,37 +86,48 @@ export function CreateLoanForm() {
     resolver: zodResolver(createLoanInputSchema),
     defaultValues: DEFAULT_VALUES,
   });
-  const values = useWatch({ control });
-  const interestStrategy =
-    values.interestStrategy ?? LoanInterestStrategy.FIXED;
-  const firstPaymentDate =
-    values.firstPaymentDate || values.startDate || todayYmd();
+  const interestStrategyValue = useWatch({
+    control,
+    name: "interestStrategy",
+  });
+  const firstPaymentDateValue = useWatch({
+    control,
+    name: "firstPaymentDate",
+  });
+  const startDate = useWatch({ control, name: "startDate" });
+  const promoRateEffectiveOn = useWatch({
+    control,
+    name: "promoRateEffectiveOn",
+  });
+  const promoFixedMonths = useWatch({ control, name: "promoFixedMonths" });
+  const principal = useWatch({ control, name: "principal" });
+  const termValue = useWatch({ control, name: "termValue" });
+  const annualInterestRate = useWatch({ control, name: "annualInterestRate" });
+  const termUnit = useWatch({ control, name: "termUnit" });
+  const repaymentMethod = useWatch({ control, name: "repaymentMethod" });
+  const promoFixedRate = useWatch({ control, name: "promoFixedRate" });
+  const promoFloatingRate = useWatch({ control, name: "promoFloatingRate" });
+  const interestStrategy = interestStrategyValue ?? LoanInterestStrategy.FIXED;
+  const firstPaymentDate = firstPaymentDateValue || startDate || todayYmd();
   const derivedPromoEffective =
     interestStrategy === LoanInterestStrategy.PROMO_FIXED_TO_FLOATING
-      ? values.promoRateEffectiveOn &&
-        values.promoRateEffectiveOn >= firstPaymentDate
-        ? values.promoRateEffectiveOn
-        : addMonthsYmd(
-            firstPaymentDate,
-            Math.max(1, values.promoFixedMonths ?? 1),
-          )
+      ? promoRateEffectiveOn && promoRateEffectiveOn >= firstPaymentDate
+        ? promoRateEffectiveOn
+        : addMonthsYmd(firstPaymentDate, Math.max(1, promoFixedMonths ?? 1))
       : null;
   const preview =
-    values.principal != null &&
-    values.principal > 0 &&
-    (values.termValue ?? 0) > 0
+    principal != null && principal > 0 && (termValue ?? 0) > 0
       ? simulateLoanPreview({
-          principal: Math.trunc(values.principal),
-          annualInterestRate: values.annualInterestRate ?? 0,
-          termValue: Math.trunc(values.termValue ?? 0),
-          termUnit: values.termUnit ?? LoanTermUnit.MONTHS,
+          principal: Math.trunc(principal),
+          annualInterestRate: annualInterestRate ?? 0,
+          termValue: Math.trunc(termValue ?? 0),
+          termUnit: termUnit ?? LoanTermUnit.MONTHS,
           firstPaymentDate,
-          repaymentMethod:
-            values.repaymentMethod ?? LoanRepaymentMethod.FIXED_MONTHLY,
+          repaymentMethod: repaymentMethod ?? LoanRepaymentMethod.FIXED_MONTHLY,
           interestStrategy,
-          promoFixedRate: values.promoFixedRate,
-          promoFixedMonths: values.promoFixedMonths,
-          promoFloatingRate: values.promoFloatingRate,
+          promoFixedRate,
+          promoFixedMonths,
+          promoFloatingRate,
           promoRateEffectiveOn: derivedPromoEffective,
         })
       : null;
@@ -245,48 +256,49 @@ export function CreateLoanForm() {
       emptyValue: null,
     },
   ] satisfies ControlledFieldConfig<FormValues>[];
-  const promoFields = interestStrategy === LoanInterestStrategy.PROMO_FIXED_TO_FLOATING
-    ? ([
-        {
-          type: "number",
-          name: "promoFixedRate",
-          label: t("promoFixedRateLabel"),
-          id: "loan-promoFixedRate",
-          testId: "loan-promo-fixed-rate",
-          minValue: 0,
-          maxValue: 100,
-          step: 0.01,
-        },
-        {
-          type: "number",
-          name: "promoFixedMonths",
-          label: t("promoFixedMonthsLabel"),
-          id: "loan-promoFixedMonths",
-          testId: "loan-promo-fixed-months",
-          minValue: 1,
-          maxValue: 600,
-          step: 1,
-        },
-        {
-          type: "number",
-          name: "promoFloatingRate",
-          label: t("promoFloatingRateLabel"),
-          id: "loan-promoFloatingRate",
-          testId: "loan-promo-floating-rate",
-          minValue: 0,
-          maxValue: 100,
-          step: 0.01,
-        },
-        {
-          type: "date",
-          name: "promoRateEffectiveOn",
-          label: t("promoEffectiveOnLabel"),
-          id: "loan-promoRateEffectiveOn",
-          testId: "loan-promo-effective",
-          emptyValue: null,
-        },
-      ] satisfies ControlledFieldConfig<FormValues>[])
-    : [];
+  const promoFields =
+    interestStrategy === LoanInterestStrategy.PROMO_FIXED_TO_FLOATING
+      ? ([
+          {
+            type: "number",
+            name: "promoFixedRate",
+            label: t("promoFixedRateLabel"),
+            id: "loan-promoFixedRate",
+            testId: "loan-promo-fixed-rate",
+            minValue: 0,
+            maxValue: 100,
+            step: 0.01,
+          },
+          {
+            type: "number",
+            name: "promoFixedMonths",
+            label: t("promoFixedMonthsLabel"),
+            id: "loan-promoFixedMonths",
+            testId: "loan-promo-fixed-months",
+            minValue: 1,
+            maxValue: 600,
+            step: 1,
+          },
+          {
+            type: "number",
+            name: "promoFloatingRate",
+            label: t("promoFloatingRateLabel"),
+            id: "loan-promoFloatingRate",
+            testId: "loan-promo-floating-rate",
+            minValue: 0,
+            maxValue: 100,
+            step: 0.01,
+          },
+          {
+            type: "date",
+            name: "promoRateEffectiveOn",
+            label: t("promoEffectiveOnLabel"),
+            id: "loan-promoRateEffectiveOn",
+            testId: "loan-promo-effective",
+            emptyValue: null,
+          },
+        ] satisfies ControlledFieldConfig<FormValues>[])
+      : [];
 
   return (
     <form

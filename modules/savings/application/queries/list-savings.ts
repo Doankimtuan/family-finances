@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import {
@@ -20,6 +21,39 @@ import { listProviderPackages } from "../savings-provider-registry";
 const SAVING_CYCLE_SELECT =
   "id, saving_id, cycle_number, start_date, end_date, principal, locked_rate, package_snapshot, accrued_interest, settlement_result, renewal_decision, status, funding_transaction_id, settlement_transaction_id, previous_cycle_id, next_cycle_id, created_at";
 
+type SupabaseServerClient = Awaited<
+  ReturnType<typeof createSupabaseServerClient>
+>;
+type SavingCycleRow = Parameters<typeof mapSavingCycleRow>[0];
+
+async function loadCycleRows(
+  supabase: SupabaseServerClient,
+  savingIds: readonly string[],
+): Promise<SavingCycleRow[] | null> {
+  if (savingIds.length === 0) return [];
+
+  const { data, error } = await supabase
+    .from("saving_cycles")
+    .select(SAVING_CYCLE_SELECT)
+    .in("saving_id", [...savingIds])
+    .order("cycle_number", { ascending: false });
+
+  return error ? null : ((data ?? []) as SavingCycleRow[]);
+}
+
+async function loadCycleRowsForSaving(
+  supabase: SupabaseServerClient,
+  savingId: string,
+): Promise<SavingCycleRow[]> {
+  const { data } = await supabase
+    .from("saving_cycles")
+    .select(SAVING_CYCLE_SELECT)
+    .eq("saving_id", savingId)
+    .order("cycle_number", { ascending: false });
+
+  return (data ?? []) as SavingCycleRow[];
+}
+
 async function setMaturityActionRequired(saving: Saving) {
   if (
     saving.status !== SavingStatus.MATURED ||
@@ -40,7 +74,7 @@ async function setMaturityActionRequired(saving: Saving) {
     );
 }
 
-export async function listSavings(): Promise<Saving[] | null> {
+async function loadSavings(): Promise<Saving[] | null> {
   const gate = await assertMoneyActionAllowed();
   if (!gate.ok) return null;
 
@@ -62,43 +96,61 @@ export async function listSavings(): Promise<Saving[] | null> {
 
     const savings = (data ?? []).map(mapSavingRow);
 
-    // Enrich with the current lifecycle cycle, not merely the newest row.
-    for (const saving of savings) {
-      const { data: cycles } = await supabase
-        .from("saving_cycles")
-        .select(SAVING_CYCLE_SELECT)
-        .eq("saving_id", saving.id)
-        .order("cycle_number", { ascending: false });
+    const cycleRows = await loadCycleRows(
+      supabase,
+      savings.map((saving) => saving.id),
+    );
+    const rows =
+      cycleRows ??
+      (
+        await Promise.all(
+          savings.map((saving) => loadCycleRowsForSaving(supabase, saving.id)),
+        )
+      ).flat();
+    const cyclesBySavingId = new Map<string, SavingCycle[]>();
 
-      if (cycles && cycles.length > 0) {
-        const cycle = selectCurrentSavingCycle(cycles.map(mapSavingCycleRow));
-        if (!cycle) continue;
-
-        // Compute current accrued interest for active cycles
-        if (cycle.status === CycleStatus.ACTIVE) {
-          const accrued = computeAccruedInterest({
-            principal: cycle.principal,
-            annualRate: cycle.lockedRate,
-            startDate: cycle.startDate,
-            endDate: cycle.endDate,
-            method:
-              cycle.packageSnapshot.interestCalculationMethod ||
-              saving.productSnapshot.interestCalculationMethod ||
-              InterestCalcMethod.SIMPLE,
-          });
-          cycle.accruedInterest = accrued.totalInterest;
-        }
-
-        saving.latestCycle = cycle;
-      }
-      await setMaturityActionRequired(saving);
+    for (const row of rows) {
+      const cycles = cyclesBySavingId.get(row.saving_id) ?? [];
+      cycles.push(mapSavingCycleRow(row));
+      cyclesBySavingId.set(row.saving_id, cycles);
     }
+
+    // Enrich with the current lifecycle cycle, not merely the newest row.
+    await Promise.all(
+      savings.map(async (saving) => {
+        const cycles = cyclesBySavingId.get(saving.id) ?? [];
+        if (cycles.length > 0) {
+          const cycle = selectCurrentSavingCycle(cycles);
+          if (!cycle) return;
+
+          // Compute current accrued interest for active cycles
+          if (cycle.status === CycleStatus.ACTIVE) {
+            const accrued = computeAccruedInterest({
+              principal: cycle.principal,
+              annualRate: cycle.lockedRate,
+              startDate: cycle.startDate,
+              endDate: cycle.endDate,
+              method:
+                cycle.packageSnapshot.interestCalculationMethod ||
+                saving.productSnapshot.interestCalculationMethod ||
+                InterestCalcMethod.SIMPLE,
+            });
+            cycle.accruedInterest = accrued.totalInterest;
+          }
+
+          saving.latestCycle = cycle;
+        }
+        await setMaturityActionRequired(saving);
+      }),
+    );
 
     return savings;
   } catch {
     return null;
   }
 }
+
+export const listSavings = cache(loadSavings);
 
 export async function getSaving(savingId: string): Promise<Saving | null> {
   const gate = await assertMoneyActionAllowed();

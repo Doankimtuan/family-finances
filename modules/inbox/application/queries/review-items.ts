@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import {
@@ -69,7 +70,7 @@ async function enrichWithTransactionDetails(
   return rows.map((row) => mapInboxRow(row, detailsById.get(row.source_id)));
 }
 
-export async function listOpenInboxItems(): Promise<InboxReviewItem[] | null> {
+async function loadOpenInboxItems(): Promise<InboxReviewItem[] | null> {
   const gate = await assertMoneyActionAllowed();
   if (!gate.ok) return null;
 
@@ -99,6 +100,39 @@ export async function listOpenInboxItems(): Promise<InboxReviewItem[] | null> {
     return null;
   }
 }
+
+/** Full open queue for screens that need the review items themselves. */
+export const listOpenInboxItems = cache(loadOpenInboxItems);
+
+/** Bounded open-queue badge read; avoids loading and enriching every item. */
+export const countOpenInboxItems = cache(async (): Promise<number | null> => {
+  const gate = await assertMoneyActionAllowed();
+  if (!gate.ok) return null;
+
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { count, error } = await supabase
+      .from("inbox_items")
+      .select("id", { count: "exact", head: true })
+      .eq("household_id", gate.householdId)
+      .eq("status", InboxItemStatus.PENDING)
+      .or(`assigned_to_user_id.is.null,assigned_to_user_id.eq.${gate.userId}`);
+
+    if (error) {
+      logInboxFailure(error, INBOX_OPERATION.LIST_OPEN, {
+        householdId: gate.householdId,
+      });
+      return null;
+    }
+
+    return count ?? 0;
+  } catch (error) {
+    logInboxFailure(error, INBOX_OPERATION.LIST_OPEN, {
+      householdId: gate.householdId,
+    });
+    return null;
+  }
+});
 
 export async function listArchivedInboxItems(): Promise<
   InboxReviewItem[] | null

@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import {
@@ -181,7 +182,7 @@ async function loanAggregates(
   };
 }
 
-export async function listLoans(): Promise<Loan[] | null> {
+async function loadLoans(): Promise<Loan[] | null> {
   const gate = await assertMoneyActionAllowed();
   if (!gate.ok) return null;
 
@@ -217,6 +218,8 @@ export async function listLoans(): Promise<Loan[] | null> {
     return null;
   }
 }
+
+export const listLoans = cache(loadLoans);
 
 /** @deprecated Use listLoans. */
 export const listInstallmentPlans = listLoans;

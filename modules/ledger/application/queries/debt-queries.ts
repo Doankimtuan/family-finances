@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import { LedgerRelation } from "../ledger-constants";
@@ -12,7 +13,7 @@ import { LEDGER_OPERATION, logLedgerFailure } from "../ledger-error";
 const DEBT_SELECT =
   "id, name, creditor, principal_amount, remaining_amount, currency, direction, creation_mode, start_date, due_date, note, status, origin_account_id, origin_transaction_id, is_archived";
 
-export async function listDebts(): Promise<Debt[] | null> {
+async function loadDebts(): Promise<Debt[] | null> {
   const gate = await assertMoneyActionAllowed();
   if (!gate.ok) {
     return null;
@@ -38,6 +39,8 @@ export async function listDebts(): Promise<Debt[] | null> {
     return null;
   }
 }
+
+export const listDebts = cache(loadDebts);
 
 export async function getDebt(debtId: string): Promise<Debt | null> {
   const gate = await assertMoneyActionAllowed();

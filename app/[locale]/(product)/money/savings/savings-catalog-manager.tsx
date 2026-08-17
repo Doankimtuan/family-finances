@@ -295,9 +295,32 @@ export function SavingsCatalogManager({ catalog }: Props) {
       },
     ),
   });
-  const productValues = useWatch({ control: productForm.control });
+  const productProviderId = useWatch({
+    control: productForm.control,
+    name: "providerId",
+  });
+  const productTermUnit = useWatch({
+    control: productForm.control,
+    name: "term.unit",
+  });
+  const productInterestCalculationMethod = useWatch({
+    control: productForm.control,
+    name: "interestCalculationMethod",
+  });
+  const productTaxRule = useWatch({
+    control: productForm.control,
+    name: "taxRule",
+  });
+  const productTaxRatePercent = useWatch({
+    control: productForm.control,
+    name: "taxRatePercent",
+  });
+  const productEarlySettlementRule = useWatch({
+    control: productForm.control,
+    name: "earlySettlementRule",
+  });
   const productProvider = catalog.find(
-    (provider) => provider.id === productValues.providerId,
+    (provider) => provider.id === productProviderId,
   );
   const taxRateDefault = productProvider
     ? getSavingsProductDefaults(
@@ -688,7 +711,7 @@ export function SavingsCatalogManager({ catalog }: Props) {
                   />
                   <LabeledSelect
                     label={t("unit")}
-                    value={productValues.term?.unit ?? "DAY"}
+                    value={productTermUnit ?? "DAY"}
                     options={[
                       { id: "DAY", label: t("termDay") },
                       { id: "MONTH", label: t("termMonth") },
@@ -715,7 +738,7 @@ export function SavingsCatalogManager({ catalog }: Props) {
                 />
                 <LabeledSelect
                   label={t("method")}
-                  value={productValues.interestCalculationMethod ?? "simple"}
+                  value={productInterestCalculationMethod ?? "simple"}
                   options={[
                     { id: "simple", label: t("simple") },
                     { id: "compound_daily", label: t("compoundDaily") },
@@ -739,7 +762,7 @@ export function SavingsCatalogManager({ catalog }: Props) {
                   <div className="flex flex-col gap-(--space-2) sm:flex-row">
                     <PolicyOption
                       label={t("taxNone")}
-                      selected={productValues.taxRule === SavingsTaxRule.NONE}
+                      selected={productTaxRule === SavingsTaxRule.NONE}
                       onPress={() => {
                         productForm.setValue("taxRule", SavingsTaxRule.NONE);
                         productForm.setValue("taxRatePercent", 0);
@@ -749,13 +772,12 @@ export function SavingsCatalogManager({ catalog }: Props) {
                     <PolicyOption
                       label={t("taxOnInterestPolicy")}
                       description={
-                        productValues.taxRule !== SavingsTaxRule.NONE
+                        productTaxRule !== SavingsTaxRule.NONE
                           ? t("taxBaseHint")
                           : undefined
                       }
                       selected={
-                        productValues.taxRule ===
-                        SavingsTaxRule.PROFIT_PERCENTAGE
+                        productTaxRule === SavingsTaxRule.PROFIT_PERCENTAGE
                       }
                       onPress={() => {
                         productForm.setValue(
@@ -764,7 +786,7 @@ export function SavingsCatalogManager({ catalog }: Props) {
                         );
                         productForm.setValue(
                           "taxRatePercent",
-                          productValues.taxRatePercent || taxRateDefault,
+                          productTaxRatePercent || taxRateDefault,
                         );
                       }}
                       testId="savings-tax-on-interest"
@@ -772,8 +794,7 @@ export function SavingsCatalogManager({ catalog }: Props) {
                   </div>
                 </div>
                 <AnimatePresence initial={false} mode="wait">
-                  {productValues.taxRule ===
-                  SavingsTaxRule.PROFIT_PERCENTAGE ? (
+                  {productTaxRule === SavingsTaxRule.PROFIT_PERCENTAGE ? (
                     <motion.div
                       key="tax-rate"
                       initial={{ opacity: 0, y: 8 }}
@@ -804,7 +825,7 @@ export function SavingsCatalogManager({ catalog }: Props) {
                     <PolicyOption
                       label={t("earlyNotAllowed")}
                       selected={
-                        productValues.earlySettlementRule ===
+                        productEarlySettlementRule ===
                         EarlySettlementRule.NOT_ALLOWED
                       }
                       onPress={() => {
@@ -822,7 +843,7 @@ export function SavingsCatalogManager({ catalog }: Props) {
                     <PolicyOption
                       label={t("earlyPrincipalOnly")}
                       selected={
-                        productValues.earlySettlementRule ===
+                        productEarlySettlementRule ===
                         EarlySettlementRule.PRINCIPAL_ONLY
                       }
                       onPress={() => {
@@ -840,7 +861,7 @@ export function SavingsCatalogManager({ catalog }: Props) {
                     <PolicyOption
                       label={t("earlyCustomInterest")}
                       selected={
-                        productValues.earlySettlementRule ===
+                        productEarlySettlementRule ===
                         EarlySettlementRule.CUSTOM_INTEREST_RATE
                       }
                       onPress={() =>
@@ -854,7 +875,7 @@ export function SavingsCatalogManager({ catalog }: Props) {
                     <PolicyOption
                       label={t("earlyProductRule")}
                       selected={
-                        productValues.earlySettlementRule ===
+                        productEarlySettlementRule ===
                         EarlySettlementRule.PRODUCT_RULE
                       }
                       onPress={() => {
@@ -872,7 +893,7 @@ export function SavingsCatalogManager({ catalog }: Props) {
                   </div>
                 </div>
                 <AnimatePresence initial={false} mode="wait">
-                  {productValues.earlySettlementRule ===
+                  {productEarlySettlementRule ===
                   EarlySettlementRule.CUSTOM_INTEREST_RATE ? (
                     <motion.div
                       key="early-rate"

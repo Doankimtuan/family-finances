@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import { mapAccountRow, type LedgerAccount } from "../account-types";
@@ -72,12 +73,14 @@ async function loadAccounts(options: {
 }
 
 /** Liquid wallets only — excludes credit cards (BR-01). */
-export async function listAccounts(): Promise<{
+async function loadLiquidAccounts(): Promise<{
   currency: string;
   accounts: LedgerAccount[];
 } | null> {
   return loadAccounts({ includeCreditCards: false });
 }
+
+export const listAccounts = cache(loadLiquidAccounts);
 
 /** Capture picker — includes credit cards. */
 export async function listAccountsForCapture(): Promise<{

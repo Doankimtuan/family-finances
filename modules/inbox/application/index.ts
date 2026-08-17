@@ -1,5 +1,6 @@
 export {
   listOpenInboxItems,
+  countOpenInboxItems,
   listArchivedInboxItems,
   getInboxItem,
   resolveInboxItemToJar,

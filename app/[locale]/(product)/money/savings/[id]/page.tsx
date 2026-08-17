@@ -87,7 +87,13 @@ export default async function SavingsDetailPage({ params }: Props) {
 
   const model = buildSavingsDetailModel(item);
   const cycle = item.latestCycle;
-  const activities = await listSavingsFinancialActivities(id, cycles ?? []);
+  const canAct =
+    item.status === SavingStatus.ACTIVE || item.status === SavingStatus.MATURED;
+  const [activities, packagesResult, accountsResult] = await Promise.all([
+    listSavingsFinancialActivities(id, cycles ?? []),
+    canAct ? listProviderPackages(item.providerId) : Promise.resolve(null),
+    canAct ? listAccounts() : Promise.resolve(null),
+  ]);
   const cycleSnapshot = cycle?.packageSnapshot;
   const legacyImport = Boolean(
     (item.productSnapshot as { legacyImport?: boolean }).legacyImport,
@@ -99,10 +105,8 @@ export default async function SavingsDetailPage({ params }: Props) {
   const money = (value: number) =>
     formatCurrency(value, currency, locale, { maximumFractionDigits: 0 });
   const isTerminal = model.isTerminal;
-  const canAct =
-    item.status === SavingStatus.ACTIVE || item.status === SavingStatus.MATURED;
   const packages = canAct
-    ? ((await listProviderPackages(item.providerId)) ?? []).map((pkg) => ({
+    ? (packagesResult ?? []).map((pkg) => ({
         id: pkg.id,
         packageName: pkg.packageName,
         durationDays: pkg.durationDays,
@@ -110,7 +114,6 @@ export default async function SavingsDetailPage({ params }: Props) {
       }))
     : [];
   const targetUnavailable = item.maturityActionRequired === true;
-  const accountsResult = canAct ? await listAccounts() : null;
   const accounts =
     accountsResult?.accounts.map((account) => ({
       id: account.id,

@@ -28,7 +28,10 @@ import {
   InboxSourceType,
   EmiAckAction,
 } from "@/modules/inbox/application/inbox-constants";
-import { listOpenInboxItems } from "@/modules/inbox/application/queries/review-items";
+import {
+  countOpenInboxItems,
+  listOpenInboxItems,
+} from "@/modules/inbox/application/queries/review-items";
 import { runInboxStalenessWorker } from "@/modules/inbox/application/workers/resolve-stale-inbox-items";
 import { PRODUCT_ACTION_ERROR_CODE } from "@/modules/tenancy/application/product-action-error";
 
@@ -182,6 +185,28 @@ describe("Inbox queries and staleness worker", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockAllowance();
+  });
+
+  it("returns the bounded pending-item count for navigation badges", async () => {
+    const count = vi.fn().mockResolvedValue({
+      data: null,
+      count: 3,
+      error: null,
+    });
+    const builder = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      or: count,
+    };
+    vi.mocked(createSupabaseServerClient).mockResolvedValue({
+      from: vi.fn().mockReturnValue(builder),
+    } as never);
+
+    await expect(countOpenInboxItems()).resolves.toBe(3);
+    expect(builder.select).toHaveBeenCalledWith("id", {
+      count: "exact",
+      head: true,
+    });
   });
 
   it("logs query failures instead of presenting them as an empty queue", async () => {

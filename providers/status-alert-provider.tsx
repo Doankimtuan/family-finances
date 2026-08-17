@@ -9,10 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import type { AlertVariant } from "@/shared/ui/alert";
-import {
-  StatusAlert,
-  type StatusAlertProps,
-} from "@/shared/ui/status-alert";
+import { StatusAlert, type StatusAlertProps } from "@/shared/ui/status-alert";
 
 export type StatusAlertOptions = Pick<
   StatusAlertProps,
@@ -26,17 +23,28 @@ export type StatusAlertController = {
   hide: () => void;
 };
 
-type StatusAlertContextValue = StatusAlertController & {
+type StatusAlertState = {
   current: StatusAlertOptions | null;
 };
 
-const StatusAlertContext = createContext<StatusAlertContextValue | null>(null);
+const StatusAlertActionsContext = createContext<StatusAlertController | null>(
+  null,
+);
+const StatusAlertStateContext = createContext<StatusAlertState | null>(null);
 
 const MISSING_PROVIDER_ERROR =
   "useStatusAlert must be used within StatusAlertProvider";
 
-function useStatusAlertContext(): StatusAlertContextValue {
-  const ctx = useContext(StatusAlertContext);
+function useStatusAlertActions(): StatusAlertController {
+  const ctx = useContext(StatusAlertActionsContext);
+  if (!ctx) {
+    throw new Error(MISSING_PROVIDER_ERROR);
+  }
+  return ctx;
+}
+
+function useStatusAlertState(): StatusAlertState {
+  const ctx = useContext(StatusAlertStateContext);
   if (!ctx) {
     throw new Error(MISSING_PROVIDER_ERROR);
   }
@@ -57,28 +65,27 @@ export function StatusAlertProvider({ children }: { children: ReactNode }) {
     setCurrent(null);
   }, []);
 
-  const value = useMemo(
-    () => ({ current, show, hide }),
-    [current, show, hide],
-  );
+  const actions = useMemo(() => ({ show, hide }), [show, hide]);
+  const state = useMemo(() => ({ current }), [current]);
 
   return (
-    <StatusAlertContext.Provider value={value}>
-      {children}
-    </StatusAlertContext.Provider>
+    <StatusAlertActionsContext.Provider value={actions}>
+      <StatusAlertStateContext.Provider value={state}>
+        {children}
+      </StatusAlertStateContext.Provider>
+    </StatusAlertActionsContext.Provider>
   );
 }
 
 export function useStatusAlert(): StatusAlertController {
-  const { show, hide } = useStatusAlertContext();
-  return { show, hide };
+  return useStatusAlertActions();
 }
 
 /**
  * Single viewport host. Renders at most one StatusAlert.
  */
 export function StatusAlertHost() {
-  const { current } = useStatusAlertContext();
+  const { current } = useStatusAlertState();
   if (!current) return null;
 
   return (
