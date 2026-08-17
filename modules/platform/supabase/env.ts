@@ -11,6 +11,24 @@ const PLACEHOLDER_VALUES = new Set([
   "your-project-url/",
 ]);
 
+export const SUPABASE_PLATFORM_ERROR_CODE = {
+  UNCONFIGURED: "supabase_unconfigured",
+  SERVICE_ROLE_UNCONFIGURED: "supabase_service_role_unconfigured",
+} as const;
+
+export type SupabasePlatformErrorCode =
+  (typeof SUPABASE_PLATFORM_ERROR_CODE)[keyof typeof SUPABASE_PLATFORM_ERROR_CODE];
+
+export class SupabaseConfigurationError extends Error {
+  readonly code: SupabasePlatformErrorCode;
+
+  constructor(code: SupabasePlatformErrorCode, message: string) {
+    super(message);
+    this.name = "SupabaseConfigurationError";
+    this.code = code;
+  }
+}
+
 function isPlaceholder(value: string): boolean {
   const normalized = value.trim().toLowerCase();
   if (PLACEHOLDER_VALUES.has(normalized)) return true;
@@ -58,7 +76,8 @@ export function getSupabaseEnv(): SupabaseEnv {
 export function requireSupabaseEnv(): { url: string; key: string } {
   const env = getSupabaseEnv();
   if (!env.isConfigured) {
-    throw new Error(
+    throw new SupabaseConfigurationError(
+      SUPABASE_PLATFORM_ERROR_CODE.UNCONFIGURED,
       "Supabase is not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY (or NEXT_PUBLIC_SUPABASE_ANON_KEY) to real values.",
     );
   }

@@ -179,6 +179,13 @@
     "unauthenticated": "Sign in again.",
     "no_membership": "Finish household setup first.",
     "invalid": "Choose a jar or a valid action.",
+    "inbox_item_not_found": "This Inbox item is no longer available.",
+    "inbox_invalid_transition": "This Inbox item cannot be changed in its current state.",
+    "inbox_invalid_action": "That Inbox action is not valid for this item.",
+    "inbox_invalid_jar": "Choose an active jar.",
+    "inbox_auto_resolve_not_eligible": "This item is not eligible for automatic resolution.",
+    "inbox_stale_item": "This Inbox item is stale and cannot be changed.",
+    "inbox_permission_denied": "You do not have permission to change this Inbox item.",
     "month_locked": "Plan is locked for this month. Open Month Ritual to correct.",
     "offline": "Connect to continue.",
     "unknown": "Could not save. Try again."

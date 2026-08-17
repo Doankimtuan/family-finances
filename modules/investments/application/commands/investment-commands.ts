@@ -3,9 +3,15 @@ import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import {
   INVESTMENT_ERROR_CODE,
+  INVESTMENT_FEE_SOURCE_VALUES,
+  INVESTMENT_LEGACY_RPC_ERROR_MARKERS,
+  INVESTMENT_RPC_CONTEXT_PARAM_TO_FIELD,
   INVESTMENT_RPC,
+  type InvestmentRpc,
   type InvestmentErrorCode,
 } from "../investment-constants";
+import { logActionFailure } from "@/modules/shared-kernel/application/log-action-failure";
+import type { Result } from "@/modules/shared-kernel/application/result";
 import type {
   InvestmentCommandReceipt,
   InvestmentFeeInput,
@@ -30,13 +36,105 @@ export {
   openingPositionInputSchema,
 } from "./investment-commands.schema";
 
-export type InvestmentCommandResult =
-  | { ok: true; receipt: InvestmentCommandReceipt }
-  | { ok: false; code: InvestmentErrorCode };
+type InvestmentCommandSuccess = {
+  receipt: InvestmentCommandReceipt;
+};
+
+export type InvestmentCommandResult = Result<
+  InvestmentCommandSuccess,
+  InvestmentErrorCode
+>;
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+const STRUCTURED_INVESTMENT_ERROR_CODES: ReadonlySet<string> = new Set(
+  Object.values(INVESTMENT_ERROR_CODE),
+);
+
+function isInvestmentErrorCode(value: string): value is InvestmentErrorCode {
+  return STRUCTURED_INVESTMENT_ERROR_CODES.has(value);
+}
+
+function isInvestmentFeeSource(
+  value: unknown,
+): value is InvestmentFeeInput["source"] {
+  return (
+    typeof value === "string" &&
+    INVESTMENT_FEE_SOURCE_VALUES.some((source) => source === value)
+  );
+}
+
+/**
+ * Compatibility boundary for the current investment RPCs. Structured
+ * `code`, `details`, or `hint` values are preferred; text matching remains
+ * here until the RPC contract exposes stable domain metadata.
+ */
+export function classifyLegacyInvestmentRpcError(
+  error: unknown,
+): InvestmentErrorCode {
+  if (!isRecord(error) || typeof error.message !== "string") {
+    return INVESTMENT_ERROR_CODE.UNKNOWN;
+  }
+
+  const message = error.message.toLowerCase();
+  if (
+    INVESTMENT_LEGACY_RPC_ERROR_MARKERS.INSUFFICIENT_QUANTITY.some((marker) =>
+      message.includes(marker),
+    )
+  ) {
+    return INVESTMENT_ERROR_CODE.INSUFFICIENT_QUANTITY;
+  }
+  if (
+    INVESTMENT_LEGACY_RPC_ERROR_MARKERS.NOT_FOUND.some((marker) =>
+      message.includes(marker),
+    )
+  ) {
+    return INVESTMENT_ERROR_CODE.NOT_FOUND;
+  }
+  return INVESTMENT_ERROR_CODE.UNKNOWN;
+}
+
+export function classifyInvestmentRpcError(
+  error: unknown,
+): InvestmentErrorCode {
+  if (isRecord(error)) {
+    for (const field of [error.code, error.details, error.hint]) {
+      if (typeof field === "string" && isInvestmentErrorCode(field)) {
+        return field;
+      }
+    }
+  }
+
+  return classifyLegacyInvestmentRpcError(error);
+}
+
+function logInvestmentFailure(
+  error: unknown,
+  rpc: InvestmentRpc,
+  householdId: string,
+  params: Record<string, unknown>,
+  responseInvalid = false,
+): void {
+  const context: Record<string, string | boolean> = { householdId };
+  for (const [parameter, field] of Object.entries(
+    INVESTMENT_RPC_CONTEXT_PARAM_TO_FIELD,
+  )) {
+    const value = params[parameter];
+    if (typeof value === "string") context[field] = value;
+  }
+  if (responseInvalid) context.responseInvalid = true;
+  logActionFailure({
+    operation: rpc,
+    error,
+    context,
+  });
+}
 
 function mapReceipt(value: unknown): InvestmentCommandReceipt | null {
-  if (!value || typeof value !== "object") return null;
-  const row = value as Record<string, unknown>;
+  if (!isRecord(value)) return null;
+  const row = value;
   if (typeof row.operationId !== "string") return null;
   return {
     operationId: row.operationId,
@@ -59,16 +157,20 @@ function mapReceipt(value: unknown): InvestmentCommandReceipt | null {
     realizedResult:
       row.realizedResult == null ? null : Number(row.realizedResult),
     feeEffects: Array.isArray(row.feeEffects)
-      ? row.feeEffects.map((fee) => {
-          const item = fee as Record<string, unknown>;
-          return {
-            source: String(item.source) as InvestmentFeeInput["source"],
-            feeValueVnd: Number(item.feeValueVnd),
-            transactionId:
-              typeof item.transactionId === "string"
-                ? item.transactionId
-                : null,
-          };
+      ? row.feeEffects.flatMap((fee) => {
+          if (!isRecord(fee) || !isInvestmentFeeSource(fee.source)) {
+            return [];
+          }
+          return [
+            {
+              source: fee.source,
+              feeValueVnd: Number(fee.feeValueVnd),
+              transactionId:
+                typeof fee.transactionId === "string"
+                  ? fee.transactionId
+                  : null,
+            },
+          ];
         })
       : [],
     correlationId: String(row.correlationId ?? ""),
@@ -77,7 +179,7 @@ function mapReceipt(value: unknown): InvestmentCommandReceipt | null {
 }
 
 async function invokeInvestmentRpc(
-  rpc: (typeof INVESTMENT_RPC)[keyof typeof INVESTMENT_RPC],
+  rpc: InvestmentRpc,
   params: Record<string, unknown>,
 ): Promise<InvestmentCommandResult> {
   const gate = await assertMoneyActionAllowed();
@@ -86,20 +188,18 @@ async function invokeInvestmentRpc(
     const supabase = await createSupabaseServerClient();
     const { data, error } = await supabase.rpc(rpc, params);
     if (error) {
-      const message = error.message.toLowerCase();
-      if (message.includes("insufficient quantity")) {
-        return { ok: false, code: INVESTMENT_ERROR_CODE.INSUFFICIENT_QUANTITY };
+      const code = classifyInvestmentRpcError(error);
+      if (code === INVESTMENT_ERROR_CODE.UNKNOWN) {
+        logInvestmentFailure(error, rpc, gate.householdId, params);
       }
-      if (message.includes("not found")) {
-        return { ok: false, code: INVESTMENT_ERROR_CODE.NOT_FOUND };
-      }
-      return { ok: false, code: INVESTMENT_ERROR_CODE.UNKNOWN };
+      return { ok: false, code };
     }
     const receipt = mapReceipt(data);
-    return receipt
-      ? { ok: true, receipt }
-      : { ok: false, code: INVESTMENT_ERROR_CODE.UNKNOWN };
-  } catch {
+    if (receipt) return { ok: true, receipt };
+    logInvestmentFailure(null, rpc, gate.householdId, params, true);
+    return { ok: false, code: INVESTMENT_ERROR_CODE.UNKNOWN };
+  } catch (error) {
+    logInvestmentFailure(error, rpc, gate.householdId, params);
     return { ok: false, code: INVESTMENT_ERROR_CODE.UNKNOWN };
   }
 }

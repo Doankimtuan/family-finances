@@ -235,6 +235,8 @@ export const RECORD_TRANSFER_INVALID_ERROR_NEEDLES = [
   "cannot be",
   "authentication",
   "household",
+  "forbidden",
+  "transfer replay incomplete",
 ] as const;
 
 export const TransactionFilterType = {

@@ -10,6 +10,11 @@ import {
   LedgerRelation,
   LedgerRpcName,
 } from "../ledger-constants";
+import {
+  classifyLiabilityRpcError,
+  LEDGER_OPERATION,
+  logLedgerFailure,
+} from "../ledger-error";
 import type { MoneyProductMutationResult } from "./shared";
 
 export const createLiabilityInputSchema = z.object({
@@ -55,11 +60,27 @@ export async function createLiability(
       .select("id")
       .single();
 
-    if (error || !data?.id) {
+    if (error) {
+      const code = classifyLiabilityRpcError(error);
+      if (code === PRODUCT_ACTION_ERROR_CODE.UNKNOWN) {
+        logLedgerFailure(error, LEDGER_OPERATION.CREATE_LIABILITY, {
+          householdId: gate.householdId,
+        });
+      }
+      return { ok: false, code };
+    }
+    if (!data?.id) {
+      logLedgerFailure(null, LEDGER_OPERATION.CREATE_LIABILITY, {
+        householdId: gate.householdId,
+        responseInvalid: true,
+      });
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
     }
     return { ok: true, id: data.id };
-  } catch {
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.CREATE_LIABILITY, {
+      householdId: gate.householdId,
+    });
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }
 }
@@ -98,15 +119,31 @@ export async function recordLiabilityPayment(
       },
     );
     if (error) {
-      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+      const code = classifyLiabilityRpcError(error);
+      if (code === PRODUCT_ACTION_ERROR_CODE.UNKNOWN) {
+        logLedgerFailure(error, LEDGER_OPERATION.RECORD_LIABILITY_PAYMENT, {
+          householdId: gate.householdId,
+          liabilityId: parsed.data.liabilityId,
+        });
+      }
+      return { ok: false, code };
     }
     const ok =
-      data && typeof data === "object" && (data as { ok?: boolean }).ok;
+      data && typeof data === "object" && "ok" in data && data.ok === true;
     if (!ok) {
+      logLedgerFailure(null, LEDGER_OPERATION.RECORD_LIABILITY_PAYMENT, {
+        householdId: gate.householdId,
+        liabilityId: parsed.data.liabilityId,
+        responseInvalid: true,
+      });
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
     }
     return { ok: true, id: parsed.data.liabilityId };
-  } catch {
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.RECORD_LIABILITY_PAYMENT, {
+      householdId: gate.householdId,
+      liabilityId: parsed.data.liabilityId,
+    });
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }
 }

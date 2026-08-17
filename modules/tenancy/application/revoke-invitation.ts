@@ -1,12 +1,14 @@
 import { getSupabaseEnv } from "@/modules/platform/supabase/env";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
+import type { Result } from "@/modules/shared-kernel/application/result";
 import { z } from "zod";
 import { getSessionUser } from "./get-session-user";
 import {
   INVITATION_ERROR_CODE,
-  INVITATION_RPC_MESSAGE_NEEDLE,
   type InvitationErrorCode,
 } from "./tenancy-constants";
+import { classifyInvitationRpcError, logTenancyFailure } from "./tenancy-error";
+import { TENANCY_OPERATION } from "./tenancy-constants";
 
 const idSchema = z.string().uuid();
 
@@ -19,8 +21,7 @@ export type RevokeInvitationErrorCode = Extract<
   | typeof INVITATION_ERROR_CODE.UNKNOWN
 >;
 
-export type RevokeInvitationResult =
-  { ok: true } | { ok: false; code: RevokeInvitationErrorCode };
+export type RevokeInvitationResult = Result<object, RevokeInvitationErrorCode>;
 
 /**
  * Revoke a pending invitation for the caller's household.
@@ -49,15 +50,28 @@ export async function revokeInvitation(
     });
 
     if (error) {
-      const message = (error.message ?? "").toLowerCase();
-      if (message.includes(INVITATION_RPC_MESSAGE_NEEDLE.NOT_FOUND)) {
-        return { ok: false, code: INVITATION_ERROR_CODE.NOT_FOUND };
+      const mapped = classifyInvitationRpcError(error);
+      const code =
+        mapped === INVITATION_ERROR_CODE.UNCONFIGURED ||
+        mapped === INVITATION_ERROR_CODE.UNAUTHENTICATED ||
+        mapped === INVITATION_ERROR_CODE.INVALID ||
+        mapped === INVITATION_ERROR_CODE.NOT_FOUND ||
+        mapped === INVITATION_ERROR_CODE.UNKNOWN
+          ? mapped
+          : INVITATION_ERROR_CODE.UNKNOWN;
+      if (code === INVITATION_ERROR_CODE.UNKNOWN) {
+        logTenancyFailure(TENANCY_OPERATION.INVITATION_REVOKE, error, {
+          invitationId: parsed.data,
+        });
       }
-      return { ok: false, code: INVITATION_ERROR_CODE.UNKNOWN };
+      return { ok: false, code };
     }
 
     return { ok: true };
-  } catch {
+  } catch (error) {
+    logTenancyFailure(TENANCY_OPERATION.INVITATION_REVOKE, error, {
+      invitationId: parsed.data,
+    });
     return { ok: false, code: INVITATION_ERROR_CODE.UNKNOWN };
   }
 }

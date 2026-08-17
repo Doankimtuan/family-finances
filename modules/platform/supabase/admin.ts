@@ -1,6 +1,10 @@
 import { createClient } from "@supabase/supabase-js";
 import "server-only";
-import { getSupabaseEnv } from "./env";
+import {
+  getSupabaseEnv,
+  SUPABASE_PLATFORM_ERROR_CODE,
+  SupabaseConfigurationError,
+} from "./env";
 
 /**
  * Privileged Auth admin client — service role only, server-only.
@@ -28,7 +32,8 @@ export function getSupabaseServiceRoleEnv(): {
 export function createSupabaseAdminClient() {
   const env = getSupabaseServiceRoleEnv();
   if (!env.isConfigured) {
-    throw new Error(
+    throw new SupabaseConfigurationError(
+      SUPABASE_PLATFORM_ERROR_CODE.SERVICE_ROLE_UNCONFIGURED,
       "Supabase service role is not configured. Set SUPABASE_SERVICE_ROLE_KEY on the server only.",
     );
   }

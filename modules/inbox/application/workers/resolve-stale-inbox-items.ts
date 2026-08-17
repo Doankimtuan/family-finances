@@ -3,14 +3,19 @@ import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-m
 import {
   PRODUCT_ACTION_ERROR_CODE,
   productActionErrorFromDeniedReason,
-  type ProductActionErrorCode,
 } from "@/modules/tenancy/application/product-action-error";
+import type { Result } from "@/modules/shared-kernel/application/result";
+import {
+  classifyInboxRpcError,
+  logInboxFailure,
+  type InboxCommandErrorCode,
+} from "../inbox-error";
+import { INBOX_OPERATION, INBOX_RPC } from "../inbox-constants";
 
-const INBOX_WORKER_ERROR_CONTEXT = "[inbox staleness worker]";
-
-export type InboxStalenessWorkerResult =
-  | { ok: true; expiredCount: number }
-  | { ok: false; code: ProductActionErrorCode };
+export type InboxStalenessWorkerResult = Result<
+  { expiredCount: number },
+  InboxCommandErrorCode
+>;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -28,21 +33,42 @@ export async function runInboxStalenessWorker(): Promise<InboxStalenessWorkerRes
 
   try {
     const supabase = await createSupabaseServerClient();
-    const { data, error } = await supabase.rpc("run_inbox_staleness_worker");
+    const { data, error } = await supabase.rpc(INBOX_RPC.STALENESS_WORKER);
 
-    if (error || !data || !isRecord(data)) {
-      if (error) console.error(INBOX_WORKER_ERROR_CONTEXT, error);
+    if (error) {
+      const code = classifyInboxRpcError(error);
+      if (code === PRODUCT_ACTION_ERROR_CODE.UNKNOWN) {
+        logInboxFailure(error, INBOX_OPERATION.STALENESS_WORKER, {
+          householdId: gate.householdId,
+        });
+      }
+      return { ok: false, code };
+    }
+    if (!isRecord(data)) {
+      logInboxFailure(null, INBOX_OPERATION.STALENESS_WORKER, {
+        householdId: gate.householdId,
+        responseInvalid: true,
+      });
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
     }
 
-    const expiredCount =
+    const expiredCountValue =
       typeof data.expired_count === "number" ||
       typeof data.expired_count === "string"
         ? Number(data.expired_count)
-        : 0;
-    return { ok: true, expiredCount };
+        : Number.NaN;
+    if (!Number.isFinite(expiredCountValue) || expiredCountValue < 0) {
+      logInboxFailure(null, INBOX_OPERATION.STALENESS_WORKER, {
+        householdId: gate.householdId,
+        responseInvalid: true,
+      });
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    }
+    return { ok: true, expiredCount: expiredCountValue };
   } catch (error) {
-    console.error(INBOX_WORKER_ERROR_CONTEXT, error);
+    logInboxFailure(error, INBOX_OPERATION.STALENESS_WORKER, {
+      householdId: gate.householdId,
+    });
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }
 }

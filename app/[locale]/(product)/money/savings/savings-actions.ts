@@ -14,6 +14,7 @@ import {
   SettlementAction,
   SettlementRule,
   RenewalDecisionSource,
+  SAVINGS_OPERATION,
   type CreateSavingInput,
   type UpdateRenewalPolicyInput,
 } from "@/modules/savings/application";
@@ -28,9 +29,14 @@ import {
   InboxItemStatus,
   InboxSourceType,
   acknowledgeInboxItem,
+  type InboxCommandErrorCode,
 } from "@/modules/inbox/application";
 import { DEFAULT_CURRENCY } from "@/modules/ledger/application/ledger-constants";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
+import {
+  classifySavingsRpcError,
+  logSavingsFailure,
+} from "@/modules/savings/application/savings-error";
 
 export type SavingsActionState =
   | {
@@ -41,6 +47,10 @@ export type SavingsActionState =
       netAmount?: number;
     }
   | { status: "error"; code: ProductActionErrorCode };
+
+type SavingsInboxActionState =
+  | Exclude<SavingsActionState, { status: "error" }>
+  | { status: "error"; code: ProductActionErrorCode | InboxCommandErrorCode };
 
 /** Create saving via ledger-funded RPC (replaces legacy savings_accounts writes). */
 export async function createSavingAction(
@@ -104,12 +114,26 @@ export async function detectMaturedSavingsAction(): Promise<SavingsActionState> 
   if (gate.ok) {
     try {
       const supabase = await createSupabaseServerClient();
-      const { data: pendingItems } = await supabase
+      const { data: pendingItems, error: pendingItemsError } = await supabase
         .from("inbox_items")
         .select("id, source_id, context_json")
         .eq("household_id", gate.householdId)
         .eq("kind", InboxItemKind.SAVINGS_MATURED)
         .eq("status", InboxItemStatus.PENDING);
+
+      if (pendingItemsError) {
+        if (
+          classifySavingsRpcError(pendingItemsError) ===
+          PRODUCT_ACTION_ERROR_CODE.UNKNOWN
+        ) {
+          logSavingsFailure(
+            pendingItemsError,
+            SAVINGS_OPERATION.MATURITY_ENRICHMENT,
+            { householdId: gate.householdId },
+          );
+        }
+        return { status: "success" };
+      }
 
       for (const item of pendingItems ?? []) {
         const ctx = (item.context_json ?? {}) as Record<string, unknown>;
@@ -135,7 +159,10 @@ export async function detectMaturedSavingsAction(): Promise<SavingsActionState> 
           })
           .eq("id", item.id);
       }
-    } catch {
+    } catch (error) {
+      logSavingsFailure(error, SAVINGS_OPERATION.MATURITY_ENRICHMENT, {
+        householdId: gate.householdId,
+      });
       // Detect succeeded; enrichment failure is non-fatal for list refresh.
     }
   }
@@ -265,7 +292,24 @@ export async function requestEarlyWithdrawalAction(input: {
         .select("id")
         .maybeSingle();
 
-      if (upErr || !updated) {
+      if (upErr) {
+        const code = classifySavingsRpcError(upErr);
+        if (code === PRODUCT_ACTION_ERROR_CODE.UNKNOWN) {
+          logSavingsFailure(upErr, SAVINGS_OPERATION.EARLY_WITHDRAWAL_INBOX, {
+            householdId: gate.householdId,
+            savingId: input.savingId,
+            cycleId: input.cycleId,
+          });
+        }
+        return { status: "error", code };
+      }
+      if (!updated) {
+        logSavingsFailure(null, SAVINGS_OPERATION.EARLY_WITHDRAWAL_INBOX, {
+          householdId: gate.householdId,
+          savingId: input.savingId,
+          cycleId: input.cycleId,
+          responseInvalid: true,
+        });
         return { status: "error", code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
       }
 
@@ -277,6 +321,12 @@ export async function requestEarlyWithdrawalAction(input: {
     }
 
     if (!data) {
+      logSavingsFailure(null, SAVINGS_OPERATION.EARLY_WITHDRAWAL_INBOX, {
+        householdId: gate.householdId,
+        savingId: input.savingId,
+        cycleId: input.cycleId,
+        responseInvalid: true,
+      });
       return { status: "error", code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
     }
 
@@ -285,7 +335,12 @@ export async function requestEarlyWithdrawalAction(input: {
       id: data.id,
       inboxItemId: data.id,
     };
-  } catch {
+  } catch (error) {
+    logSavingsFailure(error, SAVINGS_OPERATION.EARLY_WITHDRAWAL_INBOX, {
+      householdId: gate.householdId,
+      savingId: input.savingId,
+      cycleId: input.cycleId,
+    });
     return { status: "error", code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }
 }
@@ -319,7 +374,7 @@ export async function acknowledgeSavingsMaturityAction(input: {
   settlementRule?: string;
   renewalPolicyAfter?: UpdateRenewalPolicyInput["renewalPolicy"];
   renewalConfig?: UpdateRenewalPolicyInput["renewalConfig"];
-}): Promise<SavingsActionState> {
+}): Promise<SavingsInboxActionState> {
   if (
     input.action === SavingsMaturityAckAction.REMIND_TOMORROW ||
     input.action === SavingsMaturityAckAction.DISMISS
@@ -414,7 +469,7 @@ export async function acknowledgeEarlyWithdrawalAction(input: {
   savingId: string;
   cycleId: string;
   settlementAccountId?: string;
-}): Promise<SavingsActionState> {
+}): Promise<SavingsInboxActionState> {
   if (input.action !== EarlyWithdrawalAckAction.CONFIRM) {
     const ack = await acknowledgeInboxItem({
       inboxItemId: input.inboxItemId,

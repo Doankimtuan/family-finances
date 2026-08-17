@@ -59,7 +59,7 @@ const fundedAmount =
   backingState === GoalBackingState.LEGACY
     ? legacyAmount
     : backingState === GoalBackingState.LINKED
-      ? summary?.fundedAmount ?? derived ?? 0
+      ? (summary?.fundedAmount ?? derived ?? 0)
       : 0;
 ```
 
@@ -381,6 +381,11 @@ classification, structured error codes, appropriate logging, and useful
 context. Do not classify errors by fragile `error.message.includes(...)`
 matching when a structured contract is possible. See the `error-handling`
 skill for the full pattern.
+
+Review catch blocks for discarded exceptions and generic `UNKNOWN` returns
+without boundary logging. Prefer structured error metadata over parsing
+human-readable messages; if a legacy contract prevents that, keep one named
+compatibility classifier at the boundary.
 
 ## Readability
 

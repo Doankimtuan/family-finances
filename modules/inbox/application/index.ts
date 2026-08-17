@@ -57,4 +57,7 @@ export {
   type InboxMutationResult,
   type InboxAckAction,
   type InboxStalenessWorkerResult,
+  type InboxCommandErrorCode,
 } from "./review-items";
+export { classifyInboxRpcError, logInboxFailure } from "./inbox-error";
+export type { InboxFailureContext } from "./inbox-error";

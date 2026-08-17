@@ -8,6 +8,7 @@ import {
   type TransactionDirection,
 } from "../transaction-types";
 import { TransactionDirection as Direction } from "../ledger-constants";
+import { LEDGER_OPERATION, logLedgerFailure } from "../ledger-error";
 
 const TRANSACTION_LIST_SELECT =
   "id, account_id, type, amount, currency, transaction_date, note, category_id, jar_id, status, transfer_group_id, savings_event_kind, reverses_transaction_id, corrects_transaction_id, is_reversal, created_at, accounts(name), categories(name), jars(name), transaction_tag_assignments(tag_id, transaction_tags(id, name, icon_key, color_key, archived_at))";
@@ -76,10 +77,18 @@ export async function listRecentTransactions(
     }
     const { data, error } = await query;
     if (error) {
+      logLedgerFailure(error, LEDGER_OPERATION.LIST_RECENT_TRANSACTIONS, {
+        householdId: gate.householdId,
+        accountId,
+      });
       return null;
     }
     return mapTransactionRows(data ?? []);
-  } catch {
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.LIST_RECENT_TRANSACTIONS, {
+      householdId: gate.householdId,
+      accountId,
+    });
     return null;
   }
 }
@@ -107,10 +116,16 @@ export async function listTransactionsForDateRange(
       .order("transaction_date", { ascending: true })
       .order("created_at", { ascending: true });
     if (error) {
+      logLedgerFailure(error, LEDGER_OPERATION.LIST_TRANSACTIONS, {
+        householdId: gate.householdId,
+      });
       return null;
     }
     return mapTransactionRows(data ?? []);
-  } catch {
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.LIST_TRANSACTIONS, {
+      householdId: gate.householdId,
+    });
     return null;
   }
 }
@@ -132,6 +147,9 @@ export async function listCategoryTags(
       .or(`household_id.is.null,household_id.eq.${gate.householdId}`)
       .order("sort_order", { ascending: true });
     if (error) {
+      logLedgerFailure(error, LEDGER_OPERATION.LIST_CATEGORY_TAGS, {
+        householdId: gate.householdId,
+      });
       return null;
     }
     return (data ?? []).map((row) => ({
@@ -141,7 +159,10 @@ export async function listCategoryTags(
       name: row.name,
       jarId: row.jar_id ?? null,
     }));
-  } catch {
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.LIST_CATEGORY_TAGS, {
+      householdId: gate.householdId,
+    });
     return null;
   }
 }
@@ -161,6 +182,9 @@ export async function listCaptureJars(): Promise<CaptureJarOption[] | null> {
       .eq("is_paused", false)
       .order("sort_order", { ascending: true });
     if (error) {
+      logLedgerFailure(error, LEDGER_OPERATION.LIST_CAPTURE_JARS, {
+        householdId: gate.householdId,
+      });
       return null;
     }
     return (data ?? []).map((row) => ({
@@ -168,7 +192,10 @@ export async function listCaptureJars(): Promise<CaptureJarOption[] | null> {
       name: row.name,
       kind: row.kind,
     }));
-  } catch {
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.LIST_CAPTURE_JARS, {
+      householdId: gate.householdId,
+    });
     return null;
   }
 }

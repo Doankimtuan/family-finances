@@ -179,6 +179,13 @@
     "unauthenticated": "Đăng nhập lại.",
     "no_membership": "Hoàn tất thiết lập hộ trước.",
     "invalid": "Chọn hũ hoặc hành động hợp lệ.",
+    "inbox_item_not_found": "Mục Inbox này không còn tồn tại.",
+    "inbox_invalid_transition": "Không thể thay đổi mục Inbox ở trạng thái hiện tại.",
+    "inbox_invalid_action": "Hành động Inbox này không hợp lệ cho mục đã chọn.",
+    "inbox_invalid_jar": "Hãy chọn một hũ đang hoạt động.",
+    "inbox_auto_resolve_not_eligible": "Mục này không đủ điều kiện để tự động xử lý.",
+    "inbox_stale_item": "Mục Inbox này đã cũ và không thể thay đổi.",
+    "inbox_permission_denied": "Bạn không có quyền thay đổi mục Inbox này.",
     "month_locked": "Kế hoạch tháng đã khoá. Mở Nghi thức tháng để chỉnh.",
     "offline": "Cần kết nối để tiếp tục.",
     "unknown": "Không lưu được. Thử lại."

@@ -7,6 +7,8 @@ import {
   type ProductActionErrorCode,
 } from "@/modules/tenancy/application/product-action-error";
 import { CreditCardInstallmentStatus } from "../ledger-constants";
+import type { Result } from "@/modules/shared-kernel/application/result";
+import { LEDGER_OPERATION, logLedgerFailure } from "../ledger-error";
 
 export const stopCreditCardInstallmentTrackingInputSchema = z.object({
   installmentId: z.string().uuid(),
@@ -15,8 +17,10 @@ export const stopCreditCardInstallmentTrackingInputSchema = z.object({
 export type StopCreditCardInstallmentTrackingInput = z.infer<
   typeof stopCreditCardInstallmentTrackingInputSchema
 >;
-export type StopCreditCardInstallmentTrackingResult =
-  { ok: true } | { ok: false; code: ProductActionErrorCode };
+export type StopCreditCardInstallmentTrackingResult = Result<
+  object,
+  ProductActionErrorCode
+>;
 
 /** Stops only ViNha tracking. It does not cancel a bank installment agreement. */
 export async function stopCreditCardInstallmentTracking(
@@ -41,10 +45,21 @@ export async function stopCreditCardInstallmentTracking(
       ])
       .select("id")
       .maybeSingle();
-    if (error || !data?.id)
+    if (error) {
+      logLedgerFailure(error, LEDGER_OPERATION.STOP_CREDIT_CARD_INSTALLMENT, {
+        householdId: gate.householdId,
+        installmentId: parsed.data.installmentId,
+      });
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    }
+    if (!data?.id)
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
     return { ok: true };
-  } catch {
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.STOP_CREDIT_CARD_INSTALLMENT, {
+      householdId: gate.householdId,
+      installmentId: parsed.data.installmentId,
+    });
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }
 }

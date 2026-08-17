@@ -4,6 +4,7 @@ import {
   mapTransactionRow,
   type LedgerTransaction,
 } from "../transaction-types";
+import { LEDGER_OPERATION, logLedgerFailure } from "../ledger-error";
 
 export type TransactionAuditChain = {
   original: LedgerTransaction;
@@ -50,6 +51,12 @@ export async function getTransactionAuditChain(
       .maybeSingle();
 
     if (error || !root) {
+      if (error) {
+        logLedgerFailure(error, LEDGER_OPERATION.GET_TRANSACTION_AUDIT_CHAIN, {
+          householdId: gate.householdId,
+          transactionId,
+        });
+      }
       return null;
     }
 
@@ -98,7 +105,11 @@ export async function getTransactionAuditChain(
         normalize(row as Record<string, unknown>),
       ),
     };
-  } catch {
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.GET_TRANSACTION_AUDIT_CHAIN, {
+      householdId: gate.householdId,
+      transactionId,
+    });
     return null;
   }
 }

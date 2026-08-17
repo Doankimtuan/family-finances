@@ -15,10 +15,12 @@ import {
   EmiAckAction,
   isJarResolvableKind,
   AUTO_RESOLVE_CONFIDENCE_THRESHOLD,
+  INBOX_OPERATION,
   ReviewItemType,
   type InboxAckAction,
   type InboxReceiptKind as InboxReceiptKindType,
 } from "@/modules/inbox/application/inbox-constants";
+import type { InboxCommandErrorCode } from "@/modules/inbox/application";
 import {
   acknowledgeSavingsMaturityAction,
   acknowledgeEarlyWithdrawalAction,
@@ -39,7 +41,6 @@ import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
 import {
   CLIENT_ACTION_ERROR_CODE,
   PRODUCT_ACTION_ERROR_CODE,
-  type ProductActionErrorCode,
 } from "@/modules/tenancy/application/product-action-error";
 import {
   resolveInboxAction,
@@ -53,7 +54,7 @@ type Props = {
 };
 
 type InboxErrorCode =
-  ProductActionErrorCode | typeof CLIENT_ACTION_ERROR_CODE.OFFLINE;
+  InboxCommandErrorCode | typeof CLIENT_ACTION_ERROR_CODE.OFFLINE;
 
 type PendingAction = "resolve" | "dismiss" | "ack";
 
@@ -162,7 +163,7 @@ export function InboxDecisionPanel({ item, jars }: Props) {
   const run = (
     action: PendingAction,
     fn: () => Promise<
-      { status: "success" } | { status: "error"; code: ProductActionErrorCode }
+      { status: "success" } | { status: "error"; code: InboxCommandErrorCode }
     >,
     receipt: InboxReceiptKindType,
   ) => {
@@ -181,7 +182,8 @@ export function InboxDecisionPanel({ item, jars }: Props) {
         }
         setErrorCode(result.code);
         setPendingAction(null);
-      } catch {
+      } catch (error) {
+        console.error({ operation: INBOX_OPERATION.DECISION_PANEL, error });
         setErrorCode(PRODUCT_ACTION_ERROR_CODE.UNKNOWN);
         setPendingAction(null);
       }

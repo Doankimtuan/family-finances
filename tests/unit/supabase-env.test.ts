@@ -43,8 +43,18 @@ describe("getSupabaseEnv", () => {
   it("requireSupabaseEnv throws when unconfigured", async () => {
     vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "your-project-url");
     vi.stubEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "your-publishable-key");
-    const { requireSupabaseEnv } =
-      await import("@/modules/platform/supabase/env");
-    expect(() => requireSupabaseEnv()).toThrow(/not configured/i);
+    const {
+      requireSupabaseEnv,
+      SupabaseConfigurationError,
+      SUPABASE_PLATFORM_ERROR_CODE,
+    } = await import("@/modules/platform/supabase/env");
+    expect(() => requireSupabaseEnv()).toThrow(SupabaseConfigurationError);
+    try {
+      requireSupabaseEnv();
+    } catch (error) {
+      expect(error).toMatchObject({
+        code: SUPABASE_PLATFORM_ERROR_CODE.UNCONFIGURED,
+      });
+    }
   });
 });

@@ -1,5 +1,6 @@
 import { getSupabaseEnv } from "@/modules/platform/supabase/env";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
+import type { Result } from "@/modules/shared-kernel/application/result";
 import {
   householdPoliciesInputSchema,
   type HouseholdPoliciesInput,
@@ -9,9 +10,14 @@ import { resolveActiveMembership } from "./resolve-active-membership";
 import {
   HOUSEHOLD_ERROR_CODE,
   HOUSEHOLD_ROLE,
-  INVITATION_RPC_MESSAGE_NEEDLE,
   type HouseholdErrorCode,
 } from "./tenancy-constants";
+import {
+  classifyHouseholdRpcError,
+  HOUSEHOLD_RPC_OPERATION,
+  logTenancyFailure,
+} from "./tenancy-error";
+import { TENANCY_OPERATION } from "./tenancy-constants";
 
 export type UpdateHouseholdPoliciesErrorCode = Extract<
   HouseholdErrorCode,
@@ -23,22 +29,10 @@ export type UpdateHouseholdPoliciesErrorCode = Extract<
   | typeof HOUSEHOLD_ERROR_CODE.UNKNOWN
 >;
 
-export type UpdateHouseholdPoliciesResult =
-  | { ok: true; householdId: string }
-  | { ok: false; code: UpdateHouseholdPoliciesErrorCode };
-
-function mapError(message: string): UpdateHouseholdPoliciesErrorCode {
-  const m = message.toLowerCase();
-  if (m.includes("admin role")) return HOUSEHOLD_ERROR_CODE.FORBIDDEN;
-  if (m.includes(INVITATION_RPC_MESSAGE_NEEDLE.NO_ACTIVE_HOUSEHOLD)) {
-    return HOUSEHOLD_ERROR_CODE.NO_HOUSEHOLD;
-  }
-  if (m.includes(INVITATION_RPC_MESSAGE_NEEDLE.AUTHENTICATION)) {
-    return HOUSEHOLD_ERROR_CODE.UNAUTHENTICATED;
-  }
-  if (m.includes("invalid")) return HOUSEHOLD_ERROR_CODE.INVALID;
-  return HOUSEHOLD_ERROR_CODE.UNKNOWN;
-}
+export type UpdateHouseholdPoliciesResult = Result<
+  { householdId: string },
+  UpdateHouseholdPoliciesErrorCode
+>;
 
 /**
  * Admin-only policy save with partner-visible audit event (AC-007 / AC-013 / AC-020).
@@ -77,16 +71,37 @@ export async function updateHouseholdPolicies(
     });
 
     if (error) {
-      return { ok: false, code: mapError(error.message ?? "") };
+      const mapped = classifyHouseholdRpcError(
+        error,
+        HOUSEHOLD_RPC_OPERATION.SETTINGS,
+      );
+      const code =
+        mapped === HOUSEHOLD_ERROR_CODE.ALREADY_MEMBER ||
+        mapped === HOUSEHOLD_ERROR_CODE.MEMBER_NOT_FOUND
+          ? HOUSEHOLD_ERROR_CODE.UNKNOWN
+          : mapped;
+      if (code === HOUSEHOLD_ERROR_CODE.UNKNOWN) {
+        logTenancyFailure(TENANCY_OPERATION.HOUSEHOLD_POLICIES, error, {
+          householdId: membership.householdId,
+        });
+      }
+      return { ok: false, code };
     }
 
     if (typeof data !== "string" || data.length === 0) {
+      logTenancyFailure(
+        TENANCY_OPERATION.HOUSEHOLD_POLICIES,
+        new Error("update household policies returned an invalid id"),
+        { householdId: membership.householdId },
+      );
       return { ok: false, code: HOUSEHOLD_ERROR_CODE.UNKNOWN };
     }
 
     return { ok: true, householdId: data };
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "";
-    return { ok: false, code: mapError(message) };
+  } catch (error) {
+    logTenancyFailure(TENANCY_OPERATION.HOUSEHOLD_POLICIES, error, {
+      householdId: membership.householdId,
+    });
+    return { ok: false, code: HOUSEHOLD_ERROR_CODE.UNKNOWN };
   }
 }

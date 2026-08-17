@@ -81,6 +81,8 @@ export type AuthSignUpNext =
   (typeof AUTH_SIGN_UP_NEXT)[keyof typeof AUTH_SIGN_UP_NEXT];
 
 export const SUPABASE_AUTH_ERROR_CODE = {
+  INVALID_CREDENTIALS: "invalid_credentials",
+  EMAIL_NOT_CONFIRMED: "email_not_confirmed",
   ACCESS_DENIED: "access_denied",
   MANUAL_LINKING_DISABLED: "manual_linking_disabled",
   IDENTITY_ALREADY_EXISTS: "identity_already_exists",
@@ -118,6 +120,7 @@ export const AUTH_ERROR_MESSAGE_NEEDLE = {
   AUTH_CODE_AND_VERIFIER: "both auth code and code verifier",
   EXPIRED: "expired",
   INVALID: "invalid",
+  INVALID_LOGIN_CREDENTIALS: "invalid login credentials",
   ALREADY: "already",
   REGISTERED: "registered",
 } as const;

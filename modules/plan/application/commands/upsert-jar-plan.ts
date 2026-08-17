@@ -6,12 +6,15 @@ import {
   productActionErrorFromDeniedReason,
   type ProductActionErrorCode,
 } from "@/modules/tenancy/application/product-action-error";
+import type { Result } from "@/modules/shared-kernel/application/result";
 import { assertPlanPeriodUnlocked } from "../assert-plan-unlocked";
+import { logPlanFailure } from "../plan-error";
 import { percentageToBasisPoints } from "@/shared/utils/percentage";
 import {
   JarPlanKind,
   JAR_PLAN_KIND_VALUES,
   JAR_ROLLOVER_MODE_VALUES,
+  PLAN_OPERATION,
   type JarPlanKind as JarPlanKindValue,
 } from "../plan-constants";
 
@@ -46,9 +49,10 @@ export const upsertJarPlanInputSchema = z
 
 export type UpsertJarPlanInput = z.infer<typeof upsertJarPlanInputSchema>;
 
-export type UpsertJarPlanResult =
-  | { ok: true; planKind: JarPlanKindValue }
-  | { ok: false; code: ProductActionErrorCode };
+export type UpsertJarPlanResult = Result<
+  { planKind: JarPlanKindValue },
+  ProductActionErrorCode
+>;
 
 /**
  * Upsert intention plan for a jar (percent|fixed). Not a bank balance (BR-01).
@@ -92,7 +96,14 @@ export async function upsertJarPlan(
       .eq("household_id", gate.householdId)
       .maybeSingle();
 
-    if (jarError || !jar) {
+    if (jarError) {
+      logPlanFailure(jarError, PLAN_OPERATION.UPSERT_JAR_PLAN, {
+        householdId: gate.householdId,
+        jarId: parsed.data.jarId,
+      });
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    }
+    if (!jar) {
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
     }
 
@@ -109,6 +120,10 @@ export async function upsertJarPlan(
     );
 
     if (error) {
+      logPlanFailure(error, PLAN_OPERATION.UPSERT_JAR_PLAN, {
+        householdId: gate.householdId,
+        jarId: parsed.data.jarId,
+      });
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
     }
 
@@ -122,12 +137,20 @@ export async function upsertJarPlan(
         .eq("id", parsed.data.jarId)
         .eq("household_id", gate.householdId);
       if (rolloverError) {
+        logPlanFailure(rolloverError, PLAN_OPERATION.UPSERT_JAR_PLAN, {
+          householdId: gate.householdId,
+          jarId: parsed.data.jarId,
+        });
         return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
       }
     }
 
     return { ok: true, planKind: parsed.data.planKind };
-  } catch {
+  } catch (error) {
+    logPlanFailure(error, PLAN_OPERATION.UPSERT_JAR_PLAN, {
+      householdId: gate.householdId,
+      jarId: parsed.data.jarId,
+    });
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }
 }

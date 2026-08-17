@@ -168,6 +168,11 @@ Public module APIs (commands, queries) should communicate outcomes through
 explicit result types (for example a typed `Result`/error-code union), not by
 throwing for expected business failures. See the `error-handling` skill.
 
+Expected failures must use a domain-owned error-code union rather than
+`string`. Unexpected failures are boundary concerns: log them, then map them
+to the safe public code. Keep one Result contract per repository convention;
+do not create competing success/error shapes for the same flow.
+
 ## Casting Discipline
 
 - `as X` is acceptable only for genuine, locally-provable invariants.

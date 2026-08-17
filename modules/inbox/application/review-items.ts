@@ -19,6 +19,9 @@ export {
   InboxItemKind,
   InboxItemStatus,
   InboxSourceType,
+  INBOX_ERROR_CODE,
+  INBOX_OPERATION,
+  INBOX_RPC,
   INBOX_SOURCE_TYPE_VALUES,
   INBOX_ITEM_KIND_VALUES,
   INBOX_ITEM_STATUS_VALUES,
@@ -49,6 +52,7 @@ export {
 } from "./inbox-constants";
 export type {
   InboxAckAction,
+  InboxErrorCode,
   InboxSourceType as InboxSourceTypeValue,
   ReviewItemType as ReviewItemTypeValue,
 } from "./inbox-constants";
@@ -62,6 +66,7 @@ export type {
   InboxMutationResult,
 } from "./commands/review-items";
 export type { InboxStalenessWorkerResult } from "./workers/resolve-stale-inbox-items";
+export type { InboxCommandErrorCode } from "./inbox-error";
 
 export {
   typedReviewItemSchema,

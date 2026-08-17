@@ -7,6 +7,7 @@ import {
   DEFAULT_CURRENCY,
   TRANSACTION_BALANCE_STATUS_VALUES,
 } from "../ledger-constants";
+import { LEDGER_OPERATION, logLedgerFailure } from "../ledger-error";
 
 async function loadAccounts(options: {
   includeCreditCards: boolean;
@@ -45,6 +46,9 @@ async function loadAccounts(options: {
       ]);
 
     if (error) {
+      logLedgerFailure(error, LEDGER_OPERATION.LIST_ACCOUNTS, {
+        householdId: gate.householdId,
+      });
       return null;
     }
 
@@ -59,7 +63,10 @@ async function loadAccounts(options: {
         })),
       ),
     };
-  } catch {
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.LIST_ACCOUNTS, {
+      householdId: gate.householdId,
+    });
     return null;
   }
 }
@@ -128,7 +135,11 @@ export async function getAccount(
       currency: (household?.base_currency ?? DEFAULT_CURRENCY).toUpperCase(),
       account,
     };
-  } catch {
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.GET_ACCOUNT, {
+      householdId: gate.householdId,
+      accountId,
+    });
     return null;
   }
 }

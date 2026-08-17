@@ -6,7 +6,9 @@ import {
   productActionErrorFromDeniedReason,
   type ProductActionErrorCode,
 } from "@/modules/tenancy/application/product-action-error";
+import type { Result } from "@/modules/shared-kernel/application/result";
 import { ACCOUNT_TYPE_VALUES } from "../ledger-constants";
+import { LEDGER_OPERATION, logLedgerFailure } from "../ledger-error";
 
 export const updateAccountInputSchema = z.object({
   accountId: z.string().uuid(),
@@ -16,8 +18,7 @@ export const updateAccountInputSchema = z.object({
 
 export type UpdateAccountInput = z.infer<typeof updateAccountInputSchema>;
 
-export type UpdateAccountResult =
-  { ok: true } | { ok: false; code: ProductActionErrorCode };
+export type UpdateAccountResult = Result<object, ProductActionErrorCode>;
 
 /**
  * Rename / retag an active account. Opening balance is create-time only.
@@ -53,6 +54,10 @@ export async function updateAccount(
       .maybeSingle();
 
     if (error) {
+      logLedgerFailure(error, LEDGER_OPERATION.UPDATE_ACCOUNT, {
+        householdId: gate.householdId,
+        accountId: parsed.data.accountId,
+      });
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
     }
     if (!data?.id) {
@@ -60,7 +65,11 @@ export async function updateAccount(
     }
 
     return { ok: true };
-  } catch {
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.UPDATE_ACCOUNT, {
+      householdId: gate.householdId,
+      accountId: parsed.data.accountId,
+    });
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }
 }

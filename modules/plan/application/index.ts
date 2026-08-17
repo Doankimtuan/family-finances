@@ -33,7 +33,10 @@ export {
   type PlanRecommendationInput,
   type RecurringMismatchInput,
 } from "./plan-recommendations";
-export { ensureJarPeriodRuleSnapshots } from "./commands/ensure-jar-period-snapshots";
+export {
+  ensureJarPeriodRuleSnapshots,
+  type EnsureJarPeriodRuleSnapshotsResult,
+} from "./commands/ensure-jar-period-snapshots";
 export {
   resolvePlanHomeHealth,
   collectPlanHomeExceptions,
@@ -108,6 +111,7 @@ export {
 } from "./plan-movement-policy";
 export {
   PLAN_MOVEMENT_LEDGER_IMPACT,
+  PLAN_OPERATION,
   CapacityMovementDirection,
   CAPACITY_MOVEMENT_DIRECTION_VALUES,
   PlanMovementEvent,

@@ -136,6 +136,60 @@ export const INBOX_SOURCE_TYPE_VALUES = [
   InboxSourceType.PLAN_MOVEMENT,
 ] as const;
 
+export const INBOX_RPC = {
+  RESOLVE_TO_JAR: "resolve_inbox_item_to_jar",
+  DISMISS: "dismiss_inbox_item",
+  ACKNOWLEDGE: "acknowledge_inbox_item",
+  AUTO_RESOLVE: "auto_resolve_inbox_item",
+  STALENESS_WORKER: "run_inbox_staleness_worker",
+} as const;
+
+export const INBOX_OPERATION = {
+  LIST_OPEN: "listOpenInboxItems",
+  LIST_ARCHIVED: "listArchivedInboxItems",
+  GET_ITEM: "getInboxItem",
+  RESOLVE_TO_JAR: "resolveInboxItemToJar",
+  DISMISS: "dismissInboxItem",
+  ACKNOWLEDGE: "acknowledgeInboxItem",
+  AUTO_RESOLVE: "autoResolveInboxItem",
+  STALENESS_WORKER: "runInboxStalenessWorker",
+  DECISION_PANEL: "inboxDecisionPanel",
+} as const;
+
+export const INBOX_ERROR_CODE = {
+  ITEM_NOT_FOUND: "inbox_item_not_found",
+  INVALID_TRANSITION: "inbox_invalid_transition",
+  INVALID_ACTION: "inbox_invalid_action",
+  INVALID_JAR: "inbox_invalid_jar",
+  AUTO_RESOLVE_NOT_ELIGIBLE: "inbox_auto_resolve_not_eligible",
+  STALE_ITEM: "inbox_stale_item",
+  PERMISSION_DENIED: "inbox_permission_denied",
+} as const;
+
+export type InboxErrorCode =
+  (typeof INBOX_ERROR_CODE)[keyof typeof INBOX_ERROR_CODE];
+
+/** Compatibility markers for Inbox RPCs that still raise text exceptions. */
+export const INBOX_LEGACY_RPC_ERROR_MARKERS = {
+  UNAUTHENTICATED: ["authentication required"],
+  NO_MEMBERSHIP: ["active household membership required"],
+  PERMISSION_DENIED: ["forbidden"],
+  ITEM_NOT_FOUND: ["inbox item not found"],
+  INVALID_ACTION: ["invalid maturity action", "invalid emi action"],
+  INVALID_JAR: ["invalid jar"],
+  AUTO_RESOLVE_NOT_ELIGIBLE: [
+    "item kind cannot be auto-resolved",
+    "confidence below auto-resolve threshold",
+    "suggested jar required for auto-resolve",
+  ],
+  INVALID_TRANSITION: [
+    "item cannot be resolved to a jar",
+    "item has no ledger source",
+    "item cannot be acknowledged",
+  ],
+  STALE_ITEM: ["stale item", "item has expired"],
+} as const;
+
 export const MaturityAckAction = {
   RENEW: "renew",
   SWITCH: "switch",

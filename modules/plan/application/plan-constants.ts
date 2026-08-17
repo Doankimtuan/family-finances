@@ -400,6 +400,32 @@ export const PLAN_ACTION_ERROR_CODE = {
 export type PlanActionErrorCode =
   (typeof PLAN_ACTION_ERROR_CODE)[keyof typeof PLAN_ACTION_ERROR_CODE];
 
+export const PLAN_OPERATION = {
+  CONFIGURE_JAR: "configureJar",
+  ENSURE_JAR_PERIOD_SNAPSHOTS: "ensureJarPeriodRuleSnapshots",
+  RENAME_JAR: "renameJar",
+  REALLOCATE_JAR_CAPACITY: "reallocateJarCapacity",
+  SET_JAR_STATE: "setJarState",
+  UPSERT_JAR_PLAN: "upsertJarPlan",
+} as const;
+
+export type PlanOperation =
+  (typeof PLAN_OPERATION)[keyof typeof PLAN_OPERATION];
+
+/**
+ * Compatibility markers for the current RPC, which still raises plain text
+ * PostgreSQL exceptions instead of structured domain metadata.
+ */
+export const PLAN_REALLOCATION_LEGACY_ERROR_MARKERS = {
+  EMERGENCY_NOTE_REQUIRED: ["intent note"],
+  CAPACITY_BLOCKED: [
+    "insufficient_reallocatable",
+    "capacity",
+    "snapshot required",
+  ],
+  SAME_JAR: ["distinct source", "same"],
+} as const;
+
 /** Month Ritual gate failures (ST-E04-002 / BR-23 / REQ-RIT-02). */
 export const RITUAL_GATE_ERROR_CODE = {
   RITUAL_DIVERGENCE: "ritual_divergence",

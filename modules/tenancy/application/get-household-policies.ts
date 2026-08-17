@@ -1,4 +1,3 @@
-const HOUSEHOLD_POLICIES_LOG_CONTEXT = "[tenancy.household-policies]";
 import { getSupabaseEnv } from "@/modules/platform/supabase/env";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import {
@@ -13,6 +12,8 @@ import {
   type MonthCloseMode,
   type OverspendPolicy as OverspendPolicyValue,
 } from "./household-policies.schema";
+import { logTenancyFailure } from "./tenancy-error";
+import { TENANCY_OPERATION } from "./tenancy-constants";
 
 export type HouseholdPolicies = {
   householdId: string;
@@ -76,7 +77,13 @@ export async function getHouseholdPolicies(): Promise<HouseholdPolicies | null> 
       .eq("id", membership.householdId)
       .maybeSingle();
 
-    if (error || !data) {
+    if (error) {
+      logTenancyFailure(TENANCY_OPERATION.HOUSEHOLD_QUERY, error, {
+        householdId: membership.householdId,
+      });
+      return null;
+    }
+    if (!data) {
       return null;
     }
 
@@ -90,7 +97,9 @@ export async function getHouseholdPolicies(): Promise<HouseholdPolicies | null> 
       role: membership.role,
     };
   } catch (error) {
-    console.error(HOUSEHOLD_POLICIES_LOG_CONTEXT, error);
+    logTenancyFailure(TENANCY_OPERATION.HOUSEHOLD_QUERY, error, {
+      householdId: membership.householdId,
+    });
     return null;
   }
 }

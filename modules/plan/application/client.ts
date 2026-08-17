@@ -42,6 +42,7 @@ export {
   CapacityMovementDirection,
   CAPACITY_MOVEMENT_DIRECTION_VALUES,
   PlanMovementEvent,
+  PLAN_OPERATION,
   PLAN_ACTION_ERROR_CODE,
   type PlanActionErrorCode,
   type CapacityMovementDirection as CapacityMovementDirectionValue,

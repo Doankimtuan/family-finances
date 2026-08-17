@@ -7,7 +7,10 @@ import {
   type ProductActionErrorCode,
 } from "@/modules/tenancy/application/product-action-error";
 import { TransactionDirection } from "@/modules/ledger/application/ledger-constants";
+import type { Result } from "@/modules/shared-kernel/application/result";
 import { assertPlanPeriodUnlocked } from "../assert-plan-unlocked";
+import { logPlanFailure } from "../plan-error";
+import { PLAN_OPERATION } from "../plan-constants";
 import { percentageToBasisPoints } from "@/shared/utils/percentage";
 import {
   JarKind,
@@ -25,9 +28,10 @@ import {
 export { jarConfigurationInputSchema };
 export type { JarConfigurationInput };
 
-export type ConfigureJarResult =
-  | { ok: true; jarId: string }
-  | { ok: false; code: ProductActionErrorCode };
+export type ConfigureJarResult = Result<
+  { jarId: string },
+  ProductActionErrorCode
+>;
 
 type CategoryRow = {
   id: string;
@@ -35,10 +39,39 @@ type CategoryRow = {
   jar_id: string | null;
 };
 
+type CategorySelectionResult =
+  | { ok: true; categories: CategoryRow[] }
+  | { ok: false; code: ProductActionErrorCode };
+
+type CategoryMappingResult =
+  { ok: true } | { ok: false; code: ProductActionErrorCode };
+
 function categoryKindForJar(kind: JarKindValue): string {
   return kind === JarKind.INCOME
     ? TransactionDirection.INCOME
     : TransactionDirection.EXPENSE;
+}
+
+function isCategoryRow(value: unknown): value is CategoryRow {
+  if (
+    typeof value !== "object" ||
+    value === null ||
+    !Object.prototype.hasOwnProperty.call(value, "id") ||
+    !Object.prototype.hasOwnProperty.call(value, "kind") ||
+    !Object.prototype.hasOwnProperty.call(value, "jar_id")
+  ) {
+    return false;
+  }
+  const row = value as {
+    id: unknown;
+    kind: unknown;
+    jar_id: unknown;
+  };
+  return (
+    typeof row.id === "string" &&
+    typeof row.kind === "string" &&
+    (row.jar_id === null || typeof row.jar_id === "string")
+  );
 }
 
 function planValues(input: JarConfigurationInput) {
@@ -57,8 +90,9 @@ async function loadHouseholdCategories(
   supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
   householdId: string,
   categoryIds: string[],
-): Promise<CategoryRow[] | null> {
-  if (categoryIds.length === 0) return [];
+  operation: typeof PLAN_OPERATION.CONFIGURE_JAR,
+): Promise<CategorySelectionResult> {
+  if (categoryIds.length === 0) return { ok: true, categories: [] };
   const { data, error } = await supabase
     .from("categories")
     .select("id, kind, jar_id")
@@ -66,8 +100,22 @@ async function loadHouseholdCategories(
     .eq("is_system", false)
     .eq("is_active", true)
     .in("id", categoryIds);
-  if (error || (data ?? []).length !== new Set(categoryIds).size) return null;
-  return (data ?? []) as CategoryRow[];
+  if (error) {
+    logPlanFailure(error, operation, { householdId });
+    return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+  }
+  const rows = data ?? [];
+  if (rows.length !== new Set(categoryIds).size || !rows.every(isCategoryRow)) {
+    if (rows.length === new Set(categoryIds).size) {
+      logPlanFailure(null, operation, {
+        householdId,
+        responseInvalid: true,
+      });
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    }
+    return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
+  }
+  return { ok: true, categories: rows };
 }
 
 async function validateCategorySelection(
@@ -75,24 +123,30 @@ async function validateCategorySelection(
   householdId: string,
   input: JarConfigurationInput,
   currentJarId?: string,
-): Promise<CategoryRow[] | null> {
-  const categories = await loadHouseholdCategories(
+): Promise<CategorySelectionResult> {
+  const result = await loadHouseholdCategories(
     supabase,
     householdId,
     input.categoryIds,
+    PLAN_OPERATION.CONFIGURE_JAR,
   );
-  if (!categories) return null;
+  if (!result.ok) return result;
+  const categories = result.categories;
 
   const expectedKind = categoryKindForJar(input.kind);
-  if (categories.some((category) => category.kind !== expectedKind)) return null;
+  if (categories.some((category) => category.kind !== expectedKind)) {
+    return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
+  }
 
   const conflicts = categories.filter(
     (category) => category.jar_id && category.jar_id !== currentJarId,
   );
   const confirmed = new Set(input.confirmReassignCategoryIds);
-  if (conflicts.some((category) => !confirmed.has(category.id))) return null;
+  if (conflicts.some((category) => !confirmed.has(category.id))) {
+    return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
+  }
 
-  return categories;
+  return { ok: true, categories };
 }
 
 async function applyCategorySelection(
@@ -102,14 +156,14 @@ async function applyCategorySelection(
   categoryIds: string[],
   currentCategoryIds: string[],
   removedCategoryTargetJarId?: string,
-): Promise<boolean> {
+): Promise<CategoryMappingResult> {
   const removedIds = currentCategoryIds.filter(
     (categoryId) => !categoryIds.includes(categoryId),
   );
 
   if (removedIds.length > 0) {
     if (!removedCategoryTargetJarId || removedCategoryTargetJarId === jarId) {
-      return false;
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
     }
     const { data: targetJar, error: targetJarError } = await supabase
       .from("jars")
@@ -119,15 +173,33 @@ async function applyCategorySelection(
       .eq("is_archived", false)
       .eq("is_paused", false)
       .maybeSingle();
-    if (targetJarError || !targetJar) return false;
+    if (targetJarError) {
+      logPlanFailure(targetJarError, PLAN_OPERATION.CONFIGURE_JAR, {
+        householdId,
+        jarId,
+      });
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    }
+    if (!targetJar) {
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
+    }
 
     const { error: moveError } = await supabase
       .from("categories")
-      .update({ jar_id: removedCategoryTargetJarId, updated_at: new Date().toISOString() })
+      .update({
+        jar_id: removedCategoryTargetJarId,
+        updated_at: new Date().toISOString(),
+      })
       .eq("household_id", householdId)
       .eq("is_system", false)
       .in("id", removedIds);
-    if (moveError) return false;
+    if (moveError) {
+      logPlanFailure(moveError, PLAN_OPERATION.CONFIGURE_JAR, {
+        householdId,
+        jarId,
+      });
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    }
   }
 
   if (categoryIds.length > 0) {
@@ -137,10 +209,46 @@ async function applyCategorySelection(
       .eq("household_id", householdId)
       .eq("is_system", false)
       .in("id", categoryIds);
-    if (assignError) return false;
+    if (assignError) {
+      logPlanFailure(assignError, PLAN_OPERATION.CONFIGURE_JAR, {
+        householdId,
+        jarId,
+      });
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    }
   }
 
-  return true;
+  return { ok: true };
+}
+
+async function removeCreatedJar(
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+  householdId: string,
+  jarId: string,
+): Promise<void> {
+  const { error: planCleanupError } = await supabase
+    .from("jar_plans")
+    .delete()
+    .eq("jar_id", jarId)
+    .eq("household_id", householdId);
+  if (planCleanupError) {
+    logPlanFailure(planCleanupError, PLAN_OPERATION.CONFIGURE_JAR, {
+      householdId,
+      jarId,
+    });
+  }
+
+  const { error: jarCleanupError } = await supabase
+    .from("jars")
+    .delete()
+    .eq("id", jarId)
+    .eq("household_id", householdId);
+  if (jarCleanupError) {
+    logPlanFailure(jarCleanupError, PLAN_OPERATION.CONFIGURE_JAR, {
+      householdId,
+      jarId,
+    });
+  }
 }
 
 /**
@@ -152,7 +260,8 @@ export async function createJar(
   raw: JarConfigurationInput,
 ): Promise<ConfigureJarResult> {
   const parsed = jarConfigurationInputSchema.safeParse(raw);
-  if (!parsed.success) return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
+  if (!parsed.success)
+    return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
 
   const gate = await assertMoneyActionAllowed();
   if (!gate.ok) {
@@ -168,15 +277,21 @@ export async function createJar(
       gate.householdId,
       parsed.data,
     );
-    if (!categories) return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
+    if (!categories.ok) return categories;
 
-    const { data: maxRow } = await supabase
+    const { data: maxRow, error: maxRowError } = await supabase
       .from("jars")
       .select("sort_order")
       .eq("household_id", gate.householdId)
       .order("sort_order", { ascending: false })
       .limit(1)
       .maybeSingle();
+    if (maxRowError) {
+      logPlanFailure(maxRowError, PLAN_OPERATION.CONFIGURE_JAR, {
+        householdId: gate.householdId,
+      });
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    }
     const sortOrder = (maxRow?.sort_order ?? 0) + 1;
 
     const { data: jar, error: jarError } = await supabase
@@ -193,7 +308,19 @@ export async function createJar(
       })
       .select("id")
       .single();
-    if (jarError || !jar?.id) return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    if (jarError) {
+      logPlanFailure(jarError, PLAN_OPERATION.CONFIGURE_JAR, {
+        householdId: gate.householdId,
+      });
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    }
+    if (!jar?.id) {
+      logPlanFailure(null, PLAN_OPERATION.CONFIGURE_JAR, {
+        householdId: gate.householdId,
+        responseInvalid: true,
+      });
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    }
 
     const { error: planError } = await supabase.from("jar_plans").insert({
       household_id: gate.householdId,
@@ -201,7 +328,11 @@ export async function createJar(
       ...planValues(parsed.data),
     });
     if (planError) {
-      await supabase.from("jars").delete().eq("id", jar.id).eq("household_id", gate.householdId);
+      logPlanFailure(planError, PLAN_OPERATION.CONFIGURE_JAR, {
+        householdId: gate.householdId,
+        jarId: jar.id,
+      });
+      await removeCreatedJar(supabase, gate.householdId, jar.id);
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
     }
 
@@ -212,14 +343,16 @@ export async function createJar(
       parsed.data.categoryIds,
       [],
     );
-    if (!mapped) {
-      await supabase.from("jar_plans").delete().eq("jar_id", jar.id).eq("household_id", gate.householdId);
-      await supabase.from("jars").delete().eq("id", jar.id).eq("household_id", gate.householdId);
-      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    if (!mapped.ok) {
+      await removeCreatedJar(supabase, gate.householdId, jar.id);
+      return mapped;
     }
 
     return { ok: true, jarId: jar.id };
-  } catch {
+  } catch (error) {
+    logPlanFailure(error, PLAN_OPERATION.CONFIGURE_JAR, {
+      householdId: gate.householdId,
+    });
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }
 }
@@ -249,15 +382,29 @@ export async function updateJarConfiguration(
       .eq("id", jarId)
       .eq("household_id", gate.householdId)
       .maybeSingle();
-    if (jarError || !jar) return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
+    if (jarError) {
+      logPlanFailure(jarError, PLAN_OPERATION.CONFIGURE_JAR, {
+        householdId: gate.householdId,
+        jarId,
+      });
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    }
+    if (!jar) return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
 
-    const { data: currentCategories, error: currentCategoryError } = await supabase
-      .from("categories")
-      .select("id")
-      .eq("household_id", gate.householdId)
-      .eq("is_system", false)
-      .eq("jar_id", jarId);
-    if (currentCategoryError) return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    const { data: currentCategories, error: currentCategoryError } =
+      await supabase
+        .from("categories")
+        .select("id")
+        .eq("household_id", gate.householdId)
+        .eq("is_system", false)
+        .eq("jar_id", jarId);
+    if (currentCategoryError) {
+      logPlanFailure(currentCategoryError, PLAN_OPERATION.CONFIGURE_JAR, {
+        householdId: gate.householdId,
+        jarId,
+      });
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    }
 
     const categories = await validateCategorySelection(
       supabase,
@@ -265,7 +412,7 @@ export async function updateJarConfiguration(
       parsed.data,
       jarId,
     );
-    if (!categories) return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
+    if (!categories.ok) return categories;
 
     const isIncomeKindChange =
       (jar.kind === JarKind.INCOME) !== (parsed.data.kind === JarKind.INCOME);
@@ -286,7 +433,13 @@ export async function updateJarConfiguration(
       })
       .eq("id", jarId)
       .eq("household_id", gate.householdId);
-    if (updateError) return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    if (updateError) {
+      logPlanFailure(updateError, PLAN_OPERATION.CONFIGURE_JAR, {
+        householdId: gate.householdId,
+        jarId,
+      });
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    }
 
     const { error: planError } = await supabase.from("jar_plans").upsert(
       {
@@ -297,7 +450,13 @@ export async function updateJarConfiguration(
       },
       { onConflict: "jar_id" },
     );
-    if (planError) return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    if (planError) {
+      logPlanFailure(planError, PLAN_OPERATION.CONFIGURE_JAR, {
+        householdId: gate.householdId,
+        jarId,
+      });
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    }
 
     const mapped = await applyCategorySelection(
       supabase,
@@ -307,10 +466,14 @@ export async function updateJarConfiguration(
       (currentCategories ?? []).map((category) => category.id),
       parsed.data.removedCategoryTargetJarId,
     );
-    if (!mapped) return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    if (!mapped.ok) return mapped;
 
     return { ok: true, jarId };
-  } catch {
+  } catch (error) {
+    logPlanFailure(error, PLAN_OPERATION.CONFIGURE_JAR, {
+      householdId: gate.householdId,
+      jarId,
+    });
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }
 }

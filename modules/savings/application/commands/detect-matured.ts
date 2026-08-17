@@ -13,7 +13,14 @@ import {
   RenewalSuggestedAction,
   SettlementRule,
   MaturityWarningCode,
+  SAVINGS_RPC,
+  SAVINGS_OPERATION,
 } from "../savings-constants";
+import {
+  classifySavingsRpcError,
+  isRecord,
+  logSavingsFailure,
+} from "../savings-error";
 import type {
   ProductSnapshot,
   PackageRecommendation,
@@ -45,19 +52,31 @@ export async function detectMaturedSavings(): Promise<DetectMaturedResult> {
     const supabase = await createSupabaseServerClient();
 
     const { data: matured, error: maturedError } = await supabase.rpc(
-      "detect_matured_savings",
+      SAVINGS_RPC.DETECT_MATURED,
       { p_household_id: gate.householdId },
     );
     if (maturedError) {
-      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+      const code = classifySavingsRpcError(maturedError);
+      if (code === PRODUCT_ACTION_ERROR_CODE.UNKNOWN) {
+        logSavingsFailure(maturedError, SAVINGS_RPC.DETECT_MATURED, {
+          householdId: gate.householdId,
+        });
+      }
+      return { ok: false, code };
     }
 
     const { data: cascade, error: cascadeError } = await supabase.rpc(
-      "enqueue_savings_maturity_cascade",
+      SAVINGS_RPC.ENQUEUE_MATURITY_CASCADE,
       { p_household_id: gate.householdId },
     );
     if (cascadeError) {
-      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+      const code = classifySavingsRpcError(cascadeError);
+      if (code === PRODUCT_ACTION_ERROR_CODE.UNKNOWN) {
+        logSavingsFailure(cascadeError, SAVINGS_RPC.ENQUEUE_MATURITY_CASCADE, {
+          householdId: gate.householdId,
+        });
+      }
+      return { ok: false, code };
     }
 
     const maturedPayload = matured as { maturedCount?: number } | null;
@@ -68,7 +87,10 @@ export async function detectMaturedSavings(): Promise<DetectMaturedResult> {
       maturedCount: Number(maturedPayload?.maturedCount ?? 0),
       cascadeCount: Number(cascadePayload?.cascadeCount ?? 0),
     };
-  } catch {
+  } catch (error) {
+    logSavingsFailure(error, SAVINGS_RPC.DETECT_MATURED, {
+      householdId: gate.householdId,
+    });
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }
 }
@@ -151,8 +173,7 @@ export async function buildMaturityReviewPayload(input: {
       .eq("cycle_number", (cycle.cycle_number as number) - 1)
       .maybeSingle();
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const spRaw = (saving as any).saving_providers;
+    const spRaw = isRecord(saving) ? saving.saving_providers : undefined;
     const provider = Array.isArray(spRaw) ? spRaw[0] : spRaw;
     const providerName = provider?.display_name ?? "";
     const providerActive = provider?.is_active !== false;
@@ -268,7 +289,11 @@ export async function buildMaturityReviewPayload(input: {
         renewalConfig.preferredSettlementAccountId,
       recommendationReason: recommendedPackages[0]?.reasonCode ?? null,
     };
-  } catch {
+  } catch (error) {
+    logSavingsFailure(error, SAVINGS_OPERATION.MATURITY_ENRICHMENT, {
+      savingId: input.savingId,
+      cycleId: input.cycleId,
+    });
     return null;
   }
 }
@@ -289,19 +314,31 @@ export async function backfillLegacySavingsAccounts(): Promise<BackfillLegacyRes
 
   try {
     const supabase = await createSupabaseServerClient();
-    const { data, error } = await supabase.rpc(
-      "backfill_legacy_savings_accounts",
-      { p_household_id: gate.householdId },
-    );
+    const { data, error } = await supabase.rpc(SAVINGS_RPC.BACKFILL_LEGACY, {
+      p_household_id: gate.householdId,
+    });
     if (error) {
-      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+      const code = classifySavingsRpcError(error);
+      if (code === PRODUCT_ACTION_ERROR_CODE.UNKNOWN) {
+        logSavingsFailure(error, SAVINGS_RPC.BACKFILL_LEGACY, {
+          householdId: gate.householdId,
+        });
+      }
+      return { ok: false, code };
     }
     const payload = data as { ok?: boolean; migratedCount?: number } | null;
     if (!payload?.ok) {
+      logSavingsFailure(null, SAVINGS_RPC.BACKFILL_LEGACY, {
+        householdId: gate.householdId,
+        responseInvalid: true,
+      });
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
     }
     return { ok: true, migratedCount: Number(payload.migratedCount ?? 0) };
-  } catch {
+  } catch (error) {
+    logSavingsFailure(error, SAVINGS_RPC.BACKFILL_LEGACY, {
+      householdId: gate.householdId,
+    });
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }
 }

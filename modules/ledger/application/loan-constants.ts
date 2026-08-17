@@ -168,3 +168,17 @@ export const RECORD_LOAN_PAYMENT_INVALID_ERROR_NEEDLES = [
   "credit card",
   "no upcoming",
 ] as const;
+
+/** Compatibility markers for legacy loan RPCs that still return text errors. */
+export const LOAN_LEGACY_RPC_ERROR_MARKERS = [
+  ...RECORD_LOAN_PAYMENT_INVALID_ERROR_NEEDLES,
+  "authentication required",
+  "not a household member",
+  "loan not found",
+  "loan is not active",
+  "fixed interest loans cannot change rate",
+  "promo period has not ended",
+  "effective from required",
+  "effective date",
+  "completed loan can only be archived",
+] as const;

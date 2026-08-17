@@ -5,6 +5,7 @@ import {
   productActionErrorFromDeniedReason,
   type ProductActionErrorCode,
 } from "@/modules/tenancy/application/product-action-error";
+import type { Result } from "@/modules/shared-kernel/application/result";
 import {
   LEDGER_ACTION_ERROR_CODE,
   TRANSACTION_DIRECTION_VALUES,
@@ -31,9 +32,10 @@ export type UpdateTransactionInput = z.infer<
 export type UpdateTransactionErrorCode =
   ProductActionErrorCode | typeof LEDGER_ACTION_ERROR_CODE.IMMUTABLE;
 
-export type UpdateTransactionResult =
-  | { ok: true; transactionId: string }
-  | { ok: false; code: UpdateTransactionErrorCode };
+export type UpdateTransactionResult = Result<
+  { transactionId: string },
+  UpdateTransactionErrorCode
+>;
 
 /**
  * BR-02 / BR-03 — posted ledger rows are immutable.
@@ -66,9 +68,10 @@ export type DeleteTransactionInput = z.infer<
   typeof deleteTransactionInputSchema
 >;
 
-export type DeleteTransactionResult =
-  | { ok: true; transactionId: string }
-  | { ok: false; code: UpdateTransactionErrorCode };
+export type DeleteTransactionResult = Result<
+  { transactionId: string },
+  UpdateTransactionErrorCode
+>;
 
 export async function deleteTransaction(
   raw: DeleteTransactionInput,

@@ -5,33 +5,75 @@ import {
   productActionErrorFromDeniedReason,
   type ProductActionErrorCode,
 } from "@/modules/tenancy/application/product-action-error";
+import type { Result } from "@/modules/shared-kernel/application/result";
 import {
   createTransferIdempotencyKey,
   LedgerRpcName,
-  RECORD_TRANSFER_INVALID_ERROR_NEEDLES,
 } from "../ledger-constants";
+import {
+  classifyRecordTransferRpcError,
+  LEDGER_OPERATION,
+  logLedgerFailure,
+} from "../ledger-error";
 import {
   recordTransferInputSchema,
   type RecordTransferInput,
 } from "./record-transfer.schema";
 
-export { recordTransferInputSchema, type RecordTransferInput } from "./record-transfer.schema";
+export {
+  recordTransferInputSchema,
+  type RecordTransferInput,
+} from "./record-transfer.schema";
 
-export type RecordTransferResult =
-  | {
-      ok: true;
-      transferGroupId: string;
-      sourceTransactionId: string;
-      destinationTransactionId: string;
-      sourceDelta: number;
-      destinationDelta: number;
-      idempotentReplay: boolean;
-    }
-  | { ok: false; code: ProductActionErrorCode };
+type RecordTransferSuccess = {
+  transferGroupId: string;
+  sourceTransactionId: string;
+  destinationTransactionId: string;
+  sourceDelta: number;
+  destinationDelta: number;
+  idempotentReplay: boolean;
+};
 
-function isTransferInvalidMessage(message: string): boolean {
-  return RECORD_TRANSFER_INVALID_ERROR_NEEDLES.some((needle) =>
-    message.includes(needle),
+export type RecordTransferResult = Result<
+  RecordTransferSuccess,
+  ProductActionErrorCode
+>;
+
+type RecordTransferRpcPayload = {
+  ok: true;
+  transferGroupId: string;
+  sourceTransactionId: string;
+  destinationTransactionId: string;
+  sourceDelta: unknown;
+  destinationDelta: unknown;
+  idempotentReplay?: unknown;
+};
+
+function isRecordTransferRpcPayload(
+  value: unknown,
+): value is RecordTransferRpcPayload {
+  if (typeof value !== "object" || value === null) return false;
+  if (!(
+    "ok" in value &&
+    "transferGroupId" in value &&
+    "sourceTransactionId" in value &&
+    "destinationTransactionId" in value &&
+    "sourceDelta" in value &&
+    "destinationDelta" in value
+  )) {
+    return false;
+  }
+  return (
+    value.ok === true &&
+    typeof value.transferGroupId === "string" &&
+    typeof value.sourceTransactionId === "string" &&
+    typeof value.destinationTransactionId === "string" &&
+    (typeof value.sourceDelta === "number" ||
+      typeof value.sourceDelta === "string") &&
+    Number.isFinite(Number(value.sourceDelta)) &&
+    (typeof value.destinationDelta === "number" ||
+      typeof value.destinationDelta === "string") &&
+    Number.isFinite(Number(value.destinationDelta))
   );
 }
 
@@ -73,47 +115,43 @@ export async function recordTransfer(
     );
 
     if (error) {
-      const message = error.message?.toLowerCase() ?? "";
-      if (isTransferInvalidMessage(message)) {
-        return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
+      const code = classifyRecordTransferRpcError(error);
+      if (code === PRODUCT_ACTION_ERROR_CODE.UNKNOWN) {
+        logLedgerFailure(error, LEDGER_OPERATION.RECORD_TRANSFER, {
+          householdId: gate.householdId,
+          sourceAccountId: parsed.data.sourceAccountId,
+          destinationAccountId: parsed.data.destinationAccountId,
+        });
       }
-      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+      return { ok: false, code };
     }
 
-    const payload = data as {
-      ok?: boolean;
-      transferGroupId?: string;
-      sourceTransactionId?: string;
-      destinationTransactionId?: string;
-      sourceDelta?: number;
-      destinationDelta?: number;
-      idempotentReplay?: boolean;
-    } | null;
-
-    const sourceDelta = Number(payload?.sourceDelta);
-    const destinationDelta = Number(payload?.destinationDelta);
-
-    if (
-      !payload?.ok ||
-      !payload.transferGroupId ||
-      !payload.sourceTransactionId ||
-      !payload.destinationTransactionId ||
-      !Number.isFinite(sourceDelta) ||
-      !Number.isFinite(destinationDelta)
-    ) {
+    if (!isRecordTransferRpcPayload(data)) {
+      logLedgerFailure(null, LEDGER_OPERATION.RECORD_TRANSFER, {
+        householdId: gate.householdId,
+        sourceAccountId: parsed.data.sourceAccountId,
+        destinationAccountId: parsed.data.destinationAccountId,
+        responseInvalid: true,
+      });
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
     }
+    const payload = data;
 
     return {
       ok: true,
       transferGroupId: payload.transferGroupId,
       sourceTransactionId: payload.sourceTransactionId,
       destinationTransactionId: payload.destinationTransactionId,
-      sourceDelta,
-      destinationDelta,
+      sourceDelta: Number(payload.sourceDelta),
+      destinationDelta: Number(payload.destinationDelta),
       idempotentReplay: Boolean(payload.idempotentReplay),
     };
-  } catch {
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.RECORD_TRANSFER, {
+      householdId: gate.householdId,
+      sourceAccountId: parsed.data.sourceAccountId,
+      destinationAccountId: parsed.data.destinationAccountId,
+    });
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }
 }

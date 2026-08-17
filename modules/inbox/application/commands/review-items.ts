@@ -4,21 +4,25 @@ import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-m
 import {
   PRODUCT_ACTION_ERROR_CODE,
   productActionErrorFromDeniedReason,
-  type ProductActionErrorCode,
 } from "@/modules/tenancy/application/product-action-error";
+import type { Result } from "@/modules/shared-kernel/application/result";
 import {
   EarlyWithdrawalAckAction,
   EmiAckAction,
   InboxItemStatus,
+  INBOX_ITEM_STATUS_VALUES,
+  INBOX_OPERATION,
+  INBOX_RPC,
   MaturityAckAction,
   SavingsMaturityAckAction,
   SAVINGS_MATURITY_ACK_ACTION_VALUES,
   EARLY_WITHDRAWAL_ACK_ACTION_VALUES,
 } from "../inbox-constants";
-import { shouldAutoResolveInboxItem } from "../inbox-resolution-policy";
-import { getInboxItem } from "../queries/review-items";
-
-const INBOX_COMMAND_ERROR_CONTEXT = "[inbox review-item command]";
+import {
+  classifyInboxRpcError,
+  logInboxFailure,
+  type InboxCommandErrorCode,
+} from "../inbox-error";
 
 export const resolveInboxItemInputSchema = z.object({
   inboxItemId: z.string().uuid(),
@@ -27,9 +31,15 @@ export const resolveInboxItemInputSchema = z.object({
 
 export type ResolveInboxItemInput = z.infer<typeof resolveInboxItemInputSchema>;
 
-export type InboxMutationResult =
-  | { ok: true; status: string; cascadeCancelledCount?: number }
-  | { ok: false; code: ProductActionErrorCode };
+type InboxMutationSuccess = {
+  status: InboxItemStatus;
+  cascadeCancelledCount?: number;
+};
+
+export type InboxMutationResult = Result<
+  InboxMutationSuccess,
+  InboxCommandErrorCode
+>;
 
 export type ResolveInboxItemResult = InboxMutationResult;
 
@@ -37,12 +47,20 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
+const INBOX_ITEM_STATUS_SET: ReadonlySet<string> = new Set(
+  INBOX_ITEM_STATUS_VALUES,
+);
+
+function isInboxItemStatus(value: unknown): value is InboxItemStatus {
+  return typeof value === "string" && INBOX_ITEM_STATUS_SET.has(value);
+}
+
 function mutationResult(
   data: unknown,
   fallbackStatus: InboxItemStatus,
   includeCascadeCount = false,
 ): {
-  status: string;
+  status: InboxItemStatus;
   cascadeCancelledCount?: number;
 } {
   const payload = isRecord(data) ? data : {};
@@ -53,10 +71,40 @@ function mutationResult(
       : 0;
 
   return {
-    status:
-      typeof payload.status === "string" ? payload.status : fallbackStatus,
+    status: isInboxItemStatus(payload.status) ? payload.status : fallbackStatus,
     ...(includeCascadeCount ? { cascadeCancelledCount: cascadeCount } : {}),
   };
+}
+
+function mapRpcFailure(
+  error: unknown,
+  operation: (typeof INBOX_OPERATION)[keyof typeof INBOX_OPERATION],
+  context: {
+    householdId: string;
+    inboxItemId: string;
+    action?: string;
+    responseInvalid?: boolean;
+  },
+): { ok: false; code: InboxCommandErrorCode } {
+  const code = classifyInboxRpcError(error);
+  if (code === PRODUCT_ACTION_ERROR_CODE.UNKNOWN) {
+    logInboxFailure(error, operation, context);
+  }
+  return { ok: false, code };
+}
+
+function mapUnexpectedFailure(
+  error: unknown,
+  operation: (typeof INBOX_OPERATION)[keyof typeof INBOX_OPERATION],
+  context: {
+    householdId: string;
+    inboxItemId: string;
+    action?: string;
+    responseInvalid?: boolean;
+  },
+): { ok: false; code: InboxCommandErrorCode } {
+  logInboxFailure(error, operation, context);
+  return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
 }
 
 export async function resolveInboxItemToJar(
@@ -77,20 +125,31 @@ export async function resolveInboxItemToJar(
 
   try {
     const supabase = await createSupabaseServerClient();
-    const { data, error } = await supabase.rpc("resolve_inbox_item_to_jar", {
+    const { data, error } = await supabase.rpc(INBOX_RPC.RESOLVE_TO_JAR, {
       p_inbox_item_id: parsed.data.inboxItemId,
       p_jar_id: parsed.data.jarId,
     });
 
-    if (error || !data) {
-      if (error) console.error(INBOX_COMMAND_ERROR_CONTEXT, error);
-      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    if (error) {
+      return mapRpcFailure(error, INBOX_OPERATION.RESOLVE_TO_JAR, {
+        householdId: gate.householdId,
+        inboxItemId: parsed.data.inboxItemId,
+      });
+    }
+    if (!data) {
+      return mapUnexpectedFailure(null, INBOX_OPERATION.RESOLVE_TO_JAR, {
+        householdId: gate.householdId,
+        inboxItemId: parsed.data.inboxItemId,
+        responseInvalid: true,
+      });
     }
 
     return { ok: true, ...mutationResult(data, InboxItemStatus.RESOLVED) };
   } catch (error) {
-    console.error(INBOX_COMMAND_ERROR_CONTEXT, error);
-    return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    return mapUnexpectedFailure(error, INBOX_OPERATION.RESOLVE_TO_JAR, {
+      householdId: gate.householdId,
+      inboxItemId: parsed.data.inboxItemId,
+    });
   }
 }
 
@@ -118,19 +177,30 @@ export async function dismissInboxItem(
 
   try {
     const supabase = await createSupabaseServerClient();
-    const { data, error } = await supabase.rpc("dismiss_inbox_item", {
+    const { data, error } = await supabase.rpc(INBOX_RPC.DISMISS, {
       p_inbox_item_id: parsed.data.inboxItemId,
     });
 
-    if (error || !data) {
-      if (error) console.error(INBOX_COMMAND_ERROR_CONTEXT, error);
-      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    if (error) {
+      return mapRpcFailure(error, INBOX_OPERATION.DISMISS, {
+        householdId: gate.householdId,
+        inboxItemId: parsed.data.inboxItemId,
+      });
+    }
+    if (!data) {
+      return mapUnexpectedFailure(null, INBOX_OPERATION.DISMISS, {
+        householdId: gate.householdId,
+        inboxItemId: parsed.data.inboxItemId,
+        responseInvalid: true,
+      });
     }
 
     return { ok: true, ...mutationResult(data, InboxItemStatus.DISMISSED) };
   } catch (error) {
-    console.error(INBOX_COMMAND_ERROR_CONTEXT, error);
-    return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    return mapUnexpectedFailure(error, INBOX_OPERATION.DISMISS, {
+      householdId: gate.householdId,
+      inboxItemId: parsed.data.inboxItemId,
+    });
   }
 }
 
@@ -174,14 +244,25 @@ export async function acknowledgeInboxItem(
 
   try {
     const supabase = await createSupabaseServerClient();
-    const { data, error } = await supabase.rpc("acknowledge_inbox_item", {
+    const { data, error } = await supabase.rpc(INBOX_RPC.ACKNOWLEDGE, {
       p_inbox_item_id: parsed.data.inboxItemId,
       p_action: parsed.data.action,
     });
 
-    if (error || !data) {
-      if (error) console.error(INBOX_COMMAND_ERROR_CONTEXT, error);
-      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    if (error) {
+      return mapRpcFailure(error, INBOX_OPERATION.ACKNOWLEDGE, {
+        householdId: gate.householdId,
+        inboxItemId: parsed.data.inboxItemId,
+        action: parsed.data.action,
+      });
+    }
+    if (!data) {
+      return mapUnexpectedFailure(null, INBOX_OPERATION.ACKNOWLEDGE, {
+        householdId: gate.householdId,
+        inboxItemId: parsed.data.inboxItemId,
+        action: parsed.data.action,
+        responseInvalid: true,
+      });
     }
 
     return {
@@ -189,8 +270,11 @@ export async function acknowledgeInboxItem(
       ...mutationResult(data, InboxItemStatus.ACKNOWLEDGED, true),
     };
   } catch (error) {
-    console.error(INBOX_COMMAND_ERROR_CONTEXT, error);
-    return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    return mapUnexpectedFailure(error, INBOX_OPERATION.ACKNOWLEDGE, {
+      householdId: gate.householdId,
+      inboxItemId: parsed.data.inboxItemId,
+      action: parsed.data.action,
+    });
   }
 }
 
@@ -219,28 +303,23 @@ export async function autoResolveInboxItem(
   }
 
   try {
-    const item = await getInboxItem(parsed.data.inboxItemId);
-    if (!item) {
-      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
-    }
-    if (
-      !shouldAutoResolveInboxItem({
-        kind: item.kind,
-        confidenceScore: item.confidenceScore,
-        suggestedJarId: item.suggestedJarId,
-      })
-    ) {
-      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
-    }
-
     const supabase = await createSupabaseServerClient();
-    const { data, error } = await supabase.rpc("auto_resolve_inbox_item", {
+    const { data, error } = await supabase.rpc(INBOX_RPC.AUTO_RESOLVE, {
       p_inbox_item_id: parsed.data.inboxItemId,
     });
 
-    if (error || !data) {
-      if (error) console.error(INBOX_COMMAND_ERROR_CONTEXT, error);
-      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    if (error) {
+      return mapRpcFailure(error, INBOX_OPERATION.AUTO_RESOLVE, {
+        householdId: gate.householdId,
+        inboxItemId: parsed.data.inboxItemId,
+      });
+    }
+    if (!data) {
+      return mapUnexpectedFailure(null, INBOX_OPERATION.AUTO_RESOLVE, {
+        householdId: gate.householdId,
+        inboxItemId: parsed.data.inboxItemId,
+        responseInvalid: true,
+      });
     }
 
     return {
@@ -248,7 +327,9 @@ export async function autoResolveInboxItem(
       ...mutationResult(data, InboxItemStatus.AUTO_RESOLVED),
     };
   } catch (error) {
-    console.error(INBOX_COMMAND_ERROR_CONTEXT, error);
-    return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    return mapUnexpectedFailure(error, INBOX_OPERATION.AUTO_RESOLVE, {
+      householdId: gate.householdId,
+      inboxItemId: parsed.data.inboxItemId,
+    });
   }
 }

@@ -13,7 +13,9 @@ import {
   MATURITY_TARGET_MODE_VALUES,
   MaturityTargetMode,
   MaturityFallbackPolicy,
+  SAVINGS_OPERATION,
 } from "../savings-constants";
+import { classifySavingsRpcError, logSavingsFailure } from "../savings-error";
 import { emptyRenewalConfig, type RenewalConfig } from "../savings-types";
 
 const renewalConfigSchema = z.object({
@@ -104,12 +106,26 @@ export async function updateRenewalPolicy(
       .select("id")
       .maybeSingle();
 
-    if (error || !data) {
-      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    if (error) {
+      const code = classifySavingsRpcError(error);
+      if (code === PRODUCT_ACTION_ERROR_CODE.UNKNOWN) {
+        logSavingsFailure(error, SAVINGS_OPERATION.UPDATE_RENEWAL_POLICY, {
+          householdId: gate.householdId,
+          savingId: parsed.data.savingId,
+        });
+      }
+      return { ok: false, code };
+    }
+    if (!data) {
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
     }
 
     return { ok: true, savingId: data.id };
-  } catch {
+  } catch (error) {
+    logSavingsFailure(error, SAVINGS_OPERATION.UPDATE_RENEWAL_POLICY, {
+      householdId: gate.householdId,
+      savingId: parsed.data.savingId,
+    });
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }
 }

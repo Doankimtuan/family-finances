@@ -5,6 +5,7 @@ import {
   mapCreditCardInstallmentRow,
   type CreditCardInstallment,
 } from "../credit-card-installments";
+import { LEDGER_OPERATION, logLedgerFailure } from "../ledger-error";
 
 export type EligibleCreditCardPurchase = {
   id: string;
@@ -31,9 +32,19 @@ export async function listCreditCardInstallments(
       .eq("household_id", gate.householdId)
       .eq("card_account_id", cardAccountId)
       .order("first_expected_date", { ascending: true });
-    if (error) return null;
+    if (error) {
+      logLedgerFailure(error, LEDGER_OPERATION.LIST_CREDIT_CARD_INSTALLMENTS, {
+        householdId: gate.householdId,
+        cardAccountId,
+      });
+      return null;
+    }
     return (data ?? []).map(mapCreditCardInstallmentRow);
-  } catch {
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.LIST_CREDIT_CARD_INSTALLMENTS, {
+      householdId: gate.householdId,
+      cardAccountId,
+    });
     return null;
   }
 }
@@ -67,9 +78,19 @@ export async function listEligibleCreditCardPurchases(
         .eq("household_id", gate.householdId)
         .eq("card_account_id", cardAccountId),
     ]);
-    if (transactionError || planError) return null;
+    if (transactionError || planError) {
+      logLedgerFailure(
+        transactionError ?? planError,
+        LEDGER_OPERATION.LIST_ELIGIBLE_CREDIT_CARD_PURCHASES,
+        {
+          householdId: gate.householdId,
+          cardAccountId,
+        },
+      );
+      return null;
+    }
     const ids = (transactions ?? []).map((row) => row.id);
-    const { data: related } = ids.length
+    const { data: related, error: relatedError } = ids.length
       ? await supabase
           .from("transactions")
           .select("reverses_transaction_id, corrects_transaction_id")
@@ -82,7 +103,15 @@ export async function listEligibleCreditCardPurchases(
             reverses_transaction_id: string | null;
             corrects_transaction_id: string | null;
           }>,
+          error: null,
         };
+    if (relatedError) {
+      logLedgerFailure(
+        relatedError,
+        LEDGER_OPERATION.LIST_ELIGIBLE_CREDIT_CARD_PURCHASES,
+        { householdId: gate.householdId, cardAccountId },
+      );
+    }
     const reviewed = new Set(
       (related ?? [])
         .flatMap((row) => [
@@ -115,7 +144,15 @@ export async function listEligibleCreditCardPurchases(
         categoryId: transaction.category_id,
         status: transaction.status,
       }));
-  } catch {
+  } catch (error) {
+    logLedgerFailure(
+      error,
+      LEDGER_OPERATION.LIST_ELIGIBLE_CREDIT_CARD_PURCHASES,
+      {
+        householdId: gate.householdId,
+        cardAccountId,
+      },
+    );
     return null;
   }
 }

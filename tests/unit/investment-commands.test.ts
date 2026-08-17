@@ -14,7 +14,11 @@ import {
   INVESTMENT_RPC,
   InvestmentFeeSource,
 } from "@/modules/investments/application/investment-constants";
-import { recordInvestmentBuy } from "@/modules/investments/application/commands/investment-commands";
+import {
+  classifyInvestmentRpcError,
+  classifyLegacyInvestmentRpcError,
+  recordInvestmentBuy,
+} from "@/modules/investments/application/commands/investment-commands";
 import {
   assetConversionInputSchema,
   investmentIncomeInputSchema,
@@ -150,6 +154,133 @@ describe("Investments command boundary", () => {
         p_fees: [expect.objectContaining({ feeValueVnd: 1_000 })],
       }),
     );
+  });
+
+  it("preserves legacy domain mappings at the RPC boundary", () => {
+    expect(
+      classifyLegacyInvestmentRpcError({
+        message: "Insufficient quantity for this holding",
+      }),
+    ).toBe(INVESTMENT_ERROR_CODE.INSUFFICIENT_QUANTITY);
+    expect(
+      classifyLegacyInvestmentRpcError({
+        message: "Investment holding not found",
+      }),
+    ).toBe(INVESTMENT_ERROR_CODE.NOT_FOUND);
+  });
+
+  it("prefers structured RPC codes over conflicting legacy text", () => {
+    expect(
+      classifyInvestmentRpcError({
+        details: INVESTMENT_ERROR_CODE.NOT_FOUND,
+        message: "Insufficient quantity for this holding",
+      }),
+    ).toBe(INVESTMENT_ERROR_CODE.NOT_FOUND);
+  });
+
+  it("preserves expected domain failures through the command Result", async () => {
+    vi.mocked(assertMoneyActionAllowed).mockResolvedValue({
+      ok: true,
+      userId: "user-1",
+      householdId: "household-1",
+    });
+    const rpc = vi.fn().mockResolvedValue({
+      data: null,
+      error: { message: "Insufficient quantity" },
+    });
+    vi.mocked(createSupabaseServerClient).mockResolvedValue({ rpc } as never);
+
+    await expect(
+      recordInvestmentBuy({
+        holdingId,
+        cashAccountId: accountId,
+        boughtQuantity: "0.2",
+        executedValueVnd: 200_000,
+        effectiveDate: "2026-08-10",
+        idempotencyKey: "investment:test:domain-failure",
+      }),
+    ).resolves.toEqual({
+      ok: false,
+      code: INVESTMENT_ERROR_CODE.INSUFFICIENT_QUANTITY,
+    });
+  });
+
+  it("logs unexpected RPC failures and returns a safe code", async () => {
+    vi.mocked(assertMoneyActionAllowed).mockResolvedValue({
+      ok: true,
+      userId: "user-1",
+      householdId: "household-1",
+    });
+    const rpc = vi.fn().mockResolvedValue({
+      data: null,
+      error: { message: "internal investment database detail" },
+    });
+    vi.mocked(createSupabaseServerClient).mockResolvedValue({ rpc } as never);
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+
+    const result = await recordInvestmentBuy({
+      holdingId,
+      cashAccountId: accountId,
+      boughtQuantity: "0.2",
+      executedValueVnd: 200_000,
+      effectiveDate: "2026-08-10",
+      idempotencyKey: "investment:test:rpc-failure",
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      code: INVESTMENT_ERROR_CODE.UNKNOWN,
+    });
+    expect(JSON.stringify(result)).not.toContain(
+      "internal investment database detail",
+    );
+    expect(consoleError).toHaveBeenCalledWith(
+      expect.objectContaining({
+        operation: INVESTMENT_RPC.BUY,
+        context: expect.objectContaining({
+          householdId: "household-1",
+          holdingId,
+          cashAccountId: accountId,
+        }),
+      }),
+    );
+    consoleError.mockRestore();
+  });
+
+  it("logs unexpected thrown failures and returns a safe code", async () => {
+    vi.mocked(assertMoneyActionAllowed).mockResolvedValue({
+      ok: true,
+      userId: "user-1",
+      householdId: "household-1",
+    });
+    const thrown = new Error("investment service unavailable");
+    vi.mocked(createSupabaseServerClient).mockRejectedValueOnce(thrown);
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+
+    const result = await recordInvestmentBuy({
+      holdingId,
+      cashAccountId: accountId,
+      boughtQuantity: "0.2",
+      executedValueVnd: 200_000,
+      effectiveDate: "2026-08-10",
+      idempotencyKey: "investment:test:thrown-failure",
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      code: INVESTMENT_ERROR_CODE.UNKNOWN,
+    });
+    expect(JSON.stringify(result)).not.toContain(
+      "investment service unavailable",
+    );
+    expect(consoleError).toHaveBeenCalledWith(
+      expect.objectContaining({ error: thrown }),
+    );
+    consoleError.mockRestore();
   });
 
   it("applies all investment ledger cash classifications", () => {

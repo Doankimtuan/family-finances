@@ -1,12 +1,14 @@
 import { getSupabaseEnv } from "@/modules/platform/supabase/env";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
+import type { Result } from "@/modules/shared-kernel/application/result";
 import { inviteEmailSchema, type InviteEmailInput } from "./invitation.schema";
 import { getSessionUser } from "./get-session-user";
 import {
   INVITATION_ERROR_CODE,
-  INVITATION_RPC_MESSAGE_NEEDLE,
   type InvitationErrorCode,
 } from "./tenancy-constants";
+import { classifyInvitationRpcError, logTenancyFailure } from "./tenancy-error";
+import { TENANCY_OPERATION } from "./tenancy-constants";
 
 export type CreateInvitationErrorCode = Exclude<
   InvitationErrorCode,
@@ -16,43 +18,10 @@ export type CreateInvitationErrorCode = Exclude<
   | typeof INVITATION_ERROR_CODE.EMAIL_MISMATCH
 >;
 
-export type CreateInvitationResult =
-  | {
-      ok: true;
-      invitationId: string;
-      token: string;
-      expiresAt: string;
-    }
-  | {
-      ok: false;
-      code: CreateInvitationErrorCode;
-    };
-
-function mapCreateError(message: string): CreateInvitationErrorCode {
-  const m = message.toLowerCase();
-  if (m.includes(INVITATION_RPC_MESSAGE_NEEDLE.INVALID_EMAIL)) {
-    return INVITATION_ERROR_CODE.INVALID;
-  }
-  if (m.includes(INVITATION_RPC_MESSAGE_NEEDLE.ALREADY_MEMBER)) {
-    return INVITATION_ERROR_CODE.ALREADY_MEMBER;
-  }
-  if (m.includes(INVITATION_RPC_MESSAGE_NEEDLE.ALREADY_PENDING)) {
-    return INVITATION_ERROR_CODE.ALREADY_PENDING;
-  }
-  if (
-    m.includes(INVITATION_RPC_MESSAGE_NEEDLE.TWO_PARTNERS) ||
-    m.includes(INVITATION_RPC_MESSAGE_NEEDLE.HOUSEHOLD_FULL)
-  ) {
-    return INVITATION_ERROR_CODE.HOUSEHOLD_FULL;
-  }
-  if (m.includes(INVITATION_RPC_MESSAGE_NEEDLE.NO_ACTIVE_HOUSEHOLD)) {
-    return INVITATION_ERROR_CODE.NO_HOUSEHOLD;
-  }
-  if (m.includes(INVITATION_RPC_MESSAGE_NEEDLE.AUTHENTICATION)) {
-    return INVITATION_ERROR_CODE.UNAUTHENTICATED;
-  }
-  return INVITATION_ERROR_CODE.UNKNOWN;
-}
+export type CreateInvitationResult = Result<
+  { invitationId: string; token: string; expiresAt: string },
+  CreateInvitationErrorCode
+>;
 
 /**
  * Create a pending partner invite (token deep link; email delivery out of band).
@@ -81,16 +50,18 @@ export async function createInvitation(
     });
 
     if (error) {
-      const message = [error.message, error.details, error.hint, error.code]
-        .filter(Boolean)
-        .join(" ");
-      console.error("[createInvitation] rpc failed", {
-        message: error.message,
-        details: error.details,
-        hint: error.hint,
-        code: error.code,
-      });
-      return { ok: false, code: mapCreateError(message) };
+      const mapped = classifyInvitationRpcError(error);
+      const code =
+        mapped === INVITATION_ERROR_CODE.NOT_FOUND ||
+        mapped === INVITATION_ERROR_CODE.NOT_PENDING ||
+        mapped === INVITATION_ERROR_CODE.EXPIRED ||
+        mapped === INVITATION_ERROR_CODE.EMAIL_MISMATCH
+          ? INVITATION_ERROR_CODE.UNKNOWN
+          : mapped;
+      if (code === INVITATION_ERROR_CODE.UNKNOWN) {
+        logTenancyFailure(TENANCY_OPERATION.INVITATION_CREATE, error);
+      }
+      return { ok: false, code };
     }
 
     const row = Array.isArray(data) ? data[0] : data;
@@ -99,7 +70,10 @@ export async function createInvitation(
       typeof row.invitation_id !== "string" ||
       typeof row.token !== "string"
     ) {
-      console.error("[createInvitation] unexpected rpc payload", { data });
+      logTenancyFailure(
+        TENANCY_OPERATION.INVITATION_CREATE,
+        new Error("create invitation returned an invalid payload"),
+      );
       return { ok: false, code: INVITATION_ERROR_CODE.UNKNOWN };
     }
 
@@ -109,8 +83,8 @@ export async function createInvitation(
       token: row.token,
       expiresAt: String(row.expires_at),
     };
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "";
-    return { ok: false, code: mapCreateError(message) };
+  } catch (error) {
+    logTenancyFailure(TENANCY_OPERATION.INVITATION_CREATE, error);
+    return { ok: false, code: INVITATION_ERROR_CODE.UNKNOWN };
   }
 }

@@ -1,14 +1,15 @@
 import { getSupabaseEnv } from "@/modules/platform/supabase/env";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
+import type { Result } from "@/modules/shared-kernel/application/result";
 import {
   AUTH_ACTION_ERROR_CODE,
-  AUTH_ERROR_MESSAGE_NEEDLE,
   AUTH_SIGN_UP_NEXT,
-  SUPABASE_AUTH_ERROR_CODE,
   type AuthActionErrorCode,
   type AuthSignUpNext,
 } from "./auth-constants";
 import { registerInputSchema, type RegisterInput } from "./register.schema";
+import { classifySignUpError, logTenancyFailure } from "./tenancy-error";
+import { TENANCY_OPERATION } from "./tenancy-constants";
 
 export type SignUpErrorCode = Extract<
   AuthActionErrorCode,
@@ -18,8 +19,7 @@ export type SignUpErrorCode = Extract<
   | typeof AUTH_ACTION_ERROR_CODE.UNKNOWN
 >;
 
-export type SignUpResult =
-  { ok: true; next: AuthSignUpNext } | { ok: false; code: SignUpErrorCode };
+export type SignUpResult = Result<{ next: AuthSignUpNext }, SignUpErrorCode>;
 
 /**
  * Create Auth account via email/password. Confirm path reuses /auth/confirm.
@@ -47,15 +47,7 @@ export async function signUpWithPassword(
     });
 
     if (error) {
-      const message = error.message.toLowerCase();
-      if (
-        message.includes(AUTH_ERROR_MESSAGE_NEEDLE.ALREADY) ||
-        message.includes(AUTH_ERROR_MESSAGE_NEEDLE.REGISTERED) ||
-        error.code === SUPABASE_AUTH_ERROR_CODE.USER_ALREADY_EXISTS
-      ) {
-        return { ok: false, code: AUTH_ACTION_ERROR_CODE.ALREADY_REGISTERED };
-      }
-      return { ok: false, code: AUTH_ACTION_ERROR_CODE.INVALID };
+      return { ok: false, code: classifySignUpError(error) };
     }
 
     if (data.session) {
@@ -63,7 +55,8 @@ export async function signUpWithPassword(
       return { ok: true, next: AUTH_SIGN_UP_NEXT.ONBOARD };
     }
     return { ok: true, next: AUTH_SIGN_UP_NEXT.CONFIRM };
-  } catch {
+  } catch (error) {
+    logTenancyFailure(TENANCY_OPERATION.AUTH_SIGN_UP, error);
     return { ok: false, code: AUTH_ACTION_ERROR_CODE.UNKNOWN };
   }
 }

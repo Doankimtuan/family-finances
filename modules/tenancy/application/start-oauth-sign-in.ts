@@ -2,6 +2,8 @@ import { getSupabaseEnv } from "@/modules/platform/supabase/env";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { startOAuthInputSchema, type StartOAuthInput } from "./oauth.schema";
 import { AUTH_ACTION_ERROR_CODE } from "./auth-constants";
+import { logTenancyFailure } from "./tenancy-error";
+import { TENANCY_OPERATION } from "./tenancy-constants";
 
 export type StartOAuthResult =
   | { ok: true; url: string }
@@ -41,11 +43,13 @@ export async function startOAuthSignIn(
     });
 
     if (error || !data.url) {
+      if (error) logTenancyFailure(TENANCY_OPERATION.AUTH_OAUTH, error);
       return { ok: false, code: AUTH_ACTION_ERROR_CODE.PROVIDER_ERROR };
     }
 
     return { ok: true, url: data.url };
-  } catch {
+  } catch (error) {
+    logTenancyFailure(TENANCY_OPERATION.AUTH_OAUTH, error);
     return { ok: false, code: AUTH_ACTION_ERROR_CODE.UNKNOWN };
   }
 }

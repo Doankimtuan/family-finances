@@ -3,6 +3,8 @@ import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { getSessionUser } from "./get-session-user";
 import { resolveActiveMembership } from "./resolve-active-membership";
 import { INVITATION_STATUS } from "./tenancy-constants";
+import { logTenancyFailure } from "./tenancy-error";
+import { TENANCY_OPERATION } from "./tenancy-constants";
 
 export type PendingInvitation = {
   id: string;
@@ -40,7 +42,13 @@ export async function listPendingInvitations(): Promise<PendingInvitation[]> {
       .gt("expires_at", new Date().toISOString())
       .order("created_at", { ascending: false });
 
-    if (error || !data) {
+    if (error) {
+      logTenancyFailure(TENANCY_OPERATION.INVITATION_QUERY, error, {
+        householdId: membership.householdId,
+      });
+      return [];
+    }
+    if (!data) {
       return [];
     }
 
@@ -51,7 +59,10 @@ export async function listPendingInvitations(): Promise<PendingInvitation[]> {
       expiresAt: row.expires_at,
       createdAt: row.created_at,
     }));
-  } catch {
+  } catch (error) {
+    logTenancyFailure(TENANCY_OPERATION.INVITATION_QUERY, error, {
+      householdId: membership.householdId,
+    });
     return [];
   }
 }

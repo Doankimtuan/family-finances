@@ -136,6 +136,22 @@ export const INVESTMENT_ERROR_CODE = {
 export type InvestmentErrorCode =
   (typeof INVESTMENT_ERROR_CODE)[keyof typeof INVESTMENT_ERROR_CODE];
 
+/**
+ * Compatibility markers for the current investment RPCs, which still raise
+ * plain-text PostgreSQL exceptions instead of structured domain metadata.
+ */
+export const INVESTMENT_LEGACY_RPC_ERROR_MARKERS = {
+  INSUFFICIENT_QUANTITY: ["insufficient quantity"],
+  NOT_FOUND: ["not found"],
+} as const;
+
+export const INVESTMENT_RPC_CONTEXT_PARAM_TO_FIELD = {
+  p_holding_id: "holdingId",
+  p_source_holding_id: "sourceHoldingId",
+  p_destination_holding_id: "destinationHoldingId",
+  p_cash_account_id: "cashAccountId",
+} as const;
+
 export const InvestmentEntryMode = {
   HISTORICAL: "historical",
   PURCHASE: "purchase",

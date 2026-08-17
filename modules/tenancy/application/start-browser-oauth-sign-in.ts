@@ -10,6 +10,8 @@ import {
   AUTH_ACTION_ERROR_CODE,
   AUTH_ADAPTER_CONFIRM_PATH,
 } from "./auth-constants";
+import { logTenancyFailure } from "./tenancy-error";
+import { TENANCY_OPERATION } from "./tenancy-constants";
 
 export type StartBrowserOAuthResult =
   | { ok: true }
@@ -60,6 +62,7 @@ export async function startBrowserOAuthSignIn(
     });
 
     if (error) {
+      logTenancyFailure(TENANCY_OPERATION.AUTH_OAUTH, error);
       return { ok: false, code: AUTH_ACTION_ERROR_CODE.PROVIDER_ERROR };
     }
 
@@ -71,7 +74,8 @@ export async function startBrowserOAuthSignIn(
 
     window.location.assign(data.url);
     return { ok: true };
-  } catch {
+  } catch (error) {
+    logTenancyFailure(TENANCY_OPERATION.AUTH_OAUTH, error);
     return { ok: false, code: AUTH_ACTION_ERROR_CODE.UNKNOWN };
   }
 }

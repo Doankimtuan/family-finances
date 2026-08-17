@@ -13,19 +13,37 @@ import {
   ISO_DATE_PATTERN,
   LedgerRpcName,
 } from "../ledger-constants";
+import type { Result } from "@/modules/shared-kernel/application/result";
+import {
+  classifyDebtRpcError,
+  LEDGER_OPERATION,
+  logLedgerFailure,
+} from "../ledger-error";
 
-export type DebtMutationResult =
-  | {
-      ok: true;
-      debtId: string;
-      transactionId?: string;
-      paymentId?: string;
-      amount?: number;
-      remainingAmount?: number;
-      completed?: boolean;
-      idempotentReplay: boolean;
-    }
-  | { ok: false; code: ProductActionErrorCode };
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function isDebtSuccessPayload(
+  value: unknown,
+): value is Record<string, unknown> & { ok: true; debtId: string } {
+  return (
+    isRecord(value) && value.ok === true && typeof value.debtId === "string"
+  );
+}
+
+export type DebtMutationResult = Result<
+  {
+    debtId: string;
+    transactionId?: string;
+    paymentId?: string;
+    amount?: number;
+    remainingAmount?: number;
+    completed?: boolean;
+    idempotentReplay: boolean;
+  },
+  ProductActionErrorCode
+>;
 
 export const createDebtInputSchema = z
   .object({
@@ -81,22 +99,33 @@ export async function createDebt(
       p_account_id: parsed.data.accountId ?? null,
       p_idempotency_key: parsed.data.idempotencyKey,
     });
-    const payload = data as {
-      ok?: boolean;
-      debtId?: string;
-      transactionId?: string | null;
-      idempotentReplay?: boolean;
-    } | null;
-    if (error || !payload?.ok || !payload.debtId) {
+    if (error) {
+      const code = classifyDebtRpcError(error);
+      if (code === PRODUCT_ACTION_ERROR_CODE.UNKNOWN) {
+        logLedgerFailure(error, LEDGER_OPERATION.CREATE_DEBT, {
+          householdId: gate.householdId,
+        });
+      }
+      return { ok: false, code };
+    }
+    if (!isDebtSuccessPayload(data)) {
+      logLedgerFailure(null, LEDGER_OPERATION.CREATE_DEBT, {
+        householdId: gate.householdId,
+        responseInvalid: true,
+      });
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
     }
     return {
       ok: true,
-      debtId: payload.debtId,
-      transactionId: payload.transactionId ?? undefined,
-      idempotentReplay: Boolean(payload.idempotentReplay),
+      debtId: data.debtId,
+      transactionId:
+        typeof data.transactionId === "string" ? data.transactionId : undefined,
+      idempotentReplay: Boolean(data.idempotentReplay),
     };
-  } catch {
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.CREATE_DEBT, {
+      householdId: gate.householdId,
+    });
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }
 }
@@ -140,30 +169,48 @@ export async function recordDebtPayment(
         p_idempotency_key: parsed.data.idempotencyKey,
       },
     );
-    const payload = data as {
-      ok?: boolean;
-      debtId?: string;
-      transactionId?: string;
-      paymentId?: string;
-      amount?: number;
-      remainingAmount?: number;
-      completed?: boolean;
-      idempotentReplay?: boolean;
-    } | null;
-    if (error || !payload?.ok || !payload.debtId) {
+    if (error) {
+      const code = classifyDebtRpcError(error);
+      if (code === PRODUCT_ACTION_ERROR_CODE.UNKNOWN) {
+        logLedgerFailure(error, LEDGER_OPERATION.RECORD_DEBT_PAYMENT, {
+          householdId: gate.householdId,
+          debtId: parsed.data.debtId,
+          accountId: parsed.data.accountId,
+        });
+      }
+      return { ok: false, code };
+    }
+    if (!isDebtSuccessPayload(data)) {
+      logLedgerFailure(null, LEDGER_OPERATION.RECORD_DEBT_PAYMENT, {
+        householdId: gate.householdId,
+        debtId: parsed.data.debtId,
+        accountId: parsed.data.accountId,
+        responseInvalid: true,
+      });
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
     }
     return {
       ok: true,
-      debtId: payload.debtId,
-      transactionId: payload.transactionId,
-      paymentId: payload.paymentId,
-      amount: payload.amount,
-      remainingAmount: payload.remainingAmount,
-      completed: payload.completed,
-      idempotentReplay: Boolean(payload.idempotentReplay),
+      debtId: data.debtId,
+      transactionId:
+        typeof data.transactionId === "string" ? data.transactionId : undefined,
+      paymentId:
+        typeof data.paymentId === "string" ? data.paymentId : undefined,
+      amount: typeof data.amount === "number" ? data.amount : undefined,
+      remainingAmount:
+        typeof data.remainingAmount === "number"
+          ? data.remainingAmount
+          : undefined,
+      completed:
+        typeof data.completed === "boolean" ? data.completed : undefined,
+      idempotentReplay: Boolean(data.idempotentReplay),
     };
-  } catch {
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.RECORD_DEBT_PAYMENT, {
+      householdId: gate.householdId,
+      debtId: parsed.data.debtId,
+      accountId: parsed.data.accountId,
+    });
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }
 }

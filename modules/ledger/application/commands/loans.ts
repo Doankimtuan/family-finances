@@ -18,7 +18,6 @@ import {
   LOAN_INTEREST_STRATEGY_VALUES,
   LOAN_PAYMENT_EXECUTABLE_MODE_VALUES,
   LOAN_REPAYMENT_METHOD_VALUES,
-  RECORD_LOAN_PAYMENT_INVALID_ERROR_NEEDLES,
 } from "../ledger-constants";
 import {
   addMonthsYmd,
@@ -28,10 +27,25 @@ import {
   recomputeUpcomingSchedule,
 } from "../loan-amortization";
 import {
+  classifyLoanRpcError,
+  LEDGER_OPERATION,
+  logLedgerFailure,
+} from "../ledger-error";
+import {
   createLoanInputSchema,
   type CreateLoanInput,
 } from "./money-products.schema";
 import type { MoneyProductMutationResult } from "./shared";
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function isLoanSuccessPayload(
+  value: unknown,
+): value is Record<string, unknown> & { ok: true } {
+  return isRecord(value) && value.ok === true;
+}
 
 function initialRatePeriodsJson(input: {
   interestStrategy: (typeof LOAN_INTEREST_STRATEGY_VALUES)[number];
@@ -200,14 +214,26 @@ export async function createLoan(
       },
     );
     if (error) {
+      const code = classifyLoanRpcError(error);
+      if (code === PRODUCT_ACTION_ERROR_CODE.UNKNOWN) {
+        logLedgerFailure(error, LEDGER_OPERATION.CREATE_LOAN, {
+          householdId: gate.householdId,
+        });
+      }
+      return { ok: false, code };
+    }
+    if (!isLoanSuccessPayload(data) || typeof data.loanId !== "string") {
+      logLedgerFailure(null, LEDGER_OPERATION.CREATE_LOAN, {
+        householdId: gate.householdId,
+        responseInvalid: true,
+      });
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
     }
-    const payload = data as { ok?: boolean; loanId?: string } | null;
-    if (!payload?.ok || !payload.loanId) {
-      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
-    }
-    return { ok: true, id: payload.loanId };
-  } catch {
+    return { ok: true, id: data.loanId };
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.CREATE_LOAN, {
+      householdId: gate.householdId,
+    });
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }
 }
@@ -253,49 +279,58 @@ export async function recordLoanPayment(
       },
     );
     if (error) {
-      const message = error.message?.toLowerCase() ?? "";
-      if (
-        RECORD_LOAN_PAYMENT_INVALID_ERROR_NEEDLES.some((needle) =>
-          message.includes(needle),
-        )
-      ) {
-        return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
+      const code = classifyLoanRpcError(error);
+      if (code === PRODUCT_ACTION_ERROR_CODE.UNKNOWN) {
+        logLedgerFailure(error, LEDGER_OPERATION.RECORD_LOAN_PAYMENT, {
+          householdId: gate.householdId,
+          loanId: parsed.data.loanId,
+          accountId: parsed.data.accountId,
+        });
       }
-      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+      return { ok: false, code };
     }
-    const payload = data as {
-      ok?: boolean;
-      completed?: boolean;
-      inboxItemId?: string;
-      transactionId?: string;
-      paymentId?: string;
-      sourceDelta?: number;
-      amount?: number;
-      principalPaid?: number;
-      interestPaid?: number;
-      feePaid?: number;
-      remainingPrincipal?: number;
-      scheduleEntryId?: string;
-    } | null;
-    if (!payload?.ok) {
+    if (!isLoanSuccessPayload(data)) {
+      logLedgerFailure(null, LEDGER_OPERATION.RECORD_LOAN_PAYMENT, {
+        householdId: gate.householdId,
+        loanId: parsed.data.loanId,
+        accountId: parsed.data.accountId,
+        responseInvalid: true,
+      });
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
     }
     return {
       ok: true,
       id: parsed.data.loanId,
-      completed: Boolean(payload.completed),
-      inboxItemId: payload.inboxItemId,
-      transactionId: payload.transactionId,
-      paymentId: payload.paymentId,
-      sourceDelta: payload.sourceDelta,
-      amount: payload.amount,
-      principalPaid: payload.principalPaid,
-      interestPaid: payload.interestPaid,
-      feePaid: payload.feePaid ?? 0,
-      remainingPrincipal: payload.remainingPrincipal,
-      scheduleEntryId: payload.scheduleEntryId,
+      completed: Boolean(data.completed),
+      inboxItemId:
+        typeof data.inboxItemId === "string" ? data.inboxItemId : undefined,
+      transactionId:
+        typeof data.transactionId === "string" ? data.transactionId : undefined,
+      paymentId:
+        typeof data.paymentId === "string" ? data.paymentId : undefined,
+      sourceDelta:
+        typeof data.sourceDelta === "number" ? data.sourceDelta : undefined,
+      amount: typeof data.amount === "number" ? data.amount : undefined,
+      principalPaid:
+        typeof data.principalPaid === "number" ? data.principalPaid : undefined,
+      interestPaid:
+        typeof data.interestPaid === "number" ? data.interestPaid : undefined,
+      feePaid: typeof data.feePaid === "number" ? data.feePaid : 0,
+      remainingPrincipal:
+        typeof data.remainingPrincipal === "number"
+          ? data.remainingPrincipal
+          : undefined,
+      scheduleEntryId:
+        typeof data.scheduleEntryId === "string"
+          ? data.scheduleEntryId
+          : undefined,
     };
-  } catch {
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.RECORD_LOAN_PAYMENT, {
+      householdId: gate.householdId,
+      loanId: parsed.data.loanId,
+      accountId: parsed.data.accountId,
+    });
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }
 }
@@ -356,10 +391,18 @@ export async function updateLoanMetadata(
       .eq("status", LoanStatus.ACTIVE);
 
     if (error) {
+      logLedgerFailure(error, LEDGER_OPERATION.UPDATE_LOAN_METADATA, {
+        householdId: gate.householdId,
+        loanId: parsed.data.loanId,
+      });
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
     }
     return { ok: true, id: parsed.data.loanId };
-  } catch {
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.UPDATE_LOAN_METADATA, {
+      householdId: gate.householdId,
+      loanId: parsed.data.loanId,
+    });
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }
 }
@@ -397,14 +440,29 @@ export async function setLoanStatus(
       p_status: parsed.data.status,
     });
     if (error) {
-      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
+      const code = classifyLoanRpcError(error);
+      if (code === PRODUCT_ACTION_ERROR_CODE.UNKNOWN) {
+        logLedgerFailure(error, LEDGER_OPERATION.SET_LOAN_STATUS, {
+          householdId: gate.householdId,
+          loanId: parsed.data.loanId,
+        });
+      }
+      return { ok: false, code };
     }
-    const payload = data as { ok?: boolean } | null;
-    if (!payload?.ok) {
+    if (!isLoanSuccessPayload(data)) {
+      logLedgerFailure(null, LEDGER_OPERATION.SET_LOAN_STATUS, {
+        householdId: gate.householdId,
+        loanId: parsed.data.loanId,
+        responseInvalid: true,
+      });
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
     }
     return { ok: true, id: parsed.data.loanId };
-  } catch {
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.SET_LOAN_STATUS, {
+      householdId: gate.householdId,
+      loanId: parsed.data.loanId,
+    });
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }
 }
@@ -445,7 +503,14 @@ export async function updateLoanInterestRate(
       .eq("id", parsed.data.loanId)
       .eq("household_id", gate.householdId)
       .maybeSingle();
-    if (loanError || !loanRow) {
+    if (loanError) {
+      logLedgerFailure(loanError, LEDGER_OPERATION.UPDATE_LOAN_INTEREST_RATE, {
+        householdId: gate.householdId,
+        loanId: parsed.data.loanId,
+      });
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    }
+    if (!loanRow) {
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
     }
 
@@ -572,29 +637,52 @@ export async function updateLoanInterestRate(
       },
     );
     if (error) {
-      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
+      const code = classifyLoanRpcError(error);
+      if (code === PRODUCT_ACTION_ERROR_CODE.UNKNOWN) {
+        logLedgerFailure(error, LEDGER_OPERATION.UPDATE_LOAN_INTEREST_RATE, {
+          householdId: gate.householdId,
+          loanId: parsed.data.loanId,
+        });
+      }
+      return { ok: false, code };
     }
-    const payload = data as {
-      ok?: boolean;
-      effectiveFrom?: string;
-      newRate?: number;
-      futureEntriesBefore?: number;
-      futureEntriesAfter?: number;
-      historicalUnchanged?: boolean;
-    } | null;
-    if (!payload?.ok) {
+    if (!isLoanSuccessPayload(data)) {
+      logLedgerFailure(null, LEDGER_OPERATION.UPDATE_LOAN_INTEREST_RATE, {
+        householdId: gate.householdId,
+        loanId: parsed.data.loanId,
+        responseInvalid: true,
+      });
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
     }
     return {
       ok: true,
       id: parsed.data.loanId,
-      effectiveFrom: payload.effectiveFrom ?? parsed.data.effectiveFrom,
-      newRate: payload.newRate ?? parsed.data.annualInterestRate,
-      futureEntriesBefore: payload.futureEntriesBefore,
-      futureEntriesAfter: payload.futureEntriesAfter,
-      historicalUnchanged: payload.historicalUnchanged ?? true,
+      effectiveFrom:
+        typeof data.effectiveFrom === "string"
+          ? data.effectiveFrom
+          : parsed.data.effectiveFrom,
+      newRate:
+        typeof data.newRate === "number"
+          ? data.newRate
+          : parsed.data.annualInterestRate,
+      futureEntriesBefore:
+        typeof data.futureEntriesBefore === "number"
+          ? data.futureEntriesBefore
+          : undefined,
+      futureEntriesAfter:
+        typeof data.futureEntriesAfter === "number"
+          ? data.futureEntriesAfter
+          : undefined,
+      historicalUnchanged:
+        typeof data.historicalUnchanged === "boolean"
+          ? data.historicalUnchanged
+          : true,
     };
-  } catch {
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.UPDATE_LOAN_INTEREST_RATE, {
+      householdId: gate.householdId,
+      loanId: parsed.data.loanId,
+    });
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }
 }

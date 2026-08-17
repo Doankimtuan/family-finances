@@ -90,8 +90,11 @@ dead code introduced by the refactor
    mapper. Prefer guard clauses, `switch`, lookup tables, or named resolver
    helpers (see `code-quality` control-flow sections).
 7. Error audit: no new `catch {}`, no message-string branching, typed codes
-   for expected failures.
-8. Dead code: exports, constants, components, and branches orphaned by the
+   for expected failures, and no swallowed exceptions.
+8. Boundary audit: no raw error messages exposed to UI, no generic `UNKNOWN`
+   without logging, no duplicated error mappings, no fragile message parsing,
+   no weak `string` error-code types, and no competing Result shapes.
+9. Dead code: exports, constants, components, and branches orphaned by the
    refactor are deleted, not left "just in case".
 
 ## The Final Question

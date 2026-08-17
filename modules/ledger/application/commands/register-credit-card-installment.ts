@@ -22,6 +22,12 @@ import {
   buildCreditCardInstallmentPreview,
   type CreditCardInstallmentPreview,
 } from "../credit-card-installments";
+import type { Result } from "@/modules/shared-kernel/application/result";
+import {
+  classifyInstallmentRpcError,
+  LEDGER_OPERATION,
+  logLedgerFailure,
+} from "../ledger-error";
 
 const wholeVnd = z.number().finite().int().nonnegative();
 const positiveVnd = z.number().finite().int().positive();
@@ -115,9 +121,10 @@ export const registerCreditCardInstallmentInputSchema = z
 export type RegisterCreditCardInstallmentInput = z.infer<
   typeof registerCreditCardInstallmentInputSchema
 >;
-export type RegisterCreditCardInstallmentResult =
-  | { ok: true; installmentId: string; preview: CreditCardInstallmentPreview }
-  | { ok: false; code: ProductActionErrorCode };
+export type RegisterCreditCardInstallmentResult = Result<
+  { installmentId: string; preview: CreditCardInstallmentPreview },
+  ProductActionErrorCode
+>;
 
 /** Creates local schedule metadata only; the existing billing ledger owns debt. */
 export async function registerCreditCardInstallment(
@@ -132,29 +139,44 @@ export async function registerCreditCardInstallment(
 
   try {
     const supabase = await createSupabaseServerClient();
-    const [{ data: card }, { data: source }, { data: existing }] =
-      await Promise.all([
-        supabase
-          .from("accounts")
-          .select("id, type, is_archived")
-          .eq("id", parsed.data.cardAccountId)
-          .eq("household_id", gate.householdId)
-          .maybeSingle(),
-        supabase
-          .from("transactions")
-          .select(
-            "id, account_id, type, amount, note, reverses_transaction_id, corrects_transaction_id",
-          )
-          .eq("id", parsed.data.sourceTransactionId)
-          .eq("household_id", gate.householdId)
-          .maybeSingle(),
-        supabase
-          .from("credit_card_installments")
-          .select("id")
-          .eq("household_id", gate.householdId)
-          .eq("source_transaction_id", parsed.data.sourceTransactionId)
-          .maybeSingle(),
-      ]);
+    const [
+      { data: card, error: cardError },
+      { data: source, error: sourceError },
+      { data: existing, error: existingError },
+    ] = await Promise.all([
+      supabase
+        .from("accounts")
+        .select("id, type, is_archived")
+        .eq("id", parsed.data.cardAccountId)
+        .eq("household_id", gate.householdId)
+        .maybeSingle(),
+      supabase
+        .from("transactions")
+        .select(
+          "id, account_id, type, amount, note, reverses_transaction_id, corrects_transaction_id",
+        )
+        .eq("id", parsed.data.sourceTransactionId)
+        .eq("household_id", gate.householdId)
+        .maybeSingle(),
+      supabase
+        .from("credit_card_installments")
+        .select("id")
+        .eq("household_id", gate.householdId)
+        .eq("source_transaction_id", parsed.data.sourceTransactionId)
+        .maybeSingle(),
+    ]);
+    if (cardError || sourceError || existingError) {
+      logLedgerFailure(
+        cardError ?? sourceError ?? existingError,
+        LEDGER_OPERATION.REGISTER_CREDIT_CARD_INSTALLMENT,
+        {
+          householdId: gate.householdId,
+          cardAccountId: parsed.data.cardAccountId,
+          sourceTransactionId: parsed.data.sourceTransactionId,
+        },
+      );
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    }
     if (
       !card ||
       card.is_archived ||
@@ -217,8 +239,34 @@ export async function registerCreditCardInstallment(
       })
       .select("id")
       .single();
-    if (installmentError || !installment?.id)
+    if (installmentError) {
+      const code = classifyInstallmentRpcError(installmentError);
+      if (code === PRODUCT_ACTION_ERROR_CODE.UNKNOWN) {
+        logLedgerFailure(
+          installmentError,
+          LEDGER_OPERATION.REGISTER_CREDIT_CARD_INSTALLMENT,
+          {
+            householdId: gate.householdId,
+            cardAccountId: parsed.data.cardAccountId,
+            sourceTransactionId: parsed.data.sourceTransactionId,
+          },
+        );
+      }
+      return { ok: false, code };
+    }
+    if (!installment?.id) {
+      logLedgerFailure(
+        null,
+        LEDGER_OPERATION.REGISTER_CREDIT_CARD_INSTALLMENT,
+        {
+          householdId: gate.householdId,
+          cardAccountId: parsed.data.cardAccountId,
+          sourceTransactionId: parsed.data.sourceTransactionId,
+          responseInvalid: true,
+        },
+      );
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    }
 
     const { error: scheduleError } = await supabase
       .from("credit_card_installment_schedule")
@@ -236,15 +284,40 @@ export async function registerCreditCardInstallment(
         })),
       );
     if (scheduleError) {
-      await supabase
+      logLedgerFailure(
+        scheduleError,
+        LEDGER_OPERATION.REGISTER_CREDIT_CARD_INSTALLMENT,
+        {
+          householdId: gate.householdId,
+          cardAccountId: parsed.data.cardAccountId,
+          installmentId: installment.id,
+        },
+      );
+      const { error: cleanupError } = await supabase
         .from("credit_card_installments")
         .delete()
         .eq("id", installment.id)
         .eq("household_id", gate.householdId);
+      if (cleanupError) {
+        logLedgerFailure(
+          cleanupError,
+          LEDGER_OPERATION.REGISTER_CREDIT_CARD_INSTALLMENT,
+          {
+            householdId: gate.householdId,
+            cardAccountId: parsed.data.cardAccountId,
+            installmentId: installment.id,
+          },
+        );
+      }
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
     }
     return { ok: true, installmentId: installment.id, preview };
-  } catch {
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.REGISTER_CREDIT_CARD_INSTALLMENT, {
+      householdId: gate.householdId,
+      cardAccountId: parsed.data.cardAccountId,
+      sourceTransactionId: parsed.data.sourceTransactionId,
+    });
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }
 }

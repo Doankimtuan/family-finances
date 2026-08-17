@@ -55,6 +55,10 @@ When catching at a boundary:
   allowed logger per ESLint config
 - return the typed result or a user-facing message contract
 
+Explicit review rule: flag `catch {}`, empty catches, and catches that discard
+the original exception without a documented reason. A safe `UNKNOWN` result is
+only valid when the unexpected failure is logged with operation context.
+
 ## Supabase and RPC Errors
 
 - Treat `supabase-js` / PostgREST errors as infrastructure input: map to your
@@ -105,6 +109,16 @@ Unexpected throws are caught at the action boundary, logged, and surfaced as
 - throwing for expected business outcomes
 - leaking Supabase/Postgres error objects into components
 - one giant `UNKNOWN` error code covering every case
+
+When a legacy RPC exposes only human-readable text, isolate the compatibility
+fallback behind one semantic classifier. Structured `code`, `details`, and
+`hint` metadata always takes precedence; do not scatter `message.includes`,
+`message.startsWith`, or regular expressions over consumers.
+
+Result ownership: expected domain failures use typed domain codes; unexpected
+failures are logged at the boundary and mapped to a safe public code. The UI
+receives stable codes and translates them; it never interprets raw database or
+infrastructure errors.
 
 ## Related Skills
 

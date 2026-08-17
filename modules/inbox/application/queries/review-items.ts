@@ -3,9 +3,11 @@ import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-m
 import {
   InboxItemStatus,
   INBOX_ARCHIVED_STATUS_VALUES,
+  INBOX_OPERATION,
   InboxSourceType,
 } from "../inbox-constants";
 import type { InboxReviewItem } from "../inbox-types";
+import { logInboxFailure } from "../inbox-error";
 import {
   mapInboxRow,
   type InboxItemRow,
@@ -14,7 +16,6 @@ import {
 
 const INBOX_SELECT =
   "id, kind, status, title, amount, currency, source_id, source_type, created_at, expires_at, auto_resolved, confidence_score, suggested_jar_id, suggested_category_id, context_json, assigned_to_user_id";
-const INBOX_QUERY_ERROR_CONTEXT = "[inbox review-item query]";
 
 type SupabaseServerClient = Awaited<
   ReturnType<typeof createSupabaseServerClient>
@@ -50,7 +51,7 @@ async function enrichWithTransactionDetails(
       .select("id, note, categories(name), accounts(name)")
       .in("id", txIds);
 
-    if (error) console.error(INBOX_QUERY_ERROR_CONTEXT, error);
+    if (error) throw error;
 
     const transactionRows: unknown = txs;
     if (Array.isArray(transactionRows)) {
@@ -83,13 +84,18 @@ export async function listOpenInboxItems(): Promise<InboxReviewItem[] | null> {
       .order("created_at", { ascending: false });
 
     if (error) {
-      console.error(INBOX_QUERY_ERROR_CONTEXT, error);
+      logInboxFailure(error, INBOX_OPERATION.LIST_OPEN, {
+        householdId: gate.householdId,
+      });
       return null;
     }
 
-    return enrichWithTransactionDetails(supabase, data ?? []);
+    const items = await enrichWithTransactionDetails(supabase, data ?? []);
+    return items;
   } catch (error) {
-    console.error(INBOX_QUERY_ERROR_CONTEXT, error);
+    logInboxFailure(error, INBOX_OPERATION.LIST_OPEN, {
+      householdId: gate.householdId,
+    });
     return null;
   }
 }
@@ -112,13 +118,18 @@ export async function listArchivedInboxItems(): Promise<
       .limit(100);
 
     if (error) {
-      console.error(INBOX_QUERY_ERROR_CONTEXT, error);
+      logInboxFailure(error, INBOX_OPERATION.LIST_ARCHIVED, {
+        householdId: gate.householdId,
+      });
       return null;
     }
 
-    return enrichWithTransactionDetails(supabase, data ?? []);
+    const items = await enrichWithTransactionDetails(supabase, data ?? []);
+    return items;
   } catch (error) {
-    console.error(INBOX_QUERY_ERROR_CONTEXT, error);
+    logInboxFailure(error, INBOX_OPERATION.LIST_ARCHIVED, {
+      householdId: gate.householdId,
+    });
     return null;
   }
 }
@@ -140,14 +151,22 @@ export async function getInboxItem(
       .maybeSingle();
 
     if (error || !data) {
-      if (error) console.error(INBOX_QUERY_ERROR_CONTEXT, error);
+      if (error) {
+        logInboxFailure(error, INBOX_OPERATION.GET_ITEM, {
+          householdId: gate.householdId,
+          inboxItemId,
+        });
+      }
       return null;
     }
 
     const [item] = await enrichWithTransactionDetails(supabase, [data]);
     return item ?? null;
   } catch (error) {
-    console.error(INBOX_QUERY_ERROR_CONTEXT, error);
+    logInboxFailure(error, INBOX_OPERATION.GET_ITEM, {
+      householdId: gate.householdId,
+      inboxItemId,
+    });
     return null;
   }
 }

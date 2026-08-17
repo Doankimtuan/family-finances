@@ -1,5 +1,6 @@
 import { getSupabaseEnv } from "@/modules/platform/supabase/env";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
+import type { Result } from "@/modules/shared-kernel/application/result";
 import {
   createHouseholdInputSchema,
   type CreateHouseholdInput,
@@ -8,10 +9,15 @@ import { getSessionUser } from "./get-session-user";
 import { resolveActiveMembership } from "./resolve-active-membership";
 import {
   HOUSEHOLD_ERROR_CODE,
-  INVITATION_RPC_MESSAGE_NEEDLE,
   type HouseholdErrorCode,
 } from "./tenancy-constants";
 import { DEFAULT_CURRENCY } from "@/modules/shared-kernel/currency";
+import {
+  classifyHouseholdRpcError,
+  HOUSEHOLD_RPC_OPERATION,
+  logTenancyFailure,
+} from "./tenancy-error";
+import { TENANCY_OPERATION } from "./tenancy-constants";
 
 export type CreateHouseholdErrorCode = Extract<
   HouseholdErrorCode,
@@ -22,9 +28,10 @@ export type CreateHouseholdErrorCode = Extract<
   | typeof HOUSEHOLD_ERROR_CODE.UNKNOWN
 >;
 
-export type CreateHouseholdResult =
-  | { ok: true; householdId: string }
-  | { ok: false; code: CreateHouseholdErrorCode };
+export type CreateHouseholdResult = Result<
+  { householdId: string },
+  CreateHouseholdErrorCode
+>;
 
 /**
  * Create household + owner membership + account/jar seeds (AC-012 / AC-014 / BR-12).
@@ -66,22 +73,33 @@ export async function createHousehold(
     );
 
     if (error) {
-      const message = (error.message ?? "").toLowerCase();
-      if (message.includes(INVITATION_RPC_MESSAGE_NEEDLE.ALREADY_BELONGS)) {
-        return { ok: false, code: HOUSEHOLD_ERROR_CODE.ALREADY_MEMBER };
+      const mapped = classifyHouseholdRpcError(
+        error,
+        HOUSEHOLD_RPC_OPERATION.CREATE,
+      );
+      const code =
+        mapped === HOUSEHOLD_ERROR_CODE.NO_HOUSEHOLD ||
+        mapped === HOUSEHOLD_ERROR_CODE.FORBIDDEN ||
+        mapped === HOUSEHOLD_ERROR_CODE.MEMBER_NOT_FOUND
+          ? HOUSEHOLD_ERROR_CODE.UNKNOWN
+          : mapped;
+      if (code === HOUSEHOLD_ERROR_CODE.UNKNOWN) {
+        logTenancyFailure(TENANCY_OPERATION.HOUSEHOLD_CREATE, error);
       }
-      if (message.includes("at least 2") || message.includes("name")) {
-        return { ok: false, code: HOUSEHOLD_ERROR_CODE.INVALID };
-      }
-      return { ok: false, code: HOUSEHOLD_ERROR_CODE.UNKNOWN };
+      return { ok: false, code };
     }
 
     if (typeof data !== "string" || data.length === 0) {
+      logTenancyFailure(
+        TENANCY_OPERATION.HOUSEHOLD_CREATE,
+        new Error("create household returned an invalid id"),
+      );
       return { ok: false, code: HOUSEHOLD_ERROR_CODE.UNKNOWN };
     }
 
     return { ok: true, householdId: data };
-  } catch {
+  } catch (error) {
+    logTenancyFailure(TENANCY_OPERATION.HOUSEHOLD_CREATE, error);
     return { ok: false, code: HOUSEHOLD_ERROR_CODE.UNKNOWN };
   }
 }

@@ -8,9 +8,16 @@ import {
 import {
   AccountType,
   LEDGER_ACTION_ERROR_CODE,
+  LedgerRpcName,
   TransactionDirection,
   type LedgerActionErrorCode,
 } from "../ledger-constants";
+import type { Result } from "@/modules/shared-kernel/application/result";
+import {
+  classifyRecordTransactionRpcError,
+  LEDGER_OPERATION,
+  logLedgerFailure,
+} from "../ledger-error";
 import { wouldExceedCreditLimit } from "../credit-card-billing";
 import {
   assignCardBillingForTransaction,
@@ -24,14 +31,36 @@ import {
 export type RecordTransactionErrorCode =
   ProductActionErrorCode | LedgerActionErrorCode;
 
-export type RecordTransactionResult =
-  | {
-      ok: true;
-      transactionId: string;
-      inboxItemId: string | null;
-      idempotent: boolean;
-    }
-  | { ok: false; code: RecordTransactionErrorCode };
+export type RecordTransactionResult = Result<
+  {
+    transactionId: string;
+    inboxItemId: string | null;
+    idempotent: boolean;
+  },
+  RecordTransactionErrorCode
+>;
+
+type RecordTransactionRpcPayload = {
+  transaction_id: string;
+  inbox_item_id?: unknown;
+  idempotent?: unknown;
+};
+
+function isRecordTransactionRpcPayload(
+  value: unknown,
+): value is RecordTransactionRpcPayload {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "transaction_id" in value &&
+    typeof value.transaction_id === "string"
+  );
+}
+
+export {
+  recordTransactionInputSchema,
+  type RecordTransactionInput,
+} from "./record-transaction.schema";
 
 /**
  * Record income/expense with positive magnitude + explicit direction (BR-06).
@@ -55,7 +84,7 @@ export async function recordTransaction(
 
   try {
     const supabase = await createSupabaseServerClient();
-    const { data: account } = await supabase
+    const { data: account, error: accountError } = await supabase
       .from("accounts")
       .select("id, type")
       .eq("household_id", gate.householdId)
@@ -63,6 +92,13 @@ export async function recordTransaction(
       .eq("is_archived", false)
       .maybeSingle();
 
+    if (accountError) {
+      logLedgerFailure(accountError, LEDGER_OPERATION.RECORD_TRANSACTION, {
+        householdId: gate.householdId,
+        accountId: parsed.data.accountId,
+      });
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    }
     if (!account) {
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
     }
@@ -98,30 +134,40 @@ export async function recordTransaction(
     const txDate =
       parsed.data.transactionDate ?? new Date().toISOString().slice(0, 10);
 
-    const { data, error } = await supabase.rpc("record_transaction", {
-      p_account_id: parsed.data.accountId,
-      p_type: parsed.data.type,
-      p_amount: parsed.data.amount,
-      p_transaction_date: txDate,
-      p_note: parsed.data.note ?? null,
-      p_category_id: parsed.data.categoryId ?? null,
-      p_jar_id: parsed.data.jarId ?? null,
-      p_idempotency_key: parsed.data.idempotencyKey ?? null,
-    });
+    const { data, error } = await supabase.rpc(
+      LedgerRpcName.RECORD_TRANSACTION,
+      {
+        p_account_id: parsed.data.accountId,
+        p_type: parsed.data.type,
+        p_amount: parsed.data.amount,
+        p_transaction_date: txDate,
+        p_note: parsed.data.note ?? null,
+        p_category_id: parsed.data.categoryId ?? null,
+        p_jar_id: parsed.data.jarId ?? null,
+        p_idempotency_key: parsed.data.idempotencyKey ?? null,
+      },
+    );
 
-    if (error || !data || typeof data !== "object") {
-      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    if (error) {
+      const code = classifyRecordTransactionRpcError(error);
+      if (code === PRODUCT_ACTION_ERROR_CODE.UNKNOWN) {
+        logLedgerFailure(error, LEDGER_OPERATION.RECORD_TRANSACTION, {
+          householdId: gate.householdId,
+          accountId: parsed.data.accountId,
+        });
+      }
+      return { ok: false, code };
     }
 
-    const payload = data as {
-      transaction_id?: string;
-      inbox_item_id?: string | null;
-      idempotent?: boolean;
-    };
-
-    if (!payload.transaction_id) {
+    if (!isRecordTransactionRpcPayload(data)) {
+      logLedgerFailure(null, LEDGER_OPERATION.RECORD_TRANSACTION, {
+        householdId: gate.householdId,
+        accountId: parsed.data.accountId,
+        responseInvalid: true,
+      });
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
     }
+    const payload = data;
 
     if (isCard && cardMeta && !payload.idempotent) {
       const mode =
@@ -144,10 +190,17 @@ export async function recordTransaction(
     return {
       ok: true,
       transactionId: payload.transaction_id,
-      inboxItemId: payload.inbox_item_id ?? null,
+      inboxItemId:
+        typeof payload.inbox_item_id === "string"
+          ? payload.inbox_item_id
+          : null,
       idempotent: Boolean(payload.idempotent),
     };
-  } catch {
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.RECORD_TRANSACTION, {
+      householdId: gate.householdId,
+      accountId: parsed.data.accountId,
+    });
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }
 }

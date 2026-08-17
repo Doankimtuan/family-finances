@@ -136,3 +136,13 @@ export const SETTLE_CARD_INVALID_ERROR_NEEDLES = [
   "no remaining",
   "cannot be",
 ] as const;
+
+/** Compatibility markers for the legacy card settlement RPC. */
+export const CARD_LEGACY_RPC_ERROR_MARKERS = [
+  ...SETTLE_CARD_INVALID_ERROR_NEEDLES,
+  "authentication required",
+  "not a household member",
+  "card not found",
+  "source account not found",
+  "card settings not found",
+] as const;

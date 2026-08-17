@@ -1,6 +1,13 @@
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
+import { PRODUCT_ACTION_ERROR_CODE } from "@/modules/tenancy/application/product-action-error";
 import type { SavingProvider, SavingPackage } from "./savings-types";
 import { mapProviderRow, mapPackageRow } from "./savings-types";
+import { SAVINGS_OPERATION } from "./savings-constants";
+import {
+  classifySavingsRpcError,
+  isRecord,
+  logSavingsFailure,
+} from "./savings-error";
 
 /**
  * Provider registry — resolves providers and packages from configurable DB rows.
@@ -25,9 +32,17 @@ export async function listProviders(): Promise<SavingProvider[] | null> {
       .eq("is_active", true)
       .eq("saving_packages.is_active", true)
       .order("display_name");
-    if (error) return null;
+    if (error) {
+      if (
+        classifySavingsRpcError(error) === PRODUCT_ACTION_ERROR_CODE.UNKNOWN
+      ) {
+        logSavingsFailure(error, SAVINGS_OPERATION.PROVIDER_REGISTRY, {});
+      }
+      return null;
+    }
     return (data ?? []).map(mapProviderRow);
-  } catch {
+  } catch (error) {
+    logSavingsFailure(error, SAVINGS_OPERATION.PROVIDER_REGISTRY, {});
     return null;
   }
 }
@@ -46,7 +61,14 @@ export async function listProviderCatalog(): Promise<
       .eq("is_active", true)
       .eq("saving_packages.is_active", true)
       .order("display_name");
-    if (error) return null;
+    if (error) {
+      if (
+        classifySavingsRpcError(error) === PRODUCT_ACTION_ERROR_CODE.UNKNOWN
+      ) {
+        logSavingsFailure(error, SAVINGS_OPERATION.PROVIDER_REGISTRY, {});
+      }
+      return null;
+    }
     return (data ?? []).map((row) => {
       const provider = mapProviderRow(row);
       const rawPackages = Array.isArray(row.saving_packages)
@@ -57,7 +79,8 @@ export async function listProviderCatalog(): Promise<
         packages: rawPackages.map((pkg) => mapPackageRow(pkg)),
       };
     });
-  } catch {
+  } catch (error) {
+    logSavingsFailure(error, SAVINGS_OPERATION.PROVIDER_REGISTRY, {});
     return null;
   }
 }
@@ -74,9 +97,22 @@ export async function getProvider(
       .eq("id", providerId)
       .maybeSingle();
 
-    if (error || !data) return null;
+    if (error) {
+      if (
+        classifySavingsRpcError(error) === PRODUCT_ACTION_ERROR_CODE.UNKNOWN
+      ) {
+        logSavingsFailure(error, SAVINGS_OPERATION.PROVIDER_REGISTRY, {
+          providerId,
+        });
+      }
+      return null;
+    }
+    if (!data) return null;
     return mapProviderRow(data);
-  } catch {
+  } catch (error) {
+    logSavingsFailure(error, SAVINGS_OPERATION.PROVIDER_REGISTRY, {
+      providerId,
+    });
     return null;
   }
 }
@@ -94,9 +130,18 @@ export async function getProviderByKey(
       .eq("provider_key", providerKey)
       .maybeSingle();
 
-    if (error || !data) return null;
+    if (error) {
+      if (
+        classifySavingsRpcError(error) === PRODUCT_ACTION_ERROR_CODE.UNKNOWN
+      ) {
+        logSavingsFailure(error, SAVINGS_OPERATION.PROVIDER_REGISTRY, {});
+      }
+      return null;
+    }
+    if (!data) return null;
     return mapProviderRow(data);
-  } catch {
+  } catch (error) {
+    logSavingsFailure(error, SAVINGS_OPERATION.PROVIDER_REGISTRY, {});
     return null;
   }
 }
@@ -113,9 +158,21 @@ export async function listProviderPackages(
       .eq("is_active", true)
       .order("duration_days");
 
-    if (error) return null;
+    if (error) {
+      if (
+        classifySavingsRpcError(error) === PRODUCT_ACTION_ERROR_CODE.UNKNOWN
+      ) {
+        logSavingsFailure(error, SAVINGS_OPERATION.PROVIDER_REGISTRY, {
+          providerId,
+        });
+      }
+      return null;
+    }
     return (data ?? []).map(mapPackageRow);
-  } catch {
+  } catch (error) {
+    logSavingsFailure(error, SAVINGS_OPERATION.PROVIDER_REGISTRY, {
+      providerId,
+    });
     return null;
   }
 }
@@ -131,9 +188,22 @@ export async function getPackage(
       .eq("id", packageId)
       .maybeSingle();
 
-    if (error || !data) return null;
+    if (error) {
+      if (
+        classifySavingsRpcError(error) === PRODUCT_ACTION_ERROR_CODE.UNKNOWN
+      ) {
+        logSavingsFailure(error, SAVINGS_OPERATION.PROVIDER_REGISTRY, {
+          packageId,
+        });
+      }
+      return null;
+    }
+    if (!data) return null;
     return mapPackageRow(data);
-  } catch {
+  } catch (error) {
+    logSavingsFailure(error, SAVINGS_OPERATION.PROVIDER_REGISTRY, {
+      packageId,
+    });
     return null;
   }
 }
@@ -160,13 +230,22 @@ export async function resolvePackageSnapshot(packageId: string): Promise<{
       .eq("saving_providers.is_active", true)
       .maybeSingle();
 
-    if (error || !data) return null;
+    if (error) {
+      if (
+        classifySavingsRpcError(error) === PRODUCT_ACTION_ERROR_CODE.UNKNOWN
+      ) {
+        logSavingsFailure(error, SAVINGS_OPERATION.PROVIDER_REGISTRY, {
+          packageId,
+        });
+      }
+      return null;
+    }
+    if (!data) return null;
 
     const pkg = mapPackageRow(data);
 
-    // Supabase joins may return arrays
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const spRaw = (data as any)?.saving_providers;
+    // Supabase joins may return arrays.
+    const spRaw = isRecord(data) ? data.saving_providers : undefined;
     const providerRecord = Array.isArray(spRaw) ? spRaw[0] : spRaw;
     const providerName = providerRecord?.display_name ?? "";
 
@@ -196,7 +275,10 @@ export async function resolvePackageSnapshot(packageId: string): Promise<{
       providerFamily: providerRecord?.family ?? undefined,
       providerKey: providerRecord?.provider_key ?? undefined,
     };
-  } catch {
+  } catch (error) {
+    logSavingsFailure(error, SAVINGS_OPERATION.PROVIDER_REGISTRY, {
+      packageId,
+    });
     return null;
   }
 }

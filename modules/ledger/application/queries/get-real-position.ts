@@ -8,6 +8,7 @@ import {
   DEFAULT_CURRENCY,
   TRANSACTION_BALANCE_STATUS_VALUES,
 } from "../ledger-constants";
+import { LEDGER_OPERATION, logLedgerFailure } from "../ledger-error";
 
 /**
  * Real position = opening balances ± cleared ledger transactions (BR-01).
@@ -43,6 +44,9 @@ export async function getRealPosition(): Promise<RealPosition | null> {
       ]);
 
     if (error) {
+      logLedgerFailure(error, LEDGER_OPERATION.GET_REAL_POSITION, {
+        householdId: gate.householdId,
+      });
       return null;
     }
 
@@ -67,7 +71,10 @@ export async function getRealPosition(): Promise<RealPosition | null> {
       totalBalance,
       accounts,
     };
-  } catch {
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.GET_REAL_POSITION, {
+      householdId: gate.householdId,
+    });
     return null;
   }
 }

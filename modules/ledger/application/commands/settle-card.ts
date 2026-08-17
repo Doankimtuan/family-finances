@@ -12,8 +12,13 @@ import {
   createCardPaymentIdempotencyKey,
   ISO_DATE_PATTERN,
   LedgerRpcName,
-  SETTLE_CARD_INVALID_ERROR_NEEDLES,
 } from "../ledger-constants";
+import type { Result } from "@/modules/shared-kernel/application/result";
+import {
+  classifyCardRpcError,
+  LEDGER_OPERATION,
+  logLedgerFailure,
+} from "../ledger-error";
 
 export const settleCardInputSchema = z.object({
   cardAccountId: z.string().uuid(),
@@ -30,23 +35,17 @@ export const settleCardInputSchema = z.object({
 
 export type SettleCardInput = z.infer<typeof settleCardInputSchema>;
 
-export type SettleCardResult =
-  | {
-      ok: true;
-      transactionId: string;
-      paymentId: string;
-      sourceDelta: number;
-      appliedAmount: number;
-      remainingDue: number;
-      idempotentReplay: boolean;
-    }
-  | { ok: false; code: ProductActionErrorCode };
-
-function isSettleCardInvalidMessage(message: string): boolean {
-  return SETTLE_CARD_INVALID_ERROR_NEEDLES.some((needle) =>
-    message.includes(needle),
-  );
-}
+export type SettleCardResult = Result<
+  {
+    transactionId: string;
+    paymentId: string;
+    sourceDelta: number;
+    appliedAmount: number;
+    remainingDue: number;
+    idempotentReplay: boolean;
+  },
+  ProductActionErrorCode
+>;
 
 /**
  * Atomic card liability payment via settle_card_payment RPC.
@@ -89,35 +88,45 @@ export async function settleCard(
     );
 
     if (error) {
-      const message = error.message?.toLowerCase() ?? "";
-      if (isSettleCardInvalidMessage(message)) {
-        return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
+      const code = classifyCardRpcError(error);
+      if (code === PRODUCT_ACTION_ERROR_CODE.UNKNOWN) {
+        logLedgerFailure(error, LEDGER_OPERATION.SETTLE_CARD, {
+          householdId: gate.householdId,
+          cardAccountId: parsed.data.cardAccountId,
+          sourceAccountId: parsed.data.sourceAccountId,
+        });
       }
-      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+      return { ok: false, code };
     }
 
-    const payload = data as {
-      ok?: boolean;
-      transactionId?: string;
-      paymentId?: string;
-      sourceDelta?: number;
-      appliedAmount?: number;
-      remainingDue?: number;
-      idempotentReplay?: boolean;
-    } | null;
-
-    const sourceDelta = Number(payload?.sourceDelta);
-    const appliedAmount = Number(payload?.appliedAmount);
-    const remainingDue = Number(payload?.remainingDue);
+    const payload = typeof data === "object" && data !== null ? data : null;
+    const sourceDelta = Number(
+      payload && "sourceDelta" in payload ? payload.sourceDelta : Number.NaN,
+    );
+    const appliedAmount = Number(
+      payload && "appliedAmount" in payload
+        ? payload.appliedAmount
+        : Number.NaN,
+    );
+    const remainingDue = Number(
+      payload && "remainingDue" in payload ? payload.remainingDue : Number.NaN,
+    );
 
     if (
-      !payload?.ok ||
-      !payload.transactionId ||
-      !payload.paymentId ||
+      !payload ||
+      payload.ok !== true ||
+      typeof payload.transactionId !== "string" ||
+      typeof payload.paymentId !== "string" ||
       !Number.isFinite(sourceDelta) ||
       !Number.isFinite(appliedAmount) ||
       !Number.isFinite(remainingDue)
     ) {
+      logLedgerFailure(null, LEDGER_OPERATION.SETTLE_CARD, {
+        householdId: gate.householdId,
+        cardAccountId: parsed.data.cardAccountId,
+        sourceAccountId: parsed.data.sourceAccountId,
+        responseInvalid: true,
+      });
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
     }
 
@@ -128,9 +137,15 @@ export async function settleCard(
       sourceDelta,
       appliedAmount,
       remainingDue,
-      idempotentReplay: Boolean(payload.idempotentReplay),
+      idempotentReplay:
+        "idempotentReplay" in payload && Boolean(payload.idempotentReplay),
     };
-  } catch {
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.SETTLE_CARD, {
+      householdId: gate.householdId,
+      cardAccountId: parsed.data.cardAccountId,
+      sourceAccountId: parsed.data.sourceAccountId,
+    });
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }
 }

@@ -8,6 +8,8 @@ import {
   forgotPasswordInputSchema,
   type ForgotPasswordInput,
 } from "./register.schema";
+import { logTenancyFailure } from "./tenancy-error";
+import { TENANCY_OPERATION } from "./tenancy-constants";
 
 export type ResetPasswordErrorCode = Extract<
   AuthActionErrorCode,
@@ -41,10 +43,12 @@ export async function requestPasswordReset(
       { redirectTo: raw.redirectTo },
     );
     if (error) {
+      logTenancyFailure(TENANCY_OPERATION.AUTH_PASSWORD_RESET, error);
       return { ok: false, code: AUTH_ACTION_ERROR_CODE.UNKNOWN };
     }
     return { ok: true };
-  } catch {
+  } catch (error) {
+    logTenancyFailure(TENANCY_OPERATION.AUTH_PASSWORD_RESET, error);
     return { ok: false, code: AUTH_ACTION_ERROR_CODE.UNKNOWN };
   }
 }

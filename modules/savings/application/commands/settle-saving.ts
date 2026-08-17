@@ -14,7 +14,14 @@ import {
   RenewalPolicy,
   RENEWAL_DECISION_SOURCE_VALUES,
   RENEWAL_POLICY_VALUES,
+  SAVINGS_RPC,
 } from "../savings-constants";
+import {
+  classifySavingsRpcError,
+  isRecord,
+  logSavingsFailure,
+  savingsFailureCode,
+} from "../savings-error";
 import { resolvePackageSnapshot } from "../savings-provider-registry";
 import type { RenewalDecision } from "../savings-types";
 import { mapLegacyRenewalPreference } from "../renewal-policy-map";
@@ -55,7 +62,7 @@ export async function settleSaving(
   try {
     const supabase = await createSupabaseServerClient();
 
-    const { data: before } = await supabase
+    const { data: before, error: beforeError } = await supabase
       .from("saving_cycles")
       .select(
         "id, locked_rate, package_snapshot, savings!inner(id, renewal_policy, household_id)",
@@ -63,13 +70,31 @@ export async function settleSaving(
       .eq("id", parsed.data.cycleId)
       .maybeSingle();
 
-    const { data, error } = await supabase.rpc("settle_saving_cycle", {
+    if (
+      beforeError &&
+      classifySavingsRpcError(beforeError) === PRODUCT_ACTION_ERROR_CODE.UNKNOWN
+    ) {
+      logSavingsFailure(beforeError, SAVINGS_RPC.SETTLE, {
+        householdId: gate.householdId,
+        cycleId: parsed.data.cycleId,
+      });
+    }
+
+    const { data, error } = await supabase.rpc(SAVINGS_RPC.SETTLE, {
       p_cycle_id: parsed.data.cycleId,
       p_settlement_account_id: parsed.data.settlementAccountId ?? null,
     });
 
     if (error) {
-      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+      const code = classifySavingsRpcError(error);
+      if (code === PRODUCT_ACTION_ERROR_CODE.UNKNOWN) {
+        logSavingsFailure(error, SAVINGS_RPC.SETTLE, {
+          householdId: gate.householdId,
+          cycleId: parsed.data.cycleId,
+          settlementAccountId: parsed.data.settlementAccountId,
+        });
+      }
+      return { ok: false, code };
     }
 
     const payload = data as {
@@ -80,11 +105,16 @@ export async function settleSaving(
     } | null;
 
     if (!payload?.ok || !payload.savingId) {
+      logSavingsFailure(null, SAVINGS_RPC.SETTLE, {
+        householdId: gate.householdId,
+        cycleId: parsed.data.cycleId,
+        settlementAccountId: parsed.data.settlementAccountId,
+        responseInvalid: true,
+      });
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const savingJoin = (before as any)?.savings;
+    const savingJoin = isRecord(before) ? before.savings : undefined;
     const saving = Array.isArray(savingJoin) ? savingJoin[0] : savingJoin;
     const pkg = (before?.package_snapshot ?? {}) as { packageName?: string };
     const decision: RenewalDecision = {
@@ -97,11 +127,24 @@ export async function settleSaving(
         parsed.data.decisionSource ?? RenewalDecisionSource.MANUAL,
     };
 
-    await supabase.rpc("record_saving_renewal_decision", {
-      p_cycle_id: parsed.data.cycleId,
-      p_renewal_decision: decision,
-      p_revert_one_time: false,
-    });
+    const { error: decisionError } = await supabase.rpc(
+      SAVINGS_RPC.RECORD_RENEWAL_DECISION,
+      {
+        p_cycle_id: parsed.data.cycleId,
+        p_renewal_decision: decision,
+        p_revert_one_time: false,
+      },
+    );
+    if (
+      decisionError &&
+      classifySavingsRpcError(decisionError) ===
+        PRODUCT_ACTION_ERROR_CODE.UNKNOWN
+    ) {
+      logSavingsFailure(decisionError, SAVINGS_RPC.RECORD_RENEWAL_DECISION, {
+        householdId: gate.householdId,
+        cycleId: parsed.data.cycleId,
+      });
+    }
 
     return {
       ok: true,
@@ -109,7 +152,12 @@ export async function settleSaving(
       cycleId: payload.cycleId ?? parsed.data.cycleId,
       netAmount: Number(payload.netAmount ?? 0),
     };
-  } catch {
+  } catch (error) {
+    logSavingsFailure(error, SAVINGS_RPC.SETTLE, {
+      householdId: gate.householdId,
+      cycleId: parsed.data.cycleId,
+      settlementAccountId: parsed.data.settlementAccountId,
+    });
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }
 }
@@ -158,7 +206,7 @@ export async function renewSaving(
   try {
     const supabase = await createSupabaseServerClient();
 
-    const { data: cycleRow } = await supabase
+    const { data: cycleRow, error: cycleError } = await supabase
       .from("saving_cycles")
       .select(
         "id, saving_id, package_snapshot, locked_rate, status, savings!inner(household_id, product_snapshot, provider_id, product_name, renewal_policy)",
@@ -166,12 +214,21 @@ export async function renewSaving(
       .eq("id", parsed.data.cycleId)
       .maybeSingle();
 
+    if (cycleError) {
+      return {
+        ok: false,
+        code: savingsFailureCode(cycleError, SAVINGS_RPC.RENEW, {
+          householdId: gate.householdId,
+          cycleId: parsed.data.cycleId,
+        }),
+      };
+    }
+
     if (!cycleRow || cycleRow.status !== CycleStatus.MATURED) {
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const savingJoin = (cycleRow as any).savings;
+    const savingJoin = isRecord(cycleRow) ? cycleRow.savings : undefined;
     const saving = Array.isArray(savingJoin) ? savingJoin[0] : savingJoin;
     if (!saving || saving.household_id !== gate.householdId) {
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
@@ -190,7 +247,7 @@ export async function renewSaving(
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
     }
     const priorPolicy = mapLegacyRenewalPreference(saving.renewal_policy);
-    const { data, error } = await supabase.rpc("rollover_saving_cycle", {
+    const { data, error } = await supabase.rpc(SAVINGS_RPC.RENEW, {
       p_cycle_id: parsed.data.cycleId,
       p_action: parsed.data.action,
       p_target_package_id: targetPackageId,
@@ -206,7 +263,16 @@ export async function renewSaving(
     });
 
     if (error) {
-      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+      const code = classifySavingsRpcError(error);
+      if (code === PRODUCT_ACTION_ERROR_CODE.UNKNOWN) {
+        logSavingsFailure(error, SAVINGS_RPC.RENEW, {
+          householdId: gate.householdId,
+          cycleId: parsed.data.cycleId,
+          packageId: targetPackageId,
+          settlementAccountId: parsed.data.settlementAccountId,
+        });
+      }
+      return { ok: false, code };
     }
 
     const payload = data as {
@@ -217,6 +283,13 @@ export async function renewSaving(
     } | null;
 
     if (!payload?.ok || !payload.savingId) {
+      logSavingsFailure(null, SAVINGS_RPC.RENEW, {
+        householdId: gate.householdId,
+        cycleId: parsed.data.cycleId,
+        packageId: targetPackageId,
+        settlementAccountId: parsed.data.settlementAccountId,
+        responseInvalid: true,
+      });
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
     }
 
@@ -237,23 +310,47 @@ export async function renewSaving(
         parsed.data.decisionSource ?? RenewalDecisionSource.POLICY_APPLIED,
     };
 
-    await supabase.rpc("record_saving_renewal_decision", {
-      p_cycle_id: parsed.data.cycleId,
-      p_renewal_decision: decision,
-      p_revert_one_time: priorPolicy === RenewalPolicy.ONE_TIME_RENEWAL,
-    });
+    const { error: decisionError } = await supabase.rpc(
+      SAVINGS_RPC.RECORD_RENEWAL_DECISION,
+      {
+        p_cycle_id: parsed.data.cycleId,
+        p_renewal_decision: decision,
+        p_revert_one_time: priorPolicy === RenewalPolicy.ONE_TIME_RENEWAL,
+      },
+    );
+    if (
+      decisionError &&
+      classifySavingsRpcError(decisionError) ===
+        PRODUCT_ACTION_ERROR_CODE.UNKNOWN
+    ) {
+      logSavingsFailure(decisionError, SAVINGS_RPC.RECORD_RENEWAL_DECISION, {
+        householdId: gate.householdId,
+        cycleId: parsed.data.cycleId,
+      });
+    }
 
     if (
       parsed.data.renewalPolicyAfter &&
       priorPolicy !== RenewalPolicy.ONE_TIME_RENEWAL
     ) {
-      await supabase
+      const { error: policyError } = await supabase
         .from("savings")
         .update({
           renewal_policy: parsed.data.renewalPolicyAfter,
           updated_at: new Date().toISOString(),
         })
         .eq("id", payload.savingId);
+      if (
+        policyError &&
+        classifySavingsRpcError(policyError) ===
+          PRODUCT_ACTION_ERROR_CODE.UNKNOWN
+      ) {
+        logSavingsFailure(policyError, SAVINGS_RPC.RENEW, {
+          householdId: gate.householdId,
+          cycleId: parsed.data.cycleId,
+          savingId: payload.savingId,
+        });
+      }
     }
 
     return {
@@ -262,7 +359,13 @@ export async function renewSaving(
       cycleId: payload.cycleId ?? "",
       principal: Number(payload.principal ?? 0),
     };
-  } catch {
+  } catch (error) {
+    logSavingsFailure(error, SAVINGS_RPC.RENEW, {
+      householdId: gate.householdId,
+      cycleId: parsed.data.cycleId,
+      packageId: parsed.data.packageId,
+      settlementAccountId: parsed.data.settlementAccountId,
+    });
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }
 }

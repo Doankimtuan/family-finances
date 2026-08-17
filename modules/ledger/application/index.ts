@@ -1,5 +1,27 @@
 import "server-only";
 
+export {
+  classifyCorrectionRpcError,
+  classifyCardRpcError,
+  classifyDebtRpcError,
+  classifyLegacyRecordTransactionRpcError,
+  classifyLegacyRecordTransferRpcError,
+  classifyInstallmentRpcError,
+  classifyLiabilityRpcError,
+  classifyLoanRpcError,
+  classifyRecordTransactionRpcError,
+  classifyRecordTransferRpcError,
+  classifyRefundRpcError,
+  classifyStructuredLedgerRpcError,
+  classifyStructuredProductRpcError,
+  classifyTransactionTagRpcError,
+  logLedgerFailure,
+  LEDGER_OPERATION,
+  type LedgerCommandErrorCode,
+  type LedgerFailureContext,
+  type LedgerOperation,
+} from "./ledger-error";
+
 export { getRealPosition } from "./queries/get-real-position";
 export {
   createMoneyHubViewModel,

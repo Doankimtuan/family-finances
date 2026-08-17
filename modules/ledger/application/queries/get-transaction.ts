@@ -12,6 +12,7 @@ import {
   TRANSACTION_LEDGER_TYPE_VALUES,
   TransactionLedgerType,
 } from "../ledger-constants";
+import { LEDGER_OPERATION, logLedgerFailure } from "../ledger-error";
 
 function normalizeJoinedRow(row: Record<string, unknown>) {
   return mapTransactionRow({
@@ -49,11 +50,21 @@ export async function getTransaction(
       .maybeSingle();
 
     if (error || !data) {
+      if (error) {
+        logLedgerFailure(error, LEDGER_OPERATION.GET_TRANSACTION, {
+          householdId: gate.householdId,
+          transactionId,
+        });
+      }
       return null;
     }
 
     return normalizeJoinedRow(data as Record<string, unknown>);
-  } catch {
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.GET_TRANSACTION, {
+      householdId: gate.householdId,
+      transactionId,
+    });
     return null;
   }
 }
@@ -118,6 +129,9 @@ export async function listTransactions(
 
     const { data, error } = await query;
     if (error) {
+      logLedgerFailure(error, LEDGER_OPERATION.LIST_TRANSACTIONS, {
+        householdId: gate.householdId,
+      });
       return null;
     }
 
@@ -143,7 +157,10 @@ export async function listTransactions(
         transactionMatchesTagFilter(tx.tags, filter.tagIds)
       );
     });
-  } catch {
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.LIST_TRANSACTIONS, {
+      householdId: gate.householdId,
+    });
     return null;
   }
 }

@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
+import type { Result } from "@/modules/shared-kernel/application/result";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import {
   PRODUCT_ACTION_ERROR_CODE,
@@ -11,8 +12,8 @@ import {
   recordAiAuditEventInputSchema,
   type RecordAiAuditEventInput,
 } from "./ai-audit.schema";
-
-const AI_AUDIT_ERROR_CONTEXT = "[tenancy.ai-audit]";
+import { logTenancyFailure } from "./tenancy-error";
+import { TENANCY_OPERATION } from "./tenancy-constants";
 
 export {
   AiAuditEventKind,
@@ -27,8 +28,10 @@ export type { AiAuditEventKind as AiAuditEventKindValue } from "./ai-audit.schem
  * Records suggestions and optional explicit user approvals — never invents balances.
  */
 
-export type RecordAiAuditEventResult =
-  { ok: true; id: string } | { ok: false; code: ProductActionErrorCode };
+export type RecordAiAuditEventResult = Result<
+  { id: string },
+  ProductActionErrorCode
+>;
 
 export async function recordAiAuditEvent(
   raw: RecordAiAuditEventInput,
@@ -60,13 +63,26 @@ export async function recordAiAuditEvent(
       .select("id")
       .single();
 
-    if (error || !data?.id) {
+    if (error) {
+      logTenancyFailure(TENANCY_OPERATION.AI_AUDIT, error, {
+        householdId: gate.householdId,
+      });
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    }
+    if (!data?.id) {
+      logTenancyFailure(
+        TENANCY_OPERATION.AI_AUDIT,
+        new Error("AI audit insert returned an invalid id"),
+        { householdId: gate.householdId },
+      );
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
     }
 
     return { ok: true, id: data.id as string };
   } catch (error) {
-    console.error(AI_AUDIT_ERROR_CONTEXT, error);
+    logTenancyFailure(TENANCY_OPERATION.AI_AUDIT, error, {
+      householdId: gate.householdId,
+    });
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }
 }

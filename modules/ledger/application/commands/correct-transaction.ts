@@ -6,11 +6,17 @@ import {
   productActionErrorFromDeniedReason,
   type ProductActionErrorCode,
 } from "@/modules/tenancy/application/product-action-error";
+import type { Result } from "@/modules/shared-kernel/application/result";
 import {
-  LEDGER_ACTION_ERROR_CODE,
+  LedgerRpcName,
   TRANSACTION_DIRECTION_VALUES,
   type LedgerActionErrorCode,
 } from "../ledger-constants";
+import {
+  classifyCorrectionRpcError,
+  LEDGER_OPERATION,
+  logLedgerFailure,
+} from "../ledger-error";
 
 export const correctTransactionInputSchema = z.object({
   originalTransactionId: z.string().uuid(),
@@ -33,14 +39,37 @@ export type CorrectTransactionInput = z.infer<
 export type CorrectTransactionErrorCode =
   ProductActionErrorCode | LedgerActionErrorCode;
 
-export type CorrectTransactionResult =
-  | {
-      ok: true;
-      originalTransactionId: string;
-      reversalTransactionId: string;
-      correctionTransactionId: string;
-    }
-  | { ok: false; code: CorrectTransactionErrorCode };
+type CorrectTransactionSuccess = {
+  originalTransactionId: string;
+  reversalTransactionId: string;
+  correctionTransactionId: string;
+};
+
+export type CorrectTransactionResult = Result<
+  CorrectTransactionSuccess,
+  CorrectTransactionErrorCode
+>;
+
+type CorrectTransactionRpcPayload = {
+  original_transaction_id: string;
+  reversal_transaction_id: string;
+  correction_transaction_id: string;
+};
+
+function isCorrectTransactionRpcPayload(
+  value: unknown,
+): value is CorrectTransactionRpcPayload {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "original_transaction_id" in value &&
+    "reversal_transaction_id" in value &&
+    "correction_transaction_id" in value &&
+    typeof value.original_transaction_id === "string" &&
+    typeof value.reversal_transaction_id === "string" &&
+    typeof value.correction_transaction_id === "string"
+  );
+}
 
 /**
  * Atomic 3-way correction: Original→Reversed, reversal leg, correction leg (BR-03).
@@ -63,42 +92,52 @@ export async function correctTransaction(
 
   try {
     const supabase = await createSupabaseServerClient();
-    const { data, error } = await supabase.rpc("correct_transaction", {
-      p_original_transaction_id: parsed.data.originalTransactionId,
-      p_amount: parsed.data.amount,
-      p_type: parsed.data.type,
-      p_account_id: parsed.data.accountId ?? null,
-      p_category_id: parsed.data.categoryId ?? null,
-      p_jar_id: parsed.data.jarId ?? null,
-      p_note: parsed.data.note ?? null,
-      p_transaction_date: parsed.data.transactionDate ?? null,
-    });
+    const { data, error } = await supabase.rpc(
+      LedgerRpcName.CORRECT_TRANSACTION,
+      {
+        p_original_transaction_id: parsed.data.originalTransactionId,
+        p_amount: parsed.data.amount,
+        p_type: parsed.data.type,
+        p_account_id: parsed.data.accountId ?? null,
+        p_category_id: parsed.data.categoryId ?? null,
+        p_jar_id: parsed.data.jarId ?? null,
+        p_note: parsed.data.note ?? null,
+        p_transaction_date: parsed.data.transactionDate ?? null,
+      },
+    );
 
-    if (error || !data || typeof data !== "object") {
-      return { ok: false, code: LEDGER_ACTION_ERROR_CODE.CORRECTION_INVALID };
+    if (error) {
+      const code = classifyCorrectionRpcError(error);
+      if (code && code !== PRODUCT_ACTION_ERROR_CODE.UNKNOWN) {
+        return { ok: false, code };
+      }
+      logLedgerFailure(error, LEDGER_OPERATION.CORRECT_TRANSACTION, {
+        householdId: gate.householdId,
+        originalTransactionId: parsed.data.originalTransactionId,
+      });
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
     }
 
-    const payload = data as {
-      original_transaction_id?: string;
-      reversal_transaction_id?: string;
-      correction_transaction_id?: string;
-    };
-
-    if (
-      !payload.original_transaction_id ||
-      !payload.reversal_transaction_id ||
-      !payload.correction_transaction_id
-    ) {
+    if (!isCorrectTransactionRpcPayload(data)) {
+      logLedgerFailure(null, LEDGER_OPERATION.CORRECT_TRANSACTION, {
+        householdId: gate.householdId,
+        originalTransactionId: parsed.data.originalTransactionId,
+        responseInvalid: true,
+      });
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
     }
 
     return {
       ok: true,
-      originalTransactionId: payload.original_transaction_id,
-      reversalTransactionId: payload.reversal_transaction_id,
-      correctionTransactionId: payload.correction_transaction_id,
+      originalTransactionId: data.original_transaction_id,
+      reversalTransactionId: data.reversal_transaction_id,
+      correctionTransactionId: data.correction_transaction_id,
     };
-  } catch {
-    return { ok: false, code: LEDGER_ACTION_ERROR_CODE.CORRECTION_INVALID };
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.CORRECT_TRANSACTION, {
+      householdId: gate.householdId,
+      originalTransactionId: parsed.data.originalTransactionId,
+    });
+    return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }
 }

@@ -2,6 +2,8 @@ import { getSupabaseEnv } from "@/modules/platform/supabase/env";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { getSessionUser } from "./get-session-user";
 import { resolveActiveMembership } from "./resolve-active-membership";
+import { logTenancyFailure } from "./tenancy-error";
+import { TENANCY_OPERATION } from "./tenancy-constants";
 
 export type HouseholdMemberRow = {
   id: string;
@@ -40,7 +42,10 @@ export async function listHouseholdMembers(): Promise<{
 
   try {
     const supabase = await createSupabaseServerClient();
-    const [{ data: household }, { data: rows }] = await Promise.all([
+    const [
+      { data: household, error: householdError },
+      { data: rows, error: rowsError },
+    ] = await Promise.all([
       supabase
         .from("households")
         .select("id, name")
@@ -53,6 +58,15 @@ export async function listHouseholdMembers(): Promise<{
         .eq("is_active", true)
         .order("joined_at", { ascending: true }),
     ]);
+
+    if (householdError || rowsError) {
+      logTenancyFailure(
+        TENANCY_OPERATION.HOUSEHOLD_QUERY,
+        householdError ?? rowsError,
+        { householdId: membership.householdId },
+      );
+      return { household: null, members: [] };
+    }
 
     if (!household) {
       return { household: null, members: [] };
@@ -71,7 +85,10 @@ export async function listHouseholdMembers(): Promise<{
       household: { id: household.id, name: household.name },
       members,
     };
-  } catch {
+  } catch (error) {
+    logTenancyFailure(TENANCY_OPERATION.HOUSEHOLD_QUERY, error, {
+      householdId: membership.householdId,
+    });
     return { household: null, members: [] };
   }
 }

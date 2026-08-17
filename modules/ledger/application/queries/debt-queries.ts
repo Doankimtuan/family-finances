@@ -7,6 +7,7 @@ import {
   type Debt,
   type DebtPayment,
 } from "../debt-domain";
+import { LEDGER_OPERATION, logLedgerFailure } from "../ledger-error";
 
 const DEBT_SELECT =
   "id, name, creditor, principal_amount, remaining_amount, currency, direction, creation_mode, start_date, due_date, note, status, origin_account_id, origin_transaction_id, is_archived";
@@ -24,10 +25,16 @@ export async function listDebts(): Promise<Debt[] | null> {
       .eq("household_id", gate.householdId)
       .order("created_at", { ascending: false });
     if (error) {
+      logLedgerFailure(error, LEDGER_OPERATION.LIST_DEBTS, {
+        householdId: gate.householdId,
+      });
       return null;
     }
     return (data ?? []).map(mapDebtRow);
-  } catch {
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.LIST_DEBTS, {
+      householdId: gate.householdId,
+    });
     return null;
   }
 }
@@ -45,11 +52,22 @@ export async function getDebt(debtId: string): Promise<Debt | null> {
       .eq("household_id", gate.householdId)
       .eq("id", debtId)
       .maybeSingle();
-    if (error || data == null) {
+    if (error) {
+      logLedgerFailure(error, LEDGER_OPERATION.GET_DEBT, {
+        householdId: gate.householdId,
+        debtId,
+      });
+      return null;
+    }
+    if (data == null) {
       return null;
     }
     return mapDebtRow(data);
-  } catch {
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.GET_DEBT, {
+      householdId: gate.householdId,
+      debtId,
+    });
     return null;
   }
 }
@@ -73,10 +91,18 @@ export async function listDebtPayments(
       .order("effective_date", { ascending: false })
       .order("created_at", { ascending: false });
     if (error) {
+      logLedgerFailure(error, LEDGER_OPERATION.LIST_DEBT_PAYMENTS, {
+        householdId: gate.householdId,
+        debtId,
+      });
       return null;
     }
     return (data ?? []).map(mapDebtPaymentRow);
-  } catch {
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.LIST_DEBT_PAYMENTS, {
+      householdId: gate.householdId,
+      debtId,
+    });
     return null;
   }
 }

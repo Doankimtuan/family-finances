@@ -1,12 +1,14 @@
 import { getSupabaseEnv } from "@/modules/platform/supabase/env";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
+import type { Result } from "@/modules/shared-kernel/application/result";
 import { inviteTokenSchema } from "./invitation.schema";
 import { getSessionUser } from "./get-session-user";
 import {
   INVITATION_ERROR_CODE,
-  INVITATION_RPC_MESSAGE_NEEDLE,
   type InvitationErrorCode,
 } from "./tenancy-constants";
+import { classifyInvitationRpcError, logTenancyFailure } from "./tenancy-error";
+import { TENANCY_OPERATION } from "./tenancy-constants";
 
 export type AcceptInvitationErrorCode = Exclude<
   InvitationErrorCode,
@@ -14,38 +16,10 @@ export type AcceptInvitationErrorCode = Exclude<
   | typeof INVITATION_ERROR_CODE.NO_HOUSEHOLD
 >;
 
-export type AcceptInvitationResult =
-  | { ok: true; householdId: string }
-  | {
-      ok: false;
-      code: AcceptInvitationErrorCode;
-    };
-
-function mapAcceptError(message: string): AcceptInvitationErrorCode {
-  const m = message.toLowerCase();
-  if (m.includes(INVITATION_RPC_MESSAGE_NEEDLE.NOT_FOUND)) {
-    return INVITATION_ERROR_CODE.NOT_FOUND;
-  }
-  if (m.includes(INVITATION_RPC_MESSAGE_NEEDLE.NOT_PENDING)) {
-    return INVITATION_ERROR_CODE.NOT_PENDING;
-  }
-  if (m.includes(INVITATION_RPC_MESSAGE_NEEDLE.EXPIRED)) {
-    return INVITATION_ERROR_CODE.EXPIRED;
-  }
-  if (m.includes(INVITATION_RPC_MESSAGE_NEEDLE.EMAIL_MISMATCH)) {
-    return INVITATION_ERROR_CODE.EMAIL_MISMATCH;
-  }
-  if (m.includes(INVITATION_RPC_MESSAGE_NEEDLE.ALREADY_BELONGS)) {
-    return INVITATION_ERROR_CODE.ALREADY_MEMBER;
-  }
-  if (m.includes(INVITATION_RPC_MESSAGE_NEEDLE.TWO_PARTNERS)) {
-    return INVITATION_ERROR_CODE.HOUSEHOLD_FULL;
-  }
-  if (m.includes(INVITATION_RPC_MESSAGE_NEEDLE.AUTHENTICATION)) {
-    return INVITATION_ERROR_CODE.UNAUTHENTICATED;
-  }
-  return INVITATION_ERROR_CODE.UNKNOWN;
-}
+export type AcceptInvitationResult = Result<
+  { householdId: string },
+  AcceptInvitationErrorCode
+>;
 
 /**
  * Accept invite token → partner membership (BR-12 one household).
@@ -74,17 +48,30 @@ export async function acceptInvitation(
     });
 
     if (error) {
-      return { ok: false, code: mapAcceptError(error.message ?? "") };
+      const mapped = classifyInvitationRpcError(error);
+      const code =
+        mapped === INVITATION_ERROR_CODE.ALREADY_PENDING ||
+        mapped === INVITATION_ERROR_CODE.NO_HOUSEHOLD
+          ? INVITATION_ERROR_CODE.UNKNOWN
+          : mapped;
+      if (code === INVITATION_ERROR_CODE.UNKNOWN) {
+        logTenancyFailure(TENANCY_OPERATION.INVITATION_ACCEPT, error);
+      }
+      return { ok: false, code };
     }
 
     if (typeof data !== "string" || data.length === 0) {
+      logTenancyFailure(
+        TENANCY_OPERATION.INVITATION_ACCEPT,
+        new Error("accept invitation returned an invalid household id"),
+      );
       return { ok: false, code: INVITATION_ERROR_CODE.UNKNOWN };
     }
 
     return { ok: true, householdId: data };
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "";
-    return { ok: false, code: mapAcceptError(message) };
+  } catch (error) {
+    logTenancyFailure(TENANCY_OPERATION.INVITATION_ACCEPT, error);
+    return { ok: false, code: INVITATION_ERROR_CODE.UNKNOWN };
   }
 }
 
@@ -97,29 +84,10 @@ export type DeclineInvitationErrorCode = Exclude<
   | typeof INVITATION_ERROR_CODE.NO_HOUSEHOLD
 >;
 
-export type DeclineInvitationResult =
-  | { ok: true }
-  | {
-      ok: false;
-      code: DeclineInvitationErrorCode;
-    };
-
-function mapDeclineError(message: string): DeclineInvitationErrorCode {
-  const m = message.toLowerCase();
-  if (m.includes(INVITATION_RPC_MESSAGE_NEEDLE.NOT_FOUND)) {
-    return INVITATION_ERROR_CODE.NOT_FOUND;
-  }
-  if (m.includes(INVITATION_RPC_MESSAGE_NEEDLE.NOT_PENDING)) {
-    return INVITATION_ERROR_CODE.NOT_PENDING;
-  }
-  if (m.includes(INVITATION_RPC_MESSAGE_NEEDLE.EMAIL_MISMATCH)) {
-    return INVITATION_ERROR_CODE.EMAIL_MISMATCH;
-  }
-  if (m.includes(INVITATION_RPC_MESSAGE_NEEDLE.AUTHENTICATION)) {
-    return INVITATION_ERROR_CODE.UNAUTHENTICATED;
-  }
-  return INVITATION_ERROR_CODE.UNKNOWN;
-}
+export type DeclineInvitationResult = Result<
+  object,
+  DeclineInvitationErrorCode
+>;
 
 /**
  * Decline invite token for matching authenticated email.
@@ -148,12 +116,24 @@ export async function declineInvitation(
     });
 
     if (error) {
-      return { ok: false, code: mapDeclineError(error.message ?? "") };
+      const mapped = classifyInvitationRpcError(error);
+      const code =
+        mapped === INVITATION_ERROR_CODE.EXPIRED ||
+        mapped === INVITATION_ERROR_CODE.ALREADY_MEMBER ||
+        mapped === INVITATION_ERROR_CODE.HOUSEHOLD_FULL ||
+        mapped === INVITATION_ERROR_CODE.ALREADY_PENDING ||
+        mapped === INVITATION_ERROR_CODE.NO_HOUSEHOLD
+          ? INVITATION_ERROR_CODE.UNKNOWN
+          : mapped;
+      if (code === INVITATION_ERROR_CODE.UNKNOWN) {
+        logTenancyFailure(TENANCY_OPERATION.INVITATION_DECLINE, error);
+      }
+      return { ok: false, code };
     }
 
     return { ok: true };
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "";
-    return { ok: false, code: mapDeclineError(message) };
+  } catch (error) {
+    logTenancyFailure(TENANCY_OPERATION.INVITATION_DECLINE, error);
+    return { ok: false, code: INVITATION_ERROR_CODE.UNKNOWN };
   }
 }

@@ -32,12 +32,16 @@ export {
   MaturityWarningCode,
   MATURITY_WARNING_CODE_VALUES,
   MATURITY_CASCADE_DAY_VALUES,
+  SAVINGS_RPC,
+  SAVINGS_OPERATION,
   PenaltyStrategy,
   PENALTY_STRATEGY_VALUES,
   INTEREST_RATE_DENOMINATOR,
   DAYS_PER_YEAR,
   PENALTY_WARNING_THRESHOLD_PCT,
 } from "./savings-constants";
+
+export type { SavingsRpc, SavingsOperation } from "./savings-constants";
 
 export type {
   Saving,

@@ -6,7 +6,10 @@ import {
   productActionErrorFromDeniedReason,
   type ProductActionErrorCode,
 } from "@/modules/tenancy/application/product-action-error";
+import type { Result } from "@/modules/shared-kernel/application/result";
 import { assertPlanPeriodUnlocked } from "../assert-plan-unlocked";
+import { logPlanFailure } from "../plan-error";
+import { PLAN_OPERATION } from "../plan-constants";
 
 export const renameJarInputSchema = z.object({
   jarId: z.string().uuid(),
@@ -15,9 +18,7 @@ export const renameJarInputSchema = z.object({
 
 export type RenameJarInput = z.infer<typeof renameJarInputSchema>;
 
-export type RenameJarResult =
-  | { ok: true; name: string }
-  | { ok: false; code: ProductActionErrorCode };
+export type RenameJarResult = Result<{ name: string }, ProductActionErrorCode>;
 
 /**
  * Rename a jar. Custom names stop using catalog localization.
@@ -55,12 +56,30 @@ export async function renameJar(raw: RenameJarInput): Promise<RenameJarResult> {
       .select("name")
       .maybeSingle();
 
-    if (error || !data) {
+    if (error) {
+      logPlanFailure(error, PLAN_OPERATION.RENAME_JAR, {
+        householdId: gate.householdId,
+        jarId: parsed.data.jarId,
+      });
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    }
+    if (!data) return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
+
+    if (typeof data.name !== "string") {
+      logPlanFailure(null, PLAN_OPERATION.RENAME_JAR, {
+        householdId: gate.householdId,
+        jarId: parsed.data.jarId,
+        responseInvalid: true,
+      });
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
     }
 
-    return { ok: true, name: data.name as string };
-  } catch {
+    return { ok: true, name: data.name };
+  } catch (error) {
+    logPlanFailure(error, PLAN_OPERATION.RENAME_JAR, {
+      householdId: gate.householdId,
+      jarId: parsed.data.jarId,
+    });
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }
 }

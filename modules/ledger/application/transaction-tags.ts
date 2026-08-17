@@ -6,6 +6,7 @@ import {
   productActionErrorFromDeniedReason,
   type ProductActionErrorCode,
 } from "@/modules/tenancy/application/product-action-error";
+import type { Result } from "@/modules/shared-kernel/application/result";
 import {
   TRANSACTION_TAG_COLOR_KEYS,
   TRANSACTION_TAG_ICON_KEYS,
@@ -15,6 +16,11 @@ import {
   type TransactionTagColorKey,
   type TransactionTagIconKey,
 } from "./ledger-constants";
+import {
+  classifyTransactionTagRpcError,
+  LEDGER_OPERATION,
+  logLedgerFailure,
+} from "./ledger-error";
 import type { TransactionTag } from "./transaction-types";
 
 export const transactionTagInputSchema = z.object({
@@ -27,9 +33,10 @@ export const transactionTagInputSchema = z.object({
 
 export type TransactionTagInput = z.infer<typeof transactionTagInputSchema>;
 export type TransactionTagActionErrorCode = ProductActionErrorCode;
-export type TransactionTagActionResult =
-  | { ok: true; tag: TransactionTag }
-  | { ok: false; code: TransactionTagActionErrorCode };
+export type TransactionTagActionResult = Result<
+  { tag: TransactionTag },
+  TransactionTagActionErrorCode
+>;
 
 function toTransactionTag(row: {
   id: string;
@@ -63,9 +70,17 @@ export async function listTransactionTags(options?: {
       .order("name", { ascending: true });
     if (!options?.includeArchived) query = query.is("archived_at", null);
     const { data, error } = await query;
-    if (error) return null;
+    if (error) {
+      logLedgerFailure(error, LEDGER_OPERATION.LIST_TRANSACTION_TAGS, {
+        householdId: gate.householdId,
+      });
+      return null;
+    }
     return (data ?? []).map(toTransactionTag);
-  } catch {
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.LIST_TRANSACTION_TAGS, {
+      householdId: gate.householdId,
+    });
     return null;
   }
 }
@@ -95,11 +110,24 @@ export async function createTransactionTag(
       })
       .select("id, name, icon_key, color_key, archived_at")
       .single();
-    if (error || !data) {
+    if (error) {
+      logLedgerFailure(error, LEDGER_OPERATION.CREATE_TRANSACTION_TAG, {
+        householdId: gate.householdId,
+      });
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    }
+    if (!data) {
+      logLedgerFailure(null, LEDGER_OPERATION.CREATE_TRANSACTION_TAG, {
+        householdId: gate.householdId,
+        responseInvalid: true,
+      });
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
     }
     return { ok: true, tag: toTransactionTag(data) };
-  } catch {
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.CREATE_TRANSACTION_TAG, {
+      householdId: gate.householdId,
+    });
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }
 }
@@ -131,17 +159,34 @@ export async function updateTransactionTag(
       .is("archived_at", null)
       .select("id, name, icon_key, color_key, archived_at")
       .single();
-    if (error || !data)
+    if (error) {
+      logLedgerFailure(error, LEDGER_OPERATION.UPDATE_TRANSACTION_TAG, {
+        householdId: gate.householdId,
+        tagId,
+      });
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    }
+    if (!data) {
+      logLedgerFailure(null, LEDGER_OPERATION.UPDATE_TRANSACTION_TAG, {
+        householdId: gate.householdId,
+        tagId,
+        responseInvalid: true,
+      });
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    }
     return { ok: true, tag: toTransactionTag(data) };
-  } catch {
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.UPDATE_TRANSACTION_TAG, {
+      householdId: gate.householdId,
+      tagId,
+    });
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }
 }
 
 export async function archiveTransactionTag(
   tagId: string,
-): Promise<{ ok: true } | { ok: false; code: TransactionTagActionErrorCode }> {
+): Promise<Result<object, TransactionTagActionErrorCode>> {
   if (!z.string().uuid().safeParse(tagId).success) {
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
   }
@@ -159,9 +204,19 @@ export async function archiveTransactionTag(
       .eq("id", tagId)
       .eq("household_id", gate.householdId)
       .is("archived_at", null);
-    if (error) return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    if (error) {
+      logLedgerFailure(error, LEDGER_OPERATION.ARCHIVE_TRANSACTION_TAG, {
+        householdId: gate.householdId,
+        tagId,
+      });
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    }
     return { ok: true };
-  } catch {
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.ARCHIVE_TRANSACTION_TAG, {
+      householdId: gate.householdId,
+      tagId,
+    });
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }
 }
@@ -169,7 +224,7 @@ export async function archiveTransactionTag(
 export async function setTransactionTags(
   transactionId: string,
   tagIds: string[],
-): Promise<{ ok: true } | { ok: false; code: TransactionTagActionErrorCode }> {
+): Promise<Result<object, TransactionTagActionErrorCode>> {
   const validIds = z
     .array(z.string().uuid())
     .max(MAX_TRANSACTION_TAGS)
@@ -194,17 +249,22 @@ export async function setTransactionTags(
       p_tag_ids: uniqueTagIds,
     });
     if (error) {
-      const message = (error.message ?? "").toLowerCase();
+      const code = classifyTransactionTagRpcError(error);
+      if (code === PRODUCT_ACTION_ERROR_CODE.UNKNOWN) {
+        logLedgerFailure(error, LEDGER_OPERATION.SET_TRANSACTION_TAGS, {
+          transactionId,
+        });
+      }
       return {
         ok: false,
-        code:
-          message.includes("invalid") || message.includes("not found")
-            ? PRODUCT_ACTION_ERROR_CODE.INVALID
-            : PRODUCT_ACTION_ERROR_CODE.UNKNOWN,
+        code,
       };
     }
     return { ok: true };
-  } catch {
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.SET_TRANSACTION_TAGS, {
+      transactionId,
+    });
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }
 }

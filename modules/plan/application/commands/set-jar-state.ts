@@ -6,10 +6,13 @@ import {
   productActionErrorFromDeniedReason,
   type ProductActionErrorCode,
 } from "@/modules/tenancy/application/product-action-error";
+import type { Result } from "@/modules/shared-kernel/application/result";
 import { assertPlanPeriodUnlocked } from "../assert-plan-unlocked";
+import { logPlanFailure } from "../plan-error";
 import {
   JarState,
   JAR_STATE_VALUES,
+  PLAN_OPERATION,
   type JarState as JarStateValue,
 } from "../plan-constants";
 
@@ -20,9 +23,10 @@ export const setJarStateInputSchema = z.object({
 
 export type SetJarStateInput = z.infer<typeof setJarStateInputSchema>;
 
-export type SetJarStateResult =
-  | { ok: true; state: JarStateValue }
-  | { ok: false; code: ProductActionErrorCode };
+export type SetJarStateResult = Result<
+  { state: JarStateValue },
+  ProductActionErrorCode
+>;
 
 /**
  * Set jar lifecycle state. Only Active is an allocation target (BR-03).
@@ -65,12 +69,21 @@ export async function setJarState(
       .select("id")
       .maybeSingle();
 
-    if (error || !data) {
+    if (error) {
+      logPlanFailure(error, PLAN_OPERATION.SET_JAR_STATE, {
+        householdId: gate.householdId,
+        jarId: parsed.data.jarId,
+      });
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
     }
+    if (!data) return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
 
     return { ok: true, state: parsed.data.state };
-  } catch {
+  } catch (error) {
+    logPlanFailure(error, PLAN_OPERATION.SET_JAR_STATE, {
+      householdId: gate.householdId,
+      jarId: parsed.data.jarId,
+    });
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }
 }

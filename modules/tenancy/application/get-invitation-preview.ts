@@ -6,6 +6,8 @@ import {
   INVITATION_STATUS,
   type InvitationErrorCode,
 } from "./tenancy-constants";
+import { logTenancyFailure } from "./tenancy-error";
+import { TENANCY_OPERATION } from "./tenancy-constants";
 
 export type InvitationPreview = {
   householdName: string;
@@ -49,6 +51,7 @@ export async function getInvitationPreview(
     });
 
     if (error) {
+      logTenancyFailure(TENANCY_OPERATION.INVITATION_PREVIEW, error);
       return { ok: false, code: INVITATION_ERROR_CODE.UNKNOWN };
     }
 
@@ -67,7 +70,8 @@ export async function getInvitationPreview(
         isExpired: Boolean(row.is_expired),
       },
     };
-  } catch {
+  } catch (error) {
+    logTenancyFailure(TENANCY_OPERATION.INVITATION_PREVIEW, error);
     return { ok: false, code: INVITATION_ERROR_CODE.UNKNOWN };
   }
 }

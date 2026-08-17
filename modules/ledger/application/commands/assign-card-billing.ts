@@ -10,6 +10,7 @@ import {
 } from "../credit-card-billing";
 import { computeOutstanding } from "../credit-card-billing";
 import { mapBillingMonthRow } from "../credit-card-types";
+import { LEDGER_OPERATION, logLedgerFailure } from "../ledger-error";
 
 type AssignMode = "expense" | "cashback";
 
@@ -41,7 +42,7 @@ export async function assignCardBillingForTransaction(input: {
     );
 
     if (input.mode === "cashback") {
-      const { data: unpaid } = await supabase
+      const { data: unpaid, error: unpaidError } = await supabase
         .from("card_billing_months")
         .select(
           "id, card_account_id, billing_month, statement_amount, paid_amount, due_date, status",
@@ -52,6 +53,15 @@ export async function assignCardBillingForTransaction(input: {
         .order("billing_month", { ascending: false })
         .limit(1)
         .maybeSingle();
+
+      if (unpaidError) {
+        logLedgerFailure(unpaidError, LEDGER_OPERATION.ASSIGN_CARD_BILLING, {
+          householdId: input.householdId,
+          cardAccountId: input.cardAccountId,
+          transactionId: input.transactionId,
+        });
+        return { ok: false };
+      }
 
       if (unpaid?.billing_month) {
         billingMonthKey = unpaid.billing_month.slice(0, 10);
@@ -64,7 +74,7 @@ export async function assignCardBillingForTransaction(input: {
       input.dueDay,
     );
 
-    const { data: existingMonth } = await supabase
+    const { data: existingMonth, error: existingMonthError } = await supabase
       .from("card_billing_months")
       .select(
         "id, card_account_id, billing_month, statement_amount, paid_amount, due_date, status",
@@ -72,6 +82,19 @@ export async function assignCardBillingForTransaction(input: {
       .eq("card_account_id", input.cardAccountId)
       .eq("billing_month", billingMonthKey)
       .maybeSingle();
+
+    if (existingMonthError) {
+      logLedgerFailure(
+        existingMonthError,
+        LEDGER_OPERATION.ASSIGN_CARD_BILLING,
+        {
+          householdId: input.householdId,
+          cardAccountId: input.cardAccountId,
+          transactionId: input.transactionId,
+        },
+      );
+      return { ok: false };
+    }
 
     let monthId = existingMonth?.id as string | undefined;
     let statementAmount = existingMonth
@@ -96,7 +119,14 @@ export async function assignCardBillingForTransaction(input: {
           updated_at: new Date().toISOString(),
         })
         .eq("id", monthId);
-      if (error) return { ok: false };
+      if (error) {
+        logLedgerFailure(error, LEDGER_OPERATION.ASSIGN_CARD_BILLING, {
+          householdId: input.householdId,
+          cardAccountId: input.cardAccountId,
+          transactionId: input.transactionId,
+        });
+        return { ok: false };
+      }
     } else {
       const { data: created, error } = await supabase
         .from("card_billing_months")
@@ -114,7 +144,23 @@ export async function assignCardBillingForTransaction(input: {
         })
         .select("id")
         .single();
-      if (error || !created?.id) return { ok: false };
+      if (error) {
+        logLedgerFailure(error, LEDGER_OPERATION.ASSIGN_CARD_BILLING, {
+          householdId: input.householdId,
+          cardAccountId: input.cardAccountId,
+          transactionId: input.transactionId,
+        });
+        return { ok: false };
+      }
+      if (!created?.id) {
+        logLedgerFailure(null, LEDGER_OPERATION.ASSIGN_CARD_BILLING, {
+          householdId: input.householdId,
+          cardAccountId: input.cardAccountId,
+          transactionId: input.transactionId,
+          responseInvalid: true,
+        });
+        return { ok: false };
+      }
       monthId = created.id;
     }
 
@@ -133,9 +179,21 @@ export async function assignCardBillingForTransaction(input: {
         is_converted_to_installment: false,
       });
 
-    if (itemError) return { ok: false };
+    if (itemError) {
+      logLedgerFailure(itemError, LEDGER_OPERATION.ASSIGN_CARD_BILLING, {
+        householdId: input.householdId,
+        cardAccountId: input.cardAccountId,
+        transactionId: input.transactionId,
+      });
+      return { ok: false };
+    }
     return { ok: true };
-  } catch {
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.ASSIGN_CARD_BILLING, {
+      householdId: input.householdId,
+      cardAccountId: input.cardAccountId,
+      transactionId: input.transactionId,
+    });
     return { ok: false };
   }
 }

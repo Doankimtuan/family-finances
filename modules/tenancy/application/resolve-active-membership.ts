@@ -1,6 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getSupabaseEnv } from "@/modules/platform/supabase/env";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
+import { logTenancyFailure } from "./tenancy-error";
+import { TENANCY_OPERATION } from "./tenancy-constants";
 
 /**
  * Active household membership for money actions (AC-002 / REQ-002 / BR-02a / BR-12).
@@ -28,7 +30,13 @@ export async function resolveActiveMembership(
       .eq("is_active", true)
       .maybeSingle();
 
-    if (error || !data) {
+    if (error) {
+      logTenancyFailure(TENANCY_OPERATION.MEMBERSHIP_RESOLVE, error, {
+        userId,
+      });
+      return null;
+    }
+    if (!data) {
       return null;
     }
 
@@ -38,7 +46,8 @@ export async function resolveActiveMembership(
       userId: data.user_id,
       role,
     };
-  } catch {
+  } catch (error) {
+    logTenancyFailure(TENANCY_OPERATION.MEMBERSHIP_RESOLVE, error, { userId });
     return null;
   }
 }

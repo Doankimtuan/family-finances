@@ -9,6 +9,7 @@ import {
   type CreditCardDetail,
   type CreditCardSummary,
 } from "../credit-card-types";
+import { LEDGER_OPERATION, logLedgerFailure } from "../ledger-error";
 
 export async function listCreditCards(): Promise<{
   currency: string;
@@ -37,6 +38,9 @@ export async function listCreditCards(): Promise<{
     ]);
 
     if (error) {
+      logLedgerFailure(error, LEDGER_OPERATION.LIST_CREDIT_CARDS, {
+        householdId: gate.householdId,
+      });
       return null;
     }
 
@@ -48,7 +52,10 @@ export async function listCreditCards(): Promise<{
       };
     }
 
-    const [{ data: settingsRows }, { data: monthRows }] = await Promise.all([
+    const [
+      { data: settingsRows, error: settingsError },
+      { data: monthRows, error: monthsError },
+    ] = await Promise.all([
       supabase
         .from("credit_card_settings")
         .select(
@@ -64,6 +71,13 @@ export async function listCreditCards(): Promise<{
         .eq("household_id", gate.householdId)
         .in("card_account_id", cardIds),
     ]);
+    if (settingsError || monthsError) {
+      logLedgerFailure(
+        settingsError ?? monthsError,
+        LEDGER_OPERATION.LIST_CREDIT_CARDS,
+        { householdId: gate.householdId },
+      );
+    }
 
     const settingsByAccount = new Map(
       (settingsRows ?? []).map((row) => [
@@ -100,7 +114,10 @@ export async function listCreditCards(): Promise<{
       currency: (household?.base_currency ?? DEFAULT_CURRENCY).toUpperCase(),
       cards,
     };
-  } catch {
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.LIST_CREDIT_CARDS, {
+      householdId: gate.householdId,
+    });
     return null;
   }
 }
@@ -117,10 +134,10 @@ export async function getCreditCardDetail(
     const supabase = await createSupabaseServerClient();
     const [
       { data: household },
-      { data: account },
-      { data: settingsRow },
-      { data: monthRows },
-      { data: itemRows },
+      { data: account, error: accountError },
+      { data: settingsRow, error: settingsError },
+      { data: monthRows, error: monthsError },
+      { data: itemRows, error: itemsError },
     ] = await Promise.all([
       supabase
         .from("households")
@@ -162,6 +179,15 @@ export async function getCreditCardDetail(
         .limit(40),
     ]);
 
+    const detailError =
+      accountError ?? settingsError ?? monthsError ?? itemsError;
+    if (detailError) {
+      logLedgerFailure(detailError, LEDGER_OPERATION.GET_CREDIT_CARD, {
+        householdId: gate.householdId,
+        cardAccountId: accountId,
+      });
+    }
+
     if (!account || account.is_archived || !settingsRow) {
       return null;
     }
@@ -183,7 +209,11 @@ export async function getCreditCardDetail(
         items: (itemRows ?? []).map(mapBillingItemRow),
       },
     };
-  } catch {
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.GET_CREDIT_CARD, {
+      householdId: gate.householdId,
+      cardAccountId: accountId,
+    });
     return null;
   }
 }

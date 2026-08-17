@@ -1,6 +1,10 @@
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
-import { LoanScheduleEntryStatus } from "../ledger-constants";
+import {
+  LoanScheduleEntryStatus,
+  type LedgerOperation,
+} from "../ledger-constants";
+import { LEDGER_OPERATION, logLedgerFailure } from "../ledger-error";
 import {
   mapLiabilityRow,
   mapSavingsRow,
@@ -31,9 +35,17 @@ export async function listLiabilities(): Promise<Liability[] | null> {
       .eq("is_archived", false)
       .order("created_at", { ascending: false });
 
-    if (error) return null;
+    if (error) {
+      logLedgerFailure(error, LEDGER_OPERATION.LIST_LIABILITIES, {
+        householdId: gate.householdId,
+      });
+      return null;
+    }
     return (data ?? []).map(mapLiabilityRow);
-  } catch {
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.LIST_LIABILITIES, {
+      householdId: gate.householdId,
+    });
     return null;
   }
 }
@@ -55,9 +67,20 @@ export async function getLiability(
       .eq("id", liabilityId)
       .maybeSingle();
 
-    if (error || !data) return null;
+    if (error) {
+      logLedgerFailure(error, LEDGER_OPERATION.GET_LIABILITY, {
+        householdId: gate.householdId,
+        liabilityId,
+      });
+      return null;
+    }
+    if (!data) return null;
     return mapLiabilityRow(data);
-  } catch {
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.GET_LIABILITY, {
+      householdId: gate.householdId,
+      liabilityId,
+    });
     return null;
   }
 }
@@ -115,12 +138,16 @@ async function loanAggregates(
   supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
   householdId: string,
   loanId: string,
+  operation: LedgerOperation,
 ): Promise<{
   principalPaid: number;
   interestPaid: number;
   remainingPayments: number;
 }> {
-  const [{ data: payments }, { count }] = await Promise.all([
+  const [
+    { data: payments, error: paymentsError },
+    { count, error: countError },
+  ] = await Promise.all([
     supabase
       .from("loan_payments")
       .select("principal_paid, interest_paid")
@@ -133,6 +160,13 @@ async function loanAggregates(
       .eq("loan_id", loanId)
       .eq("status", LoanScheduleEntryStatus.UPCOMING),
   ]);
+
+  if (paymentsError || countError) {
+    logLedgerFailure(paymentsError ?? countError, operation, {
+      householdId,
+      loanId,
+    });
+  }
 
   let principalPaid = 0;
   let interestPaid = 0;
@@ -159,18 +193,27 @@ export async function listLoans(): Promise<Loan[] | null> {
       .eq("household_id", gate.householdId)
       .order("created_at", { ascending: false });
 
-    if (error) return null;
+    if (error) {
+      logLedgerFailure(error, LEDGER_OPERATION.LIST_LOANS, {
+        householdId: gate.householdId,
+      });
+      return null;
+    }
     return Promise.all(
       (data ?? []).map(async (row) => {
         const aggregates = await loanAggregates(
           supabase,
           gate.householdId,
           row.id,
+          LEDGER_OPERATION.LIST_LOANS,
         );
         return mapLoanRow(row, aggregates);
       }),
     );
-  } catch {
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.LIST_LOANS, {
+      householdId: gate.householdId,
+    });
     return null;
   }
 }
@@ -191,10 +234,26 @@ export async function getLoan(loanId: string): Promise<Loan | null> {
       .eq("id", loanId)
       .maybeSingle();
 
-    if (error || !data) return null;
-    const aggregates = await loanAggregates(supabase, gate.householdId, loanId);
+    if (error) {
+      logLedgerFailure(error, LEDGER_OPERATION.GET_LOAN, {
+        householdId: gate.householdId,
+        loanId,
+      });
+      return null;
+    }
+    if (!data) return null;
+    const aggregates = await loanAggregates(
+      supabase,
+      gate.householdId,
+      loanId,
+      LEDGER_OPERATION.GET_LOAN,
+    );
     return mapLoanRow(data, aggregates);
-  } catch {
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.GET_LOAN, {
+      householdId: gate.householdId,
+      loanId,
+    });
     return null;
   }
 }
@@ -219,9 +278,19 @@ export async function listLoanPayments(
       .eq("loan_id", loanId)
       .order("paid_at", { ascending: false });
 
-    if (error) return null;
+    if (error) {
+      logLedgerFailure(error, LEDGER_OPERATION.LIST_LOAN_PAYMENTS, {
+        householdId: gate.householdId,
+        loanId,
+      });
+      return null;
+    }
     return (data ?? []).map(mapLoanPaymentRow);
-  } catch {
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.LIST_LOAN_PAYMENTS, {
+      householdId: gate.householdId,
+      loanId,
+    });
     return null;
   }
 }
@@ -243,9 +312,19 @@ export async function listLoanSchedule(
       .eq("loan_id", loanId)
       .order("sequence", { ascending: true });
 
-    if (error) return null;
+    if (error) {
+      logLedgerFailure(error, LEDGER_OPERATION.LIST_LOAN_SCHEDULE, {
+        householdId: gate.householdId,
+        loanId,
+      });
+      return null;
+    }
     return (data ?? []).map(mapLoanScheduleEntryRow);
-  } catch {
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.LIST_LOAN_SCHEDULE, {
+      householdId: gate.householdId,
+      loanId,
+    });
     return null;
   }
 }
@@ -268,9 +347,17 @@ export async function listUpcomingLoanScheduleEntries(): Promise<
       .eq("status", LoanScheduleEntryStatus.UPCOMING)
       .order("due_date", { ascending: true });
 
-    if (error) return null;
+    if (error) {
+      logLedgerFailure(error, LEDGER_OPERATION.LIST_UPCOMING_LOAN_SCHEDULE, {
+        householdId: gate.householdId,
+      });
+      return null;
+    }
     return (data ?? []).map(mapLoanScheduleEntryRow);
-  } catch {
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.LIST_UPCOMING_LOAN_SCHEDULE, {
+      householdId: gate.householdId,
+    });
     return null;
   }
 }
@@ -292,9 +379,23 @@ export async function listLoanInterestRatePeriods(
       .eq("loan_id", loanId)
       .order("sequence", { ascending: true });
 
-    if (error) return null;
+    if (error) {
+      logLedgerFailure(
+        error,
+        LEDGER_OPERATION.LIST_LOAN_INTEREST_RATE_PERIODS,
+        {
+          householdId: gate.householdId,
+          loanId,
+        },
+      );
+      return null;
+    }
     return (data ?? []).map(mapLoanInterestRatePeriodRow);
-  } catch {
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.LIST_LOAN_INTEREST_RATE_PERIODS, {
+      householdId: gate.householdId,
+      loanId,
+    });
     return null;
   }
 }

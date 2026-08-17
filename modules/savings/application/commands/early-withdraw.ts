@@ -6,7 +6,12 @@ import {
   productActionErrorFromDeniedReason,
   type ProductActionErrorCode,
 } from "@/modules/tenancy/application/product-action-error";
-import { CycleStatus, InterestCalcMethod } from "../savings-constants";
+import {
+  CycleStatus,
+  InterestCalcMethod,
+  SAVINGS_RPC,
+} from "../savings-constants";
+import { classifySavingsRpcError, logSavingsFailure } from "../savings-error";
 import {
   previewEarlyWithdrawal,
   shouldWarnPenalty,
@@ -148,7 +153,7 @@ export async function confirmEarlyWithdrawal(
 
   try {
     const supabase = await createSupabaseServerClient();
-    const { data, error } = await supabase.rpc("early_withdraw_saving", {
+    const { data, error } = await supabase.rpc(SAVINGS_RPC.EARLY_WITHDRAW, {
       p_cycle_id: parsed.data.cycleId,
       p_principal: preview.principal,
       p_accrued_interest: preview.accruedInterest,
@@ -160,7 +165,15 @@ export async function confirmEarlyWithdrawal(
     });
 
     if (error) {
-      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+      const code = classifySavingsRpcError(error);
+      if (code === PRODUCT_ACTION_ERROR_CODE.UNKNOWN) {
+        logSavingsFailure(error, SAVINGS_RPC.EARLY_WITHDRAW, {
+          savingId: parsed.data.savingId,
+          cycleId: parsed.data.cycleId,
+          settlementAccountId: parsed.data.settlementAccountId,
+        });
+      }
+      return { ok: false, code };
     }
 
     const payload = data as {
@@ -171,6 +184,12 @@ export async function confirmEarlyWithdrawal(
     } | null;
 
     if (!payload?.ok || !payload.savingId) {
+      logSavingsFailure(null, SAVINGS_RPC.EARLY_WITHDRAW, {
+        savingId: parsed.data.savingId,
+        cycleId: parsed.data.cycleId,
+        settlementAccountId: parsed.data.settlementAccountId,
+        responseInvalid: true,
+      });
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
     }
 
@@ -180,7 +199,12 @@ export async function confirmEarlyWithdrawal(
       cycleId: payload.cycleId ?? parsed.data.cycleId,
       netReturned: Number(payload.netReturned ?? 0),
     };
-  } catch {
+  } catch (error) {
+    logSavingsFailure(error, SAVINGS_RPC.EARLY_WITHDRAW, {
+      savingId: parsed.data.savingId,
+      cycleId: parsed.data.cycleId,
+      settlementAccountId: parsed.data.settlementAccountId,
+    });
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }
 }

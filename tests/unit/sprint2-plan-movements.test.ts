@@ -2,7 +2,7 @@
  * AC contract + command mapping for Sprint 2 verification fixes
  * (AC-JAR-01, AC-JAR-02, BR-06 BLOCK, BR-13 partner notify).
  */
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/modules/platform/supabase/env", () => ({
   getSupabaseEnv: vi.fn(() => ({
@@ -41,11 +41,15 @@ import {
   InboxItemKind,
   InboxSourceType,
 } from "@/modules/inbox/application/inbox-constants";
-import { reallocateJarCapacity } from "@/modules/plan/application/commands/reallocate-jar-capacity";
+import {
+  classifyReallocationRpcError,
+  reallocateJarCapacity,
+} from "@/modules/plan/application/commands/reallocate-jar-capacity";
 import {
   CapacityMovementDirection,
   PLAN_ACTION_ERROR_CODE,
   PLAN_MOVEMENT_LEDGER_IMPACT,
+  PLAN_OPERATION,
   PlanMovementEvent,
   reallocateJarCapacityInputSchema,
   applyCapacityDelta,
@@ -299,7 +303,10 @@ describe("reallocateJarCapacity command ↔ RPC mapping", () => {
       role: "admin",
     } as never);
 
-    const rpc = vi.fn().mockResolvedValue({ data: null, error: { message: "ERR_INSUFFICIENT_REALLOCATABLE_BUDGET" } });
+    const rpc = vi.fn().mockResolvedValue({
+      data: null,
+      error: { message: "ERR_INSUFFICIENT_REALLOCATABLE_BUDGET" },
+    });
     vi.mocked(createSupabaseServerClient).mockResolvedValue({
       from: () => ({
         select: () => ({
@@ -347,5 +354,51 @@ describe("reallocateJarCapacity command ↔ RPC mapping", () => {
     if (!result.ok) {
       expect(result.code).toBe(PRODUCT_ACTION_ERROR_CODE.UNAUTHENTICATED);
     }
+  });
+
+  it("prefers structured RPC codes over legacy message text", () => {
+    expect(
+      classifyReallocationRpcError({
+        code: PLAN_ACTION_ERROR_CODE.SAME_JAR,
+        message: "capacity is unavailable",
+      }),
+    ).toBe(PLAN_ACTION_ERROR_CODE.SAME_JAR);
+  });
+
+  it("logs unexpected exceptions and maps them to a safe public code", async () => {
+    vi.mocked(assertMoneyActionAllowed).mockResolvedValue({
+      ok: true,
+      userId: DECLARER,
+      householdId: "h1",
+    });
+    const thrown = new Error("database unavailable");
+    vi.mocked(createSupabaseServerClient).mockRejectedValueOnce(thrown);
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+
+    const result = await reallocateJarCapacity({
+      sourceJarId: SOURCE,
+      targetJarId: TARGET,
+      amount: 100,
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN,
+    });
+    expect(JSON.stringify(result)).not.toContain("database unavailable");
+    expect(consoleError).toHaveBeenCalledWith(
+      expect.objectContaining({
+        operation: PLAN_OPERATION.REALLOCATE_JAR_CAPACITY,
+        error: thrown,
+        context: expect.objectContaining({
+          householdId: "h1",
+          sourceJarId: SOURCE,
+          targetJarId: TARGET,
+        }),
+      }),
+    );
+    consoleError.mockRestore();
   });
 });

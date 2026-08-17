@@ -10,7 +10,13 @@ import {
   RenewalPolicy,
   MaturityTargetMode,
   MaturityFallbackPolicy,
+  SAVINGS_RPC,
 } from "../savings-constants";
+import {
+  classifySavingsRpcError,
+  logSavingsFailure,
+  savingsFailureCode,
+} from "../savings-error";
 import { resolvePackageSnapshot } from "../savings-provider-registry";
 import {
   addSavingsTerm,
@@ -171,7 +177,7 @@ export async function createSaving(
   try {
     const supabase = await createSupabaseServerClient();
 
-    const { data: fundingAccount } = await supabase
+    const { data: fundingAccount, error: fundingAccountError } = await supabase
       .from("accounts")
       .select("id, type")
       .eq("household_id", gate.householdId)
@@ -179,6 +185,15 @@ export async function createSaving(
       .eq("is_archived", false)
       .maybeSingle();
 
+    if (fundingAccountError) {
+      return {
+        ok: false,
+        code: savingsFailureCode(fundingAccountError, SAVINGS_RPC.CREATE, {
+          householdId: gate.householdId,
+          fundingAccountId: parsed.data.fundingAccountId,
+        }),
+      };
+    }
     if (!fundingAccount) {
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
     }
@@ -187,14 +202,24 @@ export async function createSaving(
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
     }
 
-    const { data: settlementAccount } = await supabase
-      .from("accounts")
-      .select("id, type")
-      .eq("household_id", gate.householdId)
-      .eq("id", parsed.data.settlementAccountId)
-      .eq("is_archived", false)
-      .maybeSingle();
+    const { data: settlementAccount, error: settlementAccountError } =
+      await supabase
+        .from("accounts")
+        .select("id, type")
+        .eq("household_id", gate.householdId)
+        .eq("id", parsed.data.settlementAccountId)
+        .eq("is_archived", false)
+        .maybeSingle();
 
+    if (settlementAccountError) {
+      return {
+        ok: false,
+        code: savingsFailureCode(settlementAccountError, SAVINGS_RPC.CREATE, {
+          householdId: gate.householdId,
+          settlementAccountId: parsed.data.settlementAccountId,
+        }),
+      };
+    }
     if (!settlementAccount) {
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
     }
@@ -208,7 +233,7 @@ export async function createSaving(
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
     }
 
-    const { data, error } = await supabase.rpc("create_saving_with_transfer", {
+    const { data, error } = await supabase.rpc(SAVINGS_RPC.CREATE, {
       p_funding_account_id: parsed.data.fundingAccountId,
       p_principal: parsed.data.principal,
       p_provider_id: parsed.data.providerId,
@@ -224,7 +249,17 @@ export async function createSaving(
     });
 
     if (error) {
-      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+      const code = classifySavingsRpcError(error);
+      if (code === PRODUCT_ACTION_ERROR_CODE.UNKNOWN) {
+        logSavingsFailure(error, SAVINGS_RPC.CREATE, {
+          householdId: gate.householdId,
+          providerId: parsed.data.providerId,
+          packageId: parsed.data.packageId,
+          fundingAccountId: parsed.data.fundingAccountId,
+          settlementAccountId: parsed.data.settlementAccountId,
+        });
+      }
+      return { ok: false, code };
     }
 
     const payload = data as {
@@ -234,6 +269,14 @@ export async function createSaving(
     } | null;
 
     if (!payload?.ok || !payload.savingId) {
+      logSavingsFailure(null, SAVINGS_RPC.CREATE, {
+        householdId: gate.householdId,
+        providerId: parsed.data.providerId,
+        packageId: parsed.data.packageId,
+        fundingAccountId: parsed.data.fundingAccountId,
+        settlementAccountId: parsed.data.settlementAccountId,
+        responseInvalid: true,
+      });
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
     }
 
@@ -243,7 +286,14 @@ export async function createSaving(
       cycleId: payload.cycleId ?? "",
       estimatedInterest,
     };
-  } catch {
+  } catch (error) {
+    logSavingsFailure(error, SAVINGS_RPC.CREATE, {
+      householdId: gate.householdId,
+      providerId: parsed.data.providerId,
+      packageId: parsed.data.packageId,
+      fundingAccountId: parsed.data.fundingAccountId,
+      settlementAccountId: parsed.data.settlementAccountId,
+    });
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }
 }

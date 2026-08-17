@@ -12,6 +12,8 @@ import {
   savingsProductInputSchema,
   savingsProviderInputSchema,
 } from "../savings-domain-rules";
+import { SAVINGS_OPERATION } from "../savings-constants";
+import { savingsFailureCode, logSavingsFailure } from "../savings-error";
 import {
   mapPackageRow,
   mapProviderRow,
@@ -66,10 +68,26 @@ export async function createSavingsProvider(
         "id, provider_key, display_name, saving_type, is_active, metadata, family, icon_key, household_id, is_system",
       )
       .single();
-    if (error || !data)
+    if (error) {
+      return {
+        ok: false,
+        code: savingsFailureCode(error, SAVINGS_OPERATION.CATALOG, {
+          householdId: gate.householdId,
+        }),
+      };
+    }
+    if (!data) {
+      logSavingsFailure(null, SAVINGS_OPERATION.CATALOG, {
+        householdId: gate.householdId,
+        responseInvalid: true,
+      });
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    }
     return { ok: true, value: mapProviderRow(data) };
-  } catch {
+  } catch (error) {
+    logSavingsFailure(error, SAVINGS_OPERATION.CATALOG, {
+      householdId: gate.householdId,
+    });
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }
 }
@@ -105,10 +123,22 @@ export async function updateSavingsProvider(
         "id, provider_key, display_name, saving_type, is_active, metadata, family, icon_key, household_id, is_system",
       )
       .maybeSingle();
-    if (error || !data)
-      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
+    if (error) {
+      return {
+        ok: false,
+        code: savingsFailureCode(error, SAVINGS_OPERATION.CATALOG, {
+          householdId: gate.householdId,
+          providerId: parsedId.data.providerId,
+        }),
+      };
+    }
+    if (!data) return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
     return { ok: true, value: mapProviderRow(data) };
-  } catch {
+  } catch (error) {
+    logSavingsFailure(error, SAVINGS_OPERATION.CATALOG, {
+      householdId: gate.householdId,
+      providerId: parsedId.data.providerId,
+    });
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }
 }
@@ -133,10 +163,22 @@ export async function archiveSavingsProvider(
       .eq("is_system", false)
       .select("id")
       .maybeSingle();
-    if (error || !data)
-      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
+    if (error) {
+      return {
+        ok: false,
+        code: savingsFailureCode(error, SAVINGS_OPERATION.CATALOG, {
+          householdId: gate.householdId,
+          providerId: parsed.data.providerId,
+        }),
+      };
+    }
+    if (!data) return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
     return { ok: true, value: true };
-  } catch {
+  } catch (error) {
+    logSavingsFailure(error, SAVINGS_OPERATION.CATALOG, {
+      householdId: gate.householdId,
+      providerId: parsed.data.providerId,
+    });
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }
 }
@@ -159,7 +201,7 @@ export async function createSavingsProduct(
   }
   try {
     const supabase = await createSupabaseServerClient();
-    const { data: provider } = await supabase
+    const { data: provider, error: providerError } = await supabase
       .from("saving_providers")
       .select("id, family")
       .eq("id", parsed.data.providerId)
@@ -167,6 +209,15 @@ export async function createSavingsProduct(
       .eq("is_system", false)
       .eq("is_active", true)
       .maybeSingle();
+    if (providerError) {
+      return {
+        ok: false,
+        code: savingsFailureCode(providerError, SAVINGS_OPERATION.CATALOG, {
+          householdId: gate.householdId,
+          providerId: parsed.data.providerId,
+        }),
+      };
+    }
     if (!provider)
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
     const familyDefaults = defaultTaxConfigForFamily(
@@ -208,10 +259,29 @@ export async function createSavingsProduct(
         "id, provider_id, package_name, duration_days, annual_interest_rate, min_amount, max_amount, settlement_rules, penalty_rules, renewable_available, is_active, term_amount, term_unit, interest_calculation_method, currency, tax_rule, tax_rate_percent, early_settlement_rule, early_settlement_rate_percent, supports_partial_settlement",
       )
       .single();
-    if (error || !data)
+    if (error) {
+      return {
+        ok: false,
+        code: savingsFailureCode(error, SAVINGS_OPERATION.CATALOG, {
+          householdId: gate.householdId,
+          providerId: parsed.data.providerId,
+        }),
+      };
+    }
+    if (!data) {
+      logSavingsFailure(null, SAVINGS_OPERATION.CATALOG, {
+        householdId: gate.householdId,
+        providerId: parsed.data.providerId,
+        responseInvalid: true,
+      });
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    }
     return { ok: true, value: mapPackageRow(data) };
-  } catch {
+  } catch (error) {
+    logSavingsFailure(error, SAVINGS_OPERATION.CATALOG, {
+      householdId: gate.householdId,
+      providerId: parsed.data.providerId,
+    });
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }
 }
@@ -236,7 +306,7 @@ export async function updateSavingsProduct(
   }
   try {
     const supabase = await createSupabaseServerClient();
-    const { data: provider } = await supabase
+    const { data: provider, error: providerError } = await supabase
       .from("saving_providers")
       .select("id, family")
       .eq("id", parsed.data.providerId)
@@ -244,6 +314,16 @@ export async function updateSavingsProduct(
       .eq("is_system", false)
       .eq("is_active", true)
       .maybeSingle();
+    if (providerError) {
+      return {
+        ok: false,
+        code: savingsFailureCode(providerError, SAVINGS_OPERATION.CATALOG, {
+          householdId: gate.householdId,
+          packageId: parsedId.data.packageId,
+          providerId: parsed.data.providerId,
+        }),
+      };
+    }
     if (!provider)
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
     const familyDefaults = defaultTaxConfigForFamily(
@@ -285,10 +365,24 @@ export async function updateSavingsProduct(
         "id, provider_id, package_name, duration_days, annual_interest_rate, min_amount, max_amount, settlement_rules, penalty_rules, renewable_available, is_active, term_amount, term_unit, interest_calculation_method, currency, tax_rule, tax_rate_percent, early_settlement_rule, early_settlement_rate_percent, supports_partial_settlement",
       )
       .maybeSingle();
-    if (error || !data)
-      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
+    if (error) {
+      return {
+        ok: false,
+        code: savingsFailureCode(error, SAVINGS_OPERATION.CATALOG, {
+          householdId: gate.householdId,
+          packageId: parsedId.data.packageId,
+          providerId: parsed.data.providerId,
+        }),
+      };
+    }
+    if (!data) return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
     return { ok: true, value: mapPackageRow(data) };
-  } catch {
+  } catch (error) {
+    logSavingsFailure(error, SAVINGS_OPERATION.CATALOG, {
+      householdId: gate.householdId,
+      packageId: parsedId.data.packageId,
+      providerId: parsed.data.providerId,
+    });
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }
 }
@@ -310,7 +404,16 @@ export async function archiveSavingsProduct(
       .select("id, saving_providers!inner(household_id, is_system)")
       .eq("id", parsed.data.packageId)
       .maybeSingle();
-    if (packageError || !packageRow) {
+    if (packageError) {
+      return {
+        ok: false,
+        code: savingsFailureCode(packageError, SAVINGS_OPERATION.CATALOG, {
+          householdId: gate.householdId,
+          packageId: parsed.data.packageId,
+        }),
+      };
+    }
+    if (!packageRow) {
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
     }
     const provider = Array.isArray(packageRow.saving_providers)
@@ -329,10 +432,22 @@ export async function archiveSavingsProduct(
       .eq("id", parsed.data.packageId)
       .select("id")
       .maybeSingle();
-    if (error || !data)
-      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
+    if (error) {
+      return {
+        ok: false,
+        code: savingsFailureCode(error, SAVINGS_OPERATION.CATALOG, {
+          householdId: gate.householdId,
+          packageId: parsed.data.packageId,
+        }),
+      };
+    }
+    if (!data) return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
     return { ok: true, value: true };
-  } catch {
+  } catch (error) {
+    logSavingsFailure(error, SAVINGS_OPERATION.CATALOG, {
+      householdId: gate.householdId,
+      packageId: parsed.data.packageId,
+    });
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }
 }

@@ -2,6 +2,8 @@ import { getSupabaseEnv } from "@/modules/platform/supabase/env";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { getSessionUser } from "./get-session-user";
 import { resolveActiveMembership } from "./resolve-active-membership";
+import { logTenancyFailure } from "./tenancy-error";
+import { TENANCY_OPERATION } from "./tenancy-constants";
 
 export type PolicyEventRow = {
   id: string;
@@ -36,7 +38,13 @@ export async function listPolicyEvents(limit = 5): Promise<PolicyEventRow[]> {
       .order("created_at", { ascending: false })
       .limit(limit);
 
-    if (error || !data) {
+    if (error) {
+      logTenancyFailure(TENANCY_OPERATION.HOUSEHOLD_QUERY, error, {
+        householdId: membership.householdId,
+      });
+      return [];
+    }
+    if (!data) {
       return [];
     }
 
@@ -45,7 +53,10 @@ export async function listPolicyEvents(limit = 5): Promise<PolicyEventRow[]> {
       createdAt: row.created_at,
       eventType: row.event_type,
     }));
-  } catch {
+  } catch (error) {
+    logTenancyFailure(TENANCY_OPERATION.HOUSEHOLD_QUERY, error, {
+      householdId: membership.householdId,
+    });
     return [];
   }
 }

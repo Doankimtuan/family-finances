@@ -127,6 +127,42 @@ export const INVITATION_RPC_MESSAGE_NEEDLE = {
   ALREADY_BELONGS: "already belongs",
 } as const;
 
+export const HOUSEHOLD_RPC_MESSAGE_NEEDLE = {
+  ALREADY_BELONGS: "user already belongs",
+  NAME_TOO_SHORT: "at least 2",
+  NAME_INVALID: "name must",
+  ADMIN_ROLE: "admin role",
+  FORBIDDEN: "forbidden",
+  MEMBER_NOT_FOUND: "member not found",
+} as const;
+
+export const SUPABASE_POSTGRES_ERROR_CODE = {
+  INSUFFICIENT_PRIVILEGE: "42501",
+  INVALID_TEXT: "22p02",
+} as const;
+
+export const TENANCY_OPERATION = {
+  AUTH_SIGN_IN: "tenancy.auth.sign_in",
+  AUTH_SIGN_UP: "tenancy.auth.sign_up",
+  AUTH_SESSION: "tenancy.auth.session",
+  AUTH_SIGN_OUT: "tenancy.auth.sign_out",
+  AUTH_PASSWORD_RESET: "tenancy.auth.password_reset",
+  AUTH_OAUTH: "tenancy.auth.oauth",
+  HOUSEHOLD_CREATE: "tenancy.household.create",
+  HOUSEHOLD_ROLE: "tenancy.household.role",
+  HOUSEHOLD_POLICIES: "tenancy.household.policies",
+  HOUSEHOLD_PREFERENCES: "tenancy.household.preferences",
+  MEMBERSHIP_RESOLVE: "tenancy.membership.resolve",
+  HOUSEHOLD_QUERY: "tenancy.household.query",
+  INVITATION_CREATE: "tenancy.invitation.create",
+  INVITATION_ACCEPT: "tenancy.invitation.accept",
+  INVITATION_DECLINE: "tenancy.invitation.decline",
+  INVITATION_REVOKE: "tenancy.invitation.revoke",
+  INVITATION_PREVIEW: "tenancy.invitation.preview",
+  INVITATION_QUERY: "tenancy.invitation.query",
+  AI_AUDIT: "tenancy.ai_audit.record",
+} as const;
+
 /** Locale-agnostic login href that preserves post-auth return path. */
 export function loginHrefWithNext(nextPath: string): string {
   const qs = new URLSearchParams({

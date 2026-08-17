@@ -9,6 +9,8 @@ import {
   HOUSEHOLD_TIMEZONE,
 } from "./tenancy-constants";
 import type { HouseholdPreferencesInput } from "./household-preferences.schema";
+import { logTenancyFailure } from "./tenancy-error";
+import { TENANCY_OPERATION } from "./tenancy-constants";
 
 export type HouseholdPreferences = HouseholdPreferencesInput & {
   householdName: string;
@@ -31,7 +33,13 @@ export async function getHouseholdPreferences(): Promise<HouseholdPreferences | 
       .eq("id", membership.householdId)
       .maybeSingle();
 
-    if (error || !data) return null;
+    if (error) {
+      logTenancyFailure(TENANCY_OPERATION.HOUSEHOLD_QUERY, error, {
+        householdId: membership.householdId,
+      });
+      return null;
+    }
+    if (!data) return null;
 
     return {
       householdName: data.name,
@@ -43,7 +51,10 @@ export async function getHouseholdPreferences(): Promise<HouseholdPreferences | 
       baseCurrency: HOUSEHOLD_BASE_CURRENCY.VIETNAM_DONG,
       canEdit: membership.role === HOUSEHOLD_ROLE.ADMIN,
     };
-  } catch {
+  } catch (error) {
+    logTenancyFailure(TENANCY_OPERATION.HOUSEHOLD_QUERY, error, {
+      householdId: membership.householdId,
+    });
     return null;
   }
 }

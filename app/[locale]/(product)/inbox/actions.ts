@@ -7,10 +7,10 @@ import {
   type ResolveInboxItemInput,
   type DismissInboxItemInput,
   type AcknowledgeInboxItemInput,
+  type InboxCommandErrorCode,
 } from "@/modules/inbox/application";
-import type { ProductActionErrorCode } from "@/modules/tenancy/application/product-action-error";
 
-type Err = { status: "error"; code: ProductActionErrorCode };
+type Err = { status: "error"; code: InboxCommandErrorCode };
 type Ok = { status: "success" };
 
 export async function resolveInboxAction(

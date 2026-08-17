@@ -59,6 +59,60 @@ export const SAVINGS_FAMILY_VALUES = [
   SavingsFamily.BANK,
   SavingsFamily.PLATFORM,
 ] as const;
+
+/** Savings RPC names used at the application boundary and in diagnostics. */
+export const SAVINGS_RPC = {
+  CREATE: "create_saving_with_transfer",
+  DETECT_MATURED: "detect_matured_savings",
+  ENQUEUE_MATURITY_CASCADE: "enqueue_savings_maturity_cascade",
+  BACKFILL_LEGACY: "backfill_legacy_savings_accounts",
+  SETTLE: "settle_saving_cycle",
+  RENEW: "rollover_saving_cycle",
+  RECORD_RENEWAL_DECISION: "record_saving_renewal_decision",
+  EARLY_WITHDRAW: "early_withdraw_saving",
+} as const;
+
+export type SavingsRpc = (typeof SAVINGS_RPC)[keyof typeof SAVINGS_RPC];
+
+export const SAVINGS_OPERATION = {
+  PROVIDER_REGISTRY: "savingsProviderRegistry",
+  MATURITY_ENRICHMENT: "savingsMaturityEnrichment",
+  EARLY_WITHDRAWAL_INBOX: "savingsEarlyWithdrawalInbox",
+  UPDATE_RENEWAL_POLICY: "updateRenewalPolicy",
+  CATALOG: "manageSavingsCatalog",
+} as const;
+
+export type SavingsOperation =
+  SavingsRpc | (typeof SAVINGS_OPERATION)[keyof typeof SAVINGS_OPERATION];
+
+/**
+ * Compatibility markers for current Savings RPCs, which still raise plain
+ * text PostgreSQL exceptions instead of stable domain metadata.
+ */
+export const SAVINGS_LEGACY_RPC_ERROR_MARKERS = {
+  UNAUTHENTICATED: ["authentication required"],
+  NO_MEMBERSHIP: ["active household membership required"],
+  INVALID: [
+    "principal must be positive",
+    "invalid or archived savings provider",
+    "currency mismatch",
+    "invalid funding account",
+    "invalid settlement account",
+    "cycle not found",
+    "cycle must be matured to settle",
+    "cycle must be matured to rollover",
+    "cycle must be active",
+    "invalid rollover action",
+    "target package is required",
+    "target package is unavailable",
+    "target package currency mismatch",
+    "target package minimum amount not met",
+    "target package maximum amount exceeded",
+    "target package does not support this rollover",
+    "forbidden",
+  ],
+} as const;
+
 export function savingsFamilyForType(type: SavingType): SavingsFamily {
   return type === SavingType.BANK_DEPOSIT
     ? SavingsFamily.BANK

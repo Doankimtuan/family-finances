@@ -60,6 +60,32 @@ export type DebtProgressState =
 export const DEBT_NO_DUE_SORT_DATE = "9999-12-31";
 export const DEBT_CREATE_IDEMPOTENCY_KEY_PREFIX = "debt-create:";
 export const DEBT_PAYMENT_IDEMPOTENCY_KEY_PREFIX = "debt-payment:";
+
+/** Compatibility markers for legacy debt/liability RPC errors. */
+export const DEBT_LEGACY_RPC_ERROR_MARKERS = [
+  "authentication required",
+  "not a household member",
+  "invalid debt",
+  "debt name is required",
+  "counterparty is required",
+  "principal must",
+  "due date must",
+  "account is required",
+  "account not found",
+  "debt not found",
+  "debt cannot receive",
+  "amount exceeds",
+  "payment must",
+] as const;
+
+export const LIABILITY_LEGACY_RPC_ERROR_MARKERS = [
+  "authentication required",
+  "not a household member",
+  "invalid payment amount",
+  "liability not found",
+  "liability archived",
+] as const;
+
 export function createDebtIdempotencyKey(prefix: string): string {
   return `${prefix}${crypto.randomUUID()}`;
 }

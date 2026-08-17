@@ -6,12 +6,14 @@ import {
   productActionErrorFromDeniedReason,
   type ProductActionErrorCode,
 } from "@/modules/tenancy/application/product-action-error";
+import type { Result } from "@/modules/shared-kernel/application/result";
 import {
   ACCOUNT_TYPE_VALUES,
   AccountType,
   DEFAULT_CARD_DUE_DAY,
   DEFAULT_CARD_STATEMENT_DAY,
 } from "../ledger-constants";
+import { LEDGER_OPERATION, logLedgerFailure } from "../ledger-error";
 
 const creditCardSettingsSchema = z.object({
   creditLimit: z.number().finite().int().min(0),
@@ -46,8 +48,10 @@ export type CreateAccountInput = z.infer<typeof createAccountInputSchema>;
 
 export type CreateAccountErrorCode = ProductActionErrorCode;
 
-export type CreateAccountResult =
-  { ok: true; accountId: string } | { ok: false; code: CreateAccountErrorCode };
+export type CreateAccountResult = Result<
+  { accountId: string },
+  CreateAccountErrorCode
+>;
 
 /**
  * Create a cash/wallet or credit-card account for the active household.
@@ -76,13 +80,20 @@ export async function createAccount(
     const supabase = await createSupabaseServerClient();
 
     if (isCard && parsed.data.creditCard?.linkedBankAccountId) {
-      const { data: linked } = await supabase
+      const { data: linked, error: linkedError } = await supabase
         .from("accounts")
         .select("id, type")
         .eq("household_id", gate.householdId)
         .eq("id", parsed.data.creditCard.linkedBankAccountId)
         .eq("is_archived", false)
         .maybeSingle();
+      if (linkedError) {
+        logLedgerFailure(linkedError, LEDGER_OPERATION.CREATE_ACCOUNT, {
+          householdId: gate.householdId,
+          accountId: parsed.data.creditCard.linkedBankAccountId,
+        });
+        return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+      }
       if (!linked || linked.type === AccountType.CREDIT_CARD) {
         return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
       }
@@ -100,7 +111,17 @@ export async function createAccount(
       .select("id")
       .single();
 
-    if (error || !data?.id) {
+    if (error) {
+      logLedgerFailure(error, LEDGER_OPERATION.CREATE_ACCOUNT, {
+        householdId: gate.householdId,
+      });
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    }
+    if (!data?.id) {
+      logLedgerFailure(null, LEDGER_OPERATION.CREATE_ACCOUNT, {
+        householdId: gate.householdId,
+        responseInvalid: true,
+      });
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
     }
 
@@ -118,16 +139,29 @@ export async function createAccount(
         });
 
       if (settingsError) {
-        await supabase
+        logLedgerFailure(settingsError, LEDGER_OPERATION.CREATE_ACCOUNT, {
+          householdId: gate.householdId,
+          accountId: data.id,
+        });
+        const { error: archiveError } = await supabase
           .from("accounts")
           .update({ is_archived: true })
           .eq("id", data.id);
+        if (archiveError) {
+          logLedgerFailure(archiveError, LEDGER_OPERATION.CREATE_ACCOUNT, {
+            householdId: gate.householdId,
+            accountId: data.id,
+          });
+        }
         return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
       }
     }
 
     return { ok: true, accountId: data.id };
-  } catch {
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.CREATE_ACCOUNT, {
+      householdId: gate.householdId,
+    });
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }
 }
