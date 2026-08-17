@@ -3,6 +3,10 @@ import {
   DAYS_PER_YEAR,
   INTEREST_RATE_DENOMINATOR,
 } from "./savings-constants";
+import {
+  differenceInUtcCalendarDays,
+  MILLISECONDS_PER_DAY,
+} from "@/shared/utils/iso-date";
 
 /**
  * Interest calculation engine for savings products.
@@ -25,16 +29,6 @@ export type InterestResult = {
   dailyRate: number;
   annualRate: number;
 };
-
-/**
- * Number of days between two date strings (inclusive of start, exclusive of end — money earns interest from startDate to endDate-1).
- */
-function daysBetween(startDate: string, endDate: string): number {
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-  const msPerDay = 24 * 60 * 60 * 1000;
-  return Math.max(0, Math.floor((end.getTime() - start.getTime()) / msPerDay));
-}
 
 /**
  * Calculate interest using simple interest formula: principal * (rate/100) * (days/365).
@@ -95,7 +89,11 @@ function calcCompoundMonthlyInterest(
  */
 export function calculateInterest(input: InterestInput): InterestResult {
   const effectiveEnd = input.asOfDate ?? input.endDate;
-  const days = daysBetween(input.startDate, effectiveEnd);
+  // Savings dates are UTC calendar dates: start is included, end is excluded.
+  const days = Math.max(
+    0,
+    differenceInUtcCalendarDays(input.startDate, effectiveEnd),
+  );
   const annualRate = input.annualRate;
 
   let totalInterest = 0;
@@ -170,7 +168,9 @@ export function computeFullTermInterest(input: {
   method: (typeof InterestCalcMethod)[keyof typeof InterestCalcMethod];
 }): number {
   const start = new Date();
-  const end = new Date(start.getTime() + input.durationDays * 24 * 60 * 60 * 1000);
+  const end = new Date(
+    start.getTime() + input.durationDays * MILLISECONDS_PER_DAY,
+  );
   const startStr = start.toISOString().slice(0, 10);
   const endStr = end.toISOString().slice(0, 10);
 

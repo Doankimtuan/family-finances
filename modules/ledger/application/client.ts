@@ -138,8 +138,8 @@ export {
   allocateCreditCardInstallments,
   buildCreditCardInstallmentPreview,
   buildCreditCardInstallmentViewModel,
-  percentageToBasisPoints,
 } from "./credit-card-installments";
+export { percentageToBasisPoints } from "@/shared/utils/percentage";
 export type {
   Loan,
   LoanPayment,

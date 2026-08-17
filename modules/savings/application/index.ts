@@ -55,7 +55,7 @@ export type {
   PackageRecommendation,
   MaturityWarning,
   SavingsFinancialActivity,
-} from "./savings-types";
+} from "./types/savings.types";
 
 export {
   mapSavingRow,
@@ -63,9 +63,9 @@ export {
   mapProviderRow,
   mapPackageRow,
   mapEarlyWithdrawalRow,
-  emptyRenewalConfig,
-  selectCurrentSavingCycle,
-} from "./savings-types";
+} from "./infrastructure/savings-row.mapper";
+export { emptyRenewalConfig } from "./savings-defaults";
+export { selectCurrentSavingCycle } from "./selectors/savings.selectors";
 
 export {
   calculateInterest,

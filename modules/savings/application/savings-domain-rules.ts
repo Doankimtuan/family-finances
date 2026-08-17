@@ -3,8 +3,6 @@ import {
   AccountType,
   type AccountType as AccountTypeValue,
 } from "@/modules/ledger/application/ledger-constants";
-import { DAYS_PER_YEAR } from "./savings-constants";
-
 import { SavingsFamily, SAVINGS_FAMILY_VALUES } from "./savings-constants";
 export { SavingsFamily, SAVINGS_FAMILY_VALUES };
 export type { SavingsFamily as SavingsFamilyValue } from "./savings-constants";
@@ -270,18 +268,4 @@ export function assertCompatibleSavingsAccounts(input: {
     return { ok: false, reason: "ACCOUNT_TYPE" };
   }
   return { ok: true };
-}
-
-export function annualInterestForSimpleTerm(input: {
-  principal: number;
-  annualRatePercent: number;
-  startDate: string;
-  endDate: string;
-}): number {
-  const start = new Date(`${input.startDate}T00:00:00Z`).getTime();
-  const end = new Date(`${input.endDate}T00:00:00Z`).getTime();
-  const days = Math.max(0, Math.round((end - start) / 86_400_000));
-  return Math.floor(
-    (input.principal * (input.annualRatePercent / 100) * days) / DAYS_PER_YEAR,
-  );
 }

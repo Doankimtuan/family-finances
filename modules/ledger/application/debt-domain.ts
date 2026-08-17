@@ -85,6 +85,68 @@ function ymdToUtc(isoDate: string): number {
   return Date.UTC(year, month - 1, day);
 }
 
+function asDebtDirection(
+  value: string | null | undefined,
+): DebtDirectionValue {
+  return value === DebtDirection.LENT
+    ? DebtDirection.LENT
+    : DebtDirection.BORROWED;
+}
+
+function asDebtCreationMode(
+  value: string | null | undefined,
+): DebtCreationModeValue {
+  return value === DebtCreationMode.MONEY_MOVED
+    ? DebtCreationMode.MONEY_MOVED
+    : DebtCreationMode.EXISTING_BALANCE;
+}
+
+function resolveDebtStatus(
+  row: {
+    is_archived: boolean;
+    status?: string | null;
+  },
+  remainingAmount: number,
+): DebtStatusValue {
+  if (row.is_archived || row.status === DebtStatus.ARCHIVED) {
+    return DebtStatus.ARCHIVED;
+  }
+  if (remainingAmount === 0 || row.status === DebtStatus.COMPLETED) {
+    return DebtStatus.COMPLETED;
+  }
+  return DebtStatus.ACTIVE;
+}
+
+function asDebtPaymentDirection(
+  value: string,
+): DebtPaymentDirectionValue {
+  return value === DebtPaymentDirection.RECEIVE_LENT
+    ? DebtPaymentDirection.RECEIVE_LENT
+    : DebtPaymentDirection.REPAY_BORROWED;
+}
+
+function debtProgressPercent(
+  principal: number,
+  paidAmount: number,
+  remainingAmount: number,
+): number {
+  if (principal === 0 || paidAmount <= 0) return 0;
+  if (remainingAmount === 0) return 100;
+  return Math.min(
+    99,
+    Math.max(1, Math.round((paidAmount / principal) * 100)),
+  );
+}
+
+function debtProgressState(
+  paidAmount: number,
+  remainingAmount: number,
+): DebtProgressStateValue {
+  if (remainingAmount === 0) return DebtProgressState.COMPLETED;
+  if (paidAmount === 0) return DebtProgressState.NOT_STARTED;
+  return DebtProgressState.IN_PROGRESS;
+}
+
 export function mapDebtRow(row: {
   id: string;
   name: string;
@@ -114,23 +176,12 @@ export function mapDebtRow(row: {
     principalAmount,
     remainingAmount,
     currency: row.currency,
-    direction:
-      row.direction === DebtDirection.LENT
-        ? DebtDirection.LENT
-        : DebtDirection.BORROWED,
-    creationMode:
-      row.creation_mode === DebtCreationMode.MONEY_MOVED
-        ? DebtCreationMode.MONEY_MOVED
-        : DebtCreationMode.EXISTING_BALANCE,
+    direction: asDebtDirection(row.direction),
+    creationMode: asDebtCreationMode(row.creation_mode),
     startDate: row.start_date ?? "",
     dueDate: row.due_date ?? null,
     note: row.note,
-    status:
-      row.is_archived || row.status === DebtStatus.ARCHIVED
-        ? DebtStatus.ARCHIVED
-        : remainingAmount === 0 || row.status === DebtStatus.COMPLETED
-          ? DebtStatus.COMPLETED
-          : DebtStatus.ACTIVE,
+    status: resolveDebtStatus(row, remainingAmount),
     originAccountId: row.origin_account_id ?? null,
     originTransactionId: row.origin_transaction_id ?? null,
     isArchived: row.is_archived,
@@ -156,10 +207,7 @@ export function mapDebtPaymentRow(row: {
     accountName: account?.name ?? null,
     transactionId: row.transaction_id,
     amount: asWholeMoney(row.amount),
-    direction:
-      row.payment_direction === DebtPaymentDirection.RECEIVE_LENT
-        ? DebtPaymentDirection.RECEIVE_LENT
-        : DebtPaymentDirection.REPAY_BORROWED,
+    direction: asDebtPaymentDirection(row.payment_direction),
     effectiveDate: row.effective_date,
     note: row.note,
   };
@@ -174,22 +222,11 @@ export function getDebtProgress(
     Math.min(principal, debt.remainingAmount),
   );
   const paidAmount = Math.max(0, principal - remainingAmount);
-  const percent =
-    principal === 0 || paidAmount <= 0
-      ? 0
-      : remainingAmount === 0
-        ? 100
-        : Math.min(99, Math.max(1, Math.round((paidAmount / principal) * 100)));
   return {
     paidAmount,
     remainingAmount,
-    percent,
-    state:
-      remainingAmount === 0
-        ? DebtProgressState.COMPLETED
-        : paidAmount === 0
-          ? DebtProgressState.NOT_STARTED
-          : DebtProgressState.IN_PROGRESS,
+    percent: debtProgressPercent(principal, paidAmount, remainingAmount),
+    state: debtProgressState(paidAmount, remainingAmount),
   };
 }
 

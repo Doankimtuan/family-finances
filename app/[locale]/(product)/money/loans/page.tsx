@@ -12,7 +12,7 @@ import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-a
 import { listLoans } from "@/modules/ledger/application";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
-import { LoanCard } from "@/shared/patterns/loan-card";
+import { LoanCard } from "@/modules/ledger/ui/loan-card";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Text } from "@/shared/ui/text";
@@ -66,7 +66,10 @@ export default async function LoansPage({ params }: Props) {
               className="flex-none py-(--space-4)"
             />
           ) : (
-            <ul className="flex flex-col gap-(--space-2)" data-testid="loans-list">
+            <ul
+              className="flex flex-col gap-(--space-2)"
+              data-testid="loans-list"
+            >
               {list.map((loan) => (
                 <li key={loan.id}>
                   <Link

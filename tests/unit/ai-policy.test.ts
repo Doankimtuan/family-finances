@@ -7,7 +7,7 @@ import {
 import {
   AiAuditEventKind,
   recordAiAuditEventInputSchema,
-} from "@/modules/platform/application/ai-audit.schema";
+} from "@/modules/tenancy/application/ai-audit.schema";
 
 describe("AI Non-Invention policy (BR-14)", () => {
   it("accepts counts-only grounded params", () => {

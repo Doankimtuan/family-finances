@@ -182,10 +182,10 @@ export {
   allocateCreditCardInstallments,
   buildCreditCardInstallmentPreview,
   buildCreditCardInstallmentViewModel,
-  percentageToBasisPoints,
   isStructurallyEligibleCardPurchase,
   mapCreditCardInstallmentRow,
 } from "./credit-card-installments";
+export { percentageToBasisPoints } from "@/shared/utils/percentage";
 export { buildCreditCardSummary, isCreditCardType } from "./credit-card-types";
 export {
   resolveBillingMonthKey,
@@ -257,10 +257,6 @@ export {
   updateLoanInterestRateInputSchema,
   setLoanStatus,
   setLoanStatusInputSchema,
-  createInstallmentPlan,
-  createInstallmentInputSchema,
-  recordInstallmentPayment,
-  recordInstallmentPaymentInputSchema,
   type CreateLiabilityInput,
   type RecordLiabilityPaymentInput,
   type CreateSavingsInput,
@@ -268,8 +264,6 @@ export {
   type UpdateLoanMetadataInput,
   type UpdateLoanInterestRateInput,
   type SetLoanStatusInput,
-  type CreateInstallmentInput,
-  type RecordInstallmentPaymentInput,
   type MoneyProductMutationResult,
 } from "./commands/money-products";
 export {

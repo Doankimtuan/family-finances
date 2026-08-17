@@ -66,12 +66,25 @@ export type TransactionActivity = {
   sign: "+" | "−" | "";
 };
 
-const INVESTMENT_LEDGER_TYPES = new Set<TransactionLedgerTypeValue>([
-  TransactionLedgerType.INVESTMENT_BUY,
-  TransactionLedgerType.INVESTMENT_SELL_PROCEEDS,
-  TransactionLedgerType.INVESTMENT_INCOME,
-  TransactionLedgerType.INVESTMENT_FEE,
-]);
+const LEDGER_TYPE_TO_ACTIVITY_KIND: Partial<
+  Record<TransactionLedgerTypeValue, TransactionActivityKind>
+> = {
+  [TransactionLedgerType.INCOME]: TransactionActivityKind.INCOME,
+  [TransactionLedgerType.EXPENSE]: TransactionActivityKind.EXPENSE,
+  [TransactionLedgerType.LIABILITY_PAYMENT]:
+    TransactionActivityKind.LIABILITY_PAYMENT,
+  [TransactionLedgerType.DEBT_BORROWING]: TransactionActivityKind.DEBT_BORROWING,
+  [TransactionLedgerType.DEBT_LENDING]: TransactionActivityKind.DEBT_LENDING,
+  [TransactionLedgerType.DEBT_RECEIVABLE_PAYMENT]:
+    TransactionActivityKind.DEBT_RECEIPT,
+  [TransactionLedgerType.TRANSFER_OUT]: TransactionActivityKind.TRANSFER,
+  [TransactionLedgerType.TRANSFER_IN]: TransactionActivityKind.TRANSFER,
+  [TransactionLedgerType.INVESTMENT_BUY]: TransactionActivityKind.INVESTMENT,
+  [TransactionLedgerType.INVESTMENT_SELL_PROCEEDS]:
+    TransactionActivityKind.INVESTMENT,
+  [TransactionLedgerType.INVESTMENT_INCOME]: TransactionActivityKind.INVESTMENT,
+  [TransactionLedgerType.INVESTMENT_FEE]: TransactionActivityKind.INVESTMENT,
+};
 
 function kindForLedgerRow(
   row: LedgerTransaction,
@@ -81,28 +94,9 @@ function kindForLedgerRow(
   if (semantics.category === FinancialEventCategory.SAVINGS) {
     return TransactionActivityKind.SAVINGS;
   }
-  if (INVESTMENT_LEDGER_TYPES.has(row.type)) {
-    return TransactionActivityKind.INVESTMENT;
-  }
-  switch (row.type) {
-    case TransactionLedgerType.INCOME:
-      return TransactionActivityKind.INCOME;
-    case TransactionLedgerType.EXPENSE:
-      return TransactionActivityKind.EXPENSE;
-    case TransactionLedgerType.LIABILITY_PAYMENT:
-      return TransactionActivityKind.LIABILITY_PAYMENT;
-    case TransactionLedgerType.DEBT_BORROWING:
-      return TransactionActivityKind.DEBT_BORROWING;
-    case TransactionLedgerType.DEBT_LENDING:
-      return TransactionActivityKind.DEBT_LENDING;
-    case TransactionLedgerType.DEBT_RECEIVABLE_PAYMENT:
-      return TransactionActivityKind.DEBT_RECEIPT;
-    case TransactionLedgerType.TRANSFER_OUT:
-    case TransactionLedgerType.TRANSFER_IN:
-      return TransactionActivityKind.TRANSFER;
-    default:
-      return TransactionActivityKind.OTHER;
-  }
+  return (
+    LEDGER_TYPE_TO_ACTIVITY_KIND[row.type] ?? TransactionActivityKind.OTHER
+  );
 }
 
 function toneForSemantics(

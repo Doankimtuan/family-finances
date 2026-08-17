@@ -33,6 +33,7 @@ Prefer when appropriate:
 - discriminated unions
 - exhaustive `switch` statements
 - strategy functions
+- small resolver helpers for multi-branch domain mapping (`resolveBackingState`, `asGoalType`)
 
 Principle:
 
@@ -40,6 +41,108 @@ Principle:
 Do not encode multiple business decisions inside one giant condition.
 Name business decisions explicitly.
 ```
+
+### Nested ternaries and chained conditionals
+
+Do not chain ternaries to pick among three or more outcomes. A nested ternary
+usually means several business rules were collapsed into one expression.
+
+```ts
+// BAD: three backing outcomes hidden in one expression
+const backingState = isLegacy
+  ? GoalBackingState.LEGACY
+  : hasLinks
+    ? GoalBackingState.LINKED
+    : GoalBackingState.NEEDS_BACKING;
+
+const fundedAmount =
+  backingState === GoalBackingState.LEGACY
+    ? legacyAmount
+    : backingState === GoalBackingState.LINKED
+      ? summary?.fundedAmount ?? derived ?? 0
+      : 0;
+```
+
+Prefer guard clauses, `switch`, or a named resolver that returns one outcome per
+branch:
+
+```ts
+function resolveGoalBackingState(
+  isLegacyIntention: boolean,
+  fundingLinkCount: number,
+): GoalBackingStateValue {
+  if (isLegacyIntention) return GoalBackingState.LEGACY;
+  if (fundingLinkCount > 0) return GoalBackingState.LINKED;
+  return GoalBackingState.NEEDS_BACKING;
+}
+
+function resolveGoalFundedAmount(
+  backingState: GoalBackingStateValue,
+  legacyAmount: number,
+  fundingSummary: GoalFundingSummary | null,
+  derivedFundedAmount?: number,
+): number {
+  switch (backingState) {
+    case GoalBackingState.LEGACY:
+      return legacyAmount;
+    case GoalBackingState.LINKED:
+      return fundingSummary?.fundedAmount ?? derivedFundedAmount ?? 0;
+    default:
+      return 0;
+  }
+}
+```
+
+A single ternary is fine when it expresses one binary decision with no nested
+follow-up logic. Repeated `backingState === X ? ... : ...` chains in the same
+mapper should also move into resolvers instead of spreading the same branch
+logic across the return object.
+
+Mirror existing row-mapping style in the module: `asGoalStatus` / `switch` for
+string-to-enum coercion, not nested ternaries.
+
+### Lookup tables for static domain mappings
+
+When one domain key maps to a fixed outcome (enum → enum, status → label,
+type → handler), prefer a named lookup table over a long `switch` or repeated
+equality chain. Use `Record` / `Partial<Record<…>>` so the mapping is data, not
+control flow.
+
+```ts
+// BAD: repetitive switch for a static ledger-type → activity-kind table
+switch (row.type) {
+  case TransactionLedgerType.INCOME:
+    return TransactionActivityKind.INCOME;
+  case TransactionLedgerType.EXPENSE:
+    return TransactionActivityKind.EXPENSE;
+  // ...
+  default:
+    return TransactionActivityKind.OTHER;
+}
+```
+
+```ts
+// GOOD: named lookup + fallback for unmapped keys
+const LEDGER_TYPE_TO_ACTIVITY_KIND: Partial<
+  Record<TransactionLedgerTypeValue, TransactionActivityKind>
+> = {
+  [TransactionLedgerType.INCOME]: TransactionActivityKind.INCOME,
+  [TransactionLedgerType.EXPENSE]: TransactionActivityKind.EXPENSE,
+  [TransactionLedgerType.TRANSFER_OUT]: TransactionActivityKind.TRANSFER,
+  [TransactionLedgerType.TRANSFER_IN]: TransactionActivityKind.TRANSFER,
+  // many keys can share one value
+};
+
+return LEDGER_TYPE_TO_ACTIVITY_KIND[row.type] ?? TransactionActivityKind.OTHER;
+```
+
+Keep precedence rules that are not simple key lookup (reversal overrides,
+semantic category checks) as guard clauses **before** the table lookup. Do not
+hide conditional business rules inside the table.
+
+Use `switch` when branches run different logic, not only return a constant.
+Use `Set` + predicate when the question is membership, not mapping to a
+distinct output per key.
 
 ## Semantic Membership Checks
 

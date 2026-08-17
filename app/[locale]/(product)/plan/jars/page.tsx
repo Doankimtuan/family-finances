@@ -18,6 +18,7 @@ import {
 } from "@/modules/plan/application";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
+import { basisPointsToPercentage } from "@/shared/utils/percentage";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Page } from "@/shared/patterns/page";
 import { Section } from "@/shared/patterns/section";
@@ -53,7 +54,7 @@ function planSummary(
     });
   }
   return t("planPercent", {
-    percent: Math.round(jar.plan.percentBps / 100),
+    percent: Math.round(basisPointsToPercentage(jar.plan.percentBps)),
   });
 }
 

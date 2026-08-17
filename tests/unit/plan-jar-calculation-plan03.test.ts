@@ -56,6 +56,7 @@ describe("PLAN 03 Jar calculation engine", () => {
   it("calculates fixed and percent rule budgets with integer arithmetic", () => {
     expect(calculateJarRuleBudget(fixedJar, 30_000_000)).toBe(15_000_000);
     expect(calculateJarRuleBudget(percentJar, 30_000_000)).toBe(15_000_000);
+    expect(calculateJarRuleBudget(percentJar.plan, 30_000_000)).toBe(15_000_000);
     expect(
       calculateJarRuleBudget(
         {

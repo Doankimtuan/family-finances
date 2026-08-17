@@ -12,6 +12,8 @@ import {
   type RecordAiAuditEventInput,
 } from "./ai-audit.schema";
 
+const AI_AUDIT_ERROR_CONTEXT = "[tenancy.ai-audit]";
+
 export {
   AiAuditEventKind,
   AI_AUDIT_EVENT_KIND_VALUES,
@@ -63,7 +65,8 @@ export async function recordAiAuditEvent(
     }
 
     return { ok: true, id: data.id as string };
-  } catch {
+  } catch (error) {
+    console.error(AI_AUDIT_ERROR_CONTEXT, error);
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }
 }

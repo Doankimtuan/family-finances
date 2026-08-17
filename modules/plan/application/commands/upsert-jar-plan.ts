@@ -7,6 +7,7 @@ import {
   type ProductActionErrorCode,
 } from "@/modules/tenancy/application/product-action-error";
 import { assertPlanPeriodUnlocked } from "../assert-plan-unlocked";
+import { percentageToBasisPoints } from "@/shared/utils/percentage";
 import {
   JarPlanKind,
   JAR_PLAN_KIND_VALUES,
@@ -75,7 +76,7 @@ export async function upsertJarPlan(
 
   const percentBps =
     parsed.data.planKind === JarPlanKind.PERCENT
-      ? Math.round((parsed.data.percent ?? 0) * 100)
+      ? percentageToBasisPoints(parsed.data.percent ?? 0)
       : 0;
   const fixedAmount =
     parsed.data.planKind === JarPlanKind.FIXED

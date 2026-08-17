@@ -41,6 +41,7 @@ typing weakened to fit an unusual or preprocessed field
 equality chains (x === A || x === B || x === C)
 manually implemented membership checks
 missed Set / Map / Record opportunities
+missed lookup-table opportunities for static enum/status mappings
 missed discriminated-union opportunities
 manual grouping / deduplication / indexing loops
 
@@ -84,9 +85,13 @@ dead code introduced by the refactor
    blobs, or boolean flags encoding mutually exclusive states.
 5. Duplication audit: same concept duplicated? Extract. Coincidental
    similarity? Leave it.
-6. Error audit: no new `catch {}`, no message-string branching, typed codes
+6. Control-flow audit: no chained or nested ternaries for three-or-more-way
+   domain outcomes; no repeated `state === X ? ... : ...` branches across one
+   mapper. Prefer guard clauses, `switch`, lookup tables, or named resolver
+   helpers (see `code-quality` control-flow sections).
+7. Error audit: no new `catch {}`, no message-string branching, typed codes
    for expected failures.
-7. Dead code: exports, constants, components, and branches orphaned by the
+8. Dead code: exports, constants, components, and branches orphaned by the
    refactor are deleted, not left "just in case".
 
 ## The Final Question

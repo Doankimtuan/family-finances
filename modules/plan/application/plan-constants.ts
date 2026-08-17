@@ -4,6 +4,13 @@
 
 import { TransactionDirection } from "@/modules/ledger/application/ledger-constants";
 
+export {
+  IncomeAllocateMode,
+  RitualMode,
+  INCOME_ALLOCATE_MODE_VALUES,
+  RITUAL_MODE_VALUES,
+} from "@/modules/tenancy/application/household-policy-constants";
+
 export const JarKind = {
   SPENDING: "spending",
   SAVINGS: "savings",
@@ -116,6 +123,148 @@ export const GOAL_FUNDING_SOURCE_KIND_VALUES = [
   GoalFundingSourceKind.DEBT,
 ] as const;
 
+/** Per-source Money value freshness for linked goal funding. */
+export const GoalFundingValueStatus = {
+  CURRENT: "current",
+  STALE: "stale",
+  MISSING: "missing",
+  INCOMPLETE: "incomplete",
+  UNAVAILABLE: "unavailable",
+} as const;
+
+export type GoalFundingValueStatus =
+  (typeof GoalFundingValueStatus)[keyof typeof GoalFundingValueStatus];
+
+export const GOAL_FUNDING_VALUE_STATUS_VALUES = [
+  GoalFundingValueStatus.CURRENT,
+  GoalFundingValueStatus.STALE,
+  GoalFundingValueStatus.MISSING,
+  GoalFundingValueStatus.INCOMPLETE,
+  GoalFundingValueStatus.UNAVAILABLE,
+] as const;
+
+/** Aggregate funding quality across all linked sources on a goal. */
+export const GoalFundingQuality = {
+  CURRENT: "current",
+  STALE: "stale",
+  PARTIAL: "partial",
+  MISSING: "missing",
+  INCOMPLETE: "incomplete",
+} as const;
+
+export type GoalFundingQuality =
+  (typeof GoalFundingQuality)[keyof typeof GoalFundingQuality];
+
+export const GOAL_FUNDING_QUALITY_VALUES = [
+  GoalFundingQuality.CURRENT,
+  GoalFundingQuality.STALE,
+  GoalFundingQuality.PARTIAL,
+  GoalFundingQuality.MISSING,
+  GoalFundingQuality.INCOMPLETE,
+] as const;
+
+/** How a goal is backed by Money sources vs legacy manual progress. */
+export const GoalBackingState = {
+  LINKED: "linked",
+  LEGACY: "legacy",
+  NEEDS_BACKING: "needs_backing",
+} as const;
+
+export type GoalBackingState =
+  (typeof GoalBackingState)[keyof typeof GoalBackingState];
+
+export const GOAL_BACKING_STATE_VALUES = [
+  GoalBackingState.LINKED,
+  GoalBackingState.LEGACY,
+  GoalBackingState.NEEDS_BACKING,
+] as const;
+
+/** Availability of a linked goal funding source at read time. */
+export const GoalFundingLinkAvailability = {
+  AVAILABLE: "available",
+  UNAVAILABLE: "unavailable",
+  MISSING: "missing",
+} as const;
+
+export type GoalFundingLinkAvailability =
+  (typeof GoalFundingLinkAvailability)[keyof typeof GoalFundingLinkAvailability];
+
+export const GOAL_FUNDING_LINK_AVAILABILITY_VALUES = [
+  GoalFundingLinkAvailability.AVAILABLE,
+  GoalFundingLinkAvailability.UNAVAILABLE,
+  GoalFundingLinkAvailability.MISSING,
+] as const;
+
+/** Household jar allocation health across active jars. */
+export const AllocationHealthStatus = {
+  BALANCED: "balanced",
+  UNDER_ALLOCATED: "under_allocated",
+  OVER_ALLOCATED: "over_allocated",
+  NO_INCOME: "no_income",
+} as const;
+
+export type AllocationHealthStatus =
+  (typeof AllocationHealthStatus)[keyof typeof AllocationHealthStatus];
+
+export const ALLOCATION_HEALTH_STATUS_VALUES = [
+  AllocationHealthStatus.BALANCED,
+  AllocationHealthStatus.UNDER_ALLOCATED,
+  AllocationHealthStatus.OVER_ALLOCATED,
+  AllocationHealthStatus.NO_INCOME,
+] as const;
+
+/** Derived envelope budget state for one jar in a period. */
+export const JarBudgetState = {
+  HEALTHY: "healthy",
+  NEAR_LIMIT: "near_limit",
+  OVERSPENT: "overspent",
+  NO_SPENDING: "no_spending",
+  NO_BUDGET: "no_budget",
+} as const;
+
+export type JarBudgetState =
+  (typeof JarBudgetState)[keyof typeof JarBudgetState];
+
+export const JAR_BUDGET_STATE_VALUES = [
+  JarBudgetState.HEALTHY,
+  JarBudgetState.NEAR_LIMIT,
+  JarBudgetState.OVERSPENT,
+  JarBudgetState.NO_SPENDING,
+  JarBudgetState.NO_BUDGET,
+] as const;
+
+/** Source used to derive qualifying monthly income for jar rules. */
+export const QualifyingIncomeSource = {
+  CONFIGURED: "configured",
+  RECURRING_FALLBACK: "recurring_fallback",
+  POSTED_FALLBACK: "posted_fallback",
+  NONE: "none",
+} as const;
+
+export type QualifyingIncomeSource =
+  (typeof QualifyingIncomeSource)[keyof typeof QualifyingIncomeSource];
+
+export const QUALIFYING_INCOME_SOURCE_VALUES = [
+  QualifyingIncomeSource.CONFIGURED,
+  QualifyingIncomeSource.RECURRING_FALLBACK,
+  QualifyingIncomeSource.POSTED_FALLBACK,
+  QualifyingIncomeSource.NONE,
+] as const;
+
+/** Sentinel period keys for recommendation id generation (not calendar months). */
+export const PlanRecommendationPeriodKey = {
+  CURRENT: "current",
+  LEGACY: "legacy",
+} as const;
+
+export type PlanRecommendationPeriodKey =
+  (typeof PlanRecommendationPeriodKey)[keyof typeof PlanRecommendationPeriodKey];
+
+export const PLAN_RECOMMENDATION_PERIOD_KEY_VALUES = [
+  PlanRecommendationPeriodKey.CURRENT,
+  PlanRecommendationPeriodKey.LEGACY,
+] as const;
+
 export const RecurringDirection = TransactionDirection;
 export type RecurringDirection =
   (typeof RecurringDirection)[keyof typeof RecurringDirection];
@@ -136,37 +285,6 @@ export type RecurringFrequency =
 export const RECURRING_FREQUENCY_VALUES = [
   RecurringFrequency.WEEKLY,
   RecurringFrequency.MONTHLY,
-] as const;
-
-export const IncomeAllocateMode = {
-  OFF: "off",
-  SUGGEST: "suggest",
-  AUTO: "auto",
-} as const;
-
-export type IncomeAllocateMode =
-  (typeof IncomeAllocateMode)[keyof typeof IncomeAllocateMode];
-
-export const INCOME_ALLOCATE_MODE_VALUES = [
-  IncomeAllocateMode.OFF,
-  IncomeAllocateMode.SUGGEST,
-  IncomeAllocateMode.AUTO,
-] as const;
-
-export const RitualMode = {
-  ASSISTED: "assisted",
-  AUTO: "auto",
-  MANUAL: "manual",
-  QUICK_CLOSE: "quick_close",
-} as const;
-
-export type RitualMode = (typeof RitualMode)[keyof typeof RitualMode];
-
-export const RITUAL_MODE_VALUES = [
-  RitualMode.ASSISTED,
-  RitualMode.AUTO,
-  RitualMode.MANUAL,
-  RitualMode.QUICK_CLOSE,
 ] as const;
 
 export const RitualStatus = {

@@ -11,12 +11,13 @@ export {
 export {
   calculateAllocationHealth,
   type AllocationHealth,
-  type AllocationHealthStatus,
+  AllocationHealthStatus,
 } from "./allocation-health";
 export {
   calculateJarBudgetMetrics,
   type JarBudgetMetrics,
-  type JarBudgetState,
+  JarBudgetState,
+  QualifyingIncomeSource,
 } from "./jar-budget";
 export {
   buildAssistedSuggestions,
@@ -26,6 +27,7 @@ export {
 export {
   getPlanRecommendations,
   PlanRecommendationType,
+  PlanRecommendationPriority,
   type PlanRecommendation,
   type PlanRecommendationAction,
   type PlanRecommendationInput,
@@ -37,6 +39,7 @@ export {
   collectPlanHomeExceptions,
   prioritizePlanHomeExceptions,
   PlanHomeHealthStatus,
+  PlanHomeExceptionKind,
 } from "./plan-home-health";
 export { listJars, getJar } from "./queries/list-jars";
 export {
@@ -205,11 +208,14 @@ export {
   GoalStatus,
   GoalType,
   GoalFundingSourceKind,
+  GoalBackingState,
+  GoalFundingLinkAvailability,
   RecurringDirection,
   RecurringFrequency,
   GOAL_STATUS_VALUES,
   GOAL_TYPE_VALUES,
-  GOAL_FUNDING_SOURCE_KIND_VALUES,
+  GOAL_FUNDING_LINK_AVAILABILITY_VALUES,
+  GOAL_BACKING_STATE_VALUES,
   RECURRING_DIRECTION_OPTIONS,
   RECURRING_FREQUENCY_VALUES,
 } from "./goal-recurring-types";
@@ -220,6 +226,8 @@ export {
   goalFundingSourceKey,
   hasExclusiveGoalFundingConflict,
   isPayoffFundingSource,
+  GoalFundingQuality,
+  GoalFundingValueStatus,
   type GoalFundingSourceValue,
   type GoalFundingLinkIdentity,
 } from "./goal-funding";
@@ -251,6 +259,12 @@ export {
   GOAL_FUNDING_LINKABLE_STATUS_VALUES,
   PlanAssistMode,
   PLAN_ASSIST_MODE_VALUES,
+  ALLOCATION_HEALTH_STATUS_VALUES,
+  JAR_BUDGET_STATE_VALUES,
+  QUALIFYING_INCOME_SOURCE_VALUES,
+  GOAL_FUNDING_QUALITY_VALUES,
+  GOAL_FUNDING_VALUE_STATUS_VALUES,
+  PlanRecommendationPeriodKey,
   MonthlyReviewStatus,
   MONTHLY_REVIEW_STATUS_VALUES,
   CalendarEventSource,
@@ -275,7 +289,7 @@ export {
   type CashFlowDayForecast,
 } from "./calendar-projection";
 export type { HouseholdCalendar } from "./queries/get-household-calendar";
-export { DEFAULT_CURRENCY } from "@/modules/ledger/application/ledger-constants";
+export { DEFAULT_CURRENCY } from "@/modules/shared-kernel/currency";
 
 export { reallocateJarBudget } from "./commands/reallocate-jar-capacity";
 export {

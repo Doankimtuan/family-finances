@@ -67,19 +67,24 @@ export type CreditCardDetail = CreditCardSummary & {
 };
 
 function asBillingStatus(value: string): CardBillingMonthStatusValue {
-  switch (value) {
-    case CardBillingMonthStatus.PARTIAL:
-    case CardBillingMonthStatus.SETTLED:
-      return value;
-    default:
-      return CardBillingMonthStatus.OPEN;
-  }
+  return BILLING_STATUS_FROM_ROW[value] ?? CardBillingMonthStatus.OPEN;
 }
 
+const BILLING_STATUS_FROM_ROW: Partial<
+  Record<string, CardBillingMonthStatusValue>
+> = {
+  [CardBillingMonthStatus.PARTIAL]: CardBillingMonthStatus.PARTIAL,
+  [CardBillingMonthStatus.SETTLED]: CardBillingMonthStatus.SETTLED,
+};
+
+const BILLING_ITEM_TYPE_FROM_ROW: Partial<
+  Record<string, CardBillingItemTypeValue>
+> = {
+  [CardBillingItemType.INSTALLMENT]: CardBillingItemType.INSTALLMENT,
+};
+
 function asItemType(value: string): CardBillingItemTypeValue {
-  return value === CardBillingItemType.INSTALLMENT
-    ? CardBillingItemType.INSTALLMENT
-    : CardBillingItemType.STANDARD;
+  return BILLING_ITEM_TYPE_FROM_ROW[value] ?? CardBillingItemType.STANDARD;
 }
 
 export function mapCreditCardSettingsRow(row: {

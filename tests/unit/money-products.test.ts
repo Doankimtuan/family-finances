@@ -13,7 +13,36 @@ import {
   LoanTermUnit,
   LoanInterestStrategy,
 } from "@/modules/ledger/application/ledger-constants";
-import { createLoanInputSchema } from "@/modules/ledger/application/commands/money-products";
+import {
+  createLiability,
+  createLoanInputSchema,
+  enqueueSavingsMaturity,
+  recordLoanPayment,
+} from "@/modules/ledger/application/commands/money-products";
+import { PRODUCT_ACTION_ERROR_CODE } from "@/modules/tenancy/application/product-action-error";
+
+describe("money product command validation", () => {
+  it("rejects invalid liability and loan payment inputs before persistence", async () => {
+    await expect(
+      createLiability({ name: "", principalAmount: 0 }),
+    ).resolves.toEqual({
+      ok: false,
+      code: PRODUCT_ACTION_ERROR_CODE.INVALID,
+    });
+    await expect(
+      recordLoanPayment({ loanId: "invalid", accountId: "invalid" }),
+    ).resolves.toEqual({
+      ok: false,
+      code: PRODUCT_ACTION_ERROR_CODE.INVALID,
+    });
+    await expect(
+      enqueueSavingsMaturity({ savingsId: "invalid" }),
+    ).resolves.toEqual({
+      ok: false,
+      code: PRODUCT_ACTION_ERROR_CODE.INVALID,
+    });
+  });
+});
 
 describe("money product mappers (ST-E04-004 + Loan amortization)", () => {
   it("maps liability remaining without inventing bank balance labels", () => {

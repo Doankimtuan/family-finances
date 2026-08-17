@@ -1,9 +1,14 @@
 import type { JarBudgetMetrics } from "./jar-budget";
 import {
+  GoalBackingState,
+  GoalFundingQuality,
+  GoalStatus,
+  GoalType,
   JarKind,
-  JarState,
   JarRolloverMode,
+  JarState,
   PlanAssistMode,
+  PlanRecommendationPeriodKey,
 } from "./plan-constants";
 import {
   getPlanRecommendations,
@@ -51,7 +56,7 @@ export function buildAssistedSuggestions(input: {
   }));
   const recommendations = getPlanRecommendations({
     assistMode: input.assistMode,
-    periodMonth: "legacy",
+    periodMonth: PlanRecommendationPeriodKey.LEGACY,
     jars,
     budgetsByJar: input.budgetsByJar,
     uncategorizedCount: input.uncategorizedCount,
@@ -60,11 +65,11 @@ export function buildAssistedSuggestions(input: {
       targetAmount: 0,
       fundedAmount: 0,
       targetDate: null,
-      status: "active",
-      goalType: "save_up",
+      status: GoalStatus.ACTIVE,
+      goalType: GoalType.SAVE_UP,
       fundingLinks: [],
-      backingState: "needs_backing",
-      fundingValueStatus: "current",
+      backingState: GoalBackingState.NEEDS_BACKING,
+      fundingValueStatus: GoalFundingQuality.CURRENT,
       fundingSummary: null,
       isLegacyIntention: false,
       progressPercent: 0,

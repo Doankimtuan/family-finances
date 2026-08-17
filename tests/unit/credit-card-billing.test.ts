@@ -66,7 +66,11 @@ describe("credit limit helpers", () => {
     expect(wouldExceedCreditLimit(100, 80, 20)).toBe(false);
   });
 
-  it("reports a truthful over-limit percentage and handles a zero limit", () => {
+  it("reports truthful utilization boundaries", () => {
+    expect(utilizationPercent(100, -25)).toBe(0);
+    expect(utilizationPercent(100, 0)).toBe(0);
+    expect(utilizationPercent(100, 50)).toBe(50);
+    expect(utilizationPercent(100, 100)).toBe(100);
     expect(utilizationPercent(100, 125)).toBe(125);
     expect(utilizationPercent(0, 25)).toBe(0);
   });

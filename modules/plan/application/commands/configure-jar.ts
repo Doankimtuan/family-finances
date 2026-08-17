@@ -8,6 +8,7 @@ import {
 } from "@/modules/tenancy/application/product-action-error";
 import { TransactionDirection } from "@/modules/ledger/application/ledger-constants";
 import { assertPlanPeriodUnlocked } from "../assert-plan-unlocked";
+import { percentageToBasisPoints } from "@/shared/utils/percentage";
 import {
   JarKind,
   JarPlanKind,
@@ -40,15 +41,13 @@ function categoryKindForJar(kind: JarKindValue): string {
     : TransactionDirection.EXPENSE;
 }
 
-function percentBps(value: number | undefined): number {
-  return Math.round((value ?? 0) * 100);
-}
-
 function planValues(input: JarConfigurationInput) {
   return {
     plan_kind: input.planKind,
     percent_bps:
-      input.planKind === JarPlanKind.PERCENT ? percentBps(input.percent) : 0,
+      input.planKind === JarPlanKind.PERCENT
+        ? percentageToBasisPoints(input.percent ?? 0)
+        : 0,
     fixed_amount:
       input.planKind === JarPlanKind.FIXED ? (input.fixedAmount ?? 0) : 0,
   };

@@ -6,6 +6,7 @@ import { HOUSEHOLD_TIMEZONE } from "@/modules/tenancy/application/tenancy-consta
 import { RecurringDirection } from "../plan-constants";
 import {
   calculateJarBudgetMetrics,
+  calculateJarRuleBudget,
   calculateJarSpentAmount,
   calculateQualifyingPostedIncome,
   resolveQualifyingMonthlyIncome,
@@ -13,7 +14,7 @@ import {
   type JarBudgetTransaction,
   type QualifyingIncomeSource,
 } from "../jar-budget";
-import type { PlanJar } from "../jar-types";
+import { mapJarPlan, type PlanJar } from "../jar-types";
 import { projectRecurringEvents } from "../calendar-projection";
 import { mapRecurringRow, type PlanRecurring } from "../goal-recurring-types";
 import { getPlanPulse } from "./get-plan-pulse";
@@ -212,12 +213,9 @@ function incomeSource(
 }
 
 function snapshotRuleBudget(row: JarRuleSnapshotRow): number {
-  const income = Math.max(0, Number(row.qualifying_income) || 0);
-  if (row.plan_kind === "fixed")
-    return Math.max(0, Math.trunc(Number(row.fixed_amount) || 0));
-  return Math.max(
-    0,
-    Math.floor((income * (Number(row.percent_bps) || 0)) / 10000),
+  return calculateJarRuleBudget(
+    mapJarPlan(row),
+    Math.max(0, Number(row.qualifying_income) || 0),
   );
 }
 

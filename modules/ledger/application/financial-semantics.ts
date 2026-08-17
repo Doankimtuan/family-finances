@@ -1,6 +1,7 @@
 import {
   TransactionLedgerType,
   TransactionStatus,
+  type TransactionLedgerType as TransactionLedgerTypeValue,
 } from "./ledger-constants";
 
 export const FinancialEventCategory = {
@@ -54,8 +55,153 @@ export type FinancialEventSemantics = {
   sign: "+" | "−" | "";
 };
 
+const SAVINGS_EVENT_PREFIX = "SAVINGS_";
+
+const DEFAULT_EVENT_SEMANTICS: FinancialEventSemantics = {
+  category: FinancialEventCategory.OTHER,
+  classification: FinancialClassification.OTHER,
+  cashDirection: FinancialCashDirection.NEUTRAL,
+  countsTowardIncome: false,
+  countsTowardExpense: false,
+  sign: "",
+};
+
+const REVERSAL_CASH_DIRECTION_BY_LEDGER_TYPE: Partial<
+  Record<string, FinancialCashDirection>
+> = {
+  [TransactionLedgerType.EXPENSE]: FinancialCashDirection.INFLOW,
+  [TransactionLedgerType.INCOME]: FinancialCashDirection.OUTFLOW,
+};
+
+const LEDGER_TYPE_EVENT_SEMANTICS: Partial<
+  Record<TransactionLedgerTypeValue, FinancialEventSemantics>
+> = {
+  [TransactionLedgerType.INCOME]: {
+    category: FinancialEventCategory.INCOME,
+    classification: FinancialClassification.INCOME,
+    cashDirection: FinancialCashDirection.INFLOW,
+    countsTowardIncome: true,
+    countsTowardExpense: false,
+    sign: "+",
+  },
+  [TransactionLedgerType.EXPENSE]: {
+    category: FinancialEventCategory.EXPENSE,
+    classification: FinancialClassification.EXPENSE,
+    cashDirection: FinancialCashDirection.OUTFLOW,
+    countsTowardIncome: false,
+    countsTowardExpense: true,
+    sign: "−",
+  },
+  [TransactionLedgerType.INVESTMENT_INCOME]: {
+    category: FinancialEventCategory.INVESTMENT,
+    classification: FinancialClassification.INCOME,
+    cashDirection: FinancialCashDirection.INFLOW,
+    countsTowardIncome: true,
+    countsTowardExpense: false,
+    sign: "+",
+  },
+  [TransactionLedgerType.INVESTMENT_FEE]: {
+    category: FinancialEventCategory.INVESTMENT,
+    classification: FinancialClassification.EXPENSE,
+    cashDirection: FinancialCashDirection.OUTFLOW,
+    countsTowardIncome: false,
+    countsTowardExpense: true,
+    sign: "−",
+  },
+  [TransactionLedgerType.INVESTMENT_BUY]: {
+    category: FinancialEventCategory.INVESTMENT,
+    classification: FinancialClassification.NON_EXPENSE_OUTFLOW,
+    cashDirection: FinancialCashDirection.OUTFLOW,
+    countsTowardIncome: false,
+    countsTowardExpense: false,
+    sign: "−",
+  },
+  [TransactionLedgerType.INVESTMENT_SELL_PROCEEDS]: {
+    category: FinancialEventCategory.INVESTMENT,
+    classification: FinancialClassification.NON_INCOME_INFLOW,
+    cashDirection: FinancialCashDirection.INFLOW,
+    countsTowardIncome: false,
+    countsTowardExpense: false,
+    sign: "+",
+  },
+  [TransactionLedgerType.DEBT_BORROWING]: {
+    category: FinancialEventCategory.DEBT,
+    classification: FinancialClassification.NON_INCOME_INFLOW,
+    cashDirection: FinancialCashDirection.INFLOW,
+    countsTowardIncome: false,
+    countsTowardExpense: false,
+    sign: "+",
+  },
+  [TransactionLedgerType.DEBT_LENDING]: {
+    category: FinancialEventCategory.DEBT,
+    classification: FinancialClassification.NON_EXPENSE_OUTFLOW,
+    cashDirection: FinancialCashDirection.OUTFLOW,
+    countsTowardIncome: false,
+    countsTowardExpense: false,
+    sign: "−",
+  },
+  [TransactionLedgerType.DEBT_RECEIVABLE_PAYMENT]: {
+    category: FinancialEventCategory.DEBT,
+    classification: FinancialClassification.NON_INCOME_INFLOW,
+    cashDirection: FinancialCashDirection.INFLOW,
+    countsTowardIncome: false,
+    countsTowardExpense: false,
+    sign: "+",
+  },
+  [TransactionLedgerType.LIABILITY_PAYMENT]: {
+    category: FinancialEventCategory.LIABILITY,
+    classification: FinancialClassification.NON_EXPENSE_OUTFLOW,
+    cashDirection: FinancialCashDirection.OUTFLOW,
+    countsTowardIncome: false,
+    countsTowardExpense: false,
+    sign: "−",
+  },
+};
+
 function savingsCategory(row: FinancialSemanticRow): boolean {
-  return row.savingsEventKind?.toUpperCase().startsWith("SAVINGS_") ?? false;
+  return row.savingsEventKind?.toUpperCase().startsWith(SAVINGS_EVENT_PREFIX) ?? false;
+}
+
+function cashDirectionSign(
+  direction: FinancialCashDirection,
+): FinancialEventSemantics["sign"] {
+  if (direction === FinancialCashDirection.INFLOW) return "+";
+  if (direction === FinancialCashDirection.OUTFLOW) return "−";
+  return "";
+}
+
+function classifyReversalSemantics(type: string): FinancialEventSemantics {
+  const cashDirection =
+    REVERSAL_CASH_DIRECTION_BY_LEDGER_TYPE[type] ??
+    FinancialCashDirection.NEUTRAL;
+  return {
+    category: FinancialEventCategory.REFUND,
+    classification: FinancialClassification.REFUND,
+    cashDirection,
+    countsTowardIncome: false,
+    countsTowardExpense: false,
+    sign: cashDirectionSign(cashDirection),
+  };
+}
+
+function transferLegSemantics(
+  row: FinancialSemanticRow,
+  type: TransactionLedgerTypeValue,
+): FinancialEventSemantics {
+  const cashDirection =
+    type === TransactionLedgerType.TRANSFER_IN
+      ? FinancialCashDirection.INFLOW
+      : FinancialCashDirection.OUTFLOW;
+  return {
+    category: savingsCategory(row)
+      ? FinancialEventCategory.SAVINGS
+      : FinancialEventCategory.TRANSFER,
+    classification: FinancialClassification.TRANSFER,
+    cashDirection,
+    countsTowardIncome: false,
+    countsTowardExpense: false,
+    sign: cashDirectionSign(cashDirection),
+  };
 }
 
 /**
@@ -84,143 +230,20 @@ function classifyEventSemantics(
   const type = row.type;
 
   if (reversed) {
-    const cashDirection =
-      type === TransactionLedgerType.EXPENSE
-        ? FinancialCashDirection.INFLOW
-        : type === TransactionLedgerType.INCOME
-          ? FinancialCashDirection.OUTFLOW
-          : FinancialCashDirection.NEUTRAL;
-    return {
-      category: FinancialEventCategory.REFUND,
-      classification: FinancialClassification.REFUND,
-      cashDirection,
-      countsTowardIncome: false,
-      countsTowardExpense: false,
-      sign:
-        cashDirection === FinancialCashDirection.INFLOW
-          ? "+"
-          : cashDirection === FinancialCashDirection.OUTFLOW
-            ? "−"
-            : "",
-    };
+    return classifyReversalSemantics(type);
   }
 
-  switch (type) {
-    case TransactionLedgerType.INCOME:
-      return {
-        category: FinancialEventCategory.INCOME,
-        classification: FinancialClassification.INCOME,
-        cashDirection: FinancialCashDirection.INFLOW,
-        countsTowardIncome: true,
-        countsTowardExpense: false,
-        sign: "+",
-      };
-    case TransactionLedgerType.EXPENSE:
-      return {
-        category: FinancialEventCategory.EXPENSE,
-        classification: FinancialClassification.EXPENSE,
-        cashDirection: FinancialCashDirection.OUTFLOW,
-        countsTowardIncome: false,
-        countsTowardExpense: true,
-        sign: "−",
-      };
-    case TransactionLedgerType.INVESTMENT_INCOME:
-      return {
-        category: FinancialEventCategory.INVESTMENT,
-        classification: FinancialClassification.INCOME,
-        cashDirection: FinancialCashDirection.INFLOW,
-        countsTowardIncome: true,
-        countsTowardExpense: false,
-        sign: "+",
-      };
-    case TransactionLedgerType.INVESTMENT_FEE:
-      return {
-        category: FinancialEventCategory.INVESTMENT,
-        classification: FinancialClassification.EXPENSE,
-        cashDirection: FinancialCashDirection.OUTFLOW,
-        countsTowardIncome: false,
-        countsTowardExpense: true,
-        sign: "−",
-      };
-    case TransactionLedgerType.INVESTMENT_BUY:
-      return {
-        category: FinancialEventCategory.INVESTMENT,
-        classification: FinancialClassification.NON_EXPENSE_OUTFLOW,
-        cashDirection: FinancialCashDirection.OUTFLOW,
-        countsTowardIncome: false,
-        countsTowardExpense: false,
-        sign: "−",
-      };
-    case TransactionLedgerType.INVESTMENT_SELL_PROCEEDS:
-      return {
-        category: FinancialEventCategory.INVESTMENT,
-        classification: FinancialClassification.NON_INCOME_INFLOW,
-        cashDirection: FinancialCashDirection.INFLOW,
-        countsTowardIncome: false,
-        countsTowardExpense: false,
-        sign: "+",
-      };
-    case TransactionLedgerType.DEBT_BORROWING:
-      return {
-        category: FinancialEventCategory.DEBT,
-        classification: FinancialClassification.NON_INCOME_INFLOW,
-        cashDirection: FinancialCashDirection.INFLOW,
-        countsTowardIncome: false,
-        countsTowardExpense: false,
-        sign: "+",
-      };
-    case TransactionLedgerType.DEBT_LENDING:
-      return {
-        category: FinancialEventCategory.DEBT,
-        classification: FinancialClassification.NON_EXPENSE_OUTFLOW,
-        cashDirection: FinancialCashDirection.OUTFLOW,
-        countsTowardIncome: false,
-        countsTowardExpense: false,
-        sign: "−",
-      };
-    case TransactionLedgerType.DEBT_RECEIVABLE_PAYMENT:
-      return {
-        category: FinancialEventCategory.DEBT,
-        classification: FinancialClassification.NON_INCOME_INFLOW,
-        cashDirection: FinancialCashDirection.INFLOW,
-        countsTowardIncome: false,
-        countsTowardExpense: false,
-        sign: "+",
-      };
-    case TransactionLedgerType.LIABILITY_PAYMENT:
-      return {
-        category: FinancialEventCategory.LIABILITY,
-        classification: FinancialClassification.NON_EXPENSE_OUTFLOW,
-        cashDirection: FinancialCashDirection.OUTFLOW,
-        countsTowardIncome: false,
-        countsTowardExpense: false,
-        sign: "−",
-      };
-    case TransactionLedgerType.TRANSFER_OUT:
-    case TransactionLedgerType.TRANSFER_IN:
-      return {
-        category: savingsCategory(row)
-          ? FinancialEventCategory.SAVINGS
-          : FinancialEventCategory.TRANSFER,
-        classification: FinancialClassification.TRANSFER,
-        cashDirection:
-          type === TransactionLedgerType.TRANSFER_IN
-            ? FinancialCashDirection.INFLOW
-            : FinancialCashDirection.OUTFLOW,
-        countsTowardIncome: false,
-        countsTowardExpense: false,
-        sign: type === TransactionLedgerType.TRANSFER_IN ? "+" : "−",
-      };
-    default:
-      return {
-        category: FinancialEventCategory.OTHER,
-        classification: FinancialClassification.OTHER,
-        cashDirection: FinancialCashDirection.NEUTRAL,
-        countsTowardIncome: false,
-        countsTowardExpense: false,
-        sign: "",
-      };
+  if (
+    type === TransactionLedgerType.TRANSFER_OUT ||
+    type === TransactionLedgerType.TRANSFER_IN
+  ) {
+    return transferLegSemantics(row, type);
   }
+
+  return (
+    LEDGER_TYPE_EVENT_SEMANTICS[type as TransactionLedgerTypeValue] ??
+    DEFAULT_EVENT_SEMANTICS
+  );
 }
 
 export function countsTowardMonthlyIncome(row: FinancialSemanticRow): boolean {

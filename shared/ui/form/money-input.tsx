@@ -2,7 +2,7 @@
 
 import { I18nProvider } from "@heroui/react";
 import { useLocale } from "next-intl";
-import { DEFAULT_CURRENCY } from "@/modules/ledger/application/ledger-constants";
+import { DEFAULT_CURRENCY } from "@/modules/shared-kernel/currency";
 import { toIntlLocale } from "@/i18n/locales";
 import { NumberField, type NumberFieldProps } from "./number-field";
 

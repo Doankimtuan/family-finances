@@ -1,8 +1,18 @@
 import {
+  calculateGoalProgressPercent,
+  resolveGoalFundingStatus,
+  type GoalFundingSummary,
+} from "./goal-funding";
+import {
+  GoalBackingState,
+  GoalFundingQuality,
+  GoalFundingValueStatus,
   GoalStatus,
   GoalType,
   RecurringDirection,
   RecurringFrequency,
+  type GoalBackingState as GoalBackingStateValue,
+  type GoalFundingLinkAvailability as GoalFundingLinkAvailabilityValue,
   type GoalFundingSourceKind as GoalFundingSourceKindValue,
   type GoalStatus as GoalStatusValue,
   type GoalType as GoalTypeValue,
@@ -10,22 +20,19 @@ import {
   type RecurringFrequency as RecurringFrequencyValue,
   type IncomeAllocateMode as IncomeAllocateModeValue,
 } from "./plan-constants";
-import {
-  calculateGoalProgressPercent,
-  resolveGoalFundingStatus,
-  type GoalFundingQuality,
-  type GoalFundingSummary,
-  type GoalFundingValueStatus,
-} from "./goal-funding";
 export {
   GoalFundingSourceKind,
   GoalStatus,
   GoalType,
   RecurringDirection,
   RecurringFrequency,
+  GoalBackingState,
+  GoalFundingLinkAvailability,
   GOAL_STATUS_VALUES,
   GOAL_TYPE_VALUES,
   GOAL_FUNDING_SOURCE_KIND_VALUES,
+  GOAL_FUNDING_LINK_AVAILABILITY_VALUES,
+  GOAL_BACKING_STATE_VALUES,
   RECURRING_DIRECTION_OPTIONS,
   RECURRING_FREQUENCY_VALUES,
   IncomeAllocateMode,
@@ -38,9 +45,8 @@ export type GoalFundingLink = {
   currentAmount: number;
   currency?: string | null;
   valueStatus?: GoalFundingValueStatus;
-  availability?: "available" | "unavailable" | "missing";
+  availability?: GoalFundingLinkAvailabilityValue;
 };
-export type GoalBackingState = "linked" | "legacy" | "needs_backing";
 export type PlanGoal = {
   id: string;
   name: string;
@@ -50,8 +56,8 @@ export type PlanGoal = {
   status: GoalStatusValue;
   goalType: GoalTypeValue;
   fundingLinks: GoalFundingLink[];
-  backingState: GoalBackingState;
-  fundingValueStatus: GoalFundingQuality | "legacy";
+  backingState: GoalBackingStateValue;
+  fundingValueStatus: GoalFundingQuality | typeof GoalBackingState.LEGACY;
   fundingSummary: GoalFundingSummary | null;
   isLegacyIntention: boolean;
   /** May exceed 100% when linked Money value exceeds the target. */
@@ -101,6 +107,66 @@ function asGoalStatus(value: string): GoalStatusValue {
       return GoalStatus.ACTIVE;
   }
 }
+
+function asGoalType(value: string | null | undefined): GoalTypeValue {
+  switch (value) {
+    case GoalType.INVEST:
+      return GoalType.INVEST;
+    case GoalType.PAYOFF:
+      return GoalType.PAYOFF;
+    default:
+      return GoalType.SAVE_UP;
+  }
+}
+
+function resolveGoalBackingState(
+  isLegacyIntention: boolean,
+  fundingLinkCount: number,
+): GoalBackingStateValue {
+  if (isLegacyIntention) return GoalBackingState.LEGACY;
+  if (fundingLinkCount > 0) return GoalBackingState.LINKED;
+  return GoalBackingState.NEEDS_BACKING;
+}
+
+function resolveGoalFundedAmount(
+  backingState: GoalBackingStateValue,
+  legacyAmount: number,
+  fundingSummary: GoalFundingSummary | null,
+  derivedFundedAmount?: number,
+): number {
+  switch (backingState) {
+    case GoalBackingState.LEGACY:
+      return legacyAmount;
+    case GoalBackingState.LINKED:
+      return fundingSummary?.fundedAmount ?? derivedFundedAmount ?? 0;
+    default:
+      return 0;
+  }
+}
+
+function resolveMappedGoalStatus(
+  backingState: GoalBackingStateValue,
+  storedStatus: GoalStatusValue,
+  fundedAmount: number,
+  targetAmount: number,
+): GoalStatusValue {
+  if (backingState !== GoalBackingState.LINKED) return storedStatus;
+  return resolveGoalFundingStatus(storedStatus, fundedAmount, targetAmount);
+}
+
+function resolveGoalFundingValueStatus(
+  backingState: GoalBackingStateValue,
+  fundingSummary: GoalFundingSummary | null,
+  fundingValueStatus?: GoalFundingQuality,
+): PlanGoal["fundingValueStatus"] {
+  if (backingState === GoalBackingState.LEGACY) return GoalBackingState.LEGACY;
+  return (
+    fundingValueStatus ??
+    fundingSummary?.valueStatus ??
+    GoalFundingQuality.CURRENT
+  );
+}
+
 export function mapGoalRow(
   row: {
     id: string;
@@ -132,45 +198,41 @@ export function mapGoalRow(
   const isLegacyIntention =
     fundingLinks.length === 0 &&
     (!hasLegacyColumn || row.legacy_funded_amount != null);
-  const backingState: GoalBackingState = isLegacyIntention
-    ? "legacy"
-    : fundingLinks.length > 0
-      ? "linked"
-      : "needs_backing";
+  const backingState = resolveGoalBackingState(
+    isLegacyIntention,
+    fundingLinks.length,
+  );
   const fundingSummary = options?.fundingSummary ?? null;
-  const fundedAmount =
-    backingState === "legacy"
-      ? legacyAmount
-      : backingState === "linked"
-        ? (fundingSummary?.fundedAmount ?? options?.derivedFundedAmount ?? 0)
-        : 0;
+  const fundedAmount = resolveGoalFundedAmount(
+    backingState,
+    legacyAmount,
+    fundingSummary,
+    options?.derivedFundedAmount,
+  );
   const storedStatus = asGoalStatus(row.status);
-  const goalType =
-    row.goal_type === GoalType.INVEST
-      ? GoalType.INVEST
-      : row.goal_type === GoalType.PAYOFF
-        ? GoalType.PAYOFF
-        : GoalType.SAVE_UP;
+  const goalType = asGoalType(row.goal_type);
   return {
     id: row.id,
     name: row.name,
     targetAmount,
     fundedAmount,
     targetDate: row.target_date,
-    status:
-      backingState === "linked"
-        ? resolveGoalFundingStatus(storedStatus, fundedAmount, targetAmount)
-        : storedStatus,
+    status: resolveMappedGoalStatus(
+      backingState,
+      storedStatus,
+      fundedAmount,
+      targetAmount,
+    ),
     goalType,
     fundingLinks,
     backingState,
-    fundingValueStatus:
-      backingState === "legacy"
-        ? "legacy"
-        : (options?.fundingValueStatus ??
-          fundingSummary?.valueStatus ??
-          "current"),
-    fundingSummary: backingState === "linked" ? fundingSummary : null,
+    fundingValueStatus: resolveGoalFundingValueStatus(
+      backingState,
+      fundingSummary,
+      options?.fundingValueStatus,
+    ),
+    fundingSummary:
+      backingState === GoalBackingState.LINKED ? fundingSummary : null,
     isLegacyIntention,
     progressPercent: calculateGoalProgressPercent(fundedAmount, targetAmount),
   };

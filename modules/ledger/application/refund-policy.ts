@@ -30,11 +30,13 @@ export function jarCapacityRestoredByRefund(refundAmount: number): number {
   return refundAmount > 0 ? refundAmount : 0;
 }
 
+const REFUNDABLE_TRANSACTION_STATUSES = new Set<string>([
+  TransactionStatus.POSTED,
+  TransactionStatus.PARTIALLY_REFUNDED,
+]);
+
 export function isRefundableStatus(
   status: TransactionStatusValue | string,
 ): boolean {
-  return (
-    status === TransactionStatus.POSTED ||
-    status === TransactionStatus.PARTIALLY_REFUNDED
-  );
+  return REFUNDABLE_TRANSACTION_STATUSES.has(status);
 }

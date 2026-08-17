@@ -1,4 +1,8 @@
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
+import {
+  differenceInUtcCalendarDays,
+  todayIsoDate,
+} from "@/shared/utils/iso-date";
 import { SavingStatus, CycleStatus } from "../savings-constants";
 import { listSavings } from "./list-savings";
 
@@ -26,8 +30,7 @@ export async function getSavingsHealthMetrics(): Promise<SavingsHealthMetrics | 
   const savings = await listSavings();
   if (!savings) return null;
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const today = todayIsoDate();
 
   let totalPrincipal = 0;
   let rateSum = 0;
@@ -67,10 +70,7 @@ export async function getSavingsHealthMetrics(): Promise<SavingsHealthMetrics | 
     }
 
     if (cycle.status === CycleStatus.ACTIVE) {
-      const end = new Date(cycle.endDate);
-      const days = Math.floor(
-        (end.getTime() - today.getTime()) / (24 * 60 * 60 * 1000),
-      );
+      const days = differenceInUtcCalendarDays(today, cycle.endDate);
       if (days <= 7) buckets.within_7 += 1;
       else if (days <= 30) buckets.within_30 += 1;
       else if (days <= 90) buckets.within_90 += 1;

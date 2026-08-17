@@ -1,17 +1,20 @@
+import { classifyFinancialEvent } from "@/modules/ledger/application/financial-semantics";
 import {
   TRANSACTION_BALANCE_STATUS_VALUES,
   TransactionLedgerType,
   TransactionStatus,
 } from "@/modules/ledger/application/ledger-constants";
-import { classifyFinancialEvent } from "@/modules/ledger/application/financial-semantics";
-import { JarPlanKind, type PlanJar } from "./jar-types";
+import {
+  JarBudgetState,
+  QualifyingIncomeSource,
+  type JarBudgetState as JarBudgetStateValue,
+  type QualifyingIncomeSource as QualifyingIncomeSourceValue,
+} from "./plan-constants";
+import { JarPlanKind, type JarPlan, type PlanJar } from "./jar-types";
 
 export const JAR_BUDGET_NEAR_LIMIT_PERCENT = 80;
 const SAVINGS_EVENT_PREFIX = "SAVINGS_";
 const SAVINGS_PLACEMENT_NEEDLE = "PLACEMENT";
-
-export type JarBudgetState =
-  "healthy" | "near_limit" | "overspent" | "no_spending" | "no_budget";
 
 export type JarBudgetTransaction = {
   id?: string;
@@ -37,16 +40,18 @@ export type JarBudgetMetrics = {
   spentAmount: number;
   remainingAmount: number;
   usagePercent: number;
-  state: JarBudgetState;
+  state: JarBudgetStateValue;
   ruleBudget?: number;
   rolloverCredit?: number;
   periodAdjustment?: number;
   qualifyingIncome?: number;
-  incomeSource?: QualifyingIncomeSource;
+  incomeSource?: QualifyingIncomeSourceValue;
 };
 
-export type QualifyingIncomeSource =
-  "configured" | "recurring_fallback" | "posted_fallback" | "none";
+export type QualifyingIncomeResolution = {
+  amount: number;
+  source: QualifyingIncomeSourceValue;
+};
 
 function numericAmount(value: number | string): number {
   const amount = typeof value === "string" ? Number(value) : value;
@@ -187,11 +192,13 @@ export function calculatePeriodIncome(
 ): number {
   return calculateQualifyingPostedIncome(transactions);
 }
+type JarRuleBudgetInput = JarPlan | Pick<PlanJar, "plan"> | null | undefined;
+
 export function calculateJarRuleBudget(
-  jar: Pick<PlanJar, "plan">,
+  input: JarRuleBudgetInput,
   qualifyingIncome: number,
 ): number {
-  const plan = jar.plan;
+  const plan = input && "plan" in input ? input.plan : input;
   if (!plan) return 0;
   if (plan.kind === JarPlanKind.FIXED) {
     return Math.max(0, Math.trunc(plan.fixedAmount));
@@ -245,14 +252,14 @@ export function resolveJarBudgetState(input: {
   budgetAmount: number;
   spentAmount: number;
   usagePercent: number;
-}): JarBudgetState {
+}): JarBudgetStateValue {
   const { budgetAmount, spentAmount, usagePercent } = input;
-  if (budgetAmount <= 0 && spentAmount > 0) return "overspent";
-  if (budgetAmount <= 0) return "no_budget";
-  if (spentAmount > budgetAmount) return "overspent";
-  if (spentAmount <= 0) return "no_spending";
-  if (usagePercent >= JAR_BUDGET_NEAR_LIMIT_PERCENT) return "near_limit";
-  return "healthy";
+  if (budgetAmount <= 0 && spentAmount > 0) return JarBudgetState.OVERSPENT;
+  if (budgetAmount <= 0) return JarBudgetState.NO_BUDGET;
+  if (spentAmount > budgetAmount) return JarBudgetState.OVERSPENT;
+  if (spentAmount <= 0) return JarBudgetState.NO_SPENDING;
+  if (usagePercent >= JAR_BUDGET_NEAR_LIMIT_PERCENT) return JarBudgetState.NEAR_LIMIT;
+  return JarBudgetState.HEALTHY;
 }
 
 export function calculateJarBudgetMetrics(
@@ -295,11 +302,6 @@ export function calculateJarBudgetMetrics(
   };
 }
 
-export type QualifyingIncomeResolution = {
-  amount: number;
-  source: QualifyingIncomeSource;
-};
-
 export function resolveQualifyingMonthlyIncome(input: {
   configuredIncome?: number | string | null;
   recurringIncome?: number;
@@ -308,16 +310,23 @@ export function resolveQualifyingMonthlyIncome(input: {
   if (input.configuredIncome !== null && input.configuredIncome !== undefined) {
     return {
       amount: numericAmount(input.configuredIncome),
-      source: "configured",
+      source: QualifyingIncomeSource.CONFIGURED,
     };
   }
   const recurringIncome = numericAmount(input.recurringIncome ?? 0);
   if (recurringIncome > 0) {
-    return { amount: recurringIncome, source: "recurring_fallback" };
+    return { amount: recurringIncome, source: QualifyingIncomeSource.RECURRING_FALLBACK };
   }
   const postedIncome = numericAmount(input.postedIncome ?? 0);
   if (postedIncome > 0) {
-    return { amount: postedIncome, source: "posted_fallback" };
+    return { amount: postedIncome, source: QualifyingIncomeSource.POSTED_FALLBACK };
   }
-  return { amount: 0, source: "none" };
+  return { amount: 0, source: QualifyingIncomeSource.NONE };
 }
+
+export {
+  JarBudgetState,
+  QualifyingIncomeSource,
+  JAR_BUDGET_STATE_VALUES,
+  QUALIFYING_INCOME_SOURCE_VALUES,
+} from "./plan-constants";

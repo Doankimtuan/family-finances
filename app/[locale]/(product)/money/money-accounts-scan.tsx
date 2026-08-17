@@ -8,8 +8,8 @@ import {
   type MoneyCreditAttention,
 } from "@/modules/ledger/application";
 import { moneyAccountPath } from "@/modules/tenancy/application/app-path";
-import { AccountCard } from "@/shared/patterns/account-card";
-import { CreditCardCard } from "@/shared/patterns/credit-card-card";
+import { AccountCard } from "@/modules/ledger/ui/account-card";
+import { CreditCardCard } from "@/modules/ledger/ui/credit-card-card";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { SectionHeader } from "@/shared/patterns/section-header";
 import { Text } from "@/shared/ui/text";

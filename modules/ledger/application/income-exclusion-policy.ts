@@ -31,6 +31,13 @@ export function coerceAmount(amount: number | string): number {
   return Number.isFinite(value) ? value : 0;
 }
 
+const JAR_CAPACITY_MULTIPLIER_BY_TYPE: Partial<
+  Record<string, number>
+> = {
+  [TransactionDirection.EXPENSE]: -1,
+  [TransactionDirection.INCOME]: 1,
+};
+
 /** Sum of earned income, excluding principal, reversed originals, and reversal legs. */
 export function sumMonthlyIncome(rows: IncomeCountableRow[]): number {
   return rows.reduce((sum, row) => {
@@ -56,10 +63,9 @@ export function jarCapacityDelta(row: {
   jarId?: string | null;
 }): number {
   if (!row.jarId) return 0;
-  const amount = coerceAmount(row.amount);
-  if (row.type === TransactionDirection.EXPENSE) return -amount;
-  if (row.type === TransactionDirection.INCOME) return amount;
-  return 0;
+  const multiplier = JAR_CAPACITY_MULTIPLIER_BY_TYPE[row.type];
+  if (multiplier == null) return 0;
+  return multiplier * coerceAmount(row.amount);
 }
 
 export function sumJarCapacity(

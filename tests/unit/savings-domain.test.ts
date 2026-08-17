@@ -15,6 +15,7 @@ import {
   calculateInterest,
   computeFullTermInterest,
 } from "@/modules/savings/application/savings-interest";
+import { differenceInUtcCalendarDays } from "@/shared/utils/iso-date";
 import {
   previewEarlyWithdrawal,
   shouldWarnPenalty,
@@ -83,6 +84,47 @@ describe("savings interest engine", () => {
     expect(result.daysElapsed).toBe(10);
     expect(result.totalInterest).toBe(10_000);
   });
+
+  it("counts UTC calendar days without partial-day drift", () => {
+    expect(
+      differenceInUtcCalendarDays(
+        "2026-01-01T23:30:00.000Z",
+        "2026-01-01T23:59:00.000Z",
+      ),
+    ).toBe(0);
+    expect(
+      differenceInUtcCalendarDays(
+        "2026-01-01T23:30:00.000Z",
+        "2026-01-02T00:15:00.000Z",
+      ),
+    ).toBe(1);
+    expect(
+      differenceInUtcCalendarDays("2024-02-28", "2024-03-01"),
+    ).toBe(2);
+    expect(differenceInUtcCalendarDays("2025-12-31", "2026-01-01")).toBe(1);
+    expect(differenceInUtcCalendarDays("2026-01-02", "2026-01-01")).toBe(-1);
+  });
+
+  it("uses the same day count for interest at the maturity boundary", () => {
+    const sameDay = calculateInterest({
+      principal: 1_000_000,
+      annualRate: 36.5,
+      startDate: "2026-01-01T08:00:00.000Z",
+      endDate: "2026-01-01T23:00:00.000Z",
+      method: InterestCalcMethod.SIMPLE,
+    });
+    const result = calculateInterest({
+      principal: 1_000_000,
+      annualRate: 36.5,
+      startDate: "2026-01-01T23:30:00.000Z",
+      endDate: "2026-01-02T00:15:00.000Z",
+      method: InterestCalcMethod.SIMPLE,
+    });
+    expect(sameDay.daysElapsed).toBe(0);
+    expect(sameDay.totalInterest).toBe(0);
+    expect(result.daysElapsed).toBe(1);
+    expect(result.totalInterest).toBe(1_000);
+  });
 });
 
 describe("maturity rollover money", () => {
@@ -142,6 +184,8 @@ describe("savings early withdrawal penalty", () => {
       packageSnapshot,
     });
     expect(preview.quoteReady).toBe(true);
+    expect(preview.daysHeld).toBe(31);
+    expect(preview.totalTermDays).toBe(90);
     expect(preview.eligibleInterest).toBe(0);
     expect(preview.netReturned).toBe(preview.principal);
     expect(shouldWarnPenalty(preview)).toBe(preview.accruedInterest > 0);
@@ -167,6 +211,21 @@ describe("savings early withdrawal penalty", () => {
     expect(preview.eligibleInterest ?? -1).toBeLessThanOrEqual(
       preview.accruedInterest,
     );
+  });
+
+  it("counts a same-day early withdrawal as zero held days", () => {
+    const preview = previewEarlyWithdrawal({
+      principal: 10_000_000,
+      annualRate: 4.5,
+      startDate: "2026-02-01",
+      endDate: "2026-05-02",
+      withdrawalDate: "2026-02-01",
+      interestMethod: InterestCalcMethod.SIMPLE,
+      packageSnapshot,
+    });
+    expect(preview.daysHeld).toBe(0);
+    expect(preview.totalTermDays).toBe(90);
+    expect(preview.accruedInterest).toBe(0);
   });
 
   it("leaves provider formula amounts unknown without evaluating expressions", () => {

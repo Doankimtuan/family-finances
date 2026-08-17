@@ -1,23 +1,29 @@
 import {
+  GoalFundingQuality,
   GoalFundingSourceKind,
+  GoalFundingValueStatus,
   GoalStatus,
   GoalType,
+  type GoalFundingQuality as GoalFundingQualityValue,
   type GoalFundingSourceKind as GoalFundingSourceKindValue,
+  type GoalFundingValueStatus as GoalFundingValueStatusValue,
   type GoalStatus as GoalStatusValue,
   type GoalType as GoalTypeValue,
 } from "./plan-constants";
 
-export type GoalFundingValueStatus =
-  "current" | "stale" | "missing" | "incomplete" | "unavailable";
-export type GoalFundingQuality =
-  "current" | "stale" | "partial" | "missing" | "incomplete";
+export {
+  GoalFundingQuality,
+  GoalFundingValueStatus,
+  GOAL_FUNDING_QUALITY_VALUES,
+  GOAL_FUNDING_VALUE_STATUS_VALUES,
+} from "./plan-constants";
 
 export type GoalFundingSourceValue = {
   kind: GoalFundingSourceKindValue;
   sourceId: string;
   currentAmount?: number | null;
   currency?: string | null;
-  valueStatus?: GoalFundingValueStatus;
+  valueStatus?: GoalFundingValueStatusValue;
   currentValue?: number | null;
   costBasis?: number | null;
   updatedAt?: string | null;
@@ -31,12 +37,12 @@ export type GoalFundingSourceResolution = GoalFundingSourceValue & {
   fundedContribution: number;
   unrealizedGainLoss: number | null;
   principalPaid: number | null;
-  valueStatus: GoalFundingValueStatus;
+  valueStatus: GoalFundingValueStatusValue;
 };
 
 export type GoalFundingSummary = {
   fundedAmount: number;
-  valueStatus: GoalFundingQuality;
+  valueStatus: GoalFundingQualityValue;
   sources: GoalFundingSourceResolution[];
   marketValue: number;
   costBasis: number;
@@ -64,8 +70,34 @@ function whole(value: number | null | undefined): number | null {
 function nonnegative(value: number | null | undefined): number {
   return Math.max(0, whole(value) ?? 0);
 }
-function sourceStatus(source: GoalFundingSourceValue): GoalFundingValueStatus {
-  return source.valueStatus ?? "current";
+function sourceStatus(
+  source: GoalFundingSourceValue,
+): GoalFundingValueStatusValue {
+  return source.valueStatus ?? GoalFundingValueStatus.CURRENT;
+}
+function isZeroContributionStatus(
+  status: GoalFundingValueStatusValue,
+): boolean {
+  return [
+    GoalFundingValueStatus.MISSING,
+    GoalFundingValueStatus.INCOMPLETE,
+    GoalFundingValueStatus.UNAVAILABLE,
+  ].includes(
+    status as unknown as
+      | typeof GoalFundingValueStatus.MISSING
+      | typeof GoalFundingValueStatus.INCOMPLETE
+      | typeof GoalFundingValueStatus.UNAVAILABLE,
+  );
+}
+function isMissingValueStatus(status: GoalFundingValueStatusValue): boolean {
+  return [
+    GoalFundingValueStatus.MISSING,
+    GoalFundingValueStatus.UNAVAILABLE,
+  ].includes(
+    status as unknown as
+      | typeof GoalFundingValueStatus.MISSING
+      | typeof GoalFundingValueStatus.UNAVAILABLE,
+  );
 }
 export function isPayoffFundingSource(
   kind: GoalFundingSourceKindValue,
@@ -96,12 +128,9 @@ export function resolveGoalFundingSource(
   if (isAssetFundingSource(source.kind)) {
     const currentValue = whole(source.currentValue ?? source.currentAmount);
     const costBasis = whole(source.costBasis);
-    const fundedContribution =
-      status === "missing" ||
-      status === "incomplete" ||
-      status === "unavailable"
-        ? 0
-        : nonnegative(currentValue);
+    const fundedContribution = isZeroContributionStatus(status)
+      ? 0
+      : nonnegative(currentValue);
     return {
       ...source,
       currentValue,
@@ -126,16 +155,17 @@ export function resolveGoalFundingSource(
   const principalPaid = hasPrincipalData
     ? Math.max(0, originalPrincipal - remainingPrincipal)
     : null;
-  const resolvedStatus = hasPrincipalData ? status : "incomplete";
+  const resolvedStatus = hasPrincipalData
+    ? status
+    : GoalFundingValueStatus.INCOMPLETE;
   return {
     ...source,
     currentAmount: remainingPrincipal,
     originalPrincipal,
     remainingPrincipal,
-    fundedContribution:
-      resolvedStatus === "missing" || resolvedStatus === "unavailable"
-        ? 0
-        : (principalPaid ?? 0),
+    fundedContribution: isMissingValueStatus(resolvedStatus)
+      ? 0
+      : (principalPaid ?? 0),
     unrealizedGainLoss: null,
     principalPaid,
     valueStatus: resolvedStatus,
@@ -144,27 +174,27 @@ export function resolveGoalFundingSource(
 
 function aggregateQuality(
   sources: readonly GoalFundingSourceResolution[],
-): GoalFundingQuality {
-  if (sources.length === 0) return "current";
+): GoalFundingQualityValue {
+  if (sources.length === 0) return GoalFundingQuality.CURRENT;
   const verified = sources.filter(
-    (source) =>
-      source.valueStatus !== "missing" &&
-      source.valueStatus !== "incomplete" &&
-      source.valueStatus !== "unavailable",
+    (source) => !isZeroContributionStatus(source.valueStatus),
   );
-  const hasStale = sources.some((source) => source.valueStatus === "stale");
-  const hasMissing = sources.some(
-    (source) =>
-      source.valueStatus === "missing" || source.valueStatus === "unavailable",
+  const hasStale = sources.some(
+    (source) => source.valueStatus === GoalFundingValueStatus.STALE,
+  );
+  const hasMissing = sources.some((source) =>
+    isMissingValueStatus(source.valueStatus),
   );
   const hasIncomplete = sources.some(
-    (source) => source.valueStatus === "incomplete",
+    (source) => source.valueStatus === GoalFundingValueStatus.INCOMPLETE,
   );
   if (verified.length === 0)
-    return hasMissing && !hasIncomplete ? "missing" : "incomplete";
-  if (hasMissing || hasIncomplete) return "partial";
-  if (hasStale) return "stale";
-  return "current";
+    return hasMissing && !hasIncomplete
+      ? GoalFundingQuality.MISSING
+      : GoalFundingQuality.INCOMPLETE;
+  if (hasMissing || hasIncomplete) return GoalFundingQuality.PARTIAL;
+  if (hasStale) return GoalFundingQuality.STALE;
+  return GoalFundingQuality.CURRENT;
 }
 
 export function deriveGoalFundingSummary(
@@ -227,15 +257,13 @@ export function deriveGoalFundingSummary(
     remainingPrincipalTotal,
     principalPaidTotal,
     incompleteSourceCount: resolved.filter(
-      (source) => source.valueStatus === "incomplete",
+      (source) => source.valueStatus === GoalFundingValueStatus.INCOMPLETE,
     ).length,
     staleSourceCount: resolved.filter(
-      (source) => source.valueStatus === "stale",
+      (source) => source.valueStatus === GoalFundingValueStatus.STALE,
     ).length,
-    missingSourceCount: resolved.filter(
-      (source) =>
-        source.valueStatus === "missing" ||
-        source.valueStatus === "unavailable",
+    missingSourceCount: resolved.filter((source) =>
+      isMissingValueStatus(source.valueStatus),
     ).length,
   };
 }
@@ -268,9 +296,12 @@ export function resolveGoalFundingStatus(
   targetAmount: number,
 ): GoalStatusValue {
   if (
-    currentStatus === GoalStatus.COMPLETED ||
-    currentStatus === GoalStatus.CANCELLED ||
-    currentStatus === GoalStatus.PAUSED
+    [GoalStatus.COMPLETED, GoalStatus.CANCELLED, GoalStatus.PAUSED].includes(
+      currentStatus as unknown as
+        | typeof GoalStatus.COMPLETED
+        | typeof GoalStatus.CANCELLED
+        | typeof GoalStatus.PAUSED,
+    )
   ) {
     return currentStatus;
   }

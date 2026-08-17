@@ -1,9 +1,12 @@
 import {
   AccountType,
+  ACCOUNT_TYPE_VALUES,
   type AccountType as AccountTypeValue,
 } from "./ledger-constants";
 
 export { AccountType } from "./ledger-constants";
+
+const KNOWN_ACCOUNT_TYPES = new Set<string>(ACCOUNT_TYPE_VALUES);
 
 export type LedgerAccount = {
   id: string;
@@ -23,18 +26,10 @@ export type RealPosition = {
 };
 
 function asAccountType(value: string): AccountTypeValue {
-  switch (value) {
-    case AccountType.CHECKING:
-    case AccountType.SAVINGS:
-    case AccountType.EWALLET:
-    case AccountType.BROKERAGE:
-    case AccountType.CREDIT_CARD:
-    case AccountType.SAVINGS_PRODUCT:
-    case AccountType.OTHER:
-      return value;
-    default:
-      return AccountType.CASH;
+  if (KNOWN_ACCOUNT_TYPES.has(value)) {
+    return value as AccountTypeValue;
   }
+  return AccountType.CASH;
 }
 
 export function mapAccountRow(row: {

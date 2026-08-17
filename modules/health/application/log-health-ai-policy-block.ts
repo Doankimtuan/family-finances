@@ -1,10 +1,10 @@
 import "server-only";
 
-import { recordAiAuditEvent } from "@/modules/platform/application/ai-audit";
+import { recordAiAuditEvent } from "@/modules/tenancy/application/ai-audit";
 import {
   AiAuditEventKind,
   AI_AUDIT_SURFACE,
-} from "@/modules/platform/application/ai-audit.schema";
+} from "@/modules/tenancy/application/ai-audit.schema";
 import type { HealthPolicyBlock } from "./build-health-insights";
 
 /**

@@ -11,7 +11,7 @@ import {
   INVITATION_RPC_MESSAGE_NEEDLE,
   type HouseholdErrorCode,
 } from "./tenancy-constants";
-import { DEFAULT_CURRENCY } from "@/modules/ledger/application/ledger-constants";
+import { DEFAULT_CURRENCY } from "@/modules/shared-kernel/currency";
 
 export type CreateHouseholdErrorCode = Extract<
   HouseholdErrorCode,

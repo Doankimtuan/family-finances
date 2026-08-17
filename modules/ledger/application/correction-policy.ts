@@ -31,13 +31,16 @@ export type CorrectionChainLegs = {
 /**
  * Opposite direction for a full reversal leg (BR-03).
  */
+const OPPOSITE_TRANSACTION_DIRECTION = {
+  [TransactionDirection.EXPENSE]: TransactionDirection.INCOME,
+  [TransactionDirection.INCOME]: TransactionDirection.EXPENSE,
+} as const;
+
 export function oppositeDirection(
   type:
     typeof TransactionDirection.EXPENSE | typeof TransactionDirection.INCOME,
 ): typeof TransactionDirection.EXPENSE | typeof TransactionDirection.INCOME {
-  return type === TransactionDirection.EXPENSE
-    ? TransactionDirection.INCOME
-    : TransactionDirection.EXPENSE;
+  return OPPOSITE_TRANSACTION_DIRECTION[type];
 }
 
 /**

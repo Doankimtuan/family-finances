@@ -1,10 +1,5 @@
 import { JarPlanKind, type PlanJar } from "./jar-types";
-
-export type AllocationHealthStatus =
-  | "balanced"
-  | "under_allocated"
-  | "over_allocated"
-  | "no_income";
+import { AllocationHealthStatus } from "./plan-constants";
 
 export type AllocationHealth = {
   status: AllocationHealthStatus;
@@ -43,7 +38,7 @@ export function calculateAllocationHealth(
 
   if (incomeBase <= 0 && percentTotalBps > 0) {
     return {
-      status: "no_income",
+      status: AllocationHealthStatus.NO_INCOME,
       incomeBase,
       plannedOutlay: fixedTotal,
       percentTotalBps,
@@ -54,7 +49,10 @@ export function calculateAllocationHealth(
 
   if (incomeBase <= 0) {
     return {
-      status: fixedTotal > 0 ? "over_allocated" : "balanced",
+      status:
+        fixedTotal > 0
+          ? AllocationHealthStatus.OVER_ALLOCATED
+          : AllocationHealthStatus.BALANCED,
       incomeBase,
       plannedOutlay: fixedTotal,
       percentTotalBps,
@@ -66,10 +64,10 @@ export function calculateAllocationHealth(
   const utilizationPercent = Math.round((plannedOutlay / incomeBase) * 100);
   const status: AllocationHealthStatus =
     plannedOutlay > incomeBase
-      ? "over_allocated"
+      ? AllocationHealthStatus.OVER_ALLOCATED
       : plannedOutlay < incomeBase
-        ? "under_allocated"
-        : "balanced";
+        ? AllocationHealthStatus.UNDER_ALLOCATED
+        : AllocationHealthStatus.BALANCED;
 
   return {
     status,
@@ -80,3 +78,5 @@ export function calculateAllocationHealth(
     utilizationPercent,
   };
 }
+
+export { AllocationHealthStatus } from "./plan-constants";

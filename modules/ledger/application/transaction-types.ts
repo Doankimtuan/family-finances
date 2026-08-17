@@ -6,6 +6,7 @@ import {
   TransactionStatus,
   TRANSACTION_LEDGER_CREDIT_TYPES,
   TRANSACTION_LEDGER_DEBIT_TYPES,
+  TRANSACTION_LEDGER_TYPE_VALUES,
   normalizeTransactionTagColorKey,
   normalizeTransactionTagIconKey,
   type TransactionTagColorKey,
@@ -103,41 +104,12 @@ export function applyTransactionDeltas(
   return Array.from(byId.values());
 }
 
+const LEDGER_TYPE_FROM_ROW = Object.fromEntries(
+  TRANSACTION_LEDGER_TYPE_VALUES.map((ledgerType) => [ledgerType, ledgerType]),
+) as Record<string, TransactionLedgerTypeValue>;
+
 function mapLedgerType(type: string): TransactionLedgerTypeValue {
-  if (type === TransactionLedgerType.INCOME) {
-    return TransactionLedgerType.INCOME;
-  }
-  if (type === TransactionLedgerType.LIABILITY_PAYMENT) {
-    return TransactionLedgerType.LIABILITY_PAYMENT;
-  }
-  if (type === TransactionLedgerType.DEBT_BORROWING) {
-    return TransactionLedgerType.DEBT_BORROWING;
-  }
-  if (type === TransactionLedgerType.DEBT_LENDING) {
-    return TransactionLedgerType.DEBT_LENDING;
-  }
-  if (type === TransactionLedgerType.DEBT_RECEIVABLE_PAYMENT) {
-    return TransactionLedgerType.DEBT_RECEIVABLE_PAYMENT;
-  }
-  if (type === TransactionLedgerType.TRANSFER_OUT) {
-    return TransactionLedgerType.TRANSFER_OUT;
-  }
-  if (type === TransactionLedgerType.TRANSFER_IN) {
-    return TransactionLedgerType.TRANSFER_IN;
-  }
-  if (type === TransactionLedgerType.INVESTMENT_BUY) {
-    return TransactionLedgerType.INVESTMENT_BUY;
-  }
-  if (type === TransactionLedgerType.INVESTMENT_SELL_PROCEEDS) {
-    return TransactionLedgerType.INVESTMENT_SELL_PROCEEDS;
-  }
-  if (type === TransactionLedgerType.INVESTMENT_INCOME) {
-    return TransactionLedgerType.INVESTMENT_INCOME;
-  }
-  if (type === TransactionLedgerType.INVESTMENT_FEE) {
-    return TransactionLedgerType.INVESTMENT_FEE;
-  }
-  return TransactionLedgerType.EXPENSE;
+  return LEDGER_TYPE_FROM_ROW[type] ?? TransactionLedgerType.EXPENSE;
 }
 
 export function mapTransactionRow(row: {

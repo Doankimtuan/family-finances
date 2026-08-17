@@ -1,5 +1,18 @@
 import { calculateAllocationHealth } from "./allocation-health";
-import { JarState, PlanAssistMode, GoalStatus } from "./plan-constants";
+import {
+  AllocationHealthStatus,
+  GoalBackingState,
+  GoalFundingLinkAvailability,
+  GoalFundingQuality,
+  GoalStatus,
+  GoalType,
+  JarBudgetState,
+  JarKind,
+  JarRolloverMode,
+  JarState,
+  PlanAssistMode,
+  PlanRecommendationPeriodKey,
+} from "./plan-constants";
 import type { JarBudgetMetrics } from "./jar-budget";
 import type { PlanGoal } from "./goal-recurring-types";
 import type { PlanJar } from "./jar-types";
@@ -21,7 +34,16 @@ export const PlanRecommendationType = {
 export type PlanRecommendationType =
   (typeof PlanRecommendationType)[keyof typeof PlanRecommendationType];
 
-export type PlanRecommendationPriority = "critical" | "high" | "medium" | "low";
+export const PlanRecommendationPriority = {
+  CRITICAL: "critical",
+  HIGH: "high",
+  MEDIUM: "medium",
+  LOW: "low",
+} as const;
+
+export type PlanRecommendationPriority =
+  (typeof PlanRecommendationPriority)[keyof typeof PlanRecommendationPriority];
+
 export type PlanRecommendationAction = {
   type:
     | "reallocate_jar_budget"
@@ -76,10 +98,10 @@ export type PlanRecommendationInput = {
 };
 
 const PRIORITY_RANK: Record<PlanRecommendationPriority, number> = {
-  critical: 1,
-  high: 2,
-  medium: 3,
-  low: 4,
+  [PlanRecommendationPriority.CRITICAL]: 1,
+  [PlanRecommendationPriority.HIGH]: 2,
+  [PlanRecommendationPriority.MEDIUM]: 3,
+  [PlanRecommendationPriority.LOW]: 4,
 };
 
 const TYPE_RANK: Record<PlanRecommendationType, number> = {
@@ -213,7 +235,7 @@ export function getPlanRecommendations(
   for (const jar of activeJars) {
     const metrics = input.budgetsByJar[jar.id];
     if (!metrics) continue;
-    if (metrics.state === "overspent") {
+    if (metrics.state === JarBudgetState.OVERSPENT) {
       overspentJarIds.add(jar.id);
       const overspentAmount = Math.max(0, -metrics.remainingAmount);
       const donor = donorFor(jar.id, activeJars, input.budgetsByJar);
@@ -226,7 +248,7 @@ export function getPlanRecommendations(
       recommendations.push({
         id: `jar-overspent:${jar.id}:${input.periodMonth}`,
         type: PlanRecommendationType.JAR_OVERSPENT,
-        priority: "critical",
+        priority: PlanRecommendationPriority.CRITICAL,
         titleKey: "recommendations.jarOverspent.title",
         descriptionKey: donor
           ? "recommendations.jarOverspent.withDonor"
@@ -250,11 +272,11 @@ export function getPlanRecommendations(
           isHistorical,
         ),
       });
-    } else if (metrics.state === "near_limit") {
+    } else if (metrics.state === JarBudgetState.NEAR_LIMIT) {
       recommendations.push({
         id: `jar-near-limit:${jar.id}:${input.periodMonth}`,
         type: PlanRecommendationType.JAR_NEAR_LIMIT,
-        priority: "low",
+        priority: PlanRecommendationPriority.LOW,
         titleKey: "recommendations.jarNearLimit.title",
         descriptionKey: "recommendations.jarNearLimit.description",
         reasonCode: "jar_near_limit",
@@ -275,7 +297,7 @@ export function getPlanRecommendations(
     recommendations.push({
       id: `uncategorized-transactions:${input.periodMonth}`,
       type: PlanRecommendationType.UNCATEGORIZED_TRANSACTIONS,
-      priority: "high",
+      priority: PlanRecommendationPriority.HIGH,
       titleKey: "recommendations.uncategorized.title",
       descriptionKey: "recommendations.uncategorized.description",
       reasonCode: "uncategorized_transactions",
@@ -285,11 +307,11 @@ export function getPlanRecommendations(
     });
   }
 
-  if (allocation.status === "no_income") {
+  if (allocation.status === AllocationHealthStatus.NO_INCOME) {
     recommendations.push({
       id: `missing-qualifying-income:${input.periodMonth}`,
       type: PlanRecommendationType.MISSING_QUALIFYING_INCOME,
-      priority: "high",
+      priority: PlanRecommendationPriority.HIGH,
       titleKey: "recommendations.missingIncome.title",
       descriptionKey: "recommendations.missingIncome.description",
       reasonCode: "missing_qualifying_income",
@@ -297,11 +319,11 @@ export function getPlanRecommendations(
       entityType: "plan",
       action: { type: "plan_settings", entityType: "plan" },
     });
-  } else if (allocation.status === "over_allocated") {
+  } else if (allocation.status === AllocationHealthStatus.OVER_ALLOCATED) {
     recommendations.push({
       id: `plan-over-allocated:${input.periodMonth}`,
       type: PlanRecommendationType.PLAN_OVER_ALLOCATED,
-      priority: "high",
+      priority: PlanRecommendationPriority.HIGH,
       titleKey: "recommendations.overAllocated.title",
       descriptionKey: "recommendations.overAllocated.description",
       reasonCode: "plan_over_allocated",
@@ -321,21 +343,22 @@ export function getPlanRecommendations(
     if (goal.status === GoalStatus.CANCELLED) continue;
     const unavailable = goal.fundingLinks.some(
       (link) =>
-        link.availability === "missing" || link.availability === "unavailable",
+        link.availability === GoalFundingLinkAvailability.MISSING ||
+        link.availability === GoalFundingLinkAvailability.UNAVAILABLE,
     );
     if (unavailable) {
       unavailableGoalIds.add(goal.id);
       recommendations.push({
         id: `goal-source-unavailable:${goal.id}`,
         type: PlanRecommendationType.GOAL_SOURCE_UNAVAILABLE,
-        priority: "high",
+        priority: PlanRecommendationPriority.HIGH,
         titleKey: "recommendations.goalSourceUnavailable.title",
         descriptionKey: "recommendations.goalSourceUnavailable.description",
         reasonCode: "goal_source_unavailable",
         reason: {
           goalId: goal.id,
           unavailableSourceCount: goal.fundingLinks.filter(
-            (link) => link.availability !== "available",
+            (link) => link.availability !== GoalFundingLinkAvailability.AVAILABLE,
           ).length,
         },
         entityType: "goal",
@@ -348,11 +371,11 @@ export function getPlanRecommendations(
       });
       continue;
     }
-    if (goal.backingState === "needs_backing") {
+    if (goal.backingState === GoalBackingState.NEEDS_BACKING) {
       recommendations.push({
         id: `goal-missing-backing:${goal.id}`,
         type: PlanRecommendationType.GOAL_MISSING_BACKING,
-        priority: "high",
+        priority: PlanRecommendationPriority.HIGH,
         titleKey: "recommendations.goalMissingBacking.title",
         descriptionKey: "recommendations.goalMissingBacking.description",
         reasonCode: "goal_missing_backing",
@@ -368,13 +391,14 @@ export function getPlanRecommendations(
     }
     const valueStatus = goal.fundingValueStatus;
     const hasMissingValuation =
-      valueStatus === "missing" || valueStatus === "incomplete";
+      valueStatus === GoalFundingQuality.MISSING ||
+      valueStatus === GoalFundingQuality.INCOMPLETE;
     if (hasMissingValuation && goal.fundingLinks.length > 0) {
       missingValuationGoalIds.add(goal.id);
       recommendations.push({
         id: `goal-valuation-missing:${goal.id}`,
         type: PlanRecommendationType.GOAL_VALUATION_MISSING,
-        priority: "high",
+        priority: PlanRecommendationPriority.HIGH,
         titleKey: "recommendations.goalValuationMissing.title",
         descriptionKey: "recommendations.goalValuationMissing.description",
         reasonCode: "goal_valuation_missing",
@@ -387,11 +411,11 @@ export function getPlanRecommendations(
           entityId: goal.id,
         },
       });
-    } else if (valueStatus === "stale") {
+    } else if (valueStatus === GoalFundingQuality.STALE) {
       recommendations.push({
         id: `goal-valuation-stale:${goal.id}`,
         type: PlanRecommendationType.GOAL_VALUATION_STALE,
-        priority: "low",
+        priority: PlanRecommendationPriority.LOW,
         titleKey: "recommendations.goalValuationStale.title",
         descriptionKey: "recommendations.goalValuationStale.description",
         reasonCode: "goal_valuation_stale",
@@ -413,7 +437,7 @@ export function getPlanRecommendations(
       recommendations.push({
         id: `goal-ready-regression:${goal.id}`,
         type: PlanRecommendationType.GOAL_READY_REGRESSION,
-        priority: "medium",
+        priority: PlanRecommendationPriority.MEDIUM,
         titleKey: "recommendations.goalReadyRegression.title",
         descriptionKey: "recommendations.goalReadyRegression.description",
         reasonCode: "goal_ready_regression",
@@ -434,7 +458,7 @@ export function getPlanRecommendations(
       recommendations.push({
         id: `goal-target-date-risk:${goal.id}`,
         type: PlanRecommendationType.GOAL_TARGET_DATE_RISK,
-        priority: "medium",
+        priority: PlanRecommendationPriority.MEDIUM,
         titleKey: "recommendations.goalTargetDate.title",
         descriptionKey: "recommendations.goalTargetDate.description",
         reasonCode: "goal_target_date_risk",
@@ -455,9 +479,9 @@ export function getPlanRecommendations(
     recommendations.push({
       id: `recurring-amount-mismatch:${mismatch.id}:${input.periodMonth}`,
       type: PlanRecommendationType.RECURRING_AMOUNT_MISMATCH,
-      priority: "low",
+      priority: PlanRecommendationPriority.LOW,
       titleKey: "recommendations.recurringMismatch.title",
-      descriptionKey: "recommendatio    ecurringMismatch.description",
+      descriptionKey: "recommendations.recurringMismatch.description",
       reasonCode: "recurring_amount_mismatch",
       reason: {
         recurringId: mismatch.id,
@@ -520,10 +544,10 @@ export function buildAssistedSuggestions(input: {
   const jars = input.jars.map((jar) => ({
     ...jar,
     state: JarState.ACTIVE,
-    kind: "spending" as PlanJar["kind"],
+    kind: JarKind.SPENDING,
     sortOrder: 0,
     capacityDelta: 0,
-    rolloverMode: "reset" as PlanJar["rolloverMode"],
+    rolloverMode: JarRolloverMode.RESET,
     plan: null,
   }));
   const goals = (input.goalsMissingBacking ?? []).map((goal) => ({
@@ -532,17 +556,17 @@ export function buildAssistedSuggestions(input: {
     fundedAmount: 0,
     targetDate: null,
     status: GoalStatus.ACTIVE,
-    goalType: "save_up" as PlanGoal["goalType"],
+    goalType: GoalType.SAVE_UP,
     fundingLinks: [],
-    backingState: "needs_backing" as PlanGoal["backingState"],
-    fundingValueStatus: "current" as PlanGoal["fundingValueStatus"],
+    backingState: GoalBackingState.NEEDS_BACKING,
+    fundingValueStatus: GoalFundingQuality.CURRENT,
     fundingSummary: null,
     isLegacyIntention: false,
     progressPercent: 0,
   }));
   return getPlanRecommendations({
     assistMode: input.assistMode,
-    periodMonth: "current",
+    periodMonth: PlanRecommendationPeriodKey.CURRENT,
     jars,
     budgetsByJar: input.budgetsByJar,
     uncategorizedCount: input.uncategorizedCount,

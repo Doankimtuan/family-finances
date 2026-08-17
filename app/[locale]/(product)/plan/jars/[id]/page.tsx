@@ -20,6 +20,7 @@ import {
 import { listOpenInboxItems } from "@/modules/inbox/application";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
+import { basisPointsToPercentage } from "@/shared/utils/percentage";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Page } from "@/shared/patterns/page";
 import { Section } from "@/shared/patterns/section";
@@ -104,7 +105,7 @@ export default async function PlanJarDetailPage({ params }: Props) {
   let plannedLabel = t("planNone");
   if (jar.plan?.kind === JarPlanKind.PERCENT) {
     plannedLabel = t("planPercent", {
-      percent: Math.round(jar.plan.percentBps / 100),
+      percent: Math.round(basisPointsToPercentage(jar.plan.percentBps)),
     });
   } else if (jar.plan?.kind === JarPlanKind.FIXED) {
     plannedLabel = formatCurrency(jar.plan.fixedAmount, jar.currency, locale, {

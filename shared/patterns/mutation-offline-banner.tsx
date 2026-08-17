@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { APP_PATH } from "@/modules/tenancy/application/app-path";
+import { APP_PATH } from "@/modules/shared-kernel/app-path";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 

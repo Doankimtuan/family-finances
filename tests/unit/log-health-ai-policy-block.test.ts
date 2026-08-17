@@ -1,14 +1,14 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
-vi.mock("@/modules/platform/application/ai-audit", () => ({
+vi.mock("@/modules/tenancy/application/ai-audit", () => ({
   recordAiAuditEvent: vi.fn(),
 }));
 
-import { recordAiAuditEvent } from "@/modules/platform/application/ai-audit";
+import { recordAiAuditEvent } from "@/modules/tenancy/application/ai-audit";
 import {
   AiAuditEventKind,
   AI_AUDIT_SURFACE,
-} from "@/modules/platform/application/ai-audit.schema";
+} from "@/modules/tenancy/application/ai-audit.schema";
 import { AI_POLICY_ERROR_CODE } from "@/modules/platform/application/ai-policy";
 import { logHealthAiPolicyBlock } from "@/modules/health/application/log-health-ai-policy-block";
 

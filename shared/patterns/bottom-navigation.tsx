@@ -1,7 +1,7 @@
 "use client";
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
-import { APP_PATH } from "@/modules/tenancy/application/app-path";
+import { APP_PATH } from "@/modules/shared-kernel/app-path";
 import { cn } from "@/shared/utils/cn";
 import { SafeArea } from "@/providers/safe-area";
 import { TABS } from "@/shared/patterns/bottom-navigation-tabs";

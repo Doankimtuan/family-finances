@@ -6,6 +6,7 @@ import {
 } from "./savings-constants";
 import type { PenaltyRule, PackageSnapshot } from "./savings-types";
 import { calculateInterest, type InterestResult } from "./savings-interest";
+import { differenceInUtcCalendarDays } from "@/shared/utils/iso-date";
 
 /**
  * Penalty calculation engine for early withdrawal.
@@ -47,13 +48,6 @@ export type EarlyWithdrawalPreview = {
    */
   quoteReady: boolean;
 };
-
-function daysBetween(startDate: string, endDate: string): number {
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-  const msPerDay = 24 * 60 * 60 * 1000;
-  return Math.max(0, Math.floor((end.getTime() - start.getTime()) / msPerDay));
-}
 
 /**
  * Calculate accrued interest up to withdrawal date.
@@ -138,9 +132,13 @@ function findPenaltyRule(packageSnapshot: PackageSnapshot): PenaltyRule {
 }
 
 function requiresProviderOrManualQuote(strategy: string): boolean {
-  return (
-    strategy === PenaltyStrategy.PROVIDER_FORMULA ||
-    strategy === PenaltyStrategy.PROVIDER_CUSTOM
+  return [
+    PenaltyStrategy.PROVIDER_FORMULA,
+    PenaltyStrategy.PROVIDER_CUSTOM,
+  ].includes(
+    strategy as unknown as
+      | typeof PenaltyStrategy.PROVIDER_FORMULA
+      | typeof PenaltyStrategy.PROVIDER_CUSTOM,
   );
 }
 
@@ -153,7 +151,10 @@ export function previewEarlyWithdrawal(
   input: EarlyWithdrawalInput,
 ): EarlyWithdrawalPreview {
   const accrued = accruedToDate(input);
-  const totalTermDays = daysBetween(input.startDate, input.endDate);
+  const totalTermDays = Math.max(
+    0,
+    differenceInUtcCalendarDays(input.startDate, input.endDate),
+  );
   const penaltyRule = findPenaltyRule(input.packageSnapshot);
 
   if (requiresProviderOrManualQuote(penaltyRule.strategy)) {

@@ -7,7 +7,9 @@ import {
   resolveGoalFundingStatus,
 } from "@/modules/plan/application/goal-funding";
 import {
+  GoalFundingQuality,
   GoalFundingSourceKind,
+  GoalFundingValueStatus,
   GoalStatus,
   GoalType,
 } from "@/modules/plan/application/plan-constants";
@@ -55,11 +57,11 @@ describe("PLAN 09 derived Goal funding", () => {
         kind: GoalFundingSourceKind.HOLDING,
         sourceId: "holding-1",
         costBasis: 100_000_000,
-        valueStatus: "missing",
+        valueStatus: GoalFundingValueStatus.MISSING,
       },
     ]);
     expect(summary.fundedAmount).toBe(0);
-    expect(summary.valueStatus).toBe("missing");
+    expect(summary.valueStatus).toBe(GoalFundingQuality.MISSING);
     expect(summary.costBasis).toBe(100_000_000);
   });
 
@@ -70,11 +72,11 @@ describe("PLAN 09 derived Goal funding", () => {
         sourceId: "holding-1",
         currentValue: 120_000_000,
         costBasis: 100_000_000,
-        valueStatus: "stale",
+        valueStatus: GoalFundingValueStatus.STALE,
       },
     ]);
     expect(summary.fundedAmount).toBe(120_000_000);
-    expect(summary.valueStatus).toBe("stale");
+    expect(summary.valueStatus).toBe(GoalFundingQuality.STALE);
   });
 
   it("aggregates Savings and Investment market value without double counting", () => {

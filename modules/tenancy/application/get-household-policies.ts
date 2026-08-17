@@ -4,7 +4,7 @@ import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import {
   IncomeAllocateMode as IncomeAllocateModeConst,
   RitualMode,
-} from "@/modules/plan/application/plan-constants";
+} from "./household-policy-constants";
 import { getSessionUser } from "./get-session-user";
 import { resolveActiveMembership } from "./resolve-active-membership";
 import {

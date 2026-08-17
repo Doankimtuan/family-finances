@@ -2,7 +2,7 @@ import { z } from "zod";
 import {
   INCOME_ALLOCATE_MODE_VALUES,
   RITUAL_MODE_VALUES,
-} from "@/modules/plan/application/plan-constants";
+} from "./household-policy-constants";
 
 export const OverspendPolicy = {
   WARN: "warn",

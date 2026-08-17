@@ -11,6 +11,10 @@ import {
   SavingsTaxRule,
 } from "./savings-domain-rules";
 import type { Saving } from "./savings-types";
+import {
+  differenceInUtcCalendarDays,
+  todayIsoDate,
+} from "@/shared/utils/iso-date";
 
 export const MaturityPresentationState = SavingsMaturityState;
 export type MaturityPresentationState = SavingsMaturityState;
@@ -75,19 +79,6 @@ export type SavingsDetailModel = SavingsPresentationItem & {
   isTerminal: boolean;
 };
 
-function toUtcDay(value: string | Date): Date {
-  const raw = typeof value === "string" ? value : value.toISOString();
-  return new Date(`${raw.slice(0, 10)}T00:00:00Z`);
-}
-
-function todayIso(): string {
-  return new Date().toISOString().slice(0, 10);
-}
-
-function dayDifference(from: Date, to: Date): number {
-  return Math.round((to.getTime() - from.getTime()) / 86_400_000);
-}
-
 /**
  * Maturity presentation is derived from the cycle end date, not only from the
  * persisted `matured` status: flipping that status is a lifecycle mutation
@@ -97,7 +88,7 @@ function dayDifference(from: Date, to: Date): number {
  */
 export function deriveMaturityPresentationState(
   saving: Saving,
-  today = todayIso(),
+  today = todayIsoDate(),
 ): MaturityPresentationState {
   if (saving.status === SavingStatus.CLOSED)
     return MaturityPresentationState.SETTLED;
@@ -107,10 +98,7 @@ export function deriveMaturityPresentationState(
     return MaturityPresentationState.ACTION_REQUIRED;
   const cycle = saving.latestCycle;
   if (!cycle) return MaturityPresentationState.ACTIVE;
-  const daysUntilMaturity = dayDifference(
-    toUtcDay(today),
-    toUtcDay(cycle.endDate),
-  );
+  const daysUntilMaturity = differenceInUtcCalendarDays(today, cycle.endDate);
   const isMatured =
     cycle.status === CycleStatus.MATURED ||
     saving.status === SavingStatus.MATURED ||
@@ -128,11 +116,11 @@ export function deriveMaturityPresentationState(
 
 export function maturityDaysRemaining(
   saving: Saving,
-  today = todayIso(),
+  today = todayIsoDate(),
 ): number | null {
   const endDate = saving.latestCycle?.endDate;
   if (!endDate) return null;
-  return dayDifference(toUtcDay(today), toUtcDay(endDate));
+  return differenceInUtcCalendarDays(today, endDate);
 }
 
 function sortPriority(state: MaturityPresentationState): number {
@@ -154,7 +142,7 @@ function sortPriority(state: MaturityPresentationState): number {
 
 export function buildSavingsPresentationItem(
   saving: Saving,
-  today = todayIso(),
+  today = todayIsoDate(),
 ): SavingsPresentationItem {
   const cycle = saving.latestCycle;
   const principal = cycle?.principal ?? 0;
@@ -175,11 +163,14 @@ export function buildSavingsPresentationItem(
   const totalDays = cycle
     ? Math.max(
         0,
-        dayDifference(toUtcDay(cycle.startDate), toUtcDay(cycle.endDate)),
+        differenceInUtcCalendarDays(cycle.startDate, cycle.endDate),
       )
     : 0;
   const elapsedDays = cycle
-    ? Math.max(0, dayDifference(toUtcDay(cycle.startDate), toUtcDay(today)))
+    ? Math.max(
+        0,
+        differenceInUtcCalendarDays(cycle.startDate, today),
+      )
     : 0;
   return {
     saving,
@@ -198,18 +189,21 @@ export function buildSavingsPresentationItem(
 
 export function buildSavingsDetailModel(
   saving: Saving,
-  today = todayIso(),
+  today = todayIsoDate(),
 ): SavingsDetailModel {
   const base = buildSavingsPresentationItem(saving, today);
   const cycle = saving.latestCycle;
   const totalTermDays = cycle
     ? Math.max(
         0,
-        dayDifference(toUtcDay(cycle.startDate), toUtcDay(cycle.endDate)),
+        differenceInUtcCalendarDays(cycle.startDate, cycle.endDate),
       )
     : null;
   const elapsedDays = cycle
-    ? Math.max(0, dayDifference(toUtcDay(cycle.startDate), toUtcDay(today)))
+    ? Math.max(
+        0,
+        differenceInUtcCalendarDays(cycle.startDate, today),
+      )
     : null;
   const isTerminal = isMaturitySettled(base.maturityState);
   const earlyRule = saving.productSnapshot.earlySettlementRule;
@@ -247,7 +241,7 @@ export function sortSavingsPresentationItems(
 
 export function buildSavingsOverviewModel(
   savings: Saving[],
-  today = todayIso(),
+  today = todayIsoDate(),
 ): SavingsOverviewModel {
   const items = sortSavingsPresentationItems(
     savings.map((saving) => buildSavingsPresentationItem(saving, today)),

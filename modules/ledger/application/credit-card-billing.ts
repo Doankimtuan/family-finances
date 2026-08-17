@@ -142,13 +142,11 @@ export function applyFifoSettlement(
     const applied = Math.min(left, due);
     left -= applied;
     const paidAmount = month.paidAmount + applied;
-    const status =
-      paidAmount >= month.statementAmount
-        ? CardBillingMonthStatus.SETTLED
-        : paidAmount > 0
-          ? CardBillingMonthStatus.PARTIAL
-          : CardBillingMonthStatus.OPEN;
-    return { ...month, paidAmount, status };
+    return {
+      ...month,
+      paidAmount,
+      status: refreshMonthStatus(month.statementAmount, paidAmount),
+    };
   });
   return { months: next, remainingPayment: left };
 }
@@ -187,6 +185,11 @@ export function applyBillingItemConversion(input: {
   };
 }
 
+const CONVERSION_BLOCKED_MONTH_STATUSES = new Set<string>([
+  CardBillingMonthStatus.PARTIAL,
+  CardBillingMonthStatus.SETTLED,
+]);
+
 /**
  * Convert-to-installment is only safe before any FIFO payment hits the month.
  * After a partial pay, converting the full charge zeros statement while leaving
@@ -204,11 +207,6 @@ export function canConvertBillingItemOnMonth(input: {
   if (input.itemType !== CardBillingItemType.STANDARD) return false;
   if (input.itemAmount <= 0) return false;
   if (input.monthPaidAmount > 0) return false;
-  if (
-    input.monthStatus === CardBillingMonthStatus.PARTIAL ||
-    input.monthStatus === CardBillingMonthStatus.SETTLED
-  ) {
-    return false;
-  }
+  if (CONVERSION_BLOCKED_MONTH_STATUSES.has(input.monthStatus)) return false;
   return true;
 }

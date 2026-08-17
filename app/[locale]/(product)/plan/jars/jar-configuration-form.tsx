@@ -22,6 +22,10 @@ import {
 import { calculateJarRuleBudget } from "@/modules/plan/application/jar-budget";
 import { TransactionDirection } from "@/modules/ledger/application/ledger-constants";
 import { formatCurrency } from "@/shared/i18n/formatters";
+import {
+  basisPointsToPercentage,
+  percentageToBasisPoints,
+} from "@/shared/utils/percentage";
 import { TextField, CheckboxField } from "@/shared/ui/form";
 import { ControlledField } from "@/shared/patterns/controlled-fields";
 import { Button } from "@/shared/ui/button";
@@ -119,7 +123,9 @@ function createDefaultValues(
     enabled: initial.enabled,
     planKind: plan?.kind ?? JarPlanKind.FIXED,
     percent:
-      plan?.kind === JarPlanKind.PERCENT ? plan.percentBps / 100 : undefined,
+      plan?.kind === JarPlanKind.PERCENT
+        ? basisPointsToPercentage(plan.percentBps)
+        : undefined,
     fixedAmount:
       plan?.kind === JarPlanKind.FIXED ? plan.fixedAmount : undefined,
     rolloverMode: initial.rolloverMode,
@@ -137,7 +143,9 @@ function previewPlan(
   return {
     kind: planKind,
     percentBps:
-      planKind === JarPlanKind.PERCENT ? Math.round((percent ?? 0) * 100) : 0,
+      planKind === JarPlanKind.PERCENT
+        ? percentageToBasisPoints(percent ?? 0)
+        : 0,
     fixedAmount: planKind === JarPlanKind.FIXED ? (fixedAmount ?? 0) : 0,
   };
 }

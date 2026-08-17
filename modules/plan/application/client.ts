@@ -17,8 +17,8 @@ export {
 
 export {
   calculateAllocationHealth,
+  AllocationHealthStatus,
   type AllocationHealth,
-  type AllocationHealthStatus,
 } from "./allocation-health";
 
 export {
@@ -31,8 +31,10 @@ export {
   classifyJarEnvelopeEffect,
   resolveQualifyingMonthlyIncome,
   resolveJarBudgetState,
+  JarBudgetState,
+  QualifyingIncomeSource,
   type JarBudgetMetrics,
-  type JarBudgetState,
+  type QualifyingIncomeResolution,
 } from "./jar-budget";
 
 export {
@@ -108,11 +110,15 @@ export {
   GoalStatus,
   GoalType,
   GoalFundingSourceKind,
+  GoalBackingState,
+  GoalFundingLinkAvailability,
   RecurringDirection,
   RecurringFrequency,
   GOAL_STATUS_VALUES,
   GOAL_TYPE_VALUES,
   GOAL_FUNDING_SOURCE_KIND_VALUES,
+  GOAL_FUNDING_LINK_AVAILABILITY_VALUES,
+  GOAL_BACKING_STATE_VALUES,
   RECURRING_DIRECTION_OPTIONS,
   RECURRING_FREQUENCY_VALUES,
 } from "./goal-recurring-types";
@@ -123,6 +129,10 @@ export {
   goalFundingSourceKey,
   hasExclusiveGoalFundingConflict,
   isPayoffFundingSource,
+  GoalFundingQuality,
+  GoalFundingValueStatus,
+  GOAL_FUNDING_QUALITY_VALUES,
+  GOAL_FUNDING_VALUE_STATUS_VALUES,
   type GoalFundingSourceValue,
   type GoalFundingLinkIdentity,
 } from "./goal-funding";

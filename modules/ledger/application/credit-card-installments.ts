@@ -4,6 +4,7 @@ import {
   CreditCardInstallmentFeeType,
   CreditCardInstallmentProgram,
   CreditCardInstallmentScheduleStatus,
+  TransactionLedgerType,
   type CreditCardInstallmentCalculationSource as CreditCardInstallmentCalculationSourceValue,
   type CreditCardInstallmentFeeTiming as CreditCardInstallmentFeeTimingValue,
   type CreditCardInstallmentFeeType as CreditCardInstallmentFeeTypeValue,
@@ -96,12 +97,6 @@ export function roundVndPercentage(amount: number, rateBps: number): number {
   const safeAmount = asWholeVnd(amount);
   const safeRate = asWholeVnd(rateBps);
   return Math.floor((safeAmount * safeRate + 5_000) / 10_000);
-}
-
-/** Converts a user-entered percentage to integer basis points. */
-export function percentageToBasisPoints(value: number): number {
-  if (!Number.isFinite(value)) return 0;
-  return Math.max(0, Math.round(value * 100));
 }
 
 /** The final expected period receives any indivisible VND remainder. */
@@ -275,7 +270,7 @@ export function isStructurallyEligibleCardPurchase(input: {
 }): boolean {
   return (
     asWholeVnd(input.amount) > 0 &&
-    input.transactionType === "expense" &&
+    input.transactionType === TransactionLedgerType.EXPENSE &&
     !input.hasRefundOrCorrection &&
     !input.alreadyTracked
   );
