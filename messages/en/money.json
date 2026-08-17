@@ -1046,7 +1046,6 @@
     "errorTitle": "Could not save transaction",
     "offlineHint": "Connect to save a transaction. Nothing is queued offline.",
     "addAccountHint": "Add an account from Money → Accounts first.",
-    "saveFailedBody": "No transaction was recorded and no account balance changed.",
     "receipt": {
       "title": "Transaction recorded",
       "outcome": "Recorded",

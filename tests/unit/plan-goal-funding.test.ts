@@ -215,3 +215,34 @@ describe("PLAN 09 derived Goal funding", () => {
     ).toBe(true);
   });
 });
+
+describe("calculateGoalProgressPercent boundaries", () => {
+  it("returns 0 when nothing is funded", () => {
+    expect(calculateGoalProgressPercent(0, 500_000_000)).toBe(0);
+  });
+
+  it("returns partial progress below 100", () => {
+    expect(calculateGoalProgressPercent(150_000_000, 500_000_000)).toBe(30);
+  });
+
+  it("returns exactly 100 at the target", () => {
+    expect(calculateGoalProgressPercent(500_000_000, 500_000_000)).toBe(100);
+  });
+
+  it("keeps over-funded progress above 100", () => {
+    expect(calculateGoalProgressPercent(750_000_000, 500_000_000)).toBe(150);
+  });
+
+  it("returns 0 for zero, negative, or non-finite targets", () => {
+    expect(calculateGoalProgressPercent(400, 0)).toBe(0);
+    expect(calculateGoalProgressPercent(400, -100)).toBe(0);
+    expect(calculateGoalProgressPercent(400, Number.NaN)).toBe(0);
+    expect(calculateGoalProgressPercent(400, Number.POSITIVE_INFINITY)).toBe(0);
+  });
+
+  it("treats negative funded amounts as 0, truncates fractions, and rounds to two decimals", () => {
+    expect(calculateGoalProgressPercent(-50, 500)).toBe(0);
+    expect(calculateGoalProgressPercent(100.9, 100)).toBe(100);
+    expect(calculateGoalProgressPercent(1, 300)).toBe(0.33);
+  });
+});

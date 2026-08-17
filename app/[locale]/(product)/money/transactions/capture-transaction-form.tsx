@@ -300,14 +300,6 @@ export function CaptureTransactionForm({
         />
       ) : null}
 
-      {errorCode ? (
-        <StatusAlert
-          variant="info"
-          title={t("errorTitle")}
-          description={t("saveFailedBody")}
-        />
-      ) : null}
-
       <div className="rounded-xl border border-accent/25 bg-accent/10 p-(--space-4) shadow-[var(--elevation-1)]">
         <AmountField
           id={amountId}

@@ -1046,7 +1046,6 @@
     "errorTitle": "Không lưu được giao dịch",
     "offlineHint": "Cần kết nối để lưu. Không xếp hàng ngoại tuyến.",
     "addAccountHint": "Thêm tài khoản ở Money → Tài khoản trước.",
-    "saveFailedBody": "Chưa ghi giao dịch nào và số dư tài khoản không thay đổi.",
     "receipt": {
       "title": "Đã ghi giao dịch",
       "outcome": "Đã ghi",

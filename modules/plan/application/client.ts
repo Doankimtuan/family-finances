@@ -60,6 +60,11 @@ export {
   type ReallocateJarCapacityInput,
 } from "./commands/reallocate-jar-capacity.schema";
 
+export {
+  jarConfigurationInputSchema,
+  type JarConfigurationInput,
+} from "./commands/configure-jar.schema";
+
 export type {
   MonthRitual,
   RitualPreview,

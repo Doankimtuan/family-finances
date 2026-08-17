@@ -81,6 +81,10 @@ export type MonthlyReview = {
     name: string;
     targetAmount: number;
     fundedAmount: number;
+    /**
+     * Canonical PlanGoal progress (calculateGoalProgressPercent); may exceed
+     * 100% when linked funding exceeds the target. Do not clamp here.
+     */
     progressPercent: number;
     state:
       "active" | "ready" | "paused" | "legacy_progress" | "missing_backing";

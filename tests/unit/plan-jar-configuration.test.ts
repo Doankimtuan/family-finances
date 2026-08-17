@@ -40,6 +40,20 @@ describe("Jar V2 configuration validation", () => {
     expect(result.success).toBe(true);
   });
 
+  it.each([
+    ["a whole percent", 20],
+    ["the maximum percent", 100],
+  ])("accepts a percentage Jar with %s", (_label, percent) => {
+    const result = jarConfigurationInputSchema.safeParse(
+      validInput({
+        planKind: JarPlanKind.PERCENT,
+        percent,
+        fixedAmount: undefined,
+      }),
+    );
+    expect(result.success).toBe(true);
+  });
+
   it("accepts a disabled Jar without changing its allocation semantics", () => {
     const result = jarConfigurationInputSchema.safeParse(
       validInput({ enabled: false }),
@@ -50,8 +64,13 @@ describe("Jar V2 configuration validation", () => {
 
   it.each([
     ["empty name", { name: "   " }],
-    ["negative fixed amount", { fixedAmount: -1 }],
+    ["name over 80 characters", { name: "x".repeat(81) }],
+    ["zero percent", { planKind: JarPlanKind.PERCENT, percent: 0, fixedAmount: undefined }],
+    ["missing percent", { planKind: JarPlanKind.PERCENT, percent: undefined }],
     ["percentage over 100", { planKind: JarPlanKind.PERCENT, percent: 100.1 }],
+    ["zero fixed amount", { fixedAmount: 0 }],
+    ["negative fixed amount", { fixedAmount: -1 }],
+    ["fractional fixed amount", { fixedAmount: 15_000_000.5 }],
     ["missing fixed amount", { fixedAmount: undefined }],
     ["invalid category id", { categoryIds: ["not-a-uuid"] }],
   ])("rejects %s", (_label, overrides) => {

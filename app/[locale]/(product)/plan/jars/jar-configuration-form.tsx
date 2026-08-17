@@ -8,6 +8,7 @@ import {
   JarPlanKind,
   JarRolloverMode,
   JAR_KIND_VALUES,
+  jarConfigurationInputSchema,
   type JarPlan,
   type JarKind as JarKindValue,
   type JarRolloverMode as JarRolloverModeValue,
@@ -160,20 +161,8 @@ export function JarConfigurationForm({
       setErrorCode(CLIENT_ACTION_ERROR_CODE.OFFLINE);
       return;
     }
-    const numericPercent = Number(percent);
-    if (name.trim().length < 2 || (planKind === JarPlanKind.FIXED && (fixedAmount == null || fixedAmount <= 0)) || (planKind === JarPlanKind.PERCENT && (!Number.isFinite(numericPercent) || numericPercent <= 0 || numericPercent > 100))) {
-      setErrorCode(PRODUCT_ACTION_ERROR_CODE.INVALID);
-      return;
-    }
-    if (conflicts.length > 0 && !confirmReassignment) {
-      setErrorCode(PRODUCT_ACTION_ERROR_CODE.INVALID);
-      return;
-    }
-    if (removedCategoryIds.length > 0 && !removedCategoryTargetJarId) {
-      setErrorCode(PRODUCT_ACTION_ERROR_CODE.INVALID);
-      return;
-    }
 
+    const numericPercent = Number(percent);
     const input = {
       name: name.trim(),
       kind,
@@ -191,6 +180,19 @@ export function JarConfigurationForm({
         ? { removedCategoryTargetJarId }
         : {}),
     } as const;
+
+    if (!jarConfigurationInputSchema.safeParse(input).success) {
+      setErrorCode(PRODUCT_ACTION_ERROR_CODE.INVALID);
+      return;
+    }
+    if (conflicts.length > 0 && !confirmReassignment) {
+      setErrorCode(PRODUCT_ACTION_ERROR_CODE.INVALID);
+      return;
+    }
+    if (removedCategoryIds.length > 0 && !removedCategoryTargetJarId) {
+      setErrorCode(PRODUCT_ACTION_ERROR_CODE.INVALID);
+      return;
+    }
 
     startTransition(async () => {
       const result =
