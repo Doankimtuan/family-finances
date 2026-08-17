@@ -224,6 +224,26 @@ describe("getPlanRecommendations", () => {
       ),
     ).toBe(true);
   });
+
+  it("uses UTC calendar days across month and year boundaries", () => {
+    const result = getPlanRecommendations(
+      base({
+        asOfDate: "2025-12-31",
+        goals: [
+          goal({
+            targetDate: "2026-01-01",
+            progressPercent: 20,
+          }),
+        ],
+      }),
+    );
+
+    expect(
+      result.find(
+        (item) => item.type === PlanRecommendationType.GOAL_TARGET_DATE_RISK,
+      )?.reason.daysRemaining,
+    ).toBe(1);
+  });
   it("flags only material recurring mismatches", () => {
     const result = getPlanRecommendations(
       base({

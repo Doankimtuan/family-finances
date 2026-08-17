@@ -80,6 +80,10 @@ export const SAVINGS_OPERATION = {
   EARLY_WITHDRAWAL_INBOX: "savingsEarlyWithdrawalInbox",
   UPDATE_RENEWAL_POLICY: "updateRenewalPolicy",
   CATALOG: "manageSavingsCatalog",
+  LIST_SAVINGS: "listSavings",
+  GET_SAVING: "getSaving",
+  LIST_SAVING_CYCLES: "listSavingCycles",
+  LIST_SAVINGS_FINANCIAL_ACTIVITIES: "listSavingsFinancialActivities",
 } as const;
 
 export type SavingsOperation =

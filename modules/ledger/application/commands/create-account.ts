@@ -1,4 +1,3 @@
-import { z } from "zod";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import {
@@ -7,44 +6,15 @@ import {
   type ProductActionErrorCode,
 } from "@/modules/tenancy/application/product-action-error";
 import type { Result } from "@/modules/shared-kernel/application/result";
-import {
-  ACCOUNT_TYPE_VALUES,
-  AccountType,
-  DEFAULT_CARD_DUE_DAY,
-  DEFAULT_CARD_STATEMENT_DAY,
-} from "../ledger-constants";
+import { AccountType } from "../ledger-constants";
 import { LEDGER_OPERATION, logLedgerFailure } from "../ledger-error";
+import {
+  createAccountInputSchema,
+  type CreateAccountInput,
+} from "./create-account.schema";
 
-const creditCardSettingsSchema = z.object({
-  creditLimit: z.number().finite().int().min(0),
-  statementDay: z
-    .number()
-    .int()
-    .min(1)
-    .max(31)
-    .default(DEFAULT_CARD_STATEMENT_DAY),
-  dueDay: z.number().int().min(1).max(31).default(DEFAULT_CARD_DUE_DAY),
-  linkedBankAccountId: z.string().uuid().nullable().optional(),
-});
-
-export const createAccountInputSchema = z
-  .object({
-    name: z.string().trim().min(1).max(80),
-    type: z.enum(ACCOUNT_TYPE_VALUES).default(AccountType.CASH),
-    openingBalance: z.number().finite().int().min(0).default(0),
-    creditCard: creditCardSettingsSchema.optional(),
-  })
-  .superRefine((value, ctx) => {
-    if (value.type === AccountType.CREDIT_CARD && !value.creditCard) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "credit_card_settings_required",
-        path: ["creditCard"],
-      });
-    }
-  });
-
-export type CreateAccountInput = z.infer<typeof createAccountInputSchema>;
+export { createAccountInputSchema } from "./create-account.schema";
+export type { CreateAccountInput } from "./create-account.schema";
 
 export type CreateAccountErrorCode = ProductActionErrorCode;
 
@@ -131,7 +101,7 @@ export async function createAccount(
         .insert({
           account_id: data.id,
           household_id: gate.householdId,
-          credit_limit: parsed.data.creditCard.creditLimit,
+          credit_limit: parsed.data.creditCard.creditLimit ?? 0,
           statement_day: parsed.data.creditCard.statementDay,
           due_day: parsed.data.creditCard.dueDay,
           linked_bank_account_id:

@@ -1,19 +1,20 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useLocale, useTranslations } from "next-intl";
-import { NumberField, TextField } from "@/shared/ui/form";
+import { Controller, useForm, useWatch } from "react-hook-form";
+import { z } from "zod";
+import { SelectField, TextField, NumberField } from "@/shared/ui/form";
 import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { AmountField } from "@/shared/patterns/amount-field";
-import { LabeledSelect } from "@/shared/patterns/labeled-native-field";
 import { Dialog, DialogContent } from "@/shared/patterns/dialog";
 import { Sheet, SheetContent } from "@/shared/patterns/sheet";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import {
   CLIENT_ACTION_ERROR_CODE,
-  PRODUCT_ACTION_ERROR_CODE,
   type ProductActionErrorCode,
 } from "@/modules/tenancy/application/product-action-error";
 import { createAccountAction } from "./actions";
@@ -24,6 +25,10 @@ import {
   DEFAULT_CARD_STATEMENT_DAY,
   type AccountType as AccountTypeValue,
 } from "@/modules/ledger/application/client";
+import {
+  createAccountInputSchema,
+  type CreateAccountInput,
+} from "@/modules/ledger/application/commands/create-account.schema";
 import {
   APP_PATH,
   moneyAccountPath,
@@ -37,6 +42,7 @@ type ErrorCode =
 const TYPES = ACCOUNT_TYPE_CREATE_OPTIONS;
 
 type LiquidOption = { id: string; name: string };
+type CreateAccountFormInput = z.input<typeof createAccountInputSchema>;
 
 type Props = {
   liquidAccounts: LiquidOption[];
@@ -74,14 +80,7 @@ export function AddAccountForm({
     if (!isControlled) setUncontrolledOpen(next);
     onOpenChange?.(next);
   };
-  const [name, setName] = useState("");
-  const [type, setType] = useState<AccountTypeValue>(AccountType.CASH);
   const [showExtras, setShowExtras] = useState(false);
-  const [openingBalance, setOpeningBalance] = useState<number | null>(0);
-  const [creditLimit, setCreditLimit] = useState<number | null>(null);
-  const [statementDay, setStatementDay] = useState(DEFAULT_CARD_STATEMENT_DAY);
-  const [dueDay, setDueDay] = useState(DEFAULT_CARD_DUE_DAY);
-  const [linkedBankAccountId, setLinkedBankAccountId] = useState("");
   const [errorCode, setErrorCode] = useState<ErrorCode | null>(null);
   const [isPending, startTransition] = useTransition();
   const [receipt, setReceipt] = useState<{
@@ -92,17 +91,28 @@ export function AddAccountForm({
     creditLimit: number | null;
   } | null>(null);
 
+  const {
+    control,
+    register,
+    handleSubmit,
+    reset: resetForm,
+    setValue,
+    formState: { errors },
+  } = useForm<CreateAccountFormInput, unknown, CreateAccountInput>({
+    resolver: zodResolver(createAccountInputSchema),
+    defaultValues: {
+      name: "",
+      type: AccountType.CASH,
+      openingBalance: 0,
+      creditCard: undefined,
+    },
+  });
+  const type = useWatch({ control, name: "type" }) ?? AccountType.CASH;
   const isCard = type === AccountType.CREDIT_CARD;
 
   const reset = () => {
-    setName("");
-    setType(AccountType.CASH);
+    resetForm();
     setShowExtras(false);
-    setOpeningBalance(0);
-    setCreditLimit(null);
-    setStatementDay(DEFAULT_CARD_STATEMENT_DAY);
-    setDueDay(DEFAULT_CARD_DUE_DAY);
-    setLinkedBankAccountId("");
     setErrorCode(null);
     setReceipt(null);
   };
@@ -112,38 +122,32 @@ export function AddAccountForm({
     reset();
   };
 
-  const onSubmit = () => {
+  const onSubmit = handleSubmit((values) => {
     setErrorCode(null);
     if (!online) {
       setErrorCode(CLIENT_ACTION_ERROR_CODE.OFFLINE);
       return;
     }
 
-    if (isCard) {
-      const limit = creditLimit ?? 0;
-      if (!Number.isFinite(limit) || limit < 0 || !Number.isInteger(limit)) {
-        setErrorCode(PRODUCT_ACTION_ERROR_CODE.INVALID);
-        return;
-      }
+    if (values.type === AccountType.CREDIT_CARD) {
+      const creditCard = values.creditCard;
+      if (!creditCard) return;
       startTransition(async () => {
         const result = await createAccountAction({
-          name: name.trim(),
+          name: values.name,
           type: AccountType.CREDIT_CARD,
           openingBalance: 0,
           creditCard: {
-            creditLimit: limit,
-            statementDay,
-            dueDay,
-            linkedBankAccountId: linkedBankAccountId || null,
+            ...creditCard,
           },
         });
         if (result.status === "success") {
           setReceipt({
             accountId: result.accountId,
-            accountName: name.trim(),
+            accountName: values.name,
             accountType: AccountType.CREDIT_CARD,
             openingBalance: 0,
-            creditLimit: limit,
+            creditLimit: creditCard.creditLimit ?? 0,
           });
           return;
         }
@@ -152,34 +156,25 @@ export function AddAccountForm({
       return;
     }
 
-    const balance = openingBalance ?? 0;
-    if (
-      !Number.isFinite(balance) ||
-      balance < 0 ||
-      !Number.isInteger(balance)
-    ) {
-      setErrorCode(PRODUCT_ACTION_ERROR_CODE.INVALID);
-      return;
-    }
     startTransition(async () => {
       const result = await createAccountAction({
-        name: name.trim(),
-        type,
-        openingBalance: balance,
+        name: values.name,
+        type: values.type,
+        openingBalance: values.openingBalance,
       });
       if (result.status === "success") {
         setReceipt({
           accountId: result.accountId,
-          accountName: name.trim(),
-          accountType: type,
-          openingBalance: balance,
+          accountName: values.name,
+          accountType: values.type,
+          openingBalance: values.openingBalance,
           creditLimit: null,
         });
         return;
       }
       setErrorCode(result.code);
     });
-  };
+  });
 
   if (receipt) {
     const receiptContent = (
@@ -290,15 +285,29 @@ export function AddAccountForm({
         id="account-name"
         label={t("nameLabel")}
         placeholder={t("namePlaceholder")}
-        value={name}
-        onChange={(e) => setName(e.target.value)}
+        registration={register("name")}
+        error={errors.name ? t("errors.invalid") : undefined}
       />
-      <LabeledSelect
+      <SelectField
+        id="account-type"
         label={t("typeLabel")}
         value={type}
         options={TYPES.map((value) => ({ id: value, label: tTypes(value) }))}
-        onChange={(event) => {
-          setType(event.target.value as AccountTypeValue);
+        onChange={(next) => {
+          const nextType = next as AccountTypeValue;
+          setValue("type", nextType, { shouldValidate: true });
+          setValue(
+            "creditCard",
+            nextType === AccountType.CREDIT_CARD
+              ? {
+                  creditLimit: null,
+                  statementDay: DEFAULT_CARD_STATEMENT_DAY,
+                  dueDay: DEFAULT_CARD_DUE_DAY,
+                  linkedBankAccountId: null,
+                }
+              : undefined,
+          );
+          setValue("openingBalance", 0);
           setShowExtras(true);
         }}
         required
@@ -306,12 +315,20 @@ export function AddAccountForm({
       />
       {showExtras && !isCard ? (
         <div className="flex flex-col gap-(--space-1)">
-          <AmountField
-            id="account-opening-balance"
-            label={t("openingBalanceLabel")}
-            value={openingBalance}
-            onValueChange={setOpeningBalance}
-            data-testid="account-opening-balance"
+          <Controller
+            control={control}
+            name="openingBalance"
+            render={({ field, fieldState }) => (
+              <AmountField
+                id="account-opening-balance"
+                label={t("openingBalanceLabel")}
+                value={field.value ?? null}
+                onValueChange={field.onChange}
+                onBlur={field.onBlur}
+                error={fieldState.error ? t("errors.invalid") : undefined}
+                data-testid="account-opening-balance"
+              />
+            )}
           />
           <Text size="sm" tone="secondary">
             {t("openingBalanceHint")}
@@ -323,47 +340,80 @@ export function AddAccountForm({
           className="flex flex-col gap-(--space-3)"
           data-testid="account-credit-card-settings"
         >
-          <AmountField
-            id="account-credit-limit"
-            label={t("creditLimitLabel")}
-            value={creditLimit}
-            onValueChange={setCreditLimit}
-            data-testid="account-credit-limit"
+          <Controller
+            control={control}
+            name="creditCard.creditLimit"
+            render={({ field, fieldState }) => (
+              <AmountField
+                id="account-credit-limit"
+                label={t("creditLimitLabel")}
+                value={field.value ?? null}
+                onValueChange={field.onChange}
+                onBlur={field.onBlur}
+                error={fieldState.error ? t("errors.invalid") : undefined}
+                data-testid="account-credit-limit"
+              />
+            )}
           />
-          <NumberField
-            id="account-statement-day"
-            label={t("statementDayLabel")}
-            value={statementDay}
-            onChange={setStatementDay}
-            minValue={1}
-            maxValue={31}
-            step={1}
-            required
-            data-testid="account-statement-day"
+          <Controller
+            control={control}
+            name="creditCard.statementDay"
+            render={({ field, fieldState }) => (
+              <NumberField
+                id="account-statement-day"
+                label={t("statementDayLabel")}
+                value={field.value}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+                minValue={1}
+                maxValue={31}
+                step={1}
+                required
+                error={fieldState.error ? t("errors.invalid") : undefined}
+                data-testid="account-statement-day"
+              />
+            )}
           />
-          <NumberField
-            id="account-due-day"
-            label={t("dueDayLabel")}
-            value={dueDay}
-            onChange={setDueDay}
-            minValue={1}
-            maxValue={31}
-            step={1}
-            required
-            data-testid="account-due-day"
+          <Controller
+            control={control}
+            name="creditCard.dueDay"
+            render={({ field, fieldState }) => (
+              <NumberField
+                id="account-due-day"
+                label={t("dueDayLabel")}
+                value={field.value}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+                minValue={1}
+                maxValue={31}
+                step={1}
+                required
+                error={fieldState.error ? t("errors.invalid") : undefined}
+                data-testid="account-due-day"
+              />
+            )}
           />
-          <LabeledSelect
-            label={t("linkedBankLabel")}
-            value={linkedBankAccountId}
-            options={[
-              { id: "", label: t("linkedBankNone") },
-              ...liquidAccounts.map((account) => ({
-                id: account.id,
-                label: account.name,
-              })),
-            ]}
-            onChange={(event) => setLinkedBankAccountId(event.target.value)}
-            data-testid="account-linked-bank"
+          <Controller
+            control={control}
+            name="creditCard.linkedBankAccountId"
+            render={({ field, fieldState }) => (
+              <SelectField
+                id="account-linked-bank"
+                label={t("linkedBankLabel")}
+                value={field.value ?? ""}
+                onChange={(next) => field.onChange(next || null)}
+                onBlur={field.onBlur}
+                options={[
+                  { id: "", label: t("linkedBankNone") },
+                  ...liquidAccounts.map((account) => ({
+                    id: account.id,
+                    label: account.name,
+                  })),
+                ]}
+                error={fieldState.error ? t("errors.invalid") : undefined}
+                data-testid="account-linked-bank"
+              />
+            )}
           />
           <Text size="sm" tone="secondary">
             {t("creditCardHint")}
@@ -380,7 +430,7 @@ export function AddAccountForm({
         size="sm"
         data-testid="account-add-submit"
         isDisabled={isPending || !online}
-        onPress={onSubmit}
+        onPress={() => onSubmit()}
       >
         {isPending ? t("adding") : t("add")}
       </Button>

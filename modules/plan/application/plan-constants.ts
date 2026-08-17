@@ -408,6 +408,13 @@ export const PLAN_OPERATION = {
   SET_JAR_STATE: "setJarState",
   UPSERT_JAR_PLAN: "upsertJarPlan",
   MONTHLY_REVIEW_METADATA: "monthlyReviewMetadata",
+  LIST_GOALS: "listGoals",
+  LIST_GOAL_FUNDING_OPTIONS: "listGoalFundingOptions",
+  LIST_JAR_CATEGORIES: "listJarCategories",
+  LIST_RECURRING: "listRecurring",
+  GET_RECURRING: "getRecurring",
+  LIST_PAYOFF_INBOX_ITEMS: "listPayoffInboxItems",
+  GET_MONTH_RITUAL: "getMonthRitual",
 } as const;
 
 export type PlanOperation =

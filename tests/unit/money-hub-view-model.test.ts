@@ -273,4 +273,16 @@ describe("createMoneyHubViewModel", () => {
       MoneyCreditAttention.HIGH_UTILIZATION,
     );
   });
+
+  it("compares due dates by UTC calendar day, independent of local timezone", () => {
+    const viewModel = createMoneyHubViewModel({
+      position: position([]),
+      creditCards: [creditCard({ nextDueDate: "2026-08-02" })],
+      today: new Date("2026-08-01T23:30:00-08:00"),
+    });
+
+    expect(viewModel.creditCards[0]?.attention).toBe(
+      MoneyCreditAttention.DUE_SOON,
+    );
+  });
 });

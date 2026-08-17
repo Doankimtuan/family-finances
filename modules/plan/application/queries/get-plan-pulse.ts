@@ -39,9 +39,7 @@ export async function getPlanPulse(): Promise<PlanPulse | null> {
         .order("sort_order", { ascending: true }),
     ]);
 
-    if (error) {
-      return null;
-    }
+    if (error) throw error;
 
     const jars = (rows ?? []).map(mapJarRow);
     const activeJars = jars.filter((jar) => jar.state === JarState.ACTIVE);

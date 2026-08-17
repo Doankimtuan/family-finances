@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import {
   buildDebtPaymentReview,
   type DebtPaymentReview,
@@ -13,6 +15,10 @@ import {
   MoneyPaymentFlowStep,
   createDebtIdempotencyKey,
 } from "@/modules/ledger/application/ledger-constants";
+import {
+  recordDebtPaymentFormSchema,
+  type RecordDebtPaymentFormValues,
+} from "@/modules/ledger/application/commands/debt.schemas";
 import {
   CLIENT_ACTION_ERROR_CODE,
   PRODUCT_ACTION_ERROR_CODE,
@@ -25,10 +31,7 @@ import { MotionStep } from "@/shared/motion";
 import { Amount } from "@/shared/patterns/amount";
 import { AmountField } from "@/shared/patterns/amount-field";
 import { ConfirmSummary } from "@/shared/patterns/confirm-summary";
-import {
-  LabeledDateInput,
-  LabeledSelect,
-} from "@/shared/patterns/labeled-native-field";
+import { DatePickerField, SelectField } from "@/shared/ui/form";
 import { Sheet, SheetContent } from "@/shared/patterns/sheet";
 import { SheetActionFooter } from "@/shared/patterns/sheet-action-footer";
 import { Button } from "@/shared/ui/button";
@@ -63,14 +66,29 @@ export function DebtPaymentSheet({
   const { online } = useOnlineStatusClient();
   const [isOpen, setIsOpen] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
-  const [amount, setAmount] = useState<number | null>(remainingAmount);
-  const [accountId, setAccountId] = useState("");
-  const [effectiveDate, setEffectiveDate] = useState(today);
-  const [note, setNote] = useState("");
   const [errorCode, setErrorCode] = useState<
     ProductActionErrorCode | typeof CLIENT_ACTION_ERROR_CODE.OFFLINE | null
   >(null);
   const [isPending, startTransition] = useTransition();
+  const {
+    control,
+    register,
+    handleSubmit,
+    getValues,
+    reset: resetForm,
+    formState: { errors },
+  } = useForm<RecordDebtPaymentFormValues>({
+    resolver: zodResolver(recordDebtPaymentFormSchema(remainingAmount)),
+    defaultValues: {
+      amount: remainingAmount,
+      accountId: "",
+      effectiveDate: today,
+      note: "",
+    },
+  });
+  const amount = useWatch({ control, name: "amount" });
+  const accountId = useWatch({ control, name: "accountId" });
+  const effectiveDate = useWatch({ control, name: "effectiveDate" });
   const isBorrowed = direction === DebtDirection.BORROWED;
   const actionLabel = isBorrowed ? t("repay") : t("receive");
   const remainingContextLabel = isBorrowed
@@ -96,10 +114,12 @@ export function DebtPaymentSheet({
 
   function reset() {
     setIsConfirming(false);
-    setAmount(remainingAmount);
-    setAccountId("");
-    setEffectiveDate(today);
-    setNote("");
+    resetForm({
+      amount: remainingAmount,
+      accountId: "",
+      effectiveDate: today,
+      note: "",
+    });
     setErrorCode(null);
   }
 
@@ -113,33 +133,24 @@ export function DebtPaymentSheet({
     setIsOpen(false);
   }
 
-  function review() {
+  const review = handleSubmit(() => {
     if (!online) {
       setErrorCode(CLIENT_ACTION_ERROR_CODE.OFFLINE);
       return;
     }
-    if (
-      amount == null ||
-      amount <= 0 ||
-      amount > remainingAmount ||
-      !accountId
-    ) {
-      setErrorCode(PRODUCT_ACTION_ERROR_CODE.INVALID);
-      return;
-    }
     setErrorCode(null);
     setIsConfirming(true);
-  }
+  });
 
   function confirm() {
-    if (amount == null) return;
+    const values = getValues();
     startTransition(async () => {
       const result = await recordDebtPaymentAction({
         debtId,
-        accountId,
-        amount,
-        effectiveDate,
-        note: note.trim() || undefined,
+        accountId: values.accountId,
+        amount: values.amount,
+        effectiveDate: values.effectiveDate,
+        note: values.note?.trim() || undefined,
         idempotencyKey: createDebtIdempotencyKey(
           DEBT_PAYMENT_IDEMPOTENCY_KEY_PREFIX,
         ),
@@ -206,32 +217,75 @@ export function DebtPaymentSheet({
                     locale,
                   )}
                 />
-                <AmountField
-                  id="debt-payment-amount"
-                  label={paymentAmountLabel}
-                  value={amount}
-                  onValueChange={setAmount}
-                  required
+                <Controller
+                  control={control}
+                  name="amount"
+                  render={({ field, fieldState }) => (
+                    <AmountField
+                      id="debt-payment-amount"
+                      label={paymentAmountLabel}
+                      value={field.value ?? null}
+                      onValueChange={field.onChange}
+                      onBlur={field.onBlur}
+                      required
+                      error={
+                        fieldState.error
+                          ? tErrors(PRODUCT_ACTION_ERROR_CODE.INVALID)
+                          : undefined
+                      }
+                    />
+                  )}
                 />
-                <LabeledSelect
-                  label={isBorrowed ? t("payFrom") : t("receiveInto")}
-                  value={accountId}
-                  onChange={(event) => setAccountId(event.target.value)}
-                  options={accounts.map((account) => ({
-                    id: account.id,
-                    label: account.name,
-                  }))}
+                <Controller
+                  control={control}
+                  name="accountId"
+                  render={({ field, fieldState }) => (
+                    <SelectField
+                      id="debt-payment-account"
+                      label={isBorrowed ? t("payFrom") : t("receiveInto")}
+                      value={field.value}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      options={accounts.map((account) => ({
+                        id: account.id,
+                        label: account.name,
+                      }))}
+                      error={
+                        fieldState.error
+                          ? tErrors(PRODUCT_ACTION_ERROR_CODE.INVALID)
+                          : undefined
+                      }
+                    />
+                  )}
                 />
-                <LabeledDateInput
-                  label={paymentDateLabel}
-                  value={effectiveDate}
-                  onChange={(event) => setEffectiveDate(event.target.value)}
+                <Controller
+                  control={control}
+                  name="effectiveDate"
+                  render={({ field, fieldState }) => (
+                    <DatePickerField
+                      id="debt-payment-date"
+                      label={paymentDateLabel}
+                      value={field.value}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      required
+                      error={
+                        fieldState.error
+                          ? tErrors(PRODUCT_ACTION_ERROR_CODE.INVALID)
+                          : undefined
+                      }
+                    />
+                  )}
                 />
                 <TextField
                   id="debt-payment-note"
                   label={t("note")}
-                  value={note}
-                  onChange={(event) => setNote(event.target.value)}
+                  registration={register("note")}
+                  error={
+                    errors.note
+                      ? tErrors(PRODUCT_ACTION_ERROR_CODE.INVALID)
+                      : undefined
+                  }
                 />
               </>
             )}

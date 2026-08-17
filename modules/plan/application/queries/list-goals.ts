@@ -14,9 +14,11 @@ import {
 } from "../goal-funding";
 import {
   GoalFundingSourceKind,
+  PLAN_OPERATION,
   GoalStatus,
   type GoalFundingSourceKind as GoalFundingSourceKindValue,
 } from "../plan-constants";
+import { logPlanFailure } from "../plan-error";
 import {
   mapGoalRow,
   type GoalDetail,
@@ -216,7 +218,12 @@ async function loadGoalRows(householdId: string, goalId?: string) {
         .eq("household_id", householdId)
         .eq("is_active", true),
     ]);
-  if (error || linkError) return null;
+  if (error || linkError) {
+    logPlanFailure(error ?? linkError, PLAN_OPERATION.LIST_GOALS, {
+      householdId,
+    });
+    return null;
+  }
   const linksByGoal = await mapFundingLinks(
     (linkRows ?? []) as FundingLinkRow[],
   );
@@ -237,21 +244,31 @@ export async function listGoals(): Promise<GoalsList | null> {
   if (!gate.ok) return null;
   try {
     const supabase = await createSupabaseServerClient();
-    const [{ data: household }, goals] = await Promise.all([
-      supabase
-        .from("households")
-        .select("base_currency")
-        .eq("id", gate.householdId)
-        .maybeSingle(),
-      loadGoalRows(gate.householdId),
-    ]);
+    const [{ data: household, error: householdError }, goals] =
+      await Promise.all([
+        supabase
+          .from("households")
+          .select("base_currency")
+          .eq("id", gate.householdId)
+          .maybeSingle(),
+        loadGoalRows(gate.householdId),
+      ]);
+    if (householdError) {
+      logPlanFailure(householdError, PLAN_OPERATION.LIST_GOALS, {
+        householdId: gate.householdId,
+      });
+      return null;
+    }
     if (!goals) return null;
     return {
       householdId: gate.householdId,
       currency: (household?.base_currency ?? DEFAULT_CURRENCY).toUpperCase(),
       goals,
     };
-  } catch {
+  } catch (error) {
+    logPlanFailure(error, PLAN_OPERATION.LIST_GOALS, {
+      householdId: gate.householdId,
+    });
     return null;
   }
 }
@@ -261,14 +278,22 @@ export async function getGoal(goalId: string): Promise<GoalDetail | null> {
   if (!gate.ok) return null;
   try {
     const supabase = await createSupabaseServerClient();
-    const [{ data: household }, goals] = await Promise.all([
-      supabase
-        .from("households")
-        .select("base_currency")
-        .eq("id", gate.householdId)
-        .maybeSingle(),
-      loadGoalRows(gate.householdId, goalId),
-    ]);
+    const [{ data: household, error: householdError }, goals] =
+      await Promise.all([
+        supabase
+          .from("households")
+          .select("base_currency")
+          .eq("id", gate.householdId)
+          .maybeSingle(),
+        loadGoalRows(gate.householdId, goalId),
+      ]);
+    if (householdError) {
+      logPlanFailure(householdError, PLAN_OPERATION.LIST_GOALS, {
+        householdId: gate.householdId,
+        goalId,
+      });
+      return null;
+    }
     const goal = goals?.[0];
     if (!goal) return null;
     return {
@@ -276,7 +301,11 @@ export async function getGoal(goalId: string): Promise<GoalDetail | null> {
       householdId: gate.householdId,
       currency: (household?.base_currency ?? DEFAULT_CURRENCY).toUpperCase(),
     };
-  } catch {
+  } catch (error) {
+    logPlanFailure(error, PLAN_OPERATION.LIST_GOALS, {
+      householdId: gate.householdId,
+      goalId,
+    });
     return null;
   }
 }

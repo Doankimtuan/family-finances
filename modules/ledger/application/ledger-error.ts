@@ -21,6 +21,7 @@ export type LedgerCommandErrorCode =
 
 export type LedgerFailureContext = Readonly<{
   householdId?: string;
+  savingsId?: string;
   accountId?: string;
   sourceAccountId?: string;
   sourceTransactionId?: string;
@@ -262,6 +263,22 @@ export function classifyTransactionTagRpcError(
     return PRODUCT_ACTION_ERROR_CODE.INVALID;
   }
   return PRODUCT_ACTION_ERROR_CODE.UNKNOWN;
+}
+
+export function classifyCategoryRpcError(
+  error: unknown,
+): LedgerActionErrorCode | null {
+  if (
+    classifyStructuredLedgerRpcError(error) ===
+    LEDGER_ACTION_ERROR_CODE.CATEGORY_UNMAPPED
+  ) {
+    return LEDGER_ACTION_ERROR_CODE.CATEGORY_UNMAPPED;
+  }
+  const message = errorMessage(error);
+  return message &&
+    includesMarker(message, LEDGER_LEGACY_RPC_ERROR_MARKERS.CATEGORY_UNMAPPED)
+    ? LEDGER_ACTION_ERROR_CODE.CATEGORY_UNMAPPED
+    : null;
 }
 
 export function logLedgerFailure(

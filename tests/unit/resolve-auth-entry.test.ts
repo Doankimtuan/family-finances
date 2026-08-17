@@ -85,6 +85,30 @@ describe("resolveAuthEntry", () => {
 
     await expect(resolveAuthEntry()).resolves.toBe("welcome");
   });
+
+  it("does not log missing-session control flow", async () => {
+    vi.mocked(getSupabaseEnv).mockReturnValue({
+      url: "https://example.supabase.co",
+      key: "key",
+      isConfigured: true,
+    });
+    vi.mocked(createSupabaseServerClient).mockResolvedValue({
+      auth: {
+        getUser: async () => ({
+          data: { user: null },
+          error: {
+            __isAuthError: true,
+            name: "AuthSessionMissingError",
+          },
+        }),
+      },
+    } as never);
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    await expect(resolveAuthEntry()).resolves.toBe("welcome");
+    expect(errorSpy).not.toHaveBeenCalled();
+    errorSpy.mockRestore();
+  });
 });
 
 describe("pathForAuthEntry", () => {

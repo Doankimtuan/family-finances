@@ -1,7 +1,10 @@
 import { getSupabaseEnv } from "@/modules/platform/supabase/env";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { resolveActiveMembership } from "./resolve-active-membership";
-import { logTenancyFailure } from "./tenancy-error";
+import {
+  isExpectedAuthControlFlowError,
+  logTenancyFailure,
+} from "./tenancy-error";
 import { TENANCY_OPERATION } from "./tenancy-constants";
 
 export type AuthEntryDestination = "welcome" | "onboard" | "home";
@@ -23,8 +26,10 @@ export async function resolveAuthEntry(): Promise<AuthEntryDestination> {
       data: { user },
       error,
     } = await supabase.auth.getUser();
-    if (error) {
+    if (error && !isExpectedAuthControlFlowError(error)) {
       logTenancyFailure(TENANCY_OPERATION.AUTH_SESSION, error);
+    }
+    if (error) {
       return "welcome";
     }
     if (!user) {
@@ -34,7 +39,9 @@ export async function resolveAuthEntry(): Promise<AuthEntryDestination> {
     const membership = await resolveActiveMembership(user.id);
     return membership ? "home" : "onboard";
   } catch (error) {
-    logTenancyFailure(TENANCY_OPERATION.AUTH_SESSION, error);
+    if (!isExpectedAuthControlFlowError(error)) {
+      logTenancyFailure(TENANCY_OPERATION.AUTH_SESSION, error);
+    }
     return "welcome";
   }
 }

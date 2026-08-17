@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
+import { logActionFailure } from "@/modules/shared-kernel/application/log-action-failure";
 import {
   type InvestmentAssetClass,
   type InvestmentFeeSource,
@@ -10,6 +11,7 @@ import {
   InvestmentActivityType,
   type InvestmentOperationType,
   type InvestmentVisibilityContext,
+  INVESTMENT_OPERATION,
 } from "../investment-constants";
 import { deriveUnrealizedResult } from "../investment-accounting";
 import type {
@@ -156,24 +158,32 @@ async function loadHoldings(): Promise<InvestmentHolding[] | null> {
   if (!gate.ok) return null;
   try {
     const supabase = await createSupabaseServerClient();
-    const [{ data: holdings, error }, { data: valuations }] = await Promise.all(
-      [
-        supabase
-          .from("investment_holdings")
-          .select(
-            "id, household_id, name, symbol, asset_class, provider_custodian, visibility_context, lifecycle_status, history_status, quantity, remaining_total_cost_basis, notes",
-          )
-          .eq("household_id", gate.householdId)
-          .order("created_at", { ascending: true }),
-        supabase
-          .from("investment_valuations")
-          .select("holding_id, value_vnd, valuation_date, created_at")
-          .eq("household_id", gate.householdId)
-          .order("valuation_date", { ascending: false })
-          .order("created_at", { ascending: false }),
-      ],
-    );
-    if (error) return null;
+    const [
+      { data: holdings, error },
+      { data: valuations, error: valuationError },
+    ] = await Promise.all([
+      supabase
+        .from("investment_holdings")
+        .select(
+          "id, household_id, name, symbol, asset_class, provider_custodian, visibility_context, lifecycle_status, history_status, quantity, remaining_total_cost_basis, notes",
+        )
+        .eq("household_id", gate.householdId)
+        .order("created_at", { ascending: true }),
+      supabase
+        .from("investment_valuations")
+        .select("holding_id, value_vnd, valuation_date, created_at")
+        .eq("household_id", gate.householdId)
+        .order("valuation_date", { ascending: false })
+        .order("created_at", { ascending: false }),
+    ]);
+    if (error || valuationError) {
+      logActionFailure({
+        operation: INVESTMENT_OPERATION.LIST_HOLDINGS,
+        error: error ?? valuationError,
+        context: { householdId: gate.householdId },
+      });
+      return null;
+    }
     const latest = new Map<string, ValuationRow>();
     for (const row of (valuations ?? []) as ValuationRow[]) {
       if (!latest.has(row.holding_id)) latest.set(row.holding_id, row);
@@ -181,7 +191,12 @@ async function loadHoldings(): Promise<InvestmentHolding[] | null> {
     return ((holdings ?? []) as HoldingRow[]).map((row) =>
       mapHolding(row, latest.get(row.id)),
     );
-  } catch {
+  } catch (error) {
+    logActionFailure({
+      operation: INVESTMENT_OPERATION.LIST_HOLDINGS,
+      error,
+      context: { householdId: gate.householdId },
+    });
     return null;
   }
 }
@@ -189,7 +204,8 @@ async function loadHoldings(): Promise<InvestmentHolding[] | null> {
 async function loadInvestmentPortfolio(): Promise<InvestmentPortfolio | null> {
   const holdings = await loadHoldings();
   if (!holdings) return null;
-  const activities = (await listInvestmentActivities()) ?? [];
+  const activities = await listInvestmentActivities();
+  if (!activities) return null;
   const activeHoldings = holdings.filter(
     (holding) =>
       holding.lifecycleStatus !== "exited" && Number(holding.quantity) > 0,
@@ -307,7 +323,17 @@ export async function listInvestmentActivities(
     if (holdingId) valuationQuery = valuationQuery.eq("holding_id", holdingId);
     const [{ data, error }, { data: valuations, error: valuationError }] =
       await Promise.all([query, valuationQuery]);
-    if (error || valuationError) return null;
+    if (error || valuationError) {
+      logActionFailure({
+        operation: INVESTMENT_OPERATION.LIST_ACTIVITIES,
+        error: error ?? valuationError,
+        context: {
+          householdId: gate.householdId,
+          ...(holdingId ? { holdingId } : {}),
+        },
+      });
+      return null;
+    }
     const operationActivities = ((data ?? []) as OperationRow[]).map(
       mapActivity,
     );
@@ -335,7 +361,15 @@ export async function listInvestmentActivities(
     return [...operationActivities, ...valuationActivities].sort(
       (left, right) => right.effectiveDate.localeCompare(left.effectiveDate),
     );
-  } catch {
+  } catch (error) {
+    logActionFailure({
+      operation: INVESTMENT_OPERATION.LIST_ACTIVITIES,
+      error,
+      context: {
+        householdId: gate.householdId,
+        ...(holdingId ? { holdingId } : {}),
+      },
+    });
     return null;
   }
 }

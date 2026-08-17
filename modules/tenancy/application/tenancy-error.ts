@@ -2,6 +2,7 @@ import { logActionFailure } from "@/modules/shared-kernel/application/log-action
 import {
   AUTH_ACTION_ERROR_CODE,
   AUTH_ERROR_MESSAGE_NEEDLE,
+  SUPABASE_AUTH_CONTROL_FLOW_ERROR_NAME,
   SUPABASE_AUTH_ERROR_CODE,
 } from "./auth-constants";
 import {
@@ -10,6 +11,7 @@ import {
   INVITATION_ERROR_CODE,
   INVITATION_RPC_MESSAGE_NEEDLE,
   SUPABASE_POSTGRES_ERROR_CODE,
+  TENANCY_FRAMEWORK_CONTROL_FLOW_DIGEST,
   type HouseholdErrorCode,
   type InvitationErrorCode,
 } from "./tenancy-constants";
@@ -19,6 +21,9 @@ type ProviderError = {
   details?: unknown;
   hint?: unknown;
   message?: unknown;
+  name?: unknown;
+  __isAuthError?: unknown;
+  digest?: unknown;
 };
 
 function asProviderError(error: unknown): ProviderError {
@@ -56,6 +61,31 @@ function isKnownCode<T extends string>(
 
 function providerCode(error: unknown): string {
   return field(asProviderError(error), "code");
+}
+
+const EXPECTED_AUTH_CONTROL_FLOW_CODES: ReadonlySet<string> = new Set([
+  SUPABASE_AUTH_ERROR_CODE.SESSION_NOT_FOUND,
+  SUPABASE_AUTH_ERROR_CODE.SESSION_EXPIRED,
+  SUPABASE_AUTH_ERROR_CODE.BAD_JWT,
+  SUPABASE_AUTH_ERROR_CODE.INVALID_JWT,
+]);
+
+export function isExpectedAuthControlFlowError(error: unknown): boolean {
+  const providerError = asProviderError(error);
+  if (
+    providerError.digest ===
+    TENANCY_FRAMEWORK_CONTROL_FLOW_DIGEST.DYNAMIC_SERVER_USAGE
+  ) {
+    return true;
+  }
+  if (providerError.__isAuthError !== true) return false;
+
+  const name = typeof providerError.name === "string" ? providerError.name : "";
+  return (
+    name === SUPABASE_AUTH_CONTROL_FLOW_ERROR_NAME.SESSION_MISSING ||
+    name === SUPABASE_AUTH_CONTROL_FLOW_ERROR_NAME.INVALID_JWT ||
+    EXPECTED_AUTH_CONTROL_FLOW_CODES.has(providerCode(error))
+  );
 }
 
 export function classifySignInError(

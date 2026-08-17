@@ -24,6 +24,7 @@ import { updateAccount } from "@/modules/ledger/application/commands/update-acco
 import { correctTransaction } from "@/modules/ledger/application/commands/correct-transaction";
 import {
   classifyCorrectionRpcError,
+  classifyCategoryRpcError,
   classifyRecordTransactionRpcError,
   classifyRecordTransferRpcError,
   classifyRefundRpcError,
@@ -51,6 +52,12 @@ describe("Ledger error classification", () => {
   });
 
   it("keeps legacy domain classifications at the Ledger boundary", () => {
+    expect(classifyCategoryRpcError({ message: "err_category_unmapped" })).toBe(
+      LEDGER_ACTION_ERROR_CODE.CATEGORY_UNMAPPED,
+    );
+    expect(
+      classifyCategoryRpcError({ message: "jar provider unavailable" }),
+    ).toBe(null);
     expect(
       classifyRecordTransactionRpcError({ message: "Account not found" }),
     ).toBe(PRODUCT_ACTION_ERROR_CODE.INVALID);

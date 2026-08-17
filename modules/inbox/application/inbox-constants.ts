@@ -154,6 +154,13 @@ export const INBOX_OPERATION = {
   AUTO_RESOLVE: "autoResolveInboxItem",
   STALENESS_WORKER: "runInboxStalenessWorker",
   DECISION_PANEL: "inboxDecisionPanel",
+  SAVINGS_MATURITY_SYNC: "syncSavingsMaturityInboxItems",
+  SAVINGS_EARLY_WITHDRAWAL_UPSERT: "upsertSavingsEarlyWithdrawalInboxItem",
+} as const;
+
+export const SAVINGS_INBOX_CONTEXT = {
+  EARLY_WITHDRAWAL_TITLE: "Early withdrawal",
+  EARLY_CASCADE_DAY: "early",
 } as const;
 
 export const INBOX_ERROR_CODE = {

@@ -418,6 +418,12 @@ export {
   type DebtMutationResult,
   type RecordDebtPaymentInput,
 } from "./commands/debt-commands";
+export {
+  createDebtFormSchema,
+  recordDebtPaymentFormSchema,
+  type CreateDebtFormValues,
+  type RecordDebtPaymentFormValues,
+} from "./commands/debt.schemas";
 export type {
   Debt,
   DebtPayment,

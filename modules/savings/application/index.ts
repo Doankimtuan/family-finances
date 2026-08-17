@@ -155,6 +155,14 @@ export {
   type MaturityReviewPackage,
   type BackfillLegacyResult,
 } from "./commands/detect-matured";
+export {
+  enrichSavingsMaturityInboxItems,
+  enqueueEarlyWithdrawalInboxItem,
+  executeSavingsMaturityWorkflow,
+  executeEarlyWithdrawalWorkflow,
+  type SavingsWorkflowContext,
+  type SavingsWorkflowResult,
+} from "./commands/savings-inbox-workflow";
 
 export {
   listSavings,

@@ -14,9 +14,11 @@ import {
   CycleStatus,
   SavingStatus,
   SettlementRule,
+  SAVINGS_OPERATION,
 } from "../savings-constants";
 import { computeAccruedInterest } from "../savings-interest";
 import { listProviderPackages } from "../savings-provider-registry";
+import { logSavingsFailure } from "../savings-error";
 
 const SAVING_CYCLE_SELECT =
   "id, saving_id, cycle_number, start_date, end_date, principal, locked_rate, package_snapshot, accrued_interest, settlement_result, renewal_decision, status, funding_transaction_id, settlement_transaction_id, previous_cycle_id, next_cycle_id, created_at";
@@ -45,12 +47,13 @@ async function loadCycleRowsForSaving(
   supabase: SupabaseServerClient,
   savingId: string,
 ): Promise<SavingCycleRow[]> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("saving_cycles")
     .select(SAVING_CYCLE_SELECT)
     .eq("saving_id", savingId)
     .order("cycle_number", { ascending: false });
 
+  if (error) throw error;
   return (data ?? []) as SavingCycleRow[];
 }
 
@@ -92,7 +95,12 @@ async function loadSavings(): Promise<Saving[] | null> {
       .eq("household_id", gate.householdId)
       .order("created_at", { ascending: false });
 
-    if (error) return null;
+    if (error) {
+      logSavingsFailure(error, SAVINGS_OPERATION.LIST_SAVINGS, {
+        householdId: gate.householdId,
+      });
+      return null;
+    }
 
     const savings = (data ?? []).map(mapSavingRow);
 
@@ -145,7 +153,10 @@ async function loadSavings(): Promise<Saving[] | null> {
     );
 
     return savings;
-  } catch {
+  } catch (error) {
+    logSavingsFailure(error, SAVINGS_OPERATION.LIST_SAVINGS, {
+      householdId: gate.householdId,
+    });
     return null;
   }
 }
@@ -171,7 +182,14 @@ export async function getSaving(savingId: string): Promise<Saving | null> {
       .eq("household_id", gate.householdId)
       .maybeSingle();
 
-    if (error || !data) return null;
+    if (error) {
+      logSavingsFailure(error, SAVINGS_OPERATION.GET_SAVING, {
+        householdId: gate.householdId,
+        savingId,
+      });
+      return null;
+    }
+    if (!data) return null;
 
     const saving = mapSavingRow(data);
 
@@ -208,7 +226,11 @@ export async function getSaving(savingId: string): Promise<Saving | null> {
     await setMaturityActionRequired(saving);
 
     return saving;
-  } catch {
+  } catch (error) {
+    logSavingsFailure(error, SAVINGS_OPERATION.GET_SAVING, {
+      householdId: gate.householdId,
+      savingId,
+    });
     return null;
   }
 }
@@ -238,7 +260,13 @@ export async function listSavingCycles(
       .eq("saving_id", savingId)
       .order("cycle_number", { ascending: true });
 
-    if (error) return null;
+    if (error) {
+      logSavingsFailure(error, SAVINGS_OPERATION.LIST_SAVING_CYCLES, {
+        householdId: gate.householdId,
+        savingId,
+      });
+      return null;
+    }
 
     const cycles = (data ?? []).map(mapSavingCycleRow);
 
@@ -269,7 +297,11 @@ export async function listSavingCycles(
         right.cycleNumber - left.cycleNumber ||
         right.createdAt.localeCompare(left.createdAt),
     );
-  } catch {
+  } catch (error) {
+    logSavingsFailure(error, SAVINGS_OPERATION.LIST_SAVING_CYCLES, {
+      householdId: gate.householdId,
+      savingId,
+    });
     return null;
   }
 }
@@ -312,7 +344,14 @@ export async function listSavingsFinancialActivities(
       .select(select)
       .eq("household_id", gate.householdId)
       .in("id", [...ids]);
-    if (seedError) return null;
+    if (seedError) {
+      logSavingsFailure(
+        seedError,
+        SAVINGS_OPERATION.LIST_SAVINGS_FINANCIAL_ACTIVITIES,
+        { householdId: gate.householdId, savingId },
+      );
+      return null;
+    }
 
     const groups = new Set(
       (seedRows ?? [])
@@ -326,7 +365,14 @@ export async function listSavingsFinancialActivities(
           .eq("household_id", gate.householdId)
           .in("transfer_group_id", [...groups])
       : { data: [], error: null };
-    if (groupError) return null;
+    if (groupError) {
+      logSavingsFailure(
+        groupError,
+        SAVINGS_OPERATION.LIST_SAVINGS_FINANCIAL_ACTIVITIES,
+        { householdId: gate.householdId, savingId },
+      );
+      return null;
+    }
 
     const rows = [...(seedRows ?? []), ...(groupRows ?? [])];
     const unique = new Map<string, (typeof rows)[number]>();
@@ -351,7 +397,12 @@ export async function listSavingsFinancialActivities(
     return [...activities.values()].sort((left, right) =>
       right.date.localeCompare(left.date),
     );
-  } catch {
+  } catch (error) {
+    logSavingsFailure(
+      error,
+      SAVINGS_OPERATION.LIST_SAVINGS_FINANCIAL_ACTIVITIES,
+      { householdId: gate.householdId, savingId },
+    );
     return null;
   }
 }

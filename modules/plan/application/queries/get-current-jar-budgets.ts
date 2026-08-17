@@ -124,7 +124,7 @@ async function loadPeriodTransactions(
     .lt("transaction_date", period.endExclusive)
     .order("transaction_date", { ascending: true })
     .order("created_at", { ascending: true });
-  if (error) return [];
+  if (error) throw error;
   const { data: loanRows } = await supabase
     .from("loan_payments")
     .select("transaction_id")
@@ -231,7 +231,8 @@ async function loadSnapshots(
     .eq("household_id", householdId)
     .in("jar_id", jarIds)
     .in("period_month", periods);
-  if (error || !data) return new Map();
+  if (error) throw error;
+  if (!data) return new Map();
   return new Map(
     (data as JarRuleSnapshotRow[]).map((row) => [
       `${row.jar_id}:${row.period_month}`,
@@ -252,7 +253,8 @@ async function loadAdjustments(
     .eq("household_id", householdId)
     .eq("period_month", periodMonth)
     .in("jar_id", jarIds);
-  if (error || !data) return {};
+  if (error) throw error;
+  if (!data) return {};
   return (data as Array<{ jar_id: string; amount: number | string }>).reduce<
     Record<string, number>
   >((result, row) => {

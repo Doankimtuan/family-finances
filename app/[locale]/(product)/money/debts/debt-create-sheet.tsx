@@ -1,14 +1,20 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import {
   DebtCreationMode,
   DebtDirection,
   DEBT_CREATE_IDEMPOTENCY_KEY_PREFIX,
   createDebtIdempotencyKey,
 } from "@/modules/ledger/application/ledger-constants";
+import {
+  createDebtFormSchema,
+  type CreateDebtFormValues,
+} from "@/modules/ledger/application/commands/debt.schemas";
 import {
   CLIENT_ACTION_ERROR_CODE,
   PRODUCT_ACTION_ERROR_CODE,
@@ -17,14 +23,8 @@ import {
 } from "@/modules/tenancy/application/product-action-error";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import { AmountField } from "@/shared/patterns/amount-field";
-import {
-  ChoiceTile,
-  ChoiceTileGroup,
-} from "@/shared/patterns/choice-tile";
-import {
-  LabeledDateInput,
-  LabeledSelect,
-} from "@/shared/patterns/labeled-native-field";
+import { ChoiceTile, ChoiceTileGroup } from "@/shared/patterns/choice-tile";
+import { DatePickerField, SelectField } from "@/shared/ui/form";
 import { Sheet, SheetContent } from "@/shared/patterns/sheet";
 import { SheetActionFooter } from "@/shared/patterns/sheet-action-footer";
 import { Button } from "@/shared/ui/button";
@@ -47,32 +47,44 @@ export function DebtCreateSheet({ accounts, today }: DebtCreateSheetProps) {
   const router = useRouter();
   const { online } = useOnlineStatusClient();
   const [isOpen, setIsOpen] = useState(false);
-  const [direction, setDirection] = useState<DebtDirection>(
-    DebtDirection.BORROWED,
-  );
-  const [creationMode, setCreationMode] = useState<DebtCreationMode>(
-    DebtCreationMode.EXISTING_BALANCE,
-  );
-  const [counterparty, setCounterparty] = useState("");
-  const [amount, setAmount] = useState<number | null>(null);
-  const [startDate, setStartDate] = useState(today);
-  const [dueDate, setDueDate] = useState("");
-  const [accountId, setAccountId] = useState("");
-  const [note, setNote] = useState("");
   const [errorCode, setErrorCode] = useState<ErrorCode | null>(null);
   const [isPending, startTransition] = useTransition();
+  const {
+    control,
+    register,
+    handleSubmit,
+    reset: resetForm,
+    setValue,
+    formState: { errors },
+  } = useForm<CreateDebtFormValues>({
+    resolver: zodResolver(createDebtFormSchema),
+    defaultValues: {
+      counterparty: "",
+      direction: DebtDirection.BORROWED,
+      creationMode: DebtCreationMode.EXISTING_BALANCE,
+      principalAmount: undefined,
+      startDate: today,
+      dueDate: null,
+      note: "",
+      accountId: null,
+    },
+  });
+  const direction = useWatch({ control, name: "direction" });
+  const creationMode = useWatch({ control, name: "creationMode" });
+  const startDate = useWatch({ control, name: "startDate" });
   const moneyMovesNow = creationMode === DebtCreationMode.MONEY_MOVED;
-  const hasAccount = !moneyMovesNow || accountId !== "";
 
   function reset() {
-    setDirection(DebtDirection.BORROWED);
-    setCreationMode(DebtCreationMode.EXISTING_BALANCE);
-    setCounterparty("");
-    setAmount(null);
-    setStartDate(today);
-    setDueDate("");
-    setAccountId("");
-    setNote("");
+    resetForm({
+      counterparty: "",
+      direction: DebtDirection.BORROWED,
+      creationMode: DebtCreationMode.EXISTING_BALANCE,
+      principalAmount: undefined,
+      startDate: today,
+      dueDate: null,
+      note: "",
+      accountId: null,
+    });
     setErrorCode(null);
   }
 
@@ -82,37 +94,33 @@ export function DebtCreateSheet({ accounts, today }: DebtCreateSheetProps) {
   }
 
   function chooseDirection(next: DebtDirection) {
-    setDirection(next);
-    setAccountId("");
+    setValue("direction", next);
+    setValue("accountId", null);
     setErrorCode(null);
   }
 
   function chooseCreationMode(next: DebtCreationMode) {
-    setCreationMode(next);
-    if (next === DebtCreationMode.EXISTING_BALANCE) setAccountId("");
+    setValue("creationMode", next);
+    if (next === DebtCreationMode.EXISTING_BALANCE) setValue("accountId", null);
     setErrorCode(null);
   }
 
-  function submit() {
+  const submit = handleSubmit((values) => {
     if (!online) {
       setErrorCode(CLIENT_ACTION_ERROR_CODE.OFFLINE);
       return;
     }
-    if (amount == null || amount <= 0 || !hasAccount || !counterparty.trim()) {
-      setErrorCode(PRODUCT_ACTION_ERROR_CODE.INVALID);
-      return;
-    }
     startTransition(async () => {
       const result = await createDebtAction({
-        name: counterparty.trim(),
-        counterparty: counterparty.trim(),
-        direction,
-        creationMode,
-        principalAmount: amount,
-        startDate,
-        dueDate: dueDate || null,
-        note: note.trim() || undefined,
-        accountId: moneyMovesNow ? accountId : null,
+        name: values.counterparty,
+        counterparty: values.counterparty,
+        direction: values.direction,
+        creationMode: values.creationMode,
+        principalAmount: values.principalAmount,
+        startDate: values.startDate,
+        dueDate: values.dueDate,
+        note: values.note?.trim() || undefined,
+        accountId: moneyMovesNow ? values.accountId : null,
         idempotencyKey: createDebtIdempotencyKey(
           DEBT_CREATE_IDEMPOTENCY_KEY_PREFIX,
         ),
@@ -125,7 +133,7 @@ export function DebtCreateSheet({ accounts, today }: DebtCreateSheetProps) {
       }
       setErrorCode(result.code);
     });
-  }
+  });
 
   return (
     <Sheet isOpen={isOpen} onOpenChange={handleOpenChange}>
@@ -193,15 +201,31 @@ export function DebtCreateSheet({ accounts, today }: DebtCreateSheetProps) {
                 ? t("create.borrowedCounterparty")
                 : t("create.lentCounterparty")
             }
-            value={counterparty}
-            onChange={(event) => setCounterparty(event.target.value)}
+            registration={register("counterparty")}
+            error={
+              errors.counterparty
+                ? tErrors(PRODUCT_ACTION_ERROR_CODE.INVALID)
+                : undefined
+            }
           />
-          <AmountField
-            id="debt-principal"
-            label={t("create.principal")}
-            value={amount}
-            onValueChange={setAmount}
-            required
+          <Controller
+            control={control}
+            name="principalAmount"
+            render={({ field, fieldState }) => (
+              <AmountField
+                id="debt-principal"
+                label={t("create.principal")}
+                value={field.value ?? null}
+                onValueChange={field.onChange}
+                onBlur={field.onBlur}
+                required
+                error={
+                  fieldState.error
+                    ? tErrors(PRODUCT_ACTION_ERROR_CODE.INVALID)
+                    : undefined
+                }
+              />
+            )}
           />
           <FormGroupLabel>{t("create.recordingMode")}</FormGroupLabel>
           <ChoiceTileGroup
@@ -249,46 +273,85 @@ export function DebtCreateSheet({ accounts, today }: DebtCreateSheetProps) {
             />
           </ChoiceTileGroup>
           {moneyMovesNow ? (
-            <LabeledSelect
-              label={
-                direction === DebtDirection.BORROWED
-                  ? t("create.receiveInto")
-                  : t("create.lendFrom")
-              }
-              description={
-                direction === DebtDirection.BORROWED
-                  ? t("create.receiveIntoDescription")
-                  : t("create.lendFromDescription")
-              }
-              value={accountId}
-              onChange={(event) => setAccountId(event.target.value)}
-              options={accounts.map((account) => ({
-                id: account.id,
-                label: account.name,
-              }))}
+            <Controller
+              control={control}
+              name="accountId"
+              render={({ field, fieldState }) => (
+                <SelectField
+                  id="debt-account"
+                  label={
+                    direction === DebtDirection.BORROWED
+                      ? t("create.receiveInto")
+                      : t("create.lendFrom")
+                  }
+                  description={
+                    direction === DebtDirection.BORROWED
+                      ? t("create.receiveIntoDescription")
+                      : t("create.lendFromDescription")
+                  }
+                  value={field.value ?? ""}
+                  onChange={(next) => field.onChange(next || null)}
+                  onBlur={field.onBlur}
+                  options={accounts.map((account) => ({
+                    id: account.id,
+                    label: account.name,
+                  }))}
+                  error={
+                    fieldState.error
+                      ? tErrors(PRODUCT_ACTION_ERROR_CODE.INVALID)
+                      : undefined
+                  }
+                />
+              )}
             />
           ) : null}
           <FormGroupLabel>{t("create.timing")}</FormGroupLabel>
-          <LabeledDateInput
-            data-testid="debt-start-date"
-            label={t("create.startDate")}
-            value={startDate}
-            onChange={(event) => setStartDate(event.target.value)}
+          <Controller
+            control={control}
+            name="startDate"
+            render={({ field, fieldState }) => (
+              <DatePickerField
+                id="debt-start-date"
+                label={t("create.startDate")}
+                value={field.value ?? ""}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+                required
+                error={
+                  fieldState.error
+                    ? tErrors(PRODUCT_ACTION_ERROR_CODE.INVALID)
+                    : undefined
+                }
+                data-testid="debt-start-date"
+              />
+            )}
           />
-          <LabeledDateInput
-            data-testid="debt-due-date"
-            label={t("create.dueDate")}
-            value={dueDate}
-            onChange={(event) => setDueDate(event.target.value)}
-            minValue={startDate || undefined}
+          <Controller
+            control={control}
+            name="dueDate"
+            render={({ field, fieldState }) => (
+              <DatePickerField
+                id="debt-due-date"
+                label={t("create.dueDate")}
+                value={field.value ?? ""}
+                onChange={(next) => field.onChange(next || null)}
+                onBlur={field.onBlur}
+                minValue={startDate || undefined}
+                error={
+                  fieldState.error
+                    ? tErrors(PRODUCT_ACTION_ERROR_CODE.INVALID)
+                    : undefined
+                }
+                data-testid="debt-due-date"
+              />
+            )}
           />
           <FormGroupLabel>{t("create.optionalDetails")}</FormGroupLabel>
 
           <TextField
             id="debt-note"
             label={t("create.note")}
-            value={note}
-            onChange={(event) => setNote(event.target.value)}
+            registration={register("note")}
           />
         </Sheet.Body>
         <SheetActionFooter

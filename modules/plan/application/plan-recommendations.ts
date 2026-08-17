@@ -16,6 +16,7 @@ import {
 import type { JarBudgetMetrics } from "./jar-budget";
 import type { PlanGoal } from "./goal-recurring-types";
 import type { PlanJar } from "./jar-types";
+import { differenceInUtcCalendarDays } from "@/shared/utils/iso-date";
 
 export const PlanRecommendationType = {
   JAR_OVERSPENT: "jar_overspent",
@@ -119,7 +120,6 @@ const TYPE_RANK: Record<PlanRecommendationType, number> = {
   [PlanRecommendationType.RECURRING_AMOUNT_MISMATCH]: 12,
 };
 
-const DAY_MS = 24 * 60 * 60 * 1000;
 const TARGET_DATE_WINDOW_DAYS = 30;
 const TARGET_PROGRESS_THRESHOLD = 80;
 const RECURRING_MINIMUM_DIFFERENCE = 100_000;
@@ -130,11 +130,8 @@ function safeInteger(value: number | null | undefined): number {
 }
 
 function daysBetween(start: string, end: string): number {
-  const startMs = Date.parse(`${start}T00:00:00Z`);
-  const endMs = Date.parse(`${end}T00:00:00Z`);
-  if (!Number.isFinite(startMs) || !Number.isFinite(endMs))
-    return Number.POSITIVE_INFINITY;
-  return Math.ceil((endMs - startMs) / DAY_MS);
+  const days = differenceInUtcCalendarDays(start, end);
+  return Number.isFinite(days) ? days : Number.POSITIVE_INFINITY;
 }
 
 function donorFor(
@@ -358,7 +355,8 @@ export function getPlanRecommendations(
         reason: {
           goalId: goal.id,
           unavailableSourceCount: goal.fundingLinks.filter(
-            (link) => link.availability !== GoalFundingLinkAvailability.AVAILABLE,
+            (link) =>
+              link.availability !== GoalFundingLinkAvailability.AVAILABLE,
           ).length,
         },
         entityType: "goal",

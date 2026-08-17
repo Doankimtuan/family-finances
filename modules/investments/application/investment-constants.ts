@@ -108,6 +108,11 @@ export type InvestmentRpc =
   (typeof INVESTMENT_RPC)[keyof typeof INVESTMENT_RPC];
 export const INVESTMENT_RPC_VALUES = Object.values(INVESTMENT_RPC);
 
+export const INVESTMENT_OPERATION = {
+  LIST_HOLDINGS: "listInvestmentHoldings",
+  LIST_ACTIVITIES: "listInvestmentActivities",
+} as const;
+
 export const INVESTMENT_CREATE_IDEMPOTENCY_KEY_PREFIX = "investment:create";
 
 export const InvestmentFormMode = {

@@ -6,10 +6,10 @@ import {
   CARD_UTILIZATION_DANGER_PCT,
   type AccountType as AccountTypeValue,
 } from "./ledger-constants";
+import { differenceInUtcCalendarDays } from "@/shared/utils/iso-date";
 
 export const MONEY_HUB_INITIAL_ACCOUNT_ROW_LIMIT = 4;
 export const MONEY_HUB_DUE_SOON_DAYS = 7;
-const MILLISECONDS_PER_DAY = 86_400_000;
 const PERCENTAGE_SCALE = 100;
 
 export const MoneyAccountGroupKey = {
@@ -100,31 +100,12 @@ const MONEY_ACCOUNT_TYPE_PRIORITY: Record<AccountTypeValue, number> = {
   [AccountType.CREDIT_CARD]: 7,
 };
 
-function utcDayStart(value: Date) {
-  return Date.UTC(
-    value.getUTCFullYear(),
-    value.getUTCMonth(),
-    value.getUTCDate(),
-  );
-}
-
-function dateOnlyToUtcDay(value: string) {
-  const [year, month, day] = value.split("-").map(Number);
-  if (!year || !month || !day) return null;
-  return Date.UTC(year, month - 1, day);
-}
-
 function creditAttentionFor(card: CreditCardSummary, today: Date) {
   if (card.nextDueDate && card.nextDueRemaining > 0) {
-    const dueDay = dateOnlyToUtcDay(card.nextDueDate);
-    if (dueDay != null) {
-      const daysUntilDue = Math.floor(
-        (dueDay - utcDayStart(today)) / MILLISECONDS_PER_DAY,
-      );
-      if (daysUntilDue < 0) return MoneyCreditAttention.OVERDUE;
-      if (daysUntilDue <= MONEY_HUB_DUE_SOON_DAYS) {
-        return MoneyCreditAttention.DUE_SOON;
-      }
+    const daysUntilDue = differenceInUtcCalendarDays(today, card.nextDueDate);
+    if (daysUntilDue < 0) return MoneyCreditAttention.OVERDUE;
+    if (daysUntilDue <= MONEY_HUB_DUE_SOON_DAYS) {
+      return MoneyCreditAttention.DUE_SOON;
     }
   }
 

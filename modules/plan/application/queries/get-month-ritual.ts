@@ -6,6 +6,8 @@ import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-m
 import { InboxItemStatus } from "@/modules/inbox/application/inbox-constants";
 import { JarState, mapIncomeAllocateMode, resolveJarState } from "../jar-types";
 import { GoalStatus, RitualStatus } from "../plan-constants";
+import { PLAN_OPERATION } from "../plan-constants";
+import { logPlanFailure } from "../plan-error";
 import { currentPeriodMonth } from "../ritual-period";
 import {
   isRitualLockedStatus,
@@ -185,8 +187,20 @@ export async function getMonthRitual(
     );
 
     const [divergence, emergencies] = await Promise.all([
-      listRitualDivergence(gate.householdId, periodMonth).catch(() => []),
-      listRitualEmergencies(gate.householdId, periodMonth).catch(() => []),
+      listRitualDivergence(gate.householdId, periodMonth).catch((error) => {
+        logPlanFailure(error, PLAN_OPERATION.GET_MONTH_RITUAL, {
+          householdId: gate.householdId,
+          periodMonth,
+        });
+        return [];
+      }),
+      listRitualEmergencies(gate.householdId, periodMonth).catch((error) => {
+        logPlanFailure(error, PLAN_OPERATION.GET_MONTH_RITUAL, {
+          householdId: gate.householdId,
+          periodMonth,
+        });
+        return [];
+      }),
     ]);
 
     const enrich = (

@@ -52,6 +52,7 @@ type Props = {
   name: string;
   targetAmount: number;
   fundedAmount: number;
+  progressPercent: number;
   remainingPrincipal: number | null;
   targetDate: string | null;
   status: GoalStatusValue;
@@ -91,6 +92,7 @@ export function GoalDetailControls({
   name: initialName,
   targetAmount: initialTarget,
   fundedAmount,
+  progressPercent,
   remainingPrincipal,
   targetDate: initialDate,
   status: initialStatus,
@@ -247,9 +249,7 @@ export function GoalDetailControls({
                   })
                 : belowTarget
                   ? t("completeBelowTargetBody", {
-                      percent: String(
-                        Math.round((fundedAmount / initialTarget) * 100),
-                      ),
+                      percent: String(progressPercent),
                     })
                   : t("completeConfirmBody")
               : t("cancelConfirmBody")

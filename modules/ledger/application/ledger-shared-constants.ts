@@ -90,6 +90,8 @@ export const LEDGER_OPERATION = {
   LIST_DEBT_PAYMENTS: "listDebtPayments",
   LIST_ELIGIBLE_CREDIT_CARD_PURCHASES: "listEligibleCreditCardPurchases",
   LIST_LIABILITIES: "listLiabilities",
+  LIST_SAVINGS_PRODUCTS: "listSavingsProducts",
+  GET_SAVINGS_PRODUCT: "getSavingsProduct",
   LIST_LOAN_INTEREST_RATE_PERIODS: "listLoanInterestRatePeriods",
   LIST_LOAN_PAYMENTS: "listLoanPayments",
   LIST_LOAN_SCHEDULE: "listLoanSchedule",
@@ -150,4 +152,5 @@ export const LEDGER_LEGACY_RPC_ERROR_MARKERS = {
     "account not found",
   ],
   TRANSACTION_TAG_INVALID: ["invalid", "not found"],
+  CATEGORY_UNMAPPED: ["err_category_unmapped"],
 } as const;

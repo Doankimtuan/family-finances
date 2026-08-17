@@ -112,6 +112,10 @@ export const MONEY_ACTION_DENIED_REASON = {
 export type MoneyActionDeniedReason =
   (typeof MONEY_ACTION_DENIED_REASON)[keyof typeof MONEY_ACTION_DENIED_REASON];
 
+export const TENANCY_FRAMEWORK_CONTROL_FLOW_DIGEST = {
+  DYNAMIC_SERVER_USAGE: "DYNAMIC_SERVER_USAGE",
+} as const;
+
 export const INVITATION_RPC_MESSAGE_NEEDLE = {
   INVALID_EMAIL: "invalid email",
   ALREADY_MEMBER: "already a member",

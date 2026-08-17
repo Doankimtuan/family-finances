@@ -160,7 +160,7 @@ async function loadTransactions(householdId: string, periodMonth: string) {
     .lt("transaction_date", periodMonthExclusiveEnd(periodMonth))
     .order("transaction_date", { ascending: true })
     .order("created_at", { ascending: true });
-  if (error) return [] as ReviewTransaction[];
+  if (error) throw error;
   return (data ?? []) as ReviewTransaction[];
 }
 

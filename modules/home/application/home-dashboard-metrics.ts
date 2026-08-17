@@ -8,15 +8,14 @@ import {
   type HomeCashFlowGranularity as HomeCashFlowGranularityValue,
   type HomeDashboardPeriod as HomeDashboardPeriodValue,
 } from "./home-constants";
-import {
-  type LedgerTransaction,
-} from "@/modules/ledger/application";
+import { type LedgerTransaction } from "@/modules/ledger/application";
 import {
   countsTowardMonthlyExpense,
   countsTowardMonthlyIncome,
   sumMonthlyExpense,
   sumMonthlyIncome,
 } from "@/modules/ledger/application/income-exclusion-policy";
+import { differenceInUtcCalendarDays } from "@/shared/utils/iso-date";
 
 export type HomeDashboardDateRange = {
   period: HomeDashboardPeriodValue;
@@ -127,9 +126,7 @@ export function getHomeDashboardDateRange(
       ? startOfUtcQuarter(end)
       : startOfUtcMonth(end);
   const previousStart = previousPeriodStart(period, start);
-  const elapsedDays = Math.floor(
-    (end.getTime() - start.getTime()) / (24 * 60 * 60 * 1000),
-  );
+  const elapsedDays = differenceInUtcCalendarDays(start, end);
   const previousPeriodEndBoundary =
     period === HomeDashboardPeriod.QUARTER
       ? new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), 0))

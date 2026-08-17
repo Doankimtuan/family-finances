@@ -101,9 +101,17 @@ export async function listSavingsProducts(): Promise<SavingsProduct[] | null> {
       .neq("status", "closed")
       .order("maturity_date", { ascending: true });
 
-    if (error) return null;
+    if (error) {
+      logLedgerFailure(error, LEDGER_OPERATION.LIST_SAVINGS_PRODUCTS, {
+        householdId: gate.householdId,
+      });
+      return null;
+    }
     return (data ?? []).map(mapSavingsRow);
-  } catch {
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.LIST_SAVINGS_PRODUCTS, {
+      householdId: gate.householdId,
+    });
     return null;
   }
 }
@@ -125,9 +133,20 @@ export async function getSavingsProduct(
       .eq("id", savingsId)
       .maybeSingle();
 
-    if (error || !data) return null;
+    if (error) {
+      logLedgerFailure(error, LEDGER_OPERATION.GET_SAVINGS_PRODUCT, {
+        householdId: gate.householdId,
+        savingsId,
+      });
+      return null;
+    }
+    if (!data) return null;
     return mapSavingsRow(data);
-  } catch {
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.GET_SAVINGS_PRODUCT, {
+      householdId: gate.householdId,
+      savingsId,
+    });
     return null;
   }
 }

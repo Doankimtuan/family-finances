@@ -62,3 +62,14 @@ export {
 } from "./review-items";
 export { classifyInboxRpcError, logInboxFailure } from "./inbox-error";
 export type { InboxFailureContext } from "./inbox-error";
+export { SAVINGS_INBOX_CONTEXT } from "./inbox-constants";
+export {
+  listPendingSavingsMaturityInboxItems,
+  updateSavingsMaturityInboxItem,
+  upsertSavingsEarlyWithdrawalInboxItem,
+} from "./commands/savings-workflow";
+export type {
+  SavingsMaturityInboxItem,
+  SavingsEarlyWithdrawalInboxContext,
+  SavingsInboxResult,
+} from "./commands/savings-workflow";

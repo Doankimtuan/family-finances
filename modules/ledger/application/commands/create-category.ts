@@ -12,6 +12,7 @@ import {
   type LedgerActionErrorCode,
 } from "../ledger-constants";
 import { isCategoryJarMapped } from "../category-jar-policy";
+import { classifyCategoryRpcError } from "../ledger-error";
 
 export const createCategoryInputSchema = z.object({
   name: z.string().trim().min(1).max(80),
@@ -63,13 +64,8 @@ export async function createCategory(
     });
 
     if (error) {
-      const message = (error.message ?? "").toLowerCase();
-      if (
-        message.includes("err_category_unmapped") ||
-        message.includes("jar")
-      ) {
-        return { ok: false, code: LEDGER_ACTION_ERROR_CODE.CATEGORY_UNMAPPED };
-      }
+      const classified = classifyCategoryRpcError(error);
+      if (classified) return { ok: false, code: classified };
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
     }
 

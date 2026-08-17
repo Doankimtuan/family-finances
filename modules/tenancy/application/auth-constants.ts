@@ -89,6 +89,15 @@ export const SUPABASE_AUTH_ERROR_CODE = {
   EMAIL_CONFLICT: "email_conflict",
   USER_ALREADY_EXISTS: "user_already_exists",
   FLOW_STATE_NOT_FOUND: "flow_state_not_found",
+  SESSION_NOT_FOUND: "session_not_found",
+  SESSION_EXPIRED: "session_expired",
+  BAD_JWT: "bad_jwt",
+  INVALID_JWT: "invalid_jwt",
+} as const;
+
+export const SUPABASE_AUTH_CONTROL_FLOW_ERROR_NAME = {
+  SESSION_MISSING: "AuthSessionMissingError",
+  INVALID_JWT: "AuthInvalidJwtError",
 } as const;
 
 export const AUTH_ERROR_MESSAGE_NEEDLE = {

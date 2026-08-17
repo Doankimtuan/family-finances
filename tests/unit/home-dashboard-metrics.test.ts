@@ -64,6 +64,19 @@ describe("Home dashboard period ranges", () => {
       previousEndDate: "2026-05-14",
     });
   });
+
+  it("keeps period day counts on UTC calendar boundaries", () => {
+    expect(
+      getHomeDashboardDateRange(
+        HomeDashboardPeriod.MONTH,
+        new Date("2026-03-01T23:59:59-08:00"),
+      ),
+    ).toMatchObject({
+      startDate: "2026-03-01",
+      endDate: "2026-03-02",
+      previousEndDate: "2026-02-02",
+    });
+  });
 });
 
 describe("Home financial metrics", () => {

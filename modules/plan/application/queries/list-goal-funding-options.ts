@@ -1,4 +1,8 @@
-import { listAccounts, listDebts, listLoans } from "@/modules/ledger/application";
+import {
+  listAccounts,
+  listDebts,
+  listLoans,
+} from "@/modules/ledger/application";
 import { AccountType } from "@/modules/ledger/application/ledger-constants";
 import { listSavings } from "@/modules/savings/application";
 import { listInvestmentPortfolio } from "@/modules/investments/application";
@@ -10,9 +14,11 @@ import {
 } from "../goal-funding";
 import {
   GoalFundingSourceKind,
+  PLAN_OPERATION,
   type GoalFundingSourceKind as GoalFundingSourceKindValue,
   type GoalType as GoalTypeValue,
 } from "../plan-constants";
+import { logPlanFailure } from "../plan-error";
 
 export type GoalFundingOption = {
   kind: GoalFundingSourceKindValue;
@@ -39,26 +45,41 @@ export async function listGoalFundingOptions(input?: {
   if (!gate.ok) return null;
   try {
     const supabase = await createSupabaseServerClient();
-    const [householdResult, savings, accounts, portfolio, loans, debts, linksResult] =
-      await Promise.all([
-        supabase
-          .from("households")
-          .select("base_currency")
-          .eq("id", gate.householdId)
-          .maybeSingle(),
-        listSavings(),
-        listAccounts(),
-        listInvestmentPortfolio(),
-        listLoans(),
-        listDebts(),
-        supabase
-          .from("goal_funding_links")
-          .select(
-            "goal_id, source_kind, saving_id, account_id, holding_id, loan_id, debt_id",
-          )
-          .eq("household_id", gate.householdId)
-          .eq("is_active", true),
-      ]);
+    const [
+      householdResult,
+      savings,
+      accounts,
+      portfolio,
+      loans,
+      debts,
+      linksResult,
+    ] = await Promise.all([
+      supabase
+        .from("households")
+        .select("base_currency")
+        .eq("id", gate.householdId)
+        .maybeSingle(),
+      listSavings(),
+      listAccounts(),
+      listInvestmentPortfolio(),
+      listLoans(),
+      listDebts(),
+      supabase
+        .from("goal_funding_links")
+        .select(
+          "goal_id, source_kind, saving_id, account_id, holding_id, loan_id, debt_id",
+        )
+        .eq("household_id", gate.householdId)
+        .eq("is_active", true),
+    ]);
+    if (householdResult.error || linksResult.error) {
+      logPlanFailure(
+        householdResult.error ?? linksResult.error,
+        PLAN_OPERATION.LIST_GOAL_FUNDING_OPTIONS,
+        { householdId: gate.householdId },
+      );
+      return null;
+    }
     const goalCurrency = (
       householdResult.data?.base_currency ?? "VND"
     ).toUpperCase();
@@ -95,7 +116,8 @@ export async function listGoalFundingOptions(input?: {
         })),
       ...(accounts?.accounts ?? [])
         .filter(
-          (account) => account.type === AccountType.SAVINGS && !account.isArchived,
+          (account) =>
+            account.type === AccountType.SAVINGS && !account.isArchived,
         )
         .map((account) => ({
           kind: GoalFundingSourceKind.SAVINGS_ACCOUNT,
@@ -163,7 +185,10 @@ export async function listGoalFundingOptions(input?: {
           availability: isAvailable ? "available" : "already_linked",
         };
       });
-  } catch {
+  } catch (error) {
+    logPlanFailure(error, PLAN_OPERATION.LIST_GOAL_FUNDING_OPTIONS, {
+      householdId: gate.householdId,
+    });
     return null;
   }
 }

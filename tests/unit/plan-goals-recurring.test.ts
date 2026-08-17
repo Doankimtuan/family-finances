@@ -138,6 +138,7 @@ vi.mock("@/modules/tenancy/application/assert-money-action-allowed", () => ({
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import { listGoals } from "@/modules/plan/application/queries/list-goals";
+import { PLAN_OPERATION } from "@/modules/plan/application/plan-constants";
 
 describe("listGoals", () => {
   beforeEach(() => {
@@ -208,5 +209,91 @@ describe("listGoals", () => {
     const listed = await listGoals();
     expect(listed?.goals).toHaveLength(1);
     expect(listed?.goals[0]?.progressPercent).toBe(40);
+  });
+
+  it("keeps an empty successful query distinct from a provider failure", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.mocked(assertMoneyActionAllowed).mockResolvedValue({
+      ok: true,
+      userId: "u1",
+      householdId: "h1",
+    });
+    vi.mocked(createSupabaseServerClient).mockResolvedValue({
+      from: (table: string) => {
+        if (table === "households") {
+          return {
+            select: () => ({
+              eq: () => ({
+                maybeSingle: async () => ({
+                  data: { base_currency: "VND" },
+                  error: null,
+                }),
+              }),
+            }),
+          };
+        }
+        if (table === "goal_funding_links") {
+          return {
+            select: () => ({
+              eq: () => ({
+                eq: async () => ({ data: [], error: null }),
+              }),
+            }),
+          };
+        }
+        return {
+          select: () => ({
+            eq: () => ({
+              neq: () => ({
+                order: async () => ({ data: [], error: null }),
+              }),
+            }),
+          }),
+        };
+      },
+    } as never);
+
+    await expect(listGoals()).resolves.toMatchObject({ goals: [] });
+    expect(errorSpy).not.toHaveBeenCalled();
+
+    vi.mocked(createSupabaseServerClient).mockResolvedValue({
+      from: (table: string) => {
+        if (table === "households") {
+          return {
+            select: () => ({
+              eq: () => ({
+                maybeSingle: async () => ({
+                  data: null,
+                  error: { code: "provider_down" },
+                }),
+              }),
+            }),
+          };
+        }
+        if (table === "goal_funding_links") {
+          return {
+            select: () => ({
+              eq: () => ({
+                eq: async () => ({ data: [], error: null }),
+              }),
+            }),
+          };
+        }
+        return {
+          select: () => ({
+            eq: () => ({
+              neq: () => ({
+                order: async () => ({ data: [], error: null }),
+              }),
+            }),
+          }),
+        };
+      },
+    } as never);
+    await expect(listGoals()).resolves.toBeNull();
+    expect(errorSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ operation: PLAN_OPERATION.LIST_GOALS }),
+    );
+    errorSpy.mockRestore();
   });
 });

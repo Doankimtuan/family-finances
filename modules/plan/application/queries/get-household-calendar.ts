@@ -18,6 +18,7 @@ import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import {
   CALENDAR_PROJECTION_MONTHS,
   CASH_FLOW_DEFICIT_THRESHOLD,
+  PLAN_OPERATION,
 } from "../plan-constants";
 import { currentPeriodMonth } from "../ritual-period";
 import {
@@ -33,6 +34,7 @@ import {
   type CalendarProjection,
   type CashFlowDayForecast,
 } from "../calendar-projection";
+import { logPlanFailure } from "../plan-error";
 
 export type HouseholdCalendar = CalendarProjection & {
   householdId: string;
@@ -71,7 +73,10 @@ async function listPayoffInboxItems(
       }
     }
     return map;
-  } catch {
+  } catch (error) {
+    logPlanFailure(error, PLAN_OPERATION.LIST_PAYOFF_INBOX_ITEMS, {
+      householdId,
+    });
     return {};
   }
 }

@@ -2,6 +2,8 @@ import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import { DEFAULT_CURRENCY } from "@/modules/ledger/application/ledger-constants";
 import { mapIncomeAllocateMode } from "../jar-types";
+import { PLAN_OPERATION } from "../plan-constants";
+import { logPlanFailure } from "../plan-error";
 import {
   mapRecurringRow,
   type RecurringDetail,
@@ -14,22 +16,28 @@ export async function listRecurring(): Promise<RecurringList | null> {
 
   try {
     const supabase = await createSupabaseServerClient();
-    const [{ data: household }, { data: rows, error }] = await Promise.all([
-      supabase
-        .from("households")
-        .select("base_currency, income_allocate_mode")
-        .eq("id", gate.householdId)
-        .maybeSingle(),
-      supabase
-        .from("recurring_rules")
-        .select(
-          "id, name, direction, amount, frequency, interval_count, day_of_month, day_of_week, start_date, next_run_date, is_active",
-        )
-        .eq("household_id", gate.householdId)
-        .order("created_at", { ascending: false }),
-    ]);
+    const [{ data: household, error: householdError }, { data: rows, error }] =
+      await Promise.all([
+        supabase
+          .from("households")
+          .select("base_currency, income_allocate_mode")
+          .eq("id", gate.householdId)
+          .maybeSingle(),
+        supabase
+          .from("recurring_rules")
+          .select(
+            "id, name, direction, amount, frequency, interval_count, day_of_month, day_of_week, start_date, next_run_date, is_active",
+          )
+          .eq("household_id", gate.householdId)
+          .order("created_at", { ascending: false }),
+      ]);
 
-    if (error) return null;
+    if (householdError || error) {
+      logPlanFailure(householdError ?? error, PLAN_OPERATION.LIST_RECURRING, {
+        householdId: gate.householdId,
+      });
+      return null;
+    }
 
     return {
       householdId: gate.householdId,
@@ -39,7 +47,10 @@ export async function listRecurring(): Promise<RecurringList | null> {
       ),
       rules: (rows ?? []).map(mapRecurringRow),
     };
-  } catch {
+  } catch (error) {
+    logPlanFailure(error, PLAN_OPERATION.LIST_RECURRING, {
+      householdId: gate.householdId,
+    });
     return null;
   }
 }
@@ -78,7 +89,11 @@ export async function getRecurring(
         household?.income_allocate_mode,
       ),
     };
-  } catch {
+  } catch (error) {
+    logPlanFailure(error, PLAN_OPERATION.GET_RECURRING, {
+      householdId: gate.householdId,
+      ruleId,
+    });
     return null;
   }
 }

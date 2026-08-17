@@ -33,9 +33,7 @@ async function fetchHouseholdJars(householdId: string): Promise<{
       .order("sort_order", { ascending: true }),
   ]);
 
-  if (error) {
-    return null;
-  }
+  if (error) throw error;
 
   return {
     currency: (household?.base_currency ?? DEFAULT_CURRENCY).toUpperCase(),
@@ -93,9 +91,8 @@ export async function getJar(jarId: string): Promise<JarDetail | null> {
         .maybeSingle(),
     ]);
 
-    if (error || !row) {
-      return null;
-    }
+    if (error) throw error;
+    if (!row) return null;
 
     const jar = mapJarRow(row);
     return {

@@ -3,6 +3,8 @@ import type { PlanOperation } from "./plan-constants";
 
 export type PlanFailureContext = Readonly<{
   householdId?: string;
+  goalId?: string;
+  ruleId?: string;
   jarId?: string;
   periodMonth?: string;
   responseInvalid?: boolean;

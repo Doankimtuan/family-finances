@@ -1,4 +1,3 @@
-import { z } from "zod";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import {
@@ -6,13 +5,19 @@ import {
   productActionErrorFromDeniedReason,
   type ProductActionErrorCode,
 } from "@/modules/tenancy/application/product-action-error";
+import { LedgerRpcName } from "../ledger-constants";
 import {
-  DebtCreationMode,
-  DEBT_CREATION_MODE_VALUES,
-  DEBT_DIRECTION_VALUES,
-  ISO_DATE_PATTERN,
-  LedgerRpcName,
-} from "../ledger-constants";
+  createDebtInputSchema,
+  recordDebtPaymentInputSchema,
+  type CreateDebtInput,
+  type RecordDebtPaymentInput,
+} from "./debt.schemas";
+
+export {
+  createDebtInputSchema,
+  recordDebtPaymentInputSchema,
+} from "./debt.schemas";
+export type { CreateDebtInput, RecordDebtPaymentInput } from "./debt.schemas";
 import type { Result } from "@/modules/shared-kernel/application/result";
 import {
   classifyDebtRpcError,
@@ -44,32 +49,6 @@ export type DebtMutationResult = Result<
   },
   ProductActionErrorCode
 >;
-
-export const createDebtInputSchema = z
-  .object({
-    name: z.string().trim().min(1).max(80),
-    counterparty: z.string().trim().min(1).max(80),
-    direction: z.enum(DEBT_DIRECTION_VALUES),
-    creationMode: z.enum(DEBT_CREATION_MODE_VALUES),
-    principalAmount: z.number().finite().int().positive(),
-    startDate: z.string().regex(ISO_DATE_PATTERN),
-    dueDate: z.string().regex(ISO_DATE_PATTERN).nullable().optional(),
-    note: z.string().trim().max(200).optional(),
-    accountId: z.string().uuid().nullable().optional(),
-    idempotencyKey: z.string().trim().min(1).max(200),
-  })
-  .superRefine((value, context) => {
-    if (
-      value.creationMode === DebtCreationMode.MONEY_MOVED &&
-      value.accountId == null
-    ) {
-      context.addIssue({ code: z.ZodIssueCode.custom, path: ["accountId"] });
-    }
-    if (value.dueDate != null && value.dueDate < value.startDate) {
-      context.addIssue({ code: z.ZodIssueCode.custom, path: ["dueDate"] });
-    }
-  });
-export type CreateDebtInput = z.infer<typeof createDebtInputSchema>;
 
 export async function createDebt(
   raw: CreateDebtInput,
@@ -129,18 +108,6 @@ export async function createDebt(
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }
 }
-
-export const recordDebtPaymentInputSchema = z.object({
-  debtId: z.string().uuid(),
-  accountId: z.string().uuid(),
-  amount: z.number().finite().int().positive(),
-  effectiveDate: z.string().regex(ISO_DATE_PATTERN),
-  note: z.string().trim().max(200).optional(),
-  idempotencyKey: z.string().trim().min(1).max(200),
-});
-export type RecordDebtPaymentInput = z.infer<
-  typeof recordDebtPaymentInputSchema
->;
 
 export async function recordDebtPayment(
   raw: RecordDebtPaymentInput,

@@ -1,6 +1,5 @@
 "use server";
 
-import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import {
   createSaving,
   settleSaving,
@@ -9,34 +8,25 @@ import {
   previewEarlyWithdrawalForSaving,
   confirmEarlyWithdrawal,
   detectMaturedSavings,
-  buildMaturityReviewPayload,
   backfillLegacySavingsAccounts,
-  SettlementAction,
-  SettlementRule,
-  RenewalDecisionSource,
-  SAVINGS_OPERATION,
+  enrichSavingsMaturityInboxItems,
+  enqueueEarlyWithdrawalInboxItem,
+  executeSavingsMaturityWorkflow,
+  executeEarlyWithdrawalWorkflow,
   type CreateSavingInput,
   type UpdateRenewalPolicyInput,
 } from "@/modules/savings/application";
 import {
   PRODUCT_ACTION_ERROR_CODE,
+  productActionErrorFromDeniedReason,
   type ProductActionErrorCode,
 } from "@/modules/tenancy/application/product-action-error";
 import {
   SavingsMaturityAckAction,
   EarlyWithdrawalAckAction,
-  InboxItemKind,
-  InboxItemStatus,
-  InboxSourceType,
-  acknowledgeInboxItem,
   type InboxCommandErrorCode,
 } from "@/modules/inbox/application";
-import { DEFAULT_CURRENCY } from "@/modules/ledger/application/ledger-constants";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
-import {
-  classifySavingsRpcError,
-  logSavingsFailure,
-} from "@/modules/savings/application/savings-error";
 import {
   revalidateInboxViews,
   revalidateSavingsInboxViews,
@@ -118,65 +108,18 @@ export async function detectMaturedSavingsAction(): Promise<SavingsActionState> 
   const result = await detectMaturedSavings();
   if (!result.ok) return { status: "error", code: result.code };
 
-  // App orchestration: hydrate Inbox ReviewItems (savings ↛ inbox).
   const gate = await assertMoneyActionAllowed();
+  let enrichmentSucceeded = true;
   if (gate.ok) {
-    try {
-      const supabase = await createSupabaseServerClient();
-      const { data: pendingItems, error: pendingItemsError } = await supabase
-        .from("inbox_items")
-        .select("id, source_id, context_json")
-        .eq("household_id", gate.householdId)
-        .eq("kind", InboxItemKind.SAVINGS_MATURED)
-        .eq("status", InboxItemStatus.PENDING);
-
-      if (pendingItemsError) {
-        if (
-          classifySavingsRpcError(pendingItemsError) ===
-          PRODUCT_ACTION_ERROR_CODE.UNKNOWN
-        ) {
-          logSavingsFailure(
-            pendingItemsError,
-            SAVINGS_OPERATION.MATURITY_ENRICHMENT,
-            { householdId: gate.householdId },
-          );
-        }
-        return { status: "success" };
-      }
-
-      for (const item of pendingItems ?? []) {
-        const ctx = (item.context_json ?? {}) as Record<string, unknown>;
-        const savingId = String(ctx.savingId ?? item.source_id);
-        const cycleId = typeof ctx.cycleId === "string" ? ctx.cycleId : null;
-        if (!cycleId) continue;
-
-        const enriched = await buildMaturityReviewPayload({
-          savingId,
-          cycleId,
-        });
-        if (!enriched) continue;
-
-        await supabase
-          .from("inbox_items")
-          .update({
-            context_json: {
-              ...ctx,
-              ...enriched,
-              configuredRenewalPreference: enriched.renewalPolicy,
-            },
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", item.id);
-      }
-    } catch (error) {
-      logSavingsFailure(error, SAVINGS_OPERATION.MATURITY_ENRICHMENT, {
-        householdId: gate.householdId,
-      });
-      // Detect succeeded; enrichment failure is non-fatal for list refresh.
-    }
+    enrichmentSucceeded = await enrichSavingsMaturityInboxItems({
+      householdId: gate.householdId,
+    });
   }
 
-  if (result.maturedCount > 0 || result.cascadeCount > 0) {
+  if (
+    enrichmentSucceeded &&
+    (result.maturedCount > 0 || result.cascadeCount > 0)
+  ) {
     revalidateSavingsInboxViews();
   }
   return { status: "success" };
@@ -246,126 +189,43 @@ export async function requestEarlyWithdrawalAction(input: {
 
   const gate = await assertMoneyActionAllowed();
   if (!gate.ok) {
-    return { status: "error", code: PRODUCT_ACTION_ERROR_CODE.UNAUTHENTICATED };
-  }
-
-  try {
-    const supabase = await createSupabaseServerClient();
-    const { data: household } = await supabase
-      .from("households")
-      .select("base_currency")
-      .eq("id", gate.householdId)
-      .maybeSingle();
-
-    const currency = (
-      household?.base_currency ?? DEFAULT_CURRENCY
-    ).toUpperCase();
-
-    const context = {
-      savingId: input.savingId,
-      cycleId: input.cycleId,
-      principal: previewed.preview.principal,
-      accruedInterest: previewed.preview.accruedInterest,
-      eligibleInterest: previewed.preview.eligibleInterest,
-      penaltyAmount: previewed.preview.penaltyAmount,
-      netReturned: previewed.preview.netReturned,
-      penaltyStrategy: previewed.preview.penaltyStrategy,
-      daysHeld: previewed.preview.daysHeld,
-      totalTermDays: previewed.preview.totalTermDays,
-      quoteReady: previewed.preview.quoteReady,
-      settlementAccountId: previewed.settlementAccountId,
-      warnPenalty: previewed.warnPenalty,
-      cascadeDay: "early",
-    };
-
-    const title = `${previewed.productName} - Early withdrawal`;
-
-    const { data, error } = await supabase
-      .from("inbox_items")
-      .insert({
-        household_id: gate.householdId,
-        kind: InboxItemKind.EARLY_WITHDRAWAL_CONFIRMATION,
-        status: InboxItemStatus.PENDING,
-        source_type: InboxSourceType.GUIDED,
-        source_id: input.savingId,
-        amount: previewed.preview.netReturned,
-        currency,
-        title,
-        context_json: context,
-      })
-      .select("id")
-      .maybeSingle();
-
-    if (error) {
-      const { data: updated, error: upErr } = await supabase
-        .from("inbox_items")
-        .update({
-          status: InboxItemStatus.PENDING,
-          amount: previewed.preview.netReturned,
-          title,
-          context_json: context,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("household_id", gate.householdId)
-        .eq("source_type", InboxSourceType.GUIDED)
-        .eq("source_id", input.savingId)
-        .eq("kind", InboxItemKind.EARLY_WITHDRAWAL_CONFIRMATION)
-        .select("id")
-        .maybeSingle();
-
-      if (upErr) {
-        const code = classifySavingsRpcError(upErr);
-        if (code === PRODUCT_ACTION_ERROR_CODE.UNKNOWN) {
-          logSavingsFailure(upErr, SAVINGS_OPERATION.EARLY_WITHDRAWAL_INBOX, {
-            householdId: gate.householdId,
-            savingId: input.savingId,
-            cycleId: input.cycleId,
-          });
-        }
-        return { status: "error", code };
-      }
-      if (!updated) {
-        logSavingsFailure(null, SAVINGS_OPERATION.EARLY_WITHDRAWAL_INBOX, {
-          householdId: gate.householdId,
-          savingId: input.savingId,
-          cycleId: input.cycleId,
-          responseInvalid: true,
-        });
-        return { status: "error", code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
-      }
-
-      revalidateInboxViews();
-      return {
-        status: "success",
-        id: updated.id,
-        inboxItemId: updated.id,
-      };
-    }
-
-    if (!data) {
-      logSavingsFailure(null, SAVINGS_OPERATION.EARLY_WITHDRAWAL_INBOX, {
-        householdId: gate.householdId,
-        savingId: input.savingId,
-        cycleId: input.cycleId,
-        responseInvalid: true,
-      });
-      return { status: "error", code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
-    }
-
-    revalidateInboxViews();
     return {
-      status: "success",
-      id: data.id,
-      inboxItemId: data.id,
+      status: "error",
+      code: productActionErrorFromDeniedReason(gate.reason),
     };
-  } catch (error) {
-    logSavingsFailure(error, SAVINGS_OPERATION.EARLY_WITHDRAWAL_INBOX, {
-      householdId: gate.householdId,
-      savingId: input.savingId,
-      cycleId: input.cycleId,
-    });
-    return { status: "error", code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
   }
+
+  const { eligibleInterest, penaltyAmount, netReturned } = previewed.preview;
+  const result = await enqueueEarlyWithdrawalInboxItem({
+    context: { householdId: gate.householdId },
+    savingId: input.savingId,
+    cycleId: input.cycleId,
+    preview: {
+      ...previewed.preview,
+      eligibleInterest,
+      penaltyAmount,
+      netReturned,
+    },
+    settlementAccountId: previewed.settlementAccountId,
+    warnPenalty: previewed.warnPenalty,
+    productName: previewed.productName,
+  });
+  if (result.status === "error") {
+    return {
+      status: "error",
+      code: isProductActionErrorCode(result.code)
+        ? result.code
+        : PRODUCT_ACTION_ERROR_CODE.UNKNOWN,
+    };
+  }
+  revalidateInboxViews();
+  return result;
+}
+
+function isProductActionErrorCode(
+  code: ProductActionErrorCode | InboxCommandErrorCode,
+): code is ProductActionErrorCode {
+  return (Object.values(PRODUCT_ACTION_ERROR_CODE) as string[]).includes(code);
 }
 
 export async function confirmEarlyWithdrawalAction(input: {
@@ -399,95 +259,27 @@ export async function acknowledgeSavingsMaturityAction(input: {
   renewalPolicyAfter?: UpdateRenewalPolicyInput["renewalPolicy"];
   renewalConfig?: UpdateRenewalPolicyInput["renewalConfig"];
 }): Promise<SavingsInboxActionState> {
+  const gate = await assertMoneyActionAllowed();
+  if (!gate.ok) {
+    return {
+      status: "error",
+      code: productActionErrorFromDeniedReason(gate.reason),
+    };
+  }
+  const result = await executeSavingsMaturityWorkflow({
+    context: { householdId: gate.householdId },
+    ...input,
+  });
+  if (result.status === "error") return result;
   if (
     input.action === SavingsMaturityAckAction.REMIND_TOMORROW ||
     input.action === SavingsMaturityAckAction.DISMISS
   ) {
-    const ack = await acknowledgeInboxItem({
-      inboxItemId: input.inboxItemId,
-      action: input.action,
-    });
-    if (!ack.ok) return { status: "error", code: ack.code };
     revalidateInboxViews();
-    return { status: "success" };
-  }
-
-  const rule = input.settlementRule;
-  const shouldWithdraw =
-    input.action === SavingsMaturityAckAction.WITHDRAW ||
-    ((input.action === SavingsMaturityAckAction.CONFIRM_CONFIGURED ||
-      input.action === SavingsMaturityAckAction.CHANGE_SETTLEMENT) &&
-      rule === SettlementRule.WITHDRAW_EVERYTHING);
-
-  const decisionSource =
-    input.action === SavingsMaturityAckAction.CONFIRM_CONFIGURED
-      ? RenewalDecisionSource.POLICY_APPLIED
-      : RenewalDecisionSource.MANUAL;
-
-  if (shouldWithdraw) {
-    const settled = await settleSaving({
-      cycleId: input.cycleId,
-      settlementAccountId: input.settlementAccountId,
-      decisionSource,
-    });
-    if (!settled.ok) return { status: "error", code: settled.code };
-
-    if (input.renewalPolicyAfter) {
-      await updateRenewalPolicy({
-        savingId: input.savingId,
-        renewalPolicy: input.renewalPolicyAfter,
-        renewalConfig: input.renewalConfig,
-      });
-    }
-
-    await acknowledgeInboxItem({
-      inboxItemId: input.inboxItemId,
-      action: input.action,
-    });
-
+  } else {
     revalidateSavingsInboxViews();
-    return {
-      status: "success",
-      id: settled.savingId,
-      cycleId: settled.cycleId,
-      netAmount: settled.netAmount,
-    };
   }
-
-  const rollAction =
-    rule === SettlementRule.ROLL_PRINCIPAL_ONLY
-      ? SettlementAction.ROLL_PRINCIPAL_ONLY
-      : SettlementAction.ROLL_PRINCIPAL_INTEREST;
-
-  const renewed = await renewSaving({
-    cycleId: input.cycleId,
-    action: rollAction,
-    packageId: input.packageId,
-    settlementAccountId: input.settlementAccountId,
-    decisionSource,
-    renewalPolicyAfter: input.renewalPolicyAfter,
-  });
-  if (!renewed.ok) return { status: "error", code: renewed.code };
-
-  if (input.renewalConfig && input.renewalPolicyAfter) {
-    await updateRenewalPolicy({
-      savingId: input.savingId,
-      renewalPolicy: input.renewalPolicyAfter,
-      renewalConfig: input.renewalConfig,
-    });
-  }
-
-  await acknowledgeInboxItem({
-    inboxItemId: input.inboxItemId,
-    action: input.action,
-  });
-
-  revalidateSavingsInboxViews();
-  return {
-    status: "success",
-    id: renewed.savingId,
-    cycleId: renewed.cycleId,
-  };
+  return result;
 }
 
 export async function acknowledgeEarlyWithdrawalAction(input: {
@@ -497,32 +289,22 @@ export async function acknowledgeEarlyWithdrawalAction(input: {
   cycleId: string;
   settlementAccountId?: string;
 }): Promise<SavingsInboxActionState> {
-  if (input.action !== EarlyWithdrawalAckAction.CONFIRM) {
-    const ack = await acknowledgeInboxItem({
-      inboxItemId: input.inboxItemId,
-      action: input.action,
-    });
-    if (!ack.ok) return { status: "error", code: ack.code };
-    revalidateInboxViews();
-    return { status: "success" };
+  const gate = await assertMoneyActionAllowed();
+  if (!gate.ok) {
+    return {
+      status: "error",
+      code: productActionErrorFromDeniedReason(gate.reason),
+    };
   }
-
-  const confirmed = await confirmEarlyWithdrawal({
-    savingId: input.savingId,
-    cycleId: input.cycleId,
-    settlementAccountId: input.settlementAccountId,
+  const result = await executeEarlyWithdrawalWorkflow({
+    context: { householdId: gate.householdId },
+    ...input,
   });
-  if (!confirmed.ok) return { status: "error", code: confirmed.code };
-
-  await acknowledgeInboxItem({
-    inboxItemId: input.inboxItemId,
-    action: input.action,
-  });
-
-  revalidateSavingsInboxViews();
-  return {
-    status: "success",
-    id: confirmed.savingId,
-    netAmount: confirmed.netReturned,
-  };
+  if (result.status === "error") return result;
+  if (input.action === EarlyWithdrawalAckAction.CONFIRM) {
+    revalidateSavingsInboxViews();
+  } else {
+    revalidateInboxViews();
+  }
+  return result;
 }

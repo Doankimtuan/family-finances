@@ -214,6 +214,7 @@ export default async function PlanGoalDetailPage({ params }: Props) {
         name={goal.name}
         targetAmount={goal.targetAmount}
         fundedAmount={goal.fundedAmount}
+        progressPercent={goal.progressPercent}
         remainingPrincipal={
           goal.fundingSummary?.remainingPrincipalTotal ?? null
         }
