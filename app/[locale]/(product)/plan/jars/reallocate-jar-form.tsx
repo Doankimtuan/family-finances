@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useState, useTransition } from "react";
-import { Controller, useForm, useWatch } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useTranslations } from "next-intl";
@@ -18,7 +18,7 @@ import {
   type OverspendPolicy as OverspendPolicyValue,
 } from "@/modules/tenancy/application/household-policies.schema";
 import { APP_PATH, inboxItemPath } from "@/modules/tenancy/application/app-path";
-import { AmountField } from "@/shared/patterns/amount-field";
+import { ControlledField } from "@/shared/patterns/controlled-fields";
 import { TextField, CheckboxField } from "@/shared/ui/form";
 import { Button } from "@/shared/ui/button";
 import { StatusAlert } from "@/shared/ui/status-alert";
@@ -387,21 +387,16 @@ export function ReallocateJarForm({
         </div>
       ) : null}
 
-      <Controller
+      <ControlledField
         control={control}
-        name="amount"
-        render={({ field }) => (
-          <AmountField
-            id={amountId}
-            label={t("amountLabel")}
-            value={typeof field.value === "number" ? field.value : null}
-            onValueChange={(next) => {
-              field.onChange(next ?? undefined);
-            }}
-            error={errors.amount?.message}
-            data-testid="jar-reallocate-amount"
-          />
-        )}
+        field={{
+          type: "amount",
+          name: "amount",
+          id: amountId,
+          label: t("amountLabel"),
+          testId: "jar-reallocate-amount",
+          emptyValue: undefined,
+        }}
       />
 
       <label className="flex flex-col gap-(--space-2)" htmlFor={targetId}>

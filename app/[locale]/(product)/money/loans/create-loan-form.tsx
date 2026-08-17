@@ -1,13 +1,19 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useForm, useWatch } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { TextField } from "@/shared/ui/form";
+import {
+  ControlledField,
+  ControlledFields,
+  type ControlledFieldConfig,
+} from "@/shared/patterns/controlled-fields";
 import { Button } from "@/shared/ui/button";
 import { AlertVariant } from "@/shared/ui/alert";
 import { Text } from "@/shared/ui/text";
-import { AmountField } from "@/shared/patterns/amount-field";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import { useStatusAlert } from "@/providers/status-alert-provider";
 import { formatCurrency } from "@/shared/i18n/formatters";
@@ -18,6 +24,7 @@ import {
 import {
   addMonthsYmd,
   DEFAULT_CURRENCY,
+  createLoanInputSchema,
   LOAN_INTEREST_STRATEGY_OPTIONS,
   LOAN_REPAYMENT_METHOD_OPTIONS,
   LOAN_TERM_UNIT_VALUES,
@@ -27,12 +34,38 @@ import {
   LoanTermUnit,
   LoanType,
   simulateLoanPreview,
+  type CreateLoanInput,
 } from "@/modules/ledger/application/client";
 import { createLoanAction } from "../money-products-actions";
 
 function todayYmd(): string {
   return new Date().toISOString().slice(0, 10);
 }
+
+type FormValues = CreateLoanInput;
+
+const DEFAULT_VALUES = {
+  name: "",
+  lender: "",
+  loanType: LoanType.OTHER,
+  principal: undefined,
+  annualInterestRate: 0,
+  interestStrategy: LoanInterestStrategy.FIXED,
+  promoFixedRate: 0,
+  promoFixedMonths: 12,
+  promoFloatingRate: 0,
+  promoRateEffectiveOn: null,
+  repaymentMethod: LoanRepaymentMethod.FIXED_MONTHLY,
+  termValue: 12,
+  termUnit: LoanTermUnit.MONTHS,
+  startDate: todayYmd(),
+  firstPaymentDate: null,
+  note: "",
+} satisfies Partial<FormValues>;
+const optionList = (
+  values: readonly string[],
+  label: (value: string) => string,
+) => values.map((value) => ({ id: value, label: label(value) }));
 
 export function CreateLoanForm() {
   const t = useTranslations("money.loansPage");
@@ -42,64 +75,105 @@ export function CreateLoanForm() {
   const { online } = useOnlineStatusClient();
   const statusAlert = useStatusAlert();
   const [open, setOpen] = useState(false);
-  const [name, setName] = useState("");
-  const [lender, setLender] = useState("");
-  const [loanType, setLoanType] = useState<string>(LoanType.OTHER);
-  const [principal, setPrincipal] = useState<number | null>(null);
-  const [interest, setInterest] = useState(0);
-  const [interestStrategy, setInterestStrategy] = useState<string>(
-    LoanInterestStrategy.FIXED,
-  );
-  const [promoFixedRate, setPromoFixedRate] = useState(0);
-  const [promoFixedMonths, setPromoFixedMonths] = useState(12);
-  const [promoFloatingRate, setPromoFloatingRate] = useState(0);
-  const [promoEffectiveOn, setPromoEffectiveOn] = useState("");
-  const [repaymentMethod, setRepaymentMethod] = useState<string>(
-    LoanRepaymentMethod.FIXED_MONTHLY,
-  );
-  const [termValue, setTermValue] = useState(12);
-  const [termUnit, setTermUnit] = useState<string>(LoanTermUnit.MONTHS);
-  const [startDate, setStartDate] = useState(todayYmd);
-  const [firstPaymentDate, setFirstPaymentDate] = useState("");
-  const [note, setNote] = useState("");
   const [isPending, startTransition] = useTransition();
-
-  const principalAmt = principal ?? 0;
-  const firstPay = firstPaymentDate || startDate || todayYmd();
+  const {
+    register,
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<FormValues>({
+    resolver: zodResolver(createLoanInputSchema),
+    defaultValues: DEFAULT_VALUES,
+  });
+  const values = useWatch({ control });
+  const interestStrategy =
+    values.interestStrategy ?? LoanInterestStrategy.FIXED;
+  const firstPaymentDate =
+    values.firstPaymentDate || values.startDate || todayYmd();
   const derivedPromoEffective =
     interestStrategy === LoanInterestStrategy.PROMO_FIXED_TO_FLOATING
-      ? promoEffectiveOn && promoEffectiveOn >= firstPay
-        ? promoEffectiveOn
-        : addMonthsYmd(firstPay, Math.max(1, promoFixedMonths))
+      ? values.promoRateEffectiveOn &&
+        values.promoRateEffectiveOn >= firstPaymentDate
+        ? values.promoRateEffectiveOn
+        : addMonthsYmd(
+            firstPaymentDate,
+            Math.max(1, values.promoFixedMonths ?? 1),
+          )
       : null;
-
   const preview =
-    principal != null &&
-    principalAmt > 0 &&
-    termValue > 0 &&
-    (interestStrategy !== LoanInterestStrategy.PROMO_FIXED_TO_FLOATING ||
-      promoFixedMonths > 0)
+    values.principal != null &&
+    values.principal > 0 &&
+    (values.termValue ?? 0) > 0
       ? simulateLoanPreview({
-          principal: Math.trunc(principalAmt),
-          annualInterestRate: interest,
-          termValue: Math.trunc(termValue),
-          termUnit: termUnit as (typeof LOAN_TERM_UNIT_VALUES)[number],
-          firstPaymentDate: firstPay,
+          principal: Math.trunc(values.principal),
+          annualInterestRate: values.annualInterestRate ?? 0,
+          termValue: Math.trunc(values.termValue ?? 0),
+          termUnit: values.termUnit ?? LoanTermUnit.MONTHS,
+          firstPaymentDate,
           repaymentMethod:
-            repaymentMethod as (typeof LOAN_REPAYMENT_METHOD_OPTIONS)[number],
-          interestStrategy:
-            interestStrategy as (typeof LOAN_INTEREST_STRATEGY_OPTIONS)[number],
-          promoFixedRate,
-          promoFixedMonths,
-          promoFloatingRate,
+            values.repaymentMethod ?? LoanRepaymentMethod.FIXED_MONTHLY,
+          interestStrategy,
+          promoFixedRate: values.promoFixedRate,
+          promoFixedMonths: values.promoFixedMonths,
+          promoFloatingRate: values.promoFloatingRate,
           promoRateEffectiveOn: derivedPromoEffective,
         })
       : null;
-
-  const money = (n: number) =>
-    formatCurrency(n, DEFAULT_CURRENCY, locale, { maximumFractionDigits: 0 });
-
-  if (!open) {
+  const money = (amount: number) =>
+    formatCurrency(amount, DEFAULT_CURRENCY, locale, {
+      maximumFractionDigits: 0,
+    });
+  const error = (field: keyof FormValues) =>
+    errors[field] ? tErr(PRODUCT_ACTION_ERROR_CODE.INVALID) : undefined;
+  const selectOptions = {
+    loanType: optionList(LOAN_TYPE_OPTIONS, (value) =>
+      t(`loanTypes.${value}` as never),
+    ),
+    repaymentMethod: optionList(LOAN_REPAYMENT_METHOD_OPTIONS, (value) =>
+      t(`repaymentMethods.${value}` as never),
+    ),
+    interestStrategy: optionList(LOAN_INTEREST_STRATEGY_OPTIONS, (value) =>
+      t(`interestStrategies.${value}` as never),
+    ),
+    termUnit: optionList(LOAN_TERM_UNIT_VALUES, (value) =>
+      t(`termUnits.${value}` as never),
+    ),
+  };
+  const onSubmit = handleSubmit((submitted) => {
+    statusAlert.hide();
+    if (!online) {
+      statusAlert.show({
+        variant: AlertVariant.DANGER,
+        title: tErr(CLIENT_ACTION_ERROR_CODE.OFFLINE),
+      });
+      return;
+    }
+    if (!preview) {
+      statusAlert.show({
+        variant: AlertVariant.DANGER,
+        title: tErr(PRODUCT_ACTION_ERROR_CODE.INVALID),
+      });
+      return;
+    }
+    startTransition(async () => {
+      const result = await createLoanAction({
+        ...submitted,
+        promoRateEffectiveOn: derivedPromoEffective,
+      });
+      if (result.status === "success") {
+        reset(DEFAULT_VALUES);
+        setOpen(false);
+        router.refresh();
+        return;
+      }
+      statusAlert.show({
+        variant: AlertVariant.DANGER,
+        title: tErr(result.code),
+      });
+    });
+  });
+  if (!open)
     return (
       <Button
         variant="secondary"
@@ -111,137 +185,154 @@ export function CreateLoanForm() {
         {online ? t("add") : tErr("offline")}
       </Button>
     );
-  }
+
+  const commonFields = [
+    {
+      type: "select",
+      name: "loanType",
+      label: t("loanTypeLabel"),
+      id: "loan-loanType",
+      testId: "loan-type",
+      options: selectOptions.loanType,
+    },
+    {
+      type: "select",
+      name: "repaymentMethod",
+      label: t("repaymentMethodLabel"),
+      id: "loan-repaymentMethod",
+      testId: "loan-repayment-method",
+      options: selectOptions.repaymentMethod,
+    },
+    {
+      type: "select",
+      name: "interestStrategy",
+      label: t("interestStrategyLabel"),
+      id: "loan-interestStrategy",
+      testId: "loan-interest-strategy",
+      options: selectOptions.interestStrategy,
+    },
+    {
+      type: "number",
+      name: "termValue",
+      label: t("termValueLabel"),
+      id: "loan-termValue",
+      testId: "loan-term-value",
+      minValue: 1,
+      maxValue: 600,
+      step: 1,
+    },
+    {
+      type: "select",
+      name: "termUnit",
+      label: t("termUnitLabel"),
+      id: "loan-termUnit",
+      testId: "loan-term-unit",
+      options: selectOptions.termUnit,
+    },
+    {
+      type: "date",
+      name: "startDate",
+      label: t("startDateLabel"),
+      id: "loan-startDate",
+      testId: "loan-start-date",
+    },
+    {
+      type: "date",
+      name: "firstPaymentDate",
+      label: t("firstPaymentDateLabel"),
+      id: "loan-firstPaymentDate",
+      testId: "loan-first-payment",
+      emptyValue: null,
+    },
+  ] satisfies ControlledFieldConfig<FormValues>[];
+  const promoFields = interestStrategy === LoanInterestStrategy.PROMO_FIXED_TO_FLOATING
+    ? ([
+        {
+          type: "number",
+          name: "promoFixedRate",
+          label: t("promoFixedRateLabel"),
+          id: "loan-promoFixedRate",
+          testId: "loan-promo-fixed-rate",
+          minValue: 0,
+          maxValue: 100,
+          step: 0.01,
+        },
+        {
+          type: "number",
+          name: "promoFixedMonths",
+          label: t("promoFixedMonthsLabel"),
+          id: "loan-promoFixedMonths",
+          testId: "loan-promo-fixed-months",
+          minValue: 1,
+          maxValue: 600,
+          step: 1,
+        },
+        {
+          type: "number",
+          name: "promoFloatingRate",
+          label: t("promoFloatingRateLabel"),
+          id: "loan-promoFloatingRate",
+          testId: "loan-promo-floating-rate",
+          minValue: 0,
+          maxValue: 100,
+          step: 0.01,
+        },
+        {
+          type: "date",
+          name: "promoRateEffectiveOn",
+          label: t("promoEffectiveOnLabel"),
+          id: "loan-promoRateEffectiveOn",
+          testId: "loan-promo-effective",
+          emptyValue: null,
+        },
+      ] satisfies ControlledFieldConfig<FormValues>[])
+    : [];
 
   return (
-    <div
+    <form
       className="flex flex-col gap-(--space-3) rounded-lg border border-border-subtle bg-surface p-(--space-4)"
       data-testid="loan-add-form"
+      onSubmit={onSubmit}
     >
       <TextField
         id="loan-name"
         label={t("nameLabel")}
-        value={name}
-        onChange={(e) => setName(e.target.value)}
+        registration={register("name")}
+        error={error("name")}
       />
       <TextField
         id="loan-lender"
         label={t("lenderLabel")}
-        value={lender}
-        onChange={(e) => setLender(e.target.value)}
+        registration={register("lender")}
+        error={error("lender")}
       />
-      <label className="flex flex-col gap-(--space-1)">
-        <span className="text-sm text-text-secondary">
-          {t("loanTypeLabel")}
-        </span>
-        <select
-          className="min-h-11 rounded-md border border-border-subtle bg-surface px-(--space-3) text-sm"
-          value={loanType}
-          onChange={(e) => setLoanType(e.target.value)}
-          data-testid="loan-type"
-        >
-          {LOAN_TYPE_OPTIONS.map((value) => (
-            <option key={value} value={value}>
-              {t(`loanTypes.${value}`)}
-            </option>
-          ))}
-        </select>
-      </label>
-      <AmountField
-        id="loan-principal"
-        label={t("principalLabel")}
-        value={principal}
-        onValueChange={setPrincipal}
-        data-testid="loan-principal"
+      <ControlledFields
+        control={control}
+        fields={commonFields.slice(0, 1)}
+        getErrorMessage={() => tErr(PRODUCT_ACTION_ERROR_CODE.INVALID)}
       />
-      <label className="flex flex-col gap-(--space-1)">
-        <span className="text-sm text-text-secondary">
-          {t("repaymentMethodLabel")}
-        </span>
-        <select
-          className="min-h-11 rounded-md border border-border-subtle bg-surface px-(--space-3) text-sm"
-          value={repaymentMethod}
-          onChange={(e) => setRepaymentMethod(e.target.value)}
-          data-testid="loan-repayment-method"
-        >
-          {LOAN_REPAYMENT_METHOD_OPTIONS.map((value) => (
-            <option key={value} value={value}>
-              {t(`repaymentMethods.${value}`)}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label className="flex flex-col gap-(--space-1)">
-        <span className="text-sm text-text-secondary">
-          {t("interestStrategyLabel")}
-        </span>
-        <select
-          className="min-h-11 rounded-md border border-border-subtle bg-surface px-(--space-3) text-sm"
-          value={interestStrategy}
-          onChange={(e) => setInterestStrategy(e.target.value)}
-          data-testid="loan-interest-strategy"
-        >
-          {LOAN_INTEREST_STRATEGY_OPTIONS.map((value) => (
-            <option key={value} value={value}>
-              {t(`interestStrategies.${value}`)}
-            </option>
-          ))}
-        </select>
-      </label>
+      <ControlledField
+        control={control}
+        field={{
+          type: "amount",
+          name: "principal",
+          label: t("principalLabel"),
+          id: "loan-principal",
+          testId: "loan-principal",
+        }}
+        getErrorMessage={() => tErr(PRODUCT_ACTION_ERROR_CODE.INVALID)}
+      />
+      <ControlledFields
+        control={control}
+        fields={commonFields.slice(1, 3)}
+        getErrorMessage={() => tErr(PRODUCT_ACTION_ERROR_CODE.INVALID)}
+      />
       {interestStrategy === LoanInterestStrategy.PROMO_FIXED_TO_FLOATING ? (
         <>
-          <TextField
-            id="loan-promo-fixed-rate"
-            label={t("promoFixedRateLabel")}
-            type="number"
-            inputMode="decimal"
-            min={0}
-            max={100}
-            step="0.01"
-            value={String(promoFixedRate)}
-            onChange={(e) => {
-              const next = Number(e.target.value);
-              setPromoFixedRate(Number.isFinite(next) ? next : 0);
-            }}
-            data-testid="loan-promo-fixed-rate"
-          />
-          <TextField
-            id="loan-promo-fixed-months"
-            label={t("promoFixedMonthsLabel")}
-            type="number"
-            inputMode="numeric"
-            min={1}
-            max={600}
-            step={1}
-            value={String(promoFixedMonths)}
-            onChange={(e) => {
-              const next = Number(e.target.value);
-              if (Number.isFinite(next)) setPromoFixedMonths(Math.trunc(next));
-            }}
-            data-testid="loan-promo-fixed-months"
-          />
-          <TextField
-            id="loan-promo-floating-rate"
-            label={t("promoFloatingRateLabel")}
-            type="number"
-            inputMode="decimal"
-            min={0}
-            max={100}
-            step="0.01"
-            value={String(promoFloatingRate)}
-            onChange={(e) => {
-              const next = Number(e.target.value);
-              setPromoFloatingRate(Number.isFinite(next) ? next : 0);
-            }}
-            data-testid="loan-promo-floating-rate"
-          />
-          <TextField
-            id="loan-promo-effective"
-            label={t("promoEffectiveOnLabel")}
-            type="date"
-            value={promoEffectiveOn}
-            onChange={(e) => setPromoEffectiveOn(e.target.value)}
-            data-testid="loan-promo-effective"
+          <ControlledFields
+            control={control}
+            fields={promoFields}
+            getErrorMessage={() => tErr(PRODUCT_ACTION_ERROR_CODE.INVALID)}
           />
           {derivedPromoEffective ? (
             <Text size="sm" tone="secondary">
@@ -250,83 +341,47 @@ export function CreateLoanForm() {
           ) : null}
         </>
       ) : (
-        <TextField
-          id="loan-interest"
-          label={
-            interestStrategy === LoanInterestStrategy.FLOATING
-              ? t("currentInterestLabel")
-              : t("interestLabel")
-          }
-          type="number"
-          inputMode="decimal"
-          min={0}
-          max={100}
-          step="0.01"
-          value={String(interest)}
-          onChange={(e) => {
-            const next = Number(e.target.value);
-            setInterest(Number.isFinite(next) ? next : 0);
+        <ControlledField
+          control={control}
+          field={{
+            type: "number",
+            name: "annualInterestRate",
+            label:
+              interestStrategy === LoanInterestStrategy.FLOATING
+                ? t("currentInterestLabel")
+                : t("interestLabel"),
+            id: "loan-interest",
+            testId: "loan-interest",
+            minValue: 0,
+            maxValue: 100,
+            step: 0.01,
           }}
-          data-testid="loan-interest"
+          getErrorMessage={() => tErr(PRODUCT_ACTION_ERROR_CODE.INVALID)}
         />
       )}
       <div className="grid grid-cols-2 gap-(--space-2)">
-        <TextField
-          id="loan-term-value"
-          label={t("termValueLabel")}
-          type="number"
-          inputMode="numeric"
-          min={1}
-          max={600}
-          step={1}
-          value={String(termValue)}
-          onChange={(e) => {
-            const next = Number(e.target.value);
-            if (Number.isFinite(next)) setTermValue(Math.trunc(next));
-          }}
-          data-testid="loan-term-value"
+        <ControlledField
+          control={control}
+          field={commonFields[3]}
+          getErrorMessage={() => tErr(PRODUCT_ACTION_ERROR_CODE.INVALID)}
         />
-        <label className="flex flex-col gap-(--space-1)">
-          <span className="text-sm text-text-secondary">
-            {t("termUnitLabel")}
-          </span>
-          <select
-            className="min-h-11 rounded-md border border-border-subtle bg-surface px-(--space-3) text-sm"
-            value={termUnit}
-            onChange={(e) => setTermUnit(e.target.value)}
-            data-testid="loan-term-unit"
-          >
-            {LOAN_TERM_UNIT_VALUES.map((value) => (
-              <option key={value} value={value}>
-                {t(`termUnits.${value}`)}
-              </option>
-            ))}
-          </select>
-        </label>
+        <ControlledField
+          control={control}
+          field={commonFields[4]}
+          getErrorMessage={() => tErr(PRODUCT_ACTION_ERROR_CODE.INVALID)}
+        />
       </div>
-      <TextField
-        id="loan-start-date"
-        label={t("startDateLabel")}
-        type="date"
-        value={startDate}
-        onChange={(e) => setStartDate(e.target.value)}
-        data-testid="loan-start-date"
-      />
-      <TextField
-        id="loan-first-payment"
-        label={t("firstPaymentDateLabel")}
-        type="date"
-        value={firstPaymentDate}
-        onChange={(e) => setFirstPaymentDate(e.target.value)}
-        data-testid="loan-first-payment"
+      <ControlledFields
+        control={control}
+        fields={commonFields.slice(5)}
+        getErrorMessage={() => tErr(PRODUCT_ACTION_ERROR_CODE.INVALID)}
       />
       <TextField
         id="loan-note"
         label={t("noteLabel")}
-        value={note}
-        onChange={(e) => setNote(e.target.value)}
+        registration={register("note")}
+        error={error("note")}
       />
-
       <div
         className="flex flex-col gap-(--space-2) rounded-md border border-border-subtle bg-surface p-(--space-3)"
         data-testid="loan-simulation"
@@ -365,9 +420,7 @@ export function CreateLoanForm() {
               })}
             </Text>
             <Text size="sm" tone="secondary" data-testid="loan-sim-total">
-              {t("simulationTotal", {
-                amount: money(preview.totalRepayment),
-              })}
+              {t("simulationTotal", { amount: money(preview.totalRepayment) })}
             </Text>
             <Text size="sm" tone="secondary">
               {t("simulationEndDate", { date: preview.endDate })}
@@ -379,88 +432,30 @@ export function CreateLoanForm() {
           </Text>
         )}
       </div>
-
       <div className="flex gap-(--space-2)">
         <Button
+          type="submit"
           variant="primary"
           className="min-h-11 flex-1"
           data-testid="loan-add-save"
           isDisabled={isPending || !online || !preview}
-          onPress={() => {
-            statusAlert.hide();
-            if (!online) {
-              statusAlert.show({
-                variant: AlertVariant.DANGER,
-                title: tErr(CLIENT_ACTION_ERROR_CODE.OFFLINE),
-              });
-              return;
-            }
-            if (!preview) {
-              statusAlert.show({
-                variant: AlertVariant.DANGER,
-                title: tErr(PRODUCT_ACTION_ERROR_CODE.INVALID),
-              });
-              return;
-            }
-            startTransition(async () => {
-              const result = await createLoanAction({
-                name,
-                lender: lender.trim() || undefined,
-                loanType: loanType as (typeof LOAN_TYPE_OPTIONS)[number],
-                principal: Math.trunc(principalAmt),
-                annualInterestRate: interest,
-                interestStrategy:
-                  interestStrategy as (typeof LOAN_INTEREST_STRATEGY_OPTIONS)[number],
-                promoFixedRate:
-                  interestStrategy ===
-                  LoanInterestStrategy.PROMO_FIXED_TO_FLOATING
-                    ? promoFixedRate
-                    : undefined,
-                promoFixedMonths:
-                  interestStrategy ===
-                  LoanInterestStrategy.PROMO_FIXED_TO_FLOATING
-                    ? promoFixedMonths
-                    : undefined,
-                promoFloatingRate:
-                  interestStrategy ===
-                  LoanInterestStrategy.PROMO_FIXED_TO_FLOATING
-                    ? promoFloatingRate
-                    : undefined,
-                promoRateEffectiveOn: derivedPromoEffective,
-                repaymentMethod:
-                  repaymentMethod as (typeof LOAN_REPAYMENT_METHOD_OPTIONS)[number],
-                termValue: Math.trunc(termValue),
-                termUnit: termUnit as (typeof LOAN_TERM_UNIT_VALUES)[number],
-                startDate,
-                firstPaymentDate: firstPaymentDate || undefined,
-                note: note.trim() || undefined,
-              });
-              if (result.status === "success") {
-                setOpen(false);
-                router.refresh();
-                return;
-              }
-              statusAlert.show({
-                variant: AlertVariant.DANGER,
-                title: tErr(result.code),
-              });
-            });
-          }}
         >
           {isPending ? t("saving") : t("save")}
         </Button>
         <Button
+          type="button"
           variant="secondary"
           className="min-h-11"
           isDisabled={isPending}
           onPress={() => {
             statusAlert.hide();
+            reset(DEFAULT_VALUES);
             setOpen(false);
           }}
         >
           {t("cancel")}
         </Button>
       </div>
-    </div>
+    </form>
   );
 }

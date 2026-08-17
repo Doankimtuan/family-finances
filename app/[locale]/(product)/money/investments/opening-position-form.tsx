@@ -1,6 +1,8 @@
 "use client";
-import { useMemo, useRef, useState, useTransition } from "react";
-import type { ChangeEvent } from "react";
+import { useState, useTransition } from "react";
+import { Controller, useForm, useWatch } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "@/i18n/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import {
@@ -13,13 +15,14 @@ import {
   InvestmentAssetClass,
   InvestmentEntryMode,
   OPENING_POSITION_STEP_VALUES,
+  INVESTMENT_CREATE_IDEMPOTENCY_KEY_PREFIX,
+  initialPurchaseInputSchema,
+  openingPositionInputSchema,
   type InvestmentErrorCode,
-  type InvestmentEntryMode as InvestmentEntryModeType,
 } from "@/modules/investments/application/client";
 import {
   GoldUnit,
   GOLD_UNIT_VALUES,
-  type GoldUnit as GoldUnitType,
 } from "@/modules/investments/domain";
 import {
   investmentUxConfig,
@@ -27,17 +30,15 @@ import {
 } from "@/modules/investments/application/investment-ux";
 import {
   buildHistoricalImportPreview,
-  type HistoricalBasisInputMode,
+  HistoricalBasisInputMode,
 } from "@/modules/investments/application/historical-import-view-model";
+import { multiplyQuantityByUnitPrice } from "@/modules/investments/application/investment-operation-view-model";
+import { DEFAULT_CURRENCY } from "@/modules/ledger/application/client";
 import { AppIcon } from "@/shared/ui/app-icon";
-import { AmountField } from "@/shared/patterns/amount-field";
-import { DecimalField } from "@/shared/patterns/decimal-field";
+import { ControlledField } from "@/shared/patterns/controlled-fields";
 import { BottomActionBar } from "@/shared/patterns/bottom-action-bar";
 import { MotionStep, MotionStepDirection } from "@/shared/motion";
-import {
-  LabeledDateInput,
-  LabeledSelect,
-} from "@/shared/patterns/labeled-native-field";
+import { LabeledSelect } from "@/shared/patterns/labeled-native-field";
 import { Button } from "@/shared/ui/button";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Text } from "@/shared/ui/text";
@@ -60,8 +61,66 @@ const FIRST_STEP_INDEX = 0;
 const DETAILS_STEP_INDEX = 1;
 const REVIEW_STEP_INDEX = 2;
 const ZERO_AMOUNT = 0;
+const ENTRY_MODES = [
+  InvestmentEntryMode.HISTORICAL,
+  InvestmentEntryMode.PURCHASE,
+] as const;
+const BASIS_MODES = [
+  HistoricalBasisInputMode.PER_UNIT,
+  HistoricalBasisInputMode.TOTAL,
+] as const;
+
+const openingPositionFormSchema = z
+  .object({
+    entryMode: z.enum(ENTRY_MODES),
+    assetName: openingPositionInputSchema.shape.assetName,
+    assetClass: openingPositionInputSchema.shape.assetClass,
+    symbol: openingPositionInputSchema.shape.symbol,
+    provider: openingPositionInputSchema.shape.providerCustodian,
+    quantity: openingPositionInputSchema.shape.quantity,
+    unit: z.enum(GOLD_UNIT_VALUES),
+    basisInputMode: z.enum(BASIS_MODES),
+    costPerUnit: openingPositionInputSchema.shape.remainingTotalCostBasis,
+    totalBasisInput: openingPositionInputSchema.shape.remainingTotalCostBasis,
+    currentUnitValuation: openingPositionInputSchema.shape.remainingTotalCostBasis,
+    price: initialPurchaseInputSchema.shape.unitPriceVnd.nullable().optional(),
+    accountId: z
+      .union([initialPurchaseInputSchema.shape.cashAccountId, z.literal("")])
+      .optional(),
+    date: openingPositionInputSchema.shape.asOfDate,
+    notes: openingPositionInputSchema.shape.notes,
+  })
+  .superRefine((value, context) => {
+    if (value.entryMode !== InvestmentEntryMode.PURCHASE) return;
+    if (value.price == null) {
+      context.addIssue({ code: "custom", path: ["price"], message: "Required" });
+    }
+    if (!value.accountId) {
+      context.addIssue({ code: "custom", path: ["accountId"], message: "Required" });
+    }
+  });
+
+type OpeningPositionFormValues = z.input<typeof openingPositionFormSchema>;
 
 const today = () => new Date().toISOString().slice(0, 10);
+
+const createDefaultValues = (accounts: AccountOption[]) => ({
+  entryMode: InvestmentEntryMode.HISTORICAL,
+  assetName: "",
+  assetClass: InvestmentAssetClass.STOCK,
+  symbol: "",
+  provider: "",
+  quantity: "",
+  unit: GoldUnit.CHI,
+  basisInputMode: HistoricalBasisInputMode.PER_UNIT,
+  costPerUnit: null,
+  totalBasisInput: null,
+  currentUnitValuation: null,
+  price: null,
+  accountId: accounts[0]?.id ?? undefined,
+  date: today(),
+  notes: "",
+}) satisfies Partial<OpeningPositionFormValues>;
 
 const iconFor = (asset: InvestmentUxType) =>
   asset === InvestmentAssetClass.STOCK
@@ -78,31 +137,36 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
   const router = useRouter();
   const [stepIndex, setStepIndex] = useState(FIRST_STEP_INDEX);
   const [direction, setDirection] = useState<"forward" | "backward">("forward");
-  const [assetClass, setAssetClass] = useState<InvestmentUxType>(
-    InvestmentAssetClass.STOCK,
-  );
-  const [entryMode, setEntryMode] = useState<InvestmentEntryModeType>(
-    InvestmentEntryMode.HISTORICAL,
-  );
-  const [assetName, setAssetName] = useState("");
-  const [symbol, setSymbol] = useState("");
-  const [provider, setProvider] = useState("");
-  const [quantity, setQuantity] = useState("");
-  const [unit, setUnit] = useState<GoldUnitType>(GoldUnit.CHI);
-  const [basisInputMode, setBasisInputMode] =
-    useState<HistoricalBasisInputMode>("per-unit");
-  const [costPerUnit, setCostPerUnit] = useState<number | null>(null);
-  const [totalBasisInput, setTotalBasisInput] = useState<number | null>(null);
-  const [currentUnitValuation, setCurrentUnitValuation] = useState<
-    number | null
-  >(null);
-  const [price, setPrice] = useState<number | null>(null);
-  const [accountId, setAccountId] = useState(accounts[0]?.id ?? "");
-  const [date, setDate] = useState(today);
-  const [notes, setNotes] = useState("");
   const [error, setError] = useState<InvestmentErrorCode | null>(null);
   const [pending, startTransition] = useTransition();
-  const idempotencyKey = useRef<string | null>(null);
+  const {
+    control,
+    register,
+    handleSubmit,
+    reset,
+    resetField,
+    setValue,
+    formState: { errors },
+  } = useForm<OpeningPositionFormValues>({
+    resolver: zodResolver(openingPositionFormSchema),
+    defaultValues: createDefaultValues(accounts),
+  });
+  const values = useWatch({ control });
+  const {
+    assetClass = InvestmentAssetClass.STOCK,
+    entryMode = InvestmentEntryMode.HISTORICAL,
+    assetName = "",
+    provider = "",
+    quantity = "",
+    unit = GoldUnit.CHI,
+    basisInputMode = HistoricalBasisInputMode.PER_UNIT,
+    costPerUnit = null,
+    totalBasisInput = null,
+    currentUnitValuation = null,
+    price = null,
+    accountId,
+    date = today(),
+  } = values;
   const config = investmentUxConfig(assetClass);
   const historicalPreview = buildHistoricalImportPreview({
     quantity,
@@ -111,55 +175,56 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
     totalCostBasis: totalBasisInput,
     currentUnitValuation,
   });
-  const gross = quantity && price != null ? Number(quantity) * price : null;
+  const gross = quantity
+    ? multiplyQuantityByUnitPrice(quantity, price)
+    : null;
 
   const money = (value: number | null) =>
     value == null
-      ? "—"
-      : formatCurrency(value, "VND", locale, { maximumFractionDigits: 0 });
+      ? t("unknown")
+      : formatCurrency(value, DEFAULT_CURRENCY, locale, {
+          maximumFractionDigits: 0,
+        });
 
-  const accountOptions = useMemo(
-    () => accounts.map((account) => ({ id: account.id, label: account.name })),
-    [accounts],
-  );
+  const accountOptions = accounts.map((account) => ({
+    id: account.id,
+    label: account.name,
+  }));
 
-  const unitOptions = useMemo(
-    () =>
-      GOLD_UNIT_VALUES.map((u) => ({
-        id: u,
-        label: t(`units.${u}`),
-      })),
-    [t],
-  );
+  const unitOptions = GOLD_UNIT_VALUES.map((value) => ({
+    id: value,
+    label: t(`units.${value}`),
+  }));
 
   const setType = (next: InvestmentUxType) => {
-    setAssetClass(next);
-    setAssetName("");
-    setSymbol("");
-    setProvider("");
-    setQuantity("");
-    setUnit(GoldUnit.CHI);
-    setBasisInputMode("per-unit");
-    setCostPerUnit(null);
-    setTotalBasisInput(null);
-    setCurrentUnitValuation(null);
-    setPrice(null);
+    setValue("assetClass", next);
+    resetField("assetName");
+    resetField("symbol");
+    resetField("provider");
+    resetField("quantity");
+    resetField("unit");
+    resetField("basisInputMode");
+    resetField("costPerUnit");
+    resetField("totalBasisInput");
+    resetField("currentUnitValuation");
+    resetField("price");
   };
 
-  const canDetails = Boolean(
-    assetName.trim() &&
-    quantity &&
-    (entryMode === InvestmentEntryMode.HISTORICAL
-      ? historicalPreview.basisKnown || historicalPreview.valuationKnown
-      : price != null && accountId),
-  );
-
   const goNext = () => {
-    if (stepIndex === FIRST_STEP_INDEX || canDetails) {
+    if (stepIndex === FIRST_STEP_INDEX) {
       setError(null);
       setDirection("forward");
-      setStepIndex((value) => Math.min(value + 1, REVIEW_STEP_INDEX));
+      setStepIndex(DETAILS_STEP_INDEX);
+      return;
     }
+    void handleSubmit(
+      () => {
+        setError(null);
+        setDirection("forward");
+        setStepIndex(REVIEW_STEP_INDEX);
+      },
+      () => setError("invalid"),
+    )();
   };
 
   const goBack = () => {
@@ -168,50 +233,49 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
     setStepIndex((value) => Math.max(value - 1, FIRST_STEP_INDEX));
   };
 
-  const submit = () => {
+  const submit = handleSubmit((submitted) => {
     setError(null);
-    const key =
-      idempotencyKey.current ??
-      (idempotencyKey.current = `investment:create:${crypto.randomUUID()}`);
+    const key = `${INVESTMENT_CREATE_IDEMPOTENCY_KEY_PREFIX}:${crypto.randomUUID()}`;
     startTransition(async () => {
       const result =
-        entryMode === InvestmentEntryMode.HISTORICAL
+        submitted.entryMode === InvestmentEntryMode.HISTORICAL
           ? await createOpeningPositionAction({
-              assetName,
-              assetClass,
-              quantity,
-              asOfDate: date,
-              symbol: symbol || null,
-              providerCustodian: provider || null,
+              assetName: submitted.assetName,
+              assetClass: submitted.assetClass,
+              quantity: submitted.quantity,
+              asOfDate: submitted.date,
+              symbol: submitted.symbol || null,
+              providerCustodian: submitted.provider || null,
               remainingTotalCostBasis: historicalPreview.totalCostBasis,
               currentValuation: historicalPreview.currentTotalValue,
-              notes: notes || null,
+              notes: submitted.notes || null,
               idempotencyKey: key,
             })
           : await createInitialPurchaseAction({
-              assetName,
-              assetClass,
-              quantity,
-              unitPriceVnd: price ?? ZERO_AMOUNT,
-              cashAccountId: accountId,
-              asOfDate: date,
-              symbol: symbol || null,
-              providerCustodian: provider || null,
+              assetName: submitted.assetName,
+              assetClass: submitted.assetClass,
+              quantity: submitted.quantity,
+              unitPriceVnd: submitted.price ?? ZERO_AMOUNT,
+              cashAccountId: submitted.accountId ?? "",
+              asOfDate: submitted.date,
+              symbol: submitted.symbol || null,
+              providerCustodian: submitted.provider || null,
               fees: [],
-              notes: notes || null,
+              notes: submitted.notes || null,
               idempotencyKey: key,
             });
       if (!result.ok) {
         setError(result.code);
         return;
       }
+      reset(createDefaultValues(accounts));
       router.replace(
         result.receipt.holdingId
           ? moneyInvestmentPath(result.receipt.holdingId)
           : APP_PATH.MONEY_INVESTMENTS,
       );
     });
-  };
+  });
 
   return (
     <div
@@ -320,7 +384,7 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
               <button
                 type="button"
                 aria-pressed={entryMode === InvestmentEntryMode.HISTORICAL}
-                onClick={() => setEntryMode(InvestmentEntryMode.HISTORICAL)}
+                onClick={() => setValue("entryMode", InvestmentEntryMode.HISTORICAL)}
                 className={`rounded-(--radius-control) border px-(--space-3) py-(--space-3) text-left ${entryMode === InvestmentEntryMode.HISTORICAL ? "border-accent bg-primary-soft" : "border-border-subtle bg-surface"}`}
               >
                 <Text weight="medium">{t("historicalModeTitle")}</Text>
@@ -331,7 +395,7 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
               <button
                 type="button"
                 aria-pressed={entryMode === InvestmentEntryMode.PURCHASE}
-                onClick={() => setEntryMode(InvestmentEntryMode.PURCHASE)}
+                onClick={() => setValue("entryMode", InvestmentEntryMode.PURCHASE)}
                 className={`rounded-(--radius-control) border px-(--space-3) py-(--space-3) text-left ${entryMode === InvestmentEntryMode.PURCHASE ? "border-accent bg-primary-soft" : "border-border-subtle bg-surface"}`}
               >
                 <Text weight="medium">{t("purchaseModeTitle")}</Text>
@@ -341,12 +405,12 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
               </button>
             </div>
             <div className="flex flex-col gap-(--space-3)">
-              <TextField
-                id="investment-name"
-                label={config.instrumentLabel}
-                value={assetName}
-                onChange={(event) => setAssetName(event.target.value)}
-              />
+                <TextField
+                  id="investment-name"
+                  label={config.instrumentLabel}
+                  registration={register("assetName")}
+                  error={errors.assetName ? t("errors.invalid") : undefined}
+                />
               {assetClass !== InvestmentAssetClass.GOLD &&
               assetClass !== InvestmentAssetClass.BOND ? (
                 <TextField
@@ -356,30 +420,38 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
                       ? t("fundSymbol")
                       : t("symbolLabel")
                   }
-                  value={symbol}
-                  onChange={(event) => setSymbol(event.target.value)}
+                  registration={register("symbol")}
+                  error={errors.symbol ? t("errors.invalid") : undefined}
                 />
               ) : null}
               <TextField
                 id="investment-provider"
                 label={config.providerHint}
-                value={provider}
-                onChange={(event) => setProvider(event.target.value)}
+                registration={register("provider")}
+                error={errors.provider ? t("errors.invalid") : undefined}
               />
-              <DecimalField
-                id="investment-quantity"
-                label={config.quantityLabel}
-                value={quantity}
-                onValueChange={setQuantity}
+              <ControlledField
+                control={control}
+                field={{
+                  type: "decimal",
+                  name: "quantity",
+                  id: "investment-quantity",
+                  label: config.quantityLabel,
+                  error: errors.quantity ? t("errors.invalid") : undefined,
+                }}
               />
               {assetClass === InvestmentAssetClass.GOLD ? (
-                <LabeledSelect
-                  label={t("unitLabel")}
-                  value={unit}
-                  options={unitOptions}
-                  onChange={(event) =>
-                    setUnit(event.target.value as GoldUnitType)
-                  }
+                <Controller
+                  name="unit"
+                  control={control}
+                  render={({ field }) => (
+                    <LabeledSelect
+                      label={t("unitLabel")}
+                      value={field.value}
+                      options={unitOptions}
+                      onChange={(event) => field.onChange(event.target.value)}
+                    />
+                  )}
                 />
               ) : null}
               {entryMode === InvestmentEntryMode.HISTORICAL ? (
@@ -392,44 +464,56 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
                       type="button"
                       className="text-sm font-medium text-accent underline-offset-4 hover:underline"
                       onClick={() =>
-                        setBasisInputMode(
-                          basisInputMode === "per-unit" ? "total" : "per-unit",
+                        setValue(
+                          "basisInputMode",
+                          basisInputMode === HistoricalBasisInputMode.PER_UNIT
+                            ? HistoricalBasisInputMode.TOTAL
+                            : HistoricalBasisInputMode.PER_UNIT,
                         )
                       }
                     >
-                      {basisInputMode === "per-unit"
-                        ? "Theo tổng giá vốn"
-                        : "Theo giá mỗi đơn vị"}
+                      {basisInputMode === HistoricalBasisInputMode.PER_UNIT
+                        ? t("basisTotal")
+                        : t("basisPerUnit")}
                     </button>
                   </div>
-                  {basisInputMode === "per-unit" ? (
-                    <AmountField
-                      id="investment-cost-per-unit"
-                      label={
-                        t("remainingBasisOptional") +
-                        " / " +
-                        config.quantityLabel
-                      }
-                      value={costPerUnit}
-                      onValueChange={setCostPerUnit}
+                  {basisInputMode === HistoricalBasisInputMode.PER_UNIT ? (
+                    <ControlledField
+                      control={control}
+                      field={{
+                        type: "amount",
+                        name: "costPerUnit",
+                        id: "investment-cost-per-unit",
+                        label: t("remainingBasisOptional"),
+                        error: errors.costPerUnit ? t("errors.invalid") : undefined,
+                      }}
                     />
                   ) : (
-                    <AmountField
-                      id="investment-total-basis"
-                      label={t("remainingBasisOptional")}
-                      value={totalBasisInput}
-                      onValueChange={setTotalBasisInput}
+                    <ControlledField
+                      control={control}
+                      field={{
+                        type: "amount",
+                        name: "totalBasisInput",
+                        id: "investment-total-basis",
+                        label: t("remainingBasisOptional"),
+                        error: errors.totalBasisInput ? t("errors.invalid") : undefined,
+                      }}
                     />
                   )}
-                  <AmountField
-                    id="investment-current-unit-valuation"
-                    label={
-                      assetClass === InvestmentAssetClass.GOLD
-                        ? t("goldBuyBackValuationOptional")
-                        : t("currentValuationOptional")
-                    }
-                    value={currentUnitValuation}
-                    onValueChange={setCurrentUnitValuation}
+                  <ControlledField
+                    control={control}
+                    field={{
+                      type: "amount",
+                      name: "currentUnitValuation",
+                      id: "investment-current-unit-valuation",
+                      label:
+                        assetClass === InvestmentAssetClass.GOLD
+                          ? t("goldBuyBackValuationOptional")
+                          : t("currentValuationOptional"),
+                      error: errors.currentUnitValuation
+                        ? t("errors.invalid")
+                        : undefined,
+                    }}
                   />
                   <div className="rounded-(--radius-card) border border-border-subtle bg-surface-muted p-(--space-3) text-sm">
                     <div className="flex justify-between gap-3">
@@ -445,10 +529,10 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
                       <span>{money(historicalPreview.currentTotalValue)}</span>
                     </div>
                     <div className="mt-1 flex justify-between gap-3">
-                      <span className="text-text-secondary">P&amp;L</span>
+                      <span className="text-text-secondary">{t("estimatedPnl")}</span>
                       <span>
                         {historicalPreview.unrealizedPnl == null
-                          ? "—"
+                          ? t("unknown")
                           : (historicalPreview.unrealizedPnl > 0 ? "+" : "") +
                             money(historicalPreview.unrealizedPnl)}
                       </span>
@@ -457,42 +541,41 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
                 </>
               ) : (
                 <>
-                  <AmountField
-                    id="investment-price"
-                    label={config.priceLabel}
-                    value={price}
-                    onValueChange={setPrice}
+                  <ControlledField
+                    control={control}
+                    field={{
+                      type: "amount",
+                      name: "price",
+                      id: "investment-price",
+                      label: config.priceLabel,
+                      error: errors.price ? t("errors.invalid") : undefined,
+                    }}
                   />
-                  <LabeledSelect
-                    label={t("sourceAccountLabel")}
-                    value={accountId}
-                    options={accountOptions}
-                    onChange={(event) => setAccountId(event.target.value)}
-                    disabled={accountOptions.length === 0}
-                  />
+                  <Controller name="accountId" control={control} render={({ field }) => (
+                    <LabeledSelect label={t("sourceAccountLabel")} value={field.value ?? ""} options={accountOptions} onChange={(event) => field.onChange(event.target.value)} disabled={accountOptions.length === 0} />
+                  )} />
                 </>
               )}
-              <LabeledDateInput
-                label={
-                  entryMode === InvestmentEntryMode.HISTORICAL
-                    ? t("asOfDate")
-                    : assetClass === InvestmentAssetClass.FUND
-                      ? t("investmentDate")
-                      : t("transactionDate")
-                }
-                value={date}
-                onChange={(event) => setDate(event.target.value)}
+              <ControlledField
+                control={control}
+                field={{
+                  type: "date",
+                  name: "date",
+                  id: "investment-date",
+                  label:
+                    entryMode === InvestmentEntryMode.HISTORICAL
+                      ? t("asOfDate")
+                      : assetClass === InvestmentAssetClass.FUND
+                        ? t("investmentDate")
+                        : t("transactionDate"),
+                  error: errors.date ? t("errors.invalid") : undefined,
+                }}
               />
               <label className="flex flex-col gap-1">
                 <span className="text-sm text-text-secondary">
                   {t("notesOptional")}
                 </span>
-                <Textarea
-                  value={notes}
-                  onChange={(event: ChangeEvent<HTMLTextAreaElement>) =>
-                    setNotes(event.target.value)
-                  }
-                />
+                <Textarea {...register("notes")} />
               </label>
             </div>
           </section>
@@ -527,7 +610,7 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
                     {t("quantityLabel")}
                   </span>
                   <span>
-                    {quantity || "—"}
+                    {quantity || t("unknown")}
                     {assetClass === InvestmentAssetClass.GOLD
                       ? ` ${t(`units.${unit}`)}`
                       : ""}
@@ -537,7 +620,7 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
                   <span className="text-text-secondary">
                     {t("providerLabel")}
                   </span>
-                  <span>{provider || "—"}</span>
+                  <span>{provider || t("unknown")}</span>
                 </div>
                 <div className="flex justify-between gap-3">
                   <span className="text-text-secondary">{t("dateLabel")}</span>
@@ -571,10 +654,10 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
                     <span>{money(historicalPreview.currentTotalValue)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-text-secondary">P&amp;L</span>
+                    <span className="text-text-secondary">{t("estimatedPnl")}</span>
                     <span>
                       {historicalPreview.unrealizedPnl == null
-                        ? "—"
+                        ? t("unknown")
                         : (historicalPreview.unrealizedPnl > 0 ? "+" : "") +
                           money(historicalPreview.unrealizedPnl)}
                     </span>
@@ -601,7 +684,7 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
                     </span>
                     <span>
                       {accounts.find((account) => account.id === accountId)
-                        ?.name || "—"}
+                        ?.name || t("unknown")}
                     </span>
                   </div>
                 </div>
@@ -632,7 +715,7 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
           <Button
             className="w-full"
             isPending={pending}
-            onPress={submit}
+            onPress={() => void submit()}
             data-testid="investment-opening-confirm"
           >
             {pending

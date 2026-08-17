@@ -98,6 +98,25 @@ export type CreateJarInput = z.infer<typeof CreateJarSchema>;
 - validation constants (max lengths, thresholds) duplicated in messages,
   schemas, and components
 
+## Controlled field adapter
+
+When multiple forms repeat `useController`/`Controller` plus value conversion,
+error presentation, IDs, and a shared field primitive, use the typed adapter in
+`shared/patterns/controlled-fields.tsx`. Describe compatible fields with
+`ControlledFieldConfig<TValues>[]` and `satisfies`; keep `FieldPathByValue`
+constraints intact. This is a thin RHF-to-UI adapter, not a schema-driven form
+engine. Keep direct JSX for composite controls, dynamic arrays, and fields with
+workflow side effects.
+
+Do not recreate local `number`, `select`, or `date` render helpers when the
+adapter already covers the same wiring.
+
+Never weaken a field path or value type to fit an unusual control into the
+adapter. Keep composite money/currency controls, field arrays, multi-field
+selectors, and workflow-specific interactions in direct JSX/RHF. Split large
+config lists by semantic form section; the adapter is not a validation,
+visibility, layout, or action engine.
+
 ## Related Skills
 
 - `code-quality`, `typescript-quality` — always apply

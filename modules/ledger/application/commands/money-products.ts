@@ -14,16 +14,11 @@ import {
   LoanInterestRatePeriodKind,
   LoanInterestStrategy,
   LoanPaymentMode,
-  LoanRepaymentMethod,
   LoanScheduleEntryStatus,
   LoanStatus,
-  LoanTermUnit,
-  LoanType,
   LOAN_INTEREST_STRATEGY_VALUES,
   LOAN_PAYMENT_EXECUTABLE_MODE_VALUES,
   LOAN_REPAYMENT_METHOD_VALUES,
-  LOAN_TERM_UNIT_VALUES,
-  LOAN_TYPE_VALUES,
   RECORD_LOAN_PAYMENT_INVALID_ERROR_NEEDLES,
 } from "../ledger-constants";
 import {
@@ -33,6 +28,12 @@ import {
   normalizeTermToMonths,
   recomputeUpcomingSchedule,
 } from "../loan-amortization";
+import {
+  createLoanInputSchema,
+  type CreateLoanInput,
+} from "./money-products.schema";
+
+export { createLoanInputSchema, type CreateLoanInput } from "./money-products.schema";
 
 export type MoneyProductMutationResult =
   | {
@@ -250,81 +251,6 @@ export async function enqueueSavingsMaturity(
   }
 }
 
-export const createLoanInputSchema = z
-  .object({
-    name: z.string().trim().min(1).max(80),
-    lender: z.string().trim().max(80).optional(),
-    loanType: z.enum(LOAN_TYPE_VALUES).optional().default(LoanType.OTHER),
-    principal: z.number().finite().int().positive(),
-    annualInterestRate: z.number().finite().min(0).max(100).default(0),
-    interestStrategy: z
-      .enum(LOAN_INTEREST_STRATEGY_VALUES)
-      .optional()
-      .default(LoanInterestStrategy.FIXED),
-    promoFixedRate: z.number().finite().min(0).max(100).optional().nullable(),
-    promoFixedMonths: z
-      .number()
-      .int()
-      .positive()
-      .max(600)
-      .optional()
-      .nullable(),
-    promoFloatingRate: z
-      .number()
-      .finite()
-      .min(0)
-      .max(100)
-      .optional()
-      .nullable(),
-    promoRateEffectiveOn: z
-      .string()
-      .regex(/^\d{4}-\d{2}-\d{2}$/)
-      .optional()
-      .nullable(),
-    repaymentMethod: z
-      .enum(LOAN_REPAYMENT_METHOD_VALUES)
-      .optional()
-      .default(LoanRepaymentMethod.FIXED_MONTHLY),
-    termValue: z.number().int().positive().max(600),
-    termUnit: z
-      .enum(LOAN_TERM_UNIT_VALUES)
-      .optional()
-      .default(LoanTermUnit.MONTHS),
-    startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-    firstPaymentDate: z
-      .string()
-      .regex(/^\d{4}-\d{2}-\d{2}$/)
-      .optional()
-      .nullable(),
-    note: z.string().trim().max(200).optional(),
-  })
-  .superRefine((data, ctx) => {
-    if (
-      data.interestStrategy === LoanInterestStrategy.PROMO_FIXED_TO_FLOATING
-    ) {
-      if (data.promoFixedMonths == null || data.promoFixedMonths <= 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["promoFixedMonths"],
-        });
-      }
-      if (data.promoFixedRate == null) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["promoFixedRate"],
-        });
-      }
-      if (data.promoFloatingRate == null) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["promoFloatingRate"],
-        });
-      }
-    }
-  });
-
-export type CreateLoanInput = z.input<typeof createLoanInputSchema>;
-
 /** @deprecated Use CreateLoanInput / createLoan. */
 export type CreateInstallmentInput = CreateLoanInput;
 /** @deprecated Use createLoanInputSchema. */
@@ -460,41 +386,42 @@ export async function createLoan(
     const { data, error } = await supabase.rpc(
       LedgerRpcName.CREATE_LOAN_WITH_SCHEDULE,
       {
-      p_name: parsed.data.name,
-      p_lender: parsed.data.lender ?? null,
-      p_loan_type: parsed.data.loanType,
-      p_principal: parsed.data.principal,
-      p_annual_interest_rate: currentRate,
-      p_repayment_method: parsed.data.repaymentMethod,
-      p_interest_strategy: parsed.data.interestStrategy,
-      p_promo_fixed_rate:
-        parsed.data.interestStrategy ===
-        LoanInterestStrategy.PROMO_FIXED_TO_FLOATING
-          ? (parsed.data.promoFixedRate ?? null)
-          : null,
-      p_promo_fixed_months:
-        parsed.data.interestStrategy ===
-        LoanInterestStrategy.PROMO_FIXED_TO_FLOATING
-          ? (parsed.data.promoFixedMonths ?? null)
-          : null,
-      p_promo_floating_rate:
-        parsed.data.interestStrategy ===
-        LoanInterestStrategy.PROMO_FIXED_TO_FLOATING
-          ? (parsed.data.promoFloatingRate ?? null)
-          : null,
-      p_promo_rate_effective_on: promoEffective,
-      p_term_months: termMonths,
-      p_start_date: parsed.data.startDate,
-      p_first_payment_date: firstPaymentDate,
-      p_monthly_payment: schedule.monthlyPayment,
-      p_total_interest: schedule.totalInterest,
-      p_total_repayment: schedule.totalRepayment,
-      p_expected_end_date: schedule.endDate,
-      p_note: parsed.data.note ?? null,
-      p_currency: DEFAULT_CURRENCY,
-      p_schedule: schedule.entries,
-      p_rate_periods: ratePeriods,
-    });
+        p_name: parsed.data.name,
+        p_lender: parsed.data.lender ?? null,
+        p_loan_type: parsed.data.loanType,
+        p_principal: parsed.data.principal,
+        p_annual_interest_rate: currentRate,
+        p_repayment_method: parsed.data.repaymentMethod,
+        p_interest_strategy: parsed.data.interestStrategy,
+        p_promo_fixed_rate:
+          parsed.data.interestStrategy ===
+          LoanInterestStrategy.PROMO_FIXED_TO_FLOATING
+            ? (parsed.data.promoFixedRate ?? null)
+            : null,
+        p_promo_fixed_months:
+          parsed.data.interestStrategy ===
+          LoanInterestStrategy.PROMO_FIXED_TO_FLOATING
+            ? (parsed.data.promoFixedMonths ?? null)
+            : null,
+        p_promo_floating_rate:
+          parsed.data.interestStrategy ===
+          LoanInterestStrategy.PROMO_FIXED_TO_FLOATING
+            ? (parsed.data.promoFloatingRate ?? null)
+            : null,
+        p_promo_rate_effective_on: promoEffective,
+        p_term_months: termMonths,
+        p_start_date: parsed.data.startDate,
+        p_first_payment_date: firstPaymentDate,
+        p_monthly_payment: schedule.monthlyPayment,
+        p_total_interest: schedule.totalInterest,
+        p_total_repayment: schedule.totalRepayment,
+        p_expected_end_date: schedule.endDate,
+        p_note: parsed.data.note ?? null,
+        p_currency: DEFAULT_CURRENCY,
+        p_schedule: schedule.entries,
+        p_rate_periods: ratePeriods,
+      },
+    );
     if (error) {
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
     }
@@ -884,21 +811,22 @@ export async function updateLoanInterestRate(
     const { data, error } = await supabase.rpc(
       LedgerRpcName.UPDATE_LOAN_INTEREST_RATE,
       {
-      p_loan_id: parsed.data.loanId,
-      p_new_annual_rate: parsed.data.annualInterestRate,
-      p_effective_from: parsed.data.effectiveFrom,
-      p_note: parsed.data.note ?? null,
-      p_upcoming_schedule: rebuilt.entries,
-      p_monthly_payment: rebuilt.monthlyPayment,
-      p_total_interest:
-        Number(loanRow.total_interest ?? 0) + rebuilt.totalInterest,
-      p_total_repayment:
-        Number(loanRow.principal) +
-        Number(loanRow.total_interest ?? 0) +
-        rebuilt.totalInterest,
-      p_expected_end_date: rebuilt.endDate,
-      p_next_payment_date: rebuilt.entries[0]?.dueDate ?? nextDate,
-    });
+        p_loan_id: parsed.data.loanId,
+        p_new_annual_rate: parsed.data.annualInterestRate,
+        p_effective_from: parsed.data.effectiveFrom,
+        p_note: parsed.data.note ?? null,
+        p_upcoming_schedule: rebuilt.entries,
+        p_monthly_payment: rebuilt.monthlyPayment,
+        p_total_interest:
+          Number(loanRow.total_interest ?? 0) + rebuilt.totalInterest,
+        p_total_repayment:
+          Number(loanRow.principal) +
+          Number(loanRow.total_interest ?? 0) +
+          rebuilt.totalInterest,
+        p_expected_end_date: rebuilt.endDate,
+        p_next_payment_date: rebuilt.entries[0]?.dueDate ?? nextDate,
+      },
+    );
     if (error) {
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
     }

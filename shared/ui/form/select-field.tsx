@@ -16,7 +16,8 @@ export type SelectFieldProps = {
   value: string;
   /** Receives the selected option id, or `""` when the selection is cleared. */
   onChange: (value: string) => void;
-  options: SelectFieldOption[];
+  onBlur?: () => void;
+  options: readonly SelectFieldOption[];
   description?: ReactNode;
   error?: ReactNode;
   required?: boolean;
@@ -39,6 +40,7 @@ export function SelectField({
   label,
   value,
   onChange,
+  onBlur,
   options,
   description,
   error,
@@ -65,6 +67,7 @@ export function SelectField({
         className="w-full"
         selectedKey={value || null}
         onSelectionChange={(key) => onChange(selectKeyValue(key))}
+        onBlur={onBlur}
         isDisabled={isDisabled}
         isInvalid={hasError}
         data-testid={testId}

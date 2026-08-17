@@ -49,8 +49,8 @@ a semantic category":
 ```ts
 // BAD: three comparisons hiding one concept
 state === State.MATURED ||
-state === State.MATURE_TODAY ||
-state === State.ACTION_REQUIRED
+  state === State.MATURE_TODAY ||
+  state === State.ACTION_REQUIRED;
 ```
 
 Prefer a named semantic collection plus a predicate when it improves intent:
@@ -214,6 +214,19 @@ If lodash were already installed, use `groupBy`, `keyBy`, `uniqBy`,
 `orderBy`, `differenceBy` only when they materially improve readability.
 Never import lodash for trivial `map`, `filter`, or `find`, and never install
 it during a refactor unless the task explicitly justifies the dependency.
+
+## Form wiring duplication
+
+Repeated controlled-field plumbing (`Controller`/`useController`, value
+normalization, `onChange`, errors, IDs, and shared primitives) belongs in the
+existing typed controlled-field adapter. Do not add local `number`, `select`,
+or `date` helper functions that duplicate that infrastructure. The adapter
+must remain a thin presentation boundary; business rules and unusual event
+flows stay in the form component.
+
+Keep field configs near their semantic section and small enough to read with
+the surrounding layout. Do not grow the adapter into a generic form engine or
+force complex fields through it merely for consistency.
 
 ## Complex Expressions
 

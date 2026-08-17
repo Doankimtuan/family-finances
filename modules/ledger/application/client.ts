@@ -147,6 +147,11 @@ export type {
   LoanInterestRatePeriod,
 } from "./money-product-types";
 export {
+  recordTransferInputSchema,
+  type RecordTransferInput,
+} from "./commands/record-transfer.schema";
+export { createLoanInputSchema, type CreateLoanInput } from "./commands/money-products.schema";
+export {
   buildAmortizationSchedule,
   simulateLoanPreview,
   normalizeTermToMonths,

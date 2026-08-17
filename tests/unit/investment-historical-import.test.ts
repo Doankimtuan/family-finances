@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { buildHistoricalImportPreview } from "@/modules/investments/application/historical-import-view-model";
+import {
+  initialPurchaseInputSchema,
+  openingPositionInputSchema,
+} from "@/modules/investments/application/commands/investment-commands.schema";
 
 function preview(quantity: string, cost: number | null, value: number | null) {
   return buildHistoricalImportPreview({
@@ -12,6 +16,41 @@ function preview(quantity: string, cost: number | null, value: number | null) {
 }
 
 describe("historical import preview", () => {
+  it("accepts a valid opening position and rejects invalid numeric input", () => {
+    const valid = openingPositionInputSchema.safeParse({
+      assetName: "Global fund",
+      assetClass: "fund",
+      quantity: "2.5",
+      asOfDate: "2026-08-17",
+      remainingTotalCostBasis: 100000,
+      currentValuation: 120000,
+      idempotencyKey: "investment:create:test",
+    });
+    expect(valid.success).toBe(true);
+
+    const invalid = openingPositionInputSchema.safeParse({
+      assetName: "Global fund",
+      assetClass: "fund",
+      quantity: "0",
+      asOfDate: "2026-08-17",
+      idempotencyKey: "investment:create:test",
+    });
+    expect(invalid.success).toBe(false);
+  });
+
+  it("requires a positive purchase price and a source account", () => {
+    const result = initialPurchaseInputSchema.safeParse({
+      assetName: "Global fund",
+      assetClass: "fund",
+      quantity: "1",
+      unitPriceVnd: 0,
+      cashAccountId: "not-an-uuid",
+      asOfDate: "2026-08-17",
+      idempotencyKey: "investment:create:test",
+    });
+    expect(result.success).toBe(false);
+  });
+
   it.each([
     ["fund", "12", 10000, 10250, 120000, 123000, 3000, 0.025],
     ["security", "100", 80000, 92000, 8000000, 9200000, 1200000, 0.15],

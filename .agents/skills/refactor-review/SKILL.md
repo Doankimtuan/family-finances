@@ -28,6 +28,16 @@ duplicated validation
 duplicated state
 duplicated condition branches
 
+repeated Controller/useController field wiring
+repeated local number/select/date render helpers
+repeated RHF error extraction and value normalization
+weak `name: string` declarative field configs
+unsafe generic form configuration or schema-driven form engines
+business logic embedded in field configuration
+abstractions that make custom fields harder to understand
+giant field-config arrays that obscure semantic sections
+typing weakened to fit an unusual or preprocessed field
+
 equality chains (x === A || x === B || x === C)
 manually implemented membership checks
 missed Set / Map / Record opportunities

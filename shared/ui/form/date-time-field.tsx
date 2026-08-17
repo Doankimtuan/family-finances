@@ -23,6 +23,7 @@ export type DatePickerFieldProps = {
   label: ReactNode;
   value: string;
   onChange: (value: string) => void;
+  onBlur?: () => void;
   minValue?: string;
   maxValue?: string;
   description?: ReactNode;
@@ -38,6 +39,7 @@ export function DatePickerField({
   label,
   value,
   onChange,
+  onBlur,
   minValue,
   maxValue,
   description,
@@ -63,6 +65,7 @@ export function DatePickerField({
       <DatePicker
         value={dateValue}
         onChange={(next) => onChange(next ? next.toString() : "")}
+        onBlur={onBlur}
         minValue={minDateValue}
         maxValue={maxDateValue}
         isDisabled={isDisabled}

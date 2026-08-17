@@ -1,7 +1,6 @@
 import { InvestmentAssetClass } from "./investment-constants";
 export type InvestmentUxType =
   (typeof InvestmentAssetClass)[keyof typeof InvestmentAssetClass];
-export type InvestmentEntryMode = "historical" | "purchase";
 export type InvestmentUxConfig = {
   assetClass: InvestmentUxType;
   title: string;

@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useTransition } from "react";
-import { Controller, useForm, useWatch } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useTranslations } from "next-intl";
@@ -22,8 +22,8 @@ import {
 import { calculateJarRuleBudget } from "@/modules/plan/application/jar-budget";
 import { TransactionDirection } from "@/modules/ledger/application/ledger-constants";
 import { formatCurrency } from "@/shared/i18n/formatters";
-import { TextField, CheckboxField, SelectField } from "@/shared/ui/form";
-import { AmountField } from "@/shared/patterns/amount-field";
+import { TextField, CheckboxField } from "@/shared/ui/form";
+import { ControlledField } from "@/shared/patterns/controlled-fields";
 import { Button } from "@/shared/ui/button";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { AlertVariant } from "@/shared/ui/alert";
@@ -415,19 +415,17 @@ export function JarConfigurationForm({
           error={errors.percent ? t("errors.percent_invalid") : undefined}
         />
       ) : (
-        <Controller
+        <ControlledField
           control={control}
-          name="fixedAmount"
-          render={({ field }) => (
-            <AmountField
-              id={fixedId}
-              label={t("fixedLabel")}
-              value={field.value ?? null}
-              onValueChange={(next) => field.onChange(next ?? undefined)}
-              description={t("fixedHint")}
-              error={errors.fixedAmount ? t("errors.fixed_invalid") : undefined}
-            />
-          )}
+          field={{
+            type: "amount",
+            name: "fixedAmount",
+            id: fixedId,
+            label: t("fixedLabel"),
+            description: t("fixedHint"),
+            emptyValue: undefined,
+            error: errors.fixedAmount ? t("errors.fixed_invalid") : undefined,
+          }}
         />
       )}
 
@@ -504,21 +502,18 @@ export function JarConfigurationForm({
           <Text size="sm" tone="secondary">
             {t("removedCategoriesHint")}
           </Text>
-          <Controller
+          <ControlledField
             control={control}
-            name="removedCategoryTargetJarId"
-            render={({ field }) => (
-              <SelectField
-                id={removedTargetId}
-                label={t("removedCategoriesTargetLabel")}
-                value={field.value ?? ""}
-                onChange={field.onChange}
-                options={availableJars.map((jar) => ({
-                  id: jar.id,
-                  label: jar.name,
-                }))}
-              />
-            )}
+            field={{
+              type: "select",
+              name: "removedCategoryTargetJarId",
+              id: removedTargetId,
+              label: t("removedCategoriesTargetLabel"),
+              options: availableJars.map((jar) => ({
+                id: jar.id,
+                label: jar.name,
+              })),
+            }}
           />
         </div>
       ) : null}

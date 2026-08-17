@@ -40,8 +40,27 @@ import {
   shouldCancelMaturityCascade,
 } from "@/modules/inbox/application/inbox-resolution-policy";
 import { calculateSettlementBreakdown } from "@/modules/savings/application/savings-domain-rules";
+import { createSavingInputSchema } from "@/modules/savings/application/commands/create-saving.schema";
 
 describe("savings interest engine", () => {
+  it("enforces positive whole principal and required creation identifiers", () => {
+    const valid = createSavingInputSchema.safeParse({
+      fundingAccountId: "11111111-1111-4111-8111-111111111111",
+      settlementAccountId: "22222222-2222-4222-8222-222222222222",
+      providerId: "33333333-3333-4333-8333-333333333333",
+      packageId: "44444444-4444-4444-8444-444444444444",
+      principal: 10_000_000,
+      startDate: "2026-01-15",
+    });
+    expect(valid.success).toBe(true);
+    expect(
+      createSavingInputSchema.safeParse({
+        ...(valid.success ? valid.data : {}),
+        principal: 0,
+      }).success,
+    ).toBe(false);
+  });
+
   it("computes simple interest for a full term", () => {
     const interest = computeFullTermInterest({
       principal: 100_000_000,
@@ -239,6 +258,40 @@ import {
 } from "@/modules/savings/application/savings-domain-rules";
 
 describe("configurable Savings domain rules", () => {
+  it("enforces catalog percentage and term boundaries", () => {
+    const base = {
+      providerId: "11111111-1111-4111-8111-111111111111",
+      name: "90 days",
+      term: { amount: 90, unit: "DAY" as const },
+      annualInterestRatePercent: 6.5,
+      interestCalculationMethod: "simple" as const,
+      taxRule: SavingsTaxRule.PROFIT_PERCENTAGE,
+      taxRatePercent: 5,
+      currency: "VND",
+      minAmount: null,
+      maxAmount: null,
+      settlementRules: ["withdraw_everything"],
+      earlySettlementRule: EarlySettlementRule.PRINCIPAL_ONLY,
+      earlySettlementRatePercent: null,
+      penaltyRules: [],
+      renewableAvailable: true,
+      supportsPartialSettlement: false,
+    };
+    expect(savingsProductInputSchema.safeParse(base).success).toBe(true);
+    expect(
+      savingsProductInputSchema.safeParse({
+        ...base,
+        annualInterestRatePercent: 101,
+      }).success,
+    ).toBe(false);
+    expect(
+      savingsProductInputSchema.safeParse({
+        ...base,
+        term: { amount: 0, unit: "DAY" },
+      }).success,
+    ).toBe(false);
+  });
+
   it("derives fixed-term maturity from structured day and month terms", () => {
     expect(addSavingsTerm("2026-01-15", { amount: 30, unit: "DAY" })).toBe(
       "2026-02-14",

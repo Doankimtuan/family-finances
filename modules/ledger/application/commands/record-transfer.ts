@@ -1,4 +1,3 @@
-import { z } from "zod";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import {
@@ -8,28 +7,15 @@ import {
 } from "@/modules/tenancy/application/product-action-error";
 import {
   createTransferIdempotencyKey,
-  ISO_DATE_PATTERN,
   LedgerRpcName,
   RECORD_TRANSFER_INVALID_ERROR_NEEDLES,
-  TRANSFER_IDEMPOTENCY_KEY_MAX_LEN,
-  TRANSFER_IDEMPOTENCY_KEY_MIN_LEN,
 } from "../ledger-constants";
+import {
+  recordTransferInputSchema,
+  type RecordTransferInput,
+} from "./record-transfer.schema";
 
-export const recordTransferInputSchema = z.object({
-  sourceAccountId: z.string().uuid(),
-  destinationAccountId: z.string().uuid(),
-  amount: z.number().int().positive(),
-  transactionDate: z.string().regex(ISO_DATE_PATTERN).optional(),
-  note: z.string().trim().max(500).optional(),
-  idempotencyKey: z
-    .string()
-    .trim()
-    .min(TRANSFER_IDEMPOTENCY_KEY_MIN_LEN)
-    .max(TRANSFER_IDEMPOTENCY_KEY_MAX_LEN)
-    .optional(),
-});
-
-export type RecordTransferInput = z.infer<typeof recordTransferInputSchema>;
+export { recordTransferInputSchema, type RecordTransferInput } from "./record-transfer.schema";
 
 export type RecordTransferResult =
   | {
@@ -67,10 +53,6 @@ export async function recordTransfer(
       ok: false,
       code: productActionErrorFromDeniedReason(gate.reason),
     };
-  }
-
-  if (parsed.data.sourceAccountId === parsed.data.destinationAccountId) {
-    return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
   }
 
   try {

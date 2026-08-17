@@ -15,6 +15,12 @@ import {
   InvestmentFeeSource,
 } from "@/modules/investments/application/investment-constants";
 import { recordInvestmentBuy } from "@/modules/investments/application/commands/investment-commands";
+import {
+  assetConversionInputSchema,
+  investmentIncomeInputSchema,
+  investmentSellInputSchema,
+  investmentValuationInputSchema,
+} from "@/modules/investments/application/commands/investment-commands.schema";
 import { applyTransactionDeltas } from "@/modules/ledger/application/transaction-types";
 import { TransactionLedgerType } from "@/modules/ledger/application/ledger-constants";
 
@@ -23,6 +29,48 @@ const accountId = "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22";
 
 describe("Investments command boundary", () => {
   beforeEach(() => vi.clearAllMocks());
+
+  it("keeps operation-specific required fields at the schema boundary", () => {
+    expect(
+      investmentSellInputSchema.safeParse({
+        holdingId,
+        cashAccountId: accountId,
+        soldQuantity: "0",
+        executedValueVnd: 100_000,
+        effectiveDate: "2026-08-10",
+        idempotencyKey: "investment:test:sell",
+      }).success,
+    ).toBe(false);
+    expect(
+      assetConversionInputSchema.safeParse({
+        sourceHoldingId: holdingId,
+        destinationHoldingId: holdingId,
+        sourceQuantity: "1",
+        destinationQuantity: "",
+        effectiveDate: "2026-08-10",
+        idempotencyKey: "investment:test:conversion",
+      }).success,
+    ).toBe(false);
+    expect(
+      investmentIncomeInputSchema.safeParse({
+        holdingId,
+        cashAccountId: accountId,
+        amountVnd: 0,
+        incomeKind: "dividend",
+        effectiveDate: "2026-08-10",
+        idempotencyKey: "investment:test:income",
+      }).success,
+    ).toBe(false);
+    expect(
+      investmentValuationInputSchema.safeParse({
+        holdingId,
+        valueVnd: -1,
+        valuationDate: "2026-08-10",
+        source: "manual",
+        idempotencyKey: "investment:test:valuation",
+      }).success,
+    ).toBe(false);
+  });
 
   it("gates household mutations before RPC", async () => {
     vi.mocked(assertMoneyActionAllowed).mockResolvedValue({
@@ -37,12 +85,17 @@ describe("Investments command boundary", () => {
       effectiveDate: "2026-08-10",
       idempotencyKey: "investment:test:gate",
     });
-    expect(result).toEqual({ ok: false, code: INVESTMENT_ERROR_CODE.FORBIDDEN });
+    expect(result).toEqual({
+      ok: false,
+      code: INVESTMENT_ERROR_CODE.FORBIDDEN,
+    });
     expect(createSupabaseServerClient).not.toHaveBeenCalled();
   });
 
   it("maps exact quantities, fee payload, and idempotent receipt", async () => {
-    vi.mocked(assertMoneyActionAllowed).mockResolvedValue({ ok: true } as never);
+    vi.mocked(assertMoneyActionAllowed).mockResolvedValue({
+      ok: true,
+    } as never);
     const rpc = vi.fn().mockResolvedValue({
       data: {
         operationId: "op-1",
@@ -101,12 +154,36 @@ describe("Investments command boundary", () => {
 
   it("applies all investment ledger cash classifications", () => {
     const [account] = applyTransactionDeltas(
-      [{ id: accountId, name: "Cash", type: "cash", balance: 1_000_000, isArchived: false }],
       [
-        { accountId, type: TransactionLedgerType.INVESTMENT_BUY, amount: 200_000 },
-        { accountId, type: TransactionLedgerType.INVESTMENT_FEE, amount: 5_000 },
-        { accountId, type: TransactionLedgerType.INVESTMENT_SELL_PROCEEDS, amount: 50_000 },
-        { accountId, type: TransactionLedgerType.INVESTMENT_INCOME, amount: 10_000 },
+        {
+          id: accountId,
+          name: "Cash",
+          type: "cash",
+          balance: 1_000_000,
+          isArchived: false,
+        },
+      ],
+      [
+        {
+          accountId,
+          type: TransactionLedgerType.INVESTMENT_BUY,
+          amount: 200_000,
+        },
+        {
+          accountId,
+          type: TransactionLedgerType.INVESTMENT_FEE,
+          amount: 5_000,
+        },
+        {
+          accountId,
+          type: TransactionLedgerType.INVESTMENT_SELL_PROCEEDS,
+          amount: 50_000,
+        },
+        {
+          accountId,
+          type: TransactionLedgerType.INVESTMENT_INCOME,
+          amount: 10_000,
+        },
       ],
     );
     expect(account.balance).toBe(855_000);

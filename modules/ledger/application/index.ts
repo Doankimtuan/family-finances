@@ -249,7 +249,6 @@ export {
   createSavingsProduct,
   createSavingsInputSchema,
   createLoan,
-  createLoanInputSchema,
   recordLoanPayment,
   recordLoanPaymentInputSchema,
   updateLoanMetadata,
@@ -265,7 +264,6 @@ export {
   type CreateLiabilityInput,
   type RecordLiabilityPaymentInput,
   type CreateSavingsInput,
-  type CreateLoanInput,
   type RecordLoanPaymentInput,
   type UpdateLoanMetadataInput,
   type UpdateLoanInterestRateInput,
@@ -274,6 +272,10 @@ export {
   type RecordInstallmentPaymentInput,
   type MoneyProductMutationResult,
 } from "./commands/money-products";
+export {
+  createLoanInputSchema,
+  type CreateLoanInput,
+} from "./commands/money-products.schema";
 export type {
   Liability,
   SavingsProduct,

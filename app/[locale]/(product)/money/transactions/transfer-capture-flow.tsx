@@ -1,6 +1,8 @@
 "use client";
 
 import { useId, useState, useTransition } from "react";
+import { Controller, useForm, useWatch } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import {
@@ -13,8 +15,10 @@ import {
   ACCOUNT_TYPE_LIQUID_VALUES,
   MoneyPaymentFlowStep,
   createTransferIdempotencyKey,
+  recordTransferInputSchema,
+  type RecordTransferInput,
 } from "@/modules/ledger/application/client";
-import { AmountField } from "@/shared/patterns/amount-field";
+import { ControlledField } from "@/shared/patterns/controlled-fields";
 import { BottomActionBar } from "@/shared/patterns/bottom-action-bar";
 import { ConfirmSummary } from "@/shared/patterns/confirm-summary";
 import { TextField } from "@/shared/ui/form";
@@ -56,6 +60,9 @@ type TransferFormErrorKey =
   | "need_two_accounts"
   | "unknown";
 
+type TransferFormInput = RecordTransferInput;
+type TransferFormValues = RecordTransferInput;
+
 function toTransferErrorKey(code: ErrorCode): TransferFormErrorKey {
   if (
     code === PRODUCT_ACTION_ERROR_CODE.UNAUTHENTICATED ||
@@ -79,6 +86,17 @@ function isTransferEligible(account: LedgerAccount): boolean {
   );
 }
 
+function createDefaultValues(eligible: LedgerAccount[]): TransferFormInput {
+  return {
+    sourceAccountId: eligible[0]?.id ?? "",
+    destinationAccountId: eligible[1]?.id ?? eligible[0]?.id ?? "",
+    amount: undefined as never,
+    transactionDate: todayIsoDate(),
+    note: undefined,
+    idempotencyKey: undefined,
+  };
+}
+
 /**
  * Owned-account transfer — preview → confirm → receipt.
  * Neutral: source −amount, destination +amount; household total unchanged.
@@ -94,22 +112,13 @@ export function TransferCaptureFlow({
   const { online } = useOnlineStatusClient();
   const amountId = useId();
   const noteId = useId();
-  const dateId = useId();
 
   const eligible = accounts.filter(isTransferEligible);
-  const [amount, setAmount] = useState<number | null>(null);
-  const [sourceAccountId, setSourceAccountId] = useState(eligible[0]?.id ?? "");
-  const [destinationAccountId, setDestinationAccountId] = useState(
-    eligible[1]?.id ?? eligible[0]?.id ?? "",
-  );
-  const [note, setNote] = useState("");
-  const [transactionDate, setTransactionDate] = useState(todayIsoDate);
   const [step, setStep] = useState<MoneyPaymentFlowStep>(
     MoneyPaymentFlowStep.FORM,
   );
   const [errorCode, setErrorCode] = useState<ErrorCode | null>(null);
   const [isPending, startTransition] = useTransition();
-  const [idempotencyKey, setIdempotencyKey] = useState<string | null>(null);
   const [receipt, setReceipt] = useState<{
     sourceTransactionId: string;
     destinationTransactionId: string;
@@ -121,6 +130,27 @@ export function TransferCaptureFlow({
     destinationName: string;
     date: string;
   } | null>(null);
+
+  const {
+    control,
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    formState: { errors },
+  } =
+    useForm<TransferFormInput, unknown, TransferFormValues>({
+      resolver: zodResolver(recordTransferInputSchema),
+      defaultValues: createDefaultValues(eligible),
+    });
+  const watchedAmount = useWatch({ control, name: "amount" });
+  const amount = typeof watchedAmount === "number" ? watchedAmount : null;
+  const sourceAccountId = useWatch({ control, name: "sourceAccountId" });
+  const destinationAccountId = useWatch({
+    control,
+    name: "destinationAccountId",
+  });
+  const transactionDate = useWatch({ control, name: "transactionDate" });
 
   const sourceAccount = eligible.find((a) => a.id === sourceAccountId);
   const destinationAccount = eligible.find(
@@ -138,15 +168,14 @@ export function TransferCaptureFlow({
       : null;
 
   const resetForm = () => {
-    setAmount(null);
-    setSourceAccountId(eligible[0]?.id ?? "");
-    setDestinationAccountId(eligible[1]?.id ?? eligible[0]?.id ?? "");
-    setNote("");
-    setTransactionDate(todayIsoDate());
+    reset(createDefaultValues(eligible));
     setErrorCode(null);
     setReceipt(null);
-    setIdempotencyKey(null);
     setStep(MoneyPaymentFlowStep.FORM);
+  };
+
+  const showValidationError = () => {
+    setErrorCode(PRODUCT_ACTION_ERROR_CODE.INVALID);
   };
 
   const goConfirm = () => {
@@ -155,21 +184,15 @@ export function TransferCaptureFlow({
       setErrorCode(CLIENT_ACTION_ERROR_CODE.OFFLINE);
       return;
     }
-    if (
-      !sourceAccountId ||
-      !destinationAccountId ||
-      sourceAccountId === destinationAccountId
-    ) {
-      setErrorCode(PRODUCT_ACTION_ERROR_CODE.INVALID);
-      return;
-    }
-    if (amount == null || amount <= 0) {
-      setErrorCode(PRODUCT_ACTION_ERROR_CODE.INVALID);
-      document.getElementById(amountId)?.focus();
-      return;
-    }
-    setIdempotencyKey(createTransferIdempotencyKey());
-    setStep(MoneyPaymentFlowStep.CONFIRM);
+    void handleSubmit(
+      () => {
+        setValue("idempotencyKey", createTransferIdempotencyKey(), {
+          shouldValidate: true,
+        });
+        setStep(MoneyPaymentFlowStep.CONFIRM);
+      },
+      showValidationError,
+    )();
   };
 
   const confirmTransfer = () => {
@@ -178,48 +201,58 @@ export function TransferCaptureFlow({
       setErrorCode(CLIENT_ACTION_ERROR_CODE.OFFLINE);
       return;
     }
-    if (
-      amount == null ||
-      amount <= 0 ||
-      !sourceAccountId ||
-      !destinationAccountId ||
-      !idempotencyKey
-    ) {
-      setErrorCode(PRODUCT_ACTION_ERROR_CODE.INVALID);
-      return;
-    }
+    void handleSubmit(
+      (values) => {
+        startTransition(async () => {
+          const result = await recordTransferAction(
+            values satisfies RecordTransferInput,
+          );
 
-    startTransition(async () => {
-      const result = await recordTransferAction({
-        sourceAccountId,
-        destinationAccountId,
-        amount,
-        transactionDate,
-        note: note.trim() || undefined,
-        idempotencyKey,
-      });
-
-      if (result.status === ProductActionStatus.SUCCESS) {
-        setReceipt({
-          sourceTransactionId: result.sourceTransactionId,
-          destinationTransactionId: result.destinationTransactionId,
-          transferGroupId: result.transferGroupId,
-          sourceDelta: result.sourceDelta,
-          destinationDelta: result.destinationDelta,
-          amount,
-          sourceName,
-          destinationName,
-          date: transactionDate,
+          if (result.status === ProductActionStatus.SUCCESS) {
+            const submittedSource = eligible.find(
+              (account) => account.id === values.sourceAccountId,
+            );
+            const submittedDestination = eligible.find(
+              (account) => account.id === values.destinationAccountId,
+            );
+            reset(createDefaultValues(eligible));
+            setReceipt({
+              sourceTransactionId: result.sourceTransactionId,
+              destinationTransactionId: result.destinationTransactionId,
+              transferGroupId: result.transferGroupId,
+              sourceDelta: result.sourceDelta,
+              destinationDelta: result.destinationDelta,
+              amount: values.amount,
+              sourceName: submittedSource
+                ? localizeCatalogName(tCatalog, "accounts", submittedSource.name)
+                : "",
+              destinationName: submittedDestination
+                ? localizeCatalogName(
+                    tCatalog,
+                    "accounts",
+                    submittedDestination.name,
+                  )
+                : "",
+              date: values.transactionDate ?? todayIsoDate(),
+            });
+            setStep(MoneyPaymentFlowStep.RECEIPT);
+            return;
+          }
+          setErrorCode(result.code);
+          setStep(MoneyPaymentFlowStep.FORM);
         });
-        setStep(MoneyPaymentFlowStep.RECEIPT);
-        return;
-      }
-      setErrorCode(result.code);
-      setStep(MoneyPaymentFlowStep.FORM);
-    });
+      },
+      showValidationError,
+    )();
   };
 
-  if (step === MoneyPaymentFlowStep.RECEIPT && receipt && amountLabel) {
+  if (step === MoneyPaymentFlowStep.RECEIPT && receipt) {
+    const receiptAmountLabel = formatCurrency(
+      receipt.amount,
+      currency,
+      locale,
+      { maximumFractionDigits: 0 },
+    );
     return (
       <TransactionReceipt
         title={t("receipt.title")}
@@ -228,7 +261,7 @@ export function TransferCaptureFlow({
           {
             id: "amount",
             label: t("receipt.amount"),
-            value: amountLabel,
+            value: receiptAmountLabel,
           },
           {
             id: "from",
@@ -385,16 +418,20 @@ export function TransferCaptureFlow({
       ) : null}
 
       <div className="rounded-xl border border-accent/25 bg-accent/10 p-(--space-4)">
-        <AmountField
-          id={amountId}
-          label={t("amountLabel")}
-          placeholder="0"
-          value={amount}
-          onValueChange={setAmount}
-          required
-          data-testid="transfer-amount"
-          description={t("amountHint", { currency })}
-          className="min-h-14 text-2xl font-semibold tabular-nums tracking-tight"
+        <ControlledField
+          control={control}
+          field={{
+            type: "amount",
+            name: "amount",
+            id: amountId,
+            label: t("amountLabel"),
+            placeholder: "0",
+            testId: "transfer-amount",
+            description: t("amountHint", { currency }),
+            required: true,
+            className: "min-h-14 text-2xl font-semibold tabular-nums tracking-tight",
+          }}
+          getErrorMessage={() => t("errors.invalid")}
         />
       </div>
 
@@ -409,27 +446,33 @@ export function TransferCaptureFlow({
             description={t("needTwoAccountsHint")}
           />
         ) : (
-          <div className="flex flex-col gap-(--space-2)">
-            {eligible.map((account) => (
-              <label
-                key={account.id}
-                className="flex min-h-11 cursor-pointer items-center gap-(--space-3) rounded-md border border-border-subtle bg-canvas px-(--space-3) has-[:checked]:border-accent/40 has-[:checked]:bg-accent/10"
-              >
-                <input
-                  type="radio"
-                  name="transfer-source"
-                  value={account.id}
-                  checked={sourceAccountId === account.id}
-                  onChange={() => setSourceAccountId(account.id)}
-                  className="size-4 accent-[var(--color-accent)]"
-                  data-testid={`transfer-source-${account.id}`}
-                />
-                <span className="text-sm text-text-primary">
-                  {localizeCatalogName(tCatalog, "accounts", account.name)}
-                </span>
-              </label>
-            ))}
-          </div>
+          <Controller
+            control={control}
+            name="sourceAccountId"
+            render={({ field }) => (
+              <div className="flex flex-col gap-(--space-2)">
+                {eligible.map((account) => (
+                  <label
+                    key={account.id}
+                    className="flex min-h-11 cursor-pointer items-center gap-(--space-3) rounded-md border border-border-subtle bg-canvas px-(--space-3) has-[:checked]:border-accent/40 has-[:checked]:bg-accent/10"
+                  >
+                    <input
+                      type="radio"
+                      name="transfer-source"
+                      value={account.id}
+                      checked={field.value === account.id}
+                      onChange={() => field.onChange(account.id)}
+                      className="size-4 accent-[var(--color-accent)]"
+                      data-testid={`transfer-source-${account.id}`}
+                    />
+                    <span className="text-sm text-text-primary">
+                      {localizeCatalogName(tCatalog, "accounts", account.name)}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            )}
+          />
         )}
       </fieldset>
 
@@ -437,49 +480,55 @@ export function TransferCaptureFlow({
         <legend className="text-sm font-semibold text-text-primary">
           {t("toLabel")}
         </legend>
-        <div className="flex flex-col gap-(--space-2)">
-          {eligible.map((account) => (
-            <label
-              key={account.id}
-              className="flex min-h-11 cursor-pointer items-center gap-(--space-3) rounded-md border border-border-subtle bg-canvas px-(--space-3) has-[:checked]:border-accent/40 has-[:checked]:bg-accent/10"
-            >
-              <input
-                type="radio"
-                name="transfer-destination"
-                value={account.id}
-                checked={destinationAccountId === account.id}
-                onChange={() => setDestinationAccountId(account.id)}
-                className="size-4 accent-[var(--color-accent)]"
-                data-testid={`transfer-destination-${account.id}`}
-              />
-              <span className="text-sm text-text-primary">
-                {localizeCatalogName(tCatalog, "accounts", account.name)}
-              </span>
-            </label>
-          ))}
-        </div>
-      </fieldset>
-
-      <fieldset className="flex flex-col gap-(--space-2) rounded-xl border border-border-subtle bg-surface p-(--space-4)">
-        <legend className="text-sm font-semibold text-text-primary">
-          {t("receipt.date")}
-        </legend>
-        <input
-          id={dateId}
-          type="date"
-          value={transactionDate}
-          onChange={(e) => setTransactionDate(e.target.value)}
-          className="min-h-11 w-full rounded-md border border-border-subtle bg-canvas px-(--space-3) text-sm text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-          data-testid="transfer-date"
+        <Controller
+          control={control}
+          name="destinationAccountId"
+          render={({ field }) => (
+            <div className="flex flex-col gap-(--space-2)">
+              {eligible.map((account) => (
+                <label
+                  key={account.id}
+                  className="flex min-h-11 cursor-pointer items-center gap-(--space-3) rounded-md border border-border-subtle bg-canvas px-(--space-3) has-[:checked]:border-accent/40 has-[:checked]:bg-accent/10"
+                >
+                  <input
+                    type="radio"
+                    name="transfer-destination"
+                    value={account.id}
+                    checked={field.value === account.id}
+                    onChange={() => field.onChange(account.id)}
+                    className="size-4 accent-[var(--color-accent)]"
+                    data-testid={`transfer-destination-${account.id}`}
+                  />
+                  <span className="text-sm text-text-primary">
+                    {localizeCatalogName(tCatalog, "accounts", account.name)}
+                  </span>
+                </label>
+              ))}
+            </div>
+          )}
         />
       </fieldset>
+
+      <div className="rounded-xl border border-border-subtle bg-surface p-(--space-4)">
+        <ControlledField
+          control={control}
+          field={{
+            type: "date",
+            name: "transactionDate",
+            id: "transfer-date",
+            label: t("receipt.date"),
+            testId: "transfer-date",
+          }}
+          getErrorMessage={() => t("errors.invalid")}
+        />
+      </div>
 
       <div className="rounded-xl border border-border-subtle bg-surface p-(--space-4)">
         <TextField
           id={noteId}
           label={t("noteLabel")}
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
+          registration={register("note")}
+          error={errors.note ? t("errors.invalid") : undefined}
           placeholder={t("notePlaceholder")}
           data-testid="transfer-note"
         />

@@ -117,6 +117,21 @@ describe("CaptureTransactionForm save-failure presentation", () => {
     expect(screen.getByTestId("money-capture-form")).toBeInTheDocument();
   });
 
+  it("does not run tag assignment when the transaction is rejected", async () => {
+    renderCaptureForm({ transactionTags: [transactionTag] });
+
+    fireEvent.click(screen.getByText("choose"));
+    fireEvent.click(screen.getByRole("button", { name: "Work" }));
+    fireEvent.click(screen.getByText("done"));
+    fireEvent.change(screen.getByLabelText(/^amountLabel/), {
+      target: { value: "50000" },
+    });
+    fireEvent.submit(screen.getByTestId("money-capture-form"));
+
+    await screen.findByText("errors.month_locked");
+    expect(setTransactionTagsMock).not.toHaveBeenCalled();
+  });
+
   it("shows an immutable success receipt and resets for another transaction", async () => {
     recordTransactionMock.mockResolvedValue({
       status: "success",

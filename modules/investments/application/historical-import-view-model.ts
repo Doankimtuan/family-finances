@@ -1,7 +1,12 @@
 import { parseQuantity } from "./decimal-quantity";
 import { INVESTMENT_QUANTITY_SCALE } from "./investment-constants";
 const QUANTITY_SCALE = BigInt(10) ** BigInt(INVESTMENT_QUANTITY_SCALE);
-export type HistoricalBasisInputMode = "per-unit" | "total";
+export const HistoricalBasisInputMode = {
+  PER_UNIT: "per-unit",
+  TOTAL: "total",
+} as const;
+export type HistoricalBasisInputMode =
+  (typeof HistoricalBasisInputMode)[keyof typeof HistoricalBasisInputMode];
 export type HistoricalImportPreview = {
   quantity: string;
   basisInputMode: HistoricalBasisInputMode;
@@ -53,11 +58,11 @@ export function buildHistoricalImportPreview(input: {
   currentUnitValuation: number | null;
 }): HistoricalImportPreview {
   const totalCostBasis =
-    input.basisInputMode === "per-unit"
+    input.basisInputMode === HistoricalBasisInputMode.PER_UNIT
       ? multiply(input.quantity, input.averageCostPerUnit)
       : input.totalCostBasis;
   const averageCostPerUnit =
-    input.basisInputMode === "per-unit"
+    input.basisInputMode === HistoricalBasisInputMode.PER_UNIT
       ? input.averageCostPerUnit
       : divide(input.totalCostBasis, input.quantity);
   const currentTotalValue = multiply(

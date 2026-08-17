@@ -47,7 +47,7 @@ describe("recordTransferInputSchema", () => {
         destinationAccountId: source,
         amount: 1000,
       }).success,
-    ).toBe(true);
+    ).toBe(false);
     expect(
       recordTransferInputSchema.safeParse({
         sourceAccountId: source,

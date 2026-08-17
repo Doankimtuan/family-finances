@@ -180,3 +180,15 @@ throwing for expected business failures. See the `error-handling` skill.
 - `code-quality` — structural quality baseline
 - `form-architecture` — form schema usage
 - `error-handling` — result and error-code types
+
+## RHF field configuration
+
+Declarative RHF field lists must use a discriminated union with
+`FieldPathByValue<TValues, TValue>` (or an equivalent proven constraint), not
+`name: string`. Use `satisfies` at call sites so literals remain narrow and an
+incompatible primitive/path pair fails at compile time. Keep rendering
+exhaustive and avoid unsafe dynamic component maps or casts.
+
+Do not add generic prop bags or business callbacks to field configs. If a
+control needs a workflow callback, cross-field mutation, or a type assertion
+to compile, keep that control as direct RHF JSX.

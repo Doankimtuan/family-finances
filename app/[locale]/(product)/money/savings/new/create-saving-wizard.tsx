@@ -1,6 +1,9 @@
 "use client";
 
-import { useMemo, useRef, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
+import { useForm, useWatch } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import {
@@ -18,15 +21,20 @@ import {
   MaturityFallbackPolicy,
   RenewalPolicy,
   SettlementRule,
-  InterestCalcMethod,
   SavingType,
   MaturityTargetMode,
   RENEWAL_POLICY_VALUES,
   SETTLEMENT_RULE_VALUES,
 } from "@/modules/savings/application/savings-constants";
-import { calculateInterest } from "@/modules/savings/application/savings-interest";
-import { AmountField } from "@/shared/patterns/amount-field";
-import { DatePickerField } from "@/shared/ui/form";
+import {
+  addSavingsTerm,
+  calculateInterest,
+  createSavingInputSchema,
+  InterestCalcMethod,
+  SavingsTermUnit,
+  type SavingsTermUnit as SavingsTermUnitValue,
+} from "@/modules/savings/application/client";
+import { ControlledField } from "@/shared/patterns/controlled-fields";
 import { AppIcon } from "@/shared/ui/app-icon";
 import { Button } from "@/shared/ui/button";
 import { StatusAlert } from "@/shared/ui/status-alert";
@@ -38,6 +46,7 @@ import { formatCurrency } from "@/shared/i18n/formatters";
 import { DEFAULT_CURRENCY } from "@/modules/ledger/application/client";
 import {
   CLIENT_ACTION_ERROR_CODE,
+  PRODUCT_ACTION_ERROR_CODE,
   type ProductActionErrorCode,
 } from "@/modules/tenancy/application/product-action-error";
 import { createSavingAction } from "../savings-actions";
@@ -56,6 +65,9 @@ type PackageOption = {
   annualInterestRate: number;
   minAmount: number | null;
   maxAmount: number | null;
+  termAmount?: number | null;
+  termUnit?: SavingsTermUnitValue | null;
+  interestCalculationMethod?: InterestCalcMethod;
   renewableAvailable?: boolean;
 };
 type Props = {
@@ -63,17 +75,35 @@ type Props = {
   providers: ProviderOption[];
   packagesByProvider: Record<string, PackageOption[]>;
 };
-type FlowStep = "product" | "deposit" | "review";
+const FlowStep = {
+  PRODUCT: "product",
+  DEPOSIT: "deposit",
+  REVIEW: "review",
+} as const;
+type FlowStep = (typeof FlowStep)[keyof typeof FlowStep];
 type ErrorCode =
   ProductActionErrorCode | typeof CLIENT_ACTION_ERROR_CODE.OFFLINE;
 
-const STEPS: FlowStep[] = ["product", "deposit", "review"];
+const STEPS = [FlowStep.PRODUCT, FlowStep.DEPOSIT, FlowStep.REVIEW] as const;
 
-function addDays(date: string, days: number) {
-  const next = new Date(`${date}T00:00:00`);
-  next.setDate(next.getDate() + days);
-  return next.toISOString().slice(0, 10);
-}
+const savingFormSchema = z.object({
+  fundingAccountId: createSavingInputSchema.shape.fundingAccountId,
+  settlementAccountId: createSavingInputSchema.shape.settlementAccountId,
+  providerId: createSavingInputSchema.shape.providerId,
+  packageId: createSavingInputSchema.shape.packageId,
+  principal: createSavingInputSchema.shape.principal.nullable(),
+  startDate: createSavingInputSchema.shape.startDate,
+  renewalPolicy: createSavingInputSchema.shape.renewalPolicy,
+  settlementRule: createSavingInputSchema.shape.settlementRule,
+  targetMode: z.enum(
+    Object.values(MaturityTargetMode) as [
+      MaturityTargetMode,
+      ...MaturityTargetMode[],
+    ],
+  ),
+  targetPackageId: z.string().uuid().nullable(),
+});
+type SavingFormValues = z.input<typeof savingFormSchema>;
 
 function savingTypeLabel(
   t: ReturnType<typeof useTranslations<"money.savingsWizard">>,
@@ -97,6 +127,27 @@ function providerIcon(savingType: string) {
     : savingType === SavingType.DIGITAL_SAVING
       ? SmartPhoneIcon
       : Wallet02Icon;
+}
+
+function createDefaultValues(
+  accounts: AccountOption[],
+  providers: ProviderOption[],
+  packagesByProvider: Record<string, PackageOption[]>,
+) {
+  const providerId = providers[0]?.id ?? "";
+  const packageId = packagesByProvider[providerId]?.[0]?.id ?? "";
+  return {
+    fundingAccountId: accounts[0]?.id ?? "",
+    settlementAccountId: accounts[0]?.id ?? "",
+    providerId,
+    packageId,
+    principal: null,
+    startDate: new Date().toISOString().slice(0, 10),
+    renewalPolicy: RenewalPolicy.ALWAYS_ASK,
+    settlementRule: SettlementRule.WITHDRAW_EVERYTHING,
+    targetMode: MaturityTargetMode.KEEP_CURRENT_PACKAGE,
+    targetPackageId: packageId || null,
+  } satisfies SavingFormValues;
 }
 
 function SummaryRow({
@@ -168,39 +219,33 @@ export function CreateSavingWizard({
   const { online } = useOnlineStatusClient();
   const [stepIndex, setStepIndex] = useState(0);
   const [direction, setDirection] = useState<"forward" | "backward">("forward");
-  const [fundingAccountId, setFundingAccountId] = useState(
-    accounts[0]?.id ?? "",
-  );
-  const [settlementAccountId, setSettlementAccountId] = useState(
-    accounts[0]?.id ?? "",
-  );
-  const [providerId, setProviderId] = useState(providers[0]?.id ?? "");
-  const [packageId, setPackageId] = useState(
-    packagesByProvider[providers[0]?.id ?? ""]?.[0]?.id ?? "",
-  );
-  const [principal, setPrincipal] = useState<number | null>(null);
-  const [startDate, setStartDate] = useState(() =>
-    new Date().toISOString().slice(0, 10),
-  );
-  const [settlementRule, setSettlementRule] = useState<string>(
-    SettlementRule.WITHDRAW_EVERYTHING,
-  );
-  const [renewalPolicy, setRenewalPolicy] = useState<string>(
-    RenewalPolicy.ALWAYS_ASK,
-  );
-  const [targetMode, setTargetMode] = useState<
-    (typeof MaturityTargetMode)[keyof typeof MaturityTargetMode]
-  >(MaturityTargetMode.KEEP_CURRENT_PACKAGE);
-  const [targetPackageId, setTargetPackageId] = useState(packageId);
   const [errorCode, setErrorCode] = useState<ErrorCode | null>(null);
-  const idempotencyKeyRef = useRef<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const defaultValues = createDefaultValues(
+    accounts,
+    providers,
+    packagesByProvider,
+  );
+  const { control, handleSubmit, reset, setValue } = useForm<SavingFormValues>({
+    resolver: zodResolver(savingFormSchema),
+    defaultValues,
+  });
+  const values = useWatch({ control });
+  const fundingAccountId = values.fundingAccountId ?? "";
+  const settlementAccountId = values.settlementAccountId ?? "";
+  const providerId = values.providerId ?? "";
+  const packageId = values.packageId ?? "";
+  const principal = values.principal ?? null;
+  const startDate = values.startDate ?? "";
+  const settlementRule =
+    values.settlementRule ?? SettlementRule.WITHDRAW_EVERYTHING;
+  const renewalPolicy = values.renewalPolicy ?? RenewalPolicy.ALWAYS_ASK;
+  const targetMode =
+    values.targetMode ?? MaturityTargetMode.KEEP_CURRENT_PACKAGE;
+  const targetPackageId = values.targetPackageId ?? "";
 
   const step = STEPS[stepIndex];
-  const packages = useMemo(
-    () => packagesByProvider[providerId] ?? [],
-    [packagesByProvider, providerId],
-  );
+  const packages = packagesByProvider[providerId] ?? [];
   const selectedPackage =
     packages.find((item) => item.id === packageId) ?? null;
   const selectedProvider =
@@ -211,24 +256,32 @@ export function CreateSavingWizard({
     accounts.find((item) => item.id === settlementAccountId) ?? null;
   const principalAmount = principal ?? 0;
   const selectProvider = (nextProviderId: string) => {
-    setProviderId(nextProviderId);
     const nextPackageId = packagesByProvider[nextProviderId]?.[0]?.id ?? "";
-    setPackageId(nextPackageId);
-    setTargetPackageId(nextPackageId);
+    setValue("providerId", nextProviderId);
+    setValue("packageId", nextPackageId);
+    setValue("targetPackageId", nextPackageId || null);
   };
+  const maturityDateForPackage = (pkg: PackageOption, value: string) =>
+    value
+      ? addSavingsTerm(value, {
+          amount: pkg.termAmount ?? pkg.durationDays,
+          unit: pkg.termUnit ?? SavingsTermUnit.DAY,
+        })
+      : "";
 
-  const estimate = useMemo(() => {
+  const estimate = (() => {
     if (!selectedPackage || !startDate || principalAmount <= 0) return null;
-    const maturityDate = addDays(startDate, selectedPackage.durationDays);
+    const maturityDate = maturityDateForPackage(selectedPackage, startDate);
     const interest = calculateInterest({
       principal: principalAmount,
       annualRate: selectedPackage.annualInterestRate,
       startDate,
       endDate: maturityDate,
-      method: InterestCalcMethod.SIMPLE,
+      method:
+        selectedPackage.interestCalculationMethod ?? InterestCalcMethod.SIMPLE,
     }).totalInterest;
     return { maturityDate, interest, total: principalAmount + interest };
-  }, [principalAmount, selectedPackage, startDate]);
+  })();
 
   const money = (value: number) =>
     formatCurrency(value, DEFAULT_CURRENCY, locale, {
@@ -241,7 +294,7 @@ export function CreateSavingWizard({
           month: "2-digit",
           year: "numeric",
         }).format(new Date(`${value}T00:00:00`))
-      : "—";
+      : t("unknown");
   const rate = (value: number) =>
     new Intl.NumberFormat(locale, {
       maximumFractionDigits: 2,
@@ -263,9 +316,9 @@ export function CreateSavingWizard({
   );
   const needsPayout = settlementRule !== SettlementRule.ROLL_PRINCIPAL_INTEREST;
   const canContinue =
-    step === "product"
+    step === FlowStep.PRODUCT
       ? Boolean(providerId && selectedPackage)
-      : step === "deposit"
+      : step === FlowStep.DEPOSIT
         ? Boolean(amountIsValid && fundingAccountId && startDate)
         : Boolean(
             (!needsPayout || settlementAccountId) &&
@@ -288,51 +341,52 @@ export function CreateSavingWizard({
   };
   const exitFlow = () => router.push(APP_PATH.MONEY_SAVINGS);
 
-  const confirm = () => {
+  const confirm = handleSubmit((submitted) => {
     if (!online) {
       setErrorCode(CLIENT_ACTION_ERROR_CODE.OFFLINE);
       return;
     }
-    if (!selectedPackage || !startDate || !amountIsValid) return;
-    const idempotencyKey =
-      idempotencyKeyRef.current ??
-      (idempotencyKeyRef.current = crypto.randomUUID());
+    if (!selectedPackage || !amountIsValid) return;
+    if (submitted.principal == null) {
+      setErrorCode(PRODUCT_ACTION_ERROR_CODE.INVALID);
+      return;
+    }
+    const input = {
+      fundingAccountId: submitted.fundingAccountId,
+      settlementAccountId: submitted.settlementAccountId,
+      providerId: submitted.providerId,
+      packageId: submitted.packageId,
+      principal: submitted.principal,
+      startDate: submitted.startDate,
+      renewalPolicy: submitted.renewalPolicy,
+      settlementRule: submitted.settlementRule,
+      renewalConfig: {
+        preferredPackageId:
+          submitted.settlementRule === SettlementRule.WITHDRAW_EVERYTHING
+            ? null
+            : submitted.targetMode === MaturityTargetMode.SELECT_PACKAGE
+              ? submitted.targetPackageId
+              : submitted.packageId,
+        preferredSettlementRule: submitted.settlementRule,
+        preferredSettlementAccountId: needsPayout
+          ? submitted.settlementAccountId
+          : null,
+        targetMode: submitted.targetMode,
+        targetPackageId:
+          submitted.settlementRule === SettlementRule.WITHDRAW_EVERYTHING
+            ? null
+            : submitted.targetMode === MaturityTargetMode.SELECT_PACKAGE
+              ? submitted.targetPackageId
+              : submitted.packageId,
+        payoutAccountId: needsPayout ? submitted.settlementAccountId : null,
+        fallbackPolicy: MaturityFallbackPolicy.ASK_USER,
+      },
+      idempotencyKey: crypto.randomUUID(),
+    };
     startTransition(async () => {
-      const result = await createSavingAction({
-        fundingAccountId,
-        settlementAccountId,
-        providerId,
-        packageId: selectedPackage.id,
-        principal: principalAmount,
-        startDate,
-        idempotencyKey,
-        renewalPolicy: renewalPolicy as (typeof RENEWAL_POLICY_VALUES)[number],
-        settlementRule:
-          settlementRule as (typeof SETTLEMENT_RULE_VALUES)[number],
-        renewalConfig: {
-          preferredPackageId:
-            settlementRule === SettlementRule.WITHDRAW_EVERYTHING
-              ? null
-              : targetMode === MaturityTargetMode.SELECT_PACKAGE
-                ? targetPackageId
-                : selectedPackage.id,
-          preferredSettlementRule:
-            settlementRule as (typeof SETTLEMENT_RULE_VALUES)[number],
-          preferredSettlementAccountId: needsPayout
-            ? settlementAccountId
-            : null,
-          targetMode,
-          targetPackageId:
-            settlementRule === SettlementRule.WITHDRAW_EVERYTHING
-              ? null
-              : targetMode === MaturityTargetMode.SELECT_PACKAGE
-                ? targetPackageId
-                : selectedPackage.id,
-          payoutAccountId: needsPayout ? settlementAccountId : null,
-          fallbackPolicy: MaturityFallbackPolicy.ASK_USER,
-        },
-      });
+      const result = await createSavingAction(input);
       if (result.status === "success" && result.id) {
+        reset(defaultValues);
         router.replace(moneySavingsPath(result.id));
         return;
       }
@@ -342,7 +396,7 @@ export function CreateSavingWizard({
           : CLIENT_ACTION_ERROR_CODE.OFFLINE,
       );
     });
-  };
+  });
 
   return (
     <div
@@ -378,7 +432,7 @@ export function CreateSavingWizard({
             : MotionStepDirection.BACKWARD
         }
       >
-        {step === "product" ? (
+        {step === FlowStep.PRODUCT ? (
           <section
             className="flex flex-col gap-(--space-5)"
             aria-labelledby="savings-product-title"
@@ -487,8 +541,8 @@ export function CreateSavingWizard({
                       key={pkg.id}
                       selected={pkg.id === packageId}
                       onPress={() => {
-                        setPackageId(pkg.id);
-                        setTargetPackageId(pkg.id);
+                        setValue("packageId", pkg.id);
+                        setValue("targetPackageId", pkg.id);
                       }}
                       testId={`savings-package-${pkg.id}`}
                     >
@@ -502,11 +556,7 @@ export function CreateSavingWizard({
                       </span>
                       <Text size="xs" tone="secondary" className="shrink-0">
                         {t("maturityPreview", {
-                          date: date(
-                            startDate
-                              ? addDays(startDate, pkg.durationDays)
-                              : "",
-                          ),
+                          date: date(maturityDateForPackage(pkg, startDate)),
                         })}
                       </Text>
                     </SelectionCard>
@@ -519,7 +569,7 @@ export function CreateSavingWizard({
           </section>
         ) : null}
 
-        {step === "deposit" ? (
+        {step === FlowStep.DEPOSIT ? (
           <section
             className="flex flex-col gap-(--space-5)"
             aria-labelledby="savings-deposit-title"
@@ -543,15 +593,18 @@ export function CreateSavingWizard({
               <Text size="sm" weight="semibold">
                 {t("amountSection")}
               </Text>
-              <AmountField
-                id="savings-principal"
-                label={t("principalLabel")}
-                value={principal}
-                onValueChange={setPrincipal}
-                placeholder={t("amountPlaceholder")}
-                required
-                data-testid="savings-wizard-principal"
-                className="text-xl font-semibold"
+              <ControlledField
+                control={control}
+                field={{
+                  type: "amount",
+                  name: "principal",
+                  id: "savings-principal",
+                  label: t("principalLabel"),
+                  placeholder: t("amountPlaceholder"),
+                  required: true,
+                  testId: "savings-wizard-principal",
+                  className: "text-xl font-semibold",
+                }}
               />
               {selectedPackage && principal != null && !amountIsValid ? (
                 <Text size="xs" tone="danger">
@@ -577,7 +630,7 @@ export function CreateSavingWizard({
                   <SelectionCard
                     key={account.id}
                     selected={account.id === fundingAccountId}
-                    onPress={() => setFundingAccountId(account.id)}
+                    onPress={() => setValue("fundingAccountId", account.id)}
                     testId={`savings-source-${account.id}`}
                   >
                     <span className="flex min-w-0 items-center gap-(--space-3)">
@@ -599,14 +652,17 @@ export function CreateSavingWizard({
                 ))}
               </div>
             </div>
-            <DatePickerField
-              id="savings-start-date"
-              label={t("startDateLabel")}
-              value={startDate}
-              onChange={setStartDate}
-              description={t("startDateHint")}
-              required
-              data-testid="savings-wizard-start-date"
+            <ControlledField
+              control={control}
+              field={{
+                type: "date",
+                name: "startDate",
+                id: "savings-start-date",
+                label: t("startDateLabel"),
+                description: t("startDateHint"),
+                required: true,
+                testId: "savings-wizard-start-date",
+              }}
             />
             <div
               className="rounded-[var(--radius-card)] border border-border-subtle bg-surface-elevated px-(--space-4) py-(--space-4)"
@@ -663,7 +719,7 @@ export function CreateSavingWizard({
           </section>
         ) : null}
 
-        {step === "review" ? (
+        {step === FlowStep.REVIEW ? (
           <section
             className="flex flex-col gap-(--space-5)"
             aria-labelledby="savings-review-title"
@@ -698,8 +754,8 @@ export function CreateSavingWizard({
               </Text>
               <Text size="sm" tone="secondary" className="mt-(--space-1)">
                 {selectedPackage
-                  ? `${t("termDays", { days: selectedPackage.durationDays })} · ${rate(selectedPackage.annualInterestRate)}% / ${t("year")} · ${selectedProvider?.displayName ?? "—"}`
-                  : "—"}
+                  ? `${t("termDays", { days: selectedPackage.durationDays })} · ${rate(selectedPackage.annualInterestRate)}% / ${t("year")} · ${selectedProvider?.displayName ?? t("unknown")}`
+                  : t("unknown")}
               </Text>
               <div className="mt-(--space-4) border-t border-accent/20 pt-(--space-3)">
                 <Text size="sm" tone="secondary">
@@ -712,7 +768,7 @@ export function CreateSavingWizard({
                   tabular
                   className="text-accent"
                 >
-                  {estimate ? money(estimate.total) : "—"}
+                  {estimate ? money(estimate.total) : t("unknown")}
                 </Text>
                 <Text size="xs" tone="secondary">
                   {estimate
@@ -727,18 +783,18 @@ export function CreateSavingWizard({
             >
               <SummaryRow
                 label={t("sourceSection")}
-                value={fundingAccount?.name ?? "—"}
+                value={fundingAccount?.name ?? t("unknown")}
               />
               <SummaryRow
                 label={t("providerLabel")}
-                value={selectedProvider?.displayName ?? "—"}
+                value={selectedProvider?.displayName ?? t("unknown")}
               />
               <SummaryRow
                 label={t("packageLabel")}
                 value={
                   selectedPackage
                     ? t("termDays", { days: selectedPackage.durationDays })
-                    : "—"
+                    : t("unknown")
                 }
               />
               <SummaryRow label={t("startDateLabel")} value={date(startDate)} />
@@ -764,7 +820,7 @@ export function CreateSavingWizard({
                   <SelectionCard
                     key={value}
                     selected={settlementRule === value}
-                    onPress={() => setSettlementRule(value)}
+                    onPress={() => setValue("settlementRule", value)}
                     testId={`savings-maturity-strategy-${value}`}
                   >
                     <span>
@@ -808,8 +864,12 @@ export function CreateSavingWizard({
                         targetMode === MaturityTargetMode.KEEP_CURRENT_PACKAGE
                       }
                       onPress={() => {
-                        setTargetMode(MaturityTargetMode.KEEP_CURRENT_PACKAGE);
-                        setTargetPackageId(
+                        setValue(
+                          "targetMode",
+                          MaturityTargetMode.KEEP_CURRENT_PACKAGE,
+                        );
+                        setValue(
+                          "targetPackageId",
                           selectedPackage?.id ?? targetPackageId,
                         );
                       }}
@@ -829,7 +889,10 @@ export function CreateSavingWizard({
                         targetMode === MaturityTargetMode.SELECT_PACKAGE
                       }
                       onPress={() =>
-                        setTargetMode(MaturityTargetMode.SELECT_PACKAGE)
+                        setValue(
+                          "targetMode",
+                          MaturityTargetMode.SELECT_PACKAGE,
+                        )
                       }
                       testId="savings-target-other"
                     >
@@ -849,7 +912,7 @@ export function CreateSavingWizard({
                         <SelectionCard
                           key={pkg.id}
                           selected={targetPackageId === pkg.id}
-                          onPress={() => setTargetPackageId(pkg.id)}
+                          onPress={() => setValue("targetPackageId", pkg.id)}
                           testId={`savings-target-package-${pkg.id}`}
                         >
                           <span>
@@ -878,7 +941,9 @@ export function CreateSavingWizard({
                       <SelectionCard
                         key={account.id}
                         selected={settlementAccountId === account.id}
-                        onPress={() => setSettlementAccountId(account.id)}
+                        onPress={() =>
+                          setValue("settlementAccountId", account.id)
+                        }
                         testId={`savings-payout-account-${account.id}`}
                       >
                         <Text size="sm" weight="medium">
@@ -902,7 +967,7 @@ export function CreateSavingWizard({
                     <SelectionCard
                       key={value}
                       selected={renewalPolicy === value}
-                      onPress={() => setRenewalPolicy(value)}
+                      onPress={() => setValue("renewalPolicy", value)}
                       testId={`savings-renewal-policy-${value}`}
                     >
                       <Text size="sm" weight="medium">
@@ -930,7 +995,7 @@ export function CreateSavingWizard({
               </Text>
               <Text size="sm" tone="secondary" className="mt-(--space-1)">
                 {t("flowDescription", {
-                  source: fundingAccount?.name ?? "—",
+                  source: fundingAccount?.name ?? t("unknown"),
                   amount: money(principalAmount),
                 })}
               </Text>
@@ -957,13 +1022,13 @@ export function CreateSavingWizard({
               {t("cancel")}
             </Button>
           )}
-          {step === "review" ? (
+          {step === FlowStep.REVIEW ? (
             <Button
               variant="primary"
               className="min-h-11 flex-[1.6]"
               data-testid="savings-wizard-confirm"
               isDisabled={isPending || !canContinue}
-              onPress={confirm}
+              onPress={() => void confirm()}
             >
               {isPending ? t("confirming") : t("confirm")}
             </Button>
@@ -975,7 +1040,7 @@ export function CreateSavingWizard({
               isDisabled={!canContinue}
               onPress={goNext}
             >
-              {step === "deposit" ? t("reviewCta") : t("next")}
+              {step === FlowStep.DEPOSIT ? t("reviewCta") : t("next")}
             </Button>
           )}
         </div>

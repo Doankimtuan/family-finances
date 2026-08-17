@@ -51,6 +51,7 @@ export default async function NewSavingPage({ params }: Props) {
         renewableAvailable: pkg.renewableAvailable,
         termAmount: pkg.termAmount,
         termUnit: pkg.termUnit,
+        interestCalculationMethod: pkg.interestCalculationMethod,
         taxRule: pkg.taxRule,
         taxRatePercent: pkg.taxRatePercent,
         earlySettlementRule: pkg.earlySettlementRule,

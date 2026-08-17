@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useForm, useWatch, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { AnimatePresence, motion } from "motion/react";
 import { motionTokens } from "@/shared/motion";
 import { useLocale, useTranslations } from "next-intl";
@@ -12,8 +14,8 @@ import {
   getSavingsProductDefaults,
   SavingsFamily,
   SavingsTaxRule,
-  type EarlySettlementRule as EarlySettlementRuleType,
-  type SavingsTaxRule as SavingsTaxRuleType,
+  savingsProviderInputSchema,
+  savingsProductInputSchema,
 } from "@/modules/savings/application/savings-domain-rules";
 import { formatPercent } from "@/shared/i18n/formatters";
 import { Sheet, SheetContent } from "@/shared/patterns/sheet";
@@ -23,8 +25,7 @@ import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
 import { AppIcon } from "@/shared/ui/app-icon";
 import { TextField } from "@/shared/ui/form";
-import { PercentageField } from "@/shared/patterns/percentage-field";
-import { NumberField } from "@/shared/ui/form/number-field";
+import { ControlledField } from "@/shared/patterns/controlled-fields";
 import { LabeledSelect } from "@/shared/patterns/labeled-native-field";
 import { Dropdown } from "@heroui/react";
 import {
@@ -33,6 +34,7 @@ import {
   ACTION_ICONS,
 } from "@/shared/ui/icon-registry";
 import { toast } from "@/shared/patterns/toast";
+import type { ProductActionErrorCode } from "@/modules/tenancy/application/product-action-error";
 import {
   archiveSavingsProductAction,
   archiveSavingsProviderAction,
@@ -44,30 +46,12 @@ import {
 
 type Props = { catalog: SavingCatalogProvider[] };
 
-type ProviderForm = {
-  id?: string;
-  name: string;
-  family: SavingsFamily;
-  iconKey: SavingsProviderIconKey;
-};
-
-type ProductForm = {
-  id?: string;
-  providerId: string;
-  name: string;
-  termAmount: number;
-  termUnit: "DAY" | "MONTH";
-  rate: number;
-  method: "simple" | "compound_daily" | "compound_monthly";
-  taxRule: SavingsTaxRuleType;
-  taxRate: number;
-  taxRateDefault: number;
-  currency: string;
-  minAmount: number | null;
-  maxAmount: number | null;
-  earlyRule: EarlySettlementRuleType;
-  earlyRate: number | null;
-};
+type ProviderFormValues = import("zod").input<
+  typeof savingsProviderInputSchema
+>;
+type ProductFormValues = import("zod").input<typeof savingsProductInputSchema>;
+type ProviderEditor = { id?: string } & ProviderFormValues;
+type ProductEditor = { id?: string; providerId: string } & ProductFormValues;
 
 const DEFAULT_ICON: SavingsProviderIconKey = "bank";
 const DEFAULT_CURRENCY = "VND";
@@ -78,7 +62,7 @@ function iconKeyFor(value: string | undefined): SavingsProviderIconKey {
     : DEFAULT_ICON;
 }
 
-function providerFormFrom(provider?: SavingCatalogProvider): ProviderForm {
+function providerFormFrom(provider?: SavingCatalogProvider): ProviderEditor {
   return provider
     ? {
         id: provider.id,
@@ -95,7 +79,7 @@ function providerFormFrom(provider?: SavingCatalogProvider): ProviderForm {
 function productFormFrom(
   provider: SavingCatalogProvider,
   product?: SavingPackage,
-): ProductForm {
+): ProductEditor {
   const defaults = getSavingsProductDefaults(
     provider.family === SavingsFamily.PLATFORM
       ? SavingsFamily.PLATFORM
@@ -105,20 +89,26 @@ function productFormFrom(
     id: product?.id,
     providerId: provider.id,
     name: product?.packageName ?? "",
-    termAmount: product?.termAmount ?? product?.durationDays ?? 30,
-    termUnit: product?.termUnit ?? "DAY",
-    rate: product?.annualInterestRate ?? 0,
-    method: product?.interestCalculationMethod ?? "simple",
+    term: {
+      amount: product?.termAmount ?? product?.durationDays ?? 30,
+      unit: product?.termUnit ?? "DAY",
+    },
+    annualInterestRatePercent: product?.annualInterestRate ?? 0,
+    interestCalculationMethod: product?.interestCalculationMethod ?? "simple",
     taxRule: product?.taxRule ?? defaults.taxRule,
-    taxRate: product?.taxRatePercent ?? defaults.taxRatePercent,
-    taxRateDefault: defaults.taxRatePercent,
+    taxRatePercent: product?.taxRatePercent ?? defaults.taxRatePercent,
     currency: product?.currency ?? DEFAULT_CURRENCY,
     minAmount: product?.minAmount ?? null,
     maxAmount: product?.maxAmount ?? null,
-    earlyRule: product?.earlySettlementRule ?? defaults.earlySettlementRule,
-    earlyRate:
+    earlySettlementRule:
+      product?.earlySettlementRule ?? defaults.earlySettlementRule,
+    earlySettlementRatePercent:
       product?.earlySettlementRatePercent ??
       defaults.earlySettlementRatePercent,
+    settlementRules: ["withdraw_everything"],
+    penaltyRules: [],
+    renewableAvailable: true,
+    supportsPartialSettlement: false,
   };
 }
 
@@ -279,14 +269,43 @@ function CompactActions({
 
 export function SavingsCatalogManager({ catalog }: Props) {
   const t = useTranslations("money.savingsCatalog");
+  const tErr = useTranslations("money.products.errors");
   const locale = useLocale();
   const router = useRouter();
-  const [providerEditor, setProviderEditor] = useState<ProviderForm | null>(
+  const [providerEditor, setProviderEditor] = useState<ProviderEditor | null>(
     null,
   );
-  const [productEditor, setProductEditor] = useState<ProductForm | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [productEditor, setProductEditor] = useState<ProductEditor | null>(
+    null,
+  );
+  const [error, setError] = useState<ProductActionErrorCode | null>(null);
   const [isPending, startTransition] = useTransition();
+  const providerForm = useForm<ProviderFormValues>({
+    resolver: zodResolver(savingsProviderInputSchema),
+    defaultValues: providerFormFrom(),
+  });
+  const productForm = useForm<ProductFormValues>({
+    resolver: zodResolver(savingsProductInputSchema),
+    defaultValues: productFormFrom(
+      catalog[0] ?? {
+        id: "",
+        displayName: "",
+        family: SavingsFamily.BANK,
+        packages: [],
+      },
+    ),
+  });
+  const productValues = useWatch({ control: productForm.control });
+  const productProvider = catalog.find(
+    (provider) => provider.id === productValues.providerId,
+  );
+  const taxRateDefault = productProvider
+    ? getSavingsProductDefaults(
+        productProvider.family === SavingsFamily.PLATFORM
+          ? SavingsFamily.PLATFORM
+          : SavingsFamily.BANK,
+      ).taxRatePercent
+    : 0;
 
   const iconLabels = Object.fromEntries(
     (Object.keys(SAVINGS_PROVIDER_ICONS) as SavingsProviderIconKey[]).map(
@@ -298,102 +317,37 @@ export function SavingsCatalogManager({ catalog }: Props) {
     setProviderEditor(null);
     setProductEditor(null);
     setError(null);
+    providerForm.reset(providerFormFrom());
+    if (catalog[0]) productForm.reset(productFormFrom(catalog[0]));
   };
 
-  const submitProvider = () => {
-    if (!providerEditor?.name.trim()) {
-      setError(t("validation.providerName"));
-      return;
-    }
+  const submitProvider = providerForm.handleSubmit((input) => {
     setError(null);
     startTransition(async () => {
-      const input = {
-        name: providerEditor.name.trim(),
-        family: providerEditor.family,
-        iconKey: providerEditor.iconKey,
-      };
-      const result = providerEditor.id
+      const result = providerEditor?.id
         ? await updateSavingsProviderAction(providerEditor.id, input)
         : await createSavingsProviderAction(input);
       if (result.status === "success") {
         closeEditors();
         toast.success(t("saved"));
         router.refresh();
-      } else setError(t("saveError"));
+      } else setError(result.code);
     });
-  };
+  });
 
-  const submitProduct = () => {
-    if (!productEditor) return;
-    if (!productEditor.name.trim())
-      return setError(t("validation.productName"));
-    if (
-      !Number.isFinite(productEditor.termAmount) ||
-      productEditor.termAmount <= 0
-    )
-      return setError(t("validation.term"));
-    if (
-      !Number.isFinite(productEditor.rate) ||
-      productEditor.rate < 0 ||
-      productEditor.rate > 100
-    )
-      return setError(t("validation.rate"));
-    if (
-      productEditor.taxRule !== SavingsTaxRule.NONE &&
-      (!Number.isFinite(productEditor.taxRate) ||
-        productEditor.taxRate < 0 ||
-        productEditor.taxRate > 100)
-    )
-      return setError(t("validation.taxRate"));
-    if (
-      productEditor.earlyRule === EarlySettlementRule.CUSTOM_RATE &&
-      (!Number.isFinite(productEditor.earlyRate ?? NaN) ||
-        (productEditor.earlyRate ?? -1) < 0 ||
-        (productEditor.earlyRate ?? 101) > 100)
-    )
-      return setError(t("validation.earlyRate"));
+  const submitProduct = productForm.handleSubmit((input) => {
     setError(null);
     startTransition(async () => {
-      const input = {
-        providerId: productEditor.providerId,
-        name: productEditor.name.trim(),
-        term: {
-          amount: productEditor.termAmount,
-          unit: productEditor.termUnit,
-        },
-        annualInterestRatePercent: productEditor.rate,
-        interestCalculationMethod: productEditor.method,
-        taxRule: productEditor.taxRule,
-        taxRatePercent:
-          productEditor.taxRule === SavingsTaxRule.NONE
-            ? 0
-            : productEditor.taxRate,
-        currency: DEFAULT_CURRENCY,
-        minAmount: productEditor.minAmount,
-        maxAmount: productEditor.maxAmount,
-        settlementRules: ["withdraw_everything"],
-        earlySettlementRule: productEditor.earlyRule,
-        earlySettlementRatePercent:
-          productEditor.earlyRule === EarlySettlementRule.CUSTOM_RATE
-            ? productEditor.earlyRate
-            : null,
-        penaltyRules:
-          productEditor.earlyRule === EarlySettlementRule.PENALTY
-            ? [{ strategy: "demand_interest" }]
-            : [],
-        renewableAvailable: true,
-        supportsPartialSettlement: false,
-      };
-      const result = productEditor.id
+      const result = productEditor?.id
         ? await updateSavingsProductAction(productEditor.id, input)
         : await createSavingsProductAction(input);
       if (result.status === "success") {
         closeEditors();
         toast.success(t("saved"));
         router.refresh();
-      } else setError(t("saveError"));
+      } else setError(result.code);
     });
-  };
+  });
 
   const archiveProvider = (provider: SavingCatalogProvider) => {
     if (provider.isSystem || !window.confirm(t("archiveConfirm"))) return;
@@ -402,7 +356,7 @@ export function SavingsCatalogManager({ catalog }: Props) {
       if (result.status === "success") {
         toast.success(t("archivedNotice"));
         router.refresh();
-      } else setError(t("saveError"));
+      } else setError(result.code);
     });
   };
 
@@ -413,7 +367,7 @@ export function SavingsCatalogManager({ catalog }: Props) {
       if (result.status === "success") {
         toast.success(t("archivedNotice"));
         router.refresh();
-      } else setError(t("saveError"));
+      } else setError(result.code);
     });
   };
 
@@ -422,6 +376,7 @@ export function SavingsCatalogManager({ catalog }: Props) {
     product?: SavingPackage,
   ) => {
     setError(null);
+    productForm.reset(productFormFrom(provider, product));
     setProductEditor(productFormFrom(provider, product));
   };
 
@@ -461,6 +416,7 @@ export function SavingsCatalogManager({ catalog }: Props) {
           data-testid="savings-create-provider"
           onPress={() => {
             setError(null);
+            providerForm.reset(providerFormFrom());
             setProviderEditor(providerFormFrom());
           }}
         >
@@ -472,7 +428,7 @@ export function SavingsCatalogManager({ catalog }: Props) {
           className="rounded-[var(--radius-control)] border border-danger/30 bg-danger/5 px-(--space-3) py-(--space-2) text-sm text-danger"
           role="alert"
         >
-          {error}
+          {tErr(error)}
         </div>
       ) : null}
       {catalog.length === 0 ? (
@@ -515,9 +471,11 @@ export function SavingsCatalogManager({ catalog }: Props) {
                         label={t("moreActions")}
                         editLabel={t("edit")}
                         archiveLabel={t("archive")}
-                        onEdit={() =>
-                          setProviderEditor(providerFormFrom(provider))
-                        }
+                        onEdit={() => {
+                          const editor = providerFormFrom(provider);
+                          providerForm.reset(editor);
+                          setProviderEditor(editor);
+                        }}
                         onArchive={() => archiveProvider(provider)}
                       />
                     ) : (
@@ -643,38 +601,42 @@ export function SavingsCatalogManager({ catalog }: Props) {
                 <TextField
                   id="savings-provider-name"
                   label={t("providerName")}
-                  value={providerEditor.name}
-                  onChange={(event) =>
-                    setProviderEditor({
-                      ...providerEditor,
-                      name: event.target.value,
-                    })
+                  registration={providerForm.register("name")}
+                  error={
+                    providerForm.formState.errors.name
+                      ? t("validation.providerName")
+                      : undefined
                   }
                   required
                 />
-                <LabeledSelect
-                  label={t("family")}
-                  value={providerEditor.family}
-                  options={[
-                    { id: SavingsFamily.BANK, label: t("bank") },
-                    { id: SavingsFamily.PLATFORM, label: t("platform") },
-                  ]}
-                  onChange={(event) =>
-                    setProviderEditor({
-                      ...providerEditor,
-                      family: event.target.value as SavingsFamily,
-                    })
-                  }
-                  required
+                <Controller
+                  name="family"
+                  control={providerForm.control}
+                  render={({ field }) => (
+                    <LabeledSelect
+                      label={t("family")}
+                      value={field.value}
+                      options={[
+                        { id: SavingsFamily.BANK, label: t("bank") },
+                        { id: SavingsFamily.PLATFORM, label: t("platform") },
+                      ]}
+                      onChange={(event) => field.onChange(event.target.value)}
+                      required
+                    />
+                  )}
                 />
-                <ProviderIconPicker
-                  value={providerEditor.iconKey}
-                  onChange={(iconKey) =>
-                    setProviderEditor({ ...providerEditor, iconKey })
-                  }
-                  label={t("iconKey")}
-                  chooseLabel={t("chooseIcon")}
-                  iconLabels={iconLabels}
+                <Controller
+                  name="iconKey"
+                  control={providerForm.control}
+                  render={({ field }) => (
+                    <ProviderIconPicker
+                      value={iconKeyFor(field.value)}
+                      onChange={(iconKey) => field.onChange(iconKey)}
+                      label={t("iconKey")}
+                      chooseLabel={t("chooseIcon")}
+                      iconLabels={iconLabels}
+                    />
+                  )}
                 />
               </Sheet.Body>
               <SheetActionFooter
@@ -709,65 +671,62 @@ export function SavingsCatalogManager({ catalog }: Props) {
                 <TextField
                   id="savings-product-name"
                   label={t("productName")}
-                  value={productEditor.name}
-                  onChange={(event) =>
-                    setProductEditor({
-                      ...productEditor,
-                      name: event.target.value,
-                    })
-                  }
+                  registration={productForm.register("name")}
                   required
                 />
                 <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-(--space-3)">
-                  <NumberField
-                    id="savings-product-term"
-                    label={t("duration")}
-                    value={productEditor.termAmount}
-                    minValue={1}
-                    onChange={(value) =>
-                      setProductEditor({ ...productEditor, termAmount: value })
-                    }
-                    required
+                  <ControlledField
+                    control={productForm.control}
+                    field={{
+                      type: "number",
+                      name: "term.amount",
+                      id: "savings-product-term",
+                      label: t("duration"),
+                      minValue: 1,
+                      required: true,
+                    }}
                   />
                   <LabeledSelect
                     label={t("unit")}
-                    value={productEditor.termUnit}
+                    value={productValues.term?.unit ?? "DAY"}
                     options={[
                       { id: "DAY", label: t("termDay") },
                       { id: "MONTH", label: t("termMonth") },
                     ]}
                     onChange={(event) =>
-                      setProductEditor({
-                        ...productEditor,
-                        termUnit: event.target.value as ProductForm["termUnit"],
-                      })
+                      productForm.setValue(
+                        "term.unit",
+                        event.target.value as "DAY" | "MONTH",
+                      )
                     }
                     required
                   />
                 </div>
                 <SectionLabel>{t("interestSection")}</SectionLabel>
-                <PercentageField
-                  id="savings-product-rate"
-                  label={t("rate")}
-                  value={productEditor.rate}
-                  onChange={(value) =>
-                    setProductEditor({ ...productEditor, rate: value })
-                  }
-                  required
+                <ControlledField
+                  control={productForm.control}
+                  field={{
+                    type: "percentage",
+                    name: "annualInterestRatePercent",
+                    id: "savings-product-rate",
+                    label: t("rate"),
+                    required: true,
+                  }}
                 />
                 <LabeledSelect
                   label={t("method")}
-                  value={productEditor.method}
+                  value={productValues.interestCalculationMethod ?? "simple"}
                   options={[
                     { id: "simple", label: t("simple") },
                     { id: "compound_daily", label: t("compoundDaily") },
                     { id: "compound_monthly", label: t("compoundMonthly") },
                   ]}
                   onChange={(event) =>
-                    setProductEditor({
-                      ...productEditor,
-                      method: event.target.value as ProductForm["method"],
-                    })
+                    productForm.setValue(
+                      "interestCalculationMethod",
+                      event.target
+                        .value as ProductFormValues["interestCalculationMethod"],
+                    )
                   }
                   required
                 />
@@ -780,42 +739,40 @@ export function SavingsCatalogManager({ catalog }: Props) {
                   <div className="flex flex-col gap-(--space-2) sm:flex-row">
                     <PolicyOption
                       label={t("taxNone")}
-                      selected={productEditor.taxRule === SavingsTaxRule.NONE}
-                      onPress={() =>
-                        setProductEditor({
-                          ...productEditor,
-                          taxRule: SavingsTaxRule.NONE,
-                          taxRate: 0,
-                        })
-                      }
+                      selected={productValues.taxRule === SavingsTaxRule.NONE}
+                      onPress={() => {
+                        productForm.setValue("taxRule", SavingsTaxRule.NONE);
+                        productForm.setValue("taxRatePercent", 0);
+                      }}
                       testId="savings-tax-none"
                     />
                     <PolicyOption
                       label={t("taxOnInterestPolicy")}
                       description={
-                        productEditor.taxRule !== SavingsTaxRule.NONE
+                        productValues.taxRule !== SavingsTaxRule.NONE
                           ? t("taxBaseHint")
                           : undefined
                       }
                       selected={
-                        productEditor.taxRule ===
+                        productValues.taxRule ===
                         SavingsTaxRule.PROFIT_PERCENTAGE
                       }
-                      onPress={() =>
-                        setProductEditor({
-                          ...productEditor,
-                          taxRule: SavingsTaxRule.PROFIT_PERCENTAGE,
-                          taxRate:
-                            productEditor.taxRate ||
-                            productEditor.taxRateDefault,
-                        })
-                      }
+                      onPress={() => {
+                        productForm.setValue(
+                          "taxRule",
+                          SavingsTaxRule.PROFIT_PERCENTAGE,
+                        );
+                        productForm.setValue(
+                          "taxRatePercent",
+                          productValues.taxRatePercent || taxRateDefault,
+                        );
+                      }}
                       testId="savings-tax-on-interest"
                     />
                   </div>
                 </div>
                 <AnimatePresence initial={false} mode="wait">
-                  {productEditor.taxRule ===
+                  {productValues.taxRule ===
                   SavingsTaxRule.PROFIT_PERCENTAGE ? (
                     <motion.div
                       key="tax-rate"
@@ -824,14 +781,15 @@ export function SavingsCatalogManager({ catalog }: Props) {
                       exit={{ opacity: 0, y: -8 }}
                       transition={{ duration: motionTokens.duration.fast }}
                     >
-                      <PercentageField
-                        id="savings-product-tax"
-                        label={t("taxRate")}
-                        value={productEditor.taxRate}
-                        onChange={(value) =>
-                          setProductEditor({ ...productEditor, taxRate: value })
-                        }
-                        required
+                      <ControlledField
+                        control={productForm.control}
+                        field={{
+                          type: "percentage",
+                          name: "taxRatePercent",
+                          id: "savings-product-tax",
+                          label: t("taxRate"),
+                          required: true,
+                        }}
                       />
                     </motion.div>
                   ) : null}
@@ -846,67 +804,75 @@ export function SavingsCatalogManager({ catalog }: Props) {
                     <PolicyOption
                       label={t("earlyNotAllowed")}
                       selected={
-                        productEditor.earlyRule ===
+                        productValues.earlySettlementRule ===
                         EarlySettlementRule.NOT_ALLOWED
                       }
-                      onPress={() =>
-                        setProductEditor({
-                          ...productEditor,
-                          earlyRule: EarlySettlementRule.NOT_ALLOWED,
-                          earlyRate: null,
-                        })
-                      }
+                      onPress={() => {
+                        productForm.setValue(
+                          "earlySettlementRule",
+                          EarlySettlementRule.NOT_ALLOWED,
+                        );
+                        productForm.setValue(
+                          "earlySettlementRatePercent",
+                          null,
+                        );
+                      }}
                       testId="savings-early-not-allowed"
                     />
                     <PolicyOption
                       label={t("earlyPrincipalOnly")}
                       selected={
-                        productEditor.earlyRule ===
+                        productValues.earlySettlementRule ===
                         EarlySettlementRule.PRINCIPAL_ONLY
                       }
-                      onPress={() =>
-                        setProductEditor({
-                          ...productEditor,
-                          earlyRule: EarlySettlementRule.PRINCIPAL_ONLY,
-                          earlyRate: null,
-                        })
-                      }
+                      onPress={() => {
+                        productForm.setValue(
+                          "earlySettlementRule",
+                          EarlySettlementRule.PRINCIPAL_ONLY,
+                        );
+                        productForm.setValue(
+                          "earlySettlementRatePercent",
+                          null,
+                        );
+                      }}
                       testId="savings-early-principal-only"
                     />
                     <PolicyOption
                       label={t("earlyCustomInterest")}
                       selected={
-                        productEditor.earlyRule ===
+                        productValues.earlySettlementRule ===
                         EarlySettlementRule.CUSTOM_INTEREST_RATE
                       }
                       onPress={() =>
-                        setProductEditor({
-                          ...productEditor,
-                          earlyRule: EarlySettlementRule.CUSTOM_INTEREST_RATE,
-                          earlyRate: productEditor.earlyRate,
-                        })
+                        productForm.setValue(
+                          "earlySettlementRule",
+                          EarlySettlementRule.CUSTOM_INTEREST_RATE,
+                        )
                       }
                       testId="savings-early-custom-rate"
                     />
                     <PolicyOption
                       label={t("earlyProductRule")}
                       selected={
-                        productEditor.earlyRule ===
+                        productValues.earlySettlementRule ===
                         EarlySettlementRule.PRODUCT_RULE
                       }
-                      onPress={() =>
-                        setProductEditor({
-                          ...productEditor,
-                          earlyRule: EarlySettlementRule.PRODUCT_RULE,
-                          earlyRate: null,
-                        })
-                      }
+                      onPress={() => {
+                        productForm.setValue(
+                          "earlySettlementRule",
+                          EarlySettlementRule.PRODUCT_RULE,
+                        );
+                        productForm.setValue(
+                          "earlySettlementRatePercent",
+                          null,
+                        );
+                      }}
                       testId="savings-early-product-rule"
                     />
                   </div>
                 </div>
                 <AnimatePresence initial={false} mode="wait">
-                  {productEditor.earlyRule ===
+                  {productValues.earlySettlementRule ===
                   EarlySettlementRule.CUSTOM_INTEREST_RATE ? (
                     <motion.div
                       key="early-rate"
@@ -915,17 +881,15 @@ export function SavingsCatalogManager({ catalog }: Props) {
                       exit={{ opacity: 0, y: -8 }}
                       transition={{ duration: motionTokens.duration.fast }}
                     >
-                      <PercentageField
-                        id="savings-product-early-rate"
-                        label={t("earlyRate")}
-                        value={productEditor.earlyRate ?? undefined}
-                        onChange={(value) =>
-                          setProductEditor({
-                            ...productEditor,
-                            earlyRate: value,
-                          })
-                        }
-                        required
+                      <ControlledField
+                        control={productForm.control}
+                        field={{
+                          type: "percentage",
+                          name: "earlySettlementRatePercent",
+                          id: "savings-product-early-rate",
+                          label: t("earlyRate"),
+                          required: true,
+                        }}
                       />
                     </motion.div>
                   ) : null}

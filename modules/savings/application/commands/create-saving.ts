@@ -1,4 +1,3 @@
-import { z } from "zod";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import {
@@ -9,16 +8,8 @@ import {
 import { AccountType } from "@/modules/ledger/application/ledger-constants";
 import {
   RenewalPolicy,
-  SettlementRule,
-  InterestCalcMethod,
-  PenaltyStrategy,
-  RENEWAL_POLICY_VALUES,
-  SETTLEMENT_RULE_VALUES,
-  MATURITY_TARGET_MODE_VALUES,
   MaturityTargetMode,
   MaturityFallbackPolicy,
-  INTEREST_CALC_METHOD_VALUES,
-  PENALTY_STRATEGY_VALUES,
 } from "../savings-constants";
 import { resolvePackageSnapshot } from "../savings-provider-registry";
 import {
@@ -33,47 +24,15 @@ import {
   type PackageSnapshot,
   type RenewalConfig,
 } from "../savings-types";
-
-const renewalConfigSchema = z.object({
-  preferredPackageId: z.string().uuid().nullable().optional(),
-  preferredSettlementRule: z.enum(SETTLEMENT_RULE_VALUES).optional(),
-  preferredSettlementAccountId: z.string().uuid().nullable().optional(),
-  targetMode: z.enum(MATURITY_TARGET_MODE_VALUES).optional(),
-  targetPackageId: z.string().uuid().nullable().optional(),
-  payoutAccountId: z.string().uuid().nullable().optional(),
-  fallbackPolicy: z.literal(MaturityFallbackPolicy.ASK_USER).optional(),
-});
-
-export const createSavingInputSchema = z.object({
-  fundingAccountId: z.string().uuid(),
-  settlementAccountId: z.string().uuid(),
-  providerId: z.string().uuid(),
-  packageId: z.string().uuid(),
-  principal: z.number().finite().int().positive(),
-  startDate: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/)
-    .optional(),
-  renewalPolicy: z
-    .enum(RENEWAL_POLICY_VALUES)
-    .default(RenewalPolicy.ALWAYS_ASK),
-  /** @deprecated Use renewalPolicy. */
-  renewalPreference: z.enum(RENEWAL_POLICY_VALUES).optional(),
-  renewalConfig: renewalConfigSchema.optional(),
-  settlementRule: z
-    .enum(SETTLEMENT_RULE_VALUES)
-    .default(SettlementRule.WITHDRAW_EVERYTHING),
-  interestCalcMethod: z
-    .enum(INTEREST_CALC_METHOD_VALUES)
-    .default(InterestCalcMethod.SIMPLE),
-  penaltyStrategy: z
-    .enum(PENALTY_STRATEGY_VALUES)
-    .default(PenaltyStrategy.NO_INTEREST),
-  idempotencyKey: z.string().uuid().optional(),
-});
-
-export type CreateSavingInput = z.input<typeof createSavingInputSchema>;
-export type CreateSavingParsed = z.output<typeof createSavingInputSchema>;
+import {
+  CreateSavingInput,
+  createSavingInputSchema,
+} from "./create-saving.schema";
+export {
+  createSavingInputSchema,
+  type CreateSavingInput,
+  type CreateSavingParsed,
+} from "./create-saving.schema";
 
 export type CreateSavingResult =
   | {

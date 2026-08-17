@@ -93,6 +93,8 @@ type ReceiptState = Pick<
   tagAssignmentFailed: boolean;
 };
 
+type SubmittedTransaction = Omit<CaptureTransactionFormValues, "transactionTagIds">;
+
 function createDefaultValues(
   accounts: LedgerAccount[],
   initialDirection: TransactionDirection,
@@ -164,8 +166,6 @@ export function CaptureTransactionForm({
   const selectedAccountName = selectedAccount
     ? localizeCatalogName(tCatalog, "accounts", selectedAccount.name)
     : "";
-  const selectedCategory = tags.find((tag) => tag.id === categoryId);
-  const selectedJar = jars.find((jar) => jar.id === jarId);
   const numericAmount = typeof amount === "number" ? amount : null;
   const amountLabel =
     numericAmount != null && numericAmount > 0
@@ -184,9 +184,13 @@ export function CaptureTransactionForm({
     });
   };
 
-  const resetForm = () => {
+  const resetCaptureForm = () => {
     reset(createDefaultValues(accounts, initialDirection));
     statusAlert.hide();
+  };
+
+  const resetForm = () => {
+    resetCaptureForm();
     setReceipt(null);
   };
 
@@ -207,31 +211,44 @@ export function CaptureTransactionForm({
         transaction satisfies RecordTransactionInput,
       );
 
-      if (result.status === "success") {
-        let tagAssignmentFailed = false;
-        if (transactionTagIds.length > 0) {
-          const tagResult = await setTransactionTagsAction(
-            result.transactionId,
-            transactionTagIds,
-          );
-          tagAssignmentFailed = tagResult.status === "error";
-        }
-        setReceipt({
-          ...transaction,
-          transactionId: result.transactionId,
-          inboxItemId: result.inboxItemId,
-          accountName: selectedAccountName,
-          categoryName: selectedCategory
-            ? localizeCatalogName(tCatalog, "tags", selectedCategory.name)
-            : null,
-          jarName: selectedJar
-            ? localizeCatalogName(tCatalog, "jars", selectedJar.name)
-            : null,
-          tagAssignmentFailed,
-        });
+      if (result.status !== "success") {
+        showCaptureError(result.code);
         return;
       }
-      showCaptureError(result.code);
+
+      const submittedTags =
+        values.type === Direction.INCOME ? incomeTags : expenseTags;
+      const submittedCategory = submittedTags.find(
+        (tag) => tag.id === values.categoryId,
+      );
+      const submittedJar = jars.find((jar) => jar.id === values.jarId);
+      const receiptTransaction: SubmittedTransaction = transaction;
+
+      let tagAssignmentFailed = false;
+      if (transactionTagIds.length > 0) {
+        const tagResult = await setTransactionTagsAction(
+          result.transactionId,
+          transactionTagIds,
+        );
+        tagAssignmentFailed = tagResult.status === "error";
+      }
+
+      resetCaptureForm();
+      setReceipt({
+        ...receiptTransaction,
+        transactionId: result.transactionId,
+        inboxItemId: result.inboxItemId,
+        accountName: selectedAccount
+          ? localizeCatalogName(tCatalog, "accounts", selectedAccount.name)
+          : "",
+        categoryName: submittedCategory
+          ? localizeCatalogName(tCatalog, "tags", submittedCategory.name)
+          : null,
+        jarName: submittedJar
+          ? localizeCatalogName(tCatalog, "jars", submittedJar.name)
+          : null,
+        tagAssignmentFailed,
+      });
     });
   });
 
