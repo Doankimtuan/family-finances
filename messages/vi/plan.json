@@ -84,7 +84,10 @@
       "emergency_note_required": "Thêm ghi chú ý định cho realloc khẩn cấp.",
       "same_jar": "Chọn hũ đích khác.",
       "warning_required": "Xác nhận cảnh báo vượt chi để tiếp tục.",
-      "capacity_blocked": "Hũ nguồn không đủ sức chứa ảo (chính sách BLOCK của hộ)."
+      "capacity_blocked": "Hũ nguồn không đủ sức chứa ảo (chính sách BLOCK của hộ).",
+      "name_invalid": "Tên phải dài 2–80 ký tự.",
+      "percent_invalid": "Nhập phần trăm lớn hơn 0 và không quá 100.",
+      "fixed_invalid": "Nhập số tiền nguyên lớn hơn 0."
     },
     "notFound": "Không tìm thấy hũ",
     "reallocate": {

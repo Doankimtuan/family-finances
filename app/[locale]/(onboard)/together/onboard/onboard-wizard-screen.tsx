@@ -8,9 +8,9 @@ import { AuthScreenShell } from "@/shared/patterns/auth-screen-shell";
 import { TextField } from "@/shared/ui/form";
 import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
-import { StatusAlert } from "@/shared/ui/status-alert";
+import { AlertVariant } from "@/shared/ui/alert";
+import { useStatusAlert } from "@/providers/status-alert-provider";
 import type { PlanPreset } from "@/modules/tenancy/application/create-household.schema";
-import type { CreateHouseholdErrorCode } from "@/modules/tenancy/application/create-household";
 import { createHouseholdAction } from "./actions";
 
 const TOTAL_STEPS = 3;
@@ -28,16 +28,14 @@ export function OnboardWizardScreen() {
   const [planPreset, setPlanPreset] = useState<PlanPreset>("balanced");
   const [nameError, setNameError] = useState(false);
   const [accountError, setAccountError] = useState(false);
-  const [errorCode, setErrorCode] = useState<CreateHouseholdErrorCode | null>(
-    null,
-  );
+  const statusAlert = useStatusAlert();
   const [isPending, startTransition] = useTransition();
 
   const progressValue = step;
   const progressLabel = t("stepOf", { current: step, total: TOTAL_STEPS });
 
   const goNextFromHousehold = () => {
-    setErrorCode(null);
+    statusAlert.hide();
     if (name.trim().length < 2) {
       setNameError(true);
       return;
@@ -47,7 +45,7 @@ export function OnboardWizardScreen() {
   };
 
   const finish = () => {
-    setErrorCode(null);
+    statusAlert.hide();
     if (accountName.trim().length < 1) {
       setAccountError(true);
       return;
@@ -63,21 +61,17 @@ export function OnboardWizardScreen() {
         baseCurrency: "VND",
       });
       // Success / already_member redirect inside the server action.
-      setErrorCode(result.code);
+      statusAlert.show({
+        variant: AlertVariant.DANGER,
+        title: t("errorTitle"),
+        description: t(`errors.${result.code}`),
+      });
     });
   };
 
   return (
     <AuthScreenShell testId="onboard-wizard" centered>
       <Progress value={progressValue} max={TOTAL_STEPS} label={progressLabel} />
-
-      {errorCode ? (
-        <StatusAlert
-          variant="danger"
-          title={t("errorTitle")}
-          description={t(`errors.${errorCode}`)}
-        />
-      ) : null}
 
       {step === 1 ? (
         <div className="flex flex-col gap-(--space-4)">

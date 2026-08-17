@@ -9,6 +9,10 @@ This project uses React Hook Form + Zod (`@hookform/resolvers`). Shared form
 primitives own labels, descriptions, validation messages, disabled state, and
 accessible relationships (UI Constitution in `AGENTS.md`).
 
+Canonical standard (full detail — reset/reopen, submission, error
+presentation, migration steps):
+`artifacts/current/architecture/architecture-decisions/form-architecture.md`.
+
 ## State Ownership
 
 ```text
@@ -26,13 +30,18 @@ derived state  -> computed from the above during render (useWatch)
 
 ## RHF APIs to Prefer
 
-- `register` for simple inputs
-- `Controller` / `useController` for HeroUI and shared controlled fields
+- `register` for simple inputs (`TextField`, `AuthTextField`, `CheckboxField`)
+- `Controller` / `useController` for shared controlled fields with
+  value/onChange contracts (`AmountField`, `MoneyInput`, `NumberField`,
+  `SelectField`, `DatePickerField`, `TimeField`)
 - `useWatch` for cross-field derived values (allocation totals, remaining
-  capacity)
+  capacity); never whole-form `watch()`
 - `FormProvider` + `useFormContext` instead of drilling `form` props through
   field subtrees
 - `zodResolver` with the module's schema
+
+`MoneyInput` is controlled-numeric only (no `registration` prop): formatted
+display strings must never enter form state.
 
 ```tsx
 const form = useForm<CreateJarInput>({
@@ -72,6 +81,10 @@ export type CreateJarInput = z.infer<typeof CreateJarSchema>;
 - `handleSubmit` wraps the mutation call; the component maps the typed result
   to UI feedback (toast/inline error). Business validation outcomes arrive as
   values, not exceptions (see `error-handling`).
+- Submission uses `useTransition` + `startTransition` with one `errorCode`
+  state and a single `StatusAlert` (canonical block in the standard).
+- No generic `useServerAction` hook (2026-08 audit: per-form success
+  semantics diverge — navigate vs receipt vs toast vs confirm step).
 - Keep optimistic/rollback behavior in the command layer.
 - Never persist formatted display strings (money, percentages) as form output
   values — `MoneyInput`/`AmountField` return numeric values (UI Constitution).

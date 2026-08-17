@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Alert, type AlertVariant } from "@/shared/ui/alert";
+import { Alert, AlertVariant } from "@/shared/ui/alert";
 
 export type StatusAlertProps = {
   variant?: AlertVariant;
@@ -15,7 +15,7 @@ export type StatusAlertProps = {
  * Prefer over repeating Alert.Indicator/Content/Title/Description.
  */
 export function StatusAlert({
-  variant = "info",
+  variant = AlertVariant.INFO,
   title,
   description,
   className,

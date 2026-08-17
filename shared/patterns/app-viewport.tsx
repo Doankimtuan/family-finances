@@ -4,6 +4,7 @@ import { useCallback, useState, type ReactNode } from "react";
 import { UNSAFE_PortalProvider } from "react-aria/PortalProvider";
 import { cn } from "@/shared/utils/cn";
 import { useModal } from "@/providers/modal-provider";
+import { StatusAlertHost } from "@/providers/status-alert-provider";
 import { ToastProvider } from "@/providers/toast-provider";
 import { SafeArea } from "@/providers/safe-area";
 
@@ -51,6 +52,7 @@ export function AppViewport({
           >
             {children}
           </SafeArea>
+          <StatusAlertHost />
           <ToastProvider />
           {open && content ? (
             <div

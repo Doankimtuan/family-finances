@@ -1,4 +1,3 @@
-import { z } from "zod";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import {
@@ -9,7 +8,6 @@ import {
 import {
   AccountType,
   LEDGER_ACTION_ERROR_CODE,
-  TRANSACTION_DIRECTION_VALUES,
   TransactionDirection,
   type LedgerActionErrorCode,
 } from "../ledger-constants";
@@ -18,25 +16,10 @@ import {
   assignCardBillingForTransaction,
   loadCardOutstandingAndLimit,
 } from "./assign-card-billing";
-
-export const recordTransactionInputSchema = z.object({
-  accountId: z.string().uuid(),
-  type: z.enum(TRANSACTION_DIRECTION_VALUES),
-  /** Positive whole currency units (BR-06). */
-  amount: z.number().int().positive(),
-  transactionDate: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/)
-    .optional(),
-  note: z.string().trim().max(200).optional(),
-  categoryId: z.string().uuid().optional().nullable(),
-  jarId: z.string().uuid().optional().nullable(),
-  idempotencyKey: z.string().uuid().optional(),
-});
-
-export type RecordTransactionInput = z.infer<
-  typeof recordTransactionInputSchema
->;
+import {
+  recordTransactionInputSchema,
+  type RecordTransactionInput,
+} from "./record-transaction.schema";
 
 export type RecordTransactionErrorCode =
   ProductActionErrorCode | LedgerActionErrorCode;

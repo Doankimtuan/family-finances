@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
@@ -9,7 +9,7 @@ import {
   forgotPasswordInputSchema,
   type ForgotPasswordInput,
 } from "@/modules/tenancy/application/register.schema";
-import { StatusAlert } from "@/shared/ui/status-alert";
+import { AlertVariant } from "@/shared/ui/alert";
 import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
 import { Heading } from "@/shared/ui/heading";
@@ -17,28 +17,16 @@ import { TextField } from "@/shared/ui/form";
 import { AuthScreenShell } from "@/shared/patterns/auth-screen-shell";
 import { BrandMark } from "@/shared/patterns/brand-mark";
 import { toast } from "@/shared/patterns/toast";
+import { useStatusAlert } from "@/providers/status-alert-provider";
 import { forgotPasswordAction } from "./actions";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
-import {
-  AUTH_ACTION_ERROR_CODE,
-  buildAuthConfirmAdapterUrl,
-  type AuthActionErrorCode,
-} from "@/modules/tenancy/application/auth-constants";
-
-type ForgotPasswordErrorCode = Extract<
-  AuthActionErrorCode,
-  | typeof AUTH_ACTION_ERROR_CODE.UNCONFIGURED
-  | typeof AUTH_ACTION_ERROR_CODE.INVALID
-  | typeof AUTH_ACTION_ERROR_CODE.UNKNOWN
->;
+import { buildAuthConfirmAdapterUrl } from "@/modules/tenancy/application/auth-constants";
 
 export function ForgotPasswordScreen() {
   const t = useTranslations("auth.forgotPassword");
   const tValidation = useTranslations("validation");
   const [isPending, startTransition] = useTransition();
-  const [errorCode, setErrorCode] = useState<ForgotPasswordErrorCode | null>(
-    null,
-  );
+  const statusAlert = useStatusAlert();
 
   const {
     register,
@@ -51,7 +39,7 @@ export function ForgotPasswordScreen() {
   });
 
   const onSubmit = handleSubmit((values) => {
-    setErrorCode(null);
+    statusAlert.hide();
     startTransition(async () => {
       const result = await forgotPasswordAction({
         ...values,
@@ -66,7 +54,11 @@ export function ForgotPasswordScreen() {
         return;
       }
       if (result.status === "error") {
-        setErrorCode(result.code);
+        statusAlert.show({
+          variant: AlertVariant.DANGER,
+          title: t("errorTitle"),
+          description: t(`errors.${result.code}`),
+        });
       }
     });
   });
@@ -84,14 +76,6 @@ export function ForgotPasswordScreen() {
           </Text>
         </div>
       </div>
-
-      {errorCode ? (
-        <StatusAlert
-          variant="danger"
-          title={t("errorTitle")}
-          description={t(`errors.${errorCode}`)}
-        />
-      ) : null}
 
       <form
         onSubmit={onSubmit}

@@ -2,7 +2,6 @@
 
 import { I18nProvider } from "@heroui/react";
 import { useLocale } from "next-intl";
-import type { UseFormRegisterReturn } from "react-hook-form";
 import { DEFAULT_CURRENCY } from "@/modules/ledger/application/ledger-constants";
 import { toIntlLocale } from "@/i18n/locales";
 import { NumberField, type NumberFieldProps } from "./number-field";
@@ -19,11 +18,12 @@ export type MoneyInputProps = Omit<
   locale?: string;
   fractionDigits?: number;
   minValue?: number;
-  /** Set a negative minValue to allow signed monetary entries. */
-  registration?: UseFormRegisterReturn;
 };
+
 /**
  * Localized currency field backed by HeroUI NumberField.
+ * Controlled numeric contract — integrate with RHF via `Controller`, never via
+ * `register` (formatted display strings must not enter form state).
  * Display formatting never crosses the persistence boundary.
  */
 export function MoneyInput({
@@ -33,7 +33,6 @@ export function MoneyInput({
   locale: localeProp,
   fractionDigits,
   minValue,
-  registration,
   ...props
 }: MoneyInputProps) {
   const activeLocale = useLocale();
@@ -46,7 +45,6 @@ export function MoneyInput({
     <I18nProvider locale={locale}>
       <NumberField
         {...props}
-        name={registration?.name}
         value={value ?? undefined}
         minValue={resolvedMinValue}
         formatOptions={{
@@ -55,19 +53,7 @@ export function MoneyInput({
           currencyDisplay: "symbol",
           maximumFractionDigits: resolvedFractionDigits,
         }}
-        onChange={(next) => {
-          const normalized = Number.isFinite(next) ? next : null;
-          onValueChange(normalized);
-          registration?.onChange({
-            target: {
-              name: registration.name,
-              value: normalized == null ? "" : String(normalized),
-            },
-          });
-        }}
-        onBlur={() =>
-          registration?.onBlur({ target: { name: registration.name } })
-        }
+        onChange={(next) => onValueChange(Number.isFinite(next) ? next : null)}
       />
     </I18nProvider>
   );

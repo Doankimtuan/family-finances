@@ -11,8 +11,9 @@ import {
 } from "@/modules/ledger/application/client";
 import { TextField } from "@/shared/ui/form";
 import { Button } from "@/shared/ui/button";
-import { StatusAlert } from "@/shared/ui/status-alert";
+import { AlertVariant } from "@/shared/ui/alert";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
+import { useStatusAlert } from "@/providers/status-alert-provider";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
 import {
   CLIENT_ACTION_ERROR_CODE,
@@ -42,13 +43,13 @@ export function CreateCategoryForm({ jars }: Props) {
   const kindId = useId();
   const jarId = useId();
   const { online } = useOnlineStatusClient();
+  const statusAlert = useStatusAlert();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [kind, setKind] = useState<TransactionDirectionValue>(
     TransactionDirection.EXPENSE,
   );
   const [mappedJarId, setMappedJarId] = useState("");
-  const [errorCode, setErrorCode] = useState<ErrorCode | null>(null);
   const [isPending, startTransition] = useTransition();
 
   if (!open) {
@@ -59,11 +60,8 @@ export function CreateCategoryForm({ jars }: Props) {
         data-testid="category-create-open"
         isDisabled={!online}
         onPress={() => {
-          if (!online) {
-            setErrorCode(CLIENT_ACTION_ERROR_CODE.OFFLINE);
-            return;
-          }
-          setErrorCode(null);
+          if (!online) return;
+          statusAlert.hide();
           setOpen(true);
         }}
       >
@@ -72,18 +70,26 @@ export function CreateCategoryForm({ jars }: Props) {
     );
   }
 
+  const showCreateError = (code: ErrorCode) => {
+    statusAlert.show({
+      variant: AlertVariant.DANGER,
+      title: t("open"),
+      description: t(`errors.${code}`),
+    });
+  };
+
   const onSubmit = () => {
-    setErrorCode(null);
+    statusAlert.hide();
     if (!online) {
-      setErrorCode(CLIENT_ACTION_ERROR_CODE.OFFLINE);
+      showCreateError(CLIENT_ACTION_ERROR_CODE.OFFLINE);
       return;
     }
     if (!mappedJarId) {
-      setErrorCode(LEDGER_ACTION_ERROR_CODE.CATEGORY_UNMAPPED);
+      showCreateError(LEDGER_ACTION_ERROR_CODE.CATEGORY_UNMAPPED);
       return;
     }
     if (!name.trim()) {
-      setErrorCode(PRODUCT_ACTION_ERROR_CODE.INVALID);
+      showCreateError(PRODUCT_ACTION_ERROR_CODE.INVALID);
       return;
     }
 
@@ -108,10 +114,10 @@ export function CreateCategoryForm({ jars }: Props) {
         result.code === PRODUCT_ACTION_ERROR_CODE.MONTH_LOCKED ||
         result.code === PRODUCT_ACTION_ERROR_CODE.UNKNOWN
       ) {
-        setErrorCode(result.code);
+        showCreateError(result.code);
         return;
       }
-      setErrorCode(PRODUCT_ACTION_ERROR_CODE.UNKNOWN);
+      showCreateError(PRODUCT_ACTION_ERROR_CODE.UNKNOWN);
     });
   };
 
@@ -120,13 +126,6 @@ export function CreateCategoryForm({ jars }: Props) {
       className="flex flex-col gap-(--space-3) rounded-lg border border-border-subtle bg-surface p-(--space-4)"
       data-testid="category-create-form"
     >
-      {errorCode ? (
-        <StatusAlert
-          variant="danger"
-          title={t("open")}
-          description={t(`errors.${errorCode}`)}
-        />
-      ) : null}
       <TextField
         id={nameId}
         label={t("nameLabel")}
@@ -184,7 +183,10 @@ export function CreateCategoryForm({ jars }: Props) {
         variant="secondary"
         className="w-full"
         isDisabled={isPending}
-        onPress={() => setOpen(false)}
+        onPress={() => {
+          statusAlert.hide();
+          setOpen(false);
+        }}
       >
         {t("cancel")}
       </Button>

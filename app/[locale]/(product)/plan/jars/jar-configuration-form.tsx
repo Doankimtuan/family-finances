@@ -1,6 +1,9 @@
 "use client";
 
-import { useId, useMemo, useState, useTransition } from "react";
+import { useId, useTransition } from "react";
+import { Controller, useForm, useWatch } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import {
@@ -8,35 +11,39 @@ import {
   JarPlanKind,
   JarRolloverMode,
   JAR_KIND_VALUES,
+  JAR_PLAN_KIND_VALUES,
+  jarCategoryIdsSchema,
   jarConfigurationInputSchema,
+  type JarConfigurationInput,
   type JarPlan,
   type JarKind as JarKindValue,
   type JarRolloverMode as JarRolloverModeValue,
 } from "@/modules/plan/application/client";
 import { calculateJarRuleBudget } from "@/modules/plan/application/jar-budget";
+import { TransactionDirection } from "@/modules/ledger/application/ledger-constants";
 import { formatCurrency } from "@/shared/i18n/formatters";
-import { TextField } from "@/shared/ui/form";
+import { TextField, CheckboxField, SelectField } from "@/shared/ui/form";
 import { AmountField } from "@/shared/patterns/amount-field";
 import { Button } from "@/shared/ui/button";
-import { CheckboxField } from "@/shared/ui/form";
-import { Select } from "@/shared/ui/select";
 import { StatusAlert } from "@/shared/ui/status-alert";
+import { AlertVariant } from "@/shared/ui/alert";
 import { Text } from "@/shared/ui/text";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
+import { useStatusAlert } from "@/providers/status-alert-provider";
 import {
   CLIENT_ACTION_ERROR_CODE,
   PRODUCT_ACTION_ERROR_CODE,
   type ProductActionErrorCode,
 } from "@/modules/tenancy/application/product-action-error";
-import {
-  createJarAction,
-  updateJarConfigurationAction,
-} from "./actions";
+import { createJarAction, updateJarConfigurationAction } from "./actions";
+
+type ErrorCode =
+  ProductActionErrorCode | typeof CLIENT_ACTION_ERROR_CODE.OFFLINE;
 
 export type JarCategoryFormOption = {
   id: string;
   name: string;
-  kind: "income" | "expense";
+  kind: TransactionDirection;
   jarId: string;
 };
 
@@ -58,13 +65,112 @@ type Props = {
   onSaved?: () => void;
 };
 
-type ErrorCode = ProductActionErrorCode | typeof CLIENT_ACTION_ERROR_CODE.OFFLINE;
+/**
+ * The form always submits a complete payload, so the canonical schema's
+ * server-side defaults become required fields here (same rules, no defaults).
+ * `confirmReassignment` is the UI acknowledgement for every conflicting
+ * category at once; the submit payload converts it back to the canonical
+ * `confirmReassignCategoryIds` list.
+ */
+const jarConfigurationFormSchema = jarConfigurationInputSchema.safeExtend({
+  kind: z.enum(JAR_KIND_VALUES),
+  enabled: z.boolean(),
+  planKind: z.enum(JAR_PLAN_KIND_VALUES),
+  categoryIds: jarCategoryIdsSchema,
+  confirmReassignment: z.boolean(),
+});
+
+type JarConfigurationFormValues = z.input<typeof jarConfigurationFormSchema>;
+type JarConfigurationSubmitValues = z.output<typeof jarConfigurationFormSchema>;
+
+type JarInitialValues = {
+  name: string;
+  kind: JarKindValue;
+  enabled: boolean;
+  plan: JarPlan | null;
+  rolloverMode: JarRolloverModeValue;
+  categoryIds: string[];
+};
+
+function categoryKindForJar(kind: JarKindValue): TransactionDirection {
+  return kind === JarKind.INCOME
+    ? TransactionDirection.INCOME
+    : TransactionDirection.EXPENSE;
+}
+
+function ownedCategoryIds(
+  mode: Props["mode"],
+  jarId: string | undefined,
+  categories: JarCategoryFormOption[],
+): string[] {
+  if (mode !== "edit" || !jarId) return [];
+  return categories
+    .filter((category) => category.jarId === jarId)
+    .map((category) => category.id);
+}
+
+function createDefaultValues(
+  initial: JarInitialValues,
+): JarConfigurationFormValues {
+  const plan = initial.plan;
+  return {
+    name: initial.name,
+    kind: initial.kind,
+    enabled: initial.enabled,
+    planKind: plan?.kind ?? JarPlanKind.FIXED,
+    percent:
+      plan?.kind === JarPlanKind.PERCENT ? plan.percentBps / 100 : undefined,
+    fixedAmount:
+      plan?.kind === JarPlanKind.FIXED ? plan.fixedAmount : undefined,
+    rolloverMode: initial.rolloverMode,
+    categoryIds: initial.categoryIds,
+    confirmReassignCategoryIds: [],
+    confirmReassignment: false,
+  };
+}
+
+function previewPlan(
+  planKind: JarPlanKind,
+  percent: number | undefined,
+  fixedAmount: number | undefined,
+): JarPlan {
+  return {
+    kind: planKind,
+    percentBps:
+      planKind === JarPlanKind.PERCENT ? Math.round((percent ?? 0) * 100) : 0,
+    fixedAmount: planKind === JarPlanKind.FIXED ? (fixedAmount ?? 0) : 0,
+  };
+}
+
+type PayloadContext = {
+  confirmReassignCategoryIds: string[];
+  includeRemovedTarget: boolean;
+};
+
+export function jarConfigurationPayload(
+  values: JarConfigurationSubmitValues,
+  { confirmReassignCategoryIds, includeRemovedTarget }: PayloadContext,
+): JarConfigurationInput {
+  const removedCategoryTargetJarId = includeRemovedTarget
+    ? values.removedCategoryTargetJarId
+    : undefined;
+
+  return {
+    name: values.name,
+    kind: values.kind,
+    enabled: values.enabled,
+    planKind: values.planKind,
+    ...(values.planKind === JarPlanKind.PERCENT
+      ? { percent: values.percent }
+      : { fixedAmount: values.fixedAmount }),
+    rolloverMode: values.rolloverMode,
+    categoryIds: values.categoryIds,
+    confirmReassignCategoryIds,
+    ...(removedCategoryTargetJarId ? { removedCategoryTargetJarId } : {}),
+  };
+}
 
 const ACTIVE_KIND_OPTIONS = JAR_KIND_VALUES;
-
-function categoryKindForJar(kind: JarKindValue): "income" | "expense" {
-  return kind === JarKind.INCOME ? "income" : "expense";
-}
 
 function buttonClass(selected: boolean) {
   return selected
@@ -72,6 +178,10 @@ function buttonClass(selected: boolean) {
     : "min-h-11 flex-1 rounded-[var(--radius-control)] border border-border-subtle bg-surface px-(--space-3) text-sm font-medium text-text-primary transition-[border-color,background-color,transform] duration-(--duration-fast) ease-(--ease-standard) hover:border-border-strong active:scale-[0.98] motion-reduce:transition-none";
 }
 
+/**
+ * Jar V2 configuration (create + edit) on React Hook Form + the shared
+ * client-safe Jar configuration schema (see the form architecture standard).
+ */
 export function JarConfigurationForm({
   mode,
   jarId,
@@ -94,105 +204,120 @@ export function JarConfigurationForm({
   const fixedId = useId();
   const removedTargetId = useId();
   const { online } = useOnlineStatusClient();
-  const [name, setName] = useState(initialName);
-  const [kind, setKind] = useState<JarKindValue>(initialKind);
-  const [enabled, setEnabled] = useState(initialEnabled);
-  const [planKind, setPlanKind] = useState<JarPlanKind>(
-    initialPlan?.kind ?? JarPlanKind.FIXED,
-  );
-  const [percent, setPercent] = useState(
-    initialPlan ? String(initialPlan.percentBps / 100) : "",
-  );
-  const [fixedAmount, setFixedAmount] = useState<number | null>(
-    initialPlan?.fixedAmount ?? null,
-  );
-  const [rolloverMode, setRolloverMode] = useState(initialRolloverMode);
-  const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>(
-    mode === "edit" && jarId
-      ? categories.filter((category) => category.jarId === jarId).map((category) => category.id)
-      : [],
-  );
-  const [removedCategoryTargetJarId, setRemovedCategoryTargetJarId] = useState("");
-  const [confirmReassignment, setConfirmReassignment] = useState(false);
-  const [errorCode, setErrorCode] = useState<ErrorCode | null>(null);
+  const statusAlert = useStatusAlert();
   const [isPending, startTransition] = useTransition();
+
+  const ownedIds = ownedCategoryIds(mode, jarId, categories);
+  const defaultValues = createDefaultValues({
+    name: initialName,
+    kind: initialKind,
+    enabled: initialEnabled,
+    plan: initialPlan ?? null,
+    rolloverMode: initialRolloverMode,
+    categoryIds: ownedIds,
+  });
+
+  const {
+    register,
+    handleSubmit,
+    control,
+    reset,
+    setValue,
+    formState: { errors },
+  } = useForm<
+    JarConfigurationFormValues,
+    unknown,
+    JarConfigurationSubmitValues
+  >({
+    resolver: zodResolver(jarConfigurationFormSchema),
+    defaultValues,
+  });
+
+  const kind = useWatch({ control, name: "kind" });
+  const planKind = useWatch({ control, name: "planKind" });
+  const percent = useWatch({ control, name: "percent" });
+  const fixedAmount = useWatch({ control, name: "fixedAmount" });
+  const rolloverMode = useWatch({ control, name: "rolloverMode" });
+  const selectedCategoryIds = useWatch({ control, name: "categoryIds" });
 
   const expectedCategoryKind = categoryKindForJar(kind);
   const visibleCategories = categories.filter(
     (category) => category.kind === expectedCategoryKind,
   );
-  const selectedSet = useMemo(() => new Set(selectedCategoryIds), [selectedCategoryIds]);
-  const conflicts = visibleCategories.filter(
-    (category) => selectedSet.has(category.id) && category.jarId !== jarId,
+  const selectedCategorySet = new Set(selectedCategoryIds);
+  const reassignmentConflicts = visibleCategories.filter(
+    (category) =>
+      selectedCategorySet.has(category.id) && category.jarId !== jarId,
   );
-  const currentCategoryIds =
-    mode === "edit" && jarId
-      ? categories.filter((category) => category.jarId === jarId).map((category) => category.id)
-      : [];
-  const removedCategoryIds = currentCategoryIds.filter(
-    (categoryId) => !selectedSet.has(categoryId),
+  const removedCategoryIds = ownedIds.filter(
+    (categoryId) => !selectedCategorySet.has(categoryId),
   );
 
-  const previewAmount = useMemo(() => {
-    const plan: JarPlan = {
-      kind: planKind,
-      percentBps: planKind === JarPlanKind.PERCENT ? Math.round(Number(percent) * 100) : 0,
-      fixedAmount: planKind === JarPlanKind.FIXED ? fixedAmount ?? 0 : 0,
-    };
-    return calculateJarRuleBudget({ plan }, qualifyingIncome ?? 0);
-  }, [fixedAmount, percent, planKind, qualifyingIncome]);
+  const previewAmount = calculateJarRuleBudget(
+    { plan: previewPlan(planKind, percent, fixedAmount) },
+    qualifyingIncome ?? 0,
+  );
 
-  const setJarKind = (nextKind: JarKindValue) => {
-    setKind(nextKind);
+  const handleKindChange = (nextKind: JarKindValue) => {
+    setValue("kind", nextKind);
     const nextCategoryKind = categoryKindForJar(nextKind);
-    setSelectedCategoryIds((current) =>
-      current.filter((categoryId) =>
+    setValue(
+      "categoryIds",
+      selectedCategoryIds.filter((categoryId) =>
         categories.some(
-          (category) => category.id === categoryId && category.kind === nextCategoryKind,
+          (category) =>
+            category.id === categoryId && category.kind === nextCategoryKind,
         ),
       ),
     );
-    setConfirmReassignment(false);
+    setValue("confirmReassignment", false);
   };
 
-  const onSubmit = () => {
-    setErrorCode(null);
+  const handleCategoryToggle = (
+    category: JarCategoryFormOption,
+    checked: boolean,
+  ) => {
+    setValue(
+      "categoryIds",
+      checked
+        ? [...selectedCategoryIds, category.id]
+        : selectedCategoryIds.filter((id) => id !== category.id),
+    );
+    if (category.jarId !== jarId) {
+      setValue("confirmReassignment", false);
+    }
+  };
+
+  const showConfigError = (code: ErrorCode) => {
+    statusAlert.show({
+      variant: AlertVariant.DANGER,
+      title: t(mode === "create" ? "create" : "editJar"),
+      description: t(`errors.${code}`),
+    });
+  };
+
+  const onSubmit = handleSubmit((values) => {
+    statusAlert.hide();
     if (!online) {
-      setErrorCode(CLIENT_ACTION_ERROR_CODE.OFFLINE);
+      showConfigError(CLIENT_ACTION_ERROR_CODE.OFFLINE);
       return;
     }
 
-    const numericPercent = Number(percent);
-    const input = {
-      name: name.trim(),
-      kind,
-      enabled,
-      planKind,
-      ...(planKind === JarPlanKind.PERCENT
-        ? { percent: numericPercent }
-        : { fixedAmount: fixedAmount ?? 0 }),
-      rolloverMode,
-      categoryIds: selectedCategoryIds,
-      confirmReassignCategoryIds: confirmReassignment
-        ? conflicts.map((category) => category.id)
-        : [],
-      ...(removedCategoryTargetJarId
-        ? { removedCategoryTargetJarId }
-        : {}),
-    } as const;
+    const needsReassignConfirmation =
+      reassignmentConflicts.length > 0 && !values.confirmReassignment;
+    const needsRemovedTarget =
+      removedCategoryIds.length > 0 && !values.removedCategoryTargetJarId;
+    if (needsReassignConfirmation || needsRemovedTarget) {
+      showConfigError(PRODUCT_ACTION_ERROR_CODE.INVALID);
+      return;
+    }
 
-    if (!jarConfigurationInputSchema.safeParse(input).success) {
-      setErrorCode(PRODUCT_ACTION_ERROR_CODE.INVALID);
-      return;
-    }
-    if (conflicts.length > 0 && !confirmReassignment) {
-      setErrorCode(PRODUCT_ACTION_ERROR_CODE.INVALID);
-      return;
-    }
-    if (removedCategoryIds.length > 0 && !removedCategoryTargetJarId) {
-      setErrorCode(PRODUCT_ACTION_ERROR_CODE.INVALID);
-      return;
-    }
+    const input = jarConfigurationPayload(values, {
+      confirmReassignCategoryIds: reassignmentConflicts.map(
+        (category) => category.id,
+      ),
+      includeRemovedTarget: removedCategoryIds.length > 0,
+    });
 
     startTransition(async () => {
       const result =
@@ -200,27 +325,24 @@ export function JarConfigurationForm({
           ? await createJarAction(input)
           : await updateJarConfigurationAction(jarId ?? "", input);
       if (result.status === "success") {
+        if (mode === "create") {
+          reset(defaultValues);
+        }
         onSaved?.();
         router.refresh();
         return;
       }
-      setErrorCode(result.code);
+      showConfigError(result.code);
     });
-  };
+  });
 
   return (
-    <div
+    <form
+      onSubmit={onSubmit}
+      noValidate
       className="flex flex-col gap-(--space-4) rounded-[var(--radius-card)] border border-border-subtle bg-surface p-(--space-4) shadow-[var(--elevation-1)]"
       data-testid={mode === "create" ? "jar-create-form" : "jar-edit-form"}
     >
-      {errorCode ? (
-        <StatusAlert
-          variant="danger"
-          title={t(mode === "create" ? "create" : "editJar")}
-          description={t(`errors.${errorCode}`)}
-        />
-      ) : null}
-
       <div className="flex flex-col gap-(--space-3)">
         <div>
           <Text size="lg" className="font-semibold text-text-primary">
@@ -234,20 +356,23 @@ export function JarConfigurationForm({
           id={nameId}
           label={t("createNameLabel")}
           placeholder={t("createNamePlaceholder")}
-          value={name}
-          onChange={(event) => setName(event.target.value)}
           autoComplete="off"
+          registration={register("name")}
+          error={errors.name ? t("errors.name_invalid") : undefined}
         />
         <CheckboxField
           id={`${nameId}-enabled`}
-          checked={enabled}
-          onChange={(event) => setEnabled(event.target.checked)}
           label={
             <span className="flex flex-col gap-0.5">
-              <span className="font-medium text-text-primary">{t("enabledLabel")}</span>
-              <span className="text-xs text-text-secondary">{t("enabledHint")}</span>
+              <span className="font-medium text-text-primary">
+                {t("enabledLabel")}
+              </span>
+              <span className="text-xs text-text-secondary">
+                {t("enabledHint")}
+              </span>
             </span>
           }
+          {...register("enabled")}
         />
       </div>
 
@@ -264,7 +389,7 @@ export function JarConfigurationForm({
             data-testid={`${mode === "create" ? "jar-create" : "jar-edit"}-plan-percent`}
             aria-pressed={planKind === JarPlanKind.PERCENT}
             className={buttonClass(planKind === JarPlanKind.PERCENT)}
-            onClick={() => setPlanKind(JarPlanKind.PERCENT)}
+            onClick={() => setValue("planKind", JarPlanKind.PERCENT)}
           >
             {t("planKindPercent")}
           </button>
@@ -273,7 +398,7 @@ export function JarConfigurationForm({
             data-testid={`${mode === "create" ? "jar-create" : "jar-edit"}-plan-fixed`}
             aria-pressed={planKind === JarPlanKind.FIXED}
             className={buttonClass(planKind === JarPlanKind.FIXED)}
-            onClick={() => setPlanKind(JarPlanKind.FIXED)}
+            onClick={() => setValue("planKind", JarPlanKind.FIXED)}
           >
             {t("planKindFixed")}
           </button>
@@ -285,22 +410,29 @@ export function JarConfigurationForm({
           id={percentId}
           label={t("percentLabel")}
           inputMode="decimal"
-          value={percent}
-          onChange={(event) => setPercent(event.target.value)}
           description={t("percentHint")}
+          registration={register("percent", { valueAsNumber: true })}
+          error={errors.percent ? t("errors.percent_invalid") : undefined}
         />
       ) : (
-        <AmountField
-          id={fixedId}
-          label={t("fixedLabel")}
-          value={fixedAmount}
-          onValueChange={setFixedAmount}
-          description={t("fixedHint")}
+        <Controller
+          control={control}
+          name="fixedAmount"
+          render={({ field }) => (
+            <AmountField
+              id={fixedId}
+              label={t("fixedLabel")}
+              value={field.value ?? null}
+              onValueChange={(next) => field.onChange(next ?? undefined)}
+              description={t("fixedHint")}
+              error={errors.fixedAmount ? t("errors.fixed_invalid") : undefined}
+            />
+          )}
         />
       )}
 
       <StatusAlert
-        variant="info"
+        variant={AlertVariant.INFO}
         title={t("previewTitle")}
         description={
           qualifyingIncome == null
@@ -321,25 +453,24 @@ export function JarConfigurationForm({
           {t("categoriesHint")}
         </Text>
         {visibleCategories.length === 0 ? (
-          <Text size="sm" tone="secondary">{t("categoriesEmpty")}</Text>
+          <Text size="sm" tone="secondary">
+            {t("categoriesEmpty")}
+          </Text>
         ) : (
           <div className="flex flex-col gap-(--space-2)">
             {visibleCategories.map((category) => (
               <CheckboxField
                 key={category.id}
                 id={`${nameId}-${category.id}`}
-                checked={selectedSet.has(category.id)}
-                onChange={(event) => {
-                  setSelectedCategoryIds((current) =>
-                    event.target.checked
-                      ? [...current, category.id]
-                      : current.filter((id) => id !== category.id),
-                  );
-                  if (category.jarId !== jarId) setConfirmReassignment(false);
-                }}
+                checked={selectedCategorySet.has(category.id)}
+                onChange={(event) =>
+                  handleCategoryToggle(category, event.target.checked)
+                }
                 label={
                   <span className="flex min-w-0 flex-1 items-center justify-between gap-(--space-2)">
-                    <span className="truncate text-text-primary">{category.name}</span>
+                    <span className="truncate text-text-primary">
+                      {category.name}
+                    </span>
                     {category.jarId !== jarId ? (
                       <span className="shrink-0 text-xs text-text-secondary">
                         {t("categoryMappedElsewhere")}
@@ -353,13 +484,14 @@ export function JarConfigurationForm({
         )}
       </fieldset>
 
-      {conflicts.length > 0 ? (
+      {reassignmentConflicts.length > 0 ? (
         <div className="rounded-[var(--radius-control)] border border-border-subtle bg-surface-subtle p-(--space-3)">
           <CheckboxField
             id={`${nameId}-confirm-reassignment`}
-            checked={confirmReassignment}
-            onChange={(event) => setConfirmReassignment(event.target.checked)}
-            label={t("confirmReassignment", { count: conflicts.length })}
+            label={t("confirmReassignment", {
+              count: reassignmentConflicts.length,
+            })}
+            {...register("confirmReassignment")}
           />
         </div>
       ) : null}
@@ -372,26 +504,22 @@ export function JarConfigurationForm({
           <Text size="sm" tone="secondary">
             {t("removedCategoriesHint")}
           </Text>
-          <Select
-            id={removedTargetId}
-            selectedKey={removedCategoryTargetJarId || null}
-            aria-label={t("removedCategoriesTargetLabel")}
-            onSelectionChange={(key) => setRemovedCategoryTargetJarId(key ? String(key) : "")}
-          >
-            <Select.Trigger>
-              <Select.Value />
-              <Select.Indicator />
-            </Select.Trigger>
-            <Select.Popover>
-              <Select.ListBox>
-                {availableJars.map((jar) => (
-                  <Select.ListBox.Item key={jar.id} id={jar.id} textValue={jar.name}>
-                    {jar.name}
-                  </Select.ListBox.Item>
-                ))}
-              </Select.ListBox>
-            </Select.Popover>
-          </Select>
+          <Controller
+            control={control}
+            name="removedCategoryTargetJarId"
+            render={({ field }) => (
+              <SelectField
+                id={removedTargetId}
+                label={t("removedCategoriesTargetLabel")}
+                value={field.value ?? ""}
+                onChange={field.onChange}
+                options={availableJars.map((jar) => ({
+                  id: jar.id,
+                  label: jar.name,
+                }))}
+              />
+            )}
+          />
         </div>
       ) : null}
 
@@ -399,13 +527,22 @@ export function JarConfigurationForm({
         <summary className="cursor-pointer list-none text-sm font-semibold text-text-primary marker:hidden">
           <span className="flex items-center justify-between gap-(--space-2)">
             {t("moreOptions")}
-            <span aria-hidden className="text-text-secondary transition-transform group-open:rotate-180 motion-reduce:transition-none">⌄</span>
+            <span
+              aria-hidden
+              className="text-text-secondary transition-transform group-open:rotate-180 motion-reduce:transition-none"
+            >
+              ⌄
+            </span>
           </span>
         </summary>
         <div className="mt-(--space-3) flex flex-col gap-(--space-3)">
           <fieldset className="flex flex-col gap-(--space-2)">
-            <legend className="text-sm font-semibold text-text-primary">{t("typeLabel")}</legend>
-            <Text size="sm" tone="secondary">{t("typeHint")}</Text>
+            <legend className="text-sm font-semibold text-text-primary">
+              {t("typeLabel")}
+            </legend>
+            <Text size="sm" tone="secondary">
+              {t("typeHint")}
+            </Text>
             <div className="grid grid-cols-2 gap-(--space-2)">
               {ACTIVE_KIND_OPTIONS.map((option) => (
                 <button
@@ -413,39 +550,67 @@ export function JarConfigurationForm({
                   type="button"
                   aria-pressed={kind === option}
                   className={buttonClass(kind === option)}
-                  onClick={() => setJarKind(option)}
+                  onClick={() => handleKindChange(option)}
                 >
                   <span className="block">{t(`kinds.${option}`)}</span>
-                  <span className="mt-1 block text-xs opacity-80">{t(`kindDescriptions.${option}`)}</span>
+                  <span className="mt-1 block text-xs opacity-80">
+                    {t(`kindDescriptions.${option}`)}
+                  </span>
                 </button>
               ))}
             </div>
           </fieldset>
           <fieldset className="flex flex-col gap-(--space-2)">
-            <legend className="text-sm font-semibold text-text-primary">{t("rolloverLabel")}</legend>
+            <legend className="text-sm font-semibold text-text-primary">
+              {t("rolloverLabel")}
+            </legend>
             <div className="flex gap-(--space-2)">
-              <button type="button" data-testid={`${mode === "create" ? "jar-create" : "jar-edit"}-rollover-reset`} aria-pressed={rolloverMode === JarRolloverMode.RESET} className={buttonClass(rolloverMode === JarRolloverMode.RESET)} onClick={() => setRolloverMode(JarRolloverMode.RESET)}>{t("rolloverReset")}</button>
-              <button type="button" data-testid={`${mode === "create" ? "jar-create" : "jar-edit"}-rollover-carry`} aria-pressed={rolloverMode === JarRolloverMode.CARRY} className={buttonClass(rolloverMode === JarRolloverMode.CARRY)} onClick={() => setRolloverMode(JarRolloverMode.CARRY)}>{t("rolloverCarry")}</button>
+              <button
+                type="button"
+                data-testid={`${mode === "create" ? "jar-create" : "jar-edit"}-rollover-reset`}
+                aria-pressed={rolloverMode === JarRolloverMode.RESET}
+                className={buttonClass(rolloverMode === JarRolloverMode.RESET)}
+                onClick={() => setValue("rolloverMode", JarRolloverMode.RESET)}
+              >
+                {t("rolloverReset")}
+              </button>
+              <button
+                type="button"
+                data-testid={`${mode === "create" ? "jar-create" : "jar-edit"}-rollover-carry`}
+                aria-pressed={rolloverMode === JarRolloverMode.CARRY}
+                className={buttonClass(rolloverMode === JarRolloverMode.CARRY)}
+                onClick={() => setValue("rolloverMode", JarRolloverMode.CARRY)}
+              >
+                {t("rolloverCarry")}
+              </button>
             </div>
-            <Text size="sm" tone="secondary">{t("rolloverHint")}</Text>
+            <Text size="sm" tone="secondary">
+              {t("rolloverHint")}
+            </Text>
           </fieldset>
         </div>
       </details>
 
       <Button
+        type="submit"
         variant="primary"
         className="w-full"
         data-testid={mode === "create" ? "jar-create-submit" : "jar-plan-edit"}
         isDisabled={isPending || !online}
-        onPress={onSubmit}
       >
         {t(mode === "create" ? "createSubmit" : "saveChanges")}
       </Button>
       {onCancel ? (
-        <Button variant="secondary" className="w-full" isDisabled={isPending} onPress={onCancel}>
+        <Button
+          type="button"
+          variant="secondary"
+          className="w-full"
+          isDisabled={isPending}
+          onPress={onCancel}
+        >
           {t("createCancel")}
         </Button>
       ) : null}
-    </div>
+    </form>
   );
 }

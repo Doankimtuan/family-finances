@@ -15,12 +15,8 @@ import {
 import type { OAuthProvider } from "@/modules/tenancy/application/oauth.schema";
 import { isSafeInAppNextPath } from "@/modules/tenancy/application/auth-redirect";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
-import {
-  AUTH_ACTION_ERROR_CODE,
-  AUTH_STORAGE_KEY,
-  type AuthActionErrorCode,
-} from "@/modules/tenancy/application/auth-constants";
-import { StatusAlert } from "@/shared/ui/status-alert";
+import { AUTH_STORAGE_KEY } from "@/modules/tenancy/application/auth-constants";
+import { AlertVariant } from "@/shared/ui/alert";
 import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
 import { Heading } from "@/shared/ui/heading";
@@ -33,6 +29,7 @@ import {
   SocialButton,
 } from "@/shared/patterns";
 import { loginAction } from "./actions";
+import { useStatusAlert } from "@/providers/status-alert-provider";
 import {
   authConfirmRedirectUrl,
   startBrowserOAuthSignIn,
@@ -51,15 +48,6 @@ const subscribeToHydration = (onStoreChange: () => void) => {
 const getHydratedSnapshot = () => true;
 const getServerHydratedSnapshot = () => false;
 
-type LoginErrorCode = Extract<
-  AuthActionErrorCode,
-  | typeof AUTH_ACTION_ERROR_CODE.UNCONFIGURED
-  | typeof AUTH_ACTION_ERROR_CODE.INVALID_CREDENTIALS
-  | typeof AUTH_ACTION_ERROR_CODE.INVALID
-  | typeof AUTH_ACTION_ERROR_CODE.PROVIDER_ERROR
-  | typeof AUTH_ACTION_ERROR_CODE.UNKNOWN
->;
-
 export function LoginScreen() {
   const t = useTranslations("auth.login");
   const tValidation = useTranslations("validation");
@@ -67,7 +55,7 @@ export function LoginScreen() {
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
   const [oauthPending, setOauthPending] = useState<OAuthProvider | null>(null);
-  const [errorCode, setErrorCode] = useState<LoginErrorCode | null>(null);
+  const statusAlert = useStatusAlert();
   const hydrated = useSyncExternalStore(
     subscribeToHydration,
     getHydratedSnapshot,
@@ -103,7 +91,7 @@ export function LoginScreen() {
   const remember = useWatch({ control, name: "remember" });
 
   const onOAuth = (provider: OAuthProvider) => {
-    setErrorCode(null);
+    statusAlert.hide();
     setOauthPending(provider);
     startTransition(async () => {
       const result = await startBrowserOAuthSignIn({
@@ -112,14 +100,18 @@ export function LoginScreen() {
       });
       if (!result.ok) {
         setOauthPending(null);
-        setErrorCode(result.code);
+        statusAlert.show({
+          variant: AlertVariant.DANGER,
+          title: t("errorTitle"),
+          description: t(`errors.${result.code}`),
+        });
       }
       // On success the browser navigates to the IdP; keep pending UI until unload.
     });
   };
 
   const onSubmit = handleSubmit((values) => {
-    setErrorCode(null);
+    statusAlert.hide();
     startTransition(async () => {
       try {
         if (values.remember) {
@@ -150,7 +142,11 @@ export function LoginScreen() {
         return;
       }
       if (result.status === "error") {
-        setErrorCode(result.code);
+        statusAlert.show({
+          variant: AlertVariant.DANGER,
+          title: t("errorTitle"),
+          description: t(`errors.${result.code}`),
+        });
       }
     });
   });
@@ -168,14 +164,6 @@ export function LoginScreen() {
           </Text>
         </div>
       </div>
-
-      {errorCode ? (
-        <StatusAlert
-          variant="danger"
-          title={t("errorTitle")}
-          description={t(`errors.${errorCode}`)}
-        />
-      ) : null}
 
       <div className="flex flex-col gap-(--space-3)">
         <SocialButton

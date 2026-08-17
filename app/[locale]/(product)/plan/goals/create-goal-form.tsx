@@ -6,8 +6,9 @@ import { planGoalPath } from "@/modules/tenancy/application/app-path";
 import { TextField } from "@/shared/ui/form";
 import { AmountField } from "@/shared/patterns/amount-field";
 import { Button } from "@/shared/ui/button";
-import { StatusAlert } from "@/shared/ui/status-alert";
+import { AlertVariant } from "@/shared/ui/alert";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
+import { useStatusAlert } from "@/providers/status-alert-provider";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import {
   CLIENT_ACTION_ERROR_CODE,
@@ -33,13 +34,13 @@ export function CreateGoalForm({ fundingOptions }: Props) {
   const targetId = useId();
   const dateId = useId();
   const { online } = useOnlineStatusClient();
+  const statusAlert = useStatusAlert();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [target, setTarget] = useState<number | null>(null);
   const [goalType, setGoalType] = useState<GoalType | null>(null);
   const [targetDate, setTargetDate] = useState("");
   const [selectedSourceKey, setSelectedSourceKey] = useState<string | null>(null);
-  const [errorCode, setErrorCode] = useState<ErrorCode | null>(null);
   const [isPending, startTransition] = useTransition();
   const compatibleOptions = goalType
     ? fundingOptions.filter((option) =>
@@ -52,10 +53,18 @@ export function CreateGoalForm({ fundingOptions }: Props) {
     (option) => goalFundingSourceKey(option) === selectedSourceKey,
   );
 
+  const showCreateError = (code: ErrorCode) => {
+    statusAlert.show({
+      variant: AlertVariant.DANGER,
+      title: t("create"),
+      description: t(`errors.${code}`),
+    });
+  };
+
   const onSubmit = () => {
-    setErrorCode(null);
+    statusAlert.hide();
     if (!online) {
-      setErrorCode(CLIENT_ACTION_ERROR_CODE.OFFLINE);
+      showCreateError(CLIENT_ACTION_ERROR_CODE.OFFLINE);
       return;
     }
     if (target == null || target <= 0 || goalType == null) return;
@@ -67,7 +76,7 @@ export function CreateGoalForm({ fundingOptions }: Props) {
         targetDate: targetDate || null,
       });
       if (result.status !== "success") {
-        setErrorCode(result.code);
+        showCreateError(result.code);
         return;
       }
       if (selectedSource?.isAvailable) {
@@ -77,7 +86,7 @@ export function CreateGoalForm({ fundingOptions }: Props) {
           sourceId: selectedSource.sourceId,
         });
         if (linkResult.status !== "success") {
-          setErrorCode(linkResult.code);
+          showCreateError(linkResult.code);
           router.push(planGoalPath(result.goalId));
           return;
         }
@@ -100,11 +109,8 @@ export function CreateGoalForm({ fundingOptions }: Props) {
         data-testid="goal-create-open"
         isDisabled={!online}
         onPress={() => {
-          if (!online) {
-            setErrorCode(CLIENT_ACTION_ERROR_CODE.OFFLINE);
-            return;
-          }
-          setErrorCode(null);
+          if (!online) return;
+          statusAlert.hide();
           setOpen(true);
         }}
       >
@@ -118,13 +124,6 @@ export function CreateGoalForm({ fundingOptions }: Props) {
       className="flex flex-col gap-(--space-3) rounded-lg border border-border-subtle bg-surface p-(--space-4)"
       data-testid="goal-create-form"
     >
-      {errorCode ? (
-        <StatusAlert
-          variant="danger"
-          title={t("create")}
-          description={t(`errors.${errorCode}`)}
-        />
-      ) : null}
       <TextField
         id={nameId}
         label={t("createNameLabel")}
@@ -248,6 +247,7 @@ export function CreateGoalForm({ fundingOptions }: Props) {
         className="w-full"
         isDisabled={isPending}
         onPress={() => {
+          statusAlert.hide();
           setOpen(false);
           setSelectedSourceKey(null);
         }}

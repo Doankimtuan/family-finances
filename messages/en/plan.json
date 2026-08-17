@@ -84,7 +84,10 @@
       "emergency_note_required": "Add an intent note for emergency reallocations.",
       "same_jar": "Choose a different target jar.",
       "warning_required": "Confirm the overspend warning to continue.",
-      "capacity_blocked": "Not enough virtual capacity in the source jar (household BLOCK policy)."
+      "capacity_blocked": "Not enough virtual capacity in the source jar (household BLOCK policy).",
+      "name_invalid": "Name must be 2–80 characters.",
+      "percent_invalid": "Enter a percent greater than 0 and up to 100.",
+      "fixed_invalid": "Enter a whole amount greater than 0."
     },
     "notFound": "Jar not found",
     "reallocate": {

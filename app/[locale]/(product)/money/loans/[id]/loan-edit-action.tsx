@@ -5,16 +5,11 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { TextField } from "@/shared/ui/form";
 import { Button } from "@/shared/ui/button";
-import { StatusAlert } from "@/shared/ui/status-alert";
+import { AlertVariant } from "@/shared/ui/alert";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
-import {
-  CLIENT_ACTION_ERROR_CODE,
-  type ProductActionErrorCode,
-} from "@/modules/tenancy/application/product-action-error";
+import { useStatusAlert } from "@/providers/status-alert-provider";
+import { CLIENT_ACTION_ERROR_CODE } from "@/modules/tenancy/application/product-action-error";
 import { updateLoanMetadataAction } from "../../money-products-actions";
-
-type ErrorCode =
-  ProductActionErrorCode | typeof CLIENT_ACTION_ERROR_CODE.OFFLINE;
 
 type Props = {
   loanId: string;
@@ -33,11 +28,11 @@ export function LoanEditAction({
   const tErr = useTranslations("money.products.errors");
   const router = useRouter();
   const { online } = useOnlineStatusClient();
+  const statusAlert = useStatusAlert();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState(initialName);
   const [lender, setLender] = useState(initialLender);
   const [note, setNote] = useState(initialNote);
-  const [errorCode, setErrorCode] = useState<ErrorCode | null>(null);
   const [isPending, startTransition] = useTransition();
 
   if (!open) {
@@ -59,9 +54,6 @@ export function LoanEditAction({
       className="flex flex-col gap-(--space-3) rounded-lg border border-border-subtle p-(--space-3)"
       data-testid="loan-edit-form"
     >
-      {errorCode ? (
-        <StatusAlert variant="danger" title={tErr(errorCode)} />
-      ) : null}
       <TextField
         id="loan-edit-name"
         label={t("editNameLabel")}
@@ -87,9 +79,12 @@ export function LoanEditAction({
           data-testid="loan-edit-save"
           isDisabled={isPending || !online}
           onPress={() => {
-            setErrorCode(null);
+            statusAlert.hide();
             if (!online) {
-              setErrorCode(CLIENT_ACTION_ERROR_CODE.OFFLINE);
+              statusAlert.show({
+                variant: AlertVariant.DANGER,
+                title: tErr(CLIENT_ACTION_ERROR_CODE.OFFLINE),
+              });
               return;
             }
             startTransition(async () => {
@@ -104,7 +99,10 @@ export function LoanEditAction({
                 router.refresh();
                 return;
               }
-              setErrorCode(result.code);
+              statusAlert.show({
+                variant: AlertVariant.DANGER,
+                title: tErr(result.code),
+              });
             });
           }}
         >
@@ -114,7 +112,10 @@ export function LoanEditAction({
           variant="secondary"
           className="min-h-11"
           isDisabled={isPending}
-          onPress={() => setOpen(false)}
+          onPress={() => {
+            statusAlert.hide();
+            setOpen(false);
+          }}
         >
           {t("cancel")}
         </Button>

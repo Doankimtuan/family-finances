@@ -43,7 +43,7 @@ export function TextField({
 }: TextFieldProps) {
   const hasError = Boolean(error);
   const errorMessage = resolveErrorMessage(error);
-  const a11y = formFieldA11y(id, hasError);
+  const a11y = formFieldA11y(id, hasError, Boolean(description));
 
   if (inputProps.type === "date" || inputProps.type === "time") {
     const value = typeof inputProps.value === "string" ? inputProps.value : "";

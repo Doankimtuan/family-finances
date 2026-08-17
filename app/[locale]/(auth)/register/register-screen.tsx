@@ -12,6 +12,7 @@ import {
   type RegisterInput,
 } from "@/modules/tenancy/application/register.schema";
 import type { OAuthProvider } from "@/modules/tenancy/application/oauth.schema";
+import { AlertVariant } from "@/shared/ui/alert";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
@@ -25,6 +26,7 @@ import {
   SocialButton,
 } from "@/shared/patterns";
 import { registerAction } from "./actions";
+import { useStatusAlert } from "@/providers/status-alert-provider";
 import {
   authConfirmRedirectUrl,
   startBrowserOAuthSignIn,
@@ -52,14 +54,6 @@ const registerFormSchema = registerInputSchema
 
 type RegisterFormValues = z.infer<typeof registerFormSchema>;
 
-type RegisterErrorCode = Extract<
-  AuthActionErrorCode,
-  | typeof AUTH_ACTION_ERROR_CODE.UNCONFIGURED
-  | typeof AUTH_ACTION_ERROR_CODE.INVALID
-  | typeof AUTH_ACTION_ERROR_CODE.ALREADY_REGISTERED
-  | typeof AUTH_ACTION_ERROR_CODE.UNKNOWN
->;
-
 type OAuthErrorCode = Extract<
   AuthActionErrorCode,
   | typeof AUTH_ACTION_ERROR_CODE.UNCONFIGURED
@@ -68,16 +62,29 @@ type OAuthErrorCode = Extract<
   | typeof AUTH_ACTION_ERROR_CODE.UNKNOWN
 >;
 
+function oauthErrorDescription(
+  t: (key: "oauthProviderError" | "errors.unconfigured" | "errors.unknown") => string,
+  code: OAuthErrorCode,
+): string {
+  if (
+    code === AUTH_ACTION_ERROR_CODE.PROVIDER_ERROR ||
+    code === AUTH_ACTION_ERROR_CODE.INVALID
+  ) {
+    return t("oauthProviderError");
+  }
+  if (code === AUTH_ACTION_ERROR_CODE.UNCONFIGURED) {
+    return t("errors.unconfigured");
+  }
+  return t("errors.unknown");
+}
+
 export function RegisterScreen() {
   const t = useTranslations("auth.register");
   const tValidation = useTranslations("validation");
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [oauthPending, setOauthPending] = useState<OAuthProvider | null>(null);
-  const [errorCode, setErrorCode] = useState<RegisterErrorCode | null>(null);
-  const [oauthErrorCode, setOauthErrorCode] = useState<OAuthErrorCode | null>(
-    null,
-  );
+  const statusAlert = useStatusAlert();
   const [needsConfirm, setNeedsConfirm] = useState(false);
 
   const {
@@ -100,8 +107,7 @@ export function RegisterScreen() {
   const acceptTerms = useWatch({ control, name: "acceptTerms" });
 
   const onOAuth = (provider: OAuthProvider) => {
-    setErrorCode(null);
-    setOauthErrorCode(null);
+    statusAlert.hide();
     setOauthPending(provider);
     startTransition(async () => {
       const result = await startBrowserOAuthSignIn({
@@ -110,14 +116,17 @@ export function RegisterScreen() {
       });
       if (!result.ok) {
         setOauthPending(null);
-        setOauthErrorCode(result.code);
+        statusAlert.show({
+          variant: AlertVariant.DANGER,
+          title: t("errorTitle"),
+          description: oauthErrorDescription(t, result.code),
+        });
       }
     });
   };
 
   const onSubmit = handleSubmit((values) => {
-    setErrorCode(null);
-    setOauthErrorCode(null);
+    statusAlert.hide();
     setNeedsConfirm(false);
     startTransition(async () => {
       const payload: RegisterInput = {
@@ -138,7 +147,11 @@ export function RegisterScreen() {
         return;
       }
       if (result.status === "error") {
-        setErrorCode(result.code);
+        statusAlert.show({
+          variant: AlertVariant.DANGER,
+          title: t("errorTitle"),
+          description: t(`errors.${result.code}`),
+        });
       }
     });
   });
@@ -168,34 +181,9 @@ export function RegisterScreen() {
 
       {needsConfirm ? (
         <StatusAlert
-          variant="success"
+          variant={AlertVariant.SUCCESS}
           title={t("confirmTitle")}
           description={t("confirmDescription")}
-        />
-      ) : null}
-
-      {errorCode ? (
-        <StatusAlert
-          variant="danger"
-          title={t("errorTitle")}
-          description={t(`errors.${errorCode}`)}
-        />
-      ) : null}
-
-      {oauthErrorCode ? (
-        <StatusAlert
-          variant="danger"
-          title={t("errorTitle")}
-          description={
-            oauthErrorCode === AUTH_ACTION_ERROR_CODE.PROVIDER_ERROR ||
-            oauthErrorCode === AUTH_ACTION_ERROR_CODE.INVALID
-              ? t("oauthProviderError")
-              : t(
-                  oauthErrorCode === AUTH_ACTION_ERROR_CODE.UNCONFIGURED
-                    ? "errors.unconfigured"
-                    : "errors.unknown",
-                )
-          }
         />
       ) : null}
 

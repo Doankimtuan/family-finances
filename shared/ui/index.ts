@@ -11,7 +11,7 @@ export { Divider, type DividerProps } from "./divider";
 export { Spinner, type SpinnerProps } from "./spinner";
 export { Skeleton, type SkeletonProps } from "./skeleton";
 export { Progress, type ProgressProps } from "./progress";
-export { Alert, type AlertProps, type AlertVariant } from "./alert";
+export { Alert, AlertVariant, type AlertProps } from "./alert";
 export { StatusAlert, type StatusAlertProps } from "./status-alert";
 export { StatusBadge, type StatusBadgeTone } from "./status-badge";
 export { AppIcon, type AppIconProps, ICON_SIZES } from "./app-icon";
@@ -42,9 +42,11 @@ export {
   DatePickerField,
   MoneyInput,
   NumberField,
+  SelectField,
   TimeField,
   type DatePickerFieldProps,
   type MoneyInputProps,
   type NumberFieldProps,
+  type SelectFieldProps,
   type TimeFieldProps,
 } from "./form";

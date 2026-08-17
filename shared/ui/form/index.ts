@@ -10,3 +10,9 @@ export {
   type TimeFieldProps,
 } from "./date-time-field";
 export { MoneyInput, type MoneyInputProps } from "./money-input";
+export {
+  SelectField,
+  selectKeyValue,
+  type SelectFieldProps,
+  type SelectFieldOption,
+} from "./select-field";

@@ -6,20 +6,16 @@ import { useRouter } from "@/i18n/navigation";
 import type { HouseholdMemberRow } from "@/modules/tenancy/application/list-household-members";
 import { HOUSEHOLD_ROLE } from "@/modules/tenancy/application/tenancy-constants";
 import { Button } from "@/shared/ui/button";
+import { AlertVariant } from "@/shared/ui/alert";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { changeRoleAction } from "./actions";
-import type { ChangeRoleActionState } from "./actions";
-
-type ChangeRoleErrorCode = Extract<
-  ChangeRoleActionState,
-  { status: "error" }
->["code"];
+import { useStatusAlert } from "@/providers/status-alert-provider";
 
 export function MemberRoleAction({ member }: { member: HouseholdMemberRow }) {
   const t = useTranslations("together.members");
   const router = useRouter();
+  const statusAlert = useStatusAlert();
   const [confirming, setConfirming] = useState(false);
-  const [error, setError] = useState<ChangeRoleErrorCode | null>(null);
   const [isPending, startTransition] = useTransition();
   const nextRole =
     member.role === HOUSEHOLD_ROLE.ADMIN
@@ -27,7 +23,7 @@ export function MemberRoleAction({ member }: { member: HouseholdMemberRow }) {
       : HOUSEHOLD_ROLE.ADMIN;
 
   const onConfirm = () => {
-    setError(null);
+    statusAlert.hide();
     startTransition(async () => {
       const result = await changeRoleAction({
         membershipId: member.id,
@@ -38,7 +34,11 @@ export function MemberRoleAction({ member }: { member: HouseholdMemberRow }) {
         router.refresh();
         return;
       }
-      setError(result.code);
+      statusAlert.show({
+        variant: AlertVariant.DANGER,
+        title: t("errorTitle"),
+        description: t(`errors.${result.code}`),
+      });
     });
   };
 
@@ -58,17 +58,10 @@ export function MemberRoleAction({ member }: { member: HouseholdMemberRow }) {
   return (
     <div className="flex w-full flex-col gap-(--space-2)">
       <StatusAlert
-        variant="info"
+        variant={AlertVariant.INFO}
         title={t("confirmTitle")}
         description={t("confirmBody")}
       />
-      {error ? (
-        <StatusAlert
-          variant="danger"
-          title={t("errorTitle")}
-          description={t(`errors.${error}`)}
-        />
-      ) : null}
       <Button
         variant="primary"
         className="w-full"
@@ -83,7 +76,7 @@ export function MemberRoleAction({ member }: { member: HouseholdMemberRow }) {
         isDisabled={isPending}
         onPress={() => {
           setConfirming(false);
-          setError(null);
+          statusAlert.hide();
         }}
       >
         {t("cancel")}

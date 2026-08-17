@@ -79,11 +79,14 @@ export {
 } from "./account-health";
 export {
   recordTransaction,
-  recordTransactionInputSchema,
-  type RecordTransactionInput,
   type RecordTransactionResult,
   type RecordTransactionErrorCode,
 } from "./commands/record-transaction";
+export {
+  recordTransactionInputSchema,
+  type RecordTransactionInput,
+} from "./commands/record-transaction.schema";
+export { TRANSACTION_NOTE_MAX_LENGTH } from "./commands/record-transaction.schema";
 export {
   recordTransfer,
   recordTransferInputSchema,

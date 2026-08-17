@@ -7,7 +7,15 @@ import {
   JAR_ROLLOVER_MODE_VALUES,
 } from "../plan-constants";
 
-const categoryIdsSchema = z.array(z.string().uuid()).max(100).default([]);
+/** Required category id list shape shared by selection + reassignment confirmation. */
+export const jarCategoryIdsSchema = z.array(z.string().uuid()).max(100);
+
+/** Field-level issue codes emitted by the schema's cross-field rules. */
+export const JAR_CONFIGURATION_ISSUE_CODE = {
+  PERCENT_REQUIRED: "percent_required",
+  FIXED_REQUIRED: "fixed_required",
+  REASSIGN_CATEGORY_NOT_SELECTED: "reassign_category_not_selected",
+} as const;
 
 /**
  * Client-safe Zod schema for Create Jar / Edit Jar configuration.
@@ -23,9 +31,9 @@ export const jarConfigurationInputSchema = z
     percent: z.number().finite().gt(0).lte(100).optional(),
     fixedAmount: z.number().finite().int().gt(0).optional(),
     rolloverMode: z.enum(JAR_ROLLOVER_MODE_VALUES).optional(),
-    categoryIds: categoryIdsSchema,
+    categoryIds: jarCategoryIdsSchema.default([]),
     /** Required when selected categories already belong to another Jar. */
-    confirmReassignCategoryIds: categoryIdsSchema,
+    confirmReassignCategoryIds: jarCategoryIdsSchema.default([]),
     /** Edit-only destination for categories removed from the current Jar. */
     removedCategoryTargetJarId: z.string().uuid().optional(),
   })
@@ -33,14 +41,17 @@ export const jarConfigurationInputSchema = z
     if (value.planKind === JarPlanKind.PERCENT && value.percent === undefined) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "percent_required",
+        message: JAR_CONFIGURATION_ISSUE_CODE.PERCENT_REQUIRED,
         path: ["percent"],
       });
     }
-    if (value.planKind === JarPlanKind.FIXED && value.fixedAmount === undefined) {
+    if (
+      value.planKind === JarPlanKind.FIXED &&
+      value.fixedAmount === undefined
+    ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "fixed_required",
+        message: JAR_CONFIGURATION_ISSUE_CODE.FIXED_REQUIRED,
         path: ["fixedAmount"],
       });
     }
@@ -49,7 +60,7 @@ export const jarConfigurationInputSchema = z
       if (!categoryIds.has(categoryId)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: "reassign_category_not_selected",
+          message: JAR_CONFIGURATION_ISSUE_CODE.REASSIGN_CATEGORY_NOT_SELECTED,
           path: ["confirmReassignCategoryIds"],
         });
         break;

@@ -5,21 +5,14 @@ import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { Text } from "@/shared/ui/text";
 import { Button } from "@/shared/ui/button";
-import { StatusAlert } from "@/shared/ui/status-alert";
+import { AlertVariant } from "@/shared/ui/alert";
 import { Card } from "@/shared/patterns/card";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { SectionHeader } from "@/shared/patterns/section-header";
+import { useStatusAlert } from "@/providers/status-alert-provider";
 import type { PendingInvitation } from "@/modules/tenancy/application/list-pending-invitations";
 import { invitePath } from "@/modules/tenancy/application/tenancy-constants";
-import {
-  revokeInvitationAction,
-  type RevokeInvitationActionState,
-} from "../invite-actions";
-
-type RevokeErrorCode = Extract<
-  RevokeInvitationActionState,
-  { status: "error" }
->["code"];
+import { revokeInvitationAction } from "../invite-actions";
 
 function inviteShareUrl(locale: string, token: string): string {
   const path = `/${locale}${invitePath(token)}`;
@@ -35,19 +28,23 @@ export function InvitationsPanel({
   const t = useTranslations("together.invitations");
   const locale = useLocale();
   const router = useRouter();
-  const [errorCode, setErrorCode] = useState<RevokeErrorCode | null>(null);
+  const statusAlert = useStatusAlert();
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const onRevoke = (id: string) => {
-    setErrorCode(null);
+    statusAlert.hide();
     startTransition(async () => {
       const result = await revokeInvitationAction(id);
       if (result.status === "success") {
         router.refresh();
         return;
       }
-      setErrorCode(result.code);
+      statusAlert.show({
+        variant: AlertVariant.DANGER,
+        title: t("pendingTitle"),
+        description: t(`errors.${result.code}`),
+      });
     });
   };
 
@@ -65,14 +62,6 @@ export function InvitationsPanel({
       className="flex flex-col gap-(--space-5)"
       data-testid="together-invitations"
     >
-      {errorCode ? (
-        <StatusAlert
-          variant="danger"
-          title={t("pendingTitle")}
-          description={t(`errors.${errorCode}`)}
-        />
-      ) : null}
-
       <SectionHeader title={t("pendingTitle")} />
       {initialInvitations.length === 0 ? (
         <EmptyState

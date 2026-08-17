@@ -5,19 +5,15 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { Card } from "@/shared/patterns/card";
 import { StatusAlert } from "@/shared/ui/status-alert";
+import { AlertVariant } from "@/shared/ui/alert";
 import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
 import { deleteAccountAction } from "./actions";
+import { useStatusAlert } from "@/providers/status-alert-provider";
 import {
-  AUTH_ACTION_ERROR_CODE,
   AUTH_ADAPTER_SIGNOUT_PATH,
   AUTH_LOCALE_WELCOME_SEGMENT,
 } from "@/modules/tenancy/application/auth-constants";
-
-type DeleteErrorCode =
-  | typeof AUTH_ACTION_ERROR_CODE.UNCONFIGURED
-  | typeof AUTH_ACTION_ERROR_CODE.UNAUTHENTICATED
-  | typeof AUTH_ACTION_ERROR_CODE.UNKNOWN;
 
 /**
  * Sign-out + delete-account confirm UX for Together (ST-E02-006).
@@ -27,10 +23,10 @@ export function AccountLifecycleCard() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const [deleteError, setDeleteError] = useState<DeleteErrorCode | null>(null);
+  const statusAlert = useStatusAlert();
 
   const onDelete = () => {
-    setDeleteError(null);
+    statusAlert.hide();
     startTransition(async () => {
       const result = await deleteAccountAction();
       if (result.status === "success") {
@@ -38,7 +34,11 @@ export function AccountLifecycleCard() {
         router.refresh();
         return;
       }
-      setDeleteError(result.code);
+      statusAlert.show({
+        variant: AlertVariant.DANGER,
+        title: tAuth("deleteErrorTitle"),
+        description: tAuth(`errors.${result.code}`),
+      });
     });
   };
 
@@ -75,7 +75,7 @@ export function AccountLifecycleCard() {
             data-testid="delete-account"
             isDisabled={isPending}
             onPress={() => {
-              setDeleteError(null);
+              statusAlert.hide();
               setConfirmDelete(true);
             }}
           >
@@ -84,17 +84,10 @@ export function AccountLifecycleCard() {
         ) : (
           <div className="flex flex-col gap-(--space-3)">
             <StatusAlert
-              variant="danger"
+              variant={AlertVariant.DANGER}
               title={tAuth("deleteConfirmTitle")}
               description={tAuth("deleteConfirmDescription")}
             />
-            {deleteError ? (
-              <StatusAlert
-                variant="danger"
-                title={tAuth("deleteErrorTitle")}
-                description={tAuth(`errors.${deleteError}`)}
-              />
-            ) : null}
             <div className="flex flex-col gap-(--space-2)">
               <Button
                 variant="danger"
@@ -111,7 +104,7 @@ export function AccountLifecycleCard() {
                 isDisabled={isPending}
                 onPress={() => {
                   setConfirmDelete(false);
-                  setDeleteError(null);
+                  statusAlert.hide();
                 }}
               >
                 {tAuth("deleteCancel")}

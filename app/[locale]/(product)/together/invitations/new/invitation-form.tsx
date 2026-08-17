@@ -4,27 +4,20 @@ import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { TextField } from "@/shared/ui/form";
 import { Button } from "@/shared/ui/button";
-import { StatusAlert } from "@/shared/ui/status-alert";
-import {
-  createInvitationAction,
-  type CreateInvitationActionState,
-} from "../../invite-actions";
-
-type CreateErrorCode = Extract<
-  CreateInvitationActionState,
-  { status: "error" }
->["code"];
+import { AlertVariant } from "@/shared/ui/alert";
+import { useStatusAlert } from "@/providers/status-alert-provider";
+import { createInvitationAction } from "../../invite-actions";
 
 export function InvitationForm() {
   const t = useTranslations("together.invitations");
   const tValidation = useTranslations("validation");
+  const statusAlert = useStatusAlert();
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState(false);
-  const [errorCode, setErrorCode] = useState<CreateErrorCode | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const onSend = () => {
-    setErrorCode(null);
+    statusAlert.hide();
     if (!email.trim().includes("@")) {
       setEmailError(true);
       return;
@@ -32,19 +25,16 @@ export function InvitationForm() {
     setEmailError(false);
     startTransition(async () => {
       const result = await createInvitationAction({ email: email.trim() });
-      setErrorCode(result.code);
+      statusAlert.show({
+        variant: AlertVariant.DANGER,
+        title: t("sendTitle"),
+        description: t(`errors.${result.code}`),
+      });
     });
   };
 
   return (
     <div className="flex flex-col gap-(--space-4)" data-testid="invite-form">
-      {errorCode ? (
-        <StatusAlert
-          variant="danger"
-          title={t("sendTitle")}
-          description={t(`errors.${errorCode}`)}
-        />
-      ) : null}
       <TextField
         id="invite-email"
         label={t("emailLabel")}

@@ -6,8 +6,9 @@ import { useTranslations } from "next-intl";
 import type { TransactionTag } from "@/modules/ledger/application/client";
 import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
-import { StatusAlert } from "@/shared/ui/status-alert";
+import { AlertVariant } from "@/shared/ui/alert";
 import { setTransactionTagsAction } from "./tag-actions";
+import { useStatusAlert } from "@/providers/status-alert-provider";
 import { TransactionTagSelector } from "./transaction-tag-ui";
 
 type Props = {
@@ -26,9 +27,9 @@ export function TransactionTagEditor({
   const [selectedIds, setSelectedIds] = useState(() =>
     initialTags.map((tag) => tag.id),
   );
-  const [error, setError] = useState(false);
   const [saved, setSaved] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const statusAlert = useStatusAlert();
 
   const initialIds = useMemo(
     () =>
@@ -41,12 +42,15 @@ export function TransactionTagEditor({
   const isDirty = [...selectedIds].sort().join(",") !== initialIds;
 
   const save = () => {
-    setError(false);
+    statusAlert.hide();
     setSaved(false);
     startTransition(async () => {
       const result = await setTransactionTagsAction(transactionId, selectedIds);
       if (result.status === "error") {
-        setError(true);
+        statusAlert.show({
+          variant: AlertVariant.DANGER,
+          title: t("tagSaveError"),
+        });
         return;
       }
       setSaved(true);
@@ -76,9 +80,6 @@ export function TransactionTagEditor({
         }}
         disabled={isPending}
       />
-      {error ? (
-        <StatusAlert variant="danger" title={t("tagSaveError")} />
-      ) : null}
       {saved ? (
         <Text size="sm" className="text-success" aria-live="polite">
           {t("tagSaved")}

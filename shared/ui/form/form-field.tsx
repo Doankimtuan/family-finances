@@ -56,10 +56,22 @@ export function FormField({
   );
 }
 
-export function formFieldA11y(id: string, hasError: boolean) {
+export function formFieldA11y(
+  id: string,
+  hasError: boolean,
+  hasDescription = false,
+) {
+  const describedBy = [
+    hasError ? `${id}-error` : null,
+    // FormField hides the description while an error is shown.
+    !hasError && hasDescription ? `${id}-description` : null,
+  ]
+    .filter((part) => part !== null)
+    .join(" ");
+
   return {
     id,
     "aria-invalid": hasError || undefined,
-    "aria-describedby": hasError ? `${id}-error` : undefined,
+    "aria-describedby": describedBy || undefined,
   } as const;
 }

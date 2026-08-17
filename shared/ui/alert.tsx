@@ -7,13 +7,20 @@ import {
 import { cn } from "@/shared/utils/cn";
 
 /** Design System variants (Alert.md) mapped onto HeroUI `status`. */
-export type AlertVariant = "info" | "warning" | "danger" | "success";
+export const AlertVariant = {
+  INFO: "info",
+  WARNING: "warning",
+  DANGER: "danger",
+  SUCCESS: "success",
+} as const;
+
+export type AlertVariant = (typeof AlertVariant)[keyof typeof AlertVariant];
 
 const VARIANT_TO_STATUS = {
-  info: "accent",
-  warning: "warning",
-  danger: "danger",
-  success: "success",
+  [AlertVariant.INFO]: "accent",
+  [AlertVariant.WARNING]: "warning",
+  [AlertVariant.DANGER]: "danger",
+  [AlertVariant.SUCCESS]: "success",
 } as const satisfies Record<
   AlertVariant,
   NonNullable<HeroAlertProps["status"]>
@@ -26,7 +33,11 @@ export type AlertProps = Omit<HeroAlertProps, "status"> & {
 /**
  * HeroUI Alert with Design System variant names (info / warning / danger / success).
  */
-export function Alert({ className, variant = "info", ...props }: AlertProps) {
+export function Alert({
+  className,
+  variant = AlertVariant.INFO,
+  ...props
+}: AlertProps) {
   return (
     <HeroAlert
       status={VARIANT_TO_STATUS[variant]}

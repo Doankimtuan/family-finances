@@ -62,6 +62,7 @@ export {
 
 export {
   jarConfigurationInputSchema,
+  jarCategoryIdsSchema,
   type JarConfigurationInput,
 } from "./commands/configure-jar.schema";
 

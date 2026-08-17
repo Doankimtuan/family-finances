@@ -8,15 +8,11 @@ import { HOUSEHOLD_LOCALE } from "@/modules/tenancy/application/tenancy-constant
 import { Card } from "@/shared/patterns/card";
 import { SectionHeader } from "@/shared/patterns/section-header";
 import { StatusAlert } from "@/shared/ui/status-alert";
+import { AlertVariant } from "@/shared/ui/alert";
 import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
 import { updatePreferencesAction } from "./actions";
-import type { UpdatePreferencesActionState } from "./actions";
-
-type PreferencesErrorCode = Extract<
-  UpdatePreferencesActionState,
-  { status: "error" }
->["code"];
+import { useStatusAlert } from "@/providers/status-alert-provider";
 
 export function HouseholdPreferencesForm({
   initial,
@@ -26,14 +22,12 @@ export function HouseholdPreferencesForm({
   const t = useTranslations("together.preferences");
   const router = useRouter();
   const [locale, setLocale] = useState(initial.locale);
-  const [saved, setSaved] = useState(false);
-  const [errorCode, setErrorCode] = useState<PreferencesErrorCode | null>(null);
   const [isPending, startTransition] = useTransition();
+  const statusAlert = useStatusAlert();
   const dirty = locale !== initial.locale;
 
   const onSave = () => {
-    setSaved(false);
-    setErrorCode(null);
+    statusAlert.hide();
     startTransition(async () => {
       const result = await updatePreferencesAction({
         locale,
@@ -41,11 +35,19 @@ export function HouseholdPreferencesForm({
         baseCurrency: initial.baseCurrency,
       });
       if (result.status === "success") {
-        setSaved(true);
+        statusAlert.show({
+          variant: AlertVariant.SUCCESS,
+          title: t("savedTitle"),
+          description: t("savedBody"),
+        });
         router.refresh();
         return;
       }
-      setErrorCode(result.code);
+      statusAlert.show({
+        variant: AlertVariant.DANGER,
+        title: t("errorTitle"),
+        description: t(`errors.${result.code}`),
+      });
     });
   };
 
@@ -56,32 +58,17 @@ export function HouseholdPreferencesForm({
     >
       {!initial.canEdit ? (
         <StatusAlert
-          variant="info"
+          variant={AlertVariant.INFO}
           title={t("readOnlyTitle")}
           description={t("readOnlyBody")}
         />
       ) : null}
 
       <StatusAlert
-        variant="info"
+        variant={AlertVariant.INFO}
         title={t("moneySafeTitle")}
         description={t("moneySafeBody")}
       />
-
-      {saved ? (
-        <StatusAlert
-          variant="success"
-          title={t("savedTitle")}
-          description={t("savedBody")}
-        />
-      ) : null}
-      {errorCode ? (
-        <StatusAlert
-          variant="danger"
-          title={t("errorTitle")}
-          description={t(`errors.${errorCode}`)}
-        />
-      ) : null}
 
       <section className="flex flex-col gap-(--space-3)">
         <SectionHeader

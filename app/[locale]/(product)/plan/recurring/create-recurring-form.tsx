@@ -14,8 +14,9 @@ import {
 import { TextField } from "@/shared/ui/form";
 import { AmountField } from "@/shared/patterns/amount-field";
 import { Button } from "@/shared/ui/button";
-import { StatusAlert } from "@/shared/ui/status-alert";
+import { AlertVariant } from "@/shared/ui/alert";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
+import { useStatusAlert } from "@/providers/status-alert-provider";
 import {
   CLIENT_ACTION_ERROR_CODE,
   type ProductActionErrorCode,
@@ -35,6 +36,7 @@ export function CreateRecurringForm() {
   const nameId = useId();
   const amountId = useId();
   const { online } = useOnlineStatusClient();
+  const statusAlert = useStatusAlert();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [direction, setDirection] = useState<RecurringDirectionValue>(
@@ -44,7 +46,6 @@ export function CreateRecurringForm() {
   const [frequency, setFrequency] = useState<RecurringFrequencyValue>(
     RecurringFrequency.MONTHLY,
   );
-  const [errorCode, setErrorCode] = useState<ErrorCode | null>(null);
   const [isPending, startTransition] = useTransition();
 
   if (!open) {
@@ -55,11 +56,8 @@ export function CreateRecurringForm() {
         data-testid="recurring-create-open"
         isDisabled={!online}
         onPress={() => {
-          if (!online) {
-            setErrorCode(CLIENT_ACTION_ERROR_CODE.OFFLINE);
-            return;
-          }
-          setErrorCode(null);
+          if (!online) return;
+          statusAlert.hide();
           setOpen(true);
         }}
       >
@@ -68,10 +66,18 @@ export function CreateRecurringForm() {
     );
   }
 
+  const showCreateError = (code: ErrorCode) => {
+    statusAlert.show({
+      variant: AlertVariant.DANGER,
+      title: t("add"),
+      description: t(`errors.${code}`),
+    });
+  };
+
   const onSubmit = () => {
-    setErrorCode(null);
+    statusAlert.hide();
     if (!online) {
-      setErrorCode(CLIENT_ACTION_ERROR_CODE.OFFLINE);
+      showCreateError(CLIENT_ACTION_ERROR_CODE.OFFLINE);
       return;
     }
     if (amount == null || amount <= 0) {
@@ -104,7 +110,7 @@ export function CreateRecurringForm() {
         router.refresh();
         return;
       }
-      setErrorCode(result.code);
+      showCreateError(result.code);
     });
   };
 
@@ -113,13 +119,6 @@ export function CreateRecurringForm() {
       className="flex flex-col gap-(--space-3) rounded-lg border border-border-subtle bg-surface p-(--space-4)"
       data-testid="recurring-create-form"
     >
-      {errorCode ? (
-        <StatusAlert
-          variant="danger"
-          title={t("add")}
-          description={t(`errors.${errorCode}`)}
-        />
-      ) : null}
       <TextField
         id={nameId}
         label={t("nameLabel")}
@@ -195,7 +194,10 @@ export function CreateRecurringForm() {
         variant="secondary"
         className="w-full"
         isDisabled={isPending}
-        onPress={() => setOpen(false)}
+        onPress={() => {
+          statusAlert.hide();
+          setOpen(false);
+        }}
       >
         {t("createCancel")}
       </Button>

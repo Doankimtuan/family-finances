@@ -55,7 +55,7 @@ export function AuthTextField({
   const [revealed, setRevealed] = useState(false);
   const hasError = Boolean(error);
   const errorMessage = resolveErrorMessage(error);
-  const a11y = formFieldA11y(id, hasError);
+  const a11y = formFieldA11y(id, hasError, Boolean(description));
   const isPassword = type === "password" || revealable;
   const inputType = isPassword && revealed ? "text" : type;
 

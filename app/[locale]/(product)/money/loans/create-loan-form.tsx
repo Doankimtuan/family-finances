@@ -5,15 +5,15 @@ import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { TextField } from "@/shared/ui/form";
 import { Button } from "@/shared/ui/button";
-import { StatusAlert } from "@/shared/ui/status-alert";
+import { AlertVariant } from "@/shared/ui/alert";
 import { Text } from "@/shared/ui/text";
 import { AmountField } from "@/shared/patterns/amount-field";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
+import { useStatusAlert } from "@/providers/status-alert-provider";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import {
   CLIENT_ACTION_ERROR_CODE,
   PRODUCT_ACTION_ERROR_CODE,
-  type ProductActionErrorCode,
 } from "@/modules/tenancy/application/product-action-error";
 import {
   addMonthsYmd,
@@ -30,9 +30,6 @@ import {
 } from "@/modules/ledger/application/client";
 import { createLoanAction } from "../money-products-actions";
 
-type ErrorCode =
-  ProductActionErrorCode | typeof CLIENT_ACTION_ERROR_CODE.OFFLINE;
-
 function todayYmd(): string {
   return new Date().toISOString().slice(0, 10);
 }
@@ -43,6 +40,7 @@ export function CreateLoanForm() {
   const locale = useLocale();
   const router = useRouter();
   const { online } = useOnlineStatusClient();
+  const statusAlert = useStatusAlert();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [lender, setLender] = useState("");
@@ -64,7 +62,6 @@ export function CreateLoanForm() {
   const [startDate, setStartDate] = useState(todayYmd);
   const [firstPaymentDate, setFirstPaymentDate] = useState("");
   const [note, setNote] = useState("");
-  const [errorCode, setErrorCode] = useState<ErrorCode | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const principalAmt = principal ?? 0;
@@ -121,9 +118,6 @@ export function CreateLoanForm() {
       className="flex flex-col gap-(--space-3) rounded-lg border border-border-subtle bg-surface p-(--space-4)"
       data-testid="loan-add-form"
     >
-      {errorCode ? (
-        <StatusAlert variant="danger" title={tErr(errorCode)} />
-      ) : null}
       <TextField
         id="loan-name"
         label={t("nameLabel")}
@@ -393,13 +387,19 @@ export function CreateLoanForm() {
           data-testid="loan-add-save"
           isDisabled={isPending || !online || !preview}
           onPress={() => {
-            setErrorCode(null);
+            statusAlert.hide();
             if (!online) {
-              setErrorCode(CLIENT_ACTION_ERROR_CODE.OFFLINE);
+              statusAlert.show({
+                variant: AlertVariant.DANGER,
+                title: tErr(CLIENT_ACTION_ERROR_CODE.OFFLINE),
+              });
               return;
             }
             if (!preview) {
-              setErrorCode(PRODUCT_ACTION_ERROR_CODE.INVALID);
+              statusAlert.show({
+                variant: AlertVariant.DANGER,
+                title: tErr(PRODUCT_ACTION_ERROR_CODE.INVALID),
+              });
               return;
             }
             startTransition(async () => {
@@ -440,7 +440,10 @@ export function CreateLoanForm() {
                 router.refresh();
                 return;
               }
-              setErrorCode(result.code);
+              statusAlert.show({
+                variant: AlertVariant.DANGER,
+                title: tErr(result.code),
+              });
             });
           }}
         >
@@ -450,7 +453,10 @@ export function CreateLoanForm() {
           variant="secondary"
           className="min-h-11"
           isDisabled={isPending}
-          onPress={() => setOpen(false)}
+          onPress={() => {
+            statusAlert.hide();
+            setOpen(false);
+          }}
         >
           {t("cancel")}
         </Button>
