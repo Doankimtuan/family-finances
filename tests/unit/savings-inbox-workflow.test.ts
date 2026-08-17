@@ -114,29 +114,12 @@ describe("Savings Inbox workflow", () => {
     expect(acknowledgeMock).not.toHaveBeenCalled();
   });
 
-  it("preserves the early-withdrawal insert-to-update compatibility fallback", async () => {
-    const maybeSingleMock = vi
-      .fn()
-      .mockResolvedValueOnce({ data: null, error: { code: "duplicate" } })
-      .mockResolvedValueOnce({
-        data: { id: "existing-inbox-id" },
-        error: null,
-      });
-    const query = {
-      from: vi.fn(),
-      insert: vi.fn(),
-      update: vi.fn(),
-      select: vi.fn(),
-      eq: vi.fn(),
-      maybeSingle: maybeSingleMock,
-    };
-    for (const method of ["insert", "update", "select", "eq"]) {
-      query[method as keyof typeof query] = vi
-        .fn()
-        .mockReturnValue(query) as never;
-    }
-    query.from.mockReturnValue(query);
-    createSupabaseMock.mockResolvedValue(query);
+  it("creates an early-withdrawal item through the producer gateway", async () => {
+    const rpc = vi.fn().mockResolvedValue({
+      data: { inbox_item_id: "inbox-id", idempotent: false },
+      error: null,
+    });
+    createSupabaseMock.mockResolvedValue({ rpc } as never);
 
     await expect(
       upsertSavingsEarlyWithdrawalInboxItem({
@@ -162,31 +145,16 @@ describe("Savings Inbox workflow", () => {
           cascadeDay: "early",
         },
       }),
-    ).resolves.toEqual({ ok: true, inboxItemId: "existing-inbox-id" });
-    expect(query.insert).toHaveBeenCalled();
-    expect(query.update).toHaveBeenCalled();
+    ).resolves.toEqual({ ok: true, inboxItemId: "inbox-id" });
+    expect(rpc).toHaveBeenCalledWith("produce_inbox_item", expect.any(Object));
   });
 
-  it("returns a typed failure when the compatibility update also fails", async () => {
-    const maybeSingleMock = vi
-      .fn()
-      .mockResolvedValueOnce({ data: null, error: { code: "duplicate" } })
-      .mockResolvedValueOnce({ data: null, error: { code: "offline" } });
-    const query = {
-      from: vi.fn(),
-      insert: vi.fn(),
-      update: vi.fn(),
-      select: vi.fn(),
-      eq: vi.fn(),
-      maybeSingle: maybeSingleMock,
-    };
-    for (const method of ["insert", "update", "select", "eq"]) {
-      query[method as keyof typeof query] = vi
-        .fn()
-        .mockReturnValue(query) as never;
-    }
-    query.from.mockReturnValue(query);
-    createSupabaseMock.mockResolvedValue(query);
+  it("returns a typed failure when the gateway rejects the request", async () => {
+    const rpc = vi.fn().mockResolvedValue({
+      data: null,
+      error: { message: "Invalid early withdrawal context" },
+    });
+    createSupabaseMock.mockResolvedValue({ rpc } as never);
 
     const result = await upsertSavingsEarlyWithdrawalInboxItem({
       householdId: "household-id",

@@ -377,48 +377,22 @@ begin
   where p.id = p_plan_id;
 
   if v_completed then
-    insert into public.inbox_items (
-      household_id,
-      kind,
-      status,
-      source_type,
-      source_id,
-      amount,
-      currency,
-      title,
-      context_json
-    )
-    values (
-      v_row.household_id,
-      'emi_complete',
-      'pending',
-      'guided',
-      p_plan_id,
-      v_row.installment_amount,
-      v_row.currency,
-      v_row.name,
-      jsonb_build_object(
-        'flow', 'emi_complete',
-        'review_item_type', 'InstallmentComplete',
-        'num_installments', v_row.num_installments,
-        'paid_installments', v_paid
-      )
-    )
-    on conflict (household_id, source_type, source_id) do update
-      set
-        status = 'pending',
-        updated_at = timezone('utc', now()),
-        title = excluded.title,
-        context_json = excluded.context_json
-    returning id into v_item_id;
-
-    if v_item_id is null then
-      select i.id into v_item_id
-      from public.inbox_items i
-      where i.household_id = v_row.household_id
-        and i.source_type = 'guided'
-        and i.source_id = p_plan_id;
-    end if;
+    v_item_id := (
+      select (public.produce_inbox_item(
+        p_household_id => v_row.household_id,
+        p_kind => 'emi_complete',
+        p_source_type => 'guided',
+        p_source_id => p_plan_id,
+        p_amount => v_row.installment_amount,
+        p_currency => v_row.currency,
+        p_title => v_row.name,
+        p_context => jsonb_build_object(
+          'flow', 'emi_complete',
+          'num_installments', v_row.num_installments,
+          'paid_installments', v_paid
+        )
+      ))->>'inbox_item_id'
+    )::uuid;
   end if;
 
   return jsonb_build_object(

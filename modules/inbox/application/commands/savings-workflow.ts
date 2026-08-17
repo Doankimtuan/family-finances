@@ -9,6 +9,7 @@ import {
 } from "../inbox-constants";
 import { classifyInboxRpcError, logInboxFailure } from "../inbox-error";
 import type { InboxCommandErrorCode } from "../inbox-error";
+import { produceInboxItem } from "./produce-inbox-item";
 
 export type SavingsMaturityInboxItem = {
   inboxItemId: string;
@@ -107,49 +108,20 @@ export async function upsertSavingsEarlyWithdrawalInboxItem(input: {
   title: string;
   context: SavingsEarlyWithdrawalInboxContext;
 }): Promise<SavingsInboxResult<{ inboxItemId: string }>> {
-  try {
-    const supabase = await createSupabaseServerClient();
-    const { data, error } = await supabase
-      .from("inbox_items")
-      .insert({
-        household_id: input.householdId,
-        kind: InboxItemKind.EARLY_WITHDRAWAL_CONFIRMATION,
-        status: InboxItemStatus.PENDING,
-        source_type: InboxSourceType.GUIDED,
-        source_id: input.savingId,
-        amount: input.amount,
-        currency: input.currency,
-        title: input.title,
-        context_json: input.context,
-      })
-      .select("id")
-      .maybeSingle();
-
-    if (!error && data?.id) return { ok: true, inboxItemId: data.id };
-    if (!error) return mapFailure(null, input, true);
-
-    const { data: updated, error: updateError } = await supabase
-      .from("inbox_items")
-      .update({
-        status: InboxItemStatus.PENDING,
-        amount: input.amount,
-        title: input.title,
-        context_json: input.context,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("household_id", input.householdId)
-      .eq("source_type", InboxSourceType.GUIDED)
-      .eq("source_id", input.savingId)
-      .eq("kind", InboxItemKind.EARLY_WITHDRAWAL_CONFIRMATION)
-      .select("id")
-      .maybeSingle();
-
-    if (updateError) return mapFailure(updateError, input);
-    if (!updated?.id) return mapFailure(null, input, true);
-    return { ok: true, inboxItemId: updated.id };
-  } catch (error) {
-    return mapFailure(error, input);
+  const result = await produceInboxItem({
+    householdId: input.householdId,
+    kind: InboxItemKind.EARLY_WITHDRAWAL_CONFIRMATION,
+    sourceType: InboxSourceType.GUIDED,
+    sourceId: input.savingId,
+    amount: input.amount,
+    currency: input.currency,
+    title: input.title,
+    context: input.context,
+  });
+  if (!result.ok) {
+    return mapFailureFromCode(result.code, input);
   }
+  return { ok: true, inboxItemId: result.inboxItemId };
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -172,6 +144,20 @@ function mapFailure(
       inboxItemId: input.inboxItemId,
       itemKind: InboxItemKind.EARLY_WITHDRAWAL_CONFIRMATION,
       responseInvalid,
+    });
+  }
+  return { ok: false, code };
+}
+
+function mapFailureFromCode(
+  code: InboxCommandErrorCode,
+  input: { householdId: string; savingId?: string; inboxItemId?: string },
+): { ok: false; code: InboxCommandErrorCode } {
+  if (code === PRODUCT_ACTION_ERROR_CODE.UNKNOWN) {
+    logInboxFailure(null, INBOX_OPERATION.SAVINGS_EARLY_WITHDRAWAL_UPSERT, {
+      householdId: input.householdId,
+      inboxItemId: input.inboxItemId,
+      itemKind: InboxItemKind.EARLY_WITHDRAWAL_CONFIRMATION,
     });
   }
   return { ok: false, code };

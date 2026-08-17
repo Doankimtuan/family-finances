@@ -95,6 +95,11 @@ export {
   updateSavingsMaturityInboxItem,
   upsertSavingsEarlyWithdrawalInboxItem,
 } from "./commands/savings-workflow";
+export {
+  produceInboxItem,
+  type ProduceInboxItemInput,
+  type ProduceInboxItemResult,
+} from "./commands/produce-inbox-item";
 export type {
   SavingsMaturityInboxItem,
   SavingsEarlyWithdrawalInboxContext,
