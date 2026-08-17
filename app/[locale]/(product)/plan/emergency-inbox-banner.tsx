@@ -28,14 +28,16 @@ export function EmergencyInboxBanner({
   body,
   openLabel,
 }: Props) {
-  const emergencies = items.filter((item) =>
-    isPartnerEmergencyAlert({
-      kind: item.kind,
-      executedByUserId: item.executedByUserId,
-      assignedToUserId: item.assignedToUserId,
-      viewerUserId,
-      emergencyKind: InboxItemKind.EMERGENCY_DECLARATION,
-    }),
+  const emergencies = items.filter(
+    (item) =>
+      item.kind != null &&
+      isPartnerEmergencyAlert({
+        kind: item.kind,
+        executedByUserId: item.executedByUserId,
+        assignedToUserId: item.assignedToUserId,
+        viewerUserId,
+        emergencyKind: InboxItemKind.EMERGENCY_DECLARATION,
+      }),
   );
   if (emergencies.length === 0) {
     return null;

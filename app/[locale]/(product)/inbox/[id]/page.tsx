@@ -87,7 +87,7 @@ export default async function InboxItemDetailPage({ params }: Props) {
     item.note?.trim() ||
     localizedCategory ||
     item.displayTitle ||
-    t(`kinds.${item.kind}`);
+    (item.kind ? t(`kinds.${item.kind}`) : t("title"));
   const detailParts = [
     localizedAccount,
     localizedCategory && item.note?.trim() ? localizedCategory : null,
@@ -102,33 +102,31 @@ export default async function InboxItemDetailPage({ params }: Props) {
     >
       <InboxOfflineBanner />
 
-      <section className="flex flex-col gap-(--space-2)">
-        <Text size="sm" className="font-semibold text-text-primary">
-          {t("decisionQuestionHeading")}
-        </Text>
-        <Text size="sm" tone="secondary" data-testid="inbox-decision-question">
-          {t(`why.${item.kind}`)}
-        </Text>
-        <Text size="sm" tone="secondary" data-testid="inbox-partner-equal">
-          {t("partnerEqualNote")}
-        </Text>
-      </section>
+      {item.kind ? (
+        <section className="flex flex-col gap-(--space-2)">
+          <Text size="sm" className="font-semibold text-text-primary">
+            {t("decisionQuestionHeading")}
+          </Text>
+          <Text
+            size="sm"
+            tone="secondary"
+            data-testid="inbox-decision-question"
+          >
+            {t(`why.${item.kind}`)}
+          </Text>
+          <Text size="sm" tone="secondary" data-testid="inbox-partner-equal">
+            {t("partnerEqualNote")}
+          </Text>
+        </section>
+      ) : null}
 
       <ReviewCard
         title={displayTitle}
-        kindLabel={
-          item.type ? t(`types.${item.type}`) : t(`kinds.${item.kind}`)
-        }
+        kindLabel={item.kind ? t(`kinds.${item.kind}`) : t("title")}
         amountLabel={formatCurrency(item.amount, item.currency, locale, {
           maximumFractionDigits: 0,
         })}
-        subtitle={
-          detailParts.length > 0
-            ? detailParts.join(" · ")
-            : item.type
-              ? t("typeHeader", { type: t(`types.${item.type}`) })
-              : undefined
-        }
+        subtitle={detailParts.length > 0 ? detailParts.join(" · ") : undefined}
         data-testid="inbox-detail-card"
       />
       <StatusAlert

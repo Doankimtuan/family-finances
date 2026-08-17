@@ -1,16 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { InboxItemKind } from "@/modules/inbox/application/inbox-constants";
-import {
-  InboxGenericTitle,
-  resolveInboxDisplayTitle,
-} from "@/modules/inbox/application/inbox-display";
+import { resolveInboxDisplayTitle } from "@/modules/inbox/application/inbox-display";
 
 describe("inbox display title", () => {
-  it("prefers note, then category, over generic Unmapped expense", () => {
+  it("prefers note, then category, over the stored title", () => {
     expect(
       resolveInboxDisplayTitle({
-        kind: InboxItemKind.UNMAPPED_EXPENSE,
-        storedTitle: InboxGenericTitle.UNMAPPED_EXPENSE,
+        storedTitle: "Unmapped expense",
         note: null,
         categoryName: "Food",
       }),
@@ -18,8 +13,7 @@ describe("inbox display title", () => {
 
     expect(
       resolveInboxDisplayTitle({
-        kind: InboxItemKind.UNMAPPED_EXPENSE,
-        storedTitle: InboxGenericTitle.UNMAPPED_EXPENSE,
+        storedTitle: "Unmapped expense",
         note: "Lunch",
         categoryName: "Food",
       }),
@@ -27,11 +21,20 @@ describe("inbox display title", () => {
 
     expect(
       resolveInboxDisplayTitle({
-        kind: InboxItemKind.INCOME_SUGGEST,
-        storedTitle: InboxGenericTitle.PLACE_INCOME,
+        storedTitle: "Place income",
         note: null,
         categoryName: "Salary",
       }),
     ).toBe("Salary");
+  });
+
+  it("falls back to a blank string when everything is blank", () => {
+    expect(
+      resolveInboxDisplayTitle({
+        storedTitle: "  ",
+        note: null,
+        categoryName: null,
+      }),
+    ).toBe("");
   });
 });

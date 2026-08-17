@@ -43,41 +43,13 @@ export function shouldAutoResolveInboxItem(input: {
 }
 
 /**
- * BR-21 — resolving one maturity alert cancels sibling cascade timers.
- * Applies to all savings maturity-related kinds.
+ * BR-21 — resolving the single canonical savings maturity kind cancels
+ * sibling cascade timers for the same saving (Prompt 13A: one kind).
  */
 export function shouldCancelMaturityCascade(input: {
   kind: InboxItemKindValue;
   resolved: boolean;
 }): boolean {
   if (!input.resolved) return false;
-  return (
-    input.kind === InboxItemKind.SAVINGS_MATURITY ||
-    input.kind === InboxItemKind.SAVINGS_MATURED ||
-    input.kind === InboxItemKind.RENEWAL_REQUIRED
-  );
-}
-
-/**
- * BR-15 — payment reminder is stale when expires_at has passed.
- */
-export function isPaymentReminderExpired(input: {
-  kind: InboxItemKindValue;
-  expiresAt: string | null | undefined;
-  now?: Date;
-}): boolean {
-  if (input.kind !== InboxItemKind.PAYMENT_REMINDER) return false;
-  if (!input.expiresAt) return false;
-  const now = input.now ?? new Date();
-  return new Date(input.expiresAt).getTime() <= now.getTime();
-}
-
-export function paymentReminderExpiresAt(
-  dueAt: Date | string,
-  expireDays: number,
-): Date {
-  const due = typeof dueAt === "string" ? new Date(dueAt) : dueAt;
-  const result = new Date(due.getTime());
-  result.setUTCDate(result.getUTCDate() + expireDays);
-  return result;
+  return input.kind === InboxItemKind.SAVINGS_MATURITY;
 }

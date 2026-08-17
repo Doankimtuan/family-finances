@@ -4,7 +4,7 @@ import { useId, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { inboxItemPath } from "@/modules/tenancy/application/app-path";
-import { InboxItemKind } from "@/modules/inbox/application/inbox-constants";
+import { INBOX_ITEM_KIND_VALUES } from "@/modules/inbox/application/inbox-constants";
 import type { InboxReviewItem } from "@/modules/inbox/application/inbox-types";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
@@ -14,20 +14,16 @@ import { FilterChip } from "@/shared/patterns/filter-chip";
 import { TextField } from "@/shared/ui/form";
 import { Text } from "@/shared/ui/text";
 
-type KindFilter =
-  | "all"
-  | typeof InboxItemKind.UNMAPPED_EXPENSE
-  | typeof InboxItemKind.INCOME_SUGGEST
-  | typeof InboxItemKind.SAVINGS_MATURITY
-  | typeof InboxItemKind.EMI_COMPLETE
-  | typeof InboxItemKind.EMERGENCY_DECLARATION
-  | typeof InboxItemKind.PAYMENT_REMINDER;
+type KindFilter = "all" | (typeof INBOX_ITEM_KIND_VALUES)[number];
 
 type Props = {
   items: InboxReviewItem[];
   locale: string;
   readOnly?: boolean;
 };
+
+/** Canonical kinds surfaced as queue filters (Prompt 13A: no hardcoded subset). */
+const KIND_FILTERS: readonly KindFilter[] = ["all", ...INBOX_ITEM_KIND_VALUES];
 
 export function InboxQueueList({ items, locale, readOnly = false }: Props) {
   const t = useTranslations("inbox");
@@ -55,33 +51,12 @@ export function InboxQueueList({ items, locale, readOnly = false }: Props) {
     });
   }, [items, kind, query]);
 
-  const filters: { id: KindFilter; label: string }[] = [
-    { id: "all", label: t("filterAll") },
-    {
-      id: InboxItemKind.UNMAPPED_EXPENSE,
-      label: t("kinds.unmapped_expense"),
-    },
-    {
-      id: InboxItemKind.INCOME_SUGGEST,
-      label: t("kinds.income_suggest"),
-    },
-    {
-      id: InboxItemKind.SAVINGS_MATURITY,
-      label: t("kinds.savings_maturity"),
-    },
-    {
-      id: InboxItemKind.EMI_COMPLETE,
-      label: t("kinds.emi_complete"),
-    },
-    {
-      id: InboxItemKind.EMERGENCY_DECLARATION,
-      label: t("kinds.emergency_declaration"),
-    },
-    {
-      id: InboxItemKind.PAYMENT_REMINDER,
-      label: t("kinds.payment_reminder"),
-    },
-  ];
+  const filters: { id: KindFilter; label: string }[] = KIND_FILTERS.map(
+    (id) => ({
+      id,
+      label: id === "all" ? t("filterAll") : t(`kinds.${id}`),
+    }),
+  );
 
   return (
     <div
@@ -111,7 +86,7 @@ export function InboxQueueList({ items, locale, readOnly = false }: Props) {
               key={filter.id}
               selected={pressed}
               onPress={() => setKind(filter.id)}
-              data-testid={`inbox-filter-`}
+              data-testid={`inbox-filter-${filter.id}`}
             >
               {filter.label}
             </FilterChip>
@@ -128,6 +103,7 @@ export function InboxQueueList({ items, locale, readOnly = false }: Props) {
       ) : (
         <ul className="flex flex-col gap-(--space-3)">
           {filtered.map((item) => {
+            if (!item.kind) return null;
             const localizedCategory = item.categoryName
               ? localizeCatalogName(tCatalog, "tags", item.categoryName) ||
                 item.categoryName
@@ -147,9 +123,7 @@ export function InboxQueueList({ items, locale, readOnly = false }: Props) {
             const card = (
               <ReviewCard
                 title={title}
-                kindLabel={
-                  item.type ? t(`types.${item.type}`) : t(`kinds.${item.kind}`)
-                }
+                kindLabel={t(`kinds.${item.kind}`)}
                 amountLabel={formatCurrency(
                   item.amount,
                   item.currency,

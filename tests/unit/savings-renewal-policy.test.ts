@@ -20,7 +20,6 @@ import type { SavingPackage } from "@/modules/savings/application/savings-types"
 import { instantiateTypedReviewItem } from "@/modules/inbox/application/review-item-schemas";
 import {
   InboxItemKind,
-  ReviewItemType,
 } from "@/modules/inbox/application/inbox-constants";
 import { shouldAutoResolveInboxItem } from "@/modules/inbox/application/inbox-resolution-policy";
 
@@ -186,7 +185,7 @@ describe("maturity cascade days", () => {
 describe("renewal policy inbox payload", () => {
   it("hydrates suggestedAction and preselect fields", () => {
     const typed = instantiateTypedReviewItem({
-      kind: InboxItemKind.SAVINGS_MATURED,
+      kind: InboxItemKind.SAVINGS_MATURITY,
       sourceId: "11111111-1111-1111-1111-111111111111",
       contextJson: {
         savingId: "11111111-1111-1111-1111-111111111111",
@@ -220,8 +219,8 @@ describe("renewal policy inbox payload", () => {
       },
     });
 
-    expect(typed?.type).toBe(ReviewItemType.SAVINGS_MATURITY_DECISION);
-    if (typed?.type === ReviewItemType.SAVINGS_MATURITY_DECISION) {
+    expect(typed?.type).toBe(InboxItemKind.SAVINGS_MATURITY);
+    if (typed?.type === InboxItemKind.SAVINGS_MATURITY) {
       expect(typed.payload.suggestedAction).toBe(
         RenewalSuggestedAction.CONFIRM_CONFIGURED,
       );
@@ -236,7 +235,7 @@ describe("renewal policy inbox payload", () => {
 
   it("Always Ask matured item has suggestedAction none when set", () => {
     const typed = instantiateTypedReviewItem({
-      kind: InboxItemKind.SAVINGS_MATURED,
+      kind: InboxItemKind.SAVINGS_MATURITY,
       sourceId: "11111111-1111-1111-1111-111111111111",
       contextJson: {
         savingId: "11111111-1111-1111-1111-111111111111",
@@ -259,18 +258,14 @@ describe("renewal policy inbox payload", () => {
       },
     });
     expect(
-      typed?.type === ReviewItemType.SAVINGS_MATURITY_DECISION
+      typed?.type === InboxItemKind.SAVINGS_MATURITY
         ? typed.payload.suggestedAction
         : null,
     ).toBe(RenewalSuggestedAction.NONE);
   });
 
   it("never auto-resolves savings maturity kinds", () => {
-    for (const kind of [
-      InboxItemKind.SAVINGS_MATURITY,
-      InboxItemKind.SAVINGS_MATURED,
-      InboxItemKind.RENEWAL_REQUIRED,
-    ]) {
+    for (const kind of [InboxItemKind.SAVINGS_MATURITY]) {
       expect(
         shouldAutoResolveInboxItem({
           kind,

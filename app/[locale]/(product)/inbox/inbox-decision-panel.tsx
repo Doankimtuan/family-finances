@@ -16,7 +16,6 @@ import {
   isJarResolvableKind,
   AUTO_RESOLVE_CONFIDENCE_THRESHOLD,
   INBOX_OPERATION,
-  ReviewItemType,
   type InboxAckAction,
   type InboxReceiptKind as InboxReceiptKindType,
 } from "@/modules/inbox/application/inbox-constants";
@@ -59,7 +58,9 @@ type InboxErrorCode =
 type PendingAction = "resolve" | "dismiss" | "ack";
 
 /**
- * Resolve / dismiss / acknowledge — partner-equal, offline fail-closed (ST-E06-002).
+ * Resolve / dismiss / acknowledge — partner-equal, offline fail-closed
+ * (ST-E06-002). Only canonical kinds reach this panel; an item without a
+ * canonical kind renders a dismiss-only guard.
  */
 export function InboxDecisionPanel({ item, jars }: Props) {
   const t = useTranslations("inbox");
@@ -77,22 +78,19 @@ export function InboxDecisionPanel({ item, jars }: Props) {
     null,
   );
 
-  const jarResolvable = isJarResolvableKind(item.kind);
-  const isMaturity =
-    item.kind === InboxItemKind.SAVINGS_MATURITY ||
-    item.kind === InboxItemKind.SAVINGS_MATURED ||
-    item.kind === InboxItemKind.RENEWAL_REQUIRED;
+  const kind = item.kind;
+  const jarResolvable = kind != null && isJarResolvableKind(kind);
+  const isMaturity = kind === InboxItemKind.SAVINGS_MATURITY;
   const isEarlyWithdrawal =
-    item.kind === InboxItemKind.EARLY_WITHDRAWAL_CONFIRMATION;
-  const isEmi = item.kind === InboxItemKind.EMI_COMPLETE;
-  const isEmergency = item.kind === InboxItemKind.EMERGENCY_DECLARATION;
-  const isPaymentReminder = item.kind === InboxItemKind.PAYMENT_REMINDER;
+    kind === InboxItemKind.EARLY_WITHDRAWAL_CONFIRMATION;
+  const isEmi = kind === InboxItemKind.EMI_COMPLETE;
+  const isEmergency = kind === InboxItemKind.EMERGENCY_DECLARATION;
   const maturityPayload =
-    item.typed?.type === ReviewItemType.SAVINGS_MATURITY_DECISION
+    item.typed?.type === InboxItemKind.SAVINGS_MATURITY
       ? item.typed.payload
       : null;
   const earlyPayload =
-    item.typed?.type === ReviewItemType.EARLY_WITHDRAWAL_CONFIRMATION
+    item.typed?.type === InboxItemKind.EARLY_WITHDRAWAL_CONFIRMATION
       ? item.typed.payload
       : null;
 
@@ -268,6 +266,52 @@ export function InboxDecisionPanel({ item, jars }: Props) {
         : InboxReceiptKind.ATTENTION,
     );
   };
+
+  const dismissButton = confirmDismiss ? (
+    <div
+      className="flex flex-col gap-(--space-3)"
+      data-testid="inbox-dismiss-confirm"
+    >
+      <StatusAlert
+        variant="warning"
+        title={t("dismissConfirmTitle")}
+        description={t("dismissConfirmBody")}
+      />
+      <Button
+        variant="primary"
+        className="w-full"
+        data-testid="inbox-dismiss-yes"
+        isDisabled={busy || !online}
+        onPress={onDismiss}
+      >
+        {pendingAction === "dismiss" ? t("dismissing") : t("dismissConfirmYes")}
+      </Button>
+      <Button
+        variant="secondary"
+        className="w-full"
+        isDisabled={busy}
+        onPress={() => setConfirmDismiss(false)}
+      >
+        {t("cancel")}
+      </Button>
+    </div>
+  ) : (
+    <Button
+      variant="secondary"
+      className="w-full"
+      data-testid="inbox-dismiss"
+      isDisabled={busy || !online}
+      onPress={() => {
+        if (!online) {
+          setErrorCode(CLIENT_ACTION_ERROR_CODE.OFFLINE);
+          return;
+        }
+        setConfirmDismiss(true);
+      }}
+    >
+      {t("dismiss")}
+    </Button>
+  );
 
   return (
     <div
@@ -559,25 +603,6 @@ export function InboxDecisionPanel({ item, jars }: Props) {
         </section>
       ) : null}
 
-      {isPaymentReminder ? (
-        <section
-          className="flex flex-col gap-(--space-3)"
-          data-testid="inbox-payment-reminder-panel"
-        >
-          <StatusAlert
-            variant="info"
-            title={t("paymentReminderHeading")}
-            description={
-              item.expiresAt
-                ? t("paymentReminderHintWithExpiry", {
-                    expiresAt: item.expiresAt,
-                  })
-                : t("paymentReminderHint")
-            }
-          />
-        </section>
-      ) : null}
-
       {isEmergency ? (
         <section
           className="flex flex-col gap-(--space-3)"
@@ -595,53 +620,7 @@ export function InboxDecisionPanel({ item, jars }: Props) {
         </section>
       ) : null}
 
-      {confirmDismiss ? (
-        <div
-          className="flex flex-col gap-(--space-3)"
-          data-testid="inbox-dismiss-confirm"
-        >
-          <StatusAlert
-            variant="warning"
-            title={t("dismissConfirmTitle")}
-            description={t("dismissConfirmBody")}
-          />
-          <Button
-            variant="primary"
-            className="w-full"
-            data-testid="inbox-dismiss-yes"
-            isDisabled={busy || !online}
-            onPress={onDismiss}
-          >
-            {pendingAction === "dismiss"
-              ? t("dismissing")
-              : t("dismissConfirmYes")}
-          </Button>
-          <Button
-            variant="secondary"
-            className="w-full"
-            isDisabled={busy}
-            onPress={() => setConfirmDismiss(false)}
-          >
-            {t("cancel")}
-          </Button>
-        </div>
-      ) : (
-        <Button
-          variant="secondary"
-          className="w-full"
-          data-testid="inbox-dismiss"
-          isDisabled={busy || !online}
-          onPress={() => {
-            if (!online) {
-              setErrorCode(CLIENT_ACTION_ERROR_CODE.OFFLINE);
-              return;
-            }
-            setConfirmDismiss(true);
-          }}
-        >
-          {t("dismiss")}
-        </Button>
-      )}
+      {dismissButton}
     </div>
   );
 }

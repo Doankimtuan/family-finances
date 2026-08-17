@@ -48,7 +48,7 @@ export async function listPendingSavingsMaturityInboxItems(
       .from("inbox_items")
       .select("id, source_id, context_json")
       .eq("household_id", householdId)
-      .eq("kind", InboxItemKind.SAVINGS_MATURED)
+      .eq("kind", InboxItemKind.SAVINGS_MATURITY)
       .eq("status", InboxItemStatus.PENDING);
 
     if (error) {

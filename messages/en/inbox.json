@@ -96,15 +96,9 @@
     "unmapped_expense": "This expense has no jar yet. Pick an Active jar to place it.",
     "income_suggest": "Income is waiting for Suggest placement into Active jars.",
     "savings_maturity": "A savings product is at maturity. Choose renew, switch, or withdraw.",
-    "savings_matured": "A savings product has matured. Decide what to do next.",
-    "renewal_required": "A savings product needs renewal review.",
     "early_withdrawal_confirmation": "Confirm early withdrawal and accept the penalty.",
-    "penalty_warning": "Early withdrawal will apply a penalty. Review before confirming.",
-    "rate_changed_suggestion": "Provider rate changed. Consider renewing or switching.",
-    "package_expired": "A savings package is no longer available.",
     "emi_complete": "A loan is fully paid. Acknowledge the milestone.",
-    "emergency_declaration": "A partner declared an emergency jar reallocation. Review the intent note.",
-    "payment_reminder": "A card or bill payment is due. Confirm or dismiss when handled."
+    "emergency_declaration": "A partner declared an emergency jar reallocation. Review the intent note."
   },
   "emergencyHeading": "Emergency declaration",
   "emergencyHint": "A household partner declared an emergency reallocation. Dismiss after you have seen it.",
@@ -147,24 +141,9 @@
     "unmapped_expense": "Unmapped expense",
     "income_suggest": "Place income (Suggest)",
     "savings_maturity": "Savings maturity",
-    "savings_matured": "Savings matured",
-    "renewal_required": "Renewal required",
     "early_withdrawal_confirmation": "Early withdrawal",
-    "penalty_warning": "Penalty warning",
-    "rate_changed_suggestion": "Rate changed suggestion",
-    "package_expired": "Package expired",
     "emi_complete": "Installment complete",
-    "emergency_declaration": "Emergency declaration",
-    "payment_reminder": "Payment reminder"
-  },
-  "types": {
-    "UnmappedExpense": "Unmapped expense",
-    "MaturityDecision": "Maturity decision",
-    "SavingsMaturityDecision": "Savings maturity decision",
-    "EarlyWithdrawalConfirmation": "Early withdrawal confirmation",
-    "PaymentReminder": "Payment reminder",
-    "InstallmentComplete": "Installment complete",
-    "EmergencyDeclaration": "Emergency declaration"
+    "emergency_declaration": "Emergency declaration"
   },
   "statuses": {
     "pending": "Pending",

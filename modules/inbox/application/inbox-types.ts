@@ -2,15 +2,13 @@ import type {
   InboxItemKind,
   InboxItemStatus,
   InboxSourceType,
-  ReviewItemType,
 } from "./inbox-constants";
 import type { TypedReviewItem } from "./review-item-schemas";
 
 export type InboxReviewItem = {
   id: string;
-  kind: InboxItemKind;
-  /** Spec ReviewItemType when kind maps to the v2.1 taxonomy (AC-INB-01). */
-  type: ReviewItemType | null;
+  /** Canonical type discriminator; null only for legacy unsupported kinds. */
+  kind: InboxItemKind | null;
   status: InboxItemStatus;
   /** Raw stored title (may be a generic fallback). */
   title: string;
@@ -33,7 +31,7 @@ export type InboxReviewItem = {
   categoryName: string | null;
   /** Linked account name (e.g. Visa TPBank). */
   accountName: string | null;
-  /** Typed payload discriminator instance when constructible. */
+  /** Typed payload instance when the kind is canonical and constructible. */
   typed: TypedReviewItem | null;
   /** Emergency intent note when kind is emergency_declaration (BR-13). */
   intentNote: string | null;
@@ -41,4 +39,9 @@ export type InboxReviewItem = {
   executedByUserId: string | null;
   /** Partner assignee for targeted emergency alerts (BR-13). */
   assignedToUserId: string | null;
+};
+
+export type InboxCanonicalReviewItem = InboxReviewItem & {
+  kind: InboxItemKind;
+  typed: TypedReviewItem;
 };

@@ -21,8 +21,8 @@ import {
   acknowledgeInboxItemInputSchema,
   dismissInboxItem,
   dismissInboxItemInputSchema,
-  runInboxStalenessWorker,
-} from "@/modules/inbox/application/review-items";
+} from "@/modules/inbox/application/commands/review-items";
+import { runInboxStalenessWorker } from "@/modules/inbox/application/workers/resolve-stale-inbox-items";
 import { mapInboxRow } from "@/modules/inbox/application/mappers/inbox-item.mapper";
 
 const inboxItemId = "550e8400-e29b-41d4-a716-446655440000";
@@ -31,8 +31,11 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
-describe("inbox kind helpers (ST-E06-002)", () => {
-  it("maps guided and jar-resolvable kinds", () => {
+describe("inbox kind helpers (ST-E06-002 / Prompt 13A)", () => {
+  it("maps canonical storage kinds", () => {
+    expect(mapInboxKind("unmapped_expense")).toBe(
+      InboxItemKind.UNMAPPED_EXPENSE,
+    );
     expect(mapInboxKind("savings_maturity")).toBe(
       InboxItemKind.SAVINGS_MATURITY,
     );
@@ -40,6 +43,22 @@ describe("inbox kind helpers (ST-E06-002)", () => {
     expect(isJarResolvableKind(InboxItemKind.UNMAPPED_EXPENSE)).toBe(true);
     expect(isJarResolvableKind(InboxItemKind.SAVINGS_MATURITY)).toBe(false);
     expect(isGuidedKind(InboxItemKind.EMI_COMPLETE)).toBe(true);
+  });
+
+  it("merges legacy savings kinds onto the canonical savings_maturity kind", () => {
+    expect(mapInboxKind("savings_matured")).toBe(
+      InboxItemKind.SAVINGS_MATURITY,
+    );
+    expect(mapInboxKind("renewal_required")).toBe(
+      InboxItemKind.SAVINGS_MATURITY,
+    );
+  });
+
+  it("maps removed kinds to null so they can never enter the queue", () => {
+    expect(mapInboxKind("penalty_warning")).toBeNull();
+    expect(mapInboxKind("rate_changed_suggestion")).toBeNull();
+    expect(mapInboxKind("package_expired")).toBeNull();
+    expect(mapInboxKind("payment_reminder")).toBeNull();
   });
 });
 
@@ -55,7 +74,7 @@ describe("dismiss / acknowledge schemas", () => {
     ).toBe(true);
   });
 
-  it("accepts maturity and EMI actions only", () => {
+  it("accepts maturity, early-withdrawal and EMI actions only", () => {
     expect(
       acknowledgeInboxItemInputSchema.safeParse({
         inboxItemId: "550e8400-e29b-41d4-a716-446655440000",
@@ -66,6 +85,12 @@ describe("dismiss / acknowledge schemas", () => {
       acknowledgeInboxItemInputSchema.safeParse({
         inboxItemId: "550e8400-e29b-41d4-a716-446655440000",
         action: "celebrate",
+      }).success,
+    ).toBe(true);
+    expect(
+      acknowledgeInboxItemInputSchema.safeParse({
+        inboxItemId: "550e8400-e29b-41d4-a716-446655440000",
+        action: "confirm",
       }).success,
     ).toBe(true);
     expect(
@@ -141,5 +166,22 @@ describe("inbox item mapper", () => {
       currency: "VND",
       sourceType: "transaction",
     });
+  });
+
+  it("returns null for legacy removed kinds", () => {
+    expect(
+      mapInboxRow({
+        id: inboxItemId,
+        kind: "payment_reminder",
+        status: "pending",
+        title: "Payment due",
+        amount: 100,
+        currency: "VND",
+        source_id: inboxItemId,
+        source_type: "guided",
+        created_at: "2026-08-17T00:00:00Z",
+        context_json: null,
+      }),
+    ).toBeNull();
   });
 });

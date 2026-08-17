@@ -11,3 +11,4 @@
 - Use one consistent icon family (Phosphor preferred); illustrations only in onboarding, empty states, educational moments, and success milestones — never to replace financial clarity. Confidence: 0.7
 - Data visualization: minimal ink, one question per chart, text explanation, dark-mode and color-independent readability; avoid financial-trading aesthetics and complex dashboards. Confidence: 0.75
 - Guide users through progressive, step-by-step flows instead of long CRUD forms; keep actions within ~3 taps and minimize decision fatigue. Confidence: 0.8
+- Prefer merging similar domain kinds/types over proliferating them; model the actual decision or outcome the user must make rather than representing each lifecycle event as a separate type. Confidence: 0.8

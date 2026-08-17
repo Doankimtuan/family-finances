@@ -7,17 +7,17 @@ import {
 } from "@/modules/tenancy/application/product-action-error";
 import type { Result } from "@/modules/shared-kernel/application/result";
 import {
-  EarlyWithdrawalAckAction,
   EmiAckAction,
+  InboxItemKind,
   InboxItemStatus,
   INBOX_ITEM_STATUS_VALUES,
   INBOX_OPERATION,
   INBOX_RPC,
-  MaturityAckAction,
   SavingsMaturityAckAction,
   SAVINGS_MATURITY_ACK_ACTION_VALUES,
   EARLY_WITHDRAWAL_ACK_ACTION_VALUES,
 } from "../inbox-constants";
+import { kindAckActions } from "../review-item-schemas";
 import {
   classifyInboxRpcError,
   logInboxFailure,
@@ -209,12 +209,8 @@ const ACK_ACTION_VALUES = [
   ...EARLY_WITHDRAWAL_ACK_ACTION_VALUES,
   EmiAckAction.CELEBRATE,
   EmiAckAction.LATER,
-  MaturityAckAction.RENEW,
-  MaturityAckAction.SWITCH,
-  MaturityAckAction.WITHDRAW,
-  SavingsMaturityAckAction.CONFIRM_CONFIGURED,
-  EarlyWithdrawalAckAction.CONFIRM,
 ] as const;
+
 const ACK_ACTION_SET: ReadonlySet<string> = new Set(ACK_ACTION_VALUES);
 
 export const acknowledgeInboxItemInputSchema = z.object({
@@ -333,3 +329,22 @@ export async function autoResolveInboxItem(
     });
   }
 }
+
+/**
+ * Validate that an acknowledge action is allowed for a canonical kind
+ * (Prompt 13A outcome contract). Savings orchestration uses this before
+ * delegating to Savings commands.
+ */
+export function isAckActionAllowedForKind(
+  kind: InboxItemKind,
+  action: string,
+): boolean {
+  return kindAckActions(kind).includes(action);
+}
+
+export {
+  EmiAckAction,
+  SavingsMaturityAckAction,
+  InboxItemKind,
+  InboxItemStatus,
+};

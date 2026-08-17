@@ -34,7 +34,6 @@ import {
 import { instantiateTypedReviewItem } from "@/modules/inbox/application/review-item-schemas";
 import {
   InboxItemKind,
-  ReviewItemType,
 } from "@/modules/inbox/application/inbox-constants";
 import {
   shouldAutoResolveInboxItem,
@@ -257,7 +256,7 @@ describe("savings early withdrawal penalty", () => {
 describe("savings inbox typing", () => {
   it("hydrates SavingsMaturityDecision from context_json", () => {
     const typed = instantiateTypedReviewItem({
-      kind: InboxItemKind.SAVINGS_MATURED,
+      kind: InboxItemKind.SAVINGS_MATURITY,
       sourceId: "11111111-1111-4111-8111-111111111111",
       contextJson: {
         savingId: "11111111-1111-4111-8111-111111111111",
@@ -277,7 +276,7 @@ describe("savings inbox typing", () => {
       },
     });
 
-    expect(typed?.type).toBe(ReviewItemType.SAVINGS_MATURITY_DECISION);
+    expect(typed?.type).toBe(InboxItemKind.SAVINGS_MATURITY);
     expect(typed && "payload" in typed ? typed.payload.providerName : "").toBe(
       "Manual Saving",
     );
@@ -289,14 +288,14 @@ describe("savings inbox typing", () => {
   it("never auto-resolves savings maturity kinds", () => {
     expect(
       shouldAutoResolveInboxItem({
-        kind: InboxItemKind.SAVINGS_MATURED,
+        kind: InboxItemKind.SAVINGS_MATURITY,
         confidenceScore: 1,
         suggestedJarId: "11111111-1111-4111-8111-111111111111",
       }),
     ).toBe(false);
     expect(
       shouldCancelMaturityCascade({
-        kind: InboxItemKind.SAVINGS_MATURED,
+        kind: InboxItemKind.SAVINGS_MATURITY,
         resolved: true,
       }),
     ).toBe(true);

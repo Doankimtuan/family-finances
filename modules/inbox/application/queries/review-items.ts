@@ -5,6 +5,7 @@ import {
   InboxItemStatus,
   INBOX_ARCHIVED_STATUS_VALUES,
   INBOX_OPERATION,
+  INBOX_ITEM_KIND_VALUES,
   InboxSourceType,
 } from "../inbox-constants";
 import type { InboxReviewItem } from "../inbox-types";
@@ -67,8 +68,16 @@ async function enrichWithTransactionDetails(
     }
   }
 
-  return rows.map((row) => mapInboxRow(row, detailsById.get(row.source_id)));
+  return rows.flatMap((row) => {
+    const item = mapInboxRow(row, detailsById.get(row.source_id));
+    return item ? [item] : [];
+  });
 }
+
+/** Legacy kinds must never re-enter the active queue (Prompt 13A). */
+const ACTIVE_QUEUE_KIND_FILTER = INBOX_ITEM_KIND_VALUES.map(
+  (kind) => `kind.eq.${kind}`,
+).join(",");
 
 async function loadOpenInboxItems(): Promise<InboxReviewItem[] | null> {
   const gate = await assertMoneyActionAllowed();
@@ -81,6 +90,7 @@ async function loadOpenInboxItems(): Promise<InboxReviewItem[] | null> {
       .select(INBOX_SELECT)
       .eq("household_id", gate.householdId)
       .eq("status", InboxItemStatus.PENDING)
+      .or(ACTIVE_QUEUE_KIND_FILTER)
       .or(`assigned_to_user_id.is.null,assigned_to_user_id.eq.${gate.userId}`)
       .order("created_at", { ascending: false });
 
@@ -91,8 +101,7 @@ async function loadOpenInboxItems(): Promise<InboxReviewItem[] | null> {
       return null;
     }
 
-    const items = await enrichWithTransactionDetails(supabase, data ?? []);
-    return items;
+    return await enrichWithTransactionDetails(supabase, data ?? []);
   } catch (error) {
     logInboxFailure(error, INBOX_OPERATION.LIST_OPEN, {
       householdId: gate.householdId,
@@ -116,6 +125,7 @@ export const countOpenInboxItems = cache(async (): Promise<number | null> => {
       .select("id", { count: "exact", head: true })
       .eq("household_id", gate.householdId)
       .eq("status", InboxItemStatus.PENDING)
+      .or(ACTIVE_QUEUE_KIND_FILTER)
       .or(`assigned_to_user_id.is.null,assigned_to_user_id.eq.${gate.userId}`);
 
     if (error) {
@@ -147,6 +157,7 @@ export async function listArchivedInboxItems(): Promise<
       .select(INBOX_SELECT)
       .eq("household_id", gate.householdId)
       .in("status", [...INBOX_ARCHIVED_STATUS_VALUES])
+      .or(ACTIVE_QUEUE_KIND_FILTER)
       .or(`assigned_to_user_id.is.null,assigned_to_user_id.eq.${gate.userId}`)
       .order("created_at", { ascending: false })
       .limit(100);
@@ -158,8 +169,7 @@ export async function listArchivedInboxItems(): Promise<
       return null;
     }
 
-    const items = await enrichWithTransactionDetails(supabase, data ?? []);
-    return items;
+    return await enrichWithTransactionDetails(supabase, data ?? []);
   } catch (error) {
     logInboxFailure(error, INBOX_OPERATION.LIST_ARCHIVED, {
       householdId: gate.householdId,

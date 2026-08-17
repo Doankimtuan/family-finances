@@ -1,83 +1,75 @@
 /**
- * AC-INB-01 + BR-15/16/21 contracts for Sprint 3 Inbox Decision Engine.
+ * AC-INB-01 + BR-15/16/21 contracts for Sprint 3 Inbox Decision Engine and
+ * Prompt 13A canonical taxonomy.
  */
 import { describe, expect, it } from "vitest";
 import {
-  ReviewItemType,
   InboxItemKind,
   InboxItemStatus,
   AUTO_RESOLVE_CONFIDENCE_THRESHOLD,
   MERCHANT_CONFIRMATION_THRESHOLD,
-  PAYMENT_REMINDER_EXPIRE_DAYS,
-  toReviewItemType,
-  reviewItemTypeToKind,
+  INBOX_LEGACY_KIND_VALUES,
+  INBOX_KIND_MIGRATION_MAP,
+  isJarResolvableKind,
+  isGuidedKind,
+} from "@/modules/inbox/application";
+import {
   instantiateTypedReviewItem,
   parseTypedReviewItem,
+  OUTCOMES_BY_KIND,
+  TERMINAL_STATUSES_BY_KIND,
+  ACK_ACTION_BY_KIND,
+  kindAutoResolvable,
+  isCanonicalInboxKind,
+} from "@/modules/inbox/application";
+import {
   confidenceFromConfirmations,
   shouldAutoResolveInboxItem,
   shouldCancelMaturityCascade,
-  isPaymentReminderExpired,
-  paymentReminderExpiresAt,
 } from "@/modules/inbox/application";
 import { TransactionSource } from "@/modules/ledger/application/client";
 
 const TX = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11";
 const JAR = "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a11";
 
-describe("AC-INB-01 GWT — typed ReviewItem instantiation", () => {
-  it("maps all Spec ReviewItemType values from storage kinds", () => {
-    expect(toReviewItemType(InboxItemKind.UNMAPPED_EXPENSE)).toBe(
-      ReviewItemType.UNMAPPED_EXPENSE,
-    );
-    expect(toReviewItemType(InboxItemKind.SAVINGS_MATURITY)).toBe(
-      ReviewItemType.SAVINGS_MATURITY_DECISION,
-    );
-    expect(toReviewItemType(InboxItemKind.PAYMENT_REMINDER)).toBe(
-      ReviewItemType.PAYMENT_REMINDER,
-    );
-    expect(toReviewItemType(InboxItemKind.EMI_COMPLETE)).toBe(
-      ReviewItemType.INSTALLMENT_COMPLETE,
-    );
-    expect(toReviewItemType(InboxItemKind.EMERGENCY_DECLARATION)).toBe(
-      ReviewItemType.EMERGENCY_DECLARATION,
-    );
-    expect(reviewItemTypeToKind(ReviewItemType.PAYMENT_REMINDER)).toBe(
-      InboxItemKind.PAYMENT_REMINDER,
-    );
-  });
-
-  it("instantiates explicit typed schemas for each Spec type", () => {
+describe("AC-INB-01 GWT — typed ReviewItem instantiation (Prompt 13A)", () => {
+  it("instantiates typed payloads for every canonical kind", () => {
     expect(
       instantiateTypedReviewItem({
         kind: InboxItemKind.UNMAPPED_EXPENSE,
         sourceId: TX,
         suggestedJarId: JAR,
       })?.type,
-    ).toBe(ReviewItemType.UNMAPPED_EXPENSE);
+    ).toBe(InboxItemKind.UNMAPPED_EXPENSE);
+
+    expect(
+      instantiateTypedReviewItem({
+        kind: InboxItemKind.INCOME_SUGGEST,
+        sourceId: TX,
+      })?.type,
+    ).toBe(InboxItemKind.INCOME_SUGGEST);
 
     expect(
       instantiateTypedReviewItem({
         kind: InboxItemKind.SAVINGS_MATURITY,
         sourceId: TX,
-        cascadeDay: 14,
+        contextJson: { cycleId: TX, providerName: "Bank", currentPackage: "P" },
       })?.type,
-    ).toBe(ReviewItemType.SAVINGS_MATURITY_DECISION);
+    ).toBe(InboxItemKind.SAVINGS_MATURITY);
 
     expect(
       instantiateTypedReviewItem({
-        kind: InboxItemKind.PAYMENT_REMINDER,
+        kind: InboxItemKind.EARLY_WITHDRAWAL_CONFIRMATION,
         sourceId: TX,
-        dueAt: "2026-08-01T00:00:00.000Z",
-        expiresAt: "2026-08-08T00:00:00.000Z",
       })?.type,
-    ).toBe(ReviewItemType.PAYMENT_REMINDER);
+    ).toBe(InboxItemKind.EARLY_WITHDRAWAL_CONFIRMATION);
 
     expect(
       instantiateTypedReviewItem({
         kind: InboxItemKind.EMI_COMPLETE,
         sourceId: TX,
       })?.type,
-    ).toBe(ReviewItemType.INSTALLMENT_COMPLETE);
+    ).toBe(InboxItemKind.EMI_COMPLETE);
 
     expect(
       instantiateTypedReviewItem({
@@ -85,13 +77,95 @@ describe("AC-INB-01 GWT — typed ReviewItem instantiation", () => {
         sourceId: TX,
         intentNote: "Medical bill",
       })?.type,
-    ).toBe(ReviewItemType.EMERGENCY_DECLARATION);
+    ).toBe(InboxItemKind.EMERGENCY_DECLARATION);
+  });
 
+  it("parses the discriminated union schema for every canonical kind", () => {
+    for (const kind of Object.values(InboxItemKind)) {
+      const instance = instantiateTypedReviewItem({
+        kind,
+        sourceId: TX,
+        intentNote: kind === InboxItemKind.EMERGENCY_DECLARATION ? "note" : undefined,
+      });
+      expect(instance, `kind ${kind}`).not.toBeNull();
+      expect(
+        parseTypedReviewItem(instance).ok,
+        `schema accepts kind ${kind}`,
+      ).toBe(true);
+    }
+  });
+
+  it("rejects payloads that do not belong to their kind", () => {
+    // InstallmentComplete requires uuid-valid installmentPlanId/debtId; an
+    // UnmappedExpense-only payload must fail the discriminated union.
     const parsed = parseTypedReviewItem({
-      type: ReviewItemType.UNMAPPED_EXPENSE,
-      payload: { transactionId: TX, suggestedJarId: JAR },
+      type: InboxItemKind.EMI_COMPLETE,
+      payload: { transactionId: TX },
     });
-    expect(parsed.ok).toBe(true);
+    expect(parsed.ok).toBe(false);
+  });
+
+  it("requires the emergency intent note", () => {
+    expect(
+      instantiateTypedReviewItem({
+        kind: InboxItemKind.EMERGENCY_DECLARATION,
+        sourceId: TX,
+        intentNote: null,
+      }),
+    ).toBeNull();
+  });
+});
+
+describe("Prompt 13A taxonomy contract", () => {
+  it("every canonical kind is recognized and no legacy kind is canonical", () => {
+    for (const kind of Object.values(InboxItemKind)) {
+      expect(isCanonicalInboxKind(kind)).toBe(true);
+    }
+    for (const legacy of INBOX_LEGACY_KIND_VALUES) {
+      expect(isCanonicalInboxKind(legacy)).toBe(false);
+    }
+  });
+
+  it("every canonical kind has at least one valid outcome and terminal status", () => {
+    for (const kind of Object.values(InboxItemKind)) {
+      expect(
+        OUTCOMES_BY_KIND[kind].length,
+        `kind ${kind} has outcomes`,
+      ).toBeGreaterThan(0);
+      expect(
+        TERMINAL_STATUSES_BY_KIND[kind].length,
+        `kind ${kind} has terminal statuses`,
+      ).toBeGreaterThan(0);
+    }
+  });
+
+  it("legacy kinds never map to an active queue entry", () => {
+    for (const legacy of INBOX_LEGACY_KIND_VALUES) {
+      if (INBOX_KIND_MIGRATION_MAP[legacy] != null) {
+        expect(Object.values(InboxItemKind)).toContain(
+          INBOX_KIND_MIGRATION_MAP[legacy],
+        );
+      }
+    }
+  });
+
+  it("jar-resolvable kinds are the auto-resolvable kinds", () => {
+    for (const kind of Object.values(InboxItemKind)) {
+      expect(kindAutoResolvable(kind)).toBe(isJarResolvableKind(kind));
+    }
+  });
+
+  it("exhaustive ack contract: every ack-able kind lists its actions", () => {
+    expect(ACK_ACTION_BY_KIND[InboxItemKind.SAVINGS_MATURITY]).toContain(
+      "confirm_configured",
+    );
+    expect(ACK_ACTION_BY_KIND[InboxItemKind.EARLY_WITHDRAWAL_CONFIRMATION]).toContain(
+      "confirm",
+    );
+    expect(ACK_ACTION_BY_KIND[InboxItemKind.EMI_COMPLETE]).toContain(
+      "celebrate",
+    );
+    expect(ACK_ACTION_BY_KIND[InboxItemKind.UNMAPPED_EXPENSE]).toHaveLength(0);
   });
 });
 
@@ -116,7 +190,7 @@ describe("BR-16 pattern auto-resolution confidence", () => {
     ).toBe(false);
     expect(
       shouldAutoResolveInboxItem({
-        kind: InboxItemKind.PAYMENT_REMINDER,
+        kind: InboxItemKind.SAVINGS_MATURITY,
         confidenceScore: 1,
         suggestedJarId: JAR,
       }),
@@ -129,28 +203,8 @@ describe("BR-16 pattern auto-resolution confidence", () => {
   });
 });
 
-describe("BR-15 / BR-21 staleness and cascade cancel", () => {
-  it("expires payment reminders after due + 7 days", () => {
-    const due = new Date("2026-08-01T00:00:00.000Z");
-    const expires = paymentReminderExpiresAt(due, PAYMENT_REMINDER_EXPIRE_DAYS);
-    expect(expires.toISOString()).toBe("2026-08-08T00:00:00.000Z");
-    expect(
-      isPaymentReminderExpired({
-        kind: InboxItemKind.PAYMENT_REMINDER,
-        expiresAt: "2026-08-01T00:00:00.000Z",
-        now: new Date("2026-08-02T00:00:00.000Z"),
-      }),
-    ).toBe(true);
-    expect(
-      isPaymentReminderExpired({
-        kind: InboxItemKind.UNMAPPED_EXPENSE,
-        expiresAt: "2026-08-01T00:00:00.000Z",
-        now: new Date("2026-08-02T00:00:00.000Z"),
-      }),
-    ).toBe(false);
-  });
-
-  it("cancels maturity cascade when a maturity decision is resolved", () => {
+describe("BR-15 / BR-21 staleness and cascade cancel (Prompt 13A)", () => {
+  it("cancels maturity cascade for the single canonical maturity kind", () => {
     expect(
       shouldCancelMaturityCascade({
         kind: InboxItemKind.SAVINGS_MATURITY,
@@ -165,5 +219,11 @@ describe("BR-15 / BR-21 staleness and cascade cancel", () => {
     ).toBe(false);
     expect(InboxItemStatus.EXPIRED).toBe("expired");
     expect(InboxItemStatus.AUTO_RESOLVED).toBe("auto_resolved");
+  });
+
+  it("guided kinds are exactly the non-jar canonical kinds", () => {
+    for (const kind of Object.values(InboxItemKind)) {
+      expect(isGuidedKind(kind)).toBe(!isJarResolvableKind(kind));
+    }
   });
 });

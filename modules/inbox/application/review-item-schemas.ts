@@ -1,8 +1,25 @@
+/**
+ * Typed Inbox payload + outcome contracts (AC-INB-01 / EVO-02 / Prompt 13A).
+ *
+ * Every canonical item type owns:
+ *  - payload schema (required context),
+ *  - allowed acknowledge outcomes,
+ *  - terminal statuses,
+ *  - defer / expiry / auto-resolution behavior.
+ *
+ * A legitimate persisted kind that has no typed contract is an explicit
+ * unsupported kind and must never surface in the active queue.
+ */
+
 import { z } from "zod";
 import {
-  ReviewItemType,
-  REVIEW_ITEM_TYPE_VALUES,
   InboxItemKind,
+  InboxItemStatus,
+  SavingsMaturityAckAction,
+  EarlyWithdrawalAckAction,
+  EmiAckAction,
+  SAVINGS_MATURITY_ACK_ACTION_VALUES,
+  EARLY_WITHDRAWAL_ACK_ACTION_VALUES,
 } from "./inbox-constants";
 import {
   RenewalPolicy,
@@ -12,10 +29,6 @@ import {
   MATURITY_WARNING_CODE_VALUES,
 } from "@/modules/savings/application/savings-constants";
 
-/**
- * Strongly-typed ReviewItem payload schemas (AC-INB-01 / EVO-02).
- */
-
 export const unmappedExpensePayloadSchema = z.object({
   transactionId: z.string().uuid(),
   suggestedJarId: z.string().uuid().nullable().optional(),
@@ -24,20 +37,12 @@ export const unmappedExpensePayloadSchema = z.object({
   confirmationCount: z.number().int().nonnegative().optional(),
 });
 
-export const maturityDecisionPayloadSchema = z.object({
-  savingsId: z.string().uuid(),
-  cascadeDay: z
-    .union([
-      z.literal(30),
-      z.literal(14),
-      z.literal(7),
-      z.literal(3),
-      z.literal(1),
-    ])
-    .optional(),
+export const incomeSuggestPayloadSchema = z.object({
+  transactionId: z.string().uuid(),
+  suggestedJarId: z.string().uuid().nullable().optional(),
+  suggestedCategoryId: z.string().uuid().nullable().optional(),
 });
 
-/** Rich savings maturity decision payload with renewal policy engine fields. */
 export const savingsMaturityDecisionPayloadSchema = z.object({
   savingId: z.string().uuid(),
   cycleId: z.string().uuid(),
@@ -99,16 +104,15 @@ export const earlyWithdrawalConfirmationPayloadSchema = z.object({
   totalTermDays: z.number(),
 });
 
-export const paymentReminderPayloadSchema = z.object({
-  dueAt: z.string().min(1),
-  expiresAt: z.string().min(1).nullable().optional(),
-  cardId: z.string().uuid().nullable().optional(),
-});
-
-export const installmentCompletePayloadSchema = z.object({
-  installmentPlanId: z.string().uuid().optional(),
-  debtId: z.string().uuid().optional(),
-});
+export const installmentCompletePayloadSchema = z
+  .object({
+    installmentPlanId: z.string().uuid().optional(),
+    debtId: z.string().uuid().optional(),
+  })
+  .refine(
+    (value) => value.installmentPlanId != null || value.debtId != null,
+    "InstallmentComplete requires installmentPlanId or debtId",
+  );
 
 export const emergencyDeclarationPayloadSchema = z.object({
   intentNote: z.string().trim().min(1),
@@ -118,43 +122,40 @@ export const emergencyDeclarationPayloadSchema = z.object({
   executedByUserId: z.string().uuid().optional(),
 });
 
-export const reviewItemPayloadByType = {
-  [ReviewItemType.UNMAPPED_EXPENSE]: unmappedExpensePayloadSchema,
-  [ReviewItemType.MATURITY_DECISION]: maturityDecisionPayloadSchema,
-  [ReviewItemType.SAVINGS_MATURITY_DECISION]: savingsMaturityDecisionPayloadSchema,
-  [ReviewItemType.EARLY_WITHDRAWAL_CONFIRMATION]: earlyWithdrawalConfirmationPayloadSchema,
-  [ReviewItemType.PAYMENT_REMINDER]: paymentReminderPayloadSchema,
-  [ReviewItemType.INSTALLMENT_COMPLETE]: installmentCompletePayloadSchema,
-  [ReviewItemType.EMERGENCY_DECLARATION]: emergencyDeclarationPayloadSchema,
-} as const;
+export const reviewItemPayloadByKind = {
+  [InboxItemKind.UNMAPPED_EXPENSE]: unmappedExpensePayloadSchema,
+  [InboxItemKind.INCOME_SUGGEST]: incomeSuggestPayloadSchema,
+  [InboxItemKind.SAVINGS_MATURITY]: savingsMaturityDecisionPayloadSchema,
+  [InboxItemKind.EARLY_WITHDRAWAL_CONFIRMATION]:
+    earlyWithdrawalConfirmationPayloadSchema,
+  [InboxItemKind.EMI_COMPLETE]: installmentCompletePayloadSchema,
+  [InboxItemKind.EMERGENCY_DECLARATION]: emergencyDeclarationPayloadSchema,
+} as const satisfies Record<InboxItemKind, z.ZodTypeAny>;
 
+/** Typed payload — one instance per canonical kind. */
 export const typedReviewItemSchema = z.discriminatedUnion("type", [
   z.object({
-    type: z.literal(ReviewItemType.UNMAPPED_EXPENSE),
+    type: z.literal(InboxItemKind.UNMAPPED_EXPENSE),
     payload: unmappedExpensePayloadSchema,
   }),
   z.object({
-    type: z.literal(ReviewItemType.MATURITY_DECISION),
-    payload: maturityDecisionPayloadSchema,
+    type: z.literal(InboxItemKind.INCOME_SUGGEST),
+    payload: incomeSuggestPayloadSchema,
   }),
   z.object({
-    type: z.literal(ReviewItemType.SAVINGS_MATURITY_DECISION),
+    type: z.literal(InboxItemKind.SAVINGS_MATURITY),
     payload: savingsMaturityDecisionPayloadSchema,
   }),
   z.object({
-    type: z.literal(ReviewItemType.EARLY_WITHDRAWAL_CONFIRMATION),
+    type: z.literal(InboxItemKind.EARLY_WITHDRAWAL_CONFIRMATION),
     payload: earlyWithdrawalConfirmationPayloadSchema,
   }),
   z.object({
-    type: z.literal(ReviewItemType.PAYMENT_REMINDER),
-    payload: paymentReminderPayloadSchema,
-  }),
-  z.object({
-    type: z.literal(ReviewItemType.INSTALLMENT_COMPLETE),
+    type: z.literal(InboxItemKind.EMI_COMPLETE),
     payload: installmentCompletePayloadSchema,
   }),
   z.object({
-    type: z.literal(ReviewItemType.EMERGENCY_DECLARATION),
+    type: z.literal(InboxItemKind.EMERGENCY_DECLARATION),
     payload: emergencyDeclarationPayloadSchema,
   }),
 ]);
@@ -171,24 +172,119 @@ export function parseTypedReviewItem(
   return { ok: true, value: parsed.data };
 }
 
-export function isSpecReviewItemType(
-  value: string,
-): value is (typeof REVIEW_ITEM_TYPE_VALUES)[number] {
-  return (REVIEW_ITEM_TYPE_VALUES as readonly string[]).includes(value);
+export function isCanonicalInboxKind(value: string): value is InboxItemKind {
+  return (Object.values(InboxItemKind) as string[]).includes(value);
 }
 
-/** Build a typed instance from kind + loose payload fields (AC-INB-01). */
+/** Allowed acknowledge outcomes per canonical kind (empty = not ack-able). */
+export const ACK_ACTION_BY_KIND: Readonly<
+  Record<InboxItemKind, readonly string[]>
+> = {
+  [InboxItemKind.UNMAPPED_EXPENSE]: [],
+  [InboxItemKind.INCOME_SUGGEST]: [],
+  [InboxItemKind.SAVINGS_MATURITY]: SAVINGS_MATURITY_ACK_ACTION_VALUES,
+  [InboxItemKind.EARLY_WITHDRAWAL_CONFIRMATION]:
+    EARLY_WITHDRAWAL_ACK_ACTION_VALUES,
+  [InboxItemKind.EMI_COMPLETE]: [EmiAckAction.CELEBRATE, EmiAckAction.LATER],
+  [InboxItemKind.EMERGENCY_DECLARATION]: [],
+};
+
+/**
+ * Outcomes per kind (Prompt 13A contract).
+ *
+ * - resolve_to_jar: user assigns the source transaction to an Active jar.
+ * - dismiss: user intentionally removes the item from active attention.
+ * - acknowledge: user records a decision/acknowledgement; Savings owns any
+ *   money outcome. `dismiss` is a savings ack action that maps to DISMISSED.
+ * - auto_resolve: silent pattern/merchant resolution at high confidence.
+ */
+export const OUTCOMES_BY_KIND: Readonly<
+  Record<InboxItemKind, readonly string[]>
+> = {
+  [InboxItemKind.UNMAPPED_EXPENSE]: [
+    "resolve_to_jar",
+    "dismiss",
+    "auto_resolve",
+  ],
+  [InboxItemKind.INCOME_SUGGEST]: ["resolve_to_jar", "dismiss", "auto_resolve"],
+  [InboxItemKind.SAVINGS_MATURITY]: [
+    ...SAVINGS_MATURITY_ACK_ACTION_VALUES,
+    "auto_resolve",
+  ],
+  [InboxItemKind.EARLY_WITHDRAWAL_CONFIRMATION]: [
+    ...EARLY_WITHDRAWAL_ACK_ACTION_VALUES,
+  ],
+  [InboxItemKind.EMI_COMPLETE]: [EmiAckAction.CELEBRATE, EmiAckAction.LATER],
+  [InboxItemKind.EMERGENCY_DECLARATION]: ["dismiss"],
+} as const;
+
+/** Terminal statuses per kind (Prompt 13A contract). */
+export const TERMINAL_STATUSES_BY_KIND: Readonly<
+  Record<InboxItemKind, readonly InboxItemStatus[]>
+> = {
+  [InboxItemKind.UNMAPPED_EXPENSE]: [
+    InboxItemStatus.RESOLVED,
+    InboxItemStatus.DISMISSED,
+    InboxItemStatus.AUTO_RESOLVED,
+  ],
+  [InboxItemKind.INCOME_SUGGEST]: [
+    InboxItemStatus.RESOLVED,
+    InboxItemStatus.DISMISSED,
+    InboxItemStatus.AUTO_RESOLVED,
+  ],
+  [InboxItemKind.SAVINGS_MATURITY]: [
+    InboxItemStatus.ACKNOWLEDGED,
+    InboxItemStatus.DISMISSED,
+  ],
+  [InboxItemKind.EARLY_WITHDRAWAL_CONFIRMATION]: [
+    InboxItemStatus.ACKNOWLEDGED,
+    InboxItemStatus.DISMISSED,
+  ],
+  [InboxItemKind.EMI_COMPLETE]: [InboxItemStatus.ACKNOWLEDGED],
+  [InboxItemKind.EMERGENCY_DECLARATION]: [InboxItemStatus.DISMISSED],
+} as const;
+
+/** Time-bound expiry: only savings maturity currently has an active window. */
+export function kindExpiresAt(
+  kind: InboxItemKind,
+  now = new Date(),
+): Date | null {
+  return kind === InboxItemKind.SAVINGS_MATURITY
+    ? new Date(now.getTime() + KIND_ACTIVE_WINDOW_MS)
+    : null;
+}
+
+/** Savings maturity stays active for 31 days past the maturity reminder. */
+export const KIND_ACTIVE_WINDOW_MS = 31 * 24 * 60 * 60 * 1000;
+
+/**
+ * Auto-resolution: only jar-resolvable kinds with a suggested jar and high
+ * confidence (BR-16).
+ */
+export function kindAutoResolvable(kind: InboxItemKind): boolean {
+  return [
+    InboxItemKind.UNMAPPED_EXPENSE,
+    InboxItemKind.INCOME_SUGGEST,
+  ].includes(
+    kind as unknown as
+      | typeof InboxItemKind.UNMAPPED_EXPENSE
+      | typeof InboxItemKind.INCOME_SUGGEST,
+  );
+}
+
+export function kindAckActions(kind: InboxItemKind): readonly string[] {
+  return ACK_ACTION_BY_KIND[kind];
+}
+
+/** Build a typed instance from kind + loose payload fields. */
 export function instantiateTypedReviewItem(input: {
   kind: InboxItemKind;
   sourceId: string;
   intentNote?: string | null;
   suggestedJarId?: string | null;
   suggestedCategoryId?: string | null;
-  dueAt?: string | null;
-  expiresAt?: string | null;
   merchantKey?: string | null;
   confirmationCount?: number;
-  cascadeDay?: 30 | 14 | 7 | 3 | 1;
   planMovementId?: string;
   sourceJarId?: string;
   targetJarId?: string;
@@ -199,8 +295,8 @@ export function instantiateTypedReviewItem(input: {
 
   switch (input.kind) {
     case InboxItemKind.UNMAPPED_EXPENSE:
-      return parseTypedReviewItem({
-        type: ReviewItemType.UNMAPPED_EXPENSE,
+      return {
+        type: InboxItemKind.UNMAPPED_EXPENSE,
         payload: {
           transactionId: input.sourceId,
           suggestedJarId: input.suggestedJarId ?? null,
@@ -208,62 +304,56 @@ export function instantiateTypedReviewItem(input: {
           merchantKey: input.merchantKey ?? null,
           confirmationCount: input.confirmationCount,
         },
-      }).ok
-        ? {
-            type: ReviewItemType.UNMAPPED_EXPENSE,
-            payload: {
-              transactionId: input.sourceId,
-              suggestedJarId: input.suggestedJarId ?? null,
-              suggestedCategoryId: input.suggestedCategoryId ?? null,
-              merchantKey: input.merchantKey ?? null,
-              confirmationCount: input.confirmationCount,
-            },
-          }
-        : null;
-    case InboxItemKind.SAVINGS_MATURITY:
-    case InboxItemKind.SAVINGS_MATURED:
-    case InboxItemKind.RENEWAL_REQUIRED: {
-      type RecommendedPackage = {
-        packageId: string;
-        packageName: string;
-        durationDays: number;
-        annualRate: number;
-        rateDifference?: number;
-        durationDeltaDays?: number;
-        reasonCode?: string;
       };
-
-      const recommendedRaw = ctx.recommendedPackages;
-      const recommendedPackages: RecommendedPackage[] = Array.isArray(
-        recommendedRaw,
-      )
-        ? recommendedRaw.flatMap((item): RecommendedPackage[] => {
-            if (!item || typeof item !== "object") return [];
-            const row = item as Record<string, unknown>;
-            if (typeof row.packageId !== "string") return [];
-            return [
-              {
-                packageId: row.packageId,
-                packageName: String(row.packageName ?? ""),
-                durationDays: Number(row.durationDays ?? 0),
-                annualRate: Number(row.annualRate ?? 0),
-                ...(row.rateDifference == null
-                  ? {}
-                  : { rateDifference: Number(row.rateDifference) }),
-                ...(row.durationDeltaDays == null
-                  ? {}
-                  : { durationDeltaDays: Number(row.durationDeltaDays) }),
-                ...(typeof row.reasonCode === "string"
-                  ? { reasonCode: row.reasonCode }
-                  : {}),
-              },
-            ];
-          })
+    case InboxItemKind.INCOME_SUGGEST:
+      return {
+        type: InboxItemKind.INCOME_SUGGEST,
+        payload: {
+          transactionId: input.sourceId,
+          suggestedJarId: input.suggestedJarId ?? null,
+          suggestedCategoryId: input.suggestedCategoryId ?? null,
+        },
+      };
+    case InboxItemKind.SAVINGS_MATURITY: {
+      const recommendedPackages = Array.isArray(ctx.recommendedPackages)
+        ? ctx.recommendedPackages.flatMap(
+            (
+              item,
+            ): {
+              packageId: string;
+              packageName: string;
+              durationDays: number;
+              annualRate: number;
+              rateDifference?: number;
+              durationDeltaDays?: number;
+              reasonCode?: string;
+            }[] => {
+              if (!item || typeof item !== "object") return [];
+              const row = item as Record<string, unknown>;
+              if (typeof row.packageId !== "string") return [];
+              return [
+                {
+                  packageId: row.packageId,
+                  packageName: String(row.packageName ?? ""),
+                  durationDays: Number(row.durationDays ?? 0),
+                  annualRate: Number(row.annualRate ?? 0),
+                  ...(row.rateDifference == null
+                    ? {}
+                    : { rateDifference: Number(row.rateDifference) }),
+                  ...(row.durationDeltaDays == null
+                    ? {}
+                    : { durationDeltaDays: Number(row.durationDeltaDays) }),
+                  ...(typeof row.reasonCode === "string"
+                    ? { reasonCode: row.reasonCode }
+                    : {}),
+                },
+              ];
+            },
+          )
         : [];
 
-      const warningsRaw = ctx.warnings;
-      const warnings = Array.isArray(warningsRaw)
-        ? warningsRaw.flatMap(
+      const warnings = Array.isArray(ctx.warnings)
+        ? ctx.warnings.flatMap(
             (
               item,
             ): { code: (typeof MATURITY_WARNING_CODE_VALUES)[number] }[] => {
@@ -297,126 +387,106 @@ export function instantiateTypedReviewItem(input: {
           ? (ctx.renewalConfig as Record<string, unknown>)
           : null;
 
-      const payload = {
-        savingId: String(ctx.savingId ?? input.sourceId),
-        cycleId: String(ctx.cycleId ?? input.sourceId),
-        providerName: String(ctx.providerName ?? ""),
-        currentPackage: String(ctx.currentPackage ?? ""),
-        currentRate: Number(ctx.currentRate ?? 0),
-        previousRate:
-          ctx.previousRate == null ? null : Number(ctx.previousRate),
-        rateDifference: Number(ctx.rateDifference ?? 0),
-        recommendedPackages,
-        estimatedInterest: Number(
-          ctx.estimatedInterest ?? ctx.accruedInterest ?? 0,
-        ),
-        configuredRenewalPreference: renewalPolicy,
-        renewalPolicy,
-        renewalConfig: renewalConfigRaw
-          ? {
-              preferredPackageId:
-                typeof renewalConfigRaw.preferredPackageId === "string"
-                  ? renewalConfigRaw.preferredPackageId
-                  : null,
-              preferredSettlementRule:
-                typeof renewalConfigRaw.preferredSettlementRule === "string"
-                  ? renewalConfigRaw.preferredSettlementRule
-                  : undefined,
-              preferredSettlementAccountId:
-                typeof renewalConfigRaw.preferredSettlementAccountId ===
-                "string"
-                  ? renewalConfigRaw.preferredSettlementAccountId
-                  : null,
-            }
-          : undefined,
-        settlementRule: String(
-          ctx.settlementRule ??
-            ctx.preselectedSettlementRule ??
-            SettlementRule.WITHDRAW_EVERYTHING,
-        ),
-        principal: Number(ctx.principal ?? 0),
-        accruedInterest: Number(ctx.accruedInterest ?? 0),
-        maturityDate: String(ctx.maturityDate ?? ""),
-        suggestedAction:
-          typeof ctx.suggestedAction === "string" &&
-          (RENEWAL_SUGGESTED_ACTION_VALUES as readonly string[]).includes(
-            ctx.suggestedAction,
-          )
-            ? (ctx.suggestedAction as (typeof RENEWAL_SUGGESTED_ACTION_VALUES)[number])
-            : undefined,
-        renewalConfidence:
-          ctx.renewalConfidence == null
-            ? undefined
-            : Number(ctx.renewalConfidence),
-        warnings,
-        preselectedPackageId:
-          typeof ctx.preselectedPackageId === "string"
-            ? ctx.preselectedPackageId
-            : ctx.preselectedPackageId === null
-              ? null
-              : undefined,
-        preselectedSettlementRule:
-          typeof ctx.preselectedSettlementRule === "string"
-            ? ctx.preselectedSettlementRule
-            : undefined,
-        preselectedSettlementAccountId:
-          typeof ctx.preselectedSettlementAccountId === "string"
-            ? ctx.preselectedSettlementAccountId
-            : ctx.preselectedSettlementAccountId === null
-              ? null
-              : undefined,
-        recommendationReason:
-          typeof ctx.recommendationReason === "string"
-            ? ctx.recommendationReason
-            : ctx.recommendationReason === null
-              ? null
-              : undefined,
-      };
-
-      const parsed = parseTypedReviewItem({
-        type: ReviewItemType.SAVINGS_MATURITY_DECISION,
-        payload,
-      });
-      return parsed.ok
-        ? { type: ReviewItemType.SAVINGS_MATURITY_DECISION, payload }
-        : {
-            type: ReviewItemType.SAVINGS_MATURITY_DECISION,
-            payload,
-          };
-    }
-    case InboxItemKind.EARLY_WITHDRAWAL_CONFIRMATION: {
-      const payload = {
-        savingId: String(ctx.savingId ?? input.sourceId),
-        cycleId: String(ctx.cycleId ?? input.sourceId),
-        principal: Number(ctx.principal ?? 0),
-        accruedInterest: Number(ctx.accruedInterest ?? 0),
-        eligibleInterest: Number(ctx.eligibleInterest ?? 0),
-        penaltyAmount: Number(ctx.penaltyAmount ?? 0),
-        netReturned: Number(ctx.netReturned ?? 0),
-        penaltyStrategy: String(
-          ctx.penaltyStrategy ?? PenaltyStrategy.NO_INTEREST,
-        ),
-        daysHeld: Number(ctx.daysHeld ?? 0),
-        totalTermDays: Number(ctx.totalTermDays ?? 0),
-      };
       return {
-        type: ReviewItemType.EARLY_WITHDRAWAL_CONFIRMATION,
-        payload,
-      };
-    }
-    case InboxItemKind.PAYMENT_REMINDER: {
-      if (!input.dueAt) return null;
-      return {
-        type: ReviewItemType.PAYMENT_REMINDER,
+        type: InboxItemKind.SAVINGS_MATURITY,
         payload: {
-          dueAt: input.dueAt,
-          expiresAt: input.expiresAt ?? null,
+          savingId: String(ctx.savingId ?? input.sourceId),
+          cycleId: String(ctx.cycleId ?? input.sourceId),
+          providerName: String(ctx.providerName ?? ""),
+          currentPackage: String(ctx.currentPackage ?? ""),
+          currentRate: Number(ctx.currentRate ?? 0),
+          previousRate:
+            ctx.previousRate == null ? null : Number(ctx.previousRate),
+          rateDifference: Number(ctx.rateDifference ?? 0),
+          recommendedPackages,
+          estimatedInterest: Number(
+            ctx.estimatedInterest ?? ctx.accruedInterest ?? 0,
+          ),
+          configuredRenewalPreference: renewalPolicy,
+          renewalPolicy,
+          renewalConfig: renewalConfigRaw
+            ? {
+                preferredPackageId:
+                  typeof renewalConfigRaw.preferredPackageId === "string"
+                    ? renewalConfigRaw.preferredPackageId
+                    : null,
+                preferredSettlementRule:
+                  typeof renewalConfigRaw.preferredSettlementRule === "string"
+                    ? renewalConfigRaw.preferredSettlementRule
+                    : undefined,
+                preferredSettlementAccountId:
+                  typeof renewalConfigRaw.preferredSettlementAccountId ===
+                  "string"
+                    ? renewalConfigRaw.preferredSettlementAccountId
+                    : null,
+              }
+            : undefined,
+          settlementRule: String(
+            ctx.settlementRule ??
+              ctx.preselectedSettlementRule ??
+              SettlementRule.WITHDRAW_EVERYTHING,
+          ),
+          principal: Number(ctx.principal ?? 0),
+          accruedInterest: Number(ctx.accruedInterest ?? 0),
+          maturityDate: String(ctx.maturityDate ?? ""),
+          suggestedAction:
+            typeof ctx.suggestedAction === "string" &&
+            (RENEWAL_SUGGESTED_ACTION_VALUES as readonly string[]).includes(
+              ctx.suggestedAction,
+            )
+              ? (ctx.suggestedAction as (typeof RENEWAL_SUGGESTED_ACTION_VALUES)[number])
+              : undefined,
+          renewalConfidence:
+            ctx.renewalConfidence == null
+              ? undefined
+              : Number(ctx.renewalConfidence),
+          warnings,
+          preselectedPackageId:
+            typeof ctx.preselectedPackageId === "string"
+              ? ctx.preselectedPackageId
+              : ctx.preselectedPackageId === null
+                ? null
+                : undefined,
+          preselectedSettlementRule:
+            typeof ctx.preselectedSettlementRule === "string"
+              ? ctx.preselectedSettlementRule
+              : undefined,
+          preselectedSettlementAccountId:
+            typeof ctx.preselectedSettlementAccountId === "string"
+              ? ctx.preselectedSettlementAccountId
+              : ctx.preselectedSettlementAccountId === null
+                ? null
+                : undefined,
+          recommendationReason:
+            typeof ctx.recommendationReason === "string"
+              ? ctx.recommendationReason
+              : ctx.recommendationReason === null
+                ? null
+                : undefined,
         },
       };
     }
+    case InboxItemKind.EARLY_WITHDRAWAL_CONFIRMATION:
+      return {
+        type: InboxItemKind.EARLY_WITHDRAWAL_CONFIRMATION,
+        payload: {
+          savingId: String(ctx.savingId ?? input.sourceId),
+          cycleId: String(ctx.cycleId ?? input.sourceId),
+          principal: Number(ctx.principal ?? 0),
+          accruedInterest: Number(ctx.accruedInterest ?? 0),
+          eligibleInterest: Number(ctx.eligibleInterest ?? 0),
+          penaltyAmount: Number(ctx.penaltyAmount ?? 0),
+          netReturned: Number(ctx.netReturned ?? 0),
+          penaltyStrategy: String(
+            ctx.penaltyStrategy ?? PenaltyStrategy.NO_INTEREST,
+          ),
+          daysHeld: Number(ctx.daysHeld ?? 0),
+          totalTermDays: Number(ctx.totalTermDays ?? 0),
+        },
+      };
     case InboxItemKind.EMI_COMPLETE:
       return {
-        type: ReviewItemType.INSTALLMENT_COMPLETE,
+        type: InboxItemKind.EMI_COMPLETE,
         payload: {
           installmentPlanId: input.sourceId,
         },
@@ -425,7 +495,7 @@ export function instantiateTypedReviewItem(input: {
       const note = input.intentNote?.trim();
       if (!note) return null;
       return {
-        type: ReviewItemType.EMERGENCY_DECLARATION,
+        type: InboxItemKind.EMERGENCY_DECLARATION,
         payload: {
           intentNote: note,
           planMovementId: input.planMovementId,
@@ -435,7 +505,11 @@ export function instantiateTypedReviewItem(input: {
         },
       };
     }
-    default:
-      return null;
+    default: {
+      const unreachable: never = input.kind;
+      throw new Error(`Unhandled Inbox kind: ${unreachable}`);
+    }
   }
 }
+
+export { SavingsMaturityAckAction, EarlyWithdrawalAckAction, EmiAckAction };

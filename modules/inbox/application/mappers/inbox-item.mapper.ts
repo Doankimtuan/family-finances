@@ -4,7 +4,6 @@ import {
   INBOX_SOURCE_TYPE_VALUES,
   mapInboxKind,
   mapInboxStatus,
-  toReviewItemType,
 } from "../inbox-constants";
 import { instantiateTypedReviewItem } from "../review-item-schemas";
 import { resolveInboxDisplayTitle } from "../inbox-display";
@@ -43,32 +42,32 @@ function isInboxSourceType(
   return value != null && INBOX_SOURCE_TYPES.has(value);
 }
 
+/**
+ * Map a persisted row to the canonical InboxReviewItem. Legacy kinds without a
+ * canonical contract (mapInboxKind → null) must not silently re-enter the
+ * active queue — the caller filters them out (Prompt 13A).
+ */
 export function mapInboxRow(
   row: InboxItemRow,
   txDetails?: InboxTransactionDetails,
-): InboxReviewItem {
+): InboxReviewItem | null {
+  const kind = mapInboxKind(row.kind);
+  const status = mapInboxStatus(row.status);
+  if (!kind || !status) return null;
+
   const context = row.context_json ?? null;
   const intentRaw = context?.intent_note;
   const executedRaw = context?.executed_by_user_id;
   const assignedFromContext = context?.assigned_to_user_id;
-  const dueRaw = context?.due_at;
   const merchantRaw = context?.merchant_key;
   const confirmRaw = context?.confirmation_count;
-  const cascadeRaw = context?.cascade_day;
-  const kind = mapInboxKind(row.kind);
-  const status = mapInboxStatus(row.status);
   const suggestedJarId = row.suggested_jar_id ?? null;
   const suggestedCategoryId = row.suggested_category_id ?? null;
   const intentNote = typeof intentRaw === "string" ? intentRaw : null;
   const executedByUserId = typeof executedRaw === "string" ? executedRaw : null;
-  const dueAt = typeof dueRaw === "string" ? dueRaw : null;
   const expiresAt = row.expires_at ?? null;
   const confidenceScore =
     row.confidence_score == null ? null : Number(row.confidence_score);
-  const cascadeDay =
-    cascadeRaw === 30 || cascadeRaw === 14 || cascadeRaw === 7
-      ? cascadeRaw
-      : undefined;
 
   const contextCategory =
     typeof context?.category_name === "string" ? context.category_name : null;
@@ -86,11 +85,8 @@ export function mapInboxRow(
     intentNote,
     suggestedJarId,
     suggestedCategoryId,
-    dueAt,
-    expiresAt,
     merchantKey: typeof merchantRaw === "string" ? merchantRaw : null,
     confirmationCount: typeof confirmRaw === "number" ? confirmRaw : undefined,
-    cascadeDay,
     planMovementId:
       typeof context?.plan_movement_id === "string"
         ? context.plan_movement_id
@@ -108,7 +104,6 @@ export function mapInboxRow(
   });
 
   const displayTitle = resolveInboxDisplayTitle({
-    kind,
     storedTitle: row.title,
     note,
     categoryName,
@@ -117,7 +112,6 @@ export function mapInboxRow(
   return {
     id: row.id,
     kind,
-    type: toReviewItemType(kind),
     status,
     title: row.title,
     displayTitle: displayTitle || row.title,

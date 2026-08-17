@@ -188,15 +188,22 @@ describe("Inbox queries and staleness worker", () => {
   });
 
   it("returns the bounded pending-item count for navigation badges", async () => {
-    const count = vi.fn().mockResolvedValue({
+    const countResult = {
       data: null,
       count: 3,
       error: null,
-    });
+    };
     const builder = {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
-      or: count,
+      or: vi
+        .fn()
+        // First .or() is the canonical-kind filter.
+        .mockImplementationOnce(function (this: unknown) {
+          return this;
+        })
+        // Second .or() is the assignee visibility filter — resolves the query.
+        .mockResolvedValueOnce(countResult),
     };
     vi.mocked(createSupabaseServerClient).mockResolvedValue({
       from: vi.fn().mockReturnValue(builder),

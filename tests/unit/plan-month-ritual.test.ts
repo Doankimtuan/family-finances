@@ -24,10 +24,9 @@ import {
 } from "@/modules/plan/application/plan-constants";
 import { PRODUCT_ACTION_ERROR_CODE } from "@/modules/tenancy/application/product-action-error";
 import {
-  ReviewItemType,
-  toReviewItemType,
   InboxItemKind,
 } from "@/modules/inbox/application/inbox-constants";
+import { instantiateTypedReviewItem } from "@/modules/inbox/application/review-item-schemas";
 
 describe("ritual period helpers", () => {
   it("formats UTC month start as YYYY-MM-01", () => {
@@ -130,9 +129,14 @@ describe("month lock error codes", () => {
 });
 
 describe("BR-11 InstallmentComplete mapping", () => {
-  it("maps emi_complete inbox kind to InstallmentComplete ReviewItem", () => {
-    expect(toReviewItemType(InboxItemKind.EMI_COMPLETE)).toBe(
-      ReviewItemType.INSTALLMENT_COMPLETE,
+  it("builds the InstallmentComplete typed payload for emi_complete", () => {
+    const typed = instantiateTypedReviewItem({
+      kind: InboxItemKind.EMI_COMPLETE,
+      sourceId: "550e8400-e29b-41d4-a716-446655440000",
+    });
+    expect(typed?.type).toBe(InboxItemKind.EMI_COMPLETE);
+    expect(typed && "payload" in typed ? typed.payload.installmentPlanId : "").toBe(
+      "550e8400-e29b-41d4-a716-446655440000",
     );
   });
 });

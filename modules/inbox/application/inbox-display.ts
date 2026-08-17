@@ -1,34 +1,17 @@
 /**
- * Display helpers for Inbox ReviewItems — prefer real tx details over generic titles.
+ * Display helpers for Inbox ReviewItems — prefer real tx details over generic
+ * titles (Prompt 13A: one canonical taxonomy; no per-kind legacy titles).
  */
 
-import { InboxItemKind } from "./inbox-constants";
-
-/** DB fallback titles written by record_transaction when note is empty. */
-export const InboxGenericTitle = {
-  UNMAPPED_EXPENSE: "Unmapped expense",
-  PLACE_INCOME: "Place income",
-} as const;
-
-export function isGenericInboxTitle(
-  title: string,
-  kind: InboxItemKind,
-): boolean {
-  const trimmed = title.trim();
-  if (kind === InboxItemKind.UNMAPPED_EXPENSE) {
-    return trimmed === InboxGenericTitle.UNMAPPED_EXPENSE;
-  }
-  if (kind === InboxItemKind.INCOME_SUGGEST) {
-    return trimmed === InboxGenericTitle.PLACE_INCOME;
-  }
-  return false;
+export function isBlankTitle(title: string | null | undefined): boolean {
+  return title == null || title.trim().length === 0;
 }
 
 /**
- * Prefer note → category → non-generic stored title → empty (UI falls back to kind label).
+ * Prefer note → category → non-blank stored title → empty (UI falls back to
+ * the canonical kind label).
  */
 export function resolveInboxDisplayTitle(input: {
-  kind: InboxItemKind;
   storedTitle: string;
   note: string | null | undefined;
   categoryName: string | null | undefined;
@@ -39,10 +22,7 @@ export function resolveInboxDisplayTitle(input: {
   const category = input.categoryName?.trim();
   if (category) return category;
 
-  if (
-    input.storedTitle.trim() &&
-    !isGenericInboxTitle(input.storedTitle, input.kind)
-  ) {
+  if (!isBlankTitle(input.storedTitle)) {
     return input.storedTitle.trim();
   }
 

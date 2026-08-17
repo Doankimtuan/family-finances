@@ -9,7 +9,6 @@ import {
 import {
   InboxItemKind,
   InboxSourceType,
-  ReviewItemType,
   isJarResolvableKind,
 } from "@/modules/inbox/application/inbox-constants";
 import type { InboxReviewItem } from "@/modules/inbox/application/inbox-types";
@@ -21,11 +20,13 @@ type SourceTarget = {
 
 /**
  * Resolve a source-domain deep link when source type/id are known.
- * Omit rather than invent destinations.
+ * Omit rather than invent destinations. Canonical kinds only (Prompt 13A).
  */
 export function resolveInboxSourceTarget(
   item: InboxReviewItem,
 ): SourceTarget | null {
+  if (!item.kind) return null;
+
   if (
     item.sourceType === InboxSourceType.TRANSACTION ||
     isJarResolvableKind(item.kind)
@@ -39,12 +40,10 @@ export function resolveInboxSourceTarget(
 
   if (item.sourceType === InboxSourceType.GUIDED) {
     const savingId =
-      item.typed?.type === ReviewItemType.SAVINGS_MATURITY_DECISION ||
-      item.typed?.type === ReviewItemType.EARLY_WITHDRAWAL_CONFIRMATION
+      item.typed?.type === InboxItemKind.SAVINGS_MATURITY ||
+      item.typed?.type === InboxItemKind.EARLY_WITHDRAWAL_CONFIRMATION
         ? item.typed.payload.savingId
         : item.kind === InboxItemKind.SAVINGS_MATURITY ||
-            item.kind === InboxItemKind.SAVINGS_MATURED ||
-            item.kind === InboxItemKind.RENEWAL_REQUIRED ||
             item.kind === InboxItemKind.EARLY_WITHDRAWAL_CONFIRMATION
           ? item.sourceId
           : null;
@@ -60,7 +59,7 @@ export function resolveInboxSourceTarget(
     item.kind === InboxItemKind.EMERGENCY_DECLARATION
   ) {
     const jarId =
-      item.typed?.type === ReviewItemType.EMERGENCY_DECLARATION
+      item.typed?.type === InboxItemKind.EMERGENCY_DECLARATION
         ? (item.typed.payload.sourceJarId ?? item.typed.payload.targetJarId)
         : null;
     if (jarId) {
