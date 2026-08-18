@@ -12,3 +12,5 @@
 - Data visualization: minimal ink, one question per chart, text explanation, dark-mode and color-independent readability; avoid financial-trading aesthetics and complex dashboards. Confidence: 0.75
 - Guide users through progressive, step-by-step flows instead of long CRUD forms; keep actions within ~3 taps and minimize decision fatigue. Confidence: 0.8
 - Prefer merging similar domain kinds/types over proliferating them; model the actual decision or outcome the user must make rather than representing each lifecycle event as a separate type. Confidence: 0.8
+- Prefers the smallest data model that accurately represents real behavior: don't multiply dimensions (e.g., ownership vs visibility vs scope) unless each solves a distinct real need, avoid enterprise ACL systems, and prefer inheriting scope/ownership from a resource root over redundant per-row fields. Confidence: 0.85
+- Prefers one canonical vocabulary for cross-cutting concepts (e.g., financial scope), defined once and shared by every domain — never inconsistent terminology or per-domain synonyms. Confidence: 0.7
