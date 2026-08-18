@@ -19,3 +19,8 @@
 - Treats the actual repository as the source of truth for inventories and audits; does not assume prior audits, reports, or plans are exhaustive. Confidence: 0.7
 - Replaces conflicting constraints/indexes deliberately rather than stacking compensating hacks around a wrong constraint. Confidence: 0.75
 - Enforces kind-aware contracts at producer boundaries — minimum required fields per kind and rejected invalid kind/source/context combinations — instead of letting a generic JSON bag be the only validation mechanism. Confidence: 0.75
+- Prefers validating against the existing development Supabase project rather than creating disposable projects or requiring local Docker/Supabase; uses remote validation when available. Confidence: 0.8
+- Treats the live/deployed database as ground truth for whether a change actually took effect — probes function bodies, row shapes, and migration state remotely rather than assuming repo edits were applied. Confidence: 0.8
+- Removes schema artifacts only when proven safe (no live code uses them, no canonical migration depends on them, tests prove replacement behavior, migration replay remains valid); otherwise records them as cleanup debt — integration correctness outranks schema tidiness. Confidence: 0.8
+- Prefers meaningful integration tests (producer → row → typed read model → valid action → source-domain effect → terminal state → retry/idempotency) over snapshot-heavy tests. Confidence: 0.7
+- Prefers a full DB validation loop for domain changes: apply migration, seed/minimal setup, exercise the RPC, query resulting rows, exercise the resolution RPC, then query source-domain state. Confidence: 0.7

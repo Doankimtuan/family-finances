@@ -165,6 +165,10 @@
     "inbox_auto_resolve_not_eligible": "This item is not eligible for automatic resolution.",
     "inbox_stale_item": "This Inbox item is stale and cannot be changed.",
     "inbox_permission_denied": "You do not have permission to change this Inbox item.",
+    "inbox_removed_kind": "This Inbox type is no longer supported.",
+    "inbox_invalid_source_type": "This Inbox source is not valid for this item type.",
+    "inbox_invalid_assignee": "The assigned member is not valid for this household.",
+    "inbox_missing_context": "This Inbox item is missing required details.",
     "month_locked": "Plan is locked for this month. Open Month Ritual to correct.",
     "offline": "Connect to continue.",
     "unknown": "Could not save. Try again."

@@ -5,23 +5,30 @@ import { readFileSync, readdirSync } from "node:fs";
 const MIGRATIONS_DIR = `${process.cwd()}/supabase/migrations`;
 
 /**
- * Prompt 13B boundary guard.
+ * Inbox producer boundary guards (Prompts 13B + 13D).
  *
  * Historical migrations before the gateway contain old `create or replace`
  * versions of producer functions that inserted into inbox_items directly;
  * those functions were later replaced to call the gateway, so the historical
  * text is immutable reference. The meaningful assertions are:
- *   1. No migration after the gateway migration inserts directly (forward
+ *   1. No migration after the last gateway migration inserts directly (forward
  *      guard — new producers must use the gateway).
  *   2. Every live producer function references the gateway.
+ *   3. The gateway enforces per-kind reopen policy and cycle-scoped dedupe.
  */
-describe("Inbox producer boundary (Prompt 13B)", () => {
-  it("no migration after the gateway inserts into inbox_items directly", () => {
-    const gatewayMigration = "20260817093000_inbox_producer_gateway.sql";
+describe("Inbox producer boundary (Prompt 13B/13D)", () => {
+  const GATEWAY_MIGRATIONS = [
+    "20260817093000_inbox_producer_gateway.sql",
+    "20260817103000_inbox_integration_hardening.sql",
+  ];
+
+  it("no migration after the gateway migrations inserts into inbox_items directly", () => {
+    const lastGatewayMigration =
+      GATEWAY_MIGRATIONS[GATEWAY_MIGRATIONS.length - 1];
     const offenders: string[] = [];
     for (const file of readdirSync(MIGRATIONS_DIR)) {
       if (!file.endsWith(".sql")) continue;
-      if (file <= gatewayMigration) continue;
+      if (file <= lastGatewayMigration) continue;
       const sql = readFileSync(`${MIGRATIONS_DIR}/${file}`, "utf8");
       if (/insert\s+into\s+public\.inbox_items/i.test(sql)) {
         offenders.push(file);
@@ -112,5 +119,18 @@ describe("Inbox producer boundary (Prompt 13B)", () => {
     ]) {
       expect(sql).toContain(kind);
     }
+  });
+
+  it("13D gateway applies per-kind reopen policy and cycle-scoped dedupe", () => {
+    const sql = readFileSync(
+      `${MIGRATIONS_DIR}/20260817103000_inbox_integration_hardening.sql`,
+      "utf8",
+    );
+    // Per-kind refresh conditions.
+    expect(sql).toContain("status in (''pending'', ''expired'')");
+    expect(sql).toContain("emi_complete");
+    // Cycle-scoped dedupe for savings kinds.
+    expect(sql).toContain("cycleId");
+    expect(sql).toContain("v_cycle_key");
   });
 });

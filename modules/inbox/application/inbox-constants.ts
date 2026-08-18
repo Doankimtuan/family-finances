@@ -145,6 +145,10 @@ export const INBOX_ERROR_CODE = {
   AUTO_RESOLVE_NOT_ELIGIBLE: "inbox_auto_resolve_not_eligible",
   STALE_ITEM: "inbox_stale_item",
   PERMISSION_DENIED: "inbox_permission_denied",
+  REMOVED_KIND: "inbox_removed_kind",
+  INVALID_SOURCE_TYPE: "inbox_invalid_source_type",
+  INVALID_ASSIGNEE: "inbox_invalid_assignee",
+  MISSING_CONTEXT: "inbox_missing_context",
 } as const;
 
 export type InboxErrorCode =
@@ -169,6 +173,22 @@ export const INBOX_LEGACY_RPC_ERROR_MARKERS = {
     "item cannot be acknowledged",
   ],
   STALE_ITEM: ["stale item", "item has expired"],
+  REMOVED_KIND: ["removed inbox kind cannot be produced", "unknown inbox kind"],
+  INVALID_SOURCE_TYPE: [
+    "invalid inbox source type",
+    "invalid source type for kind",
+  ],
+  INVALID_ASSIGNEE: [
+    "invalid assignee",
+    "assignment is only valid for emergency declarations",
+  ],
+  MISSING_CONTEXT: [
+    "missing required source context",
+    "missing savings maturity context",
+    "missing early withdrawal context",
+    "missing installment/debt context",
+    "emergency intent note required",
+  ],
 } as const;
 
 export const SavingsMaturityAckAction = {

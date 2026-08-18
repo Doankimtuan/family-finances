@@ -165,6 +165,10 @@
     "inbox_auto_resolve_not_eligible": "Mục này không đủ điều kiện để tự động xử lý.",
     "inbox_stale_item": "Mục Inbox này đã cũ và không thể thay đổi.",
     "inbox_permission_denied": "Bạn không có quyền thay đổi mục Inbox này.",
+    "inbox_removed_kind": "Loại Inbox này không còn được hỗ trợ.",
+    "inbox_invalid_source_type": "Nguồn Inbox này không hợp lệ cho loại mục này.",
+    "inbox_invalid_assignee": "Thành viên được gán không hợp lệ cho hộ này.",
+    "inbox_missing_context": "Mục Inbox này đang thiếu thông tin cần thiết.",
     "month_locked": "Kế hoạch tháng đã khoá. Mở Nghi thức tháng để chỉnh.",
     "offline": "Cần kết nối để tiếp tục.",
     "unknown": "Không lưu được. Thử lại."
