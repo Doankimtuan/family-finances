@@ -1,0 +1,4 @@
+-- The preceding 14D migration is idempotent and is re-applied by the
+-- development verification step after its final trigger coverage audit.
+-- This marker keeps the local migration ledger explicit; the authoritative
+-- definitions remain in 20260818051501_ownership_rpc_authorization_14d.sql.

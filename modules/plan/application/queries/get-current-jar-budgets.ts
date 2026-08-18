@@ -1,5 +1,6 @@
 const PLAN_JAR_BUDGET_LOG_CONTEXT = "[plan.jar-budgets]";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
+import { FINANCIAL_SCOPE } from "@/modules/shared-kernel/application/financial-scope";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import { DEFAULT_CURRENCY } from "@/modules/ledger/application/ledger-constants";
 import { HOUSEHOLD_TIMEZONE } from "@/modules/tenancy/application/tenancy-constants";
@@ -118,8 +119,9 @@ async function loadPeriodTransactions(
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("transactions")
-    .select(TRANSACTION_PERIOD_SELECT)
+    .select(`${TRANSACTION_PERIOD_SELECT}, accounts!inner(financial_scope)`)
     .eq("household_id", householdId)
+    .eq("accounts.financial_scope", FINANCIAL_SCOPE.HOUSEHOLD)
     .gte("transaction_date", period.start)
     .lt("transaction_date", period.endExclusive)
     .order("transaction_date", { ascending: true })

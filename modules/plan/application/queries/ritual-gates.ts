@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
+import { FINANCIAL_SCOPE } from "@/modules/shared-kernel/application/financial-scope";
 import { periodMonthExclusiveEnd } from "../ritual-period";
 import type {
   RitualDivergenceItem,
@@ -27,8 +28,9 @@ export async function listRitualDivergence(
 
   const { data: txRows, error } = await supabase
     .from("transactions")
-    .select("category_id")
+    .select("category_id, accounts!inner(financial_scope)")
     .eq("household_id", householdId)
+    .eq("accounts.financial_scope", FINANCIAL_SCOPE.HOUSEHOLD)
     .gte("transaction_date", periodMonth)
     .lt("transaction_date", periodEnd)
     .not("category_id", "is", null);

@@ -168,6 +168,42 @@ describe("inbox item mapper", () => {
     });
   });
 
+  it("unwraps the canonical producer context envelope", () => {
+    const cycleId = "550e8400-e29b-41d4-a716-446655440001";
+    const mapped = mapInboxRow({
+      id: inboxItemId,
+      kind: InboxItemKind.EARLY_WITHDRAWAL_CONFIRMATION,
+      status: "pending",
+      title: "Early withdrawal",
+      amount: 125000,
+      currency: "VND",
+      source_id: inboxItemId,
+      source_type: "guided",
+      created_at: "2026-08-17T00:00:00Z",
+      context_json: {
+        version: 1,
+        kind: InboxItemKind.EARLY_WITHDRAWAL_CONFIRMATION,
+        data: {
+          savingId: inboxItemId,
+          cycleId,
+          principal: 125000,
+          accruedInterest: 0,
+          eligibleInterest: 0,
+          penaltyAmount: 0,
+          netReturned: 125000,
+          penaltyStrategy: "no_interest",
+          daysHeld: 0,
+          totalTermDays: 30,
+        },
+      },
+    });
+
+    expect(mapped?.typed).toMatchObject({
+      type: InboxItemKind.EARLY_WITHDRAWAL_CONFIRMATION,
+      payload: { savingId: inboxItemId, cycleId },
+    });
+  });
+
   it("returns null for legacy removed kinds", () => {
     expect(
       mapInboxRow({

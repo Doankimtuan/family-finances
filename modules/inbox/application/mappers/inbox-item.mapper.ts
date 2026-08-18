@@ -1,5 +1,6 @@
 import { DEFAULT_CURRENCY } from "@/modules/ledger/application/ledger-constants";
 import {
+  InboxContextEnvelopeKey,
   InboxSourceType,
   INBOX_SOURCE_TYPE_VALUES,
   mapInboxKind,
@@ -42,6 +43,18 @@ function isInboxSourceType(
   return value != null && INBOX_SOURCE_TYPES.has(value);
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function reviewContext(
+  value: Record<string, unknown> | null | undefined,
+): Record<string, unknown> | null {
+  if (!value) return null;
+  const data = value[InboxContextEnvelopeKey.DATA];
+  return isRecord(data) ? data : value;
+}
+
 /**
  * Map a persisted row to the canonical InboxReviewItem. Legacy kinds without a
  * canonical contract (mapInboxKind → null) must not silently re-enter the
@@ -55,7 +68,7 @@ export function mapInboxRow(
   const status = mapInboxStatus(row.status);
   if (!kind || !status) return null;
 
-  const context = row.context_json ?? null;
+  const context = reviewContext(row.context_json);
   const intentRaw = context?.intent_note;
   const executedRaw = context?.executed_by_user_id;
   const assignedFromContext = context?.assigned_to_user_id;

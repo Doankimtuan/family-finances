@@ -18,8 +18,8 @@ const MIGRATIONS_DIR = `${process.cwd()}/supabase/migrations`;
  */
 describe("Inbox producer boundary (Prompt 13B/13D)", () => {
   const GATEWAY_MIGRATIONS = [
-    "20260817093000_inbox_producer_gateway.sql",
-    "20260817103000_inbox_integration_hardening.sql",
+    "20260817224939_inbox_producer_gateway.sql",
+    "20260818002352_inbox_integration_hardening.sql",
   ];
 
   it("no migration after the gateway migrations inserts into inbox_items directly", () => {
@@ -47,7 +47,7 @@ describe("Inbox producer boundary (Prompt 13B/13D)", () => {
     const producers: Array<{ fn: string; latestFile: string }> = [
       {
         fn: "public.record_transaction",
-        latestFile: "20260804140000_inbox_capture_display_details.sql",
+        latestFile: "20260804044219_inbox_capture_display_details.sql",
       },
       {
         fn: "public.record_loan_payment",
@@ -55,19 +55,19 @@ describe("Inbox producer boundary (Prompt 13B/13D)", () => {
       },
       {
         fn: "public.record_installment_payment",
-        latestFile: "20260804160000_sprint45_verification_fixes.sql",
+        latestFile: "20260804071840_sprint45_verification_fixes.sql",
       },
       {
         fn: "public.detect_matured_savings",
-        latestFile: "20260817090000_inbox_taxonomy_canonical.sql",
+        latestFile: "20260817153549_inbox_taxonomy_canonical.sql",
       },
       {
         fn: "public.enqueue_savings_maturity_cascade",
-        latestFile: "20260817090000_inbox_taxonomy_canonical.sql",
+        latestFile: "20260817153549_inbox_taxonomy_canonical.sql",
       },
       {
         fn: "public.reallocate_jar_capacity",
-        latestFile: "20260816200000_plan_v2_jar_budget_snapshots.sql",
+        latestFile: "20260816161331_plan_v2_jar_budget_snapshots.sql",
       },
     ];
 
@@ -94,7 +94,7 @@ describe("Inbox producer boundary (Prompt 13B/13D)", () => {
 
   it("the gateway migration defines produce_inbox_item and the dedupe key", () => {
     const sql = readFileSync(
-      `${MIGRATIONS_DIR}/20260817093000_inbox_producer_gateway.sql`,
+      `${MIGRATIONS_DIR}/20260817224939_inbox_producer_gateway.sql`,
       "utf8",
     );
     expect(sql).toContain(
@@ -106,7 +106,7 @@ describe("Inbox producer boundary (Prompt 13B/13D)", () => {
 
   it("the gateway rejects every removed/merged kind", () => {
     const sql = readFileSync(
-      `${MIGRATIONS_DIR}/20260817093000_inbox_producer_gateway.sql`,
+      `${MIGRATIONS_DIR}/20260817224939_inbox_producer_gateway.sql`,
       "utf8",
     );
     for (const kind of [
@@ -123,7 +123,7 @@ describe("Inbox producer boundary (Prompt 13B/13D)", () => {
 
   it("13D gateway applies per-kind reopen policy and cycle-scoped dedupe", () => {
     const sql = readFileSync(
-      `${MIGRATIONS_DIR}/20260817103000_inbox_integration_hardening.sql`,
+      `${MIGRATIONS_DIR}/20260818002352_inbox_integration_hardening.sql`,
       "utf8",
     );
     // Per-kind refresh conditions.

@@ -8,16 +8,16 @@ const migration = (name: string) =>
   readFileSync(resolve(ROOT, "supabase/migrations", name), "utf8");
 
 const PLAN_V2_MIGRATIONS = [
-  "20260816150000_plan_v2_jar_rollover_adjustments.sql",
-  "20260816160000_plan_v2_goal_funding.sql",
-  "20260816161500_plan12_fix_goal_funding_rls_household_check.sql",
-  "20260816162000_plan12_revoke_anon_plan_function_acl.sql",
-  "20260816170000_plan_v2_review_snapshots.sql",
-  "20260816173000_plan_v2_monthly_review.sql",
-  "20260816180000_plan_v2_qualifying_monthly_income.sql",
-  "20260816190000_plan_v2_jar_category_mapping.sql",
-  "20260816200000_plan_v2_jar_budget_snapshots.sql",
-  "20260816210000_plan10_goal_actions.sql",
+  "20260816160800_plan_v2_jar_rollover_adjustments.sql",
+  "20260816160913_plan_v2_goal_funding.sql",
+  "20260816161734_plan12_fix_goal_funding_rls_household_check.sql",
+  "20260816161949_plan12_revoke_anon_plan_function_acl.sql",
+  "20260816161004_plan_v2_review_snapshots.sql",
+  "20260816161052_plan_v2_monthly_review.sql",
+  "20260816161137_plan_v2_qualifying_monthly_income.sql",
+  "20260816161219_plan_v2_jar_category_mapping.sql",
+  "20260816161331_plan_v2_jar_budget_snapshots.sql",
+  "20260816161435_plan10_goal_actions.sql",
 ] as const;
 
 describe("Plan 12 migration hardening", () => {
@@ -39,7 +39,7 @@ describe("Plan 12 migration hardening", () => {
   });
 
   it("repairs Goal action RPCs as atomic, membership-checked security-definer functions", () => {
-    const sql = migration("20260816210000_plan10_goal_actions.sql");
+    const sql = migration("20260816161435_plan10_goal_actions.sql");
 
     expect(sql).toContain("set search_path = ''");
     expect(sql).toContain("public.is_household_member(v_from.household_id)");
@@ -51,7 +51,7 @@ describe("Plan 12 migration hardening", () => {
 
   it("backfills capacity_delta once using the household-local current period", () => {
     const sql = migration(
-      "20260816150000_plan_v2_jar_rollover_adjustments.sql",
+      "20260816160800_plan_v2_jar_rollover_adjustments.sql",
     );
 
     expect(sql).toContain("join public.households h on h.id = j.household_id");
@@ -64,9 +64,9 @@ describe("Plan 12 migration hardening", () => {
   });
 
   it("keeps Review metadata and Jar rule snapshots owned by separate migrations", () => {
-    const reviewSql = migration("20260816170000_plan_v2_review_snapshots.sql");
+    const reviewSql = migration("20260816161004_plan_v2_review_snapshots.sql");
     const monthlyReviewSql = migration(
-      "20260816173000_plan_v2_monthly_review.sql",
+      "20260816161052_plan_v2_monthly_review.sql",
     );
 
     expect(reviewSql).toContain("review_status");

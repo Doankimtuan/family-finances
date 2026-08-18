@@ -20,6 +20,10 @@ export type InboxItemKind = (typeof InboxItemKind)[keyof typeof InboxItemKind];
 
 export const INBOX_ITEM_KIND_VALUES = Object.values(InboxItemKind);
 
+export const InboxContextEnvelopeKey = {
+  DATA: "data",
+} as const;
+
 /**
  * Storage kinds persisted by older migrations but no longer part of the
  * canonical taxonomy. Never produced by the current codebase; any surviving

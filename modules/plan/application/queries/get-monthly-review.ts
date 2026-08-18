@@ -1,5 +1,6 @@
 const MONTHLY_REVIEW_QUERY_LOG_CONTEXT = "[plan.monthly-review-query]";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
+import { FINANCIAL_SCOPE } from "@/modules/shared-kernel/application/financial-scope";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import { classifyFinancialEvent } from "@/modules/ledger/application/financial-semantics";
 import { TransactionLedgerType } from "@/modules/ledger/application/ledger-constants";
@@ -153,9 +154,10 @@ async function loadTransactions(householdId: string, periodMonth: string) {
   const { data, error } = await supabase
     .from("transactions")
     .select(
-      "id, type, amount, status, transaction_date, created_at, transfer_group_id, savings_event_kind, is_reversal, reverses_transaction_id, jar_id, category_id",
+      "id, type, amount, status, transaction_date, created_at, transfer_group_id, savings_event_kind, is_reversal, reverses_transaction_id, jar_id, category_id, accounts!inner(financial_scope)",
     )
     .eq("household_id", householdId)
+    .eq("accounts.financial_scope", FINANCIAL_SCOPE.HOUSEHOLD)
     .gte("transaction_date", periodMonth)
     .lt("transaction_date", periodMonthExclusiveEnd(periodMonth))
     .order("transaction_date", { ascending: true })

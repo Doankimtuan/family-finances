@@ -211,10 +211,12 @@ function supabaseReviewClient() {
       return {
         select: () => ({
           eq: () => ({
-            gte: () => ({
-              lt: () => ({
-                order: () => ({
-                  order: async () => ({ data: [], error: null }),
+            eq: () => ({
+              gte: () => ({
+                lt: () => ({
+                  order: () => ({
+                    order: async () => ({ data: [], error: null }),
+                  }),
                 }),
               }),
             }),

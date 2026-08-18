@@ -161,7 +161,8 @@ export async function confirmEarlyWithdrawal(
       p_penalty_amount: preview.penaltyAmount,
       p_net_returned: preview.netReturned,
       p_penalty_strategy: preview.penaltyStrategy,
-      p_settlement_account_id: parsed.data.settlementAccountId ?? null,
+      p_settlement_account_id:
+        parsed.data.settlementAccountId ?? built.saving.settlementAccountId,
     });
 
     if (error) {
