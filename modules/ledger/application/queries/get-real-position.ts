@@ -1,5 +1,6 @@
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
+import { listActiveMembershipIds } from "@/modules/tenancy/application/list-active-membership-ids";
 import { mapAccountRow, type RealPosition } from "../account-types";
 import { applyTransactionDeltas } from "../transaction-types";
 import {
@@ -52,8 +53,22 @@ export async function getRealPosition(): Promise<RealPosition | null> {
       return null;
     }
 
+    const activeOwnerMembershipIds = await listActiveMembershipIds(
+      supabase,
+      gate.householdId,
+      (rows ?? [])
+        .map((row) => row.owner_membership_id)
+        .filter((id): id is string => id != null),
+    );
+
     const accounts = applyTransactionDeltas(
-      (rows ?? []).map((row) => mapAccountRow(row, gate.membershipId)),
+      (rows ?? []).map((row) =>
+        mapAccountRow(
+          row,
+          gate.membershipId,
+          activeOwnerMembershipIds ?? undefined,
+        ),
+      ),
       (txRows ?? []).map((row) => ({
         accountId: row.account_id,
         type: row.type,

@@ -105,6 +105,16 @@ export function InboxDecisionPanel({ item, jars }: Props) {
       SettlementRule.ROLL_PRINCIPAL_INTEREST,
   );
 
+  if (item.ownerUnavailable) {
+    return (
+      <StatusAlert
+        variant="info"
+        title={t("ownerUnavailableTitle")}
+        description={t("ownerUnavailableBody")}
+      />
+    );
+  }
+
   const showPatternSuggestion =
     jarResolvable &&
     item.suggestedJarId != null &&

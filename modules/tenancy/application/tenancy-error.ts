@@ -146,6 +146,7 @@ export const HOUSEHOLD_RPC_OPERATION = {
   CREATE: "create",
   ROLE: "role",
   SETTINGS: "settings",
+  LIFECYCLE: "lifecycle",
 } as const;
 
 export type HouseholdRpcOperation =
@@ -159,7 +160,15 @@ export function classifyHouseholdRpcError(
     error,
     Object.values(HOUSEHOLD_ERROR_CODE),
   );
-  if (structured) return structured;
+  if (structured) {
+    if (
+      structured === HOUSEHOLD_ERROR_CODE.ADMIN_CONTINUITY &&
+      operation !== HOUSEHOLD_RPC_OPERATION.LIFECYCLE
+    ) {
+      return HOUSEHOLD_ERROR_CODE.UNKNOWN;
+    }
+    return structured;
+  }
 
   const code = providerCode(error);
   if (code === SUPABASE_POSTGRES_ERROR_CODE.INSUFFICIENT_PRIVILEGE) {
@@ -195,6 +204,11 @@ export function classifyHouseholdRpcError(
     ])
   ) {
     return HOUSEHOLD_ERROR_CODE.FORBIDDEN;
+  }
+  if (hasAny(text, [HOUSEHOLD_RPC_MESSAGE_NEEDLE.ADMIN_CONTINUITY])) {
+    return operation === HOUSEHOLD_RPC_OPERATION.LIFECYCLE
+      ? HOUSEHOLD_ERROR_CODE.ADMIN_CONTINUITY
+      : HOUSEHOLD_ERROR_CODE.UNKNOWN;
   }
   if (hasAny(text, [HOUSEHOLD_RPC_MESSAGE_NEEDLE.MEMBER_NOT_FOUND])) {
     return HOUSEHOLD_ERROR_CODE.MEMBER_NOT_FOUND;

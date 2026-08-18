@@ -71,7 +71,8 @@ export async function updateHouseholdPreferences(
       );
       const code =
         mapped === HOUSEHOLD_ERROR_CODE.ALREADY_MEMBER ||
-        mapped === HOUSEHOLD_ERROR_CODE.MEMBER_NOT_FOUND
+        mapped === HOUSEHOLD_ERROR_CODE.MEMBER_NOT_FOUND ||
+        mapped === HOUSEHOLD_ERROR_CODE.ADMIN_CONTINUITY
           ? HOUSEHOLD_ERROR_CODE.UNKNOWN
           : mapped;
       if (code === HOUSEHOLD_ERROR_CODE.UNKNOWN) {

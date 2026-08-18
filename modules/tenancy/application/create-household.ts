@@ -80,7 +80,8 @@ export async function createHousehold(
       const code =
         mapped === HOUSEHOLD_ERROR_CODE.NO_HOUSEHOLD ||
         mapped === HOUSEHOLD_ERROR_CODE.FORBIDDEN ||
-        mapped === HOUSEHOLD_ERROR_CODE.MEMBER_NOT_FOUND
+        mapped === HOUSEHOLD_ERROR_CODE.MEMBER_NOT_FOUND ||
+        mapped === HOUSEHOLD_ERROR_CODE.ADMIN_CONTINUITY
           ? HOUSEHOLD_ERROR_CODE.UNKNOWN
           : mapped;
       if (code === HOUSEHOLD_ERROR_CODE.UNKNOWN) {

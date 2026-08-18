@@ -144,6 +144,7 @@ export default async function SavingsPage({ params }: Props) {
                         <FinancialOwnershipBadge
                           financialScope={item.ownership.financialScope}
                           isOwnedByMe={item.ownership.isOwnedByMe}
+                          ownerStatus={item.ownership.ownerStatus}
                         />
                         <Amount
                           className="mt-(--space-3)"

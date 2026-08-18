@@ -16,6 +16,7 @@ import { Text } from "@/shared/ui/text";
 import { AppIcon } from "@/shared/ui/app-icon";
 import { IconContainer } from "@/shared/ui/icon-container";
 import { StatusBadge } from "@/shared/ui/status-badge";
+import { StatusAlert } from "@/shared/ui/status-alert";
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -34,7 +35,9 @@ export default async function Page({ params }: Props) {
   ]);
 
   const canInvite =
-    result.household !== null && result.members.length < HOUSEHOLD_MEMBER_LIMIT;
+    membership.role === HOUSEHOLD_ROLE.ADMIN &&
+    result.household !== null &&
+    result.members.length < HOUSEHOLD_MEMBER_LIMIT;
 
   return (
     <ProductPage
@@ -107,6 +110,15 @@ export default async function Page({ params }: Props) {
         >
           {t("inviteCta")}
         </Link>
+      ) : null}
+
+      {membership.role === HOUSEHOLD_ROLE.ADMIN &&
+      result.members.length === 1 ? (
+        <StatusAlert
+          variant="info"
+          title={t("householdClosureUnavailableTitle")}
+          description={t("householdClosureUnavailableBody")}
+        />
       ) : null}
 
       <div className="flex flex-col gap-(--space-2)">

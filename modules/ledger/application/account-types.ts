@@ -8,7 +8,10 @@ import {
   isFinancialScope,
   type FinancialScope,
 } from "@/modules/shared-kernel/application/financial-scope";
-import { resolveFinancialCapabilities } from "@/modules/shared-kernel/application/financial-ownership";
+import {
+  resolveFinancialCapabilities,
+  type OwnerStatus,
+} from "@/modules/shared-kernel/application/financial-ownership";
 
 export { AccountType } from "./ledger-constants";
 
@@ -26,6 +29,7 @@ export type LedgerAccount = {
   isPersonal: boolean;
   isOwnedByMe: boolean;
   canMutate: boolean;
+  ownerStatus: OwnerStatus;
 };
 
 export type RealPosition = {
@@ -54,6 +58,7 @@ export function mapAccountRow(
     owner_membership_id?: string | null;
   },
   activeMembershipId?: string,
+  activeMembershipIds?: ReadonlySet<string>,
 ): LedgerAccount {
   const rawFinancialScope = row.financial_scope ?? "";
   const financialScope = isFinancialScope(rawFinancialScope)
@@ -65,6 +70,9 @@ export function mapAccountRow(
       ownerMembershipId: row.owner_membership_id ?? null,
     },
     activeMembershipId ?? "",
+    activeMembershipIds == null || row.owner_membership_id == null
+      ? true
+      : activeMembershipIds.has(row.owner_membership_id),
   );
   const balance =
     typeof row.opening_balance === "string"

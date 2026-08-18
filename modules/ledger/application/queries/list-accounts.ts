@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
+import { listActiveMembershipIds } from "@/modules/tenancy/application/list-active-membership-ids";
 import { mapAccountRow, type LedgerAccount } from "../account-types";
 import { applyTransactionDeltas } from "../transaction-types";
 import {
@@ -55,10 +56,24 @@ async function loadAccounts(options: {
       return null;
     }
 
+    const activeOwnerMembershipIds = await listActiveMembershipIds(
+      supabase,
+      gate.householdId,
+      (rows ?? [])
+        .map((row) => row.owner_membership_id)
+        .filter((id): id is string => id != null),
+    );
+
     return {
       currency: (household?.base_currency ?? DEFAULT_CURRENCY).toUpperCase(),
       accounts: applyTransactionDeltas(
-        (rows ?? []).map((row) => mapAccountRow(row, gate.membershipId)),
+        (rows ?? []).map((row) =>
+          mapAccountRow(
+            row,
+            gate.membershipId,
+            activeOwnerMembershipIds ?? undefined,
+          ),
+        ),
         (txRows ?? []).map((row) => ({
           accountId: row.account_id,
           type: row.type,
@@ -129,8 +144,20 @@ export async function getAccount(
       return null;
     }
 
+    const activeOwnerMembershipIds = await listActiveMembershipIds(
+      supabase,
+      gate.householdId,
+      row.owner_membership_id ? [row.owner_membership_id] : [],
+    );
+
     const [account] = applyTransactionDeltas(
-      [mapAccountRow(row, gate.membershipId)],
+      [
+        mapAccountRow(
+          row,
+          gate.membershipId,
+          activeOwnerMembershipIds ?? undefined,
+        ),
+      ],
       (txRows ?? []).map((tx) => ({
         accountId: tx.account_id,
         type: tx.type,

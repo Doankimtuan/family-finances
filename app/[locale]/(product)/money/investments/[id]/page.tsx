@@ -170,6 +170,8 @@ export default async function InvestmentDetailPage({
         <FinancialOwnershipBadge
           financialScope={holding.ownership.financialScope}
           isOwnedByMe={holding.ownership.isOwnedByMe}
+          ownerStatus={holding.ownership.ownerStatus}
+          showExplanation
         />
         <Text size="sm" tone="secondary">
           {ux.title} · {providerDisplay}
@@ -229,13 +231,13 @@ export default async function InvestmentDetailPage({
             {ux.disposalAction}
           </Link>
         </div>
-      ) : (
+      ) : isClosed ? (
         <StatusAlert
           variant="info"
           title={t("closedTitle")}
           description={t("closedDescription")}
         />
-      )}
+      ) : null}
       <Section title={t("performanceSection")}>
         <div className="grid gap-(--space-3) sm:grid-cols-2">
           <Amount

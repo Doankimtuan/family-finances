@@ -304,6 +304,7 @@ export function mapSavingRow(
     owner_membership_id?: string | null;
   },
   activeMembershipId = "",
+  activeMembershipIds?: ReadonlySet<string>,
 ): Saving {
   let productSnapshot: ProductSnapshot;
   try {
@@ -372,6 +373,9 @@ export function mapSavingRow(
       ownerMembershipId: row.owner_membership_id ?? null,
     },
     activeMembershipId,
+    activeMembershipIds == null || row.owner_membership_id == null
+      ? true
+      : activeMembershipIds.has(row.owner_membership_id),
   );
 
   return {

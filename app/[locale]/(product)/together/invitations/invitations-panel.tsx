@@ -92,6 +92,7 @@ export function InvitationsPanel({
                     <Button
                       variant="secondary"
                       className="w-full"
+                      data-testid="invite-copy"
                       onPress={() => void onCopy(invite.id, link)}
                     >
                       {copiedId === invite.id ? t("copied") : t("copyLink")}

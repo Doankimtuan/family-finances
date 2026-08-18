@@ -126,6 +126,8 @@ export default async function DebtDetailPage({ params }: Props) {
             <FinancialOwnershipBadge
               financialScope={debt.ownership.financialScope}
               isOwnedByMe={debt.ownership.isOwnedByMe}
+              ownerStatus={debt.ownership.ownerStatus}
+              showExplanation
             />
             <div className="flex items-start justify-between gap-(--space-3)">
               <div>
@@ -182,11 +184,20 @@ export default async function DebtDetailPage({ params }: Props) {
               today={today}
             />
           </MotionReveal>
-        ) : (
+        ) : debt.status === DebtStatus.COMPLETED ? (
           <MotionReveal>
             <Text size="sm" tone="secondary">
               {t("paidOff")}
             </Text>
+          </MotionReveal>
+        ) : (
+          <MotionReveal>
+            <FinancialOwnershipBadge
+              financialScope={debt.ownership.financialScope}
+              isOwnedByMe={debt.ownership.isOwnedByMe}
+              ownerStatus={debt.ownership.ownerStatus}
+              showExplanation
+            />
           </MotionReveal>
         )}
         <MotionReveal>

@@ -7,9 +7,18 @@ import {
   INBOX_OPERATION,
   INBOX_ITEM_KIND_VALUES,
   InboxSourceType,
+  InboxItemKind,
+  mapInboxKind,
 } from "../inbox-constants";
 import type { InboxReviewItem } from "../inbox-types";
 import { logInboxFailure } from "../inbox-error";
+import { isFinancialScope } from "@/modules/shared-kernel/application/financial-scope";
+import { resolveFinancialCapabilities } from "@/modules/shared-kernel/application/financial-ownership";
+import { listActiveMembershipIds } from "@/modules/tenancy/application/list-active-membership-ids";
+import {
+  resolveInboxSourceCapabilities,
+  type InboxSourceCapabilities,
+} from "../inbox-source-capabilities";
 import {
   mapInboxRow,
   type InboxItemRow,
@@ -37,20 +46,51 @@ function readRelationName(value: unknown): string | null {
   return isRecord(value) && typeof value.name === "string" ? value.name : null;
 }
 
+type SourceOwnership = {
+  financialScope: string | null;
+  ownerMembershipId: string | null;
+};
+
+function readRelationOwnership(value: unknown): SourceOwnership | null {
+  const row = Array.isArray(value) ? value[0] : value;
+  if (!isRecord(row)) return null;
+  return {
+    financialScope:
+      typeof row.financial_scope === "string" ? row.financial_scope : null,
+    ownerMembershipId:
+      typeof row.owner_membership_id === "string"
+        ? row.owner_membership_id
+        : null,
+  };
+}
+
+function readContextValue(row: InboxItemRow, key: string): string | null {
+  const context = isRecord(row.context_json?.data)
+    ? row.context_json.data
+    : row.context_json;
+  const value = context?.[key];
+  return typeof value === "string" ? value : null;
+}
+
 async function enrichWithTransactionDetails(
   supabase: SupabaseServerClient,
   rows: InboxItemRow[],
+  householdId: string,
+  activeMembershipId: string,
 ): Promise<InboxReviewItem[]> {
   const txIds = rows
     .filter((row) => row.source_type === InboxSourceType.TRANSACTION)
     .map((row) => row.source_id);
 
   const detailsById = new Map<string, InboxTransactionDetails>();
+  const ownershipByItemId = new Map<string, SourceOwnership>();
 
   if (txIds.length > 0) {
     const { data: txs, error } = await supabase
       .from("transactions")
-      .select("id, note, categories(name), accounts(name)")
+      .select(
+        "id, note, categories(name), accounts(name, financial_scope, owner_membership_id)",
+      )
       .in("id", txIds);
 
     if (error) throw error;
@@ -64,12 +104,94 @@ async function enrichWithTransactionDetails(
           categoryName: readRelationName(tx.categories),
           accountName: readRelationName(tx.accounts),
         });
+        const ownership = readRelationOwnership(tx.accounts);
+        if (ownership) ownershipByItemId.set(tx.id, ownership);
       }
     }
   }
 
+  const savingIds = rows.flatMap((row) => {
+    const kind = mapInboxKind(row.kind);
+    if (
+      kind !== InboxItemKind.SAVINGS_MATURITY &&
+      kind !== InboxItemKind.EARLY_WITHDRAWAL_CONFIRMATION
+    ) {
+      return [];
+    }
+    return [readContextValue(row, "savingId") ?? row.source_id];
+  });
+
+  if (savingIds.length > 0) {
+    const { data: savings, error } = await supabase
+      .from("savings")
+      .select("id, financial_scope, owner_membership_id")
+      .eq("household_id", householdId)
+      .in("id", [...new Set(savingIds)]);
+    if (error) throw error;
+    for (const saving of savings ?? []) {
+      if (!isRecord(saving) || typeof saving.id !== "string") continue;
+      ownershipByItemId.set(saving.id, {
+        financialScope:
+          typeof saving.financial_scope === "string"
+            ? saving.financial_scope
+            : null,
+        ownerMembershipId:
+          typeof saving.owner_membership_id === "string"
+            ? saving.owner_membership_id
+            : null,
+      });
+    }
+  }
+
+  const ownerMembershipIds = [
+    ...new Set(
+      [...ownershipByItemId.values()].flatMap((ownership) =>
+        ownership.ownerMembershipId ? [ownership.ownerMembershipId] : [],
+      ),
+    ),
+  ];
+  const activeOwnerMembershipIds = await listActiveMembershipIds(
+    supabase,
+    householdId,
+    ownerMembershipIds,
+  );
+
+  const sourceCapabilitiesByItemId = new Map<string, InboxSourceCapabilities>();
+  for (const row of rows) {
+    const kind = mapInboxKind(row.kind);
+    if (!kind) continue;
+    const sourceId =
+      kind === InboxItemKind.SAVINGS_MATURITY ||
+      kind === InboxItemKind.EARLY_WITHDRAWAL_CONFIRMATION
+        ? (readContextValue(row, "savingId") ?? row.source_id)
+        : row.source_id;
+    const ownership = ownershipByItemId.get(sourceId);
+    const sourceScope = ownership?.financialScope ?? "";
+    const ownerStatus =
+      ownership && isFinancialScope(sourceScope)
+        ? resolveFinancialCapabilities(
+            {
+              financialScope: sourceScope,
+              ownerMembershipId: ownership.ownerMembershipId,
+            },
+            activeMembershipId,
+            activeOwnerMembershipIds == null ||
+              ownership.ownerMembershipId == null ||
+              activeOwnerMembershipIds.has(ownership.ownerMembershipId),
+          ).ownerStatus
+        : null;
+    sourceCapabilitiesByItemId.set(
+      row.id,
+      resolveInboxSourceCapabilities(kind, ownerStatus),
+    );
+  }
+
   return rows.flatMap((row) => {
-    const item = mapInboxRow(row, detailsById.get(row.source_id));
+    const item = mapInboxRow(
+      row,
+      detailsById.get(row.source_id),
+      sourceCapabilitiesByItemId.get(row.id),
+    );
     return item ? [item] : [];
   });
 }
@@ -101,7 +223,12 @@ async function loadOpenInboxItems(): Promise<InboxReviewItem[] | null> {
       return null;
     }
 
-    return await enrichWithTransactionDetails(supabase, data ?? []);
+    return await enrichWithTransactionDetails(
+      supabase,
+      data ?? [],
+      gate.householdId,
+      gate.membershipId,
+    );
   } catch (error) {
     logInboxFailure(error, INBOX_OPERATION.LIST_OPEN, {
       householdId: gate.householdId,
@@ -169,7 +296,12 @@ export async function listArchivedInboxItems(): Promise<
       return null;
     }
 
-    return await enrichWithTransactionDetails(supabase, data ?? []);
+    return await enrichWithTransactionDetails(
+      supabase,
+      data ?? [],
+      gate.householdId,
+      gate.membershipId,
+    );
   } catch (error) {
     logInboxFailure(error, INBOX_OPERATION.LIST_ARCHIVED, {
       householdId: gate.householdId,
@@ -204,7 +336,12 @@ export async function getInboxItem(
       return null;
     }
 
-    const [item] = await enrichWithTransactionDetails(supabase, [data]);
+    const [item] = await enrichWithTransactionDetails(
+      supabase,
+      [data],
+      gate.householdId,
+      gate.membershipId,
+    );
     return item ?? null;
   } catch (error) {
     logInboxFailure(error, INBOX_OPERATION.GET_ITEM, {

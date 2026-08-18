@@ -1,7 +1,12 @@
 import { Text } from "@/shared/ui/text";
 import type { HouseholdMemberRow } from "@/modules/tenancy/application/list-household-members";
+import {
+  EMPTY_MEMBERSHIP_IMPACT,
+  type MembershipImpactSummary,
+} from "@/modules/tenancy/application/membership-lifecycle";
 import { HOUSEHOLD_ROLE } from "@/modules/tenancy/application/tenancy-constants";
 import { MemberRoleAction } from "./members/member-role-action";
+import { MemberLifecycleAction } from "./members/member-lifecycle-action";
 
 function initials(email: string | null, displayName: string | null): string {
   const source = (displayName ?? email ?? "?").trim();
@@ -20,12 +25,18 @@ export function MemberList({
   roleAdminLabel,
   rolePartnerLabel,
   canManageRoles,
+  canManageMembers,
+  impactByMemberId,
+  activeAdminCount = 0,
 }: {
   members: HouseholdMemberRow[];
   youLabel: string;
   roleAdminLabel: string;
   rolePartnerLabel: string;
   canManageRoles?: boolean;
+  canManageMembers?: boolean;
+  impactByMemberId?: Readonly<Record<string, MembershipImpactSummary>>;
+  activeAdminCount?: number;
 }) {
   return (
     <ul
@@ -77,6 +88,18 @@ export function MemberList({
             </span>
           </div>
           {canManageRoles ? <MemberRoleAction member={member} /> : null}
+          {member.isSelf ||
+          (canManageMembers && member.role === HOUSEHOLD_ROLE.PARTNER) ? (
+            <MemberLifecycleAction
+              action={member.isSelf ? "leave" : "remove"}
+              member={member}
+              impact={impactByMemberId?.[member.id] ?? EMPTY_MEMBERSHIP_IMPACT}
+              isLastAdmin={
+                member.role === HOUSEHOLD_ROLE.ADMIN && activeAdminCount === 1
+              }
+              isSoloAdmin={members.length === 1}
+            />
+          ) : null}
         </li>
       ))}
     </ul>

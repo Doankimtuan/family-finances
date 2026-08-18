@@ -24,6 +24,8 @@ import {
 } from "@/modules/inbox/application/commands/review-items";
 import { runInboxStalenessWorker } from "@/modules/inbox/application/workers/resolve-stale-inbox-items";
 import { mapInboxRow } from "@/modules/inbox/application/mappers/inbox-item.mapper";
+import { resolveInboxSourceCapabilities } from "@/modules/inbox/application/inbox-source-capabilities";
+import { OWNER_STATUS } from "@/modules/shared-kernel/application/financial-ownership";
 
 const inboxItemId = "550e8400-e29b-41d4-a716-446655440000";
 
@@ -59,6 +61,29 @@ describe("inbox kind helpers (ST-E06-002 / Prompt 13A)", () => {
     expect(mapInboxKind("rate_changed_suggestion")).toBeNull();
     expect(mapInboxKind("package_expired")).toBeNull();
     expect(mapInboxKind("payment_reminder")).toBeNull();
+  });
+
+  it("blocks financial outcomes for former owners but preserves EMI acknowledgement", () => {
+    expect(
+      resolveInboxSourceCapabilities(
+        InboxItemKind.SAVINGS_MATURITY,
+        OWNER_STATUS.FORMER,
+      ),
+    ).toMatchObject({
+      sourceOwnerActive: false,
+      ownerUnavailable: true,
+      canExecuteOutcome: false,
+    });
+    expect(
+      resolveInboxSourceCapabilities(
+        InboxItemKind.EMI_COMPLETE,
+        OWNER_STATUS.FORMER,
+      ),
+    ).toMatchObject({
+      sourceOwnerActive: true,
+      ownerUnavailable: false,
+      canExecuteOutcome: true,
+    });
   });
 });
 

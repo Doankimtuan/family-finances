@@ -39,6 +39,9 @@ export type InboxReviewItem = {
   executedByUserId: string | null;
   /** Partner assignee for targeted emergency alerts (BR-13). */
   assignedToUserId: string | null;
+  sourceOwnerActive: boolean;
+  ownerUnavailable: boolean;
+  canExecuteOutcome: boolean;
 };
 
 export type InboxCanonicalReviewItem = InboxReviewItem & {

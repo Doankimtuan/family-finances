@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
+import { listActiveMembershipIds } from "@/modules/tenancy/application/list-active-membership-ids";
 import { LedgerRelation } from "../ledger-constants";
 import {
   mapDebtPaymentRow,
@@ -31,7 +32,16 @@ async function loadDebts(): Promise<Debt[] | null> {
       });
       return null;
     }
-    return (data ?? []).map((row) => mapDebtRow(row, gate.membershipId));
+    const activeOwnerMembershipIds = await listActiveMembershipIds(
+      supabase,
+      gate.householdId,
+      (data ?? [])
+        .map((row) => row.owner_membership_id)
+        .filter((id): id is string => id != null),
+    );
+    return (data ?? []).map((row) =>
+      mapDebtRow(row, gate.membershipId, activeOwnerMembershipIds ?? undefined),
+    );
   } catch (error) {
     logLedgerFailure(error, LEDGER_OPERATION.LIST_DEBTS, {
       householdId: gate.householdId,
@@ -65,7 +75,16 @@ export async function getDebt(debtId: string): Promise<Debt | null> {
     if (data == null) {
       return null;
     }
-    return mapDebtRow(data, gate.membershipId);
+    const activeOwnerMembershipIds = await listActiveMembershipIds(
+      supabase,
+      gate.householdId,
+      data.owner_membership_id ? [data.owner_membership_id] : [],
+    );
+    return mapDebtRow(
+      data,
+      gate.membershipId,
+      activeOwnerMembershipIds ?? undefined,
+    );
   } catch (error) {
     logLedgerFailure(error, LEDGER_OPERATION.GET_DEBT, {
       householdId: gate.householdId,

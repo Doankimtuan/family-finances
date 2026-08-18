@@ -115,6 +115,7 @@ function PositionCard({
                 <FinancialOwnershipBadge
                   financialScope={holding.ownership.financialScope}
                   isOwnedByMe={holding.ownership.isOwnedByMe}
+                  ownerStatus={holding.ownership.ownerStatus}
                 />
               </div>
               <Text size="sm" tone="secondary" className="whitespace-nowrap">

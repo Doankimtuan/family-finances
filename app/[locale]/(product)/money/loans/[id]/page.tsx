@@ -153,6 +153,8 @@ export default async function LoanDetailPage({ params }: Props) {
             <FinancialOwnershipBadge
               financialScope={loan.ownership.financialScope}
               isOwnedByMe={loan.ownership.isOwnedByMe}
+              ownerStatus={loan.ownership.ownerStatus}
+              showExplanation
             />
             <Amount
               label={t("remainingLabel")}
@@ -235,6 +237,13 @@ export default async function LoanDetailPage({ params }: Props) {
                 asOfDate={today}
               />
             </>
+          ) : isActive ? (
+            <FinancialOwnershipBadge
+              financialScope={loan.ownership.financialScope}
+              isOwnedByMe={loan.ownership.isOwnedByMe}
+              ownerStatus={loan.ownership.ownerStatus}
+              showExplanation
+            />
           ) : (
             <Text size="sm" tone="secondary">
               {tLoans(`status.${loan.status}`)}

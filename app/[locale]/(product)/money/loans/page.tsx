@@ -126,6 +126,7 @@ export default async function LoansPage({ params }: Props) {
                     <FinancialOwnershipBadge
                       financialScope={loan.ownership.financialScope}
                       isOwnedByMe={loan.ownership.isOwnedByMe}
+                      ownerStatus={loan.ownership.ownerStatus}
                     />
                   </Link>
                 </li>

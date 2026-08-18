@@ -227,6 +227,7 @@ export default async function DebtsPage({ params }: Props) {
                                       debt.ownership.financialScope
                                     }
                                     isOwnedByMe={debt.ownership.isOwnedByMe}
+                                    ownerStatus={debt.ownership.ownerStatus}
                                   />
                                 </div>
                               </div>

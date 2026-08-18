@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
+import { listActiveMembershipIds } from "@/modules/tenancy/application/list-active-membership-ids";
 import {
   LoanScheduleEntryStatus,
   type LedgerOperation,
@@ -42,7 +43,20 @@ export async function listLiabilities(): Promise<Liability[] | null> {
       });
       return null;
     }
-    return (data ?? []).map((row) => mapLiabilityRow(row, gate.membershipId));
+    const activeOwnerMembershipIds = await listActiveMembershipIds(
+      supabase,
+      gate.householdId,
+      (data ?? [])
+        .map((row) => row.owner_membership_id)
+        .filter((id): id is string => id != null),
+    );
+    return (data ?? []).map((row) =>
+      mapLiabilityRow(
+        row,
+        gate.membershipId,
+        activeOwnerMembershipIds ?? undefined,
+      ),
+    );
   } catch (error) {
     logLedgerFailure(error, LEDGER_OPERATION.LIST_LIABILITIES, {
       householdId: gate.householdId,
@@ -76,7 +90,16 @@ export async function getLiability(
       return null;
     }
     if (!data) return null;
-    return mapLiabilityRow(data, gate.membershipId);
+    const activeOwnerMembershipIds = await listActiveMembershipIds(
+      supabase,
+      gate.householdId,
+      data.owner_membership_id ? [data.owner_membership_id] : [],
+    );
+    return mapLiabilityRow(
+      data,
+      gate.membershipId,
+      activeOwnerMembershipIds ?? undefined,
+    );
   } catch (error) {
     logLedgerFailure(error, LEDGER_OPERATION.GET_LIABILITY, {
       householdId: gate.householdId,
@@ -219,6 +242,13 @@ async function loadLoans(): Promise<Loan[] | null> {
       });
       return null;
     }
+    const activeOwnerMembershipIds = await listActiveMembershipIds(
+      supabase,
+      gate.householdId,
+      (data ?? [])
+        .map((row) => row.owner_membership_id)
+        .filter((id): id is string => id != null),
+    );
     return Promise.all(
       (data ?? []).map(async (row) => {
         const aggregates = await loanAggregates(
@@ -227,7 +257,12 @@ async function loadLoans(): Promise<Loan[] | null> {
           row.id,
           LEDGER_OPERATION.LIST_LOANS,
         );
-        return mapLoanRow(row, aggregates, gate.membershipId);
+        return mapLoanRow(
+          row,
+          aggregates,
+          gate.membershipId,
+          activeOwnerMembershipIds ?? undefined,
+        );
       }),
     );
   } catch (error) {
@@ -264,13 +299,23 @@ export async function getLoan(loanId: string): Promise<Loan | null> {
       return null;
     }
     if (!data) return null;
+    const activeOwnerMembershipIds = await listActiveMembershipIds(
+      supabase,
+      gate.householdId,
+      data.owner_membership_id ? [data.owner_membership_id] : [],
+    );
     const aggregates = await loanAggregates(
       supabase,
       gate.householdId,
       loanId,
       LEDGER_OPERATION.GET_LOAN,
     );
-    return mapLoanRow(data, aggregates, gate.membershipId);
+    return mapLoanRow(
+      data,
+      aggregates,
+      gate.membershipId,
+      activeOwnerMembershipIds ?? undefined,
+    );
   } catch (error) {
     logLedgerFailure(error, LEDGER_OPERATION.GET_LOAN, {
       householdId: gate.householdId,

@@ -9,6 +9,8 @@
     "partnerReadOnly": "Only the owner can make changes to this personal item.",
     "personalYou": "Personal · You",
     "personalPartner": "Personal · Partner",
+    "personalFormerMember": "Personal · Former member",
+    "formerMemberReadOnly": "This personal item belongs to a former household member. You can view it, but financial changes are no longer available.",
     "ownershipReadOnly": "Only the owner can make changes to this personal item."
   },
   "header": {

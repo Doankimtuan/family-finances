@@ -209,6 +209,57 @@ async function ensureHousehold(admin, users) {
     }
   }
 
+  const partnerMembership = (await activeMemberships(admin, users[1].id))[0];
+  if (!partnerMembership) fail("controlled partner membership unavailable");
+  const { data: formerMemberAccount, error: formerMemberAccountError } =
+    await admin
+      .from("accounts")
+      .select("id, owner_membership_id, financial_scope")
+      .eq("household_id", household.id)
+      .eq("name", "Ownership former-member account")
+      .maybeSingle();
+  if (formerMemberAccountError)
+    fail(
+      `find former-member account: ${formerMemberAccountError.code ?? "unknown"}`,
+    );
+  if (!formerMemberAccount) {
+    await one(
+      admin.from("accounts").insert({
+        household_id: household.id,
+        name: "Ownership former-member account",
+        type: HARNESS.accountType,
+        opening_balance: 250000,
+        financial_scope: HARNESS.personal,
+        owner_membership_id: partnerMembership.id,
+        created_by: users[1].id,
+      }),
+      "create former-member account",
+    );
+  } else if (
+    formerMemberAccount.financial_scope !== HARNESS.personal ||
+    formerMemberAccount.owner_membership_id !== partnerMembership.id
+  ) {
+    fail("controlled former-member account ownership mismatch");
+  }
+
+  const { data: inboxFixture, error: inboxFixtureError } = await admin
+    .from("inbox_items")
+    .select("id")
+    .eq("household_id", household.id)
+    .eq("title", "Ownership inbox fixture")
+    .maybeSingle();
+  if (inboxFixtureError)
+    fail(
+      `find controlled Inbox fixture: ${inboxFixtureError.code ?? "unknown"}`,
+    );
+  if (!inboxFixture)
+    await createPendingPersonalInboxItem(
+      admin,
+      household.id,
+      partnerMembership.id,
+      users[1].id,
+    );
+
   const { data: account, error: accountError } = await admin
     .from("accounts")
     .select("id")
@@ -537,7 +588,7 @@ export async function createPendingPersonalInboxItem(
       currency: HARNESS.currency,
       transaction_date: HARNESS.today,
       note: "Ownership inbox fixture",
-      status: "pending",
+      status: "pending_mapping",
       created_by: createdBy,
       source: "manual",
     }),

@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { requireTogetherMembership } from "@/modules/tenancy/application/require-together-membership";
 import { listHouseholdMembers } from "@/modules/tenancy/application/list-household-members";
+import { listMembershipImpactSummaries } from "@/modules/tenancy/application/membership-lifecycle";
 import {
   HOUSEHOLD_ROLE,
   TOGETHER_PATH,
@@ -24,6 +25,12 @@ export default async function MembersPage({ params }: Props) {
     listHouseholdMembers(),
     getTranslations("together"),
   ]);
+  const impactByMemberId = await listMembershipImpactSummaries(
+    result.members.map((member) => member.id),
+  );
+  const activeAdminCount = result.members.filter(
+    (member) => member.role === HOUSEHOLD_ROLE.ADMIN,
+  ).length;
 
   return (
     <Page
@@ -47,6 +54,9 @@ export default async function MembersPage({ params }: Props) {
             roleAdminLabel={t("roleAdmin")}
             rolePartnerLabel={t("rolePartner")}
             canManageRoles={membership.role === HOUSEHOLD_ROLE.ADMIN}
+            canManageMembers={membership.role === HOUSEHOLD_ROLE.ADMIN}
+            impactByMemberId={impactByMemberId}
+            activeAdminCount={activeAdminCount}
           />
         ) : (
           <EmptyState

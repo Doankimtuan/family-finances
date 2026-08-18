@@ -168,6 +168,7 @@ export function mapDebtRow(
     owner_membership_id?: string | null;
   },
   activeMembershipId = "",
+  activeMembershipIds?: ReadonlySet<string>,
 ): Debt {
   const remainingAmount = Math.max(0, asWholeMoney(row.remaining_amount));
   const principalAmount = Math.max(
@@ -200,6 +201,9 @@ export function mapDebtRow(
         ownerMembershipId: row.owner_membership_id ?? null,
       },
       activeMembershipId,
+      activeMembershipIds == null || row.owner_membership_id == null
+        ? true
+        : activeMembershipIds.has(row.owner_membership_id),
     ),
   };
 }

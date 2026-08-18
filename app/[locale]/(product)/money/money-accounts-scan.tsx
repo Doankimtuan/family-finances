@@ -14,6 +14,9 @@ import { EmptyState } from "@/shared/patterns/empty-state";
 import { SectionHeader } from "@/shared/patterns/section-header";
 import { Text } from "@/shared/ui/text";
 import type { IconContainerTone } from "@/shared/ui/icon-container";
+import { FinancialOwnershipBadge } from "@/shared/patterns/financial-ownership-badge";
+import type { FinancialScope } from "@/modules/shared-kernel/application/financial-scope";
+import type { OwnerStatus } from "@/modules/shared-kernel/application/financial-ownership";
 
 export type MoneyHubAccountRow = {
   id: string;
@@ -22,6 +25,9 @@ export type MoneyHubAccountRow = {
   balanceLabel: string;
   icon: IconSvgElement;
   iconTone: IconContainerTone;
+  financialScope: FinancialScope;
+  isOwnedByMe: boolean;
+  ownerStatus: OwnerStatus;
 };
 
 export type MoneyHubAccountGroup = {
@@ -111,6 +117,13 @@ function AccountGroupRows({
                 icon={account.icon}
                 iconTone={account.iconTone}
               />
+              <div className="px-(--space-3) pb-(--space-2)">
+                <FinancialOwnershipBadge
+                  financialScope={account.financialScope}
+                  isOwnedByMe={account.isOwnedByMe}
+                  ownerStatus={account.ownerStatus}
+                />
+              </div>
             </Link>
           </li>
         ))}

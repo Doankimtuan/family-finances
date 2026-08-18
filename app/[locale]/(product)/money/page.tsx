@@ -87,6 +87,9 @@ export default async function MoneyHubPage({ params }: Props) {
           }),
           icon: visual.icon,
           iconTone: visual.tone,
+          financialScope: account.financialScope,
+          isOwnedByMe: account.isOwnedByMe,
+          ownerStatus: account.ownerStatus,
         };
       }),
     }));

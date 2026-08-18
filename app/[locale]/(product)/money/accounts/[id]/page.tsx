@@ -167,13 +167,15 @@ export default async function AccountDetailPage({
           backHref={APP_PATH.MONEY_ACCOUNTS}
           title={accountName}
           subtitle={accountTypeLabel}
-          trailing={accountManagement}
+          trailing={account.canMutate ? accountManagement : undefined}
         />
         <div className="flex flex-1 flex-col gap-(--space-6) px-(--page-gutter) pb-(--space-6) pt-(--space-4)">
           <MoneyOfflineBanner />
           <FinancialOwnershipBadge
             financialScope={account.financialScope}
             isOwnedByMe={account.isOwnedByMe}
+            ownerStatus={account.ownerStatus}
+            showExplanation
           />
           <MotionReveal>
             <CreditCardHero
@@ -234,13 +236,15 @@ export default async function AccountDetailPage({
         backHref={APP_PATH.MONEY_ACCOUNTS}
         title={accountName}
         subtitle={accountTypeLabel}
-        trailing={accountManagement}
+        trailing={account.canMutate ? accountManagement : undefined}
       />
       <div className="flex flex-1 flex-col gap-(--space-6) px-(--page-gutter) pb-(--space-6) pt-(--space-4)">
         <MoneyOfflineBanner />
         <FinancialOwnershipBadge
           financialScope={account.financialScope}
           isOwnedByMe={account.isOwnedByMe}
+          ownerStatus={account.ownerStatus}
+          showExplanation
         />
         <MotionReveal>
           <FinancialAccountHero

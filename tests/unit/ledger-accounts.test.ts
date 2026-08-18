@@ -39,6 +39,7 @@ import {
   AccountHealthSignal,
 } from "@/modules/ledger/application/account-health";
 import { mapAccountRow } from "@/modules/ledger/application/account-types";
+import { OWNER_STATUS } from "@/modules/shared-kernel/application/financial-ownership";
 import { getRealPosition } from "@/modules/ledger/application/queries/get-real-position";
 import { AccountType } from "@/modules/ledger/application/ledger-constants";
 
@@ -128,6 +129,7 @@ describe("mapAccountRow", () => {
       isPersonal: false,
       isOwnedByMe: false,
       canMutate: true,
+      ownerStatus: OWNER_STATUS.ACTIVE,
     });
   });
 });
@@ -371,6 +373,7 @@ describe("getRealPosition", () => {
           isPersonal: false,
           isOwnedByMe: false,
           canMutate: true,
+          ownerStatus: OWNER_STATUS.ACTIVE,
         },
         {
           id: "a2",
@@ -383,6 +386,7 @@ describe("getRealPosition", () => {
           isPersonal: false,
           isOwnedByMe: false,
           canMutate: true,
+          ownerStatus: OWNER_STATUS.ACTIVE,
         },
       ],
     });

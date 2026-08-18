@@ -121,6 +121,7 @@ function mapOwnership(
   financialScope: string | null | undefined,
   ownerMembershipId: string | null | undefined,
   activeMembershipId = "",
+  activeMembershipIds?: ReadonlySet<string>,
 ): FinancialCapabilities {
   const rawScope = financialScope ?? "";
   return resolveFinancialCapabilities(
@@ -131,6 +132,9 @@ function mapOwnership(
       ownerMembershipId: ownerMembershipId ?? null,
     },
     activeMembershipId,
+    activeMembershipIds == null || ownerMembershipId == null
+      ? true
+      : activeMembershipIds.has(ownerMembershipId),
   );
 }
 
@@ -188,6 +192,7 @@ export function mapLiabilityRow(
     owner_membership_id?: string | null;
   },
   activeMembershipId = "",
+  activeMembershipIds?: ReadonlySet<string>,
 ): Liability {
   const remaining =
     typeof row.remaining_amount === "string"
@@ -214,6 +219,7 @@ export function mapLiabilityRow(
       row.financial_scope,
       row.owner_membership_id,
       activeMembershipId,
+      activeMembershipIds,
     ),
   };
 }
@@ -288,6 +294,7 @@ export function mapLoanRow(
     remainingPayments?: number;
   },
   activeMembershipId = "",
+  activeMembershipIds?: ReadonlySet<string>,
 ): Loan {
   const principal =
     typeof row.principal === "string"
@@ -407,6 +414,7 @@ export function mapLoanRow(
       row.financial_scope,
       row.owner_membership_id,
       activeMembershipId,
+      activeMembershipIds,
     ),
   };
 }

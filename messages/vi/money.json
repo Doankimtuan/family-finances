@@ -9,6 +9,8 @@
     "partnerReadOnly": "Chỉ người sở hữu mới có thể thay đổi khoản cá nhân này.",
     "personalYou": "Cá nhân · Bạn",
     "personalPartner": "Cá nhân · Người cùng nhà",
+    "personalFormerMember": "Cá nhân · Thành viên cũ",
+    "formerMemberReadOnly": "Khoản cá nhân này thuộc về thành viên đã rời hộ. Bạn vẫn xem được, nhưng không thể thay đổi tài chính.",
     "ownershipReadOnly": "Chỉ người sở hữu mới có thể thay đổi khoản cá nhân này."
   },
   "header": {

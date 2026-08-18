@@ -133,9 +133,11 @@ export function InboxQueueList({ items, locale, readOnly = false }: Props) {
                 subtitle={
                   readOnly
                     ? t(`statuses.${item.status}`)
-                    : detailParts.length > 0
-                      ? detailParts.join(" · ")
-                      : t("openHint")
+                    : item.ownerUnavailable
+                      ? t("ownerUnavailableHint")
+                      : detailParts.length > 0
+                        ? detailParts.join(" · ")
+                        : t("openHint")
                 }
                 data-testid={`inbox-item-${item.id}`}
               />
@@ -143,7 +145,7 @@ export function InboxQueueList({ items, locale, readOnly = false }: Props) {
 
             return (
               <li key={item.id}>
-                {readOnly ? (
+                {readOnly || item.ownerUnavailable ? (
                   card
                 ) : (
                   <Link

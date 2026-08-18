@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
+import { listActiveMembershipIds } from "@/modules/tenancy/application/list-active-membership-ids";
 import {
   mapSavingRow,
   mapSavingCycleRow,
@@ -102,8 +103,19 @@ async function loadSavings(): Promise<Saving[] | null> {
       return null;
     }
 
+    const activeOwnerMembershipIds = await listActiveMembershipIds(
+      supabase,
+      gate.householdId,
+      (data ?? [])
+        .map((row) => row.owner_membership_id)
+        .filter((id): id is string => id != null),
+    );
     const savings = (data ?? []).map((row) =>
-      mapSavingRow(row, gate.membershipId),
+      mapSavingRow(
+        row,
+        gate.membershipId,
+        activeOwnerMembershipIds ?? undefined,
+      ),
     );
 
     const cycleRows = await loadCycleRows(
@@ -193,7 +205,16 @@ export async function getSaving(savingId: string): Promise<Saving | null> {
     }
     if (!data) return null;
 
-    const saving = mapSavingRow(data, gate.membershipId);
+    const activeOwnerMembershipIds = await listActiveMembershipIds(
+      supabase,
+      gate.householdId,
+      data.owner_membership_id ? [data.owner_membership_id] : [],
+    );
+    const saving = mapSavingRow(
+      data,
+      gate.membershipId,
+      activeOwnerMembershipIds ?? undefined,
+    );
 
     // Load all cycles
     const { data: cycles } = await supabase

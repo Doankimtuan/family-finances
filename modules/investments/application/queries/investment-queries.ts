@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
+import { listActiveMembershipIds } from "@/modules/tenancy/application/list-active-membership-ids";
 import { logActionFailure } from "@/modules/shared-kernel/application/log-action-failure";
 import {
   type InvestmentAssetClass,
@@ -76,6 +77,7 @@ function mapHolding(
   row: HoldingRow,
   valuation?: ValuationRow,
   activeMembershipId = "",
+  activeMembershipIds?: ReadonlySet<string>,
 ): InvestmentHolding {
   const basis = nullableNumber(row.remaining_total_cost_basis);
   const currentValue = valuation ? Number(valuation.value_vnd) : null;
@@ -105,6 +107,9 @@ function mapHolding(
         ownerMembershipId: row.owner_membership_id ?? null,
       },
       activeMembershipId,
+      activeMembershipIds == null || row.owner_membership_id == null
+        ? true
+        : activeMembershipIds.has(row.owner_membership_id),
     ),
   };
 }
@@ -203,12 +208,24 @@ async function loadHoldings(): Promise<InvestmentHolding[] | null> {
       });
       return null;
     }
+    const activeOwnerMembershipIds = await listActiveMembershipIds(
+      supabase,
+      gate.householdId,
+      (holdings ?? [])
+        .map((row) => row.owner_membership_id)
+        .filter((id): id is string => id != null),
+    );
     const latest = new Map<string, ValuationRow>();
     for (const row of (valuations ?? []) as ValuationRow[]) {
       if (!latest.has(row.holding_id)) latest.set(row.holding_id, row);
     }
     return ((holdings ?? []) as HoldingRow[]).map((row) =>
-      mapHolding(row, latest.get(row.id), gate.membershipId),
+      mapHolding(
+        row,
+        latest.get(row.id),
+        gate.membershipId,
+        activeOwnerMembershipIds ?? undefined,
+      ),
     );
   } catch (error) {
     logActionFailure({

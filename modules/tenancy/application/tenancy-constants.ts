@@ -99,6 +99,7 @@ export const HOUSEHOLD_ERROR_CODE = {
   NO_HOUSEHOLD: "no_household",
   FORBIDDEN: "forbidden",
   MEMBER_NOT_FOUND: "member_not_found",
+  ADMIN_CONTINUITY: "admin_continuity",
 } as const;
 
 export type HouseholdErrorCode =
@@ -136,8 +137,14 @@ export const HOUSEHOLD_RPC_MESSAGE_NEEDLE = {
   NAME_TOO_SHORT: "at least 2",
   NAME_INVALID: "name must",
   ADMIN_ROLE: "admin role",
+  ADMIN_CONTINUITY: "admin continuity",
   FORBIDDEN: "forbidden",
   MEMBER_NOT_FOUND: "member not found",
+} as const;
+
+export const MEMBERSHIP_RPC = {
+  LEAVE: "leave_household",
+  REMOVE: "remove_household_member",
 } as const;
 
 export const SUPABASE_POSTGRES_ERROR_CODE = {
@@ -164,6 +171,8 @@ export const TENANCY_OPERATION = {
   INVITATION_REVOKE: "tenancy.invitation.revoke",
   INVITATION_PREVIEW: "tenancy.invitation.preview",
   INVITATION_QUERY: "tenancy.invitation.query",
+  MEMBERSHIP_LIFECYCLE: "tenancy.membership.lifecycle",
+  MEMBERSHIP_IMPACT_QUERY: "tenancy.membership.impact_query",
   AI_AUDIT: "tenancy.ai_audit.record",
 } as const;
 

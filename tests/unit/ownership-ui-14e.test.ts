@@ -4,6 +4,7 @@ import {
   isFinancialScope,
 } from "@/modules/shared-kernel/application/financial-scope";
 import {
+  OWNER_STATUS,
   normalizeCreationOwnership,
   resolveFinancialCapabilities,
 } from "@/modules/shared-kernel/application/financial-ownership";
@@ -51,6 +52,24 @@ describe("Prompt 14E ownership contract", () => {
       ),
     ).toMatchObject({
       isPersonal: true,
+      isOwnedByMe: false,
+      canMutate: false,
+      ownerStatus: OWNER_STATUS.ACTIVE,
+    });
+  });
+
+  it("marks a personal row former when its membership is inactive", () => {
+    expect(
+      resolveFinancialCapabilities(
+        {
+          financialScope: FINANCIAL_SCOPE.PERSONAL,
+          ownerMembershipId: "member-a",
+        },
+        "member-b",
+        false,
+      ),
+    ).toMatchObject({
+      ownerStatus: OWNER_STATUS.FORMER,
       isOwnedByMe: false,
       canMutate: false,
     });

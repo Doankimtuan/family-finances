@@ -9,6 +9,10 @@ import {
 import { instantiateTypedReviewItem } from "../review-item-schemas";
 import { resolveInboxDisplayTitle } from "../inbox-display";
 import type { InboxReviewItem } from "../inbox-types";
+import {
+  resolveInboxSourceCapabilities,
+  type InboxSourceCapabilities,
+} from "../inbox-source-capabilities";
 
 export type InboxItemRow = {
   id: string;
@@ -63,10 +67,13 @@ function reviewContext(
 export function mapInboxRow(
   row: InboxItemRow,
   txDetails?: InboxTransactionDetails,
+  sourceCapabilities?: InboxSourceCapabilities,
 ): InboxReviewItem | null {
   const kind = mapInboxKind(row.kind);
   const status = mapInboxStatus(row.status);
   if (!kind || !status) return null;
+  const capabilities =
+    sourceCapabilities ?? resolveInboxSourceCapabilities(kind, null);
 
   const context = reviewContext(row.context_json);
   const intentRaw = context?.intent_note;
@@ -150,5 +157,6 @@ export function mapInboxRow(
     assignedToUserId:
       row.assigned_to_user_id ??
       (typeof assignedFromContext === "string" ? assignedFromContext : null),
+    ...capabilities,
   };
 }

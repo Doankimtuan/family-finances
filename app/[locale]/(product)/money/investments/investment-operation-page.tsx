@@ -60,6 +60,8 @@ export async function InvestmentOperationPage({ mode, holdingId }: Props) {
       <FinancialOwnershipBadge
         financialScope={holding.ownership.financialScope}
         isOwnedByMe={holding.ownership.isOwnedByMe}
+        ownerStatus={holding.ownership.ownerStatus}
+        showExplanation
       />
       {!holding.ownership.canMutate ? (
         <StatusAlert variant="info" title={t("partnerReadOnly")} />
