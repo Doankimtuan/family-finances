@@ -31,7 +31,9 @@ export async function getRealPosition(): Promise<RealPosition | null> {
           .maybeSingle(),
         supabase
           .from("accounts")
-          .select("id, name, type, opening_balance, is_archived")
+          .select(
+            "id, name, type, opening_balance, is_archived, financial_scope, owner_membership_id",
+          )
           .eq("household_id", gate.householdId)
           .eq("is_archived", false)
           .neq("type", AccountType.CREDIT_CARD)
@@ -51,7 +53,7 @@ export async function getRealPosition(): Promise<RealPosition | null> {
     }
 
     const accounts = applyTransactionDeltas(
-      (rows ?? []).map(mapAccountRow),
+      (rows ?? []).map((row) => mapAccountRow(row, gate.membershipId)),
       (txRows ?? []).map((row) => ({
         accountId: row.account_id,
         type: row.type,

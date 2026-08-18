@@ -35,6 +35,7 @@ import {
   type SavingsTermUnit as SavingsTermUnitValue,
 } from "@/modules/savings/application/client";
 import { ControlledField } from "@/shared/patterns/controlled-fields";
+import { FinancialScopeField } from "@/shared/patterns/financial-scope-field";
 import { AppIcon } from "@/shared/ui/app-icon";
 import { Button } from "@/shared/ui/button";
 import { StatusAlert } from "@/shared/ui/status-alert";
@@ -50,6 +51,7 @@ import {
   type ProductActionErrorCode,
 } from "@/modules/tenancy/application/product-action-error";
 import { createSavingAction } from "../savings-actions";
+import { FINANCIAL_SCOPE } from "@/modules/shared-kernel/application/financial-scope";
 
 type AccountOption = {
   id: string;
@@ -87,6 +89,7 @@ type ErrorCode =
 const STEPS = [FlowStep.PRODUCT, FlowStep.DEPOSIT, FlowStep.REVIEW] as const;
 
 const savingFormSchema = z.object({
+  financialScope: createSavingInputSchema.shape.financialScope,
   fundingAccountId: createSavingInputSchema.shape.fundingAccountId,
   settlementAccountId: createSavingInputSchema.shape.settlementAccountId,
   providerId: createSavingInputSchema.shape.providerId,
@@ -137,6 +140,7 @@ function createDefaultValues(
   const providerId = providers[0]?.id ?? "";
   const packageId = packagesByProvider[providerId]?.[0]?.id ?? "";
   return {
+    financialScope: FINANCIAL_SCOPE.HOUSEHOLD,
     fundingAccountId: accounts[0]?.id ?? "",
     settlementAccountId: accounts[0]?.id ?? "",
     providerId,
@@ -232,6 +236,7 @@ export function CreateSavingWizard({
   });
   const values = useWatch({ control });
   const fundingAccountId = values.fundingAccountId ?? "";
+  const financialScope = values.financialScope ?? FINANCIAL_SCOPE.HOUSEHOLD;
   const settlementAccountId = values.settlementAccountId ?? "";
   const providerId = values.providerId ?? "";
   const packageId = values.packageId ?? "";
@@ -352,6 +357,7 @@ export function CreateSavingWizard({
       return;
     }
     const input = {
+      financialScope: submitted.financialScope,
       fundingAccountId: submitted.fundingAccountId,
       settlementAccountId: submitted.settlementAccountId,
       providerId: submitted.providerId,
@@ -493,6 +499,13 @@ export function CreateSavingWizard({
                 </div>
               </div>
             ) : null}
+            <div className="space-y-(--space-2)">
+              <FinancialScopeField
+                value={financialScope}
+                onChange={(next) => setValue("financialScope", next)}
+                testId="savings-financial-scope"
+              />
+            </div>
             <div className="space-y-(--space-2)">
               <Text size="sm" weight="semibold">
                 {t("providerLabel")}

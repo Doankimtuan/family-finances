@@ -10,6 +10,10 @@ import {
   InvestmentVisibilityContext,
 } from "../investment-constants";
 import { isPositiveQuantity } from "../decimal-quantity";
+import {
+  FINANCIAL_SCOPE,
+  FINANCIAL_SCOPE_VALUES,
+} from "@/modules/shared-kernel/application/financial-scope";
 
 export const quantitySchema = z.string().refine(isPositiveQuantity);
 export const vndSchema = z.number().finite().int().safe().nonnegative();
@@ -49,6 +53,9 @@ export const feeSchema = z
   });
 
 export const openingPositionInputSchema = z.object({
+  financialScope: z
+    .enum(FINANCIAL_SCOPE_VALUES)
+    .default(FINANCIAL_SCOPE.HOUSEHOLD),
   assetName: z.string().trim().min(1).max(160),
   assetClass: z.enum(INVESTMENT_ASSET_CLASS_VALUES),
   quantity: quantitySchema,
@@ -65,6 +72,9 @@ export const openingPositionInputSchema = z.object({
 });
 
 export const initialPurchaseInputSchema = z.object({
+  financialScope: z
+    .enum(FINANCIAL_SCOPE_VALUES)
+    .default(FINANCIAL_SCOPE.HOUSEHOLD),
   assetName: z.string().trim().min(1).max(160),
   assetClass: z.enum(INVESTMENT_ASSET_CLASS_VALUES),
   quantity: quantitySchema,

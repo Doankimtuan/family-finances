@@ -1,5 +1,6 @@
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
+import { resolveCreationOwnership } from "@/modules/tenancy/application/resolve-creation-ownership";
 import {
   PRODUCT_ACTION_ERROR_CODE,
   productActionErrorFromDeniedReason,
@@ -43,6 +44,13 @@ export async function createAccount(
     };
   }
 
+  const ownership = await resolveCreationOwnership(
+    gate.householdId,
+    parsed.data.financialScope,
+  );
+  if (!ownership)
+    return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.NO_MEMBERSHIP };
+
   const isCard = parsed.data.type === AccountType.CREDIT_CARD;
   const openingBalance = isCard ? 0 : parsed.data.openingBalance;
 
@@ -77,6 +85,8 @@ export async function createAccount(
         type: parsed.data.type,
         opening_balance: openingBalance,
         created_by: gate.userId,
+        financial_scope: ownership.financialScope,
+        owner_membership_id: ownership.ownerMembershipId,
       })
       .select("id")
       .single();

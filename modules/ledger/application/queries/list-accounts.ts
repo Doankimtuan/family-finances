@@ -22,7 +22,9 @@ async function loadAccounts(options: {
     const supabase = await createSupabaseServerClient();
     let accountsQuery = supabase
       .from("accounts")
-      .select("id, name, type, opening_balance, is_archived")
+      .select(
+        "id, name, type, opening_balance, is_archived, financial_scope, owner_membership_id",
+      )
       .eq("household_id", gate.householdId)
       .eq("is_archived", false)
       .order("created_at", { ascending: true });
@@ -56,7 +58,7 @@ async function loadAccounts(options: {
     return {
       currency: (household?.base_currency ?? DEFAULT_CURRENCY).toUpperCase(),
       accounts: applyTransactionDeltas(
-        (rows ?? []).map(mapAccountRow),
+        (rows ?? []).map((row) => mapAccountRow(row, gate.membershipId)),
         (txRows ?? []).map((row) => ({
           accountId: row.account_id,
           type: row.type,
@@ -109,7 +111,9 @@ export async function getAccount(
           .maybeSingle(),
         supabase
           .from("accounts")
-          .select("id, name, type, opening_balance, is_archived")
+          .select(
+            "id, name, type, opening_balance, is_archived, financial_scope, owner_membership_id",
+          )
           .eq("household_id", gate.householdId)
           .eq("id", accountId)
           .maybeSingle(),
@@ -126,7 +130,7 @@ export async function getAccount(
     }
 
     const [account] = applyTransactionDeltas(
-      [mapAccountRow(row)],
+      [mapAccountRow(row, gate.membershipId)],
       (txRows ?? []).map((tx) => ({
         accountId: tx.account_id,
         type: tx.type,

@@ -25,6 +25,7 @@ import { Card } from "@/shared/patterns/card";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Text } from "@/shared/ui/text";
+import { FinancialOwnershipBadge } from "@/shared/patterns/financial-ownership-badge";
 import { AppIcon } from "@/shared/ui/app-icon";
 import { IconContainer } from "@/shared/ui/icon-container";
 import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
@@ -78,6 +79,7 @@ export default async function DebtDetailPage({ params }: Props) {
   }
   const today = todayIsoDate();
   const isBorrowed = debt.direction === DebtDirection.BORROWED;
+  const canMutate = debt.ownership.canMutate;
   const progress = getDebtProgress(debt);
   const due = getDebtDueInfo(debt, today);
   const payments = paymentsResult ?? [];
@@ -121,6 +123,10 @@ export default async function DebtDetailPage({ params }: Props) {
                 size="lg"
               />
             </IconContainer>
+            <FinancialOwnershipBadge
+              financialScope={debt.ownership.financialScope}
+              isOwnedByMe={debt.ownership.isOwnedByMe}
+            />
             <div className="flex items-start justify-between gap-(--space-3)">
               <div>
                 <Amount
@@ -164,7 +170,7 @@ export default async function DebtDetailPage({ params }: Props) {
             </div>
           </Card>
         </MotionReveal>
-        {debt.status === DebtStatus.ACTIVE ? (
+        {debt.status === DebtStatus.ACTIVE && canMutate ? (
           <MotionReveal>
             <DebtPaymentSheet
               debtId={debt.id}

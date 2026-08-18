@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
+import { resolveCreationOwnership } from "@/modules/tenancy/application/resolve-creation-ownership";
 import {
   PRODUCT_ACTION_ERROR_CODE,
   productActionErrorFromDeniedReason,
@@ -11,6 +12,10 @@ import {
   LedgerRpcName,
 } from "../ledger-constants";
 import {
+  FINANCIAL_SCOPE,
+  FINANCIAL_SCOPE_VALUES,
+} from "@/modules/shared-kernel/application/financial-scope";
+import {
   classifyLiabilityRpcError,
   LEDGER_OPERATION,
   logLedgerFailure,
@@ -18,6 +23,9 @@ import {
 import type { MoneyProductMutationResult } from "./shared";
 
 export const createLiabilityInputSchema = z.object({
+  financialScope: z
+    .enum(FINANCIAL_SCOPE_VALUES)
+    .default(FINANCIAL_SCOPE.HOUSEHOLD),
   name: z.string().trim().min(1).max(80),
   creditor: z.string().trim().max(80).optional(),
   principalAmount: z.number().finite().int().positive(),
@@ -25,7 +33,7 @@ export const createLiabilityInputSchema = z.object({
   note: z.string().trim().max(200).optional(),
 });
 
-export type CreateLiabilityInput = z.infer<typeof createLiabilityInputSchema>;
+export type CreateLiabilityInput = z.input<typeof createLiabilityInputSchema>;
 
 export async function createLiability(
   raw: CreateLiabilityInput,
@@ -40,6 +48,13 @@ export async function createLiability(
       ok: false,
       code: productActionErrorFromDeniedReason(gate.reason),
     };
+  }
+  const ownership = await resolveCreationOwnership(
+    gate.householdId,
+    parsed.data.financialScope,
+  );
+  if (!ownership) {
+    return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.NO_MEMBERSHIP };
   }
 
   try {
@@ -56,6 +71,8 @@ export async function createLiability(
         due_day: parsed.data.dueDay ?? null,
         note: parsed.data.note || null,
         created_by: gate.userId,
+        financial_scope: ownership.financialScope,
+        owner_membership_id: ownership.ownerMembershipId,
       })
       .select("id")
       .single();

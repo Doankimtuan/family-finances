@@ -1,5 +1,16 @@
 {
   "title": "Money",
+  "ownership": {
+    "label": "Ownership",
+    "household": "Household",
+    "personal": "Personal",
+    "householdHint": "Both members can manage this.",
+    "personalHint": "Only you can make changes. Your partner can still see it.",
+    "partnerReadOnly": "Only the owner can make changes to this personal item.",
+    "personalYou": "Personal · You",
+    "personalPartner": "Personal · Partner",
+    "ownershipReadOnly": "Only the owner can make changes to this personal item."
+  },
   "header": {
     "eyebrow": "Money",
     "headline": "Your money, all in one place",
@@ -282,6 +293,7 @@
         "valuation": "Record valuation"
       },
       "notAvailable": "This investment action is not available.",
+      "partnerReadOnly": "Only the owner can make changes to this personal holding.",
       "back": "Back to position",
       "holding": "Holding",
       "source": "Source holding",
@@ -1193,6 +1205,7 @@
   "accountDetail": {
     "balanceLabel": "Available balance",
     "ownershipHint": "Part of household Real Position.",
+    "ownershipReadOnly": "Only the owner can make changes to this personal item.",
     "healthZero": "This account has a zero balance.",
     "quickActions": "Quick actions",
     "capture": "Add transaction",

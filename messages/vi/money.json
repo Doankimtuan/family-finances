@@ -1,5 +1,16 @@
 {
   "title": "Money",
+  "ownership": {
+    "label": "Quyền quản lý",
+    "household": "Gia đình",
+    "personal": "Cá nhân",
+    "householdHint": "Cả hai thành viên đều có thể quản lý.",
+    "personalHint": "Chỉ bạn có thể thay đổi. Người cùng nhà vẫn xem được.",
+    "partnerReadOnly": "Chỉ người sở hữu mới có thể thay đổi khoản cá nhân này.",
+    "personalYou": "Cá nhân · Bạn",
+    "personalPartner": "Cá nhân · Người cùng nhà",
+    "ownershipReadOnly": "Chỉ người sở hữu mới có thể thay đổi khoản cá nhân này."
+  },
   "header": {
     "eyebrow": "Money",
     "headline": "Tiền của bạn, tất cả ở một nơi",
@@ -282,6 +293,7 @@
         "valuation": "Ghi định giá"
       },
       "notAvailable": "Thao tác đầu tư này chưa khả dụng.",
+      "partnerReadOnly": "Chỉ người sở hữu mới có thể thay đổi vị thế đầu tư cá nhân này.",
       "back": "Về vị thế",
       "holding": "Tài sản",
       "source": "Tài sản nguồn",
@@ -1193,6 +1205,7 @@
   "accountDetail": {
     "balanceLabel": "Số dư khả dụng",
     "ownershipHint": "Một phần vị thế thật của hộ.",
+    "ownershipReadOnly": "Chỉ người sở hữu mới có thể thay đổi khoản cá nhân này.",
     "healthZero": "Tài khoản này đang có số dư bằng 0.",
     "quickActions": "Thao tác nhanh",
     "capture": "Thêm giao dịch",

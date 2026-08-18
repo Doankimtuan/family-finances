@@ -37,6 +37,7 @@ import { AppIcon } from "@/shared/ui/app-icon";
 import { IconContainer } from "@/shared/ui/icon-container";
 import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
 import { Text } from "@/shared/ui/text";
+import { FinancialOwnershipBadge } from "@/shared/patterns/financial-ownership-badge";
 import { MoneyOfflineBanner } from "../../money-offline-banner";
 import { moneyAccountVisualFor } from "../../money-account-visuals";
 import { AccountDetailManagement } from "./account-detail-management";
@@ -124,6 +125,7 @@ export default async function AccountDetailPage({
       accountId={account.id}
       initialName={account.name}
       initialType={account.type}
+      canMutate={account.canMutate}
     >
       {isCreditCard ? (
         <CreditCardRefundAction cardAccountId={account.id} />
@@ -169,6 +171,10 @@ export default async function AccountDetailPage({
         />
         <div className="flex flex-1 flex-col gap-(--space-6) px-(--page-gutter) pb-(--space-6) pt-(--space-4)">
           <MoneyOfflineBanner />
+          <FinancialOwnershipBadge
+            financialScope={account.financialScope}
+            isOwnedByMe={account.isOwnedByMe}
+          />
           <MotionReveal>
             <CreditCardHero
               title={accountName}
@@ -196,15 +202,17 @@ export default async function AccountDetailPage({
               }
             />
           </MotionReveal>
-          <MotionReveal>
-            <CreditCardDetailActions
-              card={card}
-              liquidAccounts={liquidAccounts}
-              currency={currency}
-              installments={installments ?? []}
-              eligiblePurchases={eligiblePurchases ?? []}
-            />
-          </MotionReveal>
+          {account.canMutate ? (
+            <MotionReveal>
+              <CreditCardDetailActions
+                card={card}
+                liquidAccounts={liquidAccounts}
+                currency={currency}
+                installments={installments ?? []}
+                eligiblePurchases={eligiblePurchases ?? []}
+              />
+            </MotionReveal>
+          ) : null}
         </div>
       </div>
     );
@@ -230,6 +238,10 @@ export default async function AccountDetailPage({
       />
       <div className="flex flex-1 flex-col gap-(--space-6) px-(--page-gutter) pb-(--space-6) pt-(--space-4)">
         <MoneyOfflineBanner />
+        <FinancialOwnershipBadge
+          financialScope={account.financialScope}
+          isOwnedByMe={account.isOwnedByMe}
+        />
         <MotionReveal>
           <FinancialAccountHero
             icon={accountVisual.icon}
@@ -251,18 +263,20 @@ export default async function AccountDetailPage({
             }
           />
         </MotionReveal>
-        <MotionReveal>
-          <section className="flex flex-col gap-(--space-3)">
-            <SectionHeader title={t("accountDetail.quickActions")} />
-            <Link
-              href={APP_PATH.MONEY_ADD}
-              className="inline-flex min-h-11 w-full items-center justify-center rounded-[var(--radius-control)] bg-accent px-(--space-4) text-sm font-medium text-accent-fg shadow-[var(--elevation-1)] transition-[transform,background-color] duration-[var(--duration-fast)] hover:-translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none"
-              data-testid="account-quick-capture"
-            >
-              {t("accountDetail.capture")}
-            </Link>
-          </section>
-        </MotionReveal>
+        {account.canMutate ? (
+          <MotionReveal>
+            <section className="flex flex-col gap-(--space-3)">
+              <SectionHeader title={t("accountDetail.quickActions")} />
+              <Link
+                href={APP_PATH.MONEY_ADD}
+                className="inline-flex min-h-11 w-full items-center justify-center rounded-[var(--radius-control)] bg-accent px-(--space-4) text-sm font-medium text-accent-fg shadow-[var(--elevation-1)] transition-[transform,background-color] duration-[var(--duration-fast)] hover:-translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none"
+                data-testid="account-quick-capture"
+              >
+                {t("accountDetail.capture")}
+              </Link>
+            </section>
+          </MotionReveal>
+        ) : null}
         <MotionReveal>
           <section className="flex flex-col gap-(--space-3)">
             <SectionHeader

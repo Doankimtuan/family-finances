@@ -8,6 +8,7 @@ import { TENANCY_OPERATION } from "./tenancy-constants";
  * Active household membership for money actions (AC-002 / REQ-002 / BR-02a / BR-12).
  */
 export type ActiveMembership = {
+  membershipId: string;
   householdId: string;
   userId: string;
   role: "partner" | "admin";
@@ -25,7 +26,7 @@ export async function resolveActiveMembership(
     const supabase = client ?? (await createSupabaseServerClient());
     const { data, error } = await supabase
       .from("household_members")
-      .select("household_id, role, user_id")
+      .select("id, household_id, role, user_id")
       .eq("user_id", userId)
       .eq("is_active", true)
       .maybeSingle();
@@ -42,6 +43,7 @@ export async function resolveActiveMembership(
 
     const role = data.role === "partner" ? "partner" : "admin";
     return {
+      membershipId: data.id,
       householdId: data.household_id,
       userId: data.user_id,
       role,

@@ -35,6 +35,8 @@ import { TextField } from "@/shared/ui/form";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Text } from "@/shared/ui/text";
 import { createDebtAction } from "../money-products-actions";
+import { FinancialScopeField } from "@/shared/patterns/financial-scope-field";
+import { FINANCIAL_SCOPE } from "@/modules/shared-kernel/application/financial-scope";
 
 type AccountOption = { id: string; name: string };
 type DebtCreateSheetProps = { accounts: AccountOption[]; today: string };
@@ -59,6 +61,7 @@ export function DebtCreateSheet({ accounts, today }: DebtCreateSheetProps) {
   } = useForm<CreateDebtFormValues>({
     resolver: zodResolver(createDebtFormSchema),
     defaultValues: {
+      financialScope: FINANCIAL_SCOPE.HOUSEHOLD,
       counterparty: "",
       direction: DebtDirection.BORROWED,
       creationMode: DebtCreationMode.EXISTING_BALANCE,
@@ -70,12 +73,14 @@ export function DebtCreateSheet({ accounts, today }: DebtCreateSheetProps) {
     },
   });
   const direction = useWatch({ control, name: "direction" });
+  const financialScope = useWatch({ control, name: "financialScope" });
   const creationMode = useWatch({ control, name: "creationMode" });
   const startDate = useWatch({ control, name: "startDate" });
   const moneyMovesNow = creationMode === DebtCreationMode.MONEY_MOVED;
 
   function reset() {
     resetForm({
+      financialScope: FINANCIAL_SCOPE.HOUSEHOLD,
       counterparty: "",
       direction: DebtDirection.BORROWED,
       creationMode: DebtCreationMode.EXISTING_BALANCE,
@@ -116,6 +121,7 @@ export function DebtCreateSheet({ accounts, today }: DebtCreateSheetProps) {
         counterparty: values.counterparty,
         direction: values.direction,
         creationMode: values.creationMode,
+        financialScope: values.financialScope,
         principalAmount: values.principalAmount,
         startDate: values.startDate,
         dueDate: values.dueDate,
@@ -155,6 +161,11 @@ export function DebtCreateSheet({ accounts, today }: DebtCreateSheetProps) {
             <StatusAlert variant="danger" title={tErrors(errorCode)} />
           ) : null}
           <FormGroupLabel>{t("create.relationship")}</FormGroupLabel>
+          <FinancialScopeField
+            value={financialScope ?? FINANCIAL_SCOPE.HOUSEHOLD}
+            onChange={(next) => setValue("financialScope", next)}
+            testId="debt-financial-scope"
+          />
           <ChoiceTileGroup
             hint={
               direction === DebtDirection.BORROWED

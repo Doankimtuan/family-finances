@@ -5,9 +5,16 @@ import {
   DEBT_DIRECTION_VALUES,
   ISO_DATE_PATTERN,
 } from "../ledger-constants";
+import {
+  FINANCIAL_SCOPE,
+  FINANCIAL_SCOPE_VALUES,
+} from "@/modules/shared-kernel/application/financial-scope";
 
 export const createDebtFormSchema = z
   .object({
+    financialScope: z
+      .enum(FINANCIAL_SCOPE_VALUES)
+      .default(FINANCIAL_SCOPE.HOUSEHOLD),
     counterparty: z.string().trim().min(1).max(80),
     direction: z.enum(DEBT_DIRECTION_VALUES),
     creationMode: z.enum(DEBT_CREATION_MODE_VALUES),
@@ -28,13 +35,13 @@ export const createDebtFormSchema = z
       context.addIssue({ code: z.ZodIssueCode.custom, path: ["dueDate"] });
     }
   });
-export type CreateDebtFormValues = z.infer<typeof createDebtFormSchema>;
+export type CreateDebtFormValues = z.input<typeof createDebtFormSchema>;
 
 export const createDebtInputSchema = createDebtFormSchema.extend({
   name: z.string().trim().min(1).max(80),
   idempotencyKey: z.string().trim().min(1).max(200),
 });
-export type CreateDebtInput = z.infer<typeof createDebtInputSchema>;
+export type CreateDebtInput = z.input<typeof createDebtInputSchema>;
 
 const recordDebtPaymentFieldsSchema = z.object({
   amount: z.number().finite().int().positive(),

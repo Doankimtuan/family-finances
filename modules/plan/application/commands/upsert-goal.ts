@@ -7,6 +7,7 @@ import {
   type ProductActionErrorCode,
 } from "@/modules/tenancy/application/product-action-error";
 import { assertPlanPeriodUnlocked } from "../assert-plan-unlocked";
+import { FINANCIAL_SCOPE } from "@/modules/shared-kernel/application/financial-scope";
 import { isGoalFundingSourceCompatible } from "../goal-funding";
 import {
   GoalStatus,
@@ -65,6 +66,8 @@ export async function createGoal(
         target_date: parsed.data.targetDate ?? null,
         status: GoalStatus.ACTIVE,
         created_by: gate.userId,
+        financial_scope: FINANCIAL_SCOPE.HOUSEHOLD,
+        owner_membership_id: null,
       })
       .select("id")
       .single();
@@ -189,7 +192,16 @@ export async function updateGoal(
       .eq("goal_id", parsed.data.goalId)
       .eq("household_id", gate.householdId)
       .eq("is_active", true);
-    if (activeLinksError || (activeLinks ?? []).some((link) => !isGoalFundingSourceCompatible(parsed.data.goalType, link.source_kind as never))) {
+    if (
+      activeLinksError ||
+      (activeLinks ?? []).some(
+        (link) =>
+          !isGoalFundingSourceCompatible(
+            parsed.data.goalType,
+            link.source_kind as never,
+          ),
+      )
+    ) {
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
     }
     const patch: Record<string, unknown> = {

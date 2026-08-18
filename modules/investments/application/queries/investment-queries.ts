@@ -19,6 +19,11 @@ import type {
   InvestmentHolding,
   InvestmentPortfolio,
 } from "../investment-types";
+import {
+  FINANCIAL_SCOPE,
+  isFinancialScope,
+} from "@/modules/shared-kernel/application/financial-scope";
+import { resolveFinancialCapabilities } from "@/modules/shared-kernel/application/financial-ownership";
 
 type HoldingRow = {
   id: string;
@@ -33,6 +38,8 @@ type HoldingRow = {
   quantity: string | number;
   remaining_total_cost_basis: string | number | null;
   notes: string | null;
+  financial_scope?: string | null;
+  owner_membership_id?: string | null;
 };
 
 type ValuationRow = {
@@ -68,9 +75,14 @@ function nullableNumber(value: string | number | null | undefined) {
 function mapHolding(
   row: HoldingRow,
   valuation?: ValuationRow,
+  activeMembershipId = "",
 ): InvestmentHolding {
   const basis = nullableNumber(row.remaining_total_cost_basis);
   const currentValue = valuation ? Number(valuation.value_vnd) : null;
+  const rawFinancialScope = row.financial_scope ?? "";
+  const financialScope = isFinancialScope(rawFinancialScope)
+    ? rawFinancialScope
+    : FINANCIAL_SCOPE.HOUSEHOLD;
   return {
     id: row.id,
     householdId: row.household_id,
@@ -87,6 +99,13 @@ function mapHolding(
     currentValuationDate: valuation?.valuation_date ?? null,
     unrealizedResult: deriveUnrealizedResult(currentValue, basis),
     notes: row.notes,
+    ownership: resolveFinancialCapabilities(
+      {
+        financialScope,
+        ownerMembershipId: row.owner_membership_id ?? null,
+      },
+      activeMembershipId,
+    ),
   };
 }
 
@@ -165,7 +184,7 @@ async function loadHoldings(): Promise<InvestmentHolding[] | null> {
       supabase
         .from("investment_holdings")
         .select(
-          "id, household_id, name, symbol, asset_class, provider_custodian, visibility_context, lifecycle_status, history_status, quantity, remaining_total_cost_basis, notes",
+          "id, household_id, name, symbol, asset_class, provider_custodian, visibility_context, lifecycle_status, history_status, quantity, remaining_total_cost_basis, notes, financial_scope, owner_membership_id",
         )
         .eq("household_id", gate.householdId)
         .order("created_at", { ascending: true }),
@@ -189,7 +208,7 @@ async function loadHoldings(): Promise<InvestmentHolding[] | null> {
       if (!latest.has(row.holding_id)) latest.set(row.holding_id, row);
     }
     return ((holdings ?? []) as HoldingRow[]).map((row) =>
-      mapHolding(row, latest.get(row.id)),
+      mapHolding(row, latest.get(row.id), gate.membershipId),
     );
   } catch (error) {
     logActionFailure({

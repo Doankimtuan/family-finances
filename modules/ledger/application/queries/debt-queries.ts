@@ -11,7 +11,7 @@ import {
 import { LEDGER_OPERATION, logLedgerFailure } from "../ledger-error";
 
 const DEBT_SELECT =
-  "id, name, creditor, principal_amount, remaining_amount, currency, direction, creation_mode, start_date, due_date, note, status, origin_account_id, origin_transaction_id, is_archived";
+  "id, name, creditor, principal_amount, remaining_amount, currency, direction, creation_mode, start_date, due_date, note, status, origin_account_id, origin_transaction_id, is_archived, financial_scope, owner_membership_id";
 
 async function loadDebts(): Promise<Debt[] | null> {
   const gate = await assertMoneyActionAllowed();
@@ -31,7 +31,7 @@ async function loadDebts(): Promise<Debt[] | null> {
       });
       return null;
     }
-    return (data ?? []).map(mapDebtRow);
+    return (data ?? []).map((row) => mapDebtRow(row, gate.membershipId));
   } catch (error) {
     logLedgerFailure(error, LEDGER_OPERATION.LIST_DEBTS, {
       householdId: gate.householdId,
@@ -65,7 +65,7 @@ export async function getDebt(debtId: string): Promise<Debt | null> {
     if (data == null) {
       return null;
     }
-    return mapDebtRow(data);
+    return mapDebtRow(data, gate.membershipId);
   } catch (error) {
     logLedgerFailure(error, LEDGER_OPERATION.GET_DEBT, {
       householdId: gate.householdId,

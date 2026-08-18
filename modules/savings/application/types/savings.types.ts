@@ -22,6 +22,7 @@ import type {
   SavingsTaxRule,
   EarlySettlementRule,
 } from "../savings-domain-rules";
+import type { FinancialCapabilities } from "@/modules/shared-kernel/application/financial-ownership";
 
 /** Saved preference config — never auto-executes ledger (BR-01). */
 export type RenewalConfig = {
@@ -166,6 +167,7 @@ export type Saving = {
   createdAt: string;
   latestCycle: SavingCycle | null;
   maturityActionRequired?: boolean;
+  ownership: FinancialCapabilities;
 };
 
 /** Individual cycle within a saving. */

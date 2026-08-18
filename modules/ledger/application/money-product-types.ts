@@ -25,6 +25,12 @@ import {
   type LoanStatus as LoanStatusValue,
   type LoanType as LoanTypeValue,
 } from "./ledger-constants";
+import {
+  FINANCIAL_SCOPE,
+  isFinancialScope,
+} from "@/modules/shared-kernel/application/financial-scope";
+import { resolveFinancialCapabilities } from "@/modules/shared-kernel/application/financial-ownership";
+import type { FinancialCapabilities } from "@/modules/shared-kernel/application/financial-ownership";
 
 export const LiabilityStatus = {
   OPEN: "open",
@@ -45,6 +51,7 @@ export type Liability = {
   note: string | null;
   isArchived: boolean;
   status: LiabilityStatus;
+  ownership: FinancialCapabilities;
 };
 
 export const SavingsProductStatus = {
@@ -107,7 +114,25 @@ export type Loan = {
   remainingPayments: number;
   principalPaid: number;
   interestPaid: number;
+  ownership: FinancialCapabilities;
 };
+
+function mapOwnership(
+  financialScope: string | null | undefined,
+  ownerMembershipId: string | null | undefined,
+  activeMembershipId = "",
+): FinancialCapabilities {
+  const rawScope = financialScope ?? "";
+  return resolveFinancialCapabilities(
+    {
+      financialScope: isFinancialScope(rawScope)
+        ? rawScope
+        : FINANCIAL_SCOPE.HOUSEHOLD,
+      ownerMembershipId: ownerMembershipId ?? null,
+    },
+    activeMembershipId,
+  );
+}
 
 /** @deprecated Use Loan. */
 export type InstallmentPlan = Loan;
@@ -148,17 +173,22 @@ export type LoanInterestRatePeriod = {
   createdAt: string;
 };
 
-export function mapLiabilityRow(row: {
-  id: string;
-  name: string;
-  creditor: string | null;
-  principal_amount: number | string;
-  remaining_amount: number | string;
-  currency: string;
-  due_day: number | null;
-  note: string | null;
-  is_archived: boolean;
-}): Liability {
+export function mapLiabilityRow(
+  row: {
+    id: string;
+    name: string;
+    creditor: string | null;
+    principal_amount: number | string;
+    remaining_amount: number | string;
+    currency: string;
+    due_day: number | null;
+    note: string | null;
+    is_archived: boolean;
+    financial_scope?: string | null;
+    owner_membership_id?: string | null;
+  },
+  activeMembershipId = "",
+): Liability {
   const remaining =
     typeof row.remaining_amount === "string"
       ? Number(row.remaining_amount)
@@ -180,6 +210,11 @@ export function mapLiabilityRow(row: {
       remaining <= 0 || row.is_archived
         ? LiabilityStatus.PAID
         : LiabilityStatus.OPEN,
+    ownership: mapOwnership(
+      row.financial_scope,
+      row.owner_membership_id,
+      activeMembershipId,
+    ),
   };
 }
 
@@ -244,12 +279,15 @@ export function mapLoanRow(
     status: string;
     note: string | null;
     due_day?: number | null;
+    financial_scope?: string | null;
+    owner_membership_id?: string | null;
   },
   aggregates?: {
     principalPaid?: number;
     interestPaid?: number;
     remainingPayments?: number;
   },
+  activeMembershipId = "",
 ): Loan {
   const principal =
     typeof row.principal === "string"
@@ -365,6 +403,11 @@ export function mapLoanRow(
     principalPaid:
       aggregates?.principalPaid ?? Math.max(0, principal - remaining),
     interestPaid: aggregates?.interestPaid ?? 0,
+    ownership: mapOwnership(
+      row.financial_scope,
+      row.owner_membership_id,
+      activeMembershipId,
+    ),
   };
 }
 

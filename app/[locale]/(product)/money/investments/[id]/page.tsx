@@ -33,6 +33,7 @@ import { Amount } from "@/shared/patterns/amount";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Text } from "@/shared/ui/text";
+import { FinancialOwnershipBadge } from "@/shared/patterns/financial-ownership-badge";
 
 type Props = {
   params: Promise<{ id: string; locale: string }>;
@@ -166,6 +167,10 @@ export default async function InvestmentDetailPage({
         className="rounded-(--radius-card) bg-surface-elevated p-(--space-5)"
         data-testid="investment-detail-hero"
       >
+        <FinancialOwnershipBadge
+          financialScope={holding.ownership.financialScope}
+          isOwnedByMe={holding.ownership.isOwnedByMe}
+        />
         <Text size="sm" tone="secondary">
           {ux.title} · {providerDisplay}
         </Text>
@@ -209,7 +214,7 @@ export default async function InvestmentDetailPage({
           </Text>
         )}
       </section>
-      {!isClosed ? (
+      {!isClosed && holding.ownership.canMutate ? (
         <div className="grid grid-cols-2 gap-(--space-2)">
           <Link
             href={moneyInvestmentBuyPath(holding.id)}
@@ -364,7 +369,7 @@ export default async function InvestmentDetailPage({
           )}
         </div>
       </Section>
-      {!isClosed ? (
+      {!isClosed && holding.ownership.canMutate ? (
         <div className="grid grid-cols-2 gap-(--space-2)">
           <Link
             href={moneyInvestmentIncomePath(holding.id)}

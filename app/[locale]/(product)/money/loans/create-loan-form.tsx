@@ -37,6 +37,8 @@ import {
   type CreateLoanInput,
 } from "@/modules/ledger/application/client";
 import { createLoanAction } from "../money-products-actions";
+import { FinancialScopeField } from "@/shared/patterns/financial-scope-field";
+import { FINANCIAL_SCOPE } from "@/modules/shared-kernel/application/financial-scope";
 
 function todayYmd(): string {
   return new Date().toISOString().slice(0, 10);
@@ -46,6 +48,7 @@ type FormValues = CreateLoanInput;
 
 const DEFAULT_VALUES = {
   name: "",
+  financialScope: FINANCIAL_SCOPE.HOUSEHOLD,
   lender: "",
   loanType: LoanType.OTHER,
   principal: undefined,
@@ -81,6 +84,7 @@ export function CreateLoanForm() {
     control,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(createLoanInputSchema),
@@ -105,6 +109,7 @@ export function CreateLoanForm() {
   const annualInterestRate = useWatch({ control, name: "annualInterestRate" });
   const termUnit = useWatch({ control, name: "termUnit" });
   const repaymentMethod = useWatch({ control, name: "repaymentMethod" });
+  const financialScope = useWatch({ control, name: "financialScope" });
   const promoFixedRate = useWatch({ control, name: "promoFixedRate" });
   const promoFloatingRate = useWatch({ control, name: "promoFloatingRate" });
   const interestStrategy = interestStrategyValue ?? LoanInterestStrategy.FIXED;
@@ -311,6 +316,11 @@ export function CreateLoanForm() {
         label={t("nameLabel")}
         registration={register("name")}
         error={error("name")}
+      />
+      <FinancialScopeField
+        value={financialScope ?? FINANCIAL_SCOPE.HOUSEHOLD}
+        onChange={(next) => setValue("financialScope", next)}
+        testId="loan-financial-scope"
       />
       <TextField
         id="loan-lender"

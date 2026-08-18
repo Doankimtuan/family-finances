@@ -8,6 +8,7 @@ import type {
   InvestmentValuationSource,
   InvestmentVisibilityContext,
 } from "./investment-constants";
+import type { FinancialCapabilities } from "@/modules/shared-kernel/application/financial-ownership";
 
 export type InvestmentFeeInput = {
   source: InvestmentFeeSource;
@@ -35,6 +36,7 @@ export type InvestmentHolding = {
   currentValuationDate: string | null;
   unrealizedResult: number | null;
   notes: string | null;
+  ownership: FinancialCapabilities;
 };
 
 export type InvestmentActivity = {

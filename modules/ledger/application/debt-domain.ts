@@ -14,6 +14,12 @@ import {
   type DebtProgressState as DebtProgressStateValue,
   type DebtStatus as DebtStatusValue,
 } from "./ledger-constants";
+import type { FinancialCapabilities } from "@/modules/shared-kernel/application/financial-ownership";
+import {
+  FINANCIAL_SCOPE,
+  isFinancialScope,
+} from "@/modules/shared-kernel/application/financial-scope";
+import { resolveFinancialCapabilities } from "@/modules/shared-kernel/application/financial-ownership";
 
 const DAY_IN_MILLISECONDS = 86_400_000;
 
@@ -33,6 +39,7 @@ export type Debt = {
   originAccountId: string | null;
   originTransactionId: string | null;
   isArchived: boolean;
+  ownership: FinancialCapabilities;
 };
 
 export type DebtPayment = {
@@ -85,9 +92,7 @@ function ymdToUtc(isoDate: string): number {
   return Date.UTC(year, month - 1, day);
 }
 
-function asDebtDirection(
-  value: string | null | undefined,
-): DebtDirectionValue {
+function asDebtDirection(value: string | null | undefined): DebtDirectionValue {
   return value === DebtDirection.LENT
     ? DebtDirection.LENT
     : DebtDirection.BORROWED;
@@ -117,9 +122,7 @@ function resolveDebtStatus(
   return DebtStatus.ACTIVE;
 }
 
-function asDebtPaymentDirection(
-  value: string,
-): DebtPaymentDirectionValue {
+function asDebtPaymentDirection(value: string): DebtPaymentDirectionValue {
   return value === DebtPaymentDirection.RECEIVE_LENT
     ? DebtPaymentDirection.RECEIVE_LENT
     : DebtPaymentDirection.REPAY_BORROWED;
@@ -132,10 +135,7 @@ function debtProgressPercent(
 ): number {
   if (principal === 0 || paidAmount <= 0) return 0;
   if (remainingAmount === 0) return 100;
-  return Math.min(
-    99,
-    Math.max(1, Math.round((paidAmount / principal) * 100)),
-  );
+  return Math.min(99, Math.max(1, Math.round((paidAmount / principal) * 100)));
 }
 
 function debtProgressState(
@@ -147,28 +147,37 @@ function debtProgressState(
   return DebtProgressState.IN_PROGRESS;
 }
 
-export function mapDebtRow(row: {
-  id: string;
-  name: string;
-  creditor: string | null;
-  principal_amount: number | string;
-  remaining_amount: number | string;
-  currency: string;
-  direction?: string | null;
-  creation_mode?: string | null;
-  start_date?: string | null;
-  due_date?: string | null;
-  note: string | null;
-  status?: string | null;
-  origin_account_id?: string | null;
-  origin_transaction_id?: string | null;
-  is_archived: boolean;
-}): Debt {
+export function mapDebtRow(
+  row: {
+    id: string;
+    name: string;
+    creditor: string | null;
+    principal_amount: number | string;
+    remaining_amount: number | string;
+    currency: string;
+    direction?: string | null;
+    creation_mode?: string | null;
+    start_date?: string | null;
+    due_date?: string | null;
+    note: string | null;
+    status?: string | null;
+    origin_account_id?: string | null;
+    origin_transaction_id?: string | null;
+    is_archived: boolean;
+    financial_scope?: string | null;
+    owner_membership_id?: string | null;
+  },
+  activeMembershipId = "",
+): Debt {
   const remainingAmount = Math.max(0, asWholeMoney(row.remaining_amount));
   const principalAmount = Math.max(
     remainingAmount,
     asWholeMoney(row.principal_amount),
   );
+  const rawFinancialScope = row.financial_scope ?? "";
+  const financialScope = isFinancialScope(rawFinancialScope)
+    ? rawFinancialScope
+    : FINANCIAL_SCOPE.HOUSEHOLD;
   return {
     id: row.id,
     name: row.name,
@@ -185,6 +194,13 @@ export function mapDebtRow(row: {
     originAccountId: row.origin_account_id ?? null,
     originTransactionId: row.origin_transaction_id ?? null,
     isArchived: row.is_archived,
+    ownership: resolveFinancialCapabilities(
+      {
+        financialScope,
+        ownerMembershipId: row.owner_membership_id ?? null,
+      },
+      activeMembershipId,
+    ),
   };
 }
 

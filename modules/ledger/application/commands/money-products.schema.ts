@@ -9,10 +9,17 @@ import {
   LOAN_TERM_UNIT_VALUES,
   LOAN_TYPE_VALUES,
 } from "../ledger-constants";
+import {
+  FINANCIAL_SCOPE,
+  FINANCIAL_SCOPE_VALUES,
+} from "@/modules/shared-kernel/application/financial-scope";
 
 /** Client-safe canonical validation for creating a loan. */
 export const createLoanInputSchema = z
   .object({
+    financialScope: z
+      .enum(FINANCIAL_SCOPE_VALUES)
+      .default(FINANCIAL_SCOPE.HOUSEHOLD),
     name: z.string().trim().min(1).max(80),
     lender: z.string().trim().max(80).optional(),
     loanType: z.enum(LOAN_TYPE_VALUES).optional().default(LoanType.OTHER),
@@ -23,7 +30,13 @@ export const createLoanInputSchema = z
       .optional()
       .default(LoanInterestStrategy.FIXED),
     promoFixedRate: z.number().finite().min(0).max(100).optional().nullable(),
-    promoFixedMonths: z.number().int().positive().max(600).optional().nullable(),
+    promoFixedMonths: z
+      .number()
+      .int()
+      .positive()
+      .max(600)
+      .optional()
+      .nullable(),
     promoFloatingRate: z
       .number()
       .finite()
@@ -41,7 +54,10 @@ export const createLoanInputSchema = z
       .optional()
       .default(LoanRepaymentMethod.FIXED_MONTHLY),
     termValue: z.number().int().positive().max(600),
-    termUnit: z.enum(LOAN_TERM_UNIT_VALUES).optional().default(LoanTermUnit.MONTHS),
+    termUnit: z
+      .enum(LOAN_TERM_UNIT_VALUES)
+      .optional()
+      .default(LoanTermUnit.MONTHS),
     startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     firstPaymentDate: z
       .string()
@@ -51,7 +67,9 @@ export const createLoanInputSchema = z
     note: z.string().trim().max(200).optional(),
   })
   .superRefine((data, ctx) => {
-    if (data.interestStrategy !== LoanInterestStrategy.PROMO_FIXED_TO_FLOATING) {
+    if (
+      data.interestStrategy !== LoanInterestStrategy.PROMO_FIXED_TO_FLOATING
+    ) {
       return;
     }
     if (data.promoFixedMonths == null || data.promoFixedMonths <= 0) {
@@ -61,7 +79,10 @@ export const createLoanInputSchema = z
       ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["promoFixedRate"] });
     }
     if (data.promoFloatingRate == null) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["promoFloatingRate"] });
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["promoFloatingRate"],
+      });
     }
   });
 

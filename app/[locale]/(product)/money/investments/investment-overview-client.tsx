@@ -36,6 +36,7 @@ import { AppIcon } from "@/shared/ui/app-icon";
 import { Section } from "@/shared/patterns/section";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Text } from "@/shared/ui/text";
+import { FinancialOwnershipBadge } from "@/shared/patterns/financial-ownership-badge";
 
 const CHART_COLORS = ["#2563eb", "#16a34a", "#9333ea", "#d97706", "#64748b"];
 const CRYPTO_DECIMAL_DIGITS = 8;
@@ -111,6 +112,10 @@ function PositionCard({
                   {holding.providerCustodian || t("noProvider")} ·{" "}
                   {config.title}
                 </Text>
+                <FinancialOwnershipBadge
+                  financialScope={holding.ownership.financialScope}
+                  isOwnedByMe={holding.ownership.isOwnedByMe}
+                />
               </div>
               <Text size="sm" tone="secondary" className="whitespace-nowrap">
                 {quantity}

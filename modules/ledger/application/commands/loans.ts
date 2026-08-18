@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
+import { resolveCreationOwnership } from "@/modules/tenancy/application/resolve-creation-ownership";
 import {
   PRODUCT_ACTION_ERROR_CODE,
   productActionErrorFromDeniedReason,
@@ -115,6 +116,13 @@ export async function createLoan(
       code: productActionErrorFromDeniedReason(gate.reason),
     };
   }
+  const ownership = await resolveCreationOwnership(
+    gate.householdId,
+    parsed.data.financialScope,
+  );
+  if (!ownership) {
+    return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.NO_MEMBERSHIP };
+  }
 
   const termMonths = normalizeTermToMonths(
     parsed.data.termValue,
@@ -211,6 +219,7 @@ export async function createLoan(
         p_currency: DEFAULT_CURRENCY,
         p_schedule: schedule.entries,
         p_rate_periods: ratePeriods,
+        p_financial_scope: ownership.financialScope,
       },
     );
     if (error) {

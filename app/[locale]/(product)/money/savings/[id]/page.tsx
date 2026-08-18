@@ -39,6 +39,7 @@ import {
 import { MotionReveal } from "@/shared/motion";
 import { Text } from "@/shared/ui/text";
 import { StatusAlert } from "@/shared/ui/status-alert";
+import { FinancialOwnershipBadge } from "@/shared/patterns/financial-ownership-badge";
 import { MoneyOfflineBanner } from "../../money-offline-banner";
 import { RenewalPolicyEditor } from "./renewal-policy-editor";
 import { SavingsSettlementFlow } from "./settlement-flow";
@@ -87,8 +88,11 @@ export default async function SavingsDetailPage({ params }: Props) {
 
   const model = buildSavingsDetailModel(item);
   const cycle = item.latestCycle;
+  const canMutate = item.ownership.canMutate;
   const canAct =
-    item.status === SavingStatus.ACTIVE || item.status === SavingStatus.MATURED;
+    canMutate &&
+    (item.status === SavingStatus.ACTIVE ||
+      item.status === SavingStatus.MATURED);
   const [activities, packagesResult, accountsResult] = await Promise.all([
     listSavingsFinancialActivities(id, cycles ?? []),
     canAct ? listProviderPackages(item.providerId) : Promise.resolve(null),
@@ -190,6 +194,10 @@ export default async function SavingsDetailPage({ params }: Props) {
               {stateLabel}
             </span>
           </div>
+          <FinancialOwnershipBadge
+            financialScope={item.ownership.financialScope}
+            isOwnedByMe={item.ownership.isOwnedByMe}
+          />
           <Amount
             className="mt-(--space-5)"
             label={t("principalHeroLabel")}

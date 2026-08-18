@@ -9,7 +9,12 @@ import {
 export type { MoneyActionDeniedReason };
 
 export type MoneyActionAllowance =
-  | { ok: true; userId: string; householdId: string }
+  | {
+      ok: true;
+      userId: string;
+      householdId: string;
+      membershipId: string;
+    }
   | { ok: false; reason: MoneyActionDeniedReason };
 
 /**
@@ -33,6 +38,7 @@ export const assertMoneyActionAllowed = cache(
       ok: true,
       userId: user.id,
       householdId: membership.householdId,
+      membershipId: membership.membershipId,
     };
   },
 );

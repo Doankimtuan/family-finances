@@ -12,6 +12,7 @@ import { StatusAlert } from "@/shared/ui/status-alert";
 import { AmountField } from "@/shared/patterns/amount-field";
 import { Dialog, DialogContent } from "@/shared/patterns/dialog";
 import { Sheet, SheetContent } from "@/shared/patterns/sheet";
+import { FinancialScopeField } from "@/shared/patterns/financial-scope-field";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import {
   CLIENT_ACTION_ERROR_CODE,
@@ -36,6 +37,7 @@ import {
 import { TransactionReceipt } from "../transactions/transaction-receipt";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import { DEFAULT_CURRENCY } from "@/modules/ledger/application/ledger-constants";
+import { FINANCIAL_SCOPE } from "@/modules/shared-kernel/application/financial-scope";
 
 type ErrorCode =
   ProductActionErrorCode | typeof CLIENT_ACTION_ERROR_CODE.OFFLINE;
@@ -104,6 +106,7 @@ export function AddAccountForm({
       name: "",
       type: AccountType.CASH,
       openingBalance: 0,
+      financialScope: FINANCIAL_SCOPE.HOUSEHOLD,
       creditCard: undefined,
     },
   });
@@ -137,6 +140,7 @@ export function AddAccountForm({
           name: values.name,
           type: AccountType.CREDIT_CARD,
           openingBalance: 0,
+          financialScope: values.financialScope,
           creditCard: {
             ...creditCard,
           },
@@ -159,15 +163,16 @@ export function AddAccountForm({
     startTransition(async () => {
       const result = await createAccountAction({
         name: values.name,
-        type: values.type,
-        openingBalance: values.openingBalance,
+        type: values.type ?? AccountType.OTHER,
+        openingBalance: values.openingBalance ?? 0,
+        financialScope: values.financialScope ?? FINANCIAL_SCOPE.HOUSEHOLD,
       });
       if (result.status === "success") {
         setReceipt({
           accountId: result.accountId,
           accountName: values.name,
-          accountType: values.type,
-          openingBalance: values.openingBalance,
+          accountType: values.type ?? AccountType.OTHER,
+          openingBalance: values.openingBalance ?? 0,
           creditLimit: null,
         });
         return;
@@ -287,6 +292,18 @@ export function AddAccountForm({
         placeholder={t("namePlaceholder")}
         registration={register("name")}
         error={errors.name ? t("errors.invalid") : undefined}
+      />
+      <Controller
+        control={control}
+        name="financialScope"
+        render={({ field, fieldState }) => (
+          <FinancialScopeField
+            value={field.value ?? FINANCIAL_SCOPE.HOUSEHOLD}
+            onChange={field.onChange}
+            error={fieldState.error ? t("errors.invalid") : undefined}
+            testId="account-financial-scope"
+          />
+        )}
       />
       <SelectField
         id="account-type"

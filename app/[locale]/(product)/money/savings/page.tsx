@@ -33,6 +33,7 @@ import { ErrorState } from "@/shared/patterns/error-state";
 import { MotionReveal } from "@/shared/motion";
 import { Text } from "@/shared/ui/text";
 import { AppIcon } from "@/shared/ui/app-icon";
+import { FinancialOwnershipBadge } from "@/shared/patterns/financial-ownership-badge";
 import { BankIcon, SmartPhoneIcon } from "@hugeicons/core-free-icons";
 import { MoneyOfflineBanner } from "../money-offline-banner";
 import { SavingsLifecycleSync } from "./savings-lifecycle-sync";
@@ -140,6 +141,10 @@ export default async function SavingsPage({ params }: Props) {
                             {t(`maturityState.${state}`)}
                           </span>
                         </div>
+                        <FinancialOwnershipBadge
+                          financialScope={item.ownership.financialScope}
+                          isOwnedByMe={item.ownership.isOwnedByMe}
+                        />
                         <Amount
                           className="mt-(--space-3)"
                           label={tProducts("principalLabel")}

@@ -14,6 +14,8 @@ import { listAccounts } from "@/modules/ledger/application";
 import { Page } from "@/shared/patterns/page";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { EmptyState } from "@/shared/patterns/empty-state";
+import { FinancialOwnershipBadge } from "@/shared/patterns/financial-ownership-badge";
+import { StatusAlert } from "@/shared/ui/status-alert";
 import { InvestmentOperationForm } from "./investment-operation-form";
 
 type Props = { mode: InvestmentFormMode; holdingId?: string };
@@ -55,15 +57,23 @@ export async function InvestmentOperationPage({ mode, holdingId }: Props) {
         />
       }
     >
-      <InvestmentOperationForm
-        mode={mode}
-        holding={holding}
-        holdings={portfolio.holdings}
-        accounts={(accounts?.accounts ?? []).map((account) => ({
-          id: account.id,
-          name: account.name,
-        }))}
+      <FinancialOwnershipBadge
+        financialScope={holding.ownership.financialScope}
+        isOwnedByMe={holding.ownership.isOwnedByMe}
       />
+      {!holding.ownership.canMutate ? (
+        <StatusAlert variant="info" title={t("partnerReadOnly")} />
+      ) : (
+        <InvestmentOperationForm
+          mode={mode}
+          holding={holding}
+          holdings={portfolio.holdings}
+          accounts={(accounts?.accounts ?? []).map((account) => ({
+            id: account.id,
+            name: account.name,
+          }))}
+        />
+      )}
       <Link
         href={moneyInvestmentPath(holding.id)}
         className="text-sm font-medium text-accent"

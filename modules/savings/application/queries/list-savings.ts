@@ -87,7 +87,7 @@ async function loadSavings(): Promise<Saving[] | null> {
       .from("savings")
       .select(
         `id, household_id, status, funding_account_id, settlement_account_id,
-         provider_id, product_name, product_snapshot, renewal_policy, renewal_config, maturity_instruction, created_at,
+         provider_id, product_name, product_snapshot, renewal_policy, renewal_config, maturity_instruction, created_at, financial_scope, owner_membership_id,
          funding_accounts:funding_account_id(name),
          settlement_accounts:settlement_account_id(name),
          saving_providers:provider_id(display_name, provider_key, saving_type)`,
@@ -102,7 +102,9 @@ async function loadSavings(): Promise<Saving[] | null> {
       return null;
     }
 
-    const savings = (data ?? []).map(mapSavingRow);
+    const savings = (data ?? []).map((row) =>
+      mapSavingRow(row, gate.membershipId),
+    );
 
     const cycleRows = await loadCycleRows(
       supabase,
@@ -173,7 +175,7 @@ export async function getSaving(savingId: string): Promise<Saving | null> {
       .from("savings")
       .select(
         `id, household_id, status, funding_account_id, settlement_account_id,
-         provider_id, product_name, product_snapshot, renewal_policy, renewal_config, maturity_instruction, created_at,
+         provider_id, product_name, product_snapshot, renewal_policy, renewal_config, maturity_instruction, created_at, financial_scope, owner_membership_id,
          funding_accounts:funding_account_id(name),
          settlement_accounts:settlement_account_id(name),
          saving_providers:provider_id(display_name, provider_key, saving_type)`,
@@ -191,7 +193,7 @@ export async function getSaving(savingId: string): Promise<Saving | null> {
     }
     if (!data) return null;
 
-    const saving = mapSavingRow(data);
+    const saving = mapSavingRow(data, gate.membershipId);
 
     // Load all cycles
     const { data: cycles } = await supabase

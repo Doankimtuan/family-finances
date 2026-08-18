@@ -576,17 +576,20 @@ async function preflight() {
       checks.push({ identity: key, ready: false, reason: error.message });
     }
   }
+  const allReady = checks.length === 2 && checks.every((check) => check.ready);
   const sameHousehold =
-    checks.every((check) => check.ready) &&
+    allReady &&
     checks.every(
       (check) =>
-        check.membership.household_id === checks[0].membership.household_id,
+        check.membership?.household_id === checks[0].membership?.household_id,
     );
-  const roles = checks.every(
-    (check) =>
-      check.membership.role ===
-      (check.identity === "admin" ? HARNESS.roleAdmin : HARNESS.rolePartner),
-  );
+  const roles =
+    allReady &&
+    checks.every(
+      (check) =>
+        check.membership?.role ===
+        (check.identity === "admin" ? HARNESS.roleAdmin : HARNESS.rolePartner),
+    );
   return {
     ready:
       checks.length === 2 &&

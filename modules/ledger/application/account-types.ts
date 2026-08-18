@@ -3,6 +3,12 @@ import {
   ACCOUNT_TYPE_VALUES,
   type AccountType as AccountTypeValue,
 } from "./ledger-constants";
+import {
+  FINANCIAL_SCOPE,
+  isFinancialScope,
+  type FinancialScope,
+} from "@/modules/shared-kernel/application/financial-scope";
+import { resolveFinancialCapabilities } from "@/modules/shared-kernel/application/financial-ownership";
 
 export { AccountType } from "./ledger-constants";
 
@@ -15,6 +21,11 @@ export type LedgerAccount = {
   /** Minor-unit integer (VND whole đồng). Real ledger position for this account. */
   balance: number;
   isArchived: boolean;
+  financialScope: FinancialScope;
+  ownerMembershipId: string | null;
+  isPersonal: boolean;
+  isOwnedByMe: boolean;
+  canMutate: boolean;
 };
 
 export type RealPosition = {
@@ -32,13 +43,29 @@ function asAccountType(value: string): AccountTypeValue {
   return AccountType.CASH;
 }
 
-export function mapAccountRow(row: {
-  id: string;
-  name: string;
-  type: string;
-  opening_balance: number | string;
-  is_archived: boolean;
-}): LedgerAccount {
+export function mapAccountRow(
+  row: {
+    id: string;
+    name: string;
+    type: string;
+    opening_balance: number | string;
+    is_archived: boolean;
+    financial_scope?: string | null;
+    owner_membership_id?: string | null;
+  },
+  activeMembershipId?: string,
+): LedgerAccount {
+  const rawFinancialScope = row.financial_scope ?? "";
+  const financialScope = isFinancialScope(rawFinancialScope)
+    ? rawFinancialScope
+    : FINANCIAL_SCOPE.HOUSEHOLD;
+  const ownership = resolveFinancialCapabilities(
+    {
+      financialScope,
+      ownerMembershipId: row.owner_membership_id ?? null,
+    },
+    activeMembershipId ?? "",
+  );
   const balance =
     typeof row.opening_balance === "string"
       ? Number(row.opening_balance)
@@ -49,5 +76,6 @@ export function mapAccountRow(row: {
     type: asAccountType(row.type),
     balance: Number.isFinite(balance) ? balance : 0,
     isArchived: Boolean(row.is_archived),
+    ...ownership,
   };
 }

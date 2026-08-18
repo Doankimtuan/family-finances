@@ -30,7 +30,7 @@ export async function listLiabilities(): Promise<Liability[] | null> {
     const { data, error } = await supabase
       .from("liabilities")
       .select(
-        "id, name, creditor, principal_amount, remaining_amount, currency, due_day, note, is_archived",
+        "id, name, creditor, principal_amount, remaining_amount, currency, due_day, note, is_archived, financial_scope, owner_membership_id",
       )
       .eq("household_id", gate.householdId)
       .eq("is_archived", false)
@@ -42,7 +42,7 @@ export async function listLiabilities(): Promise<Liability[] | null> {
       });
       return null;
     }
-    return (data ?? []).map(mapLiabilityRow);
+    return (data ?? []).map((row) => mapLiabilityRow(row, gate.membershipId));
   } catch (error) {
     logLedgerFailure(error, LEDGER_OPERATION.LIST_LIABILITIES, {
       householdId: gate.householdId,
@@ -62,7 +62,7 @@ export async function getLiability(
     const { data, error } = await supabase
       .from("liabilities")
       .select(
-        "id, name, creditor, principal_amount, remaining_amount, currency, due_day, note, is_archived",
+        "id, name, creditor, principal_amount, remaining_amount, currency, due_day, note, is_archived, financial_scope, owner_membership_id",
       )
       .eq("household_id", gate.householdId)
       .eq("id", liabilityId)
@@ -76,7 +76,7 @@ export async function getLiability(
       return null;
     }
     if (!data) return null;
-    return mapLiabilityRow(data);
+    return mapLiabilityRow(data, gate.membershipId);
   } catch (error) {
     logLedgerFailure(error, LEDGER_OPERATION.GET_LIABILITY, {
       householdId: gate.householdId,
@@ -152,7 +152,7 @@ export async function getSavingsProduct(
 }
 
 const LOAN_SELECT =
-  "id, name, lender, loan_type, principal, remaining_principal, annual_interest_rate, interest_strategy, promo_fixed_rate, promo_fixed_months, promo_floating_rate, promo_rate_effective_on, start_date, expected_end_date, first_payment_date, repayment_frequency, repayment_method, term_months, monthly_payment, total_interest, total_repayment, next_payment_date, currency, status, note, due_day";
+  "id, name, lender, loan_type, principal, remaining_principal, annual_interest_rate, interest_strategy, promo_fixed_rate, promo_fixed_months, promo_floating_rate, promo_rate_effective_on, start_date, expected_end_date, first_payment_date, repayment_frequency, repayment_method, term_months, monthly_payment, total_interest, total_repayment, next_payment_date, currency, status, note, due_day, financial_scope, owner_membership_id";
 
 async function loanAggregates(
   supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
@@ -227,7 +227,7 @@ async function loadLoans(): Promise<Loan[] | null> {
           row.id,
           LEDGER_OPERATION.LIST_LOANS,
         );
-        return mapLoanRow(row, aggregates);
+        return mapLoanRow(row, aggregates, gate.membershipId);
       }),
     );
   } catch (error) {
@@ -270,7 +270,7 @@ export async function getLoan(loanId: string): Promise<Loan | null> {
       loanId,
       LEDGER_OPERATION.GET_LOAN,
     );
-    return mapLoanRow(data, aggregates);
+    return mapLoanRow(data, aggregates, gate.membershipId);
   } catch (error) {
     logLedgerFailure(error, LEDGER_OPERATION.GET_LOAN, {
       householdId: gate.householdId,

@@ -123,6 +123,11 @@ describe("mapAccountRow", () => {
       type: "cash",
       balance: 150000,
       isArchived: false,
+      financialScope: "household",
+      ownerMembershipId: null,
+      isPersonal: false,
+      isOwnedByMe: false,
+      canMutate: true,
     });
   });
 });
@@ -361,6 +366,11 @@ describe("getRealPosition", () => {
           type: "cash",
           balance: 100,
           isArchived: false,
+          financialScope: "household",
+          ownerMembershipId: null,
+          isPersonal: false,
+          isOwnedByMe: false,
+          canMutate: true,
         },
         {
           id: "a2",
@@ -368,6 +378,11 @@ describe("getRealPosition", () => {
           type: "checking",
           balance: 50,
           isArchived: false,
+          financialScope: "household",
+          ownerMembershipId: null,
+          isPersonal: false,
+          isOwnedByMe: false,
+          canMutate: true,
         },
       ],
     });

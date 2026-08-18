@@ -25,6 +25,7 @@ import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Amount } from "@/shared/patterns/amount";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { Text } from "@/shared/ui/text";
+import { FinancialOwnershipBadge } from "@/shared/patterns/financial-ownership-badge";
 import { MoneyOfflineBanner } from "../../money-offline-banner";
 import { LoanPayAction } from "./loan-pay-action";
 import { LoanPayoffEstimate } from "./loan-payoff-estimate";
@@ -114,6 +115,7 @@ export default async function LoanDetailPage({ params }: Props) {
   const orderedSchedule = [...upcoming, ...paid];
   const nextEntry = upcoming[0] ?? null;
   const isActive = loan.status === LoanStatus.ACTIVE;
+  const canMutate = loan.ownership.canMutate;
   const today = todayIsoDate();
   const canEditInterest =
     isActive &&
@@ -148,6 +150,10 @@ export default async function LoanDetailPage({ params }: Props) {
             className="flex flex-col gap-(--space-2) rounded-lg border border-border-subtle bg-surface p-(--space-4)"
             data-testid="loan-summary"
           >
+            <FinancialOwnershipBadge
+              financialScope={loan.ownership.financialScope}
+              isOwnedByMe={loan.ownership.isOwnedByMe}
+            />
             <Amount
               label={t("remainingLabel")}
               amountLabel={money(loan.remainingPrincipal)}
@@ -200,7 +206,7 @@ export default async function LoanDetailPage({ params }: Props) {
                 {t("openInbox")}
               </Link>
             </>
-          ) : isActive ? (
+          ) : isActive && canMutate ? (
             <>
               {nextEntry ? (
                 <LoanPayAction
@@ -260,7 +266,7 @@ export default async function LoanDetailPage({ params }: Props) {
             t={t}
           />
 
-          {isActive ? (
+          {isActive && canMutate ? (
             <section
               className="flex flex-col gap-(--space-3)"
               data-testid="loan-secondary-actions"

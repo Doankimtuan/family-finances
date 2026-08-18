@@ -226,15 +226,7 @@ describe("14B ownership schema — interim production lock", () => {
   });
 });
 
-describe("14B ownership schema — production flows cannot create personal rows", () => {
-  const MODULES_ROOT = `${process.cwd()}/modules`;
-  const allowedFile = `${MODULES_ROOT}/shared-kernel/application/financial-scope.ts`;
-  const allowedPlanQueries = new Set([
-    `${MODULES_ROOT}/plan/application/queries/get-current-jar-budgets.ts`,
-    `${MODULES_ROOT}/plan/application/queries/get-monthly-review.ts`,
-    `${MODULES_ROOT}/plan/application/queries/ritual-gates.ts`,
-  ]);
-
+describe("14E ownership application boundary", () => {
   function walk(dir: string, acc: string[] = []): string[] {
     for (const entry of readdirSync(dir)) {
       const full = `${dir}/${entry}`;
@@ -247,35 +239,29 @@ describe("14B ownership schema — production flows cannot create personal rows"
     return acc;
   }
 
-  it("no module code references the ownership columns or scope values except the constants file", () => {
+  it("keeps owner membership out of browser code", () => {
     const offenders: string[] = [];
-    for (const file of walk(MODULES_ROOT)) {
-      if (file === allowedFile || allowedPlanQueries.has(file)) continue;
+    for (const file of walk(process.cwd() + "/app")) {
       const content = readFileSync(file, "utf8");
-      if (
-        /financial_scope|financialScope|owner_membership_id|ownerMembershipId|FINANCIAL_SCOPE/.test(
-          content,
-        )
-      ) {
+      if (/owner_membership_id|ownerMembershipId/.test(content)) {
         offenders.push(file);
       }
     }
     expect(offenders).toEqual([]);
   });
 
-  it("no current root-table write flow sets the ownership columns", () => {
-    // The requirement is that no flow forwards financial_scope /
-    // owner_membership_id into a write. The constants file defines the
-    // vocabulary (its whole purpose) and is excluded; no other module may
-    // reference the ownership columns.
-    const offenders: string[] = [];
-    for (const file of walk(MODULES_ROOT)) {
-      if (file === allowedFile || allowedPlanQueries.has(file)) continue;
-      const content = readFileSync(file, "utf8");
-      if (/financial_scope|owner_membership_id/.test(content)) {
-        offenders.push(file);
-      }
+  it("keeps supported create forms on the shared financialScope contract", () => {
+    const createFiles = [
+      "app/[locale]/(product)/money/accounts/add-account-form.tsx",
+      "app/[locale]/(product)/money/savings/new/create-saving-wizard.tsx",
+      "app/[locale]/(product)/money/investments/opening-position-form.tsx",
+      "app/[locale]/(product)/money/loans/create-loan-form.tsx",
+      "app/[locale]/(product)/money/debts/debt-create-sheet.tsx",
+    ];
+    for (const relativePath of createFiles) {
+      expect(
+        readFileSync(process.cwd() + "/" + relativePath, "utf8"),
+      ).toContain("financialScope");
     }
-    expect(offenders).toEqual([]);
   });
 });

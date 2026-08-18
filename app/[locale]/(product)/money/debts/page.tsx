@@ -28,6 +28,7 @@ import { IconContainer } from "@/shared/ui/icon-container";
 import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Text } from "@/shared/ui/text";
+import { FinancialOwnershipBadge } from "@/shared/patterns/financial-ownership-badge";
 import { todayIsoDate } from "@/shared/utils/iso-date";
 import { MoneyOfflineBanner } from "../money-offline-banner";
 import { DebtCreateSheet } from "./debt-create-sheet";
@@ -220,6 +221,12 @@ export default async function DebtsPage({ params }: Props) {
                                     currency={debt.currency}
                                     locale={locale}
                                     labels={progressLabels}
+                                  />
+                                  <FinancialOwnershipBadge
+                                    financialScope={
+                                      debt.ownership.financialScope
+                                    }
+                                    isOwnedByMe={debt.ownership.isOwnedByMe}
                                   />
                                 </div>
                               </div>

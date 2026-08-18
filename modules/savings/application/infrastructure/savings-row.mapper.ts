@@ -45,6 +45,11 @@ import type {
   SavingType,
   SettlementRule,
 } from "../savings-constants";
+import {
+  FINANCIAL_SCOPE,
+  isFinancialScope,
+} from "@/modules/shared-kernel/application/financial-scope";
+import { resolveFinancialCapabilities } from "@/modules/shared-kernel/application/financial-ownership";
 import type {
   EarlySettlementRule as EarlySettlementRuleValue,
   SavingsFamily as CanonicalSavingsFamily,
@@ -214,8 +219,9 @@ export function mapPackageRow(row: {
 
   let settlementRules: SettlementRule[] = [];
   if (Array.isArray(row.settlement_rules)) {
-    settlementRules = row.settlement_rules.filter((rule): rule is SettlementRule =>
-      (SETTLEMENT_RULE_VALUES as readonly string[]).includes(String(rule)),
+    settlementRules = row.settlement_rules.filter(
+      (rule): rule is SettlementRule =>
+        (SETTLEMENT_RULE_VALUES as readonly string[]).includes(String(rule)),
     );
   }
 
@@ -244,8 +250,10 @@ export function mapPackageRow(row: {
         : undefined,
     interestCalculationMethod:
       row.interest_calculation_method === InterestCalcMethodConst.SIMPLE ||
-      row.interest_calculation_method === InterestCalcMethodConst.COMPOUND_DAILY ||
-      row.interest_calculation_method === InterestCalcMethodConst.COMPOUND_MONTHLY
+      row.interest_calculation_method ===
+        InterestCalcMethodConst.COMPOUND_DAILY ||
+      row.interest_calculation_method ===
+        InterestCalcMethodConst.COMPOUND_MONTHLY
         ? (row.interest_calculation_method as InterestCalcMethod)
         : undefined,
     currency: row.currency ?? undefined,
@@ -271,27 +279,32 @@ export function mapPackageRow(row: {
   };
 }
 
-export function mapSavingRow(row: {
-  id: string;
-  household_id: string;
-  status: string;
-  funding_account_id: string;
-  settlement_account_id: string;
-  provider_id: string;
-  product_name: string;
-  product_snapshot: unknown;
-  renewal_preference?: string;
-  renewal_policy?: string;
-  renewal_config?: unknown;
-  maturity_instruction?: unknown;
-  created_at: string;
-  funding_accounts?: { name: string }[] | { name: string } | null;
-  settlement_accounts?: { name: string }[] | { name: string } | null;
-  saving_providers?:
-    | { display_name: string; provider_key: string; saving_type: string }[]
-    | { display_name: string; provider_key: string; saving_type: string }
-    | null;
-}): Saving {
+export function mapSavingRow(
+  row: {
+    id: string;
+    household_id: string;
+    status: string;
+    funding_account_id: string;
+    settlement_account_id: string;
+    provider_id: string;
+    product_name: string;
+    product_snapshot: unknown;
+    renewal_preference?: string;
+    renewal_policy?: string;
+    renewal_config?: unknown;
+    maturity_instruction?: unknown;
+    created_at: string;
+    funding_accounts?: { name: string }[] | { name: string } | null;
+    settlement_accounts?: { name: string }[] | { name: string } | null;
+    saving_providers?:
+      | { display_name: string; provider_key: string; saving_type: string }[]
+      | { display_name: string; provider_key: string; saving_type: string }
+      | null;
+    financial_scope?: string | null;
+    owner_membership_id?: string | null;
+  },
+  activeMembershipId = "",
+): Saving {
   let productSnapshot: ProductSnapshot;
   try {
     const raw =
@@ -349,6 +362,17 @@ export function mapSavingRow(row: {
         ? row.saving_providers[0]
         : row.saving_providers
       : null;
+  const rawFinancialScope = row.financial_scope ?? "";
+  const financialScope = isFinancialScope(rawFinancialScope)
+    ? rawFinancialScope
+    : FINANCIAL_SCOPE.HOUSEHOLD;
+  const ownership = resolveFinancialCapabilities(
+    {
+      financialScope,
+      ownerMembershipId: row.owner_membership_id ?? null,
+    },
+    activeMembershipId,
+  );
 
   return {
     id: row.id,
@@ -376,6 +400,7 @@ export function mapSavingRow(row: {
     createdAt: row.created_at,
     latestCycle: null,
     maturityActionRequired: false,
+    ownership,
   };
 }
 

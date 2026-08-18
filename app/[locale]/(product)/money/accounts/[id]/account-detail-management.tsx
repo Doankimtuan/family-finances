@@ -13,6 +13,7 @@ export type AccountDetailManagementProps = {
   accountId: string;
   initialName: string;
   initialType: AccountTypeValue;
+  canMutate: boolean;
   children?: ReactNode;
 };
 
@@ -24,6 +25,7 @@ export function AccountDetailManagement({
   accountId,
   initialName,
   initialType,
+  canMutate,
   children,
 }: AccountDetailManagementProps) {
   const t = useTranslations("money.accountDetail");
@@ -53,12 +55,20 @@ export function AccountDetailManagement({
           </Sheet.Header>
           <Sheet.Body className="max-h-[min(58dvh,480px)] overflow-y-auto px-(--space-4) py-(--space-3)">
             <div className="flex flex-col gap-(--space-4)">
-              <AccountDetailActions
-                accountId={accountId}
-                initialName={initialName}
-                initialType={initialType}
-              />
-              {children}
+              {canMutate ? (
+                <>
+                  <AccountDetailActions
+                    accountId={accountId}
+                    initialName={initialName}
+                    initialType={initialType}
+                  />
+                  {children}
+                </>
+              ) : (
+                <p className="text-sm text-text-secondary">
+                  {t("ownershipReadOnly")}
+                </p>
+              )}
             </div>
           </Sheet.Body>
         </SheetContent>

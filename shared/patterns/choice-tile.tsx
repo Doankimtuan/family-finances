@@ -9,6 +9,8 @@ export type ChoiceTileProps = {
   selected: boolean;
   onPress: () => void;
   icon: ReactNode;
+  role?: "radio";
+  isDisabled?: boolean;
   className?: string;
 };
 
@@ -21,12 +23,17 @@ export function ChoiceTile({
   selected,
   onPress,
   icon,
+  role,
+  isDisabled = false,
   className,
 }: ChoiceTileProps) {
   return (
     <button
       type="button"
-      aria-pressed={selected}
+      role={role}
+      aria-pressed={role ? undefined : selected}
+      aria-checked={role ? selected : undefined}
+      disabled={isDisabled}
       onClick={onPress}
       className={cn(
         "flex h-full min-h-11 w-full items-center gap-(--space-2) rounded-(--radius-control) px-(--space-3) py-(--space-2) text-left",
@@ -52,7 +59,7 @@ export function ChoiceTile({
 
 export type ChoiceTileGroupProps = {
   children: ReactNode;
-  hint: string;
+  hint?: string;
   className?: string;
 };
 
@@ -66,9 +73,11 @@ export function ChoiceTileGroup({
       <div className="grid grid-cols-2 items-stretch gap-(--space-2)">
         {children}
       </div>
-      <Text size="sm" tone="secondary" className="leading-snug">
-        {hint}
-      </Text>
+      {hint ? (
+        <Text size="sm" tone="secondary" className="leading-snug">
+          {hint}
+        </Text>
+      ) : null}
     </div>
   );
 }

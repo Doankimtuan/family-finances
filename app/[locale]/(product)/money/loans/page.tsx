@@ -16,6 +16,7 @@ import { LoanCard } from "@/modules/ledger/ui/loan-card";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Text } from "@/shared/ui/text";
+import { FinancialOwnershipBadge } from "@/shared/patterns/financial-ownership-badge";
 import { MoneyOfflineBanner } from "../money-offline-banner";
 import { CreateLoanForm } from "./create-loan-form";
 
@@ -121,6 +122,10 @@ export default async function LoansPage({ params }: Props) {
                       statusLabel={t(`status.${loan.status}`)}
                       status={loan.status}
                       data-testid={`loan-row-${loan.id}`}
+                    />
+                    <FinancialOwnershipBadge
+                      financialScope={loan.ownership.financialScope}
+                      isOwnedByMe={loan.ownership.isOwnedByMe}
                     />
                   </Link>
                 </li>

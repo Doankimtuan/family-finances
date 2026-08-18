@@ -1,5 +1,6 @@
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
+import { resolveCreationOwnership } from "@/modules/tenancy/application/resolve-creation-ownership";
 import {
   PRODUCT_ACTION_ERROR_CODE,
   productActionErrorFromDeniedReason,
@@ -63,6 +64,14 @@ export async function createSaving(
       ok: false,
       code: productActionErrorFromDeniedReason(gate.reason),
     };
+  }
+
+  const ownership = await resolveCreationOwnership(
+    gate.householdId,
+    parsed.data.financialScope,
+  );
+  if (!ownership) {
+    return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.NO_MEMBERSHIP };
   }
 
   const resolved = await resolvePackageSnapshot(parsed.data.packageId);
@@ -246,6 +255,7 @@ export async function createSaving(
       p_package_snapshot: cyclePackageSnapshot,
       p_renewal_config: renewalConfig ?? baseConfig,
       p_idempotency_key: parsed.data.idempotencyKey ?? null,
+      p_financial_scope: ownership.financialScope,
     });
 
     if (error) {

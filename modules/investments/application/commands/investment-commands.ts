@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
+import { resolveCreationOwnership } from "@/modules/tenancy/application/resolve-creation-ownership";
 import {
   INVESTMENT_ERROR_CODE,
   INVESTMENT_FEE_SOURCE_VALUES,
@@ -211,6 +212,13 @@ export async function createOpeningPosition(
   if (!parsed.success)
     return { ok: false, code: INVESTMENT_ERROR_CODE.INVALID };
   const value = parsed.data;
+  const gate = await assertMoneyActionAllowed();
+  if (!gate.ok) return { ok: false, code: INVESTMENT_ERROR_CODE.FORBIDDEN };
+  const ownership = await resolveCreationOwnership(
+    gate.householdId,
+    value.financialScope,
+  );
+  if (!ownership) return { ok: false, code: INVESTMENT_ERROR_CODE.FORBIDDEN };
   return invokeInvestmentRpc(INVESTMENT_RPC.OPENING_POSITION, {
     p_asset_name: value.assetName,
     p_asset_class: value.assetClass,
@@ -223,6 +231,7 @@ export async function createOpeningPosition(
     p_notes: value.notes ?? null,
     p_visibility_context: value.visibilityContext,
     p_idempotency_key: value.idempotencyKey,
+    p_financial_scope: ownership.financialScope,
   });
 }
 
@@ -329,6 +338,13 @@ export async function createInitialPurchase(
   if (!parsed.success)
     return { ok: false, code: INVESTMENT_ERROR_CODE.INVALID };
   const value = parsed.data;
+  const gate = await assertMoneyActionAllowed();
+  if (!gate.ok) return { ok: false, code: INVESTMENT_ERROR_CODE.FORBIDDEN };
+  const ownership = await resolveCreationOwnership(
+    gate.householdId,
+    value.financialScope,
+  );
+  if (!ownership) return { ok: false, code: INVESTMENT_ERROR_CODE.FORBIDDEN };
   return invokeInvestmentRpc(INVESTMENT_RPC.INITIAL_PURCHASE, {
     p_asset_name: value.assetName,
     p_asset_class: value.assetClass,
@@ -342,5 +358,6 @@ export async function createInitialPurchase(
     p_notes: value.notes ?? null,
     p_visibility_context: value.visibilityContext,
     p_idempotency_key: value.idempotencyKey,
+    p_financial_scope: ownership.financialScope,
   });
 }

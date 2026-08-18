@@ -1,5 +1,6 @@
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
+import { resolveCreationOwnership } from "@/modules/tenancy/application/resolve-creation-ownership";
 import {
   PRODUCT_ACTION_ERROR_CODE,
   productActionErrorFromDeniedReason,
@@ -64,6 +65,13 @@ export async function createDebt(
       code: productActionErrorFromDeniedReason(gate.reason),
     };
   }
+  const ownership = await resolveCreationOwnership(
+    gate.householdId,
+    parsed.data.financialScope,
+  );
+  if (!ownership) {
+    return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.NO_MEMBERSHIP };
+  }
   try {
     const supabase = await createSupabaseServerClient();
     const { data, error } = await supabase.rpc(LedgerRpcName.CREATE_DEBT, {
@@ -77,6 +85,7 @@ export async function createDebt(
       p_note: parsed.data.note ?? null,
       p_account_id: parsed.data.accountId ?? null,
       p_idempotency_key: parsed.data.idempotencyKey,
+      p_financial_scope: ownership.financialScope,
     });
     if (error) {
       const code = classifyDebtRpcError(error);
