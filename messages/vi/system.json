@@ -1,7 +1,7 @@
 {
   "error": {
     "title": "Không thể hoàn tất yêu cầu",
-    "body": "Không thể hoàn tất yêu cầu. Thử lại hoặc về trang chủ.",
+    "body": "Không thể tải nội dung này. Thử lại hoặc về trang chủ.",
     "retry": "Thử lại",
     "home": "Về trang chủ"
   },
@@ -15,14 +15,14 @@
   },
   "permission": {
     "title": "Cần quyền",
-    "body": "Các thành viên cùng sử dụng Tiền, Kế hoạch và Hộp thư hằng ngày. Một số thiết lập của hộ gia đình cần quyền Quản trị — thay đổi vẫn hiển thị với các thành viên.",
-    "adminBody": "Thao tác này cần quyền Quản trị hộ gia đình. Hãy nhờ quản trị viên hoặc mở Together để xem vai trò.",
+    "body": "Thao tác này không khả dụng với quyền hiện tại. Hãy nhờ quản trị viên của hộ gia đình hỗ trợ.",
+    "adminBody": "Thao tác này cần quyền Quản trị hộ gia đình. Hãy nhờ quản trị viên hỗ trợ hoặc mở Together để xem vai trò.",
     "backTogether": "Về Together",
     "home": "Về trang chủ",
     "learnRoles": "Vì sao bị chặn"
   },
   "maintenance": {
     "title": "Đang bảo trì",
-    "body": "ViNha đang tạm thời không khả dụng trong lúc bảo trì. Vui lòng quay lại sau."
+    "body": "ViNha đang bảo trì và tạm thời không thể truy cập. Vui lòng quay lại sau."
   }
 }

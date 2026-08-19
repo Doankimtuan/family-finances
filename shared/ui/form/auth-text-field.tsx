@@ -22,6 +22,7 @@ export type AuthTextFieldProps = {
   startIcon?: ReactNode;
   /** Enables password visibility toggle when type is password. */
   revealable?: boolean;
+  /** Localized labels required when the password reveal button is shown. */
   revealShowLabel?: string;
   revealHideLabel?: string;
 };
@@ -49,15 +50,16 @@ export function AuthTextField({
   placeholder,
   startIcon,
   revealable = false,
-  revealShowLabel = "Show password",
-  revealHideLabel = "Hide password",
+  revealShowLabel,
+  revealHideLabel,
 }: AuthTextFieldProps) {
   const [revealed, setRevealed] = useState(false);
   const hasError = Boolean(error);
   const errorMessage = resolveErrorMessage(error);
   const a11y = formFieldA11y(id, hasError, Boolean(description));
   const isPassword = type === "password" || revealable;
-  const inputType = isPassword && revealed ? "text" : type;
+  const canReveal = isPassword && Boolean(revealShowLabel && revealHideLabel);
+  const inputType = canReveal && revealed ? "text" : type;
 
   return (
     <FormField
@@ -93,12 +95,12 @@ export function AuthTextField({
             "focus-visible:shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-accent)_28%,transparent)]",
             "motion-reduce:transition-none",
             startIcon && "ps-11",
-            isPassword && "pe-12",
+            canReveal && "pe-12",
             hasError && "border-danger",
             className,
           )}
         />
-        {isPassword ? (
+        {canReveal ? (
           <button
             type="button"
             tabIndex={-1}

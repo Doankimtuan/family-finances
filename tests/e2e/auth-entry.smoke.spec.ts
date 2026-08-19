@@ -7,7 +7,7 @@ test.describe("Splash + Welcome (ST-E02-001)", () => {
     await expect(page).toHaveURL(/\/en\/welcome$/);
     await expect(page.getByTestId("auth-welcome")).toBeVisible();
     await expect(
-      page.getByRole("heading", { name: "Why join?" }),
+      page.getByRole("heading", { name: "Welcome to ViNha" }),
     ).toBeVisible();
     await expect(page.getByRole("navigation", { name: "Primary" })).toHaveCount(
       0,

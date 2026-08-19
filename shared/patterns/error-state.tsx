@@ -7,19 +7,16 @@ import { Heading } from "@/shared/ui/heading";
 import { Text } from "@/shared/ui/text";
 import { AppIcon } from "@/shared/ui/app-icon";
 
-const DEFAULT_TITLE = "Something went wrong";
-
 /**
- * Presentational error state. Pass localized `title` / `description` from callers.
- * Defaults are English fallbacks so this works outside NextIntlClientProvider.
+ * Presentational error state. Callers provide localized `title` / `description`.
  */
 export function ErrorState({
-  title = DEFAULT_TITLE,
+  title,
   description,
   action,
   className,
 }: {
-  title?: string;
+  title: string;
   description?: string;
   action?: ReactNode;
   className?: string;

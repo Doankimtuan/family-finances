@@ -1,7 +1,7 @@
 {
   "error": {
     "title": "Could not complete the request",
-    "body": "Could not complete the request. Try again or return home.",
+    "body": "We couldn't load this content. Try again or go home.",
     "retry": "Try again",
     "home": "Go home"
   },
@@ -15,14 +15,14 @@
   },
   "permission": {
     "title": "Permission needed",
-    "body": "Household members share daily Money, Plan, and Inbox. Some Together settings require an Admin; changes remain visible to members.",
-    "adminBody": "This action requires the household Admin role. Ask an admin or open Together to review roles.",
+    "body": "This action isn't available with your current access. Ask your household admin for help.",
+    "adminBody": "This action requires household admin access. Ask an admin for help or open Together to review roles.",
     "backTogether": "Back to Together",
     "home": "Go home",
     "learnRoles": "Why this is blocked"
   },
   "maintenance": {
     "title": "Under maintenance",
-    "body": "ViNha is temporarily unavailable during maintenance. Please check back soon."
+    "body": "ViNha is temporarily unavailable while we carry out maintenance. Please check back later."
   }
 }

@@ -53,7 +53,9 @@ test.describe("Login + money gates (ST-E02-002)", () => {
   }) => {
     await page.goto(localeConfirmPath("vi"));
     await expect(page.getByTestId("auth-confirm")).toBeVisible();
-    await expect(page.getByText("Liên kết không hợp lệ")).toBeVisible();
+    await expect(
+      page.getByText("Liên kết không hợp lệ", { exact: true }),
+    ).toBeVisible();
     await expect(page.getByText("Đang xác nhận liên kết")).toHaveCount(0);
   });
 
