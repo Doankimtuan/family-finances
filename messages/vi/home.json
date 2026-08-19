@@ -1,6 +1,6 @@
 {
   "title": "Trang chủ",
-  "subtitle": "Chúng ta có gì, muốn gì, và cần quyết gì?",
+  "subtitle": "Tiền đang có, kế hoạch và mục cần xem.",
   "header": {
     "eyebrow": "Trang chủ",
     "greeting": {
@@ -9,48 +9,48 @@
       "evening": "Chào buổi tối"
     },
     "headline": {
-      "starting": "Một nơi êm để bắt đầu",
-      "steady": "Tiền của bạn đang đi đúng hướng",
-      "strong": "Hôm nay tiền của bạn đang khá vững"
+      "starting": "Bắt đầu theo dõi tiền",
+      "steady": "Tiếp tục theo dõi tiền của hộ gia đình",
+      "strong": "Tổng quan tiền của hộ gia đình"
     },
     "supporting": {
-      "starting": "Một góc nhìn đơn giản để cùng bắt đầu.",
-      "steady": "Cùng xem mình có gì, đang lên kế hoạch gì và cần quyết gì.",
-      "strong": "Cùng nhìn rõ những điều đang chạy tốt trong hộ gia đình."
+      "starting": "Chọn việc bạn muốn làm trước.",
+      "steady": "Xem số dư, dòng tiền và mục cần xem.",
+      "strong": "Xem số dư, dòng tiền và mục cần xem."
     },
     "meta": {
-      "available": "{accountCount, plural, =0 {Chưa có tài khoản} one {# tài khoản đang hiển thị} other {# tài khoản đang hiển thị}} · {openInboxCount, plural, =0 {chưa có việc chờ} one {# việc cần xem} other {# việc cần xem}}",
-      "unavailable": "Góc nhìn hộ gia đình sẽ xuất hiện khi dữ liệu sẵn sàng."
+      "available": "{accountCount, plural, =0 {Chưa có tài khoản} one {# tài khoản} other {# tài khoản}} · {openInboxCount, plural, =0 {không có mục chờ xem} one {# mục cần xem} other {# mục cần xem}}",
+      "unavailable": "Chưa có đủ dữ liệu để hiển thị tổng quan hộ gia đình."
     },
-    "dashboardHeadline": "Toàn cảnh tài chính, trong một cái nhìn",
-    "dashboardSupporting": "Xem vị thế hiện tại, dòng tiền và điều cần chú ý.",
+    "dashboardHeadline": "Tổng quan tiền của hộ gia đình",
+    "dashboardSupporting": "Xem số dư, dòng tiền kỳ này và mục cần chú ý.",
     "cashFlowStory": {
-      "positive": "Kỳ này tiền đang đi theo chiều hướng tích cực",
-      "attention": "Kỳ này chi tiêu đang cao hơn thu vào",
-      "unavailable": "Góc nhìn rõ ràng về gia đình, sẵn sàng khi tiền bắt đầu chuyển động"
+      "positive": "Thu vào cao hơn hoặc bằng chi ra trong kỳ này",
+      "attention": "Chi ra cao hơn thu vào trong kỳ này",
+      "unavailable": "Chưa có giao dịch thu hoặc chi trong kỳ này"
     }
   },
-  "loadErrorTitle": "Không tải được Trang chủ",
+  "loadErrorTitle": "Không thể tải trang chủ",
   "loadErrorBody": "Kiểm tra kết nối rồi thử lại.",
   "status": {
     "offline": {
       "title": "Bạn đang ngoại tuyến",
-      "description": "Thay đổi Tiền và Kế hoạch cần kết nối. Đọc vẫn tiếp tục khi có mạng."
+      "description": "Bạn vẫn có thể xem dữ liệu đã có, nhưng cần kết nối để lưu thay đổi."
     },
     "stale": {
       "title": "Dữ liệu có thể đã cũ",
-      "description": "Kéo để làm mới hoặc mở module nguồn để xem mới nhất."
+      "description": "Dữ liệu có thể chưa mới. Thử lại để tải phiên bản mới nhất."
     },
     "partial": {
       "title": "Một số thông tin còn thiếu",
-      "description": "Hoàn tất thiết lập trong module liên quan để thấy đầy đủ."
+      "description": "Một phần dữ liệu chưa sẵn sàng. Thử lại để tải lại trang chủ."
     },
     "permission": {
       "title": "Quyền bị giới hạn",
-      "description": "Hỏi quản trị viên hộ gia đình hoặc mở Together để xem vai trò."
+      "description": "Hãy nhờ quản trị viên hộ gia đình kiểm tra quyền truy cập."
     },
     "error": {
-      "title": "Không tải được Trang chủ",
+      "title": "Không thể tải trang chủ",
       "description": "Kiểm tra kết nối rồi thử lại."
     },
     "retry": "Thử lại"
@@ -59,31 +59,31 @@
     "unavailable": "Chưa có dữ liệu"
   },
   "periodControl": {
-    "label": "Khoảng thời gian xem tổng quan",
+    "label": "Kỳ xem",
     "month": "Tháng",
     "quarter": "Quý",
-    "loading": "Đang tải khoảng thời gian đã chọn"
+    "loading": "Đang tải kỳ đã chọn"
   },
   "financialPulse": {
-    "title": "Vị thế hiện tại",
-    "hint": "Tiền đang có trong các tài khoản không phải thẻ tín dụng.",
+    "title": "Tổng số dư các tài khoản",
+    "hint": "Tổng số dư của các tài khoản đang dùng, không gồm thẻ tín dụng.",
     "netLabel": {
       "month": "Dòng tiền ròng tháng này",
       "quarter": "Dòng tiền ròng quý này"
     },
     "status": {
-      "positive": "Dòng tiền đang dương",
-      "attention": "Chi nhiều hơn thu",
-      "unavailable": "Chưa có dòng tiền"
+      "positive": "Thu vào cao hơn hoặc bằng chi ra",
+      "attention": "Chi ra cao hơn thu vào",
+      "unavailable": "Chưa có thu hoặc chi"
     },
     "comparison": "{value} so với kỳ trước"
   },
   "cashFlow": {
     "title": "Tiền vào ra kỳ này thế nào?",
-    "hint": "Chỉ tính thu và chi. Chuyển khoản, hoàn tiền không được tính.",
+    "hint": "Chỉ tính tiền thu vào và chi ra. Không tính chuyển khoản và hoàn tiền.",
     "income": "Thu vào",
     "expense": "Chi ra",
-    "net": "Còn lại",
+    "net": "Dòng tiền ròng",
     "chartSummary": {
       "day": "Xu hướng thu vào và chi ra theo ngày trong kỳ đã chọn.",
       "week": "Xu hướng thu vào và chi ra theo tuần trong kỳ đã chọn."
@@ -92,58 +92,58 @@
       "day": "Biểu đồ thu vào và chi ra theo ngày trong kỳ đã chọn.",
       "week": "Biểu đồ thu vào và chi ra theo tuần trong kỳ đã chọn."
     },
-    "lowData": "Kỳ này mới ghi nhận tiền vào ra trong một ngày."
+    "lowData": "Mới ghi nhận thu hoặc chi trong một ngày của kỳ này."
   },
   "spending": {
     "title": "Tiền kỳ này đi đâu?",
-    "hint": "Những nhóm chi tiêu lớn nhất trong kỳ đã chọn.",
+    "hint": "Các nhóm có mức chi cao nhất trong kỳ đã chọn.",
     "uncategorized": "Chưa phân loại",
     "insight": {
       "higher": "Chi tiêu cao hơn kỳ trước {amount}.",
       "lower": "Chi tiêu thấp hơn kỳ trước {amount}."
     },
-    "share": "{category}: {percentage} chi tiêu"
+    "share": "{category}: {percentage} của tổng chi tiêu"
   },
   "realPosition": {
-    "title": "Vị thế thật",
-    "hint": "Tiền đang có trong các tài khoản của bạn."
+    "title": "Tổng số dư các tài khoản",
+    "hint": "Tổng số dư của các tài khoản đang dùng, không gồm thẻ tín dụng."
   },
   "planPulse": {
-    "title": "Nhịp kế hoạch",
-    "hint": "Một kế hoạch nhẹ nhàng cho từng khoản tiền.",
+    "title": "Kế hoạch",
+    "hint": "Xem các hũ đang dùng và cách phân bổ thu nhập.",
     "jarsCount": "{count, plural, =0 {Chưa có hũ đang dùng} one {# hũ đang dùng} other {# hũ đang dùng}}",
     "allocate": {
-      "off": "Gợi ý chia tiền: Tắt",
-      "suggest": "Gợi ý chia tiền: Bật",
-      "auto": "Tự động chia tiền"
+      "off": "Phân bổ thu nhập: Tắt",
+      "suggest": "Phân bổ thu nhập: Gợi ý",
+      "auto": "Phân bổ thu nhập: Tự động"
     },
     "openPlan": "Mở Kế hoạch"
   },
   "inbox": {
     "title": "Hộp thư",
-    "clear": "Hộp thư trống — chưa có quyết định nào.",
-    "pending": "{count, plural, one {# việc cần quyết định} other {# việc cần quyết định}}",
+    "clear": "Không có mục nào đang chờ bạn xem.",
+    "pending": "{count, plural, one {# mục đang chờ bạn xem} other {# mục đang chờ bạn xem}}",
     "open": "Mở Hộp thư"
   },
   "health": {
-    "title": "Sức khỏe tài chính",
+    "title": "Tình trạng thiết lập",
     "levels": {
-      "starting": "Bắt đầu",
-      "steady": "Ổn định",
-      "strong": "Vững"
+      "starting": "Thiếu dữ liệu cơ bản",
+      "steady": "Đang bổ sung dữ liệu",
+      "strong": "Đã có dữ liệu cơ bản"
     },
     "narratives": {
-      "starting": "Thiết lập Tiền và Kế hoạch để củng cố nhịp hộ gia đình.",
-      "steady": "Nền tảng ổn — xử lý Hộp thư để giữ đà.",
-      "strong": "Nhịp tốt — giữ đối tác cùng nhịp quyết định."
+      "starting": "Thêm tài khoản và hũ để trang chủ hiển thị đầy đủ hơn.",
+      "steady": "Đã có một phần thiết lập; bổ sung phần còn thiếu.",
+      "strong": "Đã có tài khoản và hũ; kiểm tra Hộp thư nếu có mục đang chờ."
     }
   },
-  "capture": "Thêm chi tiêu",
+  "capture": "Thêm khoản chi",
   "dayZero": {
-    "title": "Bắt đầu hộ gia đình",
-    "description": "Ba bước đầu êm dịu — không cần vội.",
-    "invite": "Mời đối tác",
+    "title": "Bắt đầu theo dõi tiền",
+    "description": "Chọn việc bạn muốn làm trước.",
+    "invite": "Mời thành viên",
     "setupPlan": "Thiết lập Kế hoạch",
-    "addExpense": "Thêm chi tiêu"
+    "addExpense": "Thêm khoản chi"
   }
 }

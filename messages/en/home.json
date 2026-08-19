@@ -1,6 +1,6 @@
 {
   "title": "Home",
-  "subtitle": "What we have, mean, and need to decide",
+  "subtitle": "Your money, plan, and next things to review.",
   "header": {
     "eyebrow": "Home",
     "greeting": {
@@ -9,25 +9,25 @@
       "evening": "Good evening"
     },
     "headline": {
-      "starting": "A calm place to start",
-      "steady": "Your money is moving in a good direction",
-      "strong": "Your money is looking strong today"
+      "starting": "Start tracking your money",
+      "steady": "Keep tracking your household money",
+      "strong": "Your household money overview"
     },
     "supporting": {
-      "starting": "A simple view to get your household moving.",
-      "steady": "A clear view of what you have, plan, and decide.",
-      "strong": "A clear view of what is working across your household."
+      "starting": "Choose what you want to do first.",
+      "steady": "See balances, money flow, and items to review.",
+      "strong": "See balances, money flow, and items to review."
     },
     "meta": {
-      "available": "{accountCount, plural, =0 {No accounts yet} one {# account in view} other {# accounts in view}} · {openInboxCount, plural, =0 {nothing waiting} one {# thing to review} other {# things to review}}",
-      "unavailable": "Your household view will appear here when it is ready."
+      "available": "{accountCount, plural, =0 {No accounts} one {# account} other {# accounts}} · {openInboxCount, plural, =0 {nothing waiting} one {# item to review} other {# items to review}}",
+      "unavailable": "There is not enough data to show your household overview yet."
     },
-    "dashboardHeadline": "Your financial picture, at a glance",
-    "dashboardSupporting": "See today’s position, money flow, and what needs attention.",
+    "dashboardHeadline": "Your household money overview",
+    "dashboardSupporting": "See balances, money flow this period, and what needs attention.",
     "cashFlowStory": {
-      "positive": "Money is moving in a positive direction this period",
-      "attention": "Spending is ahead of income this period",
-      "unavailable": "A clear view of your household, ready when money moves"
+      "positive": "Income matches or exceeds spending this period",
+      "attention": "Spending exceeds income this period",
+      "unavailable": "No income or spending recorded this period"
     }
   },
   "loadErrorTitle": "Could not load Home",
@@ -35,19 +35,19 @@
   "status": {
     "offline": {
       "title": "You're offline",
-      "description": "Money and Plan changes need a connection. Reading can continue when available."
+      "description": "You can still view available data, but you need a connection to save changes."
     },
     "stale": {
       "title": "Data may be out of date",
-      "description": "Pull to refresh or open the source module for the latest."
+      "description": "Some data may be out of date. Try again to reload the latest view."
     },
     "partial": {
       "title": "Some facts are missing",
-      "description": "Finish setup in the relevant module to see the full picture."
+      "description": "Some data is not ready. Try again to reload your Home view."
     },
     "permission": {
       "title": "Permission limited",
-      "description": "Ask your household admin for access, or open Together to review roles."
+      "description": "Ask your household admin to check your access."
     },
     "error": {
       "title": "Could not load Home",
@@ -59,22 +59,22 @@
     "unavailable": "Not available"
   },
   "periodControl": {
-    "label": "Dashboard period",
+    "label": "Period",
     "month": "Month",
     "quarter": "Quarter",
     "loading": "Loading selected period"
   },
   "financialPulse": {
-    "title": "Current position",
-    "hint": "Available money across your active non-card accounts.",
+    "title": "Total across accounts",
+    "hint": "Total balance across active accounts, excluding credit cards.",
     "netLabel": {
       "month": "Net cash flow this month",
       "quarter": "Net cash flow this quarter"
     },
     "status": {
-      "positive": "Cash flow positive",
+      "positive": "Income meets or exceeds spending",
       "attention": "Spending exceeds income",
-      "unavailable": "Cash flow unavailable"
+      "unavailable": "No income or spending"
     },
     "comparison": "{value} vs prior period"
   },
@@ -92,11 +92,11 @@
       "day": "Daily income and expense chart for the selected period.",
       "week": "Weekly income and expense chart for the selected period."
     },
-    "lowData": "Only one money day has been recorded so far in this period."
+    "lowData": "Income or spending has been recorded on only one day this period."
   },
   "spending": {
     "title": "Where is money going?",
-    "hint": "Largest spending categories in the selected period.",
+    "hint": "Categories with the highest spending in the selected period.",
     "uncategorized": "Uncategorized",
     "insight": {
       "higher": "Spending is {amount} higher than the prior period.",
@@ -105,45 +105,45 @@
     "share": "{category}: {percentage} of spending"
   },
   "realPosition": {
-    "title": "Real position",
-    "hint": "Money available across your accounts."
+    "title": "Total across accounts",
+    "hint": "Total balance across active accounts, excluding credit cards."
   },
   "planPulse": {
-    "title": "Plan pulse",
-    "hint": "A simple plan for what your money needs to do.",
+    "title": "Plan",
+    "hint": "See active jars and how income is allocated.",
     "jarsCount": "{count, plural, =0 {No active jars yet} one {# active jar} other {# active jars}}",
     "allocate": {
-      "off": "Income plan: Off",
-      "suggest": "Income plan: Suggestions on",
-      "auto": "Income plan: Auto"
+      "off": "Income allocation: Off",
+      "suggest": "Income allocation: Suggestions",
+      "auto": "Income allocation: Automatic"
     },
     "openPlan": "Open Plan"
   },
   "inbox": {
     "title": "Inbox",
-    "clear": "Inbox is clear — nothing to decide right now.",
-    "pending": "{count, plural, one {# item needs a decision} other {# items need a decision}}",
+    "clear": "Nothing is waiting for you to review.",
+    "pending": "{count, plural, one {# item is waiting for your review} other {# items are waiting for your review}}",
     "open": "Open Inbox"
   },
   "health": {
-    "title": "Financial Health",
+    "title": "Setup status",
     "levels": {
-      "starting": "Starting",
-      "steady": "Steady",
-      "strong": "Strong"
+      "starting": "Basic data missing",
+      "steady": "Still setting up",
+      "strong": "Basic data available"
     },
     "narratives": {
-      "starting": "Set up Money and Plan to strengthen the household pulse.",
-      "steady": "Solid footing — clear Inbox items to keep momentum.",
-      "strong": "Strong pulse — keep partners aligned on decisions."
+      "starting": "Add an account and jars to show more of your household overview.",
+      "steady": "Part of the setup is ready; complete what is missing.",
+      "strong": "An account and jars are set up; check Inbox if items are waiting."
     }
   },
   "capture": "Add expense",
   "dayZero": {
-    "title": "Start your household",
-    "description": "Three calm first steps — no rush.",
-    "invite": "Invite partner",
+    "title": "Start tracking your money",
+    "description": "Choose what you want to do first.",
+    "invite": "Invite a member",
     "setupPlan": "Set up Plan",
-    "addExpense": "Add expense"
+    "addExpense": "Add an expense"
   }
 }
