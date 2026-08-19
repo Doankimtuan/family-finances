@@ -7,7 +7,9 @@ export type StatusAlertProps = {
   variant?: AlertVariant;
   title: ReactNode;
   description?: ReactNode;
+  action?: ReactNode;
   className?: string;
+  "data-testid"?: string;
 };
 
 /**
@@ -18,10 +20,12 @@ export function StatusAlert({
   variant = AlertVariant.INFO,
   title,
   description,
+  action,
   className,
+  "data-testid": testId,
 }: StatusAlertProps) {
   return (
-    <Alert variant={variant} className={className}>
+    <Alert variant={variant} className={className} data-testid={testId}>
       <Alert.Indicator />
       <Alert.Content>
         <Alert.Title>{title}</Alert.Title>
@@ -29,6 +33,7 @@ export function StatusAlert({
           <Alert.Description>{description}</Alert.Description>
         ) : null}
       </Alert.Content>
+      {action ? <div className="shrink-0">{action}</div> : null}
     </Alert>
   );
 }

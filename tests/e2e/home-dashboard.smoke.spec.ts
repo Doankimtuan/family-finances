@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { HOME_TEST_ID } from "@/modules/home/application/home-constants";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
 
 test.describe("Home decision dashboard", () => {
@@ -29,17 +30,21 @@ test.describe("Home decision dashboard", () => {
     );
 
     await page.goto("/en/home");
-    await expect(page.getByTestId("home-dashboard")).toBeVisible();
-    await expect(page.getByTestId("home-period-control")).toBeVisible();
+    await expect(page.getByTestId(HOME_TEST_ID.DASHBOARD)).toBeVisible();
+    await expect(page.getByTestId(HOME_TEST_ID.PERIOD_CONTROL)).toBeVisible();
     const quarterButton = page.getByRole("button", { name: "Quarter" });
     await quarterButton.click();
     await expect(quarterButton).toHaveAttribute("aria-pressed", "true");
-    await expect(page.getByTestId("home-period-content")).toBeVisible();
+    await expect(page.getByTestId(HOME_TEST_ID.PERIOD_CONTENT)).toBeVisible();
     await expect(page).toHaveURL(/period=quarter/);
-    await expect(page.getByTestId("home-period-content")).toHaveAttribute(
+    await expect(quarterButton).toBeFocused();
+    await expect(page.getByTestId(HOME_TEST_ID.PERIOD_CONTENT)).toHaveAttribute(
       "aria-busy",
       "false",
     );
-    await expect(page.getByTestId("home-financial-pulse")).toBeVisible();
+    await expect(page.getByTestId(HOME_TEST_ID.FINANCIAL_PULSE)).toBeVisible();
+    await expect(page.getByTestId(HOME_TEST_ID.CAPTURE_ACTION)).toBeVisible();
+    await expect(page.getByTestId(HOME_TEST_ID.INBOX_BLOCK)).toBeVisible();
+    await expect(page.getByTestId(HOME_TEST_ID.PLAN_PULSE)).toBeVisible();
   });
 });

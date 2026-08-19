@@ -8,6 +8,91 @@
 @source not "../history/**/*";
 @source not "../.agents/**/*";
 
+/* Shared toast presentation: the provider supplies shell-aware placement. */
+.vinha-toast-region {
+  pointer-events: none;
+  position: absolute;
+  inset-inline: 0;
+  z-index: var(--z-toast);
+  width: 100%;
+  max-width: var(--app-viewport-max);
+  padding-inline: var(--page-gutter);
+}
+
+.vinha-toast-region [data-slot="toast"] {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  border: 1px solid var(--vinha-border-subtle);
+  border-radius: var(--radius-overlay);
+  background: var(--vinha-surface-elevated);
+  color: var(--vinha-text-primary);
+  box-shadow: var(--elevation-2);
+}
+
+.vinha-toast-region .toast__content {
+  min-width: 0;
+  gap: var(--space-1);
+}
+
+.vinha-toast-region .toast__title {
+  color: var(--vinha-text-primary);
+  overflow-wrap: anywhere;
+}
+
+.vinha-toast-region .toast__description {
+  color: var(--vinha-text-secondary);
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.vinha-toast-region .toast__indicator {
+  align-self: flex-start;
+  padding: var(--space-1) 0;
+}
+
+.vinha-toast-region .toast__close-button {
+  position: static;
+  flex: 0 0 var(--toast-dismiss-size);
+  width: var(--toast-dismiss-size);
+  height: var(--toast-dismiss-size);
+  min-width: var(--toast-dismiss-size);
+  margin: 0;
+  border: 1px solid var(--vinha-border-subtle);
+  border-radius: var(--radius-control);
+  background: var(--vinha-surface-hover);
+  color: var(--vinha-text-secondary);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.vinha-toast-region .toast__close-button:hover,
+.vinha-toast-region .toast__close-button[data-hovered="true"] {
+  background: var(--vinha-surface-soft);
+  color: var(--vinha-text-primary);
+}
+
+.vinha-toast-region .toast__close-button:focus-visible,
+.vinha-toast-region [data-slot="toast"]:focus-visible {
+  outline: 2px solid var(--vinha-focus-ring);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vinha-toast-region .toast__close-button {
+    transition: none;
+  }
+
+  ::view-transition-new(.toast-bottom),
+  ::view-transition-old(.toast-bottom),
+  ::view-transition-new(.toast-top),
+  ::view-transition-old(.toast-top) {
+    animation: none;
+  }
+}
+
 /* Class-based dark (next-themes) — not prefers-color-scheme alone */
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -111,22 +196,22 @@
   --radius-lg: 12px;
   --radius-xl: 16px;
   --radius-full: 9999px;
-  --radius-control: 12px;
-  --radius-card: 18px;
-  --radius-overlay: 22px;
+  --radius-control: 10px;
+  --radius-card: 12px;
+  --radius-overlay: 16px;
 }
 
 :root {
   color-scheme: light;
 
   /* --- Surfaces (warm stone neutrals) --- */
-  --vinha-canvas-outer: #f1f3f2;
+  --vinha-canvas-outer: #f3f4f3;
   --vinha-canvas: #fafaf9;
   --vinha-surface: #ffffff;
   --vinha-surface-elevated: #ffffff;
   --vinha-surface-hover: #f1f5f3;
-  --vinha-surface-soft: #eef3f1;
-  --vinha-surface-highlight: #e0f0eb;
+  --vinha-surface-soft: #f1f4f3;
+  --vinha-surface-highlight: #e7f2ef;
 
   /* --- Borders --- */
   --vinha-border-subtle: #dde4e1;
@@ -314,11 +399,16 @@
   --radius-lg: 12px;
   --radius-xl: 16px;
   --radius-full: 9999px;
+  --radius-control: 10px;
+  --radius-card: 12px;
+  --radius-overlay: 16px;
 
   --app-viewport-max: 440px;
   --app-viewport-min: 320px;
   --app-viewport-band-max: 480px;
   --app-viewport-tablet-optional: 640px;
+  --bottom-navigation-height: 72px;
+  --toast-dismiss-size: 44px;
 
   --duration-instant: 80ms;
   --duration-fast: 150ms;

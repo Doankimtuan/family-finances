@@ -16,6 +16,8 @@ import {
   CreditCardIcon,
   Delete02Icon,
   Edit02Icon,
+  EyeIcon,
+  EyeOffIcon,
   FilterIcon,
   GraduationCapIcon,
   HealthIcon,
@@ -214,6 +216,8 @@ export const ACTION_ICONS = {
 export const UTILITY_ICONS = {
   calendar: Calendar03Icon,
   notification: Notification03Icon,
+  financialVisible: EyeIcon,
+  financialHidden: EyeOffIcon,
 } as const;
 
 export const FinanceIconKey = {

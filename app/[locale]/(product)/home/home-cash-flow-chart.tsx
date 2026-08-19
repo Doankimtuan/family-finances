@@ -9,6 +9,7 @@ import {
   ResponsiveContainer,
   Tooltip,
   XAxis,
+  YAxis,
 } from "recharts";
 import type {
   HomeCashFlowTrend,
@@ -17,14 +18,17 @@ import type {
 import {
   HOME_CASH_FLOW_CHART_ACTIVE_DOT_RADIUS,
   HOME_CASH_FLOW_CHART_AREA_OPACITY,
+  HOME_CASH_FLOW_CHART_HEADROOM_RATIO,
   HOME_CASH_FLOW_CHART_HEIGHT,
   HOME_CASH_FLOW_CHART_MARGIN,
+  HOME_CASH_FLOW_EXPENSE_DASH_PATTERN,
   HOME_CASH_FLOW_CHART_STROKE_WIDTH,
   HOME_CURRENCY_FRACTION_DIGITS,
   HOME_TEST_ID,
 } from "@/modules/home/application/home-constants";
 import { formatCurrency, formatDate } from "@/shared/i18n/formatters";
 import { Text } from "@/shared/ui/text";
+import { FinancialValue } from "@/shared/patterns/financial-value";
 
 const CASH_FLOW_CHART_DATE_OPTIONS = {
   month: "short",
@@ -49,6 +53,18 @@ function formatTrendDateRange(point: HomeCashFlowTrendPoint, locale: string) {
   return `${start} – ${formatTrendDate(point.endDate, locale)}`;
 }
 
+export function homeCashFlowChartDomain(
+  points: readonly HomeCashFlowTrendPoint[],
+): [number, number] {
+  const values = points.flatMap((point) => [point.income, point.expense]);
+  const minimum = Math.min(0, ...values);
+  const maximum = Math.max(0, ...values);
+  return [
+    minimum,
+    maximum === 0 ? 1 : maximum * (1 + HOME_CASH_FLOW_CHART_HEADROOM_RATIO),
+  ];
+}
+
 export function HomeCashFlowChart({
   trend,
   currency,
@@ -61,11 +77,12 @@ export function HomeCashFlowChart({
   const t = useTranslations("home");
   const gradientId = useId().replace(/:/g, "");
   const chartSummaryId = `${gradientId}-summary`;
+  const chartDataTableId = `${gradientId}-data-table`;
   const hasSparseData = trend.activePointCount <= 1;
 
   return (
     <div
-      className="rounded-[var(--radius-control)] bg-surface-elevated/70 px-(--space-2) pb-(--space-2) pt-(--space-3)"
+      className="border-t border-border-subtle px-(--space-1) pb-(--space-2) pt-(--space-3)"
       data-testid={HOME_TEST_ID.CASH_FLOW_CHART}
     >
       <div
@@ -73,6 +90,7 @@ export function HomeCashFlowChart({
         style={{ height: HOME_CASH_FLOW_CHART_HEIGHT }}
         role="img"
         aria-describedby={chartSummaryId}
+        aria-details={chartDataTableId}
         aria-label={t(`cashFlow.chartAria.${trend.granularity}`)}
       >
         <ResponsiveContainer width="100%" height="100%">
@@ -126,7 +144,7 @@ export function HomeCashFlowChart({
             <CartesianGrid
               vertical={false}
               stroke="var(--color-chart-grid)"
-              strokeOpacity={0.55}
+              strokeOpacity={0.4}
             />
             <XAxis
               dataKey="startDate"
@@ -135,6 +153,11 @@ export function HomeCashFlowChart({
               minTickGap={24}
               tick={{ fill: "var(--color-text-tertiary)", fontSize: 11 }}
               tickFormatter={(value: string) => formatTrendDate(value, locale)}
+            />
+            <YAxis
+              hide
+              domain={homeCashFlowChartDomain(trend.points)}
+              allowDataOverflow={false}
             />
             <Tooltip
               cursor={{
@@ -147,10 +170,9 @@ export function HomeCashFlowChart({
                 if (!active || !point) return null;
                 return (
                   <div
-                    className="min-w-40 rounded-[var(--radius-control)] border border-border-subtle bg-surface-elevated px-(--space-3) py-(--space-2) shadow-[var(--elevation-1)]"
+                    className="min-w-40 rounded-(--radius-control) border border-border-subtle bg-surface-elevated px-(--space-3) py-(--space-2) shadow-(--elevation-1)"
                     data-testid={HOME_TEST_ID.CASH_FLOW_TOOLTIP}
-                    role="status"
-                    aria-live="polite"
+                    aria-hidden="true"
                   >
                     <Text size="sm" tone="secondary">
                       {formatTrendDateRange(point, locale)}
@@ -160,17 +182,23 @@ export function HomeCashFlowChart({
                         {t("cashFlow.income")}
                       </Text>
                       <Text size="sm" className="font-semibold tabular-nums">
-                        {formatCurrency(point.income, currency, locale, {
-                          maximumFractionDigits: HOME_CURRENCY_FRACTION_DIGITS,
-                        })}
+                        <FinancialValue>
+                          {formatCurrency(point.income, currency, locale, {
+                            maximumFractionDigits:
+                              HOME_CURRENCY_FRACTION_DIGITS,
+                          })}
+                        </FinancialValue>
                       </Text>
                       <Text size="sm" className="text-expense">
                         {t("cashFlow.expense")}
                       </Text>
                       <Text size="sm" className="font-semibold tabular-nums">
-                        {formatCurrency(point.expense, currency, locale, {
-                          maximumFractionDigits: HOME_CURRENCY_FRACTION_DIGITS,
-                        })}
+                        <FinancialValue>
+                          {formatCurrency(point.expense, currency, locale, {
+                            maximumFractionDigits:
+                              HOME_CURRENCY_FRACTION_DIGITS,
+                          })}
+                        </FinancialValue>
                       </Text>
                     </div>
                   </div>
@@ -201,16 +229,52 @@ export function HomeCashFlowChart({
                 r: HOME_CASH_FLOW_CHART_ACTIVE_DOT_RADIUS,
                 fill: "var(--color-chart-negative)",
               }}
+              strokeDasharray={HOME_CASH_FLOW_EXPENSE_DASH_PATTERN}
               isAnimationActive={false}
             />
           </AreaChart>
         </ResponsiveContainer>
       </div>
+      <table
+        id={chartDataTableId}
+        className="sr-only"
+        data-testid={HOME_TEST_ID.CASH_FLOW_DATA_TABLE}
+      >
+        <caption>{t("cashFlow.dataTableTitle")}</caption>
+        <thead>
+          <tr>
+            <th scope="col">{t("cashFlow.dataTable.period")}</th>
+            <th scope="col">{t("cashFlow.income")}</th>
+            <th scope="col">{t("cashFlow.expense")}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {trend.points.map((point) => (
+            <tr key={point.key}>
+              <th scope="row">{formatTrendDateRange(point, locale)}</th>
+              <td>
+                <FinancialValue>
+                  {formatCurrency(point.income, currency, locale, {
+                    maximumFractionDigits: HOME_CURRENCY_FRACTION_DIGITS,
+                  })}
+                </FinancialValue>
+              </td>
+              <td>
+                <FinancialValue>
+                  {formatCurrency(point.expense, currency, locale, {
+                    maximumFractionDigits: HOME_CURRENCY_FRACTION_DIGITS,
+                  })}
+                </FinancialValue>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
       <Text
         id={chartSummaryId}
         size="sm"
         tone="secondary"
-        className="px-(--space-1)"
+        className="sr-only px-(--space-1)"
       >
         {hasSparseData
           ? t("cashFlow.lowData")

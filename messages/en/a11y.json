@@ -3,5 +3,6 @@
   "back": "Back",
   "localeSwitcher": "Choose language",
   "themeSwitcher": "Choose appearance",
+  "dismissToast": "Dismiss notification",
   "inboxBadge": "{count, plural, one {# open Inbox item} other {# open Inbox items}}"
 }

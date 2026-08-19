@@ -15,6 +15,14 @@ export const HOME_DASHBOARD_PERIOD_VALUES = [
 export const HOME_DASHBOARD_DEFAULT_PERIOD = HomeDashboardPeriod.MONTH;
 export const HOME_DASHBOARD_MAX_CATEGORY_COUNT = 4;
 
+export const HomeFinancialPulseState = {
+  UNAVAILABLE: "unavailable",
+  POSITIVE: "positive",
+  ATTENTION: "attention",
+} as const;
+export type HomeFinancialPulseState =
+  (typeof HomeFinancialPulseState)[keyof typeof HomeFinancialPulseState];
+
 export const HomeCashFlowGranularity = {
   DAY: "day",
   WEEK: "week",
@@ -31,18 +39,20 @@ export const HOME_CASH_FLOW_GRANULARITY_BY_PERIOD: Record<
   [HomeDashboardPeriod.QUARTER]: HomeCashFlowGranularity.WEEK,
 };
 export const HOME_CASH_FLOW_WEEK_LENGTH_DAYS = 7;
-export const HOME_CASH_FLOW_CHART_HEIGHT = 160;
+export const HOME_CASH_FLOW_CHART_HEIGHT = 144;
 export const HOME_CASH_FLOW_CHART_MARGIN = {
   TOP: 12,
   RIGHT: 4,
   LEFT: 4,
   BOTTOM: 2,
 } as const;
-export const HOME_CASH_FLOW_CHART_STROKE_WIDTH = 2;
-export const HOME_CASH_FLOW_CHART_ACTIVE_DOT_RADIUS = 4;
+export const HOME_CASH_FLOW_CHART_STROKE_WIDTH = 1.5;
+export const HOME_CASH_FLOW_CHART_ACTIVE_DOT_RADIUS = 3;
+export const HOME_CASH_FLOW_CHART_HEADROOM_RATIO = 0.12;
+export const HOME_CASH_FLOW_EXPENSE_DASH_PATTERN = "5 4";
 export const HOME_CASH_FLOW_CHART_AREA_OPACITY = {
-  INCOME: 0.2,
-  EXPENSE: 0.14,
+  INCOME: 0.12,
+  EXPENSE: 0.08,
 } as const;
 export const HOME_PERCENT_SCALE = 100;
 export const HomeStatusLaneKind = {
@@ -78,15 +88,28 @@ export const HOME_TEST_ID = {
   REAL_POSITION: "home-real-position",
   FINANCIAL_PULSE: "home-financial-pulse",
   PERIOD_CONTROL: "home-period-control",
+  PERIOD_MONTH: "home-period-month",
+  PERIOD_QUARTER: "home-period-quarter",
   CASH_FLOW: "home-cash-flow",
   PERIOD_LOADING: "home-period-loading",
   PERIOD_CONTENT: "home-period-content",
   CASH_FLOW_CHART: "home-cash-flow-chart",
+  CASH_FLOW_DATA_TABLE: "home-cash-flow-data-table",
   CASH_FLOW_TOOLTIP: "home-cash-flow-tooltip",
   SPENDING: "home-spending",
   PLAN_PULSE: "home-plan-pulse",
   INBOX_BLOCK: "home-inbox-block",
   PLAN_LINK: "home-plan-link",
+  PERIOD_STORY: "home-period-story",
+  CAPTURE_ACTION: "home-capture",
+  ACCOUNT_ACTION: "home-add-account",
+  FINANCIAL_PRIVACY_TOGGLE: "home-financial-privacy-toggle",
+  DAY_ZERO: "home-day-zero",
+  DAY_ZERO_ACCOUNT: "home-day-zero-account",
+  DAY_ZERO_PLAN: "home-day-zero-plan",
+  DAY_ZERO_INVITE: "home-day-zero-invite",
+  INBOX_CONTENT: "home-inbox",
+  INBOX_CTA: "home-inbox-cta",
   STATUS_OFFLINE: "home-status-offline",
   STATUS_PREFIX: "home-status",
 } as const;

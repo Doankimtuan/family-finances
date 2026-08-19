@@ -6,6 +6,7 @@ import { QueryProvider } from "@/providers/query-provider";
 import { SupabaseProvider } from "@/providers/supabase-provider";
 import { ModalProvider } from "@/providers/modal-provider";
 import { StatusAlertProvider } from "@/providers/status-alert-provider";
+import { FinancialPrivacyProvider } from "@/providers/financial-privacy-provider";
 
 /**
  * Root application provider composition.
@@ -18,7 +19,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       <QueryProvider>
         <SupabaseProvider>
           <ModalProvider>
-            <StatusAlertProvider>{children}</StatusAlertProvider>
+            <StatusAlertProvider>
+              <FinancialPrivacyProvider>{children}</FinancialPrivacyProvider>
+            </StatusAlertProvider>
           </ModalProvider>
         </SupabaseProvider>
       </QueryProvider>

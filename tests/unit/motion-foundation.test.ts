@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   MotionStepDirection,
   motionTokens,
+  reducedRevealVariants,
+  revealVariants,
   shouldAnimate,
   springs,
   stepVariants,
@@ -48,5 +50,11 @@ describe("motion foundation", () => {
     expect(variants.initial.x).toBe(0);
     expect(variants.exit.x).toBe(0);
     expect(variants.animate.x).toBe(0);
+  });
+
+  it("keeps reveal motion transform-free when reduced", () => {
+    expect(revealVariants.visible.y).toBe(0);
+    expect(reducedRevealVariants.hidden.y).toBe(0);
+    expect(reducedRevealVariants.exit.y).toBe(0);
   });
 });

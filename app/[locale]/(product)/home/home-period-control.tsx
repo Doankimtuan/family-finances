@@ -25,6 +25,7 @@ export function HomePeriodControl() {
         <FilterChip
           selected={optimisticPeriod === HomeDashboardPeriod.MONTH}
           isDisabled={isPending}
+          data-testid={HOME_TEST_ID.PERIOD_MONTH}
           onPress={() => selectPeriod(HomeDashboardPeriod.MONTH)}
         >
           {t("periodControl.month")}
@@ -32,6 +33,7 @@ export function HomePeriodControl() {
         <FilterChip
           selected={optimisticPeriod === HomeDashboardPeriod.QUARTER}
           isDisabled={isPending}
+          data-testid={HOME_TEST_ID.PERIOD_QUARTER}
           onPress={() => selectPeriod(HomeDashboardPeriod.QUARTER)}
         >
           {t("periodControl.quarter")}

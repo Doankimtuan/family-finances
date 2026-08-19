@@ -6,7 +6,7 @@ import { InboxIcon } from "@hugeicons/core-free-icons";
 import { cn } from "@/shared/utils/cn";
 import { Text } from "@/shared/ui/text";
 import { Heading } from "@/shared/ui/heading";
-import { AppIcon } from "@/shared/ui/app-icon";
+import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
 
 export function EmptyState({
   title,
@@ -31,12 +31,12 @@ export function EmptyState({
       <div
         className={cn(
           "mb-(--space-1) flex size-12 items-center justify-center",
-          "rounded-2xl bg-primary-soft",
+          "rounded-(--radius-control) bg-primary-soft",
           "text-primary",
         )}
         aria-hidden
       >
-        {icon ?? <AppIcon icon={InboxIcon} size="display" />}
+        {icon ?? <AppIcon icon={InboxIcon} size={AppIconSize.DISPLAY} />}
       </div>
       <Heading
         level={3}

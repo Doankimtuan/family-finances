@@ -37,6 +37,7 @@ export function BottomNavigation({
         data-slot="bottom-navigation"
         className={cn(
           "z-(--z-nav) border-t border-border-subtle/60 bg-canvas/95",
+          "min-h-(--bottom-navigation-height)",
           "min-[481px]:m-(--space-2) min-[481px]:rounded-[var(--radius-xl)] min-[481px]:border",
           "min-[481px]:bg-surface/90 min-[481px]:shadow-[var(--elevation-1)]",
           className,

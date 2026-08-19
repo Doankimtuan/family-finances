@@ -1,12 +1,24 @@
 export { AppViewport } from "./app-viewport";
 export { Page, type PageProps } from "./page";
-export { Section, type SectionProps } from "./section";
+export {
+  Section,
+  SectionVariant,
+  SECTION_VARIANT_VALUES,
+  type SectionProps,
+} from "./section";
 export {
   BottomActionBar,
   type BottomActionBarProps,
 } from "./bottom-action-bar";
 export { BottomNavigation } from "./bottom-navigation";
-export { TopAppBar } from "./top-app-bar";
+export {
+  TopAppBar,
+  TopAppBarVariant,
+  TOP_APP_BAR_VARIANT_VALUES,
+  HeaderPill,
+  HeaderPillTone,
+  HEADER_PILL_TONE_VALUES,
+} from "./top-app-bar";
 export { ChromeShell, type ChromeShellProps } from "./chrome-shell";
 export {
   AuthScreenShell,
@@ -42,8 +54,21 @@ export { LocaleSwitcher } from "./locale-switcher";
 export { ThemeToggle } from "./theme-toggle";
 export { TogetherPreferences } from "./together-preferences";
 export { SectionHeader, type SectionHeaderProps } from "./section-header";
-export { Balance, type BalanceProps } from "./balance";
-export { Amount, type AmountProps } from "./amount";
+export {
+  Balance,
+  BalanceSize,
+  BALANCE_SIZE_VALUES,
+  type BalanceProps,
+} from "./balance";
+export { FinancialValue } from "./financial-value";
+export {
+  Amount,
+  AmountTone,
+  AMOUNT_TONE_VALUES,
+  AmountSize,
+  AMOUNT_SIZE_VALUES,
+  type AmountProps,
+} from "./amount";
 export { AmountField, type AmountFieldProps } from "./amount-field";
 export { PercentageField, type PercentageFieldProps } from "./percentage-field";
 export { JarCard, type JarCardProps } from "./jar-card";
@@ -67,7 +92,12 @@ export {
   type LabeledDateInputProps,
   type LabeledSelectOption,
 } from "./labeled-native-field";
-export { KpiBlock, type KpiBlockProps } from "./kpi-block";
+export {
+  KpiBlock,
+  KpiBlockVariant,
+  KPI_BLOCK_VARIANT_VALUES,
+  type KpiBlockProps,
+} from "./kpi-block";
 export { HealthCard, type HealthCardProps } from "./health-card";
 export { SystemShell, type SystemShellProps } from "./system-shell";
 export {

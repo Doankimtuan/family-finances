@@ -10,8 +10,39 @@ import { Heading } from "@/shared/ui/heading";
 import { AppIcon } from "@/shared/ui/app-icon";
 import { IconContainer } from "@/shared/ui/icon-container";
 
-export type TopAppBarVariant = "primary" | "contextual" | "detail" | "form";
-export type HeaderPillTone = "neutral" | "positive" | "attention" | "info";
+export const TopAppBarVariant = {
+  PRIMARY: "primary",
+  CONTEXTUAL: "contextual",
+  DETAIL: "detail",
+  FORM: "form",
+} as const;
+
+export type TopAppBarVariant =
+  (typeof TopAppBarVariant)[keyof typeof TopAppBarVariant];
+
+export const TOP_APP_BAR_VARIANT_VALUES = [
+  TopAppBarVariant.PRIMARY,
+  TopAppBarVariant.CONTEXTUAL,
+  TopAppBarVariant.DETAIL,
+  TopAppBarVariant.FORM,
+] as const;
+
+export const HeaderPillTone = {
+  NEUTRAL: "neutral",
+  POSITIVE: "positive",
+  ATTENTION: "attention",
+  INFO: "info",
+} as const;
+
+export type HeaderPillTone =
+  (typeof HeaderPillTone)[keyof typeof HeaderPillTone];
+
+export const HEADER_PILL_TONE_VALUES = [
+  HeaderPillTone.NEUTRAL,
+  HeaderPillTone.POSITIVE,
+  HeaderPillTone.ATTENTION,
+  HeaderPillTone.INFO,
+] as const;
 
 export type TopAppBarProps = {
   variant?: TopAppBarVariant;
@@ -30,15 +61,15 @@ export type TopAppBarProps = {
 };
 
 const headerPillToneClassName: Record<HeaderPillTone, string> = {
-  neutral: "bg-surface-muted text-text-secondary",
-  positive: "bg-success/10 text-success",
-  attention: "bg-warning/10 text-warning",
-  info: "bg-info/10 text-info",
+  [HeaderPillTone.NEUTRAL]: "bg-surface-muted text-text-secondary",
+  [HeaderPillTone.POSITIVE]: "bg-success/10 text-success",
+  [HeaderPillTone.ATTENTION]: "bg-warning/10 text-warning",
+  [HeaderPillTone.INFO]: "bg-info/10 text-info",
 };
 
 export function HeaderPill({
   children,
-  tone = "neutral",
+  tone = HeaderPillTone.NEUTRAL,
   className,
 }: {
   children: ReactNode;
@@ -142,7 +173,7 @@ export function TopAppBar({
                         ? "text-2xl leading-tight"
                         : "text-lg leading-snug",
                     isContextual
-                      ? "vinha-header-title text-balance break-words"
+                      ? "vinha-header-title text-balance wrap-break-word"
                       : subtitle
                         ? ""
                         : "truncate",

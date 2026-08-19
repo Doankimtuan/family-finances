@@ -16,9 +16,11 @@ import { SafeArea } from "@/providers/safe-area";
 export function AppViewport({
   children,
   className,
+  hasBottomNavigation = false,
 }: {
   children: ReactNode;
   className?: string;
+  hasBottomNavigation?: boolean;
 }) {
   const { open, content } = useModal();
   const [portalRoot, setPortalRoot] = useState<HTMLElement | null>(null);
@@ -53,7 +55,7 @@ export function AppViewport({
             {children}
           </SafeArea>
           <StatusAlertHost />
-          <ToastProvider />
+          <ToastProvider hasBottomNavigation={hasBottomNavigation} />
           {open && content ? (
             <div
               id="modal-host"

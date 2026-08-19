@@ -66,6 +66,7 @@
   },
   "financialPulse": {
     "title": "Total across accounts",
+    "accessibleLabel": "Total balance across active accounts",
     "hint": "Total balance across active accounts, excluding credit cards.",
     "netLabel": {
       "month": "Net cash flow this month",
@@ -77,6 +78,10 @@
       "unavailable": "No income or spending"
     },
     "comparison": "{value} vs prior period"
+  },
+  "financialPrivacy": {
+    "hide": "Hide financial values",
+    "show": "Show financial values"
   },
   "cashFlow": {
     "title": "How is money moving this period?",
@@ -92,12 +97,21 @@
       "day": "Daily income and expense chart for the selected period.",
       "week": "Weekly income and expense chart for the selected period."
     },
+    "dataTableTitle": "Cash-flow data for the selected period",
+    "dataTable": {
+      "period": "Period"
+    },
     "lowData": "Income or spending has been recorded on only one day this period."
+  },
+  "periodStory": {
+    "title": "This period"
   },
   "spending": {
     "title": "Where is money going?",
     "hint": "Categories with the highest spending in the selected period.",
     "uncategorized": "Uncategorized",
+    "reviewAvailable": "review available",
+    "review": "Review in Inbox",
     "insight": {
       "higher": "Spending is {amount} higher than the prior period.",
       "lower": "Spending is {amount} lower than the prior period."
@@ -138,10 +152,11 @@
       "strong": "An account and jars are set up; check Inbox if items are waiting."
     }
   },
-  "capture": "Add expense",
+  "capture": "Add transaction",
+  "addAccount": "Add an account",
   "dayZero": {
     "title": "Start tracking your money",
-    "description": "Choose what you want to do first.",
+    "description": "Add an account to start recording real transactions. Plan and invitations can wait.",
     "invite": "Invite a member",
     "setupPlan": "Set up Plan",
     "addExpense": "Add an expense"

@@ -3,12 +3,29 @@
 import type { ReactNode } from "react";
 import { cn } from "@/shared/utils/cn";
 import { Text } from "@/shared/ui/text";
+import { FinancialValue } from "./financial-value";
+
+export const BalanceSize = {
+  SM: "sm",
+  MD: "md",
+  LG: "lg",
+  HERO: "hero",
+} as const;
+
+export type BalanceSize = (typeof BalanceSize)[keyof typeof BalanceSize];
+
+export const BALANCE_SIZE_VALUES = [
+  BalanceSize.SM,
+  BalanceSize.MD,
+  BalanceSize.LG,
+  BalanceSize.HERO,
+] as const;
 
 export type BalanceProps = {
   /** Formatted ledger amount (caller formats with formatCurrency). */
   amountLabel: string;
   label?: ReactNode;
-  size?: "md" | "lg";
+  size?: BalanceSize;
   className?: string;
   labelClassName?: string;
   amountClassName?: string;
@@ -20,7 +37,7 @@ export type BalanceProps = {
 export function Balance({
   amountLabel,
   label,
-  size = "md",
+  size = BalanceSize.MD,
   className,
   labelClassName,
   amountClassName,
@@ -35,12 +52,14 @@ export function Balance({
       <p
         className={cn(
           "font-semibold tabular-nums tracking-tight text-text-primary",
-          size === "lg" ? "text-3xl" : "text-xl",
+          (size === BalanceSize.HERO || size === BalanceSize.LG) && "text-3xl",
+          size === BalanceSize.MD && "text-xl",
+          size === BalanceSize.SM && "text-lg",
           amountClassName,
         )}
         data-testid="ledger-balance"
       >
-        {amountLabel}
+        <FinancialValue>{amountLabel}</FinancialValue>
       </p>
     </div>
   );

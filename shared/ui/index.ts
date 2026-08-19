@@ -1,4 +1,9 @@
-export { Button, type ButtonProps } from "./button";
+export {
+  Button,
+  ButtonVariant,
+  BUTTON_VARIANT_VALUES,
+  type ButtonProps,
+} from "./button";
 export { IconButton, type IconButtonProps } from "./icon-button";
 export { Text, type TextProps } from "./text";
 export { Heading, type HeadingProps } from "./heading";
@@ -13,8 +18,18 @@ export { Skeleton, type SkeletonProps } from "./skeleton";
 export { Progress, type ProgressProps } from "./progress";
 export { Alert, AlertVariant, type AlertProps } from "./alert";
 export { StatusAlert, type StatusAlertProps } from "./status-alert";
-export { StatusBadge, type StatusBadgeTone } from "./status-badge";
-export { AppIcon, type AppIconProps, ICON_SIZES } from "./app-icon";
+export {
+  StatusBadge,
+  StatusBadgeTone,
+  STATUS_BADGE_TONE_VALUES,
+} from "./status-badge";
+export {
+  AppIcon,
+  AppIconSize,
+  APP_ICON_SIZE_VALUES,
+  type AppIconProps,
+  ICON_SIZES,
+} from "./app-icon";
 export {
   FormField,
   formFieldA11y,

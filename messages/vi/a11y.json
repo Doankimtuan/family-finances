@@ -3,5 +3,6 @@
   "back": "Quay lại",
   "localeSwitcher": "Chọn ngôn ngữ",
   "themeSwitcher": "Chọn giao diện",
+  "dismissToast": "Bỏ qua thông báo",
   "inboxBadge": "{count, plural, one {# việc cần quyết định} other {# việc cần quyết định}}"
 }

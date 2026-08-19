@@ -3,18 +3,38 @@
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import { cn } from "@/shared/utils/cn";
 
-const ICON_SIZES = {
-  xs: 14,
-  sm: 16,
-  md: 20,
-  lg: 24,
-  xl: 32,
-  display: 40,
+export const AppIconSize = {
+  XS: "xs",
+  SM: "sm",
+  MD: "md",
+  LG: "lg",
+  XL: "xl",
+  DISPLAY: "display",
 } as const;
+
+export type AppIconSize = (typeof AppIconSize)[keyof typeof AppIconSize];
+
+export const APP_ICON_SIZE_VALUES = [
+  AppIconSize.XS,
+  AppIconSize.SM,
+  AppIconSize.MD,
+  AppIconSize.LG,
+  AppIconSize.XL,
+  AppIconSize.DISPLAY,
+] as const;
+
+const ICON_SIZES: Record<AppIconSize, number> = {
+  [AppIconSize.XS]: 14,
+  [AppIconSize.SM]: 16,
+  [AppIconSize.MD]: 20,
+  [AppIconSize.LG]: 24,
+  [AppIconSize.XL]: 32,
+  [AppIconSize.DISPLAY]: 40,
+};
 
 export type AppIconProps = {
   icon: IconSvgElement;
-  size?: keyof typeof ICON_SIZES;
+  size?: AppIconSize;
   emphasized?: boolean;
   label?: string;
   decorative?: boolean;
@@ -24,7 +44,7 @@ export type AppIconProps = {
 /** The only low-level rendering boundary for Free Hugeicons. */
 export function AppIcon({
   icon,
-  size = "md",
+  size = AppIconSize.MD,
   emphasized = false,
   label,
   decorative = !label,

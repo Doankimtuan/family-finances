@@ -48,3 +48,24 @@ Prefer border, tonal surface, and spacing over shadows. Shadows are allowed for 
 
 Use semantic tokens only. The visual foundation is token-driven and must support light and dark themes equally.
 
+## Surface Decision Model
+
+Choose containment by semantic importance rather than applying one card pattern
+to every screen:
+
+| Content archetype | Default treatment |
+|---|---|
+| Primary financial truth / screen hero | Emphasized surface |
+| Financial object such as an account, Jar, goal, saving, or holding | Soft bounded surface |
+| Task requiring a decision, such as pending Inbox work | Soft task surface; stronger when pending |
+| Transaction, activity, or history event | Flat list row |
+| Analytics, charts, or spending breakdowns | Open section |
+| Warning, error, or blocked action | Semantic surface |
+| Setup or empty state with an action | Soft surface |
+| Navigation and destination links | Mostly flat |
+| Secondary metadata | Flat |
+
+This is a semantic model, not a strict component mapping. Home uses one
+emphasized balance hero, open period analytics, a pending-task surface, and a
+quieter planning-object surface. Transactions, Inbox, Plan, and Jars should
+retain their own semantic treatments in later screen work.

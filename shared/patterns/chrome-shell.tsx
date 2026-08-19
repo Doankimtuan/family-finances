@@ -20,7 +20,7 @@ export function ChromeShell({
   className,
 }: ChromeShellProps) {
   return (
-    <AppViewport>
+    <AppViewport hasBottomNavigation={chrome === "product"}>
       <div
         data-chrome={chrome}
         className={cn(

@@ -2,11 +2,27 @@ import type { ReactNode } from "react";
 import { cn } from "@/shared/utils/cn";
 import { SectionHeader } from "@/shared/patterns/section-header";
 
+export const SectionVariant = {
+  PLAIN: "plain",
+  SURFACE: "surface",
+  EMPHASIZED: "emphasized",
+} as const;
+
+export type SectionVariant =
+  (typeof SectionVariant)[keyof typeof SectionVariant];
+
+export const SECTION_VARIANT_VALUES = [
+  SectionVariant.PLAIN,
+  SectionVariant.SURFACE,
+  SectionVariant.EMPHASIZED,
+] as const;
+
 export type SectionProps = {
   title?: ReactNode;
+  description?: ReactNode;
   action?: ReactNode;
   children: ReactNode;
-  variant?: "plain" | "surface" | "emphasized";
+  variant?: SectionVariant;
   className?: string;
   contentClassName?: string;
   testId?: string;
@@ -17,9 +33,10 @@ export type SectionProps = {
  */
 export function Section({
   title,
+  description,
   action,
   children,
-  variant = "plain",
+  variant = SectionVariant.PLAIN,
   className,
   contentClassName,
   testId,
@@ -28,15 +45,21 @@ export function Section({
     <section
       className={cn(
         "flex flex-col gap-(--space-3)",
-        variant === "surface" &&
-          "rounded-[var(--radius-card)] bg-surface-muted/55 p-(--space-4)",
-        variant === "emphasized" &&
-          "rounded-[var(--radius-card)] border border-accent/20 bg-accent/10 p-(--space-4)",
+        variant === SectionVariant.SURFACE &&
+          "rounded-(--radius-card) bg-surface-muted/55 p-(--space-4)",
+        variant === SectionVariant.EMPHASIZED &&
+          "rounded-(--radius-card) border border-accent/20 bg-accent/10 p-(--space-4)",
         className,
       )}
       data-testid={testId}
     >
-      {title ? <SectionHeader title={title} action={action} /> : null}
+      {title ? (
+        <SectionHeader
+          title={title}
+          description={description}
+          action={action}
+        />
+      ) : null}
       <div className={cn("flex flex-col gap-(--space-3)", contentClassName)}>
         {children}
       </div>

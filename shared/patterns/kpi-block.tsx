@@ -2,11 +2,26 @@ import type { ReactNode } from "react";
 import { cn } from "@/shared/utils/cn";
 import { Text } from "@/shared/ui/text";
 
+export const KpiBlockVariant = {
+  PLAIN: "plain",
+  SURFACE: "surface",
+  PROMINENT: "prominent",
+} as const;
+
+export type KpiBlockVariant =
+  (typeof KpiBlockVariant)[keyof typeof KpiBlockVariant];
+
+export const KPI_BLOCK_VARIANT_VALUES = [
+  KpiBlockVariant.PLAIN,
+  KpiBlockVariant.SURFACE,
+  KpiBlockVariant.PROMINENT,
+] as const;
+
 export type KpiBlockProps = {
   title: ReactNode;
   description?: ReactNode;
   children: ReactNode;
-  variant?: "plain" | "surface" | "prominent";
+  variant?: KpiBlockVariant;
   className?: string;
   "data-testid"?: string;
 };
@@ -16,7 +31,7 @@ export function KpiBlock({
   title,
   description,
   children,
-  variant = "plain",
+  variant = KpiBlockVariant.PLAIN,
   className,
   "data-testid": testId,
 }: KpiBlockProps) {
@@ -24,10 +39,10 @@ export function KpiBlock({
     <section
       className={cn(
         "flex flex-col gap-(--space-3)",
-        variant === "surface" &&
-          "rounded-[var(--radius-card)] border border-border-subtle/70 bg-surface-muted/70 p-(--space-4)",
-        variant === "prominent" &&
-          "rounded-[var(--radius-card)] border border-accent/20 bg-accent/10 p-(--space-4)",
+        variant === KpiBlockVariant.SURFACE &&
+          "rounded-(--radius-card) border border-border-subtle/70 bg-surface-muted/70 p-(--space-4)",
+        variant === KpiBlockVariant.PROMINENT &&
+          "rounded-(--radius-card) border border-accent/20 bg-accent/10 p-(--space-4)",
         className,
       )}
       data-testid={testId ?? "kpi-block"}

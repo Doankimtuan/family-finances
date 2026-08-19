@@ -5,6 +5,7 @@ import {
   type ReactNode,
   useContext,
   useEffect,
+  useRef,
   useState,
   useTransition,
 } from "react";
@@ -16,6 +17,8 @@ import {
   HOME_TEST_ID,
   type HomeDashboardPeriod as HomeDashboardPeriodValue,
 } from "@/modules/home/application/home-constants";
+import { AnimatePresence, motion } from "motion/react";
+import { motionTokens, useMotionPolicy } from "@/shared/motion";
 import { Skeleton } from "@/shared/ui/skeleton";
 
 type HomePeriodTransitionState = {
@@ -42,8 +45,27 @@ export function HomePeriodTransition({
   const [isPending, startTransition] = useTransition();
   const [pendingPeriod, setPendingPeriod] =
     useState<HomeDashboardPeriodValue | null>(null);
+  const focusPeriod = useRef<HomeDashboardPeriodValue | null>(null);
   const optimisticPeriod =
     isPending && pendingPeriod != null ? pendingPeriod : period;
+
+  useEffect(() => {
+    const selectedPeriod = focusPeriod.current;
+    if (selectedPeriod == null || isPending) return;
+
+    if (selectedPeriod === period) {
+      const testId =
+        selectedPeriod === HomeDashboardPeriod.MONTH
+          ? HOME_TEST_ID.PERIOD_MONTH
+          : HOME_TEST_ID.PERIOD_QUARTER;
+      const selectedControl = document.querySelector<HTMLElement>(
+        `[data-testid="${testId}"]`,
+      );
+      selectedControl?.focus();
+    }
+
+    focusPeriod.current = null;
+  }, [isPending, period]);
 
   useEffect(() => {
     const alternatePeriod =
@@ -57,6 +79,7 @@ export function HomePeriodTransition({
     if (nextPeriod === optimisticPeriod || isPending) return;
 
     setPendingPeriod(nextPeriod);
+    focusPeriod.current = nextPeriod;
     startTransition(() => {
       router.replace(`${APP_PATH.HOME}${homePathForPeriod(nextPeriod)}`);
     });
@@ -82,9 +105,41 @@ export function useHomePeriodTransition() {
 }
 
 /** Limits period loading feedback to the dashboard data that changes. */
-export function HomePeriodData({ children }: { children: ReactNode }) {
+export function HomePeriodData({
+  children,
+  period,
+}: {
+  children: ReactNode;
+  period: HomeDashboardPeriodValue;
+}) {
   const { isPending } = useHomePeriodTransition();
   const t = useTranslations("home");
+  const policy = useMotionPolicy();
+  const loading = (
+    <div
+      className="flex flex-col gap-(--space-3)"
+      role="status"
+      aria-live="polite"
+      data-testid={HOME_TEST_ID.PERIOD_LOADING}
+    >
+      <span className="sr-only">{t("periodControl.loading")}</span>
+      <Skeleton className="h-56 w-full rounded-(--radius-card)" />
+      <Skeleton className="h-72 w-full rounded-(--radius-card)" />
+      <Skeleton className="h-36 w-full rounded-(--radius-card)" />
+    </div>
+  );
+
+  if (!policy.mounted || !policy.enabled) {
+    return (
+      <div
+        className="flex flex-col gap-(--space-3)"
+        aria-busy={isPending}
+        data-testid={HOME_TEST_ID.PERIOD_CONTENT}
+      >
+        {isPending ? loading : children}
+      </div>
+    );
+  }
 
   return (
     <div
@@ -92,21 +147,35 @@ export function HomePeriodData({ children }: { children: ReactNode }) {
       aria-busy={isPending}
       data-testid={HOME_TEST_ID.PERIOD_CONTENT}
     >
-      {isPending ? (
-        <div
-          className="flex flex-col gap-(--space-3)"
-          role="status"
-          aria-live="polite"
-          data-testid={HOME_TEST_ID.PERIOD_LOADING}
-        >
-          <span className="sr-only">{t("periodControl.loading")}</span>
-          <Skeleton className="h-56 w-full rounded-[var(--radius-card)]" />
-          <Skeleton className="h-72 w-full rounded-[var(--radius-card)]" />
-          <Skeleton className="h-36 w-full rounded-[var(--radius-card)]" />
-        </div>
-      ) : (
-        children
-      )}
+      <AnimatePresence initial={false} mode="popLayout">
+        {isPending ? (
+          <motion.div
+            key={HOME_TEST_ID.PERIOD_LOADING}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{
+              duration: motionTokens.duration.fast,
+              ease: motionTokens.easing.standard,
+            }}
+          >
+            {loading}
+          </motion.div>
+        ) : (
+          <motion.div
+            key={period}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{
+              duration: motionTokens.duration.fast,
+              ease: motionTokens.easing.standard,
+            }}
+          >
+            {children}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

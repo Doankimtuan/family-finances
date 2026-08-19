@@ -4,6 +4,7 @@ import {
 } from "@/modules/ledger/application";
 import { getPlanPulse } from "@/modules/plan/application";
 import { listOpenInboxItems } from "@/modules/inbox/application";
+import { InboxItemKind } from "@/modules/inbox/application/inbox-constants";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import {
   computeHealthPulse,
@@ -34,6 +35,7 @@ export type HomeDashboard = {
   period: HomeDashboardPeriod;
   dateRange: HomeDashboardDateRange;
   financialMetrics: HomeFinancialMetrics | null;
+  canReviewUncategorized: boolean;
 };
 
 /**
@@ -75,6 +77,9 @@ export async function getHomeDashboard(
     activeJarCount,
     openInboxCount,
     incomeAllocateMode: pulse.incomeAllocateMode,
+    canReviewUncategorized: inbox.some(
+      (item) => item.kind === InboxItemKind.UNMAPPED_EXPENSE,
+    ),
     health,
     isDayZero: accountCount === 0 && activeJarCount === 0,
     period,

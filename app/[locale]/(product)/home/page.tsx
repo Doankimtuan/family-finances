@@ -15,9 +15,8 @@ import {
 import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
-import { NAVIGATION_ICONS } from "@/shared/ui/icon-registry";
-import { HeaderPill, TopAppBar } from "@/shared/patterns/top-app-bar";
-import { KpiBlock } from "@/shared/patterns/kpi-block";
+import { Section } from "@/shared/patterns/section";
+import { TopAppBar, TopAppBarVariant } from "@/shared/patterns/top-app-bar";
 import { Page } from "@/shared/patterns/page";
 import { Text } from "@/shared/ui/text";
 import { MotionReveal } from "@/shared/motion";
@@ -43,8 +42,8 @@ function resolveDashboardPeriod(rawPeriod?: string) {
 }
 
 /**
- * Home is a mobile decision surface: current position, flow, spending, plan,
- * then attention. It intentionally excludes unreliable investment, savings,
+ * Home is a mobile decision surface: current position, flow, spending,
+ * attention, then plan. It intentionally excludes unreliable investment, savings,
  * loan, and liability summaries until those domain models are safe to aggregate.
  */
 export default async function HomePage({ params, searchParams }: Props) {
@@ -69,142 +68,103 @@ export default async function HomePage({ params, searchParams }: Props) {
     dashboard?.financialMetrics != null &&
     (dashboard.financialMetrics.income > 0 ||
       dashboard.financialMetrics.expense > 0);
-  const headerStory = dashboard?.financialMetrics?.hasTransactions
-    ? dashboard.financialMetrics.netCashFlow >= 0
-      ? t("header.cashFlowStory.positive")
-      : t("header.cashFlowStory.attention")
-    : t("header.cashFlowStory.unavailable");
-
   const topBar = (
     <TopAppBar
-      variant="contextual"
-      eyebrow={`${t(`header.greeting.${homeGreetingPeriod()}`)} · ${t("header.eyebrow")}`}
-      title={dashboard?.isDayZero ? t("header.headline.starting") : headerStory}
-      subtitle={
-        dashboard?.isDayZero
-          ? t("header.supporting.starting")
-          : t("header.dashboardSupporting")
-      }
-      icon={NAVIGATION_ICONS.home}
-      status={
-        dashboard && dashboard.openInboxCount > 0 ? (
-          <HeaderPill tone="attention">
-            {t("inbox.pending", { count: dashboard.openInboxCount })}
-          </HeaderPill>
-        ) : null
-      }
-      meta={
-        dashboard
-          ? t("header.meta.available", {
-              accountCount: dashboard.accountCount,
-              openInboxCount: dashboard.openInboxCount,
-            })
-          : t("header.meta.unavailable")
-      }
+      variant={TopAppBarVariant.PRIMARY}
+      eyebrow={t(`header.greeting.${homeGreetingPeriod()}`)}
+      title={t("header.eyebrow")}
     />
   );
 
   return (
-    <Page
-      testId={HOME_TEST_ID.DASHBOARD}
-      topBar={topBar}
-      contentClassName="gap-(--space-3)"
-    >
-      <HomeStatusLane kind={HomeStatusLaneKind.OFFLINE} />
-      {loadFailed ? (
-        <HomeStatusLane
-          kind={HomeStatusLaneKind.ERROR}
-          title={t("loadErrorTitle")}
-          description={t("loadErrorBody")}
-          retryLabel={t("status.retry")}
-        />
-      ) : dashboard.isDayZero ? (
-        <HomeDayZeroTrio />
-      ) : (
-        <>
-          <HomePeriodTransition period={dashboard.period}>
-            <MotionReveal>
+    <MotionReveal className="min-h-full">
+      <Page
+        testId={HOME_TEST_ID.DASHBOARD}
+        topBar={topBar}
+        contentClassName="gap-(--space-6)"
+      >
+        <HomeStatusLane kind={HomeStatusLaneKind.OFFLINE} />
+        {loadFailed ? (
+          <HomeStatusLane
+            kind={HomeStatusLaneKind.ERROR}
+            title={t("loadErrorTitle")}
+            description={t("loadErrorBody")}
+            retryLabel={t("status.retry")}
+          />
+        ) : dashboard.isDayZero ? (
+          <HomeDayZeroTrio />
+        ) : (
+          <>
+            <HomePeriodTransition period={dashboard.period}>
               <HomePeriodControl />
-            </MotionReveal>
-            <HomePeriodData>
-              <MotionReveal>
+              <HomePeriodData period={dashboard.period}>
                 <HomeFinancialPulse
                   balance={dashboard.realBalance}
                   currency={dashboard.currency}
-                  action={<HomeCaptureAction />}
+                  action={
+                    <HomeCaptureAction accountCount={dashboard.accountCount} />
+                  }
                   locale={locale}
                   period={dashboard.period}
                   metrics={dashboard.financialMetrics}
                 />
-              </MotionReveal>
-              {hasCashFlow && dashboard.financialMetrics ? (
-                <>
-                  <MotionReveal>
+                {hasCashFlow && dashboard.financialMetrics ? (
+                  <Section
+                    title={t("periodStory.title")}
+                    contentClassName="gap-(--space-4)"
+                    testId={HOME_TEST_ID.PERIOD_STORY}
+                  >
                     <HomeCashFlowSection
                       metrics={dashboard.financialMetrics}
                       currency={dashboard.currency}
                       locale={locale}
                     />
-                  </MotionReveal>
-                  <MotionReveal>
                     <HomeSpendingSection
                       metrics={dashboard.financialMetrics}
                       currency={dashboard.currency}
                       locale={locale}
+                      canReviewUncategorized={dashboard.canReviewUncategorized}
                     />
-                  </MotionReveal>
-                </>
-              ) : null}
-            </HomePeriodData>
-            {dashboard.activeJarCount > 0 ? (
-              <MotionReveal>
-                <KpiBlock
-                  title={t("planPulse.title")}
-                  description={t("planPulse.hint")}
-                  variant="surface"
-                  data-testid={HOME_TEST_ID.PLAN_PULSE}
-                >
-                  <div className="flex items-end justify-between gap-(--space-3)">
-                    <div className="min-w-0">
-                      <Text
-                        size="lg"
-                        className="font-semibold text-text-primary"
-                      >
-                        {t("planPulse.jarsCount", {
-                          count: dashboard.activeJarCount,
-                        })}
-                      </Text>
-                      <Text size="sm" tone="secondary">
-                        {t(
-                          `planPulse.allocate.${dashboard.incomeAllocateMode}`,
-                        )}
-                      </Text>
-                    </div>
-                    <Link
-                      href={APP_PATH.PLAN}
-                      className="shrink-0 rounded-full bg-primary-soft px-(--space-3) py-(--space-2) text-sm font-semibold text-primary transition-[background-color,transform] duration-(--duration-fast) hover:bg-primary/15 active:scale-[var(--press-scale)] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-                      data-testid={HOME_TEST_ID.PLAN_LINK}
-                    >
-                      {t("planPulse.openPlan")}
-                    </Link>
+                  </Section>
+                ) : null}
+              </HomePeriodData>
+              <Section
+                title={t("inbox.title")}
+                contentClassName="gap-(--space-3)"
+                testId={HOME_TEST_ID.INBOX_BLOCK}
+              >
+                <HomeInboxCta openCount={dashboard.openInboxCount} />
+              </Section>
+              <Section
+                title={t("planPulse.title")}
+                description={t("planPulse.hint")}
+                action={
+                  <Link
+                    href={APP_PATH.PLAN}
+                    data-testid={HOME_TEST_ID.PLAN_LINK}
+                  >
+                    {t("planPulse.openPlan")}
+                  </Link>
+                }
+                testId={HOME_TEST_ID.PLAN_PULSE}
+              >
+                <div className="rounded-(--radius-card) border border-border-subtle/70 bg-surface-muted/45 p-(--space-3)">
+                  <div className="min-w-0">
+                    <Text size="lg" className="font-semibold text-text-primary">
+                      {t("planPulse.jarsCount", {
+                        count: dashboard.activeJarCount,
+                      })}
+                    </Text>
+                    <Text size="sm" tone="secondary">
+                      {t(`planPulse.allocate.${dashboard.incomeAllocateMode}`)}
+                    </Text>
                   </div>
-                </KpiBlock>
-              </MotionReveal>
-            ) : null}
-            {dashboard.openInboxCount > 0 ? (
-              <MotionReveal>
-                <KpiBlock
-                  title={t("inbox.title")}
-                  variant="surface"
-                  data-testid={HOME_TEST_ID.INBOX_BLOCK}
-                >
-                  <HomeInboxCta openCount={dashboard.openInboxCount} />
-                </KpiBlock>
-              </MotionReveal>
-            ) : null}
-          </HomePeriodTransition>
-        </>
-      )}
-    </Page>
+                </div>
+              </Section>
+            </HomePeriodTransition>
+          </>
+        )}
+      </Page>
+    </MotionReveal>
   );
 }
