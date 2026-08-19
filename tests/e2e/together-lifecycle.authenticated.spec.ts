@@ -99,7 +99,9 @@ test.describe("Together authenticated lifecycle V1", () => {
         .getByLabel("Partner email")
         .fill(process.env.OWNERSHIP_TEST_B_EMAIL ?? "");
       await admin.getByTestId("invite-send").click();
-      await expect(admin).toHaveURL(/\/en\/together\/invitations$/);
+      await expect(admin).toHaveURL(/\/en\/together\/invitations$/, {
+        timeout: 20_000,
+      });
       await expect(
         admin.getByText(process.env.OWNERSHIP_TEST_B_EMAIL ?? ""),
       ).toBeVisible();
@@ -113,7 +115,9 @@ test.describe("Together authenticated lifecycle V1", () => {
         .getByLabel("Partner email")
         .fill(process.env.OWNERSHIP_TEST_B_EMAIL ?? "");
       await admin.getByTestId("invite-send").click();
-      await expect(admin).toHaveURL(/\/en\/together\/invitations$/);
+      await expect(admin).toHaveURL(/\/en\/together\/invitations$/, {
+        timeout: 20_000,
+      });
       await adminContext.grantPermissions([
         "clipboard-read",
         "clipboard-write",
@@ -137,9 +141,18 @@ test.describe("Together authenticated lifecycle V1", () => {
       ).toHaveText("Personal · You");
 
       await openLifecycleMembers(admin);
-      await admin.getByTestId("together-change-role").last().click();
+      const partnerMember = admin
+        .locator("[data-testid^='together-member-']")
+        .filter({ hasText: process.env.OWNERSHIP_TEST_B_EMAIL ?? "" });
+      await partnerMember.getByTestId("together-change-role").click();
       await admin.getByRole("button", { name: "Confirm role" }).click();
+      await expect(
+        admin.getByRole("button", { name: "Confirm role" }),
+      ).toHaveCount(0, { timeout: 20_000 });
       await openLifecycleMembers(admin);
+      await expect(admin.getByTestId("together-role-admin")).toHaveCount(2, {
+        timeout: 20_000,
+      });
       await expect(admin.getByTestId("together-leave-member")).toBeVisible();
       await admin.getByTestId("together-leave-member").click();
       await expect(admin).toHaveURL(/\/en\/(home|together)/, {

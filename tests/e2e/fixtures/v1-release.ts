@@ -22,24 +22,34 @@ function loadLocalEnv(): void {
 
 loadLocalEnv();
 
-export const LIFECYCLE_IDENTITIES = {
+const RELEASE_IDENTITIES = {
   admin: {
     email: "OWNERSHIP_TEST_A_EMAIL",
     password: "OWNERSHIP_TEST_A_PASSWORD",
   },
-  partner: {
-    email: "OWNERSHIP_TEST_B_EMAIL",
-    password: "OWNERSHIP_TEST_B_PASSWORD",
-  },
 } as const;
 
-export function hasLifecycleCredentials(): boolean {
-  return Object.values(LIFECYCLE_IDENTITIES).every(({ email, password }) =>
-    Boolean(process.env[email] && process.env[password]),
-  );
+export function assertReleaseEnvironment(): void {
+  const missing = [
+    ["OWNERSHIP_TEST_A_EMAIL", process.env.OWNERSHIP_TEST_A_EMAIL],
+    ["OWNERSHIP_TEST_A_PASSWORD", process.env.OWNERSHIP_TEST_A_PASSWORD],
+    ["OWNERSHIP_TEST_B_EMAIL", process.env.OWNERSHIP_TEST_B_EMAIL],
+    ["OWNERSHIP_TEST_B_PASSWORD", process.env.OWNERSHIP_TEST_B_PASSWORD],
+    [
+      "SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY",
+      process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY,
+    ],
+  ]
+    .filter(([, value]) => !value)
+    .map(([name]) => name);
+  if (missing.length > 0) {
+    throw new Error(
+      `V1 release smoke preflight failed; missing ${missing.join(", ")}`,
+    );
+  }
 }
 
-export async function runLifecycleHarness(
+export async function runReleaseHarness(
   command: "setup" | "cleanup",
 ): Promise<void> {
   await execFile("node", ["scripts/ownership-test-harness.mjs", command], {
@@ -48,28 +58,25 @@ export async function runLifecycleHarness(
   });
 }
 
-export async function authenticateLifecycleUser(
-  page: Page,
-  identity: keyof typeof LIFECYCLE_IDENTITIES,
-): Promise<void> {
-  const config = LIFECYCLE_IDENTITIES[identity];
+export async function authenticateReleaseAdmin(page: Page): Promise<void> {
+  const identity = RELEASE_IDENTITIES.admin;
   await page.goto("/en/login");
-  await page.getByLabel("Email").fill(process.env[config.email] ?? "");
+  await page.getByLabel("Email").fill(process.env[identity.email] ?? "");
   await page
     .locator("#login-password")
-    .fill(process.env[config.password] ?? "");
+    .fill(process.env[identity.password] ?? "");
   await page.getByRole("button", { name: "Log in" }).click();
   await expect(page).toHaveURL(/\/en\/(home|together)/, { timeout: 20_000 });
 }
 
-export async function openLifecycleMembers(page: Page): Promise<void> {
-  await page.goto("/en/together/members");
-  await expect(page.getByTestId("together-members-page")).toBeVisible();
-}
-
-export async function openLifecycleAccount(page: Page): Promise<void> {
-  await page.goto("/en/money/accounts");
-  await expect(
-    page.getByRole("link", { name: /Ownership former-member account/ }),
-  ).toBeVisible();
+export async function expectNoHorizontalOverflow(page: Page): Promise<void> {
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          document.documentElement.scrollWidth <=
+          document.documentElement.clientWidth,
+      ),
+    )
+    .toBe(true);
 }

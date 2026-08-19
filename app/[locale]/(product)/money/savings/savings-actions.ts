@@ -148,14 +148,13 @@ export type SavingsLifecycleSyncState =
  * prefetch, which must stay free of business-data mutations.
  */
 export async function syncSavingsLifecycleAction(): Promise<SavingsLifecycleSyncState> {
-  // Backfill failure must not block detection; both ran independently when
-  // the page triggered them during render.
   const backfill = await backfillLegacySavingsAccounts();
+  if (!backfill.ok) return { status: "error", code: backfill.code };
+
   const detected = await detectMaturedSavings();
   if (!detected.ok) return { status: "error", code: detected.code };
-  const migratedCount = backfill.ok ? backfill.migratedCount : 0;
   if (
-    migratedCount > 0 ||
+    backfill.migratedCount > 0 ||
     detected.maturedCount > 0 ||
     detected.cascadeCount > 0
   ) {
@@ -163,7 +162,7 @@ export async function syncSavingsLifecycleAction(): Promise<SavingsLifecycleSync
   }
   return {
     status: "success",
-    migratedCount,
+    migratedCount: backfill.migratedCount,
     maturedCount: detected.maturedCount,
     cascadeCount: detected.cascadeCount,
   };

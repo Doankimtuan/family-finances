@@ -57,7 +57,7 @@ describe("syncSavingsLifecycleAction", () => {
     );
   });
 
-  it("still detects maturity when the legacy backfill cannot run", async () => {
+  it("surfaces a legacy backfill failure before detection", async () => {
     vi.mocked(backfillLegacySavingsAccounts).mockResolvedValue({
       ok: false,
       code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN,
@@ -71,11 +71,10 @@ describe("syncSavingsLifecycleAction", () => {
     const result = await syncSavingsLifecycleAction();
 
     expect(result).toEqual({
-      status: "success",
-      migratedCount: 0,
-      maturedCount: 0,
-      cascadeCount: 0,
+      status: "error",
+      code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN,
     });
+    expect(vi.mocked(detectMaturedSavings)).not.toHaveBeenCalled();
   });
 
   it("surfaces detection failures as a typed error state", async () => {

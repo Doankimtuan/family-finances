@@ -56,7 +56,7 @@ describe("SavingsLifecycleSync", () => {
     expect(refresh).not.toHaveBeenCalled();
   });
 
-  it("swallows typed sync failures without refreshing", async () => {
+  it("does not refresh after typed sync failures", async () => {
     syncAction.mockResolvedValue({
       status: "error",
       code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN,

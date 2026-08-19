@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { syncSavingsLifecycleAction } from "./savings-actions";
 
@@ -13,8 +13,11 @@ import { syncSavingsLifecycleAction } from "./savings-actions";
  */
 export function SavingsLifecycleSync() {
   const router = useRouter();
+  const hasSynced = useRef(false);
 
   useEffect(() => {
+    if (hasSynced.current) return;
+    hasSynced.current = true;
     let cancelled = false;
     void (async () => {
       const result = await syncSavingsLifecycleAction();

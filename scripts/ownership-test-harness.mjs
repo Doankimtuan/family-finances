@@ -282,6 +282,168 @@ async function ensureHousehold(admin, users) {
   return household;
 }
 
+async function ensureReleaseFixtures(admin, household, users) {
+  const { data: memberships, error: membershipsError } = await admin
+    .from("household_members")
+    .select("id, user_id")
+    .eq("household_id", household.id)
+    .eq("is_active", true);
+  if (membershipsError)
+    fail(
+      `read release fixture memberships: ${membershipsError.code ?? "unknown"}`,
+    );
+
+  const adminMembership = memberships?.find(
+    (membership) => membership.user_id === users[0].id,
+  );
+  const partnerMembership = memberships?.find(
+    (membership) => membership.user_id === users[1].id,
+  );
+  if (!adminMembership || !partnerMembership)
+    fail("release fixture memberships unavailable");
+
+  const ensureAccount = async (name, openingBalance) => {
+    const { data: existingRows, error } = await admin
+      .from("accounts")
+      .select("id")
+      .eq("household_id", household.id)
+      .eq("name", name)
+      .limit(1);
+    if (error) fail(`find release account: ${error.code ?? "unknown"}`);
+    const existing = existingRows?.[0];
+    if (existing) return existing;
+    return one(
+      admin.from("accounts").insert({
+        household_id: household.id,
+        name,
+        type: HARNESS.accountType,
+        opening_balance: openingBalance,
+        created_by: users[0].id,
+      }),
+      `create release account ${name}`,
+    );
+  };
+
+  await ensureAccount("Ownership release cash", 10000000);
+  await ensureAccount("Ownership transfer destination", 0);
+
+  const { data: jarRows, error: jarError } = await admin
+    .from("jars")
+    .select("id")
+    .eq("household_id", household.id)
+    .eq("name", "Ownership release jar")
+    .limit(1);
+  if (jarError) fail(`find release jar: ${jarError.code ?? "unknown"}`);
+  const jar = jarRows?.[0];
+  if (!jar)
+    await one(
+      admin.from("jars").insert({
+        household_id: household.id,
+        name: "Ownership release jar",
+        kind: "spending",
+        sort_order: 99,
+        is_archived: false,
+        is_paused: false,
+      }),
+      "create release jar",
+    );
+
+  const { data: loanRows, error: loanError } = await admin
+    .from("loans")
+    .select("id")
+    .eq("household_id", household.id)
+    .eq("name", "Ownership test loan")
+    .limit(1);
+  if (loanError) fail(`find release loan: ${loanError.code ?? "unknown"}`);
+  const loan = loanRows?.[0];
+  if (!loan)
+    await createValidLoan(admin, household.id, adminMembership.id, users[0].id);
+
+  const { data: liabilityRows, error: liabilityError } = await admin
+    .from("liabilities")
+    .select("id")
+    .eq("household_id", household.id)
+    .eq("name", "Ownership test liability")
+    .limit(1);
+  if (liabilityError)
+    fail(`find release liability: ${liabilityError.code ?? "unknown"}`);
+  const liability = liabilityRows?.[0];
+  if (!liability)
+    await createValidLiability(
+      admin,
+      household.id,
+      adminMembership.id,
+      users[0].id,
+    );
+
+  const { data: holdingRows, error: holdingError } = await admin
+    .from("investment_holdings")
+    .select("id")
+    .eq("household_id", household.id)
+    .eq("name", "Ownership test holding")
+    .limit(1);
+  if (holdingError)
+    fail(`find release investment: ${holdingError.code ?? "unknown"}`);
+  const holding = holdingRows?.[0];
+  if (!holding)
+    await createValidInvestmentHolding(
+      admin,
+      household.id,
+      adminMembership.id,
+      users[0].id,
+    );
+
+  const { data: goalRows, error: goalError } = await admin
+    .from("goals")
+    .select("id")
+    .eq("household_id", household.id)
+    .eq("name", "Ownership test goal")
+    .limit(1);
+  if (goalError) fail(`find release goal: ${goalError.code ?? "unknown"}`);
+  const goal = goalRows?.[0];
+  if (!goal)
+    await createValidGoalFundingSource(
+      admin,
+      household.id,
+      adminMembership.id,
+      users[0].id,
+    );
+
+  const { data: savingRows, error: savingError } = await admin
+    .from("savings")
+    .select("id")
+    .eq("household_id", household.id)
+    .eq("product_name", "Ownership test saving")
+    .limit(1);
+  if (savingError)
+    fail(`find release saving: ${savingError.code ?? "unknown"}`);
+  const saving = savingRows?.[0];
+  if (!saving)
+    await createValidSaving(
+      admin,
+      household.id,
+      adminMembership.id,
+      users[0].id,
+    );
+
+  const { data: releaseInboxRows, error: releaseInboxError } = await admin
+    .from("inbox_items")
+    .select("id")
+    .eq("household_id", household.id)
+    .eq("title", "Ownership release inbox fixture")
+    .limit(1);
+  if (releaseInboxError)
+    fail(`find release Inbox fixture: ${releaseInboxError.code ?? "unknown"}`);
+  if (!releaseInboxRows?.[0])
+    await createPendingPersonalInboxItem(
+      admin,
+      household.id,
+      adminMembership.id,
+      users[0].id,
+      "Ownership release inbox fixture",
+    );
+}
+
 export async function signInTestIdentity(identity) {
   const client = publicClient();
   const { data, error } = await client.auth.signInWithPassword(identity);
@@ -567,11 +729,15 @@ export async function createPendingPersonalInboxItem(
   householdId,
   ownerMembershipId,
   createdBy,
+  fixtureName = "Ownership inbox fixture",
 ) {
   const account = await one(
     admin.from("accounts").insert({
       household_id: householdId,
-      name: "Ownership inbox source",
+      name:
+        fixtureName === "Ownership inbox fixture"
+          ? "Ownership inbox source"
+          : `${fixtureName} source`,
       type: HARNESS.accountType,
       financial_scope: HARNESS.personal,
       owner_membership_id: ownerMembershipId,
@@ -587,7 +753,7 @@ export async function createPendingPersonalInboxItem(
       amount: 10000,
       currency: HARNESS.currency,
       transaction_date: HARNESS.today,
-      note: "Ownership inbox fixture",
+      note: fixtureName,
       status: "pending_mapping",
       created_by: createdBy,
       source: "manual",
@@ -603,7 +769,7 @@ export async function createPendingPersonalInboxItem(
       source_id: transaction.id,
       amount: 10000,
       currency: HARNESS.currency,
-      title: "Ownership inbox fixture",
+      title: fixtureName,
     }),
     "create pending personal inbox item",
   );
@@ -660,6 +826,7 @@ async function setup() {
     await ensureUser(admin, env.users.partner),
   ];
   const household = await ensureHousehold(admin, users);
+  await ensureReleaseFixtures(admin, household, users);
   return {
     ready: true,
     householdId: household.id,

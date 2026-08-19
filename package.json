@@ -14,6 +14,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "test:e2e:release": "playwright test tests/e2e/v1-critical-flow.release.spec.ts --workers=1",
     "ownership:test-harness": "node scripts/ownership-test-harness.mjs",
     "test:e2e:smoke": "playwright test tests/e2e/auth-entry.smoke.spec.ts tests/e2e/health-insights.smoke.spec.ts tests/e2e/home-dashboard.smoke.spec.ts",
     "test:constitution": "vitest run tests/unit/health-readonly-shield.test.ts tests/unit/ai-policy.test.ts tests/unit/health-insights.test.ts tests/unit/health-pulse.test.ts tests/unit/get-health-detail.integration.test.ts tests/unit/health-insights-policy-block.test.ts tests/unit/log-health-ai-policy-block.test.ts",
