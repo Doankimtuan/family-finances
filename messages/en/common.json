@@ -1,6 +1,6 @@
 {
   "brand": "ViNha",
-  "tagline": "Shared money, calmly kept.",
+  "tagline": "Manage household money together.",
   "loading": "Loading",
   "itemsCount": "{count, plural, =0 {No items} one {# item} other {# items}}"
 }

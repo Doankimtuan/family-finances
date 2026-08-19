@@ -1,15 +1,15 @@
 {
   "homeTitle": "Chưa có hoạt động",
-  "homeDescription": "Khi có việc cần chú ý, nó sẽ xuất hiện ở đây.",
-  "homeLead": "Nơi yên tĩnh cho những gì quan trọng hôm nay.",
-  "moneyTitle": "Chưa có tiền",
-  "moneyDescription": "Hũ và số dư sẽ xuất hiện khi bạn bắt đầu theo dõi.",
+  "homeDescription": "Các việc cần bạn chú ý sẽ xuất hiện ở đây.",
+  "homeLead": "Tại đây hiển thị những việc cần bạn chú ý hôm nay.",
+  "moneyTitle": "Chưa có dữ liệu tiền",
+  "moneyDescription": "Hũ và số dư sẽ hiển thị khi có dữ liệu.",
   "planTitle": "Chưa có kế hoạch",
-  "planDescription": "Nhịp sống và nghi thức sắp tới sẽ xuất hiện ở đây.",
+  "planDescription": "Các mục trong kế hoạch sẽ hiển thị khi bạn bắt đầu thiết lập.",
   "inboxTitle": "Hộp thư trống",
-  "inboxDescription": "Các mục chờ xem xét sẽ xuất hiện ở đây.",
-  "togetherTitle": "Chưa có đối tác",
-  "togetherDescription": "Không gian chung cho mọi người trong hộ gia đình.",
+  "inboxDescription": "Các mục cần bạn xem sẽ xuất hiện ở đây.",
+  "togetherTitle": "Chưa có thành viên",
+  "togetherDescription": "Thành viên trong hộ gia đình sẽ hiển thị ở đây.",
   "healthTitle": "Không có gì cần kiểm tra",
   "healthDescription": "Trạng thái kết nối và đồng bộ sẽ hiện ở đây khi sẵn sàng."
 }

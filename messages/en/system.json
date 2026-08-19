@@ -1,28 +1,28 @@
 {
   "error": {
-    "title": "Something went wrong",
-    "body": "We could not finish that step. Try again, or return home. Money changes are never silent when they fail.",
+    "title": "Could not complete the request",
+    "body": "Could not complete the request. Try again or return home.",
     "retry": "Try again",
     "home": "Go home"
   },
   "offline": {
     "title": "You are offline",
-    "body": "Money and Plan changes need a connection. Reading can continue when available — offline writes stay blocked.",
-    "retry": "Retry when online",
+    "body": "You can still view available data, but you need a connection to save changes.",
+    "retry": "Try again",
     "readOnly": "Continue read-only",
-    "escalate": "Why mutations are blocked",
-    "stillOffline": "Still offline — connect to change Money or Plan."
+    "escalate": "Why changes cannot be saved",
+    "stillOffline": "Still offline — connect to save your changes."
   },
   "permission": {
     "title": "Permission needed",
-    "body": "Partners share daily Money, Plan, and Inbox. Some Together settings need an Admin — changes stay partner-visible.",
-    "adminBody": "This action needs the household Admin role. Ask your partner Admin, or open Together to review roles.",
+    "body": "Household members share daily Money, Plan, and Inbox. Some Together settings require an Admin; changes remain visible to members.",
+    "adminBody": "This action requires the household Admin role. Ask an admin or open Together to review roles.",
     "backTogether": "Back to Together",
     "home": "Go home",
     "learnRoles": "Why this is blocked"
   },
   "maintenance": {
     "title": "Under maintenance",
-    "body": "ViNha is briefly unavailable while we care for the household ledger. Please check back soon — no offline writes will be queued."
+    "body": "ViNha is temporarily unavailable during maintenance. Please check back soon."
   }
 }
