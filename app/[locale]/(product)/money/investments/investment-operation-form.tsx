@@ -213,6 +213,7 @@ export function InvestmentOperationForm({
   accounts,
 }: Props) {
   const t = useTranslations("money.investments.operation");
+  const tUx = useTranslations("money.investments");
   const locale = useLocale();
   const router = useRouter();
   const [confirming, setConfirming] = useState(false);
@@ -425,14 +426,14 @@ export function InvestmentOperationForm({
           rows={[
             {
               id: "holding",
-              label: ux.instrumentLabel,
+              label: tUx(ux.instrumentLabelKey),
               value: holding.symbol || holding.name,
             },
             ...(showQuantity
               ? [
                   {
                     id: "quantity",
-                    label: ux.quantityLabel,
+                    label: tUx(ux.quantityLabelKey),
                     value: quantity || t("unknown"),
                   },
                 ]
@@ -441,10 +442,10 @@ export function InvestmentOperationForm({
               id: "value",
               label:
                 mode === InvestmentFormMode.VALUATION
-                  ? ux.valuationPriceLabel
+                  ? tUx(ux.valuationPriceLabelKey)
                   : mode === InvestmentFormMode.SELL
-                    ? ux.disposalPriceLabel
-                    : ux.priceLabel,
+                    ? tUx(ux.disposalPriceLabelKey)
+                    : tUx(ux.priceLabelKey),
               value: display(
                 mode === InvestmentFormMode.VALUATION ||
                   mode === InvestmentFormMode.SELL
@@ -499,7 +500,7 @@ export function InvestmentOperationForm({
                 {holding.symbol || holding.name}
               </div>
               <div className="mt-1 text-sm text-text-secondary">
-                {holding.quantity} {ux.unitSuffix}
+                {holding.quantity} {tUx(ux.unitSuffixKey)}
               </div>
             </section>
           ) : null}
@@ -553,7 +554,7 @@ export function InvestmentOperationForm({
                   render={({ field }) => (
                     <DecimalField
                       id="investment-operation-quantity"
-                      label={ux.quantityLabel}
+                      label={tUx(ux.quantityLabelKey)}
                       value={field.value}
                       onValueChange={field.onChange}
                       error={fieldError("quantity")}
@@ -572,7 +573,7 @@ export function InvestmentOperationForm({
                   }
                   aria-label={t("sellAllAccessible", {
                     quantity: holding.quantity,
-                    unit: ux.unitSuffix,
+                    unit: tUx(ux.unitSuffixKey),
                   })}
                 >
                   {t("sellAll")}
@@ -585,7 +586,7 @@ export function InvestmentOperationForm({
                 render={({ field }) => (
                   <DecimalField
                     id="investment-operation-quantity"
-                    label={ux.quantityLabel}
+                    label={tUx(ux.quantityLabelKey)}
                     value={field.value}
                     onValueChange={field.onChange}
                     error={fieldError("quantity")}
@@ -612,9 +613,9 @@ export function InvestmentOperationForm({
                 id: "investment-operation-unit-price",
                 label:
                   mode === InvestmentFormMode.VALUATION
-                    ? ux.valuationPriceLabel
-                    : ux.disposalPriceLabel,
-                description: `${ux.priceCurrency} / ${ux.unitSuffix}`,
+                    ? tUx(ux.valuationPriceLabelKey)
+                    : tUx(ux.disposalPriceLabelKey),
+                description: `${tUx(ux.priceCurrencyKey)} / ${tUx(ux.unitSuffixKey)}`,
                 error: fieldError("unitPrice"),
               }}
             />
@@ -802,9 +803,9 @@ export function InvestmentOperationForm({
               {pending
                 ? t("saving")
                 : mode === InvestmentFormMode.BUY
-                  ? ux.purchaseAction
+                  ? tUx(ux.purchaseActionKey)
                   : mode === InvestmentFormMode.SELL
-                    ? ux.disposalAction
+                    ? tUx(ux.disposalActionKey)
                     : t("confirm")}
             </Button>
             <Button

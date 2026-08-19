@@ -1,112 +1,144 @@
-import { InvestmentAssetClass } from "./investment-constants";
+import {
+  InvestmentAssetClass,
+  InvestmentEntryMode,
+} from "./investment-constants";
+
 export type InvestmentUxType =
   (typeof InvestmentAssetClass)[keyof typeof InvestmentAssetClass];
+
+type InvestmentUxAssetField =
+  | "title"
+  | "description"
+  | "instrumentLabel"
+  | "quantityLabel"
+  | "priceLabel"
+  | "valuationPriceLabel"
+  | "disposalPriceLabel"
+  | "unitSuffix"
+  | "priceCurrency"
+  | "providerHint"
+  | "purchaseAction"
+  | "disposalAction"
+  | "incomeLabel";
+
+export type InvestmentUxMessageKey =
+  | `ux.assetClasses.${InvestmentUxType}.${InvestmentUxAssetField}`
+  | "ux.actions.buyMore"
+  | "ux.actions.sell"
+  | "ux.income.dividend"
+  | "opening.assetClass.fund"
+  | "opening.assetClass.gold"
+  | "opening.historicalModeTitle"
+  | "opening.purchaseModeTitle"
+  | "opening.quantityLabel"
+  | "opening.unitLabel";
+
 export type InvestmentUxConfig = {
   assetClass: InvestmentUxType;
-  title: string;
-  description: string;
-  instrumentLabel: string;
-  quantityLabel: string;
-  priceLabel: string;
-  valuationPriceLabel: string;
-  disposalPriceLabel: string;
-  unitSuffix: string;
-  priceCurrency: string;
-  providerHint: string;
-  purchaseAction: string;
-  disposalAction: string;
-  incomeLabel: string;
-  unitLabel?: string;
+  titleKey: InvestmentUxMessageKey;
+  descriptionKey: InvestmentUxMessageKey;
+  instrumentLabelKey: InvestmentUxMessageKey;
+  quantityLabelKey: InvestmentUxMessageKey;
+  priceLabelKey: InvestmentUxMessageKey;
+  valuationPriceLabelKey: InvestmentUxMessageKey;
+  disposalPriceLabelKey: InvestmentUxMessageKey;
+  unitSuffixKey: InvestmentUxMessageKey;
+  priceCurrencyKey: InvestmentUxMessageKey;
+  providerHintKey: InvestmentUxMessageKey;
+  purchaseActionKey: InvestmentUxMessageKey;
+  disposalActionKey: InvestmentUxMessageKey;
+  incomeLabelKey: InvestmentUxMessageKey;
+  unitLabelKey?: InvestmentUxMessageKey;
 };
-export const INVESTMENT_UX_REGISTRY: Record<
-  InvestmentUxType,
-  InvestmentUxConfig
-> = {
-  crypto: {
+
+export const INVESTMENT_UX_REGISTRY = {
+  [InvestmentAssetClass.CRYPTO]: {
     assetClass: InvestmentAssetClass.CRYPTO,
-    title: "Crypto",
-    description: "Theo dõi tài sản Spot và giá vốn.",
-    instrumentLabel: "Tài sản",
-    quantityLabel: "Số lượng",
-    priceLabel: "Giá mua",
-    valuationPriceLabel: "Giá hiện tại / BTC",
-    disposalPriceLabel: "Giá bán / BTC",
-    unitSuffix: "BTC",
-    priceCurrency: "USDT",
-    providerHint: "Sàn hoặc nhà cung cấp",
-    purchaseAction: "Mua thêm",
-    disposalAction: "Bán",
-    incomeLabel: "Cổ tức",
+    titleKey: "ux.assetClasses.crypto.title",
+    descriptionKey: "ux.assetClasses.crypto.description",
+    instrumentLabelKey: "ux.assetClasses.crypto.instrumentLabel",
+    quantityLabelKey: "opening.quantityLabel",
+    priceLabelKey: "ux.assetClasses.crypto.priceLabel",
+    valuationPriceLabelKey: "ux.assetClasses.crypto.valuationPriceLabel",
+    disposalPriceLabelKey: "ux.assetClasses.crypto.disposalPriceLabel",
+    unitSuffixKey: "ux.assetClasses.crypto.unitSuffix",
+    priceCurrencyKey: "ux.assetClasses.crypto.priceCurrency",
+    providerHintKey: "ux.assetClasses.crypto.providerHint",
+    purchaseActionKey: "ux.actions.buyMore",
+    disposalActionKey: "ux.actions.sell",
+    incomeLabelKey: "ux.income.dividend",
   },
-  stock: {
+  [InvestmentAssetClass.STOCK]: {
     assetClass: InvestmentAssetClass.STOCK,
-    title: "Chứng khoán",
-    description: "Cổ phiếu, ETF và tài sản giao dịch theo số lượng.",
-    instrumentLabel: "Mã / tài sản",
-    quantityLabel: "Số lượng",
-    priceLabel: "Giá mua mỗi đơn vị",
-    valuationPriceLabel: "Giá hiện tại / cổ phiếu",
-    disposalPriceLabel: "Giá bán / cổ phiếu",
-    unitSuffix: "cổ phiếu",
-    priceCurrency: "VND",
-    providerHint: "Nhà cung cấp / nơi lưu ký",
-    purchaseAction: "Mua thêm",
-    disposalAction: "Bán",
-    incomeLabel: "Cổ tức",
+    titleKey: "ux.assetClasses.stock.title",
+    descriptionKey: "ux.assetClasses.stock.description",
+    instrumentLabelKey: "ux.assetClasses.stock.instrumentLabel",
+    quantityLabelKey: "opening.quantityLabel",
+    priceLabelKey: "ux.assetClasses.stock.priceLabel",
+    valuationPriceLabelKey: "ux.assetClasses.stock.valuationPriceLabel",
+    disposalPriceLabelKey: "ux.assetClasses.stock.disposalPriceLabel",
+    unitSuffixKey: "ux.assetClasses.stock.unitSuffix",
+    priceCurrencyKey: "ux.assetClasses.stock.priceCurrency",
+    providerHintKey: "ux.assetClasses.stock.providerHint",
+    purchaseActionKey: "ux.actions.buyMore",
+    disposalActionKey: "ux.actions.sell",
+    incomeLabelKey: "ux.income.dividend",
   },
-  fund: {
+  [InvestmentAssetClass.FUND]: {
     assetClass: InvestmentAssetClass.FUND,
-    title: "Quỹ",
-    description: "Theo dõi số tiền đầu tư, NAV và chứng chỉ quỹ.",
-    instrumentLabel: "Quỹ",
-    quantityLabel: "Số CCQ",
-    priceLabel: "NAV / CCQ",
-    valuationPriceLabel: "NAV hiện tại / CCQ",
-    disposalPriceLabel: "NAV / giá thực hiện mỗi CCQ",
-    unitSuffix: "CCQ",
-    priceCurrency: "VND",
-    providerHint: "Nền tảng / nhà cung cấp",
-    purchaseAction: "Đầu tư thêm",
-    disposalAction: "Rút khỏi quỹ",
-    incomeLabel: "Phân phối",
+    titleKey: "opening.assetClass.fund",
+    descriptionKey: "ux.assetClasses.fund.description",
+    instrumentLabelKey: "ux.assetClasses.fund.instrumentLabel",
+    quantityLabelKey: "ux.assetClasses.fund.quantityLabel",
+    priceLabelKey: "ux.assetClasses.fund.priceLabel",
+    valuationPriceLabelKey: "ux.assetClasses.fund.valuationPriceLabel",
+    disposalPriceLabelKey: "ux.assetClasses.fund.disposalPriceLabel",
+    unitSuffixKey: "ux.assetClasses.fund.unitSuffix",
+    priceCurrencyKey: "ux.assetClasses.fund.priceCurrency",
+    providerHintKey: "ux.assetClasses.fund.providerHint",
+    purchaseActionKey: "ux.assetClasses.fund.purchaseAction",
+    disposalActionKey: "ux.assetClasses.fund.disposalAction",
+    incomeLabelKey: "ux.assetClasses.fund.incomeLabel",
   },
-  gold: {
+  [InvestmentAssetClass.GOLD]: {
     assetClass: InvestmentAssetClass.GOLD,
-    title: "Vàng",
-    description: "Theo dõi trọng lượng, giá mua và giá mua lại.",
-    instrumentLabel: "Loại vàng",
-    quantityLabel: "Trọng lượng / số lượng",
-    priceLabel: "Giá bạn mua",
-    valuationPriceLabel: "Giá mua lại hiện tại / chỉ",
-    disposalPriceLabel: "Giá bán thực tế / chỉ",
-    unitSuffix: "chỉ",
-    priceCurrency: "VND",
-    providerHint: "Nhà cung cấp",
-    purchaseAction: "Mua thêm",
-    disposalAction: "Bán",
-    incomeLabel: "Thu nhập",
-    unitLabel: "Đơn vị",
+    titleKey: "opening.assetClass.gold",
+    descriptionKey: "ux.assetClasses.gold.description",
+    instrumentLabelKey: "ux.assetClasses.gold.instrumentLabel",
+    quantityLabelKey: "ux.assetClasses.gold.quantityLabel",
+    priceLabelKey: "ux.assetClasses.gold.priceLabel",
+    valuationPriceLabelKey: "ux.assetClasses.gold.valuationPriceLabel",
+    disposalPriceLabelKey: "ux.assetClasses.gold.disposalPriceLabel",
+    unitSuffixKey: "ux.assetClasses.gold.unitSuffix",
+    priceCurrencyKey: "ux.assetClasses.gold.priceCurrency",
+    providerHintKey: "ux.assetClasses.gold.providerHint",
+    purchaseActionKey: "ux.actions.buyMore",
+    disposalActionKey: "ux.actions.sell",
+    incomeLabelKey: "ux.assetClasses.gold.incomeLabel",
+    unitLabelKey: "opening.unitLabel",
   },
-  bond: {
+  [InvestmentAssetClass.BOND]: {
     assetClass: InvestmentAssetClass.BOND,
-    title: "Khác",
-    description: "Theo dõi tài sản thủ công hoặc sản phẩm khác.",
-    instrumentLabel: "Tên tài sản",
-    quantityLabel: "Số lượng",
-    priceLabel: "Giá trị hiện tại",
-    valuationPriceLabel: "Giá trị hiện tại",
-    disposalPriceLabel: "Giá trị điều chỉnh",
-    unitSuffix: "đơn vị",
-    priceCurrency: "VND",
-    providerHint: "Nơi lưu giữ",
-    purchaseAction: "Ghi nhận",
-    disposalAction: "Điều chỉnh",
-    incomeLabel: "Thu nhập",
+    titleKey: "ux.assetClasses.bond.title",
+    descriptionKey: "ux.assetClasses.bond.description",
+    instrumentLabelKey: "ux.assetClasses.bond.instrumentLabel",
+    quantityLabelKey: "opening.quantityLabel",
+    priceLabelKey: "ux.assetClasses.bond.priceLabel",
+    valuationPriceLabelKey: "ux.assetClasses.bond.valuationPriceLabel",
+    disposalPriceLabelKey: "ux.assetClasses.bond.disposalPriceLabel",
+    unitSuffixKey: "ux.assetClasses.bond.unitSuffix",
+    priceCurrencyKey: "ux.assetClasses.bond.priceCurrency",
+    providerHintKey: "ux.assetClasses.bond.providerHint",
+    purchaseActionKey: "ux.assetClasses.bond.purchaseAction",
+    disposalActionKey: "ux.assetClasses.bond.disposalAction",
+    incomeLabelKey: "ux.assetClasses.bond.incomeLabel",
   },
-};
+} satisfies Record<InvestmentUxType, InvestmentUxConfig>;
+
 export const investmentUxConfig = (assetClass: InvestmentUxType) =>
   INVESTMENT_UX_REGISTRY[assetClass];
-export const investmentEntryModeLabels = {
-  historical: "Tôi đã sở hữu từ trước",
-  purchase: "Tôi mua / đầu tư ngay bây giờ",
-} as const;
+
+export const investmentEntryModeMessageKeys = {
+  [InvestmentEntryMode.HISTORICAL]: "opening.historicalModeTitle",
+  [InvestmentEntryMode.PURCHASE]: "opening.purchaseModeTitle",
+} as const satisfies Record<InvestmentEntryMode, InvestmentUxMessageKey>;

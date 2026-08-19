@@ -68,9 +68,6 @@ const signedMoney = (value: number | null, locale: string) =>
     ? "—"
     : `${value >= ZERO_VALUE ? "+" : "−"}${money(Math.abs(value), locale)}`;
 
-const assetName = (asset: InvestmentAssetClass) =>
-  investmentUxConfig(asset as InvestmentUxType).title;
-
 function PositionCard({
   holding,
   locale,
@@ -79,6 +76,7 @@ function PositionCard({
   locale: string;
 }) {
   const t = useTranslations("money.investments.overview");
+  const tUx = useTranslations("money.investments");
   const config = investmentUxConfig(holding.assetClass as InvestmentUxType);
   const unitLabel =
     holding.assetClass === InvestmentAssetClass.FUND
@@ -110,7 +108,7 @@ function PositionCard({
                 </Text>
                 <Text size="sm" tone="secondary" className="truncate">
                   {holding.providerCustodian || t("noProvider")} ·{" "}
-                  {config.title}
+                  {tUx(config.titleKey)}
                 </Text>
                 <FinancialOwnershipBadge
                   financialScope={holding.ownership.financialScope}
@@ -179,6 +177,7 @@ export function InvestmentOverviewClient({
   locale: string;
 }) {
   const t = useTranslations("money.investments.overview");
+  const tUx = useTranslations("money.investments");
   const [filter, setFilter] = useState<InvestmentOverviewFilterType>(
     InvestmentOverviewFilter.ALL,
   );
@@ -201,7 +200,7 @@ export function InvestmentOverviewClient({
     [filter, portfolio.activeHoldings, query],
   );
   const chartData = portfolio.allocationByAssetClass.map((row) => ({
-    name: assetName(row.assetClass),
+    name: tUx(investmentUxConfig(row.assetClass).titleKey),
     value: row.valueVnd,
     share: row.shareBasisPoints / BASIS_POINTS_DIVISOR,
   }));

@@ -22,6 +22,7 @@ import {
 } from "@/modules/investments/application/client";
 import { GoldUnit, GOLD_UNIT_VALUES } from "@/modules/investments/domain";
 import {
+  investmentEntryModeMessageKeys,
   investmentUxConfig,
   type InvestmentUxType,
 } from "@/modules/investments/application/investment-ux";
@@ -144,6 +145,7 @@ const iconFor = (asset: InvestmentUxType) =>
 
 export function OpeningPositionForm({ accounts = [] }: Props) {
   const t = useTranslations("money.investments.opening");
+  const tUx = useTranslations("money.investments");
   const locale = useLocale();
   const router = useRouter();
   const [stepIndex, setStepIndex] = useState(FIRST_STEP_INDEX);
@@ -368,9 +370,9 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
                     className={`flex min-h-32 flex-col items-start gap-(--space-2) rounded-(--radius-card) border p-(--space-3) text-left transition-colors ${assetClass === item ? "border-accent bg-primary-soft" : "border-border-subtle bg-surface"}`}
                   >
                     <AppIcon icon={iconFor(item)} size="lg" emphasized />
-                    <Text weight="semibold">{itemConfig.title}</Text>
+                    <Text weight="semibold">{tUx(itemConfig.titleKey)}</Text>
                     <Text size="sm" tone="secondary" className="leading-snug">
-                      {itemConfig.description}
+                      {tUx(itemConfig.descriptionKey)}
                     </Text>
                   </button>
                 );
@@ -391,10 +393,10 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
                 weight="semibold"
                 id="investment-details-title"
               >
-                {config.title}
+                {tUx(config.titleKey)}
               </Text>
               <Text tone="secondary" className="mt-(--space-1)">
-                {config.description}
+                {tUx(config.descriptionKey)}
               </Text>
             </div>
             <div className="grid gap-(--space-2) sm:grid-cols-2">
@@ -406,7 +408,13 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
                 }
                 className={`rounded-(--radius-control) border px-(--space-3) py-(--space-3) text-left ${entryMode === InvestmentEntryMode.HISTORICAL ? "border-accent bg-primary-soft" : "border-border-subtle bg-surface"}`}
               >
-                <Text weight="medium">{t("historicalModeTitle")}</Text>
+                <Text weight="medium">
+                  {tUx(
+                    investmentEntryModeMessageKeys[
+                      InvestmentEntryMode.HISTORICAL
+                    ],
+                  )}
+                </Text>
                 <Text size="sm" tone="secondary" className="mt-1">
                   {t("historicalModeSubtitle")}
                 </Text>
@@ -419,7 +427,13 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
                 }
                 className={`rounded-(--radius-control) border px-(--space-3) py-(--space-3) text-left ${entryMode === InvestmentEntryMode.PURCHASE ? "border-accent bg-primary-soft" : "border-border-subtle bg-surface"}`}
               >
-                <Text weight="medium">{t("purchaseModeTitle")}</Text>
+                <Text weight="medium">
+                  {tUx(
+                    investmentEntryModeMessageKeys[
+                      InvestmentEntryMode.PURCHASE
+                    ],
+                  )}
+                </Text>
                 <Text size="sm" tone="secondary" className="mt-1">
                   {t("purchaseModeSubtitle")}
                 </Text>
@@ -428,7 +442,7 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
             <div className="flex flex-col gap-(--space-3)">
               <TextField
                 id="investment-name"
-                label={config.instrumentLabel}
+                label={tUx(config.instrumentLabelKey)}
                 registration={register("assetName")}
                 error={errors.assetName ? t("errors.invalid") : undefined}
               />
@@ -447,7 +461,7 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
               ) : null}
               <TextField
                 id="investment-provider"
-                label={config.providerHint}
+                label={tUx(config.providerHintKey)}
                 registration={register("provider")}
                 error={errors.provider ? t("errors.invalid") : undefined}
               />
@@ -457,7 +471,7 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
                   type: "decimal",
                   name: "quantity",
                   id: "investment-quantity",
-                  label: config.quantityLabel,
+                  label: tUx(config.quantityLabelKey),
                   error: errors.quantity ? t("errors.invalid") : undefined,
                 }}
               />
@@ -574,7 +588,7 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
                       type: "amount",
                       name: "price",
                       id: "investment-price",
-                      label: config.priceLabel,
+                      label: tUx(config.priceLabelKey),
                       error: errors.price ? t("errors.invalid") : undefined,
                     }}
                   />
@@ -639,7 +653,7 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
             </div>
             <div className="rounded-(--radius-card) bg-surface-muted p-(--space-4)">
               <Text weight="semibold">
-                {config.title} · {assetName || t("unnamedAsset")}
+                {tUx(config.titleKey)} · {assetName || t("unnamedAsset")}
               </Text>
               <div className="mt-(--space-3) grid gap-(--space-2) text-sm">
                 <div className="flex justify-between gap-3">
@@ -762,7 +776,7 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
               : entryMode === InvestmentEntryMode.HISTORICAL
                 ? t("confirmImport")
                 : t("confirmAction", {
-                    action: config.purchaseAction.toLowerCase(),
+                    action: tUx(config.purchaseActionKey).toLowerCase(),
                   })}
           </Button>
         )}

@@ -63,9 +63,15 @@ describe("investment operation view model", () => {
 
   it("keeps crypto quote currency context in the UX strategy", () => {
     const crypto = investmentUxConfig(InvestmentAssetClass.CRYPTO);
-    expect(crypto.valuationPriceLabel).toBe("Giá hiện tại / BTC");
-    expect(crypto.disposalPriceLabel).toBe("Giá bán / BTC");
-    expect(crypto.priceCurrency).toBe("USDT");
+    expect(crypto.valuationPriceLabelKey).toBe(
+      "ux.assetClasses.crypto.valuationPriceLabel",
+    );
+    expect(crypto.disposalPriceLabelKey).toBe(
+      "ux.assetClasses.crypto.disposalPriceLabel",
+    );
+    expect(crypto.priceCurrencyKey).toBe(
+      "ux.assetClasses.crypto.priceCurrency",
+    );
   });
 
   it("supports the manual-asset total-value exception", () => {

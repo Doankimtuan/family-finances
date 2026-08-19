@@ -84,13 +84,15 @@ export default async function InvestmentDetailPage({
   params,
   searchParams,
 }: Props) {
-  const [{ locale }, { receipt }, t, holding, activities] = await Promise.all([
-    params,
-    searchParams,
-    getTranslations("money.investments.detail"),
-    params.then(({ id: value }) => getInvestmentHolding(value)),
-    params.then(({ id: value }) => listInvestmentActivities(value)),
-  ]);
+  const [{ locale }, { receipt }, t, tUx, holding, activities] =
+    await Promise.all([
+      params,
+      searchParams,
+      getTranslations("money.investments.detail"),
+      getTranslations("money.investments"),
+      params.then(({ id: value }) => getInvestmentHolding(value)),
+      params.then(({ id: value }) => listInvestmentActivities(value)),
+    ]);
   if (!holding)
     return (
       <Page topBar={<TopAppBar title={t("title")} />}>
@@ -145,7 +147,7 @@ export default async function InvestmentDetailPage({
       topBar={
         <TopAppBar
           title={holding.symbol || holding.name}
-          subtitle={`${providerDisplay} · ${ux.title}`}
+          subtitle={`${providerDisplay} · ${tUx(ux.titleKey)}`}
         />
       }
     >
@@ -174,7 +176,7 @@ export default async function InvestmentDetailPage({
           showExplanation
         />
         <Text size="sm" tone="secondary">
-          {ux.title} · {providerDisplay}
+          {tUx(ux.titleKey)} · {providerDisplay}
         </Text>
         <Text size="sm" tone="secondary" className="mt-(--space-4)">
           {asset === InvestmentAssetClass.GOLD
@@ -222,13 +224,13 @@ export default async function InvestmentDetailPage({
             href={moneyInvestmentBuyPath(holding.id)}
             className="inline-flex min-h-11 items-center justify-center rounded-md bg-accent text-sm font-medium text-accent-fg"
           >
-            {ux.purchaseAction}
+            {tUx(ux.purchaseActionKey)}
           </Link>
           <Link
             href={moneyInvestmentSellPath(holding.id)}
             className="inline-flex min-h-11 items-center justify-center rounded-md border border-border-subtle bg-surface text-sm font-medium text-text-primary"
           >
-            {ux.disposalAction}
+            {tUx(ux.disposalActionKey)}
           </Link>
         </div>
       ) : isClosed ? (
@@ -377,7 +379,7 @@ export default async function InvestmentDetailPage({
             href={moneyInvestmentIncomePath(holding.id)}
             className="inline-flex min-h-11 items-center justify-center rounded-md border border-border-subtle bg-surface text-sm font-medium text-text-primary"
           >
-            {ux.incomeLabel}
+            {tUx(ux.incomeLabelKey)}
           </Link>
           <Link
             href={moneyInvestmentValuationPath(holding.id)}

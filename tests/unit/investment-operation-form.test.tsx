@@ -78,7 +78,7 @@ function renderBuyForm() {
 }
 
 function fillValidBuy() {
-  fireEvent.change(screen.getByLabelText("Số lượng"), {
+  fireEvent.change(screen.getByLabelText("opening.quantityLabel"), {
     target: { value: "2" },
   });
   fireEvent.change(screen.getByLabelText("executedValue"), {
@@ -133,7 +133,7 @@ describe("InvestmentOperationForm", () => {
       expect.stringContaining("buy-receipt"),
     );
     fireEvent.click(screen.getByText("edit"));
-    expect(screen.getByLabelText("Số lượng")).toHaveValue("");
+    expect(screen.getByLabelText("opening.quantityLabel")).toHaveValue("");
     expect(screen.getByLabelText("executedValue")).toHaveValue("");
   });
 

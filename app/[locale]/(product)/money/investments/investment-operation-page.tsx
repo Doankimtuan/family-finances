@@ -21,8 +21,9 @@ import { InvestmentOperationForm } from "./investment-operation-form";
 type Props = { mode: InvestmentFormMode; holdingId?: string };
 
 export async function InvestmentOperationPage({ mode, holdingId }: Props) {
-  const [t, portfolio, accounts, requested] = await Promise.all([
+  const [t, tUx, portfolio, accounts, requested] = await Promise.all([
     getTranslations("money.investments.operation"),
+    getTranslations("money.investments"),
     listInvestmentPortfolio(),
     listAccounts(),
     holdingId ? getInvestmentHolding(holdingId) : Promise.resolve(null),
@@ -31,9 +32,13 @@ export async function InvestmentOperationPage({ mode, holdingId }: Props) {
   const ux = holding ? investmentUxConfig(holding.assetClass) : null;
   const operationTitle =
     mode === "buy"
-      ? ux?.purchaseAction
+      ? ux
+        ? tUx(ux.purchaseActionKey)
+        : undefined
       : mode === "sell"
-        ? ux?.disposalAction
+        ? ux
+          ? tUx(ux.disposalActionKey)
+          : undefined
         : t(`title.${mode}`);
   if (!holding || !portfolio)
     return (

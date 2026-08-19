@@ -135,6 +135,79 @@
         "bond": "Bonds"
       }
     },
+    "ux": {
+      "actions": {
+        "buyMore": "Buy more",
+        "sell": "Sell"
+      },
+      "assetClasses": {
+        "crypto": {
+          "title": "Crypto",
+          "description": "Track Spot assets and cost basis.",
+          "instrumentLabel": "Asset",
+          "priceLabel": "Purchase price",
+          "valuationPriceLabel": "Current price / BTC",
+          "disposalPriceLabel": "Sale price / BTC",
+          "unitSuffix": "BTC",
+          "priceCurrency": "USDT",
+          "providerHint": "Exchange or provider"
+        },
+        "stock": {
+          "title": "Stocks",
+          "description": "Stocks, ETFs, and quantity-traded assets.",
+          "instrumentLabel": "Symbol / asset",
+          "priceLabel": "Purchase price per share",
+          "valuationPriceLabel": "Current price / share",
+          "disposalPriceLabel": "Sale price / share",
+          "unitSuffix": "shares",
+          "priceCurrency": "VND",
+          "providerHint": "Provider / custodian"
+        },
+        "fund": {
+          "quantityLabel": "Fund units",
+          "description": "Track invested amounts, NAV, and fund units.",
+          "instrumentLabel": "Fund",
+          "priceLabel": "NAV / unit",
+          "valuationPriceLabel": "Current NAV / unit",
+          "disposalPriceLabel": "NAV / execution price per unit",
+          "unitSuffix": "units",
+          "priceCurrency": "VND",
+          "providerHint": "Platform / provider",
+          "purchaseAction": "Invest more",
+          "disposalAction": "Redeem",
+          "incomeLabel": "Distribution"
+        },
+        "gold": {
+          "quantityLabel": "Weight / quantity",
+          "description": "Track weight, purchase price, and buy-back price.",
+          "instrumentLabel": "Gold type",
+          "priceLabel": "Your purchase price",
+          "valuationPriceLabel": "Current buy-back price / chi",
+          "disposalPriceLabel": "Actual sale price / chi",
+          "unitSuffix": "chi",
+          "priceCurrency": "VND",
+          "providerHint": "Provider",
+          "incomeLabel": "Income"
+        },
+        "bond": {
+          "title": "Other",
+          "description": "Track manual assets or other products.",
+          "instrumentLabel": "Asset name",
+          "priceLabel": "Current value",
+          "valuationPriceLabel": "Current value",
+          "disposalPriceLabel": "Adjusted value",
+          "unitSuffix": "units",
+          "priceCurrency": "VND",
+          "providerHint": "Custodian",
+          "purchaseAction": "Record",
+          "disposalAction": "Adjust",
+          "incomeLabel": "Income"
+        }
+      },
+      "income": {
+        "dividend": "Dividend"
+      }
+    },
     "opening": {
       "title": "Import existing position",
       "subtitle": "Record what you owned before ViNha",
