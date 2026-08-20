@@ -1,6 +1,7 @@
 import type { AccountType, LedgerAccount } from "./account-types";
 import {
   DEFAULT_CURRENCY,
+  ACCOUNT_TYPE_VALUES,
   TransactionDirection,
   TransactionLedgerType,
   TransactionStatus,
@@ -37,6 +38,7 @@ export type LedgerTransaction = {
   id: string;
   accountId: string;
   accountName?: string;
+  accountType?: AccountType;
   type: TransactionLedgerTypeValue;
   amount: number;
   currency: string;
@@ -112,6 +114,12 @@ function mapLedgerType(type: string): TransactionLedgerTypeValue {
   return LEDGER_TYPE_FROM_ROW[type] ?? TransactionLedgerType.EXPENSE;
 }
 
+function mapAccountType(value?: string | null): AccountType | undefined {
+  return value && (ACCOUNT_TYPE_VALUES as readonly string[]).includes(value)
+    ? (value as AccountType)
+    : undefined;
+}
+
 export function mapTransactionRow(row: {
   id: string;
   account_id: string;
@@ -129,7 +137,7 @@ export function mapTransactionRow(row: {
   corrects_transaction_id?: string | null;
   is_reversal?: boolean | null;
   created_at: string;
-  accounts?: { name: string } | null;
+  accounts?: { name: string; type?: string | null } | null;
   categories?: { name: string } | null;
   jars?: { name: string } | null;
   transaction_tag_assignments?: Array<{
@@ -149,6 +157,7 @@ export function mapTransactionRow(row: {
     id: row.id,
     accountId: row.account_id,
     accountName: row.accounts?.name,
+    accountType: mapAccountType(row.accounts?.type),
     type: mapLedgerType(row.type),
     amount: Number.isFinite(amount) ? amount : 0,
     currency: (row.currency ?? DEFAULT_CURRENCY).toUpperCase(),

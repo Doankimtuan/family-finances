@@ -107,7 +107,7 @@ export function MoneyPositionHero({
           title={
             <Heading
               level={2}
-              className="text-sm font-semibold tracking-tight text-text-secondary"
+              className="text-sm font-semibold tracking-tight text-text-secondary mt-3"
               data-slot="section-title"
             >
               {compositionLabel}

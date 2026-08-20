@@ -14,6 +14,15 @@ test.describe("Splash + Welcome (ST-E02-001)", () => {
     );
   });
 
+  test("unauthenticated locale root keeps the public entry flow", async ({
+    page,
+  }) => {
+    await page.goto("/vi");
+    await expect(
+      page.getByRole("button", { name: "Mở ứng dụng" }),
+    ).toBeVisible();
+  });
+
   test("Welcome exposes login and register CTAs", async ({ page }) => {
     await page.goto("/en/welcome");
     await expect(page.getByRole("button", { name: "Log in" })).toBeVisible();

@@ -12,24 +12,10 @@
  */
 
 import { createClient } from "@supabase/supabase-js";
-import { readFileSync, existsSync } from "node:fs";
-import { resolve } from "node:path";
+import nextEnv from "@next/env";
 
-function loadEnvLocal() {
-  const path = resolve(process.cwd(), ".env.local");
-  if (!existsSync(path)) return;
-  for (const line of readFileSync(path, "utf8").split("\n")) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith("#")) continue;
-    const eq = trimmed.indexOf("=");
-    if (eq < 0) continue;
-    const key = trimmed.slice(0, eq);
-    const value = trimmed.slice(eq + 1);
-    if (!process.env[key]) process.env[key] = value;
-  }
-}
-
-loadEnvLocal();
+const { loadEnvConfig } = nextEnv;
+loadEnvConfig(process.cwd());
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -139,7 +125,14 @@ async function main() {
     .select("id, name, type")
     .eq("household_id", householdId)
     .eq("is_archived", false)
-    .in("type", ["cash", "checking", "savings", "ewallet", "brokerage", "other"]);
+    .in("type", [
+      "cash",
+      "checking",
+      "savings",
+      "ewallet",
+      "brokerage",
+      "other",
+    ]);
   if (liquidError) throw liquidError;
 
   let secondAccountId =

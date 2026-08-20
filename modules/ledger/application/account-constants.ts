@@ -34,6 +34,28 @@ export const ACCOUNT_TYPE_LIQUID_VALUES = [
   AccountType.OTHER,
 ] as const;
 
+/** Account types accepted by the ordinary transaction capture picker. */
+export const ACCOUNT_TYPE_CAPTURE_VALUES = [
+  AccountType.CASH,
+  AccountType.CHECKING,
+  AccountType.SAVINGS,
+  AccountType.EWALLET,
+  AccountType.BROKERAGE,
+  AccountType.CREDIT_CARD,
+  AccountType.OTHER,
+] as const;
+
+/** Maximum account count that remains scannable as a compact two-column picker. */
+export const CAPTURE_ACCOUNT_COMPACT_LIMIT = 4;
+
+const ACCOUNT_TYPE_CAPTURE_SET = new Set<AccountType>(
+  ACCOUNT_TYPE_CAPTURE_VALUES,
+);
+
+export function isCaptureAccountType(type: AccountType): boolean {
+  return ACCOUNT_TYPE_CAPTURE_SET.has(type);
+}
+
 /** Account create form options (brokerage + savings omitted; savings is a separate section). */
 export const ACCOUNT_TYPE_CREATE_OPTIONS = [
   AccountType.CASH,

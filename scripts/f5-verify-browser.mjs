@@ -3,28 +3,10 @@
  * Credentials from env only; never logs secrets.
  */
 import { chromium, expect } from "@playwright/test";
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import nextEnv from "@next/env";
 
-function loadDotEnvLocal() {
-  const path = resolve(process.cwd(), ".env.local");
-  for (const line of readFileSync(path, "utf8").split("\n")) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith("#") || !trimmed.includes("=")) continue;
-    const i = trimmed.indexOf("=");
-    const key = trimmed.slice(0, i).trim();
-    let value = trimmed.slice(i + 1).trim();
-    if (
-      (value.startsWith('"') && value.endsWith('"')) ||
-      (value.startsWith("'") && value.endsWith("'"))
-    ) {
-      value = value.slice(1, -1);
-    }
-    if (!process.env[key]) process.env[key] = value;
-  }
-}
-
-loadDotEnvLocal();
+const { loadEnvConfig } = nextEnv;
+loadEnvConfig(process.cwd());
 
 const email = process.env.E2E_USER_EMAIL;
 const password = process.env.E2E_USER_PASSWORD;
@@ -60,7 +42,9 @@ async function main() {
     await login(page);
 
     await page.goto(`${BASE}/vi/money`);
-    await expect(page.getByTestId("money-hub")).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId("money-hub")).toBeVisible({
+      timeout: 20_000,
+    });
     results.push("cards_overview:ok");
 
     await page.goto(
@@ -86,7 +70,9 @@ async function main() {
         results.push("card_payment_receipt:ok");
       } catch (err) {
         const alertText = await page
-          .locator("[data-testid='card-pay-confirm'], [data-testid='credit-card-actions']")
+          .locator(
+            "[data-testid='card-pay-confirm'], [data-testid='credit-card-actions']",
+          )
           .locator("[role='alert'], .text-danger, [data-variant='danger']")
           .allTextContents()
           .catch(() => []);
@@ -94,7 +80,10 @@ async function main() {
           .getByTestId("card-pay-confirm")
           .innerText()
           .catch(() => "no-confirm");
-        console.error("CARD_PAY_DEBUG", JSON.stringify({ alertText, bodySnippet: bodySnippet.slice(0, 800) }));
+        console.error(
+          "CARD_PAY_DEBUG",
+          JSON.stringify({ alertText, bodySnippet: bodySnippet.slice(0, 800) }),
+        );
         throw err;
       }
     } else {

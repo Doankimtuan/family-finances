@@ -7,6 +7,7 @@ export const AmountTone = {
   NEUTRAL: "neutral",
   CREDIT: "credit",
   DEBIT: "debit",
+  REFUND: "refund",
   INCOME: "income",
   EXPENSE: "expense",
   SAVING: "saving",
@@ -19,6 +20,7 @@ export const AMOUNT_TONE_VALUES = [
   AmountTone.NEUTRAL,
   AmountTone.CREDIT,
   AmountTone.DEBIT,
+  AmountTone.REFUND,
   AmountTone.INCOME,
   AmountTone.EXPENSE,
   AmountTone.SAVING,
@@ -82,6 +84,7 @@ export function Amount({
           (tone === AmountTone.CREDIT || tone === AmountTone.INCOME) &&
             "text-success",
           tone === AmountTone.DEBIT && "text-danger",
+          tone === AmountTone.REFUND && "text-refund",
           tone === AmountTone.SAVING && "text-saving",
           tone === AmountTone.MUTED && "text-text-secondary",
           (tone === AmountTone.NEUTRAL || tone === AmountTone.EXPENSE) &&

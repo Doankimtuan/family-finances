@@ -10,17 +10,31 @@ export type {
   CategoryTag,
   CaptureJarOption,
 } from "./transaction-types";
+export {
+  refundTransactionInputSchema,
+  type RefundTransactionInput,
+} from "./commands/refund-transaction.schema";
+export {
+  correctTransactionInputSchema,
+  type CorrectTransactionInput,
+} from "./commands/correct-transaction.schema";
 export { transactionMatchesTagFilter } from "./transaction-types";
 export {
   TransactionActivityKind,
   TransactionActivityTone,
+  TransactionProductEvent,
+  transactionActivityMatchesFilter,
 } from "./transaction-activity";
 export type { TransactionActivity } from "./transaction-activity";
 export {
   FinancialEventCategory,
   FinancialClassification,
   FinancialCashDirection,
+  FinancialDisplayDirection,
+  FinancialHomeNetContribution,
+  TransactionOwner,
   classifyFinancialEvent,
+  getTransactionActionCapabilities,
   type FinancialEventSemantics,
   type FinancialSemanticRow,
 } from "./financial-semantics";
@@ -36,12 +50,15 @@ export {
   TRANSACTION_LEDGER_DEBIT_TYPES,
   TransactionStatus,
   TRANSACTION_STATUS_VALUES,
+  TransactionReadStatus,
   TRANSACTION_REFUNDABLE_STATUS_VALUES,
   TRANSACTION_CORRECTABLE_STATUS_VALUES,
   TRANSACTION_BALANCE_STATUS_VALUES,
   TransactionFilterType,
   TRANSACTION_FILTER_OPTIONS,
+  TRANSACTION_COMMON_FILTER_OPTIONS,
   TRANSACTION_TAG_FILTER_QUERY_PARAM,
+  TRANSACTION_TYPE_QUERY_PARAM,
   TransactionTagIconKey,
   TRANSACTION_TAG_ICON_KEYS,
   TransactionTagColorKey,
@@ -52,6 +69,8 @@ export {
   AccountType,
   ACCOUNT_TYPE_VALUES,
   ACCOUNT_TYPE_LIQUID_VALUES,
+  ACCOUNT_TYPE_CAPTURE_VALUES,
+  isCaptureAccountType,
   ACCOUNT_TYPE_CREATE_OPTIONS,
   CardBillingMonthStatus,
   CARD_BILLING_MONTH_STATUS_VALUES,

@@ -19,14 +19,12 @@ import {
   logLedgerFailure,
 } from "../ledger-error";
 import { wouldExceedCreditLimit } from "../credit-card-billing";
-import {
-  assignCardBillingForTransaction,
-  loadCardOutstandingAndLimit,
-} from "./assign-card-billing";
+import { loadCardOutstandingAndLimit } from "./assign-card-billing";
 import {
   recordTransactionInputSchema,
   type RecordTransactionInput,
 } from "./record-transaction.schema";
+import { todayIsoDate } from "@/shared/utils/iso-date";
 
 export type RecordTransactionErrorCode =
   ProductActionErrorCode | LedgerActionErrorCode;
@@ -131,11 +129,12 @@ export async function recordTransaction(
       }
     }
 
-    const txDate =
-      parsed.data.transactionDate ?? new Date().toISOString().slice(0, 10);
+    const txDate = parsed.data.transactionDate ?? todayIsoDate();
 
     const { data, error } = await supabase.rpc(
-      LedgerRpcName.RECORD_TRANSACTION,
+      isCard
+        ? LedgerRpcName.RECORD_CARD_TRANSACTION
+        : LedgerRpcName.RECORD_TRANSACTION,
       {
         p_account_id: parsed.data.accountId,
         p_type: parsed.data.type,
@@ -168,24 +167,6 @@ export async function recordTransaction(
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
     }
     const payload = data;
-
-    if (isCard && cardMeta && !payload.idempotent) {
-      const mode =
-        parsed.data.type === TransactionDirection.INCOME
-          ? "cashback"
-          : "expense";
-      await assignCardBillingForTransaction({
-        householdId: gate.householdId,
-        cardAccountId: account.id,
-        transactionId: payload.transaction_id,
-        amount: parsed.data.amount,
-        transactionDate: txDate,
-        note: parsed.data.note ?? null,
-        mode,
-        statementDay: cardMeta.statementDay,
-        dueDay: cardMeta.dueDay,
-      });
-    }
 
     return {
       ok: true,

@@ -17,19 +17,29 @@ import type {
   TransactionDirection,
   TransactionTag,
 } from "@/modules/ledger/application/client";
+import { TransactionDirection as Direction } from "@/modules/ledger/application/client";
 import {
-  TransactionDirection as Direction,
-  TRANSACTION_DIRECTION_OPTIONS,
-} from "@/modules/ledger/application/client";
+  AccountType,
+  CAPTURE_ACCOUNT_COMPACT_LIMIT,
+} from "@/modules/ledger/application/account-constants";
+import { CAPTURE_JAR_UNMAPPED_OPTION_ID } from "@/modules/ledger/application/transaction-constants";
 import {
   recordTransactionInputSchema,
   type RecordTransactionInput,
 } from "@/modules/ledger/application/commands/record-transaction.schema";
-import { TextField } from "@/shared/ui/form";
+import { DatePickerField, SelectField, TextField } from "@/shared/ui/form";
 import { AmountField } from "@/shared/patterns/amount-field";
-import { BottomActionBar } from "@/shared/patterns/bottom-action-bar";
+import {
+  BottomActionBar,
+  BottomActionBarLayout,
+} from "@/shared/patterns/bottom-action-bar";
+import { ChoiceTile, ChoiceTileGroup } from "@/shared/patterns/choice-tile";
 import { Button } from "@/shared/ui/button";
+import { AppIcon } from "@/shared/ui/app-icon";
+import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
 import { Text } from "@/shared/ui/text";
+import { FinancialValue } from "@/shared/patterns/financial-value";
+import { FINANCIAL_PRIVACY_MASK } from "@/shared/constants/financial-privacy";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { AlertVariant } from "@/shared/ui/alert";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
@@ -46,10 +56,7 @@ import { recordTransactionAction } from "./actions";
 import { setTransactionTagsAction } from "./tag-actions";
 import { TransactionReceipt } from "./transaction-receipt";
 import { TransactionTagSelector } from "./transaction-tag-ui";
-import {
-  LabeledDateInput,
-  LabeledSelect,
-} from "@/shared/patterns/labeled-native-field";
+import { todayIsoDate } from "@/shared/utils/iso-date";
 
 type Props = {
   accounts: LedgerAccount[];
@@ -60,10 +67,6 @@ type Props = {
   currency: string;
   initialDirection?: TransactionDirection;
 };
-
-function todayInputValue() {
-  return new Date().toISOString().slice(0, 10);
-}
 
 const captureTransactionFormSchema = recordTransactionInputSchema
   .extend({
@@ -93,7 +96,21 @@ type ReceiptState = Pick<
   tagAssignmentFailed: boolean;
 };
 
-type SubmittedTransaction = Omit<CaptureTransactionFormValues, "transactionTagIds">;
+type SubmittedTransaction = Omit<
+  CaptureTransactionFormValues,
+  "transactionTagIds"
+>;
+
+function capturePreviewMessageKey(
+  direction: TransactionDirection,
+  accountType?: AccountType,
+) {
+  if (direction === Direction.INCOME) return "previewReadyIncome" as const;
+  if (accountType === AccountType.CREDIT_CARD) {
+    return "previewReadyCard" as const;
+  }
+  return "previewReadyCash" as const;
+}
 
 function createDefaultValues(
   accounts: LedgerAccount[],
@@ -103,7 +120,7 @@ function createDefaultValues(
     accountId: accounts[0]?.id ?? "",
     type: initialDirection,
     amount: null,
-    transactionDate: todayInputValue(),
+    transactionDate: todayIsoDate(),
     note: undefined,
     categoryId: null,
     jarId: null,
@@ -155,8 +172,6 @@ export function CaptureTransactionForm({
   const amount = useWatch({ control, name: "amount" });
   const accountId = useWatch({ control, name: "accountId" });
   const categoryId = useWatch({ control, name: "categoryId" });
-  const jarId = useWatch({ control, name: "jarId" });
-  const transactionDate = useWatch({ control, name: "transactionDate" });
   const selectedTransactionTagIds = useWatch({
     control,
     name: "transactionTagIds",
@@ -166,6 +181,8 @@ export function CaptureTransactionForm({
   const selectedAccountName = selectedAccount
     ? localizeCatalogName(tCatalog, "accounts", selectedAccount.name)
     : "";
+  const useCompactAccountPicker =
+    accounts.length <= CAPTURE_ACCOUNT_COMPACT_LIMIT;
   const numericAmount = typeof amount === "number" ? amount : null;
   const amountLabel =
     numericAmount != null && numericAmount > 0
@@ -173,9 +190,14 @@ export function CaptureTransactionForm({
           maximumFractionDigits: 0,
         })
       : null;
+  const previewMessageKey = capturePreviewMessageKey(
+    direction,
+    selectedAccount?.type,
+  );
 
   const showCaptureError = (
-    code: ProductActionErrorCode | ClientActionErrorCode | LedgerActionErrorCode,
+    code:
+      ProductActionErrorCode | ClientActionErrorCode | LedgerActionErrorCode,
   ) => {
     statusAlert.show({
       variant: AlertVariant.DANGER,
@@ -261,15 +283,6 @@ export function CaptureTransactionForm({
         ? `−${formattedAmount}`
         : `+${formattedAmount}`;
 
-    const relatedRecords: { id: string; label: string; href?: string }[] = [];
-    if (receipt.inboxItemId) {
-      relatedRecords.push({
-        id: "inbox",
-        label: t("receipt.inboxReview"),
-        href: APP_PATH.INBOX,
-      });
-    }
-
     return (
       <TransactionReceipt
         title={t("receipt.title")}
@@ -279,7 +292,7 @@ export function CaptureTransactionForm({
           {
             id: "account",
             label: t("receipt.account"),
-            value: receipt.accountName || "—",
+            value: receipt.accountName || t("emptyValue"),
           },
           {
             id: "category",
@@ -287,24 +300,24 @@ export function CaptureTransactionForm({
             value: receipt.categoryName ?? t("tagNone"),
           },
           {
-            id: "jar",
-            label: t("receipt.jar"),
-            value: receipt.jarName ?? t("jarUnmapped"),
-          },
-          {
-            id: "note",
-            label: t("receipt.note"),
-            value: receipt.note?.trim() || "—",
-          },
-          {
             id: "date",
             label: t("receipt.date"),
-            value: receipt.transactionDate ?? todayInputValue(),
+            value: receipt.transactionDate ?? todayIsoDate(),
           },
         ]}
-        relatedRecords={relatedRecords.length > 0 ? relatedRecords : undefined}
+        relatedRecords={
+          receipt.inboxItemId
+            ? [
+                {
+                  id: "inbox",
+                  label: t("receipt.inboxReview"),
+                  href: APP_PATH.INBOX,
+                },
+              ]
+            : undefined
+        }
         relatedRecordsTitle={
-          relatedRecords.length > 0 ? t("receipt.relatedRecords") : undefined
+          receipt.inboxItemId ? t("receipt.relatedRecords") : undefined
         }
         nextActions={[
           {
@@ -320,21 +333,11 @@ export function CaptureTransactionForm({
             variant: "secondary",
           },
           {
-            id: "money",
-            label: t("receipt.goToMoney"),
+            id: "done",
+            label: t("receipt.done"),
             href: APP_PATH.MONEY,
-            variant: "secondary",
+            variant: "tertiary",
           },
-          ...(receipt.inboxItemId
-            ? [
-                {
-                  id: "inbox",
-                  label: t("receipt.goToInbox"),
-                  href: APP_PATH.INBOX,
-                  variant: "secondary" as const,
-                },
-              ]
-            : []),
         ]}
       >
         {receipt.tagAssignmentFailed ? (
@@ -343,8 +346,24 @@ export function CaptureTransactionForm({
         <div className="rounded-lg border border-success/25 bg-success/10 p-(--space-3)">
           <Text size="sm" className="font-medium text-text-primary">
             {receipt.type === Direction.EXPENSE
-              ? t("receipt.accountEffectExpense", { amount: formattedAmount })
-              : t("receipt.accountEffectIncome", { amount: formattedAmount })}
+              ? typeof t.rich === "function"
+                ? t.rich("receipt.accountEffectExpense", {
+                    amount: () => (
+                      <FinancialValue>{formattedAmount}</FinancialValue>
+                    ),
+                  })
+                : t("receipt.accountEffectExpense", {
+                    amount: FINANCIAL_PRIVACY_MASK,
+                  })
+              : typeof t.rich === "function"
+                ? t.rich("receipt.accountEffectIncome", {
+                    amount: () => (
+                      <FinancialValue>{formattedAmount}</FinancialValue>
+                    ),
+                  })
+                : t("receipt.accountEffectIncome", {
+                    amount: FINANCIAL_PRIVACY_MASK,
+                  })}
           </Text>
           <Text size="sm" tone="secondary">
             {receipt.inboxItemId
@@ -370,62 +389,25 @@ export function CaptureTransactionForm({
         />
       ) : null}
 
-      <div className="rounded-xl border border-accent/25 bg-accent/10 p-(--space-4) shadow-[var(--elevation-1)]">
-        <Controller
-          control={control}
-          name="amount"
-          render={({ field }) => (
-            <AmountField
-              id={amountId}
-              label={t("amountLabel")}
-              placeholder="0"
-              value={typeof field.value === "number" ? field.value : null}
-              onValueChange={(value) => field.onChange(value)}
-              error={errors.amount ? t("errors.invalid") : undefined}
-              required
-              data-testid="capture-amount"
-              description={t("amountHint", { currency })}
-              className="min-h-14 text-2xl font-semibold tabular-nums tracking-tight"
-            />
-          )}
-        />
+      <Controller
+        control={control}
+        name="amount"
+        render={({ field }) => (
+          <AmountField
+            id={amountId}
+            label={t("amountLabel", { currency })}
+            placeholder="0"
+            value={typeof field.value === "number" ? field.value : null}
+            onValueChange={(value) => field.onChange(value)}
+            error={errors.amount ? t("errors.invalid") : undefined}
+            required
+            data-testid="capture-amount"
+            className="min-h-14 rounded-none border-x-0 border-t-0 border-b-border-strong bg-transparent px-0 text-2xl font-semibold tracking-tight shadow-none focus-visible:border-accent"
+          />
+        )}
+      />
 
-        <fieldset className="mt-(--space-4) flex flex-col gap-(--space-2)">
-          <legend className="text-sm font-semibold text-text-primary">
-            {t("directionLabel")}
-          </legend>
-          <div
-            className="grid grid-cols-2 gap-(--space-2) rounded-lg bg-surface/70 p-(--space-1)"
-            role="radiogroup"
-          >
-            {TRANSACTION_DIRECTION_OPTIONS.map((value) => (
-              <button
-                key={value}
-                type="button"
-                role="radio"
-                aria-checked={direction === value}
-                data-testid={`capture-direction-${value}`}
-                className={
-                  direction === value
-                    ? "min-h-11 rounded-md border border-accent/40 bg-surface px-(--space-3) text-sm font-semibold text-text-primary shadow-[var(--elevation-1)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-                    : "min-h-11 rounded-md px-(--space-3) text-sm font-medium text-text-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-                }
-                onClick={() => {
-                  setValue("type", value, { shouldValidate: true });
-                  setValue("categoryId", null, { shouldValidate: true });
-                }}
-              >
-                {t(`direction.${value}`)}
-              </button>
-            ))}
-          </div>
-        </fieldset>
-      </div>
-
-      <fieldset className="flex flex-col gap-(--space-2) rounded-xl border border-border-subtle bg-surface p-(--space-4)">
-        <legend className="text-sm font-semibold text-text-primary">
-          {t("accountLabel")}
-        </legend>
+      <div>
         {accounts.length === 0 ? (
           <StatusAlert
             variant="warning"
@@ -433,49 +415,117 @@ export function CaptureTransactionForm({
             description={t("addAccountHint")}
           />
         ) : (
-          <div className="flex flex-col gap-(--space-2)">
-            {accounts.map((account) => (
-              <label
-                key={account.id}
-                className="flex min-h-11 cursor-pointer items-center gap-(--space-3) rounded-md border border-border-subtle bg-canvas px-(--space-3) has-[:checked]:border-accent/40 has-[:checked]:bg-accent/10"
-              >
-                <input
-                  type="radio"
-                  value={account.id}
-                  {...register("accountId")}
-                  checked={accountId === account.id}
-                  className="size-4 accent-[var(--color-accent)]"
+          <Controller
+            control={control}
+            name="accountId"
+            render={({ field }) =>
+              useCompactAccountPicker ? (
+                <fieldset
+                  className="flex flex-col gap-(--space-2)"
+                  data-testid="capture-account"
+                >
+                  <legend className="text-sm font-semibold text-text-primary">
+                    {t(
+                      direction === Direction.EXPENSE
+                        ? "expenseAccountLabel"
+                        : "incomeAccountLabel",
+                    )}
+                  </legend>
+                  <ChoiceTileGroup
+                    hint={
+                      selectedAccount?.type === AccountType.CREDIT_CARD
+                        ? t("creditCardHint")
+                        : undefined
+                    }
+                  >
+                    {accounts.map((account) => (
+                      <ChoiceTile
+                        key={account.id}
+                        label={
+                          account.type === AccountType.CREDIT_CARD
+                            ? `${localizeCatalogName(
+                                tCatalog,
+                                "accounts",
+                                account.name,
+                              )} · ${t("creditCardLabel")}`
+                            : localizeCatalogName(
+                                tCatalog,
+                                "accounts",
+                                account.name,
+                              )
+                        }
+                        selected={field.value === account.id}
+                        onPress={() => field.onChange(account.id)}
+                        role="radio"
+                        icon={
+                          <AppIcon
+                            icon={
+                              account.type === AccountType.CREDIT_CARD
+                                ? FINANCE_ICONS.card
+                                : FINANCE_ICONS.wallet
+                            }
+                            size="sm"
+                          />
+                        }
+                      />
+                    ))}
+                  </ChoiceTileGroup>
+                  {errors.accountId ? (
+                    <Text size="sm" className="text-danger">
+                      {t("errors.no_account")}
+                    </Text>
+                  ) : null}
+                </fieldset>
+              ) : (
+                <SelectField
+                  id="capture-account"
+                  label={t(
+                    direction === Direction.EXPENSE
+                      ? "expenseAccountLabel"
+                      : "incomeAccountLabel",
+                  )}
+                  description={t("accountHint")}
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  error={errors.accountId ? t("errors.no_account") : undefined}
+                  required
+                  data-testid="capture-account"
+                  options={accounts.map((account) => ({
+                    id: account.id,
+                    label: localizeCatalogName(
+                      tCatalog,
+                      "accounts",
+                      account.name,
+                    ),
+                  }))}
                 />
-                <span className="text-sm text-text-primary">
-                  {localizeCatalogName(tCatalog, "accounts", account.name)}
-                </span>
-              </label>
-            ))}
-          </div>
+              )
+            }
+          />
         )}
-      </fieldset>
-
-      <div className="rounded-xl border border-border-subtle bg-surface p-(--space-4)">
-        <LabeledDateInput
-          label={t("receipt.date")}
-          value={transactionDate ?? ""}
-          onChange={(e) =>
-            setValue("transactionDate", e.target.value, {
-              shouldValidate: true,
-            })
-          }
-          error={errors.transactionDate ? t("errors.invalid") : undefined}
-          data-testid={dateId}
-        />
       </div>
 
-      <fieldset className="flex flex-col gap-(--space-2) rounded-xl border border-border-subtle bg-surface p-(--space-4)">
+      <Controller
+        control={control}
+        name="transactionDate"
+        render={({ field }) => (
+          <DatePickerField
+            id={dateId}
+            label={t("effectiveDateLabel")}
+            value={field.value ?? ""}
+            onChange={(value) => field.onChange(value)}
+            onBlur={field.onBlur}
+            error={errors.transactionDate ? t("errors.invalid") : undefined}
+            data-testid="capture-date"
+          />
+        )}
+      />
+
+      <fieldset className="flex flex-col gap-(--space-2)">
         <legend className="text-sm font-semibold text-text-primary">
           {t("tagLabel")}
         </legend>
-        <Text size="sm" tone="secondary">
-          {t("tagHint")}
-        </Text>
         <div className="flex flex-wrap gap-(--space-2)">
           <button
             type="button"
@@ -485,9 +535,10 @@ export function CaptureTransactionForm({
                 ? "min-h-11 rounded-md bg-accent px-(--space-3) text-sm text-accent-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
                 : "min-h-11 rounded-md border border-border-subtle px-(--space-3) text-sm text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
             }
-            onClick={() =>
-              setValue("categoryId", null, { shouldValidate: true })
-            }
+            onClick={() => {
+              setValue("categoryId", null, { shouldValidate: true });
+              setValue("jarId", null, { shouldValidate: true });
+            }}
           >
             {t("tagNone")}
           </button>
@@ -504,9 +555,7 @@ export function CaptureTransactionForm({
               }
               onClick={() => {
                 setValue("categoryId", tag.id, { shouldValidate: true });
-                if (tag.jarId) {
-                  setValue("jarId", tag.jarId, { shouldValidate: true });
-                }
+                setValue("jarId", tag.jarId ?? null, { shouldValidate: true });
               }}
             >
               {localizeCatalogName(tCatalog, "tags", tag.name)}
@@ -515,7 +564,44 @@ export function CaptureTransactionForm({
         </div>
       </fieldset>
 
-      <fieldset className="flex flex-col gap-(--space-2) rounded-xl border border-border-subtle bg-surface p-(--space-4)">
+      <div className="flex flex-col gap-(--space-2)">
+        <Text size="sm" tone="secondary">
+          {direction === Direction.EXPENSE
+            ? t("jarHintExpense")
+            : t("jarHintIncome")}
+        </Text>
+        <Controller
+          control={control}
+          name="jarId"
+          render={({ field }) => (
+            <SelectField
+              id="capture-jar"
+              label={t("jarLabel")}
+              value={field.value ?? CAPTURE_JAR_UNMAPPED_OPTION_ID}
+              onChange={(value) =>
+                field.onChange(
+                  value === CAPTURE_JAR_UNMAPPED_OPTION_ID ? null : value,
+                )
+              }
+              onBlur={field.onBlur}
+              error={errors.jarId ? t("errors.invalid") : undefined}
+              data-testid="capture-jar"
+              options={[
+                {
+                  id: CAPTURE_JAR_UNMAPPED_OPTION_ID,
+                  label: t("jarUnmapped"),
+                },
+                ...jars.map((jar) => ({
+                  id: jar.id,
+                  label: localizeCatalogName(tCatalog, "jars", jar.name),
+                })),
+              ]}
+            />
+          )}
+        />
+      </div>
+
+      <fieldset className="flex flex-col gap-(--space-2)">
         <legend className="text-sm font-semibold text-text-primary">
           {t("transactionTagsLabel")}
         </legend>
@@ -531,82 +617,55 @@ export function CaptureTransactionForm({
         />
       </fieldset>
 
-      <fieldset className="flex flex-col gap-(--space-2) rounded-xl border border-border-subtle bg-surface p-(--space-4)">
-        <legend className="text-sm font-semibold text-text-primary">
-          {t("jarLabel")}
-        </legend>
-        <Text size="sm" tone="secondary">
-          {direction === Direction.EXPENSE
-            ? t("jarHintExpense")
-            : t("jarHintIncome")}
-        </Text>
-        <LabeledSelect
-          label={t("jarLabel")}
-          value={jarId ?? ""}
-          onChange={(e) =>
-            setValue("jarId", e.target.value || null, { shouldValidate: true })
-          }
-          error={errors.jarId ? t("errors.invalid") : undefined}
-          hideLabel
-          data-testid="capture-jar"
-          options={[
-            { id: "", label: t("jarUnmapped") },
-            ...jars.map((jar) => ({
-              id: jar.id,
-              label: localizeCatalogName(tCatalog, "jars", jar.name),
-            })),
-          ]}
-        />
-      </fieldset>
+      <TextField
+        id={noteId}
+        label={t("noteLabel")}
+        registration={register("note")}
+        error={errors.note ? t("errors.invalid") : undefined}
+        placeholder={t("notePlaceholder")}
+        data-testid="capture-note"
+      />
 
-      <div className="rounded-xl border border-border-subtle bg-surface p-(--space-4)">
-        <TextField
-          id={noteId}
-          label={t("noteLabel")}
-          registration={register("note")}
-          error={errors.note ? t("errors.invalid") : undefined}
-          placeholder={t("notePlaceholder")}
-          data-testid="capture-note"
-        />
-      </div>
+      {amountLabel && selectedAccountName ? (
+        <div
+          className="border-l-2 border-accent pl-(--space-3)"
+          aria-live="polite"
+          data-testid="capture-preview"
+        >
+          <Text size="sm" weight="medium">
+            {t("previewTitle")}
+          </Text>
+          <Text size="sm" tone="secondary" className="mt-(--space-1)">
+            {typeof t.rich === "function"
+              ? t.rich(previewMessageKey, {
+                  amount: () => <FinancialValue>{amountLabel}</FinancialValue>,
+                  account: selectedAccountName,
+                })
+              : t(previewMessageKey, {
+                  amount: FINANCIAL_PRIVACY_MASK,
+                  account: selectedAccountName,
+                })}
+          </Text>
+        </div>
+      ) : null}
 
-      <div
-        className="rounded-xl border border-accent/25 bg-accent/10 px-(--space-4) py-(--space-3)"
-        aria-live="polite"
-        data-testid="capture-preview"
-      >
-        <Text size="sm" weight="medium">
-          {t("previewTitle")}
-        </Text>
-        <Text size="sm" tone="secondary" className="mt-(--space-1)">
-          {amountLabel && selectedAccountName
-            ? t("previewReady", {
-                direction: t(`direction.${direction}`).toLowerCase(),
-                amount: amountLabel,
-                account: selectedAccountName,
-              })
-            : t("previewEmpty")}
-        </Text>
-      </div>
-
-      <BottomActionBar>
+      <BottomActionBar layout={BottomActionBarLayout.SPLIT}>
+        <Link
+          href={APP_PATH.MONEY}
+          className="inline-flex min-h-11 min-w-0 flex-1 items-center justify-center rounded-md border border-border-subtle bg-surface text-sm font-medium text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+        >
+          {t("cancel")}
+        </Link>
         <Button
           type="button"
           variant="primary"
-          className="w-full"
+          className="min-w-0 flex-[2] shadow-none"
           data-testid="capture-save"
           isDisabled={isPending || !online || accounts.length === 0}
           onPress={() => void onSubmit()}
         >
           {isPending ? t("saving") : t("save")}
         </Button>
-
-        <Link
-          href={APP_PATH.MONEY}
-          className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface text-sm font-medium text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-        >
-          {t("cancel")}
-        </Link>
       </BottomActionBar>
     </form>
   );

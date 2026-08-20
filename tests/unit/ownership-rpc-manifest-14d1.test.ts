@@ -14,8 +14,26 @@ const PROTECTED_RPC_MANIFEST = [
   },
   {
     family: "ledger",
+    rpc: "correct_transaction",
+    roots: ["accounts", "transactions"],
+    status: PROTECTED_RPC_STATUS.PASS,
+  },
+  {
+    family: "ledger",
+    rpc: "refund_transaction",
+    roots: ["accounts", "transactions"],
+    status: PROTECTED_RPC_STATUS.PASS,
+  },
+  {
+    family: "ledger",
     rpc: "record_owned_account_transfer",
     roots: ["accounts", "transactions"],
+    status: PROTECTED_RPC_STATUS.PASS,
+  },
+  {
+    family: "cards",
+    rpc: "record_card_transaction",
+    roots: ["accounts", "transactions", "card_billing_items"],
     status: PROTECTED_RPC_STATUS.PASS,
   },
   {
@@ -65,6 +83,7 @@ const PROTECTED_RPC_MANIFEST = [
 const GUARDED_TABLES = new Set([
   "accounts",
   "transactions",
+  "card_billing_items",
   "card_payments",
   "loans",
   "loan_payments",

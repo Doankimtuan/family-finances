@@ -16,7 +16,8 @@ import { StatusAlert } from "@/shared/ui/status-alert";
 import { MotionStep, MotionStepDirection } from "@/shared/motion";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import { AppIcon } from "@/shared/ui/app-icon";
-import { Sheet, SheetContent } from "@/shared/patterns/sheet";
+import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
+import { Sheet } from "@/shared/patterns/sheet";
 import { SheetActionFooter } from "@/shared/patterns/sheet-action-footer";
 
 type AccountOption = { id: string; name: string };
@@ -193,11 +194,11 @@ export function SavingsSettlementFlow({
       >
         {t("open")}
       </Button>
-      <SheetContent>
-        <Sheet.Header>
+      <ActionSheetLayout>
+        <ActionSheetLayout.Header>
           <Sheet.Heading>{t("maturityTitle")}</Sheet.Heading>
-        </Sheet.Header>
-        <Sheet.Body className="flex max-h-[70dvh] flex-col gap-(--space-4) overflow-y-auto">
+        </ActionSheetLayout.Header>
+        <ActionSheetLayout.Body className="flex max-h-[70dvh] flex-col gap-(--space-4)">
           {error ? <StatusAlert variant="danger" title={t("error")} /> : null}
           <MotionStep
             stepKey={step}
@@ -369,7 +370,7 @@ export function SavingsSettlementFlow({
               </div>
             )}
           </MotionStep>
-        </Sheet.Body>
+        </ActionSheetLayout.Body>
         <SheetActionFooter
           secondaryLabel={step === "review" ? t("back") : t("cancel")}
           primaryLabel={
@@ -385,7 +386,7 @@ export function SavingsSettlementFlow({
           onSecondary={() => (step === "review" ? setStep("form") : close())}
           onPrimary={() => (step === "review" ? confirm() : setStep("review"))}
         />
-      </SheetContent>
+      </ActionSheetLayout>
     </Sheet>
   );
 }

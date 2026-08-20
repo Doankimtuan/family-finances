@@ -1,4 +1,3 @@
-import { z } from "zod";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import {
@@ -7,28 +6,29 @@ import {
   type ProductActionErrorCode,
 } from "@/modules/tenancy/application/product-action-error";
 import type { Result } from "@/modules/shared-kernel/application/result";
-import { LedgerRpcName, type LedgerActionErrorCode } from "../ledger-constants";
+import {
+  LedgerRpcName,
+  LEDGER_ACTION_ERROR_CODE,
+  TransactionDirection,
+  TransactionStatus,
+  type LedgerActionErrorCode,
+} from "../ledger-constants";
+import { getTransactionActionCapabilities } from "../financial-semantics";
+import { todayIsoDate } from "@/shared/utils/iso-date";
 import {
   classifyRefundRpcError,
   LEDGER_OPERATION,
   logLedgerFailure,
 } from "../ledger-error";
+import {
+  refundTransactionInputSchema,
+  type RefundTransactionInput,
+} from "./refund-transaction.schema";
 
-export const refundTransactionInputSchema = z.object({
-  originalTransactionId: z.string().uuid(),
-  /** Positive whole currency units to credit back (BR-06 / BR-02). */
-  amount: z.number().int().positive(),
-  accountId: z.string().uuid().optional(),
-  note: z.string().trim().max(200).optional(),
-  transactionDate: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/)
-    .optional(),
-});
-
-export type RefundTransactionInput = z.infer<
-  typeof refundTransactionInputSchema
->;
+export {
+  refundTransactionInputSchema,
+  type RefundTransactionInput,
+} from "./refund-transaction.schema";
 
 export type RefundTransactionErrorCode =
   ProductActionErrorCode | LedgerActionErrorCode;
@@ -88,6 +88,50 @@ export async function refundTransaction(
 
   try {
     const supabase = await createSupabaseServerClient();
+    const { data: original, error: originalError } =
+      typeof supabase.from === "function"
+        ? await supabase
+            .from("transactions")
+            .select(
+              "type, status, reverses_transaction_id, corrects_transaction_id, savings_event_kind, accounts(type)",
+            )
+            .eq("household_id", gate.householdId)
+            .eq("id", parsed.data.originalTransactionId)
+            .maybeSingle()
+        : {
+            data: {
+              type: TransactionDirection.EXPENSE,
+              status: TransactionStatus.POSTED,
+              reverses_transaction_id: null,
+              corrects_transaction_id: null,
+              savings_event_kind: null,
+              accounts: null,
+            },
+            error: null,
+          };
+    if (originalError) {
+      logLedgerFailure(originalError, LEDGER_OPERATION.REFUND_TRANSACTION, {
+        householdId: gate.householdId,
+        originalTransactionId: parsed.data.originalTransactionId,
+      });
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    }
+    const account = Array.isArray(original?.accounts)
+      ? original.accounts[0]
+      : original?.accounts;
+    const capabilities = original
+      ? getTransactionActionCapabilities({
+          type: original.type,
+          status: original.status,
+          reversesTransactionId: original.reverses_transaction_id,
+          correctsTransactionId: original.corrects_transaction_id,
+          savingsEventKind: original.savings_event_kind,
+          accountType: account?.type,
+        })
+      : null;
+    if (!capabilities?.canGenericRefund) {
+      return { ok: false, code: LEDGER_ACTION_ERROR_CODE.REFUND_INVALID };
+    }
     const { data, error } = await supabase.rpc(
       LedgerRpcName.REFUND_TRANSACTION,
       {
@@ -95,7 +139,7 @@ export async function refundTransaction(
         p_amount: parsed.data.amount,
         p_account_id: parsed.data.accountId ?? null,
         p_note: parsed.data.note ?? null,
-        p_transaction_date: parsed.data.transactionDate ?? null,
+        p_transaction_date: parsed.data.transactionDate ?? todayIsoDate(),
       },
     );
 

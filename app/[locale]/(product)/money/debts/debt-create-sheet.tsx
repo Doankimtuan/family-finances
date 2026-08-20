@@ -25,7 +25,8 @@ import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import { AmountField } from "@/shared/patterns/amount-field";
 import { ChoiceTile, ChoiceTileGroup } from "@/shared/patterns/choice-tile";
 import { DatePickerField, SelectField } from "@/shared/ui/form";
-import { Sheet, SheetContent } from "@/shared/patterns/sheet";
+import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
+import { Sheet } from "@/shared/patterns/sheet";
 import { SheetActionFooter } from "@/shared/patterns/sheet-action-footer";
 import { Button } from "@/shared/ui/button";
 import { AppIcon } from "@/shared/ui/app-icon";
@@ -152,11 +153,11 @@ export function DebtCreateSheet({ accounts, today }: DebtCreateSheetProps) {
       >
         {t("add")}
       </Button>
-      <SheetContent>
-        <Sheet.Header>
+      <ActionSheetLayout>
+        <ActionSheetLayout.Header>
           <Sheet.Heading>{t("create.title")}</Sheet.Heading>
-        </Sheet.Header>
-        <Sheet.Body className="flex flex-col gap-(--space-4)">
+        </ActionSheetLayout.Header>
+        <ActionSheetLayout.Body className="flex flex-col gap-(--space-4)">
           {errorCode ? (
             <StatusAlert variant="danger" title={tErrors(errorCode)} />
           ) : null}
@@ -364,7 +365,7 @@ export function DebtCreateSheet({ accounts, today }: DebtCreateSheetProps) {
             label={t("create.note")}
             registration={register("note")}
           />
-        </Sheet.Body>
+        </ActionSheetLayout.Body>
         <SheetActionFooter
           secondaryLabel={t("cancel")}
           primaryLabel={isPending ? t("saving") : t("create.save")}
@@ -374,7 +375,7 @@ export function DebtCreateSheet({ accounts, today }: DebtCreateSheetProps) {
           onSecondary={() => handleOpenChange(false)}
           onPrimary={submit}
         />
-      </SheetContent>
+      </ActionSheetLayout>
     </Sheet>
   );
 }

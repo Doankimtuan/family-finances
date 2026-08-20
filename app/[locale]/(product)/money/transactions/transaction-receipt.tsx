@@ -19,7 +19,7 @@ type NextAction = {
   label: string;
   href?: string;
   onPress?: () => void;
-  variant?: "primary" | "secondary";
+  variant?: "primary" | "secondary" | "tertiary";
 };
 
 type Props = {
@@ -29,6 +29,8 @@ type Props = {
     id: string;
     label: string;
     value: React.ReactNode;
+    kind?: "text" | "financial";
+    /** Unclassified legacy rows are masked conservatively. */
     financial?: boolean;
   }[];
   relatedRecords?: RelatedRecord[];
@@ -73,7 +75,7 @@ export function TransactionReceipt({
 
       <Section variant="surface">
         <dl className="flex flex-col gap-(--space-3)">
-          {rows.map(({ id, label, value, financial }) => (
+          {rows.map(({ id, label, value, kind }) => (
             <div key={id} className="flex justify-between gap-(--space-3)">
               <Text size="sm" tone="secondary">
                 {label}
@@ -82,7 +84,13 @@ export function TransactionReceipt({
                 size="sm"
                 className="text-right font-medium text-text-primary"
               >
-                {financial ? <FinancialValue>{value}</FinancialValue> : value}
+                {kind !== "text" && kind !== undefined ? (
+                  <FinancialValue>{value}</FinancialValue>
+                ) : kind === "text" ? (
+                  value
+                ) : (
+                  <FinancialValue>{value}</FinancialValue>
+                )}
               </Text>
             </div>
           ))}
@@ -129,7 +137,9 @@ export function TransactionReceipt({
                 className={`inline-flex min-h-11 w-full items-center justify-center rounded-md px-(--space-4) text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring ${
                   action.variant === "primary"
                     ? "bg-accent text-accent-fg"
-                    : "border border-border-subtle bg-surface text-text-primary"
+                    : action.variant === "tertiary"
+                      ? "text-text-secondary"
+                      : "border border-border-subtle bg-surface text-text-primary"
                 }`}
               >
                 {action.label}

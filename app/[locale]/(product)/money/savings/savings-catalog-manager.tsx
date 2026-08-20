@@ -18,7 +18,8 @@ import {
   savingsProductInputSchema,
 } from "@/modules/savings/application/savings-domain-rules";
 import { formatPercent } from "@/shared/i18n/formatters";
-import { Sheet, SheetContent } from "@/shared/patterns/sheet";
+import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
+import { Sheet } from "@/shared/patterns/sheet";
 import { SheetActionFooter } from "@/shared/patterns/sheet-action-footer";
 import { Section } from "@/shared/patterns/section";
 import { Button } from "@/shared/ui/button";
@@ -611,15 +612,15 @@ export function SavingsCatalogManager({ catalog }: Props) {
           if (!open) closeEditors();
         }}
       >
-        <SheetContent>
+        <ActionSheetLayout>
           {providerEditor ? (
             <>
-              <Sheet.Header>
+              <ActionSheetLayout.Header>
                 <Sheet.Heading>
                   {providerEditor.id ? t("editProvider") : t("createProvider")}
                 </Sheet.Heading>
-              </Sheet.Header>
-              <Sheet.Body className="flex max-h-[70dvh] flex-col gap-(--space-4) overflow-y-auto">
+              </ActionSheetLayout.Header>
+              <ActionSheetLayout.Body className="flex max-h-[70dvh] flex-col gap-(--space-4)">
                 <SectionLabel>{t("providerBasics")}</SectionLabel>
                 <TextField
                   id="savings-provider-name"
@@ -661,7 +662,7 @@ export function SavingsCatalogManager({ catalog }: Props) {
                     />
                   )}
                 />
-              </Sheet.Body>
+              </ActionSheetLayout.Body>
               <SheetActionFooter
                 secondaryLabel={t("cancel")}
                 primaryLabel={isPending ? t("saving") : t("save")}
@@ -672,7 +673,7 @@ export function SavingsCatalogManager({ catalog }: Props) {
               />
             </>
           ) : null}
-        </SheetContent>
+        </ActionSheetLayout>
       </Sheet>
 
       <Sheet
@@ -681,15 +682,15 @@ export function SavingsCatalogManager({ catalog }: Props) {
           if (!open) closeEditors();
         }}
       >
-        <SheetContent>
+        <ActionSheetLayout>
           {productEditor ? (
             <>
-              <Sheet.Header>
+              <ActionSheetLayout.Header>
                 <Sheet.Heading>
                   {productEditor.id ? t("editProduct") : t("createProduct")}
                 </Sheet.Heading>
-              </Sheet.Header>
-              <Sheet.Body className="flex max-h-[70dvh] flex-col gap-(--space-4) overflow-y-auto">
+              </ActionSheetLayout.Header>
+              <ActionSheetLayout.Body className="flex max-h-[70dvh] flex-col gap-(--space-4)">
                 <SectionLabel>{t("basicSection")}</SectionLabel>
                 <TextField
                   id="savings-product-name"
@@ -922,7 +923,7 @@ export function SavingsCatalogManager({ catalog }: Props) {
                     {DEFAULT_CURRENCY}
                   </Text>
                 </div>
-              </Sheet.Body>
+              </ActionSheetLayout.Body>
               <SheetActionFooter
                 secondaryLabel={t("cancel")}
                 primaryLabel={isPending ? t("saving") : t("save")}
@@ -933,7 +934,7 @@ export function SavingsCatalogManager({ catalog }: Props) {
               />
             </>
           ) : null}
-        </SheetContent>
+        </ActionSheetLayout>
       </Sheet>
     </div>
   );

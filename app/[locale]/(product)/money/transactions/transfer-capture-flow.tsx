@@ -24,6 +24,8 @@ import { ConfirmSummary } from "@/shared/patterns/confirm-summary";
 import { TextField } from "@/shared/ui/form";
 import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
+import { FinancialValue } from "@/shared/patterns/financial-value";
+import { FINANCIAL_PRIVACY_MASK } from "@/shared/constants/financial-privacy";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import { formatCurrency } from "@/shared/i18n/formatters";
@@ -80,6 +82,7 @@ const LIQUID_SET = new Set<string>(ACCOUNT_TYPE_LIQUID_VALUES);
 
 function isTransferEligible(account: LedgerAccount): boolean {
   return (
+    !account.isArchived &&
     LIQUID_SET.has(account.type) &&
     account.type !== AccountType.CREDIT_CARD &&
     account.type !== AccountType.SAVINGS_PRODUCT
@@ -121,10 +124,6 @@ export function TransferCaptureFlow({
   const [isPending, startTransition] = useTransition();
   const [receipt, setReceipt] = useState<{
     sourceTransactionId: string;
-    destinationTransactionId: string;
-    transferGroupId: string;
-    sourceDelta: number;
-    destinationDelta: number;
     amount: number;
     sourceName: string;
     destinationName: string;
@@ -138,11 +137,10 @@ export function TransferCaptureFlow({
     reset,
     setValue,
     formState: { errors },
-  } =
-    useForm<TransferFormInput, unknown, TransferFormValues>({
-      resolver: zodResolver(recordTransferInputSchema),
-      defaultValues: createDefaultValues(eligible),
-    });
+  } = useForm<TransferFormInput, unknown, TransferFormValues>({
+    resolver: zodResolver(recordTransferInputSchema),
+    defaultValues: createDefaultValues(eligible),
+  });
   const watchedAmount = useWatch({ control, name: "amount" });
   const amount = typeof watchedAmount === "number" ? watchedAmount : null;
   const sourceAccountId = useWatch({ control, name: "sourceAccountId" });
@@ -162,6 +160,9 @@ export function TransferCaptureFlow({
   const destinationName = destinationAccount
     ? localizeCatalogName(tCatalog, "accounts", destinationAccount.name)
     : "";
+  const destinationOptions = eligible.filter(
+    (account) => account.id !== sourceAccountId,
+  );
   const amountLabel =
     amount != null && amount > 0
       ? formatCurrency(amount, currency, locale, { maximumFractionDigits: 0 })
@@ -184,15 +185,12 @@ export function TransferCaptureFlow({
       setErrorCode(CLIENT_ACTION_ERROR_CODE.OFFLINE);
       return;
     }
-    void handleSubmit(
-      () => {
-        setValue("idempotencyKey", createTransferIdempotencyKey(), {
-          shouldValidate: true,
-        });
-        setStep(MoneyPaymentFlowStep.CONFIRM);
-      },
-      showValidationError,
-    )();
+    void handleSubmit(() => {
+      setValue("idempotencyKey", createTransferIdempotencyKey(), {
+        shouldValidate: true,
+      });
+      setStep(MoneyPaymentFlowStep.CONFIRM);
+    }, showValidationError)();
   };
 
   const confirmTransfer = () => {
@@ -201,49 +199,41 @@ export function TransferCaptureFlow({
       setErrorCode(CLIENT_ACTION_ERROR_CODE.OFFLINE);
       return;
     }
-    void handleSubmit(
-      (values) => {
-        startTransition(async () => {
-          const result = await recordTransferAction(
-            values satisfies RecordTransferInput,
-          );
+    void handleSubmit((values) => {
+      startTransition(async () => {
+        const result = await recordTransferAction(
+          values satisfies RecordTransferInput,
+        );
 
-          if (result.status === ProductActionStatus.SUCCESS) {
-            const submittedSource = eligible.find(
-              (account) => account.id === values.sourceAccountId,
-            );
-            const submittedDestination = eligible.find(
-              (account) => account.id === values.destinationAccountId,
-            );
-            reset(createDefaultValues(eligible));
-            setReceipt({
-              sourceTransactionId: result.sourceTransactionId,
-              destinationTransactionId: result.destinationTransactionId,
-              transferGroupId: result.transferGroupId,
-              sourceDelta: result.sourceDelta,
-              destinationDelta: result.destinationDelta,
-              amount: values.amount,
-              sourceName: submittedSource
-                ? localizeCatalogName(tCatalog, "accounts", submittedSource.name)
-                : "",
-              destinationName: submittedDestination
-                ? localizeCatalogName(
-                    tCatalog,
-                    "accounts",
-                    submittedDestination.name,
-                  )
-                : "",
-              date: values.transactionDate ?? todayIsoDate(),
-            });
-            setStep(MoneyPaymentFlowStep.RECEIPT);
-            return;
-          }
-          setErrorCode(result.code);
-          setStep(MoneyPaymentFlowStep.FORM);
-        });
-      },
-      showValidationError,
-    )();
+        if (result.status === ProductActionStatus.SUCCESS) {
+          const submittedSource = eligible.find(
+            (account) => account.id === values.sourceAccountId,
+          );
+          const submittedDestination = eligible.find(
+            (account) => account.id === values.destinationAccountId,
+          );
+          setReceipt({
+            sourceTransactionId: result.sourceTransactionId,
+            amount: values.amount,
+            sourceName: submittedSource
+              ? localizeCatalogName(tCatalog, "accounts", submittedSource.name)
+              : "",
+            destinationName: submittedDestination
+              ? localizeCatalogName(
+                  tCatalog,
+                  "accounts",
+                  submittedDestination.name,
+                )
+              : "",
+            date: values.transactionDate ?? todayIsoDate(),
+          });
+          setStep(MoneyPaymentFlowStep.RECEIPT);
+          return;
+        }
+        setErrorCode(result.code);
+        setStep(MoneyPaymentFlowStep.FORM);
+      });
+    }, showValidationError)();
   };
 
   if (step === MoneyPaymentFlowStep.RECEIPT && receipt) {
@@ -264,14 +254,13 @@ export function TransferCaptureFlow({
             value: receiptAmountLabel,
           },
           {
-            id: "from",
+            id: "route",
             label: t("receipt.from"),
-            value: receipt.sourceName,
-          },
-          {
-            id: "to",
-            label: t("receipt.to"),
-            value: receipt.destinationName,
+            value: t("receipt.route", {
+              from: receipt.sourceName,
+              to: receipt.destinationName,
+            }),
+            kind: "text",
           },
           {
             id: "date",
@@ -279,38 +268,15 @@ export function TransferCaptureFlow({
             value: receipt.date,
           },
           {
-            id: "sourceDelta",
-            label: t("receipt.sourceDelta"),
-            value: `−${formatCurrency(Math.abs(receipt.sourceDelta), currency, locale, { maximumFractionDigits: 0 })}`,
-          },
-          {
-            id: "destinationDelta",
-            label: t("receipt.destinationDelta"),
-            value: `+${formatCurrency(Math.abs(receipt.destinationDelta), currency, locale, { maximumFractionDigits: 0 })}`,
-          },
-          {
             id: "neutrality",
             label: t("receipt.householdTotal"),
             value: t("receipt.unchanged"),
           },
         ]}
-        relatedRecordsTitle={t("receipt.relatedTitle")}
-        relatedRecords={[
-          {
-            id: "source-tx",
-            label: t("receipt.viewSource"),
-            href: moneyTransactionPath(receipt.sourceTransactionId),
-          },
-          {
-            id: "dest-tx",
-            label: t("receipt.viewDestination"),
-            href: moneyTransactionPath(receipt.destinationTransactionId),
-          },
-        ]}
         nextActions={[
           {
             id: "view",
-            label: t("receipt.viewSource"),
+            label: t("receipt.viewTransfer"),
             href: moneyTransactionPath(receipt.sourceTransactionId),
             variant: "primary",
           },
@@ -324,7 +290,7 @@ export function TransferCaptureFlow({
             id: "money",
             label: t("receipt.goToMoney"),
             href: APP_PATH.MONEY,
-            variant: "secondary",
+            variant: "tertiary",
           },
         ]}
       >
@@ -417,25 +383,25 @@ export function TransferCaptureFlow({
         />
       ) : null}
 
-      <div className="rounded-xl border border-accent/25 bg-accent/10 p-(--space-4)">
+      <div className="rounded-[var(--radius-panel)] border border-accent/25 bg-accent/10 p-(--space-4)">
         <ControlledField
           control={control}
           field={{
             type: "amount",
             name: "amount",
             id: amountId,
-            label: t("amountLabel"),
+            label: t("amountLabel", { currency }),
             placeholder: "0",
             testId: "transfer-amount",
-            description: t("amountHint", { currency }),
             required: true,
-            className: "min-h-14 text-2xl font-semibold tabular-nums tracking-tight",
+            className:
+              "min-h-14 text-2xl font-semibold tabular-nums tracking-tight",
           }}
           getErrorMessage={() => t("errors.invalid")}
         />
       </div>
 
-      <fieldset className="flex flex-col gap-(--space-2) rounded-xl border border-border-subtle bg-surface p-(--space-4)">
+      <fieldset className="flex flex-col gap-(--space-2) border-b border-border-subtle pb-(--space-4)">
         <legend className="text-sm font-semibold text-text-primary">
           {t("fromLabel")}
         </legend>
@@ -461,7 +427,18 @@ export function TransferCaptureFlow({
                       name="transfer-source"
                       value={account.id}
                       checked={field.value === account.id}
-                      onChange={() => field.onChange(account.id)}
+                      onChange={() => {
+                        field.onChange(account.id);
+                        if (destinationAccountId === account.id) {
+                          setValue(
+                            "destinationAccountId",
+                            eligible.find(
+                              (candidate) => candidate.id !== account.id,
+                            )?.id ?? "",
+                            { shouldValidate: true },
+                          );
+                        }
+                      }}
                       className="size-4 accent-[var(--color-accent)]"
                       data-testid={`transfer-source-${account.id}`}
                     />
@@ -476,7 +453,7 @@ export function TransferCaptureFlow({
         )}
       </fieldset>
 
-      <fieldset className="flex flex-col gap-(--space-2) rounded-xl border border-border-subtle bg-surface p-(--space-4)">
+      <fieldset className="flex flex-col gap-(--space-2) border-b border-border-subtle pb-(--space-4)">
         <legend className="text-sm font-semibold text-text-primary">
           {t("toLabel")}
         </legend>
@@ -485,7 +462,7 @@ export function TransferCaptureFlow({
           name="destinationAccountId"
           render={({ field }) => (
             <div className="flex flex-col gap-(--space-2)">
-              {eligible.map((account) => (
+              {destinationOptions.map((account) => (
                 <label
                   key={account.id}
                   className="flex min-h-11 cursor-pointer items-center gap-(--space-3) rounded-md border border-border-subtle bg-canvas px-(--space-3) has-[:checked]:border-accent/40 has-[:checked]:bg-accent/10"
@@ -509,21 +486,21 @@ export function TransferCaptureFlow({
         />
       </fieldset>
 
-      <div className="rounded-xl border border-border-subtle bg-surface p-(--space-4)">
+      <div className="border-b border-border-subtle pb-(--space-4)">
         <ControlledField
           control={control}
           field={{
             type: "date",
             name: "transactionDate",
             id: "transfer-date",
-            label: t("receipt.date"),
+            label: t("effectiveDateLabel"),
             testId: "transfer-date",
           }}
           getErrorMessage={() => t("errors.invalid")}
         />
       </div>
 
-      <div className="rounded-xl border border-border-subtle bg-surface p-(--space-4)">
+      <div className="border-b border-border-subtle pb-(--space-4)">
         <TextField
           id={noteId}
           label={t("noteLabel")}
@@ -544,11 +521,17 @@ export function TransferCaptureFlow({
         </Text>
         <Text size="sm" tone="secondary" className="mt-(--space-1)">
           {amountLabel && sourceName && destinationName
-            ? t("previewReady", {
-                amount: amountLabel,
-                from: sourceName,
-                to: destinationName,
-              })
+            ? typeof t.rich === "function"
+              ? t.rich("previewReady", {
+                  amount: () => <FinancialValue>{amountLabel}</FinancialValue>,
+                  from: sourceName,
+                  to: destinationName,
+                })
+              : t("previewReady", {
+                  amount: FINANCIAL_PRIVACY_MASK,
+                  from: sourceName,
+                  to: destinationName,
+                })
             : t("previewEmpty")}
         </Text>
         <Text size="sm" tone="secondary" className="mt-(--space-1)">

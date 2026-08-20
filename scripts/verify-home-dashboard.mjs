@@ -1,5 +1,9 @@
 import { chromium } from "playwright";
 import { mkdirSync, writeFileSync } from "node:fs";
+import nextEnv from "@next/env";
+
+const { loadEnvConfig } = nextEnv;
+loadEnvConfig(process.cwd());
 
 const baseURL = process.env.HOME_VERIFY_BASE_URL ?? "http://localhost:3101";
 const email = process.env.E2E_USER_EMAIL;

@@ -28,7 +28,7 @@ export function MoneyMoreLink({
   return (
     <Link
       href={href}
-      className="flex min-h-11 items-center gap-(--space-3) rounded-[var(--radius-control)] px-(--space-3) py-(--space-2) transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-[var(--press-scale)] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+      className="flex min-h-11 items-center gap-(--space-3) rounded-(--radius-control) px-(--space-3) py-(--space-2) transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-(--press-scale) motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring mb-1.5!"
       data-testid={testId}
     >
       <IconContainer tone={iconTone} size="sm">

@@ -2,10 +2,15 @@ import type { ReactNode } from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { TransferCaptureFlow } from "@/app/[locale]/(product)/money/transactions/transfer-capture-flow";
-import { AccountType, type LedgerAccount } from "@/modules/ledger/application/client";
+import {
+  AccountType,
+  type LedgerAccount,
+} from "@/modules/ledger/application/client";
 import { PRODUCT_ACTION_ERROR_CODE } from "@/modules/tenancy/application/product-action-error";
 
-const { recordTransferMock } = vi.hoisted(() => ({ recordTransferMock: vi.fn() }));
+const { recordTransferMock } = vi.hoisted(() => ({
+  recordTransferMock: vi.fn(),
+}));
 
 vi.mock("next-intl", () => ({
   useLocale: () => "en",
@@ -76,25 +81,23 @@ describe("TransferCaptureFlow", () => {
     );
     fireEvent.click(screen.getByTestId("transfer-confirm"));
 
-    expect(await screen.findByTestId("transfer-receipt-neutrality")).toBeInTheDocument();
+    expect(
+      await screen.findByTestId("transfer-receipt-neutrality"),
+    ).toBeInTheDocument();
     expect(screen.getAllByText(/50,000/).length).toBeGreaterThan(0);
     expect(recordTransferMock).toHaveBeenCalledWith(
       expect.objectContaining({ amount: 50_000 }),
     );
   });
 
-  it("blocks same-account transfers before confirmation", async () => {
+  it("excludes the selected source from transfer destinations", () => {
     renderFlow();
-    fireEvent.click(
-      screen.getByTestId(`transfer-destination-${accounts[0].id}`),
-    );
-    fireEvent.change(screen.getByTestId("transfer-amount"), {
-      target: { value: "50000" },
-    });
-    fireEvent.click(screen.getByTestId("transfer-preview-continue"));
-
-    expect(await screen.findByText("errors.invalid")).toBeInTheDocument();
-    expect(screen.queryByTestId("money-transfer-confirm")).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId(`transfer-destination-${accounts[0].id}`),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByTestId(`transfer-destination-${accounts[1].id}`),
+    ).toBeInTheDocument();
   });
 
   it("returns to the form with one typed error after server failure", async () => {

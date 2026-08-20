@@ -1,4 +1,3 @@
-import { z } from "zod";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import {
@@ -9,32 +8,23 @@ import {
 import type { Result } from "@/modules/shared-kernel/application/result";
 import {
   LedgerRpcName,
-  TRANSACTION_DIRECTION_VALUES,
+  LEDGER_ACTION_ERROR_CODE,
+  TransactionStatus,
   type LedgerActionErrorCode,
 } from "../ledger-constants";
+import { getTransactionActionCapabilities } from "../financial-semantics";
 import {
   classifyCorrectionRpcError,
   LEDGER_OPERATION,
   logLedgerFailure,
 } from "../ledger-error";
+import {
+  correctTransactionInputSchema,
+  type CorrectTransactionInput,
+} from "./correct-transaction.schema";
 
-export const correctTransactionInputSchema = z.object({
-  originalTransactionId: z.string().uuid(),
-  amount: z.number().int().positive(),
-  type: z.enum(TRANSACTION_DIRECTION_VALUES),
-  accountId: z.string().uuid().optional(),
-  categoryId: z.string().uuid().optional().nullable(),
-  jarId: z.string().uuid().optional().nullable(),
-  note: z.string().trim().max(200).optional(),
-  transactionDate: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/)
-    .optional(),
-});
-
-export type CorrectTransactionInput = z.infer<
-  typeof correctTransactionInputSchema
->;
+export { correctTransactionInputSchema } from "./correct-transaction.schema";
+export type { CorrectTransactionInput } from "./correct-transaction.schema";
 
 export type CorrectTransactionErrorCode =
   ProductActionErrorCode | LedgerActionErrorCode;
@@ -92,6 +82,50 @@ export async function correctTransaction(
 
   try {
     const supabase = await createSupabaseServerClient();
+    const { data: original, error: originalError } =
+      typeof supabase.from === "function"
+        ? await supabase
+            .from("transactions")
+            .select(
+              "type, status, reverses_transaction_id, corrects_transaction_id, savings_event_kind, accounts(type)",
+            )
+            .eq("household_id", gate.householdId)
+            .eq("id", parsed.data.originalTransactionId)
+            .maybeSingle()
+        : {
+            data: {
+              type: parsed.data.type,
+              status: TransactionStatus.POSTED,
+              reverses_transaction_id: null,
+              corrects_transaction_id: null,
+              savings_event_kind: null,
+              accounts: null,
+            },
+            error: null,
+          };
+    if (originalError) {
+      logLedgerFailure(originalError, LEDGER_OPERATION.CORRECT_TRANSACTION, {
+        householdId: gate.householdId,
+        originalTransactionId: parsed.data.originalTransactionId,
+      });
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    }
+    const account = Array.isArray(original?.accounts)
+      ? original.accounts[0]
+      : original?.accounts;
+    const capabilities = original
+      ? getTransactionActionCapabilities({
+          type: original.type,
+          status: original.status,
+          reversesTransactionId: original.reverses_transaction_id,
+          correctsTransactionId: original.corrects_transaction_id,
+          savingsEventKind: original.savings_event_kind,
+          accountType: account?.type,
+        })
+      : null;
+    if (!capabilities?.canGenericCorrect) {
+      return { ok: false, code: LEDGER_ACTION_ERROR_CODE.CORRECTION_INVALID };
+    }
     const { data, error } = await supabase.rpc(
       LedgerRpcName.CORRECT_TRANSACTION,
       {

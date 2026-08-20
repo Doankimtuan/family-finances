@@ -32,7 +32,8 @@ import { Amount } from "@/shared/patterns/amount";
 import { AmountField } from "@/shared/patterns/amount-field";
 import { ConfirmSummary } from "@/shared/patterns/confirm-summary";
 import { DatePickerField, SelectField } from "@/shared/ui/form";
-import { Sheet, SheetContent } from "@/shared/patterns/sheet";
+import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
+import { Sheet } from "@/shared/patterns/sheet";
 import { SheetActionFooter } from "@/shared/patterns/sheet-action-footer";
 import { Button } from "@/shared/ui/button";
 import { TextField } from "@/shared/ui/form";
@@ -176,11 +177,11 @@ export function DebtPaymentSheet({
       >
         {actionLabel}
       </Button>
-      <SheetContent>
-        <Sheet.Header>
+      <ActionSheetLayout>
+        <ActionSheetLayout.Header>
           <Sheet.Heading>{actionLabel}</Sheet.Heading>
-        </Sheet.Header>
-        <Sheet.Body className="flex flex-col gap-(--space-4)">
+        </ActionSheetLayout.Header>
+        <ActionSheetLayout.Body className="flex flex-col gap-(--space-4)">
           {errorCode ? (
             <StatusAlert variant="danger" title={tErrors(errorCode)} />
           ) : null}
@@ -290,7 +291,7 @@ export function DebtPaymentSheet({
               </>
             )}
           </MotionStep>
-        </Sheet.Body>
+        </ActionSheetLayout.Body>
         <SheetActionFooter
           secondaryLabel={isConfirming ? t("backToForm") : t("cancel")}
           primaryLabel={
@@ -306,7 +307,7 @@ export function DebtPaymentSheet({
           onSecondary={() => (isConfirming ? setIsConfirming(false) : close())}
           onPrimary={isConfirming ? confirm : review}
         />
-      </SheetContent>
+      </ActionSheetLayout>
     </Sheet>
   );
 }

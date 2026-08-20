@@ -17,7 +17,8 @@ import { AppIcon } from "@/shared/ui/app-icon";
 import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
 import { StatusAlert } from "@/shared/ui/status-alert";
-import { Sheet, SheetContent } from "@/shared/patterns/sheet";
+import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
+import { Sheet } from "@/shared/patterns/sheet";
 import { SheetActionFooter } from "@/shared/patterns/sheet-action-footer";
 import { motionTokens } from "@/shared/motion";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
@@ -190,11 +191,11 @@ export function RenewalPolicyEditor({
       >
         {t("editMaturity")}
       </Button>
-      <SheetContent>
-        <Sheet.Header>
+      <ActionSheetLayout>
+        <ActionSheetLayout.Header>
           <Sheet.Heading>{t("maturityInstructionTitle")}</Sheet.Heading>
-        </Sheet.Header>
-        <Sheet.Body className="flex max-h-[70dvh] flex-col gap-(--space-4) overflow-y-auto">
+        </ActionSheetLayout.Header>
+        <ActionSheetLayout.Body className="flex max-h-[70dvh] flex-col gap-(--space-4)">
           {errorCode ? (
             <StatusAlert variant="danger" title={tErr(errorCode)} />
           ) : null}
@@ -320,7 +321,7 @@ export function RenewalPolicyEditor({
               {t("noPayoutNeeded")}
             </Text>
           )}
-        </Sheet.Body>
+        </ActionSheetLayout.Body>
         <SheetActionFooter
           secondaryLabel={t("back")}
           primaryLabel={isPending ? t("savingPolicy") : t("savePolicy")}
@@ -330,7 +331,7 @@ export function RenewalPolicyEditor({
           onSecondary={close}
           onPrimary={save}
         />
-      </SheetContent>
+      </ActionSheetLayout>
     </Sheet>
   );
 }

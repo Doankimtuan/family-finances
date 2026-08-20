@@ -23,7 +23,7 @@ export function SheetContent({
 }) {
   return (
     <Drawer.Backdrop>
-      <Drawer.Content placement="bottom">
+      <Drawer.Content placement="bottom" className="h-dvh">
         <Drawer.Dialog
           className={cn(
             "bg-surface-elevated",

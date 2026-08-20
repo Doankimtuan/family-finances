@@ -36,6 +36,9 @@ describe("Account sheet and detail composition", () => {
     const body = document.querySelector('[data-slot="action-sheet-body"]');
     const footer = document.querySelector('[data-slot="action-sheet-footer"]');
     expect(body).toHaveClass("min-h-0", "flex-1", "overflow-y-auto");
+    expect(body).toHaveClass(
+      "pb-[calc(var(--sheet-footer-clearance)+env(safe-area-inset-bottom,0px))]",
+    );
     expect(footer).toHaveClass(
       "flex-none",
       "border-t",

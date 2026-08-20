@@ -8,6 +8,7 @@ export {
 } from "./section";
 export {
   BottomActionBar,
+  BottomActionBarLayout,
   type BottomActionBarProps,
 } from "./bottom-action-bar";
 export { BottomNavigation } from "./bottom-navigation";

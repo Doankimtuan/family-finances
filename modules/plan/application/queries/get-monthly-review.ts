@@ -195,6 +195,7 @@ export function summarizeCashFlow(rows: ReviewTransaction[]) {
       summary.investmentSales += value;
     if (
       row.type === TransactionLedgerType.LIABILITY_PAYMENT ||
+      row.type === TransactionLedgerType.LOAN_INTEREST ||
       row.type === TransactionLedgerType.DEBT_LENDING
     )
       summary.debtCashPaid += value;

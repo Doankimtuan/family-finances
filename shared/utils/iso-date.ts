@@ -1,8 +1,21 @@
+import { HOUSEHOLD_TIMEZONE } from "@/modules/tenancy/application/tenancy-constants";
+
 export const MILLISECONDS_PER_DAY = 86_400_000;
 
-/** UTC calendar date as `YYYY-MM-DD`. */
+/** Household-local calendar date as `YYYY-MM-DD`. */
 export function todayIsoDate(now = new Date()): string {
-  return now.toISOString().slice(0, 10);
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: HOUSEHOLD_TIMEZONE.VIETNAM,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(now);
+  const values = Object.fromEntries(
+    parts
+      .filter((part) => part.type !== "literal")
+      .map((part) => [part.type, part.value]),
+  );
+  return `${values.year}-${values.month}-${values.day}`;
 }
 
 /** `YYYY-MM` label from an ISO date or month-start timestamp. */

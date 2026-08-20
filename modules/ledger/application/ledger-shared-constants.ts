@@ -21,6 +21,7 @@ export const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 export const LedgerRpcName = {
   CORRECT_TRANSACTION: "correct_transaction",
   RECORD_TRANSACTION: "record_transaction",
+  RECORD_CARD_TRANSACTION: "record_card_transaction",
   SETTLE_CARD_PAYMENT: "settle_card_payment",
   RECORD_LOAN_PAYMENT: "record_loan_payment",
   UPDATE_LOAN_INTEREST_RATE: "update_loan_interest_rate",

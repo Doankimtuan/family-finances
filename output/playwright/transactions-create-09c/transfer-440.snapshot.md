@@ -1,0 +1,60 @@
+- generic [ref=e1] [box=0,0,1200,780]:
+  - generic [ref=e5] [box=380,16,440,748]:
+    - main [ref=e6] [box=380,16,440,655]:
+      - generic [ref=e84] [box=380,16,429,655]:
+        - generic [ref=e89] [box=396,36,397,57]:
+          - heading "Add transaction" [level=1] [ref=e90] [box=396,36,397,30]
+          - paragraph [ref=e92] [box=396,70,334,23]: Record a household money event
+        - generic [ref=e94] [box=396,121,397,935]:
+          - group "What are you recording?" [ref=e95] [box=396,121,397,54]:
+            - radiogroup "What are you recording?" [ref=e97] [box=396,121,397,54]:
+              - radio "Expense" [ref=e98] [box=401,126,126,44]
+              - radio "Income" [ref=e99] [box=531,126,126,44]
+              - radio "Transfer" [checked] [active] [ref=e100] [box=662,126,126,44]
+          - generic [ref=e178] [box=396,191,397,865]:
+            - generic [ref=e180] [box=413,208,363,112]:
+              - generic [ref=e181] [box=413,208,363,20]
+              - textbox "Amount" [ref=e183] [box=413,236,363,56]:
+                - /placeholder: "0"
+              - paragraph [ref=e184] [box=413,300,363,20]: Positive amount in VND
+            - group "From account" [ref=e185] [box=396,353,397,133]:
+              - generic [ref=e187] [box=396,373,397,96]
+            - group "To account" [ref=e194] [box=396,502,397,81]:
+              - generic [ref=e197] [cursor=pointer] [box=396,522,397,44]
+            - generic [ref=e201] [box=396,599,397,72]:
+              - generic [ref=e202] [box=396,599,397,20]: Effective date
+              - group "Effective date" [ref=e204] [box=396,627,397,44]
+              - textbox [ref=e217] [box=379,15,146,24]: 2026-08-20
+            - generic [ref=e219] [box=396,704,397,72]:
+              - generic [ref=e220] [box=396,704,397,20]: Note
+              - textbox "Note" [ref=e221] [box=396,732,397,44]:
+                - /placeholder: Optional note
+            - generic [ref=e222] [box=396,809,397,114]:
+              - paragraph [ref=e223] [box=413,822,363,20]: Transfer preview
+              - paragraph [ref=e224] [box=413,846,363,20]: Enter amount and choose two different accounts.
+              - paragraph [ref=e225] [box=413,870,363,40]: Household balances stay unchanged. This is not income or expense.
+            - generic [ref=e227] [box=396,575,397,96]:
+              - button "Review transfer" [ref=e228] [cursor=pointer] [box=396,575,397,44]
+              - button "Back to expense / income" [ref=e229] [cursor=pointer] [box=396,627,397,44]
+    - navigation "Primary navigation" [ref=e30] [box=388,679,424,77]:
+      - list [ref=e31] [box=389,680,422,75]:
+        - listitem [ref=e32] [box=397,688,78,59]:
+          - link "Home" [ref=e33] [cursor=pointer] [box=397,688,78,59]:
+            - /url: /en/home
+        - listitem [ref=e39] [box=479,688,78,59]:
+          - link "Money" [ref=e40] [cursor=pointer] [box=479,688,78,59]:
+            - /url: /en/money
+        - listitem [ref=e48] [box=561,688,78,59]:
+          - link "Plan" [ref=e49] [cursor=pointer] [box=561,688,78,59]:
+            - /url: /en/plan
+        - listitem [ref=e56] [box=643,688,78,59]:
+          - link "1 open Inbox item Inbox" [ref=e57] [cursor=pointer] [box=643,688,78,59]:
+            - /url: /en/inbox
+            - generic [ref=e58] [box=670,696,24,24]:
+              - generic "1 open Inbox item" [box=682,694,18,17]: "1"
+            - generic [ref=e62] [box=667,724,30,15]: Inbox
+        - listitem [ref=e63] [box=725,688,78,59]:
+          - link "Together" [ref=e64] [cursor=pointer] [box=725,688,78,59]:
+            - /url: /en/together
+  - button "Open Next.js Dev Tools" [ref=e79] [cursor=pointer] [box=22,726,32,32]
+  - alert [ref=e83] [box=-1,779,1,1]

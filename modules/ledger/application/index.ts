@@ -58,8 +58,14 @@ export {
 } from "./queries/list-transactions";
 export {
   getTransaction,
+  getTransactionReadResult,
+  getTransactionActivity,
+  listTransactionEvents,
   listTransactions,
   type ListTransactionsFilter,
+  type ListTransactionEventsFilter,
+  type ListTransactionEventsResult,
+  type TransactionReadResult,
 } from "./queries/get-transaction";
 export {
   archiveTransactionTag,
@@ -124,11 +130,11 @@ export {
 } from "./commands/create-category";
 export {
   refundTransaction,
-  refundTransactionInputSchema,
   type RefundTransactionInput,
   type RefundTransactionResult,
   type RefundTransactionErrorCode,
 } from "./commands/refund-transaction";
+export { refundTransactionInputSchema } from "./commands/refund-transaction.schema";
 export {
   correctTransaction,
   correctTransactionInputSchema,
@@ -153,7 +159,11 @@ export {
   FinancialEventCategory,
   FinancialClassification,
   FinancialCashDirection,
+  FinancialDisplayDirection,
+  FinancialHomeNetContribution,
+  TransactionOwner,
   classifyFinancialEvent,
+  getTransactionActionCapabilities,
   type FinancialEventSemantics,
   type FinancialSemanticRow,
 } from "./financial-semantics";
@@ -244,9 +254,11 @@ export {
 } from "./transaction-types";
 export {
   createTransactionActivities,
+  transactionActivityMatchesFilter,
   transactionActivityCanUseGenericActions,
   TransactionActivityKind,
   TransactionActivityTone,
+  TransactionProductEvent,
   type TransactionActivity,
 } from "./transaction-activity";
 export {
@@ -346,15 +358,23 @@ export {
   TransactionLedgerType,
   TRANSACTION_LEDGER_TYPE_VALUES,
   TransactionStatus,
+  TransactionReadStatus,
   TRANSACTION_STATUS_VALUES,
   TRANSACTION_REFUNDABLE_STATUS_VALUES,
   TRANSACTION_CORRECTABLE_STATUS_VALUES,
   TRANSACTION_BALANCE_STATUS_VALUES,
   TransactionFilterType,
   TRANSACTION_FILTER_OPTIONS,
+  TRANSACTION_COMMON_FILTER_OPTIONS,
+  TRANSACTION_TAG_FILTER_QUERY_PARAM,
+  TRANSACTION_TYPE_QUERY_PARAM,
+  TRANSACTION_CURSOR_QUERY_PARAM,
+  TRANSACTION_LIST_PAGE_SIZE,
   AccountType,
   ACCOUNT_TYPE_VALUES,
   ACCOUNT_TYPE_LIQUID_VALUES,
+  ACCOUNT_TYPE_CAPTURE_VALUES,
+  isCaptureAccountType,
   ACCOUNT_TYPE_CREATE_OPTIONS,
   CardBillingMonthStatus,
   CARD_BILLING_MONTH_STATUS_VALUES,

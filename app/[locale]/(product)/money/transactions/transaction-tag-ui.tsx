@@ -2,6 +2,8 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useLocale, useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
+import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import type {
   TransactionTag,
   TransactionTagColorKey,
@@ -17,7 +19,8 @@ import { ACTION_ICONS } from "@/shared/ui/icon-registry";
 import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
 import { TextField } from "@/shared/ui/form";
-import { Sheet, SheetContent } from "@/shared/patterns/sheet";
+import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
+import { Sheet } from "@/shared/patterns/sheet";
 import { createTransactionTagAction } from "./tag-actions";
 import { transactionTagVisualFor } from "./transaction-tag-visuals";
 import { TransactionTagFormFields } from "./transaction-tag-form-fields";
@@ -26,6 +29,7 @@ type TagSelectorProps = {
   availableTags: TransactionTag[];
   selectedIds: string[];
   onChange: (ids: string[]) => void;
+  onConfirm?: (ids: string[]) => void;
   disabled?: boolean;
 };
 
@@ -67,6 +71,7 @@ export function TransactionTagSelector({
   availableTags,
   selectedIds,
   onChange,
+  onConfirm,
   disabled = false,
 }: TagSelectorProps) {
   const t = useTranslations("money.transactionTags");
@@ -91,6 +96,8 @@ export function TransactionTagSelector({
     return [...byId.values()];
   }, [availableTags, createdTags]);
   const selectedTags = tags.filter((tag) => selectedIds.includes(tag.id));
+  const activeTags = tags.filter((tag) => !tag.archivedAt);
+  const archivedTags = tags.filter((tag) => tag.archivedAt);
   const visibleTags = tags
     .filter((tag) => !tag.archivedAt || selectedIds.includes(tag.id))
     .filter((tag) =>
@@ -182,13 +189,13 @@ export function TransactionTagSelector({
           }
         }}
       >
-        <SheetContent>
-          <Sheet.Header className="px-(--space-4) pt-(--space-3)">
+        <ActionSheetLayout>
+          <ActionSheetLayout.Header>
             <Sheet.Heading className="text-lg font-semibold tracking-tight text-text-primary">
               {isCreating ? t("createTitle") : t("chooseTitle")}
             </Sheet.Heading>
-          </Sheet.Header>
-          <Sheet.Body className="max-h-[min(68dvh,560px)] overflow-y-auto px-(--space-4) py-(--space-3)">
+          </ActionSheetLayout.Header>
+          <ActionSheetLayout.Body className="max-h-[min(68dvh,560px)]">
             {isCreating ? (
               <div className="flex flex-col gap-(--space-4)">
                 <TransactionTagFormFields
@@ -204,6 +211,37 @@ export function TransactionTagSelector({
                     {t("saveError")}
                   </Text>
                 ) : null}
+              </div>
+            ) : activeTags.length === 0 ? (
+              <div className="flex flex-col gap-(--space-3)">
+                <div>
+                  <Text size="sm" weight="medium">
+                    {archivedTags.length > 0
+                      ? t("noActiveTitle")
+                      : t("noTagsTitle")}
+                  </Text>
+                  <Text size="sm" tone="secondary" className="mt-1 text-pretty">
+                    {archivedTags.length > 0
+                      ? t("noActiveDescription")
+                      : t("noTagsDescription")}
+                  </Text>
+                </div>
+                <div className="flex flex-wrap gap-(--space-2)">
+                  <Button
+                    variant="secondary"
+                    onPress={() => setIsCreating(true)}
+                  >
+                    {t("create")}
+                  </Button>
+                  {archivedTags.length > 0 ? (
+                    <Link
+                      href={APP_PATH.MONEY_TRANSACTION_TAGS}
+                      className="inline-flex min-h-11 items-center rounded-md px-(--space-3) text-sm font-medium text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+                    >
+                      {t("manageTags")}
+                    </Link>
+                  ) : null}
+                </div>
               </div>
             ) : (
               <div className="flex flex-col gap-(--space-3)">
@@ -265,8 +303,8 @@ export function TransactionTagSelector({
                 </Button>
               </div>
             )}
-          </Sheet.Body>
-          <Sheet.Footer className="flex gap-(--space-2) border-t border-border-subtle bg-surface-elevated px-(--space-4) pt-(--space-3) pb-[max(env(safe-area-inset-bottom),var(--space-3))]">
+          </ActionSheetLayout.Body>
+          <ActionSheetLayout.Footer>
             {isCreating ? (
               <>
                 <Button
@@ -296,13 +334,16 @@ export function TransactionTagSelector({
               <Button
                 variant="primary"
                 fullWidth
-                onPress={() => setIsOpen(false)}
+                onPress={() => {
+                  setIsOpen(false);
+                  onConfirm?.(selectedIds);
+                }}
               >
                 {t("done")}
               </Button>
             )}
-          </Sheet.Footer>
-        </SheetContent>
+          </ActionSheetLayout.Footer>
+        </ActionSheetLayout>
       </Sheet>
     </div>
   );

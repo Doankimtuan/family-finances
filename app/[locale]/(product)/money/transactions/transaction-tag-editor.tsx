@@ -1,9 +1,8 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import type { TransactionTag } from "@/modules/ledger/application/client";
-import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
 import { AlertVariant } from "@/shared/ui/alert";
 import { setTransactionTagsAction } from "./tag-actions";
@@ -29,21 +28,11 @@ export function TransactionTagEditor({
   const [isPending, startTransition] = useTransition();
   const statusAlert = useStatusAlert();
 
-  const initialIds = useMemo(
-    () =>
-      initialTags
-        .map((tag) => tag.id)
-        .sort()
-        .join(","),
-    [initialTags],
-  );
-  const isDirty = [...selectedIds].sort().join(",") !== initialIds;
-
-  const save = () => {
+  const save = (nextIds: string[]) => {
     statusAlert.hide();
     setSaved(false);
     startTransition(async () => {
-      const result = await setTransactionTagsAction(transactionId, selectedIds);
+      const result = await setTransactionTagsAction(transactionId, nextIds);
       if (result.status === "error") {
         statusAlert.show({
           variant: AlertVariant.DANGER,
@@ -75,6 +64,7 @@ export function TransactionTagEditor({
           setSelectedIds(ids);
           setSaved(false);
         }}
+        onConfirm={save}
         disabled={isPending}
       />
       {saved ? (
@@ -82,15 +72,6 @@ export function TransactionTagEditor({
           {t("tagSaved")}
         </Text>
       ) : null}
-      <Button
-        variant="primary"
-        className="w-full"
-        isDisabled={isPending || !isDirty}
-        isPending={isPending}
-        onPress={save}
-      >
-        {t("saveTags")}
-      </Button>
     </section>
   );
 }

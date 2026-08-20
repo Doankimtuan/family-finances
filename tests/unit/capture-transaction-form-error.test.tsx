@@ -89,6 +89,57 @@ describe("CaptureTransactionForm save-failure presentation", () => {
     });
   });
 
+  it("keeps the preview quiet until useful and uses a split action row", () => {
+    renderCaptureForm();
+
+    expect(screen.queryByTestId("capture-preview")).not.toBeInTheDocument();
+    expect(screen.getByTestId("capture-save")).toHaveClass("flex-[2]");
+    expect(screen.getByText("cancel")).toHaveAttribute("href", "/money");
+
+    fireEvent.change(screen.getByLabelText(/^amountLabel/), {
+      target: { value: "50000" },
+    });
+
+    expect(screen.getByTestId("capture-preview")).toBeInTheDocument();
+  });
+
+  it("keeps compact credit-card account identity explicit", () => {
+    renderCaptureForm({
+      accounts: [
+        account,
+        {
+          ...account,
+          id: "00000000-0000-4000-8000-000000000004",
+          name: "Visa",
+          type: AccountType.CREDIT_CARD,
+        },
+      ],
+    });
+
+    expect(screen.getByText("Visa · creditCardLabel")).toBeInTheDocument();
+  });
+
+  it("uses a true empty tag state without a useless search field", () => {
+    renderCaptureForm({ transactionTags: [] });
+
+    fireEvent.click(screen.getByText("choose"));
+
+    expect(screen.getByText("noTagsTitle")).toBeInTheDocument();
+    expect(screen.queryByLabelText("searchLabel")).not.toBeInTheDocument();
+  });
+
+  it("keeps archived-only tag state distinct", () => {
+    renderCaptureForm({
+      transactionTags: [{ ...transactionTag, archivedAt: "2026-01-01" }],
+    });
+
+    fireEvent.click(screen.getByText("choose"));
+
+    expect(screen.getByText("noActiveTitle")).toBeInTheDocument();
+    expect(screen.getByText("manageTags")).toBeInTheDocument();
+    expect(screen.queryByLabelText("searchLabel")).not.toBeInTheDocument();
+  });
+
   it("renders one danger alert with the typed code, not a second generic alert", async () => {
     renderCaptureForm();
 

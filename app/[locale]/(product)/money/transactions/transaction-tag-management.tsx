@@ -18,7 +18,8 @@ import { IconButton } from "@/shared/ui/icon-button";
 import { Text } from "@/shared/ui/text";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Dialog, DialogContent } from "@/shared/patterns/dialog";
-import { Sheet, SheetContent } from "@/shared/patterns/sheet";
+import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
+import { Sheet } from "@/shared/patterns/sheet";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import {
   archiveTransactionTagAction,
@@ -219,13 +220,13 @@ export function TransactionTagManagement({
       ) : null}
 
       <Sheet isOpen={isFormOpen} onOpenChange={setIsFormOpen}>
-        <SheetContent>
-          <Sheet.Header className="px-(--space-4) pt-(--space-3)">
+        <ActionSheetLayout>
+          <ActionSheetLayout.Header>
             <Sheet.Heading className="text-lg font-semibold tracking-tight text-text-primary">
               {editing ? t("editTitle") : t("createTitle")}
             </Sheet.Heading>
-          </Sheet.Header>
-          <Sheet.Body className="max-h-[min(70dvh,600px)] overflow-y-auto px-(--space-4) py-(--space-3)">
+          </ActionSheetLayout.Header>
+          <ActionSheetLayout.Body className="max-h-[min(70dvh,600px)]">
             <TransactionTagFormFields
               name={name}
               onNameChange={setName}
@@ -234,8 +235,8 @@ export function TransactionTagManagement({
               colorKey={colorKey}
               onColorChange={setColorKey}
             />
-          </Sheet.Body>
-          <Sheet.Footer className="flex gap-(--space-2) border-t border-border-subtle bg-surface-elevated px-(--space-4) pt-(--space-3) pb-[max(env(safe-area-inset-bottom),var(--space-3))]">
+          </ActionSheetLayout.Body>
+          <ActionSheetLayout.Footer>
             <Button
               variant="secondary"
               fullWidth
@@ -255,8 +256,8 @@ export function TransactionTagManagement({
             >
               {t("save")}
             </Button>
-          </Sheet.Footer>
-        </SheetContent>
+          </ActionSheetLayout.Footer>
+        </ActionSheetLayout>
       </Sheet>
 
       <Dialog

@@ -35,6 +35,7 @@ export const TRANSACTION_DIRECTION_VALUES = [
 export const TransactionLedgerType = {
   ...TransactionDirection,
   LIABILITY_PAYMENT: "liability_payment",
+  LOAN_INTEREST: "loan_interest",
   DEBT_BORROWING: "debt_borrowing",
   DEBT_LENDING: "debt_lending",
   DEBT_RECEIVABLE_PAYMENT: "debt_receivable_payment",
@@ -88,6 +89,9 @@ export const TRANSACTION_TAG_COLOR_KEYS = Object.values(TransactionTagColorKey);
 
 export const MAX_TRANSACTION_TAGS = 10;
 
+/** SelectField key for the optional capture Jar choice that remains unset. */
+export const CAPTURE_JAR_UNMAPPED_OPTION_ID = "unmapped";
+
 export const DEFAULT_TRANSACTION_TAG_ICON_KEY = TransactionTagIconKey.BOOKMARK;
 export const DEFAULT_TRANSACTION_TAG_COLOR_KEY = TransactionTagColorKey.SLATE;
 
@@ -114,6 +118,7 @@ export const TRANSACTION_LEDGER_TYPE_VALUES = [
   TransactionLedgerType.INCOME,
   TransactionLedgerType.EXPENSE,
   TransactionLedgerType.LIABILITY_PAYMENT,
+  TransactionLedgerType.LOAN_INTEREST,
   TransactionLedgerType.DEBT_BORROWING,
   TransactionLedgerType.DEBT_LENDING,
   TransactionLedgerType.DEBT_RECEIVABLE_PAYMENT,
@@ -129,6 +134,7 @@ export const TRANSACTION_LEDGER_AMOUNT_PREFIX = {
   [TransactionLedgerType.EXPENSE]: "-",
   [TransactionLedgerType.INCOME]: "+",
   [TransactionLedgerType.LIABILITY_PAYMENT]: "-",
+  [TransactionLedgerType.LOAN_INTEREST]: "-",
   [TransactionLedgerType.DEBT_BORROWING]: "+",
   [TransactionLedgerType.DEBT_LENDING]: "-",
   [TransactionLedgerType.DEBT_RECEIVABLE_PAYMENT]: "+",
@@ -153,6 +159,7 @@ export const TRANSACTION_LEDGER_DEBIT_TYPES = [
   TransactionLedgerType.EXPENSE,
   TransactionLedgerType.DEBT_LENDING,
   TransactionLedgerType.LIABILITY_PAYMENT,
+  TransactionLedgerType.LOAN_INTEREST,
   TransactionLedgerType.TRANSFER_OUT,
   TransactionLedgerType.INVESTMENT_BUY,
   TransactionLedgerType.INVESTMENT_FEE,
@@ -208,6 +215,15 @@ export const TRANSACTION_CORRECTABLE_STATUS_VALUES = [
   TransactionStatus.PENDING_MAPPING,
 ] as const;
 
+export const TransactionReadStatus = {
+  OK: "ok",
+  NOT_FOUND: "not_found",
+  ERROR: "error",
+} as const;
+
+export type TransactionReadStatus =
+  (typeof TransactionReadStatus)[keyof typeof TransactionReadStatus];
+
 /**
  * Statuses that affect account cash / jar capacity math.
  * Includes reversed originals so reversal legs can offset them (BR-03).
@@ -249,6 +265,9 @@ export const TransactionFilterType = {
 } as const;
 
 export const TRANSACTION_TAG_FILTER_QUERY_PARAM = "tags";
+export const TRANSACTION_TYPE_QUERY_PARAM = "type";
+export const TRANSACTION_CURSOR_QUERY_PARAM = "cursor";
+export const TRANSACTION_LIST_PAGE_SIZE = 25;
 
 export type TransactionFilterType =
   (typeof TransactionFilterType)[keyof typeof TransactionFilterType];
@@ -261,6 +280,13 @@ export const TRANSACTION_FILTER_OPTIONS = [
   TransactionFilterType.INVESTMENT,
   TransactionFilterType.SAVINGS,
   TransactionFilterType.DEBT,
+] as const;
+
+export const TRANSACTION_COMMON_FILTER_OPTIONS = [
+  TransactionFilterType.ALL,
+  TransactionFilterType.INCOME,
+  TransactionFilterType.EXPENSE,
+  TransactionFilterType.TRANSFER,
 ] as const;
 
 /** REQ-TRN-03 — transaction provenance for pattern auto-resolution. */

@@ -8,6 +8,7 @@ import { FinancialValue } from "./financial-value";
 export const TransactionAmountTone = {
   CREDIT: "credit",
   DEBIT: "debit",
+  REFUND: "refund",
   NEUTRAL: "neutral",
 } as const;
 
@@ -40,18 +41,22 @@ export function TransactionRow({
       ? "text-credit"
       : tone === TransactionAmountTone.DEBIT
         ? "text-debit"
-        : "text-text-primary";
+        : tone === TransactionAmountTone.REFUND
+          ? "text-refund"
+          : "text-text-primary";
   const railClass =
     tone === TransactionAmountTone.CREDIT
       ? "bg-credit"
       : tone === TransactionAmountTone.DEBIT
         ? "bg-debit"
-        : "bg-border-strong";
+        : tone === TransactionAmountTone.REFUND
+          ? "bg-refund"
+          : "bg-border-strong";
 
   return (
     <div
       className={cn(
-        "group relative flex items-center gap-(--space-3) border-b border-border-subtle/70 bg-transparent px-0 py-(--space-3)",
+        "group relative flex items-start gap-(--space-3) border-b border-border-subtle/70 bg-transparent px-0 py-(--space-3)",
         "transition-[background-color,border-color,transform] duration-[var(--duration-fast)] ease-[var(--ease-standard)]",
         "hover:bg-surface-hover active:scale-[var(--press-scale)] motion-reduce:transition-none motion-reduce:active:scale-100",
         className,
@@ -68,19 +73,19 @@ export function TransactionRow({
           aria-hidden
         />
       )}
-      <div className="min-w-0 flex-1">
-        <Text size="sm" className="truncate font-medium text-text-primary">
+      <div className="min-w-0 flex-1 pt-(--space-1)">
+        <Text size="sm" className="break-words font-medium text-text-primary">
           {title}
         </Text>
         {subtitle ? (
-          <Text size="sm" tone="secondary" className="truncate">
+          <Text size="sm" tone="secondary" className="break-words">
             {subtitle}
           </Text>
         ) : null}
       </div>
       <span
         className={cn(
-          "max-w-[45%] shrink-0 break-words text-right text-sm font-semibold tabular-nums leading-tight",
+          "max-w-[45%] shrink-0 break-words pt-(--space-1) text-right text-sm font-semibold tabular-nums leading-tight",
           amountClass,
         )}
       >

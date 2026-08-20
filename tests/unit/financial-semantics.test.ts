@@ -4,9 +4,12 @@ import {
   FinancialEventCategory,
   FinancialCashDirection,
   classifyFinancialEvent,
+  getTransactionActionCapabilities,
+  TransactionOwner,
 } from "@/modules/ledger/application";
 import {
   TransactionLedgerType,
+  TRANSACTION_LEDGER_TYPE_VALUES,
   TransactionStatus,
 } from "@/modules/ledger/application/ledger-constants";
 import {
@@ -15,6 +18,7 @@ import {
   TransactionActivityTone,
   type LedgerTransaction,
 } from "@/modules/ledger/application";
+import { todayIsoDate } from "@/shared/utils/iso-date";
 
 function row(overrides: Partial<LedgerTransaction> = {}): LedgerTransaction {
   return {
@@ -41,6 +45,27 @@ function row(overrides: Partial<LedgerTransaction> = {}): LedgerTransaction {
 }
 
 describe("canonical financial semantics", () => {
+  it.each(TRANSACTION_LEDGER_TYPE_VALUES)(
+    "has complete capability semantics for %s",
+    (type) => {
+      const semantics = classifyFinancialEvent({ type });
+      expect(semantics.owner).toBeDefined();
+      expect(semantics.displayDirection).toBeDefined();
+      expect(semantics.homeNetContribution).toBeDefined();
+      expect(getTransactionActionCapabilities({ type })).toEqual({
+        owner: semantics.owner,
+        canGenericCorrect: semantics.canGenericCorrect,
+        canGenericRefund: semantics.canGenericRefund,
+      });
+    },
+  );
+
+  it("uses the household-local date at a UTC boundary", () => {
+    expect(todayIsoDate(new Date("2026-08-19T17:30:00.000Z"))).toBe(
+      "2026-08-20",
+    );
+  });
+
   it.each([
     [
       TransactionLedgerType.INCOME,
@@ -148,7 +173,7 @@ describe("canonical financial semantics", () => {
     ]);
     expect(activity).toMatchObject({
       kind: TransactionActivityKind.SAVINGS,
-      tone: TransactionActivityTone.DEBIT,
+      tone: TransactionActivityTone.NEUTRAL,
       sign: "−",
       countsTowardIncome: false,
       countsTowardExpense: false,
@@ -165,7 +190,7 @@ describe("canonical financial semantics", () => {
     ]);
     expect(activity).toMatchObject({
       kind: TransactionActivityKind.INVESTMENT,
-      tone: TransactionActivityTone.CREDIT,
+      tone: TransactionActivityTone.NEUTRAL,
       sign: "+",
       countsTowardIncome: false,
       countsTowardExpense: false,
@@ -234,5 +259,78 @@ describe("reversed transaction states", () => {
         countsTowardExpense: true,
       });
     }
+  });
+
+  it.each([
+    [TransactionLedgerType.INCOME, TransactionOwner.LEDGER, true, false],
+    [TransactionLedgerType.EXPENSE, TransactionOwner.LEDGER, true, true],
+    [
+      TransactionLedgerType.TRANSFER_OUT,
+      TransactionOwner.TRANSFER,
+      false,
+      false,
+    ],
+    [
+      TransactionLedgerType.LIABILITY_PAYMENT,
+      TransactionOwner.LOAN,
+      false,
+      false,
+    ],
+    [
+      TransactionLedgerType.INVESTMENT_BUY,
+      TransactionOwner.INVESTMENT,
+      false,
+      false,
+    ],
+    [
+      TransactionLedgerType.INVESTMENT_FEE,
+      TransactionOwner.INVESTMENT,
+      false,
+      false,
+    ],
+  ] as const)(
+    "exposes owner-scoped generic action eligibility for %s",
+    (type, owner, canCorrect, canRefund) => {
+      expect(getTransactionActionCapabilities({ type })).toMatchObject({
+        owner,
+        canGenericCorrect: canCorrect,
+        canGenericRefund: canRefund,
+      });
+    },
+  );
+
+  it("blocks ordinary actions for a credit-card expense and savings event", () => {
+    expect(
+      getTransactionActionCapabilities({
+        type: TransactionLedgerType.EXPENSE,
+        accountType: "credit_card",
+      }),
+    ).toMatchObject({
+      owner: TransactionOwner.CREDIT_CARD,
+      canGenericCorrect: false,
+      canGenericRefund: false,
+    });
+    expect(
+      getTransactionActionCapabilities({
+        type: TransactionLedgerType.EXPENSE,
+        savingsEventKind: "SAVINGS_INTEREST",
+      }),
+    ).toMatchObject({
+      owner: TransactionOwner.SAVINGS,
+      canGenericCorrect: false,
+      canGenericRefund: false,
+    });
+  });
+
+  it("classifies loan interest as an expense with outgoing direction", () => {
+    expect(
+      classifyFinancialEvent({ type: TransactionLedgerType.LOAN_INTEREST }),
+    ).toMatchObject({
+      classification: FinancialClassification.EXPENSE,
+      countsTowardExpense: true,
+      cashDirection: FinancialCashDirection.OUTFLOW,
+      sign: "−",
+      owner: TransactionOwner.LOAN,
+    });
   });
 });

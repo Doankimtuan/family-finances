@@ -5,13 +5,26 @@ import { cn } from "@/shared/utils/cn";
 export type BottomActionBarProps = {
   children: ReactNode;
   className?: string;
+  layout?: BottomActionBarLayout;
 };
+
+export const BottomActionBarLayout = {
+  STACKED: "stacked",
+  SPLIT: "split",
+} as const;
+
+export type BottomActionBarLayout =
+  (typeof BottomActionBarLayout)[keyof typeof BottomActionBarLayout];
 
 /**
  * Sticky mobile action zone for long forms and confirmations.
  * Keep to one primary action plus one secondary escape.
  */
-export function BottomActionBar({ children, className }: BottomActionBarProps) {
+export function BottomActionBar({
+  children,
+  className,
+  layout = BottomActionBarLayout.STACKED,
+}: BottomActionBarProps) {
   return (
     <SafeArea
       edges={["bottom"]}
@@ -22,7 +35,14 @@ export function BottomActionBar({ children, className }: BottomActionBarProps) {
         className,
       )}
     >
-      <div className="flex flex-col gap-(--space-2)">{children}</div>
+      <div
+        className={cn(
+          "flex gap-(--space-2)",
+          layout === BottomActionBarLayout.SPLIT ? "items-stretch" : "flex-col",
+        )}
+      >
+        {children}
+      </div>
     </SafeArea>
   );
 }

@@ -25,7 +25,7 @@ function Body({ children, className }: PartProps) {
   return (
     <Sheet.Body
       className={cn(
-        "min-h-0 flex-1 overflow-y-auto px-(--space-4) py-(--space-3)",
+        "min-h-0 flex-1 overflow-y-auto px-(--space-4) pt-(--space-3) pb-[calc(var(--sheet-footer-clearance)+env(safe-area-inset-bottom,0px))]",
         className,
       )}
       data-slot="action-sheet-body"

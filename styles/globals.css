@@ -394,6 +394,7 @@
   --space-16: 64px;
   --page-gutter: var(--space-4);
   --sheet-footer-space: var(--space-4);
+  --sheet-footer-clearance: calc(var(--space-12) + var(--sheet-footer-space));
 
   --radius-sm: 6px;
   --radius-md: 10px;

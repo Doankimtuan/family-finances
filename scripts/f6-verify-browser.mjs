@@ -3,28 +3,12 @@
  * Credentials from env only; never logs secrets.
  */
 import { chromium, expect } from "@playwright/test";
-import { mkdirSync, readFileSync } from "node:fs";
+import { mkdirSync } from "node:fs";
 import { resolve } from "node:path";
+import nextEnv from "@next/env";
 
-function loadDotEnvLocal() {
-  const path = resolve(process.cwd(), ".env.local");
-  for (const line of readFileSync(path, "utf8").split("\n")) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith("#") || !trimmed.includes("=")) continue;
-    const i = trimmed.indexOf("=");
-    const key = trimmed.slice(0, i).trim();
-    let value = trimmed.slice(i + 1).trim();
-    if (
-      (value.startsWith('"') && value.endsWith('"')) ||
-      (value.startsWith("'") && value.endsWith("'"))
-    ) {
-      value = value.slice(1, -1);
-    }
-    if (!process.env[key]) process.env[key] = value;
-  }
-}
-
-loadDotEnvLocal();
+const { loadEnvConfig } = nextEnv;
+loadEnvConfig(process.cwd());
 
 const email = process.env.E2E_USER_EMAIL;
 const password = process.env.E2E_USER_PASSWORD;

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   createTransactionActivities,
+  transactionActivityMatchesFilter,
   TransactionActivityKind,
   TransactionActivityTone,
   type LedgerTransaction,
@@ -78,17 +79,17 @@ describe("createTransactionActivities", () => {
     [
       TransactionLedgerType.DEBT_BORROWING,
       TransactionActivityKind.DEBT_BORROWING,
-      TransactionActivityTone.CREDIT,
+      TransactionActivityTone.NEUTRAL,
     ],
     [
       TransactionLedgerType.DEBT_LENDING,
       TransactionActivityKind.DEBT_LENDING,
-      TransactionActivityTone.DEBIT,
+      TransactionActivityTone.NEUTRAL,
     ],
     [
       TransactionLedgerType.LIABILITY_PAYMENT,
       TransactionActivityKind.LIABILITY_PAYMENT,
-      TransactionActivityTone.DEBIT,
+      TransactionActivityTone.NEUTRAL,
     ],
   ])(
     "does not classify %s as ordinary income or expense",
@@ -106,6 +107,61 @@ describe("createTransactionActivities", () => {
         reversesTransactionId: "expense-id",
       }),
     ]);
-    expect(activity.kind).toBe(TransactionActivityKind.REFUND);
+    expect(activity).toMatchObject({
+      kind: TransactionActivityKind.REFUND,
+      tone: TransactionActivityTone.REFUND,
+    });
+  });
+});
+
+describe("transactionActivityMatchesFilter", () => {
+  it("uses canonical income and expense eligibility instead of cash direction", () => {
+    const [refund] = createTransactionActivities([
+      row({
+        type: TransactionLedgerType.EXPENSE,
+        isReversal: true,
+        reversesTransactionId: "expense-id",
+      }),
+    ]);
+    const [cardPayment] = createTransactionActivities([
+      row({ type: TransactionLedgerType.LIABILITY_PAYMENT }),
+    ]);
+
+    expect(
+      transactionActivityMatchesFilter(refund, TransactionFilterType.INCOME),
+    ).toBe(false);
+    expect(
+      transactionActivityMatchesFilter(refund, TransactionFilterType.EXPENSE),
+    ).toBe(false);
+    expect(
+      transactionActivityMatchesFilter(
+        cardPayment,
+        TransactionFilterType.EXPENSE,
+      ),
+    ).toBe(false);
+  });
+
+  it("keeps savings movements out of the transfer filter", () => {
+    const [savingsMovement] = createTransactionActivities([
+      row({
+        id: "savings-out",
+        type: TransactionLedgerType.TRANSFER_OUT,
+        transferGroupId: "savings-transfer",
+        savingsEventKind: "SAVINGS_PRINCIPAL_PLACEMENT",
+      }),
+      row({
+        id: "savings-in",
+        type: TransactionLedgerType.TRANSFER_IN,
+        transferGroupId: "savings-transfer",
+        savingsEventKind: "SAVINGS_PRINCIPAL_PLACEMENT",
+      }),
+    ]);
+
+    expect(
+      transactionActivityMatchesFilter(
+        savingsMovement,
+        TransactionFilterType.TRANSFER,
+      ),
+    ).toBe(false);
   });
 });

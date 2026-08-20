@@ -18,7 +18,6 @@ export function FinancialValue({
 
   return (
     <span
-      aria-hidden={isHidden || undefined}
       className={cn(isHidden && "select-none", className)}
       data-testid={dataTestId}
     >

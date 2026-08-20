@@ -7,6 +7,7 @@ import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
 import {
+  isCaptureAccountType,
   listAccountsForCapture,
   listCaptureJars,
   listCategoryTags,
@@ -49,6 +50,9 @@ export default async function MoneyTransactionAddPage({ params }: Props) {
       listCaptureJars(),
       listTransactionTags(),
     ]);
+  const accounts = (listed?.accounts ?? []).filter(
+    (account) => !account.isArchived && isCaptureAccountType(account.type),
+  );
 
   return (
     <Page
@@ -60,7 +64,7 @@ export default async function MoneyTransactionAddPage({ params }: Props) {
     >
       <MoneyOfflineBanner />
       <MoneyCaptureEntry
-        accounts={listed?.accounts ?? []}
+        accounts={accounts}
         expenseTags={expenseTags ?? []}
         incomeTags={incomeTags ?? []}
         jars={jars ?? []}

@@ -7,6 +7,8 @@ export type ConfirmSummaryRow = {
   id: string;
   label: ReactNode;
   value: ReactNode;
+  kind?: "text" | "financial";
+  /** Unclassified legacy rows remain masked conservatively. */
   financial?: boolean;
 };
 
@@ -44,7 +46,7 @@ export function ConfirmSummary({
             size="sm"
             className="min-w-0 text-right font-medium tabular-nums"
           >
-            {row.financial ? (
+            {row.kind !== "text" && row.financial !== false ? (
               <FinancialValue>{row.value}</FinancialValue>
             ) : (
               row.value

@@ -2,10 +2,14 @@ import {
   FinancialEventCategory,
   FinancialClassification,
   FinancialCashDirection,
+  FinancialDisplayDirection,
+  FinancialHomeNetContribution,
+  TransactionOwner,
   classifyFinancialEvent,
   type FinancialEventSemantics,
 } from "./financial-semantics";
 import {
+  TransactionFilterType,
   TransactionLedgerType,
   type TransactionLedgerType as TransactionLedgerTypeValue,
 } from "./ledger-constants";
@@ -23,6 +27,7 @@ export const TransactionActivityKind = {
   SAVINGS: "savings",
   REFUND: "refund",
   LIABILITY_PAYMENT: "liability_payment",
+  LOAN_INTEREST: "loan_interest",
   DEBT_BORROWING: "debt_borrowing",
   DEBT_LENDING: "debt_lending",
   DEBT_RECEIPT: "debt_receipt",
@@ -35,10 +40,18 @@ export type TransactionActivityKind =
 export const TransactionActivityTone = {
   CREDIT: "credit",
   DEBIT: "debit",
+  REFUND: "refund",
   NEUTRAL: "neutral",
 } as const;
 export type TransactionActivityTone =
   (typeof TransactionActivityTone)[keyof typeof TransactionActivityTone];
+
+export const TransactionProductEvent = {
+  CARD_PAYMENT: "card_payment",
+} as const;
+
+export type TransactionProductEvent =
+  (typeof TransactionProductEvent)[keyof typeof TransactionProductEvent];
 
 export type TransactionActivity = {
   id: string;
@@ -47,6 +60,7 @@ export type TransactionActivity = {
   amount: number;
   currency: string;
   effectiveDate: string;
+  representativeCreatedAt: string;
   note: string | null;
   categoryId: string | null;
   categoryName: string | null;
@@ -63,7 +77,11 @@ export type TransactionActivity = {
   cashDirection: (typeof FinancialCashDirection)[keyof typeof FinancialCashDirection];
   countsTowardIncome: boolean;
   countsTowardExpense: boolean;
+  owner: TransactionOwner;
+  productEvent: TransactionProductEvent | null;
   sign: "+" | "−" | "";
+  canGenericCorrect: boolean;
+  canGenericRefund: boolean;
 };
 
 const LEDGER_TYPE_TO_ACTIVITY_KIND: Partial<
@@ -73,7 +91,9 @@ const LEDGER_TYPE_TO_ACTIVITY_KIND: Partial<
   [TransactionLedgerType.EXPENSE]: TransactionActivityKind.EXPENSE,
   [TransactionLedgerType.LIABILITY_PAYMENT]:
     TransactionActivityKind.LIABILITY_PAYMENT,
-  [TransactionLedgerType.DEBT_BORROWING]: TransactionActivityKind.DEBT_BORROWING,
+  [TransactionLedgerType.LOAN_INTEREST]: TransactionActivityKind.LOAN_INTEREST,
+  [TransactionLedgerType.DEBT_BORROWING]:
+    TransactionActivityKind.DEBT_BORROWING,
   [TransactionLedgerType.DEBT_LENDING]: TransactionActivityKind.DEBT_LENDING,
   [TransactionLedgerType.DEBT_RECEIVABLE_PAYMENT]:
     TransactionActivityKind.DEBT_RECEIPT,
@@ -101,11 +121,15 @@ function kindForLedgerRow(
 
 function toneForSemantics(
   semantics: FinancialEventSemantics,
+  kind?: TransactionActivityKind,
 ): TransactionActivityTone {
-  if (semantics.cashDirection === FinancialCashDirection.INFLOW) {
+  if (kind === TransactionActivityKind.REFUND) {
+    return TransactionActivityTone.REFUND;
+  }
+  if (semantics.countsTowardIncome) {
     return TransactionActivityTone.CREDIT;
   }
-  if (semantics.cashDirection === FinancialCashDirection.OUTFLOW) {
+  if (semantics.countsTowardExpense) {
     return TransactionActivityTone.DEBIT;
   }
   return TransactionActivityTone.NEUTRAL;
@@ -140,10 +164,11 @@ function activityFromRow(row: LedgerTransaction): TransactionActivity {
   return {
     id: row.id,
     kind,
-    tone: toneForSemantics(semantics),
+    tone: toneForSemantics(semantics, kind),
     amount: row.amount,
     currency: row.currency,
     effectiveDate: row.transactionDate,
+    representativeCreatedAt: row.createdAt,
     note: row.note,
     categoryId: row.categoryId,
     categoryName: row.categoryName,
@@ -159,7 +184,11 @@ function activityFromRow(row: LedgerTransaction): TransactionActivity {
     cashDirection: semantics.cashDirection,
     countsTowardIncome: semantics.countsTowardIncome,
     countsTowardExpense: semantics.countsTowardExpense,
+    owner: semantics.owner,
+    productEvent: null,
     sign: semantics.sign,
+    canGenericCorrect: semantics.canGenericCorrect,
+    canGenericRefund: semantics.canGenericRefund,
   };
 }
 
@@ -175,6 +204,12 @@ function groupedSemantics(
       countsTowardIncome: false,
       countsTowardExpense: false,
       sign: "",
+      displayDirection: FinancialDisplayDirection.NEUTRAL,
+      owner: TransactionOwner.TRANSFER,
+      countsTowardSpending: false,
+      homeNetContribution: FinancialHomeNetContribution.NEUTRAL,
+      canGenericCorrect: false,
+      canGenericRefund: false,
     };
   }
 
@@ -185,6 +220,7 @@ function groupedSemantics(
   const legSemantics = classifyFinancialEvent(preferredRow ?? savingsRow);
   const isInterest = eventKind.includes("INTEREST");
   return {
+    ...legSemantics,
     category: FinancialEventCategory.SAVINGS,
     classification: isInterest
       ? FinancialClassification.INCOME
@@ -194,7 +230,12 @@ function groupedSemantics(
     cashDirection: legSemantics.cashDirection,
     countsTowardIncome: isInterest,
     countsTowardExpense: false,
-    sign: legSemantics.sign,
+    countsTowardSpending: false,
+    homeNetContribution: isInterest
+      ? FinancialHomeNetContribution.INCOME
+      : FinancialHomeNetContribution.NEUTRAL,
+    canGenericCorrect: false,
+    canGenericRefund: false,
   };
 }
 
@@ -244,6 +285,10 @@ export function createTransactionActivities(
       amount: representative.amount,
       currency: representative.currency,
       effectiveDate: representative.transactionDate,
+      representativeCreatedAt: rowsInGroup.reduce(
+        (latest, row) => (row.createdAt > latest ? row.createdAt : latest),
+        representative.createdAt,
+      ),
       note: representative.note ?? destination?.note ?? null,
       categoryId: null,
       categoryName: null,
@@ -264,19 +309,43 @@ export function createTransactionActivities(
       cashDirection: semantics.cashDirection,
       countsTowardIncome: semantics.countsTowardIncome,
       countsTowardExpense: semantics.countsTowardExpense,
+      owner: semantics.owner,
+      productEvent: null,
       sign: semantics.sign,
+      canGenericCorrect: semantics.canGenericCorrect,
+      canGenericRefund: semantics.canGenericRefund,
     });
   }
 
-  return activities.sort((left, right) =>
-    right.effectiveDate.localeCompare(left.effectiveDate),
+  return activities.sort((left, right) => {
+    const byDate = right.effectiveDate.localeCompare(left.effectiveDate);
+    if (byDate !== 0) return byDate;
+    const byCreatedAt = right.representativeCreatedAt.localeCompare(
+      left.representativeCreatedAt,
+    );
+    return byCreatedAt !== 0 ? byCreatedAt : right.id.localeCompare(left.id);
+  });
+}
+
+export function transactionActivityMatchesFilter(
+  activity: TransactionActivity,
+  filter: TransactionFilterType,
+): boolean {
+  if (filter === TransactionFilterType.ALL) return true;
+  if (filter === TransactionFilterType.INCOME) {
+    return activity.countsTowardIncome;
+  }
+  if (filter === TransactionFilterType.EXPENSE) {
+    return activity.countsTowardExpense;
+  }
+  return (
+    filter === TransactionFilterType.TRANSFER &&
+    activity.kind === TransactionActivityKind.TRANSFER
   );
 }
 
 export function transactionActivityCanUseGenericActions(
   activity: TransactionActivity,
 ): boolean {
-  return (
-    activity.kind === TransactionActivityKind.EXPENSE && !activity.isReversal
-  );
+  return activity.canGenericCorrect || activity.canGenericRefund;
 }

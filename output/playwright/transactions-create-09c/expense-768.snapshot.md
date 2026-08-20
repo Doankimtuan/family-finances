@@ -1,0 +1,29 @@
+- generic [active] [ref=f1e1] [box=0,0,768,900]:
+  - generic [ref=f1e5] [box=164,16,440,868]:
+    - main [ref=f1e6] [box=164,16,440,775]:
+      - generic [ref=f1e84] [box=164,16,429,775]:
+        - generic [ref=f1e89] [box=180,36,397,57]:
+          - heading "Add transaction" [level=1] [ref=f1e90] [box=180,36,397,30]
+          - paragraph [ref=f1e92] [box=180,70,334,23]: Record a household money event
+        - generic [ref=f1e94] [box=180,121,397,1299]:
+          - group "What are you recording?" [ref=f1e95] [box=180,121,397,54]
+          - generic [ref=f1e101] [box=180,191,397,1229]
+    - navigation "Primary navigation" [ref=f1e30] [box=172,799,424,77]:
+      - list [ref=f1e31] [box=173,800,422,75]:
+        - listitem [ref=f1e32] [box=181,808,78,59]:
+          - link "Home" [ref=f1e33] [cursor=pointer] [box=181,808,78,59]:
+            - /url: /en/home
+        - listitem [ref=f1e39] [box=263,808,78,59]:
+          - link "Money" [ref=f1e40] [cursor=pointer] [box=263,808,78,59]:
+            - /url: /en/money
+        - listitem [ref=f1e48] [box=345,808,78,59]:
+          - link "Plan" [ref=f1e49] [cursor=pointer] [box=345,808,78,59]:
+            - /url: /en/plan
+        - listitem [ref=f1e56] [box=427,808,78,59]:
+          - link "1 open Inbox item Inbox" [ref=f1e57] [cursor=pointer] [box=427,808,78,59]:
+            - /url: /en/inbox
+        - listitem [ref=f1e63] [box=509,808,78,59]:
+          - link "Together" [ref=f1e64] [cursor=pointer] [box=509,808,78,59]:
+            - /url: /en/together
+  - button "Open Next.js Dev Tools" [ref=f1e79] [cursor=pointer] [box=22,846,32,32]
+  - alert [ref=f1e83] [box=-1,899,1,1]
