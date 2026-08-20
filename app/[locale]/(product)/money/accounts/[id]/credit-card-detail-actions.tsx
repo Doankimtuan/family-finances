@@ -12,7 +12,8 @@ import {
   MoneyPaymentFlowStep,
 } from "@/modules/ledger/application/client";
 import { formatCurrency } from "@/shared/i18n/formatters";
-import { Sheet, SheetContent } from "@/shared/patterns/sheet";
+import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
+import { Sheet } from "@/shared/patterns/sheet";
 import { Button } from "@/shared/ui/button";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import {
@@ -101,7 +102,7 @@ export function CreditCardDetailActions({
 
   return (
     <div
-      className="flex flex-col gap-(--space-6)"
+      className="flex flex-col gap-(--space-5)"
       data-testid="credit-card-actions"
     >
       {errorCode && payStep === MoneyPaymentFlowStep.FORM ? (
@@ -161,29 +162,29 @@ export function CreditCardDetailActions({
           if (!next) closePayment();
         }}
       >
-        <SheetContent>
-          <Sheet.Header className="px-(--space-4) pt-(--space-3)">
+        <ActionSheetLayout>
+          <ActionSheetLayout.Header>
             <Sheet.Heading className="text-lg font-semibold tracking-tight text-text-primary">
               {t("settleTitle")}
             </Sheet.Heading>
-          </Sheet.Header>
-          <Sheet.Body className="max-h-[min(64dvh,560px)] overflow-y-auto px-(--space-4) py-(--space-3)">
-            {canPay ? (
-              <CreditCardSettleFlow
-                cardAccountId={card.accountId}
-                cardName={card.name}
-                outstanding={card.outstanding}
-                liquidAccounts={liquidAccounts}
-                linkedBankAccountId={card.linkedBankAccountId}
-                formatMoney={formatMoney}
-                errorCode={errorCode}
-                onError={setErrorCode}
-                payStep={payStep}
-                onPayStepChange={setPayStep}
-              />
-            ) : null}
-          </Sheet.Body>
-        </SheetContent>
+          </ActionSheetLayout.Header>
+          {canPay ? (
+            <CreditCardSettleFlow
+              key={isPaymentOpen ? "payment-open" : "payment-closed"}
+              cardAccountId={card.accountId}
+              cardName={card.name}
+              outstanding={card.outstanding}
+              defaultPaymentAmount={remainingDue}
+              liquidAccounts={liquidAccounts}
+              linkedBankAccountId={card.linkedBankAccountId}
+              formatMoney={formatMoney}
+              errorCode={errorCode}
+              onError={setErrorCode}
+              payStep={payStep}
+              onPayStepChange={setPayStep}
+            />
+          ) : null}
+        </ActionSheetLayout>
       </Sheet>
     </div>
   );

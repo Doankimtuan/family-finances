@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import type { CardBillingMonth } from "@/modules/ledger/application/client";
 import { SectionHeader } from "@/shared/patterns/section-header";
+import { Amount, AmountSize, AmountTone } from "@/shared/patterns/amount";
 import { Text } from "@/shared/ui/text";
 import { Progress } from "@/shared/ui/progress";
 import { toYearMonth } from "@/shared/utils/iso-date";
@@ -30,60 +31,51 @@ export function CreditCardDueLead({
 
   return (
     <section
-      className="flex flex-col gap-(--space-4) rounded-[var(--radius-card)] bg-surface-muted px-(--space-4) py-(--space-4)"
+      className="flex flex-col gap-(--space-4) rounded-[var(--radius-card)] border border-border-subtle/70 bg-surface-muted px-(--space-4) py-(--space-4)"
+      data-surface="soft-bounded"
       data-testid="card-due-lead"
     >
-      <div className="flex items-start justify-between gap-(--space-3)">
-        <div>
-          <SectionHeader title={t("currentStatementTitle")} />
-          <Text size="sm" tone="secondary" className="mt-(--space-1)">
-            {toYearMonth(leadMonth.billingMonth)}
-          </Text>
-        </div>
-        <Text size="sm" tone="secondary" className="shrink-0">
-          {t("due.dueDate", { date: leadMonth.dueDate })}
+      <div>
+        <SectionHeader title={t("currentStatementTitle")} />
+        <Text size="sm" tone="secondary" className="mt-(--space-1)">
+          {toYearMonth(leadMonth.billingMonth)}
+        </Text>
+      </div>
+      <div className="flex items-end justify-between gap-(--space-3) border-y border-border-subtle/70 py-(--space-3)">
+        <Text size="sm" tone="secondary">
+          {t("due.dueLabel")}
+        </Text>
+        <Text size="sm" weight="medium" className="shrink-0 tabular-nums">
+          {leadMonth.dueDate}
         </Text>
       </div>
       <div>
-        <Text size="sm" tone="secondary">
-          {t("due.remainingLabel")}
-        </Text>
-        <p className="mt-(--space-1) text-2xl font-semibold tracking-tight tabular-nums text-text-primary">
-          {remainingDueLabel}
-        </p>
+        <Amount
+          label={t("due.remainingLabel")}
+          amountLabel={remainingDueLabel}
+          tone={AmountTone.NEUTRAL}
+          size={AmountSize.MD}
+        />
       </div>
       <Progress
         value={paymentProgress}
         label={t("paymentProgressLabel", { percent: paymentProgress })}
         showLabel={false}
         trackClassName="bg-surface"
-        indicatorClassName="bg-debt"
+        indicatorClassName="bg-accent"
       />
       <div className="grid grid-cols-2 gap-(--space-3)">
-        <div>
-          <Text size="sm" tone="secondary">
-            {t("paidLabel")}
-          </Text>
-          <Text
-            size="sm"
-            weight="medium"
-            className="tabular-nums text-text-primary"
-          >
-            {paidLabel}
-          </Text>
-        </div>
-        <div className="text-right">
-          <Text size="sm" tone="secondary">
-            {t("statementLabel")}
-          </Text>
-          <Text
-            size="sm"
-            weight="medium"
-            className="tabular-nums text-text-primary"
-          >
-            {statementLabel}
-          </Text>
-        </div>
+        <Amount
+          label={t("paidLabel")}
+          amountLabel={paidLabel}
+          size={AmountSize.SM}
+        />
+        <Amount
+          label={t("statementLabel")}
+          amountLabel={statementLabel}
+          size={AmountSize.SM}
+          className="items-end text-right"
+        />
       </div>
     </section>
   );

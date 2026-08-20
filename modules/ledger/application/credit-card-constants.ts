@@ -117,6 +117,10 @@ export const CARD_INSTALLMENT_TERM_PRESETS = [3, 6, 9, 12, 18, 24] as const;
 export const DEFAULT_CARD_STATEMENT_DAY = 25;
 export const DEFAULT_CARD_DUE_DAY = 15;
 export const DEFAULT_CARD_INSTALLMENT_COUNT = 3;
+export const CALENDAR_DAY_VALUES = Array.from(
+  { length: 31 },
+  (_, index) => index + 1,
+);
 
 export const CARD_UTILIZATION_WARN_PCT = 50;
 export const CARD_UTILIZATION_DANGER_PCT = 80;

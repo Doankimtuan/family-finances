@@ -8,12 +8,14 @@ import {
   type OwnerStatus,
 } from "@/modules/shared-kernel/application/financial-ownership";
 import { Text } from "@/shared/ui/text";
+import { cn } from "@/shared/utils/cn";
 
 type Props = {
   financialScope: FinancialScope;
   isOwnedByMe: boolean;
   ownerStatus?: OwnerStatus;
   showExplanation?: boolean;
+  compact?: boolean;
 };
 
 export function FinancialOwnershipBadge({
@@ -21,6 +23,7 @@ export function FinancialOwnershipBadge({
   isOwnedByMe,
   ownerStatus = OWNER_STATUS.ACTIVE,
   showExplanation = false,
+  compact = false,
 }: Props) {
   const t = useTranslations("money.ownership");
   let label = t("household");
@@ -38,7 +41,11 @@ export function FinancialOwnershipBadge({
       <Text
         size="xs"
         tone="secondary"
-        className="inline-flex w-fit items-center rounded-full border border-border-subtle bg-surface-muted px-(--space-2) py-1"
+        className={cn(
+          compact
+            ? "w-fit"
+            : "inline-flex w-fit items-center rounded-full border border-border-subtle bg-surface-muted px-(--space-2) py-1",
+        )}
         data-testid="financial-ownership-badge"
         aria-label={label}
       >

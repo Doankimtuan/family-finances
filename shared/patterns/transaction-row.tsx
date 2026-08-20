@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { cn } from "@/shared/utils/cn";
 import { Text } from "@/shared/ui/text";
+import { FinancialValue } from "./financial-value";
 
 export const TransactionAmountTone = {
   CREDIT: "credit",
@@ -50,9 +51,9 @@ export function TransactionRow({
   return (
     <div
       className={cn(
-        "group relative flex items-center gap-(--space-3) overflow-hidden rounded-[var(--radius-card)] border border-border-subtle/60 bg-surface/90 px-(--space-4) py-(--space-3)",
+        "group relative flex items-center gap-(--space-3) border-b border-border-subtle/70 bg-transparent px-0 py-(--space-3)",
         "transition-[background-color,border-color,transform] duration-[var(--duration-fast)] ease-[var(--ease-standard)]",
-        "hover:border-border-default hover:bg-surface-hover active:scale-[var(--press-scale)] motion-reduce:transition-none motion-reduce:active:scale-100",
+        "hover:bg-surface-hover active:scale-[var(--press-scale)] motion-reduce:transition-none motion-reduce:active:scale-100",
         className,
       )}
     >
@@ -83,7 +84,7 @@ export function TransactionRow({
           amountClass,
         )}
       >
-        {amountLabel}
+        <FinancialValue>{amountLabel}</FinancialValue>
       </span>
     </div>
   );

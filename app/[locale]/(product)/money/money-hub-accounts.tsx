@@ -25,6 +25,7 @@ type Props = {
   liquidOptions: LiquidOption[];
   createLabel: string;
   createOfflineLabel: string;
+  currency: string;
 };
 
 /** Money hub accounts: a grouped scan with the existing create-account sheet. */
@@ -38,6 +39,7 @@ export function MoneyHubAccounts({
   liquidOptions,
   createLabel,
   createOfflineLabel,
+  currency,
 }: Props) {
   const { online } = useOnlineStatusClient();
   const [formOpen, setFormOpen] = useState(false);
@@ -54,7 +56,7 @@ export function MoneyHubAccounts({
         createAction={
           <Button
             variant="ghost"
-            className="min-h-9 px-(--space-2) text-sm font-medium text-accent"
+            className="px-(--space-2) text-sm font-medium text-accent"
             data-testid="money-create-account"
             isDisabled={!online}
             onPress={() => {
@@ -71,6 +73,7 @@ export function MoneyHubAccounts({
       />
       <AddAccountForm
         liquidAccounts={liquidOptions}
+        currency={currency}
         open={formOpen}
         onOpenChange={setFormOpen}
         hideDefaultTrigger

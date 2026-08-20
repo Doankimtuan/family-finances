@@ -22,6 +22,7 @@ export type MoneyHubAccountRow = {
   id: string;
   title: string;
   typeLabel: string;
+  balanceCaption: string;
   balanceLabel: string;
   icon: IconSvgElement;
   iconTone: IconContainerTone;
@@ -52,6 +53,7 @@ export type MoneyAccountsScanLabels = {
   sectionTitle: string;
   groupTitles: Record<MoneyAccountGroupKey, string>;
   creditCardsTitle: string;
+  creditCardType: string;
   creditCardsHint: string;
   outstanding: string;
   availableCredit: string;
@@ -96,34 +98,36 @@ function AccountGroupRows({
       {showGroupTitle ? (
         <Text
           size="sm"
-          className="px-(--space-3) pt-(--space-3) pb-(--space-1) text-xs font-medium uppercase tracking-wide text-text-secondary"
+          className="px-(--space-1) font-medium text-text-secondary"
+          data-testid="money-account-group-title"
         >
           {title}
         </Text>
       ) : null}
-      <ul className="divide-y divide-border-subtle/65 px-(--space-2)">
+      <ul className="flex flex-col gap-(--space-2)">
         {group.accounts.map((account) => (
-          <li key={account.id} className="py-(--space-1)">
+          <li key={account.id}>
             <Link
               href={moneyAccountPath(account.id)}
-              className="block focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+              className="block rounded-[var(--radius-card)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
               data-testid="money-hub-account-row"
             >
               <AccountCard
                 title={account.title}
                 typeLabel={account.typeLabel}
                 balanceLabel={account.balanceLabel}
-                variant="row"
+                balanceCaption={account.balanceCaption}
                 icon={account.icon}
                 iconTone={account.iconTone}
+                metadata={
+                  <FinancialOwnershipBadge
+                    financialScope={account.financialScope}
+                    isOwnedByMe={account.isOwnedByMe}
+                    ownerStatus={account.ownerStatus}
+                    compact
+                  />
+                }
               />
-              <div className="px-(--space-3) pb-(--space-2)">
-                <FinancialOwnershipBadge
-                  financialScope={account.financialScope}
-                  isOwnedByMe={account.isOwnedByMe}
-                  ownerStatus={account.ownerStatus}
-                />
-              </div>
             </Link>
           </li>
         ))}
@@ -165,14 +169,12 @@ export function MoneyAccountsScan({
       ) : (
         <div className="flex flex-col gap-(--space-5)">
           {hasAnyAccount ? (
-            <div className="overflow-hidden rounded-[var(--radius-card)] border border-border-subtle/65 bg-surface-muted/35">
-              {visibleGroups.map((group, index) => (
-                <div
-                  key={group.key}
-                  className={
-                    index > 0 ? "border-t border-border-subtle/65" : undefined
-                  }
-                >
+            <div
+              className="flex flex-col gap-(--space-4)"
+              data-testid="money-account-object-collection"
+            >
+              {visibleGroups.map((group) => (
+                <div key={group.key} className="flex flex-col gap-(--space-2)">
                   <AccountGroupRows
                     group={group}
                     showGroupTitle={accountPresentation === "grouped"}
@@ -183,7 +185,7 @@ export function MoneyAccountsScan({
               {hasMoreAccounts ? (
                 <button
                   type="button"
-                  className="mx-(--space-3) my-(--space-2) w-fit text-sm font-medium text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+                  className="inline-flex min-h-11 w-fit items-center rounded-[var(--radius-control)] px-(--space-2) text-sm font-medium text-accent hover:bg-surface-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
                   aria-expanded={showAllAccounts}
                   onClick={() => setShowAllAccounts((value) => !value)}
                   data-testid="money-accounts-show-all"
@@ -213,6 +215,7 @@ export function MoneyAccountsScan({
                     >
                       <CreditCardCard
                         title={card.title}
+                        typeLabel={labels.creditCardType}
                         outstandingCaption={labels.outstanding}
                         outstandingLabel={card.outstandingLabel}
                         availableCaption={labels.availableCredit}

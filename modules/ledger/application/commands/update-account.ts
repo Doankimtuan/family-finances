@@ -1,4 +1,3 @@
-import { z } from "zod";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import {
@@ -7,16 +6,14 @@ import {
   type ProductActionErrorCode,
 } from "@/modules/tenancy/application/product-action-error";
 import type { Result } from "@/modules/shared-kernel/application/result";
-import { ACCOUNT_TYPE_VALUES } from "../ledger-constants";
 import { LEDGER_OPERATION, logLedgerFailure } from "../ledger-error";
+import {
+  updateAccountInputSchema,
+  type UpdateAccountInput,
+} from "./update-account.schema";
 
-export const updateAccountInputSchema = z.object({
-  accountId: z.string().uuid(),
-  name: z.string().trim().min(1).max(80),
-  type: z.enum(ACCOUNT_TYPE_VALUES),
-});
-
-export type UpdateAccountInput = z.infer<typeof updateAccountInputSchema>;
+export { updateAccountInputSchema } from "./update-account.schema";
+export type { UpdateAccountInput } from "./update-account.schema";
 
 export type UpdateAccountResult = Result<object, ProductActionErrorCode>;
 

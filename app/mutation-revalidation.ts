@@ -21,6 +21,13 @@ const TRANSACTION_ROUTES = [
   APP_ROUTE.INBOX,
 ] as const;
 
+const ACCOUNT_ROUTES = [
+  APP_ROUTE.HOME,
+  APP_ROUTE.MONEY,
+  APP_ROUTE.MONEY_ACCOUNTS,
+  APP_ROUTE.MONEY_ACCOUNT_DETAIL,
+] as const;
+
 const SAVINGS_ROUTES = [
   APP_ROUTE.HOME,
   APP_ROUTE.MONEY,
@@ -58,6 +65,11 @@ const JAR_ROUTES = [
 /** Transaction changes affect the money position, review context, and plan allocations. */
 export function revalidateTransactionViews() {
   revalidateRoutes(TRANSACTION_ROUTES);
+}
+
+/** Account creation, edits, and archives affect balances and account objects. */
+export function revalidateAccountViews() {
+  revalidateRoutes(ACCOUNT_ROUTES);
 }
 
 /** Tag changes only affect transaction browsing and transaction detail presentation. */

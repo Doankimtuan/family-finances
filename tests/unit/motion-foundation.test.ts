@@ -12,6 +12,7 @@ import {
 describe("motion foundation", () => {
   it("exposes one semantic token and spring contract", () => {
     expect(motionTokens.duration).toEqual({
+      none: 0,
       instant: 0.08,
       fast: 0.15,
       normal: 0.2,

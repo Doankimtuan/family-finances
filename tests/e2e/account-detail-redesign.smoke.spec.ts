@@ -99,7 +99,7 @@ test.describe("Account-detail redesign", () => {
       if (normalHref) {
         await page.goto(normalHref);
         await expect(page.getByTestId("money-account-detail")).toBeVisible();
-        await expect(page.getByText("Available balance")).toBeVisible();
+        await expect(page.getByText("Balance")).toBeVisible();
         await expect(page.getByTestId("account-quick-capture")).toBeVisible();
         await expect(page.getByTestId("account-management-open")).toBeVisible();
         await page.screenshot({

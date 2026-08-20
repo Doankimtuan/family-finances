@@ -3,9 +3,11 @@ import { IconContainer } from "@/shared/ui/icon-container";
 import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
 import { Text } from "@/shared/ui/text";
 import { Progress } from "@/shared/ui/progress";
+import { Amount, AmountSize, AmountTone } from "@/shared/patterns/amount";
 
 export type CreditCardHeroProps = {
   title: string;
+  typeLabel?: string;
   outstandingLabel: string;
   outstandingCaption: string;
   utilizationPct: number | null;
@@ -24,6 +26,7 @@ export type CreditCardHeroProps = {
  */
 export function CreditCardHero({
   title,
+  typeLabel,
   outstandingLabel,
   outstandingCaption,
   utilizationPct,
@@ -40,7 +43,8 @@ export function CreditCardHero({
 
   return (
     <section
-      className="overflow-hidden rounded-[var(--radius-card)] border border-border-subtle/70 bg-debt-soft/40 p-(--space-4) shadow-[var(--elevation-1)]"
+      className="overflow-hidden rounded-[var(--radius-card)] border border-border-subtle bg-surface p-(--space-4)"
+      data-financial-object="credit-card"
       data-testid="credit-card-hero"
       data-utilization={utilizationPct ?? undefined}
     >
@@ -49,25 +53,32 @@ export function CreditCardHero({
           <IconContainer tone="debt" size="md">
             <AppIcon icon={FINANCE_ICONS.card} size="lg" emphasized />
           </IconContainer>
-          <Text
-            size="sm"
-            weight="medium"
-            className="truncate text-text-primary"
-          >
-            {title}
-          </Text>
+          <div className="min-w-0">
+            <Text
+              size="sm"
+              weight="medium"
+              className="break-words text-text-primary"
+            >
+              {title}
+            </Text>
+            {typeLabel ? (
+              <Text size="xs" tone="secondary" className="mt-(--space-1)">
+                {typeLabel}
+              </Text>
+            ) : null}
+          </div>
         </div>
         <Text size="sm" tone="secondary" className="shrink-0 tabular-nums">
           {utilizationLabel}
         </Text>
       </div>
       <div className="mt-(--space-5)">
-        <p className="text-3xl font-semibold tracking-tight tabular-nums text-text-primary">
-          {outstandingLabel}
-        </p>
-        <Text size="sm" tone="secondary" className="mt-(--space-1)">
-          {outstandingCaption}
-        </Text>
+        <Amount
+          label={outstandingCaption}
+          amountLabel={outstandingLabel}
+          tone={AmountTone.NEUTRAL}
+          size={AmountSize.LG}
+        />
       </div>
       {utilizationValue != null ? (
         <Progress
@@ -76,34 +87,24 @@ export function CreditCardHero({
           showLabel={false}
           className="mt-(--space-4)"
           trackClassName="bg-surface-muted"
-          indicatorClassName="bg-debt"
+          indicatorClassName="bg-accent"
         />
       ) : null}
       <div className="mt-(--space-4) grid grid-cols-2 gap-(--space-3) border-t border-border-subtle/70 pt-(--space-3)">
-        <div className="min-w-0">
-          <Text size="sm" tone="secondary">
-            {availableCaption}
-          </Text>
-          <Text
-            size="sm"
-            weight="medium"
-            className="truncate tabular-nums text-text-primary"
-          >
-            {availableLabel}
-          </Text>
-        </div>
-        <div className="min-w-0 text-right">
-          <Text size="sm" tone="secondary">
-            {limitCaption}
-          </Text>
-          <Text
-            size="sm"
-            weight="medium"
-            className="truncate tabular-nums text-text-primary"
-          >
-            {limitLabel}
-          </Text>
-        </div>
+        <Amount
+          label={availableCaption}
+          amountLabel={availableLabel}
+          size={AmountSize.SM}
+          className="min-w-0"
+          amountClassName="break-words text-sm text-text-primary"
+        />
+        <Amount
+          label={limitCaption}
+          amountLabel={limitLabel}
+          size={AmountSize.SM}
+          className="min-w-0 items-end text-right"
+          amountClassName="break-words text-sm text-text-primary"
+        />
       </div>
       {dueLabel ? (
         <Text size="sm" tone="secondary" className="mt-(--space-3)">

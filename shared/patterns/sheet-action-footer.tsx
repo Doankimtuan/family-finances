@@ -1,5 +1,5 @@
-import { Sheet } from "@/shared/patterns/sheet";
 import { Button } from "@/shared/ui/button";
+import { ActionSheetLayout } from "./action-sheet-layout";
 
 type SheetActionFooterProps = {
   secondaryLabel: string;
@@ -22,7 +22,7 @@ export function SheetActionFooter({
   isPending = false,
 }: SheetActionFooterProps) {
   return (
-    <Sheet.Footer className="sticky bottom-0 z-10 flex w-full items-stretch gap-(--space-2) border-t border-border-subtle bg-surface-elevated px-(--space-4) pt-(--space-3) pb-[max(env(safe-area-inset-bottom),var(--space-3))]">
+    <ActionSheetLayout.Footer>
       <Button
         variant="secondary"
         fullWidth
@@ -43,6 +43,6 @@ export function SheetActionFooter({
       >
         {primaryLabel}
       </Button>
-    </Sheet.Footer>
+    </ActionSheetLayout.Footer>
   );
 }

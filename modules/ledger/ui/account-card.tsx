@@ -3,6 +3,7 @@ import type { IconSvgElement } from "@hugeicons/react";
 import { cn } from "@/shared/utils/cn";
 import { Text } from "@/shared/ui/text";
 import { StatusBadge } from "@/shared/ui/status-badge";
+import { Balance, BalanceSize } from "@/shared/patterns/balance";
 import {
   IconContainer,
   type IconContainerTone,
@@ -17,9 +18,10 @@ export type AccountCardProps = {
   title: ReactNode;
   typeLabel: ReactNode;
   balanceLabel: string;
-  variant?: "card" | "row";
+  balanceCaption?: ReactNode;
   icon?: IconSvgElement;
   iconTone?: IconContainerTone;
+  metadata?: ReactNode;
   healthSignal?: AccountHealthSignalValue;
   healthLabel?: ReactNode;
   className?: string;
@@ -27,15 +29,16 @@ export type AccountCardProps = {
 };
 
 /**
- * Liquid ledger account row — balance is Real Position contribution (BR-01).
+ * Liquid ledger account object — balance is a Real Position contribution (BR-01).
  */
 export function AccountCard({
   title,
   typeLabel,
   balanceLabel,
-  variant = "card",
+  balanceCaption,
   icon,
   iconTone,
+  metadata,
   healthSignal,
   healthLabel,
   className,
@@ -43,20 +46,23 @@ export function AccountCard({
 }: AccountCardProps) {
   const showHealth =
     healthSignal === AccountHealthSignal.ZERO && healthLabel != null;
+  const showTypeLabel =
+    typeof title !== "string" ||
+    typeof typeLabel !== "string" ||
+    title.trim().toLowerCase() !== typeLabel.trim().toLowerCase();
 
   return (
     <div
       className={cn(
-        "flex flex-col transition-[background-color,border-color,transform] duration-(--duration-fast) active:scale-[var(--press-scale)] motion-reduce:transition-none motion-reduce:active:scale-100",
-        variant === "card"
-          ? "gap-(--space-2) rounded-[var(--radius-card)] border border-border-subtle/60 bg-surface/90 p-(--space-4) hover:border-border-default hover:bg-surface-hover"
-          : "gap-(--space-1) rounded-[var(--radius-control)] bg-transparent px-(--space-3) py-(--space-3) hover:bg-surface-hover",
+        "flex min-h-11 flex-col gap-(--space-3) rounded-[var(--radius-card)] border border-border-subtle/60 bg-surface/90 p-(--space-3) transition-[background-color,border-color,transform] duration-(--duration-fast) active:scale-[var(--press-scale)] hover:border-border-default hover:bg-surface-hover motion-reduce:transition-none motion-reduce:active:scale-100",
         className,
       )}
       data-testid={testId ?? "account-card"}
+      data-financial-object="account"
+      data-surface="soft-bounded"
       data-account-health={healthSignal}
     >
-      <div className="flex items-start justify-between gap-(--space-3)">
+      <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-start gap-(--space-3)">
         <div className="flex min-w-0 items-center gap-(--space-3)">
           {icon ? (
             <IconContainer tone={iconTone} size="sm">
@@ -64,21 +70,31 @@ export function AccountCard({
             </IconContainer>
           ) : null}
           <div className="min-w-0">
-            <Text size="sm" className="truncate font-medium text-text-primary">
+            <Text
+              size="sm"
+              className="break-words font-medium text-text-primary"
+            >
               {title}
             </Text>
-            <Text size="sm" tone="secondary" className="truncate">
-              {typeLabel}
-            </Text>
+            {showTypeLabel ? (
+              <Text size="sm" tone="secondary" className="break-words">
+                {typeLabel}
+              </Text>
+            ) : null}
           </div>
         </div>
-        <span
-          className="shrink-0 text-sm font-semibold tabular-nums text-text-primary"
-          data-testid="account-card-balance"
-        >
-          {balanceLabel}
-        </span>
+        <div data-testid="account-card-balance">
+          <Balance
+            amountLabel={balanceLabel}
+            label={balanceCaption}
+            size={BalanceSize.SM}
+            className="min-w-0 items-end text-right"
+            labelClassName="text-xs"
+            amountClassName="max-w-full break-words text-base"
+          />
+        </div>
       </div>
+      {metadata ? <div>{metadata}</div> : null}
       {showHealth ? (
         <StatusBadge tone="warning" data-testid="account-card-health">
           {healthLabel}

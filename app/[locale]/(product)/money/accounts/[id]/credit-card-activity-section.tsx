@@ -44,7 +44,7 @@ export function CreditCardActivitySection({
           {t("activityEmpty")}
         </Text>
       ) : (
-        <ul className="flex flex-col gap-(--space-2)">
+        <ul className="flex flex-col">
           {previewItems.map((item) => (
             <li key={item.id}>
               <TransactionRow

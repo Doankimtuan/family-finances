@@ -8,21 +8,23 @@ import {
   registerCreditCardInstallment,
   stopCreditCardInstallmentTracking,
   updateAccount,
+  archiveAccountInputSchema,
+  createAccountInputSchema,
+  updateAccountInputSchema,
 } from "@/modules/ledger/application";
 import type {
   AddCardCashbackInput,
-  ArchiveAccountInput,
-  CreateAccountInput,
   RegisterCreditCardInstallmentInput,
   StopCreditCardInstallmentTrackingInput,
   SettleCardInput,
-  UpdateAccountInput,
 } from "@/modules/ledger/application";
 import {
+  PRODUCT_ACTION_ERROR_CODE,
   ProductActionStatus,
   type ProductActionErrorCode,
 } from "@/modules/tenancy/application/product-action-error";
 import type { LedgerActionErrorCode } from "@/modules/ledger/application";
+import { revalidateAccountViews } from "@/app/mutation-revalidation";
 
 export type CreateAccountActionState =
   | { status: typeof ProductActionStatus.SUCCESS; accountId: string }
@@ -53,10 +55,18 @@ export type CardMutationActionState =
     };
 
 export async function createAccountAction(
-  input: CreateAccountInput,
+  input: unknown,
 ): Promise<CreateAccountActionState> {
-  const result = await createAccount(input);
+  const parsed = createAccountInputSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      status: ProductActionStatus.ERROR,
+      code: PRODUCT_ACTION_ERROR_CODE.INVALID,
+    };
+  }
+  const result = await createAccount(parsed.data);
   if (result.ok) {
+    revalidateAccountViews();
     return {
       status: ProductActionStatus.SUCCESS,
       accountId: result.accountId,
@@ -66,20 +76,36 @@ export async function createAccountAction(
 }
 
 export async function updateAccountAction(
-  input: UpdateAccountInput,
+  input: unknown,
 ): Promise<UpdateAccountActionState> {
-  const result = await updateAccount(input);
+  const parsed = updateAccountInputSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      status: ProductActionStatus.ERROR,
+      code: PRODUCT_ACTION_ERROR_CODE.INVALID,
+    };
+  }
+  const result = await updateAccount(parsed.data);
   if (result.ok) {
+    revalidateAccountViews();
     return { status: ProductActionStatus.SUCCESS };
   }
   return { status: ProductActionStatus.ERROR, code: result.code };
 }
 
 export async function archiveAccountAction(
-  input: ArchiveAccountInput,
+  input: unknown,
 ): Promise<ArchiveAccountActionState> {
-  const result = await archiveAccount(input);
+  const parsed = archiveAccountInputSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      status: ProductActionStatus.ERROR,
+      code: PRODUCT_ACTION_ERROR_CODE.INVALID,
+    };
+  }
+  const result = await archiveAccount(parsed.data);
   if (result.ok) {
+    revalidateAccountViews();
     return { status: ProductActionStatus.SUCCESS };
   }
   return { status: ProductActionStatus.ERROR, code: result.code };

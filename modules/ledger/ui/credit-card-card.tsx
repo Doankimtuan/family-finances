@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { cn } from "@/shared/utils/cn";
 import { Text } from "@/shared/ui/text";
+import { Amount, AmountSize, AmountTone } from "@/shared/patterns/amount";
 import { Progress } from "@/shared/ui/progress";
 import { AppIcon } from "@/shared/ui/app-icon";
 import { IconContainer } from "@/shared/ui/icon-container";
@@ -13,6 +14,7 @@ import {
 
 export type CreditCardCardProps = {
   title: ReactNode;
+  typeLabel?: ReactNode;
   outstandingCaption: ReactNode;
   outstandingLabel: string;
   availableCaption: ReactNode;
@@ -35,6 +37,7 @@ export type CreditCardCardProps = {
  */
 export function CreditCardCard({
   title,
+  typeLabel,
   outstandingCaption,
   outstandingLabel,
   availableCaption,
@@ -62,20 +65,32 @@ export function CreditCardCard({
   return (
     <div
       className={cn(
-        "flex flex-col gap-(--space-3) rounded-[var(--radius-card)] border border-border-subtle/65 bg-surface/85 p-(--space-4) transition-[background-color,border-color,transform] duration-(--duration-fast) hover:border-border-default hover:bg-surface-hover active:scale-[var(--press-scale)] motion-reduce:transition-none motion-reduce:active:scale-100",
+        "flex min-h-11 flex-col gap-(--space-3) rounded-[var(--radius-card)] border border-border-subtle/65 bg-surface/90 p-(--space-3) transition-[background-color,border-color,transform] duration-(--duration-fast) hover:border-border-default hover:bg-surface-hover active:scale-[var(--press-scale)] motion-reduce:transition-none motion-reduce:active:scale-100",
         className,
       )}
       data-testid={testId ?? "credit-card-card"}
+      data-financial-object="credit-card"
+      data-surface="soft-bounded"
       data-utilization={utilizationPct ?? undefined}
     >
       <div className="flex items-start justify-between gap-(--space-3)">
-        <div className="flex min-w-0 items-center gap-(--space-3)">
+        <div className="flex min-w-0 items-start gap-(--space-3)">
           <IconContainer tone="debt" size="sm">
             <AppIcon icon={FINANCE_ICONS.card} size="sm" />
           </IconContainer>
-          <Text size="sm" className="truncate font-medium text-text-primary">
-            {title}
-          </Text>
+          <div className="min-w-0">
+            <Text
+              size="sm"
+              className="break-words font-semibold text-text-primary"
+            >
+              {title}
+            </Text>
+            {typeLabel ? (
+              <Text size="xs" tone="secondary">
+                {typeLabel}
+              </Text>
+            ) : null}
+          </div>
         </div>
         <Text size="sm" tone="secondary" className="shrink-0 tabular-nums">
           {utilizationLabel}
@@ -90,29 +105,31 @@ export function CreditCardCard({
           indicatorClassName={barTone}
         />
       ) : null}
-      <div className="flex items-end justify-between gap-(--space-3)">
-        <div className="min-w-0">
-          <Text size="sm" tone="secondary">
-            {outstandingCaption}
-          </Text>
-          <span className="text-xl font-semibold tabular-nums text-text-primary">
-            {outstandingLabel}
-          </span>
-        </div>
-        <div className="min-w-0 text-right">
-          <Text size="sm" tone="secondary">
-            {availableCaption}
-          </Text>
-          <span className="text-sm font-medium tabular-nums text-text-secondary">
-            {availableLabel}
-          </span>
-        </div>
+      <Amount
+        label={outstandingCaption}
+        amountLabel={outstandingLabel}
+        tone={AmountTone.NEUTRAL}
+        size={AmountSize.MD}
+        className="min-w-0"
+      />
+      <div className="grid min-w-0 grid-cols-2 gap-(--space-3)">
+        <Amount
+          label={availableCaption}
+          amountLabel={availableLabel}
+          size={AmountSize.SM}
+          className="min-w-0"
+          amountClassName="break-words text-base text-text-secondary"
+        />
+        {limitCaption && limitLabel ? (
+          <Amount
+            label={limitCaption}
+            amountLabel={limitLabel}
+            size={AmountSize.SM}
+            className="min-w-0"
+            amountClassName="break-words text-base text-text-secondary"
+          />
+        ) : null}
       </div>
-      {limitCaption && limitLabel ? (
-        <Text size="sm" tone="secondary">
-          {limitCaption}: <span className="tabular-nums">{limitLabel}</span>
-        </Text>
-      ) : null}
       {dueLabel || attentionLabel ? (
         <div className="flex flex-wrap items-center gap-x-(--space-2) gap-y-(--space-1)">
           {dueLabel ? (

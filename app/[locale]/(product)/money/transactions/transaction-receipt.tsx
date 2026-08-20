@@ -6,6 +6,7 @@ import { Text } from "@/shared/ui/text";
 import { Section } from "@/shared/patterns/section";
 import { CheckmarkCircle02Icon } from "@hugeicons/core-free-icons";
 import { AppIcon } from "@/shared/ui/app-icon";
+import { FinancialValue } from "@/shared/patterns/financial-value";
 
 type RelatedRecord = {
   id: string;
@@ -24,7 +25,12 @@ type NextAction = {
 type Props = {
   title: string;
   outcome?: string;
-  rows: { id: string; label: string; value: React.ReactNode }[];
+  rows: {
+    id: string;
+    label: string;
+    value: React.ReactNode;
+    financial?: boolean;
+  }[];
   relatedRecords?: RelatedRecord[];
   relatedRecordsTitle?: string;
   nextActions: NextAction[];
@@ -47,7 +53,11 @@ export function TransactionReceipt({
     >
       <div className="flex flex-col items-center gap-(--space-3) py-(--space-2)">
         <div className="flex h-14 w-14 items-center justify-center rounded-full bg-success/15">
-          <AppIcon icon={CheckmarkCircle02Icon} size="xl" className="text-success" />
+          <AppIcon
+            icon={CheckmarkCircle02Icon}
+            size="xl"
+            className="text-success"
+          />
         </div>
         <div className="flex flex-col items-center gap-(--space-1)">
           <Text size="lg" weight="semibold" className="text-text-primary">
@@ -63,11 +73,8 @@ export function TransactionReceipt({
 
       <Section variant="surface">
         <dl className="flex flex-col gap-(--space-3)">
-          {rows.map(({ id, label, value }) => (
-            <div
-              key={id}
-              className="flex justify-between gap-(--space-3)"
-            >
+          {rows.map(({ id, label, value, financial }) => (
+            <div key={id} className="flex justify-between gap-(--space-3)">
               <Text size="sm" tone="secondary">
                 {label}
               </Text>
@@ -75,7 +82,7 @@ export function TransactionReceipt({
                 size="sm"
                 className="text-right font-medium text-text-primary"
               >
-                {value}
+                {financial ? <FinancialValue>{value}</FinancialValue> : value}
               </Text>
             </div>
           ))}

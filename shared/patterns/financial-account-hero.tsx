@@ -7,12 +7,14 @@ import {
   type IconContainerTone,
 } from "@/shared/ui/icon-container";
 import { Text } from "@/shared/ui/text";
+import { Balance, BalanceSize } from "./balance";
 
 export type FinancialAccountHeroProps = {
   icon: IconSvgElement;
   iconTone: IconContainerTone;
   eyebrow: ReactNode;
   title: ReactNode;
+  identitySupporting?: ReactNode;
   amountLabel: string;
   amountCaption: ReactNode;
   supporting?: ReactNode;
@@ -28,6 +30,7 @@ export function FinancialAccountHero({
   iconTone,
   eyebrow,
   title,
+  identitySupporting,
   amountLabel,
   amountCaption,
   supporting,
@@ -36,7 +39,7 @@ export function FinancialAccountHero({
   return (
     <section
       className={cn(
-        "relative overflow-hidden rounded-[var(--radius-card)] border border-border-subtle/70 bg-surface/90 p-(--space-4) shadow-[var(--elevation-1)]",
+        "relative overflow-hidden rounded-[var(--radius-card)] border border-border-subtle/70 bg-surface/90 p-(--space-4)",
         className,
       )}
     >
@@ -46,29 +49,33 @@ export function FinancialAccountHero({
             <AppIcon icon={icon} size="lg" emphasized />
           </IconContainer>
           <div className="min-w-0">
-            <Text size="sm" tone="secondary" className="truncate">
-              {eyebrow}
-            </Text>
             <Text
               size="sm"
               weight="medium"
-              className="truncate text-text-primary"
+              className="break-words text-text-primary"
             >
               {title}
             </Text>
+            {eyebrow ? (
+              <Text size="xs" tone="secondary" className="break-words">
+                {eyebrow}
+              </Text>
+            ) : null}
+            {identitySupporting ? (
+              <div className="mt-(--space-1)">{identitySupporting}</div>
+            ) : null}
           </div>
         </div>
       </div>
-      <div className="mt-(--space-5)">
-        <p className="text-3xl font-semibold tracking-tight tabular-nums text-text-primary">
-          {amountLabel}
-        </p>
-        <Text size="sm" tone="secondary" className="mt-(--space-1)">
-          {amountCaption}
-        </Text>
+      <div className="mt-(--space-4)">
+        <Balance
+          amountLabel={amountLabel}
+          label={amountCaption}
+          size={BalanceSize.LG}
+        />
       </div>
       {supporting ? (
-        <div className="mt-(--space-4) border-t border-border-subtle/70 pt-(--space-3)">
+        <div className="mt-(--space-3) border-t border-border-subtle/70 pt-(--space-3)">
           {supporting}
         </div>
       ) : null}

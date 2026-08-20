@@ -5,13 +5,15 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useLocale, useTranslations } from "next-intl";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
-import { SelectField, TextField, NumberField } from "@/shared/ui/form";
+import { SelectField, TextField } from "@/shared/ui/form";
 import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { AmountField } from "@/shared/patterns/amount-field";
 import { Dialog, DialogContent } from "@/shared/patterns/dialog";
-import { Sheet, SheetContent } from "@/shared/patterns/sheet";
+import { Sheet } from "@/shared/patterns/sheet";
+import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
+import { SheetActionFooter } from "@/shared/patterns/sheet-action-footer";
 import { FinancialScopeField } from "@/shared/patterns/financial-scope-field";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import {
@@ -24,6 +26,7 @@ import {
   ACCOUNT_TYPE_CREATE_OPTIONS,
   DEFAULT_CARD_DUE_DAY,
   DEFAULT_CARD_STATEMENT_DAY,
+  CALENDAR_DAY_VALUES,
   type AccountType as AccountTypeValue,
 } from "@/modules/ledger/application/client";
 import {
@@ -36,18 +39,22 @@ import {
 } from "@/modules/tenancy/application/app-path";
 import { TransactionReceipt } from "../transactions/transaction-receipt";
 import { formatCurrency } from "@/shared/i18n/formatters";
-import { DEFAULT_CURRENCY } from "@/modules/ledger/application/ledger-constants";
 import { FINANCIAL_SCOPE } from "@/modules/shared-kernel/application/financial-scope";
 
 type ErrorCode =
   ProductActionErrorCode | typeof CLIENT_ACTION_ERROR_CODE.OFFLINE;
 const TYPES = ACCOUNT_TYPE_CREATE_OPTIONS;
+const CARD_DAY_OPTIONS = CALENDAR_DAY_VALUES.map((day) => ({
+  id: String(day),
+  label: String(day),
+}));
 
 type LiquidOption = { id: string; name: string };
 type CreateAccountFormInput = z.input<typeof createAccountInputSchema>;
 
 type Props = {
   liquidAccounts: LiquidOption[];
+  currency: string;
   /** When set with onOpenChange, form open state is controlled by the parent. */
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -66,6 +73,7 @@ type Props = {
  */
 export function AddAccountForm({
   liquidAccounts,
+  currency,
   open: openProp,
   onOpenChange,
   hideDefaultTrigger = false,
@@ -82,7 +90,6 @@ export function AddAccountForm({
     if (!isControlled) setUncontrolledOpen(next);
     onOpenChange?.(next);
   };
-  const [showExtras, setShowExtras] = useState(false);
   const [errorCode, setErrorCode] = useState<ErrorCode | null>(null);
   const [isPending, startTransition] = useTransition();
   const [receipt, setReceipt] = useState<{
@@ -115,7 +122,6 @@ export function AddAccountForm({
 
   const reset = () => {
     resetForm();
-    setShowExtras(false);
     setErrorCode(null);
     setReceipt(null);
   };
@@ -197,9 +203,10 @@ export function AddAccountForm({
                 {
                   id: "creditLimit",
                   label: t("receipt.creditLimit"),
+                  financial: true,
                   value: formatCurrency(
                     receipt.creditLimit ?? 0,
-                    DEFAULT_CURRENCY,
+                    currency,
                     locale,
                     { maximumFractionDigits: 0 },
                   ),
@@ -209,9 +216,10 @@ export function AddAccountForm({
                 {
                   id: "openingBalance",
                   label: t("receipt.openingBalance"),
+                  financial: true,
                   value: formatCurrency(
                     receipt.openingBalance,
-                    DEFAULT_CURRENCY,
+                    currency,
                     locale,
                     { maximumFractionDigits: 0 },
                   ),
@@ -263,11 +271,9 @@ export function AddAccountForm({
     if (presentation === "sheet") {
       return (
         <Sheet isOpen onOpenChange={() => {}}>
-          <SheetContent>
-            <Sheet.Body className="max-h-[min(70dvh,560px)] overflow-y-auto px-(--space-4) py-(--space-3)">
-              {receiptContent}
-            </Sheet.Body>
-          </SheetContent>
+          <ActionSheetLayout>
+            <ActionSheetLayout.Body>{receiptContent}</ActionSheetLayout.Body>
+          </ActionSheetLayout>
         </Sheet>
       );
     }
@@ -325,12 +331,11 @@ export function AddAccountForm({
               : undefined,
           );
           setValue("openingBalance", 0);
-          setShowExtras(true);
         }}
         required
         data-testid="account-type"
       />
-      {showExtras && !isCard ? (
+      {!isCard ? (
         <div className="flex flex-col gap-(--space-1)">
           <Controller
             control={control}
@@ -342,17 +347,15 @@ export function AddAccountForm({
                 value={field.value ?? null}
                 onValueChange={field.onChange}
                 onBlur={field.onBlur}
+                description={t("openingBalanceHint")}
                 error={fieldState.error ? t("errors.invalid") : undefined}
                 data-testid="account-opening-balance"
               />
             )}
           />
-          <Text size="sm" tone="secondary">
-            {t("openingBalanceHint")}
-          </Text>
         </div>
       ) : null}
-      {showExtras && isCard ? (
+      {isCard ? (
         <div
           className="flex flex-col gap-(--space-3)"
           data-testid="account-credit-card-settings"
@@ -376,15 +379,13 @@ export function AddAccountForm({
             control={control}
             name="creditCard.statementDay"
             render={({ field, fieldState }) => (
-              <NumberField
+              <SelectField
                 id="account-statement-day"
                 label={t("statementDayLabel")}
-                value={field.value}
-                onChange={field.onChange}
+                value={String(field.value)}
+                onChange={(value) => field.onChange(Number(value))}
                 onBlur={field.onBlur}
-                minValue={1}
-                maxValue={31}
-                step={1}
+                options={CARD_DAY_OPTIONS}
                 required
                 error={fieldState.error ? t("errors.invalid") : undefined}
                 data-testid="account-statement-day"
@@ -395,15 +396,13 @@ export function AddAccountForm({
             control={control}
             name="creditCard.dueDay"
             render={({ field, fieldState }) => (
-              <NumberField
+              <SelectField
                 id="account-due-day"
                 label={t("dueDayLabel")}
-                value={field.value}
-                onChange={field.onChange}
+                value={String(field.value)}
+                onChange={(value) => field.onChange(Number(value))}
                 onBlur={field.onBlur}
-                minValue={1}
-                maxValue={31}
-                step={1}
+                options={CARD_DAY_OPTIONS}
                 required
                 error={fieldState.error ? t("errors.invalid") : undefined}
                 data-testid="account-due-day"
@@ -472,19 +471,23 @@ export function AddAccountForm({
             if (!next) close();
           }}
         >
-          <SheetContent>
-            <Sheet.Header className="px-(--space-4) pt-(--space-2)">
+          <ActionSheetLayout>
+            <ActionSheetLayout.Header>
               <Sheet.Heading className="text-lg font-semibold tracking-tight text-text-primary">
                 {t("add")}
               </Sheet.Heading>
-            </Sheet.Header>
-            <Sheet.Body className="max-h-[min(60dvh,480px)] overflow-y-auto px-(--space-4) py-(--space-3)">
-              {fields}
-            </Sheet.Body>
-            <Sheet.Footer className="flex flex-col gap-(--space-2) px-(--space-4) pb-(--space-4)">
-              {actions}
-            </Sheet.Footer>
-          </SheetContent>
+            </ActionSheetLayout.Header>
+            <ActionSheetLayout.Body>{fields}</ActionSheetLayout.Body>
+            <SheetActionFooter
+              secondaryLabel={t("cancel")}
+              primaryLabel={isPending ? t("adding") : t("add")}
+              onSecondary={close}
+              onPrimary={() => onSubmit()}
+              primaryTestId="account-add-submit"
+              isDisabled={!online}
+              isPending={isPending}
+            />
+          </ActionSheetLayout>
         </Sheet>
       );
     }

@@ -3,7 +3,6 @@ import { Page } from "@/shared/patterns/page";
 import { Section } from "@/shared/patterns/section";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { BrandMark } from "@/shared/patterns/brand-mark";
-import { Heading } from "@/shared/ui/heading";
 import { Skeleton } from "@/shared/ui/skeleton";
 import {
   HOME_TEST_ID,
@@ -26,14 +25,9 @@ export default async function HomeLoading() {
       testId={HOME_TEST_ID.LOADING}
       topBar={
         <TopAppBar
-          title={
-            <div className="flex min-w-0 items-center gap-(--space-2)">
-              <BrandMark variant="mark" size="sm" className="shrink-0" />
-              <Heading level={1} className="truncate text-lg">
-                {t("title")}
-              </Heading>
-            </div>
-          }
+          variant="primary"
+          title={t("header.eyebrow")}
+          trailing={<BrandMark variant="mark" size="sm" />}
         />
       }
     >

@@ -172,6 +172,33 @@ describe("createAccount", () => {
       accountId: "acc-1",
     });
   });
+
+  it("persists opening balance without creating a transaction", async () => {
+    const insert = vi.fn(() => ({
+      select: () => ({
+        single: async () => ({ data: { id: "acc-1" }, error: null }),
+      }),
+    }));
+    const from = vi.fn((table: string) => {
+      if (table === "accounts") return { insert };
+      throw new Error(`Unexpected table: ${table}`);
+    });
+    vi.mocked(assertMoneyActionAllowed).mockResolvedValue({
+      ok: true,
+      userId: "u1",
+      householdId: "h1",
+    });
+    vi.mocked(createSupabaseServerClient).mockResolvedValue({ from } as never);
+
+    await expect(
+      createAccount({ name: "VCB", openingBalance: 50_000_000 }),
+    ).resolves.toEqual({ ok: true, accountId: "acc-1" });
+
+    expect(insert).toHaveBeenCalledWith(
+      expect.objectContaining({ opening_balance: 50_000_000 }),
+    );
+    expect(from).not.toHaveBeenCalledWith("transactions");
+  });
 });
 
 describe("archiveAccount", () => {

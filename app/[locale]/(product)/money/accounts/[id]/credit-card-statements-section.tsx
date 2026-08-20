@@ -6,6 +6,7 @@ import {
   type CardBillingMonth,
 } from "@/modules/ledger/application/client";
 import { SectionHeader } from "@/shared/patterns/section-header";
+import { FinancialValue } from "@/shared/patterns/financial-value";
 import { Text } from "@/shared/ui/text";
 import { toYearMonth } from "@/shared/utils/iso-date";
 
@@ -46,16 +47,19 @@ export function CreditCardStatementsSection({ months, formatMoney }: Props) {
                 </Text>
               </div>
               <Text size="sm" className="font-medium tabular-nums">
-                {t("statementRemaining", {
-                  remaining: formatMoney(month.remaining),
-                })}
+                {t("statementRemaining")}{" "}
+                <FinancialValue>{formatMoney(month.remaining)}</FinancialValue>
               </Text>
               <Text size="sm" tone="secondary">
-                {t("statementLine", {
-                  statement: formatMoney(month.statementAmount),
-                  paid: formatMoney(month.paidAmount),
-                  due: month.dueDate,
-                })}
+                {t("statementLabel")}{" "}
+                <FinancialValue>
+                  {formatMoney(month.statementAmount)}
+                </FinancialValue>
+                {" · "}
+                {t("paidLabel")}{" "}
+                <FinancialValue>{formatMoney(month.paidAmount)}</FinancialValue>
+                {" · "}
+                {t("due.dueDate", { date: month.dueDate })}
               </Text>
             </li>
           ))}

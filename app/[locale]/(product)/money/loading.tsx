@@ -3,7 +3,6 @@ import { Page } from "@/shared/patterns/page";
 import { Section } from "@/shared/patterns/section";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Skeleton } from "@/shared/ui/skeleton";
-import { NAVIGATION_ICONS } from "@/shared/ui/icon-registry";
 
 /** Loading shell for Money preserves the established app frame and account hierarchy. */
 export default async function MoneyLoading() {
@@ -13,15 +12,7 @@ export default async function MoneyLoading() {
   return (
     <Page
       testId="money-hub-loading"
-      topBar={
-        <TopAppBar
-          variant="contextual"
-          eyebrow={t("header.eyebrow")}
-          title={t("header.headline")}
-          subtitle={t("header.supporting")}
-          icon={NAVIGATION_ICONS.money}
-        />
-      }
+      topBar={<TopAppBar variant="primary" title={t("title")} />}
     >
       <Section variant="emphasized" contentClassName="gap-(--space-4)">
         <Skeleton className="h-4 w-28 rounded" />

@@ -21,7 +21,6 @@ import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Page } from "@/shared/patterns/page";
 import { Section } from "@/shared/patterns/section";
 import { StatusAlert } from "@/shared/ui/status-alert";
-import { NAVIGATION_ICONS } from "@/shared/ui/icon-registry";
 import { MoneyOfflineBanner } from "./money-offline-banner";
 import { MoneyHubAccounts } from "./money-hub-accounts";
 import { MoneyMoreLink } from "./money-more-link";
@@ -82,6 +81,7 @@ export default async function MoneyHubPage({ params }: Props) {
           id: account.id,
           title: localizeCatalogName(tCatalog, "accounts", account.name),
           typeLabel: t(`types.${account.type}`),
+          balanceCaption: t("accountDetail.balanceLabel"),
           balanceLabel: formatCurrency(account.balance, currency, locale, {
             maximumFractionDigits: 0,
           }),
@@ -112,11 +112,8 @@ export default async function MoneyHubPage({ params }: Props) {
       testId="money-hub"
       topBar={
         <TopAppBar
-          variant="contextual"
-          eyebrow={t("header.eyebrow")}
-          title={t("header.headline")}
-          subtitle={t("header.supporting")}
-          icon={NAVIGATION_ICONS.money}
+          variant="primary"
+          title={t("title")}
           meta={t("header.accountsMeta", { accountCount: totalAccountCount })}
         />
       }
@@ -131,7 +128,7 @@ export default async function MoneyHubPage({ params }: Props) {
           />
           <Link
             href={APP_PATH.MONEY}
-            className="w-fit text-sm font-medium text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+            className="inline-flex min-h-11 w-fit items-center rounded-[var(--radius-control)] px-(--space-2) text-sm font-medium text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
             data-testid="money-retry"
           >
             {t("hub.retry")}
@@ -153,14 +150,17 @@ export default async function MoneyHubPage({ params }: Props) {
               })}
               creditOutstandingLabel={
                 viewModel.totalCreditOutstanding > 0
-                  ? t("hub.totalCreditOutstanding", {
-                      amount: formatCurrency(
-                        viewModel.totalCreditOutstanding,
-                        currency,
-                        locale,
-                        { maximumFractionDigits: 0 },
-                      ),
-                    })
+                  ? t("hub.totalCreditOutstandingLabel")
+                  : undefined
+              }
+              creditOutstandingValue={
+                viewModel.totalCreditOutstanding > 0
+                  ? formatCurrency(
+                      viewModel.totalCreditOutstanding,
+                      currency,
+                      locale,
+                      { maximumFractionDigits: 0 },
+                    )
                   : undefined
               }
               compositionLabel={t("hub.composition")}
@@ -183,112 +183,110 @@ export default async function MoneyHubPage({ params }: Props) {
               activityLabel={t("seeActivity")}
             />
           </MotionReveal>
-          <MotionReveal>
-            <MoneyHubAccounts
-              accountGroups={buildAccountRows(viewModel.accountGroups)}
-              initialAccountGroups={buildAccountRows(
-                viewModel.initialAccountGroups,
-              )}
-              accountPresentation={viewModel.accountPresentation}
-              hasMoreAccounts={viewModel.hasMoreAccounts}
-              creditCards={viewModel.creditCards.map((card) => ({
-                id: card.accountId,
-                title: localizeCatalogName(tCatalog, "accounts", card.name),
-                outstandingLabel: formatCurrency(
-                  card.outstanding,
-                  currency,
-                  locale,
-                  {
-                    maximumFractionDigits: 0,
-                  },
-                ),
-                availableLabel: formatCurrency(
-                  card.availableCredit,
-                  currency,
-                  locale,
-                  {
-                    maximumFractionDigits: 0,
-                  },
-                ),
-                limitLabel: formatCurrency(card.creditLimit, currency, locale, {
+          <MoneyHubAccounts
+            accountGroups={buildAccountRows(viewModel.accountGroups)}
+            initialAccountGroups={buildAccountRows(
+              viewModel.initialAccountGroups,
+            )}
+            accountPresentation={viewModel.accountPresentation}
+            hasMoreAccounts={viewModel.hasMoreAccounts}
+            creditCards={viewModel.creditCards.map((card) => ({
+              id: card.accountId,
+              title: localizeCatalogName(tCatalog, "accounts", card.name),
+              outstandingLabel: formatCurrency(
+                card.outstanding,
+                currency,
+                locale,
+                {
                   maximumFractionDigits: 0,
-                }),
-                utilizationPct: card.utilizationForDisplay,
-                utilizationLabel:
-                  card.utilizationForDisplay == null
-                    ? t("hub.utilizationUnavailable")
-                    : t("accountsPage.utilization", {
-                        pct: card.utilizationForDisplay,
-                      }),
-                utilizationAriaLabel:
-                  card.utilizationForDisplay == null
-                    ? t("hub.utilizationUnavailable")
-                    : t("hub.utilizationAria", {
-                        pct: card.utilizationForDisplay,
-                      }),
-                dueLabel: card.nextDueDate
-                  ? t("accountsPage.nextDue", {
-                      date: formatDate(asUtcDate(card.nextDueDate), locale),
-                    })
-                  : undefined,
-                attention: card.attention,
-              }))}
-              liquidOptions={viewModel.accountGroups.flatMap((group) =>
-                group.accounts.map((account) => ({
-                  id: account.id,
-                  name: localizeCatalogName(tCatalog, "accounts", account.name),
-                })),
-              )}
-              createLabel={t("createAccount")}
-              createOfflineLabel={t("createAccountOffline")}
-              labels={{
-                sectionTitle: t("accounts"),
-                groupTitles: {
-                  [MoneyAccountGroupKey.CASH]: t("hub.groups.cash"),
-                  [MoneyAccountGroupKey.BANK]: t("hub.groups.bank"),
-                  [MoneyAccountGroupKey.WALLET]: t("hub.groups.wallet"),
-                  [MoneyAccountGroupKey.SAVINGS]: t("hub.groups.savings"),
-                  [MoneyAccountGroupKey.INVESTMENT]: t("hub.groups.investment"),
-                  [MoneyAccountGroupKey.OTHER]: t("hub.groups.other"),
                 },
-                creditCardsTitle: t("accountsPage.creditCardsTitle"),
-                creditCardsHint: t("accountsPage.creditCardsHint"),
-                outstanding: t("accountsPage.outstanding"),
-                availableCredit: t("accountsPage.availableCredit"),
-                creditLimit: t("hub.creditLimit"),
-                emptyTitle: t("hub.emptyTitle"),
-                emptyDescription: t("hub.emptyDescription"),
-                showAll: t("hub.showAllAccounts"),
-                showLess: t("hub.showLessAccounts"),
-                attentionLabels: {
-                  [MoneyCreditAttention.OVERDUE]: t("hub.attention.overdue"),
-                  [MoneyCreditAttention.DUE_SOON]: t("hub.attention.dueSoon"),
-                  [MoneyCreditAttention.HIGH_UTILIZATION]: t(
-                    "hub.attention.highUtilization",
-                  ),
+              ),
+              availableLabel: formatCurrency(
+                card.availableCredit,
+                currency,
+                locale,
+                {
+                  maximumFractionDigits: 0,
                 },
-              }}
-            />
-          </MotionReveal>
+              ),
+              limitLabel: formatCurrency(card.creditLimit, currency, locale, {
+                maximumFractionDigits: 0,
+              }),
+              utilizationPct: card.utilizationForDisplay,
+              utilizationLabel:
+                card.utilizationForDisplay == null
+                  ? t("hub.utilizationUnavailable")
+                  : t("accountsPage.utilization", {
+                      pct: card.utilizationForDisplay,
+                    }),
+              utilizationAriaLabel:
+                card.utilizationForDisplay == null
+                  ? t("hub.utilizationUnavailable")
+                  : t("hub.utilizationAria", {
+                      pct: card.utilizationForDisplay,
+                    }),
+              dueLabel: card.nextDueDate
+                ? t("accountsPage.nextDue", {
+                    date: formatDate(asUtcDate(card.nextDueDate), locale),
+                  })
+                : undefined,
+              attention: card.attention,
+            }))}
+            liquidOptions={viewModel.accountGroups.flatMap((group) =>
+              group.accounts.map((account) => ({
+                id: account.id,
+                name: localizeCatalogName(tCatalog, "accounts", account.name),
+              })),
+            )}
+            createLabel={t("createAccount")}
+            createOfflineLabel={t("createAccountOffline")}
+            currency={currency}
+            labels={{
+              sectionTitle: t("accounts"),
+              groupTitles: {
+                [MoneyAccountGroupKey.CASH]: t("hub.groups.cash"),
+                [MoneyAccountGroupKey.BANK]: t("hub.groups.bank"),
+                [MoneyAccountGroupKey.WALLET]: t("hub.groups.wallet"),
+                [MoneyAccountGroupKey.SAVINGS]: t("hub.groups.savings"),
+                [MoneyAccountGroupKey.INVESTMENT]: t("hub.groups.investment"),
+                [MoneyAccountGroupKey.OTHER]: t("hub.groups.other"),
+              },
+              creditCardsTitle: t("accountsPage.creditCardsTitle"),
+              creditCardType: t("types.credit_card"),
+              creditCardsHint: t("accountsPage.creditCardsHint"),
+              outstanding: t("accountsPage.outstanding"),
+              availableCredit: t("accountsPage.availableCredit"),
+              creditLimit: t("hub.creditLimit"),
+              emptyTitle: t("hub.emptyTitle"),
+              emptyDescription: t("hub.emptyDescription"),
+              showAll: t("hub.showAllAccounts"),
+              showLess: t("hub.showLessAccounts"),
+              attentionLabels: {
+                [MoneyCreditAttention.OVERDUE]: t("hub.attention.overdue"),
+                [MoneyCreditAttention.DUE_SOON]: t("hub.attention.dueSoon"),
+                [MoneyCreditAttention.HIGH_UTILIZATION]: t(
+                  "hub.attention.highUtilization",
+                ),
+              },
+            }}
+          />
         </>
       )}
-      <MotionReveal>
-        <Section title={t("more")} contentClassName="gap-0">
-          <div className="divide-y divide-border-subtle/65 overflow-hidden rounded-[var(--radius-card)] border border-border-subtle/65 bg-surface-muted/35">
-            {MONEY_RELATED_FINANCE_ITEMS.map((item) => (
-              <MoneyMoreLink
-                key={item.key}
-                href={item.href}
-                label={relatedFinanceLabels[item.key]}
-                description={relatedFinanceDescriptions[item.key]}
-                icon={item.icon}
-                iconTone={item.iconTone}
-                testId={item.testId}
-              />
-            ))}
-          </div>
-        </Section>
-      </MotionReveal>
+      <Section title={t("more")} contentClassName="gap-0">
+        <div className="divide-y divide-border-subtle/65">
+          {MONEY_RELATED_FINANCE_ITEMS.map((item) => (
+            <MoneyMoreLink
+              key={item.key}
+              href={item.href}
+              label={relatedFinanceLabels[item.key]}
+              description={relatedFinanceDescriptions[item.key]}
+              icon={item.icon}
+              iconTone={item.iconTone}
+              testId={item.testId}
+            />
+          ))}
+        </div>
+      </Section>
     </Page>
   );
 }

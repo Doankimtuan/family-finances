@@ -38,6 +38,7 @@ export { DividerWithText } from "./divider-with-text";
 export { SocialButton, type SocialButtonProps } from "./social-button";
 export { Card, type CardProps, type CardTone } from "./card";
 export { Sheet, SheetContent } from "./sheet";
+export { ActionSheetLayout } from "./action-sheet-layout";
 export { SheetActionFooter } from "./sheet-action-footer";
 export {
   ChoiceTile,

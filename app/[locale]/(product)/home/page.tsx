@@ -17,6 +17,7 @@ import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-a
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import { Section } from "@/shared/patterns/section";
 import { TopAppBar, TopAppBarVariant } from "@/shared/patterns/top-app-bar";
+import { BrandMark } from "@/shared/patterns/brand-mark";
 import { Page } from "@/shared/patterns/page";
 import { Text } from "@/shared/ui/text";
 import { MotionReveal } from "@/shared/motion";
@@ -73,6 +74,7 @@ export default async function HomePage({ params, searchParams }: Props) {
       variant={TopAppBarVariant.PRIMARY}
       eyebrow={t(`header.greeting.${homeGreetingPeriod()}`)}
       title={t("header.eyebrow")}
+      trailing={<BrandMark variant="mark" size="sm" />}
     />
   );
 

@@ -1,5 +1,6 @@
 export const motionTokens = {
   duration: {
+    none: 0,
     instant: 0.08,
     fast: 0.15,
     normal: 0.2,

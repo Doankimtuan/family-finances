@@ -59,7 +59,7 @@ export function Progress({
           transition={{
             duration: policy.enabled
               ? motionTokens.duration.fast
-              : motionTokens.duration.instant,
+              : motionTokens.duration.none,
             ease: motionTokens.easing.standard,
           }}
           data-slot="progress-indicator"

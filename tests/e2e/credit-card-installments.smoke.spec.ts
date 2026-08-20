@@ -103,10 +103,14 @@ test.describe("Canonical credit-card forms and installment tracker", () => {
         selectTrigger(cardSettings, "account-linked-bank"),
       ).toBeVisible();
       await expect(
-        cardSettings.getByTestId("account-statement-day").locator("input"),
+        cardSettings
+          .getByTestId("account-statement-day")
+          .getByRole("button", { name: "Statement day (1–31)" }),
       ).toHaveAttribute("aria-label", "Statement day (1–31)");
       await expect(
-        cardSettings.getByTestId("account-due-day").locator("input"),
+        cardSettings
+          .getByTestId("account-due-day")
+          .getByRole("button", { name: "Payment due day (1–31)" }),
       ).toHaveAttribute("aria-label", "Payment due day (1–31)");
       await expect(page.getByTestId("account-add-submit")).toBeEnabled();
 
@@ -152,6 +156,9 @@ test.describe("Canonical credit-card forms and installment tracker", () => {
     await page.getByTestId("card-payment-open").click();
     const paymentSheet = page.getByRole("dialog");
     await expect(paymentSheet).toBeVisible();
+    await expect(
+      paymentSheet.getByRole("heading", { name: "Pay card", exact: true }),
+    ).toHaveCount(1);
     await expect(paymentSheet.getByTestId("card-settle-amount")).toBeVisible();
     await page.keyboard.press("Escape");
     await expect(paymentSheet).toHaveCount(0);
@@ -195,5 +202,26 @@ test.describe("Canonical credit-card forms and installment tracker", () => {
 
     await dialog.getByRole("button", { name: "Cancel" }).click();
     await expect(dialog).toHaveCount(0);
+
+    const stopTracking = installmentSection.getByRole("button", {
+      name: "Stop tracking installment",
+      exact: true,
+    });
+    if ((await stopTracking.count()) > 0) {
+      await stopTracking.first().click();
+      const stopDialog = page.getByRole("dialog");
+      await expect(stopDialog).toBeVisible();
+      await expect(
+        stopDialog.getByRole("heading", {
+          name: "Stop tracking this installment?",
+          exact: true,
+        }),
+      ).toBeVisible();
+      await expect(
+        stopDialog.getByText("does not cancel the installment with your bank"),
+      ).toBeVisible();
+      await stopDialog.getByRole("button", { name: "Keep tracking" }).click();
+      await expect(stopDialog).toHaveCount(0);
+    }
   });
 });

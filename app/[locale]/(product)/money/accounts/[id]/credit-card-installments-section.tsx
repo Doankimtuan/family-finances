@@ -24,9 +24,11 @@ import { ProductActionStatus } from "@/modules/tenancy/application/product-actio
 import { formatCurrency } from "@/shared/i18n/formatters";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import { AmountField } from "@/shared/patterns/amount-field";
+import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
+import { FinancialValue } from "@/shared/patterns/financial-value";
 import { LabeledSelect } from "@/shared/patterns/labeled-native-field";
 import { SectionHeader } from "@/shared/patterns/section-header";
-import { Sheet, SheetContent } from "@/shared/patterns/sheet";
+import { Sheet } from "@/shared/patterns/sheet";
 import { Button } from "@/shared/ui/button";
 import { DatePickerField, NumberField, TextField } from "@/shared/ui/form";
 import { Progress } from "@/shared/ui/progress";
@@ -86,6 +88,7 @@ export function CreditCardInstallmentsSection({
   const [quotedTotal, setQuotedTotal] = useState<number | null>(null);
   const [note, setNote] = useState("");
   const [error, setError] = useState(false);
+  const [trackingToStop, setTrackingToStop] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const formatMoney = (amount: number) =>
@@ -190,13 +193,26 @@ export function CreditCardInstallmentsSection({
     });
   };
 
-  const stopTracking = (installmentId: string) => {
+  const requestStopTracking = (installmentId: string) => {
+    setError(false);
+    setTrackingToStop(installmentId);
+  };
+
+  const closeStopTracking = () => {
+    if (isPending) return;
+    setError(false);
+    setTrackingToStop(null);
+  };
+
+  const stopTracking = () => {
+    if (!trackingToStop) return;
     setError(false);
     startTransition(async () => {
       const result = await stopCreditCardInstallmentTrackingAction({
-        installmentId,
+        installmentId: trackingToStop,
       });
       if (result.status === ProductActionStatus.SUCCESS) {
+        setTrackingToStop(null);
         router.refresh();
         return;
       }
@@ -205,6 +221,10 @@ export function CreditCardInstallmentsSection({
   };
 
   const viewModels = installments
+    .filter(
+      (installment) =>
+        installment.status !== CreditCardInstallmentStatus.STOPPED,
+    )
     .map(buildCreditCardInstallmentViewModel)
     .slice(0, ACCOUNT_DETAIL_PREVIEW_CONFIG.INSTALLMENT_LIMIT);
   const programOptions = [
@@ -254,50 +274,78 @@ export function CreditCardInstallmentsSection({
             return (
               <li
                 key={installment.id}
-                className="flex flex-col gap-(--space-2) rounded-[var(--radius-card)] bg-surface-muted px-(--space-3) py-(--space-3)"
+                className="flex flex-col gap-(--space-2) rounded-[var(--radius-card)] border border-border-subtle/70 bg-surface-muted px-(--space-3) py-(--space-3)"
+                data-testid={`card-installment-${installment.id}`}
               >
                 <div className="flex items-start justify-between gap-(--space-3)">
                   <div className="min-w-0">
                     <Text size="sm" weight="medium">
                       {installment.description ?? t("convertItemFallback")}
                     </Text>
-                    <Text size="sm" tone="secondary">
-                      {t("installmentProgress", {
-                        current: viewModel.currentTerm,
-                        total: installment.termCount,
-                        percent: viewModel.progressPercent,
-                      })}
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <Text size="xs" tone="secondary">
+                      {t("installmentRemainingLabel")}
+                    </Text>
+                    <Text size="sm" className="tabular-nums font-medium">
+                      <FinancialValue>
+                        {formatMoney(viewModel.remainingAmount)}
+                      </FinancialValue>
                     </Text>
                   </div>
-                  <Text size="sm" className="shrink-0 tabular-nums font-medium">
-                    {formatMoney(viewModel.remainingAmount)}
+                </div>
+                <div className="flex items-center gap-(--space-3)">
+                  <Progress
+                    value={viewModel.progressPercent}
+                    label={t("installmentProgressLabel", {
+                      percent: viewModel.progressPercent,
+                    })}
+                    showLabel={false}
+                    className="min-w-0 flex-1"
+                  />
+                  <Text size="xs" tone="secondary" className="shrink-0">
+                    {t("installmentProgress", {
+                      current: viewModel.currentTerm,
+                      total: installment.termCount,
+                      percent: viewModel.progressPercent,
+                    })}
                   </Text>
                 </div>
-                <Progress
-                  value={viewModel.progressPercent}
-                  label={t("installmentProgressLabel", {
-                    percent: viewModel.progressPercent,
-                  })}
-                />
                 {viewModel.nextExpected ? (
-                  <Text size="sm" tone="secondary">
-                    {t("installmentNext", {
-                      amount: formatMoney(viewModel.nextExpected.totalAmount),
-                    })}{" "}
-                    · {viewModel.nextExpected.expectedDate}
-                  </Text>
+                  <div className="flex items-end justify-between gap-(--space-3) border-t border-border-subtle/70 pt-(--space-2)">
+                    <div>
+                      <Text size="xs" tone="secondary">
+                        {t("installmentNextLabel")}
+                      </Text>
+                      <Text size="sm" weight="medium" className="tabular-nums">
+                        <FinancialValue>
+                          {formatMoney(viewModel.nextExpected.totalAmount)}
+                        </FinancialValue>
+                      </Text>
+                    </div>
+                    <Text
+                      size="sm"
+                      tone="secondary"
+                      className="shrink-0 text-right tabular-nums"
+                    >
+                      {viewModel.nextExpected.expectedDate}
+                    </Text>
+                  </div>
                 ) : null}
-                <Text size="sm" tone="secondary">
-                  {t("totalExtraCost")}: {formatMoney(viewModel.totalExtraCost)}
+                <Text size="xs" tone="secondary">
+                  {t("totalExtraCost")}:{" "}
+                  <FinancialValue>
+                    {formatMoney(viewModel.totalExtraCost)}
+                  </FinancialValue>
                 </Text>
                 {installment.status === CreditCardInstallmentStatus.ACTIVE ? (
                   <div className="flex flex-col gap-(--space-2)">
                     <Button
-                      variant="danger"
+                      variant="ghost"
                       size="sm"
-                      className="self-start"
+                      className="self-start px-(--space-2) text-danger"
                       isDisabled={isPending || !online}
-                      onPress={() => stopTracking(installment.id)}
+                      onPress={() => requestStopTracking(installment.id)}
                     >
                       {t("stopTracking")}
                     </Button>
@@ -317,13 +365,13 @@ export function CreditCardInstallmentsSection({
           }
         }}
       >
-        <SheetContent>
-          <Sheet.Header className="px-(--space-4) pt-(--space-3)">
+        <ActionSheetLayout>
+          <ActionSheetLayout.Header>
             <Sheet.Heading className="text-lg font-semibold tracking-tight text-text-primary">
               {t("convertTitle")}
             </Sheet.Heading>
-          </Sheet.Header>
-          <Sheet.Body className="max-h-[min(64dvh,560px)] overflow-y-auto px-(--space-4) py-(--space-3)">
+          </ActionSheetLayout.Header>
+          <ActionSheetLayout.Body>
             <div className="flex flex-col gap-(--space-4)">
               <Text size="sm" tone="secondary">
                 {t("trackingHint")}
@@ -351,7 +399,9 @@ export function CreditCardInstallmentsSection({
                                     t("convertItemFallback")}
                                 </span>
                                 <span className="shrink-0 tabular-nums">
-                                  {formatMoney(purchase.amount)}
+                                  <FinancialValue>
+                                    {formatMoney(purchase.amount)}
+                                  </FinancialValue>
                                 </span>
                               </span>
                               <span className="text-xs text-text-secondary">
@@ -366,7 +416,7 @@ export function CreditCardInstallmentsSection({
                 </div>
               ) : (
                 <>
-                  <div className="flex items-start justify-between gap-(--space-3) rounded-[var(--radius-card)] border border-border-subtle bg-surface px-(--space-3) py-(--space-3)">
+                  <div className="flex items-start justify-between gap-(--space-3) border-y border-border-subtle/70 py-(--space-2)">
                     <div>
                       <Text size="sm" tone="secondary">
                         {t("selectedPurchase")}
@@ -379,7 +429,9 @@ export function CreditCardInstallmentsSection({
                       </Text>
                     </div>
                     <Text size="sm" className="tabular-nums font-medium">
-                      {formatMoney(selected.amount)}
+                      <FinancialValue>
+                        {formatMoney(selected.amount)}
+                      </FinancialValue>
                     </Text>
                   </div>
                   <Button
@@ -562,11 +614,12 @@ export function CreditCardInstallmentsSection({
                 />
               ) : null}
             </div>
-          </Sheet.Body>
-          <Sheet.Footer className="flex items-center justify-end gap-(--space-2) px-(--space-4) pb-(--space-4)">
+          </ActionSheetLayout.Body>
+          <ActionSheetLayout.Footer>
             <Button
               variant="secondary"
-              size="sm"
+              fullWidth
+              className="min-w-0 flex-1"
               isDisabled={isPending}
               onPress={() => {
                 reset();
@@ -577,15 +630,67 @@ export function CreditCardInstallmentsSection({
             </Button>
             <Button
               variant="primary"
-              size="sm"
+              fullWidth
+              className="min-w-0 flex-1"
               isDisabled={!selected || !preview || isPending || !online}
               onPress={save}
               data-testid="card-installment-submit"
             >
               {isPending ? t("installmentSaving") : t("installmentSave")}
             </Button>
-          </Sheet.Footer>
-        </SheetContent>
+          </ActionSheetLayout.Footer>
+        </ActionSheetLayout>
+      </Sheet>
+      <Sheet
+        isOpen={trackingToStop !== null}
+        onOpenChange={(next) => {
+          if (!next) closeStopTracking();
+        }}
+      >
+        <ActionSheetLayout>
+          <ActionSheetLayout.Header>
+            <Sheet.Heading className="text-lg font-semibold tracking-tight text-text-primary">
+              {t("stopTrackingTitle")}
+            </Sheet.Heading>
+          </ActionSheetLayout.Header>
+          <ActionSheetLayout.Body>
+            <div
+              className="flex flex-col gap-(--space-4)"
+              data-testid="card-installment-stop-confirm"
+            >
+              <Text size="sm" tone="secondary">
+                {t("stopTrackingBody")}
+              </Text>
+              {error ? (
+                <StatusAlert
+                  variant="danger"
+                  title={t("actionErrorTitle")}
+                  description={t("installmentError")}
+                />
+              ) : null}
+            </div>
+          </ActionSheetLayout.Body>
+          <ActionSheetLayout.Footer>
+            <Button
+              variant="secondary"
+              fullWidth
+              className="min-w-0 flex-1"
+              isDisabled={isPending}
+              onPress={closeStopTracking}
+            >
+              {t("keepTracking")}
+            </Button>
+            <Button
+              variant="danger"
+              fullWidth
+              className="min-w-0 flex-1"
+              isDisabled={isPending || !online}
+              onPress={stopTracking}
+            >
+              {isPending ? t("stopTrackingSaving") : t("stopTracking")}
+            </Button>
+          </ActionSheetLayout.Footer>
+        </ActionSheetLayout>
       </Sheet>
     </section>
   );
@@ -598,7 +703,7 @@ function PreviewRow({ label, value }: { label: string; value: string }) {
         {label}
       </Text>
       <Text size="sm" className="shrink-0 tabular-nums font-medium">
-        {value}
+        <FinancialValue>{value}</FinancialValue>
       </Text>
     </div>
   );

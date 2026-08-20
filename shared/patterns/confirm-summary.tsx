@@ -1,11 +1,13 @@
 import type { ReactNode } from "react";
 import { cn } from "@/shared/utils/cn";
 import { Text } from "@/shared/ui/text";
+import { FinancialValue } from "./financial-value";
 
 export type ConfirmSummaryRow = {
   id: string;
   label: ReactNode;
   value: ReactNode;
+  financial?: boolean;
 };
 
 export type ConfirmSummaryProps = {
@@ -42,7 +44,11 @@ export function ConfirmSummary({
             size="sm"
             className="min-w-0 text-right font-medium tabular-nums"
           >
-            {row.value}
+            {row.financial ? (
+              <FinancialValue>{row.value}</FinancialValue>
+            ) : (
+              row.value
+            )}
           </Text>
         </div>
       ))}

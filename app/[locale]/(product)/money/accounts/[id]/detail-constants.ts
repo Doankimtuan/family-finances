@@ -13,3 +13,12 @@ export const ACCOUNT_DETAIL_SHEET = {
 
 export type AccountDetailSheet =
   (typeof ACCOUNT_DETAIL_SHEET)[keyof typeof ACCOUNT_DETAIL_SHEET];
+
+export const ACCOUNT_DETAIL_MODE = {
+  MANAGE: "manage",
+  EDIT: "edit",
+  ARCHIVE: "archive",
+} as const;
+
+export type AccountDetailMode =
+  (typeof ACCOUNT_DETAIL_MODE)[keyof typeof ACCOUNT_DETAIL_MODE];
