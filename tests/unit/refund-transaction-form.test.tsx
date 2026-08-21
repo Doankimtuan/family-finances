@@ -61,6 +61,7 @@ const transaction: LedgerTransaction = {
   tags: [],
   status: TransactionStatus.POSTED,
   transferGroupId: null,
+  loanPaymentId: null,
   savingsEventKind: null,
   reversesTransactionId: null,
   correctsTransactionId: null,

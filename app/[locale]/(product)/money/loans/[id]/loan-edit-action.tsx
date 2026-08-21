@@ -10,6 +10,8 @@ import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import { useStatusAlert } from "@/providers/status-alert-provider";
 import { CLIENT_ACTION_ERROR_CODE } from "@/modules/tenancy/application/product-action-error";
 import { updateLoanMetadataAction } from "../../money-products-actions";
+import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
+import { Sheet } from "@/shared/patterns/sheet";
 
 type Props = {
   loanId: string;
@@ -35,6 +37,12 @@ export function LoanEditAction({
   const [note, setNote] = useState(initialNote);
   const [isPending, startTransition] = useTransition();
 
+  const reset = () => {
+    setName(initialName);
+    setLender(initialLender);
+    setNote(initialNote);
+  };
+
   if (!open) {
     return (
       <Button
@@ -42,7 +50,10 @@ export function LoanEditAction({
         className="min-h-11 w-full"
         data-testid="loan-edit-open"
         isDisabled={!online}
-        onPress={() => setOpen(true)}
+        onPress={() => {
+          reset();
+          setOpen(true);
+        }}
       >
         {t("editLoan")}
       </Button>
@@ -50,76 +61,92 @@ export function LoanEditAction({
   }
 
   return (
-    <div
-      className="flex flex-col gap-(--space-3) rounded-lg border border-border-subtle p-(--space-3)"
-      data-testid="loan-edit-form"
+    <Sheet
+      isOpen={open}
+      onOpenChange={(next) => {
+        if (!next) reset();
+        setOpen(next);
+      }}
     >
-      <TextField
-        id="loan-edit-name"
-        label={t("editNameLabel")}
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-      />
-      <TextField
-        id="loan-edit-lender"
-        label={t("editLenderLabel")}
-        value={lender}
-        onChange={(e) => setLender(e.target.value)}
-      />
-      <TextField
-        id="loan-edit-note"
-        label={t("editNoteLabel")}
-        value={note}
-        onChange={(e) => setNote(e.target.value)}
-      />
-      <div className="flex gap-(--space-2)">
-        <Button
-          variant="primary"
-          className="min-h-11 flex-1"
-          data-testid="loan-edit-save"
-          isDisabled={isPending || !online}
-          onPress={() => {
-            statusAlert.hide();
-            if (!online) {
-              statusAlert.show({
-                variant: AlertVariant.DANGER,
-                title: tErr(CLIENT_ACTION_ERROR_CODE.OFFLINE),
-              });
-              return;
-            }
-            startTransition(async () => {
-              const result = await updateLoanMetadataAction({
-                loanId,
-                name,
-                lender: lender.trim() || null,
-                note: note.trim() || null,
-              });
-              if (result.status === "success") {
-                setOpen(false);
-                router.refresh();
-                return;
-              }
-              statusAlert.show({
-                variant: AlertVariant.DANGER,
-                title: tErr(result.code),
-              });
-            });
-          }}
-        >
-          {isPending ? t("saving") : t("saveEdit")}
-        </Button>
-        <Button
-          variant="secondary"
-          className="min-h-11"
-          isDisabled={isPending}
-          onPress={() => {
-            statusAlert.hide();
-            setOpen(false);
-          }}
-        >
-          {t("cancel")}
-        </Button>
-      </div>
-    </div>
+      <ActionSheetLayout>
+        <ActionSheetLayout.Header>
+          <Sheet.Heading>{t("editLoan")}</Sheet.Heading>
+        </ActionSheetLayout.Header>
+        <ActionSheetLayout.Body>
+          <div
+            className="flex flex-col gap-(--space-3) rounded-lg border border-border-subtle p-(--space-3)"
+            data-testid="loan-edit-form"
+          >
+            <TextField
+              id="loan-edit-name"
+              label={t("editNameLabel")}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+            <TextField
+              id="loan-edit-lender"
+              label={t("editLenderLabel")}
+              value={lender}
+              onChange={(e) => setLender(e.target.value)}
+            />
+            <TextField
+              id="loan-edit-note"
+              label={t("editNoteLabel")}
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+            />
+            <div className="flex gap-(--space-2)">
+              <Button
+                variant="primary"
+                className="min-h-11 flex-1"
+                data-testid="loan-edit-save"
+                isDisabled={isPending || !online}
+                onPress={() => {
+                  statusAlert.hide();
+                  if (!online) {
+                    statusAlert.show({
+                      variant: AlertVariant.DANGER,
+                      title: tErr(CLIENT_ACTION_ERROR_CODE.OFFLINE),
+                    });
+                    return;
+                  }
+                  startTransition(async () => {
+                    const result = await updateLoanMetadataAction({
+                      loanId,
+                      name,
+                      lender: lender.trim() || null,
+                      note: note.trim() || null,
+                    });
+                    if (result.status === "success") {
+                      setOpen(false);
+                      router.refresh();
+                      return;
+                    }
+                    statusAlert.show({
+                      variant: AlertVariant.DANGER,
+                      title: tErr(result.code),
+                    });
+                  });
+                }}
+              >
+                {isPending ? t("saving") : t("saveEdit")}
+              </Button>
+              <Button
+                variant="secondary"
+                className="min-h-11"
+                isDisabled={isPending}
+                onPress={() => {
+                  statusAlert.hide();
+                  reset();
+                  setOpen(false);
+                }}
+              >
+                {t("cancel")}
+              </Button>
+            </div>
+          </div>
+        </ActionSheetLayout.Body>
+      </ActionSheetLayout>
+    </Sheet>
   );
 }

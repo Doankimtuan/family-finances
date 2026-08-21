@@ -86,6 +86,7 @@ export {
   TransactionSource,
   TRANSACTION_SOURCE_VALUES,
   LoanType,
+  LoanCreateStep,
   LOAN_TYPE_VALUES,
   LOAN_TYPE_OPTIONS,
   LoanStatus,

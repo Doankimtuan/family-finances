@@ -36,6 +36,7 @@ function row(overrides: Partial<LedgerTransaction> = {}): LedgerTransaction {
     jarName: null,
     status: TransactionStatus.POSTED,
     transferGroupId: null,
+    loanPaymentId: null,
     reversesTransactionId: null,
     correctsTransactionId: null,
     isReversal: false,

@@ -6,12 +6,12 @@ export type MoneyProductMutationSuccess = {
   inboxItemId?: string;
   completed?: boolean;
   transactionId?: string;
+  transactionIds?: readonly string[];
   paymentId?: string;
   sourceDelta?: number;
   amount?: number;
   principalPaid?: number;
   interestPaid?: number;
-  feePaid?: number;
   remainingPrincipal?: number;
   scheduleEntryId?: string;
   effectiveFrom?: string;

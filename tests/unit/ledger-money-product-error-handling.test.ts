@@ -99,6 +99,7 @@ describe("Ledger money-product unexpected failures", () => {
       "loan creation",
       () =>
         createLoan({
+          idempotencyKey: "550e8400-e29b-41d4-a716-446655440001",
           name: "Home loan",
           principal: 1_000_000,
           termValue: 12,
@@ -113,6 +114,7 @@ describe("Ledger money-product unexpected failures", () => {
         recordLoanPayment({
           loanId: LOAN_ID,
           accountId: ACCOUNT_ID,
+          idempotencyKey: "550e8400-e29b-41d4-a716-446655440002",
         }),
       LEDGER_OPERATION.RECORD_LOAN_PAYMENT,
     ],

@@ -29,6 +29,7 @@ function row(overrides: Partial<LedgerTransaction> = {}): LedgerTransaction {
     jarName: null,
     status: TransactionStatus.POSTED,
     transferGroupId: null,
+    loanPaymentId: null,
     reversesTransactionId: null,
     correctsTransactionId: null,
     isReversal: false,
@@ -72,6 +73,35 @@ describe("createTransactionActivities", () => {
       sourceAccount: { id: "cash", name: "Cash" },
       destinationAccount: { id: "wallet", name: "Wallet" },
       relatedTransactionIds: ["out", "in"],
+    });
+  });
+
+  it("projects loan principal and interest rows as one payment activity", () => {
+    const activities = createTransactionActivities([
+      row({
+        id: "principal",
+        type: TransactionLedgerType.LIABILITY_PAYMENT,
+        amount: 900,
+        loanPaymentId: "payment-1",
+      }),
+      row({
+        id: "interest",
+        type: TransactionLedgerType.LOAN_INTEREST,
+        amount: 100,
+        loanPaymentId: "payment-1",
+      }),
+    ]);
+
+    expect(activities).toHaveLength(1);
+    expect(activities[0]).toMatchObject({
+      id: "payment-1",
+      kind: TransactionActivityKind.LIABILITY_PAYMENT,
+      tone: TransactionActivityTone.NEUTRAL,
+      amount: 1_000,
+      relatedTransactionIds: ["principal", "interest"],
+      loanPaymentId: "payment-1",
+      countsTowardIncome: false,
+      countsTowardExpense: false,
     });
   });
 

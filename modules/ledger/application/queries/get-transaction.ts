@@ -40,7 +40,7 @@ function normalizeJoinedRow(row: Record<string, unknown>) {
 }
 
 const TX_SELECT =
-  "id, account_id, type, amount, currency, transaction_date, note, category_id, jar_id, status, transfer_group_id, savings_event_kind, reverses_transaction_id, corrects_transaction_id, is_reversal, created_at, accounts(name, type), categories(name), jars(name), transaction_tag_assignments(tag_id, transaction_tags(id, name, icon_key, color_key, archived_at))";
+  "id, account_id, type, amount, currency, transaction_date, note, category_id, jar_id, status, transfer_group_id, loan_payment_id, savings_event_kind, reverses_transaction_id, corrects_transaction_id, is_reversal, created_at, accounts(name, type), categories(name), jars(name), transaction_tag_assignments(tag_id, transaction_tags(id, name, icon_key, color_key, archived_at))";
 
 const TRANSFER_LEDGER_TYPES = new Set<TransactionLedgerTypeValue>([
   TransactionLedgerType.TRANSFER_OUT,
@@ -154,6 +154,28 @@ export async function getTransactionActivity(
     }
 
     const row = normalizeJoinedRow(rawRow as Record<string, unknown>);
+    if (row.loanPaymentId) {
+      const { data: rawPaymentRows, error: paymentGroupError } = await supabase
+        .from("transactions")
+        .select(TX_SELECT)
+        .eq("household_id", gate.householdId)
+        .eq("loan_payment_id", row.loanPaymentId);
+      if (paymentGroupError) {
+        logLedgerFailure(paymentGroupError, LEDGER_OPERATION.GET_TRANSACTION, {
+          householdId: gate.householdId,
+          transactionId,
+        });
+        return null;
+      }
+      return (
+        createTransactionActivities(
+          (rawPaymentRows ?? []).map((paymentRow) =>
+            normalizeJoinedRow(paymentRow as Record<string, unknown>),
+          ),
+        ).find((activity) => activity.loanPaymentId === row.loanPaymentId) ??
+        null
+      );
+    }
     if (!row.transferGroupId || !TRANSFER_LEDGER_TYPES.has(row.type)) {
       const activity = createTransactionActivities([row])[0];
       return activity ? enrichProductEvent(supabase, row, activity) : null;

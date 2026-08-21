@@ -41,12 +41,12 @@ export type MoneyProductActionState =
       inboxItemId?: string;
       completed?: boolean;
       transactionId?: string;
+      transactionIds?: readonly string[];
       paymentId?: string;
       sourceDelta?: number;
       amount?: number;
       principalPaid?: number;
       interestPaid?: number;
-      feePaid?: number;
       remainingPrincipal?: number;
       scheduleEntryId?: string;
       effectiveFrom?: string;
@@ -66,12 +66,12 @@ function toState(result: MoneyProductMutationResult): MoneyProductActionState {
       inboxItemId: result.inboxItemId,
       completed: result.completed,
       transactionId: result.transactionId,
+      transactionIds: result.transactionIds,
       paymentId: result.paymentId,
       sourceDelta: result.sourceDelta,
       amount: result.amount,
       principalPaid: result.principalPaid,
       interestPaid: result.interestPaid,
-      feePaid: result.feePaid,
       remainingPrincipal: result.remainingPrincipal,
       scheduleEntryId: result.scheduleEntryId,
       effectiveFrom: result.effectiveFrom,
@@ -204,6 +204,7 @@ export async function recordInstallmentPaymentAction(input: {
   return recordLoanPaymentAction({
     loanId: input.planId,
     accountId: input.accountId,
+    idempotencyKey: crypto.randomUUID(),
     mode: LoanPaymentMode.SCHEDULED,
   });
 }

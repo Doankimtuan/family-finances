@@ -34,6 +34,7 @@ function toHomeTransaction(event: ClassifiedEvent): LedgerTransaction {
     jarName: null,
     status: event.status ?? TransactionStatus.POSTED,
     transferGroupId: null,
+    loanPaymentId: null,
     reversesTransactionId: event.reversesTransactionId ?? null,
     correctsTransactionId: null,
     isReversal: event.isReversal ?? false,
@@ -69,13 +70,21 @@ const range = {
 const transactionStates = [
   {
     name: "normal income",
-    event: { id: "income", type: TransactionLedgerType.INCOME, amount: 10_000_000 },
+    event: {
+      id: "income",
+      type: TransactionLedgerType.INCOME,
+      amount: 10_000_000,
+    },
     income: 10_000_000,
     expense: 0,
   },
   {
     name: "normal expense",
-    event: { id: "expense", type: TransactionLedgerType.EXPENSE, amount: 3_000_000 },
+    event: {
+      id: "expense",
+      type: TransactionLedgerType.EXPENSE,
+      amount: 3_000_000,
+    },
     income: 0,
     expense: 3_000_000,
   },

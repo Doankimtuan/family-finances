@@ -17,6 +17,7 @@ import {
 /** Client-safe canonical validation for creating a loan. */
 export const createLoanInputSchema = z
   .object({
+    idempotencyKey: z.string().uuid().optional(),
     financialScope: z
       .enum(FINANCIAL_SCOPE_VALUES)
       .default(FINANCIAL_SCOPE.HOUSEHOLD),

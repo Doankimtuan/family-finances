@@ -1,9 +1,13 @@
 import { Link } from "@/i18n/navigation";
 import {
+  LoanDueState,
+  LoanScheduleDisplayStatus,
   LoanScheduleEntryStatus,
   type LoanScheduleEntryStatus as LoanScheduleEntryStatusValue,
 } from "@/modules/ledger/application/ledger-constants";
+import { getLoanDueState } from "@/modules/ledger/application/loan-due-state";
 import { moneyTransactionPath } from "@/modules/tenancy/application/app-path";
+import { FinancialValue } from "@/shared/patterns/financial-value";
 import { Text } from "@/shared/ui/text";
 
 type ScheduleEntry = {
@@ -19,6 +23,7 @@ type ScheduleEntry = {
 
 type PaymentEntry = {
   id: string;
+  accountId: string;
   paidAt: string;
   amount: number;
   principalPaid: number;
@@ -44,12 +49,14 @@ export function LoanSchedulePanel({
   entries,
   formatMoney,
   t,
+  today,
 }: {
   title: string;
   emptyLabel: string;
   entries: ScheduleEntry[];
   formatMoney: (n: number) => string;
   t: Translate;
+  today: string;
 }) {
   return (
     <section
@@ -81,18 +88,26 @@ export function LoanSchedulePanel({
                   })}
                 </Text>
                 <Text size="sm" className="tabular-nums font-medium">
-                  {formatMoney(entry.totalDue)}
+                  <FinancialValue>{formatMoney(entry.totalDue)}</FinancialValue>
                 </Text>
               </div>
-              <Text size="sm" tone="secondary">
-                {t("scheduleSplit", {
-                  principal: formatMoney(entry.principalDue),
-                  interest: formatMoney(entry.interestDue),
-                  remaining: formatMoney(entry.remainingBalanceAfter),
-                })}
+              <Text
+                size="sm"
+                tone="secondary"
+                className={scheduleStatusClass(
+                  scheduleDisplayStatus(entry, today),
+                )}
+              >
+                <FinancialValue>
+                  {t("scheduleSplit", {
+                    principal: formatMoney(entry.principalDue),
+                    interest: formatMoney(entry.interestDue),
+                    remaining: formatMoney(entry.remainingBalanceAfter),
+                  })}
+                </FinancialValue>
               </Text>
               <Text size="sm" tone="secondary">
-                {t(`scheduleStatus.${entry.status}`)}
+                {t(`scheduleStatus.${scheduleDisplayStatus(entry, today)}`)}
                 {entry.status === LoanScheduleEntryStatus.PAID ||
                 entry.status === LoanScheduleEntryStatus.WAIVED
                   ? ` · ${t("scheduleImmutable")}`
@@ -106,19 +121,51 @@ export function LoanSchedulePanel({
   );
 }
 
+function scheduleDisplayStatus(
+  entry: ScheduleEntry,
+  today: string,
+): LoanScheduleDisplayStatus {
+  if (entry.status === LoanScheduleEntryStatus.PAID) {
+    return LoanScheduleDisplayStatus.PAID;
+  }
+  if (entry.status === LoanScheduleEntryStatus.WAIVED) {
+    return LoanScheduleDisplayStatus.WAIVED;
+  }
+  const dueState = getLoanDueState(entry.dueDate, today);
+  if (dueState === LoanDueState.DUE_TODAY) {
+    return LoanScheduleDisplayStatus.DUE_TODAY;
+  }
+  if (dueState === LoanDueState.OVERDUE) {
+    return LoanScheduleDisplayStatus.OVERDUE;
+  }
+  return LoanScheduleDisplayStatus.UPCOMING;
+}
+
+function scheduleStatusClass(status: LoanScheduleDisplayStatus): string {
+  if (status === LoanScheduleDisplayStatus.OVERDUE)
+    return "font-semibold text-danger";
+  if (status === LoanScheduleDisplayStatus.DUE_TODAY)
+    return "font-semibold text-warning";
+  if (status === LoanScheduleDisplayStatus.PAID)
+    return "font-medium text-success";
+  if (status === LoanScheduleDisplayStatus.WAIVED)
+    return "font-medium text-info";
+  return "text-info";
+}
+
 export function LoanPaymentHistoryPanel({
   title,
   payments,
   formatMoney,
+  accountNames,
   t,
 }: {
   title: string;
   payments: PaymentEntry[];
   formatMoney: (n: number) => string;
+  accountNames: ReadonlyMap<string, string>;
   t: Translate;
 }) {
-  if (payments.length === 0) return null;
-
   return (
     <section
       className="flex flex-col gap-(--space-2)"
@@ -127,6 +174,11 @@ export function LoanPaymentHistoryPanel({
       <Text size="sm" className="font-medium">
         {title}
       </Text>
+      {payments.length === 0 ? (
+        <Text size="sm" tone="secondary">
+          {t("historyEmpty")}
+        </Text>
+      ) : null}
       <ul className="flex flex-col gap-(--space-2)">
         {payments.map((payment) => (
           <li
@@ -137,13 +189,21 @@ export function LoanPaymentHistoryPanel({
             <div className="flex justify-between gap-(--space-2)">
               <Text size="sm">{payment.paidAt}</Text>
               <Text size="sm" className="tabular-nums font-medium">
-                {formatMoney(payment.amount)}
+                <FinancialValue>{formatMoney(payment.amount)}</FinancialValue>
               </Text>
             </div>
             <Text size="sm" tone="secondary">
-              {t("historySplit", {
-                principal: formatMoney(payment.principalPaid),
-                interest: formatMoney(payment.interestPaid),
+              <FinancialValue>
+                {t("historySplit", {
+                  principal: formatMoney(payment.principalPaid),
+                  interest: formatMoney(payment.interestPaid),
+                })}
+              </FinancialValue>
+            </Text>
+            <Text size="sm" tone="secondary">
+              {t("historyAccount", {
+                account:
+                  accountNames.get(payment.accountId) ?? t("unknownAccount"),
               })}
             </Text>
             {payment.transactionId ? (
@@ -163,19 +223,19 @@ export function LoanPaymentHistoryPanel({
 
 export function LoanRateHistoryPanel({
   title,
+  emptyLabel,
   periods,
   openLabel,
   kindLabel,
   t,
 }: {
   title: string;
+  emptyLabel: string;
   periods: RatePeriod[];
   openLabel: string;
   kindLabel: (kind: string) => string;
   t: Translate;
 }) {
-  if (periods.length === 0) return null;
-
   return (
     <section
       className="flex flex-col gap-(--space-2)"
@@ -184,20 +244,26 @@ export function LoanRateHistoryPanel({
       <Text size="sm" className="font-medium">
         {title}
       </Text>
-      <ul className="flex flex-col gap-(--space-2)">
-        {periods.map((period) => (
-          <li key={period.id}>
-            <Text size="sm" tone="secondary">
-              {t("rateHistoryRow", {
-                from: period.effectiveFrom,
-                to: period.effectiveTo ?? openLabel,
-                kind: kindLabel(period.kind),
-                rate: String(period.annualRate),
-              })}
-            </Text>
-          </li>
-        ))}
-      </ul>
+      {periods.length === 0 ? (
+        <Text size="sm" tone="secondary">
+          {emptyLabel}
+        </Text>
+      ) : (
+        <ul className="flex flex-col gap-(--space-2)">
+          {periods.map((period) => (
+            <li key={period.id}>
+              <Text size="sm" tone="secondary">
+                {t("rateHistoryRow", {
+                  from: period.effectiveFrom,
+                  to: period.effectiveTo ?? openLabel,
+                  kind: kindLabel(period.kind),
+                  rate: String(period.annualRate),
+                })}
+              </Text>
+            </li>
+          ))}
+        </ul>
+      )}
     </section>
   );
 }

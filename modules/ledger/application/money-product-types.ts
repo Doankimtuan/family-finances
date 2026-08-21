@@ -103,6 +103,7 @@ export type Loan = {
   totalInterest: number;
   totalRepayment: number;
   nextPaymentDate: string | null;
+  nextPaymentAmount: number | null;
   currency: string;
   status: LoanStatusValue;
   note: string | null;
@@ -292,6 +293,7 @@ export function mapLoanRow(
     principalPaid?: number;
     interestPaid?: number;
     remainingPayments?: number;
+    nextPaymentAmount?: number | null;
   },
   activeMembershipId = "",
   activeMembershipIds?: ReadonlySet<string>,
@@ -407,6 +409,7 @@ export function mapLoanRow(
     dueDay: Number.isFinite(dueDay) && dueDay >= 1 && dueDay <= 31 ? dueDay : 1,
     progress,
     remainingPayments,
+    nextPaymentAmount: aggregates?.nextPaymentAmount ?? null,
     principalPaid:
       aggregates?.principalPaid ?? Math.max(0, principal - remaining),
     interestPaid: aggregates?.interestPaid ?? 0,

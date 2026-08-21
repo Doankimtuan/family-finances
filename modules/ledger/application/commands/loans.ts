@@ -48,6 +48,12 @@ function isLoanSuccessPayload(
   return isRecord(value) && value.ok === true;
 }
 
+function stringArray(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string")
+    : [];
+}
+
 function initialRatePeriodsJson(input: {
   interestStrategy: (typeof LOAN_INTEREST_STRATEGY_VALUES)[number];
   firstPaymentDate: string;
@@ -107,6 +113,9 @@ export async function createLoan(
 ): Promise<MoneyProductMutationResult> {
   const parsed = createLoanInputSchema.safeParse(raw);
   if (!parsed.success) {
+    return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
+  }
+  if (!parsed.data.idempotencyKey) {
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
   }
   const gate = await assertMoneyActionAllowed();
@@ -220,6 +229,7 @@ export async function createLoan(
         p_schedule: schedule.entries,
         p_rate_periods: ratePeriods,
         p_financial_scope: ownership.financialScope,
+        p_idempotency_key: parsed.data.idempotencyKey,
       },
     );
     if (error) {
@@ -238,7 +248,11 @@ export async function createLoan(
       });
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
     }
-    return { ok: true, id: data.loanId };
+    return {
+      ok: true,
+      id: data.loanId,
+      idempotentReplay: Boolean(data.idempotentReplay),
+    };
   } catch (error) {
     logLedgerFailure(error, LEDGER_OPERATION.CREATE_LOAN, {
       householdId: gate.householdId,
@@ -250,6 +264,7 @@ export async function createLoan(
 export const recordLoanPaymentInputSchema = z.object({
   loanId: z.string().uuid(),
   accountId: z.string().uuid(),
+  idempotencyKey: z.string().uuid(),
   mode: z
     .enum(LOAN_PAYMENT_EXECUTABLE_MODE_VALUES)
     .optional()
@@ -285,6 +300,7 @@ export async function recordLoanPayment(
         p_account_id: parsed.data.accountId,
         p_mode: parsed.data.mode,
         p_paid_at: parsed.data.paidAt ?? null,
+        p_idempotency_key: parsed.data.idempotencyKey,
       },
     );
     if (error) {
@@ -324,7 +340,6 @@ export async function recordLoanPayment(
         typeof data.principalPaid === "number" ? data.principalPaid : undefined,
       interestPaid:
         typeof data.interestPaid === "number" ? data.interestPaid : undefined,
-      feePaid: typeof data.feePaid === "number" ? data.feePaid : 0,
       remainingPrincipal:
         typeof data.remainingPrincipal === "number"
           ? data.remainingPrincipal
@@ -333,6 +348,8 @@ export async function recordLoanPayment(
         typeof data.scheduleEntryId === "string"
           ? data.scheduleEntryId
           : undefined,
+      idempotentReplay: Boolean(data.idempotentReplay),
+      transactionIds: stringArray(data.transactionIds),
     };
   } catch (error) {
     logLedgerFailure(error, LEDGER_OPERATION.RECORD_LOAN_PAYMENT, {

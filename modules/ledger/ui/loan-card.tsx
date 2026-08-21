@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { cn } from "@/shared/utils/cn";
 import { Text } from "@/shared/ui/text";
+import { FinancialValue } from "@/shared/patterns/financial-value";
 import {
   LoanStatus,
   type LoanStatusValue,
@@ -10,11 +11,12 @@ export type LoanCardProps = {
   title: ReactNode;
   subtitle?: ReactNode;
   remainingLabel: ReactNode;
+  remainingAmount?: ReactNode;
   monthlyLabel: ReactNode;
+  monthlyAmount?: ReactNode;
   nextDueLabel?: ReactNode;
   progressLabel: ReactNode;
   interestLabel?: ReactNode;
-  methodLabel?: ReactNode;
   statusLabel: ReactNode;
   status: LoanStatusValue;
   className?: string;
@@ -28,11 +30,12 @@ export function LoanCard({
   title,
   subtitle,
   remainingLabel,
+  remainingAmount,
   monthlyLabel,
+  monthlyAmount,
   nextDueLabel,
   progressLabel,
   interestLabel,
-  methodLabel,
   statusLabel,
   status,
   className,
@@ -69,13 +72,30 @@ export function LoanCard({
           {statusLabel}
         </span>
       </div>
-      <div className="flex items-center justify-between gap-(--space-3)">
-        <Text size="sm" tone="secondary">
-          {remainingLabel}
-        </Text>
-        <span className="text-sm font-semibold tabular-nums text-text-primary">
-          {monthlyLabel}
-        </span>
+      <div className="flex items-end justify-between gap-(--space-3)">
+        <div className="min-w-0">
+          <Text size="sm" tone="secondary">
+            {remainingLabel}
+          </Text>
+          <Text size="lg" className="font-semibold tabular-nums text-debt">
+            {remainingAmount ? (
+              <FinancialValue>{remainingAmount}</FinancialValue>
+            ) : null}
+          </Text>
+        </div>
+        <div className="text-right">
+          <Text size="sm" tone="secondary">
+            {monthlyLabel}
+          </Text>
+          {monthlyAmount ? (
+            <Text
+              size="sm"
+              className="font-semibold tabular-nums text-text-primary"
+            >
+              <FinancialValue>{monthlyAmount}</FinancialValue>
+            </Text>
+          ) : null}
+        </div>
       </div>
       {nextDueLabel ? (
         <Text size="sm" tone="secondary">
@@ -83,7 +103,7 @@ export function LoanCard({
         </Text>
       ) : null}
       <div className="flex items-center justify-between gap-(--space-3)">
-        <Text size="sm" tone="secondary">
+        <Text size="sm" tone="secondary" className="text-success">
           {progressLabel}
         </Text>
         {interestLabel ? (
@@ -92,11 +112,6 @@ export function LoanCard({
           </Text>
         ) : null}
       </div>
-      {methodLabel ? (
-        <Text size="sm" tone="secondary" data-testid="loan-method-badge">
-          {methodLabel}
-        </Text>
-      ) : null}
     </div>
   );
 }

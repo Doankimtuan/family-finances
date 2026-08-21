@@ -44,6 +44,26 @@ export const LoanStatus = {
   ARCHIVED: "archived",
 } as const;
 
+export const LoanDueState = {
+  UPCOMING: "upcoming",
+  DUE_SOON: "due_soon",
+  DUE_TODAY: "due_today",
+  OVERDUE: "overdue",
+  NONE: "none",
+} as const;
+
+export type LoanDueState = (typeof LoanDueState)[keyof typeof LoanDueState];
+
+export const LOAN_DUE_SOON_DAYS = 7;
+
+export const LoanCreateStep = {
+  BASICS: "basics",
+  TERMS: "terms",
+} as const;
+
+export type LoanCreateStep =
+  (typeof LoanCreateStep)[keyof typeof LoanCreateStep];
+
 export type LoanStatus = (typeof LoanStatus)[keyof typeof LoanStatus];
 
 export const LOAN_STATUS_VALUES = [
@@ -132,6 +152,37 @@ export const LoanScheduleEntryStatus = {
   PARTIAL: "partial",
   WAIVED: "waived",
 } as const;
+
+export const LoanReadStatus = {
+  OK: "ok",
+  NOT_FOUND: "not_found",
+  ERROR: "error",
+} as const;
+
+export type LoanReadStatus =
+  (typeof LoanReadStatus)[keyof typeof LoanReadStatus];
+
+export const LoanScheduleDisplayStatus = {
+  UPCOMING: "upcoming",
+  DUE_TODAY: "due_today",
+  OVERDUE: "overdue",
+  PAID: "paid",
+  WAIVED: "waived",
+} as const;
+
+export const LoanDetailView = {
+  OVERVIEW: "overview",
+  SCHEDULE: "schedule",
+  HISTORY: "history",
+} as const;
+
+export type LoanDetailView =
+  (typeof LoanDetailView)[keyof typeof LoanDetailView];
+
+export const LOAN_DETAIL_VIEW_QUERY = "view";
+
+export type LoanScheduleDisplayStatus =
+  (typeof LoanScheduleDisplayStatus)[keyof typeof LoanScheduleDisplayStatus];
 
 export type LoanScheduleEntryStatus =
   (typeof LoanScheduleEntryStatus)[keyof typeof LoanScheduleEntryStatus];

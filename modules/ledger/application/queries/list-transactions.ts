@@ -11,7 +11,7 @@ import { TransactionDirection as Direction } from "../ledger-constants";
 import { LEDGER_OPERATION, logLedgerFailure } from "../ledger-error";
 
 const TRANSACTION_LIST_SELECT =
-  "id, account_id, type, amount, currency, transaction_date, note, category_id, jar_id, status, transfer_group_id, savings_event_kind, reverses_transaction_id, corrects_transaction_id, is_reversal, created_at, accounts(name, type), categories(name), jars(name), transaction_tag_assignments(tag_id, transaction_tags(id, name, icon_key, color_key, archived_at))";
+  "id, account_id, type, amount, currency, transaction_date, note, category_id, jar_id, status, transfer_group_id, loan_payment_id, savings_event_kind, reverses_transaction_id, corrects_transaction_id, is_reversal, created_at, accounts(name, type), categories(name), jars(name), transaction_tag_assignments(tag_id, transaction_tags(id, name, icon_key, color_key, archived_at))";
 
 function mapTransactionRows(rows: unknown[]): LedgerTransaction[] {
   return rows.map((raw) => {
@@ -27,6 +27,7 @@ function mapTransactionRows(rows: unknown[]): LedgerTransaction[] {
       jar_id: string | null;
       status: string | null;
       transfer_group_id: string | null;
+      loan_payment_id: string | null;
       savings_event_kind: string | null;
       reverses_transaction_id: string | null;
       corrects_transaction_id: string | null;

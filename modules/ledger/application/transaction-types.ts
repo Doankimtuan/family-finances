@@ -51,6 +51,7 @@ export type LedgerTransaction = {
   tags: TransactionTag[];
   status: string;
   transferGroupId: string | null;
+  loanPaymentId: string | null;
   savingsEventKind?: string | null;
   reversesTransactionId: string | null;
   correctsTransactionId: string | null;
@@ -132,6 +133,7 @@ export function mapTransactionRow(row: {
   jar_id: string | null;
   status?: string | null;
   transfer_group_id?: string | null;
+  loan_payment_id?: string | null;
   savings_event_kind?: string | null;
   reverses_transaction_id?: string | null;
   corrects_transaction_id?: string | null;
@@ -179,6 +181,7 @@ export function mapTransactionRow(row: {
       })),
     status: row.status ?? TransactionStatus.POSTED,
     transferGroupId: row.transfer_group_id ?? null,
+    loanPaymentId: row.loan_payment_id ?? null,
     savingsEventKind: row.savings_event_kind ?? null,
     reversesTransactionId,
     correctsTransactionId: row.corrects_transaction_id ?? null,

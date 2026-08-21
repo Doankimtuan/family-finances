@@ -1,0 +1,145 @@
+import { getMessages, getTranslations } from "next-intl/server";
+import { hasLocale, NextIntlClientProvider } from "next-intl";
+import { setLocale } from "@/i18n/set-locale";
+import { redirect, Link } from "@/i18n/navigation";
+import { routing } from "@/i18n/routing";
+import {
+  APP_PATH,
+  moneyLoanPath,
+} from "@/modules/tenancy/application/app-path";
+import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
+import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
+import {
+  getLoanReadResult,
+  listLoanScheduleReadResult,
+} from "@/modules/ledger/application";
+import { LoanReadStatus } from "@/modules/ledger/application/ledger-constants";
+import { todayIsoDate } from "@/shared/utils/iso-date";
+import { formatCurrency } from "@/shared/i18n/formatters";
+import { TopAppBar } from "@/shared/patterns/top-app-bar";
+import { EmptyState } from "@/shared/patterns/empty-state";
+import { ErrorState } from "@/shared/patterns/error-state";
+import { LoanSchedulePanel } from "../loan-detail-panels";
+
+type Props = {
+  params: Promise<{ locale: string; id: string }>;
+  searchParams?: Promise<{ year?: string }>;
+};
+
+export default async function LoanFullSchedulePage({
+  params,
+  searchParams,
+}: Props) {
+  const { locale: raw, id } = await params;
+  const locale = hasLocale(routing.locales, raw) ? raw : routing.defaultLocale;
+  setLocale(locale);
+  const user = await getSessionUser();
+  if (!user) return redirect({ href: APP_PATH.LOGIN, locale });
+  if (!(await resolveActiveMembership(user.id)))
+    return redirect({ href: APP_PATH.ONBOARD, locale });
+
+  const [t, loanResult, scheduleResult, messages] = await Promise.all([
+    getTranslations("money.loanDetail"),
+    getLoanReadResult(id),
+    listLoanScheduleReadResult(id),
+    getMessages(),
+  ]);
+
+  if (loanResult.status !== LoanReadStatus.OK) {
+    return (
+      <ErrorState
+        title={
+          loanResult.status === LoanReadStatus.NOT_FOUND
+            ? t("notFound")
+            : t("readError")
+        }
+        action={
+          <Link
+            href={moneyLoanPath(id)}
+            className="text-sm font-medium text-accent"
+          >
+            {t("back")}
+          </Link>
+        }
+      />
+    );
+  }
+  if (scheduleResult.status !== LoanReadStatus.OK) {
+    return (
+      <ErrorState
+        title={t("scheduleError")}
+        action={
+          <Link
+            href={moneyLoanPath(id)}
+            className="text-sm font-medium text-accent"
+          >
+            {t("retry")}
+          </Link>
+        }
+      />
+    );
+  }
+
+  const years = [
+    ...new Set(
+      scheduleResult.schedule.map((entry) => entry.dueDate.slice(0, 4)),
+    ),
+  ].sort();
+  const requestedYear = (await searchParams)?.year;
+  const year = years.includes(requestedYear ?? "") ? requestedYear! : years[0];
+  const entries = scheduleResult.schedule.filter((entry) =>
+    entry.dueDate.startsWith(year),
+  );
+  const money = (amount: number) =>
+    formatCurrency(amount, loanResult.loan.currency, locale, {
+      maximumFractionDigits: 0,
+    });
+
+  return (
+    <NextIntlClientProvider locale={locale} messages={messages}>
+      <div
+        className="flex min-h-full flex-col"
+        data-testid="loan-full-schedule"
+      >
+        <TopAppBar title={t("fullScheduleTitle")} />
+        <main className="flex flex-1 flex-col gap-(--space-4) px-(--space-4) pb-(--space-6) pt-(--space-4)">
+          <Link
+            href={moneyLoanPath(id)}
+            className="text-sm font-medium text-accent"
+          >
+            {t("fullScheduleBack")}
+          </Link>
+          {years.length === 0 ? (
+            <EmptyState title={t("scheduleEmpty")} />
+          ) : null}
+          {years.length > 0 ? (
+            <nav
+              className="flex gap-(--space-2) overflow-x-auto"
+              aria-label={t("fullScheduleTitle")}
+            >
+              {years.map((item) => (
+                <Link
+                  key={item}
+                  href={`${moneyLoanPath(id)}/schedule?year=${item}`}
+                  className={`inline-flex min-h-11 shrink-0 items-center rounded-(--radius-control) border px-(--space-3) text-sm ${item === year ? "border-accent bg-accent-soft text-text-primary" : "border-border-subtle text-text-secondary"}`}
+                >
+                  {item}
+                </Link>
+              ))}
+            </nav>
+          ) : null}
+          {entries.length > 0 ? (
+            <LoanSchedulePanel
+              title={year}
+              emptyLabel={t("scheduleEmpty")}
+              entries={entries}
+              formatMoney={money}
+              t={t}
+              today={todayIsoDate()}
+            />
+          ) : null}
+        </main>
+      </div>
+    </NextIntlClientProvider>
+  );
+}

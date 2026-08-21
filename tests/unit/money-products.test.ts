@@ -30,7 +30,11 @@ describe("money product command validation", () => {
       code: PRODUCT_ACTION_ERROR_CODE.INVALID,
     });
     await expect(
-      recordLoanPayment({ loanId: "invalid", accountId: "invalid" }),
+      recordLoanPayment({
+        loanId: "invalid",
+        accountId: "invalid",
+        idempotencyKey: "550e8400-e29b-41d4-a716-446655440003",
+      }),
     ).resolves.toEqual({
       ok: false,
       code: PRODUCT_ACTION_ERROR_CODE.INVALID,

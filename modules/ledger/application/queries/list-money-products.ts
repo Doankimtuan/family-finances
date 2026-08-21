@@ -3,6 +3,7 @@ import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import { listActiveMembershipIds } from "@/modules/tenancy/application/list-active-membership-ids";
 import {
+  LoanReadStatus,
   LoanScheduleEntryStatus,
   type LedgerOperation,
 } from "../ledger-constants";
@@ -186,10 +187,12 @@ async function loanAggregates(
   principalPaid: number;
   interestPaid: number;
   remainingPayments: number;
+  nextPaymentAmount: number | null;
 }> {
   const [
     { data: payments, error: paymentsError },
     { count, error: countError },
+    { data: nextSchedule, error: nextScheduleError },
   ] = await Promise.all([
     supabase
       .from("loan_payments")
@@ -202,13 +205,26 @@ async function loanAggregates(
       .eq("household_id", householdId)
       .eq("loan_id", loanId)
       .eq("status", LoanScheduleEntryStatus.UPCOMING),
+    supabase
+      .from("loan_schedule_entries")
+      .select("total_due")
+      .eq("household_id", householdId)
+      .eq("loan_id", loanId)
+      .eq("status", LoanScheduleEntryStatus.UPCOMING)
+      .order("sequence", { ascending: true })
+      .limit(1)
+      .maybeSingle(),
   ]);
 
-  if (paymentsError || countError) {
-    logLedgerFailure(paymentsError ?? countError, operation, {
-      householdId,
-      loanId,
-    });
+  if (paymentsError || countError || nextScheduleError) {
+    logLedgerFailure(
+      paymentsError ?? countError ?? nextScheduleError,
+      operation,
+      {
+        householdId,
+        loanId,
+      },
+    );
   }
 
   let principalPaid = 0;
@@ -221,6 +237,8 @@ async function loanAggregates(
     principalPaid,
     interestPaid,
     remainingPayments: count ?? 0,
+    nextPaymentAmount:
+      nextSchedule?.total_due == null ? null : Number(nextSchedule.total_due),
   };
 }
 
@@ -279,8 +297,20 @@ export const listLoans = cache(loadLoans);
 export const listInstallmentPlans = listLoans;
 
 export async function getLoan(loanId: string): Promise<Loan | null> {
+  const result = await getLoanReadResult(loanId);
+  return result.status === LoanReadStatus.OK ? result.loan : null;
+}
+
+export type LoanReadResult =
+  | { status: typeof LoanReadStatus.OK; loan: Loan }
+  | { status: typeof LoanReadStatus.NOT_FOUND }
+  | { status: typeof LoanReadStatus.ERROR };
+
+export async function getLoanReadResult(
+  loanId: string,
+): Promise<LoanReadResult> {
   const gate = await assertMoneyActionAllowed();
-  if (!gate.ok) return null;
+  if (!gate.ok || !loanId) return { status: LoanReadStatus.ERROR };
 
   try {
     const supabase = await createSupabaseServerClient();
@@ -296,9 +326,9 @@ export async function getLoan(loanId: string): Promise<Loan | null> {
         householdId: gate.householdId,
         loanId,
       });
-      return null;
+      return { status: LoanReadStatus.ERROR };
     }
-    if (!data) return null;
+    if (!data) return { status: LoanReadStatus.NOT_FOUND };
     const activeOwnerMembershipIds = await listActiveMembershipIds(
       supabase,
       gate.householdId,
@@ -310,18 +340,21 @@ export async function getLoan(loanId: string): Promise<Loan | null> {
       loanId,
       LEDGER_OPERATION.GET_LOAN,
     );
-    return mapLoanRow(
-      data,
-      aggregates,
-      gate.membershipId,
-      activeOwnerMembershipIds ?? undefined,
-    );
+    return {
+      status: LoanReadStatus.OK,
+      loan: mapLoanRow(
+        data,
+        aggregates,
+        gate.membershipId,
+        activeOwnerMembershipIds ?? undefined,
+      ),
+    };
   } catch (error) {
     logLedgerFailure(error, LEDGER_OPERATION.GET_LOAN, {
       householdId: gate.householdId,
       loanId,
     });
-    return null;
+    return { status: LoanReadStatus.ERROR };
   }
 }
 
@@ -331,8 +364,19 @@ export const getInstallmentPlan = getLoan;
 export async function listLoanPayments(
   loanId: string,
 ): Promise<LoanPayment[] | null> {
+  const result = await listLoanPaymentsReadResult(loanId);
+  return result.status === LoanReadStatus.OK ? result.payments : null;
+}
+
+export type LoanPaymentsReadResult =
+  | { status: typeof LoanReadStatus.OK; payments: LoanPayment[] }
+  | { status: typeof LoanReadStatus.ERROR };
+
+export async function listLoanPaymentsReadResult(
+  loanId: string,
+): Promise<LoanPaymentsReadResult> {
   const gate = await assertMoneyActionAllowed();
-  if (!gate.ok) return null;
+  if (!gate.ok || !loanId) return { status: LoanReadStatus.ERROR };
 
   try {
     const supabase = await createSupabaseServerClient();
@@ -350,23 +394,37 @@ export async function listLoanPayments(
         householdId: gate.householdId,
         loanId,
       });
-      return null;
+      return { status: LoanReadStatus.ERROR };
     }
-    return (data ?? []).map(mapLoanPaymentRow);
+    return {
+      status: LoanReadStatus.OK,
+      payments: (data ?? []).map(mapLoanPaymentRow),
+    };
   } catch (error) {
     logLedgerFailure(error, LEDGER_OPERATION.LIST_LOAN_PAYMENTS, {
       householdId: gate.householdId,
       loanId,
     });
-    return null;
+    return { status: LoanReadStatus.ERROR };
   }
 }
 
 export async function listLoanSchedule(
   loanId: string,
 ): Promise<LoanScheduleEntry[] | null> {
+  const result = await listLoanScheduleReadResult(loanId);
+  return result.status === LoanReadStatus.OK ? result.schedule : null;
+}
+
+export type LoanScheduleReadResult =
+  | { status: typeof LoanReadStatus.OK; schedule: LoanScheduleEntry[] }
+  | { status: typeof LoanReadStatus.ERROR };
+
+export async function listLoanScheduleReadResult(
+  loanId: string,
+): Promise<LoanScheduleReadResult> {
   const gate = await assertMoneyActionAllowed();
-  if (!gate.ok) return null;
+  if (!gate.ok || !loanId) return { status: LoanReadStatus.ERROR };
 
   try {
     const supabase = await createSupabaseServerClient();
@@ -384,15 +442,18 @@ export async function listLoanSchedule(
         householdId: gate.householdId,
         loanId,
       });
-      return null;
+      return { status: LoanReadStatus.ERROR };
     }
-    return (data ?? []).map(mapLoanScheduleEntryRow);
+    return {
+      status: LoanReadStatus.OK,
+      schedule: (data ?? []).map(mapLoanScheduleEntryRow),
+    };
   } catch (error) {
     logLedgerFailure(error, LEDGER_OPERATION.LIST_LOAN_SCHEDULE, {
       householdId: gate.householdId,
       loanId,
     });
-    return null;
+    return { status: LoanReadStatus.ERROR };
   }
 }
 
@@ -429,11 +490,15 @@ export async function listUpcomingLoanScheduleEntries(): Promise<
   }
 }
 
-export async function listLoanInterestRatePeriods(
+export type LoanInterestRatePeriodsReadResult =
+  | { status: typeof LoanReadStatus.OK; periods: LoanInterestRatePeriod[] }
+  | { status: typeof LoanReadStatus.ERROR };
+
+export async function listLoanInterestRatePeriodsReadResult(
   loanId: string,
-): Promise<LoanInterestRatePeriod[] | null> {
+): Promise<LoanInterestRatePeriodsReadResult> {
   const gate = await assertMoneyActionAllowed();
-  if (!gate.ok) return null;
+  if (!gate.ok || !loanId) return { status: LoanReadStatus.ERROR };
 
   try {
     const supabase = await createSupabaseServerClient();
@@ -455,14 +520,25 @@ export async function listLoanInterestRatePeriods(
           loanId,
         },
       );
-      return null;
+      return { status: LoanReadStatus.ERROR };
     }
-    return (data ?? []).map(mapLoanInterestRatePeriodRow);
+    return {
+      status: LoanReadStatus.OK,
+      periods: (data ?? []).map(mapLoanInterestRatePeriodRow),
+    };
   } catch (error) {
     logLedgerFailure(error, LEDGER_OPERATION.LIST_LOAN_INTEREST_RATE_PERIODS, {
       householdId: gate.householdId,
       loanId,
     });
-    return null;
+    return { status: LoanReadStatus.ERROR };
   }
+}
+
+/** @deprecated Use listLoanInterestRatePeriodsReadResult. */
+export async function listLoanInterestRatePeriods(
+  loanId: string,
+): Promise<LoanInterestRatePeriod[] | null> {
+  const result = await listLoanInterestRatePeriodsReadResult(loanId);
+  return result.status === LoanReadStatus.OK ? result.periods : null;
 }

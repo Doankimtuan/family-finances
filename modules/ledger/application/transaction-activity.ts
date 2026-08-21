@@ -70,6 +70,7 @@ export type TransactionActivity = {
   destinationAccount: { id: string; name?: string } | null;
   relatedTransactionIds: readonly string[];
   transferGroupId: string | null;
+  loanPaymentId: string | null;
   savingsEventKind: string | null;
   isReversal: boolean;
   semanticCategory: (typeof FinancialEventCategory)[keyof typeof FinancialEventCategory];
@@ -177,6 +178,7 @@ function activityFromRow(row: LedgerTransaction): TransactionActivity {
     ...accounts,
     relatedTransactionIds: [row.id],
     transferGroupId: row.transferGroupId,
+    loanPaymentId: row.loanPaymentId,
     savingsEventKind: row.savingsEventKind ?? null,
     isReversal: row.isReversal,
     semanticCategory: semantics.category,
@@ -244,10 +246,19 @@ export function createTransactionActivities(
   rows: readonly LedgerTransaction[],
 ): TransactionActivity[] {
   const transferGroups = new Map<string, LedgerTransaction[]>();
+  const loanPaymentGroups = new Map<string, LedgerTransaction[]>();
   const activities: TransactionActivity[] = [];
 
   for (const row of rows) {
     if (
+      row.loanPaymentId &&
+      (row.type === TransactionLedgerType.LIABILITY_PAYMENT ||
+        row.type === TransactionLedgerType.LOAN_INTEREST)
+    ) {
+      const group = loanPaymentGroups.get(row.loanPaymentId) ?? [];
+      group.push(row);
+      loanPaymentGroups.set(row.loanPaymentId, group);
+    } else if (
       row.transferGroupId &&
       (row.type === TransactionLedgerType.TRANSFER_OUT ||
         row.type === TransactionLedgerType.TRANSFER_IN)
@@ -258,6 +269,31 @@ export function createTransactionActivities(
     } else {
       activities.push(activityFromRow(row));
     }
+  }
+
+  for (const [loanPaymentId, rowsInGroup] of loanPaymentGroups) {
+    const representative =
+      rowsInGroup.find(
+        (row) => row.type === TransactionLedgerType.LIABILITY_PAYMENT,
+      ) ?? rowsInGroup[0];
+    if (!representative) continue;
+    const semantics = classifyFinancialEvent(representative);
+    activities.push({
+      ...activityFromRow(representative),
+      id: loanPaymentId,
+      kind: TransactionActivityKind.LIABILITY_PAYMENT,
+      tone: TransactionActivityTone.NEUTRAL,
+      amount: rowsInGroup.reduce((sum, row) => sum + row.amount, 0),
+      relatedTransactionIds: rowsInGroup.map((row) => row.id),
+      loanPaymentId,
+      semanticCategory: semantics.category,
+      classification: semantics.classification,
+      cashDirection: semantics.cashDirection,
+      countsTowardIncome: false,
+      countsTowardExpense: false,
+      owner: semantics.owner,
+      sign: "",
+    });
   }
 
   for (const [transferGroupId, rowsInGroup] of transferGroups) {
@@ -302,6 +338,7 @@ export function createTransactionActivities(
         : null,
       relatedTransactionIds: rowsInGroup.map((row) => row.id),
       transferGroupId,
+      loanPaymentId: null,
       savingsEventKind: representative.savingsEventKind ?? null,
       isReversal: false,
       semanticCategory: semantics.category,

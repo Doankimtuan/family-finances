@@ -29,6 +29,9 @@ import {
 } from "@/modules/ledger/application/client";
 import { recordLoanPaymentAction } from "../../money-products-actions";
 import { TransactionReceipt } from "../../transactions/transaction-receipt";
+import { FinancialValue } from "@/shared/patterns/financial-value";
+import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
+import { Sheet } from "@/shared/patterns/sheet";
 
 type ErrorCode =
   ProductActionErrorCode | typeof CLIENT_ACTION_ERROR_CODE.OFFLINE;
@@ -41,7 +44,6 @@ type Props = {
   currency: string;
   principalDue: number;
   interestDue: number;
-  feeDue: number;
   totalDue: number;
   remainingPrincipal: number;
   accounts: AccountOption[];
@@ -49,26 +51,55 @@ type Props = {
 };
 
 type ReceiptState = {
-  transactionId: string;
+  transactionIds: readonly string[];
   paymentId: string;
   amount: number;
   principalPaid: number;
   interestPaid: number;
-  feePaid: number;
   sourceDelta: number;
   remainingPrincipal: number;
   sourceName: string;
   completed?: boolean;
+  idempotentReplay?: boolean;
   inboxItemId?: string;
 };
 
-export function LoanPayAction({
+export function LoanPayAction(props: Props) {
+  const t = useTranslations("money.loanDetail");
+  const { online } = useOnlineStatusClient();
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <Sheet isOpen={isOpen} onOpenChange={setIsOpen}>
+      <Button
+        variant="primary"
+        className="min-h-11 w-full"
+        data-testid="loan-pay-open"
+        isDisabled={!online}
+        onPress={() => setIsOpen(true)}
+      >
+        {t("nextPaymentAction")}
+      </Button>
+      {isOpen ? (
+        <ActionSheetLayout>
+          <ActionSheetLayout.Header>
+            <Sheet.Heading>{t("nextPaymentAction")}</Sheet.Heading>
+          </ActionSheetLayout.Header>
+          <ActionSheetLayout.Body>
+            <LoanPayFlow {...props} />
+          </ActionSheetLayout.Body>
+        </ActionSheetLayout>
+      ) : null}
+    </Sheet>
+  );
+}
+
+function LoanPayFlow({
   loanId,
   loanName,
   currency,
   principalDue,
   interestDue,
-  feeDue,
   totalDue,
   remainingPrincipal,
   accounts,
@@ -87,6 +118,7 @@ export function LoanPayAction({
     MoneyPaymentFlowStep.FORM,
   );
   const [receipt, setReceipt] = useState<ReceiptState | null>(null);
+  const [idempotencyKey, setIdempotencyKey] = useState<string | null>(null);
 
   const money = (n: number) =>
     formatCurrency(n, currency, locale, { maximumFractionDigits: 0 });
@@ -99,7 +131,11 @@ export function LoanPayAction({
     return (
       <TransactionReceipt
         title={t("receipt.title")}
-        outcome={t("receipt.outcome")}
+        outcome={t(
+          receipt.idempotentReplay
+            ? "receipt.replayOutcome"
+            : "receipt.outcome",
+        )}
         rows={[
           {
             id: "total",
@@ -117,11 +153,6 @@ export function LoanPayAction({
             value: money(receipt.interestPaid),
           },
           {
-            id: "fee",
-            label: t("receipt.fee"),
-            value: money(receipt.feePaid),
-          },
-          {
             id: "source",
             label: t("receipt.source"),
             value: receipt.sourceName,
@@ -132,9 +163,10 @@ export function LoanPayAction({
             value: loanName,
           },
           {
-            id: "sourceDelta",
-            label: t("receipt.sourceDelta"),
-            value: money(Math.abs(receipt.sourceDelta)),
+            id: "effectiveDate",
+            label: t("receipt.date"),
+            value: paidAt,
+            kind: "text",
           },
           {
             id: "remaining",
@@ -144,17 +176,11 @@ export function LoanPayAction({
         ]}
         relatedRecordsTitle={t("receipt.relatedTitle")}
         relatedRecords={[
-          {
-            id: "tx",
-            label: t("receipt.viewTransaction"),
-            href: moneyTransactionPath(receipt.transactionId),
-          },
-          {
-            id: "payment",
-            label: t("receipt.paymentRecord", {
-              id: receipt.paymentId.slice(0, 8),
-            }),
-          },
+          ...receipt.transactionIds.map((transactionId, index) => ({
+            id: `tx-${transactionId}`,
+            label: t("receipt.viewTransaction", { index: index + 1 }),
+            href: moneyTransactionPath(transactionId),
+          })),
         ]}
         nextActions={[
           receipt.completed && receipt.inboxItemId
@@ -170,6 +196,12 @@ export function LoanPayAction({
                 variant: "primary" as const,
                 onPress: () => router.refresh(),
               },
+          {
+            id: "completion",
+            label: receipt.completed
+              ? t("receipt.completed")
+              : t("receipt.recorded"),
+          },
         ]}
       />
     );
@@ -207,11 +239,6 @@ export function LoanPayAction({
               value: money(interestDue),
             },
             {
-              id: "fee",
-              label: t("confirm.fee"),
-              value: money(feeDue),
-            },
-            {
               id: "source",
               label: t("confirm.source"),
               value: sourceName,
@@ -242,10 +269,13 @@ export function LoanPayAction({
               setErrorCode(PRODUCT_ACTION_ERROR_CODE.INVALID);
               return;
             }
+            const paymentKey = idempotencyKey ?? crypto.randomUUID();
+            setIdempotencyKey(paymentKey);
             startTransition(async () => {
               const result = await recordLoanPaymentAction({
                 loanId,
                 accountId,
+                idempotencyKey: paymentKey,
                 mode: LoanPaymentMode.SCHEDULED,
                 paidAt,
               });
@@ -255,18 +285,20 @@ export function LoanPayAction({
                 result.paymentId
               ) {
                 setReceipt({
-                  transactionId: result.transactionId,
+                  transactionIds: result.transactionIds?.length
+                    ? result.transactionIds
+                    : [result.transactionId],
                   paymentId: result.paymentId,
                   amount: result.amount ?? totalDue,
                   principalPaid: result.principalPaid ?? principalDue,
                   interestPaid: result.interestPaid ?? interestDue,
-                  feePaid: result.feePaid ?? feeDue,
                   sourceDelta: result.sourceDelta ?? -totalDue,
                   remainingPrincipal:
                     result.remainingPrincipal ?? remainingAfter,
                   sourceName,
                   completed: result.completed,
                   inboxItemId: result.inboxItemId,
+                  idempotentReplay: result.idempotentReplay,
                 });
                 setStep(MoneyPaymentFlowStep.RECEIPT);
                 return;
@@ -323,14 +355,17 @@ export function LoanPayAction({
         data-testid="loan-pay-amount-preview"
       >
         <Text size="sm" tone="secondary">
-          {t("amountPreview", { amount: money(totalDue) })}
+          <FinancialValue>
+            {t("amountPreview", { amount: money(totalDue) })}
+          </FinancialValue>
         </Text>
         <Text size="sm" tone="secondary">
-          {t("splitPreview", {
-            principal: money(principalDue),
-            interest: money(interestDue),
-            fee: money(feeDue),
-          })}
+          <FinancialValue>
+            {t("splitPreview", {
+              principal: money(principalDue),
+              interest: money(interestDue),
+            })}
+          </FinancialValue>
         </Text>
       </div>
       <Button
