@@ -83,6 +83,7 @@
       "title": "Đầu tư",
       "subtitle": "Theo dõi giá trị và hiệu quả các khoản đầu tư của bạn.",
       "loadError": "Không tải được danh mục.",
+      "retry": "Thử lại",
       "emptyTitle": "Chưa có khoản đầu tư nào.",
       "emptyDescription": "Thêm khoản đang sở hữu hoặc ghi lại một giao dịch mới.",
       "portfolioTitle": "Tổng quan danh mục",
@@ -109,6 +110,14 @@
       "closedDescription": "Lịch sử và lãi/lỗ đã chốt vẫn được giữ trong chi tiết khoản đầu tư.",
       "missingBasisTag": "Thiếu giá vốn · chưa tính lãi/lỗ",
       "insufficientData": "Chưa đủ dữ liệu tính lãi/lỗ",
+      "estimatedValueNote": "Giá trị thị trường ước tính · {date} · {source} · không phải tiền mặt",
+      "unknownDate": "chưa rõ ngày",
+      "unknownSource": "chưa rõ nguồn",
+      "valuationSources": {
+        "manual": "thủ công",
+        "statement": "sao kê",
+        "provider": "nhà cung cấp"
+      },
       "noProvider": "Chưa ghi nơi lưu ký",
       "addOpening": "Nhập vị thế",
       "convert": "Chuyển đổi tài sản",
@@ -121,7 +130,8 @@
         "stock": "Chứng khoán",
         "fund": "Quỹ",
         "crypto": "Crypto",
-        "gold": "Vàng"
+        "gold": "Vàng",
+        "bond": "Trái phiếu"
       },
       "assetClass": {
         "crypto": "Tiền mã hoá",
@@ -142,9 +152,9 @@
           "description": "Theo dõi tài sản Spot và giá vốn.",
           "instrumentLabel": "Tài sản",
           "priceLabel": "Giá mua",
-          "valuationPriceLabel": "Giá hiện tại / BTC",
-          "disposalPriceLabel": "Giá bán / BTC",
-          "unitSuffix": "BTC",
+          "valuationPriceLabel": "Giá hiện tại / đơn vị",
+          "disposalPriceLabel": "Giá bán / đơn vị",
+          "unitSuffix": "đơn vị",
           "priceCurrency": "USDT",
           "providerHint": "Sàn hoặc nhà cung cấp"
         },
@@ -186,7 +196,7 @@
           "incomeLabel": "Thu nhập"
         },
         "bond": {
-          "title": "Khác",
+          "title": "Trái phiếu",
           "description": "Theo dõi tài sản thủ công hoặc sản phẩm khác.",
           "instrumentLabel": "Tên tài sản",
           "priceLabel": "Giá trị hiện tại",
@@ -253,6 +263,7 @@
       "historicalCardSubtitle": "Không tạo dịch chuyển tiền hoặc giao dịch mua giả.",
       "purchaseCardTitle": "Mua / đầu tư ngay bây giờ",
       "pricePerUnitLabel": "Giá mỗi đơn vị",
+      "totalValue": "Tổng giá trị",
       "totalCashNeeded": "Tổng tiền cần",
       "fromAccount": "Từ",
       "back": "Quay lại",

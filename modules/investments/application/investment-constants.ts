@@ -180,6 +180,7 @@ export const InvestmentOverviewFilter = {
   FUND: InvestmentAssetClass.FUND,
   CRYPTO: InvestmentAssetClass.CRYPTO,
   GOLD: InvestmentAssetClass.GOLD,
+  BOND: InvestmentAssetClass.BOND,
 } as const;
 export type InvestmentOverviewFilter =
   (typeof InvestmentOverviewFilter)[keyof typeof InvestmentOverviewFilter];

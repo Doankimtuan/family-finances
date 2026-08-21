@@ -83,6 +83,7 @@
       "title": "Investments",
       "subtitle": "Track your portfolio value and performance.",
       "loadError": "Could not load the portfolio.",
+      "retry": "Try again",
       "emptyTitle": "No investment positions yet.",
       "emptyDescription": "Import an existing position or record a new transaction.",
       "portfolioTitle": "Portfolio overview",
@@ -109,6 +110,14 @@
       "closedDescription": "History and realized PnL are preserved in holding details.",
       "missingBasisTag": "Missing cost basis · PnL not calculated",
       "insufficientData": "Insufficient data for PnL",
+      "estimatedValueNote": "Estimated market value · {date} · {source} · not cash",
+      "unknownDate": "date unknown",
+      "unknownSource": "source unknown",
+      "valuationSources": {
+        "manual": "manual",
+        "statement": "statement",
+        "provider": "provider"
+      },
       "noProvider": "Custodian not recorded",
       "addOpening": "Import position",
       "convert": "Convert assets",
@@ -121,7 +130,8 @@
         "stock": "Stocks",
         "fund": "Funds",
         "crypto": "Crypto",
-        "gold": "Gold"
+        "gold": "Gold",
+        "bond": "Bonds"
       },
       "assetClass": {
         "crypto": "Crypto",
@@ -142,9 +152,9 @@
           "description": "Track Spot assets and cost basis.",
           "instrumentLabel": "Asset",
           "priceLabel": "Purchase price",
-          "valuationPriceLabel": "Current price / BTC",
-          "disposalPriceLabel": "Sale price / BTC",
-          "unitSuffix": "BTC",
+          "valuationPriceLabel": "Current price / unit",
+          "disposalPriceLabel": "Sale price / unit",
+          "unitSuffix": "units",
           "priceCurrency": "USDT",
           "providerHint": "Exchange or provider"
         },
@@ -186,7 +196,7 @@
           "incomeLabel": "Income"
         },
         "bond": {
-          "title": "Other",
+          "title": "Bonds",
           "description": "Track manual assets or other products.",
           "instrumentLabel": "Asset name",
           "priceLabel": "Current value",
@@ -253,6 +263,7 @@
       "historicalCardSubtitle": "Does not create cash movement or fake purchases.",
       "purchaseCardTitle": "Buy / invest now",
       "pricePerUnitLabel": "Price per unit",
+      "totalValue": "Total value",
       "totalCashNeeded": "Total cash needed",
       "fromAccount": "From",
       "back": "Back",

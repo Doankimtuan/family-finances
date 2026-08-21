@@ -36,7 +36,9 @@ import { AppIcon } from "@/shared/ui/app-icon";
 import { ControlledField } from "@/shared/patterns/controlled-fields";
 import { BottomActionBar } from "@/shared/patterns/bottom-action-bar";
 import { MotionStep, MotionStepDirection } from "@/shared/motion";
-import { LabeledSelect } from "@/shared/patterns/labeled-native-field";
+import { SelectField } from "@/shared/ui/form";
+import { MoneyOfflineBanner } from "../money-offline-banner";
+import { useOnlineStatus } from "@/shared/hooks/use-online-status";
 import { Button } from "@/shared/ui/button";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Text } from "@/shared/ui/text";
@@ -86,6 +88,9 @@ const openingPositionFormSchema = z
     currentUnitValuation:
       openingPositionInputSchema.shape.remainingTotalCostBasis,
     price: initialPurchaseInputSchema.shape.unitPriceVnd.nullable().optional(),
+    totalPurchaseValue: initialPurchaseInputSchema.shape.totalValueVnd
+      .nullable()
+      .optional(),
     accountId: z
       .union([initialPurchaseInputSchema.shape.cashAccountId, z.literal("")])
       .optional(),
@@ -94,10 +99,18 @@ const openingPositionFormSchema = z
   })
   .superRefine((value, context) => {
     if (value.entryMode !== InvestmentEntryMode.PURCHASE) return;
-    if (value.price == null) {
+    if (
+      value.assetClass === InvestmentAssetClass.BOND
+        ? value.totalPurchaseValue == null
+        : value.price == null
+    ) {
       context.addIssue({
         code: "custom",
-        path: ["price"],
+        path: [
+          value.assetClass === InvestmentAssetClass.BOND
+            ? "totalPurchaseValue"
+            : "price",
+        ],
         message: "Required",
       });
     }
@@ -129,6 +142,7 @@ const createDefaultValues = (accounts: AccountOption[]) =>
     totalBasisInput: null,
     currentUnitValuation: null,
     price: null,
+    totalPurchaseValue: null,
     accountId: accounts[0]?.id ?? undefined,
     date: today(),
     notes: "",
@@ -151,7 +165,9 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
   const [stepIndex, setStepIndex] = useState(FIRST_STEP_INDEX);
   const [direction, setDirection] = useState<"forward" | "backward">("forward");
   const [error, setError] = useState<InvestmentErrorCode | null>(null);
+  const [idempotencyKey, setIdempotencyKey] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const online = useOnlineStatus();
   const {
     control,
     register,
@@ -177,6 +193,7 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
     totalBasisInput = null,
     currentUnitValuation = null,
     price = null,
+    totalPurchaseValue = null,
     accountId,
     date = today(),
     financialScope = FINANCIAL_SCOPE.HOUSEHOLD,
@@ -189,7 +206,12 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
     totalCostBasis: totalBasisInput,
     currentUnitValuation,
   });
-  const gross = quantity ? multiplyQuantityByUnitPrice(quantity, price) : null;
+  const gross =
+    assetClass === InvestmentAssetClass.BOND
+      ? totalPurchaseValue
+      : quantity
+        ? multiplyQuantityByUnitPrice(quantity, price)
+        : null;
 
   const money = (value: number | null) =>
     value == null
@@ -220,6 +242,7 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
     resetField("totalBasisInput");
     resetField("currentUnitValuation");
     resetField("price");
+    resetField("totalPurchaseValue");
   };
 
   const goNext = () => {
@@ -247,7 +270,10 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
 
   const submit = handleSubmit((submitted) => {
     setError(null);
-    const key = `${INVESTMENT_CREATE_IDEMPOTENCY_KEY_PREFIX}:${crypto.randomUUID()}`;
+    const key =
+      idempotencyKey ??
+      `${INVESTMENT_CREATE_IDEMPOTENCY_KEY_PREFIX}:${crypto.randomUUID()}`;
+    setIdempotencyKey(key);
     startTransition(async () => {
       const result =
         submitted.entryMode === InvestmentEntryMode.HISTORICAL
@@ -269,7 +295,14 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
               assetName: submitted.assetName,
               assetClass: submitted.assetClass,
               quantity: submitted.quantity,
-              unitPriceVnd: submitted.price ?? ZERO_AMOUNT,
+              unitPriceVnd:
+                submitted.assetClass === InvestmentAssetClass.BOND
+                  ? null
+                  : (submitted.price ?? ZERO_AMOUNT),
+              totalValueVnd:
+                submitted.assetClass === InvestmentAssetClass.BOND
+                  ? (submitted.totalPurchaseValue ?? ZERO_AMOUNT)
+                  : null,
               cashAccountId: submitted.accountId ?? "",
               asOfDate: submitted.date,
               symbol: submitted.symbol || null,
@@ -283,6 +316,7 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
         return;
       }
       reset(createDefaultValues(accounts));
+      setIdempotencyKey(null);
       router.replace(
         result.receipt.holdingId
           ? moneyInvestmentPath(result.receipt.holdingId)
@@ -296,6 +330,7 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
       className="flex min-h-full flex-col gap-(--space-4)"
       data-testid="investment-opening-form"
     >
+      <MoneyOfflineBanner />
       {error ? (
         <StatusAlert variant="danger" title={t(`errors.${error}`)} />
       ) : null}
@@ -480,11 +515,12 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
                   name="unit"
                   control={control}
                   render={({ field }) => (
-                    <LabeledSelect
+                    <SelectField
+                      id="investment-unit"
                       label={t("unitLabel")}
                       value={field.value}
                       options={unitOptions}
-                      onChange={(event) => field.onChange(event.target.value)}
+                      onChange={field.onChange}
                     />
                   )}
                 />
@@ -586,22 +622,35 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
                     control={control}
                     field={{
                       type: "amount",
-                      name: "price",
+                      name:
+                        assetClass === InvestmentAssetClass.BOND
+                          ? "totalPurchaseValue"
+                          : "price",
                       id: "investment-price",
-                      label: tUx(config.priceLabelKey),
-                      error: errors.price ? t("errors.invalid") : undefined,
+                      label:
+                        assetClass === InvestmentAssetClass.BOND
+                          ? t("totalValue")
+                          : tUx(config.priceLabelKey),
+                      error: (
+                        assetClass === InvestmentAssetClass.BOND
+                          ? errors.totalPurchaseValue
+                          : errors.price
+                      )
+                        ? t("errors.invalid")
+                        : undefined,
                     }}
                   />
                   <Controller
                     name="accountId"
                     control={control}
                     render={({ field }) => (
-                      <LabeledSelect
+                      <SelectField
+                        id="investment-source-account"
                         label={t("sourceAccountLabel")}
                         value={field.value ?? ""}
                         options={accountOptions}
-                        onChange={(event) => field.onChange(event.target.value)}
-                        disabled={accountOptions.length === 0}
+                        onChange={field.onChange}
+                        isDisabled={accountOptions.length === 0}
                       />
                     )}
                   />
@@ -768,6 +817,7 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
           <Button
             className="w-full"
             isPending={pending}
+            isDisabled={!online}
             onPress={() => void submit()}
             data-testid="investment-opening-confirm"
           >

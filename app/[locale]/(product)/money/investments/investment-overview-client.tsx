@@ -32,13 +32,22 @@ import {
   formatNumber,
   formatPercent,
 } from "@/shared/i18n/formatters";
+import { DEFAULT_CURRENCY } from "@/modules/ledger/application/client";
+import { FinancialValue } from "@/shared/patterns/financial-value";
+import { getChartColor } from "@/shared/theme/chart-colors";
 import { AppIcon } from "@/shared/ui/app-icon";
 import { Section } from "@/shared/patterns/section";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Text } from "@/shared/ui/text";
 import { FinancialOwnershipBadge } from "@/shared/patterns/financial-ownership-badge";
 
-const CHART_COLORS = ["#2563eb", "#16a34a", "#9333ea", "#d97706", "#64748b"];
+const CHART_COLORS = [
+  "chart-series-real",
+  "chart-positive",
+  "chart-series-intention",
+  "chart-negative",
+  "chart-neutral",
+] as const;
 const CRYPTO_DECIMAL_DIGITS = 8;
 const STANDARD_DECIMAL_DIGITS = 2;
 const PERCENT_DECIMAL_DIGITS = 1;
@@ -61,7 +70,9 @@ const iconFor = (asset: InvestmentUxType) =>
 const money = (value: number | null, locale: string) =>
   value == null
     ? "—"
-    : formatCurrency(value, "VND", locale, { maximumFractionDigits: 0 });
+    : formatCurrency(value, DEFAULT_CURRENCY, locale, {
+        maximumFractionDigits: 0,
+      });
 
 const signedMoney = (value: number | null, locale: string) =>
   value == null
@@ -126,7 +137,9 @@ function PositionCard({
                   {t("currentValue")}
                 </Text>
                 <Text size="lg" weight="semibold" tabular>
-                  {money(holding.currentValue, locale)}
+                  <FinancialValue>
+                    {money(holding.currentValue, locale)}
+                  </FinancialValue>
                 </Text>
               </div>
               <div className="text-right">
@@ -161,6 +174,16 @@ function PositionCard({
                   {t("missingBasisTag")}
                 </Text>
               </div>
+            ) : null}
+            {holding.currentValue != null ? (
+              <Text size="xs" tone="secondary" className="mt-(--space-3)">
+                {t("estimatedValueNote", {
+                  date: holding.currentValuationDate ?? t("unknownDate"),
+                  source: holding.currentValuationSource
+                    ? t(`valuationSources.${holding.currentValuationSource}`)
+                    : t("unknownSource"),
+                })}
+              </Text>
             ) : null}
           </div>
         </div>
@@ -227,7 +250,9 @@ export function InvestmentOverviewClient({
           tabular
           className="mt-1 text-3xl"
         >
-          {money(portfolio.totalCurrentValue, locale)}
+          <FinancialValue>
+            {money(portfolio.totalCurrentValue, locale)}
+          </FinancialValue>
         </Text>
         <div className="mt-(--space-5) grid grid-cols-2 gap-(--space-4) sm:grid-cols-4">
           <div>
@@ -235,7 +260,9 @@ export function InvestmentOverviewClient({
               {t("knownBasis")}
             </Text>
             <Text weight="semibold" tabular>
-              {money(portfolio.totalRemainingCostBasis, locale)}
+              <FinancialValue>
+                {money(portfolio.totalRemainingCostBasis, locale)}
+              </FinancialValue>
             </Text>
           </div>
           <div>
@@ -253,7 +280,9 @@ export function InvestmentOverviewClient({
               }
               tabular
             >
-              {signedMoney(portfolio.unrealizedResult, locale)}
+              <FinancialValue>
+                {signedMoney(portfolio.unrealizedResult, locale)}
+              </FinancialValue>
             </Text>
           </div>
           <div>
@@ -261,7 +290,9 @@ export function InvestmentOverviewClient({
               {t("realized")}
             </Text>
             <Text weight="semibold" tabular>
-              {signedMoney(portfolio.realizedSaleResult, locale)}
+              <FinancialValue>
+                {signedMoney(portfolio.realizedSaleResult, locale)}
+              </FinancialValue>
             </Text>
           </div>
           <div>
@@ -269,7 +300,9 @@ export function InvestmentOverviewClient({
               {t("income")}
             </Text>
             <Text weight="semibold" tabular>
-              {money(portfolio.investmentIncome, locale)}
+              <FinancialValue>
+                {money(portfolio.investmentIncome, locale)}
+              </FinancialValue>
             </Text>
           </div>
         </div>
@@ -287,7 +320,7 @@ export function InvestmentOverviewClient({
         <Section title={t("allocationTitle")}>
           <div className="grid gap-(--space-4) sm:grid-cols-[160px_1fr] sm:items-center">
             <div
-              className="h-40"
+              className="h-28 sm:h-40"
               role="img"
               aria-label={t("allocationChartAria")}
             >
@@ -304,7 +337,9 @@ export function InvestmentOverviewClient({
                     {chartData.map((row, index) => (
                       <Cell
                         key={row.name}
-                        fill={CHART_COLORS[index % CHART_COLORS.length]}
+                        fill={getChartColor(
+                          CHART_COLORS[index % CHART_COLORS.length],
+                        )}
                       />
                     ))}
                   </Pie>
@@ -324,8 +359,9 @@ export function InvestmentOverviewClient({
                     <span
                       className="size-2 rounded-full"
                       style={{
-                        backgroundColor:
+                        backgroundColor: getChartColor(
                           CHART_COLORS[index % CHART_COLORS.length],
+                        ),
                       }}
                       aria-hidden="true"
                     />
@@ -400,23 +436,29 @@ export function InvestmentOverviewClient({
                 key={holding.id}
                 className="rounded-(--radius-card) border border-border-subtle bg-surface-muted p-(--space-4)"
               >
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <Text weight="medium">
-                      {holding.symbol || holding.name}
-                    </Text>
+                <Link
+                  href={moneyInvestmentPath(holding.id)}
+                  className="block rounded-(--radius-control) focus-visible:outline-2 focus-visible:outline-focus-ring"
+                  data-testid={`investment-closed-position-${holding.id}`}
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <Text weight="medium">
+                        {holding.symbol || holding.name}
+                      </Text>
+                      <Text size="sm" tone="secondary">
+                        {holding.providerCustodian || t("noProvider")} ·{" "}
+                        {t("closedStatus")}
+                      </Text>
+                    </div>
                     <Text size="sm" tone="secondary">
-                      {holding.providerCustodian || t("noProvider")} ·{" "}
-                      {t("closedStatus")}
+                      {formatNumber(Number(holding.quantity), locale)}
                     </Text>
                   </div>
-                  <Text size="sm" tone="secondary">
-                    {formatNumber(Number(holding.quantity), locale)}
+                  <Text size="sm" tone="secondary" className="mt-2">
+                    {t("closedDescription")}
                   </Text>
-                </div>
-                <Text size="sm" tone="secondary" className="mt-2">
-                  {t("closedDescription")}
-                </Text>
+                </Link>
               </li>
             ))}
           </ul>

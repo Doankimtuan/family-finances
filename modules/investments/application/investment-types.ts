@@ -8,6 +8,7 @@ import type {
   InvestmentValuationSource,
   InvestmentVisibilityContext,
 } from "./investment-constants";
+import type { AccountingMethod, InvestmentLot } from "../domain";
 import type { FinancialCapabilities } from "@/modules/shared-kernel/application/financial-ownership";
 
 export type InvestmentFeeInput = {
@@ -34,8 +35,11 @@ export type InvestmentHolding = {
   remainingTotalCostBasis: number | null;
   currentValue: number | null;
   currentValuationDate: string | null;
+  currentValuationSource: InvestmentValuationSource | null;
   unrealizedResult: number | null;
   notes: string | null;
+  accountingMethod?: AccountingMethod;
+  lots?: InvestmentLot[];
   ownership: FinancialCapabilities;
 };
 
@@ -56,6 +60,7 @@ export type InvestmentActivity = {
   correlationId: string;
   effectiveDate: string;
   feesVnd: number;
+  unitPriceVnd: number | null;
 };
 
 export type InvestmentValuation = {
@@ -64,6 +69,8 @@ export type InvestmentValuation = {
   valueVnd: number;
   valuationDate: string;
   source: InvestmentValuationSource;
+  quantity: string;
+  unitPriceVnd: number | null;
 };
 
 export type InvestmentPortfolio = {

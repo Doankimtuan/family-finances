@@ -87,6 +87,8 @@ export function buildDisposalPreview(input: {
   remainingCostBasis: number | null;
   feeAmount?: number | null;
   manualTotalValue?: boolean;
+  accountingMethod?: AccountingMethod;
+  lots?: Parameters<typeof disposeCostBasis>[0]["lots"];
 }): DisposalPreview {
   const feeAmount = input.feeAmount ?? 0;
   const grossProceeds = input.manualTotalValue
@@ -107,9 +109,11 @@ export function buildDisposalPreview(input: {
       position: {
         quantity: input.availableQuantity,
         remainingCostBasis: input.remainingCostBasis,
-        accountingMethod: AccountingMethod.WEIGHTED_AVERAGE,
+        accountingMethod:
+          input.accountingMethod ?? AccountingMethod.WEIGHTED_AVERAGE,
       },
       quantity: input.soldQuantity,
+      lots: input.lots,
     });
     disposedCostBasis = disposal.disposedCostBasis;
     remainingCostBasis = disposal.remainingCostBasis;

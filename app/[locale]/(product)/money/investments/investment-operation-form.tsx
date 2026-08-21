@@ -14,9 +14,11 @@ import {
   InvestmentValuationSource,
   INVESTMENT_OPERATION_TYPE_VALUES,
   INVESTMENT_CREATE_IDEMPOTENCY_KEY_PREFIX,
+  positiveUnitPriceVndSchema,
+  positiveVndSchema,
+  unitPriceVndSchema,
   investmentBuyInputSchema,
   investmentIncomeInputSchema,
-  investmentSellInputSchema,
   investmentValuationInputSchema,
   assetConversionInputSchema,
   feeSchema,
@@ -105,8 +107,8 @@ const operationFormSchema = z
         field === "feeValue"
           ? feeSchema.shape.feeValueVnd
           : field === "value"
-            ? investmentBuyInputSchema.shape.executedValueVnd
-            : investmentSellInputSchema.shape.executedValueVnd;
+            ? positiveVndSchema
+            : positiveUnitPriceVndSchema;
       if (!schema.safeParse(value[field]).success) issue(field);
     };
     const quantity = (
@@ -120,12 +122,20 @@ const operationFormSchema = z
     };
     if (value.mode === InvestmentFormMode.BUY) {
       quantity("quantity");
-      positive("value");
+      if (
+        !positiveUnitPriceVndSchema.safeParse(value.unitPrice).success &&
+        !positiveVndSchema.safeParse(value.value).success
+      )
+        issue("unitPrice");
       if (!value.accountId) issue("accountId");
     }
     if (value.mode === InvestmentFormMode.SELL) {
       quantity("quantity");
-      positive("unitPrice");
+      if (
+        !positiveUnitPriceVndSchema.safeParse(value.unitPrice).success &&
+        !positiveVndSchema.safeParse(value.value).success
+      )
+        issue("unitPrice");
       if (!value.accountId) issue("accountId");
     }
     if (value.mode === InvestmentFormMode.CONVERSION) {
@@ -158,8 +168,9 @@ const operationFormSchema = z
     }
     if (value.mode === InvestmentFormMode.VALUATION) {
       if (
-        !investmentValuationInputSchema.shape.valueVnd.safeParse(
-          value.unitPrice,
+        !unitPriceVndSchema.safeParse(value.unitPrice).success &&
+        !investmentValuationInputSchema.shape.totalValueVnd.safeParse(
+          value.value,
         ).success
       )
         issue("unitPrice");
@@ -217,6 +228,7 @@ export function InvestmentOperationForm({
   const locale = useLocale();
   const router = useRouter();
   const [confirming, setConfirming] = useState(false);
+  const [idempotencyKey, setIdempotencyKey] = useState<string | null>(null);
   const [error, setError] = useState<InvestmentErrorCode | null>(null);
   const [pending, startTransition] = useTransition();
   const defaults = createDefaultValues(mode, holding, holdings, accounts);
@@ -240,6 +252,7 @@ export function InvestmentOperationForm({
   const feeSource = useWatch({ control, name: "feeSource" });
   const feeValue = useWatch({ control, name: "feeValue" });
   const ux = investmentUxConfig(holding.assetClass as InvestmentUxType);
+  const usesUnitPrice = holding.assetClass !== InvestmentAssetClass.BOND;
   const accountsOptions = accounts.map((account) => ({
     id: account.id,
     label: account.name,
@@ -257,9 +270,9 @@ export function InvestmentOperationForm({
     mode === InvestmentFormMode.VALUATION
       ? buildUnitPricePreview({
           quantity: holding.quantity,
-          unitPrice: unitPrice ?? null,
+          unitPrice: usesUnitPrice ? unitPrice : value,
           costBasis: holding.remainingTotalCostBasis,
-          manualTotalValue: holding.assetClass === InvestmentAssetClass.BOND,
+          manualTotalValue: !usesUnitPrice,
         })
       : null;
   const disposalPreview =
@@ -270,15 +283,19 @@ export function InvestmentOperationForm({
           executionPricePerUnit: unitPrice ?? null,
           remainingCostBasis: holding.remainingTotalCostBasis,
           feeAmount: feeValue ?? null,
-          manualTotalValue: holding.assetClass === InvestmentAssetClass.BOND,
+          manualTotalValue: !usesUnitPrice,
+          accountingMethod: holding.accountingMethod,
+          lots: holding.lots,
         })
       : null;
-  const derivedValue =
-    mode === InvestmentFormMode.VALUATION
-      ? (valuationPreview?.totalValue ?? null)
-      : mode === InvestmentFormMode.SELL
-        ? (disposalPreview?.grossProceeds ?? null)
-        : value;
+  const buyPreview =
+    mode === InvestmentFormMode.BUY && usesUnitPrice
+      ? buildUnitPricePreview({
+          quantity: quantity ?? "",
+          unitPrice: unitPrice ?? null,
+          costBasis: holding.remainingTotalCostBasis,
+        })
+      : null;
   const money = (value: number | null | undefined) =>
     value == null
       ? t("unknown")
@@ -307,6 +324,10 @@ export function InvestmentOperationForm({
 
   const submit = handleSubmit((submitted) => {
     setError(null);
+    if (!idempotencyKey) {
+      setError("invalid");
+      return;
+    }
     const fee = submitted.hasFee
       ? [
           {
@@ -331,7 +352,7 @@ export function InvestmentOperationForm({
     const common = {
       effectiveDate: submitted.date,
       notes: submitted.notes || null,
-      idempotencyKey: `${INVESTMENT_CREATE_IDEMPOTENCY_KEY_PREFIX}:${crypto.randomUUID()}`,
+      idempotencyKey,
     };
     startTransition(async () => {
       let result;
@@ -341,7 +362,10 @@ export function InvestmentOperationForm({
             holdingId: holding.id,
             cashAccountId: submitted.accountId,
             boughtQuantity: submitted.quantity,
-            executedValueVnd: submitted.value as number,
+            unitPriceVnd: usesUnitPrice
+              ? (submitted.unitPrice as number)
+              : null,
+            totalValueVnd: usesUnitPrice ? null : (submitted.value as number),
             quotedValueVnd: submitted.quote,
             fees: fee,
             ...common,
@@ -352,7 +376,10 @@ export function InvestmentOperationForm({
             holdingId: holding.id,
             cashAccountId: submitted.accountId,
             soldQuantity: submitted.quantity,
-            executedValueVnd: derivedValue as number,
+            unitPriceVnd: usesUnitPrice
+              ? (submitted.unitPrice as number)
+              : null,
+            totalValueVnd: usesUnitPrice ? null : (submitted.value as number),
             quotedValueVnd: submitted.quote,
             fees: fee,
             ...common,
@@ -385,7 +412,10 @@ export function InvestmentOperationForm({
         case InvestmentFormMode.VALUATION:
           result = await recordInvestmentValuationAction({
             holdingId: holding.id,
-            valueVnd: derivedValue as number,
+            unitPriceVnd: usesUnitPrice
+              ? (submitted.unitPrice as number)
+              : null,
+            totalValueVnd: usesUnitPrice ? null : (submitted.value as number),
             valuationDate: submitted.date,
             source: InvestmentValuationSource.MANUAL,
             notes: submitted.notes || null,
@@ -398,6 +428,7 @@ export function InvestmentOperationForm({
         return;
       }
       reset(defaults);
+      setIdempotencyKey(null);
       router.replace(
         `${moneyInvestmentPath(result.receipt.sourceHoldingId ?? holding.id)}?receipt=${result.receipt.correlationId}`,
       );
@@ -407,6 +438,11 @@ export function InvestmentOperationForm({
     void handleSubmit(
       () => {
         setError(null);
+        setIdempotencyKey(
+          (current) =>
+            current ??
+            `${INVESTMENT_CREATE_IDEMPOTENCY_KEY_PREFIX}:${crypto.randomUUID()}`,
+        );
         setConfirming(true);
       },
       () => setError("invalid"),
@@ -446,13 +482,17 @@ export function InvestmentOperationForm({
                   : mode === InvestmentFormMode.SELL
                     ? tUx(ux.disposalPriceLabelKey)
                     : tUx(ux.priceLabelKey),
-              value: display(
-                mode === InvestmentFormMode.VALUATION ||
-                  mode === InvestmentFormMode.SELL
-                  ? unitPrice
-                  : value,
-              ),
+              value: display(usesUnitPrice ? unitPrice : value),
             },
+            ...(buyPreview
+              ? [
+                  {
+                    id: "derived-buy-value",
+                    label: t("derivedCurrentValue"),
+                    value: money(buyPreview.totalValue),
+                  },
+                ]
+              : []),
             ...(valuationPreview
               ? [
                   {
@@ -603,8 +643,10 @@ export function InvestmentOperationForm({
               error={fieldError("destinationQuantity")}
             />
           ) : null}
-          {mode === InvestmentFormMode.VALUATION ||
-          mode === InvestmentFormMode.SELL ? (
+          {usesUnitPrice &&
+          (mode === InvestmentFormMode.VALUATION ||
+            mode === InvestmentFormMode.SELL ||
+            mode === InvestmentFormMode.BUY) ? (
             <ControlledField
               control={control}
               field={{
@@ -811,7 +853,10 @@ export function InvestmentOperationForm({
             <Button
               className="w-full"
               variant="secondary"
-              onPress={() => setConfirming(false)}
+              onPress={() => {
+                setConfirming(false);
+                setIdempotencyKey(null);
+              }}
             >
               {t("edit")}
             </Button>

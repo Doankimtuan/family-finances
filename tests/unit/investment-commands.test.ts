@@ -40,7 +40,7 @@ describe("Investments command boundary", () => {
         holdingId,
         cashAccountId: accountId,
         soldQuantity: "0",
-        executedValueVnd: 100_000,
+        unitPriceVnd: 100_000,
         effectiveDate: "2026-08-10",
         idempotencyKey: "investment:test:sell",
       }).success,
@@ -68,7 +68,7 @@ describe("Investments command boundary", () => {
     expect(
       investmentValuationInputSchema.safeParse({
         holdingId,
-        valueVnd: -1,
+        totalValueVnd: -1,
         valuationDate: "2026-08-10",
         source: "manual",
         idempotencyKey: "investment:test:valuation",
@@ -85,7 +85,7 @@ describe("Investments command boundary", () => {
       holdingId,
       cashAccountId: accountId,
       boughtQuantity: "0.000000000000000001",
-      executedValueVnd: 100_000,
+      unitPriceVnd: 100_000,
       effectiveDate: "2026-08-10",
       idempotencyKey: "investment:test:gate",
     });
@@ -129,7 +129,7 @@ describe("Investments command boundary", () => {
       holdingId,
       cashAccountId: accountId,
       boughtQuantity: "0.2",
-      executedValueVnd: 200_000,
+      unitPriceVnd: 1_000_000,
       effectiveDate: "2026-08-10",
       fees: [
         {
@@ -195,7 +195,7 @@ describe("Investments command boundary", () => {
         holdingId,
         cashAccountId: accountId,
         boughtQuantity: "0.2",
-        executedValueVnd: 200_000,
+        unitPriceVnd: 1_000_000,
         effectiveDate: "2026-08-10",
         idempotencyKey: "investment:test:domain-failure",
       }),
@@ -224,7 +224,7 @@ describe("Investments command boundary", () => {
       holdingId,
       cashAccountId: accountId,
       boughtQuantity: "0.2",
-      executedValueVnd: 200_000,
+      unitPriceVnd: 1_000_000,
       effectiveDate: "2026-08-10",
       idempotencyKey: "investment:test:rpc-failure",
     });
@@ -265,7 +265,7 @@ describe("Investments command boundary", () => {
       holdingId,
       cashAccountId: accountId,
       boughtQuantity: "0.2",
-      executedValueVnd: 200_000,
+      unitPriceVnd: 1_000_000,
       effectiveDate: "2026-08-10",
       idempotencyKey: "investment:test:thrown-failure",
     });

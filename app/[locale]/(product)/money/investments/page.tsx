@@ -10,8 +10,9 @@ import { listInvestmentPortfolio } from "@/modules/investments/application";
 import { Page } from "@/shared/patterns/page";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { EmptyState } from "@/shared/patterns/empty-state";
-import { StatusAlert } from "@/shared/ui/status-alert";
 import { InvestmentOverviewClient } from "./investment-overview-client";
+import { InvestmentReadError } from "./investment-read-error";
+import { MoneyOfflineBanner } from "../money-offline-banner";
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -32,8 +33,9 @@ export default async function InvestmentsPage({ params }: Props) {
       testId="money-investments"
       topBar={<TopAppBar title={t("title")} subtitle={t("subtitle")} />}
     >
+      <MoneyOfflineBanner />
       {!portfolio ? (
-        <StatusAlert variant="danger" title={t("loadError")} />
+        <InvestmentReadError />
       ) : portfolio.activeHoldings.length === 0 &&
         portfolio.closedHoldings.length === 0 ? (
         <EmptyState

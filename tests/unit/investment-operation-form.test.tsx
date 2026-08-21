@@ -81,9 +81,10 @@ function fillValidBuy() {
   fireEvent.change(screen.getByLabelText("opening.quantityLabel"), {
     target: { value: "2" },
   });
-  fireEvent.change(screen.getByLabelText("executedValue"), {
-    target: { value: "200000" },
-  });
+  fireEvent.change(
+    screen.getByLabelText("ux.assetClasses.stock.disposalPriceLabel"),
+    { target: { value: "100000" } },
+  );
 }
 
 describe("InvestmentOperationForm", () => {
@@ -125,7 +126,8 @@ describe("InvestmentOperationForm", () => {
         holdingId: HOLDING_ID,
         cashAccountId: ACCOUNT_ID,
         boughtQuantity: "2",
-        executedValueVnd: 200_000,
+        unitPriceVnd: 100_000,
+        totalValueVnd: null,
         fees: [],
       }),
     );
@@ -134,7 +136,9 @@ describe("InvestmentOperationForm", () => {
     );
     fireEvent.click(screen.getByText("edit"));
     expect(screen.getByLabelText("opening.quantityLabel")).toHaveValue("");
-    expect(screen.getByLabelText("executedValue")).toHaveValue("");
+    expect(
+      screen.getByLabelText("ux.assetClasses.stock.disposalPriceLabel"),
+    ).toHaveValue("");
   });
 
   it("switches fee input by source without submitting stale hidden values", async () => {

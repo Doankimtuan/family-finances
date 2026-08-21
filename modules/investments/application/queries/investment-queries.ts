@@ -12,6 +12,7 @@ import {
   InvestmentActivityType,
   type InvestmentOperationType,
   type InvestmentVisibilityContext,
+  type InvestmentValuationSource,
   INVESTMENT_OPERATION,
 } from "../investment-constants";
 import { deriveUnrealizedResult } from "../investment-accounting";
@@ -25,6 +26,7 @@ import {
   isFinancialScope,
 } from "@/modules/shared-kernel/application/financial-scope";
 import { resolveFinancialCapabilities } from "@/modules/shared-kernel/application/financial-ownership";
+import { AccountingMethod, type InvestmentLot } from "../../domain";
 
 type HoldingRow = {
   id: string;
@@ -41,6 +43,7 @@ type HoldingRow = {
   notes: string | null;
   financial_scope?: string | null;
   owner_membership_id?: string | null;
+  accounting_method?: string | null;
 };
 
 type ValuationRow = {
@@ -48,6 +51,20 @@ type ValuationRow = {
   value_vnd: string | number;
   valuation_date: string;
   created_at: string;
+  quantity: string | number;
+  unit_price_vnd: string | number | null;
+  source: string;
+};
+
+type LotRow = {
+  id: string;
+  position_id: string;
+  source_event_id: string | null;
+  acquired_at: string;
+  original_quantity: string | number;
+  remaining_quantity: string | number;
+  unit_cost: string | number;
+  total_cost: string | number;
 };
 
 type OperationRow = {
@@ -67,6 +84,7 @@ type OperationRow = {
   correlation_id: string;
   effective_date: string;
   investment_fees?: Array<{ fee_value_vnd: string | number }> | null;
+  unit_price_vnd: string | number | null;
 };
 
 function nullableNumber(value: string | number | null | undefined) {
@@ -78,6 +96,7 @@ function mapHolding(
   valuation?: ValuationRow,
   activeMembershipId = "",
   activeMembershipIds?: ReadonlySet<string>,
+  lots: InvestmentLot[] = [],
 ): InvestmentHolding {
   const basis = nullableNumber(row.remaining_total_cost_basis);
   const currentValue = valuation ? Number(valuation.value_vnd) : null;
@@ -99,8 +118,15 @@ function mapHolding(
     remainingTotalCostBasis: basis,
     currentValue,
     currentValuationDate: valuation?.valuation_date ?? null,
+    currentValuationSource:
+      (valuation?.source as InvestmentValuationSource) ?? null,
     unrealizedResult: deriveUnrealizedResult(currentValue, basis),
     notes: row.notes,
+    accountingMethod:
+      row.accounting_method === AccountingMethod.FIFO
+        ? AccountingMethod.FIFO
+        : AccountingMethod.WEIGHTED_AVERAGE,
+    lots,
     ownership: resolveFinancialCapabilities(
       {
         financialScope,
@@ -139,6 +165,7 @@ function mapActivity(row: OperationRow): InvestmentActivity {
       (sum, fee) => sum + Number(fee.fee_value_vnd),
       0,
     ),
+    unitPriceVnd: nullableNumber(row.unit_price_vnd),
   };
 }
 
@@ -185,25 +212,35 @@ async function loadHoldings(): Promise<InvestmentHolding[] | null> {
     const [
       { data: holdings, error },
       { data: valuations, error: valuationError },
+      { data: lots, error: lotError },
     ] = await Promise.all([
       supabase
         .from("investment_holdings")
         .select(
-          "id, household_id, name, symbol, asset_class, provider_custodian, visibility_context, lifecycle_status, history_status, quantity, remaining_total_cost_basis, notes, financial_scope, owner_membership_id",
+          "id, household_id, name, symbol, asset_class, provider_custodian, visibility_context, lifecycle_status, history_status, quantity, remaining_total_cost_basis, notes, financial_scope, owner_membership_id, accounting_method",
         )
         .eq("household_id", gate.householdId)
         .order("created_at", { ascending: true }),
       supabase
         .from("investment_valuations")
-        .select("holding_id, value_vnd, valuation_date, created_at")
+        .select(
+          "holding_id, value_vnd, valuation_date, created_at, quantity, unit_price_vnd, source",
+        )
         .eq("household_id", gate.householdId)
         .order("valuation_date", { ascending: false })
         .order("created_at", { ascending: false }),
+      supabase
+        .from("investment_lots")
+        .select(
+          "id, position_id, source_event_id, acquired_at, original_quantity, remaining_quantity, unit_cost, total_cost",
+        )
+        .eq("household_id", gate.householdId)
+        .order("acquired_at", { ascending: true }),
     ]);
-    if (error || valuationError) {
+    if (error || valuationError || lotError) {
       logActionFailure({
         operation: INVESTMENT_OPERATION.LIST_HOLDINGS,
-        error: error ?? valuationError,
+        error: error ?? valuationError ?? lotError,
         context: { householdId: gate.householdId },
       });
       return null;
@@ -219,12 +256,28 @@ async function loadHoldings(): Promise<InvestmentHolding[] | null> {
     for (const row of (valuations ?? []) as ValuationRow[]) {
       if (!latest.has(row.holding_id)) latest.set(row.holding_id, row);
     }
+    const lotsByHolding = new Map<string, InvestmentLot[]>();
+    for (const row of (lots ?? []) as LotRow[]) {
+      const holdingLots = lotsByHolding.get(row.position_id) ?? [];
+      holdingLots.push({
+        id: row.id,
+        positionId: row.position_id,
+        sourceEventId: row.source_event_id,
+        acquiredAt: row.acquired_at,
+        originalQuantity: String(row.original_quantity),
+        remainingQuantity: String(row.remaining_quantity),
+        unitCost: Number(row.unit_cost),
+        totalCost: Number(row.total_cost),
+      });
+      lotsByHolding.set(row.position_id, holdingLots);
+    }
     return ((holdings ?? []) as HoldingRow[]).map((row) =>
       mapHolding(
         row,
         latest.get(row.id),
         gate.membershipId,
         activeOwnerMembershipIds ?? undefined,
+        lotsByHolding.get(row.id) ?? [],
       ),
     );
   } catch (error) {
@@ -341,7 +394,7 @@ export async function listInvestmentActivities(
     let query = supabase
       .from("investment_operations")
       .select(
-        "id, operation_type, source_holding_id, destination_holding_id, source_quantity, destination_quantity, executed_value_vnd, quoted_value_vnd, source_basis_consumed, destination_basis_added, realized_result_vnd, income_kind, transaction_id, correlation_id, effective_date, investment_fees(fee_value_vnd)",
+        "id, operation_type, source_holding_id, destination_holding_id, source_quantity, destination_quantity, executed_value_vnd, quoted_value_vnd, source_basis_consumed, destination_basis_added, realized_result_vnd, income_kind, transaction_id, correlation_id, effective_date, unit_price_vnd, investment_fees(fee_value_vnd)",
       )
       .eq("household_id", gate.householdId)
       .order("effective_date", { ascending: false })
@@ -353,7 +406,9 @@ export async function listInvestmentActivities(
     }
     let valuationQuery = supabase
       .from("investment_valuations")
-      .select("id, holding_id, value_vnd, valuation_date")
+      .select(
+        "id, holding_id, value_vnd, valuation_date, quantity, unit_price_vnd",
+      )
       .eq("household_id", gate.householdId)
       .order("valuation_date", { ascending: false });
     if (holdingId) valuationQuery = valuationQuery.eq("holding_id", holdingId);
@@ -392,6 +447,7 @@ export async function listInvestmentActivities(
           correlationId: row.id,
           effectiveDate: row.valuation_date,
           feesVnd: 0,
+          unitPriceVnd: nullableNumber(row.unit_price_vnd),
         }) satisfies InvestmentActivity,
     );
     return [...operationActivities, ...valuationActivities].sort(
