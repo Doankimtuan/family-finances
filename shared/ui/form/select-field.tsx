@@ -7,6 +7,7 @@ import { FormField, formFieldA11y } from "./form-field";
 export type SelectFieldOption = {
   id: string;
   label: ReactNode;
+  textValue?: string;
 };
 
 export type SelectFieldProps = {
@@ -18,6 +19,7 @@ export type SelectFieldProps = {
   onChange: (value: string) => void;
   onBlur?: () => void;
   options: readonly SelectFieldOption[];
+  placeholder?: string;
   description?: ReactNode;
   error?: ReactNode;
   required?: boolean;
@@ -42,6 +44,7 @@ export function SelectField({
   onChange,
   onBlur,
   options,
+  placeholder,
   description,
   error,
   required,
@@ -70,6 +73,7 @@ export function SelectField({
         onBlur={onBlur}
         isDisabled={isDisabled}
         isInvalid={hasError}
+        placeholder={placeholder}
         data-testid={testId}
       >
         {/* HeroUI v3 Select strips `aria-invalid` from the trigger; the
@@ -85,7 +89,8 @@ export function SelectField({
                 key={option.id}
                 id={option.id}
                 textValue={
-                  typeof option.label === "string" ? option.label : option.id
+                  option.textValue ??
+                  (typeof option.label === "string" ? option.label : option.id)
                 }
               >
                 {option.label}

@@ -9,10 +9,11 @@ import {
   type Debt,
   type DebtPayment,
 } from "../debt-domain";
+import { DebtReadStatus } from "../debt-constants";
 import { LEDGER_OPERATION, logLedgerFailure } from "../ledger-error";
 
 const DEBT_SELECT =
-  "id, name, creditor, principal_amount, remaining_amount, currency, direction, creation_mode, start_date, due_date, note, status, origin_account_id, origin_transaction_id, is_archived, financial_scope, owner_membership_id";
+  "id, name, creditor, principal_amount, remaining_amount, opening_paid_amount, currency, direction, creation_mode, start_date, due_date, note, status, origin_account_id, origin_transaction_id, is_archived, financial_scope, owner_membership_id";
 
 async function loadDebts(): Promise<Debt[] | null> {
   const gate = await assertMoneyActionAllowed();
@@ -52,10 +53,17 @@ async function loadDebts(): Promise<Debt[] | null> {
 
 export const listDebts = cache(loadDebts);
 
-export async function getDebt(debtId: string): Promise<Debt | null> {
+export type DebtReadResult =
+  | { status: typeof DebtReadStatus.OK; debt: Debt }
+  | { status: typeof DebtReadStatus.NOT_FOUND }
+  | { status: typeof DebtReadStatus.ERROR };
+
+export async function getDebtReadResult(
+  debtId: string,
+): Promise<DebtReadResult> {
   const gate = await assertMoneyActionAllowed();
   if (!gate.ok || !debtId) {
-    return null;
+    return { status: DebtReadStatus.ERROR };
   }
   try {
     const supabase = await createSupabaseServerClient();
@@ -70,36 +78,48 @@ export async function getDebt(debtId: string): Promise<Debt | null> {
         householdId: gate.householdId,
         debtId,
       });
-      return null;
+      return { status: DebtReadStatus.ERROR };
     }
     if (data == null) {
-      return null;
+      return { status: DebtReadStatus.NOT_FOUND };
     }
     const activeOwnerMembershipIds = await listActiveMembershipIds(
       supabase,
       gate.householdId,
       data.owner_membership_id ? [data.owner_membership_id] : [],
     );
-    return mapDebtRow(
-      data,
-      gate.membershipId,
-      activeOwnerMembershipIds ?? undefined,
-    );
+    return {
+      status: DebtReadStatus.OK,
+      debt: mapDebtRow(
+        data,
+        gate.membershipId,
+        activeOwnerMembershipIds ?? undefined,
+      ),
+    };
   } catch (error) {
     logLedgerFailure(error, LEDGER_OPERATION.GET_DEBT, {
       householdId: gate.householdId,
       debtId,
     });
-    return null;
+    return { status: DebtReadStatus.ERROR };
   }
 }
 
-export async function listDebtPayments(
+export async function getDebt(debtId: string): Promise<Debt | null> {
+  const result = await getDebtReadResult(debtId);
+  return result.status === DebtReadStatus.OK ? result.debt : null;
+}
+
+export type DebtPaymentsReadResult =
+  | { status: typeof DebtReadStatus.OK; payments: DebtPayment[] }
+  | { status: typeof DebtReadStatus.ERROR };
+
+export async function listDebtPaymentsReadResult(
   debtId: string,
-): Promise<DebtPayment[] | null> {
+): Promise<DebtPaymentsReadResult> {
   const gate = await assertMoneyActionAllowed();
   if (!gate.ok || !debtId) {
-    return null;
+    return { status: DebtReadStatus.ERROR };
   }
   try {
     const supabase = await createSupabaseServerClient();
@@ -117,14 +137,24 @@ export async function listDebtPayments(
         householdId: gate.householdId,
         debtId,
       });
-      return null;
+      return { status: DebtReadStatus.ERROR };
     }
-    return (data ?? []).map(mapDebtPaymentRow);
+    return {
+      status: DebtReadStatus.OK,
+      payments: (data ?? []).map(mapDebtPaymentRow),
+    };
   } catch (error) {
     logLedgerFailure(error, LEDGER_OPERATION.LIST_DEBT_PAYMENTS, {
       householdId: gate.householdId,
       debtId,
     });
-    return null;
+    return { status: DebtReadStatus.ERROR };
   }
+}
+
+export async function listDebtPayments(
+  debtId: string,
+): Promise<DebtPayment[] | null> {
+  const result = await listDebtPaymentsReadResult(debtId);
+  return result.status === DebtReadStatus.OK ? result.payments : null;
 }

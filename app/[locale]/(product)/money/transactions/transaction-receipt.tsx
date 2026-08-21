@@ -52,6 +52,8 @@ export function TransactionReceipt({
     <div
       className="flex flex-col gap-(--space-5)"
       data-testid="transaction-receipt"
+      role="status"
+      aria-live="polite"
     >
       <div className="flex flex-col items-center gap-(--space-3) py-(--space-2)">
         <div className="flex h-14 w-14 items-center justify-center rounded-full bg-success/15">

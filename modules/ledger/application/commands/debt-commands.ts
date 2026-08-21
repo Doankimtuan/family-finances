@@ -6,19 +6,27 @@ import {
   productActionErrorFromDeniedReason,
   type ProductActionErrorCode,
 } from "@/modules/tenancy/application/product-action-error";
-import { LedgerRpcName } from "../ledger-constants";
+import { LedgerRelation, LedgerRpcName } from "../ledger-constants";
 import {
   createDebtInputSchema,
   recordDebtPaymentInputSchema,
+  updateDebtInputSchema,
   type CreateDebtInput,
   type RecordDebtPaymentInput,
+  type UpdateDebtInput,
 } from "./debt.schemas";
+import { DebtCreationMode, isDebtMovementAccountType } from "../debt-constants";
 
 export {
   createDebtInputSchema,
   recordDebtPaymentInputSchema,
+  updateDebtInputSchema,
 } from "./debt.schemas";
-export type { CreateDebtInput, RecordDebtPaymentInput } from "./debt.schemas";
+export type {
+  CreateDebtInput,
+  RecordDebtPaymentInput,
+  UpdateDebtInput,
+} from "./debt.schemas";
 import type { Result } from "@/modules/shared-kernel/application/result";
 import {
   classifyDebtRpcError,
@@ -36,6 +44,22 @@ function isDebtSuccessPayload(
   return (
     isRecord(value) && value.ok === true && typeof value.debtId === "string"
   );
+}
+
+async function hasEligibleMovementAccount(
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+  householdId: string,
+  accountId: string,
+): Promise<boolean> {
+  const { data, error } = await supabase
+    .from("accounts")
+    .select("type")
+    .eq("id", accountId)
+    .eq("household_id", householdId)
+    .eq("is_archived", false)
+    .maybeSingle();
+
+  return !error && data != null && isDebtMovementAccountType(data.type);
 }
 
 export type DebtMutationResult = Result<
@@ -74,8 +98,19 @@ export async function createDebt(
   }
   try {
     const supabase = await createSupabaseServerClient();
+    if (
+      parsed.data.creationMode === DebtCreationMode.MONEY_MOVED &&
+      parsed.data.accountId != null &&
+      !(await hasEligibleMovementAccount(
+        supabase,
+        gate.householdId,
+        parsed.data.accountId,
+      ))
+    ) {
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
+    }
     const { data, error } = await supabase.rpc(LedgerRpcName.CREATE_DEBT, {
-      p_name: parsed.data.name,
+      p_name: parsed.data.counterparty,
       p_counterparty: parsed.data.counterparty,
       p_direction: parsed.data.direction,
       p_creation_mode: parsed.data.creationMode,
@@ -118,6 +153,86 @@ export async function createDebt(
   }
 }
 
+export async function updateDebt(
+  raw: UpdateDebtInput,
+): Promise<DebtMutationResult> {
+  const parsed = updateDebtInputSchema.safeParse(raw);
+  if (!parsed.success) {
+    return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
+  }
+  const gate = await assertMoneyActionAllowed();
+  if (!gate.ok) {
+    return {
+      ok: false,
+      code: productActionErrorFromDeniedReason(gate.reason),
+    };
+  }
+
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { data: current, error: currentError } = await supabase
+      .from(LedgerRelation.LIABILITIES)
+      .select("start_date")
+      .eq("id", parsed.data.debtId)
+      .eq("household_id", gate.householdId)
+      .eq("is_archived", false)
+      .maybeSingle();
+    if (currentError) {
+      logLedgerFailure(currentError, LEDGER_OPERATION.UPDATE_DEBT_METADATA, {
+        householdId: gate.householdId,
+        debtId: parsed.data.debtId,
+      });
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    }
+    if (!current) {
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
+    }
+    if (
+      parsed.data.dueDate != null &&
+      current.start_date != null &&
+      parsed.data.dueDate < current.start_date
+    ) {
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
+    }
+    const { data, error } = await supabase
+      .from(LedgerRelation.LIABILITIES)
+      .update({
+        name: parsed.data.counterparty,
+        creditor: parsed.data.counterparty,
+        due_date: parsed.data.dueDate ?? null,
+        note: parsed.data.note?.trim() || null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", parsed.data.debtId)
+      .eq("household_id", gate.householdId)
+      .eq("is_archived", false)
+      .select("id")
+      .maybeSingle();
+
+    if (error) {
+      logLedgerFailure(error, LEDGER_OPERATION.UPDATE_DEBT_METADATA, {
+        householdId: gate.householdId,
+        debtId: parsed.data.debtId,
+      });
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    }
+    if (!data) {
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
+    }
+    return {
+      ok: true,
+      debtId: parsed.data.debtId,
+      idempotentReplay: false,
+    };
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.UPDATE_DEBT_METADATA, {
+      householdId: gate.householdId,
+      debtId: parsed.data.debtId,
+    });
+    return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+  }
+}
+
 export async function recordDebtPayment(
   raw: RecordDebtPaymentInput,
 ): Promise<DebtMutationResult> {
@@ -134,6 +249,15 @@ export async function recordDebtPayment(
   }
   try {
     const supabase = await createSupabaseServerClient();
+    if (
+      !(await hasEligibleMovementAccount(
+        supabase,
+        gate.householdId,
+        parsed.data.accountId,
+      ))
+    ) {
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
+    }
     const { data, error } = await supabase.rpc(
       LedgerRpcName.RECORD_DEBT_PAYMENT,
       {

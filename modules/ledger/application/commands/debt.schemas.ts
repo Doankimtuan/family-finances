@@ -38,10 +38,24 @@ export const createDebtFormSchema = z
 export type CreateDebtFormValues = z.input<typeof createDebtFormSchema>;
 
 export const createDebtInputSchema = createDebtFormSchema.extend({
-  name: z.string().trim().min(1).max(80),
+  // Compatibility for older callers; the stored title comes from counterparty.
+  name: z.string().trim().min(1).max(80).optional(),
   idempotencyKey: z.string().trim().min(1).max(200),
 });
 export type CreateDebtInput = z.input<typeof createDebtInputSchema>;
+
+export const updateDebtFormSchema = z.object({
+  counterparty: z.string().trim().min(1).max(80),
+  dueDate: z.string().regex(ISO_DATE_PATTERN).nullable().optional(),
+  note: z.string().trim().max(200).optional(),
+});
+
+export const updateDebtInputSchema = updateDebtFormSchema.extend({
+  debtId: z.string().uuid(),
+});
+
+export type UpdateDebtFormValues = z.input<typeof updateDebtFormSchema>;
+export type UpdateDebtInput = z.input<typeof updateDebtInputSchema>;
 
 const recordDebtPaymentFieldsSchema = z.object({
   amount: z.number().finite().int().positive(),

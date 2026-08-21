@@ -5,7 +5,7 @@ import { listActiveMembershipIds } from "@/modules/tenancy/application/list-acti
 import { mapAccountRow, type LedgerAccount } from "../account-types";
 import { applyTransactionDeltas } from "../transaction-types";
 import {
-  AccountType,
+  ACCOUNT_TYPE_LIQUID_VALUES,
   DEFAULT_CURRENCY,
   TRANSACTION_BALANCE_STATUS_VALUES,
 } from "../ledger-constants";
@@ -31,7 +31,7 @@ async function loadAccounts(options: {
       .order("created_at", { ascending: true });
 
     if (!options.includeCreditCards) {
-      accountsQuery = accountsQuery.neq("type", AccountType.CREDIT_CARD);
+      accountsQuery = accountsQuery.in("type", [...ACCOUNT_TYPE_LIQUID_VALUES]);
     }
 
     const [{ data: household }, { data: rows, error }, { data: txRows }] =
@@ -89,7 +89,7 @@ async function loadAccounts(options: {
   }
 }
 
-/** Liquid wallets only — excludes credit cards (BR-01). */
+/** Liquid wallets only — excludes credit cards and internal products (BR-01). */
 async function loadLiquidAccounts(): Promise<{
   currency: string;
   accounts: LedgerAccount[];

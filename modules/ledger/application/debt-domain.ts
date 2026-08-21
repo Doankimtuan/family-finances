@@ -29,6 +29,7 @@ export type Debt = {
   counterparty: string;
   principalAmount: number;
   remainingAmount: number;
+  openingPaidAmount: number;
   currency: string;
   direction: DebtDirectionValue;
   creationMode: DebtCreationModeValue;
@@ -59,6 +60,14 @@ export type DebtProgress = {
   remainingAmount: number;
   percent: number;
   state: DebtProgressStateValue;
+};
+
+export type DebtPaymentReconciliation = {
+  derivedPaidAmount: number;
+  recordedPaidAmount: number;
+  openingPaidAmount: number;
+  unallocatedPaidAmount: number;
+  isReconciled: boolean;
 };
 
 export type DebtDue = {
@@ -154,6 +163,7 @@ export function mapDebtRow(
     creditor: string | null;
     principal_amount: number | string;
     remaining_amount: number | string;
+    opening_paid_amount?: number | string | null;
     currency: string;
     direction?: string | null;
     creation_mode?: string | null;
@@ -175,6 +185,10 @@ export function mapDebtRow(
     remainingAmount,
     asWholeMoney(row.principal_amount),
   );
+  const openingPaidAmount = Math.min(
+    principalAmount,
+    Math.max(0, asWholeMoney(row.opening_paid_amount)),
+  );
   const rawFinancialScope = row.financial_scope ?? "";
   const financialScope = isFinancialScope(rawFinancialScope)
     ? rawFinancialScope
@@ -185,6 +199,7 @@ export function mapDebtRow(
     counterparty: row.creditor?.trim() || row.name,
     principalAmount,
     remainingAmount,
+    openingPaidAmount,
     currency: row.currency,
     direction: asDebtDirection(row.direction),
     creationMode: asDebtCreationMode(row.creation_mode),
@@ -247,6 +262,31 @@ export function getDebtProgress(
     remainingAmount,
     percent: debtProgressPercent(principal, paidAmount, remainingAmount),
     state: debtProgressState(paidAmount, remainingAmount),
+  };
+}
+
+export function getDebtPaymentReconciliation(
+  debt: Pick<Debt, "principalAmount" | "remainingAmount" | "openingPaidAmount">,
+  payments: Pick<DebtPayment, "amount">[],
+): DebtPaymentReconciliation {
+  const derivedPaidAmount = getDebtProgress(debt).paidAmount;
+  const recordedPaidAmount = payments.reduce(
+    (total, payment) => total + Math.max(0, payment.amount),
+    0,
+  );
+  const openingPaidAmount = Math.max(0, debt.openingPaidAmount);
+  const unallocatedPaidAmount = Math.max(
+    0,
+    derivedPaidAmount - openingPaidAmount - recordedPaidAmount,
+  );
+  return {
+    derivedPaidAmount,
+    recordedPaidAmount,
+    openingPaidAmount,
+    unallocatedPaidAmount,
+    isReconciled:
+      unallocatedPaidAmount === 0 &&
+      openingPaidAmount + recordedPaidAmount === derivedPaidAmount,
   };
 }
 

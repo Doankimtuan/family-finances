@@ -1,3 +1,4 @@
+import { FinancialValue } from "@/shared/patterns/financial-value";
 import { formatCurrency, formatDate } from "@/shared/i18n/formatters";
 import { Progress } from "@/shared/ui/progress";
 import { StatusBadge, type StatusBadgeTone } from "@/shared/ui/status-badge";
@@ -5,7 +6,6 @@ import { Text } from "@/shared/ui/text";
 import {
   DebtDirection,
   DebtDueState,
-  DebtProgressState,
   type DebtDue,
   type DebtProgress,
 } from "@/modules/ledger/application";
@@ -19,10 +19,8 @@ type DueLabels = {
 };
 
 type ProgressLabels = {
-  paid: (amount: string, percent: number) => string;
-  received: (amount: string, percent: number) => string;
-  noPayment: string;
-  completed: string;
+  paid: string;
+  received: string;
 };
 
 const DUE_TONE: Record<DebtDueState, StatusBadgeTone> = {
@@ -84,30 +82,21 @@ export function DebtProgressSummary({
   const amountLabel = formatCurrency(progress.paidAmount, currency, locale, {
     maximumFractionDigits: 0,
   });
-  if (progress.state === DebtProgressState.COMPLETED) {
-    return <StatusBadge tone="positive">{labels.completed}</StatusBadge>;
-  }
-  if (progress.state === DebtProgressState.NOT_STARTED) {
-    return (
-      <Text size="sm" tone="secondary">
-        {labels.noPayment}
-      </Text>
-    );
-  }
   const progressLabel =
-    direction === DebtDirection.BORROWED
-      ? labels.paid(amountLabel, progress.percent)
-      : labels.received(amountLabel, progress.percent);
+    direction === DebtDirection.BORROWED ? labels.paid : labels.received;
   return (
     <div className="flex flex-col gap-(--space-2)">
       <Text size="sm" tone="secondary">
-        {progressLabel}
+        {progressLabel} <FinancialValue>{amountLabel}</FinancialValue>
+        {" · "}
+        {progress.percent}%
       </Text>
       <Progress
         value={progress.percent}
         max={100}
-        label={progressLabel}
+        label={`${progressLabel} ${progress.percent}%`}
         showLabel={false}
+        trackClassName="h-1.5"
       />
     </div>
   );

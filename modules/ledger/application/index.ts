@@ -374,6 +374,8 @@ export {
   ACCOUNT_TYPE_VALUES,
   ACCOUNT_TYPE_LIQUID_VALUES,
   ACCOUNT_TYPE_CAPTURE_VALUES,
+  isDebtMovementAccountType,
+  isLiquidAccountType,
   isCaptureAccountType,
   ACCOUNT_TYPE_CREATE_OPTIONS,
   CardBillingMonthStatus,
@@ -428,21 +430,34 @@ export {
   type LedgerActionErrorCode,
 } from "./ledger-constants";
 
-export { listDebts, getDebt, listDebtPayments } from "./queries/debt-queries";
+export {
+  listDebts,
+  getDebt,
+  getDebtReadResult,
+  listDebtPayments,
+  listDebtPaymentsReadResult,
+  type DebtReadResult,
+  type DebtPaymentsReadResult,
+} from "./queries/debt-queries";
 export {
   createDebt,
   createDebtInputSchema,
   recordDebtPayment,
   recordDebtPaymentInputSchema,
+  updateDebt,
+  updateDebtInputSchema,
   type CreateDebtInput,
   type DebtMutationResult,
   type RecordDebtPaymentInput,
+  type UpdateDebtInput,
 } from "./commands/debt-commands";
 export {
   createDebtFormSchema,
   recordDebtPaymentFormSchema,
+  updateDebtFormSchema,
   type CreateDebtFormValues,
   type RecordDebtPaymentFormValues,
+  type UpdateDebtFormValues,
 } from "./commands/debt.schemas";
 export type {
   Debt,
@@ -452,6 +467,7 @@ export type {
   DebtSummary,
   DebtViewModel,
   DebtPaymentReview,
+  DebtPaymentReconciliation,
 } from "./debt-domain";
 export {
   buildDebtSummary,
@@ -460,6 +476,7 @@ export {
   getDebtDueState,
   getDebtDueInfo,
   getDebtProgress,
+  getDebtPaymentReconciliation,
   mapDebtPaymentRow,
   mapDebtRow,
 } from "./debt-domain";
@@ -468,10 +485,12 @@ export {
   DebtDirection,
   DebtDueState,
   DebtPaymentDirection,
+  DebtReadStatus,
   DebtStatus,
   DebtProgressState,
   DEBT_NO_DUE_SORT_DATE,
   DEBT_CREATE_IDEMPOTENCY_KEY_PREFIX,
   DEBT_PAYMENT_IDEMPOTENCY_KEY_PREFIX,
+  DEBT_HALF_PAYMENT_PERCENT,
   createDebtIdempotencyKey,
 } from "./ledger-constants";

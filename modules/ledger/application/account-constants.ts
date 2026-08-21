@@ -34,6 +34,14 @@ export const ACCOUNT_TYPE_LIQUID_VALUES = [
   AccountType.OTHER,
 ] as const;
 
+const ACCOUNT_TYPE_LIQUID_SET = new Set<string>(ACCOUNT_TYPE_LIQUID_VALUES);
+
+export type LiquidAccountType = (typeof ACCOUNT_TYPE_LIQUID_VALUES)[number];
+
+export function isLiquidAccountType(type: string): type is LiquidAccountType {
+  return ACCOUNT_TYPE_LIQUID_SET.has(type);
+}
+
 /** Account types accepted by the ordinary transaction capture picker. */
 export const ACCOUNT_TYPE_CAPTURE_VALUES = [
   AccountType.CASH,

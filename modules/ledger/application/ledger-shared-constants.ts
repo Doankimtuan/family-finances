@@ -114,6 +114,7 @@ export const LEDGER_OPERATION = {
   STOP_CREDIT_CARD_INSTALLMENT: "stopCreditCardInstallment",
   UPDATE_TRANSACTION_TAG: "updateTransactionTag",
   UPDATE_ACCOUNT: "updateAccount",
+  UPDATE_DEBT_METADATA: "updateDebtMetadata",
   UPDATE_LOAN_INTEREST_RATE: "updateLoanInterestRate",
   UPDATE_LOAN_METADATA: "updateLoanMetadata",
 } as const;

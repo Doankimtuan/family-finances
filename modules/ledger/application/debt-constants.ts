@@ -1,5 +1,17 @@
 /** Informal household debt values and idempotency helpers. */
 
+import {
+  isLiquidAccountType,
+  type LiquidAccountType,
+} from "./account-constants";
+
+/** Debt movement accounts reuse the canonical liquid-account contract. */
+export function isDebtMovementAccountType(
+  type: string,
+): type is LiquidAccountType {
+  return isLiquidAccountType(type);
+}
+
 /** Informal personal-debt relationship from the household's perspective. */
 export const DebtDirection = {
   BORROWED: "borrowed",
@@ -29,6 +41,15 @@ export const DebtStatus = {
   COMPLETED: "completed",
   ARCHIVED: "archived",
 } as const;
+
+export const DebtReadStatus = {
+  OK: "ok",
+  NOT_FOUND: "not_found",
+  ERROR: "error",
+} as const;
+
+export type DebtReadStatus =
+  (typeof DebtReadStatus)[keyof typeof DebtReadStatus];
 export type DebtStatus = (typeof DebtStatus)[keyof typeof DebtStatus];
 
 /** Direction of a principal settlement record. */
@@ -60,6 +81,7 @@ export type DebtProgressState =
 export const DEBT_NO_DUE_SORT_DATE = "9999-12-31";
 export const DEBT_CREATE_IDEMPOTENCY_KEY_PREFIX = "debt-create:";
 export const DEBT_PAYMENT_IDEMPOTENCY_KEY_PREFIX = "debt-payment:";
+export const DEBT_HALF_PAYMENT_PERCENT = 50;
 
 /** Compatibility markers for legacy debt/liability RPC errors. */
 export const DEBT_LEGACY_RPC_ERROR_MARKERS = [

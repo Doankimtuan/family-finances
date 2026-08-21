@@ -19,6 +19,7 @@ export type MoneyProductMutationSuccess = {
   futureEntriesBefore?: number;
   futureEntriesAfter?: number;
   historicalUnchanged?: boolean;
+  idempotentReplay?: boolean;
 };
 
 export type MoneyProductMutationResult = Result<

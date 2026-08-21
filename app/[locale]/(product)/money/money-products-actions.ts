@@ -5,6 +5,7 @@ import {
   createDebt,
   recordLiabilityPayment,
   recordDebtPayment,
+  updateDebt,
   createLoan,
   recordLoanPayment,
   updateLoanMetadata,
@@ -15,6 +16,7 @@ import {
   type CreateDebtInput,
   type RecordLiabilityPaymentInput,
   type RecordDebtPaymentInput,
+  type UpdateDebtInput,
   type CreateLoanInput,
   type RecordLoanPaymentInput,
   type UpdateLoanMetadataInput,
@@ -52,6 +54,7 @@ export type MoneyProductActionState =
       futureEntriesBefore?: number;
       futureEntriesAfter?: number;
       historicalUnchanged?: boolean;
+      idempotentReplay?: boolean;
     }
   | { status: typeof ProductActionStatus.ERROR; code: ProductActionErrorCode };
 
@@ -76,6 +79,7 @@ function toState(result: MoneyProductMutationResult): MoneyProductActionState {
       futureEntriesBefore: result.futureEntriesBefore,
       futureEntriesAfter: result.futureEntriesAfter,
       historicalUnchanged: result.historicalUnchanged,
+      idempotentReplay: result.idempotentReplay,
     };
   }
   return { status: ProductActionStatus.ERROR, code: result.code };
@@ -104,6 +108,7 @@ export async function createDebtAction(
     status: ProductActionStatus.SUCCESS,
     id: result.debtId,
     transactionId: result.transactionId,
+    idempotentReplay: result.idempotentReplay,
   };
 }
 
@@ -122,7 +127,18 @@ export async function recordDebtPaymentAction(
     amount: result.amount,
     remainingPrincipal: result.remainingAmount,
     completed: result.completed,
+    idempotentReplay: result.idempotentReplay,
   };
+}
+
+export async function updateDebtAction(
+  input: UpdateDebtInput,
+): Promise<MoneyProductActionState> {
+  const result = await updateDebt(input);
+  if (!result.ok) {
+    return { status: ProductActionStatus.ERROR, code: result.code };
+  }
+  return { status: ProductActionStatus.SUCCESS, id: result.debtId };
 }
 
 /** @deprecated Use createSavingAction from savings-actions. */

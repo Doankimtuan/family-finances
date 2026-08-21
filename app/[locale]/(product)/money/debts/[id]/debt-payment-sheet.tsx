@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
+import { moneyTransactionPath } from "@/modules/tenancy/application/app-path";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import {
   buildDebtPaymentReview,
@@ -11,6 +12,7 @@ import {
 } from "@/modules/ledger/application/debt-domain";
 import {
   DebtDirection,
+  DEBT_HALF_PAYMENT_PERCENT,
   DEBT_PAYMENT_IDEMPOTENCY_KEY_PREFIX,
   MoneyPaymentFlowStep,
   createDebtIdempotencyKey,
@@ -30,7 +32,9 @@ import { formatCurrency, formatDate } from "@/shared/i18n/formatters";
 import { MotionStep } from "@/shared/motion";
 import { Amount } from "@/shared/patterns/amount";
 import { AmountField } from "@/shared/patterns/amount-field";
+import { FinancialValue } from "@/shared/patterns/financial-value";
 import { ConfirmSummary } from "@/shared/patterns/confirm-summary";
+import { TransactionReceipt } from "../../transactions/transaction-receipt";
 import { DatePickerField, SelectField } from "@/shared/ui/form";
 import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
 import { Sheet } from "@/shared/patterns/sheet";
@@ -41,7 +45,7 @@ import { StatusAlert } from "@/shared/ui/status-alert";
 import { Text } from "@/shared/ui/text";
 import { recordDebtPaymentAction } from "../../money-products-actions";
 
-type AccountOption = { id: string; name: string };
+type AccountOption = { id: string; name: string; balance: number };
 type DebtPaymentSheetProps = {
   debtId: string;
   direction: DebtDirection;
@@ -49,7 +53,18 @@ type DebtPaymentSheetProps = {
   currency: string;
   locale: string;
   accounts: AccountOption[];
+  accountsLoadFailed: boolean;
   today: string;
+};
+
+type DebtPaymentReceipt = {
+  transactionId: string;
+  amount: number;
+  accountName: string;
+  effectiveDate: string;
+  remainingAmount: number;
+  completed: boolean;
+  idempotentReplay: boolean;
 };
 
 export function DebtPaymentSheet({
@@ -59,6 +74,7 @@ export function DebtPaymentSheet({
   currency,
   locale,
   accounts,
+  accountsLoadFailed,
   today,
 }: DebtPaymentSheetProps) {
   const t = useTranslations("money.debtDetail");
@@ -67,6 +83,7 @@ export function DebtPaymentSheet({
   const { online } = useOnlineStatusClient();
   const [isOpen, setIsOpen] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
+  const [receipt, setReceipt] = useState<DebtPaymentReceipt | null>(null);
   const [errorCode, setErrorCode] = useState<
     ProductActionErrorCode | typeof CLIENT_ACTION_ERROR_CODE.OFFLINE | null
   >(null);
@@ -76,6 +93,7 @@ export function DebtPaymentSheet({
     register,
     handleSubmit,
     getValues,
+    setValue,
     reset: resetForm,
     formState: { errors },
   } = useForm<RecordDebtPaymentFormValues>({
@@ -100,7 +118,7 @@ export function DebtPaymentSheet({
     : t("receiptAmount");
   const paymentDateLabel = isBorrowed ? t("repaymentDate") : t("receiptDate");
   const reviewAccountLabel = isBorrowed ? t("reviewFrom") : t("reviewInto");
-  const reviewLabel = isBorrowed ? t("reviewRepayment") : t("reviewReceipt");
+  const reviewLabel = t("review");
   const confirmLabel = isBorrowed ? t("confirmRepayment") : t("confirmReceipt");
   const confirmTitle = isBorrowed
     ? t("confirmRepaymentTitle")
@@ -113,8 +131,20 @@ export function DebtPaymentSheet({
   const paymentReview =
     amount == null ? null : buildDebtPaymentReview(remainingAmount, amount);
 
+  function chooseQuickAmount(percentage: number) {
+    const quickAmount = Math.min(
+      remainingAmount,
+      Math.max(1, Math.ceil((remainingAmount * percentage) / 100)),
+    );
+    setValue("amount", quickAmount, {
+      shouldTouch: true,
+      shouldValidate: true,
+    });
+  }
+
   function reset() {
     setIsConfirming(false);
+    setReceipt(null);
     resetForm({
       amount: remainingAmount,
       accountId: "",
@@ -132,6 +162,11 @@ export function DebtPaymentSheet({
   function close() {
     reset();
     setIsOpen(false);
+  }
+
+  function finish() {
+    close();
+    router.refresh();
   }
 
   const review = handleSubmit(() => {
@@ -156,12 +191,29 @@ export function DebtPaymentSheet({
           DEBT_PAYMENT_IDEMPOTENCY_KEY_PREFIX,
         ),
       });
-      if (result.status === ProductActionStatus.SUCCESS) {
-        close();
-        router.refresh();
+      if (
+        result.status === ProductActionStatus.SUCCESS &&
+        result.transactionId &&
+        result.amount != null &&
+        result.remainingPrincipal != null
+      ) {
+        setReceipt({
+          transactionId: result.transactionId,
+          amount: result.amount,
+          accountName: selectedAccountName,
+          effectiveDate: values.effectiveDate,
+          remainingAmount: result.remainingPrincipal,
+          completed: result.completed ?? result.remainingPrincipal === 0,
+          idempotentReplay: result.idempotentReplay ?? false,
+        });
+        setIsConfirming(false);
         return;
       }
-      setErrorCode(result.code);
+      setErrorCode(
+        result.status === ProductActionStatus.ERROR
+          ? result.code
+          : PRODUCT_ACTION_ERROR_CODE.UNKNOWN,
+      );
       setIsConfirming(false);
     });
   }
@@ -185,128 +237,287 @@ export function DebtPaymentSheet({
           {errorCode ? (
             <StatusAlert variant="danger" title={tErrors(errorCode)} />
           ) : null}
-          <MotionStep
-            stepKey={
-              isConfirming
-                ? MoneyPaymentFlowStep.CONFIRM
-                : MoneyPaymentFlowStep.FORM
-            }
-          >
-            {isConfirming ? (
-              <PaymentReview
-                title={confirmTitle}
-                hint={t("reviewHint")}
-                amountLabel={paymentAmountLabel}
-                accountLabel={reviewAccountLabel}
-                accountName={selectedAccountName}
-                dateLabel={paymentDateLabel}
-                effectiveDate={effectiveDate}
-                afterLabel={t("afterPayment")}
-                remainingLabel={remainingContextLabel}
-                review={paymentReview}
-                currency={currency}
-                locale={locale}
-              />
-            ) : (
-              <>
-                <Amount
-                  size="md"
-                  label={remainingContextLabel}
-                  amountLabel={formatCurrency(
-                    remainingAmount,
+          {receipt ? (
+            <TransactionReceipt
+              title={
+                isBorrowed
+                  ? t("receipt.repaymentTitle")
+                  : t("receipt.receiptTitle")
+              }
+              outcome={
+                receipt.idempotentReplay
+                  ? t("receipt.replay")
+                  : isBorrowed
+                    ? t("receipt.repaymentOutcome")
+                    : t("receipt.receiptOutcome")
+              }
+              rows={[
+                {
+                  id: "direction",
+                  label: t("receipt.direction"),
+                  value: isBorrowed
+                    ? t("receipt.repaymentDirection")
+                    : t("receipt.receiptDirection"),
+                  kind: "text",
+                },
+                {
+                  id: "amount",
+                  label: paymentAmountLabel,
+                  value: formatCurrency(receipt.amount, currency, locale, {
+                    maximumFractionDigits: 0,
+                  }),
+                  kind: "financial",
+                },
+                {
+                  id: "account",
+                  label: isBorrowed
+                    ? t("receipt.source")
+                    : t("receipt.destination"),
+                  value: receipt.accountName,
+                  kind: "text",
+                },
+                {
+                  id: "date",
+                  label: paymentDateLabel,
+                  value: formatDate(
+                    new Date(`${receipt.effectiveDate}T00:00:00Z`),
+                    locale,
+                    { day: "2-digit", month: "2-digit", year: "numeric" },
+                  ),
+                  kind: "text",
+                },
+                {
+                  id: "remaining",
+                  label: remainingContextLabel,
+                  value: formatCurrency(
+                    receipt.remainingAmount,
                     currency,
                     locale,
-                  )}
+                    { maximumFractionDigits: 0 },
+                  ),
+                  kind: "financial",
+                },
+                ...(receipt.completed
+                  ? [
+                      {
+                        id: "completed",
+                        label: t("receipt.status"),
+                        value: t("receipt.completed"),
+                        kind: "text" as const,
+                      },
+                    ]
+                  : []),
+              ]}
+              relatedRecordsTitle={t("receipt.relatedTitle")}
+              relatedRecords={[
+                {
+                  id: "transaction",
+                  label: t("receipt.viewTransaction"),
+                  href: moneyTransactionPath(receipt.transactionId),
+                },
+              ]}
+              nextActions={[
+                {
+                  id: "done",
+                  label: t("receipt.done"),
+                  variant: "primary",
+                  onPress: finish,
+                },
+              ]}
+            />
+          ) : (
+            <MotionStep
+              stepKey={
+                isConfirming
+                  ? MoneyPaymentFlowStep.CONFIRM
+                  : MoneyPaymentFlowStep.FORM
+              }
+            >
+              {isConfirming ? (
+                <PaymentReview
+                  title={confirmTitle}
+                  hint={t("reviewHint")}
+                  amountLabel={paymentAmountLabel}
+                  accountLabel={reviewAccountLabel}
+                  accountName={selectedAccountName}
+                  dateLabel={paymentDateLabel}
+                  effectiveDate={effectiveDate}
+                  afterLabel={t("afterPayment")}
+                  remainingLabel={remainingContextLabel}
+                  review={paymentReview}
+                  currency={currency}
+                  locale={locale}
                 />
-                <Controller
-                  control={control}
-                  name="amount"
-                  render={({ field, fieldState }) => (
-                    <AmountField
-                      id="debt-payment-amount"
-                      label={paymentAmountLabel}
-                      value={field.value ?? null}
-                      onValueChange={field.onChange}
-                      onBlur={field.onBlur}
-                      required
-                      error={
-                        fieldState.error
-                          ? tErrors(PRODUCT_ACTION_ERROR_CODE.INVALID)
-                          : undefined
+              ) : (
+                <>
+                  <Amount
+                    size="md"
+                    label={remainingContextLabel}
+                    amountLabel={formatCurrency(
+                      remainingAmount,
+                      currency,
+                      locale,
+                    )}
+                  />
+                  <Controller
+                    control={control}
+                    name="amount"
+                    render={({ field, fieldState }) => (
+                      <AmountField
+                        id="debt-payment-amount"
+                        label={paymentAmountLabel}
+                        value={field.value ?? null}
+                        onValueChange={field.onChange}
+                        onBlur={field.onBlur}
+                        required
+                        error={
+                          fieldState.error
+                            ? tErrors(PRODUCT_ACTION_ERROR_CODE.INVALID)
+                            : undefined
+                        }
+                      />
+                    )}
+                  />
+                  <div
+                    className="flex flex-wrap gap-(--space-2)"
+                    aria-label={t("quickActions")}
+                  >
+                    <Button
+                      variant="tertiary"
+                      className="min-h-9 px-(--space-3) text-sm"
+                      onPress={() => chooseQuickAmount(100)}
+                      data-testid="debt-payment-quick-full"
+                    >
+                      {isBorrowed ? t("quickRepayAll") : t("quickReceiveAll")}
+                    </Button>
+                    <Button
+                      variant="tertiary"
+                      className="min-h-9 px-(--space-3) text-sm"
+                      onPress={() =>
+                        chooseQuickAmount(DEBT_HALF_PAYMENT_PERCENT)
                       }
+                      data-testid="debt-payment-quick-half"
+                    >
+                      {t("quickHalf")}
+                    </Button>
+                  </div>
+                  {accountsLoadFailed ? (
+                    <StatusAlert
+                      variant="danger"
+                      title={t("accountsLoadError")}
+                      description={t("accountsLoadErrorDescription")}
+                      action={
+                        <Button
+                          variant="tertiary"
+                          onPress={() => router.refresh()}
+                          data-testid="debt-payment-account-retry"
+                        >
+                          {t("retryAccounts")}
+                        </Button>
+                      }
+                      data-testid="debt-payment-account-load-error"
+                    />
+                  ) : accounts.length === 0 ? (
+                    <StatusAlert
+                      variant="warning"
+                      title={t("noAccounts")}
+                      description={t("noAccountsDescription")}
+                      data-testid="debt-payment-account-empty"
+                    />
+                  ) : (
+                    <Controller
+                      control={control}
+                      name="accountId"
+                      render={({ field, fieldState }) => (
+                        <SelectField
+                          id="debt-payment-account"
+                          label={isBorrowed ? t("payFrom") : t("receiveInto")}
+                          value={field.value}
+                          onChange={field.onChange}
+                          onBlur={field.onBlur}
+                          placeholder={t("chooseAccount")}
+                          options={accounts.map((account) => ({
+                            id: account.id,
+                            textValue: account.name,
+                            label: (
+                              <span className="flex min-w-0 flex-1 items-center justify-between gap-(--space-3)">
+                                <span className="truncate">{account.name}</span>
+                                <span className="shrink-0 text-xs text-text-secondary">
+                                  {t("availableBalance")}{" "}
+                                  <FinancialValue>
+                                    {formatCurrency(
+                                      account.balance,
+                                      currency,
+                                      locale,
+                                      { maximumFractionDigits: 0 },
+                                    )}
+                                  </FinancialValue>
+                                </span>
+                              </span>
+                            ),
+                          }))}
+                          error={
+                            fieldState.error
+                              ? tErrors(PRODUCT_ACTION_ERROR_CODE.INVALID)
+                              : undefined
+                          }
+                        />
+                      )}
                     />
                   )}
-                />
-                <Controller
-                  control={control}
-                  name="accountId"
-                  render={({ field, fieldState }) => (
-                    <SelectField
-                      id="debt-payment-account"
-                      label={isBorrowed ? t("payFrom") : t("receiveInto")}
-                      value={field.value}
-                      onChange={field.onChange}
-                      onBlur={field.onBlur}
-                      options={accounts.map((account) => ({
-                        id: account.id,
-                        label: account.name,
-                      }))}
-                      error={
-                        fieldState.error
-                          ? tErrors(PRODUCT_ACTION_ERROR_CODE.INVALID)
-                          : undefined
-                      }
-                    />
-                  )}
-                />
-                <Controller
-                  control={control}
-                  name="effectiveDate"
-                  render={({ field, fieldState }) => (
-                    <DatePickerField
-                      id="debt-payment-date"
-                      label={paymentDateLabel}
-                      value={field.value}
-                      onChange={field.onChange}
-                      onBlur={field.onBlur}
-                      required
-                      error={
-                        fieldState.error
-                          ? tErrors(PRODUCT_ACTION_ERROR_CODE.INVALID)
-                          : undefined
-                      }
-                    />
-                  )}
-                />
-                <TextField
-                  id="debt-payment-note"
-                  label={t("note")}
-                  registration={register("note")}
-                  error={
-                    errors.note
-                      ? tErrors(PRODUCT_ACTION_ERROR_CODE.INVALID)
-                      : undefined
-                  }
-                />
-              </>
-            )}
-          </MotionStep>
+                  <Controller
+                    control={control}
+                    name="effectiveDate"
+                    render={({ field, fieldState }) => (
+                      <DatePickerField
+                        id="debt-payment-date"
+                        label={paymentDateLabel}
+                        value={field.value}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                        required
+                        error={
+                          fieldState.error
+                            ? tErrors(PRODUCT_ACTION_ERROR_CODE.INVALID)
+                            : undefined
+                        }
+                      />
+                    )}
+                  />
+                  <TextField
+                    id="debt-payment-note"
+                    label={t("note")}
+                    registration={register("note")}
+                    error={
+                      errors.note
+                        ? tErrors(PRODUCT_ACTION_ERROR_CODE.INVALID)
+                        : undefined
+                    }
+                  />
+                </>
+              )}
+            </MotionStep>
+          )}
         </ActionSheetLayout.Body>
-        <SheetActionFooter
-          secondaryLabel={isConfirming ? t("backToForm") : t("cancel")}
-          primaryLabel={
-            isPending
-              ? recordingLabel
-              : isConfirming
-                ? confirmLabel
-                : reviewLabel
-          }
-          primaryTestId="debt-payment-submit"
-          isDisabled={!online}
-          isPending={isPending}
-          onSecondary={() => (isConfirming ? setIsConfirming(false) : close())}
-          onPrimary={isConfirming ? confirm : review}
-        />
+        {!receipt ? (
+          <SheetActionFooter
+            secondaryLabel={isConfirming ? t("backToForm") : t("cancel")}
+            primaryLabel={
+              isPending
+                ? recordingLabel
+                : isConfirming
+                  ? confirmLabel
+                  : reviewLabel
+            }
+            primaryTestId="debt-payment-submit"
+            isDisabled={!online || accountsLoadFailed || accounts.length === 0}
+            isPending={isPending}
+            onSecondary={() =>
+              isConfirming ? setIsConfirming(false) : close()
+            }
+            onPrimary={isConfirming ? confirm : review}
+          />
+        ) : null}
       </ActionSheetLayout>
     </Sheet>
   );

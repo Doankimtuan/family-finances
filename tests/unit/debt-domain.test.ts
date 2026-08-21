@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildDebtSummary,
   buildDebtPaymentReview,
+  getDebtPaymentReconciliation,
   getDebtDueState,
   getDebtProgress,
   mapDebtRow,
@@ -56,6 +57,27 @@ describe("debt domain", () => {
     });
     expect(progress.paidAmount).toBe(3_000_000);
     expect(progress.percent).toBe(30);
+  });
+
+  it("reconciles derived paid amount with recorded payments and opening paid amount", () => {
+    const debt = mapDebtRow(
+      debtRow({
+        principal_amount: 1_009_900,
+        remaining_amount: 0,
+        opening_paid_amount: 10_000,
+      }),
+    );
+    const reconciliation = getDebtPaymentReconciliation(debt, [
+      { amount: 999_900 },
+    ]);
+
+    expect(reconciliation).toEqual({
+      derivedPaidAmount: 1_009_900,
+      recordedPaidAmount: 999_900,
+      openingPaidAmount: 10_000,
+      unallocatedPaidAmount: 0,
+      isReconciled: true,
+    });
   });
 
   it("shows at least 1% after any principal payment that is not complete", () => {
