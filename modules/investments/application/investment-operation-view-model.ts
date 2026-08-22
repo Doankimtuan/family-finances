@@ -19,11 +19,18 @@ export type UnitPricePreview = {
   pnlPercent: number | null;
 };
 
+export type PurchasePreview = {
+  investedPrincipal: number | null;
+  feeValue: number | null;
+  cashLeavingAccount: number | null;
+};
+
 export type DisposalPreview = {
   soldQuantity: string;
   executionPricePerUnit: number | null;
   grossProceeds: number | null;
   feeAmount: number;
+  feeValue: number;
   netProceeds: number | null;
   disposedCostBasis: number | null;
   realizedPnl: number | null;
@@ -80,17 +87,42 @@ export function buildUnitPricePreview(input: {
   };
 }
 
+export function buildPurchasePreview(input: {
+  quantity: string;
+  executionPricePerUnit: number | null;
+  totalValue: number | null;
+  cashFeeAmount?: number | null;
+  feeValue?: number | null;
+  manualTotalValue?: boolean;
+}): PurchasePreview {
+  const investedPrincipal = input.manualTotalValue
+    ? input.totalValue
+    : multiplyQuantityByUnitPrice(input.quantity, input.executionPricePerUnit);
+  const cashFeeAmount = input.cashFeeAmount ?? 0;
+  return {
+    investedPrincipal,
+    feeValue:
+      input.feeValue ?? (input.cashFeeAmount == null ? 0 : cashFeeAmount),
+    cashLeavingAccount:
+      investedPrincipal == null ? null : investedPrincipal + cashFeeAmount,
+  };
+}
+
 export function buildDisposalPreview(input: {
   availableQuantity: string;
   soldQuantity: string;
   executionPricePerUnit: number | null;
   remainingCostBasis: number | null;
+  cashFeeAmount?: number | null;
+  feeValue?: number | null;
+  /** @deprecated Use cashFeeAmount; retained for current callers. */
   feeAmount?: number | null;
   manualTotalValue?: boolean;
   accountingMethod?: AccountingMethod;
   lots?: Parameters<typeof disposeCostBasis>[0]["lots"];
 }): DisposalPreview {
-  const feeAmount = input.feeAmount ?? 0;
+  const feeAmount = input.cashFeeAmount ?? input.feeAmount ?? 0;
+  const feeValue = input.feeValue ?? feeAmount;
   const grossProceeds = input.manualTotalValue
     ? input.executionPricePerUnit
     : multiplyQuantityByUnitPrice(
@@ -127,13 +159,14 @@ export function buildDisposalPreview(input: {
       : deriveRealizedPnl({
           grossProceeds,
           disposedCostBasis,
-          feeAmount,
+          feeAmount: feeValue,
         });
   return {
     soldQuantity: input.soldQuantity,
     executionPricePerUnit: input.executionPricePerUnit,
     grossProceeds,
     feeAmount,
+    feeValue,
     netProceeds,
     disposedCostBasis,
     realizedPnl,

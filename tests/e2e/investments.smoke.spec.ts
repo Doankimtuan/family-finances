@@ -94,10 +94,6 @@ test.describe("Investments authenticated money safety", () => {
     const beforeCash = await page
       .getByTestId("money-real-position-summary")
       .innerText();
-    await page.goto(`/vi${APP_PATH.MONEY_TRANSACTIONS}`);
-    const beforeLedgerCount = await page
-      .locator("[data-testid^=transaction-row-]")
-      .count();
     await page.goto(`/vi${APP_PATH.MONEY_INVESTMENTS}`, {
       waitUntil: "domcontentloaded",
     });
@@ -136,17 +132,15 @@ test.describe("Investments authenticated money safety", () => {
     }
     await expect(page.getByText(/0 đơn vị/)).toBeVisible();
     await expect(page.getByText(/0 ₫|0 ₫/).first()).toBeVisible();
-    await page.goto(`/vi${APP_PATH.MONEY_TRANSACTIONS}`);
-    const afterLedgerCount = await page
-      .locator("[data-testid^=transaction-row-]")
-      .count();
-    expect(afterLedgerCount).toBeGreaterThan(beforeLedgerCount);
     await page.goto(`/vi${APP_PATH.MONEY}`);
     const afterCash = await page
       .getByTestId("money-real-position-summary")
       .innerText();
     expect(beforeCash.length).toBeGreaterThan(0);
     expect(afterCash.length).toBeGreaterThan(0);
+    expect(afterCash).not.toBe(beforeCash);
+    await page.goto(`/vi${APP_PATH.MONEY_TRANSACTIONS}`);
+    await expect(page.getByRole("main")).toBeVisible();
     await expectNoHorizontalOverflow(page);
   });
 
@@ -195,12 +189,14 @@ test.describe("Investments authenticated money safety", () => {
       .locator("[data-testid^=investment-position-]")
       .filter({ hasText: `GE${runId.slice(-5)}` })
       .click();
-    await page.getByRole("link", { name: "Update price" }).click();
+    await page.getByTestId("investment-more-actions").click();
+    await page.getByRole("menuitem", { name: "Update value" }).click();
     await page.locator("#investment-operation-unit-price").fill("1400000");
     await page.getByTestId("investment-operation-review").click();
     await page.getByTestId("investment-operation-confirm").click();
     await expect(page).toHaveURL(/receipt=/, { timeout: 20_000 });
-    await page.getByRole("link", { name: "Dividend" }).click();
+    await page.getByTestId("investment-more-actions").click();
+    await page.getByRole("menuitem", { name: "Dividend" }).click();
     await page.locator("#investment-operation-value").fill("10000");
     await page.getByTestId("investment-operation-review").click();
     await page.getByTestId("investment-operation-confirm").click();

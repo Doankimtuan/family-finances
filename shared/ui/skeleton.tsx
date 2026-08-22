@@ -11,7 +11,10 @@ export type SkeletonProps = HeroSkeletonProps;
 export function Skeleton({ className, ...props }: SkeletonProps) {
   return (
     <HeroSkeleton
-      className={cn("bg-skeleton text-skeleton", className)}
+      className={cn(
+        "bg-skeleton text-skeleton animate-pulse motion-reduce:animate-none",
+        className,
+      )}
       {...props}
     />
   );

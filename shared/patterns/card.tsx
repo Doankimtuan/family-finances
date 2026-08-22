@@ -7,7 +7,14 @@ import {
 import { cn } from "@/shared/utils/cn";
 
 export type CardTone =
-  "default" | "interactive" | "metric" | "soft" | "highlighted" | "warning";
+  | "default"
+  | "interactive"
+  | "metric"
+  | "soft"
+  | "highlighted"
+  | "warning"
+  | "elevated"
+  | "hero";
 
 export type CardProps = HeroCardProps & {
   tone?: CardTone;
@@ -20,7 +27,11 @@ const toneClassName: Record<CardTone, string> = {
   metric: "bg-surface-muted/60 border border-transparent shadow-none",
   soft: "bg-surface-muted/70 border border-transparent shadow-none",
   highlighted: "bg-surface-highlight/80 border border-primary/15 shadow-none",
-  warning: "bg-warning/10 border border-warning/25 shadow-none",
+  warning: "bg-warning/10 border border-warning/30 shadow-none",
+  /** Standard grouped-content surface (Home module card). */
+  elevated: "bg-surface border border-border-subtle shadow-(--elevation-1)",
+  /** Brand hero surface — one per screen maximum (Home balance hero). */
+  hero: "bg-linear-to-b from-hero to-hero-deep text-hero-fg shadow-(--elevation-2) ring-1 ring-inset ring-white/10",
 };
 
 /** Composable HeroUI card with a deliberately small semantic tone set. */

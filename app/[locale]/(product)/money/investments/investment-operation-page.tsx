@@ -7,8 +7,9 @@ import {
 import {
   getInvestmentHolding,
   listInvestmentPortfolio,
-  type InvestmentFormMode,
+  InvestmentFormMode,
 } from "@/modules/investments/application";
+import type { InvestmentFormMode as InvestmentFormModeValue } from "@/modules/investments/application";
 import { investmentUxConfig } from "@/modules/investments/application/investment-ux";
 import { listAccounts } from "@/modules/ledger/application";
 import { Page } from "@/shared/patterns/page";
@@ -17,8 +18,9 @@ import { EmptyState } from "@/shared/patterns/empty-state";
 import { FinancialOwnershipBadge } from "@/shared/patterns/financial-ownership-badge";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { InvestmentOperationForm } from "./investment-operation-form";
+import { InvestmentOperationSheet } from "./investment-operation-sheet";
 
-type Props = { mode: InvestmentFormMode; holdingId?: string };
+type Props = { mode: InvestmentFormModeValue; holdingId?: string };
 
 export async function InvestmentOperationPage({ mode, holdingId }: Props) {
   const [t, tUx, portfolio, accounts, requested] = await Promise.all([
@@ -31,11 +33,11 @@ export async function InvestmentOperationPage({ mode, holdingId }: Props) {
   const holding = requested ?? portfolio?.holdings[0] ?? null;
   const ux = holding ? investmentUxConfig(holding.assetClass) : null;
   const operationTitle =
-    mode === "buy"
+    mode === InvestmentFormMode.BUY
       ? ux
         ? tUx(ux.purchaseActionKey)
         : undefined
-      : mode === "sell"
+      : mode === InvestmentFormMode.SELL
         ? ux
           ? tUx(ux.disposalActionKey)
           : undefined
@@ -46,6 +48,21 @@ export async function InvestmentOperationPage({ mode, holdingId }: Props) {
         <EmptyState title={t("notAvailable")} />
         <Link
           href={APP_PATH.MONEY_INVESTMENTS}
+          className="text-sm font-medium text-accent"
+        >
+          {t("back")}
+        </Link>
+      </Page>
+    );
+  if (
+    mode === InvestmentFormMode.VALUATION &&
+    holding.instrument?.autoPriceSupported
+  )
+    return (
+      <Page topBar={<TopAppBar title={operationTitle} />}>
+        <StatusAlert variant="info" title={t("automaticPricingActive")} />
+        <Link
+          href={moneyInvestmentPath(holding.id)}
           className="text-sm font-medium text-accent"
         >
           {t("back")}
@@ -71,15 +88,19 @@ export async function InvestmentOperationPage({ mode, holdingId }: Props) {
       {!holding.ownership.canMutate ? (
         <StatusAlert variant="info" title={t("partnerReadOnly")} />
       ) : (
-        <InvestmentOperationForm
-          mode={mode}
-          holding={holding}
-          holdings={portfolio.holdings}
-          accounts={(accounts?.accounts ?? []).map((account) => ({
-            id: account.id,
-            name: account.name,
-          }))}
-        />
+        <InvestmentOperationSheet>
+          <InvestmentOperationForm
+            mode={mode}
+            title={operationTitle ?? t(`title.${mode}`)}
+            holding={holding}
+            holdings={portfolio.holdings}
+            accounts={(accounts?.accounts ?? []).map((account) => ({
+              id: account.id,
+              name: account.name,
+              balance: account.balance,
+            }))}
+          />
+        </InvestmentOperationSheet>
       )}
       <Link
         href={moneyInvestmentPath(holding.id)}

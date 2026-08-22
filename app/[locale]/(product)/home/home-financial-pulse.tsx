@@ -10,20 +10,43 @@ import {
   type HomeDashboardPeriod,
 } from "@/modules/home/application/home-constants";
 import { formatCurrency, formatPercent } from "@/shared/i18n/formatters";
-import { Balance } from "@/shared/patterns/balance";
-import { KpiBlock } from "@/shared/patterns/kpi-block";
+import {
+  Balance,
+  Card,
+  FinancialDeltaBadge,
+  FinancialDeltaDirection,
+  FinancialDeltaValue,
+} from "@/shared/patterns";
 import { StatusBadge } from "@/shared/ui/status-badge";
 import { Text } from "@/shared/ui/text";
 import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
 import { IconButton } from "@/shared/ui/icon-button";
 import { UTILITY_ICONS } from "@/shared/ui/icon-registry";
-import { FinancialValue } from "@/shared/patterns/financial-value";
 import { useFinancialPrivacy } from "@/providers/financial-privacy-provider";
+import { AnimatePresence, motion } from "motion/react";
+import { motionTokens, useMotionPolicy } from "@/shared/motion";
+
+const NET_DELTA_DIRECTION: Record<
+  HomeFinancialPulseState,
+  FinancialDeltaDirection
+> = {
+  [HomeFinancialPulseState.POSITIVE]: FinancialDeltaDirection.POSITIVE,
+  [HomeFinancialPulseState.ATTENTION]: FinancialDeltaDirection.NEGATIVE,
+  [HomeFinancialPulseState.UNAVAILABLE]: FinancialDeltaDirection.NEUTRAL,
+};
+
+const NET_STATUS_BADGE_TONE = {
+  [HomeFinancialPulseState.POSITIVE]: "positive",
+  [HomeFinancialPulseState.ATTENTION]: "attention",
+  [HomeFinancialPulseState.UNAVAILABLE]: "neutral",
+} as const;
 
 function HomeFinancialPrivacyToggle() {
   const t = useTranslations("home");
   const { isHidden, toggle } = useFinancialPrivacy();
+  const policy = useMotionPolicy({ essential: true });
   const label = t(isHidden ? "financialPrivacy.show" : "financialPrivacy.hide");
+  const swapScale = policy.reducedMotion ? 1 : motionTokens.scale.subtle;
 
   return (
     <IconButton
@@ -32,33 +55,53 @@ function HomeFinancialPrivacyToggle() {
       data-testid={HOME_TEST_ID.FINANCIAL_PRIVACY_TOGGLE}
       onPress={toggle}
       variant="tertiary"
+      className="border border-white/25 bg-white/10 text-hero-fg shadow-none hover:bg-white/20 focus-visible:outline-hero-fg disabled:opacity-50"
     >
-      <AppIcon
-        icon={
-          isHidden
-            ? UTILITY_ICONS.financialHidden
-            : UTILITY_ICONS.financialVisible
-        }
-        size={AppIconSize.MD}
-      />
+      <AnimatePresence initial={false} mode="wait">
+        <motion.span
+          key={isHidden ? "hidden" : "visible"}
+          className="inline-flex items-center justify-center"
+          initial={{ opacity: 0, scale: swapScale }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: swapScale }}
+          transition={{
+            duration: motionTokens.duration.fast,
+            ease: motionTokens.easing.standard,
+          }}
+        >
+          <AppIcon
+            icon={
+              isHidden
+                ? UTILITY_ICONS.financialHidden
+                : UTILITY_ICONS.financialVisible
+            }
+            size={AppIconSize.MD}
+          />
+        </motion.span>
+      </AnimatePresence>
     </IconButton>
   );
 }
 
+/**
+ * Financial pulse: a deep-teal brand hero answers "how much do we have" with
+ * the period control integrated, then a compact strip answers flow direction
+ * with semantic color on a neutral surface where status tokens keep contrast.
+ */
 export function HomeFinancialPulse({
   balance,
   currency,
   locale,
   period,
   metrics,
-  action,
+  periodControl,
 }: {
   balance: number;
   currency: string;
   locale: string;
   period: HomeDashboardPeriod;
   metrics: HomeFinancialMetrics | null;
-  action?: ReactNode;
+  periodControl?: ReactNode;
 }) {
   const t = useTranslations("home");
   const state =
@@ -70,86 +113,80 @@ export function HomeFinancialPulse({
   const comparison = metrics?.netCashFlowComparison ?? null;
 
   return (
-    <KpiBlock
-      title={t("financialPulse.title")}
-      variant="prominent"
-      className="border-accent/15 bg-surface-highlight/55 shadow-(--elevation-1) mb-3"
-      data-testid={HOME_TEST_ID.FINANCIAL_PULSE}
-    >
-      <div className="flex flex-col gap-(--space-4)">
+    <div className="flex flex-col gap-(--space-3)">
+      <Card
+        tone="hero"
+        className="gap-0 p-(--space-4)"
+        data-testid={HOME_TEST_ID.FINANCIAL_PULSE}
+      >
+        <div className="flex items-center justify-between gap-(--space-3)">
+          <Text size="sm" weight="medium" className="text-hero-muted">
+            {t("financialPulse.title")}
+          </Text>
+          <HomeFinancialPrivacyToggle />
+        </div>
         <div
-          className="min-w-0"
+          className="mt-(--space-2)"
           role="group"
           aria-label={t("financialPulse.accessibleLabel")}
         >
-          <div className="flex items-start justify-between gap-(--space-3)">
-            <Balance
-              amountLabel={formatCurrency(balance, currency, locale, {
-                maximumFractionDigits: HOME_CURRENCY_FRACTION_DIGITS,
-              })}
-              size="hero"
-            />
-            <HomeFinancialPrivacyToggle />
-          </div>
-          <Text
-            size="xs"
-            tone="secondary"
-            className="mt-(--space-2) max-w-(--subtitle-max-width) text-pretty"
-          >
-            {t("financialPulse.hint")}
-          </Text>
-          {action ? (
-            <div className="mt-(--space-3) self-start">{action}</div>
-          ) : null}
+          <Balance
+            amountLabel={formatCurrency(balance, currency, locale, {
+              maximumFractionDigits: HOME_CURRENCY_FRACTION_DIGITS,
+            })}
+            size="hero"
+            amountClassName="text-4xl text-hero-fg"
+          />
         </div>
-        <div
-          className="border-t border-border-subtle pt-(--space-3)"
-          role="group"
-          aria-label={t(`financialPulse.netLabel.${period}`)}
+        {periodControl ? (
+          <div className="mt-(--space-4) border-t border-white/15 pt-(--space-3)">
+            {periodControl}
+          </div>
+        ) : null}
+      </Card>
+
+      <div role="group" aria-label={t(`financialPulse.netLabel.${period}`)}>
+        <Card
+          tone="elevated"
+          className="flex flex-row items-center gap-(--space-3) p-(--space-3)"
         >
-          <Text size="sm" tone="secondary">
-            {t(`financialPulse.netLabel.${period}`)}
-          </Text>
-          <Text
-            size="lg"
-            className="mt-(--space-1) font-semibold tabular-nums text-text-primary"
-          >
-            {metrics ? (
-              <FinancialValue>
-                {formatCurrency(metrics.netCashFlow, currency, locale, {
-                  maximumFractionDigits: HOME_CURRENCY_FRACTION_DIGITS,
-                })}
-              </FinancialValue>
-            ) : (
-              t("common.unavailable")
-            )}
-          </Text>
-          <div className="mt-(--space-1) flex flex-wrap items-center gap-(--space-2)">
-            <StatusBadge
-              className="min-h-6 rounded-(--radius-control) bg-transparent px-0 font-medium"
-              tone={
-                state === HomeFinancialPulseState.POSITIVE
-                  ? "positive"
-                  : state === HomeFinancialPulseState.ATTENTION
-                    ? "attention"
-                    : "neutral"
-              }
-            >
-              {t(`financialPulse.status.${state}`)}
-            </StatusBadge>
-            {comparison ? (
-              <Text size="xs" tone="secondary" className="tabular-nums">
-                {t("financialPulse.comparison", {
-                  value: formatPercent(comparison.ratio, locale, {
-                    maximumFractionDigits: 1,
-                    signDisplay: "always",
-                  }),
-                })}
-              </Text>
-            ) : null}
+          <FinancialDeltaBadge direction={NET_DELTA_DIRECTION[state]} />
+          <div className="min-w-0 flex-1">
+            <Text size="sm" tone="secondary">
+              {t(`financialPulse.netLabel.${period}`)}
+            </Text>
+            <div className="mt-(--space-1) flex flex-wrap items-center gap-x-(--space-2) gap-y-(--space-1)">
+              {metrics ? (
+                <FinancialDeltaValue direction={NET_DELTA_DIRECTION[state]}>
+                  {formatCurrency(metrics.netCashFlow, currency, locale, {
+                    maximumFractionDigits: HOME_CURRENCY_FRACTION_DIGITS,
+                  })}
+                </FinancialDeltaValue>
+              ) : (
+                <Text size="lg" weight="semibold" tabular>
+                  {t("common.unavailable")}
+                </Text>
+              )}
+              <StatusBadge
+                className="min-h-6 rounded-(--radius-control) px-(--space-2) font-medium"
+                tone={NET_STATUS_BADGE_TONE[state]}
+              >
+                {t(`financialPulse.status.${state}`)}
+              </StatusBadge>
+              {comparison ? (
+                <Text size="xs" tone="secondary" className="tabular-nums">
+                  {t("financialPulse.comparison", {
+                    value: formatPercent(comparison.ratio, locale, {
+                      maximumFractionDigits: 1,
+                      signDisplay: "always",
+                    }),
+                  })}
+                </Text>
+              ) : null}
+            </div>
           </div>
-        </div>
+        </Card>
       </div>
-    </KpiBlock>
+    </div>
   );
 }

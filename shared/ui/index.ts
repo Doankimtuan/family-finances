@@ -55,11 +55,13 @@ export {
 } from "./icon-container";
 export {
   DatePickerField,
+  FieldSelect,
   MoneyInput,
   NumberField,
   SelectField,
   TimeField,
   type DatePickerFieldProps,
+  type FieldSelectProps,
   type MoneyInputProps,
   type NumberFieldProps,
   type SelectFieldProps,

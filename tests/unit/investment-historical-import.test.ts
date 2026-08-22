@@ -28,6 +28,16 @@ describe("historical import preview", () => {
     });
     expect(valid.success).toBe(true);
 
+    const linked = openingPositionInputSchema.safeParse({
+      assetName: "BTC dài hạn",
+      assetClass: "crypto",
+      instrumentId: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+      quantity: "0.25",
+      asOfDate: "2026-08-17",
+      idempotencyKey: "investment:create:linked",
+    });
+    expect(linked.success).toBe(true);
+
     const invalid = openingPositionInputSchema.safeParse({
       assetName: "Global fund",
       assetClass: "fund",

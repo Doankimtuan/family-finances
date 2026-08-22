@@ -2,14 +2,35 @@
 
 import { motion } from "motion/react";
 import { cn } from "@/shared/utils/cn";
+import {
+  IconContainerTone,
+  type IconContainerTone as IconContainerToneValue,
+} from "./icon-container";
 import { motionTokens } from "@/shared/motion/tokens";
 import { useMotionPolicy } from "@/shared/motion/use-motion-policy";
+
+const PROGRESS_INDICATOR_TONE_CLASS_NAME: Record<
+  IconContainerToneValue,
+  string
+> = {
+  [IconContainerTone.NEUTRAL]: "bg-border-strong/80",
+  [IconContainerTone.PRIMARY]: "bg-primary/70",
+  [IconContainerTone.INCOME]: "bg-income/70",
+  [IconContainerTone.EXPENSE]: "bg-expense/70",
+  [IconContainerTone.TRANSFER]: "bg-transfer/70",
+  [IconContainerTone.INVESTMENT]: "bg-investment/70",
+  [IconContainerTone.SAVINGS]: "bg-savings/70",
+  [IconContainerTone.DEBT]: "bg-debt/70",
+  [IconContainerTone.INFO]: "bg-info/70",
+  [IconContainerTone.REFUND]: "bg-refund/70",
+};
 
 export type ProgressProps = {
   value: number;
   max?: number;
   label?: string;
   showLabel?: boolean;
+  tone?: IconContainerToneValue;
   className?: string;
   trackClassName?: string;
   indicatorClassName?: string;
@@ -24,6 +45,7 @@ export function Progress({
   max = 100,
   label,
   showLabel = true,
+  tone = IconContainerTone.PRIMARY,
   className,
   trackClassName,
   indicatorClassName,
@@ -45,13 +67,14 @@ export function Progress({
         aria-valuemax={safeMax}
         aria-valuenow={clamped}
         className={cn(
-          "h-2 w-full overflow-hidden rounded-full bg-border-subtle",
+          "h-2 w-full overflow-hidden rounded-full bg-progress-track ring-1 ring-inset ring-border-subtle",
           trackClassName,
         )}
       >
         <motion.div
           className={cn(
-            "h-full origin-left rounded-full bg-accent",
+            "h-full origin-left rounded-full",
+            PROGRESS_INDICATOR_TONE_CLASS_NAME[tone],
             indicatorClassName,
           )}
           initial={false}

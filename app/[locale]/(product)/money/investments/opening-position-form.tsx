@@ -14,6 +14,8 @@ import {
 import {
   InvestmentAssetClass,
   InvestmentEntryMode,
+  MarketPricingMode,
+  MARKET_PRICING_MODE_VALUES,
   OPENING_POSITION_STEP_VALUES,
   INVESTMENT_CREATE_IDEMPOTENCY_KEY_PREFIX,
   initialPurchaseInputSchema,
@@ -24,11 +26,14 @@ import { GoldUnit, GOLD_UNIT_VALUES } from "@/modules/investments/domain";
 import {
   investmentEntryModeMessageKeys,
   investmentUxConfig,
+  resolveInvestmentPricingContract,
   type InvestmentUxType,
 } from "@/modules/investments/application/investment-ux";
+import type { MarketInstrument } from "@/modules/investments/application/investment-types";
 import {
   buildHistoricalImportPreview,
   HistoricalBasisInputMode,
+  HistoricalValuationInputMode,
 } from "@/modules/investments/application/historical-import-view-model";
 import { multiplyQuantityByUnitPrice } from "@/modules/investments/application/investment-operation-view-model";
 import { DEFAULT_CURRENCY } from "@/modules/ledger/application/client";
@@ -44,13 +49,15 @@ import { StatusAlert } from "@/shared/ui/status-alert";
 import { Text } from "@/shared/ui/text";
 import { TextField } from "@/shared/ui/form";
 import { Textarea } from "@/shared/ui/textarea";
+import { FinancialValue } from "@/shared/patterns/financial-value";
 import { FinancialScopeField } from "@/shared/patterns/financial-scope-field";
 import { FINANCIAL_SCOPE } from "@/modules/shared-kernel/application/financial-scope";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import {
   createInitialPurchaseAction,
   createOpeningPositionAction,
-} from "./investment-actions";
+} from "./investment-creation-actions";
+import { InstrumentPickerSheet } from "./instrument-picker-sheet";
 import {
   APP_PATH,
   moneyInvestmentPath,
@@ -78,6 +85,8 @@ const openingPositionFormSchema = z
     entryMode: z.enum(ENTRY_MODES),
     assetName: openingPositionInputSchema.shape.assetName,
     assetClass: openingPositionInputSchema.shape.assetClass,
+    instrumentId: openingPositionInputSchema.shape.instrumentId,
+    pricingMode: z.enum(MARKET_PRICING_MODE_VALUES),
     symbol: openingPositionInputSchema.shape.symbol,
     provider: openingPositionInputSchema.shape.providerCustodian,
     quantity: openingPositionInputSchema.shape.quantity,
@@ -100,14 +109,14 @@ const openingPositionFormSchema = z
   .superRefine((value, context) => {
     if (value.entryMode !== InvestmentEntryMode.PURCHASE) return;
     if (
-      value.assetClass === InvestmentAssetClass.BOND
+      value.pricingMode === MarketPricingMode.TOTAL_VALUE
         ? value.totalPurchaseValue == null
         : value.price == null
     ) {
       context.addIssue({
         code: "custom",
         path: [
-          value.assetClass === InvestmentAssetClass.BOND
+          value.pricingMode === MarketPricingMode.TOTAL_VALUE
             ? "totalPurchaseValue"
             : "price",
         ],
@@ -133,6 +142,8 @@ const createDefaultValues = (accounts: AccountOption[]) =>
     entryMode: InvestmentEntryMode.HISTORICAL,
     assetName: "",
     assetClass: InvestmentAssetClass.STOCK,
+    instrumentId: null,
+    pricingMode: MarketPricingMode.UNIT_PRICE,
     symbol: "",
     provider: "",
     quantity: "",
@@ -165,6 +176,8 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
   const [stepIndex, setStepIndex] = useState(FIRST_STEP_INDEX);
   const [direction, setDirection] = useState<"forward" | "backward">("forward");
   const [error, setError] = useState<InvestmentErrorCode | null>(null);
+  const [selectedInstrument, setSelectedInstrument] =
+    useState<MarketInstrument | null>(null);
   const [idempotencyKey, setIdempotencyKey] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const online = useOnlineStatus();
@@ -199,19 +212,25 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
     financialScope = FINANCIAL_SCOPE.HOUSEHOLD,
   } = values;
   const config = investmentUxConfig(assetClass);
+  const pricingContract = resolveInvestmentPricingContract(
+    assetClass,
+    selectedInstrument,
+  );
   const historicalPreview = buildHistoricalImportPreview({
     quantity,
     basisInputMode,
     averageCostPerUnit: costPerUnit,
     totalCostBasis: totalBasisInput,
     currentUnitValuation,
+    currentValuationInputMode: pricingContract.usesTotalValue
+      ? HistoricalValuationInputMode.TOTAL
+      : HistoricalValuationInputMode.PER_UNIT,
   });
-  const gross =
-    assetClass === InvestmentAssetClass.BOND
-      ? totalPurchaseValue
-      : quantity
-        ? multiplyQuantityByUnitPrice(quantity, price)
-        : null;
+  const gross = pricingContract.usesTotalValue
+    ? totalPurchaseValue
+    : quantity
+      ? multiplyQuantityByUnitPrice(quantity, price)
+      : null;
 
   const money = (value: number | null) =>
     value == null
@@ -232,7 +251,15 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
 
   const setType = (next: InvestmentUxType) => {
     setValue("assetClass", next);
+    setValue(
+      "pricingMode",
+      next === InvestmentAssetClass.BOND
+        ? MarketPricingMode.TOTAL_VALUE
+        : MarketPricingMode.UNIT_PRICE,
+    );
+    setSelectedInstrument(null);
     resetField("assetName");
+    resetField("instrumentId");
     resetField("symbol");
     resetField("provider");
     resetField("quantity");
@@ -243,6 +270,19 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
     resetField("currentUnitValuation");
     resetField("price");
     resetField("totalPurchaseValue");
+  };
+
+  const setInstrument = (instrument: MarketInstrument | null) => {
+    setSelectedInstrument(instrument);
+    setValue("instrumentId", instrument?.id ?? null);
+    setValue(
+      "pricingMode",
+      instrument?.pricingMode ??
+        (assetClass === InvestmentAssetClass.BOND
+          ? MarketPricingMode.TOTAL_VALUE
+          : MarketPricingMode.UNIT_PRICE),
+    );
+    if (instrument) setValue("symbol", "");
   };
 
   const goNext = () => {
@@ -281,6 +321,7 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
               financialScope,
               assetName: submitted.assetName,
               assetClass: submitted.assetClass,
+              instrumentId: submitted.instrumentId ?? null,
               quantity: submitted.quantity,
               asOfDate: submitted.date,
               symbol: submitted.symbol || null,
@@ -294,15 +335,14 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
               financialScope,
               assetName: submitted.assetName,
               assetClass: submitted.assetClass,
+              instrumentId: submitted.instrumentId ?? null,
               quantity: submitted.quantity,
-              unitPriceVnd:
-                submitted.assetClass === InvestmentAssetClass.BOND
-                  ? null
-                  : (submitted.price ?? ZERO_AMOUNT),
-              totalValueVnd:
-                submitted.assetClass === InvestmentAssetClass.BOND
-                  ? (submitted.totalPurchaseValue ?? ZERO_AMOUNT)
-                  : null,
+              unitPriceVnd: pricingContract.usesTotalValue
+                ? null
+                : (submitted.price ?? ZERO_AMOUNT),
+              totalValueVnd: pricingContract.usesTotalValue
+                ? (submitted.totalPurchaseValue ?? ZERO_AMOUNT)
+                : null,
               cashAccountId: submitted.accountId ?? "",
               asOfDate: submitted.date,
               symbol: submitted.symbol || null,
@@ -316,6 +356,7 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
         return;
       }
       reset(createDefaultValues(accounts));
+      setSelectedInstrument(null);
       setIdempotencyKey(null);
       router.replace(
         result.receipt.holdingId
@@ -477,11 +518,26 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
             <div className="flex flex-col gap-(--space-3)">
               <TextField
                 id="investment-name"
-                label={tUx(config.instrumentLabelKey)}
+                label={t("holdingName")}
                 registration={register("assetName")}
                 error={errors.assetName ? t("errors.invalid") : undefined}
               />
-              {assetClass !== InvestmentAssetClass.GOLD &&
+              <div className="flex flex-col gap-(--space-2)">
+                <InstrumentPickerSheet
+                  assetClass={assetClass}
+                  selected={selectedInstrument}
+                  onSelect={setInstrument}
+                />
+                <Text size="sm" tone="secondary" aria-live="polite">
+                  {selectedInstrument
+                    ? selectedInstrument.autoPriceSupported
+                      ? t("automaticPricing")
+                      : t("automaticPricingUnavailable")
+                    : t("manualPricing")}
+                </Text>
+              </div>
+              {!selectedInstrument &&
+              assetClass !== InvestmentAssetClass.GOLD &&
               assetClass !== InvestmentAssetClass.BOND ? (
                 <TextField
                   id="investment-symbol"
@@ -581,8 +637,9 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
                       type: "amount",
                       name: "currentUnitValuation",
                       id: "investment-current-unit-valuation",
-                      label:
-                        assetClass === InvestmentAssetClass.GOLD
+                      label: pricingContract.usesTotalValue
+                        ? t("totalValue")
+                        : assetClass === InvestmentAssetClass.GOLD
                           ? t("goldBuyBackValuationOptional")
                           : t("currentValuationOptional"),
                       error: errors.currentUnitValuation
@@ -595,24 +652,28 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
                       <span className="text-text-secondary">
                         {t("remainingBasisOptional")}
                       </span>
-                      <span>{money(historicalPreview.totalCostBasis)}</span>
+                      <FinancialValue>
+                        {money(historicalPreview.totalCostBasis)}
+                      </FinancialValue>
                     </div>
                     <div className="mt-1 flex justify-between gap-3">
                       <span className="text-text-secondary">
                         {t("currentValuationOptional")}
                       </span>
-                      <span>{money(historicalPreview.currentTotalValue)}</span>
+                      <FinancialValue>
+                        {money(historicalPreview.currentTotalValue)}
+                      </FinancialValue>
                     </div>
                     <div className="mt-1 flex justify-between gap-3">
                       <span className="text-text-secondary">
                         {t("estimatedPnl")}
                       </span>
-                      <span>
+                      <FinancialValue>
                         {historicalPreview.unrealizedPnl == null
                           ? t("unknown")
                           : (historicalPreview.unrealizedPnl > 0 ? "+" : "") +
                             money(historicalPreview.unrealizedPnl)}
-                      </span>
+                      </FinancialValue>
                     </div>
                   </div>
                 </>
@@ -622,17 +683,22 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
                     control={control}
                     field={{
                       type: "amount",
-                      name:
-                        assetClass === InvestmentAssetClass.BOND
-                          ? "totalPurchaseValue"
-                          : "price",
+                      name: pricingContract.usesTotalValue
+                        ? "totalPurchaseValue"
+                        : "price",
                       id: "investment-price",
-                      label:
-                        assetClass === InvestmentAssetClass.BOND
-                          ? t("totalValue")
-                          : tUx(config.priceLabelKey),
+                      label: pricingContract.usesTotalValue
+                        ? t("totalValue")
+                        : selectedInstrument?.pricingMode ===
+                            MarketPricingMode.NAV_PER_UNIT
+                          ? tUx(config.priceLabelKey)
+                          : selectedInstrument
+                            ? t("purchasePriceFor", {
+                                symbol: selectedInstrument.symbol,
+                              })
+                            : tUx(config.priceLabelKey),
                       error: (
-                        assetClass === InvestmentAssetClass.BOND
+                        pricingContract.usesTotalValue
                           ? errors.totalPurchaseValue
                           : errors.price
                       )
@@ -701,9 +767,13 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
               </Text>
             </div>
             <div className="rounded-(--radius-card) bg-surface-muted p-(--space-4)">
-              <Text weight="semibold">
-                {tUx(config.titleKey)} · {assetName || t("unnamedAsset")}
-              </Text>
+              <Text weight="semibold">{assetName || t("unnamedAsset")}</Text>
+              {selectedInstrument ? (
+                <Text size="sm" tone="secondary" className="mt-1">
+                  {t("trackedAsset")}: {selectedInstrument.symbol} —{" "}
+                  {selectedInstrument.name}
+                </Text>
+              ) : null}
               <div className="mt-(--space-3) grid gap-(--space-2) text-sm">
                 <div className="flex justify-between gap-3">
                   <span className="text-text-secondary">
@@ -739,30 +809,36 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
                     <span className="text-text-secondary">
                       {t("remainingBasisOptional")}
                     </span>
-                    <span>{money(historicalPreview.totalCostBasis)}</span>
+                    <FinancialValue>
+                      {money(historicalPreview.totalCostBasis)}
+                    </FinancialValue>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-text-secondary">
                       {t("pricePerUnitLabel")}
                     </span>
-                    <span>{money(historicalPreview.averageCostPerUnit)}</span>
+                    <FinancialValue>
+                      {money(historicalPreview.averageCostPerUnit)}
+                    </FinancialValue>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-text-secondary">
                       {t("currentValuationOptional")}
                     </span>
-                    <span>{money(historicalPreview.currentTotalValue)}</span>
+                    <FinancialValue>
+                      {money(historicalPreview.currentTotalValue)}
+                    </FinancialValue>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-text-secondary">
                       {t("estimatedPnl")}
                     </span>
-                    <span>
+                    <FinancialValue>
                       {historicalPreview.unrealizedPnl == null
                         ? t("unknown")
                         : (historicalPreview.unrealizedPnl > 0 ? "+" : "") +
                           money(historicalPreview.unrealizedPnl)}
-                    </span>
+                    </FinancialValue>
                   </div>
                 </div>
               </div>
@@ -774,11 +850,11 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
                     <span className="text-text-secondary">
                       {t("pricePerUnitLabel")}
                     </span>
-                    <span>{money(price)}</span>
+                    <FinancialValue>{money(price)}</FinancialValue>
                   </div>
                   <div className="flex justify-between font-medium">
                     <span>{t("totalCashNeeded")}</span>
-                    <span>{money(gross)}</span>
+                    <FinancialValue>{money(gross)}</FinancialValue>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-text-secondary">

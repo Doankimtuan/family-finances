@@ -6,12 +6,13 @@ files.
 
 ## Canonical Locations
 
-| What                  | Where                                         |
-| --------------------- | --------------------------------------------- |
-| Agent instructions    | `.agents/instructions/PROJECT.md` (this file) |
-| Agent skills          | `.agents/skills/<skill-name>/SKILL.md`        |
-| UI constitution, laws | root `AGENTS.md`                              |
-| Setup / verify links  | `./scripts/setup-agent-skills.sh`             |
+| What                  | Where                                                                        |
+| --------------------- | ---------------------------------------------------------------------------- |
+| Agent instructions    | `.agents/instructions/PROJECT.md` (this file)                                |
+| Design system (Home)  | `.agents/design-system.md` (canonical UI reference; read before any UI work) |
+| Agent skills          | `.agents/skills/<skill-name>/SKILL.md`                                       |
+| UI constitution, laws | root `AGENTS.md`                                                             |
+| Setup / verify links  | `./scripts/setup-agent-skills.sh`                                            |
 
 `.agents/skills/` is the Agent Skills open-standard root. Codex, Cursor,
 ZCode, and Zed discover it natively — never copy skill bodies into

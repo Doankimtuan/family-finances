@@ -30,8 +30,9 @@ export function BottomActionBar({
       edges={["bottom"]}
       className={cn(
         "sticky bottom-0 z-(--z-sticky) -mx-(--space-4)",
-        "mt-(--space-2) border-t border-border-subtle/70",
+        "relative isolate mt-(--space-2) border-t border-divider",
         "bg-canvas/95 px-(--space-4) pt-(--space-3) backdrop-blur-md",
+        "shadow-[0_-8px_18px_-12px_rgba(0,0,0,0.45)] before:pointer-events-none before:absolute before:inset-x-0 before:-top-4 before:h-4 before:bg-gradient-to-t before:from-canvas/95 before:to-transparent before:content-[''] dark:shadow-[0_-8px_20px_-12px_rgba(255,255,255,0.24)]",
         className,
       )}
     >

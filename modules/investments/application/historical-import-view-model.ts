@@ -7,12 +7,19 @@ export const HistoricalBasisInputMode = {
 } as const;
 export type HistoricalBasisInputMode =
   (typeof HistoricalBasisInputMode)[keyof typeof HistoricalBasisInputMode];
+export const HistoricalValuationInputMode = {
+  PER_UNIT: "per-unit",
+  TOTAL: "total",
+} as const;
+export type HistoricalValuationInputMode =
+  (typeof HistoricalValuationInputMode)[keyof typeof HistoricalValuationInputMode];
 export type HistoricalImportPreview = {
   quantity: string;
   basisInputMode: HistoricalBasisInputMode;
   averageCostPerUnit: number | null;
   totalCostBasis: number | null;
   currentUnitValuation: number | null;
+  currentValuationInputMode?: HistoricalValuationInputMode;
   currentTotalValue: number | null;
   unrealizedPnl: number | null;
   unrealizedPnlPercent: number | null;
@@ -56,6 +63,7 @@ export function buildHistoricalImportPreview(input: {
   averageCostPerUnit: number | null;
   totalCostBasis: number | null;
   currentUnitValuation: number | null;
+  currentValuationInputMode?: HistoricalValuationInputMode;
 }): HistoricalImportPreview {
   const totalCostBasis =
     input.basisInputMode === HistoricalBasisInputMode.PER_UNIT
@@ -65,10 +73,10 @@ export function buildHistoricalImportPreview(input: {
     input.basisInputMode === HistoricalBasisInputMode.PER_UNIT
       ? input.averageCostPerUnit
       : divide(input.totalCostBasis, input.quantity);
-  const currentTotalValue = multiply(
-    input.quantity,
-    input.currentUnitValuation,
-  );
+  const currentTotalValue =
+    input.currentValuationInputMode === HistoricalValuationInputMode.TOTAL
+      ? input.currentUnitValuation
+      : multiply(input.quantity, input.currentUnitValuation);
   const unrealizedPnl =
     totalCostBasis != null && currentTotalValue != null
       ? currentTotalValue - totalCostBasis

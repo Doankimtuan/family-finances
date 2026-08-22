@@ -6,6 +6,7 @@ import { describe, expect, it, vi } from "vitest";
 import { AmountField } from "@/shared/patterns/amount-field";
 import {
   MoneyInput,
+  FieldSelect,
   SelectField,
   selectKeyValue,
   TextField,
@@ -169,6 +170,50 @@ describe("form foundation: SelectField", () => {
   it("normalizes selection keys to the string/empty-state contract", () => {
     expect(selectKeyValue(null)).toBe("");
     expect(selectKeyValue("jar-9")).toBe("jar-9");
+  });
+});
+
+describe("form foundation: FieldSelect", () => {
+  it("renders a read-only value and invokes its trigger", () => {
+    const onPress = vi.fn();
+
+    render(
+      <FieldSelect
+        id="loan-type"
+        label="Loan type"
+        value="Other"
+        onPress={onPress}
+      />,
+    );
+
+    const trigger = screen.getByRole("button", { name: "Loan type" });
+    expect(trigger).toHaveAttribute("aria-readonly", "true");
+    expect(trigger).toHaveTextContent("Other");
+
+    fireEvent.click(trigger);
+    expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps disabled state and field messaging accessible", () => {
+    render(
+      <FieldSelect
+        id="loan-type"
+        label="Loan type"
+        value="Other"
+        description="Choose a loan category"
+        error="Choose a valid category"
+        isDisabled
+      />,
+    );
+
+    const trigger = screen.getByRole("button", { name: "Loan type" });
+    expect(trigger).toBeDisabled();
+    expect(trigger).toHaveAttribute("aria-invalid", "true");
+    expect(trigger).toHaveAttribute("aria-describedby", "loan-type-error");
+    expect(screen.getByText("Choose a valid category")).toBeInTheDocument();
+    expect(
+      screen.queryByText("Choose a loan category"),
+    ).not.toBeInTheDocument();
   });
 });
 

@@ -15,11 +15,17 @@ import {
 import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
+import { Card } from "@/shared/patterns/card";
+import { FloatingAction } from "@/shared/patterns/floating-action";
 import { Section } from "@/shared/patterns/section";
-import { TopAppBar, TopAppBarVariant } from "@/shared/patterns/top-app-bar";
+
 import { BrandMark } from "@/shared/patterns/brand-mark";
 import { Page } from "@/shared/patterns/page";
+import { Heading } from "@/shared/ui/heading";
 import { Text } from "@/shared/ui/text";
+import { AppIcon } from "@/shared/ui/app-icon";
+import { IconContainer } from "@/shared/ui/icon-container";
+import { ACTION_ICONS, FINANCE_ICONS } from "@/shared/ui/icon-registry";
 import { MotionReveal } from "@/shared/motion";
 import { HomeCaptureAction } from "./home-capture-action";
 import { HomeCashFlowSection } from "./home-cash-flow-section";
@@ -70,12 +76,15 @@ export default async function HomePage({ params, searchParams }: Props) {
     (dashboard.financialMetrics.income > 0 ||
       dashboard.financialMetrics.expense > 0);
   const topBar = (
-    <TopAppBar
-      variant={TopAppBarVariant.PRIMARY}
-      eyebrow={t(`header.greeting.${homeGreetingPeriod()}`)}
-      title={t("header.eyebrow")}
-      trailing={<BrandMark variant="mark" size="sm" />}
-    />
+    <header className="flex shrink-0 items-center justify-between gap-(--space-3) px-(--page-gutter) pb-(--space-1) pt-(--space-4)">
+      <Heading
+        level={1}
+        className="text-base font-semibold leading-tight text-text-primary"
+      >
+        {t(`header.greeting.${homeGreetingPeriod()}`)}
+      </Heading>
+      <BrandMark variant="mark" size="sm" />
+    </header>
   );
 
   return (
@@ -83,7 +92,7 @@ export default async function HomePage({ params, searchParams }: Props) {
       <Page
         testId={HOME_TEST_ID.DASHBOARD}
         topBar={topBar}
-        contentClassName="gap-(--space-6)"
+        contentClassName="gap-(--space-5)"
       >
         <HomeStatusLane kind={HomeStatusLaneKind.OFFLINE} />
         {loadFailed ? (
@@ -98,72 +107,91 @@ export default async function HomePage({ params, searchParams }: Props) {
         ) : (
           <>
             <HomePeriodTransition period={dashboard.period}>
-              <HomePeriodControl />
               <HomePeriodData period={dashboard.period}>
                 <HomeFinancialPulse
                   balance={dashboard.realBalance}
                   currency={dashboard.currency}
-                  action={
-                    <HomeCaptureAction accountCount={dashboard.accountCount} />
-                  }
                   locale={locale}
                   period={dashboard.period}
                   metrics={dashboard.financialMetrics}
+                  periodControl={<HomePeriodControl />}
                 />
                 {hasCashFlow && dashboard.financialMetrics ? (
-                  <Section
-                    title={t("periodStory.title")}
-                    contentClassName="gap-(--space-4)"
-                    testId={HOME_TEST_ID.PERIOD_STORY}
+                  <Card
+                    tone="elevated"
+                    className="gap-0 p-(--space-4)"
+                    data-testid={HOME_TEST_ID.PERIOD_STORY}
                   >
                     <HomeCashFlowSection
                       metrics={dashboard.financialMetrics}
                       currency={dashboard.currency}
                       locale={locale}
                     />
+                    <div className="my-(--space-4) border-t border-divider" />
                     <HomeSpendingSection
                       metrics={dashboard.financialMetrics}
                       currency={dashboard.currency}
                       locale={locale}
                       canReviewUncategorized={dashboard.canReviewUncategorized}
                     />
-                  </Section>
+                  </Card>
                 ) : null}
               </HomePeriodData>
-              <Section
-                title={t("inbox.title")}
-                contentClassName="gap-(--space-3)"
-                testId={HOME_TEST_ID.INBOX_BLOCK}
-              >
-                <HomeInboxCta openCount={dashboard.openInboxCount} />
-              </Section>
-              <Section
-                title={t("planPulse.title")}
-                description={t("planPulse.hint")}
-                action={
-                  <Link
-                    href={APP_PATH.PLAN}
-                    data-testid={HOME_TEST_ID.PLAN_LINK}
+              <MotionReveal>
+                <Section
+                  title={t("inbox.title")}
+                  className="border-t border-divider pt-(--space-4)"
+                  contentClassName="gap-(--space-3)"
+                  testId={HOME_TEST_ID.INBOX_BLOCK}
+                >
+                  <HomeInboxCta openCount={dashboard.openInboxCount} />
+                </Section>
+              </MotionReveal>
+              <MotionReveal>
+                <Section
+                  title={t("planPulse.title")}
+                  description={t("planPulse.hint")}
+                  action={
+                    <Link
+                      href={APP_PATH.PLAN}
+                      className="inline-flex items-center gap-(--space-1)"
+                      data-testid={HOME_TEST_ID.PLAN_LINK}
+                    >
+                      {t("planPulse.openPlan")}
+                      <AppIcon icon={ACTION_ICONS.forward} size="xs" />
+                    </Link>
+                  }
+                  testId={HOME_TEST_ID.PLAN_PULSE}
+                >
+                  <Card
+                    tone="elevated"
+                    className="flex flex-row items-center gap-(--space-3) p-(--space-3)"
                   >
-                    {t("planPulse.openPlan")}
-                  </Link>
-                }
-                testId={HOME_TEST_ID.PLAN_PULSE}
-              >
-                <div className="rounded-(--radius-card) border border-border-subtle/70 bg-surface-muted/45 p-(--space-3)">
-                  <div className="min-w-0">
-                    <Text size="lg" className="font-semibold text-text-primary">
-                      {t("planPulse.jarsCount", {
-                        count: dashboard.activeJarCount,
-                      })}
-                    </Text>
-                    <Text size="sm" tone="secondary">
-                      {t(`planPulse.allocate.${dashboard.incomeAllocateMode}`)}
-                    </Text>
-                  </div>
-                </div>
-              </Section>
+                    <IconContainer tone="savings" size="md">
+                      <AppIcon icon={FINANCE_ICONS.savings} size="md" />
+                    </IconContainer>
+                    <div className="min-w-0">
+                      <Text
+                        size="lg"
+                        className="font-semibold text-text-primary"
+                      >
+                        {t("planPulse.jarsCount", {
+                          count: dashboard.activeJarCount,
+                        })}
+                      </Text>
+                      <Text size="sm" tone="secondary" className="text-pretty">
+                        {t(
+                          `planPulse.allocate.${dashboard.incomeAllocateMode}`,
+                        )}
+                      </Text>
+                    </div>
+                  </Card>
+                </Section>
+              </MotionReveal>
             </HomePeriodTransition>
+            <FloatingAction>
+              <HomeCaptureAction accountCount={dashboard.accountCount} />
+            </FloatingAction>
           </>
         )}
       </Page>

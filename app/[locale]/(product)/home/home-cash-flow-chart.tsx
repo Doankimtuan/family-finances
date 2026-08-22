@@ -7,6 +7,7 @@ import {
   AreaChart,
   CartesianGrid,
   ResponsiveContainer,
+  ReferenceLine,
   Tooltip,
   XAxis,
   YAxis,
@@ -28,6 +29,8 @@ import {
 } from "@/modules/home/application/home-constants";
 import { formatCurrency, formatDate } from "@/shared/i18n/formatters";
 import { Text } from "@/shared/ui/text";
+import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
+import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
 import { FinancialValue } from "@/shared/patterns/financial-value";
 
 const CASH_FLOW_CHART_DATE_OPTIONS = {
@@ -81,10 +84,7 @@ export function HomeCashFlowChart({
   const hasSparseData = trend.activePointCount <= 1;
 
   return (
-    <div
-      className="border-t border-border-subtle px-(--space-1) pb-(--space-2) pt-(--space-3)"
-      data-testid={HOME_TEST_ID.CASH_FLOW_CHART}
-    >
+    <div className="pb-(--space-1)" data-testid={HOME_TEST_ID.CASH_FLOW_CHART}>
       <div
         className="w-full"
         style={{ height: HOME_CASH_FLOW_CHART_HEIGHT }}
@@ -146,12 +146,18 @@ export function HomeCashFlowChart({
               stroke="var(--color-chart-grid)"
               strokeOpacity={0.4}
             />
+            <ReferenceLine
+              y={0}
+              stroke="var(--color-border-strong)"
+              strokeOpacity={0.8}
+              strokeDasharray="4 4"
+            />
             <XAxis
               dataKey="startDate"
               axisLine={false}
               tickLine={false}
               minTickGap={24}
-              tick={{ fill: "var(--color-text-tertiary)", fontSize: 11 }}
+              tick={{ fill: "var(--color-text-secondary)", fontSize: 11 }}
               tickFormatter={(value: string) => formatTrendDate(value, locale)}
             />
             <YAxis
@@ -178,10 +184,18 @@ export function HomeCashFlowChart({
                       {formatTrendDateRange(point, locale)}
                     </Text>
                     <div className="mt-(--space-2) grid grid-cols-[1fr_auto] gap-x-(--space-4) gap-y-(--space-1)">
-                      <Text size="sm" className="text-income">
+                      <Text
+                        size="sm"
+                        tone="success"
+                        className="flex items-center gap-(--space-1)"
+                      >
+                        <AppIcon
+                          icon={FINANCE_ICONS.income}
+                          size={AppIconSize.XS}
+                        />
                         {t("cashFlow.income")}
                       </Text>
-                      <Text size="sm" className="font-semibold tabular-nums">
+                      <Text size="sm" weight="semibold" tabular>
                         <FinancialValue>
                           {formatCurrency(point.income, currency, locale, {
                             maximumFractionDigits:
@@ -189,10 +203,18 @@ export function HomeCashFlowChart({
                           })}
                         </FinancialValue>
                       </Text>
-                      <Text size="sm" className="text-expense">
+                      <Text
+                        size="sm"
+                        tone="danger"
+                        className="flex items-center gap-(--space-1)"
+                      >
+                        <AppIcon
+                          icon={FINANCE_ICONS.expense}
+                          size={AppIconSize.XS}
+                        />
                         {t("cashFlow.expense")}
                       </Text>
-                      <Text size="sm" className="font-semibold tabular-nums">
+                      <Text size="sm" weight="semibold" tabular>
                         <FinancialValue>
                           {formatCurrency(point.expense, currency, locale, {
                             maximumFractionDigits:
@@ -212,6 +234,25 @@ export function HomeCashFlowChart({
               stroke="var(--color-chart-positive)"
               strokeWidth={HOME_CASH_FLOW_CHART_STROKE_WIDTH}
               fill={`url(#${gradientId}-income)`}
+              dot={(props) => {
+                const point = props.payload as
+                  HomeCashFlowTrendPoint | undefined;
+                const hasActivity =
+                  point !== undefined &&
+                  (point.income > 0 || point.expense > 0);
+                return (
+                  <circle
+                    key={point ? `income-${point.key}` : "income-dot"}
+                    cx={props.cx}
+                    cy={props.cy}
+                    r={2.5}
+                    opacity={hasActivity ? 1 : 0}
+                    fill="var(--color-chart-positive)"
+                    stroke="var(--color-surface)"
+                    strokeWidth={1.5}
+                  />
+                );
+              }}
               activeDot={{
                 r: HOME_CASH_FLOW_CHART_ACTIVE_DOT_RADIUS,
                 fill: "var(--color-chart-positive)",
@@ -225,6 +266,25 @@ export function HomeCashFlowChart({
               stroke="var(--color-chart-negative)"
               strokeWidth={HOME_CASH_FLOW_CHART_STROKE_WIDTH}
               fill={`url(#${gradientId}-expense)`}
+              dot={(props) => {
+                const point = props.payload as
+                  HomeCashFlowTrendPoint | undefined;
+                const hasActivity =
+                  point !== undefined &&
+                  (point.income > 0 || point.expense > 0);
+                return (
+                  <circle
+                    key={point ? `expense-${point.key}` : "expense-dot"}
+                    cx={props.cx}
+                    cy={props.cy}
+                    r={2.5}
+                    opacity={hasActivity ? 1 : 0}
+                    fill="var(--color-chart-negative)"
+                    stroke="var(--color-surface)"
+                    strokeWidth={1.5}
+                  />
+                );
+              }}
               activeDot={{
                 r: HOME_CASH_FLOW_CHART_ACTIVE_DOT_RADIUS,
                 fill: "var(--color-chart-negative)",
@@ -252,14 +312,14 @@ export function HomeCashFlowChart({
           {trend.points.map((point) => (
             <tr key={point.key}>
               <th scope="row">{formatTrendDateRange(point, locale)}</th>
-              <td>
+              <td className="tabular-nums">
                 <FinancialValue>
                   {formatCurrency(point.income, currency, locale, {
                     maximumFractionDigits: HOME_CURRENCY_FRACTION_DIGITS,
                   })}
                 </FinancialValue>
               </td>
-              <td>
+              <td className="tabular-nums">
                 <FinancialValue>
                   {formatCurrency(point.expense, currency, locale, {
                     maximumFractionDigits: HOME_CURRENCY_FRACTION_DIGITS,
@@ -270,12 +330,7 @@ export function HomeCashFlowChart({
           ))}
         </tbody>
       </table>
-      <Text
-        id={chartSummaryId}
-        size="sm"
-        tone="secondary"
-        className="sr-only px-(--space-1)"
-      >
+      <Text id={chartSummaryId} size="sm" tone="secondary" className="sr-only">
         {hasSparseData
           ? t("cashFlow.lowData")
           : t(`cashFlow.chartSummary.${trend.granularity}`)}

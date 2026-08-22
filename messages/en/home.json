@@ -65,7 +65,7 @@
     "loading": "Loading selected period"
   },
   "financialPulse": {
-    "title": "Total across accounts",
+    "title": "Total balance",
     "accessibleLabel": "Total balance across active accounts",
     "hint": "Total balance across active accounts, excluding credit cards.",
     "netLabel": {
@@ -84,34 +84,41 @@
     "show": "Show financial values"
   },
   "cashFlow": {
-    "title": "How is money moving this period?",
-    "hint": "Income and spending only. Transfers and refunds are excluded.",
+    "title": "Cash flow",
+    "summaryLabel": "Income vs expense",
+    "trendLabel": "Trend",
+    "infoLabel": "What’s included",
+    "legend": {
+      "label": "Chart legend"
+    },
+    "summaryHint": "Cash flow from income and spending in this period.",
+    "hint": "Internal transfers, refunds, and other transactions not classified as income or spending do not change cash flow for this period.",
     "income": "Income",
     "expense": "Expense",
     "net": "Net",
     "chartSummary": {
-      "day": "Daily income and expense trend for the selected period.",
-      "week": "Weekly income and expense trend for the selected period."
+      "day": "Daily income and expense trend.",
+      "week": "Weekly income and expense trend."
     },
     "chartAria": {
-      "day": "Daily income and expense chart for the selected period.",
-      "week": "Weekly income and expense chart for the selected period."
+      "day": "Daily income and expense chart.",
+      "week": "Weekly income and expense chart."
     },
-    "dataTableTitle": "Cash-flow data for the selected period",
+    "dataTableTitle": "Cash-flow data",
     "dataTable": {
       "period": "Period"
     },
-    "lowData": "Income or spending has been recorded on only one day this period."
+    "lowData": "Activity is concentrated on one day; quiet days are confirmed as zero."
   },
   "periodStory": {
     "title": "This period"
   },
   "spending": {
-    "title": "Where is money going?",
-    "hint": "Categories with the highest spending in the selected period.",
+    "title": "Spending breakdown",
+    "hint": "Categories with the highest spending.",
     "uncategorized": "Uncategorized",
-    "reviewAvailable": "review available",
     "review": "Review in Inbox",
+    "reviewAria": "Review {category} items in Inbox",
     "insight": {
       "higher": "Spending is {amount} higher than the prior period.",
       "lower": "Spending is {amount} lower than the prior period."
@@ -135,7 +142,7 @@
   },
   "inbox": {
     "title": "Inbox",
-    "clear": "Nothing is waiting for you to review.",
+    "clear": "Inbox is clear.",
     "pending": "{count, plural, one {# item is waiting for your review} other {# items are waiting for your review}}",
     "open": "Open Inbox"
   },

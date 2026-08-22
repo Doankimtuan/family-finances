@@ -65,7 +65,7 @@
     "loading": "Đang tải kỳ đã chọn"
   },
   "financialPulse": {
-    "title": "Tổng số dư các tài khoản",
+    "title": "Tổng số dư",
     "accessibleLabel": "Tổng số dư của các tài khoản đang dùng",
     "hint": "Tổng số dư của các tài khoản đang dùng, không gồm thẻ tín dụng.",
     "netLabel": {
@@ -84,34 +84,41 @@
     "show": "Hiện số tiền"
   },
   "cashFlow": {
-    "title": "Tiền vào ra kỳ này thế nào?",
-    "hint": "Chỉ tính tiền thu vào và chi ra. Không tính chuyển khoản và hoàn tiền.",
+    "title": "Dòng tiền",
+    "summaryLabel": "Thu vào và chi ra",
+    "trendLabel": "Xu hướng",
+    "infoLabel": "Phạm vi số liệu",
+    "legend": {
+      "label": "Chú giải biểu đồ"
+    },
+    "summaryHint": "Dòng tiền từ các khoản thu và chi trong kỳ.",
+    "hint": "Chuyển khoản nội bộ, hoàn tiền và các giao dịch không được phân loại là thu vào hoặc chi ra không làm thay đổi dòng tiền kỳ này.",
     "income": "Thu vào",
     "expense": "Chi ra",
     "net": "Dòng tiền ròng",
     "chartSummary": {
-      "day": "Xu hướng thu vào và chi ra theo ngày trong kỳ đã chọn.",
-      "week": "Xu hướng thu vào và chi ra theo tuần trong kỳ đã chọn."
+      "day": "Xu hướng thu vào và chi ra theo ngày.",
+      "week": "Xu hướng thu vào và chi ra theo tuần."
     },
     "chartAria": {
-      "day": "Biểu đồ thu vào và chi ra theo ngày trong kỳ đã chọn.",
-      "week": "Biểu đồ thu vào và chi ra theo tuần trong kỳ đã chọn."
+      "day": "Biểu đồ thu vào và chi ra theo ngày.",
+      "week": "Biểu đồ thu vào và chi ra theo tuần."
     },
-    "dataTableTitle": "Dữ liệu dòng tiền trong kỳ đã chọn",
+    "dataTableTitle": "Dữ liệu dòng tiền",
     "dataTable": {
       "period": "Kỳ"
     },
-    "lowData": "Mới ghi nhận thu hoặc chi trong một ngày của kỳ này."
+    "lowData": "Hoạt động tập trung trong một ngày; các ngày còn lại được xác nhận là không phát sinh."
   },
   "periodStory": {
     "title": "Kỳ này"
   },
   "spending": {
-    "title": "Tiền kỳ này đi đâu?",
-    "hint": "Các nhóm có mức chi cao nhất trong kỳ đã chọn.",
+    "title": "Phân bổ chi tiêu",
+    "hint": "Các nhóm có mức chi cao nhất.",
     "uncategorized": "Chưa phân loại",
-    "reviewAvailable": "có thể xem lại",
     "review": "Xem lại trong Hộp thư",
+    "reviewAria": "Xem các mục {category} trong Hộp thư",
     "insight": {
       "higher": "Chi tiêu cao hơn kỳ trước {amount}.",
       "lower": "Chi tiêu thấp hơn kỳ trước {amount}."
@@ -135,7 +142,7 @@
   },
   "inbox": {
     "title": "Hộp thư",
-    "clear": "Không có mục nào đang chờ bạn xem.",
+    "clear": "Hộp thư đang trống.",
     "pending": "{count, plural, one {# mục đang chờ bạn xem} other {# mục đang chờ bạn xem}}",
     "open": "Mở Hộp thư"
   },

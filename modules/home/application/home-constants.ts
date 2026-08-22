@@ -46,13 +46,13 @@ export const HOME_CASH_FLOW_CHART_MARGIN = {
   LEFT: 4,
   BOTTOM: 2,
 } as const;
-export const HOME_CASH_FLOW_CHART_STROKE_WIDTH = 1.5;
-export const HOME_CASH_FLOW_CHART_ACTIVE_DOT_RADIUS = 3;
+export const HOME_CASH_FLOW_CHART_STROKE_WIDTH = 2;
+export const HOME_CASH_FLOW_CHART_ACTIVE_DOT_RADIUS = 4;
 export const HOME_CASH_FLOW_CHART_HEADROOM_RATIO = 0.12;
 export const HOME_CASH_FLOW_EXPENSE_DASH_PATTERN = "5 4";
 export const HOME_CASH_FLOW_CHART_AREA_OPACITY = {
-  INCOME: 0.12,
-  EXPENSE: 0.08,
+  INCOME: 0.16,
+  EXPENSE: 0.1,
 } as const;
 export const HOME_PERCENT_SCALE = 100;
 export const HomeStatusLaneKind = {

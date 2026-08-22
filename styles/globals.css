@@ -112,6 +112,7 @@
   --color-surface-muted: var(--vinha-surface-soft);
   --color-surface-soft: var(--vinha-surface-soft);
   --color-surface-highlight: var(--vinha-surface-highlight);
+  --color-progress-track: var(--vinha-progress-track);
 
   /* Borders / chrome */
   --color-border-subtle: var(--vinha-border-subtle);
@@ -139,6 +140,10 @@
   --color-accent: var(--vinha-accent);
   --color-accent-fg: var(--vinha-accent-fg);
   --color-accent-strong: var(--vinha-accent-strong);
+  --color-hero: var(--vinha-hero);
+  --color-hero-deep: var(--vinha-hero-deep);
+  --color-hero-fg: var(--vinha-hero-fg);
+  --color-hero-muted: var(--vinha-hero-muted);
 
   /* Status */
   --color-success: var(--vinha-success);
@@ -212,6 +217,7 @@
   --vinha-surface-hover: #f1f5f3;
   --vinha-surface-soft: #f1f4f3;
   --vinha-surface-highlight: #e7f2ef;
+  --vinha-progress-track: #e7eeeb;
 
   /* --- Borders --- */
   --vinha-border-subtle: #dde4e1;
@@ -236,6 +242,12 @@
   --vinha-primary-fg: #fafafa;
   --vinha-secondary: #f5f5f4;
   --vinha-secondary-fg: #18181b;
+
+  /* Home financial hero — brand anchor surface (DS: shape-and-elevation) */
+  --vinha-hero: #0f766e;
+  --vinha-hero-deep: #0c5f58;
+  --vinha-hero-fg: #fafafa;
+  --vinha-hero-muted: #d5f1ea;
 
   /* --- Status --- */
   --vinha-success: #047857;
@@ -320,6 +332,7 @@
   --color-surface-elevated: var(--vinha-surface-elevated);
   --color-surface-hover: var(--vinha-surface-hover);
   --color-surface-muted: var(--vinha-surface-soft);
+  --color-progress-track: var(--vinha-progress-track);
   --color-border-subtle: var(--vinha-border-subtle);
   --color-border-strong: var(--vinha-border-strong);
   --color-border-default: var(--vinha-border-strong);
@@ -341,6 +354,10 @@
   --color-accent: var(--vinha-accent);
   --color-accent-fg: var(--vinha-accent-fg);
   --color-accent-strong: var(--vinha-accent-strong);
+  --color-hero: var(--vinha-hero);
+  --color-hero-deep: var(--vinha-hero-deep);
+  --color-hero-fg: var(--vinha-hero-fg);
+  --color-hero-muted: var(--vinha-hero-muted);
   --color-danger: var(--vinha-danger);
   --color-warning: var(--vinha-warning);
   --color-success: var(--vinha-success);
@@ -406,6 +423,7 @@
   --radius-overlay: 16px;
 
   --app-viewport-max: 440px;
+  --financial-number-column-width: 7rem;
   --app-viewport-min: 320px;
   --app-viewport-band-max: 480px;
   --app-viewport-tablet-optional: 640px;
@@ -478,10 +496,11 @@
   --vinha-surface-hover: #232326;
   --vinha-surface-soft: #202b2a;
   --vinha-surface-highlight: #173b37;
+  --vinha-progress-track: #3f4a48;
 
   --vinha-border-subtle: #3f3f46;
   --vinha-border-strong: #52525b;
-  --vinha-divider: #3f3f46;
+  --vinha-divider: #52525b;
 
   --vinha-text-primary: #f4f4f5;
   --vinha-text-secondary: #a1a1aa;
@@ -499,6 +518,12 @@
   --vinha-primary-fg: #111113;
   --vinha-secondary: #27272b;
   --vinha-secondary-fg: #f4f4f5;
+
+  /* Home financial hero — richer accent surface for dark depth */
+  --vinha-hero: #16443d;
+  --vinha-hero-deep: #113832;
+  --vinha-hero-fg: #f4f4f5;
+  --vinha-hero-muted: #a3d9cf;
 
   --vinha-success: #34d399;
   --vinha-warning: #fbbf24;
@@ -530,7 +555,7 @@
   --vinha-health-critical: #fb7185;
 
   --vinha-chart-ink: #f4f4f5;
-  --vinha-chart-grid: #3f3f46;
+  --vinha-chart-grid: #52525b;
   --vinha-chart-positive: #34d399;
   --vinha-chart-negative: #fb7185;
   --vinha-chart-neutral: #71717a;
@@ -604,58 +629,16 @@ body {
   min-height: 100dvh;
 }
 
-/* Quiet scroll chrome applies only to deliberate application scroll owners. */
-[data-slot="shell-scroll-region"],
-[data-slot="auth-scroll-region"],
-.scroll-chrome {
-  scrollbar-width: thin;
-  scrollbar-color: var(--vinha-scrollbar-thumb) transparent;
-}
-
-/* Bottom sheets keep scrolling, but the scrollbar is visual noise over the panel. */
-[data-slot="action-sheet-body"] {
+/* Keep scrolling enabled while hiding scrollbar chrome across every app surface. */
+* {
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
 
-[data-slot="action-sheet-body"]::-webkit-scrollbar {
+*::-webkit-scrollbar {
   display: none;
   width: 0;
   height: 0;
-}
-
-[data-slot="shell-scroll-region"]::-webkit-scrollbar,
-[data-slot="auth-scroll-region"]::-webkit-scrollbar,
-.scroll-chrome::-webkit-scrollbar {
-  width: var(--scrollbar-width);
-  height: var(--scrollbar-width);
-}
-
-[data-slot="shell-scroll-region"]::-webkit-scrollbar-track,
-[data-slot="shell-scroll-region"]::-webkit-scrollbar-corner,
-[data-slot="auth-scroll-region"]::-webkit-scrollbar-track,
-[data-slot="auth-scroll-region"]::-webkit-scrollbar-corner,
-.scroll-chrome::-webkit-scrollbar-track,
-.scroll-chrome::-webkit-scrollbar-corner {
-  background: transparent;
-}
-
-[data-slot="shell-scroll-region"]::-webkit-scrollbar-thumb,
-[data-slot="auth-scroll-region"]::-webkit-scrollbar-thumb,
-.scroll-chrome::-webkit-scrollbar-thumb {
-  min-height: var(--scrollbar-thumb-min-length);
-  border: var(--scrollbar-thumb-inset) solid transparent;
-  border-radius: var(--radius-full);
-  background: var(--vinha-scrollbar-thumb);
-  background-clip: padding-box;
-  transition: background-color var(--duration-fast) var(--ease-standard);
-}
-
-[data-slot="shell-scroll-region"]::-webkit-scrollbar-thumb:hover,
-[data-slot="auth-scroll-region"]::-webkit-scrollbar-thumb:hover,
-.scroll-chrome::-webkit-scrollbar-thumb:hover {
-  background: var(--vinha-scrollbar-thumb-hover);
-  background-clip: padding-box;
 }
 
 /* Calm theme-switch fade (intentional only; see ThemeProvider) */

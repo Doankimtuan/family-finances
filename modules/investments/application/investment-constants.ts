@@ -11,6 +11,130 @@ export type InvestmentAssetClass =
 export const INVESTMENT_ASSET_CLASS_VALUES =
   Object.values(InvestmentAssetClass);
 
+export const MarketAssetClass = InvestmentAssetClass;
+export type MarketAssetClass = InvestmentAssetClass;
+export const MARKET_ASSET_CLASS_VALUES = INVESTMENT_ASSET_CLASS_VALUES;
+
+export const MarketPricingMode = {
+  UNIT_PRICE: "UNIT_PRICE",
+  NAV_PER_UNIT: "NAV_PER_UNIT",
+  BUYBACK_PRICE: "BUYBACK_PRICE",
+  TOTAL_VALUE: "TOTAL_VALUE",
+  MANUAL: "MANUAL",
+} as const;
+export type MarketPricingMode =
+  (typeof MarketPricingMode)[keyof typeof MarketPricingMode];
+export const MARKET_PRICING_MODE_VALUES = Object.values(MarketPricingMode);
+
+export const MarketDataProvider = {
+  MANUAL: "MANUAL",
+  COINGECKO: "COINGECKO",
+  VNSTOCK: "VNSTOCK",
+  FMARKET: "FMARKET",
+} as const;
+export type MarketDataProvider =
+  (typeof MarketDataProvider)[keyof typeof MarketDataProvider];
+export const MARKET_DATA_PROVIDER_VALUES = Object.values(MarketDataProvider);
+
+export const MARKET_SYNC_PROVIDER_VALUES = [
+  MarketDataProvider.COINGECKO,
+  MarketDataProvider.VNSTOCK,
+  MarketDataProvider.FMARKET,
+] as const;
+export type MarketSyncProvider = (typeof MARKET_SYNC_PROVIDER_VALUES)[number];
+
+export const MARKET_CATALOG_SYNC_OPERATION = {
+  RUN: "marketCatalogSync",
+  SEARCH: "listMarketInstruments",
+} as const;
+
+export const MARKET_CATALOG_QUERY_LIMIT = {
+  DEFAULT: 25,
+  MAX: 50,
+} as const;
+
+export const MARKET_CATALOG_CRYPTO_LIMIT = 500;
+
+export const MARKET_CATALOG_SYNC_SECRET_ENV = "MARKET_CATALOG_SYNC_SECRET";
+export const MARKET_PRICE_SYNC_SECRET_ENV = "MARKET_PRICE_SYNC_SECRET";
+
+export const MARKET_PRICE_SYNC_OPERATION = {
+  RUN: "marketPriceSync",
+} as const;
+
+export const MarketSyncStatus = {
+  RUNNING: "running",
+  SUCCEEDED: "succeeded",
+  PARTIAL: "partial",
+  FAILED: "failed",
+  SKIPPED: "skipped",
+} as const;
+export type MarketSyncStatus =
+  (typeof MarketSyncStatus)[keyof typeof MarketSyncStatus];
+export const MARKET_SYNC_STATUS_VALUES = Object.values(MarketSyncStatus);
+
+export const MARKET_PRICE_SYNC_LOCK_KEY = "market-price-sync";
+export const MARKET_PRICE_SYNC_LOCK_TTL_MINUTES = 30;
+export const MARKET_PRICE_SYNC_BATCH_SIZE = 250;
+export const MARKET_PRICE_SYNC_ERROR_LIMIT = 500;
+export const MARKET_PRICE_SYNC_RPC = {
+  LIST_TARGETS: "list_active_market_price_targets",
+  ACQUIRE_LOCK: "try_acquire_market_price_sync_lock",
+  RELEASE_LOCK: "release_market_price_sync_lock",
+} as const;
+
+export const MARKET_PRICE_SYNC_SCHEDULE = {
+  TIMEZONE: "Asia/Ho_Chi_Minh",
+  CRYPTO_CRON_UTC: "0 4 * * *",
+  VNSTOCK_CRON_UTC: "30 8 * * 1-5",
+  FMARKET_CRON_UTC: "0 11 * * 1-5",
+} as const;
+
+export const MARKET_CATALOG_QUERY_ERROR_CODE = {
+  INVALID: "invalid",
+  READ_FAILED: "read_failed",
+} as const;
+export type MarketCatalogQueryErrorCode =
+  (typeof MARKET_CATALOG_QUERY_ERROR_CODE)[keyof typeof MARKET_CATALOG_QUERY_ERROR_CODE];
+
+export const MarketPriceType = {
+  LAST: "LAST",
+  NAV: "NAV",
+  BUYBACK: "BUYBACK",
+  TOTAL_VALUE: "TOTAL_VALUE",
+  MANUAL: "MANUAL",
+} as const;
+export type MarketPriceType =
+  (typeof MarketPriceType)[keyof typeof MarketPriceType];
+export const MARKET_PRICE_TYPE_VALUES = Object.values(MarketPriceType);
+
+export const MarketValuationQuality = {
+  AUTO_CURRENT: "AUTO_CURRENT",
+  AUTO_STALE: "AUTO_STALE",
+  MANUAL: "MANUAL",
+  UNKNOWN: "UNKNOWN",
+} as const;
+export type MarketValuationQuality =
+  (typeof MarketValuationQuality)[keyof typeof MarketValuationQuality];
+export const MARKET_VALUATION_QUALITY_VALUES = Object.values(
+  MarketValuationQuality,
+);
+
+export const MarketValuationSource = {
+  AUTOMATIC: "automatic",
+  MANUAL: "manual",
+} as const;
+export type MarketValuationSource =
+  (typeof MarketValuationSource)[keyof typeof MarketValuationSource];
+
+export const MarketValuationFreshness = {
+  CURRENT: "current",
+  STALE: "stale",
+  UNKNOWN: "unknown",
+} as const;
+export type MarketValuationFreshness =
+  (typeof MarketValuationFreshness)[keyof typeof MarketValuationFreshness];
+
 export const InvestmentHistoryStatus = {
   FULL: "full",
   OPENING_POSITION: "opening_position",
@@ -32,6 +156,14 @@ export type InvestmentLifecycleStatus =
 export const INVESTMENT_LIFECYCLE_STATUS_VALUES = Object.values(
   InvestmentLifecycleStatus,
 );
+
+export const InvestmentHoldingReadStatus = {
+  READY: "ready",
+  NOT_FOUND: "not_found",
+  ERROR: "error",
+} as const;
+export type InvestmentHoldingReadStatus =
+  (typeof InvestmentHoldingReadStatus)[keyof typeof InvestmentHoldingReadStatus];
 
 export const InvestmentVisibilityContext = {
   HOUSEHOLD: "household",
@@ -129,6 +261,23 @@ export const INVESTMENT_FORM_MODE_VALUES = Object.values(InvestmentFormMode);
 export const INVESTMENT_QUANTITY_SCALE = 18;
 export const INVESTMENT_QUANTITY_STORAGE_PRECISION = 38;
 export const INVESTMENT_REPORTING_CURRENCY = "VND";
+
+export const MarketFxProvider = {
+  FRANKFURTER: "FRANKFURTER",
+} as const;
+export type MarketFxProvider =
+  (typeof MarketFxProvider)[keyof typeof MarketFxProvider];
+export const MARKET_FX_PROVIDER_VALUES = Object.values(MarketFxProvider);
+
+export const MARKET_FX_OPERATION = {
+  SYNC: "marketFxSync",
+} as const;
+export const MARKET_FX_TABLE = "market_currency_rates";
+export const MARKET_FX_BASE_CURRENCY = "USD";
+export const MARKET_FX_QUOTE_CURRENCY = INVESTMENT_REPORTING_CURRENCY;
+export const MARKET_FX_STALE_AFTER_HOURS = 24;
+export const MARKET_FX_PROVIDER_URL = "https://api.frankfurter.dev/v2/rate";
+export const MARKET_FX_PAIR_LABEL = "USD/VND";
 
 export const INVESTMENT_ERROR_CODE = {
   INVALID: "invalid",

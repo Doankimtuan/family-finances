@@ -12,14 +12,27 @@ import {
   InvestmentActivityType,
   type InvestmentOperationType,
   type InvestmentVisibilityContext,
-  type InvestmentValuationSource,
+  InvestmentValuationSource,
+  INVESTMENT_REPORTING_CURRENCY,
   INVESTMENT_OPERATION,
+  MarketDataProvider,
+  MarketFxProvider,
+  MarketPricingMode,
+  MarketPriceType,
+  MarketValuationQuality,
+  MarketValuationSource,
+  InvestmentHoldingReadStatus,
 } from "../investment-constants";
-import { deriveUnrealizedResult } from "../investment-accounting";
+import { resolveInvestmentValuation } from "../market-valuation";
 import type {
   InvestmentActivity,
   InvestmentHolding,
   InvestmentPortfolio,
+  InvestmentValuationResolution,
+  InvestmentHoldingReadResult,
+  MarketCurrencyRate,
+  MarketInstrument,
+  MarketInstrumentPrice,
 } from "../investment-types";
 import {
   FINANCIAL_SCOPE,
@@ -33,6 +46,7 @@ type HoldingRow = {
   household_id: string;
   name: string;
   symbol: string | null;
+  instrument_id: string | null;
   asset_class: string;
   provider_custodian: string | null;
   visibility_context: string;
@@ -54,6 +68,41 @@ type ValuationRow = {
   quantity: string | number;
   unit_price_vnd: string | number | null;
   source: string;
+};
+
+type InstrumentRow = {
+  id: string;
+  asset_class: string;
+  symbol: string;
+  name: string;
+  exchange: string | null;
+  currency: string;
+  pricing_mode: string;
+  auto_price_supported: boolean;
+  is_active: boolean;
+  metadata: Record<string, unknown>;
+};
+
+type PriceRow = {
+  instrument_id: string;
+  price: string | number;
+  currency: string;
+  price_type: string;
+  price_date: string;
+  fetched_at: string;
+  provider: string;
+  metadata: Record<string, unknown>;
+  updated_at: string;
+};
+
+type CurrencyRateRow = {
+  base_currency: string;
+  quote_currency: string;
+  rate: string | number;
+  rate_date: string;
+  fetched_at: string;
+  provider: string;
+  updated_at: string;
 };
 
 type LotRow = {
@@ -93,13 +142,14 @@ function nullableNumber(value: string | number | null | undefined) {
 
 function mapHolding(
   row: HoldingRow,
-  valuation?: ValuationRow,
+  instrument: MarketInstrument | null,
+  manualValuation: ValuationRow | undefined,
+  valuation: InvestmentValuationResolution,
   activeMembershipId = "",
   activeMembershipIds?: ReadonlySet<string>,
   lots: InvestmentLot[] = [],
 ): InvestmentHolding {
   const basis = nullableNumber(row.remaining_total_cost_basis);
-  const currentValue = valuation ? Number(valuation.value_vnd) : null;
   const rawFinancialScope = row.financial_scope ?? "";
   const financialScope = isFinancialScope(rawFinancialScope)
     ? rawFinancialScope
@@ -109,6 +159,8 @@ function mapHolding(
     householdId: row.household_id,
     name: row.name,
     symbol: row.symbol,
+    instrumentId: row.instrument_id,
+    instrument,
     assetClass: row.asset_class as InvestmentAssetClass,
     providerCustodian: row.provider_custodian,
     visibilityContext: row.visibility_context as InvestmentVisibilityContext,
@@ -116,11 +168,19 @@ function mapHolding(
     historyStatus: row.history_status as InvestmentHistoryStatus,
     quantity: String(row.quantity),
     remainingTotalCostBasis: basis,
-    currentValue,
-    currentValuationDate: valuation?.valuation_date ?? null,
+    currentValue: valuation.currentValue,
+    currentValuationDate: valuation.priceDate,
     currentValuationSource:
-      (valuation?.source as InvestmentValuationSource) ?? null,
-    unrealizedResult: deriveUnrealizedResult(currentValue, basis),
+      valuation.quality === MarketValuationQuality.UNKNOWN
+        ? null
+        : valuation.source === MarketValuationSource.AUTOMATIC
+          ? InvestmentValuationSource.PROVIDER
+          : ((manualValuation?.source as InvestmentValuationSource) ??
+            InvestmentValuationSource.MANUAL),
+    unrealizedResult: valuation.estimatedUnrealizedPnl,
+    estimatedUnrealizedPnl: valuation.estimatedUnrealizedPnl,
+    estimatedUnrealizedPnlPercent: valuation.estimatedUnrealizedPnlPercent,
+    valuation,
     notes: row.notes,
     accountingMethod:
       row.accounting_method === AccountingMethod.FIFO
@@ -166,6 +226,47 @@ function mapActivity(row: OperationRow): InvestmentActivity {
       0,
     ),
     unitPriceVnd: nullableNumber(row.unit_price_vnd),
+  };
+}
+
+function mapMarketInstrument(row: InstrumentRow): MarketInstrument {
+  return {
+    id: row.id,
+    assetClass: row.asset_class as InvestmentAssetClass,
+    symbol: row.symbol,
+    name: row.name,
+    exchange: row.exchange,
+    currency: row.currency,
+    pricingMode: row.pricing_mode as MarketPricingMode,
+    autoPriceSupported: row.auto_price_supported,
+    isActive: row.is_active,
+    metadata: row.metadata,
+  };
+}
+
+function mapMarketPrice(row: PriceRow): MarketInstrumentPrice {
+  return {
+    instrumentId: row.instrument_id,
+    price: Number(row.price),
+    currency: row.currency,
+    priceType: row.price_type as MarketPriceType,
+    priceDate: row.price_date,
+    fetchedAt: row.fetched_at,
+    provider: row.provider as MarketDataProvider,
+    metadata: row.metadata,
+    updatedAt: row.updated_at,
+  };
+}
+
+function mapCurrencyRate(row: CurrencyRateRow): MarketCurrencyRate {
+  return {
+    baseCurrency: row.base_currency,
+    quoteCurrency: row.quote_currency,
+    rate: Number(row.rate),
+    rateDate: row.rate_date,
+    fetchedAt: row.fetched_at,
+    provider: row.provider as MarketFxProvider,
+    updatedAt: row.updated_at,
   };
 }
 
@@ -217,7 +318,7 @@ async function loadHoldings(): Promise<InvestmentHolding[] | null> {
       supabase
         .from("investment_holdings")
         .select(
-          "id, household_id, name, symbol, asset_class, provider_custodian, visibility_context, lifecycle_status, history_status, quantity, remaining_total_cost_basis, notes, financial_scope, owner_membership_id, accounting_method",
+          "id, household_id, name, symbol, instrument_id, asset_class, provider_custodian, visibility_context, lifecycle_status, history_status, quantity, remaining_total_cost_basis, notes, financial_scope, owner_membership_id, accounting_method",
         )
         .eq("household_id", gate.householdId)
         .order("created_at", { ascending: true }),
@@ -271,14 +372,106 @@ async function loadHoldings(): Promise<InvestmentHolding[] | null> {
       });
       lotsByHolding.set(row.position_id, holdingLots);
     }
-    return ((holdings ?? []) as HoldingRow[]).map((row) =>
-      mapHolding(
-        row,
-        latest.get(row.id),
-        gate.membershipId,
-        activeOwnerMembershipIds ?? undefined,
-        lotsByHolding.get(row.id) ?? [],
+    const instrumentIds = [
+      ...new Set(
+        ((holdings ?? []) as HoldingRow[])
+          .map((row) => row.instrument_id)
+          .filter((id): id is string => id != null),
       ),
+    ];
+    const marketRows = instrumentIds.length
+      ? await Promise.all([
+          supabase
+            .from("market_instruments")
+            .select(
+              "id, asset_class, symbol, name, exchange, currency, pricing_mode, auto_price_supported, is_active, metadata",
+            )
+            .in("id", instrumentIds),
+          supabase
+            .from("market_instrument_prices")
+            .select(
+              "instrument_id, price, currency, price_type, price_date, fetched_at, provider, metadata, updated_at",
+            )
+            .in("instrument_id", instrumentIds),
+          supabase
+            .from("market_currency_rates")
+            .select(
+              "base_currency, quote_currency, rate, rate_date, fetched_at, provider, updated_at",
+            )
+            .eq("quote_currency", INVESTMENT_REPORTING_CURRENCY),
+        ])
+      : [
+          { data: [], error: null },
+          { data: [], error: null },
+          { data: [], error: null },
+        ];
+    const [instrumentResult, priceResult, fxResult] = marketRows;
+    if (instrumentResult.error || priceResult.error || fxResult.error) {
+      logActionFailure({
+        operation: INVESTMENT_OPERATION.LIST_HOLDINGS,
+        error: instrumentResult.error ?? priceResult.error ?? fxResult.error,
+        context: { householdId: gate.householdId, phase: "market_valuation" },
+      });
+      return null;
+    }
+    const instrumentsById = new Map(
+      (instrumentResult.data as InstrumentRow[]).map((row) => [
+        row.id,
+        mapMarketInstrument(row),
+      ]),
+    );
+    const pricesByInstrumentId = new Map(
+      (priceResult.data as PriceRow[]).map((row) => [
+        row.instrument_id,
+        mapMarketPrice(row),
+      ]),
+    );
+    const ratesByCurrencyPair = new Map(
+      (fxResult.data as CurrencyRateRow[]).map((row) => {
+        const rate = mapCurrencyRate(row);
+        return [`${rate.baseCurrency}/${rate.quoteCurrency}`, rate];
+      }),
+    );
+    return ((holdings ?? []) as HoldingRow[]).map((row) =>
+      (() => {
+        const instrument = row.instrument_id
+          ? (instrumentsById.get(row.instrument_id) ?? null)
+          : null;
+        const price = row.instrument_id
+          ? (pricesByInstrumentId.get(row.instrument_id) ?? null)
+          : null;
+        const resolution = resolveInvestmentValuation({
+          assetClass: row.asset_class as InvestmentAssetClass,
+          quantity: String(row.quantity),
+          remainingCostBasis: nullableNumber(row.remaining_total_cost_basis),
+          instrument,
+          price,
+          fxRate: price
+            ? (ratesByCurrencyPair.get(
+                `${price.currency}/${INVESTMENT_REPORTING_CURRENCY}`,
+              ) ?? null)
+            : null,
+          manualValuation: latest.get(row.id)
+            ? {
+                valueVnd: Number(latest.get(row.id)?.value_vnd),
+                valuationDate: latest.get(row.id)?.valuation_date ?? "",
+                unitPriceVnd: nullableNumber(
+                  latest.get(row.id)?.unit_price_vnd,
+                ),
+                source: latest.get(row.id)?.source ?? "",
+              }
+            : null,
+        });
+        return mapHolding(
+          row,
+          instrument,
+          latest.get(row.id),
+          resolution,
+          gate.membershipId,
+          activeOwnerMembershipIds ?? undefined,
+          lotsByHolding.get(row.id) ?? [],
+        );
+      })(),
     );
   } catch (error) {
     logActionFailure({
@@ -321,6 +514,24 @@ async function loadInvestmentPortfolio(): Promise<InvestmentPortfolio | null> {
         0,
       )
     : null;
+  const estimatedUnrealizedPnl =
+    totalCurrentValue == null || totalRemainingCostBasis == null
+      ? null
+      : complete.length
+        ? complete.reduce(
+            (sum, holding) =>
+              sum +
+              (holding.currentValue ?? 0) -
+              (holding.remainingTotalCostBasis ?? 0),
+            0,
+          )
+        : null;
+  const completeCostBasis = complete.length
+    ? complete.reduce(
+        (sum, holding) => sum + (holding.remainingTotalCostBasis ?? 0),
+        0,
+      )
+    : null;
   const allocationGroups = new Map<InvestmentAssetClass, number>();
   for (const holding of valued) {
     allocationGroups.set(
@@ -339,18 +550,14 @@ async function loadInvestmentPortfolio(): Promise<InvestmentPortfolio | null> {
     closedPositionCount: closedHoldings.length,
     totalCurrentValue,
     totalRemainingCostBasis,
-    unrealizedResult:
-      totalCurrentValue == null || totalRemainingCostBasis == null
-        ? null
-        : complete.length
-          ? complete.reduce(
-              (sum, holding) =>
-                sum +
-                (holding.currentValue ?? 0) -
-                (holding.remainingTotalCostBasis ?? 0),
-              0,
-            )
-          : null,
+    unrealizedResult: estimatedUnrealizedPnl,
+    estimatedUnrealizedPnl,
+    estimatedUnrealizedPnlPercent:
+      estimatedUnrealizedPnl != null &&
+      completeCostBasis != null &&
+      completeCostBasis !== 0
+        ? estimatedUnrealizedPnl / completeCostBasis
+        : null,
     realizedSaleResult: activities.reduce(
       (sum, activity) => sum + (activity.realizedResultVnd ?? 0),
       0,
@@ -364,7 +571,10 @@ async function loadInvestmentPortfolio(): Promise<InvestmentPortfolio | null> {
       (sum, activity) => sum + activity.feesVnd,
       0,
     ),
-    valuationCoverage: { included: valued.length, total: holdings.length },
+    valuationCoverage: {
+      included: valued.length,
+      total: activeHoldings.length,
+    },
     basisCoverage: { included: based.length, total: holdings.length },
     allocationByAssetClass: allocateBasisPoints(
       Array.from(allocationGroups, ([assetClass, valueVnd]) => ({
@@ -377,11 +587,24 @@ async function loadInvestmentPortfolio(): Promise<InvestmentPortfolio | null> {
 
 export const listInvestmentPortfolio = cache(loadInvestmentPortfolio);
 
+export async function getInvestmentHoldingResult(
+  holdingId: string,
+): Promise<InvestmentHoldingReadResult> {
+  const holdings = await loadHoldings();
+  if (!holdings) return { status: InvestmentHoldingReadStatus.ERROR };
+  const holding = holdings.find((candidate) => candidate.id === holdingId);
+  return holding
+    ? { status: InvestmentHoldingReadStatus.READY, holding }
+    : { status: InvestmentHoldingReadStatus.NOT_FOUND };
+}
+
 export async function getInvestmentHolding(
   holdingId: string,
 ): Promise<InvestmentHolding | null> {
-  const holdings = await loadHoldings();
-  return holdings?.find((holding) => holding.id === holdingId) ?? null;
+  const result = await getInvestmentHoldingResult(holdingId);
+  return result.status === InvestmentHoldingReadStatus.READY
+    ? result.holding
+    : null;
 }
 
 export async function listInvestmentActivities(

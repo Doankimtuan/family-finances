@@ -19,7 +19,7 @@ import {
 } from "@/modules/home/application/home-constants";
 import { AnimatePresence, motion } from "motion/react";
 import { motionTokens, useMotionPolicy } from "@/shared/motion";
-import { Skeleton } from "@/shared/ui/skeleton";
+import { HomeDashboardSkeleton } from "./home-dashboard-skeleton";
 
 type HomePeriodTransitionState = {
   isPending: boolean;
@@ -117,22 +117,19 @@ export function HomePeriodData({
   const policy = useMotionPolicy();
   const loading = (
     <div
-      className="flex flex-col gap-(--space-3)"
       role="status"
       aria-live="polite"
       data-testid={HOME_TEST_ID.PERIOD_LOADING}
     >
       <span className="sr-only">{t("periodControl.loading")}</span>
-      <Skeleton className="h-56 w-full rounded-(--radius-card)" />
-      <Skeleton className="h-72 w-full rounded-(--radius-card)" />
-      <Skeleton className="h-36 w-full rounded-(--radius-card)" />
+      <HomeDashboardSkeleton />
     </div>
   );
 
   if (!policy.mounted || !policy.enabled) {
     return (
       <div
-        className="flex flex-col gap-(--space-3)"
+        className="flex flex-col gap-(--space-6)"
         aria-busy={isPending}
         data-testid={HOME_TEST_ID.PERIOD_CONTENT}
       >
@@ -147,7 +144,7 @@ export function HomePeriodData({
       aria-busy={isPending}
       data-testid={HOME_TEST_ID.PERIOD_CONTENT}
     >
-      <AnimatePresence initial={false} mode="popLayout">
+      <AnimatePresence initial={false} mode="wait">
         {isPending ? (
           <motion.div
             key={HOME_TEST_ID.PERIOD_LOADING}
@@ -164,6 +161,7 @@ export function HomePeriodData({
         ) : (
           <motion.div
             key={period}
+            className="flex flex-col gap-(--space-6)"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}

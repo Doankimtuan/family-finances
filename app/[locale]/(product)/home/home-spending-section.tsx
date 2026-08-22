@@ -5,9 +5,10 @@ import {
   HOME_TEST_ID,
 } from "@/modules/home/application/home-constants";
 import { formatCurrency, formatPercent } from "@/shared/i18n/formatters";
-import { KpiBlock } from "@/shared/patterns/kpi-block";
-import { AppIcon } from "@/shared/ui/app-icon";
+import { Heading } from "@/shared/ui/heading";
+import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
 import { IconContainer } from "@/shared/ui/icon-container";
+import { ACTION_ICONS, FINANCE_ICONS } from "@/shared/ui/icon-registry";
 import { categoryVisualFor } from "@/shared/ui/icon-registry";
 import { Progress } from "@/shared/ui/progress";
 import { Text } from "@/shared/ui/text";
@@ -28,33 +29,59 @@ export function HomeSpendingSection({
 }) {
   const t = useTranslations("home");
   if (metrics.spendingCategories.length === 0) return null;
+  const insightPresentation = metrics.spendingInsight
+    ? {
+        icon:
+          metrics.spendingInsight.kind === "higher"
+            ? FINANCE_ICONS.expense
+            : FINANCE_ICONS.income,
+        tone: metrics.spendingInsight.kind === "higher" ? "danger" : "success",
+      }
+    : null;
   const description = metrics.spendingInsight
     ? t.rich(`spending.insight.${metrics.spendingInsight.kind}`, {
         amount: () => (
-          <FinancialValue>
-            {formatCurrency(
-              metrics.spendingInsight?.amount ?? 0,
-              currency,
-              locale,
-              { maximumFractionDigits: HOME_CURRENCY_FRACTION_DIGITS },
-            )}
-          </FinancialValue>
+          <span
+            className={`inline-flex items-center gap-(--space-1) ${
+              insightPresentation?.tone === "danger"
+                ? "text-danger"
+                : "text-success"
+            }`}
+          >
+            {insightPresentation ? (
+              <AppIcon icon={insightPresentation.icon} size={AppIconSize.XS} />
+            ) : null}
+            <FinancialValue className="tabular-nums">
+              {formatCurrency(
+                metrics.spendingInsight?.amount ?? 0,
+                currency,
+                locale,
+                { maximumFractionDigits: HOME_CURRENCY_FRACTION_DIGITS },
+              )}
+            </FinancialValue>
+          </span>
         ),
       })
     : t("spending.hint");
 
   return (
-    <KpiBlock
-      title={t("spending.title")}
-      description={
-        <Text size="xs" tone="secondary" className="text-pretty">
-          {description}
-        </Text>
-      }
-      variant="plain"
+    <div
+      className="flex flex-col gap-(--space-2)"
       data-testid={HOME_TEST_ID.SPENDING}
     >
-      <div className="flex flex-col divide-y divide-border-subtle">
+      <Heading
+        level={3}
+        className="text-sm font-semibold tracking-normal text-text-primary"
+      >
+        {t("spending.title")}
+      </Heading>
+      <Text size="xs" tone="secondary" className="text-pretty">
+        {description}
+      </Text>
+      <div
+        id="home-cash-flow-breakdown"
+        className="flex flex-col divide-y divide-divider"
+      >
         {metrics.spendingCategories.map((category) => {
           const visual = categoryVisualFor({
             categoryId: category.id,
@@ -64,17 +91,14 @@ export function HomeSpendingSection({
           const percentage = formatPercent(category.proportion, locale, {
             maximumFractionDigits: 0,
           });
+          const isUncategorized = category.id == null;
 
           return (
             <div
               key={category.id ?? visual.iconKey}
-              className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-(--space-3) py-(--space-4) first:pt-0 last:pb-0"
+              className="grid grid-cols-[auto_minmax(0,1fr)_var(--financial-number-column-width)] items-center gap-(--space-3) py-(--space-3) first:pt-0 last:pb-0"
             >
-              <IconContainer
-                tone={visual.tone}
-                size="sm"
-                className="opacity-80"
-              >
+              <IconContainer tone={visual.tone} size="sm">
                 <AppIcon icon={visual.icon} size="sm" />
               </IconContainer>
               <div className="min-w-0">
@@ -83,11 +107,6 @@ export function HomeSpendingSection({
                   className="truncate font-medium text-text-primary"
                 >
                   {categoryName}
-                  {category.id == null && canReviewUncategorized ? (
-                    <span className="ml-(--space-1) text-xs font-normal text-warning">
-                      · {t("spending.reviewAvailable")}
-                    </span>
-                  ) : null}
                 </Text>
                 <Progress
                   value={category.progressPercent}
@@ -96,15 +115,28 @@ export function HomeSpendingSection({
                     percentage,
                   })}
                   showLabel={false}
+                  tone={visual.tone}
                   className="mt-(--space-2)"
-                  trackClassName="h-1 bg-surface-muted/75"
-                  indicatorClassName="bg-expense/70"
+                  trackClassName="h-1.5"
                 />
+                {isUncategorized && canReviewUncategorized ? (
+                  <Link
+                    href={APP_PATH.INBOX}
+                    aria-label={t("spending.reviewAria", {
+                      category: categoryName,
+                    })}
+                    className="mt-(--space-2) inline-flex min-h-9 w-fit items-center gap-(--space-1) rounded-full border border-warning/30 bg-warning/10 px-(--space-3) text-xs font-semibold text-warning transition-[background-color,transform] duration-(--duration-fast) hover:bg-warning/20 active:scale-[var(--press-scale)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none motion-reduce:active:scale-100"
+                  >
+                    {t("spending.review")}
+                    <AppIcon icon={ACTION_ICONS.forward} size="xs" />
+                  </Link>
+                ) : null}
               </div>
-              <div className="text-right">
+              <div className="min-w-0 tabular-nums text-right">
                 <Text
                   size="sm"
-                  className="font-semibold tabular-nums text-text-primary"
+                  className="font-semibold text-text-primary"
+                  tabular
                 >
                   <FinancialValue>
                     {formatCurrency(category.amount, currency, locale, {
@@ -112,22 +144,14 @@ export function HomeSpendingSection({
                     })}
                   </FinancialValue>
                 </Text>
-                <Text size="sm" tone="secondary" className="tabular-nums">
+                <Text size="xs" tone="muted" tabular>
                   {percentage}
                 </Text>
               </div>
-              {category.id == null && canReviewUncategorized ? (
-                <Link
-                  href={APP_PATH.INBOX}
-                  className="col-start-2 row-start-2 justify-self-start text-xs font-medium text-primary underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-                >
-                  {t("spending.review")}
-                </Link>
-              ) : null}
             </div>
           );
         })}
       </div>
-    </KpiBlock>
+    </div>
   );
 }

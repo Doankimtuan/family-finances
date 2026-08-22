@@ -25,6 +25,12 @@ export function summarizeActivePortfolio(
     (holding) =>
       holding.currentValue != null && holding.remainingTotalCostBasis != null,
   );
+  const completeCostBasis = complete.length
+    ? complete.reduce(
+        (sum, holding) => sum + (holding.remainingTotalCostBasis ?? 0),
+        0,
+      )
+    : null;
   const allocation = new Map<InvestmentAssetClass, number>();
   for (const holding of valued)
     allocation.set(
@@ -50,6 +56,16 @@ export function summarizeActivePortfolio(
           0,
         )
       : null,
+    estimatedUnrealizedPnlPercent:
+      completeCostBasis != null && completeCostBasis !== 0 && complete.length
+        ? complete.reduce(
+            (sum, holding) =>
+              sum +
+              (holding.currentValue ?? 0) -
+              (holding.remainingTotalCostBasis ?? 0),
+            0,
+          ) / completeCostBasis
+        : null,
     realizedSaleResult: activities.reduce(
       (sum, activity) => sum + (activity.realizedResultVnd ?? 0),
       0,

@@ -38,7 +38,7 @@ const textStyles = tv({
 
 export type TextProps = React.ComponentPropsWithoutRef<"p"> &
   VariantProps<typeof textStyles> & {
-    as?: "p" | "span" | "div";
+    as?: "p" | "span" | "div" | "dt" | "dd";
   };
 
 export function Text({

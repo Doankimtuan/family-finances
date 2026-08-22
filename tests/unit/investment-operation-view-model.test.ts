@@ -3,6 +3,7 @@ import { InvestmentAssetClass } from "@/modules/investments/application/investme
 import { investmentUxConfig } from "@/modules/investments/application/investment-ux";
 import {
   buildDisposalPreview,
+  buildPurchasePreview,
   buildUnitPricePreview,
   normalizeAvailableQuantity,
 } from "@/modules/investments/application/investment-operation-view-model";
@@ -44,6 +45,35 @@ describe("investment operation view model", () => {
     expect(result.realizedPnl).toBe(195_000);
     expect(result.remainingQuantity).toBe("8");
     expect(result.isFullDisposal).toBe(false);
+  });
+
+  it("keeps cash fees separate from reporting fees in sell preview", () => {
+    const result = buildDisposalPreview({
+      availableQuantity: "10",
+      soldQuantity: "2",
+      executionPricePerUnit: 100_000,
+      remainingCostBasis: 150_000,
+      cashFeeAmount: 2_000,
+      feeValue: 5_000,
+    });
+    expect(result.netProceeds).toBe(198_000);
+    expect(result.realizedPnl).toBe(165_000);
+  });
+
+  it("previews principal and cash outflow without using market price", () => {
+    expect(
+      buildPurchasePreview({
+        quantity: "2",
+        executionPricePerUnit: 100_000,
+        totalValue: null,
+        cashFeeAmount: 1_000,
+        feeValue: 1_000,
+      }),
+    ).toEqual({
+      investedPrincipal: 200_000,
+      feeValue: 1_000,
+      cashLeavingAccount: 201_000,
+    });
   });
 
   it("supports exact fractional MAX quantity and full disposal", () => {

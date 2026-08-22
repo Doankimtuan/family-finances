@@ -1,7 +1,9 @@
 import {
   InvestmentAssetClass,
   InvestmentEntryMode,
+  MarketPricingMode,
 } from "./investment-constants";
+import type { MarketInstrument } from "./investment-types";
 
 export type InvestmentUxType =
   (typeof InvestmentAssetClass)[keyof typeof InvestmentAssetClass];
@@ -142,3 +144,29 @@ export const investmentEntryModeMessageKeys = {
   [InvestmentEntryMode.HISTORICAL]: "opening.historicalModeTitle",
   [InvestmentEntryMode.PURCHASE]: "opening.purchaseModeTitle",
 } as const satisfies Record<InvestmentEntryMode, InvestmentUxMessageKey>;
+
+export type InvestmentPricingContract = {
+  pricingMode: MarketPricingMode;
+  usesTotalValue: boolean;
+  usesManualValuation: boolean;
+  quantityLabel: "quantity" | "fundUnits";
+};
+
+export function resolveInvestmentPricingContract(
+  assetClass: InvestmentUxType,
+  instrument: MarketInstrument | null,
+): InvestmentPricingContract {
+  const pricingMode =
+    instrument?.pricingMode ??
+    (assetClass === InvestmentAssetClass.BOND
+      ? MarketPricingMode.TOTAL_VALUE
+      : MarketPricingMode.UNIT_PRICE);
+
+  return {
+    pricingMode,
+    usesTotalValue: pricingMode === MarketPricingMode.TOTAL_VALUE,
+    usesManualValuation: pricingMode === MarketPricingMode.MANUAL,
+    quantityLabel:
+      assetClass === InvestmentAssetClass.FUND ? "fundUnits" : "quantity",
+  };
+}

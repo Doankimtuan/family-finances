@@ -11,6 +11,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import {
   InvestmentAssetClass,
+  InvestmentHistoryStatus,
   InvestmentOverviewFilter,
   INVESTMENT_OVERVIEW_FILTER_VALUES,
   type InvestmentOverviewFilter as InvestmentOverviewFilterType,
@@ -40,6 +41,7 @@ import { Section } from "@/shared/patterns/section";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Text } from "@/shared/ui/text";
 import { FinancialOwnershipBadge } from "@/shared/patterns/financial-ownership-badge";
+import { InvestmentValuationMeta } from "./investment-valuation-meta";
 
 const CHART_COLORS = [
   "chart-series-real",
@@ -96,6 +98,12 @@ function PositionCard({
   const quantity = `${formatNumber(Number(holding.quantity), locale, { maximumFractionDigits: holding.assetClass === InvestmentAssetClass.CRYPTO ? CRYPTO_DECIMAL_DIGITS : STANDARD_DECIMAL_DIGITS })} ${unitLabel}`;
   const hasPnl =
     holding.unrealizedResult != null && holding.remainingTotalCostBasis != null;
+  const instrumentContext = holding.instrument
+    ? `${holding.instrument.symbol} · ${holding.instrument.name}`
+    : holding.symbol;
+  const pnlLabel = hasPnl
+    ? `${signedMoney(holding.unrealizedResult, locale)} · ${formatPercent(holding.estimatedUnrealizedPnlPercent ?? 0, locale, { maximumFractionDigits: PERCENT_DECIMAL_DIGITS })}`
+    : null;
 
   return (
     <li>
@@ -115,9 +123,14 @@ function PositionCard({
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <Text weight="semibold" className="truncate">
-                  {holding.symbol || holding.name}
+                  {holding.name}
                 </Text>
-                <Text size="sm" tone="secondary" className="truncate">
+                {instrumentContext ? (
+                  <Text size="sm" tone="secondary" className="truncate">
+                    {instrumentContext}
+                  </Text>
+                ) : null}
+                <Text size="xs" tone="secondary" className="truncate">
                   {holding.providerCustodian || t("noProvider")} ·{" "}
                   {tUx(config.titleKey)}
                 </Text>
@@ -137,9 +150,15 @@ function PositionCard({
                   {t("currentValue")}
                 </Text>
                 <Text size="lg" weight="semibold" tabular>
-                  <FinancialValue>
-                    {money(holding.currentValue, locale)}
-                  </FinancialValue>
+                  {holding.currentValue == null ? (
+                    <Text size="sm" tone="secondary">
+                      {t("unknownValue")}
+                    </Text>
+                  ) : (
+                    <FinancialValue>
+                      {money(holding.currentValue, locale)}
+                    </FinancialValue>
+                  )}
                 </Text>
               </div>
               <div className="text-right">
@@ -158,7 +177,7 @@ function PositionCard({
                       }
                       tabular
                     >
-                      {signedMoney(holding.unrealizedResult, locale)}
+                      <FinancialValue>{pnlLabel}</FinancialValue>
                     </Text>
                   </>
                 ) : (
@@ -168,23 +187,31 @@ function PositionCard({
                 )}
               </div>
             </div>
-            {holding.historyStatus === "cost_basis_unknown" ? (
+            <div className="mt-(--space-3) flex items-center justify-between gap-3">
+              <Text size="xs" tone="secondary">
+                {t("knownBasis")}
+              </Text>
+              <Text size="sm" weight="medium" tabular>
+                {holding.remainingTotalCostBasis == null ? (
+                  t("unavailable")
+                ) : (
+                  <FinancialValue>
+                    {money(holding.remainingTotalCostBasis, locale)}
+                  </FinancialValue>
+                )}
+              </Text>
+            </div>
+            {holding.historyStatus ===
+            InvestmentHistoryStatus.COST_BASIS_UNKNOWN ? (
               <div className="mt-(--space-3) rounded-(--radius-control) bg-surface-muted px-(--space-3) py-(--space-2)">
                 <Text size="xs" tone="secondary">
                   {t("missingBasisTag")}
                 </Text>
               </div>
             ) : null}
-            {holding.currentValue != null ? (
-              <Text size="xs" tone="secondary" className="mt-(--space-3)">
-                {t("estimatedValueNote", {
-                  date: holding.currentValuationDate ?? t("unknownDate"),
-                  source: holding.currentValuationSource
-                    ? t(`valuationSources.${holding.currentValuationSource}`)
-                    : t("unknownSource"),
-                })}
-              </Text>
-            ) : null}
+            <div className="mt-(--space-3)">
+              <InvestmentValuationMeta holding={holding} />
+            </div>
           </div>
         </div>
       </Link>
@@ -213,7 +240,7 @@ export function InvestmentOverviewClient({
             filter === InvestmentOverviewFilter.ALL ||
             holding.assetClass === filter;
           const text =
-            `${holding.name} ${holding.symbol ?? ""} ${holding.providerCustodian ?? ""}`.toLowerCase();
+            `${holding.name} ${holding.symbol ?? ""} ${holding.providerCustodian ?? ""} ${holding.instrument?.symbol ?? ""} ${holding.instrument?.name ?? ""} ${holding.instrument?.exchange ?? ""}`.toLowerCase();
           return matchesFilter && text.includes(query.trim().toLowerCase());
         })
         .sort(
@@ -227,6 +254,10 @@ export function InvestmentOverviewClient({
     value: row.valueVnd,
     share: row.shareBasisPoints / BASIS_POINTS_DIVISOR,
   }));
+  const pnlCoverage = portfolio.activeHoldings.filter(
+    (holding) =>
+      holding.currentValue != null && holding.remainingTotalCostBasis != null,
+  );
 
   return (
     <div
@@ -250,9 +281,13 @@ export function InvestmentOverviewClient({
           tabular
           className="mt-1 text-3xl"
         >
-          <FinancialValue>
-            {money(portfolio.totalCurrentValue, locale)}
-          </FinancialValue>
+          {portfolio.totalCurrentValue == null ? (
+            t("unknownValue")
+          ) : (
+            <FinancialValue>
+              {money(portfolio.totalCurrentValue, locale)}
+            </FinancialValue>
+          )}
         </Text>
         <div className="mt-(--space-5) grid grid-cols-2 gap-(--space-4) sm:grid-cols-4">
           <div>
@@ -260,9 +295,13 @@ export function InvestmentOverviewClient({
               {t("knownBasis")}
             </Text>
             <Text weight="semibold" tabular>
-              <FinancialValue>
-                {money(portfolio.totalRemainingCostBasis, locale)}
-              </FinancialValue>
+              {portfolio.totalRemainingCostBasis == null ? (
+                t("unavailable")
+              ) : (
+                <FinancialValue>
+                  {money(portfolio.totalRemainingCostBasis, locale)}
+                </FinancialValue>
+              )}
             </Text>
           </div>
           <div>
@@ -280,9 +319,13 @@ export function InvestmentOverviewClient({
               }
               tabular
             >
-              <FinancialValue>
-                {signedMoney(portfolio.unrealizedResult, locale)}
-              </FinancialValue>
+              {portfolio.unrealizedResult == null ? (
+                t("unknownValue")
+              ) : (
+                <FinancialValue>
+                  {`${signedMoney(portfolio.unrealizedResult, locale)} · ${formatPercent(portfolio.estimatedUnrealizedPnlPercent ?? 0, locale, { maximumFractionDigits: PERCENT_DECIMAL_DIGITS })}`}
+                </FinancialValue>
+              )}
             </Text>
           </div>
           <div>
@@ -316,6 +359,25 @@ export function InvestmentOverviewClient({
           />
         ) : null}
       </section>
+      {portfolio.valuationCoverage.included <
+      portfolio.valuationCoverage.total ? (
+        <StatusAlert
+          variant="warning"
+          title={t("valuationCoverage", {
+            included: portfolio.valuationCoverage.included,
+            total: portfolio.valuationCoverage.total,
+          })}
+        />
+      ) : null}
+      {pnlCoverage.length < portfolio.activeHoldings.length ? (
+        <StatusAlert
+          variant="warning"
+          title={t("pnlCoverage", {
+            included: pnlCoverage.length,
+            total: portfolio.activeHoldings.length,
+          })}
+        />
+      ) : null}
       {chartData.length ? (
         <Section title={t("allocationTitle")}>
           <div className="grid gap-(--space-4) sm:grid-cols-[160px_1fr] sm:items-center">
@@ -344,7 +406,11 @@ export function InvestmentOverviewClient({
                     ))}
                   </Pie>
                   <Tooltip
-                    formatter={(value) => money(Number(value), locale)}
+                    formatter={(value) => (
+                      <FinancialValue>
+                        {money(Number(value), locale)}
+                      </FinancialValue>
+                    )}
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -371,7 +437,8 @@ export function InvestmentOverviewClient({
                     {formatPercent(row.share / PERCENT_DIVISOR, locale, {
                       maximumFractionDigits: PERCENT_DECIMAL_DIGITS,
                     })}{" "}
-                    · {money(row.value, locale)}
+                    ·{" "}
+                    <FinancialValue>{money(row.value, locale)}</FinancialValue>
                   </dd>
                 </div>
               ))}
@@ -443,16 +510,17 @@ export function InvestmentOverviewClient({
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <Text weight="medium">
-                        {holding.symbol || holding.name}
-                      </Text>
+                      <Text weight="medium">{holding.name}</Text>
                       <Text size="sm" tone="secondary">
-                        {holding.providerCustodian || t("noProvider")} ·{" "}
-                        {t("closedStatus")}
+                        {holding.instrument
+                          ? `${holding.instrument.symbol} · ${holding.instrument.name}`
+                          : holding.symbol ||
+                            holding.providerCustodian ||
+                            t("noProvider")}
                       </Text>
                     </div>
                     <Text size="sm" tone="secondary">
-                      {formatNumber(Number(holding.quantity), locale)}
+                      {t("closedStatus")}
                     </Text>
                   </div>
                   <Text size="sm" tone="secondary" className="mt-2">

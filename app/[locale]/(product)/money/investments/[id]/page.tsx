@@ -4,17 +4,21 @@ import {
   APP_PATH,
   moneyInvestmentBuyPath,
   moneyInvestmentIncomePath,
+  moneyInvestmentPath,
   moneyInvestmentSellPath,
   moneyInvestmentValuationPath,
 } from "@/modules/tenancy/application/app-path";
 import {
-  getInvestmentHolding,
+  getInvestmentHoldingResult,
   listInvestmentActivities,
   deriveSlippage,
   InvestmentActivityType,
   InvestmentAssetClass,
   InvestmentHistoryStatus,
   InvestmentLifecycleStatus,
+  InvestmentHoldingReadStatus,
+  MarketValuationQuality,
+  INVESTMENT_REPORTING_CURRENCY,
 } from "@/modules/investments/application";
 import {
   investmentUxConfig,
@@ -34,6 +38,10 @@ import { EmptyState } from "@/shared/patterns/empty-state";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Text } from "@/shared/ui/text";
 import { FinancialOwnershipBadge } from "@/shared/patterns/financial-ownership-badge";
+import { FinancialValue } from "@/shared/patterns/financial-value";
+import { MoneyOfflineBanner } from "../../money-offline-banner";
+import { InvestmentValuationMeta } from "../investment-valuation-meta";
+import { InvestmentMoreActions } from "../investment-more-actions";
 
 type Props = {
   params: Promise<{ id: string; locale: string }>;
@@ -84,16 +92,28 @@ export default async function InvestmentDetailPage({
   params,
   searchParams,
 }: Props) {
-  const [{ locale }, { receipt }, t, tUx, holding, activities] =
+  const [{ locale }, { receipt }, t, tUx, holdingResult, activities] =
     await Promise.all([
       params,
       searchParams,
       getTranslations("money.investments.detail"),
       getTranslations("money.investments"),
-      params.then(({ id: value }) => getInvestmentHolding(value)),
+      params.then(({ id: value }) => getInvestmentHoldingResult(value)),
       params.then(({ id: value }) => listInvestmentActivities(value)),
     ]);
-  if (!holding)
+  if (holdingResult.status === InvestmentHoldingReadStatus.ERROR)
+    return (
+      <Page topBar={<TopAppBar title={t("title")} />}>
+        <StatusAlert variant="danger" title={t("readError")} />
+        <Link
+          href={moneyInvestmentPath((await params).id)}
+          className="text-sm font-medium text-accent"
+        >
+          {t("retry")}
+        </Link>
+      </Page>
+    );
+  if (holdingResult.status === InvestmentHoldingReadStatus.NOT_FOUND)
     return (
       <Page topBar={<TopAppBar title={t("title")} />}>
         <EmptyState title={t("notFound")} />
@@ -105,34 +125,39 @@ export default async function InvestmentDetailPage({
         </Link>
       </Page>
     );
+  const holding = holdingResult.holding;
   const asset = holding.assetClass as InvestmentUxType;
   const ux = investmentUxConfig(asset);
   const money = (value: number | null) =>
     value == null
       ? t("unavailable")
-      : formatCurrency(value, "VND", locale, { maximumFractionDigits: 0 });
+      : formatCurrency(value, INVESTMENT_REPORTING_CURRENCY, locale, {
+          maximumFractionDigits: 0,
+        });
   const quantity = Number(holding.quantity);
-  const average =
-    holding.remainingTotalCostBasis != null && quantity > ZERO_AMOUNT
-      ? holding.remainingTotalCostBasis / quantity
-      : null;
-  const referencePrice =
-    holding.currentValue != null && quantity > ZERO_AMOUNT
-      ? holding.currentValue / quantity
-      : null;
+  const isClosed =
+    holding.lifecycleStatus === InvestmentLifecycleStatus.EXITED ||
+    quantity <= ZERO_AMOUNT;
   const hasBasis =
-    holding.remainingTotalCostBasis != null && holding.unrealizedResult != null;
+    !isClosed &&
+    holding.remainingTotalCostBasis != null &&
+    holding.unrealizedResult != null &&
+    holding.valuation?.quality !== MarketValuationQuality.UNKNOWN;
   const pnlPercent =
     hasBasis && holding.remainingTotalCostBasis! > ZERO_AMOUNT
       ? holding.unrealizedResult! / holding.remainingTotalCostBasis!
       : null;
-  const isClosed =
-    holding.lifecycleStatus === InvestmentLifecycleStatus.EXITED ||
-    quantity <= ZERO_AMOUNT;
-  const realized = (activities ?? []).reduce(
-    (sum, activity) => sum + (activity.realizedResultVnd ?? 0),
-    0,
-  );
+  const realized =
+    activities?.reduce(
+      (sum, activity) => sum + (activity.realizedResultVnd ?? 0),
+      0,
+    ) ?? null;
+  const receivedIncome =
+    activities?.reduce(
+      (sum, activity) =>
+        sum + (activity.incomeKind ? (activity.executedValueVnd ?? 0) : 0),
+      0,
+    ) ?? null;
   const valuationLabel =
     asset === InvestmentAssetClass.FUND
       ? t("updateNav")
@@ -140,17 +165,20 @@ export default async function InvestmentDetailPage({
         ? t("updateGoldBuyBack")
         : t("updatePrice");
   const providerDisplay = holding.providerCustodian || t("noProvider");
+  const instrumentContext = holding.instrument
+    ? `${holding.instrument.symbol} · ${holding.instrument.name}`
+    : holding.symbol || tUx(ux.titleKey);
+  const canUpdateManualValue =
+    holding.ownership.canMutate &&
+    !isClosed &&
+    !holding.instrument?.autoPriceSupported;
 
   return (
     <Page
       testId="investment-detail"
-      topBar={
-        <TopAppBar
-          title={holding.symbol || holding.name}
-          subtitle={`${providerDisplay} · ${tUx(ux.titleKey)}`}
-        />
-      }
+      topBar={<TopAppBar title={holding.name} subtitle={instrumentContext} />}
     >
+      <MoneyOfflineBanner />
       {receipt ? (
         <StatusAlert
           variant="success"
@@ -178,21 +206,33 @@ export default async function InvestmentDetailPage({
         <Text size="sm" tone="secondary">
           {tUx(ux.titleKey)} · {providerDisplay}
         </Text>
-        <Text size="sm" tone="secondary" className="mt-(--space-4)">
-          {asset === InvestmentAssetClass.GOLD
-            ? t("currentGoldValue")
-            : t("currentValue")}
-        </Text>
-        <Text
-          as="div"
-          size="lg"
-          weight="semibold"
-          tabular
-          className="mt-1 text-3xl"
-        >
-          {money(holding.currentValue)}
-        </Text>
-        {hasBasis ? (
+        {!isClosed ? (
+          <>
+            <Text size="sm" tone="secondary" className="mt-(--space-4)">
+              {asset === InvestmentAssetClass.GOLD
+                ? t("currentGoldValue")
+                : t("currentValue")}
+            </Text>
+            <Text
+              as="div"
+              size="lg"
+              weight="semibold"
+              tabular
+              className="mt-1 text-3xl"
+            >
+              {holding.currentValue == null ? (
+                tUx("valuation.noCurrentValue")
+              ) : (
+                <FinancialValue>{money(holding.currentValue)}</FinancialValue>
+              )}
+            </Text>
+          </>
+        ) : (
+          <Text size="sm" tone="secondary" className="mt-(--space-4)">
+            {t("closedValueUnavailable")}
+          </Text>
+        )}
+        {!isClosed && hasBasis ? (
           <div className="mt-(--space-2) flex items-center gap-2">
             <Text
               size="sm"
@@ -201,39 +241,51 @@ export default async function InvestmentDetailPage({
               }
               weight="semibold"
             >
-              {holding.unrealizedResult! >= ZERO_AMOUNT ? "+" : "−"}
-              {money(Math.abs(holding.unrealizedResult!))}
-            </Text>
-            <Text size="sm" tone="secondary">
-              (
-              {formatPercent(pnlPercent!, locale, {
-                maximumFractionDigits: PERCENT_DECIMAL_DIGITS,
-              })}{" "}
-              · {t("estimated")})
+              <FinancialValue>
+                {`${holding.unrealizedResult! >= ZERO_AMOUNT ? "+" : "−"}${money(Math.abs(holding.unrealizedResult!))} · ${formatPercent(pnlPercent!, locale, { maximumFractionDigits: PERCENT_DECIMAL_DIGITS })}`}
+              </FinancialValue>
             </Text>
           </div>
-        ) : (
+        ) : !isClosed ? (
           <Text size="sm" tone="secondary" className="mt-2">
             {t("missingBasisAlertTitle")}
           </Text>
-        )}
+        ) : null}
       </section>
-      {!isClosed && holding.ownership.canMutate ? (
-        <div className="grid grid-cols-2 gap-(--space-2)">
+      {holding.ownership.canMutate ? (
+        <div className="flex items-stretch gap-(--space-2)">
           <Link
             href={moneyInvestmentBuyPath(holding.id)}
-            className="inline-flex min-h-11 items-center justify-center rounded-md bg-accent text-sm font-medium text-accent-fg"
+            className="inline-flex min-h-11 min-w-0 flex-1 items-center justify-center rounded-md bg-accent text-sm font-medium text-accent-fg"
           >
             {tUx(ux.purchaseActionKey)}
           </Link>
-          <Link
-            href={moneyInvestmentSellPath(holding.id)}
-            className="inline-flex min-h-11 items-center justify-center rounded-md border border-border-subtle bg-surface text-sm font-medium text-text-primary"
-          >
-            {tUx(ux.disposalActionKey)}
-          </Link>
+          {!isClosed ? (
+            <>
+              <Link
+                href={moneyInvestmentSellPath(holding.id)}
+                className="inline-flex min-h-11 min-w-0 flex-1 items-center justify-center rounded-md border border-border-subtle bg-surface text-sm font-medium text-text-primary"
+              >
+                {tUx(ux.disposalActionKey)}
+              </Link>
+              <InvestmentMoreActions
+                label={t("moreActions")}
+                incomeHref={moneyInvestmentIncomePath(holding.id)}
+                incomeLabel={tUx(ux.incomeLabelKey)}
+                valuationHref={
+                  canUpdateManualValue
+                    ? moneyInvestmentValuationPath(holding.id)
+                    : undefined
+                }
+                valuationLabel={
+                  canUpdateManualValue ? valuationLabel : undefined
+                }
+              />
+            </>
+          ) : null}
         </div>
-      ) : isClosed ? (
+      ) : null}
+      {isClosed ? (
         <StatusAlert
           variant="info"
           title={t("closedTitle")}
@@ -243,6 +295,20 @@ export default async function InvestmentDetailPage({
       <Section title={t("performanceSection")}>
         <div className="grid gap-(--space-3) sm:grid-cols-2">
           <Amount
+            label={t("quantityLabel")}
+            amountLabel={`${formatNumber(quantity, locale, { maximumFractionDigits: asset === InvestmentAssetClass.CRYPTO ? CRYPTO_DECIMAL_DIGITS : STANDARD_DECIMAL_DIGITS })} ${asset === InvestmentAssetClass.FUND ? tUx("overview.fundUnit") : t("unit")}`}
+          />
+          {!isClosed ? (
+            <div className="flex flex-col gap-(--space-1)">
+              <Text size="sm" tone="secondary">
+                {asset === InvestmentAssetClass.FUND
+                  ? t("fundNavLabel")
+                  : t("referencePriceLabel")}
+              </Text>
+              <InvestmentValuationMeta holding={holding} detail />
+            </div>
+          ) : null}
+          <Amount
             label={t("remainingBasis")}
             amountLabel={money(holding.remainingTotalCostBasis)}
           />
@@ -250,59 +316,52 @@ export default async function InvestmentDetailPage({
             label={t("unrealizedResult")}
             amountLabel={
               hasBasis
-                ? `${holding.unrealizedResult! >= ZERO_AMOUNT ? "+" : "−"}${money(Math.abs(holding.unrealizedResult!))}`
+                ? `${holding.unrealizedResult! >= ZERO_AMOUNT ? "+" : "−"}${money(Math.abs(holding.unrealizedResult!))} · ${formatPercent(pnlPercent!, locale, { maximumFractionDigits: PERCENT_DECIMAL_DIGITS })}`
                 : t("unavailable")
             }
           />
-          <Amount label={t("realizedResult")} amountLabel={money(realized)} />
           <Amount
-            label={
-              asset === InvestmentAssetClass.FUND
-                ? t("receivedIncome")
-                : t("quantityLabel")
-            }
+            label={t("realizedResult")}
+            amountLabel={realized == null ? t("unavailable") : money(realized)}
+          />
+          <Amount
+            label={t("receivedIncome")}
             amountLabel={
-              asset === InvestmentAssetClass.FUND
-                ? money(null)
-                : `${formatNumber(quantity, locale, { maximumFractionDigits: asset === InvestmentAssetClass.CRYPTO ? CRYPTO_DECIMAL_DIGITS : STANDARD_DECIMAL_DIGITS })} ${t("unit")}`
+              receivedIncome == null ? t("unavailable") : money(receivedIncome)
             }
           />
         </div>
       </Section>
-      <Section
-        title={
-          asset === InvestmentAssetClass.GOLD
-            ? t("goldBuyBackSection")
-            : asset === InvestmentAssetClass.FUND
-              ? t("fundNavSection")
-              : t("referencePriceSection")
-        }
-      >
-        <div className="grid gap-(--space-3) sm:grid-cols-2">
-          <Amount
-            label={
-              asset === InvestmentAssetClass.GOLD
-                ? t("goldBuyBackPriceLabel")
-                : asset === InvestmentAssetClass.FUND
-                  ? t("fundNavLabel")
-                  : t("referencePriceLabel")
-            }
-            amountLabel={money(referencePrice)}
-          />
-          {asset !== InvestmentAssetClass.FUND &&
-          asset !== InvestmentAssetClass.GOLD ? (
-            <Amount label={t("averageCost")} amountLabel={money(average)} />
-          ) : null}
-          {asset === InvestmentAssetClass.GOLD ? (
-            <Text size="sm" tone="secondary">
-              {t("goldValuationNote")}
-            </Text>
-          ) : null}
-        </div>
+      <Section title={t("instrumentSection")}>
+        <Text weight="medium">{instrumentContext}</Text>
+        {holding.instrument?.exchange ? (
+          <Text size="sm" tone="secondary">
+            {t("exchange")}: {holding.instrument.exchange}
+          </Text>
+        ) : null}
+        <InvestmentValuationMeta holding={holding} detail />
+        {asset === InvestmentAssetClass.GOLD ? (
+          <Text size="sm" tone="secondary">
+            {t("goldValuationNote")}
+          </Text>
+        ) : null}
       </Section>
       <Section title={t("activitySection")}>
         <div className="flex flex-col gap-(--space-3)">
-          {activities?.length ? (
+          {activities === null ? (
+            <StatusAlert
+              variant="danger"
+              title={t("activityReadError")}
+              action={
+                <Link
+                  href={moneyInvestmentPath(holding.id)}
+                  className="text-sm font-medium text-accent"
+                >
+                  {t("retry")}
+                </Link>
+              }
+            />
+          ) : activities.length ? (
             activities.map((activity) => {
               const slippage =
                 activity.executedValueVnd == null
@@ -340,7 +399,11 @@ export default async function InvestmentDetailPage({
                       </span>
                     ) : null}
                     {activity.executedValueVnd != null ? (
-                      <span>{money(activity.executedValueVnd)}</span>
+                      <span>
+                        <FinancialValue>
+                          {money(activity.executedValueVnd)}
+                        </FinancialValue>
+                      </span>
                     ) : null}
                     {activity.realizedResultVnd != null ? (
                       <span
@@ -350,16 +413,18 @@ export default async function InvestmentDetailPage({
                             : "text-danger"
                         }
                       >
-                        {t("realizedPnlLabel")}{" "}
-                        {activity.realizedResultVnd >= ZERO_AMOUNT ? "+" : "−"}
-                        {money(Math.abs(activity.realizedResultVnd))}
+                        <FinancialValue>
+                          {`${t("realizedPnlLabel")} ${activity.realizedResultVnd >= ZERO_AMOUNT ? "+" : "−"}${money(Math.abs(activity.realizedResultVnd))}`}
+                        </FinancialValue>
                       </span>
                     ) : null}
                     {slippage != null ? (
                       <span>
-                        {t("slippageLabel", {
-                          amount: money(Math.abs(slippage)),
-                        })}
+                        <FinancialValue>
+                          {t("slippageLabel", {
+                            amount: money(Math.abs(slippage)),
+                          })}
+                        </FinancialValue>
                       </span>
                     ) : null}
                   </div>
@@ -373,22 +438,6 @@ export default async function InvestmentDetailPage({
           )}
         </div>
       </Section>
-      {!isClosed && holding.ownership.canMutate ? (
-        <div className="grid grid-cols-2 gap-(--space-2)">
-          <Link
-            href={moneyInvestmentIncomePath(holding.id)}
-            className="inline-flex min-h-11 items-center justify-center rounded-md border border-border-subtle bg-surface text-sm font-medium text-text-primary"
-          >
-            {tUx(ux.incomeLabelKey)}
-          </Link>
-          <Link
-            href={moneyInvestmentValuationPath(holding.id)}
-            className="inline-flex min-h-11 items-center justify-center rounded-md border border-border-subtle bg-surface text-sm font-medium text-text-primary"
-          >
-            {valuationLabel}
-          </Link>
-        </div>
-      ) : null}
       <Link
         href={APP_PATH.MONEY_INVESTMENTS}
         className="text-sm font-medium text-accent"

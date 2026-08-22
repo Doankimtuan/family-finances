@@ -222,6 +222,7 @@ export async function createOpeningPosition(
   return invokeInvestmentRpc(INVESTMENT_RPC.OPENING_POSITION, {
     p_asset_name: value.assetName,
     p_asset_class: value.assetClass,
+    p_instrument_id: value.instrumentId ?? null,
     p_quantity: value.quantity,
     p_as_of_date: value.asOfDate,
     p_symbol: value.symbol ?? null,
@@ -351,6 +352,7 @@ export async function createInitialPurchase(
   return invokeInvestmentRpc(INVESTMENT_RPC.INITIAL_PURCHASE, {
     p_asset_name: value.assetName,
     p_asset_class: value.assetClass,
+    p_instrument_id: value.instrumentId ?? null,
     p_quantity: value.quantity,
     p_unit_price_vnd: value.unitPriceVnd ?? null,
     p_total_value_vnd: value.totalValueVnd ?? null,

@@ -6,7 +6,7 @@ import { cn } from "@/shared/utils/cn";
 
 export type SelectProps = ComponentProps<typeof HeroSelect>;
 
-const fieldChrome = cn(
+export const FIELD_CONTROL_CLASS_NAME = cn(
   "min-h-11 w-full rounded-[var(--radius-control)]",
   "border border-border-subtle bg-surface text-text-primary",
   "transition-[border-color,box-shadow,background-color] duration-(--duration-fast) ease-(--ease-standard)",
@@ -28,7 +28,7 @@ const SelectTrigger = ({
 }: ComponentProps<typeof HeroSelect.Trigger>) => (
   <HeroSelect.Trigger
     className={cn(
-      fieldChrome,
+      FIELD_CONTROL_CLASS_NAME,
       "flex h-11 w-full items-center px-(--space-3) py-0",
       className,
     )}

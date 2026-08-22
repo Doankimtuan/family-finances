@@ -11,6 +11,7 @@ export {
   BottomActionBarLayout,
   type BottomActionBarProps,
 } from "./bottom-action-bar";
+export { FloatingAction, type FloatingActionProps } from "./floating-action";
 export { BottomNavigation } from "./bottom-navigation";
 export {
   TopAppBar,
@@ -63,6 +64,13 @@ export {
   type BalanceProps,
 } from "./balance";
 export { FinancialValue } from "./financial-value";
+export {
+  FinancialDeltaDirection,
+  FINANCIAL_DELTA_DIRECTION_VALUES,
+  FINANCIAL_DELTA_PRESENTATION,
+  FinancialDeltaBadge,
+  FinancialDeltaValue,
+} from "./financial-delta";
 export {
   Amount,
   AmountTone,

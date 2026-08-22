@@ -11,6 +11,7 @@ import {
   InvestmentVisibilityContext,
   type InvestmentHolding,
 } from "@/modules/investments/application/client";
+import { Sheet } from "@/shared/patterns/sheet";
 
 const { buyMock, replaceMock } = vi.hoisted(() => ({
   buyMock: vi.fn(),
@@ -46,6 +47,7 @@ const holding: InvestmentHolding = {
   householdId: "00000000-0000-4000-8000-000000000010",
   name: "Example stock",
   symbol: "EXM",
+  instrumentId: null,
   assetClass: InvestmentAssetClass.STOCK,
   providerCustodian: "Custodian",
   visibilityContext: InvestmentVisibilityContext.HOUSEHOLD,
@@ -68,12 +70,15 @@ const otherHolding = {
 
 function renderBuyForm() {
   return render(
-    <InvestmentOperationForm
-      mode={InvestmentFormMode.BUY}
-      holding={holding}
-      holdings={[holding, otherHolding]}
-      accounts={[{ id: ACCOUNT_ID, name: "Wallet" }]}
-    />,
+    <Sheet isOpen onOpenChange={() => {}}>
+      <InvestmentOperationForm
+        mode={InvestmentFormMode.BUY}
+        title="Buy"
+        holding={holding}
+        holdings={[holding, otherHolding]}
+        accounts={[{ id: ACCOUNT_ID, name: "Wallet", balance: 10_000_000 }]}
+      />
+    </Sheet>,
   );
 }
 
@@ -81,10 +86,9 @@ function fillValidBuy() {
   fireEvent.change(screen.getByLabelText("opening.quantityLabel"), {
     target: { value: "2" },
   });
-  fireEvent.change(
-    screen.getByLabelText("ux.assetClasses.stock.disposalPriceLabel"),
-    { target: { value: "100000" } },
-  );
+  fireEvent.change(screen.getByLabelText("purchasePrice"), {
+    target: { value: "100000" },
+  });
 }
 
 describe("InvestmentOperationForm", () => {
@@ -136,9 +140,7 @@ describe("InvestmentOperationForm", () => {
     );
     fireEvent.click(screen.getByText("edit"));
     expect(screen.getByLabelText("opening.quantityLabel")).toHaveValue("");
-    expect(
-      screen.getByLabelText("ux.assetClasses.stock.disposalPriceLabel"),
-    ).toHaveValue("");
+    expect(screen.getByLabelText("purchasePrice")).toHaveValue("");
   });
 
   it("switches fee input by source without submitting stale hidden values", async () => {

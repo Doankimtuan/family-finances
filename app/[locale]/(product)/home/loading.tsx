@@ -1,63 +1,44 @@
-import { getLocale, getTranslations } from "next-intl/server";
 import { Page } from "@/shared/patterns/page";
-import { Section } from "@/shared/patterns/section";
-import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { BrandMark } from "@/shared/patterns/brand-mark";
 import { Skeleton } from "@/shared/ui/skeleton";
-import {
-  HOME_TEST_ID,
-  HOME_TRANSLATION_NAMESPACE,
-} from "@/modules/home/application/home-constants";
+import { HOME_TEST_ID } from "@/modules/home/application/home-constants";
+import { HomeDashboardSkeleton } from "./home-dashboard-skeleton";
 
 /**
- * Home loading skeleton — reserved shapes that match the final layout.
- * Reduces motion automatically via the `motion-reduce` utilities.
+ * Home loading skeleton — mirrors the loaded page composition (compact
+ * header, financial hero, net strip, cash-flow story, Inbox, Plan) so the
+ * loading → loaded transition does not recompose the layout.
  */
-export default async function HomeLoading() {
-  const locale = await getLocale();
-  const t = await getTranslations({
-    locale,
-    namespace: HOME_TRANSLATION_NAMESPACE,
-  });
-
+export default function HomeLoading() {
   return (
     <Page
       testId={HOME_TEST_ID.LOADING}
       topBar={
-        <TopAppBar
-          variant="primary"
-          title={t("header.eyebrow")}
-          trailing={<BrandMark variant="mark" size="sm" />}
-        />
+        <header className="flex shrink-0 items-center justify-between gap-(--space-3) px-(--page-gutter) pb-(--space-1) pt-(--space-4)">
+          <Skeleton className="h-5 w-36" />
+          <BrandMark variant="mark" size="sm" />
+        </header>
       }
+      contentClassName="gap-(--space-5)"
     >
-      <Section variant="emphasized" contentClassName="gap-(--space-4)">
-        <Skeleton className="h-4 w-24 rounded" />
-        <Skeleton className="h-12 w-2/3 rounded" />
-        <Skeleton className="h-12 w-full rounded-lg" />
-      </Section>
-
-      <Section variant="surface" contentClassName="gap-(--space-4)">
-        <Skeleton className="h-4 w-24 rounded" />
-        <div className="flex items-end justify-between gap-(--space-3)">
-          <Skeleton className="h-8 w-32 rounded" />
-          <Skeleton className="h-8 w-20 rounded-md" />
+      <HomeDashboardSkeleton />
+      <section className="border-t border-divider pt-(--space-4)">
+        <Skeleton className="h-4 w-16" />
+        <div className="mt-(--space-3) flex items-center gap-(--space-3)">
+          <Skeleton className="size-8 rounded-(--radius-control)" />
+          <Skeleton className="h-4 w-52" />
         </div>
-      </Section>
-
-      <Section variant="surface" contentClassName="gap-(--space-4)">
-        <Skeleton className="h-4 w-24 rounded" />
-        <Skeleton className="h-8 w-full rounded" />
-      </Section>
-
-      <Section
-        variant="surface"
-        className="bg-surface-elevated"
-        contentClassName="gap-(--space-3)"
-      >
-        <Skeleton className="h-4 w-32 rounded" />
-        <Skeleton className="h-20 w-full rounded" />
-      </Section>
+      </section>
+      <section className="flex flex-col gap-(--space-3)">
+        <Skeleton className="h-4 w-20" />
+        <div className="flex items-center gap-(--space-3) rounded-(--radius-card) border border-border-subtle bg-surface p-(--space-3) shadow-(--elevation-1)">
+          <Skeleton className="size-10 rounded-(--radius-control)" />
+          <div className="flex flex-col gap-(--space-1)">
+            <Skeleton className="h-5 w-36" />
+            <Skeleton className="h-4 w-52" />
+          </div>
+        </div>
+      </section>
     </Page>
   );
 }

@@ -30,11 +30,13 @@ import {
 import { moneyInvestmentPath } from "@/modules/tenancy/application/app-path";
 import {
   buildDisposalPreview,
+  buildPurchasePreview,
   buildUnitPricePreview,
   normalizeAvailableQuantity,
 } from "@/modules/investments/application/investment-operation-view-model";
 import {
   investmentUxConfig,
+  resolveInvestmentPricingContract,
   type InvestmentUxType,
 } from "@/modules/investments/application/investment-ux";
 import { DEFAULT_CURRENCY } from "@/modules/ledger/application/client";
@@ -43,9 +45,11 @@ import { Button } from "@/shared/ui/button";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { ControlledField } from "@/shared/patterns/controlled-fields";
 import { DecimalField } from "@/shared/patterns/decimal-field";
-import { BottomActionBar } from "@/shared/patterns/bottom-action-bar";
 import { ConfirmSummary } from "@/shared/patterns/confirm-summary";
 import { LabeledSelect } from "@/shared/patterns/labeled-native-field";
+import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
+import { FinancialValue } from "@/shared/patterns/financial-value";
+import { Sheet } from "@/shared/patterns/sheet";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import {
   recordAssetConversionAction,
@@ -54,13 +58,15 @@ import {
   recordInvestmentSellAction,
   recordInvestmentValuationAction,
 } from "./investment-actions";
+import { InvestmentValuationMeta } from "./investment-valuation-meta";
 
-type AccountOption = { id: string; name: string };
+type AccountOption = { id: string; name: string; balance?: number };
 type Props = {
   mode: InvestmentFormModeValue;
   holding: InvestmentHolding;
   holdings: InvestmentHolding[];
   accounts: AccountOption[];
+  title: string;
 };
 const today = () => new Date().toISOString().slice(0, 10);
 const operationModes = [
@@ -222,6 +228,7 @@ export function InvestmentOperationForm({
   holding,
   holdings,
   accounts,
+  title,
 }: Props) {
   const t = useTranslations("money.investments.operation");
   const tUx = useTranslations("money.investments");
@@ -250,9 +257,20 @@ export function InvestmentOperationForm({
   const sourceId = useWatch({ control, name: "sourceId" });
   const hasFee = useWatch({ control, name: "hasFee" });
   const feeSource = useWatch({ control, name: "feeSource" });
+  const feeAmount = useWatch({ control, name: "feeAmount" });
   const feeValue = useWatch({ control, name: "feeValue" });
   const ux = investmentUxConfig(holding.assetClass as InvestmentUxType);
-  const usesUnitPrice = holding.assetClass !== InvestmentAssetClass.BOND;
+  const pricingContract = resolveInvestmentPricingContract(
+    holding.assetClass,
+    holding.instrument ?? null,
+  );
+  const usesUnitPrice = !pricingContract.usesTotalValue;
+  const executionAssetLabel =
+    holding.instrument?.symbol || holding.symbol || holding.name;
+  const purchasePriceLabel =
+    holding.assetClass === InvestmentAssetClass.FUND
+      ? tUx(ux.priceLabelKey)
+      : t("purchasePrice", { asset: executionAssetLabel });
   const accountsOptions = accounts.map((account) => ({
     id: account.id,
     label: account.name,
@@ -272,7 +290,7 @@ export function InvestmentOperationForm({
           quantity: holding.quantity,
           unitPrice: usesUnitPrice ? unitPrice : value,
           costBasis: holding.remainingTotalCostBasis,
-          manualTotalValue: !usesUnitPrice,
+          manualTotalValue: pricingContract.usesTotalValue,
         })
       : null;
   const disposalPreview =
@@ -280,22 +298,33 @@ export function InvestmentOperationForm({
       ? buildDisposalPreview({
           availableQuantity: holding.quantity,
           soldQuantity: quantity ?? "",
-          executionPricePerUnit: unitPrice ?? null,
+          executionPricePerUnit: usesUnitPrice ? unitPrice : value,
           remainingCostBasis: holding.remainingTotalCostBasis,
-          feeAmount: feeValue ?? null,
-          manualTotalValue: !usesUnitPrice,
+          cashFeeAmount: hasFee ? feeAmount : null,
+          feeValue: hasFee ? feeValue : null,
+          manualTotalValue: pricingContract.usesTotalValue,
           accountingMethod: holding.accountingMethod,
           lots: holding.lots,
         })
       : null;
-  const buyPreview =
-    mode === InvestmentFormMode.BUY && usesUnitPrice
-      ? buildUnitPricePreview({
+  const purchasePreview =
+    mode === InvestmentFormMode.BUY
+      ? buildPurchasePreview({
           quantity: quantity ?? "",
-          unitPrice: unitPrice ?? null,
-          costBasis: holding.remainingTotalCostBasis,
+          executionPricePerUnit: usesUnitPrice ? unitPrice : null,
+          totalValue: usesUnitPrice ? null : value,
+          cashFeeAmount: hasFee ? feeAmount : null,
+          feeValue: hasFee ? feeValue : null,
+          manualTotalValue: pricingContract.usesTotalValue,
         })
       : null;
+  const accountId = useWatch({ control, name: "accountId" });
+  const selectedAccount = accounts.find((account) => account.id === accountId);
+  const insufficientBuyBalance =
+    mode === InvestmentFormMode.BUY &&
+    purchasePreview?.cashLeavingAccount != null &&
+    selectedAccount?.balance != null &&
+    purchasePreview.cashLeavingAccount > selectedAccount.balance;
   const money = (value: number | null | undefined) =>
     value == null
       ? t("unknown")
@@ -437,6 +466,17 @@ export function InvestmentOperationForm({
   const review = () =>
     void handleSubmit(
       () => {
+        if (insufficientBuyBalance) {
+          setError("invalid");
+          return;
+        }
+        if (
+          mode === InvestmentFormMode.SELL &&
+          !disposalPreview?.remainingQuantity
+        ) {
+          setError("insufficient_quantity");
+          return;
+        }
         setError(null);
         setIdempotencyKey(
           (current) =>
@@ -449,395 +489,473 @@ export function InvestmentOperationForm({
     )();
 
   return (
-    <div
-      className="flex flex-col gap-(--space-4)"
-      data-testid={`investment-operation-${mode}`}
-    >
-      {error ? (
-        <StatusAlert variant="danger" title={t(`errors.${error}`)} />
-      ) : null}
-      {confirming ? (
-        <ConfirmSummary
-          data-testid="investment-operation-preview"
-          rows={[
-            {
-              id: "holding",
-              label: tUx(ux.instrumentLabelKey),
-              value: holding.symbol || holding.name,
-            },
-            ...(showQuantity
-              ? [
-                  {
-                    id: "quantity",
-                    label: tUx(ux.quantityLabelKey),
-                    value: quantity || t("unknown"),
-                  },
-                ]
-              : []),
-            {
-              id: "value",
-              label:
-                mode === InvestmentFormMode.VALUATION
-                  ? tUx(ux.valuationPriceLabelKey)
-                  : mode === InvestmentFormMode.SELL
-                    ? tUx(ux.disposalPriceLabelKey)
-                    : tUx(ux.priceLabelKey),
-              value: display(usesUnitPrice ? unitPrice : value),
-            },
-            ...(buyPreview
-              ? [
-                  {
-                    id: "derived-buy-value",
-                    label: t("derivedCurrentValue"),
-                    value: money(buyPreview.totalValue),
-                  },
-                ]
-              : []),
-            ...(valuationPreview
-              ? [
-                  {
-                    id: "derived-value",
-                    label: t("derivedCurrentValue"),
-                    value: money(valuationPreview.totalValue),
-                  },
-                ]
-              : []),
-            ...(disposalPreview
-              ? [
-                  {
-                    id: "gross",
-                    label: t("grossProceeds"),
-                    value: money(disposalPreview.grossProceeds),
-                  },
-                  {
-                    id: "net",
-                    label: t("netProceeds"),
-                    value: money(disposalPreview.netProceeds),
-                  },
-                  {
-                    id: "realized-pnl",
-                    label: t("realizedPnl"),
-                    value: money(disposalPreview.realizedPnl),
-                  },
-                ]
-              : []),
-            {
-              id: "cash",
-              label: t("cashEffect"),
-              value:
-                mode === InvestmentFormMode.CONVERSION ||
-                mode === InvestmentFormMode.VALUATION
-                  ? t("none")
-                  : t("oneLedgerMovement"),
-            },
-          ]}
-        />
-      ) : (
-        <>
-          {mode === InvestmentFormMode.VALUATION ? (
-            <section className="rounded-(--radius-card) border border-border-subtle bg-surface-muted p-(--space-4)">
-              <div className="text-sm font-medium">
-                {holding.symbol || holding.name}
-              </div>
-              <div className="mt-1 text-sm text-text-secondary">
-                {holding.quantity} {tUx(ux.unitSuffixKey)}
-              </div>
-            </section>
+    <ActionSheetLayout>
+      <ActionSheetLayout.Header>
+        <Sheet.Heading>{title}</Sheet.Heading>
+      </ActionSheetLayout.Header>
+      <ActionSheetLayout.Body className="flex flex-col gap-(--space-4)">
+        <div
+          className="flex flex-col gap-(--space-4)"
+          data-testid={`investment-operation-${mode}`}
+        >
+          {error ? (
+            <StatusAlert variant="danger" title={t(`errors.${error}`)} />
           ) : null}
-          {mode === InvestmentFormMode.CONVERSION ? (
-            <>
-              <Controller
-                name="sourceId"
-                control={control}
-                render={({ field }) => (
-                  <LabeledSelect
-                    label={t("source")}
-                    value={field.value}
-                    options={holdingOptions}
-                    onChange={(event) => {
-                      const next = event.target.value;
-                      field.onChange(next);
-                      if (next === destinationId)
-                        setValue(
-                          "destinationId",
-                          holdings.find((item) => item.id !== next)?.id ?? "",
-                        );
-                    }}
-                  />
-                )}
-              />
-              <Controller
-                name="destinationId"
-                control={control}
-                render={({ field }) => (
-                  <LabeledSelect
-                    label={t("destination")}
-                    value={field.value}
-                    options={holdings
-                      .filter((item) => item.id !== sourceId)
-                      .map((item) => ({
-                        id: item.id,
-                        label: item.symbol || item.name,
-                      }))}
-                    onChange={(event) => field.onChange(event.target.value)}
-                  />
-                )}
-              />
-            </>
-          ) : null}
-          {showQuantity ? (
-            mode === InvestmentFormMode.SELL ? (
-              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-(--space-2)">
-                <Controller
-                  name="quantity"
-                  control={control}
-                  render={({ field }) => (
-                    <DecimalField
-                      id="investment-operation-quantity"
-                      label={tUx(ux.quantityLabelKey)}
-                      value={field.value}
-                      onValueChange={field.onChange}
-                      error={fieldError("quantity")}
-                    />
-                  )}
-                />
-                <Button
-                  type="button"
-                  variant="secondary"
-                  className="min-h-11 px-(--space-3)"
-                  onPress={() =>
-                    setValue(
-                      "quantity",
-                      normalizeAvailableQuantity(holding.quantity),
-                    )
-                  }
-                  aria-label={t("sellAllAccessible", {
-                    quantity: holding.quantity,
-                    unit: tUx(ux.unitSuffixKey),
-                  })}
-                >
-                  {t("sellAll")}
-                </Button>
-              </div>
-            ) : (
-              <Controller
-                name="quantity"
-                control={control}
-                render={({ field }) => (
-                  <DecimalField
-                    id="investment-operation-quantity"
-                    label={tUx(ux.quantityLabelKey)}
-                    value={field.value}
-                    onValueChange={field.onChange}
-                    error={fieldError("quantity")}
-                  />
-                )}
-              />
-            )
-          ) : null}
-          {mode === InvestmentFormMode.CONVERSION ? (
-            <TextField
-              id="investment-destination-quantity"
-              label={t("destinationQuantity")}
-              registration={register("destinationQuantity")}
-              error={fieldError("destinationQuantity")}
-            />
-          ) : null}
-          {usesUnitPrice &&
-          (mode === InvestmentFormMode.VALUATION ||
-            mode === InvestmentFormMode.SELL ||
-            mode === InvestmentFormMode.BUY) ? (
-            <ControlledField
-              control={control}
-              field={{
-                type: "amount",
-                name: "unitPrice",
-                id: "investment-operation-unit-price",
-                label:
-                  mode === InvestmentFormMode.VALUATION
-                    ? tUx(ux.valuationPriceLabelKey)
-                    : tUx(ux.disposalPriceLabelKey),
-                description: `${tUx(ux.priceCurrencyKey)} / ${tUx(ux.unitSuffixKey)}`,
-                error: fieldError("unitPrice"),
-              }}
+          {confirming ? (
+            <ConfirmSummary
+              data-testid="investment-operation-preview"
+              rows={[
+                {
+                  id: "holding",
+                  label: tUx(ux.instrumentLabelKey),
+                  value: holding.symbol || holding.name,
+                },
+                ...(showQuantity
+                  ? [
+                      {
+                        id: "quantity",
+                        label: tUx(ux.quantityLabelKey),
+                        value: quantity || t("unknown"),
+                      },
+                    ]
+                  : []),
+                {
+                  id: "value",
+                  label:
+                    mode === InvestmentFormMode.VALUATION
+                      ? tUx(ux.valuationPriceLabelKey)
+                      : mode === InvestmentFormMode.SELL
+                        ? tUx(ux.disposalPriceLabelKey)
+                        : purchasePriceLabel,
+                  value: display(usesUnitPrice ? unitPrice : value),
+                },
+                ...(purchasePreview
+                  ? [
+                      {
+                        id: "invested-principal",
+                        label: t("investedPrincipal"),
+                        value: money(purchasePreview.investedPrincipal),
+                      },
+                      {
+                        id: "buy-fee",
+                        label: t("feeValue"),
+                        value: money(purchasePreview.feeValue),
+                      },
+                      {
+                        id: "cash-leaving",
+                        label: t("cashLeavingAccount"),
+                        value: money(purchasePreview.cashLeavingAccount),
+                      },
+                    ]
+                  : []),
+                ...(valuationPreview
+                  ? [
+                      {
+                        id: "derived-value",
+                        label: t("derivedCurrentValue"),
+                        value: money(valuationPreview.totalValue),
+                      },
+                    ]
+                  : []),
+                ...(disposalPreview
+                  ? [
+                      {
+                        id: "gross",
+                        label: t("grossProceeds"),
+                        value: money(disposalPreview.grossProceeds),
+                      },
+                      {
+                        id: "net",
+                        label: t("netProceeds"),
+                        value: money(disposalPreview.netProceeds),
+                      },
+                      {
+                        id: "realized-pnl",
+                        label: t("realizedPnl"),
+                        value: money(disposalPreview.realizedPnl),
+                      },
+                    ]
+                  : []),
+                {
+                  id: "cash",
+                  label: t("cashEffect"),
+                  value:
+                    mode === InvestmentFormMode.CONVERSION ||
+                    mode === InvestmentFormMode.VALUATION
+                      ? t("none")
+                      : t("oneLedgerMovement"),
+                },
+              ]}
             />
           ) : (
-            <ControlledField
-              control={control}
-              field={{
-                type: "amount",
-                name: "value",
-                id: "investment-operation-value",
-                label: t("executedValue"),
-                error: fieldError("value"),
-              }}
-            />
-          )}
-          {valuationPreview ? (
-            <section
-              data-testid="investment-valuation-live-preview"
-              className="rounded-(--radius-card) border border-border-subtle bg-surface-muted p-(--space-4)"
-              aria-live="polite"
-            >
-              <div className="flex justify-between text-sm">
-                <span>{t("derivedCurrentValue")}</span>
-                <span>{money(valuationPreview.totalValue)}</span>
-              </div>
-            </section>
-          ) : null}
-          {disposalPreview ? (
-            <section
-              data-testid="investment-disposal-live-preview"
-              className="flex flex-col gap-(--space-2) rounded-(--radius-card) border border-border-subtle bg-surface-muted p-(--space-4)"
-              aria-live="polite"
-            >
-              <div className="flex justify-between">
-                <span>{t("grossProceeds")}</span>
-                <span>{money(disposalPreview.grossProceeds)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>{t("feesAndTax")}</span>
-                <span>{display(disposalPreview.feeAmount)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>{t("netProceeds")}</span>
-                <span>{money(disposalPreview.netProceeds)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>{t("realizedPnl")}</span>
-                <span>{money(disposalPreview.realizedPnl)}</span>
-              </div>
-            </section>
-          ) : null}
-          {showQuantity && mode !== InvestmentFormMode.SELL ? (
-            <ControlledField
-              control={control}
-              field={{
-                type: "amount",
-                name: "quote",
-                id: "investment-operation-quote",
-                label: t("quotedValue"),
-              }}
-            />
-          ) : null}
-          {showAccount ? (
-            <Controller
-              name="accountId"
-              control={control}
-              render={({ field }) => (
-                <LabeledSelect
-                  label={
-                    mode === InvestmentFormMode.BUY
-                      ? holding.assetClass === InvestmentAssetClass.CRYPTO
-                        ? t("sourceAccountCrypto")
-                        : t("sourceAccountBuy")
-                      : mode === InvestmentFormMode.SELL
-                        ? t("destinationAccountSell")
-                        : t("account")
-                  }
-                  value={field.value}
-                  options={accountsOptions}
-                  onChange={(event) => field.onChange(event.target.value)}
-                />
-              )}
-            />
-          ) : null}
-          <ControlledField
-            control={control}
-            field={{
-              type: "date",
-              name: "date",
-              id: "investment-operation-date",
-              label: t("effectiveDate"),
-              error: fieldError("date"),
-            }}
-          />
-          <TextField
-            id="investment-operation-notes"
-            label={t("notes")}
-            registration={register("notes")}
-          />
-          {showFee ? (
-            <section className="flex flex-col gap-(--space-3) rounded-md border border-border-subtle bg-surface p-(--space-4)">
-              <label className="flex min-h-11 items-center gap-(--space-2) text-sm">
-                <input type="checkbox" {...register("hasFee")} />
-                {t("addFee")}
-              </label>
-              {hasFee ? (
+            <>
+              {mode === InvestmentFormMode.VALUATION ? (
+                <section className="rounded-(--radius-card) border border-border-subtle bg-surface-muted p-(--space-4)">
+                  <div className="text-sm font-medium">
+                    {holding.symbol || holding.name}
+                  </div>
+                  <div className="mt-1 text-sm text-text-secondary">
+                    {holding.quantity} {tUx(ux.unitSuffixKey)}
+                  </div>
+                </section>
+              ) : null}
+              {mode === InvestmentFormMode.CONVERSION ? (
                 <>
                   <Controller
-                    name="feeSource"
+                    name="sourceId"
                     control={control}
                     render={({ field }) => (
                       <LabeledSelect
-                        label={t("feeSourceLabel")}
+                        label={t("source")}
                         value={field.value}
-                        options={feeSources}
+                        options={holdingOptions}
+                        onChange={(event) => {
+                          const next = event.target.value;
+                          field.onChange(next);
+                          if (next === destinationId)
+                            setValue(
+                              "destinationId",
+                              holdings.find((item) => item.id !== next)?.id ??
+                                "",
+                            );
+                        }}
+                      />
+                    )}
+                  />
+                  <Controller
+                    name="destinationId"
+                    control={control}
+                    render={({ field }) => (
+                      <LabeledSelect
+                        label={t("destination")}
+                        value={field.value}
+                        options={holdings
+                          .filter((item) => item.id !== sourceId)
+                          .map((item) => ({
+                            id: item.id,
+                            label: item.symbol || item.name,
+                          }))}
                         onChange={(event) => field.onChange(event.target.value)}
                       />
                     )}
                   />
-                  {holding.assetClass === InvestmentAssetClass.CRYPTO ? (
-                    <TextField
-                      id="investment-fee-asset"
-                      label={t("feeAssetLabel")}
-                      registration={register("feeAsset")}
-                    />
+                </>
+              ) : null}
+              {mode === InvestmentFormMode.BUY ||
+              mode === InvestmentFormMode.SELL ? (
+                <section className="flex flex-col gap-(--space-2) rounded-(--radius-card) bg-surface-muted p-(--space-3)">
+                  {holding.instrument?.autoPriceSupported ? (
+                    <InvestmentValuationMeta holding={holding} />
                   ) : null}
-                  {feeSource === InvestmentFeeSource.CASH ? (
-                    <ControlledField
-                      control={control}
-                      field={{
-                        type: "amount",
-                        name: "feeAmount",
-                        id: "investment-fee-amount",
-                        label: t("feeAmount"),
-                      }}
-                    />
-                  ) : (
-                    <TextField
-                      id="investment-fee-quantity"
-                      label={t("feeQuantity")}
-                      registration={register("feeQuantity")}
-                    />
-                  )}
-                  {feeSource === InvestmentFeeSource.OTHER_INVESTMENT ? (
+                  <p className="text-sm text-text-secondary">
+                    {t("marketPriceValuationOnly")}
+                  </p>
+                </section>
+              ) : null}
+              {showQuantity ? (
+                mode === InvestmentFormMode.SELL ? (
+                  <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-(--space-2)">
                     <Controller
-                      name="feeHoldingId"
+                      name="quantity"
                       control={control}
                       render={({ field }) => (
-                        <LabeledSelect
-                          label={t("feeHolding")}
+                        <DecimalField
+                          id="investment-operation-quantity"
+                          label={tUx(ux.quantityLabelKey)}
                           value={field.value}
-                          options={holdingOptions}
-                          onChange={(event) =>
-                            field.onChange(event.target.value)
-                          }
+                          onValueChange={field.onChange}
+                          error={fieldError("quantity")}
                         />
                       )}
                     />
-                  ) : null}
-                  <ControlledField
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      className="min-h-11 px-(--space-3)"
+                      onPress={() =>
+                        setValue(
+                          "quantity",
+                          normalizeAvailableQuantity(holding.quantity),
+                        )
+                      }
+                      aria-label={t("sellAllAccessible", {
+                        quantity: holding.quantity,
+                        unit: tUx(ux.unitSuffixKey),
+                      })}
+                    >
+                      {t("sellAll")}
+                    </Button>
+                  </div>
+                ) : (
+                  <Controller
+                    name="quantity"
                     control={control}
-                    field={{
-                      type: "amount",
-                      name: "feeValue",
-                      id: "investment-fee-value",
-                      label: t("feeValue"),
-                      error: fieldError("feeValue"),
-                    }}
+                    render={({ field }) => (
+                      <DecimalField
+                        id="investment-operation-quantity"
+                        label={tUx(ux.quantityLabelKey)}
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        error={fieldError("quantity")}
+                      />
+                    )}
                   />
-                </>
+                )
               ) : null}
-            </section>
-          ) : null}
-        </>
-      )}
-      <BottomActionBar>
+              {mode === InvestmentFormMode.CONVERSION ? (
+                <TextField
+                  id="investment-destination-quantity"
+                  label={t("destinationQuantity")}
+                  registration={register("destinationQuantity")}
+                  error={fieldError("destinationQuantity")}
+                />
+              ) : null}
+              {usesUnitPrice &&
+              (mode === InvestmentFormMode.VALUATION ||
+                mode === InvestmentFormMode.SELL ||
+                mode === InvestmentFormMode.BUY) ? (
+                <ControlledField
+                  control={control}
+                  field={{
+                    type: "amount",
+                    name: "unitPrice",
+                    id: "investment-operation-unit-price",
+                    label:
+                      mode === InvestmentFormMode.VALUATION
+                        ? tUx(ux.valuationPriceLabelKey)
+                        : mode === InvestmentFormMode.BUY
+                          ? purchasePriceLabel
+                          : tUx(ux.disposalPriceLabelKey),
+                    description:
+                      mode === InvestmentFormMode.VALUATION
+                        ? `${tUx(ux.priceCurrencyKey)} / ${tUx(ux.unitSuffixKey)}`
+                        : `${t("actualExecutionPrice")} · ${tUx(ux.priceCurrencyKey)} / ${tUx(ux.unitSuffixKey)}`,
+                    error: fieldError("unitPrice"),
+                  }}
+                />
+              ) : (
+                <ControlledField
+                  control={control}
+                  field={{
+                    type: "amount",
+                    name: "value",
+                    id: "investment-operation-value",
+                    label: t("executedValue"),
+                    error: fieldError("value"),
+                  }}
+                />
+              )}
+              {purchasePreview ? (
+                <section
+                  data-testid="investment-buy-live-preview"
+                  className="flex flex-col gap-(--space-2) rounded-(--radius-card) border border-border-subtle bg-surface-muted p-(--space-4)"
+                  aria-live="polite"
+                >
+                  <div className="flex justify-between gap-(--space-3)">
+                    <span>{t("investedPrincipal")}</span>
+                    <FinancialValue>
+                      {money(purchasePreview.investedPrincipal)}
+                    </FinancialValue>
+                  </div>
+                  <div className="flex justify-between gap-(--space-3)">
+                    <span>{t("feeValue")}</span>
+                    <FinancialValue>
+                      {money(purchasePreview.feeValue)}
+                    </FinancialValue>
+                  </div>
+                  <div className="flex justify-between gap-(--space-3) font-medium">
+                    <span>{t("cashLeavingAccount")}</span>
+                    <FinancialValue>
+                      {money(purchasePreview.cashLeavingAccount)}
+                    </FinancialValue>
+                  </div>
+                  {insufficientBuyBalance ? (
+                    <StatusAlert
+                      variant="danger"
+                      title={t("errors.insufficient_balance")}
+                    />
+                  ) : null}
+                </section>
+              ) : null}
+              {valuationPreview ? (
+                <section
+                  data-testid="investment-valuation-live-preview"
+                  className="rounded-(--radius-card) border border-border-subtle bg-surface-muted p-(--space-4)"
+                  aria-live="polite"
+                >
+                  <div className="flex justify-between text-sm">
+                    <span>{t("derivedCurrentValue")}</span>
+                    <FinancialValue>
+                      {money(valuationPreview.totalValue)}
+                    </FinancialValue>
+                  </div>
+                </section>
+              ) : null}
+              {disposalPreview ? (
+                <section
+                  data-testid="investment-disposal-live-preview"
+                  className="flex flex-col gap-(--space-2) rounded-(--radius-card) border border-border-subtle bg-surface-muted p-(--space-4)"
+                  aria-live="polite"
+                >
+                  <div className="flex justify-between">
+                    <span>{t("grossProceeds")}</span>
+                    <FinancialValue>
+                      {money(disposalPreview.grossProceeds)}
+                    </FinancialValue>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>{t("feesAndTax")}</span>
+                    <FinancialValue>
+                      {money(disposalPreview.feeValue)}
+                    </FinancialValue>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>{t("netProceeds")}</span>
+                    <FinancialValue>
+                      {money(disposalPreview.netProceeds)}
+                    </FinancialValue>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>{t("realizedPnl")}</span>
+                    <FinancialValue>
+                      {money(disposalPreview.realizedPnl)}
+                    </FinancialValue>
+                  </div>
+                </section>
+              ) : null}
+              {showQuantity && mode !== InvestmentFormMode.SELL ? (
+                <ControlledField
+                  control={control}
+                  field={{
+                    type: "amount",
+                    name: "quote",
+                    id: "investment-operation-quote",
+                    label: t("quotedValue"),
+                  }}
+                />
+              ) : null}
+              {showAccount ? (
+                <Controller
+                  name="accountId"
+                  control={control}
+                  render={({ field }) => (
+                    <LabeledSelect
+                      label={
+                        mode === InvestmentFormMode.BUY
+                          ? holding.assetClass === InvestmentAssetClass.CRYPTO
+                            ? t("sourceAccountCrypto")
+                            : t("sourceAccountBuy")
+                          : mode === InvestmentFormMode.SELL
+                            ? t("destinationAccountSell")
+                            : t("account")
+                      }
+                      value={field.value}
+                      options={accountsOptions}
+                      onChange={(event) => field.onChange(event.target.value)}
+                    />
+                  )}
+                />
+              ) : null}
+              <ControlledField
+                control={control}
+                field={{
+                  type: "date",
+                  name: "date",
+                  id: "investment-operation-date",
+                  label: t("effectiveDate"),
+                  error: fieldError("date"),
+                }}
+              />
+              <TextField
+                id="investment-operation-notes"
+                label={t("notes")}
+                registration={register("notes")}
+              />
+              {showFee ? (
+                <section className="flex flex-col gap-(--space-3) rounded-md border border-border-subtle bg-surface p-(--space-4)">
+                  <label className="flex min-h-11 items-center gap-(--space-2) text-sm">
+                    <input type="checkbox" {...register("hasFee")} />
+                    {t("addFee")}
+                  </label>
+                  {hasFee ? (
+                    <>
+                      <Controller
+                        name="feeSource"
+                        control={control}
+                        render={({ field }) => (
+                          <LabeledSelect
+                            label={t("feeSourceLabel")}
+                            value={field.value}
+                            options={feeSources}
+                            onChange={(event) =>
+                              field.onChange(event.target.value)
+                            }
+                          />
+                        )}
+                      />
+                      {holding.assetClass === InvestmentAssetClass.CRYPTO ? (
+                        <TextField
+                          id="investment-fee-asset"
+                          label={t("feeAssetLabel")}
+                          registration={register("feeAsset")}
+                        />
+                      ) : null}
+                      {feeSource === InvestmentFeeSource.CASH ? (
+                        <ControlledField
+                          control={control}
+                          field={{
+                            type: "amount",
+                            name: "feeAmount",
+                            id: "investment-fee-amount",
+                            label: t("feeAmount"),
+                          }}
+                        />
+                      ) : (
+                        <TextField
+                          id="investment-fee-quantity"
+                          label={t("feeQuantity")}
+                          registration={register("feeQuantity")}
+                        />
+                      )}
+                      {feeSource === InvestmentFeeSource.OTHER_INVESTMENT ? (
+                        <Controller
+                          name="feeHoldingId"
+                          control={control}
+                          render={({ field }) => (
+                            <LabeledSelect
+                              label={t("feeHolding")}
+                              value={field.value}
+                              options={holdingOptions}
+                              onChange={(event) =>
+                                field.onChange(event.target.value)
+                              }
+                            />
+                          )}
+                        />
+                      ) : null}
+                      <ControlledField
+                        control={control}
+                        field={{
+                          type: "amount",
+                          name: "feeValue",
+                          id: "investment-fee-value",
+                          label: t("feeValue"),
+                          error: fieldError("feeValue"),
+                        }}
+                      />
+                    </>
+                  ) : null}
+                </section>
+              ) : null}
+            </>
+          )}
+        </div>
+      </ActionSheetLayout.Body>
+      <ActionSheetLayout.Footer>
         {confirming ? (
           <>
             <Button
-              className="w-full"
+              className="min-w-0 flex-1"
               isPending={pending}
               onPress={() => void submit()}
               data-testid="investment-operation-confirm"
@@ -851,7 +969,7 @@ export function InvestmentOperationForm({
                     : t("confirm")}
             </Button>
             <Button
-              className="w-full"
+              className="min-w-0 flex-1"
               variant="secondary"
               onPress={() => {
                 setConfirming(false);
@@ -865,12 +983,13 @@ export function InvestmentOperationForm({
           <Button
             className="w-full"
             onPress={review}
+            isDisabled={Boolean(insufficientBuyBalance)}
             data-testid="investment-operation-review"
           >
             {t("review")}
           </Button>
         )}
-      </BottomActionBar>
-    </div>
+      </ActionSheetLayout.Footer>
+    </ActionSheetLayout>
   );
 }
