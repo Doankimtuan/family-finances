@@ -7,6 +7,11 @@ import {
   LoanScheduleEntryStatus,
   type LedgerOperation,
 } from "../ledger-constants";
+import {
+  LOAN_STATUS_VALUES,
+  LoanStatus,
+  type LoanStatus as LoanStatusValue,
+} from "../loan-constants";
 import { LEDGER_OPERATION, logLedgerFailure } from "../ledger-error";
 import {
   mapLiabilityRow,
@@ -295,6 +300,60 @@ export const listLoans = cache(loadLoans);
 
 /** @deprecated Use listLoans. */
 export const listInstallmentPlans = listLoans;
+
+/**
+ * Light loan read for hub-level summaries: stored columns only, no per-loan
+ * payment/schedule aggregates. `listLoans` stays the full product read.
+ */
+export type LoanSummaryRow = {
+  remainingPrincipal: number;
+  nextPaymentDate: string | null;
+  status: LoanStatusValue;
+  currency: string;
+};
+
+const LOAN_SUMMARY_SELECT =
+  "remaining_principal, next_payment_date, status, currency";
+
+async function loadLoanSummaries(): Promise<LoanSummaryRow[] | null> {
+  const gate = await assertMoneyActionAllowed();
+  if (!gate.ok) return null;
+
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { data, error } = await supabase
+      .from("loans")
+      .select(LOAN_SUMMARY_SELECT)
+      .eq("household_id", gate.householdId);
+
+    if (error) {
+      logLedgerFailure(error, LEDGER_OPERATION.LIST_LOANS, {
+        householdId: gate.householdId,
+      });
+      return null;
+    }
+    return (data ?? []).map((row) => ({
+      remainingPrincipal: Number(row.remaining_principal ?? 0),
+      nextPaymentDate: row.next_payment_date ?? null,
+      status: isLoanStatus(row.status) ? row.status : LoanStatus.ACTIVE,
+      currency: row.currency,
+    }));
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.LIST_LOANS, {
+      householdId: gate.householdId,
+    });
+    return null;
+  }
+}
+
+function isLoanStatus(value: unknown): value is LoanStatusValue {
+  return (
+    typeof value === "string" &&
+    (LOAN_STATUS_VALUES as readonly string[]).includes(value)
+  );
+}
+
+export const listLoanSummaries = cache(loadLoanSummaries);
 
 export async function getLoan(loanId: string): Promise<Loan | null> {
   const result = await getLoanReadResult(loanId);

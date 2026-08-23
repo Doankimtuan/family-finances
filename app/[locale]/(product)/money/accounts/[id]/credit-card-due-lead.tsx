@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import type { CardBillingMonth } from "@/modules/ledger/application/client";
+import { Card } from "@/shared/patterns/card";
 import { SectionHeader } from "@/shared/patterns/section-header";
 import { Amount, AmountSize, AmountTone } from "@/shared/patterns/amount";
 import { Text } from "@/shared/ui/text";
@@ -30,18 +31,17 @@ export function CreditCardDueLead({
   const t = useTranslations("money.creditCard");
 
   return (
-    <section
-      className="flex flex-col gap-(--space-4) rounded-[var(--radius-card)] border border-border-subtle/70 bg-surface-muted px-(--space-4) py-(--space-4)"
-      data-surface="soft-bounded"
+    <Card
+      tone="elevated"
+      className="gap-0 p-(--space-4)"
+      data-surface="statement-due"
       data-testid="card-due-lead"
     >
-      <div>
-        <SectionHeader title={t("currentStatementTitle")} />
-        <Text size="sm" tone="secondary" className="mt-(--space-1)">
-          {toYearMonth(leadMonth.billingMonth)}
-        </Text>
-      </div>
-      <div className="flex items-end justify-between gap-(--space-3) border-y border-border-subtle/70 py-(--space-3)">
+      <SectionHeader
+        title={t("currentStatementTitle")}
+        description={toYearMonth(leadMonth.billingMonth)}
+      />
+      <div className="mt-(--space-4) flex items-center justify-between gap-(--space-3) border-y border-border-subtle py-(--space-3)">
         <Text size="sm" tone="secondary">
           {t("due.dueLabel")}
         </Text>
@@ -49,34 +49,36 @@ export function CreditCardDueLead({
           {leadMonth.dueDate}
         </Text>
       </div>
-      <div>
-        <Amount
-          label={t("due.remainingLabel")}
-          amountLabel={remainingDueLabel}
-          tone={AmountTone.NEUTRAL}
-          size={AmountSize.MD}
-        />
-      </div>
+      <Amount
+        label={t("due.remainingLabel")}
+        amountLabel={remainingDueLabel}
+        tone={AmountTone.NEUTRAL}
+        size={AmountSize.LG}
+        className="mt-(--space-4)"
+      />
       <Progress
         value={paymentProgress}
         label={t("paymentProgressLabel", { percent: paymentProgress })}
         showLabel={false}
-        trackClassName="bg-surface"
+        className="mt-(--space-4)"
+        trackClassName="bg-surface-muted"
         indicatorClassName="bg-accent"
       />
-      <div className="grid grid-cols-2 gap-(--space-3)">
+      <div className="mt-(--space-4) grid grid-cols-2 gap-(--space-3) border-t border-border-subtle pt-(--space-3)">
         <Amount
           label={t("paidLabel")}
           amountLabel={paidLabel}
           size={AmountSize.SM}
+          amountClassName="text-text-primary"
         />
         <Amount
           label={t("statementLabel")}
           amountLabel={statementLabel}
           size={AmountSize.SM}
           className="items-end text-right"
+          amountClassName="text-text-primary"
         />
       </div>
-    </section>
+    </Card>
   );
 }

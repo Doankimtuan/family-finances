@@ -3,13 +3,14 @@
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { estimateEarlyPayoffComponents } from "@/modules/ledger/application/client";
+import { formatLoanDate } from "@/modules/ledger/ui/loan-presentation";
 import { ConfirmSummary } from "@/shared/patterns/confirm-summary";
+import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
+import { Sheet } from "@/shared/patterns/sheet";
 import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { formatCurrency } from "@/shared/i18n/formatters";
-import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
-import { Sheet } from "@/shared/patterns/sheet";
 
 type Props = {
   remainingPrincipal: number;
@@ -39,21 +40,30 @@ export function LoanPayoffEstimate(props: Props) {
           <ActionSheetLayout.Header>
             <Sheet.Heading>{t("title")}</Sheet.Heading>
           </ActionSheetLayout.Header>
-          <ActionSheetLayout.Body>
-            <LoanPayoffEstimateFlow {...props} onClose={() => setOpen(false)} />
+          <ActionSheetLayout.Body className="flex flex-col gap-(--space-4)">
+            <LoanPayoffEstimateBody {...props} />
           </ActionSheetLayout.Body>
+          <ActionSheetLayout.Footer>
+            <Button
+              variant="secondary"
+              className="min-h-11 w-full"
+              data-testid="loan-payoff-estimate-close"
+              onPress={() => setOpen(false)}
+            >
+              {t("close")}
+            </Button>
+          </ActionSheetLayout.Footer>
         </ActionSheetLayout>
       ) : null}
     </Sheet>
   );
 }
 
-function LoanPayoffEstimateFlow({
+function LoanPayoffEstimateBody({
   remainingPrincipal,
   currency,
   asOfDate,
-  onClose,
-}: Props & { onClose: () => void }) {
+}: Props) {
   const t = useTranslations("money.loanDetail.payoffEstimate");
   const locale = useLocale();
   const money = (n: number) =>
@@ -63,17 +73,15 @@ function LoanPayoffEstimateFlow({
     remainingPrincipal,
     asOfDate,
   });
+  const formattedAsOf =
+    formatLoanDate(estimate.asOfDate, locale) ?? estimate.asOfDate;
 
   return (
     <div
-      className="flex flex-col gap-(--space-3) rounded-md border border-border-subtle bg-surface p-(--space-4)"
+      className="flex flex-col gap-(--space-4)"
       data-testid="loan-payoff-estimate"
     >
-      <StatusAlert
-        variant="info"
-        title={t("title")}
-        description={t("notQuote")}
-      />
+      <StatusAlert variant="info" title={t("notQuote")} />
       <ConfirmSummary
         className="border-0 bg-transparent p-0"
         rows={[
@@ -81,35 +89,35 @@ function LoanPayoffEstimateFlow({
             id: "principal",
             label: t("principal"),
             value: money(estimate.remainingPrincipal),
+            kind: "financial",
           },
           {
             id: "interest",
             label: t("accruedInterest"),
             value: t("unknown"),
+            kind: "text",
           },
           {
             id: "asOf",
             label: t("asOf"),
-            value: estimate.asOfDate,
+            value: formattedAsOf,
+            kind: "text",
           },
           {
             id: "total",
             label: t("total"),
-            value: t("incomplete"),
+            value: (
+              <Text size="sm" tone="secondary" className="font-medium">
+                {t("incomplete")}
+              </Text>
+            ),
+            kind: "text",
           },
         ]}
       />
       <Text size="sm" tone="secondary">
         {t("incompleteHint")}
       </Text>
-      <Button
-        variant="secondary"
-        className="min-h-11 w-full"
-        data-testid="loan-payoff-estimate-close"
-        onPress={onClose}
-      >
-        {t("close")}
-      </Button>
     </div>
   );
 }

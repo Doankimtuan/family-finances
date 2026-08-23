@@ -25,8 +25,12 @@ export { ChromeShell, type ChromeShellProps } from "./chrome-shell";
 export {
   AuthScreenShell,
   type AuthScreenShellProps,
+  type AuthScreenShellAlign,
 } from "./auth-screen-shell";
-export { AuthBrandMark } from "./auth-brand-mark";
+export {
+  AuthScreenHeader,
+  type AuthScreenHeaderProps,
+} from "./auth-screen-header";
 export {
   BrandMark,
   BRAND_MARK_PATH,

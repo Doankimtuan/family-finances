@@ -21,6 +21,9 @@ import { Sheet } from "@/shared/patterns/sheet";
 import { SheetActionFooter } from "@/shared/patterns/sheet-action-footer";
 import { DatePickerField, TextField } from "@/shared/ui/form";
 import { Button } from "@/shared/ui/button";
+import { IconButton } from "@/shared/ui/icon-button";
+import { AppIcon } from "@/shared/ui/app-icon";
+import { ACTION_ICONS } from "@/shared/ui/icon-registry";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Text } from "@/shared/ui/text";
 import { updateDebtAction } from "../../money-products-actions";
@@ -31,6 +34,7 @@ type Props = {
   dueDate: string | null;
   note: string | null;
   startDate: string;
+  compactTrigger?: boolean;
 };
 
 type ErrorCode =
@@ -42,6 +46,7 @@ export function DebtEditSheet({
   dueDate,
   note,
   startDate,
+  compactTrigger = false,
 }: Props) {
   const t = useTranslations("money.debtDetail");
   const tErrors = useTranslations("money.products.errors");
@@ -96,15 +101,27 @@ export function DebtEditSheet({
 
   return (
     <Sheet isOpen={isOpen} onOpenChange={handleOpenChange}>
-      <Button
-        variant="secondary"
-        className="min-h-11 w-full"
-        data-testid="debt-edit-open"
-        isDisabled={!online}
-        onPress={() => handleOpenChange(true)}
-      >
-        {t("editDebt")}
-      </Button>
+      {compactTrigger ? (
+        <IconButton
+          aria-label={t("editDebt")}
+          variant="secondary"
+          data-testid="debt-edit-open"
+          isDisabled={!online}
+          onPress={() => handleOpenChange(true)}
+        >
+          <AppIcon icon={ACTION_ICONS.edit} size="sm" />
+        </IconButton>
+      ) : (
+        <Button
+          variant="secondary"
+          className="min-h-11 w-full"
+          data-testid="debt-edit-open"
+          isDisabled={!online}
+          onPress={() => handleOpenChange(true)}
+        >
+          {t("editDebt")}
+        </Button>
+      )}
       <ActionSheetLayout>
         <ActionSheetLayout.Header>
           <Sheet.Heading>{t("editDebt")}</Sheet.Heading>

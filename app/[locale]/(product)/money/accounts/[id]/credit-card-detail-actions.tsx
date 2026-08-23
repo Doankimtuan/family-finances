@@ -13,6 +13,7 @@ import {
 } from "@/modules/ledger/application/client";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
+import { Card } from "@/shared/patterns/card";
 import { Sheet } from "@/shared/patterns/sheet";
 import { Button } from "@/shared/ui/button";
 import { StatusAlert } from "@/shared/ui/status-alert";
@@ -121,11 +122,11 @@ export function CreditCardDetailActions({
           paymentProgress={paymentProgress}
         />
       ) : (
-        <section className="rounded-[var(--radius-card)] bg-surface-muted px-(--space-4) py-(--space-4)">
+        <Card tone="soft" className="p-(--space-4)">
           <p className="text-sm text-text-secondary">
             {t("noCurrentStatement")}
           </p>
-        </section>
+        </Card>
       )}
       <section className="flex flex-col gap-(--space-2)">
         <Button

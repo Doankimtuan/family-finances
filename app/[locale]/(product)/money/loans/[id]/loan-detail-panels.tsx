@@ -4,11 +4,15 @@ import {
   LoanScheduleDisplayStatus,
   LoanScheduleEntryStatus,
   type LoanScheduleEntryStatus as LoanScheduleEntryStatusValue,
-} from "@/modules/ledger/application/ledger-constants";
+} from "@/modules/ledger/application/loan-constants";
 import { getLoanDueState } from "@/modules/ledger/application/loan-due-state";
 import { moneyTransactionPath } from "@/modules/tenancy/application/app-path";
 import { FinancialValue } from "@/shared/patterns/financial-value";
+import { Section, SectionVariant } from "@/shared/patterns/section";
+import { EmptyState } from "@/shared/patterns/empty-state";
+import { LoanScheduleStatusBadge } from "@/modules/ledger/ui/loan-presentation";
 import { Text } from "@/shared/ui/text";
+import { cn } from "@/shared/utils/cn";
 
 type ScheduleEntry = {
   id: string;
@@ -59,72 +63,119 @@ export function LoanSchedulePanel({
   today: string;
 }) {
   return (
-    <section
-      id="loan-schedule"
-      className="flex flex-col gap-(--space-2)"
-      data-testid="loan-schedule"
+    <Section
+      title={title}
+      variant={SectionVariant.SURFACE}
+      contentClassName="gap-0"
+      testId="loan-schedule"
     >
-      <Text size="sm" className="font-medium">
-        {title}
-      </Text>
       {entries.length === 0 ? (
-        <Text size="sm" tone="secondary">
-          {emptyLabel}
-        </Text>
+        <EmptyState title={emptyLabel} className="flex-none py-(--space-2)" />
       ) : (
-        <ul className="flex flex-col gap-(--space-2)">
-          {entries.map((entry) => (
-            <li
-              key={entry.id}
-              className="rounded-md border border-border-subtle px-(--space-3) py-(--space-2)"
-              data-testid={`loan-schedule-${entry.sequence}`}
-              data-schedule-status={entry.status}
-            >
-              <div className="flex justify-between gap-(--space-2)">
-                <Text size="sm">
-                  {t("scheduleMonth", {
-                    month: entry.sequence,
-                    date: entry.dueDate,
-                  })}
-                </Text>
-                <Text size="sm" className="tabular-nums font-medium">
-                  <FinancialValue>{formatMoney(entry.totalDue)}</FinancialValue>
-                </Text>
-              </div>
-              <Text
-                size="sm"
-                tone="secondary"
-                className={scheduleStatusClass(
-                  scheduleDisplayStatus(entry, today),
-                )}
+        <ul
+          className="divide-y divide-border-subtle"
+          data-slot="loan-schedule-list"
+        >
+          {entries.map((entry) => {
+            const displayStatus = scheduleDisplayStatus(entry, today);
+            const isImmutable =
+              entry.status === LoanScheduleEntryStatus.PAID ||
+              entry.status === LoanScheduleEntryStatus.WAIVED;
+            return (
+              <li
+                key={entry.id}
+                className="flex flex-col gap-(--space-2) py-(--space-3) first:pt-0 last:pb-0"
+                data-testid={`loan-schedule-${entry.sequence}`}
+                data-schedule-status={entry.status}
               >
-                <FinancialValue>
-                  {t("scheduleSplit", {
-                    principal: formatMoney(entry.principalDue),
-                    interest: formatMoney(entry.interestDue),
-                    remaining: formatMoney(entry.remainingBalanceAfter),
-                  })}
-                </FinancialValue>
-              </Text>
-              <Text size="sm" tone="secondary">
-                {t(`scheduleStatus.${scheduleDisplayStatus(entry, today)}`)}
-                {entry.status === LoanScheduleEntryStatus.PAID ||
-                entry.status === LoanScheduleEntryStatus.WAIVED
-                  ? ` · ${t("scheduleImmutable")}`
-                  : ""}
-              </Text>
-            </li>
-          ))}
+                <div className="flex items-start justify-between gap-(--space-2)">
+                  <Text
+                    size="sm"
+                    className="min-w-0 font-medium text-text-primary"
+                  >
+                    {t("scheduleMonth", {
+                      month: entry.sequence,
+                      date: entry.dueDate,
+                    })}
+                  </Text>
+                  <div className="flex shrink-0 flex-col items-end gap-(--space-1)">
+                    <Text size="sm" className="tabular-nums font-semibold">
+                      <FinancialValue>
+                        {formatMoney(entry.totalDue)}
+                      </FinancialValue>
+                    </Text>
+                    <LoanScheduleStatusBadge
+                      status={displayStatus}
+                      label={t(`scheduleStatus.${displayStatus}`)}
+                    />
+                  </div>
+                </div>
+                <div className="flex w-full">
+                  <ScheduleFact
+                    label={t("schedulePrincipal")}
+                    value={formatMoney(entry.principalDue)}
+                    align="start"
+                  />
+                  <ScheduleFact
+                    label={t("scheduleInterest")}
+                    value={formatMoney(entry.interestDue)}
+                    align="center"
+                  />
+                  <ScheduleFact
+                    label={t("scheduleRemaining")}
+                    value={formatMoney(entry.remainingBalanceAfter)}
+                    align="end"
+                  />
+                </div>
+                {isImmutable ? (
+                  <Text size="xs" tone="secondary">
+                    {t("scheduleImmutable")}
+                  </Text>
+                ) : null}
+              </li>
+            );
+          })}
         </ul>
       )}
-    </section>
+    </Section>
+  );
+}
+
+function ScheduleFact({
+  label,
+  value,
+  align = "start",
+}: {
+  label: string;
+  value: string;
+  align?: "start" | "center" | "end";
+}) {
+  return (
+    <div
+      className={cn(
+        "min-w-0 flex-1 basis-0",
+        align === "center" && "text-center",
+        align === "end" && "text-end",
+      )}
+    >
+      <Text size="xs" tone="secondary">
+        {label}
+      </Text>
+      <Text
+        size="sm"
+        tabular
+        className="mt-(--space-1) truncate text-text-primary"
+      >
+        <FinancialValue>{value}</FinancialValue>
+      </Text>
+    </div>
   );
 }
 
 function scheduleDisplayStatus(
   entry: ScheduleEntry,
   today: string,
-): LoanScheduleDisplayStatus {
+): (typeof LoanScheduleDisplayStatus)[keyof typeof LoanScheduleDisplayStatus] {
   if (entry.status === LoanScheduleEntryStatus.PAID) {
     return LoanScheduleDisplayStatus.PAID;
   }
@@ -141,18 +192,6 @@ function scheduleDisplayStatus(
   return LoanScheduleDisplayStatus.UPCOMING;
 }
 
-function scheduleStatusClass(status: LoanScheduleDisplayStatus): string {
-  if (status === LoanScheduleDisplayStatus.OVERDUE)
-    return "font-semibold text-danger";
-  if (status === LoanScheduleDisplayStatus.DUE_TODAY)
-    return "font-semibold text-warning";
-  if (status === LoanScheduleDisplayStatus.PAID)
-    return "font-medium text-success";
-  if (status === LoanScheduleDisplayStatus.WAIVED)
-    return "font-medium text-info";
-  return "text-info";
-}
-
 export function LoanPaymentHistoryPanel({
   title,
   payments,
@@ -167,57 +206,60 @@ export function LoanPaymentHistoryPanel({
   t: Translate;
 }) {
   return (
-    <section
-      className="flex flex-col gap-(--space-2)"
-      data-testid="loan-payment-history"
+    <Section
+      title={title}
+      variant={SectionVariant.SURFACE}
+      contentClassName="gap-0"
+      testId="loan-payment-history"
     >
-      <Text size="sm" className="font-medium">
-        {title}
-      </Text>
       {payments.length === 0 ? (
-        <Text size="sm" tone="secondary">
-          {t("historyEmpty")}
-        </Text>
-      ) : null}
-      <ul className="flex flex-col gap-(--space-2)">
-        {payments.map((payment) => (
-          <li
-            key={payment.id}
-            className="rounded-md border border-border-subtle px-(--space-3) py-(--space-2)"
-            data-testid={`loan-payment-${payment.id}`}
-          >
-            <div className="flex justify-between gap-(--space-2)">
-              <Text size="sm">{payment.paidAt}</Text>
-              <Text size="sm" className="tabular-nums font-medium">
-                <FinancialValue>{formatMoney(payment.amount)}</FinancialValue>
+        <EmptyState
+          title={t("historyEmpty")}
+          className="flex-none py-(--space-2)"
+        />
+      ) : (
+        <ul className="divide-y divide-border-subtle">
+          {payments.map((payment) => (
+            <li
+              key={payment.id}
+              className="flex flex-col gap-(--space-2) py-(--space-3) first:pt-0 last:pb-0"
+              data-testid={`loan-payment-${payment.id}`}
+            >
+              <div className="flex items-start justify-between gap-(--space-2)">
+                <Text size="sm" className="font-medium">
+                  {payment.paidAt}
+                </Text>
+                <Text size="sm" className="tabular-nums font-semibold">
+                  <FinancialValue>{formatMoney(payment.amount)}</FinancialValue>
+                </Text>
+              </div>
+              <Text size="sm" tone="secondary" className="text-pretty">
+                <FinancialValue>
+                  {t("historySplit", {
+                    principal: formatMoney(payment.principalPaid),
+                    interest: formatMoney(payment.interestPaid),
+                  })}
+                </FinancialValue>
               </Text>
-            </div>
-            <Text size="sm" tone="secondary">
-              <FinancialValue>
-                {t("historySplit", {
-                  principal: formatMoney(payment.principalPaid),
-                  interest: formatMoney(payment.interestPaid),
+              <Text size="sm" tone="secondary" className="text-pretty">
+                {t("historyAccount", {
+                  account:
+                    accountNames.get(payment.accountId) ?? t("unknownAccount"),
                 })}
-              </FinancialValue>
-            </Text>
-            <Text size="sm" tone="secondary">
-              {t("historyAccount", {
-                account:
-                  accountNames.get(payment.accountId) ?? t("unknownAccount"),
-              })}
-            </Text>
-            {payment.transactionId ? (
-              <Link
-                href={moneyTransactionPath(payment.transactionId)}
-                className="text-sm font-medium text-accent"
-              >
-                {t("historyTransaction")}
-              </Link>
-            ) : null}
-          </li>
-        ))}
-      </ul>
-    </section>
+              </Text>
+              {payment.transactionId ? (
+                <Link
+                  href={moneyTransactionPath(payment.transactionId)}
+                  className="inline-flex min-h-11 items-center text-sm font-medium text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+                >
+                  {t("historyTransaction")}
+                </Link>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+      )}
+    </Section>
   );
 }
 
@@ -237,33 +279,30 @@ export function LoanRateHistoryPanel({
   t: Translate;
 }) {
   return (
-    <section
-      className="flex flex-col gap-(--space-2)"
-      data-testid="loan-rate-history"
+    <Section
+      title={title}
+      variant={SectionVariant.SURFACE}
+      contentClassName="gap-0"
+      testId="loan-rate-history"
     >
-      <Text size="sm" className="font-medium">
-        {title}
-      </Text>
       {periods.length === 0 ? (
-        <Text size="sm" tone="secondary">
-          {emptyLabel}
-        </Text>
+        <EmptyState title={emptyLabel} className="flex-none py-(--space-2)" />
       ) : (
-        <ul className="flex flex-col gap-(--space-2)">
+        <ul className="divide-y divide-border-subtle">
           {periods.map((period) => (
-            <li key={period.id}>
-              <Text size="sm" tone="secondary">
+            <li key={period.id} className="py-(--space-3) first:pt-0 last:pb-0">
+              <Text size="sm" tone="secondary" className="text-pretty">
                 {t("rateHistoryRow", {
-                  from: period.effectiveFrom,
-                  to: period.effectiveTo ?? openLabel,
                   kind: kindLabel(period.kind),
                   rate: String(period.annualRate),
+                  from: period.effectiveFrom,
+                  to: period.effectiveTo ?? openLabel,
                 })}
               </Text>
             </li>
           ))}
         </ul>
       )}
-    </section>
+    </Section>
   );
 }

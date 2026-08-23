@@ -7,6 +7,7 @@ import {
 import type { PenaltyRule, PackageSnapshot } from "./savings-types";
 import { calculateInterest, type InterestResult } from "./savings-interest";
 import { differenceInUtcCalendarDays } from "@/shared/utils/iso-date";
+import { taxForInterest } from "./savings-domain-rules";
 
 /**
  * Penalty calculation engine for early withdrawal.
@@ -37,6 +38,10 @@ export type EarlyWithdrawalPreview = {
   penaltyAmount: number | null;
   /** Net payout when quote is ready; null when provider/manual actual required. */
   netReturned: number | null;
+  /** Tax assessed on gross interest when quote is ready. */
+  taxAmount: number | null;
+  /** Net realized interest after tax and penalty. */
+  netInterest: number | null;
   penaltyStrategy: string;
   /** Number of days since start. */
   daysHeld: number;
@@ -157,13 +162,22 @@ export function previewEarlyWithdrawal(
   );
   const penaltyRule = findPenaltyRule(input.packageSnapshot);
 
-  if (requiresProviderOrManualQuote(penaltyRule.strategy)) {
+  const earlyRule =
+    input.packageSnapshot.earlySettlementRule ?? "RETURN_PRINCIPAL_ONLY";
+  const earlyRate = input.packageSnapshot.earlySettlementRatePercent;
+
+  if (
+    earlyRule !== "CUSTOM_RATE" &&
+    requiresProviderOrManualQuote(penaltyRule.strategy)
+  ) {
     return {
       principal: input.principal,
       accruedInterest: accrued.totalInterest,
       eligibleInterest: null,
       penaltyAmount: null,
       netReturned: null,
+      taxAmount: null,
+      netInterest: null,
       penaltyStrategy: penaltyRule.strategy,
       daysHeld: accrued.daysElapsed,
       totalTermDays,
@@ -174,41 +188,76 @@ export function previewEarlyWithdrawal(
   let eligibleInterest: number;
   let penaltyAmount: number;
 
-  switch (penaltyRule.strategy) {
-    case PenaltyStrategy.NO_INTEREST:
-      ({ eligibleInterest, penaltyAmount } = calcNoInterest(
-        input.principal,
-        accrued,
-      ));
-      break;
-    case PenaltyStrategy.DEMAND_INTEREST:
-      ({ eligibleInterest, penaltyAmount } = calcDemandInterest(
-        input.principal,
-        accrued,
-        penaltyRule,
-      ));
-      break;
-    case PenaltyStrategy.FIXED_PENALTY:
-      ({ eligibleInterest, penaltyAmount } = calcFixedPenalty(
-        accrued,
-        penaltyRule,
-      ));
-      break;
-    default:
+  if (earlyRule === "CUSTOM_RATE") {
+    if (earlyRate == null) {
       return {
         principal: input.principal,
         accruedInterest: accrued.totalInterest,
         eligibleInterest: null,
         penaltyAmount: null,
         netReturned: null,
-        penaltyStrategy: penaltyRule.strategy,
+        taxAmount: null,
+        netInterest: null,
+        penaltyStrategy: "custom_rate",
         daysHeld: accrued.daysElapsed,
         totalTermDays,
         quoteReady: false,
       };
-  }
+    }
+    eligibleInterest = Math.floor(
+      (input.principal *
+        (earlyRate / INTEREST_RATE_DENOMINATOR) *
+        accrued.daysElapsed) /
+        DAYS_PER_YEAR,
+    );
+    penaltyAmount = Math.max(accrued.totalInterest - eligibleInterest, 0);
+  } else
+    switch (penaltyRule.strategy) {
+      case PenaltyStrategy.NO_INTEREST:
+        ({ eligibleInterest, penaltyAmount } = calcNoInterest(
+          input.principal,
+          accrued,
+        ));
+        break;
+      case PenaltyStrategy.DEMAND_INTEREST:
+        ({ eligibleInterest, penaltyAmount } = calcDemandInterest(
+          input.principal,
+          accrued,
+          penaltyRule,
+        ));
+        break;
+      case PenaltyStrategy.FIXED_PENALTY:
+        ({ eligibleInterest, penaltyAmount } = calcFixedPenalty(
+          accrued,
+          penaltyRule,
+        ));
+        break;
+      default:
+        return {
+          principal: input.principal,
+          accruedInterest: accrued.totalInterest,
+          eligibleInterest: null,
+          penaltyAmount: null,
+          netReturned: null,
+          taxAmount: null,
+          netInterest: null,
+          penaltyStrategy: penaltyRule.strategy,
+          daysHeld: accrued.daysElapsed,
+          totalTermDays,
+          quoteReady: false,
+        };
+    }
 
-  const netReturned = input.principal + eligibleInterest;
+  const taxAmount = taxForInterest(
+    accrued.totalInterest,
+    input.packageSnapshot.taxRule ?? "NONE",
+    input.packageSnapshot.taxRatePercent ?? 0,
+  );
+  const netInterest = Math.max(
+    0,
+    accrued.totalInterest - taxAmount - penaltyAmount,
+  );
+  const netReturned = input.principal + netInterest;
 
   return {
     principal: input.principal,
@@ -216,6 +265,8 @@ export function previewEarlyWithdrawal(
     eligibleInterest,
     penaltyAmount,
     netReturned: Math.max(0, netReturned),
+    taxAmount,
+    netInterest,
     penaltyStrategy: penaltyRule.strategy,
     daysHeld: accrued.daysElapsed,
     totalTermDays,

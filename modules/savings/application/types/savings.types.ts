@@ -15,6 +15,7 @@ import type {
   RenewalSuggestedAction,
   MaturityTargetMode,
   MaturityFallbackPolicy,
+  SavingsCreateMode,
 } from "../savings-constants";
 import type {
   SavingsFamily as CanonicalSavingsFamily,
@@ -70,6 +71,8 @@ export type ProductSnapshot = {
   earlySettlementRule?: EarlySettlementRule;
   earlySettlementRatePercent?: number | null;
   supportsPartialSettlement?: boolean;
+  creationMode?: SavingsCreateMode;
+  creationIdempotencyKey?: string | null;
 };
 
 /** Immutable package configuration snapshot at cycle start. */
@@ -121,6 +124,7 @@ export type SettlementResult = {
   transferGroupId?: string;
   interestTransactionId?: string;
   taxTransactionId?: string;
+  feeTransactionId?: string;
 };
 
 /** Immutable renewal decision recorded on a closed/rolled cycle. */

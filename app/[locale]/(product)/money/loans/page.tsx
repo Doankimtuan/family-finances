@@ -16,6 +16,7 @@ import {
   LoanStatus,
 } from "@/modules/ledger/application/loan-constants";
 import { formatCurrency } from "@/shared/i18n/formatters";
+import { Card } from "@/shared/patterns/card";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { LoanCard } from "@/modules/ledger/ui/loan-card";
 import { EmptyState } from "@/shared/patterns/empty-state";
@@ -52,6 +53,18 @@ export default async function LoansPage({ params }: Props) {
   const today = todayIsoDate();
   const activeLoans = list.filter((loan) => loan.status === LoanStatus.ACTIVE);
   const historyLoans = list.filter((loan) => loan.status !== LoanStatus.ACTIVE);
+  const totalRemainingPrincipal = activeLoans.reduce(
+    (total, loan) => total + loan.remainingPrincipal,
+    0,
+  );
+  const nextPaymentTotal = activeLoans.reduce(
+    (total, loan) => total + (loan.nextPaymentAmount ?? 0),
+    0,
+  );
+  const overdueLoanCount = activeLoans.filter(
+    (loan) =>
+      getLoanDueState(loan.nextPaymentDate, today) === LoanDueState.OVERDUE,
+  ).length;
 
   const renderLoan = (loan: (typeof list)[number]) => {
     const dueState = getLoanDueState(loan.nextPaymentDate, today);
@@ -74,18 +87,12 @@ export default async function LoansPage({ params }: Props) {
                 : t(`loanTypes.${loan.loanType}`)
             }
             remainingLabel={t("remainingPrincipalLabel")}
-            remainingAmount={
-              <FinancialValue>
-                {formatCurrency(
-                  loan.remainingPrincipal,
-                  loan.currency,
-                  locale,
-                  {
-                    maximumFractionDigits: 0,
-                  },
-                )}
-              </FinancialValue>
-            }
+            remainingAmount={formatCurrency(
+              loan.remainingPrincipal,
+              loan.currency,
+              locale,
+              { maximumFractionDigits: 0 },
+            )}
             monthlyLabel={monthlyLabel}
             monthlyAmount={formatCurrency(
               loan.monthlyPayment,
@@ -120,6 +127,10 @@ export default async function LoansPage({ params }: Props) {
             progressLabel={t("progress", {
               percent: Math.round(loan.progress * 100),
             })}
+            progressValue={loan.progress}
+            progressAriaLabel={t("progress", {
+              percent: Math.round(loan.progress * 100),
+            })}
             interestLabel={
               loan.annualInterestRate != null && loan.annualInterestRate > 0
                 ? t("interestRate", { rate: String(loan.annualInterestRate) })
@@ -137,12 +148,65 @@ export default async function LoansPage({ params }: Props) {
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
       <div className="flex min-h-full flex-col" data-testid="money-loans">
-        <TopAppBar title={t("title")} subtitle={t("subtitle")} />
+        <TopAppBar
+          variant="detail"
+          title={t("title")}
+          subtitle={t("subtitle")}
+          backHref={APP_PATH.MONEY}
+        />
         <div className="flex flex-1 flex-col gap-(--space-4) px-(--space-4) pb-(--space-6) pt-(--space-4)">
           <MoneyOfflineBanner />
-          <Text size="sm" tone="secondary">
+          <Text size="sm" tone="secondary" className="text-pretty">
             {t("trackingOnly")}
           </Text>
+          {!loadFailed && list.length > 0 ? (
+            <Card
+              tone="metric"
+              className="flex flex-col gap-(--space-4) p-(--space-4)"
+              data-testid="loans-summary"
+            >
+              <div className="min-w-0">
+                <Text size="xs" tone="secondary" className="text-pretty">
+                  {t("summary.remainingPrincipal")}
+                </Text>
+                <Text
+                  size="lg"
+                  weight="semibold"
+                  tabular
+                  className="mt-(--space-1) text-pretty text-text-primary"
+                >
+                  <FinancialValue>
+                    {formatCurrency(
+                      totalRemainingPrincipal,
+                      activeLoans[0]?.currency ?? "",
+                      locale,
+                      { maximumFractionDigits: 0 },
+                    )}
+                  </FinancialValue>
+                </Text>
+              </div>
+              <div className="grid grid-cols-2 gap-(--space-3) border-t border-border-subtle pt-(--space-3)">
+                <LoanSummaryMetric
+                  label={t("summary.activeLoans")}
+                  value={String(activeLoans.length)}
+                />
+                <LoanSummaryMetric
+                  label={t("summary.nextPayments")}
+                  value={formatCurrency(
+                    nextPaymentTotal,
+                    activeLoans[0]?.currency ?? "",
+                    locale,
+                    { maximumFractionDigits: 0 },
+                  )}
+                  detail={
+                    overdueLoanCount > 0
+                      ? t("summary.overdueLoans", { count: overdueLoanCount })
+                      : undefined
+                  }
+                />
+              </div>
+            </Card>
+          ) : null}
           {loadFailed ? (
             <StatusAlert
               variant="danger"
@@ -195,5 +259,36 @@ export default async function LoansPage({ params }: Props) {
         </div>
       </div>
     </NextIntlClientProvider>
+  );
+}
+
+function LoanSummaryMetric({
+  label,
+  value,
+  detail,
+}: {
+  label: string;
+  value: string;
+  detail?: string;
+}) {
+  return (
+    <div className="min-w-0">
+      <Text size="xs" tone="secondary" className="text-pretty">
+        {label}
+      </Text>
+      <Text
+        size="sm"
+        weight="semibold"
+        tabular
+        className="mt-(--space-1) text-pretty text-text-primary"
+      >
+        <FinancialValue>{value}</FinancialValue>
+      </Text>
+      {detail ? (
+        <Text size="xs" tone="secondary" className="mt-(--space-1) text-pretty">
+          {detail}
+        </Text>
+      ) : null}
+    </div>
   );
 }

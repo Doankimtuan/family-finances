@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { TextField } from "@/shared/ui/form";
-import { LabeledDateInput } from "@/shared/patterns/labeled-native-field";
+import { DatePickerField } from "@/shared/ui/form";
 import { Button } from "@/shared/ui/button";
 import { AlertVariant } from "@/shared/ui/alert";
 import { Text } from "@/shared/ui/text";
@@ -13,6 +13,8 @@ import { useStatusAlert } from "@/providers/status-alert-provider";
 import { CLIENT_ACTION_ERROR_CODE } from "@/modules/tenancy/application/product-action-error";
 import { updateLoanInterestRateAction } from "../../money-products-actions";
 import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
+import { Card } from "@/shared/patterns/card";
+import { SheetActionFooter } from "@/shared/patterns/sheet-action-footer";
 import { Sheet } from "@/shared/patterns/sheet";
 
 type Props = {
@@ -41,6 +43,40 @@ export function LoanEditInterestAction({
     setRate(currentRate);
     setEffectiveFrom(defaultEffectiveFrom);
     setNote("");
+  };
+
+  const handleSave = () => {
+    statusAlert.hide();
+    if (!online) {
+      statusAlert.show({
+        variant: AlertVariant.DANGER,
+        title: tErr(CLIENT_ACTION_ERROR_CODE.OFFLINE),
+      });
+      return;
+    }
+    startTransition(async () => {
+      const result = await updateLoanInterestRateAction({
+        loanId,
+        annualInterestRate: rate,
+        effectiveFrom,
+        note: note.trim() || null,
+      });
+      if (result.status === "success") {
+        setOpen(false);
+        router.refresh();
+        return;
+      }
+      statusAlert.show({
+        variant: AlertVariant.DANGER,
+        title: tErr(result.code),
+      });
+    });
+  };
+
+  const handleCancel = () => {
+    statusAlert.hide();
+    reset();
+    setOpen(false);
   };
 
   if (!open) {
@@ -73,8 +109,9 @@ export function LoanEditInterestAction({
           <Sheet.Heading>{t("editInterest")}</Sheet.Heading>
         </ActionSheetLayout.Header>
         <ActionSheetLayout.Body>
-          <div
-            className="flex flex-col gap-(--space-3) rounded-lg border border-border-subtle p-(--space-3)"
+          <Card
+            tone="metric"
+            className="flex flex-col gap-(--space-3) p-(--space-3)"
             data-testid="loan-edit-interest-form"
           >
             <TextField
@@ -91,11 +128,11 @@ export function LoanEditInterestAction({
                 setRate(Number.isFinite(next) ? next : 0);
               }}
             />
-            <LabeledDateInput
-              data-testid="loan-edit-interest-effective"
+            <DatePickerField
+              id="loan-edit-interest-effective"
               label={t("editInterestEffectiveLabel")}
               value={effectiveFrom}
-              onChange={(e) => setEffectiveFrom(e.target.value)}
+              onChange={setEffectiveFrom}
             />
             <Text size="sm" tone="secondary">
               {t("editInterestFutureHint")}
@@ -106,56 +143,16 @@ export function LoanEditInterestAction({
               value={note}
               onChange={(e) => setNote(e.target.value)}
             />
-            <div className="flex gap-(--space-2)">
-              <Button
-                variant="primary"
-                className="min-h-11 flex-1"
-                data-testid="loan-edit-interest-save"
-                isDisabled={isPending || !online}
-                onPress={() => {
-                  statusAlert.hide();
-                  if (!online) {
-                    statusAlert.show({
-                      variant: AlertVariant.DANGER,
-                      title: tErr(CLIENT_ACTION_ERROR_CODE.OFFLINE),
-                    });
-                    return;
-                  }
-                  startTransition(async () => {
-                    const result = await updateLoanInterestRateAction({
-                      loanId,
-                      annualInterestRate: rate,
-                      effectiveFrom,
-                      note: note.trim() || null,
-                    });
-                    if (result.status === "success") {
-                      setOpen(false);
-                      router.refresh();
-                      return;
-                    }
-                    statusAlert.show({
-                      variant: AlertVariant.DANGER,
-                      title: tErr(result.code),
-                    });
-                  });
-                }}
-              >
-                {isPending ? t("saving") : t("saveInterest")}
-              </Button>
-              <Button
-                variant="secondary"
-                className="min-h-11"
-                isDisabled={isPending}
-                onPress={() => {
-                  statusAlert.hide();
-                  reset();
-                  setOpen(false);
-                }}
-              >
-                {t("cancel")}
-              </Button>
-            </div>
-          </div>
+          </Card>
+          <SheetActionFooter
+            secondaryLabel={t("cancel")}
+            primaryLabel={isPending ? t("saving") : t("saveInterest")}
+            primaryTestId="loan-edit-interest-save"
+            isDisabled={!online}
+            isPending={isPending}
+            onSecondary={handleCancel}
+            onPrimary={handleSave}
+          />
         </ActionSheetLayout.Body>
       </ActionSheetLayout>
     </Sheet>

@@ -26,15 +26,11 @@ const MATURITY_ATTENTION_STATES: ReadonlySet<MaturityPresentationState> =
     MaturityPresentationState.ACTION_REQUIRED,
   ]);
 
-const MATURITY_SETTLED_STATES: ReadonlySet<MaturityPresentationState> =
-  new Set([
-    MaturityPresentationState.SETTLED,
-    MaturityPresentationState.EARLY_SETTLED,
-  ]);
+const MATURITY_SETTLED_STATES: ReadonlySet<MaturityPresentationState> = new Set(
+  [MaturityPresentationState.SETTLED, MaturityPresentationState.EARLY_SETTLED],
+);
 
-export function isMaturityAttention(
-  state: MaturityPresentationState,
-): boolean {
+export function isMaturityAttention(state: MaturityPresentationState): boolean {
   return MATURITY_ATTENTION_STATES.has(state);
 }
 
@@ -50,6 +46,8 @@ export type SavingsPresentationItem = {
   principal: number;
   grossInterest: number;
   tax: number;
+  taxRule: SavingsTaxRule;
+  taxRatePercent: number;
   fee: number;
   netInterest: number;
   totalCashReceived: number;
@@ -161,16 +159,10 @@ export function buildSavingsPresentationItem(
   });
   const daysUntilMaturity = maturityDaysRemaining(saving, today);
   const totalDays = cycle
-    ? Math.max(
-        0,
-        differenceInUtcCalendarDays(cycle.startDate, cycle.endDate),
-      )
+    ? Math.max(0, differenceInUtcCalendarDays(cycle.startDate, cycle.endDate))
     : 0;
   const elapsedDays = cycle
-    ? Math.max(
-        0,
-        differenceInUtcCalendarDays(cycle.startDate, today),
-      )
+    ? Math.max(0, differenceInUtcCalendarDays(cycle.startDate, today))
     : 0;
   return {
     saving,
@@ -180,6 +172,8 @@ export function buildSavingsPresentationItem(
     principal,
     grossInterest: breakdown.grossInterest,
     tax: breakdown.tax,
+    taxRule: breakdown.taxRule,
+    taxRatePercent: breakdown.taxRatePercent,
     fee: breakdown.fee,
     netInterest: breakdown.netInterest,
     totalCashReceived: breakdown.totalCashReceived,
@@ -194,16 +188,10 @@ export function buildSavingsDetailModel(
   const base = buildSavingsPresentationItem(saving, today);
   const cycle = saving.latestCycle;
   const totalTermDays = cycle
-    ? Math.max(
-        0,
-        differenceInUtcCalendarDays(cycle.startDate, cycle.endDate),
-      )
+    ? Math.max(0, differenceInUtcCalendarDays(cycle.startDate, cycle.endDate))
     : null;
   const elapsedDays = cycle
-    ? Math.max(
-        0,
-        differenceInUtcCalendarDays(cycle.startDate, today),
-      )
+    ? Math.max(0, differenceInUtcCalendarDays(cycle.startDate, today))
     : null;
   const isTerminal = isMaturitySettled(base.maturityState);
   const earlyRule = saving.productSnapshot.earlySettlementRule;
@@ -211,7 +199,9 @@ export function buildSavingsDetailModel(
     ...base,
     elapsedDays,
     totalTermDays,
-    canSettle: isMaturityAttention(base.maturityState),
+    canSettle:
+      cycle?.status === CycleStatus.MATURED ||
+      saving.status === SavingStatus.MATURED,
     canSettleEarly:
       base.maturityState === MaturityPresentationState.ACTIVE ||
       base.maturityState === MaturityPresentationState.MATURING_SOON

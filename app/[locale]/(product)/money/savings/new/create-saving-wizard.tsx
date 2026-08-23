@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import type { ReactNode } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -25,14 +26,17 @@ import {
   MaturityTargetMode,
   RENEWAL_POLICY_VALUES,
   SETTLEMENT_RULE_VALUES,
+  SavingsCreateMode,
 } from "@/modules/savings/application/savings-constants";
 import {
   addSavingsTerm,
   calculateInterest,
+  calculateSettlementBreakdown,
   createSavingInputSchema,
   InterestCalcMethod,
   SavingsTermUnit,
   type SavingsTermUnit as SavingsTermUnitValue,
+  type SavingsTaxRule,
 } from "@/modules/savings/application/client";
 import { ControlledField } from "@/shared/patterns/controlled-fields";
 import { FinancialScopeField } from "@/shared/patterns/financial-scope-field";
@@ -40,7 +44,9 @@ import { AppIcon } from "@/shared/ui/app-icon";
 import { Button } from "@/shared/ui/button";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Text } from "@/shared/ui/text";
+import { FinancialValue } from "@/shared/patterns/financial-value";
 import { BottomActionBar } from "@/shared/patterns/bottom-action-bar";
+import { ChoiceTile } from "@/shared/patterns/choice-tile";
 import { MotionStep, MotionStepDirection } from "@/shared/motion";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import { formatCurrency } from "@/shared/i18n/formatters";
@@ -70,6 +76,8 @@ type PackageOption = {
   termAmount?: number | null;
   termUnit?: SavingsTermUnitValue | null;
   interestCalculationMethod?: InterestCalcMethod;
+  taxRule?: SavingsTaxRule;
+  taxRatePercent?: number;
   renewableAvailable?: boolean;
 };
 type Props = {
@@ -90,6 +98,7 @@ const STEPS = [FlowStep.PRODUCT, FlowStep.DEPOSIT, FlowStep.REVIEW] as const;
 
 const savingFormSchema = z.object({
   financialScope: createSavingInputSchema.shape.financialScope,
+  creationMode: createSavingInputSchema.shape.creationMode,
   fundingAccountId: createSavingInputSchema.shape.fundingAccountId,
   settlementAccountId: createSavingInputSchema.shape.settlementAccountId,
   providerId: createSavingInputSchema.shape.providerId,
@@ -137,12 +146,16 @@ function createDefaultValues(
   providers: ProviderOption[],
   packagesByProvider: Record<string, PackageOption[]>,
 ) {
-  const providerId = providers[0]?.id ?? "";
+  const providerId =
+    providers.find((provider) => packagesByProvider[provider.id]?.length)?.id ??
+    providers[0]?.id ??
+    "";
   const packageId = packagesByProvider[providerId]?.[0]?.id ?? "";
   return {
     financialScope: FINANCIAL_SCOPE.HOUSEHOLD,
-    fundingAccountId: accounts[0]?.id ?? "",
-    settlementAccountId: accounts[0]?.id ?? "",
+    creationMode: SavingsCreateMode.LIVE_DEPOSIT,
+    fundingAccountId: accounts[0]?.id ?? null,
+    settlementAccountId: accounts[1]?.id ?? accounts[0]?.id ?? "",
     providerId,
     packageId,
     principal: null,
@@ -160,7 +173,7 @@ function SummaryRow({
   emphasis = false,
 }: {
   label: string;
-  value: string;
+  value: ReactNode;
   emphasis?: boolean;
 }) {
   return (
@@ -192,12 +205,12 @@ function SelectionCard({
   testId: string;
 }) {
   return (
-    <button
-      type="button"
-      aria-pressed={selected}
-      data-testid={testId}
-      onClick={onPress}
-      className={`group flex w-full items-center justify-between gap-(--space-3) rounded-[var(--radius-control)] border px-(--space-3) py-(--space-3) text-left transition-[border-color,background-color,box-shadow] duration-[var(--duration-fast)] focus-visible:outline-2 focus-visible:outline-focus-ring ${selected ? "border-accent bg-accent-soft shadow-[var(--elevation-1)]" : "border-border-subtle bg-surface hover:border-accent/50 hover:bg-surface-hover"}`}
+    <ChoiceTile
+      selected={selected}
+      onPress={onPress}
+      testId={testId}
+      icon={null}
+      className="justify-between"
     >
       {children}
       {selected ? (
@@ -207,7 +220,7 @@ function SelectionCard({
           className="shrink-0 text-accent"
         />
       ) : null}
-    </button>
+    </ChoiceTile>
   );
 }
 
@@ -236,6 +249,7 @@ export function CreateSavingWizard({
   });
   const values = useWatch({ control });
   const fundingAccountId = values.fundingAccountId ?? "";
+  const creationMode = values.creationMode ?? SavingsCreateMode.LIVE_DEPOSIT;
   const financialScope = values.financialScope ?? FINANCIAL_SCOPE.HOUSEHOLD;
   const settlementAccountId = values.settlementAccountId ?? "";
   const providerId = values.providerId ?? "";
@@ -285,7 +299,13 @@ export function CreateSavingWizard({
       method:
         selectedPackage.interestCalculationMethod ?? InterestCalcMethod.SIMPLE,
     }).totalInterest;
-    return { maturityDate, interest, total: principalAmount + interest };
+    const breakdown = calculateSettlementBreakdown({
+      principal: principalAmount,
+      grossInterest: interest,
+      taxRule: selectedPackage.taxRule,
+      taxRatePercent: selectedPackage.taxRatePercent,
+    });
+    return { maturityDate, breakdown };
   })();
 
   const money = (value: number) =>
@@ -324,7 +344,12 @@ export function CreateSavingWizard({
     step === FlowStep.PRODUCT
       ? Boolean(providerId && selectedPackage)
       : step === FlowStep.DEPOSIT
-        ? Boolean(amountIsValid && fundingAccountId && startDate)
+        ? Boolean(
+            amountIsValid &&
+            startDate &&
+            (creationMode === SavingsCreateMode.HISTORICAL_OPENING ||
+              (fundingAccountId && settlementAccountId !== fundingAccountId)),
+          )
         : Boolean(
             (!needsPayout || settlementAccountId) &&
             renewalPolicy &&
@@ -358,7 +383,11 @@ export function CreateSavingWizard({
     }
     const input = {
       financialScope: submitted.financialScope,
-      fundingAccountId: submitted.fundingAccountId,
+      fundingAccountId:
+        submitted.creationMode === SavingsCreateMode.HISTORICAL_OPENING
+          ? null
+          : submitted.fundingAccountId,
+      creationMode: submitted.creationMode,
       settlementAccountId: submitted.settlementAccountId,
       providerId: submitted.providerId,
       packageId: submitted.packageId,
@@ -622,15 +651,23 @@ export function CreateSavingWizard({
               {selectedPackage && principal != null && !amountIsValid ? (
                 <Text size="xs" tone="danger">
                   {selectedPackage.minAmount != null &&
-                  principal < selectedPackage.minAmount
-                    ? t("minimumAmount", {
-                        amount: money(selectedPackage.minAmount),
-                      })
-                    : selectedPackage.maxAmount != null
-                      ? t("maximumAmount", {
-                          amount: money(selectedPackage.maxAmount),
-                        })
-                      : t("invalidAmount")}
+                  principal < selectedPackage.minAmount ? (
+                    <>
+                      {t("minimumAmountPrefix")}{" "}
+                      <FinancialValue>
+                        {money(selectedPackage.minAmount)}
+                      </FinancialValue>
+                    </>
+                  ) : selectedPackage.maxAmount != null ? (
+                    <>
+                      {t("maximumAmountPrefix")}{" "}
+                      <FinancialValue>
+                        {money(selectedPackage.maxAmount)}
+                      </FinancialValue>
+                    </>
+                  ) : (
+                    t("invalidAmount")
+                  )}
                 </Text>
               ) : null}
             </div>
@@ -638,32 +675,94 @@ export function CreateSavingWizard({
               <Text size="sm" weight="semibold">
                 {t("sourceSection")}
               </Text>
-              <div className="grid gap-(--space-2)">
-                {accounts.map((account) => (
-                  <SelectionCard
-                    key={account.id}
-                    selected={account.id === fundingAccountId}
-                    onPress={() => setValue("fundingAccountId", account.id)}
-                    testId={`savings-source-${account.id}`}
-                  >
-                    <span className="flex min-w-0 items-center gap-(--space-3)">
-                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-control)] bg-surface-hover text-text-secondary">
-                        <AppIcon icon={Wallet02Icon} size="sm" />
-                      </span>
-                      <span className="min-w-0">
-                        <Text size="sm" weight="semibold" className="truncate">
-                          {account.name}
-                        </Text>
-                        <Text size="xs" tone="secondary">
-                          {t("availableBalance", {
-                            amount: money(account.balance),
-                          })}
-                        </Text>
-                      </span>
-                    </span>
-                  </SelectionCard>
-                ))}
+              <div className="grid gap-(--space-2)" role="group">
+                <SelectionCard
+                  selected={creationMode === SavingsCreateMode.LIVE_DEPOSIT}
+                  onPress={() => {
+                    setValue("creationMode", SavingsCreateMode.LIVE_DEPOSIT);
+                    if (!fundingAccountId) {
+                      setValue("fundingAccountId", accounts[0]?.id ?? null);
+                    }
+                  }}
+                  testId="savings-create-mode-live"
+                >
+                  <Text size="sm" weight="medium">
+                    {t("liveDepositMode")}
+                  </Text>
+                </SelectionCard>
+                <SelectionCard
+                  selected={
+                    creationMode === SavingsCreateMode.HISTORICAL_OPENING
+                  }
+                  onPress={() => {
+                    setValue(
+                      "creationMode",
+                      SavingsCreateMode.HISTORICAL_OPENING,
+                    );
+                    setValue("fundingAccountId", null);
+                  }}
+                  testId="savings-create-mode-historical"
+                >
+                  <Text size="sm" weight="medium">
+                    {t("historicalOpeningMode")}
+                  </Text>
+                </SelectionCard>
               </div>
+              {creationMode === SavingsCreateMode.HISTORICAL_OPENING ? (
+                <Text size="xs" tone="secondary">
+                  {t("historicalOpeningHint")}
+                </Text>
+              ) : null}
+              {creationMode === SavingsCreateMode.LIVE_DEPOSIT ? (
+                <>
+                  {accounts.length < 2 ? (
+                    <StatusAlert
+                      variant="warning"
+                      title={t("noEligibleAccounts")}
+                    />
+                  ) : null}
+                  <div className="grid gap-(--space-2)">
+                    {accounts.map((account) => (
+                      <SelectionCard
+                        key={account.id}
+                        selected={account.id === fundingAccountId}
+                        onPress={() => {
+                          setValue("fundingAccountId", account.id);
+                          if (settlementAccountId === account.id) {
+                            setValue(
+                              "settlementAccountId",
+                              accounts.find((item) => item.id !== account.id)
+                                ?.id ?? "",
+                            );
+                          }
+                        }}
+                        testId={`savings-source-${account.id}`}
+                      >
+                        <span className="flex min-w-0 items-center gap-(--space-3)">
+                          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-control)] bg-surface-hover text-text-secondary">
+                            <AppIcon icon={Wallet02Icon} size="sm" />
+                          </span>
+                          <span className="min-w-0">
+                            <Text
+                              size="sm"
+                              weight="semibold"
+                              className="truncate"
+                            >
+                              {account.name}
+                            </Text>
+                            <Text size="xs" tone="secondary">
+                              {t("availableBalancePrefix")}{" "}
+                              <FinancialValue>
+                                {money(account.balance)}
+                              </FinancialValue>
+                            </Text>
+                          </span>
+                        </span>
+                      </SelectionCard>
+                    ))}
+                  </div>
+                </>
+              ) : null}
             </div>
             <ControlledField
               control={control}
@@ -695,7 +794,9 @@ export function CreateSavingWizard({
                 <div>
                   <SummaryRow
                     label={t("principalLabel")}
-                    value={money(principalAmount)}
+                    value={
+                      <FinancialValue>{money(principalAmount)}</FinancialValue>
+                    }
                   />
                   <SummaryRow
                     label={t("rateLabel")}
@@ -707,7 +808,39 @@ export function CreateSavingWizard({
                   />
                   <SummaryRow
                     label={t("interestLabel")}
-                    value={money(estimate.interest)}
+                    value={
+                      <FinancialValue>
+                        {money(estimate.breakdown.grossInterest)}
+                      </FinancialValue>
+                    }
+                  />
+                  {estimate.breakdown.tax > 0 ? (
+                    <SummaryRow
+                      label={t("taxLabel")}
+                      value={
+                        <FinancialValue>
+                          {money(estimate.breakdown.tax)}
+                        </FinancialValue>
+                      }
+                    />
+                  ) : null}
+                  {estimate.breakdown.fee > 0 ? (
+                    <SummaryRow
+                      label={t("feeLabel")}
+                      value={
+                        <FinancialValue>
+                          {money(estimate.breakdown.fee)}
+                        </FinancialValue>
+                      }
+                    />
+                  ) : null}
+                  <SummaryRow
+                    label={t("netInterestLabel")}
+                    value={
+                      <FinancialValue>
+                        {money(estimate.breakdown.netInterest)}
+                      </FinancialValue>
+                    }
                   />
                   <div className="mt-(--space-2) flex items-end justify-between gap-(--space-3) border-t border-border-subtle pt-(--space-3)">
                     <Text size="sm" weight="semibold">
@@ -719,7 +852,9 @@ export function CreateSavingWizard({
                       tabular
                       className="text-accent"
                     >
-                      {money(estimate.total)}
+                      <FinancialValue>
+                        {money(estimate.breakdown.totalCashReceived)}
+                      </FinancialValue>
                     </Text>
                   </div>
                 </div>
@@ -763,7 +898,7 @@ export function CreateSavingWizard({
                 tabular
                 className="mt-(--space-1) text-2xl"
               >
-                {money(principalAmount)}
+                <FinancialValue>{money(principalAmount)}</FinancialValue>
               </Text>
               <Text size="sm" tone="secondary" className="mt-(--space-1)">
                 {selectedPackage
@@ -781,11 +916,17 @@ export function CreateSavingWizard({
                   tabular
                   className="text-accent"
                 >
-                  {estimate ? money(estimate.total) : t("unknown")}
+                  {estimate ? (
+                    <FinancialValue>
+                      {money(estimate.breakdown.totalCashReceived)}
+                    </FinancialValue>
+                  ) : (
+                    t("unknown")
+                  )}
                 </Text>
                 <Text size="xs" tone="secondary">
                   {estimate
-                    ? `${t("interestLabel")}: ${money(estimate.interest)} · ${t("maturityLabel")}: ${date(estimate.maturityDate)}`
+                    ? `${t("netInterestLabel")}: ${money(estimate.breakdown.netInterest)} · ${t("maturityLabel")}: ${date(estimate.maturityDate)}`
                     : t("estimateEmpty")}
                 </Text>
               </div>
@@ -1007,10 +1148,8 @@ export function CreateSavingWizard({
                 {t("flowTitle")}
               </Text>
               <Text size="sm" tone="secondary" className="mt-(--space-1)">
-                {t("flowDescription", {
-                  source: fundingAccount?.name ?? t("unknown"),
-                  amount: money(principalAmount),
-                })}
+                {fundingAccount?.name ?? t("unknown")} → {t("flowSavings")} ·{" "}
+                <FinancialValue>{money(principalAmount)}</FinancialValue>
               </Text>
             </div>
           </section>

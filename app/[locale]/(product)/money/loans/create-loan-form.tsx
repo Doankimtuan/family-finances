@@ -15,10 +15,6 @@ import { Button } from "@/shared/ui/button";
 import { AlertVariant } from "@/shared/ui/alert";
 import { Text } from "@/shared/ui/text";
 import { FinancialValue } from "@/shared/patterns/financial-value";
-import {
-  BottomActionBar,
-  BottomActionBarLayout,
-} from "@/shared/patterns/bottom-action-bar";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import { useStatusAlert } from "@/providers/status-alert-provider";
 import { formatCurrency } from "@/shared/i18n/formatters";
@@ -44,6 +40,8 @@ import {
 } from "@/modules/ledger/application/client";
 import { createLoanAction } from "../money-products-actions";
 import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
+import { Card } from "@/shared/patterns/card";
+import { SheetActionFooter } from "@/shared/patterns/sheet-action-footer";
 import { Sheet } from "@/shared/patterns/sheet";
 import { FinancialScopeField } from "@/shared/patterns/financial-scope-field";
 import { FINANCIAL_SCOPE } from "@/modules/shared-kernel/application/financial-scope";
@@ -207,6 +205,20 @@ export function CreateLoanForm() {
       });
     });
   });
+  const handleCancel = () => {
+    statusAlert.hide();
+    setIdempotencyKey(null);
+    reset(getDefaultValues());
+    setStep(LoanCreateStep.BASICS);
+    setOpen(false);
+  };
+
+  const handleContinue = async () => {
+    if (await trigger(["name", "loanType", "principal"])) {
+      setStep(LoanCreateStep.TERMS);
+    }
+  };
+
   if (!open)
     return (
       <Button
@@ -326,6 +338,24 @@ export function CreateLoanForm() {
           },
         ] satisfies ControlledFieldConfig<FormValues>[])
       : [];
+  const footerPrimaryLabel =
+    step === LoanCreateStep.BASICS
+      ? t("continue")
+      : isPending
+        ? t("saving")
+        : t("save");
+  const footerSecondaryLabel =
+    step === LoanCreateStep.BASICS ? t("cancel") : t("back");
+  const footerPrimaryTestId =
+    step === LoanCreateStep.BASICS ? "loan-add-continue" : "loan-add-save";
+  const footerPrimaryAction =
+    step === LoanCreateStep.BASICS ? handleContinue : onSubmit;
+  const footerSecondaryAction =
+    step === LoanCreateStep.BASICS
+      ? handleCancel
+      : () => setStep(LoanCreateStep.BASICS);
+  const footerIsDisabled = isPending || !online;
+  const footerIsPrimaryDisabled = step === LoanCreateStep.TERMS && !preview;
 
   return (
     <Sheet
@@ -342,262 +372,247 @@ export function CreateLoanForm() {
       <ActionSheetLayout>
         <ActionSheetLayout.Header>
           <Sheet.Heading>{t("add")}</Sheet.Heading>
+          <Text size="sm" tone="secondary" className="mt-(--space-1)">
+            {t("trackingOnly")}
+          </Text>
         </ActionSheetLayout.Header>
         <ActionSheetLayout.Body>
           <form
             className="flex flex-col gap-(--space-3)"
             data-testid="loan-add-form"
-            onSubmit={onSubmit}
+            onSubmit={(event) => {
+              event.preventDefault();
+              footerPrimaryAction();
+            }}
           >
-            <Text size="sm" tone="secondary">
-              {t("trackingOnly")}
-            </Text>
             {step === LoanCreateStep.BASICS ? (
               <>
-                <TextField
-                  id="loan-name"
-                  label={t("nameLabel")}
-                  registration={register("name")}
-                  error={error("name")}
-                />
-                <FinancialScopeField
-                  value={financialScope ?? FINANCIAL_SCOPE.HOUSEHOLD}
-                  onChange={(next) => setValue("financialScope", next)}
-                  testId="loan-financial-scope"
-                />
-                <TextField
-                  id="loan-lender"
-                  label={t("lenderLabel")}
-                  registration={register("lender")}
-                  error={error("lender")}
-                />
-                <ControlledFields
-                  control={control}
-                  fields={commonFields.slice(0, 1)}
-                  getErrorMessage={() =>
-                    tErr(PRODUCT_ACTION_ERROR_CODE.INVALID)
-                  }
-                />
-                <ControlledField
-                  control={control}
-                  field={{
-                    type: "amount",
-                    name: "principal",
-                    label: t("principalLabel"),
-                    id: "loan-principal",
-                    testId: "loan-principal",
-                  }}
-                  getErrorMessage={() =>
-                    tErr(PRODUCT_ACTION_ERROR_CODE.INVALID)
-                  }
-                />
-              </>
-            ) : (
-              <>
-                <ControlledFields
-                  control={control}
-                  fields={commonFields.slice(1, 3)}
-                  getErrorMessage={() =>
-                    tErr(PRODUCT_ACTION_ERROR_CODE.INVALID)
-                  }
-                />
-                {interestStrategy ===
-                LoanInterestStrategy.PROMO_FIXED_TO_FLOATING ? (
-                  <>
-                    <ControlledFields
-                      control={control}
-                      fields={promoFields}
-                      getErrorMessage={() =>
-                        tErr(PRODUCT_ACTION_ERROR_CODE.INVALID)
-                      }
-                    />
-                    {derivedPromoEffective ? (
-                      <Text size="sm" tone="secondary">
-                        {t("promoEffectiveHint", {
-                          date: derivedPromoEffective,
-                        })}
-                      </Text>
-                    ) : null}
-                  </>
-                ) : (
+                <section
+                  className="flex flex-col gap-(--space-3)"
+                  aria-labelledby="loan-create-basics-heading"
+                >
+                  <Text
+                    id="loan-create-basics-heading"
+                    size="sm"
+                    weight="semibold"
+                  >
+                    {t("sections.basics")}
+                  </Text>
+                  <TextField
+                    id="loan-name"
+                    label={t("nameLabel")}
+                    registration={register("name")}
+                    error={error("name")}
+                  />
+                  <FinancialScopeField
+                    value={financialScope ?? FINANCIAL_SCOPE.HOUSEHOLD}
+                    onChange={(next) => setValue("financialScope", next)}
+                    testId="loan-financial-scope"
+                  />
+                  <TextField
+                    id="loan-lender"
+                    label={t("lenderLabel")}
+                    registration={register("lender")}
+                    error={error("lender")}
+                  />
+                  <ControlledFields
+                    control={control}
+                    fields={commonFields.slice(0, 1)}
+                    getErrorMessage={() =>
+                      tErr(PRODUCT_ACTION_ERROR_CODE.INVALID)
+                    }
+                  />
                   <ControlledField
                     control={control}
                     field={{
-                      type: "number",
-                      name: "annualInterestRate",
-                      label:
-                        interestStrategy === LoanInterestStrategy.FLOATING
-                          ? t("currentInterestLabel")
-                          : t("interestLabel"),
-                      id: "loan-interest",
-                      testId: "loan-interest",
-                      minValue: 0,
-                      maxValue: 100,
-                      step: 0.01,
+                      type: "amount",
+                      name: "principal",
+                      label: t("principalLabel"),
+                      id: "loan-principal",
+                      testId: "loan-principal",
                     }}
                     getErrorMessage={() =>
                       tErr(PRODUCT_ACTION_ERROR_CODE.INVALID)
                     }
                   />
-                )}
-                <div className="grid grid-cols-2 gap-(--space-2)">
-                  <ControlledField
-                    control={control}
-                    field={commonFields[3]}
-                    getErrorMessage={() =>
-                      tErr(PRODUCT_ACTION_ERROR_CODE.INVALID)
-                    }
-                  />
-                  <ControlledField
-                    control={control}
-                    field={commonFields[4]}
-                    getErrorMessage={() =>
-                      tErr(PRODUCT_ACTION_ERROR_CODE.INVALID)
-                    }
-                  />
-                </div>
-                <ControlledFields
-                  control={control}
-                  fields={commonFields.slice(5)}
-                  getErrorMessage={() =>
-                    tErr(PRODUCT_ACTION_ERROR_CODE.INVALID)
-                  }
-                />
-                <TextField
-                  id="loan-note"
-                  label={t("noteLabel")}
-                  registration={register("note")}
-                  error={error("note")}
-                />
-                <div
-                  className="flex flex-col gap-(--space-2) rounded-md border border-border-subtle bg-surface p-(--space-3)"
-                  data-testid="loan-simulation"
+                </section>
+              </>
+            ) : (
+              <>
+                <section
+                  className="flex flex-col gap-(--space-3)"
+                  aria-labelledby="loan-create-terms-heading"
                 >
-                  <Text size="sm" className="font-medium">
-                    {t("simulationTitle")}
+                  <Text
+                    id="loan-create-terms-heading"
+                    size="sm"
+                    weight="semibold"
+                  >
+                    {t("sections.terms")}
                   </Text>
-                  {preview ? (
+                  <ControlledFields
+                    control={control}
+                    fields={commonFields.slice(1, 3)}
+                    getErrorMessage={() =>
+                      tErr(PRODUCT_ACTION_ERROR_CODE.INVALID)
+                    }
+                  />
+                  {interestStrategy ===
+                  LoanInterestStrategy.PROMO_FIXED_TO_FLOATING ? (
                     <>
-                      <Text
-                        size="sm"
-                        tone="secondary"
-                        data-testid="loan-sim-monthly"
-                      >
-                        {t("simulationMonthlyLabel")}{" "}
-                        <FinancialValue>
-                          {money(preview.monthlyPayment)}
-                        </FinancialValue>
-                      </Text>
-                      {preview.changeAfterMonths != null ? (
-                        <>
-                          <Text
-                            size="sm"
-                            tone="secondary"
-                            data-testid="loan-sim-promo"
-                          >
-                            {t("simulationPromoChange", {
-                              months: preview.changeAfterMonths,
-                            })}
-                          </Text>
-                          <Text
-                            size="sm"
-                            tone="secondary"
-                            data-testid="loan-sim-monthly-after"
-                          >
-                            {t("simulationMonthlyAfterLabel")}{" "}
-                            <FinancialValue>
-                              {money(preview.monthlyPaymentAfterChange ?? 0)}
-                            </FinancialValue>
-                          </Text>
-                        </>
+                      <ControlledFields
+                        control={control}
+                        fields={promoFields}
+                        getErrorMessage={() =>
+                          tErr(PRODUCT_ACTION_ERROR_CODE.INVALID)
+                        }
+                      />
+                      {derivedPromoEffective ? (
+                        <Text size="sm" tone="secondary">
+                          {t("promoEffectiveHint", {
+                            date: derivedPromoEffective,
+                          })}
+                        </Text>
                       ) : null}
-                      <Text
-                        size="sm"
-                        tone="secondary"
-                        data-testid="loan-sim-interest"
-                      >
-                        {t("simulationInterestLabel")}{" "}
-                        <FinancialValue>
-                          {money(preview.totalInterest)}
-                        </FinancialValue>
-                      </Text>
-                      <Text
-                        size="sm"
-                        tone="secondary"
-                        data-testid="loan-sim-total"
-                      >
-                        {t("simulationTotalLabel")}{" "}
-                        <FinancialValue>
-                          {money(preview.totalRepayment)}
-                        </FinancialValue>
-                      </Text>
-                      <Text size="sm" tone="secondary">
-                        {t("simulationEndDate", { date: preview.endDate })}
-                      </Text>
                     </>
                   ) : (
-                    <Text size="sm" tone="secondary">
-                      {t("simulationHint")}
-                    </Text>
+                    <ControlledField
+                      control={control}
+                      field={{
+                        type: "number",
+                        name: "annualInterestRate",
+                        label:
+                          interestStrategy === LoanInterestStrategy.FLOATING
+                            ? t("currentInterestLabel")
+                            : t("interestLabel"),
+                        id: "loan-interest",
+                        testId: "loan-interest",
+                        minValue: 0,
+                        maxValue: 100,
+                        step: 0.01,
+                      }}
+                      getErrorMessage={() =>
+                        tErr(PRODUCT_ACTION_ERROR_CODE.INVALID)
+                      }
+                    />
                   )}
-                </div>
+                  <div className="grid grid-cols-2 gap-(--space-2)">
+                    <ControlledField
+                      control={control}
+                      field={commonFields[3]}
+                      getErrorMessage={() =>
+                        tErr(PRODUCT_ACTION_ERROR_CODE.INVALID)
+                      }
+                    />
+                    <ControlledField
+                      control={control}
+                      field={commonFields[4]}
+                      getErrorMessage={() =>
+                        tErr(PRODUCT_ACTION_ERROR_CODE.INVALID)
+                      }
+                    />
+                  </div>
+                  <ControlledFields
+                    control={control}
+                    fields={commonFields.slice(5)}
+                    getErrorMessage={() =>
+                      tErr(PRODUCT_ACTION_ERROR_CODE.INVALID)
+                    }
+                  />
+                  <TextField
+                    id="loan-note"
+                    label={t("noteLabel")}
+                    registration={register("note")}
+                    error={error("note")}
+                  />
+                  <Card
+                    tone="metric"
+                    className="flex flex-col gap-(--space-2) p-(--space-3)"
+                    data-testid="loan-simulation"
+                  >
+                    <Text size="sm" className="font-medium">
+                      {t("simulationTitle")}
+                    </Text>
+                    {preview ? (
+                      <>
+                        <Text
+                          size="sm"
+                          tone="secondary"
+                          data-testid="loan-sim-monthly"
+                        >
+                          {t("simulationMonthlyLabel")}{" "}
+                          <FinancialValue>
+                            {money(preview.monthlyPayment)}
+                          </FinancialValue>
+                        </Text>
+                        {preview.changeAfterMonths != null ? (
+                          <>
+                            <Text
+                              size="sm"
+                              tone="secondary"
+                              data-testid="loan-sim-promo"
+                            >
+                              {t("simulationPromoChange", {
+                                months: preview.changeAfterMonths,
+                              })}
+                            </Text>
+                            <Text
+                              size="sm"
+                              tone="secondary"
+                              data-testid="loan-sim-monthly-after"
+                            >
+                              {t("simulationMonthlyAfterLabel")}{" "}
+                              <FinancialValue>
+                                {money(preview.monthlyPaymentAfterChange ?? 0)}
+                              </FinancialValue>
+                            </Text>
+                          </>
+                        ) : null}
+                        <Text
+                          size="sm"
+                          tone="secondary"
+                          data-testid="loan-sim-interest"
+                        >
+                          {t("simulationInterestLabel")}{" "}
+                          <FinancialValue>
+                            {money(preview.totalInterest)}
+                          </FinancialValue>
+                        </Text>
+                        <Text
+                          size="sm"
+                          tone="secondary"
+                          data-testid="loan-sim-total"
+                        >
+                          {t("simulationTotalLabel")}{" "}
+                          <FinancialValue>
+                            {money(preview.totalRepayment)}
+                          </FinancialValue>
+                        </Text>
+                        <Text size="sm" tone="secondary">
+                          {t("simulationEndDate", { date: preview.endDate })}
+                        </Text>
+                      </>
+                    ) : (
+                      <Text size="sm" tone="secondary">
+                        {t("simulationHint")}
+                      </Text>
+                    )}
+                  </Card>
+                </section>
               </>
             )}
-            <BottomActionBar layout={BottomActionBarLayout.SPLIT}>
-              {step === LoanCreateStep.BASICS ? (
-                <Button
-                  type="button"
-                  variant="primary"
-                  className="min-h-11 flex-1"
-                  data-testid="loan-add-continue"
-                  onPress={async () => {
-                    if (await trigger(["name", "loanType", "principal"])) {
-                      setStep(LoanCreateStep.TERMS);
-                    }
-                  }}
-                >
-                  {t("continue")}
-                </Button>
-              ) : (
-                <>
-                  <Button
-                    type="submit"
-                    variant="primary"
-                    className="min-h-11 flex-1"
-                    data-testid="loan-add-save"
-                    isDisabled={isPending || !online || !preview}
-                  >
-                    {isPending ? t("saving") : t("save")}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    className="min-h-11"
-                    isDisabled={isPending}
-                    onPress={() => setStep(LoanCreateStep.BASICS)}
-                  >
-                    {t("back")}
-                  </Button>
-                </>
-              )}
-              <Button
-                type="button"
-                variant="secondary"
-                className="min-h-11"
-                isDisabled={isPending}
-                onPress={() => {
-                  statusAlert.hide();
-                  setIdempotencyKey(null);
-                  reset(getDefaultValues());
-                  setStep(LoanCreateStep.BASICS);
-                  setOpen(false);
-                }}
-              >
-                {t("cancel")}
-              </Button>
-            </BottomActionBar>
           </form>
         </ActionSheetLayout.Body>
+        <SheetActionFooter
+          secondaryLabel={footerSecondaryLabel}
+          primaryLabel={footerPrimaryLabel}
+          onSecondary={footerSecondaryAction}
+          onPrimary={footerPrimaryAction}
+          primaryTestId={footerPrimaryTestId}
+          isDisabled={footerIsDisabled}
+          isPrimaryDisabled={footerIsPrimaryDisabled}
+          isPending={step === LoanCreateStep.TERMS && isPending}
+        />
       </ActionSheetLayout>
     </Sheet>
   );

@@ -9,12 +9,12 @@ import {
 } from "@/modules/tenancy/application/app-path";
 import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
-import { listAccounts } from "@/modules/ledger/application";
 import {
   getSaving,
   listSavingCycles,
   listProviderPackages,
   listSavingsFinancialActivities,
+  listSavingsEligibleAccounts,
   buildSavingsDetailModel,
   SavingsEventKind,
   SavingStatus,
@@ -96,7 +96,7 @@ export default async function SavingsDetailPage({ params }: Props) {
   const [activities, packagesResult, accountsResult] = await Promise.all([
     listSavingsFinancialActivities(id, cycles ?? []),
     canAct ? listProviderPackages(item.providerId) : Promise.resolve(null),
-    canAct ? listAccounts() : Promise.resolve(null),
+    canAct ? listSavingsEligibleAccounts() : Promise.resolve(null),
   ]);
   const cycleSnapshot = cycle?.packageSnapshot;
   const legacyImport = Boolean(
@@ -115,6 +115,8 @@ export default async function SavingsDetailPage({ params }: Props) {
         packageName: pkg.packageName,
         durationDays: pkg.durationDays,
         annualInterestRate: pkg.annualInterestRate,
+        termAmount: pkg.termAmount,
+        termUnit: pkg.termUnit,
       }))
     : [];
   const targetUnavailable = item.maturityActionRequired === true;
@@ -434,11 +436,12 @@ export default async function SavingsDetailPage({ params }: Props) {
                 item.productSnapshot.packageId ??
                 null
               }
+              currentMaturityDate={cycle.endDate}
               principal={model.principal}
               grossInterest={model.grossInterest}
-              tax={model.tax}
+              taxRule={model.taxRule}
+              taxRatePercent={model.taxRatePercent}
               fee={model.fee}
-              totalCashReceived={model.totalCashReceived}
               settlementAccountId={item.settlementAccountId}
               accounts={accounts}
               packages={packages}

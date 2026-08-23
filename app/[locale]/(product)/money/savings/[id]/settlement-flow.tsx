@@ -9,12 +9,20 @@ import {
   SettlementRule,
   SETTLEMENT_RULE_VALUES,
 } from "@/modules/savings/application/savings-constants";
+import {
+  calculateSettlementBreakdown,
+  addSavingsTerm,
+  SavingsTermUnit,
+  type SavingsTaxRule,
+} from "@/modules/savings/application/client";
 import { renewSavingAction, settleSavingAction } from "../savings-actions";
 import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { MotionStep, MotionStepDirection } from "@/shared/motion";
-import { formatCurrency } from "@/shared/i18n/formatters";
+import { formatCurrency, formatDate } from "@/shared/i18n/formatters";
+import { FinancialValue } from "@/shared/patterns/financial-value";
+import { ChoiceTile } from "@/shared/patterns/choice-tile";
 import { AppIcon } from "@/shared/ui/app-icon";
 import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
 import { Sheet } from "@/shared/patterns/sheet";
@@ -26,15 +34,18 @@ type PackageOption = {
   packageName: string;
   durationDays: number;
   annualInterestRate: number;
+  termAmount?: number | null;
+  termUnit?: (typeof SavingsTermUnit)[keyof typeof SavingsTermUnit] | null;
 };
 type Props = {
   cycleId: string;
   currentPackageId: string | null;
+  currentMaturityDate: string;
   principal: number;
   grossInterest: number;
-  tax: number;
+  taxRule: SavingsTaxRule;
+  taxRatePercent: number;
   fee: number;
-  totalCashReceived: number;
   settlementAccountId: string | null;
   accounts: AccountOption[];
   packages: PackageOption[];
@@ -55,12 +66,12 @@ function Card({
   testId: string;
 }) {
   return (
-    <button
-      type="button"
-      aria-pressed={selected}
-      data-testid={testId}
-      onClick={onPress}
-      className={`flex min-h-11 w-full items-center justify-between gap-(--space-3) rounded-[var(--radius-control)] border px-(--space-3) py-(--space-3) text-left focus-visible:outline-2 focus-visible:outline-focus-ring ${selected ? "border-accent bg-accent-soft" : "border-border-subtle bg-surface hover:border-accent/50"}`}
+    <ChoiceTile
+      selected={selected}
+      onPress={onPress}
+      testId={testId}
+      icon={null}
+      className="justify-between"
     >
       {children}
       {selected ? (
@@ -70,18 +81,19 @@ function Card({
           className="shrink-0 text-accent"
         />
       ) : null}
-    </button>
+    </ChoiceTile>
   );
 }
 
 export function SavingsSettlementFlow({
   cycleId,
   currentPackageId,
+  currentMaturityDate,
   principal,
   grossInterest,
-  tax,
+  taxRule,
+  taxRatePercent,
   fee,
-  totalCashReceived,
   settlementAccountId,
   accounts,
   packages,
@@ -114,10 +126,25 @@ export function SavingsSettlementFlow({
   const needsPayout = strategy !== SettlementRule.ROLL_PRINCIPAL_INTEREST;
   const needsTarget = strategy !== SettlementRule.WITHDRAW_EVERYTHING;
   const selectedPackage = packages.find((pkg) => pkg.id === targetPackageId);
-  const netInterest = Math.max(grossInterest - tax - fee, 0);
+  const newMaturityDate = selectedPackage
+    ? addSavingsTerm(currentMaturityDate, {
+        amount: selectedPackage.termAmount ?? selectedPackage.durationDays,
+        unit: selectedPackage.termUnit ?? SavingsTermUnit.DAY,
+      })
+    : null;
+  const formattedNewMaturityDate = newMaturityDate
+    ? formatDate(new Date(`${newMaturityDate}T12:00:00`), locale)
+    : null;
+  const breakdown = calculateSettlementBreakdown({
+    principal,
+    grossInterest,
+    fee,
+    taxRule,
+    taxRatePercent,
+  });
   const projectedPrincipal =
     strategy === SettlementRule.ROLL_PRINCIPAL_INTEREST
-      ? principal + netInterest
+      ? breakdown.totalCashReceived
       : principal;
   const canConfirm =
     (!needsPayout || Boolean(accountId)) &&
@@ -320,26 +347,62 @@ export function SavingsSettlementFlow({
                 <dl className="divide-y divide-border-subtle/70">
                   <div className="flex justify-between gap-(--space-3) py-(--space-2)">
                     <dt className="text-sm text-text-secondary">
-                      {t("principal")}
+                      {t("maturedPrincipal")}
                     </dt>
-                    <dd className="text-sm font-medium">{money(principal)}</dd>
+                    <dd className="text-sm font-medium">
+                      <FinancialValue>{money(principal)}</FinancialValue>
+                    </dd>
                   </div>
                   <div className="flex justify-between gap-(--space-3) py-(--space-2)">
                     <dt className="text-sm text-text-secondary">
                       {t("grossInterest")}
                     </dt>
                     <dd className="text-sm font-medium">
-                      {money(grossInterest)}
+                      <FinancialValue>{money(grossInterest)}</FinancialValue>
                     </dd>
                   </div>
-                  {tax > 0 ? (
+                  {breakdown.tax > 0 ? (
                     <div className="flex justify-between gap-(--space-3) py-(--space-2)">
                       <dt className="text-sm text-text-secondary">
                         {t("tax")}
                       </dt>
-                      <dd className="text-sm font-medium">{money(tax)}</dd>
+                      <dd className="text-sm font-medium">
+                        <FinancialValue>{money(breakdown.tax)}</FinancialValue>
+                      </dd>
                     </div>
                   ) : null}
+                  {breakdown.fee > 0 ? (
+                    <div className="flex justify-between gap-(--space-3) py-(--space-2)">
+                      <dt className="text-sm text-text-secondary">
+                        {t("fee")}
+                      </dt>
+                      <dd className="text-sm font-medium">
+                        <FinancialValue>{money(breakdown.fee)}</FinancialValue>
+                      </dd>
+                    </div>
+                  ) : null}
+                  {strategy === SettlementRule.ROLL_PRINCIPAL_ONLY ? (
+                    <div className="flex justify-between gap-(--space-3) py-(--space-2)">
+                      <dt className="text-sm text-text-secondary">
+                        {t("payout")}
+                      </dt>
+                      <dd className="text-sm font-medium">
+                        <FinancialValue>
+                          {money(breakdown.netInterest)}
+                        </FinancialValue>
+                      </dd>
+                    </div>
+                  ) : null}
+                  <div className="flex justify-between gap-(--space-3) py-(--space-2)">
+                    <dt className="text-sm text-text-secondary">
+                      {t("netInterest")}
+                    </dt>
+                    <dd className="text-sm font-medium">
+                      <FinancialValue>
+                        {money(breakdown.netInterest)}
+                      </FinancialValue>
+                    </dd>
+                  </div>
                   <div className="flex justify-between gap-(--space-3) py-(--space-3)">
                     <dt className="text-sm font-semibold">
                       {strategy === SettlementRule.WITHDRAW_EVERYTHING
@@ -347,18 +410,35 @@ export function SavingsSettlementFlow({
                         : t("newPrincipal")}
                     </dt>
                     <dd className="text-base font-semibold text-accent">
-                      {money(
-                        strategy === SettlementRule.WITHDRAW_EVERYTHING
-                          ? totalCashReceived
-                          : projectedPrincipal,
-                      )}
+                      <FinancialValue>
+                        {money(
+                          strategy === SettlementRule.WITHDRAW_EVERYTHING
+                            ? breakdown.totalCashReceived
+                            : projectedPrincipal,
+                        )}
+                      </FinancialValue>
                     </dd>
                   </div>
                 </dl>
                 {needsTarget && selectedPackage ? (
-                  <Text size="sm" tone="secondary">
-                    {t("intoPackage", { package: selectedPackage.packageName })}
-                  </Text>
+                  <div className="flex flex-col gap-(--space-1)">
+                    <Text size="sm" tone="secondary">
+                      {t("intoPackage", {
+                        package: selectedPackage.packageName,
+                      })}
+                    </Text>
+                    <Text size="sm" tone="secondary">
+                      {t("packageMeta", {
+                        days: selectedPackage.durationDays,
+                        rate: selectedPackage.annualInterestRate,
+                      })}
+                    </Text>
+                    {formattedNewMaturityDate ? (
+                      <Text size="sm" tone="secondary">
+                        {t("newMaturity", { date: formattedNewMaturityDate })}
+                      </Text>
+                    ) : null}
+                  </div>
                 ) : null}
                 {needsPayout ? (
                   <Text size="sm" tone="secondary">

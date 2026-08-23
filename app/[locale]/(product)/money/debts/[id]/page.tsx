@@ -32,21 +32,15 @@ import {
   localizeCatalogName,
 } from "@/shared/i18n/localize-catalog-name";
 import { MotionReveal } from "@/shared/motion";
-import { Amount } from "@/shared/patterns/amount";
-import { Card } from "@/shared/patterns/card";
-import { EmptyState } from "@/shared/patterns/empty-state";
 import { FinancialValue } from "@/shared/patterns/financial-value";
 import { Section } from "@/shared/patterns/section";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Text } from "@/shared/ui/text";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { FinancialOwnershipBadge } from "@/shared/patterns/financial-ownership-badge";
-import { AppIcon } from "@/shared/ui/app-icon";
-import { IconContainer } from "@/shared/ui/icon-container";
-import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
 import { todayIsoDate } from "@/shared/utils/iso-date";
 import { MoneyOfflineBanner } from "../../money-offline-banner";
-import { DebtDueBadge, DebtProgressSummary } from "../debt-presentation";
+import { DebtDetailHero } from "../debt-presentation";
 import { DebtPaymentHistory } from "./debt-payment-history";
 import { DebtPaymentSheet } from "./debt-payment-sheet";
 import { DebtEditSheet } from "./debt-edit-sheet";
@@ -112,17 +106,19 @@ export default async function DebtDetailPage({ params }: Props) {
         data-testid="debt-detail-missing"
       >
         <TopAppBar title={t("title")} />
-        <div className="px-(--space-4) pt-(--space-4)">
-          <EmptyState
+        <div className="flex flex-1 flex-col gap-(--space-4) px-(--space-4) py-(--space-6)">
+          <StatusAlert
+            variant="danger"
             title={t("notFound")}
-            className="flex-none py-(--space-4)"
+            action={
+              <Link
+                href={APP_PATH.MONEY_DEBTS}
+                className="inline-flex min-h-11 items-center rounded-(--radius-control) px-(--space-2) text-sm font-semibold text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+              >
+                {t("back")}
+              </Link>
+            }
           />
-          <Link
-            href={APP_PATH.MONEY_DEBTS}
-            className="inline-flex min-h-11 items-center text-sm font-medium text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-          >
-            {t("back")}
-          </Link>
         </div>
       </div>
     );
@@ -167,9 +163,6 @@ export default async function DebtDetailPage({ params }: Props) {
       name: localizeCatalogName(tCatalog, CatalogGroup.ACCOUNTS, account.name),
       balance: account.balance,
     }));
-  const remainingLabel = isBorrowed
-    ? t("remainingToPay")
-    : t("remainingToReceive");
   const relationshipLabel = isBorrowed ? t("youOwe") : t("owedYou");
   const dueLabels = {
     dueDate: (date: string) => tDebts("dueDate", { date }),
@@ -185,49 +178,42 @@ export default async function DebtDetailPage({ params }: Props) {
   return (
     <div className="flex min-h-full flex-col" data-testid="debt-detail">
       <TopAppBar
+        variant="detail"
         title={debt.counterparty}
         subtitle={relationshipLabel}
         backHref={APP_PATH.MONEY_DEBTS}
+        trailing={
+          canMutate && !debt.isArchived ? (
+            <DebtEditSheet
+              debtId={debt.id}
+              counterparty={debt.counterparty}
+              dueDate={debt.dueDate}
+              note={debt.note}
+              startDate={debt.startDate}
+              compactTrigger
+            />
+          ) : undefined
+        }
       />
       <div className="flex flex-1 flex-col gap-(--space-4) px-(--space-4) pb-(--space-6) pt-(--space-4)">
         <MoneyOfflineBanner />
         <MotionReveal>
-          <Card className="gap-(--space-4) p-(--space-4)">
-            <IconContainer tone={isBorrowed ? "debt" : "income"} size="md">
-              <AppIcon
-                icon={isBorrowed ? FINANCE_ICONS.debt : FINANCE_ICONS.income}
-                size="lg"
-              />
-            </IconContainer>
-            <div className="flex items-start justify-between gap-(--space-3)">
-              <div>
-                <Amount
-                  label={remainingLabel}
-                  amountLabel={formatCurrency(
-                    debt.remainingAmount,
-                    debt.currency,
-                    locale,
-                    { maximumFractionDigits: 0 },
-                  )}
-                  size="lg"
-                  amountClassName={isBorrowed ? "text-debt" : "text-income"}
-                />
-              </div>
-              <DebtDueBadge
-                due={due}
-                dueDate={debt.dueDate}
-                labels={dueLabels}
-                locale={locale}
-              />
-            </div>
-            <DebtProgressSummary
-              direction={debt.direction}
-              progress={progress}
-              currency={debt.currency}
-              locale={locale}
-              labels={progressLabels}
-            />
-          </Card>
+          <DebtDetailHero
+            direction={debt.direction}
+            remainingAmount={debt.remainingAmount}
+            due={due}
+            dueDate={debt.dueDate}
+            progress={progress}
+            currency={debt.currency}
+            locale={locale}
+            labels={{
+              ...dueLabels,
+              ...progressLabels,
+              relationship: relationshipLabel,
+              remainingToPay: t("remainingToPay"),
+              remainingToReceive: t("remainingToReceive"),
+            }}
+          />
         </MotionReveal>
         <MotionReveal>
           <Section
@@ -321,17 +307,6 @@ export default async function DebtDetailPage({ params }: Props) {
             />
           </Section>
         </MotionReveal>
-        {canMutate && !debt.isArchived ? (
-          <MotionReveal>
-            <DebtEditSheet
-              debtId={debt.id}
-              counterparty={debt.counterparty}
-              dueDate={debt.dueDate}
-              note={debt.note}
-              startDate={debt.startDate}
-            />
-          </MotionReveal>
-        ) : null}
         {debt.status === DebtStatus.ACTIVE && canMutate ? (
           <MotionReveal>
             <DebtPaymentSheet
@@ -351,16 +326,7 @@ export default async function DebtDetailPage({ params }: Props) {
               {t("paidOff")}
             </Text>
           </MotionReveal>
-        ) : (
-          <MotionReveal>
-            <FinancialOwnershipBadge
-              financialScope={debt.ownership.financialScope}
-              isOwnedByMe={debt.ownership.isOwnedByMe}
-              ownerStatus={debt.ownership.ownerStatus}
-              showExplanation
-            />
-          </MotionReveal>
-        )}
+        ) : null}
         <MotionReveal>
           <DebtPaymentHistory
             title={t("history")}

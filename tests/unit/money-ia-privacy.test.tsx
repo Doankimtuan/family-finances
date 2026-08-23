@@ -111,9 +111,6 @@ describe("Money IA and financial privacy", () => {
       <FinancialPrivacyProvider>
         <FinancialAccountHero
           icon={FINANCE_ICONS.cash}
-          iconTone="income"
-          eyebrow="Cash"
-          title="Daily cash"
           amountLabel="₫1,200,000"
           amountCaption="Balance"
         />
@@ -227,16 +224,14 @@ describe("Money IA and financial privacy", () => {
     expect(screen.getAllByText("Cash")).toHaveLength(1);
   });
 
-  it("allows long account and card identities to wrap", () => {
+  it("allows long card identities to wrap and keeps the account hero amount readable", () => {
     const longCardName = "Household travel and emergency credit card";
 
     render(
       <>
+        {/* Account identity lives in the screen header; the hero carries the balance. */}
         <FinancialAccountHero
           icon={FINANCE_ICONS.cash}
-          iconTone="income"
-          eyebrow="Cash"
-          title="Household emergency cash reserve"
           amountLabel="₫9,999,999,999"
           amountCaption="Balance"
         />
@@ -254,9 +249,8 @@ describe("Money IA and financial privacy", () => {
       </>,
     );
 
-    expect(screen.getByText("Household emergency cash reserve")).toHaveClass(
-      "break-words",
-    );
+    expect(screen.getByText("Balance")).toBeInTheDocument();
+    expect(screen.getAllByText("₫9,999,999,999").length).toBeGreaterThan(0);
     expect(screen.getByText(longCardName)).toHaveClass("break-words");
   });
 

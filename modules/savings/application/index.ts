@@ -170,6 +170,7 @@ export {
   listSavingCycles,
   listSavingsFinancialActivities,
 } from "./queries/list-savings";
+export { listSavingsEligibleAccounts } from "./queries/list-savings-accounts";
 
 export {
   getSavingsHealthMetrics,

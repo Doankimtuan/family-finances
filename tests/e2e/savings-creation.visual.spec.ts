@@ -26,7 +26,7 @@ test.describe("Savings creation visual contract", () => {
         colorScheme: width === 440 ? "dark" : "light",
         reducedMotion: "reduce",
       });
-      await page.goto("/vi/money/savings/new");
+      await page.goto(`${width === 440 ? "/en" : "/vi"}/money/savings/new`);
       await expect(page.getByTestId("money-savings-new").first()).toBeVisible({
         timeout: 20_000,
       });
@@ -47,6 +47,9 @@ test.describe("Savings creation visual contract", () => {
       await expect(
         page.locator('[data-testid^="savings-package-"]').first(),
       ).toBeVisible();
+      await expect
+        .poll(() => page.evaluate(() => document.documentElement.scrollWidth))
+        .toBeLessThanOrEqual(width);
       await page.screenshot({
         path: test.info().outputPath(`savings-product-${width}.png`),
         fullPage: true,
@@ -58,7 +61,7 @@ test.describe("Savings creation visual contract", () => {
       await page.locator("#savings-principal").fill("1000000");
       await page.locator("#savings-principal").focus();
       await expect(page.getByTestId("savings-estimate").first()).toContainText(
-        "1.000.000",
+        width === 440 ? "1,000,000" : "1.000.000",
       );
       await expect(
         page.getByTestId("savings-wizard-next").first(),

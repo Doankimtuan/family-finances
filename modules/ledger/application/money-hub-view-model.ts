@@ -6,7 +6,13 @@ import {
   CARD_UTILIZATION_DANGER_PCT,
   type AccountType as AccountTypeValue,
 } from "./ledger-constants";
-import { differenceInUtcCalendarDays } from "@/shared/utils/iso-date";
+import { LoanDueState, LoanStatus } from "./loan-constants";
+import { getLoanDueState } from "./loan-due-state";
+import type { LoanSummaryRow } from "./queries/list-money-products";
+import {
+  differenceInUtcCalendarDays,
+  todayIsoDate,
+} from "@/shared/utils/iso-date";
 
 export const MONEY_HUB_INITIAL_ACCOUNT_ROW_LIMIT = 4;
 export const MONEY_HUB_DUE_SOON_DAYS = 7;
@@ -100,7 +106,11 @@ const MONEY_ACCOUNT_TYPE_PRIORITY: Record<AccountTypeValue, number> = {
   [AccountType.CREDIT_CARD]: 7,
 };
 
-function creditAttentionFor(card: CreditCardSummary, today: Date) {
+/** Canonical credit-card attention state (overdue / due soon / high utilization). */
+export function creditCardAttentionFor(
+  card: CreditCardSummary,
+  today: Date,
+): MoneyCreditAttention | null {
   if (card.nextDueDate && card.nextDueRemaining > 0) {
     const daysUntilDue = differenceInUtcCalendarDays(today, card.nextDueDate);
     if (daysUntilDue < 0) return MoneyCreditAttention.OVERDUE;
@@ -236,7 +246,7 @@ export function createMoneyHubViewModel(input: {
     utilizationForDisplay: card.creditLimit > 0 ? card.utilizationPct : null,
     progressValue:
       card.creditLimit > 0 ? Math.min(card.utilizationPct, 100) : null,
-    attention: creditAttentionFor(card, input.today ?? new Date()),
+    attention: creditCardAttentionFor(card, input.today ?? new Date()),
   }));
 
   return {
@@ -254,4 +264,173 @@ export function createMoneyHubViewModel(input: {
       0,
     ),
   };
+}
+
+/** Per-domain maintenance signal for a Money module row (canonical attention semantics). */
+export const MoneyModuleAttentionLevel = {
+  /** Review required / due soon — warning treatment, not an error. */
+  WARNING: "warning",
+  /** Overdue / action required — strongest attention level. */
+  CRITICAL: "critical",
+} as const;
+
+export type MoneyModuleAttentionLevel =
+  (typeof MoneyModuleAttentionLevel)[keyof typeof MoneyModuleAttentionLevel];
+
+export type MoneyHubDomainSummary = {
+  /** null ⇒ the domain read failed; never render a fake zero. */
+  loaded: boolean;
+  count: number;
+  /** Current-state magnitude (principal / remaining amount). Neutral styling. */
+  total: number | null;
+  /** Opposite-direction magnitude (money lent out) shown as a quiet meta signal. */
+  secondaryTotal: number | null;
+  currency: string | null;
+  attention: { level: MoneyModuleAttentionLevel; count: number } | null;
+};
+
+export type MoneyHubModuleSummaries = {
+  savings: MoneyHubDomainSummary;
+  investments: MoneyHubDomainSummary;
+  loans: MoneyHubDomainSummary;
+  debts: MoneyHubDomainSummary;
+};
+
+export type MoneyHubLoanSummaryInput = LoanSummaryRow;
+
+export type MoneyHubModuleSummariesInput = {
+  savings: {
+    totalPrincipal: number;
+    activeCount: number;
+    attentionCount: number;
+    currency: string | null;
+  } | null;
+  /** Holding count only; valuation totals stay on the Investments screens. */
+  investments: { activeCount: number } | null;
+  loans: readonly MoneyHubLoanSummaryInput[] | null;
+  debts: {
+    borrowedRemaining: number;
+    lentRemaining: number;
+    activeCount: number;
+    overdueCount: number;
+    dueSoonCount: number;
+    currency: string | null;
+  } | null;
+  today?: Date;
+};
+
+function loansSummary(
+  loans: readonly MoneyHubLoanSummaryInput[],
+  todayIso: string,
+): MoneyHubDomainSummary {
+  const active = loans.filter((loan) => loan.status === LoanStatus.ACTIVE);
+  let overdueCount = 0;
+  let dueSoonCount = 0;
+  for (const loan of active) {
+    if (!loan.nextPaymentDate) continue;
+    const dueState = getLoanDueState(loan.nextPaymentDate, todayIso);
+    if (dueState === LoanDueState.OVERDUE) {
+      overdueCount += 1;
+    } else if (
+      dueState === LoanDueState.DUE_SOON ||
+      dueState === LoanDueState.DUE_TODAY
+    ) {
+      dueSoonCount += 1;
+    }
+  }
+  // Loan records share the household currency; totals never mix currencies.
+  const currency = active[0]?.currency ?? null;
+  const sameCurrencyActive = active.filter(
+    (loan) => currency == null || loan.currency === currency,
+  );
+
+  return {
+    loaded: true,
+    count: active.length,
+    total: sameCurrencyActive.reduce(
+      (sum, loan) => sum + loan.remainingPrincipal,
+      0,
+    ),
+    secondaryTotal: null,
+    currency,
+    attention:
+      overdueCount > 0
+        ? { level: MoneyModuleAttentionLevel.CRITICAL, count: overdueCount }
+        : dueSoonCount > 0
+          ? { level: MoneyModuleAttentionLevel.WARNING, count: dueSoonCount }
+          : null,
+  };
+}
+
+/**
+ * Hub-level module summaries for the non-account money domains. Pure: each
+ * domain's totals/attention are derived here from already-loaded data so the
+ * Money page never re-implements financial rules in JSX. A failed domain read
+ * (null input) renders as "unavailable", never as a zero balance.
+ */
+export function createMoneyHubModuleSummaries(
+  input: MoneyHubModuleSummariesInput,
+): MoneyHubModuleSummaries {
+  const todayIso = todayIsoDate(input.today ?? new Date());
+  const unavailable: MoneyHubDomainSummary = {
+    loaded: false,
+    count: 0,
+    total: null,
+    secondaryTotal: null,
+    currency: null,
+    attention: null,
+  };
+  const savings: MoneyHubDomainSummary = input.savings
+    ? {
+        loaded: true,
+        count: input.savings.activeCount,
+        total: input.savings.totalPrincipal,
+        secondaryTotal: null,
+        currency: input.savings.currency,
+        attention:
+          input.savings.attentionCount > 0
+            ? {
+                level: MoneyModuleAttentionLevel.WARNING,
+                count: input.savings.attentionCount,
+              }
+            : null,
+      }
+    : unavailable;
+
+  const investments: MoneyHubDomainSummary = input.investments
+    ? {
+        loaded: true,
+        count: input.investments.activeCount,
+        total: null,
+        secondaryTotal: null,
+        currency: null,
+        attention: null,
+      }
+    : unavailable;
+
+  const loans = input.loans ? loansSummary(input.loans, todayIso) : unavailable;
+
+  const debts: MoneyHubDomainSummary = input.debts
+    ? {
+        loaded: true,
+        count: input.debts.activeCount,
+        total: input.debts.borrowedRemaining,
+        secondaryTotal: input.debts.lentRemaining,
+        currency: input.debts.currency,
+        attention:
+          input.debts.overdueCount > 0
+            ? {
+                level: MoneyModuleAttentionLevel.CRITICAL,
+                count: input.debts.overdueCount,
+              }
+            : input.debts.dueSoonCount > 0
+              ? {
+                  level: MoneyModuleAttentionLevel.WARNING,
+                  count: input.debts.dueSoonCount,
+                }
+              : null,
+      }
+    : unavailable;
+
+  return { savings, investments, loans, debts };
 }

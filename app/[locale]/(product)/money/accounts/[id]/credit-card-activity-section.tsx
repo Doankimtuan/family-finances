@@ -1,6 +1,8 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
+import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import type { CardBillingItem } from "@/modules/ledger/application/client";
 import {
   TransactionDirection,
@@ -28,6 +30,7 @@ export function CreditCardActivitySection({
   formatMoney,
 }: CreditCardActivitySectionProps) {
   const t = useTranslations("money.creditCard");
+  const tAccount = useTranslations("money.accountDetail");
   const previewItems = items.slice(
     0,
     ACCOUNT_DETAIL_PREVIEW_CONFIG.CARD_ACTIVITY_LIMIT,
@@ -38,7 +41,14 @@ export function CreditCardActivitySection({
       className="flex flex-col gap-(--space-3)"
       data-testid="card-activity"
     >
-      <SectionHeader title={t("activityTitle")} />
+      <SectionHeader
+        title={t("activityTitle")}
+        action={
+          <Link href={APP_PATH.MONEY_TRANSACTIONS}>
+            {tAccount("viewActivity")}
+          </Link>
+        }
+      />
       {previewItems.length === 0 ? (
         <Text size="sm" tone="secondary">
           {t("activityEmpty")}

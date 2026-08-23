@@ -60,6 +60,17 @@ export const SAVINGS_FAMILY_VALUES = [
   SavingsFamily.PLATFORM,
 ] as const;
 
+export const SavingsCreateMode = {
+  LIVE_DEPOSIT: "LIVE_DEPOSIT",
+  HISTORICAL_OPENING: "HISTORICAL_OPENING",
+} as const;
+export type SavingsCreateMode =
+  (typeof SavingsCreateMode)[keyof typeof SavingsCreateMode];
+export const SAVINGS_CREATE_MODE_VALUES = [
+  SavingsCreateMode.LIVE_DEPOSIT,
+  SavingsCreateMode.HISTORICAL_OPENING,
+] as const;
+
 /** Savings RPC names used at the application boundary and in diagnostics. */
 export const SAVINGS_RPC = {
   CREATE: "create_saving_with_transfer",
@@ -70,6 +81,7 @@ export const SAVINGS_RPC = {
   RENEW: "rollover_saving_cycle",
   RECORD_RENEWAL_DECISION: "record_saving_renewal_decision",
   EARLY_WITHDRAW: "early_withdraw_saving",
+  EARLY_WITHDRAW_PREVIEW: "preview_early_withdraw_saving",
 } as const;
 
 export type SavingsRpc = (typeof SAVINGS_RPC)[keyof typeof SAVINGS_RPC];
@@ -113,6 +125,14 @@ export const SAVINGS_LEGACY_RPC_ERROR_MARKERS = {
     "target package minimum amount not met",
     "target package maximum amount exceeded",
     "target package does not support this rollover",
+    "early settlement is not allowed",
+    "early settlement rate unavailable",
+    "early settlement demand rate unavailable",
+    "early settlement penalty unavailable",
+    "provider early settlement quote required",
+    "early settlement penalty rule unavailable",
+    "early settlement rule unavailable",
+    "funding and settlement accounts must differ",
     "forbidden",
   ],
 } as const;

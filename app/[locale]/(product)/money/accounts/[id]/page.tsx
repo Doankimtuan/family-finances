@@ -25,6 +25,7 @@ import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
+import { MotionReveal } from "@/shared/motion";
 import { FinancialAccountHero } from "@/shared/patterns/financial-account-hero";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { SectionHeader } from "@/shared/patterns/section-header";
@@ -42,6 +43,7 @@ import { FinancialOwnershipBadge } from "@/shared/patterns/financial-ownership-b
 import { MoneyOfflineBanner } from "../../money-offline-banner";
 import { moneyAccountVisualFor } from "../../money-account-visuals";
 import { AccountDetailManagement } from "./account-detail-management";
+import { AccountQuickCapture } from "./account-quick-capture";
 import { ACCOUNT_DETAIL_PREVIEW_CONFIG } from "./detail-constants";
 import { CreditCardDetailActions } from "./credit-card-detail-actions";
 import { CreditCardHero } from "./credit-card-hero";
@@ -92,10 +94,15 @@ export default async function AccountDetailPage({
           backHref={APP_PATH.MONEY}
           title={t("accountDetail.unavailableTitle")}
         />
-        <div className="px-(--space-4) py-(--space-6)">
+        <div className="flex flex-1 flex-col gap-(--space-4) px-(--page-gutter) pb-(--space-6) pt-(--space-4)">
+          <StatusAlert
+            variant="danger"
+            title={t("accountDetail.unavailableTitle")}
+            description={t("accountDetail.unavailableBody")}
+          />
           <Link
             href={APP_PATH.MONEY}
-            className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary"
+            className="inline-flex min-h-11 w-fit items-center rounded-[var(--radius-control)] px-(--space-2) text-sm font-medium text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
           >
             {t("backToMoney")}
           </Link>
@@ -207,8 +214,6 @@ export default async function AccountDetailPage({
         <div className="flex flex-1 flex-col gap-(--space-6) px-(--page-gutter) pb-(--space-6) pt-(--space-4)">
           <MoneyOfflineBanner />
           <CreditCardHero
-            title={accountName}
-            typeLabel={accountTypeLabel}
             outstandingLabel={outstandingLabel}
             outstandingCaption={t("creditCard.currentOutstandingLabel")}
             utilizationPct={hasCreditLimit ? card.utilizationPct : null}
@@ -231,12 +236,15 @@ export default async function AccountDetailPage({
                 ? t("creditCard.due.dueDate", { date: card.nextDueDate })
                 : undefined
             }
-          />
-          <FinancialOwnershipBadge
-            financialScope={account.financialScope}
-            isOwnedByMe={account.isOwnedByMe}
-            ownerStatus={account.ownerStatus}
-            showExplanation
+            context={
+              <FinancialOwnershipBadge
+                financialScope={account.financialScope}
+                isOwnedByMe={account.isOwnedByMe}
+                ownerStatus={account.ownerStatus}
+                onHero
+                showExplanation
+              />
+            }
           />
           {account.canMutate ? (
             <CreditCardDetailActions
@@ -267,47 +275,39 @@ export default async function AccountDetailPage({
         variant="detail"
         backHref={APP_PATH.MONEY}
         title={accountName}
+        subtitle={accountIdentity.typeLabel ?? undefined}
         trailing={account.canMutate ? accountManagement : undefined}
       />
-      <div className="flex flex-1 flex-col gap-(--space-5) px-(--page-gutter) pb-(--space-6) pt-(--space-4)">
+      <div className="flex flex-1 flex-col gap-(--space-5) px-(--page-gutter) pb-(--space-6) pt-(--space-3)">
         <MoneyOfflineBanner />
-        <FinancialAccountHero
-          icon={accountVisual.icon}
-          iconTone={accountVisual.tone}
-          eyebrow={accountIdentity.typeLabel}
-          title={accountIdentity.name}
-          identitySupporting={
-            <FinancialOwnershipBadge
-              financialScope={account.financialScope}
-              isOwnedByMe={account.isOwnedByMe}
-              ownerStatus={account.ownerStatus}
-              compact
-              showExplanation
-            />
-          }
-          amountLabel={balanceLabel}
-          amountCaption={t("accountDetail.balanceLabel")}
-          supporting={
-            health === AccountHealthSignal.ZERO ? (
-              <Text
-                size="sm"
-                tone="secondary"
-                data-testid="account-health-zero"
-              >
-                {t("accountDetail.healthZero")}
-              </Text>
-            ) : undefined
-          }
-        />
-        {account.canMutate ? (
-          <Link
-            href={APP_PATH.MONEY_ADD}
-            className="inline-flex min-h-11 w-full items-center justify-center rounded-[var(--radius-control)] bg-accent px-(--space-4) text-sm font-medium text-accent-fg shadow-[var(--elevation-1)] transition-[transform,background-color] duration-[var(--duration-fast)] hover:-translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none"
-            data-testid="account-quick-capture"
-          >
-            {t("accountDetail.capture")}
-          </Link>
-        ) : null}
+        <MotionReveal>
+          <FinancialAccountHero
+            icon={accountVisual.icon}
+            amountCaption={t("accountDetail.balanceLabel")}
+            amountLabel={balanceLabel}
+            context={
+              <>
+                <FinancialOwnershipBadge
+                  financialScope={account.financialScope}
+                  isOwnedByMe={account.isOwnedByMe}
+                  ownerStatus={account.ownerStatus}
+                  onHero
+                  showExplanation
+                />
+                {health === AccountHealthSignal.ZERO ? (
+                  <Text
+                    size="sm"
+                    className="text-hero-muted"
+                    data-testid="account-health-zero"
+                  >
+                    {t("accountDetail.healthZero")}
+                  </Text>
+                ) : null}
+              </>
+            }
+          />
+        </MotionReveal>
+        {account.canMutate ? <AccountQuickCapture /> : null}
         <section className="flex flex-col gap-(--space-3)">
           <SectionHeader
             title={t("accountDetail.recentTitle")}

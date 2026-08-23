@@ -1,12 +1,13 @@
+import type { ReactNode } from "react";
 import { Link } from "@/i18n/navigation";
 import { MoneyAccountGroupKey } from "@/modules/ledger/application";
-import { Amount, AmountSize, AmountTone } from "@/shared/patterns/amount";
 import { Balance, BalanceSize } from "@/shared/patterns/balance";
+import { Card } from "@/shared/patterns/card";
 import { FinancialValue } from "@/shared/patterns/financial-value";
-import { Section } from "@/shared/patterns/section";
 import { AppIcon } from "@/shared/ui/app-icon";
 import { Heading } from "@/shared/ui/heading";
 import { IconContainer } from "@/shared/ui/icon-container";
+import { ACTION_ICONS } from "@/shared/ui/icon-registry";
 import { Text } from "@/shared/ui/text";
 import { moneyAccountVisualFor } from "./money-account-visuals";
 
@@ -21,9 +22,7 @@ type MoneyPositionCompositionSegment = {
 type Props = {
   ownedMoneyLabel: string;
   ownedMoneyValue: string;
-  accountCountLabel: string;
-  creditOutstandingLabel?: string;
-  creditOutstandingValue?: string;
+  metaLine: ReactNode;
   compositionLabel: string;
   composition: MoneyPositionCompositionSegment[];
   activityHref: string;
@@ -52,72 +51,63 @@ const ALLOCATION_SEGMENT_CLASS: Record<MoneyAccountGroupKey, string> = {
 };
 
 /**
- * The Money overview reports active owned money first. Composition stays a
- * quiet supporting section so Money remains an inventory surface, not a
- * second Home analytics dashboard.
+ * The Money position summary: one brand hero answering "how much is in my
+ * active accounts" with the transactions entry, and an attached composition
+ * strip answering "where it sits". Money stays an inventory surface — the
+ * composition strip is the analytics ceiling here, never charts.
  */
 export function MoneyPositionHero({
   ownedMoneyLabel,
   ownedMoneyValue,
-  accountCountLabel,
-  creditOutstandingLabel,
-  creditOutstandingValue,
+  metaLine,
   compositionLabel,
   composition,
   activityHref,
   activityLabel,
 }: Props) {
   return (
-    <>
-      <Section variant="emphasized" testId="money-real-position-summary">
-        <div className="flex flex-col gap-(--space-3)">
-          <Balance
-            label={ownedMoneyLabel}
-            amountLabel={ownedMoneyValue}
-            size={BalanceSize.LG}
-          />
-          <div className="flex flex-wrap items-center gap-x-(--space-3) gap-y-(--space-1) text-sm">
-            <Text size="sm" tone="secondary">
-              {accountCountLabel}
-            </Text>
-            {creditOutstandingLabel && creditOutstandingValue ? (
-              <div className="border-l border-border-subtle pl-(--space-3)">
-                <Amount
-                  label={creditOutstandingLabel}
-                  amountLabel={creditOutstandingValue}
-                  tone={AmountTone.DEBIT}
-                  size={AmountSize.SM}
-                  labelClassName="text-xs"
-                  amountClassName="text-sm"
-                />
-              </div>
-            ) : null}
-          </div>
+    <div className="flex flex-col gap-(--space-3)">
+      <Card
+        tone="hero"
+        className="gap-0 p-(--space-4)"
+        data-testid="money-real-position-summary"
+      >
+        <Text size="sm" weight="medium" className="text-hero-muted">
+          {ownedMoneyLabel}
+        </Text>
+        <Balance
+          amountLabel={ownedMoneyValue}
+          size={BalanceSize.HERO}
+          className="mt-(--space-2)"
+          amountClassName="text-hero-fg"
+        />
+        <div className="mt-(--space-4) flex flex-wrap items-center justify-between gap-x-(--space-3) gap-y-(--space-2) border-t border-white/15 pt-(--space-3)">
+          {metaLine}
           <Link
             href={activityHref}
-            className="w-fit text-sm font-medium text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+            className="inline-flex min-h-6 items-center gap-(--space-1) text-sm font-medium text-hero-fg underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-hero-fg"
             data-testid="money-see-activity"
           >
             {activityLabel}
+            <AppIcon icon={ACTION_ICONS.forward} size="xs" />
           </Link>
         </div>
-      </Section>
+      </Card>
       {composition.length > 0 ? (
-        <Section
-          title={
-            <Heading
-              level={2}
-              className="text-sm font-semibold tracking-tight text-text-secondary mt-3"
-              data-slot="section-title"
-            >
-              {compositionLabel}
-            </Heading>
-          }
-          contentClassName="gap-(--space-2)"
-          testId="money-composition-summary"
+        <Card
+          tone="elevated"
+          className="gap-0 p-(--space-4)"
+          data-testid="money-composition-summary"
         >
+          <Heading
+            level={3}
+            className="text-sm font-semibold tracking-tight text-text-primary"
+            data-slot="section-title"
+          >
+            {compositionLabel}
+          </Heading>
           <div
-            className="flex h-2 w-full overflow-hidden rounded-full bg-surface-muted"
+            className="mt-(--space-3) flex h-2 w-full overflow-hidden rounded-full bg-surface-muted"
             aria-hidden="true"
             data-testid="money-composition-strip"
           >
@@ -129,7 +119,10 @@ export function MoneyPositionHero({
               />
             ))}
           </div>
-          <ul className="grid gap-(--space-2)" aria-label={compositionLabel}>
+          <ul
+            className="mt-(--space-3) grid grid-cols-2 gap-x-(--space-4) gap-y-(--space-2)"
+            aria-label={compositionLabel}
+          >
             {composition.map((segment) => {
               const visual = moneyAccountVisualFor(
                 ACCOUNT_TYPE_FOR_GROUP[segment.key],
@@ -137,28 +130,30 @@ export function MoneyPositionHero({
               return (
                 <li
                   key={segment.key}
-                  className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-(--space-3) gap-y-(--space-1)"
+                  className="flex min-w-0 items-center justify-between gap-(--space-2)"
                 >
                   <div className="flex min-w-0 items-center gap-(--space-2)">
                     <IconContainer tone={visual.tone} size="sm">
                       <AppIcon icon={visual.icon} size="xs" />
                     </IconContainer>
-                    <span className="truncate text-sm font-medium text-text-primary">
-                      {segment.label}
-                    </span>
-                    <span className="shrink-0 text-xs tabular-nums text-text-secondary">
-                      {segment.percentageLabel}
-                    </span>
+                    <div className="min-w-0">
+                      <span className="block truncate text-sm font-medium text-text-primary">
+                        {segment.label}
+                      </span>
+                      <span className="block text-xs tabular-nums text-text-secondary">
+                        {segment.percentageLabel}
+                      </span>
+                    </div>
                   </div>
-                  <span className="shrink-0 text-sm font-medium tabular-nums text-text-primary">
+                  <span className="shrink-0 text-sm font-medium tabular-nums tracking-tight text-text-primary">
                     <FinancialValue>{segment.balanceLabel}</FinancialValue>
                   </span>
                 </li>
               );
             })}
           </ul>
-        </Section>
+        </Card>
       ) : null}
-    </>
+    </div>
   );
 }

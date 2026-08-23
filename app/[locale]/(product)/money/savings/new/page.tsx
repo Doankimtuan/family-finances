@@ -6,9 +6,10 @@ import { routing } from "@/i18n/routing";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
-import { listAccounts } from "@/modules/ledger/application";
-import { AccountType } from "@/modules/ledger/application/ledger-constants";
-import { listProviderCatalog } from "@/modules/savings/application/savings-provider-registry";
+import {
+  listSavingsEligibleAccounts,
+  listProviderCatalog,
+} from "@/modules/savings/application";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Page } from "@/shared/patterns/page";
 import { EmptyState } from "@/shared/patterns/empty-state";
@@ -30,13 +31,11 @@ export default async function NewSavingPage({ params }: Props) {
 
   const [t, accountsResult, catalog] = await Promise.all([
     getTranslations("money.savingsWizard"),
-    listAccounts(),
+    listSavingsEligibleAccounts(),
     listProviderCatalog(),
   ]);
 
-  const accounts = (accountsResult?.accounts ?? []).filter(
-    (account) => account.type !== AccountType.SAVINGS_PRODUCT,
-  );
+  const accounts = accountsResult?.accounts ?? [];
   const providers = catalog ?? [];
   const packagesByProvider = Object.fromEntries(
     providers.map((provider) => [

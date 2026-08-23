@@ -29,22 +29,29 @@ test.describe("Money debts/savings/loans (Loan domain evolution)", () => {
     );
 
     await page.goto("/en/money");
-    await expect(page.getByTestId("money-link-debts")).toBeVisible();
-    await expect(page.getByTestId("money-link-savings")).toBeVisible();
-    await expect(page.getByTestId("money-link-loans")).toBeVisible();
+    await expect(page.getByTestId("money-link-debts").last()).toBeVisible();
+    await expect(page.getByTestId("money-link-savings").last()).toBeVisible();
+    await expect(page.getByTestId("money-link-loans").last()).toBeVisible();
 
-    await page.getByTestId("money-link-debts").click();
+    await page.getByTestId("money-link-debts").last().click();
     await expect(page.getByTestId("money-debts")).toBeVisible();
+    const backToMoney = page.locator('a[href="/en/money"]').first();
+    await expect(backToMoney).toBeVisible();
+    await backToMoney.click();
+    await expect(page).toHaveURL(/\/en\/money$/);
+    await page.goBack();
+    await expect(page.getByTestId("money-debts")).toBeVisible();
+    await expect(page.getByText("To repay", { exact: true })).toBeVisible();
     await expect(
-      page.getByText(/never labeled as bank balance|không gắn nhãn số dư/i),
+      page.getByText("Waiting to receive", { exact: true }),
     ).toBeVisible();
 
     await page.goto("/en/money/savings");
-    await expect(page.getByTestId("money-savings")).toBeVisible();
+    await expect(page.getByTestId("money-savings").last()).toBeVisible();
 
     await page.goto("/en/money/loans");
-    await expect(page.getByTestId("money-loans")).toBeVisible();
-    await expect(page.getByTestId("loan-add-open")).toBeVisible();
+    await expect(page.getByTestId("money-loans").last()).toBeVisible();
+    await expect(page.getByTestId("loan-add-open").last()).toBeVisible();
 
     await page.goto("/en/money/cards");
     await expect(page).toHaveURL(/\/en\/money\/loans/);

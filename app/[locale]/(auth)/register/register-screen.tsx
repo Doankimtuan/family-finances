@@ -16,11 +16,10 @@ import { AlertVariant } from "@/shared/ui/alert";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
-import { Heading } from "@/shared/ui/heading";
 import { AuthTextField, CheckboxField } from "@/shared/ui/form";
 import { AppIcon } from "@/shared/ui/app-icon";
 import {
-  AuthBrandMark,
+  AuthScreenHeader,
   AuthScreenShell,
   DividerWithText,
   SocialButton,
@@ -63,7 +62,9 @@ type OAuthErrorCode = Extract<
 >;
 
 function oauthErrorDescription(
-  t: (key: "oauthProviderError" | "errors.unconfigured" | "errors.unknown") => string,
+  t: (
+    key: "oauthProviderError" | "errors.unconfigured" | "errors.unknown",
+  ) => string,
   code: OAuthErrorCode,
 ): string {
   if (
@@ -166,18 +167,12 @@ export function RegisterScreen() {
   });
 
   return (
-    <AuthScreenShell testId="auth-register" centered withGlow>
-      <div className="flex flex-col items-center gap-(--space-3) text-center">
-        <AuthBrandMark />
-        <div className="flex flex-col gap-(--space-2)">
-          <Heading level={2} className="tracking-tight">
-            {t("title")}
-          </Heading>
-          <Text tone="secondary" size="sm" className="leading-relaxed">
-            {t("subtitle")}
-          </Text>
-        </div>
-      </div>
+    <AuthScreenShell testId="auth-register" align="start" withGlow>
+      <AuthScreenHeader
+        title={t("title")}
+        subtitle={t("subtitle")}
+        backHref={APP_PATH.WELCOME}
+      />
 
       {needsConfirm ? (
         <StatusAlert
@@ -232,6 +227,7 @@ export function RegisterScreen() {
             <AuthTextField
               id="register-password"
               label={t("passwordLabel")}
+              description={t("passwordHint")}
               type="password"
               autoComplete="new-password"
               placeholder={t("passwordPlaceholder")}

@@ -371,6 +371,15 @@ export function DebtCreateSheet({
                   />
                 </ChoiceTileGroup>
               </div>
+              <Text
+                size="sm"
+                tone="secondary"
+                className="-mt-(--space-2) leading-snug"
+              >
+                {direction === DebtDirection.BORROWED
+                  ? t("create.borrowedDescription")
+                  : t("create.lentDescription")}
+              </Text>
               <FormGroupLabel>{t("create.whoAndAmount")}</FormGroupLabel>
               <TextField
                 id="debt-counterparty"
@@ -452,6 +461,15 @@ export function DebtCreateSheet({
                   />
                 </ChoiceTileGroup>
               </div>
+              <Text
+                size="sm"
+                tone="secondary"
+                className="-mt-(--space-2) leading-snug"
+              >
+                {moneyMovesNow
+                  ? t("create.moneyMovedDescription")
+                  : t("create.existingDescription")}
+              </Text>
               {moneyMovesNow ? (
                 accountsLoadFailed ? (
                   <StatusAlert

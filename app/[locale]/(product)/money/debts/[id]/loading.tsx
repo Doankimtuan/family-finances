@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Page } from "@/shared/patterns/page";
+import { Skeleton } from "@/shared/ui/skeleton";
 
 export default async function DebtDetailLoading() {
   const t = await getTranslations("money.debtDetail");
@@ -11,18 +12,18 @@ export default async function DebtDetailLoading() {
       topBar={<TopAppBar title={t("title")} />}
     >
       <div className="flex flex-col gap-(--space-4)" aria-hidden>
-        <div className="h-52 animate-pulse rounded-(--radius-card) bg-surface-muted" />
+        <Skeleton className="h-52 w-full rounded-(--radius-card)" />
         <div className="flex flex-col gap-(--space-3) rounded-(--radius-card) bg-surface-muted/50 p-(--space-4)">
-          <div className="h-5 w-24 animate-pulse rounded bg-surface-muted" />
+          <Skeleton className="h-5 w-24 rounded" />
           {Array.from({ length: 5 }, (_, index) => (
-            <div
+            <Skeleton
               key={index}
-              className="h-11 animate-pulse border-b border-border-subtle/70 bg-surface-muted/40"
+              className="h-11 w-full rounded border-b border-border-subtle/70 bg-surface-muted/40"
             />
           ))}
         </div>
-        <div className="h-11 animate-pulse rounded-(--radius-control) bg-surface-muted" />
-        <div className="h-40 animate-pulse rounded-(--radius-card) bg-surface-muted/50" />
+        <Skeleton className="h-11 w-full rounded-(--radius-control)" />
+        <Skeleton className="h-40 w-full rounded-(--radius-card) bg-surface-muted/50" />
       </div>
     </Page>
   );

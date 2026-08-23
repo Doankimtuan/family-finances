@@ -2,83 +2,59 @@ import type { IconSvgElement } from "@hugeicons/react";
 import type { ReactNode } from "react";
 import { cn } from "@/shared/utils/cn";
 import { AppIcon } from "@/shared/ui/app-icon";
-import {
-  IconContainer,
-  type IconContainerTone,
-} from "@/shared/ui/icon-container";
 import { Text } from "@/shared/ui/text";
 import { Balance, BalanceSize } from "./balance";
+import { Card } from "./card";
 
 export type FinancialAccountHeroProps = {
   icon: IconSvgElement;
-  iconTone: IconContainerTone;
-  eyebrow: ReactNode;
-  title: ReactNode;
-  identitySupporting?: ReactNode;
   amountLabel: string;
   amountCaption: ReactNode;
-  supporting?: ReactNode;
+  /** Quiet context row under the balance (ownership, health note). */
+  context?: ReactNode;
   className?: string;
+  testId?: string;
 };
 
 /**
- * Primary owned-account summary. It intentionally focuses on one immediately
- * spendable balance, with only a compact supporting fact beneath it.
+ * Primary owned-account summary on its detail screen: identity icon + the one
+ * spendable balance on the brand hero surface, with ownership/state as a quiet
+ * context row. Account name/type live in the screen header, never duplicated
+ * here.
  */
 export function FinancialAccountHero({
   icon,
-  iconTone,
-  eyebrow,
-  title,
-  identitySupporting,
   amountLabel,
   amountCaption,
-  supporting,
+  context,
   className,
+  testId = "account-detail-hero",
 }: FinancialAccountHeroProps) {
   return (
-    <section
-      className={cn(
-        "relative overflow-hidden rounded-[var(--radius-card)] border border-border-subtle/70 bg-surface/90 p-(--space-4)",
-        className,
-      )}
+    <Card
+      tone="hero"
+      className={cn("gap-0 p-(--space-4)", className)}
+      data-testid={testId}
     >
-      <div className="flex items-start justify-between gap-(--space-3)">
-        <div className="flex min-w-0 items-center gap-(--space-3)">
-          <IconContainer tone={iconTone} size="md">
-            <AppIcon icon={icon} size="lg" emphasized />
-          </IconContainer>
-          <div className="min-w-0">
-            <Text
-              size="sm"
-              weight="medium"
-              className="break-words text-text-primary"
-            >
-              {title}
-            </Text>
-            {eyebrow ? (
-              <Text size="xs" tone="secondary" className="break-words">
-                {eyebrow}
-              </Text>
-            ) : null}
-            {identitySupporting ? (
-              <div className="mt-(--space-1)">{identitySupporting}</div>
-            ) : null}
-          </div>
-        </div>
+      <div className="flex items-center gap-(--space-3)">
+        <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-(--radius-control) border border-white/25 bg-white/10 text-hero-fg">
+          <AppIcon icon={icon} size="md" emphasized />
+        </span>
+        <Text size="sm" weight="medium" className="text-hero-muted">
+          {amountCaption}
+        </Text>
       </div>
-      <div className="mt-(--space-4)">
-        <Balance
-          amountLabel={amountLabel}
-          label={amountCaption}
-          size={BalanceSize.LG}
-        />
-      </div>
-      {supporting ? (
-        <div className="mt-(--space-3) border-t border-border-subtle/70 pt-(--space-3)">
-          {supporting}
+      <Balance
+        amountLabel={amountLabel}
+        size={BalanceSize.HERO}
+        className="mt-(--space-3)"
+        amountClassName="text-hero-fg"
+      />
+      {context ? (
+        <div className="mt-(--space-4) flex flex-col gap-(--space-2) border-t border-white/15 pt-(--space-3)">
+          {context}
         </div>
       ) : null}
-    </section>
+    </Card>
   );
 }

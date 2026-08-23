@@ -8,7 +8,7 @@ import {
   type InvestmentFeeSource,
   type InvestmentHistoryStatus,
   type InvestmentIncomeKind,
-  type InvestmentLifecycleStatus,
+  InvestmentLifecycleStatus,
   InvestmentActivityType,
   type InvestmentOperationType,
   type InvestmentVisibilityContext,
@@ -586,6 +586,45 @@ async function loadInvestmentPortfolio(): Promise<InvestmentPortfolio | null> {
 }
 
 export const listInvestmentPortfolio = cache(loadInvestmentPortfolio);
+
+/**
+ * Head-count of active holdings for hub-level summaries. Deliberately avoids
+ * the full portfolio valuation read (lots, prices, FX, activities) — module
+ * totals with valuation semantics stay on the Investments screens.
+ */
+async function loadActiveInvestmentHoldingCount(): Promise<number | null> {
+  const gate = await assertMoneyActionAllowed();
+  if (!gate.ok) return null;
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { count, error } = await supabase
+      .from("investment_holdings")
+      .select("id", { count: "exact", head: true })
+      .eq("household_id", gate.householdId)
+      .neq("lifecycle_status", InvestmentLifecycleStatus.EXITED)
+      .gt("quantity", 0);
+    if (error) {
+      logActionFailure({
+        operation: INVESTMENT_OPERATION.LIST_HOLDINGS,
+        error,
+        context: { householdId: gate.householdId, phase: "hub_count" },
+      });
+      return null;
+    }
+    return count ?? 0;
+  } catch (error) {
+    logActionFailure({
+      operation: INVESTMENT_OPERATION.LIST_HOLDINGS,
+      error,
+      context: { householdId: gate.householdId, phase: "hub_count" },
+    });
+    return null;
+  }
+}
+
+export const countActiveInvestmentHoldings = cache(
+  loadActiveInvestmentHoldingCount,
+);
 
 export async function getInvestmentHoldingResult(
   holdingId: string,

@@ -38,6 +38,11 @@ const SAVINGS_ROUTES = [
   APP_ROUTE.MONEY_SAVINGS_DETAIL,
 ] as const;
 
+const SAVINGS_CATALOG_ROUTES = [
+  APP_ROUTE.MONEY_SAVINGS_NEW,
+  APP_ROUTE.MONEY_SAVINGS_PROVIDERS,
+] as const;
+
 const INBOX_ROUTES = [APP_ROUTE.HOME, APP_ROUTE.INBOX] as const;
 
 const INVESTMENT_ROUTES = [
@@ -84,6 +89,11 @@ export function revalidateTransactionTagViews() {
 /** Savings changes affect savings, cash position, and dashboard summaries. */
 export function revalidateSavingsViews() {
   revalidateRoutes(SAVINGS_ROUTES);
+}
+
+/** Provider and package catalog changes affect management and creation selectors. */
+export function revalidateSavingsCatalogViews() {
+  revalidateRoutes(SAVINGS_CATALOG_ROUTES);
 }
 
 /** Savings review decisions also remove or update the Inbox item and badge. */

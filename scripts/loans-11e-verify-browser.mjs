@@ -1,6 +1,7 @@
 /** Authenticated browser gate for the disposable Loans 11E fixture. */
 
 import { chromium } from "@playwright/test";
+import { createClient } from "@supabase/supabase-js";
 import nextEnv from "@next/env";
 import { readFile } from "node:fs/promises";
 
@@ -51,7 +52,7 @@ async function newPage({ width, height, locale, colorScheme }) {
 
 async function visit(page, path) {
   await page.goto(`${baseUrl}/${path}`);
-  await page.getByTestId("loan-detail").waitFor({ state: "visible" });
+  await page.locator('[data-testid="loan-detail"]:visible').waitFor();
   const overflow = await page.evaluate(
     () =>
       document.documentElement.scrollWidth >
@@ -63,6 +64,34 @@ async function visit(page, path) {
   }
 }
 
+async function completeFixtureLoan() {
+  const client = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    { auth: { persistSession: false } },
+  );
+  const { error: authError } = await client.auth.signInWithPassword({
+    email,
+    password,
+  });
+  if (authError)
+    throw new Error(`Fixture completion auth failed: ${authError.code}`);
+  for (let sequence = 2; sequence <= 24; sequence += 1) {
+    const { error } = await client.rpc("record_loan_payment", {
+      p_loan_id: fixture.loanId,
+      p_account_id: fixture.accountId,
+      p_mode: "scheduled",
+      p_paid_at: "2026-08-23",
+      p_idempotency_key: crypto.randomUUID(),
+    });
+    if (error)
+      throw new Error(
+        `Fixture completion failed at ${sequence}: ${error.code}`,
+      );
+  }
+}
+
 const first = await newPage({
   width: 390,
   height: 844,
@@ -70,15 +99,21 @@ const first = await newPage({
   colorScheme: "light",
 });
 const firstPath = `vi/money/loans/${fixture.loanId}`;
+await first.page.goto(`${baseUrl}/vi/money/loans`);
+await first.page.getByTestId("money-loans").waitFor();
+await first.page.getByTestId("loan-add-open").click();
+await first.page.getByTestId("loan-add-form").waitFor();
+await first.page.keyboard.press("Escape");
+await first.page.getByTestId("loan-add-form").waitFor({ state: "hidden" });
 await visit(first.page, firstPath);
-await first.page.getByTestId("loan-summary").waitFor();
+await first.page.getByTestId("loan-detail-hero").waitFor();
 if (!(await first.page.getByText("Quá hạn").count())) {
   throw new Error(
     `Overdue state is not visible in VI detail: ${(await first.page.locator("body").innerText()).slice(0, 1200)}`,
   );
 }
 await first.page.getByTestId("loan-pay-open").click();
-await first.page.getByTestId("loan-pay-account").waitFor();
+await first.page.locator("#loan-pay-account").waitFor();
 if (!(await first.page.getByText("Tiền mặt").count())) {
   throw new Error("VI system account name was not localized");
 }
@@ -106,7 +141,7 @@ const second = await newPage({
 const secondPath = `en/money/loans/${fixture.loanId}`;
 await visit(second.page, `${secondPath}?view=schedule`);
 const visibleScheduleEntries = await second.page
-  .locator("[data-testid^='loan-schedule-']")
+  .locator("[data-testid^='loan-schedule-']:visible")
   .count();
 if (visibleScheduleEntries === 0 || visibleScheduleEntries > 4) {
   throw new Error(
@@ -122,7 +157,7 @@ let fullScheduleEntries = 0;
 for (const yearLink of yearLinks) {
   await second.page.goto(yearLink);
   fullScheduleEntries += await second.page
-    .locator("[data-testid^='loan-schedule-']")
+    .locator("[data-testid^='loan-schedule-']:visible")
     .count();
 }
 if (fullScheduleEntries < 24) {
@@ -167,6 +202,17 @@ if (!(await privacy.page.getByTestId("loan-pay-open").isDisabled())) {
   throw new Error("Offline Loan read-only action remained enabled");
 }
 await privacy.context.close();
+
+await completeFixtureLoan();
+const closed = await newPage({
+  width: 440,
+  height: 900,
+  locale: "en",
+  colorScheme: "dark",
+});
+await visit(closed.page, secondPath);
+await closed.page.getByTestId("loan-completed").waitFor();
+await closed.context.close();
 
 if (consoleErrors.length > 0) {
   throw new Error(`Browser console errors: ${consoleErrors.join(" | ")}`);

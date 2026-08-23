@@ -354,6 +354,7 @@ export async function listSavingsFinancialActivities(
       for (const id of [
         result?.interestTransactionId,
         result?.taxTransactionId,
+        result?.feeTransactionId,
       ]) {
         if (id) ids.add(id);
       }

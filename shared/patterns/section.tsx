@@ -53,7 +53,7 @@ export function Section({
       )}
       data-testid={testId}
     >
-      {title ? (
+      {title || description || action ? (
         <SectionHeader
           title={title}
           description={description}

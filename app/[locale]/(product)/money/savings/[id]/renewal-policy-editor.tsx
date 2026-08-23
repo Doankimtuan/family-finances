@@ -18,6 +18,7 @@ import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
+import { ChoiceTile } from "@/shared/patterns/choice-tile";
 import { Sheet } from "@/shared/patterns/sheet";
 import { SheetActionFooter } from "@/shared/patterns/sheet-action-footer";
 import { motionTokens } from "@/shared/motion";
@@ -52,12 +53,12 @@ function Card({
   testId: string;
 }) {
   return (
-    <button
-      type="button"
-      aria-pressed={selected}
-      data-testid={testId}
-      onClick={onPress}
-      className={`flex min-h-11 w-full items-center justify-between gap-(--space-3) rounded-[var(--radius-control)] border px-(--space-3) py-(--space-3) text-left focus-visible:outline-2 focus-visible:outline-focus-ring ${selected ? "border-accent bg-accent-soft" : "border-border-subtle bg-surface hover:border-accent/50"}`}
+    <ChoiceTile
+      selected={selected}
+      onPress={onPress}
+      testId={testId}
+      icon={null}
+      className="justify-between"
     >
       {children}
       {selected ? (
@@ -67,7 +68,7 @@ function Card({
           className="shrink-0 text-accent"
         />
       ) : null}
-    </button>
+    </ChoiceTile>
   );
 }
 

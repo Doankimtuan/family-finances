@@ -1,6 +1,11 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore, useTransition } from "react";
+import {
+  useEffect,
+  useState,
+  useSyncExternalStore,
+  useTransition,
+} from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -19,11 +24,10 @@ import { AUTH_STORAGE_KEY } from "@/modules/tenancy/application/auth-constants";
 import { AlertVariant } from "@/shared/ui/alert";
 import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
-import { Heading } from "@/shared/ui/heading";
 import { AuthTextField, CheckboxField } from "@/shared/ui/form";
 import { AppIcon } from "@/shared/ui/app-icon";
 import {
-  AuthBrandMark,
+  AuthScreenHeader,
   AuthScreenShell,
   DividerWithText,
   SocialButton,
@@ -152,18 +156,12 @@ export function LoginScreen() {
   });
 
   return (
-    <AuthScreenShell testId="auth-login" centered withGlow>
-      <div className="flex flex-col items-center gap-(--space-3) text-center">
-        <AuthBrandMark />
-        <div className="flex flex-col gap-(--space-2)">
-          <Heading level={2} className="tracking-tight">
-            {t("title")}
-          </Heading>
-          <Text tone="secondary" size="sm" className="leading-relaxed">
-            {t("subtitle")}
-          </Text>
-        </div>
-      </div>
+    <AuthScreenShell testId="auth-login" align="start" withGlow>
+      <AuthScreenHeader
+        title={t("title")}
+        subtitle={t("subtitle")}
+        backHref={APP_PATH.WELCOME}
+      />
 
       <div className="flex flex-col gap-(--space-3)">
         <SocialButton

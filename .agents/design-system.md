@@ -277,7 +277,90 @@ Skeletons must mirror the loaded screen, not act as generic gray rectangles:
   artificial delays. Resolve with the existing fade (e.g.
   `HomePeriodData`) to minimize visible recomposition.
 
-## 23. Persistent quick actions
+## 23. Entry, Authentication & Onboarding
+
+The pre-product journey (`/` → login/register → onboarding → home) is one
+product, not a set of standalone pages. Rules below govern Welcome, Login,
+Register, Forgot Password, and the onboarding wizard. See
+`.agents/auth-onboarding-ux.md` for the current screen flow and data notes.
+
+### Journey structure
+
+- The locale root (`/{locale}`) **is** the Welcome screen. There is no separate
+  pass-through landing; `/welcome` renders the same component and stays valid
+  as the splash/deep-link target. Never re-introduce an intermediate
+  "Open app" screen between root and the auth actions.
+- Welcome answers "what is this and why care" in seconds; Login/Register
+  answer access; onboarding collects only what Home needs. Each screen moves
+  the user forward with one obvious primary action.
+
+### Welcome composition
+
+- Value-first: headline states the product promise ("See where your family's
+  money goes"), not "Welcome to <brand>". Brand identity lives in the compact
+  `BrandMark` plate + wordmark row, not a hero logo moment.
+- Visual anchor quotes Home: a `Card tone="hero"` preview (period label +
+  illustrative balance + net pill) with an elevated spending-rows card peeking
+  symmetrically behind it. The preview is decorative (`aria-hidden`), badged
+  "Preview", and uses static illustration values — never real/fabricated user
+  data or charts.
+- CTA hierarchy is fixed: **Create account is primary, Log in is secondary**.
+  Never give both equal weight on an acquisition screen.
+- Up to three value rows (`IconContainer` + one short label each); no feature
+  carousel, no marketing slides.
+- Locale switcher (and only quiet foundation controls) may sit top-right.
+
+### Auth screen family (Login / Register / Forgot Password)
+
+- Siblings share `AuthScreenHeader` (back link → brand mark → h1 title +
+  subtitle) and `AuthScreenShell align="start"`: top-anchored, left-aligned,
+  compact — the same reading direction as Home. No centered marketing
+  headers, no large unused top space, no card-in-page framing (content sits
+  directly on canvas inside the single `max-w-[22rem]` column).
+- Every auth screen offers a way back: header back link to Welcome (or to
+  Login for Forgot Password), plus the existing footer cross-links.
+- OAuth-first order (Google, Apple, `DividerWithText`, email form) is the
+  shared structure; both social buttons stay `SocialButton`s with provider
+  chrome.
+- One primary action per screen state. Submit buttons keep their dimensions
+  while pending (label swap to the `submitting` key); disable all actions
+  while any submission is in flight; never replace the screen with a spinner.
+- Field-level validation errors sit under their field via shared form
+  primitives; server/action errors surface through the `StatusAlert` host with
+  human, localized copy from `auth.<screen>.errors.*`. Password fields are
+  `AuthTextField` with `revealable` + autocomplete attributes; Register adds a
+  muted one-line requirement hint (`passwordHint`), not a permanent rule list.
+- Register keeps only auth-critical fields (email, password, confirm, terms);
+  profile/financial setup belongs to onboarding or later.
+
+### Onboarding
+
+- Two steps, one decision each: (1) household name — with a quiet
+  `StatusAlert` info note that the user can start alone and invite later;
+  (2) cash account name + starter Jar preset. No zero-input screens; no
+  tutorial slides; invitation is never a blocking step.
+- Progress is the shared thin `Progress` bar + "Step N of 2" label at the
+  top — no large wizard chrome. Back is a tertiary text button (an escape,
+  not a co-equal action); Continue/Finish is the single full-width primary.
+- Single-choice selections use `ChoiceTileGroup` + `ChoiceTile role="radio"`
+  with `IconContainer` leading icons and a group hint that reflects the
+  current selection — never native radio inputs.
+- Step transitions use `MotionStep` (direction-aware) from `shared/motion`;
+  nothing else animates.
+- Completion redirects to Home from the server action (no success ceremony).
+  The finish → Home transition must stay visually continuous: same canvas,
+  hero card, and surfaces. Day-zero Home shows real empty states — never seed
+  fake data to make it look populated.
+
+### Theme & responsive
+
+- Light: warm canvas + white inputs with visible borders; primary teal CTA
+  obvious. Dark: charcoal surfaces with visible input borders, AA text, and a
+  clearly actionable primary — check every field state in both themes.
+- All widths keep the centered mobile column (`AppViewport`); desktop never
+  gets a separate wide auth layout.
+
+## 24. Persistent quick actions
 
 Two distinct patterns — choose by role, not by taste:
 
@@ -296,6 +379,214 @@ scrolling, above the nav, safe-area-safe (the shell owns insets), and visible
 in both themes. It stays available during period switching (it does not
 depend on dashboard data) and is disabled only when offline. Do not move it
 back into page flow or duplicate it per section.
+
+## 25. Financial Hub / Money screens
+
+Money (`/money`) is the financial **inventory and management hub**. Home answers
+"how are we doing"; Money answers "where is our money and what needs managing".
+Same visual DNA as Home, different composition — never copy Home's hero, cash
+flow chart, category analysis, Inbox, or Plan blocks onto Money.
+
+### Composition (top → bottom)
+
+1. Compact `TopAppBar` primary header (title + account count meta).
+2. **Position hero group**: `Card tone="hero"` with the accessible-money total
+   (sum of active liquid account balances only), a meta line (active account
+   count, card debt when > 0), and the "View transactions" entry as a hero-fg
+   link; attached (gap-3) **composition strip** — elevated card with a segmented
+   allocation bar and a 2-column legend answering "where money sits". The strip
+   is Money's analytics ceiling: no charts on the hub.
+3. **Accounts section**: grouped account scan (existing scan list, initial rows
+   capped, show-all toggle) plus credit cards with their utilization/due/attention
+   treatment. Accounts stay the highest-priority drill-in.
+4. **Module groups** — two dense `Card tone="elevated"` cards with divided rows:
+   "Growing money" (Savings, Investments) and "Borrowed & owed" (Loans, Debts).
+5. `FloatingAction` Add Transaction pill — the canonical global quick action,
+   identical to Home's pill. Never duplicate it inside page flow.
+
+### Module rows
+
+- Anatomy: `IconContainer` + label + (attention pill **or** one quiet meta
+  signal) + right-aligned tabular value + trailing chevron. Pick 1–2 supporting
+  signals maximum; never icon+amount+badge+description+CTU stacks.
+- Values are current-state magnitudes (savings principal, remaining loan
+  principal, borrowed remaining) in neutral `text-text-primary`. Debt amounts
+  are **never** auto-red. Investments show a holdings count, not a total —
+  valuation totals and their coverage semantics stay on the Investments screens.
+- Row states: `value` / `empty` ("None yet", still navigable) /
+  `unavailable` (domain read failed — never render a fake zero).
+- Attention: `warning` pill = review/due-soon/matured-savings;
+  `attention` (danger) pill = overdue. Text always accompanies color.
+
+### Aggregation integrity
+
+No net-worth or "total money" invention on the hub. Each module row shows only
+its own domain's existing aggregate (built by the domain's view model), loaded
+through cheap reads (`listSavings`, `listDebts`, light `listLoanSummaries`,
+holdings head-count). Heavy reads (full investment portfolio, per-loan
+aggregates) must not run just to decorate hub rows.
+
+### Empty & partial states
+
+Compact inline empties per module row; a brand-new user still gets the full hub
+skeleton (hero shows the account total, modules show "None yet"). No large
+illustrations on the hub; the create action for each domain lives on its
+destination screen (except Add Account, which stays in the accounts section
+header).
+
+### Density & motion
+
+Money may run denser than Home: module rows `min-h-14`, tight legends, divided
+lists instead of one-card-per-module. Motion budget: `MotionReveal` on the hero
+group only; rows use shared hover/press feedback; no entrance cascades.
+
+When redesigning Money child screens (savings/investments/loans/debts lists),
+reuse this row language and attention semantics; see `.agents/money-ux.md` for
+the hub's information architecture.
+
+## 26. Account Management Flows
+
+Accounts are the reference "Money resource flow" (list → create → detail →
+edit → archive). Savings/loans/debts child screens should reuse these rules.
+
+### List (owned by the Money hub)
+
+The accounts scan lives on the Money hub (`/money/accounts` is a redirect);
+never rebuild a standalone accounts index. Rows are the shared `AccountCard`
+(identity icon + name/type + right tabular balance + compact ownership), with
+credit cards structurally separate and initial rows capped behind a show-all
+toggle. One create entry (section header action) opens the create sheet.
+
+### Detail screen
+
+- Identity lives in the `TopAppBar` detail header (back + account name + type
+  subtitle + management action) — never duplicated inside the hero.
+- The balance hero is `FinancialAccountHero`: `Card tone="hero"` with an
+  on-hero icon chip (`border-white/25 bg-white/10`), the balance caption, the
+  `Balance` hero value, and one quiet context row (ownership via
+  `FinancialOwnershipBadge onHero`, zero-balance health note) under a
+  `border-white/15` divider.
+- One contextual primary action (`QuickAction` "Add transaction") directly
+  under the hero; the shared capture destination also covers transfers, so no
+  second transfer CTA is invented.
+- Recent activity = compact `TransactionRow` preview + "View transactions"
+  header link. Never recreate the transactions page inside detail.
+- Read-only resources: no management trailing action, no capture CTA; the
+  on-hero ownership row (including the former-member explanation) carries the
+  reason — disabled-looking controls are never used as the only signal.
+
+### Credit-account detail pattern
+
+Credit accounts use the same detail shell but a distinct liability-first hero:
+`Card tone="hero"` makes **current outstanding** the dominant labeled amount,
+rendered with `Amount` rather than cash `Balance`. A compact utilization value
+and real `Progress` track sit beside it; the supporting row pairs **available
+credit** with **credit limit**. A quiet due-date line may sit below that row,
+while ownership/read-only context stays on the hero surface through
+`FinancialOwnershipBadge onHero`.
+
+The next section is the current statement, using an elevated card for due date,
+remaining statement payment, paid-vs-statement amounts, and payment progress.
+The single primary `Pay card` action follows it; installments and a bounded card
+activity preview remain secondary sections. Normal utilization stays accent-led;
+warning/danger fills are reserved for the existing utilization thresholds and
+actual due/overdue states. Card debt must never be colored like income or
+presented as spendable cash.
+
+### Create / Edit
+
+- Both are sheets built from shared form primitives (`TextField`,
+  `SelectField`, `AmountField`, `FinancialScopeField`) with RHF + zod and the
+  canonical `SheetActionFooter` (one primary, one escape, pending label swap,
+  no duplicate submit).
+- Create question order is fixed: type → name → opening balance (or credit
+  card settings) → ownership. Conditional fields appear only after type
+  selection; ownership stays last.
+- Opening balance is a current-state amount ("already in this account when
+  tracking starts"), never framed as income. Edit never exposes balance —
+  balance changes flow through transactions only. Edit offers name/type only
+  (type locked for credit cards); ownership is server-controlled and not
+  editable after creation.
+- Archive is the destructive path: danger-styled row inside the management
+  sheet → explicit confirm state with consequences, never adjacent to Save.
+
+### Loading / errors
+
+- Detail loading mirrors the composition (header bone → hero card with icon
+  chip + balance bone + context row → capture bone → activity rows). List
+  loading is the hub skeleton.
+- Detail-not-found renders `StatusAlert` danger + a back link — no raw
+  hand-styled buttons.
+
+## 27. Loans / Installment flows
+
+Loans are a repayment-management flow, not a generic CRUD resource. The screen
+must make the current obligation and the next supported action legible without
+inventing borrowing-health metrics or changing the ledger model.
+
+### Hierarchy and surfaces
+
+- Keep the Loan identity in the detail `TopAppBar`; use one compact
+  `Card tone="hero"` for the current **Remaining principal**.
+- Pair the hero value with the next scheduled payment amount/date, due-state
+  treatment, and real repayment progress. Static principal, interest, regular
+  installments, and remaining balances stay neutral; warning/danger is reserved
+  for due soon, due today, overdue, failed operations, and archive confirmation.
+- Keep **Original principal**, **Principal paid**, **Interest paid**, **Remaining
+  principal**, **Total repayment**, and **Next payment** as separate labeled
+  concepts whenever the domain exposes them. Never collapse principal and
+  interest into one unlabeled balance.
+- Use `Amount`/`FinancialValue` plus tabular numerals and canonical currency/date
+  formatters. A progress track is supporting evidence; the readable amount and
+  percentage remain visible without relying on color.
+
+### Create and edit
+
+- Create remains tracking-only unless the domain explicitly supports a money
+  movement. Do not add a disbursement selector or imply that borrowed cash was
+  deposited into an account when the current command does not do so.
+- Group the create sheet into identity/principal and repayment terms/estimate.
+  Preserve RHF + Zod schemas, conditional fixed/floating/promotional rate
+  branches, live amortization preview, ephemeral reset-on-close behavior, and
+  the two-step Basics → Terms contract.
+- Use shared `TextField`, `SelectField`, `DatePickerField`, `AmountField`,
+  `FinancialScopeField`, and `SheetActionFooter`; the footer owns one primary
+  action, one escape action, pending labels, and disabled state.
+- Edit exposes only fields the lifecycle allows. Metadata editing remains
+  separate from future-rate editing; paid schedule periods are immutable and
+  future-rate changes rebuild only eligible unpaid periods.
+
+### Schedule and due states
+
+- Schedule rows are mobile-scannable: installment number/date, total due,
+  principal component, interest component, remaining balance after, and a
+  semantic status badge. Use divider rows rather than a dense spreadsheet or
+  one-card-per-installment stack.
+- Preserve the domain’s schedule and due-state helpers. Visually prioritize the
+  next actionable, due-today, and overdue rows; paid and waived rows are calm
+  and historical. Do not create a new Partial lifecycle status merely for
+  presentation.
+- The next-payment action must be explicit about the source account, scheduled
+  amount, principal/interest split, effective date, and resulting remaining
+  principal. Review happens before the command executes; receipt content uses
+  backend allocation values rather than client approximations.
+
+### Payoff, archive, ownership, completion, and loading
+
+- Early payoff is estimate-only when the command supports only a planning
+  estimate: show recorded remaining principal, unknown/unavailable components,
+  as-of date, and a clear no-money-moves statement. Do not add settlement,
+  fees, account selection, or completion behavior without domain support.
+- Archive is not payoff. Use an explicit archive label and confirmation with
+  consequences; retain payment history and keep destructive actions separate
+  from normal repayment actions.
+- Read-only partner/former-member Loans show the full permitted financial detail
+  and explain why mutation controls are absent. Completed Loans emphasize
+  completion, total history, and terms rather than a large Pay action.
+- List, detail, schedule, and full-schedule loading boundaries mirror their
+  final composition: header, summary/hero, progress/facts, action or year
+  filter, and rows. Detail-not-found uses a danger `StatusAlert` with a back
+  link; read failures remain distinct from empty and offline states.
 
 ## Do / Don't
 

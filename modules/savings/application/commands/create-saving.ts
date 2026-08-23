@@ -6,12 +6,12 @@ import {
   productActionErrorFromDeniedReason,
   type ProductActionErrorCode,
 } from "@/modules/tenancy/application/product-action-error";
-import { AccountType } from "@/modules/ledger/application/ledger-constants";
 import {
   RenewalPolicy,
   MaturityTargetMode,
   MaturityFallbackPolicy,
   SAVINGS_RPC,
+  SavingsCreateMode,
 } from "../savings-constants";
 import {
   classifySavingsRpcError,
@@ -23,6 +23,7 @@ import {
   addSavingsTerm,
   assertCompatibleSavingsAccounts,
   familyForLegacySavingType,
+  isEligibleSavingsAccountType,
 } from "../savings-domain-rules";
 import { calculateInterest } from "../savings-interest";
 import {
@@ -80,6 +81,8 @@ export async function createSaving(
   }
 
   const { packageSnapshot } = resolved;
+  const isHistoricalOpening =
+    parsed.data.creationMode === SavingsCreateMode.HISTORICAL_OPENING;
   const renewalPolicy =
     parsed.data.renewalPolicy ??
     parsed.data.renewalPreference ??
@@ -182,32 +185,38 @@ export async function createSaving(
   };
 
   const cyclePackageSnapshot: PackageSnapshot = { ...packageSnapshot };
+  const creationSnapshot = {
+    ...productSnapshot,
+    creationMode: parsed.data.creationMode,
+    creationIdempotencyKey: parsed.data.idempotencyKey ?? null,
+  };
 
   try {
     const supabase = await createSupabaseServerClient();
 
-    const { data: fundingAccount, error: fundingAccountError } = await supabase
-      .from("accounts")
-      .select("id, type")
-      .eq("household_id", gate.householdId)
-      .eq("id", parsed.data.fundingAccountId)
-      .eq("is_archived", false)
-      .maybeSingle();
+    const fundingAccount = isHistoricalOpening
+      ? null
+      : await (async () => {
+          if (!parsed.data.fundingAccountId) return null;
+          const { data, error } = await supabase
+            .from("accounts")
+            .select("id, type")
+            .eq("household_id", gate.householdId)
+            .eq("id", parsed.data.fundingAccountId)
+            .eq("is_archived", false)
+            .maybeSingle();
+          if (error) throw error;
+          return data;
+        })();
 
-    if (fundingAccountError) {
-      return {
-        ok: false,
-        code: savingsFailureCode(fundingAccountError, SAVINGS_RPC.CREATE, {
-          householdId: gate.householdId,
-          fundingAccountId: parsed.data.fundingAccountId,
-        }),
-      };
-    }
-    if (!fundingAccount) {
+    if (!isHistoricalOpening && !fundingAccount) {
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
     }
-
-    if (fundingAccount.type === AccountType.CREDIT_CARD) {
+    if (
+      fundingAccount &&
+      (!isEligibleSavingsAccountType(fundingAccount.type) ||
+        !parsed.data.fundingAccountId)
+    ) {
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
     }
 
@@ -229,17 +238,22 @@ export async function createSaving(
         }),
       };
     }
-    if (!settlementAccount) {
+    if (
+      !settlementAccount ||
+      !isEligibleSavingsAccountType(settlementAccount.type)
+    ) {
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
     }
-    const accountCompatibility = assertCompatibleSavingsAccounts({
-      fundingAccountType: fundingAccount.type,
-      settlementAccountType: settlementAccount.type,
-      fundingAccountId: fundingAccount.id,
-      settlementAccountId: settlementAccount.id,
-    });
-    if (!accountCompatibility.ok) {
-      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
+    if (fundingAccount) {
+      const accountCompatibility = assertCompatibleSavingsAccounts({
+        fundingAccountType: fundingAccount.type,
+        settlementAccountType: settlementAccount.type,
+        fundingAccountId: fundingAccount.id,
+        settlementAccountId: settlementAccount.id,
+      });
+      if (!accountCompatibility.ok) {
+        return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
+      }
     }
 
     const { data, error } = await supabase.rpc(SAVINGS_RPC.CREATE, {
@@ -247,7 +261,7 @@ export async function createSaving(
       p_principal: parsed.data.principal,
       p_provider_id: parsed.data.providerId,
       p_product_name: resolved.productName,
-      p_product_snapshot: productSnapshot,
+      p_product_snapshot: creationSnapshot,
       p_renewal_preference: renewalPolicy,
       p_settlement_account_id: parsed.data.settlementAccountId,
       p_cycle_start_date: startDate,
@@ -256,6 +270,7 @@ export async function createSaving(
       p_renewal_config: renewalConfig ?? baseConfig,
       p_idempotency_key: parsed.data.idempotencyKey ?? null,
       p_financial_scope: ownership.financialScope,
+      p_creation_mode: parsed.data.creationMode,
     });
 
     if (error) {
@@ -265,7 +280,7 @@ export async function createSaving(
           householdId: gate.householdId,
           providerId: parsed.data.providerId,
           packageId: parsed.data.packageId,
-          fundingAccountId: parsed.data.fundingAccountId,
+          fundingAccountId: parsed.data.fundingAccountId ?? undefined,
           settlementAccountId: parsed.data.settlementAccountId,
         });
       }
@@ -283,7 +298,7 @@ export async function createSaving(
         householdId: gate.householdId,
         providerId: parsed.data.providerId,
         packageId: parsed.data.packageId,
-        fundingAccountId: parsed.data.fundingAccountId,
+        fundingAccountId: parsed.data.fundingAccountId ?? undefined,
         settlementAccountId: parsed.data.settlementAccountId,
         responseInvalid: true,
       });
@@ -301,7 +316,7 @@ export async function createSaving(
       householdId: gate.householdId,
       providerId: parsed.data.providerId,
       packageId: parsed.data.packageId,
-      fundingAccountId: parsed.data.fundingAccountId,
+      fundingAccountId: parsed.data.fundingAccountId ?? undefined,
       settlementAccountId: parsed.data.settlementAccountId,
     });
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };

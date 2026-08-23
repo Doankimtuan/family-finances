@@ -39,6 +39,7 @@ export type LedgerRpcName = (typeof LedgerRpcName)[keyof typeof LedgerRpcName];
 
 /** Public relation names for ledger queries / mutations. */
 export const LedgerRelation = {
+  ACCOUNTS: "accounts",
   LIABILITIES: "liabilities",
   SAVINGS_ACCOUNTS: "savings_accounts",
   LOANS: "loans",

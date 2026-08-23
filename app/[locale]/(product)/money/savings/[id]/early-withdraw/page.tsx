@@ -80,7 +80,11 @@ export default async function EarlyWithdrawPage({ params }: Props) {
       <EarlyWithdrawForm
         savingId={saving.id}
         cycleId={cycle.id}
-        preview={{ ...preview, warnPenalty: shouldWarnPenalty(preview) }}
+        preview={{
+          ...preview,
+          earlyRate: cycle.packageSnapshot.earlySettlementRatePercent ?? null,
+          warnPenalty: shouldWarnPenalty(preview),
+        }}
       />
     </Page>
   );

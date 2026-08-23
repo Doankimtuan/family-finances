@@ -7,28 +7,44 @@ import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
 import {
+  buildDebtSummary,
+  createMoneyHubModuleSummaries,
   createMoneyHubViewModel,
   DEFAULT_CURRENCY,
   getRealPosition,
   listCreditCards,
+  listDebts,
+  listLoanSummaries,
   MoneyAccountGroupKey,
   MoneyCreditAttention,
+  MoneyModuleAttentionLevel,
+  type MoneyHubDomainSummary,
 } from "@/modules/ledger/application";
+import {
+  buildSavingsOverviewModel,
+  listSavings,
+} from "@/modules/savings/application";
+import { countActiveInvestmentHoldings } from "@/modules/investments/application";
 import { formatCurrency, formatDate } from "@/shared/i18n/formatters";
 import { MotionReveal } from "@/shared/motion";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
+import { todayIsoDate } from "@/shared/utils/iso-date";
+import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Page } from "@/shared/patterns/page";
 import { Section } from "@/shared/patterns/section";
+import { FloatingAction } from "@/shared/patterns/floating-action";
 import { StatusAlert } from "@/shared/ui/status-alert";
+import { Text } from "@/shared/ui/text";
 import { MoneyOfflineBanner } from "./money-offline-banner";
 import { MoneyHubAccounts } from "./money-hub-accounts";
-import { MoneyMoreLink } from "./money-more-link";
 import { MoneyPositionHero } from "./money-position-hero";
 import {
-  MONEY_RELATED_FINANCE_ITEMS,
-  MoneyRelatedFinanceKey,
-} from "./money-related-finance";
+  MoneyModuleCard,
+  MoneyModuleRow,
+  type MoneyModuleValue,
+} from "./money-module-section";
+import { MoneyCaptureAction } from "./money-capture-action";
 import { moneyAccountVisualFor } from "./money-account-visuals";
 
 type Props = { params: Promise<{ locale: string }> };
@@ -37,6 +53,11 @@ function asUtcDate(dateOnly: string) {
   return new Date(`${dateOnly}T00:00:00Z`);
 }
 
+/**
+ * Money is the financial inventory hub: position → where it sits → account
+ * containers → the other money domains. Domain totals come from each module's
+ * own read model; nothing here re-derives financial rules or invents aggregates.
+ */
 export default async function MoneyHubPage({ params }: Props) {
   const { locale: rawLocale } = await params;
   const locale = hasLocale(routing.locales, rawLocale)
@@ -54,11 +75,25 @@ export default async function MoneyHubPage({ params }: Props) {
     return redirect({ href: APP_PATH.ONBOARD, locale });
   }
 
-  const [t, tCatalog, position, cardsListed] = await Promise.all([
+  const todayIso = todayIsoDate();
+  const [
+    t,
+    tCatalog,
+    position,
+    cardsListed,
+    savingsList,
+    debtsList,
+    loanSummaries,
+    investmentCount,
+  ] = await Promise.all([
     getTranslations("money"),
     getTranslations("catalog"),
     getRealPosition(),
     listCreditCards(),
+    listSavings(),
+    listDebts(),
+    listLoanSummaries(),
+    countActiveInvestmentHoldings(),
   ]);
 
   const loadFailed = position == null || cardsListed == null;
@@ -70,6 +105,50 @@ export default async function MoneyHubPage({ params }: Props) {
       : null;
   const totalAccountCount =
     viewModel?.activeAccountCount ?? cardsListed?.cards.length ?? 0;
+
+  const savingsOverview = savingsList
+    ? buildSavingsOverviewModel(savingsList, todayIso)
+    : null;
+  const debtSummary = debtsList ? buildDebtSummary(debtsList, todayIso) : null;
+  const modules = createMoneyHubModuleSummaries({
+    savings: savingsOverview
+      ? {
+          totalPrincipal: savingsOverview.totalPrincipal,
+          activeCount: savingsOverview.activeItems.length,
+          attentionCount: savingsOverview.attentionCount,
+          currency: DEFAULT_CURRENCY,
+        }
+      : null,
+    investments:
+      investmentCount == null ? null : { activeCount: investmentCount },
+    loans: loanSummaries,
+    debts: debtSummary
+      ? {
+          borrowedRemaining: debtSummary.totalBorrowed,
+          lentRemaining: debtSummary.totalLent,
+          activeCount: debtSummary.activeCount,
+          overdueCount: debtSummary.overdueCount,
+          dueSoonCount: debtSummary.dueSoonCount,
+          currency: debtsList?.[0]?.currency ?? DEFAULT_CURRENCY,
+        }
+      : null,
+  });
+
+  const money = (value: number, valueCurrency: string | null) =>
+    formatCurrency(value, valueCurrency ?? currency, locale, {
+      maximumFractionDigits: 0,
+    });
+  const unavailableValue = (): MoneyModuleValue => ({
+    state: "unavailable",
+    label: t("hub.modules.unavailable"),
+  });
+  const principalValue = (summary: MoneyHubDomainSummary): MoneyModuleValue =>
+    !summary.loaded
+      ? unavailableValue()
+      : summary.count > 0 && summary.total != null
+        ? { state: "value", label: money(summary.total, summary.currency) }
+        : { state: "empty", label: t("hub.modules.empty") };
+
   const buildAccountRows = (
     groups: NonNullable<typeof viewModel>["accountGroups"],
   ) =>
@@ -82,9 +161,7 @@ export default async function MoneyHubPage({ params }: Props) {
           title: localizeCatalogName(tCatalog, "accounts", account.name),
           typeLabel: t(`types.${account.type}`),
           balanceCaption: t("accountDetail.balanceLabel"),
-          balanceLabel: formatCurrency(account.balance, currency, locale, {
-            maximumFractionDigits: 0,
-          }),
+          balanceLabel: money(account.balance, currency),
           icon: visual.icon,
           iconTone: visual.tone,
           financialScope: account.financialScope,
@@ -93,19 +170,6 @@ export default async function MoneyHubPage({ params }: Props) {
         };
       }),
     }));
-
-  const relatedFinanceLabels: Record<MoneyRelatedFinanceKey, string> = {
-    [MoneyRelatedFinanceKey.DEBTS]: t("debts"),
-    [MoneyRelatedFinanceKey.SAVINGS]: t("savings"),
-    [MoneyRelatedFinanceKey.INVESTMENTS]: t("investmentsLabel"),
-    [MoneyRelatedFinanceKey.LOANS]: t("loans"),
-  };
-  const relatedFinanceDescriptions: Record<MoneyRelatedFinanceKey, string> = {
-    [MoneyRelatedFinanceKey.DEBTS]: t("hub.related.debts"),
-    [MoneyRelatedFinanceKey.SAVINGS]: t("hub.related.savings"),
-    [MoneyRelatedFinanceKey.INVESTMENTS]: t("hub.related.investments"),
-    [MoneyRelatedFinanceKey.LOANS]: t("hub.related.loans"),
-  };
 
   return (
     <Page
@@ -139,29 +203,25 @@ export default async function MoneyHubPage({ params }: Props) {
           <MotionReveal>
             <MoneyPositionHero
               ownedMoneyLabel={t("realPosition")}
-              ownedMoneyValue={formatCurrency(
-                viewModel.totalOwnedBalance,
-                currency,
-                locale,
-                { maximumFractionDigits: 0 },
-              )}
-              accountCountLabel={t("hub.activeAccounts", {
-                count: viewModel.activeAccountCount,
-              })}
-              creditOutstandingLabel={
-                viewModel.totalCreditOutstanding > 0
-                  ? t("hub.totalCreditOutstandingLabel")
-                  : undefined
-              }
-              creditOutstandingValue={
-                viewModel.totalCreditOutstanding > 0
-                  ? formatCurrency(
-                      viewModel.totalCreditOutstanding,
-                      currency,
-                      locale,
-                      { maximumFractionDigits: 0 },
-                    )
-                  : undefined
+              ownedMoneyValue={money(viewModel.totalOwnedBalance, currency)}
+              metaLine={
+                <div className="flex flex-wrap items-center gap-x-(--space-3) gap-y-(--space-1)">
+                  <Text size="sm" className="text-hero-muted">
+                    {t("hub.activeAccounts", {
+                      count: viewModel.activeAccountCount,
+                    })}
+                  </Text>
+                  {viewModel.totalCreditOutstanding > 0 ? (
+                    <span className="border-l border-white/25 pl-(--space-3) text-sm tabular-nums text-hero-muted">
+                      {t("hub.totalCreditOutstandingLabel", {
+                        value: money(
+                          viewModel.totalCreditOutstanding,
+                          currency,
+                        ),
+                      })}
+                    </span>
+                  ) : null}
+                </div>
               }
               compositionLabel={t("hub.composition")}
               composition={viewModel.composition.map((segment) => ({
@@ -170,14 +230,7 @@ export default async function MoneyHubPage({ params }: Props) {
                 percentageLabel: segment.isLessThanOnePercent
                   ? t("hub.lessThanOnePercent")
                   : t("hub.percentage", { value: segment.percentage }),
-                balanceLabel: formatCurrency(
-                  segment.balance,
-                  currency,
-                  locale,
-                  {
-                    maximumFractionDigits: 0,
-                  },
-                ),
+                balanceLabel: money(segment.balance, currency),
               }))}
               activityHref={APP_PATH.MONEY_TRANSACTIONS}
               activityLabel={t("seeActivity")}
@@ -193,25 +246,9 @@ export default async function MoneyHubPage({ params }: Props) {
             creditCards={viewModel.creditCards.map((card) => ({
               id: card.accountId,
               title: localizeCatalogName(tCatalog, "accounts", card.name),
-              outstandingLabel: formatCurrency(
-                card.outstanding,
-                currency,
-                locale,
-                {
-                  maximumFractionDigits: 0,
-                },
-              ),
-              availableLabel: formatCurrency(
-                card.availableCredit,
-                currency,
-                locale,
-                {
-                  maximumFractionDigits: 0,
-                },
-              ),
-              limitLabel: formatCurrency(card.creditLimit, currency, locale, {
-                maximumFractionDigits: 0,
-              }),
+              outstandingLabel: money(card.outstanding, currency),
+              availableLabel: money(card.availableCredit, currency),
+              limitLabel: money(card.creditLimit, currency),
               utilizationPct: card.utilizationForDisplay,
               utilizationLabel:
                 card.utilizationForDisplay == null
@@ -270,23 +307,142 @@ export default async function MoneyHubPage({ params }: Props) {
               },
             }}
           />
+          <MoneyModuleCard
+            title={t("hub.modules.growingTitle")}
+            testId="money-modules-growing"
+          >
+            <MoneyModuleRow
+              href={APP_PATH.MONEY_SAVINGS}
+              testId="money-link-savings"
+              icon={FINANCE_ICONS.savings}
+              iconTone="savings"
+              label={t("savings")}
+              value={principalValue(modules.savings)}
+              meta={
+                modules.savings.count > 0
+                  ? t("hub.modules.savingsCount", {
+                      count: modules.savings.count,
+                    })
+                  : undefined
+              }
+              attention={
+                modules.savings.attention
+                  ? {
+                      level: modules.savings.attention.level,
+                      label: t("hub.modules.savingsAttention", {
+                        count: modules.savings.attention.count,
+                      }),
+                    }
+                  : null
+              }
+            />
+            <MoneyModuleRow
+              href={APP_PATH.MONEY_INVESTMENTS}
+              testId="money-link-investments"
+              icon={FINANCE_ICONS.investment}
+              iconTone="investment"
+              label={t("investmentsLabel")}
+              value={
+                !modules.investments.loaded
+                  ? unavailableValue()
+                  : modules.investments.count > 0
+                    ? {
+                        state: "value",
+                        label: t("hub.modules.investmentsCount", {
+                          count: modules.investments.count,
+                        }),
+                      }
+                    : { state: "empty", label: t("hub.modules.empty") }
+              }
+            />
+          </MoneyModuleCard>
+          <MoneyModuleCard
+            title={t("hub.modules.owedTitle")}
+            testId="money-modules-owed"
+          >
+            <MoneyModuleRow
+              href={APP_PATH.MONEY_LOANS}
+              testId="money-link-loans"
+              icon={FINANCE_ICONS.loan}
+              iconTone="info"
+              label={t("loans")}
+              value={principalValue(modules.loans)}
+              meta={
+                modules.loans.count > 0
+                  ? t("hub.modules.loansCount", { count: modules.loans.count })
+                  : undefined
+              }
+              attention={
+                modules.loans.attention
+                  ? {
+                      level: modules.loans.attention.level,
+                      label:
+                        modules.loans.attention.level ===
+                        MoneyModuleAttentionLevel.CRITICAL
+                          ? t("hub.modules.loansOverdue", {
+                              count: modules.loans.attention.count,
+                            })
+                          : t("hub.modules.loansDueSoon", {
+                              count: modules.loans.attention.count,
+                            }),
+                    }
+                  : null
+              }
+            />
+            <MoneyModuleRow
+              href={APP_PATH.MONEY_DEBTS}
+              testId="money-link-debts"
+              icon={FINANCE_ICONS.debt}
+              iconTone="debt"
+              label={t("debts")}
+              value={
+                !modules.debts.loaded
+                  ? unavailableValue()
+                  : modules.debts.total != null && modules.debts.total > 0
+                    ? {
+                        state: "value",
+                        label: money(
+                          modules.debts.total,
+                          modules.debts.currency,
+                        ),
+                      }
+                    : { state: "empty", label: t("hub.modules.noDebt") }
+              }
+              meta={
+                modules.debts.loaded &&
+                modules.debts.secondaryTotal != null &&
+                modules.debts.secondaryTotal > 0
+                  ? t("hub.modules.debtsLent", {
+                      value: money(
+                        modules.debts.secondaryTotal,
+                        modules.debts.currency,
+                      ),
+                    })
+                  : undefined
+              }
+              attention={
+                modules.debts.attention
+                  ? {
+                      level: modules.debts.attention.level,
+                      label:
+                        modules.debts.attention.level ===
+                        MoneyModuleAttentionLevel.CRITICAL
+                          ? t("hub.modules.debtsOverdue", {
+                              count: modules.debts.attention.count,
+                            })
+                          : t("hub.modules.debtsDueSoon", {
+                              count: modules.debts.attention.count,
+                            }),
+                    }
+                  : null
+              }
+            />
+          </MoneyModuleCard>
+          <FloatingAction>
+            <MoneyCaptureAction />
+          </FloatingAction>
         </>
       )}
-      <Section title={t("more")} contentClassName="gap-0">
-        <div className="divide-y divide-border-subtle/65">
-          {MONEY_RELATED_FINANCE_ITEMS.map((item) => (
-            <MoneyMoreLink
-              key={item.key}
-              href={item.href}
-              label={relatedFinanceLabels[item.key]}
-              description={relatedFinanceDescriptions[item.key]}
-              icon={item.icon}
-              iconTone={item.iconTone}
-              testId={item.testId}
-            />
-          ))}
-        </div>
-      </Section>
     </Page>
   );
 }

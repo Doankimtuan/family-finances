@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { Button } from "@/shared/ui/button";
+import { Card } from "@/shared/patterns/card";
 import { AlertVariant } from "@/shared/ui/alert";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
@@ -34,14 +35,22 @@ export function LoanCloseAction({ loanId }: Props) {
         isDisabled={!online}
         onPress={() => setConfirm(true)}
       >
-        {t("closeLoan")}
+        {t("archiveLoan")}
       </Button>
     );
   }
 
   return (
-    <div className="flex flex-col gap-(--space-3)" data-testid="loan-close">
-      <StatusAlert variant={AlertVariant.DANGER} title={t("closeConfirm")} />
+    <Card
+      tone="warning"
+      className="flex flex-col gap-(--space-3) p-(--space-3)"
+      data-testid="loan-close"
+    >
+      <StatusAlert
+        variant={AlertVariant.DANGER}
+        title={t("archiveConfirm")}
+        description={t("archiveConsequences")}
+      />
       <div className="flex gap-(--space-2)">
         <Button
           variant="primary"
@@ -73,7 +82,7 @@ export function LoanCloseAction({ loanId }: Props) {
             });
           }}
         >
-          {isPending ? t("closing") : t("confirmClose")}
+          {isPending ? t("archiving") : t("confirmArchive")}
         </Button>
         <Button
           variant="secondary"
@@ -87,6 +96,6 @@ export function LoanCloseAction({ loanId }: Props) {
           {t("cancel")}
         </Button>
       </div>
-    </div>
+    </Card>
   );
 }

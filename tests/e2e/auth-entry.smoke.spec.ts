@@ -1,13 +1,14 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("Splash + Welcome (ST-E02-001)", () => {
-  test("landing Open app goes to Welcome, not home", async ({ page }) => {
+  test("locale root is the Welcome screen, not a pass-through landing", async ({
+    page,
+  }) => {
     await page.goto("/en");
-    await page.getByRole("button", { name: "Open app" }).click();
-    await expect(page).toHaveURL(/\/en\/welcome$/);
+    await expect(page).toHaveURL(/\/en$/);
     await expect(page.getByTestId("auth-welcome")).toBeVisible();
     await expect(
-      page.getByRole("heading", { name: "Welcome to ViNha" }),
+      page.getByRole("button", { name: "Create account" }),
     ).toBeVisible();
     await expect(page.getByRole("navigation", { name: "Primary" })).toHaveCount(
       0,
@@ -18,8 +19,9 @@ test.describe("Splash + Welcome (ST-E02-001)", () => {
     page,
   }) => {
     await page.goto("/vi");
+    await expect(page.getByTestId("auth-welcome")).toBeVisible();
     await expect(
-      page.getByRole("button", { name: "Mở ứng dụng" }),
+      page.getByRole("button", { name: "Tạo tài khoản" }),
     ).toBeVisible();
   });
 

@@ -7,11 +7,12 @@ import {
   APP_PATH,
   moneySavingsPath,
 } from "@/modules/tenancy/application/app-path";
-import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { ConfirmSummary } from "@/shared/patterns/confirm-summary";
-import { BottomActionBar } from "@/shared/patterns/bottom-action-bar";
+import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
+import { Sheet } from "@/shared/patterns/sheet";
+import { SheetActionFooter } from "@/shared/patterns/sheet-action-footer";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import { DEFAULT_CURRENCY } from "@/modules/ledger/application/client";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
@@ -27,6 +28,8 @@ type Preview = {
   eligibleInterest: number | null;
   penaltyAmount: number | null;
   netReturned: number | null;
+  taxAmount: number | null;
+  earlyRate: number | null;
   warnPenalty: boolean;
   quoteReady: boolean;
 };
@@ -55,56 +58,83 @@ export function EarlyWithdrawForm({ savingId, cycleId, preview }: Props) {
     n == null ? t("unknown") : money(n);
 
   return (
-    <div
-      className="flex flex-col gap-(--space-4)"
-      data-testid="savings-early-withdraw-form"
+    <Sheet
+      isOpen
+      onOpenChange={(open) => {
+        if (!open) router.push(moneySavingsPath(savingId));
+      }}
     >
-      {errorCode ? (
-        <StatusAlert variant="danger" title={tErr(errorCode)} />
-      ) : null}
-      {!preview.quoteReady ? (
-        <StatusAlert variant="warning" title={t("quoteUnavailable")} />
-      ) : null}
-      {preview.warnPenalty ? (
-        <StatusAlert variant="warning" title={t("warnPenalty")} />
-      ) : null}
-      <ConfirmSummary
-        data-testid="savings-early-withdraw-preview"
-        rows={[
-          {
-            id: "principal",
-            label: t("principal"),
-            value: money(preview.principal),
-          },
-          {
-            id: "accrued",
-            label: t("accrued"),
-            value: money(preview.accruedInterest),
-          },
-          {
-            id: "eligible",
-            label: t("eligible"),
-            value: amountOrUnknown(preview.eligibleInterest),
-          },
-          {
-            id: "penalty",
-            label: t("penalty"),
-            value: amountOrUnknown(preview.penaltyAmount),
-          },
-          {
-            id: "net",
-            label: t("net"),
-            value: amountOrUnknown(preview.netReturned),
-          },
-        ]}
-      />
-      <BottomActionBar>
-        <Button
-          variant="primary"
-          className="min-h-11 w-full"
-          data-testid="savings-early-withdraw-request"
-          isDisabled={isPending || !online || !preview.quoteReady}
-          onPress={() => {
+      <ActionSheetLayout>
+        <ActionSheetLayout.Header>
+          <Sheet.Heading>{t("title")}</Sheet.Heading>
+        </ActionSheetLayout.Header>
+        <ActionSheetLayout.Body className="flex max-h-[70dvh] flex-col gap-(--space-4)">
+          <div data-testid="savings-early-withdraw-form">
+            {errorCode ? (
+              <StatusAlert variant="danger" title={tErr(errorCode)} />
+            ) : null}
+            {!preview.quoteReady ? (
+              <StatusAlert variant="warning" title={t("quoteUnavailable")} />
+            ) : null}
+            {preview.warnPenalty ? (
+              <StatusAlert variant="warning" title={t("warnPenalty")} />
+            ) : null}
+            <Text size="sm" tone="secondary">
+              {t("maturityInterestNotIncluded")}
+            </Text>
+            <ConfirmSummary
+              data-testid="savings-early-withdraw-preview"
+              rows={[
+                {
+                  id: "rate",
+                  label: t("earlyRate"),
+                  value:
+                    preview.earlyRate == null
+                      ? t("unknown")
+                      : `${preview.earlyRate}% / ${t("year")}`,
+                },
+                {
+                  id: "principal",
+                  label: t("principal"),
+                  value: money(preview.principal),
+                },
+                {
+                  id: "accrued",
+                  label: t("accrued"),
+                  value: money(preview.accruedInterest),
+                },
+                {
+                  id: "eligible",
+                  label: t("eligible"),
+                  value: amountOrUnknown(preview.eligibleInterest),
+                },
+                {
+                  id: "tax",
+                  label: t("tax"),
+                  value: amountOrUnknown(preview.taxAmount),
+                },
+                {
+                  id: "penalty",
+                  label: t("penalty"),
+                  value: amountOrUnknown(preview.penaltyAmount),
+                },
+                {
+                  id: "net",
+                  label: t("net"),
+                  value: amountOrUnknown(preview.netReturned),
+                },
+              ]}
+            />
+          </div>
+        </ActionSheetLayout.Body>
+        <SheetActionFooter
+          secondaryLabel={t("back")}
+          primaryLabel={isPending ? t("requesting") : t("request")}
+          primaryTestId="savings-early-withdraw-request"
+          isDisabled={!online || !preview.quoteReady}
+          isPending={isPending}
+          onSecondary={() => router.push(moneySavingsPath(savingId))}
+          onPrimary={() => {
             if (!online) {
               setErrorCode(CLIENT_ACTION_ERROR_CODE.OFFLINE);
               return;
@@ -121,20 +151,8 @@ export function EarlyWithdrawForm({ savingId, cycleId, preview }: Props) {
               setErrorCode(result.code);
             });
           }}
-        >
-          {isPending ? t("requesting") : t("request")}
-        </Button>
-        <Button
-          variant="secondary"
-          className="min-h-11 w-full"
-          onPress={() => router.push(moneySavingsPath(savingId))}
-        >
-          {t("back")}
-        </Button>
-      </BottomActionBar>
-      <Text size="sm" tone="secondary">
-        {t("subtitle")}
-      </Text>
-    </div>
+        />
+      </ActionSheetLayout>
+    </Sheet>
   );
 }

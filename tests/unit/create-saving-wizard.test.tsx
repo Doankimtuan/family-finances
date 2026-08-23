@@ -31,6 +31,7 @@ vi.mock("@/shared/hooks/use-online-status", () => ({
 vi.mock("@/shared/motion", () => ({
   MotionStep: ({ children }: { children: ReactNode }) => <>{children}</>,
   MotionStepDirection: { FORWARD: "forward", BACKWARD: "backward" },
+  useMotionPolicy: () => ({ enabled: false }),
 }));
 
 vi.mock("@/app/[locale]/(product)/money/savings/savings-actions", () => ({
@@ -135,7 +136,7 @@ describe("CreateSavingWizard", () => {
     expect(screen.getByTestId("savings-review-summary")).toHaveTextContent(
       "Wallet",
     );
-    expect(screen.getByText(/3,000,000/)).toBeInTheDocument();
+    expect(screen.getAllByText(/3,000,000/).length).toBeGreaterThan(0);
     fireEvent.click(screen.getByTestId("savings-wizard-back"));
 
     expect(screen.getByTestId("savings-wizard-principal")).toHaveValue(

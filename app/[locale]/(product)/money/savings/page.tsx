@@ -32,11 +32,11 @@ import { EmptyState } from "@/shared/patterns/empty-state";
 import { ErrorState } from "@/shared/patterns/error-state";
 import { MotionReveal } from "@/shared/motion";
 import { Text } from "@/shared/ui/text";
+import { FinancialValue } from "@/shared/patterns/financial-value";
 import { AppIcon } from "@/shared/ui/app-icon";
 import { FinancialOwnershipBadge } from "@/shared/patterns/financial-ownership-badge";
 import { BankIcon, SmartPhoneIcon } from "@hugeicons/core-free-icons";
 import { MoneyOfflineBanner } from "../money-offline-banner";
-import { SavingsLifecycleSync } from "./savings-lifecycle-sync";
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -167,12 +167,14 @@ export default async function SavingsPage({ params }: Props) {
                           </span>
                           <span className="text-right">
                             {t("expectedInterestLabel")}:{" "}
-                            {formatCurrency(
-                              entry.netInterest,
-                              currency,
-                              locale,
-                              { maximumFractionDigits: 0 },
-                            )}
+                            <FinancialValue>
+                              {formatCurrency(
+                                entry.netInterest,
+                                currency,
+                                locale,
+                                { maximumFractionDigits: 0 },
+                              )}
+                            </FinancialValue>
                           </span>
                         </div>
                         <div className="mt-(--space-1) flex flex-wrap justify-between gap-(--space-2) text-xs text-text-secondary">
@@ -210,7 +212,6 @@ export default async function SavingsPage({ params }: Props) {
       topBar={<TopAppBar title={t("title")} subtitle={t("subtitle")} />}
     >
       <MoneyOfflineBanner />
-      <SavingsLifecycleSync />
       <Text size="sm" tone="secondary">
         {t("orientation", {
           active: model.activeItems.length,
@@ -277,12 +278,14 @@ export default async function SavingsPage({ params }: Props) {
                     {t("expectedNetInterest")}
                   </Text>
                   <Text size="lg" weight="semibold">
-                    {formatCurrency(
-                      model.expectedNetInterest,
-                      DEFAULT_CURRENCY,
-                      locale,
-                      { maximumFractionDigits: 0 },
-                    )}
+                    <FinancialValue>
+                      {formatCurrency(
+                        model.expectedNetInterest,
+                        DEFAULT_CURRENCY,
+                        locale,
+                        { maximumFractionDigits: 0 },
+                      )}
+                    </FinancialValue>
                   </Text>
                 </div>
               </div>
@@ -292,12 +295,14 @@ export default async function SavingsPage({ params }: Props) {
                     {t("expectedReceived")}
                   </Text>
                   <Text size="sm" weight="semibold">
-                    {formatCurrency(
-                      model.expectedTotalCashReceived,
-                      DEFAULT_CURRENCY,
-                      locale,
-                      { maximumFractionDigits: 0 },
-                    )}
+                    <FinancialValue>
+                      {formatCurrency(
+                        model.expectedTotalCashReceived,
+                        DEFAULT_CURRENCY,
+                        locale,
+                        { maximumFractionDigits: 0 },
+                      )}
+                    </FinancialValue>
                   </Text>
                 </div>
                 <div className="text-right">
@@ -350,13 +355,15 @@ export default async function SavingsPage({ params }: Props) {
                         </Text>
                       </span>
                       <span className="shrink-0 text-sm font-medium">
-                        {formatCurrency(
-                          entry.principal,
-                          entry.saving.productSnapshot.currency ??
-                            DEFAULT_CURRENCY,
-                          locale,
-                          { maximumFractionDigits: 0 },
-                        )}
+                        <FinancialValue>
+                          {formatCurrency(
+                            entry.principal,
+                            entry.saving.productSnapshot.currency ??
+                              DEFAULT_CURRENCY,
+                            locale,
+                            { maximumFractionDigits: 0 },
+                          )}
+                        </FinancialValue>
                       </span>
                     </Link>
                   </li>

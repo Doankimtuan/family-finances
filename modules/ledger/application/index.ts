@@ -25,9 +25,12 @@ export {
 export { getRealPosition } from "./queries/get-real-position";
 export {
   createMoneyHubViewModel,
+  createMoneyHubModuleSummaries,
+  creditCardAttentionFor,
   isMoneyHubAssetAccount,
   MoneyAccountGroupKey,
   MoneyCreditAttention,
+  MoneyModuleAttentionLevel,
   MONEY_HUB_DUE_SOON_DAYS,
   MONEY_HUB_INITIAL_ACCOUNT_ROW_LIMIT,
   type MoneyHubAccount,
@@ -35,6 +38,9 @@ export {
   type MoneyHubCompositionSegment,
   type MoneyHubCreditCard,
   type MoneyHubViewModel,
+  type MoneyHubDomainSummary,
+  type MoneyHubModuleSummaries,
+  type MoneyHubModuleSummariesInput,
 } from "./money-hub-view-model";
 export {
   listAccounts,
@@ -267,6 +273,8 @@ export {
   listSavingsProducts,
   getSavingsProduct,
   listLoans,
+  listLoanSummaries,
+  type LoanSummaryRow,
   getLoan,
   getLoanReadResult,
   listLoanPayments,
@@ -377,9 +385,11 @@ export {
   AccountType,
   ACCOUNT_TYPE_VALUES,
   ACCOUNT_TYPE_LIQUID_VALUES,
+  LOAN_PAYMENT_ACCOUNT_TYPE_VALUES,
   ACCOUNT_TYPE_CAPTURE_VALUES,
   isDebtMovementAccountType,
   isLiquidAccountType,
+  isLoanPaymentAccountType,
   isCaptureAccountType,
   ACCOUNT_TYPE_CREATE_OPTIONS,
   CardBillingMonthStatus,

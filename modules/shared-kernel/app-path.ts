@@ -74,6 +74,8 @@ export const APP_ROUTE = {
   PLAN_RITUAL: "/[locale]/(product)/plan/ritual",
   INBOX: "/[locale]/(product)/inbox",
   MONEY_SAVINGS: "/[locale]/(product)/money/savings",
+  MONEY_SAVINGS_NEW: "/[locale]/(product)/money/savings/new",
+  MONEY_SAVINGS_PROVIDERS: "/[locale]/(product)/money/savings/providers",
   MONEY_SAVINGS_DETAIL: "/[locale]/(product)/money/savings/[id]",
 } as const;
 

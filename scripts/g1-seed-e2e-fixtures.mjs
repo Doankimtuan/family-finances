@@ -25,6 +25,13 @@ const FIXTURE_CASH_TOPUP_KEY = "e2e-fixture-cash-topup-v1";
 const FIXTURE_CASH_TOPUP_AMOUNT = 5_000_000;
 const FIXTURE_SECOND_ACCOUNT_NAME = "E2E Transfer Dest";
 const FIXTURE_UNLOCK_NOTE = "E2E fixture unlock";
+const FIXTURE_PROVIDER_PREFIX = "e2e-savings-13d";
+const FIXTURE_PACKAGE_NAME = "E2E 30-day package";
+const FIXTURE_PACKAGE_RULES = [
+  "roll_principal_interest",
+  "roll_principal_only",
+  "withdraw_everything",
+];
 
 if (!url || !serviceKey || !email) {
   console.error(
@@ -66,6 +73,106 @@ async function main() {
   }
 
   const householdId = membership.household_id;
+
+  const providerFixtures = [
+    {
+      family: "BANK",
+      key: `${FIXTURE_PROVIDER_PREFIX}-${householdId}-bank`,
+      name: "E2E Bank Savings",
+      savingType: "bank_deposit",
+      iconKey: "bank",
+      taxRule: "NONE",
+      taxRatePercent: 0,
+    },
+    {
+      family: "PLATFORM",
+      key: `${FIXTURE_PROVIDER_PREFIX}-${householdId}-platform`,
+      name: "E2E Platform Savings",
+      savingType: "digital_saving",
+      iconKey: "wallet",
+      taxRule: "PROFIT_PERCENTAGE",
+      taxRatePercent: 5,
+    },
+  ];
+
+  for (const fixture of providerFixtures) {
+    const { data: provider, error: providerLookupError } = await admin
+      .from("saving_providers")
+      .select("id")
+      .eq("provider_key", fixture.key)
+      .eq("household_id", householdId)
+      .maybeSingle();
+    if (providerLookupError) throw providerLookupError;
+
+    let providerId = provider?.id;
+    if (!providerId) {
+      const { data: createdProvider, error: providerInsertError } = await admin
+        .from("saving_providers")
+        .insert({
+          household_id: householdId,
+          created_by: user.id,
+          provider_key: fixture.key,
+          display_name: fixture.name,
+          saving_type: fixture.savingType,
+          family: fixture.family,
+          icon_key: fixture.iconKey,
+          is_system: false,
+          is_active: true,
+          metadata: { fixture: FIXTURE_PROVIDER_PREFIX },
+        })
+        .select("id")
+        .single();
+      if (providerInsertError) throw providerInsertError;
+      providerId = createdProvider.id;
+    } else {
+      const { error: providerUpdateError } = await admin
+        .from("saving_providers")
+        .update({
+          is_active: true,
+          family: fixture.family,
+          saving_type: fixture.savingType,
+        })
+        .eq("id", providerId);
+      if (providerUpdateError) throw providerUpdateError;
+    }
+
+    const { data: packageRow, error: packageLookupError } = await admin
+      .from("saving_packages")
+      .select("id")
+      .eq("provider_id", providerId)
+      .eq("package_name", FIXTURE_PACKAGE_NAME)
+      .maybeSingle();
+    if (packageLookupError) throw packageLookupError;
+    const packageValues = {
+      provider_id: providerId,
+      package_name: FIXTURE_PACKAGE_NAME,
+      duration_days: 30,
+      term_amount: 30,
+      term_unit: "DAY",
+      annual_interest_rate: 6,
+      interest_calculation_method: "simple",
+      currency: "VND",
+      tax_rule: fixture.taxRule,
+      tax_rate_percent: fixture.taxRatePercent,
+      min_amount: 100_000,
+      max_amount: 100_000_000,
+      settlement_rules: FIXTURE_PACKAGE_RULES,
+      penalty_rules: [],
+      early_settlement_rule: "RETURN_PRINCIPAL_ONLY",
+      early_settlement_rate_percent: null,
+      renewable_available: true,
+      supports_partial_settlement: false,
+      is_active: true,
+    };
+    const packageMutation = packageRow
+      ? admin
+          .from("saving_packages")
+          .update(packageValues)
+          .eq("id", packageRow.id)
+      : admin.from("saving_packages").insert(packageValues);
+    const { error: packageMutationError } = await packageMutation;
+    if (packageMutationError) throw packageMutationError;
+  }
 
   const { data: unlocked, error: unlockError } = await admin
     .from("month_ritual_runs")

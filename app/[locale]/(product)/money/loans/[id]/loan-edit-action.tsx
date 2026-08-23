@@ -11,6 +11,8 @@ import { useStatusAlert } from "@/providers/status-alert-provider";
 import { CLIENT_ACTION_ERROR_CODE } from "@/modules/tenancy/application/product-action-error";
 import { updateLoanMetadataAction } from "../../money-products-actions";
 import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
+import { Card } from "@/shared/patterns/card";
+import { SheetActionFooter } from "@/shared/patterns/sheet-action-footer";
 import { Sheet } from "@/shared/patterns/sheet";
 
 type Props = {
@@ -43,6 +45,40 @@ export function LoanEditAction({
     setNote(initialNote);
   };
 
+  const handleSave = () => {
+    statusAlert.hide();
+    if (!online) {
+      statusAlert.show({
+        variant: AlertVariant.DANGER,
+        title: tErr(CLIENT_ACTION_ERROR_CODE.OFFLINE),
+      });
+      return;
+    }
+    startTransition(async () => {
+      const result = await updateLoanMetadataAction({
+        loanId,
+        name,
+        lender: lender.trim() || null,
+        note: note.trim() || null,
+      });
+      if (result.status === "success") {
+        setOpen(false);
+        router.refresh();
+        return;
+      }
+      statusAlert.show({
+        variant: AlertVariant.DANGER,
+        title: tErr(result.code),
+      });
+    });
+  };
+
+  const handleCancel = () => {
+    statusAlert.hide();
+    reset();
+    setOpen(false);
+  };
+
   if (!open) {
     return (
       <Button
@@ -73,8 +109,9 @@ export function LoanEditAction({
           <Sheet.Heading>{t("editLoan")}</Sheet.Heading>
         </ActionSheetLayout.Header>
         <ActionSheetLayout.Body>
-          <div
-            className="flex flex-col gap-(--space-3) rounded-lg border border-border-subtle p-(--space-3)"
+          <Card
+            tone="metric"
+            className="flex flex-col gap-(--space-3) p-(--space-3)"
             data-testid="loan-edit-form"
           >
             <TextField
@@ -95,56 +132,16 @@ export function LoanEditAction({
               value={note}
               onChange={(e) => setNote(e.target.value)}
             />
-            <div className="flex gap-(--space-2)">
-              <Button
-                variant="primary"
-                className="min-h-11 flex-1"
-                data-testid="loan-edit-save"
-                isDisabled={isPending || !online}
-                onPress={() => {
-                  statusAlert.hide();
-                  if (!online) {
-                    statusAlert.show({
-                      variant: AlertVariant.DANGER,
-                      title: tErr(CLIENT_ACTION_ERROR_CODE.OFFLINE),
-                    });
-                    return;
-                  }
-                  startTransition(async () => {
-                    const result = await updateLoanMetadataAction({
-                      loanId,
-                      name,
-                      lender: lender.trim() || null,
-                      note: note.trim() || null,
-                    });
-                    if (result.status === "success") {
-                      setOpen(false);
-                      router.refresh();
-                      return;
-                    }
-                    statusAlert.show({
-                      variant: AlertVariant.DANGER,
-                      title: tErr(result.code),
-                    });
-                  });
-                }}
-              >
-                {isPending ? t("saving") : t("saveEdit")}
-              </Button>
-              <Button
-                variant="secondary"
-                className="min-h-11"
-                isDisabled={isPending}
-                onPress={() => {
-                  statusAlert.hide();
-                  reset();
-                  setOpen(false);
-                }}
-              >
-                {t("cancel")}
-              </Button>
-            </div>
-          </div>
+          </Card>
+          <SheetActionFooter
+            secondaryLabel={t("cancel")}
+            primaryLabel={isPending ? t("saving") : t("saveEdit")}
+            primaryTestId="loan-edit-save"
+            isDisabled={!online}
+            isPending={isPending}
+            onSecondary={handleCancel}
+            onPrimary={handleSave}
+          />
         </ActionSheetLayout.Body>
       </ActionSheetLayout>
     </Sheet>

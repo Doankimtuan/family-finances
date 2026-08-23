@@ -1,0 +1,48 @@
+{
+  "householdId": "117ff277-746a-45cb-8aaf-876041812484",
+  "accounts": {
+    "fundingAccountId": "a1b5d37b-f435-48f2-8732-94e8f1fa7682",
+    "settlementAccountId": "79e714c5-6e32-4da2-ba43-88ab6a763ad3"
+  },
+  "providers": {
+    "BANK": "461b0ec4-99f1-4ae4-9214-39d1a883d88e",
+    "PLATFORM": "515a60fe-b355-4ec2-9670-80ce2a94cf88"
+  },
+  "packages": {
+    "BANK": "b8c6bad4-87ba-4e58-b263-ba023a0363b9",
+    "PLATFORM": "731c71ce-10bf-432f-b0c3-819dfdab5c4a"
+  },
+  "fixtures": {
+    "early-withdrawal": {
+      "savingId": "3c59a099-257c-4412-9182-dcc938e23280",
+      "cycleId": "03de39e9-e6e0-49d8-af16-8724bc67bf3c",
+      "family": "PLATFORM"
+    },
+    "maturity-settlement": {
+      "savingId": "6adc0a24-c178-4aab-9e4a-f2bd4ac8e7b9",
+      "cycleId": "c96dd7aa-1764-40ec-baf9-39cd6fcf8923",
+      "family": "BANK"
+    },
+    "principal-only-rollover": {
+      "savingId": "ed53b46f-90df-4391-8d95-842a83936a0f",
+      "cycleId": "c0fb5425-1f3c-4dcd-9bcf-c34b3958f508",
+      "family": "BANK"
+    },
+    "principal-interest-rollover": {
+      "savingId": "ef2398d4-a0b9-40e5-8478-621b67ce1cb0",
+      "cycleId": "82ada8dc-4a71-4008-9a4e-48fb75b89cd3",
+      "family": "BANK"
+    },
+    "settled-terminal": {
+      "savingId": "f1c93db8-fdd3-4e23-a8ab-5b1406768e39",
+      "cycleId": "8d108bfe-09db-419c-8feb-90278ef0b268",
+      "family": "BANK"
+    },
+    "early-settled-terminal": {
+      "savingId": "2e52e33b-2d35-4b5b-8691-b46e3ef03a12",
+      "cycleId": "5354f993-c759-4239-90ba-c9a3292c6d2a",
+      "family": "BANK"
+    }
+  },
+  "createdAt": "2026-08-23T05:45:36.390Z"
+}

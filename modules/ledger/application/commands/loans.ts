@@ -20,6 +20,8 @@ import {
   LOAN_PAYMENT_EXECUTABLE_MODE_VALUES,
   LOAN_REPAYMENT_METHOD_VALUES,
 } from "../ledger-constants";
+import { isLoanPaymentAccountType } from "../account-constants";
+import { FINANCIAL_SCOPE } from "@/modules/shared-kernel/application/financial-scope";
 import {
   addMonthsYmd,
   buildAmortizationSchedule,
@@ -293,6 +295,29 @@ export async function recordLoanPayment(
 
   try {
     const supabase = await createSupabaseServerClient();
+    const { data: account, error: accountError } = await supabase
+      .from(LedgerRelation.ACCOUNTS)
+      .select("type, is_archived, financial_scope, owner_membership_id")
+      .eq("id", parsed.data.accountId)
+      .eq("household_id", gate.householdId)
+      .maybeSingle();
+    if (accountError) {
+      logLedgerFailure(accountError, LEDGER_OPERATION.RECORD_LOAN_PAYMENT, {
+        householdId: gate.householdId,
+        loanId: parsed.data.loanId,
+        accountId: parsed.data.accountId,
+      });
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+    }
+    if (
+      !account ||
+      account.is_archived ||
+      !isLoanPaymentAccountType(account.type) ||
+      (account.financial_scope !== FINANCIAL_SCOPE.HOUSEHOLD &&
+        account.owner_membership_id !== gate.membershipId)
+    ) {
+      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
+    }
     const { data, error } = await supabase.rpc(
       LedgerRpcName.RECORD_LOAN_PAYMENT,
       {

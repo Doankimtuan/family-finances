@@ -42,6 +42,25 @@ export function isLiquidAccountType(type: string): type is LiquidAccountType {
   return ACCOUNT_TYPE_LIQUID_SET.has(type);
 }
 
+/** Loan repayments use real spending sources, never investment containers. */
+export const LOAN_PAYMENT_ACCOUNT_TYPE_VALUES = [
+  AccountType.CASH,
+  AccountType.CHECKING,
+  AccountType.SAVINGS,
+  AccountType.EWALLET,
+  AccountType.OTHER,
+] as const;
+
+const LOAN_PAYMENT_ACCOUNT_TYPE_SET = new Set<string>(
+  LOAN_PAYMENT_ACCOUNT_TYPE_VALUES,
+);
+
+export function isLoanPaymentAccountType(
+  type: string,
+): type is (typeof LOAN_PAYMENT_ACCOUNT_TYPE_VALUES)[number] {
+  return LOAN_PAYMENT_ACCOUNT_TYPE_SET.has(type);
+}
+
 /** Account types accepted by the ordinary transaction capture picker. */
 export const ACCOUNT_TYPE_CAPTURE_VALUES = [
   AccountType.CASH,

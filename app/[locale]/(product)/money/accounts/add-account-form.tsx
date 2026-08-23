@@ -292,25 +292,6 @@ export function AddAccountForm({
           description={t(`errors.${errorCode}`)}
         />
       ) : null}
-      <TextField
-        id="account-name"
-        label={t("nameLabel")}
-        placeholder={t("namePlaceholder")}
-        registration={register("name")}
-        error={errors.name ? t("errors.invalid") : undefined}
-      />
-      <Controller
-        control={control}
-        name="financialScope"
-        render={({ field, fieldState }) => (
-          <FinancialScopeField
-            value={field.value ?? FINANCIAL_SCOPE.HOUSEHOLD}
-            onChange={field.onChange}
-            error={fieldState.error ? t("errors.invalid") : undefined}
-            testId="account-financial-scope"
-          />
-        )}
-      />
       <SelectField
         id="account-type"
         label={t("typeLabel")}
@@ -334,6 +315,13 @@ export function AddAccountForm({
         }}
         required
         data-testid="account-type"
+      />
+      <TextField
+        id="account-name"
+        label={t("nameLabel")}
+        placeholder={t("namePlaceholder")}
+        registration={register("name")}
+        error={errors.name ? t("errors.invalid") : undefined}
       />
       {!isCard ? (
         <div className="flex flex-col gap-(--space-1)">
@@ -436,6 +424,18 @@ export function AddAccountForm({
           </Text>
         </div>
       ) : null}
+      <Controller
+        control={control}
+        name="financialScope"
+        render={({ field, fieldState }) => (
+          <FinancialScopeField
+            value={field.value ?? FINANCIAL_SCOPE.HOUSEHOLD}
+            onChange={field.onChange}
+            error={fieldState.error ? t("errors.invalid") : undefined}
+            testId="account-financial-scope"
+          />
+        )}
+      />
     </div>
   );
 

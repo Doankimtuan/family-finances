@@ -10,6 +10,7 @@ import {
   CycleStatus,
   SavingStatus,
   SavingsTaxRule,
+  SavingsCreateMode,
 } from "@/modules/savings/application/savings-constants";
 import {
   calculateInterest,
@@ -32,9 +33,7 @@ import {
   MaturityPresentationState,
 } from "@/modules/savings/application/savings-presentation";
 import { instantiateTypedReviewItem } from "@/modules/inbox/application/review-item-schemas";
-import {
-  InboxItemKind,
-} from "@/modules/inbox/application/inbox-constants";
+import { InboxItemKind } from "@/modules/inbox/application/inbox-constants";
 import {
   shouldAutoResolveInboxItem,
   shouldCancelMaturityCascade,
@@ -53,6 +52,12 @@ describe("savings interest engine", () => {
       startDate: "2026-01-15",
     });
     expect(valid.success).toBe(true);
+    const historical = createSavingInputSchema.safeParse({
+      ...(valid.success ? valid.data : {}),
+      creationMode: SavingsCreateMode.HISTORICAL_OPENING,
+      fundingAccountId: null,
+    });
+    expect(historical.success).toBe(true);
     expect(
       createSavingInputSchema.safeParse({
         ...(valid.success ? valid.data : {}),
@@ -97,9 +102,7 @@ describe("savings interest engine", () => {
         "2026-01-02T00:15:00.000Z",
       ),
     ).toBe(1);
-    expect(
-      differenceInUtcCalendarDays("2024-02-28", "2024-03-01"),
-    ).toBe(2);
+    expect(differenceInUtcCalendarDays("2024-02-28", "2024-03-01")).toBe(2);
     expect(differenceInUtcCalendarDays("2025-12-31", "2026-01-01")).toBe(1);
     expect(differenceInUtcCalendarDays("2026-01-02", "2026-01-01")).toBe(-1);
   });
@@ -210,6 +213,33 @@ describe("savings early withdrawal penalty", () => {
     expect(preview.eligibleInterest ?? -1).toBeLessThanOrEqual(
       preview.accruedInterest,
     );
+  });
+
+  it("uses the persisted early rate and charges tax and penalty from gross interest", () => {
+    const preview = previewEarlyWithdrawal({
+      principal: 1_000_000,
+      annualRate: 10,
+      startDate: "2026-01-01",
+      endDate: "2027-01-01",
+      withdrawalDate: "2026-02-01",
+      interestMethod: InterestCalcMethod.SIMPLE,
+      packageSnapshot: {
+        ...packageSnapshot,
+        annualInterestRate: 10,
+        penaltyRules: [],
+        earlySettlementRule: "CUSTOM_RATE",
+        earlySettlementRatePercent: 1.5,
+        taxRule: SavingsTaxRule.PROFIT_PERCENTAGE,
+        taxRatePercent: 5,
+      },
+    });
+
+    expect(preview.accruedInterest).toBe(8_493);
+    expect(preview.eligibleInterest).toBe(1_273);
+    expect(preview.penaltyAmount).toBe(7_220);
+    expect(preview.taxAmount).toBe(424);
+    expect(preview.netInterest).toBe(849);
+    expect(preview.netReturned).toBe(1_000_849);
   });
 
   it("counts a same-day early withdrawal as zero held days", () => {
@@ -610,7 +640,9 @@ describe("savings presentation model", () => {
       MaturityPresentationState.MATURE_TODAY,
     ]);
     expect(model.attentionCount).toBe(2);
-    expect(buildSavingsDetailModel(pastDue, "2026-08-15").canSettle).toBe(true);
+    expect(buildSavingsDetailModel(pastDue, "2026-08-15").canSettle).toBe(
+      false,
+    );
   });
 
   it("shows PLATFORM tax but keeps BANK tax at zero", () => {

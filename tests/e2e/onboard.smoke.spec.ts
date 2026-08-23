@@ -34,12 +34,10 @@ test.describe("Onboard wizard chrome (ST-E03-001)", () => {
       await expect(
         page.getByRole("navigation", { name: "Primary" }),
       ).toHaveCount(0);
-      await expect(page.getByText(/Step 1 of 3/i)).toBeVisible();
+      await expect(page.getByText(/Step 1 of 2/i)).toBeVisible();
       await page.getByLabel("Household name").fill("E2E Home");
       await page.getByTestId("onboard-next").click();
-      await expect(page.getByText(/Step 2 of 3/i)).toBeVisible();
-      await page.getByTestId("onboard-next").click();
-      await expect(page.getByText(/Step 3 of 3/i)).toBeVisible();
+      await expect(page.getByText(/Step 2 of 2/i)).toBeVisible();
       await expect(page.getByTestId("onboard-finish")).toBeVisible();
     }
   });

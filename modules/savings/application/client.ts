@@ -10,6 +10,11 @@ export {
   type InterestResult,
 } from "./savings-interest";
 export {
+  calculateSettlementBreakdown,
+  type SettlementBreakdown,
+} from "./savings-domain-rules";
+export type { SavingsTaxRule } from "./savings-domain-rules";
+export {
   createSavingInputSchema,
   type CreateSavingInput,
   type CreateSavingParsed,

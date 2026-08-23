@@ -83,6 +83,7 @@ export async function settleSaving(
     const { data, error } = await supabase.rpc(SAVINGS_RPC.SETTLE, {
       p_cycle_id: parsed.data.cycleId,
       p_settlement_account_id: parsed.data.settlementAccountId ?? null,
+      p_idempotency_key: `savings:settle:${parsed.data.cycleId}`,
     });
 
     if (error) {

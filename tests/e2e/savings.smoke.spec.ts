@@ -1,8 +1,42 @@
-import { test, expect } from "@playwright/test";
-import { APP_PATH } from "@/modules/tenancy/application/app-path";
+import { test, expect, type Page } from "@playwright/test";
+import { execFileSync } from "node:child_process";
+import { readFileSync } from "node:fs";
+import {
+  APP_PATH,
+  moneySavingsPath,
+} from "@/modules/tenancy/application/app-path";
+
+const SAVINGS_FIXTURE_PATH = "output/playwright/savings-f6-fixture.json";
+const SAVINGS_FIXTURE_PREFIX = "e2e-savings-f6";
+const APP_SURFACE_SELECTOR = "#app-viewport-root";
+
+type SavingsFixture = {
+  fixtures: { "early-withdrawal": { savingId: string } };
+};
+
+function loadSavingsFixture(): SavingsFixture {
+  return JSON.parse(
+    readFileSync(SAVINGS_FIXTURE_PATH, "utf8"),
+  ) as SavingsFixture;
+}
+
+function surface(page: Page) {
+  return page.locator(APP_SURFACE_SELECTOR);
+}
 
 test.describe("Savings Phase F6 smoke", () => {
   test.describe.configure({ mode: "serial" });
+
+  test.beforeAll(() => {
+    execFileSync("node", ["scripts/savings-13e2-fixture.mjs"], {
+      stdio: "inherit",
+      env: {
+        ...process.env,
+        SAVINGS_FIXTURE_PREFIX,
+        SAVINGS_FIXTURE_PATH,
+      },
+    });
+  });
 
   test("overview, detail, create preview, early-withdraw preview", async ({
     page,
@@ -24,21 +58,23 @@ test.describe("Savings Phase F6 smoke", () => {
     );
 
     await page.goto("/en/money/savings");
-    await expect(page.getByTestId("money-savings")).toBeVisible({
+    await expect(surface(page).getByTestId("money-savings")).toBeVisible({
       timeout: 20_000,
     });
-    await expect(page.getByTestId("savings-add-open")).toBeVisible();
+    await expect(surface(page).getByTestId("savings-add-open")).toBeVisible();
 
     await page.goto("/en/money/savings/new");
-    await expect(page.getByTestId("money-savings-new")).toBeVisible({
+    await expect(surface(page).getByTestId("money-savings-new")).toBeVisible({
       timeout: 20_000,
     });
-    const wizard = page.getByTestId("savings-create-wizard");
+    const wizard = surface(page).getByTestId("savings-create-wizard");
     if ((await wizard.count()) > 0) {
       await expect(wizard).toBeVisible();
-      await expect(page.getByTestId("savings-step-indicator")).toBeVisible();
       await expect(
-        page.getByTestId(
+        surface(page).getByTestId("savings-step-indicator"),
+      ).toBeVisible();
+      await expect(
+        surface(page).getByTestId(
           "savings-provider-" +
             (
               await page
@@ -57,18 +93,22 @@ test.describe("Savings Phase F6 smoke", () => {
           path: test.info().outputPath("savings-product.png"),
           fullPage: true,
         });
-        await page.getByTestId("savings-wizard-next").click();
-        await expect(page.getByTestId("savings-estimate")).toBeVisible();
+        await surface(page).getByTestId("savings-wizard-next").click();
+        await expect(
+          surface(page).getByTestId("savings-estimate"),
+        ).toBeVisible();
         await page.locator("#savings-principal").fill("1000000");
-        await expect(page.getByTestId("savings-estimate")).toContainText(
-          "1,000,000",
-        );
+        await expect(
+          surface(page).getByTestId("savings-estimate"),
+        ).toContainText("1,000,000");
         await page.screenshot({
           path: test.info().outputPath("savings-deposit.png"),
           fullPage: true,
         });
-        await page.getByTestId("savings-wizard-next").click();
-        await expect(page.getByTestId("savings-review-summary")).toBeVisible();
+        await surface(page).getByTestId("savings-wizard-next").click();
+        await expect(
+          surface(page).getByTestId("savings-review-summary"),
+        ).toBeVisible();
         await expect(
           page.getByText(/You receive at maturity|Maturity amount/).first(),
         ).toBeVisible();
@@ -80,36 +120,27 @@ test.describe("Savings Phase F6 smoke", () => {
     }
 
     await page.goto("/en/money/savings");
-    const firstRow = page.locator("[data-testid^=savings-row-]").first();
-    if ((await firstRow.count()) === 0) {
-      test.info().annotations.push({
-        type: "note",
-        description: "No active savings for detail/early-withdraw checks",
-      });
-      return;
-    }
-
-    await firstRow.click();
-    await expect(page.getByTestId("savings-detail")).toBeVisible({
+    const { savingId } = loadSavingsFixture().fixtures["early-withdrawal"];
+    await page.goto(`/en${moneySavingsPath(savingId)}`);
+    await expect(surface(page).getByTestId("savings-detail")).toBeVisible({
       timeout: 20_000,
     });
-    await expect(page.getByTestId("savings-identity")).toBeVisible();
-    await expect(page.getByTestId("savings-cycle-facts")).toBeVisible();
+    await expect(surface(page).getByTestId("savings-identity")).toBeVisible();
+    await expect(
+      surface(page).getByTestId("savings-cycle-facts"),
+    ).toBeVisible();
 
-    const earlyLink = page.getByTestId("savings-early-withdraw");
-    if ((await earlyLink.count()) > 0) {
-      await earlyLink.click();
-      await expect(
-        page.getByTestId("money-savings-early-withdraw"),
-      ).toBeVisible({
-        timeout: 20_000,
-      });
-      await expect(
-        page.getByTestId("savings-early-withdraw-preview"),
-      ).toBeVisible();
-      await expect(
-        page.getByTestId("savings-early-withdraw-request"),
-      ).toBeVisible();
-    }
+    await surface(page).getByTestId("savings-early-withdraw").click();
+    await expect(
+      surface(page).getByTestId("money-savings-early-withdraw"),
+    ).toBeVisible({
+      timeout: 20_000,
+    });
+    await expect(
+      surface(page).getByTestId("savings-early-withdraw-preview"),
+    ).toBeVisible();
+    await expect(
+      surface(page).getByTestId("savings-early-withdraw-request"),
+    ).toBeVisible();
   });
 });

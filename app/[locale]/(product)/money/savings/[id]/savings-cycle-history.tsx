@@ -11,6 +11,7 @@ import {
   formatPercent,
 } from "@/shared/i18n/formatters";
 import { Text } from "@/shared/ui/text";
+import { FinancialValue } from "@/shared/patterns/financial-value";
 
 type Props = { cycles: SavingCycle[]; currency: string };
 
@@ -59,22 +60,22 @@ export function SavingsCycleHistory({ cycles, currency }: Props) {
                   / {t("year")}
                 </Text>
                 <Text size="xs" tone="secondary" className="mt-(--space-1)">
-                  {formatCurrency(cycle.principal, currency, locale, {
-                    maximumFractionDigits: 0,
-                  })}{" "}
+                  <FinancialValue>
+                    {formatCurrency(cycle.principal, currency, locale, {
+                      maximumFractionDigits: 0,
+                    })}
+                  </FinancialValue>{" "}
                   · {isoDate(cycle.startDate, locale)} →{" "}
                   {isoDate(cycle.endDate, locale)}
                 </Text>
                 {result && realizedInterest > 0 ? (
                   <Text size="xs" tone="secondary" className="mt-(--space-1)">
-                    {t("realizedInterest", {
-                      amount: formatCurrency(
-                        realizedInterest,
-                        currency,
-                        locale,
-                        { maximumFractionDigits: 0 },
-                      ),
-                    })}
+                    {t("realizedInterestLabel")}{" "}
+                    <FinancialValue>
+                      {formatCurrency(realizedInterest, currency, locale, {
+                        maximumFractionDigits: 0,
+                      })}
+                    </FinancialValue>
                   </Text>
                 ) : null}
                 {cycle.nextCycleId ? (
@@ -116,48 +117,48 @@ export function SavingsCycleHistory({ cycles, currency }: Props) {
                       })}
                     </Text>
                     <Text size="sm">
-                      {t("snapshotPrincipal", {
-                        amount: formatCurrency(
-                          cycle.principal,
-                          currency,
-                          locale,
-                          { maximumFractionDigits: 0 },
-                        ),
-                      })}
+                      {t("snapshotPrincipalLabel")}{" "}
+                      <FinancialValue>
+                        {formatCurrency(cycle.principal, currency, locale, {
+                          maximumFractionDigits: 0,
+                        })}
+                      </FinancialValue>
                     </Text>
                     {result ? (
                       <>
                         <Text size="sm">
-                          {t("realizedInterest", {
-                            amount: formatCurrency(
+                          {t("realizedInterestLabel")}{" "}
+                          <FinancialValue>
+                            {formatCurrency(
                               realizedInterest,
                               currency,
                               locale,
-                              { maximumFractionDigits: 0 },
-                            ),
-                          })}
+                              {
+                                maximumFractionDigits: 0,
+                              },
+                            )}
+                          </FinancialValue>
                         </Text>
                         {realizedTax > 0 ? (
                           <Text size="sm">
-                            {t("realizedTax", {
-                              amount: formatCurrency(
-                                realizedTax,
-                                currency,
-                                locale,
-                                { maximumFractionDigits: 0 },
-                              ),
-                            })}
+                            {t("realizedTaxLabel")}{" "}
+                            <FinancialValue>
+                              {formatCurrency(realizedTax, currency, locale, {
+                                maximumFractionDigits: 0,
+                              })}
+                            </FinancialValue>
                           </Text>
                         ) : null}
                         <Text size="sm">
-                          {t("finalProceeds", {
-                            amount: formatCurrency(
+                          {t("finalProceedsLabel")}{" "}
+                          <FinancialValue>
+                            {formatCurrency(
                               result.totalCashReceived ?? result.netAmount,
                               currency,
                               locale,
                               { maximumFractionDigits: 0 },
-                            ),
-                          })}
+                            )}
+                          </FinancialValue>
                         </Text>
                       </>
                     ) : null}

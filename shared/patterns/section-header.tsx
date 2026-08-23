@@ -6,7 +6,7 @@ import { Heading } from "@/shared/ui/heading";
 import { Text } from "@/shared/ui/text";
 
 export type SectionHeaderProps = {
-  title: ReactNode;
+  title?: ReactNode;
   description?: ReactNode;
   action?: ReactNode;
   className?: string;
@@ -29,7 +29,7 @@ export function SectionHeader({
       )}
     >
       <div className="flex min-w-0 flex-1 flex-col gap-(--space-1)">
-        {typeof title === "string" ? (
+        {title == null ? null : typeof title === "string" ? (
           <Heading
             level={2}
             className="text-lg font-semibold tracking-tight"

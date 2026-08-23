@@ -10,6 +10,8 @@ import {
   RenewalPolicy,
   SETTLEMENT_RULE_VALUES,
   SettlementRule,
+  SAVINGS_CREATE_MODE_VALUES,
+  SavingsCreateMode,
 } from "../savings-constants";
 import {
   FINANCIAL_SCOPE,
@@ -27,10 +29,13 @@ export const renewalConfigSchema = z.object({
 });
 
 export const createSavingInputSchema = z.object({
+  creationMode: z
+    .enum(SAVINGS_CREATE_MODE_VALUES)
+    .default(SavingsCreateMode.LIVE_DEPOSIT),
   financialScope: z
     .enum(FINANCIAL_SCOPE_VALUES)
     .default(FINANCIAL_SCOPE.HOUSEHOLD),
-  fundingAccountId: z.string().uuid(),
+  fundingAccountId: z.string().uuid().nullable(),
   settlementAccountId: z.string().uuid(),
   providerId: z.string().uuid(),
   packageId: z.string().uuid(),

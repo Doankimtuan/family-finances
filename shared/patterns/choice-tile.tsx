@@ -5,12 +5,14 @@ import { cn } from "@/shared/utils/cn";
 import { Text } from "@/shared/ui/text";
 
 export type ChoiceTileProps = {
-  label: string;
+  label?: string;
+  children?: ReactNode;
   selected: boolean;
   onPress: () => void;
-  icon: ReactNode;
+  icon?: ReactNode;
   role?: "radio";
   isDisabled?: boolean;
+  testId?: string;
   className?: string;
 };
 
@@ -20,11 +22,13 @@ export type ChoiceTileProps = {
  */
 export function ChoiceTile({
   label,
+  children,
   selected,
   onPress,
   icon,
   role,
   isDisabled = false,
+  testId,
   className,
 }: ChoiceTileProps) {
   return (
@@ -34,10 +38,12 @@ export function ChoiceTile({
       aria-pressed={role ? undefined : selected}
       aria-checked={role ? selected : undefined}
       disabled={isDisabled}
+      data-testid={testId}
       onClick={onPress}
       className={cn(
         "flex h-full min-h-11 w-full items-center gap-(--space-2) rounded-(--radius-control) px-(--space-3) py-(--space-2) text-left",
         "transition-[background-color,box-shadow] duration-(--duration-fast) ease-(--ease-standard)",
+        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring",
         "active:scale-(--press-scale) motion-reduce:transition-none motion-reduce:active:scale-100",
         selected
           ? "bg-primary-soft ring-1 ring-primary/20"
@@ -46,13 +52,15 @@ export function ChoiceTile({
       )}
     >
       {icon}
-      <Text
-        size="sm"
-        weight="medium"
-        className="min-w-0 line-clamp-2 text-pretty leading-snug text-text-primary"
-      >
-        {label}
-      </Text>
+      {children ?? (
+        <Text
+          size="sm"
+          weight="medium"
+          className="min-w-0 line-clamp-2 text-pretty leading-snug text-text-primary"
+        >
+          {label}
+        </Text>
+      )}
     </button>
   );
 }

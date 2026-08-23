@@ -16,9 +16,11 @@ import {
 import { LoanReadStatus } from "@/modules/ledger/application/ledger-constants";
 import { todayIsoDate } from "@/shared/utils/iso-date";
 import { formatCurrency } from "@/shared/i18n/formatters";
+import { MotionReveal } from "@/shared/motion";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { ErrorState } from "@/shared/patterns/error-state";
+import { cn } from "@/shared/utils/cn";
 import { LoanSchedulePanel } from "../loan-detail-panels";
 
 type Props = {
@@ -101,43 +103,52 @@ export default async function LoanFullSchedulePage({
         className="flex min-h-full flex-col"
         data-testid="loan-full-schedule"
       >
-        <TopAppBar title={t("fullScheduleTitle")} />
+        <TopAppBar
+          variant="detail"
+          title={t("fullScheduleTitle")}
+          backHref={moneyLoanPath(id)}
+        />
         <main className="flex flex-1 flex-col gap-(--space-4) px-(--space-4) pb-(--space-6) pt-(--space-4)">
-          <Link
-            href={moneyLoanPath(id)}
-            className="text-sm font-medium text-accent"
-          >
-            {t("fullScheduleBack")}
-          </Link>
-          {years.length === 0 ? (
-            <EmptyState title={t("scheduleEmpty")} />
-          ) : null}
-          {years.length > 0 ? (
-            <nav
-              className="flex gap-(--space-2) overflow-x-auto"
-              aria-label={t("fullScheduleTitle")}
-            >
-              {years.map((item) => (
-                <Link
-                  key={item}
-                  href={`${moneyLoanPath(id)}/schedule?year=${item}`}
-                  className={`inline-flex min-h-11 shrink-0 items-center rounded-(--radius-control) border px-(--space-3) text-sm ${item === year ? "border-accent bg-accent-soft text-text-primary" : "border-border-subtle text-text-secondary"}`}
-                >
-                  {item}
-                </Link>
-              ))}
-            </nav>
-          ) : null}
-          {entries.length > 0 ? (
-            <LoanSchedulePanel
-              title={year}
-              emptyLabel={t("scheduleEmpty")}
-              entries={entries}
-              formatMoney={money}
-              t={t}
-              today={todayIsoDate()}
-            />
-          ) : null}
+          <MotionReveal className="flex flex-col gap-(--space-4)">
+            {years.length === 0 ? (
+              <EmptyState title={t("scheduleEmpty")} />
+            ) : null}
+            {years.length > 0 ? (
+              <nav
+                className="flex gap-(--space-1) overflow-x-auto rounded-(--radius-control) bg-surface-muted/60 p-(--space-1)"
+                aria-label={t("fullScheduleTitle")}
+              >
+                {years.map((item) => {
+                  const selected = item === year;
+                  return (
+                    <Link
+                      key={item}
+                      href={`${moneyLoanPath(id)}/schedule?year=${item}`}
+                      aria-current={selected ? "page" : undefined}
+                      className={cn(
+                        "inline-flex min-h-11 shrink-0 items-center justify-center rounded-(--radius-control) px-(--space-3) text-center text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring",
+                        selected
+                          ? "bg-surface text-text-primary shadow-(--elevation-1)"
+                          : "text-text-secondary hover:bg-surface-hover",
+                      )}
+                    >
+                      {item}
+                    </Link>
+                  );
+                })}
+              </nav>
+            ) : null}
+            {entries.length > 0 ? (
+              <LoanSchedulePanel
+                title={year}
+                emptyLabel={t("scheduleEmpty")}
+                entries={entries}
+                formatMoney={money}
+                t={t}
+                today={todayIsoDate()}
+              />
+            ) : null}
+          </MotionReveal>
         </main>
       </div>
     </NextIntlClientProvider>

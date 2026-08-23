@@ -6,18 +6,12 @@ import {
   productActionErrorFromDeniedReason,
   type ProductActionErrorCode,
 } from "@/modules/tenancy/application/product-action-error";
-import {
-  CycleStatus,
-  InterestCalcMethod,
-  SAVINGS_RPC,
-} from "../savings-constants";
+import { CycleStatus, SAVINGS_RPC } from "../savings-constants";
 import { classifySavingsRpcError, logSavingsFailure } from "../savings-error";
 import {
-  previewEarlyWithdrawal,
   shouldWarnPenalty,
   type EarlyWithdrawalPreview,
 } from "../savings-penalty";
-import type { PackageSnapshot } from "../savings-types";
 import { getSaving } from "../queries/list-savings";
 
 export const earlyWithdrawInputSchema = z.object({
@@ -57,18 +51,34 @@ async function buildPreview(savingId: string, cycleId: string) {
     return null;
   }
 
-  const withdrawalDate = new Date().toISOString().slice(0, 10);
-  const preview = previewEarlyWithdrawal({
-    principal: cycle.principal,
-    annualRate: cycle.lockedRate,
-    startDate: cycle.startDate,
-    endDate: cycle.endDate,
-    withdrawalDate,
-    interestMethod:
-      saving.productSnapshot.interestCalculationMethod ??
-      InterestCalcMethod.SIMPLE,
-    packageSnapshot: cycle.packageSnapshot as PackageSnapshot,
-  });
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.rpc(
+    SAVINGS_RPC.EARLY_WITHDRAW_PREVIEW,
+    {
+      p_cycle_id: cycle.id,
+      p_as_of_date: new Date().toISOString().slice(0, 10),
+    },
+  );
+  if (error || !data || typeof data !== "object") {
+    return null;
+  }
+
+  const remote = data as Record<string, unknown>;
+  const preview: EarlyWithdrawalPreview = {
+    principal: Number(remote.principal ?? 0),
+    accruedInterest: Number(remote.grossInterest ?? 0),
+    eligibleInterest:
+      remote.eligibleInterest == null ? null : Number(remote.eligibleInterest),
+    penaltyAmount:
+      remote.penaltyAmount == null ? null : Number(remote.penaltyAmount),
+    netReturned: remote.netReturned == null ? null : Number(remote.netReturned),
+    taxAmount: remote.tax == null ? null : Number(remote.tax),
+    netInterest: remote.netInterest == null ? null : Number(remote.netInterest),
+    penaltyStrategy: String(remote.penaltyStrategy ?? ""),
+    daysHeld: Number(remote.daysHeld ?? 0),
+    totalTermDays: Number(remote.totalTermDays ?? 0),
+    quoteReady: remote.quoteReady === true,
+  };
 
   return { saving, cycle, preview };
 }
@@ -155,14 +165,9 @@ export async function confirmEarlyWithdrawal(
     const supabase = await createSupabaseServerClient();
     const { data, error } = await supabase.rpc(SAVINGS_RPC.EARLY_WITHDRAW, {
       p_cycle_id: parsed.data.cycleId,
-      p_principal: preview.principal,
-      p_accrued_interest: preview.accruedInterest,
-      p_eligible_interest: preview.eligibleInterest,
-      p_penalty_amount: preview.penaltyAmount,
-      p_net_returned: preview.netReturned,
-      p_penalty_strategy: preview.penaltyStrategy,
       p_settlement_account_id:
         parsed.data.settlementAccountId ?? built.saving.settlementAccountId,
+      p_idempotency_key: `savings:early-withdraw:${parsed.data.cycleId}`,
     });
 
     if (error) {

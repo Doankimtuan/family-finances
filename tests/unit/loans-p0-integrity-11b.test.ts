@@ -4,6 +4,7 @@ import {
   applyTransactionDeltas,
   classifyFinancialEvent,
   FinancialClassification,
+  isLoanPaymentAccountType,
   TransactionLedgerType,
   type LedgerAccount,
 } from "@/modules/ledger/application";
@@ -30,6 +31,11 @@ const account: LedgerAccount = {
 };
 
 describe("Loans 11B P0 integrity contract", () => {
+  it("keeps investment containers out of Loan payment sources", () => {
+    expect(isLoanPaymentAccountType("cash")).toBe(true);
+    expect(isLoanPaymentAccountType("brokerage")).toBe(false);
+    expect(isLoanPaymentAccountType("savings_product")).toBe(false);
+  });
   it("keeps principal neutral and interest as Expense", () => {
     expect(
       classifyFinancialEvent({

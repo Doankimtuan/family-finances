@@ -7,7 +7,10 @@ type SheetActionFooterProps = {
   onSecondary: () => void;
   onPrimary: () => void;
   primaryTestId?: string;
+  /** Disables both actions (e.g. offline). Prefer `isPrimaryDisabled` for form validity. */
   isDisabled?: boolean;
+  /** Disables only the primary action so Cancel / Back stay available. */
+  isPrimaryDisabled?: boolean;
   isPending?: boolean;
 };
 
@@ -19,15 +22,19 @@ export function SheetActionFooter({
   onPrimary,
   primaryTestId,
   isDisabled = false,
+  isPrimaryDisabled = false,
   isPending = false,
 }: SheetActionFooterProps) {
+  const secondaryDisabled = isDisabled || isPending;
+  const primaryDisabled = secondaryDisabled || isPrimaryDisabled;
+
   return (
     <ActionSheetLayout.Footer>
       <Button
         variant="secondary"
         fullWidth
         className="min-h-11 min-w-0 flex-1 shadow-none"
-        isDisabled={isDisabled || isPending}
+        isDisabled={secondaryDisabled}
         onPress={onSecondary}
       >
         {secondaryLabel}
@@ -37,7 +44,7 @@ export function SheetActionFooter({
         fullWidth
         className="min-h-11 min-w-0 flex-1"
         data-testid={primaryTestId}
-        isDisabled={isDisabled || isPending}
+        isDisabled={primaryDisabled}
         isPending={isPending}
         onPress={onPrimary}
       >

@@ -248,11 +248,12 @@ export function CreditCardInstallmentsSection({
       className="flex flex-col gap-(--space-3)"
       data-testid="card-installments"
     >
-      <div className="flex items-center justify-between gap-(--space-3)">
-        <SectionHeader title={t("emiTitle")} />
+      <div className="flex flex-col gap-(--space-2) md:flex-row md:items-center md:justify-between">
+        <SectionHeader title={t("emiTitle")} className="min-w-0" />
         <Button
           variant="secondary"
           size="sm"
+          className="self-start md:self-auto"
           isDisabled={!online || isPending || eligiblePurchases.length === 0}
           onPress={() => {
             setError(false);

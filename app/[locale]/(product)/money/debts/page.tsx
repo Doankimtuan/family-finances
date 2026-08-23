@@ -100,7 +100,12 @@ export default async function DebtsPage({ params }: Props) {
 
   return (
     <div className="flex min-h-full flex-col" data-testid="money-debts">
-      <TopAppBar title={t("title")} subtitle={t("subtitle")} />
+      <TopAppBar
+        variant="detail"
+        title={t("title")}
+        subtitle={t("subtitle")}
+        backHref={APP_PATH.MONEY}
+      />
       <div className="flex flex-1 flex-col gap-(--space-4) px-(--space-4) pb-(--space-6) pt-(--space-4)">
         <MoneyOfflineBanner
           title={t("offlineTitle")}
@@ -148,7 +153,7 @@ export default async function DebtsPage({ params }: Props) {
                     icon={FINANCE_ICONS.expense}
                     iconTone="expense"
                     label={t("payable")}
-                    amountClassName="text-debt"
+                    amountClassName="text-text-primary"
                     amount={formatCurrency(
                       summary.totalBorrowed,
                       currency,
@@ -160,7 +165,7 @@ export default async function DebtsPage({ params }: Props) {
                     icon={FINANCE_ICONS.income}
                     iconTone="income"
                     label={t("receivable")}
-                    amountClassName="text-income"
+                    amountClassName="text-text-primary"
                     amount={formatCurrency(
                       summary.totalLent,
                       currency,
@@ -279,7 +284,7 @@ export default async function DebtsPage({ params }: Props) {
                                       <Text
                                         size="lg"
                                         weight="semibold"
-                                        className={`tabular-nums ${isBorrowed ? "text-debt" : "text-income"}`}
+                                        className="tabular-nums text-text-primary"
                                       >
                                         <FinancialValue>
                                           {formatCurrency(
