@@ -1,7 +1,7 @@
 {
-  "name": "ViNha",
-  "short_name": "ViNha",
-  "description": "Home · Money · Plan · Inbox · Together — the shared money OS for households.",
+  "name": "Family Finance",
+  "short_name": "Family Finance",
+  "description": "Plan together. Build better.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#FAFAF9",

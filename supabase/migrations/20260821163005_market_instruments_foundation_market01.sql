@@ -17,7 +17,6 @@ create table public.market_instruments (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
-
 create table public.market_instrument_sources (
   instrument_id uuid not null references public.market_instruments(id) on delete cascade,
   provider text not null check (provider in ('MANUAL', 'COINGECKO', 'VNSTOCK', 'FMARKET')),
@@ -28,7 +27,6 @@ create table public.market_instrument_sources (
   primary key (instrument_id, provider),
   unique (provider, provider_instrument_id)
 );
-
 create table public.market_instrument_prices (
   instrument_id uuid primary key references public.market_instruments(id) on delete cascade,
   price numeric(24, 8) not null check (price >= 0),
@@ -40,17 +38,14 @@ create table public.market_instrument_prices (
   metadata jsonb not null default '{}'::jsonb,
   updated_at timestamptz not null default now()
 );
-
 create index market_instruments_asset_class_active_idx
   on public.market_instruments (asset_class, is_active);
 create index market_instruments_symbol_search_idx
   on public.market_instruments (lower(symbol));
 create index market_instrument_sources_lookup_idx
   on public.market_instrument_sources (instrument_id, priority);
-
 alter table public.investment_holdings
   add column if not exists instrument_id uuid;
-
 -- Older local migration histories used this column for the retired,
 -- household-scoped investment_instruments table. Preserve that table, but do
 -- not carry an unverified household instrument identity into the global market
@@ -91,7 +86,6 @@ begin
     );
   end loop;
 end $$;
-
 do $$
 begin
   if not exists (
@@ -107,15 +101,12 @@ begin
       on delete restrict;
   end if;
 end $$;
-
 create index investment_holdings_instrument_lookup_idx
   on public.investment_holdings (instrument_id)
   where instrument_id is not null;
-
 alter table public.market_instruments enable row level security;
 alter table public.market_instrument_sources enable row level security;
 alter table public.market_instrument_prices enable row level security;
-
 create policy market_instruments_select_authenticated
   on public.market_instruments for select to authenticated
   using (true);
@@ -125,19 +116,16 @@ create policy market_instrument_sources_select_authenticated
 create policy market_instrument_prices_select_authenticated
   on public.market_instrument_prices for select to authenticated
   using (true);
-
 revoke all on table
   public.market_instruments,
   public.market_instrument_sources,
   public.market_instrument_prices
 from anon, authenticated;
-
 grant select on table
   public.market_instruments,
   public.market_instrument_sources,
   public.market_instrument_prices
 to authenticated;
-
 grant select, insert, update, delete on table
   public.market_instruments,
   public.market_instrument_sources,

@@ -130,11 +130,11 @@ export function TransactionTagManagement({
     return (
       <li
         key={tag.id}
-        className="flex items-center gap-(--space-2) rounded-lg border border-border-subtle bg-surface p-(--space-3)"
+        className="flex items-center gap-(--space-2) rounded-[var(--radius-card)] border border-border-subtle/80 bg-surface/70 p-(--space-3) shadow-(--elevation-1)"
       >
         <button
           type="button"
-          className="flex min-w-0 flex-1 items-center gap-(--space-3) rounded-md text-left transition-[background-color,transform] duration-(--duration-fast) active:scale-[0.99] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none"
+          className="flex min-w-0 flex-1 items-center gap-(--space-3) rounded-[var(--radius-control)] text-left transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-[var(--press-scale)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none"
           onClick={() => openEdit(tag)}
         >
           <TagIconPreview tag={tag} />
@@ -182,7 +182,7 @@ export function TransactionTagManagement({
       className="flex flex-col gap-(--space-6)"
       data-testid="transaction-tag-management"
     >
-      <div className="flex items-start gap-(--space-3)">
+      <div className="flex items-start gap-(--space-3) rounded-[var(--radius-card)] border border-border-subtle/70 bg-surface/45 p-(--space-3)">
         <div className="min-w-0 flex-1">
           <Text size="sm" tone="secondary" className="text-pretty">
             {t("managementHint")}

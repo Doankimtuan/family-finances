@@ -6,6 +6,10 @@ import { Link, useRouter } from "@/i18n/navigation";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import { HOUSEHOLD_ERROR_CODE } from "@/modules/tenancy/application/tenancy-constants";
 import { SectionHeader } from "@/shared/patterns/section-header";
+import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
+import { Sheet } from "@/shared/patterns/sheet";
+import { SheetActionFooter } from "@/shared/patterns/sheet-action-footer";
+import { ChoiceTile } from "@/shared/patterns/choice-tile";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
@@ -29,8 +33,7 @@ type PoliciesFormErrorCode = Extract<
   { status: "error" }
 >["code"];
 
-function RadioOption<T extends string>({
-  name,
+function ChoiceOption<T extends string>({
   value,
   checked,
   label,
@@ -38,7 +41,6 @@ function RadioOption<T extends string>({
   disabled,
   onChange,
 }: {
-  name: string;
   value: T;
   checked: boolean;
   label: string;
@@ -47,25 +49,21 @@ function RadioOption<T extends string>({
   onChange: (value: T) => void;
 }) {
   return (
-    <label
-      className={`flex cursor-pointer items-start gap-(--space-3) rounded-lg border border-border-subtle bg-surface px-(--space-4) py-(--space-3) ${
-        disabled ? "cursor-not-allowed opacity-70" : ""
-      }`}
+    <ChoiceTile
+      role="radio"
+      selected={checked}
+      isDisabled={disabled}
+      onPress={() => onChange(value)}
     >
-      <input
-        type="radio"
-        name={name}
-        value={value}
-        checked={checked}
-        disabled={disabled}
-        onChange={() => onChange(value)}
-        className="mt-1 size-4 accent-(--color-accent)"
-      />
-      <span className="flex flex-col gap-0.5">
-        <span className="text-sm font-medium text-text-primary">{label}</span>
-        <span className="text-xs text-text-secondary">{hint}</span>
+      <span className="flex min-w-0 flex-col gap-0.5">
+        <Text size="sm" weight="medium">
+          {label}
+        </Text>
+        <Text size="xs" tone="secondary" className="text-pretty">
+          {hint}
+        </Text>
       </span>
-    </label>
+    </ChoiceTile>
   );
 }
 
@@ -193,9 +191,8 @@ export function PoliciesForm({
             ],
           ] as const
         ).map(([value, labelKey, hintKey]) => (
-          <RadioOption
+          <ChoiceOption
             key={value}
-            name="overspend"
             value={value}
             checked={overspend === value}
             label={t(labelKey)}
@@ -217,9 +214,8 @@ export function PoliciesForm({
             [RitualMode.MANUAL, "ritualManual", "ritualManualHint"],
           ] as const
         ).map(([value, labelKey, hintKey]) => (
-          <RadioOption
+          <ChoiceOption
             key={value}
-            name="monthClose"
             value={value}
             checked={monthClose === value}
             label={t(labelKey)}
@@ -246,9 +242,8 @@ export function PoliciesForm({
             [IncomeAllocateModeConst.OFF, "incomeOff", "incomeOffHint"],
           ] as const
         ).map(([value, labelKey, hintKey]) => (
-          <RadioOption
+          <ChoiceOption
             key={value}
-            name="income"
             value={value}
             checked={income === value}
             label={t(labelKey)}
@@ -288,43 +283,7 @@ export function PoliciesForm({
       </section>
 
       {initial.canEdit ? (
-        confirmOpen ? (
-          <div
-            className="flex flex-col gap-(--space-3) rounded-lg border border-border-subtle bg-surface p-(--space-4)"
-            data-testid="policies-confirm"
-          >
-            <Text size="sm" className="font-semibold text-text-primary">
-              {t("confirmTitle")}
-            </Text>
-            <Text size="sm" tone="secondary">
-              {t("confirmBody")}
-            </Text>
-            <Text
-              size="sm"
-              tone="secondary"
-              data-testid="policies-confirm-money-none"
-            >
-              {t("confirmMoneyNone")}
-            </Text>
-            <Button
-              variant="primary"
-              className="w-full"
-              data-testid="policies-confirm-save"
-              isDisabled={isPending}
-              onPress={onConfirmSave}
-            >
-              {isPending ? t("saving") : t("confirmSave")}
-            </Button>
-            <Button
-              variant="secondary"
-              className="w-full"
-              isDisabled={isPending}
-              onPress={() => setConfirmOpen(false)}
-            >
-              {t("cancel")}
-            </Button>
-          </div>
-        ) : (
+        <>
           <Button
             variant="primary"
             className="w-full"
@@ -338,7 +297,47 @@ export function PoliciesForm({
           >
             {t("save")}
           </Button>
-        )
+          <Sheet
+            isOpen={confirmOpen}
+            onOpenChange={(open) => {
+              if (!isPending) setConfirmOpen(open);
+            }}
+          >
+            <ActionSheetLayout>
+              <ActionSheetLayout.Header>
+                <Sheet.Heading className="text-lg font-semibold tracking-tight text-text-primary">
+                  {t("confirmTitle")}
+                </Sheet.Heading>
+              </ActionSheetLayout.Header>
+              <ActionSheetLayout.Body>
+                <div
+                  className="flex flex-col gap-(--space-3)"
+                  data-testid="policies-confirm"
+                >
+                  <Text size="sm" tone="secondary" className="text-pretty">
+                    {t("confirmBody")}
+                  </Text>
+                  <Text
+                    size="sm"
+                    tone="secondary"
+                    className="text-pretty"
+                    data-testid="policies-confirm-money-none"
+                  >
+                    {t("confirmMoneyNone")}
+                  </Text>
+                </div>
+              </ActionSheetLayout.Body>
+              <SheetActionFooter
+                secondaryLabel={t("cancel")}
+                primaryLabel={isPending ? t("saving") : t("confirmSave")}
+                onSecondary={() => setConfirmOpen(false)}
+                onPrimary={onConfirmSave}
+                primaryTestId="policies-confirm-save"
+                isPending={isPending}
+              />
+            </ActionSheetLayout>
+          </Sheet>
+        </>
       ) : null}
     </div>
   );

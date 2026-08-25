@@ -469,3 +469,4 @@ $$;
 
 revoke all on function public.record_loan_payment(uuid, uuid, numeric, numeric, date) from public;
 grant execute on function public.record_loan_payment(uuid, uuid, numeric, numeric, date) to authenticated;
+;

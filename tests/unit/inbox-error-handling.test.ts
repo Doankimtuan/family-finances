@@ -243,7 +243,7 @@ describe("Inbox queries and staleness worker", () => {
     );
   });
 
-  it("does not return partially enriched rows after a related query fails", async () => {
+  it("keeps the row readable when a related query fails", async () => {
     const listOrder = vi.fn().mockResolvedValue({
       data: [
         {
@@ -280,14 +280,9 @@ describe("Inbox queries and staleness worker", () => {
         .mockReturnValueOnce(listBuilder)
         .mockReturnValueOnce(transactionBuilder),
     } as never);
-    const consoleError = vi
-      .spyOn(console, "error")
-      .mockImplementation(() => undefined);
-
-    await expect(listOpenInboxItems()).resolves.toBeNull();
-    expect(consoleError).toHaveBeenCalledWith(
-      expect.objectContaining({ operation: INBOX_OPERATION.LIST_OPEN }),
-    );
+    await expect(listOpenInboxItems()).resolves.toMatchObject([
+      { id: INBOX_ITEM_ID, enrichmentState: "UNAVAILABLE" },
+    ]);
   });
 
   it("fails the atomic worker as a whole and logs the run context", async () => {

@@ -4,6 +4,21 @@ import { readFileSync, readdirSync } from "node:fs";
 
 const MIGRATIONS_DIR = `${process.cwd()}/supabase/migrations`;
 
+function extractFunctionBlock(sql: string, functionName: string): string {
+  const escapedName = functionName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const start = sql.search(
+    new RegExp(`create\\s+or\\s+replace\\s+function\\s+${escapedName}\\b`, "i"),
+  );
+  if (start < 0) return "";
+
+  const remainder = sql.slice(start + 1);
+  const nextFunction = remainder.search(/create\s+or\s+replace\s+function\s+/i);
+  return sql.slice(
+    start,
+    nextFunction < 0 ? sql.length : start + 1 + nextFunction,
+  );
+}
+
 /**
  * Inbox producer boundary guards (Prompts 13B + 13D).
  *
@@ -20,6 +35,7 @@ describe("Inbox producer boundary (Prompt 13B/13D)", () => {
   const GATEWAY_MIGRATIONS = [
     "20260817224939_inbox_producer_gateway.sql",
     "20260818002352_inbox_integration_hardening.sql",
+    "20260824022207_inbox_loan_debt_attention_18b.sql",
   ];
 
   it("no migration after the gateway migrations inserts into inbox_items directly", () => {
@@ -47,27 +63,24 @@ describe("Inbox producer boundary (Prompt 13B/13D)", () => {
     const producers: Array<{ fn: string; latestFile: string }> = [
       {
         fn: "public.record_transaction",
-        latestFile: "20260804044219_inbox_capture_display_details.sql",
+        latestFile: "20260818012310_inbox_producers_gateway_deploy.sql",
       },
       {
         fn: "public.record_loan_payment",
-        latestFile: "20260809100000_cards_loans_payment_safety.sql",
-      },
-      {
-        fn: "public.record_installment_payment",
-        latestFile: "20260804071840_sprint45_verification_fixes.sql",
+        latestFile:
+          "20260820052850_transactions_financial_integrity_gate_09p0.sql",
       },
       {
         fn: "public.detect_matured_savings",
-        latestFile: "20260817153549_inbox_taxonomy_canonical.sql",
+        latestFile: "20260818012310_inbox_producers_gateway_deploy.sql",
       },
       {
         fn: "public.enqueue_savings_maturity_cascade",
-        latestFile: "20260817153549_inbox_taxonomy_canonical.sql",
+        latestFile: "20260818012310_inbox_producers_gateway_deploy.sql",
       },
       {
         fn: "public.reallocate_jar_capacity",
-        latestFile: "20260816161331_plan_v2_jar_budget_snapshots.sql",
+        latestFile: "20260818012310_inbox_producers_gateway_deploy.sql",
       },
     ];
 
@@ -76,11 +89,12 @@ describe("Inbox producer boundary (Prompt 13B/13D)", () => {
         `${MIGRATIONS_DIR}/${producer.latestFile}`,
         "utf8",
       );
+      const functionSql = extractFunctionBlock(sql, producer.fn);
       liveProducerCalls.push({
         file: producer.latestFile,
         fn: producer.fn,
-        usesGateway: /produce_inbox_item/.test(sql),
-        directInsert: /insert\s+into\s+public\.inbox_items/i.test(sql),
+        usesGateway: /produce_inbox_item/.test(functionSql),
+        directInsert: /insert\s+into\s+public\.inbox_items/i.test(functionSql),
       });
     }
 
@@ -132,5 +146,18 @@ describe("Inbox producer boundary (Prompt 13B/13D)", () => {
     // Cycle-scoped dedupe for savings kinds.
     expect(sql).toContain("cycleId");
     expect(sql).toContain("v_cycle_key");
+  });
+
+  it("18B adds one stable Loan/Debt attention identity and source resolution", () => {
+    const sql = readFileSync(
+      `${MIGRATIONS_DIR}/20260824022207_inbox_loan_debt_attention_18b.sql`,
+      "utf8",
+    );
+    expect(sql).toContain("loan_payment_attention");
+    expect(sql).toContain("debt_payment_attention");
+    expect(sql).toContain("loan-payment-attention");
+    expect(sql).toContain("debt-payment-attention");
+    expect(sql).toContain("resolved_by_source_condition");
+    expect(sql).toContain("sync_loan_debt_attention_inbox");
   });
 });

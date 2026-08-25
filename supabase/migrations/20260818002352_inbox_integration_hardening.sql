@@ -1,55 +1,5 @@
 -- PROMPT 13D — Inbox integration hardening.
---
--- Two correctness fixes found by the 13D audit:
---
--- 1. Terminal-item reopen policy. The 13B gateway unconditionally reset
---    status to 'pending' on conflict, so replaying a producer could reopen a
---    resolved/dismissed/acknowledged decision. Policy per kind:
---      unmapped_expense / income_suggest   refresh while pending only
---      savings_maturity                    refresh while pending (cascade),
---                                          never reopen resolved/acknowledged
---      early_withdrawal_confirmation       refresh while pending only
---      emi_complete                        never reopen terminal
---      emergency_declaration               new action => new dedupe identity
---                                          (source_id = new plan movement)
---
--- 2. Savings dedupe key must include cycleId. source_id is the saving id, so
---    without cycleId a new maturity in a later cycle collides with the old
---    acknowledged item and would reopen it. The key now carries cycleId for
---    savings kinds, keeping one logical attention item per cycle while still
---    allowing cascade-day differentiation within a cycle.
-
--- The gateway is intentionally the single canonical writer. Direct calls are
--- allowed only for authenticated household members (membership-checked), and
--- every consumer is an internal source RPC; there is no user-facing arbitrary
--- Inbox creation surface. 13D documents this in the SECURITY DEFINER audit.
-
--- Re-backfill dedupe_key for every row using the 13D key format
--- (kind | source_type | source_id | cascadeDay | cycleId | assignee | extra).
--- Deterministic from row data; idempotent across replays.
-update public.inbox_items i
-set dedupe_key = concat_ws(
-  '|',
-  i.kind,
-  i.source_type,
-  i.source_id,
-  coalesce(nullif(i.context_json->>'cascadeDay', ''), 'none'),
-  coalesce(nullif(i.context_json->>'cycleId', ''), 'none'),
-  coalesce(i.assigned_to_user_id::text, 'none'),
-  ''
-)
-where i.dedupe_key is null
-   or i.dedupe_key <> concat_ws(
-        '|',
-        i.kind,
-        i.source_type,
-        i.source_id,
-        coalesce(nullif(i.context_json->>'cascadeDay', ''), 'none'),
-        coalesce(nullif(i.context_json->>'cycleId', ''), 'none'),
-        coalesce(i.assigned_to_user_id::text, 'none'),
-        ''
-      );
-
+-- Per-kind reopen policy + cycle-scoped dedupe for savings kinds.
 create or replace function public.produce_inbox_item(
   p_household_id uuid,
   p_kind text,
@@ -101,12 +51,10 @@ begin
     raise exception 'Authentication required';
   end if;
 
-  -- Membership: the actor must belong to the target household.
   if not public.is_household_member(p_household_id) then
     raise exception 'Forbidden';
   end if;
 
-  -- Canonical kind gate.
   if not p_kind = any(v_canonical_kinds) then
     if p_kind = any(v_removed_kinds) then
       raise exception 'Removed Inbox kind cannot be produced';
@@ -114,12 +62,10 @@ begin
     raise exception 'Unknown Inbox kind';
   end if;
 
-  -- Source type normalization + validation.
   if p_source_type is null or p_source_type not in ('transaction', 'guided', 'plan_movement') then
     raise exception 'Invalid Inbox source type';
   end if;
 
-  -- Kind-specific required context (minimum contract).
   if p_kind = 'unmapped_expense' or p_kind = 'income_suggest' then
     if p_source_type <> 'transaction' then
       raise exception 'Invalid source type for kind';
@@ -167,8 +113,6 @@ begin
     end if;
   end if;
 
-  -- Assignment: only emergency declarations may target a member; the target
-  -- must be an active member of the household.
   v_assigned := p_assigned_to_user_id;
   if p_kind <> 'emergency_declaration' and v_assigned is not null then
     raise exception 'Assignment is only valid for emergency declarations';
@@ -184,9 +128,6 @@ begin
 
   v_cascade_day := coalesce(p_context->>'cascadeDay', '');
 
-  -- Savings kinds: include cycleId so a new cycle's maturity is a new logical
-  -- attention event, while cascade-day reminders within the same cycle share
-  -- the identity and refresh the pending item.
   if p_kind in ('savings_maturity', 'early_withdrawal_confirmation') then
     v_cycle_key := coalesce(p_context->>'cycleId', 'none');
   else
@@ -195,8 +136,6 @@ begin
 
   v_currency_norm := upper(coalesce(nullif(trim(p_currency), ''), 'VND'));
 
-  -- Dedupe identity: kind | source_type | source_id | cascadeDay | cycleId |
-  -- assignee | dedupe_extra.
   v_dedupe_key := concat_ws(
     '|',
     p_kind,
@@ -214,11 +153,6 @@ begin
     'data', coalesce(p_context, '{}'::jsonb)
   );
 
-  -- Per-kind reopen policy (Prompt 13D):
-  --   - emi_complete: never reopen a terminal item.
-  --   - savings_maturity: never reopen acknowledged/resolved; refresh pending
-  --     (cascade reminders for the same cycle).
-  --   - all others: refresh only while pending.
   v_new_status := 'pending';
   if p_kind = 'emi_complete' then
     v_refresh_condition := 'status = ''pending''';
@@ -265,8 +199,6 @@ begin
     v_dedupe_key;
 
   if v_item_id is null then
-    -- Conflict with a terminal item that must not reopen: return the existing
-    -- row so callers can observe idempotent behavior.
     select i.id into v_item_id
     from public.inbox_items i
     where i.household_id = p_household_id
@@ -282,4 +214,4 @@ end;
 $$;
 
 revoke all on function public.produce_inbox_item(uuid, text, text, uuid, numeric, text, text, jsonb, uuid, timestamptz, uuid, uuid, text) from public;
-grant execute on function public.produce_inbox_item(uuid, text, text, uuid, numeric, text, text, jsonb, uuid, timestamptz, uuid, uuid, text) to authenticated;
+grant execute on function public.produce_inbox_item(uuid, text, text, uuid, numeric, text, text, jsonb, uuid, timestamptz, uuid, uuid, text) to authenticated;;

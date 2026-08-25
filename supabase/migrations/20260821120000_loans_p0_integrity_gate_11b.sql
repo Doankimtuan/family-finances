@@ -3,23 +3,18 @@
 
 alter table public.loans
   add column if not exists idempotency_key text;
-
 create unique index if not exists loans_household_idempotency_unique
   on public.loans (household_id, idempotency_key)
   where idempotency_key is not null;
-
 alter table public.loan_payments
   add column if not exists idempotency_key text;
-
 create unique index if not exists loan_payments_household_idempotency_unique
   on public.loan_payments (household_id, idempotency_key)
   where idempotency_key is not null;
-
 alter function public.create_loan_with_schedule(
   text,text,text,numeric,numeric,text,text,numeric,int,numeric,date,int,date,
   date,numeric,numeric,numeric,date,text,char,jsonb,jsonb,text
 ) rename to _create_loan_with_schedule_unchecked_11b;
-
 create or replace function public.create_loan_with_schedule(
   p_name text,
   p_lender text,
@@ -105,12 +100,10 @@ begin
   return v_result || jsonb_build_object('idempotentReplay', false);
 end;
 $$;
-
 revoke all on function public._create_loan_with_schedule_unchecked_11b(
   text,text,text,numeric,numeric,text,text,numeric,int,numeric,date,int,date,
   date,numeric,numeric,numeric,date,text,char,jsonb,jsonb,text
 ) from public, anon, authenticated;
-
 revoke all on function public.create_loan_with_schedule(
   text,text,text,numeric,numeric,text,text,numeric,int,numeric,date,int,date,
   date,numeric,numeric,numeric,date,text,char,jsonb,jsonb,text,text
@@ -119,10 +112,8 @@ grant execute on function public.create_loan_with_schedule(
   text,text,text,numeric,numeric,text,text,numeric,int,numeric,date,int,date,
   date,numeric,numeric,numeric,date,text,char,jsonb,jsonb,text,text
 ) to authenticated;
-
 alter function public.record_loan_payment(uuid, uuid, text, date)
   rename to _record_loan_payment_unchecked_11b;
-
 create or replace function public.record_loan_payment(
   p_loan_id uuid,
   p_account_id uuid,
@@ -233,11 +224,9 @@ begin
   );
 end;
 $$;
-
 revoke all on function public._record_loan_payment_unchecked_11b(
   uuid, uuid, text, date
 ) from public, anon, authenticated;
-
 revoke all on function public.record_loan_payment(
   uuid, uuid, text, date, text
 ) from public, anon;

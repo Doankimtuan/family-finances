@@ -389,3 +389,78 @@ committed authenticated lifecycle browser fixture remain for later polish.
 Recommended next prompt:
 Prompt 14G — Together UX Polish & Final V1 Readiness
 ```
+
+## 23. Together UX polish implementation
+
+The Together UX polish pass was implemented as a UI-only change set. Existing route names, server actions, RPCs, RLS, membership lifecycle semantics, ownership references, and navigation outcomes remain unchanged.
+
+### Implemented presentation changes
+
+- The Together overview now leads with a household identity hero, active-member count, current responsibility context, Admin continuity notice when the household has one Admin, and a grouped household-management section.
+- The overview retains all existing destinations and restores stable test IDs for members, invitations, policies, preferences, and settings links. Admin-only invite visibility and capacity gating remain unchanged.
+- Active members now use a compact divided management list with identity first, subtle Admin/Partner responsibility badges, active status, capability language, and state-aware actions.
+- Role changes and leave/remove confirmations now use the canonical HeroUI-backed action-sheet layout with safe-area-aware body/footer structure, pending-state prevention, and the existing impact/obligation copy.
+- Pending invitations now have separate visual treatment from active members, with explicit pending status, expiry, Copy link, copied feedback, Revoke, and localized clipboard failure handling.
+- Invite creation now includes a clear trust/access explanation, shared field presentation, pending button state, and localized validation copy while retaining the existing seven-day link and Admin-only action contract.
+- Invitation deep links now foreground household identity, invited-email context, Partner access explanation, explicit Accept/Decline actions, and a human terminal-invitation treatment without exposing token or infrastructure details.
+- Policy choices now use the existing ChoiceTile pattern instead of native radio controls; material policy saving uses the canonical action sheet while preserving the “does not move money” confirmation.
+- Household locale selection now uses the shared HeroUI SelectField with shared description and read-only behavior. Timezone and base currency remain read-only.
+- Together settings are grouped into profile, app preferences, household, and account sections. Account lifecycle actions remain separate and are not presented as household deletion.
+- Added layout-faithful loading boundaries for Together overview, members, invitations, policies, preferences, settings, and invite deep-link preview. New entry motion uses only the existing `MotionReveal` policy-aware client leaf.
+
+### Redesign status matrix
+
+| Discovered surface                                                  | Status                                      | Notes                                                                                                                    |
+| ------------------------------------------------------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `/[locale]/together` overview                                       | Redesigned                                  | Household hero, role context, grouped management links, pending count, Admin continuity notice, preserved invite gating. |
+| Home Together entry                                                 | Already compliant / intentionally unchanged | Existing explicit Home entry remains the canonical entry point; no route change required.                                |
+| Bottom navigation Together tab                                      | Already compliant / intentionally unchanged | Existing navigation registry and active-tab behavior remain unchanged.                                                   |
+| `/[locale]/together/members`                                        | Redesigned                                  | Compact active-member rows, responsibility/capability context, detail header, preserved actions.                         |
+| Role-change action                                                  | Redesigned                                  | Canonical action sheet, Admin-only control, exact responsibility semantics preserved.                                    |
+| Leave action                                                        | Redesigned                                  | Canonical action sheet, Admin continuity guard, impact summary preserved.                                                |
+| Remove Partner action                                               | Redesigned                                  | Canonical destructive confirmation sheet, access-loss/read-only consequences preserved.                                  |
+| `/[locale]/together/invitations`                                    | Redesigned                                  | Distinct pending-invite list, expiry, copy/revoke, Admin-only create.                                                    |
+| `/[locale]/together/invitations/new`                                | Redesigned                                  | Trust-first form hierarchy; existing action/redirect contract preserved.                                                 |
+| `/[locale]/invite/[token]` valid preview                            | Redesigned                                  | Household identity first, invited email, join explanation, Accept/Decline.                                               |
+| `/[locale]/invite/[token]` terminal states                          | Redesigned                                  | Exact terminal transition blocking preserved; generic inactive copy for non-expired terminal states.                     |
+| `/[locale]/together/policies`                                       | Redesigned                                  | ChoiceTile controls, sheet confirmation, Partner read-only and no-money-movement copy preserved.                         |
+| `/[locale]/together/preferences`                                    | Redesigned                                  | Shared SelectField, accessible description, read-only timezone/base currency preserved.                                  |
+| `/[locale]/together/settings`                                       | Redesigned                                  | Grouped settings navigation and separate account lifecycle emphasis.                                                     |
+| `/[locale]/together/settings/account`                               | Already compliant / intentionally unchanged | Existing account lifecycle confirmation behavior remains separate from household actions.                                |
+| Household onboarding                                                | Already compliant / intentionally unchanged | Existing two-step creation flow and active-membership gating preserved; no second creation flow added.                   |
+| Money former-member detail                                          | Already compliant / intentionally unchanged | Existing ownership badge, read-only gating, and historical context remain canonical.                                     |
+| Inbox owner-unavailable context                                     | Already compliant / intentionally unchanged | Existing capability gating remains; no duplicated financial detail was added to Together.                                |
+| Dedicated former-member management route                            | Blocked with exact reason                   | Product has no supported dedicated route; historical/read-only context remains on resource surfaces.                     |
+| Household switcher                                                  | Blocked with exact reason                   | V1 supports one active household per user; no switcher was added.                                                        |
+| Household deletion                                                  | Blocked with exact reason                   | Not supported by the product contract; solo Admin continuity notice remains.                                             |
+| Ownership transfer                                                  | Blocked with exact reason                   | Admin responsibility is not financial ownership; no transfer action was added.                                           |
+| Automatic promotion                                                 | Blocked with exact reason                   | Admin continuity requires explicit role transfer; no automatic promotion was added.                                      |
+| Invite resend                                                       | Blocked with exact reason                   | Existing supported flow is a new invite when capacity/duplicate rules allow; no resend action was added.                 |
+| Settlement-on-departure                                             | Blocked with exact reason                   | Leave/remove preserve financial rows and do not settle obligations.                                                      |
+| Custom roles, dependents, legal family status, engagement summaries | Blocked with exact reason                   | Explicitly deferred or hidden by product decision; no UI was invented.                                                   |
+| Legacy duplicate Together implementation                            | Unreachable legacy                          | No active duplicate route was added; stale locators remain documented rather than driving new behavior.                  |
+
+### Verification for the UX polish pass
+
+- `npm run typecheck`: passed.
+- `npm run lint`: passed.
+- `npm run build`: passed; all Together and invite routes compiled successfully.
+- Focused unit coverage: 24 tests passed across invitations, tenancy error handling, Together membership lifecycle, and ownership UI contracts.
+- No new Playwright, E2E, screenshot, visual-regression, Supabase, or migration tests were created.
+- English real-browser verification ran on the connected desktop against the production build at 390px, 440px, 768px, and 1280px. The overview, members, invitations, invite creation, policies, preferences, and settings surfaces each rendered one visible route surface with no horizontal overflow. Invalid invite preview remained fail-closed with no Primary navigation. Evidence is retained in `output/playwright/together-redesign/`.
+- The existing invitation smoke test was run in its two non-mutating branches: unauthenticated invitation redirect and invalid-token fail-closed UI both passed. The credentialed branch remains blocked by a stale strict `ledger-balance` locator that resolves to multiple existing Money balances; this is unrelated to the Together UI redesign and no test was changed.
+- Existing user changes outside the Together redesign scope were preserved.
+
+### Explicit non-additions
+
+No new household deletion, ownership transfer, automatic promotion, invitation resend, member-detail route, household switcher, financial settlement, cross-household resource migration, or expanded role model was added. No application-layer tenancy command, financial command, Supabase migration, RLS policy, RPC, or database schema was changed by this UX pass.
+
+## 21. Capacity update — August 2026
+
+The household member capacity is now **10 active members**, superseding the historical two-member statements in this report. The canonical application constant `HOUSEHOLD_MEMBER_LIMIT` is set to `10`, and migration `20260824102100_together_household_member_capacity_10.sql` forward-redefines both `create_household_invitation` and `accept_household_invitation` with the same authorization, household-row locking, invitation-state, rejoin, and ownership semantics as 14F. Both database guards use the ten-member threshold and return a neutral `Household is full` error that maps to the existing typed `HOUSEHOLD_FULL` result. The role model remains **Admin/Partner**; this change increases capacity only and does not add household deletion or ownership-transfer behavior.
+
+The migration is committed as source and has been applied to the active `family-finances-2` Supabase project. Migration history and both deployed function definitions were verified after application.
+
+Capacity-specific focused unit coverage verifies both ten-member guards and compatibility with the legacy full-household error text. English Together UI behavior remains invite-enabled for an active household below ten members and no longer displays a misleading `/ 2` denominator.
+
+---

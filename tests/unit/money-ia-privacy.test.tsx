@@ -11,6 +11,8 @@ import { OWNER_STATUS } from "@/modules/shared-kernel/application/financial-owne
 import { MoneyAccountGroupKey } from "@/modules/ledger/application";
 import { FinancialAccountHero } from "@/shared/patterns/financial-account-hero";
 import { CreditCardHero } from "@/app/[locale]/(product)/money/accounts/[id]/credit-card-hero";
+import { MoneyPositionHero } from "@/app/[locale]/(product)/money/money-position-hero";
+import { FinancialValue } from "@/shared/patterns/financial-value";
 
 vi.mock("@/i18n/navigation", () => ({
   Link: ({ href, children, ...props }: ComponentProps<"a">) => (
@@ -134,6 +136,32 @@ describe("Money IA and financial privacy", () => {
     expect(screen.getByText("Credit limit")).toBeInTheDocument();
     expect(document.body).not.toHaveTextContent("₫1,200,000");
     expect(document.body).not.toHaveTextContent("₫800,000");
+  });
+
+  it("masks Money hub credit outstanding while keeping its label visible", () => {
+    window.localStorage.setItem("vinha.financial-values-hidden", "true");
+
+    render(
+      <FinancialPrivacyProvider>
+        <MoneyPositionHero
+          ownedMoneyLabel="Owned money"
+          ownedMoneyValue="₫2,000,000"
+          metaLine={
+            <span>
+              Card debt <FinancialValue>₫800,000</FinancialValue>
+            </span>
+          }
+          compositionLabel="Composition"
+          composition={[]}
+          activityHref="/money/transactions"
+          activityLabel="See activity"
+        />
+      </FinancialPrivacyProvider>,
+    );
+
+    expect(screen.getByText(/Card debt/)).toBeInTheDocument();
+    expect(document.body).not.toHaveTextContent("₫800,000");
+    expect(document.body).toHaveTextContent("••••••");
   });
 
   it("renders account and credit-card objects with distinct bounded semantics", () => {
@@ -287,6 +315,33 @@ describe("Money IA and financial privacy", () => {
 
     expect(screen.getAllByTestId("money-account-group-title")).toHaveLength(2);
     expect(screen.getAllByTestId("account-card")).toHaveLength(2);
+  });
+
+  it("keeps account and card failures visible as independent states", () => {
+    render(
+      <MoneyAccountsScan
+        labels={{
+          ...labels,
+          accountsUnavailable: "Accounts unavailable",
+          creditCardsUnavailable: "Credit cards unavailable",
+        }}
+        accountGroups={[]}
+        initialAccountGroups={[]}
+        accountPresentation="flat"
+        hasMoreAccounts={false}
+        creditCards={[]}
+        accountsUnavailable
+        creditCardsUnavailable
+        createAction={<button type="button">Add account</button>}
+      />,
+    );
+
+    expect(screen.getByTestId("money-accounts-unavailable")).toHaveTextContent(
+      "Accounts unavailable",
+    );
+    expect(
+      screen.getByTestId("money-credit-cards-unavailable"),
+    ).toHaveTextContent("Credit cards unavailable");
   });
 
   it("expands the full account dataset inline and collapses it in place", () => {

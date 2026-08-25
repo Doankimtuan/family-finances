@@ -33,8 +33,6 @@ export {
 } from "./auth-screen-header";
 export {
   BrandMark,
-  BRAND_MARK_PATH,
-  TWIN_NEST_PATH,
   type BrandMarkProps,
   type BrandMarkSize,
   type BrandMarkVariant,
@@ -60,6 +58,7 @@ export { ErrorState } from "./error-state";
 export { LocaleSwitcher } from "./locale-switcher";
 export { ThemeToggle } from "./theme-toggle";
 export { TogetherPreferences } from "./together-preferences";
+export { TogetherNavRow, TogetherStatusStrip } from "./together-management";
 export { SectionHeader, type SectionHeaderProps } from "./section-header";
 export {
   Balance,

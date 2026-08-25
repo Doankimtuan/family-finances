@@ -17,10 +17,16 @@ import {
   OverspendPolicy,
   type OverspendPolicy as OverspendPolicyValue,
 } from "@/modules/tenancy/application/household-policies.schema";
-import { APP_PATH, inboxItemPath } from "@/modules/tenancy/application/app-path";
+import {
+  APP_PATH,
+  inboxItemPath,
+} from "@/modules/tenancy/application/app-path";
 import { ControlledField } from "@/shared/patterns/controlled-fields";
 import { TextField, CheckboxField } from "@/shared/ui/form";
 import { Button } from "@/shared/ui/button";
+import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
+import { SheetActionFooter } from "@/shared/patterns/sheet-action-footer";
+import { Sheet } from "@/shared/patterns/sheet";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Text } from "@/shared/ui/text";
 import { Section } from "@/shared/patterns/section";
@@ -146,7 +152,6 @@ export function ReallocateJarForm({
     defaultValues: {
       sourceJarId,
       targetJarId: targetJars[0]?.id ?? "",
-      amount: undefined as unknown as number,
       isEmergency: false,
       intentNote: "",
       warningAcknowledged: false,
@@ -189,7 +194,10 @@ export function ReallocateJarForm({
             <Text size="sm" tone="secondary">
               {t("amountLabel")}
             </Text>
-            <Text size="sm" className="tabular-nums font-medium text-text-primary">
+            <Text
+              size="sm"
+              className="tabular-nums font-medium text-text-primary"
+            >
               {receipt.amount} {currency}
             </Text>
           </div>
@@ -197,7 +205,10 @@ export function ReallocateJarForm({
             <Text size="sm" tone="secondary">
               {t("receiptFrom")}
             </Text>
-            <Text size="sm" className="text-right font-medium text-text-primary">
+            <Text
+              size="sm"
+              className="text-right font-medium text-text-primary"
+            >
               {receipt.sourceName}
             </Text>
           </div>
@@ -205,7 +216,10 @@ export function ReallocateJarForm({
             <Text size="sm" tone="secondary">
               {t("receiptTo")}
             </Text>
-            <Text size="sm" className="text-right font-medium text-text-primary">
+            <Text
+              size="sm"
+              className="text-right font-medium text-text-primary"
+            >
               {receipt.targetName}
             </Text>
           </div>
@@ -317,7 +331,6 @@ export function ReallocateJarForm({
         reset({
           sourceJarId,
           targetJarId: targetJars[0]?.id ?? "",
-          amount: undefined as unknown as number,
           isEmergency: false,
           intentNote: "",
           warningAcknowledged: false,
@@ -343,142 +356,149 @@ export function ReallocateJarForm({
     });
   };
 
+  const close = () => {
+    setOpen(false);
+    setAwaitingWarn(false);
+    setErrorCode(null);
+  };
+
   return (
-    <div
-      className="flex flex-col gap-(--space-3) rounded-lg border border-border-subtle bg-surface p-(--space-4)"
-      data-testid="jar-reallocate-form"
-    >
-      <StatusAlert
-        variant="info"
-        title={t("virtualBannerTitle")}
-        description={t("virtualBannerBody")}
-      />
+    <Sheet isOpen onOpenChange={(next) => !next && close()}>
+      <ActionSheetLayout>
+        <ActionSheetLayout.Header>
+          <Sheet.Heading className="text-lg font-semibold tracking-tight text-text-primary">
+            {t("open")}
+          </Sheet.Heading>
+        </ActionSheetLayout.Header>
+        <ActionSheetLayout.Body>
+          <div
+            className="flex flex-col gap-(--space-3)"
+            data-testid="jar-reallocate-form"
+          >
+            <StatusAlert
+              variant="info"
+              title={t("virtualBannerTitle")}
+              description={t("virtualBannerBody")}
+            />
 
-      <Text size="sm" tone="secondary" data-testid="jar-available-to-move">
-        {t("availableToMoveLabel", {
-          amount: availableToMove,
-          currency,
-        })}
-      </Text>
+            <Text
+              size="sm"
+              tone="secondary"
+              data-testid="jar-available-to-move"
+            >
+              {t("availableToMoveLabel", {
+                amount: availableToMove,
+                currency,
+              })}
+            </Text>
 
-      {errorCode ? (
-        <StatusAlert
-          variant="danger"
-          title={t("open")}
-          description={t(`errors.${errorCode}`)}
-        />
-      ) : null}
+            {errorCode ? (
+              <StatusAlert
+                variant="danger"
+                title={t("open")}
+                description={t(`errors.${errorCode}`)}
+              />
+            ) : null}
 
-      {awaitingWarn && overspendPolicy === OverspendPolicy.WARN ? (
-        <div
-          className="flex flex-col gap-(--space-3)"
-          data-testid="jar-reallocate-warn"
-        >
-          <StatusAlert
-            variant="warning"
-            title={t("warnTitle")}
-            description={t("warnBody")}
-          />
-          <CheckboxField
-            id={warnAckId}
-            label={t("warnAcknowledge")}
-            {...register("warningAcknowledged")}
-          />
-        </div>
-      ) : null}
+            {awaitingWarn && overspendPolicy === OverspendPolicy.WARN ? (
+              <div
+                className="flex flex-col gap-(--space-3)"
+                data-testid="jar-reallocate-warn"
+              >
+                <StatusAlert
+                  variant="warning"
+                  title={t("warnTitle")}
+                  description={t("warnBody")}
+                />
+                <CheckboxField
+                  id={warnAckId}
+                  label={t("warnAcknowledge")}
+                  {...register("warningAcknowledged")}
+                />
+              </div>
+            ) : null}
 
-      <ControlledField
-        control={control}
-        field={{
-          type: "amount",
-          name: "amount",
-          id: amountId,
-          label: t("amountLabel"),
-          testId: "jar-reallocate-amount",
-          emptyValue: undefined,
-        }}
-      />
+            <ControlledField
+              control={control}
+              field={{
+                type: "amount",
+                name: "amount",
+                id: amountId,
+                label: t("amountLabel"),
+                testId: "jar-reallocate-amount",
+                emptyValue: undefined,
+              }}
+            />
 
-      <label className="flex flex-col gap-(--space-2)" htmlFor={targetId}>
-        <span className="text-sm font-medium text-text-primary">
-          {t("targetLabel")}
-        </span>
-        <select
-          id={targetId}
-          className="min-h-11 w-full rounded-md border border-border-subtle bg-surface px-(--space-3) text-sm text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-          data-testid="jar-reallocate-target"
-          {...register("targetJarId")}
-        >
-          {targetJars.map((jar) => (
-            <option key={jar.id} value={jar.id}>
-              {localizeCatalogName(tCatalog, "jars", jar.name) || jar.name}
-            </option>
-          ))}
-        </select>
-        {errors.targetJarId ? (
-          <p className="text-sm text-danger" role="alert">
-            {t(`errors.${asFieldErrorKey(errors.targetJarId.message)}`)}
-          </p>
-        ) : null}
-      </label>
+            <ControlledField
+              control={control}
+              field={{
+                type: "select",
+                name: "targetJarId",
+                id: targetId,
+                label: t("targetLabel"),
+                options: targetJars.map((jar) => ({
+                  id: jar.id,
+                  label:
+                    localizeCatalogName(tCatalog, "jars", jar.name) || jar.name,
+                })),
+                error: errors.targetJarId
+                  ? t(`errors.${asFieldErrorKey(errors.targetJarId.message)}`)
+                  : undefined,
+                testId: "jar-reallocate-target",
+              }}
+            />
 
-      <CheckboxField
-        id={emergencyId}
-        label={t("emergencyLabel")}
-        data-testid="jar-reallocate-emergency"
-        {...register("isEmergency", {
-          onChange: (event) => {
-            const checked = Boolean((event.target as HTMLInputElement).checked);
-            setValue("isEmergency", checked);
-            if (checked) {
-              setAwaitingWarn(false);
-              setValue("warningAcknowledged", false);
-            }
-          },
-        })}
-      />
+            <CheckboxField
+              id={emergencyId}
+              label={t("emergencyLabel")}
+              data-testid="jar-reallocate-emergency"
+              {...register("isEmergency", {
+                onChange: (event) => {
+                  const checked = Boolean(
+                    (event.target as HTMLInputElement).checked,
+                  );
+                  setValue("isEmergency", checked);
+                  if (checked) {
+                    setAwaitingWarn(false);
+                    setValue("warningAcknowledged", false);
+                  }
+                },
+              })}
+            />
 
-      {isEmergency ? (
-        <TextField
-          id={noteId}
-          label={t("intentNoteLabel")}
-          description={t("intentNoteHint")}
-          required
-          registration={register("intentNote")}
-          error={
-            errors.intentNote
-              ? t(`errors.${asFieldErrorKey(errors.intentNote.message)}`)
-              : undefined
+            {isEmergency ? (
+              <TextField
+                id={noteId}
+                label={t("intentNoteLabel")}
+                description={t("intentNoteHint")}
+                required
+                registration={register("intentNote")}
+                error={
+                  errors.intentNote
+                    ? t(`errors.${asFieldErrorKey(errors.intentNote.message)}`)
+                    : undefined
+                }
+                data-testid="jar-reallocate-intent-note"
+              />
+            ) : null}
+
+            <input type="hidden" {...register("sourceJarId")} />
+          </div>
+        </ActionSheetLayout.Body>
+        <SheetActionFooter
+          secondaryLabel={t("cancel")}
+          primaryLabel={awaitingWarn ? t("warnContinue") : t("submit")}
+          onSecondary={close}
+          onPrimary={() => void handleSubmit(submitReallocate)()}
+          primaryTestId="jar-reallocate-submit"
+          isDisabled={!online}
+          isPrimaryDisabled={
+            amount == null || amount <= 0 || amount > availableToMove
           }
-          data-testid="jar-reallocate-intent-note"
+          isPending={isPending}
         />
-      ) : null}
-
-      <input type="hidden" {...register("sourceJarId")} />
-
-      <Button
-        variant="primary"
-        className="w-full"
-        data-testid="jar-reallocate-submit"
-        isDisabled={isPending || !online || amount == null || amount <= 0 || amount > availableToMove}
-        onPress={() => {
-          void handleSubmit(submitReallocate)();
-        }}
-      >
-        {awaitingWarn ? t("warnContinue") : t("submit")}
-      </Button>
-      <Button
-        variant="secondary"
-        className="w-full"
-        isDisabled={isPending}
-        onPress={() => {
-          setOpen(false);
-          setAwaitingWarn(false);
-          setErrorCode(null);
-        }}
-      >
-        {t("cancel")}
-      </Button>
-    </div>
+      </ActionSheetLayout>
+    </Sheet>
   );
 }

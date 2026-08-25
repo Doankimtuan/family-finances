@@ -93,8 +93,7 @@ create policy goal_funding_links_insert_member on public.goal_funding_links
     public.is_household_member(household_id)
     and exists (
       select 1 from public.goals g
-      where g.id = goal_funding_links.goal_id
-        and g.household_id = goal_funding_links.household_id
+      where g.id = goal_id and g.household_id = household_id
         and g.status in ('active', 'ready')
     )
   );
@@ -199,3 +198,4 @@ before insert or update on public.goal_funding_links
 for each row execute function public.enforce_goal_funding_link_integrity();
 revoke all on function public.enforce_goal_funding_link_integrity() from public;
 grant execute on function public.enforce_goal_funding_link_integrity() to authenticated;
+;

@@ -1,5 +1,3 @@
--- Enrich inbox titles/context from category + account when capturing unmapped txs.
-
 create or replace function public.record_transaction(
   p_account_id uuid,
   p_type text,
@@ -143,57 +141,36 @@ begin
   end;
 
   insert into public.transactions (
-    household_id,
-    account_id,
-    type,
-    amount,
-    currency,
-    transaction_date,
-    note,
-    category_id,
-    jar_id,
-    status,
-    created_by,
-    idempotency_key
+    household_id, account_id, type, amount, currency, transaction_date, note,
+    category_id, jar_id, status, created_by, idempotency_key
   )
   values (
-    v_household_id,
-    p_account_id,
-    p_type,
-    p_amount,
-    coalesce(v_currency, 'VND'),
-    coalesce(p_transaction_date, (timezone('utc', now()))::date),
-    v_note,
-    p_category_id,
-    v_jar_id,
-    v_status,
-    v_user_id,
+    v_household_id, p_account_id, p_type, p_amount, coalesce(v_currency, 'VND'),
+    coalesce(p_transaction_date, (timezone('utc', now()))::date), v_note,
+    p_category_id, v_jar_id, v_status, v_user_id,
     nullif(trim(coalesce(p_idempotency_key, '')), '')
   )
   returning id into v_tx_id;
 
   if p_type = 'expense' and v_jar_id is null then
     v_title := coalesce(v_note, nullif(trim(coalesce(v_category_name, '')), ''), 'Unmapped expense');
-    v_inbox_id := (
-      select (public.produce_inbox_item(
-        p_household_id => v_household_id,
-        p_kind => 'unmapped_expense',
-        p_source_type => 'transaction',
-        p_source_id => v_tx_id,
-        p_amount => p_amount,
-        p_currency => coalesce(v_currency, 'VND'),
-        p_title => v_title,
-        p_suggested_category_id => p_category_id,
-        p_context => jsonb_build_object(
-          'reason', 'unmapped_expense',
-          'category_id', p_category_id,
-          'category_name', v_category_name,
-          'account_id', p_account_id,
-          'account_name', v_account_name,
-          'note', v_note
-        )
-      ))->>'inbox_item_id'
-    )::uuid;
+    insert into public.inbox_items (
+      household_id, kind, source_type, source_id, amount, currency, title,
+      suggested_category_id, context_json
+    )
+    values (
+      v_household_id, 'unmapped_expense', 'transaction', v_tx_id, p_amount,
+      coalesce(v_currency, 'VND'), v_title, p_category_id,
+      jsonb_build_object(
+        'reason', 'unmapped_expense',
+        'category_id', p_category_id,
+        'category_name', v_category_name,
+        'account_id', p_account_id,
+        'account_name', v_account_name,
+        'note', v_note
+      )
+    )
+    returning id into v_inbox_id;
   end if;
 
   if p_type = 'income'
@@ -201,27 +178,24 @@ begin
      and coalesce(v_income_mode, 'suggest') in ('suggest', 'auto')
   then
     v_title := coalesce(v_note, nullif(trim(coalesce(v_category_name, '')), ''), 'Place income');
-    v_inbox_id := (
-      select (public.produce_inbox_item(
-        p_household_id => v_household_id,
-        p_kind => 'income_suggest',
-        p_source_type => 'transaction',
-        p_source_id => v_tx_id,
-        p_amount => p_amount,
-        p_currency => coalesce(v_currency, 'VND'),
-        p_title => v_title,
-        p_suggested_category_id => p_category_id,
-        p_context => jsonb_build_object(
-          'reason', 'income_suggest',
-          'income_allocate_mode', v_income_mode,
-          'category_id', p_category_id,
-          'category_name', v_category_name,
-          'account_id', p_account_id,
-          'account_name', v_account_name,
-          'note', v_note
-        )
-      ))->>'inbox_item_id'
-    )::uuid;
+    insert into public.inbox_items (
+      household_id, kind, source_type, source_id, amount, currency, title,
+      suggested_category_id, context_json
+    )
+    values (
+      v_household_id, 'income_suggest', 'transaction', v_tx_id, p_amount,
+      coalesce(v_currency, 'VND'), v_title, p_category_id,
+      jsonb_build_object(
+        'reason', 'income_suggest',
+        'income_allocate_mode', v_income_mode,
+        'category_id', p_category_id,
+        'category_name', v_category_name,
+        'account_id', p_account_id,
+        'account_name', v_account_name,
+        'note', v_note
+      )
+    )
+    returning id into v_inbox_id;
   end if;
 
   return jsonb_build_object(
@@ -230,4 +204,4 @@ begin
     'idempotent', false
   );
 end;
-$$;
+$$;;

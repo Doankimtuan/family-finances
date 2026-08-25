@@ -40,17 +40,17 @@ import {
   type InvestmentUxType,
 } from "@/modules/investments/application/investment-ux";
 import { DEFAULT_CURRENCY } from "@/modules/ledger/application/client";
-import { TextField } from "@/shared/ui/form";
+import { CheckboxField, SelectField, TextField } from "@/shared/ui/form";
 import { Button } from "@/shared/ui/button";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { ControlledField } from "@/shared/patterns/controlled-fields";
 import { DecimalField } from "@/shared/patterns/decimal-field";
 import { ConfirmSummary } from "@/shared/patterns/confirm-summary";
-import { LabeledSelect } from "@/shared/patterns/labeled-native-field";
+import { SheetActionFooter } from "@/shared/patterns/sheet-action-footer";
 import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
 import { FinancialValue } from "@/shared/patterns/financial-value";
 import { Sheet } from "@/shared/patterns/sheet";
-import { formatCurrency } from "@/shared/i18n/formatters";
+import { formatCurrency, formatNumber } from "@/shared/i18n/formatters";
 import {
   recordAssetConversionAction,
   recordInvestmentBuyAction,
@@ -69,6 +69,8 @@ type Props = {
   title: string;
 };
 const today = () => new Date().toISOString().slice(0, 10);
+const CRYPTO_DECIMAL_DIGITS = 8;
+const STANDARD_DECIMAL_DIGITS = 2;
 const operationModes = [
   ...INVESTMENT_OPERATION_TYPE_VALUES,
   InvestmentFormMode.VALUATION,
@@ -306,6 +308,15 @@ export function InvestmentOperationForm({
           accountingMethod: holding.accountingMethod,
           lots: holding.lots,
         })
+      : null;
+  const remainingUnitsText =
+    disposalPreview?.remainingQuantity != null
+      ? `${formatNumber(Number(disposalPreview.remainingQuantity), locale, {
+          maximumFractionDigits:
+            holding.assetClass === InvestmentAssetClass.CRYPTO
+              ? CRYPTO_DECIMAL_DIGITS
+              : STANDARD_DECIMAL_DIGITS,
+        })} ${tUx(ux.unitSuffixKey)}`
       : null;
   const purchasePreview =
     mode === InvestmentFormMode.BUY
@@ -574,6 +585,15 @@ export function InvestmentOperationForm({
                         label: t("realizedPnl"),
                         value: money(disposalPreview.realizedPnl),
                       },
+                      ...(remainingUnitsText != null
+                        ? [
+                            {
+                              id: "remaining-units",
+                              label: t("remainingUnitsLabel"),
+                              value: remainingUnitsText,
+                            },
+                          ]
+                        : []),
                     ]
                   : []),
                 {
@@ -590,13 +610,14 @@ export function InvestmentOperationForm({
           ) : (
             <>
               {mode === InvestmentFormMode.VALUATION ? (
-                <section className="rounded-(--radius-card) border border-border-subtle bg-surface-muted p-(--space-4)">
+                <section className="flex flex-col gap-(--space-2) rounded-(--radius-card) border border-border-subtle bg-surface-muted p-(--space-4)">
                   <div className="text-sm font-medium">
                     {holding.symbol || holding.name}
                   </div>
-                  <div className="mt-1 text-sm text-text-secondary">
+                  <div className="text-sm text-text-secondary">
                     {holding.quantity} {tUx(ux.unitSuffixKey)}
                   </div>
+                  <InvestmentValuationMeta holding={holding} variant="inline" />
                 </section>
               ) : null}
               {mode === InvestmentFormMode.CONVERSION ? (
@@ -605,12 +626,12 @@ export function InvestmentOperationForm({
                     name="sourceId"
                     control={control}
                     render={({ field }) => (
-                      <LabeledSelect
+                      <SelectField
+                        id="investment-operation-source"
                         label={t("source")}
                         value={field.value}
                         options={holdingOptions}
-                        onChange={(event) => {
-                          const next = event.target.value;
+                        onChange={(next) => {
                           field.onChange(next);
                           if (next === destinationId)
                             setValue(
@@ -626,7 +647,8 @@ export function InvestmentOperationForm({
                     name="destinationId"
                     control={control}
                     render={({ field }) => (
-                      <LabeledSelect
+                      <SelectField
+                        id="investment-operation-destination"
                         label={t("destination")}
                         value={field.value}
                         options={holdings
@@ -635,7 +657,7 @@ export function InvestmentOperationForm({
                             id: item.id,
                             label: item.symbol || item.name,
                           }))}
-                        onChange={(event) => field.onChange(event.target.value)}
+                        onChange={field.onChange}
                       />
                     )}
                   />
@@ -821,6 +843,12 @@ export function InvestmentOperationForm({
                       {money(disposalPreview.realizedPnl)}
                     </FinancialValue>
                   </div>
+                  {disposalPreview.remainingQuantity != null ? (
+                    <div className="flex justify-between">
+                      <span>{t("remainingUnitsLabel")}</span>
+                      <FinancialValue>{remainingUnitsText}</FinancialValue>
+                    </div>
+                  ) : null}
                 </section>
               ) : null}
               {showQuantity && mode !== InvestmentFormMode.SELL ? (
@@ -839,7 +867,8 @@ export function InvestmentOperationForm({
                   name="accountId"
                   control={control}
                   render={({ field }) => (
-                    <LabeledSelect
+                    <SelectField
+                      id="investment-operation-account"
                       label={
                         mode === InvestmentFormMode.BUY
                           ? holding.assetClass === InvestmentAssetClass.CRYPTO
@@ -851,7 +880,7 @@ export function InvestmentOperationForm({
                       }
                       value={field.value}
                       options={accountsOptions}
-                      onChange={(event) => field.onChange(event.target.value)}
+                      onChange={field.onChange}
                     />
                   )}
                 />
@@ -872,24 +901,27 @@ export function InvestmentOperationForm({
                 registration={register("notes")}
               />
               {showFee ? (
-                <section className="flex flex-col gap-(--space-3) rounded-md border border-border-subtle bg-surface p-(--space-4)">
-                  <label className="flex min-h-11 items-center gap-(--space-2) text-sm">
-                    <input type="checkbox" {...register("hasFee")} />
-                    {t("addFee")}
-                  </label>
+                <section className="flex flex-col gap-(--space-3) rounded-(--radius-card) border border-border-subtle bg-surface p-(--space-4)">
+                  <CheckboxField
+                    id="investment-fee-toggle"
+                    label={t("addFee")}
+                    checked={hasFee}
+                    onChange={(event) =>
+                      setValue("hasFee", event.target.checked)
+                    }
+                  />
                   {hasFee ? (
                     <>
                       <Controller
                         name="feeSource"
                         control={control}
                         render={({ field }) => (
-                          <LabeledSelect
+                          <SelectField
+                            id="investment-fee-source"
                             label={t("feeSourceLabel")}
                             value={field.value}
                             options={feeSources}
-                            onChange={(event) =>
-                              field.onChange(event.target.value)
-                            }
+                            onChange={field.onChange}
                           />
                         )}
                       />
@@ -922,13 +954,12 @@ export function InvestmentOperationForm({
                           name="feeHoldingId"
                           control={control}
                           render={({ field }) => (
-                            <LabeledSelect
+                            <SelectField
+                              id="investment-fee-holding"
                               label={t("feeHolding")}
                               value={field.value}
                               options={holdingOptions}
-                              onChange={(event) =>
-                                field.onChange(event.target.value)
-                              }
+                              onChange={field.onChange}
                             />
                           )}
                         />
@@ -953,32 +984,25 @@ export function InvestmentOperationForm({
       </ActionSheetLayout.Body>
       <ActionSheetLayout.Footer>
         {confirming ? (
-          <>
-            <Button
-              className="min-w-0 flex-1"
-              isPending={pending}
-              onPress={() => void submit()}
-              data-testid="investment-operation-confirm"
-            >
-              {pending
+          <SheetActionFooter
+            secondaryLabel={t("edit")}
+            primaryLabel={
+              pending
                 ? t("saving")
                 : mode === InvestmentFormMode.BUY
                   ? tUx(ux.purchaseActionKey)
                   : mode === InvestmentFormMode.SELL
                     ? tUx(ux.disposalActionKey)
-                    : t("confirm")}
-            </Button>
-            <Button
-              className="min-w-0 flex-1"
-              variant="secondary"
-              onPress={() => {
-                setConfirming(false);
-                setIdempotencyKey(null);
-              }}
-            >
-              {t("edit")}
-            </Button>
-          </>
+                    : t("confirm")
+            }
+            onSecondary={() => {
+              setConfirming(false);
+              setIdempotencyKey(null);
+            }}
+            onPrimary={() => void submit()}
+            isPending={pending}
+            primaryTestId="investment-operation-confirm"
+          />
         ) : (
           <Button
             className="w-full"

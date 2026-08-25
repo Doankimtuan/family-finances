@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import { FinancialValue } from "@/shared/patterns/financial-value";
 import { ConfirmSummary } from "@/shared/patterns/confirm-summary";
 import { FinancialPrivacyProvider } from "@/providers/financial-privacy-provider";
+import { JarCard } from "@/shared/patterns/jar-card";
+import { GoalCard } from "@/shared/patterns/goal-card";
 import {
   FINANCIAL_PRIVACY_MASK,
   FINANCIAL_PRIVACY_STORAGE_KEY,
@@ -45,6 +47,44 @@ describe("financial privacy output", () => {
     );
 
     expect(screen.queryByText("99,000 ₫")).not.toBeInTheDocument();
+    expect(screen.getAllByText(FINANCIAL_PRIVACY_MASK).length).toBeGreaterThan(
+      0,
+    );
+  });
+
+  it("masks shared Jar and Goal financial leaves while keeping names and states", () => {
+    window.localStorage.setItem(
+      FINANCIAL_PRIVACY_STORAGE_KEY,
+      FINANCIAL_PRIVACY_STORAGE_TRUE,
+    );
+
+    render(
+      <FinancialPrivacyProvider>
+        <JarCard
+          name="Housing"
+          kindLabel="Fixed"
+          stateLabel="Active"
+          state="active"
+          budgetLabel="10,000 ₫"
+          spentLabel="4,000 ₫"
+          remainingLabel="6,000 ₫ remaining"
+          usageLabel="40%"
+          usagePercent={40}
+        />
+        <GoalCard
+          name="Emergency fund"
+          fundedLabel="4,000 ₫"
+          targetLabel="10,000 ₫"
+          progressPercent={40}
+          statusLabel="Active"
+        />
+      </FinancialPrivacyProvider>,
+    );
+
+    expect(screen.getByText("Housing")).toBeInTheDocument();
+    expect(screen.getByText("Emergency fund")).toBeInTheDocument();
+    expect(screen.getAllByText("Active").length).toBeGreaterThan(0);
+    expect(screen.queryByText("10,000 ₫")).not.toBeInTheDocument();
     expect(screen.getAllByText(FINANCIAL_PRIVACY_MASK).length).toBeGreaterThan(
       0,
     );

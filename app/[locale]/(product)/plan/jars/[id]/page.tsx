@@ -25,6 +25,9 @@ import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Page } from "@/shared/patterns/page";
 import { Section } from "@/shared/patterns/section";
 import { Amount } from "@/shared/patterns/amount";
+import { Card } from "@/shared/patterns/card";
+import { StatusBadge } from "@/shared/ui/status-badge";
+import { Progress } from "@/shared/ui/progress";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Text } from "@/shared/ui/text";
 import { PlanOfflineBanner } from "../../plan-offline-banner";
@@ -155,45 +158,68 @@ export default async function PlanJarDetailPage({ params }: Props) {
         openLabel={t("reallocate.emergencyBannerOpen")}
       />
 
-      <StatusAlert
-        variant="info"
-        title={t("notBalanceTitle")}
-        description={t("notBalanceBody")}
-      />
+      <Card tone="hero" className="gap-(--space-4) p-(--space-5)">
+        <div className="flex items-start justify-between gap-(--space-3)">
+          <div>
+            <Text
+              size="xs"
+              className="text-hero-muted uppercase tracking-[0.14em]"
+            >
+              {t("plannedHeading")}
+            </Text>
+            <div className="mt-(--space-2)">
+              <Amount
+                label={t("plannedHeading")}
+                amountLabel={plannedLabel}
+                size="lg"
+                labelClassName="text-hero-muted"
+                amountClassName="text-hero-fg"
+              />
+            </div>
+          </div>
+          <StatusBadge
+            tone={jar.state === JarState.ACTIVE ? "positive" : "neutral"}
+            data-testid="jar-state-badge"
+          >
+            {t(stateKey(jar.state))}
+          </StatusBadge>
+        </div>
+        <div className="flex items-center justify-between gap-(--space-3) border-t border-white/15 pt-(--space-3)">
+          <Text size="sm" className="text-hero-muted">
+            {t(`kinds.${jar.kind}`)}
+          </Text>
+          <Text size="sm" className="text-hero-muted">
+            {t("incomeModeLabel", {
+              mode: t(`incomeModes.${jar.incomeAllocateMode}`),
+            })}
+          </Text>
+        </div>
+      </Card>
 
-      <Amount
-        label={t("plannedHeading")}
-        amountLabel={plannedLabel}
-        size="lg"
-      />
-
-      <div
-        className="grid grid-cols-3 gap-(--space-2)"
+      <Card
+        tone="elevated"
+        className="gap-(--space-4) p-(--space-4)"
         data-testid="jar-budget-metrics"
       >
-        <Amount label={t("budgetLabel")} amountLabel={budgetLabel} />
-        <Amount label={t("spentLabel")} amountLabel={spentLabel} />
-        <Amount label={t("remainingLabel")} amountLabel={remainingLabel} />
-      </div>
+        <div className="grid grid-cols-3 gap-(--space-3)">
+          <Amount label={t("budgetLabel")} amountLabel={budgetLabel} />
+          <Amount label={t("spentLabel")} amountLabel={spentLabel} />
+          <Amount label={t("remainingLabel")} amountLabel={remainingLabel} />
+        </div>
+        {budgetMetrics ? (
+          <Progress
+            value={Math.max(0, budgetMetrics.usagePercent)}
+            max={100}
+            label={t("budget.used", { percent: budgetMetrics.usagePercent })}
+            privacyAware
+            indicatorClassName={
+              budgetMetrics.state === "overspent" ? "bg-danger" : undefined
+            }
+          />
+        ) : null}
+      </Card>
 
-      <div className="flex items-center justify-between gap-(--space-3)">
-        <Text size="sm" tone="secondary">
-          {t(`kinds.${jar.kind}`)}
-        </Text>
-        <span
-          className="rounded-md border border-border-subtle px-(--space-2) py-(--space-1) text-xs font-medium text-text-secondary"
-          data-testid="jar-state-badge"
-        >
-          {t(stateKey(jar.state))}
-        </span>
-      </div>
-
-      <Section title={t("allocationHeading")}>
-        <Text size="sm" tone="secondary">
-          {t("incomeModeLabel", {
-            mode: t(`incomeModes.${jar.incomeAllocateMode}`),
-          })}
-        </Text>
+      <Section variant="surface" title={t("allocationHeading")}>
         <Text size="sm" tone="secondary">
           {t("incomeModeHint")}
         </Text>

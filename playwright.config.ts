@@ -9,7 +9,7 @@ import { E2E_AUTH_STATE_PATH } from "./tests/e2e/support/auth";
 assertE2EEnvironmentPolicy();
 printE2EEnvironmentDiagnostic();
 
-const e2ePort = process.env.E2E_PORT ?? "3000";
+const e2ePort = process.env.E2E_PORT ?? "3100";
 const e2eBaseUrl = process.env.E2E_BASE_URL ?? `http://localhost:${e2ePort}`;
 const hasAuth = hasE2ECredentials();
 
@@ -51,6 +51,6 @@ export default defineConfig({
   webServer: {
     command: `npm run dev -- -p ${e2ePort}`,
     url: e2eBaseUrl,
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: true,
   },
 });

@@ -1,22 +1,23 @@
 import { getLocale, getTranslations } from "next-intl/server";
 import { Page } from "@/shared/patterns/page";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
+import { Card } from "@/shared/patterns/card";
+import { FloatingAction } from "@/shared/patterns/floating-action";
 import { Skeleton } from "@/shared/ui/skeleton";
+import { MoneyCaptureAction } from "./money-capture-action";
 
 function HeroSkeleton() {
   return (
     <div className="flex flex-col gap-(--space-3)">
-      <div className="rounded-(--radius-card) border border-border-subtle bg-surface p-(--space-4) shadow-(--elevation-1)">
-        <div className="flex items-center justify-between gap-(--space-3)">
-          <Skeleton className="h-4 w-36" />
-        </div>
+      <Card tone="hero" className="gap-0 p-(--space-4)">
+        <Skeleton className="h-4 w-36" />
         <Skeleton className="mt-(--space-2) h-9 w-52" />
         <div className="mt-(--space-4) flex items-center justify-between gap-(--space-3) border-t border-divider pt-(--space-3)">
           <Skeleton className="h-4 w-40" />
-          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-4 w-20" />
         </div>
-      </div>
-      <div className="rounded-(--radius-card) border border-border-subtle bg-surface p-(--space-4) shadow-(--elevation-1)">
+      </Card>
+      <Card tone="elevated" className="gap-0 p-(--space-4)">
         <Skeleton className="h-4 w-32" />
         <Skeleton className="mt-(--space-3) h-2 w-full rounded-full" />
         <div className="mt-(--space-3) grid grid-cols-2 gap-x-(--space-4) gap-y-(--space-2)">
@@ -36,14 +37,14 @@ function HeroSkeleton() {
             </div>
           ))}
         </div>
-      </div>
+      </Card>
     </div>
   );
 }
 
 function ModuleCardSkeleton() {
   return (
-    <div className="rounded-(--radius-card) border border-border-subtle bg-surface p-0 shadow-(--elevation-1)">
+    <Card tone="elevated" className="gap-0 p-0">
       <div className="px-(--space-4) pb-(--space-1) pt-(--space-4)">
         <Skeleton className="h-4 w-28" />
       </div>
@@ -61,7 +62,7 @@ function ModuleCardSkeleton() {
           </div>
         ))}
       </div>
-    </div>
+    </Card>
   );
 }
 
@@ -69,12 +70,32 @@ function AccountsSkeleton() {
   return (
     <section className="flex flex-col gap-(--space-4)">
       <div className="flex items-start justify-between gap-(--space-3)">
-        <Skeleton className="h-7 w-24" />
-        <Skeleton className="h-7 w-24 rounded-full" />
+        <Skeleton className="h-5 w-28" />
+        <Skeleton className="h-11 w-24 rounded-(--radius-control)" />
       </div>
       <div className="flex flex-col gap-(--space-2)">
-        <Skeleton className="h-20 w-full rounded-(--radius-card)" />
-        <Skeleton className="h-20 w-full rounded-(--radius-card)" />
+        {[0, 1].map((row) => (
+          <Card
+            key={row}
+            tone="default"
+            className="gap-(--space-3) p-(--space-3)"
+          >
+            <div className="flex items-start justify-between gap-(--space-3)">
+              <div className="flex min-w-0 items-center gap-(--space-3)">
+                <Skeleton className="size-9 rounded-(--radius-control)" />
+                <div className="flex min-w-0 flex-col gap-(--space-2)">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-3 w-20" />
+                </div>
+              </div>
+              <div className="flex flex-col items-end gap-(--space-1)">
+                <Skeleton className="h-3 w-16" />
+                <Skeleton className="h-5 w-24" />
+              </div>
+            </div>
+            <Skeleton className="h-4 w-24" />
+          </Card>
+        ))}
       </div>
     </section>
   );
@@ -88,12 +109,21 @@ export default async function MoneyLoading() {
   return (
     <Page
       testId="money-hub-loading"
-      topBar={<TopAppBar variant="primary" title={t("title")} />}
+      topBar={
+        <TopAppBar
+          variant="primary"
+          title={t("title")}
+          meta={<Skeleton className="h-4 w-28" />}
+        />
+      }
     >
       <HeroSkeleton />
       <AccountsSkeleton />
       <ModuleCardSkeleton />
       <ModuleCardSkeleton />
+      <FloatingAction>
+        <MoneyCaptureAction />
+      </FloatingAction>
     </Page>
   );
 }

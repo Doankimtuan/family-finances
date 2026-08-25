@@ -445,4 +445,4 @@ $$;
 revoke all on function public.create_debt(text, text, text, text, numeric, date, date, text, uuid, text) from public;
 revoke all on function public.record_debt_payment(uuid, uuid, numeric, date, text, text) from public;
 grant execute on function public.create_debt(text, text, text, text, numeric, date, date, text, uuid, text) to authenticated;
-grant execute on function public.record_debt_payment(uuid, uuid, numeric, date, text, text) to authenticated;
+grant execute on function public.record_debt_payment(uuid, uuid, numeric, date, text, text) to authenticated;;

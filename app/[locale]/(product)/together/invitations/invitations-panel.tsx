@@ -12,6 +12,10 @@ import { SectionHeader } from "@/shared/patterns/section-header";
 import { useStatusAlert } from "@/providers/status-alert-provider";
 import type { PendingInvitation } from "@/modules/tenancy/application/list-pending-invitations";
 import { invitePath } from "@/modules/tenancy/application/tenancy-constants";
+import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
+import { IconContainer } from "@/shared/ui/icon-container";
+import { StatusBadge } from "@/shared/ui/status-badge";
+import { NAVIGATION_ICONS } from "@/shared/ui/icon-registry";
 import { revokeInvitationAction } from "../invite-actions";
 
 function inviteShareUrl(locale: string, token: string): string {
@@ -53,20 +57,37 @@ export function InvitationsPanel({
       await navigator.clipboard.writeText(link);
       setCopiedId(id);
     } catch {
-      setCopiedId(null);
+      statusAlert.show({
+        variant: AlertVariant.DANGER,
+        title: t("pendingTitle"),
+        description: t("copyError"),
+      });
     }
   };
 
   return (
     <div
-      className="flex flex-col gap-(--space-5)"
+      className="flex flex-col gap-(--space-4)"
       data-testid="together-invitations"
     >
-      <SectionHeader title={t("pendingTitle")} />
+      <SectionHeader
+        title={t("pendingTitle")}
+        description={
+          initialInvitations.length > 0
+            ? t("pendingDescription")
+            : t("emptyDescription")
+        }
+      />
       {initialInvitations.length === 0 ? (
         <EmptyState
           title={t("emptyTitle")}
           description={t("emptyDescription")}
+          icon={
+            <AppIcon
+              icon={NAVIGATION_ICONS.together}
+              size={AppIconSize.DISPLAY}
+            />
+          }
           className="flex-none py-(--space-6)"
         />
       ) : (
@@ -75,18 +96,31 @@ export function InvitationsPanel({
             const link = inviteShareUrl(locale, invite.token);
             return (
               <li key={invite.id}>
-                <Card className="gap-(--space-3) p-(--space-4)">
-                  <div className="flex flex-col gap-(--space-1)">
-                    <Text size="sm" className="font-medium text-text-primary">
-                      {invite.email}
-                    </Text>
-                    <Text size="sm" tone="secondary">
-                      {t("expires", {
-                        date: new Date(invite.expiresAt).toLocaleDateString(
-                          locale,
-                        ),
-                      })}
-                    </Text>
+                <Card tone="warning" className="gap-(--space-3) p-(--space-4)">
+                  <div className="flex items-start gap-(--space-3)">
+                    <IconContainer tone="primary" size="sm">
+                      <AppIcon icon={NAVIGATION_ICONS.together} size="sm" />
+                    </IconContainer>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-start justify-between gap-(--space-2)">
+                        <Text
+                          size="sm"
+                          className="min-w-0 truncate font-semibold text-text-primary"
+                        >
+                          {invite.email}
+                        </Text>
+                        <StatusBadge tone="warning" className="shrink-0">
+                          {t("pendingTitle")}
+                        </StatusBadge>
+                      </div>
+                      <Text size="xs" tone="secondary" className="mt-1">
+                        {t("expires", {
+                          date: new Date(invite.expiresAt).toLocaleDateString(
+                            locale,
+                          ),
+                        })}
+                      </Text>
+                    </div>
                   </div>
                   <div className="flex flex-col gap-(--space-2)">
                     <Button

@@ -1,5 +1,4 @@
 -- Sprint 6 ST-E06-002: AI / assist suggestion audit log (BR-14)
--- Append-only record of suggestions and explicit user approvals.
 
 create table if not exists public.ai_audit_logs (
   id uuid primary key default gen_random_uuid(),
@@ -31,6 +30,5 @@ create policy ai_audit_logs_insert_member on public.ai_audit_logs
   for insert to authenticated
   with check (public.is_household_member(household_id));
 
--- No update/delete policies — append-only for members.
 revoke update, delete on public.ai_audit_logs from authenticated;
-grant select, insert on public.ai_audit_logs to authenticated;
+grant select, insert on public.ai_audit_logs to authenticated;;

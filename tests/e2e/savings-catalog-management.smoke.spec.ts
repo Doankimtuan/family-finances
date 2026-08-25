@@ -26,7 +26,6 @@ test.describe("Savings catalog management", () => {
       page.url().includes("/together/onboard"),
       "E2E user has no household",
     );
-    page.on("dialog", (dialog) => dialog.accept());
 
     await page.goto("/vi/money/savings/providers");
     await expect(
@@ -98,6 +97,7 @@ test.describe("Savings catalog management", () => {
     await expect(productCard).toBeVisible();
     await productCard.getByTestId("savings-more-actions").click();
     await page.getByRole("menuitem", { name: "Lưu trữ" }).click();
+    await page.getByTestId("savings-archive-confirm-action").click();
     await expect(
       card
         .locator(`[data-testid^=savings-product-card-]`)
@@ -106,6 +106,7 @@ test.describe("Savings catalog management", () => {
 
     await card.getByTestId("savings-more-actions").last().click();
     await page.getByRole("menuitem", { name: "Lưu trữ" }).click();
+    await page.getByTestId("savings-archive-confirm-action").click();
     await expect(
       page.getByText(editedProviderName, { exact: true }),
     ).toHaveCount(0, { timeout: 30_000 });

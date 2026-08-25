@@ -9,11 +9,16 @@ import {
 import { listSavings } from "@/modules/savings/application";
 import { listInvestmentPortfolio } from "@/modules/investments/application";
 import {
+  InvestmentLifecycleStatus,
+  MarketValuationQuality,
+} from "@/modules/investments/application/investment-constants";
+import {
   deriveGoalFundingSummary,
   type GoalFundingSourceValue,
 } from "../goal-funding";
 import {
   GoalFundingSourceKind,
+  GoalFundingValueStatus,
   PLAN_OPERATION,
   GoalStatus,
   type GoalFundingSourceKind as GoalFundingSourceKindValue,
@@ -141,10 +146,25 @@ async function mapFundingLinks(
         source.currentValue = item?.currentValue;
         source.costBasis = item?.remainingTotalCostBasis;
         source.updatedAt = item?.currentValuationDate;
-        valueStatus = valuationStatus(item?.currentValuationDate);
+        const valuationQuality = item?.valuation?.quality;
+        source.valuationQuality = valuationQuality;
+        if (item?.lifecycleStatus === InvestmentLifecycleStatus.EXITED) {
+          valueStatus = GoalFundingValueStatus.UNAVAILABLE;
+        } else if (valuationQuality === MarketValuationQuality.UNKNOWN) {
+          valueStatus = GoalFundingValueStatus.UNKNOWN;
+        } else if (valuationQuality === MarketValuationQuality.AUTO_STALE) {
+          valueStatus = GoalFundingValueStatus.STALE;
+        } else if (
+          valuationQuality === MarketValuationQuality.AUTO_CURRENT ||
+          valuationQuality === MarketValuationQuality.MANUAL
+        ) {
+          valueStatus = GoalFundingValueStatus.CURRENT;
+        } else {
+          valueStatus = valuationStatus(item?.currentValuationDate);
+        }
         if (!item) {
           availability = "missing";
-          valueStatus = "missing";
+          valueStatus = GoalFundingValueStatus.MISSING;
         }
         break;
       }

@@ -138,7 +138,11 @@ describe("InvestmentOperationForm", () => {
     expect(replaceMock).toHaveBeenCalledWith(
       expect.stringContaining("buy-receipt"),
     );
-    fireEvent.click(screen.getByText("edit"));
+    // SheetActionFooter keeps Edit disabled while the submit transition is
+    // pending; wait for it to settle before leaving the confirm state.
+    const editButton = screen.getByText("edit");
+    await waitFor(() => expect(editButton).not.toBeDisabled());
+    fireEvent.click(editButton);
     expect(screen.getByLabelText("opening.quantityLabel")).toHaveValue("");
     expect(screen.getByLabelText("purchasePrice")).toHaveValue("");
   });

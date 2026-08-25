@@ -38,7 +38,7 @@ export const viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover" as const,
-  // Brand accent (Cradle & Seed / Calm Ledger teal) — see artifacts/branding/CURRENT/color-system.md
+  // Family Finance brand accent remains the existing semantic teal token.
   themeColor: "#0F766E",
 };
 

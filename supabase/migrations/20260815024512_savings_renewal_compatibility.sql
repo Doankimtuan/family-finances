@@ -1,7 +1,5 @@
--- Compatibility migration for databases that applied the Savings domain
--- migration before the renewal-policy follow-up migration.
--- This is intentionally additive and preserves renewal_preference for legacy
--- readers while exposing the canonical renewal_policy/config fields.
+-- Compatibility migration for databases that applied the Savings domain migration before the renewal-policy follow-up migration.
+-- This is intentionally additive and preserves renewal_preference for legacy readers while exposing canonical renewal_policy/config fields.
 
 alter table public.savings
   add column if not exists renewal_policy text;
@@ -59,3 +57,4 @@ where renewal_policy = 'use_saved_preference'
 
 alter table public.saving_cycles
   add column if not exists renewal_decision jsonb;
+;

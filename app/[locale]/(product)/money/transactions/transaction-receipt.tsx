@@ -55,8 +55,8 @@ export function TransactionReceipt({
       role="status"
       aria-live="polite"
     >
-      <div className="flex flex-col items-center gap-(--space-3) py-(--space-2)">
-        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-success/15">
+      <div className="flex flex-col items-center gap-(--space-3) rounded-[var(--radius-card)] border border-success/20 bg-success/5 px-(--space-4) py-(--space-5) shadow-(--elevation-1)">
+        <div className="flex size-14 items-center justify-center rounded-full border border-success/20 bg-success/15">
           <AppIcon
             icon={CheckmarkCircle02Icon}
             size="xl"
@@ -114,7 +114,7 @@ export function TransactionReceipt({
                 {record.href ? (
                   <Link
                     href={record.href}
-                    className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+                    className="inline-flex min-h-11 w-full items-center justify-center rounded-[var(--radius-control)] border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-[var(--press-scale)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none"
                   >
                     {record.label}
                   </Link>
@@ -136,7 +136,7 @@ export function TransactionReceipt({
               <Link
                 key={action.id}
                 href={action.href}
-                className={`inline-flex min-h-11 w-full items-center justify-center rounded-md px-(--space-4) text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring ${
+                className={`inline-flex min-h-11 w-full items-center justify-center rounded-[var(--radius-control)] px-(--space-4) text-sm font-medium transition-[background-color,transform] duration-(--duration-fast) active:scale-[var(--press-scale)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none ${
                   action.variant === "primary"
                     ? "bg-accent text-accent-fg"
                     : action.variant === "tertiary"

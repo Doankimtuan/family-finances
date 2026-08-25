@@ -70,6 +70,10 @@ export {
 } from "./infrastructure/savings-row.mapper";
 export { emptyRenewalConfig } from "./savings-defaults";
 export { selectCurrentSavingCycle } from "./selectors/savings.selectors";
+export {
+  getSavingsHomeSummary,
+  type SavingsHomeSummary,
+} from "./queries/savings-home-summary";
 
 export {
   calculateInterest,

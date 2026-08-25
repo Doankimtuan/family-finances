@@ -1,102 +1,151 @@
-// One-off generator: rasterizes ViNha brand SVG masters into public/ assets.
-// Source of truth for the vector geometry is artifacts/branding/CURRENT/assets/svg/*.svg.
-// Re-run with `node scripts/generate-brand-assets.mjs` any time a master SVG changes.
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+// Generate platform assets from the approved Family Finance logo board.
+// The source image is kept unchanged; crops only remove surrounding board space.
+import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
 
 const root = process.cwd();
-const svgDir = path.join(root, "artifacts/branding/CURRENT/assets/svg");
-const exportsDir = path.join(root, "artifacts/branding/CURRENT/assets/exports");
+const sourcePath = path.join(root, "public/brand/logo-primary.png");
+const brandDir = path.join(root, "public/brand");
 const publicDir = path.join(root, "public");
 
-const TEAL = { r: 15, g: 118, b: 110 };
+const CROP = {
+  lockup: { left: 280, top: 60, width: 700, height: 600 },
+  mark: { left: 400, top: 75, width: 450, height: 400 },
+  appIcon: { left: 70, top: 705, width: 230, height: 230 },
+};
 
-async function renderPng(svgFile, size, { flatten = false } = {}) {
-  const svgPath = path.join(svgDir, svgFile);
-  const svgBuffer = await readFile(svgPath);
-  let img = sharp(svgBuffer, { density: 384 }).resize(size, size);
-  if (flatten) {
-    img = img.flatten({ background: TEAL });
+const WHITE_THRESHOLD = 248;
+
+function isBackgroundPixel(data, index) {
+  return (
+    data[index] >= WHITE_THRESHOLD &&
+    data[index + 1] >= WHITE_THRESHOLD &&
+    data[index + 2] >= WHITE_THRESHOLD
+  );
+}
+
+async function removeBorderBackground(buffer) {
+  const { data, info } = await sharp(buffer)
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+  const queue = [];
+  const visited = new Uint8Array(info.width * info.height);
+
+  for (let y = 0; y < info.height; y += 1) {
+    for (const x of [0, info.width - 1]) queue.push([x, y]);
   }
-  return img.png().toBuffer();
+  for (let x = 1; x < info.width - 1; x += 1) {
+    queue.push([x, 0], [x, info.height - 1]);
+  }
+
+  while (queue.length > 0) {
+    const [x, y] = queue.pop();
+    const pixelIndex = y * info.width + x;
+    const dataIndex = pixelIndex * info.channels;
+    if (visited[pixelIndex] || !isBackgroundPixel(data, dataIndex)) continue;
+    visited[pixelIndex] = 1;
+    data[dataIndex + 3] = 0;
+    if (x > 0) queue.push([x - 1, y]);
+    if (x < info.width - 1) queue.push([x + 1, y]);
+    if (y > 0) queue.push([x, y - 1]);
+    if (y < info.height - 1) queue.push([x, y + 1]);
+  }
+
+  return sharp(data, {
+    raw: { width: info.width, height: info.height, channels: info.channels },
+  })
+    .png()
+    .toBuffer();
+}
+
+async function cropApprovedAsset(kind, transparent = false) {
+  const crop = sharp(sourcePath).extract(CROP[kind]).png();
+  const buffer = await crop.toBuffer();
+  return transparent ? removeBorderBackground(buffer) : buffer;
+}
+
+async function resizePng(buffer, size) {
+  return sharp(buffer).resize(size, size).png().toBuffer();
 }
 
 function buildIco(pngBuffers, sizes) {
-  const count = pngBuffers.length;
   const headerSize = 6;
-  const dirEntrySize = 16;
-  let offset = headerSize + dirEntrySize * count;
-
+  const directoryEntrySize = 16;
+  let offset = headerSize + directoryEntrySize * pngBuffers.length;
   const header = Buffer.alloc(headerSize);
-  header.writeUInt16LE(0, 0); // reserved
-  header.writeUInt16LE(1, 2); // type: icon
-  header.writeUInt16LE(count, 4);
+  header.writeUInt16LE(0, 0);
+  header.writeUInt16LE(1, 2);
+  header.writeUInt16LE(pngBuffers.length, 4);
 
-  const dirEntries = [];
-  const imageBuffers = [];
-
-  for (let i = 0; i < count; i += 1) {
-    const size = sizes[i];
-    const png = pngBuffers[i];
-    const entry = Buffer.alloc(dirEntrySize);
-    entry.writeUInt8(size >= 256 ? 0 : size, 0); // width (0 = 256)
-    entry.writeUInt8(size >= 256 ? 0 : size, 1); // height (0 = 256)
-    entry.writeUInt8(0, 2); // color palette
-    entry.writeUInt8(0, 3); // reserved
-    entry.writeUInt16LE(1, 4); // color planes
-    entry.writeUInt16LE(32, 6); // bits per pixel
-    entry.writeUInt32LE(png.length, 8); // image data size
-    entry.writeUInt32LE(offset, 12); // image data offset
+  const entries = [];
+  for (const [index, png] of pngBuffers.entries()) {
+    const size = sizes[index];
+    const entry = Buffer.alloc(directoryEntrySize);
+    entry.writeUInt8(size >= 256 ? 0 : size, 0);
+    entry.writeUInt8(size >= 256 ? 0 : size, 1);
+    entry.writeUInt16LE(1, 4);
+    entry.writeUInt16LE(32, 6);
+    entry.writeUInt32LE(png.length, 8);
+    entry.writeUInt32LE(offset, 12);
     offset += png.length;
-    dirEntries.push(entry);
-    imageBuffers.push(png);
+    entries.push(entry);
   }
 
-  return Buffer.concat([header, ...dirEntries, ...imageBuffers]);
+  return Buffer.concat([header, ...entries, ...pngBuffers]);
 }
 
 async function main() {
-  await mkdir(publicDir, { recursive: true });
-  await mkdir(exportsDir, { recursive: true });
+  await mkdir(brandDir, { recursive: true });
 
-  // Favicon SVG (vector, shipped as-is)
-  const faviconSvg = await readFile(path.join(svgDir, "favicon.svg"), "utf8");
-  await writeFile(path.join(publicDir, "favicon.svg"), faviconSvg);
+  const [lockup, mark, appIcon] = await Promise.all([
+    cropApprovedAsset("lockup"),
+    cropApprovedAsset("mark", true),
+    cropApprovedAsset("appIcon"),
+  ]);
+  await Promise.all([
+    writeFile(path.join(brandDir, "logo-lockup.png"), lockup),
+    writeFile(path.join(brandDir, "logo-mark-transparent.png"), mark),
+    writeFile(
+      path.join(brandDir, "app-icon.png"),
+      await resizePng(appIcon, 512),
+    ),
+  ]);
 
-  // Favicon rasters
-  const fav16 = await renderPng("favicon.svg", 16);
-  const fav32 = await renderPng("favicon.svg", 32);
-  const fav48 = await renderPng("favicon.svg", 48);
-  await writeFile(path.join(publicDir, "favicon-16x16.png"), fav16);
-  await writeFile(path.join(publicDir, "favicon-32x32.png"), fav32);
+  const faviconPngs = await Promise.all(
+    [16, 32, 48].map((size) => resizePng(appIcon, size)),
+  );
+  await Promise.all([
+    writeFile(path.join(publicDir, "favicon-16x16.png"), faviconPngs[0]),
+    writeFile(path.join(publicDir, "favicon-32x32.png"), faviconPngs[1]),
+    writeFile(path.join(publicDir, "favicon-48x48.png"), faviconPngs[2]),
+    writeFile(
+      path.join(publicDir, "favicon.ico"),
+      buildIco(faviconPngs, [16, 32, 48]),
+    ),
+    writeFile(
+      path.join(publicDir, "apple-touch-icon.png"),
+      await resizePng(appIcon, 180),
+    ),
+    writeFile(
+      path.join(publicDir, "icon-192.png"),
+      await resizePng(appIcon, 192),
+    ),
+    writeFile(
+      path.join(publicDir, "icon-512.png"),
+      await resizePng(appIcon, 512),
+    ),
+    writeFile(
+      path.join(publicDir, "maskable-512.png"),
+      await resizePng(appIcon, 512),
+    ),
+  ]);
 
-  // Multi-res favicon.ico (16/32/48, embedded PNG entries)
-  const ico = buildIco([fav16, fav32, fav48], [16, 32, 48]);
-  await writeFile(path.join(publicDir, "favicon.ico"), ico);
-
-  // Apple touch icon — no alpha, flattened onto brand plate
-  const appleTouch = await renderPng("app-icon.svg", 180, { flatten: true });
-  await writeFile(path.join(publicDir, "apple-touch-icon.png"), appleTouch);
-
-  // PWA standard manifest icons
-  const icon192 = await renderPng("app-icon.svg", 192, { flatten: true });
-  const icon512 = await renderPng("app-icon.svg", 512, { flatten: true });
-  await writeFile(path.join(publicDir, "icon-192.png"), icon192);
-  await writeFile(path.join(publicDir, "icon-512.png"), icon512);
-
-  // PWA maskable icon
-  const maskable512 = await renderPng("maskable.svg", 512, { flatten: true });
-  await writeFile(path.join(publicDir, "maskable-512.png"), maskable512);
-
-  // App Store master (kept in artifacts, not shipped to public/)
-  const master1024 = await renderPng("app-icon.svg", 1024, { flatten: true });
-  await writeFile(path.join(exportsDir, "app-icon-1024.png"), master1024);
-
-  process.stdout.write("Brand assets generated.\n");
+  process.stdout.write("Family Finance brand assets generated.\n");
 }
 
-main().catch((err) => {
-  console.error(err);
+main().catch((error) => {
+  console.error(error);
   process.exit(1);
 });

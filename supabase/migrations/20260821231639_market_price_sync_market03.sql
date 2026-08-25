@@ -5,7 +5,6 @@ alter table public.market_instrument_prices enable row level security;
 revoke all on table public.market_instrument_prices from anon, authenticated;
 grant select on table public.market_instrument_prices to authenticated;
 grant select, insert, update, delete on table public.market_instrument_prices to service_role;
-
 alter table public.market_sync_runs
   add column if not exists sync_kind text not null default 'catalog',
   add column if not exists asset_class text,
@@ -14,7 +13,6 @@ alter table public.market_sync_runs
   add column if not exists status text not null default 'succeeded',
   add column if not exists run_key text,
   add column if not exists error_summary text;
-
 alter table public.market_sync_runs
   add constraint market_sync_runs_sync_kind_check
   check (sync_kind in ('catalog', 'price'));
@@ -30,18 +28,15 @@ alter table public.market_sync_runs
 alter table public.market_sync_runs
   add constraint market_sync_runs_status_check
   check (status in ('running', 'succeeded', 'partial', 'failed', 'skipped'));
-
 create table public.market_sync_locks (
   lock_key text primary key check (length(trim(lock_key)) between 1 and 120),
   owner_id uuid not null,
   acquired_at timestamptz not null,
   expires_at timestamptz not null
 );
-
 alter table public.market_sync_locks enable row level security;
 revoke all on table public.market_sync_locks from anon, authenticated;
 grant all on table public.market_sync_locks to service_role;
-
 create or replace function public.try_acquire_market_price_sync_lock(
   p_lock_key text,
   p_owner_id uuid,
@@ -66,7 +61,6 @@ begin
   return coalesce(acquired, false);
 end;
 $$;
-
 create or replace function public.release_market_price_sync_lock(
   p_lock_key text,
   p_owner_id uuid
@@ -79,12 +73,10 @@ as $$
   delete from public.market_sync_locks
   where lock_key = p_lock_key and owner_id = p_owner_id;
 $$;
-
 revoke all on function public.try_acquire_market_price_sync_lock(text, uuid, timestamptz) from public;
 revoke all on function public.release_market_price_sync_lock(text, uuid) from public;
 grant execute on function public.try_acquire_market_price_sync_lock(text, uuid, timestamptz) to service_role;
 grant execute on function public.release_market_price_sync_lock(text, uuid) to service_role;
-
 create or replace function public.list_active_market_price_targets(
   p_asset_class text default null,
   p_provider text default null
@@ -124,10 +116,8 @@ as $$
     and (p_provider is null or source.provider = p_provider)
   order by instrument.id, source.priority asc, source.provider asc;
 $$;
-
 revoke all on function public.list_active_market_price_targets(text, text) from public;
 grant execute on function public.list_active_market_price_targets(text, text) to service_role;
-
 -- Supabase Cron evaluates schedules in UTC. These are explicit Asia/Ho_Chi_Minh
 -- conversions: 11:00 -> 04:00 UTC, 15:30 -> 08:30 UTC, 18:00 -> 11:00 UTC.
 do $$

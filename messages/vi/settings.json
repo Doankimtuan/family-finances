@@ -18,8 +18,10 @@
   "roleAdmin": "Quản trị",
   "rolePartner": "Đối tác",
   "appTitle": "Tuỳ chọn ứng dụng",
-  "appDescription": "Giao diện lưu trên thiết bị. Ngôn ngữ giữ nguyên trang hiện tại.",
-  "householdPreferencesLink": "Tuỳ chọn hộ gia đình",
+  "appDescription": "Giao diện được lưu trên thiết bị. Ngôn ngữ ứng dụng đổi trang này; ngôn ngữ hộ nằm trong Tuỳ chọn.",
+  "accountTitle": "Tài khoản",
+  "accountDescription": "Các thao tác vòng đời tài khoản nhạy cảm được tách riêng.",
+  "accountSettingsDescription": "Đăng xuất hoặc quản lý tài khoản của bạn.",
   "accountSettingsLink": "Cài đặt tài khoản",
   "back": "Về Together",
   "account": {

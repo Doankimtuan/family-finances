@@ -13,3 +13,4 @@ alter table public.saving_packages
 update public.saving_packages
 set early_settlement_rate_percent = null
 where early_settlement_rule <> 'CUSTOM_RATE';
+;

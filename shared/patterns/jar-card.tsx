@@ -1,13 +1,43 @@
 import type { ReactNode } from "react";
+import { isValidElement } from "react";
+import {
+  JarBudgetState,
+  JarState,
+  type JarBudgetState as JarBudgetStateValue,
+  type JarState as JarStateValue,
+} from "@/modules/plan/application/plan-constants";
 import { cn } from "@/shared/utils/cn";
 import { Text } from "@/shared/ui/text";
-import { StatusBadge } from "@/shared/ui/status-badge";
+import { StatusBadge, StatusBadgeTone } from "@/shared/ui/status-badge";
 import { Progress } from "@/shared/ui/progress";
+import { FinancialValue } from "./financial-value";
+import { Card } from "./card";
+
+function financialLeaf(value: ReactNode) {
+  return isValidElement(value) ? (
+    value
+  ) : (
+    <FinancialValue>{value}</FinancialValue>
+  );
+}
+
+function stateTone(state: JarStateValue): StatusBadgeTone {
+  return state === JarState.ACTIVE
+    ? StatusBadgeTone.POSITIVE
+    : StatusBadgeTone.NEUTRAL;
+}
+
+function budgetTone(
+  state: JarBudgetStateValue | undefined,
+): "danger" | "secondary" {
+  return state === JarBudgetState.OVERSPENT ? "danger" : "secondary";
+}
+
 export type JarCardProps = {
   name: ReactNode;
   kindLabel: ReactNode;
   stateLabel: ReactNode;
-  state: "active" | "paused" | "archived";
+  state: JarStateValue;
   planLabel?: ReactNode;
   budgetHeading?: ReactNode;
   spentHeading?: ReactNode;
@@ -16,12 +46,12 @@ export type JarCardProps = {
   remainingLabel?: ReactNode;
   usageLabel?: ReactNode;
   usagePercent?: number;
-  budgetState?:
-    "healthy" | "near_limit" | "overspent" | "no_spending" | "no_budget";
+  budgetState?: JarBudgetStateValue;
   className?: string;
   "data-testid"?: string;
 };
-/** Intention jar summary — actuals are Money-derived, never a bank Balance. */
+
+/** Intention Jar summary — actuals are Money-derived, never a bank Balance. */
 export function JarCard({
   name,
   kindLabel,
@@ -39,60 +69,72 @@ export function JarCard({
   className,
   "data-testid": testId,
 }: JarCardProps) {
-  const budgetTone = budgetState === "overspent" ? "danger" : "secondary";
+  const tone = budgetTone(budgetState);
+  const hasBudgetMetrics =
+    budgetHeading != null &&
+    spentHeading != null &&
+    budgetLabel != null &&
+    spentLabel != null &&
+    remainingLabel != null &&
+    usageLabel !== undefined;
+
   return (
-    <div
-      className={cn(
-        "flex flex-col gap-(--space-3) rounded-[var(--radius-card)] border border-border-subtle/60 bg-surface/90 p-(--space-4) transition-[background-color,border-color,transform] duration-(--duration-fast) hover:border-border-default hover:bg-surface-hover active:scale-[var(--press-scale)] motion-reduce:transition-none motion-reduce:active:scale-100",
-        className,
-      )}
+    <Card
+      tone="interactive"
+      className={cn("gap-(--space-4) p-(--space-4)", className)}
       data-testid={testId}
       data-jar-state={state}
       data-budget-state={budgetState}
     >
-      <div className="flex items-center justify-between gap-(--space-3)">
+      <div className="flex items-start justify-between gap-(--space-3)">
         <div className="min-w-0">
-          <Text size="sm" className="truncate font-medium text-text-primary">
+          <Text size="sm" className="truncate font-semibold text-text-primary">
             {name}
           </Text>
-          <Text size="sm" tone="secondary">
+          <Text size="xs" tone="secondary" className="mt-1">
             {kindLabel}
           </Text>
         </div>
-        <StatusBadge tone={state === "active" ? "positive" : "neutral"}>
-          {stateLabel}
-        </StatusBadge>
+        <StatusBadge tone={stateTone(state)}>{stateLabel}</StatusBadge>
       </div>
+
       {planLabel ? (
-        <Text size="sm" tone="secondary" className="tabular-nums">
-          {planLabel}
-        </Text>
+        <div className="flex items-center justify-end gap-(--space-3) border-y border-divider py-(--space-2)">
+          <Text
+            size="sm"
+            className="tabular-nums font-semibold text-text-primary"
+          >
+            {financialLeaf(planLabel)}
+          </Text>
+        </div>
       ) : null}
-      {budgetHeading &&
-      spentHeading &&
-      budgetLabel &&
-      spentLabel &&
-      remainingLabel &&
-      usageLabel !== undefined ? (
+
+      {hasBudgetMetrics ? (
         <div
-          className="flex flex-col gap-(--space-2)"
+          className="flex flex-col gap-(--space-3)"
           data-testid="jar-budget-metrics"
         >
-          <div className="grid grid-cols-2 gap-(--space-2) text-xs">
+          <div className="grid grid-cols-2 gap-(--space-3)">
             <div>
               <Text size="xs" tone="secondary">
                 {budgetHeading}
               </Text>
-              <Text size="sm" className="tabular-nums font-medium">
-                {budgetLabel}
+              <Text
+                size="sm"
+                className="mt-1 tabular-nums font-semibold text-text-primary"
+              >
+                {financialLeaf(budgetLabel)}
               </Text>
             </div>
-            <div>
+            <div className="text-right">
               <Text size="xs" tone="secondary">
                 {spentHeading}
               </Text>
-              <Text size="sm" className="tabular-nums font-medium">
-                {spentLabel}
+              <Text
+                size="sm"
+                className="mt-1 tabular-nums font-semibold text-text-primary"
+              >
+                {financialLeaf(spentLabel)}
               </Text>
             </div>
           </div>
@@ -100,13 +142,12 @@ export function JarCard({
             value={Math.max(0, usagePercent ?? 0)}
             max={100}
             label={String(usageLabel)}
-            indicatorClassName={
-              budgetTone === "danger" ? "bg-danger" : undefined
-            }
+            privacyAware
+            indicatorClassName={tone === "danger" ? "bg-danger" : undefined}
           />
           <div className="flex items-center justify-between gap-(--space-2)">
-            <Text size="xs" tone={budgetTone}>
-              {remainingLabel}
+            <Text size="xs" tone={tone} className="font-medium">
+              {financialLeaf(remainingLabel)}
             </Text>
             <Text size="xs" tone="secondary" className="tabular-nums">
               {usageLabel}
@@ -114,6 +155,6 @@ export function JarCard({
           </div>
         </div>
       ) : null}
-    </div>
+    </Card>
   );
 }

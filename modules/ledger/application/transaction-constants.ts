@@ -269,6 +269,18 @@ export const TRANSACTION_TYPE_QUERY_PARAM = "type";
 export const TRANSACTION_CURSOR_QUERY_PARAM = "cursor";
 export const TRANSACTION_LIST_PAGE_SIZE = 25;
 
+/** Raw-row lookahead keeps two-row transfer/loan groups intact at page edges. */
+export const TRANSACTION_EVENT_PAGE_LOOKAHEAD_MULTIPLIER = 2;
+export const TRANSACTION_EVENT_GROUP_LOOKAHEAD_ROWS = 2;
+
+export const TransactionActivityBreakdownKind = {
+  NONE: "none",
+  LOAN_PAYMENT: "loan_payment",
+} as const;
+
+export type TransactionActivityBreakdownKind =
+  (typeof TransactionActivityBreakdownKind)[keyof typeof TransactionActivityBreakdownKind];
+
 export type TransactionFilterType =
   (typeof TransactionFilterType)[keyof typeof TransactionFilterType];
 

@@ -2,6 +2,8 @@ import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import {
   APP_PATH,
+  moneyDebtPath,
+  moneyLoanPath,
   moneySavingsPath,
   moneyTransactionPath,
   planJarPath,
@@ -15,7 +17,12 @@ import type { InboxReviewItem } from "@/modules/inbox/application/inbox-types";
 
 type SourceTarget = {
   href: string;
-  labelKey: "viewSourceTransaction" | "viewSourceSavings" | "viewSourcePlan";
+  labelKey:
+    | "viewSourceTransaction"
+    | "viewSourceSavings"
+    | "viewSourceLoan"
+    | "viewSourceDebt"
+    | "viewSourcePlan";
 };
 
 /**
@@ -26,6 +33,39 @@ export function resolveInboxSourceTarget(
   item: InboxReviewItem,
 ): SourceTarget | null {
   if (!item.kind) return null;
+
+  if (item.kind === InboxItemKind.LOAN_PAYMENT_ATTENTION) {
+    const loanId =
+      item.typed?.type === InboxItemKind.LOAN_PAYMENT_ATTENTION
+        ? item.typed.payload.loanId
+        : item.sourceId;
+    return { href: moneyLoanPath(loanId), labelKey: "viewSourceLoan" };
+  }
+
+  if (item.kind === InboxItemKind.DEBT_PAYMENT_ATTENTION) {
+    const debtId =
+      item.typed?.type === InboxItemKind.DEBT_PAYMENT_ATTENTION
+        ? item.typed.payload.debtId
+        : item.sourceId;
+    return { href: moneyDebtPath(debtId), labelKey: "viewSourceDebt" };
+  }
+
+  if (item.kind === InboxItemKind.EMI_COMPLETE) {
+    if (item.typed?.type === InboxItemKind.EMI_COMPLETE) {
+      if (item.typed.payload.loanId) {
+        return {
+          href: moneyLoanPath(item.typed.payload.loanId),
+          labelKey: "viewSourceLoan",
+        };
+      }
+      if (item.typed.payload.debtId) {
+        return {
+          href: moneyDebtPath(item.typed.payload.debtId),
+          labelKey: "viewSourceDebt",
+        };
+      }
+    }
+  }
 
   if (
     item.sourceType === InboxSourceType.TRANSACTION ||

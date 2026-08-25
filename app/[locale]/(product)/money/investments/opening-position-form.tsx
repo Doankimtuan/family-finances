@@ -40,6 +40,8 @@ import { DEFAULT_CURRENCY } from "@/modules/ledger/application/client";
 import { AppIcon } from "@/shared/ui/app-icon";
 import { ControlledField } from "@/shared/patterns/controlled-fields";
 import { BottomActionBar } from "@/shared/patterns/bottom-action-bar";
+import { ChoiceTile, ChoiceTileGroup } from "@/shared/patterns/choice-tile";
+import { Progress } from "@/shared/ui/progress";
 import { MotionStep, MotionStepDirection } from "@/shared/motion";
 import { SelectField } from "@/shared/ui/form";
 import { MoneyOfflineBanner } from "../money-offline-banner";
@@ -368,7 +370,7 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
 
   return (
     <div
-      className="flex min-h-full flex-col gap-(--space-4)"
+      className="flex min-h-full flex-col gap-(--space-5)"
       data-testid="investment-opening-form"
     >
       <MoneyOfflineBanner />
@@ -381,20 +383,25 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
         testId="investment-financial-scope"
       />
       <div
-        className="flex items-center justify-between"
+        className="flex flex-col gap-(--space-2)"
         data-testid="investment-step-indicator"
       >
-        <div className="flex gap-(--space-2)">
-          {OPENING_POSITION_STEP_VALUES.map((item, index) => (
-            <span
-              key={item}
-              className={`h-1.5 rounded-full ${index === stepIndex ? "w-8 bg-accent" : index < stepIndex ? "w-4 bg-accent/55" : "w-4 bg-border-subtle"}`}
-              aria-hidden="true"
-            />
-          ))}
-        </div>
+        <Progress
+          value={stepIndex + 1}
+          max={OPENING_POSITION_STEP_VALUES.length}
+          label={t("stepOf", {
+            current: stepIndex + 1,
+            total: OPENING_POSITION_STEP_VALUES.length,
+          })}
+          showLabel={false}
+          trackClassName="h-1.5"
+          className="gap-0"
+        />
         <Text size="xs" tone="secondary" weight="medium">
-          {stepIndex + 1} / {OPENING_POSITION_STEP_VALUES.length}
+          {t("stepOf", {
+            current: stepIndex + 1,
+            total: OPENING_POSITION_STEP_VALUES.length,
+          })}
         </Text>
       </div>
       <MotionStep
@@ -460,7 +467,7 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
             className="flex flex-col gap-(--space-4)"
             aria-labelledby="investment-details-title"
           >
-            <div>
+            <div className="flex flex-col gap-(--space-1)">
               <Text
                 as="div"
                 role="heading"
@@ -475,46 +482,58 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
                 {tUx(config.descriptionKey)}
               </Text>
             </div>
-            <div className="grid gap-(--space-2) sm:grid-cols-2">
-              <button
-                type="button"
-                aria-pressed={entryMode === InvestmentEntryMode.HISTORICAL}
-                onClick={() =>
+            <ChoiceTileGroup>
+              <ChoiceTile
+                selected={entryMode === InvestmentEntryMode.HISTORICAL}
+                role="radio"
+                onPress={() =>
                   setValue("entryMode", InvestmentEntryMode.HISTORICAL)
                 }
-                className={`rounded-(--radius-control) border px-(--space-3) py-(--space-3) text-left ${entryMode === InvestmentEntryMode.HISTORICAL ? "border-accent bg-primary-soft" : "border-border-subtle bg-surface"}`}
+                testId="investment-entry-mode-historical"
               >
-                <Text weight="medium">
-                  {tUx(
-                    investmentEntryModeMessageKeys[
-                      InvestmentEntryMode.HISTORICAL
-                    ],
-                  )}
-                </Text>
-                <Text size="sm" tone="secondary" className="mt-1">
-                  {t("historicalModeSubtitle")}
-                </Text>
-              </button>
-              <button
-                type="button"
-                aria-pressed={entryMode === InvestmentEntryMode.PURCHASE}
-                onClick={() =>
+                <span className="flex min-w-0 flex-col gap-(--space-1) py-(--space-1)">
+                  <Text size="sm" weight="medium">
+                    {tUx(
+                      investmentEntryModeMessageKeys[
+                        InvestmentEntryMode.HISTORICAL
+                      ],
+                    )}
+                  </Text>
+                  <Text
+                    size="xs"
+                    tone="secondary"
+                    className="text-pretty leading-snug"
+                  >
+                    {t("historicalModeSubtitle")}
+                  </Text>
+                </span>
+              </ChoiceTile>
+              <ChoiceTile
+                selected={entryMode === InvestmentEntryMode.PURCHASE}
+                role="radio"
+                onPress={() =>
                   setValue("entryMode", InvestmentEntryMode.PURCHASE)
                 }
-                className={`rounded-(--radius-control) border px-(--space-3) py-(--space-3) text-left ${entryMode === InvestmentEntryMode.PURCHASE ? "border-accent bg-primary-soft" : "border-border-subtle bg-surface"}`}
+                testId="investment-entry-mode-purchase"
               >
-                <Text weight="medium">
-                  {tUx(
-                    investmentEntryModeMessageKeys[
-                      InvestmentEntryMode.PURCHASE
-                    ],
-                  )}
-                </Text>
-                <Text size="sm" tone="secondary" className="mt-1">
-                  {t("purchaseModeSubtitle")}
-                </Text>
-              </button>
-            </div>
+                <span className="flex min-w-0 flex-col gap-(--space-1) py-(--space-1)">
+                  <Text size="sm" weight="medium">
+                    {tUx(
+                      investmentEntryModeMessageKeys[
+                        InvestmentEntryMode.PURCHASE
+                      ],
+                    )}
+                  </Text>
+                  <Text
+                    size="xs"
+                    tone="secondary"
+                    className="text-pretty leading-snug"
+                  >
+                    {t("purchaseModeSubtitle")}
+                  </Text>
+                </span>
+              </ChoiceTile>
+            </ChoiceTileGroup>
             <div className="flex flex-col gap-(--space-3)">
               <TextField
                 id="investment-name"

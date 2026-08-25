@@ -101,27 +101,30 @@ describe("createInvitation", () => {
     });
   });
 
-  it("maps household full errors", async () => {
-    vi.mocked(getSupabaseEnv).mockReturnValue({
-      url: "https://example.supabase.co",
-      key: "key",
-      isConfigured: true,
-    });
-    vi.mocked(getSessionUser).mockResolvedValue({ id: "u1" } as never);
-    vi.mocked(createSupabaseServerClient).mockResolvedValue({
-      rpc: async () => ({
-        data: null,
-        error: { message: "Household already has two partners" },
-      }),
-    } as never);
+  it.each(["Household already has two partners", "Household is full"])(
+    "maps household full errors: %s",
+    async (message) => {
+      vi.mocked(getSupabaseEnv).mockReturnValue({
+        url: "https://example.supabase.co",
+        key: "key",
+        isConfigured: true,
+      });
+      vi.mocked(getSessionUser).mockResolvedValue({ id: "u1" } as never);
+      vi.mocked(createSupabaseServerClient).mockResolvedValue({
+        rpc: async () => ({
+          data: null,
+          error: { message },
+        }),
+      } as never);
 
-    await expect(
-      createInvitation({ email: "partner@example.com" }),
-    ).resolves.toEqual({
-      ok: false,
-      code: INVITATION_ERROR_CODE.HOUSEHOLD_FULL,
-    });
-  });
+      await expect(
+        createInvitation({ email: "partner@example.com" }),
+      ).resolves.toEqual({
+        ok: false,
+        code: INVITATION_ERROR_CODE.HOUSEHOLD_FULL,
+      });
+    },
+  );
 });
 
 describe("acceptInvitation", () => {

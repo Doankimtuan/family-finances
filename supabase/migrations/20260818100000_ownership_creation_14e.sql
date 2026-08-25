@@ -32,15 +32,12 @@ begin
   execute definition;
   drop function public.create_debt(text,text,text,text,numeric,date,date,text,uuid,text);
 end $$;
-
 grant execute on function public.create_debt(
   text,text,text,text,numeric,date,date,text,uuid,text,text
 ) to authenticated;
-
 revoke all on function public.create_debt(
   text,text,text,text,numeric,date,date,text,uuid,text,text
 ) from public, anon;
-
 do $$
 declare
   definition text;
@@ -70,15 +67,12 @@ begin
     uuid,numeric,uuid,text,jsonb,text,uuid,date,date,jsonb,jsonb,text
   );
 end $$;
-
 grant execute on function public.create_saving_with_transfer(
   uuid,numeric,uuid,text,jsonb,text,uuid,date,date,jsonb,jsonb,text,text
 ) to authenticated;
-
 revoke all on function public.create_saving_with_transfer(
   uuid,numeric,uuid,text,jsonb,text,uuid,date,date,jsonb,jsonb,text,text
 ) from public, anon;
-
 do $$
 declare
   definition text;
@@ -108,15 +102,12 @@ begin
     text,text,text,numeric,numeric,text,text,numeric,int,numeric,date,int,date,date,numeric,numeric,numeric,date,text,char,jsonb,jsonb
   );
 end $$;
-
 grant execute on function public.create_loan_with_schedule(
   text,text,text,numeric,numeric,text,text,numeric,int,numeric,date,int,date,date,numeric,numeric,numeric,date,text,char,jsonb,jsonb,text
 ) to authenticated;
-
 revoke all on function public.create_loan_with_schedule(
   text,text,text,numeric,numeric,text,text,numeric,int,numeric,date,int,date,date,numeric,numeric,numeric,date,text,char,jsonb,jsonb,text
 ) from public, anon;
-
 do $$
 declare
   definition text;
@@ -146,15 +137,12 @@ begin
     text,text,numeric,date,text,text,numeric,numeric,text,text,text
   );
 end $$;
-
 grant execute on function public.record_investment_opening_position(
   text,text,numeric,date,text,text,numeric,numeric,text,text,text,text
 ) to authenticated;
-
 revoke all on function public.record_investment_opening_position(
   text,text,numeric,date,text,text,numeric,numeric,text,text,text,text
 ) from public, anon;
-
 create or replace function public.record_investment_initial_purchase(
   p_asset_name text,
   p_asset_class text,
@@ -247,11 +235,9 @@ begin
   );
   return v_receipt;
 end $$;
-
 grant execute on function public.record_investment_initial_purchase(
   text,text,numeric,numeric,uuid,date,text,text,jsonb,text,text,text,text
 ) to authenticated;
-
 revoke all on function public.record_investment_initial_purchase(
   text,text,numeric,numeric,uuid,date,text,text,jsonb,text,text,text,text
 ) from public, anon;

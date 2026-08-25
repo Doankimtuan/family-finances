@@ -3,7 +3,6 @@
 
 alter table public.liabilities
   add column if not exists opening_paid_amount numeric(18, 0) not null default 0;
-
 update public.liabilities l
 set opening_paid_amount = greatest(
   0,
@@ -19,7 +18,6 @@ set opening_paid_amount = greatest(
     )
   )
 );
-
 alter table public.liabilities
   drop constraint if exists liabilities_opening_paid_amount_check,
   add constraint liabilities_opening_paid_amount_check

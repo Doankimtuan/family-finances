@@ -68,13 +68,22 @@ test.describe("Home decision dashboard", () => {
 
     await page.goto("/en/home");
     await expect(page.getByTestId(HOME_TEST_ID.DASHBOARD)).toBeVisible();
+    await expect(
+      page.locator('[data-header-variant="contextual"]'),
+    ).toBeVisible();
     await expect(page.getByTestId(HOME_TEST_ID.PERIOD_CONTROL)).toBeVisible();
     const quarterButton = page.getByRole("button", { name: "Quarter" });
-    await quarterButton.click();
+    await quarterButton.focus();
+    await quarterButton.press("Enter");
     await expect(quarterButton).toHaveAttribute("aria-pressed", "true");
     await expect(page.getByTestId(HOME_TEST_ID.PERIOD_CONTENT)).toBeVisible();
     await expect(page).toHaveURL(/period=quarter/);
     await expect(quarterButton).toBeFocused();
+    const monthButton = page.getByRole("button", { name: "Month" });
+    await monthButton.focus();
+    await monthButton.press("Enter");
+    await expect(page).toHaveURL(/\/en\/home(?:\?|$)/);
+    await expect(monthButton).toBeFocused();
     await expect(page.getByTestId(HOME_TEST_ID.PERIOD_CONTENT)).toHaveAttribute(
       "aria-busy",
       "false",
@@ -86,5 +95,12 @@ test.describe("Home decision dashboard", () => {
     await expect(page.getByText("What’s included")).toBeVisible();
     await expect(page.getByTestId(HOME_TEST_ID.INBOX_BLOCK)).toBeVisible();
     await expect(page.getByTestId(HOME_TEST_ID.PLAN_PULSE)).toBeVisible();
+    await expect(
+      page.evaluate(
+        () =>
+          document.documentElement.scrollWidth <=
+          document.documentElement.clientWidth,
+      ),
+    ).resolves.toBe(true);
   });
 });

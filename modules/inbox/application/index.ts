@@ -1,6 +1,8 @@
 export {
   listOpenInboxItems,
+  listOpenInboxPage,
   countOpenInboxItems,
+  countUnreadOpenInboxItems,
   listArchivedInboxItems,
   getInboxItem,
 } from "./queries/review-items";
@@ -9,6 +11,8 @@ export {
   dismissInboxItem,
   acknowledgeInboxItem,
   autoResolveInboxItem,
+  markInboxItemRead,
+  markInboxItemUnread,
   resolveInboxItemInputSchema,
   dismissInboxItemInputSchema,
   acknowledgeInboxItemInputSchema,
@@ -16,6 +20,8 @@ export {
   isAckActionAllowedForKind,
 } from "./commands/review-items";
 export { runInboxStalenessWorker } from "./workers/resolve-stale-inbox-items";
+export { syncLoanDebtAttentionInboxItems } from "./commands/loan-debt-attention-workflow";
+export type { LoanDebtAttentionSyncResult } from "./commands/loan-debt-attention-workflow";
 
 export {
   InboxItemKind,
@@ -30,6 +36,9 @@ export {
   INBOX_ARCHIVED_STATUS_VALUES,
   INBOX_ACTIVE_STATUS_VALUES,
   INBOX_TERMINAL_STATUS_VALUES,
+  INBOX_OPEN_PAGE_SIZE,
+  InboxEnrichmentState,
+  InboxLifecycleContext,
   INBOX_LEGACY_KIND_VALUES,
   INBOX_KIND_MIGRATION_MAP,
   InboxQueueTab,
@@ -56,7 +65,12 @@ export type {
   InboxSourceType as InboxSourceTypeValue,
   InboxLegacyKind,
 } from "./inbox-constants";
-export type { InboxReviewItem, InboxCanonicalReviewItem } from "./inbox-types";
+export type {
+  InboxReviewItem,
+  InboxCanonicalReviewItem,
+  InboxPage,
+  InboxPageCursor,
+} from "./inbox-types";
 export type {
   ResolveInboxItemInput,
   ResolveInboxItemResult,
@@ -64,6 +78,7 @@ export type {
   AcknowledgeInboxItemInput,
   AutoResolveInboxItemInput,
   InboxMutationResult,
+  InboxReadStateResult,
 } from "./commands/review-items";
 export type { InboxStalenessWorkerResult } from "./workers/resolve-stale-inbox-items";
 export type { InboxCommandErrorCode } from "./inbox-error";
@@ -87,6 +102,14 @@ export {
   shouldCancelMaturityCascade,
 } from "./inbox-resolution-policy";
 export { resolveInboxDisplayTitle, isBlankTitle } from "./inbox-display";
+export {
+  InboxSourceCapability,
+  resolveInboxSourceCapabilities,
+} from "./inbox-source-capabilities";
+export type {
+  InboxSourceCapabilities,
+  InboxSourceCapability as InboxSourceCapabilityValue,
+} from "./inbox-source-capabilities";
 export { classifyInboxRpcError, logInboxFailure } from "./inbox-error";
 export type { InboxFailureContext } from "./inbox-error";
 export { SAVINGS_INBOX_CONTEXT } from "./inbox-constants";

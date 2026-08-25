@@ -21,7 +21,8 @@ type MoneyPositionCompositionSegment = {
 
 type Props = {
   ownedMoneyLabel: string;
-  ownedMoneyValue: string;
+  ownedMoneyValue: string | null;
+  positionUnavailableLabel: string;
   metaLine: ReactNode;
   compositionLabel: string;
   composition: MoneyPositionCompositionSegment[];
@@ -59,6 +60,7 @@ const ALLOCATION_SEGMENT_CLASS: Record<MoneyAccountGroupKey, string> = {
 export function MoneyPositionHero({
   ownedMoneyLabel,
   ownedMoneyValue,
+  positionUnavailableLabel,
   metaLine,
   compositionLabel,
   composition,
@@ -75,12 +77,23 @@ export function MoneyPositionHero({
         <Text size="sm" weight="medium" className="text-hero-muted">
           {ownedMoneyLabel}
         </Text>
-        <Balance
-          amountLabel={ownedMoneyValue}
-          size={BalanceSize.HERO}
-          className="mt-(--space-2)"
-          amountClassName="text-hero-fg"
-        />
+        {ownedMoneyValue == null ? (
+          <Text
+            size="lg"
+            weight="semibold"
+            className="mt-(--space-2) text-hero-fg"
+            data-testid="money-position-unavailable"
+          >
+            {positionUnavailableLabel}
+          </Text>
+        ) : (
+          <Balance
+            amountLabel={ownedMoneyValue}
+            size={BalanceSize.HERO}
+            className="mt-(--space-2)"
+            amountClassName="text-hero-fg"
+          />
+        )}
         <div className="mt-(--space-4) flex flex-wrap items-center justify-between gap-x-(--space-3) gap-y-(--space-2) border-t border-white/15 pt-(--space-3)">
           {metaLine}
           <Link
@@ -120,8 +133,9 @@ export function MoneyPositionHero({
             ))}
           </div>
           <ul
-            className="mt-(--space-3) grid grid-cols-2 gap-x-(--space-4) gap-y-(--space-2)"
+            className="mt-(--space-4) flex flex-col gap-y-(--space-2)"
             aria-label={compositionLabel}
+            data-testid="money-composition-legend"
           >
             {composition.map((segment) => {
               const visual = moneyAccountVisualFor(
@@ -130,14 +144,14 @@ export function MoneyPositionHero({
               return (
                 <li
                   key={segment.key}
-                  className="flex min-w-0 items-center justify-between gap-(--space-2)"
+                  className="flex min-w-0 items-center justify-between gap-(--space-3)"
                 >
                   <div className="flex min-w-0 items-center gap-(--space-2)">
                     <IconContainer tone={visual.tone} size="sm">
                       <AppIcon icon={visual.icon} size="xs" />
                     </IconContainer>
                     <div className="min-w-0">
-                      <span className="block truncate text-sm font-medium text-text-primary">
+                      <span className="block text-sm font-medium text-text-primary">
                         {segment.label}
                       </span>
                       <span className="block text-xs tabular-nums text-text-secondary">

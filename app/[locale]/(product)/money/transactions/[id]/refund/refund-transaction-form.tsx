@@ -272,7 +272,7 @@ export function RefundTransactionForm({
           },
         ]}
       >
-        <div className="rounded-lg border border-border-subtle bg-surface-soft p-(--space-3)">
+        <div className="rounded-(--radius-control) border border-border-subtle bg-surface-soft p-(--space-3)">
           <Text size="sm" tone="secondary">
             {t("receipt.relationship")}
           </Text>
@@ -283,7 +283,7 @@ export function RefundTransactionForm({
 
   return (
     <div
-      className="flex flex-col gap-(--space-4)"
+      className="flex flex-col gap-(--space-6)"
       data-testid="money-refund-form"
     >
       {errorCode ? (
@@ -305,7 +305,7 @@ export function RefundTransactionForm({
         <Text size="lg" weight="semibold">
           {t("originalTitle")}
         </Text>
-        <div className="flex flex-col gap-(--space-2) rounded-lg border border-border-subtle bg-surface-soft p-(--space-4)">
+        <div className="flex flex-col gap-(--space-2) rounded-[var(--radius-card)] border border-border-subtle/80 bg-surface/70 p-(--space-4) shadow-(--elevation-1)">
           <Text size="base" weight="medium">
             {originalTitle}
           </Text>
@@ -494,13 +494,13 @@ export function RefundTransactionForm({
 
       <Link
         href={moneyTransactionPath(transaction.id)}
-        className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle text-sm font-medium text-text-primary"
+        className="inline-flex min-h-11 w-full items-center justify-center rounded-[var(--radius-control)] border border-border-subtle bg-surface text-sm font-medium text-text-primary transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-[var(--press-scale)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none"
       >
         {t("cancel")}
       </Link>
       <Link
         href={APP_PATH.MONEY_TRANSACTIONS}
-        className="inline-flex min-h-11 w-full items-center justify-center text-sm text-text-secondary"
+        className="inline-flex min-h-11 w-full items-center justify-center rounded-[var(--radius-control)] text-sm text-text-secondary transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-[var(--press-scale)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none"
       >
         {t("back")}
       </Link>

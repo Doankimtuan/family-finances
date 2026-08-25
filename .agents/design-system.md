@@ -1,4 +1,4 @@
-# ViNha Design System — Canonical Reference
+# Family Finance Design System — Canonical Reference
 
 Home is the visual north star. This document turns the approved Home design
 into app-wide rules. **Any new UI or redesign must first read this document
@@ -518,7 +518,83 @@ presented as spendable cash.
 - Detail-not-found renders `StatusAlert` danger + a back link — no raw
   hand-styled buttons.
 
-## 27. Loans / Installment flows
+## 27. Investments flows
+
+Investments are a valuation-first resource, not a trading terminal. Money hub
+rules apply: the hub row shows a holdings head-count only; valuation totals and
+coverage semantics live on the Investments screens.
+
+### List (Money child screen family)
+
+- Follows the hub's hero-group composition: `TopAppBar variant="detail"` (back
+  to Money), then `Card tone="hero"` with the dominant **Estimated market
+  value** (caption, hero value, quiet coverage note in `text-hero-muted`) and
+  an attached (gap-3) `Card tone="elevated"` metric strip with the 2×2 grid
+  (remaining basis, estimated PnL with semantic tone, realized, income) —
+  semantic tones live on the light strip, never on the hero. Incomplete basis
+  is the one warning alert; coverage notes stay quiet text, never amber.
+- Allocation uses the hub's composition language — a full-width segmented
+  strip + two-column legend — never a clipped donut; Recharts stays off list
+  screens.
+- Holdings are split by a two-option segmented control (Active / Closed with
+  counts); search applies to both tabs, asset-class chips only to Active. Long
+  lists are capped (8 rows) behind a show-all toggle, matching the hub scan
+  cap rule.
+- The create action is the screen's `FloatingAction` pill ("Add investment"),
+  fixed above the bottom navigation; Convert is the holdings section-header
+  action rendered as a compact bordered pill (the section's control language —
+  same family as the tabs/chips, never a bare text link). Never bury
+  create/convert at the end of a long list.
+- Position cards are `Card tone="interactive"`: `IconContainer tone="investment"`
+  - name/instrument left, current value right (or "No price yet"); a divided
+    footer row pairs gain/loss (signed + tone, or a missing-basis warning badge,
+    or "Insufficient data") with quantity + one-line freshness. Cost basis lives
+    on the detail screen; rows never carry all metadata.
+- `InvestmentValuationMeta variant="inline"` renders freshness as one quiet
+  xs line (`Automatic · today`, `Price updated manually on 08/21`, `Stale (date)`,
+  `No price yet`); the badge stack (`variant="badge"`, default) stays for detail
+  screens. Manual copy is self-describing — never duplicate the "manual" label.
+- Closed holdings are quiet `Card tone="soft"` rows with a neutral "Closed"
+  badge — historical, resolved, still navigable.
+
+### Holding detail
+
+- Identity in the `TopAppBar` detail header; the hero is `Card tone="hero"`
+  with the on-hero icon chip pattern, "Estimated market value" caption, the
+  `Amount`-semantics hero value (never `Balance` — valuations are estimates),
+  and a `border-white/15` context row: `FinancialOwnershipBadge onHero` +
+  inline freshness in `text-hero-muted`. Closed holdings show the closed
+  caption + "no current value" line instead of a value; gain/loss stays off the
+  hero (calm hero, performance lives in the metrics grid).
+- Actions: primary Buy (always when mutable — buying re-opens a position),
+  secondary Sell + overflow (income; manual valuation only when the holding is
+  not auto-priced). Closed hides Sell/overflow. Read-only shows no actions; the
+  hero ownership row explains why.
+- Activity history is one divided list inside `Card tone="elevated"` (never
+  one-card-per-event): friendly label + date/quantity left, executed value
+  right, realized P&L (semantic xs) and slippage beneath.
+
+### Unit-price semantics (binding)
+
+Pricing is **price per unit** in create/buy/sell/valuation; totals are always
+derived (`quantity × unitPrice`, half-up). The only total-value exceptions are
+BOND and `TOTAL_VALUE`-mode instruments, driven by
+`resolveInvestmentPricingContract` — never a free-choice total field. Sell keeps
+the visible MAX ("Sell all") affordance and shows units owned, per-unit price,
+gross → net → realized preview, destination account, and deterministic
+"Remaining after sale" units. Valuation update sheets show units owned, current
+price context, and the derived value preview.
+
+### Forms and overlays
+
+- Operation sheets (buy/sell/income/valuation/convert) use `ActionSheetLayout`
+  with `SelectField`/`CheckboxField` shared primitives and the canonical
+  `SheetActionFooter` (one primary with pending label swap, one escape).
+- The create wizard is three steps with the shared thin `Progress` +
+  "Step N of 3" indicator, `ChoiceTileGroup` entry-mode tiles, `MotionStep`
+  transitions, and `BottomActionBar` — matching the onboarding form language.
+
+## 28. Loans / Installment flows
 
 Loans are a repayment-management flow, not a generic CRUD resource. The screen
 must make the current obligation and the next supported action legible without
@@ -588,6 +664,82 @@ inventing borrowing-health metrics or changing the ledger model.
   filter, and rows. Detail-not-found uses a danger `StatusAlert` with a back
   link; read failures remain distinct from empty and offline states.
 
+## 29. Savings flows
+
+Savings are a maturity-first resource: principal, rate, term, and the next
+maturity decision define the screens — not a deposit CRUD list. Financial
+semantics (§ discovery report §3) are binding; restyling never recalculates.
+
+### List (Money child screen family)
+
+- Same hero-group composition as Investments: `TopAppBar variant="detail"`
+  (back to Money), `Card tone="hero"` with the household **Principal held**
+  total (tracked-money note and attention count in `text-hero-muted`), and an
+  attached `Card tone="elevated"` metric strip: expected net interest, expected
+  received, settlement tax (only when > 0), and the needs-attention count
+  (warning `StatusBadge` when > 0).
+- Bank vs App/platform keep separate sections with family hints; rows are
+  `Card tone="interactive"` links: `IconContainer tone="savings"` +
+  provider/package identity left, principal + rate right; a divided footer
+  pairs the lifecycle badge with maturity date + days remaining. Completed
+  history rows are quiet `Card tone="soft"` with neutral settled badges.
+- Lifecycle badges escalate via the shared `SavingsMaturityBadge` mapping:
+  neutral (active, settled, early settled), info (maturing soon), warning
+  (matured / matures today / action required). Text always accompanies tone;
+  active savings never look like warnings.
+- Create is the screen's `FloatingAction` pill; "Manage providers" is a quiet
+  bordered pill placed after the summary group.
+
+### Detail
+
+- Identity lives in the `TopAppBar` detail header (product name + family
+  subtitle); the hero follows the Accounts icon-chip pattern: `Card tone="hero"`,
+  on-hero family icon chip, "Principal held" caption, tabular hero value, and a
+  `border-white/15` context row (`FinancialOwnershipBadge onHero` + maturity
+  date / days left). The lifecycle badge lives in the metrics strip — never
+  colored onto the hero.
+- Attached metric strip (`Card tone="elevated"`): locked rate, term, maturity
+  state badge, start date; the divided return block beneath shows gross
+  expected interest → tax (only when > 0) → net interest → **Expected
+  received** (emphasized) with the estimate-until-settlement hint.
+- Term progress uses shared `Progress` (savings tone) between start/end dates
+  with an elapsed/total label. Product facts and money flow (funded from /
+  settles into) stay separate labeled sections.
+- Actions stay lifecycle-gated in `BottomActionBar`: the settle/rollover sheet
+  when matured, "Settle early" as a secondary-styled link while allowed;
+  terminal states show the closed info alert with history only; read-only
+  resources show full financial detail without mutation controls.
+- Loading boundaries mirror both compositions (`loading.tsx` for list and
+  detail).
+
+### Maturity, settlement, and rollover (binding)
+
+- Settlement / rollover use the two-step sheet (strategy → optional target
+  package + destination → review). The review separates principal, gross
+  interest, tax, fee, payout, and **Received** (withdraw) vs **New principal**
+  (rollover — principal+interest rollovers carry the full proceeds, never a
+  reset to the original principal), plus the new package's rate, term, and new
+  maturity date. The saved maturity-instruction editor shares the same choice
+  language.
+- Early withdrawal is a distinct decision page: the preview distinguishes the
+  early-withdrawal rate (including "unknown until provider or manual quote"),
+  accrued vs eligible interest, tax, penalty, and estimated net return;
+  warnings use attention (`StatusAlert` warning), never destructive framing;
+  the request enqueues an Inbox confirmation before any money moves.
+- Bank vs platform stays factual: family icons/groups plus tax semantics
+  (bank none / platform % on interest) surface only through real product data.
+
+### Create wizard and catalog
+
+- The wizard keeps the three-step flow with the canonical shared `Progress` +
+  "Step N of 3" indicator, `ChoiceTile` selections with per-family hints, the
+  live estimate card, and a review hero (`Card tone="hero"`) carrying the
+  maturity amount — the single hero of that step.
+- Provider/product management uses canonical management patterns: sheet editors
+  with `TextField`/`SelectField`, the HeroUI icon-picker dropdown, and archive
+  behind an explicit inline confirm state (warning card + cancel / archive
+  danger pair) — never `window.confirm`.
+
 ## Do / Don't
 
 **Do**: consume `Card` tones, `Section`, `Balance`/`Amount`/
@@ -599,3 +751,55 @@ surface table above; keep one hero and one primary action per screen.
 CSS; nested card soup; teal on every accent; green/red for static balances;
 warning color for harmless info; new radii/shadows/spacing scales; separate
 visual language for forms or admin-ish screens.
+
+## 30. Inbox attention-center pattern
+
+Inbox is the product's **financial attention center**, not a generic notification feed. The queue uses a summary-first composition: contextual `TopAppBar`, a single compact summary surface, Open/Archived tabs, a soft filter surface, and one grouped list of review items. Pending items use semantic identity icons and status treatments; history uses neutral surfaces and remains readable without competing with active work.
+
+Inbox item rows follow the compact hierarchy `[semantic icon] [what needs attention + source context] [amount]`, followed by one kind/status badge and one quiet next-step cue. The whole row is the navigation target for actionable items. The row must not duplicate the primary action with a second large button. Warning is reserved for review-required or due attention; informational milestones use info/success semantics; former-member resources remain neutral and read-only. Meaning must remain available through labels, typography, iconography, and copy, not color alone.
+
+Inbox detail uses the canonical detail pattern: detail TopAppBar with back navigation, a highlighted decision-context surface, one source-context ReviewCard, an amount-is-context alert, compact source facts, an optional owning-domain link, and the existing kind-specific action panel. Inbox does not own Money or Savings movements; those actions continue through their owning application flows.
+
+Loading skeletons mirror the summary, tabs, filter surface, grouped section, and compact item rows. State changes may use `motion/react` for subtle opacity/transform transitions on filtered items only, using shared `motionTokens`/`springs`, SSR-safe initial state, and reduced-motion policy. Do not animate every item on mount, financial values, or layout dimensions.
+
+## Together Collaboration UI Patterns
+
+The Together domain uses a compact, management-oriented presentation inside the centered 440px app shell. The overview leads with one household identity hero, active-member count, current Admin/Partner responsibility context, and one contextual lifecycle notice when needed. Follow with grouped management rows for invitations, policies, household preferences, and account settings; do not use an equal-weight link stack as the primary hierarchy.
+
+Active members use divided rows inside one elevated management surface. Identity is primary, Admin/Partner is responsibility context rather than financial ownership, and a short capability hint clarifies whether the member can manage the household or has ordinary member access. Pending invitations have a distinct warning-toned surface and must never look like active members; show invitee context, pending status, expiry, Copy link, copied feedback, and Revoke only when the actor is allowed.
+
+High-consequence Together actions use the canonical HeroUI-backed `Sheet` with `ActionSheetLayout` and safe-area-aware `SheetActionFooter` where appropriate. Confirmation copy must explain access loss, retained historical/read-only personal resources, Admin continuity, and obligation follow-up without suggesting ownership transfer or money movement. HeroUI owns sheet motion; do not layer Motion over the sheet transition.
+
+Together lifecycle and ownership notices use ordinary household language. Former-member and owner-unavailable contexts belong on canonical Money, Plan, or Inbox resource surfaces rather than being duplicated as financial detail inside Together. Admin responsibility is never described as financial ownership. Solo-Admin continuity remains a contextual warning because household deletion is not a supported V1 action.
+
+Together loading boundaries mirror the loaded hierarchy with the shared `Skeleton` primitive. New Together entry motion uses the existing `MotionReveal` client leaf and shared `useMotionPolicy`; it is limited to calm transform/opacity continuity, is stable-keyed and SSR-safe, and degrades under reduced motion or low-end-device policy. No decorative cascades, loops, animated financial digits, or overlay motion stacking are allowed.
+
+## Brand / Logo
+
+Family Finance's canonical brand mark is the approved raster board at
+`public/brand/logo-primary.png`. It must remain unchanged. The visible identity
+is the two-tone family-home mark with the **Family Finance** wordmark and the
+tagline **Plan together. Build better.**
+
+Use the approved mark on identity surfaces: Welcome, authentication, onboarding
+entry, splash/loading moments, system fallbacks, and compact app-brand headers.
+Use the lockup only where there is room; use the transparent mark in compact
+headers. Reserve the square app-icon crop for favicon, PWA, and platform icon
+surfaces. Do not redraw, simplify, recolor, distort, or alter the logo
+geometry. Do not use the full lockup in navigation rows, buttons, or financial
+data surfaces.
+
+Generated derivatives live beside the source: `public/brand/logo-lockup.png`,
+`public/brand/logo-mark-transparent.png`, and `public/brand/app-icon.png`.
+Favicon and PWA exports are generated from the approved source by
+`node scripts/generate-brand-assets.mjs`: `public/favicon-16x16.png`,
+`public/favicon-32x32.png`, `public/favicon-48x48.png`, `public/favicon.ico`,
+`public/apple-touch-icon.png`, `public/icon-192.png`, `public/icon-512.png`,
+and `public/maskable-512.png`.
+
+Inline brand marks used inside app UI must always use transparent-background
+assets. Square app-icon assets with baked-in backgrounds must never be used
+inside headers or inline branding. Use the existing semantic design tokens
+around the asset. Never add a second logo treatment, generic
+house/wallet/piggy-bank/dollar icon, or hand-edited formatted copy as a
+substitute for the approved brand mark.

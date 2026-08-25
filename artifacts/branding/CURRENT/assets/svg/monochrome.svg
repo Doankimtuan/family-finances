@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="ViNha monochrome mark">
+  <g fill="none" stroke="#18181B" stroke-linecap="round" stroke-linejoin="round" stroke-width="5.5">
+    <path d="M7 12.5C7 8.35 10.35 5 14.5 5c2.55 0 4.88 1.27 6.28 3.35M25 19.5C25 23.65 21.65 27 17.5 27c-2.55 0-4.88-1.27-6.28-3.35"/>
+    <path d="M19.5 7C23.65 7 27 10.35 27 14.5c0 2.55-1.27 4.88-3.35 6.28M12.5 25C8.35 25 5 21.65 5 17.5c0-2.55 1.27-4.88 3.35-6.28"/>
+    <path d="M14.5 5l6.28 6.28a4.5 4.5 0 0 1 0 6.36L17.5 21M17.5 27l-6.28-6.28a4.5 4.5 0 0 1 0-6.36L14.5 11"/>
+  </g>
+</svg>

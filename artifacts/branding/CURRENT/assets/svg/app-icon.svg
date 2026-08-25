@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">ViNha app icon</title>
+  <desc id="desc">The Woven Path mark in a deep teal rounded square.</desc>
+  <rect width="512" height="512" rx="116" fill="#0F766E"/>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="78">
+    <path stroke="#FAFAFA" d="M112 200c0-59.65 48.35-108 108-108 36.62 0 70.1 18.23 90.25 48.02M400 312c0 59.65-48.35 108-108 108-36.62 0-70.1-18.23-90.25-48.02"/>
+    <path stroke="#D6D3D1" d="M312 112c59.65 0 108 48.35 108 108 0 36.62-18.23 70.1-48.02 90.25M200 400c-59.65 0-108-48.35-108-108 0-36.62 18.23-70.1 48.02-90.25"/>
+    <path stroke="#FAFAFA" d="M220 92l90.25 90.25a81 81 0 0 1 0 114.55L292 316"/>
+    <path stroke="#D6D3D1" d="M292 420l-90.25-90.25a81 81 0 0 1 0-114.55L220 196"/>
+  </g>
+</svg>

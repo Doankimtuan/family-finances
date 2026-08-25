@@ -16,6 +16,15 @@ import { Text } from "@/shared/ui/text";
 const CRYPTO_DECIMAL_DIGITS = 8;
 const STANDARD_DECIMAL_DIGITS = 2;
 
+/** Rendering depth: badge stack (detail) or one quiet line (rows / hero). */
+export const InvestmentValuationMetaVariant = {
+  BADGE: "badge",
+  INLINE: "inline",
+} as const;
+
+export type InvestmentValuationMetaVariant =
+  (typeof InvestmentValuationMetaVariant)[keyof typeof InvestmentValuationMetaVariant];
+
 function dateLabel(value: string, locale: string) {
   return formatDate(new Date(`${value}T00:00:00`), locale, {
     day: "2-digit",
@@ -56,15 +65,22 @@ function quoteLabel(
 export function InvestmentValuationMeta({
   holding,
   detail = false,
+  variant = InvestmentValuationMetaVariant.BADGE,
+  onHero = false,
 }: {
   holding: InvestmentHolding;
   detail?: boolean;
+  variant?: InvestmentValuationMetaVariant;
+  /** Inline variant on the hero surface: quiet hero-muted text. */
+  onHero?: boolean;
 }) {
   const locale = useLocale();
   const t = useTranslations("money.investments.valuation");
   const tOverview = useTranslations("money.investments.overview");
   const quality = holding.valuation?.quality ?? MarketValuationQuality.UNKNOWN;
   const priceDate = holding.valuation?.priceDate;
+  const isNavMode =
+    holding.instrument?.pricingMode === MarketPricingMode.NAV_PER_UNIT;
   const fundUnit = tOverview("fundUnit");
   const quote = quoteLabel(holding, locale, fundUnit, t("nav"));
 
@@ -75,16 +91,12 @@ export function InvestmentValuationMeta({
   if (quality === MarketValuationQuality.AUTO_CURRENT) {
     statusLabel = t("automatic");
     statusTone = StatusBadgeTone.SUCCESS;
-    if (!priceDate) {
-      dateText = null;
-    } else if (
-      holding.instrument?.pricingMode === MarketPricingMode.NAV_PER_UNIT
-    ) {
-      dateText = t("navOn", { date: dateLabel(priceDate, locale) });
-    } else if (isToday(priceDate)) {
-      dateText = t("updatedToday");
-    } else {
-      dateText = t("updatedOn", { date: dateLabel(priceDate, locale) });
+    if (priceDate) {
+      dateText = isNavMode
+        ? t("navOn", { date: dateLabel(priceDate, locale) })
+        : isToday(priceDate)
+          ? t("updatedToday")
+          : t("updatedOn", { date: dateLabel(priceDate, locale) });
     }
   } else if (quality === MarketValuationQuality.AUTO_STALE) {
     statusLabel = t("automatic");
@@ -98,6 +110,32 @@ export function InvestmentValuationMeta({
     dateText = priceDate
       ? t("manualUpdatedOn", { date: dateLabel(priceDate, locale) })
       : t("manualUpdated");
+  }
+
+  if (variant === InvestmentValuationMetaVariant.INLINE) {
+    // Manual date copy already carries the "manual" context on its own.
+    const line =
+      dateText == null
+        ? statusLabel
+        : quality === MarketValuationQuality.MANUAL
+          ? dateText
+          : `${statusLabel} · ${dateText}`;
+    return (
+      <Text
+        size="xs"
+        tone={
+          onHero
+            ? undefined
+            : quality === MarketValuationQuality.AUTO_STALE
+              ? "secondary"
+              : "muted"
+        }
+        className={onHero ? "text-hero-muted" : undefined}
+        data-testid="investment-valuation-meta"
+      >
+        <FinancialValue>{line}</FinancialValue>
+      </Text>
+    );
   }
 
   return (

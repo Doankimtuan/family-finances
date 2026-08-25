@@ -29,9 +29,11 @@ test.describe("Inbox review queue (ST-E04-002 / ST-E06-001)", () => {
     await page.goto("/en/inbox");
     await expect(page.getByTestId("inbox-queue")).toBeVisible();
     await expect(
-      page.getByText(
-        /What needs a decision|Việc nào cần quyết định|Review items waiting|Mục cần gắn/i,
-      ),
+      page
+        .getByText(
+          /What needs a decision|Needs your attention|Việc nào cần quyết định|Cần bạn chú ý|Review items waiting|Mục cần gắn/i,
+        )
+        .first(),
     ).toBeVisible();
   });
 });

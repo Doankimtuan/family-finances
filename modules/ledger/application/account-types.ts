@@ -3,6 +3,7 @@ import {
   ACCOUNT_TYPE_VALUES,
   type AccountType as AccountTypeValue,
 } from "./ledger-constants";
+import { isLiquidAccountType } from "./account-constants";
 import {
   FINANCIAL_SCOPE,
   isFinancialScope,
@@ -39,6 +40,16 @@ export type RealPosition = {
   totalBalance: number;
   accounts: LedgerAccount[];
 };
+
+export function isEligibleInvestmentCashAccount(
+  account: Pick<LedgerAccount, "type" | "isArchived" | "canMutate">,
+): boolean {
+  return (
+    !account.isArchived &&
+    account.canMutate &&
+    isLiquidAccountType(account.type)
+  );
+}
 
 function asAccountType(value: string): AccountTypeValue {
   if (KNOWN_ACCOUNT_TYPES.has(value)) {

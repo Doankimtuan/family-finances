@@ -1,5 +1,3 @@
--- ST-E03-001: Tenancy essentials + seed tables for onboard ≤3 steps (REQ-012, REQ-014, BR-12)
-
 create extension if not exists pgcrypto;
 
 create table if not exists public.households (
@@ -247,4 +245,4 @@ create policy jars_update_member on public.jars
 grant select, update on public.households to authenticated;
 grant select on public.household_members to authenticated;
 grant select, insert, update on public.accounts to authenticated;
-grant select, insert, update on public.jars to authenticated;
+grant select, insert, update on public.jars to authenticated;;

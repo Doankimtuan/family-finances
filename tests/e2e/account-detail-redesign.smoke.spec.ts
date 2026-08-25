@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { authenticateE2EUser } from "./support/auth";
 
 const ACCOUNT_DETAIL_SCENARIOS = [
   {
@@ -28,21 +29,7 @@ const ACCOUNT_DETAIL_SCENARIOS = [
 ];
 
 async function signIn(page: Page) {
-  const email = process.env.E2E_USER_EMAIL;
-  const password = process.env.E2E_USER_PASSWORD;
-  test.skip(!email || !password, "E2E credentials not provided");
-
-  await page.goto("/en/login");
-  await page.getByLabel("Email").fill(email!);
-  await page.locator("#login-password").fill(password!);
-  await page.getByRole("button", { name: "Log in" }).click();
-  await expect(page).toHaveURL(/\/en\/(home|together\/onboard)/, {
-    timeout: 20_000,
-  });
-  test.skip(
-    page.url().includes("/together/onboard"),
-    "E2E account has no household to inspect",
-  );
+  await authenticateE2EUser(page);
 }
 
 async function accountHrefs(page: Page): Promise<string[]> {

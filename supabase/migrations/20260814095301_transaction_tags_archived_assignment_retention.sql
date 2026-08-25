@@ -77,6 +77,5 @@ begin
   end if;
 end;
 $$;
-
 revoke all on function public.set_transaction_tags(uuid, uuid[]) from public;
 grant execute on function public.set_transaction_tags(uuid, uuid[]) to authenticated;

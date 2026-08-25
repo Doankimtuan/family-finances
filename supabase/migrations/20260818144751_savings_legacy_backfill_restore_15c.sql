@@ -134,3 +134,4 @@ $$;
 
 revoke all on function public.backfill_legacy_savings_accounts(uuid) from public;
 grant execute on function public.backfill_legacy_savings_accounts(uuid) to authenticated;
+;

@@ -1,5 +1,5 @@
 /**
- * Semantic color token IDs used across ViNha.
+ * Semantic color token IDs used across Family Finance.
  * Values live in styles/globals.css as --color-* / --vinha-*.
  * Components must reference these names (or Tailwind utilities derived from them),
  * never raw palette hex.

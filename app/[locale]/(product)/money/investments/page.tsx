@@ -31,7 +31,14 @@ export default async function InvestmentsPage({ params }: Props) {
   return (
     <Page
       testId="money-investments"
-      topBar={<TopAppBar title={t("title")} subtitle={t("subtitle")} />}
+      topBar={
+        <TopAppBar
+          variant="detail"
+          backHref={APP_PATH.MONEY}
+          title={t("title")}
+          subtitle={t("subtitle")}
+        />
+      }
     >
       <MoneyOfflineBanner />
       {!portfolio ? (
@@ -41,13 +48,19 @@ export default async function InvestmentsPage({ params }: Props) {
         <EmptyState
           title={t("emptyTitle")}
           description={t("emptyDescription")}
+          action={
+            <Link
+              href={APP_PATH.MONEY_INVESTMENTS_NEW}
+              className="inline-flex min-h-11 items-center justify-center rounded-[var(--radius-control)] bg-accent px-(--space-4) text-sm font-semibold text-accent-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+              data-testid="investment-opening-link"
+            >
+              {t("addOpening")}
+            </Link>
+          }
         />
       ) : (
         <InvestmentOverviewClient portfolio={portfolio} locale={locale} />
       )}
-      <Link href={APP_PATH.MONEY} className="text-sm font-medium text-accent">
-        {t("back")}
-      </Link>
     </Page>
   );
 }

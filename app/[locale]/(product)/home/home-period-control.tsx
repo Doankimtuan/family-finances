@@ -1,10 +1,12 @@
 "use client";
 
-import { useId } from "react";
+import { useEffect, useId } from "react";
 import { useTranslations } from "next-intl";
 import { motion } from "motion/react";
 import {
   HomeDashboardPeriod,
+  HOME_PERIOD_FOCUS_INTENT_KEY,
+  HOME_PERIOD_FOCUS_QUERY,
   HOME_TEST_ID,
 } from "@/modules/home/application/home-constants";
 import { motionTokens, useMotionPolicy } from "@/shared/motion";
@@ -12,12 +14,27 @@ import { cn } from "@/shared/utils/cn";
 import { useHomePeriodTransition } from "./home-period-transition";
 
 /** On-hero segmented control for the dashboard period. */
-export function HomePeriodControl() {
+export function HomePeriodControl({
+  restoreFocus = false,
+}: {
+  restoreFocus?: boolean;
+}) {
   const t = useTranslations("home");
   const thumbId = useId();
   const policy = useMotionPolicy();
   const { isPending, optimisticPeriod, selectPeriod } =
     useHomePeriodTransition();
+
+  useEffect(() => {
+    if (!restoreFocus) return;
+    const query = new URLSearchParams(window.location.search);
+    query.delete(HOME_PERIOD_FOCUS_QUERY);
+    window.history.replaceState(
+      null,
+      "",
+      `${window.location.pathname}${query.toString() ? `?${query}` : ""}`,
+    );
+  }, [restoreFocus]);
 
   const segments = [
     {
@@ -50,8 +67,25 @@ export function HomePeriodControl() {
             type="button"
             aria-pressed={selected}
             disabled={isPending}
+            autoFocus={restoreFocus && selected}
             data-testid={segment.testId}
-            onClick={() => selectPeriod(segment.period)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                window.sessionStorage.setItem(
+                  HOME_PERIOD_FOCUS_INTENT_KEY,
+                  segment.period,
+                );
+              }
+            }}
+            onClick={(event) =>
+              selectPeriod(
+                segment.period,
+                event.detail === 0 ||
+                  window.sessionStorage.getItem(
+                    HOME_PERIOD_FOCUS_INTENT_KEY,
+                  ) === segment.period,
+              )
+            }
             className={cn(
               "relative flex min-h-9 flex-1 items-center justify-center rounded-full px-(--space-3) text-sm font-medium leading-tight transition-colors duration-(--duration-fast) ease-(--ease-standard) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-hero-fg motion-reduce:transition-none",
               selected

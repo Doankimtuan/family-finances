@@ -41,6 +41,13 @@ export type InboxMutationResult = Result<
   InboxCommandErrorCode
 >;
 
+export type InboxReadStateResult = Result<
+  { readAt: string | null },
+  InboxCommandErrorCode
+>;
+
+const inboxReadStateInputSchema = z.object({ inboxItemId: z.string().uuid() });
+
 export type ResolveInboxItemResult = InboxMutationResult;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -105,6 +112,70 @@ function mapUnexpectedFailure(
 ): { ok: false; code: InboxCommandErrorCode } {
   logInboxFailure(error, operation, context);
   return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+}
+
+async function setInboxReadState(
+  inboxItemId: string,
+  readAt: string | null,
+  operation: (typeof INBOX_OPERATION)[keyof typeof INBOX_OPERATION],
+): Promise<InboxReadStateResult> {
+  const gate = await assertMoneyActionAllowed();
+  if (!gate.ok) {
+    return { ok: false, code: productActionErrorFromDeniedReason(gate.reason) };
+  }
+
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { error } = await supabase
+      .from("inbox_items")
+      .update({ read_at: readAt })
+      .eq("household_id", gate.householdId)
+      .eq("id", inboxItemId);
+    if (error) {
+      return mapUnexpectedFailure(error, operation, {
+        householdId: gate.householdId,
+        inboxItemId,
+      });
+    }
+    return { ok: true, readAt };
+  } catch (error) {
+    return mapUnexpectedFailure(error, operation, {
+      householdId: gate.householdId,
+      inboxItemId,
+    });
+  }
+}
+
+export function markInboxItemRead(
+  inboxItemId: string,
+): Promise<InboxReadStateResult> {
+  const parsed = inboxReadStateInputSchema.safeParse({ inboxItemId });
+  if (!parsed.success)
+    return Promise.resolve({
+      ok: false,
+      code: PRODUCT_ACTION_ERROR_CODE.INVALID,
+    });
+  return setInboxReadState(
+    parsed.data.inboxItemId,
+    new Date().toISOString(),
+    INBOX_OPERATION.MARK_READ,
+  );
+}
+
+export function markInboxItemUnread(
+  inboxItemId: string,
+): Promise<InboxReadStateResult> {
+  const parsed = inboxReadStateInputSchema.safeParse({ inboxItemId });
+  if (!parsed.success)
+    return Promise.resolve({
+      ok: false,
+      code: PRODUCT_ACTION_ERROR_CODE.INVALID,
+    });
+  return setInboxReadState(
+    parsed.data.inboxItemId,
+    null,
+    INBOX_OPERATION.MARK_UNREAD,
+  );
 }
 
 export async function resolveInboxItemToJar(

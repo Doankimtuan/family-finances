@@ -61,7 +61,7 @@ select
   j.id,
   date_trunc(
     'month',
-    timezone(coalesce(nullif(h.timezone, ''), 'Asia_Ho_Chi_Minh'), now())
+    timezone(coalesce(nullif(h.timezone, ''), 'Asia/Ho_Chi_Minh'), now())
   )::date,
   j.capacity_delta,
   'migrated_from_capacity_delta'
@@ -74,7 +74,8 @@ where j.capacity_delta <> 0
     where a.jar_id = j.id
       and a.period_month = date_trunc(
         'month',
-        timezone(coalesce(nullif(h.timezone, ''), 'Asia_Ho_Chi_Minh'), now())
+        timezone(coalesce(nullif(h.timezone, ''), 'Asia/Ho_Chi_Minh'), now())
       )::date
       and a.note = 'migrated_from_capacity_delta'
   );
+;

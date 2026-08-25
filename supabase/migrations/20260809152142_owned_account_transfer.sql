@@ -1,9 +1,6 @@
 -- Phase G1: owned-account transfer — neutral real-ledger movement (not income/expense).
 -- Two linked legs (transfer_out + transfer_in) share transfer_group_id.
 
--- ---------------------------------------------------------------------------
--- 1. Extend transactions.type + transfer correlation
--- ---------------------------------------------------------------------------
 alter table public.transactions
   drop constraint if exists transactions_type_check;
 
@@ -44,9 +41,6 @@ alter table public.transactions
     )
   );
 
--- ---------------------------------------------------------------------------
--- 2. Atomic record_owned_account_transfer RPC
--- ---------------------------------------------------------------------------
 create or replace function public.record_owned_account_transfer(
   p_source_account_id uuid,
   p_destination_account_id uuid,
@@ -268,4 +262,4 @@ revoke all on function public.record_owned_account_transfer(
 
 grant execute on function public.record_owned_account_transfer(
   uuid, uuid, numeric, date, text, text
-) to authenticated;
+) to authenticated;;

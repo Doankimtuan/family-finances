@@ -3,10 +3,6 @@
 -- ST-E04-002 Step 1 Category-Jar divergence gate support
 -- ST-E04-003 BR-09 / BR-23 Quick Close eligibility + emergency reflection data
 
--- ---------------------------------------------------------------------------
--- Ritual statuses: pending_review (Spec PendingReview)
--- Ritual modes: quick_close (BR-23)
--- ---------------------------------------------------------------------------
 alter table public.month_ritual_runs
   drop constraint if exists month_ritual_runs_status_check;
 
@@ -33,9 +29,6 @@ alter table public.month_ritual_runs
 comment on column public.month_ritual_runs.auto_locked_at is
   'Set when BR-08 temporal worker transitions the run to pending_review.';
 
--- ---------------------------------------------------------------------------
--- Household Quick Close streak (BR-23)
--- ---------------------------------------------------------------------------
 alter table public.households
   add column if not exists consecutive_completed_rituals integer not null default 0;
 
@@ -49,7 +42,6 @@ alter table public.households
 comment on column public.households.consecutive_completed_rituals is
   'Consecutive Assisted ritual approvals; Quick Close unlocks at 6 (BR-23).';
 
--- Allow household month_close_mode to store quick_close once unlocked
 do $$
 begin
   if exists (
@@ -58,7 +50,6 @@ begin
     where constraint_schema = 'public'
       and constraint_name like '%month_close_mode%'
   ) then
-    -- Best-effort: drop known check names from onboard migrations
     alter table public.households drop constraint if exists households_month_close_mode_check;
   end if;
 exception
@@ -72,9 +63,6 @@ alter table public.households
   add constraint households_month_close_mode_check
   check (month_close_mode in ('assisted', 'auto', 'manual', 'quick_close'));
 
--- ---------------------------------------------------------------------------
--- BR-08: approved OR pending_review locks plan mutations
--- ---------------------------------------------------------------------------
 create or replace function public.is_month_ritual_locked(
   p_household_id uuid,
   p_period_month date default date_trunc('month', timezone('utc', now()))::date
@@ -97,9 +85,6 @@ $$;
 revoke all on function public.is_month_ritual_locked(uuid, date) from public;
 grant execute on function public.is_month_ritual_locked(uuid, date) to authenticated;
 
--- ---------------------------------------------------------------------------
--- Ensure Miscellaneous fallback jar exists (seeded name: General)
--- ---------------------------------------------------------------------------
 create or replace function public.ensure_miscellaneous_jar(p_household_id uuid)
 returns uuid
 language plpgsql
@@ -142,9 +127,6 @@ $$;
 revoke all on function public.ensure_miscellaneous_jar(uuid) from public;
 grant execute on function public.ensure_miscellaneous_jar(uuid) to authenticated;
 
--- ---------------------------------------------------------------------------
--- Auto-resolve stale UnmappedExpense → Miscellaneous (General) jar for a period
--- ---------------------------------------------------------------------------
 create or replace function public.autolock_resolve_unmapped_for_period(
   p_household_id uuid,
   p_period_month date
@@ -220,10 +202,6 @@ $$;
 revoke all on function public.autolock_resolve_unmapped_for_period(uuid, date) from public;
 grant execute on function public.autolock_resolve_unmapped_for_period(uuid, date) to authenticated;
 
--- ---------------------------------------------------------------------------
--- ST-E04-001: 30-day temporal auto-lock worker (household-scoped, BR-08)
--- Eligible: draft | previewed | corrected with month_end + 30d <= today UTC
--- ---------------------------------------------------------------------------
 create or replace function public.run_month_ritual_autolock_worker()
 returns jsonb
 language plpgsql
@@ -257,7 +235,6 @@ begin
 
   v_today := (timezone('utc', now()))::date;
 
-  -- Existing unapproved runs past deadline
   for v_period in
     select r.id, r.period_month
     from public.month_ritual_runs r
@@ -282,7 +259,6 @@ begin
     v_locked := v_locked + 1;
   end loop;
 
-  -- Past calendar months with pending unmapped spend and no run row yet
   for v_period in
     select gs::date as period_month
     from generate_series(
@@ -342,7 +318,6 @@ begin
     v_locked := v_locked + 1;
   end loop;
 
-  -- Auto-lock breaks Assisted consecutive streak (not a completed assisted ritual)
   if v_locked > 0 then
     update public.households h
     set consecutive_completed_rituals = 0
@@ -359,4 +334,4 @@ end;
 $$;
 
 revoke all on function public.run_month_ritual_autolock_worker() from public;
-grant execute on function public.run_month_ritual_autolock_worker() to authenticated;
+grant execute on function public.run_month_ritual_autolock_worker() to authenticated;;

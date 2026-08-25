@@ -4,6 +4,7 @@
  */
 
 export type { LedgerAccount, RealPosition } from "./account-types";
+export { isEligibleInvestmentCashAccount } from "./account-types";
 export type {
   LedgerTransaction,
   TransactionTag,
@@ -114,6 +115,10 @@ export {
   MoneyCaptureMode,
   MONEY_CAPTURE_MODE_OPTIONS,
 } from "./ledger-constants";
+export {
+  ACCOUNT_TYPE_CASH_SOURCE_VALUES,
+  isCashSourceAccountType,
+} from "./account-constants";
 export {
   MoneyPaymentFlowStep,
   createCardPaymentIdempotencyKey,

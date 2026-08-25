@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { Alert, AlertVariant } from "@/shared/ui/alert";
+import { cn } from "@/shared/utils/cn";
 
 export type StatusAlertProps = {
   variant?: AlertVariant;
@@ -25,7 +26,11 @@ export function StatusAlert({
   "data-testid": testId,
 }: StatusAlertProps) {
   return (
-    <Alert variant={variant} className={className} data-testid={testId}>
+    <Alert
+      variant={variant}
+      className={cn("gap-(--space-3)", className)}
+      data-testid={testId}
+    >
       <Alert.Indicator />
       <Alert.Content>
         <Alert.Title>{title}</Alert.Title>

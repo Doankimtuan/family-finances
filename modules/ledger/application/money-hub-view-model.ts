@@ -9,6 +9,8 @@ import {
 import { LoanDueState, LoanStatus } from "./loan-constants";
 import { getLoanDueState } from "./loan-due-state";
 import type { LoanSummaryRow } from "./queries/list-money-products";
+import type { InvestmentHomeSummary } from "@/modules/investments/application/queries/investment-queries";
+import { INVESTMENT_REPORTING_CURRENCY } from "@/modules/investments/application/investment-constants";
 import {
   differenceInUtcCalendarDays,
   todayIsoDate,
@@ -29,6 +31,21 @@ export const MoneyAccountGroupKey = {
 
 export type MoneyAccountGroupKey =
   (typeof MoneyAccountGroupKey)[keyof typeof MoneyAccountGroupKey];
+
+export const MoneyReadStatus = {
+  READY: "ready",
+  UNAVAILABLE: "unavailable",
+} as const;
+
+export type MoneyReadState<T> =
+  | { status: typeof MoneyReadStatus.READY; data: T }
+  | { status: typeof MoneyReadStatus.UNAVAILABLE };
+
+export function toMoneyReadState<T>(value: T | null): MoneyReadState<T> {
+  return value == null
+    ? { status: MoneyReadStatus.UNAVAILABLE }
+    : { status: MoneyReadStatus.READY, data: value };
+}
 
 export const MoneyCreditAttention = {
   OVERDUE: "overdue",
@@ -61,6 +78,15 @@ export type MoneyHubCreditCard = CreditCardSummary & {
   progressValue: number | null;
   attention: MoneyCreditAttention | null;
 };
+
+export type MoneyHubInvestmentSummary = Pick<
+  InvestmentHomeSummary,
+  | "activeCount"
+  | "marketValue"
+  | "valuationQuality"
+  | "valuationIncluded"
+  | "valuationTotal"
+>;
 
 export type MoneyHubViewModel = {
   currency: string;
@@ -241,13 +267,7 @@ export function createMoneyHubViewModel(input: {
     0,
   );
   const accountGroups = buildGroups(accounts);
-  const creditCards = input.creditCards.map((card) => ({
-    ...card,
-    utilizationForDisplay: card.creditLimit > 0 ? card.utilizationPct : null,
-    progressValue:
-      card.creditLimit > 0 ? Math.min(card.utilizationPct, 100) : null,
-    attention: creditCardAttentionFor(card, input.today ?? new Date()),
-  }));
+  const creditCards = createMoneyHubCreditCards(input.creditCards, input.today);
 
   return {
     currency: input.position.currency,
@@ -264,6 +284,19 @@ export function createMoneyHubViewModel(input: {
       0,
     ),
   };
+}
+
+export function createMoneyHubCreditCards(
+  cards: CreditCardSummary[],
+  today = new Date(),
+): MoneyHubCreditCard[] {
+  return cards.map((card) => ({
+    ...card,
+    utilizationForDisplay: card.creditLimit > 0 ? card.utilizationPct : null,
+    progressValue:
+      card.creditLimit > 0 ? Math.min(card.utilizationPct, 100) : null,
+    attention: creditCardAttentionFor(card, today),
+  }));
 }
 
 /** Per-domain maintenance signal for a Money module row (canonical attention semantics). */
@@ -287,6 +320,8 @@ export type MoneyHubDomainSummary = {
   secondaryTotal: number | null;
   currency: string | null;
   attention: { level: MoneyModuleAttentionLevel; count: number } | null;
+  valuationQuality: InvestmentHomeSummary["valuationQuality"] | null;
+  valuationCoverage: { included: number; total: number } | null;
 };
 
 export type MoneyHubModuleSummaries = {
@@ -305,8 +340,7 @@ export type MoneyHubModuleSummariesInput = {
     attentionCount: number;
     currency: string | null;
   } | null;
-  /** Holding count only; valuation totals stay on the Investments screens. */
-  investments: { activeCount: number } | null;
+  investments: MoneyHubInvestmentSummary | null;
   loans: readonly MoneyHubLoanSummaryInput[] | null;
   debts: {
     borrowedRemaining: number;
@@ -359,6 +393,8 @@ function loansSummary(
         : dueSoonCount > 0
           ? { level: MoneyModuleAttentionLevel.WARNING, count: dueSoonCount }
           : null,
+    valuationQuality: null,
+    valuationCoverage: null,
   };
 }
 
@@ -379,6 +415,8 @@ export function createMoneyHubModuleSummaries(
     secondaryTotal: null,
     currency: null,
     attention: null,
+    valuationQuality: null,
+    valuationCoverage: null,
   };
   const savings: MoneyHubDomainSummary = input.savings
     ? {
@@ -394,6 +432,8 @@ export function createMoneyHubModuleSummaries(
                 count: input.savings.attentionCount,
               }
             : null,
+        valuationQuality: null,
+        valuationCoverage: null,
       }
     : unavailable;
 
@@ -401,10 +441,15 @@ export function createMoneyHubModuleSummaries(
     ? {
         loaded: true,
         count: input.investments.activeCount,
-        total: null,
+        total: input.investments.marketValue,
         secondaryTotal: null,
-        currency: null,
+        currency: INVESTMENT_REPORTING_CURRENCY,
         attention: null,
+        valuationQuality: input.investments.valuationQuality,
+        valuationCoverage: {
+          included: input.investments.valuationIncluded,
+          total: input.investments.valuationTotal,
+        },
       }
     : unavailable;
 
@@ -429,6 +474,8 @@ export function createMoneyHubModuleSummaries(
                   count: input.debts.dueSoonCount,
                 }
               : null,
+        valuationQuality: null,
+        valuationCoverage: null,
       }
     : unavailable;
 

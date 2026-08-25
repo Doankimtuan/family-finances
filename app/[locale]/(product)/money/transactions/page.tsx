@@ -330,10 +330,15 @@ export default async function TransactionsListPage({
             <section
               key={group.date}
               aria-labelledby={`transactions-date-${group.date}`}
+              className="relative border-l border-border-subtle/70 pl-(--space-3)"
             >
+              <span
+                className="absolute -left-[5px] top-(--space-1) size-2 rounded-full border-2 border-canvas bg-accent"
+                aria-hidden
+              />
               <h2
                 id={`transactions-date-${group.date}`}
-                className="mb-(--space-1) text-sm font-semibold text-text-secondary"
+                className="mb-(--space-1) flex items-center gap-(--space-2) text-xs font-semibold uppercase tracking-[0.08em] text-text-muted"
               >
                 {dateLabel(group.date, locale, dateLabels)}
               </h2>
@@ -397,7 +402,7 @@ export default async function TransactionsListPage({
           {result?.hasMore && result.nextCursor ? (
             <Link
               href={listHref(type, tagIds, result.nextCursor)}
-              className="inline-flex min-h-11 w-full items-center justify-center rounded-[var(--radius-control)] border border-border-subtle bg-surface text-sm font-semibold text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+              className="inline-flex min-h-11 w-full items-center justify-center rounded-[var(--radius-control)] border border-border-subtle bg-surface/80 text-sm font-semibold text-text-primary shadow-(--elevation-1) transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-[var(--press-scale)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none"
               data-testid="transactions-load-more"
             >
               {t("loadMore")}

@@ -7,9 +7,10 @@ import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
 import {
-  listOpenInboxItems,
+  listOpenInboxPage,
   listArchivedInboxItems,
   runInboxStalenessWorker,
+  syncLoanDebtAttentionInboxItems,
 } from "@/modules/inbox/application";
 import {
   InboxQueueTab,
@@ -19,8 +20,9 @@ import {
   INBOX_TAB_QUERY,
 } from "@/modules/inbox/application/inbox-constants";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
-import { NAVIGATION_ICONS } from "@/shared/ui/icon-registry";
 import { Page } from "@/shared/patterns/page";
+import { Card } from "@/shared/patterns/card";
+import { Text } from "@/shared/ui/text";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { InboxOfflineBanner } from "./inbox-offline-banner";
@@ -63,26 +65,25 @@ export default async function InboxPage({ params, searchParams }: Props) {
   // Best-effort sweep — do not block Inbox render / navigation (BR-15).
   if (!showArchived) {
     void runInboxStalenessWorker();
+    void syncLoanDebtAttentionInboxItems();
   }
 
   const [t, items] = await Promise.all([
     getTranslations("inbox"),
-    showArchived ? listArchivedInboxItems() : listOpenInboxItems(),
+    showArchived ? listArchivedInboxItems() : listOpenInboxPage(),
   ]);
 
   const loadFailed = items == null;
-  const list = items ?? [];
+  const archivedItems = Array.isArray(items) ? items : null;
+  const list =
+    archivedItems ?? (items && !Array.isArray(items) ? items.items : []);
+  const nextCursor =
+    !showArchived && items && !Array.isArray(items) ? items.nextCursor : null;
   const headerState = showArchived
     ? "archived"
     : list.length === 0
       ? "clear"
       : "open";
-  const headerHeadline =
-    headerState === "clear"
-      ? t("header.headline.clear")
-      : headerState === "open"
-        ? t("header.headline.open")
-        : t("header.headline.archived");
   const headerSupporting =
     headerState === "clear"
       ? t("header.supporting.clear")
@@ -101,17 +102,43 @@ export default async function InboxPage({ params, searchParams }: Props) {
       testId="inbox-queue"
       topBar={
         <TopAppBar
-          variant="contextual"
+          variant="primary"
           eyebrow={t("header.eyebrow")}
-          title={headerHeadline}
-          subtitle={headerSupporting}
-          icon={NAVIGATION_ICONS.inbox}
+          title={t("title")}
           meta={headerMeta}
         />
       }
       contentClassName="gap-(--space-4)"
     >
       <InboxOfflineBanner />
+
+      <Card
+        tone={showArchived || list.length === 0 ? "soft" : "highlighted"}
+        className="gap-(--space-2) p-(--space-4)"
+        data-testid="inbox-summary"
+      >
+        <Text
+          size="xs"
+          tone="secondary"
+          className="font-semibold uppercase tracking-[0.12em]"
+        >
+          {showArchived
+            ? t("historySectionTitle")
+            : list.length > 0
+              ? t("pendingSectionTitle")
+              : t("emptyOpenTitle")}
+        </Text>
+        <Text className="text-lg font-semibold tracking-tight text-text-primary">
+          {headerMeta}
+        </Text>
+        <Text
+          size="sm"
+          tone="secondary"
+          className="max-w-[32rem] leading-relaxed"
+        >
+          {headerSupporting}
+        </Text>
+      </Card>
 
       {receipt === InboxReceiptKind.JAR ? (
         <div data-testid="inbox-receipt-jar">
@@ -159,7 +186,12 @@ export default async function InboxPage({ params, searchParams }: Props) {
           }
         />
       ) : (
-        <InboxQueueList items={list} locale={locale} readOnly={showArchived} />
+        <InboxQueueList
+          items={list}
+          locale={locale}
+          readOnly={showArchived}
+          nextCursor={nextCursor}
+        />
       )}
     </Page>
   );

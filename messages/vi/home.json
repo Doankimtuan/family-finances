@@ -24,6 +24,7 @@
     },
     "dashboardHeadline": "Tổng quan tiền của hộ gia đình",
     "dashboardSupporting": "Xem số dư, dòng tiền kỳ này và mục cần chú ý.",
+    "householdContext": "Tổng quan hộ gia đình",
     "cashFlowStory": {
       "positive": "Thu vào cao hơn hoặc bằng chi ra trong kỳ này",
       "attention": "Chi ra cao hơn thu vào trong kỳ này",
@@ -42,8 +43,8 @@
       "description": "Dữ liệu có thể chưa mới. Thử lại để tải phiên bản mới nhất."
     },
     "partial": {
-      "title": "Một số thông tin còn thiếu",
-      "description": "Một phần dữ liệu chưa sẵn sàng. Thử lại để tải lại trang chủ."
+      "title": "Dữ liệu dòng tiền tạm thời chưa có",
+      "description": "Số dư và các phần khác của trang chủ vẫn dùng được. Thử lại để tải dữ liệu dòng tiền."
     },
     "permission": {
       "title": "Quyền bị giới hạn",
@@ -139,6 +140,37 @@
       "auto": "Phân bổ thu nhập: Tự động"
     },
     "openPlan": "Mở Kế hoạch"
+  },
+  "productSummary": {
+    "title": "Tài sản & nghĩa vụ",
+    "hint": "Tóm tắt các sản phẩm Tiền đã hoàn thiện và mục cần chú ý.",
+    "unavailable": "Tóm tắt sản phẩm này tạm thời chưa có.",
+    "savings": {
+      "label": "Tiết kiệm",
+      "detail": "{count, plural, =0 {Chưa có khoản tiết kiệm đang dùng} one {# khoản tiết kiệm đang dùng} other {# khoản tiết kiệm đang dùng}}",
+      "attention": "{count, plural, one {# khoản tiết kiệm cần xử lý} other {# khoản tiết kiệm cần xử lý}}"
+    },
+    "investments": {
+      "label": "Đầu tư",
+      "incomplete": "Định giá một phần: {included}/{total}",
+      "quality": {
+        "current": "Định giá hiện tại",
+        "stale": "Định giá đã cũ",
+        "manual": "Định giá thủ công",
+        "partial": "Định giá một phần",
+        "unknown": "Chưa biết định giá"
+      }
+    },
+    "loans": {
+      "label": "Khoản vay",
+      "detail": "{count, plural, =0 {Chưa có khoản vay đang dùng} one {# khoản vay đang dùng} other {# khoản vay đang dùng}}",
+      "attention": "{count, plural, one {# khoản thanh toán cần chú ý} other {# khoản thanh toán cần chú ý}}"
+    },
+    "debt": {
+      "label": "Công nợ",
+      "detail": "{count, plural, =0 {Chưa có công nợ đang dùng} one {# công nợ đang dùng} other {# công nợ đang dùng}}",
+      "attention": "{count, plural, one {# công nợ cần chú ý} other {# công nợ cần chú ý}}"
+    }
   },
   "inbox": {
     "title": "Hộp thư",

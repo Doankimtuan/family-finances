@@ -393,18 +393,23 @@ begin
     from public.saving_providers sp
     where sp.id = v_cycle.provider_id;
 
-    perform public.produce_inbox_item(
-      p_household_id => p_household_id,
-      p_kind => 'savings_maturity',
-      p_source_type => 'guided',
-      p_source_id => v_cycle.saving_id,
-      p_amount => v_cycle.principal,
-      p_currency => v_currency,
-      p_title => coalesce(v_cycle.product_name, 'Saving')
+    insert into public.inbox_items (
+      household_id, kind, status, source_type, source_id,
+      amount, currency, title, context_json
+    )
+    values (
+      p_household_id,
+      'savings_maturity',
+      'pending',
+      'guided',
+      v_cycle.saving_id,
+      v_cycle.principal,
+      v_currency,
+      coalesce(v_cycle.product_name, 'Saving')
         || ' — Matures in '
         || v_cascade_day
         || ' days',
-      p_context => jsonb_build_object(
+      jsonb_build_object(
         'flow', 'savings_maturity_cascade',
         'savingId', v_cycle.saving_id,
         'cycleId', v_cycle.id,
@@ -428,7 +433,14 @@ begin
         'renewalConfidence', 0,
         'warnings', '[]'::jsonb
       )
-    );
+    )
+    on conflict (household_id, source_type, source_id, kind, cascade_day_key)
+    do update
+    set
+      updated_at = timezone('utc', now()),
+      title = excluded.title,
+      context_json = excluded.context_json
+    where inbox_items.status = 'pending';
 
     v_count := v_count + 1;
   end loop;
@@ -529,15 +541,20 @@ begin
       else 0
     end;
 
-    perform public.produce_inbox_item(
-      p_household_id => p_household_id,
-      p_kind => 'savings_maturity',
-      p_source_type => 'guided',
-      p_source_id => v_cycle.saving_id,
-      p_amount => v_cycle.principal + v_accrued,
-      p_currency => v_currency,
-      p_title => coalesce(v_cycle.product_name, 'Saving') || ' — Matured',
-      p_context => jsonb_build_object(
+    insert into public.inbox_items (
+      household_id, kind, status, source_type, source_id,
+      amount, currency, title, context_json
+    )
+    values (
+      p_household_id,
+      'savings_maturity',
+      'pending',
+      'guided',
+      v_cycle.saving_id,
+      v_cycle.principal + v_accrued,
+      v_currency,
+      coalesce(v_cycle.product_name, 'Saving') || ' — Matured',
+      jsonb_build_object(
         'flow', 'savings_maturity',
         'savingId', v_cycle.saving_id,
         'cycleId', v_cycle.id,
@@ -579,7 +596,16 @@ begin
           v_cycle.settlement_account_id::text
         )
       )
-    );
+    )
+    on conflict (household_id, source_type, source_id, kind, cascade_day_key)
+    do update
+    set
+      status = 'pending',
+      updated_at = timezone('utc', now()),
+      title = excluded.title,
+      amount = excluded.amount,
+      context_json = excluded.context_json
+    returning id into v_item_id;
 
     v_count := v_count + 1;
   end loop;
@@ -590,3 +616,4 @@ $$;
 
 revoke all on function public.detect_matured_savings(uuid) from public;
 grant execute on function public.detect_matured_savings(uuid) to authenticated;
+;

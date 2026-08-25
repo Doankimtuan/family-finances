@@ -134,6 +134,5 @@ begin
   );
 end;
 $$;
-
 revoke all on function public.record_loan_payment(uuid, uuid, text, date) from public;
 grant execute on function public.record_loan_payment(uuid, uuid, text, date) to authenticated;

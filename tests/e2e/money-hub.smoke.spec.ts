@@ -38,20 +38,26 @@ test.describe("Money hub + accounts (ST-E04-001)", () => {
 
     await page.goto("/en/money");
     await expect(page.getByTestId("money-hub")).toBeVisible();
-    await expect(page.getByTestId("ledger-balance")).toBeVisible();
+    await expect(
+      page
+        .getByTestId("money-real-position-summary")
+        .getByTestId("ledger-balance"),
+    ).toBeVisible();
     await expect(page.getByTestId("money-see-activity")).toBeVisible();
     await expect(
-      page.getByTestId("money-hub").getByTestId("ledger-balance"),
+      page
+        .getByTestId("money-real-position-summary")
+        .getByTestId("ledger-balance"),
     ).toBeVisible();
     await expect(page.getByTestId("money-accounts-scan")).toBeVisible();
 
     await page.getByTestId("money-create-account").click();
     await expect(page.getByTestId("account-add-form")).toBeVisible();
-    await page.locator('input[name="accountType"][value="checking"]').check();
+    await page.getByTestId("account-type").click();
+    await page.getByRole("option", { name: "Checking" }).click();
     await expect(page.getByTestId("account-opening-balance")).toBeVisible();
-    await page
-      .locator('input[name="accountType"][value="credit_card"]')
-      .check();
+    await page.getByTestId("account-type").click();
+    await page.getByRole("option", { name: "Credit card" }).click();
     await expect(
       page.getByTestId("account-credit-card-settings"),
     ).toBeVisible();

@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { getLocale } from "next-intl/server";
 import { redirect } from "@/i18n/navigation";
 import {
@@ -24,9 +25,11 @@ export async function changeRoleAction(
   input: ChangeHouseholdRoleInput,
 ): Promise<ChangeRoleActionState> {
   const result = await changeHouseholdRole(input);
-  return result.ok
-    ? { status: "success" }
-    : { status: "error", code: result.code };
+  if (!result.ok) return { status: "error", code: result.code };
+
+  const locale = await getLocale();
+  revalidatePath(`/${locale}${APP_PATH.TOGETHER_MEMBERS}`, "page");
+  return { status: "success" };
 }
 
 export type MembershipLifecycleActionState =

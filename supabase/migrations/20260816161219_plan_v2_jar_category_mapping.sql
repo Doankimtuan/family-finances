@@ -25,3 +25,4 @@ create policy categories_update_member on public.categories
   );
 
 grant update (jar_id, updated_at) on public.categories to authenticated;
+;

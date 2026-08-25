@@ -1,10 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { BRAND_MARK_PATH } from "@/shared/patterns/brand-mark";
+import { BRAND_ASSET_PATHS, BRAND_NAME } from "@/shared/constants/brand";
 
-describe("Cradle & Seed brand mark", () => {
-  it("exports the locked geometry path from branding SoT", () => {
-    expect(BRAND_MARK_PATH).toContain("A10,10");
-    expect(BRAND_MARK_PATH).toContain("A4,4");
-    expect(BRAND_MARK_PATH.split("M").length - 1).toBe(2);
+describe("Family Finance brand mark", () => {
+  it("keeps the approved source and derived UI assets addressable", () => {
+    expect(BRAND_NAME).toBe("Family Finance");
+    expect(BRAND_ASSET_PATHS.SOURCE).toBe("/brand/logo-primary.png");
+    expect(BRAND_ASSET_PATHS.LOCKUP).toBe("/brand/logo-lockup.png");
+    expect(BRAND_ASSET_PATHS.TRANSPARENT_MARK).toBe(
+      "/brand/logo-mark-transparent.png",
+    );
+    expect(BRAND_ASSET_PATHS.APP_ICON).toBe("/brand/app-icon.png");
   });
 });

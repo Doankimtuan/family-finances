@@ -10,9 +10,23 @@ import {
 
 const LOCALE_PATH = "/en";
 const RELEASE_RUN_ID = Date.now().toString();
+const RELEASE_CASH_ACCOUNT_NAME = "Ownership release cash";
 
 function route(path: string): string {
   return `${LOCALE_PATH}${path}`;
+}
+
+async function selectReleaseCashAccount(page: Page): Promise<void> {
+  const radio = page.getByRole("radio", {
+    name: RELEASE_CASH_ACCOUNT_NAME,
+  });
+  if (await radio.count()) {
+    await radio.check();
+    return;
+  }
+
+  await page.getByTestId("capture-account").getByRole("button").click();
+  await page.getByRole("option", { name: RELEASE_CASH_ACCOUNT_NAME }).click();
 }
 
 function attachBrowserDiagnostics(page: Page): string[] {
@@ -98,7 +112,7 @@ test.describe("V1 deterministic critical-flow release smoke", () => {
     await page.getByTestId("transactions-add").click();
     await expect(page.getByTestId("money-transaction-add")).toBeVisible();
 
-    await page.getByRole("radio", { name: "Ownership release cash" }).check();
+    await selectReleaseCashAccount(page);
     await page.getByTestId("capture-amount").fill("1000");
     await page
       .getByTestId("capture-note")
@@ -110,8 +124,8 @@ test.describe("V1 deterministic critical-flow release smoke", () => {
     await page
       .getByRole("button", { name: /Record another|Ghi thêm/i })
       .click();
-    await page.getByRole("radio", { name: "Ownership release cash" }).check();
-    await page.getByTestId("capture-direction-income").click();
+    await page.getByTestId("capture-mode-income").click();
+    await selectReleaseCashAccount(page);
     await page.getByTestId("capture-amount").fill("2000");
     await page
       .getByTestId("capture-note")
@@ -259,9 +273,7 @@ test.describe("V1 deterministic critical-flow release smoke", () => {
   }) => {
     await page.goto(route(APP_PATH.INBOX));
     await expect(page.getByTestId("inbox-queue")).toBeVisible();
-    await expect(
-      page.getByText(/A few things are ready for you/i),
-    ).toBeVisible();
+    await expect(page.getByText("Needs your attention").first()).toBeVisible();
     const item = page
       .locator("[data-testid^='inbox-item-link-']")
       .filter({ hasText: "Ownership release inbox fixture" });
@@ -283,7 +295,7 @@ test.describe("V1 deterministic critical-flow release smoke", () => {
       await page.goto(route(path));
       const testId =
         path === APP_PATH.MONEY
-          ? "ledger-balance"
+          ? "money-hub"
           : path === APP_PATH.MONEY_TRANSACTIONS
             ? "money-transactions"
             : "money-savings";

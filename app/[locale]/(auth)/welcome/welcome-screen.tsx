@@ -135,7 +135,7 @@ export function WelcomeScreen() {
       </div>
 
       <div className="flex flex-col gap-(--space-3)">
-        <BrandMark variant="plate" size="sm" decorative />
+        <BrandMark variant="plate" size="sm" decorative={false} />
         <Heading
           level={1}
           className="text-3xl leading-tight tracking-tight text-text-primary"

@@ -7,10 +7,8 @@
 -- ---------------------------------------------------------------------------
 alter table public.savings
   rename column renewal_preference to renewal_policy;
-
 alter table public.savings
   drop constraint if exists savings_renewal_preference_check;
-
 update public.savings
 set renewal_policy = case renewal_policy
   when 'manual_review' then 'always_ask'
@@ -25,10 +23,8 @@ where renewal_policy in (
   'auto_renew_selected_package',
   'withdraw_everything'
 );
-
 alter table public.savings
   alter column renewal_policy set default 'always_ask';
-
 alter table public.savings
   add constraint savings_renewal_policy_check check (
     renewal_policy in (
@@ -38,10 +34,8 @@ alter table public.savings
       'one_time_renewal'
     )
   );
-
 alter table public.savings
   add column if not exists renewal_config jsonb not null default '{}'::jsonb;
-
 -- Seed renewal_config for rows migrated from withdraw_everything preference
 update public.savings
 set renewal_config = jsonb_build_object(
@@ -51,10 +45,8 @@ set renewal_config = jsonb_build_object(
 )
 where renewal_policy = 'use_saved_preference'
   and (renewal_config = '{}'::jsonb or renewal_config is null);
-
 alter table public.saving_cycles
   add column if not exists renewal_decision jsonb;
-
 -- ---------------------------------------------------------------------------
 -- 2. Cascade days: BR-10 30/14/7 + escalation 3/1
 -- ---------------------------------------------------------------------------
@@ -162,9 +154,7 @@ begin
   return jsonb_build_object('ok', true, 'cascadeCount', v_count);
 end;
 $$;
-
 grant execute on function public.enqueue_savings_maturity_cascade(uuid) to authenticated;
-
 -- ---------------------------------------------------------------------------
 -- 3. detect_matured_savings — use renewal_policy + config
 -- ---------------------------------------------------------------------------
@@ -328,9 +318,7 @@ begin
   return jsonb_build_object('ok', true, 'maturedCount', v_count);
 end;
 $$;
-
 grant execute on function public.detect_matured_savings(uuid) to authenticated;
-
 -- ---------------------------------------------------------------------------
 -- 4. create_saving_with_transfer — accept renewal_policy + renewal_config
 -- ---------------------------------------------------------------------------
@@ -485,16 +473,13 @@ begin
   );
 end;
 $$;
-
 grant execute on function public.create_saving_with_transfer(
   uuid, numeric, uuid, text, jsonb, text, uuid, date, date, jsonb, jsonb
 ) to authenticated;
-
 -- Keep old signature callable by wrapping (optional overload via default)
 grant execute on function public.create_saving_with_transfer(
   uuid, numeric, uuid, text, jsonb, text, uuid, date, date, jsonb
 ) to authenticated;
-
 -- ---------------------------------------------------------------------------
 -- 5. Helper: apply one-time renewal revert + write renewal_decision
 -- ---------------------------------------------------------------------------
@@ -539,5 +524,4 @@ begin
   return jsonb_build_object('ok', true);
 end;
 $$;
-
 grant execute on function public.record_saving_renewal_decision(uuid, jsonb, boolean) to authenticated;

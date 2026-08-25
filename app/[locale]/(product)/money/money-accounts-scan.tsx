@@ -13,6 +13,7 @@ import { CreditCardCard } from "@/modules/ledger/ui/credit-card-card";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { SectionHeader } from "@/shared/patterns/section-header";
 import { Text } from "@/shared/ui/text";
+import { StatusAlert } from "@/shared/ui/status-alert";
 import type { IconContainerTone } from "@/shared/ui/icon-container";
 import { FinancialOwnershipBadge } from "@/shared/patterns/financial-ownership-badge";
 import type { FinancialScope } from "@/modules/shared-kernel/application/financial-scope";
@@ -55,6 +56,8 @@ export type MoneyAccountsScanLabels = {
   creditCardsTitle: string;
   creditCardType: string;
   creditCardsHint: string;
+  accountsUnavailable?: string;
+  creditCardsUnavailable?: string;
   outstanding: string;
   availableCredit: string;
   creditLimit: string;
@@ -72,6 +75,8 @@ type Props = {
   accountPresentation: "flat" | "grouped";
   hasMoreAccounts: boolean;
   creditCards: MoneyHubCardRow[];
+  accountsUnavailable?: boolean;
+  creditCardsUnavailable?: boolean;
   createAction: ReactNode;
 };
 
@@ -147,12 +152,18 @@ export function MoneyAccountsScan({
   accountPresentation,
   hasMoreAccounts,
   creditCards,
+  accountsUnavailable = false,
+  creditCardsUnavailable = false,
   createAction,
 }: Props) {
   const [showAllAccounts, setShowAllAccounts] = useState(false);
   const visibleGroups = showAllAccounts ? accountGroups : initialAccountGroups;
   const hasAnyAccount = accountGroups.length > 0;
-  const hasAnyContent = hasAnyAccount || creditCards.length > 0;
+  const hasAnyContent =
+    hasAnyAccount ||
+    creditCards.length > 0 ||
+    accountsUnavailable ||
+    creditCardsUnavailable;
 
   return (
     <section
@@ -160,6 +171,13 @@ export function MoneyAccountsScan({
       data-testid="money-accounts-scan"
     >
       <SectionHeader title={labels.sectionTitle} action={createAction} />
+      {accountsUnavailable && labels.accountsUnavailable ? (
+        <StatusAlert
+          variant="info"
+          title={labels.accountsUnavailable}
+          data-testid="money-accounts-unavailable"
+        />
+      ) : null}
       {!hasAnyContent ? (
         <EmptyState
           title={labels.emptyTitle}
@@ -242,6 +260,13 @@ export function MoneyAccountsScan({
                 ))}
               </ul>
             </div>
+          ) : null}
+          {creditCardsUnavailable && labels.creditCardsUnavailable ? (
+            <StatusAlert
+              variant="info"
+              title={labels.creditCardsUnavailable}
+              data-testid="money-credit-cards-unavailable"
+            />
           ) : null}
         </div>
       )}

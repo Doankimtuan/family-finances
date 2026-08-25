@@ -1,5 +1,6 @@
 "use client";
 
+import { AnimatePresence, motion } from "motion/react";
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
@@ -10,6 +11,7 @@ import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
 import { deleteAccountAction } from "./actions";
 import { useStatusAlert } from "@/providers/status-alert-provider";
+import { motionTokens, springs, useMotionPolicy } from "@/shared/motion";
 import {
   AUTH_ADAPTER_SIGNOUT_PATH,
   AUTH_LOCALE_WELCOME_SEGMENT,
@@ -24,6 +26,21 @@ export function AccountLifecycleCard() {
   const [isPending, startTransition] = useTransition();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const statusAlert = useStatusAlert();
+  const motionPolicy = useMotionPolicy({ essential: true });
+  const confirmationMotion = {
+    initial: {
+      opacity: 0,
+      y: motionPolicy.reducedMotion ? 0 : motionTokens.distance.xs,
+    },
+    animate: { opacity: 1, y: 0 },
+    exit: {
+      opacity: 0,
+      y: motionPolicy.reducedMotion ? 0 : -motionTokens.distance.xs,
+    },
+  };
+  const confirmationTransition = motionPolicy.reducedMotion
+    ? { duration: motionTokens.duration.fast }
+    : springs.gentle;
 
   const onDelete = () => {
     statusAlert.hide();
@@ -68,50 +85,65 @@ export function AccountLifecycleCard() {
 
         <div className="h-px w-full bg-divider" role="separator" aria-hidden />
 
-        {!confirmDelete ? (
-          <Button
-            variant="danger"
-            className="w-full"
-            data-testid="delete-account"
-            isDisabled={isPending}
-            onPress={() => {
-              statusAlert.hide();
-              setConfirmDelete(true);
-            }}
-          >
-            {tAuth("deleteAccount")}
-          </Button>
-        ) : (
-          <div className="flex flex-col gap-(--space-3)">
-            <StatusAlert
-              variant={AlertVariant.DANGER}
-              title={tAuth("deleteConfirmTitle")}
-              description={tAuth("deleteConfirmDescription")}
-            />
-            <div className="flex flex-col gap-(--space-2)">
+        <AnimatePresence initial={false} mode="wait">
+          {!confirmDelete ? (
+            <motion.div
+              key="delete-action"
+              {...confirmationMotion}
+              transition={confirmationTransition}
+            >
               <Button
                 variant="danger"
                 className="w-full"
-                data-testid="delete-account-confirm"
-                isDisabled={isPending}
-                onPress={onDelete}
-              >
-                {isPending ? tAuth("deleteSubmitting") : tAuth("deleteConfirm")}
-              </Button>
-              <Button
-                variant="secondary"
-                className="w-full"
+                data-testid="delete-account"
                 isDisabled={isPending}
                 onPress={() => {
-                  setConfirmDelete(false);
                   statusAlert.hide();
+                  setConfirmDelete(true);
                 }}
               >
-                {tAuth("deleteCancel")}
+                {tAuth("deleteAccount")}
               </Button>
-            </div>
-          </div>
-        )}
+            </motion.div>
+          ) : (
+            <motion.div
+              key="delete-confirmation"
+              {...confirmationMotion}
+              transition={confirmationTransition}
+              className="flex flex-col gap-(--space-3)"
+            >
+              <StatusAlert
+                variant={AlertVariant.DANGER}
+                title={tAuth("deleteConfirmTitle")}
+                description={tAuth("deleteConfirmDescription")}
+              />
+              <div className="flex flex-col gap-(--space-2)">
+                <Button
+                  variant="danger"
+                  className="w-full"
+                  data-testid="delete-account-confirm"
+                  isDisabled={isPending}
+                  onPress={onDelete}
+                >
+                  {isPending
+                    ? tAuth("deleteSubmitting")
+                    : tAuth("deleteConfirm")}
+                </Button>
+                <Button
+                  variant="secondary"
+                  className="w-full"
+                  isDisabled={isPending}
+                  onPress={() => {
+                    setConfirmDelete(false);
+                    statusAlert.hide();
+                  }}
+                >
+                  {tAuth("deleteCancel")}
+                </Button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </Card>
   );

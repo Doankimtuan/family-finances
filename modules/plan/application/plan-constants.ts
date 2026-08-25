@@ -127,6 +127,7 @@ export const GOAL_FUNDING_SOURCE_KIND_VALUES = [
 export const GoalFundingValueStatus = {
   CURRENT: "current",
   STALE: "stale",
+  UNKNOWN: "unknown",
   MISSING: "missing",
   INCOMPLETE: "incomplete",
   UNAVAILABLE: "unavailable",
@@ -138,6 +139,7 @@ export type GoalFundingValueStatus =
 export const GOAL_FUNDING_VALUE_STATUS_VALUES = [
   GoalFundingValueStatus.CURRENT,
   GoalFundingValueStatus.STALE,
+  GoalFundingValueStatus.UNKNOWN,
   GoalFundingValueStatus.MISSING,
   GoalFundingValueStatus.INCOMPLETE,
   GoalFundingValueStatus.UNAVAILABLE,
@@ -147,6 +149,7 @@ export const GOAL_FUNDING_VALUE_STATUS_VALUES = [
 export const GoalFundingQuality = {
   CURRENT: "current",
   STALE: "stale",
+  INDETERMINATE: "indeterminate",
   PARTIAL: "partial",
   MISSING: "missing",
   INCOMPLETE: "incomplete",
@@ -158,6 +161,7 @@ export type GoalFundingQuality =
 export const GOAL_FUNDING_QUALITY_VALUES = [
   GoalFundingQuality.CURRENT,
   GoalFundingQuality.STALE,
+  GoalFundingQuality.INDETERMINATE,
   GoalFundingQuality.PARTIAL,
   GoalFundingQuality.MISSING,
   GoalFundingQuality.INCOMPLETE,

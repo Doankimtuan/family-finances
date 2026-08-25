@@ -4,14 +4,14 @@ import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { OpeningPositionForm } from "../opening-position-form";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import { listAccounts } from "@/modules/ledger/application";
-import { AccountType } from "@/modules/ledger/application/ledger-constants";
+import { isEligibleInvestmentCashAccount } from "@/modules/ledger/application/client";
 export default async function InvestmentOpeningPage() {
   const [t, accountsResult] = await Promise.all([
     getTranslations("money.investments.opening"),
     listAccounts(),
   ]);
   const accounts = (accountsResult?.accounts ?? [])
-    .filter((account) => account.type !== AccountType.SAVINGS_PRODUCT)
+    .filter((account) => isEligibleInvestmentCashAccount(account))
     .map((account) => ({
       id: account.id,
       name: account.name,

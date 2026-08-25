@@ -760,4 +760,4 @@ as $$
 begin
   raise exception 'Transactions are immutable';
 end;
-$$;
+$$;;

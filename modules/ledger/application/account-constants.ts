@@ -34,6 +34,28 @@ export const ACCOUNT_TYPE_LIQUID_VALUES = [
   AccountType.OTHER,
 ] as const;
 
+/** Ordinary cash sources accepted by Savings and similar real-money flows. */
+export const ACCOUNT_TYPE_CASH_SOURCE_VALUES = [
+  AccountType.CASH,
+  AccountType.CHECKING,
+  AccountType.SAVINGS,
+  AccountType.EWALLET,
+  AccountType.OTHER,
+] as const;
+
+const ACCOUNT_TYPE_CASH_SOURCE_SET = new Set<string>(
+  ACCOUNT_TYPE_CASH_SOURCE_VALUES,
+);
+
+export type CashSourceAccountType =
+  (typeof ACCOUNT_TYPE_CASH_SOURCE_VALUES)[number];
+
+export function isCashSourceAccountType(
+  type: string,
+): type is CashSourceAccountType {
+  return ACCOUNT_TYPE_CASH_SOURCE_SET.has(type);
+}
+
 const ACCOUNT_TYPE_LIQUID_SET = new Set<string>(ACCOUNT_TYPE_LIQUID_VALUES);
 
 export type LiquidAccountType = (typeof ACCOUNT_TYPE_LIQUID_VALUES)[number];

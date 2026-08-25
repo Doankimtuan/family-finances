@@ -25,6 +25,10 @@ import {
 } from "@/shared/constants/financial-privacy";
 import { InvestmentValuationMeta } from "@/app/[locale]/(product)/money/investments/investment-valuation-meta";
 
+// Freshness copy differs between "today" and "on <date>", so the fixture pins
+// the price date to the test run's date instead of a fixed calendar day.
+const TODAY_ISO = new Date().toISOString().slice(0, 10);
+
 const instrument: MarketInstrument = {
   id: "instrument-1",
   assetClass: InvestmentAssetClass.STOCK,
@@ -54,7 +58,7 @@ const holding = (quality: MarketValuationQuality): InvestmentHolding => ({
   remainingTotalCostBasis: 1_000_000,
   currentValue: quality === MarketValuationQuality.UNKNOWN ? null : 1_200_000,
   currentValuationDate:
-    quality === MarketValuationQuality.UNKNOWN ? null : "2026-08-22",
+    quality === MarketValuationQuality.UNKNOWN ? null : TODAY_ISO,
   currentValuationSource:
     quality === MarketValuationQuality.MANUAL ? "manual" : "provider",
   unrealizedResult: quality === MarketValuationQuality.UNKNOWN ? null : 200_000,
@@ -72,11 +76,11 @@ const holding = (quality: MarketValuationQuality): InvestmentHolding => ({
       quality === MarketValuationQuality.MANUAL
         ? MarketPriceType.MANUAL
         : MarketPriceType.LAST,
-    priceDate: quality === MarketValuationQuality.UNKNOWN ? null : "2026-08-22",
+    priceDate: quality === MarketValuationQuality.UNKNOWN ? null : TODAY_ISO,
     fetchedAt:
       quality === MarketValuationQuality.MANUAL
         ? null
-        : "2026-08-22T00:00:00.000Z",
+        : `${TODAY_ISO}T00:00:00.000Z`,
     provider:
       quality === MarketValuationQuality.MANUAL
         ? MarketDataProvider.MANUAL

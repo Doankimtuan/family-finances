@@ -1,6 +1,8 @@
 import { DEFAULT_CURRENCY } from "@/modules/ledger/application/ledger-constants";
 import {
   InboxContextEnvelopeKey,
+  InboxEnrichmentState,
+  InboxLifecycleContext,
   InboxSourceType,
   INBOX_SOURCE_TYPE_VALUES,
   mapInboxKind,
@@ -11,6 +13,7 @@ import { resolveInboxDisplayTitle } from "../inbox-display";
 import type { InboxReviewItem } from "../inbox-types";
 import {
   resolveInboxSourceCapabilities,
+  InboxSourceCapability,
   type InboxSourceCapabilities,
 } from "../inbox-source-capabilities";
 
@@ -31,6 +34,7 @@ export type InboxItemRow = {
   suggested_category_id?: string | null;
   context_json?: Record<string, unknown> | null;
   assigned_to_user_id?: string | null;
+  read_at?: string | null;
 };
 
 export type InboxTransactionDetails = {
@@ -68,6 +72,7 @@ export function mapInboxRow(
   row: InboxItemRow,
   txDetails?: InboxTransactionDetails,
   sourceCapabilities?: InboxSourceCapabilities,
+  enrichmentUnavailable = false,
 ): InboxReviewItem | null {
   const kind = mapInboxKind(row.kind);
   const status = mapInboxStatus(row.status);
@@ -86,6 +91,20 @@ export function mapInboxRow(
   const intentNote = typeof intentRaw === "string" ? intentRaw : null;
   const executedByUserId = typeof executedRaw === "string" ? executedRaw : null;
   const expiresAt = row.expires_at ?? null;
+  const lifecycleDate =
+    typeof context?.dueDate === "string"
+      ? context.dueDate
+      : typeof context?.maturityDate === "string"
+        ? context.maturityDate
+        : expiresAt;
+  const lifecycleContext =
+    typeof context?.dueDate === "string"
+      ? InboxLifecycleContext.DUE
+      : typeof context?.maturityDate === "string"
+        ? InboxLifecycleContext.MATURITY
+        : expiresAt
+          ? InboxLifecycleContext.EXPIRES
+          : null;
   const confidenceScore =
     row.confidence_score == null ? null : Number(row.confidence_score);
 
@@ -141,6 +160,13 @@ export function mapInboxRow(
     sourceType: isInboxSourceType(row.source_type) ? row.source_type : null,
     createdAt: row.created_at,
     expiresAt,
+    lifecycleDate,
+    lifecycleContext,
+    lifecycleOverdue:
+      lifecycleContext === InboxLifecycleContext.DUE &&
+      lifecycleDate != null &&
+      new Date(lifecycleDate).getTime() < Date.now(),
+    readAt: row.read_at ?? null,
     autoResolved: Boolean(row.auto_resolved),
     confidenceScore:
       confidenceScore != null && Number.isFinite(confidenceScore)
@@ -157,6 +183,13 @@ export function mapInboxRow(
     assignedToUserId:
       row.assigned_to_user_id ??
       (typeof assignedFromContext === "string" ? assignedFromContext : null),
-    ...capabilities,
+    capability: capabilities.capability,
+    enrichmentState: enrichmentUnavailable
+      ? InboxEnrichmentState.UNAVAILABLE
+      : capabilities.capability === InboxSourceCapability.ACTIONABLE
+        ? InboxEnrichmentState.READY
+        : capabilities.capability === InboxSourceCapability.SOURCE_UNAVAILABLE
+          ? InboxEnrichmentState.UNAVAILABLE
+          : InboxEnrichmentState.READ_ONLY,
   };
 }

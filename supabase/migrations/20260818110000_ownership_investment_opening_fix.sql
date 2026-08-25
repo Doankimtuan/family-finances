@@ -110,7 +110,6 @@ begin
   end if;
   return public.investment_operation_receipt(v_oid, false);
 end $$;
-
 revoke all on function public.record_investment_opening_position(
   text,text,numeric,date,text,text,numeric,numeric,text,text,text,text
 ) from public, anon;

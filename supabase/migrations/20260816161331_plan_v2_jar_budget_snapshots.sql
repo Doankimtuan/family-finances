@@ -99,7 +99,7 @@ create trigger trg_guard_historical_jar_period_rule_snapshot
 before update on public.jar_period_rule_snapshots
 for each row execute function public.guard_historical_jar_period_rule_snapshot();
 
--- Replace the legacy RPC implementation. The function -- Replace the legacy RPC implementation. The function -- Replace the ents and audit rows.
+-- Replace the legacy RPC implementation with a period-scoped Plan-only movement.
 create or replace function public.reallocate_jar_capacity(
   p_source_jar_id uuid,
   p_target_jar_id uuid,
@@ -224,67 +224,6 @@ begin
     (v_household_id, p_source_jar_id, v_period, -p_amount, v_movement_id, 'reallocate_out', v_user_id),
     (v_household_id, p_target_jar_id, v_period, p_amount, v_movement_id, 'reallocate_in', v_user_id);
 
-  -- BR-13: partner-visible emergency attention via the Inbox gateway.
-  -- One item per active partner (other than the declarer); a solo household
-  -- keeps one declarer-visible audit item.
-  if v_is_emergency then
-    declare
-      v_partner record;
-      v_partner_count int := 0;
-      v_emergency_id uuid;
-    begin
-      for v_partner in
-        select hm.user_id
-        from public.household_members hm
-        where hm.household_id = v_household_id
-          and hm.is_active = true
-          and hm.user_id <> v_user_id
-      loop
-        select (public.produce_inbox_item(
-          p_household_id => v_household_id,
-          p_kind => 'emergency_declaration',
-          p_source_type => 'plan_movement',
-          p_source_id => v_movement_id,
-          p_amount => p_amount,
-          p_currency => (select base_currency from public.households where id = v_household_id),
-          p_title => 'Emergency reallocation declared',
-          p_assigned_to_user_id => v_partner.user_id,
-          p_context => jsonb_build_object(
-            'event', 'EmergencyDeclaredEvent',
-            'intentNote', v_note,
-            'sourceJarId', p_source_jar_id,
-            'targetJarId', p_target_jar_id,
-            'executedByUserId', v_user_id,
-            'priority', 'high'
-          )
-        ))->>'inbox_item_id' into v_emergency_id;
-        v_partner_count := v_partner_count + 1;
-      end loop;
-
-      if v_partner_count = 0 then
-        select (public.produce_inbox_item(
-          p_household_id => v_household_id,
-          p_kind => 'emergency_declaration',
-          p_source_type => 'plan_movement',
-          p_source_id => v_movement_id,
-          p_amount => p_amount,
-          p_currency => (select base_currency from public.households where id = v_household_id),
-          p_title => 'Emergency reallocation declared',
-          p_assigned_to_user_id => v_user_id,
-          p_context => jsonb_build_object(
-            'event', 'EmergencyDeclaredEvent',
-            'intentNote', v_note,
-            'sourceJarId', p_source_jar_id,
-            'targetJarId', p_target_jar_id,
-            'executedByUserId', v_user_id,
-            'priority', 'high',
-            'soloAudit', true
-          )
-        ))->>'inbox_item_id' into v_emergency_id;
-      end if;
-    end;
-  end if;
-
   return jsonb_build_object(
     'plan_movement_id', v_movement_id,
     'source_jar_id', p_source_jar_id,
@@ -292,7 +231,7 @@ begin
     'amount', p_amount,
     'period_month', v_period,
     'is_emergency', v_is_emergency,
-    'inbox_item_id', v_movement_id,
+    'inbox_item_id', null,
     'ledger_transactions_created', 0,
     'ledger_impact', 0
   );
@@ -301,3 +240,4 @@ $$;
 
 revoke all on function public.reallocate_jar_capacity(uuid, uuid, numeric, boolean, text) from public;
 grant execute on function public.reallocate_jar_capacity(uuid, uuid, numeric, boolean, text) to authenticated;
+;

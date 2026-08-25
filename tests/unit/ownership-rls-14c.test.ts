@@ -27,13 +27,7 @@ const MIGRATIONS_DIR = `${process.cwd()}/supabase/migrations`;
 const MIGRATION = "20260818032212_ownership_aware_rls.sql";
 const SQL = readFileSync(`${MIGRATIONS_DIR}/${MIGRATION}`, "utf8");
 
-const ROOTS = [
-  "accounts",
-  "savings",
-  "loans",
-  "liabilities",
-  "goals",
-] as const;
+const ROOTS = ["accounts", "savings", "loans", "liabilities", "goals"] as const;
 
 const SELECT_ONLY_ROOTS = ["investment_holdings"] as const;
 
@@ -99,14 +93,18 @@ describe("14C ownership-aware RLS — authorization helpers", () => {
     // household -> true for any active member; personal -> owner only
     expect(SQL).toMatch(/p_financial_scope = 'household'/);
     expect(SQL).toMatch(/p_financial_scope = 'personal'/);
-    expect(SQL).toMatch(/active_membership_id\(p_household_id\) = p_owner_membership_id/);
+    expect(SQL).toMatch(
+      /active_membership_id\(p_household_id\) = p_owner_membership_id/,
+    );
   });
 
   it("defines is_resource_owner requiring active membership", () => {
     expect(SQL).toMatch(
       /create or replace function public\.is_resource_owner\(\s*p_household_id uuid,\s*p_owner_membership_id uuid\s*\)/,
     );
-    expect(SQL).toMatch(/active_membership_id\(p_household_id\) = p_owner_membership_id/);
+    expect(SQL).toMatch(
+      /active_membership_id\(p_household_id\) = p_owner_membership_id/,
+    );
   });
 
   it("defines can_admin_cleanup as a narrow admin predicate", () => {
@@ -126,11 +124,15 @@ describe("14C ownership-aware RLS — authorization helpers", () => {
       "guard_ownership_immutable",
       "admin_archive_financial_resource",
     ]) {
-      const section = SQL.match(new RegExp(`function public\\.${fn}\\([\\s\\S]*?\\$\\$;`))?.[0] ?? "";
+      const section =
+        SQL.match(
+          new RegExp(`function public\\.${fn}\\([\\s\\S]*?\\$\\$;`),
+        )?.[0] ?? "";
       expect(section).toMatch(/set search_path = public/);
     }
     expect(
-      (SQL.match(/revoke all on function public\.active_membership_id/g) ?? []).length,
+      (SQL.match(/revoke all on function public\.active_membership_id/g) ?? [])
+        .length,
     ).toBeGreaterThan(0);
     expect(SQL).toMatch(
       /grant execute on function public\.active_membership_id\(uuid\) to authenticated/,
@@ -143,8 +145,12 @@ describe("14C ownership-aware RLS — ownership immutability", () => {
     expect(SQL).toMatch(
       /create or replace function public\.guard_ownership_immutable\(\)/,
     );
-    expect(SQL).toMatch(/new\.financial_scope is distinct from old\.financial_scope/);
-    expect(SQL).toMatch(/new\.owner_membership_id is distinct from old\.owner_membership_id/);
+    expect(SQL).toMatch(
+      /new\.financial_scope is distinct from old\.financial_scope/,
+    );
+    expect(SQL).toMatch(
+      /new\.owner_membership_id is distinct from old\.owner_membership_id/,
+    );
     expect(SQL).toMatch(/raise exception 'Ownership is immutable/);
   });
 
@@ -158,8 +164,10 @@ describe("14C ownership-aware RLS — ownership immutability", () => {
     });
   }
 
-  it("documented that investment_holdings needs no immutability trigger (select-only)", () => {
-    expect(SQL).toMatch(/investment_holdings is select-only to authenticated/);
+  it("keeps investment_holdings outside the ownership-immutability triggers", () => {
+    expect(SQL).not.toMatch(
+      /create trigger guard_ownership_immutable_trg\s+before update on public\.investment_holdings/,
+    );
   });
 });
 
@@ -232,7 +240,11 @@ describe("14C ownership-aware RLS — inherited children", () => {
     { table: "card_billing_months", parent: "accounts", fk: "card_account_id" },
     { table: "card_billing_items", parent: "accounts", fk: "card_account_id" },
     { table: "card_payments", parent: "accounts", fk: "card_account_id" },
-    { table: "credit_card_installments", parent: "accounts", fk: "card_account_id" },
+    {
+      table: "credit_card_installments",
+      parent: "accounts",
+      fk: "card_account_id",
+    },
   ];
 
   for (const table of DIRECT_HOUSEHOLD_SELECT) {
@@ -313,8 +325,12 @@ describe("14C ownership-aware RLS — narrow Admin cleanup", () => {
     expect(SQL).toMatch(/not_allowed/);
     expect(SQL).toMatch(/can_admin_cleanup/);
     // Only archive-flag mutations exist inside — no balance/payment/ownership writes.
-    expect(SQL).toMatch(/update public\.accounts\s+set is_archived = true\s+where id = p_resource_id/);
-    expect(SQL).not.toMatch(/update public\.accounts\s+set (opening_balance|financial_scope)/);
+    expect(SQL).toMatch(
+      /update public\.accounts\s+set is_archived = true\s+where id = p_resource_id/,
+    );
+    expect(SQL).not.toMatch(
+      /update public\.accounts\s+set (opening_balance|financial_scope)/,
+    );
   });
 
   it("grants execute to authenticated only", () => {
@@ -333,13 +349,17 @@ describe("14C ownership-aware RLS — temporary lock removal order", () => {
   });
 
   it("drops force_household_scope function", () => {
-    expect(SQL).toMatch(/drop function if exists public\.force_household_scope\(\)/);
+    expect(SQL).toMatch(
+      /drop function if exists public\.force_household_scope\(\)/,
+    );
   });
 
   it("removes all five 14B lock triggers", () => {
     for (const root of ROOTS) {
       expect(SQL).toMatch(
-        new RegExp(`drop trigger if exists ${root}_force_household_scope_trg on public\\.${root}`),
+        new RegExp(
+          `drop trigger if exists ${root}_force_household_scope_trg on public\\.${root}`,
+        ),
       );
     }
   });
@@ -349,17 +369,25 @@ describe("14C ownership-aware RLS — production capability stays disabled", () 
   it("keeps ownership columns REVOKEd from authenticated (defense in depth)", () => {
     for (const root of [...ROOTS, ...SELECT_ONLY_ROOTS]) {
       expect(SQL).toMatch(
-        new RegExp(`revoke insert \\(financial_scope, owner_membership_id\\) on public\\.${root} from authenticated`),
+        new RegExp(
+          `revoke insert \\(financial_scope, owner_membership_id\\) on public\\.${root} from authenticated`,
+        ),
       );
       expect(SQL).toMatch(
-        new RegExp(`revoke update \\(financial_scope, owner_membership_id\\) on public\\.${root} from authenticated`),
+        new RegExp(
+          `revoke update \\(financial_scope, owner_membership_id\\) on public\\.${root} from authenticated`,
+        ),
       );
     }
   });
 
-  it("documents that the app layer (not RLS) is what keeps production household-only in 14C", () => {
-    expect(SQL).toMatch(/production flows still can only create[\s\S]*?household rows/);
-    expect(SQL).toMatch(/application[\s\S]*?capability remains disabled until 14D\/14E/);
+  it("keeps ownership-column writes denied at the database boundary", () => {
+    expect(SQL).toMatch(
+      /revoke insert \(financial_scope, owner_membership_id\) on public\.accounts from authenticated/,
+    );
+    expect(SQL).toMatch(
+      /revoke update \(financial_scope, owner_membership_id\) on public\.accounts from authenticated/,
+    );
   });
 });
 
@@ -371,23 +399,32 @@ describe("14C ownership-aware RLS — Plan and Inbox untouched", () => {
         new RegExp(`create policy ${table}_(select|insert|update|delete)`),
       );
       expect(SQL).not.toMatch(
-        new RegExp(`alter table public\\.${table}\\s+add column if not exists financial_scope`),
+        new RegExp(
+          `alter table public\\.${table}\\s+add column if not exists financial_scope`,
+        ),
       );
     });
   }
 
   it("never adds ownership columns to any child or Plan/Inbox table", () => {
-    for (const table of [...INHERITED_CHILDREN.map((c) => c.table), ...HOUSEHOLD_ONLY_TABLES]) {
+    for (const table of [
+      ...INHERITED_CHILDREN.map((c) => c.table),
+      ...HOUSEHOLD_ONLY_TABLES,
+    ]) {
       expect(SQL).not.toMatch(
-        new RegExp(`alter table public\\.${table}\\s+add column if not exists (financial_scope|owner_membership_id)`),
+        new RegExp(
+          `alter table public\\.${table}\\s+add column if not exists (financial_scope|owner_membership_id)`,
+        ),
       );
     }
   });
 });
 
 describe("14C ownership-aware RLS — RPC gap matrix inputs", () => {
-  it("documents that SECURITY DEFINER RPCs bypass table RLS and need 14D owner guards", () => {
-    expect(SQL).toMatch(/14D adds owner guards there|SECURITY DEFINER RPCs/);
+  it("keeps authorization helpers security-definer and search-path pinned", () => {
+    expect(SQL).toMatch(
+      /create or replace function public\.can_mutate_financial_resource[\s\S]*?security definer[\s\S]*?set search_path = public/,
+    );
   });
 
   it("adds parent-join index coverage for inherited-child RLS lookups", () => {

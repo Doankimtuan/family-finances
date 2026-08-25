@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import type { ReactNode } from "react";
 import { setLocale } from "@/i18n/set-locale";
 import { redirect, Link } from "@/i18n/navigation";
 import { hasLocale } from "next-intl";
@@ -13,6 +14,7 @@ import { formatCurrency } from "@/shared/i18n/formatters";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Page } from "@/shared/patterns/page";
 import { GoalCard } from "@/shared/patterns/goal-card";
+import { FinancialValue } from "@/shared/patterns/financial-value";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { PlanOfflineBanner } from "../plan-offline-banner";
 import { CreateGoalForm } from "./create-goal-form";
@@ -64,23 +66,34 @@ export default async function PlanGoalsPage({ params }: Props) {
               <Link href={planGoalPath(goal.id)} className="block">
                 <GoalCard
                   name={goal.name}
-                  fundedLabel={t("fundedLabel", {
+                  fundedLabel={t.rich("fundedLabel", {
                     amount: formatCurrency(
                       goal.fundedAmount,
                       currency,
                       locale,
-                      { maximumFractionDigits: 0 },
+                      {
+                        maximumFractionDigits: 0,
+                      },
+                    ),
+                    money: (chunks: ReactNode) => (
+                      <FinancialValue>{chunks}</FinancialValue>
                     ),
                   })}
-                  targetLabel={t("targetLabel", {
+                  targetLabel={t.rich("targetLabel", {
                     amount: formatCurrency(
                       goal.targetAmount,
                       currency,
                       locale,
-                      { maximumFractionDigits: 0 },
+                      {
+                        maximumFractionDigits: 0,
+                      },
+                    ),
+                    money: (chunks: ReactNode) => (
+                      <FinancialValue>{chunks}</FinancialValue>
                     ),
                   })}
                   progressPercent={goal.progressPercent}
+                  progressUnavailableLabel={t("progressIndeterminate")}
                   statusLabel={`${t(`status.${goal.status}`)} · ${t(`backing.${goal.backingState}`)}`}
                   data-testid={`goal-card-${goal.id}`}
                 />

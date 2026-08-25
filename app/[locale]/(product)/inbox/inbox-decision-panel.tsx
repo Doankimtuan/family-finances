@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import type { CaptureJarOption } from "@/modules/ledger/application/client";
@@ -19,6 +19,7 @@ import {
   type InboxAckAction,
   type InboxReceiptKind as InboxReceiptKindType,
 } from "@/modules/inbox/application/inbox-constants";
+import { InboxSourceCapability } from "@/modules/inbox/application/inbox-source-capabilities";
 import type { InboxCommandErrorCode } from "@/modules/inbox/application";
 import {
   acknowledgeSavingsMaturityAction,
@@ -32,10 +33,13 @@ import {
 } from "@/modules/savings/application/savings-constants";
 import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
+import { FinancialValue } from "@/shared/patterns/financial-value";
 import { StatusAlert } from "@/shared/ui/status-alert";
+import { SelectField } from "@/shared/ui/form";
 import { BottomActionBar } from "@/shared/patterns/bottom-action-bar";
-import { LabeledSelect } from "@/shared/patterns/labeled-native-field";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
+import { formatCurrency } from "@/shared/i18n/formatters";
+import { DEFAULT_CURRENCY } from "@/modules/ledger/application/client";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
 import {
   CLIENT_ACTION_ERROR_CODE,
@@ -65,6 +69,7 @@ type PendingAction = "resolve" | "dismiss" | "ack";
 export function InboxDecisionPanel({ item, jars }: Props) {
   const t = useTranslations("inbox");
   const tCatalog = useTranslations("catalog");
+  const locale = useLocale();
   const router = useRouter();
   const { online } = useOnlineStatusClient();
   const suggested =
@@ -105,12 +110,24 @@ export function InboxDecisionPanel({ item, jars }: Props) {
       SettlementRule.ROLL_PRINCIPAL_INTEREST,
   );
 
-  if (item.ownerUnavailable) {
+  if (item.capability !== InboxSourceCapability.ACTIONABLE) {
     return (
       <StatusAlert
         variant="info"
-        title={t("ownerUnavailableTitle")}
-        description={t("ownerUnavailableBody")}
+        title={
+          item.capability === InboxSourceCapability.READ_ONLY_FORMER_OWNER
+            ? t("ownerUnavailableTitle")
+            : item.capability === InboxSourceCapability.READ_ONLY_NON_OWNER
+              ? t("ownerRequiredTitle")
+              : t("sourceUnavailableTitle")
+        }
+        description={
+          item.capability === InboxSourceCapability.READ_ONLY_FORMER_OWNER
+            ? t("ownerUnavailableBody")
+            : item.capability === InboxSourceCapability.READ_ONLY_NON_OWNER
+              ? t("ownerRequiredBody")
+              : t("sourceUnavailableBody")
+        }
       />
     );
   }
@@ -454,7 +471,8 @@ export function InboxDecisionPanel({ item, jars }: Props) {
             />
           ) : null}
           {maturityPayload && maturityPayload.recommendedPackages.length > 0 ? (
-            <LabeledSelect
+            <SelectField
+              id="inbox-maturity-package"
               label={t("maturityPackageLabel")}
               value={selectedPackageId}
               options={maturityPayload.recommendedPackages.map((pkg) => {
@@ -464,14 +482,15 @@ export function InboxDecisionPanel({ item, jars }: Props) {
                   label: `${pkg.packageName} · ${pkg.annualRate}% · ${pkg.durationDays}d${reason ? ` — ${reason}` : ""}`,
                 };
               })}
-              onChange={(event) => setSelectedPackageId(event.target.value)}
-              disabled={busy}
+              onChange={(next) => setSelectedPackageId(next)}
+              isDisabled={busy}
               required
               data-testid="inbox-maturity-package"
             />
           ) : null}
           {maturityPayload ? (
-            <LabeledSelect
+            <SelectField
+              id="inbox-maturity-settlement"
               label={t("maturitySettlementLabel")}
               value={selectedSettlementRule}
               options={[
@@ -488,10 +507,8 @@ export function InboxDecisionPanel({ item, jars }: Props) {
                   label: t("maturityWithdraw"),
                 },
               ]}
-              onChange={(event) =>
-                setSelectedSettlementRule(event.target.value)
-              }
-              disabled={busy}
+              onChange={(next) => setSelectedSettlementRule(next)}
+              isDisabled={busy}
               required
               data-testid="inbox-maturity-settlement"
             />
@@ -548,15 +565,31 @@ export function InboxDecisionPanel({ item, jars }: Props) {
           />
           {earlyPayload ? (
             <div className="flex flex-col gap-(--space-1) text-sm text-text-secondary">
-              <span>
-                {t("earlyWithdrawalNet", {
-                  amount: earlyPayload.netReturned,
-                })}
+              <span className="flex items-center justify-between gap-(--space-3)">
+                <span>{t("earlyWithdrawalNetLabel")}</span>
+                <FinancialValue>
+                  {formatCurrency(
+                    earlyPayload.netReturned,
+                    DEFAULT_CURRENCY,
+                    locale,
+                    {
+                      maximumFractionDigits: 0,
+                    },
+                  )}
+                </FinancialValue>
               </span>
-              <span>
-                {t("earlyWithdrawalPenalty", {
-                  amount: earlyPayload.penaltyAmount,
-                })}
+              <span className="flex items-center justify-between gap-(--space-3)">
+                <span>{t("earlyWithdrawalPenaltyLabel")}</span>
+                <FinancialValue>
+                  {formatCurrency(
+                    earlyPayload.penaltyAmount,
+                    DEFAULT_CURRENCY,
+                    locale,
+                    {
+                      maximumFractionDigits: 0,
+                    },
+                  )}
+                </FinancialValue>
               </span>
             </div>
           ) : null}

@@ -19,15 +19,17 @@ import {
 } from "@/modules/savings/application/savings-domain-rules";
 import { formatPercent } from "@/shared/i18n/formatters";
 import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
+import { Card } from "@/shared/patterns/card";
 import { Sheet } from "@/shared/patterns/sheet";
 import { SheetActionFooter } from "@/shared/patterns/sheet-action-footer";
 import { Section } from "@/shared/patterns/section";
 import { Button } from "@/shared/ui/button";
+import { StatusAlert } from "@/shared/ui/status-alert";
 import { Text } from "@/shared/ui/text";
 import { AppIcon } from "@/shared/ui/app-icon";
 import { TextField } from "@/shared/ui/form";
+import { SelectField } from "@/shared/ui/form";
 import { ControlledField } from "@/shared/patterns/controlled-fields";
-import { LabeledSelect } from "@/shared/patterns/labeled-native-field";
 import { Dropdown } from "@heroui/react";
 import {
   SAVINGS_PROVIDER_ICONS,
@@ -46,6 +48,10 @@ import {
 } from "./provider-actions";
 
 type Props = { catalog: SavingCatalogProvider[] };
+
+type ArchiveTarget =
+  | { kind: "provider"; id: string; name: string }
+  | { kind: "product"; id: string; name: string };
 
 type ProviderFormValues = import("zod").input<
   typeof savingsProviderInputSchema
@@ -115,7 +121,11 @@ function productFormFrom(
 
 function SectionLabel({ children }: { children: string }) {
   return (
-    <Text size="sm" weight="semibold" className="pt-(--space-2)">
+    <Text
+      size="xs"
+      weight="semibold"
+      className="pt-(--space-2) uppercase tracking-wide text-text-secondary"
+    >
       {children}
     </Text>
   );
@@ -140,7 +150,7 @@ function PolicyOption({
       variant={selected ? "primary" : "secondary"}
       aria-pressed={selected}
       data-testid={testId}
-      className="min-h-11 min-w-0 flex-1 justify-start text-left shadow-none"
+      className="min-h-11 min-w-0 flex-1 justify-start rounded-[var(--radius-control)] text-left shadow-none transition-[background-color,border-color,transform] duration-(--duration-fast) motion-reduce:transition-none"
       onPress={onPress}
     >
       <span className="flex min-w-0 flex-col items-start gap-0.5">
@@ -280,6 +290,9 @@ export function SavingsCatalogManager({ catalog }: Props) {
     null,
   );
   const [error, setError] = useState<ProductActionErrorCode | null>(null);
+  const [archiveTarget, setArchiveTarget] = useState<ArchiveTarget | null>(
+    null,
+  );
   const [isPending, startTransition] = useTransition();
   const providerForm = useForm<ProviderFormValues>({
     resolver: zodResolver(savingsProviderInputSchema),
@@ -374,21 +387,32 @@ export function SavingsCatalogManager({ catalog }: Props) {
   });
 
   const archiveProvider = (provider: SavingCatalogProvider) => {
-    if (provider.isSystem || !window.confirm(t("archiveConfirm"))) return;
-    startTransition(async () => {
-      const result = await archiveSavingsProviderAction(provider.id);
-      if (result.status === "success") {
-        toast.success(t("archivedNotice"));
-        router.refresh();
-      } else setError(result.code);
+    if (provider.isSystem) return;
+    setArchiveTarget({
+      kind: "provider",
+      id: provider.id,
+      name: provider.displayName,
     });
   };
 
-  const archiveProduct = (product: SavingPackage) => {
-    if (!window.confirm(t("archiveConfirm"))) return;
+  const archiveProduct = (product: SavingPackage, providerName: string) => {
+    setArchiveTarget({
+      kind: "product",
+      id: product.id,
+      name: `${providerName} · ${formatTerm(product)}`,
+    });
+  };
+
+  const runArchive = () => {
+    if (!archiveTarget) return;
+    setError(null);
     startTransition(async () => {
-      const result = await archiveSavingsProductAction(product.id);
+      const result =
+        archiveTarget.kind === "provider"
+          ? await archiveSavingsProviderAction(archiveTarget.id)
+          : await archiveSavingsProductAction(archiveTarget.id);
       if (result.status === "success") {
+        setArchiveTarget(null);
         toast.success(t("archivedNotice"));
         router.refresh();
       } else setError(result.code);
@@ -447,13 +471,42 @@ export function SavingsCatalogManager({ catalog }: Props) {
           {t("createProvider")}
         </Button>
       </div>
-      {error ? (
-        <div
-          className="rounded-[var(--radius-control)] border border-danger/30 bg-danger/5 px-(--space-3) py-(--space-2) text-sm text-danger"
-          role="alert"
+      {error ? <StatusAlert variant="danger" title={tErr(error)} /> : null}
+      {archiveTarget ? (
+        <Card
+          tone="warning"
+          className="flex flex-col gap-(--space-3) p-(--space-4)"
+          data-testid="savings-archive-confirm"
         >
-          {tErr(error)}
-        </div>
+          <Text size="sm" weight="semibold" className="text-pretty">
+            {archiveTarget.name}
+          </Text>
+          <Text size="sm" tone="secondary" className="text-pretty">
+            {t("archiveConfirm")}
+          </Text>
+          <div className="flex gap-(--space-2)">
+            <Button
+              type="button"
+              variant="secondary"
+              className="min-h-10 flex-1"
+              isDisabled={isPending}
+              onPress={() => setArchiveTarget(null)}
+              data-testid="savings-archive-cancel"
+            >
+              {t("cancel")}
+            </Button>
+            <Button
+              type="button"
+              variant="danger"
+              className="min-h-10 flex-1"
+              isDisabled={isPending}
+              onPress={runArchive}
+              data-testid="savings-archive-confirm-action"
+            >
+              {t("archive")}
+            </Button>
+          </div>
+        </Card>
       ) : null}
       {catalog.length === 0 ? (
         <Section title={t("empty")}>
@@ -558,7 +611,9 @@ export function SavingsCatalogManager({ catalog }: Props) {
                         editLabel={t("edit")}
                         archiveLabel={t("archive")}
                         onEdit={() => openProduct(provider, product)}
-                        onArchive={() => archiveProduct(product)}
+                        onArchive={() =>
+                          archiveProduct(product, provider.displayName)
+                        }
                       />
                     </div>
                     <Text
@@ -620,7 +675,7 @@ export function SavingsCatalogManager({ catalog }: Props) {
                   {providerEditor.id ? t("editProvider") : t("createProvider")}
                 </Sheet.Heading>
               </ActionSheetLayout.Header>
-              <ActionSheetLayout.Body className="flex max-h-[70dvh] flex-col gap-(--space-4)">
+              <ActionSheetLayout.Body className="flex max-h-[76dvh] flex-col gap-(--space-4)">
                 <SectionLabel>{t("providerBasics")}</SectionLabel>
                 <TextField
                   id="savings-provider-name"
@@ -637,14 +692,15 @@ export function SavingsCatalogManager({ catalog }: Props) {
                   name="family"
                   control={providerForm.control}
                   render={({ field }) => (
-                    <LabeledSelect
+                    <SelectField
+                      id="savings-provider-family"
                       label={t("family")}
                       value={field.value}
+                      onChange={(next) => field.onChange(next)}
                       options={[
                         { id: SavingsFamily.BANK, label: t("bank") },
                         { id: SavingsFamily.PLATFORM, label: t("platform") },
                       ]}
-                      onChange={(event) => field.onChange(event.target.value)}
                       required
                     />
                   )}
@@ -689,239 +745,263 @@ export function SavingsCatalogManager({ catalog }: Props) {
                 <Sheet.Heading>
                   {productEditor.id ? t("editProduct") : t("createProduct")}
                 </Sheet.Heading>
+                <Text
+                  size="sm"
+                  tone="secondary"
+                  className="mt-(--space-1) text-pretty"
+                >
+                  {productEditor.id
+                    ? t("editProductHint")
+                    : t("createProductHint")}
+                </Text>
               </ActionSheetLayout.Header>
-              <ActionSheetLayout.Body className="flex max-h-[70dvh] flex-col gap-(--space-4)">
-                <SectionLabel>{t("basicSection")}</SectionLabel>
-                <TextField
-                  id="savings-product-name"
-                  label={t("productName")}
-                  registration={productForm.register("name")}
-                  required
-                />
-                <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-(--space-3)">
+              <ActionSheetLayout.Body className="flex max-h-[76dvh] flex-col gap-(--space-4)">
+                <div className="flex flex-col gap-(--space-3) rounded-[var(--radius-card)] border border-border-subtle bg-surface-muted/55 p-(--space-3)">
+                  <SectionLabel>{t("basicSection")}</SectionLabel>
+                  <TextField
+                    id="savings-product-name"
+                    label={t("productName")}
+                    registration={productForm.register("name")}
+                    required
+                  />
+                  <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-(--space-3)">
+                    <ControlledField
+                      control={productForm.control}
+                      field={{
+                        type: "number",
+                        name: "term.amount",
+                        id: "savings-product-term",
+                        label: t("duration"),
+                        minValue: 1,
+                        required: true,
+                      }}
+                    />
+                    <SelectField
+                      id="savings-product-term-unit"
+                      label={t("unit")}
+                      value={productTermUnit ?? "DAY"}
+                      onChange={(next) =>
+                        productForm.setValue(
+                          "term.unit",
+                          next === "MONTH" ? "MONTH" : "DAY",
+                        )
+                      }
+                      options={[
+                        { id: "DAY", label: t("termDay") },
+                        { id: "MONTH", label: t("termMonth") },
+                      ]}
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="flex flex-col gap-(--space-3) rounded-[var(--radius-card)] border border-border-subtle bg-surface-muted/55 p-(--space-3)">
+                  <SectionLabel>{t("interestSection")}</SectionLabel>
                   <ControlledField
                     control={productForm.control}
                     field={{
-                      type: "number",
-                      name: "term.amount",
-                      id: "savings-product-term",
-                      label: t("duration"),
-                      minValue: 1,
+                      type: "percentage",
+                      name: "annualInterestRatePercent",
+                      id: "savings-product-rate",
+                      label: t("rate"),
                       required: true,
                     }}
                   />
-                  <LabeledSelect
-                    label={t("unit")}
-                    value={productTermUnit ?? "DAY"}
-                    options={[
-                      { id: "DAY", label: t("termDay") },
-                      { id: "MONTH", label: t("termMonth") },
-                    ]}
-                    onChange={(event) =>
+                  <SelectField
+                    id="savings-product-method"
+                    label={t("method")}
+                    value={productInterestCalculationMethod ?? "simple"}
+                    onChange={(next) =>
                       productForm.setValue(
-                        "term.unit",
-                        event.target.value as "DAY" | "MONTH",
+                        "interestCalculationMethod",
+                        next === "compound_daily"
+                          ? "compound_daily"
+                          : next === "compound_monthly"
+                            ? "compound_monthly"
+                            : "simple",
                       )
                     }
+                    options={[
+                      { id: "simple", label: t("simple") },
+                      { id: "compound_daily", label: t("compoundDaily") },
+                      { id: "compound_monthly", label: t("compoundMonthly") },
+                    ]}
                     required
                   />
                 </div>
-                <SectionLabel>{t("interestSection")}</SectionLabel>
-                <ControlledField
-                  control={productForm.control}
-                  field={{
-                    type: "percentage",
-                    name: "annualInterestRatePercent",
-                    id: "savings-product-rate",
-                    label: t("rate"),
-                    required: true,
-                  }}
-                />
-                <LabeledSelect
-                  label={t("method")}
-                  value={productInterestCalculationMethod ?? "simple"}
-                  options={[
-                    { id: "simple", label: t("simple") },
-                    { id: "compound_daily", label: t("compoundDaily") },
-                    { id: "compound_monthly", label: t("compoundMonthly") },
-                  ]}
-                  onChange={(event) =>
-                    productForm.setValue(
-                      "interestCalculationMethod",
-                      event.target
-                        .value as ProductFormValues["interestCalculationMethod"],
-                    )
-                  }
-                  required
-                />
-                <SectionLabel>{t("taxSection")}</SectionLabel>
-                <div
-                  className="flex flex-col gap-(--space-2)"
-                  role="group"
-                  aria-label={t("taxRule")}
-                >
-                  <div className="flex flex-col gap-(--space-2) sm:flex-row">
-                    <PolicyOption
-                      label={t("taxNone")}
-                      selected={productTaxRule === SavingsTaxRule.NONE}
-                      onPress={() => {
-                        productForm.setValue("taxRule", SavingsTaxRule.NONE);
-                        productForm.setValue("taxRatePercent", 0);
-                      }}
-                      testId="savings-tax-none"
-                    />
-                    <PolicyOption
-                      label={t("taxOnInterestPolicy")}
-                      description={
-                        productTaxRule !== SavingsTaxRule.NONE
-                          ? t("taxBaseHint")
-                          : undefined
-                      }
-                      selected={
-                        productTaxRule === SavingsTaxRule.PROFIT_PERCENTAGE
-                      }
-                      onPress={() => {
-                        productForm.setValue(
-                          "taxRule",
-                          SavingsTaxRule.PROFIT_PERCENTAGE,
-                        );
-                        productForm.setValue(
-                          "taxRatePercent",
-                          productTaxRatePercent || taxRateDefault,
-                        );
-                      }}
-                      testId="savings-tax-on-interest"
-                    />
-                  </div>
-                </div>
-                <AnimatePresence initial={false} mode="wait">
-                  {productTaxRule === SavingsTaxRule.PROFIT_PERCENTAGE ? (
-                    <motion.div
-                      key="tax-rate"
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -8 }}
-                      transition={{ duration: motionTokens.duration.fast }}
-                    >
-                      <ControlledField
-                        control={productForm.control}
-                        field={{
-                          type: "percentage",
-                          name: "taxRatePercent",
-                          id: "savings-product-tax",
-                          label: t("taxRate"),
-                          required: true,
+                <div className="flex flex-col gap-(--space-3) rounded-[var(--radius-card)] border border-border-subtle bg-surface-muted/55 p-(--space-3)">
+                  <SectionLabel>{t("taxSection")}</SectionLabel>
+                  <div
+                    className="flex flex-col gap-(--space-2)"
+                    role="group"
+                    aria-label={t("taxRule")}
+                  >
+                    <div className="flex flex-col gap-(--space-2) sm:flex-row">
+                      <PolicyOption
+                        label={t("taxNone")}
+                        selected={productTaxRule === SavingsTaxRule.NONE}
+                        onPress={() => {
+                          productForm.setValue("taxRule", SavingsTaxRule.NONE);
+                          productForm.setValue("taxRatePercent", 0);
                         }}
+                        testId="savings-tax-none"
                       />
-                    </motion.div>
-                  ) : null}
-                </AnimatePresence>
-                <SectionLabel>{t("earlySection")}</SectionLabel>
-                <div
-                  className="flex flex-col gap-(--space-2)"
-                  role="group"
-                  aria-label={t("earlyRule")}
-                >
-                  <div className="flex flex-col gap-(--space-2)">
-                    <PolicyOption
-                      label={t("earlyNotAllowed")}
-                      selected={
-                        productEarlySettlementRule ===
-                        EarlySettlementRule.NOT_ALLOWED
-                      }
-                      onPress={() => {
-                        productForm.setValue(
-                          "earlySettlementRule",
-                          EarlySettlementRule.NOT_ALLOWED,
-                        );
-                        productForm.setValue(
-                          "earlySettlementRatePercent",
-                          null,
-                        );
-                      }}
-                      testId="savings-early-not-allowed"
-                    />
-                    <PolicyOption
-                      label={t("earlyPrincipalOnly")}
-                      selected={
-                        productEarlySettlementRule ===
-                        EarlySettlementRule.PRINCIPAL_ONLY
-                      }
-                      onPress={() => {
-                        productForm.setValue(
-                          "earlySettlementRule",
-                          EarlySettlementRule.PRINCIPAL_ONLY,
-                        );
-                        productForm.setValue(
-                          "earlySettlementRatePercent",
-                          null,
-                        );
-                      }}
-                      testId="savings-early-principal-only"
-                    />
-                    <PolicyOption
-                      label={t("earlyCustomInterest")}
-                      selected={
-                        productEarlySettlementRule ===
-                        EarlySettlementRule.CUSTOM_INTEREST_RATE
-                      }
-                      onPress={() =>
-                        productForm.setValue(
-                          "earlySettlementRule",
-                          EarlySettlementRule.CUSTOM_INTEREST_RATE,
-                        )
-                      }
-                      testId="savings-early-custom-rate"
-                    />
-                    <PolicyOption
-                      label={t("earlyProductRule")}
-                      selected={
-                        productEarlySettlementRule ===
-                        EarlySettlementRule.PRODUCT_RULE
-                      }
-                      onPress={() => {
-                        productForm.setValue(
-                          "earlySettlementRule",
-                          EarlySettlementRule.PRODUCT_RULE,
-                        );
-                        productForm.setValue(
-                          "earlySettlementRatePercent",
-                          null,
-                        );
-                      }}
-                      testId="savings-early-product-rule"
-                    />
-                  </div>
-                </div>
-                <AnimatePresence initial={false} mode="wait">
-                  {productEarlySettlementRule ===
-                  EarlySettlementRule.CUSTOM_INTEREST_RATE ? (
-                    <motion.div
-                      key="early-rate"
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -8 }}
-                      transition={{ duration: motionTokens.duration.fast }}
-                    >
-                      <ControlledField
-                        control={productForm.control}
-                        field={{
-                          type: "percentage",
-                          name: "earlySettlementRatePercent",
-                          id: "savings-product-early-rate",
-                          label: t("earlyRate"),
-                          required: true,
+                      <PolicyOption
+                        label={t("taxOnInterestPolicy")}
+                        description={
+                          productTaxRule !== SavingsTaxRule.NONE
+                            ? t("taxBaseHint")
+                            : undefined
+                        }
+                        selected={
+                          productTaxRule === SavingsTaxRule.PROFIT_PERCENTAGE
+                        }
+                        onPress={() => {
+                          productForm.setValue(
+                            "taxRule",
+                            SavingsTaxRule.PROFIT_PERCENTAGE,
+                          );
+                          productForm.setValue(
+                            "taxRatePercent",
+                            productTaxRatePercent || taxRateDefault,
+                          );
                         }}
+                        testId="savings-tax-on-interest"
                       />
-                    </motion.div>
-                  ) : null}
-                </AnimatePresence>
-                <SectionLabel>{t("currencySection")}</SectionLabel>
-                <div className="flex items-center justify-between rounded-[var(--radius-control)] border border-border-subtle bg-surface-muted px-(--space-3) py-(--space-3)">
-                  <Text size="sm">{t("currency")}</Text>
-                  <Text size="sm" weight="semibold">
-                    {DEFAULT_CURRENCY}
-                  </Text>
+                    </div>
+                  </div>
+                  <AnimatePresence initial={false} mode="wait">
+                    {productTaxRule === SavingsTaxRule.PROFIT_PERCENTAGE ? (
+                      <motion.div
+                        key="tax-rate"
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                        transition={{ duration: motionTokens.duration.fast }}
+                      >
+                        <ControlledField
+                          control={productForm.control}
+                          field={{
+                            type: "percentage",
+                            name: "taxRatePercent",
+                            id: "savings-product-tax",
+                            label: t("taxRate"),
+                            required: true,
+                          }}
+                        />
+                      </motion.div>
+                    ) : null}
+                  </AnimatePresence>
+                </div>
+                <div className="flex flex-col gap-(--space-3) rounded-[var(--radius-card)] border border-border-subtle bg-surface-muted/55 p-(--space-3)">
+                  <SectionLabel>{t("earlySection")}</SectionLabel>
+                  <div
+                    className="flex flex-col gap-(--space-2)"
+                    role="group"
+                    aria-label={t("earlyRule")}
+                  >
+                    <div className="flex flex-col gap-(--space-2)">
+                      <PolicyOption
+                        label={t("earlyNotAllowed")}
+                        selected={
+                          productEarlySettlementRule ===
+                          EarlySettlementRule.NOT_ALLOWED
+                        }
+                        onPress={() => {
+                          productForm.setValue(
+                            "earlySettlementRule",
+                            EarlySettlementRule.NOT_ALLOWED,
+                          );
+                          productForm.setValue(
+                            "earlySettlementRatePercent",
+                            null,
+                          );
+                        }}
+                        testId="savings-early-not-allowed"
+                      />
+                      <PolicyOption
+                        label={t("earlyPrincipalOnly")}
+                        selected={
+                          productEarlySettlementRule ===
+                          EarlySettlementRule.PRINCIPAL_ONLY
+                        }
+                        onPress={() => {
+                          productForm.setValue(
+                            "earlySettlementRule",
+                            EarlySettlementRule.PRINCIPAL_ONLY,
+                          );
+                          productForm.setValue(
+                            "earlySettlementRatePercent",
+                            null,
+                          );
+                        }}
+                        testId="savings-early-principal-only"
+                      />
+                      <PolicyOption
+                        label={t("earlyCustomInterest")}
+                        selected={
+                          productEarlySettlementRule ===
+                          EarlySettlementRule.CUSTOM_INTEREST_RATE
+                        }
+                        onPress={() =>
+                          productForm.setValue(
+                            "earlySettlementRule",
+                            EarlySettlementRule.CUSTOM_INTEREST_RATE,
+                          )
+                        }
+                        testId="savings-early-custom-rate"
+                      />
+                      <PolicyOption
+                        label={t("earlyProductRule")}
+                        selected={
+                          productEarlySettlementRule ===
+                          EarlySettlementRule.PRODUCT_RULE
+                        }
+                        onPress={() => {
+                          productForm.setValue(
+                            "earlySettlementRule",
+                            EarlySettlementRule.PRODUCT_RULE,
+                          );
+                          productForm.setValue(
+                            "earlySettlementRatePercent",
+                            null,
+                          );
+                        }}
+                        testId="savings-early-product-rule"
+                      />
+                    </div>
+                  </div>
+                  <AnimatePresence initial={false} mode="wait">
+                    {productEarlySettlementRule ===
+                    EarlySettlementRule.CUSTOM_INTEREST_RATE ? (
+                      <motion.div
+                        key="early-rate"
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                        transition={{ duration: motionTokens.duration.fast }}
+                      >
+                        <ControlledField
+                          control={productForm.control}
+                          field={{
+                            type: "percentage",
+                            name: "earlySettlementRatePercent",
+                            id: "savings-product-early-rate",
+                            label: t("earlyRate"),
+                            required: true,
+                          }}
+                        />
+                      </motion.div>
+                    ) : null}
+                  </AnimatePresence>
+                </div>
+                <div className="flex flex-col gap-(--space-3) rounded-[var(--radius-card)] border border-border-subtle bg-surface-muted/55 p-(--space-3)">
+                  <SectionLabel>{t("currencySection")}</SectionLabel>
+                  <div className="flex items-center justify-between rounded-[var(--radius-control)] border border-border-subtle bg-surface px-(--space-3) py-(--space-3)">
+                    <Text size="sm">{t("currency")}</Text>
+                    <Text size="sm" weight="semibold" tabular>
+                      {DEFAULT_CURRENCY}
+                    </Text>
+                  </div>
                 </div>
               </ActionSheetLayout.Body>
               <SheetActionFooter

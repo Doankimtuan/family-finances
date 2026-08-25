@@ -61,7 +61,7 @@ export type PlanGoal = {
   fundingSummary: GoalFundingSummary | null;
   isLegacyIntention: boolean;
   /** May exceed 100% when linked Money value exceeds the target. */
-  progressPercent: number;
+  progressPercent: number | null;
 };
 export type GoalDetail = PlanGoal & {
   householdId: string;
@@ -211,6 +211,10 @@ export function mapGoalRow(
   );
   const storedStatus = asGoalStatus(row.status);
   const goalType = asGoalType(row.goal_type);
+  const progressPercent =
+    fundingSummary?.valueStatus === GoalFundingQuality.INDETERMINATE
+      ? null
+      : calculateGoalProgressPercent(fundedAmount, targetAmount);
   return {
     id: row.id,
     name: row.name,
@@ -234,7 +238,7 @@ export function mapGoalRow(
     fundingSummary:
       backingState === GoalBackingState.LINKED ? fundingSummary : null,
     isLegacyIntention,
-    progressPercent: calculateGoalProgressPercent(fundedAmount, targetAmount),
+    progressPercent,
   };
 }
 export function mapRecurringRow(row: {

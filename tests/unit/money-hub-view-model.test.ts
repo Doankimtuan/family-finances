@@ -1,12 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
   createMoneyHubViewModel,
+  createMoneyHubModuleSummaries,
   MoneyAccountGroupKey,
   MoneyCreditAttention,
 } from "@/modules/ledger/application/money-hub-view-model";
 import { AccountType } from "@/modules/ledger/application/ledger-constants";
 import type { CreditCardSummary } from "@/modules/ledger/application/credit-card-types";
 import type { RealPosition } from "@/modules/ledger/application/account-types";
+import { InvestmentHomeValuationQuality } from "@/modules/investments/application";
 
 function position(accounts: RealPosition["accounts"]): RealPosition {
   return {
@@ -284,5 +286,49 @@ describe("createMoneyHubViewModel", () => {
     expect(viewModel.creditCards[0]?.attention).toBe(
       MoneyCreditAttention.DUE_SOON,
     );
+  });
+
+  it("keeps unknown investment valuation indeterminate", () => {
+    const summary = createMoneyHubModuleSummaries({
+      savings: null,
+      investments: {
+        activeCount: 2,
+        marketValue: null,
+        valuationQuality: InvestmentHomeValuationQuality.UNKNOWN,
+        valuationIncluded: 0,
+        valuationTotal: 2,
+      },
+      loans: null,
+      debts: null,
+    });
+
+    expect(summary.investments).toMatchObject({
+      loaded: true,
+      count: 2,
+      total: null,
+      valuationQuality: InvestmentHomeValuationQuality.UNKNOWN,
+      valuationCoverage: { included: 0, total: 2 },
+    });
+  });
+
+  it("preserves a partial estimated market value and coverage", () => {
+    const summary = createMoneyHubModuleSummaries({
+      savings: null,
+      investments: {
+        activeCount: 3,
+        marketValue: 120,
+        valuationQuality: InvestmentHomeValuationQuality.PARTIAL,
+        valuationIncluded: 2,
+        valuationTotal: 3,
+      },
+      loans: null,
+      debts: null,
+    });
+
+    expect(summary.investments).toMatchObject({
+      total: 120,
+      valuationQuality: InvestmentHomeValuationQuality.PARTIAL,
+      valuationCoverage: { included: 2, total: 3 },
+    });
   });
 });

@@ -41,7 +41,7 @@ export function Alert({
   return (
     <HeroAlert
       status={VARIANT_TO_STATUS[variant]}
-      className={cn("rounded-md", className)}
+      className={cn("rounded-(--radius-control)", className)}
       {...props}
     />
   );

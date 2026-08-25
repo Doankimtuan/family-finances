@@ -38,7 +38,9 @@ test.describe("Splash + Welcome (ST-E02-001)", () => {
   }) => {
     await page.goto("/en/splash");
     await expect(page.getByTestId("auth-splash")).toBeVisible();
-    await expect(page.getByRole("heading", { name: "ViNha" })).toBeVisible();
+    await expect(
+      page.getByRole("img", { name: "Family Finance" }),
+    ).toBeVisible();
     await expect(page).toHaveURL(/\/en\/welcome$/, { timeout: 15_000 });
     await expect(page.getByTestId("auth-welcome")).toBeVisible();
   });

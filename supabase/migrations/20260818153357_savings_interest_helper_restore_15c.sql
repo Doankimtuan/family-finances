@@ -1,4 +1,3 @@
--- 15C: restore the internal helper required by detect_matured_savings.
 create or replace function public.savings_simple_interest(
   p_principal numeric,
   p_annual_rate numeric,
@@ -20,5 +19,4 @@ as $$
   );
 $$;
 
-revoke all on function public.savings_simple_interest(numeric, numeric, integer)
-  from public;
+revoke all on function public.savings_simple_interest(numeric, numeric, integer) from public;;

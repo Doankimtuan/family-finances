@@ -4,7 +4,6 @@
 drop function if exists public.record_investment_opening_position(
   text,text,numeric,date,text,text,numeric,numeric,text,text,text,text
 );
-
 create or replace function public.record_investment_opening_position(
   p_asset_name text,
   p_asset_class text,
@@ -123,18 +122,15 @@ begin
   end if;
   return public.investment_operation_receipt(v_oid, false);
 end $$;
-
 revoke all on function public.record_investment_opening_position(
   text,text,numeric,date,text,text,numeric,numeric,text,text,text,text,uuid
 ) from public, anon;
 grant execute on function public.record_investment_opening_position(
   text,text,numeric,date,text,text,numeric,numeric,text,text,text,text,uuid
 ) to authenticated;
-
 drop function if exists public.record_investment_initial_purchase(
   text,text,numeric,numeric,uuid,date,text,text,jsonb,text,text,text,text,numeric
 );
-
 create or replace function public.record_investment_initial_purchase(
   p_asset_name text,
   p_asset_class text,
@@ -213,7 +209,6 @@ begin
     p_notes, p_idempotency_key
   );
 end $$;
-
 revoke all on function public.record_investment_initial_purchase(
   text,text,numeric,numeric,uuid,date,text,text,jsonb,text,text,text,text,numeric,uuid
 ) from public, anon;

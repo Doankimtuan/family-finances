@@ -1,6 +1,5 @@
 -- ST-E04-004: Debts, savings products, installment/EMI surfaces (AC-010, AC-011, BR-10, BR-11)
 
--- Liabilities (debts) — owed amounts are NOT bank Balance (BR-01)
 create table if not exists public.liabilities (
   id uuid primary key default gen_random_uuid(),
   household_id uuid not null references public.households(id) on delete cascade,
@@ -25,7 +24,6 @@ create table if not exists public.liabilities (
 create index if not exists idx_liabilities_household
   on public.liabilities (household_id, is_archived, created_at desc);
 
--- Term / product savings — maturity guides to Inbox (AC-010 / BR-10)
 create table if not exists public.savings_accounts (
   id uuid primary key default gen_random_uuid(),
   household_id uuid not null references public.households(id) on delete cascade,
@@ -48,7 +46,6 @@ create table if not exists public.savings_accounts (
 create index if not exists idx_savings_accounts_household
   on public.savings_accounts (household_id, status, maturity_date);
 
--- Card installments / EMI (AC-011 / BR-11)
 create table if not exists public.installment_plans (
   id uuid primary key default gen_random_uuid(),
   household_id uuid not null references public.households(id) on delete cascade,
@@ -128,7 +125,6 @@ grant select, insert, update on public.liabilities to authenticated;
 grant select, insert, update on public.savings_accounts to authenticated;
 grant select, insert, update on public.installment_plans to authenticated;
 
--- Record debt payment — reduces remaining owed (not a bank Balance invent)
 create or replace function public.record_liability_payment(
   p_liability_id uuid,
   p_amount numeric
@@ -191,7 +187,6 @@ $$;
 
 grant execute on function public.record_liability_payment(uuid, numeric) to authenticated;
 
--- Enqueue savings maturity ReviewItem (AC-010) — coach only, no invented balance
 create or replace function public.enqueue_savings_maturity(p_savings_id uuid)
 returns jsonb
 language plpgsql
@@ -279,7 +274,6 @@ $$;
 
 grant execute on function public.enqueue_savings_maturity(uuid) to authenticated;
 
--- Record EMI payment; complete → Inbox celebrate (AC-011 / BR-11)
 create or replace function public.record_installment_payment(p_plan_id uuid)
 returns jsonb
 language plpgsql
@@ -377,4 +371,4 @@ begin
 end;
 $$;
 
-grant execute on function public.record_installment_payment(uuid) to authenticated;
+grant execute on function public.record_installment_payment(uuid) to authenticated;;

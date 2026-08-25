@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import type { ReactNode } from "react";
 import { setLocale } from "@/i18n/set-locale";
 import { redirect, Link } from "@/i18n/navigation";
 import { hasLocale } from "next-intl";
@@ -26,12 +27,22 @@ import { JarCard } from "@/shared/patterns/jar-card";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Text } from "@/shared/ui/text";
+import { FinancialValue } from "@/shared/patterns/financial-value";
 import { PlanOfflineBanner } from "../plan-offline-banner";
 import { CreateJarForm } from "./create-jar-form";
 import { CreateCategoryForm } from "./create-category-form";
 import type { CaptureJarOption } from "@/modules/ledger/application/client";
 
 type Props = { params: Promise<{ locale: string }> };
+
+/** Plain-key + rich-tag subset of the next-intl translator used by planSummary. */
+type JarPlanTranslator = {
+  (key: string, values?: Record<string, string | number>): string;
+  rich: (
+    key: string,
+    values?: Record<string, string | ((chunks: ReactNode) => ReactNode)>,
+  ) => ReactNode;
+};
 
 function stateLabelKey(state: PlanJar["state"]) {
   if (state === JarState.PAUSED) return "statePaused" as const;
@@ -41,16 +52,17 @@ function stateLabelKey(state: PlanJar["state"]) {
 
 function planSummary(
   jar: PlanJar,
-  t: (key: string, values?: Record<string, string | number>) => string,
+  t: JarPlanTranslator,
   currency: string,
   locale: string,
-): string {
+): ReactNode {
   if (!jar.plan) return t("planNone");
   if (jar.plan.kind === JarPlanKind.FIXED) {
-    return t("planFixed", {
-      amount: formatCurrency(jar.plan.fixedAmount, currency, locale, {
+    return t.rich("planFixed", {
+      amount: formatCurrency(jar.plan!.fixedAmount, currency, locale, {
         maximumFractionDigits: 0,
       }),
+      money: (chunks: ReactNode) => <FinancialValue>{chunks}</FinancialValue>,
     });
   }
   return t("planPercent", {
@@ -147,7 +159,11 @@ export default async function PlanJarsPage({ params }: Props) {
               <li key={jar.id}>
                 <Link href={planJarPath(jar.id)} className="block">
                   <JarCard
-                    name={jar.isNameCustom ? jar.name : localizeCatalogName(tCatalog, "jars", jar.name)}
+                    name={
+                      jar.isNameCustom
+                        ? jar.name
+                        : localizeCatalogName(tCatalog, "jars", jar.name)
+                    }
                     kindLabel={t(`kinds.${jar.kind}`)}
                     stateLabel={t(stateLabelKey(jar.state))}
                     state={jar.state}
@@ -172,7 +188,11 @@ export default async function PlanJarsPage({ params }: Props) {
               <li key={jar.id}>
                 <Link href={planJarPath(jar.id)} className="block">
                   <JarCard
-                    name={jar.isNameCustom ? jar.name : localizeCatalogName(tCatalog, "jars", jar.name)}
+                    name={
+                      jar.isNameCustom
+                        ? jar.name
+                        : localizeCatalogName(tCatalog, "jars", jar.name)
+                    }
                     kindLabel={t(`kinds.${jar.kind}`)}
                     stateLabel={t(stateLabelKey(jar.state))}
                     state={jar.state}

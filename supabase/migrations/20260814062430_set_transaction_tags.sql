@@ -60,11 +60,7 @@ begin
     and transaction_id = p_transaction_id;
 
   if v_tag_count > 0 then
-    insert into public.transaction_tag_assignments (
-      household_id,
-      transaction_id,
-      tag_id
-    )
+    insert into public.transaction_tag_assignments (household_id, transaction_id, tag_id)
     select v_household_id, p_transaction_id, tag_id
     from unnest(v_normalized_tag_ids) as tag_id;
   end if;
@@ -72,4 +68,4 @@ end;
 $$;
 
 revoke all on function public.set_transaction_tags(uuid, uuid[]) from public;
-grant execute on function public.set_transaction_tags(uuid, uuid[]) to authenticated;
+grant execute on function public.set_transaction_tags(uuid, uuid[]) to authenticated;;

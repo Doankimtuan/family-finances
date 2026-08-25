@@ -1,5 +1,4 @@
 import { getTranslations } from "next-intl/server";
-import { Link } from "@/i18n/navigation";
 import { requireTogetherMembership } from "@/modules/tenancy/application/require-together-membership";
 import {
   HOUSEHOLD_ROLE,
@@ -8,14 +7,15 @@ import {
 import { Page } from "@/shared/patterns/page";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { SectionHeader } from "@/shared/patterns/section-header";
+import { TogetherNavRow } from "@/shared/patterns/together-management";
 import { TogetherPreferences } from "@/shared/patterns/together-preferences";
 import { Card } from "@/shared/patterns/card";
+import { AppIcon } from "@/shared/ui/app-icon";
+import { IconContainer } from "@/shared/ui/icon-container";
 import { Text } from "@/shared/ui/text";
+import { NAVIGATION_ICONS, UTILITY_ICONS } from "@/shared/ui/icon-registry";
 
 type Props = { params: Promise<{ locale: string }> };
-
-const linkClassName =
-  "inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring";
 
 export default async function SettingsPage({ params }: Props) {
   const { locale: localeParam } = await params;
@@ -24,32 +24,52 @@ export default async function SettingsPage({ params }: Props) {
     nextPath: TOGETHER_PATH.SETTINGS,
   });
   const t = await getTranslations("settings");
+  const role =
+    membership.role === HOUSEHOLD_ROLE.ADMIN
+      ? t("roleAdmin")
+      : t("rolePartner");
 
   return (
     <Page
       testId="together-settings-page"
-      topBar={<TopAppBar title={t("title")} subtitle={t("subtitle")} />}
+      topBar={
+        <TopAppBar
+          variant="detail"
+          backHref={TOGETHER_PATH.ROOT}
+          title={t("title")}
+          subtitle={t("subtitle")}
+        />
+      }
     >
       <section className="flex flex-col gap-(--space-3)">
         <SectionHeader
           title={t("profileTitle")}
           description={t("profileDescription")}
         />
-        <Card className="gap-0 p-(--space-4)">
-          <Text size="sm" tone="secondary">
-            {t("emailLabel")}
-          </Text>
-          <Text size="sm" className="font-medium text-text-primary">
-            {user.email ?? t("emailMissing")}
-          </Text>
-          <Text size="sm" tone="secondary" className="mt-(--space-2)">
-            {t("roleNote", {
-              role:
-                membership.role === HOUSEHOLD_ROLE.ADMIN
-                  ? t("roleAdmin")
-                  : t("rolePartner"),
-            })}
-          </Text>
+        <Card tone="elevated" className="overflow-hidden p-0">
+          <div className="flex items-center gap-(--space-3) p-(--space-4)">
+            <IconContainer tone="primary" size="md">
+              <AppIcon icon={NAVIGATION_ICONS.together} size="md" emphasized />
+            </IconContainer>
+            <div className="min-w-0 flex-1">
+              <Text size="xs" tone="secondary">
+                {t("emailLabel")}
+              </Text>
+              <Text
+                size="sm"
+                className="mt-(--space-1) break-words font-semibold text-text-primary"
+              >
+                {user.email ?? t("emailMissing")}
+              </Text>
+              <Text
+                size="xs"
+                tone="secondary"
+                className="mt-(--space-1) text-pretty"
+              >
+                {t("roleNote", { role })}
+              </Text>
+            </div>
+          </div>
         </Card>
       </section>
 
@@ -61,17 +81,20 @@ export default async function SettingsPage({ params }: Props) {
         <TogetherPreferences />
       </section>
 
-      <div className="flex flex-col gap-(--space-2)">
-        <Link href={TOGETHER_PATH.PREFERENCES} className={linkClassName}>
-          {t("householdPreferencesLink")}
-        </Link>
-        <Link href={TOGETHER_PATH.SETTINGS_ACCOUNT} className={linkClassName}>
-          {t("accountSettingsLink")}
-        </Link>
-        <Link href={TOGETHER_PATH.ROOT} className={linkClassName}>
-          {t("back")}
-        </Link>
-      </div>
+      <section className="flex flex-col gap-(--space-3)">
+        <SectionHeader
+          title={t("accountTitle")}
+          description={t("accountDescription")}
+        />
+        <TogetherNavRow
+          href={TOGETHER_PATH.SETTINGS_ACCOUNT}
+          icon={UTILITY_ICONS.settings}
+
+          title={t("accountSettingsLink")}
+          description={t("accountSettingsDescription")}
+          testId="together-settings-account"
+        />
+      </section>
     </Page>
   );
 }

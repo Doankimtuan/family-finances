@@ -16,9 +16,7 @@ create table if not exists public.transaction_tags (
   constraint transaction_tags_name_length check (char_length(name) <= 64),
   constraint transaction_tags_icon_key_nonempty check (length(trim(icon_key)) > 0),
   constraint transaction_tags_icon_key_length check (char_length(icon_key) <= 64),
-  constraint transaction_tags_color_key_length check (
-    color_key is null or char_length(color_key) <= 32
-  )
+  constraint transaction_tags_color_key_length check (color_key is null or char_length(color_key) <= 32)
 );
 
 create unique index if not exists transaction_tags_household_name_unique
@@ -95,21 +93,18 @@ create policy transaction_tags_update_member on public.transaction_tags
   using (public.is_household_member(household_id))
   with check (public.is_household_member(household_id));
 
-drop policy if exists transaction_tag_assignments_select_member
-  on public.transaction_tag_assignments;
+drop policy if exists transaction_tag_assignments_select_member on public.transaction_tag_assignments;
 create policy transaction_tag_assignments_select_member
   on public.transaction_tag_assignments for select to authenticated
   using (public.is_household_member(household_id));
-drop policy if exists transaction_tag_assignments_insert_member
-  on public.transaction_tag_assignments;
+drop policy if exists transaction_tag_assignments_insert_member on public.transaction_tag_assignments;
 create policy transaction_tag_assignments_insert_member
   on public.transaction_tag_assignments for insert to authenticated
   with check (public.is_household_member(household_id));
-drop policy if exists transaction_tag_assignments_delete_member
-  on public.transaction_tag_assignments;
+drop policy if exists transaction_tag_assignments_delete_member on public.transaction_tag_assignments;
 create policy transaction_tag_assignments_delete_member
   on public.transaction_tag_assignments for delete to authenticated
   using (public.is_household_member(household_id));
 
 grant select, insert, update on public.transaction_tags to authenticated;
-grant select, insert, delete on public.transaction_tag_assignments to authenticated;
+grant select, insert, delete on public.transaction_tag_assignments to authenticated;;

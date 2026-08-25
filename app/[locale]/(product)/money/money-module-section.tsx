@@ -31,7 +31,7 @@ export type MoneyModuleRowProps = {
   label: string;
   value: MoneyModuleValue;
   /** Quiet supporting signal under the label (counts, secondary amounts). */
-  meta?: string;
+  meta?: ReactNode;
   attention?: { level: AttentionLevel; label: string } | null;
 };
 

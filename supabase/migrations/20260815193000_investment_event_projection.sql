@@ -1,6 +1,5 @@
 -- Project legacy atomic RPC operations into the Prompt 09.1 immutable event ledger.
 alter table public.investment_events add column if not exists legacy_operation_id uuid unique references public.investment_operations(id) on delete restrict;
-
 create or replace function public.project_investment_operation_event()
 returns trigger language plpgsql security definer set search_path = public as $$
 declare v_type text; v_position uuid; v_cash_source uuid; v_cash_destination uuid;
@@ -41,12 +40,10 @@ begin
   ) on conflict (legacy_operation_id) do nothing;
   return new;
 end $$;
-
 drop trigger if exists investment_operation_event_projection on public.investment_operations;
 create trigger investment_operation_event_projection
 after insert on public.investment_operations
 for each row execute function public.project_investment_operation_event();
-
 insert into public.investment_events(
   household_id, position_id, event_type, executed_quantity, gross_amount,
   disposed_cost_basis, realized_pnl, source_cash_account_id, destination_cash_account_id,
@@ -71,7 +68,6 @@ select
   o.id, o.created_by
 from public.investment_operations o
 on conflict (legacy_operation_id) do nothing;
-
 create or replace function public.project_investment_fee_event()
 returns trigger language plpgsql security definer set search_path = public as $$
 begin
@@ -81,7 +77,6 @@ begin
   where e.legacy_operation_id = (select id from public.investment_operations where id = new.operation_id);
   return new;
 end $$;
-
 drop trigger if exists investment_fee_event_projection on public.investment_fees;
 create trigger investment_fee_event_projection
 after insert on public.investment_fees

@@ -1,10 +1,3 @@
--- Sprint 1 verification fixes (B1 / B2):
--- - Block in-place update_transaction (BR-02 / BR-03 immutability)
--- - Flag refund / reversal legs as is_reversal for income exclusion (REQ-JAR-01)
-
--- ---------------------------------------------------------------------------
--- is_reversal — exclude from monthly income, keep cash/jar capacity effects
--- ---------------------------------------------------------------------------
 alter table public.transactions
   add column if not exists is_reversal boolean not null default false;
 
@@ -15,7 +8,6 @@ create index if not exists transactions_is_reversal_idx
   on public.transactions (household_id, is_reversal)
   where is_reversal = true;
 
--- Backfill linked refund / reversal legs created before this column existed
 update public.transactions
 set is_reversal = true
 where reverses_transaction_id is not null
@@ -39,9 +31,6 @@ create trigger transactions_set_is_reversal
   for each row
   execute function public.transactions_set_is_reversal();
 
--- ---------------------------------------------------------------------------
--- update_transaction — fail closed (use correct_transaction / refund_transaction)
--- ---------------------------------------------------------------------------
 create or replace function public.update_transaction(
   p_transaction_id uuid,
   p_account_id uuid,
@@ -63,4 +52,4 @@ end;
 $$;
 
 revoke all on function public.update_transaction(uuid, uuid, text, numeric, date, text, uuid, uuid) from public;
-grant execute on function public.update_transaction(uuid, uuid, text, numeric, date, text, uuid, uuid) to authenticated;
+grant execute on function public.update_transaction(uuid, uuid, text, numeric, date, text, uuid, uuid) to authenticated;;

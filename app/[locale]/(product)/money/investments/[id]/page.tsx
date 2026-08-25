@@ -1,11 +1,15 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import {
+  BankIcon,
+  ChartBarLineIcon,
+  SmartPhoneIcon,
+  Wallet02Icon,
+} from "@hugeicons/core-free-icons";
+import {
   APP_PATH,
-  moneyInvestmentBuyPath,
   moneyInvestmentIncomePath,
   moneyInvestmentPath,
-  moneyInvestmentSellPath,
   moneyInvestmentValuationPath,
 } from "@/modules/tenancy/application/app-path";
 import {
@@ -33,14 +37,18 @@ import {
 import { Page } from "@/shared/patterns/page";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Section } from "@/shared/patterns/section";
+import { Card } from "@/shared/patterns/card";
 import { Amount } from "@/shared/patterns/amount";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { StatusAlert } from "@/shared/ui/status-alert";
+import { AppIcon } from "@/shared/ui/app-icon";
 import { Text } from "@/shared/ui/text";
 import { FinancialOwnershipBadge } from "@/shared/patterns/financial-ownership-badge";
 import { FinancialValue } from "@/shared/patterns/financial-value";
+import { MotionReveal } from "@/shared/motion";
 import { MoneyOfflineBanner } from "../../money-offline-banner";
 import { InvestmentValuationMeta } from "../investment-valuation-meta";
+import { InvestmentDetailActions } from "../investment-detail-actions";
 import { InvestmentMoreActions } from "../investment-more-actions";
 
 type Props = {
@@ -52,6 +60,15 @@ const CRYPTO_DECIMAL_DIGITS = 8;
 const STANDARD_DECIMAL_DIGITS = 2;
 const PERCENT_DECIMAL_DIGITS = 1;
 const ZERO_AMOUNT = 0;
+
+const iconFor = (asset: InvestmentUxType) =>
+  asset === InvestmentAssetClass.STOCK
+    ? ChartBarLineIcon
+    : asset === InvestmentAssetClass.CRYPTO
+      ? SmartPhoneIcon
+      : asset === InvestmentAssetClass.GOLD
+        ? BankIcon
+        : Wallet02Icon;
 
 const friendlyActivity = (
   type: string,
@@ -103,7 +120,15 @@ export default async function InvestmentDetailPage({
     ]);
   if (holdingResult.status === InvestmentHoldingReadStatus.ERROR)
     return (
-      <Page topBar={<TopAppBar title={t("title")} />}>
+      <Page
+        topBar={
+          <TopAppBar
+            variant="detail"
+            backHref={APP_PATH.MONEY_INVESTMENTS}
+            title={t("title")}
+          />
+        }
+      >
         <StatusAlert variant="danger" title={t("readError")} />
         <Link
           href={moneyInvestmentPath((await params).id)}
@@ -115,7 +140,15 @@ export default async function InvestmentDetailPage({
     );
   if (holdingResult.status === InvestmentHoldingReadStatus.NOT_FOUND)
     return (
-      <Page topBar={<TopAppBar title={t("title")} />}>
+      <Page
+        topBar={
+          <TopAppBar
+            variant="detail"
+            backHref={APP_PATH.MONEY_INVESTMENTS}
+            title={t("title")}
+          />
+        }
+      >
         <EmptyState title={t("notFound")} />
         <Link
           href={APP_PATH.MONEY_INVESTMENTS}
@@ -147,6 +180,9 @@ export default async function InvestmentDetailPage({
     hasBasis && holding.remainingTotalCostBasis! > ZERO_AMOUNT
       ? holding.unrealizedResult! / holding.remainingTotalCostBasis!
       : null;
+  const pnlLabel = hasBasis
+    ? `${holding.unrealizedResult! >= ZERO_AMOUNT ? "+" : "−"}${money(Math.abs(holding.unrealizedResult!))} · ${formatPercent(pnlPercent!, locale, { maximumFractionDigits: PERCENT_DECIMAL_DIGITS })}`
+    : null;
   const realized =
     activities?.reduce(
       (sum, activity) => sum + (activity.realizedResultVnd ?? 0),
@@ -158,12 +194,6 @@ export default async function InvestmentDetailPage({
         sum + (activity.incomeKind ? (activity.executedValueVnd ?? 0) : 0),
       0,
     ) ?? null;
-  const valuationLabel =
-    asset === InvestmentAssetClass.FUND
-      ? t("updateNav")
-      : asset === InvestmentAssetClass.GOLD
-        ? t("updateGoldBuyBack")
-        : t("updatePrice");
   const providerDisplay = holding.providerCustodian || t("noProvider");
   const instrumentContext = holding.instrument
     ? `${holding.instrument.symbol} · ${holding.instrument.name}`
@@ -172,11 +202,56 @@ export default async function InvestmentDetailPage({
     holding.ownership.canMutate &&
     !isClosed &&
     !holding.instrument?.autoPriceSupported;
+  const valuationLabel =
+    asset === InvestmentAssetClass.FUND
+      ? t("updateNav")
+      : asset === InvestmentAssetClass.GOLD
+        ? t("updateGoldBuyBack")
+        : t("updatePrice");
+  const quantityDigits =
+    asset === InvestmentAssetClass.CRYPTO
+      ? CRYPTO_DECIMAL_DIGITS
+      : STANDARD_DECIMAL_DIGITS;
+  const quantityText = `${formatNumber(quantity, locale, { maximumFractionDigits: quantityDigits })} ${asset === InvestmentAssetClass.FUND ? tUx("overview.fundUnit") : t("unit")}`;
+  const valueCaption = isClosed
+    ? t("closedTitle")
+    : asset === InvestmentAssetClass.GOLD
+      ? t("currentGoldValue")
+      : t("currentValue");
+  const referenceLabel =
+    asset === InvestmentAssetClass.FUND
+      ? t("fundNavLabel")
+      : t("referencePriceLabel");
 
   return (
     <Page
       testId="investment-detail"
-      topBar={<TopAppBar title={holding.name} subtitle={instrumentContext} />}
+      contentClassName="gap-(--space-5)"
+      topBar={
+        <TopAppBar
+          variant="detail"
+          backHref={APP_PATH.MONEY_INVESTMENTS}
+          title={holding.name}
+          subtitle={instrumentContext}
+          trailing={
+            holding.ownership.canMutate && !isClosed ? (
+              <InvestmentMoreActions
+                label={t("moreActions")}
+                incomeHref={moneyInvestmentIncomePath(holding.id)}
+                incomeLabel={tUx(ux.incomeLabelKey)}
+                valuationHref={
+                  canUpdateManualValue
+                    ? moneyInvestmentValuationPath(holding.id)
+                    : undefined
+                }
+                valuationLabel={
+                  canUpdateManualValue ? valuationLabel : undefined
+                }
+              />
+            ) : undefined
+          }
+        />
+      }
     >
       <MoneyOfflineBanner />
       {receipt ? (
@@ -193,97 +268,72 @@ export default async function InvestmentDetailPage({
           description={t("missingBasisAlertDescription")}
         />
       ) : null}
-      <section
-        className="rounded-(--radius-card) bg-surface-elevated p-(--space-5)"
-        data-testid="investment-detail-hero"
-      >
-        <FinancialOwnershipBadge
-          financialScope={holding.ownership.financialScope}
-          isOwnedByMe={holding.ownership.isOwnedByMe}
-          ownerStatus={holding.ownership.ownerStatus}
-          showExplanation
-        />
-        <Text size="sm" tone="secondary">
-          {tUx(ux.titleKey)} · {providerDisplay}
-        </Text>
-        {!isClosed ? (
-          <>
-            <Text size="sm" tone="secondary" className="mt-(--space-4)">
-              {asset === InvestmentAssetClass.GOLD
-                ? t("currentGoldValue")
-                : t("currentValue")}
-            </Text>
-            <Text
-              as="div"
-              size="lg"
-              weight="semibold"
-              tabular
-              className="mt-1 text-3xl"
-            >
+      <MotionReveal>
+        <Card
+          tone="hero"
+          className="gap-0 overflow-hidden p-(--space-4)"
+          data-testid="investment-detail-hero"
+        >
+          <div className="flex items-start justify-between gap-(--space-3)">
+            <div className="flex min-w-0 items-center gap-(--space-3)">
+              <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-(--radius-control) border border-white/25 bg-white/10 text-hero-fg">
+                <AppIcon icon={iconFor(asset)} size="md" emphasized />
+              </span>
+              <div className="min-w-0">
+                <Text size="sm" weight="medium" className="text-hero-muted">
+                  {valueCaption}
+                </Text>
+                <Text
+                  size="xs"
+                  className="mt-(--space-1) truncate text-hero-muted"
+                >
+                  {tUx(ux.titleKey)}
+                </Text>
+              </div>
+            </div>
+            {!isClosed ? (
+              <span className="shrink-0 rounded-full border border-white/20 bg-white/10 px-(--space-2) py-(--space-1) text-xs font-medium text-hero-muted">
+                {t("estimated")}
+              </span>
+            ) : null}
+          </div>
+          {!isClosed ? (
+            <p className="mt-(--space-4) font-semibold tabular-nums tracking-tight text-3xl text-hero-fg">
               {holding.currentValue == null ? (
                 tUx("valuation.noCurrentValue")
               ) : (
                 <FinancialValue>{money(holding.currentValue)}</FinancialValue>
               )}
+            </p>
+          ) : (
+            <Text size="sm" className="mt-(--space-4) text-hero-muted">
+              {t("closedValueUnavailable")}
             </Text>
-          </>
-        ) : (
-          <Text size="sm" tone="secondary" className="mt-(--space-4)">
-            {t("closedValueUnavailable")}
-          </Text>
-        )}
-        {!isClosed && hasBasis ? (
-          <div className="mt-(--space-2) flex items-center gap-2">
-            <Text
-              size="sm"
-              tone={
-                holding.unrealizedResult! >= ZERO_AMOUNT ? "success" : "danger"
-              }
-              weight="semibold"
-            >
-              <FinancialValue>
-                {`${holding.unrealizedResult! >= ZERO_AMOUNT ? "+" : "−"}${money(Math.abs(holding.unrealizedResult!))} · ${formatPercent(pnlPercent!, locale, { maximumFractionDigits: PERCENT_DECIMAL_DIGITS })}`}
-              </FinancialValue>
-            </Text>
-          </div>
-        ) : !isClosed ? (
-          <Text size="sm" tone="secondary" className="mt-2">
-            {t("missingBasisAlertTitle")}
-          </Text>
-        ) : null}
-      </section>
-      {holding.ownership.canMutate ? (
-        <div className="flex items-stretch gap-(--space-2)">
-          <Link
-            href={moneyInvestmentBuyPath(holding.id)}
-            className="inline-flex min-h-11 min-w-0 flex-1 items-center justify-center rounded-md bg-accent text-sm font-medium text-accent-fg"
-          >
-            {tUx(ux.purchaseActionKey)}
-          </Link>
-          {!isClosed ? (
-            <>
-              <Link
-                href={moneyInvestmentSellPath(holding.id)}
-                className="inline-flex min-h-11 min-w-0 flex-1 items-center justify-center rounded-md border border-border-subtle bg-surface text-sm font-medium text-text-primary"
-              >
-                {tUx(ux.disposalActionKey)}
-              </Link>
-              <InvestmentMoreActions
-                label={t("moreActions")}
-                incomeHref={moneyInvestmentIncomePath(holding.id)}
-                incomeLabel={tUx(ux.incomeLabelKey)}
-                valuationHref={
-                  canUpdateManualValue
-                    ? moneyInvestmentValuationPath(holding.id)
-                    : undefined
-                }
-                valuationLabel={
-                  canUpdateManualValue ? valuationLabel : undefined
-                }
+          )}
+          <div className="mt-(--space-4) flex flex-col gap-(--space-2) border-t border-white/15 pt-(--space-3)">
+            <FinancialOwnershipBadge
+              financialScope={holding.ownership.financialScope}
+              isOwnedByMe={holding.ownership.isOwnedByMe}
+              ownerStatus={holding.ownership.ownerStatus}
+              onHero
+              showExplanation
+            />
+            {!isClosed ? (
+              <InvestmentValuationMeta
+                holding={holding}
+                variant="inline"
+                onHero
               />
-            </>
-          ) : null}
-        </div>
+            ) : null}
+          </div>
+        </Card>
+      </MotionReveal>
+      {holding.ownership.canMutate ? (
+        <InvestmentDetailActions
+          holdingId={holding.id}
+          assetClass={asset}
+          showSell={!isClosed}
+        />
       ) : null}
       {isClosed ? (
         <StatusAlert
@@ -293,38 +343,39 @@ export default async function InvestmentDetailPage({
         />
       ) : null}
       <Section title={t("performanceSection")}>
-        <div className="grid gap-(--space-3) sm:grid-cols-2">
+        <div className="grid grid-cols-2 gap-x-(--space-4) rounded-(--radius-card) border border-border-subtle/60 bg-surface-muted/45 px-(--space-3) sm:gap-x-(--space-5)">
           <Amount
+            className="min-w-0 border-b border-border-subtle/60 py-(--space-3)"
             label={t("quantityLabel")}
-            amountLabel={`${formatNumber(quantity, locale, { maximumFractionDigits: asset === InvestmentAssetClass.CRYPTO ? CRYPTO_DECIMAL_DIGITS : STANDARD_DECIMAL_DIGITS })} ${asset === InvestmentAssetClass.FUND ? tUx("overview.fundUnit") : t("unit")}`}
+            amountLabel={quantityText}
           />
           {!isClosed ? (
-            <div className="flex flex-col gap-(--space-1)">
+            <div className="min-w-0 border-b border-border-subtle/60 py-(--space-3)">
               <Text size="sm" tone="secondary">
-                {asset === InvestmentAssetClass.FUND
-                  ? t("fundNavLabel")
-                  : t("referencePriceLabel")}
+                {referenceLabel}
               </Text>
               <InvestmentValuationMeta holding={holding} detail />
             </div>
-          ) : null}
+          ) : (
+            <div className="min-w-0 border-b border-border-subtle/60 py-(--space-3)" />
+          )}
           <Amount
+            className="min-w-0 border-b border-border-subtle/60 py-(--space-3)"
             label={t("remainingBasis")}
             amountLabel={money(holding.remainingTotalCostBasis)}
           />
           <Amount
+            className="min-w-0 border-b border-border-subtle/60 py-(--space-3)"
             label={t("unrealizedResult")}
-            amountLabel={
-              hasBasis
-                ? `${holding.unrealizedResult! >= ZERO_AMOUNT ? "+" : "−"}${money(Math.abs(holding.unrealizedResult!))} · ${formatPercent(pnlPercent!, locale, { maximumFractionDigits: PERCENT_DECIMAL_DIGITS })}`
-                : t("unavailable")
-            }
+            amountLabel={pnlLabel ?? t("unavailable")}
           />
           <Amount
+            className="min-w-0 py-(--space-3)"
             label={t("realizedResult")}
             amountLabel={realized == null ? t("unavailable") : money(realized)}
           />
           <Amount
+            className="min-w-0 py-(--space-3)"
             label={t("receivedIncome")}
             amountLabel={
               receivedIncome == null ? t("unavailable") : money(receivedIncome)
@@ -332,118 +383,136 @@ export default async function InvestmentDetailPage({
           />
         </div>
       </Section>
-      <Section title={t("instrumentSection")}>
-        <Text weight="medium">{instrumentContext}</Text>
-        {holding.instrument?.exchange ? (
-          <Text size="sm" tone="secondary">
-            {t("exchange")}: {holding.instrument.exchange}
+      <Section title={t("instrumentSection")} variant="surface">
+        <div className="flex items-start justify-between gap-(--space-3)">
+          <div className="min-w-0">
+            <Text size="xs" tone="secondary">
+              {t("linkedInstrument")}
+            </Text>
+            <Text weight="semibold" className="mt-1 text-balance">
+              {instrumentContext}
+            </Text>
+          </div>
+          <Text size="xs" tone="muted" className="shrink-0 text-right">
+            {providerDisplay}
           </Text>
+        </div>
+        {holding.instrument?.exchange ? (
+          <div className="flex items-center justify-between gap-(--space-3) border-t border-border-subtle/60 pt-(--space-3)">
+            <Text size="sm" tone="secondary">
+              {t("exchange")}
+            </Text>
+            <Text size="sm" weight="medium" className="text-right">
+              {holding.instrument.exchange}
+            </Text>
+          </div>
         ) : null}
         <InvestmentValuationMeta holding={holding} detail />
         {asset === InvestmentAssetClass.GOLD ? (
-          <Text size="sm" tone="secondary">
+          <Text
+            size="sm"
+            tone="secondary"
+            className="border-t border-border-subtle/60 pt-(--space-3)"
+          >
             {t("goldValuationNote")}
           </Text>
         ) : null}
       </Section>
       <Section title={t("activitySection")}>
-        <div className="flex flex-col gap-(--space-3)">
-          {activities === null ? (
-            <StatusAlert
-              variant="danger"
-              title={t("activityReadError")}
-              action={
-                <Link
-                  href={moneyInvestmentPath(holding.id)}
-                  className="text-sm font-medium text-accent"
-                >
-                  {t("retry")}
-                </Link>
-              }
-            />
-          ) : activities.length ? (
-            activities.map((activity) => {
-              const slippage =
-                activity.executedValueVnd == null
-                  ? null
-                  : deriveSlippage({
-                      quotedValue: activity.quotedValueVnd,
-                      executedValue: activity.executedValueVnd,
-                    });
-              return (
-                <article
-                  key={activity.id}
-                  className="rounded-(--radius-control) border border-border-subtle p-(--space-3)"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <Text weight="medium">
-                      {friendlyActivity(activity.type, asset, t)}
-                    </Text>
-                    <Text size="sm" tone="secondary">
-                      {formatDate(
-                        new Date(`${activity.effectiveDate}T00:00:00`),
-                        locale,
-                      )}
-                    </Text>
-                  </div>
-                  <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-text-secondary">
-                    {activity.sourceQuantity ? (
-                      <span>
-                        {formatNumber(Number(activity.sourceQuantity), locale, {
-                          maximumFractionDigits:
-                            asset === InvestmentAssetClass.CRYPTO
-                              ? CRYPTO_DECIMAL_DIGITS
-                              : STANDARD_DECIMAL_DIGITS,
-                        })}{" "}
-                        {t("unit")}
-                      </span>
-                    ) : null}
-                    {activity.executedValueVnd != null ? (
-                      <span>
-                        <FinancialValue>
-                          {money(activity.executedValueVnd)}
-                        </FinancialValue>
-                      </span>
-                    ) : null}
-                    {activity.realizedResultVnd != null ? (
-                      <span
-                        className={
-                          activity.realizedResultVnd >= ZERO_AMOUNT
-                            ? "text-success"
-                            : "text-danger"
-                        }
-                      >
-                        <FinancialValue>
-                          {`${t("realizedPnlLabel")} ${activity.realizedResultVnd >= ZERO_AMOUNT ? "+" : "−"}${money(Math.abs(activity.realizedResultVnd))}`}
-                        </FinancialValue>
-                      </span>
-                    ) : null}
-                    {slippage != null ? (
-                      <span>
-                        <FinancialValue>
-                          {t("slippageLabel", {
-                            amount: money(Math.abs(slippage)),
-                          })}
-                        </FinancialValue>
-                      </span>
-                    ) : null}
-                  </div>
-                </article>
-              );
-            })
-          ) : (
-            <Text size="sm" tone="secondary">
-              {t("activityEmpty")}
-            </Text>
-          )}
-        </div>
+        {activities === null ? (
+          <StatusAlert
+            variant="danger"
+            title={t("activityReadError")}
+            action={
+              <Link
+                href={moneyInvestmentPath(holding.id)}
+                className="text-sm font-medium text-accent"
+              >
+                {t("retry")}
+              </Link>
+            }
+          />
+        ) : activities.length ? (
+          <Card tone="elevated" className="p-(--space-4)">
+            <ul className="flex flex-col divide-y divide-border-subtle/65">
+              {activities.map((activity) => {
+                const slippage =
+                  activity.executedValueVnd == null
+                    ? null
+                    : deriveSlippage({
+                        quotedValue: activity.quotedValueVnd,
+                        executedValue: activity.executedValueVnd,
+                      });
+                return (
+                  <li
+                    key={activity.id}
+                    className="flex items-start justify-between gap-(--space-3) py-(--space-3) first:pt-0 last:pb-0"
+                    data-testid="investment-activity-row"
+                  >
+                    <div className="min-w-0">
+                      <Text size="sm" weight="medium">
+                        {friendlyActivity(activity.type, asset, t)}
+                      </Text>
+                      <Text size="xs" tone="secondary">
+                        {formatDate(
+                          new Date(`${activity.effectiveDate}T00:00:00`),
+                          locale,
+                        )}
+                        {activity.sourceQuantity
+                          ? ` · ${formatNumber(
+                              Number(activity.sourceQuantity),
+                              locale,
+                              {
+                                maximumFractionDigits: quantityDigits,
+                              },
+                            )} ${t("unit")}`
+                          : ""}
+                      </Text>
+                    </div>
+                    <div className="flex shrink-0 flex-col items-end gap-(--space-1) text-right">
+                      {activity.executedValueVnd != null ? (
+                        <Text size="sm" weight="semibold" tabular>
+                          <FinancialValue>
+                            {money(activity.executedValueVnd)}
+                          </FinancialValue>
+                        </Text>
+                      ) : null}
+                      {activity.realizedResultVnd != null ? (
+                        <Text
+                          size="xs"
+                          tabular
+                          tone={
+                            activity.realizedResultVnd >= ZERO_AMOUNT
+                              ? "success"
+                              : "danger"
+                          }
+                        >
+                          <FinancialValue>
+                            {`${t("realizedPnlLabel")} ${activity.realizedResultVnd >= ZERO_AMOUNT ? "+" : "−"}${money(Math.abs(activity.realizedResultVnd))}`}
+                          </FinancialValue>
+                        </Text>
+                      ) : null}
+                      {slippage != null ? (
+                        <Text size="xs" tone="secondary">
+                          <FinancialValue>
+                            {t("slippageLabel", {
+                              amount: money(Math.abs(slippage)),
+                            })}
+                          </FinancialValue>
+                        </Text>
+                      ) : null}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </Card>
+        ) : (
+          <Text size="sm" tone="secondary">
+            {t("activityEmpty")}
+          </Text>
+        )}
       </Section>
-      <Link
-        href={APP_PATH.MONEY_INVESTMENTS}
-        className="text-sm font-medium text-accent"
-      >
-        {t("back")}
-      </Link>
     </Page>
   );
 }

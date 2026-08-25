@@ -378,7 +378,7 @@ export function CaptureTransactionForm({
   return (
     <form
       onSubmit={onSubmit}
-      className="flex flex-col gap-(--space-4)"
+      className="flex flex-col gap-(--space-5)"
       data-testid="money-capture-form"
     >
       {!online ? (
@@ -402,7 +402,7 @@ export function CaptureTransactionForm({
             error={errors.amount ? t("errors.invalid") : undefined}
             required
             data-testid="capture-amount"
-            className="min-h-14 rounded-none border-x-0 border-t-0 border-b-border-strong bg-transparent px-0 text-2xl font-semibold tracking-tight shadow-none focus-visible:border-accent"
+            className="min-h-16 rounded-[var(--radius-card)] border border-border-subtle bg-surface px-(--space-4) text-2xl font-semibold tracking-tight shadow-(--elevation-1) focus-visible:border-accent"
           />
         )}
       />
@@ -421,10 +421,10 @@ export function CaptureTransactionForm({
             render={({ field }) =>
               useCompactAccountPicker ? (
                 <fieldset
-                  className="flex flex-col gap-(--space-2)"
+                  className="flex flex-col gap-(--space-3) rounded-[var(--radius-card)] border border-border-subtle/70 bg-surface/45 p-(--space-3)"
                   data-testid="capture-account"
                 >
-                  <legend className="text-sm font-semibold text-text-primary">
+                  <legend className="text-base font-semibold tracking-tight text-text-primary">
                     {t(
                       direction === Direction.EXPENSE
                         ? "expenseAccountLabel"
@@ -522,8 +522,8 @@ export function CaptureTransactionForm({
         )}
       />
 
-      <fieldset className="flex flex-col gap-(--space-2)">
-        <legend className="text-sm font-semibold text-text-primary">
+      <fieldset className="flex flex-col gap-(--space-3) rounded-[var(--radius-card)] border border-border-subtle/70 bg-surface/45 p-(--space-3)">
+        <legend className="text-base font-semibold tracking-tight text-text-primary">
           {t("tagLabel")}
         </legend>
         <div className="flex flex-wrap gap-(--space-2)">
@@ -532,8 +532,8 @@ export function CaptureTransactionForm({
             aria-pressed={!categoryId}
             className={
               !categoryId
-                ? "min-h-11 rounded-md bg-accent px-(--space-3) text-sm text-accent-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-                : "min-h-11 rounded-md border border-border-subtle px-(--space-3) text-sm text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+                ? "min-h-11 rounded-full bg-accent px-(--space-3) text-sm font-medium text-accent-fg shadow-(--elevation-1) transition-[background-color,transform] duration-(--duration-fast) hover:bg-accent/90 active:scale-[var(--press-scale)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none"
+                : "min-h-11 rounded-full border border-border-subtle bg-surface px-(--space-3) text-sm font-medium text-text-primary transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-[var(--press-scale)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none"
             }
             onClick={() => {
               setValue("categoryId", null, { shouldValidate: true });
@@ -550,8 +550,8 @@ export function CaptureTransactionForm({
               data-testid={`capture-tag-${tag.name.toLowerCase()}`}
               className={
                 categoryId === tag.id
-                  ? "min-h-11 rounded-md bg-accent px-(--space-3) text-sm text-accent-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-                  : "min-h-11 rounded-md border border-border-subtle bg-canvas px-(--space-3) text-sm text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+                  ? "min-h-11 rounded-full bg-accent px-(--space-3) text-sm font-medium text-accent-fg shadow-(--elevation-1) transition-[background-color,transform] duration-(--duration-fast) hover:bg-accent/90 active:scale-[var(--press-scale)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none"
+                  : "min-h-11 rounded-full border border-border-subtle bg-surface px-(--space-3) text-sm font-medium text-text-primary transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-[var(--press-scale)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none"
               }
               onClick={() => {
                 setValue("categoryId", tag.id, { shouldValidate: true });
@@ -564,7 +564,7 @@ export function CaptureTransactionForm({
         </div>
       </fieldset>
 
-      <div className="flex flex-col gap-(--space-2)">
+      <div className="flex flex-col gap-(--space-3) rounded-[var(--radius-card)] border border-border-subtle/70 bg-surface/35 p-(--space-3)">
         <Text size="sm" tone="secondary">
           {direction === Direction.EXPENSE
             ? t("jarHintExpense")
@@ -601,8 +601,8 @@ export function CaptureTransactionForm({
         />
       </div>
 
-      <fieldset className="flex flex-col gap-(--space-2)">
-        <legend className="text-sm font-semibold text-text-primary">
+      <fieldset className="flex flex-col gap-(--space-3) rounded-[var(--radius-card)] border border-border-subtle/70 bg-surface/35 p-(--space-3)">
+        <legend className="text-base font-semibold tracking-tight text-text-primary">
           {t("transactionTagsLabel")}
         </legend>
         <Text size="sm" tone="secondary">
@@ -624,11 +624,12 @@ export function CaptureTransactionForm({
         error={errors.note ? t("errors.invalid") : undefined}
         placeholder={t("notePlaceholder")}
         data-testid="capture-note"
+        className="rounded-[var(--radius-card)] bg-surface/55"
       />
 
       {amountLabel && selectedAccountName ? (
         <div
-          className="border-l-2 border-accent pl-(--space-3)"
+          className="rounded-[var(--radius-card)] border border-accent/20 bg-accent/5 px-(--space-3) py-(--space-3)"
           aria-live="polite"
           data-testid="capture-preview"
         >
@@ -652,7 +653,7 @@ export function CaptureTransactionForm({
       <BottomActionBar layout={BottomActionBarLayout.SPLIT}>
         <Link
           href={APP_PATH.MONEY}
-          className="inline-flex min-h-11 min-w-0 flex-1 items-center justify-center rounded-md border border-border-subtle bg-surface text-sm font-medium text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+          className="inline-flex min-h-11 min-w-0 flex-1 items-center justify-center rounded-[var(--radius-control)] border border-border-subtle bg-surface text-sm font-medium text-text-primary transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-[var(--press-scale)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none"
         >
           {t("cancel")}
         </Link>

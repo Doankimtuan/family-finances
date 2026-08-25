@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import type { ReactNode } from "react";
 import { setLocale } from "@/i18n/set-locale";
 import { redirect, Link } from "@/i18n/navigation";
 import { hasLocale } from "next-intl";
@@ -11,13 +12,19 @@ import {
   listGoals,
 } from "@/modules/plan/application/queries/list-goals";
 import { listGoalFundingOptions } from "@/modules/plan/application/queries/list-goal-funding-options";
-import { GoalType } from "@/modules/plan/application/plan-constants";
+import {
+  GoalStatus,
+  GoalType,
+} from "@/modules/plan/application/plan-constants";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Page } from "@/shared/patterns/page";
 import { Section } from "@/shared/patterns/section";
 import { Amount } from "@/shared/patterns/amount";
+import { Card } from "@/shared/patterns/card";
+import { FinancialValue } from "@/shared/patterns/financial-value";
 import { Progress } from "@/shared/ui/progress";
+import { StatusBadge } from "@/shared/ui/status-badge";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Text } from "@/shared/ui/text";
 import { PlanOfflineBanner } from "../../plan-offline-banner";
@@ -85,7 +92,14 @@ export default async function PlanGoalDetailPage({ params }: Props) {
   return (
     <Page
       testId="plan-goal-detail"
-      topBar={<TopAppBar title={goal.name} subtitle={t("detailSubtitle")} />}
+      topBar={
+        <TopAppBar
+          title={goal.name}
+          subtitle={t("detailSubtitle")}
+          backHref={APP_PATH.PLAN_GOALS}
+          backLabel={t("backToList")}
+        />
+      }
     >
       <PlanOfflineBanner />
 
@@ -96,117 +110,169 @@ export default async function PlanGoalDetailPage({ params }: Props) {
       />
 
       <Section title={t("progressHeading")}>
-        <Progress
-          value={goal.progressPercent}
-          max={100}
-          label={`${goal.progressPercent}%`}
-        />
-        <Amount
-          label={t("fundedLabel", {
-            amount: formatCurrency(goal.fundedAmount, goal.currency, locale, {
-              maximumFractionDigits: 0,
-            }),
-          })}
-          amountLabel={formatCurrency(
-            goal.fundedAmount,
-            goal.currency,
-            locale,
-            { maximumFractionDigits: 0 },
+        <Card tone="hero" className="gap-(--space-4) p-(--space-5)">
+          <div className="flex items-start justify-between gap-(--space-3)">
+            <Text size="sm" className="text-hero-muted">
+              {t("progressIntentionHint")}
+            </Text>
+            <StatusBadge
+              tone="selected"
+              className="bg-white/10 text-hero-fg ring-white/15"
+            >
+              {goal.progressPercent == null
+                ? t("fundingValueQuality.indeterminate")
+                : `${goal.progressPercent}%`}
+            </StatusBadge>
+          </div>
+          {goal.progressPercent == null ? (
+            <StatusAlert
+              variant="info"
+              title={t("fundingValueQuality.indeterminate")}
+              description={t("progressIndeterminate")}
+            />
+          ) : (
+            <Progress
+              value={goal.progressPercent}
+              max={100}
+              label={`${goal.progressPercent}%`}
+              privacyAware
+            />
           )}
-          size="lg"
-        />
-        <Text size="sm" tone="secondary">
-          {t("progressIntentionHint")}
-        </Text>
+          {goal.progressPercent == null && goal.fundedAmount <= 0 ? null : (
+            <Amount
+              label={t("progressHeading")}
+              amountLabel={formatCurrency(
+                goal.fundedAmount,
+                goal.currency,
+                locale,
+                { maximumFractionDigits: 0 },
+              )}
+              size="lg"
+              labelClassName="text-hero-muted"
+              amountClassName="text-hero-fg"
+            />
+          )}
+        </Card>
         {goal.fundingSummary ? (
-          <div className="flex flex-col gap-(--space-1) text-sm text-text-secondary">
+          <Card tone="elevated" className="gap-(--space-2) p-(--space-4)">
             {goal.goalType === GoalType.PAYOFF ? (
               <>
-                <span>
-                  {t("originalPrincipalLabel", {
+                <Text size="sm" tone="secondary">
+                  {t.rich("originalPrincipalLabel", {
                     amount: formatCurrency(
                       goal.fundingSummary.originalPrincipalTotal,
                       goal.currency,
                       locale,
                       { maximumFractionDigits: 0 },
                     ),
+                    money: (chunks: ReactNode) => (
+                      <FinancialValue>{chunks}</FinancialValue>
+                    ),
                   })}
-                </span>
-                <span>
-                  {t("remainingPrincipalLabel", {
+                </Text>
+                <Text size="sm" tone="secondary">
+                  {t.rich("remainingPrincipalLabel", {
                     amount: formatCurrency(
                       goal.fundingSummary.remainingPrincipalTotal,
                       goal.currency,
                       locale,
                       { maximumFractionDigits: 0 },
                     ),
+                    money: (chunks: ReactNode) => (
+                      <FinancialValue>{chunks}</FinancialValue>
+                    ),
                   })}
-                </span>
-                <span>
-                  {t("principalPaidLabel", {
+                </Text>
+                <Text size="sm" tone="secondary">
+                  {t.rich("principalPaidLabel", {
                     amount: formatCurrency(
                       goal.fundingSummary.principalPaidTotal,
                       goal.currency,
                       locale,
                       { maximumFractionDigits: 0 },
                     ),
+                    money: (chunks: ReactNode) => (
+                      <FinancialValue>{chunks}</FinancialValue>
+                    ),
                   })}
-                </span>
+                </Text>
               </>
             ) : (
               <>
-                <span>
-                  {t("marketValueLabel", {
+                <Text size="sm" tone="secondary">
+                  {t.rich("marketValueLabel", {
                     amount: formatCurrency(
                       goal.fundingSummary.marketValue,
                       goal.currency,
                       locale,
                       { maximumFractionDigits: 0 },
                     ),
+                    money: (chunks: ReactNode) => (
+                      <FinancialValue>{chunks}</FinancialValue>
+                    ),
                   })}
-                </span>
+                </Text>
                 {goal.fundingSummary.costBasis > 0 ? (
-                  <span>
-                    {t("costBasisLabel", {
+                  <Text size="sm" tone="secondary">
+                    {t.rich("costBasisLabel", {
                       amount: formatCurrency(
                         goal.fundingSummary.costBasis,
                         goal.currency,
                         locale,
                         { maximumFractionDigits: 0 },
                       ),
+                      money: (chunks: ReactNode) => (
+                        <FinancialValue>{chunks}</FinancialValue>
+                      ),
                     })}
-                  </span>
+                  </Text>
                 ) : null}
                 {goal.fundingSummary.unrealizedGainLoss != null ? (
-                  <span>
-                    {t("gainLossLabel", {
+                  <Text size="sm" tone="secondary">
+                    {t.rich("gainLossLabel", {
                       amount: formatCurrency(
                         goal.fundingSummary.unrealizedGainLoss,
                         goal.currency,
                         locale,
                         { maximumFractionDigits: 0, signDisplay: "always" },
                       ),
+                      money: (chunks: ReactNode) => (
+                        <FinancialValue>{chunks}</FinancialValue>
+                      ),
                     })}
-                  </span>
+                  </Text>
                 ) : null}
               </>
             )}
-            <span>{t(`fundingValueQuality.${goal.fundingValueStatus}`)}</span>
-          </div>
+            <Text size="xs" tone="secondary">
+              {t(`fundingValueQuality.${goal.fundingValueStatus}`)}
+            </Text>
+          </Card>
         ) : null}
       </Section>
 
-      <Section title={t("targetHeading")}>
+      <Section variant="surface" title={t("targetHeading")}>
         <Text size="sm" tone="secondary" className="tabular-nums">
-          {t("targetLabel", {
+          {t.rich("targetLabel", {
             amount: formatCurrency(goal.targetAmount, goal.currency, locale, {
               maximumFractionDigits: 0,
             }),
+            money: (chunks: ReactNode) => (
+              <FinancialValue>{chunks}</FinancialValue>
+            ),
           })}
         </Text>
-        <span className="w-fit rounded-md border border-border-subtle px-(--space-2) py-(--space-1) text-xs font-medium text-text-secondary">
+        <StatusBadge
+          tone={
+            goal.status === GoalStatus.COMPLETED
+              ? "positive"
+              : goal.status === GoalStatus.CANCELLED
+                ? "neutral"
+                : "info"
+          }
+        >
           {t(`status.${goal.status}`)}
-        </span>
+        </StatusBadge>
       </Section>
 
       <GoalDetailControls
@@ -227,15 +293,7 @@ export default async function PlanGoalDetailPage({ params }: Props) {
         )}
         reassignmentOptions={reassignmentOptions}
         isLegacyIntention={goal.isLegacyIntention}
-        fundingValueStatus={goal.fundingValueStatus}
       />
-      <Link
-        href={APP_PATH.PLAN_GOALS}
-        className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary"
-        data-testid="goal-back-list"
-      >
-        {t("backToList")}
-      </Link>
     </Page>
   );
 }

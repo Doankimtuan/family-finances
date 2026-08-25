@@ -295,7 +295,7 @@ export function TransferCaptureFlow({
         ]}
       >
         <div
-          className="rounded-lg border border-success/25 bg-success/10 p-(--space-3)"
+          className="rounded-[var(--radius-card)] border border-success/20 bg-success/5 p-(--space-3) shadow-(--elevation-1)"
           data-testid="transfer-receipt-neutrality"
         >
           <Text size="sm" className="font-medium text-text-primary">
@@ -309,7 +309,7 @@ export function TransferCaptureFlow({
   if (step === MoneyPaymentFlowStep.CONFIRM && amountLabel) {
     return (
       <div
-        className="flex flex-col gap-(--space-4)"
+        className="flex flex-col gap-(--space-5)"
         data-testid="money-transfer-confirm"
       >
         {errorCode ? (
@@ -364,7 +364,7 @@ export function TransferCaptureFlow({
 
   return (
     <div
-      className="flex flex-col gap-(--space-4)"
+      className="flex flex-col gap-(--space-5)"
       data-testid="money-transfer-form"
     >
       {errorCode ? (
@@ -383,7 +383,7 @@ export function TransferCaptureFlow({
         />
       ) : null}
 
-      <div className="rounded-[var(--radius-panel)] border border-accent/25 bg-accent/10 p-(--space-4)">
+      <div className="rounded-[var(--radius-card)] border border-accent/20 bg-accent/5 p-(--space-4) shadow-(--elevation-1)">
         <ControlledField
           control={control}
           field={{
@@ -420,7 +420,7 @@ export function TransferCaptureFlow({
                 {eligible.map((account) => (
                   <label
                     key={account.id}
-                    className="flex min-h-11 cursor-pointer items-center gap-(--space-3) rounded-md border border-border-subtle bg-canvas px-(--space-3) has-[:checked]:border-accent/40 has-[:checked]:bg-accent/10"
+                    className="flex min-h-11 cursor-pointer items-center gap-(--space-3) rounded-[var(--radius-control)] border border-border-subtle bg-surface/70 px-(--space-3) transition-[background-color,border-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-[var(--press-scale)] has-[:checked]:border-accent/40 has-[:checked]:bg-accent/10 motion-reduce:transition-none"
                   >
                     <input
                       type="radio"
@@ -465,7 +465,7 @@ export function TransferCaptureFlow({
               {destinationOptions.map((account) => (
                 <label
                   key={account.id}
-                  className="flex min-h-11 cursor-pointer items-center gap-(--space-3) rounded-md border border-border-subtle bg-canvas px-(--space-3) has-[:checked]:border-accent/40 has-[:checked]:bg-accent/10"
+                  className="flex min-h-11 cursor-pointer items-center gap-(--space-3) rounded-[var(--radius-control)] border border-border-subtle bg-surface/70 px-(--space-3) transition-[background-color,border-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-[var(--press-scale)] has-[:checked]:border-accent/40 has-[:checked]:bg-accent/10 motion-reduce:transition-none"
                 >
                   <input
                     type="radio"
@@ -512,7 +512,7 @@ export function TransferCaptureFlow({
       </div>
 
       <div
-        className="rounded-xl border border-accent/25 bg-accent/10 px-(--space-4) py-(--space-3)"
+        className="rounded-[var(--radius-card)] border border-accent/20 bg-accent/5 px-(--space-4) py-(--space-3) shadow-(--elevation-1)"
         aria-live="polite"
         data-testid="transfer-preview"
       >

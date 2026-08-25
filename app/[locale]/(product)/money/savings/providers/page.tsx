@@ -30,7 +30,14 @@ export default async function SavingsProvidersPage({ params }: Props) {
   return (
     <Page
       testId="money-savings-providers"
-      topBar={<TopAppBar title={t("title")} subtitle={t("subtitle")} />}
+      topBar={
+        <TopAppBar
+          variant="detail"
+          backHref={APP_PATH.MONEY_SAVINGS}
+          title={t("title")}
+          subtitle={t("subtitle")}
+        />
+      }
     >
       {catalog == null ? (
         <EmptyState title={t("title")} description={t("saveError")} />

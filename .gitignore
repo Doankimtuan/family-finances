@@ -15,6 +15,7 @@
 /test-results/
 /output/playwright/.auth/
 /output/playwright/auth-debug/
+/output/playwright/together-20a-credentials.json
 /.playwright-cli/
 /.playwright-mcp/
 
@@ -37,6 +38,11 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.local.example
+!.env.production.example
+
+# Local CommandCode permissions may contain developer-only commands or env references.
+.commandcode/settings.local.json
 
 # Supabase CLI local link/cache (project-ref, pooler URL, service versions)
 supabase/.temp/

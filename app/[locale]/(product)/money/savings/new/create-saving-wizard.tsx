@@ -42,6 +42,8 @@ import { ControlledField } from "@/shared/patterns/controlled-fields";
 import { FinancialScopeField } from "@/shared/patterns/financial-scope-field";
 import { AppIcon } from "@/shared/ui/app-icon";
 import { Button } from "@/shared/ui/button";
+import { Progress } from "@/shared/ui/progress";
+import { Card } from "@/shared/patterns/card";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Text } from "@/shared/ui/text";
 import { FinancialValue } from "@/shared/patterns/financial-value";
@@ -130,6 +132,21 @@ function savingTypeLabel(
       return t("savingTypes.flexible_saving");
     default:
       return t("savingTypes.manual_saving");
+  }
+}
+
+function savingTypeHint(
+  t: ReturnType<typeof useTranslations<"money.savingsWizard">>,
+  savingType: string,
+) {
+  switch (savingType) {
+    case SavingType.BANK_DEPOSIT:
+      return t("typeHintBank");
+    case SavingType.DIGITAL_SAVING:
+    case SavingType.FLEXIBLE_SAVING:
+      return t("typeHintPlatform");
+    default:
+      return t("typeHintManual");
   }
 }
 
@@ -442,20 +459,20 @@ export function CreateSavingWizard({
         <StatusAlert variant="danger" title={tErr(errorCode)} />
       ) : null}
       <div
-        className="flex items-center justify-between gap-(--space-3)"
+        className="flex flex-col gap-(--space-2)"
         data-testid="savings-step-indicator"
       >
-        <div className="flex items-center gap-(--space-2)">
-          {STEPS.map((item, index) => (
-            <span
-              key={item}
-              className={`h-1.5 rounded-full transition-[width,background-color] duration-[var(--duration-fast)] ${index === stepIndex ? "w-8 bg-accent" : index < stepIndex ? "w-4 bg-accent/55" : "w-4 bg-border-subtle"}`}
-              aria-hidden="true"
-            />
-          ))}
-        </div>
+        <Progress
+          value={stepIndex + 1}
+          max={STEPS.length}
+          label={t("stepOf", {
+            current: stepIndex + 1,
+            total: STEPS.length,
+          })}
+          showLabel={false}
+        />
         <Text size="xs" tone="secondary" weight="medium">
-          {t("stepCount", { current: stepIndex + 1, total: STEPS.length })}
+          {t("stepOf", { current: stepIndex + 1, total: STEPS.length })}
         </Text>
       </div>
 
@@ -519,7 +536,7 @@ export function CreateSavingWizard({
                             {savingTypeLabel(t, type)}
                           </Text>
                           <Text size="xs" tone="secondary">
-                            {t("typeHint")}
+                            {savingTypeHint(t, type)}
                           </Text>
                         </span>
                       </span>
@@ -887,35 +904,26 @@ export function CreateSavingWizard({
                 {t("reviewSubtitle")}
               </Text>
             </div>
-            <div className="rounded-[var(--radius-card)] border border-accent/35 bg-accent-soft px-(--space-4) py-(--space-5)">
-              <Text size="sm" tone="secondary">
+            <Card tone="hero" className="gap-0 p-(--space-4)">
+              <Text size="sm" weight="medium" className="text-hero-muted">
                 {t("reviewHeroLabel")}
               </Text>
-              <Text
-                as="p"
-                size="lg"
-                weight="semibold"
-                tabular
-                className="mt-(--space-1) text-2xl"
-              >
+              <p className="mt-(--space-2) font-semibold tabular-nums tracking-tight text-3xl text-hero-fg">
                 <FinancialValue>{money(principalAmount)}</FinancialValue>
-              </Text>
-              <Text size="sm" tone="secondary" className="mt-(--space-1)">
+              </p>
+              <Text
+                size="xs"
+                className="mt-(--space-1) text-pretty text-hero-muted"
+              >
                 {selectedPackage
                   ? `${t("termDays", { days: selectedPackage.durationDays })} · ${rate(selectedPackage.annualInterestRate)}% / ${t("year")} · ${selectedProvider?.displayName ?? t("unknown")}`
                   : t("unknown")}
               </Text>
-              <div className="mt-(--space-4) border-t border-accent/20 pt-(--space-3)">
-                <Text size="sm" tone="secondary">
+              <div className="mt-(--space-4) border-t border-white/15 pt-(--space-3)">
+                <Text size="xs" className="text-hero-muted">
                   {t("maturityAmountLabel")}
                 </Text>
-                <Text
-                  as="p"
-                  size="lg"
-                  weight="semibold"
-                  tabular
-                  className="text-accent"
-                >
+                <p className="mt-(--space-1) text-lg font-semibold tabular-nums tracking-tight text-hero-fg">
                   {estimate ? (
                     <FinancialValue>
                       {money(estimate.breakdown.totalCashReceived)}
@@ -923,14 +931,17 @@ export function CreateSavingWizard({
                   ) : (
                     t("unknown")
                   )}
-                </Text>
-                <Text size="xs" tone="secondary">
+                </p>
+                <Text
+                  size="xs"
+                  className="mt-(--space-1) text-pretty text-hero-muted"
+                >
                   {estimate
                     ? `${t("netInterestLabel")}: ${money(estimate.breakdown.netInterest)} · ${t("maturityLabel")}: ${date(estimate.maturityDate)}`
                     : t("estimateEmpty")}
                 </Text>
               </div>
-            </div>
+            </Card>
             <div
               className="rounded-[var(--radius-card)] border border-border-subtle bg-surface px-(--space-4) py-(--space-2)"
               data-testid="savings-review-summary"

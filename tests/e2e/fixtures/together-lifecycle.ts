@@ -6,6 +6,8 @@ import { expect, type Page } from "@playwright/test";
 
 const execFile = promisify(execFileCallback);
 const LOCAL_ENV_FILE = ".env.local";
+const LIFECYCLE_CREDENTIALS_FILE =
+  "output/playwright/together-20a-credentials.json";
 
 function loadLocalEnv(): void {
   const path = resolve(process.cwd(), LOCAL_ENV_FILE);
@@ -23,48 +25,95 @@ function loadLocalEnv(): void {
 loadLocalEnv();
 
 export const LIFECYCLE_IDENTITIES = {
-  admin: {
-    email: "OWNERSHIP_TEST_A_EMAIL",
-    password: "OWNERSHIP_TEST_A_PASSWORD",
-  },
-  partner: {
-    email: "OWNERSHIP_TEST_B_EMAIL",
-    password: "OWNERSHIP_TEST_B_PASSWORD",
-  },
+  admin: "admin",
+  partner: "partner",
 } as const;
 
 export function hasLifecycleCredentials(): boolean {
-  return Object.values(LIFECYCLE_IDENTITIES).every(({ email, password }) =>
-    Boolean(process.env[email] && process.env[password]),
+  return Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL &&
+    (process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) &&
+    (process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY),
   );
 }
 
 export async function runLifecycleHarness(
-  command: "setup" | "cleanup",
+  command:
+    | "together-20a-setup"
+    | "together-20a-seed-member"
+    | "together-20a-assert-active"
+    | "together-20a-assert-final"
+    | "together-20a-cleanup",
+  options: { invitationToken?: string } = {},
 ): Promise<void> {
   await execFile("node", ["scripts/ownership-test-harness.mjs", command], {
     cwd: process.cwd(),
-    env: process.env,
+    env: {
+      ...process.env,
+      ...(options.invitationToken
+        ? { TOGETHER_20A_INVITATION_TOKEN: options.invitationToken }
+        : {}),
+    },
   });
+}
+
+function getLifecycleCredentials(): Record<
+  keyof typeof LIFECYCLE_IDENTITIES,
+  { email: string; password: string }
+> {
+  if (!existsSync(resolve(process.cwd(), LIFECYCLE_CREDENTIALS_FILE))) {
+    throw new Error("20A disposable credentials were not provisioned");
+  }
+  const credentials = JSON.parse(
+    readFileSync(resolve(process.cwd(), LIFECYCLE_CREDENTIALS_FILE), "utf8"),
+  ) as Record<string, { email?: unknown; password?: unknown }>;
+  const result = {} as Record<
+    keyof typeof LIFECYCLE_IDENTITIES,
+    { email: string; password: string }
+  >;
+  for (const identity of Object.values(LIFECYCLE_IDENTITIES)) {
+    const credential = credentials[identity];
+    if (
+      typeof credential?.email !== "string" ||
+      typeof credential.password !== "string"
+    ) {
+      throw new Error(`Invalid 20A credentials for ${identity}`);
+    }
+    result[identity] = {
+      email: credential.email,
+      password: credential.password,
+    };
+  }
+  return result;
+}
+
+export function lifecycleIdentityEmail(
+  identity: keyof typeof LIFECYCLE_IDENTITIES,
+): string {
+  return getLifecycleCredentials()[LIFECYCLE_IDENTITIES[identity]].email;
 }
 
 export async function authenticateLifecycleUser(
   page: Page,
   identity: keyof typeof LIFECYCLE_IDENTITIES,
 ): Promise<void> {
-  const config = LIFECYCLE_IDENTITIES[identity];
+  const config = getLifecycleCredentials()[LIFECYCLE_IDENTITIES[identity]];
   await page.goto("/en/login");
-  await page.getByLabel("Email").fill(process.env[config.email] ?? "");
-  await page
-    .locator("#login-password")
-    .fill(process.env[config.password] ?? "");
+  await page.getByLabel("Email").fill(config.email);
+  await page.locator("#login-password").fill(config.password);
   await page.getByRole("button", { name: "Log in" }).click();
   await expect(page).toHaveURL(/\/en\/(home|together)/, { timeout: 20_000 });
 }
 
-export async function openLifecycleMembers(page: Page): Promise<void> {
-  await page.goto("/en/together/members");
-  await expect(page.getByTestId("together-members-page")).toBeVisible();
+export async function openLifecycleMembers(
+  page: Page,
+  locale: "en" | "vi" = "en",
+): Promise<void> {
+  await page.goto(`/${locale}/together/members`);
+  await expect(
+    page.locator("#app-viewport-root").getByTestId("together-members-page"),
+  ).toBeVisible();
 }
 
 export async function openLifecycleAccount(page: Page): Promise<void> {

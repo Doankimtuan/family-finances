@@ -536,4 +536,4 @@ begin
 end;
 $$;
 
-grant execute on function public.detect_matured_savings(uuid) to authenticated;
+grant execute on function public.detect_matured_savings(uuid) to authenticated;;

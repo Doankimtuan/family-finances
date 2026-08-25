@@ -146,4 +146,4 @@ create policy card_billing_items_update_member on public.card_billing_items
 
 grant select, insert, update on public.credit_card_settings to authenticated;
 grant select, insert, update on public.card_billing_months to authenticated;
-grant select, insert, update on public.card_billing_items to authenticated;
+grant select, insert, update on public.card_billing_items to authenticated;;

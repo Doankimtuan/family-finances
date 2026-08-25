@@ -481,4 +481,4 @@ revoke all on function public.update_loan_interest_rate(
 ) from public;
 grant execute on function public.update_loan_interest_rate(
   uuid, numeric, date, text, jsonb, numeric, numeric, numeric, date, date
-) to authenticated;
+) to authenticated;;

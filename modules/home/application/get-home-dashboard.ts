@@ -12,6 +12,8 @@ import {
 } from "@/modules/health/application/health-pulse";
 import {
   HOME_DASHBOARD_DEFAULT_PERIOD,
+  HomeDashboardFailureSource,
+  HomeDashboardReadStatus,
   type HomeDashboardPeriod,
 } from "./home-constants";
 import {
@@ -34,9 +36,25 @@ export type HomeDashboard = {
   isDayZero: boolean;
   period: HomeDashboardPeriod;
   dateRange: HomeDashboardDateRange;
-  financialMetrics: HomeFinancialMetrics | null;
+  financialMetrics: HomeFinancialMetrics;
   canReviewUncategorized: boolean;
 };
+
+export type HomeDashboardReadResult =
+  | {
+      status: typeof HomeDashboardReadStatus.ERROR;
+      source: HomeDashboardFailureSource;
+    }
+  | {
+      status: typeof HomeDashboardReadStatus.PARTIAL;
+      dashboard: Omit<HomeDashboard, "financialMetrics"> & {
+        financialMetrics: null;
+      };
+    }
+  | {
+      status: typeof HomeDashboardReadStatus.READY;
+      dashboard: HomeDashboard;
+    };
 
 /**
  * Home read model. The top-level position, Plan, and Inbox are core data;
@@ -44,10 +62,13 @@ export type HomeDashboard = {
  */
 export async function getHomeDashboard(
   period: HomeDashboardPeriod = HOME_DASHBOARD_DEFAULT_PERIOD,
-): Promise<HomeDashboard | null> {
+): Promise<HomeDashboardReadResult> {
   const gate = await assertMoneyActionAllowed();
   if (!gate.ok) {
-    return null;
+    return {
+      status: HomeDashboardReadStatus.ERROR,
+      source: HomeDashboardFailureSource.ACCESS,
+    };
   }
   const dateRange = getHomeDashboardDateRange(period);
   const [position, pulse, inbox, transactions] = await Promise.all([
@@ -59,8 +80,23 @@ export async function getHomeDashboard(
       homeDashboardQueryEnd(dateRange),
     ),
   ]);
-  if (position == null || pulse == null || inbox == null) {
-    return null;
+  if (position == null) {
+    return {
+      status: HomeDashboardReadStatus.ERROR,
+      source: HomeDashboardFailureSource.POSITION,
+    };
+  }
+  if (pulse == null) {
+    return {
+      status: HomeDashboardReadStatus.ERROR,
+      source: HomeDashboardFailureSource.PLAN,
+    };
+  }
+  if (inbox == null) {
+    return {
+      status: HomeDashboardReadStatus.ERROR,
+      source: HomeDashboardFailureSource.INBOX,
+    };
   }
   const accountCount = position.accounts.length;
   const activeJarCount = pulse.activeJars.length;
@@ -70,7 +106,7 @@ export async function getHomeDashboard(
     activeJarCount,
     openInboxCount,
   });
-  return {
+  const dashboardBase = {
     currency: position.currency,
     realBalance: position.totalBalance,
     accountCount,
@@ -84,9 +120,22 @@ export async function getHomeDashboard(
     isDayZero: accountCount === 0 && activeJarCount === 0,
     period,
     dateRange,
-    financialMetrics:
-      transactions == null
-        ? null
-        : calculateHomeFinancialMetrics({ transactions, range: dateRange }),
+  };
+
+  if (transactions == null) {
+    return {
+      status: HomeDashboardReadStatus.PARTIAL,
+      dashboard: { ...dashboardBase, financialMetrics: null },
+    };
+  }
+  return {
+    status: HomeDashboardReadStatus.READY,
+    dashboard: {
+      ...dashboardBase,
+      financialMetrics: calculateHomeFinancialMetrics({
+        transactions,
+        range: dateRange,
+      }),
+    },
   };
 }

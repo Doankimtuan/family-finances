@@ -10,6 +10,8 @@
  * A/B clients use the public key and real password sessions for RPC calls.
  */
 
+import { createHash } from "node:crypto";
+import { mkdir, unlink, writeFile } from "node:fs/promises";
 import { createClient } from "@supabase/supabase-js";
 import nextEnv from "@next/env";
 
@@ -24,6 +26,23 @@ const HARNESS = {
   active: "active",
   pending: "pending",
   today: new Date().toISOString().slice(0, 10),
+};
+
+const TOGETHER_20A = {
+  householdName: "Together 20A Disposable Fixture",
+  credentialsPath: "output/playwright/together-20a-credentials.json",
+  users: {
+    admin: {
+      emailEnv: "TOGETHER_20A_A_EMAIL",
+      passwordEnv: "TOGETHER_20A_A_PASSWORD",
+      defaultEmail: "ownership-20a1-a@example.com",
+    },
+    partner: {
+      emailEnv: "TOGETHER_20A_B_EMAIL",
+      passwordEnv: "TOGETHER_20A_B_PASSWORD",
+      defaultEmail: "ownership-20a1-b@example.com",
+    },
+  },
 };
 
 const { loadEnvConfig } = nextEnv;
@@ -82,6 +101,39 @@ function adminClient() {
   });
 }
 
+function together20aIdentity(key) {
+  const config = TOGETHER_20A.users[key];
+  const email = process.env[config.emailEnv]?.trim() ?? config.defaultEmail;
+  const configuredPassword = process.env[config.passwordEnv];
+  const password =
+    configuredPassword ??
+    `Together20A1-${createHash("sha256").update(email).digest("hex").slice(0, 24)}!`;
+  return { email, password };
+}
+
+function together20aUsers() {
+  return {
+    admin: together20aIdentity("admin"),
+    partner: together20aIdentity("partner"),
+  };
+}
+
+function together20aMissingEnvironment({ needsServiceRole = false } = {}) {
+  const required = [
+    ["NEXT_PUBLIC_SUPABASE_URL", env.url],
+    [
+      "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY or NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      env.anonKey,
+    ],
+  ];
+  if (needsServiceRole)
+    required.push([
+      "SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY",
+      env.serviceKey,
+    ]);
+  return required.filter(([, value]) => !value).map(([name]) => name);
+}
+
 function fail(message) {
   throw new Error(message);
 }
@@ -116,6 +168,49 @@ async function ensureUser(admin, identity) {
   });
   if (error) fail(`create dedicated auth user: ${error.code ?? "unknown"}`);
   return data.user;
+}
+
+async function ensureTogether20aUser(admin, identity) {
+  const existing = await findUser(admin, identity.email);
+  if (existing) {
+    if (
+      existing.user_metadata?.ownership_test_identity !== "together-20a1" &&
+      existing.user_metadata?.ownership_test_identity !== true
+    )
+      fail(`refusing non-test-owned disposable identity: ${identity.email}`);
+    const { error } = await admin.auth.admin.updateUserById(existing.id, {
+      password: identity.password,
+      email_confirm: true,
+      user_metadata: { ownership_test_identity: "together-20a1" },
+    });
+    if (error) fail(`reset disposable auth user: ${error.code ?? "unknown"}`);
+    return existing;
+  }
+  const { data, error } = await admin.auth.admin.createUser({
+    email: identity.email,
+    password: identity.password,
+    email_confirm: true,
+    user_metadata: { ownership_test_identity: "together-20a1" },
+  });
+  if (error) fail(`create disposable auth user: ${error.code ?? "unknown"}`);
+  return data.user;
+}
+
+async function writeTogether20aCredentials(users) {
+  await mkdir("output/playwright", { recursive: true });
+  await writeFile(
+    TOGETHER_20A.credentialsPath,
+    JSON.stringify(users, null, 2),
+    { mode: 0o600 },
+  );
+}
+
+async function removeTogether20aCredentials() {
+  try {
+    await unlink(TOGETHER_20A.credentialsPath);
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+  }
 }
 
 async function activeMemberships(admin, userId) {
@@ -763,6 +858,289 @@ export async function createPendingPersonalInboxItem(
   return { account, transaction, item };
 }
 
+async function getTogether20aHousehold(admin) {
+  const { data, error } = await admin
+    .from("households")
+    .select("id, name")
+    .eq("name", TOGETHER_20A.householdName)
+    .maybeSingle();
+  if (error) fail(`find 20A household: ${error.code ?? "unknown"}`);
+  return data;
+}
+
+async function getTogether20aUsers(admin) {
+  const identities = together20aUsers();
+  return {
+    identities,
+    users: {
+      admin: await findUser(admin, identities.admin.email),
+      partner: await findUser(admin, identities.partner.email),
+    },
+  };
+}
+
+async function cleanupTogether20aHousehold(admin, users) {
+  const household = await getTogether20aHousehold(admin);
+  if (!household) return false;
+
+  const { data: members, error } = await admin
+    .from("household_members")
+    .select("user_id")
+    .eq("household_id", household.id);
+  if (error) fail(`verify 20A cleanup scope: ${error.code ?? "unknown"}`);
+  const allowed = new Set(users.filter(Boolean).map((user) => user.id));
+  if ((members ?? []).some((member) => !allowed.has(member.user_id)))
+    fail("refusing 20A cleanup: household contains a non-dedicated user");
+
+  for (const table of [
+    "inbox_items",
+    "transactions",
+    "household_invitations",
+    "accounts",
+    "jars",
+    "household_members",
+  ]) {
+    const { error: deleteError } = await admin
+      .from(table)
+      .delete()
+      .eq("household_id", household.id);
+    if (deleteError && !["PGRST205", "42703"].includes(deleteError.code))
+      fail(`cleanup 20A ${table}: ${deleteError.code ?? "unknown"}`);
+  }
+
+  const { error: deleteError } = await admin
+    .from("households")
+    .delete()
+    .eq("id", household.id)
+    .eq("name", TOGETHER_20A.householdName);
+  if (deleteError)
+    fail(`cleanup 20A household: ${deleteError.code ?? "unknown"}`);
+
+  for (const user of users.filter(Boolean)) {
+    const { data: memberships, error: membershipError } = await admin
+      .from("household_members")
+      .select("id")
+      .eq("user_id", user.id);
+    if (membershipError)
+      fail(`verify 20A memberships: ${membershipError.code ?? "unknown"}`);
+    if ((memberships ?? []).length)
+      fail(`20A cleanup left memberships for ${user.email}`);
+  }
+  return true;
+}
+
+async function setupTogether20a() {
+  const missing = together20aMissingEnvironment({ needsServiceRole: true });
+  if (missing.length) return { ready: false, missing };
+
+  const admin = adminClient();
+  const identities = together20aUsers();
+  const users = [
+    await ensureTogether20aUser(admin, identities.admin),
+    await ensureTogether20aUser(admin, identities.partner),
+  ];
+  await cleanupTogether20aHousehold(admin, users);
+
+  for (const user of users) {
+    const memberships = await activeMemberships(admin, user.id);
+    if (memberships.length)
+      fail(
+        `refusing 20A setup: ${user.email} has an unrelated active membership`,
+      );
+  }
+
+  const ownerClient = publicClient();
+  const { data: ownerSession, error: signInError } =
+    await ownerClient.auth.signInWithPassword(identities.admin);
+  if (signInError || !ownerSession.session)
+    fail(`20A owner authentication: ${signInError?.code ?? "unknown"}`);
+  const { data: householdId, error: householdError } = await ownerClient.rpc(
+    "create_household_with_essentials",
+    {
+      p_name: TOGETHER_20A.householdName,
+      p_account_name: "Ownership test cash",
+      p_plan_preset: "simple",
+      p_base_currency: HARNESS.currency,
+      p_locale: "en-VN",
+      p_timezone: "Asia/Ho_Chi_Minh",
+    },
+  );
+  if (householdError || typeof householdId !== "string")
+    fail(`20A household onboarding: ${householdError?.code ?? "unknown"}`);
+
+  await writeTogether20aCredentials(identities);
+  return {
+    ready: true,
+    householdId,
+    identities: users.map((user) => ({ id: user.id, email: user.email })),
+    activeMemberships: 1,
+  };
+}
+
+async function seedTogether20aMemberData() {
+  const missing = together20aMissingEnvironment({ needsServiceRole: true });
+  if (missing.length) return { ready: false, missing };
+  const admin = adminClient();
+  const { users } = await getTogether20aUsers(admin);
+  if (!users.admin || !users.partner)
+    fail("20A disposable identities are unavailable");
+  const household = await getTogether20aHousehold(admin);
+  if (!household) fail("20A household is unavailable");
+  const memberships = await activeMemberships(admin, users.partner.id);
+  const partnerMembership = memberships.find(
+    (membership) => membership.household_id === household.id,
+  );
+  if (!partnerMembership) fail("20A partner membership is unavailable");
+
+  const { data: account, error: accountError } = await admin
+    .from("accounts")
+    .select("id, owner_membership_id, financial_scope")
+    .eq("household_id", household.id)
+    .eq("name", "Ownership former-member account")
+    .maybeSingle();
+  if (accountError)
+    fail(`find 20A personal account: ${accountError.code ?? "unknown"}`);
+  if (!account) {
+    await one(
+      admin.from("accounts").insert({
+        household_id: household.id,
+        name: "Ownership former-member account",
+        type: HARNESS.accountType,
+        opening_balance: 250000,
+        financial_scope: HARNESS.personal,
+        owner_membership_id: partnerMembership.id,
+        created_by: users.partner.id,
+      }),
+      "create 20A personal account",
+    );
+  } else if (
+    account.owner_membership_id !== partnerMembership.id ||
+    account.financial_scope !== HARNESS.personal
+  ) {
+    fail("20A personal account ownership mismatch");
+  }
+
+  const { data: inboxItem, error: inboxError } = await admin
+    .from("inbox_items")
+    .select("id")
+    .eq("household_id", household.id)
+    .eq("title", "Ownership inbox fixture")
+    .maybeSingle();
+  if (inboxError)
+    fail(`find 20A Inbox fixture: ${inboxError.code ?? "unknown"}`);
+  if (!inboxItem)
+    await createPendingPersonalInboxItem(
+      admin,
+      household.id,
+      partnerMembership.id,
+      users.partner.id,
+    );
+  return { ready: true, householdId: household.id, seeded: true };
+}
+
+async function assertTogether20aActive(invitationToken) {
+  const missing = together20aMissingEnvironment({ needsServiceRole: true });
+  if (missing.length) return { ready: false, missing };
+  if (!invitationToken) fail("20A invitation token is required");
+
+  const admin = adminClient();
+  const { identities, users } = await getTogether20aUsers(admin);
+  if (!users.admin || !users.partner)
+    fail("20A disposable identities are unavailable");
+  const household = await getTogether20aHousehold(admin);
+  if (!household) fail("20A household is unavailable");
+  const { data: invitation, error: invitationError } = await admin
+    .from("household_invitations")
+    .select("id, household_id, status, accepted_by")
+    .eq("token", invitationToken)
+    .single();
+  if (invitationError || !invitation)
+    fail(`verify 20A invitation: ${invitationError?.code ?? "unknown"}`);
+  if (
+    invitation.household_id !== household.id ||
+    invitation.status !== "accepted" ||
+    invitation.accepted_by !== users.partner.id
+  )
+    fail("20A invitation is not in its canonical accepted state");
+
+  const { data: memberships, error: membershipError } = await admin
+    .from("household_members")
+    .select("id, user_id, role, is_active")
+    .eq("household_id", household.id)
+    .eq("is_active", true);
+  if (membershipError)
+    fail(`verify 20A active memberships: ${membershipError.code ?? "unknown"}`);
+  if (
+    memberships?.length !== 2 ||
+    memberships.filter((membership) => membership.user_id === users.partner.id)
+      .length !== 1
+  )
+    fail("20A accept did not create exactly one active partner membership");
+
+  const partnerClient = publicClient();
+  const { data: partnerSession, error: partnerSignInError } =
+    await partnerClient.auth.signInWithPassword(identities.partner);
+  if (partnerSignInError || !partnerSession.session)
+    fail(
+      `20A partner authentication: ${partnerSignInError?.code ?? "unknown"}`,
+    );
+  const { error: retryError } = await partnerClient.rpc(
+    "accept_household_invitation",
+    { p_token: invitationToken },
+  );
+  if (!retryError) fail("20A invitation retry unexpectedly succeeded");
+  return {
+    ready: true,
+    invitationStatus: invitation.status,
+    activeMemberships: 2,
+  };
+}
+
+async function assertTogether20aFinal() {
+  const missing = together20aMissingEnvironment({ needsServiceRole: true });
+  if (missing.length) return { ready: false, missing };
+  const admin = adminClient();
+  const { users } = await getTogether20aUsers(admin);
+  if (!users.admin || !users.partner)
+    fail("20A disposable identities are unavailable");
+  const household = await getTogether20aHousehold(admin);
+  if (!household) fail("20A household is unavailable");
+  const { data: memberships, error } = await admin
+    .from("household_members")
+    .select("user_id, role, is_active")
+    .eq("household_id", household.id);
+  if (error) fail(`verify 20A final memberships: ${error.code ?? "unknown"}`);
+  const active =
+    memberships?.filter((membership) => membership.is_active) ?? [];
+  const partner = memberships?.find(
+    (membership) => membership.user_id === users.partner.id,
+  );
+  const owner = memberships?.find(
+    (membership) => membership.user_id === users.admin.id,
+  );
+  if (
+    active.length !== 1 ||
+    partner?.is_active !== true ||
+    partner.role !== HARNESS.roleAdmin ||
+    owner?.is_active !== false
+  )
+    fail("20A final leave did not preserve Admin continuity");
+  return { ready: true, activeMemberships: 1, formerOwnerInactive: true };
+}
+
+async function together20aCleanup() {
+  const missing = together20aMissingEnvironment({ needsServiceRole: true });
+  if (missing.length) return { ready: false, missing };
+  const admin = adminClient();
+  const { users } = await getTogether20aUsers(admin);
+  const removedHousehold = await cleanupTogether20aHousehold(admin, [
+    users.admin,
+    users.partner,
+  ]);
+  await removeTogether20aCredentials();
+  return { ready: true, removedHousehold, authUsersKept: true };
+}
+
 async function preflight() {
   const missing = missingEnvironment({ needsServiceRole: true });
   if (missing.length) return { ready: false, missing };
@@ -949,7 +1327,21 @@ const result =
       ? await setup()
       : command === "cleanup"
         ? await cleanup()
-        : fail("Use preflight, setup, or cleanup");
+        : command === "together-20a-setup"
+          ? await setupTogether20a()
+          : command === "together-20a-seed-member"
+            ? await seedTogether20aMemberData()
+            : command === "together-20a-assert-active"
+              ? await assertTogether20aActive(
+                  process.env.TOGETHER_20A_INVITATION_TOKEN,
+                )
+              : command === "together-20a-assert-final"
+                ? await assertTogether20aFinal()
+                : command === "together-20a-cleanup"
+                  ? await together20aCleanup()
+                  : fail(
+                      "Use preflight, setup, cleanup, together-20a-setup, together-20a-seed-member, together-20a-assert-active, or together-20a-cleanup",
+                    );
 console.error(
   result.ready
     ? "OWNERSHIP TEST HARNESS READY"

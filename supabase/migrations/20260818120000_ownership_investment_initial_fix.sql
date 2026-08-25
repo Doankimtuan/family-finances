@@ -15,7 +15,6 @@ begin
   );
   execute definition;
 end $$;
-
 revoke all on function public.record_investment_initial_purchase(
   text,text,numeric,numeric,uuid,date,text,text,jsonb,text,text,text,text
 ) from public, anon;

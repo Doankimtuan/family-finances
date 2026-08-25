@@ -11,6 +11,7 @@ import {
 import {
   TransactionFilterType,
   TransactionLedgerType,
+  TransactionActivityBreakdownKind,
   type TransactionLedgerType as TransactionLedgerTypeValue,
 } from "./ledger-constants";
 import type { LedgerTransaction, TransactionTag } from "./transaction-types";
@@ -83,7 +84,20 @@ export type TransactionActivity = {
   sign: "+" | "−" | "";
   canGenericCorrect: boolean;
   canGenericRefund: boolean;
+  paginationAnchorId: string;
+  breakdown: TransactionActivityBreakdown;
 };
+
+export type TransactionActivityBreakdown =
+  | { kind: typeof TransactionActivityBreakdownKind.NONE }
+  | {
+      kind: typeof TransactionActivityBreakdownKind.LOAN_PAYMENT;
+      totalPaid: number;
+      principalAmount: number;
+      interestAmount: number;
+      expenseContribution: number;
+      neutralContribution: number;
+    };
 
 const LEDGER_TYPE_TO_ACTIVITY_KIND: Partial<
   Record<TransactionLedgerTypeValue, TransactionActivityKind>
@@ -191,7 +205,21 @@ function activityFromRow(row: LedgerTransaction): TransactionActivity {
     sign: semantics.sign,
     canGenericCorrect: semantics.canGenericCorrect,
     canGenericRefund: semantics.canGenericRefund,
+    paginationAnchorId: row.id,
+    breakdown: { kind: TransactionActivityBreakdownKind.NONE },
   };
+}
+
+function latestRow(rows: readonly LedgerTransaction[]) {
+  return rows.reduce((latest, row) => {
+    if (row.transactionDate !== latest.transactionDate) {
+      return row.transactionDate > latest.transactionDate ? row : latest;
+    }
+    if (row.createdAt !== latest.createdAt) {
+      return row.createdAt > latest.createdAt ? row : latest;
+    }
+    return row.id > latest.id ? row : latest;
+  }, rows[0]);
 }
 
 function groupedSemantics(
@@ -278,21 +306,42 @@ export function createTransactionActivities(
       ) ?? rowsInGroup[0];
     if (!representative) continue;
     const semantics = classifyFinancialEvent(representative);
+    const principalAmount = rowsInGroup
+      .filter((row) => row.type === TransactionLedgerType.LIABILITY_PAYMENT)
+      .reduce((sum, row) => sum + row.amount, 0);
+    const interestAmount = rowsInGroup
+      .filter((row) => row.type === TransactionLedgerType.LOAN_INTEREST)
+      .reduce((sum, row) => sum + row.amount, 0);
+    const anchor = latestRow(rowsInGroup);
     activities.push({
       ...activityFromRow(representative),
       id: loanPaymentId,
       kind: TransactionActivityKind.LIABILITY_PAYMENT,
-      tone: TransactionActivityTone.NEUTRAL,
+      tone:
+        interestAmount > 0
+          ? TransactionActivityTone.DEBIT
+          : TransactionActivityTone.NEUTRAL,
       amount: rowsInGroup.reduce((sum, row) => sum + row.amount, 0),
+      effectiveDate: anchor.transactionDate,
+      representativeCreatedAt: anchor.createdAt,
       relatedTransactionIds: rowsInGroup.map((row) => row.id),
       loanPaymentId,
       semanticCategory: semantics.category,
       classification: semantics.classification,
       cashDirection: semantics.cashDirection,
       countsTowardIncome: false,
-      countsTowardExpense: false,
+      countsTowardExpense: interestAmount > 0,
       owner: semantics.owner,
-      sign: "",
+      sign: interestAmount > 0 ? "−" : "",
+      paginationAnchorId: anchor.id,
+      breakdown: {
+        kind: TransactionActivityBreakdownKind.LOAN_PAYMENT,
+        totalPaid: principalAmount + interestAmount,
+        principalAmount,
+        interestAmount,
+        expenseContribution: interestAmount,
+        neutralContribution: principalAmount,
+      },
     });
   }
 
@@ -310,6 +359,7 @@ export function createTransactionActivities(
 
     const semantics = groupedSemantics(rowsInGroup);
     const isSavings = semantics.category === FinancialEventCategory.SAVINGS;
+    const anchor = latestRow(rowsInGroup);
     activities.push({
       id: transferGroupId,
       kind: isSavings
@@ -321,10 +371,7 @@ export function createTransactionActivities(
       amount: representative.amount,
       currency: representative.currency,
       effectiveDate: representative.transactionDate,
-      representativeCreatedAt: rowsInGroup.reduce(
-        (latest, row) => (row.createdAt > latest ? row.createdAt : latest),
-        representative.createdAt,
-      ),
+      representativeCreatedAt: anchor.createdAt,
       note: representative.note ?? destination?.note ?? null,
       categoryId: null,
       categoryName: null,
@@ -351,6 +398,8 @@ export function createTransactionActivities(
       sign: semantics.sign,
       canGenericCorrect: semantics.canGenericCorrect,
       canGenericRefund: semantics.canGenericRefund,
+      paginationAnchorId: anchor.id,
+      breakdown: { kind: TransactionActivityBreakdownKind.NONE },
     });
   }
 

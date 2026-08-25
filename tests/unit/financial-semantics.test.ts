@@ -238,8 +238,38 @@ describe("reversed transaction states", () => {
     ).toMatchObject({
       category: FinancialEventCategory.REFUND,
       classification: FinancialClassification.REFUND,
+      cashDirection: FinancialCashDirection.INFLOW,
+      sign: "+",
       countsTowardIncome: false,
       countsTowardExpense: false,
+    });
+  });
+
+  it("shows an expense reversal as an outflow", () => {
+    expect(
+      classifyFinancialEvent({
+        type: TransactionLedgerType.EXPENSE,
+        isReversal: true,
+        reversesTransactionId: "income-original",
+      }),
+    ).toMatchObject({
+      cashDirection: FinancialCashDirection.OUTFLOW,
+      sign: "−",
+    });
+  });
+
+  it("keeps correction legs as ordinary ledger movements", () => {
+    expect(
+      classifyFinancialEvent({
+        type: TransactionLedgerType.EXPENSE,
+        correctsTransactionId: "expense-original",
+      }),
+    ).toMatchObject({
+      category: FinancialEventCategory.EXPENSE,
+      classification: FinancialClassification.EXPENSE,
+      cashDirection: FinancialCashDirection.OUTFLOW,
+      sign: "−",
+      countsTowardExpense: true,
     });
   });
 

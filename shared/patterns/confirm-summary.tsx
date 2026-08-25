@@ -29,7 +29,7 @@ export function ConfirmSummary({
   return (
     <dl
       className={cn(
-        "flex flex-col gap-(--space-3) rounded-md border border-border-subtle bg-surface p-(--space-4)",
+        "flex flex-col gap-(--space-3) rounded-(--radius-card) border border-border-subtle bg-surface p-(--space-4)",
         className,
       )}
       data-testid={testId}

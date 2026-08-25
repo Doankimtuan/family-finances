@@ -30,7 +30,6 @@ begin
     p_as_of_date,coalesce(p_fees,'[]'::jsonb),p_notes,p_idempotency_key
   );
 end $$;
-
 revoke all on function public.record_investment_initial_purchase(
   text,text,numeric,numeric,uuid,date,text,text,jsonb,text,text,text,text,numeric
 ) from public,anon;

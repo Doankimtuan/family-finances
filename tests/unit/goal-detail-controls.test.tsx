@@ -42,10 +42,10 @@ describe("GoalDetailControls progress integration", () => {
         fundingOptions={[]}
         reassignmentOptions={[]}
         isLegacyIntention={false}
-        fundingValueStatus="current"
       />,
     );
 
+    fireEvent.click(screen.getByTestId("goal-more-actions"));
     fireEvent.click(screen.getByTestId("goal-complete"));
 
     expect(screen.getByTestId("goal-complete-confirm")).toHaveTextContent(

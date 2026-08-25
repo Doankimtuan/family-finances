@@ -9,6 +9,7 @@ import { IconButton } from "@/shared/ui/icon-button";
 import { Heading } from "@/shared/ui/heading";
 import { AppIcon } from "@/shared/ui/app-icon";
 import { IconContainer } from "@/shared/ui/icon-container";
+import { BrandMark } from "@/shared/patterns/brand-mark";
 
 export const TopAppBarVariant = {
   PRIMARY: "primary",
@@ -58,6 +59,7 @@ export type TopAppBarProps = {
   trailing?: ReactNode;
   className?: string;
   backLabel?: string;
+  showBrandMark?: boolean;
 };
 
 const headerPillToneClassName: Record<HeaderPillTone, string> = {
@@ -109,6 +111,7 @@ export function TopAppBar({
   trailing,
   className,
   backLabel,
+  showBrandMark = false,
 }: TopAppBarProps) {
   const tA11y = useTranslations("a11y");
   const resolvedBackLabel = backLabel ?? tA11y("back");
@@ -118,7 +121,9 @@ export function TopAppBar({
       className={cn(
         "shrink-0 px-(--page-gutter)",
         isContextual
-          ? "pb-(--space-5) pt-(--space-5)"
+          ? showBrandMark
+            ? "pb-(--space-4) pt-(--space-4)"
+            : "pb-(--space-5) pt-(--space-5)"
           : variant === "primary"
             ? "pb-(--space-4) pt-(--space-5)"
             : "pb-(--space-3) pt-(--space-2)",
@@ -149,13 +154,18 @@ export function TopAppBar({
           <Link
             href={backHref}
             aria-label={resolvedBackLabel}
-            className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-md text-text-secondary transition-[background-color,color] duration-(--duration-fast) ease-(--ease-standard) hover:bg-surface-hover hover:text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none"
+            className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-(--radius-control) text-text-secondary transition-[background-color,color] duration-(--duration-fast) ease-(--ease-standard) hover:bg-surface-hover hover:text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none"
           >
             <AppIcon icon={ArrowLeft01Icon} size="sm" emphasized />
           </Link>
         ) : null}
         <div className="min-w-0 flex-1">
-          {eyebrow ? (
+          {showBrandMark ? (
+            <div className="mb-(--space-1) flex min-h-10 items-center gap-(--space-2) text-sm font-medium leading-snug text-text-secondary">
+              <BrandMark variant="mark" size="sm" />
+              {eyebrow}
+            </div>
+          ) : eyebrow ? (
             <div className="mb-(--space-1) text-sm font-medium leading-snug text-text-secondary">
               {eyebrow}
             </div>

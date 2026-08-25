@@ -112,7 +112,7 @@ begin
     status, transfer_group_id, idempotency_key, created_by, source, savings_event_kind
   ) values (
     v_household_id, p_funding_account_id, 'transfer_out', p_principal, v_currency,
-    p_cycle_start_date, 'Gửi tiết kiệm: ' || p_product_name, 'posted', v_transfer_group_id,
+    p_cycle_start_date, 'Gửi tiết kiệm: ' || p_product_name, 'cleared', v_transfer_group_id,
     nullif(p_idempotency_key || ':out', ':out'), v_user_id, 'manual', 'SAVINGS_PRINCIPAL_PLACEMENT'
   ) returning id into v_funding_tx_id;
 
@@ -121,7 +121,7 @@ begin
     status, transfer_group_id, idempotency_key, created_by, source, savings_event_kind
   ) values (
     v_household_id, v_product_account_id, 'transfer_in', p_principal, v_currency,
-    p_cycle_start_date, 'Tiền gửi tiết kiệm: ' || p_product_name, 'posted', v_transfer_group_id,
+    p_cycle_start_date, 'Tiền gửi tiết kiệm: ' || p_product_name, 'cleared', v_transfer_group_id,
     nullif(p_idempotency_key || ':in', ':in'), v_user_id, 'manual', 'SAVINGS_PRINCIPAL_PLACEMENT'
   ) returning id into v_receiving_tx_id;
 
@@ -159,3 +159,4 @@ grant execute on function public.household_base_currency(uuid) to authenticated;
 grant execute on function public.create_saving_with_transfer(
   uuid, numeric, uuid, text, jsonb, text, uuid, date, date, jsonb, jsonb, text
 ) to authenticated;
+;

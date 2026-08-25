@@ -219,9 +219,9 @@ describe("14B ownership schema — interim production lock", () => {
     }
   });
 
-  it("documents why investment_holdings needs no trigger lock (select-only)", () => {
-    expect(SQL).toMatch(
-      /investment_holdings is select-only to authenticated already/,
+  it("keeps investment_holdings outside the interim write-lock triggers", () => {
+    expect(SQL).not.toMatch(
+      /create trigger investment_holdings_force_household_scope_trg/,
     );
   });
 });

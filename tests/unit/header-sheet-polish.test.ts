@@ -21,19 +21,16 @@ describe("header and sheet polish contracts", () => {
     }
   });
 
-  it("keeps Home's identity mark decorative and outside the title", () => {
+  it("keeps Home on the canonical contextual app header", () => {
     const homePage = readProjectFile("app/[locale]/(product)/home/page.tsx");
     const homeLoading = readProjectFile(
       "app/[locale]/(product)/home/loading.tsx",
     );
 
     for (const source of [homePage, homeLoading]) {
-      expect(source).toContain(
-        'trailing={<BrandMark variant="mark" size="sm" />}',
-      );
-      expect(source).not.toContain(
-        'BrandMark variant="mark" size="sm" className',
-      );
+      expect(source).toContain("TopAppBar");
+      expect(source).toContain('variant="contextual"');
+      expect(source).not.toContain("<header");
     }
   });
 

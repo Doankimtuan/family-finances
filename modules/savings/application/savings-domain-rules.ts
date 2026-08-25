@@ -1,8 +1,6 @@
 import { z } from "zod";
-import {
-  AccountType,
-  type AccountType as AccountTypeValue,
-} from "@/modules/ledger/application/ledger-constants";
+import type { AccountType as AccountTypeValue } from "@/modules/ledger/application/ledger-constants";
+import { isCashSourceAccountType } from "@/modules/ledger/application/account-constants";
 import { SavingsFamily, SAVINGS_FAMILY_VALUES } from "./savings-constants";
 export { SavingsFamily, SAVINGS_FAMILY_VALUES };
 export type { SavingsFamily as SavingsFamilyValue } from "./savings-constants";
@@ -242,14 +240,7 @@ export function calculateSettlementBreakdown(input: {
 export function isEligibleSavingsAccountType(
   type: AccountTypeValue | string,
 ): boolean {
-  const eligibleTypes: readonly string[] = [
-    AccountType.CASH,
-    AccountType.CHECKING,
-    AccountType.SAVINGS,
-    AccountType.EWALLET,
-    AccountType.OTHER,
-  ];
-  return eligibleTypes.includes(type);
+  return isCashSourceAccountType(type);
 }
 
 export function assertCompatibleSavingsAccounts(input: {

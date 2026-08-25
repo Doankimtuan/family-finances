@@ -5,12 +5,13 @@ import { useTranslations } from "next-intl";
 import { TextField } from "@/shared/ui/form";
 import { Button } from "@/shared/ui/button";
 import { AlertVariant } from "@/shared/ui/alert";
+import { StatusAlert } from "@/shared/ui/status-alert";
+import { Card } from "@/shared/patterns/card";
 import { useStatusAlert } from "@/providers/status-alert-provider";
 import { createInvitationAction } from "../../invite-actions";
 
 export function InvitationForm() {
   const t = useTranslations("together.invitations");
-  const tValidation = useTranslations("validation");
   const statusAlert = useStatusAlert();
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState(false);
@@ -35,25 +36,33 @@ export function InvitationForm() {
 
   return (
     <div className="flex flex-col gap-(--space-4)" data-testid="invite-form">
-      <TextField
-        id="invite-email"
-        label={t("emailLabel")}
-        placeholder={t("emailPlaceholder")}
-        type="email"
-        value={email}
-        onChange={(event) => setEmail(event.target.value)}
-        error={emailError ? tValidation("required") : undefined}
-        autoComplete="email"
-      />
-      <Button
-        variant="primary"
-        className="w-full"
-        data-testid="invite-send"
-        onPress={onSend}
-        isDisabled={isPending}
-      >
-        {isPending ? t("sending") : t("send")}
-      </Button>
+      <Card tone="soft" className="gap-(--space-3) p-(--space-4)">
+        <StatusAlert
+          variant={AlertVariant.INFO}
+          title={t("inviteIntroTitle")}
+          description={t("inviteIntroBody")}
+        />
+        <TextField
+          id="invite-email"
+          label={t("emailLabel")}
+          placeholder={t("emailPlaceholder")}
+          type="email"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          error={emailError ? t("emailError") : undefined}
+          autoComplete="email"
+        />
+        <Button
+          variant="primary"
+          className="min-h-12 w-full"
+          data-testid="invite-send"
+          onPress={onSend}
+          isDisabled={isPending}
+          isPending={isPending}
+        >
+          {isPending ? t("sending") : t("send")}
+        </Button>
+      </Card>
     </div>
   );
 }

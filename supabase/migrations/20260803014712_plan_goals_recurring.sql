@@ -24,7 +24,6 @@ create table if not exists public.goal_contributions (
   id uuid primary key default gen_random_uuid(),
   household_id uuid not null references public.households(id) on delete cascade,
   goal_id uuid not null references public.goals(id) on delete cascade,
-  -- BR-06: positive magnitude; direction is always contribute (inflow to intention)
   direction text not null default 'contribute',
   amount numeric(18, 0) not null,
   note text,
@@ -41,7 +40,6 @@ create table if not exists public.recurring_rules (
   id uuid primary key default gen_random_uuid(),
   household_id uuid not null references public.households(id) on delete cascade,
   name text not null,
-  -- BR-06: positive amount + explicit income|expense direction
   direction text not null,
   amount numeric(18, 0) not null,
   frequency text not null default 'monthly',
@@ -128,7 +126,6 @@ grant select, insert, update, delete on public.goals to authenticated;
 grant select, insert on public.goal_contributions to authenticated;
 grant select, insert, update, delete on public.recurring_rules to authenticated;
 
--- Atomic contribute: positive amount only (BR-06)
 create or replace function public.contribute_to_goal(
   p_goal_id uuid,
   p_amount numeric,
@@ -199,4 +196,4 @@ end;
 $$;
 
 revoke all on function public.contribute_to_goal(uuid, numeric, text) from public;
-grant execute on function public.contribute_to_goal(uuid, numeric, text) to authenticated;
+grant execute on function public.contribute_to_goal(uuid, numeric, text) to authenticated;;

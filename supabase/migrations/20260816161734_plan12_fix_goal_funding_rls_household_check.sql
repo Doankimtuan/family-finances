@@ -11,3 +11,4 @@ create policy goal_funding_links_insert_member on public.goal_funding_links
         and g.status in ('active', 'ready')
     )
   );
+;

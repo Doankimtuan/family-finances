@@ -131,7 +131,7 @@ begin
     status, transfer_group_id, idempotency_key, created_by, source, savings_event_kind
   ) values (
     v_household_id, p_funding_account_id, 'transfer_out', p_principal, v_currency,
-    p_cycle_start_date, 'Gửi tiết kiệm: ' || p_product_name, 'posted', v_transfer_group_id,
+    p_cycle_start_date, 'Gửi tiết kiệm: ' || p_product_name, 'cleared', v_transfer_group_id,
     nullif(p_idempotency_key || ':out', ':out'), v_user_id, 'manual', 'SAVINGS_PRINCIPAL_PLACEMENT'
   ) returning id into v_funding_tx_id;
   insert into public.transactions (
@@ -139,7 +139,7 @@ begin
     status, transfer_group_id, idempotency_key, created_by, source, savings_event_kind
   ) values (
     v_household_id, v_product_account_id, 'transfer_in', p_principal, v_currency,
-    p_cycle_start_date, 'Tiền gửi tiết kiệm: ' || p_product_name, 'posted', v_transfer_group_id,
+    p_cycle_start_date, 'Tiền gửi tiết kiệm: ' || p_product_name, 'cleared', v_transfer_group_id,
     nullif(p_idempotency_key || ':in', ':in'), v_user_id, 'manual', 'SAVINGS_PRINCIPAL_PLACEMENT'
   ) returning id into v_receiving_tx_id;
 
@@ -237,7 +237,7 @@ begin
   if upper(coalesce(v_package.currency, public.household_base_currency(v_saving.household_id))) <> upper(public.household_base_currency(v_saving.household_id)) then raise exception 'Target package currency mismatch'; end if;
   if v_package.min_amount is not null and v_cycle.principal < v_package.min_amount then raise exception 'Target package minimum amount not met'; end if;
   if v_package.max_amount is not null and v_cycle.principal > v_package.max_amount then raise exception 'Target package maximum amount exceeded'; end if;
-  if not (v_package.settlement_rules @> jsonb_build_array(v_action)) then raise exception 'Target package does not support this rollover'; end if;
+  if not (v_package.settlement_rules ? v_action) then raise exception 'Target package does not support this rollover'; end if;
   if v_action = 'roll_principal_only' then
     v_settlement_id := coalesce(p_settlement_account_id, nullif(v_saving.maturity_instruction->>'payoutAccountId', '')::uuid, v_saving.settlement_account_id);
     if not exists (select 1 from public.accounts a where a.id = v_settlement_id and a.household_id = v_saving.household_id and a.is_archived = false and a.type not in ('credit_card', 'savings_product')) then raise exception 'Invalid settlement account'; end if;
@@ -252,18 +252,18 @@ begin
   v_currency := public.household_base_currency(v_saving.household_id);
   if v_interest > 0 then
     insert into public.transactions (household_id, account_id, type, amount, currency, transaction_date, note, status, created_by, source, savings_event_kind)
-    values (v_saving.household_id, v_product_account_id, 'income', v_interest, v_currency, v_today, 'Lãi tiết kiệm: ' || v_saving.product_name, 'posted', v_user_id, 'manual', 'SAVINGS_INTEREST') returning id into v_interest_tx;
+    values (v_saving.household_id, v_product_account_id, 'income', v_interest, v_currency, v_today, 'Lãi tiết kiệm: ' || v_saving.product_name, 'cleared', v_user_id, 'manual', 'SAVINGS_INTEREST') returning id into v_interest_tx;
   end if;
   if v_tax > 0 then
     insert into public.transactions (household_id, account_id, type, amount, currency, transaction_date, note, status, created_by, source, savings_event_kind)
-    values (v_saving.household_id, v_product_account_id, 'expense', v_tax, v_currency, v_today, 'Thuế lãi tiết kiệm: ' || v_saving.product_name, 'posted', v_user_id, 'manual', 'SAVINGS_TAX') returning id into v_tax_tx;
+    values (v_saving.household_id, v_product_account_id, 'expense', v_tax, v_currency, v_today, 'Thuế lãi tiết kiệm: ' || v_saving.product_name, 'cleared', v_user_id, 'manual', 'SAVINGS_TAX') returning id into v_tax_tx;
   end if;
   if v_action = 'roll_principal_only' and v_net_interest > 0 then
     v_group_id := gen_random_uuid();
     insert into public.transactions (household_id, account_id, type, amount, currency, transaction_date, note, status, transfer_group_id, created_by, source, savings_event_kind)
-    values (v_saving.household_id, v_product_account_id, 'transfer_out', v_net_interest, v_currency, v_today, 'Nhận lãi tiết kiệm: ' || v_saving.product_name, 'posted', v_group_id, v_user_id, 'manual', 'SAVINGS_INTEREST') returning id into v_out_tx;
+    values (v_saving.household_id, v_product_account_id, 'transfer_out', v_net_interest, v_currency, v_today, 'Nhận lãi tiết kiệm: ' || v_saving.product_name, 'cleared', v_group_id, v_user_id, 'manual', 'SAVINGS_INTEREST') returning id into v_out_tx;
     insert into public.transactions (household_id, account_id, type, amount, currency, transaction_date, note, status, transfer_group_id, created_by, source, savings_event_kind)
-    values (v_saving.household_id, v_settlement_id, 'transfer_in', v_net_interest, v_currency, v_today, 'Lãi tiết kiệm: ' || v_saving.product_name, 'posted', v_group_id, v_user_id, 'manual', 'SAVINGS_INTEREST') returning id into v_in_tx;
+    values (v_saving.household_id, v_settlement_id, 'transfer_in', v_net_interest, v_currency, v_today, 'Lãi tiết kiệm: ' || v_saving.product_name, 'cleared', v_group_id, v_user_id, 'manual', 'SAVINGS_INTEREST') returning id into v_in_tx;
   end if;
   insert into public.saving_cycles (saving_id, cycle_number, start_date, end_date, principal, locked_rate, package_snapshot, status, previous_cycle_id)
   values (v_saving.id, v_cycle.cycle_number + 1, v_start, v_end,
@@ -291,3 +291,4 @@ end;
 $$;
 
 grant execute on function public.rollover_saving_cycle(uuid, text, uuid, uuid, date, date, text) to authenticated;
+;

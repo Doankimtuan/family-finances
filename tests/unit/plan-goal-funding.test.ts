@@ -13,6 +13,7 @@ import {
   GoalStatus,
   GoalType,
 } from "@/modules/plan/application/plan-constants";
+import { MarketValuationQuality } from "@/modules/investments/application/investment-constants";
 import { mapGoalRow } from "@/modules/plan/application/goal-recurring-types";
 
 const saving = (amount: number) => ({
@@ -77,6 +78,63 @@ describe("PLAN 09 derived Goal funding", () => {
     ]);
     expect(summary.fundedAmount).toBe(120_000_000);
     expect(summary.valueStatus).toBe(GoalFundingQuality.STALE);
+  });
+
+  it.each([
+    [MarketValuationQuality.AUTO_CURRENT, GoalFundingValueStatus.CURRENT],
+    [MarketValuationQuality.AUTO_STALE, GoalFundingValueStatus.STALE],
+    [MarketValuationQuality.MANUAL, GoalFundingValueStatus.CURRENT],
+  ] as const)(
+    "preserves known investment valuation quality: %s",
+    (quality, status) => {
+      const summary = deriveGoalFundingSummary([
+        {
+          kind: GoalFundingSourceKind.HOLDING,
+          sourceId: "holding-1",
+          currentValue: 120_000_000,
+          valueStatus: status,
+          valuationQuality: quality,
+        },
+      ]);
+      expect(summary.fundedAmount).toBe(120_000_000);
+      expect(summary.sources[0]?.valuationQuality).toBe(quality);
+      expect(summary.valueStatus).toBe(
+        quality === MarketValuationQuality.AUTO_STALE
+          ? GoalFundingQuality.STALE
+          : GoalFundingQuality.CURRENT,
+      );
+    },
+  );
+
+  it("keeps UNKNOWN investment value indeterminate instead of zero", () => {
+    const summary = deriveGoalFundingSummary([
+      {
+        kind: GoalFundingSourceKind.HOLDING,
+        sourceId: "holding-unknown",
+        currentValue: null,
+        costBasis: 100_000_000,
+        valueStatus: GoalFundingValueStatus.UNKNOWN,
+        valuationQuality: MarketValuationQuality.UNKNOWN,
+      },
+    ]);
+    expect(summary.fundedAmount).toBe(0);
+    expect(summary.valueStatus).toBe(GoalFundingQuality.INDETERMINATE);
+    expect(summary.unknownSourceCount).toBe(1);
+  });
+
+  it("retains known mixed-source funding while marking the total indeterminate", () => {
+    const summary = deriveGoalFundingSummary([
+      saving(250_000_000),
+      {
+        kind: GoalFundingSourceKind.HOLDING,
+        sourceId: "holding-unknown",
+        currentValue: null,
+        valueStatus: GoalFundingValueStatus.UNKNOWN,
+        valuationQuality: MarketValuationQuality.UNKNOWN,
+      },
+    ]);
+    expect(summary.fundedAmount).toBe(250_000_000);
+    expect(summary.valueStatus).toBe(GoalFundingQuality.INDETERMINATE);
   });
 
   it("aggregates Savings and Investment market value without double counting", () => {

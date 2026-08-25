@@ -13,8 +13,6 @@ create table public.market_sync_runs (
   error text,
   created_at timestamptz not null default now()
 );
-
 alter table public.market_sync_runs enable row level security;
-
 revoke all on table public.market_sync_runs from anon, authenticated;
 grant all on table public.market_sync_runs to service_role;

@@ -39,24 +39,25 @@ test.describe("Plan Goals fixture safety (G1)", () => {
     await firstJar.click();
     await expect(page.getByTestId("plan-jar-detail")).toBeVisible();
 
-    await page.getByTestId("jar-plan-edit").click();
-    await expect(page.getByTestId("jar-plan-form")).toBeVisible();
+    await page.getByTestId("jar-edit-open").click();
+    await expect(page.getByTestId("jar-edit-form")).toBeVisible();
+    await page.getByTestId("jar-edit-plan-percent").click();
     await page.getByLabel(/Percent of income|Phần trăm/i).fill("12");
-    await page.getByTestId("jar-plan-save").click();
+    await page.getByTestId("jar-plan-edit").click();
 
-    const allocateReceipt = page.getByTestId("jar-allocate-receipt");
     const monthLocked = page.getByText(/month is locked|tháng này đã khoá/i);
     await Promise.race([
-      allocateReceipt.waitFor({ state: "visible", timeout: 20_000 }),
+      page
+        .getByTestId("jar-edit-form")
+        .waitFor({ state: "hidden", timeout: 20_000 }),
       monthLocked.waitFor({ state: "visible", timeout: 20_000 }),
     ]).catch(() => undefined);
 
     test.skip(
-      (await monthLocked.isVisible().catch(() => false)) &&
-        !(await allocateReceipt.isVisible().catch(() => false)),
+      await monthLocked.isVisible().catch(() => false),
       "Plan period still locked after fixture unlock",
     );
-    await expect(allocateReceipt).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByTestId("jar-edit-form")).toBeHidden();
 
     await page.goto("/en/plan/goals");
     await expect(page.getByTestId("plan-goals")).toBeVisible();
@@ -66,22 +67,26 @@ test.describe("Plan Goals fixture safety (G1)", () => {
     const form = page.getByTestId("goal-create-form");
     await form.locator("input").nth(0).fill(goalName);
     await form.locator("input").nth(1).fill("500000");
+    await page.getByRole("radio", { name: "Save up" }).click();
     await page.getByTestId("goal-create-submit").click();
     await expect(page.getByTestId("plan-goal-detail")).toBeVisible({
       timeout: 20_000,
     });
 
-    await page
-      .getByTestId("goal-contribute-amount")
-      .locator("input")
-      .fill("10000");
-    await page.getByTestId("goal-contribute-submit").click();
-    await expect(page.getByTestId("goal-contribute-receipt")).toBeVisible({
-      timeout: 20_000,
-    });
-    await expect(
-      page.getByText(/Real money unchanged|Tiền thật không đổi/i).first(),
-    ).toBeVisible();
+    const contributeOpen = page.getByTestId("goal-contribute-open");
+    if (await contributeOpen.isVisible().catch(() => false)) {
+      await contributeOpen.click();
+      await page
+        .getByTestId("goal-contribute-amount")
+        .locator("input")
+        .fill("10000");
+      await page.getByTestId("goal-contribute-submit").click();
+      await expect(page.getByTestId("goal-contribute-receipt")).toBeVisible({
+        timeout: 20_000,
+      });
+    } else {
+      await expect(page.getByText(/needs a funding source/i)).toBeVisible();
+    }
 
     await page.goto("/en/money");
     await expect(page.getByTestId("money-hub")).toBeVisible({

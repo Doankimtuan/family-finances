@@ -4,6 +4,7 @@ import {
   transactionActivityMatchesFilter,
   TransactionActivityKind,
   TransactionActivityTone,
+  TransactionActivityBreakdownKind,
   type LedgerTransaction,
 } from "@/modules/ledger/application";
 import {
@@ -96,12 +97,20 @@ describe("createTransactionActivities", () => {
     expect(activities[0]).toMatchObject({
       id: "payment-1",
       kind: TransactionActivityKind.LIABILITY_PAYMENT,
-      tone: TransactionActivityTone.NEUTRAL,
+      tone: TransactionActivityTone.DEBIT,
       amount: 1_000,
       relatedTransactionIds: ["principal", "interest"],
       loanPaymentId: "payment-1",
       countsTowardIncome: false,
-      countsTowardExpense: false,
+      countsTowardExpense: true,
+      breakdown: {
+        kind: TransactionActivityBreakdownKind.LOAN_PAYMENT,
+        totalPaid: 1_000,
+        principalAmount: 900,
+        interestAmount: 100,
+        expenseContribution: 100,
+        neutralContribution: 900,
+      },
     });
   });
 
@@ -169,6 +178,30 @@ describe("transactionActivityMatchesFilter", () => {
         TransactionFilterType.EXPENSE,
       ),
     ).toBe(false);
+  });
+
+  it("includes mixed loan payments in Expense without making principal Expense", () => {
+    const [payment] = createTransactionActivities([
+      row({
+        type: TransactionLedgerType.LIABILITY_PAYMENT,
+        amount: 900,
+        loanPaymentId: "payment-2",
+      }),
+      row({
+        id: "interest-2",
+        type: TransactionLedgerType.LOAN_INTEREST,
+        amount: 100,
+        loanPaymentId: "payment-2",
+      }),
+    ]);
+
+    expect(
+      transactionActivityMatchesFilter(payment, TransactionFilterType.EXPENSE),
+    ).toBe(true);
+    expect(payment.breakdown).toMatchObject({
+      neutralContribution: 900,
+      expenseContribution: 100,
+    });
   });
 
   it("keeps savings movements out of the transfer filter", () => {

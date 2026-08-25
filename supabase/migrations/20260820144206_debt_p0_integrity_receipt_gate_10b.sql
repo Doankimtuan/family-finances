@@ -15,15 +15,11 @@ as $$
     'other'
   );
 $$;
-
 revoke all on function public.is_debt_movement_account_type(text) from public, anon, authenticated;
-
 alter function public.create_debt(text, text, text, text, numeric, date, date, text, uuid, text, text)
   rename to _create_debt_unchecked_10b;
-
 alter function public.record_debt_payment(uuid, uuid, numeric, date, text, text)
   rename to _record_debt_payment_unchecked_10b;
-
 create or replace function public.create_debt(
   p_name text,
   p_counterparty text,
@@ -80,7 +76,6 @@ begin
   );
 end;
 $$;
-
 create or replace function public.record_debt_payment(
   p_debt_id uuid,
   p_account_id uuid,
@@ -144,7 +139,6 @@ begin
   return v_result;
 end;
 $$;
-
 revoke all on function public._create_debt_unchecked_10b(text, text, text, text, numeric, date, date, text, uuid, text, text) from public, anon, authenticated;
 revoke all on function public._record_debt_payment_unchecked_10b(uuid, uuid, numeric, date, text, text) from public, anon, authenticated;
 revoke all on function public.create_debt(text, text, text, text, numeric, date, date, text, uuid, text, text) from public, anon;

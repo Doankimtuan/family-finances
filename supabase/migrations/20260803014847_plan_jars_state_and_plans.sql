@@ -1,5 +1,3 @@
--- ST-E05-002: Jar Active|Paused|Archived state + jar_plans (AC-003, AC-004, BR-03, BR-04)
-
 alter table public.jars
   add column if not exists is_paused boolean not null default false;
 
@@ -53,7 +51,6 @@ create policy jar_plans_delete_member on public.jar_plans
 
 grant select, insert, update, delete on public.jar_plans to authenticated;
 
--- BR-03: allocation targets must be Active (not paused, not archived)
 create or replace function public.enforce_active_jar_on_transaction()
 returns trigger
 language plpgsql
@@ -86,7 +83,6 @@ create trigger trg_transactions_active_jar
   for each row
   execute function public.enforce_active_jar_on_transaction();
 
--- Seed Suggest-friendly default percent plans for existing jars without a plan
 insert into public.jar_plans (household_id, jar_id, plan_kind, percent_bps, fixed_amount)
 select
   j.household_id,
@@ -112,148 +108,4 @@ from public.jars j
 where not exists (
   select 1 from public.jar_plans jp where jp.jar_id = j.id
 )
-on conflict (jar_id) do nothing;
-
--- Onboard seeds jar_plans after jars (Suggest default at household already)
-create or replace function public.create_household_with_essentials(
-  p_name text,
-  p_account_name text default 'Cash',
-  p_plan_preset text default 'balanced',
-  p_base_currency char(3) default 'VND',
-  p_locale text default 'en-VN',
-  p_timezone text default 'Asia/Ho_Chi_Minh'
-)
-returns uuid
-language plpgsql
-security definer
-set search_path = public
-as $$
-declare
-  v_user_id uuid;
-  v_household_id uuid;
-  v_account_name text;
-  v_preset text;
-  v_email text;
-begin
-  v_user_id := auth.uid();
-  if v_user_id is null then
-    raise exception 'Authentication required';
-  end if;
-
-  if length(trim(coalesce(p_name, ''))) < 2 then
-    raise exception 'Household name must be at least 2 characters';
-  end if;
-
-  if exists (
-    select 1
-    from public.household_members hm
-    where hm.user_id = v_user_id
-      and hm.is_active = true
-  ) then
-    raise exception 'User already belongs to a household';
-  end if;
-
-  v_account_name := nullif(trim(coalesce(p_account_name, '')), '');
-  if v_account_name is null then
-    v_account_name := 'Cash';
-  end if;
-
-  v_preset := lower(trim(coalesce(p_plan_preset, 'balanced')));
-  if v_preset not in ('balanced', 'simple') then
-    v_preset := 'balanced';
-  end if;
-
-  select u.email into v_email
-  from auth.users u
-  where u.id = v_user_id;
-
-  insert into public.households (
-    name,
-    base_currency,
-    locale,
-    timezone,
-    overspend_policy,
-    month_close_mode,
-    income_allocate_mode,
-    created_by
-  ) values (
-    trim(p_name),
-    coalesce(p_base_currency, 'VND'),
-    coalesce(nullif(trim(p_locale), ''), 'en-VN'),
-    coalesce(nullif(trim(p_timezone), ''), 'Asia/Ho_Chi_Minh'),
-    'warn',
-    'assisted',
-    'suggest',
-    v_user_id
-  )
-  returning id into v_household_id;
-
-  insert into public.household_members (
-    household_id,
-    user_id,
-    role,
-    is_active,
-    email
-  ) values (
-    v_household_id,
-    v_user_id,
-    'admin',
-    true,
-    v_email
-  );
-
-  insert into public.accounts (
-    household_id,
-    name,
-    type,
-    created_by
-  ) values (
-    v_household_id,
-    v_account_name,
-    'cash',
-    v_user_id
-  );
-
-  if v_preset = 'simple' then
-    insert into public.jars (household_id, name, kind, sort_order) values
-      (v_household_id, 'Needs', 'spending', 1),
-      (v_household_id, 'Wants', 'spending', 2),
-      (v_household_id, 'Savings', 'savings', 3);
-
-    insert into public.jar_plans (household_id, jar_id, plan_kind, percent_bps)
-    select v_household_id, j.id, 'percent',
-      case j.name
-        when 'Needs' then 5000
-        when 'Wants' then 3000
-        when 'Savings' then 2000
-        else 0
-      end
-    from public.jars j
-    where j.household_id = v_household_id;
-  else
-    insert into public.jars (household_id, name, kind, sort_order) values
-      (v_household_id, 'Essentials', 'spending', 1),
-      (v_household_id, 'Lifestyle', 'spending', 2),
-      (v_household_id, 'Buffer', 'buffer', 3),
-      (v_household_id, 'Savings', 'savings', 4);
-
-    insert into public.jar_plans (household_id, jar_id, plan_kind, percent_bps)
-    select v_household_id, j.id, 'percent',
-      case j.name
-        when 'Essentials' then 5000
-        when 'Lifestyle' then 3000
-        when 'Buffer' then 1000
-        when 'Savings' then 1000
-        else 0
-      end
-    from public.jars j
-    where j.household_id = v_household_id;
-  end if;
-
-  return v_household_id;
-end;
-$$;
-
-revoke all on function public.create_household_with_essentials(text, text, text, char, text, text) from public;
-grant execute on function public.create_household_with_essentials(text, text, text, char, text, text)
-  to authenticated;
+on conflict (jar_id) do nothing;;

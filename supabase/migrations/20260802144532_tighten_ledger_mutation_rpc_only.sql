@@ -214,4 +214,4 @@ end;
 $$;
 
 revoke all on function public.record_transaction(uuid, text, numeric, date, text, uuid, uuid, text) from public;
-grant execute on function public.record_transaction(uuid, text, numeric, date, text, uuid, uuid, text) to authenticated;
+grant execute on function public.record_transaction(uuid, text, numeric, date, text, uuid, uuid, text) to authenticated;;

@@ -113,8 +113,8 @@ const DEFAULT_EVENT_SEMANTICS: FinancialEventSemantics = {
 const REVERSAL_CASH_DIRECTION_BY_LEDGER_TYPE: Partial<
   Record<string, FinancialCashDirection>
 > = {
-  [TransactionLedgerType.EXPENSE]: FinancialCashDirection.INFLOW,
-  [TransactionLedgerType.INCOME]: FinancialCashDirection.OUTFLOW,
+  [TransactionLedgerType.EXPENSE]: FinancialCashDirection.OUTFLOW,
+  [TransactionLedgerType.INCOME]: FinancialCashDirection.INFLOW,
 };
 
 const LEDGER_TYPE_EVENT_SEMANTICS: Partial<
@@ -406,9 +406,7 @@ export function classifyFinancialEvent(
 function classifyEventSemantics(
   row: FinancialSemanticRow,
 ): FinancialEventSemantics {
-  const reversed = Boolean(
-    row.isReversal || row.reversesTransactionId || row.correctsTransactionId,
-  );
+  const reversed = Boolean(row.isReversal || row.reversesTransactionId);
   const type = row.type;
 
   if (reversed) {

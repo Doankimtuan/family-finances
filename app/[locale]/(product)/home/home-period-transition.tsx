@@ -5,7 +5,6 @@ import {
   type ReactNode,
   useContext,
   useEffect,
-  useRef,
   useState,
   useTransition,
 } from "react";
@@ -14,6 +13,8 @@ import { useRouter } from "@/i18n/navigation";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import {
   HomeDashboardPeriod,
+  HOME_PERIOD_FOCUS_INTENT_KEY,
+  HOME_PERIOD_FOCUS_QUERY,
   HOME_TEST_ID,
   type HomeDashboardPeriod as HomeDashboardPeriodValue,
 } from "@/modules/home/application/home-constants";
@@ -24,15 +25,14 @@ import { HomeDashboardSkeleton } from "./home-dashboard-skeleton";
 type HomePeriodTransitionState = {
   isPending: boolean;
   optimisticPeriod: HomeDashboardPeriodValue;
-  selectPeriod: (period: HomeDashboardPeriodValue) => void;
+  selectPeriod: (
+    period: HomeDashboardPeriodValue,
+    restoreFocus: boolean,
+  ) => void;
 };
 
 const HomePeriodTransitionContext =
   createContext<HomePeriodTransitionState | null>(null);
-
-function homePathForPeriod(period: HomeDashboardPeriodValue) {
-  return period === HomeDashboardPeriod.MONTH ? "" : `?period=${period}`;
-}
 
 export function HomePeriodTransition({
   period,
@@ -45,43 +45,45 @@ export function HomePeriodTransition({
   const [isPending, startTransition] = useTransition();
   const [pendingPeriod, setPendingPeriod] =
     useState<HomeDashboardPeriodValue | null>(null);
-  const focusPeriod = useRef<HomeDashboardPeriodValue | null>(null);
   const optimisticPeriod =
     isPending && pendingPeriod != null ? pendingPeriod : period;
-
-  useEffect(() => {
-    const selectedPeriod = focusPeriod.current;
-    if (selectedPeriod == null || isPending) return;
-
-    if (selectedPeriod === period) {
-      const testId =
-        selectedPeriod === HomeDashboardPeriod.MONTH
-          ? HOME_TEST_ID.PERIOD_MONTH
-          : HOME_TEST_ID.PERIOD_QUARTER;
-      const selectedControl = document.querySelector<HTMLElement>(
-        `[data-testid="${testId}"]`,
-      );
-      selectedControl?.focus();
-    }
-
-    focusPeriod.current = null;
-  }, [isPending, period]);
 
   useEffect(() => {
     const alternatePeriod =
       period === HomeDashboardPeriod.MONTH
         ? HomeDashboardPeriod.QUARTER
         : HomeDashboardPeriod.MONTH;
-    router.prefetch(`${APP_PATH.HOME}${homePathForPeriod(alternatePeriod)}`);
+    router.prefetch(
+      alternatePeriod === HomeDashboardPeriod.MONTH
+        ? APP_PATH.HOME
+        : { pathname: APP_PATH.HOME, query: { period: alternatePeriod } },
+    );
   }, [period, router]);
 
-  const selectPeriod = (nextPeriod: HomeDashboardPeriodValue) => {
+  const selectPeriod = (
+    nextPeriod: HomeDashboardPeriodValue,
+    restoreFocus: boolean,
+  ) => {
     if (nextPeriod === optimisticPeriod || isPending) return;
 
     setPendingPeriod(nextPeriod);
-    focusPeriod.current = nextPeriod;
+    if (restoreFocus) {
+      window.sessionStorage.setItem(HOME_PERIOD_FOCUS_INTENT_KEY, nextPeriod);
+    }
     startTransition(() => {
-      router.replace(`${APP_PATH.HOME}${homePathForPeriod(nextPeriod)}`);
+      const query = {
+        ...(nextPeriod === HomeDashboardPeriod.QUARTER
+          ? { period: nextPeriod }
+          : {}),
+        ...(restoreFocus
+          ? { [HOME_PERIOD_FOCUS_QUERY]: HOME_PERIOD_FOCUS_INTENT_KEY }
+          : {}),
+      };
+      router.replace(
+        Object.keys(query).length > 0
+          ? { pathname: APP_PATH.HOME, query }
+          : APP_PATH.HOME,
+      );
     });
   };
 

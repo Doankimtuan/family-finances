@@ -67,7 +67,7 @@ export default async function TransactionRefundPage({ params }: Props) {
           />
           <Link
             href={APP_PATH.MONEY_TRANSACTIONS}
-            className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary"
+            className="inline-flex min-h-11 w-full items-center justify-center rounded-(--radius-control) border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary"
           >
             {t("detailPage.back")}
           </Link>
@@ -110,7 +110,7 @@ export default async function TransactionRefundPage({ params }: Props) {
         <div className="px-(--space-4) py-(--space-6)">
           <Link
             href={APP_PATH.MONEY_TRANSACTIONS}
-            className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary"
+            className="inline-flex min-h-11 w-full items-center justify-center rounded-(--radius-control) border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary"
           >
             {t("detailPage.back")}
           </Link>
@@ -142,7 +142,7 @@ export default async function TransactionRefundPage({ params }: Props) {
           />
           <Link
             href={moneyTransactionPath(tx.id)}
-            className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary"
+            className="inline-flex min-h-11 w-full items-center justify-center rounded-(--radius-control) border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary"
           >
             {t("detailPage.back")}
           </Link>

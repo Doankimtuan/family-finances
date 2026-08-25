@@ -14,6 +14,8 @@ export const InboxItemKind = {
   EARLY_WITHDRAWAL_CONFIRMATION: "early_withdrawal_confirmation",
   EMI_COMPLETE: "emi_complete",
   EMERGENCY_DECLARATION: "emergency_declaration",
+  LOAN_PAYMENT_ATTENTION: "loan_payment_attention",
+  DEBT_PAYMENT_ATTENTION: "debt_payment_attention",
 } as const;
 
 export type InboxItemKind = (typeof InboxItemKind)[keyof typeof InboxItemKind];
@@ -120,6 +122,7 @@ export const INBOX_RPC = {
   ACKNOWLEDGE: "acknowledge_inbox_item",
   AUTO_RESOLVE: "auto_resolve_inbox_item",
   STALENESS_WORKER: "run_inbox_staleness_worker",
+  SYNC_LOAN_DEBT_ATTENTION: "sync_loan_debt_attention_inbox",
 } as const;
 
 export const INBOX_OPERATION = {
@@ -134,7 +137,30 @@ export const INBOX_OPERATION = {
   DECISION_PANEL: "inboxDecisionPanel",
   SAVINGS_MATURITY_SYNC: "syncSavingsMaturityInboxItems",
   SAVINGS_EARLY_WITHDRAWAL_UPSERT: "upsertSavingsEarlyWithdrawalInboxItem",
+  LOAN_DEBT_ATTENTION_SYNC: "syncLoanDebtAttentionInboxItems",
+  MARK_READ: "markInboxItemRead",
+  MARK_UNREAD: "markInboxItemUnread",
 } as const;
+
+export const INBOX_OPEN_PAGE_SIZE = 25;
+
+export const InboxEnrichmentState = {
+  READY: "READY",
+  UNAVAILABLE: "UNAVAILABLE",
+  READ_ONLY: "READ_ONLY",
+} as const;
+
+export type InboxEnrichmentState =
+  (typeof InboxEnrichmentState)[keyof typeof InboxEnrichmentState];
+
+export const InboxLifecycleContext = {
+  DUE: "due",
+  MATURITY: "maturity",
+  EXPIRES: "expires",
+} as const;
+
+export type InboxLifecycleContext =
+  (typeof InboxLifecycleContext)[keyof typeof InboxLifecycleContext];
 
 export const SAVINGS_INBOX_CONTEXT = {
   EARLY_WITHDRAWAL_TITLE: "Early withdrawal",
@@ -273,6 +299,8 @@ export function isGuidedKind(kind: InboxItemKind): boolean {
     kind === InboxItemKind.SAVINGS_MATURITY ||
     kind === InboxItemKind.EARLY_WITHDRAWAL_CONFIRMATION ||
     kind === InboxItemKind.EMI_COMPLETE ||
+    kind === InboxItemKind.LOAN_PAYMENT_ATTENTION ||
+    kind === InboxItemKind.DEBT_PAYMENT_ATTENTION ||
     kind === InboxItemKind.EMERGENCY_DECLARATION
   );
 }

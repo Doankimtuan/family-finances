@@ -11,6 +11,7 @@ import { StatusAlert } from "@/shared/ui/status-alert";
 import { AlertVariant } from "@/shared/ui/alert";
 import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
+import { SelectField } from "@/shared/ui/form/select-field";
 import { updatePreferencesAction } from "./actions";
 import { useStatusAlert } from "@/providers/status-alert-provider";
 
@@ -25,6 +26,16 @@ export function HouseholdPreferencesForm({
   const [isPending, startTransition] = useTransition();
   const statusAlert = useStatusAlert();
   const dirty = locale !== initial.locale;
+  const localeOptions = [
+    {
+      id: HOUSEHOLD_LOCALE.ENGLISH_VIETNAM,
+      label: t("localeEnglish"),
+    },
+    {
+      id: HOUSEHOLD_LOCALE.VIETNAMESE_VIETNAM,
+      label: t("localeVietnamese"),
+    },
+  ] as const;
 
   const onSave = () => {
     statusAlert.hide();
@@ -76,32 +87,23 @@ export function HouseholdPreferencesForm({
           description={t("interpretationDescription")}
         />
         <Card className="gap-(--space-4) p-(--space-4)">
-          <label
-            htmlFor="household-locale"
-            className="flex flex-col gap-(--space-2) text-sm font-medium text-text-primary"
-          >
-            {t("localeLabel")}
-            <select
-              id="household-locale"
-              value={locale}
-              disabled={!initial.canEdit || isPending}
-              onChange={(event) =>
-                setLocale(
-                  event.target.value === HOUSEHOLD_LOCALE.VIETNAMESE_VIETNAM
-                    ? HOUSEHOLD_LOCALE.VIETNAMESE_VIETNAM
-                    : HOUSEHOLD_LOCALE.ENGLISH_VIETNAM,
-                )
+          <SelectField
+            id="household-locale"
+            label={t("localeLabel")}
+            description={t("localeDescription")}
+            value={locale}
+            onChange={(value) => {
+              if (
+                value === HOUSEHOLD_LOCALE.ENGLISH_VIETNAM ||
+                value === HOUSEHOLD_LOCALE.VIETNAMESE_VIETNAM
+              ) {
+                setLocale(value);
               }
-              className="min-h-11 w-full rounded-md border border-border-subtle bg-surface px-(--space-3) text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring disabled:opacity-(--opacity-disabled)"
-            >
-              <option value={HOUSEHOLD_LOCALE.ENGLISH_VIETNAM}>
-                {t("localeEnglish")}
-              </option>
-              <option value={HOUSEHOLD_LOCALE.VIETNAMESE_VIETNAM}>
-                {t("localeVietnamese")}
-              </option>
-            </select>
-          </label>
+            }}
+            options={localeOptions}
+            isDisabled={!initial.canEdit || isPending}
+            data-testid="household-locale"
+          />
 
           <div className="flex flex-col gap-(--space-1)">
             <Text size="sm" tone="secondary">
@@ -128,6 +130,7 @@ export function HouseholdPreferencesForm({
           className="w-full"
           data-testid="preferences-save"
           isDisabled={!dirty || isPending}
+          isPending={isPending}
           onPress={onSave}
         >
           {isPending ? t("saving") : t("save")}

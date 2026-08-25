@@ -3,6 +3,11 @@ import type {
   InboxItemStatus,
   InboxSourceType,
 } from "./inbox-constants";
+import type { InboxSourceCapability } from "./inbox-source-capabilities";
+import type {
+  InboxEnrichmentState,
+  InboxLifecycleContext,
+} from "./inbox-constants";
 import type { TypedReviewItem } from "./review-item-schemas";
 
 export type InboxReviewItem = {
@@ -21,6 +26,10 @@ export type InboxReviewItem = {
   sourceType: InboxSourceType | null;
   createdAt: string;
   expiresAt: string | null;
+  lifecycleDate: string | null;
+  lifecycleContext: InboxLifecycleContext | null;
+  lifecycleOverdue: boolean;
+  readAt: string | null;
   autoResolved: boolean;
   confidenceScore: number | null;
   suggestedJarId: string | null;
@@ -39,9 +48,18 @@ export type InboxReviewItem = {
   executedByUserId: string | null;
   /** Partner assignee for targeted emergency alerts (BR-13). */
   assignedToUserId: string | null;
-  sourceOwnerActive: boolean;
-  ownerUnavailable: boolean;
-  canExecuteOutcome: boolean;
+  capability: InboxSourceCapability;
+  enrichmentState: InboxEnrichmentState;
+};
+
+export type InboxPageCursor = {
+  createdAt: string;
+  id: string;
+};
+
+export type InboxPage = {
+  items: InboxReviewItem[];
+  nextCursor: InboxPageCursor | null;
 };
 
 export type InboxCanonicalReviewItem = InboxReviewItem & {

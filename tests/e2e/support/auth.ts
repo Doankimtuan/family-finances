@@ -14,7 +14,7 @@ export const E2E_AUTH_DEBUG_PATH = resolve(
 );
 
 const E2E_LOGIN_PATH = `/en${APP_PATH.LOGIN}`;
-const E2E_TRANSACTIONS_PATH = `/en${APP_PATH.MONEY_TRANSACTIONS}`;
+const E2E_MONEY_PATH = `/en${APP_PATH.MONEY}`;
 
 export async function ensureE2EAuthDirectories(): Promise<void> {
   await mkdir(dirname(E2E_AUTH_STATE_PATH), { recursive: true });
@@ -40,10 +40,16 @@ export async function authenticateE2EUser(page: Page): Promise<void> {
   const { email, password } = getE2ECredentials();
 
   try {
-    await page.goto(E2E_LOGIN_PATH);
-    await page.getByLabel("Email").fill(email);
+    await page.goto(E2E_LOGIN_PATH, { waitUntil: "domcontentloaded" });
+    const emailField = page.locator("#login-email");
+    const loginButton = page.getByRole("button", { name: /log in/i });
+    await expect(emailField).toBeVisible({ timeout: 20_000 });
+    await expect(loginButton).toBeEnabled();
+    await emailField.fill(email);
+    await expect(emailField).toHaveValue(email);
     await page.locator("#login-password").fill(password);
-    await page.getByRole("button", { name: /log in/i }).click();
+    await expect(page.locator("#login-password")).toHaveValue(password);
+    await loginButton.click();
     await expect(page).toHaveURL(/\/en\/(home|together\/onboard)(?:\?.*)?$/, {
       timeout: 20_000,
     });
@@ -54,10 +60,10 @@ export async function authenticateE2EUser(page: Page): Promise<void> {
       );
     }
 
-    await page.goto(E2E_TRANSACTIONS_PATH, {
+    await page.goto(E2E_MONEY_PATH, {
       waitUntil: "domcontentloaded",
     });
-    await expect(page.getByTestId("money-transactions").last()).toBeVisible({
+    await expect(page.getByTestId("money-hub")).toBeVisible({
       timeout: 20_000,
     });
   } catch (error) {

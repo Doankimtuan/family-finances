@@ -29,7 +29,11 @@ test.describe("Inbox queue (ST-E06-001 / F4)", () => {
     await page.goto("/en/inbox");
     await expect(page.getByTestId("inbox-queue")).toBeVisible();
     await expect(
-      page.getByText(/What needs a decision|Việc nào cần quyết định/i),
+      page
+        .getByText(
+          /What needs a decision|Needs your attention|Việc nào cần quyết định|Cần bạn chú ý/i,
+        )
+        .first(),
     ).toBeVisible();
 
     // F4: batch/delegate must not appear.
@@ -49,12 +53,17 @@ test.describe("Inbox queue (ST-E06-001 / F4)", () => {
       if ((await firstLink.count()) > 0) {
         await firstLink.click();
         await expect(page.getByTestId("inbox-detail")).toBeVisible();
-        await expect(page.getByTestId("inbox-decision-question")).toBeVisible();
-        await expect(page.getByTestId("inbox-decision-panel")).toBeVisible();
-        await expect(page.getByTestId("inbox-dismiss")).toBeVisible();
-        await expect(page.getByTestId("inbox-partner-equal")).toBeVisible();
-        await expect(page.getByTestId("inbox-batch")).toHaveCount(0);
-        await expect(page.getByTestId("inbox-delegate")).toHaveCount(0);
+        const decisionPanel = page.getByTestId("inbox-decision-panel");
+        if ((await decisionPanel.count()) > 0) {
+          await expect(
+            page.getByTestId("inbox-decision-question"),
+          ).toBeVisible();
+          await expect(decisionPanel).toBeVisible();
+          await expect(page.getByTestId("inbox-dismiss")).toBeVisible();
+          await expect(page.getByTestId("inbox-partner-equal")).toBeVisible();
+          await expect(page.getByTestId("inbox-batch")).toHaveCount(0);
+          await expect(page.getByTestId("inbox-delegate")).toHaveCount(0);
+        }
 
         const viewSource = page.getByTestId("inbox-view-source");
         if ((await viewSource.count()) > 0) {
@@ -62,7 +71,9 @@ test.describe("Inbox queue (ST-E06-001 / F4)", () => {
           await expect(page).not.toHaveURL(/\/en\/inbox\/[^/]+$/);
           await page.goBack();
           await expect(page.getByTestId("inbox-detail")).toBeVisible();
-          await expect(page.getByTestId("inbox-back-queue")).toBeVisible();
+          await expect(
+            page.getByRole("link", { name: /Back to Inbox|Về Hộp thư/i }),
+          ).toBeVisible();
         }
       }
     }

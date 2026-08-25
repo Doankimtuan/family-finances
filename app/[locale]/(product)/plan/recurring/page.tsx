@@ -15,6 +15,7 @@ import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Card } from "@/shared/patterns/card";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { Text } from "@/shared/ui/text";
+import { FinancialValue } from "@/shared/patterns/financial-value";
 import { PlanOfflineBanner } from "../plan-offline-banner";
 import { CreateRecurringForm } from "./create-recurring-form";
 
@@ -92,9 +93,11 @@ export default async function PlanRecurringPage({ params }: Props) {
                       </div>
                       <div className="shrink-0 text-right">
                         <span className="text-sm font-semibold tabular-nums text-text-primary">
-                          {formatCurrency(rule.amount, currency, locale, {
-                            maximumFractionDigits: 0,
-                          })}
+                          <FinancialValue>
+                            {formatCurrency(rule.amount, currency, locale, {
+                              maximumFractionDigits: 0,
+                            })}
+                          </FinancialValue>
                         </span>
                         <Text size="sm" tone="secondary">
                           {rule.isActive ? t("active") : t("inactive")}

@@ -73,13 +73,9 @@ for (const config of cases) {
     { timeout: 20_000 },
   );
   await Promise.all([
-    page.waitForResponse(
-      (response) =>
-        response.request().method() === "POST" &&
-        response.url().endsWith(`/${config.locale}/login`) &&
-        response.ok(),
-      { timeout: 30_000 },
-    ),
+    page.waitForURL(new RegExp(`/${config.locale}/(?:home|together/onboard)`), {
+      timeout: 30_000,
+    }),
     loginButton.click(),
   ]);
   if (page.url().includes("together/onboard")) {

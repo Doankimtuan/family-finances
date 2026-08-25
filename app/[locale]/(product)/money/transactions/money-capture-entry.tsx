@@ -14,6 +14,7 @@ import {
 } from "@/modules/ledger/application/client";
 import { CaptureTransactionForm } from "./capture-transaction-form";
 import { TransferCaptureFlow } from "./transfer-capture-flow";
+import { MotionStep } from "@/shared/motion/step";
 
 type Props = {
   accounts: LedgerAccount[];
@@ -40,13 +41,13 @@ export function MoneyCaptureEntry({
 
   return (
     <div
-      className="flex flex-col gap-(--space-4)"
+      className="flex flex-col gap-(--space-5)"
       data-testid="money-capture-entry"
     >
       <fieldset className="flex flex-col gap-(--space-2)">
         <legend className="sr-only">{t("modeLabel")}</legend>
         <div
-          className="grid grid-cols-3 gap-(--space-1) rounded-[var(--radius-control)] border border-border-subtle bg-surface p-(--space-1)"
+          className="grid grid-cols-3 gap-(--space-1) rounded-[var(--radius-control)] border border-border-subtle/80 bg-surface/80 p-(--space-1) shadow-(--elevation-1)"
           role="radiogroup"
           aria-label={t("modeLabel")}
           data-testid="capture-mode-group"
@@ -62,8 +63,8 @@ export function MoneyCaptureEntry({
               data-testid={`capture-mode-${value}`}
               className={
                 mode === value
-                  ? "min-h-11 rounded-[var(--radius-control)] border border-accent/40 bg-accent/10 px-(--space-2) text-sm font-semibold text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-                  : "min-h-11 rounded-[var(--radius-control)] px-(--space-2) text-sm font-medium text-text-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+                  ? "min-h-11 rounded-[var(--radius-control)] border border-accent/40 bg-accent/10 px-(--space-2) text-sm font-semibold text-text-primary shadow-[var(--elevation-1)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+                  : "min-h-11 rounded-[var(--radius-control)] px-(--space-2) text-sm font-medium text-text-secondary transition-colors duration-(--duration-fast) hover:bg-surface-hover hover:text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none"
               }
               onClick={() => setMode(value)}
               onKeyDown={(event) => {
@@ -92,24 +93,26 @@ export function MoneyCaptureEntry({
         </div>
       </fieldset>
 
-      {mode === MoneyCaptureMode.TRANSFER ? (
-        <TransferCaptureFlow
-          accounts={accounts}
-          currency={currency}
-          onBackToCapture={() => setMode(MoneyCaptureMode.EXPENSE)}
-        />
-      ) : (
-        <CaptureTransactionForm
-          key={mode}
-          accounts={accounts}
-          expenseTags={expenseTags}
-          incomeTags={incomeTags}
-          jars={jars}
-          transactionTags={transactionTags}
-          currency={currency}
-          initialDirection={mode}
-        />
-      )}
+      <MotionStep stepKey={mode}>
+        {mode === MoneyCaptureMode.TRANSFER ? (
+          <TransferCaptureFlow
+            accounts={accounts}
+            currency={currency}
+            onBackToCapture={() => setMode(MoneyCaptureMode.EXPENSE)}
+          />
+        ) : (
+          <CaptureTransactionForm
+            key={mode}
+            accounts={accounts}
+            expenseTags={expenseTags}
+            incomeTags={incomeTags}
+            jars={jars}
+            transactionTags={transactionTags}
+            currency={currency}
+            initialDirection={mode}
+          />
+        )}
+      </MotionStep>
     </div>
   );
 }

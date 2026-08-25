@@ -73,7 +73,7 @@ export const HOUSEHOLD_BASE_CURRENCY = {
   VIETNAM_DONG: "VND",
 } as const;
 
-export const HOUSEHOLD_MEMBER_LIMIT = 2;
+export const HOUSEHOLD_MEMBER_LIMIT = 10;
 
 export const INVITATION_TTL_DAYS = 7;
 
@@ -123,6 +123,7 @@ export const INVITATION_RPC_MESSAGE_NEEDLE = {
   ALREADY_PENDING: "already pending",
   TWO_PARTNERS: "two partners",
   HOUSEHOLD_FULL: "household full",
+  HOUSEHOLD_IS_FULL: "household is full",
   NO_ACTIVE_HOUSEHOLD: "no active household",
   AUTHENTICATION: "authentication",
   NOT_FOUND: "not found",

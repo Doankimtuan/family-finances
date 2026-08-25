@@ -7,10 +7,8 @@
 alter table public.household_members
   add column if not exists left_at timestamptz,
   add column if not exists removed_by uuid references auth.users(id) on delete set null;
-
 create index if not exists idx_household_members_household_active
   on public.household_members (household_id, is_active);
-
 create or replace function public.prevent_owned_membership_delete()
 returns trigger
 language plpgsql
@@ -30,13 +28,11 @@ begin
   return old;
 end;
 $$;
-
 drop trigger if exists household_members_prevent_owned_delete_trg
   on public.household_members;
 create trigger household_members_prevent_owned_delete_trg
 before delete on public.household_members
 for each row execute function public.prevent_owned_membership_delete();
-
 create or replace function public.create_household_invitation(p_email text)
 returns table (invitation_id uuid, token uuid, expires_at timestamptz)
 language plpgsql
@@ -112,7 +108,6 @@ begin
   return next;
 end;
 $$;
-
 create or replace function public.revoke_household_invitation(p_invitation_id uuid)
 returns boolean
 language plpgsql
@@ -159,7 +154,6 @@ begin
   return true;
 end;
 $$;
-
 create or replace function public.accept_household_invitation(p_token uuid)
 returns uuid
 language plpgsql
@@ -250,7 +244,6 @@ begin
   return v_invite.household_id;
 end;
 $$;
-
 create or replace function public.leave_household()
 returns boolean
 language plpgsql
@@ -301,7 +294,6 @@ begin
   return true;
 end;
 $$;
-
 create or replace function public.remove_household_member(p_membership_id uuid)
 returns boolean
 language plpgsql
@@ -355,7 +347,6 @@ begin
   return true;
 end;
 $$;
-
 -- Role changes may not create an active household with no Admin.
 create or replace function public.change_household_member_role(
   p_membership_id uuid,
@@ -424,12 +415,10 @@ begin
   return true;
 end;
 $$;
-
 revoke all on function public.leave_household() from public;
 revoke all on function public.remove_household_member(uuid) from public;
 grant execute on function public.leave_household() to authenticated;
 grant execute on function public.remove_household_member(uuid) to authenticated;
-
 comment on function public.leave_household() is
   'Deactivates the caller membership without deleting ownership identity or '
   'transferring personal resources. Admin continuity is required.';

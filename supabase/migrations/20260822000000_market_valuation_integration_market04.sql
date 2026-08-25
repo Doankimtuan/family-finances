@@ -12,13 +12,10 @@ create table public.market_currency_rates (
   primary key (base_currency, quote_currency),
   check (base_currency <> quote_currency)
 );
-
 alter table public.market_currency_rates enable row level security;
-
 create policy market_currency_rates_select_authenticated
   on public.market_currency_rates for select to authenticated
   using (true);
-
 revoke all on table public.market_currency_rates from anon, authenticated;
 grant select on table public.market_currency_rates to authenticated;
 grant select, insert, update, delete on table public.market_currency_rates to service_role;

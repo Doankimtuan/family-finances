@@ -4,7 +4,12 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import { Button } from "@/shared/ui/button";
-import type { JarCategoryFormOption, JarOption } from "./jar-configuration-form";
+import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
+import { Sheet } from "@/shared/patterns/sheet";
+import type {
+  JarCategoryFormOption,
+  JarOption,
+} from "./jar-configuration-form";
 import { JarConfigurationForm } from "./jar-configuration-form";
 
 type Props = {
@@ -24,8 +29,8 @@ export function CreateJarForm({
   const { online } = useOnlineStatusClient();
   const [open, setOpen] = useState(false);
 
-  if (!open) {
-    return (
+  return (
+    <>
       <Button
         variant="secondary"
         className="w-full"
@@ -35,18 +40,21 @@ export function CreateJarForm({
       >
         {online ? t("create") : t("errors.offline")}
       </Button>
-    );
-  }
-
-  return (
-    <JarConfigurationForm
-      mode="create"
-      categories={categories}
-      availableJars={availableJars}
-      currency={currency}
-      qualifyingIncome={qualifyingIncome}
-      onCancel={() => setOpen(false)}
-      onSaved={() => setOpen(false)}
-    />
+      <Sheet isOpen={open} onOpenChange={setOpen}>
+        <ActionSheetLayout>
+          {open ? (
+            <JarConfigurationForm
+              mode="create"
+              categories={categories}
+              availableJars={availableJars}
+              currency={currency}
+              qualifyingIncome={qualifyingIncome}
+              onCancel={() => setOpen(false)}
+              onSaved={() => setOpen(false)}
+            />
+          ) : null}
+        </ActionSheetLayout>
+      </Sheet>
+    </>
   );
 }

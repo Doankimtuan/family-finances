@@ -41,7 +41,7 @@
     "backToList": "Về danh sách hũ",
     "planLabel": "Kế hoạch",
     "planPercent": "{percent}% thu nhập",
-    "planFixed": "{amount} cố định",
+    "planFixed": "<money>{amount}</money> cố định",
     "planNone": "Chưa có kế hoạch",
     "detailTitle": "Hũ",
     "detailSubtitle": "Đích ý định — không phải số dư ngân hàng",
@@ -182,8 +182,8 @@
     "budget": {
       "heading": "Ngân sách hũ tháng này",
       "notAvailable": "Chưa có ngân sách cho kỳ này.",
-      "overBy": "Vượt {amount}",
-      "remaining": "Còn {amount}",
+      "overBy": "Vượt <money>{amount}</money>",
+      "remaining": "Còn <money>{amount}</money>",
       "setIncome": "Thêm cơ sở thu nhập để tính ngân sách.",
       "spent": "Đã chi {amount}",
       "used": "Đã dùng {percent}%"
@@ -239,11 +239,12 @@
     "createDateLabel": "Ngày đích (tuỳ chọn)",
     "createSubmit": "Lưu mục tiêu",
     "createCancel": "Huỷ",
-    "fundedLabel": "Tiến độ {amount}",
-    "targetLabel": "Mục tiêu {amount}",
+    "fundedLabel": "Tiến độ <money>{amount}</money>",
+    "targetLabel": "Mục tiêu <money>{amount}</money>",
     "backToPlan": "Về Plan",
     "backToList": "Về mục tiêu",
     "detailSubtitle": "Tiến độ ý định — không phải số dư ngân hàng",
+    "progressIndeterminate": "Một phần tiến độ chưa thể tính",
     "progressHeading": "Tiến độ",
     "targetHeading": "Mục tiêu",
     "contributeHeading": "Ghi tiến độ",
@@ -274,7 +275,7 @@
     "progressIntentionHint": "Cập nhật tiến độ chỉ là ý định. Không phải chuyển khoản hay thanh toán.",
     "contributeProgressTitle": "Chỉ là tiến độ",
     "contributeReceiptTitle": "Đã lưu tiến độ",
-    "contributeReceiptBody": "Tiến độ ý định hiện là {amount}. Tiền thật không đổi.",
+    "contributeReceiptBody": "Tiến độ ý định hiện là <money>{amount}</money>. Tiền thật không đổi.",
     "lifecycleHeading": "Trạng thái mục tiêu",
     "pause": "Tạm dừng",
     "resume": "Tiếp tục",
@@ -315,22 +316,25 @@
     "createFundingOptional": "Co the bo qua luc nay. Muc tieu chua lien ket se duoc danh dau can nguon tai tro.",
     "fundingAlreadyLinked": "Da lien ket voi muc tieu khac",
     "fundingDeferredHint": "Mot so du lieu Money da lien ket can duoc kiem tra truoc khi gia tri day du",
-    "marketValueLabel": "Gia tri thi truong {amount}",
-    "costBasisLabel": "Da dau tu {amount}",
-    "gainLossLabel": "Lai/lo {amount}",
-    "originalPrincipalLabel": "Goc ban dau {amount}",
-    "remainingPrincipalLabel": "Con lai {amount}",
-    "principalPaidLabel": "Da tra goc {amount}",
+    "marketValueLabel": "Gia tri thi truong <money>{amount}</money>",
+    "costBasisLabel": "Da dau tu <money>{amount}</money>",
+    "gainLossLabel": "Lai/lo <money>{amount}</money>",
+    "originalPrincipalLabel": "Goc ban dau <money>{amount}</money>",
+    "remainingPrincipalLabel": "Con lai <money>{amount}</money>",
+    "principalPaidLabel": "Da tra goc <money>{amount}</money>",
     "fundingValueQuality": {
       "current": "Gia tri moi cap nhat",
       "stale": "Gia tri co the da cu",
+      "indeterminate": "Chua xac dinh duoc gia tri",
       "partial": "Mot so gia tri da lien ket can cap nhat",
       "missing": "Chua co gia tri thi truong",
       "incomplete": "Thong tin no can duoc kiem tra",
-      "legacy": "Tien do cu"
+      "legacy": "Tien do cu",
+      "unknown": "Chua xac dinh duoc gia tri"
     },
     "createTypeLabel": "Loại mục tiêu",
     "fundingHeading": "Nguồn tài trợ",
+    "moreActions": "Thêm tác vụ",
     "moneyMovementTitle": "Dòng tiền",
     "moneyMovementBody": "Tác vụ tiền vẫn nằm ở Money; liên kết này chỉ giải thích mục tiêu.",
     "unlinkFunding": "Bỏ liên kết",
@@ -362,7 +366,7 @@
     "legacyManualLabel": "Chế độ tương thích",
     "legacyManualBody": "Mục tiêu chưa có nguồn Money liên kết. Hãy liên kết nguồn thật để dùng làm cách chính.",
     "completeBelowTargetBody": "Mục tiêu hiện đạt {percent}%. Bạn vẫn muốn hoàn thành?",
-    "completeWithRemainingBody": "Khoản nợ này vẫn còn {amount}. Bạn vẫn muốn hoàn thành mục tiêu?"
+    "completeWithRemainingBody": "Khoản nợ này vẫn còn <money>{amount}</money>. Bạn vẫn muốn hoàn thành mục tiêu?"
   },
   "recurring": {
     "title": "Định kỳ",
@@ -425,6 +429,7 @@
     "body": "Một lịch hộ chung giữa Plan và Money.",
     "cta": "Mở lịch",
     "startingBalance": "Dự báo từ tiền thật: {amount}",
+    "startingBalanceLabel": "Số dư đầu kỳ",
     "deficitTitle": "Cảnh báo dòng tiền sớm",
     "deficitBody": "{count} ngày có thể về ≤ 0. Ngày đầu: {first}.",
     "deficitClearTitle": "Không thấy thâm hụt",
@@ -601,9 +606,10 @@
     "jarsAttention": "{count, plural, =0 {Đang ổn} one {# hũ cần xem lại} other {# hũ cần xem lại}}",
     "noJars": "Không có hũ hoạt động trong tháng này.",
     "setupJars": "Thiết lập hũ",
-    "jarRemaining": "Còn lại {amount}",
-    "jarOver": "Vượt ngân sách {amount}",
+    "jarRemaining": "Còn lại <money>{amount}</money>",
+    "jarOver": "Vượt ngân sách <money>{amount}</money>",
     "goalsHeading": "Tiến độ mục tiêu",
+    "progressIndeterminate": "Một phần tiến độ chưa thể tính",
     "legacyProgress": "Tiến độ cũ · chưa xác thực bằng dòng tiền",
     "missingBacking": "Thiếu nguồn liên kết",
     "linkedFunding": "Đã liên kết nguồn",
@@ -617,7 +623,7 @@
     },
     "issuesHeading": "Cần xem lại",
     "uncategorized": "{count, plural, one {# giao dịch chưa có danh mục} other {# giao dịch chưa có danh mục}}",
-    "overspentJar": "{name} vượt ngân sách {amount}",
+    "overspentJar": "{name} vượt ngân sách <money>{amount}</money>",
     "goalBacking": "{name} chưa có nguồn liên kết",
     "missingIncome": "Hũ phần trăm chưa có cơ sở thu nhập",
     "reviewWithoutBlocking": "Đây chỉ là thông tin. Plan và Money vẫn dùng bình thường.",
@@ -632,6 +638,14 @@
     "updatedAfterReviewBody": "Giao dịch đã thay đổi sau lần tổng kết này. Số liệu hiện tại có thể khác số liệu đã đánh dấu.",
     "markReviewed": "Đánh dấu đã xem",
     "saving": "Đang lưu…",
+    "errors": {
+      "unauthenticated": "Đăng nhập để tiếp tục.",
+      "no_membership": "Tham gia hoặc tạo hộ trước.",
+      "invalid": "Tải lại bản tổng kết rồi thử lại.",
+      "month_locked": "Bản tổng kết này chỉ có thể xem.",
+      "offline": "Đang ngoại tuyến — thử lại khi có mạng.",
+      "unknown": "Không thể lưu bản tổng kết. Hãy thử lại."
+    },
     "reviewedBody": "Thao tác này chỉ ghi nhận trạng thái tổng kết. Plan và Money vẫn chỉnh sửa bình thường.",
     "backToPlan": "Về Plan"
   },
@@ -654,7 +668,7 @@
     "createJar": "Tạo hũ",
     "exceptionGoalBacking": "{name} cần nguồn tài chính",
     "exceptionNearLimit": "{name} sắp chạm ngân sách",
-    "exceptionNearLimitBody": "Còn {amount}",
+    "exceptionNearLimitBody": "Còn <money>{amount}</money>",
     "exceptionNoIncome": "Thiết lập thu nhập dự kiến",
     "exceptionOpenGoal": "Mở mục tiêu",
     "exceptionOpenInbox": "Mở Hộp thư",
@@ -662,13 +676,14 @@
     "exceptionOpenPlan": "Mở Plan",
     "exceptionOverAllocated": "Kế hoạch vượt thu nhập ({percent}%)",
     "exceptionOverspent": "{name} vượt ngân sách",
-    "exceptionOverspentBody": "Vượt {amount}",
+    "exceptionOverspentBody": "Vượt <money>{amount}</money>",
     "exceptionUncategorized": "{count, plural, one {# giao dịch cần phân loại} other {# giao dịch cần phân loại}}",
     "exceptionsTitle": "Cần xem lại",
     "goalFallbackName": "Mục tiêu",
     "goalLegacy": "Tiến độ cũ",
     "goalLinked": "Đã liên kết nguồn",
-    "goalProgress": "{funded} trên {target}",
+    "goalProgress": "<moneyFunded>{funded}</moneyFunded> trên <moneyTarget>{target}</moneyTarget>",
+    "goalProgressIndeterminate": "Chưa xác định được giá trị của một nguồn liên kết",
     "goalsEmptyBody": "Mục tiêu giúp gia đình gọi tên điều đang chuẩn bị.",
     "goalsEmptyTitle": "Chưa có mục tiêu",
     "goalsSeeAll": "Xem tất cả mục tiêu",
@@ -694,9 +709,11 @@
   },
   "recommendations": {
     "title": "Gợi ý",
+    "unknownJar": "Hũ",
+    "unknownGoal": "Mục tiêu",
     "jarOverspent": {
       "title": "{name} vượt ngân sách",
-      "withDonor": "Có thể phân bổ tối đa {amount} từ {donorName} sang {name}.",
+      "withDonor": "Có thể phân bổ tối đa <money>{amount}</money> từ {donorName} sang {name}.",
       "withoutDonor": "Xem lại ngân sách của hũ này; hiện không có hũ đang hoạt động nào còn ngân sách để bù."
     },
     "jarNearLimit": {
@@ -713,7 +730,7 @@
     },
     "overAllocated": {
       "title": "Kế hoạch vượt thu nhập",
-      "description": "Ngân sách các hũ dự kiến vượt thu nhập đủ điều kiện {amount}. Xem lại khoản cố định hoặc tỷ lệ phân bổ."
+      "description": "Ngân sách các hũ dự kiến vượt thu nhập đủ điều kiện <money>{amount}</money>. Xem lại khoản cố định hoặc tỷ lệ phân bổ."
     },
     "goalMissingBacking": {
       "title": "{name} cần nguồn tài chính",
@@ -724,8 +741,8 @@
       "description": "Xem lại nguồn tài chính của {name}; nguồn đang thiếu hoặc không khả dụng."
     },
     "goalValuationMissing": {
-      "title": "Chưa có giá trị đầu tư",
-      "description": "Chưa có giá trị thị trường cho một khoản đầu tư của mục tiêu. Tiến độ có thể chưa đầy đủ."
+      "title": "Chưa xác định được giá trị đầu tư",
+      "description": "Một khoản đầu tư liên kết chưa có giá trị dùng được. Chưa thể xác định đầy đủ tiến độ mục tiêu."
     },
     "goalValuationStale": {
       "title": "Giá trị đầu tư có thể đã cũ",
@@ -741,7 +758,7 @@
     },
     "recurringMismatch": {
       "title": "Chi phí định kỳ đã thay đổi",
-      "description": "Chi phí định kỳ đã thay đổi từ {expected} thành {actual}. Xem lại khoản định kỳ."
+      "description": "Chi phí định kỳ đã thay đổi từ <moneyExpected>{expected}</moneyExpected> thành <moneyActual>{actual}</moneyActual>. Xem lại khoản định kỳ."
     },
     "actions": {
       "reallocate": "Phân bổ lại ngân sách",

@@ -136,6 +136,62 @@ type OperationRow = {
   unit_price_vnd: string | number | null;
 };
 
+export const InvestmentHomeValuationQuality = {
+  CURRENT: "current",
+  STALE: "stale",
+  MANUAL: "manual",
+  PARTIAL: "partial",
+  UNKNOWN: "unknown",
+} as const;
+
+export type InvestmentHomeValuationQuality =
+  (typeof InvestmentHomeValuationQuality)[keyof typeof InvestmentHomeValuationQuality];
+
+export type InvestmentHomeSummary = {
+  activeCount: number;
+  marketValue: number | null;
+  unrealizedPnl: number | null;
+  realizedPnl: number;
+  income: number;
+  valuationQuality: InvestmentHomeValuationQuality;
+  valuationStale: boolean;
+  valuationIncluded: number;
+  valuationTotal: number;
+};
+
+type HomeHoldingRow = Pick<
+  HoldingRow,
+  | "id"
+  | "asset_class"
+  | "instrument_id"
+  | "quantity"
+  | "remaining_total_cost_basis"
+>;
+
+function investmentHomeQuality(
+  resolutions: readonly InvestmentValuationResolution[],
+  total: number,
+): InvestmentHomeSummary["valuationQuality"] {
+  const known = resolutions.filter(
+    (resolution) => resolution.currentValue != null,
+  );
+  if (known.length === 0) return "unknown";
+  if (known.length < total) return "partial";
+  if (
+    known.some(
+      (resolution) => resolution.quality === MarketValuationQuality.AUTO_STALE,
+    )
+  )
+    return "stale";
+  if (
+    known.some(
+      (resolution) => resolution.quality === MarketValuationQuality.MANUAL,
+    )
+  )
+    return "manual";
+  return "current";
+}
+
 function nullableNumber(value: string | number | null | undefined) {
   return value == null ? null : Number(value);
 }
@@ -482,6 +538,192 @@ async function loadHoldings(): Promise<InvestmentHolding[] | null> {
     return null;
   }
 }
+
+/**
+ * Home-sized Investment read. It intentionally omits lots, holding activity
+ * history, and per-holding provider work; valuation semantics stay in the
+ * shared resolver used by the Investments product.
+ */
+async function loadInvestmentHomeSummary(): Promise<InvestmentHomeSummary | null> {
+  const gate = await assertMoneyActionAllowed();
+  if (!gate.ok) return null;
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { data: holdingRows, error: holdingError } = await supabase
+      .from("investment_holdings")
+      .select(
+        "id, asset_class, instrument_id, quantity, remaining_total_cost_basis",
+      )
+      .eq("household_id", gate.householdId)
+      .neq("lifecycle_status", InvestmentLifecycleStatus.EXITED)
+      .gt("quantity", 0);
+    if (holdingError) return null;
+
+    const holdings = (holdingRows ?? []) as HomeHoldingRow[];
+    if (holdings.length === 0) {
+      return {
+        activeCount: 0,
+        marketValue: null,
+        unrealizedPnl: null,
+        realizedPnl: 0,
+        income: 0,
+        valuationQuality: "unknown",
+        valuationStale: false,
+        valuationIncluded: 0,
+        valuationTotal: 0,
+      };
+    }
+
+    const instrumentIds = holdings
+      .map((holding) => holding.instrument_id)
+      .filter((id): id is string => id != null);
+    const [summaryResult, instrumentResult, priceResult, fxResult] =
+      await Promise.all([
+        supabase.rpc("get_investment_home_summary_inputs"),
+        instrumentIds.length
+          ? supabase
+              .from("market_instruments")
+              .select(
+                "id, asset_class, symbol, name, exchange, currency, pricing_mode, auto_price_supported, is_active, metadata",
+              )
+              .in("id", instrumentIds)
+          : Promise.resolve({ data: [], error: null }),
+        instrumentIds.length
+          ? supabase
+              .from("market_instrument_prices")
+              .select(
+                "instrument_id, price, currency, price_type, price_date, fetched_at, provider, metadata, updated_at",
+              )
+              .in("instrument_id", instrumentIds)
+          : Promise.resolve({ data: [], error: null }),
+        supabase
+          .from("market_currency_rates")
+          .select(
+            "base_currency, quote_currency, rate, rate_date, fetched_at, provider, updated_at",
+          )
+          .eq("quote_currency", INVESTMENT_REPORTING_CURRENCY),
+      ]);
+    if (
+      summaryResult.error ||
+      instrumentResult.error ||
+      priceResult.error ||
+      fxResult.error
+    )
+      return null;
+
+    const latestValuations = new Map<string, ValuationRow>();
+    for (const row of (summaryResult.data ?? []) as Array<{
+      holding_id: string;
+      value_vnd: number | string | null;
+      valuation_date: string | null;
+      valuation_created_at: string | null;
+      unit_price_vnd: number | string | null;
+      valuation_source: string | null;
+    }>) {
+      if (row.value_vnd != null) {
+        latestValuations.set(row.holding_id, {
+          holding_id: row.holding_id,
+          value_vnd: row.value_vnd,
+          valuation_date: row.valuation_date ?? "",
+          created_at: row.valuation_created_at ?? "",
+          quantity: 0,
+          unit_price_vnd: row.unit_price_vnd,
+          source: row.valuation_source ?? "",
+        });
+      }
+    }
+    const instruments = new Map(
+      (instrumentResult.data as InstrumentRow[]).map((row) => [
+        row.id,
+        mapMarketInstrument(row),
+      ]),
+    );
+    const prices = new Map(
+      (priceResult.data as PriceRow[]).map((row) => [
+        row.instrument_id,
+        mapMarketPrice(row),
+      ]),
+    );
+    const rates = new Map(
+      (fxResult.data as CurrencyRateRow[]).map((row) => {
+        const rate = mapCurrencyRate(row);
+        return [`${rate.baseCurrency}/${rate.quoteCurrency}`, rate];
+      }),
+    );
+    const resolutions = holdings.map((holding) => {
+      const price = holding.instrument_id
+        ? (prices.get(holding.instrument_id) ?? null)
+        : null;
+      const manual = latestValuations.get(holding.id);
+      return resolveInvestmentValuation({
+        assetClass: holding.asset_class as InvestmentAssetClass,
+        quantity: String(holding.quantity),
+        remainingCostBasis: nullableNumber(holding.remaining_total_cost_basis),
+        instrument: holding.instrument_id
+          ? (instruments.get(holding.instrument_id) ?? null)
+          : null,
+        price,
+        fxRate: price
+          ? (rates.get(`${price.currency}/${INVESTMENT_REPORTING_CURRENCY}`) ??
+            null)
+          : null,
+        manualValuation: manual
+          ? {
+              valueVnd: Number(manual.value_vnd),
+              valuationDate: manual.valuation_date,
+              unitPriceVnd: nullableNumber(manual.unit_price_vnd),
+              source: manual.source,
+            }
+          : null,
+      });
+    });
+    const known = resolutions.filter(
+      (resolution) => resolution.currentValue != null,
+    );
+    const complete = resolutions.filter(
+      (resolution, index) =>
+        resolution.currentValue != null &&
+        holdings[index].remaining_total_cost_basis != null,
+    );
+    const operationTotals = (summaryResult.data?.[0] ?? {}) as {
+      realized_pnl?: number | string | null;
+      investment_income?: number | string | null;
+    };
+    return {
+      activeCount: holdings.length,
+      marketValue: known.length
+        ? known.reduce((sum, row) => sum + (row.currentValue ?? 0), 0)
+        : null,
+      unrealizedPnl: complete.length
+        ? complete.reduce(
+            (sum, row, index) =>
+              sum +
+              (row.currentValue ?? 0) -
+              Number(holdings[index].remaining_total_cost_basis),
+            0,
+          )
+        : null,
+      realizedPnl: Number(operationTotals.realized_pnl ?? 0),
+      income: Number(operationTotals.investment_income ?? 0),
+      valuationQuality: investmentHomeQuality(resolutions, holdings.length),
+      valuationStale: resolutions.some(
+        (resolution) =>
+          resolution.quality === MarketValuationQuality.AUTO_STALE,
+      ),
+      valuationIncluded: known.length,
+      valuationTotal: holdings.length,
+    };
+  } catch (error) {
+    logActionFailure({
+      operation: INVESTMENT_OPERATION.LIST_HOLDINGS,
+      error,
+      context: { phase: "home_summary" },
+    });
+    return null;
+  }
+}
+
+export const listInvestmentHomeSummary = cache(loadInvestmentHomeSummary);
 
 async function loadInvestmentPortfolio(): Promise<InvestmentPortfolio | null> {
   const holdings = await loadHoldings();

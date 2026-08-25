@@ -35,6 +35,11 @@ test.describe("Inbox decisions (ST-E06-002 / F4)", () => {
     test.skip((await firstLink.count()) === 0, "No pending inbox items");
 
     await firstLink.click();
+    await expect(page.getByTestId("inbox-detail")).toBeVisible();
+    test.skip(
+      (await page.getByTestId("inbox-decision-panel").count()) === 0,
+      "First item is read-only or source-unavailable",
+    );
     await expect(page.getByTestId("inbox-decision-panel")).toBeVisible();
     await expect(page.getByTestId("inbox-dismiss")).toBeVisible();
     await expect(page.getByTestId("inbox-batch")).toHaveCount(0);

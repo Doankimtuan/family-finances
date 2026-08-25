@@ -7,17 +7,23 @@ function readProjectFile(relativePath: string) {
 }
 
 describe("Money motion ownership", () => {
-  it("keeps one overview reveal and static account/destination regions", () => {
+  it("keeps one reveal per detail surface and static account/destination regions", () => {
     const moneyPage = readProjectFile("app/[locale]/(product)/money/page.tsx");
-    const detailPage = readProjectFile(
+    const accountDetailPage = readProjectFile(
       "app/[locale]/(product)/money/accounts/[id]/page.tsx",
+    );
+    const investmentDetailPage = readProjectFile(
+      "app/[locale]/(product)/money/investments/[id]/page.tsx",
     );
     const accountScan = readProjectFile(
       "app/[locale]/(product)/money/money-accounts-scan.tsx",
     );
 
     expect(moneyPage.match(/<MotionReveal(?:\s|>)/g)).toHaveLength(1);
-    expect(detailPage).not.toContain("MotionReveal");
+    expect(accountDetailPage.match(/<MotionReveal(?:\s|>)/g)).toHaveLength(1);
+    expect(investmentDetailPage.match(/<MotionReveal(?:\s|>)/g)).toHaveLength(
+      1,
+    );
     expect(accountScan).not.toContain("motion/react");
   });
 

@@ -149,5 +149,4 @@ begin
   );
 end;
 $$;
-
 grant execute on function public.settle_saving_cycle(uuid, uuid) to authenticated;

@@ -390,7 +390,8 @@ export function getPlanRecommendations(
     const valueStatus = goal.fundingValueStatus;
     const hasMissingValuation =
       valueStatus === GoalFundingQuality.MISSING ||
-      valueStatus === GoalFundingQuality.INCOMPLETE;
+      valueStatus === GoalFundingQuality.INCOMPLETE ||
+      valueStatus === GoalFundingQuality.INDETERMINATE;
     if (hasMissingValuation && goal.fundingLinks.length > 0) {
       missingValuationGoalIds.add(goal.id);
       recommendations.push({
@@ -430,6 +431,7 @@ export function getPlanRecommendations(
     if (
       input.previousReadyGoalIds?.has(goal.id) &&
       goal.status === GoalStatus.ACTIVE &&
+      goal.progressPercent != null &&
       goal.progressPercent < 100
     ) {
       recommendations.push({
@@ -449,6 +451,7 @@ export function getPlanRecommendations(
     if (
       goal.targetDate &&
       goal.targetAmount > 0 &&
+      goal.progressPercent != null &&
       goal.progressPercent < TARGET_PROGRESS_THRESHOLD &&
       daysBetween(asOfDate, goal.targetDate) >= 0 &&
       daysBetween(asOfDate, goal.targetDate) <= TARGET_DATE_WINDOW_DAYS

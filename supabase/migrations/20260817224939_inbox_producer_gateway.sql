@@ -285,3 +285,4 @@ $$;
 
 revoke all on function public.run_inbox_staleness_worker() from public;
 grant execute on function public.run_inbox_staleness_worker() to authenticated;
+;

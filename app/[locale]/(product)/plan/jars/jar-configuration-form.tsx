@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useTransition } from "react";
+import type { ReactNode } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -28,10 +29,14 @@ import {
 } from "@/shared/utils/percentage";
 import { TextField, CheckboxField } from "@/shared/ui/form";
 import { ControlledField } from "@/shared/patterns/controlled-fields";
-import { Button } from "@/shared/ui/button";
+import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
+import { SheetActionFooter } from "@/shared/patterns/sheet-action-footer";
+import { Sheet } from "@/shared/patterns/sheet";
+import { ChoiceTile, ChoiceTileGroup } from "@/shared/patterns/choice-tile";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { AlertVariant } from "@/shared/ui/alert";
 import { Text } from "@/shared/ui/text";
+import { FinancialValue } from "@/shared/patterns/financial-value";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import { useStatusAlert } from "@/providers/status-alert-provider";
 import {
@@ -179,12 +184,6 @@ export function jarConfigurationPayload(
 }
 
 const ACTIVE_KIND_OPTIONS = JAR_KIND_VALUES;
-
-function buttonClass(selected: boolean) {
-  return selected
-    ? "min-h-11 flex-1 rounded-[var(--radius-control)] bg-accent px-(--space-3) text-sm font-medium text-accent-fg shadow-[var(--elevation-1)] transition-[background-color,box-shadow,transform] duration-(--duration-fast) ease-(--ease-standard) active:scale-[0.98] motion-reduce:transition-none"
-    : "min-h-11 flex-1 rounded-[var(--radius-control)] border border-border-subtle bg-surface px-(--space-3) text-sm font-medium text-text-primary transition-[border-color,background-color,transform] duration-(--duration-fast) ease-(--ease-standard) hover:border-border-strong active:scale-[0.98] motion-reduce:transition-none";
-}
 
 /**
  * Jar V2 configuration (create + edit) on React Hook Form + the shared
@@ -345,275 +344,269 @@ export function JarConfigurationForm({
   });
 
   return (
-    <form
-      onSubmit={onSubmit}
-      noValidate
-      className="flex flex-col gap-(--space-4) rounded-[var(--radius-card)] border border-border-subtle bg-surface p-(--space-4) shadow-[var(--elevation-1)]"
-      data-testid={mode === "create" ? "jar-create-form" : "jar-edit-form"}
-    >
-      <div className="flex flex-col gap-(--space-3)">
-        <div>
-          <Text size="lg" className="font-semibold text-text-primary">
-            {t(mode === "create" ? "createHeading" : "editHeading")}
-          </Text>
+    <>
+      <ActionSheetLayout.Header>
+        <Sheet.Heading className="text-lg font-semibold tracking-tight text-text-primary">
+          {t(mode === "create" ? "createHeading" : "editHeading")}
+        </Sheet.Heading>
+      </ActionSheetLayout.Header>
+      <ActionSheetLayout.Body>
+        <form
+          onSubmit={onSubmit}
+          noValidate
+          className="flex flex-col gap-(--space-4)"
+          data-testid={mode === "create" ? "jar-create-form" : "jar-edit-form"}
+        >
           <Text size="sm" tone="secondary">
             {t("configurationIntro")}
           </Text>
-        </div>
-        <TextField
-          id={nameId}
-          label={t("createNameLabel")}
-          placeholder={t("createNamePlaceholder")}
-          autoComplete="off"
-          registration={register("name")}
-          error={errors.name ? t("errors.name_invalid") : undefined}
-        />
-        <CheckboxField
-          id={`${nameId}-enabled`}
-          label={
-            <span className="flex flex-col gap-0.5">
-              <span className="font-medium text-text-primary">
-                {t("enabledLabel")}
-              </span>
-              <span className="text-xs text-text-secondary">
-                {t("enabledHint")}
-              </span>
-            </span>
-          }
-          {...register("enabled")}
-        />
-      </div>
-
-      <fieldset className="flex flex-col gap-(--space-2)">
-        <legend className="text-sm font-semibold text-text-primary">
-          {t("planKindLabel")}
-        </legend>
-        <Text size="sm" tone="secondary">
-          {t("allocationMeaning")}
-        </Text>
-        <div className="flex gap-(--space-2)">
-          <button
-            type="button"
-            data-testid={`${mode === "create" ? "jar-create" : "jar-edit"}-plan-percent`}
-            aria-pressed={planKind === JarPlanKind.PERCENT}
-            className={buttonClass(planKind === JarPlanKind.PERCENT)}
-            onClick={() => setValue("planKind", JarPlanKind.PERCENT)}
-          >
-            {t("planKindPercent")}
-          </button>
-          <button
-            type="button"
-            data-testid={`${mode === "create" ? "jar-create" : "jar-edit"}-plan-fixed`}
-            aria-pressed={planKind === JarPlanKind.FIXED}
-            className={buttonClass(planKind === JarPlanKind.FIXED)}
-            onClick={() => setValue("planKind", JarPlanKind.FIXED)}
-          >
-            {t("planKindFixed")}
-          </button>
-        </div>
-      </fieldset>
-
-      {planKind === JarPlanKind.PERCENT ? (
-        <TextField
-          id={percentId}
-          label={t("percentLabel")}
-          inputMode="decimal"
-          description={t("percentHint")}
-          registration={register("percent", { valueAsNumber: true })}
-          error={errors.percent ? t("errors.percent_invalid") : undefined}
-        />
-      ) : (
-        <ControlledField
-          control={control}
-          field={{
-            type: "amount",
-            name: "fixedAmount",
-            id: fixedId,
-            label: t("fixedLabel"),
-            description: t("fixedHint"),
-            emptyValue: undefined,
-            error: errors.fixedAmount ? t("errors.fixed_invalid") : undefined,
-          }}
-        />
-      )}
-
-      <StatusAlert
-        variant={AlertVariant.INFO}
-        title={t("previewTitle")}
-        description={
-          qualifyingIncome == null
-            ? t("previewNoIncome")
-            : t("previewAmount", {
-                amount: formatCurrency(previewAmount, currency, "vi-VN", {
-                  maximumFractionDigits: 0,
-                }),
-              })
-        }
-      />
-
-      <fieldset className="flex flex-col gap-(--space-2)">
-        <legend className="text-sm font-semibold text-text-primary">
-          {t("categoriesHeading")}
-        </legend>
-        <Text size="sm" tone="secondary">
-          {t("categoriesHint")}
-        </Text>
-        {visibleCategories.length === 0 ? (
-          <Text size="sm" tone="secondary">
-            {t("categoriesEmpty")}
-          </Text>
-        ) : (
-          <div className="flex flex-col gap-(--space-2)">
-            {visibleCategories.map((category) => (
-              <CheckboxField
-                key={category.id}
-                id={`${nameId}-${category.id}`}
-                checked={selectedCategorySet.has(category.id)}
-                onChange={(event) =>
-                  handleCategoryToggle(category, event.target.checked)
-                }
-                label={
-                  <span className="flex min-w-0 flex-1 items-center justify-between gap-(--space-2)">
-                    <span className="truncate text-text-primary">
-                      {category.name}
-                    </span>
-                    {category.jarId !== jarId ? (
-                      <span className="shrink-0 text-xs text-text-secondary">
-                        {t("categoryMappedElsewhere")}
-                      </span>
-                    ) : null}
-                  </span>
-                }
-              />
-            ))}
-          </div>
-        )}
-      </fieldset>
-
-      {reassignmentConflicts.length > 0 ? (
-        <div className="rounded-[var(--radius-control)] border border-border-subtle bg-surface-subtle p-(--space-3)">
+          <TextField
+            id={nameId}
+            label={t("createNameLabel")}
+            placeholder={t("createNamePlaceholder")}
+            autoComplete="off"
+            registration={register("name")}
+            error={errors.name ? t("errors.name_invalid") : undefined}
+          />
           <CheckboxField
-            id={`${nameId}-confirm-reassignment`}
-            label={t("confirmReassignment", {
-              count: reassignmentConflicts.length,
-            })}
-            {...register("confirmReassignment")}
+            id={`${nameId}-enabled`}
+            label={
+              <span className="flex flex-col gap-0.5">
+                <span className="font-medium text-text-primary">
+                  {t("enabledLabel")}
+                </span>
+                <span className="text-xs text-text-secondary">
+                  {t("enabledHint")}
+                </span>
+              </span>
+            }
+            {...register("enabled")}
           />
-        </div>
-      ) : null}
 
-      {removedCategoryIds.length > 0 ? (
-        <div className="flex flex-col gap-(--space-2) rounded-[var(--radius-control)] border border-border-subtle bg-surface-subtle p-(--space-3)">
-          <Text size="sm" className="font-medium text-text-primary">
-            {t("removedCategoriesHeading")}
-          </Text>
-          <Text size="sm" tone="secondary">
-            {t("removedCategoriesHint")}
-          </Text>
-          <ControlledField
-            control={control}
-            field={{
-              type: "select",
-              name: "removedCategoryTargetJarId",
-              id: removedTargetId,
-              label: t("removedCategoriesTargetLabel"),
-              options: availableJars.map((jar) => ({
-                id: jar.id,
-                label: jar.name,
-              })),
-            }}
-          />
-        </div>
-      ) : null}
-
-      <details className="group rounded-[var(--radius-control)] border border-border-subtle bg-surface-subtle p-(--space-3)">
-        <summary className="cursor-pointer list-none text-sm font-semibold text-text-primary marker:hidden">
-          <span className="flex items-center justify-between gap-(--space-2)">
-            {t("moreOptions")}
-            <span
-              aria-hidden
-              className="text-text-secondary transition-transform group-open:rotate-180 motion-reduce:transition-none"
-            >
-              ⌄
-            </span>
-          </span>
-        </summary>
-        <div className="mt-(--space-3) flex flex-col gap-(--space-3)">
           <fieldset className="flex flex-col gap-(--space-2)">
             <legend className="text-sm font-semibold text-text-primary">
-              {t("typeLabel")}
+              {t("planKindLabel")}
             </legend>
             <Text size="sm" tone="secondary">
-              {t("typeHint")}
+              {t("allocationMeaning")}
             </Text>
-            <div className="grid grid-cols-2 gap-(--space-2)">
-              {ACTIVE_KIND_OPTIONS.map((option) => (
-                <button
-                  key={option}
-                  type="button"
-                  aria-pressed={kind === option}
-                  className={buttonClass(kind === option)}
-                  onClick={() => handleKindChange(option)}
+            <ChoiceTileGroup>
+              <ChoiceTile
+                label={t("planKindPercent")}
+                selected={planKind === JarPlanKind.PERCENT}
+                onPress={() => setValue("planKind", JarPlanKind.PERCENT)}
+                role="radio"
+                testId={`${mode === "create" ? "jar-create" : "jar-edit"}-plan-percent`}
+              />
+              <ChoiceTile
+                label={t("planKindFixed")}
+                selected={planKind === JarPlanKind.FIXED}
+                onPress={() => setValue("planKind", JarPlanKind.FIXED)}
+                role="radio"
+                testId={`${mode === "create" ? "jar-create" : "jar-edit"}-plan-fixed`}
+              />
+            </ChoiceTileGroup>
+          </fieldset>
+
+          {planKind === JarPlanKind.PERCENT ? (
+            <TextField
+              id={percentId}
+              label={t("percentLabel")}
+              inputMode="decimal"
+              description={t("percentHint")}
+              registration={register("percent", { valueAsNumber: true })}
+              error={errors.percent ? t("errors.percent_invalid") : undefined}
+            />
+          ) : (
+            <ControlledField
+              control={control}
+              field={{
+                type: "amount",
+                name: "fixedAmount",
+                id: fixedId,
+                label: t("fixedLabel"),
+                description: t("fixedHint"),
+                emptyValue: undefined,
+                error: errors.fixedAmount
+                  ? t("errors.fixed_invalid")
+                  : undefined,
+              }}
+            />
+          )}
+
+          <StatusAlert
+            variant={AlertVariant.INFO}
+            title={t("previewTitle")}
+            description={
+              qualifyingIncome == null
+                ? t("previewNoIncome")
+                : typeof t.rich === "function"
+                  ? t.rich("previewAmount", {
+                      amount: formatCurrency(previewAmount, currency, "vi-VN", {
+                        maximumFractionDigits: 0,
+                      }),
+                      money: (chunks: ReactNode) => (
+                        <FinancialValue>{chunks}</FinancialValue>
+                      ),
+                    })
+                  : t("previewAmount", { amount: "—" })
+            }
+          />
+
+          <fieldset className="flex flex-col gap-(--space-2)">
+            <legend className="text-sm font-semibold text-text-primary">
+              {t("categoriesHeading")}
+            </legend>
+            <Text size="sm" tone="secondary">
+              {t("categoriesHint")}
+            </Text>
+            {visibleCategories.length === 0 ? (
+              <Text size="sm" tone="secondary">
+                {t("categoriesEmpty")}
+              </Text>
+            ) : (
+              <div className="flex flex-col gap-(--space-2)">
+                {visibleCategories.map((category) => (
+                  <CheckboxField
+                    key={category.id}
+                    id={`${nameId}-${category.id}`}
+                    checked={selectedCategorySet.has(category.id)}
+                    onChange={(event) =>
+                      handleCategoryToggle(category, event.target.checked)
+                    }
+                    label={
+                      <span className="flex min-w-0 flex-1 items-center justify-between gap-(--space-2)">
+                        <span className="truncate text-text-primary">
+                          {category.name}
+                        </span>
+                        {category.jarId !== jarId ? (
+                          <span className="shrink-0 text-xs text-text-secondary">
+                            {t("categoryMappedElsewhere")}
+                          </span>
+                        ) : null}
+                      </span>
+                    }
+                  />
+                ))}
+              </div>
+            )}
+          </fieldset>
+
+          {reassignmentConflicts.length > 0 ? (
+            <div className="rounded-[var(--radius-control)] border border-border-subtle bg-surface-subtle p-(--space-3)">
+              <CheckboxField
+                id={`${nameId}-confirm-reassignment`}
+                label={t("confirmReassignment", {
+                  count: reassignmentConflicts.length,
+                })}
+                {...register("confirmReassignment")}
+              />
+            </div>
+          ) : null}
+
+          {removedCategoryIds.length > 0 ? (
+            <div className="flex flex-col gap-(--space-2) rounded-[var(--radius-control)] border border-border-subtle bg-surface-subtle p-(--space-3)">
+              <Text size="sm" className="font-medium text-text-primary">
+                {t("removedCategoriesHeading")}
+              </Text>
+              <Text size="sm" tone="secondary">
+                {t("removedCategoriesHint")}
+              </Text>
+              <ControlledField
+                control={control}
+                field={{
+                  type: "select",
+                  name: "removedCategoryTargetJarId",
+                  id: removedTargetId,
+                  label: t("removedCategoriesTargetLabel"),
+                  options: availableJars.map((jar) => ({
+                    id: jar.id,
+                    label: jar.name,
+                  })),
+                }}
+              />
+            </div>
+          ) : null}
+
+          <details className="group rounded-[var(--radius-control)] border border-border-subtle bg-surface-subtle p-(--space-3)">
+            <summary className="cursor-pointer list-none text-sm font-semibold text-text-primary marker:hidden">
+              <span className="flex items-center justify-between gap-(--space-2)">
+                {t("moreOptions")}
+                <span
+                  aria-hidden
+                  className="text-text-secondary transition-transform group-open:rotate-180 motion-reduce:transition-none"
                 >
-                  <span className="block">{t(`kinds.${option}`)}</span>
-                  <span className="mt-1 block text-xs opacity-80">
-                    {t(`kindDescriptions.${option}`)}
-                  </span>
-                </button>
-              ))}
+                  ⌄
+                </span>
+              </span>
+            </summary>
+            <div className="mt-(--space-3) flex flex-col gap-(--space-3)">
+              <fieldset className="flex flex-col gap-(--space-2)">
+                <legend className="text-sm font-semibold text-text-primary">
+                  {t("typeLabel")}
+                </legend>
+                <Text size="sm" tone="secondary">
+                  {t("typeHint")}
+                </Text>
+                <ChoiceTileGroup>
+                  {ACTIVE_KIND_OPTIONS.map((option) => (
+                    <ChoiceTile
+                      key={option}
+                      selected={kind === option}
+                      onPress={() => handleKindChange(option)}
+                      role="radio"
+                    >
+                      <span className="block">{t(`kinds.${option}`)}</span>
+                      <span className="mt-1 block text-xs opacity-80">
+                        {t(`kindDescriptions.${option}`)}
+                      </span>
+                    </ChoiceTile>
+                  ))}
+                </ChoiceTileGroup>
+              </fieldset>
+              <fieldset className="flex flex-col gap-(--space-2)">
+                <legend className="text-sm font-semibold text-text-primary">
+                  {t("rolloverLabel")}
+                </legend>
+                <ChoiceTileGroup>
+                  <ChoiceTile
+                    label={t("rolloverReset")}
+                    selected={rolloverMode === JarRolloverMode.RESET}
+                    onPress={() =>
+                      setValue("rolloverMode", JarRolloverMode.RESET)
+                    }
+                    role="radio"
+                    testId={`${mode === "create" ? "jar-create" : "jar-edit"}-rollover-reset`}
+                  />
+                  <ChoiceTile
+                    label={t("rolloverCarry")}
+                    selected={rolloverMode === JarRolloverMode.CARRY}
+                    onPress={() =>
+                      setValue("rolloverMode", JarRolloverMode.CARRY)
+                    }
+                    role="radio"
+                    testId={`${mode === "create" ? "jar-create" : "jar-edit"}-rollover-carry`}
+                  />
+                </ChoiceTileGroup>
+                <Text size="sm" tone="secondary">
+                  {t("rolloverHint")}
+                </Text>
+              </fieldset>
             </div>
-          </fieldset>
-          <fieldset className="flex flex-col gap-(--space-2)">
-            <legend className="text-sm font-semibold text-text-primary">
-              {t("rolloverLabel")}
-            </legend>
-            <div className="flex gap-(--space-2)">
-              <button
-                type="button"
-                data-testid={`${mode === "create" ? "jar-create" : "jar-edit"}-rollover-reset`}
-                aria-pressed={rolloverMode === JarRolloverMode.RESET}
-                className={buttonClass(rolloverMode === JarRolloverMode.RESET)}
-                onClick={() => setValue("rolloverMode", JarRolloverMode.RESET)}
-              >
-                {t("rolloverReset")}
-              </button>
-              <button
-                type="button"
-                data-testid={`${mode === "create" ? "jar-create" : "jar-edit"}-rollover-carry`}
-                aria-pressed={rolloverMode === JarRolloverMode.CARRY}
-                className={buttonClass(rolloverMode === JarRolloverMode.CARRY)}
-                onClick={() => setValue("rolloverMode", JarRolloverMode.CARRY)}
-              >
-                {t("rolloverCarry")}
-              </button>
-            </div>
-            <Text size="sm" tone="secondary">
-              {t("rolloverHint")}
-            </Text>
-          </fieldset>
-        </div>
-      </details>
-
-      <Button
-        type="submit"
-        variant="primary"
-        className="w-full"
-        data-testid={mode === "create" ? "jar-create-submit" : "jar-plan-edit"}
-        isDisabled={isPending || !online}
-      >
-        {t(mode === "create" ? "createSubmit" : "saveChanges")}
-      </Button>
-      {onCancel ? (
-        <Button
-          type="button"
-          variant="secondary"
-          className="w-full"
-          isDisabled={isPending}
-          onPress={onCancel}
-        >
-          {t("createCancel")}
-        </Button>
-      ) : null}
-    </form>
+          </details>
+        </form>
+      </ActionSheetLayout.Body>
+      <SheetActionFooter
+        secondaryLabel={t("createCancel")}
+        primaryLabel={t(mode === "create" ? "createSubmit" : "saveChanges")}
+        onSecondary={() => onCancel?.()}
+        onPrimary={() => void onSubmit()}
+        primaryTestId={
+          mode === "create" ? "jar-create-submit" : "jar-plan-edit"
+        }
+        isDisabled={!online}
+        isPending={isPending}
+      />
+    </>
   );
 }

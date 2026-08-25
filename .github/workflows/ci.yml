@@ -27,6 +27,9 @@ jobs:
       - name: Install
         run: npm ci
 
+      - name: Validate frozen migrations
+        run: npm run migrations:validate
+
       - name: Lint
         run: npm run lint
 

@@ -16,6 +16,7 @@ import {
   type CalendarEvent,
 } from "@/modules/plan/application/client";
 import { Text } from "@/shared/ui/text";
+import { Card } from "@/shared/patterns/card";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { SectionHeader } from "@/shared/patterns/section-header";
 
@@ -105,11 +106,17 @@ export function HouseholdCalendarView({
 
   return (
     <div className="flex flex-col gap-(--space-5)" data-testid="plan-calendar">
-      <Text size="sm" tone="secondary">
-        {t("startingBalance", {
-          amount: formatAmount(startingBalance, currency),
-        })}
-      </Text>
+      <Card tone="metric" className="gap-(--space-1) p-(--space-3)">
+        <Text size="xs" tone="secondary">
+          {t("startingBalanceLabel")}
+        </Text>
+        <Text
+          size="sm"
+          className="tabular-nums font-semibold text-text-primary"
+        >
+          {formatAmount(startingBalance, currency)}
+        </Text>
+      </Card>
 
       <div data-testid="calendar-deficit-banner">
         {deficitDates.length > 0 ? (
@@ -130,10 +137,10 @@ export function HouseholdCalendarView({
         )}
       </div>
 
-      <section
-        className="flex flex-col gap-(--space-3)"
+      <Card
+        tone="elevated"
+        className="gap-(--space-3) p-(--space-4)"
         data-testid="calendar-grid"
-        aria-label={t("gridLabel")}
       >
         <SectionHeader
           title={t("monthHeading", { month: anchorMonth.slice(0, 7) })}
@@ -196,7 +203,7 @@ export function HouseholdCalendarView({
             );
           })}
         </div>
-      </section>
+      </Card>
 
       {selectedIsMilestone && milestoneEvents.length > 0 ? (
         <div
@@ -260,7 +267,10 @@ export function HouseholdCalendarView({
                   className="block focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
                   data-testid={`calendar-event-${event.source}`}
                 >
-                  <div className="flex min-h-11 items-center justify-between gap-(--space-3) rounded-md border border-border-subtle bg-surface px-(--space-3) py-(--space-2)">
+                  <Card
+                    tone="interactive"
+                    className="min-h-11 gap-(--space-1) px-(--space-3) py-(--space-2)"
+                  >
                     <div className="min-w-0">
                       <Text
                         size="sm"
@@ -278,7 +288,7 @@ export function HouseholdCalendarView({
                     <span className="shrink-0 text-sm font-semibold tabular-nums text-text-primary">
                       {formatAmount(event.amount, event.currency || currency)}
                     </span>
-                  </div>
+                  </Card>
                 </Link>
               </li>
             ))}

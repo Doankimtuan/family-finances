@@ -29,8 +29,9 @@ test.describe("Money transactions list/detail/edit (ST-E04-003)", () => {
     );
 
     await page.goto("/en/money/transactions");
-    await expect(page.getByTestId("money-transactions")).toBeVisible();
-    await expect(page.getByTestId("transactions-filter")).toBeVisible();
-    await expect(page.getByTestId("transactions-add")).toBeVisible();
+    const appViewport = page.locator("#app-viewport-root");
+    await expect(appViewport.getByTestId("money-transactions")).toBeVisible();
+    await expect(appViewport.getByTestId("transactions-filter")).toBeVisible();
+    await expect(appViewport.getByTestId("transactions-add")).toBeVisible();
   });
 });

@@ -44,3 +44,4 @@ create policy goal_period_funded_snapshots_insert_member
   with check (public.is_household_member(household_id));
 comment on table public.goal_period_funded_snapshots is
   'Historical Goal funding report values. Linked Goal values are derived at capture time; this table is not a live source of truth.';
+;

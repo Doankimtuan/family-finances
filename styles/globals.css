@@ -412,6 +412,14 @@
   --page-gutter: var(--space-4);
   --sheet-footer-space: var(--space-4);
   --sheet-footer-clearance: calc(var(--space-12) + var(--sheet-footer-space));
+  /* FloatingAction geometry: pill height, gap above the bottom navigation
+     (space-2 covers the navigation's wide-viewport outer margin), and the
+     scroll clearance the pattern reserves so content clears the fixed pill. */
+  --floating-action-size: 3rem;
+  --floating-action-gap: calc(var(--space-4) + var(--space-2));
+  --floating-action-clearance: calc(
+    var(--floating-action-size) + var(--floating-action-gap)
+  );
 
   --radius-sm: 6px;
   --radius-md: 10px;
@@ -441,6 +449,7 @@
   --z-base: 0;
   --z-sticky: 10;
   --z-nav: 20;
+  --z-floating-action: 25;
   --z-dropdown: 30;
   --z-overlay: 40;
   --z-modal: 50;

@@ -273,7 +273,7 @@ export function RegisterScreen() {
             <Button
               type="submit"
               variant="primary"
-              className="min-h-14 w-full rounded-lg text-base font-semibold"
+              className="min-h-14 w-full rounded-(--radius-control) text-base font-semibold"
               isDisabled={busy}
             >
               {isPending && !oauthPending ? t("submitting") : t("submit")}

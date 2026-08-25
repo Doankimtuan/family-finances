@@ -195,3 +195,4 @@ create trigger validate_credit_card_installment_source_trigger
   before insert or update of source_transaction_id, card_account_id, household_id
   on public.credit_card_installments
   for each row execute function public.validate_credit_card_installment_source();
+;

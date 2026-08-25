@@ -190,13 +190,13 @@ test.describe("Investments authenticated money safety", () => {
       .filter({ hasText: `GE${runId.slice(-5)}` })
       .click();
     await page.getByTestId("investment-more-actions").click();
-    await page.getByRole("menuitem", { name: "Update value" }).click();
+    await page.getByRole("button", { name: "Update value" }).click();
     await page.locator("#investment-operation-unit-price").fill("1400000");
     await page.getByTestId("investment-operation-review").click();
     await page.getByTestId("investment-operation-confirm").click();
     await expect(page).toHaveURL(/receipt=/, { timeout: 20_000 });
     await page.getByTestId("investment-more-actions").click();
-    await page.getByRole("menuitem", { name: "Dividend" }).click();
+    await page.getByRole("button", { name: "Dividend" }).click();
     await page.locator("#investment-operation-value").fill("10000");
     await page.getByTestId("investment-operation-review").click();
     await page.getByTestId("investment-operation-confirm").click();

@@ -18,8 +18,10 @@
   "roleAdmin": "Admin",
   "rolePartner": "Partner",
   "appTitle": "App preferences",
-  "appDescription": "Theme stays on this device. Language keeps the current page.",
-  "householdPreferencesLink": "Household preferences",
+  "appDescription": "Appearance stays on this device. App language changes this page; household language lives in Preferences.",
+  "accountTitle": "Account",
+  "accountDescription": "Sensitive account lifecycle actions live separately.",
+  "accountSettingsDescription": "Sign out or manage your account.",
   "accountSettingsLink": "Account settings",
   "back": "Back to Together",
   "account": {

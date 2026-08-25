@@ -7,11 +7,9 @@
 -- ---------------------------------------------------------------------------
 alter table public.transactions
   drop constraint if exists transactions_type_check;
-
 alter table public.transactions
   add constraint transactions_type_check
   check (type in ('income', 'expense', 'liability_payment'));
-
 -- ---------------------------------------------------------------------------
 -- 2. Card payment + application link tables
 -- ---------------------------------------------------------------------------
@@ -34,14 +32,11 @@ create table if not exists public.card_payments (
   constraint card_payments_remaining_nonneg check (remaining_due_after >= 0),
   constraint card_payments_transaction_unique unique (transaction_id)
 );
-
 create unique index if not exists card_payments_household_idempotency_unique
   on public.card_payments (household_id, idempotency_key)
   where idempotency_key is not null;
-
 create index if not exists idx_card_payments_card
   on public.card_payments (card_account_id, created_at desc);
-
 create table if not exists public.card_payment_applications (
   id uuid primary key default gen_random_uuid(),
   household_id uuid not null references public.households(id) on delete cascade,
@@ -52,28 +47,22 @@ create table if not exists public.card_payment_applications (
   constraint card_payment_applications_amount_positive check (applied_amount > 0),
   constraint card_payment_applications_unique unique (card_payment_id, billing_month_id)
 );
-
 create index if not exists idx_card_payment_applications_month
   on public.card_payment_applications (billing_month_id);
-
 alter table public.card_payments enable row level security;
 alter table public.card_payment_applications enable row level security;
-
 drop policy if exists card_payments_select_member on public.card_payments;
 create policy card_payments_select_member on public.card_payments
   for select to authenticated
   using (public.is_household_member(household_id));
-
 drop policy if exists card_payment_applications_select_member
   on public.card_payment_applications;
 create policy card_payment_applications_select_member
   on public.card_payment_applications
   for select to authenticated
   using (public.is_household_member(household_id));
-
 grant select on public.card_payments to authenticated;
 grant select on public.card_payment_applications to authenticated;
-
 -- ---------------------------------------------------------------------------
 -- 3. Atomic settle_card_payment RPC
 -- ---------------------------------------------------------------------------
@@ -346,10 +335,8 @@ begin
   );
 end;
 $$;
-
 revoke all on function public.settle_card_payment(uuid, uuid, numeric, date, text) from public;
 grant execute on function public.settle_card_payment(uuid, uuid, numeric, date, text) to authenticated;
-
 -- ---------------------------------------------------------------------------
 -- 4. record_loan_payment: scheduled only + liability_payment type
 -- ---------------------------------------------------------------------------
@@ -557,10 +544,8 @@ begin
   );
 end;
 $$;
-
 revoke all on function public.record_loan_payment(uuid, uuid, text, date) from public;
 grant execute on function public.record_loan_payment(uuid, uuid, text, date) to authenticated;
-
 -- ---------------------------------------------------------------------------
 -- 5. update_loan_interest_rate: future unpaid boundary only
 -- ---------------------------------------------------------------------------
@@ -721,7 +706,6 @@ begin
   );
 end;
 $$;
-
 revoke all on function public.update_loan_interest_rate(
   uuid, numeric, date, text, jsonb, numeric, numeric, numeric, date, date
 ) from public;

@@ -22,6 +22,8 @@ type Props = {
   accountPresentation: "flat" | "grouped";
   hasMoreAccounts: boolean;
   creditCards: MoneyHubCardRow[];
+  accountsUnavailable?: boolean;
+  creditCardsUnavailable?: boolean;
   liquidOptions: LiquidOption[];
   createLabel: string;
   createOfflineLabel: string;
@@ -36,6 +38,8 @@ export function MoneyHubAccounts({
   accountPresentation,
   hasMoreAccounts,
   creditCards,
+  accountsUnavailable,
+  creditCardsUnavailable,
   liquidOptions,
   createLabel,
   createOfflineLabel,
@@ -53,6 +57,8 @@ export function MoneyHubAccounts({
         accountPresentation={accountPresentation}
         hasMoreAccounts={hasMoreAccounts}
         creditCards={creditCards}
+        accountsUnavailable={accountsUnavailable}
+        creditCardsUnavailable={creditCardsUnavailable}
         createAction={
           <Button
             variant="ghost"

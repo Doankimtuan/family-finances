@@ -29,7 +29,6 @@ end;
 $$;
 
 revoke all on function public.assert_financial_mutation(uuid, text, uuid) from public;
-revoke all on function public.assert_financial_mutation(uuid, text, uuid) from anon;
 grant execute on function public.assert_financial_mutation(uuid, text, uuid) to authenticated;
 
 create or replace function public.guard_financial_root_mutation()
@@ -83,7 +82,6 @@ end;
 $$;
 
 revoke all on function public.guard_financial_root_mutation() from public;
-revoke all on function public.guard_financial_root_mutation() from anon;
 grant execute on function public.guard_financial_root_mutation() to authenticated;
 
 create or replace function public.guard_transaction_mutation()
@@ -119,7 +117,6 @@ end;
 $$;
 
 revoke all on function public.guard_transaction_mutation() from public;
-revoke all on function public.guard_transaction_mutation() from anon;
 grant execute on function public.guard_transaction_mutation() to authenticated;
 
 create or replace function public.guard_cross_resource_mutation()
@@ -139,17 +136,15 @@ begin
     return coalesce(new, old);
   end if;
 
-  if tg_table_name in ('loan_payments', 'loan_schedule_entries', 'loan_interest_rate_periods') then
+  if tg_table_name = 'loan_payments' then
     select household_id, financial_scope, owner_membership_id into v_household_id, v_scope, v_owner
     from public.loans where id = (v_row->>'loan_id')::uuid for update;
     if not found then raise exception 'resource_not_found'; end if;
     perform public.assert_financial_mutation(v_household_id, v_scope, v_owner);
-    if tg_table_name = 'loan_payments' then
-      select household_id, financial_scope, owner_membership_id into v_household_id, v_scope, v_owner
-      from public.accounts where id = (v_row->>'account_id')::uuid for update;
-      if not found then raise exception 'resource_not_found'; end if;
-      perform public.assert_financial_mutation(v_household_id, v_scope, v_owner);
-    end if;
+    select household_id, financial_scope, owner_membership_id into v_household_id, v_scope, v_owner
+    from public.accounts where id = (v_row->>'account_id')::uuid for update;
+    if not found then raise exception 'resource_not_found'; end if;
+    perform public.assert_financial_mutation(v_household_id, v_scope, v_owner);
   elsif tg_table_name = 'debt_payments' then
     select household_id, financial_scope, owner_membership_id into v_household_id, v_scope, v_owner
     from public.liabilities where id = (v_row->>'liability_id')::uuid for update;
@@ -164,18 +159,6 @@ begin
     from public.accounts where id = (v_row->>'card_account_id')::uuid for update;
     if not found then raise exception 'resource_not_found'; end if;
     perform public.assert_financial_mutation(v_household_id, v_scope, v_owner);
-  elsif tg_table_name in ('card_billing_months', 'card_billing_items', 'credit_card_settings') then
-    v_id := coalesce((v_row->>'card_account_id')::uuid, (v_row->>'account_id')::uuid);
-    select household_id, financial_scope, owner_membership_id into v_household_id, v_scope, v_owner
-    from public.accounts where id = v_id for update;
-    if not found then raise exception 'resource_not_found'; end if;
-    perform public.assert_financial_mutation(v_household_id, v_scope, v_owner);
-  elsif tg_table_name = 'transaction_tag_assignments' then
-    select a.household_id, a.financial_scope, a.owner_membership_id into v_household_id, v_scope, v_owner
-    from public.transactions t join public.accounts a on a.id = t.account_id
-    where t.id = (v_row->>'transaction_id')::uuid for update;
-    if not found then raise exception 'resource_not_found'; end if;
-    perform public.assert_financial_mutation(v_household_id, v_scope, v_owner);
     select household_id, financial_scope, owner_membership_id into v_household_id, v_scope, v_owner
     from public.accounts where id = (v_row->>'source_account_id')::uuid for update;
     if not found then raise exception 'resource_not_found'; end if;
@@ -188,16 +171,6 @@ begin
       if not found then raise exception 'resource_not_found'; end if;
       perform public.assert_financial_mutation(v_household_id, v_scope, v_owner);
     end if;
-    if tg_table_name = 'investment_fees' and v_id is null then
-      select o.source_holding_id into v_id from public.investment_operations o
-      where o.id = (v_row->>'operation_id')::uuid;
-      if v_id is not null then
-        select household_id, financial_scope, owner_membership_id into v_household_id, v_scope, v_owner
-        from public.investment_holdings where id = v_id for update;
-        if not found then raise exception 'resource_not_found'; end if;
-        perform public.assert_financial_mutation(v_household_id, v_scope, v_owner);
-      end if;
-    end if;
     if tg_table_name in ('investment_operations', 'investment_fees') then
       select household_id, financial_scope, owner_membership_id into v_household_id, v_scope, v_owner
       from public.accounts where id = (v_row->>'cash_account_id')::uuid for update;
@@ -209,7 +182,7 @@ begin
       if not found then raise exception 'resource_not_found'; end if;
       perform public.assert_financial_mutation(v_household_id, v_scope, v_owner);
     end if;
-  elsif tg_table_name in ('goal_contributions', 'goal_period_funded_snapshots') then
+  elsif tg_table_name = 'goal_contributions' then
     select household_id, financial_scope, owner_membership_id into v_household_id, v_scope, v_owner
     from public.goals where id = (v_row->>'goal_id')::uuid for update;
     if not found then raise exception 'resource_not_found'; end if;
@@ -226,7 +199,6 @@ end;
 $$;
 
 revoke all on function public.guard_cross_resource_mutation() from public;
-revoke all on function public.guard_cross_resource_mutation() from anon;
 grant execute on function public.guard_cross_resource_mutation() to authenticated;
 
 create or replace function public.guard_goal_funding_link_mutation()
@@ -261,22 +233,12 @@ begin
     select d.household_id, d.financial_scope, d.owner_membership_id into r
     from public.liabilities d where d.id = (v->>'debt_id')::uuid for update;
   end if;
-  if found then
-    perform public.assert_financial_mutation(r.household_id, r.financial_scope, r.owner_membership_id);
-    if r.financial_scope <> (select g.financial_scope from public.goals g where g.id = (v->>'goal_id')::uuid) then
-      raise exception 'cross_scope_not_allowed';
-    end if;
-    if r.financial_scope = 'personal'
-       and r.owner_membership_id <> (select g.owner_membership_id from public.goals g where g.id = (v->>'goal_id')::uuid) then
-      raise exception 'cross_owner_transfer_not_allowed';
-    end if;
-  end if;
+  if found then perform public.assert_financial_mutation(r.household_id, r.financial_scope, r.owner_membership_id); end if;
   return coalesce(new, old);
 end;
 $$;
 
 revoke all on function public.guard_goal_funding_link_mutation() from public;
-revoke all on function public.guard_goal_funding_link_mutation() from anon;
 grant execute on function public.guard_goal_funding_link_mutation() to authenticated;
 
 create or replace function public.guard_inbox_source_mutation()
@@ -310,7 +272,6 @@ end;
 $$;
 
 revoke all on function public.guard_inbox_source_mutation() from public;
-revoke all on function public.guard_inbox_source_mutation() from anon;
 grant execute on function public.guard_inbox_source_mutation() to authenticated;
 
 do $$
@@ -331,7 +292,7 @@ do $$
 declare
   t text;
 begin
-  foreach t in array array['loan_payments','loan_schedule_entries','loan_interest_rate_periods','debt_payments','card_payments','card_billing_months','card_billing_items','credit_card_settings','transaction_tag_assignments','investment_operations','investment_fees','investment_valuations','goal_contributions','goal_period_funded_snapshots','saving_cycles','early_withdrawals'] loop
+  foreach t in array array['loan_payments','debt_payments','card_payments','investment_operations','investment_fees','investment_valuations','goal_contributions','saving_cycles','early_withdrawals'] loop
     execute format('drop trigger if exists ownership_rpc_cross_resource_guard on public.%I', t);
     execute format('create trigger ownership_rpc_cross_resource_guard before insert or update or delete on public.%I for each row execute function public.guard_cross_resource_mutation()', t);
   end loop;
@@ -350,3 +311,4 @@ comment on function public.assert_financial_mutation(uuid, text, uuid) is
 
 -- Plan remains household-only: personal account transactions are excluded from
 -- posted-income, jar consumption, monthly review and ritual divergence reads.
+;

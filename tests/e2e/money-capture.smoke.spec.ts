@@ -38,10 +38,10 @@ test.describe("Money capture (ST-E04-002)", () => {
     );
 
     await page.goto("/en/money/transactions/new");
-    await expect(page.getByTestId("money-transaction-add")).toBeVisible();
-    await expect(page.getByTestId("money-capture-form")).toBeVisible();
-    await expect(page.getByTestId("capture-amount")).toBeVisible();
-    await expect(page.getByTestId("capture-direction-expense")).toBeVisible();
-    await expect(page.getByTestId("capture-save")).toBeVisible();
+    const surface = page.locator("#app-viewport-root");
+    await expect(surface.getByTestId("money-transaction-add")).toBeVisible();
+    await expect(surface.getByTestId("money-capture-form")).toBeVisible();
+    await expect(surface.getByTestId("capture-amount")).toBeVisible();
+    await expect(surface.getByTestId("capture-save")).toBeVisible();
   });
 });

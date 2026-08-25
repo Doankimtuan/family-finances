@@ -11,6 +11,10 @@ import {
   type JarRolloverMode as JarRolloverModeValue,
 } from "@/modules/plan/application/client";
 import { Button } from "@/shared/ui/button";
+import { Card } from "@/shared/patterns/card";
+import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
+import { Sheet } from "@/shared/patterns/sheet";
+import { SheetActionFooter } from "@/shared/patterns/sheet-action-footer";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Text } from "@/shared/ui/text";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
@@ -38,7 +42,8 @@ type Props = {
   qualifyingIncome: number | null;
 };
 
-type ErrorCode = ProductActionErrorCode | typeof CLIENT_ACTION_ERROR_CODE.OFFLINE;
+type ErrorCode =
+  ProductActionErrorCode | typeof CLIENT_ACTION_ERROR_CODE.OFFLINE;
 
 export function JarDetailControls({
   jarId,
@@ -55,6 +60,7 @@ export function JarDetailControls({
   const t = useTranslations("plan.jars");
   const router = useRouter();
   const { online } = useOnlineStatusClient();
+  const [editing, setEditing] = useState(false);
   const [confirmArchive, setConfirmArchive] = useState(false);
   const [errorCode, setErrorCode] = useState<ErrorCode | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -76,35 +82,6 @@ export function JarDetailControls({
     });
   };
 
-  if (confirmArchive) {
-    return (
-      <div className="flex flex-col gap-(--space-4)" data-testid="jar-archive-confirm">
-        <StatusAlert
-          variant="danger"
-          title={t("archiveConfirmTitle")}
-          description={t("archiveConfirmBody")}
-        />
-        <Button
-          variant="primary"
-          className="w-full"
-          data-testid="jar-archive-confirm-yes"
-          isDisabled={isPending || !online}
-          onPress={() => runState(JarState.ARCHIVED)}
-        >
-          {t("archiveConfirmYes")}
-        </Button>
-        <Button
-          variant="secondary"
-          className="w-full"
-          isDisabled={isPending}
-          onPress={() => setConfirmArchive(false)}
-        >
-          {t("createCancel")}
-        </Button>
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col gap-(--space-4)" data-testid="jar-controls">
       {errorCode ? (
@@ -114,20 +91,37 @@ export function JarDetailControls({
           description={t(`errors.${errorCode}`)}
         />
       ) : null}
-      <JarConfigurationForm
-        mode="edit"
-        jarId={jarId}
-        initialName={name}
-        initialKind={kind}
-        initialEnabled={state === JarState.ACTIVE}
-        initialPlan={plan}
-        initialRolloverMode={rolloverMode}
-        categories={categories}
-        availableJars={availableJars}
-        currency={currency}
-        qualifyingIncome={qualifyingIncome}
-      />
-      <div className="flex flex-col gap-(--space-2)">
+      <Button
+        variant="secondary"
+        className="w-full"
+        data-testid="jar-edit-open"
+        isDisabled={!online}
+        onPress={() => setEditing(true)}
+      >
+        {t("editJar")}
+      </Button>
+      <Sheet isOpen={editing} onOpenChange={setEditing}>
+        <ActionSheetLayout>
+          {editing ? (
+            <JarConfigurationForm
+              mode="edit"
+              jarId={jarId}
+              initialName={name}
+              initialKind={kind}
+              initialEnabled={state === JarState.ACTIVE}
+              initialPlan={plan}
+              initialRolloverMode={rolloverMode}
+              categories={categories}
+              availableJars={availableJars}
+              currency={currency}
+              qualifyingIncome={qualifyingIncome}
+              onCancel={() => setEditing(false)}
+              onSaved={() => setEditing(false)}
+            />
+          ) : null}
+        </ActionSheetLayout>
+      </Sheet>
+      <Card tone="soft" className="gap-(--space-3) p-(--space-4)">
         <Text size="sm" className="font-semibold text-text-primary">
           {t("stateHeading")}
         </Text>
@@ -158,7 +152,7 @@ export function JarDetailControls({
         ) : null}
         {state !== JarState.ARCHIVED ? (
           <Button
-            variant="secondary"
+            variant="danger"
             className="w-full"
             data-testid="jar-archive"
             isDisabled={isPending || !online}
@@ -167,7 +161,33 @@ export function JarDetailControls({
             {t("archive")}
           </Button>
         ) : null}
-      </div>
+      </Card>
+      <Sheet isOpen={confirmArchive} onOpenChange={setConfirmArchive}>
+        <ActionSheetLayout>
+          <ActionSheetLayout.Header>
+            <Sheet.Heading className="text-lg font-semibold tracking-tight text-text-primary">
+              {t("archiveConfirmTitle")}
+            </Sheet.Heading>
+          </ActionSheetLayout.Header>
+          <ActionSheetLayout.Body>
+            <StatusAlert
+              variant="danger"
+              title={t("archiveConfirmTitle")}
+              description={t("archiveConfirmBody")}
+              data-testid="jar-archive-confirm"
+            />
+          </ActionSheetLayout.Body>
+          <SheetActionFooter
+            secondaryLabel={t("createCancel")}
+            primaryLabel={t("archiveConfirmYes")}
+            onSecondary={() => setConfirmArchive(false)}
+            onPrimary={() => runState(JarState.ARCHIVED)}
+            primaryTestId="jar-archive-confirm-yes"
+            isDisabled={!online}
+            isPending={isPending}
+          />
+        </ActionSheetLayout>
+      </Sheet>
     </div>
   );
 }

@@ -171,7 +171,6 @@ begin
   );
 end;
 $$;
-
 grant execute on function public.early_withdraw_saving(
   uuid, numeric, numeric, numeric, numeric, numeric, text, uuid
 ) to authenticated;

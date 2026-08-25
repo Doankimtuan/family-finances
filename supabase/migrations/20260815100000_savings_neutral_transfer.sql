@@ -214,7 +214,6 @@ begin
   );
 end;
 $$;
-
 grant execute on function public.create_saving_with_transfer(
   uuid, numeric, uuid, text, jsonb, text, uuid, date, date, jsonb, jsonb, text
 ) to authenticated;

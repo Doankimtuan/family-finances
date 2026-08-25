@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">ViNha maskable app icon</title>
+  <desc id="desc">The Woven Path mark with platform-safe padding.</desc>
+  <rect width="512" height="512" fill="#0F766E"/>
+  <g fill="none" stroke="#FAFAFA" stroke-linecap="round" stroke-linejoin="round" stroke-width="58">
+    <path d="M144 206c0-47.5 38.5-86 86-86 29.15 0 55.83 14.52 71.85 38.3M368 306c0 47.5-38.5 86-86 86-29.15 0-55.83-14.52-71.85-38.3"/>
+    <path d="M306 144c47.5 0 86 38.5 86 86 0 29.15-14.52 55.83-38.3 71.85M206 368c-47.5 0-86-38.5-86-86 0-29.15 14.52-55.83 38.3-71.85"/>
+    <path d="M230 120l71.85 71.85a64.5 64.5 0 0 1 0 91.22L282 304M282 392l-71.85-71.85a64.5 64.5 0 0 1 0-91.22L230 208"/>
+  </g>
+</svg>

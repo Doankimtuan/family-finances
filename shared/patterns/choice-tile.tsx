@@ -3,6 +3,8 @@
 import type { ReactNode } from "react";
 import { cn } from "@/shared/utils/cn";
 import { Text } from "@/shared/ui/text";
+import { AppIcon } from "@/shared/ui/app-icon";
+import { CheckmarkCircle02Icon } from "@hugeicons/core-free-icons";
 
 export type ChoiceTileProps = {
   label?: string;
@@ -41,13 +43,13 @@ export function ChoiceTile({
       data-testid={testId}
       onClick={onPress}
       className={cn(
-        "flex h-full min-h-11 w-full items-center gap-(--space-2) rounded-(--radius-control) px-(--space-3) py-(--space-2) text-left",
+        "relative flex h-full min-h-11 w-full items-center gap-(--space-2) rounded-(--radius-control) border px-(--space-3) py-(--space-2) pr-(--space-7) text-left",
         "transition-[background-color,box-shadow] duration-(--duration-fast) ease-(--ease-standard)",
         "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring",
         "active:scale-(--press-scale) motion-reduce:transition-none motion-reduce:active:scale-100",
         selected
-          ? "bg-primary-soft ring-1 ring-primary/20"
-          : "bg-surface-muted",
+          ? "border-primary/25 bg-primary-soft shadow-(--elevation-1) ring-1 ring-primary/20"
+          : "border-transparent bg-surface-muted hover:bg-surface-hover",
         className,
       )}
     >
@@ -61,6 +63,14 @@ export function ChoiceTile({
           {label}
         </Text>
       )}
+      {selected ? (
+        <span
+          className="absolute right-(--space-2) top-(--space-2) flex size-5 items-center justify-center rounded-full bg-primary text-primary-fg"
+          aria-hidden
+        >
+          <AppIcon icon={CheckmarkCircle02Icon} size="xs" />
+        </span>
+      ) : null}
     </button>
   );
 }

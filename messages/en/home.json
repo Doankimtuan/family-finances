@@ -24,6 +24,7 @@
     },
     "dashboardHeadline": "Your household money overview",
     "dashboardSupporting": "See balances, money flow this period, and what needs attention.",
+    "householdContext": "Household overview",
     "cashFlowStory": {
       "positive": "Income matches or exceeds spending this period",
       "attention": "Spending exceeds income this period",
@@ -42,8 +43,8 @@
       "description": "Some data may be out of date. Try again to reload the latest view."
     },
     "partial": {
-      "title": "Some facts are missing",
-      "description": "Some data is not ready. Try again to reload your Home view."
+      "title": "Cash-flow data is temporarily unavailable",
+      "description": "Your balance and other Home sections are still available. Try again to reload cash-flow data."
     },
     "permission": {
       "title": "Permission limited",
@@ -139,6 +140,37 @@
       "auto": "Income allocation: Automatic"
     },
     "openPlan": "Open Plan"
+  },
+  "productSummary": {
+    "title": "Assets & obligations",
+    "hint": "A short view of finalized Money products and what needs attention.",
+    "unavailable": "This product summary is temporarily unavailable.",
+    "savings": {
+      "label": "Savings",
+      "detail": "{count, plural, =0 {No active savings} one {# active saving} other {# active savings}}",
+      "attention": "{count, plural, one {# savings action needed} other {# savings actions needed}}"
+    },
+    "investments": {
+      "label": "Investments",
+      "incomplete": "Valuation partial: {included}/{total}",
+      "quality": {
+        "current": "Valuation current",
+        "stale": "Valuation stale",
+        "manual": "Manual valuation",
+        "partial": "Valuation partial",
+        "unknown": "Valuation unknown"
+      }
+    },
+    "loans": {
+      "label": "Loans",
+      "detail": "{count, plural, =0 {No active loans} one {# active loan} other {# active loans}}",
+      "attention": "{count, plural, one {# payment needs attention} other {# payments need attention}}"
+    },
+    "debt": {
+      "label": "Debt",
+      "detail": "{count, plural, =0 {No active debt} one {# active debt} other {# active debts}}",
+      "attention": "{count, plural, one {# debt needs attention} other {# debts need attention}}"
+    }
   },
   "inbox": {
     "title": "Inbox",

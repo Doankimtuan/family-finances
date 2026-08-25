@@ -55,8 +55,8 @@ describe("Plan 12 migration hardening", () => {
     );
 
     expect(sql).toContain("join public.households h on h.id = j.household_id");
-    expect(sql).toContain(
-      "timezone(coalesce(nullif(h.timezone, ''), 'Asia_Ho_Chi_Minh'), now())",
+    expect(sql).toMatch(
+      /date_trunc\(\s*'month',\s*timezone\(coalesce\(nullif\(h\.timezone, ''\), 'Asia\/Ho_Chi_Minh'\), now\(\)\)/,
     );
     expect(sql).toContain("a.note = 'migrated_from_capacity_delta'");
     expect(sql).toContain("Deprecated V1 compatibility field");

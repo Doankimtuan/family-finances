@@ -1,6 +1,5 @@
--- ST-E06-002: dismiss / acknowledge + guided maturity & EMI kinds (AC-010, AC-011, BR-10, BR-11)
+-- ST-E06-002: dismiss / acknowledge + guided maturity & EMI kinds
 
--- Guided ReviewItems are not always tied to a ledger transaction
 alter table public.inbox_items
   drop constraint if exists inbox_items_source_id_fkey;
 
@@ -32,7 +31,6 @@ alter table public.inbox_items
   add constraint inbox_items_status_check
   check (status in ('pending', 'resolved', 'dismissed', 'acknowledged'));
 
--- AC-003: resolve only to Active jars (not paused / archived)
 create or replace function public.resolve_inbox_item_to_jar(
   p_inbox_item_id uuid,
   p_jar_id uuid
@@ -115,7 +113,6 @@ $$;
 revoke all on function public.resolve_inbox_item_to_jar(uuid, uuid) from public;
 grant execute on function public.resolve_inbox_item_to_jar(uuid, uuid) to authenticated;
 
--- Dismiss pending ReviewItem (any partner — AC-020)
 create or replace function public.dismiss_inbox_item(
   p_inbox_item_id uuid
 )
@@ -168,7 +165,6 @@ $$;
 revoke all on function public.dismiss_inbox_item(uuid) from public;
 grant execute on function public.dismiss_inbox_item(uuid) to authenticated;
 
--- Acknowledge guided maturity / EMI (BR-10 / BR-11) — intention/coach only
 create or replace function public.acknowledge_inbox_item(
   p_inbox_item_id uuid,
   p_action text
@@ -237,4 +233,4 @@ end;
 $$;
 
 revoke all on function public.acknowledge_inbox_item(uuid, text) from public;
-grant execute on function public.acknowledge_inbox_item(uuid, text) to authenticated;
+grant execute on function public.acknowledge_inbox_item(uuid, text) to authenticated;;

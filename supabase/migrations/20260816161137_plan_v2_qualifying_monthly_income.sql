@@ -20,3 +20,4 @@ alter table public.households
 
 comment on column public.households.qualifying_monthly_income is
   'Plan V2 expected monthly income base for percentage Jar rules; NULL uses recurring then posted qualifying-income fallback.';
+;

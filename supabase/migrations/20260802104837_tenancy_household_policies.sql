@@ -42,7 +42,6 @@ create policy household_policy_events_select_member on public.household_policy_e
 
 grant select on public.household_policy_events to authenticated;
 
--- Members may still read households; policy mutations go through admin RPC.
 drop policy if exists households_update_member on public.households;
 
 create or replace function public.update_household_policies(
@@ -151,4 +150,4 @@ end;
 $$;
 
 revoke all on function public.update_household_policies(text, text, text) from public;
-grant execute on function public.update_household_policies(text, text, text) to authenticated;
+grant execute on function public.update_household_policies(text, text, text) to authenticated;;

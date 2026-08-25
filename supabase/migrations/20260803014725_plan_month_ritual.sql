@@ -1,9 +1,8 @@
--- ST-E05-004: Month Ritual runs — Assisted preview → approve → lock (AC-008, AC-009)
+-- ST-E05-004: Month Ritual runs
 
 create table if not exists public.month_ritual_runs (
   id uuid primary key default gen_random_uuid(),
   household_id uuid not null references public.households(id) on delete cascade,
-  -- First day of the ritual period (UTC month)
   period_month date not null,
   status text not null default 'draft',
   mode text not null default 'assisted',
@@ -47,7 +46,6 @@ create policy month_ritual_runs_update_member on public.month_ritual_runs
 
 grant select, insert, update on public.month_ritual_runs to authenticated;
 
--- BR-08: approved ritual locks normal plan movements for that period
 create or replace function public.is_month_ritual_locked(
   p_household_id uuid,
   p_period_month date default date_trunc('month', timezone('utc', now()))::date
@@ -68,4 +66,4 @@ as $$
 $$;
 
 revoke all on function public.is_month_ritual_locked(uuid, date) from public;
-grant execute on function public.is_month_ritual_locked(uuid, date) to authenticated;
+grant execute on function public.is_month_ritual_locked(uuid, date) to authenticated;;

@@ -28,6 +28,8 @@ import {
   shouldCancelMaturityCascade,
 } from "@/modules/inbox/application";
 import { TransactionSource } from "@/modules/ledger/application/client";
+import { LoanDueState } from "@/modules/ledger/application/loan-constants";
+import { DebtDueState } from "@/modules/ledger/application/debt-constants";
 
 const TX = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11";
 const JAR = "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a11";
@@ -78,6 +80,22 @@ describe("AC-INB-01 GWT — typed ReviewItem instantiation (Prompt 13A)", () => 
         intentNote: "Medical bill",
       })?.type,
     ).toBe(InboxItemKind.EMERGENCY_DECLARATION);
+
+    expect(
+      instantiateTypedReviewItem({
+        kind: InboxItemKind.LOAN_PAYMENT_ATTENTION,
+        sourceId: TX,
+        contextJson: { dueState: LoanDueState.DUE_SOON, dueDate: "2026-08-26" },
+      })?.type,
+    ).toBe(InboxItemKind.LOAN_PAYMENT_ATTENTION);
+
+    expect(
+      instantiateTypedReviewItem({
+        kind: InboxItemKind.DEBT_PAYMENT_ATTENTION,
+        sourceId: TX,
+        contextJson: { dueState: DebtDueState.DUE_SOON, dueDate: "2026-08-26" },
+      })?.type,
+    ).toBe(InboxItemKind.DEBT_PAYMENT_ATTENTION);
   });
 
   it("parses the discriminated union schema for every canonical kind", () => {
@@ -85,7 +103,14 @@ describe("AC-INB-01 GWT — typed ReviewItem instantiation (Prompt 13A)", () => 
       const instance = instantiateTypedReviewItem({
         kind,
         sourceId: TX,
-        intentNote: kind === InboxItemKind.EMERGENCY_DECLARATION ? "note" : undefined,
+        intentNote:
+          kind === InboxItemKind.EMERGENCY_DECLARATION ? "note" : undefined,
+        contextJson:
+          kind === InboxItemKind.LOAN_PAYMENT_ATTENTION
+            ? { dueState: LoanDueState.DUE_SOON, dueDate: "2026-08-26" }
+            : kind === InboxItemKind.DEBT_PAYMENT_ATTENTION
+              ? { dueState: DebtDueState.DUE_SOON, dueDate: "2026-08-26" }
+              : undefined,
       });
       expect(instance, `kind ${kind}`).not.toBeNull();
       expect(
@@ -159,9 +184,9 @@ describe("Prompt 13A taxonomy contract", () => {
     expect(ACK_ACTION_BY_KIND[InboxItemKind.SAVINGS_MATURITY]).toContain(
       "confirm_configured",
     );
-    expect(ACK_ACTION_BY_KIND[InboxItemKind.EARLY_WITHDRAWAL_CONFIRMATION]).toContain(
-      "confirm",
-    );
+    expect(
+      ACK_ACTION_BY_KIND[InboxItemKind.EARLY_WITHDRAWAL_CONFIRMATION],
+    ).toContain("confirm");
     expect(ACK_ACTION_BY_KIND[InboxItemKind.EMI_COMPLETE]).toContain(
       "celebrate",
     );

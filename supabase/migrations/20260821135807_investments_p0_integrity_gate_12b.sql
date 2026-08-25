@@ -9,11 +9,9 @@ alter table public.investment_operations
 alter table public.investment_valuations
   add column if not exists quantity numeric(38,18),
   add column if not exists unit_price_vnd numeric(24,8);
-
 update public.investment_holdings
 set accounting_method = case when asset_class = 'fund' then 'FIFO' else 'WEIGHTED_AVERAGE' end
 where accounting_method is null;
-
 create table if not exists public.investment_events (
   id uuid primary key default gen_random_uuid(),
   household_id uuid not null references public.households(id) on delete cascade,
@@ -56,7 +54,6 @@ create policy investment_lots_select_12b on public.investment_lots for select to
   using (public.is_household_member(household_id));
 revoke all on public.investment_events, public.investment_lots from anon, authenticated;
 grant select on public.investment_events, public.investment_lots to authenticated;
-
 update public.investment_operations o
 set unit_price_vnd = round(o.executed_value_vnd / coalesce(o.destination_quantity, o.source_quantity), 8)
 where o.unit_price_vnd is null and coalesce(o.destination_quantity, o.source_quantity) > 0 and o.executed_value_vnd is not null
@@ -66,7 +63,6 @@ set quantity = h.quantity,
     unit_price_vnd = case when h.quantity > 0 then round(v.value_vnd / h.quantity, 8) end
 from public.investment_holdings h
 where h.id = v.holding_id and v.quantity is null;
-
 -- Existing fund balances are imported as one explicit aggregate lot.  New fund
 -- purchases create exact lots and all disposals consume oldest lots first.
 insert into public.investment_lots(
@@ -79,7 +75,6 @@ from public.investment_holdings h
 where h.asset_class = 'fund' and h.quantity > 0
   and h.remaining_total_cost_basis is not null
   and not exists (select 1 from public.investment_lots l where l.position_id = h.id);
-
 create or replace function public.investment_assert_holding_12b(p_holding_id uuid, p_household_id uuid)
 returns void language plpgsql security definer set search_path = public as $$
 declare h record;
@@ -89,7 +84,6 @@ begin
   if not found then raise exception 'Investment holding not found'; end if;
   perform public.assert_financial_mutation(h.household_id, h.financial_scope, h.owner_membership_id);
 end $$;
-
 create or replace function public.investment_assert_account_12b(p_account_id uuid, p_household_id uuid)
 returns void language plpgsql security definer set search_path = public as $$
 declare a record;
@@ -100,7 +94,6 @@ begin
   if not found then raise exception 'Cash account not found'; end if;
   perform public.assert_financial_mutation(a.household_id, a.financial_scope, a.owner_membership_id);
 end $$;
-
 create or replace function public.investment_consume_holding(
   p_household_id uuid, p_holding_id uuid, p_quantity numeric
 ) returns jsonb language plpgsql security definer set search_path = public as $$
@@ -135,7 +128,6 @@ begin
     'afterBasis',case when h.remaining_total_cost_basis is null then null else h.remaining_total_cost_basis-after_b end,
     'consumedBasis',after_b);
 end $$;
-
 create or replace function public.investment_add_holding(
   p_household_id uuid, p_holding_id uuid, p_quantity numeric, p_basis numeric
 ) returns jsonb language plpgsql security definer set search_path = public as $$
@@ -149,11 +141,9 @@ begin
   update public.investment_holdings set quantity=quantity+p_quantity,remaining_total_cost_basis=after_b,lifecycle_status='active',updated_at=now() where id=h.id;
   return jsonb_build_object('beforeQuantity',h.quantity,'afterQuantity',h.quantity+p_quantity,'beforeBasis',h.remaining_total_cost_basis,'afterBasis',after_b);
 end $$;
-
 drop function if exists public.record_investment_buy(uuid,uuid,numeric,numeric,numeric,date,jsonb,text,text);
 drop function if exists public.record_investment_sell(uuid,uuid,numeric,numeric,numeric,date,jsonb,text,text);
 drop function if exists public.record_investment_valuation(uuid,numeric,date,text,text,text);
-
 create or replace function public.record_investment_buy(
   p_holding_id uuid,p_cash_account_id uuid,p_bought_quantity numeric,p_unit_price_vnd numeric,p_total_value_vnd numeric,
   p_quoted_value_vnd numeric,p_effective_date date,p_fees jsonb,p_notes text,p_idempotency_key text)
@@ -192,7 +182,6 @@ begin
   else fee_h:=case when fee->>'source'='destination_asset' then p_holding_id else (fee->>'holdingId')::uuid end; insert into public.investment_fees(household_id,operation_id,fee_source,quantity,fee_value_vnd,fee_holding_id) values(hh,op,fee->>'source',(fee->>'quantity')::numeric,(fee->>'feeValueVnd')::numeric,fee_h); end if; end loop;
   return public.investment_operation_receipt(op,false);
 end $$;
-
 create or replace function public.record_investment_sell(
   p_holding_id uuid,p_cash_account_id uuid,p_sold_quantity numeric,p_unit_price_vnd numeric,p_total_value_vnd numeric,
   p_quoted_value_vnd numeric,p_effective_date date,p_fees jsonb,p_notes text,p_idempotency_key text)
@@ -213,7 +202,6 @@ begin
   for fee in select value from jsonb_array_elements(coalesce(p_fees,'[]'::jsonb)) loop i:=i+1; if fee->>'source'='cash' then insert into public.transactions(household_id,account_id,type,amount,currency,transaction_date,status,idempotency_key,created_by,source) values(hh,p_cash_account_id,'investment_fee',(fee->>'amountVnd')::numeric,'VND',p_effective_date,'posted',p_idempotency_key||':fee:'||i,auth.uid(),'manual') returning id into fee_tx; insert into public.investment_fees(household_id,operation_id,fee_source,amount_vnd,fee_value_vnd,cash_account_id,transaction_id) values(hh,op,'cash',(fee->>'amountVnd')::numeric,(fee->>'feeValueVnd')::numeric,p_cash_account_id,fee_tx); else fee_h:=case when fee->>'source'='source_asset' then p_holding_id else (fee->>'holdingId')::uuid end; insert into public.investment_fees(household_id,operation_id,fee_source,quantity,fee_value_vnd,fee_holding_id) values(hh,op,fee->>'source',(fee->>'quantity')::numeric,(fee->>'feeValueVnd')::numeric,fee_h); end if; end loop;
   return public.investment_operation_receipt(op,false);
 end $$;
-
 create or replace function public.record_investment_valuation(
   p_holding_id uuid,p_unit_price_vnd numeric,p_total_value_vnd numeric,p_valuation_date date,p_source text,p_notes text,p_idempotency_key text)
 returns jsonb language plpgsql security definer set search_path=public as $$
@@ -225,14 +213,12 @@ begin
   insert into public.investment_valuations(household_id,holding_id,value_vnd,quantity,unit_price_vnd,valuation_date,source,notes,idempotency_key,created_by) values(hh,p_holding_id,v,h.quantity,p_unit_price_vnd,p_valuation_date,p_source,p_notes,p_idempotency_key,auth.uid()) returning id into id;
   return jsonb_build_object('operationId',id,'holdingId',p_holding_id,'cashDelta',0,'transactionIds','[]'::jsonb,'idempotentReplay',false);
 end $$;
-
 revoke all on function public.record_investment_buy(uuid,uuid,numeric,numeric,numeric,numeric,date,jsonb,text,text) from public,anon;
 revoke all on function public.record_investment_sell(uuid,uuid,numeric,numeric,numeric,numeric,date,jsonb,text,text) from public,anon;
 revoke all on function public.record_investment_valuation(uuid,numeric,numeric,date,text,text,text) from public,anon;
 grant execute on function public.record_investment_buy(uuid,uuid,numeric,numeric,numeric,numeric,date,jsonb,text,text) to authenticated;
 grant execute on function public.record_investment_sell(uuid,uuid,numeric,numeric,numeric,numeric,date,jsonb,text,text) to authenticated;
 grant execute on function public.record_investment_valuation(uuid,numeric,numeric,date,text,text,text) to authenticated;
-
 -- Defense in depth for legacy conversion/income RPCs: SECURITY DEFINER does not
 -- bypass these triggers because auth.uid() is still the caller.
 create or replace function public.guard_investment_mutation_12b()
@@ -260,7 +246,6 @@ drop trigger if exists investment_transaction_ownership_12b on public.transactio
 create trigger investment_transaction_ownership_12b before insert on public.transactions
 for each row when (new.type in ('investment_buy','investment_sell_proceeds','investment_income','investment_fee'))
 execute function public.guard_investment_mutation_12b();
-
 revoke all on function public.investment_assert_holding_12b(uuid,uuid) from public,anon,authenticated;
 revoke all on function public.investment_assert_account_12b(uuid,uuid) from public,anon,authenticated;
 revoke all on function public.guard_investment_mutation_12b() from public,anon,authenticated;

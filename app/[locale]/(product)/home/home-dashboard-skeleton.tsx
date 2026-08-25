@@ -1,14 +1,15 @@
 import { Skeleton } from "@/shared/ui/skeleton";
+import { Card } from "@/shared/patterns/card";
 
 /**
  * Layout-faithful skeleton for the Home data region. Mirrors the loaded
- * composition (hero → net strip → cash-flow story card) so loading resolves
- * without visible recomposition. Placeholders mimic layout only — never data.
+ * composition from the financial pulse through the Inbox and Plan previews.
+ * Placeholders mimic layout only — never data.
  */
 export function HomeDashboardSkeleton() {
   return (
     <div className="flex flex-col gap-(--space-5)" aria-hidden="true">
-      <div className="rounded-(--radius-card) border border-border-subtle bg-surface p-(--space-4) shadow-(--elevation-1)">
+      <Card tone="hero" className="gap-0 p-(--space-4)">
         <div className="flex items-center justify-between gap-(--space-3)">
           <Skeleton className="h-4 w-20" />
           <Skeleton className="size-11 rounded-full" />
@@ -17,17 +18,20 @@ export function HomeDashboardSkeleton() {
         <div className="mt-(--space-4) border-t border-divider pt-(--space-3)">
           <Skeleton className="h-11 w-full rounded-full" />
         </div>
-      </div>
+      </Card>
 
-      <div className="flex items-center gap-(--space-3) rounded-(--radius-card) border border-border-subtle bg-surface p-(--space-3) shadow-(--elevation-1)">
+      <Card
+        tone="elevated"
+        className="flex-row items-center gap-(--space-3) p-(--space-3)"
+      >
         <Skeleton className="size-10 shrink-0 rounded-full" />
         <div className="flex flex-col gap-(--space-2)">
           <Skeleton className="h-4 w-36" />
           <Skeleton className="h-6 w-48" />
         </div>
-      </div>
+      </Card>
 
-      <div className="rounded-(--radius-card) border border-border-subtle bg-surface p-(--space-4) shadow-(--elevation-1)">
+      <Card tone="elevated" className="gap-0 p-(--space-4)">
         <div className="flex items-center justify-between gap-(--space-3)">
           <Skeleton className="h-4 w-16" />
           <Skeleton className="h-6 w-24" />
@@ -67,7 +71,56 @@ export function HomeDashboardSkeleton() {
             </div>
           ))}
         </div>
-      </div>
+      </Card>
+
+      <section className="flex flex-col gap-(--space-3)">
+        <div className="flex flex-col gap-(--space-2)">
+          <Skeleton className="h-5 w-36" />
+          <Skeleton className="h-4 w-56" />
+        </div>
+        <Card tone="elevated" className="gap-0 px-(--space-4)">
+          {[0, 1, 2, 3].map((row) => (
+            <div
+              key={row}
+              className="flex items-center justify-between gap-(--space-3) border-b border-divider py-(--space-3) last:border-b-0"
+            >
+              <div className="flex min-w-0 flex-col gap-(--space-2)">
+                <Skeleton className="h-4 w-28" />
+                <Skeleton className="h-3 w-40" />
+              </div>
+              <Skeleton className="h-4 w-20" />
+            </div>
+          ))}
+        </Card>
+      </section>
+
+      <section className="flex flex-col gap-(--space-3) border-t border-divider pt-(--space-4)">
+        <Skeleton className="h-5 w-20" />
+        <Card tone="soft" className="gap-(--space-3) p-(--space-3)">
+          <div className="flex items-start gap-(--space-3)">
+            <Skeleton className="size-8 rounded-(--radius-control)" />
+            <Skeleton className="h-4 w-52" />
+          </div>
+          <Skeleton className="h-11 w-full rounded-(--radius-control)" />
+        </Card>
+      </section>
+
+      <section className="flex flex-col gap-(--space-3)">
+        <div className="flex flex-col gap-(--space-2)">
+          <Skeleton className="h-5 w-24" />
+          <Skeleton className="h-4 w-60" />
+        </div>
+        <Card
+          tone="elevated"
+          className="flex-row items-center gap-(--space-3) p-(--space-3)"
+        >
+          <Skeleton className="size-10 rounded-(--radius-control)" />
+          <div className="flex min-w-0 flex-1 flex-col gap-(--space-2)">
+            <Skeleton className="h-5 w-36" />
+            <Skeleton className="h-4 w-52" />
+          </div>
+        </Card>
+      </section>
     </div>
   );
 }

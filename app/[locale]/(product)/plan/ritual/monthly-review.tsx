@@ -1,4 +1,5 @@
 import { useLocale, useTranslations } from "next-intl";
+import type { ReactNode } from "react";
 import { Link } from "@/i18n/navigation";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Progress } from "@/shared/ui/progress";
@@ -6,9 +7,11 @@ import { Section } from "@/shared/patterns/section";
 import { Card } from "@/shared/patterns/card";
 import { Text } from "@/shared/ui/text";
 import { formatCurrency } from "@/shared/i18n/formatters";
+import { FinancialValue } from "@/shared/patterns/financial-value";
+import { BottomActionBar } from "@/shared/patterns/bottom-action-bar";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import type { MonthlyReview } from "@/modules/plan/application/queries/get-monthly-review";
-import { RecommendationList } from "../recommendation-list";
+import { RecommendationList, type Translator } from "../recommendation-list";
 import type { PlanRecommendation } from "@/modules/plan/application/plan-recommendations";
 import { MonthlyReviewActions } from "./monthly-review-actions";
 
@@ -28,25 +31,29 @@ function Metric({
   tone = "neutral",
 }: {
   label: string;
-  value: string;
+  value: ReactNode;
   tone?: "neutral" | "credit" | "debit";
 }) {
   return (
-    <div className="flex min-h-24 flex-col justify-between rounded-[var(--radius-card)] bg-surface-muted/60 p-(--space-3)">
+    <Card
+      tone="metric"
+      className="min-h-24 justify-between gap-(--space-2) p-(--space-3)"
+    >
       <Text size="sm" tone="secondary">
         {label}
       </Text>
       <p
         className={`text-lg font-semibold tabular-nums tracking-tight ${tone === "credit" ? "text-success" : tone === "debit" ? "text-danger" : "text-text-primary"}`}
       >
-        {value}
+        <FinancialValue>{value}</FinancialValue>
       </p>
-    </div>
+    </Card>
   );
 }
 
 export function MonthlyReviewReport({ review }: Props) {
   const t = useTranslations("plan.monthlyReview");
+  const tPlan = useTranslations("plan");
   const locale = useLocale();
   const money = (value: number) =>
     formatCurrency(value, review.currency, locale, {
@@ -93,43 +100,42 @@ export function MonthlyReviewReport({ review }: Props) {
       className="flex flex-col gap-(--space-5)"
       data-testid="monthly-review-report"
     >
-      <section className="rounded-[var(--radius-card)] border border-accent/20 bg-accent/10 p-(--space-4)">
+      <Card tone="hero" className="gap-(--space-5) p-(--space-5)">
         <div className="flex items-start justify-between gap-(--space-3)">
           <div>
             <Text
               size="xs"
-              tone="secondary"
-              className="uppercase tracking-[0.14em]"
+              className="text-hero-muted uppercase tracking-[0.14em]"
             >
               {t("eyebrow")}
             </Text>
-            <h1 className="mt-1 text-2xl font-semibold tracking-tight text-text-primary">
+            <h1 className="mt-1 text-2xl font-semibold tracking-tight text-hero-fg">
               {monthLabel}
             </h1>
-            <Text size="sm" tone="secondary" className="mt-2">
+            <Text size="sm" className="mt-2 text-hero-muted">
               {review.isCurrentPeriod ? t("inProgress") : t("subtitle")}
             </Text>
           </div>
-          <span className="rounded-full bg-surface/80 px-(--space-2) py-1 text-xs font-semibold text-text-secondary">
+          <span className="rounded-full bg-white/10 px-(--space-2) py-1 text-xs font-semibold text-hero-fg ring-1 ring-inset ring-white/15">
             {review.review.state === "marked_reviewed"
               ? t("reviewed")
               : t("notReviewed")}
           </span>
         </div>
-        <div className="mt-(--space-4) flex items-center justify-between gap-(--space-2)">
+        <div className="flex items-center justify-between gap-(--space-2) border-t border-white/15 pt-(--space-4)">
           <Link
             href={`${APP_PATH.PLAN_RITUAL}?month=${previousMonth}`}
-            className="inline-flex min-h-11 items-center rounded-[var(--radius-control)] border border-border-subtle bg-surface px-(--space-3) text-sm font-medium text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+            className="inline-flex min-h-11 items-center rounded-(--radius-control) border border-white/15 bg-white/10 px-(--space-3) text-sm font-medium text-hero-fg transition-[background-color,transform] duration-(--duration-fast) hover:bg-white/15 active:scale-[var(--press-scale)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none motion-reduce:active:scale-100"
           >
             {t("previousMonth")}
           </Link>
-          <Text size="sm" tone="secondary">
+          <Text size="sm" className="text-hero-muted">
             {review.isCurrentPeriod ? t("currentMonth") : t("historicalMonth")}
           </Text>
           {canGoNext ? (
             <Link
               href={`${APP_PATH.PLAN_RITUAL}?month=${nextMonth}`}
-              className="inline-flex min-h-11 items-center rounded-[var(--radius-control)] border border-border-subtle bg-surface px-(--space-3) text-sm font-medium text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+              className="inline-flex min-h-11 items-center rounded-(--radius-control) border border-white/15 bg-white/10 px-(--space-3) text-sm font-medium text-hero-fg transition-[background-color,transform] duration-(--duration-fast) hover:bg-white/15 active:scale-[var(--press-scale)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none motion-reduce:active:scale-100"
             >
               {t("nextMonth")}
             </Link>
@@ -137,7 +143,7 @@ export function MonthlyReviewReport({ review }: Props) {
             <span className="min-w-20" aria-hidden="true" />
           )}
         </div>
-      </section>
+      </Card>
 
       {review.review.updatedAfterReview ? (
         <StatusAlert
@@ -216,13 +222,14 @@ export function MonthlyReviewReport({ review }: Props) {
                       {jar.name}
                     </p>
                     <Text size="sm" tone="secondary">
-                      {money(jar.spent)} / {money(jar.budget)}
+                      <FinancialValue>{money(jar.spent)}</FinancialValue> /{" "}
+                      <FinancialValue>{money(jar.budget)}</FinancialValue>
                     </Text>
                   </div>
                   <span
                     className={`text-sm font-semibold tabular-nums ${jar.state === "overspent" ? "text-danger" : "text-text-secondary"}`}
                   >
-                    {jar.usagePercent}%
+                    <FinancialValue>{jar.usagePercent}%</FinancialValue>
                   </span>
                 </div>
                 <Progress
@@ -239,8 +246,18 @@ export function MonthlyReviewReport({ review }: Props) {
                   className="mt-2"
                 >
                   {jar.remaining >= 0
-                    ? t("jarRemaining", { amount: money(jar.remaining) })
-                    : t("jarOver", { amount: money(Math.abs(jar.remaining)) })}
+                    ? t.rich("jarRemaining", {
+                        amount: money(jar.remaining),
+                        money: (chunks: ReactNode) => (
+                          <FinancialValue>{chunks}</FinancialValue>
+                        ),
+                      })
+                    : t.rich("jarOver", {
+                        amount: money(Math.abs(jar.remaining)),
+                        money: (chunks: ReactNode) => (
+                          <FinancialValue>{chunks}</FinancialValue>
+                        ),
+                      })}
                 </Text>
               </div>
             ))}
@@ -270,16 +287,24 @@ export function MonthlyReviewReport({ review }: Props) {
                     </Text>
                   </div>
                   <span className="text-sm font-semibold tabular-nums text-text-secondary">
-                    {goal.progressPercent}%
+                    {goal.progressPercent == null ? (
+                      t("progressIndeterminate")
+                    ) : (
+                      <FinancialValue>{goal.progressPercent}%</FinancialValue>
+                    )}
                   </span>
                 </div>
-                <Progress
-                  value={goal.progressPercent}
-                  showLabel={false}
-                  className="mt-3"
-                />
+                {goal.progressPercent == null ? null : (
+                  <Progress
+                    value={goal.progressPercent}
+                    showLabel={false}
+                    privacyAware
+                    className="mt-3"
+                  />
+                )}
                 <Text size="sm" tone="secondary" className="mt-2">
-                  {money(goal.fundedAmount)} / {money(goal.targetAmount)}
+                  <FinancialValue>{money(goal.fundedAmount)}</FinancialValue> /{" "}
+                  <FinancialValue>{money(goal.targetAmount)}</FinancialValue>
                 </Text>
               </div>
             ))}
@@ -301,8 +326,10 @@ export function MonthlyReviewReport({ review }: Props) {
                 <span
                   className={`text-sm font-semibold tabular-nums ${change.direction === "up" ? "text-danger" : "text-success"}`}
                 >
-                  {change.amount >= 0 ? "+" : ""}
-                  {money(change.amount)}
+                  <FinancialValue>
+                    {change.amount >= 0 ? "+" : ""}
+                    {money(change.amount)}
+                  </FinancialValue>
                   {change.percent == null
                     ? ""
                     : ` (${change.percent >= 0 ? "+" : ""}${change.percent}%)`}
@@ -326,9 +353,12 @@ export function MonthlyReviewReport({ review }: Props) {
                     {issue.kind === "uncategorized"
                       ? t("uncategorized", { count: issue.value ?? 0 })
                       : issue.kind === "overspent_jar"
-                        ? t("overspentJar", {
+                        ? t.rich("overspentJar", {
                             name: issue.name ?? "",
                             amount: money(issue.value ?? 0),
+                            money: (chunks: ReactNode) => (
+                              <FinancialValue>{chunks}</FinancialValue>
+                            ),
                           })
                         : issue.kind === "goal_backing"
                           ? t("goalBacking", { name: issue.name ?? "" })
@@ -359,12 +389,7 @@ export function MonthlyReviewReport({ review }: Props) {
       {review.assistMode === "assisted" ? (
         <RecommendationList
           recommendations={review.recommendations}
-          t={
-            t as unknown as (
-              key: string,
-              values?: Record<string, string | number>,
-            ) => string
-          }
+          t={tPlan as unknown as Translator}
           resolveHref={recommendationHref}
           jarNames={jarNames}
           goalNames={goalNames}
@@ -384,7 +409,7 @@ export function MonthlyReviewReport({ review }: Props) {
         </Card>
       ) : null}
 
-      <div className="flex flex-col gap-2 border-t border-border-subtle pt-(--space-4)">
+      <BottomActionBar>
         <MonthlyReviewActions
           periodMonth={review.periodMonth}
           reviewState={review.review.state}
@@ -400,7 +425,7 @@ export function MonthlyReviewReport({ review }: Props) {
         >
           {t("backToPlan")}
         </Link>
-      </div>
+      </BottomActionBar>
     </div>
   );
 }

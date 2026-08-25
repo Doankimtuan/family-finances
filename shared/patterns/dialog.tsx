@@ -33,7 +33,7 @@ export function DialogContent({
       >
         <Modal.Dialog
           className={cn(
-            "rounded-xl bg-surface-elevated",
+            "rounded-(--radius-overlay) bg-surface-elevated",
             "border border-border-subtle shadow-[var(--elevation-2)]",
           )}
         >

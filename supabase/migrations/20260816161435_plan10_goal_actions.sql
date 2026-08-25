@@ -191,3 +191,4 @@ end;
 $$;
 revoke all on function public.change_goal_lifecycle(uuid, text) from public;
 grant execute on function public.change_goal_lifecycle(uuid, text) to authenticated;
+;

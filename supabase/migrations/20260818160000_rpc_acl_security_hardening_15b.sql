@@ -27,11 +27,9 @@ begin
   end loop;
 end;
 $$;
-
 -- Explicit anonymous API: invitation preview only. It is read-only and
 -- token-scoped; all invitation mutation functions require auth.uid().
 grant execute on function public.get_invitation_preview(uuid) to anon;
-
 -- Internal-only SECURITY DEFINER functions. Parent RPCs and triggers execute
 -- as their owner, so ordinary authenticated clients do not need direct ACLs.
 do $$
@@ -79,11 +77,9 @@ begin
   end loop;
 end;
 $$;
-
 -- Future public-schema functions must opt in explicitly to client execution.
 alter default privileges for role postgres in schema public
   revoke execute on functions from public, anon, authenticated;
-
 -- P1 carried by 15A: pin the trigger function's role search path.
 alter function public.transactions_set_is_reversal()
   set search_path = public;

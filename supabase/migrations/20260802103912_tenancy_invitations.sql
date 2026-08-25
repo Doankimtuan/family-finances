@@ -4,9 +4,6 @@ alter table public.household_members
   add column if not exists email text,
   add column if not exists display_name text;
 
-comment on column public.household_members.email is
-  'Email snapshot at join time for Together member list (not live Auth sync).';
-
 create table if not exists public.household_invitations (
   id uuid primary key default gen_random_uuid(),
   household_id uuid not null references public.households(id) on delete cascade,
@@ -33,7 +30,6 @@ create unique index if not exists household_invitations_one_pending_email_per_ho
   on public.household_invitations (household_id, lower(email))
   where status = 'pending';
 
--- Backfill creator emails where possible
 update public.household_members hm
 set email = u.email
 from auth.users u
@@ -234,11 +230,8 @@ begin
     'pending',
     v_expires
   )
-  returning
-    public.household_invitations.id,
-    public.household_invitations.token,
-    public.household_invitations.expires_at
-  into v_id, v_token, v_expires;
+  returning id, token, expires_at
+    into v_id, v_token, v_expires;
 
   invitation_id := v_id;
   token := v_token;
@@ -467,4 +460,4 @@ create policy household_invitations_select_member on public.household_invitation
     or lower(email) = lower(coalesce(auth.jwt() ->> 'email', ''))
   );
 
-grant select on public.household_invitations to authenticated;
+grant select on public.household_invitations to authenticated;;

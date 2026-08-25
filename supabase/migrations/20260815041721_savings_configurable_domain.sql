@@ -326,7 +326,7 @@ begin
     status, transfer_group_id, idempotency_key, created_by, source, savings_event_kind
   ) values (
     v_household_id, p_funding_account_id, 'transfer_out', p_principal, v_currency,
-    p_cycle_start_date, 'Gửi tiết kiệm: ' || p_product_name, 'posted', v_transfer_group_id,
+    p_cycle_start_date, 'Gửi tiết kiệm: ' || p_product_name, 'cleared', v_transfer_group_id,
     nullif(p_idempotency_key || ':out', ':out'), v_user_id, 'manual', 'SAVINGS_PRINCIPAL_PLACEMENT'
   ) returning id into v_funding_tx_id;
   insert into public.transactions (
@@ -334,7 +334,7 @@ begin
     status, transfer_group_id, idempotency_key, created_by, source, savings_event_kind
   ) values (
     v_household_id, v_product_account_id, 'transfer_in', p_principal, v_currency,
-    p_cycle_start_date, 'Tiền gửi tiết kiệm: ' || p_product_name, 'posted', v_transfer_group_id,
+    p_cycle_start_date, 'Tiền gửi tiết kiệm: ' || p_product_name, 'cleared', v_transfer_group_id,
     nullif(p_idempotency_key || ':in', ':in'), v_user_id, 'manual', 'SAVINGS_PRINCIPAL_PLACEMENT'
   ) returning id into v_receiving_tx_id;
 
@@ -455,16 +455,16 @@ begin
 
   if v_interest > 0 then
     insert into public.transactions (household_id, account_id, type, amount, currency, transaction_date, note, status, created_by, source, savings_event_kind)
-    values (v_saving.household_id, v_product_account_id, 'income', v_interest, v_currency, (timezone('utc', now()))::date, 'Lãi tiết kiệm: ' || v_saving.product_name, 'posted', v_user_id, 'manual', 'SAVINGS_INTEREST') returning id into v_interest_tx;
+    values (v_saving.household_id, v_product_account_id, 'income', v_interest, v_currency, (timezone('utc', now()))::date, 'Lãi tiết kiệm: ' || v_saving.product_name, 'cleared', v_user_id, 'manual', 'SAVINGS_INTEREST') returning id into v_interest_tx;
   end if;
   if v_tax > 0 then
     insert into public.transactions (household_id, account_id, type, amount, currency, transaction_date, note, status, created_by, source, savings_event_kind)
-    values (v_saving.household_id, v_product_account_id, 'expense', v_tax, v_currency, (timezone('utc', now()))::date, 'Thuế lãi tiết kiệm: ' || v_saving.product_name, 'posted', v_user_id, 'manual', 'SAVINGS_TAX') returning id into v_tax_tx;
+    values (v_saving.household_id, v_product_account_id, 'expense', v_tax, v_currency, (timezone('utc', now()))::date, 'Thuế lãi tiết kiệm: ' || v_saving.product_name, 'cleared', v_user_id, 'manual', 'SAVINGS_TAX') returning id into v_tax_tx;
   end if;
   insert into public.transactions (household_id, account_id, type, amount, currency, transaction_date, note, status, transfer_group_id, created_by, source, savings_event_kind)
-  values (v_saving.household_id, v_product_account_id, 'transfer_out', v_total, v_currency, (timezone('utc', now()))::date, 'Tất toán tiết kiệm: ' || v_saving.product_name, 'posted', v_group_id, v_user_id, 'manual', 'SAVINGS_PRINCIPAL_RETURN') returning id into v_out_tx;
+  values (v_saving.household_id, v_product_account_id, 'transfer_out', v_total, v_currency, (timezone('utc', now()))::date, 'Tất toán tiết kiệm: ' || v_saving.product_name, 'cleared', v_group_id, v_user_id, 'manual', 'SAVINGS_PRINCIPAL_RETURN') returning id into v_out_tx;
   insert into public.transactions (household_id, account_id, type, amount, currency, transaction_date, note, status, transfer_group_id, created_by, source, savings_event_kind)
-  values (v_saving.household_id, v_settlement_id, 'transfer_in', v_total, v_currency, (timezone('utc', now()))::date, 'Nhận tiền tiết kiệm: ' || v_saving.product_name, 'posted', v_group_id, v_user_id, 'manual', 'SAVINGS_PRINCIPAL_RETURN') returning id into v_in_tx;
+  values (v_saving.household_id, v_settlement_id, 'transfer_in', v_total, v_currency, (timezone('utc', now()))::date, 'Nhận tiền tiết kiệm: ' || v_saving.product_name, 'cleared', v_group_id, v_user_id, 'manual', 'SAVINGS_PRINCIPAL_RETURN') returning id into v_in_tx;
   update public.saving_cycles set status = 'rolled', settlement_transaction_id = v_in_tx,
     settlement_result = jsonb_build_object('action', 'withdraw', 'principalReturned', v_cycle.principal,
       'interestReturned', v_interest, 'grossInterest', v_interest, 'tax', v_tax, 'fee', v_fee,
@@ -546,16 +546,16 @@ begin
 
   if v_eligible_interest > 0 then
     insert into public.transactions (household_id, account_id, type, amount, currency, transaction_date, note, status, created_by, source, savings_event_kind)
-    values (v_saving.household_id, v_product_account_id, 'income', v_eligible_interest, v_currency, (timezone('utc', now()))::date, 'Lãi rút trước hạn: ' || v_saving.product_name, 'posted', v_user_id, 'manual', 'SAVINGS_INTEREST') returning id into v_interest_tx;
+    values (v_saving.household_id, v_product_account_id, 'income', v_eligible_interest, v_currency, (timezone('utc', now()))::date, 'Lãi rút trước hạn: ' || v_saving.product_name, 'cleared', v_user_id, 'manual', 'SAVINGS_INTEREST') returning id into v_interest_tx;
   end if;
   if v_tax > 0 then
     insert into public.transactions (household_id, account_id, type, amount, currency, transaction_date, note, status, created_by, source, savings_event_kind)
-    values (v_saving.household_id, v_product_account_id, 'expense', v_tax, v_currency, (timezone('utc', now()))::date, 'Thuế lãi rút trước hạn: ' || v_saving.product_name, 'posted', v_user_id, 'manual', 'SAVINGS_TAX') returning id into v_tax_tx;
+    values (v_saving.household_id, v_product_account_id, 'expense', v_tax, v_currency, (timezone('utc', now()))::date, 'Thuế lãi rút trước hạn: ' || v_saving.product_name, 'cleared', v_user_id, 'manual', 'SAVINGS_TAX') returning id into v_tax_tx;
   end if;
   insert into public.transactions (household_id, account_id, type, amount, currency, transaction_date, note, status, transfer_group_id, created_by, source, savings_event_kind)
-  values (v_saving.household_id, v_product_account_id, 'transfer_out', v_net, v_currency, (timezone('utc', now()))::date, 'Rút trước hạn: ' || v_saving.product_name, 'posted', v_group_id, v_user_id, 'manual', 'SAVINGS_PRINCIPAL_RETURN') returning id into v_out_tx;
+  values (v_saving.household_id, v_product_account_id, 'transfer_out', v_net, v_currency, (timezone('utc', now()))::date, 'Rút trước hạn: ' || v_saving.product_name, 'cleared', v_group_id, v_user_id, 'manual', 'SAVINGS_PRINCIPAL_RETURN') returning id into v_out_tx;
   insert into public.transactions (household_id, account_id, type, amount, currency, transaction_date, note, status, transfer_group_id, created_by, source, savings_event_kind)
-  values (v_saving.household_id, v_settlement_id, 'transfer_in', v_net, v_currency, (timezone('utc', now()))::date, 'Nhận tiền rút trước hạn: ' || v_saving.product_name, 'posted', v_group_id, v_user_id, 'manual', 'SAVINGS_PRINCIPAL_RETURN') returning id into v_in_tx;
+  values (v_saving.household_id, v_settlement_id, 'transfer_in', v_net, v_currency, (timezone('utc', now()))::date, 'Nhận tiền rút trước hạn: ' || v_saving.product_name, 'cleared', v_group_id, v_user_id, 'manual', 'SAVINGS_PRINCIPAL_RETURN') returning id into v_in_tx;
 
   update public.saving_cycles set status = 'early_closed', accrued_interest = v_gross_interest, settlement_transaction_id = v_in_tx,
     settlement_result = jsonb_build_object('action', 'withdraw', 'principalReturned', v_cycle.principal,
@@ -579,3 +579,4 @@ $$;
 grant execute on function public.early_withdraw_saving(uuid, numeric, numeric, numeric, numeric, numeric, text, uuid) to authenticated;
 
 commit;
+;

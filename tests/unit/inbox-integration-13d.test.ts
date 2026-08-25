@@ -371,6 +371,23 @@ describe("13D integration chain — emi_complete and emergency_declaration", () 
           accruedInterest: 10,
           maturityDate: "2026-08-01",
           settlementRule: "roll_principal_interest",
+          loanId:
+            kind === InboxItemKind.LOAN_PAYMENT_ATTENTION ||
+            kind === InboxItemKind.EMI_COMPLETE
+              ? TX
+              : undefined,
+          debtId:
+            kind === InboxItemKind.DEBT_PAYMENT_ATTENTION ? TX : undefined,
+          dueState:
+            kind === InboxItemKind.LOAN_PAYMENT_ATTENTION ||
+            kind === InboxItemKind.DEBT_PAYMENT_ATTENTION
+              ? "due_soon"
+              : undefined,
+          dueDate:
+            kind === InboxItemKind.LOAN_PAYMENT_ATTENTION ||
+            kind === InboxItemKind.DEBT_PAYMENT_ATTENTION
+              ? "2026-08-27"
+              : undefined,
         },
       });
       expect(typed, `kind ${kind}`).not.toBeNull();

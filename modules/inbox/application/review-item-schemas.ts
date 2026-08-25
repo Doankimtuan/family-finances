@@ -28,6 +28,8 @@ import {
   RENEWAL_SUGGESTED_ACTION_VALUES,
   MATURITY_WARNING_CODE_VALUES,
 } from "@/modules/savings/application/savings-constants";
+import { DebtDueState } from "@/modules/ledger/application/debt-constants";
+import { LoanDueState } from "@/modules/ledger/application/loan-constants";
 
 export const unmappedExpensePayloadSchema = z.object({
   transactionId: z.string().uuid(),
@@ -107,12 +109,36 @@ export const earlyWithdrawalConfirmationPayloadSchema = z.object({
 export const installmentCompletePayloadSchema = z
   .object({
     installmentPlanId: z.string().uuid().optional(),
+    loanId: z.string().uuid().optional(),
     debtId: z.string().uuid().optional(),
   })
   .refine(
-    (value) => value.installmentPlanId != null || value.debtId != null,
+    (value) =>
+      value.installmentPlanId != null ||
+      value.loanId != null ||
+      value.debtId != null,
     "InstallmentComplete requires installmentPlanId or debtId",
   );
+
+export const loanPaymentAttentionPayloadSchema = z.object({
+  loanId: z.string().uuid(),
+  dueState: z.enum([
+    LoanDueState.DUE_SOON,
+    LoanDueState.DUE_TODAY,
+    LoanDueState.OVERDUE,
+  ]),
+  dueDate: z.string(),
+});
+
+export const debtPaymentAttentionPayloadSchema = z.object({
+  debtId: z.string().uuid(),
+  dueState: z.enum([
+    DebtDueState.DUE_SOON,
+    DebtDueState.DUE_TODAY,
+    DebtDueState.OVERDUE,
+  ]),
+  dueDate: z.string(),
+});
 
 export const emergencyDeclarationPayloadSchema = z.object({
   intentNote: z.string().trim().min(1),
@@ -129,6 +155,8 @@ export const reviewItemPayloadByKind = {
   [InboxItemKind.EARLY_WITHDRAWAL_CONFIRMATION]:
     earlyWithdrawalConfirmationPayloadSchema,
   [InboxItemKind.EMI_COMPLETE]: installmentCompletePayloadSchema,
+  [InboxItemKind.LOAN_PAYMENT_ATTENTION]: loanPaymentAttentionPayloadSchema,
+  [InboxItemKind.DEBT_PAYMENT_ATTENTION]: debtPaymentAttentionPayloadSchema,
   [InboxItemKind.EMERGENCY_DECLARATION]: emergencyDeclarationPayloadSchema,
 } as const satisfies Record<InboxItemKind, z.ZodTypeAny>;
 
@@ -153,6 +181,14 @@ export const typedReviewItemSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal(InboxItemKind.EMI_COMPLETE),
     payload: installmentCompletePayloadSchema,
+  }),
+  z.object({
+    type: z.literal(InboxItemKind.LOAN_PAYMENT_ATTENTION),
+    payload: loanPaymentAttentionPayloadSchema,
+  }),
+  z.object({
+    type: z.literal(InboxItemKind.DEBT_PAYMENT_ATTENTION),
+    payload: debtPaymentAttentionPayloadSchema,
   }),
   z.object({
     type: z.literal(InboxItemKind.EMERGENCY_DECLARATION),
@@ -186,6 +222,8 @@ export const ACK_ACTION_BY_KIND: Readonly<
   [InboxItemKind.EARLY_WITHDRAWAL_CONFIRMATION]:
     EARLY_WITHDRAWAL_ACK_ACTION_VALUES,
   [InboxItemKind.EMI_COMPLETE]: [EmiAckAction.CELEBRATE, EmiAckAction.LATER],
+  [InboxItemKind.LOAN_PAYMENT_ATTENTION]: [],
+  [InboxItemKind.DEBT_PAYMENT_ATTENTION]: [],
   [InboxItemKind.EMERGENCY_DECLARATION]: [],
 };
 
@@ -215,6 +253,8 @@ export const OUTCOMES_BY_KIND: Readonly<
     ...EARLY_WITHDRAWAL_ACK_ACTION_VALUES,
   ],
   [InboxItemKind.EMI_COMPLETE]: [EmiAckAction.CELEBRATE, EmiAckAction.LATER],
+  [InboxItemKind.LOAN_PAYMENT_ATTENTION]: ["dismiss"],
+  [InboxItemKind.DEBT_PAYMENT_ATTENTION]: ["dismiss"],
   [InboxItemKind.EMERGENCY_DECLARATION]: ["dismiss"],
 } as const;
 
@@ -241,6 +281,8 @@ export const TERMINAL_STATUSES_BY_KIND: Readonly<
     InboxItemStatus.DISMISSED,
   ],
   [InboxItemKind.EMI_COMPLETE]: [InboxItemStatus.ACKNOWLEDGED],
+  [InboxItemKind.LOAN_PAYMENT_ATTENTION]: [InboxItemStatus.DISMISSED],
+  [InboxItemKind.DEBT_PAYMENT_ATTENTION]: [InboxItemStatus.DISMISSED],
   [InboxItemKind.EMERGENCY_DECLARATION]: [InboxItemStatus.DISMISSED],
 } as const;
 
@@ -274,6 +316,38 @@ export function kindAutoResolvable(kind: InboxItemKind): boolean {
 
 export function kindAckActions(kind: InboxItemKind): readonly string[] {
   return ACK_ACTION_BY_KIND[kind];
+}
+
+function asLoanAttentionState(
+  value: unknown,
+):
+  | (
+      | typeof LoanDueState.DUE_SOON
+      | typeof LoanDueState.DUE_TODAY
+      | typeof LoanDueState.OVERDUE
+    )
+  | null {
+  return value === LoanDueState.DUE_SOON ||
+    value === LoanDueState.DUE_TODAY ||
+    value === LoanDueState.OVERDUE
+    ? value
+    : null;
+}
+
+function asDebtAttentionState(
+  value: unknown,
+):
+  | (
+      | typeof DebtDueState.DUE_SOON
+      | typeof DebtDueState.DUE_TODAY
+      | typeof DebtDueState.OVERDUE
+    )
+  | null {
+  return value === DebtDueState.DUE_SOON ||
+    value === DebtDueState.DUE_TODAY ||
+    value === DebtDueState.OVERDUE
+    ? value
+    : null;
 }
 
 /** Build a typed instance from kind + loose payload fields. */
@@ -489,8 +563,34 @@ export function instantiateTypedReviewItem(input: {
         type: InboxItemKind.EMI_COMPLETE,
         payload: {
           installmentPlanId: input.sourceId,
+          loanId: typeof ctx.loanId === "string" ? ctx.loanId : input.sourceId,
+          debtId: typeof ctx.debtId === "string" ? ctx.debtId : undefined,
         },
       };
+    case InboxItemKind.LOAN_PAYMENT_ATTENTION: {
+      const dueState = asLoanAttentionState(ctx.dueState);
+      if (!dueState || typeof ctx.dueDate !== "string") return null;
+      return {
+        type: InboxItemKind.LOAN_PAYMENT_ATTENTION,
+        payload: {
+          loanId: input.sourceId,
+          dueState,
+          dueDate: ctx.dueDate,
+        },
+      };
+    }
+    case InboxItemKind.DEBT_PAYMENT_ATTENTION: {
+      const dueState = asDebtAttentionState(ctx.dueState);
+      if (!dueState || typeof ctx.dueDate !== "string") return null;
+      return {
+        type: InboxItemKind.DEBT_PAYMENT_ATTENTION,
+        payload: {
+          debtId: input.sourceId,
+          dueState,
+          dueDate: ctx.dueDate,
+        },
+      };
+    }
     case InboxItemKind.EMERGENCY_DECLARATION: {
       const note = input.intentNote?.trim();
       if (!note) return null;

@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="ViNha">
-  <!-- Favicon: rounded-square plate (browsers do not auto-mask corners). -->
-  <rect width="32" height="32" rx="7" fill="#0F766E" />
-  <path
-    fill="#FAFAFA"
-    d="M8,26 H24 A4,4 0 0,0 28,22 V14 A12,12 0 0,0 4,14 V22 A4,4 0 0,0 8,26 Z M16,8 A5,5 0 0,1 21,13 V19 A3,3 0 0,1 18,22 H14 A3,3 0 0,1 11,19 V13 A5,5 0 0,1 16,8 Z"
-  />
-</svg>
-

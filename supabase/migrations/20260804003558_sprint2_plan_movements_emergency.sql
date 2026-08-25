@@ -3,18 +3,12 @@
 -- ST-E02-002 BR-07 is_emergency + intent_note
 -- ST-E02-003 BR-13 partner emergency notification via Inbox
 
--- ---------------------------------------------------------------------------
--- Virtual jar capacity delta (intention only — never a bank balance)
--- ---------------------------------------------------------------------------
 alter table public.jars
   add column if not exists capacity_delta numeric(18, 0) not null default 0;
 
 comment on column public.jars.capacity_delta is
   'Virtual capacity adjustments from plan movements (BR-01). Not a ledger/bank balance.';
 
--- ---------------------------------------------------------------------------
--- plan_movements (BR-01 / EVO-06)
--- ---------------------------------------------------------------------------
 create table if not exists public.plan_movements (
   id uuid primary key default gen_random_uuid(),
   household_id uuid not null references public.households(id) on delete cascade,
@@ -49,13 +43,9 @@ create policy plan_movements_select_member on public.plan_movements
   for select to authenticated
   using (public.is_household_member(household_id));
 
--- Mutations only via security-definer RPC
 revoke insert, update, delete on public.plan_movements from authenticated;
 grant select on public.plan_movements to authenticated;
 
--- ---------------------------------------------------------------------------
--- Inbox: emergency_declaration kind + plan_movement source (BR-13)
--- ---------------------------------------------------------------------------
 alter table public.inbox_items
   drop constraint if exists inbox_items_kind_check;
 
@@ -78,9 +68,6 @@ alter table public.inbox_items
   add constraint inbox_items_source_type_check
   check (source_type in ('transaction', 'guided', 'plan_movement'));
 
--- ---------------------------------------------------------------------------
--- reallocate_jar_capacity RPC (BR-01 / BR-07 / BR-13)
--- ---------------------------------------------------------------------------
 create or replace function public.reallocate_jar_capacity(
   p_source_jar_id uuid,
   p_target_jar_id uuid,
@@ -257,4 +244,4 @@ end;
 $$;
 
 revoke all on function public.reallocate_jar_capacity(uuid, uuid, numeric, boolean, text) from public;
-grant execute on function public.reallocate_jar_capacity(uuid, uuid, numeric, boolean, text) to authenticated;
+grant execute on function public.reallocate_jar_capacity(uuid, uuid, numeric, boolean, text) to authenticated;;

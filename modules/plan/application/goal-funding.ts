@@ -10,6 +10,10 @@ import {
   type GoalStatus as GoalStatusValue,
   type GoalType as GoalTypeValue,
 } from "./plan-constants";
+import {
+  MarketValuationQuality,
+  type MarketValuationQuality as MarketValuationQualityValue,
+} from "@/modules/investments/application/investment-constants";
 
 export {
   GoalFundingQuality,
@@ -24,6 +28,7 @@ export type GoalFundingSourceValue = {
   currentAmount?: number | null;
   currency?: string | null;
   valueStatus?: GoalFundingValueStatusValue;
+  valuationQuality?: MarketValuationQualityValue;
   currentValue?: number | null;
   costBasis?: number | null;
   updatedAt?: string | null;
@@ -38,6 +43,7 @@ export type GoalFundingSourceResolution = GoalFundingSourceValue & {
   unrealizedGainLoss: number | null;
   principalPaid: number | null;
   valueStatus: GoalFundingValueStatusValue;
+  valuationQuality?: MarketValuationQualityValue;
 };
 
 export type GoalFundingSummary = {
@@ -53,6 +59,8 @@ export type GoalFundingSummary = {
   incompleteSourceCount: number;
   staleSourceCount: number;
   missingSourceCount: number;
+  unknownSourceCount: number;
+  manualSourceCount: number;
 };
 
 export type GoalFundingLinkIdentity = {
@@ -79,6 +87,7 @@ function isZeroContributionStatus(
   status: GoalFundingValueStatusValue,
 ): boolean {
   return [
+    GoalFundingValueStatus.UNKNOWN,
     GoalFundingValueStatus.MISSING,
     GoalFundingValueStatus.INCOMPLETE,
     GoalFundingValueStatus.UNAVAILABLE,
@@ -88,6 +97,9 @@ function isZeroContributionStatus(
       | typeof GoalFundingValueStatus.INCOMPLETE
       | typeof GoalFundingValueStatus.UNAVAILABLE,
   );
+}
+function isUnknownValueStatus(status: GoalFundingValueStatusValue): boolean {
+  return status === GoalFundingValueStatus.UNKNOWN;
 }
 function isMissingValueStatus(status: GoalFundingValueStatusValue): boolean {
   return [
@@ -142,6 +154,7 @@ export function resolveGoalFundingSource(
           : null,
       principalPaid: null,
       valueStatus: status,
+      valuationQuality: source.valuationQuality,
     };
   }
   const originalPrincipal = whole(
@@ -185,9 +198,13 @@ function aggregateQuality(
   const hasMissing = sources.some((source) =>
     isMissingValueStatus(source.valueStatus),
   );
+  const hasUnknown = sources.some((source) =>
+    isUnknownValueStatus(source.valueStatus),
+  );
   const hasIncomplete = sources.some(
     (source) => source.valueStatus === GoalFundingValueStatus.INCOMPLETE,
   );
+  if (hasUnknown) return GoalFundingQuality.INDETERMINATE;
   if (verified.length === 0)
     return hasMissing && !hasIncomplete
       ? GoalFundingQuality.MISSING
@@ -264,6 +281,12 @@ export function deriveGoalFundingSummary(
     ).length,
     missingSourceCount: resolved.filter((source) =>
       isMissingValueStatus(source.valueStatus),
+    ).length,
+    unknownSourceCount: resolved.filter((source) =>
+      isUnknownValueStatus(source.valueStatus),
+    ).length,
+    manualSourceCount: resolved.filter(
+      (source) => source.valuationQuality === MarketValuationQuality.MANUAL,
     ).length,
   };
 }

@@ -894,3 +894,4 @@ end;
 $$;
 
 revoke all on function public.reallocate_jar_capacity(uuid, uuid, numeric, boolean, text) from public;
+grant execute on function public.reallocate_jar_capacity(uuid, uuid, numeric, boolean, text) to authenticated;;

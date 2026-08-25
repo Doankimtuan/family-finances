@@ -6,14 +6,11 @@
 -- ---------------------------------------------------------------------------
 alter table public.inbox_items
   drop constraint if exists inbox_items_unique_source;
-
 drop index if exists public.inbox_items_unique_source;
 drop index if exists public.inbox_items_unique_source_kind_cascade;
-
 alter table public.inbox_items
   add column if not exists cascade_day_key text
   generated always as (coalesce(context_json->>'cascadeDay', '')) stored;
-
 create unique index if not exists inbox_items_unique_source_kind_cascade
   on public.inbox_items (
     household_id,
@@ -22,7 +19,6 @@ create unique index if not exists inbox_items_unique_source_kind_cascade
     kind,
     cascade_day_key
   );
-
 -- ---------------------------------------------------------------------------
 -- 2. Helper: simple interest (actual/365), whole currency units
 -- ---------------------------------------------------------------------------
@@ -46,7 +42,6 @@ as $$
     )
   );
 $$;
-
 -- ---------------------------------------------------------------------------
 -- 3. Helper: household currency
 -- ---------------------------------------------------------------------------
@@ -66,7 +61,6 @@ as $$
     'VND'
   );
 $$;
-
 -- ---------------------------------------------------------------------------
 -- 4. Replace detect_matured_savings — persist accrued + rich context
 -- ---------------------------------------------------------------------------
@@ -192,9 +186,7 @@ begin
   return jsonb_build_object('ok', true, 'maturedCount', v_count);
 end;
 $$;
-
 grant execute on function public.detect_matured_savings(uuid) to authenticated;
-
 -- ---------------------------------------------------------------------------
 -- 5. BR-10 cascade enqueue (30 / 14 / 7) — distinct cascadeDay in unique key
 -- ---------------------------------------------------------------------------
@@ -299,9 +291,7 @@ begin
   return jsonb_build_object('ok', true, 'cascadeCount', v_count);
 end;
 $$;
-
 grant execute on function public.enqueue_savings_maturity_cascade(uuid) to authenticated;
-
 -- ---------------------------------------------------------------------------
 -- 6. acknowledge_inbox_item — savings_matured / renewal / early withdraw
 --     (ack only — never moves money)
@@ -451,10 +441,8 @@ begin
   );
 end;
 $$;
-
 revoke all on function public.acknowledge_inbox_item(uuid, text) from public;
 grant execute on function public.acknowledge_inbox_item(uuid, text) to authenticated;
-
 -- ---------------------------------------------------------------------------
 -- 7. settle_saving_cycle — withdraw everything after maturity confirmation
 -- ---------------------------------------------------------------------------
@@ -585,9 +573,7 @@ begin
   );
 end;
 $$;
-
 grant execute on function public.settle_saving_cycle(uuid, uuid) to authenticated;
-
 -- ---------------------------------------------------------------------------
 -- 8. renew_saving_cycle — roll principal+interest or principal only
 -- ---------------------------------------------------------------------------
@@ -777,11 +763,9 @@ begin
   );
 end;
 $$;
-
 grant execute on function public.renew_saving_cycle(
   uuid, text, jsonb, numeric, date, date, uuid, jsonb
 ) to authenticated;
-
 -- ---------------------------------------------------------------------------
 -- 9. early_withdraw_saving — close active cycle with penalty preview amounts
 -- ---------------------------------------------------------------------------
@@ -933,11 +917,9 @@ begin
   );
 end;
 $$;
-
 grant execute on function public.early_withdraw_saving(
   uuid, numeric, numeric, numeric, numeric, numeric, text, uuid
 ) to authenticated;
-
 -- ---------------------------------------------------------------------------
 -- 10. Legacy metadata backfill (no ledger txs — BR-01 safe)
 -- ---------------------------------------------------------------------------
@@ -1070,9 +1052,7 @@ begin
   return jsonb_build_object('ok', true, 'migratedCount', v_count);
 end;
 $$;
-
 grant execute on function public.backfill_legacy_savings_accounts(uuid) to authenticated;
-
 -- ---------------------------------------------------------------------------
 -- 11. Patch create_saving_with_transfer to use household currency
 -- ---------------------------------------------------------------------------
@@ -1196,7 +1176,6 @@ begin
   );
 end;
 $$;
-
 grant execute on function public.create_saving_with_transfer(
   uuid, numeric, uuid, text, jsonb, text, uuid, date, date, jsonb
 ) to authenticated;

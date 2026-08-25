@@ -14,7 +14,6 @@ import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-a
 import {
   listSavings,
   buildSavingsOverviewModel,
-  isMaturityAttention,
   SavingsFamily,
   type SavingsPresentationItem,
 } from "@/modules/savings/application";
@@ -27,16 +26,21 @@ import {
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Page } from "@/shared/patterns/page";
 import { Section } from "@/shared/patterns/section";
-import { Amount } from "@/shared/patterns/amount";
+import { Card } from "@/shared/patterns/card";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { ErrorState } from "@/shared/patterns/error-state";
 import { MotionReveal } from "@/shared/motion";
 import { Text } from "@/shared/ui/text";
-import { FinancialValue } from "@/shared/patterns/financial-value";
+import { StatusBadge } from "@/shared/ui/status-badge";
 import { AppIcon } from "@/shared/ui/app-icon";
+import { IconContainer } from "@/shared/ui/icon-container";
+import { FinancialValue } from "@/shared/patterns/financial-value";
 import { FinancialOwnershipBadge } from "@/shared/patterns/financial-ownership-badge";
+import { FINANCIAL_SCOPE } from "@/modules/shared-kernel/application/financial-scope";
 import { BankIcon, SmartPhoneIcon } from "@hugeicons/core-free-icons";
 import { MoneyOfflineBanner } from "../money-offline-banner";
+import { SavingsCreateAction } from "./savings-create-action";
+import { SavingsMaturityBadge } from "./savings-maturity-badge";
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -48,6 +52,31 @@ function familyIcon(family: SavingsFamily) {
   return family === SavingsFamily.BANK ? BankIcon : SmartPhoneIcon;
 }
 
+function SummaryMetric({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="min-w-0">
+      <Text size="xs" tone="secondary" className="text-pretty">
+        {label}
+      </Text>
+      <Text
+        as="div"
+        size="sm"
+        weight="semibold"
+        tabular
+        className="mt-(--space-1) text-pretty text-text-primary"
+      >
+        {children}
+      </Text>
+    </div>
+  );
+}
+
 export default async function SavingsPage({ params }: Props) {
   const { locale: raw } = await params;
   const locale = hasLocale(routing.locales, raw) ? raw : routing.defaultLocale;
@@ -57,9 +86,8 @@ export default async function SavingsPage({ params }: Props) {
   if (!(await resolveActiveMembership(user.id)))
     return redirect({ href: APP_PATH.ONBOARD, locale });
 
-  const [t, tMoney, tProducts, tCatalog, items] = await Promise.all([
+  const [t, tProducts, tCatalog, items] = await Promise.all([
     getTranslations("money.savingsPage"),
-    getTranslations("money"),
     getTranslations("money.products"),
     getTranslations("money.savingsCatalog"),
     listSavings(),
@@ -73,10 +101,7 @@ export default async function SavingsPage({ params }: Props) {
     groupItems: SavingsPresentationItem[],
     testId: string,
   ) => (
-    <Section title={title} testId={testId}>
-      <Text size="sm" tone="secondary">
-        {hint}
-      </Text>
+    <Section title={title} description={hint} testId={testId}>
       {groupItems.length === 0 ? (
         <Text size="sm" tone="secondary">
           {t("activeEmpty")}
@@ -90,17 +115,19 @@ export default async function SavingsPage({ params }: Props) {
             const family = item.savingsFamily;
             const currency = item.productSnapshot.currency ?? DEFAULT_CURRENCY;
             const rate = cycle?.lockedRate ?? 0;
-            const attention = isMaturityAttention(state);
             return (
               <li key={item.id}>
-                <MotionReveal>
-                  <Link
-                    href={moneySavingsPath(item.id)}
-                    className="block rounded-[var(--radius-card)] border border-border-subtle bg-surface p-(--space-4) transition-[border-color,box-shadow,transform] duration-(--duration-fast) ease-(--ease-standard) hover:border-accent/50 hover:shadow-[var(--elevation-1)] active:scale-[var(--press-scale)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none motion-reduce:active:scale-100"
-                    data-testid={`savings-row-${item.id}`}
+                <Link
+                  href={moneySavingsPath(item.id)}
+                  className="block rounded-(--radius-card) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+                  data-testid={`savings-row-${item.id}`}
+                >
+                  <Card
+                    tone="interactive"
+                    className="gap-(--space-3) p-(--space-3)"
                   >
                     <div className="flex items-start gap-(--space-3)">
-                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-control)] bg-accent-soft text-accent">
+                      <IconContainer tone="savings" size="sm">
                         <AppIcon
                           icon={familyIcon(family)}
                           size="sm"
@@ -110,94 +137,76 @@ export default async function SavingsPage({ params }: Props) {
                               : t("platformGroup")
                           }
                         />
-                      </span>
+                      </IconContainer>
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-start justify-between gap-(--space-2)">
-                          <div className="min-w-0">
-                            <Text
-                              size="sm"
-                              weight="semibold"
-                              className="truncate"
-                            >
-                              {item.providerName || t("fallbackName")}
-                            </Text>
-                            <Text
-                              size="xs"
-                              tone="secondary"
-                              className="mt-(--space-1) truncate"
-                            >
-                              {item.productName ||
-                                item.productSnapshot.packageName ||
-                                t("fallbackName")}
-                            </Text>
-                          </div>
-                          <span
-                            className={
-                              attention
-                                ? "shrink-0 rounded-full border border-accent/40 bg-accent/10 px-(--space-2) py-1 text-xs font-medium text-accent"
-                                : "shrink-0 rounded-full bg-surface-hover px-(--space-2) py-1 text-xs font-medium text-text-secondary"
-                            }
-                          >
-                            {t(`maturityState.${state}`)}
-                          </span>
-                        </div>
-                        <FinancialOwnershipBadge
-                          financialScope={item.ownership.financialScope}
-                          isOwnedByMe={item.ownership.isOwnedByMe}
-                          ownerStatus={item.ownership.ownerStatus}
-                        />
-                        <Amount
-                          className="mt-(--space-3)"
-                          label={tProducts("principalLabel")}
-                          amountLabel={formatCurrency(
-                            entry.principal,
-                            currency,
-                            locale,
-                            { maximumFractionDigits: 0 },
-                          )}
-                          size="lg"
-                        />
-                        <div className="mt-(--space-2) grid grid-cols-2 gap-(--space-2) text-xs text-text-secondary">
-                          <span>
-                            {t("rateLabel", {
-                              rate: formatPercent(rate / 100, locale, {
-                                maximumFractionDigits: 2,
-                              }),
+                        <Text
+                          size="sm"
+                          weight="semibold"
+                          className="truncate text-text-primary"
+                        >
+                          {item.providerName || t("fallbackName")}
+                        </Text>
+                        <Text
+                          size="xs"
+                          tone="secondary"
+                          className="truncate text-pretty"
+                        >
+                          {item.productName ||
+                            item.productSnapshot.packageName ||
+                            t("fallbackName")}
+                        </Text>
+                        {item.ownership.financialScope ===
+                        FINANCIAL_SCOPE.PERSONAL ? (
+                          <FinancialOwnershipBadge
+                            financialScope={item.ownership.financialScope}
+                            isOwnedByMe={item.ownership.isOwnedByMe}
+                            ownerStatus={item.ownership.ownerStatus}
+                            compact
+                          />
+                        ) : null}
+                      </div>
+                      <div className="shrink-0 text-right">
+                        <Text size="lg" weight="semibold" tabular>
+                          <FinancialValue>
+                            {formatCurrency(entry.principal, currency, locale, {
+                              maximumFractionDigits: 0,
                             })}
-                          </span>
-                          <span className="text-right">
-                            {t("expectedInterestLabel")}:{" "}
-                            <FinancialValue>
-                              {formatCurrency(
-                                entry.netInterest,
-                                currency,
-                                locale,
-                                { maximumFractionDigits: 0 },
-                              )}
-                            </FinancialValue>
-                          </span>
-                        </div>
-                        <div className="mt-(--space-1) flex flex-wrap justify-between gap-(--space-2) text-xs text-text-secondary">
-                          <span>
-                            {cycle
-                              ? t("maturityDateOnly", {
-                                  date: formatIsoDate(cycle.endDate, locale),
-                                })
-                              : "—"}
-                          </span>
-                          <span>
-                            {entry.daysUntilMaturity != null &&
-                            entry.daysUntilMaturity >= 0
-                              ? t("daysRemaining", {
-                                  days: entry.daysUntilMaturity,
-                                })
-                              : t(`maturityState.${state}`)}
-                          </span>
-                        </div>
+                          </FinancialValue>
+                        </Text>
+                        <Text size="xs" tone="muted">
+                          {t("rateLabel", {
+                            rate: formatPercent(rate / 100, locale, {
+                              maximumFractionDigits: 2,
+                            }),
+                          })}
+                        </Text>
                       </div>
                     </div>
-                  </Link>
-                </MotionReveal>
+                    <div className="flex items-end justify-between gap-(--space-3) border-t border-divider pt-(--space-2)">
+                      <SavingsMaturityBadge
+                        state={state}
+                        label={t(`maturityState.${state}`)}
+                      />
+                      <div className="flex min-w-0 flex-col items-end gap-(--space-1) text-right">
+                        <Text size="xs" tone="secondary">
+                          {cycle
+                            ? t("maturityDateOnly", {
+                                date: formatIsoDate(cycle.endDate, locale),
+                              })
+                            : "—"}
+                        </Text>
+                        <Text size="xs" tone="muted">
+                          {entry.daysUntilMaturity != null &&
+                          entry.daysUntilMaturity >= 0
+                            ? t("daysRemaining", {
+                                days: entry.daysUntilMaturity,
+                              })
+                            : t(`maturityState.${state}`)}
+                        </Text>
+                      </div>
+                    </div>
+                  </Card>
+                </Link>
               </li>
             );
           })}
@@ -209,34 +218,16 @@ export default async function SavingsPage({ params }: Props) {
   return (
     <Page
       testId="money-savings"
-      topBar={<TopAppBar title={t("title")} subtitle={t("subtitle")} />}
+      topBar={
+        <TopAppBar
+          variant="detail"
+          backHref={APP_PATH.MONEY}
+          title={t("title")}
+          subtitle={t("subtitle")}
+        />
+      }
     >
       <MoneyOfflineBanner />
-      <Text size="sm" tone="secondary">
-        {t("orientation", {
-          active: model.activeItems.length,
-          due: model.attentionCount,
-        })}
-      </Text>
-      <Text size="sm" tone="secondary">
-        {tProducts("notBankBalance")}
-      </Text>
-      <div className="flex flex-wrap gap-(--space-2)">
-        <Link
-          href={moneySavingsNewPath()}
-          className="inline-flex min-h-11 items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-          data-testid="savings-add-open"
-        >
-          {t("add")}
-        </Link>
-        <Link
-          href={moneySavingsProvidersPath()}
-          className="inline-flex min-h-11 items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-          data-testid="savings-manage-providers"
-        >
-          {tCatalog("manageLink")}
-        </Link>
-      </div>
       {loadFailed ? (
         <ErrorState
           title={t("loadErrorTitle")}
@@ -248,71 +239,122 @@ export default async function SavingsPage({ params }: Props) {
           title={t("emptyTitle")}
           description={t("emptyDescription")}
           className="flex-none py-(--space-4)"
+          action={
+            <div className="flex flex-wrap items-center justify-center gap-(--space-2)">
+              <Link
+                href={moneySavingsNewPath()}
+                className="inline-flex min-h-11 items-center justify-center rounded-[var(--radius-control)] bg-accent px-(--space-4) text-sm font-semibold text-accent-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+                data-testid="savings-add-open"
+              >
+                {t("add")}
+              </Link>
+              <Link
+                href={moneySavingsProvidersPath()}
+                className="inline-flex min-h-11 items-center justify-center rounded-[var(--radius-control)] border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+                data-testid="savings-manage-providers"
+              >
+                {tCatalog("manageLink")}
+              </Link>
+            </div>
+          }
         />
       ) : (
-        <>
+        <div
+          className="flex flex-col gap-(--space-5)"
+          data-testid="savings-list-content"
+        >
           <MotionReveal>
             <section
-              className="rounded-[var(--radius-card)] bg-surface-muted/65 p-(--space-4) shadow-[var(--elevation-1)]"
+              className="flex flex-col gap-(--space-3)"
               data-testid="savings-summary"
             >
-              <Text size="sm" weight="semibold">
-                {t("summaryTitle")}
-              </Text>
-              <Text size="sm" tone="secondary" className="mt-(--space-1)">
-                {t("summaryCaption")}
-              </Text>
-              <div className="mt-(--space-4) flex items-end justify-between gap-(--space-3)">
-                <Amount
-                  label={t("principalTotal")}
-                  amountLabel={formatCurrency(
-                    model.totalPrincipal,
-                    DEFAULT_CURRENCY,
-                    locale,
-                    { maximumFractionDigits: 0 },
+              <Card tone="hero" className="gap-0 p-(--space-4)">
+                <Text size="sm" weight="medium" className="text-hero-muted">
+                  {t("principalTotal")}
+                </Text>
+                <p className="mt-(--space-2) font-semibold tabular-nums tracking-tight text-3xl text-hero-fg">
+                  <FinancialValue>
+                    {formatCurrency(
+                      model.totalPrincipal,
+                      DEFAULT_CURRENCY,
+                      locale,
+                      { maximumFractionDigits: 0 },
+                    )}
+                  </FinancialValue>
+                </p>
+                <Text
+                  size="xs"
+                  className="mt-(--space-2) text-pretty text-hero-muted"
+                >
+                  {tProducts("notBankBalance")}
+                </Text>
+                {model.attentionCount > 0 ? (
+                  <Text
+                    size="xs"
+                    className="mt-(--space-1) text-pretty text-hero-muted"
+                  >
+                    {t("orientation", {
+                      active: model.activeItems.length,
+                      due: model.attentionCount,
+                    })}
+                  </Text>
+                ) : null}
+              </Card>
+              <Card
+                tone="elevated"
+                className="grid grid-cols-2 gap-(--space-3) p-(--space-4)"
+                data-testid="savings-summary-metrics"
+              >
+                <SummaryMetric label={t("expectedNetInterest")}>
+                  <FinancialValue>
+                    {formatCurrency(
+                      model.expectedNetInterest,
+                      DEFAULT_CURRENCY,
+                      locale,
+                      { maximumFractionDigits: 0 },
+                    )}
+                  </FinancialValue>
+                </SummaryMetric>
+                <SummaryMetric label={t("expectedReceived")}>
+                  <FinancialValue>
+                    {formatCurrency(
+                      model.expectedTotalCashReceived,
+                      DEFAULT_CURRENCY,
+                      locale,
+                      { maximumFractionDigits: 0 },
+                    )}
+                  </FinancialValue>
+                </SummaryMetric>
+                {model.expectedTax > 0 ? (
+                  <SummaryMetric label={t("expectedTax")}>
+                    <FinancialValue>
+                      {formatCurrency(
+                        model.expectedTax,
+                        DEFAULT_CURRENCY,
+                        locale,
+                        { maximumFractionDigits: 0 },
+                      )}
+                    </FinancialValue>
+                  </SummaryMetric>
+                ) : null}
+                <SummaryMetric label={t("maturitySoon")}>
+                  {model.attentionCount > 0 ? (
+                    <StatusBadge tone="warning">
+                      {t("maturitySummary", { count: model.attentionCount })}
+                    </StatusBadge>
+                  ) : (
+                    t("maturitySummary", { count: model.attentionCount })
                   )}
-                  size="lg"
-                />
-                <div className="text-right">
-                  <Text size="xs" tone="secondary">
-                    {t("expectedNetInterest")}
-                  </Text>
-                  <Text size="lg" weight="semibold">
-                    <FinancialValue>
-                      {formatCurrency(
-                        model.expectedNetInterest,
-                        DEFAULT_CURRENCY,
-                        locale,
-                        { maximumFractionDigits: 0 },
-                      )}
-                    </FinancialValue>
-                  </Text>
-                </div>
-              </div>
-              <div className="mt-(--space-4) grid grid-cols-2 gap-(--space-3) border-t border-border-subtle/70 pt-(--space-3)">
-                <div>
-                  <Text size="xs" tone="secondary">
-                    {t("expectedReceived")}
-                  </Text>
-                  <Text size="sm" weight="semibold">
-                    <FinancialValue>
-                      {formatCurrency(
-                        model.expectedTotalCashReceived,
-                        DEFAULT_CURRENCY,
-                        locale,
-                        { maximumFractionDigits: 0 },
-                      )}
-                    </FinancialValue>
-                  </Text>
-                </div>
-                <div className="text-right">
-                  <Text size="xs" tone="secondary">
-                    {t("maturitySoon")}
-                  </Text>
-                  <Text size="sm" weight="semibold">
-                    {t("maturitySummary", { count: model.attentionCount })}
-                  </Text>
-                </div>
+                </SummaryMetric>
+              </Card>
+              <div className="flex justify-end">
+                <Link
+                  href={moneySavingsProvidersPath()}
+                  className="inline-flex min-h-9 shrink-0 items-center rounded-full border border-border-subtle bg-surface px-(--space-3) text-sm font-medium text-text-primary transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-(--press-scale) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none motion-reduce:active:scale-100"
+                  data-testid="savings-manage-providers"
+                >
+                  {tCatalog("manageLink")}
+                </Link>
               </div>
             </section>
           </MotionReveal>
@@ -331,55 +373,77 @@ export default async function SavingsPage({ params }: Props) {
           {model.historyItems.length > 0 ? (
             <Section
               title={t("historySection")}
+              description={t("historyCaption")}
               testId="savings-history-section"
             >
-              <Text size="sm" tone="secondary">
-                {t("historyCaption")}
-              </Text>
               <ul className="flex flex-col gap-(--space-2)">
                 {model.historyItems.map((entry) => (
                   <li key={entry.saving.id}>
                     <Link
                       href={moneySavingsPath(entry.saving.id)}
-                      className="flex items-center justify-between gap-(--space-3) border-b border-border-subtle/70 py-(--space-3) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+                      className="block rounded-(--radius-card) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
                       data-testid={`savings-history-row-${entry.saving.id}`}
                     >
-                      <span className="min-w-0">
-                        <Text size="sm" weight="semibold" className="truncate">
-                          {entry.saving.productName ||
-                            entry.saving.providerName ||
-                            t("fallbackName")}
-                        </Text>
-                        <Text size="xs" tone="secondary">
-                          {t(`maturityState.${entry.maturityState}`)}
-                        </Text>
-                      </span>
-                      <span className="shrink-0 text-sm font-medium">
-                        <FinancialValue>
-                          {formatCurrency(
-                            entry.principal,
-                            entry.saving.productSnapshot.currency ??
-                              DEFAULT_CURRENCY,
-                            locale,
-                            { maximumFractionDigits: 0 },
-                          )}
-                        </FinancialValue>
-                      </span>
+                      <Card
+                        tone="soft"
+                        className="gap-(--space-2) p-(--space-3)"
+                      >
+                        <div className="flex items-start justify-between gap-(--space-3)">
+                          <div className="min-w-0">
+                            <Text
+                              size="sm"
+                              weight="medium"
+                              className="truncate"
+                            >
+                              {entry.saving.productName ||
+                                entry.saving.providerName ||
+                                t("fallbackName")}
+                            </Text>
+                            <Text
+                              size="xs"
+                              tone="secondary"
+                              className="truncate text-pretty"
+                            >
+                              {entry.saving.providerName || t("fallbackName")}
+                            </Text>
+                          </div>
+                          <SavingsMaturityBadge
+                            state={entry.maturityState}
+                            label={t(`maturityState.${entry.maturityState}`)}
+                          />
+                        </div>
+                        <div className="flex items-center justify-between gap-(--space-3)">
+                          <Text size="xs" tone="muted" className="text-pretty">
+                            {tProducts("notBankBalance")}
+                          </Text>
+                          <Text
+                            size="sm"
+                            weight="medium"
+                            tabular
+                            className="text-text-primary"
+                          >
+                            <FinancialValue>
+                              {formatCurrency(
+                                entry.principal,
+                                entry.saving.productSnapshot.currency ??
+                                  DEFAULT_CURRENCY,
+                                locale,
+                                { maximumFractionDigits: 0 },
+                              )}
+                            </FinancialValue>
+                          </Text>
+                        </div>
+                      </Card>
                     </Link>
                   </li>
                 ))}
               </ul>
             </Section>
           ) : null}
-        </>
+          <div aria-hidden="true" className="h-(--space-16) shrink-0" />
+          <SavingsCreateAction />
+        </div>
       )}
-      <Link
-        href={APP_PATH.MONEY}
-        className="text-sm font-medium text-accent"
-        data-testid="savings-back-money"
-      >
-        {tMoney("backToMoney")}
-      </Link>
     </Page>
   );
 }

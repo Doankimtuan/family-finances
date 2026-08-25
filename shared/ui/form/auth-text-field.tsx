@@ -86,13 +86,13 @@ export function AuthTextField({
           autoComplete={autoComplete}
           placeholder={placeholder}
           className={cn(
-            "min-h-14 w-full rounded-lg",
+            "min-h-14 w-full rounded-(--radius-control)",
             "border border-border-strong bg-surface text-text-primary",
             "px-(--space-4) text-base leading-normal",
             "placeholder:text-text-muted",
             "transition-[border-color,box-shadow] duration-(--duration-fast) ease-(--ease-standard)",
             "focus-visible:border-accent focus-visible:outline-none",
-            "focus-visible:shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-accent)_28%,transparent)]",
+            "focus-visible:shadow-[0_0_0_3px_var(--color-focus-ring-soft)]",
             "motion-reduce:transition-none",
             startIcon && "ps-11",
             canReveal && "pe-12",
@@ -106,7 +106,7 @@ export function AuthTextField({
             tabIndex={-1}
             className={cn(
               "absolute end-2 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center",
-              "rounded-md text-text-muted",
+              "rounded-(--radius-control) text-text-muted",
               "hover:text-text-secondary",
               "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring",
             )}

@@ -27,6 +27,7 @@ import {
   TransactionOwner,
   TransactionActivityKind,
   TransactionActivityTone,
+  TransactionActivityBreakdownKind,
   TransactionProductEvent,
 } from "@/modules/ledger/application";
 import { SavingsEventKind } from "@/modules/savings/application/savings-constants";
@@ -296,7 +297,7 @@ export default async function TransactionDetailPage({ params }: Props) {
           />
           <Link
             href={APP_PATH.MONEY_TRANSACTIONS}
-            className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary"
+            className="inline-flex min-h-11 w-full items-center justify-center rounded-(--radius-control) border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary"
           >
             {t("detailPage.back")}
           </Link>
@@ -315,7 +316,7 @@ export default async function TransactionDetailPage({ params }: Props) {
         <div className="px-(--space-4) py-(--space-6)">
           <Link
             href={APP_PATH.MONEY_TRANSACTIONS}
-            className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary"
+            className="inline-flex min-h-11 w-full items-center justify-center rounded-(--radius-control) border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary"
           >
             {t("detailPage.back")}
           </Link>
@@ -352,7 +353,7 @@ export default async function TransactionDetailPage({ params }: Props) {
           />
           <Link
             href={APP_PATH.MONEY_TRANSACTIONS}
-            className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary"
+            className="inline-flex min-h-11 w-full items-center justify-center rounded-(--radius-control) border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary"
           >
             {t("detailPage.back")}
           </Link>
@@ -386,7 +387,7 @@ export default async function TransactionDetailPage({ params }: Props) {
 
   return (
     <div
-      className="flex min-h-full flex-col"
+      className="flex min-h-full flex-col bg-canvas"
       data-testid="money-transaction-detail"
     >
       <TopAppBar
@@ -396,16 +397,75 @@ export default async function TransactionDetailPage({ params }: Props) {
       />
       <div className="flex flex-1 flex-col gap-(--space-5) px-(--space-4) pb-(--space-6) pt-(--space-4)">
         <MoneyOfflineBanner />
-        <Amount
-          label={t("detailPage.amount")}
-          amountLabel={signed}
-          size="lg"
-          tone={ACTIVITY_TONE_TO_AMOUNT_TONE[activity.tone]}
-        />
+        <div className="rounded-[var(--radius-card)] border border-border-subtle/80 bg-surface/70 px-(--space-4) py-(--space-5) shadow-(--elevation-1)">
+          <Amount
+            label={t("detailPage.amount")}
+            amountLabel={signed}
+            size="lg"
+            tone={ACTIVITY_TONE_TO_AMOUNT_TONE[activity.tone]}
+          />
+        </div>
+
+        {activity.breakdown.kind ===
+        TransactionActivityBreakdownKind.LOAN_PAYMENT ? (
+          <section
+            className="flex flex-col gap-(--space-3)"
+            data-testid="loan-payment-breakdown"
+          >
+            <SectionHeader title={t("detailPage.loanBreakdown.title")} />
+            <dl className="divide-y divide-border-subtle border-y border-border-subtle bg-surface/35">
+              <div className="flex justify-between gap-(--space-3) py-(--space-3)">
+                <Text size="sm" tone="secondary">
+                  {t("detailPage.loanBreakdown.principal")}
+                </Text>
+                <Text size="sm" className="font-medium tabular-nums">
+                  <FinancialValue>
+                    {formatCurrency(
+                      activity.breakdown.principalAmount,
+                      tx.currency,
+                      locale,
+                      { maximumFractionDigits: 0 },
+                    )}
+                  </FinancialValue>
+                </Text>
+              </div>
+              <div className="flex justify-between gap-(--space-3) py-(--space-3)">
+                <Text size="sm" tone="secondary">
+                  {t("detailPage.loanBreakdown.interest")}
+                </Text>
+                <Text size="sm" className="font-medium tabular-nums">
+                  <FinancialValue>
+                    {formatCurrency(
+                      activity.breakdown.interestAmount,
+                      tx.currency,
+                      locale,
+                      { maximumFractionDigits: 0 },
+                    )}
+                  </FinancialValue>
+                </Text>
+              </div>
+              <div className="flex justify-between gap-(--space-3) py-(--space-3)">
+                <Text size="sm" tone="secondary">
+                  {t("detailPage.loanBreakdown.total")}
+                </Text>
+                <Text size="sm" className="font-semibold tabular-nums">
+                  <FinancialValue>
+                    {formatCurrency(
+                      activity.breakdown.totalPaid,
+                      tx.currency,
+                      locale,
+                      { maximumFractionDigits: 0 },
+                    )}
+                  </FinancialValue>
+                </Text>
+              </div>
+            </dl>
+          </section>
+        ) : null}
 
         <section className="flex flex-col gap-(--space-3)">
           <SectionHeader title={t("detailPage.context")} />
-          <dl className="divide-y divide-border-subtle border-y border-border-subtle">
+          <dl className="divide-y divide-border-subtle border-y border-border-subtle bg-surface/35">
             <div className="flex justify-between gap-(--space-3) py-(--space-3)">
               <Text size="sm" tone="secondary">
                 {t("detailPage.account")}
@@ -447,7 +507,7 @@ export default async function TransactionDetailPage({ params }: Props) {
         <section className="flex flex-col gap-(--space-3)">
           <SectionHeader title={t("detailPage.category")} />
           {tx.categoryName ? (
-            <span className="inline-flex min-h-11 items-center rounded-md border border-border-subtle bg-surface px-(--space-3) text-sm font-medium text-text-primary">
+            <span className="inline-flex min-h-11 items-center rounded-(--radius-control) border border-border-subtle bg-surface px-(--space-3) text-sm font-medium text-text-primary">
               {localizeCatalogName(tCatalog, "tags", tx.categoryName)}
             </span>
           ) : (
@@ -616,7 +676,7 @@ export default async function TransactionDetailPage({ params }: Props) {
         {canCorrect ? (
           <Link
             href={moneyTransactionCorrectPath(tx.id)}
-            className="inline-flex min-h-11 w-full items-center justify-center rounded-md bg-accent px-(--space-4) text-sm font-medium text-accent-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+            className="inline-flex min-h-11 w-full items-center justify-center rounded-[var(--radius-control)] bg-accent px-(--space-4) text-sm font-medium text-accent-fg shadow-(--elevation-1) transition-[background-color,transform] duration-(--duration-fast) hover:bg-accent/90 active:scale-[var(--press-scale)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none"
             data-testid="transaction-correct"
           >
             {t("detailPage.correct")}
@@ -625,7 +685,7 @@ export default async function TransactionDetailPage({ params }: Props) {
         {canRefund ? (
           <Link
             href={moneyTransactionRefundPath(tx.id)}
-            className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary"
+            className="inline-flex min-h-11 w-full items-center justify-center rounded-[var(--radius-control)] border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-[var(--press-scale)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none"
             data-testid="transaction-refund"
           >
             {t("detailPage.refundAction")}

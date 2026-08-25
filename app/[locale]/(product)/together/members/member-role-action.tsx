@@ -5,22 +5,32 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import type { HouseholdMemberRow } from "@/modules/tenancy/application/list-household-members";
 import { HOUSEHOLD_ROLE } from "@/modules/tenancy/application/tenancy-constants";
+import { ActionSheetLayout, Sheet, SheetActionFooter } from "@/shared/patterns";
 import { Button } from "@/shared/ui/button";
 import { AlertVariant } from "@/shared/ui/alert";
 import { StatusAlert } from "@/shared/ui/status-alert";
-import { changeRoleAction } from "./actions";
+import { Text } from "@/shared/ui/text";
 import { useStatusAlert } from "@/providers/status-alert-provider";
+import { changeRoleAction } from "./actions";
 
 export function MemberRoleAction({ member }: { member: HouseholdMemberRow }) {
   const t = useTranslations("together.members");
   const router = useRouter();
   const statusAlert = useStatusAlert();
-  const [confirming, setConfirming] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const nextRole =
     member.role === HOUSEHOLD_ROLE.ADMIN
       ? HOUSEHOLD_ROLE.PARTNER
       : HOUSEHOLD_ROLE.ADMIN;
+  const nextRoleLabel =
+    nextRole === HOUSEHOLD_ROLE.ADMIN ? t("makeAdmin") : t("makePartner");
+
+  const close = () => {
+    if (isPending) return;
+    setIsOpen(false);
+    statusAlert.hide();
+  };
 
   const onConfirm = () => {
     statusAlert.hide();
@@ -30,7 +40,7 @@ export function MemberRoleAction({ member }: { member: HouseholdMemberRow }) {
         role: nextRole,
       });
       if (result.status === "success") {
-        setConfirming(false);
+        setIsOpen(false);
         router.refresh();
         return;
       }
@@ -42,45 +52,54 @@ export function MemberRoleAction({ member }: { member: HouseholdMemberRow }) {
     });
   };
 
-  if (!confirming) {
-    return (
-      <Button
-        variant="secondary"
-        className="min-h-11 px-(--space-2) text-xs"
-        data-testid="together-change-role"
-        onPress={() => setConfirming(true)}
-      >
-        {nextRole === HOUSEHOLD_ROLE.ADMIN ? t("makeAdmin") : t("makePartner")}
-      </Button>
-    );
-  }
-
   return (
-    <div className="flex w-full flex-col gap-(--space-2)">
-      <StatusAlert
-        variant={AlertVariant.INFO}
-        title={t("confirmTitle")}
-        description={t("confirmBody")}
-      />
-      <Button
-        variant="primary"
-        className="w-full"
-        isDisabled={isPending}
-        onPress={onConfirm}
-      >
-        {isPending ? t("saving") : t("confirm")}
-      </Button>
+    <>
       <Button
         variant="secondary"
-        className="w-full"
+        className="min-h-10 w-fit px-(--space-3) text-xs"
+        data-testid="together-change-role"
+        onPress={() => setIsOpen(true)}
         isDisabled={isPending}
-        onPress={() => {
-          setConfirming(false);
-          statusAlert.hide();
+      >
+        {nextRoleLabel}
+      </Button>
+      <Sheet
+        isOpen={isOpen}
+        onOpenChange={(open) => {
+          if (!open) close();
+          else setIsOpen(true);
         }}
       >
-        {t("cancel")}
-      </Button>
-    </div>
+        <ActionSheetLayout>
+          <ActionSheetLayout.Header>
+            <Sheet.Heading className="text-lg font-semibold tracking-tight text-text-primary">
+              {t("confirmTitle")}
+            </Sheet.Heading>
+          </ActionSheetLayout.Header>
+          <ActionSheetLayout.Body>
+            <div className="flex flex-col gap-(--space-4)">
+              <Text size="sm" tone="secondary" className="text-pretty">
+                {t("confirmBody")}
+              </Text>
+              <StatusAlert
+                variant={AlertVariant.INFO}
+                title={nextRoleLabel}
+                description={
+                  member.displayName ?? member.email ?? t("thisMember")
+                }
+              />
+            </div>
+          </ActionSheetLayout.Body>
+          <SheetActionFooter
+            secondaryLabel={t("cancel")}
+            primaryLabel={isPending ? t("saving") : t("confirm")}
+            onSecondary={close}
+            onPrimary={onConfirm}
+            primaryTestId="together-confirm-role"
+            isPending={isPending}
+          />
+        </ActionSheetLayout>
+      </Sheet>
+    </>
   );
 }

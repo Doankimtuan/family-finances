@@ -247,7 +247,7 @@ export function AddAccountForm({
           },
         ]}
       >
-        <div className="rounded-lg border border-success/25 bg-success/10 p-(--space-3)">
+        <div className="rounded-(--radius-control) border border-success/25 bg-success/10 p-(--space-3)">
           <Text size="sm" tone="secondary">
             {receipt.accountType === AccountType.CREDIT_CARD
               ? t("creditCardHint")
@@ -540,7 +540,7 @@ export function AddAccountForm({
   }
 
   return (
-    <div className="flex flex-col gap-(--space-3) rounded-lg border border-border-subtle bg-surface p-(--space-4)">
+    <div className="flex flex-col gap-(--space-3) rounded-(--radius-card) border border-border-subtle bg-surface p-(--space-4)">
       {fields}
       {actions}
     </div>

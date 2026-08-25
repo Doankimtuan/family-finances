@@ -9,19 +9,14 @@ create table if not exists public.household_configuration_events (
   constraint household_configuration_events_type_check
     check (event_type in ('preferences.updated', 'role.changed'))
 );
-
 create index if not exists idx_household_configuration_events_household_created
   on public.household_configuration_events (household_id, created_at desc);
-
 alter table public.household_configuration_events enable row level security;
-
 create policy household_configuration_events_select_member
   on public.household_configuration_events
   for select to authenticated
   using (public.is_household_member(household_id));
-
 grant select on public.household_configuration_events to authenticated;
-
 create or replace function public.update_household_preferences(
   p_locale text,
   p_timezone text,
@@ -115,12 +110,10 @@ begin
   return v_household_id;
 end;
 $$;
-
 revoke all on function public.update_household_preferences(text, text, text)
   from public;
 grant execute on function public.update_household_preferences(text, text, text)
   to authenticated;
-
 create or replace function public.change_household_member_role(
   p_membership_id uuid,
   p_role text
@@ -195,7 +188,6 @@ begin
   return true;
 end;
 $$;
-
 revoke all on function public.change_household_member_role(uuid, text)
   from public;
 grant execute on function public.change_household_member_role(uuid, text)

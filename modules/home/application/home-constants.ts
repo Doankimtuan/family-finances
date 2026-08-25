@@ -13,7 +13,37 @@ export const HOME_DASHBOARD_PERIOD_VALUES = [
   HomeDashboardPeriod.QUARTER,
 ] as const;
 export const HOME_DASHBOARD_DEFAULT_PERIOD = HomeDashboardPeriod.MONTH;
+export const HOME_PERIOD_FOCUS_INTENT_KEY = "home.period-focus-intent";
+export const HOME_PERIOD_FOCUS_QUERY = "focus";
+export const HOME_PRODUCT_FAILURE_QUERY = "homeProductFailure";
+export const HomeProductSummaryKey = {
+  INVESTMENTS: "investments",
+} as const;
 export const HOME_DASHBOARD_MAX_CATEGORY_COUNT = 4;
+
+export const HomeDashboardReadStatus = {
+  ERROR: "error",
+  PARTIAL: "partial",
+  READY: "ready",
+} as const;
+
+export const HomeProductReadStatus = {
+  READY: "ready",
+  UNAVAILABLE: "unavailable",
+} as const;
+export type HomeProductReadStatus =
+  (typeof HomeProductReadStatus)[keyof typeof HomeProductReadStatus];
+export type HomeDashboardReadStatus =
+  (typeof HomeDashboardReadStatus)[keyof typeof HomeDashboardReadStatus];
+
+export const HomeDashboardFailureSource = {
+  ACCESS: "access",
+  INBOX: "inbox",
+  PLAN: "plan",
+  POSITION: "position",
+} as const;
+export type HomeDashboardFailureSource =
+  (typeof HomeDashboardFailureSource)[keyof typeof HomeDashboardFailureSource];
 
 export const HomeFinancialPulseState = {
   UNAVAILABLE: "unavailable",
@@ -100,6 +130,7 @@ export const HOME_TEST_ID = {
   PLAN_PULSE: "home-plan-pulse",
   INBOX_BLOCK: "home-inbox-block",
   PLAN_LINK: "home-plan-link",
+  PRODUCT_SUMMARIES: "home-product-summaries",
   PERIOD_STORY: "home-period-story",
   CAPTURE_ACTION: "home-capture",
   ACCOUNT_ACTION: "home-add-account",

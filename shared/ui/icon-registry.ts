@@ -32,6 +32,7 @@ import {
   Restaurant01Icon,
   SafeBoxIcon,
   Search01Icon,
+  Settings01Icon,
   Shield01Icon,
   SmartPhone01Icon,
   ShoppingBag01Icon,
@@ -216,6 +217,7 @@ export const ACTION_ICONS = {
 export const UTILITY_ICONS = {
   calendar: Calendar03Icon,
   notification: Notification03Icon,
+  settings: Settings01Icon,
   financialVisible: EyeIcon,
   financialHidden: EyeOffIcon,
 } as const;

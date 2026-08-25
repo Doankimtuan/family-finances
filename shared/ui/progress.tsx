@@ -8,6 +8,8 @@ import {
 } from "./icon-container";
 import { motionTokens } from "@/shared/motion/tokens";
 import { useMotionPolicy } from "@/shared/motion/use-motion-policy";
+import { useFinancialPrivacy } from "@/providers/financial-privacy-provider";
+import { FINANCIAL_PRIVACY_MASK } from "@/shared/constants/financial-privacy";
 
 const PROGRESS_INDICATOR_TONE_CLASS_NAME: Record<
   IconContainerToneValue,
@@ -34,6 +36,7 @@ export type ProgressProps = {
   className?: string;
   trackClassName?: string;
   indicatorClassName?: string;
+  privacyAware?: boolean;
 };
 
 /**
@@ -49,8 +52,11 @@ export function Progress({
   className,
   trackClassName,
   indicatorClassName,
+  privacyAware = false,
 }: ProgressProps) {
   const policy = useMotionPolicy({ essential: true });
+  const { isHidden } = useFinancialPrivacy();
+  const privacyHidden = privacyAware && isHidden;
   const safeMax = max > 0 ? max : 100;
   const clamped = Math.min(Math.max(value, 0), safeMax);
   const ratio = clamped / safeMax;
@@ -58,14 +64,18 @@ export function Progress({
   return (
     <div className={cn("flex w-full flex-col gap-(--space-2)", className)}>
       {label && showLabel ? (
-        <span className="text-xs font-medium text-text-secondary">{label}</span>
+        <span className="text-xs font-medium text-text-secondary">
+          {privacyHidden ? FINANCIAL_PRIVACY_MASK : label}
+        </span>
       ) : null}
       <div
         role="progressbar"
-        aria-label={label ?? "Progress"}
+        aria-label={
+          privacyHidden ? FINANCIAL_PRIVACY_MASK : (label ?? "Progress")
+        }
         aria-valuemin={0}
         aria-valuemax={safeMax}
-        aria-valuenow={clamped}
+        aria-valuenow={privacyHidden ? undefined : clamped}
         className={cn(
           "h-2 w-full overflow-hidden rounded-full bg-progress-track ring-1 ring-inset ring-border-subtle",
           trackClassName,
@@ -78,7 +88,7 @@ export function Progress({
             indicatorClassName,
           )}
           initial={false}
-          animate={{ scaleX: ratio }}
+          animate={{ scaleX: privacyHidden ? 0 : ratio }}
           transition={{
             duration: policy.enabled
               ? motionTokens.duration.fast

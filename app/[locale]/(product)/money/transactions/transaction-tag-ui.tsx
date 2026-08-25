@@ -146,7 +146,7 @@ export function TransactionTagSelector({
 
   return (
     <div
-      className="flex flex-col gap-(--space-3)"
+      className="flex flex-col gap-(--space-4)"
       data-testid="transaction-tag-selector"
     >
       {selectedTags.length > 0 ? (
@@ -167,7 +167,7 @@ export function TransactionTagSelector({
 
       <button
         type="button"
-        className="flex min-h-11 w-full items-center justify-between gap-(--space-3) rounded-md border border-border-subtle bg-surface px-(--space-3) text-left text-sm font-medium text-text-primary transition-[background-color,border-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-[0.99] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none"
+        className="flex min-h-11 w-full items-center justify-between gap-(--space-3) rounded-[var(--radius-control)] border border-border-subtle bg-surface px-(--space-3) text-left text-sm font-medium text-text-primary shadow-(--elevation-1) transition-[background-color,border-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-[var(--press-scale)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none"
         aria-haspopup="dialog"
         disabled={disabled}
         onClick={() => setIsOpen(true)}
@@ -213,7 +213,7 @@ export function TransactionTagSelector({
                 ) : null}
               </div>
             ) : activeTags.length === 0 ? (
-              <div className="flex flex-col gap-(--space-3)">
+              <div className="flex flex-col gap-(--space-4)">
                 <div>
                   <Text size="sm" weight="medium">
                     {archivedTags.length > 0
@@ -244,7 +244,7 @@ export function TransactionTagSelector({
                 </div>
               </div>
             ) : (
-              <div className="flex flex-col gap-(--space-3)">
+              <div className="flex flex-col gap-(--space-4)">
                 <TextField
                   id="transaction-tag-search"
                   label={t("searchLabel")}
@@ -261,11 +261,11 @@ export function TransactionTagSelector({
                         type="button"
                         aria-pressed={selected}
                         disabled={Boolean(tag.archivedAt) && !selected}
-                        className={`flex min-h-11 items-center gap-(--space-3) rounded-md border px-(--space-3) text-left transition-[background-color,border-color,transform,opacity] duration-(--duration-fast) active:scale-[0.99] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none ${selected ? `${visual.color.surface} ${visual.color.border}` : "border-border-subtle bg-surface hover:bg-surface-hover"} ${tag.archivedAt && !selected ? "cursor-not-allowed opacity-45" : ""}`}
+                        className={`flex min-h-11 items-center gap-(--space-3) rounded-[var(--radius-control)] border px-(--space-3) text-left transition-[background-color,border-color,transform,opacity] duration-(--duration-fast) active:scale-[var(--press-scale)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none ${selected ? `${visual.color.surface} ${visual.color.border}` : "border-border-subtle bg-surface hover:bg-surface-hover"} ${tag.archivedAt && !selected ? "cursor-not-allowed opacity-45" : ""}`}
                         onClick={() => toggle(tag)}
                       >
                         <span
-                          className={`flex size-8 shrink-0 items-center justify-center rounded-md ${visual.color.surface} ${visual.color.text}`}
+                          className={`flex size-8 shrink-0 items-center justify-center rounded-[var(--radius-control)] ${visual.color.surface} ${visual.color.text}`}
                         >
                           <AppIcon icon={visual.icon} size="sm" />
                         </span>
@@ -353,7 +353,7 @@ export function TagIconPreview({ tag }: { tag: TransactionTag }) {
   const visual = transactionTagVisualFor(tag);
   return (
     <span
-      className={`flex size-11 shrink-0 items-center justify-center rounded-md ${visual.color.surface} ${visual.color.text}`}
+      className={`flex size-11 shrink-0 items-center justify-center rounded-[var(--radius-control)] ${visual.color.surface} ${visual.color.text}`}
     >
       <AppIcon icon={visual.icon} size="md" emphasized />
     </span>

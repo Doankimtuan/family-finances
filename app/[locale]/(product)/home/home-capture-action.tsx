@@ -20,7 +20,7 @@ export function HomeCaptureAction({ accountCount }: { accountCount: number }) {
   return (
     <Button
       variant={ButtonVariant.PRIMARY}
-      className="pointer-events-auto min-h-12 shrink-0 gap-(--space-2) rounded-full px-(--space-4) shadow-(--elevation-2) mb-3"
+      className="pointer-events-auto min-h-(--floating-action-size) shrink-0 gap-(--space-2) rounded-full px-(--space-4) shadow-(--elevation-2)"
       isDisabled={!online}
       data-testid={
         hasAccount ? HOME_TEST_ID.CAPTURE_ACTION : HOME_TEST_ID.ACCOUNT_ACTION

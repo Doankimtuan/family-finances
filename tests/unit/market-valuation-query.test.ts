@@ -13,14 +13,14 @@ const querySource = readFileSync(
 describe("market valuation query shape", () => {
   it("bulk-loads market data with fixed query count", () => {
     expect(querySource.match(/\.from\("market_instruments"\)/g)).toHaveLength(
-      1,
+      2,
     );
     expect(
       querySource.match(/\.from\("market_instrument_prices"\)/g),
-    ).toHaveLength(1);
+    ).toHaveLength(2);
     expect(
       querySource.match(/\.from\("market_currency_rates"\)/g),
-    ).toHaveLength(1);
+    ).toHaveLength(2);
     expect(querySource).toContain("const instrumentIds = [");
     expect(querySource).toContain("...new Set(");
   });

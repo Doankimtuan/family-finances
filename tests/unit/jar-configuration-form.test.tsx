@@ -262,7 +262,7 @@ describe("JarConfigurationForm edit flow", () => {
       (screen.getByLabelText("percentLabel") as HTMLInputElement).value,
     ).toBe("50");
     expect(screen.getByTestId("jar-edit-plan-percent")).toHaveAttribute(
-      "aria-pressed",
+      "aria-checked",
       "true",
     );
     expect(screen.getByLabelText(/Groceries/)).toBeChecked();

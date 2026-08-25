@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { authenticateE2EUser } from "./support/auth";
 
 const scenarios = [
   {
@@ -23,21 +24,7 @@ const scenarios = [
 ];
 
 async function signIn(page: Page) {
-  const email = process.env.E2E_USER_EMAIL;
-  const password = process.env.E2E_USER_PASSWORD;
-  test.skip(!email || !password, "E2E credentials not provided");
-
-  await page.goto("/en/login");
-  await page.getByLabel("Email").fill(email!);
-  await page.locator("#login-password").fill(password!);
-  await page.getByRole("button", { name: "Log in" }).click();
-  await expect(page).toHaveURL(/\/en\/(home|together\/onboard)/, {
-    timeout: 20_000,
-  });
-  test.skip(
-    page.url().includes("/together/onboard"),
-    "E2E account has no household to inspect",
-  );
+  await authenticateE2EUser(page);
 }
 
 function selectTrigger(scope: ReturnType<Page["getByTestId"]>, testId: string) {
@@ -133,16 +120,17 @@ test.describe("Canonical credit-card forms and installment tracker", () => {
     );
 
     await page.goto(hrefs[0]!);
-    await page.getByTestId("account-management-open").click();
-    await page.getByTestId("account-edit-open").click();
-    const editForm = page.getByTestId("account-edit-form");
+    const accountView = page.locator("#app-viewport-root");
+    await accountView.getByTestId("account-management-open").click();
+    await accountView.getByTestId("account-edit-open").click();
+    const editForm = accountView.getByTestId("account-edit-form");
     await expect(selectTrigger(editForm, "account-edit-type")).toBeVisible();
     await page.getByRole("button", { name: "Cancel" }).click();
 
     let cardHref: string | null = null;
     for (const href of hrefs) {
       await page.goto(href);
-      if (await page.getByTestId("card-installments").count()) {
+      if (await accountView.getByTestId("card-installments").count()) {
         cardHref = href;
         break;
       }
@@ -162,10 +150,10 @@ test.describe("Canonical credit-card forms and installment tracker", () => {
     await expect(paymentSheet.getByTestId("card-settle-amount")).toBeVisible();
     await page.keyboard.press("Escape");
     await expect(paymentSheet).toHaveCount(0);
-    await page.getByTestId("account-management-open").click();
-    await expect(page.getByTestId("card-refund-open")).toBeVisible();
+    await accountView.getByTestId("account-management-open").click();
+    await expect(accountView.getByTestId("card-refund-open")).toBeVisible();
     await page.keyboard.press("Escape");
-    const installmentSection = page.getByTestId("card-installments");
+    const installmentSection = accountView.getByTestId("card-installments");
     const installmentOpen = installmentSection.getByTestId(
       "card-installment-open",
     );
@@ -189,10 +177,10 @@ test.describe("Canonical credit-card forms and installment tracker", () => {
         selectTrigger(dialog, "card-installment-program"),
       ).toBeVisible();
       await expect(
-        selectTrigger(dialog, "card-installment-term"),
+        dialog.getByTestId("card-installment-term").locator("input"),
       ).toBeVisible();
       await expect(
-        dialog.getByTestId("card-installment-first-expected").locator("input"),
+        dialog.getByTestId("card-installment-first-expected"),
       ).toBeVisible();
       await expect(
         dialog.getByTestId("card-installment-preview"),

@@ -21,6 +21,7 @@ export type TransactionRowProps = {
   amountLabel: string;
   tone?: TransactionAmountTone;
   leading?: ReactNode;
+  showRail?: boolean;
   className?: string;
 };
 
@@ -34,6 +35,7 @@ export function TransactionRow({
   amountLabel,
   tone = TransactionAmountTone.NEUTRAL,
   leading,
+  showRail = true,
   className,
 }: TransactionRowProps) {
   const amountClass =
@@ -64,7 +66,7 @@ export function TransactionRow({
     >
       {leading ? (
         leading
-      ) : (
+      ) : showRail ? (
         <span
           className={cn(
             "absolute inset-y-(--space-3) left-0 w-1 rounded-r-full",
@@ -72,7 +74,7 @@ export function TransactionRow({
           )}
           aria-hidden
         />
-      )}
+      ) : null}
       <div className="min-w-0 flex-1 pt-(--space-1)">
         <Text size="sm" className="break-words font-medium text-text-primary">
           {title}

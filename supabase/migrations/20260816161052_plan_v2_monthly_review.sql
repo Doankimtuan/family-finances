@@ -14,3 +14,4 @@ comment on column public.month_ritual_runs.review_snapshot is
 
 create index if not exists month_ritual_runs_review_status_idx
   on public.month_ritual_runs (household_id, period_month, review_status);
+;
