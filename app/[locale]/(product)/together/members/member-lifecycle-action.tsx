@@ -11,23 +11,17 @@ import { AlertVariant } from "@/shared/ui/alert";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Text } from "@/shared/ui/text";
 import { useStatusAlert } from "@/providers/status-alert-provider";
+import { cn } from "@/shared/utils/cn";
 import { leaveHouseholdAction, removeHouseholdMemberAction } from "./actions";
 
-type Props =
-  | {
-      action: "leave";
-      member: HouseholdMemberRow;
-      impact: MembershipImpactSummary;
-      isLastAdmin?: boolean;
-      isSoloAdmin?: boolean;
-    }
-  | {
-      action: "remove";
-      member: HouseholdMemberRow;
-      impact: MembershipImpactSummary;
-      isLastAdmin?: boolean;
-      isSoloAdmin?: boolean;
-    };
+type Props = {
+  action: "leave" | "remove";
+  member: HouseholdMemberRow;
+  impact: MembershipImpactSummary;
+  isLastAdmin?: boolean;
+  isSoloAdmin?: boolean;
+  className?: string;
+};
 
 export function MemberLifecycleAction({
   action,
@@ -35,6 +29,7 @@ export function MemberLifecycleAction({
   impact,
   isLastAdmin = false,
   isSoloAdmin = false,
+  className,
 }: Props) {
   const t = useTranslations("together.members");
   const router = useRouter();
@@ -48,6 +43,7 @@ export function MemberLifecycleAction({
     return (
       <StatusAlert
         variant={AlertVariant.INFO}
+        className={cn("w-full", className)}
         title={t("leaveBlockedTitle")}
         description={t(
           isSoloAdmin
@@ -87,7 +83,7 @@ export function MemberLifecycleAction({
     <>
       <Button
         variant={isRemoval ? "danger" : "secondary"}
-        className="min-h-10 w-full"
+        className={cn("min-h-10 w-full", className)}
         data-testid={`together-${action}-member`}
         onPress={() => setIsOpen(true)}
         isDisabled={isPending}

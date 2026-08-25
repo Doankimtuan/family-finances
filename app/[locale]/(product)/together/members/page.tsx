@@ -43,12 +43,10 @@ export default async function MembersPage({ params }: Props) {
           subtitle={result.household?.name}
         />
       }
+      contentClassName="gap-(--space-5)"
     >
       <section className="flex flex-col gap-(--space-4)">
-        <SectionHeader
-          title={t("membersTitle")}
-          description={t("membersDescription")}
-        />
+        <SectionHeader description={t("membersDescription")} />
         {result.members.length > 0 ? (
           <MemberList
             members={result.members}
@@ -72,7 +70,7 @@ export default async function MembersPage({ params }: Props) {
       </section>
       <Link
         href={TOGETHER_PATH.ROOT}
-        className="inline-flex min-h-11 w-full items-center justify-center rounded-[var(--radius-control)] border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-[var(--press-scale)] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+        className="inline-flex min-h-11 w-full items-center justify-center rounded-[var(--radius-control)] border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-secondary transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover hover:text-text-primary active:scale-[var(--press-scale)] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
       >
         {t("members.back")}
       </Link>

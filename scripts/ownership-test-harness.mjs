@@ -617,11 +617,7 @@ export async function createValidLoan(
       expected_end_date: HARNESS.today,
       first_payment_date: HARNESS.today,
       repayment_frequency: "monthly",
-      repayment_method: "fixed_monthly",
-      term_months: 1,
       monthly_payment: 1000000,
-      total_interest: 0,
-      total_repayment: 1000000,
       next_payment_date: HARNESS.today,
       due_day: 15,
       currency: HARNESS.currency,
@@ -1249,6 +1245,13 @@ async function cleanup() {
     }),
   );
   const rootIds = Object.fromEntries(roots);
+  const { data: providerRows, error: providerError } = await admin
+    .from("saving_providers")
+    .select("id")
+    .eq("household_id", household.id);
+  if (providerError)
+    fail(`read cleanup saving providers: ${providerError.code ?? "unknown"}`);
+  const providerIds = (providerRows ?? []).map((row) => row.id);
   const deleteByIds = async (table, column, ids) => {
     if (!ids.length) return;
     const { error: deleteError } = await admin
@@ -1272,6 +1275,7 @@ async function cleanup() {
   await deleteByIds("loan_payments", "loan_id", rootIds.loans);
   await deleteByIds("loan_schedule_entries", "loan_id", rootIds.loans);
   await deleteByIds("loan_interest_rate_periods", "loan_id", rootIds.loans);
+  await deleteByIds("saving_packages", "provider_id", providerIds);
   await deleteByIds(
     "investment_fees",
     "holding_id",
@@ -1302,9 +1306,11 @@ async function cleanup() {
   await deleteByHousehold("card_billing_months");
   await deleteByHousehold("credit_card_settings");
   await deleteByHousehold("goals");
+  await deleteByHousehold("jars");
   await deleteByHousehold("liabilities");
   await deleteByHousehold("loans");
   await deleteByHousehold("savings");
+  await deleteByHousehold("saving_providers");
   await deleteByHousehold("investment_holdings");
   await deleteByHousehold("accounts");
   await deleteByHousehold("household_members");

@@ -154,7 +154,8 @@ begin
     penalty_strategy, settlement_transaction_id, executed_by
   )
   values (
-    v_cycle.id, v_saving.id, p_principal, coalesce(p_accr    v_cycle.id, v_savingeligible, coalesce(p_penalty_amount, 0), v_net,
+    v_cycle.id, v_saving.id, p_principal, coalesce(p_accrued_interest, 0),
+    v_eligible, coalesce(p_penalty_amount, 0), v_net,
     coalesce(p_penalty_strategy, 'no_interest'), v_in_tx, v_user_id
   )
   returning id into v_ew_id;

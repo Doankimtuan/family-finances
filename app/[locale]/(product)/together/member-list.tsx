@@ -53,10 +53,17 @@ export function MemberList({
           const memberName =
             member.displayName ?? member.email ?? member.userId.slice(0, 8);
           const capabilityHint = isAdmin ? roleAdminHint : rolePartnerHint;
+          const canManageLifecycle =
+            member.isSelf ||
+            (canManageMembers && member.role === HOUSEHOLD_ROLE.PARTNER);
+          const isLastAdmin =
+            member.role === HOUSEHOLD_ROLE.ADMIN && activeAdminCount === 1;
+          const shouldShowActions = canManageRoles || canManageLifecycle;
+
           return (
             <li
               key={member.id}
-              className="flex flex-col gap-(--space-3) p-(--space-4)"
+              className="flex flex-col gap-(--space-4) p-(--space-4)"
               data-testid={`together-member-${member.id}`}
             >
               <div className="flex items-start gap-(--space-3)">
@@ -105,21 +112,28 @@ export function MemberList({
                   </div>
                 </div>
               </div>
-              {canManageRoles ? <MemberRoleAction member={member} /> : null}
-              {member.isSelf ||
-              (canManageMembers && member.role === HOUSEHOLD_ROLE.PARTNER) ? (
-                <MemberLifecycleAction
-                  action={member.isSelf ? "leave" : "remove"}
-                  member={member}
-                  impact={
-                    impactByMemberId?.[member.id] ?? EMPTY_MEMBERSHIP_IMPACT
-                  }
-                  isLastAdmin={
-                    member.role === HOUSEHOLD_ROLE.ADMIN &&
-                    activeAdminCount === 1
-                  }
-                  isSoloAdmin={members.length === 1}
-                />
+
+              {shouldShowActions ? (
+                <div className="flex flex-wrap items-center gap-(--space-2) border-t border-divider pt-(--space-3)">
+                  {canManageRoles ? (
+                    <MemberRoleAction
+                      member={member}
+                      className="min-w-0 flex-1"
+                    />
+                  ) : null}
+                  {canManageLifecycle ? (
+                    <MemberLifecycleAction
+                      action={member.isSelf ? "leave" : "remove"}
+                      member={member}
+                      impact={
+                        impactByMemberId?.[member.id] ?? EMPTY_MEMBERSHIP_IMPACT
+                      }
+                      isLastAdmin={isLastAdmin}
+                      isSoloAdmin={members.length === 1}
+                      className={isLastAdmin ? "basis-full" : "min-w-0 flex-1"}
+                    />
+                  ) : null}
+                </div>
               ) : null}
             </li>
           );

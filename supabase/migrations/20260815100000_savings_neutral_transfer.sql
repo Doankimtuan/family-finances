@@ -112,7 +112,8 @@ begin
   if not exists (
     select 1 from public.accounts a
     where a.id = p_funding_account_id
-      and a.household_id = v_household      and a.d a.is_archived = false
+      and a.household_id = v_household_id
+      and a.is_archived = false
       and a.type not in ('credit_card', 'savings_product')
   ) then
     raise exception 'Invalid funding account';
