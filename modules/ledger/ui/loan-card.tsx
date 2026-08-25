@@ -121,7 +121,3 @@ export function LoanCard({
     </Card>
   );
 }
-
-/** @deprecated Use LoanCard. */
-export const InstallmentCard = LoanCard;
-export type InstallmentCardProps = LoanCardProps;

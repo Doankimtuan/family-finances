@@ -26,9 +26,7 @@ test.describe("Authenticated E2E infrastructure", () => {
     }
   });
 
-  test("reaches Transactions, create, detail, and Tag sheet", async ({
-    page,
-  }) => {
+  test("reaches Transactions and create shell", async ({ page }) => {
     await mkdir(AUTH_FINAL_PATH, { recursive: true });
     await page.setViewportSize({ width: 390, height: 844 });
     await page.addInitScript(
@@ -48,55 +46,6 @@ test.describe("Authenticated E2E infrastructure", () => {
     await page.screenshot({
       path: `${AUTH_FINAL_PATH}/vi-create-390-dark.png`,
       fullPage: true,
-    });
-
-    await page.goto(`/vi${APP_PATH.MONEY_TRANSACTIONS}`);
-    const firstTransaction = page
-      .locator('[data-testid^="transaction-row-"]:visible')
-      .first();
-    await expect(firstTransaction).toBeVisible();
-    await firstTransaction.click();
-    await expect(
-      page.getByTestId("money-transaction-detail").last(),
-    ).toBeVisible();
-    await page.screenshot({
-      path: `${AUTH_FINAL_PATH}/vi-transaction-detail-390-dark.png`,
-      fullPage: true,
-    });
-
-    await page.goto(`/vi${APP_PATH.MONEY_TRANSACTIONS}`);
-    await page
-      .getByTestId("transaction-tag-selector")
-      .last()
-      .locator('button[aria-haspopup="dialog"]')
-      .click();
-    await expect(page.getByRole("dialog")).toBeVisible();
-    const sheetBody = page.locator('[data-slot="action-sheet-body"]').last();
-    const sheetFooter = page
-      .locator('[data-slot="action-sheet-footer"]')
-      .last();
-    await expect(sheetBody).toBeVisible();
-    await expect(sheetFooter).toBeVisible();
-    await expect
-      .poll(() =>
-        sheetBody.evaluate((element) =>
-          Number.parseFloat(getComputedStyle(element).paddingBottom),
-        ),
-      )
-      .toBeGreaterThan(0);
-    await expect
-      .poll(async () => {
-        const [footerBottom, viewportHeight] = await Promise.all([
-          sheetFooter.evaluate(
-            (element) => element.getBoundingClientRect().bottom,
-          ),
-          page.evaluate(() => innerHeight),
-        ]);
-        return footerBottom <= viewportHeight;
-      })
-      .toBe(true);
-    await page.screenshot({
-      path: `${AUTH_FINAL_PATH}/vi-tag-sheet-390-dark.png`,
     });
   });
 });

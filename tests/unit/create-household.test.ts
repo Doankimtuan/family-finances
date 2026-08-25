@@ -42,6 +42,41 @@ describe("createHouseholdInputSchema", () => {
     ).toBe(true);
   });
 
+  it("accepts skipped account and Jar setup with a zero balance", () => {
+    const result = createHouseholdInputSchema.safeParse({
+      name: "Our home",
+      openingBalance: 0,
+      accountName: undefined,
+      planPreset: null,
+    });
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.openingBalance).toBe(0);
+      expect(result.data.accountName).toBeUndefined();
+      expect(result.data.planPreset).toBeNull();
+    }
+  });
+
+  it("rejects invalid opening balances", () => {
+    expect(
+      createHouseholdInputSchema.safeParse({
+        name: "Our home",
+        accountName: "Cash",
+        planPreset: "balanced",
+        openingBalance: -1,
+      }).success,
+    ).toBe(false);
+    expect(
+      createHouseholdInputSchema.safeParse({
+        name: "Our home",
+        accountName: "Cash",
+        planPreset: "balanced",
+        openingBalance: 100.5,
+      }).success,
+    ).toBe(false);
+  });
+
   it("rejects short household names", () => {
     expect(
       createHouseholdInputSchema.safeParse({
@@ -129,7 +164,7 @@ describe("createHousehold", () => {
     });
   });
 
-  it("returns household id on successful rpc", async () => {
+  it("passes opening balance and the selected preset to the rpc", async () => {
     vi.mocked(getSupabaseEnv).mockReturnValue({
       url: "https://example.supabase.co",
       key: "key",
@@ -137,16 +172,57 @@ describe("createHousehold", () => {
     });
     vi.mocked(getSessionUser).mockResolvedValue({ id: "u1" } as never);
     vi.mocked(resolveActiveMembership).mockResolvedValue(null);
-    vi.mocked(createSupabaseServerClient).mockResolvedValue({
-      rpc: async () => ({ data: "hh-new", error: null }),
-    } as never);
+    const rpc = vi.fn(async () => ({ data: "hh-new", error: null }));
+    vi.mocked(createSupabaseServerClient).mockResolvedValue({ rpc } as never);
 
     await expect(
       createHousehold({
         name: "Our home",
         accountName: "Cash",
+        openingBalance: 20_000_000,
         planPreset: "balanced",
       }),
     ).resolves.toEqual({ ok: true, householdId: "hh-new" });
+
+    expect(rpc).toHaveBeenCalledWith("create_household_with_essentials", {
+      p_name: "Our home",
+      p_account_name: "Cash",
+      p_opening_balance: 20_000_000,
+      p_plan_preset: "balanced",
+      p_base_currency: "VND",
+      p_locale: "en-VN",
+      p_timezone: "Asia/Ho_Chi_Minh",
+    });
+  });
+
+  it("passes null account and preset when onboarding setup is skipped", async () => {
+    vi.mocked(getSupabaseEnv).mockReturnValue({
+      url: "https://example.supabase.co",
+      key: "key",
+      isConfigured: true,
+    });
+    vi.mocked(getSessionUser).mockResolvedValue({ id: "u1" } as never);
+    vi.mocked(resolveActiveMembership).mockResolvedValue(null);
+    const rpc = vi.fn(async () => ({ data: "hh-new", error: null }));
+    vi.mocked(createSupabaseServerClient).mockResolvedValue({ rpc } as never);
+
+    await expect(
+      createHousehold({
+        name: "Our home",
+        accountName: undefined,
+        openingBalance: 0,
+        planPreset: null,
+      }),
+    ).resolves.toEqual({ ok: true, householdId: "hh-new" });
+
+    expect(rpc).toHaveBeenCalledWith("create_household_with_essentials", {
+      p_name: "Our home",
+      p_account_name: null,
+      p_opening_balance: 0,
+      p_plan_preset: null,
+      p_base_currency: "VND",
+      p_locale: "en-VN",
+      p_timezone: "Asia/Ho_Chi_Minh",
+    });
   });
 });

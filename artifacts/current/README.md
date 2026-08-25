@@ -11,4 +11,5 @@
 - `architecture/` — long-term engineering references.
 - `CHANGE_POLICY.md` — rules for future documentation changes.
 
-Historical source packs live in `../../history/` and must not be modified or used as implementation authority.
+Historical source packs are excluded from this repository and must not be used
+as implementation authority.

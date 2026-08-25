@@ -7,7 +7,7 @@ import {
 
 test.describe("Sign-out + delete account (ST-E02-006)", () => {
   test("account lifecycle is hidden when signed out", async ({ page }) => {
-    await page.goto("/en/together/preferences");
+    await page.goto(`/en${APP_PATH.SETTINGS_ACCOUNT}`);
     await expect(page).toHaveURL(/\/en\/login/);
   });
 
@@ -58,7 +58,7 @@ test.describe("Sign-out + delete account (ST-E02-006)", () => {
       "E2E user has no household yet — account lifecycle lives on Together after onboard",
     );
 
-    await page.goto("/en/together/preferences");
+    await page.goto(`/en${APP_PATH.SETTINGS_ACCOUNT}`);
     await expect(page.getByTestId("account-lifecycle")).toBeVisible();
     await expect(page.getByTestId("sign-out")).toBeVisible();
     await page.getByTestId("delete-account").click();

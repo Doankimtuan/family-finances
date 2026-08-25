@@ -69,7 +69,7 @@ the test is wrong.
 ## E2E Tests
 
 - One user flow per spec; seed fixtures deterministically
-  (`scripts/g1-seed-e2e-fixtures.mjs` pattern).
+  (`scripts/seed-e2e-fixtures.mjs` pattern).
 - Keep smoke specs fast; deep flows live separately.
 - Run with `npm run test:e2e` (smoke subset: `npm run test:e2e:smoke`).
 

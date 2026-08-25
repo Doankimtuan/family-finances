@@ -33,16 +33,19 @@ test.describe("Plan goals & recurring (ST-E05-003)", () => {
       "E2E user has no household",
     );
 
+    const surface = page.locator("#app-viewport-root");
     await page.goto("/en/plan/goals");
-    await expect(page.getByTestId("plan-goals")).toBeVisible();
-    await expect(page.getByTestId("goal-create-open")).toBeVisible();
+    await expect(surface.getByTestId("plan-goals")).toBeVisible();
+    await expect(surface.getByTestId("goal-create-open")).toBeVisible();
     await expect(
-      page.getByText(/intention|ý định|bank balance|số dư ngân hàng/i).first(),
+      surface
+        .getByText(/intention|ý định|bank balance|số dư ngân hàng/i)
+        .first(),
     ).toBeVisible();
 
     await page.goto("/en/plan/recurring");
-    await expect(page.getByTestId("plan-recurring")).toBeVisible();
-    await expect(page.getByTestId("recurring-create-open")).toBeVisible();
-    await expect(page.getByText(/Suggest|Gợi ý/i).first()).toBeVisible();
+    await expect(surface.getByTestId("plan-recurring")).toBeVisible();
+    await expect(surface.getByTestId("recurring-create-open")).toBeVisible();
+    await expect(surface.getByText(/Suggest|Gợi ý/i).first()).toBeVisible();
   });
 });

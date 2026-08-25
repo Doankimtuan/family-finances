@@ -3,7 +3,7 @@
 **Board:** Implementation Planning Board  
 **Date:** 2026-08-03  
 **Status:** APPROVED & FROZEN  
-**Target Package:** `artifacts/implementation-planning/CURRENT/`  
+**Target Package:** `artifacts/current/planning/`
 **Target Specification Version:** Specification v2.1 (Developer Constitution v1.1)  
 
 ---
@@ -35,14 +35,14 @@ The Board has produced a master implementation roadmap across 17 canonical artif
 
 ## 3. Official Mandate for Sprint Execution
 
-1. **Official Execution Plan**: `artifacts/implementation-planning/CURRENT/` is now the **sole official execution plan** for all engineering teams.
-2. **Strict Sequential Execution**: Technical tasks MUST be executed according to [implementation-order.md](file:///Users/doantuan/Desktop/Plan/family-finances/artifacts/implementation-planning/CURRENT/implementation-order.md).
-3. **Definition of Done Enforcement**: No story or task will be marked complete without satisfying [definition-of-done.md](file:///Users/doantuan/Desktop/Plan/family-finances/artifacts/implementation-planning/CURRENT/definition-of-done.md).
+1. **Official Execution Plan**: `artifacts/current/planning/` is now the **sole official execution plan** for all engineering teams.
+2. **Roadmap Execution**: Technical tasks follow [implementation-roadmap.md](./implementation-roadmap.md) and [sprint-plan.md](./sprint-plan.md).
+3. **Definition of Done Enforcement**: No story or task will be marked complete without satisfying [definition-of-done.md](./definition-of-done.md).
 
 ---
 
 ## 4. Authorization & Sign-Off
 
-The **Implementation Planning Board** officially approves and freezes `artifacts/implementation-planning/CURRENT/`.
+The **Implementation Planning Board** officially approves and freezes `artifacts/current/planning/`.
 
 **[BOARD SIGN-OFF: APPROVED & FROZEN — IMPLEMENTATION MASTER PLAN]**

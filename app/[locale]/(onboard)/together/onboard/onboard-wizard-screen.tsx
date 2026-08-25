@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import type { IconSvgElement } from "@hugeicons/react";
 import { MotionStep, MotionStepDirection } from "@/shared/motion";
 import {
+  AmountField,
   AuthScreenShell,
   ChoiceTile,
   ChoiceTileGroup,
@@ -14,10 +15,10 @@ import { AlertVariant } from "@/shared/ui/alert";
 import { AppIcon } from "@/shared/ui/app-icon";
 import { Button } from "@/shared/ui/button";
 import { IconContainer } from "@/shared/ui/icon-container";
-import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
+import { ACTION_ICONS, FINANCE_ICONS } from "@/shared/ui/icon-registry";
 import { Progress } from "@/shared/ui/progress";
 import { StatusAlert } from "@/shared/ui/status-alert";
-import { TextField } from "@/shared/ui/form";
+import { CheckboxField, TextField } from "@/shared/ui/form";
 import { useStatusAlert } from "@/providers/status-alert-provider";
 import type { PlanPreset } from "@/modules/tenancy/application/create-household.schema";
 import { PlanPreset as PlanPresetValue } from "@/modules/tenancy/application/create-household.schema";
@@ -64,18 +65,23 @@ export function OnboardWizardScreen() {
   );
   const [name, setName] = useState("");
   const [accountName, setAccountName] = useState(t("accountNamePlaceholder"));
-  const [planPreset, setPlanPreset] = useState<PlanPreset>(
+  const [openingBalance, setOpeningBalance] = useState<number | null>(0);
+  const [planPreset, setPlanPreset] = useState<PlanPreset | null>(
     PlanPresetValue.BALANCED,
   );
   const [nameError, setNameError] = useState(false);
   const [accountError, setAccountError] = useState(false);
+  const [skipAccount, setSkipAccount] = useState(false);
   const statusAlert = useStatusAlert();
   const [isPending, startTransition] = useTransition();
 
   const progressLabel = t("stepOf", { current: step, total: TOTAL_STEPS });
-  const selectedPreset =
-    PLAN_PRESET_OPTIONS.find((option) => option.value === planPreset) ??
-    PLAN_PRESET_OPTIONS[0];
+  const selectedPreset = PLAN_PRESET_OPTIONS.find(
+    (option) => option.value === planPreset,
+  );
+  const selectedPlanHint = selectedPreset
+    ? t(selectedPreset.hintKey)
+    : t("planSetUpLaterHint");
 
   const goNextFromHousehold = () => {
     statusAlert.hide();
@@ -96,7 +102,7 @@ export function OnboardWizardScreen() {
 
   const finish = () => {
     statusAlert.hide();
-    if (accountName.trim().length < 1) {
+    if (!skipAccount && accountName.trim().length < 1) {
       setAccountError(true);
       return;
     }
@@ -104,8 +110,9 @@ export function OnboardWizardScreen() {
     startTransition(async () => {
       const result = await createHouseholdAction({
         name: name.trim(),
-        accountName: accountName.trim(),
-        planPreset,
+        accountName: skipAccount ? undefined : accountName.trim(),
+        openingBalance: openingBalance ?? 0,
+        planPreset: skipAccount ? null : planPreset,
         locale:
           locale === "vi"
             ? HOUSEHOLD_LOCALE.VIETNAMESE_VIETNAM
@@ -161,28 +168,72 @@ export function OnboardWizardScreen() {
           </section>
         ) : (
           <section className="flex flex-1 flex-col gap-(--space-4)">
+            <Button
+              variant="ghost"
+              className="-ms-(--space-3) self-start px-(--space-3)"
+              onPress={goBackToHousehold}
+              isDisabled={isPending}
+            >
+              <span className="inline-flex items-center gap-(--space-2)">
+                <AppIcon icon={ACTION_ICONS.back} size="sm" emphasized />
+                {t("back")}
+              </span>
+            </Button>
             <SectionHeader
               title={t("step2Title")}
               description={t("step2Description")}
             />
-            <TextField
-              id="onboard-account-name"
-              label={t("accountNameLabel")}
-              placeholder={t("accountNamePlaceholder")}
-              value={accountName}
-              onChange={(e) => setAccountName(e.target.value)}
-              error={accountError ? tValidation("required") : undefined}
-            />
+            <div className="flex flex-col gap-(--space-3)">
+              <h2 className="text-sm font-semibold text-text-primary">
+                {t("cashAccountTitle")}
+              </h2>
+              <TextField
+                id="onboard-account-name"
+                label={t("accountNameLabel")}
+                placeholder={t("accountNamePlaceholder")}
+                value={accountName}
+                onChange={(e) => setAccountName(e.target.value)}
+                error={accountError ? tValidation("required") : undefined}
+              />
+              <AmountField
+                id="onboard-opening-balance"
+                label={t("openingBalanceLabel")}
+                description={t("openingBalanceDescription")}
+                value={openingBalance}
+                onValueChange={setOpeningBalance}
+                data-testid="onboard-opening-balance"
+                disabled={isPending || skipAccount}
+              />
+              <CheckboxField
+                id="onboard-skip-account"
+                label={t("skipAccountLabel")}
+                checked={skipAccount}
+                onChange={(event) => {
+                  setSkipAccount(event.target.checked);
+                  if (event.target.checked) setAccountError(false);
+                }}
+                disabled={isPending}
+              />
+            </div>
             <fieldset>
-              <legend className="text-sm font-medium text-text-primary">
+              <legend className="text-sm font-semibold text-text-primary">
                 {t("planPresetLabel")}
               </legend>
+              <p className="mt-1 text-sm leading-snug text-text-secondary">
+                {t("planPresetDescription")}
+              </p>
               <div
                 role="radiogroup"
                 aria-label={t("planPresetLabel")}
                 className="mt-(--space-2)"
               >
-                <ChoiceTileGroup hint={t(selectedPreset.hintKey)}>
+                <ChoiceTileGroup
+                  hint={
+                    skipAccount
+                      ? t("planSkippedWithoutAccount")
+                      : selectedPlanHint
+                  }
+                >
                   {PLAN_PRESET_OPTIONS.map((option) => (
                     <ChoiceTile
                       key={option.value}
@@ -190,7 +241,8 @@ export function OnboardWizardScreen() {
                       label={t(option.labelKey)}
                       selected={planPreset === option.value}
                       onPress={() => setPlanPreset(option.value)}
-                      isDisabled={isPending}
+                      isDisabled={isPending || skipAccount}
+                      testId={`onboard-plan-${option.value}`}
                       icon={
                         <IconContainer
                           tone={
@@ -203,6 +255,23 @@ export function OnboardWizardScreen() {
                       }
                     />
                   ))}
+                  <ChoiceTile
+                    role="radio"
+                    label={t("planSetUpLater")}
+                    selected={planPreset === null}
+                    onPress={() => setPlanPreset(null)}
+                    isDisabled={isPending || skipAccount}
+                    testId="onboard-plan-set-up-later"
+                    className="col-span-2 border-dashed"
+                    icon={
+                      <IconContainer
+                        tone={planPreset === null ? "primary" : "neutral"}
+                        size="sm"
+                      >
+                        <AppIcon icon={FINANCE_ICONS.account} size="sm" />
+                      </IconContainer>
+                    }
+                  />
                 </ChoiceTileGroup>
               </div>
             </fieldset>
@@ -215,14 +284,6 @@ export function OnboardWizardScreen() {
                 isDisabled={isPending}
               >
                 {isPending ? t("finishing") : t("finish")}
-              </Button>
-              <Button
-                variant="tertiary"
-                className="self-start"
-                onPress={goBackToHousehold}
-                isDisabled={isPending}
-              >
-                {t("back")}
               </Button>
             </div>
           </section>

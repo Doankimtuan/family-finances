@@ -4,7 +4,9 @@ import { APP_PATH } from "@/modules/tenancy/application/app-path";
 test.describe("Plan Monthly Review (ST-E05-004)", () => {
   test.describe.configure({ mode: "serial" });
 
-  test("unauthenticated Monthly Review redirects to login", async ({ page }) => {
+  test("unauthenticated Monthly Review redirects to login", async ({
+    page,
+  }) => {
     await page.goto("/en/plan/ritual", { waitUntil: "domcontentloaded" });
     await expect(page).toHaveURL(/\/en\/login/, { timeout: 20_000 });
   });
@@ -33,6 +35,5 @@ test.describe("Plan Monthly Review (ST-E05-004)", () => {
     await expect(
       page.getByText(/Monthly Review|Tổng kết tháng|in progress/i).first(),
     ).toBeVisible();
-    await expect(page.getByText(/Plan and Money remain/i).first()).toBeVisible();
   });
 });

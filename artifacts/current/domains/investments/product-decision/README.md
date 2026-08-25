@@ -39,5 +39,4 @@ Rejected capabilities conflict with product philosophy, create advice or automat
 
 ## Source Trace
 
-- Phase 1: `artifacts/domain-discovery/Investments/CURRENT/`
-- Phase 2: `artifacts/household-reality-validation/Investments/CURRENT/`
+- Current source: `artifacts/current/domains/investments/`

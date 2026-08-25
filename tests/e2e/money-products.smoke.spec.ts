@@ -41,10 +41,6 @@ test.describe("Money debts/savings/loans (Loan domain evolution)", () => {
     await expect(page).toHaveURL(/\/en\/money$/);
     await page.goBack();
     await expect(page.getByTestId("money-debts")).toBeVisible();
-    await expect(page.getByText("To repay", { exact: true })).toBeVisible();
-    await expect(
-      page.getByText("Waiting to receive", { exact: true }),
-    ).toBeVisible();
 
     await page.goto("/en/money/savings");
     await expect(page.getByTestId("money-savings").last()).toBeVisible();

@@ -10,9 +10,7 @@ This pack does not write code, create schema, define APIs, design UI, or modify 
 
 Only these prior phase artifacts are used as source evidence:
 
-- `artifacts/financial-domain-discovery/Savings/CURRENT`
-- `artifacts/household-reality-validation/Savings/CURRENT`
-- `artifacts/product-decision/Savings/CURRENT`
+- Current source: `artifacts/current/domains/savings/`
 
 ## Non-Negotiable Guards
 
@@ -38,4 +36,3 @@ Only these prior phase artifacts are used as source evidence:
 - [sequence-diagrams.md](./sequence-diagrams.md)
 - [consistency-check.md](./consistency-check.md)
 - [final-verdict.md](./final-verdict.md)
-

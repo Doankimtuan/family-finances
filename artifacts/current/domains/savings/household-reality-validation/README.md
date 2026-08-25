@@ -12,10 +12,7 @@ If a young Vietnamese family manages money for the next 5-10 years, how will the
 
 ## Inputs
 
-- Phase 1 Savings Discovery Pack: `artifacts/financial-domain-discovery/Savings/CURRENT`
-- Business Model v2: `artifacts/business-evolution/CURRENT`
-- Product Definition SoT: `artifacts/product-definition/CURRENT`
-- Existing Domain Reality Validation: `artifacts/domain-reality-validation/CURRENT/domains/savings.md`
+- Current source: `artifacts/current/domains/savings/` and `artifacts/current/specification/`
 
 ## External Behavior Evidence
 

@@ -27,7 +27,7 @@ test.describe("Register + forgot password (ST-E02-003)", () => {
       page.getByRole("button", { name: "Send reset link" }),
     ).toBeVisible();
     await expect(
-      page.getByRole("link", { name: "Back to log in" }),
+      page.getByText("Back to log in", { exact: true }),
     ).toBeVisible();
   });
 

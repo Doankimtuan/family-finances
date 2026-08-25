@@ -9,13 +9,8 @@ This folder contains the official long-term implementation knowledge base.
 - `current/product/` — financial system integration, product experience, and financial invariants references.
 - `current/planning/` — implementation roadmap, sprint plan, epic catalog, story catalog, and Definition of Done.
 - `current/architecture/` — long-term engineering references derived from approved current sources.
-- `finalization/` — Phase 10 migration and cleanup reports.
-
-## Historical Folders
-
-Historical boards and previous artifact packs were moved to `../history/`.
-
-Do not use `../history/` for implementation. It exists only for reference and audit continuity.
+Historical boards and previous artifact packs are excluded from the current
+repository. The pre-cleanup safety branch preserves the prior state.
 
 ## Navigation
 

@@ -15,7 +15,10 @@ const hasAuth = hasE2ECredentials();
 
 export default defineConfig({
   testDir: "./tests/e2e",
-  fullyParallel: true,
+  fullyParallel: false,
+  workers: 1,
+  globalSetup: "./tests/e2e/global-setup.ts",
+  globalTeardown: "./tests/e2e/global-teardown.ts",
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   use: {

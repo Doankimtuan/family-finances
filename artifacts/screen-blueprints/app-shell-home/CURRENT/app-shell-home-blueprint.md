@@ -312,7 +312,7 @@ Modules that must not be modified for this UI batch unless a compile break requi
 - `modules/inbox/domain`
 - `modules/health/domain`
 - `modules/platform/supabase`
-- `archive/legacy-v1`
+- Retired legacy code
 
 ## 12. Acceptance Criteria
 
@@ -381,4 +381,4 @@ Regression protection:
 - Lint passes without new warnings.
 - Focused Home/App Shell Playwright tests cover navigation, state rendering, localization, theme, reduced motion, and safe-area behavior.
 - No visible navigation points to compatibility routes.
-- No imports are added from `archive/legacy-v1`.
+- No imports are added from retired legacy code.

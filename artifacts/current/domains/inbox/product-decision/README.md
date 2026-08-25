@@ -10,8 +10,7 @@ Inbox is evaluated as the household's queue of unresolved financial attention: a
 
 Inputs reviewed:
 
-- `artifacts/domain-discovery/Inbox/CURRENT/`
-- `artifacts/household-reality-validation/Inbox/CURRENT/`
+- `artifacts/current/domains/inbox/`
 - Existing Inbox philosophy, implementation-contract, screen-blueprint, and technical-specification artifacts.
 
 The board reviewed every discovered capability from Phase 1 and Phase 2 and classified each as:

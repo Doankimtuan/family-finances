@@ -77,5 +77,4 @@ Likely i18n files:
 - Do not make credit limits count as owned money.
 - Do not create a dense banking dashboard, spreadsheet replacement, or desktop-only Money layout.
 - Do not hardcode visible strings, route strings, semantic constants, colors, or financial labels in UI code.
-- Do not import from `archive/legacy-v1`.
-
+- Do not import from retired legacy code.

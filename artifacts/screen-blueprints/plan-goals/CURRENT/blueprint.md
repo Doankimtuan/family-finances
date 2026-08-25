@@ -129,7 +129,7 @@ Add only when existing cannot express cleanly:
 - Plan-effect / intention preview strip (may use StatusAlert + Dialog until a shared FinancialPreview exists)
 - ConfirmDialog wrapper only if `Dialog` cannot express complete/cancel/archive/ritual lock cleanly
 
-Do not create speculative Plan/Goal shared abstractions. Do not import `archive/legacy-v1`.
+Do not create speculative Plan/Goal shared abstractions. Do not import retired legacy code.
 
 ## 5. Implementation Boundary
 

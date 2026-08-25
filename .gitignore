@@ -13,6 +13,8 @@
 # testing
 /coverage
 /test-results/
+/output/
+/screenshots/
 /output/playwright/.auth/
 /output/playwright/auth-debug/
 /output/playwright/together-20a-credentials.json
@@ -53,6 +55,10 @@ supabase/.temp/
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# reproducible agent/browser evidence
+.agents/tmp-*.png
+.agents/reports/evidence-*/
 
 # Legacy retirement backups (large tarballs may be kept locally)
 # archive/backups/*.tar.gz

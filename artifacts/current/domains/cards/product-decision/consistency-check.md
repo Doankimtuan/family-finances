@@ -41,7 +41,6 @@ This board does not redesign architecture, database, API, state machines, or imp
 
 Trace sources:
 
-- Phase 1 Cards Domain Discovery: `artifacts/domain-discovery/Cards/CURRENT/`
-- Phase 2 Cards Household Reality Validation: `artifacts/household-reality-validation/Cards/CURRENT/`
+- Current source: `artifacts/current/domains/cards/`
 
 Every capability in Phase 1 and Phase 2 is represented in `capability-review.md` with an explicit decision.

@@ -447,6 +447,6 @@ Expected tests:
 
 Must remain untouched except for a direct typed dependency required above:
 
-- Savings, Cards, Loans, Debts, Planning, Goals, Jars, Inbox, Health, Together policy, generic Money redesign, app shell, and `archive/legacy-v1`.
+- Savings, Cards, Loans, Debts, Planning, Goals, Jars, Inbox, Health, Together policy, generic Money redesign, app shell, and retired legacy code.
 - Existing financial history and prior migrations.
 - Provider integration, automation, advice, tax accounting, corporate actions, and non-V1 ownership/value models.

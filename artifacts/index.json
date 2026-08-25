@@ -28,12 +28,7 @@
     "domains": "artifacts/current/domains",
     "planning": "artifacts/current/planning",
     "architecture": "artifacts/current/architecture",
-    "product": "artifacts/current/product",
-    "finalization": "artifacts/finalization"
-  },
-  "historicalFolders": {
-    "archive": "history/artifacts-archive",
-    "compressed": "history/compressed"
+    "product": "artifacts/current/product"
   },
   "lastUpdate": "2026-08-06"
 }

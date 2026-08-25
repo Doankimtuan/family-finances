@@ -27,50 +27,47 @@ test.describe("Inbox queue (ST-E06-001 / F4)", () => {
     );
 
     await page.goto("/en/inbox");
-    await expect(page.getByTestId("inbox-queue")).toBeVisible();
-    await expect(
-      page
-        .getByText(
-          /What needs a decision|Needs your attention|Việc nào cần quyết định|Cần bạn chú ý/i,
-        )
-        .first(),
-    ).toBeVisible();
+    const surface = page.locator("#app-viewport-root");
+    await expect(surface.getByTestId("inbox-queue")).toBeVisible();
+    await expect(surface.getByTestId("inbox-summary")).toBeVisible();
 
     // F4: batch/delegate must not appear.
     await expect(page.getByTestId("inbox-batch")).toHaveCount(0);
     await expect(page.getByTestId("inbox-delegate")).toHaveCount(0);
 
-    const list = page.getByTestId("inbox-queue-list");
+    const list = surface.getByTestId("inbox-queue-list");
     if ((await list.count()) > 0) {
-      await expect(page.getByTestId("inbox-kind-filter")).toBeVisible();
-      await expect(page.getByTestId("inbox-search")).toBeVisible();
-      await expect(page.getByTestId("inbox-partner-note")).toBeVisible();
-      await expect(page.getByTestId("inbox-filter-all")).toBeVisible();
+      await expect(surface.getByTestId("inbox-kind-filter")).toBeVisible();
+      await expect(surface.getByTestId("inbox-search")).toBeVisible();
+      await expect(surface.getByTestId("inbox-partner-note")).toBeVisible();
+      await expect(surface.getByTestId("inbox-filter-all")).toBeVisible();
 
-      const firstLink = page
+      const firstLink = surface
         .locator("[data-testid^='inbox-item-link-']")
         .first();
       if ((await firstLink.count()) > 0) {
         await firstLink.click();
-        await expect(page.getByTestId("inbox-detail")).toBeVisible();
-        const decisionPanel = page.getByTestId("inbox-decision-panel");
+        await expect(surface.getByTestId("inbox-detail")).toBeVisible();
+        const decisionPanel = surface.getByTestId("inbox-decision-panel");
         if ((await decisionPanel.count()) > 0) {
           await expect(
-            page.getByTestId("inbox-decision-question"),
+            surface.getByTestId("inbox-decision-question"),
           ).toBeVisible();
           await expect(decisionPanel).toBeVisible();
-          await expect(page.getByTestId("inbox-dismiss")).toBeVisible();
-          await expect(page.getByTestId("inbox-partner-equal")).toBeVisible();
-          await expect(page.getByTestId("inbox-batch")).toHaveCount(0);
-          await expect(page.getByTestId("inbox-delegate")).toHaveCount(0);
+          await expect(surface.getByTestId("inbox-dismiss")).toBeVisible();
+          await expect(
+            surface.getByTestId("inbox-partner-equal"),
+          ).toBeVisible();
+          await expect(surface.getByTestId("inbox-batch")).toHaveCount(0);
+          await expect(surface.getByTestId("inbox-delegate")).toHaveCount(0);
         }
 
-        const viewSource = page.getByTestId("inbox-view-source");
+        const viewSource = surface.getByTestId("inbox-view-source");
         if ((await viewSource.count()) > 0) {
           await viewSource.click();
           await expect(page).not.toHaveURL(/\/en\/inbox\/[^/]+$/);
           await page.goBack();
-          await expect(page.getByTestId("inbox-detail")).toBeVisible();
+          await expect(surface.getByTestId("inbox-detail")).toBeVisible();
           await expect(
             page.getByRole("link", { name: /Back to Inbox|Về Hộp thư/i }),
           ).toBeVisible();

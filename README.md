@@ -20,12 +20,5 @@ explicitly. Run `npm run e2e:auth-check` to verify login and protected routes
 without printing credentials. Use `npm run e2e:fixture:setup` only for the
 existing disposable ownership fixture when its identities are unassigned.
 
-## History
-
-Historical boards and obsolete artifact packs live under `history/`.
-They are immutable reference material and must not drive implementation.
-
-## Legacy Code Archive
-
-- Read-only legacy code archive: `archive/legacy-v1/`
-- Do not import from `archive/legacy-v1` into product modules.
+Historical implementation records are intentionally excluded from the product
+repository. Use the pre-cleanup safety branch for rollback when needed.

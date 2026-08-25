@@ -14,10 +14,7 @@ It is not a business redesign, DDD redesign, architecture redesign, API design, 
 
 This contract derives only from:
 
-- Phase 1: `artifacts/financial-domain-discovery/Savings/CURRENT`
-- Phase 2: `artifacts/household-reality-validation/Savings/CURRENT`
-- Phase 3: `artifacts/product-decision/Savings/CURRENT`
-- Phase 4: `artifacts/business-blueprint/Savings/CURRENT`
+- Current source: `artifacts/current/domains/savings/`
 
 ## Scope
 
@@ -51,4 +48,3 @@ Out of scope:
 - Renewal preference never silently moves money.
 - Partial withdrawal is not standard behavior.
 - Planning pause never changes Savings state.
-

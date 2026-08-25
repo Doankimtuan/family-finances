@@ -15,7 +15,7 @@ run_id: run_implementation_plan_20260801T210000Z
 - [ ] BR-01 labeling respected where money/plan shown
 - [ ] Online mutation guard when story touches ledger/plan writes (BR-15)
 - [ ] A11y for capture/Inbox/ritual paths when in scope (REQ-019)
-- [ ] No import from `archive/legacy-v1`
+- [ ] No import from retired legacy code
 - [ ] Tests for money-moving / ritual-lock commands when applicable
 
 ## 2. Sprint DoD

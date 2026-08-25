@@ -1,9 +1,0 @@
-{
-  "board": "Engineering Standards Board",
-  "run_id": "run_coding_standards_20260802T150000Z",
-  "at": "2026-08-02T15:05:00Z",
-  "path": "artifacts/coding-standards/CURRENT",
-  "version": "v1.0.0",
-  "status": "OFFICIAL_CODING_STANDARDS",
-  "mandatory": true
-}

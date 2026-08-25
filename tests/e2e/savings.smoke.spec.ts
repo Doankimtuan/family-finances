@@ -6,7 +6,7 @@ import {
   moneySavingsPath,
 } from "@/modules/tenancy/application/app-path";
 
-const SAVINGS_FIXTURE_PATH = "output/playwright/savings-f6-fixture.json";
+const SAVINGS_FIXTURE_PATH = "output/playwright/savings-lifecycle-fixture.json";
 const SAVINGS_FIXTURE_PREFIX = "e2e-savings-f6";
 const APP_SURFACE_SELECTOR = "#app-viewport-root";
 
@@ -24,11 +24,11 @@ function surface(page: Page) {
   return page.locator(APP_SURFACE_SELECTOR);
 }
 
-test.describe("Savings Phase F6 smoke", () => {
+test.describe("Savings overview and creation", () => {
   test.describe.configure({ mode: "serial" });
 
   test.beforeAll(() => {
-    execFileSync("node", ["scripts/savings-13e2-fixture.mjs"], {
+    execFileSync("node", ["scripts/savings-lifecycle-fixture.mjs"], {
       stdio: "inherit",
       env: {
         ...process.env,

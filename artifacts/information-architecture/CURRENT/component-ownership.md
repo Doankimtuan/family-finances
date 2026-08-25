@@ -24,7 +24,7 @@ High-level placement rules only. No implementation guidance.
 | `CreditCardCard` | `ledger`, retained only while compatibility exists |
 | `TransactionRow` | `ledger` |
 | `LoanCard` | `ledger` |
-| `InstallmentCard` | compatibility alias only |
+| `LoanCard` | canonical loan presentation |
 | `JarCard` | `plan` |
 | `GoalCard` | `plan` |
 | `ReviewCard` | `inbox` |
@@ -60,4 +60,3 @@ Rules:
 - Do not put module language into `shared/ui`.
 - Do not put route-specific flows into `shared/patterns`.
 - Do not use `components/` as an unowned dumping ground.
-

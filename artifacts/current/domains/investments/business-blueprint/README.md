@@ -53,9 +53,7 @@ Investments does not own cash balances, cash movement posting, savings-product c
 
 Source artifacts:
 
-- Phase 1: `artifacts/domain-discovery/Investments/CURRENT/`
-- Phase 2: `artifacts/household-reality-validation/Investments/CURRENT/`
-- Phase 3: `artifacts/product-decision/Investments/CURRENT/`
+- Current source: `artifacts/current/domains/investments/`
 
 Phase 3 concluded that Investments is product-valid but not current-scope ready. This blueprint therefore defines the business contract for the approved and approved-with-modifications foundation only. Deferred and rejected capabilities are explicitly outside this blueprint.
 

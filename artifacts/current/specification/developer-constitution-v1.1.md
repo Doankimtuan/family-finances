@@ -12,7 +12,7 @@
 1. **No Magic Strings**: All domain constants, path strings, event names, and status enums MUST be imported from documented home files (`modules/<bc>/application/*-constants.ts`, `app-path.ts`). Hardcoding raw strings is strictly forbidden.
 2. **Developer Constitution Compliance**: All development work must conform to this constitution. Engineers MUST NOT redesign Product, Architecture, or Design System.
 3. **Canonical Source of Truth Reference**: The canonical Source of Truth is located strictly under `artifacts/current/specification/`. No code may implement patterns from deprecated or un-synchronized specifications.
-4. **Zero Import from Legacy Archive**: Imports from `archive/legacy-v1` are permanently blocked. Use only `shared/ui`, Design Tokens, and v2 module APIs.
+4. **Zero Import from Legacy Code**: Retired legacy code is permanently excluded. Use only `shared/ui`, Design Tokens, and v2 module APIs.
 
 ---
 

@@ -42,14 +42,14 @@ test.describe("Account linking conflict UX (ST-E02-005)", () => {
     );
     await expect(page.getByText("Could not link accounts")).toBeVisible();
     await expect(
-      page.getByText(/Account linking is not enabled/i),
+      page.getByText(/This sign-in method can't be linked right now/i),
     ).toBeVisible();
 
     await page.goto(
       confirmErrorPath("en", AUTH_CONFIRM_ERROR_CODE.DUPLICATE_ACCOUNT),
     );
     await expect(
-      page.getByText(/account with this verified email already exists/i),
+      page.getByText(/An account with this email already exists/i),
     ).toBeVisible();
   });
 

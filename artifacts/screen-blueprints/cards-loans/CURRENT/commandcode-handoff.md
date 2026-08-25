@@ -187,7 +187,7 @@ Canonical IA describes a later `/money/products/loans*` migration. That migratio
 - Plan, Jars, Goals, Recurring, Ritual, Calendar projections.
 - Savings, Investments, Debts, Health, Together, tenancy policy, and Inbox flows except consuming an already-approved completion link returned by the loan operation.
 - Provider feeds, statement parsing, reconciliation, rewards optimization, disputes, autopay, collateral, refinancing, and advisory analysis.
-- `archive/legacy-v1` and deprecated Installment/Card aliases except removing direct unsafe use where this flow already imports one.
+- Retired legacy code and deprecated Installment/Card aliases except removing direct unsafe use where this flow already imports one.
 - Global navigation, route migration, shell redesign, and unrelated translations/tests.
 
 ## Main acceptance checks

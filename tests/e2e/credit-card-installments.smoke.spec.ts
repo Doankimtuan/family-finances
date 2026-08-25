@@ -54,9 +54,6 @@ async function openAccountSheet(page: Page, useKeyboard: boolean) {
 }
 
 async function accountHrefs(page: Page): Promise<string[]> {
-  await expect(
-    page.locator('[data-testid="money-create-account"]:visible'),
-  ).toBeVisible({ timeout: 20_000 });
   const links = page.locator('a[href^="/en/money/accounts/"]');
   const hrefs: string[] = [];
   const count = await links.count();

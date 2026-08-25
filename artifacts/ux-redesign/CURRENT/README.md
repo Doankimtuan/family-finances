@@ -4,7 +4,7 @@ Phase C defines behavior and interaction flows for the redesigned ViNha experien
 
 Inputs used:
 
-- `artifacts/redevelopment-audit/CURRENT/`
+- `artifacts/information-architecture/CURRENT/`
 - `artifacts/information-architecture/CURRENT/`
 - `artifacts/current/domains/`
 - `artifacts/current/product/`
@@ -34,4 +34,3 @@ This phase does not change business behavior, financial invariants, domain owner
 ## Canonical UX Posture
 
 ViNha should feel like a calm household money operating system: quick for daily capture, clear about real money versus intention, protective before consequential actions, and never advisory where the approved contracts forbid advice.
-

@@ -12,12 +12,11 @@ This artifact pack defines immutable financial truths for ViNha. It does not red
 
 Inputs read:
 
-- `artifacts/business-blueprint/**/CURRENT/`
-- `artifacts/financial-system-integration/CURRENT/`
-- `artifacts/product-experience/CURRENT/`
+- `artifacts/current/domains/`
+- `artifacts/current/product/financial-system-integration/`
+- `artifacts/current/product/product-experience/`
 - `artifacts/current/specification/`
-- `artifacts/implementation-planning/CURRENT/`
-- `artifacts/developer-constitution/CURRENT/`
+- `artifacts/current/planning/`
 - `AGENTS.md`
 
 ## Deliverables
@@ -39,4 +38,3 @@ Inputs read:
 - [risk-register.md](./risk-register.md)
 - [implementation-guidelines.md](./implementation-guidelines.md)
 - [final-verdict.md](./final-verdict.md)
-

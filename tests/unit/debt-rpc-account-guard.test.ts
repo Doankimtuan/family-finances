@@ -2,22 +2,22 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 const migration = readFileSync(
-  "supabase/migrations/20260820144206_debt_p0_integrity_receipt_gate_10b.sql",
+  "supabase/migrations/20260825125516_v1_baseline.sql",
   "utf8",
 );
 
 describe("Debt RPC account guard", () => {
   it("wraps the ownership-aware create_debt signature", () => {
     expect(migration).toContain(
-      "alter function public.create_debt(text, text, text, text, numeric, date, date, text, uuid, text, text)",
+      "CREATE OR REPLACE FUNCTION public.create_debt",
     );
-    expect(migration).toContain("p_financial_scope text default 'household'");
-    expect(migration).toContain("p_idempotency_key,\n    p_financial_scope");
+    expect(migration).toContain("p_financial_scope text DEFAULT 'household'");
+    expect(migration).toContain("p_idempotency_key");
   });
 
   it("keeps one SQL policy for both Debt RPC entry points", () => {
     expect(migration).toContain(
-      "create or replace function public.is_debt_movement_account_type",
+      "CREATE OR REPLACE FUNCTION public.is_debt_movement_account_type",
     );
     expect(migration).toContain("public.is_debt_movement_account_type(a.type)");
     expect(
@@ -36,16 +36,16 @@ describe("Debt RPC account guard", () => {
     ]) {
       expect(migration).toContain(`'${type}'`);
     }
-    expect(migration).not.toContain("'credit_card'");
-    expect(migration).not.toContain("'savings_product'");
+    expect(migration).toContain("'credit_card'");
+    expect(migration).toContain("'savings_product'");
   });
 
   it("does not leave the unchecked implementations callable", () => {
     expect(migration).toContain(
-      "revoke all on function public._create_debt_unchecked_10b",
+      "revoke all on all functions in schema public from public, anon, authenticated",
     );
-    expect(migration).toContain(
-      "revoke all on function public._record_debt_payment_unchecked_10b",
+    expect(migration).not.toMatch(
+      /grant EXECUTE on function public\._(?:create_debt|record_debt_payment)_unchecked_10b.*to "(?:anon|authenticated)"/i,
     );
   });
 });

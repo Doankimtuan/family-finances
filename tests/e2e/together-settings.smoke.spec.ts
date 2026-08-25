@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
 
-test.describe("Together settings (Phase F7)", () => {
+test.describe("Together settings", () => {
   test.setTimeout(90_000);
 
   test("profile, theme, locale, and household preferences remain scoped", async ({
@@ -25,6 +25,7 @@ test.describe("Together settings (Phase F7)", () => {
 
     await page.goto("/en/money");
     const financialStateBefore = await page
+      .getByTestId("money-real-position-summary")
       .getByTestId("ledger-balance")
       .innerText();
 
@@ -46,14 +47,16 @@ test.describe("Together settings (Phase F7)", () => {
     await expect(page.getByTestId("together-settings-page")).toBeVisible();
 
     await page.goto("/vi/together/preferences");
-    await expect(page.getByTestId("household-preferences")).toBeVisible();
-    await expect(page.getByText("VND", { exact: true })).toBeVisible();
+    const app = page.locator("#app-viewport-root");
+    await expect(app.getByTestId("household-preferences")).toBeVisible();
+    await expect(app.getByText("VND", { exact: true })).toBeVisible();
     await expect(
-      page.getByText("Asia/Ho_Chi_Minh", { exact: true }),
+      app.getByText("Asia/Ho_Chi_Minh", { exact: true }),
     ).toBeVisible();
 
     await page.goto("/vi/money");
     const financialStateAfter = await page
+      .getByTestId("money-real-position-summary")
       .getByTestId("ledger-balance")
       .innerText();
     expect(financialStateAfter.replace(/[^\d-]/g, "")).toBe(

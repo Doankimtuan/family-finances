@@ -139,9 +139,8 @@ test.describe("Together authenticated lifecycle V1", () => {
         [FINANCIAL_PRIVACY_STORAGE_KEY, FINANCIAL_PRIVACY_STORAGE_FALSE],
       );
       await partner.reload();
-      const privacyToggle = partner.getByTestId(
-        "home-financial-privacy-toggle",
-      );
+      const app = partner.locator("#app-viewport-root");
+      const privacyToggle = app.getByTestId("home-financial-privacy-toggle");
       await privacyToggle.click();
       await expect(privacyToggle).toHaveAttribute("aria-pressed", "true");
       await partner.goto("/vi/inbox");
@@ -158,9 +157,9 @@ test.describe("Together authenticated lifecycle V1", () => {
         )
         .toBe(true);
       await partner.goto("/vi/home");
-      await partner.getByTestId("home-financial-privacy-toggle").click();
+      await app.getByTestId("home-financial-privacy-toggle").click();
       await expect(
-        partner.getByTestId("home-financial-privacy-toggle"),
+        app.getByTestId("home-financial-privacy-toggle"),
       ).toHaveAttribute("aria-pressed", "false");
       await partner.goto("/vi/inbox");
       await expect(
@@ -274,10 +273,15 @@ test.describe("Together authenticated lifecycle V1", () => {
       await expect(
         admin.getByRole("button", { name: "Confirm role" }),
       ).toHaveCount(0, { timeout: 20_000 });
-      await admin.reload();
-      await expect(admin.getByTestId("together-role-admin")).toHaveCount(2, {
-        timeout: 20_000,
-      });
+      await expect
+        .poll(
+          async () => {
+            await admin.reload();
+            return admin.getByTestId("together-role-admin").count();
+          },
+          { timeout: 20_000, intervals: [500, 1_000] },
+        )
+        .toBe(2);
       await expect(admin.getByTestId("together-leave-member")).toBeVisible();
       await admin.getByTestId("together-leave-member").click();
       await admin.getByRole("button", { name: "Confirm" }).click();

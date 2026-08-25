@@ -36,8 +36,9 @@ test.describe("Money hub + accounts (ST-E04-001)", () => {
       "E2E user has no household",
     );
 
+    const app = page.locator("#app-viewport-root");
     await page.goto("/en/money");
-    await expect(page.getByTestId("money-hub")).toBeVisible();
+    await expect(app.getByTestId("money-hub")).toBeVisible();
     await expect(
       page
         .getByTestId("money-real-position-summary")
@@ -65,6 +66,6 @@ test.describe("Money hub + accounts (ST-E04-001)", () => {
 
     await page.goto("/en/money/accounts");
     await expect(page).toHaveURL(/\/en\/money\/?$/);
-    await expect(page.getByTestId("money-hub")).toBeVisible();
+    await expect(app.getByTestId("money-hub")).toBeVisible();
   });
 });

@@ -16,8 +16,9 @@ export const planPresetSchema = z.enum(PLAN_PRESET_VALUES);
 
 export const createHouseholdInputSchema = z.object({
   name: z.string().trim().min(2).max(80),
-  accountName: z.string().trim().min(1).max(80),
-  planPreset: planPresetSchema,
+  accountName: z.string().trim().min(1).max(80).optional(),
+  openingBalance: z.number().finite().int().min(0).default(0),
+  planPreset: planPresetSchema.nullable().optional(),
   locale: z.string().trim().min(2).max(16).optional(),
   timezone: z.string().trim().min(2).max(64).optional(),
   baseCurrency: z

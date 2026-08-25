@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { promisify } from "node:util";
 import { expect, type Page } from "@playwright/test";
+import { APP_PATH } from "@/modules/tenancy/application/app-path";
 
 const execFile = promisify(execFileCallback);
 const LOCAL_ENV_FILE = ".env.local";
@@ -117,8 +118,13 @@ export async function openLifecycleMembers(
 }
 
 export async function openLifecycleAccount(page: Page): Promise<void> {
-  await page.goto("/en/money/accounts");
+  await page.goto(`/en${APP_PATH.MONEY}`);
+  const surface = page.locator("#app-viewport-root");
+  const showAll = surface.getByTestId("money-accounts-show-all");
+  if (await showAll.isVisible()) await showAll.click();
   await expect(
-    page.getByRole("link", { name: /Ownership former-member account/ }),
+    surface
+      .getByTestId("money-hub-account-row")
+      .filter({ hasText: "Ownership former-member account" }),
   ).toBeVisible();
 }

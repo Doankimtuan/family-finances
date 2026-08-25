@@ -41,7 +41,7 @@ Use the existing stack:
 - Keep the centered app shell at `max-width: 440px` on every viewport; desktop preserves the mobile interaction model.
 - Use HeroUI v3 for primary inputs, selects, dates, times, numbers, buttons, and overlays.
 - Do not keep native primary Select, Date, or Time controls when HeroUI equivalents exist.
-- No imports from `archive/legacy-v1`.
+- No imports from retired legacy code.
 - No business redesign.
 - No card soup.
 - No marketing-page composition inside product screens.

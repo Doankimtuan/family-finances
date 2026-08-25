@@ -8,11 +8,9 @@ This artifact pack validates whether the completed ViNha business domains behave
 
 Read and audited:
 
-- `artifacts/business-blueprint/**/CURRENT/`
-- `artifacts/business-evolution/CURRENT/`
+- `artifacts/current/domains/`
 - `artifacts/current/specification/`
-- `artifacts/implementation-planning/CURRENT/`
-- `artifacts/developer-constitution/CURRENT/`
+- `artifacts/current/planning/`
 - `AGENTS.md`
 - `.cursor/rules/no-magic-strings.mdc`
 
@@ -40,4 +38,3 @@ No frozen Source of Truth was modified.
 ## Board Mandate
 
 This board does not redesign any domain. It identifies missing integrations, missing contracts, missing lifecycle edges, missing events, missing responsibilities, missing user journeys, and missing financial safeguards.
-

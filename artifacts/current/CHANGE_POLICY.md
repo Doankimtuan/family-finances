@@ -2,7 +2,7 @@
 
 ## Rules
 
-- Never modify `history/`.
+- Never modify external historical records.
 - Never modify archived documents.
 - Only update documents inside `artifacts/current/`.
 - Every business change must update:

@@ -4,8 +4,7 @@
 
 This board makes product decisions for the Planning domain based on:
 
-- Phase 1 Domain Discovery: `artifacts/domain-discovery/Planning/CURRENT/`
-- Phase 2 Household Reality Validation: `artifacts/household-reality-validation/Planning/CURRENT/`
+- Current source: `artifacts/current/domains/planning/`
 
 Planning is evaluated as ViNha's household intention domain: expected income, planned allocation, jars, goals, recurring expectations, due pressure, review, and correction.
 

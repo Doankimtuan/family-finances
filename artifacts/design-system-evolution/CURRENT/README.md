@@ -4,7 +4,7 @@ Phase D defines the canonical visual system and UI implementation mindset for Vi
 
 This package is governed by:
 
-- Phase A redevelopment audit in `artifacts/redevelopment-audit/CURRENT/`
+- Current information architecture in `artifacts/information-architecture/CURRENT/`
 - Phase B information architecture in `artifacts/information-architecture/CURRENT/`
 - Phase C UX redesign in `artifacts/ux-redesign/CURRENT/`
 - Frozen product and business contracts in `artifacts/current/specification/`
@@ -46,4 +46,3 @@ ViNha should feel like a Gen Z financial life companion for young Vietnamese hou
 ## Implementation Boundary
 
 Future UI work must implement one screen or one coherent flow at a time. Before editing UI, read Phase B, Phase C, this Phase D package, existing shared components, and the target screen in a real browser.
-

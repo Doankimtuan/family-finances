@@ -39,6 +39,12 @@ test.describe("Onboard wizard chrome (ST-E03-001)", () => {
       await page.getByTestId("onboard-next").click();
       await expect(page.getByText(/Step 2 of 2/i)).toBeVisible();
       await expect(page.getByTestId("onboard-finish")).toBeVisible();
+      await expect(page.getByLabel("Current balance")).toBeVisible();
+      await expect(page.getByTestId("onboard-plan-set-up-later")).toBeVisible();
+      await expect(
+        page.getByLabel("I’ll add a cash account later"),
+      ).toBeVisible();
+      await expect(page.getByTestId("onboard-finish")).toHaveCount(1);
     }
   });
 });

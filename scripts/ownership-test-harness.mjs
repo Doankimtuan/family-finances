@@ -45,6 +45,24 @@ const TOGETHER_20A = {
   },
 };
 
+const RELEASE_23D3 = {
+  householdName: "Family Finance Release 23D3",
+  credentialsPath: "output/playwright/release-23d3-credentials.json",
+  identityMarker: "release-23d3",
+  users: {
+    admin: {
+      emailEnv: "RELEASE_23D3_A_EMAIL",
+      passwordEnv: "RELEASE_23D3_A_PASSWORD",
+      defaultEmail: "release-23d3-a@example.com",
+    },
+    partner: {
+      emailEnv: "RELEASE_23D3_B_EMAIL",
+      passwordEnv: "RELEASE_23D3_B_PASSWORD",
+      defaultEmail: "release-23d3-b@example.com",
+    },
+  },
+};
+
 const { loadEnvConfig } = nextEnv;
 loadEnvConfig(process.cwd());
 
@@ -196,6 +214,84 @@ async function ensureTogether20aUser(admin, identity) {
   return data.user;
 }
 
+function release23d3Identity(key) {
+  const config = RELEASE_23D3.users[key];
+  const email = process.env[config.emailEnv]?.trim() ?? config.defaultEmail;
+  const configuredPassword = process.env[config.passwordEnv];
+  const password =
+    configuredPassword ??
+    `Release23D3-${createHash("sha256").update(email).digest("hex").slice(0, 24)}!`;
+  return { email, password };
+}
+
+function release23d3Users() {
+  return {
+    admin: release23d3Identity("admin"),
+    partner: release23d3Identity("partner"),
+  };
+}
+
+function release23d3MissingEnvironment({ needsServiceRole = false } = {}) {
+  const required = [
+    ["NEXT_PUBLIC_SUPABASE_URL", env.url],
+    [
+      "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY or NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      env.anonKey,
+    ],
+  ];
+  if (needsServiceRole)
+    required.push([
+      "SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY",
+      env.serviceKey,
+    ]);
+  return required.filter(([, value]) => !value).map(([name]) => name);
+}
+
+async function ensureRelease23dUser(admin, identity) {
+  const existing = await findUser(admin, identity.email);
+  if (existing) {
+    if (
+      existing.user_metadata?.ownership_test_identity !==
+      RELEASE_23D3.identityMarker
+    )
+      fail(`refusing non-release-owned identity: ${identity.email}`);
+    const { error } = await admin.auth.admin.updateUserById(existing.id, {
+      password: identity.password,
+      email_confirm: true,
+      user_metadata: { ownership_test_identity: RELEASE_23D3.identityMarker },
+    });
+    if (error) fail(`reset release auth user: ${error.code ?? "unknown"}`);
+    return existing;
+  }
+  const { data, error } = await admin.auth.admin.createUser({
+    email: identity.email,
+    password: identity.password,
+    email_confirm: true,
+    user_metadata: { ownership_test_identity: RELEASE_23D3.identityMarker },
+  });
+  if (error) fail(`create release auth user: ${error.code ?? "unknown"}`);
+  return data.user;
+}
+
+async function writeRelease23dCredentials(users) {
+  await mkdir("output/playwright", { recursive: true });
+  await writeFile(
+    RELEASE_23D3.credentialsPath,
+    JSON.stringify(users, null, 2),
+    {
+      mode: 0o600,
+    },
+  );
+}
+
+async function removeRelease23dCredentials() {
+  try {
+    await unlink(RELEASE_23D3.credentialsPath);
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+  }
+}
+
 async function writeTogether20aCredentials(users) {
   await mkdir("output/playwright", { recursive: true });
   await writeFile(
@@ -223,11 +319,15 @@ async function activeMemberships(admin, userId) {
   return data ?? [];
 }
 
-async function ensureHousehold(admin, users) {
+async function ensureHousehold(
+  admin,
+  users,
+  householdName = HARNESS.householdName,
+) {
   const { data: households, error } = await admin
     .from("households")
     .select("id, name")
-    .eq("name", HARNESS.householdName)
+    .eq("name", householdName)
     .limit(2);
   if (error) fail(`find controlled household: ${error.code ?? "unknown"}`);
   if ((households ?? []).length > 1)
@@ -248,7 +348,7 @@ async function ensureHousehold(admin, users) {
     households?.[0] ??
     (await one(
       admin.from("households").insert({
-        name: HARNESS.householdName,
+        name: householdName,
         base_currency: HARNESS.currency,
         locale: "en-VN",
         timezone: "Asia/Ho_Chi_Minh",
@@ -1195,17 +1295,7 @@ async function setup() {
   };
 }
 
-async function cleanup() {
-  if (missingEnvironment({ needsServiceRole: true }).length)
-    return {
-      ready: false,
-      missing: missingEnvironment({ needsServiceRole: true }),
-    };
-  const admin = adminClient();
-  const users = [
-    await findUser(admin, env.users.admin.email),
-    await findUser(admin, env.users.partner.email),
-  ];
+async function cleanupControlledHousehold(admin, users, householdName) {
   if (users.some((user) => !user))
     return {
       ready: true,
@@ -1215,7 +1305,7 @@ async function cleanup() {
   const { data: household } = await admin
     .from("households")
     .select("id, name")
-    .eq("name", HARNESS.householdName)
+    .eq("name", householdName)
     .maybeSingle();
   if (!household) return { ready: true, removedHousehold: false };
   const { data: members, error } = await admin
@@ -1319,10 +1409,71 @@ async function cleanup() {
     .from("households")
     .delete()
     .eq("id", household.id)
-    .eq("name", HARNESS.householdName);
+    .eq("name", householdName);
   if (deleteError)
     fail(`cleanup controlled household: ${deleteError.code ?? "unknown"}`);
   return { ready: true, removedHousehold: true, authUsersKept: true };
+}
+
+async function cleanup() {
+  const missing = missingEnvironment({ needsServiceRole: true });
+  if (missing.length) return { ready: false, missing };
+  const admin = adminClient();
+  const users = [
+    await findUser(admin, env.users.admin.email),
+    await findUser(admin, env.users.partner.email),
+  ];
+  return cleanupControlledHousehold(admin, users, HARNESS.householdName);
+}
+
+async function setupRelease23d() {
+  const missing = release23d3MissingEnvironment({ needsServiceRole: true });
+  if (missing.length) return { ready: false, missing };
+  const admin = adminClient();
+  const identities = release23d3Users();
+  const users = [
+    await ensureRelease23dUser(admin, identities.admin),
+    await ensureRelease23dUser(admin, identities.partner),
+  ];
+  await cleanupControlledHousehold(admin, users, RELEASE_23D3.householdName);
+  for (const user of users) {
+    const memberships = await activeMemberships(admin, user.id);
+    if (memberships.length)
+      fail(
+        `refusing release setup: ${user.email} has an unrelated active membership`,
+      );
+  }
+  const household = await ensureHousehold(
+    admin,
+    users,
+    RELEASE_23D3.householdName,
+  );
+  await ensureReleaseFixtures(admin, household, users);
+  await writeRelease23dCredentials(identities);
+  return {
+    ready: true,
+    householdId: household.id,
+    identities: users.map((user) => ({ id: user.id, email: user.email })),
+    authUsersKept: true,
+  };
+}
+
+async function cleanupRelease23d() {
+  const missing = release23d3MissingEnvironment({ needsServiceRole: true });
+  if (missing.length) return { ready: false, missing };
+  const admin = adminClient();
+  const identities = release23d3Users();
+  const users = [
+    await findUser(admin, identities.admin.email),
+    await findUser(admin, identities.partner.email),
+  ];
+  const result = await cleanupControlledHousehold(
+    admin,
+    users,
+    RELEASE_23D3.householdName,
+  );
+  await removeRelease23dCredentials();
+  return result;
 }
 
 const command = process.argv[2] ?? "preflight";
@@ -1333,21 +1484,25 @@ const result =
       ? await setup()
       : command === "cleanup"
         ? await cleanup()
-        : command === "together-20a-setup"
-          ? await setupTogether20a()
-          : command === "together-20a-seed-member"
-            ? await seedTogether20aMemberData()
-            : command === "together-20a-assert-active"
-              ? await assertTogether20aActive(
-                  process.env.TOGETHER_20A_INVITATION_TOKEN,
-                )
-              : command === "together-20a-assert-final"
-                ? await assertTogether20aFinal()
-                : command === "together-20a-cleanup"
-                  ? await together20aCleanup()
-                  : fail(
-                      "Use preflight, setup, cleanup, together-20a-setup, together-20a-seed-member, together-20a-assert-active, or together-20a-cleanup",
-                    );
+        : command === "release-23d-setup"
+          ? await setupRelease23d()
+          : command === "release-23d-cleanup"
+            ? await cleanupRelease23d()
+            : command === "together-20a-setup"
+              ? await setupTogether20a()
+              : command === "together-20a-seed-member"
+                ? await seedTogether20aMemberData()
+                : command === "together-20a-assert-active"
+                  ? await assertTogether20aActive(
+                      process.env.TOGETHER_20A_INVITATION_TOKEN,
+                    )
+                  : command === "together-20a-assert-final"
+                    ? await assertTogether20aFinal()
+                    : command === "together-20a-cleanup"
+                      ? await together20aCleanup()
+                      : fail(
+                          "Use preflight, setup, cleanup, release-23d-setup, release-23d-cleanup, together-20a-setup, together-20a-seed-member, together-20a-assert-active, or together-20a-cleanup",
+                        );
 console.error(
   result.ready
     ? "OWNERSHIP TEST HARNESS READY"

@@ -33,8 +33,11 @@ test.describe("Health overview and insights (ST-E07-002)", () => {
     );
 
     await page.goto("/en/money");
-    const financialStateBefore = await page
+    const app = page.locator("#app-viewport-root");
+    const financialStateBefore = await app
+      .getByTestId("money-real-position-summary")
       .getByTestId("ledger-balance")
+      .first()
       .innerText();
 
     await page.goto("/en/health");
@@ -63,8 +66,10 @@ test.describe("Health overview and insights (ST-E07-002)", () => {
     await expect(page.getByTestId("health-overview")).toBeVisible();
 
     await page.goto("/en/money");
-    const financialStateAfter = await page
+    const financialStateAfter = await app
+      .getByTestId("money-real-position-summary")
       .getByTestId("ledger-balance")
+      .first()
       .innerText();
     expect(financialStateAfter).toBe(financialStateBefore);
   });

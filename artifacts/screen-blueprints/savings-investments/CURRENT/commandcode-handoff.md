@@ -194,7 +194,7 @@ Keep these runtime routes unchanged in Savings implementation:
 
 Do not migrate to `/money/products/savings*` in the same work. Do not add an Investments URL until its route decision is approved. Routes and path segments must be constants/functions in `modules/tenancy/application/app-path.ts`.
 
-Do not touch cards, loans, debts, generic account/transaction UI, Plan, Goals, Jars, Health, Together, app shell, or `archive/legacy-v1` except for a direct typed dependency that the approved flow requires.
+Do not touch cards, loans, debts, generic account/transaction UI, Plan, Goals, Jars, Health, Together, app shell, or retired legacy code except for a direct typed dependency that the approved flow requires.
 
 ## Component rules
 

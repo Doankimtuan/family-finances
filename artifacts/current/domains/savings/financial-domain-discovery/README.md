@@ -32,12 +32,7 @@ Status: Phase 1 financial domain discovery. This pack is intentionally business-
 
 Primary internal baseline:
 
-- `artifacts/product-definition/CURRENT`
-- `artifacts/business-evolution/CURRENT`
-- `artifacts/developer-constitution/CURRENT`
-- `artifacts/architecture-definition/CURRENT`
-- `artifacts/technical-specification/CURRENT`
-- `artifacts/domain-reality-validation/CURRENT/domains/savings.md`
+- Current source: `artifacts/current/specification/` and `artifacts/current/domains/savings/`
 
 External legal and regulatory baseline:
 
@@ -46,4 +41,3 @@ External legal and regulatory baseline:
 - State Bank of Vietnam Circular 04/2022/TT-NHNN on early withdrawal interest rates.
 - Vietnam deposit insurance rules, including Decision 32/2021/QD-TTg as summarized by Deposit Insurance of Vietnam.
 - Vietnam personal income tax treatment for individual bank deposit interest.
-

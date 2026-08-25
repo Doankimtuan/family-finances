@@ -165,7 +165,7 @@ Add only when required:
 - Origin-aware “View source” control on Inbox detail (link + return), if not expressible with existing Link + `APP_PATH` helpers
 - Short decision receipt strip (“Attention resolved · money unchanged” vs “Savings settled via Savings”) using `StatusAlert` until shared FinancialPreview is promoted
 
-Do not create notification-center, activity-feed, batch toolbar, or partner-assignment abstractions. Do not import `archive/legacy-v1`.
+Do not create notification-center, activity-feed, batch toolbar, or partner-assignment abstractions. Do not import retired legacy code.
 
 ---
 

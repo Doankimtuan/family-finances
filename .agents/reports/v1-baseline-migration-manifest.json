@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "556c776c8a49116e8e1608961cef0ef9bc72af64",
+  "baseline": {
+    "filename": "20260825125516_v1_baseline.sql",
+    "version": "20260825125516",
+    "checksumSha256": "a0c722134ae6f8258c1b775e9b50b4d4c1b769998df5f5889a917ab7637abaae"
+  },
+  "policy": "one frozen V1 baseline; future migrations are forward-only"
+}

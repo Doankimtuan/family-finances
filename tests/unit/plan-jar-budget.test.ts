@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { JarPlanKind } from "@/modules/plan/application/jar-types";
+import {
+  JarPlanKind,
+  JarRolloverMode,
+} from "@/modules/plan/application/jar-types";
 import {
   TransactionLedgerType,
   TransactionStatus,
@@ -10,6 +13,7 @@ import {
   calculateJarSpentAmount,
   calculatePeriodIncome,
 } from "@/modules/plan/application/jar-budget";
+import { calculateRolloverCreditFromPreviousState } from "@/modules/plan/application/jar-rollover";
 
 const fixedJar = {
   plan: { kind: JarPlanKind.FIXED, percentBps: 0, fixedAmount: 15_000_000 },
@@ -149,5 +153,58 @@ describe("Plan V2 jar budgets", () => {
         adjustment: 500_000,
       }),
     ).toBe(16_500_000);
+  });
+
+  it("carries only positive unused budget and never creates first-period credit", () => {
+    expect(
+      calculateRolloverCreditFromPreviousState({
+        rolloverMode: JarRolloverMode.RESET,
+        previousBudget: 10,
+        previousSpent: 8,
+      }),
+    ).toBe(0);
+    expect(
+      calculateRolloverCreditFromPreviousState({
+        rolloverMode: JarRolloverMode.CARRY,
+        previousBudget: 10,
+        previousSpent: 8,
+      }),
+    ).toBe(2);
+    expect(
+      calculateRolloverCreditFromPreviousState({
+        rolloverMode: JarRolloverMode.CARRY,
+        previousBudget: 10,
+        previousSpent: 12,
+      }),
+    ).toBe(0);
+    expect(
+      calculateRolloverCreditFromPreviousState({
+        rolloverMode: JarRolloverMode.CARRY,
+        previousBudget: 0,
+        previousSpent: 0,
+      }),
+    ).toBe(0);
+  });
+
+  it("allows an explicit adjustment to recover an overspent jar", () => {
+    const result = calculateJarBudgetMetrics(
+      fixedJar,
+      "jar-a",
+      [
+        {
+          type: TransactionLedgerType.EXPENSE,
+          amount: 18_000_000,
+          status: TransactionStatus.POSTED,
+          jar_id: "jar-a",
+        },
+      ],
+      { adjustment: 3_000_000 },
+    );
+
+    expect(result).toMatchObject({
+      remainingAmount: 0,
+      usagePercent: 100,
+      state: "near_limit",
+    });
   });
 });

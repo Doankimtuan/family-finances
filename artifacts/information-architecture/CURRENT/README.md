@@ -2,7 +2,9 @@
 
 Phase B defines the canonical information architecture for the redevelopment program.
 
-This package uses only the Phase A audit baseline in `artifacts/redevelopment-audit/CURRENT/`. It does not modify business logic, financial invariants, domain rules, product decisions, or specifications.
+This package records the current information-architecture baseline. It does not
+modify business logic, financial invariants, domain rules, product decisions,
+or specifications.
 
 ## Deliverables
 
@@ -32,4 +34,3 @@ The product uses a five-tab household-first shell:
 Health and Settings are secondary household surfaces, not bottom tabs.
 
 Money owns all money inventory and money history browsing. Plan owns intention, allocation, recurrence, calendar, and ritual. Inbox owns review work. Together owns household people, invitations, policies, preferences, onboarding, and account lifecycle. Home owns orientation and cross-module launch points.
-

@@ -1,9 +1,0 @@
-{
-  "board": "Engineering Standards Board",
-  "run_id": "run_engineering_review_20260802T154500Z",
-  "at": "2026-08-02T15:45:00Z",
-  "path": "artifacts/engineering-review/CURRENT",
-  "version": "v1.1.0",
-  "status": "ENGINEERING_PATTERN_V1.1",
-  "mandatory": true
-}

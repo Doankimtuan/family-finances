@@ -21,8 +21,8 @@ test.describe("Login + money gates (ST-E02-002)", () => {
   });
 
   test("unauthenticated money path redirects to login", async ({ page }) => {
-    await page.goto("/en/money");
-    await expect(page).toHaveURL(/\/en\/login/);
+    await page.goto("/en/money", { waitUntil: "domcontentloaded" });
+    await expect(page).toHaveURL(/\/en\/login/, { timeout: 20_000 });
     await expect(page.getByTestId("auth-login")).toBeVisible();
   });
 

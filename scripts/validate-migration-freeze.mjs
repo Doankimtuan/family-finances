@@ -1,25 +1,14 @@
-import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { execFileSync } from "node:child_process";
 
 const MIGRATION_DIRECTORY = resolve("supabase/migrations");
 const MANIFEST_PATH = resolve(
-  ".agents/reports/production-foundation-22b-migration-manifest.json",
+  ".agents/reports/v1-baseline-migration-manifest.json",
 );
 const MIGRATION_FILE_PATTERN = /^(\d{14})_[a-z0-9][a-z0-9_-]*\.sql$/;
-
-function git(args) {
-  return execFileSync("git", args, { encoding: "utf8" }).trim();
-}
-
-function log(message) {
-  process.stdout.write(`${message}\n`);
-}
-
-function hashFile(path) {
-  return createHash("sha256").update(readFileSync(path)).digest("hex");
-}
+const BASELINE_FILE_PATTERN = /^(\d{14})_v1_baseline\.sql$/;
 
 function migrationFiles() {
   return readdirSync(MIGRATION_DIRECTORY)
@@ -33,71 +22,53 @@ function versionOf(file) {
   return match[1];
 }
 
-function gitStatus(file) {
-  const status = git([
-    "status",
-    "--short",
-    "--untracked-files=all",
-    "--",
-    `supabase/migrations/${file}`,
-  ]);
-  if (!status) return "tracked-clean";
-  if (status.startsWith("??")) return "untracked";
-  if (status.includes("D")) return "deleted";
-  return "tracked-modified";
+function hashFile(file) {
+  return createHash("sha256")
+    .update(readFileSync(resolve(MIGRATION_DIRECTORY, file)))
+    .digest("hex");
 }
 
-function assertUniqueAndOrdered(files) {
+function git(args) {
+  return execFileSync("git", args, { encoding: "utf8" }).trim();
+}
+
+function assertOrdered(files) {
   const versions = files.map(versionOf);
-  const duplicates = versions.filter(
-    (version, index) => versions.indexOf(version) !== index,
-  );
-  if (duplicates.length) {
-    throw new Error(
-      `Duplicate migration versions: ${[...new Set(duplicates)].join(", ")}`,
-    );
+  if (new Set(versions).size !== versions.length) {
+    throw new Error("Duplicate migration versions");
   }
-  const ordered = [...versions].sort();
-  if (versions.some((version, index) => version !== ordered[index])) {
-    throw new Error(
-      "Migration files are not ordered by their version prefixes",
-    );
+  if (
+    versions.some((version, index) => version !== [...versions].sort()[index])
+  ) {
+    throw new Error("Migration files are not ordered by version");
   }
 }
 
-function buildManifest(appliedThrough) {
-  const files = migrationFiles();
-  assertUniqueAndOrdered(files);
-  const migrations = files
-    .filter((file) => versionOf(file) <= appliedThrough)
-    .map((file) => {
-      const status = gitStatus(file);
-      return {
-        version: versionOf(file),
-        filename: file,
-        gitStatus: status,
-        appliedRemotely: true,
-        checksumSha256: hashFile(resolve(MIGRATION_DIRECTORY, file)),
-        classification:
-          status === "untracked"
-            ? "E"
-            : status === "tracked-modified"
-              ? "C"
-              : "A",
-        actionRequired:
-          status === "untracked"
-            ? "Add to the release commit as a forward migration"
-            : status === "tracked-modified"
-              ? "Review and recover or explicitly approve before release; do not edit after freeze"
-              : "Freeze content and retain as applied release source",
-      };
-    });
+function baselineFromFiles(files) {
+  const baselines = files.filter((file) => BASELINE_FILE_PATTERN.test(file));
+  if (baselines.length !== 1) {
+    throw new Error(
+      `Expected exactly one V1 baseline migration; found ${baselines.length}`,
+    );
+  }
+  return { filename: baselines[0], version: versionOf(baselines[0]) };
+}
 
-  return {
-    schemaHead: appliedThrough,
+function writeManifest() {
+  const files = migrationFiles();
+  assertOrdered(files);
+  const baseline = baselineFromFiles(files);
+  const manifest = {
+    schemaVersion: 1,
     sourceCommit: git(["rev-parse", "HEAD"]),
-    migrations,
+    baseline: {
+      ...baseline,
+      checksumSha256: hashFile(baseline.filename),
+    },
+    policy: "one frozen V1 baseline; future migrations are forward-only",
   };
+  writeFileSync(MANIFEST_PATH, `${JSON.stringify(manifest, null, 2)}\n`);
+  process.stdout.write(`Wrote migration manifest: ${MANIFEST_PATH}\n`);
 }
 
 function validateManifest() {
@@ -106,62 +77,30 @@ function validateManifest() {
   }
   const manifest = JSON.parse(readFileSync(MANIFEST_PATH, "utf8"));
   const files = migrationFiles();
-  assertUniqueAndOrdered(files);
-  const entries = manifest.migrations;
-  if (!Array.isArray(entries) || entries.length === 0) {
-    throw new Error("Migration manifest has no entries");
-  }
-
-  const manifestVersions = entries.map((entry) => entry.version);
-  if (new Set(manifestVersions).size !== manifestVersions.length) {
-    throw new Error("Migration manifest contains duplicate versions");
-  }
+  assertOrdered(files);
+  const baseline = baselineFromFiles(files);
   if (
-    manifestVersions.some(
-      (version, index) => version !== [...manifestVersions].sort()[index],
-    )
+    manifest.schemaVersion !== 1 ||
+    manifest.baseline?.filename !== baseline.filename ||
+    manifest.baseline?.version !== baseline.version
   ) {
-    throw new Error("Migration manifest is not ordered by version");
+    throw new Error("V1 baseline manifest does not match the repository");
   }
-
-  for (const entry of entries) {
-    const path = resolve(MIGRATION_DIRECTORY, entry.filename);
-    if (!existsSync(path))
-      throw new Error(`Frozen migration is missing: ${entry.filename}`);
-    if (hashFile(path) !== entry.checksumSha256) {
-      throw new Error(`Frozen migration checksum changed: ${entry.filename}`);
-    }
-  }
-
-  const frozenFiles = new Set(entries.map((entry) => entry.filename));
-  const unexpected = files.filter((file) => !frozenFiles.has(file));
-  const stale = unexpected.filter(
-    (file) => versionOf(file) <= manifest.schemaHead,
-  );
-  if (stale.length) {
+  if (hashFile(baseline.filename) !== manifest.baseline.checksumSha256) {
     throw new Error(
-      `Unfrozen migration at or before schema head: ${stale.join(", ")}`,
+      `Frozen V1 baseline checksum changed: ${baseline.filename}`,
     );
   }
-  if (unexpected.length) {
-    log(`Allowed forward migrations: ${unexpected.join(", ")}`);
+  const historical = files.filter((file) => versionOf(file) < baseline.version);
+  if (historical.length) {
+    throw new Error(
+      `Historical migrations remain before the V1 baseline: ${historical.join(", ")}`,
+    );
   }
-  log(
-    `Migration freeze valid: ${entries.length} frozen migrations; head ${manifest.schemaHead}`,
+  process.stdout.write(
+    `Migration freeze valid: baseline ${baseline.filename}; forward migrations ${files.length - 1}\n`,
   );
 }
 
-if (process.argv.includes("--write")) {
-  const appliedThrough =
-    process.argv[process.argv.indexOf("--applied-through") + 1];
-  if (!/^\d{14}$/.test(appliedThrough ?? "")) {
-    throw new Error("--write requires --applied-through YYYYMMDDHHMMSS");
-  }
-  writeFileSync(
-    MANIFEST_PATH,
-    `${JSON.stringify(buildManifest(appliedThrough), null, 2)}\n`,
-  );
-  log(`Wrote migration manifest: ${MANIFEST_PATH}`);
-} else {
-  validateManifest();
-}
+if (process.argv.includes("--write")) writeManifest();
+else validateManifest();

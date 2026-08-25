@@ -57,6 +57,7 @@ async function detailHrefs(page: Page, hrefs: string[]) {
     await page.goto(href);
     const isCard =
       (await page
+        .locator("#app-viewport-root")
         .getByTestId("money-account-detail")
         .getAttribute("data-account-kind")) === "credit-card";
     if (isCard) {
@@ -82,32 +83,33 @@ test.describe("Account-detail redesign", () => {
       const hrefs = await accountHrefs(page);
       test.skip(hrefs.length === 0, "No account available for inspection");
       const { normalHref, cardHref } = await detailHrefs(page, hrefs);
+      const app = page.locator("#app-viewport-root");
 
       if (normalHref) {
         await page.goto(normalHref);
-        await expect(page.getByTestId("money-account-detail")).toBeVisible();
-        await expect(page.getByText("Balance")).toBeVisible();
-        await expect(page.getByTestId("account-quick-capture")).toBeVisible();
-        await expect(page.getByTestId("account-management-open")).toBeVisible();
+        await expect(app.getByTestId("money-account-detail")).toBeVisible();
+        await expect(app.getByText("Balance", { exact: true })).toBeVisible();
+        await expect(app.getByTestId("account-quick-capture")).toBeVisible();
+        await expect(app.getByTestId("account-management-open")).toBeVisible();
         await page.screenshot({
           path: `screenshots/account-detail-normal-${scenario.name}.png`,
           fullPage: true,
         });
-        await page.getByTestId("account-management-open").click();
-        await expect(page.getByTestId("account-edit-open")).toBeVisible();
+        await app.getByTestId("account-management-open").click();
+        await expect(app.getByTestId("account-edit-open")).toBeVisible();
         await page.keyboard.press("Escape");
       }
 
       if (cardHref) {
         await page.goto(cardHref);
-        await expect(page.getByTestId("credit-card-hero")).toBeVisible();
-        await expect(page.getByTestId("card-payment-open")).toBeVisible();
-        await expect(page.getByTestId("card-installments")).toBeVisible();
+        await expect(app.getByTestId("credit-card-hero")).toBeVisible();
+        await expect(app.getByTestId("card-payment-open")).toBeVisible();
+        await expect(app.getByTestId("card-installments")).toBeVisible();
         await page.screenshot({
           path: `screenshots/account-detail-card-${scenario.name}.png`,
           fullPage: true,
         });
-        await page.getByTestId("card-payment-open").click();
+        await app.getByTestId("card-payment-open").click();
         const paymentSheet = page.getByRole("dialog");
         await expect(paymentSheet).toBeVisible();
         await expect(
@@ -115,8 +117,8 @@ test.describe("Account-detail redesign", () => {
         ).toBeVisible();
         await page.keyboard.press("Escape");
         await expect(paymentSheet).toHaveCount(0);
-        await page.getByTestId("account-management-open").click();
-        await expect(page.getByTestId("card-refund-open")).toBeVisible();
+        await app.getByTestId("account-management-open").click();
+        await expect(app.getByTestId("card-refund-open")).toBeVisible();
         await page.keyboard.press("Escape");
       }
     });

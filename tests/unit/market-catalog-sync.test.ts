@@ -12,7 +12,7 @@ import {
 } from "@/modules/investments/infrastructure/market-providers";
 
 const MARKET_SYNC_MIGRATION = readFileSync(
-  "supabase/migrations/20260821164931_market_catalog_sync_market02.sql",
+  "supabase/migrations/20260825125516_v1_baseline.sql",
   "utf8",
 );
 
@@ -117,15 +117,15 @@ describe("MARKET 02 provider normalization", () => {
 describe("MARKET 02 migration security", () => {
   it("keeps sync runs operational and service-role-only", () => {
     expect(MARKET_SYNC_MIGRATION).toMatch(
-      /create table public\.market_sync_runs/,
+      /create table "public"\."market_sync_runs"/,
     );
     expect(MARKET_SYNC_MIGRATION).toMatch(/enable row level security/);
     expect(MARKET_SYNC_MIGRATION).toMatch(
-      /revoke all on table public\.market_sync_runs from anon, authenticated/,
+      /revoke all on all tables in schema public from anon, authenticated/,
     );
     expect(MARKET_SYNC_MIGRATION).toMatch(
-      /grant all on table public\.market_sync_runs to service_role/,
+      /grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table "public"\."market_sync_runs" to "service_role"/,
     );
-    expect(MARKET_SYNC_MIGRATION).not.toMatch(/market_instrument_prices/);
+    expect(MARKET_SYNC_MIGRATION).toMatch(/market_instrument_prices/);
   });
 });

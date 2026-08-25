@@ -14,15 +14,10 @@ This board does not review financial correctness, redesign business rules, redes
 
 ## Source Inputs
 
-- `artifacts/business-blueprint/**/CURRENT/`
-- `artifacts/financial-system-integration/CURRENT/`
 - `artifacts/current/specification/`
-- `artifacts/implementation-planning/CURRENT/`
-- `artifacts/product-definition/CURRENT/`
-- `artifacts/screen-blueprints/CURRENT/`
-- `artifacts/design-foundation/CURRENT/`
-- `artifacts/design-system/CURRENT/`
-- `artifacts/developer-constitution/CURRENT/`
+- `artifacts/current/planning/`
+- `artifacts/screen-blueprints/**/CURRENT/`
+- `artifacts/design-system-evolution/CURRENT/`
 
 ## Non-Negotiable Constraints
 
@@ -51,4 +46,3 @@ This board does not review financial correctness, redesign business rules, redes
 - [improvement-roadmap.md](./improvement-roadmap.md)
 - [priority-matrix.md](./priority-matrix.md)
 - [final-verdict.md](./final-verdict.md)
-

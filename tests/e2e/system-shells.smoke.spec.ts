@@ -16,7 +16,7 @@ test.describe("System shells (ST-E08-001)", () => {
       timeout: 20_000,
     });
     await expect(
-      page.getByText(/offline writes|ghi ngoại tuyến/i),
+      page.getByText(/You are offline|Bạn đang ngoại tuyến/i),
     ).toBeVisible();
     await expect(page.getByTestId("system-offline-retry")).toBeVisible();
     await expect(page.getByTestId("system-offline-readonly")).toBeVisible();
@@ -30,7 +30,9 @@ test.describe("System shells (ST-E08-001)", () => {
       timeout: 20_000,
     });
     await expect(page.getByTestId("system-permission-together")).toBeVisible();
-    await expect(page.getByText(/Admin role|vai Admin/i)).toBeVisible();
+    await expect(
+      page.getByText(/household admin access|quyền Quản trị hộ gia đình/i),
+    ).toBeVisible();
   });
 
   test("maintenance shell is terminal and calm", async ({ page }) => {

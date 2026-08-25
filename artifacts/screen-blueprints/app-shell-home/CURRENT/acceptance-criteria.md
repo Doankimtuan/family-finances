@@ -62,5 +62,5 @@
 - `npm run lint` passes without new warnings.
 - Focused Home/App Shell tests pass.
 - No business rules, financial calculations, database schema, backend contracts, or routes are changed.
-- No imports from `archive/legacy-v1` are added.
+- No imports from retired legacy code are added.
 - No package dependency is added unless explicitly unavoidable and documented.

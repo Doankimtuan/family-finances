@@ -37,7 +37,9 @@ test.describe("Money capture (ST-E04-002)", () => {
       "E2E user has no household",
     );
 
-    await page.goto("/en/money/transactions/new");
+    await page.goto("/en/money/transactions/new", {
+      waitUntil: "domcontentloaded",
+    });
     const surface = page.locator("#app-viewport-root");
     await expect(surface.getByTestId("money-transaction-add")).toBeVisible();
     await expect(surface.getByTestId("money-capture-form")).toBeVisible();

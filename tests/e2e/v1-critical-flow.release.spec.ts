@@ -17,7 +17,8 @@ function route(path: string): string {
 }
 
 async function selectReleaseCashAccount(page: Page): Promise<void> {
-  const radio = page.getByRole("radio", {
+  const app = page.locator("#app-viewport-root");
+  const radio = app.getByRole("radio", {
     name: RELEASE_CASH_ACCOUNT_NAME,
   });
   if (await radio.count()) {
@@ -25,8 +26,8 @@ async function selectReleaseCashAccount(page: Page): Promise<void> {
     return;
   }
 
-  await page.getByTestId("capture-account").getByRole("button").click();
-  await page.getByRole("option", { name: RELEASE_CASH_ACCOUNT_NAME }).click();
+  await app.getByTestId("capture-account").getByRole("button").click();
+  await app.getByRole("option", { name: RELEASE_CASH_ACCOUNT_NAME }).click();
 }
 
 function attachBrowserDiagnostics(page: Page): string[] {
@@ -54,11 +55,11 @@ test.describe("V1 deterministic critical-flow release smoke", () => {
 
   test.beforeAll(async () => {
     assertReleaseEnvironment();
-    await runReleaseHarness("setup");
+    await runReleaseHarness("release-23d-setup");
   });
 
   test.afterAll(async () => {
-    await runReleaseHarness("cleanup");
+    await runReleaseHarness("release-23d-cleanup");
   });
 
   test.beforeEach(async ({ page }) => {
@@ -107,31 +108,30 @@ test.describe("V1 deterministic critical-flow release smoke", () => {
   test("personal money and transaction expense/income receipts", async ({
     page,
   }) => {
+    const app = page.locator("#app-viewport-root");
     await page.goto(route(APP_PATH.MONEY_TRANSACTIONS));
-    await expect(page.getByTestId("money-transactions")).toHaveCount(1);
-    await page.getByTestId("transactions-add").click();
-    await expect(page.getByTestId("money-transaction-add")).toBeVisible();
+    await expect(app.getByTestId("money-transactions")).toHaveCount(1);
+    await app.getByTestId("transactions-add").click();
+    await expect(app.getByTestId("money-transaction-add")).toBeVisible();
 
     await selectReleaseCashAccount(page);
-    await page.getByTestId("capture-amount").fill("1000");
-    await page
+    await app.getByTestId("capture-amount").fill("1000");
+    await app
       .getByTestId("capture-note")
       .fill(`Release expense ${RELEASE_RUN_ID}`);
-    await page.getByTestId("capture-save").click();
-    await expect(page.getByTestId("transaction-receipt")).toBeVisible();
-    await expect(page.getByText(/expense|chi phí/i).first()).toBeVisible();
+    await app.getByTestId("capture-save").click();
+    await expect(app.getByTestId("transaction-receipt")).toBeVisible();
+    await expect(app.getByText(/expense|chi phí/i).first()).toBeVisible();
 
-    await page
-      .getByRole("button", { name: /Record another|Ghi thêm/i })
-      .click();
-    await page.getByTestId("capture-mode-income").click();
+    await app.getByRole("button", { name: /Record another|Ghi thêm/i }).click();
+    await app.getByTestId("capture-mode-income").click();
     await selectReleaseCashAccount(page);
-    await page.getByTestId("capture-amount").fill("2000");
-    await page
+    await app.getByTestId("capture-amount").fill("2000");
+    await app
       .getByTestId("capture-note")
       .fill(`Release income ${RELEASE_RUN_ID}`);
-    await page.getByTestId("capture-save").click();
-    await expect(page.getByTestId("transaction-receipt")).toBeVisible();
+    await app.getByTestId("capture-save").click();
+    await expect(app.getByTestId("transaction-receipt")).toBeVisible();
 
     await page.goto(route(APP_PATH.MONEY_TRANSACTIONS));
     await expect(
@@ -145,37 +145,38 @@ test.describe("V1 deterministic critical-flow release smoke", () => {
   test("transfer uses the current transaction route and produces neutral receipt", async ({
     page,
   }) => {
+    const app = page.locator("#app-viewport-root");
     await page.goto(route(APP_PATH.MONEY_ADD), {
       waitUntil: "domcontentloaded",
     });
-    await expect(page.getByTestId("money-transaction-add")).toBeVisible({
+    await expect(app.getByTestId("money-transaction-add")).toBeVisible({
       timeout: 20_000,
     });
-    await page.getByTestId("capture-mode-transfer").click();
-    await expect(page.getByTestId("money-transfer-form")).toBeVisible();
+    await app.getByTestId("capture-mode-transfer").click();
+    await expect(app.getByTestId("money-transfer-form")).toBeVisible();
 
-    const source = page.locator('input[name="transfer-source"]');
-    const destination = page.locator('input[name="transfer-destination"]');
+    const source = app.locator('input[name="transfer-source"]');
+    const destination = app.locator('input[name="transfer-destination"]');
     expect(await source.count()).toBeGreaterThan(1);
     expect(await destination.count()).toBeGreaterThan(1);
-    await page
+    await app
       .locator("label")
       .filter({ hasText: "Ownership release cash" })
       .first()
       .locator('input[name="transfer-source"]')
       .check();
-    await page
+    await app
       .locator("label")
       .filter({ hasText: "Ownership transfer destination" })
       .last()
       .locator('input[name="transfer-destination"]')
       .check();
-    await page.getByTestId("transfer-amount").fill("1234");
-    await page.getByTestId("transfer-preview-continue").click();
-    await expect(page.getByTestId("money-transfer-confirm")).toBeVisible();
-    await page.getByTestId("transfer-confirm").click();
-    await expect(page.getByTestId("transfer-receipt-neutrality")).toBeVisible();
-    await expect(page.getByText(/Not income|Không phải thu/i)).toBeVisible();
+    await app.getByTestId("transfer-amount").fill("1234");
+    await app.getByTestId("transfer-preview-continue").click();
+    await expect(app.getByTestId("money-transfer-confirm")).toBeVisible();
+    await app.getByTestId("transfer-confirm").click();
+    await expect(app.getByTestId("transfer-receipt-neutrality")).toBeVisible();
+    await expect(app.getByText(/Not income|Không phải thu/i)).toBeVisible();
   });
 
   test("savings create, funding, list, detail, and lifecycle state", async ({

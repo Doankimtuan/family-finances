@@ -14,7 +14,7 @@ import {
 } from "@/modules/investments/infrastructure/market-providers";
 
 const MIGRATION = readFileSync(
-  "supabase/migrations/20260821231639_market_price_sync_market03.sql",
+  "supabase/migrations/20260825125516_v1_baseline.sql",
   "utf8",
 );
 
@@ -153,7 +153,7 @@ describe("MARKET 03 price adapters", () => {
 
 describe("MARKET 03 migration", () => {
   it("keeps current-price storage and operational state service-only", () => {
-    expect(MIGRATION).toMatch(/create table public\.market_sync_locks/);
+    expect(MIGRATION).toMatch(/create table "public"\."market_sync_locks"/);
     expect(MIGRATION).toMatch(/list_active_market_price_targets/);
     expect(MIGRATION).toMatch(/market_instrument_prices/);
     expect(MIGRATION).toMatch(/distinct on \(instrument\.id\)/);
@@ -163,21 +163,17 @@ describe("MARKET 03 migration", () => {
     expect(MIGRATION).toMatch(/source\.priority asc/);
     expect(MIGRATION).toMatch(/on conflict \(lock_key\) do update/);
     expect(MIGRATION).toMatch(
-      /revoke all on table public\.market_sync_locks from anon, authenticated/,
+      /revoke all on all tables in schema public from anon, authenticated/,
     );
     expect(MIGRATION).toMatch(
-      /grant all on table public\.market_sync_locks to service_role/,
+      /grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table "public"\."market_sync_locks" to "service_role"/,
     );
     expect(MIGRATION).not.toMatch(/market_instrument_price_history/);
     expect(MIGRATION).not.toMatch(/market_instrument_price_snapshots/);
   });
 
-  it("documents the explicit local-time to UTC schedule conversion", () => {
-    expect(MIGRATION).toContain("11:00 -> 04:00 UTC");
-    expect(MIGRATION).toContain("15:30 -> 08:30 UTC");
-    expect(MIGRATION).toContain("18:00 -> 11:00 UTC");
-    expect(MIGRATION).toContain("0 4 * * *");
-    expect(MIGRATION).toContain("30 8 * * 1-5");
-    expect(MIGRATION).toContain("0 11 * * 1-5");
+  it("keeps production market cron disabled while retaining the ritual job", () => {
+    expect(MIGRATION).toContain("month_ritual_autolock_daily");
+    expect(MIGRATION).not.toMatch(/market_price_sync_(crypto|vnstock|fmarket)/);
   });
 });

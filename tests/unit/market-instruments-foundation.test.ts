@@ -8,20 +8,17 @@ import {
 } from "@/modules/investments/application/investment-constants";
 
 const SQL = readFileSync(
-  "supabase/migrations/20260821163005_market_instruments_foundation_market01.sql",
+  "supabase/migrations/20260825125516_v1_baseline.sql",
   "utf8",
 );
 
 describe("MARKET 01 instrument catalog migration", () => {
   it("defines the catalog, source mapping, and one-current-price tables", () => {
-    expect(SQL).toMatch(/create table public\.market_instruments/);
-    expect(SQL).toMatch(/create table public\.market_instrument_sources/);
-    expect(SQL).toMatch(/create table public\.market_instrument_prices/);
-    expect(SQL).toMatch(
-      /instrument_id uuid primary key references public\.market_instruments\(id\)/,
-    );
-    expect(SQL).toMatch(/primary key \(instrument_id, provider\)/);
-    expect(SQL).toMatch(/unique \(provider, provider_instrument_id\)/);
+    expect(SQL).toMatch(/create table "public"\."market_instruments"/);
+    expect(SQL).toMatch(/create table "public"\."market_instrument_sources"/);
+    expect(SQL).toMatch(/create table "public"\."market_instrument_prices"/);
+    expect(SQL).toMatch(/primary key \(instrument_id, provider\)/i);
+    expect(SQL).toMatch(/unique \(provider, provider_instrument_id\)/i);
     expect(SQL).not.toMatch(
       /create table public\.market_instrument_price_history/,
     );
@@ -46,22 +43,22 @@ describe("MARKET 01 instrument catalog migration", () => {
   });
 
   it("preserves nullable holding links while replacing legacy local links", () => {
+    expect(SQL).toMatch(/"instrument_id" uuid/);
+    expect(SQL).not.toContain("set instrument_id = null");
     expect(SQL).toMatch(
-      /alter table public\.investment_holdings\s+add column if not exists instrument_id uuid/,
-    );
-    expect(SQL).toMatch(/set instrument_id = null/);
-    expect(SQL).toMatch(
-      /add constraint investment_holdings_instrument_id_fkey\s+foreign key \(instrument_id\)\s+references public\.market_instruments\(id\)/,
+      /investment_holdings_instrument_id_fkey[\s\S]*foreign key \(instrument_id\)[\s\S]*market_instruments/i,
     );
   });
 
   it("protects catalog writes and exposes only authenticated reads", () => {
     expect(SQL).toMatch(/enable row level security/);
-    expect(SQL).toMatch(/for select to authenticated\s+using \(true\)/);
-    expect(SQL).toMatch(/revoke all on table[\s\S]*from anon, authenticated/);
-    expect(SQL).toMatch(/grant select on table[\s\S]*to authenticated/);
+    expect(SQL).toMatch(/for SELECT\n  to "authenticated"\n  using \(true\)/);
     expect(SQL).toMatch(
-      /grant select, insert, update, delete on table[\s\S]*to service_role/,
+      /revoke all on all tables in schema public from anon, authenticated/,
+    );
+    expect(SQL).toMatch(/grant SELECT on table[\s\S]*to "authenticated"/);
+    expect(SQL).toMatch(
+      /grant [A-Z, ]* on table "public"\."market_instruments" to "service_role"/,
     );
   });
 

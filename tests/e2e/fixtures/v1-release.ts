@@ -22,19 +22,24 @@ function loadLocalEnv(): void {
 
 loadLocalEnv();
 
-const RELEASE_IDENTITIES = {
+const RELEASE_CREDENTIALS_PATH =
+  "output/playwright/release-23d3-credentials.json";
+
+type ReleaseCredentials = {
   admin: {
-    email: "OWNERSHIP_TEST_A_EMAIL",
-    password: "OWNERSHIP_TEST_A_PASSWORD",
-  },
-} as const;
+    email: string;
+    password: string;
+  };
+};
 
 export function assertReleaseEnvironment(): void {
   const missing = [
-    ["OWNERSHIP_TEST_A_EMAIL", process.env.OWNERSHIP_TEST_A_EMAIL],
-    ["OWNERSHIP_TEST_A_PASSWORD", process.env.OWNERSHIP_TEST_A_PASSWORD],
-    ["OWNERSHIP_TEST_B_EMAIL", process.env.OWNERSHIP_TEST_B_EMAIL],
-    ["OWNERSHIP_TEST_B_PASSWORD", process.env.OWNERSHIP_TEST_B_PASSWORD],
+    ["NEXT_PUBLIC_SUPABASE_URL", process.env.NEXT_PUBLIC_SUPABASE_URL],
+    [
+      "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY or NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    ],
     [
       "SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY",
       process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY,
@@ -50,7 +55,7 @@ export function assertReleaseEnvironment(): void {
 }
 
 export async function runReleaseHarness(
-  command: "setup" | "cleanup",
+  command: "release-23d-setup" | "release-23d-cleanup",
 ): Promise<void> {
   await execFile("node", ["scripts/ownership-test-harness.mjs", command], {
     cwd: process.cwd(),
@@ -59,12 +64,13 @@ export async function runReleaseHarness(
 }
 
 export async function authenticateReleaseAdmin(page: Page): Promise<void> {
-  const identity = RELEASE_IDENTITIES.admin;
+  const credentials = JSON.parse(
+    readFileSync(resolve(process.cwd(), RELEASE_CREDENTIALS_PATH), "utf8"),
+  ) as ReleaseCredentials;
+  const identity = credentials.admin;
   await page.goto("/en/login");
-  await page.getByLabel("Email").fill(process.env[identity.email] ?? "");
-  await page
-    .locator("#login-password")
-    .fill(process.env[identity.password] ?? "");
+  await page.getByLabel("Email").fill(identity.email);
+  await page.locator("#login-password").fill(identity.password);
   await page.getByRole("button", { name: "Log in" }).click();
   await expect(page).toHaveURL(/\/en\/(home|together)/, { timeout: 20_000 });
 }

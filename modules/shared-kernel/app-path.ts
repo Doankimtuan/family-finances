@@ -30,8 +30,6 @@ export const APP_PATH = {
   MONEY_INVESTMENTS_NEW: "/money/investments/new",
   MONEY_INVESTMENTS_CONVERT: "/money/investments/convert",
   MONEY_LOANS: "/money/loans",
-  /** @deprecated Use MONEY_LOANS — old Cards/EMI route. */
-  MONEY_CARDS: "/money/loans",
   TOGETHER: "/together",
   TOGETHER_MEMBERS: "/together/members",
   ONBOARD: "/together/onboard",
@@ -170,9 +168,4 @@ export function moneyInvestmentValuationPath(holdingId: string): string {
 
 export function moneyLoanPath(loanId: string): string {
   return `${APP_PATH.MONEY_LOANS}/${loanId}`;
-}
-
-/** @deprecated Use moneyLoanPath. */
-export function moneyCardPath(planId: string): string {
-  return moneyLoanPath(planId);
 }

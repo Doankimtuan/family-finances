@@ -9,7 +9,7 @@ Authorities used:
 - `artifacts/information-architecture/CURRENT/`
 - `artifacts/ux-redesign/CURRENT/`
 - `artifacts/design-system-evolution/CURRENT/`
-- `artifacts/design-calibration/CURRENT/`
+- `artifacts/design-system-evolution/CURRENT/`
 - `artifacts/screen-blueprints/app-shell-home/CURRENT/`
 - `artifacts/current/domains/accounts/`
 - `artifacts/current/domains/transactions/`
@@ -23,4 +23,3 @@ Files:
 - `acceptance-criteria.md` - implementation checklist.
 - `commandcode-handoff.md` - concise build sequence for CommandCode.
 - `final-verdict.md` - phase decision.
-

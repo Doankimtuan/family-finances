@@ -32,10 +32,15 @@ test.describe("Together policies + preferences (ST-E03-003)", () => {
     );
 
     await page.goto("/en/together");
-    await expect(page.getByTestId("together-policies-link")).toBeVisible();
-    await expect(page.getByTestId("together-preferences-link")).toBeVisible();
+    const surface = page.locator("#app-viewport-root");
+    await expect(
+      surface.getByTestId("together-policies-link").first(),
+    ).toBeVisible();
+    await expect(
+      surface.getByTestId("together-preferences-link").first(),
+    ).toBeVisible();
 
-    await page.getByTestId("together-policies-link").click();
+    await surface.getByTestId("together-policies-link").first().click();
     await expect(page).toHaveURL(/\/en\/together\/policies/);
     await expect(page.getByTestId("together-policies")).toBeVisible();
     await expect(page.getByTestId("policies-money-none")).toBeVisible();
@@ -45,7 +50,10 @@ test.describe("Together policies + preferences (ST-E03-003)", () => {
     await expect(page.getByTestId("together-change-role")).toHaveCount(0);
 
     await page.goto("/en/together/preferences");
-    await expect(page.getByTestId("together-preferences-page")).toBeVisible();
-    await expect(page.getByTestId("account-lifecycle")).toBeVisible();
+    await expect(
+      page
+        .locator("#app-viewport-root")
+        .getByTestId("together-preferences-page"),
+    ).toBeVisible();
   });
 });

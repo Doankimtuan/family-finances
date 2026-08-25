@@ -4,8 +4,6 @@
 /* Exclude docs/archives — they mention banned radius bracket anti-patterns as text,
    which Tailwind would otherwise emit as invalid CSS. */
 @source not "../artifacts/**/*";
-@source not "../archive/**/*";
-@source not "../history/**/*";
 @source not "../.agents/**/*";
 
 /* Shared toast presentation: the provider supplies shell-aware placement. */

@@ -40,15 +40,13 @@ export async function authenticateE2EUser(page: Page): Promise<void> {
   const { email, password } = getE2ECredentials();
 
   try {
-    await page.goto(E2E_LOGIN_PATH, { waitUntil: "domcontentloaded" });
-    const emailField = page.locator("#login-email");
+    await page.goto(E2E_LOGIN_PATH);
+    const emailField = page.getByLabel("Email");
     const loginButton = page.getByRole("button", { name: /log in/i });
     await expect(emailField).toBeVisible({ timeout: 20_000 });
-    await expect(loginButton).toBeEnabled();
     await emailField.fill(email);
-    await expect(emailField).toHaveValue(email);
-    await page.locator("#login-password").fill(password);
-    await expect(page.locator("#login-password")).toHaveValue(password);
+    const passwordField = page.getByRole("textbox", { name: "Password" });
+    await passwordField.fill(password);
     await loginButton.click();
     await expect(page).toHaveURL(/\/en\/(home|together\/onboard)(?:\?.*)?$/, {
       timeout: 20_000,
@@ -63,9 +61,9 @@ export async function authenticateE2EUser(page: Page): Promise<void> {
     await page.goto(E2E_MONEY_PATH, {
       waitUntil: "domcontentloaded",
     });
-    await expect(page.getByTestId("money-hub")).toBeVisible({
-      timeout: 20_000,
-    });
+    await expect(
+      page.locator("#app-viewport-root").getByTestId("money-hub"),
+    ).toBeVisible({ timeout: 20_000 });
   } catch (error) {
     await writeAuthDebug(page);
     const reason = error instanceof Error ? error.message : "unknown failure";

@@ -31,6 +31,4 @@ This pack does not redesign UI, API, database, architecture, or frozen Sources o
 
 ## Primary Evidence
 
-- `artifacts/financial-domain-discovery/Savings/CURRENT`
-- `artifacts/household-reality-validation/Savings/CURRENT`
-
+- Current source: `artifacts/current/domains/savings/`

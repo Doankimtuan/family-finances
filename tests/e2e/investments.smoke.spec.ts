@@ -98,10 +98,10 @@ test.describe("Investments authenticated money safety", () => {
       waitUntil: "domcontentloaded",
     });
     await page
-      .locator("[data-testid^=investment-position-]")
+      .locator("[data-testid^=investment-position-card-]")
       .filter({ hasText: `GB${runId.slice(-5)}` })
       .click();
-    await page.getByRole("link", { name: "Mua" }).click();
+    await page.getByTestId("investment-detail-buy").click();
     await page.locator("#investment-operation-quantity").fill("0.5");
     await page.locator("#investment-operation-unit-price").fill("1000000");
     await page.getByText("Ghi phí rõ ràng").click();
@@ -116,7 +116,7 @@ test.describe("Investments authenticated money safety", () => {
     await expect(page.getByText(/1.5 đơn vị/)).toBeVisible();
 
     for (const quantity of ["0.5", "1"]) {
-      await page.getByRole("link", { name: "Bán" }).click();
+      await page.getByTestId("investment-detail-sell").click();
       if (quantity === "1") {
         await page.getByRole("button", { name: /Bán toàn bộ/ }).click();
       } else {
@@ -186,7 +186,7 @@ test.describe("Investments authenticated money safety", () => {
     ).toBe(beforeCash);
     await page.goto(`/en${APP_PATH.MONEY_INVESTMENTS}`);
     await page
-      .locator("[data-testid^=investment-position-]")
+      .locator("[data-testid^=investment-position-card-]")
       .filter({ hasText: `GE${runId.slice(-5)}` })
       .click();
     await page.getByTestId("investment-more-actions").click();

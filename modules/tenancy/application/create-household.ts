@@ -64,8 +64,9 @@ export async function createHousehold(
       "create_household_with_essentials",
       {
         p_name: parsed.data.name,
-        p_account_name: parsed.data.accountName,
-        p_plan_preset: parsed.data.planPreset,
+        p_account_name: parsed.data.accountName ?? null,
+        p_opening_balance: parsed.data.openingBalance,
+        p_plan_preset: parsed.data.planPreset ?? null,
         p_base_currency: parsed.data.baseCurrency ?? DEFAULT_CURRENCY,
         p_locale: parsed.data.locale ?? "en-VN",
         p_timezone: parsed.data.timezone ?? "Asia/Ho_Chi_Minh",

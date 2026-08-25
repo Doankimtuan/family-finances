@@ -75,5 +75,5 @@ No visible navigation may add compatibility routes or new top-level product rout
 - `modules/health/domain`
 - `modules/platform/supabase`
 - `modules/platform/jobs`
-- `archive/legacy-v1`
+- Retired legacy code
 - Money, Plan, Inbox, Together, Health, and Settings screens except for direct route targets used by Home links.
