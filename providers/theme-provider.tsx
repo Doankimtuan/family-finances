@@ -1,68 +1,139 @@
 "use client";
 
-import { ThemeProvider as NextThemesProvider, useTheme } from "next-themes";
-import { useEffect, useRef, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from "react";
+import { THEME_MODES, type ThemeMode } from "@/shared/theme/tokens";
 
 const STORAGE_KEY = "vinha-theme";
 const TRANSITION_MS = 200;
+const DEFAULT_THEME = "system" as const;
+const LIGHT_THEME = "light" as const;
+const DARK_THEME = "dark" as const;
+const SYSTEM_THEME_QUERY = "(prefers-color-scheme: dark)";
+const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 
-/**
- * Briefly enables calm color transitions on intentional theme changes.
- * Skipped on first hydration paint (avoids FOUC flash) and when
- * prefers-reduced-motion is set (global CSS already zeros transitions).
- */
-function ThemeTransitionBridge({ children }: { children: ReactNode }) {
-  const { resolvedTheme, theme } = useTheme();
-  const mounted = useRef(false);
-  const prev = useRef<string | undefined>(undefined);
+type ResolvedTheme = Exclude<ThemeMode, "system">;
 
-  useEffect(() => {
-    if (!mounted.current) {
-      mounted.current = true;
-      prev.current = resolvedTheme ?? theme;
-      return;
-    }
+type ThemeContextValue = {
+  theme: ThemeMode;
+  resolvedTheme: ResolvedTheme;
+  setTheme: (theme: ThemeMode) => void;
+};
 
-    const next = resolvedTheme ?? theme;
-    if (!next || next === prev.current) return;
-    prev.current = next;
+const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-    if (
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    ) {
-      return;
-    }
+function isThemeMode(value: string | null): value is ThemeMode {
+  return typeof value === "string" && THEME_MODES.includes(value as ThemeMode);
+}
 
-    const root = document.documentElement;
-    root.classList.add("theme-transitioning");
-    const id = window.setTimeout(() => {
-      root.classList.remove("theme-transitioning");
-    }, TRANSITION_MS);
+function readStoredTheme(): ThemeMode {
+  if (typeof window === "undefined") return DEFAULT_THEME;
 
-    return () => {
-      window.clearTimeout(id);
-      root.classList.remove("theme-transitioning");
-    };
-  }, [resolvedTheme, theme]);
+  try {
+    const storedTheme = window.localStorage.getItem(STORAGE_KEY);
+    return isThemeMode(storedTheme) ? storedTheme : DEFAULT_THEME;
+  } catch {
+    // Storage may be unavailable; system theme remains the safe default.
+    return DEFAULT_THEME;
+  }
+}
 
-  return children;
+function getSystemTheme(): ResolvedTheme {
+  if (typeof window === "undefined") return LIGHT_THEME;
+
+  return window.matchMedia(SYSTEM_THEME_QUERY).matches
+    ? DARK_THEME
+    : LIGHT_THEME;
+}
+
+function subscribeToSystemTheme(onChange: () => void) {
+  if (typeof window === "undefined") return () => {};
+
+  const mediaQuery = window.matchMedia(SYSTEM_THEME_QUERY);
+  mediaQuery.addEventListener("change", onChange);
+  return () => mediaQuery.removeEventListener("change", onChange);
+}
+
+function applyTheme(theme: ResolvedTheme, transition: boolean) {
+  const root = document.documentElement;
+  root.classList.remove(LIGHT_THEME, DARK_THEME);
+  root.classList.add(theme);
+  root.style.colorScheme = theme;
+
+  if (!transition || window.matchMedia(REDUCED_MOTION_QUERY).matches) {
+    return;
+  }
+
+  root.classList.add("theme-transitioning");
+  window.setTimeout(() => {
+    root.classList.remove("theme-transitioning");
+  }, TRANSITION_MS);
+}
+
+export function useTheme() {
+  const context = useContext(ThemeContext);
+  if (!context) {
+    throw new Error("useTheme must be used inside ThemeProvider");
+  }
+
+  return context;
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
+  const [theme, setThemeState] = useState<ThemeMode>(readStoredTheme);
+  const systemTheme = useSyncExternalStore(
+    subscribeToSystemTheme,
+    getSystemTheme,
+    (): ResolvedTheme => LIGHT_THEME,
+  );
+  const resolvedTheme = theme === DEFAULT_THEME ? systemTheme : theme;
+
+  useEffect(() => {
+    applyTheme(resolvedTheme, false);
+  }, [resolvedTheme]);
+
+  useEffect(() => {
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key !== STORAGE_KEY) return;
+      setThemeState(
+        isThemeMode(event.newValue) ? event.newValue : DEFAULT_THEME,
+      );
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, []);
+
+  const setTheme = useCallback((nextTheme: ThemeMode) => {
+    setThemeState(nextTheme);
+    try {
+      window.localStorage.setItem(STORAGE_KEY, nextTheme);
+    } catch {
+      // Theme changes still apply when storage is unavailable.
+    }
+    applyTheme(
+      nextTheme === DEFAULT_THEME ? getSystemTheme() : nextTheme,
+      true,
+    );
+  }, []);
+
+  const value = useMemo(
+    () => ({ theme, resolvedTheme, setTheme }),
+    [resolvedTheme, setTheme, theme],
+  );
+
   return (
-    <NextThemesProvider
-      attribute="class"
-      defaultTheme="system"
-      enableSystem
-      // Prevent transition flash during hydration; intentional switches
-      // use ThemeTransitionBridge + .theme-transitioning instead.
-      disableTransitionOnChange
-      storageKey={STORAGE_KEY}
-      themes={["light", "dark", "system"]}
-    >
-      <ThemeTransitionBridge>{children}</ThemeTransitionBridge>
-    </NextThemesProvider>
+    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
   );
 }
 

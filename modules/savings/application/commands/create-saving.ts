@@ -12,16 +12,23 @@ import {
   MaturityFallbackPolicy,
   SAVINGS_RPC,
   SavingsCreateMode,
+  SAVINGS_MANUAL_PROVIDER_KEY,
+  SavingsTermsMode,
 } from "../savings-constants";
 import {
   classifySavingsRpcError,
   logSavingsFailure,
   savingsFailureCode,
 } from "../savings-error";
-import { resolvePackageSnapshot } from "../savings-provider-registry";
+import {
+  getProviderByKey,
+  resolvePackageSnapshot,
+} from "../savings-provider-registry";
 import {
   addSavingsTerm,
   assertCompatibleSavingsAccounts,
+  durationDaysForTerm,
+  DEFAULT_SAVINGS_CURRENCY,
   familyForLegacySavingType,
   isEligibleSavingsAccountType,
 } from "../savings-domain-rules";
@@ -36,6 +43,7 @@ import {
   CreateSavingInput,
   createSavingInputSchema,
 } from "./create-saving.schema";
+import { todayIsoDate } from "@/shared/utils/iso-date";
 export {
   createSavingInputSchema,
   type CreateSavingInput,
@@ -75,14 +83,56 @@ export async function createSaving(
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.NO_MEMBERSHIP };
   }
 
-  const resolved = await resolvePackageSnapshot(parsed.data.packageId);
-  if (!resolved || resolved.providerId !== parsed.data.providerId) {
+  const isHistoricalOpening =
+    parsed.data.creationMode === SavingsCreateMode.HISTORICAL_OPENING;
+  const historicalInput =
+    parsed.data.creationMode === SavingsCreateMode.HISTORICAL_OPENING
+      ? parsed.data
+      : null;
+  const resolved =
+    historicalInput?.termsMode === SavingsTermsMode.INLINE
+      ? await (async () => {
+          const provider = await getProviderByKey(SAVINGS_MANUAL_PROVIDER_KEY);
+          const terms = historicalInput.manualTerms;
+          if (!provider || !terms) return null;
+          return {
+            providerId: provider.id,
+            productName: historicalInput.providerName ?? provider.displayName,
+            providerFamily: provider.family,
+            providerKey: provider.providerKey,
+            packageSnapshot: {
+              packageName: terms.packageName,
+              durationDays: durationDaysForTerm({
+                amount: terms.termAmount,
+                unit: terms.termUnit,
+              }),
+              annualInterestRate: terms.annualInterestRate,
+              settlementRules: terms.settlementRules,
+              penaltyRules: terms.penaltyRules,
+              renewableAvailable: terms.renewableAvailable,
+              minAmount: terms.minAmount,
+              maxAmount: terms.maxAmount,
+              termAmount: terms.termAmount,
+              termUnit: terms.termUnit,
+              interestCalculationMethod: terms.interestCalculationMethod,
+              currency: DEFAULT_SAVINGS_CURRENCY,
+              taxRule: terms.taxRule,
+              taxRatePercent: terms.taxRatePercent,
+              earlySettlementRule: terms.earlySettlementRule,
+              earlySettlementRatePercent: terms.earlySettlementRatePercent,
+              supportsPartialSettlement: terms.supportsPartialSettlement,
+            } satisfies PackageSnapshot,
+          };
+        })()
+      : await resolvePackageSnapshot(parsed.data.packageId ?? "");
+  if (
+    !resolved ||
+    (!isHistoricalOpening && resolved.providerId !== parsed.data.providerId)
+  ) {
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
   }
 
   const { packageSnapshot } = resolved;
-  const isHistoricalOpening =
-    parsed.data.creationMode === SavingsCreateMode.HISTORICAL_OPENING;
   const renewalPolicy =
     parsed.data.renewalPolicy ??
     parsed.data.renewalPreference ??
@@ -116,6 +166,14 @@ export async function createSaving(
           );
           return endDateObj.toISOString().slice(0, 10);
         })();
+  if (
+    isHistoricalOpening &&
+    (startDate >= todayIsoDate() ||
+      endDate <= startDate ||
+      endDate < todayIsoDate())
+  ) {
+    return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
+  }
   const interestCalculationMethod =
     packageSnapshot.interestCalculationMethod ?? parsed.data.interestCalcMethod;
   const estimatedInterest = calculateInterest({
@@ -132,7 +190,7 @@ export async function createSaving(
       parsed.data.renewalConfig?.preferredPackageId ??
       (renewalPolicy === RenewalPolicy.ALWAYS_ASK
         ? null
-        : parsed.data.packageId),
+        : (parsed.data.packageId ?? null)),
     preferredSettlementRule:
       parsed.data.renewalConfig?.preferredSettlementRule ??
       parsed.data.settlementRule,
@@ -145,7 +203,8 @@ export async function createSaving(
     targetPackageId:
       parsed.data.renewalConfig?.targetPackageId ??
       parsed.data.renewalConfig?.preferredPackageId ??
-      parsed.data.packageId,
+      parsed.data.packageId ??
+      null,
     payoutAccountId:
       parsed.data.renewalConfig?.payoutAccountId ??
       parsed.data.renewalConfig?.preferredSettlementAccountId ??
@@ -154,9 +213,12 @@ export async function createSaving(
   };
 
   const productSnapshot: ProductSnapshot = {
-    packageId: parsed.data.packageId,
+    packageId: parsed.data.packageId ?? undefined,
     providerId: resolved.providerId,
-    productName: resolved.productName,
+    productName:
+      isHistoricalOpening && "productName" in parsed.data
+        ? parsed.data.productName
+        : resolved.productName,
     packageName: packageSnapshot.packageName,
     depositTermDays: packageSnapshot.durationDays,
     annualInterestRate: packageSnapshot.annualInterestRate,
@@ -171,7 +233,10 @@ export async function createSaving(
         : familyForLegacySavingType(
             resolved.providerFamily ?? "digital_saving",
           ),
-    providerNameSnapshot: resolved.productName,
+    providerNameSnapshot:
+      isHistoricalOpening && "providerName" in parsed.data
+        ? (parsed.data.providerName ?? resolved.productName)
+        : resolved.productName,
     providerKey: resolved.providerKey,
     currency: packageSnapshot.currency ?? "VND",
     taxRule: packageSnapshot.taxRule,
@@ -182,6 +247,10 @@ export async function createSaving(
     earlySettlementRule: packageSnapshot.earlySettlementRule,
     earlySettlementRatePercent: packageSnapshot.earlySettlementRatePercent,
     supportsPartialSettlement: packageSnapshot.supportsPartialSettlement,
+    termsMode:
+      isHistoricalOpening && "termsMode" in parsed.data
+        ? parsed.data.termsMode
+        : SavingsTermsMode.CATALOG,
   };
 
   const cyclePackageSnapshot: PackageSnapshot = { ...packageSnapshot };
@@ -259,8 +328,8 @@ export async function createSaving(
     const { data, error } = await supabase.rpc(SAVINGS_RPC.CREATE, {
       p_funding_account_id: parsed.data.fundingAccountId,
       p_principal: parsed.data.principal,
-      p_provider_id: parsed.data.providerId,
-      p_product_name: resolved.productName,
+      p_provider_id: resolved.providerId,
+      p_product_name: productSnapshot.productName,
       p_product_snapshot: creationSnapshot,
       p_renewal_preference: renewalPolicy,
       p_settlement_account_id: parsed.data.settlementAccountId,
@@ -278,8 +347,8 @@ export async function createSaving(
       if (code === PRODUCT_ACTION_ERROR_CODE.UNKNOWN) {
         logSavingsFailure(error, SAVINGS_RPC.CREATE, {
           householdId: gate.householdId,
-          providerId: parsed.data.providerId,
-          packageId: parsed.data.packageId,
+          providerId: resolved.providerId,
+          packageId: parsed.data.packageId ?? undefined,
           fundingAccountId: parsed.data.fundingAccountId ?? undefined,
           settlementAccountId: parsed.data.settlementAccountId,
         });
@@ -296,8 +365,8 @@ export async function createSaving(
     if (!payload?.ok || !payload.savingId) {
       logSavingsFailure(null, SAVINGS_RPC.CREATE, {
         householdId: gate.householdId,
-        providerId: parsed.data.providerId,
-        packageId: parsed.data.packageId,
+        providerId: resolved.providerId,
+        packageId: parsed.data.packageId ?? undefined,
         fundingAccountId: parsed.data.fundingAccountId ?? undefined,
         settlementAccountId: parsed.data.settlementAccountId,
         responseInvalid: true,
@@ -314,8 +383,8 @@ export async function createSaving(
   } catch (error) {
     logSavingsFailure(error, SAVINGS_RPC.CREATE, {
       householdId: gate.householdId,
-      providerId: parsed.data.providerId,
-      packageId: parsed.data.packageId,
+      providerId: resolved.providerId,
+      packageId: parsed.data.packageId ?? undefined,
       fundingAccountId: parsed.data.fundingAccountId ?? undefined,
       settlementAccountId: parsed.data.settlementAccountId,
     });

@@ -36,9 +36,9 @@ test.describe("Together policies + preferences (ST-E03-003)", () => {
     await expect(
       surface.getByTestId("together-policies-link").first(),
     ).toBeVisible();
-    await expect(
-      surface.getByTestId("together-preferences-link").first(),
-    ).toBeVisible();
+    await expect(surface.getByTestId("together-preferences-link")).toHaveCount(
+      0,
+    );
 
     await surface.getByTestId("together-policies-link").first().click();
     await expect(page).toHaveURL(/\/en\/together\/policies/);

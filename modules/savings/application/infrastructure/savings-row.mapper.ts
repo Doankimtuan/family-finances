@@ -284,7 +284,7 @@ export function mapSavingRow(
     id: string;
     household_id: string;
     status: string;
-    funding_account_id: string;
+    funding_account_id: string | null;
     settlement_account_id: string;
     provider_id: string;
     product_name: string;

@@ -16,7 +16,7 @@
       "br": [],
       "persona": "Engineer",
       "priority": "P0",
-      "desc": "Wire next-themes, Geist, CSS tokens, AppViewport 440px, decorative outer canvas.",
+      "desc": "Wire the theme provider, Geist, CSS tokens, AppViewport 440px, decorative outer canvas.",
       "module": "platform"
     },
     {

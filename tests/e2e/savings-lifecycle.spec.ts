@@ -51,10 +51,33 @@ async function createSaving(
   ).toBeVisible();
   await surface(page).getByTestId(`savings-provider-${providerId}`).click();
   await surface(page).getByTestId(`savings-package-${packageId}`).click();
+  if (historical) {
+    await surface(page).getByTestId("savings-create-mode-historical").click();
+    await surface(page).getByTestId("savings-terms-mode-inline").click();
+    await page.getByLabel("Saving name").fill("Existing family saving");
+    await page.getByLabel("Provider name").fill("Family bank");
+    await page.getByLabel("Term / product name").fill("Six months");
+    await page.getByLabel("Term amount").fill("6");
+  }
   await surface(page).getByTestId("savings-wizard-next").click();
   await page.locator("#savings-principal").fill(PRINCIPAL);
-  if (historical)
-    await surface(page).getByTestId("savings-create-mode-historical").click();
+  if (historical) {
+    const start = new Date();
+    start.setMonth(start.getMonth() - 3);
+    const dateGroup = page.getByRole("group", { name: "Start date" });
+    await dateGroup
+      .getByRole("spinbutton", { name: "month, Start date" })
+      .fill(String(start.getMonth() + 1));
+    await dateGroup
+      .getByRole("spinbutton", { name: "day, Start date" })
+      .fill(String(start.getDate()));
+    await dateGroup
+      .getByRole("spinbutton", { name: "year, Start date" })
+      .fill(String(start.getFullYear()));
+    await dateGroup
+      .getByRole("spinbutton", { name: "year, Start date" })
+      .press("Tab");
+  }
   await surface(page).getByTestId("savings-wizard-next").click();
   await expect(
     surface(page).getByTestId("savings-review-summary"),
@@ -66,6 +89,19 @@ async function createSaving(
   await expect(
     surface(page).getByTestId("savings-cycle-history"),
   ).toBeVisible();
+  if (historical) {
+    await expect(
+      surface(page).getByTestId("savings-added-between-periods"),
+    ).toHaveText("Added mid-cycle");
+    await expect(
+      surface(page).getByTestId("savings-early-withdraw"),
+    ).toBeVisible();
+    await expect(
+      surface(page)
+        .getByTestId("savings-financial-activity")
+        .locator('[data-testid^="transaction-row-"]'),
+    ).toHaveCount(0);
+  }
 }
 
 async function settle(page: Page, savingId: string, strategy: string) {

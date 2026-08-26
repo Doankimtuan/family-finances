@@ -20,6 +20,7 @@ import {
   SavingsFamily,
   SavingStatus,
   SettlementRule,
+  SavingsCreateMode,
 } from "@/modules/savings/application";
 import { DEFAULT_CURRENCY } from "@/modules/ledger/application/ledger-constants";
 import {
@@ -165,6 +166,8 @@ export default async function SavingsDetailPage({ params }: Props) {
   const legacyImport = Boolean(
     (item.productSnapshot as { legacyImport?: boolean }).legacyImport,
   );
+  const historicalOpening =
+    item.productSnapshot.creationMode === SavingsCreateMode.HISTORICAL_OPENING;
   const currency =
     cycleSnapshot?.currency ??
     item.productSnapshot.currency ??
@@ -222,6 +225,15 @@ export default async function SavingsDetailPage({ params }: Props) {
       <MoneyOfflineBanner />
       {legacyImport ? (
         <StatusAlert variant="info" title={t("legacyBanner")} />
+      ) : null}
+      {historicalOpening ? (
+        <Text
+          size="xs"
+          tone="muted"
+          data-testid="savings-added-between-periods"
+        >
+          {t("addedBetweenPeriods")}
+        </Text>
       ) : null}
       {targetUnavailable ? (
         <StatusAlert
@@ -384,9 +396,11 @@ export default async function SavingsDetailPage({ params }: Props) {
       <Section title={t("moneyFlowTitle")} testId="savings-money-flow">
         <div className="grid gap-(--space-2)">
           <Text size="sm" tone="secondary">
-            {t("fundingAccountLine", {
-              account: item.fundingAccountName || t("accountFallback"),
-            })}
+            {historicalOpening
+              ? t("historicalOpeningFlowLine")
+              : t("fundingAccountLine", {
+                  account: item.fundingAccountName || t("accountFallback"),
+                })}
           </Text>
           <Text size="sm" tone="secondary">
             {t("settlementAccountLine", {

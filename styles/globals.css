@@ -91,7 +91,7 @@
   }
 }
 
-/* Class-based dark (next-themes) — not prefers-color-scheme alone */
+/* Class-based dark theme — not prefers-color-scheme alone */
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* ViNha Calm Ledger — semantic tokens; single source of truth for light + dark */

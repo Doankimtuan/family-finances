@@ -206,13 +206,6 @@ export default async function Page({ params }: Props) {
               testId="together-policies-link"
             />
             <TogetherNavRow
-              href={TOGETHER_PATH.PREFERENCES}
-              icon={FINANCE_ICONS.cash}
-              title={t("preferencesLink")}
-              description={t("managePreferencesDescription")}
-              testId="together-preferences-link"
-            />
-            <TogetherNavRow
               href={TOGETHER_PATH.SETTINGS}
               icon={NAVIGATION_ICONS.together}
               title={t("settingsLink")}

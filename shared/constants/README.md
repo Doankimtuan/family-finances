@@ -7,7 +7,7 @@ See [Coding Standards — Constants Policy](../../artifacts/coding-standards/CUR
 ## What belongs here
 
 - App-wide storage/query/mutation key namespaces shared across modules.
-- Theme/locale constant namespaces, if a cross-module need arises that `i18n/locales.ts` and `next-themes` config do not already cover.
+- Theme/locale constant namespaces, if a cross-module need arises that `i18n/locales.ts` does not already cover.
 
 ## What does NOT belong here
 

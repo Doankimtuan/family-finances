@@ -71,6 +71,20 @@ export const SAVINGS_CREATE_MODE_VALUES = [
   SavingsCreateMode.HISTORICAL_OPENING,
 ] as const;
 
+export const SavingsTermsMode = {
+  CATALOG: "CATALOG",
+  INLINE: "INLINE",
+} as const;
+export type SavingsTermsMode =
+  (typeof SavingsTermsMode)[keyof typeof SavingsTermsMode];
+export const SAVINGS_TERMS_MODE_VALUES = [
+  SavingsTermsMode.CATALOG,
+  SavingsTermsMode.INLINE,
+] as const;
+
+/** Backing provider for historical terms that are not in the catalog. */
+export const SAVINGS_MANUAL_PROVIDER_KEY = "manual";
+
 /** Savings RPC names used at the application boundary and in diagnostics. */
 export const SAVINGS_RPC = {
   CREATE: "create_saving_with_transfer",

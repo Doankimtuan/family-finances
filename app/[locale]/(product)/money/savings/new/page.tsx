@@ -66,7 +66,7 @@ export default async function NewSavingPage({ params }: Props) {
       topBar={<TopAppBar title={t("title")} subtitle={t("subtitle")} />}
     >
       <MoneyOfflineBanner />
-      {accounts.length === 0 || providers.length === 0 ? (
+      {accounts.length === 0 ? (
         <EmptyState
           title={t("title")}
           description={t("reviewHint")}

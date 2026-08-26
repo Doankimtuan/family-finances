@@ -2,6 +2,7 @@
   "stepOf": "Bước {current} / {total}",
   "continue": "Tiếp tục",
   "back": "Quay lại",
+  "skipAccount": "Bỏ qua",
   "finish": "Hoàn tất",
   "finishing": "Đang hoàn tất thiết lập…",
   "errorTitle": "Không thể hoàn tất thiết lập",
@@ -26,7 +27,6 @@
   "planSimpleHint": "Cần thiết · Mong muốn · Tiết kiệm",
   "planSetUpLater": "Thiết lập sau",
   "planSetUpLaterHint": "Thiết lập sẽ không tạo hũ nào.",
-  "skipAccountLabel": "Tôi sẽ thêm tài khoản tiền mặt sau",
   "planSkippedWithoutAccount": "Bạn có thể thêm tài khoản và hũ sau trong Tiền và Kế hoạch.",
   "errors": {
     "unconfigured": "Chưa thể hoàn tất thiết lập lúc này. Thử lại sau.",

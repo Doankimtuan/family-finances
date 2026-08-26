@@ -39,6 +39,8 @@ export {
   INTEREST_RATE_DENOMINATOR,
   DAYS_PER_YEAR,
   PENALTY_WARNING_THRESHOLD_PCT,
+  SavingsCreateMode,
+  SavingsTermsMode,
 } from "./savings-constants";
 
 export type { SavingsRpc, SavingsOperation } from "./savings-constants";

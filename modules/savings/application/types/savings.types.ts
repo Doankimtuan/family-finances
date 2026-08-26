@@ -16,6 +16,7 @@ import type {
   MaturityTargetMode,
   MaturityFallbackPolicy,
   SavingsCreateMode,
+  SavingsTermsMode,
 } from "../savings-constants";
 import type {
   SavingsFamily as CanonicalSavingsFamily,
@@ -72,6 +73,7 @@ export type ProductSnapshot = {
   earlySettlementRatePercent?: number | null;
   supportsPartialSettlement?: boolean;
   creationMode?: SavingsCreateMode;
+  termsMode?: SavingsTermsMode;
   creationIdempotencyKey?: string | null;
 };
 
@@ -153,7 +155,7 @@ export type Saving = {
   id: string;
   householdId: string;
   status: SavingStatus;
-  fundingAccountId: string;
+  fundingAccountId: string | null;
   fundingAccountName: string | null;
   settlementAccountId: string;
   settlementAccountName: string | null;

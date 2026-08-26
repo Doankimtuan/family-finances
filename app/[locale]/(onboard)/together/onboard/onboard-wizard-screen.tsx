@@ -18,7 +18,7 @@ import { IconContainer } from "@/shared/ui/icon-container";
 import { ACTION_ICONS, FINANCE_ICONS } from "@/shared/ui/icon-registry";
 import { Progress } from "@/shared/ui/progress";
 import { StatusAlert } from "@/shared/ui/status-alert";
-import { CheckboxField, TextField } from "@/shared/ui/form";
+import { TextField } from "@/shared/ui/form";
 import { useStatusAlert } from "@/providers/status-alert-provider";
 import type { PlanPreset } from "@/modules/tenancy/application/create-household.schema";
 import { PlanPreset as PlanPresetValue } from "@/modules/tenancy/application/create-household.schema";
@@ -100,9 +100,15 @@ export function OnboardWizardScreen() {
     setStep(1);
   };
 
-  const finish = () => {
+  const skipCashAccount = () => {
+    setSkipAccount(true);
+    setAccountError(false);
+    finish(true);
+  };
+
+  const finish = (shouldSkipAccount = skipAccount) => {
     statusAlert.hide();
-    if (!skipAccount && accountName.trim().length < 1) {
+    if (!shouldSkipAccount && accountName.trim().length < 1) {
       setAccountError(true);
       return;
     }
@@ -110,9 +116,9 @@ export function OnboardWizardScreen() {
     startTransition(async () => {
       const result = await createHouseholdAction({
         name: name.trim(),
-        accountName: skipAccount ? undefined : accountName.trim(),
+        accountName: shouldSkipAccount ? undefined : accountName.trim(),
         openingBalance: openingBalance ?? 0,
-        planPreset: skipAccount ? null : planPreset,
+        planPreset: shouldSkipAccount ? null : planPreset,
         locale:
           locale === "vi"
             ? HOUSEHOLD_LOCALE.VIETNAMESE_VIETNAM
@@ -168,17 +174,17 @@ export function OnboardWizardScreen() {
           </section>
         ) : (
           <section className="flex flex-1 flex-col gap-(--space-4)">
-            <Button
-              variant="ghost"
-              className="-ms-(--space-3) self-start px-(--space-3)"
-              onPress={goBackToHousehold}
-              isDisabled={isPending}
-            >
-              <span className="inline-flex items-center gap-(--space-2)">
-                <AppIcon icon={ACTION_ICONS.back} size="sm" emphasized />
-                {t("back")}
-              </span>
-            </Button>
+            <div className="flex justify-end">
+              <Button
+                variant="ghost"
+                className="min-h-11 px-(--space-2) text-sm text-text-secondary"
+                onPress={skipCashAccount}
+                isDisabled={isPending || skipAccount}
+                data-testid="onboard-skip-account"
+              >
+                {t("skipAccount")}
+              </Button>
+            </div>
             <SectionHeader
               title={t("step2Title")}
               description={t("step2Description")}
@@ -203,16 +209,6 @@ export function OnboardWizardScreen() {
                 onValueChange={setOpeningBalance}
                 data-testid="onboard-opening-balance"
                 disabled={isPending || skipAccount}
-              />
-              <CheckboxField
-                id="onboard-skip-account"
-                label={t("skipAccountLabel")}
-                checked={skipAccount}
-                onChange={(event) => {
-                  setSkipAccount(event.target.checked);
-                  if (event.target.checked) setAccountError(false);
-                }}
-                disabled={isPending}
               />
             </div>
             <fieldset>
@@ -275,12 +271,23 @@ export function OnboardWizardScreen() {
                 </ChoiceTileGroup>
               </div>
             </fieldset>
-            <div className="mt-auto flex flex-col gap-(--space-2) pt-(--space-2)">
+            <div className="mt-auto grid grid-cols-3 gap-(--space-2) pt-(--space-2)">
+              <Button
+                variant="ghost"
+                className="min-h-12 w-full px-(--space-2)"
+                onPress={goBackToHousehold}
+                isDisabled={isPending}
+              >
+                <span className="inline-flex items-center gap-(--space-1)">
+                  <AppIcon icon={ACTION_ICONS.back} size="sm" emphasized />
+                  {t("back")}
+                </span>
+              </Button>
               <Button
                 variant="primary"
-                className="min-h-12 w-full"
+                className="col-span-2 min-h-12 w-full"
                 data-testid="onboard-finish"
-                onPress={finish}
+                onPress={() => finish()}
                 isDisabled={isPending}
               >
                 {isPending ? t("finishing") : t("finish")}

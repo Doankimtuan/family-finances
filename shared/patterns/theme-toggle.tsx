@@ -1,7 +1,6 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { useTheme } from "next-themes";
 import { useTranslations } from "next-intl";
 import {
   ComputerIcon,
@@ -10,6 +9,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { AppIcon } from "@/shared/ui/app-icon";
 import { cn } from "@/shared/utils/cn";
+import { useTheme } from "@/providers/theme-provider";
 
 const OPTIONS = [
   { value: "system", icon: ComputerIcon, labelKey: "themeSystem" as const },

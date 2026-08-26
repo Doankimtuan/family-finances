@@ -3,6 +3,11 @@ export {
   addSavingsTerm,
   durationDaysForTerm,
   SavingsTermUnit,
+  SAVINGS_TERM_UNIT_VALUES,
+  SAVINGS_TAX_RULE_VALUES,
+  EARLY_SETTLEMENT_RULE_VALUES,
+  SavingsTaxRule,
+  EarlySettlementRule,
 } from "./savings-domain-rules";
 export {
   calculateInterest,
@@ -13,9 +18,9 @@ export {
   calculateSettlementBreakdown,
   type SettlementBreakdown,
 } from "./savings-domain-rules";
-export type { SavingsTaxRule } from "./savings-domain-rules";
 export {
   createSavingInputSchema,
   type CreateSavingInput,
   type CreateSavingParsed,
+  createSavingCommonInputSchema,
 } from "./commands/create-saving.schema";
