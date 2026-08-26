@@ -10,8 +10,10 @@ import type { MarketPriceFetchTarget } from "@/modules/investments/application/i
 import {
   coingeckoAdapter,
   fmarketAdapter,
+  vangTodayAdapter,
   vnstockAdapter,
 } from "@/modules/investments/infrastructure/market-providers";
+import { fetchProviderJson } from "@/modules/investments/infrastructure/market-providers/http";
 
 const MIGRATION = readFileSync(
   "supabase/migrations/20260825125516_v1_baseline.sql",
@@ -148,6 +150,78 @@ describe("MARKET 03 price adapters", () => {
         error: "Provider returned no valid price",
       },
     ]);
+  });
+
+  it("normalizes a fresh Vang.today buyback price", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        Response.json({
+          timestamp: Math.floor(Date.now() / 1_000),
+          prices: {
+            SJL1L10: { name: "SJC 9999", buy: 147_600_000, currency: "VND" },
+          },
+        }),
+      ),
+    );
+    const result = await vangTodayAdapter.fetchPrices([
+      target(MarketDataProvider.VANG_TODAY, {
+        providerInstrumentId: "SJL1L10",
+        symbol: "SJL1L10",
+        assetClass: InvestmentAssetClass.GOLD,
+        pricingMode: MarketPricingMode.BUYBACK_PRICE,
+      }),
+    ]);
+    expect(result).toMatchObject({
+      prices: [
+        {
+          price: 147_600_000,
+          currency: "VND",
+          priceType: MarketPriceType.BUYBACK,
+          provider: MarketDataProvider.VANG_TODAY,
+        },
+      ],
+      failures: [],
+    });
+  });
+
+  it("rejects stale Vang.today prices without inventing a value", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        Response.json({
+          timestamp: 1,
+          prices: { SJL1L10: { buy: 147_600_000, currency: "VND" } },
+        }),
+      ),
+    );
+    const result = await vangTodayAdapter.fetchPrices([
+      target(MarketDataProvider.VANG_TODAY, {
+        providerInstrumentId: "SJL1L10",
+        assetClass: InvestmentAssetClass.GOLD,
+        pricingMode: MarketPricingMode.BUYBACK_PRICE,
+      }),
+    ]);
+    expect(result.prices).toHaveLength(0);
+    expect(result.failures[0].error).toBe(
+      "Provider returned stale gold prices",
+    );
+  });
+
+  it("retries rate-limited provider requests", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(null, { status: 429, headers: { "retry-after": "0" } }),
+      )
+      .mockResolvedValueOnce(Response.json({ ok: true }));
+    vi.stubGlobal("fetch", fetchMock);
+    await expect(
+      fetchProviderJson("https://provider.test/data"),
+    ).resolves.toEqual({
+      ok: true,
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 });
 

@@ -107,12 +107,14 @@ export function InstrumentPickerSheet({
       >
         <ActionSheetLayout>
           <ActionSheetLayout.Header>
-            <Sheet.Heading>{t("picker.title")}</Sheet.Heading>
-            <Text size="sm" tone="secondary" className="mt-1">
+            <Sheet.Heading className="text-lg font-semibold tracking-tight text-text-primary">
+              {t("picker.title")}
+            </Sheet.Heading>
+            <Text size="sm" tone="secondary" className="mt-(--space-1)">
               {t("picker.description")}
             </Text>
           </ActionSheetLayout.Header>
-          <ActionSheetLayout.Body className="flex max-h-[min(72dvh,620px)] flex-col gap-(--space-3)">
+          <ActionSheetLayout.Body className="flex flex-col gap-(--space-3)">
             <label htmlFor="investment-instrument-search" className="sr-only">
               {t("picker.searchLabel")}
             </label>
@@ -157,7 +159,7 @@ export function InstrumentPickerSheet({
               id="investment-instrument-results"
               role="listbox"
               aria-label={t("picker.resultsLabel")}
-              className="flex min-h-0 flex-col overflow-y-auto"
+              className="flex flex-col divide-y divide-border-subtle/70"
             >
               {instruments.map((instrument) => (
                 <button
@@ -166,7 +168,7 @@ export function InstrumentPickerSheet({
                   role="option"
                   aria-selected={selected?.id === instrument.id}
                   onClick={() => choose(instrument)}
-                  className="flex min-h-11 items-center justify-between gap-(--space-3) border-b border-border-subtle px-(--space-2) py-(--space-3) text-left transition-colors hover:bg-surface-muted focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-focus-ring"
+                  className="flex min-h-11 w-full items-center justify-between gap-(--space-3) px-0 py-(--space-3) text-left transition-[background-color] duration-(--duration-fast) ease-(--ease-standard) hover:bg-surface-hover focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-focus-ring motion-reduce:transition-none"
                   data-testid={`investment-instrument-${instrument.symbol}`}
                 >
                   <span className="min-w-0">
@@ -185,17 +187,19 @@ export function InstrumentPickerSheet({
                 </button>
               ))}
             </div>
+            {!pending && (loadError || instruments.length > 0) ? (
+              <div className="border-t border-border-subtle pt-(--space-2)">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="w-full justify-start px-0"
+                  onPress={() => choose(null)}
+                >
+                  {t("picker.manualAction")}
+                </Button>
+              </div>
+            ) : null}
           </ActionSheetLayout.Body>
-          <ActionSheetLayout.Footer>
-            <Button
-              type="button"
-              variant="ghost"
-              className="w-full"
-              onPress={() => choose(null)}
-            >
-              {t("picker.manualAction")}
-            </Button>
-          </ActionSheetLayout.Footer>
         </ActionSheetLayout>
       </Sheet>
     </>

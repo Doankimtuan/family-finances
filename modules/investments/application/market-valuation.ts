@@ -89,6 +89,9 @@ function isMarketPriceStale(
   if (input.assetClass === InvestmentAssetClass.CRYPTO) {
     return !isFreshWithinHours(input.price.fetchedAt, now, HOURS_PER_DAY);
   }
+  if (input.assetClass === InvestmentAssetClass.GOLD) {
+    return !isFreshWithinHours(input.price.fetchedAt, now, HOURS_PER_DAY);
+  }
   if (
     input.assetClass === InvestmentAssetClass.STOCK ||
     input.assetClass === InvestmentAssetClass.FUND

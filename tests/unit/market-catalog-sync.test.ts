@@ -8,6 +8,7 @@ import {
 import {
   coingeckoAdapter,
   fmarketAdapter,
+  vangTodayAdapter,
   vnstockAdapter,
 } from "@/modules/investments/infrastructure/market-providers";
 
@@ -93,6 +94,23 @@ describe("MARKET 02 provider normalization", () => {
       providerInstrumentId: "45",
     });
     expect(instrument?.metadata).not.toHaveProperty("nav");
+  });
+
+  it("maps Vang.today domestic gold to buyback pricing", () => {
+    const instrument = vangTodayAdapter.normalizeProviderResult({
+      type_code: "SJL1L10",
+      name: "SJC 9999",
+      buy: 147_600_000,
+      currency: "VND",
+    });
+    expect(instrument).toMatchObject({
+      assetClass: InvestmentAssetClass.GOLD,
+      pricingMode: MarketPricingMode.BUYBACK_PRICE,
+      autoPriceSupported: true,
+      provider: MarketDataProvider.VANG_TODAY,
+      providerInstrumentId: "SJL1L10",
+      currency: "VND",
+    });
   });
 
   it("bounds CoinGecko catalog listing to 500 instruments", async () => {

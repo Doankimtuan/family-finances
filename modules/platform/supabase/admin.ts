@@ -16,7 +16,9 @@ export function getSupabaseServiceRoleEnv(): {
   isConfigured: boolean;
 } {
   const { url, isConfigured: pubConfigured } = getSupabaseEnv();
-  const serviceRoleKey = (process.env.SUPABASE_SERVICE_ROLE_KEY ?? "").trim();
+  const secretKey = (process.env.SUPABASE_SECRET_KEY ?? "").trim();
+  const legacyKey = (process.env.SUPABASE_SERVICE_ROLE_KEY ?? "").trim();
+  const serviceRoleKey = secretKey || legacyKey;
   const isConfigured =
     pubConfigured &&
     Boolean(serviceRoleKey) &&
@@ -34,7 +36,7 @@ export function createSupabaseAdminClient() {
   if (!env.isConfigured) {
     throw new SupabaseConfigurationError(
       SUPABASE_PLATFORM_ERROR_CODE.SERVICE_ROLE_UNCONFIGURED,
-      "Supabase service role is not configured. Set SUPABASE_SERVICE_ROLE_KEY on the server only.",
+      "Supabase privileged key is not configured. Set SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY on the server only.",
     );
   }
 

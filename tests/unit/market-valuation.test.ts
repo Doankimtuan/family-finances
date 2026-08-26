@@ -183,6 +183,26 @@ describe("MARKET 04 valuation resolver", () => {
     expect(fund.quality).toBe(MarketValuationQuality.AUTO_STALE);
   });
 
+  it("marks stale gold buyback prices as stale", () => {
+    const result = resolve({
+      assetClass: InvestmentAssetClass.GOLD,
+      instrument: instrument({
+        assetClass: InvestmentAssetClass.GOLD,
+        symbol: "SJL1L10",
+        pricingMode: MarketPricingMode.BUYBACK_PRICE,
+      }),
+      price: price({
+        price: 147_600_000,
+        priceType: MarketPriceType.BUYBACK,
+        provider: MarketDataProvider.VANG_TODAY,
+        priceDate: "2026-08-20",
+        fetchedAt: "2026-08-20T10:00:00.000Z",
+      }),
+      now: new Date("2026-08-21T11:00:00.000Z"),
+    });
+    expect(result.quality).toBe(MarketValuationQuality.AUTO_STALE);
+  });
+
   it("does not stale a Friday stock price over the weekend", () => {
     const result = resolve({
       price: price({ priceDate: "2026-08-21" }),

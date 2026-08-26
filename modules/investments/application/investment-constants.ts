@@ -31,6 +31,7 @@ export const MarketDataProvider = {
   COINGECKO: "COINGECKO",
   VNSTOCK: "VNSTOCK",
   FMARKET: "FMARKET",
+  VANG_TODAY: "VANG_TODAY",
 } as const;
 export type MarketDataProvider =
   (typeof MarketDataProvider)[keyof typeof MarketDataProvider];
@@ -40,6 +41,7 @@ export const MARKET_SYNC_PROVIDER_VALUES = [
   MarketDataProvider.COINGECKO,
   MarketDataProvider.VNSTOCK,
   MarketDataProvider.FMARKET,
+  MarketDataProvider.VANG_TODAY,
 ] as const;
 export type MarketSyncProvider = (typeof MARKET_SYNC_PROVIDER_VALUES)[number];
 
@@ -88,7 +90,10 @@ export const MARKET_PRICE_SYNC_SCHEDULE = {
   CRYPTO_CRON_UTC: "0 4 * * *",
   VNSTOCK_CRON_UTC: "30 8 * * 1-5",
   FMARKET_CRON_UTC: "0 11 * * 1-5",
+  VANG_TODAY_CRON_UTC: "0 12 * * *",
 } as const;
+
+export const VANG_TODAY_MAX_PRICE_AGE_HOURS = 24;
 
 export const MARKET_CATALOG_QUERY_ERROR_CODE = {
   INVALID: "invalid",

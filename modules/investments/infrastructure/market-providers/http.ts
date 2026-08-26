@@ -1,27 +1,53 @@
 const PROVIDER_REQUEST_TIMEOUT_MS = 20_000;
+const PROVIDER_MAX_RATE_LIMIT_RETRIES = 2;
+const PROVIDER_RETRY_BASE_DELAY_MS = 250;
+const RATE_LIMIT_STATUS = 429;
 
 export async function fetchProviderJson(
   input: string,
   init: RequestInit = {},
 ): Promise<unknown> {
-  let timeoutId: ReturnType<typeof setTimeout> | undefined;
-  try {
-    const response = await Promise.race([
-      fetch(input, init),
-      new Promise<Response>((_, reject) => {
-        timeoutId = setTimeout(
-          () => reject(new Error("Provider request timed out")),
-          PROVIDER_REQUEST_TIMEOUT_MS,
+  for (let attempt = 0; ; attempt += 1) {
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    try {
+      const response = await Promise.race([
+        fetch(input, init),
+        new Promise<Response>((_, reject) => {
+          timeoutId = setTimeout(
+            () => reject(new Error("Provider request timed out")),
+            PROVIDER_REQUEST_TIMEOUT_MS,
+          );
+        }),
+      ]);
+      if (
+        response.status === RATE_LIMIT_STATUS &&
+        attempt < PROVIDER_MAX_RATE_LIMIT_RETRIES
+      ) {
+        await waitBeforeRetry(response.headers.get("retry-after"), attempt);
+        continue;
+      }
+      if (!response.ok) {
+        throw new Error(
+          `Provider request failed with status ${response.status}`,
         );
-      }),
-    ]);
-    if (!response.ok) {
-      throw new Error(`Provider request failed with status ${response.status}`);
+      }
+      return response.json();
+    } finally {
+      if (timeoutId) clearTimeout(timeoutId);
     }
-    return response.json();
-  } finally {
-    if (timeoutId) clearTimeout(timeoutId);
   }
+}
+
+async function waitBeforeRetry(
+  retryAfter: string | null,
+  attempt: number,
+): Promise<void> {
+  const retryAfterSeconds = retryAfter == null ? null : Number(retryAfter);
+  const delayMs =
+    retryAfterSeconds != null && Number.isFinite(retryAfterSeconds)
+      ? Math.max(0, retryAfterSeconds * 1_000)
+      : PROVIDER_RETRY_BASE_DELAY_MS * 2 ** attempt;
+  await new Promise((resolve) => setTimeout(resolve, delayMs));
 }
 
 export function isRecord(value: unknown): value is Record<string, unknown> {

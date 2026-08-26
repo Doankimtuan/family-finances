@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
   INVESTMENT_ASSET_CLASS_VALUES,
@@ -7,10 +7,11 @@ import {
   MARKET_PRICING_MODE_VALUES,
 } from "@/modules/investments/application/investment-constants";
 
-const SQL = readFileSync(
-  "supabase/migrations/20260825125516_v1_baseline.sql",
-  "utf8",
-);
+const SQL = readdirSync("supabase/migrations")
+  .filter((file) => file.endsWith(".sql"))
+  .sort()
+  .map((file) => readFileSync(`supabase/migrations/${file}`, "utf8"))
+  .join("\n");
 
 describe("MARKET 01 instrument catalog migration", () => {
   it("defines the catalog, source mapping, and one-current-price tables", () => {
