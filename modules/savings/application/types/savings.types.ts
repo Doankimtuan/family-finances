@@ -16,7 +16,6 @@ import type {
   MaturityTargetMode,
   MaturityFallbackPolicy,
   SavingsCreateMode,
-  SavingsTermsMode,
 } from "../savings-constants";
 import type {
   SavingsFamily as CanonicalSavingsFamily,
@@ -73,7 +72,6 @@ export type ProductSnapshot = {
   earlySettlementRatePercent?: number | null;
   supportsPartialSettlement?: boolean;
   creationMode?: SavingsCreateMode;
-  termsMode?: SavingsTermsMode;
   creationIdempotencyKey?: string | null;
 };
 

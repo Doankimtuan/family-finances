@@ -118,35 +118,6 @@ export async function getProvider(
   }
 }
 
-export async function getProviderByKey(
-  providerKey: string,
-): Promise<SavingProvider | null> {
-  try {
-    const supabase = await createSupabaseServerClient();
-    const { data, error } = await supabase
-      .from("saving_providers")
-      .select(
-        "id, provider_key, display_name, saving_type, is_active, metadata, family, icon_key, household_id, is_system",
-      )
-      .eq("provider_key", providerKey)
-      .maybeSingle();
-
-    if (error) {
-      if (
-        classifySavingsRpcError(error) === PRODUCT_ACTION_ERROR_CODE.UNKNOWN
-      ) {
-        logSavingsFailure(error, SAVINGS_OPERATION.PROVIDER_REGISTRY, {});
-      }
-      return null;
-    }
-    if (!data) return null;
-    return mapProviderRow(data);
-  } catch (error) {
-    logSavingsFailure(error, SAVINGS_OPERATION.PROVIDER_REGISTRY, {});
-    return null;
-  }
-}
-
 async function loadProviderPackages(
   providerId: string,
 ): Promise<SavingPackage[] | null> {

@@ -129,6 +129,24 @@ describe("CreateSavingWizard", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("uses the selected status to control the source account", () => {
+    renderWizard();
+    fireEvent.click(screen.getByTestId(`savings-package-${PACKAGE_ID}`));
+    fireEvent.click(screen.getByTestId("savings-wizard-next"));
+
+    expect(
+      screen.getByTestId(`savings-source-${ACCOUNT_ID}`),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("termsModeLabel")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByTestId("savings-create-mode-historical"));
+
+    expect(
+      screen.queryByTestId(`savings-source-${ACCOUNT_ID}`),
+    ).not.toBeInTheDocument();
+    expect(screen.getByText("historicalNoSource")).toBeInTheDocument();
+  });
+
   it("retains valid values when moving back from review", () => {
     renderWizard();
     reachReview();

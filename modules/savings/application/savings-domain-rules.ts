@@ -185,6 +185,33 @@ export function addSavingsTerm(startDate: string, term: SavingsTerm): string {
   return date.toISOString().slice(0, 10);
 }
 
+export function subtractSavingsTerm(
+  endDate: string,
+  term: SavingsTerm,
+): string {
+  const date = new Date(`${endDate}T00:00:00Z`);
+  if (term.unit === SavingsTermUnit.MONTH) {
+    date.setUTCMonth(date.getUTCMonth() - term.amount);
+  } else {
+    date.setUTCDate(date.getUTCDate() - term.amount);
+  }
+  return date.toISOString().slice(0, 10);
+}
+
+export function minimumSavingsStartDate(
+  maturityDate: string,
+  term: SavingsTerm,
+): string {
+  let candidate = subtractSavingsTerm(maturityDate, term);
+  while (addSavingsTerm(candidate, term) < maturityDate) {
+    candidate = addSavingsTerm(candidate, {
+      amount: 1,
+      unit: SavingsTermUnit.DAY,
+    });
+  }
+  return candidate;
+}
+
 export function taxForInterest(
   grossInterest: number,
   taxRule: SavingsTaxRule,

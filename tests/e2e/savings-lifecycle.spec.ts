@@ -52,12 +52,7 @@ async function createSaving(
   await surface(page).getByTestId(`savings-provider-${providerId}`).click();
   await surface(page).getByTestId(`savings-package-${packageId}`).click();
   if (historical) {
-    await surface(page).getByTestId("savings-create-mode-historical").click();
-    await surface(page).getByTestId("savings-terms-mode-inline").click();
     await page.getByLabel("Saving name").fill("Existing family saving");
-    await page.getByLabel("Provider name").fill("Family bank");
-    await page.getByLabel("Term / product name").fill("Six months");
-    await page.getByLabel("Term amount").fill("6");
   }
   await surface(page).getByTestId("savings-wizard-next").click();
   await page.locator("#savings-principal").fill(PRINCIPAL);
@@ -77,6 +72,14 @@ async function createSaving(
     await dateGroup
       .getByRole("spinbutton", { name: "year, Start date" })
       .press("Tab");
+    await surface(page).getByTestId("savings-create-mode-historical").click();
+    await expect(
+      surface(page).locator('[data-testid^="savings-source-"]'),
+    ).toHaveCount(0);
+    await expect(surface(page).getByText("No source account")).toBeVisible();
+    await expect(
+      surface(page).getByText("Interest accrued through today"),
+    ).toBeVisible();
   }
   await surface(page).getByTestId("savings-wizard-next").click();
   await expect(

@@ -26,7 +26,8 @@ test.describe("Savings creation visual contract", () => {
         colorScheme: width === 440 ? "dark" : "light",
         reducedMotion: "reduce",
       });
-      await page.goto(`${width === 440 ? "/en" : "/vi"}/money/savings/new`);
+      const route = `${width === 440 ? "/en" : "/vi"}/money/savings/new`;
+      await page.goto(route);
       await expect(page.getByTestId("money-savings-new").first()).toBeVisible({
         timeout: 20_000,
       });
@@ -58,6 +59,20 @@ test.describe("Savings creation visual contract", () => {
       await page.locator('[data-testid^="savings-package-"]').first().click();
       await page.getByTestId("savings-wizard-next").first().click();
       await expect(page.getByTestId("savings-estimate").first()).toBeVisible();
+      await expect(page.getByText(/Term details|Thông tin kỳ hạn/)).toHaveCount(
+        0,
+      );
+      await page.getByTestId("savings-create-mode-historical").click();
+      await expect(
+        page.locator('[data-testid^="savings-source-"]'),
+      ).toHaveCount(0);
+      await expect(
+        page.getByText(/No source account|Không có tài khoản nguồn/),
+      ).toBeVisible();
+      await page.getByTestId("savings-create-mode-live").click();
+      await expect(
+        page.locator('[data-testid^="savings-source-"]').first(),
+      ).toBeVisible();
       await page.locator("#savings-principal").fill("1000000");
       await page.locator("#savings-principal").focus();
       await expect(page.getByTestId("savings-estimate").first()).toContainText(

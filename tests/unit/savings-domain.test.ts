@@ -10,12 +10,12 @@ import {
   CycleStatus,
   SavingStatus,
   SavingsCreateMode,
-  SavingsTermsMode,
 } from "@/modules/savings/application/savings-constants";
 import {
-  EarlySettlementRule,
+  addSavingsTerm,
   SavingsTermUnit,
   SavingsTaxRule,
+  minimumSavingsStartDate,
 } from "@/modules/savings/application/savings-domain-rules";
 import {
   calculateInterest,
@@ -53,6 +53,7 @@ describe("savings interest engine", () => {
       settlementAccountId: "22222222-2222-4222-8222-222222222222",
       providerId: "33333333-3333-4333-8333-333333333333",
       packageId: "44444444-4444-4444-8444-444444444444",
+      productName: "Family deposit",
       principal: 10_000_000,
       startDate: "2026-01-15",
     });
@@ -62,7 +63,6 @@ describe("savings interest engine", () => {
       creationMode: SavingsCreateMode.HISTORICAL_OPENING,
       fundingAccountId: null,
       productName: "Existing term deposit",
-      providerName: "Example Bank",
     });
     expect(historical.success).toBe(true);
     expect(
@@ -83,36 +83,18 @@ describe("savings interest engine", () => {
     expect(interest).toBe(6_500_000);
   });
 
-  it("accepts an uncatalogued historical snapshot without a funding account", () => {
+  it("requires a catalog package for historical openings", () => {
     const result = createSavingInputSchema.safeParse({
       creationMode: SavingsCreateMode.HISTORICAL_OPENING,
       fundingAccountId: null,
       settlementAccountId: "22222222-2222-4222-8222-222222222222",
-      providerId: null,
-      providerName: "Local bank",
+      providerId: "33333333-3333-4333-8333-333333333333",
       productName: "Family deposit",
       packageId: null,
-      termsMode: SavingsTermsMode.INLINE,
-      manualTerms: {
-        packageName: "6 months",
-        termAmount: 6,
-        termUnit: SavingsTermUnit.MONTH,
-        annualInterestRate: 5.2,
-        interestCalculationMethod: InterestCalcMethod.SIMPLE,
-        taxRule: SavingsTaxRule.NONE,
-        taxRatePercent: 0,
-        earlySettlementRule: EarlySettlementRule.RETURN_PRINCIPAL_ONLY,
-        settlementRules: [SettlementRule.WITHDRAW_EVERYTHING],
-        penaltyRules: [],
-        renewableAvailable: true,
-        supportsPartialSettlement: false,
-        minAmount: null,
-        maxAmount: null,
-      },
       principal: 10_000_000,
       startDate: "2026-01-15",
     });
-    expect(result.success).toBe(true);
+    expect(result.success).toBe(false);
   });
 
   it("rejects a historical opening dated today", () => {
@@ -440,6 +422,12 @@ describe("configurable Savings domain rules", () => {
     expect(addSavingsTerm("2026-01-15", { amount: 3, unit: "MONTH" })).toBe(
       "2026-04-15",
     );
+    expect(
+      minimumSavingsStartDate("2026-08-26", {
+        amount: 6,
+        unit: SavingsTermUnit.MONTH,
+      }),
+    ).toBe("2026-02-26");
   });
 
   it("does not tax BANK interest", () => {

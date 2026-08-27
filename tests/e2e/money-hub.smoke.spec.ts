@@ -64,6 +64,21 @@ test.describe("Money hub + accounts (ST-E04-001)", () => {
     ).toBeVisible();
     await expect(page.getByTestId("account-credit-limit")).toBeVisible();
 
+    await page.getByTestId("account-type").click();
+    await page.getByRole("option", { name: "Checking" }).click();
+    await page.getByLabel("Account name").fill("Backdrop close test");
+    await page.getByLabel("Opening balance").fill("100");
+    await page.getByTestId("account-add-submit").click();
+
+    await expect(page.getByTestId("transaction-receipt")).toBeVisible();
+    await expect(page.getByRole("link", { name: "Go to Money" })).toHaveCount(
+      0,
+    );
+    await page.locator('[data-slot="drawer-backdrop"]').click({
+      position: { x: 8, y: 8 },
+    });
+    await expect(page.getByTestId("transaction-receipt")).toBeHidden();
+
     await page.goto("/en/money/accounts");
     await expect(page).toHaveURL(/\/en\/money\/?$/);
     await expect(app.getByTestId("money-hub")).toBeVisible();

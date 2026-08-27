@@ -1,6 +1,7 @@
 export * from "./savings-constants";
 export {
   addSavingsTerm,
+  minimumSavingsStartDate,
   durationDaysForTerm,
   SavingsTermUnit,
   SAVINGS_TERM_UNIT_VALUES,

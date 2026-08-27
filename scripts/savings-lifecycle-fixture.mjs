@@ -171,7 +171,7 @@ async function main() {
       )
       .eq("provider_id", providers[family].id)
       .eq("is_active", true)
-      .order("duration_days")
+      .order("duration_days", { ascending: false })
       .limit(1)
       .maybeSingle();
     if (existingPackage.error)
@@ -184,9 +184,9 @@ async function main() {
           .from("saving_packages")
           .insert({
             provider_id: providers[family].id,
-            package_name: `E2E 13E2 ${family} 30-day package`,
-            duration_days: 30,
-            term_amount: 30,
+            package_name: `E2E 13E2 ${family} 180-day package`,
+            duration_days: 180,
+            term_amount: 180,
             term_unit: "DAY",
             annual_interest_rate: 6,
             interest_calculation_method: "simple",

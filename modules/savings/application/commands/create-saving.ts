@@ -12,23 +12,16 @@ import {
   MaturityFallbackPolicy,
   SAVINGS_RPC,
   SavingsCreateMode,
-  SAVINGS_MANUAL_PROVIDER_KEY,
-  SavingsTermsMode,
 } from "../savings-constants";
 import {
   classifySavingsRpcError,
   logSavingsFailure,
   savingsFailureCode,
 } from "../savings-error";
-import {
-  getProviderByKey,
-  resolvePackageSnapshot,
-} from "../savings-provider-registry";
+import { resolvePackageSnapshot } from "../savings-provider-registry";
 import {
   addSavingsTerm,
   assertCompatibleSavingsAccounts,
-  durationDaysForTerm,
-  DEFAULT_SAVINGS_CURRENCY,
   familyForLegacySavingType,
   isEligibleSavingsAccountType,
 } from "../savings-domain-rules";
@@ -85,50 +78,8 @@ export async function createSaving(
 
   const isHistoricalOpening =
     parsed.data.creationMode === SavingsCreateMode.HISTORICAL_OPENING;
-  const historicalInput =
-    parsed.data.creationMode === SavingsCreateMode.HISTORICAL_OPENING
-      ? parsed.data
-      : null;
-  const resolved =
-    historicalInput?.termsMode === SavingsTermsMode.INLINE
-      ? await (async () => {
-          const provider = await getProviderByKey(SAVINGS_MANUAL_PROVIDER_KEY);
-          const terms = historicalInput.manualTerms;
-          if (!provider || !terms) return null;
-          return {
-            providerId: provider.id,
-            productName: historicalInput.providerName ?? provider.displayName,
-            providerFamily: provider.family,
-            providerKey: provider.providerKey,
-            packageSnapshot: {
-              packageName: terms.packageName,
-              durationDays: durationDaysForTerm({
-                amount: terms.termAmount,
-                unit: terms.termUnit,
-              }),
-              annualInterestRate: terms.annualInterestRate,
-              settlementRules: terms.settlementRules,
-              penaltyRules: terms.penaltyRules,
-              renewableAvailable: terms.renewableAvailable,
-              minAmount: terms.minAmount,
-              maxAmount: terms.maxAmount,
-              termAmount: terms.termAmount,
-              termUnit: terms.termUnit,
-              interestCalculationMethod: terms.interestCalculationMethod,
-              currency: DEFAULT_SAVINGS_CURRENCY,
-              taxRule: terms.taxRule,
-              taxRatePercent: terms.taxRatePercent,
-              earlySettlementRule: terms.earlySettlementRule,
-              earlySettlementRatePercent: terms.earlySettlementRatePercent,
-              supportsPartialSettlement: terms.supportsPartialSettlement,
-            } satisfies PackageSnapshot,
-          };
-        })()
-      : await resolvePackageSnapshot(parsed.data.packageId ?? "");
-  if (
-    !resolved ||
-    (!isHistoricalOpening && resolved.providerId !== parsed.data.providerId)
-  ) {
+  const resolved = await resolvePackageSnapshot(parsed.data.packageId);
+  if (!resolved || resolved.providerId !== parsed.data.providerId) {
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
   }
 
@@ -166,11 +117,12 @@ export async function createSaving(
           );
           return endDateObj.toISOString().slice(0, 10);
         })();
+  const today = todayIsoDate();
   if (
-    isHistoricalOpening &&
-    (startDate >= todayIsoDate() ||
-      endDate <= startDate ||
-      endDate < todayIsoDate())
+    startDate > today ||
+    endDate <= startDate ||
+    endDate < today ||
+    (isHistoricalOpening && startDate >= today)
   ) {
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
   }
@@ -215,10 +167,7 @@ export async function createSaving(
   const productSnapshot: ProductSnapshot = {
     packageId: parsed.data.packageId ?? undefined,
     providerId: resolved.providerId,
-    productName:
-      isHistoricalOpening && "productName" in parsed.data
-        ? parsed.data.productName
-        : resolved.productName,
+    productName: parsed.data.productName,
     packageName: packageSnapshot.packageName,
     depositTermDays: packageSnapshot.durationDays,
     annualInterestRate: packageSnapshot.annualInterestRate,
@@ -233,10 +182,7 @@ export async function createSaving(
         : familyForLegacySavingType(
             resolved.providerFamily ?? "digital_saving",
           ),
-    providerNameSnapshot:
-      isHistoricalOpening && "providerName" in parsed.data
-        ? (parsed.data.providerName ?? resolved.productName)
-        : resolved.productName,
+    providerNameSnapshot: resolved.productName,
     providerKey: resolved.providerKey,
     currency: packageSnapshot.currency ?? "VND",
     taxRule: packageSnapshot.taxRule,
@@ -247,10 +193,6 @@ export async function createSaving(
     earlySettlementRule: packageSnapshot.earlySettlementRule,
     earlySettlementRatePercent: packageSnapshot.earlySettlementRatePercent,
     supportsPartialSettlement: packageSnapshot.supportsPartialSettlement,
-    termsMode:
-      isHistoricalOpening && "termsMode" in parsed.data
-        ? parsed.data.termsMode
-        : SavingsTermsMode.CATALOG,
   };
 
   const cyclePackageSnapshot: PackageSnapshot = { ...packageSnapshot };

@@ -1,12 +1,21 @@
 -- Savings existing-deposit import. The frozen V1 baseline is intentionally untouched.
 
-insert into public.saving_providers (
-  provider_key, display_name, saving_type, family, is_system, is_active
-)
-select 'manual', 'Manual savings', 'manual_saving', 'PLATFORM', true, true
-where not exists (
-  select 1 from public.saving_providers where provider_key = 'manual'
-);
+update public.savings
+set product_snapshot = product_snapshot - 'termsMode' - 'manualTerms' - 'providerName'
+where product_snapshot ?| array['termsMode', 'manualTerms', 'providerName'];
+
+update public.saving_cycles
+set package_snapshot = package_snapshot - 'termsMode' - 'manualTerms'
+where package_snapshot ?| array['termsMode', 'manualTerms'];
+
+delete from public.saving_providers provider
+where provider.provider_key = 'manual'
+  and not exists (
+    select 1 from public.savings saving where saving.provider_id = provider.id
+  )
+  and not exists (
+    select 1 from public.saving_packages package where package.provider_id = provider.id
+  );
 
 alter table public.savings add column if not exists creation_mode text;
 
@@ -87,18 +96,22 @@ begin
   if p_cycle_start_date is null or p_cycle_end_date is null or p_cycle_end_date <= p_cycle_start_date then
     raise exception 'Invalid Savings cycle dates';
   end if;
+  if p_cycle_start_date > v_today then
+    raise exception 'Savings start date cannot be in the future';
+  end if;
+  if p_cycle_end_date < v_today then
+    raise exception 'Savings maturity has passed';
+  end if;
   if v_mode = 'HISTORICAL_OPENING' then
     if p_cycle_start_date >= v_today then raise exception 'Historical opening must start before today'; end if;
-    if p_cycle_end_date < v_today then raise exception 'Historical opening maturity has passed'; end if;
   end if;
   if nullif(trim(p_product_name), '') is null
     or nullif(trim(v_snapshot->>'providerId'), '') is null
     or v_snapshot->>'providerId' <> p_provider_id::text
     or nullif(trim(v_snapshot->>'interestCalculationMethod'), '') is null
   then raise exception 'Invalid Savings product snapshot'; end if;
-  if v_mode = 'LIVE_DEPOSIT'
-    and (nullif(trim(v_snapshot->>'packageId'), '') is null
-      or nullif(trim(coalesce(p_package_snapshot->>'packageId', '')), '') is null)
+  if nullif(trim(v_snapshot->>'packageId'), '') is null
+    or nullif(trim(coalesce(p_package_snapshot->>'packageId', '')), '') is null
   then raise exception 'Invalid Savings product snapshot'; end if;
   if v_snapshot->>'interestCalculationMethod' not in ('simple', 'compound_daily', 'compound_monthly') then
     raise exception 'Invalid Savings interest method';
@@ -225,7 +238,6 @@ declare
   v_cycle public.saving_cycles%rowtype;
   v_saving public.savings%rowtype;
   v_package record;
-  v_manual boolean := false;
   v_product_account_id uuid;
   v_settlement_id uuid;
   v_new_cycle_id uuid;
@@ -260,32 +272,7 @@ begin
   if v_cycle.status <> 'matured' then raise exception 'Cycle must be matured to rollover'; end if;
 
   if p_target_package_id is null then
-    if nullif(v_cycle.package_snapshot->>'packageId', '') is not null
-      or coalesce((v_cycle.package_snapshot->>'renewableAvailable')::boolean, false) is not true
-    then raise exception 'Target package is required'; end if;
-    v_manual := true;
-    select
-      null::uuid as id, v_saving.provider_id as provider_id,
-      coalesce(v_cycle.package_snapshot->>'packageName', v_saving.product_snapshot->>'packageName') as package_name,
-      coalesce(nullif(v_cycle.package_snapshot->>'durationDays', '')::integer, 1) as duration_days,
-      coalesce(nullif(v_cycle.package_snapshot->>'annualInterestRate', '')::numeric, v_cycle.locked_rate) as annual_interest_rate,
-      nullif(v_cycle.package_snapshot->>'minAmount', '')::numeric as min_amount,
-      nullif(v_cycle.package_snapshot->>'maxAmount', '')::numeric as max_amount,
-      coalesce(v_cycle.package_snapshot->'settlementRules', '[]'::jsonb) as settlement_rules,
-      coalesce(v_cycle.package_snapshot->'penaltyRules', '[]'::jsonb) as penalty_rules,
-      true as renewable_available,
-      nullif(v_cycle.package_snapshot->>'termAmount', '')::integer as term_amount,
-      v_cycle.package_snapshot->>'termUnit' as term_unit,
-      coalesce(v_cycle.package_snapshot->>'interestCalculationMethod', 'simple') as interest_calculation_method,
-      coalesce(v_cycle.package_snapshot->>'currency', public.household_base_currency(v_saving.household_id)) as currency,
-      coalesce(v_cycle.package_snapshot->>'taxRule', 'NONE') as tax_rule,
-      coalesce(nullif(v_cycle.package_snapshot->>'taxRatePercent', '')::numeric, 0) as tax_rate_percent,
-      v_cycle.package_snapshot->>'earlySettlementRule' as early_settlement_rule,
-      nullif(v_cycle.package_snapshot->>'earlySettlementRatePercent', '')::numeric as early_settlement_rate_percent,
-      coalesce((v_cycle.package_snapshot->>'supportsPartialSettlement')::boolean, false) as supports_partial_settlement,
-      sv.display_name, sv.provider_key, sv.family
-    into v_package
-    from public.saving_providers sv where sv.id = v_saving.provider_id;
+    raise exception 'Target package is required';
   else
     select sp.id, sp.provider_id, sp.package_name, sp.duration_days, sp.annual_interest_rate,
       sp.min_amount, sp.max_amount, sp.settlement_rules, sp.penalty_rules, sp.renewable_available,
@@ -336,7 +323,7 @@ begin
 
   insert into public.saving_cycles (saving_id, cycle_number, start_date, end_date, principal, locked_rate, package_snapshot, status, previous_cycle_id)
   values (v_saving.id, v_cycle.cycle_number + 1, v_start, v_end, v_new_principal, v_package.annual_interest_rate,
-    case when v_manual then v_cycle.package_snapshot else jsonb_build_object(
+    jsonb_build_object(
       'packageId', v_package.id, 'packageName', v_package.package_name, 'durationDays', v_package.duration_days,
       'annualInterestRate', v_package.annual_interest_rate, 'settlementRules', v_package.settlement_rules,
       'penaltyRules', v_package.penalty_rules, 'renewableAvailable', v_package.renewable_available,
@@ -344,7 +331,7 @@ begin
       'termUnit', v_package.term_unit, 'interestCalculationMethod', v_package.interest_calculation_method,
       'currency', v_package.currency, 'taxRule', v_package.tax_rule, 'taxRatePercent', v_package.tax_rate_percent,
       'earlySettlementRule', v_package.early_settlement_rule, 'earlySettlementRatePercent', v_package.early_settlement_rate_percent,
-      'supportsPartialSettlement', v_package.supports_partial_settlement, 'providerId', v_package.provider_id, 'providerFamily', v_package.family) end,
+      'supportsPartialSettlement', v_package.supports_partial_settlement, 'providerId', v_package.provider_id, 'providerFamily', v_package.family),
     'active', v_cycle.id) returning id into v_new_cycle_id;
   update public.saving_cycles set status = 'rolled', next_cycle_id = v_new_cycle_id, settlement_transaction_id = v_in_tx,
     accrued_interest = v_interest,
@@ -357,13 +344,13 @@ begin
       'settledAt', timezone('utc', now()), 'settledToAccountId', v_settlement_id, 'interestTransactionId', v_interest_tx,
       'taxTransactionId', v_tax_tx, 'transferGroupId', v_group_id) where id = v_cycle.id;
   update public.savings set status = 'active',
-    product_snapshot = case when v_manual then v_saving.product_snapshot else v_saving.product_snapshot || jsonb_build_object(
+    product_snapshot = v_saving.product_snapshot || jsonb_build_object(
       'packageId', v_package.id, 'packageName', v_package.package_name, 'depositTermDays', v_package.duration_days,
       'annualInterestRate', v_package.annual_interest_rate, 'providerId', v_package.provider_id,
       'providerNameSnapshot', v_package.display_name, 'providerKey', v_package.provider_key, 'currency', v_package.currency,
       'taxRule', v_package.tax_rule, 'taxRatePercent', v_package.tax_rate_percent,
       'settlementRules', v_package.settlement_rules, 'interestCalculationMethod', v_package.interest_calculation_method,
-      'earlySettlementRule', v_package.early_settlement_rule, 'earlySettlementRatePercent', v_package.early_settlement_rate_percent) end,
+      'earlySettlementRule', v_package.early_settlement_rule, 'earlySettlementRatePercent', v_package.early_settlement_rate_percent),
     updated_at = timezone('utc', now()) where id = v_saving.id;
   return jsonb_build_object('ok', true, 'savingId', v_saving.id, 'previousCycleId', v_cycle.id, 'cycleId', v_new_cycle_id,
     'principal', v_new_principal, 'grossInterest', v_interest, 'netInterest', v_net_interest, 'tax', v_tax,

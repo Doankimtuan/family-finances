@@ -33,10 +33,7 @@ import {
   createAccountInputSchema,
   type CreateAccountInput,
 } from "@/modules/ledger/application/commands/create-account.schema";
-import {
-  APP_PATH,
-  moneyAccountPath,
-} from "@/modules/tenancy/application/app-path";
+import { moneyAccountPath } from "@/modules/tenancy/application/app-path";
 import { TransactionReceipt } from "../transactions/transaction-receipt";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import { FINANCIAL_SCOPE } from "@/modules/shared-kernel/application/financial-scope";
@@ -239,12 +236,6 @@ export function AddAccountForm({
             onPress: reset,
             variant: "secondary",
           },
-          {
-            id: "money",
-            label: t("receipt.goToMoney"),
-            href: APP_PATH.MONEY,
-            variant: "secondary",
-          },
         ]}
       >
         <div className="rounded-(--radius-control) border border-success/25 bg-success/10 p-(--space-3)">
@@ -270,7 +261,12 @@ export function AddAccountForm({
     }
     if (presentation === "sheet") {
       return (
-        <Sheet isOpen onOpenChange={() => {}}>
+        <Sheet
+          isOpen
+          onOpenChange={(next) => {
+            if (!next) close();
+          }}
+        >
           <ActionSheetLayout>
             <ActionSheetLayout.Body>{receiptContent}</ActionSheetLayout.Body>
           </ActionSheetLayout>

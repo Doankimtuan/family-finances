@@ -10,7 +10,6 @@ import { useRouter } from "@/i18n/navigation";
 import {
   BankIcon,
   Calendar03Icon,
-  CheckmarkCircle02Icon,
   SmartPhoneIcon,
   Wallet02Icon,
 } from "@hugeicons/core-free-icons";
@@ -27,22 +26,16 @@ import {
   RENEWAL_POLICY_VALUES,
   SETTLEMENT_RULE_VALUES,
   SavingsCreateMode,
-  SAVINGS_TERMS_MODE_VALUES,
-  SavingsTermsMode,
-  PENALTY_STRATEGY_VALUES,
 } from "@/modules/savings/application/savings-constants";
 import {
   addSavingsTerm,
+  minimumSavingsStartDate,
   calculateInterest,
   calculateSettlementBreakdown,
   createSavingCommonInputSchema,
   InterestCalcMethod,
   SavingsTermUnit,
-  SAVINGS_TERM_UNIT_VALUES,
-  SAVINGS_TAX_RULE_VALUES,
-  EARLY_SETTLEMENT_RULE_VALUES,
   SavingsTaxRule,
-  EarlySettlementRule,
   type SavingsTermUnit as SavingsTermUnitValue,
 } from "@/modules/savings/application/client";
 import { ControlledField } from "@/shared/patterns/controlled-fields";
@@ -118,37 +111,10 @@ const savingFormSchema = z.object({
   providerId: z.string().uuid().nullable(),
   packageId: z.string().uuid().nullable(),
   principal: createSavingCommonInputSchema.shape.principal.nullable(),
-  startDate: z.string().optional(),
+  startDate: z.string().min(1),
   renewalPolicy: createSavingCommonInputSchema.shape.renewalPolicy,
   settlementRule: createSavingCommonInputSchema.shape.settlementRule,
-  productName: z.string().optional(),
-  providerName: z.string().optional(),
-  termsMode: z.enum(SAVINGS_TERMS_MODE_VALUES),
-  manualTerms: z
-    .object({
-      packageName: z.string(),
-      termAmount: z.number(),
-      termUnit: z.enum(SAVINGS_TERM_UNIT_VALUES),
-      annualInterestRate: z.number(),
-      interestCalculationMethod: z.enum([
-        InterestCalcMethod.SIMPLE,
-        InterestCalcMethod.COMPOUND_DAILY,
-        InterestCalcMethod.COMPOUND_MONTHLY,
-      ]),
-      taxRule: z.enum(SAVINGS_TAX_RULE_VALUES),
-      taxRatePercent: z.number(),
-      earlySettlementRule: z.enum(EARLY_SETTLEMENT_RULE_VALUES),
-      earlySettlementRatePercent: z.number().nullable().optional(),
-      settlementRules: z.array(z.enum(SETTLEMENT_RULE_VALUES)),
-      penaltyRules: z.array(
-        z.object({ strategy: z.enum(PENALTY_STRATEGY_VALUES) }),
-      ),
-      renewableAvailable: z.boolean(),
-      supportsPartialSettlement: z.boolean(),
-      minAmount: z.number().nullable().optional(),
-      maxAmount: z.number().nullable().optional(),
-    })
-    .optional(),
+  productName: z.string().trim().min(1),
   targetMode: z.enum(
     Object.values(MaturityTargetMode) as [
       MaturityTargetMode,
@@ -211,32 +177,12 @@ function createDefaultValues(
   return {
     financialScope: FINANCIAL_SCOPE.HOUSEHOLD,
     creationMode: SavingsCreateMode.LIVE_DEPOSIT,
-    termsMode: SavingsTermsMode.CATALOG,
     fundingAccountId: accounts[0]?.id ?? null,
     settlementAccountId: accounts[1]?.id ?? accounts[0]?.id ?? "",
     providerId,
     packageId,
     productName:
       providers.find((item) => item.id === providerId)?.displayName ?? "",
-    providerName:
-      providers.find((item) => item.id === providerId)?.displayName ?? "",
-    manualTerms: {
-      packageName: "",
-      termAmount: 1,
-      termUnit: SavingsTermUnit.MONTH,
-      annualInterestRate: 0,
-      interestCalculationMethod: InterestCalcMethod.SIMPLE,
-      taxRule: SavingsTaxRule.NONE,
-      taxRatePercent: 0,
-      earlySettlementRule: EarlySettlementRule.RETURN_PRINCIPAL_ONLY,
-      earlySettlementRatePercent: null,
-      settlementRules: [SettlementRule.WITHDRAW_EVERYTHING],
-      penaltyRules: [],
-      renewableAvailable: true,
-      supportsPartialSettlement: false,
-      minAmount: null,
-      maxAmount: null,
-    },
     principal: null,
     startDate: new Date().toISOString().slice(0, 10),
     renewalPolicy: RenewalPolicy.ALWAYS_ASK,
@@ -292,13 +238,6 @@ function SelectionCard({
       className="justify-between"
     >
       {children}
-      {selected ? (
-        <AppIcon
-          icon={CheckmarkCircle02Icon}
-          size="sm"
-          className="shrink-0 text-accent"
-        />
-      ) : null}
     </ChoiceTile>
   );
 }
@@ -330,16 +269,16 @@ export function CreateSavingWizard({
   const values = useWatch({ control });
   const fundingAccountId = values.fundingAccountId ?? "";
   const creationMode = values.creationMode ?? SavingsCreateMode.LIVE_DEPOSIT;
-  const termsMode = values.termsMode ?? SavingsTermsMode.CATALOG;
   const financialScope = values.financialScope ?? FINANCIAL_SCOPE.HOUSEHOLD;
   const settlementAccountId = values.settlementAccountId ?? "";
   const providerId = values.providerId ?? "";
   const packageId = values.packageId ?? "";
   const principal = values.principal ?? null;
   const startDate = values.startDate ?? "";
+  const today = todayIsoDate();
   const historicalStartInvalid =
     creationMode === SavingsCreateMode.HISTORICAL_OPENING &&
-    (!startDate || startDate >= todayIsoDate());
+    (!startDate || startDate >= today);
   const settlementRule =
     values.settlementRule ?? SettlementRule.WITHDRAW_EVERYTHING;
   const renewalPolicy = values.renewalPolicy ?? RenewalPolicy.ALWAYS_ASK;
@@ -350,32 +289,7 @@ export function CreateSavingWizard({
   const step = STEPS[stepIndex];
   const packages = packagesByProvider[providerId] ?? [];
   const catalogPackage = packages.find((item) => item.id === packageId) ?? null;
-  const manualPackage =
-    creationMode === SavingsCreateMode.HISTORICAL_OPENING &&
-    termsMode === SavingsTermsMode.INLINE &&
-    values.manualTerms?.packageName &&
-    values.manualTerms.termAmount &&
-    values.manualTerms.termUnit &&
-    values.manualTerms.annualInterestRate != null
-      ? {
-          id: "",
-          packageName: values.manualTerms.packageName,
-          durationDays: values.manualTerms.termAmount,
-          annualInterestRate: values.manualTerms.annualInterestRate,
-          minAmount: values.manualTerms.minAmount ?? null,
-          maxAmount: values.manualTerms.maxAmount ?? null,
-          termAmount: values.manualTerms.termAmount,
-          termUnit: values.manualTerms.termUnit,
-          interestCalculationMethod:
-            values.manualTerms.interestCalculationMethod ??
-            InterestCalcMethod.SIMPLE,
-          taxRule: values.manualTerms.taxRule,
-          taxRatePercent: values.manualTerms.taxRatePercent,
-          renewableAvailable: values.manualTerms.renewableAvailable,
-        }
-      : null;
-  const selectedPackage =
-    termsMode === SavingsTermsMode.INLINE ? manualPackage : catalogPackage;
+  const selectedPackage = catalogPackage;
   const selectedProvider =
     providers.find((item) => item.id === providerId) ?? null;
   const fundingAccount =
@@ -388,6 +302,21 @@ export function CreateSavingWizard({
     setValue("providerId", nextProviderId);
     setValue("packageId", nextPackageId);
     setValue("targetPackageId", nextPackageId || null);
+    setValue(
+      "productName",
+      providers.find((provider) => provider.id === nextProviderId)
+        ?.displayName ?? "",
+    );
+  };
+  const selectCreationMode = (nextMode: SavingsCreateMode) => {
+    setValue("creationMode", nextMode);
+    if (nextMode === SavingsCreateMode.HISTORICAL_OPENING) {
+      setValue("fundingAccountId", null);
+      return;
+    }
+    if (!fundingAccountId) {
+      setValue("fundingAccountId", accounts[0]?.id ?? null);
+    }
   };
   const maturityDateForPackage = (pkg: PackageOption, value: string) =>
     value
@@ -396,11 +325,19 @@ export function CreateSavingWizard({
           unit: pkg.termUnit ?? SavingsTermUnit.DAY,
         })
       : "";
+  const minimumStartDate = selectedPackage
+    ? minimumSavingsStartDate(today, {
+        amount: selectedPackage.termAmount ?? selectedPackage.durationDays,
+        unit: selectedPackage.termUnit ?? SavingsTermUnit.DAY,
+      })
+    : today;
+  const startDateOutsideTerm =
+    !startDate || startDate < minimumStartDate || startDate > today;
 
   const estimate = (() => {
     if (!selectedPackage || !startDate || principalAmount <= 0) return null;
     const maturityDate = maturityDateForPackage(selectedPackage, startDate);
-    const interest = calculateInterest({
+    const fullTermInterest = calculateInterest({
       principal: principalAmount,
       annualRate: selectedPackage.annualInterestRate,
       startDate,
@@ -408,13 +345,28 @@ export function CreateSavingWizard({
       method:
         selectedPackage.interestCalculationMethod ?? InterestCalcMethod.SIMPLE,
     }).totalInterest;
+    const accruedInterest = calculateInterest({
+      principal: principalAmount,
+      annualRate: selectedPackage.annualInterestRate,
+      startDate,
+      endDate: maturityDate,
+      method:
+        selectedPackage.interestCalculationMethod ?? InterestCalcMethod.SIMPLE,
+      asOfDate: today < maturityDate ? today : maturityDate,
+    }).totalInterest;
     const breakdown = calculateSettlementBreakdown({
       principal: principalAmount,
-      grossInterest: interest,
+      grossInterest: fullTermInterest,
       taxRule: selectedPackage.taxRule,
       taxRatePercent: selectedPackage.taxRatePercent,
     });
-    return { maturityDate, breakdown };
+    const accruedBreakdown = calculateSettlementBreakdown({
+      principal: principalAmount,
+      grossInterest: accruedInterest,
+      taxRule: selectedPackage.taxRule,
+      taxRatePercent: selectedPackage.taxRatePercent,
+    });
+    return { maturityDate, breakdown, accruedBreakdown };
   })();
 
   const money = (value: number) =>
@@ -451,33 +403,15 @@ export function CreateSavingWizard({
   const needsPayout = settlementRule !== SettlementRule.ROLL_PRINCIPAL_INTEREST;
   const canContinue =
     step === FlowStep.PRODUCT
-      ? Boolean(
-          creationMode === SavingsCreateMode.HISTORICAL_OPENING
-            ? values.productName &&
-                (termsMode === SavingsTermsMode.CATALOG
-                  ? providerId && catalogPackage
-                  : values.providerName &&
-                    values.manualTerms?.packageName &&
-                    values.manualTerms.termAmount &&
-                    values.manualTerms.termUnit &&
-                    values.manualTerms.annualInterestRate != null &&
-                    values.manualTerms.interestCalculationMethod &&
-                    values.manualTerms.taxRule &&
-                    values.manualTerms.taxRatePercent != null &&
-                    values.manualTerms.earlySettlementRule &&
-                    values.manualTerms.settlementRules?.length)
-            : providerId && selectedPackage,
-        )
+      ? Boolean(providerId && selectedPackage && values.productName)
       : step === FlowStep.DEPOSIT
         ? Boolean(
             amountIsValid &&
             startDate &&
             !historicalStartInvalid &&
-            !(
-              creationMode === SavingsCreateMode.HISTORICAL_OPENING &&
-              estimate?.maturityDate != null &&
-              estimate.maturityDate < todayIsoDate()
-            ) &&
+            !startDateOutsideTerm &&
+            estimate?.maturityDate != null &&
+            estimate.maturityDate >= today &&
             (creationMode === SavingsCreateMode.HISTORICAL_OPENING ||
               (fundingAccountId && settlementAccountId !== fundingAccountId)),
           )
@@ -516,6 +450,7 @@ export function CreateSavingWizard({
       financialScope: submitted.financialScope,
       settlementAccountId: submitted.settlementAccountId,
       principal: submitted.principal ?? 0,
+      productName: submitted.productName,
       startDate: submitted.startDate,
       renewalPolicy: submitted.renewalPolicy,
       settlementRule: submitted.settlementRule,
@@ -550,10 +485,6 @@ export function CreateSavingWizard({
             fundingAccountId: null,
             providerId: submitted.providerId,
             packageId: submitted.packageId,
-            productName: submitted.productName ?? "",
-            providerName: submitted.providerName ?? null,
-            termsMode: submitted.termsMode,
-            manualTerms: submitted.manualTerms,
             startDate: submitted.startDate ?? "",
           }
         : {
@@ -632,210 +563,12 @@ export function CreateSavingWizard({
                 {t("productSubtitle")}
               </Text>
             </div>
-            <div
-              className="space-y-(--space-2)"
-              role="group"
-              aria-label={t("creationModeLabel")}
-            >
-              <Text size="sm" weight="semibold">
-                {t("creationModeLabel")}
-              </Text>
-              <div className="grid gap-(--space-2)">
-                <SelectionCard
-                  selected={creationMode === SavingsCreateMode.LIVE_DEPOSIT}
-                  onPress={() =>
-                    setValue("creationMode", SavingsCreateMode.LIVE_DEPOSIT)
-                  }
-                  testId="savings-create-mode-live"
-                >
-                  <Text size="sm" weight="medium">
-                    {t("liveDepositMode")}
-                  </Text>
-                </SelectionCard>
-                <SelectionCard
-                  selected={
-                    creationMode === SavingsCreateMode.HISTORICAL_OPENING
-                  }
-                  onPress={() => {
-                    setValue(
-                      "creationMode",
-                      SavingsCreateMode.HISTORICAL_OPENING,
-                    );
-                    setValue("fundingAccountId", null);
-                    setValue(
-                      "productName",
-                      selectedProvider?.displayName ?? "",
-                    );
-                    setValue(
-                      "providerName",
-                      selectedProvider?.displayName ?? "",
-                    );
-                  }}
-                  testId="savings-create-mode-historical"
-                >
-                  <span>
-                    <Text size="sm" weight="medium">
-                      {t("historicalOpeningMode")}
-                    </Text>
-                    <Text size="xs" tone="secondary">
-                      {t("historicalOpeningHint")}
-                    </Text>
-                  </span>
-                </SelectionCard>
-              </div>
-            </div>
-            {creationMode === SavingsCreateMode.HISTORICAL_OPENING ? (
-              <div className="grid gap-(--space-3)">
-                <TextField
-                  id="savings-product-name"
-                  label={t("savingNameLabel")}
-                  required
-                  registration={register("productName")}
-                />
-                <div className="space-y-(--space-2)">
-                  <Text size="sm" weight="semibold">
-                    {t("termsModeLabel")}
-                  </Text>
-                  <div className="grid gap-(--space-2)">
-                    <SelectionCard
-                      selected={termsMode === SavingsTermsMode.CATALOG}
-                      onPress={() =>
-                        setValue("termsMode", SavingsTermsMode.CATALOG)
-                      }
-                      testId="savings-terms-mode-catalog"
-                    >
-                      <Text size="sm" weight="medium">
-                        {t("catalogTermsMode")}
-                      </Text>
-                    </SelectionCard>
-                    <SelectionCard
-                      selected={termsMode === SavingsTermsMode.INLINE}
-                      onPress={() =>
-                        setValue("termsMode", SavingsTermsMode.INLINE)
-                      }
-                      testId="savings-terms-mode-inline"
-                    >
-                      <Text size="sm" weight="medium">
-                        {t("manualTermsMode")}
-                      </Text>
-                    </SelectionCard>
-                  </div>
-                </div>
-                {termsMode === SavingsTermsMode.INLINE ? (
-                  <>
-                    <TextField
-                      id="savings-provider-name"
-                      label={t("providerNameLabel")}
-                      required
-                      registration={register("providerName")}
-                    />
-                    <TextField
-                      id="savings-manual-package-name"
-                      label={t("manualPackageNameLabel")}
-                      required
-                      registration={register("manualTerms.packageName")}
-                    />
-                    <div className="grid grid-cols-2 gap-(--space-3)">
-                      <ControlledField
-                        control={control}
-                        field={{
-                          type: "number",
-                          name: "manualTerms.termAmount",
-                          id: "savings-manual-term-amount",
-                          label: t("termAmountLabel"),
-                          required: true,
-                          minValue: 1,
-                        }}
-                      />
-                      <ControlledField
-                        control={control}
-                        field={{
-                          type: "select",
-                          name: "manualTerms.termUnit",
-                          id: "savings-manual-term-unit",
-                          label: t("termUnitLabel"),
-                          required: true,
-                          options: SAVINGS_TERM_UNIT_VALUES.map((value) => ({
-                            id: value,
-                            value,
-                            label: value,
-                          })),
-                        }}
-                      />
-                    </div>
-                    <ControlledField
-                      control={control}
-                      field={{
-                        type: "percentage",
-                        name: "manualTerms.annualInterestRate",
-                        id: "savings-manual-rate",
-                        label: t("rateLabel"),
-                        required: true,
-                        minValue: 0,
-                        maxValue: 100,
-                      }}
-                    />
-                    <ControlledField
-                      control={control}
-                      field={{
-                        type: "select",
-                        name: "manualTerms.interestCalculationMethod",
-                        id: "savings-manual-interest-method",
-                        label: t("interestMethodLabel"),
-                        required: true,
-                        options: [
-                          InterestCalcMethod.SIMPLE,
-                          InterestCalcMethod.COMPOUND_DAILY,
-                          InterestCalcMethod.COMPOUND_MONTHLY,
-                        ].map((value) => ({ id: value, value, label: value })),
-                      }}
-                    />
-                    <ControlledField
-                      control={control}
-                      field={{
-                        type: "select",
-                        name: "manualTerms.taxRule",
-                        id: "savings-manual-tax-rule",
-                        label: t("taxRuleLabel"),
-                        required: true,
-                        options: SAVINGS_TAX_RULE_VALUES.map((value) => ({
-                          id: value,
-                          value,
-                          label: value,
-                        })),
-                      }}
-                    />
-                    <ControlledField
-                      control={control}
-                      field={{
-                        type: "percentage",
-                        name: "manualTerms.taxRatePercent",
-                        id: "savings-manual-tax-rate",
-                        label: t("taxRateLabel"),
-                        required: true,
-                        minValue: 0,
-                        maxValue: 100,
-                      }}
-                    />
-                    <ControlledField
-                      control={control}
-                      field={{
-                        type: "select",
-                        name: "manualTerms.earlySettlementRule",
-                        id: "savings-manual-early-rule",
-                        label: t("earlySettlementRuleLabel"),
-                        required: true,
-                        options: EARLY_SETTLEMENT_RULE_VALUES.map((value) => ({
-                          id: value,
-                          value,
-                          label: value,
-                        })),
-                      }}
-                    />
-                  </>
-                ) : null}
-              </div>
-            ) : null}
+            <TextField
+              id="savings-product-name"
+              label={t("savingNameLabel")}
+              required
+              registration={register("productName")}
+            />
             {Array.from(new Set(providers.map((item) => item.savingType)))
               .length > 1 ? (
               <div className="space-y-(--space-2)">
@@ -937,19 +670,25 @@ export function CreateSavingWizard({
                       }}
                       testId={`savings-package-${pkg.id}`}
                     >
-                      <span className="min-w-0">
-                        <Text size="sm" weight="semibold">
-                          {t("termDays", { days: pkg.durationDays })}
-                        </Text>
-                        <Text size="xs" tone="secondary">
-                          {rate(pkg.annualInterestRate)}% / {t("year")}
+                      <span className="flex min-w-0 flex-1 items-center justify-between gap-(--space-3)">
+                        <span className="min-w-0">
+                          <Text size="sm" weight="semibold">
+                            {t("termDays", { days: pkg.durationDays })}
+                          </Text>
+                          <Text size="xs" tone="secondary">
+                            {rate(pkg.annualInterestRate)}% / {t("year")}
+                          </Text>
+                        </span>
+                        <Text
+                          size="xs"
+                          tone="secondary"
+                          className="shrink-0 text-right"
+                        >
+                          {t("maturityPreview", {
+                            date: date(maturityDateForPackage(pkg, startDate)),
+                          })}
                         </Text>
                       </span>
-                      <Text size="xs" tone="secondary" className="shrink-0">
-                        {t("maturityPreview", {
-                          date: date(maturityDateForPackage(pkg, startDate)),
-                        })}
-                      </Text>
                     </SelectionCard>
                   ))}
                 </div>
@@ -1073,7 +812,11 @@ export function CreateSavingWizard({
                     ))}
                   </div>
                 </>
-              ) : null}
+              ) : (
+                <Text size="sm" tone="secondary">
+                  {t("historicalNoSource")}
+                </Text>
+              )}
             </div>
             <ControlledField
               control={control}
@@ -1084,19 +827,64 @@ export function CreateSavingWizard({
                 label: t("startDateLabel"),
                 description: t("startDateHint"),
                 required: true,
+                minValue: minimumStartDate,
+                maxValue: today,
                 testId: "savings-wizard-start-date",
               }}
             />
+            <div
+              className="space-y-(--space-2)"
+              role="group"
+              aria-label={t("creationModeLabel")}
+            >
+              <Text size="sm" weight="semibold">
+                {t("creationModeLabel")}
+              </Text>
+              <div className="grid gap-(--space-2)">
+                <SelectionCard
+                  selected={creationMode === SavingsCreateMode.LIVE_DEPOSIT}
+                  onPress={() =>
+                    selectCreationMode(SavingsCreateMode.LIVE_DEPOSIT)
+                  }
+                  testId="savings-create-mode-live"
+                >
+                  <span>
+                    <Text size="sm" weight="medium">
+                      {t("liveDepositMode")}
+                    </Text>
+                    <Text size="xs" tone="secondary">
+                      {t("liveDepositHint")}
+                    </Text>
+                  </span>
+                </SelectionCard>
+                <SelectionCard
+                  selected={
+                    creationMode === SavingsCreateMode.HISTORICAL_OPENING
+                  }
+                  onPress={() =>
+                    selectCreationMode(SavingsCreateMode.HISTORICAL_OPENING)
+                  }
+                  testId="savings-create-mode-historical"
+                >
+                  <span>
+                    <Text size="sm" weight="medium">
+                      {t("historicalOpeningMode")}
+                    </Text>
+                    <Text size="xs" tone="secondary">
+                      {t("historicalOpeningHint")}
+                    </Text>
+                  </span>
+                </SelectionCard>
+              </div>
+            </div>
+            {startDateOutsideTerm ? (
+              <Text size="xs" tone="danger">
+                {t("startDateOutsideTerm")}
+              </Text>
+            ) : null}
             {historicalStartInvalid ? (
               <Text size="xs" tone="danger">
                 {t("historicalStartMustBePast")}
-              </Text>
-            ) : null}
-            {creationMode === SavingsCreateMode.HISTORICAL_OPENING &&
-            estimate?.maturityDate != null &&
-            estimate.maturityDate < todayIsoDate() ? (
-              <Text size="xs" tone="danger">
-                {t("historicalExpiredMaturity")}
               </Text>
             ) : null}
             <div
@@ -1129,6 +917,16 @@ export function CreateSavingWizard({
                     label={t("maturityLabel")}
                     value={date(estimate.maturityDate)}
                   />
+                  {startDate < today ? (
+                    <SummaryRow
+                      label={t("accruedInterestLabel")}
+                      value={
+                        <FinancialValue>
+                          {money(estimate.accruedBreakdown.grossInterest)}
+                        </FinancialValue>
+                      }
+                    />
+                  ) : null}
                   <SummaryRow
                     label={t("interestLabel")}
                     value={
@@ -1254,7 +1052,20 @@ export function CreateSavingWizard({
             >
               <SummaryRow
                 label={t("sourceSection")}
-                value={fundingAccount?.name ?? t("unknown")}
+                value={
+                  fundingAccount?.name ??
+                  (creationMode === SavingsCreateMode.HISTORICAL_OPENING
+                    ? t("historicalNoSource")
+                    : t("unknown"))
+                }
+              />
+              <SummaryRow
+                label={t("creationModeLabel")}
+                value={
+                  creationMode === SavingsCreateMode.HISTORICAL_OPENING
+                    ? t("historicalOpeningMode")
+                    : t("liveDepositMode")
+                }
               />
               <SummaryRow
                 label={t("providerLabel")}
@@ -1465,7 +1276,8 @@ export function CreateSavingWizard({
                 {t("flowTitle")}
               </Text>
               <Text size="sm" tone="secondary" className="mt-(--space-1)">
-                {fundingAccount?.name ?? t("unknown")} → {t("flowSavings")} ·{" "}
+                {fundingAccount?.name ?? t("historicalNoSource")} →{" "}
+                {t("flowSavings")} ·{" "}
                 <FinancialValue>{money(principalAmount)}</FinancialValue>
               </Text>
             </div>

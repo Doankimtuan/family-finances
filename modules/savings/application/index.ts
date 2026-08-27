@@ -40,7 +40,6 @@ export {
   DAYS_PER_YEAR,
   PENALTY_WARNING_THRESHOLD_PCT,
   SavingsCreateMode,
-  SavingsTermsMode,
 } from "./savings-constants";
 
 export type { SavingsRpc, SavingsOperation } from "./savings-constants";
@@ -109,7 +108,6 @@ export {
 export {
   listProviders,
   getProvider,
-  getProviderByKey,
   listProviderPackages,
   getPackage,
   resolvePackageSnapshot,

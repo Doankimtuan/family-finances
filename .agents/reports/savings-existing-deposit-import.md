@@ -1,44 +1,64 @@
 # Savings existing-deposit import
 
-Date: 2026-08-26
+## Scope
+
+Savings creation now uses one catalog-backed form. `creationMode` is explicit:
+
+- `LIVE_DEPOSIT`: a source account is required and the RPC creates the normal
+  transfer, including a backdated transfer when the start date is in the past.
+- `HISTORICAL_OPENING`: the source account is null and the RPC stores principal
+  only in Savings/cycle state.
+
+The former `Thông tin kỳ hạn` / manual terms path was removed. Catalog packages
+are the only source of term, rate, tax, settlement, and rollover rules.
 
 ## Schema and API
 
-- Added typed `SavingsTermsMode.CATALOG` and `SavingsTermsMode.INLINE` values.
-- `createSavingInputSchema` is a discriminated union for `LIVE_DEPOSIT` and `HISTORICAL_OPENING`.
-- Historical input requires a null funding account, saving name, past start date, and either a catalog package or inline immutable terms.
-- Inline terms preserve provider/product/package, rate, tax, settlement, early-settlement, and renewal data in the product and cycle snapshots.
-- Added `savings.creation_mode`, backfilled from existing snapshots, with checks enforcing the live/historical funding-account pairing.
-- The manual provider backing row is created by the forward migration when absent.
+- `createSavingInputSchema` remains a discriminated union on `creationMode`.
+- Both modes require `providerId`, `packageId`, `productName`, principal,
+  settlement account, and a catalog package snapshot.
+- Historical mode requires a past start date and a null funding account.
+- The server and RPC reject future starts, expired maturities, invalid cycle
+  dates, mode/funding mismatches, and invalid package snapshots.
+- Idempotency replay remains snapshot-key based for historical imports and
+  transaction/snapshot based for live deposits.
 
 ## Financial-row behavior
 
-- Live deposits retain the existing source transfer-out and savings transfer-in behavior.
-- Historical openings pass a null funding account, insert no transaction rows, and do not create Income, Expense, or synthetic transfers.
-- Principal remains in `savings`/`saving_cycles` state; detail flow copy does not invent a source account.
-- Existing `FinancialValue` rendering remains the display path for principal, interest, tax, and settlement amounts.
+Historical creation does not insert transactions, Income, Expense, or a
+synthetic transfer. Live creation keeps the existing two-legged transfer and
+uses the selected start date as `transaction_date`, including for backdated
+starts. Principal is stored on the saving and first cycle in both modes.
 
 ## Lifecycle behavior
 
-- Historical dates are validated server-side: start before today, end after start, and maturity today or later.
-- Accrual and early-withdrawal calculations continue to use the persisted original cycle start date.
-- Catalog rollover behavior is retained. Inline historical cycles can keep their immutable terms when no catalog target package is supplied.
-- Existing cycle links and idempotency replay checks remain in the RPC boundary.
-- Detail shows `Được thêm giữa kỳ` / `Added mid-cycle` and uses a no-source historical money-flow line.
+The original cycle start date remains authoritative for interest, early
+withdrawal, settlement, maturity, rollover, summaries, Goals, privacy, and
+financial activity. Rollover uses an immutable catalog cycle snapshot; the
+manual snapshot fallback was removed. Historical detail continues to show
+`Được thêm giữa kỳ` / `Added mid-cycle` and remains fully active.
 
-## Focused checks
+## Focused test results
 
-- TypeScript: passed (`npx tsc --noEmit`)
-- Changed-file ESLint: passed
-- Focused Savings/Home/Money/Goal Vitest set: passed, 7 files / 72 tests
-- Migration freeze validation: passed; baseline unchanged and forward migrations count is 2
+- Unit/component: 7 files, 71 tests passed (`savings-domain`, create wizard,
+  savings commands/mapper, Home metrics/IA, and Money products).
+- Typecheck: passed.
+- Changed-file ESLint: passed.
+- Migration freeze: passed; frozen baseline unchanged.
+- SQL lint: not run successfully because no local Supabase Postgres was
+  available at `127.0.0.1:54322`.
 
-## E2E and browser result
+## E2E result
 
-- The authenticated Playwright flow was updated to select historical mode at the first wizard step, use an inline six-month snapshot with a several-month-old start date, assert the mid-cycle label, assert early-withdrawal availability, and assert no transaction rows.
-- The local browser reached the form. The catalog variant correctly showed the expired-maturity guidance for the fixture's 30-day package. The inline variant reached the RPC but failed against the currently deployed pre-migration function with `Invalid Savings product snapshot`.
-- The forward migration is present and migration-freeze validation passes, but it has not been pushed to the remote Supabase project. Authenticated browser checks at 390px, 440px, 768px, and 1280px, including light/dark/reduced-motion variants, remain pending migration deployment.
+The authenticated lifecycle spec was updated to cover a catalog package, a
+several-month-old start date, explicit historical status selection, no source
+account, accrued-interest preview, no import transaction, detail
+dates/principal, mid-cycle label, and early-withdrawal availability. It was not
+executed because E2E credentials are not configured in this environment.
 
-## Final verdict
+The unauthenticated browser check reached the login redirect successfully.
 
-Implementation complete at code and migration level. Automated focused checks pass. Authenticated E2E is pending deployment of the forward migration; visual browser verification is pending the same environment update.
+## Verdict
+
+Focused code validation passes. Final browser/E2E verdict remains pending an
+authenticated environment and a reachable local/remote Supabase database.
