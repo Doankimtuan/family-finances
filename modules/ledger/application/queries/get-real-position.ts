@@ -4,7 +4,6 @@ import { listActiveMembershipIds } from "@/modules/tenancy/application/list-acti
 import { mapAccountRow, type RealPosition } from "../account-types";
 import { applyTransactionDeltas } from "../transaction-types";
 import {
-  AccountType,
   ACCOUNT_TYPE_LIQUID_VALUES,
   DEFAULT_CURRENCY,
   TRANSACTION_BALANCE_STATUS_VALUES,
@@ -23,28 +22,22 @@ export async function getRealPosition(): Promise<RealPosition | null> {
 
   try {
     const supabase = await createSupabaseServerClient();
-    const [{ data: household }, { data: rows, error }, { data: txRows }] =
-      await Promise.all([
-        supabase
-          .from("households")
-          .select("base_currency")
-          .eq("id", gate.householdId)
-          .maybeSingle(),
-        supabase
-          .from("accounts")
-          .select(
-            "id, name, type, opening_balance, is_archived, financial_scope, owner_membership_id",
-          )
-          .eq("household_id", gate.householdId)
-          .eq("is_archived", false)
-          .neq("type", AccountType.CREDIT_CARD)
-          .order("created_at", { ascending: true }),
-        supabase
-          .from("transactions")
-          .select("account_id, type, amount")
-          .eq("household_id", gate.householdId)
-          .in("status", [...TRANSACTION_BALANCE_STATUS_VALUES]),
-      ]);
+    const [{ data: household }, { data: rows, error }] = await Promise.all([
+      supabase
+        .from("households")
+        .select("base_currency")
+        .eq("id", gate.householdId)
+        .maybeSingle(),
+      supabase
+        .from("accounts")
+        .select(
+          "id, name, type, opening_balance, is_archived, financial_scope, owner_membership_id",
+        )
+        .eq("household_id", gate.householdId)
+        .eq("is_archived", false)
+        .in("type", [...ACCOUNT_TYPE_LIQUID_VALUES])
+        .order("created_at", { ascending: true }),
+    ]);
 
     if (error) {
       logLedgerFailure(error, LEDGER_OPERATION.GET_REAL_POSITION, {
@@ -60,6 +53,23 @@ export async function getRealPosition(): Promise<RealPosition | null> {
         .map((row) => row.owner_membership_id)
         .filter((id): id is string => id != null),
     );
+
+    const accountIds = (rows ?? []).map((row) => row.id);
+    const { data: txRows, error: transactionError } = accountIds.length
+      ? await supabase
+          .from("transactions")
+          .select("account_id, type, amount")
+          .eq("household_id", gate.householdId)
+          .in("account_id", accountIds)
+          .in("status", [...TRANSACTION_BALANCE_STATUS_VALUES])
+      : { data: [], error: null };
+
+    if (transactionError) {
+      logLedgerFailure(transactionError, LEDGER_OPERATION.GET_REAL_POSITION, {
+        householdId: gate.householdId,
+      });
+      return null;
+    }
 
     const accounts = applyTransactionDeltas(
       (rows ?? []).map((row) =>

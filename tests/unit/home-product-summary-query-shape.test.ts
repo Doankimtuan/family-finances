@@ -13,6 +13,10 @@ const homeAdapter = readFileSync(
   "modules/home/application/home-product-summary-adapters.ts",
   "utf8",
 );
+const transactionQuery = readFileSync(
+  "modules/ledger/application/queries/list-transactions.ts",
+  "utf8",
+);
 
 describe("Home product summary query shape", () => {
   it("uses the lightweight Investment summary API without lots or activity objects", () => {
@@ -35,5 +39,16 @@ describe("Home product summary query shape", () => {
       'in("status", [CycleStatus.ACTIVE, CycleStatus.MATURED])',
     );
     expect(savingsQuery.match(/\.from\(/g)?.length).toBe(2);
+  });
+
+  it("keeps Home transaction reads free of display-only relations", () => {
+    const source = transactionQuery.slice(
+      transactionQuery.indexOf("const HOME_TRANSACTION_SELECT"),
+      transactionQuery.indexOf("function mapTransactionRows"),
+    );
+    expect(source).toContain("categories(name)");
+    expect(source).not.toContain("accounts(name, type)");
+    expect(source).not.toContain("jars(name)");
+    expect(source).not.toContain("transaction_tag_assignments");
   });
 });

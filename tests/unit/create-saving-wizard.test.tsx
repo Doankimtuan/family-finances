@@ -44,6 +44,7 @@ const PROVIDER_ID = "00000000-0000-4000-8000-000000000003";
 const OTHER_PROVIDER_ID = "00000000-0000-4000-8000-000000000004";
 const PACKAGE_ID = "00000000-0000-4000-8000-000000000005";
 const OTHER_PACKAGE_ID = "00000000-0000-4000-8000-000000000006";
+const REPLACEMENT_ACCOUNT_ID = "00000000-0000-4000-8000-000000000007";
 
 const accounts = [
   { id: ACCOUNT_ID, name: "Wallet", type: "cash", balance: 10_000_000 },
@@ -220,5 +221,42 @@ describe("CreateSavingWizard", () => {
     ).toBeInTheDocument();
     expect(screen.getByTestId("savings-review-summary")).toBeInTheDocument();
     expect(replaceMock).not.toHaveBeenCalled();
+  });
+
+  it("disables confirmation when the selected source account is no longer available", () => {
+    const { rerender } = renderWizard();
+    reachReview();
+
+    rerender(
+      <CreateSavingWizard
+        accounts={[
+          accounts[1],
+          {
+            id: REPLACEMENT_ACCOUNT_ID,
+            name: "Savings",
+            type: "savings",
+            balance: 5_000_000,
+          },
+        ]}
+        providers={providers}
+        packagesByProvider={packagesByProvider}
+      />,
+    );
+
+    expect(screen.getByTestId("savings-review-summary")).toHaveTextContent(
+      "unknown",
+    );
+    expect(screen.getByTestId("savings-wizard-confirm")).toBeDisabled();
+    expect(createSavingMock).not.toHaveBeenCalled();
+  });
+
+  it("disables confirmation when payout and source accounts are the same", () => {
+    renderWizard();
+    reachReview();
+
+    fireEvent.click(screen.getByTestId(`savings-payout-account-${ACCOUNT_ID}`));
+
+    expect(screen.getByTestId("savings-wizard-confirm")).toBeDisabled();
+    expect(createSavingMock).not.toHaveBeenCalled();
   });
 });

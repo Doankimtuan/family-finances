@@ -296,6 +296,14 @@ export function CreateSavingWizard({
     accounts.find((item) => item.id === fundingAccountId) ?? null;
   const settlementAccount =
     accounts.find((item) => item.id === settlementAccountId) ?? null;
+  const hasValidSettlementAccount = settlementAccount != null;
+  const hasValidFundingSelection =
+    creationMode === SavingsCreateMode.HISTORICAL_OPENING ||
+    Boolean(
+      fundingAccount &&
+      settlementAccount &&
+      fundingAccount.id !== settlementAccount.id,
+    );
   const principalAmount = principal ?? 0;
   const selectProvider = (nextProviderId: string) => {
     const nextPackageId = packagesByProvider[nextProviderId]?.[0]?.id ?? "";
@@ -314,8 +322,13 @@ export function CreateSavingWizard({
       setValue("fundingAccountId", null);
       return;
     }
-    if (!fundingAccountId) {
-      setValue("fundingAccountId", accounts[0]?.id ?? null);
+    if (!fundingAccount || fundingAccount.id === settlementAccountId) {
+      setValue(
+        "fundingAccountId",
+        accounts.find((account) => account.id !== settlementAccountId)?.id ??
+          accounts[0]?.id ??
+          null,
+      );
     }
   };
   const maturityDateForPackage = (pkg: PackageOption, value: string) =>
@@ -412,11 +425,11 @@ export function CreateSavingWizard({
             !startDateOutsideTerm &&
             estimate?.maturityDate != null &&
             estimate.maturityDate >= today &&
-            (creationMode === SavingsCreateMode.HISTORICAL_OPENING ||
-              (fundingAccountId && settlementAccountId !== fundingAccountId)),
+            hasValidFundingSelection,
           )
         : Boolean(
-            (!needsPayout || settlementAccountId) &&
+            hasValidSettlementAccount &&
+            hasValidFundingSelection &&
             renewalPolicy &&
             settlementRule &&
             (settlementRule === SettlementRule.WITHDRAW_EVERYTHING ||
@@ -443,6 +456,20 @@ export function CreateSavingWizard({
     }
     if (!selectedPackage || !amountIsValid) return;
     if (submitted.principal == null) {
+      setErrorCode(PRODUCT_ACTION_ERROR_CODE.INVALID);
+      return;
+    }
+    const hasValidSubmittedAccounts =
+      accounts.some(
+        (account) => account.id === submitted.settlementAccountId,
+      ) &&
+      (submitted.creationMode === SavingsCreateMode.HISTORICAL_OPENING ||
+        Boolean(
+          submitted.fundingAccountId &&
+          submitted.fundingAccountId !== submitted.settlementAccountId &&
+          accounts.some((account) => account.id === submitted.fundingAccountId),
+        ));
+    if (!hasValidSubmittedAccounts) {
       setErrorCode(PRODUCT_ACTION_ERROR_CODE.INVALID);
       return;
     }

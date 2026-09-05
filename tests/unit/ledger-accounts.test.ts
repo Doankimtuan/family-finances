@@ -340,7 +340,9 @@ describe("getRealPosition", () => {
           return {
             select: () => ({
               eq: () => ({
-                in: async () => ({ data: [], error: null }),
+                in: () => ({
+                  in: async () => ({ data: [], error: null }),
+                }),
               }),
             }),
           };
@@ -349,7 +351,7 @@ describe("getRealPosition", () => {
           select: () => ({
             eq: () => ({
               eq: () => ({
-                neq: () => ({
+                in: () => ({
                   order: async () => ({
                     data: [
                       {

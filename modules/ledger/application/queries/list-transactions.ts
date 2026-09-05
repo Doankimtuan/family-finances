@@ -12,6 +12,8 @@ import { LEDGER_OPERATION, logLedgerFailure } from "../ledger-error";
 
 const TRANSACTION_LIST_SELECT =
   "id, account_id, type, amount, currency, transaction_date, note, category_id, jar_id, status, transfer_group_id, loan_payment_id, savings_event_kind, reverses_transaction_id, corrects_transaction_id, is_reversal, created_at, accounts(name, type), categories(name), jars(name), transaction_tag_assignments(tag_id, transaction_tags(id, name, icon_key, color_key, archived_at))";
+const HOME_TRANSACTION_SELECT =
+  "id, account_id, type, amount, currency, transaction_date, note, category_id, jar_id, status, transfer_group_id, loan_payment_id, savings_event_kind, reverses_transaction_id, corrects_transaction_id, is_reversal, created_at, categories(name)";
 
 function mapTransactionRows(rows: unknown[]): LedgerTransaction[] {
   return rows.map((raw) => {
@@ -113,7 +115,7 @@ export async function listTransactionsForDateRange(
     const supabase = await createSupabaseServerClient();
     const { data, error } = await supabase
       .from("transactions")
-      .select(TRANSACTION_LIST_SELECT)
+      .select(HOME_TRANSACTION_SELECT)
       .eq("household_id", gate.householdId)
       .gte("transaction_date", startDate)
       .lte("transaction_date", endDate)

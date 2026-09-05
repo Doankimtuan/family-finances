@@ -34,23 +34,34 @@ async function loadAccounts(options: {
       accountsQuery = accountsQuery.in("type", [...ACCOUNT_TYPE_LIQUID_VALUES]);
     }
 
-    const [{ data: household }, { data: rows, error }, { data: txRows }] =
-      await Promise.all([
-        supabase
-          .from("households")
-          .select("base_currency")
-          .eq("id", gate.householdId)
-          .maybeSingle(),
-        accountsQuery,
-        supabase
-          .from("transactions")
-          .select("account_id, type, amount")
-          .eq("household_id", gate.householdId)
-          .in("status", [...TRANSACTION_BALANCE_STATUS_VALUES]),
-      ]);
+    const [{ data: household }, { data: rows, error }] = await Promise.all([
+      supabase
+        .from("households")
+        .select("base_currency")
+        .eq("id", gate.householdId)
+        .maybeSingle(),
+      accountsQuery,
+    ]);
 
     if (error) {
       logLedgerFailure(error, LEDGER_OPERATION.LIST_ACCOUNTS, {
+        householdId: gate.householdId,
+      });
+      return null;
+    }
+
+    const accountIds = (rows ?? []).map((row) => row.id);
+    const { data: txRows, error: transactionError } = accountIds.length
+      ? await supabase
+          .from("transactions")
+          .select("account_id, type, amount")
+          .eq("household_id", gate.householdId)
+          .in("account_id", accountIds)
+          .in("status", [...TRANSACTION_BALANCE_STATUS_VALUES])
+      : { data: [], error: null };
+
+    if (transactionError) {
+      logLedgerFailure(transactionError, LEDGER_OPERATION.LIST_ACCOUNTS, {
         householdId: gate.householdId,
       });
       return null;
