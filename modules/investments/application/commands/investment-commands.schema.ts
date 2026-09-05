@@ -23,7 +23,11 @@ export const vndSchema = z.number().finite().int().safe().nonnegative();
 export const positiveVndSchema = vndSchema.positive();
 export const unitPriceVndSchema = vndSchema;
 export const positiveUnitPriceVndSchema = unitPriceVndSchema.positive();
-export const inputMoneySchema = z.number().finite().safe().nonnegative();
+export const inputMoneySchema = z
+  .number()
+  .finite()
+  .nonnegative()
+  .max(Number.MAX_SAFE_INTEGER);
 export const positiveInputMoneySchema = inputMoneySchema.positive();
 export const inputCurrencySchema = z.enum(INVESTMENT_INPUT_CURRENCY_VALUES);
 export const inputRateSourceSchema = z.enum(
