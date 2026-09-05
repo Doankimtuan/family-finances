@@ -66,9 +66,11 @@
     "loading": "Đang tải kỳ đã chọn"
   },
   "financialPulse": {
-    "title": "Tổng số dư",
-    "accessibleLabel": "Tổng số dư của các tài khoản đang dùng",
-    "hint": "Tổng số dư của các tài khoản đang dùng, không gồm thẻ tín dụng.",
+    "title": "Tổng tài sản",
+    "accessibleLabel": "Tổng tài sản trong tài khoản, tiết kiệm và đầu tư",
+    "hint": "Tổng tài sản trong tài khoản đang dùng, tiết kiệm và đầu tư đã định giá.",
+    "partial": "Gồm {included}/{total} khoản đầu tư đã định giá.",
+    "unavailable": "Tạm thời chưa thể hiển thị tổng tài sản.",
     "netLabel": {
       "month": "Dòng tiền ròng tháng này",
       "quarter": "Dòng tiền ròng quý này"

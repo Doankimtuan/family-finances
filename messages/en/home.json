@@ -66,9 +66,11 @@
     "loading": "Loading selected period"
   },
   "financialPulse": {
-    "title": "Total balance",
-    "accessibleLabel": "Total balance across active accounts",
-    "hint": "Total balance across active accounts, excluding credit cards.",
+    "title": "Total assets",
+    "accessibleLabel": "Total assets across accounts, savings, and investments",
+    "hint": "Total across active accounts, savings, and valued investments.",
+    "partial": "Includes {included} of {total} valued investments.",
+    "unavailable": "Total assets are temporarily unavailable.",
     "netLabel": {
       "month": "Net cash flow this month",
       "quarter": "Net cash flow this quarter"

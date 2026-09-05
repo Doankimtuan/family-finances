@@ -18,6 +18,7 @@
   },
   "realPosition": "Money in active accounts",
   "realPositionHint": "Money represented by your active accounts.",
+  "totalAssets": "Total assets",
   "loadErrorTitle": "Could not load Money",
   "loadErrorBody": "Check your connection and try again.",
   "capture": "Add transaction",
@@ -47,7 +48,17 @@
     "retry": "Try again",
     "activeAccounts": "{count, plural, =0 {No active accounts} one {# active account} other {# active accounts}}",
     "totalCreditOutstandingLabel": "Card debt <value>{amount}</value>",
-    "composition": "Where your money sits",
+    "assetAllocation": {
+      "title": "Where your assets are",
+      "hint": "Across active accounts, savings, and valued investments.",
+      "partial": "Includes {included} of {total} valued investments.",
+      "unavailable": "Asset distribution is temporarily unavailable.",
+      "groups": {
+        "accounts": "Accounts",
+        "savings": "Savings",
+        "investments": "Investments"
+      }
+    },
     "percentage": "{value}%",
     "lessThanOnePercent": "<1%",
     "groups": {

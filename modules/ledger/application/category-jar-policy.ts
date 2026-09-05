@@ -1,19 +1,21 @@
-/**
- * BR-12 — household categories must bind N:1 to an active jar.
- * System template categories may omit jar_id (household copies bind on create).
- */
+import { TransactionDirection } from "./ledger-constants";
+
+type CategoryJarPolicyInput = {
+  isSystem: boolean;
+  kind: TransactionDirection;
+  jarId: string | null | undefined;
+};
+
+/** Household expense categories bind N:1 to a jar; income categories do not. */
 
 export function requiresJarMapping(input: {
   isSystem: boolean;
-  jarId: string | null | undefined;
+  kind: TransactionDirection;
 }): boolean {
-  return !input.isSystem;
+  return !input.isSystem && input.kind === TransactionDirection.EXPENSE;
 }
 
-export function isCategoryJarMapped(input: {
-  isSystem: boolean;
-  jarId: string | null | undefined;
-}): boolean {
-  if (input.isSystem) return true;
+export function isCategoryJarMapped(input: CategoryJarPolicyInput): boolean {
+  if (!requiresJarMapping(input)) return true;
   return typeof input.jarId === "string" && input.jarId.length > 0;
 }

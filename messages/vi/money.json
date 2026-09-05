@@ -18,6 +18,7 @@
   },
   "realPosition": "Tiền trong tài khoản đang dùng",
   "realPositionHint": "Số tiền được ghi nhận trong các tài khoản đang dùng.",
+  "totalAssets": "Tổng tài sản",
   "loadErrorTitle": "Không tải được Money",
   "loadErrorBody": "Kiểm tra kết nối và thử lại.",
   "capture": "Thêm giao dịch",
@@ -47,7 +48,17 @@
     "retry": "Thử tải lại",
     "activeAccounts": "{count, plural, =0 {Chưa có tài khoản hoạt động} one {# tài khoản hoạt động} other {# tài khoản hoạt động}}",
     "totalCreditOutstandingLabel": "Dư nợ thẻ <value>{amount}</value>",
-    "composition": "Tiền đang ở đâu",
+    "assetAllocation": {
+      "title": "Tài sản đang ở đâu",
+      "hint": "Gồm tài khoản đang dùng, tiết kiệm và đầu tư đã định giá.",
+      "partial": "Gồm {included}/{total} khoản đầu tư đã định giá.",
+      "unavailable": "Tạm thời chưa thể hiển thị phân bố tài sản.",
+      "groups": {
+        "accounts": "Tài khoản",
+        "savings": "Tiết kiệm",
+        "investments": "Đầu tư"
+      }
+    },
     "percentage": "{value}%",
     "lessThanOnePercent": "<1%",
     "groups": {

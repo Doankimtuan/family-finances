@@ -244,6 +244,8 @@ export default async function InboxItemDetailPage({ params }: Props) {
         description={t("amountContextBody")}
       />
 
+      {pending ? <InboxDecisionPanel item={item} jars={activeJars} /> : null}
+
       {localizedCategory || localizedAccount || item.note ? (
         <Card
           tone="soft"
@@ -275,15 +277,13 @@ export default async function InboxItemDetailPage({ params }: Props) {
 
       <InboxReadStateControl item={item} />
 
-      {pending ? (
-        <InboxDecisionPanel item={item} jars={activeJars} />
-      ) : (
+      {!pending ? (
         <Card tone="soft" className="p-(--space-3)">
           <Text size="sm" tone="secondary" data-testid="inbox-archived-status">
             {t(`statuses.${item.status}`)}
           </Text>
         </Card>
-      )}
+      ) : null}
     </Page>
   );
 }

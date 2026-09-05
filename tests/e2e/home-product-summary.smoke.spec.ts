@@ -67,6 +67,17 @@ test.describe("Home product summaries", () => {
         surface.getByTestId(HOME_TEST_ID.FINANCIAL_PULSE),
       ).toBeVisible();
       await expect(
+        surface.getByTestId(HOME_TEST_ID.FINANCIAL_PULSE),
+      ).toContainText(/Total assets|Tổng tài sản/);
+      await expect(
+        surface
+          .getByTestId(HOME_TEST_ID.FINANCIAL_PULSE)
+          .getByTestId("ledger-balance"),
+      ).toBeVisible();
+      await expect(
+        surface.getByTestId(HOME_TEST_ID.FINANCIAL_PULSE),
+      ).toContainText(/valued investments|định giá/);
+      await expect(
         surface.getByTestId(HOME_TEST_ID.CAPTURE_ACTION),
       ).toBeVisible();
       await expect(surface.getByTestId(HOME_TEST_ID.PLAN_PULSE)).toBeVisible();
@@ -93,6 +104,9 @@ test.describe("Home product summaries", () => {
     await expect(
       surface.getByTestId(HOME_TEST_ID.FINANCIAL_PULSE),
     ).toBeVisible();
+    await expect(
+      surface.getByTestId(HOME_TEST_ID.FINANCIAL_PULSE),
+    ).toContainText("Total assets are temporarily unavailable");
     await expect(
       surface.getByTestId(HOME_TEST_ID.CAPTURE_ACTION),
     ).toBeVisible();

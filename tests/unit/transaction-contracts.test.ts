@@ -29,22 +29,58 @@ import {
 import { applyTransactionDeltas } from "@/modules/ledger/application/transaction-types";
 import { AccountType } from "@/modules/ledger/application/ledger-constants";
 
-describe("ST-E01-001 category ↔ jar (AC-CAT-01)", () => {
+describe("category ↔ jar policy", () => {
   const jarId = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11";
 
-  it("rejects household category without jar mapping", () => {
-    expect(requiresJarMapping({ isSystem: false, jarId: null })).toBe(true);
-    expect(isCategoryJarMapped({ isSystem: false, jarId: null })).toBe(false);
+  it("allows household income categories without jar mapping", () => {
+    expect(
+      requiresJarMapping({
+        isSystem: false,
+        kind: TransactionDirection.INCOME,
+      }),
+    ).toBe(false);
+    expect(
+      isCategoryJarMapped({
+        isSystem: false,
+        kind: TransactionDirection.INCOME,
+        jarId: null,
+      }),
+    ).toBe(true);
+    expect(
+      createCategoryInputSchema.safeParse({
+        name: "Salary",
+        kind: TransactionDirection.INCOME,
+      }).success,
+    ).toBe(true);
+    expect(
+      createCategoryInputSchema.safeParse({
+        name: "Salary",
+        kind: TransactionDirection.INCOME,
+        jarId: null,
+      }).success,
+    ).toBe(true);
+  });
+
+  it("still requires a jar for household expense categories", () => {
+    expect(
+      requiresJarMapping({
+        isSystem: false,
+        kind: TransactionDirection.EXPENSE,
+      }),
+    ).toBe(true);
+    expect(
+      isCategoryJarMapped({
+        isSystem: false,
+        kind: TransactionDirection.EXPENSE,
+        jarId: null,
+      }),
+    ).toBe(false);
     expect(
       createCategoryInputSchema.safeParse({
         name: "Pet Grooming",
         kind: TransactionDirection.EXPENSE,
       }).success,
     ).toBe(false);
-  });
-
-  it("accepts category create with required jar_id", () => {
-    expect(isCategoryJarMapped({ isSystem: false, jarId })).toBe(true);
     expect(
       createCategoryInputSchema.safeParse({
         name: "Pet Grooming",

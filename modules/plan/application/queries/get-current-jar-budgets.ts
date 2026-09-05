@@ -11,6 +11,7 @@ import {
   calculateJarSpentAmount,
   calculateQualifyingPostedIncome,
   resolveQualifyingMonthlyIncome,
+  resolveJarPlanForPeriod,
   type JarBudgetMetrics,
   type JarBudgetTransaction,
   type QualifyingIncomeSource,
@@ -408,21 +409,18 @@ export async function getJarBudgetsForPeriod(
     for (const jar of pulse.activeJars) {
       const snapshot = snapshots.get(`${jar.id}:${selectedPeriod.month}`);
       if (!snapshot) continue;
-      const snapshotJar = {
-        ...jar,
-        name: snapshot.jar_name,
-        rolloverMode: snapshot.rollover_mode === "carry" ? "carry" : "reset",
-        plan: {
-          kind: snapshot.plan_kind === "percent" ? "percent" : "fixed",
-          percentBps: Number(snapshot.percent_bps) || 0,
-          fixedAmount: Number(snapshot.fixed_amount) || 0,
-        },
-      } as PlanJar;
+      const budgetPlan = resolveJarPlanForPeriod({
+        currentPlan: jar.plan,
+        snapshotPlan: mapJarPlan(snapshot),
+        periodMonth: selectedPeriod.month,
+        currentPeriodMonth: currentPeriod.month,
+      });
+      if (!budgetPlan) continue;
       const periodIncome =
         Number(snapshot.qualifying_income ?? qualifyingIncome.amount) || 0;
       const source = incomeSource(snapshot.qualifying_income_source);
       byJarId[jar.id] = calculateJarBudgetMetrics(
-        snapshotJar,
+        { plan: budgetPlan },
         jar.id,
         transactions,
         {

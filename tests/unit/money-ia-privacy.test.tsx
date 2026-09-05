@@ -8,7 +8,10 @@ import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
 import { FinancialPrivacyProvider } from "@/providers/financial-privacy-provider";
 import { FINANCIAL_SCOPE } from "@/modules/shared-kernel/application/financial-scope";
 import { OWNER_STATUS } from "@/modules/shared-kernel/application/financial-ownership";
-import { MoneyAccountGroupKey } from "@/modules/ledger/application";
+import {
+  MoneyAccountGroupKey,
+  MoneyAssetAllocationKey,
+} from "@/modules/ledger/application";
 import { FinancialAccountHero } from "@/shared/patterns/financial-account-hero";
 import { CreditCardHero } from "@/app/[locale]/(product)/money/accounts/[id]/credit-card-hero";
 import { MoneyPositionHero } from "@/app/[locale]/(product)/money/money-position-hero";
@@ -151,8 +154,8 @@ describe("Money IA and financial privacy", () => {
               Card debt <FinancialValue>₫800,000</FinancialValue>
             </span>
           }
-          compositionLabel="Composition"
-          composition={[]}
+          allocationLabel="Asset allocation"
+          allocation={[]}
           activityHref="/money/transactions"
           activityLabel="See activity"
         />
@@ -161,6 +164,49 @@ describe("Money IA and financial privacy", () => {
 
     expect(screen.getByText(/Card debt/)).toBeInTheDocument();
     expect(document.body).not.toHaveTextContent("₫800,000");
+    expect(document.body).toHaveTextContent("••••••");
+  });
+
+  it("masks the total asset allocation while keeping categories visible", () => {
+    window.localStorage.setItem("vinha.financial-values-hidden", "true");
+
+    render(
+      <FinancialPrivacyProvider>
+        <MoneyPositionHero
+          ownedMoneyLabel="Total assets"
+          ownedMoneyValue="₫3,000,000"
+          accountMoneyLabel="Money in active accounts"
+          accountMoneyValue="₫1,000,000"
+          metaLine={<span>3 active accounts</span>}
+          allocationLabel="Where your assets are"
+          allocationHint="Across active accounts, savings, and valued investments."
+          allocation={[
+            {
+              key: MoneyAssetAllocationKey.ACCOUNTS,
+              label: "Accounts",
+              balanceLabel: "₫1,000,000",
+              percentage: 33,
+              percentageLabel: "33%",
+            },
+            {
+              key: MoneyAssetAllocationKey.SAVINGS,
+              label: "Savings",
+              balanceLabel: "₫2,000,000",
+              percentage: 67,
+              percentageLabel: "67%",
+            },
+          ]}
+          activityHref="/money/transactions"
+          activityLabel="View transactions"
+        />
+      </FinancialPrivacyProvider>,
+    );
+
+    expect(screen.getByText("Accounts")).toBeInTheDocument();
+    expect(screen.getByText("Savings")).toBeInTheDocument();
+    expect(document.body).not.toHaveTextContent("₫3,000,000");
+    expect(document.body).not.toHaveTextContent("₫1,000,000");
+    expect(document.body).not.toHaveTextContent("₫2,000,000");
     expect(document.body).toHaveTextContent("••••••");
   });
 

@@ -90,13 +90,15 @@ function HomeFinancialPrivacyToggle() {
  */
 export function HomeFinancialPulse({
   balance,
+  balanceNote,
   currency,
   locale,
   period,
   metrics,
   periodControl,
 }: {
-  balance: number;
+  balance: number | null;
+  balanceNote?: string;
   currency: string;
   locale: string;
   period: HomeDashboardPeriod;
@@ -130,13 +132,24 @@ export function HomeFinancialPulse({
           role="group"
           aria-label={t("financialPulse.accessibleLabel")}
         >
-          <Balance
-            amountLabel={formatCurrency(balance, currency, locale, {
-              maximumFractionDigits: HOME_CURRENCY_FRACTION_DIGITS,
-            })}
-            size="hero"
-            amountClassName="text-4xl text-hero-fg"
-          />
+          {balance == null ? (
+            <Text size="lg" weight="semibold" className="text-hero-fg">
+              {t("financialPulse.unavailable")}
+            </Text>
+          ) : (
+            <Balance
+              amountLabel={formatCurrency(balance, currency, locale, {
+                maximumFractionDigits: HOME_CURRENCY_FRACTION_DIGITS,
+              })}
+              size="hero"
+              amountClassName="text-4xl text-hero-fg"
+            />
+          )}
+          {balanceNote ? (
+            <Text size="xs" className="mt-(--space-1) text-hero-muted">
+              {balanceNote}
+            </Text>
+          ) : null}
         </div>
         {periodControl ? (
           <div className="mt-(--space-4) border-t border-white/15 pt-(--space-3)">

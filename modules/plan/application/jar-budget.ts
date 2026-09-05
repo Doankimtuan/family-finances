@@ -225,6 +225,17 @@ export function calculateJarBudgetAmount(
   return Math.max(0, ruleBudget + rolloverCredit + adjustment);
 }
 
+/** Current periods reflect edits; historical periods stay on their snapshot. */
+export function resolveJarPlanForPeriod(input: {
+  currentPlan: JarPlan | null;
+  snapshotPlan: JarPlan | null;
+  periodMonth: string;
+  currentPeriodMonth: string;
+}): JarPlan | null {
+  if (input.periodMonth === input.currentPeriodMonth) return input.currentPlan;
+  return input.snapshotPlan;
+}
+
 /**
  * Derives spent from the bounded period transaction fetch in one pass. The
  * transaction.jar_id assignment is used exactly as stored; current category
@@ -258,7 +269,8 @@ export function resolveJarBudgetState(input: {
   if (budgetAmount <= 0) return JarBudgetState.NO_BUDGET;
   if (spentAmount > budgetAmount) return JarBudgetState.OVERSPENT;
   if (spentAmount <= 0) return JarBudgetState.NO_SPENDING;
-  if (usagePercent >= JAR_BUDGET_NEAR_LIMIT_PERCENT) return JarBudgetState.NEAR_LIMIT;
+  if (usagePercent >= JAR_BUDGET_NEAR_LIMIT_PERCENT)
+    return JarBudgetState.NEAR_LIMIT;
   return JarBudgetState.HEALTHY;
 }
 
@@ -277,9 +289,7 @@ export function calculateJarBudgetMetrics(
     options?.periodIncome ?? calculateQualifyingPostedIncome(transactions);
   const ruleBudget = calculateJarRuleBudget(jar, qualifyingIncome);
   const rolloverCredit = Math.max(0, Math.trunc(options?.rolloverCredit ?? 0));
-  const periodAdjustment = Math.trunc(
-    options?.adjustment ?? 0,
-  );
+  const periodAdjustment = Math.trunc(options?.adjustment ?? 0);
   const budgetAmount = Math.max(
     0,
     ruleBudget + rolloverCredit + periodAdjustment,
@@ -315,11 +325,17 @@ export function resolveQualifyingMonthlyIncome(input: {
   }
   const recurringIncome = numericAmount(input.recurringIncome ?? 0);
   if (recurringIncome > 0) {
-    return { amount: recurringIncome, source: QualifyingIncomeSource.RECURRING_FALLBACK };
+    return {
+      amount: recurringIncome,
+      source: QualifyingIncomeSource.RECURRING_FALLBACK,
+    };
   }
   const postedIncome = numericAmount(input.postedIncome ?? 0);
   if (postedIncome > 0) {
-    return { amount: postedIncome, source: QualifyingIncomeSource.POSTED_FALLBACK };
+    return {
+      amount: postedIncome,
+      source: QualifyingIncomeSource.POSTED_FALLBACK,
+    };
   }
   return { amount: 0, source: QualifyingIncomeSource.NONE };
 }

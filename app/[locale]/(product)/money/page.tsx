@@ -11,12 +11,14 @@ import {
   createMoneyHubCreditCards,
   createMoneyHubModuleSummaries,
   createMoneyHubViewModel,
+  calculateMoneyAssetOverview,
   DEFAULT_CURRENCY,
   getRealPosition,
   listCreditCards,
   listDebts,
   listLoanSummaries,
   MoneyAccountGroupKey,
+  MoneyAssetOverviewStatus,
   MoneyCreditAttention,
   MoneyModuleAttentionLevel,
   MoneyReadStatus,
@@ -162,6 +164,21 @@ export default async function MoneyHubPage({ params }: Props) {
         }
       : null,
   });
+  const assetOverview = calculateMoneyAssetOverview({
+    accounts: viewModel?.totalOwnedBalance ?? null,
+    savings:
+      reads.savings.status === MoneyReadStatus.READY
+        ? reads.savings.data.principal
+        : null,
+    investments:
+      reads.investments.status === MoneyReadStatus.READY
+        ? {
+            amount: reads.investments.data.marketValue,
+            valuationIncluded: reads.investments.data.valuationIncluded,
+            valuationTotal: reads.investments.data.valuationTotal,
+          }
+        : null,
+  });
 
   const money = (value: number, valueCurrency: string | null) =>
     formatCurrency(value, valueCurrency ?? currency, locale, {
@@ -255,8 +272,14 @@ export default async function MoneyHubPage({ params }: Props) {
       <>
         <MotionReveal>
           <MoneyPositionHero
-            ownedMoneyLabel={t("realPosition")}
+            ownedMoneyLabel={t("totalAssets")}
             ownedMoneyValue={
+              assetOverview.status === MoneyAssetOverviewStatus.UNAVAILABLE
+                ? null
+                : money(assetOverview.total, currency)
+            }
+            accountMoneyLabel={t("realPosition")}
+            accountMoneyValue={
               viewModel ? money(viewModel.totalOwnedBalance, currency) : null
             }
             positionUnavailableLabel={t("hub.modules.positionUnavailable")}
@@ -289,16 +312,34 @@ export default async function MoneyHubPage({ params }: Props) {
                 </Text>
               )
             }
-            compositionLabel={t("hub.composition")}
-            composition={
-              viewModel?.composition.map((segment) => ({
-                ...segment,
-                label: t(`hub.groups.${segment.key}`),
-                percentageLabel: segment.isLessThanOnePercent
-                  ? t("hub.lessThanOnePercent")
-                  : t("hub.percentage", { value: segment.percentage }),
-                balanceLabel: money(segment.balance, currency),
-              })) ?? []
+            allocationLabel={t("hub.assetAllocation.title")}
+            allocationHint={
+              assetOverview.status === MoneyAssetOverviewStatus.PARTIAL
+                ? t(
+                    "hub.assetAllocation.partial",
+                    assetOverview.investmentCoverage,
+                  )
+                : assetOverview.status === MoneyAssetOverviewStatus.COMPLETE
+                  ? t("hub.assetAllocation.hint")
+                  : undefined
+            }
+            allocationUnavailableLabel={
+              assetOverview.status === MoneyAssetOverviewStatus.UNAVAILABLE
+                ? t("hub.assetAllocation.unavailable")
+                : undefined
+            }
+            allocation={
+              assetOverview.status === MoneyAssetOverviewStatus.UNAVAILABLE
+                ? []
+                : assetOverview.allocation.map((segment) => ({
+                    key: segment.key,
+                    label: t(`hub.assetAllocation.groups.${segment.key}`),
+                    percentage: segment.percentage,
+                    percentageLabel: segment.isLessThanOnePercent
+                      ? t("hub.lessThanOnePercent")
+                      : t("hub.percentage", { value: segment.percentage }),
+                    balanceLabel: money(segment.amount, currency),
+                  }))
             }
             activityHref={APP_PATH.MONEY_TRANSACTIONS}
             activityLabel={t("seeActivity")}

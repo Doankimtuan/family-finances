@@ -4,6 +4,8 @@ import {
   ACCOUNT_TYPE_LIQUID_VALUES,
   AccountType,
   CARD_UTILIZATION_DANGER_PCT,
+  MoneyAssetAllocationKey,
+  MoneyAssetOverviewStatus,
   type AccountType as AccountTypeValue,
 } from "./ledger-constants";
 import { LoanDueState, LoanStatus } from "./loan-constants";
@@ -15,6 +17,11 @@ import {
   differenceInUtcCalendarDays,
   todayIsoDate,
 } from "@/shared/utils/iso-date";
+
+export {
+  MoneyAssetAllocationKey,
+  MoneyAssetOverviewStatus,
+} from "./ledger-constants";
 
 export const MONEY_HUB_INITIAL_ACCOUNT_ROW_LIMIT = 4;
 export const MONEY_HUB_DUE_SOON_DAYS = 7;
@@ -65,13 +72,24 @@ export type MoneyHubAccountGroup = {
   accounts: MoneyHubAccount[];
 };
 
-export type MoneyHubCompositionSegment = {
-  key: MoneyAccountGroupKey;
-  balance: number;
+export type MoneyAssetAllocationSegment = {
+  key: MoneyAssetAllocationKey;
+  amount: number;
   share: number;
   percentage: number;
   isLessThanOnePercent: boolean;
 };
+
+export type MoneyAssetOverview =
+  | { status: typeof MoneyAssetOverviewStatus.UNAVAILABLE }
+  | {
+      status:
+        | typeof MoneyAssetOverviewStatus.COMPLETE
+        | typeof MoneyAssetOverviewStatus.PARTIAL;
+      total: number;
+      allocation: MoneyAssetAllocationSegment[];
+      investmentCoverage: { included: number; total: number };
+    };
 
 export type MoneyHubCreditCard = CreditCardSummary & {
   utilizationForDisplay: number | null;
@@ -96,7 +114,6 @@ export type MoneyHubViewModel = {
   initialAccountGroups: MoneyHubAccountGroup[];
   accountPresentation: "flat" | "grouped";
   hasMoreAccounts: boolean;
-  composition: MoneyHubCompositionSegment[];
   creditCards: MoneyHubCreditCard[];
   totalCreditOutstanding: number;
 };
@@ -194,24 +211,18 @@ function groupsForInitialRows(groups: MoneyHubAccountGroup[]) {
   });
 }
 
-function compositionFor(groups: MoneyHubAccountGroup[]) {
-  const segments = groups.flatMap((group) => {
-    const positiveBalance = group.accounts.reduce(
-      (sum, account) => sum + Math.max(account.balance, 0),
-      0,
-    );
-    return positiveBalance > 0
-      ? [{ key: group.key, balance: positiveBalance }]
-      : [];
-  });
-  const positiveBalanceTotal = segments.reduce(
-    (sum, segment) => sum + segment.balance,
+function roundedDistributionSegments<Key extends string>(
+  segments: readonly { key: Key; amount: number }[],
+) {
+  const positiveSegments = segments.filter((segment) => segment.amount > 0);
+  const positiveAmountTotal = positiveSegments.reduce(
+    (sum, segment) => sum + segment.amount,
     0,
   );
-  if (positiveBalanceTotal <= 0) return [];
+  if (positiveAmountTotal <= 0) return [];
 
-  const rounded = segments.map((segment, index) => {
-    const share = segment.balance / positiveBalanceTotal;
+  const rounded = positiveSegments.map((segment, index) => {
+    const share = segment.amount / positiveAmountTotal;
     const rawPercentage = share * PERCENTAGE_SCALE;
     return {
       ...segment,
@@ -234,13 +245,67 @@ function compositionFor(groups: MoneyHubAccountGroup[]) {
     segment.percentage += 1;
   }
 
-  return rounded.map(({ key, balance, share, percentage }) => ({
+  return rounded.map(({ key, amount, share, percentage }) => ({
     key,
-    balance,
+    amount,
     share,
     percentage,
     isLessThanOnePercent: percentage === 0,
   }));
+}
+
+export function calculateMoneyAssetOverview(input: {
+  accounts: number | null;
+  savings: number | null;
+  investments: {
+    amount: number | null;
+    valuationIncluded: number;
+    valuationTotal: number;
+  } | null;
+}): MoneyAssetOverview {
+  if (
+    input.accounts == null ||
+    input.savings == null ||
+    input.investments == null
+  ) {
+    return { status: MoneyAssetOverviewStatus.UNAVAILABLE };
+  }
+
+  const { valuationIncluded, valuationTotal } = input.investments;
+  if (valuationTotal > 0 && input.investments.amount == null) {
+    return { status: MoneyAssetOverviewStatus.UNAVAILABLE };
+  }
+
+  const allocation = roundedDistributionSegments([
+    {
+      key: MoneyAssetAllocationKey.ACCOUNTS,
+      amount: Math.max(input.accounts, 0),
+    },
+    {
+      key: MoneyAssetAllocationKey.SAVINGS,
+      amount: Math.max(input.savings, 0),
+    },
+    {
+      key: MoneyAssetAllocationKey.INVESTMENTS,
+      amount: Math.max(input.investments.amount ?? 0, 0),
+    },
+  ]);
+
+  const total = allocation.reduce((sum, segment) => sum + segment.amount, 0);
+  const status =
+    valuationTotal > valuationIncluded
+      ? MoneyAssetOverviewStatus.PARTIAL
+      : MoneyAssetOverviewStatus.COMPLETE;
+
+  return {
+    status,
+    total,
+    allocation,
+    investmentCoverage: {
+      included: valuationIncluded,
+      total: valuationTotal,
+    },
+  };
 }
 
 /** True only for real, user-controlled asset accounts eligible for Money's owned total. */
@@ -277,7 +342,6 @@ export function createMoneyHubViewModel(input: {
     initialAccountGroups: groupsForInitialRows(accountGroups),
     accountPresentation: accountGroups.length > 1 ? "grouped" : "flat",
     hasMoreAccounts: accounts.length > MONEY_HUB_INITIAL_ACCOUNT_ROW_LIMIT,
-    composition: compositionFor(accountGroups),
     creditCards,
     totalCreditOutstanding: creditCards.reduce(
       (sum, card) => sum + card.outstanding,

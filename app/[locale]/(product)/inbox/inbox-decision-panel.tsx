@@ -388,28 +388,19 @@ export function InboxDecisionPanel({ item, jars }: Props) {
               description={t("noJarsBody")}
             />
           ) : (
-            <label className="flex flex-col gap-(--space-2)">
-              <Text size="sm" className="font-semibold text-text-primary">
-                {t("jarLabel")}
-              </Text>
-              <select
-                className="min-h-11 w-full rounded-md border border-border-subtle bg-canvas px-(--space-3) text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-                value={jarId}
-                onChange={(e) => setJarId(e.target.value)}
-                aria-label={t("jarLabel")}
-                data-testid="inbox-jar-select"
-                disabled={busy}
-              >
-                {jars.map((jar) => (
-                  <option key={jar.id} value={jar.id}>
-                    {localizeCatalogName(tCatalog, "jars", jar.name)}
-                    {jar.id === item.suggestedJarId
-                      ? ` — ${t("suggestedSuffix")}`
-                      : ""}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <SelectField
+              id="inbox-jar-select"
+              label={t("jarLabel")}
+              value={jarId}
+              options={jars.map((jar) => ({
+                id: jar.id,
+                label: `${localizeCatalogName(tCatalog, "jars", jar.name)}${jar.id === item.suggestedJarId ? ` — ${t("suggestedSuffix")}` : ""}`,
+              }))}
+              onChange={setJarId}
+              isDisabled={busy}
+              required
+              data-testid="inbox-jar-select"
+            />
           )}
 
           <BottomActionBar>

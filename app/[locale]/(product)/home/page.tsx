@@ -11,6 +11,10 @@ import {
   getHomeSavingsSummary,
 } from "@/modules/home/application";
 import {
+  calculateMoneyAssetOverview,
+  MoneyAssetOverviewStatus,
+} from "@/modules/ledger/application";
+import {
   HOME_DASHBOARD_DEFAULT_PERIOD,
   HOME_PERIOD_FOCUS_INTENT_KEY,
   HOME_PERIOD_FOCUS_QUERY,
@@ -20,6 +24,7 @@ import {
   HOME_TEST_ID,
   HomeDashboardPeriod,
   HomeDashboardReadStatus,
+  HomeProductReadStatus,
   HomeStatusLaneKind,
   homeGreetingPeriod,
 } from "@/modules/home/application/home-constants";
@@ -105,6 +110,21 @@ export default async function HomePage({ params, searchParams }: Props) {
     dashboard.dashboard.financialMetrics != null &&
     (dashboard.dashboard.financialMetrics.income > 0 ||
       dashboard.dashboard.financialMetrics.expense > 0);
+  const assetOverview = calculateMoneyAssetOverview({
+    accounts: dashboardData?.realBalance ?? null,
+    savings:
+      savings.status === HomeProductReadStatus.READY
+        ? savings.summary.principal
+        : null,
+    investments:
+      investments.status === HomeProductReadStatus.READY
+        ? {
+            amount: investments.summary.marketValue,
+            valuationIncluded: investments.summary.valuationIncluded,
+            valuationTotal: investments.summary.valuationTotal,
+          }
+        : null,
+  });
 
   return (
     <MotionReveal className="min-h-full">
@@ -155,7 +175,20 @@ export default async function HomePage({ params, searchParams }: Props) {
             <HomePeriodTransition period={dashboard.dashboard.period}>
               <HomePeriodData period={dashboard.dashboard.period}>
                 <HomeFinancialPulse
-                  balance={dashboard.dashboard.realBalance}
+                  balance={
+                    assetOverview.status ===
+                    MoneyAssetOverviewStatus.UNAVAILABLE
+                      ? null
+                      : assetOverview.total
+                  }
+                  balanceNote={
+                    assetOverview.status === MoneyAssetOverviewStatus.PARTIAL
+                      ? t(
+                          "financialPulse.partial",
+                          assetOverview.investmentCoverage,
+                        )
+                      : undefined
+                  }
                   currency={dashboard.dashboard.currency}
                   locale={locale}
                   period={dashboard.dashboard.period}

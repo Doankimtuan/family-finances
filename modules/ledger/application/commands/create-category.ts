@@ -8,17 +8,26 @@ import {
 } from "@/modules/tenancy/application/product-action-error";
 import {
   LEDGER_ACTION_ERROR_CODE,
-  TRANSACTION_DIRECTION_VALUES,
+  TransactionDirection,
   type LedgerActionErrorCode,
 } from "../ledger-constants";
 import { isCategoryJarMapped } from "../category-jar-policy";
 import { classifyCategoryRpcError } from "../ledger-error";
 
-export const createCategoryInputSchema = z.object({
-  name: z.string().trim().min(1).max(80),
-  kind: z.enum(TRANSACTION_DIRECTION_VALUES),
-  jarId: z.string().uuid(),
-});
+const categoryNameSchema = z.string().trim().min(1).max(80);
+
+export const createCategoryInputSchema = z.discriminatedUnion("kind", [
+  z.object({
+    name: categoryNameSchema,
+    kind: z.literal(TransactionDirection.EXPENSE),
+    jarId: z.string().uuid(),
+  }),
+  z.object({
+    name: categoryNameSchema,
+    kind: z.literal(TransactionDirection.INCOME),
+    jarId: z.null().optional(),
+  }),
+]);
 
 export type CreateCategoryInput = z.infer<typeof createCategoryInputSchema>;
 
@@ -29,21 +38,32 @@ export type CreateCategoryResult =
   | { ok: true; categoryId: string }
   | { ok: false; code: CreateCategoryErrorCode };
 
-/**
- * Create a household category bound N:1 to an active jar (BR-12 / AC-CAT-01).
- */
+/** Create a household category; only expense categories require a jar. */
 export async function createCategory(
   raw: CreateCategoryInput,
 ): Promise<CreateCategoryResult> {
   const parsed = createCategoryInputSchema.safeParse(raw);
   if (!parsed.success) {
-    if (!isCategoryJarMapped({ isSystem: false, jarId: raw?.jarId })) {
+    if (
+      raw?.kind === TransactionDirection.EXPENSE &&
+      !isCategoryJarMapped({
+        isSystem: false,
+        kind: raw.kind,
+        jarId: raw.jarId,
+      })
+    ) {
       return { ok: false, code: LEDGER_ACTION_ERROR_CODE.CATEGORY_UNMAPPED };
     }
     return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
   }
 
-  if (!isCategoryJarMapped({ isSystem: false, jarId: parsed.data.jarId })) {
+  if (
+    !isCategoryJarMapped({
+      isSystem: false,
+      kind: parsed.data.kind,
+      jarId: parsed.data.jarId,
+    })
+  ) {
     return { ok: false, code: LEDGER_ACTION_ERROR_CODE.CATEGORY_UNMAPPED };
   }
 
@@ -60,7 +80,7 @@ export async function createCategory(
     const { data, error } = await supabase.rpc("create_category", {
       p_name: parsed.data.name,
       p_kind: parsed.data.kind,
-      p_jar_id: parsed.data.jarId,
+      p_jar_id: parsed.data.jarId ?? null,
     });
 
     if (error) {

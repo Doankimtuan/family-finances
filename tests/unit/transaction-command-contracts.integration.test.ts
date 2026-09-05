@@ -58,6 +58,32 @@ describe("Sprint 1 integration — refund / correct / category RPCs", () => {
     }
   });
 
+  it("createCategory sends a null jar for income categories", async () => {
+    vi.mocked(assertMoneyActionAllowed).mockResolvedValue({
+      ok: true,
+      householdId: "h1",
+      userId: "u1",
+    } as never);
+
+    const rpc = vi.fn().mockResolvedValue({
+      data: { category_id: "income-category" },
+      error: null,
+    });
+    vi.mocked(createSupabaseServerClient).mockResolvedValue({ rpc } as never);
+
+    const result = await createCategory({
+      name: "Salary",
+      kind: TransactionDirection.INCOME,
+    });
+
+    expect(result).toEqual({ ok: true, categoryId: "income-category" });
+    expect(rpc).toHaveBeenCalledWith("create_category", {
+      p_name: "Salary",
+      p_kind: TransactionDirection.INCOME,
+      p_jar_id: null,
+    });
+  });
+
   it("refundTransaction maps RPC capacity restoration (AC-TRN-01)", async () => {
     vi.mocked(assertMoneyActionAllowed).mockResolvedValue({
       ok: true,

@@ -1,7 +1,7 @@
 /**
  * AC contract scenarios for Sprint 1 — executable business semantics that
- * mirror RPC/SQL behavior (AC-CAT-01, AC-TRN-01, AC-TRN-02) including income
- * exclusion and capacity restoration.
+ * mirror RPC/SQL behavior (category jar policy, AC-TRN-01, AC-TRN-02)
+ * including income exclusion and capacity restoration.
  *
  * Live DB smoke was verified against family-finances-2 after migration
  * `sprint1_immutability_income_exclusion` (update_transaction fail-closed,
@@ -31,8 +31,15 @@ import {
 import { applyTransactionDeltas } from "@/modules/ledger/application/transaction-types";
 import { AccountType } from "@/modules/ledger/application/ledger-constants";
 
-describe("AC-CAT-01 GWT — Pet Grooming without jar blocked", () => {
-  it("blocks save without jarId and accepts with jarId", () => {
+describe("category jar policy", () => {
+  it("allows income without jarId and keeps expense jarId required", () => {
+    expect(
+      createCategoryInputSchema.safeParse({
+        name: "Salary",
+        kind: TransactionDirection.INCOME,
+      }).success,
+    ).toBe(true);
+
     expect(
       createCategoryInputSchema.safeParse({
         name: "Pet Grooming",

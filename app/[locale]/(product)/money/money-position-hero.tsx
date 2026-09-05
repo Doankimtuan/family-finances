@@ -1,18 +1,20 @@
 import type { ReactNode } from "react";
 import { Link } from "@/i18n/navigation";
-import { MoneyAccountGroupKey } from "@/modules/ledger/application";
+import {
+  MoneyAssetAllocationKey,
+  type MoneyAssetAllocationKey as MoneyAssetAllocationKeyValue,
+} from "@/modules/ledger/application";
 import { Balance, BalanceSize } from "@/shared/patterns/balance";
 import { Card } from "@/shared/patterns/card";
 import { FinancialValue } from "@/shared/patterns/financial-value";
 import { AppIcon } from "@/shared/ui/app-icon";
 import { Heading } from "@/shared/ui/heading";
 import { IconContainer } from "@/shared/ui/icon-container";
-import { ACTION_ICONS } from "@/shared/ui/icon-registry";
+import { ACTION_ICONS, FINANCE_ICONS } from "@/shared/ui/icon-registry";
 import { Text } from "@/shared/ui/text";
-import { moneyAccountVisualFor } from "./money-account-visuals";
 
-type MoneyPositionCompositionSegment = {
-  key: MoneyAccountGroupKey;
+type MoneyPositionAllocationSegment = {
+  key: MoneyAssetAllocationKeyValue;
   label: string;
   balanceLabel: string;
   percentage: number;
@@ -22,48 +24,56 @@ type MoneyPositionCompositionSegment = {
 type Props = {
   ownedMoneyLabel: string;
   ownedMoneyValue: string | null;
+  accountMoneyLabel?: string;
+  accountMoneyValue?: string | null;
   positionUnavailableLabel: string;
   metaLine: ReactNode;
-  compositionLabel: string;
-  composition: MoneyPositionCompositionSegment[];
+  allocationLabel: string;
+  allocationHint?: string;
+  allocationUnavailableLabel?: string;
+  allocation: MoneyPositionAllocationSegment[];
   activityHref: string;
   activityLabel: string;
 };
 
-const ACCOUNT_TYPE_FOR_GROUP: Record<
-  MoneyAccountGroupKey,
-  Parameters<typeof moneyAccountVisualFor>[0]
-> = {
-  [MoneyAccountGroupKey.CASH]: "cash",
-  [MoneyAccountGroupKey.BANK]: "checking",
-  [MoneyAccountGroupKey.WALLET]: "ewallet",
-  [MoneyAccountGroupKey.SAVINGS]: "savings",
-  [MoneyAccountGroupKey.INVESTMENT]: "brokerage",
-  [MoneyAccountGroupKey.OTHER]: "other",
-};
+const ASSET_ALLOCATION_VISUAL = {
+  [MoneyAssetAllocationKey.ACCOUNTS]: {
+    icon: FINANCE_ICONS.account,
+    tone: "primary",
+  },
+  [MoneyAssetAllocationKey.SAVINGS]: {
+    icon: FINANCE_ICONS.savings,
+    tone: "savings",
+  },
+  [MoneyAssetAllocationKey.INVESTMENTS]: {
+    icon: FINANCE_ICONS.investment,
+    tone: "investment",
+  },
+} as const;
 
-const ALLOCATION_SEGMENT_CLASS: Record<MoneyAccountGroupKey, string> = {
-  [MoneyAccountGroupKey.CASH]: "bg-income",
-  [MoneyAccountGroupKey.BANK]: "bg-primary",
-  [MoneyAccountGroupKey.WALLET]: "bg-info",
-  [MoneyAccountGroupKey.SAVINGS]: "bg-saving",
-  [MoneyAccountGroupKey.INVESTMENT]: "bg-investment",
-  [MoneyAccountGroupKey.OTHER]: "bg-border-strong",
+const ALLOCATION_SEGMENT_CLASS: Record<MoneyAssetAllocationKeyValue, string> = {
+  [MoneyAssetAllocationKey.ACCOUNTS]: "bg-primary",
+  [MoneyAssetAllocationKey.SAVINGS]: "bg-saving",
+  [MoneyAssetAllocationKey.INVESTMENTS]: "bg-investment",
 };
 
 /**
  * The Money position summary: one brand hero answering "how much is in my
- * active accounts" with the transactions entry, and an attached composition
- * strip answering "where it sits". Money stays an inventory surface — the
- * composition strip is the analytics ceiling here, never charts.
+ * all assets" with the transactions entry, and an attached allocation strip
+ * answering "where it sits". Money stays an inventory surface — the
+ * allocation strip is the analytics ceiling here, never charts.
  */
 export function MoneyPositionHero({
   ownedMoneyLabel,
   ownedMoneyValue,
+  accountMoneyLabel,
+  accountMoneyValue,
   positionUnavailableLabel,
   metaLine,
-  compositionLabel,
-  composition,
+  allocationLabel,
+  allocationHint,
+  allocationUnavailableLabel,
+  allocation,
   activityHref,
   activityLabel,
 }: Props) {
@@ -94,6 +104,16 @@ export function MoneyPositionHero({
             amountClassName="text-hero-fg"
           />
         )}
+        {ownedMoneyValue != null &&
+        accountMoneyLabel != null &&
+        accountMoneyValue != null ? (
+          <div className="mt-(--space-1) flex flex-wrap items-center gap-x-(--space-2) text-xs text-hero-muted">
+            <span>{accountMoneyLabel}</span>
+            <span className="font-medium tabular-nums">
+              <FinancialValue>{accountMoneyValue}</FinancialValue>
+            </span>
+          </div>
+        ) : null}
         <div className="mt-(--space-4) flex flex-wrap items-center justify-between gap-x-(--space-3) gap-y-(--space-2) border-t border-white/15 pt-(--space-3)">
           {metaLine}
           <Link
@@ -106,66 +126,77 @@ export function MoneyPositionHero({
           </Link>
         </div>
       </Card>
-      {composition.length > 0 ? (
+      {allocation.length > 0 || allocationUnavailableLabel != null ? (
         <Card
           tone="elevated"
           className="gap-0 p-(--space-4)"
-          data-testid="money-composition-summary"
+          data-testid="money-asset-allocation-summary"
         >
           <Heading
             level={3}
             className="text-sm font-semibold tracking-tight text-text-primary"
             data-slot="section-title"
           >
-            {compositionLabel}
+            {allocationLabel}
           </Heading>
-          <div
-            className="mt-(--space-3) flex h-2 w-full overflow-hidden rounded-full bg-surface-muted"
-            aria-hidden="true"
-            data-testid="money-composition-strip"
-          >
-            {composition.map((segment) => (
-              <span
-                key={segment.key}
-                className={`min-w-1 ${ALLOCATION_SEGMENT_CLASS[segment.key]}`}
-                style={{ width: `${segment.percentage}%` }}
-              />
-            ))}
-          </div>
-          <ul
-            className="mt-(--space-4) flex flex-col gap-y-(--space-2)"
-            aria-label={compositionLabel}
-            data-testid="money-composition-legend"
-          >
-            {composition.map((segment) => {
-              const visual = moneyAccountVisualFor(
-                ACCOUNT_TYPE_FOR_GROUP[segment.key],
-              );
-              return (
-                <li
-                  key={segment.key}
-                  className="flex min-w-0 items-center justify-between gap-(--space-3)"
-                >
-                  <div className="flex min-w-0 items-center gap-(--space-2)">
-                    <IconContainer tone={visual.tone} size="sm">
-                      <AppIcon icon={visual.icon} size="xs" />
-                    </IconContainer>
-                    <div className="min-w-0">
-                      <span className="block text-sm font-medium text-text-primary">
-                        {segment.label}
+          {allocationHint ? (
+            <Text size="xs" tone="secondary" className="mt-(--space-1)">
+              {allocationHint}
+            </Text>
+          ) : null}
+          {allocation.length > 0 ? (
+            <>
+              <div
+                className="mt-(--space-3) flex h-2 w-full overflow-hidden rounded-full bg-surface-muted"
+                aria-hidden="true"
+                data-testid="money-asset-allocation-strip"
+              >
+                {allocation.map((segment) => (
+                  <span
+                    key={segment.key}
+                    className={`min-w-1 ${ALLOCATION_SEGMENT_CLASS[segment.key]}`}
+                    style={{ width: `${segment.percentage}%` }}
+                  />
+                ))}
+              </div>
+              <ul
+                className="mt-(--space-4) flex flex-col gap-y-(--space-2)"
+                aria-label={allocationLabel}
+                data-testid="money-asset-allocation-legend"
+              >
+                {allocation.map((segment) => {
+                  const visual = ASSET_ALLOCATION_VISUAL[segment.key];
+                  return (
+                    <li
+                      key={segment.key}
+                      className="flex min-w-0 items-center justify-between gap-(--space-3)"
+                    >
+                      <div className="flex min-w-0 items-center gap-(--space-2)">
+                        <IconContainer tone={visual.tone} size="sm">
+                          <AppIcon icon={visual.icon} size="xs" />
+                        </IconContainer>
+                        <div className="min-w-0">
+                          <span className="block text-sm font-medium text-text-primary">
+                            {segment.label}
+                          </span>
+                          <span className="block text-xs tabular-nums text-text-secondary">
+                            {segment.percentageLabel}
+                          </span>
+                        </div>
+                      </div>
+                      <span className="shrink-0 text-sm font-medium tabular-nums tracking-tight text-text-primary">
+                        <FinancialValue>{segment.balanceLabel}</FinancialValue>
                       </span>
-                      <span className="block text-xs tabular-nums text-text-secondary">
-                        {segment.percentageLabel}
-                      </span>
-                    </div>
-                  </div>
-                  <span className="shrink-0 text-sm font-medium tabular-nums tracking-tight text-text-primary">
-                    <FinancialValue>{segment.balanceLabel}</FinancialValue>
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
+                    </li>
+                  );
+                })}
+              </ul>
+            </>
+          ) : (
+            <Text size="sm" tone="secondary" className="mt-(--space-3)">
+              {allocationUnavailableLabel}
+            </Text>
+          )}
         </Card>
       ) : null}
     </div>

@@ -12,6 +12,7 @@ import {
   calculateJarBudgetMetrics,
   calculateJarSpentAmount,
   calculatePeriodIncome,
+  resolveJarPlanForPeriod,
 } from "@/modules/plan/application/jar-budget";
 import { calculateRolloverCreditFromPreviousState } from "@/modules/plan/application/jar-rollover";
 
@@ -25,6 +26,50 @@ const percentJar = {
 };
 
 describe("Plan V2 jar budgets", () => {
+  it("uses the edited live plan for the current period", () => {
+    const editedPlan = {
+      kind: JarPlanKind.FIXED,
+      percentBps: 0,
+      fixedAmount: 12_000_000,
+    };
+    const staleSnapshotPlan = {
+      kind: JarPlanKind.FIXED,
+      percentBps: 0,
+      fixedAmount: 15_000_000,
+    };
+
+    expect(
+      resolveJarPlanForPeriod({
+        currentPlan: editedPlan,
+        snapshotPlan: staleSnapshotPlan,
+        periodMonth: "2026-09-01",
+        currentPeriodMonth: "2026-09-01",
+      }),
+    ).toEqual(editedPlan);
+  });
+
+  it("keeps historical periods on their snapshot plan", () => {
+    const editedPlan = {
+      kind: JarPlanKind.FIXED,
+      percentBps: 0,
+      fixedAmount: 12_000_000,
+    };
+    const snapshotPlan = {
+      kind: JarPlanKind.FIXED,
+      percentBps: 0,
+      fixedAmount: 15_000_000,
+    };
+
+    expect(
+      resolveJarPlanForPeriod({
+        currentPlan: editedPlan,
+        snapshotPlan,
+        periodMonth: "2026-08-01",
+        currentPeriodMonth: "2026-09-01",
+      }),
+    ).toEqual(snapshotPlan);
+  });
+
   it("uses fixed monthly amounts without requiring income", () => {
     expect(calculateJarBudgetAmount(fixedJar, 0)).toBe(15_000_000);
   });

@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
+  calculateMoneyAssetOverview,
   createMoneyHubViewModel,
   createMoneyHubModuleSummaries,
   MoneyAccountGroupKey,
+  MoneyAssetAllocationKey,
+  MoneyAssetOverviewStatus,
   MoneyCreditAttention,
 } from "@/modules/ledger/application/money-hub-view-model";
 import { AccountType } from "@/modules/ledger/application/ledger-constants";
@@ -116,103 +119,6 @@ describe("createMoneyHubViewModel", () => {
     expect(
       viewModel.accountGroups[0]?.accounts.map((account) => account.id),
     ).toEqual(["cash-large", "cash-small"]);
-    expect(viewModel.composition).toEqual([
-      {
-        key: MoneyAccountGroupKey.CASH,
-        balance: 110,
-        share: 1,
-        percentage: 100,
-        isLessThanOnePercent: false,
-      },
-    ]);
-  });
-
-  it("rounds distribution percentages to exactly 100 points", () => {
-    const viewModel = createMoneyHubViewModel({
-      position: position([
-        {
-          id: "cash-1",
-          name: "Cash",
-          type: AccountType.CASH,
-          balance: 1,
-          isArchived: false,
-        },
-        {
-          id: "bank-1",
-          name: "Bank",
-          type: AccountType.CHECKING,
-          balance: 1,
-          isArchived: false,
-        },
-        {
-          id: "wallet-1",
-          name: "Wallet",
-          type: AccountType.EWALLET,
-          balance: 1,
-          isArchived: false,
-        },
-      ]),
-      creditCards: [],
-    });
-
-    expect(viewModel.composition.map((segment) => segment.percentage)).toEqual([
-      34, 33, 33,
-    ]);
-    expect(
-      viewModel.composition.reduce(
-        (sum, segment) => sum + segment.percentage,
-        0,
-      ),
-    ).toBe(100);
-    expect(viewModel.composition[1]).toMatchObject({
-      percentage: 33,
-      isLessThanOnePercent: false,
-    });
-  });
-
-  it("marks a positive tiny balance as less than one percent", () => {
-    const viewModel = createMoneyHubViewModel({
-      position: position([
-        {
-          id: "cash-1",
-          name: "Cash",
-          type: AccountType.CASH,
-          balance: 1000,
-          isArchived: false,
-        },
-        {
-          id: "bank-1",
-          name: "Bank",
-          type: AccountType.CHECKING,
-          balance: 1,
-          isArchived: false,
-        },
-      ]),
-      creditCards: [],
-    });
-
-    expect(viewModel.composition[1]).toMatchObject({
-      key: MoneyAccountGroupKey.BANK,
-      percentage: 0,
-      isLessThanOnePercent: true,
-    });
-  });
-
-  it("omits composition when no positive owned balance exists", () => {
-    const viewModel = createMoneyHubViewModel({
-      position: position([
-        {
-          id: "cash-1",
-          name: "Cash",
-          type: AccountType.CASH,
-          balance: 0,
-          isArchived: false,
-        },
-      ]),
-      creditCards: [],
-    });
-
-    expect(viewModel.composition).toEqual([]);
   });
 
   it("exposes only the initial account rows until the user expands a long list", () => {
@@ -330,5 +236,147 @@ describe("createMoneyHubViewModel", () => {
       valuationQuality: InvestmentHomeValuationQuality.PARTIAL,
       valuationCoverage: { included: 2, total: 3 },
     });
+  });
+
+  it("calculates complete asset totals and allocation percentages", () => {
+    const overview = calculateMoneyAssetOverview({
+      accounts: 100,
+      savings: 50,
+      investments: {
+        amount: 50,
+        valuationIncluded: 2,
+        valuationTotal: 2,
+      },
+    });
+
+    expect(overview).toEqual({
+      status: MoneyAssetOverviewStatus.COMPLETE,
+      total: 200,
+      investmentCoverage: { included: 2, total: 2 },
+      allocation: [
+        {
+          key: MoneyAssetAllocationKey.ACCOUNTS,
+          amount: 100,
+          share: 0.5,
+          percentage: 50,
+          isLessThanOnePercent: false,
+        },
+        {
+          key: MoneyAssetAllocationKey.SAVINGS,
+          amount: 50,
+          share: 0.25,
+          percentage: 25,
+          isLessThanOnePercent: false,
+        },
+        {
+          key: MoneyAssetAllocationKey.INVESTMENTS,
+          amount: 50,
+          share: 0.25,
+          percentage: 25,
+          isLessThanOnePercent: false,
+        },
+      ],
+    });
+  });
+
+  it("keeps an account-only total complete when no products exist", () => {
+    const overview = calculateMoneyAssetOverview({
+      accounts: 100,
+      savings: 0,
+      investments: {
+        amount: null,
+        valuationIncluded: 0,
+        valuationTotal: 0,
+      },
+    });
+
+    expect(overview).toMatchObject({
+      status: MoneyAssetOverviewStatus.COMPLETE,
+      total: 100,
+      allocation: [
+        expect.objectContaining({
+          key: MoneyAssetAllocationKey.ACCOUNTS,
+          percentage: 100,
+        }),
+      ],
+    });
+  });
+
+  it("rounds asset allocation percentages to exactly 100 points", () => {
+    const overview = calculateMoneyAssetOverview({
+      accounts: 1,
+      savings: 1,
+      investments: {
+        amount: 1,
+        valuationIncluded: 1,
+        valuationTotal: 1,
+      },
+    });
+
+    expect(
+      overview.status === MoneyAssetOverviewStatus.UNAVAILABLE
+        ? []
+        : overview.allocation.map((segment) => segment.percentage),
+    ).toEqual([34, 33, 33]);
+    expect(
+      overview.status === MoneyAssetOverviewStatus.UNAVAILABLE
+        ? 0
+        : overview.allocation.reduce(
+            (sum, segment) => sum + segment.percentage,
+            0,
+          ),
+    ).toBe(100);
+  });
+
+  it("marks a partial investment valuation without inventing an unknown slice", () => {
+    const overview = calculateMoneyAssetOverview({
+      accounts: 100,
+      savings: 50,
+      investments: {
+        amount: 50,
+        valuationIncluded: 1,
+        valuationTotal: 2,
+      },
+    });
+
+    expect(overview).toMatchObject({
+      status: MoneyAssetOverviewStatus.PARTIAL,
+      total: 200,
+      investmentCoverage: { included: 1, total: 2 },
+    });
+    expect(
+      overview.status === MoneyAssetOverviewStatus.UNAVAILABLE
+        ? []
+        : overview.allocation.reduce(
+            (sum, segment) => sum + segment.percentage,
+            0,
+          ),
+    ).toBe(100);
+  });
+
+  it("makes the asset overview unavailable when a required value is missing", () => {
+    expect(
+      calculateMoneyAssetOverview({
+        accounts: 100,
+        savings: null,
+        investments: {
+          amount: 50,
+          valuationIncluded: 1,
+          valuationTotal: 1,
+        },
+      }),
+    ).toEqual({ status: MoneyAssetOverviewStatus.UNAVAILABLE });
+
+    expect(
+      calculateMoneyAssetOverview({
+        accounts: 100,
+        savings: 50,
+        investments: {
+          amount: null,
+          valuationIncluded: 0,
+          valuationTotal: 2,
+        },
+      }),
+    ).toEqual({ status: MoneyAssetOverviewStatus.UNAVAILABLE });
   });
 });

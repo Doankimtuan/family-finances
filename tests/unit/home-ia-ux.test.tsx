@@ -283,4 +283,19 @@ describe("Home IA and action states", () => {
       screen.getByRole("group", { name: "financialPulse.netLabel.quarter" }),
     ).toBeInTheDocument();
   });
+
+  it("keeps the total asset pulse explicit when the aggregate is unavailable", () => {
+    render(
+      <HomeFinancialPulse
+        balance={null}
+        currency="VND"
+        locale="vi"
+        period={HomeDashboardPeriod.MONTH}
+        metrics={null}
+      />,
+    );
+
+    expect(screen.getByText("financialPulse.unavailable")).toBeInTheDocument();
+    expect(screen.queryByTestId("ledger-balance")).not.toBeInTheDocument();
+  });
 });

@@ -32,9 +32,7 @@ type Props = {
   jars: CaptureJarOption[];
 };
 
-/**
- * Category creation with required Jar mapping (BR-12 / AC-CAT-01).
- */
+/** Category creation keeps Jar mapping only for expense categories. */
 export function CreateCategoryForm({ jars }: Props) {
   const t = useTranslations("plan.jars.categoryForm");
   const tCatalog = useTranslations("catalog");
@@ -84,7 +82,7 @@ export function CreateCategoryForm({ jars }: Props) {
       showCreateError(CLIENT_ACTION_ERROR_CODE.OFFLINE);
       return;
     }
-    if (!mappedJarId) {
+    if (kind === TransactionDirection.EXPENSE && !mappedJarId) {
       showCreateError(LEDGER_ACTION_ERROR_CODE.CATEGORY_UNMAPPED);
       return;
     }
@@ -93,12 +91,21 @@ export function CreateCategoryForm({ jars }: Props) {
       return;
     }
 
+    const categoryInput =
+      kind === TransactionDirection.EXPENSE
+        ? {
+            name: name.trim(),
+            kind: TransactionDirection.EXPENSE,
+            jarId: mappedJarId,
+          }
+        : {
+            name: name.trim(),
+            kind: TransactionDirection.INCOME,
+            jarId: null,
+          };
+
     startTransition(async () => {
-      const result = await createCategoryAction({
-        name: name.trim(),
-        kind,
-        jarId: mappedJarId,
-      });
+      const result = await createCategoryAction(categoryInput);
       if (result.status === "success") {
         setOpen(false);
         setName("");
@@ -141,7 +148,13 @@ export function CreateCategoryForm({ jars }: Props) {
           id={kindId}
           className="min-h-11 w-full rounded-md border border-border-subtle bg-surface px-(--space-3) text-sm text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
           value={kind}
-          onChange={(e) => setKind(e.target.value as TransactionDirectionValue)}
+          onChange={(e) => {
+            const nextKind = e.target.value as TransactionDirectionValue;
+            setKind(nextKind);
+            if (nextKind === TransactionDirection.INCOME) {
+              setMappedJarId("");
+            }
+          }}
         >
           {TRANSACTION_DIRECTION_OPTIONS.map((option) => (
             <option key={option} value={option}>
@@ -150,26 +163,28 @@ export function CreateCategoryForm({ jars }: Props) {
           ))}
         </select>
       </label>
-      <label className="flex flex-col gap-(--space-2)" htmlFor={jarId}>
-        <span className="text-sm font-medium text-text-primary">
-          {t("jarLabel")}
-        </span>
-        <select
-          id={jarId}
-          required
-          data-testid="category-jar-select"
-          className="min-h-11 w-full rounded-md border border-border-subtle bg-surface px-(--space-3) text-sm text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-          value={mappedJarId}
-          onChange={(e) => setMappedJarId(e.target.value)}
-        >
-          <option value="">{t("jarRequired")}</option>
-          {jars.map((jar) => (
-            <option key={jar.id} value={jar.id}>
-              {localizeCatalogName(tCatalog, "jars", jar.name) || jar.name}
-            </option>
-          ))}
-        </select>
-      </label>
+      {kind === TransactionDirection.EXPENSE ? (
+        <label className="flex flex-col gap-(--space-2)" htmlFor={jarId}>
+          <span className="text-sm font-medium text-text-primary">
+            {t("jarLabel")}
+          </span>
+          <select
+            id={jarId}
+            required
+            data-testid="category-jar-select"
+            className="min-h-11 w-full rounded-md border border-border-subtle bg-surface px-(--space-3) text-sm text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+            value={mappedJarId}
+            onChange={(e) => setMappedJarId(e.target.value)}
+          >
+            <option value="">{t("jarRequired")}</option>
+            {jars.map((jar) => (
+              <option key={jar.id} value={jar.id}>
+                {localizeCatalogName(tCatalog, "jars", jar.name) || jar.name}
+              </option>
+            ))}
+          </select>
+        </label>
+      ) : null}
       <Button
         variant="primary"
         className="w-full"

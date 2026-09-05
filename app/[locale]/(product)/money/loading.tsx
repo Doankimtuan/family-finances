@@ -12,6 +12,7 @@ function HeroSkeleton() {
       <Card tone="hero" className="gap-0 p-(--space-4)">
         <Skeleton className="h-4 w-36" />
         <Skeleton className="mt-(--space-2) h-9 w-52" />
+        <Skeleton className="mt-(--space-1) h-3 w-44" />
         <div className="mt-(--space-4) flex items-center justify-between gap-(--space-3) border-t border-divider pt-(--space-3)">
           <Skeleton className="h-4 w-40" />
           <Skeleton className="h-4 w-20" />
@@ -20,8 +21,8 @@ function HeroSkeleton() {
       <Card tone="elevated" className="gap-0 p-(--space-4)">
         <Skeleton className="h-4 w-32" />
         <Skeleton className="mt-(--space-3) h-2 w-full rounded-full" />
-        <div className="mt-(--space-3) grid grid-cols-2 gap-x-(--space-4) gap-y-(--space-2)">
-          {[0, 1, 2, 3].map((cell) => (
+        <div className="mt-(--space-3) flex flex-col gap-y-(--space-2)">
+          {[0, 1, 2].map((cell) => (
             <div
               key={cell}
               className="flex items-center justify-between gap-(--space-2)"
@@ -101,7 +102,7 @@ function AccountsSkeleton() {
   );
 }
 
-/** Loading shell mirrors the Money hub: position hero → composition → accounts → module groups. */
+/** Loading shell mirrors the Money hub: total hero → asset allocation → accounts → module groups. */
 export default async function MoneyLoading() {
   const locale = await getLocale();
   const t = await getTranslations({ locale, namespace: "money" });

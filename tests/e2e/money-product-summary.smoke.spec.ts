@@ -36,6 +36,18 @@ async function assertMoneySurface(page: Page) {
     surface.getByTestId("money-real-position-summary"),
   ).toBeVisible();
   await expect(surface.getByTestId("money-accounts-scan")).toBeVisible();
+  await expect(
+    surface.getByTestId("money-asset-allocation-summary"),
+  ).toContainText(/Where your assets are|Tài sản đang ở đâu/);
+  await expect(
+    surface.getByTestId("money-asset-allocation-legend"),
+  ).toContainText(/Accounts|Tài khoản/);
+  await expect(
+    surface.getByTestId("money-asset-allocation-legend"),
+  ).toContainText(/Savings|Tiết kiệm/);
+  await expect(
+    surface.getByTestId("money-asset-allocation-legend"),
+  ).toContainText(/Investments|Đầu tư/);
   await expect(surface.getByTestId("money-link-investments")).toContainText(
     /Partial estimate|Giá trị một phần/,
   );
