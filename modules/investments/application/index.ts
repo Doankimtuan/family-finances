@@ -1,4 +1,5 @@
 export * from "./investment-constants";
+export * from "./investment-money";
 export * from "./decimal-quantity";
 export * from "./investment-accounting";
 export * from "./market-valuation";
@@ -8,6 +9,7 @@ export * from "./commands/sync-market-catalog";
 export * from "./commands/sync-market-prices";
 export * from "./commands/sync-market-fx";
 export * from "./queries/investment-queries";
+export * from "./queries/get-investment-input-currency-rate";
 export * from "./queries/list-market-instruments";
 export * from "./queries/list-active-market-price-targets";
 export * from "../domain";

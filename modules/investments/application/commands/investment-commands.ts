@@ -5,9 +5,14 @@ import { resolveCreationOwnership } from "@/modules/tenancy/application/resolve-
 import {
   INVESTMENT_ERROR_CODE,
   INVESTMENT_FEE_SOURCE_VALUES,
+  INVESTMENT_INPUT_CURRENCY_RPC,
+  INVESTMENT_INPUT_CURRENCY_RATE_CURRENCIES,
   INVESTMENT_LEGACY_RPC_ERROR_MARKERS,
   INVESTMENT_RPC_CONTEXT_PARAM_TO_FIELD,
   INVESTMENT_RPC,
+  InvestmentInputCurrencyOperation,
+  InvestmentInputCurrency,
+  InvestmentInputRateSource,
   type InvestmentRpc,
   type InvestmentErrorCode,
 } from "../investment-constants";
@@ -67,6 +72,29 @@ function isInvestmentFeeSource(
   );
 }
 
+function usesInputCurrencyRpc(
+  currency: string | undefined,
+): currency is
+  typeof InvestmentInputCurrency.USDT | typeof InvestmentInputCurrency.USDC {
+  return INVESTMENT_INPUT_CURRENCY_RATE_CURRENCIES.includes(
+    currency as (typeof INVESTMENT_INPUT_CURRENCY_RATE_CURRENCIES)[number],
+  );
+}
+
+function invokeInputCurrencyRpc(
+  operationType: InvestmentInputCurrencyOperation,
+  payload: Record<string, unknown>,
+): Promise<InvestmentCommandResult> {
+  return invokeInvestmentRpc(INVESTMENT_INPUT_CURRENCY_RPC, {
+    p_operation_type: operationType,
+    p_payload: {
+      ...payload,
+      inputRateSource:
+        payload.inputRateSource ?? InvestmentInputRateSource.AUTOMATIC,
+    },
+  });
+}
+
 /**
  * Compatibility boundary for the current investment RPCs. Structured
  * `code`, `details`, or `hint` values are preferred; text matching remains
@@ -93,6 +121,13 @@ export function classifyLegacyInvestmentRpcError(
     )
   ) {
     return INVESTMENT_ERROR_CODE.NOT_FOUND;
+  }
+  if (
+    INVESTMENT_LEGACY_RPC_ERROR_MARKERS.CURRENCY_RATE_UNAVAILABLE.some(
+      (marker) => message.includes(marker),
+    )
+  ) {
+    return INVESTMENT_ERROR_CODE.CURRENCY_RATE_UNAVAILABLE;
   }
   return INVESTMENT_ERROR_CODE.UNKNOWN;
 }
@@ -219,6 +254,30 @@ export async function createOpeningPosition(
     value.financialScope,
   );
   if (!ownership) return { ok: false, code: INVESTMENT_ERROR_CODE.FORBIDDEN };
+  if (usesInputCurrencyRpc(value.inputCurrency)) {
+    return invokeInputCurrencyRpc(
+      InvestmentInputCurrencyOperation.OPENING_POSITION,
+      {
+        financialScope: ownership.financialScope,
+        assetName: value.assetName,
+        assetClass: value.assetClass,
+        instrumentId: value.instrumentId ?? null,
+        quantity: value.quantity,
+        asOfDate: value.asOfDate,
+        symbol: value.symbol ?? null,
+        providerCustodian: value.providerCustodian ?? null,
+        inputRemainingTotalCostBasis:
+          value.inputRemainingTotalCostBasis ?? null,
+        inputCurrentValuation: value.inputCurrentValuation ?? null,
+        inputCurrency: value.inputCurrency,
+        inputRateToVnd: value.inputRateToVnd ?? null,
+        inputRateSource: value.inputRateSource,
+        notes: value.notes ?? null,
+        visibilityContext: value.visibilityContext,
+        idempotencyKey: value.idempotencyKey,
+      },
+    );
+  }
   return invokeInvestmentRpc(INVESTMENT_RPC.OPENING_POSITION, {
     p_asset_name: value.assetName,
     p_asset_class: value.assetClass,
@@ -243,6 +302,23 @@ export async function recordInvestmentBuy(
   if (!parsed.success)
     return { ok: false, code: INVESTMENT_ERROR_CODE.INVALID };
   const value = parsed.data;
+  if (usesInputCurrencyRpc(value.inputCurrency)) {
+    return invokeInputCurrencyRpc(InvestmentInputCurrencyOperation.BUY, {
+      holdingId: value.holdingId,
+      cashAccountId: value.cashAccountId,
+      boughtQuantity: value.boughtQuantity,
+      inputUnitPrice: value.inputUnitPrice ?? null,
+      inputTotalValue: value.inputTotalValue ?? null,
+      inputQuotedValue: value.inputQuotedValue ?? null,
+      inputCurrency: value.inputCurrency,
+      inputRateToVnd: value.inputRateToVnd ?? null,
+      inputRateSource: value.inputRateSource,
+      effectiveDate: value.effectiveDate,
+      fees: value.fees,
+      notes: value.notes ?? null,
+      idempotencyKey: value.idempotencyKey,
+    });
+  }
   return invokeInvestmentRpc(INVESTMENT_RPC.BUY, {
     p_holding_id: value.holdingId,
     p_cash_account_id: value.cashAccountId,
@@ -264,6 +340,23 @@ export async function recordInvestmentSell(
   if (!parsed.success)
     return { ok: false, code: INVESTMENT_ERROR_CODE.INVALID };
   const value = parsed.data;
+  if (usesInputCurrencyRpc(value.inputCurrency)) {
+    return invokeInputCurrencyRpc(InvestmentInputCurrencyOperation.SELL, {
+      holdingId: value.holdingId,
+      cashAccountId: value.cashAccountId,
+      soldQuantity: value.soldQuantity,
+      inputUnitPrice: value.inputUnitPrice ?? null,
+      inputTotalValue: value.inputTotalValue ?? null,
+      inputQuotedValue: value.inputQuotedValue ?? null,
+      inputCurrency: value.inputCurrency,
+      inputRateToVnd: value.inputRateToVnd ?? null,
+      inputRateSource: value.inputRateSource,
+      effectiveDate: value.effectiveDate,
+      fees: value.fees,
+      notes: value.notes ?? null,
+      idempotencyKey: value.idempotencyKey,
+    });
+  }
   return invokeInvestmentRpc(INVESTMENT_RPC.SELL, {
     p_holding_id: value.holdingId,
     p_cash_account_id: value.cashAccountId,
@@ -285,6 +378,26 @@ export async function recordAssetConversion(
   if (!parsed.success)
     return { ok: false, code: INVESTMENT_ERROR_CODE.INVALID };
   const value = parsed.data;
+  if (usesInputCurrencyRpc(value.inputCurrency)) {
+    return invokeInputCurrencyRpc(
+      InvestmentInputCurrencyOperation.ASSET_CONVERSION,
+      {
+        sourceHoldingId: value.sourceHoldingId,
+        destinationHoldingId: value.destinationHoldingId,
+        sourceQuantity: value.sourceQuantity,
+        destinationQuantity: value.destinationQuantity,
+        inputExecutedValue: value.inputExecutedValue ?? null,
+        inputQuotedValue: value.inputQuotedValue ?? null,
+        inputCurrency: value.inputCurrency,
+        inputRateToVnd: value.inputRateToVnd ?? null,
+        inputRateSource: value.inputRateSource,
+        effectiveDate: value.effectiveDate,
+        fees: value.fees,
+        notes: value.notes ?? null,
+        idempotencyKey: value.idempotencyKey,
+      },
+    );
+  }
   return invokeInvestmentRpc(INVESTMENT_RPC.CONVERSION, {
     p_source_holding_id: value.sourceHoldingId,
     p_destination_holding_id: value.destinationHoldingId,
@@ -306,6 +419,23 @@ export async function recordInvestmentIncome(
   if (!parsed.success)
     return { ok: false, code: INVESTMENT_ERROR_CODE.INVALID };
   const value = parsed.data;
+  if (usesInputCurrencyRpc(value.inputCurrency)) {
+    return invokeInputCurrencyRpc(
+      InvestmentInputCurrencyOperation.INVESTMENT_INCOME,
+      {
+        holdingId: value.holdingId,
+        cashAccountId: value.cashAccountId,
+        inputAmount: value.inputAmount ?? null,
+        inputCurrency: value.inputCurrency,
+        inputRateToVnd: value.inputRateToVnd ?? null,
+        inputRateSource: value.inputRateSource,
+        incomeKind: value.incomeKind,
+        effectiveDate: value.effectiveDate,
+        notes: value.notes ?? null,
+        idempotencyKey: value.idempotencyKey,
+      },
+    );
+  }
   return invokeInvestmentRpc(INVESTMENT_RPC.INCOME, {
     p_holding_id: value.holdingId,
     p_cash_account_id: value.cashAccountId,
@@ -324,6 +454,20 @@ export async function recordInvestmentValuation(
   if (!parsed.success)
     return { ok: false, code: INVESTMENT_ERROR_CODE.INVALID };
   const value = parsed.data;
+  if (usesInputCurrencyRpc(value.inputCurrency)) {
+    return invokeInputCurrencyRpc(InvestmentInputCurrencyOperation.VALUATION, {
+      holdingId: value.holdingId,
+      inputUnitPrice: value.inputUnitPrice ?? null,
+      inputTotalValue: value.inputTotalValue ?? null,
+      inputCurrency: value.inputCurrency,
+      inputRateToVnd: value.inputRateToVnd ?? null,
+      inputRateSource: value.inputRateSource,
+      valuationDate: value.valuationDate,
+      source: value.source,
+      notes: value.notes ?? null,
+      idempotencyKey: value.idempotencyKey,
+    });
+  }
   return invokeInvestmentRpc(INVESTMENT_RPC.VALUATION, {
     p_holding_id: value.holdingId,
     p_unit_price_vnd: value.unitPriceVnd ?? null,
@@ -349,6 +493,31 @@ export async function createInitialPurchase(
     value.financialScope,
   );
   if (!ownership) return { ok: false, code: INVESTMENT_ERROR_CODE.FORBIDDEN };
+  if (usesInputCurrencyRpc(value.inputCurrency)) {
+    return invokeInputCurrencyRpc(
+      InvestmentInputCurrencyOperation.INITIAL_PURCHASE,
+      {
+        financialScope: ownership.financialScope,
+        assetName: value.assetName,
+        assetClass: value.assetClass,
+        instrumentId: value.instrumentId ?? null,
+        quantity: value.quantity,
+        inputUnitPrice: value.inputUnitPrice ?? null,
+        inputTotalValue: value.inputTotalValue ?? null,
+        cashAccountId: value.cashAccountId,
+        asOfDate: value.asOfDate,
+        symbol: value.symbol ?? null,
+        providerCustodian: value.providerCustodian ?? null,
+        fees: value.fees,
+        inputCurrency: value.inputCurrency,
+        inputRateToVnd: value.inputRateToVnd ?? null,
+        inputRateSource: value.inputRateSource,
+        notes: value.notes ?? null,
+        visibilityContext: value.visibilityContext,
+        idempotencyKey: value.idempotencyKey,
+      },
+    );
+  }
   return invokeInvestmentRpc(INVESTMENT_RPC.INITIAL_PURCHASE, {
     p_asset_name: value.assetName,
     p_asset_class: value.assetClass,

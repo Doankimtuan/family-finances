@@ -2,6 +2,8 @@ import { z } from "zod";
 import {
   INVESTMENT_ASSET_CLASS_VALUES,
   INVESTMENT_FEE_SOURCE_VALUES,
+  INVESTMENT_INPUT_CURRENCY_VALUES,
+  INVESTMENT_INPUT_RATE_SOURCE_VALUES,
   INVESTMENT_INCOME_KIND_VALUES,
   INVESTMENT_VALIDATION_MESSAGE,
   INVESTMENT_VALUATION_SOURCE_VALUES,
@@ -21,21 +23,33 @@ export const vndSchema = z.number().finite().int().safe().nonnegative();
 export const positiveVndSchema = vndSchema.positive();
 export const unitPriceVndSchema = vndSchema;
 export const positiveUnitPriceVndSchema = unitPriceVndSchema.positive();
+export const inputMoneySchema = z.number().finite().safe().nonnegative();
+export const positiveInputMoneySchema = inputMoneySchema.positive();
+export const inputCurrencySchema = z.enum(INVESTMENT_INPUT_CURRENCY_VALUES);
+export const inputRateSourceSchema = z.enum(
+  INVESTMENT_INPUT_RATE_SOURCE_VALUES,
+);
+export const inputRateToVndSchema = positiveInputMoneySchema;
 export const dateSchema = z.iso.date();
 export const optionalText = z.string().trim().max(500).nullable().optional();
 export const feeSchema = z
   .object({
     source: z.enum(INVESTMENT_FEE_SOURCE_VALUES),
     amountVnd: positiveVndSchema.optional(),
+    inputAmount: positiveInputMoneySchema.optional(),
     quantity: quantitySchema.optional(),
-    feeValueVnd: positiveVndSchema,
+    feeValueVnd: positiveVndSchema.optional(),
+    inputFeeValue: positiveInputMoneySchema.optional(),
     feeAsset: z.string().trim().max(40).nullable().optional(),
     holdingId: z.string().uuid().optional(),
     cashAccountId: z.string().uuid().optional(),
   })
   .superRefine((fee, context) => {
     const isCash = fee.source === InvestmentFeeSource.CASH;
-    if (isCash && (fee.amountVnd == null || !fee.cashAccountId)) {
+    if (
+      isCash &&
+      ((fee.amountVnd == null && fee.inputAmount == null) || !fee.cashAccountId)
+    ) {
       context.addIssue({
         code: "custom",
         message: INVESTMENT_VALIDATION_MESSAGE.INVALID_CASH_FEE,
@@ -53,6 +67,13 @@ export const feeSchema = z
         message: INVESTMENT_VALIDATION_MESSAGE.INVALID_FEE_HOLDING,
       });
     }
+    if (fee.feeValueVnd == null && fee.inputFeeValue == null) {
+      context.addIssue({
+        code: "custom",
+        path: ["feeValueVnd"],
+        message: "Required",
+      });
+    }
   });
 
 export const openingPositionInputSchema = z.object({
@@ -68,6 +89,11 @@ export const openingPositionInputSchema = z.object({
   providerCustodian: z.string().trim().max(160).nullable().optional(),
   remainingTotalCostBasis: vndSchema.nullable().optional(),
   currentValuation: vndSchema.nullable().optional(),
+  inputCurrency: inputCurrencySchema.optional(),
+  inputRateToVnd: inputRateToVndSchema.nullable().optional(),
+  inputRateSource: inputRateSourceSchema.optional(),
+  inputRemainingTotalCostBasis: inputMoneySchema.nullable().optional(),
+  inputCurrentValuation: inputMoneySchema.nullable().optional(),
   notes: optionalText,
   visibilityContext: z
     .enum(INVESTMENT_VISIBILITY_CONTEXT_VALUES)
@@ -86,6 +112,11 @@ export const initialPurchaseInputSchema = z
     quantity: quantitySchema,
     unitPriceVnd: positiveVndSchema.nullable().optional(),
     totalValueVnd: positiveVndSchema.nullable().optional(),
+    inputCurrency: inputCurrencySchema.optional(),
+    inputRateToVnd: inputRateToVndSchema.nullable().optional(),
+    inputRateSource: inputRateSourceSchema.optional(),
+    inputUnitPrice: positiveInputMoneySchema.nullable().optional(),
+    inputTotalValue: positiveInputMoneySchema.nullable().optional(),
     cashAccountId: z.string().uuid(),
     asOfDate: dateSchema,
     symbol: z.string().trim().max(40).nullable().optional(),
@@ -98,8 +129,14 @@ export const initialPurchaseInputSchema = z
     idempotencyKey: z.string().trim().min(1).max(200),
   })
   .superRefine((value, context) => {
+    const usesInputUnitPrice = value.inputUnitPrice != null;
+    const unitPrice = usesInputUnitPrice
+      ? value.inputUnitPrice
+      : value.unitPriceVnd;
+    const hasTotalValue =
+      value.inputTotalValue != null || value.totalValueVnd != null;
     if (value.assetClass === InvestmentAssetClass.BOND) {
-      if (value.totalValueVnd == null || value.unitPriceVnd != null) {
+      if (!hasTotalValue || unitPrice != null) {
         context.addIssue({
           code: "custom",
           path: ["totalValueVnd"],
@@ -108,7 +145,7 @@ export const initialPurchaseInputSchema = z
       }
       return;
     }
-    if (value.unitPriceVnd == null || value.totalValueVnd != null) {
+    if (unitPrice == null || (!usesInputUnitPrice && hasTotalValue)) {
       context.addIssue({
         code: "custom",
         path: ["unitPriceVnd"],
@@ -127,6 +164,12 @@ export const investmentBuyInputSchema = z.object({
   unitPriceVnd: positiveUnitPriceVndSchema.nullable().optional(),
   totalValueVnd: positiveVndSchema.nullable().optional(),
   quotedValueVnd: positiveVndSchema.nullable().optional(),
+  inputCurrency: inputCurrencySchema.optional(),
+  inputRateToVnd: inputRateToVndSchema.nullable().optional(),
+  inputRateSource: inputRateSourceSchema.optional(),
+  inputUnitPrice: positiveInputMoneySchema.nullable().optional(),
+  inputTotalValue: positiveInputMoneySchema.nullable().optional(),
+  inputQuotedValue: positiveInputMoneySchema.nullable().optional(),
   effectiveDate: dateSchema,
   fees: z.array(feeSchema).default([]),
   notes: optionalText,
@@ -140,6 +183,12 @@ export const investmentSellInputSchema = z.object({
   unitPriceVnd: positiveUnitPriceVndSchema.nullable().optional(),
   totalValueVnd: positiveVndSchema.nullable().optional(),
   quotedValueVnd: positiveVndSchema.nullable().optional(),
+  inputCurrency: inputCurrencySchema.optional(),
+  inputRateToVnd: inputRateToVndSchema.nullable().optional(),
+  inputRateSource: inputRateSourceSchema.optional(),
+  inputUnitPrice: positiveInputMoneySchema.nullable().optional(),
+  inputTotalValue: positiveInputMoneySchema.nullable().optional(),
+  inputQuotedValue: positiveInputMoneySchema.nullable().optional(),
   effectiveDate: dateSchema,
   fees: z.array(feeSchema).default([]),
   notes: optionalText,
@@ -153,6 +202,11 @@ export const assetConversionInputSchema = z.object({
   destinationQuantity: quantitySchema,
   executedValueVnd: positiveVndSchema.nullable().optional(),
   quotedValueVnd: positiveVndSchema.nullable().optional(),
+  inputCurrency: inputCurrencySchema.optional(),
+  inputRateToVnd: inputRateToVndSchema.nullable().optional(),
+  inputRateSource: inputRateSourceSchema.optional(),
+  inputExecutedValue: positiveInputMoneySchema.nullable().optional(),
+  inputQuotedValue: positiveInputMoneySchema.nullable().optional(),
   effectiveDate: dateSchema,
   fees: z.array(feeSchema).default([]),
   notes: optionalText,
@@ -163,6 +217,10 @@ export const investmentIncomeInputSchema = z.object({
   holdingId: z.string().uuid(),
   cashAccountId: z.string().uuid(),
   amountVnd: positiveVndSchema,
+  inputCurrency: inputCurrencySchema.optional(),
+  inputRateToVnd: inputRateToVndSchema.nullable().optional(),
+  inputRateSource: inputRateSourceSchema.optional(),
+  inputAmount: positiveInputMoneySchema.nullable().optional(),
   incomeKind: z.enum(INVESTMENT_INCOME_KIND_VALUES),
   effectiveDate: dateSchema,
   notes: optionalText,
@@ -173,6 +231,11 @@ export const investmentValuationInputSchema = z.object({
   holdingId: z.string().uuid(),
   unitPriceVnd: unitPriceVndSchema.nullable().optional(),
   totalValueVnd: vndSchema.nullable().optional(),
+  inputCurrency: inputCurrencySchema.optional(),
+  inputRateToVnd: inputRateToVndSchema.nullable().optional(),
+  inputRateSource: inputRateSourceSchema.optional(),
+  inputUnitPrice: inputMoneySchema.nullable().optional(),
+  inputTotalValue: inputMoneySchema.nullable().optional(),
   valuationDate: dateSchema,
   source: z.enum(INVESTMENT_VALUATION_SOURCE_VALUES),
   notes: optionalText,

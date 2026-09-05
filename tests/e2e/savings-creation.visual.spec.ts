@@ -56,20 +56,28 @@ test.describe("Savings creation visual contract", () => {
         fullPage: true,
       });
 
+      await expect(
+        page.getByTestId("savings-create-mode-live").first(),
+      ).toBeVisible();
+      await expect(
+        page.getByTestId("savings-create-mode-historical").first(),
+      ).toBeVisible();
+      await page.getByTestId("savings-create-mode-historical").click();
       await page.locator('[data-testid^="savings-package-"]').first().click();
       await page.getByTestId("savings-wizard-next").first().click();
       await expect(page.getByTestId("savings-estimate").first()).toBeVisible();
       await expect(page.getByText(/Term details|Thông tin kỳ hạn/)).toHaveCount(
         0,
       );
-      await page.getByTestId("savings-create-mode-historical").click();
       await expect(
         page.locator('[data-testid^="savings-source-"]'),
       ).toHaveCount(0);
       await expect(
         page.getByText(/No source account|Không có tài khoản nguồn/),
       ).toBeVisible();
+      await page.getByTestId("savings-wizard-back").click();
       await page.getByTestId("savings-create-mode-live").click();
+      await page.getByTestId("savings-wizard-next").click();
       await expect(
         page.locator('[data-testid^="savings-source-"]').first(),
       ).toBeVisible();

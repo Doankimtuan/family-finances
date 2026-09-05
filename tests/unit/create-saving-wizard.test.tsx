@@ -130,17 +130,16 @@ describe("CreateSavingWizard", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("uses the selected status to control the source account", () => {
+  it("shows the creation mode before continuing and controls the source account", () => {
     renderWizard();
-    fireEvent.click(screen.getByTestId(`savings-package-${PACKAGE_ID}`));
-    fireEvent.click(screen.getByTestId("savings-wizard-next"));
-
+    expect(screen.getByTestId("savings-create-mode-live")).toBeInTheDocument();
     expect(
-      screen.getByTestId(`savings-source-${ACCOUNT_ID}`),
+      screen.getByTestId("savings-create-mode-historical"),
     ).toBeInTheDocument();
-    expect(screen.queryByText("termsModeLabel")).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByTestId("savings-create-mode-historical"));
+    fireEvent.click(screen.getByTestId(`savings-package-${PACKAGE_ID}`));
+    fireEvent.click(screen.getByTestId("savings-wizard-next"));
 
     expect(
       screen.queryByTestId(`savings-source-${ACCOUNT_ID}`),

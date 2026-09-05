@@ -21,6 +21,7 @@ import {
   InvestmentHistoryStatus,
   InvestmentLifecycleStatus,
   InvestmentHoldingReadStatus,
+  InvestmentInputRateSource,
   MarketValuationQuality,
   INVESTMENT_REPORTING_CURRENCY,
 } from "@/modules/investments/application";
@@ -436,6 +437,8 @@ export default async function InvestmentDetailPage({
           <Card tone="elevated" className="p-(--space-4)">
             <ul className="flex flex-col divide-y divide-border-subtle/65">
               {activities.map((activity) => {
+                const activityInputCurrency =
+                  activity.inputCurrency ?? INVESTMENT_REPORTING_CURRENCY;
                 const slippage =
                   activity.executedValueVnd == null
                     ? null
@@ -443,6 +446,94 @@ export default async function InvestmentDetailPage({
                         quotedValue: activity.quotedValueVnd,
                         executedValue: activity.executedValueVnd,
                       });
+                const formatInputValue = (value: number) =>
+                  `${formatNumber(value, locale, {
+                    maximumFractionDigits: CRYPTO_DECIMAL_DIGITS,
+                  })} ${activityInputCurrency}`;
+                const hasInputCostAndCurrent =
+                  activity.inputCostBasis != null &&
+                  activity.inputCurrentValuation != null;
+                const inputCostAndCurrentDetails =
+                  activity.inputCostBasis != null &&
+                  activity.inputCurrentValuation != null
+                    ? `${t("inputCurrency", {
+                        currency: activityInputCurrency,
+                      })}: ${formatInputValue(activity.inputCostBasis)} · ${t("currentValue")}: ${formatInputValue(activity.inputCurrentValuation)}`
+                    : null;
+                const inputRateSourceLabel =
+                  activity.inputRateSource === InvestmentInputRateSource.MANUAL
+                    ? tUx("valuation.manual")
+                    : activity.inputRateSource ===
+                        InvestmentInputRateSource.AUTOMATIC
+                      ? tUx("valuation.automatic")
+                      : null;
+                const inputDetails = [
+                  inputCostAndCurrentDetails,
+                  !hasInputCostAndCurrent && activity.inputTotalValue != null
+                    ? `${t("inputTotalValue", {
+                        currency: activityInputCurrency,
+                      })}: ${formatInputValue(activity.inputTotalValue)}`
+                    : null,
+                  !hasInputCostAndCurrent && activity.inputAmount != null
+                    ? `${t("inputCurrency", {
+                        currency: activityInputCurrency,
+                      })}: ${formatInputValue(activity.inputAmount)}`
+                    : null,
+                  !hasInputCostAndCurrent && activity.inputExecutedValue != null
+                    ? `${t("inputCurrency", {
+                        currency: activityInputCurrency,
+                      })}: ${formatInputValue(activity.inputExecutedValue)}`
+                    : null,
+                  !hasInputCostAndCurrent &&
+                  activity.inputCurrentValuation != null
+                    ? `${t("currentValue")}: ${formatInputValue(activity.inputCurrentValuation)}`
+                    : null,
+                  !hasInputCostAndCurrent && activity.inputCostBasis != null
+                    ? `${t("basis")}: ${formatInputValue(activity.inputCostBasis)}`
+                    : null,
+                  activity.inputUnitPrice != null
+                    ? `${t("inputUnitPrice", {
+                        currency: activityInputCurrency,
+                      })}: ${formatInputValue(activity.inputUnitPrice)}`
+                    : null,
+                  activity.inputQuotedValue != null
+                    ? `${t("inputCurrency", {
+                        currency: activityInputCurrency,
+                      })}: ${formatInputValue(activity.inputQuotedValue)}`
+                    : null,
+                  activity.inputRateToVnd != null
+                    ? t("inputRate", {
+                        rate: formatNumber(activity.inputRateToVnd, locale, {
+                          maximumFractionDigits: CRYPTO_DECIMAL_DIGITS,
+                        }),
+                        currency: activityInputCurrency,
+                      })
+                    : null,
+                  inputRateSourceLabel
+                    ? t("inputRateSource", { source: inputRateSourceLabel })
+                    : null,
+                  activity.inputRateDate
+                    ? t("inputRateDate", {
+                        date: formatDate(
+                          new Date(activity.inputRateDate),
+                          locale,
+                        ),
+                      })
+                    : null,
+                  activity.inputFeeValue != null
+                    ? `${t("inputFeeValue", {
+                        currency: activityInputCurrency,
+                      })}: ${formatInputValue(activity.inputFeeValue)}`
+                    : null,
+                  activity.inputFeeAmount != null
+                    ? `${t("inputFeeAmount", {
+                        currency: activityInputCurrency,
+                      })}: ${formatInputValue(activity.inputFeeAmount)}`
+                    : null,
+                ].filter((part): part is string => part != null);
+                const hasInputSnapshot =
+                  activityInputCurrency !== INVESTMENT_REPORTING_CURRENCY &&
+                  inputDetails.length > 0;
                 return (
                   <li
                     key={activity.id}
@@ -468,6 +559,11 @@ export default async function InvestmentDetailPage({
                             )} ${t("unit")}`
                           : ""}
                       </Text>
+                      {hasInputSnapshot ? (
+                        <Text size="xs" tone="secondary">
+                          {inputDetails.join(" · ")}
+                        </Text>
+                      ) : null}
                     </div>
                     <div className="flex shrink-0 flex-col items-end gap-(--space-1) text-right">
                       {activity.executedValueVnd != null ? (

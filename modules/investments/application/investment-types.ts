@@ -2,6 +2,8 @@ import type {
   InvestmentAssetClass,
   InvestmentFeeSource,
   InvestmentHistoryStatus,
+  InvestmentInputCurrency,
+  InvestmentInputRateSource,
   InvestmentIncomeKind,
   InvestmentLifecycleStatus,
   InvestmentActivityType,
@@ -24,8 +26,10 @@ import type { FinancialCapabilities } from "@/modules/shared-kernel/application/
 export type InvestmentFeeInput = {
   source: InvestmentFeeSource;
   amountVnd?: number;
+  inputAmount?: number;
   quantity?: string;
-  feeValueVnd: number;
+  feeValueVnd?: number;
+  inputFeeValue?: number;
   feeAsset?: string | null;
   holdingId?: string;
   cashAccountId?: string;
@@ -271,6 +275,19 @@ export type InvestmentActivity = {
   effectiveDate: string;
   feesVnd: number;
   unitPriceVnd: number | null;
+  inputCurrency: InvestmentInputCurrency | null;
+  inputAmount: number | null;
+  inputUnitPrice: number | null;
+  inputTotalValue: number | null;
+  inputExecutedValue: number | null;
+  inputQuotedValue: number | null;
+  inputCostBasis: number | null;
+  inputCurrentValuation: number | null;
+  inputRateToVnd: number | null;
+  inputRateDate: string | null;
+  inputRateSource: InvestmentInputRateSource | null;
+  inputFeeAmount: number | null;
+  inputFeeValue: number | null;
 };
 
 export type InvestmentValuation = {
@@ -281,6 +298,12 @@ export type InvestmentValuation = {
   source: InvestmentValuationSource;
   quantity: string;
   unitPriceVnd: number | null;
+  inputCurrency: InvestmentInputCurrency | null;
+  inputUnitPrice: number | null;
+  inputTotalValue: number | null;
+  inputRateToVnd: number | null;
+  inputRateDate: string | null;
+  inputRateSource: InvestmentInputRateSource | null;
 };
 
 export type InvestmentPortfolio = {

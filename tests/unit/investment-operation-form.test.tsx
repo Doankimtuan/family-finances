@@ -13,9 +13,10 @@ import {
 } from "@/modules/investments/application/client";
 import { Sheet } from "@/shared/patterns/sheet";
 
-const { buyMock, replaceMock } = vi.hoisted(() => ({
+const { buyMock, replaceMock, rateMock } = vi.hoisted(() => ({
   buyMock: vi.fn(),
   replaceMock: vi.fn(),
+  rateMock: vi.fn(),
 }));
 
 vi.mock("next-intl", () => ({
@@ -36,6 +37,10 @@ vi.mock(
     recordInvestmentIncomeAction: vi.fn(),
     recordInvestmentValuationAction: vi.fn(),
   }),
+);
+vi.mock(
+  "@/app/[locale]/(product)/money/investments/investment-input-currency-actions",
+  () => ({ getInvestmentInputCurrencyRateAction: rateMock }),
 );
 
 const HOLDING_ID = "00000000-0000-4000-8000-000000000001";
@@ -67,6 +72,12 @@ const otherHolding = {
   name: "Other stock",
   symbol: "OTH",
 };
+const cryptoHolding: InvestmentHolding = {
+  ...holding,
+  name: "Example Bitcoin",
+  symbol: "BTC",
+  assetClass: InvestmentAssetClass.CRYPTO,
+};
 
 function renderBuyForm() {
   return render(
@@ -91,9 +102,49 @@ function fillValidBuy() {
   });
 }
 
+function renderCryptoBuyForm() {
+  return render(
+    <Sheet isOpen onOpenChange={() => {}}>
+      <InvestmentOperationForm
+        mode={InvestmentFormMode.BUY}
+        title="Buy"
+        holding={cryptoHolding}
+        holdings={[cryptoHolding, otherHolding]}
+        accounts={[{ id: ACCOUNT_ID, name: "Wallet", balance: 10_000_000 }]}
+      />
+    </Sheet>,
+  );
+}
+
 describe("InvestmentOperationForm", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    rateMock.mockResolvedValue({
+      currency: "USDT",
+      rateToVnd: 25_000,
+      rateDate: "2026-09-05",
+      fetchedAt: "2026-09-05T10:00:00.000Z",
+      provider: "COINGECKO",
+      source: "automatic",
+      status: "current",
+    });
+  });
+
+  it("shows a Crypto currency selector defaulted to USDT", async () => {
+    renderCryptoBuyForm();
+
+    expect(
+      screen.getByTestId("investment-operation-input-currency"),
+    ).toHaveTextContent("USDT");
+    await waitFor(() => expect(rateMock).toHaveBeenCalledWith("USDT"));
+  });
+
+  it("keeps the currency selector out of non-Crypto forms", () => {
+    renderBuyForm();
+
+    expect(
+      screen.queryByTestId("investment-operation-input-currency"),
+    ).not.toBeInTheDocument();
   });
 
   it("blocks an incomplete buy before the action is called", async () => {

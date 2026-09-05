@@ -6,6 +6,7 @@ import { createSupabaseAdminClient } from "@/modules/platform/supabase/admin";
 import { logActionFailure } from "@/modules/shared-kernel/application/log-action-failure";
 import {
   INVESTMENT_ASSET_CLASS_VALUES,
+  INVESTMENT_INPUT_CURRENCY_RATE_CURRENCIES,
   MARKET_PRICE_SYNC_BATCH_SIZE,
   MARKET_PRICE_SYNC_ERROR_LIMIT,
   MARKET_PRICE_SYNC_LOCK_KEY,
@@ -311,7 +312,10 @@ export async function syncMarketPrices(
         syncProvider(admin, provider, providerTargets, ownerId),
       ),
     );
-    await syncMarketFxRates(targets.map((target) => target.currency));
+    await syncMarketFxRates([
+      ...targets.map((target) => target.currency),
+      ...INVESTMENT_INPUT_CURRENCY_RATE_CURRENCIES,
+    ]);
     const requestedCount = providers.reduce(
       (total, provider) => total + provider.requestedCount,
       0,

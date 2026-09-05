@@ -8,6 +8,8 @@ import {
   MarketValuationQuality,
   MarketValuationSource,
   MARKET_FX_STALE_AFTER_HOURS,
+  InvestmentInputCurrency,
+  InvestmentInputRateSource,
 } from "./investment-constants";
 import { deriveUnrealizedResult } from "./investment-accounting";
 import type {
@@ -22,6 +24,12 @@ export type ManualValuationForResolution = {
   valuationDate: string;
   unitPriceVnd: number | null;
   source: string;
+  inputCurrency?: InvestmentInputCurrency | null;
+  inputUnitPrice?: number | null;
+  inputTotalValue?: number | null;
+  inputRateToVnd?: number | null;
+  inputRateDate?: string | null;
+  inputRateSource?: InvestmentInputRateSource | null;
 };
 
 export type ResolveInvestmentValuationInput = {
@@ -151,10 +159,15 @@ function manualResolution(
   return {
     currentValue,
     ...calculatePnl(currentValue, input.remainingCostBasis),
-    price: manual?.unitPriceVnd ?? manual?.valueVnd ?? null,
-    priceCurrency: manual ? INVESTMENT_REPORTING_CURRENCY : null,
+    price:
+      manual?.inputUnitPrice ??
+      manual?.unitPriceVnd ??
+      manual?.valueVnd ??
+      null,
+    priceCurrency:
+      manual?.inputCurrency ?? (manual ? INVESTMENT_REPORTING_CURRENCY : null),
     unitPriceVnd: manual?.unitPriceVnd ?? null,
-    fxRateToVnd: null,
+    fxRateToVnd: manual?.inputRateToVnd ?? null,
     priceType: manual ? MarketPriceType.MANUAL : null,
     priceDate: manual?.valuationDate ?? null,
     fetchedAt: null,

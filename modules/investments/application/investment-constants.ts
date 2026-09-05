@@ -200,6 +200,48 @@ export const InvestmentActivityType = {
 export type InvestmentActivityType =
   (typeof InvestmentActivityType)[keyof typeof InvestmentActivityType];
 
+export const InvestmentInputCurrencyOperation = {
+  OPENING_POSITION: InvestmentOperationType.OPENING_POSITION,
+  INITIAL_PURCHASE: "initial_purchase",
+  BUY: InvestmentOperationType.BUY,
+  SELL: InvestmentOperationType.SELL,
+  ASSET_CONVERSION: InvestmentOperationType.ASSET_CONVERSION,
+  INVESTMENT_INCOME: InvestmentOperationType.INVESTMENT_INCOME,
+  VALUATION: InvestmentActivityType.VALUATION,
+} as const;
+export type InvestmentInputCurrencyOperation =
+  (typeof InvestmentInputCurrencyOperation)[keyof typeof InvestmentInputCurrencyOperation];
+
+export const InvestmentInputCurrency = {
+  VND: "VND",
+  USDT: "USDT",
+  USDC: "USDC",
+} as const;
+export type InvestmentInputCurrency =
+  (typeof InvestmentInputCurrency)[keyof typeof InvestmentInputCurrency];
+export const INVESTMENT_INPUT_CURRENCY_VALUES = Object.values(
+  InvestmentInputCurrency,
+);
+
+export const InvestmentInputRateSource = {
+  AUTOMATIC: "automatic",
+  MANUAL: "manual",
+  IDENTITY: "identity",
+} as const;
+export type InvestmentInputRateSource =
+  (typeof InvestmentInputRateSource)[keyof typeof InvestmentInputRateSource];
+export const INVESTMENT_INPUT_RATE_SOURCE_VALUES = Object.values(
+  InvestmentInputRateSource,
+);
+
+export const InvestmentInputRateStatus = {
+  CURRENT: "current",
+  STALE: "stale",
+  UNAVAILABLE: "unavailable",
+} as const;
+export type InvestmentInputRateStatus =
+  (typeof InvestmentInputRateStatus)[keyof typeof InvestmentInputRateStatus];
+
 export const InvestmentFeeSource = {
   CASH: "cash",
   SOURCE_ASSET: "source_asset",
@@ -242,12 +284,16 @@ export const INVESTMENT_RPC = {
   VALUATION: "record_investment_valuation",
 } as const;
 export type InvestmentRpc =
-  (typeof INVESTMENT_RPC)[keyof typeof INVESTMENT_RPC];
+  | (typeof INVESTMENT_RPC)[keyof typeof INVESTMENT_RPC]
+  | typeof INVESTMENT_INPUT_CURRENCY_RPC;
 export const INVESTMENT_RPC_VALUES = Object.values(INVESTMENT_RPC);
+export const INVESTMENT_INPUT_CURRENCY_RPC =
+  "record_investment_with_input_currency";
 
 export const INVESTMENT_OPERATION = {
   LIST_HOLDINGS: "listInvestmentHoldings",
   LIST_ACTIVITIES: "listInvestmentActivities",
+  INPUT_CURRENCY_RATE: "investmentInputCurrencyRate",
 } as const;
 
 export const INVESTMENT_CREATE_IDEMPOTENCY_KEY_PREFIX = "investment:create";
@@ -265,10 +311,21 @@ export const INVESTMENT_FORM_MODE_VALUES = Object.values(InvestmentFormMode);
 
 export const INVESTMENT_QUANTITY_SCALE = 18;
 export const INVESTMENT_QUANTITY_STORAGE_PRECISION = 38;
+export const INVESTMENT_MONEY_PRICE_DECIMAL_PLACES = 8;
 export const INVESTMENT_REPORTING_CURRENCY = "VND";
+export const INVESTMENT_INPUT_CURRENCY_DEFAULT = InvestmentInputCurrency.USDT;
+export const INVESTMENT_INPUT_CURRENCY_RATE_CURRENCIES = [
+  InvestmentInputCurrency.USDT,
+  InvestmentInputCurrency.USDC,
+] as const;
+export const INVESTMENT_INPUT_CURRENCY_COINGECKO_IDS = {
+  [InvestmentInputCurrency.USDT]: "tether",
+  [InvestmentInputCurrency.USDC]: "usd-coin",
+} as const;
 
 export const MarketFxProvider = {
   FRANKFURTER: "FRANKFURTER",
+  COINGECKO: "COINGECKO",
 } as const;
 export type MarketFxProvider =
   (typeof MarketFxProvider)[keyof typeof MarketFxProvider];
@@ -290,6 +347,7 @@ export const INVESTMENT_ERROR_CODE = {
   NOT_FOUND: "not_found",
   INSUFFICIENT_QUANTITY: "insufficient_quantity",
   BASIS_UNAVAILABLE: "basis_unavailable",
+  CURRENCY_RATE_UNAVAILABLE: "currency_rate_unavailable",
   UNKNOWN: "unknown",
 } as const;
 export type InvestmentErrorCode =
@@ -302,6 +360,7 @@ export type InvestmentErrorCode =
 export const INVESTMENT_LEGACY_RPC_ERROR_MARKERS = {
   INSUFFICIENT_QUANTITY: ["insufficient quantity"],
   NOT_FOUND: ["not found"],
+  CURRENCY_RATE_UNAVAILABLE: ["investment currency rate unavailable"],
 } as const;
 
 export const INVESTMENT_RPC_CONTEXT_PARAM_TO_FIELD = {

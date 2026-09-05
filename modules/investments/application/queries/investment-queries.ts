@@ -10,6 +10,7 @@ import {
   type InvestmentIncomeKind,
   InvestmentLifecycleStatus,
   InvestmentActivityType,
+  InvestmentInputRateSource,
   type InvestmentOperationType,
   type InvestmentVisibilityContext,
   InvestmentValuationSource,
@@ -24,6 +25,10 @@ import {
   InvestmentHoldingReadStatus,
 } from "../investment-constants";
 import { resolveInvestmentValuation } from "../market-valuation";
+import {
+  isInvestmentInputCurrency,
+  isInvestmentInputRateSource,
+} from "../investment-money";
 import type {
   InvestmentActivity,
   InvestmentHolding,
@@ -68,6 +73,12 @@ type ValuationRow = {
   quantity: string | number;
   unit_price_vnd: string | number | null;
   source: string;
+  input_currency?: string | null;
+  input_unit_price?: string | number | null;
+  input_total_value?: string | number | null;
+  input_rate_to_vnd?: string | number | null;
+  input_rate_date?: string | null;
+  input_rate_source?: string | null;
 };
 
 type InstrumentRow = {
@@ -132,8 +143,23 @@ type OperationRow = {
   transaction_id: string | null;
   correlation_id: string;
   effective_date: string;
-  investment_fees?: Array<{ fee_value_vnd: string | number }> | null;
+  investment_fees?: Array<{
+    fee_value_vnd: string | number;
+    input_amount?: string | number | null;
+    input_fee_value?: string | number | null;
+  }> | null;
   unit_price_vnd: string | number | null;
+  input_currency?: string | null;
+  input_amount?: string | number | null;
+  input_unit_price?: string | number | null;
+  input_total_value?: string | number | null;
+  input_executed_value?: string | number | null;
+  input_quoted_value?: string | number | null;
+  input_cost_basis?: string | number | null;
+  input_current_valuation?: string | number | null;
+  input_rate_to_vnd?: string | number | null;
+  input_rate_date?: string | null;
+  input_rate_source?: string | null;
 };
 
 export const InvestmentHomeValuationQuality = {
@@ -194,6 +220,18 @@ function investmentHomeQuality(
 
 function nullableNumber(value: string | number | null | undefined) {
   return value == null ? null : Number(value);
+}
+
+function inputCurrencyOrReporting(value: string | null | undefined) {
+  return value && isInvestmentInputCurrency(value)
+    ? value
+    : INVESTMENT_REPORTING_CURRENCY;
+}
+
+function inputRateSourceOrIdentity(value: string | null | undefined) {
+  return value && isInvestmentInputRateSource(value)
+    ? value
+    : InvestmentInputRateSource.IDENTITY;
 }
 
 function mapHolding(
@@ -282,6 +320,19 @@ function mapActivity(row: OperationRow): InvestmentActivity {
       0,
     ),
     unitPriceVnd: nullableNumber(row.unit_price_vnd),
+    inputCurrency: inputCurrencyOrReporting(row.input_currency),
+    inputAmount: nullableNumber(row.input_amount),
+    inputUnitPrice: nullableNumber(row.input_unit_price),
+    inputTotalValue: nullableNumber(row.input_total_value),
+    inputExecutedValue: nullableNumber(row.input_executed_value),
+    inputQuotedValue: nullableNumber(row.input_quoted_value),
+    inputCostBasis: nullableNumber(row.input_cost_basis),
+    inputCurrentValuation: nullableNumber(row.input_current_valuation),
+    inputRateToVnd: nullableNumber(row.input_rate_to_vnd),
+    inputRateDate: row.input_rate_date ?? null,
+    inputRateSource: inputRateSourceOrIdentity(row.input_rate_source),
+    inputFeeAmount: nullableNumber(row.investment_fees?.[0]?.input_amount),
+    inputFeeValue: nullableNumber(row.investment_fees?.[0]?.input_fee_value),
   };
 }
 
@@ -381,7 +432,7 @@ async function loadHoldings(): Promise<InvestmentHolding[] | null> {
       supabase
         .from("investment_valuations")
         .select(
-          "holding_id, value_vnd, valuation_date, created_at, quantity, unit_price_vnd, source",
+          "holding_id, value_vnd, valuation_date, created_at, quantity, unit_price_vnd, source, input_currency, input_unit_price, input_total_value, input_rate_to_vnd, input_rate_date, input_rate_source",
         )
         .eq("household_id", gate.householdId)
         .order("valuation_date", { ascending: false })
@@ -515,6 +566,24 @@ async function loadHoldings(): Promise<InvestmentHolding[] | null> {
                   latest.get(row.id)?.unit_price_vnd,
                 ),
                 source: latest.get(row.id)?.source ?? "",
+                inputCurrency: latest.get(row.id)?.input_currency
+                  ? inputCurrencyOrReporting(latest.get(row.id)?.input_currency)
+                  : null,
+                inputUnitPrice: nullableNumber(
+                  latest.get(row.id)?.input_unit_price,
+                ),
+                inputTotalValue: nullableNumber(
+                  latest.get(row.id)?.input_total_value,
+                ),
+                inputRateToVnd: nullableNumber(
+                  latest.get(row.id)?.input_rate_to_vnd,
+                ),
+                inputRateDate: latest.get(row.id)?.input_rate_date,
+                inputRateSource: latest.get(row.id)?.input_rate_source
+                  ? inputRateSourceOrIdentity(
+                      latest.get(row.id)?.input_rate_source,
+                    )
+                  : null,
               }
             : null,
         });
@@ -673,6 +742,16 @@ async function loadInvestmentHomeSummary(): Promise<InvestmentHomeSummary | null
               valuationDate: manual.valuation_date,
               unitPriceVnd: nullableNumber(manual.unit_price_vnd),
               source: manual.source,
+              inputCurrency: manual.input_currency
+                ? inputCurrencyOrReporting(manual.input_currency)
+                : null,
+              inputUnitPrice: nullableNumber(manual.input_unit_price),
+              inputTotalValue: nullableNumber(manual.input_total_value),
+              inputRateToVnd: nullableNumber(manual.input_rate_to_vnd),
+              inputRateDate: manual.input_rate_date,
+              inputRateSource: manual.input_rate_source
+                ? inputRateSourceOrIdentity(manual.input_rate_source)
+                : null,
             }
           : null,
       });
@@ -898,7 +977,7 @@ export async function listInvestmentActivities(
     let query = supabase
       .from("investment_operations")
       .select(
-        "id, operation_type, source_holding_id, destination_holding_id, source_quantity, destination_quantity, executed_value_vnd, quoted_value_vnd, source_basis_consumed, destination_basis_added, realized_result_vnd, income_kind, transaction_id, correlation_id, effective_date, unit_price_vnd, investment_fees(fee_value_vnd)",
+        "id, operation_type, source_holding_id, destination_holding_id, source_quantity, destination_quantity, executed_value_vnd, quoted_value_vnd, source_basis_consumed, destination_basis_added, realized_result_vnd, income_kind, transaction_id, correlation_id, effective_date, unit_price_vnd, input_currency, input_amount, input_unit_price, input_total_value, input_executed_value, input_quoted_value, input_cost_basis, input_current_valuation, input_rate_to_vnd, input_rate_date, input_rate_source, investment_fees(fee_value_vnd, input_amount, input_fee_value)",
       )
       .eq("household_id", gate.householdId)
       .order("effective_date", { ascending: false })
@@ -911,7 +990,7 @@ export async function listInvestmentActivities(
     let valuationQuery = supabase
       .from("investment_valuations")
       .select(
-        "id, holding_id, value_vnd, valuation_date, quantity, unit_price_vnd",
+        "id, holding_id, value_vnd, valuation_date, quantity, unit_price_vnd, input_currency, input_unit_price, input_total_value, input_rate_to_vnd, input_rate_date, input_rate_source",
       )
       .eq("household_id", gate.householdId)
       .order("valuation_date", { ascending: false });
@@ -952,6 +1031,19 @@ export async function listInvestmentActivities(
           effectiveDate: row.valuation_date,
           feesVnd: 0,
           unitPriceVnd: nullableNumber(row.unit_price_vnd),
+          inputCurrency: inputCurrencyOrReporting(row.input_currency),
+          inputAmount: null,
+          inputUnitPrice: nullableNumber(row.input_unit_price),
+          inputTotalValue: nullableNumber(row.input_total_value),
+          inputExecutedValue: null,
+          inputQuotedValue: null,
+          inputCostBasis: null,
+          inputCurrentValuation: nullableNumber(row.input_total_value),
+          inputRateToVnd: nullableNumber(row.input_rate_to_vnd),
+          inputRateDate: row.input_rate_date ?? null,
+          inputRateSource: inputRateSourceOrIdentity(row.input_rate_source),
+          inputFeeAmount: null,
+          inputFeeValue: null,
         }) satisfies InvestmentActivity,
     );
     return [...operationActivities, ...valuationActivities].sort(

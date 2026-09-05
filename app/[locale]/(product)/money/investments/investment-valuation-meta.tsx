@@ -6,6 +6,7 @@ import {
   MarketPricingMode,
   MarketPriceType,
   MarketValuationQuality,
+  INVESTMENT_REPORTING_CURRENCY,
 } from "@/modules/investments/application/investment-constants";
 import type { InvestmentHolding } from "@/modules/investments/application/investment-types";
 import { formatDate, formatNumber } from "@/shared/i18n/formatters";
@@ -162,9 +163,22 @@ export function InvestmentValuationMeta({
         </Text>
       ) : null}
       {detail && holding.valuation?.priceCurrency ? (
-        <Text size="xs" tone="secondary">
-          {t("sourceQuote")}: {holding.valuation.priceCurrency}
-        </Text>
+        <>
+          <Text size="xs" tone="secondary">
+            {t("sourceQuote")}: {holding.valuation.priceCurrency}
+          </Text>
+          {holding.valuation.priceCurrency !== INVESTMENT_REPORTING_CURRENCY &&
+          holding.valuation.fxRateToVnd != null ? (
+            <Text size="xs" tone="secondary">
+              {t("inputRate", {
+                rate: formatNumber(holding.valuation.fxRateToVnd, locale, {
+                  maximumFractionDigits: 8,
+                }),
+                currency: holding.valuation.priceCurrency,
+              })}
+            </Text>
+          ) : null}
+        </>
       ) : null}
     </div>
   );

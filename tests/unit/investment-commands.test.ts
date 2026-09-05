@@ -11,6 +11,7 @@ import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import {
   INVESTMENT_ERROR_CODE,
+  INVESTMENT_INPUT_CURRENCY_RPC,
   INVESTMENT_RPC,
   InvestmentFeeSource,
 } from "@/modules/investments/application/investment-constants";
@@ -24,6 +25,8 @@ import {
   investmentIncomeInputSchema,
   investmentSellInputSchema,
   investmentValuationInputSchema,
+  initialPurchaseInputSchema,
+  openingPositionInputSchema,
 } from "@/modules/investments/application/commands/investment-commands.schema";
 import { applyTransactionDeltas } from "@/modules/ledger/application/transaction-types";
 import { TransactionLedgerType } from "@/modules/ledger/application/ledger-constants";
@@ -74,6 +77,85 @@ describe("Investments command boundary", () => {
         idempotencyKey: "investment:test:valuation",
       }).success,
     ).toBe(false);
+  });
+
+  it("accepts the Crypto input contract for every operation", () => {
+    const common = {
+      inputCurrency: "USDT" as const,
+      inputRateToVnd: 25_000,
+      inputRateSource: "manual" as const,
+    };
+    expect(
+      openingPositionInputSchema.safeParse({
+        assetName: "Bitcoin",
+        assetClass: "crypto",
+        quantity: "0.1",
+        asOfDate: "2026-08-10",
+        inputRemainingTotalCostBasis: 1_000,
+        inputCurrentValuation: 1_100,
+        ...common,
+        idempotencyKey: "investment:test:opening-usdt",
+      }).success,
+    ).toBe(true);
+    expect(
+      initialPurchaseInputSchema.safeParse({
+        assetName: "Bitcoin",
+        assetClass: "crypto",
+        quantity: "0.1",
+        inputUnitPrice: 50_000,
+        inputTotalValue: 5_000,
+        ...common,
+        cashAccountId: accountId,
+        asOfDate: "2026-08-10",
+        idempotencyKey: "investment:test:purchase-usdt",
+      }).success,
+    ).toBe(true);
+    expect(
+      investmentSellInputSchema.safeParse({
+        holdingId,
+        cashAccountId: accountId,
+        soldQuantity: "0.1",
+        inputUnitPrice: 55_000,
+        ...common,
+        effectiveDate: "2026-08-10",
+        idempotencyKey: "investment:test:sell-usdt",
+      }).success,
+    ).toBe(true);
+    expect(
+      assetConversionInputSchema.safeParse({
+        sourceHoldingId: holdingId,
+        destinationHoldingId: accountId,
+        sourceQuantity: "1",
+        destinationQuantity: "1",
+        inputExecutedValue: 100,
+        inputQuotedValue: 101,
+        ...common,
+        effectiveDate: "2026-08-10",
+        idempotencyKey: "investment:test:conversion-usdt",
+      }).success,
+    ).toBe(true);
+    expect(
+      investmentIncomeInputSchema.safeParse({
+        holdingId,
+        cashAccountId: accountId,
+        amountVnd: 2_500_000,
+        inputAmount: 100,
+        ...common,
+        incomeKind: "dividend",
+        effectiveDate: "2026-08-10",
+        idempotencyKey: "investment:test:income-usdt",
+      }).success,
+    ).toBe(true);
+    expect(
+      investmentValuationInputSchema.safeParse({
+        holdingId,
+        inputUnitPrice: 55_000,
+        ...common,
+        valuationDate: "2026-08-10",
+        source: "manual",
+        idempotencyKey: "investment:test:valuation-usdt",
+      }).success,
+    ).toBe(true);
   });
 
   it("gates household mutations before RPC", async () => {
@@ -152,6 +234,46 @@ describe("Investments command boundary", () => {
       expect.objectContaining({
         p_bought_quantity: "0.2",
         p_fees: [expect.objectContaining({ feeValueVnd: 1_000 })],
+      }),
+    );
+  });
+
+  it("routes Crypto input values through the server conversion RPC", async () => {
+    vi.mocked(assertMoneyActionAllowed).mockResolvedValue({
+      ok: true,
+      householdId: "household-1",
+    } as never);
+    const rpc = vi.fn().mockResolvedValue({
+      data: {
+        operationId: "op-crypto-1",
+        holdingId,
+        correlationId: "correlation-crypto-1",
+      },
+      error: null,
+    });
+    vi.mocked(createSupabaseServerClient).mockResolvedValue({ rpc } as never);
+    const result = await recordInvestmentBuy({
+      holdingId,
+      cashAccountId: accountId,
+      boughtQuantity: "0.1",
+      inputCurrency: "USDT",
+      inputUnitPrice: 1_000,
+      inputQuotedValue: 100,
+      inputRateToVnd: 25_000,
+      inputRateSource: "manual",
+      effectiveDate: "2026-08-10",
+      idempotencyKey: "investment:test:buy-usdt",
+    });
+    expect(result.ok).toBe(true);
+    expect(rpc).toHaveBeenCalledWith(
+      INVESTMENT_INPUT_CURRENCY_RPC,
+      expect.objectContaining({
+        p_operation_type: "buy",
+        p_payload: expect.objectContaining({
+          inputCurrency: "USDT",
+          inputUnitPrice: 1_000,
+          inputRateSource: "manual",
+        }),
       }),
     );
   });

@@ -1,5 +1,5 @@
 "use client";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,11 +14,20 @@ import {
 import {
   InvestmentAssetClass,
   InvestmentEntryMode,
+  INVESTMENT_INPUT_CURRENCY_VALUES,
+  INVESTMENT_INPUT_CURRENCY_DEFAULT,
+  INVESTMENT_REPORTING_CURRENCY,
+  InvestmentInputCurrency,
+  InvestmentInputRateSource,
+  InvestmentInputRateStatus,
   MarketPricingMode,
   MARKET_PRICING_MODE_VALUES,
   OPENING_POSITION_STEP_VALUES,
   INVESTMENT_CREATE_IDEMPOTENCY_KEY_PREFIX,
+  INVESTMENT_ERROR_CODE,
   initialPurchaseInputSchema,
+  inputMoneySchema,
+  inputRateToVndSchema,
   openingPositionInputSchema,
   type InvestmentErrorCode,
 } from "@/modules/investments/application/client";
@@ -36,6 +45,12 @@ import {
   HistoricalValuationInputMode,
 } from "@/modules/investments/application/historical-import-view-model";
 import { multiplyQuantityByUnitPrice } from "@/modules/investments/application/investment-operation-view-model";
+import {
+  convertInvestmentInputUnitPriceToVnd,
+  convertInvestmentInputValueToVnd,
+  multiplyInvestmentInputQuantityByUnitPrice,
+  type InvestmentInputCurrencyRate,
+} from "@/modules/investments/application/investment-money";
 import { DEFAULT_CURRENCY } from "@/modules/ledger/application/client";
 import { AppIcon } from "@/shared/ui/app-icon";
 import { ControlledField } from "@/shared/patterns/controlled-fields";
@@ -43,7 +58,7 @@ import { BottomActionBar } from "@/shared/patterns/bottom-action-bar";
 import { ChoiceTile, ChoiceTileGroup } from "@/shared/patterns/choice-tile";
 import { Progress } from "@/shared/ui/progress";
 import { MotionStep, MotionStepDirection } from "@/shared/motion";
-import { SelectField } from "@/shared/ui/form";
+import { NumberField, SelectField } from "@/shared/ui/form";
 import { MoneyOfflineBanner } from "../money-offline-banner";
 import { useOnlineStatus } from "@/shared/hooks/use-online-status";
 import { Button } from "@/shared/ui/button";
@@ -54,11 +69,12 @@ import { Textarea } from "@/shared/ui/textarea";
 import { FinancialValue } from "@/shared/patterns/financial-value";
 import { FinancialScopeField } from "@/shared/patterns/financial-scope-field";
 import { FINANCIAL_SCOPE } from "@/modules/shared-kernel/application/financial-scope";
-import { formatCurrency } from "@/shared/i18n/formatters";
+import { formatCurrency, formatNumber } from "@/shared/i18n/formatters";
 import {
   createInitialPurchaseAction,
   createOpeningPositionAction,
 } from "./investment-creation-actions";
+import { getInvestmentInputCurrencyRateAction } from "./investment-input-currency-actions";
 import { InstrumentPickerSheet } from "./instrument-picker-sheet";
 import {
   APP_PATH,
@@ -94,14 +110,13 @@ const openingPositionFormSchema = z
     quantity: openingPositionInputSchema.shape.quantity,
     unit: z.enum(GOLD_UNIT_VALUES),
     basisInputMode: z.enum(BASIS_MODES),
-    costPerUnit: openingPositionInputSchema.shape.remainingTotalCostBasis,
-    totalBasisInput: openingPositionInputSchema.shape.remainingTotalCostBasis,
-    currentUnitValuation:
-      openingPositionInputSchema.shape.remainingTotalCostBasis,
-    price: initialPurchaseInputSchema.shape.unitPriceVnd.nullable().optional(),
-    totalPurchaseValue: initialPurchaseInputSchema.shape.totalValueVnd
-      .nullable()
-      .optional(),
+    costPerUnit: inputMoneySchema.nullable().optional(),
+    totalBasisInput: inputMoneySchema.nullable().optional(),
+    currentUnitValuation: inputMoneySchema.nullable().optional(),
+    inputCurrency: z.enum(INVESTMENT_INPUT_CURRENCY_VALUES),
+    inputRateToVnd: inputRateToVndSchema.nullable().optional(),
+    price: inputMoneySchema.nullable().optional(),
+    totalPurchaseValue: inputMoneySchema.nullable().optional(),
     accountId: z
       .union([initialPurchaseInputSchema.shape.cashAccountId, z.literal("")])
       .optional(),
@@ -132,6 +147,18 @@ const openingPositionFormSchema = z
         message: "Required",
       });
     }
+    if (
+      value.assetClass === InvestmentAssetClass.CRYPTO &&
+      value.inputCurrency !== InvestmentInputCurrency.VND &&
+      value.inputRateToVnd != null &&
+      value.inputRateToVnd <= 0
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["inputRateToVnd"],
+        message: "Invalid",
+      });
+    }
   });
 
 type OpeningPositionFormValues = z.input<typeof openingPositionFormSchema>;
@@ -159,6 +186,8 @@ const createDefaultValues = (accounts: AccountOption[]) =>
     accountId: accounts[0]?.id ?? undefined,
     date: today(),
     notes: "",
+    inputCurrency: InvestmentInputCurrency.VND,
+    inputRateToVnd: null,
   }) satisfies Partial<OpeningPositionFormValues>;
 
 const iconFor = (asset: InvestmentUxType) =>
@@ -180,6 +209,10 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
   const [error, setError] = useState<InvestmentErrorCode | null>(null);
   const [selectedInstrument, setSelectedInstrument] =
     useState<MarketInstrument | null>(null);
+  const [resolvedInputRate, setResolvedInputRate] = useState<{
+    currency: InvestmentInputCurrency;
+    rate: InvestmentInputCurrencyRate | null;
+  } | null>(null);
   const [idempotencyKey, setIdempotencyKey] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const online = useOnlineStatus();
@@ -212,7 +245,45 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
     accountId,
     date = today(),
     financialScope = FINANCIAL_SCOPE.HOUSEHOLD,
+    inputCurrency = InvestmentInputCurrency.VND,
+    inputRateToVnd = null,
   } = values;
+  const isCrypto = assetClass === InvestmentAssetClass.CRYPTO;
+  const usesQuotedCurrency =
+    isCrypto && inputCurrency !== InvestmentInputCurrency.VND;
+  useEffect(() => {
+    if (!isCrypto || inputCurrency === InvestmentInputCurrency.VND) return;
+    let active = true;
+    void getInvestmentInputCurrencyRateAction(inputCurrency).then((result) => {
+      if (!active) return;
+      setResolvedInputRate({ currency: inputCurrency, rate: result });
+    });
+    return () => {
+      active = false;
+    };
+  }, [inputCurrency, isCrypto]);
+  const inputRate =
+    resolvedInputRate?.currency === inputCurrency
+      ? resolvedInputRate.rate
+      : null;
+  const inputRateLoading =
+    usesQuotedCurrency && resolvedInputRate?.currency !== inputCurrency;
+  const effectiveInputRate = usesQuotedCurrency
+    ? (inputRateToVnd ??
+      (inputRate?.status === InvestmentInputRateStatus.CURRENT
+        ? inputRate.rateToVnd
+        : null))
+    : 1;
+  const needsManualInputRate =
+    usesQuotedCurrency &&
+    !inputRateLoading &&
+    inputRate?.status !== InvestmentInputRateStatus.CURRENT &&
+    inputRateToVnd == null;
+  const inputRateSource = usesQuotedCurrency
+    ? inputRateToVnd != null
+      ? InvestmentInputRateSource.MANUAL
+      : InvestmentInputRateSource.AUTOMATIC
+    : InvestmentInputRateSource.IDENTITY;
   const config = investmentUxConfig(assetClass);
   const pricingContract = resolveInvestmentPricingContract(
     assetClass,
@@ -221,18 +292,40 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
   const historicalPreview = buildHistoricalImportPreview({
     quantity,
     basisInputMode,
-    averageCostPerUnit: costPerUnit,
-    totalCostBasis: totalBasisInput,
-    currentUnitValuation,
+    averageCostPerUnit:
+      effectiveInputRate == null
+        ? null
+        : convertInvestmentInputUnitPriceToVnd(costPerUnit, effectiveInputRate),
+    totalCostBasis:
+      effectiveInputRate == null
+        ? null
+        : convertInvestmentInputValueToVnd(totalBasisInput, effectiveInputRate),
+    currentUnitValuation:
+      effectiveInputRate == null
+        ? null
+        : convertInvestmentInputUnitPriceToVnd(
+            currentUnitValuation,
+            effectiveInputRate,
+          ),
     currentValuationInputMode: pricingContract.usesTotalValue
       ? HistoricalValuationInputMode.TOTAL
       : HistoricalValuationInputMode.PER_UNIT,
   });
   const gross = pricingContract.usesTotalValue
-    ? totalPurchaseValue
+    ? effectiveInputRate == null
+      ? null
+      : convertInvestmentInputValueToVnd(totalPurchaseValue, effectiveInputRate)
     : quantity
-      ? multiplyQuantityByUnitPrice(quantity, price)
+      ? multiplyQuantityByUnitPrice(
+          quantity,
+          effectiveInputRate == null
+            ? null
+            : convertInvestmentInputUnitPriceToVnd(price, effectiveInputRate),
+        )
       : null;
+  const rawPurchaseTotal = pricingContract.usesTotalValue
+    ? totalPurchaseValue
+    : multiplyInvestmentInputQuantityByUnitPrice(quantity ?? "", price);
 
   const money = (value: number | null) =>
     value == null
@@ -240,6 +333,10 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
       : formatCurrency(value, DEFAULT_CURRENCY, locale, {
           maximumFractionDigits: 0,
         });
+  const quotedMoney = (value: number | null | undefined) =>
+    value == null
+      ? t("unknown")
+      : `${formatNumber(value, locale, { maximumFractionDigits: 8 })} ${inputCurrency}`;
 
   const accountOptions = accounts.map((account) => ({
     id: account.id,
@@ -250,9 +347,50 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
     id: value,
     label: t(`units.${value}`),
   }));
+  const inputCurrencyOptions = INVESTMENT_INPUT_CURRENCY_VALUES.map(
+    (value) => ({
+      id: value,
+      label: value,
+    }),
+  );
+  const quoteFormatOptions = {
+    style: "decimal" as const,
+    maximumFractionDigits: usesQuotedCurrency ? 8 : 0,
+  };
+  const inputCurrencyLabel = `${t("inputCurrencyLabel")} (${inputCurrency})`;
+  const quotedLabel = (label: string) =>
+    usesQuotedCurrency ? `${label} (${inputCurrency})` : label;
+  const inputRateDescription =
+    effectiveInputRate == null
+      ? null
+      : `${formatNumber(effectiveInputRate, locale, {
+          maximumFractionDigits: 8,
+        })} ${INVESTMENT_REPORTING_CURRENCY}/${inputCurrency} · ${inputRateToVnd != null ? today() : (inputRate?.rateDate ?? t("unknown"))} · ${inputRateToVnd != null ? t("inputRateManual") : t("inputRateAutomatic")}`;
+  const rawHistoricalTotalBasis =
+    basisInputMode === HistoricalBasisInputMode.PER_UNIT &&
+    costPerUnit != null &&
+    quantity
+      ? multiplyInvestmentInputQuantityByUnitPrice(quantity, costPerUnit)
+      : totalBasisInput;
+  const rawHistoricalCurrentValuation = pricingContract.usesTotalValue
+    ? currentUnitValuation
+    : currentUnitValuation != null && quantity
+      ? multiplyInvestmentInputQuantityByUnitPrice(
+          quantity,
+          currentUnitValuation,
+        )
+      : null;
 
   const setType = (next: InvestmentUxType) => {
     setValue("assetClass", next);
+    setResolvedInputRate(null);
+    setValue(
+      "inputCurrency",
+      next === InvestmentAssetClass.CRYPTO
+        ? INVESTMENT_INPUT_CURRENCY_DEFAULT
+        : InvestmentInputCurrency.VND,
+    );
+    setValue("inputRateToVnd", null);
     setValue(
       "pricingMode",
       next === InvestmentAssetClass.BOND
@@ -312,6 +450,10 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
 
   const submit = handleSubmit((submitted) => {
     setError(null);
+    if (needsManualInputRate) {
+      setError(INVESTMENT_ERROR_CODE.CURRENCY_RATE_UNAVAILABLE);
+      return;
+    }
     const key =
       idempotencyKey ??
       `${INVESTMENT_CREATE_IDEMPOTENCY_KEY_PREFIX}:${crypto.randomUUID()}`;
@@ -330,6 +472,17 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
               providerCustodian: submitted.provider || null,
               remainingTotalCostBasis: historicalPreview.totalCostBasis,
               currentValuation: historicalPreview.currentTotalValue,
+              inputCurrency: submitted.inputCurrency,
+              inputRemainingTotalCostBasis: usesQuotedCurrency
+                ? rawHistoricalTotalBasis
+                : null,
+              inputCurrentValuation: usesQuotedCurrency
+                ? rawHistoricalCurrentValuation
+                : null,
+              inputRateToVnd: usesQuotedCurrency
+                ? (submitted.inputRateToVnd ?? inputRate?.rateToVnd ?? null)
+                : 1,
+              inputRateSource,
               notes: submitted.notes || null,
               idempotencyKey: key,
             })
@@ -341,10 +494,32 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
               quantity: submitted.quantity,
               unitPriceVnd: pricingContract.usesTotalValue
                 ? null
-                : (submitted.price ?? ZERO_AMOUNT),
+                : usesQuotedCurrency
+                  ? null
+                  : (submitted.price ?? ZERO_AMOUNT),
               totalValueVnd: pricingContract.usesTotalValue
-                ? (submitted.totalPurchaseValue ?? ZERO_AMOUNT)
+                ? usesQuotedCurrency
+                  ? null
+                  : (submitted.totalPurchaseValue ?? ZERO_AMOUNT)
                 : null,
+              inputCurrency: submitted.inputCurrency,
+              inputUnitPrice:
+                usesQuotedCurrency && !pricingContract.usesTotalValue
+                  ? submitted.price
+                  : null,
+              inputTotalValue:
+                usesQuotedCurrency && pricingContract.usesTotalValue
+                  ? submitted.totalPurchaseValue
+                  : usesQuotedCurrency
+                    ? multiplyInvestmentInputQuantityByUnitPrice(
+                        submitted.quantity,
+                        submitted.price,
+                      )
+                    : null,
+              inputRateToVnd: usesQuotedCurrency
+                ? (submitted.inputRateToVnd ?? inputRate?.rateToVnd ?? null)
+                : 1,
+              inputRateSource,
               cashAccountId: submitted.accountId ?? "",
               asOfDate: submitted.date,
               symbol: submitted.symbol || null,
@@ -585,6 +760,77 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
                   error: errors.quantity ? t("errors.invalid") : undefined,
                 }}
               />
+              {isCrypto ? (
+                <>
+                  <Controller
+                    name="inputCurrency"
+                    control={control}
+                    render={({ field }) => (
+                      <SelectField
+                        id="investment-input-currency"
+                        label={inputCurrencyLabel}
+                        value={field.value}
+                        options={inputCurrencyOptions}
+                        onChange={(next) => {
+                          field.onChange(next);
+                          setResolvedInputRate(null);
+                          setValue("inputRateToVnd", null);
+                        }}
+                        data-testid="investment-input-currency"
+                      />
+                    )}
+                  />
+                  {inputRateLoading ? (
+                    <Text size="sm" tone="secondary" aria-live="polite">
+                      {t("inputRateLoading")}
+                    </Text>
+                  ) : needsManualInputRate ? (
+                    <StatusAlert
+                      variant="warning"
+                      title={
+                        inputRate?.status === InvestmentInputRateStatus.STALE
+                          ? t("inputRateStale")
+                          : t("inputRateUnavailable")
+                      }
+                    />
+                  ) : inputRateDescription ? (
+                    <Text size="sm" tone="secondary" aria-live="polite">
+                      {inputRateDescription}
+                    </Text>
+                  ) : null}
+                  {usesQuotedCurrency &&
+                  (needsManualInputRate || inputRateToVnd != null) ? (
+                    <Controller
+                      name="inputRateToVnd"
+                      control={control}
+                      render={({ field }) => (
+                        <NumberField
+                          id="investment-input-rate"
+                          label={t("inputRateManual")}
+                          value={
+                            typeof field.value === "number"
+                              ? field.value
+                              : undefined
+                          }
+                          onChange={field.onChange}
+                          minValue={0}
+                          step={0.00000001}
+                          formatOptions={{
+                            style: "decimal",
+                            maximumFractionDigits: 8,
+                          }}
+                          description={t("inputRateHint")}
+                          error={
+                            errors.inputRateToVnd
+                              ? t("errors.invalid")
+                              : undefined
+                          }
+                        />
+                      )}
+                    />
+                  ) : null}
+                </>
+              ) : null}
               {assetClass === InvestmentAssetClass.GOLD ? (
                 <Controller
                   name="unit"
@@ -627,10 +873,14 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
                     <ControlledField
                       control={control}
                       field={{
-                        type: "amount",
+                        type: "number",
                         name: "costPerUnit",
                         id: "investment-cost-per-unit",
-                        label: t("remainingBasisOptional"),
+                        label: quotedLabel(t("remainingBasisOptional")),
+                        description: t("remainingBasisDescription"),
+                        minValue: 0,
+                        step: usesQuotedCurrency ? 0.00000001 : 1,
+                        formatOptions: quoteFormatOptions,
                         error: errors.costPerUnit
                           ? t("errors.invalid")
                           : undefined,
@@ -640,10 +890,14 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
                     <ControlledField
                       control={control}
                       field={{
-                        type: "amount",
+                        type: "number",
                         name: "totalBasisInput",
                         id: "investment-total-basis",
-                        label: t("remainingBasisOptional"),
+                        label: quotedLabel(t("remainingBasisOptional")),
+                        description: t("remainingBasisDescription"),
+                        minValue: 0,
+                        step: usesQuotedCurrency ? 0.00000001 : 1,
+                        formatOptions: quoteFormatOptions,
                         error: errors.totalBasisInput
                           ? t("errors.invalid")
                           : undefined,
@@ -653,14 +907,18 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
                   <ControlledField
                     control={control}
                     field={{
-                      type: "amount",
+                      type: "number",
                       name: "currentUnitValuation",
                       id: "investment-current-unit-valuation",
                       label: pricingContract.usesTotalValue
-                        ? t("totalValue")
+                        ? quotedLabel(t("totalValue"))
                         : assetClass === InvestmentAssetClass.GOLD
                           ? t("goldBuyBackValuationOptional")
-                          : t("currentValuationOptional"),
+                          : quotedLabel(t("currentValuationOptional")),
+                      description: t("currentValuationDescription"),
+                      minValue: 0,
+                      step: usesQuotedCurrency ? 0.00000001 : 1,
+                      formatOptions: quoteFormatOptions,
                       error: errors.currentUnitValuation
                         ? t("errors.invalid")
                         : undefined,
@@ -701,21 +959,26 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
                   <ControlledField
                     control={control}
                     field={{
-                      type: "amount",
+                      type: "number",
                       name: pricingContract.usesTotalValue
                         ? "totalPurchaseValue"
                         : "price",
                       id: "investment-price",
                       label: pricingContract.usesTotalValue
-                        ? t("totalValue")
+                        ? quotedLabel(t("totalValue"))
                         : selectedInstrument?.pricingMode ===
                             MarketPricingMode.NAV_PER_UNIT
-                          ? tUx(config.priceLabelKey)
+                          ? quotedLabel(tUx(config.priceLabelKey))
                           : selectedInstrument
-                            ? t("purchasePriceFor", {
-                                symbol: selectedInstrument.symbol,
-                              })
-                            : tUx(config.priceLabelKey),
+                            ? quotedLabel(
+                                t("purchasePriceFor", {
+                                  symbol: selectedInstrument.symbol,
+                                }),
+                              )
+                            : quotedLabel(tUx(config.priceLabelKey)),
+                      minValue: 0,
+                      step: usesQuotedCurrency ? 0.00000001 : 1,
+                      formatOptions: quoteFormatOptions,
                       error: (
                         pricingContract.usesTotalValue
                           ? errors.totalPurchaseValue
@@ -824,6 +1087,16 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
                   {t("historicalCardSubtitle")}
                 </Text>
                 <div className="mt-(--space-3) grid gap-2 text-sm">
+                  {usesQuotedCurrency ? (
+                    <div className="flex justify-between">
+                      <span className="text-text-secondary">
+                        {t("inputCurrencyLabel")}
+                      </span>
+                      <FinancialValue>
+                        {quotedMoney(rawHistoricalTotalBasis)}
+                      </FinancialValue>
+                    </div>
+                  ) : null}
                   <div className="flex justify-between">
                     <span className="text-text-secondary">
                       {t("remainingBasisOptional")}
@@ -859,6 +1132,16 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
                           money(historicalPreview.unrealizedPnl)}
                     </FinancialValue>
                   </div>
+                  {usesQuotedCurrency ? (
+                    <div className="flex justify-between">
+                      <span className="text-text-secondary">
+                        {t("inputRate", { currency: inputCurrency })}
+                      </span>
+                      <span>
+                        {inputRateDescription ?? t("inputRateUnavailable")}
+                      </span>
+                    </div>
+                  ) : null}
                 </div>
               </div>
             ) : (
@@ -869,12 +1152,34 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
                     <span className="text-text-secondary">
                       {t("pricePerUnitLabel")}
                     </span>
-                    <FinancialValue>{money(price)}</FinancialValue>
+                    <FinancialValue>
+                      {usesQuotedCurrency ? quotedMoney(price) : money(price)}
+                    </FinancialValue>
                   </div>
+                  {usesQuotedCurrency ? (
+                    <div className="flex justify-between">
+                      <span className="text-text-secondary">
+                        {t("inputTotalValue", { currency: inputCurrency })}
+                      </span>
+                      <FinancialValue>
+                        {quotedMoney(rawPurchaseTotal)}
+                      </FinancialValue>
+                    </div>
+                  ) : null}
                   <div className="flex justify-between font-medium">
                     <span>{t("totalCashNeeded")}</span>
                     <FinancialValue>{money(gross)}</FinancialValue>
                   </div>
+                  {usesQuotedCurrency ? (
+                    <div className="flex justify-between">
+                      <span className="text-text-secondary">
+                        {t("inputRate", { currency: inputCurrency })}
+                      </span>
+                      <span>
+                        {inputRateDescription ?? t("inputRateUnavailable")}
+                      </span>
+                    </div>
+                  ) : null}
                   <div className="flex justify-between">
                     <span className="text-text-secondary">
                       {t("fromAccount")}

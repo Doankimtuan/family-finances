@@ -590,6 +590,51 @@ export function CreateSavingWizard({
                 {t("productSubtitle")}
               </Text>
             </div>
+            <div
+              className="space-y-(--space-2)"
+              role="group"
+              aria-label={t("creationModeLabel")}
+            >
+              <Text size="sm" weight="semibold">
+                {t("creationModeLabel")}
+              </Text>
+              <div className="grid gap-(--space-2)">
+                <SelectionCard
+                  selected={creationMode === SavingsCreateMode.LIVE_DEPOSIT}
+                  onPress={() =>
+                    selectCreationMode(SavingsCreateMode.LIVE_DEPOSIT)
+                  }
+                  testId="savings-create-mode-live"
+                >
+                  <span>
+                    <Text size="sm" weight="medium">
+                      {t("liveDepositMode")}
+                    </Text>
+                    <Text size="xs" tone="secondary">
+                      {t("liveDepositHint")}
+                    </Text>
+                  </span>
+                </SelectionCard>
+                <SelectionCard
+                  selected={
+                    creationMode === SavingsCreateMode.HISTORICAL_OPENING
+                  }
+                  onPress={() =>
+                    selectCreationMode(SavingsCreateMode.HISTORICAL_OPENING)
+                  }
+                  testId="savings-create-mode-historical"
+                >
+                  <span>
+                    <Text size="sm" weight="medium">
+                      {t("historicalOpeningMode")}
+                    </Text>
+                    <Text size="xs" tone="secondary">
+                      {t("historicalOpeningHint")}
+                    </Text>
+                  </span>
+                </SelectionCard>
+              </div>
+            </div>
             <TextField
               id="savings-product-name"
               label={t("savingNameLabel")}
@@ -859,51 +904,6 @@ export function CreateSavingWizard({
                 testId: "savings-wizard-start-date",
               }}
             />
-            <div
-              className="space-y-(--space-2)"
-              role="group"
-              aria-label={t("creationModeLabel")}
-            >
-              <Text size="sm" weight="semibold">
-                {t("creationModeLabel")}
-              </Text>
-              <div className="grid gap-(--space-2)">
-                <SelectionCard
-                  selected={creationMode === SavingsCreateMode.LIVE_DEPOSIT}
-                  onPress={() =>
-                    selectCreationMode(SavingsCreateMode.LIVE_DEPOSIT)
-                  }
-                  testId="savings-create-mode-live"
-                >
-                  <span>
-                    <Text size="sm" weight="medium">
-                      {t("liveDepositMode")}
-                    </Text>
-                    <Text size="xs" tone="secondary">
-                      {t("liveDepositHint")}
-                    </Text>
-                  </span>
-                </SelectionCard>
-                <SelectionCard
-                  selected={
-                    creationMode === SavingsCreateMode.HISTORICAL_OPENING
-                  }
-                  onPress={() =>
-                    selectCreationMode(SavingsCreateMode.HISTORICAL_OPENING)
-                  }
-                  testId="savings-create-mode-historical"
-                >
-                  <span>
-                    <Text size="sm" weight="medium">
-                      {t("historicalOpeningMode")}
-                    </Text>
-                    <Text size="xs" tone="secondary">
-                      {t("historicalOpeningHint")}
-                    </Text>
-                  </span>
-                </SelectionCard>
-              </div>
-            </div>
             {startDateOutsideTerm ? (
               <Text size="xs" tone="danger">
                 {t("startDateOutsideTerm")}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,6 +12,13 @@ import {
   InvestmentFormMode,
   InvestmentIncomeKind,
   InvestmentValuationSource,
+  INVESTMENT_INPUT_CURRENCY_DEFAULT,
+  INVESTMENT_INPUT_CURRENCY_VALUES,
+  INVESTMENT_REPORTING_CURRENCY,
+  INVESTMENT_ERROR_CODE,
+  InvestmentInputCurrency,
+  InvestmentInputRateSource,
+  InvestmentInputRateStatus,
   INVESTMENT_OPERATION_TYPE_VALUES,
   INVESTMENT_CREATE_IDEMPOTENCY_KEY_PREFIX,
   positiveUnitPriceVndSchema,
@@ -23,6 +30,8 @@ import {
   assetConversionInputSchema,
   feeSchema,
   dateSchema,
+  positiveInputMoneySchema,
+  inputRateToVndSchema,
   type InvestmentFormMode as InvestmentFormModeValue,
   type InvestmentHolding,
   type InvestmentErrorCode,
@@ -35,14 +44,26 @@ import {
   normalizeAvailableQuantity,
 } from "@/modules/investments/application/investment-operation-view-model";
 import {
+  convertInvestmentInputUnitPriceToVnd,
+  convertInvestmentInputValueToVnd,
+  multiplyInvestmentInputQuantityByUnitPrice,
+  type InvestmentInputCurrencyRate,
+} from "@/modules/investments/application/investment-money";
+import {
   investmentUxConfig,
   resolveInvestmentPricingContract,
   type InvestmentUxType,
 } from "@/modules/investments/application/investment-ux";
 import { DEFAULT_CURRENCY } from "@/modules/ledger/application/client";
-import { CheckboxField, SelectField, TextField } from "@/shared/ui/form";
+import {
+  CheckboxField,
+  NumberField,
+  SelectField,
+  TextField,
+} from "@/shared/ui/form";
 import { Button } from "@/shared/ui/button";
 import { StatusAlert } from "@/shared/ui/status-alert";
+import { Text } from "@/shared/ui/text";
 import { ControlledField } from "@/shared/patterns/controlled-fields";
 import { DecimalField } from "@/shared/patterns/decimal-field";
 import { ConfirmSummary } from "@/shared/patterns/confirm-summary";
@@ -58,6 +79,7 @@ import {
   recordInvestmentSellAction,
   recordInvestmentValuationAction,
 } from "./investment-actions";
+import { getInvestmentInputCurrencyRateAction } from "./investment-input-currency-actions";
 import { InvestmentValuationMeta } from "./investment-valuation-meta";
 
 type AccountOption = { id: string; name: string; balance?: number };
@@ -84,6 +106,8 @@ const nullableNumber = z.number().finite().nullable();
 const operationFormSchema = z
   .object({
     mode: z.enum(operationModes),
+    inputCurrency: z.enum(INVESTMENT_INPUT_CURRENCY_VALUES),
+    inputRateToVnd: inputRateToVndSchema.nullable().optional(),
     quantity: z.string(),
     destinationQuantity: z.string(),
     value: nullableNumber,
@@ -110,13 +134,21 @@ const operationFormSchema = z
   .superRefine((value, context) => {
     const issue = (path: string) =>
       context.addIssue({ code: "custom", path: [path], message: "Invalid" });
+    const usesInputCurrency =
+      value.inputCurrency !== InvestmentInputCurrency.VND;
     const positive = (field: "value" | "unitPrice" | "feeValue") => {
       const schema =
         field === "feeValue"
-          ? feeSchema.shape.feeValueVnd
+          ? usesInputCurrency
+            ? positiveInputMoneySchema
+            : feeSchema.shape.feeValueVnd
           : field === "value"
-            ? positiveVndSchema
-            : positiveUnitPriceVndSchema;
+            ? usesInputCurrency
+              ? positiveInputMoneySchema
+              : positiveVndSchema
+            : usesInputCurrency
+              ? positiveInputMoneySchema
+              : positiveUnitPriceVndSchema;
       if (!schema.safeParse(value[field]).success) issue(field);
     };
     const quantity = (
@@ -131,8 +163,12 @@ const operationFormSchema = z
     if (value.mode === InvestmentFormMode.BUY) {
       quantity("quantity");
       if (
-        !positiveUnitPriceVndSchema.safeParse(value.unitPrice).success &&
-        !positiveVndSchema.safeParse(value.value).success
+        !(usesInputCurrency
+          ? positiveInputMoneySchema.safeParse(value.unitPrice).success
+          : positiveUnitPriceVndSchema.safeParse(value.unitPrice).success) &&
+        !(usesInputCurrency
+          ? positiveInputMoneySchema.safeParse(value.value).success
+          : positiveVndSchema.safeParse(value.value).success)
       )
         issue("unitPrice");
       if (!value.accountId) issue("accountId");
@@ -140,8 +176,12 @@ const operationFormSchema = z
     if (value.mode === InvestmentFormMode.SELL) {
       quantity("quantity");
       if (
-        !positiveUnitPriceVndSchema.safeParse(value.unitPrice).success &&
-        !positiveVndSchema.safeParse(value.value).success
+        !(usesInputCurrency
+          ? positiveInputMoneySchema.safeParse(value.unitPrice).success
+          : positiveUnitPriceVndSchema.safeParse(value.unitPrice).success) &&
+        !(usesInputCurrency
+          ? positiveInputMoneySchema.safeParse(value.value).success
+          : positiveVndSchema.safeParse(value.value).success)
       )
         issue("unitPrice");
       if (!value.accountId) issue("accountId");
@@ -168,18 +208,25 @@ const operationFormSchema = z
     }
     if (value.mode === InvestmentFormMode.INCOME) {
       if (
-        !investmentIncomeInputSchema.shape.amountVnd.safeParse(value.value)
-          .success
+        !(
+          usesInputCurrency
+            ? positiveInputMoneySchema
+            : investmentIncomeInputSchema.shape.amountVnd
+        ).safeParse(value.value).success
       )
         issue("value");
       if (!value.accountId) issue("accountId");
     }
     if (value.mode === InvestmentFormMode.VALUATION) {
       if (
-        !unitPriceVndSchema.safeParse(value.unitPrice).success &&
-        !investmentValuationInputSchema.shape.totalValueVnd.safeParse(
-          value.value,
-        ).success
+        !(usesInputCurrency
+          ? positiveInputMoneySchema.safeParse(value.unitPrice).success
+          : unitPriceVndSchema.safeParse(value.unitPrice).success) &&
+        !(usesInputCurrency
+          ? positiveInputMoneySchema.safeParse(value.value).success
+          : investmentValuationInputSchema.shape.totalValueVnd.safeParse(
+              value.value,
+            ).success)
       )
         issue("unitPrice");
     }
@@ -187,9 +234,13 @@ const operationFormSchema = z
       positive("feeValue");
       const fee = feeSchema.safeParse({
         source: value.feeSource,
-        amountVnd: value.feeAmount ?? undefined,
+        ...(usesInputCurrency
+          ? { inputAmount: value.feeAmount ?? undefined }
+          : { amountVnd: value.feeAmount ?? undefined }),
         quantity: value.feeQuantity || undefined,
-        feeValueVnd: value.feeValue,
+        ...(usesInputCurrency
+          ? { inputFeeValue: value.feeValue }
+          : { feeValueVnd: value.feeValue }),
         feeAsset: value.feeAsset || null,
         holdingId: value.feeHoldingId || undefined,
         cashAccountId: value.accountId || undefined,
@@ -206,6 +257,15 @@ const createDefaultValues = (
 ) =>
   ({
     mode,
+    inputCurrency:
+      holding.assetClass === InvestmentAssetClass.CRYPTO ||
+      (mode === InvestmentFormMode.CONVERSION &&
+        holdings.some(
+          (item) => item.assetClass === InvestmentAssetClass.CRYPTO,
+        ))
+        ? INVESTMENT_INPUT_CURRENCY_DEFAULT
+        : InvestmentInputCurrency.VND,
+    inputRateToVnd: null,
     quantity: "",
     destinationQuantity: "",
     value: null,
@@ -255,12 +315,60 @@ export function InvestmentOperationForm({
   const quantity = useWatch({ control, name: "quantity" });
   const value = useWatch({ control, name: "value" });
   const unitPrice = useWatch({ control, name: "unitPrice" });
+  const quote = useWatch({ control, name: "quote" });
   const destinationId = useWatch({ control, name: "destinationId" });
   const sourceId = useWatch({ control, name: "sourceId" });
   const hasFee = useWatch({ control, name: "hasFee" });
   const feeSource = useWatch({ control, name: "feeSource" });
   const feeAmount = useWatch({ control, name: "feeAmount" });
   const feeValue = useWatch({ control, name: "feeValue" });
+  const inputCurrency = useWatch({ control, name: "inputCurrency" });
+  const inputRateToVnd = useWatch({ control, name: "inputRateToVnd" });
+  const sourceHolding = holdings.find((item) => item.id === sourceId);
+  const destinationHolding = holdings.find((item) => item.id === destinationId);
+  const hasCryptoLeg =
+    holding.assetClass === InvestmentAssetClass.CRYPTO ||
+    sourceHolding?.assetClass === InvestmentAssetClass.CRYPTO ||
+    destinationHolding?.assetClass === InvestmentAssetClass.CRYPTO;
+  const usesQuotedCurrency =
+    hasCryptoLeg && inputCurrency !== InvestmentInputCurrency.VND;
+  const [resolvedInputRate, setResolvedInputRate] = useState<{
+    currency: InvestmentInputCurrency;
+    rate: InvestmentInputCurrencyRate | null;
+  } | null>(null);
+  useEffect(() => {
+    if (!hasCryptoLeg || inputCurrency === InvestmentInputCurrency.VND) return;
+    let active = true;
+    void getInvestmentInputCurrencyRateAction(inputCurrency).then((result) => {
+      if (!active) return;
+      setResolvedInputRate({ currency: inputCurrency, rate: result });
+    });
+    return () => {
+      active = false;
+    };
+  }, [hasCryptoLeg, inputCurrency]);
+  const inputRate =
+    resolvedInputRate?.currency === inputCurrency
+      ? resolvedInputRate.rate
+      : null;
+  const inputRateLoading =
+    usesQuotedCurrency && resolvedInputRate?.currency !== inputCurrency;
+  const effectiveInputRate = usesQuotedCurrency
+    ? (inputRateToVnd ??
+      (inputRate?.status === InvestmentInputRateStatus.CURRENT
+        ? inputRate.rateToVnd
+        : null))
+    : 1;
+  const needsManualInputRate =
+    usesQuotedCurrency &&
+    !inputRateLoading &&
+    inputRate?.status !== InvestmentInputRateStatus.CURRENT &&
+    inputRateToVnd == null;
+  const inputRateSource = usesQuotedCurrency
+    ? inputRateToVnd != null
+      ? InvestmentInputRateSource.MANUAL
+      : InvestmentInputRateSource.AUTOMATIC
+    : InvestmentInputRateSource.IDENTITY;
   const ux = investmentUxConfig(holding.assetClass as InvestmentUxType);
   const pricingContract = resolveInvestmentPricingContract(
     holding.assetClass,
@@ -273,6 +381,12 @@ export function InvestmentOperationForm({
     holding.assetClass === InvestmentAssetClass.FUND
       ? tUx(ux.priceLabelKey)
       : t("purchasePrice", { asset: executionAssetLabel });
+  const operationPriceLabel =
+    mode === InvestmentFormMode.VALUATION
+      ? tUx(ux.valuationPriceLabelKey)
+      : mode === InvestmentFormMode.BUY
+        ? purchasePriceLabel
+        : tUx(ux.disposalPriceLabelKey);
   const accountsOptions = accounts.map((account) => ({
     id: account.id,
     label: account.name,
@@ -286,11 +400,41 @@ export function InvestmentOperationForm({
     mode !== InvestmentFormMode.VALUATION &&
     mode !== InvestmentFormMode.CONVERSION;
   const showFee = showQuantity;
+  const unitPriceVnd =
+    effectiveInputRate == null
+      ? null
+      : convertInvestmentInputUnitPriceToVnd(unitPrice, effectiveInputRate);
+  const valueVnd =
+    effectiveInputRate == null
+      ? null
+      : convertInvestmentInputValueToVnd(value, effectiveInputRate);
+  const quoteVnd =
+    effectiveInputRate == null
+      ? null
+      : convertInvestmentInputValueToVnd(quote, effectiveInputRate);
+  const inputTransactionQuantity =
+    mode === InvestmentFormMode.VALUATION ? holding.quantity : (quantity ?? "");
+  const inputTransactionTotal = usesQuotedCurrency
+    ? usesUnitPrice
+      ? multiplyInvestmentInputQuantityByUnitPrice(
+          inputTransactionQuantity,
+          unitPrice,
+        )
+      : value
+    : null;
+  const feeAmountVnd =
+    effectiveInputRate == null
+      ? null
+      : convertInvestmentInputValueToVnd(feeAmount, effectiveInputRate);
+  const feeValueVnd =
+    effectiveInputRate == null
+      ? null
+      : convertInvestmentInputValueToVnd(feeValue, effectiveInputRate);
   const valuationPreview =
     mode === InvestmentFormMode.VALUATION
       ? buildUnitPricePreview({
           quantity: holding.quantity,
-          unitPrice: usesUnitPrice ? unitPrice : value,
+          unitPrice: usesUnitPrice ? unitPriceVnd : valueVnd,
           costBasis: holding.remainingTotalCostBasis,
           manualTotalValue: pricingContract.usesTotalValue,
         })
@@ -300,10 +444,10 @@ export function InvestmentOperationForm({
       ? buildDisposalPreview({
           availableQuantity: holding.quantity,
           soldQuantity: quantity ?? "",
-          executionPricePerUnit: usesUnitPrice ? unitPrice : value,
+          executionPricePerUnit: usesUnitPrice ? unitPriceVnd : valueVnd,
           remainingCostBasis: holding.remainingTotalCostBasis,
-          cashFeeAmount: hasFee ? feeAmount : null,
-          feeValue: hasFee ? feeValue : null,
+          cashFeeAmount: hasFee ? feeAmountVnd : null,
+          feeValue: hasFee ? feeValueVnd : null,
           manualTotalValue: pricingContract.usesTotalValue,
           accountingMethod: holding.accountingMethod,
           lots: holding.lots,
@@ -322,10 +466,10 @@ export function InvestmentOperationForm({
     mode === InvestmentFormMode.BUY
       ? buildPurchasePreview({
           quantity: quantity ?? "",
-          executionPricePerUnit: usesUnitPrice ? unitPrice : null,
-          totalValue: usesUnitPrice ? null : value,
-          cashFeeAmount: hasFee ? feeAmount : null,
-          feeValue: hasFee ? feeValue : null,
+          executionPricePerUnit: usesUnitPrice ? unitPriceVnd : null,
+          totalValue: usesUnitPrice ? null : valueVnd,
+          cashFeeAmount: hasFee ? feeAmountVnd : null,
+          feeValue: hasFee ? feeValueVnd : null,
           manualTotalValue: pricingContract.usesTotalValue,
         })
       : null;
@@ -361,9 +505,29 @@ export function InvestmentOperationForm({
           ]
         : Object.values(InvestmentFeeSource)
   ).map((source) => ({ id: source, label: t(`feeSource.${source}`) }));
+  const inputCurrencyOptions = INVESTMENT_INPUT_CURRENCY_VALUES.map(
+    (value) => ({
+      id: value,
+      label: value,
+    }),
+  );
+  const inputRateDescription =
+    effectiveInputRate == null
+      ? null
+      : `${formatNumber(effectiveInputRate, locale, {
+          maximumFractionDigits: 8,
+        })} ${INVESTMENT_REPORTING_CURRENCY}/${inputCurrency} · ${inputRateToVnd != null ? today() : (inputRate?.rateDate ?? t("unknown"))} · ${inputRateToVnd != null ? t("inputRateManual") : t("inputRateAutomatic")}`;
+  const inputDisplay = (amount: number | null | undefined) =>
+    amount == null
+      ? t("unknown")
+      : `${formatNumber(amount, locale, { maximumFractionDigits: 8 })} ${inputCurrency}`;
 
   const submit = handleSubmit((submitted) => {
     setError(null);
+    if (needsManualInputRate) {
+      setError(INVESTMENT_ERROR_CODE.CURRENCY_RATE_UNAVAILABLE);
+      return;
+    }
     if (!idempotencyKey) {
       setError("invalid");
       return;
@@ -373,10 +537,20 @@ export function InvestmentOperationForm({
           {
             source: submitted.feeSource,
             feeAsset: submitted.feeAsset || null,
-            feeValueVnd: submitted.feeValue as number,
+            feeValueVnd: usesQuotedCurrency
+              ? undefined
+              : (submitted.feeValue as number),
+            inputFeeValue: usesQuotedCurrency
+              ? (submitted.feeValue as number)
+              : undefined,
             ...(submitted.feeSource === InvestmentFeeSource.CASH
               ? {
-                  amountVnd: submitted.feeAmount ?? undefined,
+                  amountVnd: usesQuotedCurrency
+                    ? undefined
+                    : (submitted.feeAmount ?? undefined),
+                  inputAmount: usesQuotedCurrency
+                    ? (submitted.feeAmount ?? undefined)
+                    : undefined,
                   cashAccountId: submitted.accountId,
                 }
               : {
@@ -393,6 +567,11 @@ export function InvestmentOperationForm({
       effectiveDate: submitted.date,
       notes: submitted.notes || null,
       idempotencyKey,
+      inputCurrency: hasCryptoLeg ? inputCurrency : InvestmentInputCurrency.VND,
+      inputRateToVnd: hasCryptoLeg ? effectiveInputRate : 1,
+      inputRateSource: hasCryptoLeg
+        ? inputRateSource
+        : InvestmentInputRateSource.IDENTITY,
     };
     startTransition(async () => {
       let result;
@@ -402,11 +581,12 @@ export function InvestmentOperationForm({
             holdingId: holding.id,
             cashAccountId: submitted.accountId,
             boughtQuantity: submitted.quantity,
-            unitPriceVnd: usesUnitPrice
-              ? (submitted.unitPrice as number)
-              : null,
-            totalValueVnd: usesUnitPrice ? null : (submitted.value as number),
-            quotedValueVnd: submitted.quote,
+            unitPriceVnd: usesUnitPrice ? unitPriceVnd : null,
+            totalValueVnd: usesUnitPrice ? null : valueVnd,
+            quotedValueVnd: quoteVnd,
+            inputUnitPrice: usesQuotedCurrency ? submitted.unitPrice : null,
+            inputTotalValue: usesQuotedCurrency ? inputTransactionTotal : null,
+            inputQuotedValue: usesQuotedCurrency ? submitted.quote : null,
             fees: fee,
             ...common,
           });
@@ -416,11 +596,12 @@ export function InvestmentOperationForm({
             holdingId: holding.id,
             cashAccountId: submitted.accountId,
             soldQuantity: submitted.quantity,
-            unitPriceVnd: usesUnitPrice
-              ? (submitted.unitPrice as number)
-              : null,
-            totalValueVnd: usesUnitPrice ? null : (submitted.value as number),
-            quotedValueVnd: submitted.quote,
+            unitPriceVnd: usesUnitPrice ? unitPriceVnd : null,
+            totalValueVnd: usesUnitPrice ? null : valueVnd,
+            quotedValueVnd: quoteVnd,
+            inputUnitPrice: usesQuotedCurrency ? submitted.unitPrice : null,
+            inputTotalValue: usesQuotedCurrency ? inputTransactionTotal : null,
+            inputQuotedValue: usesQuotedCurrency ? submitted.quote : null,
             fees: fee,
             ...common,
           });
@@ -431,8 +612,10 @@ export function InvestmentOperationForm({
             destinationHoldingId: submitted.destinationId,
             sourceQuantity: submitted.quantity,
             destinationQuantity: submitted.destinationQuantity,
-            executedValueVnd: submitted.value,
-            quotedValueVnd: submitted.quote,
+            executedValueVnd: valueVnd,
+            quotedValueVnd: quoteVnd,
+            inputExecutedValue: usesQuotedCurrency ? submitted.value : null,
+            inputQuotedValue: usesQuotedCurrency ? submitted.quote : null,
             fees: fee,
             ...common,
           });
@@ -441,7 +624,8 @@ export function InvestmentOperationForm({
           result = await recordInvestmentIncomeAction({
             holdingId: holding.id,
             cashAccountId: submitted.accountId,
-            amountVnd: submitted.value as number,
+            amountVnd: valueVnd as number,
+            inputAmount: usesQuotedCurrency ? submitted.value : null,
             incomeKind:
               holding.assetClass === InvestmentAssetClass.FUND
                 ? InvestmentIncomeKind.DISTRIBUTION
@@ -452,10 +636,13 @@ export function InvestmentOperationForm({
         case InvestmentFormMode.VALUATION:
           result = await recordInvestmentValuationAction({
             holdingId: holding.id,
-            unitPriceVnd: usesUnitPrice
-              ? (submitted.unitPrice as number)
-              : null,
-            totalValueVnd: usesUnitPrice ? null : (submitted.value as number),
+            unitPriceVnd: usesUnitPrice ? unitPriceVnd : null,
+            totalValueVnd: usesUnitPrice ? null : valueVnd,
+            inputUnitPrice: usesQuotedCurrency ? submitted.unitPrice : null,
+            inputTotalValue: usesQuotedCurrency ? inputTransactionTotal : null,
+            inputCurrency: common.inputCurrency,
+            inputRateToVnd: common.inputRateToVnd,
+            inputRateSource: common.inputRateSource,
             valuationDate: submitted.date,
             source: InvestmentValuationSource.MANUAL,
             notes: submitted.notes || null,
@@ -477,6 +664,10 @@ export function InvestmentOperationForm({
   const review = () =>
     void handleSubmit(
       () => {
+        if (needsManualInputRate) {
+          setError(INVESTMENT_ERROR_CODE.CURRENCY_RATE_UNAVAILABLE);
+          return;
+        }
         if (insufficientBuyBalance) {
           setError("invalid");
           return;
@@ -538,8 +729,33 @@ export function InvestmentOperationForm({
                       : mode === InvestmentFormMode.SELL
                         ? tUx(ux.disposalPriceLabelKey)
                         : purchasePriceLabel,
-                  value: display(usesUnitPrice ? unitPrice : value),
+                  value: usesQuotedCurrency
+                    ? inputDisplay(usesUnitPrice ? unitPrice : value)
+                    : display(usesUnitPrice ? unitPrice : value),
                 },
+                ...(hasCryptoLeg &&
+                mode !== InvestmentFormMode.CONVERSION &&
+                inputTransactionTotal != null
+                  ? [
+                      {
+                        id: "input-total",
+                        label: t("inputTotalValue", {
+                          currency: inputCurrency,
+                        }),
+                        value: inputDisplay(inputTransactionTotal),
+                      },
+                    ]
+                  : []),
+                ...(hasCryptoLeg
+                  ? [
+                      {
+                        id: "input-rate",
+                        label: t("inputRate", { currency: inputCurrency }),
+                        value:
+                          inputRateDescription ?? t("inputRateUnavailable"),
+                      },
+                    ]
+                  : []),
                 ...(purchasePreview
                   ? [
                       {
@@ -633,6 +849,7 @@ export function InvestmentOperationForm({
                         options={holdingOptions}
                         onChange={(next) => {
                           field.onChange(next);
+                          setResolvedInputRate(null);
                           if (next === destinationId)
                             setValue(
                               "destinationId",
@@ -657,11 +874,91 @@ export function InvestmentOperationForm({
                             id: item.id,
                             label: item.symbol || item.name,
                           }))}
-                        onChange={field.onChange}
+                        onChange={(next) => {
+                          field.onChange(next);
+                          setResolvedInputRate(null);
+                        }}
                       />
                     )}
                   />
                 </>
+              ) : null}
+              {hasCryptoLeg ? (
+                <section className="flex flex-col gap-(--space-2)">
+                  <Controller
+                    name="inputCurrency"
+                    control={control}
+                    render={({ field }) => (
+                      <SelectField
+                        id="investment-operation-input-currency"
+                        label={t("inputCurrencyLabel")}
+                        value={field.value}
+                        options={inputCurrencyOptions}
+                        onChange={(next) => {
+                          field.onChange(next);
+                          setResolvedInputRate(null);
+                          setValue("inputRateToVnd", null);
+                        }}
+                        data-testid="investment-operation-input-currency"
+                      />
+                    )}
+                  />
+                  {inputRateLoading ? (
+                    <Text
+                      className="text-sm text-text-secondary"
+                      aria-live="polite"
+                    >
+                      {t("inputRateLoading")}
+                    </Text>
+                  ) : needsManualInputRate ? (
+                    <StatusAlert
+                      variant="warning"
+                      title={
+                        inputRate?.status === InvestmentInputRateStatus.STALE
+                          ? t("inputRateStale")
+                          : t("inputRateUnavailable")
+                      }
+                    />
+                  ) : inputRateDescription ? (
+                    <Text
+                      className="text-sm text-text-secondary"
+                      aria-live="polite"
+                    >
+                      {inputRateDescription}
+                    </Text>
+                  ) : null}
+                  {usesQuotedCurrency &&
+                  (needsManualInputRate || inputRateToVnd != null) ? (
+                    <Controller
+                      name="inputRateToVnd"
+                      control={control}
+                      render={({ field }) => (
+                        <NumberField
+                          id="investment-operation-input-rate"
+                          label={t("inputRateManual")}
+                          value={
+                            typeof field.value === "number"
+                              ? field.value
+                              : undefined
+                          }
+                          onChange={field.onChange}
+                          minValue={0}
+                          step={0.00000001}
+                          formatOptions={{
+                            style: "decimal",
+                            maximumFractionDigits: 8,
+                          }}
+                          description={t("inputRateHint")}
+                          error={
+                            errors.inputRateToVnd
+                              ? t("errors.invalid")
+                              : undefined
+                          }
+                        />
+                      )}
+                    />
+                  ) : null}
+                </section>
               ) : null}
               {mode === InvestmentFormMode.BUY ||
               mode === InvestmentFormMode.SELL ? (
@@ -736,33 +1033,61 @@ export function InvestmentOperationForm({
               (mode === InvestmentFormMode.VALUATION ||
                 mode === InvestmentFormMode.SELL ||
                 mode === InvestmentFormMode.BUY) ? (
-                <ControlledField
-                  control={control}
-                  field={{
-                    type: "amount",
-                    name: "unitPrice",
-                    id: "investment-operation-unit-price",
-                    label:
-                      mode === InvestmentFormMode.VALUATION
-                        ? tUx(ux.valuationPriceLabelKey)
-                        : mode === InvestmentFormMode.BUY
-                          ? purchasePriceLabel
-                          : tUx(ux.disposalPriceLabelKey),
-                    description:
-                      mode === InvestmentFormMode.VALUATION
-                        ? `${tUx(ux.priceCurrencyKey)} / ${tUx(ux.unitSuffixKey)}`
-                        : `${t("actualExecutionPrice")} · ${tUx(ux.priceCurrencyKey)} / ${tUx(ux.unitSuffixKey)}`,
-                    error: fieldError("unitPrice"),
-                  }}
-                />
+                usesQuotedCurrency ? (
+                  <ControlledField
+                    control={control}
+                    field={{
+                      type: "number",
+                      name: "unitPrice",
+                      id: "investment-operation-unit-price",
+                      label: `${operationPriceLabel} (${inputCurrency})`,
+                      description:
+                        mode === InvestmentFormMode.VALUATION
+                          ? `${inputCurrency} / ${tUx(ux.unitSuffixKey)}`
+                          : `${t("actualExecutionPrice")} · ${inputCurrency} / ${tUx(ux.unitSuffixKey)}`,
+                      minValue: 0,
+                      step: 0.00000001,
+                      formatOptions: {
+                        style: "decimal",
+                        maximumFractionDigits: CRYPTO_DECIMAL_DIGITS,
+                      },
+                      error: fieldError("unitPrice"),
+                    }}
+                  />
+                ) : (
+                  <ControlledField
+                    control={control}
+                    field={{
+                      type: "amount",
+                      name: "unitPrice",
+                      id: "investment-operation-unit-price",
+                      label: operationPriceLabel,
+                      description:
+                        mode === InvestmentFormMode.VALUATION
+                          ? `${tUx(ux.priceCurrencyKey)} / ${tUx(ux.unitSuffixKey)}`
+                          : `${t("actualExecutionPrice")} · ${tUx(ux.priceCurrencyKey)} / ${tUx(ux.unitSuffixKey)}`,
+                      error: fieldError("unitPrice"),
+                    }}
+                  />
+                )
               ) : (
                 <ControlledField
                   control={control}
                   field={{
-                    type: "amount",
+                    type: usesQuotedCurrency ? "number" : "amount",
                     name: "value",
                     id: "investment-operation-value",
-                    label: t("executedValue"),
+                    label: usesQuotedCurrency
+                      ? `${t("executedValue")} (${inputCurrency})`
+                      : t("executedValue"),
+                    minValue: usesQuotedCurrency ? 0 : undefined,
+                    step: usesQuotedCurrency ? 0.00000001 : undefined,
+                    formatOptions: usesQuotedCurrency
+                      ? {
+                          style: "decimal",
+                          maximumFractionDigits: CRYPTO_DECIMAL_DIGITS,
+                        }
+                      : undefined,
                     error: fieldError("value"),
                   }}
                 />
@@ -773,6 +1098,16 @@ export function InvestmentOperationForm({
                   className="flex flex-col gap-(--space-2) rounded-(--radius-card) border border-border-subtle bg-surface-muted p-(--space-4)"
                   aria-live="polite"
                 >
+                  {usesQuotedCurrency ? (
+                    <div className="flex justify-between gap-(--space-3)">
+                      <span>
+                        {t("inputTotalValue", { currency: inputCurrency })}
+                      </span>
+                      <FinancialValue>
+                        {inputDisplay(inputTransactionTotal)}
+                      </FinancialValue>
+                    </div>
+                  ) : null}
                   <div className="flex justify-between gap-(--space-3)">
                     <span>{t("investedPrincipal")}</span>
                     <FinancialValue>
@@ -805,6 +1140,16 @@ export function InvestmentOperationForm({
                   className="rounded-(--radius-card) border border-border-subtle bg-surface-muted p-(--space-4)"
                   aria-live="polite"
                 >
+                  {usesQuotedCurrency ? (
+                    <div className="flex justify-between text-sm">
+                      <span>
+                        {t("inputTotalValue", { currency: inputCurrency })}
+                      </span>
+                      <FinancialValue>
+                        {inputDisplay(inputTransactionTotal)}
+                      </FinancialValue>
+                    </div>
+                  ) : null}
                   <div className="flex justify-between text-sm">
                     <span>{t("derivedCurrentValue")}</span>
                     <FinancialValue>
@@ -819,6 +1164,16 @@ export function InvestmentOperationForm({
                   className="flex flex-col gap-(--space-2) rounded-(--radius-card) border border-border-subtle bg-surface-muted p-(--space-4)"
                   aria-live="polite"
                 >
+                  {usesQuotedCurrency ? (
+                    <div className="flex justify-between">
+                      <span>
+                        {t("inputTotalValue", { currency: inputCurrency })}
+                      </span>
+                      <FinancialValue>
+                        {inputDisplay(inputTransactionTotal)}
+                      </FinancialValue>
+                    </div>
+                  ) : null}
                   <div className="flex justify-between">
                     <span>{t("grossProceeds")}</span>
                     <FinancialValue>
@@ -855,10 +1210,20 @@ export function InvestmentOperationForm({
                 <ControlledField
                   control={control}
                   field={{
-                    type: "amount",
+                    type: usesQuotedCurrency ? "number" : "amount",
                     name: "quote",
                     id: "investment-operation-quote",
-                    label: t("quotedValue"),
+                    label: usesQuotedCurrency
+                      ? `${t("quotedValue")} (${inputCurrency})`
+                      : t("quotedValue"),
+                    minValue: usesQuotedCurrency ? 0 : undefined,
+                    step: usesQuotedCurrency ? 0.00000001 : undefined,
+                    formatOptions: usesQuotedCurrency
+                      ? {
+                          style: "decimal",
+                          maximumFractionDigits: CRYPTO_DECIMAL_DIGITS,
+                        }
+                      : undefined,
                   }}
                 />
               ) : null}
@@ -936,10 +1301,20 @@ export function InvestmentOperationForm({
                         <ControlledField
                           control={control}
                           field={{
-                            type: "amount",
+                            type: usesQuotedCurrency ? "number" : "amount",
                             name: "feeAmount",
                             id: "investment-fee-amount",
-                            label: t("feeAmount"),
+                            label: usesQuotedCurrency
+                              ? `${t("feeAmount")} (${inputCurrency})`
+                              : t("feeAmount"),
+                            minValue: usesQuotedCurrency ? 0 : undefined,
+                            step: usesQuotedCurrency ? 0.00000001 : undefined,
+                            formatOptions: usesQuotedCurrency
+                              ? {
+                                  style: "decimal",
+                                  maximumFractionDigits: CRYPTO_DECIMAL_DIGITS,
+                                }
+                              : undefined,
                           }}
                         />
                       ) : (
@@ -967,10 +1342,20 @@ export function InvestmentOperationForm({
                       <ControlledField
                         control={control}
                         field={{
-                          type: "amount",
+                          type: usesQuotedCurrency ? "number" : "amount",
                           name: "feeValue",
                           id: "investment-fee-value",
-                          label: t("feeValue"),
+                          label: usesQuotedCurrency
+                            ? `${t("feeValue")} (${inputCurrency})`
+                            : t("feeValue"),
+                          minValue: usesQuotedCurrency ? 0 : undefined,
+                          step: usesQuotedCurrency ? 0.00000001 : undefined,
+                          formatOptions: usesQuotedCurrency
+                            ? {
+                                style: "decimal",
+                                maximumFractionDigits: CRYPTO_DECIMAL_DIGITS,
+                              }
+                            : undefined,
                           error: fieldError("feeValue"),
                         }}
                       />
@@ -1007,7 +1392,7 @@ export function InvestmentOperationForm({
           <Button
             className="w-full"
             onPress={review}
-            isDisabled={Boolean(insufficientBuyBalance)}
+            isDisabled={Boolean(insufficientBuyBalance || needsManualInputRate)}
             data-testid="investment-operation-review"
           >
             {t("review")}

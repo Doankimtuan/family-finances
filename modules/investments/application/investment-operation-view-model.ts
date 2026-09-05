@@ -45,12 +45,27 @@ function safeMoney(value: number | null | undefined) {
     : null;
 }
 
+function multiplyQuantityByDecimalValue(
+  quantity: string,
+  unitPrice: number | null | undefined,
+): number | null {
+  if (unitPrice == null || !Number.isFinite(unitPrice) || unitPrice < 0) {
+    return null;
+  }
+  const numericQuantity = Number(quantity);
+  if (!Number.isFinite(numericQuantity)) return null;
+  const result = Math.round(numericQuantity * unitPrice);
+  return Number.isSafeInteger(result) ? result : null;
+}
+
 export function multiplyQuantityByUnitPrice(
   quantity: string,
   unitPrice: number | null | undefined,
 ): number | null {
   const price = safeMoney(unitPrice);
-  if (price == null) return null;
+  if (price == null) {
+    return multiplyQuantityByDecimalValue(quantity, unitPrice);
+  }
   try {
     const result =
       (parseQuantity(quantity) * price + QUANTITY_SCALE / BigInt(2)) /
