@@ -49,7 +49,7 @@ export async function listCreditCardInstallments(
   }
 }
 
-/** Product eligibility only; issuer-specific rules remain user-confirmed. */
+/** Product eligibility only; corrected expense legs remain user-confirmed. */
 export async function listEligibleCreditCardPurchases(
   cardAccountId: string,
 ): Promise<EligibleCreditCardPurchase[] | null> {
@@ -111,6 +111,7 @@ export async function listEligibleCreditCardPurchases(
         LEDGER_OPERATION.LIST_ELIGIBLE_CREDIT_CARD_PURCHASES,
         { householdId: gate.householdId, cardAccountId },
       );
+      return null;
     }
     const reviewed = new Set(
       (related ?? [])
@@ -128,10 +129,8 @@ export async function listEligibleCreditCardPurchases(
         isStructurallyEligibleCardPurchase({
           amount: Number(transaction.amount),
           transactionType: transaction.type,
-          hasRefundOrCorrection:
-            Boolean(transaction.reverses_transaction_id) ||
-            Boolean(transaction.corrects_transaction_id) ||
-            reviewed.has(transaction.id),
+          isReversal: Boolean(transaction.reverses_transaction_id),
+          isAlreadyCorrected: reviewed.has(transaction.id),
           alreadyTracked: tracked.has(transaction.id),
         }),
       )

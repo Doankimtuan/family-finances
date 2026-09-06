@@ -14,6 +14,7 @@ import {
   CreditCardInstallmentProgram,
   CreditCardInstallmentScheduleStatus,
   CreditCardInstallmentStatus,
+  TransactionLedgerType,
 } from "@/modules/ledger/application/ledger-constants";
 
 const zeroFeeInput = {
@@ -138,36 +139,49 @@ describe("transaction-linked card installment calculations", () => {
     expect(viewModel.nextExpected?.installmentNumber).toBe(2);
   });
 
-  it("limits product eligibility to untracked, positive expense purchases without corrections", () => {
+  it("allows corrected expense legs but blocks reversals and corrected originals", () => {
     expect(
       isStructurallyEligibleCardPurchase({
         amount: 1_000_000,
-        transactionType: "expense",
-        hasRefundOrCorrection: false,
+        transactionType: TransactionLedgerType.EXPENSE,
+        isReversal: false,
+        isAlreadyCorrected: false,
         alreadyTracked: false,
       }),
     ).toBe(true);
     expect(
       isStructurallyEligibleCardPurchase({
         amount: 1_000_000,
-        transactionType: "income",
-        hasRefundOrCorrection: false,
+        transactionType: TransactionLedgerType.INCOME,
+        isReversal: false,
+        isAlreadyCorrected: false,
         alreadyTracked: false,
       }),
     ).toBe(false);
     expect(
       isStructurallyEligibleCardPurchase({
         amount: 1_000_000,
-        transactionType: "expense",
-        hasRefundOrCorrection: true,
+        transactionType: TransactionLedgerType.EXPENSE,
+        isReversal: true,
+        isAlreadyCorrected: false,
         alreadyTracked: false,
       }),
     ).toBe(false);
     expect(
       isStructurallyEligibleCardPurchase({
         amount: 1_000_000,
-        transactionType: "expense",
-        hasRefundOrCorrection: false,
+        transactionType: TransactionLedgerType.EXPENSE,
+        isReversal: false,
+        isAlreadyCorrected: true,
+        alreadyTracked: false,
+      }),
+    ).toBe(false);
+    expect(
+      isStructurallyEligibleCardPurchase({
+        amount: 1_000_000,
+        transactionType: TransactionLedgerType.EXPENSE,
+        isReversal: false,
+        isAlreadyCorrected: false,
         alreadyTracked: true,
       }),
     ).toBe(false);

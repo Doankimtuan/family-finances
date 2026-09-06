@@ -265,13 +265,15 @@ export function buildCreditCardInstallmentViewModel(
 export function isStructurallyEligibleCardPurchase(input: {
   amount: number;
   transactionType: string;
-  hasRefundOrCorrection: boolean;
+  isReversal: boolean;
+  isAlreadyCorrected: boolean;
   alreadyTracked: boolean;
 }): boolean {
   return (
     asWholeVnd(input.amount) > 0 &&
     input.transactionType === TransactionLedgerType.EXPENSE &&
-    !input.hasRefundOrCorrection &&
+    !input.isReversal &&
+    !input.isAlreadyCorrected &&
     !input.alreadyTracked
   );
 }

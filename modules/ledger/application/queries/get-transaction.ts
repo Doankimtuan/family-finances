@@ -492,9 +492,7 @@ export async function listTransactionEvents(
   const rows = await listTransactionEventRows(filter, rawLimit, cursor);
   if (!rows) return null;
 
-  const activities = createTransactionActivities(
-    rows.filter((row) => row.correctsTransactionId === null),
-  )
+  const activities = createTransactionActivities(rows)
     .filter((activity) =>
       transactionActivityMatchesFilter(activity, filter.type),
     )

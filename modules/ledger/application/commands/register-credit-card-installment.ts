@@ -143,6 +143,7 @@ export async function registerCreditCardInstallment(
       { data: card, error: cardError },
       { data: source, error: sourceError },
       { data: existing, error: existingError },
+      { data: related, error: relatedError },
     ] = await Promise.all([
       supabase
         .from("accounts")
@@ -164,10 +165,18 @@ export async function registerCreditCardInstallment(
         .eq("household_id", gate.householdId)
         .eq("source_transaction_id", parsed.data.sourceTransactionId)
         .maybeSingle(),
+      supabase
+        .from("transactions")
+        .select("id")
+        .eq("household_id", gate.householdId)
+        .or(
+          `reverses_transaction_id.eq.${parsed.data.sourceTransactionId},corrects_transaction_id.eq.${parsed.data.sourceTransactionId}`,
+        )
+        .limit(1),
     ]);
-    if (cardError || sourceError || existingError) {
+    if (cardError || sourceError || existingError || relatedError) {
       logLedgerFailure(
-        cardError ?? sourceError ?? existingError,
+        cardError ?? sourceError ?? existingError ?? relatedError,
         LEDGER_OPERATION.REGISTER_CREDIT_CARD_INSTALLMENT,
         {
           householdId: gate.householdId,
@@ -186,7 +195,7 @@ export async function registerCreditCardInstallment(
       source.type !== "expense" ||
       Number(source.amount) <= 0 ||
       source.reverses_transaction_id ||
-      source.corrects_transaction_id ||
+      (related ?? []).length > 0 ||
       existing
     )
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
