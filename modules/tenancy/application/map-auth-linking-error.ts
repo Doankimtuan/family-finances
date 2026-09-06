@@ -115,6 +115,10 @@ export function mapAuthLinkingError(
   const message = (error.message ?? "").toLowerCase();
   const combined = `${code} ${message}`;
 
+  if (code === SUPABASE_AUTH_ERROR_CODE.OTP_EXPIRED) {
+    return AUTH_CONFIRM_ERROR_CODE.INVALID;
+  }
+
   if (
     code === SUPABASE_AUTH_ERROR_CODE.ACCESS_DENIED ||
     includesAny(combined, CANCELLED_MESSAGE_NEEDLES)
@@ -173,15 +177,17 @@ export function mapAuthLinkingError(
  */
 export function mapOAuthCallbackQuery(params: {
   error?: string | null;
+  errorCode?: string | null;
   errorDescription?: string | null;
 }): AuthConfirmErrorCode {
   const error = params.error?.trim();
+  const errorCode = params.errorCode?.trim();
   const errorDescription = params.errorDescription?.trim();
-  if (!error && !errorDescription) {
+  if (!error && !errorCode && !errorDescription) {
     return AUTH_CONFIRM_ERROR_CODE.INVALID;
   }
   return mapAuthLinkingError({
-    code: error ?? undefined,
-    message: errorDescription ?? error ?? undefined,
+    code: errorCode ?? error ?? undefined,
+    message: errorDescription ?? errorCode ?? error ?? undefined,
   });
 }

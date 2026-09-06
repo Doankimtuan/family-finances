@@ -159,6 +159,7 @@ export const TENANCY_OPERATION = {
   AUTH_SESSION: "tenancy.auth.session",
   AUTH_SIGN_OUT: "tenancy.auth.sign_out",
   AUTH_PASSWORD_RESET: "tenancy.auth.password_reset",
+  AUTH_PASSWORD_UPDATE: "tenancy.auth.password_update",
   AUTH_OAUTH: "tenancy.auth.oauth",
   HOUSEHOLD_CREATE: "tenancy.household.create",
   HOUSEHOLD_ROLE: "tenancy.household.role",

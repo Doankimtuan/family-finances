@@ -13,6 +13,7 @@ type Props = {
     token_hash?: string;
     type?: string;
     error?: string;
+    error_code?: string;
     error_description?: string;
     next?: string;
   }>;
@@ -30,6 +31,7 @@ export default async function AuthConfirmPage({ searchParams }: Props) {
     params.code ||
     (params.token_hash && params.type) ||
     params.error ||
+    params.error_code ||
     params.error_description,
   );
 

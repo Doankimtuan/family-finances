@@ -80,6 +80,7 @@ export async function GET(request: NextRequest) {
   const type = searchParams.get(AUTH_CONFIRM_QUERY.TYPE);
   const next = searchParams.get(AUTH_CONFIRM_QUERY.NEXT);
   const oauthError = searchParams.get(AUTH_CONFIRM_QUERY.ERROR);
+  const oauthErrorCode = searchParams.get(AUTH_CONFIRM_QUERY.ERROR_CODE);
   const oauthErrorDescription = searchParams.get(
     AUTH_CONFIRM_QUERY.ERROR_DESCRIPTION,
   );
@@ -91,9 +92,10 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  if (oauthError || oauthErrorDescription) {
+  if (oauthError || oauthErrorCode || oauthErrorDescription) {
     const mapped = mapOAuthCallbackQuery({
       error: oauthError,
+      errorCode: oauthErrorCode,
       errorDescription: oauthErrorDescription,
     });
     return NextResponse.redirect(confirmErrorUrl(origin, locale, mapped));

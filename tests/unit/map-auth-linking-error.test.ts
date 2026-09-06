@@ -55,6 +55,16 @@ describe("mapAuthLinkingError", () => {
     ).toBe(AUTH_CONFIRM_ERROR_CODE.CANCELLED);
   });
 
+  it("maps expired OTP callback errors to invalid", () => {
+    expect(
+      mapOAuthCallbackQuery({
+        error: SUPABASE_AUTH_ERROR_CODE.ACCESS_DENIED,
+        errorCode: SUPABASE_AUTH_ERROR_CODE.OTP_EXPIRED,
+        errorDescription: "Email link is invalid or has expired",
+      }),
+    ).toBe(AUTH_CONFIRM_ERROR_CODE.INVALID);
+  });
+
   it("maps invalid/expired to invalid", () => {
     expect(
       mapAuthLinkingError({

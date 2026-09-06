@@ -31,6 +31,33 @@ test.describe("Register + forgot password (ST-E02-003)", () => {
     ).toBeVisible();
   });
 
+  test("reset-password screen renders inside auth chrome", async ({ page }) => {
+    await page.goto("/en/reset-password");
+    await expect(page.locator('[data-chrome="auth"]')).toBeVisible();
+    await expect(page.getByTestId("auth-reset-password")).toBeVisible();
+    await expect(
+      page.getByRole("textbox", { name: "New password", exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("textbox", { name: "Confirm new password", exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Update password" }),
+    ).toBeVisible();
+  });
+
+  test("legacy recovery payload is forwarded to the confirm adapter", async ({
+    page,
+  }) => {
+    await page.goto("/en?code=expired-test-code");
+    await expect(page).toHaveURL(
+      /\/en\/auth\/confirm\?status=error&code=invalid/,
+    );
+    await expect(
+      page.getByText("This link is invalid or expired.", { exact: false }),
+    ).toBeVisible();
+  });
+
   test("login links to register and forgot-password", async ({ page }) => {
     await page.goto("/en/login");
     await page.getByRole("link", { name: "Create account" }).click();

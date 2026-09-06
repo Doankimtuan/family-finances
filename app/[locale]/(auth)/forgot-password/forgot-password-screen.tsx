@@ -43,7 +43,7 @@ export function ForgotPasswordScreen() {
         ...values,
         redirectTo: buildAuthConfirmAdapterUrl(
           window.location.origin,
-          APP_PATH.LOGIN,
+          APP_PATH.RESET_PASSWORD,
         ),
       });
       if (result.status === "success") {

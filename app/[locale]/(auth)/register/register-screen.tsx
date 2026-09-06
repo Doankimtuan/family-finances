@@ -34,6 +34,7 @@ import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import {
   AUTH_ACTION_ERROR_CODE,
   AUTH_SIGN_UP_NEXT,
+  PASSWORD_MIN_LENGTH,
   type AuthActionErrorCode,
 } from "@/modules/tenancy/application/auth-constants";
 
@@ -238,7 +239,7 @@ export function RegisterScreen() {
               registration={register("password")}
               error={
                 errors.password
-                  ? tValidation("tooShort", { min: 8 })
+                  ? tValidation("tooShort", { min: PASSWORD_MIN_LENGTH })
                   : undefined
               }
             />

@@ -8,6 +8,7 @@ export const APP_PATH = {
   LOGIN: "/login",
   REGISTER: "/register",
   FORGOT_PASSWORD: "/forgot-password",
+  RESET_PASSWORD: "/reset-password",
   MONEY: "/money",
   MONEY_ACCOUNTS: "/money/accounts",
   MONEY_ADD: "/money/transactions/new",

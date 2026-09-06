@@ -19,6 +19,8 @@ export const AUTH_LOCALE_CONFIRM_SEGMENT = "auth/confirm";
 export const AUTH_LOCALE_REGISTER_SEGMENT = "register";
 export const AUTH_LOCALE_FORGOT_PASSWORD_SEGMENT = "forgot-password";
 
+export const PASSWORD_MIN_LENGTH = 8;
+
 export const AUTH_CONFIRM_STATUS = {
   OK: "ok",
   ERROR: "error",
@@ -34,6 +36,7 @@ export const AUTH_CONFIRM_QUERY = {
   TOKEN_HASH: "token_hash",
   TYPE: "type",
   ERROR: "error",
+  ERROR_CODE: "error_code",
   ERROR_DESCRIPTION: "error_description",
   NEXT: "next",
 } as const;
@@ -84,6 +87,7 @@ export const SUPABASE_AUTH_ERROR_CODE = {
   INVALID_CREDENTIALS: "invalid_credentials",
   EMAIL_NOT_CONFIRMED: "email_not_confirmed",
   ACCESS_DENIED: "access_denied",
+  OTP_EXPIRED: "otp_expired",
   MANUAL_LINKING_DISABLED: "manual_linking_disabled",
   IDENTITY_ALREADY_EXISTS: "identity_already_exists",
   EMAIL_CONFLICT: "email_conflict",

@@ -1,8 +1,11 @@
 import { z } from "zod";
+import { PASSWORD_MIN_LENGTH } from "./auth-constants";
+
+export const passwordSchema = z.string().min(PASSWORD_MIN_LENGTH);
 
 export const registerInputSchema = z.object({
   email: z.string().trim().email(),
-  password: z.string().min(8),
+  password: passwordSchema,
 });
 
 export type RegisterInput = z.infer<typeof registerInputSchema>;
