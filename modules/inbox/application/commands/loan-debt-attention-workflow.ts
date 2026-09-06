@@ -1,3 +1,4 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import {
@@ -17,8 +18,17 @@ export type LoanDebtAttentionSyncResult = Result<
   InboxCommandErrorCode
 >;
 
-export async function syncLoanDebtAttentionInboxItems(): Promise<LoanDebtAttentionSyncResult> {
-  const gate = await assertMoneyActionAllowed();
+export type LoanDebtAttentionSyncContext = {
+  client: SupabaseClient;
+  householdId: string;
+};
+
+export async function syncLoanDebtAttentionInboxItems(
+  context?: LoanDebtAttentionSyncContext,
+): Promise<LoanDebtAttentionSyncResult> {
+  const gate = context
+    ? { ok: true as const, householdId: context.householdId }
+    : await assertMoneyActionAllowed();
   if (!gate.ok) {
     return {
       ok: false,
@@ -27,7 +37,7 @@ export async function syncLoanDebtAttentionInboxItems(): Promise<LoanDebtAttenti
   }
 
   try {
-    const supabase = await createSupabaseServerClient();
+    const supabase = context?.client ?? (await createSupabaseServerClient());
     const { data, error } = await supabase.rpc(
       INBOX_RPC.SYNC_LOAN_DEBT_ATTENTION,
     );

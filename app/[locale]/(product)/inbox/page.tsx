@@ -1,4 +1,6 @@
+import { after } from "next/server";
 import { getTranslations } from "next-intl/server";
+import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { setLocale } from "@/i18n/set-locale";
 import { redirect } from "@/i18n/navigation";
 import { hasLocale } from "next-intl";
@@ -62,16 +64,29 @@ export default async function InboxPage({ params, searchParams }: Props) {
       ? (rawReceipt as (typeof INBOX_RECEIPT_KIND_VALUES)[number])
       : null;
 
-  // Best-effort sweep — do not block Inbox render / navigation (BR-15).
-  if (!showArchived) {
-    void runInboxStalenessWorker();
-    void syncLoanDebtAttentionInboxItems();
-  }
-
-  const [t, items] = await Promise.all([
+  const backgroundClientPromise = showArchived
+    ? Promise.resolve(null)
+    : createSupabaseServerClient();
+  const [t, items, backgroundClient] = await Promise.all([
     getTranslations("inbox"),
     showArchived ? listArchivedInboxItems() : listOpenInboxPage(),
+    backgroundClientPromise,
   ]);
+
+  // Best-effort sweep — run after the Inbox response to avoid competing with
+  // the initial list query (BR-15).
+  if (!showArchived && backgroundClient) {
+    const workerContext = {
+      client: backgroundClient,
+      householdId: membership.householdId,
+    };
+    after(async () => {
+      await Promise.allSettled([
+        runInboxStalenessWorker(workerContext),
+        syncLoanDebtAttentionInboxItems(workerContext),
+      ]);
+    });
+  }
 
   const loadFailed = items == null;
   const archivedItems = Array.isArray(items) ? items : null;

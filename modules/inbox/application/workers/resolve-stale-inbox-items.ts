@@ -1,3 +1,4 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import {
@@ -17,13 +18,22 @@ export type InboxStalenessWorkerResult = Result<
   InboxCommandErrorCode
 >;
 
+export type InboxStalenessWorkerContext = {
+  client: SupabaseClient;
+  householdId: string;
+};
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
 /** Hourly-capable staleness sweep for the active household (BR-15). */
-export async function runInboxStalenessWorker(): Promise<InboxStalenessWorkerResult> {
-  const gate = await assertMoneyActionAllowed();
+export async function runInboxStalenessWorker(
+  context?: InboxStalenessWorkerContext,
+): Promise<InboxStalenessWorkerResult> {
+  const gate = context
+    ? { ok: true as const, householdId: context.householdId }
+    : await assertMoneyActionAllowed();
   if (!gate.ok) {
     return {
       ok: false,
@@ -32,7 +42,7 @@ export async function runInboxStalenessWorker(): Promise<InboxStalenessWorkerRes
   }
 
   try {
-    const supabase = await createSupabaseServerClient();
+    const supabase = context?.client ?? (await createSupabaseServerClient());
     const { data, error } = await supabase.rpc(INBOX_RPC.STALENESS_WORKER);
 
     if (error) {
