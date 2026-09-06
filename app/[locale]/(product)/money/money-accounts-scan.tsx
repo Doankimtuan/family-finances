@@ -10,11 +10,15 @@ import {
 import { moneyAccountPath } from "@/modules/tenancy/application/app-path";
 import { AccountCard } from "@/modules/ledger/ui/account-card";
 import { CreditCardCard } from "@/modules/ledger/ui/credit-card-card";
+import { Card } from "@/shared/patterns/card";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { SectionHeader } from "@/shared/patterns/section-header";
 import { Text } from "@/shared/ui/text";
 import { StatusAlert } from "@/shared/ui/status-alert";
-import type { IconContainerTone } from "@/shared/ui/icon-container";
+import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
+import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
+import { type IconContainerTone as IconContainerToneValue } from "@/shared/ui/icon-container";
+import { StatusBadgeTone } from "@/shared/ui/status-badge";
 import { FinancialOwnershipBadge } from "@/shared/patterns/financial-ownership-badge";
 import type { FinancialScope } from "@/modules/shared-kernel/application/financial-scope";
 import type { OwnerStatus } from "@/modules/shared-kernel/application/financial-ownership";
@@ -26,7 +30,7 @@ export type MoneyHubAccountRow = {
   balanceCaption: string;
   balanceLabel: string;
   icon: IconSvgElement;
-  iconTone: IconContainerTone;
+  iconTone: IconContainerToneValue;
   financialScope: FinancialScope;
   isOwnedByMe: boolean;
   ownerStatus: OwnerStatus;
@@ -78,15 +82,16 @@ type Props = {
   accountsUnavailable?: boolean;
   creditCardsUnavailable?: boolean;
   createAction: ReactNode;
+  emptyAction?: ReactNode;
 };
 
 const CREDIT_ATTENTION_TONE: Record<
   MoneyCreditAttention,
-  "warning" | "attention"
+  typeof StatusBadgeTone.WARNING | typeof StatusBadgeTone.ATTENTION
 > = {
-  overdue: "attention",
-  due_soon: "warning",
-  high_utilization: "warning",
+  overdue: StatusBadgeTone.ATTENTION,
+  due_soon: StatusBadgeTone.WARNING,
+  high_utilization: StatusBadgeTone.WARNING,
 };
 
 function AccountGroupRows({
@@ -155,6 +160,7 @@ export function MoneyAccountsScan({
   accountsUnavailable = false,
   creditCardsUnavailable = false,
   createAction,
+  emptyAction,
 }: Props) {
   const [showAllAccounts, setShowAllAccounts] = useState(false);
   const visibleGroups = showAllAccounts ? accountGroups : initialAccountGroups;
@@ -170,7 +176,10 @@ export function MoneyAccountsScan({
       className="flex flex-col gap-(--space-4)"
       data-testid="money-accounts-scan"
     >
-      <SectionHeader title={labels.sectionTitle} action={createAction} />
+      <SectionHeader
+        title={labels.sectionTitle}
+        action={hasAnyContent ? createAction : undefined}
+      />
       {accountsUnavailable && labels.accountsUnavailable ? (
         <StatusAlert
           variant="info"
@@ -179,11 +188,24 @@ export function MoneyAccountsScan({
         />
       ) : null}
       {!hasAnyContent ? (
-        <EmptyState
-          title={labels.emptyTitle}
-          description={labels.emptyDescription}
-          className="flex-none py-(--space-4)"
-        />
+        <Card
+          tone="soft"
+          className="gap-(--space-3) p-(--space-4)"
+          data-testid="money-accounts-empty"
+        >
+          <EmptyState
+            icon={
+              <AppIcon
+                icon={FINANCE_ICONS.account}
+                size={AppIconSize.DISPLAY}
+              />
+            }
+            title={labels.emptyTitle}
+            description={labels.emptyDescription}
+            action={emptyAction}
+            className="flex-none py-(--space-2)"
+          />
+        </Card>
       ) : (
         <div className="flex flex-col gap-(--space-5)">
           {hasAnyAccount ? (

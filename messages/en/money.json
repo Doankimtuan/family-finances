@@ -14,7 +14,12 @@
     "ownershipReadOnly": "Only the owner can make changes to this personal item."
   },
   "header": {
-    "accountsMeta": "{accountCount, plural, =0 {No accounts to manage} one {# account managed} other {# accounts managed}}"
+    "accountsMeta": "{accountCount, plural, =0 {No accounts to manage} one {# account managed} other {# accounts managed}}",
+    "subtitle": "See where money sits and what needs managing."
+  },
+  "financialPrivacy": {
+    "hide": "Hide financial values",
+    "show": "Show financial values"
   },
   "realPosition": "Money in active accounts",
   "realPositionHint": "Money represented by your active accounts.",
@@ -83,7 +88,9 @@
     },
     "modules": {
       "growingTitle": "Growing money",
+      "growingHint": "Savings and investments you are tracking.",
       "owedTitle": "Borrowed & owed",
+      "owedHint": "Loans and debts you are tracking.",
       "empty": "None yet",
       "noDebt": "Nothing owed",
       "unavailable": "Unavailable",
@@ -1603,6 +1610,7 @@
     "emptyTitle": "No accounts yet",
     "emptyDescription": "Add a cash account to track real money.",
     "add": "Add account",
+    "addDescription": "Choose how this money is held. You can add more accounts later.",
     "adding": "Adding…",
     "nameLabel": "Account name",
     "namePlaceholder": "Cash",

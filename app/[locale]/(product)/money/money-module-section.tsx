@@ -1,20 +1,20 @@
 import type { ReactNode } from "react";
 import type { IconSvgElement } from "@hugeicons/react";
-import { ChevronRightIcon } from "@hugeicons/core-free-icons";
 import {
   MoneyModuleAttentionLevel,
   type MoneyModuleAttentionLevel as AttentionLevel,
 } from "@/modules/ledger/application";
 import { Link } from "@/i18n/navigation";
 import { Card } from "@/shared/patterns/card";
+import { Section } from "@/shared/patterns/section";
 import { FinancialValue } from "@/shared/patterns/financial-value";
 import {
   IconContainer,
   type IconContainerTone,
 } from "@/shared/ui/icon-container";
 import { AppIcon } from "@/shared/ui/app-icon";
-import { Heading } from "@/shared/ui/heading";
-import { StatusBadge } from "@/shared/ui/status-badge";
+import { ACTION_ICONS } from "@/shared/ui/icon-registry";
+import { StatusBadge, StatusBadgeTone } from "@/shared/ui/status-badge";
 import { Text } from "@/shared/ui/text";
 
 /** Right-column state for a module row; a failed domain read never renders as zero. */
@@ -35,9 +35,12 @@ export type MoneyModuleRowProps = {
   attention?: { level: AttentionLevel; label: string } | null;
 };
 
-const ATTENTION_BADGE_TONE: Record<AttentionLevel, "warning" | "attention"> = {
-  [MoneyModuleAttentionLevel.WARNING]: "warning",
-  [MoneyModuleAttentionLevel.CRITICAL]: "attention",
+const ATTENTION_BADGE_TONE: Record<
+  AttentionLevel,
+  typeof StatusBadgeTone.WARNING | typeof StatusBadgeTone.ATTENTION
+> = {
+  [MoneyModuleAttentionLevel.WARNING]: StatusBadgeTone.WARNING,
+  [MoneyModuleAttentionLevel.CRITICAL]: StatusBadgeTone.ATTENTION,
 };
 
 /**
@@ -92,7 +95,7 @@ export function MoneyModuleRow({
           <FinancialValue>{value.label}</FinancialValue>
         </span>
         <AppIcon
-          icon={ChevronRightIcon}
+          icon={ACTION_ICONS.forward}
           size="sm"
           className="shrink-0 text-text-tertiary"
         />
@@ -102,33 +105,28 @@ export function MoneyModuleRow({
 }
 
 /**
- * A grouped financial module card: one section title plus divided navigation
- * rows. Dense by design — the Money hub keeps major domains scannable without
- * turning each one into a standalone card.
+ * A grouped financial module: section title on the canvas, then divided
+ * navigation rows in one elevated card. Dense by design so major domains stay
+ * scannable without turning each one into a standalone card.
  */
 export function MoneyModuleCard({
   title,
+  description,
   testId,
   children,
 }: {
   title: string;
+  description?: string;
   testId: string;
   children: ReactNode;
 }) {
   return (
-    <Card tone="elevated" className="gap-0 p-0" data-testid={testId}>
-      <div className="px-(--space-4) pb-(--space-1) pt-(--space-4)">
-        <Heading
-          level={3}
-          className="text-sm font-semibold tracking-tight text-text-primary"
-          data-slot="section-title"
-        >
-          {title}
-        </Heading>
-      </div>
-      <div className="flex flex-col divide-y divide-border-subtle/65 pb-(--space-1)">
-        {children}
-      </div>
-    </Card>
+    <Section title={title} description={description} testId={testId}>
+      <Card tone="elevated" className="gap-0 p-0">
+        <div className="flex flex-col divide-y divide-border-subtle/65 py-(--space-1)">
+          {children}
+        </div>
+      </Card>
+    </Section>
   );
 }

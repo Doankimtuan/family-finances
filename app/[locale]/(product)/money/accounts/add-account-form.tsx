@@ -341,7 +341,7 @@ export function AddAccountForm({
       ) : null}
       {isCard ? (
         <div
-          className="flex flex-col gap-(--space-3)"
+          className="flex flex-col gap-(--space-3) rounded-(--radius-card) bg-surface-muted/70 p-(--space-3)"
           data-testid="account-credit-card-settings"
         >
           <Controller
@@ -472,6 +472,13 @@ export function AddAccountForm({
               <Sheet.Heading className="text-lg font-semibold tracking-tight text-text-primary">
                 {t("add")}
               </Sheet.Heading>
+              <Text
+                size="sm"
+                tone="secondary"
+                className="mt-(--space-1) text-pretty"
+              >
+                {t("addDescription")}
+              </Text>
             </ActionSheetLayout.Header>
             <ActionSheetLayout.Body>{fields}</ActionSheetLayout.Body>
             <SheetActionFooter
@@ -499,6 +506,13 @@ export function AddAccountForm({
             <Dialog.Heading className="text-lg font-semibold tracking-tight text-text-primary">
               {t("add")}
             </Dialog.Heading>
+            <Text
+              size="sm"
+              tone="secondary"
+              className="mt-(--space-1) text-pretty"
+            >
+              {t("addDescription")}
+            </Text>
           </Dialog.Header>
           <Dialog.Body className="max-h-[min(60dvh,480px)] overflow-y-auto px-(--space-4) py-(--space-3)">
             {fields}

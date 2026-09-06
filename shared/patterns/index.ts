@@ -67,6 +67,7 @@ export {
   type BalanceProps,
 } from "./balance";
 export { FinancialValue } from "./financial-value";
+export { FinancialPrivacyToggle } from "./financial-privacy-toggle";
 export {
   FinancialDeltaDirection,
   FINANCIAL_DELTA_DIRECTION_VALUES,

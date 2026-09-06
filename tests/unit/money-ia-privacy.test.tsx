@@ -390,6 +390,25 @@ describe("Money IA and financial privacy", () => {
     ).toHaveTextContent("Credit cards unavailable");
   });
 
+  it("puts the create action in the empty card and hides the header action", () => {
+    render(
+      <MoneyAccountsScan
+        labels={labels}
+        accountGroups={[]}
+        initialAccountGroups={[]}
+        accountPresentation="flat"
+        hasMoreAccounts={false}
+        creditCards={[]}
+        createAction={<button type="button">Header create</button>}
+        emptyAction={<button type="button">Empty create</button>}
+      />,
+    );
+
+    expect(screen.getByTestId("money-accounts-empty")).toBeInTheDocument();
+    expect(screen.getByText("Empty create")).toBeInTheDocument();
+    expect(screen.queryByText("Header create")).not.toBeInTheDocument();
+  });
+
   it("expands the full account dataset inline and collapses it in place", () => {
     const groups = [
       {

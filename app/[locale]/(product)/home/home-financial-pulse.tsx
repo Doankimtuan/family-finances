@@ -19,12 +19,7 @@ import {
 } from "@/shared/patterns";
 import { StatusBadge } from "@/shared/ui/status-badge";
 import { Text } from "@/shared/ui/text";
-import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
-import { IconButton } from "@/shared/ui/icon-button";
-import { UTILITY_ICONS } from "@/shared/ui/icon-registry";
-import { useFinancialPrivacy } from "@/providers/financial-privacy-provider";
-import { AnimatePresence, motion } from "motion/react";
-import { motionTokens, useMotionPolicy } from "@/shared/motion";
+import { FinancialPrivacyToggle } from "@/shared/patterns/financial-privacy-toggle";
 
 const NET_DELTA_DIRECTION: Record<
   HomeFinancialPulseState,
@@ -40,48 +35,6 @@ const NET_STATUS_BADGE_TONE = {
   [HomeFinancialPulseState.ATTENTION]: "attention",
   [HomeFinancialPulseState.UNAVAILABLE]: "neutral",
 } as const;
-
-function HomeFinancialPrivacyToggle() {
-  const t = useTranslations("home");
-  const { isHidden, toggle } = useFinancialPrivacy();
-  const policy = useMotionPolicy({ essential: true });
-  const label = t(isHidden ? "financialPrivacy.show" : "financialPrivacy.hide");
-  const swapScale = policy.reducedMotion ? 1 : motionTokens.scale.subtle;
-
-  return (
-    <IconButton
-      aria-label={label}
-      aria-pressed={isHidden}
-      data-testid={HOME_TEST_ID.FINANCIAL_PRIVACY_TOGGLE}
-      onPress={toggle}
-      variant="tertiary"
-      className="border border-white/25 bg-white/10 text-hero-fg shadow-none hover:bg-white/20 focus-visible:outline-hero-fg disabled:opacity-50"
-    >
-      <AnimatePresence initial={false} mode="wait">
-        <motion.span
-          key={isHidden ? "hidden" : "visible"}
-          className="inline-flex items-center justify-center"
-          initial={{ opacity: 0, scale: swapScale }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: swapScale }}
-          transition={{
-            duration: motionTokens.duration.fast,
-            ease: motionTokens.easing.standard,
-          }}
-        >
-          <AppIcon
-            icon={
-              isHidden
-                ? UTILITY_ICONS.financialHidden
-                : UTILITY_ICONS.financialVisible
-            }
-            size={AppIconSize.MD}
-          />
-        </motion.span>
-      </AnimatePresence>
-    </IconButton>
-  );
-}
 
 /**
  * Financial pulse: a deep-teal brand hero answers "how much do we have" with
@@ -125,7 +78,11 @@ export function HomeFinancialPulse({
           <Text size="sm" weight="medium" className="text-hero-muted">
             {t("financialPulse.title")}
           </Text>
-          <HomeFinancialPrivacyToggle />
+          <FinancialPrivacyToggle
+            hideLabel={t("financialPrivacy.hide")}
+            showLabel={t("financialPrivacy.show")}
+            testId={HOME_TEST_ID.FINANCIAL_PRIVACY_TOGGLE}
+          />
         </div>
         <div
           className="mt-(--space-2)"

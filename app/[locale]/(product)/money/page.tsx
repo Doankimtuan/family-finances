@@ -34,7 +34,8 @@ import { formatCurrency, formatDate } from "@/shared/i18n/formatters";
 import { MotionReveal } from "@/shared/motion";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
 import { todayIsoDate } from "@/shared/utils/iso-date";
-import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
+import { FINANCE_ICONS, NAVIGATION_ICONS } from "@/shared/ui/icon-registry";
+import { IconContainerTone } from "@/shared/ui/icon-container";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Page } from "@/shared/patterns/page";
 import { FloatingAction } from "@/shared/patterns/floating-action";
@@ -260,10 +261,13 @@ export default async function MoneyHubPage({ params }: Props) {
   return (
     <Page
       testId="money-hub"
+      contentClassName="gap-(--space-5)"
       topBar={
         <TopAppBar
           variant="primary"
           title={t("title")}
+          subtitle={t("header.subtitle")}
+          icon={NAVIGATION_ICONS.money}
           meta={t("header.accountsMeta", { accountCount: totalAccountCount })}
         />
       }
@@ -343,6 +347,10 @@ export default async function MoneyHubPage({ params }: Props) {
             }
             activityHref={APP_PATH.MONEY_TRANSACTIONS}
             activityLabel={t("seeActivity")}
+            privacy={{
+              hideLabel: t("financialPrivacy.hide"),
+              showLabel: t("financialPrivacy.show"),
+            }}
           />
         </MotionReveal>
         <MoneyHubAccounts
@@ -426,13 +434,14 @@ export default async function MoneyHubPage({ params }: Props) {
         />
         <MoneyModuleCard
           title={t("hub.modules.growingTitle")}
+          description={t("hub.modules.growingHint")}
           testId="money-modules-growing"
         >
           <MoneyModuleRow
             href={APP_PATH.MONEY_SAVINGS}
             testId="money-link-savings"
             icon={FINANCE_ICONS.savings}
-            iconTone="savings"
+            iconTone={IconContainerTone.SAVINGS}
             label={t("savings")}
             value={principalValue(modules.savings)}
             meta={
@@ -457,7 +466,7 @@ export default async function MoneyHubPage({ params }: Props) {
             href={APP_PATH.MONEY_INVESTMENTS}
             testId="money-link-investments"
             icon={FINANCE_ICONS.investment}
-            iconTone="investment"
+            iconTone={IconContainerTone.INVESTMENT}
             label={t("investmentsLabel")}
             value={investmentValue(modules.investments)}
             meta={investmentMeta(modules.investments)}
@@ -465,13 +474,14 @@ export default async function MoneyHubPage({ params }: Props) {
         </MoneyModuleCard>
         <MoneyModuleCard
           title={t("hub.modules.owedTitle")}
+          description={t("hub.modules.owedHint")}
           testId="money-modules-owed"
         >
           <MoneyModuleRow
             href={APP_PATH.MONEY_LOANS}
             testId="money-link-loans"
             icon={FINANCE_ICONS.loan}
-            iconTone="info"
+            iconTone={IconContainerTone.INFO}
             label={t("loans")}
             value={principalValue(modules.loans)}
             meta={
@@ -500,7 +510,7 @@ export default async function MoneyHubPage({ params }: Props) {
             href={APP_PATH.MONEY_DEBTS}
             testId="money-link-debts"
             icon={FINANCE_ICONS.debt}
-            iconTone="debt"
+            iconTone={IconContainerTone.DEBT}
             label={t("debts")}
             value={
               !modules.debts.loaded

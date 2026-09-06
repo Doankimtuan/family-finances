@@ -4,18 +4,22 @@ import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Card } from "@/shared/patterns/card";
 import { FloatingAction } from "@/shared/patterns/floating-action";
 import { Skeleton } from "@/shared/ui/skeleton";
+import { NAVIGATION_ICONS } from "@/shared/ui/icon-registry";
 import { MoneyCaptureAction } from "./money-capture-action";
 
 function HeroSkeleton() {
   return (
     <div className="flex flex-col gap-(--space-3)">
       <Card tone="hero" className="gap-0 p-(--space-4)">
-        <Skeleton className="h-4 w-36" />
+        <div className="flex items-center justify-between gap-(--space-3)">
+          <Skeleton className="h-4 w-28" />
+          <Skeleton className="size-11 rounded-(--radius-control)" />
+        </div>
         <Skeleton className="mt-(--space-2) h-9 w-52" />
         <Skeleton className="mt-(--space-1) h-3 w-44" />
-        <div className="mt-(--space-4) flex items-center justify-between gap-(--space-3) border-t border-divider pt-(--space-3)">
+        <div className="mt-(--space-4) flex items-center justify-between gap-(--space-3) border-t border-white/15 pt-(--space-3)">
           <Skeleton className="h-4 w-40" />
-          <Skeleton className="h-4 w-20" />
+          <Skeleton className="h-8 w-28 rounded-full" />
         </div>
       </Card>
       <Card tone="elevated" className="gap-0 p-(--space-4)">
@@ -45,25 +49,28 @@ function HeroSkeleton() {
 
 function ModuleCardSkeleton() {
   return (
-    <Card tone="elevated" className="gap-0 p-0">
-      <div className="px-(--space-4) pb-(--space-1) pt-(--space-4)">
-        <Skeleton className="h-4 w-28" />
+    <section className="flex flex-col gap-(--space-3)">
+      <div className="flex flex-col gap-(--space-1)">
+        <Skeleton className="h-5 w-36" />
+        <Skeleton className="h-4 w-52" />
       </div>
-      <div className="flex flex-col divide-y divide-divider pb-(--space-1)">
-        {[0, 1].map((row) => (
-          <div
-            key={row}
-            className="flex min-h-14 items-center gap-(--space-3) px-(--space-4) py-(--space-2)"
-          >
-            <Skeleton className="size-8 rounded-full" />
-            <div className="flex flex-1 flex-col gap-(--space-1)">
+      <Card tone="elevated" className="gap-0 p-0">
+        <div className="flex flex-col divide-y divide-border-subtle/65 py-(--space-1)">
+          {[0, 1].map((row) => (
+            <div
+              key={row}
+              className="flex min-h-14 items-center gap-(--space-3) px-(--space-4) py-(--space-2)"
+            >
+              <Skeleton className="size-8 rounded-full" />
+              <div className="flex flex-1 flex-col gap-(--space-1)">
+                <Skeleton className="h-4 w-20" />
+              </div>
               <Skeleton className="h-4 w-20" />
             </div>
-            <Skeleton className="h-4 w-20" />
-          </div>
-        ))}
-      </div>
-    </Card>
+          ))}
+        </div>
+      </Card>
+    </section>
   );
 }
 
@@ -110,10 +117,13 @@ export default async function MoneyLoading() {
   return (
     <Page
       testId="money-hub-loading"
+      contentClassName="gap-(--space-5)"
       topBar={
         <TopAppBar
           variant="primary"
           title={t("title")}
+          subtitle={<Skeleton className="h-4 w-56" />}
+          icon={NAVIGATION_ICONS.money}
           meta={<Skeleton className="h-4 w-28" />}
         />
       }

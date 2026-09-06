@@ -14,7 +14,12 @@
     "ownershipReadOnly": "Chỉ người sở hữu mới có thể thay đổi khoản cá nhân này."
   },
   "header": {
-    "accountsMeta": "{accountCount, plural, =0 {Chưa có tài khoản để quản lý} one {# tài khoản đang quản lý} other {# tài khoản đang quản lý}}"
+    "accountsMeta": "{accountCount, plural, =0 {Chưa có tài khoản để quản lý} one {# tài khoản đang quản lý} other {# tài khoản đang quản lý}}",
+    "subtitle": "Xem tiền đang ở đâu và việc cần xử lý."
+  },
+  "financialPrivacy": {
+    "hide": "Ẩn số tiền",
+    "show": "Hiện số tiền"
   },
   "realPosition": "Tiền trong tài khoản đang dùng",
   "realPositionHint": "Số tiền được ghi nhận trong các tài khoản đang dùng.",
@@ -83,7 +88,9 @@
     },
     "modules": {
       "growingTitle": "Tiền đang sinh lời",
+      "growingHint": "Tiết kiệm và đầu tư đang theo dõi.",
       "owedTitle": "Đang vay & nợ",
+      "owedHint": "Khoản vay và nợ đang theo dõi.",
       "empty": "Chưa có",
       "noDebt": "Chưa nợ gì",
       "unavailable": "Chưa tải được",
@@ -1603,6 +1610,7 @@
     "emptyTitle": "Chưa có tài khoản",
     "emptyDescription": "Thêm tài khoản tiền mặt để theo dõi tiền thật.",
     "add": "Thêm tài khoản",
+    "addDescription": "Chọn cách giữ khoản tiền này. Bạn có thể thêm tài khoản khác sau.",
     "adding": "Đang thêm…",
     "nameLabel": "Tên tài khoản",
     "namePlaceholder": "Tiền mặt",

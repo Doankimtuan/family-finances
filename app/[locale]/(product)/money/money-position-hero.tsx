@@ -6,10 +6,11 @@ import {
 } from "@/modules/ledger/application";
 import { Balance, BalanceSize } from "@/shared/patterns/balance";
 import { Card } from "@/shared/patterns/card";
+import { FinancialPrivacyToggle } from "@/shared/patterns/financial-privacy-toggle";
 import { FinancialValue } from "@/shared/patterns/financial-value";
 import { AppIcon } from "@/shared/ui/app-icon";
 import { Heading } from "@/shared/ui/heading";
-import { IconContainer } from "@/shared/ui/icon-container";
+import { IconContainer, IconContainerTone } from "@/shared/ui/icon-container";
 import { ACTION_ICONS, FINANCE_ICONS } from "@/shared/ui/icon-registry";
 import { Text } from "@/shared/ui/text";
 
@@ -19,6 +20,11 @@ type MoneyPositionAllocationSegment = {
   balanceLabel: string;
   percentage: number;
   percentageLabel: string;
+};
+
+type MoneyPrivacyLabels = {
+  hideLabel: string;
+  showLabel: string;
 };
 
 type Props = {
@@ -34,20 +40,21 @@ type Props = {
   allocation: MoneyPositionAllocationSegment[];
   activityHref: string;
   activityLabel: string;
+  privacy?: MoneyPrivacyLabels;
 };
 
 const ASSET_ALLOCATION_VISUAL = {
   [MoneyAssetAllocationKey.ACCOUNTS]: {
     icon: FINANCE_ICONS.account,
-    tone: "primary",
+    tone: IconContainerTone.PRIMARY,
   },
   [MoneyAssetAllocationKey.SAVINGS]: {
     icon: FINANCE_ICONS.savings,
-    tone: "savings",
+    tone: IconContainerTone.SAVINGS,
   },
   [MoneyAssetAllocationKey.INVESTMENTS]: {
     icon: FINANCE_ICONS.investment,
-    tone: "investment",
+    tone: IconContainerTone.INVESTMENT,
   },
 } as const;
 
@@ -76,6 +83,7 @@ export function MoneyPositionHero({
   allocation,
   activityHref,
   activityLabel,
+  privacy,
 }: Props) {
   return (
     <div className="flex flex-col gap-(--space-3)">
@@ -84,9 +92,18 @@ export function MoneyPositionHero({
         className="gap-0 p-(--space-4)"
         data-testid="money-real-position-summary"
       >
-        <Text size="sm" weight="medium" className="text-hero-muted">
-          {ownedMoneyLabel}
-        </Text>
+        <div className="flex items-center justify-between gap-(--space-3)">
+          <Text size="sm" weight="medium" className="text-hero-muted">
+            {ownedMoneyLabel}
+          </Text>
+          {privacy ? (
+            <FinancialPrivacyToggle
+              hideLabel={privacy.hideLabel}
+              showLabel={privacy.showLabel}
+              testId="money-financial-privacy-toggle"
+            />
+          ) : null}
+        </div>
         {ownedMoneyValue == null ? (
           <Text
             size="lg"
@@ -101,7 +118,7 @@ export function MoneyPositionHero({
             amountLabel={ownedMoneyValue}
             size={BalanceSize.HERO}
             className="mt-(--space-2)"
-            amountClassName="text-hero-fg"
+            amountClassName="text-4xl text-hero-fg"
           />
         )}
         {ownedMoneyValue != null &&
@@ -118,7 +135,7 @@ export function MoneyPositionHero({
           {metaLine}
           <Link
             href={activityHref}
-            className="inline-flex min-h-6 items-center gap-(--space-1) text-sm font-medium text-hero-fg underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-hero-fg"
+            className="inline-flex min-h-8 items-center gap-(--space-1) rounded-full border border-white/25 bg-white/10 px-(--space-3) text-sm font-medium text-hero-fg transition-[background-color,transform] duration-(--duration-fast) hover:bg-white/20 active:scale-(--press-scale) motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-hero-fg"
             data-testid="money-see-activity"
           >
             {activityLabel}
