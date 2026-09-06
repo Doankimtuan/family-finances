@@ -6,22 +6,38 @@
 @source not "../artifacts/**/*";
 @source not "../.agents/**/*";
 
-/* Shared toast presentation: the provider supplies shell-aware placement. */
-.vinha-toast-region {
+/* Shared toast presentation: the provider supplies shell-aware placement.
+   HeroUI's .toast-region--bottom uses left: 50% + the CSS `translate`
+   property (not `transform`) and width: calc(100vw - 2rem), which overflow
+   the 440px canvas. Contain here. */
+.toast-region.vinha-toast-region {
   pointer-events: none;
   position: absolute;
-  inset-inline: 0;
+  /* Gutter via inset: HeroUI toasts are position:absolute and ignore padding. */
+  inset-inline: var(--page-gutter);
+  left: var(--page-gutter);
+  right: var(--page-gutter);
+  --tw-translate-x: 0;
+  --tw-translate-y: 0;
+  translate: 0 0;
+  transform: none;
+  box-sizing: border-box;
+  width: auto;
+  min-width: 0;
+  max-width: none;
+  padding-inline: 0;
   z-index: var(--z-toast);
-  width: 100%;
-  max-width: var(--app-viewport-max);
-  padding-inline: var(--page-gutter);
 }
 
 .vinha-toast-region [data-slot="toast"] {
   box-sizing: border-box;
+  align-items: center;
   width: 100%;
   min-width: 0;
   max-width: 100%;
+  gap: var(--space-3);
+  padding-block: var(--space-3);
+  padding-inline: var(--space-4);
   overflow-wrap: anywhere;
   border: 1px solid var(--vinha-border-subtle);
   border-radius: var(--radius-overlay);
@@ -32,43 +48,72 @@
 
 .vinha-toast-region .toast__content {
   min-width: 0;
+  flex: 1 1 auto;
   gap: var(--space-1);
 }
 
 .vinha-toast-region .toast__title {
   color: var(--vinha-text-primary);
   overflow-wrap: anywhere;
+  text-wrap: pretty;
 }
 
 .vinha-toast-region .toast__description {
   color: var(--vinha-text-secondary);
   line-height: 1.45;
   overflow-wrap: anywhere;
+  text-wrap: pretty;
 }
 
 .vinha-toast-region .toast__indicator {
-  align-self: flex-start;
-  padding: var(--space-1) 0;
+  flex: none;
+  align-self: center;
+  padding: 0;
 }
 
 .vinha-toast-region .toast__close-button {
   position: static;
-  flex: 0 0 var(--toast-dismiss-size);
+  inset: auto;
+  flex: none;
+  align-self: center;
+  display: grid;
+  place-items: center;
   width: var(--toast-dismiss-size);
   height: var(--toast-dismiss-size);
   min-width: var(--toast-dismiss-size);
+  min-height: var(--toast-dismiss-size);
   margin: 0;
-  border: 1px solid var(--vinha-border-subtle);
-  border-radius: var(--radius-control);
-  background: var(--vinha-surface-hover);
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-full);
+  background-color: transparent;
+  box-shadow: none;
   color: var(--vinha-text-secondary);
   opacity: 1;
   pointer-events: auto;
 }
 
+.vinha-toast-region .toast__close-button svg,
+.vinha-toast-region .toast__close-button [data-slot="close-button-icon"] {
+  width: 1rem;
+  height: 1rem;
+  margin: 0;
+}
+
+.vinha-toast-region .toast[data-frontmost="true"] .toast__close-button,
+.vinha-toast-region .toast[data-frontmost="true"]:hover .toast__close-button {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.vinha-toast-region .toast:not([data-frontmost="true"]) .toast__close-button {
+  opacity: 0;
+  pointer-events: none;
+}
+
 .vinha-toast-region .toast__close-button:hover,
 .vinha-toast-region .toast__close-button[data-hovered="true"] {
-  background: var(--vinha-surface-soft);
+  background-color: var(--vinha-surface-hover);
   color: var(--vinha-text-primary);
 }
 

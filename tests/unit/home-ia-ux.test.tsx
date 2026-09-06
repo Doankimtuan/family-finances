@@ -10,12 +10,15 @@ import { homeCashFlowChartDomain } from "@/app/[locale]/(product)/home/home-cash
 import { HomeCashFlowSection } from "@/app/[locale]/(product)/home/home-cash-flow-section";
 import { HomeSpendingSection } from "@/app/[locale]/(product)/home/home-spending-section";
 import { HomeFinancialPulse } from "@/app/[locale]/(product)/home/home-financial-pulse";
+import { HomeProductSummaries } from "@/app/[locale]/(product)/home/home-product-summaries";
 import { FilterChip } from "@/shared/patterns/filter-chip";
 import {
   HOME_TEST_ID,
   HomeCashFlowGranularity,
   HomeDashboardPeriod,
+  HomeProductReadStatus,
 } from "@/modules/home/application/home-constants";
+import { InvestmentHomeValuationQuality } from "@/modules/investments/application";
 
 const { pushMock } = vi.hoisted(() => ({ pushMock: vi.fn() }));
 
@@ -297,5 +300,74 @@ describe("Home IA and action states", () => {
 
     expect(screen.getByText("financialPulse.unavailable")).toBeInTheDocument();
     expect(screen.queryByTestId("ledger-balance")).not.toBeInTheDocument();
+  });
+
+  it("renders product summaries as navigable rows with attention badges", () => {
+    const t = (key: string, params?: Record<string, unknown>) =>
+      params?.count !== undefined ? `${key}:${params.count}` : key;
+
+    render(
+      <HomeProductSummaries
+        locale="en"
+        currency="VND"
+        savings={{
+          status: HomeProductReadStatus.READY,
+          summary: {
+            activeCount: 1,
+            principal: 1_000_000,
+            actionRequiredCount: 2,
+            nearestMaturityDate: null,
+          },
+        }}
+        investments={{
+          status: HomeProductReadStatus.READY,
+          summary: {
+            activeCount: 1,
+            marketValue: 500_000,
+            unrealizedPnl: null,
+            realizedPnl: 0,
+            income: 0,
+            valuationQuality: InvestmentHomeValuationQuality.STALE,
+            valuationStale: true,
+            valuationIncluded: 2,
+            valuationTotal: 3,
+          },
+        }}
+        loans={{
+          status: HomeProductReadStatus.READY,
+          summary: {
+            activeCount: 0,
+            remainingPrincipal: 0,
+            attentionCount: 0,
+            nearestDueDate: null,
+            overdueCount: 0,
+          },
+        }}
+        debt={{
+          status: HomeProductReadStatus.UNAVAILABLE,
+        }}
+        t={t as never}
+      />,
+    );
+
+    const savingsLink = screen.getByRole("link", {
+      name: /productSummary.savings.label/,
+    });
+    expect(savingsLink).toHaveAttribute("href", APP_PATH.MONEY_SAVINGS);
+    expect(
+      screen.getByText("productSummary.savings.attention:2"),
+    ).toBeVisible();
+    expect(
+      screen.getByText(/productSummary.investments.quality.stale/),
+    ).toBeVisible();
+    expect(
+      screen.getByText(/productSummary.investments.incomplete/),
+    ).toBeVisible();
+    expect(
+      screen.queryByText("• productSummary.unavailable"),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByText("productSummary.debt.label").closest("a"),
+    ).toHaveAttribute("href", APP_PATH.MONEY_DEBTS);
   });
 });

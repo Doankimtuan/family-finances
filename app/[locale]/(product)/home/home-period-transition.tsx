@@ -131,7 +131,7 @@ export function HomePeriodData({
   if (!policy.mounted || !policy.enabled) {
     return (
       <div
-        className="flex flex-col gap-(--space-6)"
+        className="flex flex-col gap-(--space-5)"
         aria-busy={isPending}
         data-testid={HOME_TEST_ID.PERIOD_CONTENT}
       >
@@ -163,7 +163,7 @@ export function HomePeriodData({
         ) : (
           <motion.div
             key={period}
-            className="flex flex-col gap-(--space-6)"
+            className="flex flex-col gap-(--space-5)"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}

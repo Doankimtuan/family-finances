@@ -23,6 +23,7 @@ import {
   HealthIcon,
   Home01Icon,
   InboxIcon,
+  InformationCircleIcon,
   MoneyReceive01Icon,
   MoneySafeIcon,
   MoneySend01Icon,
@@ -220,6 +221,7 @@ export const UTILITY_ICONS = {
   settings: Settings01Icon,
   financialVisible: EyeIcon,
   financialHidden: EyeOffIcon,
+  info: InformationCircleIcon,
 } as const;
 
 export const FinanceIconKey = {

@@ -2,6 +2,7 @@
 
 import { Spinner, Toast } from "@heroui/react";
 import { useTranslations } from "next-intl";
+import { cn } from "@/shared/utils/cn";
 
 /**
  * Toast region host — must NOT wrap page children.
@@ -20,22 +21,19 @@ export function ToastProvider({
       placement="bottom"
       maxVisibleToasts={3}
       width="100%"
-      className={
+      className={cn(
+        "vinha-toast-region",
         hasBottomNavigation
-          ? "vinha-toast-region bottom-[calc(var(--bottom-navigation-height)+var(--space-3)+var(--safe-area-bottom))]"
-          : "vinha-toast-region bottom-[calc(var(--space-3)+var(--safe-area-bottom))]"
-      }
+          ? "bottom-[calc(var(--bottom-navigation-height)+var(--space-3)+var(--safe-area-bottom))]"
+          : "bottom-[calc(var(--space-3)+var(--safe-area-bottom))]",
+      )}
     >
       {({ toast: queuedToast }) => {
         const content = queuedToast.content;
         const variant = content?.variant;
 
         return (
-          <Toast
-            toast={queuedToast}
-            variant={variant}
-            placement="bottom"
-          >
+          <Toast toast={queuedToast} variant={variant} placement="bottom">
             {content?.indicator === null ? null : content?.isLoading ? (
               <Toast.Indicator variant={variant}>
                 <Spinner color="current" size="sm" />
@@ -46,7 +44,9 @@ export function ToastProvider({
               </Toast.Indicator>
             )}
             <Toast.Content>
-              {content?.title ? <Toast.Title>{content.title}</Toast.Title> : null}
+              {content?.title ? (
+                <Toast.Title>{content.title}</Toast.Title>
+              ) : null}
               {content?.description ? (
                 <Toast.Description>{content.description}</Toast.Description>
               ) : null}

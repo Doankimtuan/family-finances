@@ -8,7 +8,8 @@ import { formatCurrency } from "@/shared/i18n/formatters";
 import { Text } from "@/shared/ui/text";
 import { Heading } from "@/shared/ui/heading";
 import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
-import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
+import { IconContainer, IconContainerTone } from "@/shared/ui/icon-container";
+import { FINANCE_ICONS, UTILITY_ICONS } from "@/shared/ui/icon-registry";
 import { FinancialValue } from "@/shared/patterns/financial-value";
 import { HomeCashFlowChart } from "./home-cash-flow-chart";
 
@@ -26,13 +27,15 @@ export function HomeCashFlowSection({
     {
       key: "income",
       amount: metrics.income,
-      tone: "success",
+      amountTone: "success",
+      iconTone: IconContainerTone.INCOME,
       icon: FINANCE_ICONS.income,
     },
     {
       key: "expense",
       amount: metrics.expense,
-      tone: "danger",
+      amountTone: "danger",
+      iconTone: IconContainerTone.EXPENSE,
       icon: FINANCE_ICONS.expense,
     },
   ] as const;
@@ -49,12 +52,7 @@ export function HomeCashFlowSection({
         </Heading>
         <details className="text-right text-xs text-text-secondary">
           <summary className="inline-flex min-h-9 cursor-pointer list-none items-center gap-(--space-1) rounded-(--radius-control) px-(--space-2) font-medium hover:bg-surface-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring [&::-webkit-details-marker]:hidden">
-            <span
-              aria-hidden
-              className="grid size-5 place-items-center rounded-full border border-divider text-[0.7rem] font-semibold"
-            >
-              i
-            </span>
+            <AppIcon icon={UTILITY_ICONS.info} size={AppIconSize.XS} />
             {t("cashFlow.infoLabel")}
           </summary>
           <span className="mt-(--space-1) block max-w-72 text-pretty leading-relaxed">
@@ -65,43 +63,31 @@ export function HomeCashFlowSection({
       <Text size="xs" tone="secondary" className="text-pretty">
         {t("cashFlow.summaryHint")}
       </Text>
-      <dl className="grid grid-cols-2 gap-x-(--space-4)">
+      <dl className="grid grid-cols-2 gap-(--space-3)">
         {comparisonRows.map((row) => (
-          <div
-            key={row.key}
-            className={`flex flex-col gap-(--space-1) border-t-2 pt-(--space-2) ${
-              row.tone === "success" ? "border-success" : "border-danger"
-            }`}
-          >
-            <Text
-              as="dt"
-              size="sm"
-              tone="secondary"
-              className="flex items-center gap-(--space-1)"
-            >
-              <AppIcon
-                icon={row.icon}
-                size={AppIconSize.XS}
-                className={
-                  row.tone === "success" ? "text-success" : "text-danger"
-                }
-              />
-              {t(`cashFlow.${row.key}`)}
-            </Text>
-            <Text
-              as="dd"
-              size="lg"
-              tone={row.tone}
-              weight="semibold"
-              tabular
-              className="tracking-tight"
-            >
-              <FinancialValue>
-                {formatCurrency(row.amount, currency, locale, {
-                  maximumFractionDigits: HOME_CURRENCY_FRACTION_DIGITS,
-                })}
-              </FinancialValue>
-            </Text>
+          <div key={row.key} className="flex items-start gap-(--space-2)">
+            <IconContainer tone={row.iconTone} size="sm">
+              <AppIcon icon={row.icon} size={AppIconSize.SM} />
+            </IconContainer>
+            <div className="min-w-0">
+              <Text as="dt" size="sm" tone="secondary">
+                {t(`cashFlow.${row.key}`)}
+              </Text>
+              <Text
+                as="dd"
+                size="lg"
+                tone={row.amountTone}
+                weight="semibold"
+                tabular
+                className="tracking-tight"
+              >
+                <FinancialValue>
+                  {formatCurrency(row.amount, currency, locale, {
+                    maximumFractionDigits: HOME_CURRENCY_FRACTION_DIGITS,
+                  })}
+                </FinancialValue>
+              </Text>
+            </div>
           </div>
         ))}
       </dl>

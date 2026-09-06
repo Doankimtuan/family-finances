@@ -31,7 +31,7 @@ import {
 import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
-import { HeaderPill, TopAppBar } from "@/shared/patterns/top-app-bar";
+import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Card } from "@/shared/patterns/card";
 import { FloatingAction } from "@/shared/patterns/floating-action";
 import { Section } from "@/shared/patterns/section";
@@ -39,7 +39,7 @@ import { Section } from "@/shared/patterns/section";
 import { Page } from "@/shared/patterns/page";
 import { Text } from "@/shared/ui/text";
 import { AppIcon } from "@/shared/ui/app-icon";
-import { IconContainer } from "@/shared/ui/icon-container";
+import { IconContainer, IconContainerTone } from "@/shared/ui/icon-container";
 import {
   ACTION_ICONS,
   FINANCE_ICONS,
@@ -138,13 +138,6 @@ export default async function HomePage({ params, searchParams }: Props) {
             title={t(`header.greeting.${homeGreetingPeriod()}`)}
             subtitle={t("header.dashboardSupporting")}
             icon={NAVIGATION_ICONS.home}
-            status={
-              dashboardData ? (
-                <HeaderPill tone="info">
-                  {t("header.householdContext")}
-                </HeaderPill>
-              ) : null
-            }
             meta={
               dashboardData
                 ? t("header.meta.available", {
@@ -238,7 +231,6 @@ export default async function HomePage({ params, searchParams }: Props) {
               <MotionReveal>
                 <Section
                   title={t("inbox.title")}
-                  className="border-t border-divider pt-(--space-4)"
                   contentClassName="gap-(--space-3)"
                   testId={HOME_TEST_ID.INBOX_BLOCK}
                 >
@@ -251,40 +243,43 @@ export default async function HomePage({ params, searchParams }: Props) {
                 <Section
                   title={t("planPulse.title")}
                   description={t("planPulse.hint")}
-                  action={
-                    <Link
-                      href={APP_PATH.PLAN}
-                      className="inline-flex items-center gap-(--space-1)"
-                      data-testid={HOME_TEST_ID.PLAN_LINK}
-                    >
-                      {t("planPulse.openPlan")}
-                      <AppIcon icon={ACTION_ICONS.forward} size="xs" />
-                    </Link>
-                  }
                   testId={HOME_TEST_ID.PLAN_PULSE}
                 >
-                  <Card
-                    tone="elevated"
-                    className="flex flex-row items-center gap-(--space-3) p-(--space-3)"
-                  >
-                    <IconContainer tone="savings" size="md">
-                      <AppIcon icon={FINANCE_ICONS.savings} size="md" />
-                    </IconContainer>
-                    <div className="min-w-0">
-                      <Text
-                        size="lg"
-                        className="font-semibold text-text-primary"
-                      >
-                        {t("planPulse.jarsCount", {
-                          count: dashboard.dashboard.activeJarCount,
-                        })}
-                      </Text>
-                      <Text size="sm" tone="secondary" className="text-pretty">
-                        {t(
-                          `planPulse.allocate.${dashboard.dashboard.incomeAllocateMode}`,
-                        )}
-                      </Text>
-                    </div>
+                  <Card tone="elevated" className="gap-0 p-0">
+                    <Link
+                      href={APP_PATH.PLAN}
+                      aria-label={t("planPulse.openPlan")}
+                      className="flex min-h-14 items-center gap-(--space-3) px-(--space-4) py-(--space-3) transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-(--press-scale) motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus-ring"
+                      data-testid={HOME_TEST_ID.PLAN_LINK}
+                    >
+                      <IconContainer tone={IconContainerTone.SAVINGS} size="md">
+                        <AppIcon icon={FINANCE_ICONS.savings} size="md" />
+                      </IconContainer>
+                      <div className="min-w-0 flex-1">
+                        <Text
+                          size="lg"
+                          className="font-semibold text-text-primary"
+                        >
+                          {t("planPulse.jarsCount", {
+                            count: dashboard.dashboard.activeJarCount,
+                          })}
+                        </Text>
+                        <Text
+                          size="sm"
+                          tone="secondary"
+                          className="text-pretty"
+                        >
+                          {t(
+                            `planPulse.allocate.${dashboard.dashboard.incomeAllocateMode}`,
+                          )}
+                        </Text>
+                      </div>
+                      <AppIcon
+                        icon={ACTION_ICONS.forward}
+                        size="sm"
+                        className="shrink-0 text-text-tertiary"
+                      />
+                    </Link>
                   </Card>
                 </Section>
               </MotionReveal>

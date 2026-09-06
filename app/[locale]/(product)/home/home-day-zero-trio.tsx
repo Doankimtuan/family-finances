@@ -6,6 +6,7 @@ import { HOME_TEST_ID } from "@/modules/home/application/home-constants";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { QuickAction } from "@/shared/patterns/quick-action";
+import { Card } from "@/shared/patterns/card";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import { AppIcon } from "@/shared/ui/app-icon";
 import { NAVIGATION_ICONS, FINANCE_ICONS } from "@/shared/ui/icon-registry";
@@ -17,8 +18,9 @@ export function HomeDayZeroTrio() {
   const { online } = useOnlineStatusClient();
 
   return (
-    <div
-      className="flex flex-col gap-(--space-3) rounded-[var(--radius-card)] bg-surface-muted/45 p-(--space-4)"
+    <Card
+      tone="soft"
+      className="gap-(--space-3) p-(--space-4)"
       data-testid={HOME_TEST_ID.DAY_ZERO}
     >
       <EmptyState
@@ -47,6 +49,6 @@ export function HomeDayZeroTrio() {
         data-testid={HOME_TEST_ID.DAY_ZERO_INVITE}
         onPress={() => router.push(APP_PATH.INVITATIONS)}
       />
-    </div>
+    </Card>
   );
 }
