@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { getSupabaseEnv } from "@/modules/platform/supabase/env";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import type { User } from "@supabase/supabase-js";
@@ -7,8 +8,8 @@ import {
 } from "./tenancy-error";
 import { TENANCY_OPERATION } from "./tenancy-constants";
 
-/** Current Auth user, or null when unconfigured / signed out / error. */
-export async function getSessionUser(): Promise<User | null> {
+/** Current Auth user, memoized for the server render, or null on failure. */
+async function loadSessionUser(): Promise<User | null> {
   if (!getSupabaseEnv().isConfigured) {
     return null;
   }
@@ -33,3 +34,5 @@ export async function getSessionUser(): Promise<User | null> {
     return null;
   }
 }
+
+export const getSessionUser = cache(loadSessionUser);

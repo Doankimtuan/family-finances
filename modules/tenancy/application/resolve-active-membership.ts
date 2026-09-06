@@ -1,3 +1,4 @@
+import { cache } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getSupabaseEnv } from "@/modules/platform/supabase/env";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
@@ -6,6 +7,7 @@ import { TENANCY_OPERATION } from "./tenancy-constants";
 
 /**
  * Active household membership for money actions (AC-002 / REQ-002 / BR-02a / BR-12).
+ * Calls without an explicit client are memoized for the server render.
  */
 export type ActiveMembership = {
   membershipId: string;
@@ -14,7 +16,7 @@ export type ActiveMembership = {
   role: "partner" | "admin";
 };
 
-export async function resolveActiveMembership(
+async function loadActiveMembership(
   userId: string,
   client?: SupabaseClient,
 ): Promise<ActiveMembership | null> {
@@ -53,3 +55,5 @@ export async function resolveActiveMembership(
     return null;
   }
 }
+
+export const resolveActiveMembership = cache(loadActiveMembership);
