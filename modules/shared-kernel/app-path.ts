@@ -1,3 +1,8 @@
+import {
+  InboxQueueTab,
+  INBOX_TAB_QUERY,
+} from "@/modules/inbox/application/inbox-constants";
+
 /**
  * Locale-relative in-app paths for next-intl Link / redirect / router.
  */
@@ -125,6 +130,17 @@ export function planRecurringPath(ruleId: string): string {
 
 export function inboxItemPath(inboxItemId: string): string {
   return `${APP_PATH.INBOX}/${inboxItemId}`;
+}
+
+/** Open queue is the Inbox default; Archived is the `tab` query. */
+export function inboxQueuePath(tab: InboxQueueTab) {
+  if (tab === InboxQueueTab.OPEN) {
+    return APP_PATH.INBOX;
+  }
+  return {
+    pathname: APP_PATH.INBOX,
+    query: { [INBOX_TAB_QUERY]: InboxQueueTab.ARCHIVED },
+  };
 }
 
 export function moneyDebtPath(debtId: string): string {

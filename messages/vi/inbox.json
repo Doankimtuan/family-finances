@@ -139,6 +139,7 @@
   "tabOpen": "Đang mở",
   "tabArchived": "Đã lưu trữ",
   "tabListLabel": "Chế độ hộp thư",
+  "tabLoading": "Đang tải hộp thư",
   "archivedEmptyTitle": "Chưa có mục lưu trữ",
   "archivedEmptyBody": "Mục hết hạn, tự gán và hoàn tất sẽ hiện ở đây.",
   "openHint": "Mở để quyết định",

@@ -1,5 +1,7 @@
 import { after } from "next/server";
 import { getTranslations } from "next-intl/server";
+import type { _Translator } from "use-intl";
+import type { AppMessages } from "../../../../global";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { setLocale } from "@/i18n/set-locale";
 import { redirect } from "@/i18n/navigation";
@@ -21,6 +23,7 @@ import {
   INBOX_RECEIPT_KIND_VALUES,
   INBOX_RECEIPT_QUERY,
   INBOX_TAB_QUERY,
+  INBOX_TEST_ID,
 } from "@/modules/inbox/application/inbox-constants";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Page } from "@/shared/patterns/page";
@@ -31,6 +34,11 @@ import { NAVIGATION_ICONS } from "@/shared/ui/icon-registry";
 import { InboxOfflineBanner } from "./inbox-offline-banner";
 import { InboxQueueList } from "./inbox-queue-list";
 import { InboxQueueTabs } from "./inbox-queue-tabs";
+import {
+  InboxQueueBodyPending,
+  InboxQueueHeaderPending,
+  InboxQueueTransition,
+} from "./inbox-queue-transition";
 import { InboxSummary } from "./inbox-summary";
 import { InboxUnavailable } from "./inbox-unavailable";
 
@@ -39,9 +47,7 @@ type Props = {
   searchParams: Promise<{ tab?: string; receipt?: string }>;
 };
 
-type InboxCopy = {
-  (key: string, values?: Record<string, string | number>): string;
-};
+type InboxCopy = _Translator<AppMessages, "inbox">;
 
 function resolveInboxHeadline(
   state: InboxQueueHeaderState,
@@ -161,10 +167,11 @@ export default async function InboxPage({ params, searchParams }: Props) {
         : t("header.meta.archived");
   const headline = resolveInboxHeadline(headerState, list.length, t);
   const summaryFacts = resolveInboxSummaryFacts(headerState, list.length, t);
+  const activeTab = showArchived ? InboxQueueTab.ARCHIVED : InboxQueueTab.OPEN;
 
   return (
     <Page
-      testId="inbox-queue"
+      testId={INBOX_TEST_ID.QUEUE}
       topBar={
         <TopAppBar
           variant="primary"
@@ -175,74 +182,83 @@ export default async function InboxPage({ params, searchParams }: Props) {
       }
       contentClassName="gap-(--space-5)"
     >
-      <InboxOfflineBanner />
+      <InboxQueueTransition tab={activeTab}>
+        <InboxOfflineBanner />
 
-      <InboxSummary
-        state={headerState}
-        headline={headline}
-        supporting={headerSupporting}
-        facts={summaryFacts}
-      />
-
-      {receipt === InboxReceiptKind.JAR ? (
-        <div data-testid="inbox-receipt-jar">
-          <StatusAlert
-            variant="success"
-            title={t("receiptJarTitle")}
-            description={t("receiptJarBody")}
+        <InboxQueueHeaderPending>
+          <InboxSummary
+            state={headerState}
+            headline={headline}
+            supporting={headerSupporting}
+            facts={summaryFacts}
           />
-        </div>
-      ) : null}
-      {receipt === InboxReceiptKind.SAVINGS ? (
-        <div data-testid="inbox-receipt-savings">
-          <StatusAlert
-            variant="success"
-            title={t("receiptSavingsTitle")}
-            description={t("receiptSavingsBody")}
-          />
-        </div>
-      ) : null}
-      {receipt === InboxReceiptKind.ATTENTION ? (
-        <div data-testid="inbox-receipt-attention">
-          <StatusAlert
-            variant="success"
-            title={t("receiptAttentionTitle")}
-            description={t("receiptAttentionBody")}
-          />
-        </div>
-      ) : null}
 
-      <InboxQueueTabs
-        active={showArchived ? InboxQueueTab.ARCHIVED : InboxQueueTab.OPEN}
-      />
+          {receipt === InboxReceiptKind.JAR ? (
+            <div data-testid="inbox-receipt-jar">
+              <StatusAlert
+                variant="success"
+                title={t("receiptJarTitle")}
+                description={t("receiptJarBody")}
+              />
+            </div>
+          ) : null}
+          {receipt === InboxReceiptKind.SAVINGS ? (
+            <div data-testid="inbox-receipt-savings">
+              <StatusAlert
+                variant="success"
+                title={t("receiptSavingsTitle")}
+                description={t("receiptSavingsBody")}
+              />
+            </div>
+          ) : null}
+          {receipt === InboxReceiptKind.ATTENTION ? (
+            <div data-testid="inbox-receipt-attention">
+              <StatusAlert
+                variant="success"
+                title={t("receiptAttentionTitle")}
+                description={t("receiptAttentionBody")}
+              />
+            </div>
+          ) : null}
+        </InboxQueueHeaderPending>
 
-      {loadFailed ? (
-        <InboxUnavailable
-          title={t("loadErrorTitle")}
-          description={t("loadErrorBody")}
-          actionHref={APP_PATH.INBOX}
-          actionLabel={t("retry")}
-          testId="inbox-retry"
-        />
-      ) : list.length === 0 ? (
-        <EmptyState
-          title={showArchived ? t("archivedEmptyTitle") : t("emptyOpenTitle")}
-          description={
-            showArchived ? t("archivedEmptyBody") : t("emptyOpenBody")
-          }
-          icon={
-            <AppIcon icon={NAVIGATION_ICONS.inbox} size={AppIconSize.DISPLAY} />
-          }
-          className="flex-none py-(--space-4)"
-        />
-      ) : (
-        <InboxQueueList
-          items={list}
-          locale={locale}
-          readOnly={showArchived}
-          nextCursor={nextCursor}
-        />
-      )}
+        <InboxQueueTabs />
+
+        <InboxQueueBodyPending>
+          {loadFailed ? (
+            <InboxUnavailable
+              title={t("loadErrorTitle")}
+              description={t("loadErrorBody")}
+              actionHref={APP_PATH.INBOX}
+              actionLabel={t("retry")}
+              testId="inbox-retry"
+            />
+          ) : list.length === 0 ? (
+            <EmptyState
+              title={
+                showArchived ? t("archivedEmptyTitle") : t("emptyOpenTitle")
+              }
+              description={
+                showArchived ? t("archivedEmptyBody") : t("emptyOpenBody")
+              }
+              icon={
+                <AppIcon
+                  icon={NAVIGATION_ICONS.inbox}
+                  size={AppIconSize.DISPLAY}
+                />
+              }
+              className="flex-none py-(--space-4)"
+            />
+          ) : (
+            <InboxQueueList
+              items={list}
+              locale={locale}
+              readOnly={showArchived}
+              nextCursor={nextCursor}
+            />
+          )}
+        </InboxQueueBodyPending>
+      </InboxQueueTransition>
     </Page>
   );
 }

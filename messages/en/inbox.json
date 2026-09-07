@@ -139,6 +139,7 @@
   "tabOpen": "Open",
   "tabArchived": "Archived",
   "tabListLabel": "Inbox views",
+  "tabLoading": "Loading inbox",
   "archivedEmptyTitle": "No archived items",
   "archivedEmptyBody": "Expired, auto-resolved, and completed items will appear here.",
   "openHint": "Open to decide",

@@ -1,5 +1,5 @@
 import type { ComponentProps, ReactElement } from "react";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { NextIntlClientProvider } from "next-intl";
 import enInbox from "@/messages/en/inbox.json";
@@ -10,6 +10,11 @@ import {
 } from "@/app/[locale]/(product)/inbox/inbox-facts";
 import { InboxSectionTitle } from "@/app/[locale]/(product)/inbox/inbox-section-title";
 import { InboxUnavailable } from "@/app/[locale]/(product)/inbox/inbox-unavailable";
+import { InboxQueueTabs } from "@/app/[locale]/(product)/inbox/inbox-queue-tabs";
+import {
+  InboxQueueBodyPending,
+  InboxQueueTransition,
+} from "@/app/[locale]/(product)/inbox/inbox-queue-transition";
 import {
   inboxDisplayTitle,
   inboxItemVisual,
@@ -20,13 +25,25 @@ import {
   InboxItemKind,
   InboxLifecycleContext,
   InboxQueueHeaderState,
+  InboxQueueTab,
+  INBOX_TAB_QUERY,
+  INBOX_TEST_ID,
 } from "@/modules/inbox/application/inbox-constants";
-import { APP_PATH } from "@/modules/tenancy/application/app-path";
+import {
+  APP_PATH,
+  inboxQueuePath,
+} from "@/modules/tenancy/application/app-path";
 import { FinancialPrivacyProvider } from "@/providers/financial-privacy-provider";
 import { IconContainerTone } from "@/shared/ui/icon-container";
 import { StatusBadgeTone } from "@/shared/ui/status-badge";
 
+const { pushMock, prefetchMock } = vi.hoisted(() => ({
+  pushMock: vi.fn(),
+  prefetchMock: vi.fn(),
+}));
+
 vi.mock("@/i18n/navigation", () => ({
+  useRouter: () => ({ push: pushMock, prefetch: prefetchMock }),
   Link: ({ href, children, ...props }: ComponentProps<"a">) => (
     <a href={typeof href === "string" ? href : "#"} {...props}>
       {children}
@@ -141,5 +158,46 @@ describe("Inbox UI polish", () => {
       "data-slot",
       "section-title",
     );
+  });
+
+  it("selects the archived tab immediately while the queue fetch starts", () => {
+    renderInbox(
+      <InboxQueueTransition tab={InboxQueueTab.OPEN}>
+        <InboxQueueTabs />
+        <InboxQueueBodyPending>
+          <p>Open queue</p>
+        </InboxQueueBodyPending>
+      </InboxQueueTransition>,
+    );
+
+    const archived = screen.getByTestId(INBOX_TEST_ID.TAB_ARCHIVED);
+    expect(screen.getByTestId(INBOX_TEST_ID.TAB_OPEN)).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+
+    fireEvent.click(archived);
+
+    expect(archived).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByTestId(INBOX_TEST_ID.TAB_OPEN)).toHaveAttribute(
+      "aria-selected",
+      "false",
+    );
+    expect(screen.getByTestId(INBOX_TEST_ID.TAB_LOADING)).toBeInTheDocument();
+    expect(screen.queryByText("Open queue")).not.toBeInTheDocument();
+    expect(pushMock).toHaveBeenCalledWith(
+      inboxQueuePath(InboxQueueTab.ARCHIVED),
+    );
+    expect(prefetchMock).toHaveBeenCalledWith(
+      inboxQueuePath(InboxQueueTab.ARCHIVED),
+    );
+  });
+
+  it("builds the archived queue from the tab query constant", () => {
+    expect(inboxQueuePath(InboxQueueTab.OPEN)).toBe(APP_PATH.INBOX);
+    expect(inboxQueuePath(InboxQueueTab.ARCHIVED)).toEqual({
+      pathname: APP_PATH.INBOX,
+      query: { [INBOX_TAB_QUERY]: InboxQueueTab.ARCHIVED },
+    });
   });
 });

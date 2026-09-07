@@ -102,6 +102,11 @@ export const InboxKindFilter = {
 
 export type InboxQueueTab = (typeof InboxQueueTab)[keyof typeof InboxQueueTab];
 
+export const INBOX_QUEUE_TAB_VALUES = [
+  InboxQueueTab.OPEN,
+  InboxQueueTab.ARCHIVED,
+] as const;
+
 /** Receipt query values after a successful Inbox outcome. */
 export const InboxReceiptKind = {
   JAR: "jar",
@@ -119,6 +124,15 @@ export const INBOX_RECEIPT_QUERY = "receipt";
 
 /** Query key for Open/Archived queue tabs. */
 export const INBOX_TAB_QUERY = "tab";
+
+export const INBOX_TEST_ID = {
+  QUEUE: "inbox-queue",
+  QUEUE_TABS: "inbox-queue-tabs",
+  TAB_OPEN: "inbox-tab-open",
+  TAB_ARCHIVED: "inbox-tab-archived",
+  TAB_LOADING: "inbox-tab-loading",
+  TAB_CONTENT: "inbox-tab-content",
+} as const;
 
 export const InboxSourceType = {
   TRANSACTION: "transaction",
