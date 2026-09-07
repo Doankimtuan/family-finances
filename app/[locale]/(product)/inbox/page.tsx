@@ -1,7 +1,5 @@
 import { after } from "next/server";
 import { getTranslations } from "next-intl/server";
-import type { _Translator } from "use-intl";
-import type { AppMessages } from "../../../../global";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { setLocale } from "@/i18n/set-locale";
 import { redirect } from "@/i18n/navigation";
@@ -47,7 +45,7 @@ type Props = {
   searchParams: Promise<{ tab?: string; receipt?: string }>;
 };
 
-type InboxCopy = _Translator<AppMessages, "inbox">;
+type InboxCopy = Awaited<ReturnType<typeof getTranslations<"inbox">>>;
 
 function resolveInboxHeadline(
   state: InboxQueueHeaderState,
