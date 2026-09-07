@@ -10,14 +10,7 @@ import { IconContainer } from "@/shared/ui/icon-container";
 import { StatusBadge } from "@/shared/ui/status-badge";
 import { MemberRoleAction } from "./members/member-role-action";
 import { MemberLifecycleAction } from "./members/member-lifecycle-action";
-
-function initials(email: string | null, displayName: string | null): string {
-  const source = (displayName ?? email ?? "?").trim();
-  const parts = source.split(/[\s@._-]+/).filter(Boolean);
-  if (parts.length === 0) return "?";
-  if (parts.length === 1) return parts[0]!.slice(0, 2).toUpperCase();
-  return `${parts[0]![0] ?? ""}${parts[1]![0] ?? ""}`.toUpperCase();
-}
+import { memberDisplayName, memberInitials } from "./together-member-identity";
 
 /** Shared Together row with role context and state-aware actions. */
 export function MemberList({
@@ -50,8 +43,7 @@ export function MemberList({
       <ul className="divide-y divide-divider" data-testid="together-members">
         {members.map((member) => {
           const isAdmin = member.role === HOUSEHOLD_ROLE.ADMIN;
-          const memberName =
-            member.displayName ?? member.email ?? member.userId.slice(0, 8);
+          const memberName = memberDisplayName(member);
           const capabilityHint = isAdmin ? roleAdminHint : rolePartnerHint;
           const canManageLifecycle =
             member.isSelf ||
@@ -63,13 +55,13 @@ export function MemberList({
           return (
             <li
               key={member.id}
-              className="flex flex-col gap-(--space-4) p-(--space-4)"
+              className="flex flex-col gap-(--space-3) p-(--space-4)"
               data-testid={`together-member-${member.id}`}
             >
               <div className="flex items-start gap-(--space-3)">
                 <IconContainer tone={isAdmin ? "primary" : "neutral"} size="md">
-                  <span className="text-sm font-semibold text-text-primary">
-                    {initials(member.email, member.displayName)}
+                  <span className="text-sm font-semibold">
+                    {memberInitials(member.email, member.displayName)}
                   </span>
                 </IconContainer>
                 <div className="min-w-0 flex-1">
@@ -106,7 +98,7 @@ export function MemberList({
                     >
                       {isAdmin ? roleAdminLabel : rolePartnerLabel}
                     </StatusBadge>
-                    <Text size="xs" tone="secondary">
+                    <Text size="xs" tone="secondary" className="text-pretty">
                       {activeLabel} · {capabilityHint}
                     </Text>
                   </div>

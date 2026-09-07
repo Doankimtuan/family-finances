@@ -10,6 +10,8 @@ import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
 import { Sheet } from "@/shared/patterns/sheet";
 import { SheetActionFooter } from "@/shared/patterns/sheet-action-footer";
 import { ChoiceTile } from "@/shared/patterns/choice-tile";
+import { Card } from "@/shared/patterns/card";
+import { BottomActionBar } from "@/shared/patterns/bottom-action-bar";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
@@ -176,31 +178,33 @@ export function PoliciesForm({
           title={t("overspendTitle")}
           description={t("overspendDescription")}
         />
-        {(
-          [
-            [OverspendPolicyConst.WARN, "overspendWarn", "overspendWarnHint"],
+        <Card tone="elevated" className="gap-(--space-2) p-(--space-3)">
+          {(
             [
-              OverspendPolicyConst.BLOCK,
-              "overspendBlock",
-              "overspendBlockHint",
-            ],
-            [
-              OverspendPolicyConst.ALLOW_NEGATIVE,
-              "overspendAllow",
-              "overspendAllowHint",
-            ],
-          ] as const
-        ).map(([value, labelKey, hintKey]) => (
-          <ChoiceOption
-            key={value}
-            value={value}
-            checked={overspend === value}
-            label={t(labelKey)}
-            hint={t(hintKey)}
-            disabled={!initial.canEdit || isPending}
-            onChange={setOverspend}
-          />
-        ))}
+              [OverspendPolicyConst.WARN, "overspendWarn", "overspendWarnHint"],
+              [
+                OverspendPolicyConst.BLOCK,
+                "overspendBlock",
+                "overspendBlockHint",
+              ],
+              [
+                OverspendPolicyConst.ALLOW_NEGATIVE,
+                "overspendAllow",
+                "overspendAllowHint",
+              ],
+            ] as const
+          ).map(([value, labelKey, hintKey]) => (
+            <ChoiceOption
+              key={value}
+              value={value}
+              checked={overspend === value}
+              label={t(labelKey)}
+              hint={t(hintKey)}
+              disabled={!initial.canEdit || isPending}
+              onChange={setOverspend}
+            />
+          ))}
+        </Card>
       </section>
 
       <section className="flex flex-col gap-(--space-3)">
@@ -208,22 +212,24 @@ export function PoliciesForm({
           title={t("ritualTitle")}
           description={t("ritualDescription")}
         />
-        {(
-          [
-            [RitualMode.ASSISTED, "ritualAssisted", "ritualAssistedHint"],
-            [RitualMode.MANUAL, "ritualManual", "ritualManualHint"],
-          ] as const
-        ).map(([value, labelKey, hintKey]) => (
-          <ChoiceOption
-            key={value}
-            value={value}
-            checked={monthClose === value}
-            label={t(labelKey)}
-            hint={t(hintKey)}
-            disabled={!initial.canEdit || isPending}
-            onChange={setMonthClose}
-          />
-        ))}
+        <Card tone="elevated" className="gap-(--space-2) p-(--space-3)">
+          {(
+            [
+              [RitualMode.ASSISTED, "ritualAssisted", "ritualAssistedHint"],
+              [RitualMode.MANUAL, "ritualManual", "ritualManualHint"],
+            ] as const
+          ).map(([value, labelKey, hintKey]) => (
+            <ChoiceOption
+              key={value}
+              value={value}
+              checked={monthClose === value}
+              label={t(labelKey)}
+              hint={t(hintKey)}
+              disabled={!initial.canEdit || isPending}
+              onChange={setMonthClose}
+            />
+          ))}
+        </Card>
       </section>
 
       <section className="flex flex-col gap-(--space-3)">
@@ -231,30 +237,32 @@ export function PoliciesForm({
           title={t("incomeTitle")}
           description={t("incomeDescription")}
         />
-        {(
-          [
+        <Card tone="elevated" className="gap-(--space-2) p-(--space-3)">
+          {(
             [
-              IncomeAllocateModeConst.SUGGEST,
-              "incomeSuggest",
-              "incomeSuggestHint",
-            ],
-            [IncomeAllocateModeConst.AUTO, "incomeAuto", "incomeAutoHint"],
-            [IncomeAllocateModeConst.OFF, "incomeOff", "incomeOffHint"],
-          ] as const
-        ).map(([value, labelKey, hintKey]) => (
-          <ChoiceOption
-            key={value}
-            value={value}
-            checked={income === value}
-            label={t(labelKey)}
-            hint={t(hintKey)}
-            disabled={!initial.canEdit || isPending}
-            onChange={setIncome}
-          />
-        ))}
+              [
+                IncomeAllocateModeConst.SUGGEST,
+                "incomeSuggest",
+                "incomeSuggestHint",
+              ],
+              [IncomeAllocateModeConst.AUTO, "incomeAuto", "incomeAutoHint"],
+              [IncomeAllocateModeConst.OFF, "incomeOff", "incomeOffHint"],
+            ] as const
+          ).map(([value, labelKey, hintKey]) => (
+            <ChoiceOption
+              key={value}
+              value={value}
+              checked={income === value}
+              label={t(labelKey)}
+              hint={t(hintKey)}
+              disabled={!initial.canEdit || isPending}
+              onChange={setIncome}
+            />
+          ))}
+        </Card>
       </section>
 
-      <section className="flex flex-col gap-(--space-2)">
+      <section className="flex flex-col gap-(--space-3)">
         <SectionHeader
           title={t("auditTitle")}
           description={t("auditDescription")}
@@ -264,39 +272,40 @@ export function PoliciesForm({
             {t("auditEmpty")}
           </Text>
         ) : (
-          <ul className="flex flex-col gap-(--space-2)">
-            {events.map((event) => (
-              <li
-                key={event.id}
-                className="rounded-lg border border-border-subtle bg-surface px-(--space-4) py-(--space-3)"
-              >
-                <Text size="sm" className="font-medium text-text-primary">
-                  {t("auditEvent")}
-                </Text>
-                <Text size="sm" tone="secondary">
-                  {new Date(event.createdAt).toLocaleString(locale)}
-                </Text>
-              </li>
-            ))}
-          </ul>
+          <Card tone="elevated" className="gap-0 overflow-hidden p-0">
+            <ul className="divide-y divide-divider">
+              {events.map((event) => (
+                <li key={event.id} className="px-(--space-4) py-(--space-3)">
+                  <Text size="sm" className="font-medium text-text-primary">
+                    {t("auditEvent")}
+                  </Text>
+                  <Text size="xs" tone="secondary" className="mt-0.5">
+                    {new Date(event.createdAt).toLocaleString(locale)}
+                  </Text>
+                </li>
+              ))}
+            </ul>
+          </Card>
         )}
       </section>
 
       {initial.canEdit ? (
         <>
-          <Button
-            variant="primary"
-            className="w-full"
-            data-testid="policies-save"
-            isDisabled={!dirty || isPending}
-            onPress={() => {
-              setSaved(false);
-              setErrorCode(null);
-              setConfirmOpen(true);
-            }}
-          >
-            {t("save")}
-          </Button>
+          <BottomActionBar>
+            <Button
+              variant="primary"
+              className="w-full"
+              data-testid="policies-save"
+              isDisabled={!dirty || isPending}
+              onPress={() => {
+                setSaved(false);
+                setErrorCode(null);
+                setConfirmOpen(true);
+              }}
+            >
+              {t("save")}
+            </Button>
+          </BottomActionBar>
           <Sheet
             isOpen={confirmOpen}
             onOpenChange={(open) => {

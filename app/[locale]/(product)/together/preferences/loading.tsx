@@ -1,5 +1,12 @@
-import { TogetherLoadingSkeleton } from "../together-loading-skeleton";
+import { getTranslations } from "next-intl/server";
+import { TogetherDetailLoadingSkeleton } from "../together-detail-loading-skeleton";
 
-export default function Loading() {
-  return <TogetherLoadingSkeleton testId="together-preferences-loading" />;
+export default async function Loading() {
+  const t = await getTranslations("together.preferences");
+  return (
+    <TogetherDetailLoadingSkeleton
+      testId="together-preferences-loading"
+      title={t("title")}
+    />
+  );
 }

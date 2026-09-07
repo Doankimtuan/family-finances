@@ -1,7 +1,10 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { requireTogetherMembership } from "@/modules/tenancy/application/require-together-membership";
-import { listHouseholdMembers } from "@/modules/tenancy/application/list-household-members";
+import {
+  listHouseholdMembers,
+  type HouseholdMemberRow,
+} from "@/modules/tenancy/application/list-household-members";
 import { listPendingInvitations } from "@/modules/tenancy/application/list-pending-invitations";
 import {
   HOUSEHOLD_MEMBER_LIMIT,
@@ -10,10 +13,15 @@ import {
 } from "@/modules/tenancy/application/tenancy-constants";
 import {
   Card,
+  EmptyState,
   Page as ProductPage,
   SectionHeader,
+  TogetherNavAppearance,
+  TogetherNavGroup,
   TogetherNavRow,
+  TogetherPrimaryLink,
   TogetherStatusStrip,
+  TogetherStatusTone,
   TopAppBar,
 } from "@/shared/patterns";
 import { HeaderPill } from "@/shared/patterns/top-app-bar";
@@ -21,12 +29,17 @@ import { MotionReveal } from "@/shared/motion";
 import { AppIcon } from "@/shared/ui/app-icon";
 import { IconContainer } from "@/shared/ui/icon-container";
 import {
+  ACTION_ICONS,
   FINANCE_ICONS,
   NAVIGATION_ICONS,
   UTILITY_ICONS,
 } from "@/shared/ui/icon-registry";
-import { StatusBadge } from "@/shared/ui/status-badge";
 import { Text } from "@/shared/ui/text";
+import { cn } from "@/shared/utils/cn";
+import { TogetherMemberPreview } from "./together-member-preview";
+import { memberInitials } from "./together-member-identity";
+
+const TOGETHER_HERO_AVATAR_LIMIT = 4;
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -48,10 +61,10 @@ export default async function Page({ params }: Props) {
     result.members.length < HOUSEHOLD_MEMBER_LIMIT;
   const isSoloAdmin =
     membership.role === HOUSEHOLD_ROLE.ADMIN && result.members.length === 1;
-  const roleLabel =
-    membership.role === HOUSEHOLD_ROLE.ADMIN
-      ? t("roleAdmin")
-      : t("rolePartner");
+  const isAdmin = membership.role === HOUSEHOLD_ROLE.ADMIN;
+  const roleLabel = isAdmin ? t("roleAdmin") : t("rolePartner");
+  const householdName = result.household?.name ?? t("householdLabel");
+  const pendingCount = pendingInvitations.length;
 
   return (
     <ProductPage
@@ -64,68 +77,47 @@ export default async function Page({ params }: Props) {
           subtitle={t("header.supporting")}
           icon={NAVIGATION_ICONS.together}
           status={<HeaderPill tone="info">{roleLabel}</HeaderPill>}
-          meta={
-            result.household
-              ? `${t("header.meta", { count: result.members.length })} · ${result.household.name}`
-              : t("header.meta", { count: result.members.length })
-          }
+          meta={householdName}
         />
       }
     >
-      <section className="flex flex-col gap-(--space-3)">
-        <SectionHeader
-          title={t("overviewTitle")}
-          description={t("overviewDescription")}
-        />
-        <MotionReveal>
-          <Card tone="hero" className="gap-(--space-4) p-(--space-4)">
-            <div className="flex items-start justify-between gap-(--space-3)">
-              <div className="flex min-w-0 items-center gap-(--space-3)">
-                <IconContainer tone="primary" size="md">
-                  <AppIcon
-                    icon={NAVIGATION_ICONS.together}
-                    size="lg"
-                    emphasized
-                  />
-                </IconContainer>
-                <div className="min-w-0">
-                  <Text size="xs" className="text-hero-muted">
-                    {t("householdLabel")}
-                  </Text>
-                  <Text className="truncate text-xl font-semibold tracking-tight text-hero-fg">
-                    {result.household?.name ?? t("householdLabel")}
-                  </Text>
-                </div>
-              </div>
-              <StatusBadge
-                tone="info"
-                className="bg-white/15 text-hero-fg ring-1 ring-white/20"
-              >
-                {roleLabel}
-              </StatusBadge>
-            </div>
-            <div className="flex items-end justify-between gap-(--space-3) border-t border-white/15 pt-(--space-3)">
-              <div>
-                <Text size="xs" className="text-hero-muted">
-                  {t("memberCountLabel")}
-                </Text>
-                <Text className="text-3xl font-semibold tabular-nums tracking-tight text-hero-fg">
-                  {result.members.length}
-                </Text>
-              </div>
-              <Text
-                size="sm"
-                className="max-w-[12rem] text-right text-hero-muted text-pretty"
-              >
-                {t("roleContext", { role: roleLabel })}
+      <MotionReveal>
+        <Card tone="hero" className="gap-(--space-4) p-(--space-4)">
+          <div className="flex items-start gap-(--space-3)">
+            <TogetherHeroAvatars members={result.members} />
+            <div className="min-w-0 flex-1">
+              <Text size="xs" className="text-hero-muted">
+                {t("householdLabel")}
+              </Text>
+              <Text className="truncate text-xl font-semibold tracking-tight text-pretty text-hero-fg">
+                {householdName}
               </Text>
             </div>
-          </Card>
-        </MotionReveal>
-      </section>
+          </div>
+          <div className="flex items-end justify-between gap-(--space-3) border-t border-white/15 pt-(--space-3)">
+            <div>
+              <Text size="xs" className="text-hero-muted">
+                {t("memberCountLabel")}
+              </Text>
+              <Text
+                className="text-3xl font-semibold tabular-nums tracking-tight text-hero-fg"
+                data-testid="together-member-count"
+              >
+                {result.members.length}
+              </Text>
+            </div>
+            <Text
+              size="sm"
+              className="max-w-[12rem] text-right text-hero-muted text-pretty"
+            >
+              {t("roleContext", { role: roleLabel })}
+            </Text>
+          </div>
+        </Card>
+      </MotionReveal>
 
       {isSoloAdmin ? (
-        <TogetherStatusStrip>
+        <TogetherStatusStrip tone={TogetherStatusTone.WARNING}>
           <Text size="sm" className="font-semibold text-text-primary">
             {t("householdClosureUnavailableTitle")}
           </Text>
@@ -133,17 +125,6 @@ export default async function Page({ params }: Props) {
             {t("householdClosureUnavailableBody")}
           </Text>
         </TogetherStatusStrip>
-      ) : null}
-
-      {canInvite ? (
-        <Link
-          href={TOGETHER_PATH.INVITATIONS_NEW}
-          data-testid="together-invite-cta"
-          className="inline-flex min-h-12 w-full items-center justify-center gap-(--space-2) rounded-[var(--radius-control)] bg-accent px-(--space-4) text-sm font-semibold text-accent-fg shadow-[var(--elevation-1)] transition-[background-color,transform,box-shadow] duration-(--duration-fast) hover:-translate-y-px hover:shadow-[var(--elevation-2)] active:scale-[var(--press-scale)] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-        >
-          <AppIcon icon={UTILITY_ICONS.notification} size="sm" />
-          {t("inviteCta")}
-        </Link>
       ) : null}
 
       <section className="flex flex-col gap-(--space-3)">
@@ -159,25 +140,30 @@ export default async function Page({ params }: Props) {
             </Link>
           }
         />
-        <Card tone="elevated" className="gap-0 overflow-hidden p-0">
-          <div className="flex items-center gap-(--space-3) p-(--space-3)">
-            <IconContainer tone="primary" size="sm">
-              <AppIcon icon={NAVIGATION_ICONS.together} size="sm" />
-            </IconContainer>
-            <div className="min-w-0 flex-1">
-              <Text size="sm" className="font-semibold text-text-primary">
-                {t("memberCountLabel")}
-              </Text>
-              <Text size="xs" tone="secondary">
-                {t("header.meta", { count: result.members.length })}
-              </Text>
-            </div>
-            <Text className="text-xl font-semibold tabular-nums tracking-tight text-text-primary">
-              {result.members.length}
-            </Text>
-          </div>
-        </Card>
+        {result.members.length > 0 ? (
+          <TogetherMemberPreview
+            members={result.members}
+            youLabel={t("you")}
+            roleAdminLabel={t("roleAdmin")}
+            rolePartnerLabel={t("rolePartner")}
+          />
+        ) : (
+          <EmptyState
+            title={t("emptyMembersTitle")}
+            description={t("emptyMembersDescription")}
+          />
+        )}
       </section>
+
+      {canInvite ? (
+        <TogetherPrimaryLink
+          href={TOGETHER_PATH.INVITATIONS_NEW}
+          testId="together-invite-cta"
+        >
+          <AppIcon icon={ACTION_ICONS.add} size="sm" />
+          {t("inviteCta")}
+        </TogetherPrimaryLink>
+      ) : null}
 
       <MotionReveal>
         <section className="flex flex-col gap-(--space-3)">
@@ -185,36 +171,79 @@ export default async function Page({ params }: Props) {
             title={t("manageTitle")}
             description={t("manageDescription")}
           />
-          <div className="flex flex-col gap-(--space-2)">
+          <TogetherNavGroup>
             <TogetherNavRow
               href={TOGETHER_PATH.INVITATIONS}
+              appearance={TogetherNavAppearance.GROUPED}
               icon={UTILITY_ICONS.notification}
               title={t("invitationsLink")}
               description={t("manageInvitationsDescription")}
-              meta={
-                pendingInvitations.length > 0
-                  ? String(pendingInvitations.length)
-                  : undefined
-              }
+              badge={pendingCount > 0 ? String(pendingCount) : undefined}
               testId="together-invitations-link"
             />
             <TogetherNavRow
               href={TOGETHER_PATH.POLICIES}
+              appearance={TogetherNavAppearance.GROUPED}
               icon={FINANCE_ICONS.wallet}
               title={t("policiesLink")}
               description={t("managePoliciesDescription")}
               testId="together-policies-link"
             />
             <TogetherNavRow
+              href={TOGETHER_PATH.PREFERENCES}
+              appearance={TogetherNavAppearance.GROUPED}
+              icon={UTILITY_ICONS.calendar}
+              title={t("preferencesLink")}
+              description={t("managePreferencesDescription")}
+              testId="together-preferences-link"
+            />
+            <TogetherNavRow
               href={TOGETHER_PATH.SETTINGS}
-              icon={NAVIGATION_ICONS.together}
+              appearance={TogetherNavAppearance.GROUPED}
+              icon={UTILITY_ICONS.settings}
               title={t("settingsLink")}
               description={t("manageSettingsDescription")}
               testId="together-settings-link"
             />
-          </div>
+          </TogetherNavGroup>
         </section>
       </MotionReveal>
     </ProductPage>
+  );
+}
+
+function TogetherHeroAvatars({ members }: { members: HouseholdMemberRow[] }) {
+  if (members.length === 0) {
+    return (
+      <IconContainer tone="primary" size="md">
+        <AppIcon icon={NAVIGATION_ICONS.together} size="lg" emphasized />
+      </IconContainer>
+    );
+  }
+
+  const visibleMembers = members.slice(0, TOGETHER_HERO_AVATAR_LIMIT);
+
+  return (
+    <div className="flex shrink-0">
+      {visibleMembers.map((member, index) => (
+        <span
+          key={member.id}
+          className={cn(
+            "inline-flex rounded-[var(--radius-control)] ring-2 ring-white/20",
+            index > 0 && "-ml-2",
+          )}
+        >
+          <IconContainer
+            tone={member.role === HOUSEHOLD_ROLE.ADMIN ? "primary" : "neutral"}
+            size="sm"
+            className="bg-white/15 text-hero-fg"
+          >
+            <span className="text-xs font-semibold">
+              {memberInitials(member.email, member.displayName)}
+            </span>
+          </IconContainer>
+        </span>
+      ))}
+    </div>
   );
 }

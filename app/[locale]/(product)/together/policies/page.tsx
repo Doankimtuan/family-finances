@@ -1,5 +1,5 @@
 import { getTranslations } from "next-intl/server";
-import { Link, redirect } from "@/i18n/navigation";
+import { redirect } from "@/i18n/navigation";
 import { requireTogetherMembership } from "@/modules/tenancy/application/require-together-membership";
 import { getHouseholdPolicies } from "@/modules/tenancy/application/get-household-policies";
 import { listPolicyEvents } from "@/modules/tenancy/application/list-policy-events";
@@ -52,12 +52,6 @@ export default async function PoliciesPage({ params }: Props) {
         }}
         events={events}
       />
-      <Link
-        href={TOGETHER_PATH.ROOT}
-        className="inline-flex min-h-11 w-full items-center justify-center rounded-[var(--radius-control)] border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-[var(--press-scale)] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-      >
-        {t("back")}
-      </Link>
     </Page>
   );
 }

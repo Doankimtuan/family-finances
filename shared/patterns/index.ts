@@ -58,7 +58,15 @@ export { ErrorState } from "./error-state";
 export { LocaleSwitcher } from "./locale-switcher";
 export { ThemeToggle } from "./theme-toggle";
 export { TogetherPreferences } from "./together-preferences";
-export { TogetherNavRow, TogetherStatusStrip } from "./together-management";
+export {
+  TogetherNavAppearance,
+  TOGETHER_NAV_APPEARANCE_VALUES,
+  TogetherNavGroup,
+  TogetherNavRow,
+  TogetherPrimaryLink,
+  TogetherStatusStrip,
+  TogetherStatusTone,
+} from "./together-management";
 export { SectionHeader, type SectionHeaderProps } from "./section-header";
 export {
   Balance,

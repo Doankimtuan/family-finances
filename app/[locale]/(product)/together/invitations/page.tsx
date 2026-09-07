@@ -1,5 +1,4 @@
 import { getTranslations } from "next-intl/server";
-import { Link } from "@/i18n/navigation";
 import { requireTogetherMembership } from "@/modules/tenancy/application/require-together-membership";
 import { listPendingInvitations } from "@/modules/tenancy/application/list-pending-invitations";
 import {
@@ -8,6 +7,9 @@ import {
 } from "@/modules/tenancy/application/tenancy-constants";
 import { Page } from "@/shared/patterns/page";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
+import { TogetherPrimaryLink } from "@/shared/patterns/together-management";
+import { AppIcon } from "@/shared/ui/app-icon";
+import { ACTION_ICONS } from "@/shared/ui/icon-registry";
 import { InvitationsPanel } from "./invitations-panel";
 
 type Props = { params: Promise<{ locale: string }> };
@@ -35,21 +37,15 @@ export default async function InvitationsPage({ params }: Props) {
       }
     >
       {membership.role === HOUSEHOLD_ROLE.ADMIN ? (
-        <Link
+        <TogetherPrimaryLink
           href={TOGETHER_PATH.INVITATIONS_NEW}
-          data-testid="invite-new"
-          className="inline-flex min-h-12 w-full items-center justify-center rounded-[var(--radius-control)] bg-accent px-(--space-4) text-sm font-semibold text-accent-fg shadow-[var(--elevation-1)] transition-[background-color,transform,box-shadow] duration-(--duration-fast) hover:-translate-y-px hover:shadow-[var(--elevation-2)] active:scale-[var(--press-scale)] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+          testId="invite-new"
         >
+          <AppIcon icon={ACTION_ICONS.add} size="sm" />
           {t("new")}
-        </Link>
+        </TogetherPrimaryLink>
       ) : null}
       <InvitationsPanel initialInvitations={invitations} />
-      <Link
-        href={TOGETHER_PATH.ROOT}
-        className="inline-flex min-h-11 w-full items-center justify-center rounded-[var(--radius-control)] border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-[var(--press-scale)] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-      >
-        {t("back")}
-      </Link>
     </Page>
   );
 }

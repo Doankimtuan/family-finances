@@ -15,7 +15,7 @@ import { invitePath } from "@/modules/tenancy/application/tenancy-constants";
 import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
 import { IconContainer } from "@/shared/ui/icon-container";
 import { StatusBadge } from "@/shared/ui/status-badge";
-import { NAVIGATION_ICONS } from "@/shared/ui/icon-registry";
+import { UTILITY_ICONS } from "@/shared/ui/icon-registry";
 import { revokeInvitationAction } from "../invite-actions";
 
 function inviteShareUrl(locale: string, token: string): string {
@@ -84,14 +84,14 @@ export function InvitationsPanel({
           description={t("emptyDescription")}
           icon={
             <AppIcon
-              icon={NAVIGATION_ICONS.together}
+              icon={UTILITY_ICONS.notification}
               size={AppIconSize.DISPLAY}
             />
           }
           className="flex-none py-(--space-6)"
         />
       ) : (
-        <ul className="flex flex-col gap-(--space-2)">
+        <ul className="flex flex-col gap-(--space-3)">
           {initialInvitations.map((invite) => {
             const link = inviteShareUrl(locale, invite.token);
             return (
@@ -99,7 +99,7 @@ export function InvitationsPanel({
                 <Card tone="warning" className="gap-(--space-3) p-(--space-4)">
                   <div className="flex items-start gap-(--space-3)">
                     <IconContainer tone="primary" size="sm">
-                      <AppIcon icon={NAVIGATION_ICONS.together} size="sm" />
+                      <AppIcon icon={UTILITY_ICONS.notification} size="sm" />
                     </IconContainer>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-start justify-between gap-(--space-2)">

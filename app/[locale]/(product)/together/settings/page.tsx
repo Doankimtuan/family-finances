@@ -12,6 +12,7 @@ import { TogetherPreferences } from "@/shared/patterns/together-preferences";
 import { Card } from "@/shared/patterns/card";
 import { AppIcon } from "@/shared/ui/app-icon";
 import { IconContainer } from "@/shared/ui/icon-container";
+import { StatusBadge } from "@/shared/ui/status-badge";
 import { Text } from "@/shared/ui/text";
 import { NAVIGATION_ICONS, UTILITY_ICONS } from "@/shared/ui/icon-registry";
 
@@ -69,6 +70,9 @@ export default async function SettingsPage({ params }: Props) {
                 {t("roleNote", { role })}
               </Text>
             </div>
+            <StatusBadge tone="info" className="shrink-0">
+              {role}
+            </StatusBadge>
           </div>
         </Card>
       </section>

@@ -7,6 +7,7 @@ import type { HouseholdPreferences } from "@/modules/tenancy/application/get-hou
 import { HOUSEHOLD_LOCALE } from "@/modules/tenancy/application/tenancy-constants";
 import { Card } from "@/shared/patterns/card";
 import { SectionHeader } from "@/shared/patterns/section-header";
+import { BottomActionBar } from "@/shared/patterns/bottom-action-bar";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { AlertVariant } from "@/shared/ui/alert";
 import { Button } from "@/shared/ui/button";
@@ -86,7 +87,7 @@ export function HouseholdPreferencesForm({
           title={t("interpretationTitle")}
           description={t("interpretationDescription")}
         />
-        <Card className="gap-(--space-4) p-(--space-4)">
+        <Card tone="elevated" className="gap-(--space-4) p-(--space-4)">
           <SelectField
             id="household-locale"
             label={t("localeLabel")}
@@ -125,16 +126,18 @@ export function HouseholdPreferencesForm({
       </section>
 
       {initial.canEdit ? (
-        <Button
-          variant="primary"
-          className="w-full"
-          data-testid="preferences-save"
-          isDisabled={!dirty || isPending}
-          isPending={isPending}
-          onPress={onSave}
-        >
-          {isPending ? t("saving") : t("save")}
-        </Button>
+        <BottomActionBar>
+          <Button
+            variant="primary"
+            className="w-full"
+            data-testid="preferences-save"
+            isDisabled={!dirty || isPending}
+            isPending={isPending}
+            onPress={onSave}
+          >
+            {isPending ? t("saving") : t("save")}
+          </Button>
+        </BottomActionBar>
       ) : null}
     </div>
   );

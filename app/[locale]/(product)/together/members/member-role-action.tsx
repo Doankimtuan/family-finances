@@ -63,7 +63,7 @@ export function MemberRoleAction({
     <>
       <Button
         variant="secondary"
-        className={cn("min-h-10 w-fit px-(--space-3) text-xs", className)}
+        className={cn("min-h-11 w-fit px-(--space-3) text-xs", className)}
         data-testid="together-change-role"
         onPress={() => setIsOpen(true)}
         isDisabled={isPending}

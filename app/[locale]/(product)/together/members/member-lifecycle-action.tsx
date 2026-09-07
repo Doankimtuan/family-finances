@@ -83,7 +83,7 @@ export function MemberLifecycleAction({
     <>
       <Button
         variant={isRemoval ? "danger" : "secondary"}
-        className={cn("min-h-10 w-full", className)}
+        className={cn("min-h-11 w-full", className)}
         data-testid={`together-${action}-member`}
         onPress={() => setIsOpen(true)}
         isDisabled={isPending}

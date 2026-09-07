@@ -23,71 +23,65 @@ export async function TogetherLoadingSkeleton({ testId }: { testId?: string }) {
         />
       }
     >
-      <section className="flex flex-col gap-(--space-3)">
-        <div className="flex flex-col gap-(--space-2)">
-          <Skeleton className="h-5 w-32" />
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-4/5" />
+      <Card tone="elevated" className="gap-(--space-4) p-(--space-4)">
+        <div className="flex items-start gap-(--space-3)">
+          <Skeleton className="size-8 rounded-(--radius-control)" />
+          <div className="flex min-w-0 flex-1 flex-col gap-(--space-2)">
+            <Skeleton className="h-3 w-24" />
+            <Skeleton className="h-6 w-32" />
+          </div>
         </div>
-        <Card tone="hero" className="gap-(--space-4) p-(--space-4)">
-          <div className="flex items-start justify-between gap-(--space-3)">
-            <div className="flex min-w-0 items-center gap-(--space-3)">
-              <Skeleton className="size-12 rounded-(--radius-control)" />
-              <div className="flex min-w-0 flex-col gap-(--space-2)">
-                <Skeleton className="h-3 w-24" />
-                <Skeleton className="h-6 w-32" />
-              </div>
-            </div>
-            <Skeleton className="h-7 w-20 rounded-full" />
+        <div className="flex items-end justify-between gap-(--space-3) border-t border-divider pt-(--space-3)">
+          <div className="flex flex-col gap-(--space-2)">
+            <Skeleton className="h-3 w-28" />
+            <Skeleton className="h-8 w-12" />
           </div>
-          <div className="flex items-end justify-between gap-(--space-3) border-t border-divider pt-(--space-3)">
-            <div className="flex flex-col gap-(--space-2)">
-              <Skeleton className="h-3 w-28" />
-              <Skeleton className="h-8 w-12" />
-            </div>
-            <Skeleton className="h-8 w-24" />
-          </div>
-        </Card>
-      </section>
+          <Skeleton className="h-8 w-24" />
+        </div>
+      </Card>
 
       <section className="flex flex-col gap-(--space-3)">
         <div className="flex flex-col gap-(--space-2)">
-          <Skeleton className="h-5 w-32" />
+          <Skeleton className="h-5 w-40" />
           <Skeleton className="h-4 w-4/5" />
         </div>
         <Card tone="elevated" className="gap-0 overflow-hidden p-0">
-          <div className="flex items-center gap-(--space-3) p-(--space-3)">
-            <Skeleton className="size-9 rounded-(--radius-control)" />
-            <div className="flex min-w-0 flex-1 flex-col gap-(--space-2)">
-              <Skeleton className="h-4 w-32" />
-              <Skeleton className="h-3 w-40" />
+          {[0, 1, 2].map((row) => (
+            <div
+              key={row}
+              className="flex items-center gap-(--space-3) border-b border-divider p-(--space-3) last:border-b-0"
+            >
+              <Skeleton className="size-8 rounded-(--radius-control)" />
+              <div className="flex min-w-0 flex-1 flex-col gap-(--space-2)">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-3 w-40" />
+              </div>
+              <Skeleton className="h-7 w-16 rounded-full" />
             </div>
-            <Skeleton className="h-5 w-8" />
-          </div>
+          ))}
         </Card>
       </section>
 
       <section className="flex flex-col gap-(--space-3)">
         <div className="flex flex-col gap-(--space-2)">
-          <Skeleton className="h-5 w-28" />
+          <Skeleton className="h-5 w-36" />
           <Skeleton className="h-4 w-full" />
         </div>
-        <div className="flex flex-col gap-(--space-2)">
+        <Card tone="elevated" className="gap-0 overflow-hidden p-0">
           {[0, 1, 2, 3].map((row) => (
-            <Card
+            <div
               key={row}
-              tone="interactive"
-              className="flex-row items-center gap-(--space-3) p-(--space-3)"
+              className="flex items-center gap-(--space-3) border-b border-divider p-(--space-3) last:border-b-0"
             >
-              <Skeleton className="size-9 rounded-(--radius-control)" />
+              <Skeleton className="size-8 rounded-(--radius-control)" />
               <div className="flex min-w-0 flex-1 flex-col gap-(--space-2)">
                 <Skeleton className="h-4 w-32" />
                 <Skeleton className="h-3 w-48" />
               </div>
               <Skeleton className="size-4 rounded-full" />
-            </Card>
+            </div>
           ))}
-        </div>
+        </Card>
       </section>
     </Page>
   );

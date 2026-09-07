@@ -36,7 +36,7 @@ export function InvitationForm() {
 
   return (
     <div className="flex flex-col gap-(--space-4)" data-testid="invite-form">
-      <Card tone="soft" className="gap-(--space-3) p-(--space-4)">
+      <Card tone="elevated" className="gap-(--space-4) p-(--space-4)">
         <StatusAlert
           variant={AlertVariant.INFO}
           title={t("inviteIntroTitle")}

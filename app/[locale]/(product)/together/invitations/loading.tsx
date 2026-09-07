@@ -1,5 +1,13 @@
-import { TogetherLoadingSkeleton } from "../together-loading-skeleton";
+import { getTranslations } from "next-intl/server";
+import { TogetherDetailLoadingSkeleton } from "../together-detail-loading-skeleton";
 
-export default function Loading() {
-  return <TogetherLoadingSkeleton testId="together-invitations-loading" />;
+export default async function Loading() {
+  const t = await getTranslations("together.invitations");
+  return (
+    <TogetherDetailLoadingSkeleton
+      testId="together-invitations-loading"
+      title={t("title")}
+      subtitle={t("subtitle")}
+    />
+  );
 }
