@@ -97,7 +97,7 @@ export function CreditCardHero({
         tone={AmountTone.NEUTRAL}
         size={AmountSize.HERO}
         className="mt-(--space-3)"
-        amountClassName="text-4xl leading-none text-hero-fg"
+        amountClassName="text-hero-fg"
       />
       {utilizationValue != null ? (
         <div className="mt-(--space-4) flex items-center gap-(--space-3)">

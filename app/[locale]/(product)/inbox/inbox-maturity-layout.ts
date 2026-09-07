@@ -1,5 +1,9 @@
 import { SavingsMaturityAckAction } from "@/modules/inbox/application/inbox-constants";
 import { RenewalSuggestedAction } from "@/modules/savings/application/savings-constants";
+import {
+  differenceInUtcCalendarDays,
+  todayIsoDate,
+} from "@/shared/utils/iso-date";
 
 export const INBOX_MATURITY_MONEY_ACTIONS = [
   SavingsMaturityAckAction.CONFIRM_CONFIGURED,
@@ -14,6 +18,18 @@ export type InboxMaturityPrimaryAction =
   | typeof SavingsMaturityAckAction.CONFIRM_CONFIGURED
   | typeof SavingsMaturityAckAction.WITHDRAW
   | typeof SavingsMaturityAckAction.REMIND_TOMORROW;
+
+export function isInboxMaturityReminder(
+  cascadeDay: number | undefined,
+  maturityDate: string | undefined,
+  today = todayIsoDate(),
+): boolean {
+  return (
+    cascadeDay != null &&
+    maturityDate != null &&
+    differenceInUtcCalendarDays(today, maturityDate) > 0
+  );
+}
 
 export const INBOX_MATURITY_ACTION_LABEL = {
   [SavingsMaturityAckAction.CONFIRM_CONFIGURED]: "maturityConfirm",

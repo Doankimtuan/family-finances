@@ -4,6 +4,7 @@ import {
   InboxKindFilter,
   InboxLifecycleContext,
 } from "@/modules/inbox/application/inbox-constants";
+import { InboxSourceCapability } from "@/modules/inbox/application/inbox-source-capabilities";
 import { IconContainerTone } from "@/shared/ui/icon-container";
 import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
 import { StatusBadgeTone } from "@/shared/ui/status-badge";
@@ -88,4 +89,81 @@ export function inboxDisplayTitle(input: {
   const stored = input.displayTitle.trim();
   if (stored) return stored;
   return input.kindLabel;
+}
+
+const OWNERSHIP_HINT_KEY = {
+  [InboxSourceCapability.READ_ONLY_FORMER_OWNER]: "ownerUnavailableHint",
+  [InboxSourceCapability.READ_ONLY_NON_OWNER]: "ownerRequiredHint",
+  [InboxSourceCapability.SOURCE_UNAVAILABLE]: "sourceUnavailableHint",
+} as const;
+
+export type InboxOwnershipHintKey =
+  (typeof OWNERSHIP_HINT_KEY)[keyof typeof OWNERSHIP_HINT_KEY];
+
+export function inboxOwnershipHintKey(
+  capability: InboxSourceCapability,
+): InboxOwnershipHintKey | null {
+  if (capability === InboxSourceCapability.ACTIONABLE) return null;
+  return OWNERSHIP_HINT_KEY[capability];
+}
+
+export function inboxRowSupportingText(
+  parts: readonly (string | null | undefined)[],
+): string | null {
+  const compact = parts.filter((part): part is string => Boolean(part?.trim()));
+  if (compact.length === 0) return null;
+  return compact.join(" · ");
+}
+
+export function inboxQueueRowSubtitle(input: {
+  lifecycleLabel: string | null;
+  ownershipHint: string | null;
+  detailParts: readonly string[];
+}): string | null {
+  if (input.lifecycleLabel) {
+    return inboxRowSupportingText([input.lifecycleLabel, ...input.detailParts]);
+  }
+  return inboxRowSupportingText([...input.detailParts, input.ownershipHint]);
+}
+
+/**
+ * Queue rows already lead with the maturity countdown/state in the title.
+ * Keep the absolute maturity date on detail; omit it from the compact scan line.
+ */
+export function inboxQueueLifecycleLabel(input: {
+  context: InboxLifecycleContext | null;
+  label: string | null;
+}): string | null {
+  if (input.context === InboxLifecycleContext.MATURITY) return null;
+  return input.label;
+}
+
+const INBOX_QUEUE_TITLE_CONTEXT_SEPARATOR = " — ";
+
+/**
+ * Savings-maturity stored titles are `{product} — {countdown/state}`.
+ * Keep the countdown as the dominant queue title and move the product into
+ * compact secondary context so the scan row stays one title line.
+ */
+export function inboxQueueDominantTitle(input: {
+  kind: InboxItemKind | null;
+  displayTitle: string;
+}): { title: string; context: string | null } {
+  if (input.kind !== InboxItemKind.SAVINGS_MATURITY) {
+    return { title: input.displayTitle, context: null };
+  }
+  const separatorIndex = input.displayTitle.lastIndexOf(
+    INBOX_QUEUE_TITLE_CONTEXT_SEPARATOR,
+  );
+  if (separatorIndex <= 0) {
+    return { title: input.displayTitle, context: null };
+  }
+  const context = input.displayTitle.slice(0, separatorIndex).trim();
+  const title = input.displayTitle
+    .slice(separatorIndex + INBOX_QUEUE_TITLE_CONTEXT_SEPARATOR.length)
+    .trim();
+  if (!context || !title) {
+    return { title: input.displayTitle, context: null };
+  }
+  return { title, context };
 }

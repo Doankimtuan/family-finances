@@ -5,6 +5,7 @@ import {
   StatusAlertProvider,
 } from "@/providers/status-alert-provider";
 import { TransactionDirection } from "@/modules/ledger/application/client";
+import { JarKind } from "@/modules/plan/application/client";
 import { CreateCategoryForm } from "@/app/[locale]/(product)/plan/jars/create-category-form";
 
 const { createCategoryMock, refreshMock } = vi.hoisted(() => ({
@@ -28,7 +29,7 @@ vi.mock("@/app/[locale]/(product)/plan/jars/actions", () => ({
   createCategoryAction: createCategoryMock,
 }));
 
-const jars = [{ id: "jar-1", name: "Essentials", kind: "spending" }];
+const jars = [{ id: "jar-1", name: "Essentials", kind: JarKind.SPENDING }];
 
 function renderForm() {
   return render(
@@ -37,6 +38,20 @@ function renderForm() {
       <StatusAlertHost />
     </StatusAlertProvider>,
   );
+}
+
+function openForm() {
+  fireEvent.click(screen.getByTestId("category-create-open"));
+}
+
+function selectJar(optionName: string) {
+  const field = screen.getByTestId("category-jar-select");
+  const trigger =
+    field.querySelector("[data-slot='select-trigger']") ??
+    field.querySelector("button") ??
+    field;
+  fireEvent.click(trigger);
+  fireEvent.click(screen.getByRole("option", { name: optionName }));
 }
 
 beforeEach(() => {
@@ -51,13 +66,11 @@ describe("CreateCategoryForm", () => {
   it("hides the jar field and saves income without a jar", async () => {
     renderForm();
 
-    fireEvent.click(screen.getByTestId("category-create-open"));
+    openForm();
     fireEvent.change(screen.getByLabelText("nameLabel"), {
       target: { value: "Salary" },
     });
-    fireEvent.change(screen.getByLabelText("kindLabel"), {
-      target: { value: TransactionDirection.INCOME },
-    });
+    fireEvent.click(screen.getByTestId("category-kind-income"));
 
     expect(screen.queryByTestId("category-jar-select")).not.toBeInTheDocument();
 
@@ -75,7 +88,7 @@ describe("CreateCategoryForm", () => {
   it("keeps the jar required for expense categories", async () => {
     renderForm();
 
-    fireEvent.click(screen.getByTestId("category-create-open"));
+    openForm();
     fireEvent.change(screen.getByLabelText("nameLabel"), {
       target: { value: "Pet Grooming" },
     });
@@ -87,20 +100,38 @@ describe("CreateCategoryForm", () => {
     expect(createCategoryMock).not.toHaveBeenCalled();
   });
 
-  it("clears a selected jar before switching to income", () => {
+  it("clears a selected jar before switching to income", async () => {
     renderForm();
 
-    fireEvent.click(screen.getByTestId("category-create-open"));
-    fireEvent.change(screen.getByTestId("category-jar-select"), {
-      target: { value: "jar-1" },
-    });
-    fireEvent.change(screen.getByLabelText("kindLabel"), {
-      target: { value: TransactionDirection.INCOME },
-    });
-    fireEvent.change(screen.getByLabelText("kindLabel"), {
-      target: { value: TransactionDirection.EXPENSE },
-    });
+    openForm();
+    selectJar("jars.essentials");
+    fireEvent.click(screen.getByTestId("category-kind-income"));
+    fireEvent.click(screen.getByTestId("category-kind-expense"));
 
-    expect(screen.getByTestId("category-jar-select")).toHaveValue("");
+    const field = screen.getByTestId("category-jar-select");
+    expect(
+      field.querySelector("[data-slot='select-value']"),
+    ).not.toHaveTextContent("jars.essentials");
+  });
+
+  it("discards ephemeral create state when the sheet is closed and reopened", () => {
+    renderForm();
+
+    openForm();
+    fireEvent.change(screen.getByLabelText("nameLabel"), {
+      target: { value: "Draft category" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "cancel" }));
+
+    expect(
+      screen.queryByTestId("category-create-form"),
+    ).not.toBeInTheDocument();
+
+    openForm();
+    expect(screen.getByLabelText("nameLabel")).toHaveValue("");
+    expect(screen.getByTestId("category-kind-expense")).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
   });
 });

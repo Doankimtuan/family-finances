@@ -28,7 +28,7 @@ export function LoanPayoffEstimate(props: Props) {
   return (
     <Sheet isOpen={open} onOpenChange={setOpen}>
       <Button
-        variant="secondary"
+        variant="tertiary"
         className="min-h-11 w-full"
         data-testid="loan-payoff-estimate-open"
         onPress={() => setOpen(true)}

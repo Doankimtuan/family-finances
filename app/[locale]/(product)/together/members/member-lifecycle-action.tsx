@@ -5,8 +5,12 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import type { HouseholdMemberRow } from "@/modules/tenancy/application/list-household-members";
 import type { MembershipImpactSummary } from "@/modules/tenancy/application/membership-lifecycle";
-import { ActionSheetLayout, Sheet } from "@/shared/patterns";
-import { Button } from "@/shared/ui/button";
+import {
+  MEMBERSHIP_LIFECYCLE_ACTION,
+  type MembershipLifecycleAction,
+} from "@/modules/tenancy/application/tenancy-constants";
+import { ActionSheetLayout, Sheet, SheetActionFooter } from "@/shared/patterns";
+import { Button, ButtonVariant } from "@/shared/ui/button";
 import { AlertVariant } from "@/shared/ui/alert";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Text } from "@/shared/ui/text";
@@ -15,7 +19,7 @@ import { cn } from "@/shared/utils/cn";
 import { leaveHouseholdAction, removeHouseholdMemberAction } from "./actions";
 
 type Props = {
-  action: "leave" | "remove";
+  action: MembershipLifecycleAction;
   member: HouseholdMemberRow;
   impact: MembershipImpactSummary;
   isLastAdmin?: boolean;
@@ -37,9 +41,25 @@ export function MemberLifecycleAction({
   const [isOpen, setIsOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const memberName = member.displayName ?? member.email ?? t("thisMember");
-  const isRemoval = action === "remove";
+  const isRemoval = action === MEMBERSHIP_LIFECYCLE_ACTION.REMOVE;
+  const confirmTitle = isRemoval
+    ? t("removeConfirmTitle")
+    : t("leaveConfirmTitle");
+  const confirmBody = isRemoval
+    ? t("removeConfirmBody", { name: memberName })
+    : t("leaveConfirmBody", { name: memberName });
+  const confirmLabel = isRemoval ? t("removeConfirm") : t("leaveConfirm");
+  const submittingLabel = isRemoval
+    ? t("removeSubmitting")
+    : t("leaveSubmitting");
+  const errorTitle = isRemoval ? t("removeErrorTitle") : t("leaveErrorTitle");
+  const confirmTestId = isRemoval
+    ? "together-remove-confirm"
+    : "together-leave-confirm";
+  const hasFollowUpObligations =
+    impact.loans + impact.liabilities + impact.savings > 0;
 
-  if (action === "leave" && isLastAdmin) {
+  if (action === MEMBERSHIP_LIFECYCLE_ACTION.LEAVE && isLastAdmin) {
     return (
       <StatusAlert
         variant={AlertVariant.INFO}
@@ -73,7 +93,7 @@ export function MemberLifecycleAction({
       }
       statusAlert.show({
         variant: AlertVariant.DANGER,
-        title: t("errorTitle"),
+        title: errorTitle,
         description: t(`errors.${result.code}`),
       });
     });
@@ -82,7 +102,7 @@ export function MemberLifecycleAction({
   return (
     <>
       <Button
-        variant={isRemoval ? "danger" : "secondary"}
+        variant={isRemoval ? ButtonVariant.DANGER : ButtonVariant.SECONDARY}
         className={cn("min-h-11 w-full", className)}
         data-testid={`together-${action}-member`}
         onPress={() => setIsOpen(true)}
@@ -100,21 +120,15 @@ export function MemberLifecycleAction({
         <ActionSheetLayout>
           <ActionSheetLayout.Header>
             <Sheet.Heading className="text-lg font-semibold tracking-tight text-text-primary">
-              {isRemoval ? t("removeConfirmTitle") : t("leaveConfirmTitle")}
+              {confirmTitle}
             </Sheet.Heading>
           </ActionSheetLayout.Header>
           <ActionSheetLayout.Body>
             <div className="flex flex-col gap-(--space-4)">
               <StatusAlert
                 variant={AlertVariant.WARNING}
-                title={
-                  isRemoval ? t("removeConfirmTitle") : t("leaveConfirmTitle")
-                }
-                description={
-                  isRemoval
-                    ? t("removeConfirmBody", { name: memberName })
-                    : t("leaveConfirmBody", { name: memberName })
-                }
+                title={confirmTitle}
+                description={confirmBody}
               />
               <div className="flex flex-col gap-(--space-2)">
                 <Text size="sm" className="font-semibold text-text-primary">
@@ -123,7 +137,7 @@ export function MemberLifecycleAction({
                 <Text size="sm" tone="secondary" className="text-pretty">
                   {t("impactSummary", impact)}
                 </Text>
-                {impact.loans + impact.liabilities + impact.savings > 0 ? (
+                {hasFollowUpObligations ? (
                   <Text size="sm" tone="secondary" className="text-pretty">
                     {t("obligationWarning")}
                   </Text>
@@ -131,27 +145,15 @@ export function MemberLifecycleAction({
               </div>
             </div>
           </ActionSheetLayout.Body>
-          <ActionSheetLayout.Footer>
-            <Button
-              variant="secondary"
-              fullWidth
-              className="min-w-0 flex-1 shadow-none"
-              isDisabled={isPending}
-              onPress={close}
-            >
-              {t("cancel")}
-            </Button>
-            <Button
-              variant={isRemoval ? "danger" : "primary"}
-              fullWidth
-              className="min-w-0 flex-1"
-              isDisabled={isPending}
-              isPending={isPending}
-              onPress={onConfirm}
-            >
-              {isPending ? t("saving") : t("confirmLifecycle")}
-            </Button>
-          </ActionSheetLayout.Footer>
+          <SheetActionFooter
+            secondaryLabel={t("cancel")}
+            primaryLabel={isPending ? submittingLabel : confirmLabel}
+            onSecondary={close}
+            onPrimary={onConfirm}
+            primaryTestId={confirmTestId}
+            primaryVariant={ButtonVariant.DANGER}
+            isPending={isPending}
+          />
         </ActionSheetLayout>
       </Sheet>
     </>

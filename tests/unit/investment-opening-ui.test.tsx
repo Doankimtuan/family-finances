@@ -67,5 +67,10 @@ describe("Investment opening wizard chrome", () => {
     expect(preview).toHaveTextContent("0.1");
     expect(preview).toHaveTextContent("Binance");
     expect(preview).toHaveTextContent("+₫1,000,000");
+    expect(screen.getByTestId("intention-amount")).toHaveClass(
+      "text-4xl",
+      "leading-none",
+      "text-hero-fg",
+    );
   });
 });

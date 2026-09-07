@@ -133,6 +133,7 @@ describe("Loan UI polish", () => {
         nextPaymentDate="01/10/2026"
         progress={0.2}
         trailing={<button type="button">Hide financial values</button>}
+        context={<span>Household</span>}
         labels={{
           remaining: "Remaining principal",
           nextPayment: "Next payment amount",
@@ -148,6 +149,8 @@ describe("Loan UI polish", () => {
       screen.getByRole("button", { name: "Hide financial values" }),
     ).toBeInTheDocument();
     expect(screen.getByText("Remaining principal")).toBeInTheDocument();
+    expect(screen.getByText("Next payment amount")).toBeInTheDocument();
+    expect(screen.getByText("Due 2026-10-01")).toBeInTheDocument();
   });
 
   it("uses the quiet section title, not a second screen heading", () => {

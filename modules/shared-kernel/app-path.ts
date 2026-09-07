@@ -87,6 +87,9 @@ export type AppRoutePattern = (typeof APP_ROUTE)[keyof typeof APP_ROUTE];
 
 export const INVITE_PATH_SEGMENT = "invite";
 
+/** Query key for Plan calendar/ritual month navigation. */
+export const PLAN_MONTH_QUERY = "month";
+
 /** Locale-relative invite deep link. */
 export function invitePath(token: string): string {
   return `/${INVITE_PATH_SEGMENT}/${token}`;
@@ -126,6 +129,14 @@ export function planGoalPath(goalId: string): string {
 
 export function planRecurringPath(ruleId: string): string {
   return `${APP_PATH.PLAN_RECURRING}/${ruleId}`;
+}
+
+export function planCalendarPath(month?: string) {
+  if (!month) return APP_PATH.PLAN_CALENDAR;
+  return {
+    pathname: APP_PATH.PLAN_CALENDAR,
+    query: { [PLAN_MONTH_QUERY]: month },
+  };
 }
 
 export function inboxItemPath(inboxItemId: string): string {

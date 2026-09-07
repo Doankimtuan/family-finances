@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/modules/platform/supabase/server", () => ({
@@ -20,6 +21,7 @@ import {
   confirmEarlyWithdrawal,
   createSaving,
   detectMaturedSavings,
+  backfillLegacySavingsAccounts,
   renewSaving,
   settleSaving,
   updateRenewalPolicy,
@@ -33,6 +35,7 @@ import { PRODUCT_ACTION_ERROR_CODE } from "@/modules/tenancy/application/product
 import {
   CycleStatus,
   RenewalPolicy,
+  SAVINGS_LEGACY_BACKFILL_SKIP_ERRORS,
   SAVINGS_RPC,
   SettlementRule,
   SettlementAction,
@@ -40,6 +43,10 @@ import {
 
 const householdId = "11111111-1111-1111-1111-111111111111";
 const cycleId = "22222222-2222-2222-2222-222222222222";
+const rolloverMigrations = [
+  "supabase/migrations/20260825125516_v1_baseline.sql",
+  "supabase/migrations/20260826100000_savings_existing_deposit_import.sql",
+].map((path) => readFileSync(path, "utf8"));
 
 function supabaseWithCycleLookup(rpc: ReturnType<typeof vi.fn>) {
   const query = {
@@ -87,6 +94,30 @@ describe("Savings command error boundary", () => {
       ok: false,
       code: PRODUCT_ACTION_ERROR_CODE.INVALID,
     });
+  });
+
+  it("does not block lifecycle detection when the legacy provider is absent", async () => {
+    const rpc = vi.fn().mockResolvedValue({
+      data: { ok: false, error: SAVINGS_LEGACY_BACKFILL_SKIP_ERRORS[0] },
+      error: null,
+    });
+    vi.mocked(createSupabaseServerClient).mockResolvedValue({ rpc } as never);
+
+    await expect(backfillLegacySavingsAccounts()).resolves.toEqual({
+      ok: true,
+      migratedCount: 0,
+    });
+  });
+
+  it("calculates rollover interest through the mature cycle end date", () => {
+    for (const migration of rolloverMigrations) {
+      expect(migration).toMatch(
+        /savings_calculate_interest\(v_cycle\.principal, v_cycle\.locked_rate, v_cycle\.start_date, v_cycle\.end_date,[\s\S]*?v_cycle\.end_date\);/,
+      );
+      expect(migration).toContain(
+        "values (v_saving.id, v_cycle.cycle_number + 1, v_start, v_end",
+      );
+    }
   });
 
   it("keeps command validation failures typed and local", async () => {

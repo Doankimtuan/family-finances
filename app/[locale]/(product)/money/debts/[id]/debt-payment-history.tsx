@@ -134,7 +134,7 @@ export function DebtPaymentHistory({
             ) : null}
             <ul className="divide-y divide-divider">
               {openingPaidAmount > 0 ? (
-                <li>
+                <li className="min-h-14">
                   <div className="px-(--space-4)">
                     <TransactionRow
                       className="rounded-none border-0 bg-transparent"
@@ -156,10 +156,10 @@ export function DebtPaymentHistory({
                   ? `${dateLabel}, ${payment.note}`
                   : dateLabel;
                 return (
-                  <li key={payment.id}>
+                  <li key={payment.id} className="min-h-14">
                     <Link
                       href={transactionPath(payment.transactionId)}
-                      className="block min-h-11 px-(--space-4) focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus-ring"
+                      className="block min-h-14 px-(--space-4) focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus-ring"
                       aria-label={`${payment.accountName ?? accountFallback}, ${dateLabel}`}
                     >
                       <TransactionRow

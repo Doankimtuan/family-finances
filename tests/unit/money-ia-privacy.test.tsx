@@ -15,7 +15,10 @@ import {
 import { FinancialAccountHero } from "@/shared/patterns/financial-account-hero";
 import { CreditCardHero } from "@/app/[locale]/(product)/money/accounts/[id]/credit-card-hero";
 import { MoneyPositionHero } from "@/app/[locale]/(product)/money/money-position-hero";
+import { MoneyModuleRow } from "@/app/[locale]/(product)/money/money-module-section";
 import { FinancialValue } from "@/shared/patterns/financial-value";
+import { IconContainerTone } from "@/shared/ui/icon-container";
+import { APP_PATH } from "@/modules/tenancy/application/app-path";
 
 vi.mock("@/i18n/navigation", () => ({
   Link: ({ href, children, ...props }: ComponentProps<"a">) => (
@@ -173,10 +176,8 @@ describe("Money IA and financial privacy", () => {
     render(
       <FinancialPrivacyProvider>
         <MoneyPositionHero
-          ownedMoneyLabel="Total assets"
+          ownedMoneyLabel="Money in active accounts"
           ownedMoneyValue="₫3,000,000"
-          accountMoneyLabel="Money in active accounts"
-          accountMoneyValue="₫1,000,000"
           metaLine={<span>3 active accounts</span>}
           allocationLabel="Where your assets are"
           allocationHint="Across active accounts, savings, and valued investments."
@@ -208,6 +209,30 @@ describe("Money IA and financial privacy", () => {
     expect(document.body).not.toHaveTextContent("₫1,000,000");
     expect(document.body).not.toHaveTextContent("₫2,000,000");
     expect(document.body).toHaveTextContent("••••••");
+  });
+
+  it("keeps an investment holdings count visible under privacy", () => {
+    window.localStorage.setItem("vinha.financial-values-hidden", "true");
+
+    render(
+      <FinancialPrivacyProvider>
+        <MoneyModuleRow
+          href={APP_PATH.MONEY_INVESTMENTS}
+          testId="money-link-investments"
+          icon={FINANCE_ICONS.investment}
+          iconTone={IconContainerTone.INVESTMENT}
+          label="Investments"
+          value={{ state: "count", label: "3 holdings" }}
+        />
+      </FinancialPrivacyProvider>,
+    );
+
+    expect(screen.getByTestId("money-link-investments")).toHaveTextContent(
+      "3 holdings",
+    );
+    expect(screen.getByTestId("money-link-investments")).not.toHaveTextContent(
+      "••••••",
+    );
   });
 
   it("renders account and credit-card objects with distinct bounded semantics", () => {

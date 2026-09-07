@@ -20,6 +20,7 @@ import { Text } from "@/shared/ui/text";
 /** Right-column state for a module row; a failed domain read never renders as zero. */
 export type MoneyModuleValue =
   | { state: "value"; label: string }
+  | { state: "count"; label: string }
   | { state: "empty"; label: string }
   | { state: "unavailable"; label: string };
 
@@ -34,6 +35,11 @@ export type MoneyModuleRowProps = {
   meta?: ReactNode;
   attention?: { level: AttentionLevel; label: string } | null;
 };
+
+const EMPHASIZED_MODULE_VALUE_STATES = new Set<MoneyModuleValue["state"]>([
+  "value",
+  "count",
+]);
 
 const ATTENTION_BADGE_TONE: Record<
   AttentionLevel,
@@ -87,12 +93,16 @@ export function MoneyModuleRow({
       <div className="flex shrink-0 items-center gap-(--space-2)">
         <span
           className={
-            value.state === "value"
+            EMPHASIZED_MODULE_VALUE_STATES.has(value.state)
               ? "text-sm font-semibold tabular-nums tracking-tight text-text-primary"
               : "text-sm tabular-nums text-text-secondary"
           }
         >
-          <FinancialValue>{value.label}</FinancialValue>
+          {value.state === "count" ? (
+            value.label
+          ) : (
+            <FinancialValue>{value.label}</FinancialValue>
+          )}
         </span>
         <AppIcon
           icon={ACTION_ICONS.forward}

@@ -87,6 +87,7 @@ export function DebtDetailHero({
   locale,
   labels,
   trailing,
+  context,
 }: {
   direction: DebtDirection;
   remainingAmount: number;
@@ -97,6 +98,7 @@ export function DebtDetailHero({
   locale: string;
   labels: DebtDetailHeroLabels;
   trailing?: ReactNode;
+  context?: ReactNode;
 }) {
   const isBorrowed = direction === DebtDirection.BORROWED;
   const remainingLabel = isBorrowed
@@ -139,7 +141,7 @@ export function DebtDetailHero({
         })}
         size={AmountSize.HERO}
         className="mt-(--space-3)"
-        amountClassName="text-4xl leading-none text-hero-fg"
+        amountClassName="text-hero-fg"
       />
       <div className="mt-(--space-3)">
         <DebtDueBadge
@@ -166,6 +168,11 @@ export function DebtDetailHero({
         indicatorClassName="bg-white/80"
         className="mt-(--space-2)"
       />
+      {context ? (
+        <div className="mt-(--space-4) flex flex-col gap-(--space-2) border-t border-white/15 pt-(--space-3)">
+          {context}
+        </div>
+      ) : null}
     </Card>
   );
 }

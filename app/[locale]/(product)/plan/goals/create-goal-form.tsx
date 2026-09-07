@@ -3,12 +3,13 @@ import { useId, useState, useTransition } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { planGoalPath } from "@/modules/tenancy/application/app-path";
-import { TextField } from "@/shared/ui/form";
+import { DatePickerField, TextField } from "@/shared/ui/form";
 import { AmountField } from "@/shared/patterns/amount-field";
 import { Button } from "@/shared/ui/button";
 import { AlertVariant } from "@/shared/ui/alert";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import { useStatusAlert } from "@/providers/status-alert-provider";
+import { DEFAULT_CURRENCY } from "@/modules/ledger/application/ledger-constants";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import { FinancialValue } from "@/shared/patterns/financial-value";
 import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
@@ -19,10 +20,7 @@ import {
   CLIENT_ACTION_ERROR_CODE,
   type ProductActionErrorCode,
 } from "@/modules/tenancy/application/product-action-error";
-import {
-  GOAL_TYPE_VALUES,
-  type GoalType,
-} from "@/modules/plan/application/client";
+import { GOAL_TYPE_VALUES, GoalType } from "@/modules/plan/application/client";
 import type { GoalFundingOption } from "@/modules/plan/application/queries/list-goal-funding-options";
 import { goalFundingSourceKey } from "@/modules/plan/application/goal-funding";
 import { createGoalAction, linkGoalFundingAction } from "./actions";
@@ -52,7 +50,7 @@ export function CreateGoalForm({ fundingOptions }: Props) {
   const [isPending, startTransition] = useTransition();
   const compatibleOptions = goalType
     ? fundingOptions.filter((option) =>
-        goalType === "payoff"
+        goalType === GoalType.PAYOFF
           ? option.sourceType === "debt"
           : option.sourceType !== "debt",
       )
@@ -182,12 +180,11 @@ export function CreateGoalForm({ fundingOptions }: Props) {
                 ))}
               </ChoiceTileGroup>
             </fieldset>
-            <TextField
+            <DatePickerField
               id={dateId}
               label={t("createDateLabel")}
-              type="date"
               value={targetDate}
-              onChange={(e) => setTargetDate(e.target.value)}
+              onChange={setTargetDate}
             />
             {goalType ? (
               <fieldset className="flex flex-col gap-(--space-2)">
@@ -230,7 +227,7 @@ export function CreateGoalForm({ fundingOptions }: Props) {
                                     <FinancialValue>
                                       {formatCurrency(
                                         option.currentAmount,
-                                        option.currency ?? "VND",
+                                        option.currency ?? DEFAULT_CURRENCY,
                                         locale,
                                         { maximumFractionDigits: 0 },
                                       )}

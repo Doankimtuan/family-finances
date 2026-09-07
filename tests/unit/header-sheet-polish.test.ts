@@ -43,4 +43,26 @@ describe("header and sheet polish contracts", () => {
       "pb-[calc(var(--sheet-footer-space)+env(safe-area-inset-bottom,0px))]",
     );
   });
+
+  it("uses the documented overlay radius on the shared Sheet dialog", () => {
+    const sheet = readProjectFile("shared/patterns/sheet.tsx");
+    const tokens = readProjectFile("styles/globals.css");
+
+    expect(sheet).toContain("rounded-t-(--radius-overlay)");
+    expect(sheet).toContain("vinha-sheet-dialog");
+    expect(tokens).toContain(
+      "border-start-start-radius: var(--radius-overlay);",
+    );
+    expect(tokens).toContain("border-start-end-radius: var(--radius-overlay);");
+  });
+
+  it("animates the contextual header with the canonical duration token", () => {
+    const tokens = readProjectFile("styles/globals.css");
+
+    expect(tokens).toContain(
+      "animation: vinha-header-enter var(--duration-normal) var(--ease-standard) both;",
+    );
+    expect(tokens).not.toContain("--duration-standard");
+    expect(tokens).toContain("@media (prefers-reduced-motion: reduce)");
+  });
 });

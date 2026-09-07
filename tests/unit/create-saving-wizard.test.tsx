@@ -1,5 +1,11 @@
 import type { ReactNode } from "react";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { CreateSavingWizard } from "@/app/[locale]/(product)/money/savings/new/create-saving-wizard";
 import {
@@ -113,14 +119,17 @@ describe("CreateSavingWizard", () => {
     renderWizard();
 
     expect(
-      screen.getByTestId(`savings-provider-${PROVIDER_ID}`),
-    ).toHaveAttribute("aria-pressed", "true");
+      screen
+        .getByTestId("savings-provider")
+        .querySelector("[data-slot='select-value']")?.textContent,
+    ).toBe("Main Bank");
     expect(
       screen.getByTestId(`savings-package-${PACKAGE_ID}`),
     ).toBeInTheDocument();
     fireEvent.click(
-      screen.getByTestId(`savings-provider-${OTHER_PROVIDER_ID}`),
+      within(screen.getByTestId("savings-provider")).getByRole("button"),
     );
+    fireEvent.click(screen.getByRole("option", { name: "Digital Bank" }));
 
     expect(
       screen.getByTestId(`savings-package-${OTHER_PACKAGE_ID}`),
@@ -141,9 +150,7 @@ describe("CreateSavingWizard", () => {
     fireEvent.click(screen.getByTestId(`savings-package-${PACKAGE_ID}`));
     fireEvent.click(screen.getByTestId("savings-wizard-next"));
 
-    expect(
-      screen.queryByTestId(`savings-source-${ACCOUNT_ID}`),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByTestId("savings-source")).not.toBeInTheDocument();
     expect(screen.getByText("historicalNoSource")).toBeInTheDocument();
   });
 
@@ -176,8 +183,9 @@ describe("CreateSavingWizard", () => {
     fireEvent.click(screen.getByTestId("savings-target-other"));
     fireEvent.click(screen.getByTestId(`savings-target-package-${PACKAGE_ID}`));
     fireEvent.click(
-      screen.getByTestId("savings-payout-account-" + OTHER_ACCOUNT_ID),
+      within(screen.getByTestId("savings-payout-account")).getByRole("button"),
     );
+    fireEvent.click(screen.getByRole("option", { name: /Bank/ }));
     fireEvent.click(screen.getByTestId("savings-wizard-confirm"));
 
     await waitFor(() => expect(createSavingMock).toHaveBeenCalledTimes(1));
@@ -253,9 +261,62 @@ describe("CreateSavingWizard", () => {
     renderWizard();
     reachReview();
 
-    fireEvent.click(screen.getByTestId(`savings-payout-account-${ACCOUNT_ID}`));
+    fireEvent.click(
+      within(screen.getByTestId("savings-payout-account")).getByRole("button"),
+    );
+    fireEvent.click(screen.getByRole("option", { name: /Wallet/ }));
 
     expect(screen.getByTestId("savings-wizard-confirm")).toBeDisabled();
     expect(createSavingMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("CreateSavingWizard hierarchy", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("renders the canonical wizard shell with the product step first", () => {
+    renderWizard();
+
+    expect(screen.getByTestId("savings-create-wizard")).toBeInTheDocument();
+    expect(screen.getByTestId("savings-step-indicator")).toBeInTheDocument();
+    expect(screen.getByTestId("savings-create-mode-live")).toBeInTheDocument();
+    expect(screen.getByTestId("savings-provider")).toBeInTheDocument();
+    expect(screen.getByTestId("savings-wizard-next")).toBeInTheDocument();
+    expect(screen.queryByTestId("savings-wizard-back")).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId("savings-wizard-confirm"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("advances through product, deposit, and review in order", () => {
+    renderWizard();
+
+    fireEvent.click(screen.getByTestId(`savings-package-${PACKAGE_ID}`));
+    fireEvent.click(screen.getByTestId("savings-wizard-next"));
+    expect(screen.getByTestId("savings-wizard-principal")).toBeInTheDocument();
+
+    fireEvent.change(screen.getByTestId("savings-wizard-principal"), {
+      target: { value: "3000000" },
+    });
+    fireEvent.click(screen.getByTestId("savings-wizard-next"));
+
+    expect(screen.getByTestId("savings-review-summary")).toBeInTheDocument();
+    expect(screen.getByTestId("savings-wizard-confirm")).toBeInTheDocument();
+    expect(screen.getByTestId("savings-wizard-back")).toBeInTheDocument();
+    expect(screen.queryByTestId("savings-wizard-next")).not.toBeInTheDocument();
+  });
+
+  it("keeps shared field composition on the deposit step", () => {
+    renderWizard();
+
+    fireEvent.click(screen.getByTestId(`savings-package-${PACKAGE_ID}`));
+    fireEvent.click(screen.getByTestId("savings-wizard-next"));
+
+    expect(screen.getByTestId("savings-wizard-principal")).toBeInTheDocument();
+    expect(screen.getByTestId("savings-source")).toBeInTheDocument();
+    expect(screen.getByTestId("savings-wizard-start-date")).toBeInTheDocument();
+    expect(screen.getByTestId("savings-estimate")).toBeInTheDocument();
   });
 });

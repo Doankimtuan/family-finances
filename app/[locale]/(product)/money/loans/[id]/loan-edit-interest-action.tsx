@@ -3,8 +3,7 @@
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
-import { TextField } from "@/shared/ui/form";
-import { DatePickerField } from "@/shared/ui/form";
+import { DatePickerField, TextField } from "@/shared/ui/form";
 import { Button } from "@/shared/ui/button";
 import { AlertVariant } from "@/shared/ui/alert";
 import { Text } from "@/shared/ui/text";
@@ -13,7 +12,6 @@ import { useStatusAlert } from "@/providers/status-alert-provider";
 import { CLIENT_ACTION_ERROR_CODE } from "@/modules/tenancy/application/product-action-error";
 import { updateLoanInterestRateAction } from "../../money-products-actions";
 import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
-import { Card } from "@/shared/patterns/card";
 import { SheetActionFooter } from "@/shared/patterns/sheet-action-footer";
 import { Sheet } from "@/shared/patterns/sheet";
 
@@ -82,7 +80,7 @@ export function LoanEditInterestAction({
   if (!open) {
     return (
       <Button
-        variant="secondary"
+        variant="tertiary"
         className="min-h-11 w-full"
         data-testid="loan-edit-interest-open"
         isDisabled={!online}
@@ -111,9 +109,8 @@ export function LoanEditInterestAction({
           </Sheet.Heading>
         </ActionSheetLayout.Header>
         <ActionSheetLayout.Body>
-          <Card
-            tone="elevated"
-            className="flex flex-col gap-(--space-3) p-(--space-4)"
+          <div
+            className="flex flex-col gap-(--space-3)"
             data-testid="loan-edit-interest-form"
           >
             <TextField
@@ -145,17 +142,17 @@ export function LoanEditInterestAction({
               value={note}
               onChange={(e) => setNote(e.target.value)}
             />
-          </Card>
-          <SheetActionFooter
-            secondaryLabel={t("cancel")}
-            primaryLabel={isPending ? t("saving") : t("saveInterest")}
-            primaryTestId="loan-edit-interest-save"
-            isDisabled={!online}
-            isPending={isPending}
-            onSecondary={handleCancel}
-            onPrimary={handleSave}
-          />
+          </div>
         </ActionSheetLayout.Body>
+        <SheetActionFooter
+          secondaryLabel={t("cancel")}
+          primaryLabel={isPending ? t("saving") : t("saveInterest")}
+          primaryTestId="loan-edit-interest-save"
+          isDisabled={!online}
+          isPending={isPending}
+          onSecondary={handleCancel}
+          onPrimary={handleSave}
+        />
       </ActionSheetLayout>
     </Sheet>
   );

@@ -239,14 +239,15 @@
   --color-inverse: var(--vinha-inverse);
   --color-inverse-fg: var(--vinha-inverse-fg);
 
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
-  --radius-full: 9999px;
+  /* Canonical radii. Tailwind rounded-sm/md/lg/xl/full map to the aliases below. */
   --radius-control: 10px;
   --radius-card: 12px;
   --radius-overlay: 16px;
+  --radius-sm: 6px;
+  --radius-md: var(--radius-control);
+  --radius-lg: var(--radius-card);
+  --radius-xl: var(--radius-overlay);
+  --radius-full: 9999px;
 }
 
 :root {
@@ -464,14 +465,14 @@
     var(--floating-action-size) + var(--floating-action-gap)
   );
 
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
-  --radius-full: 9999px;
   --radius-control: 10px;
   --radius-card: 12px;
   --radius-overlay: 16px;
+  --radius-sm: 6px;
+  --radius-md: var(--radius-control);
+  --radius-lg: var(--radius-card);
+  --radius-xl: var(--radius-overlay);
+  --radius-full: 9999px;
 
   --app-viewport-max: 440px;
   --financial-number-column-width: 7rem;
@@ -742,7 +743,7 @@ body {
 
   .skeleton-bone {
     background-color: var(--color-skeleton);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-control);
   }
 }
 
@@ -758,8 +759,12 @@ body {
 }
 
 .vinha-header-contextual {
-  animation: vinha-header-enter var(--duration-standard) var(--ease-standard)
-    both;
+  animation: vinha-header-enter var(--duration-normal) var(--ease-standard) both;
+}
+
+.vinha-sheet-dialog[data-placement="bottom"] {
+  border-start-start-radius: var(--radius-overlay);
+  border-start-end-radius: var(--radius-overlay);
 }
 
 @media (prefers-reduced-motion: reduce) {

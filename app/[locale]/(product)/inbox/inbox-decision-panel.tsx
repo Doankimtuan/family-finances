@@ -48,6 +48,7 @@ import { InboxSectionTitle } from "./inbox-section-title";
 import {
   INBOX_MATURITY_ACTION_LABEL,
   inboxMaturitySecondaryActions,
+  isInboxMaturityReminder,
   isMaturityMoneyMovingAction,
   resolveInboxMaturityPrimaryAction,
   type InboxMaturityMoneyAction,
@@ -156,7 +157,10 @@ export function InboxDecisionPanel({ item, jars, meta }: Props) {
 
   const suggestedAction =
     maturityPayload?.suggestedAction ?? RenewalSuggestedAction.NONE;
-  const isMaturityReminder = maturityPayload?.cascadeDay != null;
+  const isMaturityReminder = isInboxMaturityReminder(
+    maturityPayload?.cascadeDay,
+    maturityPayload?.maturityDate,
+  );
   const maturityPrimaryAction = resolveInboxMaturityPrimaryAction(
     suggestedAction,
     isMaturityReminder,
@@ -549,7 +553,7 @@ export function InboxDecisionPanel({ item, jars, meta }: Props) {
             <Text size="sm" tone="secondary" className="text-pretty">
               {t("maturitySourceBody")}
             </Text>
-            {maturityPayload?.cascadeDay != null ? (
+            {isMaturityReminder ? (
               <StatusAlert
                 variant="info"
                 title={t("maturityReminderTitle")}

@@ -1,6 +1,6 @@
 {
   "title": "Sức khỏe",
-  "subtitle": "Nhịp tài chính hộ gia đình",
+  "subtitle": "Nhận định chỉ xem từ dữ liệu tài chính hộ gia đình",
   "loadErrorTitle": "Không tải được Sức khỏe",
   "loadErrorBody": "Kiểm tra kết nối rồi thử lại.",
   "states": {
@@ -32,7 +32,7 @@
   "backHome": "Về Trang chủ",
   "insights": {
     "title": "Nhận định",
-    "subtitle": "Điều nên để ý — chỉ từ dữ liệu hộ gia đình",
+    "subtitle": "Thông báo chỉ xem, chỉ từ dữ liệu hộ gia đình",
     "loadErrorTitle": "Không tải được nhận định",
     "loadErrorBody": "Kiểm tra kết nối rồi thử lại.",
     "emptyTitle": "Chưa có gì để để ý",

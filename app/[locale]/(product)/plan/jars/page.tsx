@@ -38,6 +38,7 @@ import { PlanOfflineBanner } from "../plan-offline-banner";
 import { PlanSectionTitle } from "../plan-section-title";
 import { CreateJarForm } from "./create-jar-form";
 import { CreateCategoryForm } from "./create-category-form";
+import { PlanDisclosure } from "../plan-disclosure";
 import type { CaptureJarOption } from "@/modules/ledger/application/client";
 
 type Props = { params: Promise<{ locale: string }> };
@@ -177,6 +178,7 @@ export default async function PlanJarsPage({ params }: Props) {
 
       <Section
         title={<PlanSectionTitle>{t("activeSection")}</PlanSectionTitle>}
+        testId="plan-jars-active"
       >
         {active.length === 0 ? (
           <EmptyState
@@ -211,32 +213,39 @@ export default async function PlanJarsPage({ params }: Props) {
 
       <Section
         title={<PlanSectionTitle>{t("nonTargetSection")}</PlanSectionTitle>}
+        testId="plan-jars-non-target"
       >
         {nonTargets.length === 0 ? (
           <Text size="sm" tone="secondary">
             {t("nonTargetEmpty")}
           </Text>
         ) : (
-          <ul className="flex flex-col gap-(--space-2)">
-            {nonTargets.map((jar) => (
-              <li key={jar.id}>
-                <Link href={planJarPath(jar.id)} className="block">
-                  <JarCard
-                    name={
-                      jar.isNameCustom
-                        ? jar.name
-                        : localizeCatalogName(tCatalog, "jars", jar.name)
-                    }
-                    kindLabel={t(`kinds.${jar.kind}`)}
-                    stateLabel={t(stateLabelKey(jar.state))}
-                    state={jar.state}
-                    planLabel={planSummary(jar, t as never, currency, locale)}
-                    data-testid={`jar-card-${jar.id}`}
-                  />
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <PlanDisclosure
+            showLabel={t("nonTargetShow", { count: nonTargets.length })}
+            hideLabel={t("nonTargetHide")}
+            testId="plan-jars-non-target-toggle"
+          >
+            <ul className="flex flex-col gap-(--space-2)">
+              {nonTargets.map((jar) => (
+                <li key={jar.id}>
+                  <Link href={planJarPath(jar.id)} className="block">
+                    <JarCard
+                      name={
+                        jar.isNameCustom
+                          ? jar.name
+                          : localizeCatalogName(tCatalog, "jars", jar.name)
+                      }
+                      kindLabel={t(`kinds.${jar.kind}`)}
+                      stateLabel={t(stateLabelKey(jar.state))}
+                      state={jar.state}
+                      planLabel={planSummary(jar, t as never, currency, locale)}
+                      data-testid={`jar-card-${jar.id}`}
+                    />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </PlanDisclosure>
         )}
       </Section>
 

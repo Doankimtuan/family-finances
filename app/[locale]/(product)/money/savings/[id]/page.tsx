@@ -273,7 +273,7 @@ export default async function SavingsDetailPage({ params }: Props) {
               amountLabel={money(model.principal)}
               size={AmountSize.HERO}
               className="mt-(--space-3)"
-              amountClassName="text-4xl leading-none text-hero-fg"
+              amountClassName="text-hero-fg"
             />
             <div className="mt-(--space-4) flex flex-col gap-(--space-2) border-t border-white/15 pt-(--space-3)">
               <div className="flex flex-wrap items-center justify-between gap-(--space-2)">
@@ -370,37 +370,35 @@ export default async function SavingsDetailPage({ params }: Props) {
       </MotionReveal>
 
       {cycle && model.totalTermDays && model.elapsedDays != null ? (
-        <MotionReveal>
-          <section
-            className="flex flex-col gap-(--space-2)"
-            data-testid="savings-term-progress"
-          >
-            <SavingsSectionTitle>{t("progressLabel")}</SavingsSectionTitle>
-            <Card tone="elevated" className="gap-(--space-2) p-(--space-4)">
-              <Progress
-                value={Math.min(model.elapsedDays, model.totalTermDays)}
-                max={model.totalTermDays}
-                label={t("progressLabel")}
-                showLabel={false}
-                tone={IconContainerTone.SAVINGS}
-              />
-              <div className="flex items-center justify-between gap-(--space-3)">
-                <Text size="xs" tone="secondary">
-                  {formatIsoDate(cycle.startDate, locale)}
-                </Text>
-                <Text size="xs" weight="medium" className="text-center">
-                  {t("progressDays", {
-                    elapsed: Math.min(model.elapsedDays, model.totalTermDays),
-                    total: model.totalTermDays,
-                  })}
-                </Text>
-                <Text size="xs" tone="secondary">
-                  {formatIsoDate(cycle.endDate, locale)}
-                </Text>
-              </div>
-            </Card>
-          </section>
-        </MotionReveal>
+        <section
+          className="flex flex-col gap-(--space-2)"
+          data-testid="savings-term-progress"
+        >
+          <SavingsSectionTitle>{t("progressLabel")}</SavingsSectionTitle>
+          <Card tone="elevated" className="gap-(--space-2) p-(--space-4)">
+            <Progress
+              value={Math.min(model.elapsedDays, model.totalTermDays)}
+              max={model.totalTermDays}
+              label={t("progressLabel")}
+              showLabel={false}
+              tone={IconContainerTone.SAVINGS}
+            />
+            <div className="flex items-center justify-between gap-(--space-3)">
+              <Text size="xs" tone="secondary">
+                {formatIsoDate(cycle.startDate, locale)}
+              </Text>
+              <Text size="xs" weight="medium" className="text-center">
+                {t("progressDays", {
+                  elapsed: Math.min(model.elapsedDays, model.totalTermDays),
+                  total: model.totalTermDays,
+                })}
+              </Text>
+              <Text size="xs" tone="secondary">
+                {formatIsoDate(cycle.endDate, locale)}
+              </Text>
+            </div>
+          </Card>
+        </section>
       ) : null}
 
       <SavingsFactsCard

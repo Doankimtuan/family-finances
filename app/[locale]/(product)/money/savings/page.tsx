@@ -26,6 +26,7 @@ import {
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Page } from "@/shared/patterns/page";
 import { Card } from "@/shared/patterns/card";
+import { HeroPillLink } from "@/shared/patterns/hero-pill-link";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { ErrorState } from "@/shared/patterns/error-state";
 import { Amount, AmountSize } from "@/shared/patterns/amount";
@@ -240,7 +241,7 @@ export default async function SavingsPage({ params }: Props) {
                   )}
                   size={AmountSize.HERO}
                   className="mt-(--space-2)"
-                  amountClassName="text-4xl leading-none text-hero-fg"
+                  amountClassName="text-hero-fg"
                 />
                 <Text
                   size="xs"
@@ -261,9 +262,8 @@ export default async function SavingsPage({ params }: Props) {
                       {t("summaryCaption")}
                     </Text>
                   )}
-                  <Link
+                  <HeroPillLink
                     href={moneySavingsProvidersPath()}
-                    className="inline-flex min-h-8 items-center gap-(--space-1) rounded-full border border-white/25 bg-white/10 px-(--space-3) text-sm font-medium text-hero-fg transition-[background-color,transform] duration-(--duration-fast) hover:bg-white/20 active:scale-(--press-scale) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-hero-fg motion-reduce:transition-none motion-reduce:active:scale-100"
                     data-testid="savings-manage-providers"
                   >
                     {tCatalog("manageLink")}
@@ -271,7 +271,7 @@ export default async function SavingsPage({ params }: Props) {
                       icon={ACTION_ICONS.forward}
                       size={AppIconSize.XS}
                     />
-                  </Link>
+                  </HeroPillLink>
                 </div>
               </Card>
               <Card

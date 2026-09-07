@@ -165,49 +165,47 @@ export default async function Page({ params }: Props) {
         </TogetherPrimaryLink>
       ) : null}
 
-      <MotionReveal>
-        <section className="flex flex-col gap-(--space-3)">
-          <SectionHeader
-            title={t("manageTitle")}
-            description={t("manageDescription")}
+      <section className="flex flex-col gap-(--space-3)">
+        <SectionHeader
+          title={t("manageTitle")}
+          description={t("manageDescription")}
+        />
+        <TogetherNavGroup>
+          <TogetherNavRow
+            href={TOGETHER_PATH.INVITATIONS}
+            appearance={TogetherNavAppearance.GROUPED}
+            icon={UTILITY_ICONS.notification}
+            title={t("invitationsLink")}
+            description={t("manageInvitationsDescription")}
+            badge={pendingCount > 0 ? String(pendingCount) : undefined}
+            testId="together-invitations-link"
           />
-          <TogetherNavGroup>
-            <TogetherNavRow
-              href={TOGETHER_PATH.INVITATIONS}
-              appearance={TogetherNavAppearance.GROUPED}
-              icon={UTILITY_ICONS.notification}
-              title={t("invitationsLink")}
-              description={t("manageInvitationsDescription")}
-              badge={pendingCount > 0 ? String(pendingCount) : undefined}
-              testId="together-invitations-link"
-            />
-            <TogetherNavRow
-              href={TOGETHER_PATH.POLICIES}
-              appearance={TogetherNavAppearance.GROUPED}
-              icon={FINANCE_ICONS.wallet}
-              title={t("policiesLink")}
-              description={t("managePoliciesDescription")}
-              testId="together-policies-link"
-            />
-            <TogetherNavRow
-              href={TOGETHER_PATH.PREFERENCES}
-              appearance={TogetherNavAppearance.GROUPED}
-              icon={UTILITY_ICONS.calendar}
-              title={t("preferencesLink")}
-              description={t("managePreferencesDescription")}
-              testId="together-preferences-link"
-            />
-            <TogetherNavRow
-              href={TOGETHER_PATH.SETTINGS}
-              appearance={TogetherNavAppearance.GROUPED}
-              icon={UTILITY_ICONS.settings}
-              title={t("settingsLink")}
-              description={t("manageSettingsDescription")}
-              testId="together-settings-link"
-            />
-          </TogetherNavGroup>
-        </section>
-      </MotionReveal>
+          <TogetherNavRow
+            href={TOGETHER_PATH.POLICIES}
+            appearance={TogetherNavAppearance.GROUPED}
+            icon={FINANCE_ICONS.wallet}
+            title={t("policiesLink")}
+            description={t("managePoliciesDescription")}
+            testId="together-policies-link"
+          />
+          <TogetherNavRow
+            href={TOGETHER_PATH.PREFERENCES}
+            appearance={TogetherNavAppearance.GROUPED}
+            icon={UTILITY_ICONS.calendar}
+            title={t("preferencesLink")}
+            description={t("managePreferencesDescription")}
+            testId="together-preferences-link"
+          />
+          <TogetherNavRow
+            href={TOGETHER_PATH.SETTINGS}
+            appearance={TogetherNavAppearance.GROUPED}
+            icon={UTILITY_ICONS.settings}
+            title={t("settingsLink")}
+            description={t("manageSettingsDescription")}
+            testId="together-settings-link"
+          />
+        </TogetherNavGroup>
+      </section>
     </ProductPage>
   );
 }

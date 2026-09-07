@@ -26,7 +26,7 @@ export function SheetContent({
       <Drawer.Content placement="bottom" className="h-dvh">
         <Drawer.Dialog
           className={cn(
-            "bg-surface-elevated",
+            "vinha-sheet-dialog rounded-t-(--radius-overlay) bg-surface-elevated",
             "border-t border-border-subtle shadow-[var(--elevation-2)]",
             "flex max-h-[min(90dvh,720px)] min-h-0 flex-col overflow-hidden [backface-visibility:hidden] [contain:layout_paint]",
             "[--drawer-enter-duration:var(--duration-normal)] [--drawer-exit-duration:var(--duration-fast)]",

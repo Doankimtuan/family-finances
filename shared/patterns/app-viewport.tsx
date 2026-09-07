@@ -43,7 +43,7 @@ export function AppViewport({
           "relative flex h-full max-h-dvh w-full flex-col overflow-hidden",
           "min-w-0 max-w-[var(--app-viewport-max)]",
           "bg-canvas text-text-primary",
-          "min-[481px]:rounded-[var(--radius-xl)] min-[481px]:shadow-[var(--elevation-2)]",
+          "min-[481px]:rounded-[var(--radius-overlay)] min-[481px]:shadow-[var(--elevation-2)]",
           "isolate [transform:translateZ(0)]",
         )}
       >

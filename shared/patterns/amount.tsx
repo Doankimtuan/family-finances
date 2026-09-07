@@ -2,6 +2,12 @@ import type { ReactNode } from "react";
 import { cn } from "@/shared/utils/cn";
 import { Text } from "@/shared/ui/text";
 import { FinancialValue } from "./financial-value";
+import {
+  AmountSize,
+  FINANCIAL_DISPLAY_SIZE_CLASS,
+} from "./financial-display-size";
+
+export { AmountSize, AMOUNT_SIZE_VALUES } from "./financial-display-size";
 
 export const AmountTone = {
   NEUTRAL: "neutral",
@@ -25,22 +31,6 @@ export const AMOUNT_TONE_VALUES = [
   AmountTone.EXPENSE,
   AmountTone.SAVING,
   AmountTone.MUTED,
-] as const;
-
-export const AmountSize = {
-  SM: "sm",
-  MD: "md",
-  LG: "lg",
-  HERO: "hero",
-} as const;
-
-export type AmountSize = (typeof AmountSize)[keyof typeof AmountSize];
-
-export const AMOUNT_SIZE_VALUES = [
-  AmountSize.SM,
-  AmountSize.MD,
-  AmountSize.LG,
-  AmountSize.HERO,
 ] as const;
 
 export type AmountProps = {
@@ -78,9 +68,7 @@ export function Amount({
       <p
         className={cn(
           "font-semibold tabular-nums tracking-tight",
-          (size === AmountSize.HERO || size === AmountSize.LG) && "text-3xl",
-          size === AmountSize.MD && "text-xl",
-          size === AmountSize.SM && "text-lg",
+          FINANCIAL_DISPLAY_SIZE_CLASS[size],
           (tone === AmountTone.CREDIT || tone === AmountTone.INCOME) &&
             "text-success",
           tone === AmountTone.DEBIT && "text-danger",

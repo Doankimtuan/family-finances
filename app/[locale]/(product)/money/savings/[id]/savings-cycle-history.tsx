@@ -1,10 +1,10 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import type { SavingCycle } from "@/modules/savings/application/savings-types";
-import { motionTokens, springs } from "@/shared/motion";
+import { motionTokens, springs, useMotionPolicy } from "@/shared/motion";
 import {
   formatCurrency,
   formatDate,
@@ -24,9 +24,148 @@ function isoDate(value: string, locale: string) {
   return formatDate(new Date(`${value}T12:00:00`), locale);
 }
 
+function CycleSnapshotCard({
+  cycle,
+  currency,
+  locale,
+}: {
+  cycle: SavingCycle;
+  currency: string;
+  locale: string;
+}) {
+  const t = useTranslations("money.savingsDetail");
+  const result = cycle.settlementResult;
+  const realizedInterest = result?.netInterest ?? result?.interestReturned ?? 0;
+  const realizedTax = result?.tax ?? 0;
+
+  return (
+    <Card tone="soft" className="gap-0 overflow-hidden p-0">
+      <Text
+        size="xs"
+        tone="secondary"
+        className="px-(--space-4) pt-(--space-3)"
+      >
+        {t("snapshotLabel")}
+      </Text>
+      <dl>
+        <SavingsFactRow
+          label={t("packageLabel")}
+          value={cycle.packageSnapshot.packageName}
+          className="py-(--space-2)"
+        />
+        <SavingsFactRow
+          label={t("rateLabel")}
+          value={formatPercent(cycle.lockedRate / 100, locale, {
+            maximumFractionDigits: 2,
+          })}
+          className="py-(--space-2)"
+        />
+        <SavingsFactRow
+          label={t("snapshotPrincipalLabel")}
+          value={
+            <FinancialValue>
+              {formatCurrency(cycle.principal, currency, locale, {
+                maximumFractionDigits: 0,
+              })}
+            </FinancialValue>
+          }
+          className="py-(--space-2)"
+        />
+        {result ? (
+          <>
+            <SavingsFactRow
+              label={t("realizedInterestLabel")}
+              value={
+                <FinancialValue>
+                  {formatCurrency(realizedInterest, currency, locale, {
+                    maximumFractionDigits: 0,
+                  })}
+                </FinancialValue>
+              }
+              className="py-(--space-2)"
+            />
+            {realizedTax > 0 ? (
+              <SavingsFactRow
+                label={t("realizedTaxLabel")}
+                value={
+                  <FinancialValue>
+                    {formatCurrency(realizedTax, currency, locale, {
+                      maximumFractionDigits: 0,
+                    })}
+                  </FinancialValue>
+                }
+                className="py-(--space-2)"
+              />
+            ) : null}
+            <SavingsFactRow
+              label={t("finalProceedsLabel")}
+              value={
+                <FinancialValue>
+                  {formatCurrency(
+                    result.totalCashReceived ?? result.netAmount,
+                    currency,
+                    locale,
+                    { maximumFractionDigits: 0 },
+                  )}
+                </FinancialValue>
+              }
+              emphasis
+              className="py-(--space-2)"
+            />
+          </>
+        ) : null}
+      </dl>
+    </Card>
+  );
+}
+
+function CycleHistoryDetailsPanel({
+  motionEnabled,
+  expanded,
+  testId,
+  children,
+}: {
+  motionEnabled: boolean;
+  expanded: boolean;
+  testId: string;
+  children: ReactNode;
+}) {
+  if (!motionEnabled) {
+    return expanded ? (
+      <div
+        className="mt-(--space-3)"
+        data-testid={testId}
+        data-motion-enabled="false"
+      >
+        {children}
+      </div>
+    ) : null;
+  }
+
+  return (
+    <AnimatePresence initial={false}>
+      {expanded ? (
+        <motion.div
+          key="details"
+          initial={{ opacity: 0, y: motionTokens.distance.xs }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -motionTokens.distance.xs }}
+          transition={springs.gentle}
+          className="mt-(--space-3)"
+          data-testid={testId}
+          data-motion-enabled="true"
+        >
+          {children}
+        </motion.div>
+      ) : null}
+    </AnimatePresence>
+  );
+}
+
 export function SavingsCycleHistory({ cycles, currency }: Props) {
   const t = useTranslations("money.savingsDetail");
   const locale = useLocale();
+  const motionPolicy = useMotionPolicy();
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   return (
@@ -38,8 +177,8 @@ export function SavingsCycleHistory({ cycles, currency }: Props) {
         const result = cycle.settlementResult;
         const realizedInterest =
           result?.netInterest ?? result?.interestReturned ?? 0;
-        const realizedTax = result?.tax ?? 0;
         const expanded = expandedId === cycle.id;
+        const detailsTestId = `savings-cycle-details-${cycle.id}`;
         return (
           <li
             key={cycle.id}
@@ -99,112 +238,25 @@ export function SavingsCycleHistory({ cycles, currency }: Props) {
                   icon={ACTION_ICONS.forward}
                   size={AppIconSize.SM}
                   className={cn(
-                    "text-text-tertiary transition-transform duration-(--duration-fast) ease-(--ease-standard) motion-reduce:transition-none",
+                    "text-text-tertiary",
+                    motionPolicy.enabled &&
+                      "transition-transform duration-(--duration-fast) ease-(--ease-standard)",
                     expanded && "rotate-90",
                   )}
                 />
               </span>
             </button>
-            <AnimatePresence initial={false}>
-              {expanded ? (
-                <motion.div
-                  key="details"
-                  initial={{ opacity: 0, y: motionTokens.distance.xs }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -motionTokens.distance.xs }}
-                  transition={springs.gentle}
-                  className="mt-(--space-3)"
-                >
-                  <Card tone="soft" className="gap-0 overflow-hidden p-0">
-                    <Text
-                      size="xs"
-                      tone="secondary"
-                      className="px-(--space-4) pt-(--space-3)"
-                    >
-                      {t("snapshotLabel")}
-                    </Text>
-                    <dl>
-                      <SavingsFactRow
-                        label={t("packageLabel")}
-                        value={cycle.packageSnapshot.packageName}
-                        className="py-(--space-2)"
-                      />
-                      <SavingsFactRow
-                        label={t("rateLabel")}
-                        value={formatPercent(cycle.lockedRate / 100, locale, {
-                          maximumFractionDigits: 2,
-                        })}
-                        className="py-(--space-2)"
-                      />
-                      <SavingsFactRow
-                        label={t("snapshotPrincipalLabel")}
-                        value={
-                          <FinancialValue>
-                            {formatCurrency(cycle.principal, currency, locale, {
-                              maximumFractionDigits: 0,
-                            })}
-                          </FinancialValue>
-                        }
-                        className="py-(--space-2)"
-                      />
-                      {result ? (
-                        <>
-                          <SavingsFactRow
-                            label={t("realizedInterestLabel")}
-                            value={
-                              <FinancialValue>
-                                {formatCurrency(
-                                  realizedInterest,
-                                  currency,
-                                  locale,
-                                  {
-                                    maximumFractionDigits: 0,
-                                  },
-                                )}
-                              </FinancialValue>
-                            }
-                            className="py-(--space-2)"
-                          />
-                          {realizedTax > 0 ? (
-                            <SavingsFactRow
-                              label={t("realizedTaxLabel")}
-                              value={
-                                <FinancialValue>
-                                  {formatCurrency(
-                                    realizedTax,
-                                    currency,
-                                    locale,
-                                    {
-                                      maximumFractionDigits: 0,
-                                    },
-                                  )}
-                                </FinancialValue>
-                              }
-                              className="py-(--space-2)"
-                            />
-                          ) : null}
-                          <SavingsFactRow
-                            label={t("finalProceedsLabel")}
-                            value={
-                              <FinancialValue>
-                                {formatCurrency(
-                                  result.totalCashReceived ?? result.netAmount,
-                                  currency,
-                                  locale,
-                                  { maximumFractionDigits: 0 },
-                                )}
-                              </FinancialValue>
-                            }
-                            emphasis
-                            className="py-(--space-2)"
-                          />
-                        </>
-                      ) : null}
-                    </dl>
-                  </Card>
-                </motion.div>
-              ) : null}
-            </AnimatePresence>
+            <CycleHistoryDetailsPanel
+              motionEnabled={motionPolicy.enabled}
+              expanded={expanded}
+              testId={detailsTestId}
+            >
+              <CycleSnapshotCard
+                cycle={cycle}
+                currency={currency}
+                locale={locale}
+              />
+            </CycleHistoryDetailsPanel>
           </li>
         );
       })}

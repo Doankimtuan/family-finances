@@ -3,7 +3,8 @@ import type { ReactNode } from "react";
 import { cn } from "@/shared/utils/cn";
 import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
 import { Text } from "@/shared/ui/text";
-import { Balance, BalanceSize } from "./balance";
+import { Balance } from "./balance";
+import { BalanceSize } from "./financial-display-size";
 import { Card } from "./card";
 
 export type FinancialAccountHeroProps = {
@@ -58,7 +59,7 @@ export function FinancialAccountHero({
         amountLabel={amountLabel}
         size={BalanceSize.HERO}
         className="mt-(--space-3)"
-        amountClassName="text-4xl leading-none text-hero-fg"
+        amountClassName="text-hero-fg"
       />
       {context ? (
         <div className="mt-(--space-4) flex flex-col gap-(--space-2) border-t border-white/15 pt-(--space-3)">

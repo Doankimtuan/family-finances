@@ -12,12 +12,13 @@ import {
 import { formatCurrency, formatPercent } from "@/shared/i18n/formatters";
 import {
   Balance,
+  BalanceSize,
   Card,
   FinancialDeltaBadge,
   FinancialDeltaDirection,
   FinancialDeltaValue,
 } from "@/shared/patterns";
-import { StatusBadge } from "@/shared/ui/status-badge";
+import { StatusBadge, StatusBadgeTone } from "@/shared/ui/status-badge";
 import { Text } from "@/shared/ui/text";
 import { FinancialPrivacyToggle } from "@/shared/patterns/financial-privacy-toggle";
 
@@ -26,20 +27,33 @@ const NET_DELTA_DIRECTION: Record<
   FinancialDeltaDirection
 > = {
   [HomeFinancialPulseState.POSITIVE]: FinancialDeltaDirection.POSITIVE,
-  [HomeFinancialPulseState.ATTENTION]: FinancialDeltaDirection.NEGATIVE,
+  [HomeFinancialPulseState.NEGATIVE]: FinancialDeltaDirection.NEGATIVE,
   [HomeFinancialPulseState.UNAVAILABLE]: FinancialDeltaDirection.NEUTRAL,
 };
 
 const NET_STATUS_BADGE_TONE = {
-  [HomeFinancialPulseState.POSITIVE]: "positive",
-  [HomeFinancialPulseState.ATTENTION]: "attention",
-  [HomeFinancialPulseState.UNAVAILABLE]: "neutral",
+  [HomeFinancialPulseState.POSITIVE]: StatusBadgeTone.POSITIVE,
+  [HomeFinancialPulseState.NEGATIVE]: StatusBadgeTone.NEUTRAL,
+  [HomeFinancialPulseState.UNAVAILABLE]: StatusBadgeTone.NEUTRAL,
 } as const;
+
+export function resolveHomeFinancialPulseState(
+  metrics: HomeFinancialMetrics | null,
+): HomeFinancialPulseState {
+  if (metrics == null || !metrics.hasTransactions) {
+    return HomeFinancialPulseState.UNAVAILABLE;
+  }
+  if (metrics.netCashFlow >= 0) {
+    return HomeFinancialPulseState.POSITIVE;
+  }
+  return HomeFinancialPulseState.NEGATIVE;
+}
 
 /**
  * Financial pulse: a deep-teal brand hero answers "how much do we have" with
  * the period control integrated, then a compact strip answers flow direction
- * with semantic color on a neutral surface where status tokens keep contrast.
+ * with signed financial color on a neutral surface. Negative flow is a
+ * signed result, not an actionable danger state.
  */
 export function HomeFinancialPulse({
   balance,
@@ -59,12 +73,7 @@ export function HomeFinancialPulse({
   periodControl?: ReactNode;
 }) {
   const t = useTranslations("home");
-  const state =
-    metrics == null || !metrics.hasTransactions
-      ? HomeFinancialPulseState.UNAVAILABLE
-      : metrics.netCashFlow >= 0
-        ? HomeFinancialPulseState.POSITIVE
-        : HomeFinancialPulseState.ATTENTION;
+  const state = resolveHomeFinancialPulseState(metrics);
   const comparison = metrics?.netCashFlowComparison ?? null;
 
   return (
@@ -98,8 +107,8 @@ export function HomeFinancialPulse({
               amountLabel={formatCurrency(balance, currency, locale, {
                 maximumFractionDigits: HOME_CURRENCY_FRACTION_DIGITS,
               })}
-              size="hero"
-              amountClassName="text-4xl text-hero-fg"
+              size={BalanceSize.HERO}
+              amountClassName="text-hero-fg"
             />
           )}
           {balanceNote ? (
@@ -140,6 +149,7 @@ export function HomeFinancialPulse({
               <StatusBadge
                 className="min-h-6 rounded-(--radius-control) px-(--space-2) font-medium"
                 tone={NET_STATUS_BADGE_TONE[state]}
+                data-testid={HOME_TEST_ID.FINANCIAL_PULSE_NET_STATUS}
               >
                 {t(`financialPulse.status.${state}`)}
               </StatusBadge>

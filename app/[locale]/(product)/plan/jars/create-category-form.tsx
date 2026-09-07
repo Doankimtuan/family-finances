@@ -4,23 +4,30 @@ import { useId, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import {
+  LEDGER_ACTION_ERROR_CODE,
   TRANSACTION_DIRECTION_OPTIONS,
   TransactionDirection,
   type CaptureJarOption,
   type TransactionDirection as TransactionDirectionValue,
 } from "@/modules/ledger/application/client";
-import { TextField } from "@/shared/ui/form";
+import { SelectField, TextField } from "@/shared/ui/form";
 import { Button } from "@/shared/ui/button";
 import { AlertVariant } from "@/shared/ui/alert";
+import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
+import { SheetActionFooter } from "@/shared/patterns/sheet-action-footer";
+import { Sheet } from "@/shared/patterns/sheet";
+import { ChoiceTile, ChoiceTileGroup } from "@/shared/patterns/choice-tile";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import { useStatusAlert } from "@/providers/status-alert-provider";
-import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
+import {
+  CatalogGroup,
+  localizeCatalogName,
+} from "@/shared/i18n/localize-catalog-name";
 import {
   CLIENT_ACTION_ERROR_CODE,
   PRODUCT_ACTION_ERROR_CODE,
   type ProductActionErrorCode,
 } from "@/modules/tenancy/application/product-action-error";
-import { LEDGER_ACTION_ERROR_CODE } from "@/modules/ledger/application/client";
 import { createCategoryAction } from "./actions";
 
 type ErrorCode =
@@ -32,13 +39,20 @@ type Props = {
   jars: CaptureJarOption[];
 };
 
+function createCategoryDefaults() {
+  return {
+    name: "",
+    kind: TransactionDirection.EXPENSE,
+    mappedJarId: "",
+  };
+}
+
 /** Category creation keeps Jar mapping only for expense categories. */
 export function CreateCategoryForm({ jars }: Props) {
   const t = useTranslations("plan.jars.categoryForm");
   const tCatalog = useTranslations("catalog");
   const router = useRouter();
   const nameId = useId();
-  const kindId = useId();
   const jarId = useId();
   const { online } = useOnlineStatusClient();
   const statusAlert = useStatusAlert();
@@ -48,25 +62,24 @@ export function CreateCategoryForm({ jars }: Props) {
     TransactionDirection.EXPENSE,
   );
   const [mappedJarId, setMappedJarId] = useState("");
+  const [nameError, setNameError] = useState<string | null>(null);
+  const [jarError, setJarError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  if (!open) {
-    return (
-      <Button
-        variant="secondary"
-        className="w-full"
-        data-testid="category-create-open"
-        isDisabled={!online}
-        onPress={() => {
-          if (!online) return;
-          statusAlert.hide();
-          setOpen(true);
-        }}
-      >
-        {online ? t("open") : t("errors.offline")}
-      </Button>
-    );
-  }
+  const reset = () => {
+    const defaults = createCategoryDefaults();
+    setName(defaults.name);
+    setKind(defaults.kind);
+    setMappedJarId(defaults.mappedJarId);
+    setNameError(null);
+    setJarError(null);
+  };
+
+  const close = () => {
+    statusAlert.hide();
+    reset();
+    setOpen(false);
+  };
 
   const showCreateError = (code: ErrorCode) => {
     statusAlert.show({
@@ -76,30 +89,41 @@ export function CreateCategoryForm({ jars }: Props) {
     });
   };
 
+  const handleKindChange = (nextKind: TransactionDirectionValue) => {
+    setKind(nextKind);
+    setJarError(null);
+    if (nextKind === TransactionDirection.INCOME) {
+      setMappedJarId("");
+    }
+  };
+
   const onSubmit = () => {
     statusAlert.hide();
+    setNameError(null);
+    setJarError(null);
     if (!online) {
       showCreateError(CLIENT_ACTION_ERROR_CODE.OFFLINE);
       return;
     }
     if (kind === TransactionDirection.EXPENSE && !mappedJarId) {
-      showCreateError(LEDGER_ACTION_ERROR_CODE.CATEGORY_UNMAPPED);
+      setJarError(t(`errors.${LEDGER_ACTION_ERROR_CODE.CATEGORY_UNMAPPED}`));
       return;
     }
     if (!name.trim()) {
-      showCreateError(PRODUCT_ACTION_ERROR_CODE.INVALID);
+      setNameError(t(`errors.${PRODUCT_ACTION_ERROR_CODE.INVALID}`));
       return;
     }
 
+    const trimmedName = name.trim();
     const categoryInput =
       kind === TransactionDirection.EXPENSE
         ? {
-            name: name.trim(),
+            name: trimmedName,
             kind: TransactionDirection.EXPENSE,
             jarId: mappedJarId,
           }
         : {
-            name: name.trim(),
+            name: trimmedName,
             kind: TransactionDirection.INCOME,
             jarId: null,
           };
@@ -107,9 +131,7 @@ export function CreateCategoryForm({ jars }: Props) {
     startTransition(async () => {
       const result = await createCategoryAction(categoryInput);
       if (result.status === "success") {
-        setOpen(false);
-        setName("");
-        setMappedJarId("");
+        close();
         router.refresh();
         return;
       }
@@ -129,82 +151,100 @@ export function CreateCategoryForm({ jars }: Props) {
   };
 
   return (
-    <div
-      className="flex flex-col gap-(--space-3) rounded-lg border border-border-subtle bg-surface p-(--space-4)"
-      data-testid="category-create-form"
-    >
-      <TextField
-        id={nameId}
-        label={t("nameLabel")}
-        placeholder={t("namePlaceholder")}
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-      />
-      <label className="flex flex-col gap-(--space-2)" htmlFor={kindId}>
-        <span className="text-sm font-medium text-text-primary">
-          {t("kindLabel")}
-        </span>
-        <select
-          id={kindId}
-          className="min-h-11 w-full rounded-md border border-border-subtle bg-surface px-(--space-3) text-sm text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-          value={kind}
-          onChange={(e) => {
-            const nextKind = e.target.value as TransactionDirectionValue;
-            setKind(nextKind);
-            if (nextKind === TransactionDirection.INCOME) {
-              setMappedJarId("");
-            }
-          }}
-        >
-          {TRANSACTION_DIRECTION_OPTIONS.map((option) => (
-            <option key={option} value={option}>
-              {t(`kinds.${option}`)}
-            </option>
-          ))}
-        </select>
-      </label>
-      {kind === TransactionDirection.EXPENSE ? (
-        <label className="flex flex-col gap-(--space-2)" htmlFor={jarId}>
-          <span className="text-sm font-medium text-text-primary">
-            {t("jarLabel")}
-          </span>
-          <select
-            id={jarId}
-            required
-            data-testid="category-jar-select"
-            className="min-h-11 w-full rounded-md border border-border-subtle bg-surface px-(--space-3) text-sm text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-            value={mappedJarId}
-            onChange={(e) => setMappedJarId(e.target.value)}
-          >
-            <option value="">{t("jarRequired")}</option>
-            {jars.map((jar) => (
-              <option key={jar.id} value={jar.id}>
-                {localizeCatalogName(tCatalog, "jars", jar.name) || jar.name}
-              </option>
-            ))}
-          </select>
-        </label>
-      ) : null}
-      <Button
-        variant="primary"
-        className="w-full"
-        data-testid="category-create-submit"
-        isDisabled={isPending || !online || !name.trim()}
-        onPress={onSubmit}
-      >
-        {t("submit")}
-      </Button>
+    <>
       <Button
         variant="secondary"
         className="w-full"
-        isDisabled={isPending}
+        data-testid="category-create-open"
+        isDisabled={!online}
         onPress={() => {
+          if (!online) return;
           statusAlert.hide();
-          setOpen(false);
+          setOpen(true);
         }}
       >
-        {t("cancel")}
+        {online ? t("open") : t("errors.offline")}
       </Button>
-    </div>
+      <Sheet isOpen={open} onOpenChange={(next) => !next && close()}>
+        <ActionSheetLayout>
+          <ActionSheetLayout.Header>
+            <Sheet.Heading className="text-lg font-semibold tracking-tight text-text-primary">
+              {t("open")}
+            </Sheet.Heading>
+          </ActionSheetLayout.Header>
+          <ActionSheetLayout.Body>
+            {open ? (
+              <div
+                className="flex flex-col gap-(--space-3)"
+                data-testid="category-create-form"
+              >
+                <TextField
+                  id={nameId}
+                  label={t("nameLabel")}
+                  placeholder={t("namePlaceholder")}
+                  value={name}
+                  error={nameError ?? undefined}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    if (nameError) setNameError(null);
+                  }}
+                />
+                <fieldset className="flex flex-col gap-(--space-2)">
+                  <legend className="text-sm font-medium text-text-primary">
+                    {t("kindLabel")}
+                  </legend>
+                  <ChoiceTileGroup>
+                    {TRANSACTION_DIRECTION_OPTIONS.map((option) => (
+                      <ChoiceTile
+                        key={option}
+                        label={t(`kinds.${option}`)}
+                        selected={kind === option}
+                        onPress={() => handleKindChange(option)}
+                        role="radio"
+                        testId={`category-kind-${option}`}
+                      />
+                    ))}
+                  </ChoiceTileGroup>
+                </fieldset>
+                {kind === TransactionDirection.EXPENSE ? (
+                  <SelectField
+                    id={jarId}
+                    label={t("jarLabel")}
+                    value={mappedJarId}
+                    placeholder={t("jarRequired")}
+                    required
+                    error={jarError ?? undefined}
+                    data-testid="category-jar-select"
+                    onChange={(next) => {
+                      setMappedJarId(next);
+                      if (jarError) setJarError(null);
+                    }}
+                    options={jars.map((jar) => ({
+                      id: jar.id,
+                      label:
+                        localizeCatalogName(
+                          tCatalog,
+                          CatalogGroup.JARS,
+                          jar.name,
+                        ) || jar.name,
+                    }))}
+                  />
+                ) : null}
+              </div>
+            ) : null}
+          </ActionSheetLayout.Body>
+          <SheetActionFooter
+            secondaryLabel={t("cancel")}
+            primaryLabel={t("submit")}
+            onSecondary={close}
+            onPrimary={onSubmit}
+            primaryTestId="category-create-submit"
+            isDisabled={!online}
+            isPrimaryDisabled={!name.trim()}
+            isPending={isPending}
+          />
+        </ActionSheetLayout>
+      </Sheet>
+    </>
   );
 }

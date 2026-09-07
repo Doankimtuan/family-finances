@@ -86,6 +86,10 @@ export const SAVINGS_RPC = {
 
 export type SavingsRpc = (typeof SAVINGS_RPC)[keyof typeof SAVINGS_RPC];
 
+export const SAVINGS_LEGACY_BACKFILL_SKIP_ERRORS = [
+  "manual_provider_missing",
+] as const;
+
 export const SAVINGS_OPERATION = {
   PROVIDER_REGISTRY: "savingsProviderRegistry",
   MATURITY_ENRICHMENT: "savingsMaturityEnrichment",

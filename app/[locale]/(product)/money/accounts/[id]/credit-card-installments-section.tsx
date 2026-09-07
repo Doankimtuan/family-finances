@@ -28,11 +28,16 @@ import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
 import { Card } from "@/shared/patterns/card";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { FinancialValue } from "@/shared/patterns/financial-value";
-import { LabeledSelect } from "@/shared/patterns/labeled-native-field";
-import { SectionHeader } from "@/shared/patterns/section-header";
 import { Sheet } from "@/shared/patterns/sheet";
-import { Button } from "@/shared/ui/button";
-import { DatePickerField, NumberField, TextField } from "@/shared/ui/form";
+import { SheetActionFooter } from "@/shared/patterns/sheet-action-footer";
+import { SectionHeader } from "@/shared/patterns/section-header";
+import { Button, ButtonVariant } from "@/shared/ui/button";
+import {
+  DatePickerField,
+  NumberField,
+  SelectField,
+  TextField,
+} from "@/shared/ui/form";
 import { Progress } from "@/shared/ui/progress";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Text } from "@/shared/ui/text";
@@ -458,13 +463,12 @@ export function CreditCardInstallmentsSection({
                   >
                     {t("eligibleTitle")}
                   </Button>
-                  <LabeledSelect
+                  <SelectField
+                    id="card-installment-program"
                     label={t("programLabel")}
                     value={program}
                     options={programOptions}
-                    onChange={(event) =>
-                      setProgram(event.target.value as typeof program)
-                    }
+                    onChange={(next) => setProgram(next as typeof program)}
                     data-testid="card-installment-program"
                     required
                   />
@@ -501,7 +505,8 @@ export function CreditCardInstallmentsSection({
                   />
                   {isFeeProgram ? (
                     <>
-                      <LabeledSelect
+                      <SelectField
+                        id="card-installment-fee-type"
                         label={t("feeTypeLabel")}
                         value={feeType}
                         options={[
@@ -514,9 +519,7 @@ export function CreditCardInstallmentsSection({
                             label: t("feePercentage"),
                           },
                         ]}
-                        onChange={(event) =>
-                          setFeeType(event.target.value as typeof feeType)
-                        }
+                        onChange={(next) => setFeeType(next as typeof feeType)}
                         required
                         data-testid="card-installment-fee-type"
                       />
@@ -539,7 +542,8 @@ export function CreditCardInstallmentsSection({
                           required
                         />
                       )}
-                      <LabeledSelect
+                      <SelectField
+                        id="card-installment-fee-timing"
                         label={t("feeTimingLabel")}
                         value={feeTiming}
                         options={[
@@ -552,8 +556,8 @@ export function CreditCardInstallmentsSection({
                             label: t("feeSpread"),
                           },
                         ]}
-                        onChange={(event) =>
-                          setFeeTiming(event.target.value as typeof feeTiming)
+                        onChange={(next) =>
+                          setFeeTiming(next as typeof feeTiming)
                         }
                         required
                       />
@@ -632,30 +636,20 @@ export function CreditCardInstallmentsSection({
               ) : null}
             </div>
           </ActionSheetLayout.Body>
-          <ActionSheetLayout.Footer>
-            <Button
-              variant="secondary"
-              fullWidth
-              className="min-w-0 flex-1"
-              isDisabled={isPending}
-              onPress={() => {
-                reset();
-                setIsOpen(false);
-              }}
-            >
-              {t("cancel")}
-            </Button>
-            <Button
-              variant="primary"
-              fullWidth
-              className="min-w-0 flex-1"
-              isDisabled={!selected || !preview || isPending || !online}
-              onPress={save}
-              data-testid="card-installment-submit"
-            >
-              {isPending ? t("installmentSaving") : t("installmentSave")}
-            </Button>
-          </ActionSheetLayout.Footer>
+          <SheetActionFooter
+            secondaryLabel={t("cancel")}
+            primaryLabel={
+              isPending ? t("installmentSaving") : t("installmentSave")
+            }
+            primaryTestId="card-installment-submit"
+            isPrimaryDisabled={!selected || !preview || !online}
+            isPending={isPending}
+            onSecondary={() => {
+              reset();
+              setIsOpen(false);
+            }}
+            onPrimary={save}
+          />
         </ActionSheetLayout>
       </Sheet>
       <Sheet
@@ -687,26 +681,17 @@ export function CreditCardInstallmentsSection({
               ) : null}
             </div>
           </ActionSheetLayout.Body>
-          <ActionSheetLayout.Footer>
-            <Button
-              variant="secondary"
-              fullWidth
-              className="min-w-0 flex-1"
-              isDisabled={isPending}
-              onPress={closeStopTracking}
-            >
-              {t("keepTracking")}
-            </Button>
-            <Button
-              variant="danger"
-              fullWidth
-              className="min-w-0 flex-1"
-              isDisabled={isPending || !online}
-              onPress={stopTracking}
-            >
-              {isPending ? t("stopTrackingSaving") : t("stopTracking")}
-            </Button>
-          </ActionSheetLayout.Footer>
+          <SheetActionFooter
+            secondaryLabel={t("keepTracking")}
+            primaryLabel={
+              isPending ? t("stopTrackingSaving") : t("stopTracking")
+            }
+            primaryVariant={ButtonVariant.DANGER}
+            isPrimaryDisabled={!online}
+            isPending={isPending}
+            onSecondary={closeStopTracking}
+            onPrimary={stopTracking}
+          />
         </ActionSheetLayout>
       </Sheet>
     </section>

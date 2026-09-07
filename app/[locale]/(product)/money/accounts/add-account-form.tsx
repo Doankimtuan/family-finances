@@ -400,6 +400,7 @@ export function AddAccountForm({
               <SelectField
                 id="account-linked-bank"
                 label={t("linkedBankLabel")}
+                description={t("linkedBankDescription")}
                 value={field.value ?? ""}
                 onChange={(next) => field.onChange(next || null)}
                 onBlur={field.onBlur}

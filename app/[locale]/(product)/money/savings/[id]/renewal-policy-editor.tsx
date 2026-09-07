@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
-import { useState, useTransition } from "react";
+import { useState, useTransition, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { CheckmarkCircle02Icon } from "@hugeicons/core-free-icons";
 import {
@@ -21,7 +21,7 @@ import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
 import { ChoiceTile } from "@/shared/patterns/choice-tile";
 import { Sheet } from "@/shared/patterns/sheet";
 import { SheetActionFooter } from "@/shared/patterns/sheet-action-footer";
-import { motionTokens } from "@/shared/motion";
+import { motionTokens, useMotionPolicy } from "@/shared/motion";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import {
   CLIENT_ACTION_ERROR_CODE,
@@ -72,6 +72,42 @@ function SelectionTile({
   );
 }
 
+function RenewalTargetReveal({
+  motionEnabled,
+  show,
+  children,
+}: {
+  motionEnabled: boolean;
+  show: boolean;
+  children: ReactNode;
+}) {
+  if (!motionEnabled) {
+    return show ? (
+      <div className="flex flex-col gap-(--space-2)">{children}</div>
+    ) : null;
+  }
+
+  return (
+    <AnimatePresence initial={false} mode="wait">
+      {show ? (
+        <motion.div
+          key="target"
+          initial={{ opacity: 0, y: motionTokens.distance.xs }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -motionTokens.distance.xs }}
+          transition={{
+            duration: motionTokens.duration.fast,
+            ease: motionTokens.easing.standard,
+          }}
+          className="flex flex-col gap-(--space-2)"
+        >
+          {children}
+        </motion.div>
+      ) : null}
+    </AnimatePresence>
+  );
+}
+
 export function RenewalPolicyEditor({
   savingId,
   renewalPolicy: initialPolicy,
@@ -82,6 +118,7 @@ export function RenewalPolicyEditor({
   const t = useTranslations("money.savingsDetail");
   const tErr = useTranslations("money.products.errors");
   const { online } = useOnlineStatusClient();
+  const motionPolicy = useMotionPolicy();
   const [isOpen, setIsOpen] = useState(false);
   const [policy, setPolicy] = useState(initialPolicy);
   const [strategy, setStrategy] = useState(
@@ -242,63 +279,48 @@ export function RenewalPolicyEditor({
               </SelectionTile>
             ))}
           </div>
-          <AnimatePresence initial={false} mode="wait">
-            {needsTarget ? (
-              <motion.div
-                key="target"
-                initial={{ opacity: 0, y: motionTokens.distance.xs }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -motionTokens.distance.xs }}
-                transition={{
-                  duration: motionTokens.duration.fast,
-                  ease: motionTokens.easing.standard,
-                }}
-                className="flex flex-col gap-(--space-2)"
-              >
-                <Text size="sm" weight="semibold">
-                  {t("targetPackageLabel")}
-                </Text>
-                <SelectionTile
-                  selected={
-                    targetMode === MaturityTargetMode.KEEP_CURRENT_PACKAGE
-                  }
-                  onPress={() =>
-                    setTargetMode(MaturityTargetMode.KEEP_CURRENT_PACKAGE)
-                  }
-                  testId="savings-detail-target-current"
-                >
-                  <Text size="sm" weight="medium">
-                    {t("keepCurrentPackage")}
-                  </Text>
-                </SelectionTile>
-                <SelectionTile
-                  selected={targetMode === MaturityTargetMode.SELECT_PACKAGE}
-                  onPress={() =>
-                    setTargetMode(MaturityTargetMode.SELECT_PACKAGE)
-                  }
-                  testId="savings-detail-target-other"
-                >
-                  <Text size="sm" weight="medium">
-                    {t("chooseOtherPackage")}
-                  </Text>
-                </SelectionTile>
-                {targetMode === MaturityTargetMode.SELECT_PACKAGE
-                  ? packages.map((pkg) => (
-                      <SelectionTile
-                        key={pkg.id}
-                        selected={packageId === pkg.id}
-                        onPress={() => setPackageId(pkg.id)}
-                        testId={`savings-detail-target-package-${pkg.id}`}
-                      >
-                        <Text size="sm" weight="medium">
-                          {pkg.packageName}
-                        </Text>
-                      </SelectionTile>
-                    ))
-                  : null}
-              </motion.div>
-            ) : null}
-          </AnimatePresence>
+          <RenewalTargetReveal
+            motionEnabled={motionPolicy.enabled}
+            show={needsTarget}
+          >
+            <Text size="sm" weight="semibold">
+              {t("targetPackageLabel")}
+            </Text>
+            <SelectionTile
+              selected={targetMode === MaturityTargetMode.KEEP_CURRENT_PACKAGE}
+              onPress={() =>
+                setTargetMode(MaturityTargetMode.KEEP_CURRENT_PACKAGE)
+              }
+              testId="savings-detail-target-current"
+            >
+              <Text size="sm" weight="medium">
+                {t("keepCurrentPackage")}
+              </Text>
+            </SelectionTile>
+            <SelectionTile
+              selected={targetMode === MaturityTargetMode.SELECT_PACKAGE}
+              onPress={() => setTargetMode(MaturityTargetMode.SELECT_PACKAGE)}
+              testId="savings-detail-target-other"
+            >
+              <Text size="sm" weight="medium">
+                {t("chooseOtherPackage")}
+              </Text>
+            </SelectionTile>
+            {targetMode === MaturityTargetMode.SELECT_PACKAGE
+              ? packages.map((pkg) => (
+                  <SelectionTile
+                    key={pkg.id}
+                    selected={packageId === pkg.id}
+                    onPress={() => setPackageId(pkg.id)}
+                    testId={`savings-detail-target-package-${pkg.id}`}
+                  >
+                    <Text size="sm" weight="medium">
+                      {pkg.packageName}
+                    </Text>
+                  </SelectionTile>
+                ))
+              : null}
+          </RenewalTargetReveal>
           {needsPayout ? (
             <div className="flex flex-col gap-(--space-2)">
               <Text size="sm" weight="semibold">

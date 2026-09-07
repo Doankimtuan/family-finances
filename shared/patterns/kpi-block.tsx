@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { cn } from "@/shared/utils/cn";
 import { Text } from "@/shared/ui/text";
+import { Card, type CardTone } from "./card";
 
 export const KpiBlockVariant = {
   PLAIN: "plain",
@@ -26,27 +27,29 @@ export type KpiBlockProps = {
   "data-testid"?: string;
 };
 
-/** Answer-oriented metric zone; keeps financial hierarchy consistent without forcing every section into a card. */
-export function KpiBlock({
+const KPI_SURFACE_TONE = {
+  [KpiBlockVariant.SURFACE]: "soft",
+  [KpiBlockVariant.PROMINENT]: "default",
+} as const satisfies Record<
+  Exclude<KpiBlockVariant, typeof KpiBlockVariant.PLAIN>,
+  CardTone
+>;
+
+const KPI_SURFACE_CLASS = {
+  [KpiBlockVariant.SURFACE]: "border-border-subtle/70",
+  [KpiBlockVariant.PROMINENT]: "border-accent/20 bg-accent/10",
+} as const satisfies Record<
+  Exclude<KpiBlockVariant, typeof KpiBlockVariant.PLAIN>,
+  string
+>;
+
+function KpiBlockBody({
   title,
   description,
   children,
-  variant = KpiBlockVariant.PLAIN,
-  className,
-  "data-testid": testId,
-}: KpiBlockProps) {
+}: Pick<KpiBlockProps, "title" | "description" | "children">) {
   return (
-    <section
-      className={cn(
-        "flex flex-col gap-(--space-3)",
-        variant === KpiBlockVariant.SURFACE &&
-          "rounded-(--radius-card) border border-border-subtle/70 bg-surface-muted/70 p-(--space-4)",
-        variant === KpiBlockVariant.PROMINENT &&
-          "rounded-(--radius-card) border border-accent/20 bg-accent/10 p-(--space-4)",
-        className,
-      )}
-      data-testid={testId ?? "kpi-block"}
-    >
+    <>
       <div className="flex flex-col gap-(--space-1)">
         {typeof title === "string" ? (
           <Text size="sm" className="font-medium text-text-primary">
@@ -66,6 +69,48 @@ export function KpiBlock({
         ) : null}
       </div>
       {children}
-    </section>
+    </>
+  );
+}
+
+/** Answer-oriented metric zone; keeps financial hierarchy consistent without forcing every section into a card. */
+export function KpiBlock({
+  title,
+  description,
+  children,
+  variant = KpiBlockVariant.PLAIN,
+  className,
+  "data-testid": testId,
+}: KpiBlockProps) {
+  const content = (
+    <KpiBlockBody title={title} description={description}>
+      {children}
+    </KpiBlockBody>
+  );
+  const resolvedTestId = testId ?? "kpi-block";
+
+  if (variant === KpiBlockVariant.PLAIN) {
+    return (
+      <section
+        className={cn("flex flex-col gap-(--space-3)", className)}
+        data-testid={resolvedTestId}
+      >
+        {content}
+      </section>
+    );
+  }
+
+  return (
+    <Card
+      tone={KPI_SURFACE_TONE[variant]}
+      className={cn(
+        "flex flex-col gap-(--space-3) p-(--space-4)",
+        KPI_SURFACE_CLASS[variant],
+        className,
+      )}
+      data-testid={resolvedTestId}
+    >
+      {content}
+    </Card>
   );
 }

@@ -88,6 +88,7 @@ export function LoanDetailHero({
   labels,
   progress,
   trailing,
+  context,
 }: {
   remainingPrincipal: number;
   currency: string;
@@ -107,6 +108,7 @@ export function LoanDetailHero({
   };
   progress: number;
   trailing?: ReactNode;
+  context?: ReactNode;
 }) {
   const remainingAmount = formatCurrency(remainingPrincipal, currency, locale, {
     maximumFractionDigits: 0,
@@ -148,7 +150,7 @@ export function LoanDetailHero({
         amountLabel={remainingAmount}
         size={AmountSize.HERO}
         className="mt-(--space-3)"
-        amountClassName="text-4xl leading-none text-hero-fg"
+        amountClassName="text-hero-fg"
       />
       <div className="mt-(--space-3) flex flex-wrap items-center gap-(--space-1)">
         <LoanStatusBadge status={status} label={statusLabel} />
@@ -185,6 +187,11 @@ export function LoanDetailHero({
         indicatorClassName="bg-white/80"
         className="mt-(--space-2)"
       />
+      {context ? (
+        <div className="mt-(--space-4) flex flex-col gap-(--space-2) border-t border-white/15 pt-(--space-3)">
+          {context}
+        </div>
+      ) : null}
     </Card>
   );
 }

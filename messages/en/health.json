@@ -1,6 +1,6 @@
 {
   "title": "Health",
-  "subtitle": "Household financial pulse",
+  "subtitle": "Read-only insights from household financial data",
   "loadErrorTitle": "Could not load Health",
   "loadErrorBody": "Check your connection and try again.",
   "states": {
@@ -32,7 +32,7 @@
   "backHome": "Back to Home",
   "insights": {
     "title": "Insights",
-    "subtitle": "What we should notice — from household facts only",
+    "subtitle": "Read-only notices from household facts only",
     "loadErrorTitle": "Could not load insights",
     "loadErrorBody": "Check your connection and try again.",
     "emptyTitle": "Nothing to notice yet",

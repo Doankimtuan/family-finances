@@ -2,9 +2,11 @@ import { getTranslations } from "next-intl/server";
 import { Page } from "@/shared/patterns/page";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Skeleton } from "@/shared/ui/skeleton";
+import { INBOX_TEST_ID } from "@/modules/inbox/application/inbox-constants";
 import {
   InboxQueueListSkeleton,
   InboxQueueSummarySkeleton,
+  InboxQueueTabsSkeleton,
 } from "./inbox-queue-skeleton";
 
 export default async function InboxLoading() {
@@ -12,9 +14,10 @@ export default async function InboxLoading() {
 
   return (
     <Page
+      testId={INBOX_TEST_ID.LOADING}
       topBar={
         <TopAppBar
-          variant="contextual"
+          variant="primary"
           eyebrow={t("header.eyebrow")}
           title={t("title")}
           meta={<Skeleton className="h-4 w-20" />}
@@ -23,12 +26,7 @@ export default async function InboxLoading() {
       contentClassName="gap-(--space-5)"
     >
       <InboxQueueSummarySkeleton />
-
-      <div className="flex gap-(--space-1) rounded-full bg-surface-muted p-(--space-1)">
-        <Skeleton className="h-10 flex-1 rounded-full" />
-        <Skeleton className="h-10 flex-1 rounded-full" />
-      </div>
-
+      <InboxQueueTabsSkeleton />
       <InboxQueueListSkeleton />
     </Page>
   );

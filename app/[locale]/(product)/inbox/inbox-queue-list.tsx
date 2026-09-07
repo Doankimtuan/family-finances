@@ -8,8 +8,8 @@ import { inboxItemPath } from "@/modules/tenancy/application/app-path";
 import {
   InboxKindFilter,
   INBOX_ITEM_KIND_VALUES,
+  INBOX_TEST_ID,
 } from "@/modules/inbox/application/inbox-constants";
-import { InboxSourceCapability } from "@/modules/inbox/application/inbox-source-capabilities";
 import type { InboxReviewItem } from "@/modules/inbox/application/inbox-types";
 import { formatCurrency, formatDate } from "@/shared/i18n/formatters";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
@@ -33,6 +33,10 @@ import {
   inboxDisplayTitle,
   inboxItemVisual,
   inboxLifecycleLabelKey,
+  inboxOwnershipHintKey,
+  inboxQueueDominantTitle,
+  inboxQueueLifecycleLabel,
+  inboxQueueRowSubtitle,
   type InboxKindFilterId,
 } from "./inbox-presentations";
 import { InboxSectionTitle } from "./inbox-section-title";
@@ -187,13 +191,19 @@ export function InboxQueueList({
                         item.categoryName,
                       ) || item.categoryName
                     : null;
-                  const title = inboxDisplayTitle({
+                  const displayTitle = inboxDisplayTitle({
                     note: item.note,
                     localizedCategory,
                     displayTitle: item.displayTitle,
                     kindLabel: t(`kinds.${item.kind}`),
                   });
+                  const dominant = inboxQueueDominantTitle({
+                    kind: item.kind,
+                    displayTitle,
+                  });
+                  const title = dominant.title;
                   const detailParts = [
+                    dominant.context,
                     item.accountName
                       ? localizeCatalogName(
                           tCatalog,
@@ -204,7 +214,7 @@ export function InboxQueueList({
                     localizedCategory && item.note?.trim()
                       ? localizedCategory
                       : null,
-                  ].filter(Boolean);
+                  ].filter((part): part is string => Boolean(part));
                   const lifecycleKey = inboxLifecycleLabelKey(
                     item.lifecycleContext,
                   );
@@ -212,6 +222,9 @@ export function InboxQueueList({
                     item.lifecycleDate && lifecycleKey
                       ? `${item.lifecycleOverdue ? t("lifecycleOverdue") : t(lifecycleKey)}: ${formatDate(new Date(item.lifecycleDate), locale)}`
                       : null;
+                  const ownershipHintKey = readOnly
+                    ? null
+                    : inboxOwnershipHintKey(item.capability);
                   const unread = item.readAt == null;
                   const card = (
                     <ReviewCard
@@ -225,7 +238,7 @@ export function InboxQueueList({
                           : t(`kinds.${item.kind}`)
                       }
                       amountLabel={
-                        <FinancialValue dataTestId="inbox-amount">
+                        <FinancialValue dataTestId={INBOX_TEST_ID.AMOUNT}>
                           {formatCurrency(item.amount, item.currency, locale, {
                             maximumFractionDigits: 0,
                           })}
@@ -239,29 +252,16 @@ export function InboxQueueList({
                       statusTone={
                         readOnly ? StatusBadgeTone.NEUTRAL : visual.statusTone
                       }
-                      actionLabel={
-                        readOnly ? t("historyItemLabel") : t("nextStepLabel")
-                      }
-                      subtitle={
-                        lifecycleLabel
-                          ? `${lifecycleLabel}${detailParts.length > 0 ? ` · ${detailParts.join(" · ")}` : ""}`
-                          : readOnly
-                            ? detailParts.length > 0
-                              ? `${detailParts.join(" · ")} · ${t(`statuses.${item.status}`)}`
-                              : t(`statuses.${item.status}`)
-                            : item.capability ===
-                                InboxSourceCapability.READ_ONLY_FORMER_OWNER
-                              ? t("ownerUnavailableHint")
-                              : item.capability ===
-                                  InboxSourceCapability.READ_ONLY_NON_OWNER
-                                ? t("ownerRequiredHint")
-                                : item.capability ===
-                                    InboxSourceCapability.SOURCE_UNAVAILABLE
-                                  ? t("sourceUnavailableHint")
-                                  : detailParts.length > 0
-                                    ? detailParts.join(" · ")
-                                    : t("openHint")
-                      }
+                      subtitle={inboxQueueRowSubtitle({
+                        lifecycleLabel: inboxQueueLifecycleLabel({
+                          context: item.lifecycleContext,
+                          label: lifecycleLabel,
+                        }),
+                        ownershipHint: ownershipHintKey
+                          ? t(ownershipHintKey)
+                          : null,
+                        detailParts,
+                      })}
                       data-testid={`inbox-item-${item.id}`}
                     />
                   );
@@ -287,7 +287,7 @@ export function InboxQueueList({
                       ) : (
                         <Link
                           href={inboxItemPath(item.id)}
-                          aria-label={`${title} · ${unread ? t("unreadLabel") : t("readLabel")}`}
+                          aria-label={`${displayTitle} · ${unread ? t("unreadLabel") : t("readLabel")}`}
                           className={INBOX_REVIEW_ROW_CLASS}
                           data-testid={`inbox-item-link-${item.id}`}
                         >

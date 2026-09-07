@@ -16,8 +16,8 @@
   "permission": {
     "title": "Cần quyền",
     "body": "Thao tác này không khả dụng với quyền hiện tại. Hãy nhờ quản trị viên của hộ gia đình hỗ trợ.",
-    "adminBody": "Thao tác này cần quyền Quản trị hộ gia đình. Hãy nhờ quản trị viên hỗ trợ hoặc mở Together để xem vai trò.",
-    "backTogether": "Về Together",
+    "adminBody": "Thao tác này cần quyền Quản trị hộ gia đình. Hãy nhờ quản trị viên hỗ trợ hoặc mở Cùng nhau để xem vai trò.",
+    "backTogether": "Về Cùng nhau",
     "home": "Về trang chủ",
     "learnRoles": "Vì sao bị chặn"
   },

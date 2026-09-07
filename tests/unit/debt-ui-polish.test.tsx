@@ -95,6 +95,7 @@ describe("Debt UI polish", () => {
           currency="VND"
           locale="en"
           trailing={<button type="button">Hide financial values</button>}
+          context={<span>Household</span>}
           labels={{
             ...dueLabels,
             ...progressLabels,
@@ -107,6 +108,7 @@ describe("Debt UI polish", () => {
 
     const hero = screen.getByTestId("debt-detail-hero");
     expect(hero).toHaveTextContent("Still to repay");
+    expect(screen.getByText("Household")).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Hide financial values" }),
     ).toBeInTheDocument();

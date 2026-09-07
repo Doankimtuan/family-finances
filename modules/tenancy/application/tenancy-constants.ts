@@ -148,6 +148,14 @@ export const MEMBERSHIP_RPC = {
   REMOVE: "remove_household_member",
 } as const;
 
+export const MEMBERSHIP_LIFECYCLE_ACTION = {
+  LEAVE: "leave",
+  REMOVE: "remove",
+} as const;
+
+export type MembershipLifecycleAction =
+  (typeof MEMBERSHIP_LIFECYCLE_ACTION)[keyof typeof MEMBERSHIP_LIFECYCLE_ACTION];
+
 export const SUPABASE_POSTGRES_ERROR_CODE = {
   INSUFFICIENT_PRIVILEGE: "42501",
   INVALID_TEXT: "22p02",

@@ -48,10 +48,16 @@ export type HomeDashboardFailureSource =
 export const HomeFinancialPulseState = {
   UNAVAILABLE: "unavailable",
   POSITIVE: "positive",
-  ATTENTION: "attention",
+  NEGATIVE: "negative",
 } as const;
 export type HomeFinancialPulseState =
   (typeof HomeFinancialPulseState)[keyof typeof HomeFinancialPulseState];
+
+export const HOME_FINANCIAL_PULSE_STATE_VALUES = [
+  HomeFinancialPulseState.UNAVAILABLE,
+  HomeFinancialPulseState.POSITIVE,
+  HomeFinancialPulseState.NEGATIVE,
+] as const;
 
 export const HomeCashFlowGranularity = {
   DAY: "day",
@@ -117,6 +123,7 @@ export const HOME_TEST_ID = {
   LOADING: "home-loading",
   REAL_POSITION: "home-real-position",
   FINANCIAL_PULSE: "home-financial-pulse",
+  FINANCIAL_PULSE_NET_STATUS: "home-financial-pulse-net-status",
   PERIOD_CONTROL: "home-period-control",
   PERIOD_MONTH: "home-period-month",
   PERIOD_QUARTER: "home-period-quarter",

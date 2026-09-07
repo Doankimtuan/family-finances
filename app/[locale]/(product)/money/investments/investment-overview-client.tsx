@@ -2,7 +2,7 @@
 
 import { useMemo, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
-import { Link } from "@/i18n/navigation";
+import { HeroPillLink } from "@/shared/patterns/hero-pill-link";
 import {
   InvestmentAssetClass,
   InvestmentHistoryStatus,
@@ -323,7 +323,7 @@ export function InvestmentOverviewClient({
               amountLabel={heroValue}
               size={AmountSize.HERO}
               className="mt-(--space-2)"
-              amountClassName="text-4xl leading-none text-hero-fg"
+              amountClassName="text-hero-fg"
             />
             <Text
               size="xs"
@@ -332,14 +332,13 @@ export function InvestmentOverviewClient({
               {valuationNote ?? t("estimatedNotCash")}
             </Text>
             <div className="mt-(--space-4) flex justify-end border-t border-white/15 pt-(--space-3)">
-              <Link
+              <HeroPillLink
                 href={APP_PATH.MONEY_INVESTMENTS_CONVERT}
-                className="inline-flex min-h-8 items-center gap-(--space-1) rounded-full border border-white/25 bg-white/10 px-(--space-3) text-sm font-medium text-hero-fg transition-[background-color,transform] duration-(--duration-fast) hover:bg-white/20 active:scale-(--press-scale) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-hero-fg motion-reduce:transition-none motion-reduce:active:scale-100"
                 data-testid="investment-convert-link"
               >
                 {t("convert")}
                 <AppIcon icon={ACTION_ICONS.forward} size={AppIconSize.XS} />
-              </Link>
+              </HeroPillLink>
             </div>
           </Card>
           <Card

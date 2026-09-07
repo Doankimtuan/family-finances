@@ -77,7 +77,7 @@
     },
     "status": {
       "positive": "Thu vào cao hơn hoặc bằng chi ra",
-      "attention": "Chi ra cao hơn thu vào",
+      "negative": "Chi ra cao hơn thu vào",
       "unavailable": "Chưa có thu hoặc chi"
     },
     "comparison": "{value} so với kỳ trước"

@@ -16,7 +16,6 @@ function HeroSkeleton() {
           <Skeleton className="size-11 rounded-(--radius-control)" />
         </div>
         <Skeleton className="mt-(--space-2) h-9 w-52" />
-        <Skeleton className="mt-(--space-1) h-3 w-44" />
         <div className="mt-(--space-4) flex items-center justify-between gap-(--space-3) border-t border-white/15 pt-(--space-3)">
           <Skeleton className="h-4 w-40" />
           <Skeleton className="h-8 w-28 rounded-full" />
@@ -109,7 +108,7 @@ function AccountsSkeleton() {
   );
 }
 
-/** Loading shell mirrors the Money hub: total hero → asset allocation → accounts → module groups. */
+/** Loading shell mirrors the Money hub: accessible-money hero → allocation strip → accounts → module groups. */
 export default async function MoneyLoading() {
   const locale = await getLocale();
   const t = await getTranslations({ locale, namespace: "money" });

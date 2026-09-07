@@ -83,13 +83,19 @@ export default async function PlanLoading() {
           </div>
         </Card>
       </div>
-      <Section title={<Skeleton className="h-4 w-32" />}>
+      <Section
+        title={<Skeleton className="h-4 w-32" />}
+        testId="plan-home-jars"
+      >
         <div className="flex flex-col gap-(--space-2)">
           <PlanJarSkeleton />
           <PlanJarSkeleton />
         </div>
       </Section>
-      <Section title={<Skeleton className="h-4 w-28" />}>
+      <Section
+        title={<Skeleton className="h-4 w-28" />}
+        testId="plan-home-goals"
+      >
         <div className="flex flex-col gap-(--space-2)">
           <PlanGoalSkeleton />
         </div>

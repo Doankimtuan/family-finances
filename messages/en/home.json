@@ -77,7 +77,7 @@
     },
     "status": {
       "positive": "Income meets or exceeds spending",
-      "attention": "Spending exceeds income",
+      "negative": "Spending exceeds income",
       "unavailable": "No income or spending"
     },
     "comparison": "{value} vs prior period"

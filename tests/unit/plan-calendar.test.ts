@@ -16,7 +16,11 @@ import {
   RecurringDirection,
   RecurringFrequency,
 } from "@/modules/plan/application/plan-constants";
-import { APP_PATH } from "@/modules/tenancy/application/app-path";
+import {
+  APP_PATH,
+  PLAN_MONTH_QUERY,
+  planCalendarPath,
+} from "@/modules/tenancy/application/app-path";
 import { DEFAULT_CURRENCY } from "@/modules/ledger/application/ledger-constants";
 import { LoanStatus } from "@/modules/ledger/application/ledger-constants";
 
@@ -260,5 +264,13 @@ describe("buildCashFlowForecast (ST-E05-002)", () => {
 describe("calendar route constant", () => {
   it("exposes PLAN_CALENDAR under Plan IA", () => {
     expect(APP_PATH.PLAN_CALENDAR).toBe("/plan/calendar");
+  });
+
+  it("builds calendar month navigation onto the existing query key", () => {
+    expect(planCalendarPath()).toBe(APP_PATH.PLAN_CALENDAR);
+    expect(planCalendarPath("2024-03-01")).toEqual({
+      pathname: APP_PATH.PLAN_CALENDAR,
+      query: { [PLAN_MONTH_QUERY]: "2024-03-01" },
+    });
   });
 });

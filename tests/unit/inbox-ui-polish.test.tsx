@@ -17,6 +17,7 @@ import {
 import { InboxDetailMeta } from "@/app/[locale]/(product)/inbox/inbox-detail-meta";
 import {
   inboxMaturitySecondaryActions,
+  isInboxMaturityReminder,
   resolveInboxMaturityPrimaryAction,
 } from "@/app/[locale]/(product)/inbox/inbox-maturity-layout";
 import { InboxQueueTabs } from "@/app/[locale]/(product)/inbox/inbox-queue-tabs";
@@ -29,7 +30,11 @@ import {
   inboxItemVisual,
   inboxLifecycleLabelKey,
 } from "@/app/[locale]/(product)/inbox/inbox-presentations";
-import { ReviewCard, ReviewCardDensity } from "@/shared/patterns/review-card";
+import {
+  ReviewCard,
+  ReviewCardDensity,
+  REVIEW_CARD_TEST_ID,
+} from "@/shared/patterns/review-card";
 import {
   InboxItemKind,
   InboxLifecycleContext,
@@ -103,6 +108,7 @@ describe("Inbox UI polish", () => {
         title="Lunch"
         kindLabel="Unmapped expense"
         amountLabel="₫45,000"
+        subtitle="Cash · Food"
         actionLabel="Open to decide"
         data-testid="inbox-row"
       />,
@@ -110,9 +116,19 @@ describe("Inbox UI polish", () => {
 
     const row = screen.getByTestId("inbox-row");
     expect(row).toHaveClass("hover:bg-surface-hover");
+    expect(row).toHaveClass("min-h-14");
     expect(row).not.toHaveClass("shadow-[var(--elevation-1)]");
+    expect(row).not.toHaveClass("shadow-(--elevation-1)");
+    expect(row).not.toHaveClass("rounded-[var(--radius-card)]");
     expect(screen.getByText("Lunch")).toBeInTheDocument();
     expect(screen.getByText("₫45,000")).toBeInTheDocument();
+    expect(screen.getByTestId(REVIEW_CARD_TEST_ID.KIND)).toHaveTextContent(
+      "Unmapped expense",
+    );
+    expect(screen.getByText(/Cash · Food/)).toBeInTheDocument();
+    expect(screen.getByTestId(REVIEW_CARD_TEST_ID.UNREAD)).toBeInTheDocument();
+    expect(row.querySelector("[data-slot='status-badge']")).toBeNull();
+    expect(screen.queryByText("Open to decide")).not.toBeInTheDocument();
     expect(row.querySelector("svg")).not.toBeNull();
   });
 
@@ -272,6 +288,11 @@ describe("Inbox UI polish", () => {
   });
 
   it("promotes withdraw only when Savings suggests it", () => {
+    expect(isInboxMaturityReminder(1, "2026-09-09", "2026-09-08")).toBe(true);
+    expect(isInboxMaturityReminder(1, "2026-09-07", "2026-09-08")).toBe(false);
+    expect(isInboxMaturityReminder(undefined, "2026-09-09", "2026-09-08")).toBe(
+      false,
+    );
     expect(
       resolveInboxMaturityPrimaryAction(RenewalSuggestedAction.WITHDRAW),
     ).toBe(SavingsMaturityAckAction.WITHDRAW);

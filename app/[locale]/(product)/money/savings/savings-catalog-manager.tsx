@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, type ReactNode } from "react";
 import { useForm, useWatch, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AnimatePresence, motion } from "motion/react";
-import { motionTokens } from "@/shared/motion";
+import { motionTokens, useMotionPolicy } from "@/shared/motion";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import type { SavingCatalogProvider } from "@/modules/savings/application/savings-provider-registry";
@@ -19,6 +19,7 @@ import {
   savingsProductInputSchema,
 } from "@/modules/savings/application/savings-domain-rules";
 import { InterestCalcMethod } from "@/modules/savings/application/client";
+import { SETTLEMENT_RULE_VALUES } from "@/modules/savings/application/savings-constants";
 import { DEFAULT_CURRENCY } from "@/modules/ledger/application/client";
 import { formatPercent } from "@/shared/i18n/formatters";
 import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
@@ -131,7 +132,7 @@ function productFormFrom(
     earlySettlementRatePercent:
       product?.earlySettlementRatePercent ??
       defaults.earlySettlementRatePercent,
-    settlementRules: ["withdraw_everything"],
+    settlementRules: product?.settlementRules ?? [...SETTLEMENT_RULE_VALUES],
     penaltyRules: [],
     renewableAvailable: true,
     supportsPartialSettlement: false,
@@ -147,6 +148,38 @@ function SectionLabel({ children }: { children: string }) {
     >
       {children}
     </Text>
+  );
+}
+
+function CatalogFieldReveal({
+  motionEnabled,
+  show,
+  revealKey,
+  children,
+}: {
+  motionEnabled: boolean;
+  show: boolean;
+  revealKey: string;
+  children: ReactNode;
+}) {
+  if (!motionEnabled) {
+    return show ? children : null;
+  }
+
+  return (
+    <AnimatePresence initial={false} mode="wait">
+      {show ? (
+        <motion.div
+          key={revealKey}
+          initial={{ opacity: 0, y: motionTokens.distance.sm }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -motionTokens.distance.sm }}
+          transition={{ duration: motionTokens.duration.fast }}
+        >
+          {children}
+        </motion.div>
+      ) : null}
+    </AnimatePresence>
   );
 }
 
@@ -311,6 +344,7 @@ export function SavingsCatalogManager({ catalog }: Props) {
   const tErr = useTranslations("money.products.errors");
   const locale = useLocale();
   const router = useRouter();
+  const motionPolicy = useMotionPolicy();
   const [providerEditor, setProviderEditor] = useState<ProviderEditor | null>(
     null,
   );
@@ -926,28 +960,22 @@ export function SavingsCatalogManager({ catalog }: Props) {
                       />
                     </div>
                   </div>
-                  <AnimatePresence initial={false} mode="wait">
-                    {productTaxRule === SavingsTaxRule.PROFIT_PERCENTAGE ? (
-                      <motion.div
-                        key="tax-rate"
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -8 }}
-                        transition={{ duration: motionTokens.duration.fast }}
-                      >
-                        <ControlledField
-                          control={productForm.control}
-                          field={{
-                            type: "percentage",
-                            name: "taxRatePercent",
-                            id: "savings-product-tax",
-                            label: t("taxRate"),
-                            required: true,
-                          }}
-                        />
-                      </motion.div>
-                    ) : null}
-                  </AnimatePresence>
+                  <CatalogFieldReveal
+                    motionEnabled={motionPolicy.enabled}
+                    show={productTaxRule === SavingsTaxRule.PROFIT_PERCENTAGE}
+                    revealKey="tax-rate"
+                  >
+                    <ControlledField
+                      control={productForm.control}
+                      field={{
+                        type: "percentage",
+                        name: "taxRatePercent",
+                        id: "savings-product-tax",
+                        label: t("taxRate"),
+                        required: true,
+                      }}
+                    />
+                  </CatalogFieldReveal>
                 </div>
                 <div className="flex flex-col gap-(--space-3) rounded-[var(--radius-card)] border border-border-subtle bg-surface-muted/55 p-(--space-3)">
                   <SectionLabel>{t("earlySection")}</SectionLabel>
@@ -1027,29 +1055,25 @@ export function SavingsCatalogManager({ catalog }: Props) {
                       />
                     </div>
                   </div>
-                  <AnimatePresence initial={false} mode="wait">
-                    {productEarlySettlementRule ===
-                    EarlySettlementRule.CUSTOM_INTEREST_RATE ? (
-                      <motion.div
-                        key="early-rate"
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -8 }}
-                        transition={{ duration: motionTokens.duration.fast }}
-                      >
-                        <ControlledField
-                          control={productForm.control}
-                          field={{
-                            type: "percentage",
-                            name: "earlySettlementRatePercent",
-                            id: "savings-product-early-rate",
-                            label: t("earlyRate"),
-                            required: true,
-                          }}
-                        />
-                      </motion.div>
-                    ) : null}
-                  </AnimatePresence>
+                  <CatalogFieldReveal
+                    motionEnabled={motionPolicy.enabled}
+                    show={
+                      productEarlySettlementRule ===
+                      EarlySettlementRule.CUSTOM_INTEREST_RATE
+                    }
+                    revealKey="early-rate"
+                  >
+                    <ControlledField
+                      control={productForm.control}
+                      field={{
+                        type: "percentage",
+                        name: "earlySettlementRatePercent",
+                        id: "savings-product-early-rate",
+                        label: t("earlyRate"),
+                        required: true,
+                      }}
+                    />
+                  </CatalogFieldReveal>
                 </div>
                 <div className="flex flex-col gap-(--space-3) rounded-[var(--radius-card)] border border-border-subtle bg-surface-muted/55 p-(--space-3)">
                   <SectionLabel>{t("currencySection")}</SectionLabel>

@@ -38,7 +38,7 @@ export function BottomNavigation({
         className={cn(
           "z-(--z-nav) border-t border-divider bg-canvas/95",
           "min-h-(--bottom-navigation-height)",
-          "min-[481px]:m-(--space-2) min-[481px]:rounded-[var(--radius-xl)] min-[481px]:border",
+          "min-[481px]:m-(--space-2) min-[481px]:rounded-[var(--radius-overlay)] min-[481px]:border",
           "min-[481px]:bg-surface/90 min-[481px]:shadow-[var(--elevation-1)]",
           className,
         )}
@@ -61,7 +61,7 @@ export function BottomNavigation({
                   href={href}
                   className={cn(
                     "relative flex min-h-14 min-w-0 flex-col items-center justify-center",
-                    "gap-(--space-1) rounded-[var(--radius-lg)] px-(--space-1) py-(--space-2)",
+                    "gap-(--space-1) rounded-[var(--radius-card)] px-(--space-1) py-(--space-2)",
                     "text-center text-xs font-medium leading-tight tracking-tight",
                     "transition-[color,background-color,transform] duration-(--duration-fast) ease-(--ease-standard)",
                     "motion-reduce:transition-none",
@@ -78,14 +78,14 @@ export function BottomNavigation({
                     motionPolicy.enabled && !motionPolicy.reducedMotion ? (
                       <motion.span
                         aria-hidden="true"
-                        className="pointer-events-none absolute inset-0 rounded-[var(--radius-lg)] bg-primary-soft"
+                        className="pointer-events-none absolute inset-0 rounded-[var(--radius-card)] bg-primary-soft"
                         layoutId={ACTIVE_INDICATOR_ID}
                         transition={springs.snappy}
                       />
                     ) : (
                       <span
                         aria-hidden="true"
-                        className="pointer-events-none absolute inset-0 rounded-[var(--radius-lg)] bg-primary-soft"
+                        className="pointer-events-none absolute inset-0 rounded-[var(--radius-card)] bg-primary-soft"
                       />
                     )
                   ) : null}

@@ -35,6 +35,12 @@ async function assertMoneySurface(page: Page) {
   await expect(
     surface.getByTestId("money-real-position-summary"),
   ).toBeVisible();
+  await expect(
+    surface.getByTestId("money-real-position-summary"),
+  ).toContainText(/Money in active accounts|Tiền trong tài khoản đang dùng/);
+  await expect(
+    surface.getByTestId("money-real-position-summary"),
+  ).not.toContainText(/Total assets|Tổng tài sản/);
   await expect(surface.getByTestId("money-accounts-scan")).toBeVisible();
   await expect(
     surface.getByTestId("money-asset-allocation-summary"),
@@ -49,7 +55,10 @@ async function assertMoneySurface(page: Page) {
     surface.getByTestId("money-asset-allocation-legend"),
   ).toContainText(/Investments|Đầu tư/);
   await expect(surface.getByTestId("money-link-investments")).toContainText(
-    /Partial estimate|Giá trị một phần/,
+    /3 holdings|3 vị thế/,
+  );
+  await expect(surface.getByTestId("money-link-investments")).not.toContainText(
+    /Partial estimate|Giá trị một phần|Current estimate|Giá trị hiện tại/,
   );
   await expect(surface.getByTestId("money-link-savings")).toContainText(
     /need action|needs action|cần xử lý/,
@@ -109,7 +118,7 @@ test.describe("Money product summaries", () => {
     });
   }
 
-  test("privacy masks Money amounts but keeps valuation and attention context", async ({
+  test("privacy masks Money amounts but keeps holdings count and attention context", async ({
     page,
   }) => {
     await page.setViewportSize({ width: 440, height: 956 });
@@ -125,7 +134,7 @@ test.describe("Money product summaries", () => {
       surface.getByTestId("money-real-position-summary"),
     ).toContainText(FINANCIAL_PRIVACY_MASK);
     await expect(surface.getByTestId("money-link-investments")).toContainText(
-      "Partial estimate",
+      "3 holdings",
     );
     await expect(surface.getByTestId("money-link-savings")).toContainText(
       /need action|needs action/,

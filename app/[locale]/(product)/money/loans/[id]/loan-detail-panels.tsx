@@ -3,6 +3,7 @@ import {
   LoanDueState,
   LoanScheduleDisplayStatus,
   LoanScheduleEntryStatus,
+  type LoanScheduleDisplayStatus as LoanScheduleDisplayStatusValue,
   type LoanScheduleEntryStatus as LoanScheduleEntryStatusValue,
 } from "@/modules/ledger/application/loan-constants";
 import { getLoanDueState } from "@/modules/ledger/application/loan-due-state";
@@ -10,12 +11,21 @@ import { moneyTransactionPath } from "@/modules/tenancy/application/app-path";
 import { FinancialValue } from "@/shared/patterns/financial-value";
 import { Card } from "@/shared/patterns/card";
 import { EmptyState } from "@/shared/patterns/empty-state";
+import {
+  TransactionAmountTone,
+  TransactionRow,
+} from "@/shared/patterns/transaction-row";
 import { LoanScheduleStatusBadge } from "@/modules/ledger/ui/loan-presentation";
 import { Text } from "@/shared/ui/text";
-import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
-import { ACTION_ICONS } from "@/shared/ui/icon-registry";
 import { cn } from "@/shared/utils/cn";
 import { LoanSectionTitle } from "../loan-section-title";
+
+const LOAN_SCHEDULE_ATTENTION_SURFACE: Partial<
+  Record<LoanScheduleDisplayStatusValue, string>
+> = {
+  [LoanScheduleDisplayStatus.DUE_TODAY]: "bg-warning/10",
+  [LoanScheduleDisplayStatus.OVERDUE]: "bg-danger/10",
+};
 
 type ScheduleEntry = {
   id: string;
@@ -84,14 +94,19 @@ export function LoanSchedulePanel({
               const isImmutable =
                 entry.status === LoanScheduleEntryStatus.PAID ||
                 entry.status === LoanScheduleEntryStatus.WAIVED;
+              const statusLabel = t(`scheduleStatus.${displayStatus}`);
               return (
                 <li
                   key={entry.id}
-                  className="flex flex-col gap-(--space-2) px-(--space-4) py-(--space-3)"
+                  className={cn(
+                    "flex min-h-14 items-center gap-(--space-3) px-(--space-4) py-(--space-3)",
+                    LOAN_SCHEDULE_ATTENTION_SURFACE[displayStatus],
+                  )}
                   data-testid={`loan-schedule-${entry.sequence}`}
                   data-schedule-status={entry.status}
+                  data-schedule-display-status={displayStatus}
                 >
-                  <div className="flex items-start justify-between gap-(--space-2)">
+                  <div className="min-w-0 flex-1">
                     <Text
                       size="sm"
                       className="min-w-0 font-medium text-text-primary"
@@ -101,40 +116,39 @@ export function LoanSchedulePanel({
                         date: entry.dueDate,
                       })}
                     </Text>
-                    <div className="flex shrink-0 flex-col items-end gap-(--space-1)">
-                      <Text size="sm" className="tabular-nums font-semibold">
-                        <FinancialValue>
-                          {formatMoney(entry.totalDue)}
-                        </FinancialValue>
-                      </Text>
-                      <LoanScheduleStatusBadge
-                        status={displayStatus}
-                        label={t(`scheduleStatus.${displayStatus}`)}
-                      />
-                    </div>
-                  </div>
-                  <div className="flex w-full">
-                    <ScheduleFact
-                      label={t("schedulePrincipal")}
-                      value={formatMoney(entry.principalDue)}
-                      align="start"
-                    />
-                    <ScheduleFact
-                      label={t("scheduleInterest")}
-                      value={formatMoney(entry.interestDue)}
-                      align="center"
-                    />
-                    <ScheduleFact
-                      label={t("scheduleRemaining")}
-                      value={formatMoney(entry.remainingBalanceAfter)}
-                      align="end"
-                    />
-                  </div>
-                  {isImmutable ? (
-                    <Text size="xs" tone="secondary">
-                      {t("scheduleImmutable")}
+                    <Text
+                      size="xs"
+                      tone="secondary"
+                      className="mt-(--space-1) text-pretty"
+                    >
+                      <FinancialValue>
+                        {t("scheduleSplit", {
+                          principal: formatMoney(entry.principalDue),
+                          interest: formatMoney(entry.interestDue),
+                          remaining: formatMoney(entry.remainingBalanceAfter),
+                        })}
+                      </FinancialValue>
                     </Text>
-                  ) : null}
+                    {isImmutable ? (
+                      <Text size="xs" tone="muted" className="mt-(--space-1)">
+                        {t("scheduleImmutable")}
+                      </Text>
+                    ) : null}
+                  </div>
+                  <div className="flex shrink-0 flex-col items-end gap-(--space-1)">
+                    <Text
+                      size="sm"
+                      className="tabular-nums font-semibold text-text-primary"
+                    >
+                      <FinancialValue>
+                        {formatMoney(entry.totalDue)}
+                      </FinancialValue>
+                    </Text>
+                    <LoanScheduleStatusBadge
+                      status={displayStatus}
+                      label={statusLabel}
+                    />
+                  </div>
                 </li>
               );
             })}
@@ -142,37 +156,6 @@ export function LoanSchedulePanel({
         )}
       </Card>
     </section>
-  );
-}
-
-function ScheduleFact({
-  label,
-  value,
-  align = "start",
-}: {
-  label: string;
-  value: string;
-  align?: "start" | "center" | "end";
-}) {
-  return (
-    <div
-      className={cn(
-        "min-w-0 flex-1 basis-0",
-        align === "center" && "text-center",
-        align === "end" && "text-end",
-      )}
-    >
-      <Text size="xs" tone="secondary">
-        {label}
-      </Text>
-      <Text
-        size="sm"
-        tabular
-        className="mt-(--space-1) truncate text-text-primary"
-      >
-        <FinancialValue>{value}</FinancialValue>
-      </Text>
-    </div>
   );
 }
 
@@ -223,51 +206,52 @@ export function LoanPaymentHistoryPanel({
           />
         ) : (
           <ul className="divide-y divide-divider">
-            {payments.map((payment) => (
-              <li
-                key={payment.id}
-                className="flex flex-col gap-(--space-2) px-(--space-4) py-(--space-3)"
-                data-testid={`loan-payment-${payment.id}`}
-              >
-                <div className="flex items-start justify-between gap-(--space-2)">
-                  <Text size="sm" className="font-medium">
-                    {payment.paidAt}
-                  </Text>
-                  <Text size="sm" className="tabular-nums font-semibold">
-                    <FinancialValue>
-                      {formatMoney(payment.amount)}
-                    </FinancialValue>
-                  </Text>
-                </div>
-                <Text size="sm" tone="secondary" className="text-pretty">
-                  <FinancialValue>
-                    {t("historySplit", {
-                      principal: formatMoney(payment.principalPaid),
-                      interest: formatMoney(payment.interestPaid),
-                    })}
-                  </FinancialValue>
-                </Text>
-                <Text size="sm" tone="secondary" className="text-pretty">
-                  {t("historyAccount", {
-                    account:
-                      accountNames.get(payment.accountId) ??
-                      t("unknownAccount"),
-                  })}
-                </Text>
-                {payment.transactionId ? (
-                  <Link
-                    href={moneyTransactionPath(payment.transactionId)}
-                    className="inline-flex min-h-11 items-center gap-(--space-1) text-sm font-medium text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-                  >
-                    {t("historyTransaction")}
-                    <AppIcon
-                      icon={ACTION_ICONS.forward}
-                      size={AppIconSize.XS}
-                    />
-                  </Link>
-                ) : null}
-              </li>
-            ))}
+            {payments.map((payment) => {
+              const accountLabel = t("historyAccount", {
+                account:
+                  accountNames.get(payment.accountId) ?? t("unknownAccount"),
+              });
+              const splitLabel = t("historySplit", {
+                principal: formatMoney(payment.principalPaid),
+                interest: formatMoney(payment.interestPaid),
+              });
+              const row = (
+                <TransactionRow
+                  className="rounded-none border-0 bg-transparent hover:border-transparent"
+                  title={payment.paidAt}
+                  subtitle={
+                    <>
+                      <FinancialValue>{splitLabel}</FinancialValue>
+                      {` · ${accountLabel}`}
+                    </>
+                  }
+                  amountLabel={formatMoney(payment.amount)}
+                  tone={TransactionAmountTone.NEUTRAL}
+                  showRail={false}
+                  showChevron={Boolean(payment.transactionId)}
+                />
+              );
+
+              return (
+                <li
+                  key={payment.id}
+                  className="min-h-14"
+                  data-testid={`loan-payment-${payment.id}`}
+                >
+                  {payment.transactionId ? (
+                    <Link
+                      href={moneyTransactionPath(payment.transactionId)}
+                      className="block min-h-14 px-(--space-4) focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus-ring"
+                      aria-label={`${payment.paidAt}, ${t("historyTransaction")}`}
+                    >
+                      {row}
+                    </Link>
+                  ) : (
+                    <div className="px-(--space-4)">{row}</div>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         )}
       </Card>

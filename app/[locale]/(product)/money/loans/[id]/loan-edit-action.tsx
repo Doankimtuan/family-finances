@@ -5,13 +5,15 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { TextField } from "@/shared/ui/form";
 import { Button } from "@/shared/ui/button";
+import { IconButton } from "@/shared/ui/icon-button";
+import { AppIcon } from "@/shared/ui/app-icon";
+import { ACTION_ICONS } from "@/shared/ui/icon-registry";
 import { AlertVariant } from "@/shared/ui/alert";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import { useStatusAlert } from "@/providers/status-alert-provider";
 import { CLIENT_ACTION_ERROR_CODE } from "@/modules/tenancy/application/product-action-error";
 import { updateLoanMetadataAction } from "../../money-products-actions";
 import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
-import { Card } from "@/shared/patterns/card";
 import { SheetActionFooter } from "@/shared/patterns/sheet-action-footer";
 import { Sheet } from "@/shared/patterns/sheet";
 
@@ -20,6 +22,7 @@ type Props = {
   initialName: string;
   initialLender: string;
   initialNote: string;
+  compactTrigger?: boolean;
 };
 
 export function LoanEditAction({
@@ -27,6 +30,7 @@ export function LoanEditAction({
   initialName,
   initialLender,
   initialNote,
+  compactTrigger = false,
 }: Props) {
   const t = useTranslations("money.loanDetail");
   const tErr = useTranslations("money.products.errors");
@@ -79,31 +83,41 @@ export function LoanEditAction({
     setOpen(false);
   };
 
-  if (!open) {
-    return (
-      <Button
-        variant="secondary"
-        className="min-h-11 w-full"
-        data-testid="loan-edit-open"
-        isDisabled={!online}
-        onPress={() => {
-          reset();
-          setOpen(true);
-        }}
-      >
-        {t("editLoan")}
-      </Button>
-    );
-  }
-
   return (
     <Sheet
       isOpen={open}
       onOpenChange={(next) => {
-        if (!next) reset();
+        if (next) reset();
         setOpen(next);
       }}
     >
+      {compactTrigger ? (
+        <IconButton
+          aria-label={t("editLoan")}
+          variant="secondary"
+          data-testid="loan-edit-open"
+          isDisabled={!online}
+          onPress={() => {
+            reset();
+            setOpen(true);
+          }}
+        >
+          <AppIcon icon={ACTION_ICONS.edit} size="sm" />
+        </IconButton>
+      ) : (
+        <Button
+          variant="secondary"
+          className="min-h-11 w-full"
+          data-testid="loan-edit-open"
+          isDisabled={!online}
+          onPress={() => {
+            reset();
+            setOpen(true);
+          }}
+        >
+          {t("editLoan")}
+        </Button>
+      )}
       <ActionSheetLayout>
         <ActionSheetLayout.Header>
           <Sheet.Heading className="text-lg font-semibold tracking-tight text-text-primary">
@@ -111,9 +125,8 @@ export function LoanEditAction({
           </Sheet.Heading>
         </ActionSheetLayout.Header>
         <ActionSheetLayout.Body>
-          <Card
-            tone="elevated"
-            className="flex flex-col gap-(--space-3) p-(--space-4)"
+          <div
+            className="flex flex-col gap-(--space-3)"
             data-testid="loan-edit-form"
           >
             <TextField
@@ -134,17 +147,17 @@ export function LoanEditAction({
               value={note}
               onChange={(e) => setNote(e.target.value)}
             />
-          </Card>
-          <SheetActionFooter
-            secondaryLabel={t("cancel")}
-            primaryLabel={isPending ? t("saving") : t("saveEdit")}
-            primaryTestId="loan-edit-save"
-            isDisabled={!online}
-            isPending={isPending}
-            onSecondary={handleCancel}
-            onPrimary={handleSave}
-          />
+          </div>
         </ActionSheetLayout.Body>
+        <SheetActionFooter
+          secondaryLabel={t("cancel")}
+          primaryLabel={isPending ? t("saving") : t("saveEdit")}
+          primaryTestId="loan-edit-save"
+          isDisabled={!online}
+          isPending={isPending}
+          onSecondary={handleCancel}
+          onPrimary={handleSave}
+        />
       </ActionSheetLayout>
     </Sheet>
   );

@@ -7,6 +7,7 @@ import {
 import { GoalDetailControls } from "@/app/[locale]/(product)/plan/goals/[id]/goal-detail-controls";
 
 vi.mock("next-intl", () => ({
+  useLocale: () => "en",
   useTranslations: () => (key: string, values?: Record<string, unknown>) =>
     values ? `${key}:${JSON.stringify(values)}` : key,
 }));
@@ -51,5 +52,34 @@ describe("GoalDetailControls progress integration", () => {
     expect(screen.getByTestId("goal-complete-confirm")).toHaveTextContent(
       'completeBelowTargetBody:{"percent":"0.33"}',
     );
+  });
+
+  it("edits the target date with the shared date picker, not a native date input", () => {
+    render(
+      <GoalDetailControls
+        goalId="goal-1"
+        name="Goal"
+        targetAmount={300}
+        fundedAmount={1}
+        progressPercent={0.33}
+        remainingPrincipal={null}
+        targetDate="2026-09-30"
+        status={GoalStatus.ACTIVE}
+        goalType={GoalType.SAVE_UP}
+        fundingLinks={[]}
+        fundingOptions={[]}
+        reassignmentOptions={[]}
+        isLegacyIntention={false}
+      />,
+    );
+
+    fireEvent.click(screen.getByTestId("goal-more-actions"));
+    fireEvent.click(screen.getByTestId("goal-edit-open"));
+
+    const form = screen.getByTestId("goal-edit-form");
+    expect(
+      form.querySelector("[data-slot='date-picker-trigger']"),
+    ).toBeInstanceOf(HTMLButtonElement);
+    expect(screen.getByLabelText("createDateLabel").tagName).not.toBe("INPUT");
   });
 });

@@ -21,7 +21,10 @@ export function LocaleSwitcher({ className }: { className?: string }) {
     <div
       role="group"
       aria-label={tA11y("localeSwitcher")}
-      className={cn("inline-flex items-center gap-1 text-sm", className)}
+      className={cn(
+        "inline-flex shrink-0 items-center gap-1 text-sm",
+        className,
+      )}
     >
       <span className="sr-only">{t("language")}</span>
       {routing.locales.map((code) => {
@@ -32,7 +35,8 @@ export function LocaleSwitcher({ className }: { className?: string }) {
             key={code}
             type="button"
             className={cn(
-              "min-h-9 rounded-(--radius-control) px-(--space-3) font-medium",
+              "inline-flex min-h-11 min-w-11 items-center justify-center",
+              "rounded-(--radius-control) px-(--space-3) font-medium",
               "transition-colors duration-(--duration-fast) ease-(--ease-standard)",
               "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring",
               active

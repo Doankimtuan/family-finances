@@ -22,7 +22,7 @@ import {
 import type { GoalFundingOption } from "@/modules/plan/application/queries/list-goal-funding-options";
 import type { GoalFundingLink } from "@/modules/plan/application/goal-recurring-types";
 import { goalFundingSourceKey } from "@/modules/plan/application/goal-funding";
-import { TextField } from "@/shared/ui/form";
+import { DatePickerField, TextField } from "@/shared/ui/form";
 import { AmountField } from "@/shared/patterns/amount-field";
 import { Card } from "@/shared/patterns/card";
 import { Button } from "@/shared/ui/button";
@@ -595,12 +595,11 @@ export function GoalDetailControls({
                   value={target}
                   onValueChange={setTarget}
                 />
-                <TextField
+                <DatePickerField
                   id={dateId}
                   label={t("createDateLabel")}
-                  type="date"
                   value={targetDate}
-                  onChange={(event) => setTargetDate(event.target.value)}
+                  onChange={setTargetDate}
                 />
               </div>
             </ActionSheetLayout.Body>

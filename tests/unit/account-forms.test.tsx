@@ -97,6 +97,20 @@ describe("account edit form", () => {
 
     expect(screen.getByLabelText("nameLabel")).toHaveValue("VCB");
   });
+
+  it("uses the shared sheet footer for archive confirmation", () => {
+    render(<AccountActionsFixture />);
+
+    fireEvent.click(screen.getByTestId("account-archive-open"));
+
+    expect(screen.getByTestId("account-archive-confirm")).toBeInTheDocument();
+    expect(
+      document.querySelector('[data-slot="action-sheet-footer"]'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByTestId("account-archive-confirm-yes"),
+    ).toBeInTheDocument();
+  });
 });
 
 describe("account create form", () => {
@@ -183,5 +197,7 @@ describe("account create form", () => {
     expect(
       screen.getByTestId("account-credit-card-settings"),
     ).toBeInTheDocument();
+    expect(screen.getByText("linkedBankDescription")).toBeInTheDocument();
+    expect(screen.getByTestId("account-linked-bank")).toBeInTheDocument();
   });
 });

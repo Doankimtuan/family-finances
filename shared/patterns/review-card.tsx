@@ -4,6 +4,7 @@ import { Text } from "@/shared/ui/text";
 import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
 import { ACTION_ICONS } from "@/shared/ui/icon-registry";
 import { StatusBadge, StatusBadgeTone } from "@/shared/ui/status-badge";
+import { Card } from "./card";
 
 export const ReviewCardDensity = {
   CARD: "card",
@@ -12,6 +13,12 @@ export const ReviewCardDensity = {
 
 export type ReviewCardDensity =
   (typeof ReviewCardDensity)[keyof typeof ReviewCardDensity];
+
+export const REVIEW_CARD_TEST_ID = {
+  ROOT: "review-card",
+  KIND: "review-card-kind",
+  UNREAD: "review-card-unread",
+} as const;
 
 export type ReviewCardProps = {
   title: ReactNode;
@@ -32,6 +39,24 @@ export type ReviewCardProps = {
   "data-testid"?: string;
 };
 
+function UnreadCue() {
+  return (
+    <span
+      className="size-2 shrink-0 rounded-full bg-primary"
+      data-testid={REVIEW_CARD_TEST_ID.UNREAD}
+      aria-hidden
+    />
+  );
+}
+
+function ReviewAmount({ children }: { children: ReactNode }) {
+  return (
+    <span className="min-w-[var(--financial-number-column-width)] text-right text-sm font-semibold tabular-nums tracking-tight wrap-break-word text-text-primary">
+      {children}
+    </span>
+  );
+}
+
 /**
  * Inbox ReviewItem decision card — one item, one decision (AC-005 / BR-05).
  * Partners share resolve rights (AC-020); pattern itself is presentational.
@@ -50,29 +75,65 @@ export function ReviewCard({
   className,
   "data-testid": testId,
 }: ReviewCardProps) {
-  const isRow = density === ReviewCardDensity.ROW;
+  if (density === ReviewCardDensity.ROW) {
+    return (
+      <div
+        className={cn(
+          "flex min-h-14 items-center gap-(--space-3) px-(--space-4) py-(--space-3)",
+          "transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-(--press-scale) motion-reduce:transition-none motion-reduce:active:scale-100",
+          className,
+        )}
+        data-testid={testId ?? REVIEW_CARD_TEST_ID.ROOT}
+      >
+        {leading}
+        <div className="min-w-0 flex-1">
+          <Text
+            size="sm"
+            weight="semibold"
+            className="truncate text-text-primary"
+          >
+            {title}
+          </Text>
+          <Text
+            as="p"
+            size="xs"
+            tone="muted"
+            className="mt-(--space-1) truncate leading-snug"
+          >
+            <span data-testid={REVIEW_CARD_TEST_ID.KIND}>{kindLabel}</span>
+            {subtitle ? <span> · {subtitle}</span> : null}
+          </Text>
+        </div>
+        <div className="flex shrink-0 items-center gap-(--space-2)">
+          <ReviewAmount>{amountLabel}</ReviewAmount>
+          {unread ? <UnreadCue /> : null}
+          {showChevron ? (
+            <AppIcon
+              icon={ACTION_ICONS.forward}
+              size={AppIconSize.SM}
+              className="text-text-tertiary"
+            />
+          ) : null}
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div
+    <Card
+      tone="elevated"
       className={cn(
-        "flex min-h-11 flex-col gap-(--space-3)",
-        isRow
-          ? "px-(--space-4) py-(--space-3) transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-(--press-scale) motion-reduce:transition-none motion-reduce:active:scale-100"
-          : "rounded-[var(--radius-card)] border border-border-subtle/70 bg-surface p-(--space-4) shadow-[var(--elevation-1)] transition-[background-color,border-color,transform,box-shadow] duration-(--duration-fast) hover:border-border-default hover:bg-surface-hover hover:shadow-[var(--elevation-2)] active:scale-[var(--press-scale)] motion-reduce:transition-none motion-reduce:active:scale-100",
+        "flex min-h-11 flex-col gap-(--space-3) p-(--space-4)",
+        "transition-[background-color,border-color,transform,box-shadow] duration-(--duration-fast) hover:border-border-default hover:bg-surface-hover hover:shadow-[var(--elevation-2)] active:scale-[var(--press-scale)] motion-reduce:transition-none motion-reduce:active:scale-100",
         className,
       )}
-      data-testid={testId ?? "review-card"}
+      data-testid={testId ?? REVIEW_CARD_TEST_ID.ROOT}
     >
       <div className="flex items-start gap-(--space-3)">
         {leading}
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-(--space-2)">
-            {unread ? (
-              <span
-                className="size-1.5 shrink-0 rounded-full bg-primary"
-                aria-hidden
-              />
-            ) : null}
+            {unread ? <UnreadCue /> : null}
             <Text
               size="sm"
               weight="semibold"
@@ -92,9 +153,7 @@ export function ReviewCard({
           ) : null}
         </div>
         <div className="flex shrink-0 items-start gap-(--space-2)">
-          <span className="min-w-[var(--financial-number-column-width)] text-right text-sm font-semibold tabular-nums tracking-tight text-text-primary">
-            {amountLabel}
-          </span>
+          <ReviewAmount>{amountLabel}</ReviewAmount>
           {showChevron ? (
             <AppIcon
               icon={ACTION_ICONS.forward}
@@ -108,7 +167,7 @@ export function ReviewCard({
         <StatusBadge
           tone={statusTone}
           className="max-w-[70%] truncate"
-          data-testid="review-card-kind"
+          data-testid={REVIEW_CARD_TEST_ID.KIND}
         >
           {kindLabel}
         </StatusBadge>
@@ -118,6 +177,6 @@ export function ReviewCard({
           </span>
         ) : null}
       </div>
-    </div>
+    </Card>
   );
 }

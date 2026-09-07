@@ -77,6 +77,8 @@ test.describe("Together authenticated lifecycle V1", () => {
         .getByTestId("invite-revoke")
         .filter({ visible: true })
         .click();
+      await expect(admin.getByTestId("invite-revoke-confirm")).toBeVisible();
+      await admin.getByTestId("invite-revoke-confirm").click();
       await expect(
         admin.getByText(lifecycleIdentityEmail("partner")),
       ).toHaveCount(0);
@@ -196,14 +198,12 @@ test.describe("Together authenticated lifecycle V1", () => {
       await admin.setViewportSize({ width: 440, height: 900 });
       await openLifecycleMembers(admin);
       await admin.getByTestId("together-remove-member").click();
-      await expect(
-        admin.getByRole("button", { name: "Confirm" }),
-      ).toBeVisible();
+      await expect(admin.getByTestId("together-remove-confirm")).toBeVisible();
       await admin.screenshot({
         path: "output/playwright/together-14g-remove-confirmation-440.png",
         fullPage: true,
       });
-      await admin.getByRole("button", { name: "Confirm" }).click();
+      await admin.getByTestId("together-remove-confirm").click();
       await admin.goto("/en/together");
       await admin.reload();
       await expect(
@@ -284,7 +284,7 @@ test.describe("Together authenticated lifecycle V1", () => {
         .toBe(2);
       await expect(admin.getByTestId("together-leave-member")).toBeVisible();
       await admin.getByTestId("together-leave-member").click();
-      await admin.getByRole("button", { name: "Confirm" }).click();
+      await admin.getByTestId("together-leave-confirm").click();
       await expect(admin).toHaveURL(/\/en\/(home|together)/, {
         timeout: 20_000,
       });

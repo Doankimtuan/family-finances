@@ -5,7 +5,7 @@ import {
 } from "./tokens";
 
 export const revealVariants = {
-  hidden: { opacity: 0, y: motionTokens.distance.md },
+  hidden: { opacity: 0, y: motionTokens.distance.sm },
   visible: { opacity: 1, y: 0 },
   exit: { opacity: 0, y: -motionTokens.distance.sm },
 } as const;
@@ -13,18 +13,6 @@ export const revealVariants = {
 export const reducedRevealVariants = {
   hidden: { opacity: 0, y: 0 },
   visible: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: 0 },
-} as const;
-
-export const pageVariants = {
-  initial: { opacity: 0, y: motionTokens.distance.sm },
-  enter: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -motionTokens.distance.sm },
-} as const;
-
-export const reducedPageVariants = {
-  initial: { opacity: 1, y: 0 },
-  enter: { opacity: 1, y: 0 },
   exit: { opacity: 0, y: 0 },
 } as const;
 

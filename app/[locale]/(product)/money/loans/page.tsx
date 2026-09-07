@@ -210,7 +210,7 @@ export default async function LoansPage({ params }: Props) {
                     )}
                     size={AmountSize.HERO}
                     className="mt-(--space-2)"
-                    amountClassName="text-4xl leading-none text-hero-fg"
+                    amountClassName="text-hero-fg"
                   />
                   <Text
                     size="xs"

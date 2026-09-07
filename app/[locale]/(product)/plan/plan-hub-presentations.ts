@@ -16,6 +16,17 @@ import {
   type PlanHomeHealthStatus as PlanHomeHealthStatusValue,
 } from "@/modules/plan/application/plan-home-health";
 
+/** Active jars shown on the Plan hub before the existing view-all escape. */
+export const PLAN_HUB_VISIBLE_JAR_LIMIT = 6;
+
+export const RecommendationListVariant = {
+  HIGHLIGHTED: "highlighted",
+  SUPPORTING: "supporting",
+} as const;
+
+export type RecommendationListVariant =
+  (typeof RecommendationListVariant)[keyof typeof RecommendationListVariant];
+
 const UPCOMING_DUE_SOURCES = new Set<string>([
   CalendarEventSource.CARD_DUE,
   CalendarEventSource.LIABILITY,

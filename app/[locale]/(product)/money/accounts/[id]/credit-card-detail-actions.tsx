@@ -189,6 +189,7 @@ export function CreditCardDetailActions({
               onError={setErrorCode}
               payStep={payStep}
               onPayStepChange={setPayStep}
+              onClose={closePayment}
             />
           ) : null}
         </ActionSheetLayout>

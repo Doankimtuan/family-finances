@@ -11,6 +11,7 @@ import {
   InterestCalcMethod,
   RenewalPolicy,
   RenewalSuggestedAction,
+  SAVINGS_LEGACY_BACKFILL_SKIP_ERRORS,
   SettlementRule,
   MaturityWarningCode,
   SAVINGS_RPC,
@@ -326,7 +327,19 @@ export async function backfillLegacySavingsAccounts(): Promise<BackfillLegacyRes
       }
       return { ok: false, code };
     }
-    const payload = data as { ok?: boolean; migratedCount?: number } | null;
+    const payload = data as {
+      ok?: boolean;
+      error?: unknown;
+      migratedCount?: number;
+    } | null;
+    if (
+      typeof payload?.error === "string" &&
+      (SAVINGS_LEGACY_BACKFILL_SKIP_ERRORS as readonly string[]).includes(
+        payload.error,
+      )
+    ) {
+      return { ok: true, migratedCount: 0 };
+    }
     if (!payload?.ok) {
       logSavingsFailure(null, SAVINGS_RPC.BACKFILL_LEGACY, {
         householdId: gate.householdId,

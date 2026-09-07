@@ -120,6 +120,8 @@ test.describe("V1 deterministic critical-flow release smoke", () => {
       .getByTestId("capture-note")
       .fill(`Release expense ${RELEASE_RUN_ID}`);
     await app.getByTestId("capture-save").click();
+    await expect(app.getByTestId("capture-confirm-summary")).toBeVisible();
+    await app.getByTestId("capture-confirm").click();
     await expect(app.getByTestId("transaction-receipt")).toBeVisible();
     await expect(app.getByText(/expense|chi phí/i).first()).toBeVisible();
 
@@ -131,6 +133,8 @@ test.describe("V1 deterministic critical-flow release smoke", () => {
       .getByTestId("capture-note")
       .fill(`Release income ${RELEASE_RUN_ID}`);
     await app.getByTestId("capture-save").click();
+    await expect(app.getByTestId("capture-confirm-summary")).toBeVisible();
+    await app.getByTestId("capture-confirm").click();
     await expect(app.getByTestId("transaction-receipt")).toBeVisible();
 
     await page.goto(route(APP_PATH.MONEY_TRANSACTIONS));

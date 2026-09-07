@@ -3,7 +3,9 @@ import type { IconSvgElement } from "@hugeicons/react";
 import { cn } from "@/shared/utils/cn";
 import { Text } from "@/shared/ui/text";
 import { StatusBadge } from "@/shared/ui/status-badge";
-import { Balance, BalanceSize } from "@/shared/patterns/balance";
+import { Balance } from "@/shared/patterns/balance";
+import { Card } from "@/shared/patterns/card";
+import { BalanceSize } from "@/shared/patterns/financial-display-size";
 import {
   IconContainer,
   type IconContainerTone,
@@ -52,9 +54,10 @@ export function AccountCard({
     title.trim().toLowerCase() !== typeLabel.trim().toLowerCase();
 
   return (
-    <div
+    <Card
+      tone="default"
       className={cn(
-        "flex min-h-11 flex-col gap-(--space-3) rounded-[var(--radius-card)] border border-border-subtle/60 bg-surface/90 p-(--space-3) transition-[background-color,border-color,transform] duration-(--duration-fast) active:scale-[var(--press-scale)] hover:border-border-default hover:bg-surface-hover motion-reduce:transition-none motion-reduce:active:scale-100",
+        "flex min-h-11 flex-col gap-(--space-3) p-(--space-3) transition-[background-color,border-color,transform] duration-(--duration-fast) active:scale-[var(--press-scale)] hover:border-border-default hover:bg-surface-hover motion-reduce:transition-none motion-reduce:active:scale-100",
         className,
       )}
       data-testid={testId ?? "account-card"}
@@ -100,6 +103,6 @@ export function AccountCard({
           {healthLabel}
         </StatusBadge>
       ) : null}
-    </div>
+    </Card>
   );
 }

@@ -12,12 +12,8 @@ import {
 import { AmountField } from "@/shared/patterns/amount-field";
 import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
 import { ConfirmSummary } from "@/shared/patterns/confirm-summary";
-import {
-  LabeledDateInput,
-  LabeledSelect,
-} from "@/shared/patterns/labeled-native-field";
-import { Button } from "@/shared/ui/button";
-import { Text } from "@/shared/ui/text";
+import { SheetActionFooter } from "@/shared/patterns/sheet-action-footer";
+import { DatePickerField, SelectField } from "@/shared/ui/form";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import {
@@ -50,6 +46,7 @@ type Props = {
   errorCode: ErrorCode | null;
   payStep: MoneyPaymentFlowStep;
   onPayStepChange: (step: MoneyPaymentFlowStep) => void;
+  onClose: () => void;
 };
 
 type ReceiptState = {
@@ -74,6 +71,7 @@ export function CreditCardSettleFlow({
   errorCode,
   payStep,
   onPayStepChange,
+  onClose,
 }: Props) {
   const t = useTranslations("money.creditCard");
   const router = useRouter();
@@ -291,28 +289,15 @@ export function CreditCardSettleFlow({
             />
           </div>
         </ActionSheetLayout.Body>
-        <ActionSheetLayout.Footer>
-          <Button
-            variant="secondary"
-            fullWidth
-            className="min-w-0 flex-1"
-            data-testid="card-settle-back"
-            isDisabled={isPending}
-            onPress={() => onPayStepChange(MoneyPaymentFlowStep.FORM)}
-          >
-            {t("confirm.back")}
-          </Button>
-          <Button
-            variant="primary"
-            fullWidth
-            className="min-w-0 flex-1"
-            data-testid="card-settle-confirm"
-            isDisabled={isPending || !online}
-            onPress={confirmPay}
-          >
-            {isPending ? t("settling") : t("confirm.submit")}
-          </Button>
-        </ActionSheetLayout.Footer>
+        <SheetActionFooter
+          secondaryLabel={t("confirm.back")}
+          primaryLabel={isPending ? t("settling") : t("confirm.submit")}
+          primaryTestId="card-settle-confirm"
+          isPrimaryDisabled={!online}
+          isPending={isPending}
+          onSecondary={() => onPayStepChange(MoneyPaymentFlowStep.FORM)}
+          onPrimary={confirmPay}
+        />
       </>
     );
   }
@@ -321,9 +306,6 @@ export function CreditCardSettleFlow({
     <>
       <ActionSheetLayout.Body>
         <section className="flex flex-col gap-(--space-3)">
-          <Text size="sm" tone="secondary">
-            {t("settleLiabilityHint")}
-          </Text>
           <AmountField
             id="card-settle-amount"
             label={t("settleAmountLabel")}
@@ -332,35 +314,38 @@ export function CreditCardSettleFlow({
             onValueChange={setSettleAmount}
             data-testid="card-settle-amount"
           />
-          <LabeledSelect
+          <SelectField
+            id="card-settle-source"
             label={t("settleSourceLabel")}
+            description={t("settleLiabilityHint")}
             value={sourceId}
-            onChange={(event) => setSourceId(event.target.value)}
-            data-testid="card-settle-source"
+            onChange={setSourceId}
             options={liquidAccounts.map((account) => ({
               id: account.id,
               label: account.name,
             }))}
+            required
+            data-testid="card-settle-source"
           />
-          <LabeledDateInput
+          <DatePickerField
+            id="card-settle-date"
             label={t("settleDateLabel")}
             value={effectiveDate}
-            onChange={(event) => setEffectiveDate(event.target.value)}
+            onChange={setEffectiveDate}
+            required
             data-testid="card-settle-date"
           />
         </section>
       </ActionSheetLayout.Body>
-      <ActionSheetLayout.Footer>
-        <Button
-          variant="primary"
-          fullWidth
-          data-testid="card-settle-submit"
-          isDisabled={isPending || !online || !sourceId}
-          onPress={goConfirm}
-        >
-          {t("settlePreview")}
-        </Button>
-      </ActionSheetLayout.Footer>
+      <SheetActionFooter
+        secondaryLabel={t("cancel")}
+        primaryLabel={t("settlePreview")}
+        primaryTestId="card-settle-submit"
+        isPrimaryDisabled={!online || !sourceId}
+        isPending={isPending}
+        onSecondary={onClose}
+        onPrimary={goConfirm}
+      />
     </>
   );
 }

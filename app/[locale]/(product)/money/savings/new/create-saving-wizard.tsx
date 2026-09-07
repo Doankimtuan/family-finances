@@ -40,10 +40,13 @@ import { Progress } from "@/shared/ui/progress";
 import { Card } from "@/shared/patterns/card";
 import { Amount, AmountSize } from "@/shared/patterns/amount";
 import { StatusAlert } from "@/shared/ui/status-alert";
-import { TextField } from "@/shared/ui/form";
+import { SelectField, TextField } from "@/shared/ui/form";
 import { Text } from "@/shared/ui/text";
 import { FinancialValue } from "@/shared/patterns/financial-value";
-import { BottomActionBar } from "@/shared/patterns/bottom-action-bar";
+import {
+  BottomActionBar,
+  BottomActionBarLayout,
+} from "@/shared/patterns/bottom-action-bar";
 import { ChoiceTile, ChoiceTileGroup } from "@/shared/patterns/choice-tile";
 import { IconContainer, IconContainerTone } from "@/shared/ui/icon-container";
 import {
@@ -196,6 +199,26 @@ function createDefaultValues(
     targetMode: MaturityTargetMode.KEEP_CURRENT_PACKAGE,
     targetPackageId: packageId || null,
   } satisfies SavingFormValues;
+}
+
+function accountSelectOptions(
+  accounts: AccountOption[],
+  money: (amount: number) => string,
+  availablePrefix: string,
+) {
+  return accounts.map((account) => ({
+    id: account.id,
+    textValue: account.name,
+    label: (
+      <span className="flex min-w-0 flex-1 items-center justify-between gap-(--space-3)">
+        <span className="truncate">{account.name}</span>
+        <span className="shrink-0 text-xs text-text-secondary">
+          {availablePrefix}{" "}
+          <FinancialValue>{money(account.balance)}</FinancialValue>
+        </span>
+      </span>
+    ),
+  }));
 }
 
 function StepHeader({
@@ -637,40 +660,51 @@ export function CreateSavingWizard({
               title={t("productTitle")}
               subtitle={t("productSubtitle")}
             />
-            <SelectionGroup label={t("creationModeLabel")}>
-              <SelectionRow
-                selected={creationMode === SavingsCreateMode.LIVE_DEPOSIT}
-                onPress={() =>
-                  selectCreationMode(SavingsCreateMode.LIVE_DEPOSIT)
-                }
-                testId="savings-create-mode-live"
-              >
-                <span>
-                  <Text size="sm" weight="medium">
-                    {t("liveDepositMode")}
-                  </Text>
-                  <Text size="xs" tone="secondary" className="text-pretty">
-                    {t("liveDepositHint")}
-                  </Text>
-                </span>
-              </SelectionRow>
-              <SelectionRow
-                selected={creationMode === SavingsCreateMode.HISTORICAL_OPENING}
-                onPress={() =>
-                  selectCreationMode(SavingsCreateMode.HISTORICAL_OPENING)
-                }
-                testId="savings-create-mode-historical"
-              >
-                <span>
-                  <Text size="sm" weight="medium">
-                    {t("historicalOpeningMode")}
-                  </Text>
-                  <Text size="xs" tone="secondary" className="text-pretty">
-                    {t("historicalOpeningHint")}
-                  </Text>
-                </span>
-              </SelectionRow>
-            </SelectionGroup>
+            <div className="flex flex-col gap-(--space-2)">
+              <SavingsSectionTitle>
+                {t("creationModeLabel")}
+              </SavingsSectionTitle>
+              <div role="radiogroup" aria-label={t("creationModeLabel")}>
+                <ChoiceTileGroup className="rounded-(--radius-control) bg-surface-muted p-1">
+                  <ChoiceTile
+                    selected={creationMode === SavingsCreateMode.LIVE_DEPOSIT}
+                    onPress={() =>
+                      selectCreationMode(SavingsCreateMode.LIVE_DEPOSIT)
+                    }
+                    testId="savings-create-mode-live"
+                    role="radio"
+                  >
+                    <span>
+                      <Text size="sm" weight="medium">
+                        {t("liveDepositMode")}
+                      </Text>
+                      <Text size="xs" tone="secondary" className="text-pretty">
+                        {t("liveDepositHint")}
+                      </Text>
+                    </span>
+                  </ChoiceTile>
+                  <ChoiceTile
+                    selected={
+                      creationMode === SavingsCreateMode.HISTORICAL_OPENING
+                    }
+                    onPress={() =>
+                      selectCreationMode(SavingsCreateMode.HISTORICAL_OPENING)
+                    }
+                    testId="savings-create-mode-historical"
+                    role="radio"
+                  >
+                    <span>
+                      <Text size="sm" weight="medium">
+                        {t("historicalOpeningMode")}
+                      </Text>
+                      <Text size="xs" tone="secondary" className="text-pretty">
+                        {t("historicalOpeningHint")}
+                      </Text>
+                    </span>
+                  </ChoiceTile>
+                </ChoiceTileGroup>
+              </div>
+            </div>
             <TextField
               id="savings-product-name"
               label={t("savingNameLabel")}
@@ -734,40 +768,19 @@ export function CreateSavingWizard({
                 testId="savings-financial-scope"
               />
             </div>
-            <SelectionGroup label={t("providerLabel")}>
-              {providers.map((provider) => (
-                <SelectionRow
-                  key={provider.id}
-                  selected={provider.id === providerId}
-                  onPress={() => selectProvider(provider.id)}
-                  testId={`savings-provider-${provider.id}`}
-                >
-                  <span className="flex min-w-0 items-center gap-(--space-3)">
-                    <IconContainer
-                      tone={
-                        provider.id === providerId
-                          ? IconContainerTone.SAVINGS
-                          : IconContainerTone.NEUTRAL
-                      }
-                      size="sm"
-                    >
-                      <AppIcon
-                        icon={providerIcon(provider.savingType)}
-                        size={AppIconSize.SM}
-                      />
-                    </IconContainer>
-                    <span className="min-w-0">
-                      <Text size="sm" weight="semibold" className="truncate">
-                        {provider.displayName}
-                      </Text>
-                      <Text size="xs" tone="secondary">
-                        {savingTypeLabel(t, provider.savingType)}
-                      </Text>
-                    </span>
-                  </span>
-                </SelectionRow>
-              ))}
-            </SelectionGroup>
+            <SelectField
+              id="savings-provider"
+              label={t("providerLabel")}
+              value={providerId ?? ""}
+              onChange={selectProvider}
+              options={providers.map((provider) => ({
+                id: provider.id,
+                textValue: provider.displayName,
+                label: provider.displayName,
+              }))}
+              required
+              data-testid="savings-provider"
+            />
             {packages.length ? (
               <SelectionGroup label={t("packageLabel")} hint={t("packageHint")}>
                 {packages.map((pkg) => (
@@ -860,56 +873,27 @@ export function CreateSavingWizard({
                     title={t("noEligibleAccounts")}
                   />
                 ) : null}
-                <SelectionGroup label={t("sourceSection")}>
-                  {accounts.map((account) => (
-                    <SelectionRow
-                      key={account.id}
-                      selected={account.id === fundingAccountId}
-                      onPress={() => {
-                        setValue("fundingAccountId", account.id);
-                        if (settlementAccountId === account.id) {
-                          setValue(
-                            "settlementAccountId",
-                            accounts.find((item) => item.id !== account.id)
-                              ?.id ?? "",
-                          );
-                        }
-                      }}
-                      testId={`savings-source-${account.id}`}
-                    >
-                      <span className="flex min-w-0 items-center gap-(--space-3)">
-                        <IconContainer
-                          tone={
-                            account.id === fundingAccountId
-                              ? IconContainerTone.PRIMARY
-                              : IconContainerTone.NEUTRAL
-                          }
-                          size="sm"
-                        >
-                          <AppIcon
-                            icon={FINANCE_ICONS.wallet}
-                            size={AppIconSize.SM}
-                          />
-                        </IconContainer>
-                        <span className="min-w-0">
-                          <Text
-                            size="sm"
-                            weight="semibold"
-                            className="truncate"
-                          >
-                            {account.name}
-                          </Text>
-                          <Text size="xs" tone="secondary">
-                            {t("availableBalancePrefix")}{" "}
-                            <FinancialValue>
-                              {money(account.balance)}
-                            </FinancialValue>
-                          </Text>
-                        </span>
-                      </span>
-                    </SelectionRow>
-                  ))}
-                </SelectionGroup>
+                <SelectField
+                  id="savings-source"
+                  label={t("sourceSection")}
+                  value={fundingAccountId ?? ""}
+                  onChange={(next) => {
+                    setValue("fundingAccountId", next || null);
+                    if (settlementAccountId === next) {
+                      setValue(
+                        "settlementAccountId",
+                        accounts.find((item) => item.id !== next)?.id ?? "",
+                      );
+                    }
+                  }}
+                  options={accountSelectOptions(
+                    accounts,
+                    money,
+                    t("availableBalancePrefix"),
+                  )}
+                  required
+                  data-testid="savings-source"
+                />
               </div>
             ) : (
               <div className="flex flex-col gap-(--space-2)">
@@ -1089,7 +1073,7 @@ export function CreateSavingWizard({
                 }
                 size={AmountSize.HERO}
                 className="mt-(--space-2)"
-                amountClassName="text-4xl leading-none text-hero-fg"
+                amountClassName="text-hero-fg"
               />
               <Text
                 size="xs"
@@ -1272,22 +1256,19 @@ export function CreateSavingWizard({
                 </>
               ) : null}
               {needsPayout ? (
-                <SelectionGroup label={t("payoutAccountLabel")}>
-                  {accounts.map((account) => (
-                    <SelectionRow
-                      key={account.id}
-                      selected={settlementAccountId === account.id}
-                      onPress={() =>
-                        setValue("settlementAccountId", account.id)
-                      }
-                      testId={`savings-payout-account-${account.id}`}
-                    >
-                      <Text size="sm" weight="medium">
-                        {account.name}
-                      </Text>
-                    </SelectionRow>
-                  ))}
-                </SelectionGroup>
+                <SelectField
+                  id="savings-payout-account"
+                  label={t("payoutAccountLabel")}
+                  value={settlementAccountId ?? ""}
+                  onChange={(next) => setValue("settlementAccountId", next)}
+                  options={accountSelectOptions(
+                    accounts,
+                    money,
+                    t("availableBalancePrefix"),
+                  )}
+                  required
+                  data-testid="savings-payout-account"
+                />
               ) : (
                 <Text size="xs" tone="secondary" className="text-pretty">
                   {t("noPayoutNeeded")}
@@ -1340,48 +1321,46 @@ export function CreateSavingWizard({
         ) : null}
       </MotionStep>
 
-      <BottomActionBar className="mt-auto">
-        <div className="flex justify-between gap-(--space-2)">
-          {stepIndex > 0 ? (
-            <Button
-              variant="secondary"
-              className="min-h-11 flex-1"
-              data-testid="savings-wizard-back"
-              onPress={goBack}
-            >
-              {t("back")}
-            </Button>
-          ) : (
-            <Button
-              variant="secondary"
-              className="min-h-11 flex-1"
-              onPress={exitFlow}
-            >
-              {t("cancel")}
-            </Button>
-          )}
-          {step === FlowStep.REVIEW ? (
-            <Button
-              variant="primary"
-              className="min-h-11 flex-[1.6]"
-              data-testid="savings-wizard-confirm"
-              isDisabled={isPending || !canContinue}
-              onPress={() => void confirm()}
-            >
-              {isPending ? t("confirming") : t("confirm")}
-            </Button>
-          ) : (
-            <Button
-              variant="primary"
-              className="min-h-11 flex-[1.6]"
-              data-testid="savings-wizard-next"
-              isDisabled={!canContinue}
-              onPress={goNext}
-            >
-              {step === FlowStep.DEPOSIT ? t("reviewCta") : t("next")}
-            </Button>
-          )}
-        </div>
+      <BottomActionBar className="mt-auto" layout={BottomActionBarLayout.SPLIT}>
+        {stepIndex > 0 ? (
+          <Button
+            variant="secondary"
+            className="min-h-11 min-w-0 flex-1"
+            data-testid="savings-wizard-back"
+            onPress={goBack}
+          >
+            {t("back")}
+          </Button>
+        ) : (
+          <Button
+            variant="secondary"
+            className="min-h-11 min-w-0 flex-1"
+            onPress={exitFlow}
+          >
+            {t("cancel")}
+          </Button>
+        )}
+        {step === FlowStep.REVIEW ? (
+          <Button
+            variant="primary"
+            className="min-h-11 min-w-0 flex-1"
+            data-testid="savings-wizard-confirm"
+            isDisabled={isPending || !canContinue}
+            onPress={() => void confirm()}
+          >
+            {isPending ? t("confirming") : t("confirm")}
+          </Button>
+        ) : (
+          <Button
+            variant="primary"
+            className="min-h-11 min-w-0 flex-1"
+            data-testid="savings-wizard-next"
+            isDisabled={!canContinue}
+            onPress={goNext}
+          >
+            {step === FlowStep.DEPOSIT ? t("reviewCta") : t("next")}
+          </Button>
+        )}
       </BottomActionBar>
     </div>
   );

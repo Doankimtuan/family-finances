@@ -235,7 +235,7 @@ export function LoginScreen() {
         <Button
           type="submit"
           variant="primary"
-          className="min-h-14 w-full rounded-(--radius-lg) text-base font-semibold"
+          className="min-h-14 w-full rounded-(--radius-card) text-base font-semibold"
           isDisabled={busy || !hydrated}
         >
           {isPending && !oauthPending ? t("submitting") : t("submit")}

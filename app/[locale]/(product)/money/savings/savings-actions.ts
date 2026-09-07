@@ -265,6 +265,13 @@ export async function acknowledgeSavingsMaturityAction(input: {
       code: productActionErrorFromDeniedReason(gate.reason),
     };
   }
+  if (
+    input.action !== SavingsMaturityAckAction.REMIND_TOMORROW &&
+    input.action !== SavingsMaturityAckAction.DISMISS
+  ) {
+    const detected = await detectMaturedSavings();
+    if (!detected.ok) return { status: "error", code: detected.code };
+  }
   const result = await executeSavingsMaturityWorkflow({
     context: { householdId: gate.householdId },
     ...input,

@@ -21,7 +21,7 @@ describe("motion foundation", () => {
     });
     expect(springs).toHaveProperty("snappy");
     expect(springs).toHaveProperty("gentle");
-    expect(springs).toHaveProperty("bouncy");
+    expect(springs).not.toHaveProperty("bouncy");
     expect(springs).toHaveProperty("instant");
     expect(springs).toHaveProperty("release");
   });
@@ -57,5 +57,14 @@ describe("motion foundation", () => {
     expect(revealVariants.visible.y).toBe(0);
     expect(reducedRevealVariants.hidden.y).toBe(0);
     expect(reducedRevealVariants.exit.y).toBe(0);
+  });
+
+  it("caps reveal distance at the small semantic token", () => {
+    expect(motionTokens.distance.sm).toBe(8);
+    expect(revealVariants.hidden.y).toBe(motionTokens.distance.sm);
+    expect(revealVariants.exit.y).toBe(-motionTokens.distance.sm);
+    expect(Math.abs(revealVariants.hidden.y)).toBeLessThanOrEqual(
+      motionTokens.distance.sm,
+    );
   });
 });

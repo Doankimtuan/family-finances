@@ -68,12 +68,15 @@ export {
   TogetherStatusTone,
 } from "./together-management";
 export { SectionHeader, type SectionHeaderProps } from "./section-header";
+export { Balance, type BalanceProps } from "./balance";
 export {
-  Balance,
   BalanceSize,
   BALANCE_SIZE_VALUES,
-  type BalanceProps,
-} from "./balance";
+  AmountSize,
+  AMOUNT_SIZE_VALUES,
+  FinancialDisplaySize,
+  FINANCIAL_DISPLAY_SIZE_VALUES,
+} from "./financial-display-size";
 export { FinancialValue } from "./financial-value";
 export {
   FinancialPrivacyToggle,
@@ -90,8 +93,6 @@ export {
   Amount,
   AmountTone,
   AMOUNT_TONE_VALUES,
-  AmountSize,
-  AMOUNT_SIZE_VALUES,
   type AmountProps,
 } from "./amount";
 export { AmountField, type AmountFieldProps } from "./amount-field";
@@ -107,6 +108,7 @@ export {
 export {
   ReviewCard,
   ReviewCardDensity,
+  REVIEW_CARD_TEST_ID,
   type ReviewCardProps,
 } from "./review-card";
 export {
@@ -114,13 +116,6 @@ export {
   type ConfirmSummaryProps,
   type ConfirmSummaryRow,
 } from "./confirm-summary";
-export {
-  LabeledSelect,
-  LabeledDateInput,
-  type LabeledSelectProps,
-  type LabeledDateInputProps,
-  type LabeledSelectOption,
-} from "./labeled-native-field";
 export {
   KpiBlock,
   KpiBlockVariant,

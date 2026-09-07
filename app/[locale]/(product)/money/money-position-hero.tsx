@@ -1,11 +1,12 @@
 import type { ReactNode } from "react";
-import { Link } from "@/i18n/navigation";
 import {
   MoneyAssetAllocationKey,
   type MoneyAssetAllocationKey as MoneyAssetAllocationKeyValue,
 } from "@/modules/ledger/application";
-import { Balance, BalanceSize } from "@/shared/patterns/balance";
+import { Balance } from "@/shared/patterns/balance";
+import { BalanceSize } from "@/shared/patterns/financial-display-size";
 import { Card } from "@/shared/patterns/card";
+import { HeroPillLink } from "@/shared/patterns/hero-pill-link";
 import { FinancialPrivacyToggle } from "@/shared/patterns/financial-privacy-toggle";
 import { FinancialValue } from "@/shared/patterns/financial-value";
 import { AppIcon } from "@/shared/ui/app-icon";
@@ -30,8 +31,6 @@ type MoneyPrivacyLabels = {
 type Props = {
   ownedMoneyLabel: string;
   ownedMoneyValue: string | null;
-  accountMoneyLabel?: string;
-  accountMoneyValue?: string | null;
   positionUnavailableLabel: string;
   metaLine: ReactNode;
   allocationLabel: string;
@@ -65,16 +64,15 @@ const ALLOCATION_SEGMENT_CLASS: Record<MoneyAssetAllocationKeyValue, string> = {
 };
 
 /**
- * The Money position summary: one brand hero answering "how much is in my
- * all assets" with the transactions entry, and an attached allocation strip
- * answering "where it sits". Money stays an inventory surface — the
- * allocation strip is the analytics ceiling here, never charts.
+ * The Money position summary: one brand hero answering "how much accessible
+ * money is in active liquid accounts" with the transactions entry, and an
+ * attached allocation strip answering "where it sits". Money stays an
+ * inventory surface — the allocation strip is the analytics ceiling here,
+ * never charts.
  */
 export function MoneyPositionHero({
   ownedMoneyLabel,
   ownedMoneyValue,
-  accountMoneyLabel,
-  accountMoneyValue,
   positionUnavailableLabel,
   metaLine,
   allocationLabel,
@@ -118,29 +116,15 @@ export function MoneyPositionHero({
             amountLabel={ownedMoneyValue}
             size={BalanceSize.HERO}
             className="mt-(--space-2)"
-            amountClassName="text-4xl text-hero-fg"
+            amountClassName="text-hero-fg"
           />
         )}
-        {ownedMoneyValue != null &&
-        accountMoneyLabel != null &&
-        accountMoneyValue != null ? (
-          <div className="mt-(--space-1) flex flex-wrap items-center gap-x-(--space-2) text-xs text-hero-muted">
-            <span>{accountMoneyLabel}</span>
-            <span className="font-medium tabular-nums">
-              <FinancialValue>{accountMoneyValue}</FinancialValue>
-            </span>
-          </div>
-        ) : null}
         <div className="mt-(--space-4) flex flex-wrap items-center justify-between gap-x-(--space-3) gap-y-(--space-2) border-t border-white/15 pt-(--space-3)">
           {metaLine}
-          <Link
-            href={activityHref}
-            className="inline-flex min-h-8 items-center gap-(--space-1) rounded-full border border-white/25 bg-white/10 px-(--space-3) text-sm font-medium text-hero-fg transition-[background-color,transform] duration-(--duration-fast) hover:bg-white/20 active:scale-(--press-scale) motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-hero-fg"
-            data-testid="money-see-activity"
-          >
+          <HeroPillLink href={activityHref} data-testid="money-see-activity">
             {activityLabel}
             <AppIcon icon={ACTION_ICONS.forward} size="xs" />
-          </Link>
+          </HeroPillLink>
         </div>
       </Card>
       {allocation.length > 0 || allocationUnavailableLabel != null ? (

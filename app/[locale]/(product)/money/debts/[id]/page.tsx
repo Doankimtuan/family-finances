@@ -203,6 +203,15 @@ export default async function DebtDetailPage({ params }: Props) {
           trailing={
             <DebtPrivacyToggle testId="debt-detail-financial-privacy-toggle" />
           }
+          context={
+            <FinancialOwnershipBadge
+              financialScope={debt.ownership.financialScope}
+              isOwnedByMe={debt.ownership.isOwnedByMe}
+              ownerStatus={debt.ownership.ownerStatus}
+              showExplanation
+              onHero
+            />
+          }
           labels={{
             ...dueLabels,
             ...progressLabels,
@@ -211,138 +220,114 @@ export default async function DebtDetailPage({ params }: Props) {
           }}
         />
       </MotionReveal>
-      <MotionReveal>
-        <DebtFactsCard
-          title={t("details")}
-          testId="debt-detail-facts"
-          footer={
-            <div className="px-(--space-4) py-(--space-3)">
-              <FinancialOwnershipBadge
-                financialScope={debt.ownership.financialScope}
-                isOwnedByMe={debt.ownership.isOwnedByMe}
-                ownerStatus={debt.ownership.ownerStatus}
-                showExplanation
-              />
-            </div>
+      <DebtFactsCard title={t("details")} testId="debt-detail-facts">
+        <DebtFactRow label={t("counterparty")} value={debt.counterparty} />
+        <DebtFactRow
+          label={t("originalPrincipal")}
+          value={
+            <FinancialValue>
+              {formatCurrency(debt.principalAmount, debt.currency, locale, {
+                maximumFractionDigits: 0,
+              })}
+            </FinancialValue>
           }
-        >
-          <DebtFactRow label={t("counterparty")} value={debt.counterparty} />
-          <DebtFactRow
-            label={t("originalPrincipal")}
-            value={
-              <FinancialValue>
-                {formatCurrency(debt.principalAmount, debt.currency, locale, {
-                  maximumFractionDigits: 0,
-                })}
-              </FinancialValue>
-            }
-            emphasis
-          />
-          <DebtFactRow
-            label={isBorrowed ? tDebts("paid") : tDebts("received")}
-            value={
-              <FinancialValue>
-                {formatCurrency(progress.paidAmount, debt.currency, locale, {
-                  maximumFractionDigits: 0,
-                })}
-              </FinancialValue>
-            }
-          />
-          {debt.openingPaidAmount > 0 ? (
-            <DebtFactRow
-              label={t("openingPaid")}
-              value={
-                <FinancialValue>
-                  {formatCurrency(
-                    debt.openingPaidAmount,
-                    debt.currency,
-                    locale,
-                    { maximumFractionDigits: 0 },
-                  )}
-                </FinancialValue>
-              }
-            />
-          ) : null}
-          <DebtFactRow
-            label={t("startDate")}
-            value={formatFactDate(debt.startDate)}
-          />
-          {debt.dueDate ? (
-            <DebtFactRow
-              label={t("dueDateLabel")}
-              value={formatFactDate(debt.dueDate)}
-            />
-          ) : null}
-          {debt.note ? (
-            <DebtFactRow label={t("note")} value={debt.note} />
-          ) : null}
-          {originAccountName ? (
-            <DebtFactRow label={t("originAccount")} value={originAccountName} />
-          ) : null}
-          {debt.originTransactionId ? (
-            <DebtFactRow
-              label={t("originTransaction")}
-              value={
-                <Link
-                  href={moneyTransactionPath(debt.originTransactionId)}
-                  className="inline-flex min-h-11 items-center text-sm font-medium text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-                >
-                  {t("viewTransaction")}
-                </Link>
-              }
-            />
-          ) : null}
-        </DebtFactsCard>
-      </MotionReveal>
-      {debt.status === DebtStatus.COMPLETED ? (
-        <MotionReveal>
-          <Text size="sm" tone="secondary" className="text-pretty">
-            {t("paidOff")}
-          </Text>
-        </MotionReveal>
-      ) : null}
-      <MotionReveal>
-        <DebtPaymentHistory
-          title={t("history")}
-          countLabel={t("historyCount", {
-            count: payments.length + (debt.openingPaidAmount > 0 ? 1 : 0),
-          })}
-          emptyTitle={
-            debt.status === DebtStatus.COMPLETED
-              ? t("paidOff")
-              : isBorrowed
-                ? t("noRepayments")
-                : t("noReceipts")
-          }
-          accountFallback={t("historyAccountFallback")}
-          isBorrowed={isBorrowed}
-          payments={localizedPayments}
-          formatAmount={(amount) =>
-            formatCurrency(amount, debt.currency, locale, {
-              maximumFractionDigits: 0,
-            })
-          }
-          formatDate={(isoDate) => formatFactDate(isoDate)}
-          transactionPath={moneyTransactionPath}
-          retryHref={moneyDebtPath(debt.id)}
-          readError={paymentsResult.status === DebtReadStatus.ERROR}
-          readErrorTitle={t("historyReadErrorTitle")}
-          readErrorDescription={t("historyReadErrorDescription")}
-          retryLabel={t("retry")}
-          openingPaidAmount={
-            paymentsResult.status === DebtReadStatus.OK
-              ? debt.openingPaidAmount
-              : 0
-          }
-          openingLabel={t("openingPaid")}
-          totalLabel={t("historyTotal")}
-          reconciliationWarning={
-            reconciliation && !reconciliation.isReconciled
-              ? t("historyReconciliationError")
-              : undefined
+          emphasis
+        />
+        <DebtFactRow
+          label={isBorrowed ? tDebts("paid") : tDebts("received")}
+          value={
+            <FinancialValue>
+              {formatCurrency(progress.paidAmount, debt.currency, locale, {
+                maximumFractionDigits: 0,
+              })}
+            </FinancialValue>
           }
         />
-      </MotionReveal>
+        {debt.openingPaidAmount > 0 ? (
+          <DebtFactRow
+            label={t("openingPaid")}
+            value={
+              <FinancialValue>
+                {formatCurrency(debt.openingPaidAmount, debt.currency, locale, {
+                  maximumFractionDigits: 0,
+                })}
+              </FinancialValue>
+            }
+          />
+        ) : null}
+        <DebtFactRow
+          label={t("startDate")}
+          value={formatFactDate(debt.startDate)}
+        />
+        {debt.dueDate ? (
+          <DebtFactRow
+            label={t("dueDateLabel")}
+            value={formatFactDate(debt.dueDate)}
+          />
+        ) : null}
+        {debt.note ? <DebtFactRow label={t("note")} value={debt.note} /> : null}
+        {originAccountName ? (
+          <DebtFactRow label={t("originAccount")} value={originAccountName} />
+        ) : null}
+        {debt.originTransactionId ? (
+          <DebtFactRow
+            label={t("originTransaction")}
+            value={
+              <Link
+                href={moneyTransactionPath(debt.originTransactionId)}
+                className="inline-flex min-h-11 items-center text-sm font-medium text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+              >
+                {t("viewTransaction")}
+              </Link>
+            }
+          />
+        ) : null}
+      </DebtFactsCard>
+      {debt.status === DebtStatus.COMPLETED ? (
+        <Text size="sm" tone="secondary" className="text-pretty">
+          {t("paidOff")}
+        </Text>
+      ) : null}
+      <DebtPaymentHistory
+        title={t("history")}
+        countLabel={t("historyCount", {
+          count: payments.length + (debt.openingPaidAmount > 0 ? 1 : 0),
+        })}
+        emptyTitle={
+          debt.status === DebtStatus.COMPLETED
+            ? t("paidOff")
+            : isBorrowed
+              ? t("noRepayments")
+              : t("noReceipts")
+        }
+        accountFallback={t("historyAccountFallback")}
+        isBorrowed={isBorrowed}
+        payments={localizedPayments}
+        formatAmount={(amount) =>
+          formatCurrency(amount, debt.currency, locale, {
+            maximumFractionDigits: 0,
+          })
+        }
+        formatDate={(isoDate) => formatFactDate(isoDate)}
+        transactionPath={moneyTransactionPath}
+        retryHref={moneyDebtPath(debt.id)}
+        readError={paymentsResult.status === DebtReadStatus.ERROR}
+        readErrorTitle={t("historyReadErrorTitle")}
+        readErrorDescription={t("historyReadErrorDescription")}
+        retryLabel={t("retry")}
+        openingPaidAmount={
+          paymentsResult.status === DebtReadStatus.OK
+            ? debt.openingPaidAmount
+            : 0
+        }
+        openingLabel={t("openingPaid")}
+        totalLabel={t("historyTotal")}
+        reconciliationWarning={
+          reconciliation && !reconciliation.isReconciled
+            ? t("historyReconciliationError")
+            : undefined
+        }
+      />
       {canRecordPayment ? (
         <BottomActionBar>
           <DebtPaymentSheet

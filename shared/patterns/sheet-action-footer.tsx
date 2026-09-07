@@ -1,5 +1,8 @@
-import { Button } from "@/shared/ui/button";
+import { Button, ButtonVariant } from "@/shared/ui/button";
 import { ActionSheetLayout } from "./action-sheet-layout";
+
+type SheetActionFooterPrimaryVariant =
+  typeof ButtonVariant.PRIMARY | typeof ButtonVariant.DANGER;
 
 type SheetActionFooterProps = {
   secondaryLabel: string;
@@ -7,6 +10,7 @@ type SheetActionFooterProps = {
   onSecondary: () => void;
   onPrimary: () => void;
   primaryTestId?: string;
+  primaryVariant?: SheetActionFooterPrimaryVariant;
   /** Disables both actions (e.g. offline). Prefer `isPrimaryDisabled` for form validity. */
   isDisabled?: boolean;
   /** Disables only the primary action so Cancel / Back stay available. */
@@ -21,6 +25,7 @@ export function SheetActionFooter({
   onSecondary,
   onPrimary,
   primaryTestId,
+  primaryVariant = ButtonVariant.PRIMARY,
   isDisabled = false,
   isPrimaryDisabled = false,
   isPending = false,
@@ -31,7 +36,7 @@ export function SheetActionFooter({
   return (
     <ActionSheetLayout.Footer>
       <Button
-        variant="secondary"
+        variant={ButtonVariant.SECONDARY}
         fullWidth
         className="min-h-11 min-w-0 flex-1 shadow-none"
         isDisabled={secondaryDisabled}
@@ -40,7 +45,7 @@ export function SheetActionFooter({
         {secondaryLabel}
       </Button>
       <Button
-        variant="primary"
+        variant={primaryVariant}
         fullWidth
         className="min-h-11 min-w-0 flex-1"
         data-testid={primaryTestId}

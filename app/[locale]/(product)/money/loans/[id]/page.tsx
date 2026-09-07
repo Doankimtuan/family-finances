@@ -34,6 +34,7 @@ import {
   localizeCatalogName,
 } from "@/shared/i18n/localize-catalog-name";
 import { MotionReveal } from "@/shared/motion";
+import { BottomActionBar } from "@/shared/patterns/bottom-action-bar";
 import { FinancialOwnershipBadge } from "@/shared/patterns/financial-ownership-badge";
 import { FinancialValue } from "@/shared/patterns/financial-value";
 import { Page } from "@/shared/patterns/page";
@@ -207,14 +208,16 @@ export default async function LoanDetailPage({ params, searchParams }: Props) {
     { view: LoanDetailView.HISTORY, label: t("historyTab") },
   ] as const;
 
-  const ownershipBadge = (
+  const heroOwnership = (
     <FinancialOwnershipBadge
       financialScope={loan.ownership.financialScope}
       isOwnedByMe={loan.ownership.isOwnedByMe}
       ownerStatus={loan.ownership.ownerStatus}
       showExplanation
+      onHero
     />
   );
+  const canRecordPayment = isActive && canMutate && nextEntry != null;
 
   const overview = (
     <div className="flex flex-col gap-(--space-5)">
@@ -223,12 +226,9 @@ export default async function LoanDetailPage({ params, searchParams }: Props) {
           className="flex flex-col gap-(--space-2)"
           data-testid="loan-next-payment"
         >
-          <div className="flex items-start justify-between gap-(--space-3)">
-            <LoanSectionTitle>{t("nextPaymentSection")}</LoanSectionTitle>
-            {ownershipBadge}
-          </div>
+          <LoanSectionTitle>{t("nextPaymentSection")}</LoanSectionTitle>
           <Card tone="elevated" className="gap-0 overflow-hidden p-0">
-            <div className="flex flex-col gap-(--space-3) p-(--space-4)">
+            <div className="flex flex-col gap-(--space-2) p-(--space-4)">
               <Text size="sm" weight="medium" className="text-pretty">
                 {t("nextDueLead", {
                   amount: money(nextTotal),
@@ -246,24 +246,11 @@ export default async function LoanDetailPage({ params, searchParams }: Props) {
                 </FinancialValue>
               </Text>
               {isActive && canMutate ? (
-                <div className="flex flex-col gap-(--space-2) pt-(--space-1)">
-                  <LoanPayAction
-                    loanId={loan.id}
-                    loanName={loan.name}
-                    currency={loan.currency}
-                    principalDue={nextEntry.principalDue}
-                    interestDue={nextEntry.interestDue}
-                    totalDue={nextTotal}
-                    remainingPrincipal={loan.remainingPrincipal}
-                    accounts={accounts}
-                    paidAtDefault={today}
-                  />
-                  <LoanPayoffEstimate
-                    remainingPrincipal={loan.remainingPrincipal}
-                    currency={loan.currency}
-                    asOfDate={today}
-                  />
-                </div>
+                <LoanPayoffEstimate
+                  remainingPrincipal={loan.remainingPrincipal}
+                  currency={loan.currency}
+                  asOfDate={today}
+                />
               ) : null}
             </div>
           </Card>
@@ -273,7 +260,6 @@ export default async function LoanDetailPage({ params, searchParams }: Props) {
           className="flex flex-col gap-(--space-2)"
           data-testid="loan-next-payment-empty"
         >
-          {ownershipBadge}
           <Card tone="elevated" className="gap-(--space-3) p-(--space-4)">
             <Text size="sm" tone="secondary">
               {t("noUpcomingPayment")}
@@ -290,13 +276,6 @@ export default async function LoanDetailPage({ params, searchParams }: Props) {
       <LoanFactsCard
         title={t("repaymentSummary")}
         testId="loan-repayment-summary"
-        footer={
-          !nextEntry && !(isActive && canMutate) ? (
-            <div className="border-t border-divider px-(--space-4) py-(--space-3)">
-              {ownershipBadge}
-            </div>
-          ) : undefined
-        }
       >
         <LoanFactRow
           label={t("originalPrincipal")}
@@ -516,12 +495,6 @@ export default async function LoanDetailPage({ params, searchParams }: Props) {
         >
           <LoanSectionTitle>{t("secondaryActions")}</LoanSectionTitle>
           <Card tone="elevated" className="gap-(--space-3) p-(--space-4)">
-            <LoanEditAction
-              loanId={loan.id}
-              initialName={loan.name}
-              initialLender={loan.lender ?? ""}
-              initialNote={loan.note ?? ""}
-            />
             {canEditInterest ? (
               <LoanEditInterestAction
                 loanId={loan.id}
@@ -552,6 +525,17 @@ export default async function LoanDetailPage({ params, searchParams }: Props) {
           title={loan.name}
           subtitle={subtitle}
           backHref={APP_PATH.MONEY_LOANS}
+          trailing={
+            isActive && canMutate ? (
+              <LoanEditAction
+                loanId={loan.id}
+                initialName={loan.name}
+                initialLender={loan.lender ?? ""}
+                initialNote={loan.note ?? ""}
+                compactTrigger
+              />
+            ) : undefined
+          }
         />
       }
     >
@@ -571,6 +555,7 @@ export default async function LoanDetailPage({ params, searchParams }: Props) {
           trailing={
             <LoanPrivacyToggle testId="loan-detail-financial-privacy-toggle" />
           }
+          context={heroOwnership}
           labels={{
             remaining: t("remainingLabel"),
             nextPayment: t("nextPaymentAmount"),
@@ -592,6 +577,21 @@ export default async function LoanDetailPage({ params, searchParams }: Props) {
         schedule={schedule}
         history={history}
       />
+      {canRecordPayment && nextEntry ? (
+        <BottomActionBar>
+          <LoanPayAction
+            loanId={loan.id}
+            loanName={loan.name}
+            currency={loan.currency}
+            principalDue={nextEntry.principalDue}
+            interestDue={nextEntry.interestDue}
+            totalDue={nextTotal}
+            remainingPrincipal={loan.remainingPrincipal}
+            accounts={accounts}
+            paidAtDefault={today}
+          />
+        </BottomActionBar>
+      ) : null}
     </Page>
   );
 }

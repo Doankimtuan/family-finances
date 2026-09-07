@@ -26,10 +26,7 @@ import {
   type MoneyHubDomainSummary,
 } from "@/modules/ledger/application";
 import { getSavingsHomeSummary } from "@/modules/savings/application";
-import {
-  InvestmentHomeValuationQuality,
-  listInvestmentHomeSummary,
-} from "@/modules/investments/application";
+import { listInvestmentHomeSummary } from "@/modules/investments/application";
 import { formatCurrency, formatDate } from "@/shared/i18n/formatters";
 import { MotionReveal } from "@/shared/motion";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
@@ -196,45 +193,18 @@ export default async function MoneyHubPage({ params }: Props) {
         ? { state: "value", label: money(summary.total, summary.currency) }
         : { state: "empty", label: t("hub.modules.empty") };
 
-  const investmentQualityLabel = (summary: MoneyHubDomainSummary) => {
-    const coverage = summary.valuationCoverage ?? { included: 0, total: 0 };
-    switch (summary.valuationQuality) {
-      case InvestmentHomeValuationQuality.CURRENT:
-        return t("hub.modules.investmentCurrent", coverage);
-      case InvestmentHomeValuationQuality.STALE:
-        return t("hub.modules.investmentStale", coverage);
-      case InvestmentHomeValuationQuality.MANUAL:
-        return t("hub.modules.investmentManual", coverage);
-      case InvestmentHomeValuationQuality.PARTIAL:
-        return t("hub.modules.investmentPartial", coverage);
-      case InvestmentHomeValuationQuality.UNKNOWN:
-      case null:
-        return t("hub.modules.investmentUnknown");
-    }
-  };
-
-  const investmentValue = (
+  const investmentHoldingsValue = (
     summary: MoneyHubDomainSummary,
   ): MoneyModuleValue => {
     if (!summary.loaded) return unavailableValue();
-    if (summary.count === 0)
+    if (summary.count === 0) {
       return { state: "empty", label: t("hub.modules.empty") };
-    if (summary.total == null) {
-      return {
-        state: "unavailable",
-        label: t("hub.modules.investmentUnknown"),
-      };
     }
-    return { state: "value", label: money(summary.total, summary.currency) };
+    return {
+      state: "count",
+      label: t("hub.modules.investmentCount", { count: summary.count }),
+    };
   };
-
-  const investmentMeta = (summary: MoneyHubDomainSummary) =>
-    summary.loaded && summary.count > 0
-      ? t("hub.modules.investmentMeta", {
-          count: summary.count,
-          quality: investmentQualityLabel(summary),
-        })
-      : undefined;
 
   const buildAccountRows = (
     groups: NonNullable<typeof viewModel>["accountGroups"],
@@ -276,14 +246,8 @@ export default async function MoneyHubPage({ params }: Props) {
       <>
         <MotionReveal>
           <MoneyPositionHero
-            ownedMoneyLabel={t("totalAssets")}
+            ownedMoneyLabel={t("realPosition")}
             ownedMoneyValue={
-              assetOverview.status === MoneyAssetOverviewStatus.UNAVAILABLE
-                ? null
-                : money(assetOverview.total, currency)
-            }
-            accountMoneyLabel={t("realPosition")}
-            accountMoneyValue={
               viewModel ? money(viewModel.totalOwnedBalance, currency) : null
             }
             positionUnavailableLabel={t("hub.modules.positionUnavailable")}
@@ -468,8 +432,7 @@ export default async function MoneyHubPage({ params }: Props) {
             icon={FINANCE_ICONS.investment}
             iconTone={IconContainerTone.INVESTMENT}
             label={t("investmentsLabel")}
-            value={investmentValue(modules.investments)}
-            meta={investmentMeta(modules.investments)}
+            value={investmentHoldingsValue(modules.investments)}
           />
         </MoneyModuleCard>
         <MoneyModuleCard

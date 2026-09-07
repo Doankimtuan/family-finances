@@ -25,7 +25,16 @@ describe("Shared Visual Foundation", () => {
       );
 
       expect(screen.getByTestId("test-section")).toBeInTheDocument();
-      expect(screen.getByText("This period")).toBeInTheDocument();
+      const heading = screen.getByRole("heading", {
+        level: 2,
+        name: "This period",
+      });
+      expect(heading.tagName).toBe("H2");
+      expect(heading).toHaveAttribute("data-slot", "section-title");
+      expect(heading).toHaveClass("text-sm", "font-semibold");
+      expect(heading).not.toHaveClass("text-lg");
+      expect(heading).not.toHaveClass("text-xl");
+      expect(heading).not.toHaveClass("text-2xl");
       expect(screen.getByText("Cash flow summary")).toBeInTheDocument();
       expect(screen.getByText("Section Content")).toBeInTheDocument();
       const btn = screen.getByRole("button", { name: "View all" });
@@ -78,11 +87,19 @@ describe("Shared Visual Foundation", () => {
 
       const balanceElem = screen.getByTestId("ledger-balance");
       expect(balanceElem).toHaveTextContent("₫1,889,655");
-      expect(balanceElem).toHaveClass("tabular-nums", "text-3xl", "font-semibold");
+      expect(balanceElem).toHaveClass(
+        "tabular-nums",
+        "text-3xl",
+        "font-semibold",
+      );
       expect(screen.getByText("Total across accounts")).toBeInTheDocument();
 
       rerender(<Balance amountLabel="₫1,889,655" size={BalanceSize.HERO} />);
-      expect(screen.getByTestId("ledger-balance")).toHaveClass("text-3xl");
+      expect(screen.getByTestId("ledger-balance")).toHaveClass(
+        "text-4xl",
+        "leading-none",
+      );
+      expect(screen.getByTestId("ledger-balance")).not.toHaveClass("text-3xl");
 
       rerender(<Balance amountLabel="₫1,889,655" size={BalanceSize.MD} />);
       expect(screen.getByTestId("ledger-balance")).toHaveClass("text-xl");
@@ -107,14 +124,30 @@ describe("Shared Visual Foundation", () => {
       expect(amountElem).toHaveTextContent("₫500,000");
       expect(amountElem).toHaveClass("tabular-nums", "text-saving", "text-xl");
 
+      rerender(<Amount amountLabel="₫1,000,000" size={AmountSize.HERO} />);
+      expect(screen.getByTestId("intention-amount")).toHaveClass(
+        "text-4xl",
+        "leading-none",
+      );
+      expect(screen.getByTestId("intention-amount")).not.toHaveClass(
+        "text-3xl",
+      );
+
+      rerender(<Amount amountLabel="₫1,000,000" size={AmountSize.LG} />);
+      expect(screen.getByTestId("intention-amount")).toHaveClass("text-3xl");
+
       rerender(<Amount amountLabel="₫1,000,000" tone={AmountTone.CREDIT} />);
-      expect(screen.getByTestId("intention-amount")).toHaveClass("text-success");
+      expect(screen.getByTestId("intention-amount")).toHaveClass(
+        "text-success",
+      );
 
       rerender(<Amount amountLabel="₫200,000" tone={AmountTone.DEBIT} />);
       expect(screen.getByTestId("intention-amount")).toHaveClass("text-danger");
 
       rerender(<Amount amountLabel="₫300,000" tone={AmountTone.MUTED} />);
-      expect(screen.getByTestId("intention-amount")).toHaveClass("text-text-secondary");
+      expect(screen.getByTestId("intention-amount")).toHaveClass(
+        "text-text-secondary",
+      );
     });
   });
 
@@ -161,28 +194,40 @@ describe("Shared Visual Foundation", () => {
           Positive flow
         </StatusBadge>,
       );
-      expect(screen.getByTestId("badge")).toHaveClass("bg-success/10", "text-success");
+      expect(screen.getByTestId("badge")).toHaveClass(
+        "bg-success/10",
+        "text-success",
+      );
 
       rerender(
         <StatusBadge tone={StatusBadgeTone.ATTENTION} data-testid="badge">
           Attention needed
         </StatusBadge>,
       );
-      expect(screen.getByTestId("badge")).toHaveClass("bg-danger/10", "text-danger");
+      expect(screen.getByTestId("badge")).toHaveClass(
+        "bg-danger/10",
+        "text-danger",
+      );
 
       rerender(
         <StatusBadge tone={StatusBadgeTone.WARNING} data-testid="badge">
           Due soon
         </StatusBadge>,
       );
-      expect(screen.getByTestId("badge")).toHaveClass("bg-warning/10", "text-warning");
+      expect(screen.getByTestId("badge")).toHaveClass(
+        "bg-warning/10",
+        "text-warning",
+      );
 
       rerender(
         <StatusBadge tone={StatusBadgeTone.INFO} data-testid="badge">
           Offline
         </StatusBadge>,
       );
-      expect(screen.getByTestId("badge")).toHaveClass("bg-info/10", "text-info");
+      expect(screen.getByTestId("badge")).toHaveClass(
+        "bg-info/10",
+        "text-info",
+      );
     });
 
     it("renders StatusAlert with action slot", () => {
@@ -198,7 +243,9 @@ describe("Shared Visual Foundation", () => {
 
       expect(screen.getByTestId("status-alert")).toBeInTheDocument();
       expect(screen.getByText("Offline mode")).toBeInTheDocument();
-      expect(screen.getByText("Changes will not be saved.")).toBeInTheDocument();
+      expect(
+        screen.getByText("Changes will not be saved."),
+      ).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Retry" })).toBeInTheDocument();
     });
   });
@@ -213,7 +260,9 @@ describe("Shared Visual Foundation", () => {
       );
 
       expect(screen.getByText("No pending items")).toBeInTheDocument();
-      expect(screen.getByText("All transactions categorized.")).toBeInTheDocument();
+      expect(
+        screen.getByText("All transactions categorized."),
+      ).toBeInTheDocument();
       const title = screen.getByText("No pending items");
       expect(title).toHaveAttribute("data-slot", "empty-state-title");
     });

@@ -1,5 +1,7 @@
 # Design System Evolution - Current
 
+**Agent UI/UX redesign SoT:** [`.agents/design-system.md`](../../../.agents/design-system.md). Read that file first for Design DNA, reference hierarchy, screen matrix, safety gates, and screen-family recipes. This Phase D package remains the deeper visual-system contract; it does not replace the agent SoT.
+
 Phase D defines the canonical visual system and UI implementation mindset for ViNha.
 
 This package is governed by:
@@ -45,4 +47,4 @@ ViNha should feel like a Gen Z financial life companion for young Vietnamese hou
 
 ## Implementation Boundary
 
-Future UI work must implement one screen or one coherent flow at a time. Before editing UI, read Phase B, Phase C, this Phase D package, existing shared components, and the target screen in a real browser.
+Future UI work must implement one screen or one coherent flow at a time. Before editing UI, read `.agents/design-system.md`, then Phase B, Phase C, this Phase D package, existing shared components, and the target screen in a real browser.

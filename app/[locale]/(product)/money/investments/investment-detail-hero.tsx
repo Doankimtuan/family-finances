@@ -54,7 +54,7 @@ export function InvestmentDetailHero({
           amountLabel={amountLabel}
           size={AmountSize.HERO}
           className="mt-(--space-3)"
-          amountClassName="text-4xl leading-none text-hero-fg"
+          amountClassName="text-hero-fg"
         />
       ) : (
         <Text size="sm" className="mt-(--space-3) text-pretty text-hero-muted">

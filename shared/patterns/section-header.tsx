@@ -32,7 +32,7 @@ export function SectionHeader({
         {title == null ? null : typeof title === "string" ? (
           <Heading
             level={2}
-            className="text-lg font-semibold tracking-tight"
+            className="text-sm font-semibold tracking-tight text-text-primary"
             data-slot="section-title"
           >
             {title}

@@ -6,13 +6,13 @@ files.
 
 ## Canonical Locations
 
-| What                  | Where                                                                        |
-| --------------------- | ---------------------------------------------------------------------------- |
-| Agent instructions    | `.agents/instructions/PROJECT.md` (this file)                                |
-| Design system (Home)  | `.agents/design-system.md` (canonical UI reference; read before any UI work) |
-| Agent skills          | `.agents/skills/<skill-name>/SKILL.md`                                       |
-| UI constitution, laws | root `AGENTS.md`                                                             |
-| Setup / verify links  | `./scripts/setup-agent-skills.sh`                                            |
+| What                  | Where                                                                                                  |
+| --------------------- | ------------------------------------------------------------------------------------------------------ |
+| Agent instructions    | `.agents/instructions/PROJECT.md` (this file)                                                          |
+| UI/UX Design SoT      | `.agents/design-system.md` (authoritative redesign reference; read before any UI work — not Home-only) |
+| Agent skills          | `.agents/skills/<skill-name>/SKILL.md`                                                                 |
+| UI constitution, laws | root `AGENTS.md`                                                                                       |
+| Setup / verify links  | `./scripts/setup-agent-skills.sh`                                                                      |
 
 `.agents/skills/` is the Agent Skills open-standard root. Codex, Cursor,
 ZCode, and Zed discover it natively — never copy skill bodies into
@@ -32,8 +32,8 @@ Before implementation, load the relevant skills:
 | Writing or changing tests      | + `testing-quality`                                 |
 | End of every refactor          | `refactor-review` (mandatory)                       |
 
-UI work additionally follows the UI Constitution in root `AGENTS.md` and the
-design skills it references.
+UI work additionally follows the UI Constitution in root `AGENTS.md`, the UI/UX
+Design SoT in `.agents/design-system.md`, and the design skills they reference.
 
 ## Verification Commands (mandatory before completion)
 

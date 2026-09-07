@@ -9,11 +9,9 @@ import { reducedRevealVariants, revealVariants } from "./variants";
 export function MotionReveal({
   children,
   className,
-  delay = 0,
 }: {
   children: ReactNode;
   className?: string;
-  delay?: number;
 }) {
   const policy = useMotionPolicy();
   const variants = policy.reducedMotion
@@ -28,7 +26,7 @@ export function MotionReveal({
       whileInView={policy.enabled ? "visible" : undefined}
       exit="exit"
       viewport={{ once: true }}
-      transition={{ ...springs.gentle, delay }}
+      transition={springs.gentle}
     >
       {children}
     </motion.div>

@@ -62,8 +62,11 @@ test.describe("Health overview and insights (ST-E07-002)", () => {
     await page.goBack();
     await expect(page.getByTestId("health-insights")).toBeVisible();
 
-    await page.getByTestId("health-insights-back").click();
+    await page.getByRole("link", { name: "Back to Health" }).click();
     await expect(page.getByTestId("health-overview")).toBeVisible();
+
+    await page.getByRole("link", { name: "Back to Home" }).click();
+    await expect(page).toHaveURL(/\/en\/home/);
 
     await page.goto("/en/money");
     const financialStateAfter = await app

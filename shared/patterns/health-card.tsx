@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { cn } from "@/shared/utils/cn";
 import { Text } from "@/shared/ui/text";
 import { StatusBadge } from "@/shared/ui/status-badge";
+import { Card } from "./card";
 
 export type HealthCardProps = {
   title: ReactNode;
@@ -57,11 +58,17 @@ export function HealthCard({
     </>
   );
 
-  const shellClass = cn(
-    "flex w-full min-h-11 flex-col gap-(--space-2) rounded-[var(--radius-card)] border border-border-subtle/60 bg-surface/90 p-(--space-4) text-left",
-    interactive &&
-      "transition-[background-color,border-color,transform] duration-(--duration-fast) ease-(--ease-standard) hover:border-border-default hover:bg-surface-hover active:scale-[var(--press-scale)] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring",
-    className,
+  const card = (
+    <Card
+      tone={interactive ? "interactive" : "default"}
+      className={cn(
+        "flex w-full min-h-11 flex-col gap-(--space-2) p-(--space-4) text-left",
+        className,
+      )}
+      data-testid={interactive ? undefined : (testId ?? "health-card")}
+    >
+      {body}
+    </Card>
   );
 
   if (interactive) {
@@ -69,17 +76,13 @@ export function HealthCard({
       <button
         type="button"
         onClick={onPress}
-        className={shellClass}
+        className="w-full rounded-[var(--radius-card)] text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
         data-testid={testId ?? "health-card"}
       >
-        {body}
+        {card}
       </button>
     );
   }
 
-  return (
-    <div className={shellClass} data-testid={testId ?? "health-card"}>
-      {body}
-    </div>
-  );
+  return card;
 }

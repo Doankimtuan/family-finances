@@ -4,7 +4,10 @@ import {
   EMPTY_MEMBERSHIP_IMPACT,
   type MembershipImpactSummary,
 } from "@/modules/tenancy/application/membership-lifecycle";
-import { HOUSEHOLD_ROLE } from "@/modules/tenancy/application/tenancy-constants";
+import {
+  HOUSEHOLD_ROLE,
+  MEMBERSHIP_LIFECYCLE_ACTION,
+} from "@/modules/tenancy/application/tenancy-constants";
 import { Card } from "@/shared/patterns/card";
 import { IconContainer } from "@/shared/ui/icon-container";
 import { StatusBadge } from "@/shared/ui/status-badge";
@@ -115,7 +118,11 @@ export function MemberList({
                   ) : null}
                   {canManageLifecycle ? (
                     <MemberLifecycleAction
-                      action={member.isSelf ? "leave" : "remove"}
+                      action={
+                        member.isSelf
+                          ? MEMBERSHIP_LIFECYCLE_ACTION.LEAVE
+                          : MEMBERSHIP_LIFECYCLE_ACTION.REMOVE
+                      }
                       member={member}
                       impact={
                         impactByMemberId?.[member.id] ?? EMPTY_MEMBERSHIP_IMPACT

@@ -9,7 +9,7 @@ import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
 import { SheetActionFooter } from "@/shared/patterns/sheet-action-footer";
 import { SelectField, TextField } from "@/shared/ui/form";
-import { Button } from "@/shared/ui/button";
+import { Button, ButtonVariant } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
@@ -141,45 +141,34 @@ export function AccountDetailActions({
             )}
           </div>
         </ActionSheetLayout.Body>
-        <ActionSheetLayout.Footer>
-          <Button
-            variant="secondary"
-            fullWidth
-            className="min-w-0 flex-1"
-            isDisabled={isPending}
-            onPress={() => {
-              onModeChange(ACCOUNT_DETAIL_MODE.MANAGE);
-              setErrorCode(null);
-            }}
-          >
-            {t("cancel")}
-          </Button>
-          <Button
-            variant="danger"
-            fullWidth
-            className="min-w-0 flex-1"
-            data-testid="account-archive-confirm-yes"
-            isDisabled={isPending || !online}
-            onPress={() => {
-              setErrorCode(null);
-              if (!online) {
-                setErrorCode(CLIENT_ACTION_ERROR_CODE.OFFLINE);
+        <SheetActionFooter
+          secondaryLabel={t("cancel")}
+          primaryLabel={isPending ? t("archiving") : t("archiveConfirmYes")}
+          primaryVariant={ButtonVariant.DANGER}
+          primaryTestId="account-archive-confirm-yes"
+          isPrimaryDisabled={!online}
+          isPending={isPending}
+          onSecondary={() => {
+            onModeChange(ACCOUNT_DETAIL_MODE.MANAGE);
+            setErrorCode(null);
+          }}
+          onPrimary={() => {
+            setErrorCode(null);
+            if (!online) {
+              setErrorCode(CLIENT_ACTION_ERROR_CODE.OFFLINE);
+              return;
+            }
+            startTransition(async () => {
+              const result = await archiveAccountAction({ accountId });
+              if (result.status === "success") {
+                router.replace(APP_PATH.MONEY);
+                router.refresh();
                 return;
               }
-              startTransition(async () => {
-                const result = await archiveAccountAction({ accountId });
-                if (result.status === "success") {
-                  router.replace(APP_PATH.MONEY);
-                  router.refresh();
-                  return;
-                }
-                setErrorCode(result.code);
-              });
-            }}
-          >
-            {isPending ? t("archiving") : t("archiveConfirmYes")}
-          </Button>
-        </ActionSheetLayout.Footer>
+              setErrorCode(result.code);
+            });
+          }}
+        />
       </>
     );
   }

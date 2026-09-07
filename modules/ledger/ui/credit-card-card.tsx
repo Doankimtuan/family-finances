@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { cn } from "@/shared/utils/cn";
 import { Text } from "@/shared/ui/text";
 import { Amount, AmountSize, AmountTone } from "@/shared/patterns/amount";
+import { Card } from "@/shared/patterns/card";
 import { Progress } from "@/shared/ui/progress";
 import { AppIcon } from "@/shared/ui/app-icon";
 import { IconContainer } from "@/shared/ui/icon-container";
@@ -63,9 +64,10 @@ export function CreditCardCard({
     utilizationPct == null ? null : Math.min(Math.max(utilizationPct, 0), 100);
 
   return (
-    <div
+    <Card
+      tone="default"
       className={cn(
-        "flex min-h-11 flex-col gap-(--space-3) rounded-[var(--radius-card)] border border-border-subtle/65 bg-surface/90 p-(--space-3) transition-[background-color,border-color,transform] duration-(--duration-fast) hover:border-border-default hover:bg-surface-hover active:scale-[var(--press-scale)] motion-reduce:transition-none motion-reduce:active:scale-100",
+        "flex min-h-11 flex-col gap-(--space-3) p-(--space-3) transition-[background-color,border-color,transform] duration-(--duration-fast) hover:border-border-default hover:bg-surface-hover active:scale-[var(--press-scale)] motion-reduce:transition-none motion-reduce:active:scale-100",
         className,
       )}
       data-testid={testId ?? "credit-card-card"}
@@ -142,6 +144,6 @@ export function CreditCardCard({
           ) : null}
         </div>
       ) : null}
-    </div>
+    </Card>
   );
 }

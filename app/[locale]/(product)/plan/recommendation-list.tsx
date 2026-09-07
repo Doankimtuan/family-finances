@@ -10,6 +10,10 @@ import { formatCurrency } from "@/shared/i18n/formatters";
 import { FinancialValue } from "@/shared/patterns/financial-value";
 import { PLAN_INLINE_LINK_CLASS } from "./plan-chrome";
 import { PlanSectionTitle } from "./plan-section-title";
+import {
+  RecommendationListVariant,
+  type RecommendationListVariant as RecommendationListVariantValue,
+} from "./plan-hub-presentations";
 
 export type Translator = {
   (key: string, values?: Record<string, string | number>): string;
@@ -42,6 +46,7 @@ type Props = {
   testId: string;
   currency?: string;
   locale?: string;
+  variant?: RecommendationListVariantValue;
 };
 
 function recommendationValues(
@@ -120,6 +125,74 @@ function actionLabel(
   }
 }
 
+function RecommendationItem({
+  recommendation,
+  t,
+  resolveHref,
+  jarNames,
+  goalNames,
+  currency,
+  locale,
+  variant,
+}: {
+  recommendation: PlanRecommendation;
+  t: Translator;
+  resolveHref: (recommendation: PlanRecommendation) => string;
+  jarNames: Readonly<Record<string, string>>;
+  goalNames: Readonly<Record<string, string>>;
+  currency?: string;
+  locale?: string;
+  variant: RecommendationListVariantValue;
+}) {
+  const values = recommendationValues(
+    recommendation,
+    t,
+    jarNames,
+    goalNames,
+    currency,
+    locale,
+  );
+  const supporting = variant === RecommendationListVariant.SUPPORTING;
+
+  return (
+    <>
+      <div className="flex items-start justify-between gap-(--space-3)">
+        <Text
+          size="sm"
+          weight={supporting ? "medium" : "semibold"}
+          className="min-w-0 text-pretty text-wrap-balance"
+        >
+          {t.rich(recommendation.titleKey, values)}
+        </Text>
+        {recommendation.amount != null ? (
+          <Text
+            size="sm"
+            weight={supporting ? "medium" : "semibold"}
+            tabular
+            className="shrink-0 tracking-tight"
+          >
+            <FinancialValue>
+              {localizedAmount(recommendation.amount, currency, locale)}
+            </FinancialValue>
+          </Text>
+        ) : null}
+      </div>
+      <Text size="sm" tone="secondary" className="text-pretty">
+        {t.rich(recommendation.descriptionKey, values)}
+      </Text>
+      {recommendation.action ? (
+        <Link
+          href={resolveHref(recommendation)}
+          className={`${PLAN_INLINE_LINK_CLASS} w-fit gap-(--space-1)`}
+        >
+          {actionLabel(recommendation, t)}
+          <AppIcon icon={ACTION_ICONS.forward} size="sm" />
+        </Link>
+      ) : null}
+    </>
+  );
+}
+
 export function RecommendationList({
   recommendations,
   t,
@@ -130,8 +203,11 @@ export function RecommendationList({
   testId,
   currency,
   locale,
+  variant = RecommendationListVariant.HIGHLIGHTED,
 }: Props) {
   if (recommendations.length === 0) return null;
+
+  const supporting = variant === RecommendationListVariant.SUPPORTING;
 
   return (
     <Section
@@ -142,59 +218,50 @@ export function RecommendationList({
       }
       testId={testId}
     >
-      <div className="flex flex-col gap-(--space-2)">
-        {recommendations.map((recommendation) => {
-          const values = recommendationValues(
-            recommendation,
-            t,
-            jarNames,
-            goalNames,
-            currency,
-            locale,
-          );
-          return (
+      {supporting ? (
+        <Card tone="elevated" className="gap-0 overflow-hidden p-0">
+          <ul className="divide-y divide-divider">
+            {recommendations.map((recommendation) => (
+              <li
+                key={recommendation.id}
+                className="flex flex-col gap-(--space-2) px-(--space-4) py-(--space-3)"
+              >
+                <RecommendationItem
+                  recommendation={recommendation}
+                  t={t}
+                  resolveHref={resolveHref}
+                  jarNames={jarNames}
+                  goalNames={goalNames}
+                  currency={currency}
+                  locale={locale}
+                  variant={RecommendationListVariant.SUPPORTING}
+                />
+              </li>
+            ))}
+          </ul>
+        </Card>
+      ) : (
+        <div className="flex flex-col gap-(--space-2)">
+          {recommendations.map((recommendation) => (
             <Card
               key={recommendation.id}
               tone="highlighted"
               className="gap-(--space-3) p-(--space-4)"
             >
-              <div className="flex items-start justify-between gap-(--space-3)">
-                <Text
-                  size="sm"
-                  weight="semibold"
-                  className="min-w-0 text-pretty text-wrap-balance"
-                >
-                  {t.rich(recommendation.titleKey, values)}
-                </Text>
-                {recommendation.amount != null ? (
-                  <Text
-                    size="sm"
-                    weight="semibold"
-                    tabular
-                    className="shrink-0 tracking-tight"
-                  >
-                    <FinancialValue>
-                      {localizedAmount(recommendation.amount, currency, locale)}
-                    </FinancialValue>
-                  </Text>
-                ) : null}
-              </div>
-              <Text size="sm" tone="secondary" className="text-pretty">
-                {t.rich(recommendation.descriptionKey, values)}
-              </Text>
-              {recommendation.action ? (
-                <Link
-                  href={resolveHref(recommendation)}
-                  className={`${PLAN_INLINE_LINK_CLASS} w-fit gap-(--space-1)`}
-                >
-                  {actionLabel(recommendation, t)}
-                  <AppIcon icon={ACTION_ICONS.forward} size="sm" />
-                </Link>
-              ) : null}
+              <RecommendationItem
+                recommendation={recommendation}
+                t={t}
+                resolveHref={resolveHref}
+                jarNames={jarNames}
+                goalNames={goalNames}
+                currency={currency}
+                locale={locale}
+                variant={RecommendationListVariant.HIGHLIGHTED}
+              />
             </Card>
-          );
-        })}
-      </div>
+          ))}
+        </div>
+      )}
     </Section>
   );
 }

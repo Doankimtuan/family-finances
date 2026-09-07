@@ -72,6 +72,8 @@ import {
   allocationFactTone,
   allocationFactValue,
   isUpcomingDueEvent,
+  PLAN_HUB_VISIBLE_JAR_LIMIT,
+  RecommendationListVariant,
   resolvePlanHealthCopy,
 } from "./plan-hub-presentations";
 import {
@@ -436,33 +438,290 @@ export default async function PlanHubPage({ params }: Props) {
         />
       </MotionReveal>
 
-      <MotionReveal>
-        <PlanHubExceptions
-          title={t("home.exceptionsTitle")}
-          exceptions={exceptions}
-          hiddenCount={allExceptions.length - exceptions.length}
-          viewAllHref={APP_PATH.PLAN_JARS}
-          viewAllLabel={t("home.viewAll")}
-          renderTitle={(exception) =>
-            exceptionTitle(
-              exception,
-              t as unknown as LooseTranslator,
-              tCatalog as unknown as LooseTranslator,
-            )
-          }
-          renderDescription={(exception) =>
-            exceptionDescription(
-              exception,
-              t as unknown as LooseTranslator,
-              currency,
-              locale,
-            )
-          }
-          renderAction={(exception) =>
-            exceptionAction(exception, t as unknown as LooseTranslator)
-          }
-        />
-      </MotionReveal>
+      <PlanHubExceptions
+        title={t("home.exceptionsTitle")}
+        exceptions={exceptions}
+        hiddenCount={allExceptions.length - exceptions.length}
+        viewAllHref={APP_PATH.PLAN_JARS}
+        viewAllLabel={t("home.viewAll")}
+        renderTitle={(exception) =>
+          exceptionTitle(
+            exception,
+            t as unknown as LooseTranslator,
+            tCatalog as unknown as LooseTranslator,
+          )
+        }
+        renderDescription={(exception) =>
+          exceptionDescription(
+            exception,
+            t as unknown as LooseTranslator,
+            currency,
+            locale,
+          )
+        }
+        renderAction={(exception) =>
+          exceptionAction(exception, t as unknown as LooseTranslator)
+        }
+      />
+
+      <Section
+        title={<PlanSectionTitle>{t("jars.title")}</PlanSectionTitle>}
+        description={t("jars.subtitle")}
+        action={
+          <Link
+            href={APP_PATH.PLAN_JARS}
+            className={PLAN_INLINE_LINK_CLASS}
+            data-testid="plan-see-jars"
+          >
+            {t("home.viewAll")}
+          </Link>
+        }
+        testId="plan-home-jars"
+      >
+        {!currentJarBudgets && activeJars.length > 0 ? (
+          <StatusAlert
+            variant="warning"
+            title={t("home.jarsUnavailableTitle")}
+            description={t("home.jarsUnavailableBody")}
+          />
+        ) : null}
+        {activeJars.length === 0 ? (
+          <EmptyState
+            title={t("jars.emptyTitle")}
+            description={t("jars.emptyDescription")}
+            action={
+              <Link
+                href={APP_PATH.PLAN_JARS}
+                className={PLAN_ACCENT_LINK_CLASS}
+              >
+                {t("home.createJar")}
+              </Link>
+            }
+            className="flex-none py-(--space-4)"
+          />
+        ) : (
+          <ul className="flex flex-col gap-(--space-2)">
+            {activeJars.slice(0, PLAN_HUB_VISIBLE_JAR_LIMIT).map((jar) => {
+              const metrics = budgetsByJar[jar.id];
+              const isNoIncome =
+                metrics?.state === JarBudgetState.NO_BUDGET &&
+                metrics.incomeSource === QualifyingIncomeSource.NONE;
+              const remainingLabel = metrics ? (
+                metrics.state === JarBudgetState.OVERSPENT ? (
+                  t.rich("jars.budget.overBy", {
+                    amount: formatCurrency(
+                      Math.abs(metrics.remainingAmount),
+                      currency,
+                      locale,
+                      { maximumFractionDigits: 0 },
+                    ),
+                    money: (chunks: ReactNode) => (
+                      <FinancialValue>{chunks}</FinancialValue>
+                    ),
+                  })
+                ) : isNoIncome ? (
+                  <span>{t("jars.budget.setIncome")}</span>
+                ) : (
+                  t.rich("jars.budget.remaining", {
+                    amount: formatCurrency(
+                      metrics.remainingAmount,
+                      currency,
+                      locale,
+                      { maximumFractionDigits: 0 },
+                    ),
+                    money: (chunks: ReactNode) => (
+                      <FinancialValue>{chunks}</FinancialValue>
+                    ),
+                  })
+                )
+              ) : undefined;
+              return (
+                <li key={jar.id}>
+                  <Link
+                    href={planJarPath(jar.id)}
+                    className="block h-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+                  >
+                    <JarCard
+                      name={localizeCatalogName(tCatalog, "jars", jar.name)}
+                      kindLabel={t(`jars.kinds.${jar.kind}`)}
+                      stateLabel={t("jars.stateActive")}
+                      state={jar.state}
+                      budgetHeading={t("jars.budget.heading")}
+                      spentHeading={t("jars.spentLabel")}
+                      budgetLabel={
+                        metrics ? (
+                          formatCurrency(
+                            metrics.budgetAmount,
+                            currency,
+                            locale,
+                            {
+                              maximumFractionDigits: 0,
+                            },
+                          )
+                        ) : (
+                          <span>{t("jars.budget.notAvailable")}</span>
+                        )
+                      }
+                      spentLabel={
+                        metrics ? (
+                          formatCurrency(
+                            metrics.spentAmount,
+                            currency,
+                            locale,
+                            {
+                              maximumFractionDigits: 0,
+                            },
+                          )
+                        ) : (
+                          <span>{t("jars.budget.notAvailable")}</span>
+                        )
+                      }
+                      remainingLabel={remainingLabel}
+                      usageLabel={
+                        metrics ? (
+                          t("jars.budget.used", {
+                            percent: metrics.usagePercent,
+                          })
+                        ) : (
+                          <span>{t("jars.budget.notAvailable")}</span>
+                        )
+                      }
+                      usagePercent={metrics?.usagePercent}
+                      budgetState={metrics?.state}
+                      data-testid={`plan-jar-${jar.id}`}
+                      className="gap-(--space-3) p-(--space-3)"
+                    />
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+        {activeJars.length > PLAN_HUB_VISIBLE_JAR_LIMIT ? (
+          <Link href={APP_PATH.PLAN_JARS} className={PLAN_INLINE_LINK_CLASS}>
+            {t("home.viewAllJars", { count: activeJars.length })}
+          </Link>
+        ) : null}
+      </Section>
+
+      <Section
+        title={<PlanSectionTitle>{t("home.goalsTitle")}</PlanSectionTitle>}
+        action={
+          <Link
+            href={APP_PATH.PLAN_GOALS}
+            className={PLAN_INLINE_LINK_CLASS}
+            data-testid="plan-see-goals"
+          >
+            {t("home.viewAll")}
+          </Link>
+        }
+        testId="plan-home-goals"
+      >
+        {homeGoals.length === 0 ? (
+          <EmptyState
+            title={t("home.goalsEmptyTitle")}
+            description={t("home.goalsEmptyBody")}
+            icon={<AppIcon icon={PLAN_ICONS.goal} size={AppIconSize.DISPLAY} />}
+            action={
+              <Link
+                href={APP_PATH.PLAN_GOALS}
+                className={PLAN_SURFACE_LINK_CLASS}
+              >
+                {t("home.createGoal")}
+              </Link>
+            }
+            className="flex-none py-(--space-4)"
+          />
+        ) : (
+          <ul className="flex flex-col gap-(--space-2)">
+            {homeGoals.map((goal) => {
+              const targetDate = formatGoalDate(goal.targetDate, locale);
+              return (
+                <li key={goal.id}>
+                  <Link
+                    href={planGoalPath(goal.id)}
+                    className="block h-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+                    data-testid={`plan-home-goal-${goal.id}`}
+                  >
+                    <Card
+                      tone="interactive"
+                      className="gap-(--space-3) p-(--space-3)"
+                    >
+                      <div className="flex flex-col items-start gap-(--space-2)">
+                        <Text
+                          size="sm"
+                          className="w-full break-words font-semibold leading-snug text-text-primary"
+                        >
+                          {goal.name}
+                        </Text>
+                        <StatusBadge
+                          tone={goal.isLegacyIntention ? "warning" : "info"}
+                        >
+                          {goal.isLegacyIntention
+                            ? t("home.goalLegacy")
+                            : t("home.goalLinked")}
+                        </StatusBadge>
+                      </div>
+                      {goal.progressPercent == null ? (
+                        <Text size="sm" tone="secondary">
+                          {t("home.goalProgressIndeterminate")}
+                        </Text>
+                      ) : (
+                        <Progress
+                          value={goal.progressPercent}
+                          max={100}
+                          label={`${goal.progressPercent}%`}
+                          privacyAware
+                        />
+                      )}
+                      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-(--space-3) border-t border-divider pt-(--space-3)">
+                        <Text
+                          size="sm"
+                          tone="secondary"
+                          className="min-w-0 break-words tabular-nums leading-snug"
+                        >
+                          {goal.progressPercent == null
+                            ? t("home.goalProgressIndeterminate")
+                            : t.rich("home.goalProgress", {
+                                funded: formatCurrency(
+                                  goal.fundedAmount,
+                                  currency,
+                                  locale,
+                                  { maximumFractionDigits: 0 },
+                                ),
+                                target: formatCurrency(
+                                  goal.targetAmount,
+                                  currency,
+                                  locale,
+                                  { maximumFractionDigits: 0 },
+                                ),
+                                moneyFunded: (chunks: ReactNode) => (
+                                  <FinancialValue>{chunks}</FinancialValue>
+                                ),
+                                moneyTarget: (chunks: ReactNode) => (
+                                  <FinancialValue>{chunks}</FinancialValue>
+                                ),
+                                percent: goal.progressPercent,
+                              })}
+                        </Text>
+                        {targetDate ? (
+                          <Text
+                            size="xs"
+                            tone="secondary"
+                            className="shrink-0 text-right whitespace-nowrap"
+                          >
+                            {targetDate}
+                          </Text>
+                        ) : null}
+                      </div>
+                    </Card>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </Section>
 
       <RecommendationList
         recommendations={recommendations}
@@ -472,363 +731,93 @@ export default async function PlanHubPage({ params }: Props) {
         goalNames={goalNames}
         currency={currency}
         locale={locale}
+        variant={RecommendationListVariant.SUPPORTING}
         testId="plan-home-recommendations"
       />
-      <MotionReveal>
-        <Section
-          title={<PlanSectionTitle>{t("jars.title")}</PlanSectionTitle>}
-          description={t("jars.subtitle")}
-          action={
-            <Link
-              href={APP_PATH.PLAN_JARS}
-              className={PLAN_INLINE_LINK_CLASS}
-              data-testid="plan-see-jars"
-            >
-              {t("home.viewAll")}
-            </Link>
-          }
-        >
-          {!currentJarBudgets && activeJars.length > 0 ? (
-            <StatusAlert
-              variant="warning"
-              title={t("home.jarsUnavailableTitle")}
-              description={t("home.jarsUnavailableBody")}
-            />
-          ) : null}
-          {activeJars.length === 0 ? (
-            <EmptyState
-              title={t("jars.emptyTitle")}
-              description={t("jars.emptyDescription")}
-              action={
-                <Link
-                  href={APP_PATH.PLAN_JARS}
-                  className={PLAN_ACCENT_LINK_CLASS}
+
+      <Section
+        title={<PlanSectionTitle>{t("home.upcomingTitle")}</PlanSectionTitle>}
+        action={
+          <Link
+            href={APP_PATH.PLAN_CALENDAR}
+            className={PLAN_INLINE_LINK_CLASS}
+            data-testid="plan-see-calendar"
+          >
+            {t("calendar.cta")}
+          </Link>
+        }
+        testId="plan-home-upcoming"
+      >
+        {upcoming.length === 0 ? (
+          <Text size="sm" tone="secondary">
+            {t("home.upcomingEmpty")}
+          </Text>
+        ) : (
+          <Card tone="elevated" className="gap-0 overflow-hidden p-0">
+            <ul className="divide-y divide-divider">
+              {upcoming.map((event) => (
+                <li
+                  key={event.id ?? `${event.date}-${event.title}`}
+                  className="flex items-start gap-(--space-3) px-(--space-4) py-(--space-3)"
                 >
-                  {t("home.createJar")}
-                </Link>
-              }
-              className="flex-none py-(--space-4)"
-            />
-          ) : (
-            <ul className="flex flex-col gap-(--space-2)">
-              {activeJars.slice(0, 6).map((jar) => {
-                const metrics = budgetsByJar[jar.id];
-                const isNoIncome =
-                  metrics?.state === JarBudgetState.NO_BUDGET &&
-                  metrics.incomeSource === QualifyingIncomeSource.NONE;
-                const remainingLabel = metrics ? (
-                  metrics.state === JarBudgetState.OVERSPENT ? (
-                    t.rich("jars.budget.overBy", {
-                      amount: formatCurrency(
-                        Math.abs(metrics.remainingAmount),
-                        currency,
-                        locale,
-                        { maximumFractionDigits: 0 },
-                      ),
-                      money: (chunks: ReactNode) => (
-                        <FinancialValue>{chunks}</FinancialValue>
-                      ),
-                    })
-                  ) : isNoIncome ? (
-                    <span>{t("jars.budget.setIncome")}</span>
-                  ) : (
-                    t.rich("jars.budget.remaining", {
-                      amount: formatCurrency(
-                        metrics.remainingAmount,
-                        currency,
-                        locale,
-                        { maximumFractionDigits: 0 },
-                      ),
-                      money: (chunks: ReactNode) => (
-                        <FinancialValue>{chunks}</FinancialValue>
-                      ),
-                    })
-                  )
-                ) : undefined;
-                return (
-                  <li key={jar.id}>
-                    <Link
-                      href={planJarPath(jar.id)}
-                      className="block h-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+                  <div className="min-w-0 flex-1">
+                    <Text size="xs" tone="muted">
+                      {formatDate(new Date(`${event.date}T00:00:00Z`), locale, {
+                        day: "numeric",
+                        month: "short",
+                        timeZone: "Asia/Ho_Chi_Minh",
+                      })}
+                    </Text>
+                    <Text
+                      size="sm"
+                      weight="medium"
+                      className="mt-(--space-1) line-clamp-2 text-pretty"
                     >
-                      <JarCard
-                        name={localizeCatalogName(tCatalog, "jars", jar.name)}
-                        kindLabel={t(`jars.kinds.${jar.kind}`)}
-                        stateLabel={t("jars.stateActive")}
-                        state={jar.state}
-                        budgetHeading={t("jars.budget.heading")}
-                        spentHeading={t("jars.spentLabel")}
-                        budgetLabel={
-                          metrics ? (
-                            formatCurrency(
-                              metrics.budgetAmount,
-                              currency,
-                              locale,
-                              {
-                                maximumFractionDigits: 0,
-                              },
-                            )
-                          ) : (
-                            <span>{t("jars.budget.notAvailable")}</span>
-                          )
-                        }
-                        spentLabel={
-                          metrics ? (
-                            formatCurrency(
-                              metrics.spentAmount,
-                              currency,
-                              locale,
-                              {
-                                maximumFractionDigits: 0,
-                              },
-                            )
-                          ) : (
-                            <span>{t("jars.budget.notAvailable")}</span>
-                          )
-                        }
-                        remainingLabel={remainingLabel}
-                        usageLabel={
-                          metrics ? (
-                            t("jars.budget.used", {
-                              percent: metrics.usagePercent,
-                            })
-                          ) : (
-                            <span>{t("jars.budget.notAvailable")}</span>
-                          )
-                        }
-                        usagePercent={metrics?.usagePercent}
-                        budgetState={metrics?.state}
-                        data-testid={`plan-jar-${jar.id}`}
-                        className="gap-(--space-3) p-(--space-3)"
-                      />
-                    </Link>
-                  </li>
-                );
-              })}
+                      {event.title}
+                    </Text>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <Text size="sm" weight="semibold" tabular>
+                      <FinancialValue>
+                        {formatCurrency(event.amount, currency, locale, {
+                          maximumFractionDigits: 0,
+                        })}
+                      </FinancialValue>
+                    </Text>
+                    <Text size="xs" tone="secondary">
+                      {isUpcomingDueEvent(event.source)
+                        ? t("home.upcomingDue")
+                        : t("home.upcomingExpected")}
+                    </Text>
+                  </div>
+                </li>
+              ))}
             </ul>
-          )}
-          {activeJars.length > 6 ? (
-            <Link href={APP_PATH.PLAN_JARS} className={PLAN_INLINE_LINK_CLASS}>
-              {t("home.viewAllJars", { count: activeJars.length })}
-            </Link>
-          ) : null}
-        </Section>
-      </MotionReveal>
+          </Card>
+        )}
+      </Section>
 
-      <MotionReveal>
-        <Section
-          title={<PlanSectionTitle>{t("home.goalsTitle")}</PlanSectionTitle>}
-          action={
-            <Link
-              href={APP_PATH.PLAN_GOALS}
-              className={PLAN_INLINE_LINK_CLASS}
-              data-testid="plan-see-goals"
-            >
-              {t("home.viewAll")}
-            </Link>
-          }
-          testId="plan-home-goals"
-        >
-          {homeGoals.length === 0 ? (
-            <EmptyState
-              title={t("home.goalsEmptyTitle")}
-              description={t("home.goalsEmptyBody")}
-              icon={
-                <AppIcon icon={PLAN_ICONS.goal} size={AppIconSize.DISPLAY} />
-              }
-              action={
-                <Link
-                  href={APP_PATH.PLAN_GOALS}
-                  className={PLAN_SURFACE_LINK_CLASS}
-                >
-                  {t("home.createGoal")}
-                </Link>
-              }
-              className="flex-none py-(--space-4)"
-            />
-          ) : (
-            <ul className="flex flex-col gap-(--space-2)">
-              {homeGoals.map((goal) => {
-                const targetDate = formatGoalDate(goal.targetDate, locale);
-                return (
-                  <li key={goal.id}>
-                    <Link
-                      href={planGoalPath(goal.id)}
-                      className="block h-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-                      data-testid={`plan-home-goal-${goal.id}`}
-                    >
-                      <Card
-                        tone="interactive"
-                        className="gap-(--space-3) p-(--space-3)"
-                      >
-                        <div className="flex flex-col items-start gap-(--space-2)">
-                          <Text
-                            size="sm"
-                            className="w-full break-words font-semibold leading-snug text-text-primary"
-                          >
-                            {goal.name}
-                          </Text>
-                          <StatusBadge
-                            tone={goal.isLegacyIntention ? "warning" : "info"}
-                          >
-                            {goal.isLegacyIntention
-                              ? t("home.goalLegacy")
-                              : t("home.goalLinked")}
-                          </StatusBadge>
-                        </div>
-                        {goal.progressPercent == null ? (
-                          <Text size="sm" tone="secondary">
-                            {t("home.goalProgressIndeterminate")}
-                          </Text>
-                        ) : (
-                          <Progress
-                            value={goal.progressPercent}
-                            max={100}
-                            label={`${goal.progressPercent}%`}
-                            privacyAware
-                          />
-                        )}
-                        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-(--space-3) border-t border-divider pt-(--space-3)">
-                          <Text
-                            size="sm"
-                            tone="secondary"
-                            className="min-w-0 break-words tabular-nums leading-snug"
-                          >
-                            {goal.progressPercent == null
-                              ? t("home.goalProgressIndeterminate")
-                              : t.rich("home.goalProgress", {
-                                  funded: formatCurrency(
-                                    goal.fundedAmount,
-                                    currency,
-                                    locale,
-                                    { maximumFractionDigits: 0 },
-                                  ),
-                                  target: formatCurrency(
-                                    goal.targetAmount,
-                                    currency,
-                                    locale,
-                                    { maximumFractionDigits: 0 },
-                                  ),
-                                  moneyFunded: (chunks: ReactNode) => (
-                                    <FinancialValue>{chunks}</FinancialValue>
-                                  ),
-                                  moneyTarget: (chunks: ReactNode) => (
-                                    <FinancialValue>{chunks}</FinancialValue>
-                                  ),
-                                  percent: goal.progressPercent,
-                                })}
-                          </Text>
-                          {targetDate ? (
-                            <Text
-                              size="xs"
-                              tone="secondary"
-                              className="shrink-0 text-right whitespace-nowrap"
-                            >
-                              {targetDate}
-                            </Text>
-                          ) : null}
-                        </div>
-                      </Card>
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </Section>
-      </MotionReveal>
-
-      <MotionReveal>
-        <Section
-          title={<PlanSectionTitle>{t("home.upcomingTitle")}</PlanSectionTitle>}
-          action={
-            <Link
-              href={APP_PATH.PLAN_CALENDAR}
-              className={PLAN_INLINE_LINK_CLASS}
-              data-testid="plan-see-calendar"
-            >
-              {t("calendar.cta")}
-            </Link>
-          }
-          testId="plan-home-upcoming"
-        >
-          {upcoming.length === 0 ? (
-            <Text size="sm" tone="secondary">
-              {t("home.upcomingEmpty")}
-            </Text>
-          ) : (
-            <Card tone="elevated" className="gap-0 overflow-hidden p-0">
-              <ul className="divide-y divide-divider">
-                {upcoming.map((event) => (
-                  <li
-                    key={event.id ?? `${event.date}-${event.title}`}
-                    className="flex items-start gap-(--space-3) px-(--space-4) py-(--space-3)"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <Text size="xs" tone="muted">
-                        {formatDate(
-                          new Date(`${event.date}T00:00:00Z`),
-                          locale,
-                          {
-                            day: "numeric",
-                            month: "short",
-                            timeZone: "Asia/Ho_Chi_Minh",
-                          },
-                        )}
-                      </Text>
-                      <Text
-                        size="sm"
-                        weight="medium"
-                        className="mt-(--space-1) line-clamp-2 text-pretty"
-                      >
-                        {event.title}
-                      </Text>
-                    </div>
-                    <div className="shrink-0 text-right">
-                      <Text size="sm" weight="semibold" tabular>
-                        <FinancialValue>
-                          {formatCurrency(event.amount, currency, locale, {
-                            maximumFractionDigits: 0,
-                          })}
-                        </FinancialValue>
-                      </Text>
-                      <Text size="xs" tone="secondary">
-                        {isUpcomingDueEvent(event.source)
-                          ? t("home.upcomingDue")
-                          : t("home.upcomingExpected")}
-                      </Text>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </Card>
-          )}
-        </Section>
-      </MotionReveal>
-
-      <MotionReveal>
-        <PlanDestinationCard
-          title={t("home.workspaceTitle")}
-          testId="plan-ritual-cta"
-        >
-          <PlanDestinationRow
-            href={APP_PATH.PLAN_RECURRING}
-            testId="plan-workspace-recurring"
-            icon={PLAN_ICONS.recurring}
-            iconTone={IconContainerTone.TRANSFER}
-            label={t("home.recurringLink")}
-            meta={t("home.workspaceRecurringMeta")}
-          />
-          <PlanDestinationRow
-            href={APP_PATH.PLAN_RITUAL}
-            testId="plan-ritual-open"
-            icon={PLAN_ICONS.ritual}
-            iconTone={IconContainerTone.PRIMARY}
-            label={t("review.title")}
-            meta={t("home.workspaceRitualMeta")}
-          />
-        </PlanDestinationCard>
-      </MotionReveal>
+      <PlanDestinationCard
+        title={t("home.workspaceTitle")}
+        testId="plan-ritual-cta"
+      >
+        <PlanDestinationRow
+          href={APP_PATH.PLAN_RECURRING}
+          testId="plan-workspace-recurring"
+          icon={PLAN_ICONS.recurring}
+          iconTone={IconContainerTone.TRANSFER}
+          label={t("home.recurringLink")}
+          meta={t("home.workspaceRecurringMeta")}
+        />
+        <PlanDestinationRow
+          href={APP_PATH.PLAN_RITUAL}
+          testId="plan-ritual-open"
+          icon={PLAN_ICONS.ritual}
+          iconTone={IconContainerTone.PRIMARY}
+          label={t("review.title")}
+          meta={t("home.workspaceRitualMeta")}
+        />
+      </PlanDestinationCard>
 
       <div
         data-testid="plan-teaching"

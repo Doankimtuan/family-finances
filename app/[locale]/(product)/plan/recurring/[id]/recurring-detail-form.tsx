@@ -11,12 +11,10 @@ import {
   type RecurringDirection as RecurringDirectionValue,
   type RecurringFrequency as RecurringFrequencyValue,
 } from "@/modules/plan/application/client";
-import { TextField } from "@/shared/ui/form";
+import { CheckboxField, DatePickerField, TextField } from "@/shared/ui/form";
 import { AmountField } from "@/shared/patterns/amount-field";
 import { Button } from "@/shared/ui/button";
 import { StatusAlert } from "@/shared/ui/status-alert";
-import { Card } from "@/shared/patterns/card";
-import { Text } from "@/shared/ui/text";
 import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
 import { SheetActionFooter } from "@/shared/patterns/sheet-action-footer";
 import { Sheet } from "@/shared/patterns/sheet";
@@ -212,38 +210,37 @@ export function RecurringDetailForm({
         />
       )}
 
-      <TextField
+      <DatePickerField
         id={startId}
         label={t("startDateLabel")}
-        type="date"
         value={startDate}
-        onChange={(e) => setStartDate(e.target.value)}
+        onChange={setStartDate}
       />
-      <TextField
+      <DatePickerField
         id={nextId}
         label={t("nextRunLabel")}
-        type="date"
         value={nextRunDate}
-        onChange={(e) => setNextRunDate(e.target.value)}
+        onChange={setNextRunDate}
       />
 
-      <Card tone="soft" className="gap-0 p-(--space-4)">
-        <label className="flex min-h-11 items-center gap-(--space-3)">
-          <input
-            type="checkbox"
-            checked={isActive}
-            onChange={(e) => setIsActive(e.target.checked)}
-            className="size-4 accent-[var(--color-accent)]"
-          />
-          <Text size="sm">{t("activeLabel")}</Text>
-        </label>
-      </Card>
+      <CheckboxField
+        id={`${nameId}-active`}
+        label={t("activeLabel")}
+        checked={isActive}
+        onChange={(e) => setIsActive(e.target.checked)}
+      />
 
       <Button
         variant="primary"
         className="w-full"
         data-testid="recurring-save"
-        isDisabled={isPending || !online}
+        isDisabled={
+          isPending ||
+          !online ||
+          name.trim().length < 2 ||
+          amount == null ||
+          amount <= 0
+        }
         onPress={onSave}
       >
         {t("save")}

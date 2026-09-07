@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
+import { Amount, AmountSize } from "@/shared/patterns/amount";
 import { Card } from "@/shared/patterns/card";
-import { FinancialValue } from "@/shared/patterns/financial-value";
 import { Text } from "@/shared/ui/text";
 import {
   InvestmentFactNote,
@@ -66,9 +66,12 @@ export function OpeningReviewSection({
         <Text size="sm" weight="medium" className="text-hero-muted">
           {heroLabel}
         </Text>
-        <p className="mt-(--space-2) font-semibold tabular-nums tracking-tight text-3xl text-hero-fg">
-          <FinancialValue>{heroAmount}</FinancialValue>
-        </p>
+        <Amount
+          amountLabel={heroAmount}
+          size={AmountSize.HERO}
+          className="mt-(--space-2)"
+          amountClassName="text-hero-fg"
+        />
         <Text size="xs" className="mt-(--space-1) text-pretty text-hero-muted">
           {holdingName}
           {heroMeta ? ` · ${heroMeta}` : ""}
