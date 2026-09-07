@@ -32,15 +32,28 @@ import {
 } from "@/modules/ledger/application";
 import { SavingsEventKind } from "@/modules/savings/application/savings-constants";
 import { formatCurrency, formatDate } from "@/shared/i18n/formatters";
-import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
+import {
+  CatalogGroup,
+  localizeCatalogName,
+} from "@/shared/i18n/localize-catalog-name";
+import {
+  TRANSACTION_ACCENT_LINK_CLASS,
+  TRANSACTION_SURFACE_LINK_CLASS,
+} from "../transaction-chrome";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Amount, AmountTone } from "@/shared/patterns/amount";
+import { Card } from "@/shared/patterns/card";
 import { FinancialValue } from "@/shared/patterns/financial-value";
+import { Page } from "@/shared/patterns/page";
 import { SectionHeader } from "@/shared/patterns/section-header";
 import { Text } from "@/shared/ui/text";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { MoneyOfflineBanner } from "../../money-offline-banner";
 import { TransactionTagEditor } from "../transaction-tag-editor";
+import {
+  TransactionFactRow,
+  TransactionFactsCard,
+} from "../transaction-facts-card";
 
 type Props = {
   params: Promise<{ locale: string; id: string }>;
@@ -153,7 +166,7 @@ function transactionContextTitle(
   return (
     tx.note ||
     (tx.categoryName
-      ? localizeCatalogName(tCatalog, "tags", tx.categoryName)
+      ? localizeCatalogName(tCatalog, CatalogGroup.TAGS, tx.categoryName)
       : null) ||
     t("detailPage.eventFallback")
   );
@@ -171,12 +184,16 @@ function TransferDetail({
   tCatalog: Awaited<ReturnType<typeof getTranslations>>;
 }) {
   const sourceName = activity.sourceAccount?.name
-    ? localizeCatalogName(tCatalog, "accounts", activity.sourceAccount.name)
+    ? localizeCatalogName(
+        tCatalog,
+        CatalogGroup.ACCOUNTS,
+        activity.sourceAccount.name,
+      )
     : t("transferDetail.emptyValue");
   const destinationName = activity.destinationAccount?.name
     ? localizeCatalogName(
         tCatalog,
-        "accounts",
+        CatalogGroup.ACCOUNTS,
         activity.destinationAccount.name,
       )
     : t("transferDetail.emptyValue");
@@ -188,71 +205,59 @@ function TransferDetail({
   );
 
   return (
-    <div
-      className="flex min-h-full flex-col"
-      data-testid="money-transfer-detail"
+    <Page
+      testId="money-transfer-detail"
+      contentClassName="gap-(--space-5)"
+      topBar={
+        <TopAppBar
+          variant="detail"
+          title={t("transferDetail.title")}
+          subtitle={t("transferDetail.subtitle")}
+          backHref={APP_PATH.MONEY_TRANSACTIONS}
+        />
+      }
     >
-      <TopAppBar
-        title={t("transferDetail.title")}
-        subtitle={t("transferDetail.subtitle")}
-        backHref={APP_PATH.MONEY_TRANSACTIONS}
-      />
-      <div className="flex flex-1 flex-col gap-(--space-5) px-(--space-4) pb-(--space-6) pt-(--space-4)">
-        <MoneyOfflineBanner />
+      <MoneyOfflineBanner />
+      <Card tone="elevated" className="gap-0 p-(--space-4)">
         <Amount
           label={t("transferDetail.event")}
           amountLabel={amountLabel}
           size="lg"
           tone={AmountTone.NEUTRAL}
         />
+      </Card>
 
-        <section className="flex flex-col gap-(--space-3)">
-          <SectionHeader title={t("transferDetail.routeTitle")} />
-          <dl className="divide-y divide-border-subtle border-y border-border-subtle">
-            <div className="flex justify-between gap-(--space-3) py-(--space-3)">
-              <Text size="sm" tone="secondary">
-                {t("transferDetail.from")}
-              </Text>
-              <Text size="sm" className="text-right font-medium">
-                {sourceName}
-              </Text>
-            </div>
-            <div className="flex justify-between gap-(--space-3) py-(--space-3)">
-              <Text size="sm" tone="secondary">
-                {t("transferDetail.to")}
-              </Text>
-              <Text size="sm" className="text-right font-medium">
-                {destinationName}
-              </Text>
-            </div>
-            <div className="flex justify-between gap-(--space-3) py-(--space-3)">
-              <Text size="sm" tone="secondary">
-                {t("transferDetail.date")}
-              </Text>
-              <Text size="sm" className="text-right font-medium tabular-nums">
-                {formatEffectiveDate(activity.effectiveDate, locale)}
-              </Text>
-            </div>
-            {activity.note ? (
-              <div className="flex justify-between gap-(--space-3) py-(--space-3)">
-                <Text size="sm" tone="secondary">
-                  {t("transferDetail.note")}
-                </Text>
-                <Text size="sm" className="text-right font-medium">
-                  {activity.note}
-                </Text>
-              </div>
-            ) : null}
-          </dl>
-        </section>
+      <TransactionFactsCard title={t("transferDetail.routeTitle")}>
+        <TransactionFactRow
+          label={t("transferDetail.from")}
+          value={sourceName}
+        />
+        <TransactionFactRow
+          label={t("transferDetail.to")}
+          value={destinationName}
+        />
+        <TransactionFactRow
+          label={t("transferDetail.date")}
+          value={
+            <span className="tabular-nums">
+              {formatEffectiveDate(activity.effectiveDate, locale)}
+            </span>
+          }
+        />
+        {activity.note ? (
+          <TransactionFactRow
+            label={t("transferDetail.note")}
+            value={activity.note}
+          />
+        ) : null}
+      </TransactionFactsCard>
 
-        <div className="border-l-2 border-transfer pl-(--space-3)">
-          <Text size="sm" tone="secondary">
-            {t("transferDetail.neutrality")}
-          </Text>
-        </div>
-      </div>
-    </div>
+      <Card tone="soft" className="gap-0 p-(--space-4)">
+        <Text size="sm" tone="secondary">
+          {t("transferDetail.neutrality")}
+        </Text>
+      </Card>
+    </Page>
   );
 }
 
@@ -284,44 +289,50 @@ export default async function TransactionDetailPage({ params }: Props) {
 
   if (transactionResult.status === TransactionReadStatus.ERROR) {
     return (
-      <div
-        className="flex min-h-full flex-col"
-        data-testid="money-transaction-detail"
-      >
-        <TopAppBar title={t("detailPage.readErrorTitle")} />
-        <div className="flex flex-1 flex-col gap-(--space-4) px-(--space-4) py-(--space-6)">
-          <StatusAlert
-            variant="danger"
+      <Page
+        testId="money-transaction-detail"
+        topBar={
+          <TopAppBar
+            variant="detail"
             title={t("detailPage.readErrorTitle")}
-            description={t("detailPage.readErrorBody")}
+            backHref={APP_PATH.MONEY_TRANSACTIONS}
           />
-          <Link
-            href={APP_PATH.MONEY_TRANSACTIONS}
-            className="inline-flex min-h-11 w-full items-center justify-center rounded-(--radius-control) border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary"
-          >
-            {t("detailPage.back")}
-          </Link>
-        </div>
-      </div>
+        }
+      >
+        <StatusAlert
+          variant="danger"
+          title={t("detailPage.readErrorTitle")}
+          description={t("detailPage.readErrorBody")}
+        />
+        <Link
+          href={APP_PATH.MONEY_TRANSACTIONS}
+          className={TRANSACTION_SURFACE_LINK_CLASS}
+        >
+          {t("detailPage.back")}
+        </Link>
+      </Page>
     );
   }
 
   if (transactionResult.status === TransactionReadStatus.NOT_FOUND) {
     return (
-      <div
-        className="flex min-h-full flex-col"
-        data-testid="money-transaction-detail"
+      <Page
+        testId="money-transaction-detail"
+        topBar={
+          <TopAppBar
+            variant="detail"
+            title={t("detailPage.notFound")}
+            backHref={APP_PATH.MONEY_TRANSACTIONS}
+          />
+        }
       >
-        <TopAppBar title={t("detailPage.notFound")} />
-        <div className="px-(--space-4) py-(--space-6)">
-          <Link
-            href={APP_PATH.MONEY_TRANSACTIONS}
-            className="inline-flex min-h-11 w-full items-center justify-center rounded-(--radius-control) border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary"
-          >
-            {t("detailPage.back")}
-          </Link>
-        </div>
-      </div>
+        <Link
+          href={APP_PATH.MONEY_TRANSACTIONS}
+          className={TRANSACTION_SURFACE_LINK_CLASS}
+        >
+          {t("detailPage.back")}
+        </Link>
+      </Page>
     );
   }
 
@@ -340,25 +351,28 @@ export default async function TransactionDetailPage({ params }: Props) {
 
   if (!activity) {
     return (
-      <div
-        className="flex min-h-full flex-col"
-        data-testid="money-transaction-detail"
-      >
-        <TopAppBar title={t("detailPage.readErrorTitle")} />
-        <div className="flex flex-1 flex-col gap-(--space-4) px-(--space-4) py-(--space-6)">
-          <StatusAlert
-            variant="danger"
+      <Page
+        testId="money-transaction-detail"
+        topBar={
+          <TopAppBar
+            variant="detail"
             title={t("detailPage.readErrorTitle")}
-            description={t("detailPage.readErrorBody")}
+            backHref={APP_PATH.MONEY_TRANSACTIONS}
           />
-          <Link
-            href={APP_PATH.MONEY_TRANSACTIONS}
-            className="inline-flex min-h-11 w-full items-center justify-center rounded-(--radius-control) border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary"
-          >
-            {t("detailPage.back")}
-          </Link>
-        </div>
-      </div>
+        }
+      >
+        <StatusAlert
+          variant="danger"
+          title={t("detailPage.readErrorTitle")}
+          description={t("detailPage.readErrorBody")}
+        />
+        <Link
+          href={APP_PATH.MONEY_TRANSACTIONS}
+          className={TRANSACTION_SURFACE_LINK_CLASS}
+        >
+          {t("detailPage.back")}
+        </Link>
+      </Page>
     );
   }
 
@@ -386,179 +400,169 @@ export default async function TransactionDetailPage({ params }: Props) {
   const productContext = productContextLabel(activity, t);
 
   return (
-    <div
-      className="flex min-h-full flex-col bg-canvas"
-      data-testid="money-transaction-detail"
+    <Page
+      testId="money-transaction-detail"
+      contentClassName="gap-(--space-5)"
+      topBar={
+        <TopAppBar
+          variant="detail"
+          title={detailLabel}
+          subtitle={t("detailPage.subtitle")}
+          backHref={APP_PATH.MONEY_TRANSACTIONS}
+        />
+      }
     >
-      <TopAppBar
-        title={detailLabel}
-        subtitle={t("detailPage.subtitle")}
-        backHref={APP_PATH.MONEY_TRANSACTIONS}
-      />
-      <div className="flex flex-1 flex-col gap-(--space-5) px-(--space-4) pb-(--space-6) pt-(--space-4)">
-        <MoneyOfflineBanner />
-        <div className="rounded-[var(--radius-card)] border border-border-subtle/80 bg-surface/70 px-(--space-4) py-(--space-5) shadow-(--elevation-1)">
-          <Amount
-            label={t("detailPage.amount")}
-            amountLabel={signed}
-            size="lg"
-            tone={ACTIVITY_TONE_TO_AMOUNT_TONE[activity.tone]}
+      <MoneyOfflineBanner />
+      <Card tone="elevated" className="gap-0 p-(--space-4)">
+        <Amount
+          label={t("detailPage.amount")}
+          amountLabel={signed}
+          size="lg"
+          tone={ACTIVITY_TONE_TO_AMOUNT_TONE[activity.tone]}
+        />
+      </Card>
+
+      {activity.breakdown.kind ===
+      TransactionActivityBreakdownKind.LOAN_PAYMENT ? (
+        <TransactionFactsCard
+          title={t("detailPage.loanBreakdown.title")}
+          testId="loan-payment-breakdown"
+        >
+          <TransactionFactRow
+            label={t("detailPage.loanBreakdown.principal")}
+            value={
+              <span className="tabular-nums">
+                <FinancialValue>
+                  {formatCurrency(
+                    activity.breakdown.principalAmount,
+                    tx.currency,
+                    locale,
+                    { maximumFractionDigits: 0 },
+                  )}
+                </FinancialValue>
+              </span>
+            }
           />
-        </div>
+          <TransactionFactRow
+            label={t("detailPage.loanBreakdown.interest")}
+            value={
+              <span className="tabular-nums">
+                <FinancialValue>
+                  {formatCurrency(
+                    activity.breakdown.interestAmount,
+                    tx.currency,
+                    locale,
+                    { maximumFractionDigits: 0 },
+                  )}
+                </FinancialValue>
+              </span>
+            }
+          />
+          <TransactionFactRow
+            label={t("detailPage.loanBreakdown.total")}
+            value={
+              <span className="tabular-nums font-semibold">
+                <FinancialValue>
+                  {formatCurrency(
+                    activity.breakdown.totalPaid,
+                    tx.currency,
+                    locale,
+                    { maximumFractionDigits: 0 },
+                  )}
+                </FinancialValue>
+              </span>
+            }
+          />
+        </TransactionFactsCard>
+      ) : null}
 
-        {activity.breakdown.kind ===
-        TransactionActivityBreakdownKind.LOAN_PAYMENT ? (
-          <section
-            className="flex flex-col gap-(--space-3)"
-            data-testid="loan-payment-breakdown"
-          >
-            <SectionHeader title={t("detailPage.loanBreakdown.title")} />
-            <dl className="divide-y divide-border-subtle border-y border-border-subtle bg-surface/35">
-              <div className="flex justify-between gap-(--space-3) py-(--space-3)">
-                <Text size="sm" tone="secondary">
-                  {t("detailPage.loanBreakdown.principal")}
-                </Text>
-                <Text size="sm" className="font-medium tabular-nums">
-                  <FinancialValue>
-                    {formatCurrency(
-                      activity.breakdown.principalAmount,
-                      tx.currency,
-                      locale,
-                      { maximumFractionDigits: 0 },
-                    )}
-                  </FinancialValue>
-                </Text>
-              </div>
-              <div className="flex justify-between gap-(--space-3) py-(--space-3)">
-                <Text size="sm" tone="secondary">
-                  {t("detailPage.loanBreakdown.interest")}
-                </Text>
-                <Text size="sm" className="font-medium tabular-nums">
-                  <FinancialValue>
-                    {formatCurrency(
-                      activity.breakdown.interestAmount,
-                      tx.currency,
-                      locale,
-                      { maximumFractionDigits: 0 },
-                    )}
-                  </FinancialValue>
-                </Text>
-              </div>
-              <div className="flex justify-between gap-(--space-3) py-(--space-3)">
-                <Text size="sm" tone="secondary">
-                  {t("detailPage.loanBreakdown.total")}
-                </Text>
-                <Text size="sm" className="font-semibold tabular-nums">
-                  <FinancialValue>
-                    {formatCurrency(
-                      activity.breakdown.totalPaid,
-                      tx.currency,
-                      locale,
-                      { maximumFractionDigits: 0 },
-                    )}
-                  </FinancialValue>
-                </Text>
-              </div>
-            </dl>
-          </section>
-        ) : null}
+      <TransactionFactsCard title={t("detailPage.context")}>
+        <TransactionFactRow
+          label={t("detailPage.account")}
+          value={
+            localizeCatalogName(
+              tCatalog,
+              CatalogGroup.ACCOUNTS,
+              tx.accountName,
+            ) || t("detailPage.emptyValue")
+          }
+        />
+        <TransactionFactRow
+          label={t("detailPage.date")}
+          value={formatEffectiveDate(tx.transactionDate, locale)}
+        />
+        <TransactionFactRow
+          label={t("detailPage.status")}
+          value={t(`status.${statusKey}`)}
+        />
+        <TransactionFactRow
+          label={t("detailPage.jar")}
+          value={
+            tx.jarName
+              ? localizeCatalogName(tCatalog, CatalogGroup.JARS, tx.jarName)
+              : t("detailPage.unmapped")
+          }
+        />
+      </TransactionFactsCard>
 
-        <section className="flex flex-col gap-(--space-3)">
-          <SectionHeader title={t("detailPage.context")} />
-          <dl className="divide-y divide-border-subtle border-y border-border-subtle bg-surface/35">
-            <div className="flex justify-between gap-(--space-3) py-(--space-3)">
-              <Text size="sm" tone="secondary">
-                {t("detailPage.account")}
-              </Text>
-              <Text size="sm" className="font-medium text-text-primary">
-                {localizeCatalogName(tCatalog, "accounts", tx.accountName) ||
-                  t("detailPage.emptyValue")}
-              </Text>
-            </div>
-            <div className="flex justify-between gap-(--space-3) py-(--space-3)">
-              <Text size="sm" tone="secondary">
-                {t("detailPage.date")}
-              </Text>
-              <Text size="sm" className="font-medium text-text-primary">
-                {formatEffectiveDate(tx.transactionDate, locale)}
-              </Text>
-            </div>
-            <div className="flex justify-between gap-(--space-3) py-(--space-3)">
-              <Text size="sm" tone="secondary">
-                {t("detailPage.status")}
-              </Text>
-              <Text size="sm" className="font-medium text-text-primary">
-                {t(`status.${statusKey}`)}
-              </Text>
-            </div>
-            <div className="flex justify-between gap-(--space-3) py-(--space-3)">
-              <Text size="sm" tone="secondary">
-                {t("detailPage.jar")}
-              </Text>
-              <Text size="sm" className="font-medium text-text-primary">
-                {tx.jarName
-                  ? localizeCatalogName(tCatalog, "jars", tx.jarName)
-                  : t("detailPage.unmapped")}
-              </Text>
-            </div>
-          </dl>
-        </section>
+      <section className="flex flex-col gap-(--space-3)">
+        <SectionHeader title={t("detailPage.category")} />
+        {tx.categoryName ? (
+          <span className="inline-flex min-h-11 items-center self-start rounded-(--radius-control) border border-border-subtle bg-surface px-(--space-3) text-sm font-medium text-text-primary">
+            {localizeCatalogName(tCatalog, CatalogGroup.TAGS, tx.categoryName)}
+          </span>
+        ) : (
+          <Text size="sm" tone="secondary">
+            {t("detailPage.noTag")}
+          </Text>
+        )}
+      </section>
 
-        <section className="flex flex-col gap-(--space-3)">
-          <SectionHeader title={t("detailPage.category")} />
-          {tx.categoryName ? (
-            <span className="inline-flex min-h-11 items-center rounded-(--radius-control) border border-border-subtle bg-surface px-(--space-3) text-sm font-medium text-text-primary">
-              {localizeCatalogName(tCatalog, "tags", tx.categoryName)}
-            </span>
-          ) : (
-            <Text size="sm" tone="secondary">
-              {t("detailPage.noTag")}
-            </Text>
-          )}
-        </section>
-
+      <Card tone="elevated" className="gap-(--space-3) p-(--space-4)">
         <TransactionTagEditor
           transactionId={tx.id}
           initialTags={tx.tags}
           availableTags={availableTags ?? []}
         />
+      </Card>
 
-        {productContext ? (
-          <section className="border-t border-border-subtle pt-(--space-3)">
-            <Text size="sm" tone="secondary">
-              {productContext}
-            </Text>
-          </section>
-        ) : null}
+      {productContext ? (
+        <Card tone="soft" className="gap-0 p-(--space-4)">
+          <Text size="sm" tone="secondary">
+            {productContext}
+          </Text>
+        </Card>
+      ) : null}
 
-        {hasHistory && chain ? (
-          <section
-            className="flex flex-col gap-(--space-3)"
-            data-testid="transaction-relationships"
-          >
-            <SectionHeader
-              title={
-                hasRefundHistory
-                  ? t("detailPage.refundRelationship")
-                  : t("detailPage.changeHistory")
-              }
-            />
-            <ul className="divide-y divide-border-subtle border-y border-border-subtle">
+      {hasHistory && chain ? (
+        <section
+          className="flex flex-col gap-(--space-3)"
+          data-testid="transaction-relationships"
+        >
+          <SectionHeader
+            title={
+              hasRefundHistory
+                ? t("detailPage.refundRelationship")
+                : t("detailPage.changeHistory")
+            }
+          />
+          <Card tone="elevated" className="gap-0 p-0">
+            <ul className="divide-y divide-border-subtle/65">
               {tx.status === TransactionStatus.PARTIALLY_REFUNDED ? (
-                <li className="py-(--space-3) text-sm font-medium text-text-primary">
+                <li className="px-(--space-4) py-(--space-3) text-sm font-medium text-text-primary">
                   {t("detailPage.refundPartial")}
                 </li>
               ) : null}
               {tx.status === TransactionStatus.FULLY_REFUNDED ? (
-                <li className="py-(--space-3) text-sm font-medium text-text-primary">
+                <li className="px-(--space-4) py-(--space-3) text-sm font-medium text-text-primary">
                   {t("detailPage.refundFull")}
                 </li>
               ) : null}
               {tx.isReversal ? (
-                <li className="py-(--space-3) text-sm text-text-primary">
+                <li className="px-(--space-4) py-(--space-3) text-sm text-text-primary">
                   <Link
                     href={moneyTransactionPath(chain.original.id)}
-                    className="font-medium underline underline-offset-2"
+                    className="font-medium text-accent underline-offset-2 hover:underline"
                   >
                     {t.rich("detailPage.refundOriginal", {
                       title: transactionContextTitle(
@@ -587,11 +591,11 @@ export default async function TransactionDetailPage({ params }: Props) {
               {chain.reversals.map((leg) => (
                 <li
                   key={leg.id}
-                  className="py-(--space-3) text-sm text-text-secondary"
+                  className="px-(--space-4) py-(--space-3) text-sm text-text-secondary"
                 >
                   <Link
                     href={moneyTransactionPath(leg.id)}
-                    className="underline underline-offset-2"
+                    className="text-accent underline-offset-2 hover:underline"
                   >
                     {t.rich("detailPage.refundEntry", {
                       amount: () => (
@@ -608,13 +612,13 @@ export default async function TransactionDetailPage({ params }: Props) {
               ))}
               {hasCorrectionHistory ? (
                 <>
-                  <li className="py-(--space-3) text-sm font-medium text-text-primary">
+                  <li className="px-(--space-4) py-(--space-3) text-sm font-medium text-text-primary">
                     {t("detailPage.correctionStory")}
                   </li>
-                  <li className="py-(--space-3) text-sm text-text-secondary">
+                  <li className="px-(--space-4) py-(--space-3) text-sm text-text-secondary">
                     <Link
                       href={moneyTransactionPath(chain.original.id)}
-                      className="underline underline-offset-2"
+                      className="text-accent underline-offset-2 hover:underline"
                     >
                       {t.rich("detailPage.correctionOriginal", {
                         title: transactionContextTitle(
@@ -642,11 +646,11 @@ export default async function TransactionDetailPage({ params }: Props) {
                   {chain.corrections.map((leg) => (
                     <li
                       key={leg.id}
-                      className="py-(--space-3) text-sm text-text-primary"
+                      className="px-(--space-4) py-(--space-3) text-sm text-text-primary"
                     >
                       <Link
                         href={moneyTransactionPath(leg.id)}
-                        className="underline underline-offset-2"
+                        className="text-accent underline-offset-2 hover:underline"
                       >
                         {t.rich("detailPage.correctionCorrected", {
                           amount: () => (
@@ -670,28 +674,28 @@ export default async function TransactionDetailPage({ params }: Props) {
                 </>
               ) : null}
             </ul>
-          </section>
-        ) : null}
+          </Card>
+        </section>
+      ) : null}
 
-        {canCorrect ? (
-          <Link
-            href={moneyTransactionCorrectPath(tx.id)}
-            className="inline-flex min-h-11 w-full items-center justify-center rounded-[var(--radius-control)] bg-accent px-(--space-4) text-sm font-medium text-accent-fg shadow-(--elevation-1) transition-[background-color,transform] duration-(--duration-fast) hover:bg-accent/90 active:scale-[var(--press-scale)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none"
-            data-testid="transaction-correct"
-          >
-            {t("detailPage.correct")}
-          </Link>
-        ) : null}
-        {canRefund ? (
-          <Link
-            href={moneyTransactionRefundPath(tx.id)}
-            className="inline-flex min-h-11 w-full items-center justify-center rounded-[var(--radius-control)] border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-[var(--press-scale)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none"
-            data-testid="transaction-refund"
-          >
-            {t("detailPage.refundAction")}
-          </Link>
-        ) : null}
-      </div>
-    </div>
+      {canCorrect ? (
+        <Link
+          href={moneyTransactionCorrectPath(tx.id)}
+          className={TRANSACTION_ACCENT_LINK_CLASS}
+          data-testid="transaction-correct"
+        >
+          {t("detailPage.correct")}
+        </Link>
+      ) : null}
+      {canRefund ? (
+        <Link
+          href={moneyTransactionRefundPath(tx.id)}
+          className={TRANSACTION_SURFACE_LINK_CLASS}
+          data-testid="transaction-refund"
+        >
+          {t("detailPage.refundAction")}
+        </Link>
+      ) : null}
+    </Page>
   );
 }

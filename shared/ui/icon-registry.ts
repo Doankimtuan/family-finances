@@ -12,6 +12,7 @@ import {
   Calendar03Icon,
   Car01Icon,
   ChartBarLineIcon,
+  CheckmarkCircle02Icon,
   Coffee01Icon,
   CreditCardIcon,
   Delete02Icon,
@@ -82,6 +83,15 @@ export const FINANCE_ICONS = {
   debt: BanknoteXIcon,
   loan: BankIcon,
   refund: ArrowTurnBackwardIcon,
+} as const;
+
+/** Stable Plan-domain icons. Intention envelopes, not bank balances. */
+export const PLAN_ICONS = {
+  jar: Wallet02Icon,
+  goal: SafeBoxIcon,
+  recurring: ArrowDataTransferHorizontalIcon,
+  calendar: Calendar03Icon,
+  ritual: CheckmarkCircle02Icon,
 } as const;
 
 /** Stable category keys are safe to persist; UI maps them to Hugeicons here. */
@@ -214,6 +224,7 @@ export const ACTION_ICONS = {
   back: ArrowLeft01Icon,
   forward: ArrowRight01Icon,
   check: Tick01Icon,
+  success: CheckmarkCircle02Icon,
 } as const;
 export const UTILITY_ICONS = {
   calendar: Calendar03Icon,

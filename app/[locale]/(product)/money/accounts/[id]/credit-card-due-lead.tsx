@@ -8,6 +8,7 @@ import { Amount, AmountSize, AmountTone } from "@/shared/patterns/amount";
 import { Text } from "@/shared/ui/text";
 import { Progress } from "@/shared/ui/progress";
 import { toYearMonth } from "@/shared/utils/iso-date";
+import { AccountSectionTitle } from "./account-section-title";
 
 type CreditCardDueLeadProps = {
   leadMonth: CardBillingMonth;
@@ -38,17 +39,13 @@ export function CreditCardDueLead({
       data-testid="card-due-lead"
     >
       <SectionHeader
-        title={t("currentStatementTitle")}
+        title={
+          <AccountSectionTitle>
+            {t("currentStatementTitle")}
+          </AccountSectionTitle>
+        }
         description={toYearMonth(leadMonth.billingMonth)}
       />
-      <div className="mt-(--space-4) flex items-center justify-between gap-(--space-3) border-y border-border-subtle py-(--space-3)">
-        <Text size="sm" tone="secondary">
-          {t("due.dueLabel")}
-        </Text>
-        <Text size="sm" weight="medium" className="shrink-0 tabular-nums">
-          {leadMonth.dueDate}
-        </Text>
-      </div>
       <Amount
         label={t("due.remainingLabel")}
         amountLabel={remainingDueLabel}
@@ -78,6 +75,14 @@ export function CreditCardDueLead({
           className="items-end text-right"
           amountClassName="text-text-primary"
         />
+      </div>
+      <div className="mt-(--space-3) flex items-center justify-between gap-(--space-3)">
+        <Text size="sm" tone="secondary">
+          {t("due.dueLabel")}
+        </Text>
+        <Text size="sm" weight="medium" className="shrink-0 tabular-nums">
+          {leadMonth.dueDate}
+        </Text>
       </div>
     </Card>
   );

@@ -11,6 +11,10 @@
     "title": "Kế hoạch không phải số dư ngân hàng",
     "body": "Hũ là phong bì ý định. Tiền mặt và tài khoản thật nằm ở Money. Không bao giờ đọc tổng hũ như số dư ngân hàng."
   },
+  "financialPrivacy": {
+    "hide": "Ẩn số tiền",
+    "show": "Hiện số tiền"
+  },
   "jars": {
     "title": "Hũ đang hoạt động",
     "subtitle": "Chỉ đích phân bổ — hũ tạm dừng/lưu trữ không phải đích gắn.",
@@ -700,6 +704,15 @@
     "jarsUnavailableTitle": "Không có dữ liệu hũ",
     "modeHint": "Đang có gợi ý {mode}.",
     "recurringLink": "Định kỳ",
+    "factJars": "Hũ đang dùng",
+    "factJarsValue": "{count, plural, other {# hũ}}",
+    "factAllocation": "Phân bổ",
+    "factAllocationValue": "{percent}%",
+    "factIncome": "Thu nhập đủ điều kiện",
+    "factIncomeEmpty": "Chưa có",
+    "workspaceTitle": "Khác trong Plan",
+    "workspaceRecurringMeta": "Thu nhập và chi định kỳ",
+    "workspaceRitualMeta": "Xem lại tháng này",
     "upcomingDue": "Đến hạn",
     "upcomingEmpty": "Chưa có gì sắp tới.",
     "upcomingExpected": "Dự kiến",

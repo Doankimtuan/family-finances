@@ -51,7 +51,10 @@ export default async function MoneyTransactionAddPage({ params }: Props) {
       listTransactionTags(),
     ]);
   const accounts = (listed?.accounts ?? []).filter(
-    (account) => !account.isArchived && isCaptureAccountType(account.type),
+    (account) =>
+      !account.isArchived &&
+      account.canMutate &&
+      isCaptureAccountType(account.type),
   );
 
   return (
@@ -59,7 +62,12 @@ export default async function MoneyTransactionAddPage({ params }: Props) {
       testId="money-transaction-add"
       contentClassName="pb-0"
       topBar={
-        <TopAppBar title={t("capture")} subtitle={t("captureForm.subtitle")} />
+        <TopAppBar
+          title={t("capture")}
+          subtitle={t("captureForm.subtitle")}
+          variant="form"
+          backHref={APP_PATH.MONEY_TRANSACTIONS}
+        />
       }
     >
       <MoneyOfflineBanner />

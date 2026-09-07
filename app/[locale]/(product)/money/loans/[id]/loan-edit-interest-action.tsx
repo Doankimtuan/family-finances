@@ -106,12 +106,14 @@ export function LoanEditInterestAction({
     >
       <ActionSheetLayout>
         <ActionSheetLayout.Header>
-          <Sheet.Heading>{t("editInterest")}</Sheet.Heading>
+          <Sheet.Heading className="text-lg font-semibold tracking-tight text-text-primary">
+            {t("editInterest")}
+          </Sheet.Heading>
         </ActionSheetLayout.Header>
         <ActionSheetLayout.Body>
           <Card
-            tone="metric"
-            className="flex flex-col gap-(--space-3) p-(--space-3)"
+            tone="elevated"
+            className="flex flex-col gap-(--space-3) p-(--space-4)"
             data-testid="loan-edit-interest-form"
           >
             <TextField

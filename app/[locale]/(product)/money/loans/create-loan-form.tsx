@@ -41,10 +41,22 @@ import {
 import { createLoanAction } from "../money-products-actions";
 import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
 import { Card } from "@/shared/patterns/card";
+import { FloatingAction } from "@/shared/patterns/floating-action";
 import { SheetActionFooter } from "@/shared/patterns/sheet-action-footer";
 import { Sheet } from "@/shared/patterns/sheet";
 import { FinancialScopeField } from "@/shared/patterns/financial-scope-field";
 import { FINANCIAL_SCOPE } from "@/modules/shared-kernel/application/financial-scope";
+import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
+import { ACTION_ICONS } from "@/shared/ui/icon-registry";
+import { LoanFactNote, LoanFactRow } from "./loan-facts";
+
+export const LoanCreateTrigger = {
+  EMPTY: "empty",
+  FLOATING: "floating",
+} as const;
+
+export type LoanCreateTrigger =
+  (typeof LoanCreateTrigger)[keyof typeof LoanCreateTrigger];
 
 function todayYmd(): string {
   return new Date().toISOString().slice(0, 10);
@@ -78,7 +90,11 @@ const optionList = (
   label: (value: string) => string,
 ) => values.map((value) => ({ id: value, label: label(value) }));
 
-export function CreateLoanForm() {
+export function CreateLoanForm({
+  trigger = LoanCreateTrigger.EMPTY,
+}: {
+  trigger?: LoanCreateTrigger;
+}) {
   const t = useTranslations("money.loansPage");
   const tErr = useTranslations("money.products.errors");
   const locale = useLocale();
@@ -94,7 +110,7 @@ export function CreateLoanForm() {
     control,
     handleSubmit,
     reset,
-    trigger,
+    trigger: validateFields,
     setValue,
     formState: { errors },
   } = useForm<FormValues>({
@@ -214,27 +230,45 @@ export function CreateLoanForm() {
   };
 
   const handleContinue = async () => {
-    if (await trigger(["name", "loanType", "principal"])) {
+    if (await validateFields(["name", "loanType", "principal"])) {
       setStep(LoanCreateStep.TERMS);
     }
   };
 
-  if (!open)
+  const openSheet = () => {
+    reset(getDefaultValues());
+    setStep(LoanCreateStep.BASICS);
+    setOpen(true);
+  };
+
+  if (!open) {
+    if (trigger === LoanCreateTrigger.FLOATING) {
+      return (
+        <FloatingAction>
+          <Button
+            className="pointer-events-auto min-h-(--floating-action-size) shrink-0 gap-(--space-2) rounded-full px-(--space-4) shadow-(--elevation-2)"
+            data-testid="loan-add-open"
+            isDisabled={!online}
+            onPress={openSheet}
+          >
+            <AppIcon icon={ACTION_ICONS.add} size={AppIconSize.SM} />
+            <span>{online ? t("add") : tErr("offline")}</span>
+          </Button>
+        </FloatingAction>
+      );
+    }
     return (
       <Button
-        variant="secondary"
+        variant="primary"
         className="min-h-11 w-full"
         data-testid="loan-add-open"
         isDisabled={!online}
-        onPress={() => {
-          reset(getDefaultValues());
-          setStep(LoanCreateStep.BASICS);
-          setOpen(true);
-        }}
+        onPress={openSheet}
       >
         {online ? t("add") : tErr("offline")}
       </Button>
     );
+  }
 
   const commonFields = [
     {
@@ -371,8 +405,14 @@ export function CreateLoanForm() {
     >
       <ActionSheetLayout>
         <ActionSheetLayout.Header>
-          <Sheet.Heading>{t("add")}</Sheet.Heading>
-          <Text size="sm" tone="secondary" className="mt-(--space-1)">
+          <Sheet.Heading className="text-lg font-semibold tracking-tight text-text-primary">
+            {t("add")}
+          </Sheet.Heading>
+          <Text
+            size="sm"
+            tone="secondary"
+            className="mt-(--space-1) text-pretty"
+          >
             {t("trackingOnly")}
           </Text>
         </ActionSheetLayout.Header>
@@ -526,77 +566,76 @@ export function CreateLoanForm() {
                     error={error("note")}
                   />
                   <Card
-                    tone="metric"
-                    className="flex flex-col gap-(--space-2) p-(--space-3)"
+                    tone="elevated"
+                    className="gap-0 overflow-hidden p-0"
                     data-testid="loan-simulation"
                   >
-                    <Text size="sm" className="font-medium">
-                      {t("simulationTitle")}
-                    </Text>
-                    {preview ? (
-                      <>
-                        <Text
-                          size="sm"
-                          tone="secondary"
-                          data-testid="loan-sim-monthly"
-                        >
-                          {t("simulationMonthlyLabel")}{" "}
-                          <FinancialValue>
-                            {money(preview.monthlyPayment)}
-                          </FinancialValue>
-                        </Text>
-                        {preview.changeAfterMonths != null ? (
-                          <>
-                            <Text
-                              size="sm"
-                              tone="secondary"
-                              data-testid="loan-sim-promo"
-                            >
-                              {t("simulationPromoChange", {
-                                months: preview.changeAfterMonths,
-                              })}
-                            </Text>
-                            <Text
-                              size="sm"
-                              tone="secondary"
-                              data-testid="loan-sim-monthly-after"
-                            >
-                              {t("simulationMonthlyAfterLabel")}{" "}
-                              <FinancialValue>
-                                {money(preview.monthlyPaymentAfterChange ?? 0)}
-                              </FinancialValue>
-                            </Text>
-                          </>
-                        ) : null}
-                        <Text
-                          size="sm"
-                          tone="secondary"
-                          data-testid="loan-sim-interest"
-                        >
-                          {t("simulationInterestLabel")}{" "}
-                          <FinancialValue>
-                            {money(preview.totalInterest)}
-                          </FinancialValue>
-                        </Text>
-                        <Text
-                          size="sm"
-                          tone="secondary"
-                          data-testid="loan-sim-total"
-                        >
-                          {t("simulationTotalLabel")}{" "}
-                          <FinancialValue>
-                            {money(preview.totalRepayment)}
-                          </FinancialValue>
-                        </Text>
-                        <Text size="sm" tone="secondary">
-                          {t("simulationEndDate", { date: preview.endDate })}
-                        </Text>
-                      </>
-                    ) : (
-                      <Text size="sm" tone="secondary">
-                        {t("simulationHint")}
+                    <div className="px-(--space-4) py-(--space-3)">
+                      <Text size="sm" weight="semibold">
+                        {t("simulationTitle")}
                       </Text>
+                    </div>
+                    {preview ? (
+                      <dl className="divide-y divide-divider border-t border-divider">
+                        <LoanFactRow
+                          label={t("simulationMonthlyLabel")}
+                          value={
+                            <span data-testid="loan-sim-monthly">
+                              <FinancialValue>
+                                {money(preview.monthlyPayment)}
+                              </FinancialValue>
+                            </span>
+                          }
+                        />
+                        {preview.changeAfterMonths != null ? (
+                          <LoanFactRow
+                            testId="loan-sim-promo"
+                            label={t("simulationPromoChange", {
+                              months: preview.changeAfterMonths,
+                            })}
+                            value={
+                              <span data-testid="loan-sim-monthly-after">
+                                <FinancialValue>
+                                  {money(
+                                    preview.monthlyPaymentAfterChange ?? 0,
+                                  )}
+                                </FinancialValue>
+                              </span>
+                            }
+                          />
+                        ) : null}
+                        <LoanFactRow
+                          label={t("simulationInterestLabel")}
+                          value={
+                            <span data-testid="loan-sim-interest">
+                              <FinancialValue>
+                                {money(preview.totalInterest)}
+                              </FinancialValue>
+                            </span>
+                          }
+                        />
+                        <LoanFactRow
+                          label={t("simulationTotalLabel")}
+                          emphasis
+                          value={
+                            <span data-testid="loan-sim-total">
+                              <FinancialValue>
+                                {money(preview.totalRepayment)}
+                              </FinancialValue>
+                            </span>
+                          }
+                        />
+                      </dl>
+                    ) : (
+                      <LoanFactNote>{t("simulationHint")}</LoanFactNote>
                     )}
+                    {preview ? (
+                      <div className="border-t border-divider">
+                        <LoanFactNote>
+                          {t("simulationEndDate", { date: preview.endDate })}
+                        </LoanFactNote>
+                      </div>
+                    ) : null}
                   </Card>
                 </section>
               </>

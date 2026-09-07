@@ -25,6 +25,8 @@ import { formatCurrency } from "@/shared/i18n/formatters";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import { AmountField } from "@/shared/patterns/amount-field";
 import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
+import { Card } from "@/shared/patterns/card";
+import { EmptyState } from "@/shared/patterns/empty-state";
 import { FinancialValue } from "@/shared/patterns/financial-value";
 import { LabeledSelect } from "@/shared/patterns/labeled-native-field";
 import { SectionHeader } from "@/shared/patterns/section-header";
@@ -34,8 +36,11 @@ import { DatePickerField, NumberField, TextField } from "@/shared/ui/form";
 import { Progress } from "@/shared/ui/progress";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Text } from "@/shared/ui/text";
+import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
+import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
 import { todayIsoDate } from "@/shared/utils/iso-date";
 import { ACCOUNT_DETAIL_PREVIEW_CONFIG } from "./detail-constants";
+import { AccountSectionTitle } from "./account-section-title";
 import {
   registerCreditCardInstallmentAction,
   stopCreditCardInstallmentTrackingAction,
@@ -248,110 +253,121 @@ export function CreditCardInstallmentsSection({
       className="flex flex-col gap-(--space-3)"
       data-testid="card-installments"
     >
-      <div className="flex flex-col gap-(--space-2) md:flex-row md:items-center md:justify-between">
-        <SectionHeader title={t("emiTitle")} className="min-w-0" />
-        <Button
-          variant="secondary"
-          size="sm"
-          className="self-start md:self-auto"
-          isDisabled={!online || isPending || eligiblePurchases.length === 0}
-          onPress={() => {
-            setError(false);
-            setIsOpen(true);
-          }}
-          data-testid="card-installment-open"
-        >
-          {t("convertTitle")}
-        </Button>
-      </div>
+      <SectionHeader
+        title={<AccountSectionTitle>{t("emiTitle")}</AccountSectionTitle>}
+        action={
+          <Button
+            variant="secondary"
+            size="sm"
+            isDisabled={!online || isPending || eligiblePurchases.length === 0}
+            onPress={() => {
+              setError(false);
+              setIsOpen(true);
+            }}
+            data-testid="card-installment-open"
+          >
+            {t("convertTitle")}
+          </Button>
+        }
+      />
       {viewModels.length === 0 ? (
-        <Text size="sm" tone="secondary">
-          {t("emiEmpty")}
-        </Text>
+        <EmptyState
+          title={t("emiEmpty")}
+          icon={
+            <AppIcon icon={FINANCE_ICONS.card} size={AppIconSize.DISPLAY} />
+          }
+          className="flex-none py-(--space-4)"
+        />
       ) : (
-        <ul className="flex flex-col gap-(--space-2)">
+        <ul className="flex flex-col gap-(--space-3)">
           {viewModels.map((viewModel) => {
             const { installment } = viewModel;
             return (
-              <li
-                key={installment.id}
-                className="flex flex-col gap-(--space-2) rounded-[var(--radius-card)] border border-border-subtle/70 bg-surface-muted px-(--space-3) py-(--space-3)"
-                data-testid={`card-installment-${installment.id}`}
-              >
-                <div className="flex items-start justify-between gap-(--space-3)">
-                  <div className="min-w-0">
-                    <Text size="sm" weight="medium">
-                      {installment.description ?? t("convertItemFallback")}
-                    </Text>
-                  </div>
-                  <div className="shrink-0 text-right">
-                    <Text size="xs" tone="secondary">
-                      {t("installmentRemainingLabel")}
-                    </Text>
-                    <Text size="sm" className="tabular-nums font-medium">
-                      <FinancialValue>
-                        {formatMoney(viewModel.remainingAmount)}
-                      </FinancialValue>
-                    </Text>
-                  </div>
-                </div>
-                <div className="flex items-center gap-(--space-3)">
-                  <Progress
-                    value={viewModel.progressPercent}
-                    label={t("installmentProgressLabel", {
-                      percent: viewModel.progressPercent,
-                    })}
-                    showLabel={false}
-                    className="min-w-0 flex-1"
-                  />
-                  <Text size="xs" tone="secondary" className="shrink-0">
-                    {t("installmentProgress", {
-                      current: viewModel.currentTerm,
-                      total: installment.termCount,
-                      percent: viewModel.progressPercent,
-                    })}
-                  </Text>
-                </div>
-                {viewModel.nextExpected ? (
-                  <div className="flex items-end justify-between gap-(--space-3) border-t border-border-subtle/70 pt-(--space-2)">
-                    <div>
-                      <Text size="xs" tone="secondary">
-                        {t("installmentNextLabel")}
+              <li key={installment.id}>
+                <Card
+                  tone="elevated"
+                  className="gap-(--space-2) p-(--space-3)"
+                  data-testid={`card-installment-${installment.id}`}
+                >
+                  <div className="flex items-start justify-between gap-(--space-3)">
+                    <div className="min-w-0">
+                      <Text size="sm" weight="medium">
+                        {installment.description ?? t("convertItemFallback")}
                       </Text>
-                      <Text size="sm" weight="medium" className="tabular-nums">
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <Text size="xs" tone="secondary">
+                        {t("installmentRemainingLabel")}
+                      </Text>
+                      <Text size="sm" className="tabular-nums font-medium">
                         <FinancialValue>
-                          {formatMoney(viewModel.nextExpected.totalAmount)}
+                          {formatMoney(viewModel.remainingAmount)}
                         </FinancialValue>
                       </Text>
                     </div>
-                    <Text
-                      size="sm"
-                      tone="secondary"
-                      className="shrink-0 text-right tabular-nums"
-                    >
-                      {viewModel.nextExpected.expectedDate}
+                  </div>
+                  <div className="flex items-center gap-(--space-3)">
+                    <Progress
+                      value={viewModel.progressPercent}
+                      label={t("installmentProgressLabel", {
+                        percent: viewModel.progressPercent,
+                      })}
+                      showLabel={false}
+                      className="min-w-0 flex-1"
+                    />
+                    <Text size="xs" tone="secondary" className="shrink-0">
+                      {t("installmentProgress", {
+                        current: viewModel.currentTerm,
+                        total: installment.termCount,
+                        percent: viewModel.progressPercent,
+                      })}
                     </Text>
                   </div>
-                ) : null}
-                <Text size="xs" tone="secondary">
-                  {t("totalExtraCost")}:{" "}
-                  <FinancialValue>
-                    {formatMoney(viewModel.totalExtraCost)}
-                  </FinancialValue>
-                </Text>
-                {installment.status === CreditCardInstallmentStatus.ACTIVE ? (
-                  <div className="flex flex-col gap-(--space-2)">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="self-start px-(--space-2) text-danger"
-                      isDisabled={isPending || !online}
-                      onPress={() => requestStopTracking(installment.id)}
-                    >
-                      {t("stopTracking")}
-                    </Button>
-                  </div>
-                ) : null}
+                  {viewModel.nextExpected ? (
+                    <div className="flex items-end justify-between gap-(--space-3) border-t border-border-subtle/70 pt-(--space-2)">
+                      <div>
+                        <Text size="xs" tone="secondary">
+                          {t("installmentNextLabel")}
+                        </Text>
+                        <Text
+                          size="sm"
+                          weight="medium"
+                          className="tabular-nums"
+                        >
+                          <FinancialValue>
+                            {formatMoney(viewModel.nextExpected.totalAmount)}
+                          </FinancialValue>
+                        </Text>
+                      </div>
+                      <Text
+                        size="sm"
+                        tone="secondary"
+                        className="shrink-0 text-right tabular-nums"
+                      >
+                        {viewModel.nextExpected.expectedDate}
+                      </Text>
+                    </div>
+                  ) : null}
+                  <Text size="xs" tone="secondary">
+                    {t("totalExtraCost")}:{" "}
+                    <FinancialValue>
+                      {formatMoney(viewModel.totalExtraCost)}
+                    </FinancialValue>
+                  </Text>
+                  {installment.status === CreditCardInstallmentStatus.ACTIVE ? (
+                    <div className="flex flex-col gap-(--space-2)">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="self-start px-(--space-2) text-danger"
+                        isDisabled={isPending || !online}
+                        onPress={() => requestStopTracking(installment.id)}
+                      >
+                        {t("stopTracking")}
+                      </Button>
+                    </div>
+                  ) : null}
+                </Card>
               </li>
             );
           })}
@@ -389,8 +405,8 @@ export function CreditCardInstallmentsSection({
                       {eligiblePurchases.map((purchase) => (
                         <li key={purchase.id}>
                           <Button
-                            variant="secondary"
-                            className="h-auto w-full justify-start px-(--space-3) py-(--space-3) text-left"
+                            variant="ghost"
+                            className="h-auto w-full justify-start rounded-[var(--radius-card)] border border-border-subtle bg-surface px-(--space-3) py-(--space-3) text-left"
                             onPress={() => setSelected(purchase)}
                           >
                             <span className="flex w-full flex-col gap-1">
@@ -571,7 +587,7 @@ export function CreditCardInstallmentsSection({
                   />
                   {preview ? (
                     <div
-                      className="flex flex-col gap-(--space-2) rounded-[var(--radius-card)] border border-border-subtle bg-surface-elevated px-(--space-3) py-(--space-3)"
+                      className="flex flex-col gap-(--space-2) rounded-[var(--radius-card)] border border-border-subtle bg-surface px-(--space-3) py-(--space-3)"
                       data-testid="card-installment-preview"
                     >
                       <SectionHeader title={t("previewTitle")} />

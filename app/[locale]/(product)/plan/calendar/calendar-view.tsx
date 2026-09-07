@@ -19,6 +19,13 @@ import { Text } from "@/shared/ui/text";
 import { Card } from "@/shared/patterns/card";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { SectionHeader } from "@/shared/patterns/section-header";
+import { FinancialValue } from "@/shared/patterns/financial-value";
+import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
+import { ACTION_ICONS } from "@/shared/ui/icon-registry";
+import {
+  PLAN_ACCENT_LINK_CLASS,
+  PLAN_SURFACE_LINK_CLASS,
+} from "../plan-chrome";
 
 type Props = {
   anchorMonth: string;
@@ -106,15 +113,14 @@ export function HouseholdCalendarView({
 
   return (
     <div className="flex flex-col gap-(--space-5)" data-testid="plan-calendar">
-      <Card tone="metric" className="gap-(--space-1) p-(--space-3)">
-        <Text size="xs" tone="secondary">
+      <Card tone="elevated" className="gap-(--space-1) p-(--space-4)">
+        <Text size="xs" tone="muted">
           {t("startingBalanceLabel")}
         </Text>
-        <Text
-          size="sm"
-          className="tabular-nums font-semibold text-text-primary"
-        >
-          {formatAmount(startingBalance, currency)}
+        <Text size="sm" weight="semibold" tabular>
+          <FinancialValue>
+            {formatAmount(startingBalance, currency)}
+          </FinancialValue>
         </Text>
       </Card>
 
@@ -175,7 +181,7 @@ export function HouseholdCalendarView({
                   events: String(eventsByDate[date]?.length ?? 0),
                 })}
                 className={[
-                  "relative flex min-h-11 flex-col items-center justify-center rounded-md border text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring",
+                  "relative flex min-h-11 flex-col items-center justify-center rounded-(--radius-control) border text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring",
                   isSelected
                     ? "border-accent bg-accent/10 font-semibold text-text-primary"
                     : "border-border-subtle bg-surface text-text-primary",
@@ -224,14 +230,14 @@ export function HouseholdCalendarView({
                 ? inboxItemPath(celebrationInboxId)
                 : APP_PATH.INBOX
             }
-            className="inline-flex min-h-11 w-full items-center justify-center rounded-md bg-accent px-(--space-4) text-sm font-medium text-accent-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+            className={PLAN_ACCENT_LINK_CLASS}
             data-testid="calendar-payoff-inbox"
           >
             {t("payoffInboxCta")}
           </Link>
           <Link
             href={APP_PATH.PLAN_JARS}
-            className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+            className={PLAN_SURFACE_LINK_CLASS}
             data-testid="calendar-payoff-reallocate"
           >
             {t("payoffReallocateCta")}
@@ -259,40 +265,49 @@ export function HouseholdCalendarView({
             {t("dayEmpty")}
           </Text>
         ) : (
-          <ul className="flex flex-col gap-(--space-2)">
-            {dayEvents.map((event) => (
-              <li key={event.id}>
+          <Card tone="elevated" className="gap-0 overflow-hidden p-0">
+            <div className="divide-y divide-border-subtle/65">
+              {dayEvents.map((event) => (
                 <Link
+                  key={event.id}
                   href={eventHref(event)}
-                  className="block focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+                  className="flex min-h-14 items-center gap-(--space-3) px-(--space-4) py-(--space-3) transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-(--press-scale) motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus-ring"
                   data-testid={`calendar-event-${event.source}`}
                 >
-                  <Card
-                    tone="interactive"
-                    className="min-h-11 gap-(--space-1) px-(--space-3) py-(--space-2)"
+                  <div className="min-w-0 flex-1">
+                    <Text
+                      size="sm"
+                      weight="medium"
+                      className="truncate text-text-primary"
+                    >
+                      {event.title}
+                    </Text>
+                    <Text size="xs" tone="secondary" className="mt-(--space-1)">
+                      {t(`sources.${event.source}`)}
+                      {event.isPayoffMilestone
+                        ? ` · ${t("milestoneBadge")}`
+                        : ""}
+                    </Text>
+                  </div>
+                  <Text
+                    size="sm"
+                    weight="semibold"
+                    tabular
+                    className="shrink-0"
                   >
-                    <div className="min-w-0">
-                      <Text
-                        size="sm"
-                        className="truncate font-medium text-text-primary"
-                      >
-                        {event.title}
-                      </Text>
-                      <Text size="sm" tone="secondary">
-                        {t(`sources.${event.source}`)}
-                        {event.isPayoffMilestone
-                          ? ` · ${t("milestoneBadge")}`
-                          : ""}
-                      </Text>
-                    </div>
-                    <span className="shrink-0 text-sm font-semibold tabular-nums text-text-primary">
+                    <FinancialValue>
                       {formatAmount(event.amount, event.currency || currency)}
-                    </span>
-                  </Card>
+                    </FinancialValue>
+                  </Text>
+                  <AppIcon
+                    icon={ACTION_ICONS.forward}
+                    size={AppIconSize.SM}
+                    className="shrink-0 text-text-tertiary"
+                  />
                 </Link>
-              </li>
-            ))}
-          </ul>
+              ))}
+            </div>
+          </Card>
         )}
       </section>
     </div>

@@ -1,7 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { hasLocale } from "next-intl";
 import { setLocale } from "@/i18n/set-locale";
-import { redirect, Link } from "@/i18n/navigation";
+import { redirect } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import {
   APP_PATH,
@@ -19,9 +19,9 @@ import {
 } from "@/modules/savings/application";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Page } from "@/shared/patterns/page";
-import { EmptyState } from "@/shared/patterns/empty-state";
 import { MoneyOfflineBanner } from "../../../money-offline-banner";
 import { EarlyWithdrawForm } from "./early-withdraw-form";
+import { SavingsUnavailable } from "../../savings-unavailable";
 
 type Props = { params: Promise<{ locale: string; id: string }> };
 
@@ -46,17 +46,20 @@ export default async function EarlyWithdrawPage({ params }: Props) {
       EarlySettlementRule.NOT_ALLOWED
   ) {
     return (
-      <Page topBar={<TopAppBar title={t("title")} />}>
-        <EmptyState
+      <Page
+        topBar={
+          <TopAppBar
+            variant="detail"
+            backHref={moneySavingsPath(id)}
+            title={t("title")}
+          />
+        }
+      >
+        <SavingsUnavailable
           title={!saving || !cycle ? t("title") : t("capabilityUnavailable")}
-          className="flex-none py-(--space-4)"
+          actionHref={moneySavingsPath(id)}
+          actionLabel={t("back")}
         />
-        <Link
-          href={moneySavingsPath(id)}
-          className="text-sm font-medium text-accent"
-        >
-          {t("back")}
-        </Link>
       </Page>
     );
   }
@@ -74,7 +77,14 @@ export default async function EarlyWithdrawPage({ params }: Props) {
   return (
     <Page
       testId="money-savings-early-withdraw"
-      topBar={<TopAppBar title={t("title")} subtitle={t("subtitle")} />}
+      topBar={
+        <TopAppBar
+          variant="detail"
+          backHref={moneySavingsPath(id)}
+          title={t("title")}
+          subtitle={t("subtitle")}
+        />
+      }
     >
       <MoneyOfflineBanner />
       <EarlyWithdrawForm

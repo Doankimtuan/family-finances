@@ -1,7 +1,7 @@
 import type { IconSvgElement } from "@hugeicons/react";
 import type { ReactNode } from "react";
 import { cn } from "@/shared/utils/cn";
-import { AppIcon } from "@/shared/ui/app-icon";
+import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
 import { Text } from "@/shared/ui/text";
 import { Balance, BalanceSize } from "./balance";
 import { Card } from "./card";
@@ -12,6 +12,8 @@ export type FinancialAccountHeroProps = {
   amountCaption: ReactNode;
   /** Quiet context row under the balance (ownership, health note). */
   context?: ReactNode;
+  /** Trailing control on the caption row (privacy toggle). */
+  trailing?: ReactNode;
   className?: string;
   testId?: string;
 };
@@ -27,6 +29,7 @@ export function FinancialAccountHero({
   amountLabel,
   amountCaption,
   context,
+  trailing,
   className,
   testId = "account-detail-hero",
 }: FinancialAccountHeroProps) {
@@ -37,18 +40,25 @@ export function FinancialAccountHero({
       data-testid={testId}
     >
       <div className="flex items-center gap-(--space-3)">
-        <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-(--radius-control) border border-white/25 bg-white/10 text-hero-fg">
-          <AppIcon icon={icon} size="md" emphasized />
-        </span>
-        <Text size="sm" weight="medium" className="text-hero-muted">
-          {amountCaption}
-        </Text>
+        <div className="flex min-w-0 flex-1 items-center gap-(--space-3)">
+          <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-(--radius-control) border border-white/25 bg-white/10 text-hero-fg">
+            <AppIcon icon={icon} size={AppIconSize.MD} emphasized />
+          </span>
+          <Text
+            size="sm"
+            weight="medium"
+            className="text-pretty text-hero-muted"
+          >
+            {amountCaption}
+          </Text>
+        </div>
+        {trailing}
       </div>
       <Balance
         amountLabel={amountLabel}
         size={BalanceSize.HERO}
         className="mt-(--space-3)"
-        amountClassName="text-hero-fg"
+        amountClassName="text-4xl leading-none text-hero-fg"
       />
       {context ? (
         <div className="mt-(--space-4) flex flex-col gap-(--space-2) border-t border-white/15 pt-(--space-3)">

@@ -15,6 +15,12 @@ import { TextField } from "@/shared/ui/form";
 import { AmountField } from "@/shared/patterns/amount-field";
 import { Button } from "@/shared/ui/button";
 import { StatusAlert } from "@/shared/ui/status-alert";
+import { Card } from "@/shared/patterns/card";
+import { Text } from "@/shared/ui/text";
+import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
+import { SheetActionFooter } from "@/shared/patterns/sheet-action-footer";
+import { Sheet } from "@/shared/patterns/sheet";
+import { ChoiceTile, ChoiceTileGroup } from "@/shared/patterns/choice-tile";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import {
   CLIENT_ACTION_ERROR_CODE,
@@ -127,38 +133,6 @@ export function RecurringDetailForm({
     });
   };
 
-  if (confirmDelete) {
-    return (
-      <div
-        className="flex flex-col gap-(--space-4)"
-        data-testid="recurring-delete-confirm"
-      >
-        <StatusAlert
-          variant="danger"
-          title={t("deleteConfirmTitle")}
-          description={t("deleteConfirmBody")}
-        />
-        <Button
-          variant="primary"
-          className="w-full"
-          data-testid="recurring-delete-confirm-yes"
-          isDisabled={isPending || !online}
-          onPress={onDelete}
-        >
-          {t("deleteConfirmYes")}
-        </Button>
-        <Button
-          variant="secondary"
-          className="w-full"
-          isDisabled={isPending}
-          onPress={() => setConfirmDelete(false)}
-        >
-          {t("createCancel")}
-        </Button>
-      </div>
-    );
-  }
-
   return (
     <div
       className="flex flex-col gap-(--space-4)"
@@ -180,26 +154,20 @@ export function RecurringDetailForm({
       />
 
       <fieldset className="flex flex-col gap-(--space-2)">
-        <legend className="text-sm font-semibold text-text-primary">
+        <legend className="text-sm font-medium text-text-primary">
           {t("directionLabel")}
         </legend>
-        <div className="flex gap-(--space-2)">
-          {RECURRING_DIRECTION_OPTIONS.map((d) => (
-            <button
-              key={d}
-              type="button"
-              aria-pressed={direction === d}
-              className={
-                direction === d
-                  ? "min-h-11 flex-1 rounded-md bg-accent px-(--space-3) text-sm text-accent-fg"
-                  : "min-h-11 flex-1 rounded-md border border-border-subtle px-(--space-3) text-sm text-text-primary"
-              }
-              onClick={() => setDirection(d)}
-            >
-              {t(`direction.${d}`)}
-            </button>
+        <ChoiceTileGroup>
+          {RECURRING_DIRECTION_OPTIONS.map((option) => (
+            <ChoiceTile
+              key={option}
+              label={t(`direction.${option}`)}
+              selected={direction === option}
+              onPress={() => setDirection(option)}
+              role="radio"
+            />
           ))}
-        </div>
+        </ChoiceTileGroup>
       </fieldset>
 
       <AmountField
@@ -210,26 +178,20 @@ export function RecurringDetailForm({
       />
 
       <fieldset className="flex flex-col gap-(--space-2)">
-        <legend className="text-sm font-semibold text-text-primary">
+        <legend className="text-sm font-medium text-text-primary">
           {t("frequencyLabel")}
         </legend>
-        <div className="flex gap-(--space-2)">
-          {RECURRING_FREQUENCY_VALUES.map((f) => (
-            <button
-              key={f}
-              type="button"
-              aria-pressed={frequency === f}
-              className={
-                frequency === f
-                  ? "min-h-11 flex-1 rounded-md bg-accent px-(--space-3) text-sm text-accent-fg"
-                  : "min-h-11 flex-1 rounded-md border border-border-subtle px-(--space-3) text-sm text-text-primary"
-              }
-              onClick={() => setFrequency(f)}
-            >
-              {t(`frequency.${f}`)}
-            </button>
+        <ChoiceTileGroup>
+          {RECURRING_FREQUENCY_VALUES.map((option) => (
+            <ChoiceTile
+              key={option}
+              label={t(`frequency.${option}`)}
+              selected={frequency === option}
+              onPress={() => setFrequency(option)}
+              role="radio"
+            />
           ))}
-        </div>
+        </ChoiceTileGroup>
       </fieldset>
 
       {frequency === RecurringFrequency.MONTHLY ? (
@@ -265,15 +227,17 @@ export function RecurringDetailForm({
         onChange={(e) => setNextRunDate(e.target.value)}
       />
 
-      <label className="flex min-h-11 items-center gap-(--space-3)">
-        <input
-          type="checkbox"
-          checked={isActive}
-          onChange={(e) => setIsActive(e.target.checked)}
-          className="size-4 accent-[var(--color-accent)]"
-        />
-        <span className="text-sm text-text-primary">{t("activeLabel")}</span>
-      </label>
+      <Card tone="soft" className="gap-0 p-(--space-4)">
+        <label className="flex min-h-11 items-center gap-(--space-3)">
+          <input
+            type="checkbox"
+            checked={isActive}
+            onChange={(e) => setIsActive(e.target.checked)}
+            className="size-4 accent-[var(--color-accent)]"
+          />
+          <Text size="sm">{t("activeLabel")}</Text>
+        </label>
+      </Card>
 
       <Button
         variant="primary"
@@ -285,7 +249,7 @@ export function RecurringDetailForm({
         {t("save")}
       </Button>
       <Button
-        variant="secondary"
+        variant="danger"
         className="w-full"
         data-testid="recurring-delete"
         isDisabled={isPending || !online}
@@ -293,6 +257,33 @@ export function RecurringDetailForm({
       >
         {t("delete")}
       </Button>
+
+      <Sheet isOpen={confirmDelete} onOpenChange={setConfirmDelete}>
+        <ActionSheetLayout>
+          <ActionSheetLayout.Header>
+            <Sheet.Heading className="text-lg font-semibold tracking-tight text-text-primary">
+              {t("deleteConfirmTitle")}
+            </Sheet.Heading>
+          </ActionSheetLayout.Header>
+          <ActionSheetLayout.Body>
+            <StatusAlert
+              variant="danger"
+              title={t("deleteConfirmTitle")}
+              description={t("deleteConfirmBody")}
+              data-testid="recurring-delete-confirm"
+            />
+          </ActionSheetLayout.Body>
+          <SheetActionFooter
+            secondaryLabel={t("createCancel")}
+            primaryLabel={t("deleteConfirmYes")}
+            onSecondary={() => setConfirmDelete(false)}
+            onPrimary={onDelete}
+            primaryTestId="recurring-delete-confirm-yes"
+            isDisabled={!online}
+            isPending={isPending}
+          />
+        </ActionSheetLayout>
+      </Sheet>
     </div>
   );
 }

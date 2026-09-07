@@ -67,7 +67,10 @@ export {
   type BalanceProps,
 } from "./balance";
 export { FinancialValue } from "./financial-value";
-export { FinancialPrivacyToggle } from "./financial-privacy-toggle";
+export {
+  FinancialPrivacyToggle,
+  FinancialPrivacyToggleTone,
+} from "./financial-privacy-toggle";
 export {
   FinancialDeltaDirection,
   FINANCIAL_DELTA_DIRECTION_VALUES,
@@ -93,7 +96,11 @@ export {
   TransactionAmountTone,
   type TransactionRowProps,
 } from "./transaction-row";
-export { ReviewCard, type ReviewCardProps } from "./review-card";
+export {
+  ReviewCard,
+  ReviewCardDensity,
+  type ReviewCardProps,
+} from "./review-card";
 export {
   ConfirmSummary,
   type ConfirmSummaryProps,

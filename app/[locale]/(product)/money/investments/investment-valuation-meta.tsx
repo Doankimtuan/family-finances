@@ -17,10 +17,11 @@ import { Text } from "@/shared/ui/text";
 const CRYPTO_DECIMAL_DIGITS = 8;
 const STANDARD_DECIMAL_DIGITS = 2;
 
-/** Rendering depth: badge stack (detail) or one quiet line (rows / hero). */
+/** Rendering depth: badge stack (detail), wrapping line (hero), or compact row. */
 export const InvestmentValuationMetaVariant = {
   BADGE: "badge",
   INLINE: "inline",
+  ROW: "row",
 } as const;
 
 export type InvestmentValuationMetaVariant =
@@ -35,6 +36,38 @@ function dateLabel(value: string, locale: string) {
 
 function isToday(value: string) {
   return value === new Date().toISOString().slice(0, 10);
+}
+
+type ValuationCopy = ReturnType<
+  typeof useTranslations<"money.investments.valuation">
+>;
+
+function resolveRowValuationLine({
+  quality,
+  date,
+  isNavMode,
+  isPriceToday,
+  t,
+}: {
+  quality: MarketValuationQuality;
+  date: string | null;
+  isNavMode: boolean;
+  isPriceToday: boolean;
+  t: ValuationCopy;
+}) {
+  if (quality === MarketValuationQuality.AUTO_CURRENT) {
+    if (isNavMode && date) return t("rowNav", { date });
+    if (isPriceToday) return t("rowAutomaticToday");
+    if (date) return t("rowAutomatic", { date });
+    return t("automatic");
+  }
+  if (quality === MarketValuationQuality.AUTO_STALE) {
+    return date ? t("rowStale", { date }) : t("automatic");
+  }
+  if (quality === MarketValuationQuality.MANUAL) {
+    return date ? t("rowManual", { date }) : t("rowManualUndated");
+  }
+  return t("unknown");
 }
 
 function quoteLabel(
@@ -113,6 +146,28 @@ export function InvestmentValuationMeta({
       : t("manualUpdated");
   }
 
+  if (variant === InvestmentValuationMetaVariant.ROW) {
+    const line = resolveRowValuationLine({
+      quality,
+      date: priceDate ? dateLabel(priceDate, locale) : null,
+      isNavMode,
+      isPriceToday: priceDate != null && isToday(priceDate),
+      t,
+    });
+    return (
+      <Text
+        size="xs"
+        tone={
+          quality === MarketValuationQuality.AUTO_STALE ? "secondary" : "muted"
+        }
+        className="whitespace-nowrap"
+        data-testid="investment-valuation-meta"
+      >
+        {line}
+      </Text>
+    );
+  }
+
   if (variant === InvestmentValuationMetaVariant.INLINE) {
     // Manual date copy already carries the "manual" context on its own.
     const line =
@@ -131,7 +186,11 @@ export function InvestmentValuationMeta({
               ? "secondary"
               : "muted"
         }
-        className={onHero ? "text-hero-muted" : undefined}
+        className={
+          onHero
+            ? "text-pretty break-words text-hero-muted"
+            : "text-pretty break-words"
+        }
         data-testid="investment-valuation-meta"
       >
         <FinancialValue>{line}</FinancialValue>

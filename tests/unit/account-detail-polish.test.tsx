@@ -3,8 +3,16 @@ import { describe, expect, it } from "vitest";
 import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
 import { Sheet } from "@/shared/patterns/sheet";
 import { TransactionRow } from "@/shared/patterns/transaction-row";
+import { FinancialAccountHero } from "@/shared/patterns/financial-account-hero";
 import { Button } from "@/shared/ui/button";
-import { resolveAccountIdentity } from "@/app/[locale]/(product)/money/accounts/[id]/account-detail-presentations";
+import { IconContainerTone } from "@/shared/ui/icon-container";
+import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
+import { TransactionLedgerType } from "@/modules/ledger/application/ledger-constants";
+import {
+  isAccountActivityCredit,
+  resolveAccountActivityLeading,
+  resolveAccountIdentity,
+} from "@/app/[locale]/(product)/money/accounts/[id]/account-detail-presentations";
 
 describe("Account sheet and detail composition", () => {
   it("suppresses only the duplicate account type label", () => {
@@ -59,5 +67,42 @@ describe("Account sheet and detail composition", () => {
     const row = screen.getByText("Groceries").closest("div.group");
     expect(row).toHaveClass("border-b", "bg-transparent");
     expect(row).not.toHaveClass("rounded-[var(--radius-card)]");
+  });
+
+  it("keeps a trailing privacy control on the hero caption row", () => {
+    render(
+      <FinancialAccountHero
+        icon={FINANCE_ICONS.cash}
+        amountLabel="₫1,200,000"
+        amountCaption="Balance"
+        trailing={<button type="button">Hide financial values</button>}
+      />,
+    );
+
+    expect(screen.getByText("Balance")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Hide financial values" }),
+    ).toBeInTheDocument();
+  });
+
+  it("maps activity leading visuals without treating debit as income", () => {
+    expect(isAccountActivityCredit(TransactionLedgerType.INCOME)).toBe(true);
+    expect(isAccountActivityCredit(TransactionLedgerType.EXPENSE)).toBe(false);
+
+    const income = resolveAccountActivityLeading({
+      type: TransactionLedgerType.INCOME,
+      categoryId: null,
+      categoryName: null,
+    });
+    expect(income.iconTone).toBe(IconContainerTone.INCOME);
+    expect(income.icon).toBe(FINANCE_ICONS.income);
+
+    const expense = resolveAccountActivityLeading({
+      type: TransactionLedgerType.EXPENSE,
+      categoryId: null,
+      categoryName: null,
+    });
+    expect(expense.iconTone).toBe(IconContainerTone.EXPENSE);
+    expect(expense.icon).toBe(FINANCE_ICONS.expense);
   });
 });

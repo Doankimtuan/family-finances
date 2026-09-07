@@ -20,13 +20,17 @@ import {
   PlanAssistMode,
   RitualMode,
   calculateAllocationHealth,
+  AllocationHealthStatus,
+  JarBudgetState,
   JarKind,
+  DEFAULT_CURRENCY,
+  QualifyingIncomeSource,
 } from "@/modules/plan/application";
 import {
   collectPlanHomeExceptions,
   prioritizePlanHomeExceptions,
   resolvePlanHomeHealth,
-  PlanHomeHealthStatus,
+  PlanHomeExceptionKind,
   type PlanHomeException,
 } from "@/modules/plan/application/plan-home-health";
 import { listOpenInboxItems } from "@/modules/inbox/application";
@@ -46,9 +50,30 @@ import { JarCard } from "@/shared/patterns/jar-card";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Text } from "@/shared/ui/text";
+import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
+import { IconContainerTone } from "@/shared/ui/icon-container";
+import { PLAN_ICONS } from "@/shared/ui/icon-registry";
 import { EmergencyInboxBanner } from "./emergency-inbox-banner";
 import { PlanOfflineBanner } from "./plan-offline-banner";
 import { RecommendationList } from "./recommendation-list";
+import {
+  PLAN_ACCENT_LINK_CLASS,
+  PLAN_INLINE_LINK_CLASS,
+  PLAN_SURFACE_LINK_CLASS,
+} from "./plan-chrome";
+import { PlanSectionTitle } from "./plan-section-title";
+import { PlanHubHero } from "./plan-hub-hero";
+import { PlanHubExceptions } from "./plan-hub-exceptions";
+import {
+  PlanDestinationCard,
+  PlanDestinationRow,
+} from "./plan-destination-row";
+import {
+  allocationFactTone,
+  allocationFactValue,
+  isUpcomingDueEvent,
+  resolvePlanHealthCopy,
+} from "./plan-hub-presentations";
 import {
   getPlanRecommendations,
   type PlanRecommendation,
@@ -145,23 +170,23 @@ function exceptionTitle(
     ? localizeCatalogName(tCatalog, "jars", exception.jarName)
     : undefined;
   switch (exception.kind) {
-    case "overspent_jar":
+    case PlanHomeExceptionKind.OVERSPENT_JAR:
       return t("home.exceptionOverspent", { name: name ?? "Jar" });
-    case "uncategorized":
+    case PlanHomeExceptionKind.UNCATEGORIZED:
       return t("home.exceptionUncategorized", {
         count: exception.count ?? 0,
       });
-    case "no_income":
+    case PlanHomeExceptionKind.NO_INCOME:
       return t("home.exceptionNoIncome");
-    case "over_allocated":
+    case PlanHomeExceptionKind.OVER_ALLOCATED:
       return t("home.exceptionOverAllocated", {
         percent: exception.percent ?? 0,
       });
-    case "goal_backing":
+    case PlanHomeExceptionKind.GOAL_BACKING:
       return t("home.exceptionGoalBacking", {
         name: exception.goalName ?? t("home.goalFallbackName"),
       });
-    case "near_limit_jar":
+    case PlanHomeExceptionKind.NEAR_LIMIT_JAR:
       return t("home.exceptionNearLimit", { name: name ?? "Jar" });
   }
 }
@@ -172,7 +197,7 @@ function exceptionDescription(
   currency: string,
   locale: string,
 ) {
-  if (exception.kind === "overspent_jar") {
+  if (exception.kind === PlanHomeExceptionKind.OVERSPENT_JAR) {
     return t.rich("home.exceptionOverspentBody", {
       amount: formatCurrency(exception.amount ?? 0, currency, locale, {
         maximumFractionDigits: 0,
@@ -180,7 +205,7 @@ function exceptionDescription(
       money: (chunks: ReactNode) => <FinancialValue>{chunks}</FinancialValue>,
     });
   }
-  if (exception.kind === "near_limit_jar") {
+  if (exception.kind === PlanHomeExceptionKind.NEAR_LIMIT_JAR) {
     return t.rich("home.exceptionNearLimitBody", {
       amount: formatCurrency(exception.amount ?? 0, currency, locale, {
         maximumFractionDigits: 0,
@@ -196,13 +221,17 @@ function exceptionAction(
   t: (key: string) => string,
 ) {
   if (
-    exception.kind === "overspent_jar" ||
-    exception.kind === "near_limit_jar"
+    exception.kind === PlanHomeExceptionKind.OVERSPENT_JAR ||
+    exception.kind === PlanHomeExceptionKind.NEAR_LIMIT_JAR
   ) {
     return t("home.exceptionOpenJar");
   }
-  if (exception.kind === "uncategorized") return t("home.exceptionOpenInbox");
-  if (exception.kind === "goal_backing") return t("home.exceptionOpenGoal");
+  if (exception.kind === PlanHomeExceptionKind.UNCATEGORIZED) {
+    return t("home.exceptionOpenInbox");
+  }
+  if (exception.kind === PlanHomeExceptionKind.GOAL_BACKING) {
+    return t("home.exceptionOpenGoal");
+  }
   return t("home.exceptionOpenPlan");
 }
 
@@ -244,7 +273,7 @@ export default async function PlanHubPage({ params }: Props) {
     pulse?.monthCloseMode === RitualMode.MANUAL
       ? PlanAssistMode.MANUAL
       : PlanAssistMode.ASSISTED;
-  const currency = pulse?.currency ?? "VND";
+  const currency = pulse?.currency ?? DEFAULT_CURRENCY;
   const periodMonth = currentJarBudgets?.periodMonth ?? currentPeriodMonth();
   const periodLabel = formatPlanPeriod(periodMonth, locale);
   const uncategorizedCount = (inboxItems ?? []).filter(
@@ -277,17 +306,19 @@ export default async function PlanHubPage({ params }: Props) {
       uncategorizedCount,
     }),
   ];
-  if (allocationHealth.status === "no_income") {
-    allExceptions.push({ kind: "no_income" });
-  } else if (allocationHealth.status === "over_allocated") {
+  if (allocationHealth.status === AllocationHealthStatus.NO_INCOME) {
+    allExceptions.push({ kind: PlanHomeExceptionKind.NO_INCOME });
+  } else if (
+    allocationHealth.status === AllocationHealthStatus.OVER_ALLOCATED
+  ) {
     allExceptions.push({
-      kind: "over_allocated",
+      kind: PlanHomeExceptionKind.OVER_ALLOCATED,
       percent: allocationHealth.utilizationPercent,
     });
   }
   for (const goal of goalsMissingBacking) {
     allExceptions.push({
-      kind: "goal_backing",
+      kind: PlanHomeExceptionKind.GOAL_BACKING,
       goalId: goal.id,
       goalName: goal.name,
     });
@@ -332,32 +363,22 @@ export default async function PlanHubPage({ params }: Props) {
   };
   const upcoming = upcomingWithinDays((calendar?.events ?? []) as HomeEvent[]);
   const overspentCount = visibleBudgets.filter(
-    (budget) => budget.state === "overspent",
+    (budget) => budget.state === JarBudgetState.OVERSPENT,
   ).length;
-  const healthTitle =
-    health === PlanHomeHealthStatus.HEALTHY
-      ? t("home.healthHealthy")
-      : health === PlanHomeHealthStatus.ATTENTION
-        ? t("home.healthAttention")
-        : health === PlanHomeHealthStatus.OFF_TRACK
-          ? t("home.healthOffTrack")
-          : t("home.healthNoPlan");
-  const healthBody =
-    health === PlanHomeHealthStatus.HEALTHY
-      ? t("home.healthHealthyBody")
-      : health === PlanHomeHealthStatus.ATTENTION
-        ? t("home.healthAttentionBody", {
-            issue: exceptions[0]
-              ? exceptionTitle(
-                  exceptions[0],
-                  t as unknown as LooseTranslator,
-                  tCatalog as unknown as LooseTranslator,
-                )
-              : t("home.attentionFallback"),
-          })
-        : health === PlanHomeHealthStatus.OFF_TRACK
-          ? t("home.healthOffTrackBody", { count: overspentCount })
-          : t("home.healthNoPlanBody");
+  const firstExceptionTitle = exceptions[0]
+    ? exceptionTitle(
+        exceptions[0],
+        t as unknown as LooseTranslator,
+        tCatalog as unknown as LooseTranslator,
+      )
+    : t("home.attentionFallback");
+  const { title: healthTitle, body: healthBody } = resolvePlanHealthCopy(
+    health,
+    t as unknown as LooseTranslator,
+    firstExceptionTitle,
+    overspentCount,
+  );
+  const periodIncome = currentJarBudgets?.periodIncome ?? 0;
 
   return (
     <Page
@@ -374,125 +395,74 @@ export default async function PlanHubPage({ params }: Props) {
       />
 
       <MotionReveal>
-        <Card
-          tone="hero"
-          className="relative overflow-hidden gap-(--space-5) p-(--space-5)"
-          data-testid="plan-period-pulse"
-        >
-          <div
-            className="pointer-events-none absolute -right-16 -top-20 size-48 rounded-full bg-white/10 blur-3xl"
-            aria-hidden
-          />
-          <div className="relative flex flex-wrap items-end justify-between gap-(--space-3)">
-            <div>
-              <Text
-                size="xs"
-                className="text-hero-muted uppercase tracking-[0.14em]"
-              >
-                {t("period.label")}
-              </Text>
-              <Text className="mt-1 text-2xl font-semibold tracking-tight text-hero-fg">
-                {periodLabel}
-              </Text>
-            </div>
-            <StatusBadge
-              tone="selected"
-              className="bg-white/10 text-hero-fg ring-white/15"
-            >
-              {t(
-                assistMode === PlanAssistMode.MANUAL
-                  ? "home.assistManual"
-                  : "home.assistAssisted",
-              )}
-            </StatusBadge>
-          </div>
-          <div className="relative flex items-start gap-(--space-3) border-t border-white/15 pt-(--space-4)">
-            <span
-              className={`mt-1 size-2.5 shrink-0 rounded-full ${health === PlanHomeHealthStatus.OFF_TRACK ? "bg-danger" : health === PlanHomeHealthStatus.ATTENTION ? "bg-warning" : health === PlanHomeHealthStatus.NO_PLAN ? "bg-white/40" : "bg-success"}`}
-              aria-hidden
-            />
-            <div className="min-w-0">
-              <Text className="font-semibold text-hero-fg">{healthTitle}</Text>
-              <Text size="sm" className="text-hero-muted">
-                {healthBody}
-              </Text>
-            </div>
-          </div>
-        </Card>
+        <PlanHubHero
+          periodCaption={t("period.label")}
+          periodLabel={periodLabel}
+          assistLabel={t(
+            assistMode === PlanAssistMode.MANUAL
+              ? "home.assistManual"
+              : "home.assistAssisted",
+          )}
+          health={health}
+          healthTitle={healthTitle}
+          healthBody={healthBody}
+          facts={[
+            {
+              label: t("home.factJars"),
+              value: t("home.factJarsValue", { count: activeJars.length }),
+            },
+            {
+              label: t("home.factAllocation"),
+              value: allocationFactValue(
+                allocationHealth,
+                t as unknown as LooseTranslator,
+              ),
+              tone: allocationFactTone(allocationHealth.status),
+            },
+            {
+              label: t("home.factIncome"),
+              value:
+                periodIncome > 0 ? (
+                  <FinancialValue>
+                    {formatCurrency(periodIncome, currency, locale, {
+                      maximumFractionDigits: 0,
+                    })}
+                  </FinancialValue>
+                ) : (
+                  t("home.factIncomeEmpty")
+                ),
+            },
+          ]}
+        />
       </MotionReveal>
 
-      {exceptions.length > 0 ? (
-        <MotionReveal>
-          <Section
-            title={t("home.exceptionsTitle")}
-            testId="plan-home-exceptions"
-          >
-            <ul className="flex flex-col gap-(--space-2)">
-              {exceptions.map((exception, index) => {
-                const href = exception.jarId
-                  ? planJarPath(exception.jarId)
-                  : exception.goalId
-                    ? planGoalPath(exception.goalId)
-                    : exception.kind === "uncategorized"
-                      ? APP_PATH.INBOX
-                      : APP_PATH.PLAN_JARS;
-                return (
-                  <li
-                    key={`${exception.kind}-${exception.jarId ?? exception.goalId ?? index}`}
-                  >
-                    <div className="flex items-start justify-between gap-(--space-3) rounded-[var(--radius-card)] border border-border-subtle bg-surface p-(--space-3)">
-                      <div className="min-w-0">
-                        <Text
-                          size="sm"
-                          className="font-medium text-text-primary"
-                        >
-                          {exceptionTitle(
-                            exception,
-                            t as unknown as LooseTranslator,
-                            tCatalog as unknown as LooseTranslator,
-                          )}
-                        </Text>
-                        {exceptionDescription(
-                          exception,
-                          t as unknown as LooseTranslator,
-                          currency,
-                          locale,
-                        ) ? (
-                          <Text size="sm" tone="secondary">
-                            {exceptionDescription(
-                              exception,
-                              t as unknown as LooseTranslator,
-                              currency,
-                              locale,
-                            )}
-                          </Text>
-                        ) : null}
-                      </div>
-                      <Link
-                        href={href}
-                        className="shrink-0 text-sm font-medium text-accent underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-                      >
-                        {exceptionAction(
-                          exception,
-                          t as unknown as LooseTranslator,
-                        )}
-                      </Link>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-            {allExceptions.length > exceptions.length ? (
-              <Link
-                href={APP_PATH.PLAN_JARS}
-                className="text-sm font-medium text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-              >
-                {t("home.viewAll")}
-              </Link>
-            ) : null}
-          </Section>
-        </MotionReveal>
-      ) : null}
+      <MotionReveal>
+        <PlanHubExceptions
+          title={t("home.exceptionsTitle")}
+          exceptions={exceptions}
+          hiddenCount={allExceptions.length - exceptions.length}
+          viewAllHref={APP_PATH.PLAN_JARS}
+          viewAllLabel={t("home.viewAll")}
+          renderTitle={(exception) =>
+            exceptionTitle(
+              exception,
+              t as unknown as LooseTranslator,
+              tCatalog as unknown as LooseTranslator,
+            )
+          }
+          renderDescription={(exception) =>
+            exceptionDescription(
+              exception,
+              t as unknown as LooseTranslator,
+              currency,
+              locale,
+            )
+          }
+          renderAction={(exception) =>
+            exceptionAction(exception, t as unknown as LooseTranslator)
+          }
+        />
+      </MotionReveal>
 
       <RecommendationList
         recommendations={recommendations}
@@ -506,20 +476,18 @@ export default async function PlanHubPage({ params }: Props) {
       />
       <MotionReveal>
         <Section
-          title={t("jars.title")}
+          title={<PlanSectionTitle>{t("jars.title")}</PlanSectionTitle>}
+          description={t("jars.subtitle")}
           action={
             <Link
               href={APP_PATH.PLAN_JARS}
-              className="text-sm font-medium text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+              className={PLAN_INLINE_LINK_CLASS}
               data-testid="plan-see-jars"
             >
               {t("home.viewAll")}
             </Link>
           }
         >
-          <Text size="sm" tone="secondary">
-            {t("jars.subtitle")}
-          </Text>
           {!currentJarBudgets && activeJars.length > 0 ? (
             <StatusAlert
               variant="warning"
@@ -534,7 +502,7 @@ export default async function PlanHubPage({ params }: Props) {
               action={
                 <Link
                   href={APP_PATH.PLAN_JARS}
-                  className="inline-flex min-h-11 w-full items-center justify-center rounded-md bg-accent px-(--space-4) text-sm font-medium text-accent-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+                  className={PLAN_ACCENT_LINK_CLASS}
                 >
                   {t("home.createJar")}
                 </Link>
@@ -546,10 +514,10 @@ export default async function PlanHubPage({ params }: Props) {
               {activeJars.slice(0, 6).map((jar) => {
                 const metrics = budgetsByJar[jar.id];
                 const isNoIncome =
-                  metrics?.state === "no_budget" &&
-                  metrics.incomeSource === "none";
+                  metrics?.state === JarBudgetState.NO_BUDGET &&
+                  metrics.incomeSource === QualifyingIncomeSource.NONE;
                 const remainingLabel = metrics ? (
-                  metrics.state === "overspent" ? (
+                  metrics.state === JarBudgetState.OVERSPENT ? (
                     t.rich("jars.budget.overBy", {
                       amount: formatCurrency(
                         Math.abs(metrics.remainingAmount),
@@ -631,6 +599,7 @@ export default async function PlanHubPage({ params }: Props) {
                         usagePercent={metrics?.usagePercent}
                         budgetState={metrics?.state}
                         data-testid={`plan-jar-${jar.id}`}
+                        className="gap-(--space-3) p-(--space-3)"
                       />
                     </Link>
                   </li>
@@ -639,10 +608,7 @@ export default async function PlanHubPage({ params }: Props) {
             </ul>
           )}
           {activeJars.length > 6 ? (
-            <Link
-              href={APP_PATH.PLAN_JARS}
-              className="text-sm font-medium text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-            >
+            <Link href={APP_PATH.PLAN_JARS} className={PLAN_INLINE_LINK_CLASS}>
               {t("home.viewAllJars", { count: activeJars.length })}
             </Link>
           ) : null}
@@ -651,11 +617,11 @@ export default async function PlanHubPage({ params }: Props) {
 
       <MotionReveal>
         <Section
-          title={t("home.goalsTitle")}
+          title={<PlanSectionTitle>{t("home.goalsTitle")}</PlanSectionTitle>}
           action={
             <Link
               href={APP_PATH.PLAN_GOALS}
-              className="text-sm font-medium text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+              className={PLAN_INLINE_LINK_CLASS}
               data-testid="plan-see-goals"
             >
               {t("home.viewAll")}
@@ -667,10 +633,13 @@ export default async function PlanHubPage({ params }: Props) {
             <EmptyState
               title={t("home.goalsEmptyTitle")}
               description={t("home.goalsEmptyBody")}
+              icon={
+                <AppIcon icon={PLAN_ICONS.goal} size={AppIconSize.DISPLAY} />
+              }
               action={
                 <Link
                   href={APP_PATH.PLAN_GOALS}
-                  className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-default px-(--space-4) text-sm font-medium text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+                  className={PLAN_SURFACE_LINK_CLASS}
                 >
                   {t("home.createGoal")}
                 </Link>
@@ -771,11 +740,11 @@ export default async function PlanHubPage({ params }: Props) {
 
       <MotionReveal>
         <Section
-          title={t("home.upcomingTitle")}
+          title={<PlanSectionTitle>{t("home.upcomingTitle")}</PlanSectionTitle>}
           action={
             <Link
               href={APP_PATH.PLAN_CALENDAR}
-              className="text-sm font-medium text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+              className={PLAN_INLINE_LINK_CLASS}
               data-testid="plan-see-calendar"
             >
               {t("calendar.cta")}
@@ -788,28 +757,35 @@ export default async function PlanHubPage({ params }: Props) {
               {t("home.upcomingEmpty")}
             </Text>
           ) : (
-            <ul className="flex flex-col gap-(--space-2)">
-              {upcoming.map((event) => (
-                <li key={event.id ?? `${event.date}-${event.title}`}>
-                  <Card
-                    tone="interactive"
-                    className="gap-(--space-2) p-(--space-3)"
+            <Card tone="elevated" className="gap-0 overflow-hidden p-0">
+              <ul className="divide-y divide-divider">
+                {upcoming.map((event) => (
+                  <li
+                    key={event.id ?? `${event.date}-${event.title}`}
+                    className="flex items-start gap-(--space-3) px-(--space-4) py-(--space-3)"
                   >
-                    <Text size="xs" tone="secondary">
-                      {formatDate(new Date(`${event.date}T00:00:00Z`), locale, {
-                        day: "numeric",
-                        month: "short",
-                        timeZone: "Asia/Ho_Chi_Minh",
-                      })}
-                    </Text>
-                    <Text
-                      size="sm"
-                      className="line-clamp-2 break-words font-medium leading-snug text-text-primary"
-                    >
-                      {event.title}
-                    </Text>
-                    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-(--space-3)">
-                      <Text size="sm" className="tabular-nums">
+                    <div className="min-w-0 flex-1">
+                      <Text size="xs" tone="muted">
+                        {formatDate(
+                          new Date(`${event.date}T00:00:00Z`),
+                          locale,
+                          {
+                            day: "numeric",
+                            month: "short",
+                            timeZone: "Asia/Ho_Chi_Minh",
+                          },
+                        )}
+                      </Text>
+                      <Text
+                        size="sm"
+                        weight="medium"
+                        className="mt-(--space-1) line-clamp-2 text-pretty"
+                      >
+                        {event.title}
+                      </Text>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <Text size="sm" weight="semibold" tabular>
                         <FinancialValue>
                           {formatCurrency(event.amount, currency, locale, {
                             maximumFractionDigits: 0,
@@ -817,68 +793,73 @@ export default async function PlanHubPage({ params }: Props) {
                         </FinancialValue>
                       </Text>
                       <Text size="xs" tone="secondary">
-                        {event.source === "card_due" ||
-                        event.source === "liability"
+                        {isUpcomingDueEvent(event.source)
                           ? t("home.upcomingDue")
                           : t("home.upcomingExpected")}
                       </Text>
                     </div>
-                  </Card>
-                </li>
-              ))}
-            </ul>
+                  </li>
+                ))}
+              </ul>
+            </Card>
           )}
         </Section>
       </MotionReveal>
 
       <MotionReveal>
-        <Section variant="surface" testId="plan-ritual-cta">
-          <div className="flex flex-col gap-(--space-1)">
-            <Text size="sm" className="font-semibold text-text-primary">
-              {t("review.title")}
-            </Text>
-            <Text size="sm" tone="secondary">
-              {t("review.body")}
-            </Text>
-          </div>
-          <Link
+        <PlanDestinationCard
+          title={t("home.workspaceTitle")}
+          testId="plan-ritual-cta"
+        >
+          <PlanDestinationRow
+            href={APP_PATH.PLAN_RECURRING}
+            testId="plan-workspace-recurring"
+            icon={PLAN_ICONS.recurring}
+            iconTone={IconContainerTone.TRANSFER}
+            label={t("home.recurringLink")}
+            meta={t("home.workspaceRecurringMeta")}
+          />
+          <PlanDestinationRow
             href={APP_PATH.PLAN_RITUAL}
-            className="inline-flex min-h-11 w-full items-center justify-center rounded-md bg-accent px-(--space-4) text-sm font-medium text-accent-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring sm:w-auto sm:self-start"
-            data-testid="plan-ritual-open"
-          >
-            {t("review.cta")}
-          </Link>
-        </Section>
+            testId="plan-ritual-open"
+            icon={PLAN_ICONS.ritual}
+            iconTone={IconContainerTone.PRIMARY}
+            label={t("review.title")}
+            meta={t("home.workspaceRitualMeta")}
+          />
+        </PlanDestinationCard>
       </MotionReveal>
 
       <div
         data-testid="plan-teaching"
-        className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-border-subtle pt-(--space-3)"
+        className="flex flex-col gap-(--space-2) border-t border-border-subtle pt-(--space-3)"
       >
-        <Text size="sm" tone="secondary">
+        <Text size="sm" tone="secondary" className="text-pretty">
           {t("teaching.body")}
         </Text>
-        <Link
-          href={APP_PATH.MONEY}
-          className="text-sm font-medium text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-          data-testid="plan-money-link"
-        >
-          {t("moneyLink")}
-        </Link>
-        <Link
-          href={APP_PATH.PLAN_GOALS}
-          className="text-sm font-medium text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-          data-testid="plan-entry-goals"
-        >
-          {t("home.goalsSeeAll")}
-        </Link>
-        <Link
-          href={APP_PATH.PLAN_RECURRING}
-          className="text-sm font-medium text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-          data-testid="plan-entry-recurring"
-        >
-          {t("home.recurringLink")}
-        </Link>
+        <div className="flex flex-wrap items-center gap-x-(--space-2) gap-y-(--space-1)">
+          <Link
+            href={APP_PATH.MONEY}
+            className={PLAN_INLINE_LINK_CLASS}
+            data-testid="plan-money-link"
+          >
+            {t("moneyLink")}
+          </Link>
+          <Link
+            href={APP_PATH.PLAN_GOALS}
+            className={PLAN_INLINE_LINK_CLASS}
+            data-testid="plan-entry-goals"
+          >
+            {t("home.goalsSeeAll")}
+          </Link>
+          <Link
+            href={APP_PATH.PLAN_RECURRING}
+            className={PLAN_INLINE_LINK_CLASS}
+            data-testid="plan-entry-recurring"
+          >
+            {t("home.recurringLink")}
+          </Link>
+        </div>
       </div>
     </Page>
   );

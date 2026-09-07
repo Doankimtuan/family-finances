@@ -22,7 +22,7 @@ export default async function InvestmentOpeningPage() {
       testId="money-investments-new"
       topBar={
         <TopAppBar
-          variant="form"
+          variant="detail"
           backHref={APP_PATH.MONEY_INVESTMENTS}
           title={t("title")}
           subtitle={t("subtitle")}

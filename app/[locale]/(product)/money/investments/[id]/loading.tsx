@@ -19,44 +19,45 @@ export default async function InvestmentDetailLoading() {
       }
     >
       <div
-        className="flex flex-col gap-(--space-4) rounded-(--radius-card) border border-border-subtle bg-surface p-(--space-4) shadow-(--elevation-2)"
+        className="flex flex-col gap-(--space-3) rounded-(--radius-card) border border-border-subtle bg-surface p-(--space-4) shadow-(--elevation-2)"
         data-testid="investment-detail-loading-hero"
       >
-        <div className="flex items-start justify-between gap-(--space-3)">
+        <div className="flex items-center justify-between gap-(--space-3)">
           <div className="flex items-center gap-(--space-3)">
             <Skeleton className="size-11 rounded-(--radius-control)" />
-            <div className="flex flex-col gap-(--space-1)">
-              <Skeleton className="h-3 w-28 rounded" />
-              <Skeleton className="h-3 w-20 rounded" />
-            </div>
+            <Skeleton className="h-3 w-32 rounded" />
           </div>
-          <Skeleton className="h-6 w-16 rounded-full" />
+          <Skeleton className="size-11 rounded-(--radius-control)" />
         </div>
         <Skeleton className="h-9 w-3/4 rounded" />
+        <Skeleton className="h-5 w-1/2 rounded" />
         <div className="flex flex-col gap-(--space-2) border-t border-border-subtle pt-(--space-3)">
           <Skeleton className="h-3 w-1/3 rounded" />
           <Skeleton className="h-3 w-1/2 rounded" />
         </div>
       </div>
-      <Skeleton className="h-11 w-full rounded-(--radius-control)" />
+      <div className="flex gap-(--space-2)">
+        <Skeleton className="h-11 min-w-0 flex-1 rounded-(--radius-control)" />
+        <Skeleton className="h-11 min-w-0 flex-1 rounded-(--radius-control)" />
+      </div>
       <div className="flex flex-col gap-(--space-3)">
-        <Skeleton className="h-5 w-24 rounded" />
-        <div className="grid grid-cols-2 gap-x-(--space-4) rounded-(--radius-card) border border-border-subtle bg-surface-muted/45 px-(--space-3)">
-          {Array.from({ length: 6 }, (_, index) => (
-            <Skeleton
-              key={index}
-              className={`h-14 rounded-none border-b border-border-subtle/60 ${index >= 4 ? "border-b-0" : ""}`}
-            />
-          ))}
+        <Skeleton className="h-4 w-24 rounded" />
+        <div className="flex flex-col gap-(--space-3) rounded-(--radius-card) border border-border-subtle bg-surface p-(--space-4) shadow-(--elevation-1)">
+          <Skeleton className="h-5 w-full rounded" />
+          <Skeleton className="h-5 w-full rounded" />
+          <Skeleton className="h-5 w-2/3 rounded" />
         </div>
       </div>
-      <div className="flex flex-col gap-(--space-3) rounded-(--radius-card) bg-surface-muted/55 p-(--space-4)">
-        <Skeleton className="h-5 w-40 rounded" />
-        <Skeleton className="h-10 w-full rounded" />
-        <Skeleton className="h-10 w-full rounded" />
+      <div className="flex flex-col gap-(--space-3)">
+        <Skeleton className="h-4 w-40 rounded" />
+        <div className="flex flex-col gap-(--space-3) rounded-(--radius-card) border border-border-subtle bg-surface p-(--space-4) shadow-(--elevation-1)">
+          <Skeleton className="h-5 w-full rounded" />
+          <Skeleton className="h-5 w-3/4 rounded" />
+        </div>
       </div>
       <div className="flex flex-col gap-(--space-3)">
-        <Skeleton className="h-5 w-32 rounded" />
+        <Skeleton className="h-4 w-32 rounded" />
+        <Skeleton className="h-3 w-48 rounded" />
         <div className="flex flex-col gap-(--space-3) rounded-(--radius-card) border border-border-subtle bg-surface p-(--space-4) shadow-(--elevation-1)">
           <Skeleton className="h-10 w-full rounded" />
           <Skeleton className="h-10 w-full rounded" />

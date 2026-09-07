@@ -10,6 +10,8 @@ import { listInvestmentPortfolio } from "@/modules/investments/application";
 import { Page } from "@/shared/patterns/page";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { EmptyState } from "@/shared/patterns/empty-state";
+import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
+import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
 import { InvestmentOverviewClient } from "./investment-overview-client";
 import { InvestmentReadError } from "./investment-read-error";
 import { MoneyOfflineBanner } from "../money-offline-banner";
@@ -31,6 +33,7 @@ export default async function InvestmentsPage({ params }: Props) {
   return (
     <Page
       testId="money-investments"
+      contentClassName="gap-(--space-5)"
       topBar={
         <TopAppBar
           variant="detail"
@@ -48,10 +51,17 @@ export default async function InvestmentsPage({ params }: Props) {
         <EmptyState
           title={t("emptyTitle")}
           description={t("emptyDescription")}
+          className="flex-none py-(--space-4)"
+          icon={
+            <AppIcon
+              icon={FINANCE_ICONS.investment}
+              size={AppIconSize.DISPLAY}
+            />
+          }
           action={
             <Link
               href={APP_PATH.MONEY_INVESTMENTS_NEW}
-              className="inline-flex min-h-11 items-center justify-center rounded-[var(--radius-control)] bg-accent px-(--space-4) text-sm font-semibold text-accent-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+              className="inline-flex min-h-11 w-full items-center justify-center rounded-(--radius-control) bg-accent px-(--space-4) text-sm font-semibold text-accent-fg transition-[background-color,transform] duration-(--duration-fast) hover:-translate-y-px active:scale-(--press-scale) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none motion-reduce:active:scale-100"
               data-testid="investment-opening-link"
             >
               {t("addOpening")}

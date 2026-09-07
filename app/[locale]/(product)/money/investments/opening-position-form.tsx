@@ -6,12 +6,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "@/i18n/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import {
-  BankIcon,
-  ChartBarLineIcon,
-  SmartPhoneIcon,
-  Wallet02Icon,
-} from "@hugeicons/core-free-icons";
-import {
   InvestmentAssetClass,
   InvestmentEntryMode,
   INVESTMENT_INPUT_CURRENCY_VALUES,
@@ -52,13 +46,15 @@ import {
   type InvestmentInputCurrencyRate,
 } from "@/modules/investments/application/investment-money";
 import { DEFAULT_CURRENCY } from "@/modules/ledger/application/client";
-import { AppIcon } from "@/shared/ui/app-icon";
 import { ControlledField } from "@/shared/patterns/controlled-fields";
-import { BottomActionBar } from "@/shared/patterns/bottom-action-bar";
-import { ChoiceTile, ChoiceTileGroup } from "@/shared/patterns/choice-tile";
+import {
+  BottomActionBar,
+  BottomActionBarLayout,
+} from "@/shared/patterns/bottom-action-bar";
+import { ChoiceTile } from "@/shared/patterns/choice-tile";
 import { Progress } from "@/shared/ui/progress";
 import { MotionStep, MotionStepDirection } from "@/shared/motion";
-import { NumberField, SelectField } from "@/shared/ui/form";
+import { FormField, NumberField, SelectField } from "@/shared/ui/form";
 import { MoneyOfflineBanner } from "../money-offline-banner";
 import { useOnlineStatus } from "@/shared/hooks/use-online-status";
 import { Button } from "@/shared/ui/button";
@@ -76,6 +72,9 @@ import {
 } from "./investment-creation-actions";
 import { getInvestmentInputCurrencyRateAction } from "./investment-input-currency-actions";
 import { InstrumentPickerSheet } from "./instrument-picker-sheet";
+import { OpeningAssetClassPicker } from "./opening-asset-class-picker";
+import { OpeningReviewSection } from "./opening-review-section";
+import { InvestmentFactRow, InvestmentFactsCard } from "./investment-facts";
 import {
   APP_PATH,
   moneyInvestmentPath,
@@ -165,6 +164,27 @@ type OpeningPositionFormValues = z.input<typeof openingPositionFormSchema>;
 
 const today = () => new Date().toISOString().slice(0, 10);
 
+function formatSignedMoney(
+  value: number | null,
+  format: (amount: number | null) => string,
+  unknownLabel: string,
+) {
+  if (value == null) return unknownLabel;
+  return `${value > 0 ? "+" : ""}${format(value)}`;
+}
+
+function resolveOpeningConfirmLabel(input: {
+  pending: boolean;
+  isHistorical: boolean;
+  savingLabel: string;
+  importLabel: string;
+  purchaseLabel: string;
+}) {
+  if (input.pending) return input.savingLabel;
+  if (input.isHistorical) return input.importLabel;
+  return input.purchaseLabel;
+}
+
 const createDefaultValues = (accounts: AccountOption[]) =>
   ({
     financialScope: FINANCIAL_SCOPE.HOUSEHOLD,
@@ -189,15 +209,6 @@ const createDefaultValues = (accounts: AccountOption[]) =>
     inputCurrency: InvestmentInputCurrency.VND,
     inputRateToVnd: null,
   }) satisfies Partial<OpeningPositionFormValues>;
-
-const iconFor = (asset: InvestmentUxType) =>
-  asset === InvestmentAssetClass.STOCK
-    ? ChartBarLineIcon
-    : asset === InvestmentAssetClass.CRYPTO
-      ? SmartPhoneIcon
-      : asset === InvestmentAssetClass.GOLD
-        ? BankIcon
-        : Wallet02Icon;
 
 export function OpeningPositionForm({ accounts = [] }: Props) {
   const t = useTranslations("money.investments.opening");
@@ -543,20 +554,153 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
     });
   });
 
+  const quantityDisplay = `${quantity || t("unknown")}${
+    assetClass === InvestmentAssetClass.GOLD ? ` ${t(`units.${unit}`)}` : ""
+  }`;
+  const holdingName = assetName || t("unnamedAsset");
+  const trackedAssetLabel = selectedInstrument
+    ? `${t("trackedAsset")}: ${selectedInstrument.symbol} — ${selectedInstrument.name}`
+    : undefined;
+  const isHistoricalEntry = entryMode === InvestmentEntryMode.HISTORICAL;
+  const confirmLabel = resolveOpeningConfirmLabel({
+    pending,
+    isHistorical: isHistoricalEntry,
+    savingLabel: t("saving"),
+    importLabel: t("confirmImport"),
+    purchaseLabel: t("confirmAction", {
+      action: tUx(config.purchaseActionKey).toLowerCase(),
+    }),
+  });
+  const reviewFacts = [
+    { label: t("quantityLabel"), value: quantityDisplay },
+    { label: t("providerLabel"), value: provider || t("unknown") },
+    { label: t("dateLabel"), value: date },
+  ];
+  const historicalSideFacts = [
+    ...(usesQuotedCurrency
+      ? [
+          {
+            label: t("inputCurrencyLabel"),
+            value: (
+              <FinancialValue>
+                {quotedMoney(rawHistoricalTotalBasis)}
+              </FinancialValue>
+            ),
+          },
+        ]
+      : []),
+    {
+      label: t("remainingBasisOptional"),
+      value: (
+        <FinancialValue>
+          {money(historicalPreview.totalCostBasis)}
+        </FinancialValue>
+      ),
+    },
+    {
+      label: t("pricePerUnitLabel"),
+      value: (
+        <FinancialValue>
+          {money(historicalPreview.averageCostPerUnit)}
+        </FinancialValue>
+      ),
+    },
+    {
+      label: t("currentValuationOptional"),
+      value: (
+        <FinancialValue>
+          {money(historicalPreview.currentTotalValue)}
+        </FinancialValue>
+      ),
+    },
+    {
+      label: t("estimatedPnl"),
+      value: (
+        <FinancialValue>
+          {formatSignedMoney(
+            historicalPreview.unrealizedPnl,
+            money,
+            t("unknown"),
+          )}
+        </FinancialValue>
+      ),
+    },
+    ...(usesQuotedCurrency
+      ? [
+          {
+            label: t("inputRate", { currency: inputCurrency }),
+            value: inputRateDescription ?? t("inputRateUnavailable"),
+          },
+        ]
+      : []),
+  ];
+  const purchaseUnitPrice = usesQuotedCurrency
+    ? quotedMoney(price)
+    : money(price);
+  const purchaseSideFacts = [
+    {
+      label: t("pricePerUnitLabel"),
+      value: <FinancialValue>{purchaseUnitPrice}</FinancialValue>,
+    },
+    ...(usesQuotedCurrency
+      ? [
+          {
+            label: t("inputTotalValue", { currency: inputCurrency }),
+            value: (
+              <FinancialValue>{quotedMoney(rawPurchaseTotal)}</FinancialValue>
+            ),
+          },
+        ]
+      : []),
+    {
+      label: t("totalCashNeeded"),
+      value: <FinancialValue>{money(gross)}</FinancialValue>,
+    },
+    ...(usesQuotedCurrency
+      ? [
+          {
+            label: t("inputRate", { currency: inputCurrency }),
+            value: inputRateDescription ?? t("inputRateUnavailable"),
+          },
+        ]
+      : []),
+    {
+      label: t("fromAccount"),
+      value:
+        accounts.find((account) => account.id === accountId)?.name ||
+        t("unknown"),
+    },
+  ];
+  const reviewHeroLabel = isHistoricalEntry
+    ? t("reviewHeroValue")
+    : t("reviewHeroPurchase");
+  const reviewHeroAmount = isHistoricalEntry
+    ? money(historicalPreview.currentTotalValue)
+    : money(gross);
+  const reviewSideTitle = isHistoricalEntry
+    ? t("historicalCardTitle")
+    : t("purchaseCardTitle");
+  const reviewSideSubtitle = isHistoricalEntry
+    ? t("historicalCardSubtitle")
+    : undefined;
+  const reviewSideFacts = isHistoricalEntry
+    ? historicalSideFacts
+    : purchaseSideFacts;
+  const hasBackAction = stepIndex > FIRST_STEP_INDEX;
+  const isReviewStep = stepIndex === REVIEW_STEP_INDEX;
+  const primaryActionClassName = hasBackAction
+    ? "min-h-11 min-w-0 flex-[1.6]"
+    : "min-h-11 w-full";
+
   return (
     <div
-      className="flex min-h-full flex-col gap-(--space-5)"
+      className="flex min-h-full flex-col gap-(--space-4)"
       data-testid="investment-opening-form"
     >
       <MoneyOfflineBanner />
       {error ? (
         <StatusAlert variant="danger" title={t(`errors.${error}`)} />
       ) : null}
-      <FinancialScopeField
-        value={financialScope}
-        onChange={(next) => setValue("financialScope", next)}
-        testId="investment-financial-scope"
-      />
       <div
         className="flex flex-col gap-(--space-2)"
         data-testid="investment-step-indicator"
@@ -569,8 +713,6 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
             total: OPENING_POSITION_STEP_VALUES.length,
           })}
           showLabel={false}
-          trackClassName="h-1.5"
-          className="gap-0"
         />
         <Text size="xs" tone="secondary" weight="medium">
           {t("stepOf", {
@@ -589,10 +731,10 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
       >
         {stepIndex === FIRST_STEP_INDEX ? (
           <section
-            className="flex flex-col gap-(--space-4)"
+            className="flex flex-col gap-(--space-5)"
             aria-labelledby="investment-type-title"
           >
-            <div>
+            <div className="space-y-(--space-1)">
               <Text
                 as="div"
                 role="heading"
@@ -603,46 +745,23 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
               >
                 {t("stepQuestion")}
               </Text>
-              <Text tone="secondary" className="mt-(--space-1)">
+              <Text size="sm" tone="secondary">
                 {t("stepQuestionDescription")}
               </Text>
             </div>
-            <div className="grid grid-cols-2 gap-(--space-2)">
-              {(
-                [
-                  InvestmentAssetClass.STOCK,
-                  InvestmentAssetClass.FUND,
-                  InvestmentAssetClass.CRYPTO,
-                  InvestmentAssetClass.GOLD,
-                  InvestmentAssetClass.BOND,
-                ] as InvestmentUxType[]
-              ).map((item) => {
-                const itemConfig = investmentUxConfig(item);
-                return (
-                  <button
-                    key={item}
-                    type="button"
-                    aria-pressed={assetClass === item}
-                    onClick={() => setType(item)}
-                    data-testid={`investment-type-${item}`}
-                    className={`flex min-h-32 flex-col items-start gap-(--space-2) rounded-(--radius-card) border p-(--space-3) text-left transition-colors ${assetClass === item ? "border-accent bg-primary-soft" : "border-border-subtle bg-surface"}`}
-                  >
-                    <AppIcon icon={iconFor(item)} size="lg" emphasized />
-                    <Text weight="semibold">{tUx(itemConfig.titleKey)}</Text>
-                    <Text size="sm" tone="secondary" className="leading-snug">
-                      {tUx(itemConfig.descriptionKey)}
-                    </Text>
-                  </button>
-                );
-              })}
-            </div>
+            <OpeningAssetClassPicker selected={assetClass} onSelect={setType} />
+            <FinancialScopeField
+              value={financialScope}
+              onChange={(next) => setValue("financialScope", next)}
+              testId="investment-financial-scope"
+            />
           </section>
         ) : stepIndex === DETAILS_STEP_INDEX ? (
           <section
-            className="flex flex-col gap-(--space-4)"
+            className="flex flex-col gap-(--space-5)"
             aria-labelledby="investment-details-title"
           >
-            <div className="flex flex-col gap-(--space-1)">
+            <div className="space-y-(--space-1)">
               <Text
                 as="div"
                 role="heading"
@@ -653,11 +772,15 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
               >
                 {tUx(config.titleKey)}
               </Text>
-              <Text tone="secondary" className="mt-(--space-1)">
+              <Text size="sm" tone="secondary">
                 {tUx(config.descriptionKey)}
               </Text>
             </div>
-            <ChoiceTileGroup>
+            <div
+              className="grid gap-(--space-2)"
+              role="radiogroup"
+              aria-labelledby="investment-details-title"
+            >
               <ChoiceTile
                 selected={entryMode === InvestmentEntryMode.HISTORICAL}
                 role="radio"
@@ -708,7 +831,7 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
                   </Text>
                 </span>
               </ChoiceTile>
-            </ChoiceTileGroup>
+            </div>
             <div className="flex flex-col gap-(--space-3)">
               <TextField
                 id="investment-name"
@@ -848,7 +971,7 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
               ) : null}
               {entryMode === InvestmentEntryMode.HISTORICAL ? (
                 <>
-                  <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center justify-between gap-(--space-3)">
                     <Text size="sm" tone="secondary">
                       {t("remainingBasisOptional")}
                     </Text>
@@ -924,35 +1047,36 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
                         : undefined,
                     }}
                   />
-                  <div className="rounded-(--radius-card) border border-border-subtle bg-surface-muted p-(--space-3) text-sm">
-                    <div className="flex justify-between gap-3">
-                      <span className="text-text-secondary">
-                        {t("remainingBasisOptional")}
-                      </span>
-                      <FinancialValue>
-                        {money(historicalPreview.totalCostBasis)}
-                      </FinancialValue>
-                    </div>
-                    <div className="mt-1 flex justify-between gap-3">
-                      <span className="text-text-secondary">
-                        {t("currentValuationOptional")}
-                      </span>
-                      <FinancialValue>
-                        {money(historicalPreview.currentTotalValue)}
-                      </FinancialValue>
-                    </div>
-                    <div className="mt-1 flex justify-between gap-3">
-                      <span className="text-text-secondary">
-                        {t("estimatedPnl")}
-                      </span>
-                      <FinancialValue>
-                        {historicalPreview.unrealizedPnl == null
-                          ? t("unknown")
-                          : (historicalPreview.unrealizedPnl > 0 ? "+" : "") +
-                            money(historicalPreview.unrealizedPnl)}
-                      </FinancialValue>
-                    </div>
-                  </div>
+                  <InvestmentFactsCard>
+                    <InvestmentFactRow
+                      label={t("remainingBasisOptional")}
+                      value={
+                        <FinancialValue>
+                          {money(historicalPreview.totalCostBasis)}
+                        </FinancialValue>
+                      }
+                    />
+                    <InvestmentFactRow
+                      label={t("currentValuationOptional")}
+                      value={
+                        <FinancialValue>
+                          {money(historicalPreview.currentTotalValue)}
+                        </FinancialValue>
+                      }
+                    />
+                    <InvestmentFactRow
+                      label={t("estimatedPnl")}
+                      value={
+                        <FinancialValue>
+                          {formatSignedMoney(
+                            historicalPreview.unrealizedPnl,
+                            money,
+                            t("unknown"),
+                          )}
+                        </FinancialValue>
+                      }
+                    />
+                  </InvestmentFactsCard>
                 </>
               ) : (
                 <>
@@ -1019,191 +1143,57 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
                   error: errors.date ? t("errors.invalid") : undefined,
                 }}
               />
-              <label className="flex flex-col gap-1">
-                <span className="text-sm text-text-secondary">
-                  {t("notesOptional")}
-                </span>
-                <Textarea {...register("notes")} />
-              </label>
+              <FormField id="investment-notes" label={t("notesOptional")}>
+                <Textarea id="investment-notes" {...register("notes")} />
+              </FormField>
             </div>
           </section>
         ) : (
-          <section
-            className="flex flex-col gap-(--space-4)"
-            aria-labelledby="investment-review-title"
-            data-testid="investment-opening-preview"
-          >
-            <div>
-              <Text
-                as="div"
-                role="heading"
-                aria-level={1}
-                size="lg"
-                weight="semibold"
-                id="investment-review-title"
-              >
-                {t("reviewTitle")}
-              </Text>
-              <Text tone="secondary" className="mt-(--space-1)">
-                {t("reviewSubtitle")}
-              </Text>
-            </div>
-            <div className="rounded-(--radius-card) bg-surface-muted p-(--space-4)">
-              <Text weight="semibold">{assetName || t("unnamedAsset")}</Text>
-              {selectedInstrument ? (
-                <Text size="sm" tone="secondary" className="mt-1">
-                  {t("trackedAsset")}: {selectedInstrument.symbol} —{" "}
-                  {selectedInstrument.name}
-                </Text>
-              ) : null}
-              <div className="mt-(--space-3) grid gap-(--space-2) text-sm">
-                <div className="flex justify-between gap-3">
-                  <span className="text-text-secondary">
-                    {t("quantityLabel")}
-                  </span>
-                  <span>
-                    {quantity || t("unknown")}
-                    {assetClass === InvestmentAssetClass.GOLD
-                      ? ` ${t(`units.${unit}`)}`
-                      : ""}
-                  </span>
-                </div>
-                <div className="flex justify-between gap-3">
-                  <span className="text-text-secondary">
-                    {t("providerLabel")}
-                  </span>
-                  <span>{provider || t("unknown")}</span>
-                </div>
-                <div className="flex justify-between gap-3">
-                  <span className="text-text-secondary">{t("dateLabel")}</span>
-                  <span>{date}</span>
-                </div>
-              </div>
-            </div>
-            {entryMode === InvestmentEntryMode.HISTORICAL ? (
-              <div className="rounded-(--radius-card) border border-border-subtle p-(--space-4)">
-                <Text weight="medium">{t("historicalCardTitle")}</Text>
-                <Text size="sm" tone="secondary" className="mt-1">
-                  {t("historicalCardSubtitle")}
-                </Text>
-                <div className="mt-(--space-3) grid gap-2 text-sm">
-                  {usesQuotedCurrency ? (
-                    <div className="flex justify-between">
-                      <span className="text-text-secondary">
-                        {t("inputCurrencyLabel")}
-                      </span>
-                      <FinancialValue>
-                        {quotedMoney(rawHistoricalTotalBasis)}
-                      </FinancialValue>
-                    </div>
-                  ) : null}
-                  <div className="flex justify-between">
-                    <span className="text-text-secondary">
-                      {t("remainingBasisOptional")}
-                    </span>
-                    <FinancialValue>
-                      {money(historicalPreview.totalCostBasis)}
-                    </FinancialValue>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-text-secondary">
-                      {t("pricePerUnitLabel")}
-                    </span>
-                    <FinancialValue>
-                      {money(historicalPreview.averageCostPerUnit)}
-                    </FinancialValue>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-text-secondary">
-                      {t("currentValuationOptional")}
-                    </span>
-                    <FinancialValue>
-                      {money(historicalPreview.currentTotalValue)}
-                    </FinancialValue>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-text-secondary">
-                      {t("estimatedPnl")}
-                    </span>
-                    <FinancialValue>
-                      {historicalPreview.unrealizedPnl == null
-                        ? t("unknown")
-                        : (historicalPreview.unrealizedPnl > 0 ? "+" : "") +
-                          money(historicalPreview.unrealizedPnl)}
-                    </FinancialValue>
-                  </div>
-                  {usesQuotedCurrency ? (
-                    <div className="flex justify-between">
-                      <span className="text-text-secondary">
-                        {t("inputRate", { currency: inputCurrency })}
-                      </span>
-                      <span>
-                        {inputRateDescription ?? t("inputRateUnavailable")}
-                      </span>
-                    </div>
-                  ) : null}
-                </div>
-              </div>
-            ) : (
-              <div className="rounded-(--radius-card) border border-accent/30 bg-primary-soft p-(--space-4)">
-                <Text weight="medium">{t("purchaseCardTitle")}</Text>
-                <div className="mt-(--space-3) grid gap-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-text-secondary">
-                      {t("pricePerUnitLabel")}
-                    </span>
-                    <FinancialValue>
-                      {usesQuotedCurrency ? quotedMoney(price) : money(price)}
-                    </FinancialValue>
-                  </div>
-                  {usesQuotedCurrency ? (
-                    <div className="flex justify-between">
-                      <span className="text-text-secondary">
-                        {t("inputTotalValue", { currency: inputCurrency })}
-                      </span>
-                      <FinancialValue>
-                        {quotedMoney(rawPurchaseTotal)}
-                      </FinancialValue>
-                    </div>
-                  ) : null}
-                  <div className="flex justify-between font-medium">
-                    <span>{t("totalCashNeeded")}</span>
-                    <FinancialValue>{money(gross)}</FinancialValue>
-                  </div>
-                  {usesQuotedCurrency ? (
-                    <div className="flex justify-between">
-                      <span className="text-text-secondary">
-                        {t("inputRate", { currency: inputCurrency })}
-                      </span>
-                      <span>
-                        {inputRateDescription ?? t("inputRateUnavailable")}
-                      </span>
-                    </div>
-                  ) : null}
-                  <div className="flex justify-between">
-                    <span className="text-text-secondary">
-                      {t("fromAccount")}
-                    </span>
-                    <span>
-                      {accounts.find((account) => account.id === accountId)
-                        ?.name || t("unknown")}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            )}
-          </section>
+          <OpeningReviewSection
+            title={t("reviewTitle")}
+            subtitle={t("reviewSubtitle")}
+            holdingName={holdingName}
+            trackedAsset={trackedAssetLabel}
+            heroLabel={reviewHeroLabel}
+            heroAmount={reviewHeroAmount}
+            heroMeta={`${tUx(config.titleKey)} · ${quantityDisplay}`}
+            facts={reviewFacts}
+            sideTitle={reviewSideTitle}
+            sideSubtitle={reviewSideSubtitle}
+            sideFacts={reviewSideFacts}
+          />
         )}
       </MotionStep>
-      <BottomActionBar>
-        {stepIndex > FIRST_STEP_INDEX ? (
-          <Button variant="secondary" onPress={goBack}>
-            {stepIndex === REVIEW_STEP_INDEX ? t("back") : t("changeType")}
+      <BottomActionBar
+        className="mt-auto"
+        layout={
+          hasBackAction
+            ? BottomActionBarLayout.SPLIT
+            : BottomActionBarLayout.STACKED
+        }
+      >
+        {hasBackAction ? (
+          <Button
+            variant="secondary"
+            className="min-h-11 min-w-0 flex-1 px-(--space-3) text-pretty"
+            onPress={goBack}
+          >
+            {isReviewStep ? t("back") : t("changeType")}
           </Button>
         ) : null}
-        {stepIndex < REVIEW_STEP_INDEX ? (
+        {isReviewStep ? (
           <Button
-            className="w-full"
+            className={primaryActionClassName}
+            isPending={pending}
+            isDisabled={!online}
+            onPress={() => void submit()}
+            data-testid="investment-opening-confirm"
+          >
+            {confirmLabel}
+          </Button>
+        ) : (
+          <Button
+            className={primaryActionClassName}
             onPress={goNext}
             data-testid={
               stepIndex === DETAILS_STEP_INDEX
@@ -1212,22 +1202,6 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
             }
           >
             {stepIndex === FIRST_STEP_INDEX ? t("continue") : t("review")}
-          </Button>
-        ) : (
-          <Button
-            className="w-full"
-            isPending={pending}
-            isDisabled={!online}
-            onPress={() => void submit()}
-            data-testid="investment-opening-confirm"
-          >
-            {pending
-              ? t("saving")
-              : entryMode === InvestmentEntryMode.HISTORICAL
-                ? t("confirmImport")
-                : t("confirmAction", {
-                    action: tUx(config.purchaseActionKey).toLowerCase(),
-                  })}
           </Button>
         )}
       </BottomActionBar>

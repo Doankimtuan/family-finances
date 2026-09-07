@@ -21,9 +21,11 @@ import {
 } from "@/modules/ledger/application";
 import { todayIsoDate } from "@/shared/utils/iso-date";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
+import { Page } from "@/shared/patterns/page";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { MoneyOfflineBanner } from "@/app/[locale]/(product)/money/money-offline-banner";
 import { RefundTransactionForm } from "./refund-transaction-form";
+import { TRANSACTION_SURFACE_LINK_CLASS } from "../../transaction-chrome";
 
 type Props = {
   params: Promise<{ locale: string; id: string }>;
@@ -54,25 +56,28 @@ export default async function TransactionRefundPage({ params }: Props) {
 
   if (transactionResult.status === TransactionReadStatus.ERROR) {
     return (
-      <div
-        className="flex min-h-full flex-col"
-        data-testid="money-transaction-refund"
-      >
-        <TopAppBar title={t("detailPage.readErrorTitle")} />
-        <div className="flex flex-1 flex-col gap-(--space-4) px-(--space-4) py-(--space-6)">
-          <StatusAlert
-            variant="danger"
+      <Page
+        testId="money-transaction-refund"
+        topBar={
+          <TopAppBar
+            variant="form"
             title={t("detailPage.readErrorTitle")}
-            description={t("detailPage.readErrorBody")}
+            backHref={APP_PATH.MONEY_TRANSACTIONS}
           />
-          <Link
-            href={APP_PATH.MONEY_TRANSACTIONS}
-            className="inline-flex min-h-11 w-full items-center justify-center rounded-(--radius-control) border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary"
-          >
-            {t("detailPage.back")}
-          </Link>
-        </div>
-      </div>
+        }
+      >
+        <StatusAlert
+          variant="danger"
+          title={t("detailPage.readErrorTitle")}
+          description={t("detailPage.readErrorBody")}
+        />
+        <Link
+          href={APP_PATH.MONEY_TRANSACTIONS}
+          className={TRANSACTION_SURFACE_LINK_CLASS}
+        >
+          {t("detailPage.back")}
+        </Link>
+      </Page>
     );
   }
 
@@ -102,20 +107,23 @@ export default async function TransactionRefundPage({ params }: Props) {
 
   if (!tx) {
     return (
-      <div
-        className="flex min-h-full flex-col"
-        data-testid="money-transaction-refund"
+      <Page
+        testId="money-transaction-refund"
+        topBar={
+          <TopAppBar
+            variant="form"
+            title={t("detailPage.notFound")}
+            backHref={APP_PATH.MONEY_TRANSACTIONS}
+          />
+        }
       >
-        <TopAppBar title={t("detailPage.notFound")} />
-        <div className="px-(--space-4) py-(--space-6)">
-          <Link
-            href={APP_PATH.MONEY_TRANSACTIONS}
-            className="inline-flex min-h-11 w-full items-center justify-center rounded-(--radius-control) border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary"
-          >
-            {t("detailPage.back")}
-          </Link>
-        </div>
-      </div>
+        <Link
+          href={APP_PATH.MONEY_TRANSACTIONS}
+          className={TRANSACTION_SURFACE_LINK_CLASS}
+        >
+          {t("detailPage.back")}
+        </Link>
+      </Page>
     );
   }
 
@@ -129,47 +137,52 @@ export default async function TransactionRefundPage({ params }: Props) {
         ? t("refundForm.noDestinationBody")
         : t("refundForm.unavailableBody");
     return (
-      <div
-        className="flex min-h-full flex-col"
-        data-testid="money-transaction-refund"
-      >
-        <TopAppBar title={t("refundForm.title")} />
-        <div className="flex flex-1 flex-col gap-(--space-4) px-(--space-4) pb-(--space-6) pt-(--space-4)">
-          <StatusAlert
-            variant="warning"
-            title={title}
-            description={description}
+      <Page
+        testId="money-transaction-refund"
+        topBar={
+          <TopAppBar
+            variant="form"
+            title={t("refundForm.title")}
+            backHref={moneyTransactionPath(tx.id)}
           />
-          <Link
-            href={moneyTransactionPath(tx.id)}
-            className="inline-flex min-h-11 w-full items-center justify-center rounded-(--radius-control) border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary"
-          >
-            {t("detailPage.back")}
-          </Link>
-        </div>
-      </div>
+        }
+      >
+        <StatusAlert
+          variant="warning"
+          title={title}
+          description={description}
+        />
+        <Link
+          href={moneyTransactionPath(tx.id)}
+          className={TRANSACTION_SURFACE_LINK_CLASS}
+        >
+          {t("detailPage.back")}
+        </Link>
+      </Page>
     );
   }
 
   return (
-    <div
-      className="flex min-h-full flex-col"
-      data-testid="money-transaction-refund"
-    >
-      <TopAppBar
-        title={t("refundForm.title")}
-        subtitle={t("refundForm.subtitle")}
-      />
-      <div className="flex flex-1 flex-col gap-(--space-5) px-(--space-4) pb-(--space-6) pt-(--space-4)">
-        <MoneyOfflineBanner />
-        <RefundTransactionForm
-          transaction={tx}
-          currency={tx.currency}
-          maxRefundable={maxRefundable}
-          destinationAccounts={destinationAccounts}
-          defaultTransactionDate={todayIsoDate()}
+    <Page
+      testId="money-transaction-refund"
+      contentClassName="gap-(--space-5) pb-0"
+      topBar={
+        <TopAppBar
+          variant="form"
+          title={t("refundForm.title")}
+          subtitle={t("refundForm.subtitle")}
+          backHref={moneyTransactionPath(tx.id)}
         />
-      </div>
-    </div>
+      }
+    >
+      <MoneyOfflineBanner />
+      <RefundTransactionForm
+        transaction={tx}
+        currency={tx.currency}
+        maxRefundable={maxRefundable}
+        destinationAccounts={destinationAccounts}
+        defaultTransactionDate={todayIsoDate()}
+      />
+    </Page>
   );
 }

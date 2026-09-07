@@ -8,6 +8,7 @@ import type { InboxReviewItem } from "@/modules/inbox/application/inbox-types";
 import { isPartnerEmergencyAlert } from "@/modules/plan/application/client";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Text } from "@/shared/ui/text";
+import { PLAN_SURFACE_LINK_CLASS, PLAN_INLINE_LINK_CLASS } from "./plan-chrome";
 
 type Props = {
   items: InboxReviewItem[];
@@ -60,7 +61,7 @@ export function EmergencyInboxBanner({
           <li key={item.id}>
             <Link
               href={inboxItemPath(item.id)}
-              className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+              className={PLAN_SURFACE_LINK_CLASS}
               data-testid={`plan-emergency-open-${item.id}`}
             >
               {openLabel}
@@ -70,10 +71,7 @@ export function EmergencyInboxBanner({
       </ul>
       {emergencies.length > 1 ? (
         <Text size="sm" tone="secondary">
-          <Link
-            href={APP_PATH.INBOX}
-            className="font-medium text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-          >
+          <Link href={APP_PATH.INBOX} className={PLAN_INLINE_LINK_CLASS}>
             {openLabel}
           </Link>
         </Text>

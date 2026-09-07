@@ -25,12 +25,39 @@ import { createTransactionTagAction } from "./tag-actions";
 import { transactionTagVisualFor } from "./transaction-tag-visuals";
 import { TransactionTagFormFields } from "./transaction-tag-form-fields";
 
+export const TransactionTagSelectorLayout = {
+  FIELD: "field",
+  FILTER: "filter",
+} as const;
+
+export type TransactionTagSelectorLayout =
+  (typeof TransactionTagSelectorLayout)[keyof typeof TransactionTagSelectorLayout];
+
+const FILTER_TRIGGER_BASE_CLASS =
+  "inline-flex min-h-11 max-w-full items-center justify-center gap-(--space-2) rounded-full px-(--space-3) text-sm font-medium leading-tight transition-[background-color,color,transform] duration-(--duration-fast) active:scale-[var(--press-scale)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none";
+const FILTER_TRIGGER_SELECTED_CLASS = `${FILTER_TRIGGER_BASE_CLASS} bg-primary-soft text-primary ring-1 ring-primary/20`;
+const FILTER_TRIGGER_IDLE_CLASS = `${FILTER_TRIGGER_BASE_CLASS} bg-surface-muted/65 text-text-secondary hover:bg-surface-hover hover:text-text-primary`;
+const FIELD_TRIGGER_CLASS =
+  "flex min-h-11 w-full items-center justify-between gap-(--space-3) rounded-[var(--radius-control)] border border-border-subtle bg-surface px-(--space-3) text-left text-sm font-medium text-text-primary shadow-(--elevation-1) transition-[background-color,border-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-[var(--press-scale)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none";
+
+function selectorTriggerClassName(
+  layout: TransactionTagSelectorLayout,
+  selectedCount: number,
+) {
+  if (layout !== TransactionTagSelectorLayout.FILTER)
+    return FIELD_TRIGGER_CLASS;
+  return selectedCount > 0
+    ? FILTER_TRIGGER_SELECTED_CLASS
+    : FILTER_TRIGGER_IDLE_CLASS;
+}
+
 type TagSelectorProps = {
   availableTags: TransactionTag[];
   selectedIds: string[];
   onChange: (ids: string[]) => void;
   onConfirm?: (ids: string[]) => void;
   disabled?: boolean;
+  layout?: TransactionTagSelectorLayout;
 };
 
 export function TransactionTagChip({
@@ -73,6 +100,7 @@ export function TransactionTagSelector({
   onChange,
   onConfirm,
   disabled = false,
+  layout = TransactionTagSelectorLayout.FIELD,
 }: TagSelectorProps) {
   const t = useTranslations("money.transactionTags");
   const locale = useLocale();
@@ -144,9 +172,15 @@ export function TransactionTagSelector({
     });
   };
 
+  const isFilterLayout = layout === TransactionTagSelectorLayout.FILTER;
+
   return (
     <div
-      className="flex flex-col gap-(--space-4)"
+      className={
+        isFilterLayout
+          ? "flex min-w-0 flex-col gap-(--space-2)"
+          : "flex flex-col gap-(--space-4)"
+      }
       data-testid="transaction-tag-selector"
     >
       {selectedTags.length > 0 ? (
@@ -159,21 +193,24 @@ export function TransactionTagSelector({
             />
           ))}
         </div>
-      ) : (
+      ) : null}
+      {selectedTags.length === 0 && !isFilterLayout ? (
         <Text size="sm" tone="secondary">
           {t("noneSelected")}
         </Text>
-      )}
+      ) : null}
 
       <button
         type="button"
-        className="flex min-h-11 w-full items-center justify-between gap-(--space-3) rounded-[var(--radius-control)] border border-border-subtle bg-surface px-(--space-3) text-left text-sm font-medium text-text-primary shadow-(--elevation-1) transition-[background-color,border-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-[var(--press-scale)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none"
+        className={selectorTriggerClassName(layout, selectedIds.length)}
         aria-haspopup="dialog"
         disabled={disabled}
         onClick={() => setIsOpen(true)}
       >
         <span>{t("choose")}</span>
-        <span className="text-text-secondary">
+        <span
+          className={isFilterLayout ? "tabular-nums" : "text-text-secondary"}
+        >
           {selectedIds.length}/{MAX_TRANSACTION_TAGS}
         </span>
       </button>
@@ -349,7 +386,11 @@ export function TransactionTagSelector({
   );
 }
 
-export function TagIconPreview({ tag }: { tag: TransactionTag }) {
+export function TagIconPreview({
+  tag,
+}: {
+  tag: Pick<TransactionTag, "iconKey" | "colorKey">;
+}) {
   const visual = transactionTagVisualFor(tag);
   return (
     <span

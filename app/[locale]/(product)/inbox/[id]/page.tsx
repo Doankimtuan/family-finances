@@ -7,23 +7,17 @@ import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
 import { getInboxItem } from "@/modules/inbox/application";
-import {
-  InboxItemKind,
-  InboxItemStatus,
-  InboxLifecycleContext,
-} from "@/modules/inbox/application/inbox-constants";
+import { InboxItemStatus } from "@/modules/inbox/application/inbox-constants";
 import { listCaptureJars } from "@/modules/ledger/application";
-import { formatCurrency } from "@/shared/i18n/formatters";
+import { formatCurrency, formatDate } from "@/shared/i18n/formatters";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Page } from "@/shared/patterns/page";
 import { ReviewCard } from "@/shared/patterns/review-card";
-import { EmptyState } from "@/shared/patterns/empty-state";
 import { Card } from "@/shared/patterns/card";
 import { AppIcon } from "@/shared/ui/app-icon";
 import { IconContainer } from "@/shared/ui/icon-container";
-import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
-import { StatusBadge } from "@/shared/ui/status-badge";
+import { StatusBadge, StatusBadgeTone } from "@/shared/ui/status-badge";
 import { Text } from "@/shared/ui/text";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { FinancialValue } from "@/shared/patterns/financial-value";
@@ -31,50 +25,17 @@ import { InboxOfflineBanner } from "../inbox-offline-banner";
 import { InboxDecisionPanel } from "../inbox-decision-panel";
 import { InboxSourceLink } from "../inbox-source-link";
 import { InboxReadStateControl } from "../inbox-read-state-control";
-import { formatDate } from "@/shared/i18n/formatters";
+import { InboxFactRow, InboxFactsCard } from "../inbox-facts";
+import { InboxPrivacyToggle } from "../inbox-privacy-toggle";
+import { InboxUnavailable } from "../inbox-unavailable";
+import {
+  inboxDisplayTitle,
+  inboxItemVisual,
+  inboxLifecycleLabelKey,
+} from "../inbox-presentations";
 
 type Props = {
   params: Promise<{ locale: string; id: string }>;
-};
-
-type DetailVisual = {
-  icon: (typeof FINANCE_ICONS)[keyof typeof FINANCE_ICONS];
-  tone: "neutral" | "income" | "expense" | "transfer" | "savings" | "info";
-};
-
-const DETAIL_VISUALS: Partial<Record<InboxItemKind, DetailVisual>> = {
-  [InboxItemKind.UNMAPPED_EXPENSE]: {
-    icon: FINANCE_ICONS.expense,
-    tone: "expense",
-  },
-  [InboxItemKind.INCOME_SUGGEST]: {
-    icon: FINANCE_ICONS.income,
-    tone: "income",
-  },
-  [InboxItemKind.SAVINGS_MATURITY]: {
-    icon: FINANCE_ICONS.savings,
-    tone: "savings",
-  },
-  [InboxItemKind.EARLY_WITHDRAWAL_CONFIRMATION]: {
-    icon: FINANCE_ICONS.savings,
-    tone: "savings",
-  },
-  [InboxItemKind.EMI_COMPLETE]: {
-    icon: FINANCE_ICONS.loan,
-    tone: "info",
-  },
-  [InboxItemKind.EMERGENCY_DECLARATION]: {
-    icon: FINANCE_ICONS.transfer,
-    tone: "transfer",
-  },
-  [InboxItemKind.LOAN_PAYMENT_ATTENTION]: {
-    icon: FINANCE_ICONS.loan,
-    tone: "info",
-  },
-  [InboxItemKind.DEBT_PAYMENT_ATTENTION]: {
-    icon: FINANCE_ICONS.loan,
-    tone: "expense",
-  },
 };
 
 /**
@@ -116,11 +77,14 @@ export default async function InboxItemDetailPage({ params }: Props) {
             backLabel={t("backToQueue")}
           />
         }
+        contentClassName="gap-(--space-5)"
       >
-        <EmptyState
+        <InboxUnavailable
           title={t("notFoundTitle")}
           description={t("notFoundBody")}
-          className="rounded-[var(--radius-card)] border border-dashed border-border-subtle bg-surface/60 px-(--space-4) py-(--space-5)"
+          actionHref={APP_PATH.INBOX}
+          actionLabel={t("backToQueue")}
+          testId="inbox-missing-back"
         />
       </Page>
     );
@@ -135,28 +99,26 @@ export default async function InboxItemDetailPage({ params }: Props) {
     ? localizeCatalogName(tCatalog, "accounts", item.accountName) ||
       item.accountName
     : null;
-  const displayTitle =
-    item.note?.trim() ||
-    localizedCategory ||
-    item.displayTitle ||
-    (item.kind ? t(`kinds.${item.kind}`) : t("title"));
+  const displayTitle = inboxDisplayTitle({
+    note: item.note,
+    localizedCategory,
+    displayTitle: item.displayTitle,
+    kindLabel: item.kind ? t(`kinds.${item.kind}`) : t("title"),
+  });
   const detailParts = [
     localizedAccount,
     localizedCategory && item.note?.trim() ? localizedCategory : null,
   ].filter(Boolean);
-  const visual = item.kind ? DETAIL_VISUALS[item.kind] : undefined;
+  const visual = item.kind ? inboxItemVisual(item.kind) : undefined;
   const pending = item.status === InboxItemStatus.PENDING;
+  const lifecycleKey = inboxLifecycleLabelKey(item.lifecycleContext);
   const lifecycleLabel = item.lifecycleDate
     ? `${
         item.lifecycleOverdue
           ? t("lifecycleOverdue")
-          : t(
-              item.lifecycleContext === InboxLifecycleContext.DUE
-                ? "lifecycleDue"
-                : item.lifecycleContext === InboxLifecycleContext.MATURITY
-                  ? "lifecycleMaturity"
-                  : "lifecycleExpires",
-            )
+          : lifecycleKey
+            ? t(lifecycleKey)
+            : t("lifecycleExpires")
       }: ${formatDate(new Date(item.lifecycleDate), locale)}`
     : null;
 
@@ -172,6 +134,7 @@ export default async function InboxItemDetailPage({ params }: Props) {
           backLabel={t("backToQueue")}
         />
       }
+      contentClassName="gap-(--space-5)"
     >
       <InboxOfflineBanner />
 
@@ -180,28 +143,31 @@ export default async function InboxItemDetailPage({ params }: Props) {
         className="gap-(--space-3) p-(--space-4)"
         data-testid="inbox-detail-context"
       >
-        <div className="flex items-center justify-between gap-(--space-3)">
-          <Text
-            size="xs"
-            tone="secondary"
-            className="font-semibold uppercase tracking-[0.12em]"
-          >
-            {t("decisionQuestionHeading")}
-          </Text>
-          <StatusBadge tone={pending ? "warning" : "neutral"}>
-            {t(`statuses.${item.status}`)}
-          </StatusBadge>
+        <div className="flex items-start justify-between gap-(--space-3)">
+          <div className="min-w-0">
+            <Text size="sm" weight="semibold" className="text-text-primary">
+              {t("decisionQuestionHeading")}
+            </Text>
+            {item.kind ? (
+              <Text
+                size="sm"
+                tone="secondary"
+                className="mt-(--space-1) leading-relaxed"
+                data-testid="inbox-decision-question"
+              >
+                {t(`why.${item.kind}`)}
+              </Text>
+            ) : null}
+          </div>
+          <div className="flex shrink-0 items-center gap-(--space-2)">
+            <StatusBadge
+              tone={pending ? StatusBadgeTone.WARNING : StatusBadgeTone.NEUTRAL}
+            >
+              {t(`statuses.${item.status}`)}
+            </StatusBadge>
+            <InboxPrivacyToggle testId="inbox-detail-privacy-toggle" />
+          </div>
         </div>
-        {item.kind ? (
-          <Text
-            size="sm"
-            tone="secondary"
-            className="leading-relaxed"
-            data-testid="inbox-decision-question"
-          >
-            {t(`why.${item.kind}`)}
-          </Text>
-        ) : null}
         <Text size="xs" tone="muted" data-testid="inbox-partner-equal">
           {t("partnerEqualNote")}
         </Text>
@@ -233,7 +199,7 @@ export default async function InboxItemDetailPage({ params }: Props) {
             </IconContainer>
           ) : undefined
         }
-        statusTone={pending ? "warning" : "neutral"}
+        statusTone={pending ? StatusBadgeTone.WARNING : StatusBadgeTone.NEUTRAL}
         subtitle={detailParts.length > 0 ? detailParts.join(" · ") : undefined}
         data-testid="inbox-detail-card"
       />
@@ -247,30 +213,17 @@ export default async function InboxItemDetailPage({ params }: Props) {
       {pending ? <InboxDecisionPanel item={item} jars={activeJars} /> : null}
 
       {localizedCategory || localizedAccount || item.note ? (
-        <Card
-          tone="soft"
-          className="gap-(--space-2) p-(--space-4)"
-          data-testid="inbox-item-details"
-        >
-          <Text size="sm" className="font-semibold text-text-primary">
-            {t("detailsHeading")}
-          </Text>
+        <InboxFactsCard title={t("detailsHeading")} testId="inbox-item-details">
           {localizedCategory ? (
-            <Text size="sm" tone="secondary">
-              {t("detailCategory", { name: localizedCategory })}
-            </Text>
+            <InboxFactRow label={t("factCategory")} value={localizedCategory} />
           ) : null}
           {localizedAccount ? (
-            <Text size="sm" tone="secondary">
-              {t("detailAccount", { name: localizedAccount })}
-            </Text>
+            <InboxFactRow label={t("factAccount")} value={localizedAccount} />
           ) : null}
           {item.note?.trim() ? (
-            <Text size="sm" tone="secondary">
-              {t("detailNote", { note: item.note.trim() })}
-            </Text>
+            <InboxFactRow label={t("factNote")} value={item.note.trim()} />
           ) : null}
-        </Card>
+        </InboxFactsCard>
       ) : null}
 
       <InboxSourceLink item={item} />

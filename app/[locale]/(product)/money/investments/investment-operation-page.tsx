@@ -17,6 +17,8 @@ import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { FinancialOwnershipBadge } from "@/shared/patterns/financial-ownership-badge";
 import { StatusAlert } from "@/shared/ui/status-alert";
+import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
+import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
 import { InvestmentOperationForm } from "./investment-operation-form";
 import { InvestmentOperationSheet } from "./investment-operation-sheet";
 
@@ -30,7 +32,11 @@ export async function InvestmentOperationPage({ mode, holdingId }: Props) {
     listAccounts(),
     holdingId ? getInvestmentHolding(holdingId) : Promise.resolve(null),
   ]);
-  const holding = requested ?? portfolio?.holdings[0] ?? null;
+  const operationHoldings =
+    mode === InvestmentFormMode.CONVERSION
+      ? (portfolio?.holdings.filter((item) => item.ownership.canMutate) ?? [])
+      : (portfolio?.holdings ?? []);
+  const holding = requested ?? operationHoldings[0] ?? null;
   const ux = holding ? investmentUxConfig(holding.assetClass) : null;
   const operationTitle =
     mode === InvestmentFormMode.BUY
@@ -42,16 +48,39 @@ export async function InvestmentOperationPage({ mode, holdingId }: Props) {
           ? tUx(ux.disposalActionKey)
           : undefined
         : t(`title.${mode}`);
+  const backHref = holdingId
+    ? moneyInvestmentPath(holdingId)
+    : APP_PATH.MONEY_INVESTMENTS;
   if (!holding || !portfolio)
     return (
-      <Page topBar={<TopAppBar title={operationTitle} />}>
-        <EmptyState title={t("notAvailable")} />
-        <Link
-          href={APP_PATH.MONEY_INVESTMENTS}
-          className="text-sm font-medium text-accent"
-        >
-          {t("back")}
-        </Link>
+      <Page
+        contentClassName="gap-(--space-5)"
+        topBar={
+          <TopAppBar
+            variant="form"
+            backHref={APP_PATH.MONEY_INVESTMENTS}
+            title={operationTitle}
+          />
+        }
+      >
+        <EmptyState
+          title={t("notAvailable")}
+          className="flex-none py-(--space-4)"
+          icon={
+            <AppIcon
+              icon={FINANCE_ICONS.investment}
+              size={AppIconSize.DISPLAY}
+            />
+          }
+          action={
+            <Link
+              href={APP_PATH.MONEY_INVESTMENTS}
+              className="inline-flex min-h-11 w-full items-center justify-center rounded-(--radius-control) border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary"
+            >
+              {t("back")}
+            </Link>
+          }
+        />
       </Page>
     );
   if (
@@ -59,11 +88,20 @@ export async function InvestmentOperationPage({ mode, holdingId }: Props) {
     holding.instrument?.autoPriceSupported
   )
     return (
-      <Page topBar={<TopAppBar title={operationTitle} />}>
+      <Page
+        contentClassName="gap-(--space-5)"
+        topBar={
+          <TopAppBar
+            variant="form"
+            backHref={moneyInvestmentPath(holding.id)}
+            title={operationTitle}
+          />
+        }
+      >
         <StatusAlert variant="info" title={t("automaticPricingActive")} />
         <Link
           href={moneyInvestmentPath(holding.id)}
-          className="text-sm font-medium text-accent"
+          className="inline-flex min-h-11 items-center justify-center text-sm font-medium text-accent"
         >
           {t("back")}
         </Link>
@@ -72,8 +110,11 @@ export async function InvestmentOperationPage({ mode, holdingId }: Props) {
   return (
     <Page
       testId={`investment-${mode}`}
+      contentClassName="gap-(--space-5)"
       topBar={
         <TopAppBar
+          variant="form"
+          backHref={backHref}
           title={t(`title.${mode}`)}
           subtitle={holding.symbol || holding.name}
         />
@@ -86,14 +127,22 @@ export async function InvestmentOperationPage({ mode, holdingId }: Props) {
         showExplanation
       />
       {!holding.ownership.canMutate ? (
-        <StatusAlert variant="info" title={t("partnerReadOnly")} />
+        <>
+          <StatusAlert variant="info" title={t("partnerReadOnly")} />
+          <Link
+            href={moneyInvestmentPath(holding.id)}
+            className="inline-flex min-h-11 items-center justify-center text-sm font-medium text-accent"
+          >
+            {t("back")}
+          </Link>
+        </>
       ) : (
         <InvestmentOperationSheet>
           <InvestmentOperationForm
             mode={mode}
             title={operationTitle ?? t(`title.${mode}`)}
             holding={holding}
-            holdings={portfolio.holdings}
+            holdings={operationHoldings}
             accounts={(accounts?.accounts ?? []).map((account) => ({
               id: account.id,
               name: account.name,
@@ -102,12 +151,6 @@ export async function InvestmentOperationPage({ mode, holdingId }: Props) {
           />
         </InvestmentOperationSheet>
       )}
-      <Link
-        href={moneyInvestmentPath(holding.id)}
-        className="text-sm font-medium text-accent"
-      >
-        {t("back")}
-      </Link>
     </Page>
   );
 }

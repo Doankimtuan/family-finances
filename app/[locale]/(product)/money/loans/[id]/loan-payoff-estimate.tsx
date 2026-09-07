@@ -38,7 +38,9 @@ export function LoanPayoffEstimate(props: Props) {
       {open ? (
         <ActionSheetLayout>
           <ActionSheetLayout.Header>
-            <Sheet.Heading>{t("title")}</Sheet.Heading>
+            <Sheet.Heading className="text-lg font-semibold tracking-tight text-text-primary">
+              {t("title")}
+            </Sheet.Heading>
           </ActionSheetLayout.Header>
           <ActionSheetLayout.Body className="flex flex-col gap-(--space-4)">
             <LoanPayoffEstimateBody {...props} />

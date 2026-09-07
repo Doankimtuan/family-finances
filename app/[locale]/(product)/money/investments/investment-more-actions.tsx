@@ -6,7 +6,9 @@ import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
 import { Sheet } from "@/shared/patterns/sheet";
 import { Button } from "@/shared/ui/button";
 import { IconButton } from "@/shared/ui/icon-button";
-import { AppIcon, ACTION_ICONS, FINANCE_ICONS } from "@/shared/ui";
+import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
+import { IconContainer, IconContainerTone } from "@/shared/ui/icon-container";
+import { ACTION_ICONS, FINANCE_ICONS } from "@/shared/ui/icon-registry";
 
 type Props = {
   label: string;
@@ -53,18 +55,27 @@ export function InvestmentMoreActions({
             </Sheet.Heading>
           </ActionSheetLayout.Header>
           <ActionSheetLayout.Body>
-            <ul className="divide-y divide-border-subtle/70">
+            <ul className="divide-y divide-divider">
               <li>
                 <Button
                   variant="ghost"
                   className="min-h-11 w-full justify-between px-0 text-left"
                   onPress={() => navigateTo(incomeHref)}
                 >
-                  <span className="flex min-w-0 items-center gap-(--space-2)">
-                    <AppIcon icon={FINANCE_ICONS.income} size="sm" />
+                  <span className="flex min-w-0 items-center gap-(--space-3)">
+                    <IconContainer tone={IconContainerTone.INCOME} size="sm">
+                      <AppIcon
+                        icon={FINANCE_ICONS.income}
+                        size={AppIconSize.SM}
+                      />
+                    </IconContainer>
                     <span>{incomeLabel}</span>
                   </span>
-                  <AppIcon icon={ACTION_ICONS.forward} size="sm" />
+                  <AppIcon
+                    icon={ACTION_ICONS.forward}
+                    size={AppIconSize.SM}
+                    className="text-text-tertiary"
+                  />
                 </Button>
               </li>
               {valuationHref && valuationLabel ? (
@@ -74,11 +85,23 @@ export function InvestmentMoreActions({
                     className="min-h-11 w-full justify-between px-0 text-left"
                     onPress={() => navigateTo(valuationHref)}
                   >
-                    <span className="flex min-w-0 items-center gap-(--space-2)">
-                      <AppIcon icon={FINANCE_ICONS.investment} size="sm" />
+                    <span className="flex min-w-0 items-center gap-(--space-3)">
+                      <IconContainer
+                        tone={IconContainerTone.INVESTMENT}
+                        size="sm"
+                      >
+                        <AppIcon
+                          icon={FINANCE_ICONS.investment}
+                          size={AppIconSize.SM}
+                        />
+                      </IconContainer>
                       <span>{valuationLabel}</span>
                     </span>
-                    <AppIcon icon={ACTION_ICONS.forward} size="sm" />
+                    <AppIcon
+                      icon={ACTION_ICONS.forward}
+                      size={AppIconSize.SM}
+                      className="text-text-tertiary"
+                    />
                   </Button>
                 </li>
               ) : null}

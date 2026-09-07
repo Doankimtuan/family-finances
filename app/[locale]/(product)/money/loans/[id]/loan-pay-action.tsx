@@ -214,7 +214,9 @@ export function LoanPayAction({
 
       <ActionSheetLayout>
         <ActionSheetLayout.Header>
-          <Sheet.Heading>{t("nextPaymentAction")}</Sheet.Heading>
+          <Sheet.Heading className="text-lg font-semibold tracking-tight text-text-primary">
+            {t("nextPaymentAction")}
+          </Sheet.Heading>
         </ActionSheetLayout.Header>
 
         <ActionSheetLayout.Body className="flex flex-col gap-(--space-4)">
@@ -400,7 +402,7 @@ export function LoanPayAction({
               />
 
               <div
-                className="flex flex-col gap-(--space-1) rounded-md border border-border-subtle bg-surface p-(--space-3)"
+                className="flex flex-col gap-(--space-1) rounded-(--radius-card) border border-border-subtle bg-surface p-(--space-3)"
                 data-testid="loan-pay-amount-preview"
               >
                 <Text size="sm" tone="secondary">

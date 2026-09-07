@@ -8,11 +8,27 @@ import { UTILITY_ICONS } from "@/shared/ui/icon-registry";
 import { motionTokens, useMotionPolicy } from "@/shared/motion";
 import { cn } from "@/shared/utils/cn";
 
+export const FinancialPrivacyToggleTone = {
+  HERO: "hero",
+  SURFACE: "surface",
+} as const;
+
+export type FinancialPrivacyToggleTone =
+  (typeof FinancialPrivacyToggleTone)[keyof typeof FinancialPrivacyToggleTone];
+
 type Props = {
   hideLabel: string;
   showLabel: string;
   testId: string;
+  tone?: FinancialPrivacyToggleTone;
   className?: string;
+};
+
+const TONE_CLASS_NAME: Record<FinancialPrivacyToggleTone, string> = {
+  [FinancialPrivacyToggleTone.HERO]:
+    "border border-white/25 bg-white/10 text-hero-fg shadow-none hover:bg-white/20 focus-visible:outline-hero-fg",
+  [FinancialPrivacyToggleTone.SURFACE]:
+    "border border-border-subtle bg-surface text-text-primary shadow-none hover:bg-surface-hover",
 };
 
 /**
@@ -23,6 +39,7 @@ export function FinancialPrivacyToggle({
   hideLabel,
   showLabel,
   testId,
+  tone = FinancialPrivacyToggleTone.HERO,
   className,
 }: Props) {
   const { isHidden, toggle } = useFinancialPrivacy();
@@ -37,10 +54,7 @@ export function FinancialPrivacyToggle({
       data-testid={testId}
       onPress={toggle}
       variant="tertiary"
-      className={cn(
-        "border border-white/25 bg-white/10 text-hero-fg shadow-none hover:bg-white/20 focus-visible:outline-hero-fg disabled:opacity-50",
-        className,
-      )}
+      className={cn(TONE_CLASS_NAME[tone], "disabled:opacity-50", className)}
     >
       <AnimatePresence initial={false} mode="wait">
         <motion.span

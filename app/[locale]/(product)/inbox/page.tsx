@@ -15,6 +15,7 @@ import {
   syncLoanDebtAttentionInboxItems,
 } from "@/modules/inbox/application";
 import {
+  InboxQueueHeaderState,
   InboxQueueTab,
   InboxReceiptKind,
   INBOX_RECEIPT_KIND_VALUES,
@@ -23,18 +24,65 @@ import {
 } from "@/modules/inbox/application/inbox-constants";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Page } from "@/shared/patterns/page";
-import { Card } from "@/shared/patterns/card";
-import { Text } from "@/shared/ui/text";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { StatusAlert } from "@/shared/ui/status-alert";
+import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
+import { NAVIGATION_ICONS } from "@/shared/ui/icon-registry";
 import { InboxOfflineBanner } from "./inbox-offline-banner";
 import { InboxQueueList } from "./inbox-queue-list";
 import { InboxQueueTabs } from "./inbox-queue-tabs";
+import { InboxSummary } from "./inbox-summary";
+import { InboxUnavailable } from "./inbox-unavailable";
 
 type Props = {
   params: Promise<{ locale: string }>;
   searchParams: Promise<{ tab?: string; receipt?: string }>;
 };
+
+type InboxCopy = {
+  (key: string, values?: Record<string, string | number>): string;
+};
+
+function resolveInboxHeadline(
+  state: InboxQueueHeaderState,
+  itemCount: number,
+  t: InboxCopy,
+): string {
+  switch (state) {
+    case InboxQueueHeaderState.CLEAR:
+      return t("header.headline.clear");
+    case InboxQueueHeaderState.OPEN:
+      return t("header.headline.open");
+    case InboxQueueHeaderState.ARCHIVED:
+      return itemCount === 0
+        ? t("header.meta.archived")
+        : t("header.headline.archived");
+  }
+}
+
+function resolveInboxSummaryFacts(
+  state: InboxQueueHeaderState,
+  itemCount: number,
+  t: InboxCopy,
+): { label: string; value: string }[] {
+  if (state === InboxQueueHeaderState.OPEN) {
+    return [
+      {
+        label: t("facts.waiting"),
+        value: t("header.meta.open", { count: itemCount }),
+      },
+    ];
+  }
+  if (state === InboxQueueHeaderState.ARCHIVED && itemCount > 0) {
+    return [
+      {
+        label: t("facts.archived"),
+        value: t("sectionCount", { count: itemCount }),
+      },
+    ];
+  }
+  return [];
+}
 
 /**
  * inbox.queue — ReviewCard list with kind filter + Archived tab (ST-E03 / F4).
@@ -95,22 +143,24 @@ export default async function InboxPage({ params, searchParams }: Props) {
   const nextCursor =
     !showArchived && items && !Array.isArray(items) ? items.nextCursor : null;
   const headerState = showArchived
-    ? "archived"
+    ? InboxQueueHeaderState.ARCHIVED
     : list.length === 0
-      ? "clear"
-      : "open";
+      ? InboxQueueHeaderState.CLEAR
+      : InboxQueueHeaderState.OPEN;
   const headerSupporting =
-    headerState === "clear"
+    headerState === InboxQueueHeaderState.CLEAR
       ? t("header.supporting.clear")
-      : headerState === "open"
+      : headerState === InboxQueueHeaderState.OPEN
         ? t("header.supporting.open")
         : t("header.supporting.archived");
   const headerMeta =
-    headerState === "open"
+    headerState === InboxQueueHeaderState.OPEN
       ? t("header.meta.open", { count: list.length })
-      : headerState === "clear"
+      : headerState === InboxQueueHeaderState.CLEAR
         ? t("header.meta.clear")
         : t("header.meta.archived");
+  const headline = resolveInboxHeadline(headerState, list.length, t);
+  const summaryFacts = resolveInboxSummaryFacts(headerState, list.length, t);
 
   return (
     <Page
@@ -123,37 +173,16 @@ export default async function InboxPage({ params, searchParams }: Props) {
           meta={headerMeta}
         />
       }
-      contentClassName="gap-(--space-4)"
+      contentClassName="gap-(--space-5)"
     >
       <InboxOfflineBanner />
 
-      <Card
-        tone={showArchived || list.length === 0 ? "soft" : "highlighted"}
-        className="gap-(--space-2) p-(--space-4)"
-        data-testid="inbox-summary"
-      >
-        <Text
-          size="xs"
-          tone="secondary"
-          className="font-semibold uppercase tracking-[0.12em]"
-        >
-          {showArchived
-            ? t("historySectionTitle")
-            : list.length > 0
-              ? t("pendingSectionTitle")
-              : t("emptyOpenTitle")}
-        </Text>
-        <Text className="text-lg font-semibold tracking-tight text-text-primary">
-          {headerMeta}
-        </Text>
-        <Text
-          size="sm"
-          tone="secondary"
-          className="max-w-[32rem] leading-relaxed"
-        >
-          {headerSupporting}
-        </Text>
-      </Card>
+      <InboxSummary
+        state={headerState}
+        headline={headline}
+        supporting={headerSupporting}
+        facts={summaryFacts}
+      />
 
       {receipt === InboxReceiptKind.JAR ? (
         <div data-testid="inbox-receipt-jar">
@@ -188,10 +217,12 @@ export default async function InboxPage({ params, searchParams }: Props) {
       />
 
       {loadFailed ? (
-        <StatusAlert
-          variant="danger"
+        <InboxUnavailable
           title={t("loadErrorTitle")}
           description={t("loadErrorBody")}
+          actionHref={APP_PATH.INBOX}
+          actionLabel={t("retry")}
+          testId="inbox-retry"
         />
       ) : list.length === 0 ? (
         <EmptyState
@@ -199,6 +230,10 @@ export default async function InboxPage({ params, searchParams }: Props) {
           description={
             showArchived ? t("archivedEmptyBody") : t("emptyOpenBody")
           }
+          icon={
+            <AppIcon icon={NAVIGATION_ICONS.inbox} size={AppIconSize.DISPLAY} />
+          }
+          className="flex-none py-(--space-4)"
         />
       ) : (
         <InboxQueueList

@@ -14,7 +14,6 @@ import {
   listEligibleCreditCardPurchases,
   listRecentTransactions,
   TRANSACTION_LEDGER_AMOUNT_PREFIX,
-  TRANSACTION_LEDGER_CREDIT_TYPES,
 } from "@/modules/ledger/application";
 import {
   APP_PATH,
@@ -34,7 +33,7 @@ import {
   TransactionAmountTone,
   TransactionRow,
 } from "@/shared/patterns/transaction-row";
-import { AppIcon } from "@/shared/ui/app-icon";
+import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
 import { IconContainer } from "@/shared/ui/icon-container";
 import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
 import { Text } from "@/shared/ui/text";
@@ -43,12 +42,18 @@ import { FinancialOwnershipBadge } from "@/shared/patterns/financial-ownership-b
 import { MoneyOfflineBanner } from "../../money-offline-banner";
 import { moneyAccountVisualFor } from "../../money-account-visuals";
 import { AccountDetailManagement } from "./account-detail-management";
+import { AccountDetailPrivacyToggle } from "./account-detail-privacy-toggle";
+import { AccountDetailUnavailable } from "./account-detail-unavailable";
 import { AccountQuickCapture } from "./account-quick-capture";
+import { AccountSectionTitle } from "./account-section-title";
 import { ACCOUNT_DETAIL_PREVIEW_CONFIG } from "./detail-constants";
 import { CreditCardDetailActions } from "./credit-card-detail-actions";
 import { CreditCardHero } from "./credit-card-hero";
 import { CreditCardRefundAction } from "./credit-card-refund-action";
-import { resolveAccountIdentity } from "./account-detail-presentations";
+import {
+  resolveAccountActivityLeading,
+  resolveAccountIdentity,
+} from "./account-detail-presentations";
 
 type AccountDetailPageProps = {
   params: Promise<{ locale: string; id: string }>;
@@ -94,19 +99,12 @@ export default async function AccountDetailPage({
           backHref={APP_PATH.MONEY}
           title={t("accountDetail.unavailableTitle")}
         />
-        <div className="flex flex-1 flex-col gap-(--space-4) px-(--page-gutter) pb-(--space-6) pt-(--space-4)">
-          <StatusAlert
-            variant="danger"
-            title={t("accountDetail.unavailableTitle")}
-            description={t("accountDetail.unavailableBody")}
-          />
-          <Link
-            href={APP_PATH.MONEY}
-            className="inline-flex min-h-11 w-fit items-center rounded-[var(--radius-control)] px-(--space-2) text-sm font-medium text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-          >
-            {t("backToMoney")}
-          </Link>
-        </div>
+        <AccountDetailUnavailable
+          title={t("accountDetail.unavailableTitle")}
+          description={t("accountDetail.unavailableBody")}
+          actionHref={APP_PATH.MONEY}
+          actionLabel={t("backToMoney")}
+        />
       </div>
     );
   }
@@ -158,19 +156,15 @@ export default async function AccountDetailPage({
           subtitle={accountTypeLabel}
           trailing={account.canMutate ? accountManagement : undefined}
         />
-        <div className="flex flex-1 flex-col gap-(--space-4) px-(--page-gutter) pb-(--space-6) pt-(--space-4)">
-          <StatusAlert
-            variant="danger"
-            title={t("accountDetail.unavailableTitle")}
-            description={t("accountDetail.unavailableBody")}
-          />
-          <Link
-            href={moneyAccountPath(account.id)}
-            className="inline-flex min-h-11 w-fit items-center rounded-[var(--radius-control)] px-(--space-2) text-sm font-medium text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-          >
-            {t("hub.retry")}
-          </Link>
-        </div>
+        <AccountDetailUnavailable
+          title={t("accountDetail.unavailableTitle")}
+          description={t("accountDetail.unavailableBody")}
+          actionHref={moneyAccountPath(account.id)}
+          actionLabel={t("hub.retry")}
+          icon={
+            <AppIcon icon={FINANCE_ICONS.card} size={AppIconSize.DISPLAY} />
+          }
+        />
       </div>
     );
   }
@@ -211,7 +205,7 @@ export default async function AccountDetailPage({
           subtitle={accountTypeLabel}
           trailing={account.canMutate ? accountManagement : undefined}
         />
-        <div className="flex flex-1 flex-col gap-(--space-6) px-(--page-gutter) pb-(--space-6) pt-(--space-4)">
+        <div className="flex flex-1 flex-col gap-(--space-5) px-(--page-gutter) pb-(--space-6) pt-(--space-3)">
           <MoneyOfflineBanner />
           <CreditCardHero
             outstandingLabel={outstandingLabel}
@@ -236,6 +230,7 @@ export default async function AccountDetailPage({
                 ? t("creditCard.due.dueDate", { date: card.nextDueDate })
                 : undefined
             }
+            trailing={<AccountDetailPrivacyToggle />}
             context={
               <FinancialOwnershipBadge
                 financialScope={account.financialScope}
@@ -285,6 +280,7 @@ export default async function AccountDetailPage({
             icon={accountVisual.icon}
             amountCaption={t("accountDetail.balanceLabel")}
             amountLabel={balanceLabel}
+            trailing={<AccountDetailPrivacyToggle />}
             context={
               <>
                 <FinancialOwnershipBadge
@@ -310,7 +306,11 @@ export default async function AccountDetailPage({
         {account.canMutate ? <AccountQuickCapture /> : null}
         <section className="flex flex-col gap-(--space-3)">
           <SectionHeader
-            title={t("accountDetail.recentTitle")}
+            title={
+              <AccountSectionTitle>
+                {t("accountDetail.recentTitle")}
+              </AccountSectionTitle>
+            }
             action={
               <Link
                 href={APP_PATH.MONEY_TRANSACTIONS}
@@ -337,32 +337,35 @@ export default async function AccountDetailPage({
           ) : activity.length === 0 ? (
             <EmptyState
               title={t("accountDetail.recentEmpty")}
+              icon={
+                <AppIcon
+                  icon={FINANCE_ICONS.account}
+                  size={AppIconSize.DISPLAY}
+                />
+              }
               className="flex-none py-(--space-4)"
             />
           ) : (
-            <ul className="flex flex-col">
+            <ul className="flex flex-col [&>li:last-child_.group]:border-b-0">
               {activity.map((transaction) => {
-                const isCredit = (
-                  TRANSACTION_LEDGER_CREDIT_TYPES as readonly string[]
-                ).includes(transaction.type);
-                const transactionTone = isCredit
+                const leading = resolveAccountActivityLeading(transaction);
+                const transactionTone = leading.isCredit
                   ? TransactionAmountTone.CREDIT
                   : TransactionAmountTone.DEBIT;
-                const transactionIcon = isCredit
-                  ? FINANCE_ICONS.income
-                  : FINANCE_ICONS.expense;
-                const transactionIconTone = isCredit ? "income" : "expense";
 
                 return (
                   <li key={transaction.id}>
                     <Link
                       href={moneyTransactionPath(transaction.id)}
-                      className="block focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+                      className="block rounded-[var(--radius-control)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
                     >
                       <TransactionRow
                         leading={
-                          <IconContainer tone={transactionIconTone} size="sm">
-                            <AppIcon icon={transactionIcon} size="sm" />
+                          <IconContainer tone={leading.iconTone} size="sm">
+                            <AppIcon
+                              icon={leading.icon}
+                              size={AppIconSize.SM}
+                            />
                           </IconContainer>
                         }
                         title={
@@ -382,6 +385,7 @@ export default async function AccountDetailPage({
                           { maximumFractionDigits: 0 },
                         )}`}
                         tone={transactionTone}
+                        showChevron
                       />
                     </Link>
                   </li>

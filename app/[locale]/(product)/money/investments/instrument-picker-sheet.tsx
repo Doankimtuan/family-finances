@@ -11,6 +11,11 @@ import { Text } from "@/shared/ui/text";
 import { FieldSelect } from "@/shared/ui/form";
 import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
 import { Sheet } from "@/shared/patterns/sheet";
+import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
+import { IconContainer, IconContainerTone } from "@/shared/ui/icon-container";
+import { Card } from "@/shared/patterns/card";
+import { cn } from "@/shared/utils/cn";
+import { investmentAssetIcon } from "./investment-asset-icon";
 import { listMarketInstrumentsAction } from "./market-instrument-actions";
 
 type Props = {
@@ -141,7 +146,7 @@ export function InstrumentPickerSheet({
               </Text>
             ) : null}
             {!pending && !loadError && instruments.length === 0 ? (
-              <div className="flex flex-col gap-(--space-3) rounded-(--radius-control) bg-surface-muted p-(--space-3)">
+              <Card tone="soft" className="gap-(--space-3) p-(--space-3)">
                 <Text size="sm" tone="secondary">
                   {t("picker.empty")}
                 </Text>
@@ -153,39 +158,59 @@ export function InstrumentPickerSheet({
                 >
                   {t("picker.manualAction")}
                 </Button>
-              </div>
+              </Card>
             ) : null}
             <div
               id="investment-instrument-results"
               role="listbox"
               aria-label={t("picker.resultsLabel")}
-              className="flex flex-col divide-y divide-border-subtle/70"
+              className="flex flex-col gap-(--space-1)"
             >
-              {instruments.map((instrument) => (
-                <button
-                  key={instrument.id}
-                  type="button"
-                  role="option"
-                  aria-selected={selected?.id === instrument.id}
-                  onClick={() => choose(instrument)}
-                  className="flex min-h-11 w-full items-center justify-between gap-(--space-3) px-0 py-(--space-3) text-left transition-[background-color] duration-(--duration-fast) ease-(--ease-standard) hover:bg-surface-hover focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-focus-ring motion-reduce:transition-none"
-                  data-testid={`investment-instrument-${instrument.symbol}`}
-                >
-                  <span className="min-w-0">
-                    <Text weight="semibold" className="truncate">
-                      {instrument.symbol}
-                    </Text>
-                    <Text size="sm" tone="secondary" className="truncate">
-                      {instrument.name}
-                    </Text>
-                  </span>
-                  {instrument.exchange ? (
-                    <Text size="xs" tone="muted" className="shrink-0">
-                      {instrument.exchange}
-                    </Text>
-                  ) : null}
-                </button>
-              ))}
+              {instruments.map((instrument) => {
+                const isSelected = selected?.id === instrument.id;
+                return (
+                  <button
+                    key={instrument.id}
+                    type="button"
+                    role="option"
+                    aria-selected={isSelected}
+                    onClick={() => choose(instrument)}
+                    className={cn(
+                      "flex min-h-11 w-full items-center justify-between gap-(--space-3) rounded-(--radius-control) px-(--space-3) py-(--space-3) text-left",
+                      "transition-[background-color] duration-(--duration-fast) ease-(--ease-standard)",
+                      "hover:bg-surface-hover focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-focus-ring",
+                      "motion-reduce:transition-none",
+                      isSelected && "bg-primary-soft",
+                    )}
+                    data-testid={`investment-instrument-${instrument.symbol}`}
+                  >
+                    <span className="flex min-w-0 items-center gap-(--space-3)">
+                      <IconContainer
+                        tone={IconContainerTone.INVESTMENT}
+                        size="sm"
+                      >
+                        <AppIcon
+                          icon={investmentAssetIcon(assetClass)}
+                          size={AppIconSize.SM}
+                        />
+                      </IconContainer>
+                      <span className="min-w-0">
+                        <Text weight="semibold" className="truncate">
+                          {instrument.symbol}
+                        </Text>
+                        <Text size="sm" tone="secondary" className="truncate">
+                          {instrument.name}
+                        </Text>
+                      </span>
+                    </span>
+                    {instrument.exchange ? (
+                      <Text size="xs" tone="muted" className="shrink-0">
+                        {instrument.exchange}
+                      </Text>
+                    ) : null}
+                  </button>
+                );
+              })}
             </div>
             {!pending && (loadError || instruments.length > 0) ? (
               <div className="border-t border-border-subtle pt-(--space-2)">

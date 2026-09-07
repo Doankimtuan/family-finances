@@ -45,7 +45,17 @@ import { AlertVariant } from "@/shared/ui/alert";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import { useStatusAlert } from "@/providers/status-alert-provider";
 import { formatCurrency } from "@/shared/i18n/formatters";
-import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
+import {
+  CatalogGroup,
+  localizeCatalogName,
+} from "@/shared/i18n/localize-catalog-name";
+import { FilterChip } from "@/shared/patterns/filter-chip";
+import { Card } from "@/shared/patterns/card";
+import { CaptureSurface } from "./capture-surface";
+import {
+  CAPTURE_AMOUNT_FIELD_CLASS,
+  CAPTURE_SPLIT_CANCEL_LINK_CLASS,
+} from "./transaction-chrome";
 import {
   CLIENT_ACTION_ERROR_CODE,
   type ClientActionErrorCode,
@@ -110,6 +120,29 @@ function capturePreviewMessageKey(
     return "previewReadyCard" as const;
   }
   return "previewReadyCash" as const;
+}
+
+function captureAccountName(
+  tCatalog: Parameters<typeof localizeCatalogName>[0],
+  name: string,
+) {
+  return localizeCatalogName(tCatalog, CatalogGroup.ACCOUNTS, name);
+}
+
+function captureAccountChoiceLabel(
+  tCatalog: Parameters<typeof localizeCatalogName>[0],
+  account: LedgerAccount,
+  creditCardLabel: string,
+) {
+  const name = captureAccountName(tCatalog, account.name);
+  if (account.type !== AccountType.CREDIT_CARD) return name;
+  return `${name} · ${creditCardLabel}`;
+}
+
+function accountFieldLabelKey(direction: TransactionDirection) {
+  return direction === Direction.EXPENSE
+    ? ("expenseAccountLabel" as const)
+    : ("incomeAccountLabel" as const);
 }
 
 function createDefaultValues(
@@ -179,8 +212,11 @@ export function CaptureTransactionForm({
   const tags = direction === Direction.INCOME ? incomeTags : expenseTags;
   const selectedAccount = accounts.find((account) => account.id === accountId);
   const selectedAccountName = selectedAccount
-    ? localizeCatalogName(tCatalog, "accounts", selectedAccount.name)
+    ? captureAccountName(tCatalog, selectedAccount.name)
     : "";
+  const accountLabel = t(accountFieldLabelKey(direction));
+  const jarHint =
+    direction === Direction.EXPENSE ? t("jarHintExpense") : t("jarHintIncome");
   const useCompactAccountPicker =
     accounts.length <= CAPTURE_ACCOUNT_COMPACT_LIMIT;
   const numericAmount = typeof amount === "number" ? amount : null;
@@ -261,13 +297,17 @@ export function CaptureTransactionForm({
         transactionId: result.transactionId,
         inboxItemId: result.inboxItemId,
         accountName: selectedAccount
-          ? localizeCatalogName(tCatalog, "accounts", selectedAccount.name)
+          ? captureAccountName(tCatalog, selectedAccount.name)
           : "",
         categoryName: submittedCategory
-          ? localizeCatalogName(tCatalog, "tags", submittedCategory.name)
+          ? localizeCatalogName(
+              tCatalog,
+              CatalogGroup.TAGS,
+              submittedCategory.name,
+            )
           : null,
         jarName: submittedJar
-          ? localizeCatalogName(tCatalog, "jars", submittedJar.name)
+          ? localizeCatalogName(tCatalog, CatalogGroup.JARS, submittedJar.name)
           : null,
         tagAssignmentFailed,
       });
@@ -282,6 +322,10 @@ export function CaptureTransactionForm({
       receipt.type === Direction.EXPENSE
         ? `−${formattedAmount}`
         : `+${formattedAmount}`;
+    const accountEffectKey =
+      receipt.type === Direction.EXPENSE
+        ? "receipt.accountEffectExpense"
+        : "receipt.accountEffectIncome";
 
     return (
       <TransactionReceipt
@@ -343,34 +387,22 @@ export function CaptureTransactionForm({
         {receipt.tagAssignmentFailed ? (
           <StatusAlert variant="warning" title={t("tagAssignmentFailed")} />
         ) : null}
-        <div className="rounded-lg border border-success/25 bg-success/10 p-(--space-3)">
+        <CaptureSurface className="border-success/25 bg-success/10 shadow-none">
           <Text size="sm" className="font-medium text-text-primary">
-            {receipt.type === Direction.EXPENSE
-              ? typeof t.rich === "function"
-                ? t.rich("receipt.accountEffectExpense", {
-                    amount: () => (
-                      <FinancialValue>{formattedAmount}</FinancialValue>
-                    ),
-                  })
-                : t("receipt.accountEffectExpense", {
-                    amount: FINANCIAL_PRIVACY_MASK,
-                  })
-              : typeof t.rich === "function"
-                ? t.rich("receipt.accountEffectIncome", {
-                    amount: () => (
-                      <FinancialValue>{formattedAmount}</FinancialValue>
-                    ),
-                  })
-                : t("receipt.accountEffectIncome", {
-                    amount: FINANCIAL_PRIVACY_MASK,
-                  })}
+            {typeof t.rich === "function"
+              ? t.rich(accountEffectKey, {
+                  amount: () => (
+                    <FinancialValue>{formattedAmount}</FinancialValue>
+                  ),
+                })
+              : t(accountEffectKey, { amount: FINANCIAL_PRIVACY_MASK })}
           </Text>
           <Text size="sm" tone="secondary">
             {receipt.inboxItemId
               ? t("receipt.inboxReview")
               : t("receipt.noInbox")}
           </Text>
-        </div>
+        </CaptureSurface>
       </TransactionReceipt>
     );
   }
@@ -389,47 +421,42 @@ export function CaptureTransactionForm({
         />
       ) : null}
 
-      <Controller
-        control={control}
-        name="amount"
-        render={({ field }) => (
-          <AmountField
-            id={amountId}
-            label={t("amountLabel", { currency })}
-            placeholder="0"
-            value={typeof field.value === "number" ? field.value : null}
-            onValueChange={(value) => field.onChange(value)}
-            error={errors.amount ? t("errors.invalid") : undefined}
-            required
-            data-testid="capture-amount"
-            className="min-h-16 rounded-[var(--radius-card)] border border-border-subtle bg-surface px-(--space-4) text-2xl font-semibold tracking-tight shadow-(--elevation-1) focus-visible:border-accent"
-          />
-        )}
-      />
+      <CaptureSurface>
+        <Controller
+          control={control}
+          name="amount"
+          render={({ field }) => (
+            <AmountField
+              id={amountId}
+              label={t("amountLabel", { currency })}
+              placeholder="0"
+              value={typeof field.value === "number" ? field.value : null}
+              onValueChange={(value) => field.onChange(value)}
+              error={errors.amount ? t("errors.invalid") : undefined}
+              required
+              data-testid="capture-amount"
+              className={CAPTURE_AMOUNT_FIELD_CLASS}
+            />
+          )}
+        />
+      </CaptureSurface>
 
-      <div>
-        {accounts.length === 0 ? (
-          <StatusAlert
-            variant="warning"
-            title={t("errors.no_account")}
-            description={t("addAccountHint")}
-          />
-        ) : (
-          <Controller
-            control={control}
-            name="accountId"
-            render={({ field }) =>
-              useCompactAccountPicker ? (
-                <fieldset
-                  className="flex flex-col gap-(--space-3) rounded-[var(--radius-card)] border border-border-subtle/70 bg-surface/45 p-(--space-3)"
-                  data-testid="capture-account"
-                >
-                  <legend className="text-base font-semibold tracking-tight text-text-primary">
-                    {t(
-                      direction === Direction.EXPENSE
-                        ? "expenseAccountLabel"
-                        : "incomeAccountLabel",
-                    )}
+      {accounts.length === 0 ? (
+        <StatusAlert
+          variant="warning"
+          title={t("errors.no_account")}
+          description={t("addAccountHint")}
+        />
+      ) : (
+        <Controller
+          control={control}
+          name="accountId"
+          render={({ field }) =>
+            useCompactAccountPicker ? (
+              <CaptureSurface testId="capture-account">
+                <fieldset className="flex flex-col gap-(--space-3)">
+                  <legend className="text-sm font-semibold tracking-tight text-text-primary">
+                    {accountLabel}
                   </legend>
                   <ChoiceTileGroup
                     hint={
@@ -441,19 +468,11 @@ export function CaptureTransactionForm({
                     {accounts.map((account) => (
                       <ChoiceTile
                         key={account.id}
-                        label={
-                          account.type === AccountType.CREDIT_CARD
-                            ? `${localizeCatalogName(
-                                tCatalog,
-                                "accounts",
-                                account.name,
-                              )} · ${t("creditCardLabel")}`
-                            : localizeCatalogName(
-                                tCatalog,
-                                "accounts",
-                                account.name,
-                              )
-                        }
+                        label={captureAccountChoiceLabel(
+                          tCatalog,
+                          account,
+                          t("creditCardLabel"),
+                        )}
                         selected={field.value === account.id}
                         onPress={() => field.onChange(account.id)}
                         role="radio"
@@ -476,35 +495,27 @@ export function CaptureTransactionForm({
                     </Text>
                   ) : null}
                 </fieldset>
-              ) : (
-                <SelectField
-                  id="capture-account"
-                  label={t(
-                    direction === Direction.EXPENSE
-                      ? "expenseAccountLabel"
-                      : "incomeAccountLabel",
-                  )}
-                  description={t("accountHint")}
-                  value={field.value}
-                  onChange={field.onChange}
-                  onBlur={field.onBlur}
-                  error={errors.accountId ? t("errors.no_account") : undefined}
-                  required
-                  data-testid="capture-account"
-                  options={accounts.map((account) => ({
-                    id: account.id,
-                    label: localizeCatalogName(
-                      tCatalog,
-                      "accounts",
-                      account.name,
-                    ),
-                  }))}
-                />
-              )
-            }
-          />
-        )}
-      </div>
+              </CaptureSurface>
+            ) : (
+              <SelectField
+                id="capture-account"
+                label={accountLabel}
+                description={t("accountHint")}
+                value={field.value}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+                error={errors.accountId ? t("errors.no_account") : undefined}
+                required
+                data-testid="capture-account"
+                options={accounts.map((account) => ({
+                  id: account.id,
+                  label: captureAccountName(tCatalog, account.name),
+                }))}
+              />
+            )
+          }
+        />
+      )}
 
       <Controller
         control={control}
@@ -522,53 +533,43 @@ export function CaptureTransactionForm({
         )}
       />
 
-      <fieldset className="flex flex-col gap-(--space-3) rounded-[var(--radius-card)] border border-border-subtle/70 bg-surface/45 p-(--space-3)">
-        <legend className="text-base font-semibold tracking-tight text-text-primary">
-          {t("tagLabel")}
-        </legend>
-        <div className="flex flex-wrap gap-(--space-2)">
-          <button
-            type="button"
-            aria-pressed={!categoryId}
-            className={
-              !categoryId
-                ? "min-h-11 rounded-full bg-accent px-(--space-3) text-sm font-medium text-accent-fg shadow-(--elevation-1) transition-[background-color,transform] duration-(--duration-fast) hover:bg-accent/90 active:scale-[var(--press-scale)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none"
-                : "min-h-11 rounded-full border border-border-subtle bg-surface px-(--space-3) text-sm font-medium text-text-primary transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-[var(--press-scale)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none"
-            }
-            onClick={() => {
-              setValue("categoryId", null, { shouldValidate: true });
-              setValue("jarId", null, { shouldValidate: true });
-            }}
-          >
-            {t("tagNone")}
-          </button>
-          {tags.map((tag) => (
-            <button
-              key={tag.id}
-              type="button"
-              aria-pressed={categoryId === tag.id}
-              data-testid={`capture-tag-${tag.name.toLowerCase()}`}
-              className={
-                categoryId === tag.id
-                  ? "min-h-11 rounded-full bg-accent px-(--space-3) text-sm font-medium text-accent-fg shadow-(--elevation-1) transition-[background-color,transform] duration-(--duration-fast) hover:bg-accent/90 active:scale-[var(--press-scale)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none"
-                  : "min-h-11 rounded-full border border-border-subtle bg-surface px-(--space-3) text-sm font-medium text-text-primary transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-[var(--press-scale)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none"
-              }
-              onClick={() => {
-                setValue("categoryId", tag.id, { shouldValidate: true });
-                setValue("jarId", tag.jarId ?? null, { shouldValidate: true });
+      <CaptureSurface>
+        <fieldset className="flex flex-col gap-(--space-3)">
+          <legend className="text-sm font-semibold tracking-tight text-text-primary mb-3">
+            {t("tagLabel")}
+          </legend>
+          <div className="flex flex-wrap gap-(--space-2)">
+            <FilterChip
+              selected={!categoryId}
+              onPress={() => {
+                setValue("categoryId", null, { shouldValidate: true });
+                setValue("jarId", null, { shouldValidate: true });
               }}
             >
-              {localizeCatalogName(tCatalog, "tags", tag.name)}
-            </button>
-          ))}
-        </div>
-      </fieldset>
+              {t("tagNone")}
+            </FilterChip>
+            {tags.map((tag) => (
+              <FilterChip
+                key={tag.id}
+                selected={categoryId === tag.id}
+                data-testid={`capture-tag-${tag.name.toLowerCase()}`}
+                onPress={() => {
+                  setValue("categoryId", tag.id, { shouldValidate: true });
+                  setValue("jarId", tag.jarId ?? null, {
+                    shouldValidate: true,
+                  });
+                }}
+              >
+                {localizeCatalogName(tCatalog, CatalogGroup.TAGS, tag.name)}
+              </FilterChip>
+            ))}
+          </div>
+        </fieldset>
+      </CaptureSurface>
 
-      <div className="flex flex-col gap-(--space-3) rounded-[var(--radius-card)] border border-border-subtle/70 bg-surface/35 p-(--space-3)">
+      <CaptureSurface>
         <Text size="sm" tone="secondary">
-          {direction === Direction.EXPENSE
-            ? t("jarHintExpense")
-            : t("jarHintIncome")}
+          {jarHint}
         </Text>
         <Controller
           control={control}
@@ -593,29 +594,35 @@ export function CaptureTransactionForm({
                 },
                 ...jars.map((jar) => ({
                   id: jar.id,
-                  label: localizeCatalogName(tCatalog, "jars", jar.name),
+                  label: localizeCatalogName(
+                    tCatalog,
+                    CatalogGroup.JARS,
+                    jar.name,
+                  ),
                 })),
               ]}
             />
           )}
         />
-      </div>
+      </CaptureSurface>
 
-      <fieldset className="flex flex-col gap-(--space-3) rounded-[var(--radius-card)] border border-border-subtle/70 bg-surface/35 p-(--space-3)">
-        <legend className="text-base font-semibold tracking-tight text-text-primary">
-          {t("transactionTagsLabel")}
-        </legend>
-        <Text size="sm" tone="secondary">
-          {t("transactionTagsHint")}
-        </Text>
-        <TransactionTagSelector
-          availableTags={transactionTags}
-          selectedIds={selectedTransactionTagIds}
-          onChange={(value) =>
-            setValue("transactionTagIds", value, { shouldValidate: true })
-          }
-        />
-      </fieldset>
+      <CaptureSurface>
+        <fieldset className="flex flex-col gap-(--space-3)">
+          <legend className="text-sm font-semibold tracking-tight text-text-primary">
+            {t("transactionTagsLabel")}
+          </legend>
+          <Text size="sm" tone="secondary">
+            {t("transactionTagsHint")}
+          </Text>
+          <TransactionTagSelector
+            availableTags={transactionTags}
+            selectedIds={selectedTransactionTagIds}
+            onChange={(value) =>
+              setValue("transactionTagIds", value, { shouldValidate: true })
+            }
+          />
+        </fieldset>
+      </CaptureSurface>
 
       <TextField
         id={noteId}
@@ -624,19 +631,19 @@ export function CaptureTransactionForm({
         error={errors.note ? t("errors.invalid") : undefined}
         placeholder={t("notePlaceholder")}
         data-testid="capture-note"
-        className="rounded-[var(--radius-card)] bg-surface/55"
       />
 
       {amountLabel && selectedAccountName ? (
-        <div
-          className="rounded-[var(--radius-card)] border border-accent/20 bg-accent/5 px-(--space-3) py-(--space-3)"
+        <Card
+          tone="highlighted"
+          className="gap-(--space-1) p-(--space-4)"
           aria-live="polite"
           data-testid="capture-preview"
         >
           <Text size="sm" weight="medium">
             {t("previewTitle")}
           </Text>
-          <Text size="sm" tone="secondary" className="mt-(--space-1)">
+          <Text size="sm" tone="secondary">
             {typeof t.rich === "function"
               ? t.rich(previewMessageKey, {
                   amount: () => <FinancialValue>{amountLabel}</FinancialValue>,
@@ -647,14 +654,11 @@ export function CaptureTransactionForm({
                   account: selectedAccountName,
                 })}
           </Text>
-        </div>
+        </Card>
       ) : null}
 
       <BottomActionBar layout={BottomActionBarLayout.SPLIT}>
-        <Link
-          href={APP_PATH.MONEY}
-          className="inline-flex min-h-11 min-w-0 flex-1 items-center justify-center rounded-[var(--radius-control)] border border-border-subtle bg-surface text-sm font-medium text-text-primary transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-[var(--press-scale)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none"
-        >
+        <Link href={APP_PATH.MONEY} className={CAPTURE_SPLIT_CANCEL_LINK_CLASS}>
           {t("cancel")}
         </Link>
         <Button

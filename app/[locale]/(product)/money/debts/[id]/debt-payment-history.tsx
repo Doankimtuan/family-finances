@@ -4,18 +4,18 @@ import {
 } from "@/modules/ledger/application";
 import type { DebtPayment } from "@/modules/ledger/application";
 import { Link } from "@/i18n/navigation";
-import { StatusAlert } from "@/shared/ui/status-alert";
-import { SectionHeader } from "@/shared/patterns/section-header";
+import { Card } from "@/shared/patterns/card";
 import { FinancialValue } from "@/shared/patterns/financial-value";
 import {
   TransactionAmountTone,
   TransactionRow,
 } from "@/shared/patterns/transaction-row";
-import { AppIcon } from "@/shared/ui/app-icon";
-import { Heading } from "@/shared/ui/heading";
-import { IconContainer } from "@/shared/ui/icon-container";
+import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
+import { IconContainer, IconContainerTone } from "@/shared/ui/icon-container";
 import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
+import { StatusAlert } from "@/shared/ui/status-alert";
 import { Text } from "@/shared/ui/text";
+import { DebtSectionTitle } from "../debt-section-title";
 
 type DebtPaymentHistoryProps = {
   title: string;
@@ -67,44 +67,36 @@ export function DebtPaymentHistory({
     ? TransactionAmountTone.DEBIT
     : TransactionAmountTone.CREDIT;
   const icon = isBorrowed ? FINANCE_ICONS.expense : FINANCE_ICONS.income;
-  const iconTone = isBorrowed ? "refund" : "income";
+  const iconTone = isBorrowed
+    ? IconContainerTone.REFUND
+    : IconContainerTone.INCOME;
   const totalAmount =
     openingPaidAmount +
-    payments.reduce((total, payment) => total + payment.amount, 0);
+    payments.reduce((sum, payment) => sum + payment.amount, 0);
   const hasHistory = payments.length > 0 || openingPaidAmount > 0;
 
   return (
-    <section data-testid="debt-payment-history">
-      <div className="overflow-hidden rounded-card border border-border-subtle/60 bg-surface">
-        <div className="px-(--space-4) pt-(--space-4) pb-(--space-1)">
-          <SectionHeader
-            title={
-              <div className="flex w-full items-baseline justify-between gap-(--space-3)">
-                <Heading
-                  level={2}
-                  className="text-base font-semibold tracking-tight"
-                >
-                  {title}
-                </Heading>
-                {hasHistory ? (
-                  <div className="flex flex-col items-end gap-1">
-                    <Text size="sm" tone="secondary">
-                      {countLabel}
-                    </Text>
-                    {totalLabel ? (
-                      <Text size="xs" tone="secondary" className="tabular-nums">
-                        {totalLabel}{" "}
-                        <FinancialValue>
-                          {formatAmount(totalAmount)}
-                        </FinancialValue>
-                      </Text>
-                    ) : null}
-                  </div>
-                ) : null}
-              </div>
-            }
-          />
-        </div>
+    <section
+      className="flex flex-col gap-(--space-2)"
+      data-testid="debt-payment-history"
+    >
+      <div className="flex items-end justify-between gap-(--space-3)">
+        <DebtSectionTitle>{title}</DebtSectionTitle>
+        {hasHistory ? (
+          <div className="flex flex-col items-end gap-(--space-1)">
+            <Text size="xs" tone="secondary">
+              {countLabel}
+            </Text>
+            {totalLabel ? (
+              <Text size="xs" tone="muted" className="tabular-nums">
+                {totalLabel}{" "}
+                <FinancialValue>{formatAmount(totalAmount)}</FinancialValue>
+              </Text>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
+      <Card tone="elevated" className="gap-0 overflow-hidden p-0">
         {readError ? (
           <StatusAlert
             variant="danger"
@@ -126,7 +118,7 @@ export function DebtPaymentHistory({
           <Text
             size="sm"
             tone="secondary"
-            className="px-(--space-4) pb-(--space-4)"
+            className="px-(--space-4) py-(--space-3) text-pretty"
           >
             {emptyTitle}
           </Text>
@@ -140,15 +132,15 @@ export function DebtPaymentHistory({
                 data-testid="debt-history-reconciliation-warning"
               />
             ) : null}
-            <ul className="divide-y divide-border-subtle">
+            <ul className="divide-y divide-divider">
               {openingPaidAmount > 0 ? (
                 <li>
-                  <div className="block min-h-11 px-3">
+                  <div className="px-(--space-4)">
                     <TransactionRow
                       className="rounded-none border-0 bg-transparent"
                       leading={
                         <IconContainer tone={iconTone} size="sm">
-                          <AppIcon icon={icon} size="sm" />
+                          <AppIcon icon={icon} size={AppIconSize.SM} />
                         </IconContainer>
                       }
                       title={openingLabel}
@@ -167,14 +159,14 @@ export function DebtPaymentHistory({
                   <li key={payment.id}>
                     <Link
                       href={transactionPath(payment.transactionId)}
-                      className="block min-h-11 px-3 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus-ring"
+                      className="block min-h-11 px-(--space-4) focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus-ring"
                       aria-label={`${payment.accountName ?? accountFallback}, ${dateLabel}`}
                     >
                       <TransactionRow
                         className="rounded-none border-0 bg-transparent hover:border-transparent"
                         leading={
                           <IconContainer tone={iconTone} size="sm">
-                            <AppIcon icon={icon} size="sm" />
+                            <AppIcon icon={icon} size={AppIconSize.SM} />
                           </IconContainer>
                         }
                         title={payment.accountName ?? accountFallback}
@@ -189,7 +181,7 @@ export function DebtPaymentHistory({
             </ul>
           </>
         )}
-      </div>
+      </Card>
     </section>
   );
 }

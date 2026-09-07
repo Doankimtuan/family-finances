@@ -69,7 +69,10 @@ export function EarlyWithdrawForm({ savingId, cycleId, preview }: Props) {
           <Sheet.Heading>{t("title")}</Sheet.Heading>
         </ActionSheetLayout.Header>
         <ActionSheetLayout.Body className="flex max-h-[70dvh] flex-col gap-(--space-4)">
-          <div data-testid="savings-early-withdraw-form">
+          <div
+            className="flex flex-col gap-(--space-3)"
+            data-testid="savings-early-withdraw-form"
+          >
             {errorCode ? (
               <StatusAlert variant="danger" title={tErr(errorCode)} />
             ) : null}

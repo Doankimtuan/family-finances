@@ -12,7 +12,8 @@ import { SelectField, TextField } from "@/shared/ui/form";
 import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
 import { StatusAlert } from "@/shared/ui/status-alert";
-import { AppIcon } from "@/shared/ui/app-icon";
+import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
+import { IconContainer, IconContainerTone } from "@/shared/ui/icon-container";
 import { ACTION_ICONS } from "@/shared/ui/icon-registry";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import {
@@ -119,27 +120,44 @@ export function AccountDetailActions({
 
   if (mode === ACCOUNT_DETAIL_MODE.ARCHIVE) {
     return (
-      <ActionSheetLayout.Body>
-        <div
-          className="flex flex-col gap-(--space-4)"
-          data-testid="account-archive-confirm"
-        >
-          {errorCode ? (
-            <StatusAlert
-              variant="danger"
-              title={t("archive")}
-              description={t(`errors.${errorCode}`)}
-            />
-          ) : (
-            <StatusAlert
-              variant="danger"
-              title={t("archiveConfirmTitle")}
-              description={t("archiveConfirmBody")}
-            />
-          )}
+      <>
+        <ActionSheetLayout.Body>
+          <div
+            className="flex flex-col gap-(--space-4)"
+            data-testid="account-archive-confirm"
+          >
+            {errorCode ? (
+              <StatusAlert
+                variant="danger"
+                title={t("archive")}
+                description={t(`errors.${errorCode}`)}
+              />
+            ) : (
+              <StatusAlert
+                variant="danger"
+                title={t("archiveConfirmTitle")}
+                description={t("archiveConfirmBody")}
+              />
+            )}
+          </div>
+        </ActionSheetLayout.Body>
+        <ActionSheetLayout.Footer>
           <Button
-            variant="primary"
-            className="w-full"
+            variant="secondary"
+            fullWidth
+            className="min-w-0 flex-1"
+            isDisabled={isPending}
+            onPress={() => {
+              onModeChange(ACCOUNT_DETAIL_MODE.MANAGE);
+              setErrorCode(null);
+            }}
+          >
+            {t("cancel")}
+          </Button>
+          <Button
+            variant="danger"
+            fullWidth
+            className="min-w-0 flex-1"
             data-testid="account-archive-confirm-yes"
             isDisabled={isPending || !online}
             onPress={() => {
@@ -161,19 +179,8 @@ export function AccountDetailActions({
           >
             {isPending ? t("archiving") : t("archiveConfirmYes")}
           </Button>
-          <Button
-            variant="secondary"
-            className="w-full"
-            isDisabled={isPending}
-            onPress={() => {
-              onModeChange(ACCOUNT_DETAIL_MODE.MANAGE);
-              setErrorCode(null);
-            }}
-          >
-            {t("cancel")}
-          </Button>
-        </div>
-      </ActionSheetLayout.Body>
+        </ActionSheetLayout.Footer>
+      </>
     );
   }
 
@@ -265,11 +272,13 @@ export function AccountDetailActions({
               openEdit();
             }}
           >
-            <span className="flex min-w-0 items-center gap-(--space-2)">
-              <AppIcon icon={ACTION_ICONS.edit} size="sm" />
+            <span className="flex min-w-0 items-center gap-(--space-3)">
+              <IconContainer tone={IconContainerTone.PRIMARY} size="sm">
+                <AppIcon icon={ACTION_ICONS.edit} size={AppIconSize.SM} />
+              </IconContainer>
               <span>{t("edit")}</span>
             </span>
-            <AppIcon icon={ACTION_ICONS.forward} size="sm" />
+            <AppIcon icon={ACTION_ICONS.forward} size={AppIconSize.SM} />
           </Button>
         </li>
         <li>
@@ -287,11 +296,13 @@ export function AccountDetailActions({
               onModeChange(ACCOUNT_DETAIL_MODE.ARCHIVE);
             }}
           >
-            <span className="flex min-w-0 items-center gap-(--space-2)">
-              <AppIcon icon={ACTION_ICONS.delete} size="sm" />
+            <span className="flex min-w-0 items-center gap-(--space-3)">
+              <IconContainer tone={IconContainerTone.DEBT} size="sm">
+                <AppIcon icon={ACTION_ICONS.delete} size={AppIconSize.SM} />
+              </IconContainer>
               <span>{t("archive")}</span>
             </span>
-            <AppIcon icon={ACTION_ICONS.forward} size="sm" />
+            <AppIcon icon={ACTION_ICONS.forward} size={AppIconSize.SM} />
           </Button>
         </li>
         {errorCode ? (
@@ -303,7 +314,7 @@ export function AccountDetailActions({
             />
           </li>
         ) : null}
-        {children ? <li className="pt-(--space-3)">{children}</li> : null}
+        {children ? <li>{children}</li> : null}
       </ul>
     </ActionSheetLayout.Body>
   );

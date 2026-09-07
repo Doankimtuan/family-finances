@@ -41,7 +41,7 @@ type Props = {
 type ErrorCode =
   ProductActionErrorCode | typeof CLIENT_ACTION_ERROR_CODE.OFFLINE;
 
-function Card({
+function SelectionTile({
   selected,
   onPress,
   children,
@@ -209,7 +209,7 @@ export function RenewalPolicyEditor({
               {t("renewalPolicyLabel")}
             </Text>
             {RENEWAL_POLICY_VALUES.map((value) => (
-              <Card
+              <SelectionTile
                 key={value}
                 selected={policy === value}
                 onPress={() => setPolicy(value)}
@@ -218,7 +218,7 @@ export function RenewalPolicyEditor({
                 <Text size="sm" weight="medium">
                   {t(`renewalPolicies.${value}` as never)}
                 </Text>
-              </Card>
+              </SelectionTile>
             ))}
           </div>
           <div
@@ -230,7 +230,7 @@ export function RenewalPolicyEditor({
               {t("maturityStrategyLabel")}
             </Text>
             {SETTLEMENT_RULE_VALUES.map((value) => (
-              <Card
+              <SelectionTile
                 key={value}
                 selected={strategy === value}
                 onPress={() => setStrategy(value)}
@@ -239,7 +239,7 @@ export function RenewalPolicyEditor({
                 <Text size="sm" weight="medium">
                   {t(`settlementRules.${value}` as never)}
                 </Text>
-              </Card>
+              </SelectionTile>
             ))}
           </div>
           <AnimatePresence initial={false} mode="wait">
@@ -258,7 +258,7 @@ export function RenewalPolicyEditor({
                 <Text size="sm" weight="semibold">
                   {t("targetPackageLabel")}
                 </Text>
-                <Card
+                <SelectionTile
                   selected={
                     targetMode === MaturityTargetMode.KEEP_CURRENT_PACKAGE
                   }
@@ -270,8 +270,8 @@ export function RenewalPolicyEditor({
                   <Text size="sm" weight="medium">
                     {t("keepCurrentPackage")}
                   </Text>
-                </Card>
-                <Card
+                </SelectionTile>
+                <SelectionTile
                   selected={targetMode === MaturityTargetMode.SELECT_PACKAGE}
                   onPress={() =>
                     setTargetMode(MaturityTargetMode.SELECT_PACKAGE)
@@ -281,10 +281,10 @@ export function RenewalPolicyEditor({
                   <Text size="sm" weight="medium">
                     {t("chooseOtherPackage")}
                   </Text>
-                </Card>
+                </SelectionTile>
                 {targetMode === MaturityTargetMode.SELECT_PACKAGE
                   ? packages.map((pkg) => (
-                      <Card
+                      <SelectionTile
                         key={pkg.id}
                         selected={packageId === pkg.id}
                         onPress={() => setPackageId(pkg.id)}
@@ -293,7 +293,7 @@ export function RenewalPolicyEditor({
                         <Text size="sm" weight="medium">
                           {pkg.packageName}
                         </Text>
-                      </Card>
+                      </SelectionTile>
                     ))
                   : null}
               </motion.div>
@@ -305,7 +305,7 @@ export function RenewalPolicyEditor({
                 {t("payoutAccountLabel")}
               </Text>
               {accounts.map((account) => (
-                <Card
+                <SelectionTile
                   key={account.id}
                   selected={accountId === account.id}
                   onPress={() => setAccountId(account.id)}
@@ -314,7 +314,7 @@ export function RenewalPolicyEditor({
                   <Text size="sm" weight="medium">
                     {account.name}
                   </Text>
-                </Card>
+                </SelectionTile>
               ))}
             </div>
           ) : (

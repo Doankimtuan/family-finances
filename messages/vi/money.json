@@ -121,6 +121,9 @@
       "retry": "Thử lại",
       "emptyTitle": "Chưa có khoản đầu tư nào.",
       "emptyDescription": "Thêm khoản đang sở hữu hoặc ghi lại một giao dịch mới.",
+      "estimatedNotCash": "Giá trị tạm tính không phải tiền mặt trong tài khoản.",
+      "allocationHint": "Tỷ trọng giá trị tạm tính theo loại tài sản.",
+      "holdingsHint": "Mở một khoản để mua, bán hoặc cập nhật giá trị.",
       "portfolioTitle": "Tổng quan danh mục",
       "portfolioSummary": "Tổng quan danh mục",
       "currentValue": "Giá trị tạm tính",
@@ -328,6 +331,8 @@
       "unknown": "Không rõ",
       "reviewTitle": "Xem lại trước khi xác nhận",
       "reviewSubtitle": "Kiểm tra thông tin bạn sắp ghi nhận.",
+      "reviewHeroValue": "Giá trị ước tính",
+      "reviewHeroPurchase": "Tiền sẽ ghi nhận",
       "unnamedAsset": "Chưa đặt tên",
       "quantityLabel": "Số lượng",
       "providerLabel": "Nhà cung cấp",
@@ -369,6 +374,7 @@
     "detail": {
       "title": "Vị thế đầu tư",
       "notFound": "Không tìm thấy vị thế",
+      "notFoundDescription": "Vị thế không còn hoặc bạn không còn quyền xem.",
       "back": "Về Đầu tư",
       "moreActions": "Thao tác khác",
       "noProvider": "Chưa ghi nơi lưu ký",
@@ -406,6 +412,7 @@
       "fundNavLabel": "NAV / CCQ",
       "goldValuationNote": "Định giá dùng giá mua lại để phản ánh giá trị thanh lý, không dùng giá bán của cửa hàng.",
       "activitySection": "Lịch sử hoạt động",
+      "activityHint": "Mua, bán, thu nhập và cập nhật giá của khoản này.",
       "activityEmpty": "Chưa có hoạt động đầu tư.",
       "activityReadError": "Không tải được lịch sử hoạt động.",
       "readError": "Không tải được khoản đầu tư này.",
@@ -473,7 +480,13 @@
       "inputRate": "Tỷ giá: {rate} VND/{currency}",
       "unitPrice": "Giá mỗi đơn vị",
       "nav": "NAV",
-      "noCurrentValue": "Chưa có giá"
+      "noCurrentValue": "Chưa có giá",
+      "rowAutomatic": "Tự động · {date}",
+      "rowAutomaticToday": "Tự động · hôm nay",
+      "rowManual": "Thủ công · {date}",
+      "rowManualUndated": "Thủ công",
+      "rowStale": "Cũ · {date}",
+      "rowNav": "NAV · {date}"
     },
     "operation": {
       "title": {
@@ -650,6 +663,13 @@
       }
     },
     "overview": "Tổng quan",
+    "summaryTitle": "Nhìn nhanh",
+    "summaryCaption": "Số còn lại trên các khoản đang theo dõi.",
+    "sectionCount": "{count}",
+    "activeHint": "Mở một khoản để trả hoặc nhận.",
+    "historyCaption": "Các khoản đã hoàn tất và lưu trữ vẫn xem được ở đây.",
+    "overdueLabel": "Quá hạn",
+    "dueSoonLabel": "Sắp đến hạn",
     "active": "Khoản đang theo dõi",
     "history": "Đã hoàn tất và lưu trữ",
     "payable": "Cần trả",
@@ -958,8 +978,10 @@
     "addedBetweenPeriods": "Được thêm giữa kỳ",
     "moneyFlowTitle": "Dòng tiền",
     "fundingAccountLine": "Tiền lấy từ: {account}",
+    "fundingAccountLabel": "Nguồn tiền",
     "historicalOpeningFlowLine": "Gốc được ghi nhận từ ngày bắt đầu; không có giao dịch nguồn mới",
     "settlementAccountLine": "Nhận tiền vào: {account}",
+    "settlementAccountLabel": "Nhận về",
     "accountFallback": "Chưa có thông tin tài khoản",
     "expectedValueLabel": "Giá trị kỳ vọng (chưa ghi sổ)",
     "expectedValueHint": "Lãi chỉ là ước tính cho đến khi nhà cung cấp xác nhận tất toán.",
@@ -1158,10 +1180,16 @@
     "emptyTitle": "Chưa có khoản vay",
     "emptyDescription": "Thêm kế hoạch vay hoặc trả góp để theo dõi dư nợ và ngày đến hạn.",
     "trackingOnly": "Chỉ theo dõi nghĩa vụ; tiền vay không tự cộng vào tài khoản.",
+    "summaryCaption": "Gốc còn lại trên các khoản vay đang trả.",
+    "summaryTitle": "Tóm tắt",
+    "sectionCount": "{count}",
+    "activeHint": "Mở một khoản vay để ghi thanh toán hoặc xem lịch trả.",
+    "historyCaption": "Các khoản đã đóng được giữ lại để tham khảo.",
     "summary": {
       "activeLoans": "Khoản vay đang trả",
       "remainingPrincipal": "Gốc còn lại",
       "nextPayments": "Kỳ thanh toán tiếp theo",
+      "overdueLabel": "Quá hạn",
       "overdueLoans": "{count, plural, one {# khoản quá hạn} other {# khoản quá hạn}}"
     },
     "sections": {
@@ -1169,6 +1197,7 @@
       "terms": "Điều khoản trả nợ và ước tính"
     },
     "loadErrorTitle": "Không thể tải khoản vay",
+    "loadErrorDescription": "Dữ liệu khoản vay vẫn còn. Thử lại.",
     "retry": "Thử lại",
     "activeSection": "Khoản vay đang trả",
     "historySection": "Đã hoàn tất, đã huỷ, lỗi hoặc lưu trữ",
@@ -1514,6 +1543,7 @@
     "errors": {
       "unauthenticated": "Đăng nhập lại.",
       "no_membership": "Hoàn tất thiết lập hộ trước.",
+      "forbidden": "Bạn không có quyền thay đổi tài khoản này.",
       "invalid": "Nhập số tiền nguyên dương.",
       "month_locked": "Kế hoạch tháng đã khoá. Mở Nghi thức tháng để chỉnh.",
       "offline": "Cần kết nối để lưu.",
@@ -1796,6 +1826,7 @@
     "errors": {
       "unauthenticated": "Đăng nhập lại.",
       "no_membership": "Hoàn tất thiết lập hộ trước.",
+      "forbidden": "Bạn không có quyền thay đổi thẻ này.",
       "invalid": "Kiểm tra số tiền và thử lại.",
       "month_locked": "Kế hoạch tháng đã khoá.",
       "offline": "Cần kết nối để lưu.",

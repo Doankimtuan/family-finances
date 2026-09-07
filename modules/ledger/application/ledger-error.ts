@@ -93,7 +93,7 @@ function includesMarker(message: string, markers: readonly string[]): boolean {
 
 export function classifyLegacyRecordTransactionRpcError(
   error: unknown,
-): ProductActionErrorCode | null {
+): LedgerCommandErrorCode | null {
   const message = errorMessage(error);
   if (!message) return null;
   if (includesMarker(message, LEDGER_LEGACY_RPC_ERROR_MARKERS.AUTHENTICATION)) {
@@ -101,6 +101,11 @@ export function classifyLegacyRecordTransactionRpcError(
   }
   if (includesMarker(message, LEDGER_LEGACY_RPC_ERROR_MARKERS.NO_MEMBERSHIP)) {
     return PRODUCT_ACTION_ERROR_CODE.NO_MEMBERSHIP;
+  }
+  if (
+    includesMarker(message, LEDGER_LEGACY_RPC_ERROR_MARKERS.PERMISSION_DENIED)
+  ) {
+    return LEDGER_ACTION_ERROR_CODE.FORBIDDEN;
   }
   if (
     includesMarker(message, LEDGER_LEGACY_RPC_ERROR_MARKERS.TRANSACTION_INVALID)

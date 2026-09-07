@@ -13,10 +13,14 @@ import {
 } from "@/modules/ledger/application/client";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
-import { Card } from "@/shared/patterns/card";
+import { BottomActionBar } from "@/shared/patterns/bottom-action-bar";
+import { EmptyState } from "@/shared/patterns/empty-state";
 import { Sheet } from "@/shared/patterns/sheet";
 import { Button } from "@/shared/ui/button";
 import { StatusAlert } from "@/shared/ui/status-alert";
+import { Text } from "@/shared/ui/text";
+import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
+import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
 import {
   CLIENT_ACTION_ERROR_CODE,
   type ProductActionErrorCode,
@@ -122,13 +126,25 @@ export function CreditCardDetailActions({
           paymentProgress={paymentProgress}
         />
       ) : (
-        <Card tone="soft" className="p-(--space-4)">
-          <p className="text-sm text-text-secondary">
-            {t("noCurrentStatement")}
-          </p>
-        </Card>
+        <EmptyState
+          title={t("noCurrentStatement")}
+          icon={
+            <AppIcon icon={FINANCE_ICONS.card} size={AppIconSize.DISPLAY} />
+          }
+          className="flex-none py-(--space-4)"
+        />
       )}
-      <section className="flex flex-col gap-(--space-2)">
+      <CreditCardInstallmentsSection
+        cardAccountId={card.accountId}
+        installments={installments}
+        eligiblePurchases={eligiblePurchases}
+        currency={currency}
+      />
+      <CreditCardActivitySection
+        items={activityItems}
+        formatMoney={formatMoney}
+      />
+      <BottomActionBar>
         <Button
           variant="primary"
           className="w-full"
@@ -142,21 +158,11 @@ export function CreditCardDetailActions({
           {t("settleTitle")}
         </Button>
         {!canPay ? (
-          <p className="text-sm text-text-secondary">
+          <Text size="sm" tone="secondary">
             {t("paymentUnavailable")}
-          </p>
+          </Text>
         ) : null}
-      </section>
-      <CreditCardInstallmentsSection
-        cardAccountId={card.accountId}
-        installments={installments}
-        eligiblePurchases={eligiblePurchases}
-        currency={currency}
-      />
-      <CreditCardActivitySection
-        items={activityItems}
-        formatMoney={formatMoney}
-      />
+      </BottomActionBar>
       <Sheet
         isOpen={isPaymentOpen}
         onOpenChange={(next) => {

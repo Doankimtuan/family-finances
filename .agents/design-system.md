@@ -683,10 +683,11 @@ semantics (§ discovery report §3) are binding; restyling never recalculates.
   provider/package identity left, principal + rate right; a divided footer
   pairs the lifecycle badge with maturity date + days remaining. Completed
   history rows are quiet `Card tone="soft"` with neutral settled badges.
-- Lifecycle badges escalate via the shared `SavingsMaturityBadge` mapping:
-  neutral (active, settled, early settled), info (maturing soon), warning
-  (matured / matures today / action required). Text always accompanies tone;
-  active savings never look like warnings.
+- Lifecycle status uses `SavingsMaturityBadge` with distinct solid surfaces:
+  savings-soft (active), solid warning (maturing soon), solid danger (matured /
+  matures today / action required), muted (settled). Countdown meta sits beside
+  the chip and only picks up warning/danger color for soon/action states.
+  Active savings never look like warnings.
 - Create is the screen's `FloatingAction` pill; "Manage providers" is a quiet
   bordered pill placed after the summary group.
 

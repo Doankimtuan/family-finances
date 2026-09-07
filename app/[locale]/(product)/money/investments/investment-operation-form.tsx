@@ -693,7 +693,9 @@ export function InvestmentOperationForm({
   return (
     <ActionSheetLayout>
       <ActionSheetLayout.Header>
-        <Sheet.Heading>{title}</Sheet.Heading>
+        <Sheet.Heading className="text-lg font-semibold tracking-tight text-text-primary">
+          {title}
+        </Sheet.Heading>
       </ActionSheetLayout.Header>
       <ActionSheetLayout.Body className="flex flex-col gap-(--space-4)">
         <div

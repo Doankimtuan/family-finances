@@ -29,12 +29,13 @@ import { ConfirmSummary } from "@/shared/patterns/confirm-summary";
 import { FinancialValue } from "@/shared/patterns/financial-value";
 import { DatePickerField, SelectField } from "@/shared/ui/form";
 import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
+import { FloatingAction } from "@/shared/patterns/floating-action";
 import { Sheet } from "@/shared/patterns/sheet";
 import { SheetActionFooter } from "@/shared/patterns/sheet-action-footer";
 import { Button } from "@/shared/ui/button";
-import { AppIcon } from "@/shared/ui/app-icon";
-import { IconContainer } from "@/shared/ui/icon-container";
-import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
+import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
+import { IconContainer, IconContainerTone } from "@/shared/ui/icon-container";
+import { ACTION_ICONS, FINANCE_ICONS } from "@/shared/ui/icon-registry";
 import { TextField } from "@/shared/ui/form";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Text } from "@/shared/ui/text";
@@ -43,6 +44,14 @@ import { moneyTransactionPath } from "@/modules/tenancy/application/app-path";
 import { createDebtAction } from "../money-products-actions";
 import { FinancialScopeField } from "@/shared/patterns/financial-scope-field";
 import { FINANCIAL_SCOPE } from "@/modules/shared-kernel/application/financial-scope";
+
+export const DebtCreateTrigger = {
+  EMPTY: "empty",
+  FLOATING: "floating",
+} as const;
+
+export type DebtCreateTrigger =
+  (typeof DebtCreateTrigger)[keyof typeof DebtCreateTrigger];
 
 type AccountOption = {
   id: string;
@@ -56,6 +65,7 @@ type DebtCreateSheetProps = {
   currency: string;
   locale: string;
   today: string;
+  trigger?: DebtCreateTrigger;
 };
 type ErrorCode =
   ProductActionErrorCode | typeof CLIENT_ACTION_ERROR_CODE.OFFLINE;
@@ -75,6 +85,7 @@ export function DebtCreateSheet({
   currency,
   locale,
   today,
+  trigger = DebtCreateTrigger.EMPTY,
 }: DebtCreateSheetProps) {
   const t = useTranslations("money.debtsPage");
   const tErrors = useTranslations("money.products.errors");
@@ -208,8 +219,23 @@ export function DebtCreateSheet({
   const selectedAccountName =
     accounts.find((account) => account.id === accountId)?.name ?? "";
 
-  return (
-    <Sheet isOpen={isOpen} onOpenChange={handleOpenChange}>
+  if (!isOpen) {
+    if (trigger === DebtCreateTrigger.FLOATING) {
+      return (
+        <FloatingAction>
+          <Button
+            className="pointer-events-auto min-h-(--floating-action-size) shrink-0 gap-(--space-2) rounded-full px-(--space-4) shadow-(--elevation-2)"
+            data-testid="debt-create-open"
+            isDisabled={!online}
+            onPress={() => handleOpenChange(true)}
+          >
+            <AppIcon icon={ACTION_ICONS.add} size={AppIconSize.SM} />
+            <span>{t("add")}</span>
+          </Button>
+        </FloatingAction>
+      );
+    }
+    return (
       <Button
         variant="primary"
         className="min-h-11 w-full"
@@ -219,6 +245,11 @@ export function DebtCreateSheet({
       >
         {t("add")}
       </Button>
+    );
+  }
+
+  return (
+    <Sheet isOpen={isOpen} onOpenChange={handleOpenChange}>
       <ActionSheetLayout>
         <ActionSheetLayout.Header>
           <Sheet.Heading>{t("create.title")}</Sheet.Heading>
@@ -339,8 +370,8 @@ export function DebtCreateSheet({
                       <IconContainer
                         tone={
                           direction === DebtDirection.BORROWED
-                            ? "primary"
-                            : "neutral"
+                            ? IconContainerTone.PRIMARY
+                            : IconContainerTone.NEUTRAL
                         }
                         size="sm"
                       >
@@ -357,8 +388,8 @@ export function DebtCreateSheet({
                       <IconContainer
                         tone={
                           direction === DebtDirection.LENT
-                            ? "primary"
-                            : "neutral"
+                            ? IconContainerTone.PRIMARY
+                            : IconContainerTone.NEUTRAL
                         }
                         size="sm"
                       >
@@ -423,8 +454,8 @@ export function DebtCreateSheet({
                       <IconContainer
                         tone={
                           creationMode === DebtCreationMode.EXISTING_BALANCE
-                            ? "primary"
-                            : "neutral"
+                            ? IconContainerTone.PRIMARY
+                            : IconContainerTone.NEUTRAL
                         }
                         size="sm"
                       >
@@ -445,8 +476,8 @@ export function DebtCreateSheet({
                       <IconContainer
                         tone={
                           creationMode === DebtCreationMode.MONEY_MOVED
-                            ? "primary"
-                            : "neutral"
+                            ? IconContainerTone.PRIMARY
+                            : IconContainerTone.NEUTRAL
                         }
                         size="sm"
                       >

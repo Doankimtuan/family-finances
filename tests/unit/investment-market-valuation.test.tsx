@@ -23,7 +23,10 @@ import {
   FINANCIAL_PRIVACY_STORAGE_KEY,
   FINANCIAL_PRIVACY_STORAGE_TRUE,
 } from "@/shared/constants/financial-privacy";
-import { InvestmentValuationMeta } from "@/app/[locale]/(product)/money/investments/investment-valuation-meta";
+import {
+  InvestmentValuationMeta,
+  InvestmentValuationMetaVariant,
+} from "@/app/[locale]/(product)/money/investments/investment-valuation-meta";
 
 // Freshness copy differs between "today" and "on <date>", so the fixture pins
 // the price date to the test run's date instead of a fixed calendar day.
@@ -154,5 +157,24 @@ describe("Investment Market Valuation UI 02", () => {
     expect(screen.queryByText("FPT · 120.000 VND")).not.toBeInTheDocument();
     expect(screen.getByText("Cập nhật hôm nay")).toBeInTheDocument();
     expect(screen.getByText("Đồng tiền báo giá: VND")).toBeInTheDocument();
+  });
+
+  it("keeps list-row valuation to a short nowrap source and date", () => {
+    window.localStorage.removeItem(FINANCIAL_PRIVACY_STORAGE_KEY);
+    render(
+      <NextIntlClientProvider locale="vi" messages={{ money: viMessages }}>
+        <FinancialPrivacyProvider>
+          <InvestmentValuationMeta
+            holding={holding(MarketValuationQuality.AUTO_CURRENT)}
+            variant={InvestmentValuationMetaVariant.ROW}
+          />
+        </FinancialPrivacyProvider>
+      </NextIntlClientProvider>,
+    );
+
+    const line = screen.getByTestId("investment-valuation-meta");
+    expect(line).toHaveTextContent("Tự động · hôm nay");
+    expect(line).toHaveClass("whitespace-nowrap");
+    expect(screen.queryByText("Giá tự động")).not.toBeInTheDocument();
   });
 });

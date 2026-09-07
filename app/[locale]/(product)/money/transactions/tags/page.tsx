@@ -33,6 +33,7 @@ export default async function TransactionTagsPage({ params }: Props) {
   return (
     <Page
       testId="money-transaction-tags"
+      contentClassName="gap-(--space-5)"
       topBar={
         <TopAppBar
           variant="detail"

@@ -1,32 +1,48 @@
 import { getTranslations } from "next-intl/server";
-import { Skeleton } from "@/shared/ui/skeleton";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
+import { Page } from "@/shared/patterns/page";
+import { Skeleton } from "@/shared/ui/skeleton";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 
+/** Mirrors the loaded Loans list: detail header, hero + facts, grouped rows. */
 export default async function LoansLoading() {
   const t = await getTranslations("money.loansPage");
   return (
-    <div
-      className="flex min-h-full flex-col"
-      data-testid="money-loans-loading"
-      aria-busy="true"
+    <Page
+      testId="money-loans-loading"
+      contentClassName="gap-(--space-5)"
+      topBar={
+        <TopAppBar
+          variant="detail"
+          title={t("title")}
+          subtitle={t("subtitle")}
+          backHref={APP_PATH.MONEY}
+        />
+      }
     >
-      <TopAppBar
-        variant="detail"
-        title={t("title")}
-        subtitle={t("subtitle")}
-        backHref={APP_PATH.MONEY}
-      />
-      <div className="flex flex-1 flex-col gap-(--space-4) px-(--space-4) pb-(--space-6) pt-(--space-4)">
-        <Skeleton className="h-11 w-full rounded-(--radius-control)" />
-        <Skeleton className="h-28 w-full rounded-[var(--radius-card)]" />
-        <Skeleton className="h-7 w-32 rounded-(--radius-control)" />
-        <div className="flex flex-col gap-(--space-2)">
-          <Skeleton className="h-40 w-full rounded-[var(--radius-card)]" />
-          <Skeleton className="h-40 w-full rounded-[var(--radius-card)]" />
+      <div
+        className="flex flex-col gap-(--space-3)"
+        data-testid="money-loans-loading-summary"
+        aria-busy="true"
+      >
+        <div className="flex flex-col gap-(--space-2) rounded-(--radius-card) border border-border-subtle bg-surface p-(--space-4) shadow-(--elevation-2)">
+          <Skeleton className="h-3 w-28 rounded" />
+          <Skeleton className="h-9 w-3/4 rounded" />
+          <Skeleton className="h-3 w-1/2 rounded" />
+          <Skeleton className="mt-(--space-2) h-8 w-full rounded" />
         </div>
-        <Skeleton className="h-11 w-full rounded-(--radius-control)" />
+        <div className="flex flex-col gap-(--space-3) rounded-(--radius-card) border border-border-subtle bg-surface p-(--space-4) shadow-(--elevation-1)">
+          <Skeleton className="h-4 w-24 rounded" />
+          <Skeleton className="h-5 w-full rounded" />
+          <Skeleton className="h-5 w-full rounded" />
+          <Skeleton className="h-5 w-2/3 rounded" />
+        </div>
       </div>
-    </div>
+      <div className="flex flex-col gap-(--space-2)">
+        <Skeleton className="h-4 w-24 rounded" />
+        <Skeleton className="h-20 w-full rounded-(--radius-card)" />
+        <Skeleton className="h-20 w-full rounded-(--radius-card)" />
+      </div>
+    </Page>
   );
 }

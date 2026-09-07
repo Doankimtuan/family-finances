@@ -11,16 +11,18 @@ import {
   DEFAULT_TRANSACTION_TAG_ICON_KEY,
   TransactionTagColorKey,
 } from "@/modules/ledger/application/client";
-import { AppIcon } from "@/shared/ui/app-icon";
+import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
 import { ACTION_ICONS } from "@/shared/ui/icon-registry";
-import { Button } from "@/shared/ui/button";
+import { Button, ButtonVariant } from "@/shared/ui/button";
 import { IconButton } from "@/shared/ui/icon-button";
 import { Text } from "@/shared/ui/text";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Dialog, DialogContent } from "@/shared/patterns/dialog";
 import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
 import { Sheet } from "@/shared/patterns/sheet";
+import { Card } from "@/shared/patterns/card";
 import { EmptyState } from "@/shared/patterns/empty-state";
+import { SectionHeader } from "@/shared/patterns/section-header";
 import {
   archiveTransactionTagAction,
   createTransactionTagAction,
@@ -28,7 +30,21 @@ import {
 } from "./tag-actions";
 import { TagIconPreview } from "./transaction-tag-ui";
 import { TransactionTagFormFields } from "./transaction-tag-form-fields";
-import { transactionTagVisualFor } from "./transaction-tag-visuals";
+import {
+  TRANSACTION_TAG_ICONS,
+  transactionTagVisualFor,
+} from "./transaction-tag-visuals";
+
+const ROW_BUTTON_CLASS =
+  "flex min-h-14 min-w-0 flex-1 items-center gap-(--space-3) rounded-[var(--radius-control)] px-(--space-1) text-left transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-[var(--press-scale)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none";
+
+function tagRowCaption(
+  tag: TransactionTag,
+  t: ReturnType<typeof useTranslations>,
+) {
+  if (tag.archivedAt) return t("archived");
+  return t(`colors.${tag.colorKey ?? TransactionTagColorKey.SLATE}`);
+}
 
 export function TransactionTagManagement({
   initialTags,
@@ -58,12 +74,17 @@ export function TransactionTagManagement({
     () => tags.filter((tag) => tag.archivedAt),
     [tags],
   );
+  const hasTags = tags.length > 0;
 
   const resetForm = () => {
     setName("");
     setIconKey(DEFAULT_TRANSACTION_TAG_ICON_KEY);
     setColorKey(DEFAULT_TRANSACTION_TAG_COLOR_KEY);
     setError(false);
+  };
+
+  const closeForm = () => {
+    setIsFormOpen(false);
   };
 
   const openCreate = () => {
@@ -102,6 +123,7 @@ export function TransactionTagManagement({
           : [...current, result.tag!],
       );
       setIsFormOpen(false);
+      setEditing(null);
       resetForm();
     });
   };
@@ -125,16 +147,26 @@ export function TransactionTagManagement({
     });
   };
 
+  const createControl = (
+    <Button
+      variant={hasTags ? ButtonVariant.TERTIARY : ButtonVariant.PRIMARY}
+      className={hasTags ? "shrink-0" : "w-full"}
+      onPress={openCreate}
+    >
+      {t("create")}
+    </Button>
+  );
+
   const renderRow = (tag: TransactionTag) => {
     const visual = transactionTagVisualFor(tag);
     return (
       <li
         key={tag.id}
-        className="flex items-center gap-(--space-2) rounded-[var(--radius-card)] border border-border-subtle/80 bg-surface/70 p-(--space-3) shadow-(--elevation-1)"
+        className="flex items-center gap-(--space-1) px-(--space-3) py-(--space-1)"
       >
         <button
           type="button"
-          className="flex min-w-0 flex-1 items-center gap-(--space-3) rounded-[var(--radius-control)] text-left transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-[var(--press-scale)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none"
+          className={ROW_BUTTON_CLASS}
           onClick={() => openEdit(tag)}
         >
           <TagIconPreview tag={tag} />
@@ -151,14 +183,17 @@ export function TransactionTagManagement({
               tone="secondary"
               className="mt-1 truncate text-pretty"
             >
-              {tag.archivedAt
-                ? t("archived")
-                : t(`colors.${tag.colorKey ?? TransactionTagColorKey.SLATE}`)}
+              {tagRowCaption(tag, t)}
             </Text>
           </span>
           <span
             className={`size-4 shrink-0 rounded-full ${visual.color.swatch}`}
             aria-hidden
+          />
+          <AppIcon
+            icon={ACTION_ICONS.forward}
+            size="xs"
+            className="shrink-0 text-text-muted"
           />
         </button>
         {!tag.archivedAt ? (
@@ -179,43 +214,64 @@ export function TransactionTagManagement({
 
   return (
     <div
-      className="flex flex-col gap-(--space-6)"
+      className="flex flex-col gap-(--space-5)"
       data-testid="transaction-tag-management"
     >
-      <div className="flex items-start gap-(--space-3) rounded-[var(--radius-card)] border border-border-subtle/70 bg-surface/45 p-(--space-3)">
-        <div className="min-w-0 flex-1">
-          <Text size="sm" tone="secondary" className="text-pretty">
-            {t("managementHint")}
-          </Text>
-        </div>
-        <Button variant="primary" className="shrink-0" onPress={openCreate}>
-          {t("create")}
-        </Button>
-      </div>
+      <Text size="sm" tone="secondary" className="text-pretty">
+        {t("managementHint")}
+      </Text>
       {error ? <StatusAlert variant="danger" title={t("saveError")} /> : null}
-      {activeTags.length > 0 ? (
+      {hasTags ? (
         <section className="flex flex-col gap-(--space-3)">
-          <h2 className="text-base font-semibold text-text-primary">
-            {t("activeTitle")}
-          </h2>
-          <ul className="flex flex-col gap-(--space-2)">
-            {activeTags.map(renderRow)}
-          </ul>
+          <SectionHeader title={t("activeTitle")} action={createControl} />
+          {activeTags.length > 0 ? (
+            <Card tone="elevated" className="gap-0 p-0">
+              <ul className="divide-y divide-border-subtle/65 py-(--space-1)">
+                {activeTags.map(renderRow)}
+              </ul>
+            </Card>
+          ) : (
+            <Card tone="soft" className="gap-(--space-3) p-(--space-4)">
+              <EmptyState
+                icon={
+                  <AppIcon
+                    icon={
+                      TRANSACTION_TAG_ICONS[DEFAULT_TRANSACTION_TAG_ICON_KEY]
+                    }
+                    size={AppIconSize.DISPLAY}
+                  />
+                }
+                title={t("noActiveTitle")}
+                description={t("noActiveDescription")}
+                className="flex-none py-(--space-2)"
+              />
+            </Card>
+          )}
         </section>
       ) : (
-        <EmptyState
-          title={t("emptyTitle")}
-          description={t("emptyDescription")}
-        />
+        <Card tone="soft" className="gap-(--space-3) p-(--space-4)">
+          <EmptyState
+            icon={
+              <AppIcon
+                icon={TRANSACTION_TAG_ICONS[DEFAULT_TRANSACTION_TAG_ICON_KEY]}
+                size={AppIconSize.DISPLAY}
+              />
+            }
+            title={t("emptyTitle")}
+            description={t("emptyDescription")}
+            action={createControl}
+            className="flex-none py-(--space-2)"
+          />
+        </Card>
       )}
       {archivedTags.length > 0 ? (
         <section className="flex flex-col gap-(--space-3)">
-          <h2 className="text-base font-semibold text-text-primary">
-            {t("archivedTitle")}
-          </h2>
-          <ul className="flex flex-col gap-(--space-2)">
-            {archivedTags.map(renderRow)}
-          </ul>
+          <SectionHeader title={t("archivedTitle")} />
+          <Card tone="elevated" className="gap-0 p-0">
+            <ul className="divide-y divide-border-subtle/65 py-(--space-1)">
+              {archivedTags.map(renderRow)}
+            </ul>
+          </Card>
         </section>
       ) : null}
 
@@ -242,7 +298,7 @@ export function TransactionTagManagement({
               fullWidth
               className="min-w-0 flex-1"
               isDisabled={isPending}
-              onPress={() => setIsFormOpen(false)}
+              onPress={closeForm}
             >
               {t("cancel")}
             </Button>
@@ -268,7 +324,7 @@ export function TransactionTagManagement({
       >
         <DialogContent>
           <Dialog.Header className="px-(--space-4) pt-(--space-4)">
-            <Dialog.Heading className="text-lg font-semibold text-text-primary">
+            <Dialog.Heading className="text-lg font-semibold tracking-tight text-text-primary">
               {t("archiveTitle")}
             </Dialog.Heading>
           </Dialog.Header>
@@ -288,7 +344,7 @@ export function TransactionTagManagement({
               {t("cancel")}
             </Button>
             <Button
-              variant="primary"
+              variant="danger"
               fullWidth
               className="min-w-0 flex-1"
               isDisabled={isPending}

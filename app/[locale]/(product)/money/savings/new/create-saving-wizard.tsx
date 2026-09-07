@@ -8,12 +8,6 @@ import { z } from "zod";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import {
-  BankIcon,
-  Calendar03Icon,
-  SmartPhoneIcon,
-  Wallet02Icon,
-} from "@hugeicons/core-free-icons";
-import {
   moneySavingsPath,
   APP_PATH,
 } from "@/modules/tenancy/application/app-path";
@@ -40,17 +34,28 @@ import {
 } from "@/modules/savings/application/client";
 import { ControlledField } from "@/shared/patterns/controlled-fields";
 import { FinancialScopeField } from "@/shared/patterns/financial-scope-field";
-import { AppIcon } from "@/shared/ui/app-icon";
+import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
 import { Button } from "@/shared/ui/button";
 import { Progress } from "@/shared/ui/progress";
 import { Card } from "@/shared/patterns/card";
+import { Amount, AmountSize } from "@/shared/patterns/amount";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { TextField } from "@/shared/ui/form";
 import { Text } from "@/shared/ui/text";
 import { FinancialValue } from "@/shared/patterns/financial-value";
 import { BottomActionBar } from "@/shared/patterns/bottom-action-bar";
-import { ChoiceTile } from "@/shared/patterns/choice-tile";
+import { ChoiceTile, ChoiceTileGroup } from "@/shared/patterns/choice-tile";
+import { IconContainer, IconContainerTone } from "@/shared/ui/icon-container";
+import {
+  ACTION_ICONS,
+  FINANCE_ICONS,
+  SAVINGS_PROVIDER_ICONS,
+  UTILITY_ICONS,
+} from "@/shared/ui/icon-registry";
 import { MotionStep, MotionStepDirection } from "@/shared/motion";
+import { cn } from "@/shared/utils/cn";
+import { SavingsFactRow, SavingsFactsCard } from "../savings-facts";
+import { SavingsSectionTitle } from "../savings-section-title";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import { DEFAULT_CURRENCY } from "@/modules/ledger/application/client";
@@ -157,11 +162,12 @@ function savingTypeHint(
 }
 
 function providerIcon(savingType: string) {
-  return savingType === SavingType.BANK_DEPOSIT
-    ? BankIcon
-    : savingType === SavingType.DIGITAL_SAVING
-      ? SmartPhoneIcon
-      : Wallet02Icon;
+  if (savingType === SavingType.BANK_DEPOSIT)
+    return SAVINGS_PROVIDER_ICONS.bank;
+  if (savingType === SavingType.DIGITAL_SAVING) {
+    return SAVINGS_PROVIDER_ICONS.smartphone;
+  }
+  return SAVINGS_PROVIDER_ICONS.wallet;
 }
 
 function createDefaultValues(
@@ -192,33 +198,68 @@ function createDefaultValues(
   } satisfies SavingFormValues;
 }
 
-function SummaryRow({
-  label,
-  value,
-  emphasis = false,
+function StepHeader({
+  id,
+  title,
+  subtitle,
 }: {
-  label: string;
-  value: ReactNode;
-  emphasis?: boolean;
+  id: string;
+  title: string;
+  subtitle: string;
 }) {
   return (
-    <div className="flex items-start justify-between gap-(--space-3) border-b border-border-subtle/60 py-(--space-3) last:border-b-0">
-      <Text size="sm" tone="secondary">
-        {label}
-      </Text>
+    <div className="space-y-(--space-1)">
       <Text
-        size="sm"
-        weight={emphasis ? "semibold" : "medium"}
-        tabular={emphasis}
-        className="text-right"
+        as="div"
+        role="heading"
+        aria-level={2}
+        id={id}
+        size="lg"
+        weight="semibold"
+        className="text-pretty tracking-tight"
       >
-        {value}
+        {title}
+      </Text>
+      <Text size="sm" tone="secondary" className="text-pretty">
+        {subtitle}
       </Text>
     </div>
   );
 }
 
-function SelectionCard({
+function SelectionGroup({
+  label,
+  hint,
+  ariaLabel,
+  children,
+}: {
+  label?: string;
+  hint?: string;
+  ariaLabel?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-(--space-2)">
+      {label || hint ? (
+        <div className="flex items-end justify-between gap-(--space-2)">
+          {label ? <SavingsSectionTitle>{label}</SavingsSectionTitle> : null}
+          {hint ? (
+            <Text size="xs" tone="secondary" className="shrink-0 text-pretty">
+              {hint}
+            </Text>
+          ) : null}
+        </div>
+      ) : null}
+      <div role="group" aria-label={ariaLabel ?? label}>
+        <Card tone="elevated" className="gap-0 overflow-hidden p-0">
+          <div className="divide-y divide-divider">{children}</div>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+function SelectionRow({
   selected,
   onPress,
   children,
@@ -230,15 +271,29 @@ function SelectionCard({
   testId: string;
 }) {
   return (
-    <ChoiceTile
-      selected={selected}
-      onPress={onPress}
-      testId={testId}
-      icon={null}
-      className="justify-between"
+    <button
+      type="button"
+      aria-pressed={selected}
+      data-testid={testId}
+      onClick={onPress}
+      className={cn(
+        "flex min-h-14 w-full items-center gap-(--space-3) px-(--space-4) py-(--space-3) text-left",
+        "transition-[background-color,transform] duration-(--duration-fast)",
+        "hover:bg-surface-hover active:scale-(--press-scale)",
+        "motion-reduce:transition-none motion-reduce:active:scale-100",
+        "focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus-ring",
+        selected && "bg-primary-soft",
+      )}
     >
-      {children}
-    </ChoiceTile>
+      <span className="min-w-0 flex-1">{children}</span>
+      {selected ? (
+        <AppIcon
+          icon={ACTION_ICONS.check}
+          size={AppIconSize.SM}
+          className="shrink-0 text-primary"
+        />
+      ) : null}
+    </button>
   );
 }
 
@@ -288,10 +343,11 @@ export function CreateSavingWizard({
 
   const step = STEPS[stepIndex];
   const packages = packagesByProvider[providerId] ?? [];
-  const catalogPackage = packages.find((item) => item.id === packageId) ?? null;
-  const selectedPackage = catalogPackage;
+  const selectedPackage =
+    packages.find((item) => item.id === packageId) ?? null;
   const selectedProvider =
     providers.find((item) => item.id === providerId) ?? null;
+  const savingTypes = [...new Set(providers.map((item) => item.savingType))];
   const fundingAccount =
     accounts.find((item) => item.id === fundingAccountId) ?? null;
   const settlementAccount =
@@ -556,6 +612,7 @@ export function CreateSavingWizard({
             total: STEPS.length,
           })}
           showLabel={false}
+          tone={IconContainerTone.SAVINGS}
         />
         <Text size="xs" tone="secondary" weight="medium">
           {t("stepOf", { current: stepIndex + 1, total: STEPS.length })}
@@ -575,83 +632,59 @@ export function CreateSavingWizard({
             className="flex flex-col gap-(--space-5)"
             aria-labelledby="savings-product-title"
           >
-            <div className="space-y-(--space-1)">
-              <Text
-                as="div"
-                role="heading"
-                aria-level={1}
-                id="savings-product-title"
-                size="lg"
-                weight="semibold"
+            <StepHeader
+              id="savings-product-title"
+              title={t("productTitle")}
+              subtitle={t("productSubtitle")}
+            />
+            <SelectionGroup label={t("creationModeLabel")}>
+              <SelectionRow
+                selected={creationMode === SavingsCreateMode.LIVE_DEPOSIT}
+                onPress={() =>
+                  selectCreationMode(SavingsCreateMode.LIVE_DEPOSIT)
+                }
+                testId="savings-create-mode-live"
               >
-                {t("productTitle")}
-              </Text>
-              <Text size="sm" tone="secondary">
-                {t("productSubtitle")}
-              </Text>
-            </div>
-            <div
-              className="space-y-(--space-2)"
-              role="group"
-              aria-label={t("creationModeLabel")}
-            >
-              <Text size="sm" weight="semibold">
-                {t("creationModeLabel")}
-              </Text>
-              <div className="grid gap-(--space-2)">
-                <SelectionCard
-                  selected={creationMode === SavingsCreateMode.LIVE_DEPOSIT}
-                  onPress={() =>
-                    selectCreationMode(SavingsCreateMode.LIVE_DEPOSIT)
-                  }
-                  testId="savings-create-mode-live"
-                >
-                  <span>
-                    <Text size="sm" weight="medium">
-                      {t("liveDepositMode")}
-                    </Text>
-                    <Text size="xs" tone="secondary">
-                      {t("liveDepositHint")}
-                    </Text>
-                  </span>
-                </SelectionCard>
-                <SelectionCard
-                  selected={
-                    creationMode === SavingsCreateMode.HISTORICAL_OPENING
-                  }
-                  onPress={() =>
-                    selectCreationMode(SavingsCreateMode.HISTORICAL_OPENING)
-                  }
-                  testId="savings-create-mode-historical"
-                >
-                  <span>
-                    <Text size="sm" weight="medium">
-                      {t("historicalOpeningMode")}
-                    </Text>
-                    <Text size="xs" tone="secondary">
-                      {t("historicalOpeningHint")}
-                    </Text>
-                  </span>
-                </SelectionCard>
-              </div>
-            </div>
+                <span>
+                  <Text size="sm" weight="medium">
+                    {t("liveDepositMode")}
+                  </Text>
+                  <Text size="xs" tone="secondary" className="text-pretty">
+                    {t("liveDepositHint")}
+                  </Text>
+                </span>
+              </SelectionRow>
+              <SelectionRow
+                selected={creationMode === SavingsCreateMode.HISTORICAL_OPENING}
+                onPress={() =>
+                  selectCreationMode(SavingsCreateMode.HISTORICAL_OPENING)
+                }
+                testId="savings-create-mode-historical"
+              >
+                <span>
+                  <Text size="sm" weight="medium">
+                    {t("historicalOpeningMode")}
+                  </Text>
+                  <Text size="xs" tone="secondary" className="text-pretty">
+                    {t("historicalOpeningHint")}
+                  </Text>
+                </span>
+              </SelectionRow>
+            </SelectionGroup>
             <TextField
               id="savings-product-name"
               label={t("savingNameLabel")}
               required
               registration={register("productName")}
             />
-            {Array.from(new Set(providers.map((item) => item.savingType)))
-              .length > 1 ? (
-              <div className="space-y-(--space-2)">
-                <Text size="sm" weight="semibold">
+            {savingTypes.length > 1 ? (
+              <div className="flex flex-col gap-(--space-2)">
+                <SavingsSectionTitle>
                   {t("savingTypeLabel")}
-                </Text>
-                <div className="grid grid-cols-2 gap-(--space-2)">
-                  {Array.from(
-                    new Set(providers.map((item) => item.savingType)),
-                  ).map((type) => (
-                    <SelectionCard
+                </SavingsSectionTitle>
+                <ChoiceTileGroup>
+                  {savingTypes.map((type) => (
+                    <ChoiceTile
                       key={type}
                       selected={selectedProvider?.savingType === type}
                       onPress={() => {
@@ -661,113 +694,113 @@ export function CreateSavingWizard({
                         if (provider) selectProvider(provider.id);
                       }}
                       testId={`savings-type-${type}`}
-                    >
-                      <span className="flex items-center gap-(--space-2)">
-                        <AppIcon
-                          icon={providerIcon(type)}
+                      icon={
+                        <IconContainer
+                          tone={
+                            selectedProvider?.savingType === type
+                              ? IconContainerTone.SAVINGS
+                              : IconContainerTone.NEUTRAL
+                          }
                           size="sm"
-                          className="text-accent"
-                        />
-                        <span>
-                          <Text size="sm" weight="medium">
-                            {savingTypeLabel(t, type)}
-                          </Text>
-                          <Text size="xs" tone="secondary">
-                            {savingTypeHint(t, type)}
-                          </Text>
-                        </span>
+                        >
+                          <AppIcon
+                            icon={providerIcon(type)}
+                            size={AppIconSize.SM}
+                          />
+                        </IconContainer>
+                      }
+                    >
+                      <span>
+                        <Text size="sm" weight="medium">
+                          {savingTypeLabel(t, type)}
+                        </Text>
+                        <Text
+                          size="xs"
+                          tone="secondary"
+                          className="text-pretty"
+                        >
+                          {savingTypeHint(t, type)}
+                        </Text>
                       </span>
-                    </SelectionCard>
+                    </ChoiceTile>
                   ))}
-                </div>
+                </ChoiceTileGroup>
               </div>
             ) : null}
-            <div className="space-y-(--space-2)">
+            <div className="flex flex-col gap-(--space-2)">
               <FinancialScopeField
                 value={financialScope}
                 onChange={(next) => setValue("financialScope", next)}
                 testId="savings-financial-scope"
               />
             </div>
-            <div className="space-y-(--space-2)">
-              <Text size="sm" weight="semibold">
-                {t("providerLabel")}
-              </Text>
-              <div className="grid gap-(--space-2)">
-                {providers.map((provider) => (
-                  <SelectionCard
-                    key={provider.id}
-                    selected={provider.id === providerId}
-                    onPress={() => selectProvider(provider.id)}
-                    testId={`savings-provider-${provider.id}`}
-                  >
-                    <span className="flex min-w-0 items-center gap-(--space-3)">
-                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-control)] bg-accent-soft text-accent">
-                        <AppIcon
-                          icon={providerIcon(provider.savingType)}
-                          size="sm"
-                        />
-                      </span>
-                      <span className="min-w-0">
-                        <Text size="sm" weight="semibold" className="truncate">
-                          {provider.displayName}
-                        </Text>
-                        <Text size="xs" tone="secondary">
-                          {savingTypeLabel(t, provider.savingType)}
-                        </Text>
-                      </span>
-                    </span>
-                  </SelectionCard>
-                ))}
-              </div>
-            </div>
-            <div className="space-y-(--space-2)">
-              <div className="flex items-end justify-between gap-(--space-2)">
-                <Text size="sm" weight="semibold">
-                  {t("packageLabel")}
-                </Text>
-                <Text size="xs" tone="secondary">
-                  {t("packageHint")}
-                </Text>
-              </div>
-              {packages.length ? (
-                <div className="grid gap-(--space-2)">
-                  {packages.map((pkg) => (
-                    <SelectionCard
-                      key={pkg.id}
-                      selected={pkg.id === packageId}
-                      onPress={() => {
-                        setValue("packageId", pkg.id);
-                        setValue("targetPackageId", pkg.id);
-                      }}
-                      testId={`savings-package-${pkg.id}`}
+            <SelectionGroup label={t("providerLabel")}>
+              {providers.map((provider) => (
+                <SelectionRow
+                  key={provider.id}
+                  selected={provider.id === providerId}
+                  onPress={() => selectProvider(provider.id)}
+                  testId={`savings-provider-${provider.id}`}
+                >
+                  <span className="flex min-w-0 items-center gap-(--space-3)">
+                    <IconContainer
+                      tone={
+                        provider.id === providerId
+                          ? IconContainerTone.SAVINGS
+                          : IconContainerTone.NEUTRAL
+                      }
+                      size="sm"
                     >
-                      <span className="flex min-w-0 flex-1 items-center justify-between gap-(--space-3)">
-                        <span className="min-w-0">
-                          <Text size="sm" weight="semibold">
-                            {t("termDays", { days: pkg.durationDays })}
-                          </Text>
-                          <Text size="xs" tone="secondary">
-                            {rate(pkg.annualInterestRate)}% / {t("year")}
-                          </Text>
-                        </span>
-                        <Text
-                          size="xs"
-                          tone="secondary"
-                          className="shrink-0 text-right"
-                        >
-                          {t("maturityPreview", {
-                            date: date(maturityDateForPackage(pkg, startDate)),
-                          })}
-                        </Text>
-                      </span>
-                    </SelectionCard>
-                  ))}
-                </div>
-              ) : (
+                      <AppIcon
+                        icon={providerIcon(provider.savingType)}
+                        size={AppIconSize.SM}
+                      />
+                    </IconContainer>
+                    <span className="min-w-0">
+                      <Text size="sm" weight="semibold" className="truncate">
+                        {provider.displayName}
+                      </Text>
+                      <Text size="xs" tone="secondary">
+                        {savingTypeLabel(t, provider.savingType)}
+                      </Text>
+                    </span>
+                  </span>
+                </SelectionRow>
+              ))}
+            </SelectionGroup>
+            {packages.length ? (
+              <SelectionGroup label={t("packageLabel")} hint={t("packageHint")}>
+                {packages.map((pkg) => (
+                  <SelectionRow
+                    key={pkg.id}
+                    selected={pkg.id === packageId}
+                    onPress={() => {
+                      setValue("packageId", pkg.id);
+                      setValue("targetPackageId", pkg.id);
+                    }}
+                    testId={`savings-package-${pkg.id}`}
+                  >
+                    <span className="min-w-0">
+                      <Text size="sm" weight="semibold">
+                        {t("termDays", { days: pkg.durationDays })}
+                      </Text>
+                      <Text size="xs" tone="secondary" className="text-pretty">
+                        {rate(pkg.annualInterestRate)}% / {t("year")}
+                        {" · "}
+                        {t("maturityPreview", {
+                          date: date(maturityDateForPackage(pkg, startDate)),
+                        })}
+                      </Text>
+                    </span>
+                  </SelectionRow>
+                ))}
+              </SelectionGroup>
+            ) : (
+              <div className="flex flex-col gap-(--space-2)">
+                <SavingsSectionTitle>{t("packageLabel")}</SavingsSectionTitle>
                 <StatusAlert variant="warning" title={t("noPackages")} />
-              )}
-            </div>
+              </div>
+            )}
           </section>
         ) : null}
 
@@ -776,25 +809,13 @@ export function CreateSavingWizard({
             className="flex flex-col gap-(--space-5)"
             aria-labelledby="savings-deposit-title"
           >
-            <div className="space-y-(--space-1)">
-              <Text
-                as="div"
-                role="heading"
-                aria-level={1}
-                id="savings-deposit-title"
-                size="lg"
-                weight="semibold"
-              >
-                {t("depositTitle")}
-              </Text>
-              <Text size="sm" tone="secondary">
-                {t("depositSubtitle")}
-              </Text>
-            </div>
-            <div className="space-y-(--space-2)">
-              <Text size="sm" weight="semibold">
-                {t("amountSection")}
-              </Text>
+            <StepHeader
+              id="savings-deposit-title"
+              title={t("depositTitle")}
+              subtitle={t("depositSubtitle")}
+            />
+            <div className="flex flex-col gap-(--space-2)">
+              <SavingsSectionTitle>{t("amountSection")}</SavingsSectionTitle>
               <ControlledField
                 control={control}
                 field={{
@@ -831,65 +852,75 @@ export function CreateSavingWizard({
                 </Text>
               ) : null}
             </div>
-            <div className="space-y-(--space-2)">
-              <Text size="sm" weight="semibold">
-                {t("sourceSection")}
-              </Text>
-              {creationMode === SavingsCreateMode.LIVE_DEPOSIT ? (
-                <>
-                  {accounts.length < 2 ? (
-                    <StatusAlert
-                      variant="warning"
-                      title={t("noEligibleAccounts")}
-                    />
-                  ) : null}
-                  <div className="grid gap-(--space-2)">
-                    {accounts.map((account) => (
-                      <SelectionCard
-                        key={account.id}
-                        selected={account.id === fundingAccountId}
-                        onPress={() => {
-                          setValue("fundingAccountId", account.id);
-                          if (settlementAccountId === account.id) {
-                            setValue(
-                              "settlementAccountId",
-                              accounts.find((item) => item.id !== account.id)
-                                ?.id ?? "",
-                            );
+            {creationMode === SavingsCreateMode.LIVE_DEPOSIT ? (
+              <div className="flex flex-col gap-(--space-2)">
+                {accounts.length < 2 ? (
+                  <StatusAlert
+                    variant="warning"
+                    title={t("noEligibleAccounts")}
+                  />
+                ) : null}
+                <SelectionGroup label={t("sourceSection")}>
+                  {accounts.map((account) => (
+                    <SelectionRow
+                      key={account.id}
+                      selected={account.id === fundingAccountId}
+                      onPress={() => {
+                        setValue("fundingAccountId", account.id);
+                        if (settlementAccountId === account.id) {
+                          setValue(
+                            "settlementAccountId",
+                            accounts.find((item) => item.id !== account.id)
+                              ?.id ?? "",
+                          );
+                        }
+                      }}
+                      testId={`savings-source-${account.id}`}
+                    >
+                      <span className="flex min-w-0 items-center gap-(--space-3)">
+                        <IconContainer
+                          tone={
+                            account.id === fundingAccountId
+                              ? IconContainerTone.PRIMARY
+                              : IconContainerTone.NEUTRAL
                           }
-                        }}
-                        testId={`savings-source-${account.id}`}
-                      >
-                        <span className="flex min-w-0 items-center gap-(--space-3)">
-                          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-control)] bg-surface-hover text-text-secondary">
-                            <AppIcon icon={Wallet02Icon} size="sm" />
-                          </span>
-                          <span className="min-w-0">
-                            <Text
-                              size="sm"
-                              weight="semibold"
-                              className="truncate"
-                            >
-                              {account.name}
-                            </Text>
-                            <Text size="xs" tone="secondary">
-                              {t("availableBalancePrefix")}{" "}
-                              <FinancialValue>
-                                {money(account.balance)}
-                              </FinancialValue>
-                            </Text>
-                          </span>
+                          size="sm"
+                        >
+                          <AppIcon
+                            icon={FINANCE_ICONS.wallet}
+                            size={AppIconSize.SM}
+                          />
+                        </IconContainer>
+                        <span className="min-w-0">
+                          <Text
+                            size="sm"
+                            weight="semibold"
+                            className="truncate"
+                          >
+                            {account.name}
+                          </Text>
+                          <Text size="xs" tone="secondary">
+                            {t("availableBalancePrefix")}{" "}
+                            <FinancialValue>
+                              {money(account.balance)}
+                            </FinancialValue>
+                          </Text>
                         </span>
-                      </SelectionCard>
-                    ))}
-                  </div>
-                </>
-              ) : (
-                <Text size="sm" tone="secondary">
-                  {t("historicalNoSource")}
-                </Text>
-              )}
-            </div>
+                      </span>
+                    </SelectionRow>
+                  ))}
+                </SelectionGroup>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-(--space-2)">
+                <SavingsSectionTitle>{t("sourceSection")}</SavingsSectionTitle>
+                <Card tone="soft" className="gap-(--space-1) p-(--space-4)">
+                  <Text size="sm" tone="secondary" className="text-pretty">
+                    {t("historicalNoSource")}
+                  </Text>
+                </Card>
+              </div>
+            )}
             <ControlledField
               control={control}
               field={{
@@ -914,38 +945,39 @@ export function CreateSavingWizard({
                 {t("historicalStartMustBePast")}
               </Text>
             ) : null}
-            <div
-              className="rounded-[var(--radius-card)] border border-border-subtle bg-surface-elevated px-(--space-4) py-(--space-4)"
+            <Card
+              tone="elevated"
+              className="gap-0 overflow-hidden p-0"
               data-testid="savings-estimate"
             >
-              <div className="mb-(--space-3) flex items-center justify-between gap-(--space-2)">
+              <div className="flex items-center justify-between gap-(--space-2) px-(--space-4) pt-(--space-4) pb-(--space-2)">
                 <Text size="sm" weight="semibold">
                   {t("estimateTitle")}
                 </Text>
                 <AppIcon
-                  icon={Calendar03Icon}
-                  size="sm"
-                  className="text-accent"
+                  icon={UTILITY_ICONS.calendar}
+                  size={AppIconSize.SM}
+                  className="text-text-tertiary"
                 />
               </div>
               {selectedPackage && estimate ? (
-                <div>
-                  <SummaryRow
+                <dl className="divide-y divide-divider">
+                  <SavingsFactRow
                     label={t("principalLabel")}
                     value={
                       <FinancialValue>{money(principalAmount)}</FinancialValue>
                     }
                   />
-                  <SummaryRow
+                  <SavingsFactRow
                     label={t("rateLabel")}
                     value={`${rate(selectedPackage.annualInterestRate)}% / ${t("year")}`}
                   />
-                  <SummaryRow
+                  <SavingsFactRow
                     label={t("maturityLabel")}
                     value={date(estimate.maturityDate)}
                   />
                   {startDate < today ? (
-                    <SummaryRow
+                    <SavingsFactRow
                       label={t("accruedInterestLabel")}
                       value={
                         <FinancialValue>
@@ -954,7 +986,7 @@ export function CreateSavingWizard({
                       }
                     />
                   ) : null}
-                  <SummaryRow
+                  <SavingsFactRow
                     label={t("interestLabel")}
                     value={
                       <FinancialValue>
@@ -963,7 +995,7 @@ export function CreateSavingWizard({
                     }
                   />
                   {estimate.breakdown.tax > 0 ? (
-                    <SummaryRow
+                    <SavingsFactRow
                       label={t("taxLabel")}
                       value={
                         <FinancialValue>
@@ -973,7 +1005,7 @@ export function CreateSavingWizard({
                     />
                   ) : null}
                   {estimate.breakdown.fee > 0 ? (
-                    <SummaryRow
+                    <SavingsFactRow
                       label={t("feeLabel")}
                       value={
                         <FinancialValue>
@@ -982,7 +1014,7 @@ export function CreateSavingWizard({
                       }
                     />
                   ) : null}
-                  <SummaryRow
+                  <SavingsFactRow
                     label={t("netInterestLabel")}
                     value={
                       <FinancialValue>
@@ -990,28 +1022,26 @@ export function CreateSavingWizard({
                       </FinancialValue>
                     }
                   />
-                  <div className="mt-(--space-2) flex items-end justify-between gap-(--space-3) border-t border-border-subtle pt-(--space-3)">
-                    <Text size="sm" weight="semibold">
-                      {t("maturityAmountLabel")}
-                    </Text>
-                    <Text
-                      size="lg"
-                      weight="semibold"
-                      tabular
-                      className="text-accent"
-                    >
+                  <SavingsFactRow
+                    label={t("maturityAmountLabel")}
+                    value={
                       <FinancialValue>
                         {money(estimate.breakdown.totalCashReceived)}
                       </FinancialValue>
-                    </Text>
-                  </div>
-                </div>
+                    }
+                    emphasis
+                  />
+                </dl>
               ) : (
-                <Text size="sm" tone="secondary">
+                <Text
+                  size="sm"
+                  tone="secondary"
+                  className="px-(--space-4) pb-(--space-4) text-pretty"
+                >
                   {t("estimateEmpty")}
                 </Text>
               )}
-            </div>
+            </Card>
           </section>
         ) : null}
 
@@ -1020,64 +1050,60 @@ export function CreateSavingWizard({
             className="flex flex-col gap-(--space-5)"
             aria-labelledby="savings-review-title"
           >
-            <div className="space-y-(--space-1)">
-              <Text
-                as="div"
-                role="heading"
-                aria-level={1}
-                id="savings-review-title"
-                size="lg"
-                weight="semibold"
-              >
-                {t("reviewTitle")}
-              </Text>
-              <Text size="sm" tone="secondary">
-                {t("reviewSubtitle")}
-              </Text>
-            </div>
+            <StepHeader
+              id="savings-review-title"
+              title={t("reviewTitle")}
+              subtitle={t("reviewSubtitle")}
+            />
             <Card tone="hero" className="gap-0 p-(--space-4)">
-              <Text size="sm" weight="medium" className="text-hero-muted">
-                {t("reviewHeroLabel")}
-              </Text>
-              <p className="mt-(--space-2) font-semibold tabular-nums tracking-tight text-3xl text-hero-fg">
-                <FinancialValue>{money(principalAmount)}</FinancialValue>
-              </p>
+              <div className="flex items-center gap-(--space-3)">
+                <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-(--radius-control) border border-white/25 bg-white/10 text-hero-fg">
+                  <AppIcon
+                    icon={FINANCE_ICONS.savings}
+                    size={AppIconSize.MD}
+                    emphasized
+                  />
+                </span>
+                <div className="min-w-0">
+                  <Text size="sm" weight="medium" className="text-hero-muted">
+                    {t("reviewHeroLabel")}
+                  </Text>
+                  <Text size="xs" className="text-pretty text-hero-muted">
+                    {selectedPackage
+                      ? `${t("termDays", { days: selectedPackage.durationDays })} · ${rate(selectedPackage.annualInterestRate)}% / ${t("year")} · ${selectedProvider?.displayName ?? t("unknown")}`
+                      : t("unknown")}
+                  </Text>
+                </div>
+              </div>
               <Text
                 size="xs"
-                className="mt-(--space-1) text-pretty text-hero-muted"
+                className="mt-(--space-4) text-pretty text-hero-muted"
               >
-                {selectedPackage
-                  ? `${t("termDays", { days: selectedPackage.durationDays })} · ${rate(selectedPackage.annualInterestRate)}% / ${t("year")} · ${selectedProvider?.displayName ?? t("unknown")}`
-                  : t("unknown")}
+                {t("maturityAmountLabel")}
               </Text>
-              <div className="mt-(--space-4) border-t border-white/15 pt-(--space-3)">
-                <Text size="xs" className="text-hero-muted">
-                  {t("maturityAmountLabel")}
-                </Text>
-                <p className="mt-(--space-1) text-lg font-semibold tabular-nums tracking-tight text-hero-fg">
-                  {estimate ? (
-                    <FinancialValue>
-                      {money(estimate.breakdown.totalCashReceived)}
-                    </FinancialValue>
-                  ) : (
-                    t("unknown")
-                  )}
-                </p>
-                <Text
-                  size="xs"
-                  className="mt-(--space-1) text-pretty text-hero-muted"
-                >
-                  {estimate
-                    ? `${t("netInterestLabel")}: ${money(estimate.breakdown.netInterest)} · ${t("maturityLabel")}: ${date(estimate.maturityDate)}`
-                    : t("estimateEmpty")}
-                </Text>
-              </div>
+              <Amount
+                amountLabel={
+                  estimate
+                    ? money(estimate.breakdown.totalCashReceived)
+                    : t("unknown")
+                }
+                size={AmountSize.HERO}
+                className="mt-(--space-2)"
+                amountClassName="text-4xl leading-none text-hero-fg"
+              />
+              <Text
+                size="xs"
+                className="mt-(--space-4) text-pretty text-hero-muted border-t border-white/15 pt-(--space-3)"
+              >
+                {t("principalLabel")}{" "}
+                <FinancialValue>{money(principalAmount)}</FinancialValue>
+                {estimate
+                  ? ` · ${t("netInterestLabel")}: ${money(estimate.breakdown.netInterest)} · ${t("maturityLabel")}: ${date(estimate.maturityDate)}`
+                  : ` · ${t("estimateEmpty")}`}
+              </Text>
             </Card>
-            <div
-              className="rounded-[var(--radius-card)] border border-border-subtle bg-surface px-(--space-4) py-(--space-2)"
-              data-testid="savings-review-summary"
-            >
-              <SummaryRow
+            <SavingsFactsCard testId="savings-review-summary">
+              <SavingsFactRow
                 label={t("sourceSection")}
                 value={
                   fundingAccount?.name ??
@@ -1086,7 +1112,7 @@ export function CreateSavingWizard({
                     : t("unknown"))
                 }
               />
-              <SummaryRow
+              <SavingsFactRow
                 label={t("creationModeLabel")}
                 value={
                   creationMode === SavingsCreateMode.HISTORICAL_OPENING
@@ -1094,11 +1120,11 @@ export function CreateSavingWizard({
                     : t("liveDepositMode")
                 }
               />
-              <SummaryRow
+              <SavingsFactRow
                 label={t("providerLabel")}
                 value={selectedProvider?.displayName ?? t("unknown")}
               />
-              <SummaryRow
+              <SavingsFactRow
                 label={t("packageLabel")}
                 value={
                   selectedPackage
@@ -1106,27 +1132,30 @@ export function CreateSavingWizard({
                     : t("unknown")
                 }
               />
-              <SummaryRow label={t("startDateLabel")} value={date(startDate)} />
-            </div>
-            <div
-              className="space-y-(--space-3)"
+              <SavingsFactRow
+                label={t("startDateLabel")}
+                value={date(startDate)}
+              />
+            </SavingsFactsCard>
+            <section
+              className="flex flex-col gap-(--space-4)"
               data-testid="savings-wizard-maturity-instruction"
             >
               <div>
-                <Text size="sm" weight="semibold">
+                <SavingsSectionTitle>
                   {t("maturityStrategyLabel")}
-                </Text>
-                <Text size="xs" tone="secondary">
+                </SavingsSectionTitle>
+                <Text
+                  size="xs"
+                  tone="secondary"
+                  className="mt-(--space-1) text-pretty"
+                >
                   {t("maturityStrategyHint")}
                 </Text>
               </div>
-              <div
-                className="grid gap-(--space-2)"
-                role="group"
-                aria-label={t("maturityStrategyLabel")}
-              >
+              <SelectionGroup ariaLabel={t("maturityStrategyLabel")}>
                 {SETTLEMENT_RULE_VALUES.map((value) => (
-                  <SelectionCard
+                  <SelectionRow
                     key={value}
                     selected={settlementRule === value}
                     onPress={() => setValue("settlementRule", value)}
@@ -1141,7 +1170,7 @@ export function CreateSavingWizard({
                             | "settlementRules.withdraw_everything",
                         )}
                       </Text>
-                      <Text size="xs" tone="secondary">
+                      <Text size="xs" tone="secondary" className="text-pretty">
                         {t(
                           `settlementRuleHints.${value}` as
                             | "settlementRuleHints.roll_principal_interest"
@@ -1150,75 +1179,77 @@ export function CreateSavingWizard({
                         )}
                       </Text>
                     </span>
-                  </SelectionCard>
+                  </SelectionRow>
                 ))}
-              </div>
+              </SelectionGroup>
               {settlementRule !== SettlementRule.WITHDRAW_EVERYTHING ? (
                 <>
                   <div>
-                    <Text size="sm" weight="semibold">
+                    <SavingsSectionTitle>
                       {t("targetPackageLabel")}
-                    </Text>
-                    <Text size="xs" tone="secondary">
+                    </SavingsSectionTitle>
+                    <Text
+                      size="xs"
+                      tone="secondary"
+                      className="mt-(--space-1) text-pretty"
+                    >
                       {t("targetPackageHint")}
                     </Text>
                   </div>
-                  <div
-                    className="grid grid-cols-2 gap-(--space-2)"
-                    role="group"
-                    aria-label={t("targetPackageLabel")}
-                  >
-                    <SelectionCard
-                      selected={
-                        targetMode === MaturityTargetMode.KEEP_CURRENT_PACKAGE
-                      }
-                      onPress={() => {
-                        setValue(
-                          "targetMode",
-                          MaturityTargetMode.KEEP_CURRENT_PACKAGE,
-                        );
-                        setValue(
-                          "targetPackageId",
-                          selectedPackage?.id ?? targetPackageId,
-                        );
-                      }}
-                      testId="savings-target-current"
-                    >
-                      <span>
-                        <Text size="sm" weight="medium">
-                          {t("keepCurrentPackage")}
-                        </Text>
-                        <Text size="xs" tone="secondary">
-                          {selectedPackage?.packageName ?? t("packageHint")}
-                        </Text>
-                      </span>
-                    </SelectionCard>
-                    <SelectionCard
-                      selected={
-                        targetMode === MaturityTargetMode.SELECT_PACKAGE
-                      }
-                      onPress={() =>
-                        setValue(
-                          "targetMode",
-                          MaturityTargetMode.SELECT_PACKAGE,
-                        )
-                      }
-                      testId="savings-target-other"
-                    >
-                      <span>
-                        <Text size="sm" weight="medium">
-                          {t("chooseOtherPackage")}
-                        </Text>
-                        <Text size="xs" tone="secondary">
-                          {t("targetPackageHint")}
-                        </Text>
-                      </span>
-                    </SelectionCard>
+                  <div role="group" aria-label={t("targetPackageLabel")}>
+                    <ChoiceTileGroup>
+                      <ChoiceTile
+                        selected={
+                          targetMode === MaturityTargetMode.KEEP_CURRENT_PACKAGE
+                        }
+                        onPress={() => {
+                          setValue(
+                            "targetMode",
+                            MaturityTargetMode.KEEP_CURRENT_PACKAGE,
+                          );
+                          setValue(
+                            "targetPackageId",
+                            selectedPackage?.id ?? targetPackageId,
+                          );
+                        }}
+                        testId="savings-target-current"
+                      >
+                        <span>
+                          <Text size="sm" weight="medium">
+                            {t("keepCurrentPackage")}
+                          </Text>
+                          <Text size="xs" tone="secondary">
+                            {selectedPackage?.packageName ?? t("packageHint")}
+                          </Text>
+                        </span>
+                      </ChoiceTile>
+                      <ChoiceTile
+                        selected={
+                          targetMode === MaturityTargetMode.SELECT_PACKAGE
+                        }
+                        onPress={() =>
+                          setValue(
+                            "targetMode",
+                            MaturityTargetMode.SELECT_PACKAGE,
+                          )
+                        }
+                        testId="savings-target-other"
+                      >
+                        <span>
+                          <Text size="sm" weight="medium">
+                            {t("chooseOtherPackage")}
+                          </Text>
+                          <Text size="xs" tone="secondary">
+                            {t("targetPackageHint")}
+                          </Text>
+                        </span>
+                      </ChoiceTile>
+                    </ChoiceTileGroup>
                   </div>
                   {targetMode === MaturityTargetMode.SELECT_PACKAGE ? (
-                    <div className="grid gap-(--space-2)">
+                    <SelectionGroup ariaLabel={t("targetPackageLabel")}>
                       {targetPackages.map((pkg) => (
-                        <SelectionCard
+                        <SelectionRow
                           key={pkg.id}
                           selected={targetPackageId === pkg.id}
                           onPress={() => setValue("targetPackageId", pkg.id)}
@@ -1234,88 +1265,83 @@ export function CreateSavingWizard({
                               {rate(pkg.annualInterestRate)}% / {t("year")}
                             </Text>
                           </span>
-                        </SelectionCard>
+                        </SelectionRow>
                       ))}
-                    </div>
+                    </SelectionGroup>
                   ) : null}
                 </>
               ) : null}
               {needsPayout ? (
-                <div className="space-y-(--space-2)">
-                  <Text size="sm" weight="semibold">
-                    {t("payoutAccountLabel")}
-                  </Text>
-                  <div className="grid gap-(--space-2)">
-                    {accounts.map((account) => (
-                      <SelectionCard
-                        key={account.id}
-                        selected={settlementAccountId === account.id}
-                        onPress={() =>
-                          setValue("settlementAccountId", account.id)
-                        }
-                        testId={`savings-payout-account-${account.id}`}
-                      >
-                        <Text size="sm" weight="medium">
-                          {account.name}
-                        </Text>
-                      </SelectionCard>
-                    ))}
-                  </div>
-                </div>
+                <SelectionGroup label={t("payoutAccountLabel")}>
+                  {accounts.map((account) => (
+                    <SelectionRow
+                      key={account.id}
+                      selected={settlementAccountId === account.id}
+                      onPress={() =>
+                        setValue("settlementAccountId", account.id)
+                      }
+                      testId={`savings-payout-account-${account.id}`}
+                    >
+                      <Text size="sm" weight="medium">
+                        {account.name}
+                      </Text>
+                    </SelectionRow>
+                  ))}
+                </SelectionGroup>
               ) : (
-                <Text size="xs" tone="secondary">
+                <Text size="xs" tone="secondary" className="text-pretty">
                   {t("noPayoutNeeded")}
                 </Text>
               )}
-              <div className="space-y-(--space-2)">
-                <Text size="sm" weight="semibold">
-                  {t("renewalPolicyLabel")}
-                </Text>
-                <div className="grid gap-(--space-2)">
-                  {RENEWAL_POLICY_VALUES.map((value) => (
-                    <SelectionCard
-                      key={value}
-                      selected={renewalPolicy === value}
-                      onPress={() => setValue("renewalPolicy", value)}
-                      testId={`savings-renewal-policy-${value}`}
-                    >
-                      <Text size="sm" weight="medium">
-                        {t(
-                          `renewalPolicies.${value}` as
-                            | "renewalPolicies.always_ask"
-                            | "renewalPolicies.use_saved_preference"
-                            | "renewalPolicies.auto_renew_until_cancelled"
-                            | "renewalPolicies.one_time_renewal",
-                        )}
-                      </Text>
-                    </SelectionCard>
-                  ))}
-                </div>
-              </div>
-              <Text size="xs" tone="secondary">
+              <SelectionGroup label={t("renewalPolicyLabel")}>
+                {RENEWAL_POLICY_VALUES.map((value) => (
+                  <SelectionRow
+                    key={value}
+                    selected={renewalPolicy === value}
+                    onPress={() => setValue("renewalPolicy", value)}
+                    testId={`savings-renewal-policy-${value}`}
+                  >
+                    <Text size="sm" weight="medium">
+                      {t(
+                        `renewalPolicies.${value}` as
+                          | "renewalPolicies.always_ask"
+                          | "renewalPolicies.use_saved_preference"
+                          | "renewalPolicies.auto_renew_until_cancelled"
+                          | "renewalPolicies.one_time_renewal",
+                      )}
+                    </Text>
+                  </SelectionRow>
+                ))}
+              </SelectionGroup>
+              <Text size="xs" tone="secondary" className="text-pretty">
                 {t("settlementHint", {
                   account: settlementAccount?.name ?? t("noPayoutNeeded"),
                 })}
               </Text>
-            </div>
-            <div className="rounded-[var(--radius-card)] bg-surface-hover px-(--space-4) py-(--space-3)">
-              <Text size="sm" weight="medium">
-                {t("flowTitle")}
-              </Text>
-              <Text size="sm" tone="secondary" className="mt-(--space-1)">
-                {fundingAccount?.name ?? t("historicalNoSource")} →{" "}
-                {t("flowSavings")} ·{" "}
-                <FinancialValue>{money(principalAmount)}</FinancialValue>
-              </Text>
-            </div>
+            </section>
+            <Card tone="elevated" className="gap-0 overflow-hidden p-0">
+              <div className="flex items-start gap-(--space-3) px-(--space-4) py-(--space-3)">
+                <IconContainer tone={IconContainerTone.SAVINGS} size="sm">
+                  <AppIcon icon={FINANCE_ICONS.savings} size={AppIconSize.SM} />
+                </IconContainer>
+                <div className="min-w-0 flex-1">
+                  <Text size="sm" weight="medium">
+                    {t("flowTitle")}
+                  </Text>
+                  <Text size="xs" tone="secondary" className="text-pretty">
+                    {fundingAccount?.name ?? t("historicalNoSource")} →{" "}
+                    {t("flowSavings")} ·{" "}
+                    <FinancialValue>{money(principalAmount)}</FinancialValue>
+                  </Text>
+                </div>
+              </div>
+            </Card>
           </section>
         ) : null}
       </MotionStep>
 
       <BottomActionBar className="mt-auto">
-        <div
-          className={`flex gap-(--space-2) ${stepIndex === 0 ? "justify-end" : "justify-between"}`}
-        >
+        <div className="flex justify-between gap-(--space-2)">
           {stepIndex > 0 ? (
             <Button
               variant="secondary"
@@ -1326,7 +1352,11 @@ export function CreateSavingWizard({
               {t("back")}
             </Button>
           ) : (
-            <Button variant="secondary" className="min-h-11" onPress={exitFlow}>
+            <Button
+              variant="secondary"
+              className="min-h-11 flex-1"
+              onPress={exitFlow}
+            >
               {t("cancel")}
             </Button>
           )}

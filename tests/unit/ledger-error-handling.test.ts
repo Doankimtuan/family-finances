@@ -61,6 +61,9 @@ describe("Ledger error classification", () => {
     expect(
       classifyRecordTransactionRpcError({ message: "Account not found" }),
     ).toBe(PRODUCT_ACTION_ERROR_CODE.INVALID);
+    expect(classifyRecordTransactionRpcError({ message: "not_allowed" })).toBe(
+      LEDGER_ACTION_ERROR_CODE.FORBIDDEN,
+    );
     expect(
       classifyRecordTransferRpcError({
         message: "Source and destination must differ",

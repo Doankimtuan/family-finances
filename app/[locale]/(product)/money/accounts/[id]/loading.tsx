@@ -2,49 +2,24 @@ import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Card } from "@/shared/patterns/card";
 import { Skeleton } from "@/shared/ui/skeleton";
 
-function CreditDetailSkeleton() {
+function AccountDetailSkeleton() {
   return (
     <>
       <Card tone="elevated" className="gap-0 p-(--space-4)">
         <div className="flex items-center justify-between gap-(--space-3)">
-          <div className="flex items-center gap-(--space-3)">
+          <div className="flex min-w-0 items-center gap-(--space-3)">
             <Skeleton className="size-11 rounded-(--radius-control)" />
             <Skeleton className="h-4 w-28" />
           </div>
-          <Skeleton className="h-4 w-12" />
+          <Skeleton className="size-11 rounded-(--radius-control)" />
         </div>
         <Skeleton className="mt-(--space-3) h-9 w-44" />
-        <Skeleton className="mt-(--space-4) h-2 w-full rounded-full" />
-        <div className="mt-(--space-4) grid grid-cols-2 gap-(--space-3) border-t border-border-subtle pt-(--space-3)">
-          <div className="flex flex-col gap-(--space-1)">
-            <Skeleton className="h-3 w-24" />
-            <Skeleton className="h-5 w-24" />
-          </div>
-          <div className="flex flex-col items-end gap-(--space-1)">
-            <Skeleton className="h-3 w-20" />
-            <Skeleton className="h-5 w-24" />
-          </div>
-        </div>
-        <Skeleton className="mt-(--space-4) h-4 w-24" />
+        <Skeleton className="mt-(--space-4) h-4 w-36" />
       </Card>
-      <Card tone="elevated" className="gap-0 p-(--space-4)">
-        <Skeleton className="h-5 w-32" />
-        <Skeleton className="mt-(--space-1) h-4 w-16" />
-        <div className="mt-(--space-4) flex items-center justify-between border-y border-border-subtle py-(--space-3)">
-          <Skeleton className="h-4 w-16" />
-          <Skeleton className="h-4 w-24" />
-        </div>
-        <Skeleton className="mt-(--space-4) h-8 w-40" />
-        <Skeleton className="mt-(--space-4) h-2 w-full rounded-full" />
-        <div className="mt-(--space-4) grid grid-cols-2 gap-(--space-3) border-t border-border-subtle pt-(--space-3)">
-          <Skeleton className="h-5 w-24" />
-          <Skeleton className="ml-auto h-5 w-24" />
-        </div>
-      </Card>
-      <Skeleton className="h-12 w-full rounded-full" />
+      <Skeleton className="h-12 w-full rounded-(--radius-control)" />
       <section className="flex flex-col gap-(--space-3)">
         <div className="flex items-start justify-between gap-(--space-3)">
-          <Skeleton className="h-5 w-28" />
+          <Skeleton className="h-5 w-32" />
           <Skeleton className="h-4 w-28" />
         </div>
         <div className="flex flex-col">
@@ -68,9 +43,9 @@ function CreditDetailSkeleton() {
 }
 
 /**
- * Loading shell for account detail mirrors the loaded composition. The credit
- * branch includes its hero metrics and current-statement surface so loading
- * does not collapse into the non-credit account layout.
+ * Loading shell for account detail mirrors the loaded composition: identity
+ * hero, primary capture, and a short activity preview. Credit-card modules
+ * hydrate in after the account type is known.
  */
 export default function AccountDetailLoading() {
   return (
@@ -83,7 +58,7 @@ export default function AccountDetailLoading() {
         className="flex flex-1 flex-col gap-(--space-5) px-(--page-gutter) pb-(--space-6) pt-(--space-3)"
         aria-hidden="true"
       >
-        <CreditDetailSkeleton />
+        <AccountDetailSkeleton />
       </div>
     </div>
   );

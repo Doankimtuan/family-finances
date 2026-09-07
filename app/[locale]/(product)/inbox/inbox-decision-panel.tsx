@@ -33,10 +33,13 @@ import {
 } from "@/modules/savings/application/savings-constants";
 import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
+import { Card } from "@/shared/patterns/card";
 import { FinancialValue } from "@/shared/patterns/financial-value";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { SelectField } from "@/shared/ui/form";
 import { BottomActionBar } from "@/shared/patterns/bottom-action-bar";
+import { InboxFactRow } from "./inbox-facts";
+import { InboxSectionTitle } from "./inbox-section-title";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import { DEFAULT_CURRENCY } from "@/modules/ledger/application/client";
@@ -358,51 +361,52 @@ export function InboxDecisionPanel({ item, jars }: Props) {
           className="flex flex-col gap-(--space-3)"
           data-testid="inbox-resolve-panel"
         >
-          <Text size="sm" className="font-semibold text-text-primary">
-            {t("resolveHeading")}
-          </Text>
+          <InboxSectionTitle>{t("resolveHeading")}</InboxSectionTitle>
           <Text size="sm" tone="secondary">
             {t("activeJarOnlyHint")}
           </Text>
-          <StatusAlert
-            variant="info"
-            title={t("resolveMoneySafeTitle")}
-            description={t("resolveMoneySafeBody")}
-          />
-
-          {showPatternSuggestion ? (
+          <Card tone="elevated" className="gap-(--space-3) p-(--space-4)">
             <StatusAlert
               variant="info"
-              title={t("patternSuggestionTitle")}
-              description={t("patternSuggestionBody", {
-                confidence: Math.round((item.confidenceScore ?? 0) * 100),
-                threshold: Math.round(AUTO_RESOLVE_CONFIDENCE_THRESHOLD * 100),
-              })}
+              title={t("resolveMoneySafeTitle")}
+              description={t("resolveMoneySafeBody")}
             />
-          ) : null}
 
-          {jars.length === 0 ? (
-            <StatusAlert
-              variant="warning"
-              title={t("noJarsTitle")}
-              description={t("noJarsBody")}
-            />
-          ) : (
-            <SelectField
-              id="inbox-jar-select"
-              label={t("jarLabel")}
-              value={jarId}
-              options={jars.map((jar) => ({
-                id: jar.id,
-                label: `${localizeCatalogName(tCatalog, "jars", jar.name)}${jar.id === item.suggestedJarId ? ` — ${t("suggestedSuffix")}` : ""}`,
-              }))}
-              onChange={setJarId}
-              isDisabled={busy}
-              required
-              data-testid="inbox-jar-select"
-            />
-          )}
+            {showPatternSuggestion ? (
+              <StatusAlert
+                variant="info"
+                title={t("patternSuggestionTitle")}
+                description={t("patternSuggestionBody", {
+                  confidence: Math.round((item.confidenceScore ?? 0) * 100),
+                  threshold: Math.round(
+                    AUTO_RESOLVE_CONFIDENCE_THRESHOLD * 100,
+                  ),
+                })}
+              />
+            ) : null}
 
+            {jars.length === 0 ? (
+              <StatusAlert
+                variant="warning"
+                title={t("noJarsTitle")}
+                description={t("noJarsBody")}
+              />
+            ) : (
+              <SelectField
+                id="inbox-jar-select"
+                label={t("jarLabel")}
+                value={jarId}
+                options={jars.map((jar) => ({
+                  id: jar.id,
+                  label: `${localizeCatalogName(tCatalog, "jars", jar.name)}${jar.id === item.suggestedJarId ? ` — ${t("suggestedSuffix")}` : ""}`,
+                }))}
+                onChange={setJarId}
+                isDisabled={busy}
+                required
+                data-testid="inbox-jar-select"
+              />
+            )}
+          </Card>
           <BottomActionBar>
             <Button
               variant="primary"
@@ -422,119 +426,131 @@ export function InboxDecisionPanel({ item, jars }: Props) {
           className="flex flex-col gap-(--space-3)"
           data-testid="inbox-maturity-panel"
         >
-          <Text size="sm" className="font-semibold text-text-primary">
-            {t("maturityHeading")}
-          </Text>
+          <InboxSectionTitle>{t("maturityHeading")}</InboxSectionTitle>
           <Text size="sm" tone="secondary">
             {t("maturityHint")}
           </Text>
-          <StatusAlert
-            variant="info"
-            title={t("maturitySourceTitle")}
-            description={t("maturitySourceBody")}
-          />
-          {maturityPayload ? (
-            <div className="flex flex-col gap-(--space-1) text-sm text-text-secondary">
-              <span>
-                {maturityPayload.providerName} ·{" "}
-                {maturityPayload.currentPackage}
-              </span>
-              <span>
-                {maturityPayload.currentRate}% · {t(policyLabelKey)}
-              </span>
-              {maturityPayload.recommendationReason
-                ? (() => {
-                    const label = reasonLabel(
-                      maturityPayload.recommendationReason,
-                    );
-                    return label ? <span>{label}</span> : null;
-                  })()
-                : null}
-            </div>
-          ) : null}
-          {maturityPayload?.warnings && maturityPayload.warnings.length > 0 ? (
+          <Card tone="elevated" className="gap-(--space-3) p-(--space-4)">
             <StatusAlert
-              variant="warning"
-              title={t("maturityWarningsTitle")}
-              description={maturityPayload.warnings
-                .map((w) => t(`maturityWarnings.${w.code}`))
-                .join(" · ")}
+              variant="info"
+              title={t("maturitySourceTitle")}
+              description={t("maturitySourceBody")}
             />
-          ) : null}
-          {maturityPayload && maturityPayload.recommendedPackages.length > 0 ? (
-            <SelectField
-              id="inbox-maturity-package"
-              label={t("maturityPackageLabel")}
-              value={selectedPackageId}
-              options={maturityPayload.recommendedPackages.map((pkg) => {
-                const reason = reasonLabel(pkg.reasonCode);
-                return {
-                  id: pkg.packageId,
-                  label: `${pkg.packageName} · ${pkg.annualRate}% · ${pkg.durationDays}d${reason ? ` — ${reason}` : ""}`,
-                };
-              })}
-              onChange={(next) => setSelectedPackageId(next)}
-              isDisabled={busy}
-              required
-              data-testid="inbox-maturity-package"
-            />
-          ) : null}
-          {maturityPayload ? (
-            <SelectField
-              id="inbox-maturity-settlement"
-              label={t("maturitySettlementLabel")}
-              value={selectedSettlementRule}
-              options={[
-                {
-                  id: SettlementRule.ROLL_PRINCIPAL_INTEREST,
-                  label: t("maturityRenew"),
-                },
-                {
-                  id: SettlementRule.ROLL_PRINCIPAL_ONLY,
-                  label: t("maturityRollPrincipalOnly"),
-                },
-                {
-                  id: SettlementRule.WITHDRAW_EVERYTHING,
-                  label: t("maturityWithdraw"),
-                },
-              ]}
-              onChange={(next) => setSelectedSettlementRule(next)}
-              isDisabled={busy}
-              required
-              data-testid="inbox-maturity-settlement"
-            />
-          ) : null}
-          {(
-            [
+            {maturityPayload ? (
+              <dl className="-mx-(--space-4) divide-y divide-divider border-y border-divider">
+                <InboxFactRow
+                  label={t("factProvider")}
+                  value={`${maturityPayload.providerName} · ${maturityPayload.currentPackage}`}
+                />
+                <InboxFactRow
+                  label={t("factRate")}
+                  value={`${maturityPayload.currentRate}% · ${t(policyLabelKey)}`}
+                />
+                {maturityPayload.recommendationReason
+                  ? (() => {
+                      const label = reasonLabel(
+                        maturityPayload.recommendationReason,
+                      );
+                      return label ? (
+                        <InboxFactRow
+                          label={t("factRecommendation")}
+                          value={label}
+                        />
+                      ) : null;
+                    })()
+                  : null}
+              </dl>
+            ) : null}
+            {maturityPayload?.warnings &&
+            maturityPayload.warnings.length > 0 ? (
+              <StatusAlert
+                variant="warning"
+                title={t("maturityWarningsTitle")}
+                description={maturityPayload.warnings
+                  .map((w) => t(`maturityWarnings.${w.code}`))
+                  .join(" · ")}
+              />
+            ) : null}
+            {maturityPayload &&
+            maturityPayload.recommendedPackages.length > 0 ? (
+              <SelectField
+                id="inbox-maturity-package"
+                label={t("maturityPackageLabel")}
+                value={selectedPackageId}
+                options={maturityPayload.recommendedPackages.map((pkg) => {
+                  const reason = reasonLabel(pkg.reasonCode);
+                  return {
+                    id: pkg.packageId,
+                    label: `${pkg.packageName} · ${pkg.annualRate}% · ${pkg.durationDays}d${reason ? ` — ${reason}` : ""}`,
+                  };
+                })}
+                onChange={(next) => setSelectedPackageId(next)}
+                isDisabled={busy}
+                required
+                data-testid="inbox-maturity-package"
+              />
+            ) : null}
+            {maturityPayload ? (
+              <SelectField
+                id="inbox-maturity-settlement"
+                label={t("maturitySettlementLabel")}
+                value={selectedSettlementRule}
+                options={[
+                  {
+                    id: SettlementRule.ROLL_PRINCIPAL_INTEREST,
+                    label: t("maturityRenew"),
+                  },
+                  {
+                    id: SettlementRule.ROLL_PRINCIPAL_ONLY,
+                    label: t("maturityRollPrincipalOnly"),
+                  },
+                  {
+                    id: SettlementRule.WITHDRAW_EVERYTHING,
+                    label: t("maturityWithdraw"),
+                  },
+                ]}
+                onChange={(next) => setSelectedSettlementRule(next)}
+                isDisabled={busy}
+                required
+                data-testid="inbox-maturity-settlement"
+              />
+            ) : null}
+            {(
               [
-                SavingsMaturityAckAction.CONFIRM_CONFIGURED,
-                "maturityConfirm",
-                highlightConfirm || equalWeight ? "primary" : "secondary",
-              ],
-              [SavingsMaturityAckAction.SWITCH, "maturitySwitch", "secondary"],
-              [
-                SavingsMaturityAckAction.WITHDRAW,
-                "maturityWithdraw",
-                highlightWithdraw ? "primary" : "secondary",
-              ],
-              [
-                SavingsMaturityAckAction.REMIND_TOMORROW,
-                "maturityRemind",
-                "secondary",
-              ],
-            ] as const
-          ).map(([action, labelKey, variant]) => (
-            <Button
-              key={action}
-              variant={variant}
-              className="w-full"
-              data-testid={`inbox-ack-${action}`}
-              isDisabled={busy || !online}
-              onPress={() => onSavingsMaturityAck(action)}
-            >
-              {t(labelKey)}
-            </Button>
-          ))}
+                [
+                  SavingsMaturityAckAction.CONFIRM_CONFIGURED,
+                  "maturityConfirm",
+                  highlightConfirm || equalWeight ? "primary" : "secondary",
+                ],
+                [
+                  SavingsMaturityAckAction.SWITCH,
+                  "maturitySwitch",
+                  "secondary",
+                ],
+                [
+                  SavingsMaturityAckAction.WITHDRAW,
+                  "maturityWithdraw",
+                  highlightWithdraw ? "primary" : "secondary",
+                ],
+                [
+                  SavingsMaturityAckAction.REMIND_TOMORROW,
+                  "maturityRemind",
+                  "secondary",
+                ],
+              ] as const
+            ).map(([action, labelKey, variant]) => (
+              <Button
+                key={action}
+                variant={variant}
+                className="w-full"
+                data-testid={`inbox-ack-${action}`}
+                isDisabled={busy || !online}
+                onPress={() => onSavingsMaturityAck(action)}
+              >
+                {t(labelKey)}
+              </Button>
+            ))}
+          </Card>
         </section>
       ) : null}
 
@@ -543,65 +559,73 @@ export function InboxDecisionPanel({ item, jars }: Props) {
           className="flex flex-col gap-(--space-3)"
           data-testid="inbox-early-withdrawal-panel"
         >
-          <Text size="sm" className="font-semibold text-text-primary">
-            {t("earlyWithdrawalHeading")}
-          </Text>
+          <InboxSectionTitle>{t("earlyWithdrawalHeading")}</InboxSectionTitle>
           <Text size="sm" tone="secondary">
             {t("earlyWithdrawalHint")}
           </Text>
-          <StatusAlert
-            variant="info"
-            title={t("earlyWithdrawalSourceTitle")}
-            description={t("earlyWithdrawalSourceBody")}
-          />
-          {earlyPayload ? (
-            <div className="flex flex-col gap-(--space-1) text-sm text-text-secondary">
-              <span className="flex items-center justify-between gap-(--space-3)">
-                <span>{t("earlyWithdrawalNetLabel")}</span>
-                <FinancialValue>
-                  {formatCurrency(
-                    earlyPayload.netReturned,
-                    DEFAULT_CURRENCY,
-                    locale,
-                    {
-                      maximumFractionDigits: 0,
-                    },
-                  )}
-                </FinancialValue>
-              </span>
-              <span className="flex items-center justify-between gap-(--space-3)">
-                <span>{t("earlyWithdrawalPenaltyLabel")}</span>
-                <FinancialValue>
-                  {formatCurrency(
-                    earlyPayload.penaltyAmount,
-                    DEFAULT_CURRENCY,
-                    locale,
-                    {
-                      maximumFractionDigits: 0,
-                    },
-                  )}
-                </FinancialValue>
-              </span>
-            </div>
-          ) : null}
-          <Button
-            variant="primary"
-            className="w-full"
-            data-testid="inbox-ack-confirm-early"
-            isDisabled={busy || !online}
-            onPress={() => onEarlyWithdrawAck(EarlyWithdrawalAckAction.CONFIRM)}
-          >
-            {t("earlyWithdrawalConfirm")}
-          </Button>
-          <Button
-            variant="secondary"
-            className="w-full"
-            data-testid="inbox-ack-cancel-early"
-            isDisabled={busy || !online}
-            onPress={() => onEarlyWithdrawAck(EarlyWithdrawalAckAction.CANCEL)}
-          >
-            {t("earlyWithdrawalCancel")}
-          </Button>
+          <Card tone="elevated" className="gap-(--space-3) p-(--space-4)">
+            <StatusAlert
+              variant="info"
+              title={t("earlyWithdrawalSourceTitle")}
+              description={t("earlyWithdrawalSourceBody")}
+            />
+            {earlyPayload ? (
+              <dl className="-mx-(--space-4) divide-y divide-divider border-y border-divider">
+                <InboxFactRow
+                  label={t("earlyWithdrawalNetLabel")}
+                  value={
+                    <FinancialValue>
+                      {formatCurrency(
+                        earlyPayload.netReturned,
+                        DEFAULT_CURRENCY,
+                        locale,
+                        {
+                          maximumFractionDigits: 0,
+                        },
+                      )}
+                    </FinancialValue>
+                  }
+                />
+                <InboxFactRow
+                  label={t("earlyWithdrawalPenaltyLabel")}
+                  value={
+                    <FinancialValue>
+                      {formatCurrency(
+                        earlyPayload.penaltyAmount,
+                        DEFAULT_CURRENCY,
+                        locale,
+                        {
+                          maximumFractionDigits: 0,
+                        },
+                      )}
+                    </FinancialValue>
+                  }
+                />
+              </dl>
+            ) : null}
+            <Button
+              variant="primary"
+              className="w-full"
+              data-testid="inbox-ack-confirm-early"
+              isDisabled={busy || !online}
+              onPress={() =>
+                onEarlyWithdrawAck(EarlyWithdrawalAckAction.CONFIRM)
+              }
+            >
+              {t("earlyWithdrawalConfirm")}
+            </Button>
+            <Button
+              variant="secondary"
+              className="w-full"
+              data-testid="inbox-ack-cancel-early"
+              isDisabled={busy || !online}
+              onPress={() =>
+                onEarlyWithdrawAck(EarlyWithdrawalAckAction.CANCEL)
+              }
+            >
+              {t("earlyWithdrawalCancel")}
+            </Button>
+          </Card>
         </section>
       ) : null}
 
@@ -610,30 +634,30 @@ export function InboxDecisionPanel({ item, jars }: Props) {
           className="flex flex-col gap-(--space-3)"
           data-testid="inbox-emi-panel"
         >
-          <Text size="sm" className="font-semibold text-text-primary">
-            {t("emiHeading")}
-          </Text>
+          <InboxSectionTitle>{t("emiHeading")}</InboxSectionTitle>
           <Text size="sm" tone="secondary">
             {t("emiHint")}
           </Text>
-          <Button
-            variant="primary"
-            className="w-full"
-            data-testid="inbox-ack-celebrate"
-            isDisabled={busy || !online}
-            onPress={() => onAck(EmiAckAction.CELEBRATE)}
-          >
-            {t("emiCelebrate")}
-          </Button>
-          <Button
-            variant="secondary"
-            className="w-full"
-            data-testid="inbox-ack-later"
-            isDisabled={busy || !online}
-            onPress={() => onAck(EmiAckAction.LATER)}
-          >
-            {t("emiLater")}
-          </Button>
+          <Card tone="elevated" className="gap-(--space-3) p-(--space-4)">
+            <Button
+              variant="primary"
+              className="w-full"
+              data-testid="inbox-ack-celebrate"
+              isDisabled={busy || !online}
+              onPress={() => onAck(EmiAckAction.CELEBRATE)}
+            >
+              {t("emiCelebrate")}
+            </Button>
+            <Button
+              variant="secondary"
+              className="w-full"
+              data-testid="inbox-ack-later"
+              isDisabled={busy || !online}
+              onPress={() => onAck(EmiAckAction.LATER)}
+            >
+              {t("emiLater")}
+            </Button>
+          </Card>
         </section>
       ) : null}
 

@@ -4,9 +4,12 @@ import type { PlanRecommendation } from "@/modules/plan/application/plan-recomme
 import { Section } from "@/shared/patterns/section";
 import { Card } from "@/shared/patterns/card";
 import { Text } from "@/shared/ui/text";
-import { StatusBadge } from "@/shared/ui/status-badge";
+import { AppIcon } from "@/shared/ui/app-icon";
+import { ACTION_ICONS } from "@/shared/ui/icon-registry";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import { FinancialValue } from "@/shared/patterns/financial-value";
+import { PLAN_INLINE_LINK_CLASS } from "./plan-chrome";
+import { PlanSectionTitle } from "./plan-section-title";
 
 export type Translator = {
   (key: string, values?: Record<string, string | number>): string;
@@ -131,8 +134,15 @@ export function RecommendationList({
   if (recommendations.length === 0) return null;
 
   return (
-    <Section title={title ?? t("recommendations.title")} testId={testId}>
-      <div className="flex flex-col gap-(--space-3)">
+    <Section
+      title={
+        <PlanSectionTitle>
+          {title ?? t("recommendations.title")}
+        </PlanSectionTitle>
+      }
+      testId={testId}
+    >
+      <div className="flex flex-col gap-(--space-2)">
         {recommendations.map((recommendation) => {
           const values = recommendationValues(
             recommendation,
@@ -149,21 +159,19 @@ export function RecommendationList({
               className="gap-(--space-3) p-(--space-4)"
             >
               <div className="flex items-start justify-between gap-(--space-3)">
-                <div className="min-w-0">
-                  <StatusBadge tone="info">
-                    {t("recommendations.title")}
-                  </StatusBadge>
-                  <Text
-                    size="sm"
-                    className="mt-(--space-2) font-semibold text-text-primary text-wrap-balance"
-                  >
-                    {t.rich(recommendation.titleKey, values)}
-                  </Text>
-                </div>
+                <Text
+                  size="sm"
+                  weight="semibold"
+                  className="min-w-0 text-pretty text-wrap-balance"
+                >
+                  {t.rich(recommendation.titleKey, values)}
+                </Text>
                 {recommendation.amount != null ? (
                   <Text
                     size="sm"
-                    className="shrink-0 tabular-nums font-semibold text-text-primary"
+                    weight="semibold"
+                    tabular
+                    className="shrink-0 tracking-tight"
                   >
                     <FinancialValue>
                       {localizedAmount(recommendation.amount, currency, locale)}
@@ -171,15 +179,16 @@ export function RecommendationList({
                   </Text>
                 ) : null}
               </div>
-              <Text size="sm" tone="secondary" className="text-wrap-pretty">
+              <Text size="sm" tone="secondary" className="text-pretty">
                 {t.rich(recommendation.descriptionKey, values)}
               </Text>
               {recommendation.action ? (
                 <Link
                   href={resolveHref(recommendation)}
-                  className="inline-flex min-h-10 w-fit items-center rounded-(--radius-control) bg-accent px-(--space-3) text-sm font-semibold text-accent-fg transition-[transform,background-color] duration-(--duration-fast) hover:bg-accent/90 active:scale-[var(--press-scale)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none motion-reduce:active:scale-100"
+                  className={`${PLAN_INLINE_LINK_CLASS} w-fit gap-(--space-1)`}
                 >
                   {actionLabel(recommendation, t)}
+                  <AppIcon icon={ACTION_ICONS.forward} size="sm" />
                 </Link>
               ) : null}
             </Card>

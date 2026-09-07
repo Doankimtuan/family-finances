@@ -1,12 +1,12 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { PlusSignIcon } from "@hugeicons/core-free-icons";
 import { useRouter } from "@/i18n/navigation";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import { QuickAction } from "@/shared/patterns/quick-action";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
-import { AppIcon } from "@/shared/ui/app-icon";
+import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
+import { ACTION_ICONS } from "@/shared/ui/icon-registry";
 
 /**
  * Contextual capture entry on account detail. One primary action per screen:
@@ -21,7 +21,7 @@ export function AccountQuickCapture() {
   return (
     <QuickAction
       label={online ? t("capture") : t("captureOffline")}
-      icon={<AppIcon icon={PlusSignIcon} size="sm" />}
+      icon={<AppIcon icon={ACTION_ICONS.add} size={AppIconSize.SM} />}
       isDisabled={!online}
       data-testid="account-quick-capture"
       onPress={() => router.push(APP_PATH.MONEY_ADD)}

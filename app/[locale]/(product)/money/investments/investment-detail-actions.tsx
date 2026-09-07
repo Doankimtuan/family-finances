@@ -10,7 +10,7 @@ import {
   investmentUxConfig,
   type InvestmentUxType,
 } from "@/modules/investments/application/investment-ux";
-import { Button } from "@/shared/ui/button";
+import { QuickAction } from "@/shared/patterns/quick-action";
 
 /**
  * Contextual actions under the holding hero: the primary "buy more" action
@@ -31,24 +31,20 @@ export function InvestmentDetailActions({
 
   return (
     <div className="flex items-center gap-(--space-2)">
-      <Button
-        className="h-11 min-w-0 flex-1"
+      <QuickAction
+        className="min-w-0 flex-1"
         onPress={() => router.push(moneyInvestmentBuyPath(holdingId))}
         data-testid="investment-detail-buy"
-      >
-        {tUx(ux.purchaseActionKey)}
-      </Button>
+        label={tUx(ux.purchaseActionKey)}
+      />
       {showSell ? (
-        <>
-          <Button
-            variant="secondary"
-            className="h-11 min-w-0 flex-1"
-            onPress={() => router.push(moneyInvestmentSellPath(holdingId))}
-            data-testid="investment-detail-sell"
-          >
-            {tUx(ux.disposalActionKey)}
-          </Button>
-        </>
+        <QuickAction
+          variant="secondary"
+          className="min-w-0 flex-1"
+          onPress={() => router.push(moneyInvestmentSellPath(holdingId))}
+          data-testid="investment-detail-sell"
+          label={tUx(ux.disposalActionKey)}
+        />
       ) : null}
     </div>
   );

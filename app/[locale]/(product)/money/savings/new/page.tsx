@@ -12,9 +12,9 @@ import {
 } from "@/modules/savings/application";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Page } from "@/shared/patterns/page";
-import { EmptyState } from "@/shared/patterns/empty-state";
 import { MoneyOfflineBanner } from "../../money-offline-banner";
 import { CreateSavingWizard } from "./create-saving-wizard";
+import { SavingsUnavailable } from "../savings-unavailable";
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -29,8 +29,9 @@ export default async function NewSavingPage({ params }: Props) {
     return redirect({ href: APP_PATH.ONBOARD, locale });
   }
 
-  const [t, accountsResult, catalog] = await Promise.all([
+  const [t, tMoney, accountsResult, catalog] = await Promise.all([
     getTranslations("money.savingsWizard"),
+    getTranslations("money"),
     listSavingsEligibleAccounts(),
     listProviderCatalog(),
   ]);
@@ -63,14 +64,22 @@ export default async function NewSavingPage({ params }: Props) {
   return (
     <Page
       testId="money-savings-new"
-      topBar={<TopAppBar title={t("title")} subtitle={t("subtitle")} />}
+      topBar={
+        <TopAppBar
+          variant="detail"
+          backHref={APP_PATH.MONEY_SAVINGS}
+          title={t("title")}
+          subtitle={t("subtitle")}
+        />
+      }
     >
       <MoneyOfflineBanner />
       {accounts.length === 0 ? (
-        <EmptyState
-          title={t("title")}
+        <SavingsUnavailable
+          title={t("noEligibleAccounts")}
           description={t("reviewHint")}
-          className="flex-none py-(--space-4)"
+          actionHref={APP_PATH.MONEY_ACCOUNTS}
+          actionLabel={tMoney("createAccount")}
         />
       ) : (
         <CreateSavingWizard

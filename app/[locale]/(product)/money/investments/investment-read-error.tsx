@@ -3,21 +3,23 @@
 import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { Button } from "@/shared/ui/button";
-import { StatusAlert } from "@/shared/ui/status-alert";
+import { ErrorState } from "@/shared/patterns/error-state";
 
 export function InvestmentReadError() {
   const t = useTranslations("money.investments.overview");
   const router = useRouter();
 
   return (
-    <div
-      className="flex flex-col gap-(--space-3)"
-      data-testid="investment-read-error"
-    >
-      <StatusAlert variant="danger" title={t("loadError")} />
-      <Button variant="secondary" onPress={() => router.refresh()}>
-        {t("retry")}
-      </Button>
+    <div data-testid="investment-read-error">
+      <ErrorState
+        title={t("loadError")}
+        className="flex-none py-(--space-4)"
+        action={
+          <Button variant="secondary" onPress={() => router.refresh()}>
+            {t("retry")}
+          </Button>
+        }
+      />
     </div>
   );
 }

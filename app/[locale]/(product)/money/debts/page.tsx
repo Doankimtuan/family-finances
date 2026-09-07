@@ -25,22 +25,46 @@ import {
   localizeCatalogName,
 } from "@/shared/i18n/localize-catalog-name";
 import { MotionReveal } from "@/shared/motion";
+import { Amount, AmountSize } from "@/shared/patterns/amount";
 import { Card } from "@/shared/patterns/card";
 import { EmptyState } from "@/shared/patterns/empty-state";
+import { ErrorState } from "@/shared/patterns/error-state";
 import { FinancialValue } from "@/shared/patterns/financial-value";
+import { Page } from "@/shared/patterns/page";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
-import { AppIcon } from "@/shared/ui/app-icon";
-import { IconContainer } from "@/shared/ui/icon-container";
+import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
 import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
-import { StatusAlert } from "@/shared/ui/status-alert";
+import { StatusBadge, StatusBadgeTone } from "@/shared/ui/status-badge";
 import { Text } from "@/shared/ui/text";
-import { FinancialOwnershipBadge } from "@/shared/patterns/financial-ownership-badge";
 import { todayIsoDate } from "@/shared/utils/iso-date";
 import { MoneyOfflineBanner } from "../money-offline-banner";
-import { DebtCreateSheet } from "./debt-create-sheet";
-import { DebtDueBadge, DebtProgressSummary } from "./debt-presentation";
+import { DebtCreateSheet, DebtCreateTrigger } from "./debt-create-sheet";
+import { DebtGroupEmpty, DebtProductRow } from "./debt-product-row";
+import { DebtPrivacyToggle } from "./debt-privacy-toggle";
+import { DebtSectionTitle } from "./debt-section-title";
 
 type Props = { params: Promise<{ locale: string }> };
+
+function moneyLabel(value: number, currency: string, locale: string) {
+  return formatCurrency(value, currency, locale, { maximumFractionDigits: 0 });
+}
+
+function SummaryMetric({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex min-w-0 items-start justify-between gap-(--space-3)">
+      <Text size="sm" tone="secondary" className="text-pretty">
+        {label}
+      </Text>
+      <div className="min-w-0 text-right">{children}</div>
+    </div>
+  );
+}
 
 export default async function DebtsPage({ params }: Props) {
   const { locale: rawLocale } = await params;
@@ -55,12 +79,14 @@ export default async function DebtsPage({ params }: Props) {
     return redirect({ href: APP_PATH.ONBOARD, locale });
   }
 
-  const [t, tCatalog, debtsResult, accountsResult] = await Promise.all([
-    getTranslations("money.debtsPage"),
-    getTranslations("catalog"),
-    listDebts(),
-    listAccounts(),
-  ]);
+  const [t, tCatalog, tProducts, debtsResult, accountsResult] =
+    await Promise.all([
+      getTranslations("money.debtsPage"),
+      getTranslations("catalog"),
+      getTranslations("money.products"),
+      listDebts(),
+      listAccounts(),
+    ]);
   const today = todayIsoDate();
   const debts = debtsResult ?? [];
   const rows = buildDebtViewModels(debts, today);
@@ -88,352 +114,278 @@ export default async function DebtsPage({ params }: Props) {
     paid: t("paid"),
     received: t("received"),
   };
-  const createSheet = (
-    <DebtCreateSheet
-      accounts={accounts}
-      accountsLoadFailed={accountsResult == null}
-      currency={currency}
-      locale={locale}
-      today={today}
-    />
-  );
+  const createAccounts = {
+    accounts,
+    accountsLoadFailed: accountsResult == null,
+    currency,
+    locale,
+    today,
+  };
+  const nextDueLabel = nextDue?.dueDate
+    ? t("nextDue", {
+        counterparty: nextDue.counterparty,
+        date: formatDate(new Date(`${nextDue.dueDate}T00:00:00Z`), locale, {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        }),
+      })
+    : null;
+  const heroCaption =
+    summary.overdueCount > 0
+      ? t("overdueCount", { count: summary.overdueCount })
+      : (nextDueLabel ?? t("summaryCaption"));
 
   return (
-    <div className="flex min-h-full flex-col" data-testid="money-debts">
-      <TopAppBar
-        variant="detail"
-        title={t("title")}
-        subtitle={t("subtitle")}
-        backHref={APP_PATH.MONEY}
-      />
-      <div className="flex flex-1 flex-col gap-(--space-4) px-(--space-4) pb-(--space-6) pt-(--space-4)">
-        <MoneyOfflineBanner
-          title={t("offlineTitle")}
-          description={t("offlineDescription")}
+    <Page
+      testId="money-debts"
+      contentClassName="gap-(--space-5)"
+      topBar={
+        <TopAppBar
+          variant="detail"
+          title={t("title")}
+          subtitle={t("subtitle")}
+          backHref={APP_PATH.MONEY}
         />
-        {debtsResult == null ? (
-          <>
-            {createSheet}
-            <StatusAlert
-              variant="danger"
-              title={t("loadErrorTitle")}
-              description={t("loadErrorDescription")}
-              action={
-                <Link
-                  href={APP_PATH.MONEY_DEBTS}
-                  className="inline-flex min-h-11 items-center rounded-[var(--radius-control)] px-(--space-2) text-sm font-semibold text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-                  data-testid="debt-retry"
-                >
-                  {t("retry")}
-                </Link>
-              }
+      }
+    >
+      <MoneyOfflineBanner
+        title={t("offlineTitle")}
+        description={t("offlineDescription")}
+      />
+      {debtsResult == null ? (
+        <ErrorState
+          title={t("loadErrorTitle")}
+          description={t("loadErrorDescription")}
+          className="flex-none py-(--space-4)"
+          action={
+            <Link
+              href={APP_PATH.MONEY_DEBTS}
+              className="inline-flex min-h-11 items-center rounded-(--radius-control) px-(--space-2) text-sm font-semibold text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+              data-testid="debt-retry"
+            >
+              {t("retry")}
+            </Link>
+          }
+        />
+      ) : debts.length === 0 ? (
+        <EmptyState
+          title={t("emptyTitle")}
+          description={t("emptyDescription")}
+          className="flex-none py-(--space-4)"
+          icon={
+            <AppIcon icon={FINANCE_ICONS.debt} size={AppIconSize.DISPLAY} />
+          }
+          action={
+            <DebtCreateSheet
+              {...createAccounts}
+              trigger={DebtCreateTrigger.EMPTY}
             />
-          </>
-        ) : debts.length === 0 ? (
-          <EmptyState
-            title={t("emptyTitle")}
-            description={t("emptyDescription")}
-            action={createSheet}
-            className="flex-none py-(--space-4)"
-          />
-        ) : (
-          <>
-            {createSheet}
-            <MotionReveal>
-              <Card
-                tone="metric"
-                className="gap-(--space-4) p-(--space-4)"
-                aria-label={t("title")}
-              >
-                <Text size="sm" weight="semibold">
-                  {t("overview")}
-                </Text>
-                <div className="grid grid-cols-2 divide-x divide-border-subtle">
-                  <DebtSummaryMetric
-                    icon={FINANCE_ICONS.expense}
-                    iconTone="expense"
-                    label={t("payable")}
-                    amountClassName="text-text-primary"
-                    amount={formatCurrency(
-                      summary.totalBorrowed,
-                      currency,
-                      locale,
-                      { maximumFractionDigits: 0 },
-                    )}
-                  />
-                  <DebtSummaryMetric
-                    icon={FINANCE_ICONS.income}
-                    iconTone="income"
-                    label={t("receivable")}
-                    amountClassName="text-text-primary"
-                    amount={formatCurrency(
-                      summary.totalLent,
-                      currency,
-                      locale,
-                      {
-                        maximumFractionDigits: 0,
-                      },
-                    )}
-                  />
+          }
+        />
+      ) : (
+        <div
+          className="flex flex-col gap-(--space-5)"
+          data-testid="debts-list-content"
+        >
+          <MotionReveal>
+            <section
+              className="flex flex-col gap-(--space-3)"
+              data-testid="debts-summary"
+            >
+              <Card tone="hero" className="gap-0 p-(--space-4)">
+                <div className="flex items-center justify-between gap-(--space-3)">
+                  <Text size="sm" weight="medium" className="text-hero-muted">
+                    {t("payable")}
+                  </Text>
+                  <DebtPrivacyToggle testId="debts-financial-privacy-toggle" />
                 </div>
-                {summary.overdueCount > 0 || summary.dueSoonCount > 0 ? (
-                  <div className="flex flex-wrap gap-x-(--space-4) gap-y-(--space-2) border-t border-border-subtle pt-(--space-3)">
-                    {summary.overdueCount > 0 ? (
-                      <DebtSummaryStat
-                        label={t("overdueCount", {
-                          count: summary.overdueCount,
-                        })}
-                        tone="danger"
-                      />
-                    ) : null}
-                    {summary.dueSoonCount > 0 ? (
-                      <DebtSummaryStat
-                        label={t("dueSoonCount", {
-                          count: summary.dueSoonCount,
-                        })}
-                        tone="accent"
-                      />
-                    ) : null}
-                  </div>
-                ) : null}
-                {nextDue?.dueDate ? (
-                  <Text size="sm" tone="secondary">
-                    {t("nextDue", {
-                      counterparty: nextDue.counterparty,
-                      date: formatDate(
-                        new Date(`${nextDue.dueDate}T00:00:00Z`),
-                        locale,
-                        { day: "2-digit", month: "short", year: "numeric" },
-                      ),
-                    })}
-                  </Text>
-                ) : null}
-              </Card>
-            </MotionReveal>
-            <MotionReveal>
-              <section className="flex flex-col gap-(--space-2)">
-                <Text size="sm" className="font-medium text-text-primary">
-                  {t("active")}
+                <Amount
+                  amountLabel={moneyLabel(
+                    summary.totalBorrowed,
+                    currency,
+                    locale,
+                  )}
+                  size={AmountSize.HERO}
+                  className="mt-(--space-2)"
+                  amountClassName="text-4xl leading-none text-hero-fg"
+                />
+                <Text
+                  size="xs"
+                  className="mt-(--space-2) text-pretty text-hero-muted"
+                >
+                  {tProducts("notBankBalance")}
                 </Text>
-                {activeRows.length === 0 ? (
-                  <EmptyState
-                    title={t("activeEmptyTitle")}
-                    description={t("activeEmptyDescription")}
-                    className="flex-none rounded-[var(--radius-card)] border border-border-subtle py-(--space-4)"
-                  />
-                ) : (
-                  <ul className="flex flex-col gap-(--space-2)">
-                    {activeRows.map((debt) => {
-                      const isBorrowed =
-                        debt.direction === DebtDirection.BORROWED;
-                      const remainingLabel = isBorrowed
-                        ? t("remainingToPay")
-                        : t("remainingToReceive");
-                      return (
-                        <li key={debt.id}>
-                          <Link
-                            href={moneyDebtPath(debt.id)}
-                            className="block focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-                          >
-                            <Card
-                              tone="interactive"
-                              className="gap-(--space-3) p-(--space-3)"
-                              data-testid={`debt-row-${debt.id}`}
-                            >
-                              <div className="flex items-start gap-(--space-3)">
-                                <IconContainer
-                                  tone={isBorrowed ? "debt" : "income"}
-                                  size="sm"
-                                >
-                                  <AppIcon
-                                    icon={
-                                      isBorrowed
-                                        ? FINANCE_ICONS.debt
-                                        : FINANCE_ICONS.income
-                                    }
-                                    size="sm"
-                                  />
-                                </IconContainer>
-                                <div className="min-w-0 flex-1">
-                                  <div className="flex items-start justify-between gap-(--space-2)">
-                                    <div className="flex min-w-0 flex-wrap items-center gap-x-(--space-2) gap-y-1">
-                                      <Text
-                                        size="sm"
-                                        weight="medium"
-                                        className="truncate text-text-primary"
-                                      >
-                                        {debt.counterparty}
-                                      </Text>
-                                      <Text size="sm" tone="secondary">
-                                        {isBorrowed
-                                          ? t("create.borrowed")
-                                          : t("create.lent")}
-                                      </Text>
-                                      <FinancialOwnershipBadge
-                                        financialScope={
-                                          debt.ownership.financialScope
-                                        }
-                                        isOwnedByMe={debt.ownership.isOwnedByMe}
-                                        ownerStatus={debt.ownership.ownerStatus}
-                                      />
-                                    </div>
-                                    <div className="shrink-0 text-right">
-                                      <Text size="sm" tone="secondary">
-                                        {remainingLabel}
-                                      </Text>
-                                      <Text
-                                        size="lg"
-                                        weight="semibold"
-                                        className="tabular-nums text-text-primary"
-                                      >
-                                        <FinancialValue>
-                                          {formatCurrency(
-                                            debt.remainingAmount,
-                                            debt.currency,
-                                            locale,
-                                            { maximumFractionDigits: 0 },
-                                          )}
-                                        </FinancialValue>
-                                      </Text>
-                                    </div>
-                                  </div>
-                                  <div className="mt-(--space-3) flex flex-col gap-(--space-2)">
-                                    <DebtDueBadge
-                                      due={debt.due}
-                                      dueDate={debt.dueDate}
-                                      labels={dueLabels}
-                                      locale={locale}
-                                    />
-                                    <DebtProgressSummary
-                                      direction={debt.direction}
-                                      progress={debt.progress}
-                                      currency={debt.currency}
-                                      locale={locale}
-                                      labels={progressLabels}
-                                    />
-                                  </div>
-                                </div>
-                              </div>
-                            </Card>
-                          </Link>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
-              </section>
-            </MotionReveal>
-            {historyRows.length > 0 ? (
-              <MotionReveal>
-                <section className="flex flex-col gap-(--space-2)">
-                  <Text size="sm" className="font-medium text-text-primary">
-                    {t("history")}
+                <div className="mt-(--space-4) border-t border-white/15 pt-(--space-3)">
+                  <Text size="xs" className="text-pretty text-hero-muted">
+                    {heroCaption}
                   </Text>
-                  <ul className="flex flex-col gap-(--space-2)">
-                    {historyRows.map((debt) => (
+                </div>
+              </Card>
+              <Card
+                tone="elevated"
+                className="gap-0 p-(--space-4)"
+                data-testid="debts-summary-metrics"
+              >
+                <DebtSectionTitle>{t("summaryTitle")}</DebtSectionTitle>
+                <div className="mt-(--space-3) flex flex-col gap-(--space-3)">
+                  <SummaryMetric label={t("receivable")}>
+                    <Text size="sm" weight="semibold" tabular>
+                      <FinancialValue>
+                        {moneyLabel(summary.totalLent, currency, locale)}
+                      </FinancialValue>
+                    </Text>
+                  </SummaryMetric>
+                  <SummaryMetric label={t("active")}>
+                    <Text size="sm" weight="semibold" tabular>
+                      {String(activeRows.length)}
+                    </Text>
+                  </SummaryMetric>
+                  <SummaryMetric label={t("overdueLabel")}>
+                    {summary.overdueCount > 0 ? (
+                      <StatusBadge tone={StatusBadgeTone.ATTENTION}>
+                        {t("overdueCount", { count: summary.overdueCount })}
+                      </StatusBadge>
+                    ) : (
+                      <Text size="sm" weight="medium">
+                        {t("overdueCount", { count: summary.overdueCount })}
+                      </Text>
+                    )}
+                  </SummaryMetric>
+                  {summary.dueSoonCount > 0 ? (
+                    <SummaryMetric label={t("dueSoonLabel")}>
+                      <StatusBadge tone={StatusBadgeTone.WARNING}>
+                        {t("dueSoonCount", { count: summary.dueSoonCount })}
+                      </StatusBadge>
+                    </SummaryMetric>
+                  ) : null}
+                </div>
+              </Card>
+            </section>
+          </MotionReveal>
+          <section
+            className="flex flex-col gap-(--space-2)"
+            aria-labelledby="debts-active-heading"
+          >
+            <div className="flex items-end justify-between gap-(--space-3)">
+              <div className="min-w-0">
+                <DebtSectionTitle>
+                  <span id="debts-active-heading">{t("active")}</span>
+                </DebtSectionTitle>
+                <Text
+                  size="xs"
+                  tone="secondary"
+                  className="mt-(--space-1) text-pretty"
+                >
+                  {t("activeHint")}
+                </Text>
+              </div>
+              <Text size="xs" tone="muted" className="shrink-0 tabular-nums">
+                {t("sectionCount", { count: activeRows.length })}
+              </Text>
+            </div>
+            <Card tone="elevated" className="gap-0 overflow-hidden p-0">
+              {activeRows.length === 0 ? (
+                <DebtGroupEmpty>{t("activeEmptyTitle")}</DebtGroupEmpty>
+              ) : (
+                <ul className="divide-y divide-divider">
+                  {activeRows.map((debt) => {
+                    const isBorrowed =
+                      debt.direction === DebtDirection.BORROWED;
+                    return (
                       <li key={debt.id}>
-                        <Link
+                        <DebtProductRow
                           href={moneyDebtPath(debt.id)}
-                          className="block focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-                        >
-                          <Card
-                            tone="interactive"
-                            className="flex-row items-center justify-between gap-(--space-3) p-(--space-3)"
-                            data-testid={`debt-history-row-${debt.id}`}
-                          >
-                            <div className="min-w-0">
-                              <Text
-                                size="sm"
-                                weight="medium"
-                                className="truncate"
-                              >
-                                {debt.counterparty}
-                              </Text>
-                              <Text size="sm" tone="secondary">
-                                {debt.direction === DebtDirection.BORROWED
-                                  ? t("create.borrowed")
-                                  : t("create.lent")}
-                              </Text>
-                            </div>
-                            <div className="flex shrink-0 flex-col items-end gap-(--space-1)">
-                              <DebtDueBadge
-                                due={debt.due}
-                                dueDate={debt.dueDate}
-                                labels={dueLabels}
-                                locale={locale}
-                              />
-                              <Text
-                                size="sm"
-                                weight="semibold"
-                                className="tabular-nums"
-                              >
-                                <FinancialValue>
-                                  {formatCurrency(
-                                    debt.principalAmount,
-                                    debt.currency,
-                                    locale,
-                                    { maximumFractionDigits: 0 },
-                                  )}
-                                </FinancialValue>
-                              </Text>
-                            </div>
-                          </Card>
-                        </Link>
+                          testId={`debt-row-${debt.id}`}
+                          direction={debt.direction}
+                          directionLabel={
+                            isBorrowed ? t("create.borrowed") : t("create.lent")
+                          }
+                          title={debt.counterparty}
+                          amountLabel={moneyLabel(
+                            debt.remainingAmount,
+                            debt.currency,
+                            locale,
+                          )}
+                          amountCaption={
+                            isBorrowed
+                              ? t("remainingToPay")
+                              : t("remainingToReceive")
+                          }
+                          due={debt.due}
+                          dueDate={debt.dueDate}
+                          dueLabels={dueLabels}
+                          locale={locale}
+                          progress={debt.progress}
+                          progressLabels={progressLabels}
+                          ownership={debt.ownership}
+                        />
                       </li>
-                    ))}
-                  </ul>
-                </section>
-              </MotionReveal>
-            ) : null}
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function DebtSummaryMetric({
-  icon,
-  iconTone,
-  label,
-  amount,
-  amountClassName,
-}: {
-  icon: typeof FINANCE_ICONS.income;
-  iconTone: "expense" | "income";
-  label: string;
-  amount: string;
-  amountClassName: string;
-}) {
-  return (
-    <div className="flex min-w-0 flex-col gap-(--space-2) p-(--space-3)">
-      <IconContainer tone={iconTone} size="sm">
-        <AppIcon icon={icon} size="sm" />
-      </IconContainer>
-      <Text size="sm" tone="secondary">
-        {label}
-      </Text>
-      <Text
-        size="lg"
-        weight="semibold"
-        className={`truncate tabular-nums ${amountClassName}`}
-      >
-        <FinancialValue>{amount}</FinancialValue>
-      </Text>
-    </div>
-  );
-}
-
-function DebtSummaryStat({
-  label,
-  tone,
-}: {
-  label: string;
-  tone: "accent" | "danger" | "secondary";
-}) {
-  return (
-    <Text size="sm" tone={tone} weight="medium">
-      {label}
-    </Text>
+                    );
+                  })}
+                </ul>
+              )}
+            </Card>
+          </section>
+          {historyRows.length > 0 ? (
+            <section
+              className="flex flex-col gap-(--space-2)"
+              aria-labelledby="debts-history-heading"
+              data-testid="debts-history-section"
+            >
+              <div>
+                <DebtSectionTitle>
+                  <span id="debts-history-heading">{t("history")}</span>
+                </DebtSectionTitle>
+                <Text
+                  size="xs"
+                  tone="secondary"
+                  className="mt-(--space-1) text-pretty"
+                >
+                  {t("historyCaption")}
+                </Text>
+              </div>
+              <Card tone="elevated" className="gap-0 overflow-hidden p-0">
+                <ul className="divide-y divide-divider">
+                  {historyRows.map((debt) => (
+                    <li key={debt.id}>
+                      <DebtProductRow
+                        href={moneyDebtPath(debt.id)}
+                        testId={`debt-history-row-${debt.id}`}
+                        direction={debt.direction}
+                        directionLabel={
+                          debt.direction === DebtDirection.BORROWED
+                            ? t("create.borrowed")
+                            : t("create.lent")
+                        }
+                        title={debt.counterparty}
+                        amountLabel={moneyLabel(
+                          debt.principalAmount,
+                          debt.currency,
+                          locale,
+                        )}
+                        amountCaption={t("create.principal")}
+                        due={debt.due}
+                        dueDate={debt.dueDate}
+                        dueLabels={dueLabels}
+                        locale={locale}
+                        progress={debt.progress}
+                        progressLabels={progressLabels}
+                        ownership={debt.ownership}
+                        history
+                      />
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            </section>
+          ) : null}
+          <DebtCreateSheet
+            {...createAccounts}
+            trigger={DebtCreateTrigger.FLOATING}
+          />
+        </div>
+      )}
+    </Page>
   );
 }

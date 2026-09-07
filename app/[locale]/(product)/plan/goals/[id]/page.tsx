@@ -1,7 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import type { ReactNode } from "react";
 import { setLocale } from "@/i18n/set-locale";
-import { redirect, Link } from "@/i18n/navigation";
+import { redirect } from "@/i18n/navigation";
 import { hasLocale } from "next-intl";
 import { routing } from "@/i18n/routing";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
@@ -15,12 +15,13 @@ import { listGoalFundingOptions } from "@/modules/plan/application/queries/list-
 import {
   GoalStatus,
   GoalType,
+  GOAL_FUNDING_LINKABLE_STATUS_VALUES,
 } from "@/modules/plan/application/plan-constants";
 import { formatCurrency } from "@/shared/i18n/formatters";
-import { TopAppBar } from "@/shared/patterns/top-app-bar";
+import { TopAppBar, TopAppBarVariant } from "@/shared/patterns/top-app-bar";
 import { Page } from "@/shared/patterns/page";
 import { Section } from "@/shared/patterns/section";
-import { Amount } from "@/shared/patterns/amount";
+import { Amount, AmountSize } from "@/shared/patterns/amount";
 import { Card } from "@/shared/patterns/card";
 import { FinancialValue } from "@/shared/patterns/financial-value";
 import { Progress } from "@/shared/ui/progress";
@@ -28,7 +29,13 @@ import { StatusBadge } from "@/shared/ui/status-badge";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Text } from "@/shared/ui/text";
 import { PlanOfflineBanner } from "../../plan-offline-banner";
+import { PlanPrivacyToggle } from "../../plan-privacy-toggle";
+import { PlanSectionTitle } from "../../plan-section-title";
+import { PlanUnavailable } from "../../plan-unavailable";
+import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
+import { PLAN_ICONS } from "@/shared/ui/icon-registry";
 import { GoalDetailControls } from "./goal-detail-controls";
+
 type Props = {
   params: Promise<{ locale: string; id: string }>;
 };
@@ -57,14 +64,22 @@ export default async function PlanGoalDetailPage({ params }: Props) {
     return (
       <Page
         testId="plan-goal-detail"
-        topBar={<TopAppBar title={t("notFound")} />}
+        topBar={
+          <TopAppBar
+            variant={TopAppBarVariant.DETAIL}
+            title={t("notFound")}
+            backHref={APP_PATH.PLAN_GOALS}
+            backLabel={t("backToList")}
+          />
+        }
       >
-        <Link
-          href={APP_PATH.PLAN_GOALS}
-          className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary"
-        >
-          {t("backToList")}
-        </Link>
+        <PlanUnavailable
+          title={t("notFound")}
+          description={t("detailSubtitle")}
+          actionHref={APP_PATH.PLAN_GOALS}
+          actionLabel={t("backToList")}
+          icon={<AppIcon icon={PLAN_ICONS.goal} size={AppIconSize.DISPLAY} />}
+        />
       </Page>
     );
   }
@@ -77,12 +92,13 @@ export default async function PlanGoalDetailPage({ params }: Props) {
     listGoals(),
   ]);
   const fundingOptions = fundingOptionsResult ?? [];
+  const linkableStatuses = new Set<string>(GOAL_FUNDING_LINKABLE_STATUS_VALUES);
   const reassignmentOptions = (listedGoals?.goals ?? [])
     .filter(
       (candidate) =>
         candidate.id !== goal.id &&
         candidate.goalType === goal.goalType &&
-        ["active", "ready"].includes(candidate.status),
+        linkableStatuses.has(candidate.status),
     )
     .map((candidate) => ({
       id: candidate.id,
@@ -94,6 +110,7 @@ export default async function PlanGoalDetailPage({ params }: Props) {
       testId="plan-goal-detail"
       topBar={
         <TopAppBar
+          variant={TopAppBarVariant.DETAIL}
           title={goal.name}
           subtitle={t("detailSubtitle")}
           backHref={APP_PATH.PLAN_GOALS}
@@ -109,20 +126,25 @@ export default async function PlanGoalDetailPage({ params }: Props) {
         description={t("notBalanceBody")}
       />
 
-      <Section title={t("progressHeading")}>
+      <Section
+        title={<PlanSectionTitle>{t("progressHeading")}</PlanSectionTitle>}
+      >
         <Card tone="hero" className="gap-(--space-4) p-(--space-5)">
           <div className="flex items-start justify-between gap-(--space-3)">
             <Text size="sm" className="text-hero-muted">
               {t("progressIntentionHint")}
             </Text>
-            <StatusBadge
-              tone="selected"
-              className="bg-white/10 text-hero-fg ring-white/15"
-            >
-              {goal.progressPercent == null
-                ? t("fundingValueQuality.indeterminate")
-                : `${goal.progressPercent}%`}
-            </StatusBadge>
+            <div className="flex shrink-0 items-center gap-(--space-2)">
+              <StatusBadge
+                tone="selected"
+                className="bg-white/10 text-hero-fg ring-white/15"
+              >
+                {goal.progressPercent == null
+                  ? t("fundingValueQuality.indeterminate")
+                  : `${goal.progressPercent}%`}
+              </StatusBadge>
+              <PlanPrivacyToggle testId="plan-goal-privacy-toggle" />
+            </div>
           </div>
           {goal.progressPercent == null ? (
             <StatusAlert
@@ -147,7 +169,7 @@ export default async function PlanGoalDetailPage({ params }: Props) {
                 locale,
                 { maximumFractionDigits: 0 },
               )}
-              size="lg"
+              size={AmountSize.LG}
               labelClassName="text-hero-muted"
               amountClassName="text-hero-fg"
             />
@@ -251,7 +273,10 @@ export default async function PlanGoalDetailPage({ params }: Props) {
         ) : null}
       </Section>
 
-      <Section variant="surface" title={t("targetHeading")}>
+      <Section
+        variant="surface"
+        title={<PlanSectionTitle>{t("targetHeading")}</PlanSectionTitle>}
+      >
         <Text size="sm" tone="secondary" className="tabular-nums">
           {t.rich("targetLabel", {
             amount: formatCurrency(goal.targetAmount, goal.currency, locale, {

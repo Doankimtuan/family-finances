@@ -20,9 +20,11 @@ import {
   getTransactionActionCapabilities,
 } from "@/modules/ledger/application";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
+import { Page } from "@/shared/patterns/page";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { MoneyOfflineBanner } from "@/app/[locale]/(product)/money/money-offline-banner";
 import { CorrectTransactionForm } from "./correct-transaction-form";
+import { TRANSACTION_SURFACE_LINK_CLASS } from "../../transaction-chrome";
 
 type Props = {
   params: Promise<{ locale: string; id: string }>;
@@ -56,44 +58,50 @@ export default async function TransactionCorrectPage({ params }: Props) {
 
   if (transactionResult.status === TransactionReadStatus.ERROR) {
     return (
-      <div
-        className="flex min-h-full flex-col"
-        data-testid="money-transaction-correct"
-      >
-        <TopAppBar title={t("detailPage.readErrorTitle")} />
-        <div className="flex flex-1 flex-col gap-(--space-4) px-(--space-4) py-(--space-6)">
-          <StatusAlert
-            variant="danger"
+      <Page
+        testId="money-transaction-correct"
+        topBar={
+          <TopAppBar
+            variant="form"
             title={t("detailPage.readErrorTitle")}
-            description={t("detailPage.readErrorBody")}
+            backHref={APP_PATH.MONEY_TRANSACTIONS}
           />
-          <Link
-            href={APP_PATH.MONEY_TRANSACTIONS}
-            className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary"
-          >
-            {t("detailPage.back")}
-          </Link>
-        </div>
-      </div>
+        }
+      >
+        <StatusAlert
+          variant="danger"
+          title={t("detailPage.readErrorTitle")}
+          description={t("detailPage.readErrorBody")}
+        />
+        <Link
+          href={APP_PATH.MONEY_TRANSACTIONS}
+          className={TRANSACTION_SURFACE_LINK_CLASS}
+        >
+          {t("detailPage.back")}
+        </Link>
+      </Page>
     );
   }
 
   if (transactionResult.status === TransactionReadStatus.NOT_FOUND) {
     return (
-      <div
-        className="flex min-h-full flex-col"
-        data-testid="money-transaction-correct"
+      <Page
+        testId="money-transaction-correct"
+        topBar={
+          <TopAppBar
+            variant="form"
+            title={t("detailPage.notFound")}
+            backHref={APP_PATH.MONEY_TRANSACTIONS}
+          />
+        }
       >
-        <TopAppBar title={t("detailPage.notFound")} />
-        <div className="px-(--space-4) py-(--space-6)">
-          <Link
-            href={APP_PATH.MONEY_TRANSACTIONS}
-            className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary"
-          >
-            {t("detailPage.back")}
-          </Link>
-        </div>
-      </div>
+        <Link
+          href={APP_PATH.MONEY_TRANSACTIONS}
+          className={TRANSACTION_SURFACE_LINK_CLASS}
+        >
+          {t("detailPage.back")}
+        </Link>
+      </Page>
     );
   }
 
@@ -106,48 +114,53 @@ export default async function TransactionCorrectPage({ params }: Props) {
 
   if (!canCorrect) {
     return (
-      <div
-        className="flex min-h-full flex-col"
-        data-testid="money-transaction-correct"
-      >
-        <TopAppBar title={t("correctForm.title")} />
-        <div className="flex flex-1 flex-col gap-(--space-4) px-(--space-4) py-(--space-6)">
-          <StatusAlert
-            variant="warning"
-            title={t("correctForm.unavailableTitle")}
-            description={t("correctForm.unavailableBody")}
+      <Page
+        testId="money-transaction-correct"
+        topBar={
+          <TopAppBar
+            variant="form"
+            title={t("correctForm.title")}
+            backHref={moneyTransactionPath(tx.id)}
           />
-          <Link
-            href={moneyTransactionPath(tx.id)}
-            className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary"
-          >
-            {t("detailPage.back")}
-          </Link>
-        </div>
-      </div>
+        }
+      >
+        <StatusAlert
+          variant="warning"
+          title={t("correctForm.unavailableTitle")}
+          description={t("correctForm.unavailableBody")}
+        />
+        <Link
+          href={moneyTransactionPath(tx.id)}
+          className={TRANSACTION_SURFACE_LINK_CLASS}
+        >
+          {t("detailPage.back")}
+        </Link>
+      </Page>
     );
   }
 
   return (
-    <div
-      className="flex min-h-full flex-col"
-      data-testid="money-transaction-correct"
-    >
-      <TopAppBar
-        title={t("correctForm.title")}
-        subtitle={t("correctForm.subtitle")}
-      />
-      <div className="flex flex-1 flex-col gap-(--space-5) px-(--space-4) pb-(--space-6) pt-(--space-4)">
-        <MoneyOfflineBanner />
-        <CorrectTransactionForm
-          transaction={tx}
-          accounts={listed?.accounts ?? []}
-          expenseTags={expenseTags ?? []}
-          incomeTags={incomeTags ?? []}
-          jars={jars ?? []}
-          currency={listed?.currency ?? tx.currency}
+    <Page
+      testId="money-transaction-correct"
+      contentClassName="gap-(--space-5) pb-0"
+      topBar={
+        <TopAppBar
+          variant="form"
+          title={t("correctForm.title")}
+          subtitle={t("correctForm.subtitle")}
+          backHref={moneyTransactionPath(tx.id)}
         />
-      </div>
-    </div>
+      }
+    >
+      <MoneyOfflineBanner />
+      <CorrectTransactionForm
+        transaction={tx}
+        accounts={listed?.accounts ?? []}
+        expenseTags={expenseTags ?? []}
+        incomeTags={incomeTags ?? []}
+        jars={jars ?? []}
+        currency={listed?.currency ?? tx.currency}
+      />
+    </Page>
   );
 }

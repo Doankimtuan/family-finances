@@ -87,6 +87,7 @@ export function LoanDetailHero({
   nextPaymentDate,
   labels,
   progress,
+  trailing,
 }: {
   remainingPrincipal: number;
   currency: string;
@@ -105,6 +106,7 @@ export function LoanDetailHero({
     none: string;
   };
   progress: number;
+  trailing?: ReactNode;
 }) {
   const remainingAmount = formatCurrency(remainingPrincipal, currency, locale, {
     maximumFractionDigits: 0,
@@ -123,8 +125,8 @@ export function LoanDetailHero({
       className="gap-0 p-(--space-4)"
       data-testid="loan-detail-hero"
     >
-      <div className="flex items-start justify-between gap-(--space-3)">
-        <div className="flex min-w-0 items-center gap-(--space-3)">
+      <div className="flex items-center gap-(--space-3)">
+        <div className="flex min-w-0 flex-1 items-center gap-(--space-3)">
           <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-(--radius-control) border border-white/25 bg-white/10 text-hero-fg">
             <AppIcon
               icon={FINANCE_ICONS.loan}
@@ -132,27 +134,32 @@ export function LoanDetailHero({
               emphasized
             />
           </span>
-          <Text size="sm" weight="medium" className="text-hero-muted">
+          <Text
+            size="sm"
+            weight="medium"
+            className="text-pretty text-hero-muted"
+          >
             {labels.remaining}
           </Text>
         </div>
-        <div className="flex shrink-0 items-center gap-(--space-1)">
-          <LoanStatusBadge status={status} label={statusLabel} />
-          <LoanDueBadge state={dueState} label={dueLabel} />
-        </div>
+        {trailing}
       </div>
       <Amount
-        label={labels.remaining}
         amountLabel={remainingAmount}
         size={AmountSize.HERO}
-        labelClassName="text-hero-muted"
-        amountClassName="text-hero-fg"
         className="mt-(--space-3)"
+        amountClassName="text-4xl leading-none text-hero-fg"
       />
+      <div className="mt-(--space-3) flex flex-wrap items-center gap-(--space-1)">
+        <LoanStatusBadge status={status} label={statusLabel} />
+        <LoanDueBadge state={dueState} label={dueLabel} />
+      </div>
       <div className="mt-(--space-4) grid grid-cols-2 gap-(--space-3) border-t border-white/15 pt-(--space-3)">
         <LoanHeroFact
           label={labels.nextPayment}
-          value={nextAmount}
+          value={
+            nextAmount ? <FinancialValue>{nextAmount}</FinancialValue> : null
+          }
           emptyLabel={labels.none}
         />
         <LoanHeroFact
@@ -188,7 +195,7 @@ function LoanHeroFact({
   emptyLabel,
 }: {
   label: string;
-  value: string | null;
+  value: ReactNode;
   emptyLabel: string;
 }) {
   return (
@@ -199,23 +206,6 @@ function LoanHeroFact({
       <Text size="sm" weight="semibold" className="mt-(--space-1) text-hero-fg">
         {value ?? emptyLabel}
       </Text>
-    </div>
-  );
-}
-
-export function LoanFact({
-  label,
-  value,
-}: {
-  label: string;
-  value: ReactNode;
-}) {
-  return (
-    <div className="flex items-start justify-between gap-(--space-3) py-(--space-3)">
-      <dt className="min-w-0 text-sm text-text-secondary">{label}</dt>
-      <dd className="max-w-[62%] text-right text-sm font-medium tabular-nums text-text-primary">
-        {value}
-      </dd>
     </div>
   );
 }

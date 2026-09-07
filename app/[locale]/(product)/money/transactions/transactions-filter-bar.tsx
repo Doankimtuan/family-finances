@@ -12,14 +12,19 @@ import {
 } from "@/modules/ledger/application/client";
 import type { TransactionTag } from "@/modules/ledger/application/client";
 import { FilterChip } from "@/shared/patterns/filter-chip";
-import { Text } from "@/shared/ui/text";
-import { TransactionTagSelector } from "./transaction-tag-ui";
+import {
+  TransactionTagSelector,
+  TransactionTagSelectorLayout,
+} from "./transaction-tag-ui";
 
 type Props = {
   type: TransactionFilterType;
   availableTags: TransactionTag[];
   selectedTagIds: string[];
 };
+
+const FILTER_TEXT_ACTION_CLASS =
+  "inline-flex min-h-11 items-center rounded-[var(--radius-control)] px-(--space-2) text-sm font-medium text-accent transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-[var(--press-scale)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none";
 
 export function TransactionsFilterBar({
   type,
@@ -49,9 +54,12 @@ export function TransactionsFilterBar({
     );
   };
 
+  const hasActiveFilter =
+    type !== TransactionFilterType.ALL || selectedTagIds.length > 0;
+
   return (
     <div
-      className="flex flex-col gap-(--space-3) rounded-[var(--radius-card)] border border-border-subtle/70 bg-surface/55 p-(--space-3) shadow-(--elevation-1)"
+      className="flex flex-col gap-(--space-3)"
       data-testid="transactions-filter"
     >
       <fieldset>
@@ -74,20 +82,13 @@ export function TransactionsFilterBar({
         </div>
       </fieldset>
 
-      {type !== TransactionFilterType.ALL || selectedTagIds.length > 0 ? (
-        <Link
-          href={APP_PATH.MONEY_TRANSACTIONS}
-          className="inline-flex min-h-9 items-center self-start rounded-full border border-border-subtle bg-canvas px-(--space-3) text-sm font-medium text-accent transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-[var(--press-scale)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none"
-        >
-          {t("clearFilters")}
-        </Link>
-      ) : null}
-
-      <div className="flex flex-col gap-(--space-2) border-t border-border-subtle/70 pt-(--space-3)">
-        <Text size="sm" weight="medium">
-          {t("tagFilterLabel")}
-        </Text>
+      <div
+        className="flex flex-wrap items-center gap-(--space-2)"
+        role="group"
+        aria-label={t("tagFilterLabel")}
+      >
         <TransactionTagSelector
+          layout={TransactionTagSelectorLayout.FILTER}
           availableTags={availableTags}
           selectedIds={selectedTagIds}
           onChange={(nextTagIds) => {
@@ -97,10 +98,18 @@ export function TransactionsFilterBar({
         />
         <Link
           href={APP_PATH.MONEY_TRANSACTION_TAGS}
-          className="inline-flex min-h-9 items-center self-start rounded-full border border-border-subtle bg-canvas px-(--space-3) text-sm font-medium text-accent transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-[var(--press-scale)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none"
+          className={FILTER_TEXT_ACTION_CLASS}
         >
           {t("manageTags")}
         </Link>
+        {hasActiveFilter ? (
+          <Link
+            href={APP_PATH.MONEY_TRANSACTIONS}
+            className={FILTER_TEXT_ACTION_CLASS}
+          >
+            {t("clearFilters")}
+          </Link>
+        ) : null}
       </div>
     </div>
   );

@@ -6,7 +6,9 @@ import { useRouter } from "@/i18n/navigation";
 import { AmountField } from "@/shared/patterns/amount-field";
 import { Button } from "@/shared/ui/button";
 import { StatusAlert } from "@/shared/ui/status-alert";
-import { Text } from "@/shared/ui/text";
+import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
+import { IconContainer, IconContainerTone } from "@/shared/ui/icon-container";
+import { ACTION_ICONS, FINANCE_ICONS } from "@/shared/ui/icon-registry";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import {
   CLIENT_ACTION_ERROR_CODE,
@@ -76,25 +78,28 @@ export function CreditCardRefundAction({
   if (!isFormOpen) {
     return (
       <Button
-        variant="secondary"
-        className="w-full justify-center"
+        variant="ghost"
+        className="min-h-11 w-full justify-between px-0 text-left"
         data-testid="card-refund-open"
         isDisabled={!online}
         onPress={() => setIsFormOpen(true)}
       >
-        {t("cashbackTitle")}
+        <span className="flex min-w-0 items-center gap-(--space-3)">
+          <IconContainer tone={IconContainerTone.REFUND} size="sm">
+            <AppIcon icon={FINANCE_ICONS.refund} size={AppIconSize.SM} />
+          </IconContainer>
+          <span>{t("cashbackTitle")}</span>
+        </span>
+        <AppIcon icon={ACTION_ICONS.forward} size={AppIconSize.SM} />
       </Button>
     );
   }
 
   return (
     <section
-      className="flex flex-col gap-(--space-3) border-t border-border-subtle pt-(--space-4)"
+      className="flex flex-col gap-(--space-3) py-(--space-3)"
       data-testid="card-refund-form"
     >
-      <Text size="sm" weight="medium" className="text-text-primary">
-        {t("cashbackTitle")}
-      </Text>
       {errorCode ? (
         <StatusAlert
           variant="danger"

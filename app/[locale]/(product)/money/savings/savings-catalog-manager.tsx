@@ -14,19 +14,22 @@ import {
   getSavingsProductDefaults,
   SavingsFamily,
   SavingsTaxRule,
+  SavingsTermUnit,
   savingsProviderInputSchema,
   savingsProductInputSchema,
 } from "@/modules/savings/application/savings-domain-rules";
+import { InterestCalcMethod } from "@/modules/savings/application/client";
+import { DEFAULT_CURRENCY } from "@/modules/ledger/application/client";
 import { formatPercent } from "@/shared/i18n/formatters";
 import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
 import { Card } from "@/shared/patterns/card";
 import { Sheet } from "@/shared/patterns/sheet";
 import { SheetActionFooter } from "@/shared/patterns/sheet-action-footer";
-import { Section } from "@/shared/patterns/section";
 import { Button } from "@/shared/ui/button";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Text } from "@/shared/ui/text";
-import { AppIcon } from "@/shared/ui/app-icon";
+import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
+import { IconContainer, IconContainerTone } from "@/shared/ui/icon-container";
 import { TextField } from "@/shared/ui/form";
 import { SelectField } from "@/shared/ui/form";
 import { ControlledField } from "@/shared/patterns/controlled-fields";
@@ -61,12 +64,27 @@ type ProviderEditor = { id?: string } & ProviderFormValues;
 type ProductEditor = { id?: string; providerId: string } & ProductFormValues;
 
 const DEFAULT_ICON: SavingsProviderIconKey = "bank";
-const DEFAULT_CURRENCY = "VND";
 
 function iconKeyFor(value: string | undefined): SavingsProviderIconKey {
   return value && value in SAVINGS_PROVIDER_ICONS
     ? (value as SavingsProviderIconKey)
     : DEFAULT_ICON;
+}
+
+function parseTermUnit(value: string): SavingsTermUnit {
+  return value === SavingsTermUnit.MONTH
+    ? SavingsTermUnit.MONTH
+    : SavingsTermUnit.DAY;
+}
+
+function parseInterestCalcMethod(value: string): InterestCalcMethod {
+  if (value === InterestCalcMethod.COMPOUND_DAILY) {
+    return InterestCalcMethod.COMPOUND_DAILY;
+  }
+  if (value === InterestCalcMethod.COMPOUND_MONTHLY) {
+    return InterestCalcMethod.COMPOUND_MONTHLY;
+  }
+  return InterestCalcMethod.SIMPLE;
 }
 
 function providerFormFrom(provider?: SavingCatalogProvider): ProviderEditor {
@@ -98,10 +116,11 @@ function productFormFrom(
     name: product?.packageName ?? "",
     term: {
       amount: product?.termAmount ?? product?.durationDays ?? 30,
-      unit: product?.termUnit ?? "DAY",
+      unit: product?.termUnit ?? SavingsTermUnit.DAY,
     },
     annualInterestRatePercent: product?.annualInterestRate ?? 0,
-    interestCalculationMethod: product?.interestCalculationMethod ?? "simple",
+    interestCalculationMethod:
+      product?.interestCalculationMethod ?? InterestCalcMethod.SIMPLE,
     taxRule: product?.taxRule ?? defaults.taxRule,
     taxRatePercent: product?.taxRatePercent ?? defaults.taxRatePercent,
     currency: product?.currency ?? DEFAULT_CURRENCY,
@@ -190,16 +209,20 @@ function ProviderIconPicker({
         >
           <span className="flex w-full items-center justify-between gap-(--space-2)">
             <span className="flex items-center gap-(--space-2)">
-              <span className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-control)] bg-accent-soft text-accent">
+              <IconContainer tone={IconContainerTone.SAVINGS} size="sm">
                 <AppIcon
                   icon={selectedIcon}
-                  size="sm"
+                  size={AppIconSize.SM}
                   label={iconLabels[value]}
                 />
-              </span>
+              </IconContainer>
               <span className="text-sm">{iconLabels[value]}</span>
             </span>
-            <AppIcon icon={ACTION_ICONS.forward} size="xs" decorative />
+            <AppIcon
+              icon={ACTION_ICONS.forward}
+              size={AppIconSize.XS}
+              decorative
+            />
           </span>
         </Dropdown.Trigger>
         <Dropdown.Popover placement="bottom end">
@@ -223,12 +246,17 @@ function ProviderIconPicker({
                 <span className="flex items-center gap-(--space-2)">
                   <AppIcon
                     icon={SAVINGS_PROVIDER_ICONS[key]}
-                    size="sm"
+                    size={AppIconSize.SM}
                     label={iconLabels[key]}
                   />
                   <span className="text-xs">{iconLabels[key]}</span>
                   {key === value ? (
-                    <span className="ml-auto text-accent">✓</span>
+                    <AppIcon
+                      icon={ACTION_ICONS.check}
+                      size={AppIconSize.XS}
+                      className="ml-auto text-accent"
+                      decorative
+                    />
                   ) : null}
                 </span>
               </Dropdown.Item>
@@ -429,7 +457,18 @@ export function SavingsCatalogManager({ catalog }: Props) {
   };
 
   const formatTerm = (product: SavingPackage) =>
-    `${product.termAmount ?? product.durationDays} ${t(product.termUnit === "MONTH" ? "termMonth" : "termDay")}`;
+    `${product.termAmount ?? product.durationDays} ${t(
+      product.termUnit === SavingsTermUnit.MONTH ? "termMonth" : "termDay",
+    )}`;
+  const interestMethodLabel = (method: string | undefined) => {
+    if (method === InterestCalcMethod.COMPOUND_MONTHLY) {
+      return t("compoundMonthly");
+    }
+    if (method === InterestCalcMethod.COMPOUND_DAILY) {
+      return t("compoundDaily");
+    }
+    return t("simple");
+  };
   const earlySummary = (product: SavingPackage) => {
     switch (product.earlySettlementRule) {
       case EarlySettlementRule.NOT_ALLOWED:
@@ -509,33 +548,37 @@ export function SavingsCatalogManager({ catalog }: Props) {
         </Card>
       ) : null}
       {catalog.length === 0 ? (
-        <Section title={t("empty")}>
+        <Card tone="soft" className="gap-(--space-1) p-(--space-4)">
+          <Text size="sm" weight="semibold">
+            {t("empty")}
+          </Text>
           <Text size="sm" tone="secondary">
             {t("emptyHint")}
           </Text>
-        </Section>
+        </Card>
       ) : null}
       <div className="flex flex-col gap-(--space-5)">
         {catalog.map((provider) => (
-          <Section
+          <section
             key={provider.id}
-            testId={`savings-provider-card-${provider.id}`}
+            className="flex flex-col gap-(--space-3)"
+            data-testid={`savings-provider-card-${provider.id}`}
           >
             <div className="flex items-start gap-(--space-3)">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[var(--radius-control)] bg-accent-soft text-accent">
+              <IconContainer tone={IconContainerTone.SAVINGS}>
                 <AppIcon
                   icon={SAVINGS_PROVIDER_ICONS[iconKeyFor(provider.iconKey)]}
-                  size="md"
+                  size={AppIconSize.MD}
                   label={iconLabels[iconKeyFor(provider.iconKey)]}
                 />
-              </span>
+              </IconContainer>
               <div className="min-w-0 flex-1">
                 <div className="flex items-start justify-between gap-(--space-2)">
                   <div className="min-w-0">
-                    <Text size="lg" weight="semibold" className="break-words">
+                    <Text size="sm" weight="semibold" className="break-words">
                       {provider.displayName}
                     </Text>
-                    <Text size="sm" tone="secondary" className="mt-1">
+                    <Text size="xs" tone="secondary" className="mt-(--space-1)">
                       {provider.family === SavingsFamily.BANK
                         ? t("bank")
                         : t("platform")}{" "}
@@ -564,7 +607,7 @@ export function SavingsCatalogManager({ catalog }: Props) {
                 </div>
               </div>
             </div>
-            <div className="mt-(--space-4) flex items-center justify-between gap-(--space-3)">
+            <div className="flex items-center justify-between gap-(--space-3)">
               <Text size="sm" weight="medium">
                 {t("productsHeading")}
               </Text>
@@ -580,84 +623,93 @@ export function SavingsCatalogManager({ catalog }: Props) {
                 </Button>
               ) : null}
             </div>
-            <div className="mt-(--space-3) grid gap-(--space-3) sm:grid-cols-2">
-              {provider.packages.length ? (
-                provider.packages.map((product) => (
-                  <article
-                    key={product.id}
-                    className="min-w-0 rounded-[var(--radius-card)] border border-border-subtle bg-surface p-(--space-4)"
-                    data-testid={`savings-product-card-${product.id}`}
-                  >
-                    <div className="flex items-start justify-between gap-(--space-2)">
-                      <div className="min-w-0">
-                        <Text
-                          size="sm"
-                          weight="semibold"
-                          className="break-words"
-                        >
-                          {formatTerm(product)}
-                        </Text>
-                        <Text size="lg" weight="semibold" className="mt-1">
-                          {formatPercent(
-                            product.annualInterestRate / 100,
-                            locale,
-                            { maximumFractionDigits: 2 },
-                          )}{" "}
-                          / {t("yearShort")}
-                        </Text>
-                      </div>
-                      <CompactActions
-                        label={t("moreActions")}
-                        editLabel={t("edit")}
-                        archiveLabel={t("archive")}
-                        onEdit={() => openProduct(provider, product)}
-                        onArchive={() =>
-                          archiveProduct(product, provider.displayName)
-                        }
-                      />
-                    </div>
-                    <Text
-                      size="sm"
-                      tone="secondary"
-                      className="mt-(--space-2) break-words"
-                    >
-                      {product.interestCalculationMethod === "simple"
-                        ? t("simple")
-                        : product.interestCalculationMethod ===
-                            "compound_monthly"
-                          ? t("compoundMonthly")
-                          : t("compoundDaily")}
-                    </Text>
-                    <div className="mt-(--space-3) flex flex-wrap gap-x-(--space-3) gap-y-(--space-1) text-xs text-text-secondary">
-                      <span>
-                        {product.taxRule === SavingsTaxRule.NONE
-                          ? t("taxNone")
-                          : t("taxOnInterest", {
-                              rate: formatPercent(
-                                (product.taxRatePercent ?? 0) / 100,
+            <Card tone="elevated" className="gap-0 overflow-hidden p-0">
+              {provider.packages.length > 0 ? (
+                <ul className="divide-y divide-divider">
+                  {provider.packages.map((product) => (
+                    <li key={product.id}>
+                      <article
+                        className="min-w-0 px-(--space-4) py-(--space-3)"
+                        data-testid={`savings-product-card-${product.id}`}
+                      >
+                        <div className="flex items-start justify-between gap-(--space-2)">
+                          <div className="min-w-0">
+                            <Text
+                              size="sm"
+                              weight="semibold"
+                              className="break-words"
+                            >
+                              {formatTerm(product)}
+                            </Text>
+                            <Text
+                              size="sm"
+                              weight="semibold"
+                              tabular
+                              className="mt-(--space-1) text-text-primary"
+                            >
+                              {formatPercent(
+                                product.annualInterestRate / 100,
                                 locale,
                                 { maximumFractionDigits: 2 },
-                              ),
-                            })}
-                      </span>
-                      <span>{product.currency ?? DEFAULT_CURRENCY}</span>
-                    </div>
-                    <Text
-                      size="xs"
-                      tone="secondary"
-                      className="mt-(--space-2) break-words"
-                    >
-                      {t("earlySummaryPrefix")}: {earlySummary(product)}
-                    </Text>
-                  </article>
-                ))
+                              )}{" "}
+                              / {t("yearShort")}
+                            </Text>
+                          </div>
+                          <CompactActions
+                            label={t("moreActions")}
+                            editLabel={t("edit")}
+                            archiveLabel={t("archive")}
+                            onEdit={() => openProduct(provider, product)}
+                            onArchive={() =>
+                              archiveProduct(product, provider.displayName)
+                            }
+                          />
+                        </div>
+                        <Text
+                          size="xs"
+                          tone="secondary"
+                          className="mt-(--space-2) break-words"
+                        >
+                          {interestMethodLabel(
+                            product.interestCalculationMethod,
+                          )}
+                        </Text>
+                        <div className="mt-(--space-2) flex flex-wrap gap-x-(--space-3) gap-y-(--space-1) text-xs text-text-secondary">
+                          <span>
+                            {product.taxRule === SavingsTaxRule.NONE
+                              ? t("taxNone")
+                              : t("taxOnInterest", {
+                                  rate: formatPercent(
+                                    (product.taxRatePercent ?? 0) / 100,
+                                    locale,
+                                    { maximumFractionDigits: 2 },
+                                  ),
+                                })}
+                          </span>
+                          <span>{product.currency ?? DEFAULT_CURRENCY}</span>
+                        </div>
+                        <Text
+                          size="xs"
+                          tone="muted"
+                          className="mt-(--space-1) break-words"
+                        >
+                          {t("earlySummaryPrefix")}: {earlySummary(product)}
+                        </Text>
+                      </article>
+                    </li>
+                  ))}
+                </ul>
               ) : (
-                <Text size="sm" tone="secondary">
+                <Text
+                  size="sm"
+                  tone="secondary"
+                  className="px-(--space-4) py-(--space-3)"
+                >
                   {t("productEmpty")}
                 </Text>
               )}
-            </div>
-          </Section>
+            </Card>
+          </section>
         ))}
       </div>
 
@@ -779,16 +831,13 @@ export function SavingsCatalogManager({ catalog }: Props) {
                     <SelectField
                       id="savings-product-term-unit"
                       label={t("unit")}
-                      value={productTermUnit ?? "DAY"}
+                      value={productTermUnit ?? SavingsTermUnit.DAY}
                       onChange={(next) =>
-                        productForm.setValue(
-                          "term.unit",
-                          next === "MONTH" ? "MONTH" : "DAY",
-                        )
+                        productForm.setValue("term.unit", parseTermUnit(next))
                       }
                       options={[
-                        { id: "DAY", label: t("termDay") },
-                        { id: "MONTH", label: t("termMonth") },
+                        { id: SavingsTermUnit.DAY, label: t("termDay") },
+                        { id: SavingsTermUnit.MONTH, label: t("termMonth") },
                       ]}
                       required
                     />
@@ -809,21 +858,29 @@ export function SavingsCatalogManager({ catalog }: Props) {
                   <SelectField
                     id="savings-product-method"
                     label={t("method")}
-                    value={productInterestCalculationMethod ?? "simple"}
+                    value={
+                      productInterestCalculationMethod ??
+                      InterestCalcMethod.SIMPLE
+                    }
                     onChange={(next) =>
                       productForm.setValue(
                         "interestCalculationMethod",
-                        next === "compound_daily"
-                          ? "compound_daily"
-                          : next === "compound_monthly"
-                            ? "compound_monthly"
-                            : "simple",
+                        parseInterestCalcMethod(next),
                       )
                     }
                     options={[
-                      { id: "simple", label: t("simple") },
-                      { id: "compound_daily", label: t("compoundDaily") },
-                      { id: "compound_monthly", label: t("compoundMonthly") },
+                      {
+                        id: InterestCalcMethod.SIMPLE,
+                        label: t("simple"),
+                      },
+                      {
+                        id: InterestCalcMethod.COMPOUND_DAILY,
+                        label: t("compoundDaily"),
+                      },
+                      {
+                        id: InterestCalcMethod.COMPOUND_MONTHLY,
+                        label: t("compoundMonthly"),
+                      },
                     ]}
                     required
                   />

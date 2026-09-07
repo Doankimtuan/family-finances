@@ -2,22 +2,27 @@
 
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { APP_PATH } from "@/modules/tenancy/application/app-path";
+import {
+  APP_PATH,
+  moneyTransactionPath,
+} from "@/modules/tenancy/application/app-path";
 import type { CardBillingItem } from "@/modules/ledger/application/client";
 import {
   TransactionDirection,
   TRANSACTION_LEDGER_AMOUNT_PREFIX,
 } from "@/modules/ledger/application/client";
+import { EmptyState } from "@/shared/patterns/empty-state";
 import { SectionHeader } from "@/shared/patterns/section-header";
 import {
   TransactionAmountTone,
   TransactionRow,
 } from "@/shared/patterns/transaction-row";
-import { AppIcon } from "@/shared/ui/app-icon";
-import { IconContainer } from "@/shared/ui/icon-container";
+import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
+import { IconContainer, IconContainerTone } from "@/shared/ui/icon-container";
 import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
-import { Text } from "@/shared/ui/text";
+import { StatusBadge, StatusBadgeTone } from "@/shared/ui/status-badge";
 import { ACCOUNT_DETAIL_PREVIEW_CONFIG } from "./detail-constants";
+import { AccountSectionTitle } from "./account-section-title";
 
 type CreditCardActivitySectionProps = {
   items: CardBillingItem[];
@@ -42,7 +47,7 @@ export function CreditCardActivitySection({
       data-testid="card-activity"
     >
       <SectionHeader
-        title={t("activityTitle")}
+        title={<AccountSectionTitle>{t("activityTitle")}</AccountSectionTitle>}
         action={
           <Link href={APP_PATH.MONEY_TRANSACTIONS}>
             {tAccount("viewActivity")}
@@ -50,26 +55,57 @@ export function CreditCardActivitySection({
         }
       />
       {previewItems.length === 0 ? (
-        <Text size="sm" tone="secondary">
-          {t("activityEmpty")}
-        </Text>
+        <EmptyState
+          title={t("activityEmpty")}
+          icon={
+            <AppIcon icon={FINANCE_ICONS.card} size={AppIconSize.DISPLAY} />
+          }
+          className="flex-none py-(--space-4)"
+        />
       ) : (
-        <ul className="flex flex-col">
-          {previewItems.map((item) => (
-            <li key={item.id}>
+        <ul className="flex flex-col [&>li:last-child_.group]:border-b-0">
+          {previewItems.map((item) => {
+            const isLinked = Boolean(item.transactionId);
+            const row = (
               <TransactionRow
                 leading={
-                  <IconContainer tone="debt" size="sm">
-                    <AppIcon icon={FINANCE_ICONS.card} size="sm" />
+                  <IconContainer tone={IconContainerTone.DEBT} size="sm">
+                    <AppIcon icon={FINANCE_ICONS.card} size={AppIconSize.SM} />
                   </IconContainer>
                 }
                 title={item.description ?? t("activityFallback")}
-                subtitle={item.isPaid ? t("activityPaid") : t("activityUnpaid")}
+                subtitle={
+                  <StatusBadge
+                    tone={
+                      item.isPaid
+                        ? StatusBadgeTone.SUCCESS
+                        : StatusBadgeTone.WARNING
+                    }
+                  >
+                    {item.isPaid ? t("activityPaid") : t("activityUnpaid")}
+                  </StatusBadge>
+                }
                 amountLabel={`${TRANSACTION_LEDGER_AMOUNT_PREFIX[TransactionDirection.EXPENSE]}${formatMoney(item.amount)}`}
                 tone={TransactionAmountTone.DEBIT}
+                showChevron={isLinked}
               />
-            </li>
-          ))}
+            );
+
+            return (
+              <li key={item.id}>
+                {item.transactionId ? (
+                  <Link
+                    href={moneyTransactionPath(item.transactionId)}
+                    className="block rounded-[var(--radius-control)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+                  >
+                    {row}
+                  </Link>
+                ) : (
+                  row
+                )}
+              </li>
+            );
+          })}
         </ul>
       )}
     </section>

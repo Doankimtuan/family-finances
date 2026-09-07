@@ -1,12 +1,21 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
-import { Section } from "@/shared/patterns/section";
-import { CheckmarkCircle02Icon } from "@hugeicons/core-free-icons";
 import { AppIcon } from "@/shared/ui/app-icon";
+import { ACTION_ICONS } from "@/shared/ui/icon-registry";
+import { Card } from "@/shared/patterns/card";
 import { FinancialValue } from "@/shared/patterns/financial-value";
+import {
+  TransactionFactRow,
+  TransactionFactsCard,
+} from "./transaction-facts-card";
+import {
+  RECEIPT_ACTION_LINK_CLASS,
+  TRANSACTION_SURFACE_LINK_CLASS,
+} from "./transaction-chrome";
 
 type RelatedRecord = {
   id: string;
@@ -14,30 +23,43 @@ type RelatedRecord = {
   href?: string;
 };
 
+type NextActionVariant = keyof typeof RECEIPT_ACTION_LINK_CLASS;
+
 type NextAction = {
   id: string;
   label: string;
   href?: string;
   onPress?: () => void;
-  variant?: "primary" | "secondary" | "tertiary";
+  variant?: NextActionVariant;
+};
+
+type ReceiptRow = {
+  id: string;
+  label: string;
+  value: ReactNode;
+  kind?: "text" | "financial";
+  /** Unclassified legacy rows are masked conservatively. */
+  financial?: boolean;
 };
 
 type Props = {
   title: string;
   outcome?: string;
-  rows: {
-    id: string;
-    label: string;
-    value: React.ReactNode;
-    kind?: "text" | "financial";
-    /** Unclassified legacy rows are masked conservatively. */
-    financial?: boolean;
-  }[];
+  rows: ReceiptRow[];
   relatedRecords?: RelatedRecord[];
   relatedRecordsTitle?: string;
   nextActions: NextAction[];
-  children?: React.ReactNode;
+  children?: ReactNode;
 };
+
+function ReceiptRowValue({ kind, value }: Pick<ReceiptRow, "kind" | "value">) {
+  if (kind === "text") return value;
+  return <FinancialValue>{value}</FinancialValue>;
+}
+
+function receiptActionLinkClassName(variant: NextActionVariant = "secondary") {
+  return RECEIPT_ACTION_LINK_CLASS[variant];
+}
 
 export function TransactionReceipt({
   title,
@@ -55,10 +77,10 @@ export function TransactionReceipt({
       role="status"
       aria-live="polite"
     >
-      <div className="flex flex-col items-center gap-(--space-3) rounded-[var(--radius-card)] border border-success/20 bg-success/5 px-(--space-4) py-(--space-5) shadow-(--elevation-1)">
+      <Card className="items-center gap-(--space-3) border-success/20 bg-success/5 px-(--space-4) py-(--space-5) shadow-(--elevation-1)">
         <div className="flex size-14 items-center justify-center rounded-full border border-success/20 bg-success/15">
           <AppIcon
-            icon={CheckmarkCircle02Icon}
+            icon={ACTION_ICONS.success}
             size="xl"
             className="text-success"
           />
@@ -73,31 +95,17 @@ export function TransactionReceipt({
             </Text>
           ) : null}
         </div>
-      </div>
+      </Card>
 
-      <Section variant="surface">
-        <dl className="flex flex-col gap-(--space-3)">
-          {rows.map(({ id, label, value, kind }) => (
-            <div key={id} className="flex justify-between gap-(--space-3)">
-              <Text size="sm" tone="secondary">
-                {label}
-              </Text>
-              <Text
-                size="sm"
-                className="text-right font-medium text-text-primary"
-              >
-                {kind !== "text" && kind !== undefined ? (
-                  <FinancialValue>{value}</FinancialValue>
-                ) : kind === "text" ? (
-                  value
-                ) : (
-                  <FinancialValue>{value}</FinancialValue>
-                )}
-              </Text>
-            </div>
-          ))}
-        </dl>
-      </Section>
+      <TransactionFactsCard>
+        {rows.map((row) => (
+          <TransactionFactRow
+            key={row.id}
+            label={row.label}
+            value={<ReceiptRowValue kind={row.kind} value={row.value} />}
+          />
+        ))}
+      </TransactionFactsCard>
 
       {children}
 
@@ -114,12 +122,12 @@ export function TransactionReceipt({
                 {record.href ? (
                   <Link
                     href={record.href}
-                    className="inline-flex min-h-11 w-full items-center justify-center rounded-[var(--radius-control)] border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-[var(--press-scale)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none"
+                    className={TRANSACTION_SURFACE_LINK_CLASS}
                   >
                     {record.label}
                   </Link>
                 ) : (
-                  <span className="inline-flex min-h-11 w-full items-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm text-text-secondary">
+                  <span className="inline-flex min-h-11 w-full items-center rounded-[var(--radius-control)] border border-border-subtle bg-surface px-(--space-4) text-sm text-text-secondary">
                     {record.label}
                   </span>
                 )}
@@ -136,13 +144,7 @@ export function TransactionReceipt({
               <Link
                 key={action.id}
                 href={action.href}
-                className={`inline-flex min-h-11 w-full items-center justify-center rounded-[var(--radius-control)] px-(--space-4) text-sm font-medium transition-[background-color,transform] duration-(--duration-fast) active:scale-[var(--press-scale)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none ${
-                  action.variant === "primary"
-                    ? "bg-accent text-accent-fg"
-                    : action.variant === "tertiary"
-                      ? "text-text-secondary"
-                      : "border border-border-subtle bg-surface text-text-primary"
-                }`}
+                className={receiptActionLinkClassName(action.variant)}
               >
                 {action.label}
               </Link>

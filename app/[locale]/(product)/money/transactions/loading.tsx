@@ -1,6 +1,53 @@
 import { getTranslations } from "next-intl/server";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Page } from "@/shared/patterns/page";
+import { Card } from "@/shared/patterns/card";
+import { Skeleton } from "@/shared/ui/skeleton";
+import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
+import { FloatingAction } from "@/shared/patterns/floating-action";
+import { MoneyCaptureAction } from "../money-capture-action";
+
+function FilterSkeleton() {
+  return (
+    <div className="flex flex-col gap-(--space-3)" aria-hidden>
+      <div className="flex gap-(--space-2) overflow-hidden">
+        {Array.from({ length: 4 }, (_, index) => (
+          <Skeleton key={index} className="h-11 w-20 shrink-0 rounded-full" />
+        ))}
+      </div>
+      <Skeleton className="h-11 w-28 rounded-full" />
+    </div>
+  );
+}
+
+function ListSkeleton() {
+  return (
+    <div className="flex flex-col gap-(--space-5)" aria-hidden>
+      {[0, 1].map((group) => (
+        <div key={group} className="flex flex-col gap-(--space-2)">
+          <Skeleton className="h-4 w-24" />
+          <Card tone="elevated" className="gap-0 p-0">
+            <div className="flex flex-col divide-y divide-border-subtle/65 py-(--space-1)">
+              {[0, 1, 2].map((row) => (
+                <div
+                  key={row}
+                  className="flex min-h-14 items-center gap-(--space-3) px-(--space-4) py-(--space-3)"
+                >
+                  <Skeleton className="size-8 rounded-full" />
+                  <div className="flex flex-1 flex-col gap-(--space-1)">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-3 w-20" />
+                  </div>
+                  <Skeleton className="h-4 w-16" />
+                </div>
+              ))}
+            </div>
+          </Card>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default async function TransactionsLoading() {
   const t = await getTranslations("money.transactionsPage");
@@ -8,36 +55,22 @@ export default async function TransactionsLoading() {
   return (
     <Page
       testId="money-transactions-loading"
-      topBar={<TopAppBar title={t("title")} subtitle={t("subtitle")} />}
+      contentClassName="gap-(--space-5)"
+      topBar={
+        <TopAppBar
+          variant="primary"
+          title={t("title")}
+          subtitle={<Skeleton className="h-4 w-56" />}
+          icon={FINANCE_ICONS.cash}
+          trailing={<Skeleton className="size-11 rounded-(--radius-control)" />}
+        />
+      }
     >
-      <div
-        className="flex flex-col gap-(--space-3) rounded-[var(--radius-card)] border border-border-subtle/70 bg-surface/55 p-(--space-3)"
-        aria-hidden
-      >
-        <div className="flex gap-(--space-2) overflow-hidden">
-          {Array.from({ length: 4 }, (_, index) => (
-            <div
-              key={index}
-              className="h-9 w-20 shrink-0 animate-pulse rounded-full bg-surface-muted"
-            />
-          ))}
-        </div>
-        <div className="h-11 animate-pulse rounded-[var(--radius-control)] bg-surface-muted/70" />
-      </div>
-      <div
-        className="relative border-l border-border-subtle/70 pl-(--space-3)"
-        aria-hidden
-      >
-        <div className="mb-(--space-2) h-4 w-24 animate-pulse rounded bg-surface-muted" />
-        <div className="flex flex-col gap-0">
-          {[1, 2, 3, 4].map((row) => (
-            <div
-              key={row}
-              className="h-16 animate-pulse border-b border-border-subtle/70 bg-surface-muted/40"
-            />
-          ))}
-        </div>
-      </div>
+      <FilterSkeleton />
+      <ListSkeleton />
+      <FloatingAction>
+        <MoneyCaptureAction testId="transactions-add" />
+      </FloatingAction>
     </Page>
   );
 }

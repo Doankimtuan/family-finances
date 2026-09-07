@@ -14,6 +14,7 @@ import {
   getCurrentJarBudgets,
   JarState,
   JarPlanKind,
+  JarBudgetState,
   type JarState as JarStateValue,
   listJarCategories,
 } from "@/modules/plan/application";
@@ -21,10 +22,10 @@ import { listOpenInboxItems } from "@/modules/inbox/application";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
 import { basisPointsToPercentage } from "@/shared/utils/percentage";
-import { TopAppBar } from "@/shared/patterns/top-app-bar";
+import { TopAppBar, TopAppBarVariant } from "@/shared/patterns/top-app-bar";
 import { Page } from "@/shared/patterns/page";
 import { Section } from "@/shared/patterns/section";
-import { Amount } from "@/shared/patterns/amount";
+import { Amount, AmountSize } from "@/shared/patterns/amount";
 import { Card } from "@/shared/patterns/card";
 import { StatusBadge } from "@/shared/ui/status-badge";
 import { Progress } from "@/shared/ui/progress";
@@ -32,6 +33,10 @@ import { StatusAlert } from "@/shared/ui/status-alert";
 import { Text } from "@/shared/ui/text";
 import { PlanOfflineBanner } from "../../plan-offline-banner";
 import { EmergencyInboxBanner } from "../../emergency-inbox-banner";
+import { PlanPrivacyToggle } from "../../plan-privacy-toggle";
+import { PlanSectionTitle } from "../../plan-section-title";
+import { PlanUnavailable } from "../../plan-unavailable";
+import { PLAN_SURFACE_LINK_CLASS } from "../../plan-chrome";
 import { JarDetailControls } from "./jar-detail-controls";
 import { ReallocateJarForm } from "../reallocate-jar-form";
 
@@ -90,14 +95,21 @@ export default async function PlanJarDetailPage({ params }: Props) {
     return (
       <Page
         testId="plan-jar-detail"
-        topBar={<TopAppBar title={t("notFound")} />}
+        topBar={
+          <TopAppBar
+            variant={TopAppBarVariant.DETAIL}
+            title={t("notFound")}
+            backHref={APP_PATH.PLAN_JARS}
+            backLabel={t("backToList")}
+          />
+        }
       >
-        <Link
-          href={APP_PATH.PLAN_JARS}
-          className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary"
-        >
-          {t("backToList")}
-        </Link>
+        <PlanUnavailable
+          title={t("notFound")}
+          description={t("detailSubtitle")}
+          actionHref={APP_PATH.PLAN_JARS}
+          actionLabel={t("backToList")}
+        />
       </Page>
     );
   }
@@ -146,7 +158,15 @@ export default async function PlanJarDetailPage({ params }: Props) {
   return (
     <Page
       testId="plan-jar-detail"
-      topBar={<TopAppBar title={displayName} subtitle={t("detailSubtitle")} />}
+      topBar={
+        <TopAppBar
+          variant={TopAppBarVariant.DETAIL}
+          title={displayName}
+          subtitle={t("detailSubtitle")}
+          backHref={APP_PATH.PLAN_JARS}
+          backLabel={t("backToList")}
+        />
+      }
     >
       <PlanOfflineBanner />
 
@@ -160,7 +180,7 @@ export default async function PlanJarDetailPage({ params }: Props) {
 
       <Card tone="hero" className="gap-(--space-4) p-(--space-5)">
         <div className="flex items-start justify-between gap-(--space-3)">
-          <div>
+          <div className="min-w-0">
             <Text
               size="xs"
               className="text-hero-muted uppercase tracking-[0.14em]"
@@ -171,18 +191,21 @@ export default async function PlanJarDetailPage({ params }: Props) {
               <Amount
                 label={t("plannedHeading")}
                 amountLabel={plannedLabel}
-                size="lg"
+                size={AmountSize.LG}
                 labelClassName="text-hero-muted"
                 amountClassName="text-hero-fg"
               />
             </div>
           </div>
-          <StatusBadge
-            tone={jar.state === JarState.ACTIVE ? "positive" : "neutral"}
-            data-testid="jar-state-badge"
-          >
-            {t(stateKey(jar.state))}
-          </StatusBadge>
+          <div className="flex shrink-0 items-center gap-(--space-2)">
+            <StatusBadge
+              tone={jar.state === JarState.ACTIVE ? "positive" : "neutral"}
+              data-testid="jar-state-badge"
+            >
+              {t(stateKey(jar.state))}
+            </StatusBadge>
+            <PlanPrivacyToggle testId="plan-jar-privacy-toggle" />
+          </div>
         </div>
         <div className="flex items-center justify-between gap-(--space-3) border-t border-white/15 pt-(--space-3)">
           <Text size="sm" className="text-hero-muted">
@@ -213,28 +236,33 @@ export default async function PlanJarDetailPage({ params }: Props) {
             label={t("budget.used", { percent: budgetMetrics.usagePercent })}
             privacyAware
             indicatorClassName={
-              budgetMetrics.state === "overspent" ? "bg-danger" : undefined
+              budgetMetrics.state === JarBudgetState.OVERSPENT
+                ? "bg-danger"
+                : undefined
             }
           />
         ) : null}
       </Card>
 
-      <Section variant="surface" title={t("allocationHeading")}>
+      <Section
+        variant="surface"
+        title={<PlanSectionTitle>{t("allocationHeading")}</PlanSectionTitle>}
+      >
         <Text size="sm" tone="secondary">
           {t("incomeModeHint")}
         </Text>
       </Section>
 
-      <div data-testid="jar-monthly-review-info">
+      <div
+        className="flex flex-col gap-(--space-2)"
+        data-testid="jar-monthly-review-info"
+      >
         <StatusAlert
           variant="info"
           title={tReview("reviewWithoutBlocking")}
           description={tReview("reviewedBody")}
         />
-        <Link
-          href={APP_PATH.PLAN_RITUAL}
-          className="mt-(--space-2) inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-        >
+        <Link href={APP_PATH.PLAN_RITUAL} className={PLAN_SURFACE_LINK_CLASS}>
           {tReview("open")}
         </Link>
       </div>
@@ -267,14 +295,6 @@ export default async function PlanJarDetailPage({ params }: Props) {
         currency={jar.currency}
         qualifyingIncome={budgets?.qualifyingIncome ?? null}
       />
-
-      <Link
-        href={APP_PATH.PLAN_JARS}
-        className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-        data-testid="jar-back-list"
-      >
-        {t("backToList")}
-      </Link>
     </Page>
   );
 }

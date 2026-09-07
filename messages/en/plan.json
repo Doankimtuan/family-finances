@@ -11,6 +11,10 @@
     "title": "Intention is not your bank balance",
     "body": "Jars are envelopes for intention. Real cash and accounts live in Money. Never read jar totals as bank balance."
   },
+  "financialPrivacy": {
+    "hide": "Hide financial values",
+    "show": "Show financial values"
+  },
   "jars": {
     "title": "Active jars",
     "subtitle": "Allocation targets only — paused and archived stay out of placement.",
@@ -700,6 +704,15 @@
     "jarsUnavailableTitle": "Jars unavailable",
     "modeHint": "{mode} suggestions are available.",
     "recurringLink": "Recurring",
+    "factJars": "Active jars",
+    "factJarsValue": "{count, plural, one {# jar} other {# jars}}",
+    "factAllocation": "Allocation",
+    "factAllocationValue": "{percent}%",
+    "factIncome": "Qualifying income",
+    "factIncomeEmpty": "Not set",
+    "workspaceTitle": "More in Plan",
+    "workspaceRecurringMeta": "Expected income and bills",
+    "workspaceRitualMeta": "Review the month",
     "upcomingDue": "Due",
     "upcomingEmpty": "Nothing expected soon.",
     "upcomingExpected": "Expected",

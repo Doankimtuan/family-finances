@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { setLocale } from "@/i18n/set-locale";
-import { redirect, Link } from "@/i18n/navigation";
+import { redirect } from "@/i18n/navigation";
 import { hasLocale } from "next-intl";
 import { routing } from "@/i18n/routing";
 import {
@@ -9,15 +9,22 @@ import {
 } from "@/modules/tenancy/application/app-path";
 import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
-import { listRecurring, DEFAULT_CURRENCY } from "@/modules/plan/application";
+import {
+  listRecurring,
+  DEFAULT_CURRENCY,
+  IncomeAllocateMode,
+} from "@/modules/plan/application";
 import { formatCurrency } from "@/shared/i18n/formatters";
-import { TopAppBar } from "@/shared/patterns/top-app-bar";
+import { TopAppBar, TopAppBarVariant } from "@/shared/patterns/top-app-bar";
+import { Page } from "@/shared/patterns/page";
 import { Card } from "@/shared/patterns/card";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { Text } from "@/shared/ui/text";
-import { FinancialValue } from "@/shared/patterns/financial-value";
+import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
+import { PLAN_ICONS } from "@/shared/ui/icon-registry";
 import { PlanOfflineBanner } from "../plan-offline-banner";
 import { CreateRecurringForm } from "./create-recurring-form";
+import { PlanRecurringRow } from "./plan-recurring-row";
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -43,83 +50,67 @@ export default async function PlanRecurringPage({ params }: Props) {
 
   const currency = listed?.currency ?? DEFAULT_CURRENCY;
   const rules = listed?.rules ?? [];
-  const incomeMode = listed?.incomeAllocateMode ?? "suggest";
+  const incomeMode = listed?.incomeAllocateMode ?? IncomeAllocateMode.SUGGEST;
 
   return (
-    <div className="flex min-h-full flex-col" data-testid="plan-recurring">
-      <TopAppBar title={t("listTitle")} subtitle={t("listSubtitle")} />
-      <div className="flex flex-1 flex-col gap-(--space-5) px-(--space-4) pb-(--space-6) pt-(--space-4)">
-        <PlanOfflineBanner />
+    <Page
+      testId="plan-recurring"
+      topBar={
+        <TopAppBar
+          variant={TopAppBarVariant.DETAIL}
+          title={t("listTitle")}
+          subtitle={t("listSubtitle")}
+          backHref={APP_PATH.PLAN}
+          backLabel={t("backToPlan")}
+        />
+      }
+    >
+      <PlanOfflineBanner />
 
-        <Text size="sm" tone="secondary">
-          {t("incomeModeLabel", { mode: t(`incomeModes.${incomeMode}`) })}
-        </Text>
-        <Text size="sm" tone="secondary">
-          {t("incomeModeHint")}
-        </Text>
+      <Text size="sm" tone="secondary" className="text-pretty">
+        {t("incomeModeLabel", { mode: t(`incomeModes.${incomeMode}`) })}
+      </Text>
+      <Text size="sm" tone="secondary" className="text-pretty">
+        {t("incomeModeHint")}
+      </Text>
 
-        {rules.length === 0 ? (
-          <EmptyState
-            title={t("emptyTitle")}
-            description={t("emptyDescription")}
-            className="flex-none py-(--space-4)"
-          />
-        ) : (
-          <ul className="flex flex-col gap-(--space-2)">
+      {rules.length === 0 ? (
+        <EmptyState
+          title={t("emptyTitle")}
+          description={t("emptyDescription")}
+          icon={
+            <AppIcon icon={PLAN_ICONS.recurring} size={AppIconSize.DISPLAY} />
+          }
+          className="flex-none py-(--space-4)"
+        />
+      ) : (
+        <Card tone="elevated" className="gap-0 overflow-hidden p-0">
+          <ul className="divide-y divide-border-subtle/65 py-(--space-1)">
             {rules.map((rule) => (
               <li key={rule.id}>
-                <Link href={planRecurringPath(rule.id)} className="block">
-                  <Card
-                    className="gap-0 p-(--space-4)"
-                    data-testid={`recurring-card-${rule.id}`}
-                  >
-                    <div className="flex items-center justify-between gap-(--space-3)">
-                      <div className="min-w-0">
-                        <Text
-                          size="sm"
-                          className="truncate font-medium text-text-primary"
-                        >
-                          {rule.name}
-                        </Text>
-                        <Text size="sm" tone="secondary">
-                          {t(`direction.${rule.direction}`)} ·{" "}
-                          {t(`frequency.${rule.frequency}`)}
-                        </Text>
-                        {rule.nextRunDate ? (
-                          <Text size="sm" tone="secondary">
-                            {t("nextRun", { date: rule.nextRunDate })}
-                          </Text>
-                        ) : null}
-                      </div>
-                      <div className="shrink-0 text-right">
-                        <span className="text-sm font-semibold tabular-nums text-text-primary">
-                          <FinancialValue>
-                            {formatCurrency(rule.amount, currency, locale, {
-                              maximumFractionDigits: 0,
-                            })}
-                          </FinancialValue>
-                        </span>
-                        <Text size="sm" tone="secondary">
-                          {rule.isActive ? t("active") : t("inactive")}
-                        </Text>
-                      </div>
-                    </div>
-                  </Card>
-                </Link>
+                <PlanRecurringRow
+                  href={planRecurringPath(rule.id)}
+                  testId={`recurring-card-${rule.id}`}
+                  name={rule.name}
+                  meta={`${t(`direction.${rule.direction}`)} · ${t(`frequency.${rule.frequency}`)}`}
+                  amountLabel={formatCurrency(rule.amount, currency, locale, {
+                    maximumFractionDigits: 0,
+                  })}
+                  statusLabel={rule.isActive ? t("active") : t("inactive")}
+                  direction={rule.direction}
+                  nextRun={
+                    rule.nextRunDate
+                      ? t("nextRun", { date: rule.nextRunDate })
+                      : undefined
+                  }
+                />
               </li>
             ))}
           </ul>
-        )}
+        </Card>
+      )}
 
-        <CreateRecurringForm />
-
-        <Link
-          href={APP_PATH.PLAN}
-          className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary"
-        >
-          {t("backToPlan")}
-        </Link>
-      </div>
-    </div>
+      <CreateRecurringForm />
+    </Page>
   );
 }

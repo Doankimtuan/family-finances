@@ -56,6 +56,7 @@ export type LedgerRelation =
 export const LEDGER_ACTION_ERROR_CODE = {
   CREDIT_LIMIT_EXCEEDED: "credit_limit_exceeded",
   CATEGORY_UNMAPPED: "category_unmapped",
+  FORBIDDEN: "forbidden",
   REFUND_INVALID: "refund_invalid",
   CORRECTION_INVALID: "correction_invalid",
   IMMUTABLE: "immutable",
@@ -126,6 +127,7 @@ export type LedgerOperation =
 /** Compatibility markers for legacy RPCs that still raise plain text errors. */
 export const LEDGER_LEGACY_RPC_ERROR_MARKERS = {
   AUTHENTICATION: ["authentication required"],
+  PERMISSION_DENIED: ["not_allowed", "forbidden"],
   NO_MEMBERSHIP: [
     "active household membership required",
     "not a household member",

@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { setLocale } from "@/i18n/set-locale";
-import { redirect, Link } from "@/i18n/navigation";
+import { redirect } from "@/i18n/navigation";
 import { hasLocale } from "next-intl";
 import { routing } from "@/i18n/routing";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
@@ -8,8 +8,11 @@ import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
 import { getHouseholdCalendar } from "@/modules/plan/application";
 import { currentPeriodMonth } from "@/modules/plan/application/ritual-period";
-import { TopAppBar } from "@/shared/patterns/top-app-bar";
+import { TopAppBar, TopAppBarVariant } from "@/shared/patterns/top-app-bar";
+import { Page } from "@/shared/patterns/page";
 import { EmptyState } from "@/shared/patterns/empty-state";
+import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
+import { PLAN_ICONS } from "@/shared/ui/icon-registry";
 import { HouseholdCalendarView } from "./calendar-view";
 
 type Props = {
@@ -47,36 +50,39 @@ export default async function PlanCalendarPage({
   ]);
 
   return (
-    <div className="flex min-h-full flex-col" data-testid="plan-calendar-page">
-      <TopAppBar title={t("title")} subtitle={t("subtitle")} />
-      <div className="flex flex-1 flex-col gap-(--space-5) px-(--space-4) pb-(--space-6) pt-(--space-4)">
-        {calendar ? (
-          <HouseholdCalendarView
-            anchorMonth={calendar.anchorMonth}
-            currency={calendar.currency}
-            events={calendar.events}
-            eventsByDate={calendar.eventsByDate}
-            deficitDates={calendar.deficitDates}
-            payoffMilestoneDates={calendar.payoffMilestoneDates}
-            startingBalance={calendar.startingBalance}
-            payoffInboxItemByPlanId={calendar.payoffInboxItemByPlanId}
-          />
-        ) : (
-          <EmptyState
-            title={t("unavailableTitle")}
-            description={t("unavailableBody")}
-            className="flex-none py-(--space-4)"
-          />
-        )}
-
-        <Link
-          href={APP_PATH.PLAN}
-          className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-          data-testid="calendar-back-plan"
-        >
-          {t("backToPlan")}
-        </Link>
-      </div>
-    </div>
+    <Page
+      testId="plan-calendar-page"
+      topBar={
+        <TopAppBar
+          variant={TopAppBarVariant.DETAIL}
+          title={t("title")}
+          subtitle={t("subtitle")}
+          backHref={APP_PATH.PLAN}
+          backLabel={t("backToPlan")}
+        />
+      }
+    >
+      {calendar ? (
+        <HouseholdCalendarView
+          anchorMonth={calendar.anchorMonth}
+          currency={calendar.currency}
+          events={calendar.events}
+          eventsByDate={calendar.eventsByDate}
+          deficitDates={calendar.deficitDates}
+          payoffMilestoneDates={calendar.payoffMilestoneDates}
+          startingBalance={calendar.startingBalance}
+          payoffInboxItemByPlanId={calendar.payoffInboxItemByPlanId}
+        />
+      ) : (
+        <EmptyState
+          title={t("unavailableTitle")}
+          description={t("unavailableBody")}
+          icon={
+            <AppIcon icon={PLAN_ICONS.calendar} size={AppIconSize.DISPLAY} />
+          }
+          className="flex-none py-(--space-4)"
+        />
+      )}
+    </Page>
   );
 }

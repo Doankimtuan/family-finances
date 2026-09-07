@@ -17,6 +17,10 @@ import { Button } from "@/shared/ui/button";
 import { AlertVariant } from "@/shared/ui/alert";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import { useStatusAlert } from "@/providers/status-alert-provider";
+import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
+import { SheetActionFooter } from "@/shared/patterns/sheet-action-footer";
+import { Sheet } from "@/shared/patterns/sheet";
+import { ChoiceTile, ChoiceTileGroup } from "@/shared/patterns/choice-tile";
 import {
   CLIENT_ACTION_ERROR_CODE,
   type ProductActionErrorCode,
@@ -48,23 +52,18 @@ export function CreateRecurringForm() {
   );
   const [isPending, startTransition] = useTransition();
 
-  if (!open) {
-    return (
-      <Button
-        variant="secondary"
-        className="w-full"
-        data-testid="recurring-create-open"
-        isDisabled={!online}
-        onPress={() => {
-          if (!online) return;
-          statusAlert.hide();
-          setOpen(true);
-        }}
-      >
-        {online ? t("add") : t("errors.offline")}
-      </Button>
-    );
-  }
+  const reset = () => {
+    setName("");
+    setAmount(null);
+    setDirection(RecurringDirection.EXPENSE);
+    setFrequency(RecurringFrequency.MONTHLY);
+  };
+
+  const close = () => {
+    statusAlert.hide();
+    reset();
+    setOpen(false);
+  };
 
   const showCreateError = (code: ErrorCode) => {
     statusAlert.show({
@@ -104,9 +103,7 @@ export function CreateRecurringForm() {
         isActive: true,
       });
       if (result.status === "success") {
-        setOpen(false);
-        setName("");
-        setAmount(null);
+        close();
         router.refresh();
         return;
       }
@@ -115,92 +112,94 @@ export function CreateRecurringForm() {
   };
 
   return (
-    <div
-      className="flex flex-col gap-(--space-3) rounded-lg border border-border-subtle bg-surface p-(--space-4)"
-      data-testid="recurring-create-form"
-    >
-      <TextField
-        id={nameId}
-        label={t("nameLabel")}
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-      />
-      <fieldset className="flex flex-col gap-(--space-2)">
-        <legend className="text-sm font-semibold text-text-primary">
-          {t("directionLabel")}
-        </legend>
-        <div className="flex gap-(--space-2)">
-          {RECURRING_DIRECTION_OPTIONS.map((d) => (
-            <button
-              key={d}
-              type="button"
-              aria-pressed={direction === d}
-              className={
-                direction === d
-                  ? "min-h-11 flex-1 rounded-md bg-accent px-(--space-3) text-sm text-accent-fg"
-                  : "min-h-11 flex-1 rounded-md border border-border-subtle px-(--space-3) text-sm text-text-primary"
-              }
-              onClick={() => setDirection(d)}
-            >
-              {t(`direction.${d}`)}
-            </button>
-          ))}
-        </div>
-      </fieldset>
-      <AmountField
-        id={amountId}
-        label={t("amountLabel")}
-        value={amount}
-        onValueChange={setAmount}
-      />
-      <fieldset className="flex flex-col gap-(--space-2)">
-        <legend className="text-sm font-semibold text-text-primary">
-          {t("frequencyLabel")}
-        </legend>
-        <div className="flex gap-(--space-2)">
-          {RECURRING_FREQUENCY_VALUES.map((f) => (
-            <button
-              key={f}
-              type="button"
-              aria-pressed={frequency === f}
-              className={
-                frequency === f
-                  ? "min-h-11 flex-1 rounded-md bg-accent px-(--space-3) text-sm text-accent-fg"
-                  : "min-h-11 flex-1 rounded-md border border-border-subtle px-(--space-3) text-sm text-text-primary"
-              }
-              onClick={() => setFrequency(f)}
-            >
-              {t(`frequency.${f}`)}
-            </button>
-          ))}
-        </div>
-      </fieldset>
-      <Button
-        variant="primary"
-        className="w-full"
-        data-testid="recurring-create-submit"
-        isDisabled={
-          isPending ||
-          !online ||
-          name.trim().length < 2 ||
-          amount == null ||
-          amount <= 0
-        }
-        onPress={onSubmit}
-      >
-        {t("save")}
-      </Button>
+    <>
       <Button
         variant="secondary"
         className="w-full"
-        isDisabled={isPending}
+        data-testid="recurring-create-open"
+        isDisabled={!online}
         onPress={() => {
+          if (!online) return;
           statusAlert.hide();
-          setOpen(false);
+          setOpen(true);
         }}
       >
-        {t("createCancel")}
+        {online ? t("add") : t("errors.offline")}
       </Button>
-    </div>
+      <Sheet isOpen={open} onOpenChange={(next) => !next && close()}>
+        <ActionSheetLayout>
+          <ActionSheetLayout.Header>
+            <Sheet.Heading className="text-lg font-semibold tracking-tight text-text-primary">
+              {t("add")}
+            </Sheet.Heading>
+          </ActionSheetLayout.Header>
+          <ActionSheetLayout.Body>
+            {open ? (
+              <div
+                className="flex flex-col gap-(--space-3)"
+                data-testid="recurring-create-form"
+              >
+                <TextField
+                  id={nameId}
+                  label={t("nameLabel")}
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+                <fieldset className="flex flex-col gap-(--space-2)">
+                  <legend className="text-sm font-medium text-text-primary">
+                    {t("directionLabel")}
+                  </legend>
+                  <ChoiceTileGroup>
+                    {RECURRING_DIRECTION_OPTIONS.map((option) => (
+                      <ChoiceTile
+                        key={option}
+                        label={t(`direction.${option}`)}
+                        selected={direction === option}
+                        onPress={() => setDirection(option)}
+                        role="radio"
+                      />
+                    ))}
+                  </ChoiceTileGroup>
+                </fieldset>
+                <AmountField
+                  id={amountId}
+                  label={t("amountLabel")}
+                  value={amount}
+                  onValueChange={setAmount}
+                />
+                <fieldset className="flex flex-col gap-(--space-2)">
+                  <legend className="text-sm font-medium text-text-primary">
+                    {t("frequencyLabel")}
+                  </legend>
+                  <ChoiceTileGroup>
+                    {RECURRING_FREQUENCY_VALUES.map((option) => (
+                      <ChoiceTile
+                        key={option}
+                        label={t(`frequency.${option}`)}
+                        selected={frequency === option}
+                        onPress={() => setFrequency(option)}
+                        role="radio"
+                      />
+                    ))}
+                  </ChoiceTileGroup>
+                </fieldset>
+              </div>
+            ) : null}
+          </ActionSheetLayout.Body>
+          <SheetActionFooter
+            secondaryLabel={t("createCancel")}
+            primaryLabel={t("save")}
+            onSecondary={close}
+            onPrimary={onSubmit}
+            primaryTestId="recurring-create-submit"
+            isDisabled={!online}
+            isPrimaryDisabled={
+              name.trim().length < 2 || amount == null || amount <= 0
+            }
+            isPending={isPending}
+          />
+        </ActionSheetLayout>
+      </Sheet>
+    </>
   );
 }

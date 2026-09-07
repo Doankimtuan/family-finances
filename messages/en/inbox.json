@@ -1,6 +1,22 @@
 {
   "title": "Inbox",
   "subtitle": "What needs a decision?",
+  "financialPrivacy": {
+    "hide": "Hide financial values",
+    "show": "Show financial values"
+  },
+  "retry": "Try again",
+  "sectionCount": "{count, plural, one {# item} other {# items}}",
+  "facts": {
+    "waiting": "Waiting",
+    "archived": "Completed"
+  },
+  "factCategory": "Category",
+  "factAccount": "Account",
+  "factNote": "Note",
+  "factProvider": "Product",
+  "factRate": "Rate",
+  "factRecommendation": "Recommendation",
   "header": {
     "eyebrow": "Inbox",
     "headline": {

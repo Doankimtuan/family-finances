@@ -22,11 +22,13 @@ import { StatusAlert } from "@/shared/ui/status-alert";
 import { MotionStep, MotionStepDirection } from "@/shared/motion";
 import { formatCurrency, formatDate } from "@/shared/i18n/formatters";
 import { FinancialValue } from "@/shared/patterns/financial-value";
+import { Card } from "@/shared/patterns/card";
 import { ChoiceTile } from "@/shared/patterns/choice-tile";
 import { AppIcon } from "@/shared/ui/app-icon";
 import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
 import { Sheet } from "@/shared/patterns/sheet";
 import { SheetActionFooter } from "@/shared/patterns/sheet-action-footer";
+import { SavingsFactRow } from "../savings-facts";
 
 type AccountOption = { id: string; name: string };
 type PackageOption = {
@@ -54,7 +56,7 @@ type Props = {
 };
 type Step = "form" | "review";
 
-function Card({
+function SelectionTile({
   selected,
   onPress,
   children,
@@ -246,7 +248,7 @@ export function SavingsSettlementFlow({
                   aria-label={t("strategyLabel")}
                 >
                   {SETTLEMENT_RULE_VALUES.map((value) => (
-                    <Card
+                    <SelectionTile
                       key={value}
                       selected={strategy === value}
                       onPress={() => setStrategy(value)}
@@ -255,7 +257,7 @@ export function SavingsSettlementFlow({
                       <Text size="sm" weight="medium">
                         {t(`strategies.${value}` as never)}
                       </Text>
-                    </Card>
+                    </SelectionTile>
                   ))}
                 </div>
                 {needsTarget ? (
@@ -264,7 +266,7 @@ export function SavingsSettlementFlow({
                       {t("targetPackage")}
                     </Text>
                     {!targetUnavailable ? (
-                      <Card
+                      <SelectionTile
                         selected={
                           targetMode === MaturityTargetMode.KEEP_CURRENT_PACKAGE
                         }
@@ -276,9 +278,9 @@ export function SavingsSettlementFlow({
                         <Text size="sm" weight="medium">
                           {t("keepCurrentPackage")}
                         </Text>
-                      </Card>
+                      </SelectionTile>
                     ) : null}
-                    <Card
+                    <SelectionTile
                       selected={
                         targetMode === MaturityTargetMode.SELECT_PACKAGE
                       }
@@ -290,10 +292,10 @@ export function SavingsSettlementFlow({
                       <Text size="sm" weight="medium">
                         {t("chooseOtherPackage")}
                       </Text>
-                    </Card>
+                    </SelectionTile>
                     {targetMode === MaturityTargetMode.SELECT_PACKAGE
                       ? packages.map((pkg) => (
-                          <Card
+                          <SelectionTile
                             key={pkg.id}
                             selected={targetPackageId === pkg.id}
                             onPress={() => setTargetPackageId(pkg.id)}
@@ -310,7 +312,7 @@ export function SavingsSettlementFlow({
                                 })}
                               </Text>
                             </span>
-                          </Card>
+                          </SelectionTile>
                         ))
                       : null}
                   </>
@@ -321,7 +323,7 @@ export function SavingsSettlementFlow({
                       {t("destination")}
                     </Text>
                     {accounts.map((account) => (
-                      <Card
+                      <SelectionTile
                         key={account.id}
                         selected={accountId === account.id}
                         onPress={() => setAccountId(account.id)}
@@ -330,7 +332,7 @@ export function SavingsSettlementFlow({
                         <Text size="sm" weight="medium">
                           {account.name}
                         </Text>
-                      </Card>
+                      </SelectionTile>
                     ))}
                   </>
                 ) : (
@@ -344,82 +346,77 @@ export function SavingsSettlementFlow({
                 <Text size="sm" tone="secondary">
                   {t("reviewHint")}
                 </Text>
-                <dl className="divide-y divide-border-subtle/70">
-                  <div className="flex justify-between gap-(--space-3) py-(--space-2)">
-                    <dt className="text-sm text-text-secondary">
-                      {t("maturedPrincipal")}
-                    </dt>
-                    <dd className="text-sm font-medium">
-                      <FinancialValue>{money(principal)}</FinancialValue>
-                    </dd>
-                  </div>
-                  <div className="flex justify-between gap-(--space-3) py-(--space-2)">
-                    <dt className="text-sm text-text-secondary">
-                      {t("grossInterest")}
-                    </dt>
-                    <dd className="text-sm font-medium">
-                      <FinancialValue>{money(grossInterest)}</FinancialValue>
-                    </dd>
-                  </div>
-                  {breakdown.tax > 0 ? (
-                    <div className="flex justify-between gap-(--space-3) py-(--space-2)">
-                      <dt className="text-sm text-text-secondary">
-                        {t("tax")}
-                      </dt>
-                      <dd className="text-sm font-medium">
-                        <FinancialValue>{money(breakdown.tax)}</FinancialValue>
-                      </dd>
-                    </div>
-                  ) : null}
-                  {breakdown.fee > 0 ? (
-                    <div className="flex justify-between gap-(--space-3) py-(--space-2)">
-                      <dt className="text-sm text-text-secondary">
-                        {t("fee")}
-                      </dt>
-                      <dd className="text-sm font-medium">
-                        <FinancialValue>{money(breakdown.fee)}</FinancialValue>
-                      </dd>
-                    </div>
-                  ) : null}
-                  {strategy === SettlementRule.ROLL_PRINCIPAL_ONLY ? (
-                    <div className="flex justify-between gap-(--space-3) py-(--space-2)">
-                      <dt className="text-sm text-text-secondary">
-                        {t("payout")}
-                      </dt>
-                      <dd className="text-sm font-medium">
+                <Card tone="elevated" className="gap-0 overflow-hidden p-0">
+                  <dl className="divide-y divide-divider">
+                    <SavingsFactRow
+                      label={t("maturedPrincipal")}
+                      value={
+                        <FinancialValue>{money(principal)}</FinancialValue>
+                      }
+                    />
+                    <SavingsFactRow
+                      label={t("grossInterest")}
+                      value={
+                        <FinancialValue>{money(grossInterest)}</FinancialValue>
+                      }
+                    />
+                    {breakdown.tax > 0 ? (
+                      <SavingsFactRow
+                        label={t("tax")}
+                        value={
+                          <FinancialValue>
+                            {money(breakdown.tax)}
+                          </FinancialValue>
+                        }
+                      />
+                    ) : null}
+                    {breakdown.fee > 0 ? (
+                      <SavingsFactRow
+                        label={t("fee")}
+                        value={
+                          <FinancialValue>
+                            {money(breakdown.fee)}
+                          </FinancialValue>
+                        }
+                      />
+                    ) : null}
+                    {strategy === SettlementRule.ROLL_PRINCIPAL_ONLY ? (
+                      <SavingsFactRow
+                        label={t("payout")}
+                        value={
+                          <FinancialValue>
+                            {money(breakdown.netInterest)}
+                          </FinancialValue>
+                        }
+                      />
+                    ) : null}
+                    <SavingsFactRow
+                      label={t("netInterest")}
+                      value={
                         <FinancialValue>
                           {money(breakdown.netInterest)}
                         </FinancialValue>
-                      </dd>
-                    </div>
-                  ) : null}
-                  <div className="flex justify-between gap-(--space-3) py-(--space-2)">
-                    <dt className="text-sm text-text-secondary">
-                      {t("netInterest")}
-                    </dt>
-                    <dd className="text-sm font-medium">
-                      <FinancialValue>
-                        {money(breakdown.netInterest)}
-                      </FinancialValue>
-                    </dd>
-                  </div>
-                  <div className="flex justify-between gap-(--space-3) py-(--space-3)">
-                    <dt className="text-sm font-semibold">
-                      {strategy === SettlementRule.WITHDRAW_EVERYTHING
-                        ? t("received")
-                        : t("newPrincipal")}
-                    </dt>
-                    <dd className="text-base font-semibold text-accent">
-                      <FinancialValue>
-                        {money(
-                          strategy === SettlementRule.WITHDRAW_EVERYTHING
-                            ? breakdown.totalCashReceived
-                            : projectedPrincipal,
-                        )}
-                      </FinancialValue>
-                    </dd>
-                  </div>
-                </dl>
+                      }
+                    />
+                    <SavingsFactRow
+                      label={
+                        strategy === SettlementRule.WITHDRAW_EVERYTHING
+                          ? t("received")
+                          : t("newPrincipal")
+                      }
+                      value={
+                        <FinancialValue>
+                          {money(
+                            strategy === SettlementRule.WITHDRAW_EVERYTHING
+                              ? breakdown.totalCashReceived
+                              : projectedPrincipal,
+                          )}
+                        </FinancialValue>
+                      }
+                      emphasis
+                    />
+                  </dl>
+                </Card>
                 {needsTarget && selectedPackage ? (
                   <div className="flex flex-col gap-(--space-1)">
                     <Text size="sm" tone="secondary">

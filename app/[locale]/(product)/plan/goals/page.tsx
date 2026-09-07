@@ -11,11 +11,13 @@ import { listGoals } from "@/modules/plan/application/queries/list-goals";
 import { listGoalFundingOptions } from "@/modules/plan/application/queries/list-goal-funding-options";
 import { DEFAULT_CURRENCY } from "@/modules/ledger/application/ledger-constants";
 import { formatCurrency } from "@/shared/i18n/formatters";
-import { TopAppBar } from "@/shared/patterns/top-app-bar";
+import { TopAppBar, TopAppBarVariant } from "@/shared/patterns/top-app-bar";
 import { Page } from "@/shared/patterns/page";
 import { GoalCard } from "@/shared/patterns/goal-card";
 import { FinancialValue } from "@/shared/patterns/financial-value";
 import { EmptyState } from "@/shared/patterns/empty-state";
+import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
+import { PLAN_ICONS } from "@/shared/ui/icon-registry";
 import { PlanOfflineBanner } from "../plan-offline-banner";
 import { CreateGoalForm } from "./create-goal-form";
 
@@ -49,7 +51,15 @@ export default async function PlanGoalsPage({ params }: Props) {
   return (
     <Page
       testId="plan-goals"
-      topBar={<TopAppBar title={t("listTitle")} subtitle={t("listSubtitle")} />}
+      topBar={
+        <TopAppBar
+          variant={TopAppBarVariant.DETAIL}
+          title={t("listTitle")}
+          subtitle={t("listSubtitle")}
+          backHref={APP_PATH.PLAN}
+          backLabel={t("backToPlan")}
+        />
+      }
     >
       <PlanOfflineBanner />
 
@@ -57,6 +67,7 @@ export default async function PlanGoalsPage({ params }: Props) {
         <EmptyState
           title={t("emptyTitle")}
           description={t("emptyDescription")}
+          icon={<AppIcon icon={PLAN_ICONS.goal} size={AppIconSize.DISPLAY} />}
           className="flex-none py-(--space-4)"
         />
       ) : (
@@ -104,13 +115,6 @@ export default async function PlanGoalsPage({ params }: Props) {
       )}
 
       <CreateGoalForm fundingOptions={fundingOptions} />
-
-      <Link
-        href={APP_PATH.PLAN}
-        className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-      >
-        {t("backToPlan")}
-      </Link>
     </Page>
   );
 }

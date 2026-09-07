@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import type { AccountType as AccountTypeValue } from "@/modules/ledger/application/client";
 import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
 import { Sheet } from "@/shared/patterns/sheet";
-import { AppIcon } from "@/shared/ui/app-icon";
+import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
 import { IconButton } from "@/shared/ui/icon-button";
 import { ACTION_ICONS } from "@/shared/ui/icon-registry";
 import { AccountDetailActions } from "./account-detail-actions";
@@ -65,7 +65,7 @@ export function AccountDetailManagement({
         data-testid="account-management-open"
         onPress={() => setIsOpen(true)}
       >
-        <AppIcon icon={ACTION_ICONS.more} size="sm" />
+        <AppIcon icon={ACTION_ICONS.more} size={AppIconSize.SM} />
       </IconButton>
       <Sheet isOpen={isOpen} onOpenChange={handleOpenChange}>
         <ActionSheetLayout>

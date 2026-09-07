@@ -7,6 +7,7 @@ import {
   InboxQueueTab,
   INBOX_TAB_QUERY,
 } from "@/modules/inbox/application/inbox-constants";
+import { cn } from "@/shared/utils/cn";
 
 type Props = {
   active: InboxQueueTab;
@@ -40,7 +41,7 @@ export function InboxQueueTabs({ active }: Props) {
 
   return (
     <div
-      className="flex gap-(--space-2)"
+      className="flex gap-(--space-1) rounded-full bg-surface-muted p-(--space-1)"
       role="tablist"
       aria-label={t("tabListLabel")}
       data-testid="inbox-queue-tabs"
@@ -54,11 +55,12 @@ export function InboxQueueTabs({ active }: Props) {
             role="tab"
             aria-selected={selected}
             data-testid={tab.testId}
-            className={
+            className={cn(
+              "inline-flex min-h-10 flex-1 items-center justify-center rounded-full px-(--space-3) text-sm transition-[background-color,color,transform,box-shadow] duration-(--duration-fast) active:scale-[var(--press-scale)] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring",
               selected
-                ? "inline-flex min-h-10 flex-1 items-center justify-center rounded-full bg-primary-soft px-(--space-3) text-sm font-semibold text-primary ring-1 ring-primary/20 transition-[background-color,color,transform] duration-(--duration-fast) hover:bg-primary/15 active:scale-[var(--press-scale)] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-                : "inline-flex min-h-10 flex-1 items-center justify-center rounded-full bg-surface-muted/60 px-(--space-3) text-sm font-medium text-text-secondary transition-[background-color,color,transform] duration-(--duration-fast) hover:bg-surface-hover hover:text-text-primary active:scale-[var(--press-scale)] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-            }
+                ? "bg-surface font-semibold text-text-primary shadow-(--elevation-1)"
+                : "font-medium text-text-secondary hover:bg-surface-hover hover:text-text-primary",
+            )}
           >
             {tab.label}
           </Link>

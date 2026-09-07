@@ -14,6 +14,7 @@ import type { MonthlyReview } from "@/modules/plan/application/queries/get-month
 import { RecommendationList, type Translator } from "../recommendation-list";
 import type { PlanRecommendation } from "@/modules/plan/application/plan-recommendations";
 import { MonthlyReviewActions } from "./monthly-review-actions";
+import { PLAN_SURFACE_LINK_CLASS } from "../plan-chrome";
 
 type Props = { review: MonthlyReview };
 
@@ -419,10 +420,7 @@ export function MonthlyReviewReport({ review }: Props) {
             goals: review.goals,
           }}
         />
-        <Link
-          href={APP_PATH.PLAN}
-          className="inline-flex min-h-11 w-full items-center justify-center rounded-[var(--radius-control)] border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-        >
+        <Link href={APP_PATH.PLAN} className={PLAN_SURFACE_LINK_CLASS}>
           {t("backToPlan")}
         </Link>
       </BottomActionBar>

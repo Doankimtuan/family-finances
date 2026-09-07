@@ -14,6 +14,7 @@ import {
   isJarResolvableKind,
 } from "@/modules/inbox/application/inbox-constants";
 import type { InboxReviewItem } from "@/modules/inbox/application/inbox-types";
+import { INBOX_SURFACE_LINK_CLASS } from "./inbox-chrome";
 
 type SourceTarget = {
   href: string;
@@ -122,7 +123,7 @@ export async function InboxSourceLink({ item }: { item: InboxReviewItem }) {
   return (
     <Link
       href={target.href}
-      className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+      className={INBOX_SURFACE_LINK_CLASS}
       data-testid="inbox-view-source"
     >
       {t(target.labelKey)}

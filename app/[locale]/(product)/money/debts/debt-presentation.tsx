@@ -1,11 +1,12 @@
-import { Amount } from "@/shared/patterns/amount";
+import type { ReactNode } from "react";
+import { Amount, AmountSize } from "@/shared/patterns/amount";
 import { Card } from "@/shared/patterns/card";
 import { FinancialValue } from "@/shared/patterns/financial-value";
 import { formatCurrency, formatDate } from "@/shared/i18n/formatters";
 import { Progress } from "@/shared/ui/progress";
-import { StatusBadge, type StatusBadgeTone } from "@/shared/ui/status-badge";
+import { StatusBadge, StatusBadgeTone } from "@/shared/ui/status-badge";
 import { Text } from "@/shared/ui/text";
-import { AppIcon } from "@/shared/ui/app-icon";
+import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
 import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
 import {
   DebtDirection,
@@ -29,18 +30,17 @@ type ProgressLabels = {
 
 export type DebtDetailHeroLabels = DueLabels &
   ProgressLabels & {
-    relationship: string;
     remainingToPay: string;
     remainingToReceive: string;
   };
 
 const DUE_TONE: Record<DebtDueState, StatusBadgeTone> = {
-  [DebtDueState.NONE]: "neutral",
-  [DebtDueState.UPCOMING]: "info",
-  [DebtDueState.DUE_SOON]: "warning",
-  [DebtDueState.DUE_TODAY]: "warning",
-  [DebtDueState.OVERDUE]: "attention",
-  [DebtDueState.COMPLETED]: "positive",
+  [DebtDueState.NONE]: StatusBadgeTone.NEUTRAL,
+  [DebtDueState.UPCOMING]: StatusBadgeTone.INFO,
+  [DebtDueState.DUE_SOON]: StatusBadgeTone.WARNING,
+  [DebtDueState.DUE_TODAY]: StatusBadgeTone.WARNING,
+  [DebtDueState.OVERDUE]: StatusBadgeTone.ATTENTION,
+  [DebtDueState.COMPLETED]: StatusBadgeTone.POSITIVE,
 };
 
 export function DebtDueBadge({
@@ -86,6 +86,7 @@ export function DebtDetailHero({
   currency,
   locale,
   labels,
+  trailing,
 }: {
   direction: DebtDirection;
   remainingAmount: number;
@@ -95,6 +96,7 @@ export function DebtDetailHero({
   currency: string;
   locale: string;
   labels: DebtDetailHeroLabels;
+  trailing?: ReactNode;
 }) {
   const isBorrowed = direction === DebtDirection.BORROWED;
   const remainingLabel = isBorrowed
@@ -112,19 +114,34 @@ export function DebtDetailHero({
       className="gap-0 p-(--space-4)"
       data-testid="debt-detail-hero"
     >
-      <div className="flex items-start justify-between gap-(--space-3)">
-        <div className="flex min-w-0 items-center gap-(--space-3)">
+      <div className="flex items-center gap-(--space-3)">
+        <div className="flex min-w-0 flex-1 items-center gap-(--space-3)">
           <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-(--radius-control) border border-white/25 bg-white/10 text-hero-fg">
             <AppIcon
               icon={isBorrowed ? FINANCE_ICONS.debt : FINANCE_ICONS.income}
-              size="md"
+              size={AppIconSize.MD}
               emphasized
             />
           </span>
-          <Text size="sm" weight="medium" className="text-hero-muted">
-            {labels.relationship}
+          <Text
+            size="sm"
+            weight="medium"
+            className="text-pretty text-hero-muted"
+          >
+            {remainingLabel}
           </Text>
         </div>
+        {trailing}
+      </div>
+      <Amount
+        amountLabel={formatCurrency(remainingAmount, currency, locale, {
+          maximumFractionDigits: 0,
+        })}
+        size={AmountSize.HERO}
+        className="mt-(--space-3)"
+        amountClassName="text-4xl leading-none text-hero-fg"
+      />
+      <div className="mt-(--space-3)">
         <DebtDueBadge
           due={due}
           dueDate={dueDate}
@@ -132,16 +149,6 @@ export function DebtDetailHero({
           locale={locale}
         />
       </div>
-      <Amount
-        label={remainingLabel}
-        amountLabel={formatCurrency(remainingAmount, currency, locale, {
-          maximumFractionDigits: 0,
-        })}
-        size="hero"
-        labelClassName="text-hero-muted"
-        amountClassName="text-hero-fg"
-        className="mt-(--space-4)"
-      />
       <div className="mt-(--space-4) flex items-end justify-between gap-(--space-3) border-t border-white/15 pt-(--space-3)">
         <Text size="sm" className="text-hero-muted">
           {progressLabel} <FinancialValue>{progressAmount}</FinancialValue>
@@ -160,41 +167,5 @@ export function DebtDetailHero({
         className="mt-(--space-2)"
       />
     </Card>
-  );
-}
-
-export function DebtProgressSummary({
-  direction,
-  progress,
-  currency,
-  locale,
-  labels,
-}: {
-  direction: DebtDirection;
-  progress: DebtProgress;
-  currency: string;
-  locale: string;
-  labels: ProgressLabels;
-}) {
-  const amountLabel = formatCurrency(progress.paidAmount, currency, locale, {
-    maximumFractionDigits: 0,
-  });
-  const progressLabel =
-    direction === DebtDirection.BORROWED ? labels.paid : labels.received;
-  return (
-    <div className="flex flex-col gap-(--space-2)">
-      <Text size="sm" tone="secondary">
-        {progressLabel} <FinancialValue>{amountLabel}</FinancialValue>
-        {" · "}
-        {progress.percent}%
-      </Text>
-      <Progress
-        value={progress.percent}
-        max={100}
-        label={`${progressLabel} ${progress.percent}%`}
-        showLabel={false}
-        trackClassName="h-1.5"
-      />
-    </div>
   );
 }

@@ -23,6 +23,10 @@ export const FINANCIAL_DELTA_DIRECTION_VALUES = [
   FinancialDeltaDirection.NEUTRAL,
 ] as const;
 
+const FINANCIAL_DELTA_DIRECTION_SET = new Set<FinancialDeltaDirection>(
+  FINANCIAL_DELTA_DIRECTION_VALUES,
+);
+
 type TextTone = NonNullable<TextProps["tone"]>;
 
 /**
@@ -50,15 +54,24 @@ export const FINANCIAL_DELTA_PRESENTATION: Record<
   },
 };
 
+function resolveDeltaPresentation(
+  direction: FinancialDeltaDirection | undefined,
+) {
+  if (direction != null && FINANCIAL_DELTA_DIRECTION_SET.has(direction)) {
+    return FINANCIAL_DELTA_PRESENTATION[direction];
+  }
+  return FINANCIAL_DELTA_PRESENTATION[FinancialDeltaDirection.NEUTRAL];
+}
+
 /** Leading directional cue — tinted circle badge with an up/down icon. */
 export function FinancialDeltaBadge({
   direction,
   className,
 }: {
-  direction: FinancialDeltaDirection;
+  direction?: FinancialDeltaDirection;
   className?: string;
 }) {
-  const presentation = FINANCIAL_DELTA_PRESENTATION[direction];
+  const presentation = resolveDeltaPresentation(direction);
   if (presentation.icon == null) return null;
   return (
     <span
@@ -83,11 +96,11 @@ export function FinancialDeltaValue({
   children,
   className,
 }: {
-  direction: FinancialDeltaDirection;
+  direction?: FinancialDeltaDirection;
   children: ReactNode;
   className?: string;
 }) {
-  const presentation = FINANCIAL_DELTA_PRESENTATION[direction];
+  const presentation = resolveDeltaPresentation(direction);
   return (
     <Text
       size="lg"

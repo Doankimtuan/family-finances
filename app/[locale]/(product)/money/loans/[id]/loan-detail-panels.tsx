@@ -8,11 +8,14 @@ import {
 import { getLoanDueState } from "@/modules/ledger/application/loan-due-state";
 import { moneyTransactionPath } from "@/modules/tenancy/application/app-path";
 import { FinancialValue } from "@/shared/patterns/financial-value";
-import { Section, SectionVariant } from "@/shared/patterns/section";
+import { Card } from "@/shared/patterns/card";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { LoanScheduleStatusBadge } from "@/modules/ledger/ui/loan-presentation";
 import { Text } from "@/shared/ui/text";
+import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
+import { ACTION_ICONS } from "@/shared/ui/icon-registry";
 import { cn } from "@/shared/utils/cn";
+import { LoanSectionTitle } from "../loan-section-title";
 
 type ScheduleEntry = {
   id: string;
@@ -63,81 +66,82 @@ export function LoanSchedulePanel({
   today: string;
 }) {
   return (
-    <Section
-      title={title}
-      variant={SectionVariant.SURFACE}
-      contentClassName="gap-0"
-      testId="loan-schedule"
+    <section
+      className="flex flex-col gap-(--space-2)"
+      data-testid="loan-schedule"
     >
-      {entries.length === 0 ? (
-        <EmptyState title={emptyLabel} className="flex-none py-(--space-2)" />
-      ) : (
-        <ul
-          className="divide-y divide-border-subtle"
-          data-slot="loan-schedule-list"
-        >
-          {entries.map((entry) => {
-            const displayStatus = scheduleDisplayStatus(entry, today);
-            const isImmutable =
-              entry.status === LoanScheduleEntryStatus.PAID ||
-              entry.status === LoanScheduleEntryStatus.WAIVED;
-            return (
-              <li
-                key={entry.id}
-                className="flex flex-col gap-(--space-2) py-(--space-3) first:pt-0 last:pb-0"
-                data-testid={`loan-schedule-${entry.sequence}`}
-                data-schedule-status={entry.status}
-              >
-                <div className="flex items-start justify-between gap-(--space-2)">
-                  <Text
-                    size="sm"
-                    className="min-w-0 font-medium text-text-primary"
-                  >
-                    {t("scheduleMonth", {
-                      month: entry.sequence,
-                      date: entry.dueDate,
-                    })}
-                  </Text>
-                  <div className="flex shrink-0 flex-col items-end gap-(--space-1)">
-                    <Text size="sm" className="tabular-nums font-semibold">
-                      <FinancialValue>
-                        {formatMoney(entry.totalDue)}
-                      </FinancialValue>
+      <LoanSectionTitle>{title}</LoanSectionTitle>
+      <Card tone="elevated" className="gap-0 overflow-hidden p-0">
+        {entries.length === 0 ? (
+          <EmptyState title={emptyLabel} className="flex-none py-(--space-2)" />
+        ) : (
+          <ul
+            className="divide-y divide-divider"
+            data-slot="loan-schedule-list"
+          >
+            {entries.map((entry) => {
+              const displayStatus = scheduleDisplayStatus(entry, today);
+              const isImmutable =
+                entry.status === LoanScheduleEntryStatus.PAID ||
+                entry.status === LoanScheduleEntryStatus.WAIVED;
+              return (
+                <li
+                  key={entry.id}
+                  className="flex flex-col gap-(--space-2) px-(--space-4) py-(--space-3)"
+                  data-testid={`loan-schedule-${entry.sequence}`}
+                  data-schedule-status={entry.status}
+                >
+                  <div className="flex items-start justify-between gap-(--space-2)">
+                    <Text
+                      size="sm"
+                      className="min-w-0 font-medium text-text-primary"
+                    >
+                      {t("scheduleMonth", {
+                        month: entry.sequence,
+                        date: entry.dueDate,
+                      })}
                     </Text>
-                    <LoanScheduleStatusBadge
-                      status={displayStatus}
-                      label={t(`scheduleStatus.${displayStatus}`)}
+                    <div className="flex shrink-0 flex-col items-end gap-(--space-1)">
+                      <Text size="sm" className="tabular-nums font-semibold">
+                        <FinancialValue>
+                          {formatMoney(entry.totalDue)}
+                        </FinancialValue>
+                      </Text>
+                      <LoanScheduleStatusBadge
+                        status={displayStatus}
+                        label={t(`scheduleStatus.${displayStatus}`)}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex w-full">
+                    <ScheduleFact
+                      label={t("schedulePrincipal")}
+                      value={formatMoney(entry.principalDue)}
+                      align="start"
+                    />
+                    <ScheduleFact
+                      label={t("scheduleInterest")}
+                      value={formatMoney(entry.interestDue)}
+                      align="center"
+                    />
+                    <ScheduleFact
+                      label={t("scheduleRemaining")}
+                      value={formatMoney(entry.remainingBalanceAfter)}
+                      align="end"
                     />
                   </div>
-                </div>
-                <div className="flex w-full">
-                  <ScheduleFact
-                    label={t("schedulePrincipal")}
-                    value={formatMoney(entry.principalDue)}
-                    align="start"
-                  />
-                  <ScheduleFact
-                    label={t("scheduleInterest")}
-                    value={formatMoney(entry.interestDue)}
-                    align="center"
-                  />
-                  <ScheduleFact
-                    label={t("scheduleRemaining")}
-                    value={formatMoney(entry.remainingBalanceAfter)}
-                    align="end"
-                  />
-                </div>
-                {isImmutable ? (
-                  <Text size="xs" tone="secondary">
-                    {t("scheduleImmutable")}
-                  </Text>
-                ) : null}
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </Section>
+                  {isImmutable ? (
+                    <Text size="xs" tone="secondary">
+                      {t("scheduleImmutable")}
+                    </Text>
+                  ) : null}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </Card>
+    </section>
   );
 }
 
@@ -206,60 +210,68 @@ export function LoanPaymentHistoryPanel({
   t: Translate;
 }) {
   return (
-    <Section
-      title={title}
-      variant={SectionVariant.SURFACE}
-      contentClassName="gap-0"
-      testId="loan-payment-history"
+    <section
+      className="flex flex-col gap-(--space-2)"
+      data-testid="loan-payment-history"
     >
-      {payments.length === 0 ? (
-        <EmptyState
-          title={t("historyEmpty")}
-          className="flex-none py-(--space-2)"
-        />
-      ) : (
-        <ul className="divide-y divide-border-subtle">
-          {payments.map((payment) => (
-            <li
-              key={payment.id}
-              className="flex flex-col gap-(--space-2) py-(--space-3) first:pt-0 last:pb-0"
-              data-testid={`loan-payment-${payment.id}`}
-            >
-              <div className="flex items-start justify-between gap-(--space-2)">
-                <Text size="sm" className="font-medium">
-                  {payment.paidAt}
+      <LoanSectionTitle>{title}</LoanSectionTitle>
+      <Card tone="elevated" className="gap-0 overflow-hidden p-0">
+        {payments.length === 0 ? (
+          <EmptyState
+            title={t("historyEmpty")}
+            className="flex-none py-(--space-2)"
+          />
+        ) : (
+          <ul className="divide-y divide-divider">
+            {payments.map((payment) => (
+              <li
+                key={payment.id}
+                className="flex flex-col gap-(--space-2) px-(--space-4) py-(--space-3)"
+                data-testid={`loan-payment-${payment.id}`}
+              >
+                <div className="flex items-start justify-between gap-(--space-2)">
+                  <Text size="sm" className="font-medium">
+                    {payment.paidAt}
+                  </Text>
+                  <Text size="sm" className="tabular-nums font-semibold">
+                    <FinancialValue>
+                      {formatMoney(payment.amount)}
+                    </FinancialValue>
+                  </Text>
+                </div>
+                <Text size="sm" tone="secondary" className="text-pretty">
+                  <FinancialValue>
+                    {t("historySplit", {
+                      principal: formatMoney(payment.principalPaid),
+                      interest: formatMoney(payment.interestPaid),
+                    })}
+                  </FinancialValue>
                 </Text>
-                <Text size="sm" className="tabular-nums font-semibold">
-                  <FinancialValue>{formatMoney(payment.amount)}</FinancialValue>
-                </Text>
-              </div>
-              <Text size="sm" tone="secondary" className="text-pretty">
-                <FinancialValue>
-                  {t("historySplit", {
-                    principal: formatMoney(payment.principalPaid),
-                    interest: formatMoney(payment.interestPaid),
+                <Text size="sm" tone="secondary" className="text-pretty">
+                  {t("historyAccount", {
+                    account:
+                      accountNames.get(payment.accountId) ??
+                      t("unknownAccount"),
                   })}
-                </FinancialValue>
-              </Text>
-              <Text size="sm" tone="secondary" className="text-pretty">
-                {t("historyAccount", {
-                  account:
-                    accountNames.get(payment.accountId) ?? t("unknownAccount"),
-                })}
-              </Text>
-              {payment.transactionId ? (
-                <Link
-                  href={moneyTransactionPath(payment.transactionId)}
-                  className="inline-flex min-h-11 items-center text-sm font-medium text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-                >
-                  {t("historyTransaction")}
-                </Link>
-              ) : null}
-            </li>
-          ))}
-        </ul>
-      )}
-    </Section>
+                </Text>
+                {payment.transactionId ? (
+                  <Link
+                    href={moneyTransactionPath(payment.transactionId)}
+                    className="inline-flex min-h-11 items-center gap-(--space-1) text-sm font-medium text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+                  >
+                    {t("historyTransaction")}
+                    <AppIcon
+                      icon={ACTION_ICONS.forward}
+                      size={AppIconSize.XS}
+                    />
+                  </Link>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
+    </section>
   );
 }
 
@@ -279,30 +291,31 @@ export function LoanRateHistoryPanel({
   t: Translate;
 }) {
   return (
-    <Section
-      title={title}
-      variant={SectionVariant.SURFACE}
-      contentClassName="gap-0"
-      testId="loan-rate-history"
+    <section
+      className="flex flex-col gap-(--space-2)"
+      data-testid="loan-rate-history"
     >
-      {periods.length === 0 ? (
-        <EmptyState title={emptyLabel} className="flex-none py-(--space-2)" />
-      ) : (
-        <ul className="divide-y divide-border-subtle">
-          {periods.map((period) => (
-            <li key={period.id} className="py-(--space-3) first:pt-0 last:pb-0">
-              <Text size="sm" tone="secondary" className="text-pretty">
-                {t("rateHistoryRow", {
-                  kind: kindLabel(period.kind),
-                  rate: String(period.annualRate),
-                  from: period.effectiveFrom,
-                  to: period.effectiveTo ?? openLabel,
-                })}
-              </Text>
-            </li>
-          ))}
-        </ul>
-      )}
-    </Section>
+      <LoanSectionTitle>{title}</LoanSectionTitle>
+      <Card tone="elevated" className="gap-0 overflow-hidden p-0">
+        {periods.length === 0 ? (
+          <EmptyState title={emptyLabel} className="flex-none py-(--space-2)" />
+        ) : (
+          <ul className="divide-y divide-divider">
+            {periods.map((period) => (
+              <li key={period.id} className="px-(--space-4) py-(--space-3)">
+                <Text size="sm" tone="secondary" className="text-pretty">
+                  {t("rateHistoryRow", {
+                    kind: kindLabel(period.kind),
+                    rate: String(period.annualRate),
+                    from: period.effectiveFrom,
+                    to: period.effectiveTo ?? openLabel,
+                  })}
+                </Text>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
+    </section>
   );
 }

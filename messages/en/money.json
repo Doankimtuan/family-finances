@@ -121,6 +121,9 @@
       "retry": "Try again",
       "emptyTitle": "No investment positions yet.",
       "emptyDescription": "Import an existing position or record a new transaction.",
+      "estimatedNotCash": "Estimated market value is not cash in your accounts.",
+      "allocationHint": "Share of estimated market value by asset class.",
+      "holdingsHint": "Open a holding to buy, sell, or update its value.",
       "portfolioTitle": "Portfolio overview",
       "portfolioSummary": "Portfolio overview",
       "currentValue": "Estimated market value",
@@ -328,6 +331,8 @@
       "unknown": "Unknown",
       "reviewTitle": "Review before confirming",
       "reviewSubtitle": "Check the information you are about to record.",
+      "reviewHeroValue": "Estimated market value",
+      "reviewHeroPurchase": "Cash to record",
       "unnamedAsset": "Unnamed asset",
       "quantityLabel": "Quantity",
       "providerLabel": "Custodian / provider",
@@ -369,6 +374,7 @@
     "detail": {
       "title": "Investment position",
       "notFound": "Position not found",
+      "notFoundDescription": "This position is missing or you no longer have access.",
       "back": "Back to Investments",
       "moreActions": "More actions",
       "noProvider": "Custodian not recorded",
@@ -406,6 +412,7 @@
       "fundNavLabel": "NAV / unit",
       "goldValuationNote": "Valuation uses provider buy-back price to reflect liquidation value, not retail ask price.",
       "activitySection": "Activity history",
+      "activityHint": "Buys, sells, income, and valuation updates for this holding.",
       "activityEmpty": "No investment activity yet.",
       "activityReadError": "Activity history could not be loaded.",
       "readError": "This holding could not be loaded.",
@@ -473,7 +480,13 @@
       "inputRate": "Rate: {rate} VND/{currency}",
       "unitPrice": "Unit price",
       "nav": "NAV",
-      "noCurrentValue": "No price yet"
+      "noCurrentValue": "No price yet",
+      "rowAutomatic": "Auto · {date}",
+      "rowAutomaticToday": "Auto · today",
+      "rowManual": "Manual · {date}",
+      "rowManualUndated": "Manual",
+      "rowStale": "Stale · {date}",
+      "rowNav": "NAV · {date}"
     },
     "operation": {
       "title": {
@@ -650,6 +663,13 @@
       }
     },
     "overview": "Overview",
+    "summaryTitle": "At a glance",
+    "summaryCaption": "Remaining amounts across active records.",
+    "sectionCount": "{count}",
+    "activeHint": "Open a record to repay or receive.",
+    "historyCaption": "Completed and archived records stay here.",
+    "overdueLabel": "Overdue",
+    "dueSoonLabel": "Due soon",
     "active": "Active records",
     "history": "Completed and archived",
     "payable": "To repay",
@@ -958,8 +978,10 @@
     "addedBetweenPeriods": "Added mid-cycle",
     "moneyFlowTitle": "Money flow",
     "fundingAccountLine": "Funded from: {account}",
+    "fundingAccountLabel": "Funded from",
     "historicalOpeningFlowLine": "Principal recorded from the original start date; no new source transaction",
     "settlementAccountLine": "Settles into: {account}",
+    "settlementAccountLabel": "Settles into",
     "accountFallback": "Account not available",
     "expectedValueLabel": "Expected value (not posted)",
     "expectedValueHint": "Interest is an estimate until the provider confirms settlement.",
@@ -1128,10 +1150,16 @@
     "emptyTitle": "No loans yet",
     "emptyDescription": "Add a loan or installment plan to track remaining balance and due dates.",
     "trackingOnly": "Tracks the obligation only; borrowed cash is not added to an account.",
+    "summaryCaption": "Remaining principal across active loans.",
+    "summaryTitle": "At a glance",
+    "sectionCount": "{count}",
+    "activeHint": "Open a loan to record a payment or review the schedule.",
+    "historyCaption": "Closed loans stay here for reference.",
     "summary": {
       "activeLoans": "Active loans",
       "remainingPrincipal": "Remaining principal",
       "nextPayments": "Next payments",
+      "overdueLabel": "Overdue",
       "overdueLoans": "{count, plural, one {# overdue} other {# overdue}}"
     },
     "sections": {
@@ -1139,6 +1167,7 @@
       "terms": "Repayment terms and estimate"
     },
     "loadErrorTitle": "Loans could not be loaded",
+    "loadErrorDescription": "Your loan records are still safe. Try again.",
     "retry": "Retry",
     "activeSection": "Active loans",
     "historySection": "Completed, cancelled, defaulted, or archived",
@@ -1514,6 +1543,7 @@
     "errors": {
       "unauthenticated": "Sign in again.",
       "no_membership": "Finish household setup first.",
+      "forbidden": "You do not have permission to change this account.",
       "invalid": "Enter a positive whole amount.",
       "month_locked": "Plan is locked for this month. Open Month Ritual to correct.",
       "offline": "Connect to save.",
@@ -1796,6 +1826,7 @@
     "errors": {
       "unauthenticated": "Sign in again.",
       "no_membership": "Finish household setup first.",
+      "forbidden": "You do not have permission to change this card.",
       "invalid": "Check the amount and try again.",
       "month_locked": "Plan is locked for this month.",
       "offline": "Connect to save.",

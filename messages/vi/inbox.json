@@ -1,6 +1,22 @@
 {
   "title": "Hộp thư",
   "subtitle": "Việc nào cần quyết định?",
+  "financialPrivacy": {
+    "hide": "Ẩn số tiền",
+    "show": "Hiện số tiền"
+  },
+  "retry": "Thử lại",
+  "sectionCount": "{count, plural, one {# mục} other {# mục}}",
+  "facts": {
+    "waiting": "Đang chờ",
+    "archived": "Đã xong"
+  },
+  "factCategory": "Danh mục",
+  "factAccount": "Tài khoản",
+  "factNote": "Ghi chú",
+  "factProvider": "Sản phẩm",
+  "factRate": "Lãi suất",
+  "factRecommendation": "Gợi ý",
   "header": {
     "eyebrow": "Hộp thư",
     "headline": {

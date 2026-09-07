@@ -1,4 +1,3 @@
-import type { ReactNode } from "react";
 import { hasLocale } from "next-intl";
 import { getTranslations } from "next-intl/server";
 import { Link, redirect } from "@/i18n/navigation";
@@ -32,15 +31,18 @@ import {
   localizeCatalogName,
 } from "@/shared/i18n/localize-catalog-name";
 import { MotionReveal } from "@/shared/motion";
+import { BottomActionBar } from "@/shared/patterns/bottom-action-bar";
+import { FinancialOwnershipBadge } from "@/shared/patterns/financial-ownership-badge";
 import { FinancialValue } from "@/shared/patterns/financial-value";
-import { Section } from "@/shared/patterns/section";
+import { Page } from "@/shared/patterns/page";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Text } from "@/shared/ui/text";
-import { StatusAlert } from "@/shared/ui/status-alert";
-import { FinancialOwnershipBadge } from "@/shared/patterns/financial-ownership-badge";
 import { todayIsoDate } from "@/shared/utils/iso-date";
 import { MoneyOfflineBanner } from "../../money-offline-banner";
+import { DebtFactRow, DebtFactsCard } from "../debt-facts";
 import { DebtDetailHero } from "../debt-presentation";
+import { DebtPrivacyToggle } from "../debt-privacy-toggle";
+import { DebtUnavailable } from "../debt-unavailable";
 import { DebtPaymentHistory } from "./debt-payment-history";
 import { DebtPaymentSheet } from "./debt-payment-sheet";
 import { DebtEditSheet } from "./debt-edit-sheet";
@@ -69,58 +71,44 @@ export default async function DebtDetailPage({ params }: Props) {
     ]);
   if (debtResult.status === DebtReadStatus.ERROR) {
     return (
-      <div
-        className="flex min-h-full flex-col"
-        data-testid="debt-detail-read-error"
-      >
-        <TopAppBar title={t("title")} />
-        <div className="flex flex-1 flex-col gap-(--space-4) px-(--space-4) py-(--space-6)">
-          <StatusAlert
-            variant="danger"
-            title={t("readErrorTitle")}
-            description={t("readErrorDescription")}
-            action={
-              <Link
-                href={moneyDebtPath(id)}
-                className="inline-flex min-h-11 items-center rounded-(--radius-control) px-(--space-2) text-sm font-semibold text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-                data-testid="debt-detail-retry"
-              >
-                {t("retry")}
-              </Link>
-            }
+      <Page
+        testId="debt-detail-read-error"
+        topBar={
+          <TopAppBar
+            variant="detail"
+            title={t("title")}
+            backHref={APP_PATH.MONEY_DEBTS}
           />
-          <Link
-            href={APP_PATH.MONEY_DEBTS}
-            className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-          >
-            {t("back")}
-          </Link>
-        </div>
-      </div>
+        }
+      >
+        <DebtUnavailable
+          title={t("readErrorTitle")}
+          description={t("readErrorDescription")}
+          actionHref={moneyDebtPath(id)}
+          actionLabel={t("retry")}
+          testId="debt-detail-retry"
+        />
+      </Page>
     );
   }
   if (debtResult.status === DebtReadStatus.NOT_FOUND) {
     return (
-      <div
-        className="flex min-h-full flex-col"
-        data-testid="debt-detail-missing"
-      >
-        <TopAppBar title={t("title")} />
-        <div className="flex flex-1 flex-col gap-(--space-4) px-(--space-4) py-(--space-6)">
-          <StatusAlert
-            variant="danger"
-            title={t("notFound")}
-            action={
-              <Link
-                href={APP_PATH.MONEY_DEBTS}
-                className="inline-flex min-h-11 items-center rounded-(--radius-control) px-(--space-2) text-sm font-semibold text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-              >
-                {t("back")}
-              </Link>
-            }
+      <Page
+        testId="debt-detail-missing"
+        topBar={
+          <TopAppBar
+            variant="detail"
+            title={t("title")}
+            backHref={APP_PATH.MONEY_DEBTS}
           />
-        </div>
-      </div>
+        }
+      >
+        <DebtUnavailable
+          title={t("notFound")}
+          actionHref={APP_PATH.MONEY_DEBTS}
+          actionLabel={t("back")}
+        />
+      </Page>
     );
   }
   const debt = debtResult.debt;
@@ -175,212 +163,200 @@ export default async function DebtDetailPage({ params }: Props) {
     paid: tDebts("paid"),
     received: tDebts("received"),
   };
+  const canRecordPayment = debt.status === DebtStatus.ACTIVE && canMutate;
+
   return (
-    <div className="flex min-h-full flex-col" data-testid="debt-detail">
-      <TopAppBar
-        variant="detail"
-        title={debt.counterparty}
-        subtitle={relationshipLabel}
-        backHref={APP_PATH.MONEY_DEBTS}
-        trailing={
-          canMutate && !debt.isArchived ? (
-            <DebtEditSheet
-              debtId={debt.id}
-              counterparty={debt.counterparty}
-              dueDate={debt.dueDate}
-              note={debt.note}
-              startDate={debt.startDate}
-              compactTrigger
+    <Page
+      testId="debt-detail"
+      contentClassName="gap-(--space-5)"
+      topBar={
+        <TopAppBar
+          variant="detail"
+          title={debt.counterparty}
+          subtitle={relationshipLabel}
+          backHref={APP_PATH.MONEY_DEBTS}
+          trailing={
+            canMutate && !debt.isArchived ? (
+              <DebtEditSheet
+                debtId={debt.id}
+                counterparty={debt.counterparty}
+                dueDate={debt.dueDate}
+                note={debt.note}
+                startDate={debt.startDate}
+                compactTrigger
+              />
+            ) : undefined
+          }
+        />
+      }
+    >
+      <MoneyOfflineBanner />
+      <MotionReveal>
+        <DebtDetailHero
+          direction={debt.direction}
+          remainingAmount={debt.remainingAmount}
+          due={due}
+          dueDate={debt.dueDate}
+          progress={progress}
+          currency={debt.currency}
+          locale={locale}
+          trailing={
+            <DebtPrivacyToggle testId="debt-detail-financial-privacy-toggle" />
+          }
+          labels={{
+            ...dueLabels,
+            ...progressLabels,
+            remainingToPay: t("remainingToPay"),
+            remainingToReceive: t("remainingToReceive"),
+          }}
+        />
+      </MotionReveal>
+      <MotionReveal>
+        <DebtFactsCard
+          title={t("details")}
+          testId="debt-detail-facts"
+          footer={
+            <div className="px-(--space-4) py-(--space-3)">
+              <FinancialOwnershipBadge
+                financialScope={debt.ownership.financialScope}
+                isOwnedByMe={debt.ownership.isOwnedByMe}
+                ownerStatus={debt.ownership.ownerStatus}
+                showExplanation
+              />
+            </div>
+          }
+        >
+          <DebtFactRow label={t("counterparty")} value={debt.counterparty} />
+          <DebtFactRow
+            label={t("originalPrincipal")}
+            value={
+              <FinancialValue>
+                {formatCurrency(debt.principalAmount, debt.currency, locale, {
+                  maximumFractionDigits: 0,
+                })}
+              </FinancialValue>
+            }
+            emphasis
+          />
+          <DebtFactRow
+            label={isBorrowed ? tDebts("paid") : tDebts("received")}
+            value={
+              <FinancialValue>
+                {formatCurrency(progress.paidAmount, debt.currency, locale, {
+                  maximumFractionDigits: 0,
+                })}
+              </FinancialValue>
+            }
+          />
+          {debt.openingPaidAmount > 0 ? (
+            <DebtFactRow
+              label={t("openingPaid")}
+              value={
+                <FinancialValue>
+                  {formatCurrency(
+                    debt.openingPaidAmount,
+                    debt.currency,
+                    locale,
+                    { maximumFractionDigits: 0 },
+                  )}
+                </FinancialValue>
+              }
             />
-          ) : undefined
-        }
-      />
-      <div className="flex flex-1 flex-col gap-(--space-4) px-(--space-4) pb-(--space-6) pt-(--space-4)">
-        <MoneyOfflineBanner />
+          ) : null}
+          <DebtFactRow
+            label={t("startDate")}
+            value={formatFactDate(debt.startDate)}
+          />
+          {debt.dueDate ? (
+            <DebtFactRow
+              label={t("dueDateLabel")}
+              value={formatFactDate(debt.dueDate)}
+            />
+          ) : null}
+          {debt.note ? (
+            <DebtFactRow label={t("note")} value={debt.note} />
+          ) : null}
+          {originAccountName ? (
+            <DebtFactRow label={t("originAccount")} value={originAccountName} />
+          ) : null}
+          {debt.originTransactionId ? (
+            <DebtFactRow
+              label={t("originTransaction")}
+              value={
+                <Link
+                  href={moneyTransactionPath(debt.originTransactionId)}
+                  className="inline-flex min-h-11 items-center text-sm font-medium text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+                >
+                  {t("viewTransaction")}
+                </Link>
+              }
+            />
+          ) : null}
+        </DebtFactsCard>
+      </MotionReveal>
+      {debt.status === DebtStatus.COMPLETED ? (
         <MotionReveal>
-          <DebtDetailHero
+          <Text size="sm" tone="secondary" className="text-pretty">
+            {t("paidOff")}
+          </Text>
+        </MotionReveal>
+      ) : null}
+      <MotionReveal>
+        <DebtPaymentHistory
+          title={t("history")}
+          countLabel={t("historyCount", {
+            count: payments.length + (debt.openingPaidAmount > 0 ? 1 : 0),
+          })}
+          emptyTitle={
+            debt.status === DebtStatus.COMPLETED
+              ? t("paidOff")
+              : isBorrowed
+                ? t("noRepayments")
+                : t("noReceipts")
+          }
+          accountFallback={t("historyAccountFallback")}
+          isBorrowed={isBorrowed}
+          payments={localizedPayments}
+          formatAmount={(amount) =>
+            formatCurrency(amount, debt.currency, locale, {
+              maximumFractionDigits: 0,
+            })
+          }
+          formatDate={(isoDate) => formatFactDate(isoDate)}
+          transactionPath={moneyTransactionPath}
+          retryHref={moneyDebtPath(debt.id)}
+          readError={paymentsResult.status === DebtReadStatus.ERROR}
+          readErrorTitle={t("historyReadErrorTitle")}
+          readErrorDescription={t("historyReadErrorDescription")}
+          retryLabel={t("retry")}
+          openingPaidAmount={
+            paymentsResult.status === DebtReadStatus.OK
+              ? debt.openingPaidAmount
+              : 0
+          }
+          openingLabel={t("openingPaid")}
+          totalLabel={t("historyTotal")}
+          reconciliationWarning={
+            reconciliation && !reconciliation.isReconciled
+              ? t("historyReconciliationError")
+              : undefined
+          }
+        />
+      </MotionReveal>
+      {canRecordPayment ? (
+        <BottomActionBar>
+          <DebtPaymentSheet
+            debtId={debt.id}
             direction={debt.direction}
             remainingAmount={debt.remainingAmount}
-            due={due}
-            dueDate={debt.dueDate}
-            progress={progress}
             currency={debt.currency}
             locale={locale}
-            labels={{
-              ...dueLabels,
-              ...progressLabels,
-              relationship: relationshipLabel,
-              remainingToPay: t("remainingToPay"),
-              remainingToReceive: t("remainingToReceive"),
-            }}
+            accounts={accounts}
+            accountsLoadFailed={accountsResult == null}
+            today={today}
           />
-        </MotionReveal>
-        <MotionReveal>
-          <Section
-            title={t("details")}
-            testId="debt-detail-facts"
-            contentClassName="gap-0"
-          >
-            <dl className="divide-y divide-border-subtle">
-              <DebtFact label={t("counterparty")} value={debt.counterparty} />
-              <DebtFact
-                label={t("originalPrincipal")}
-                value={
-                  <FinancialValue>
-                    {formatCurrency(
-                      debt.principalAmount,
-                      debt.currency,
-                      locale,
-                      { maximumFractionDigits: 0 },
-                    )}
-                  </FinancialValue>
-                }
-              />
-              <DebtFact
-                label={isBorrowed ? tDebts("paid") : tDebts("received")}
-                value={
-                  <FinancialValue>
-                    {formatCurrency(
-                      progress.paidAmount,
-                      debt.currency,
-                      locale,
-                      {
-                        maximumFractionDigits: 0,
-                      },
-                    )}
-                  </FinancialValue>
-                }
-              />
-              {debt.openingPaidAmount > 0 ? (
-                <DebtFact
-                  label={t("openingPaid")}
-                  value={
-                    <FinancialValue>
-                      {formatCurrency(
-                        debt.openingPaidAmount,
-                        debt.currency,
-                        locale,
-                        { maximumFractionDigits: 0 },
-                      )}
-                    </FinancialValue>
-                  }
-                />
-              ) : null}
-              <DebtFact
-                label={t("startDate")}
-                value={formatFactDate(debt.startDate)}
-              />
-              {debt.dueDate ? (
-                <DebtFact
-                  label={t("dueDateLabel")}
-                  value={formatFactDate(debt.dueDate)}
-                />
-              ) : null}
-              {debt.note ? (
-                <DebtFact label={t("note")} value={debt.note} />
-              ) : null}
-              {originAccountName ? (
-                <DebtFact
-                  label={t("originAccount")}
-                  value={originAccountName}
-                />
-              ) : null}
-              {debt.originTransactionId ? (
-                <DebtFact
-                  label={t("originTransaction")}
-                  value={
-                    <Link
-                      href={moneyTransactionPath(debt.originTransactionId)}
-                      className="inline-flex min-h-11 items-center text-sm font-medium text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-                    >
-                      {t("viewTransaction")}
-                    </Link>
-                  }
-                />
-              ) : null}
-            </dl>
-            <FinancialOwnershipBadge
-              financialScope={debt.ownership.financialScope}
-              isOwnedByMe={debt.ownership.isOwnedByMe}
-              ownerStatus={debt.ownership.ownerStatus}
-              showExplanation
-            />
-          </Section>
-        </MotionReveal>
-        {debt.status === DebtStatus.ACTIVE && canMutate ? (
-          <MotionReveal>
-            <DebtPaymentSheet
-              debtId={debt.id}
-              direction={debt.direction}
-              remainingAmount={debt.remainingAmount}
-              currency={debt.currency}
-              locale={locale}
-              accounts={accounts}
-              accountsLoadFailed={accountsResult == null}
-              today={today}
-            />
-          </MotionReveal>
-        ) : debt.status === DebtStatus.COMPLETED ? (
-          <MotionReveal>
-            <Text size="sm" tone="secondary">
-              {t("paidOff")}
-            </Text>
-          </MotionReveal>
-        ) : null}
-        <MotionReveal>
-          <DebtPaymentHistory
-            title={t("history")}
-            countLabel={t("historyCount", {
-              count: payments.length + (debt.openingPaidAmount > 0 ? 1 : 0),
-            })}
-            emptyTitle={
-              debt.status === DebtStatus.COMPLETED
-                ? t("paidOff")
-                : isBorrowed
-                  ? t("noRepayments")
-                  : t("noReceipts")
-            }
-            accountFallback={t("historyAccountFallback")}
-            isBorrowed={isBorrowed}
-            payments={localizedPayments}
-            formatAmount={(amount) =>
-              formatCurrency(amount, debt.currency, locale, {
-                maximumFractionDigits: 0,
-              })
-            }
-            formatDate={(isoDate) => formatFactDate(isoDate)}
-            transactionPath={moneyTransactionPath}
-            retryHref={moneyDebtPath(debt.id)}
-            readError={paymentsResult.status === DebtReadStatus.ERROR}
-            readErrorTitle={t("historyReadErrorTitle")}
-            readErrorDescription={t("historyReadErrorDescription")}
-            retryLabel={t("retry")}
-            openingPaidAmount={
-              paymentsResult.status === DebtReadStatus.OK
-                ? debt.openingPaidAmount
-                : 0
-            }
-            openingLabel={t("openingPaid")}
-            totalLabel={t("historyTotal")}
-            reconciliationWarning={
-              reconciliation && !reconciliation.isReconciled
-                ? t("historyReconciliationError")
-                : undefined
-            }
-          />
-        </MotionReveal>
-      </div>
-    </div>
-  );
-}
-
-function DebtFact({ label, value }: { label: string; value: ReactNode }) {
-  return (
-    <div className="flex items-start justify-between gap-(--space-3) py-(--space-3)">
-      <dt className="min-w-0 text-sm text-text-secondary">{label}</dt>
-      <dd className="max-w-[62%] text-right text-sm font-medium tabular-nums text-text-primary">
-        {value}
-      </dd>
-    </div>
+        </BottomActionBar>
+      ) : null}
+    </Page>
   );
 }

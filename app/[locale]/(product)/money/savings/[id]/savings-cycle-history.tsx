@@ -11,7 +11,12 @@ import {
   formatPercent,
 } from "@/shared/i18n/formatters";
 import { Text } from "@/shared/ui/text";
+import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
+import { ACTION_ICONS } from "@/shared/ui/icon-registry";
 import { FinancialValue } from "@/shared/patterns/financial-value";
+import { Card } from "@/shared/patterns/card";
+import { cn } from "@/shared/utils/cn";
+import { SavingsFactRow } from "../savings-facts";
 
 type Props = { cycles: SavingCycle[]; currency: string };
 
@@ -26,7 +31,7 @@ export function SavingsCycleHistory({ cycles, currency }: Props) {
 
   return (
     <ul
-      className="divide-y divide-border-subtle/70"
+      className="divide-y divide-divider"
       data-testid="savings-cycle-history-list"
     >
       {cycles.map((cycle) => {
@@ -38,12 +43,12 @@ export function SavingsCycleHistory({ cycles, currency }: Props) {
         return (
           <li
             key={cycle.id}
-            className="py-(--space-3)"
+            className="py-(--space-3) first:pt-0 last:pb-0"
             data-testid={`savings-cycle-row-${cycle.id}`}
           >
             <button
               type="button"
-              className="flex min-h-11 w-full items-start justify-between gap-(--space-3) text-left focus-visible:outline-2 focus-visible:outline-focus-ring"
+              className="flex min-h-11 w-full items-start justify-between gap-(--space-3) text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
               aria-expanded={expanded}
               onClick={() => setExpandedId(expanded ? null : cycle.id)}
             >
@@ -86,8 +91,18 @@ export function SavingsCycleHistory({ cycles, currency }: Props) {
                   </Text>
                 ) : null}
               </span>
-              <span className="shrink-0 text-xs font-medium text-accent">
-                {expanded ? t("collapse") : t("details")}
+              <span className="inline-flex shrink-0 items-center pt-(--space-1)">
+                <span className="sr-only">
+                  {expanded ? t("collapse") : t("details")}
+                </span>
+                <AppIcon
+                  icon={ACTION_ICONS.forward}
+                  size={AppIconSize.SM}
+                  className={cn(
+                    "text-text-tertiary transition-transform duration-(--duration-fast) ease-(--ease-standard) motion-reduce:transition-none",
+                    expanded && "rotate-90",
+                  )}
+                />
               </span>
             </button>
             <AnimatePresence initial={false}>
@@ -98,71 +113,95 @@ export function SavingsCycleHistory({ cycles, currency }: Props) {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -motionTokens.distance.xs }}
                   transition={springs.gentle}
-                  className="mt-(--space-3) border-l-2 border-accent/30 pl-(--space-3)"
+                  className="mt-(--space-3)"
                 >
-                  <Text size="xs" tone="secondary">
-                    {t("snapshotLabel")}
-                  </Text>
-                  <div className="mt-(--space-2) grid gap-(--space-2)">
-                    <Text size="sm">
-                      {t("snapshotProduct", {
-                        product: cycle.packageSnapshot.packageName,
-                      })}
+                  <Card tone="soft" className="gap-0 overflow-hidden p-0">
+                    <Text
+                      size="xs"
+                      tone="secondary"
+                      className="px-(--space-4) pt-(--space-3)"
+                    >
+                      {t("snapshotLabel")}
                     </Text>
-                    <Text size="sm">
-                      {t("snapshotRate", {
-                        rate: formatPercent(cycle.lockedRate / 100, locale, {
+                    <dl>
+                      <SavingsFactRow
+                        label={t("packageLabel")}
+                        value={cycle.packageSnapshot.packageName}
+                        className="py-(--space-2)"
+                      />
+                      <SavingsFactRow
+                        label={t("rateLabel")}
+                        value={formatPercent(cycle.lockedRate / 100, locale, {
                           maximumFractionDigits: 2,
-                        }),
-                      })}
-                    </Text>
-                    <Text size="sm">
-                      {t("snapshotPrincipalLabel")}{" "}
-                      <FinancialValue>
-                        {formatCurrency(cycle.principal, currency, locale, {
-                          maximumFractionDigits: 0,
                         })}
-                      </FinancialValue>
-                    </Text>
-                    {result ? (
-                      <>
-                        <Text size="sm">
-                          {t("realizedInterestLabel")}{" "}
+                        className="py-(--space-2)"
+                      />
+                      <SavingsFactRow
+                        label={t("snapshotPrincipalLabel")}
+                        value={
                           <FinancialValue>
-                            {formatCurrency(
-                              realizedInterest,
-                              currency,
-                              locale,
-                              {
-                                maximumFractionDigits: 0,
-                              },
-                            )}
+                            {formatCurrency(cycle.principal, currency, locale, {
+                              maximumFractionDigits: 0,
+                            })}
                           </FinancialValue>
-                        </Text>
-                        {realizedTax > 0 ? (
-                          <Text size="sm">
-                            {t("realizedTaxLabel")}{" "}
-                            <FinancialValue>
-                              {formatCurrency(realizedTax, currency, locale, {
-                                maximumFractionDigits: 0,
-                              })}
-                            </FinancialValue>
-                          </Text>
-                        ) : null}
-                        <Text size="sm">
-                          {t("finalProceedsLabel")}{" "}
-                          <FinancialValue>
-                            {formatCurrency(
-                              result.totalCashReceived ?? result.netAmount,
-                              currency,
-                              locale,
-                              { maximumFractionDigits: 0 },
-                            )}
-                          </FinancialValue>
-                        </Text>
-                      </>
-                    ) : null}
-                  </div>
+                        }
+                        className="py-(--space-2)"
+                      />
+                      {result ? (
+                        <>
+                          <SavingsFactRow
+                            label={t("realizedInterestLabel")}
+                            value={
+                              <FinancialValue>
+                                {formatCurrency(
+                                  realizedInterest,
+                                  currency,
+                                  locale,
+                                  {
+                                    maximumFractionDigits: 0,
+                                  },
+                                )}
+                              </FinancialValue>
+                            }
+                            className="py-(--space-2)"
+                          />
+                          {realizedTax > 0 ? (
+                            <SavingsFactRow
+                              label={t("realizedTaxLabel")}
+                              value={
+                                <FinancialValue>
+                                  {formatCurrency(
+                                    realizedTax,
+                                    currency,
+                                    locale,
+                                    {
+                                      maximumFractionDigits: 0,
+                                    },
+                                  )}
+                                </FinancialValue>
+                              }
+                              className="py-(--space-2)"
+                            />
+                          ) : null}
+                          <SavingsFactRow
+                            label={t("finalProceedsLabel")}
+                            value={
+                              <FinancialValue>
+                                {formatCurrency(
+                                  result.totalCashReceived ?? result.netAmount,
+                                  currency,
+                                  locale,
+                                  { maximumFractionDigits: 0 },
+                                )}
+                              </FinancialValue>
+                            }
+                            emphasis
+                            className="py-(--space-2)"
+                          />
+                        </>
+                      ) : null}
+                    </dl>
+                  </Card>
                 </motion.div>
               ) : null}
             </AnimatePresence>

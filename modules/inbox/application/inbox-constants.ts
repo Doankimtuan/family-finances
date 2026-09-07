@@ -85,6 +85,21 @@ export const InboxQueueTab = {
   ARCHIVED: "archived",
 } as const;
 
+/** Queue header composition — derived from tab + current list, not a stored status. */
+export const InboxQueueHeaderState = {
+  OPEN: "open",
+  CLEAR: "clear",
+  ARCHIVED: "archived",
+} as const;
+
+export type InboxQueueHeaderState =
+  (typeof InboxQueueHeaderState)[keyof typeof InboxQueueHeaderState];
+
+/** Client-side kind filter sentinel for the open/archived queue. */
+export const InboxKindFilter = {
+  ALL: "all",
+} as const;
+
 export type InboxQueueTab = (typeof InboxQueueTab)[keyof typeof InboxQueueTab];
 
 /** Receipt query values after a successful Inbox outcome. */

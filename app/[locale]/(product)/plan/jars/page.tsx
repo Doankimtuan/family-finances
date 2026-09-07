@@ -11,24 +11,31 @@ import {
   listJars,
   getCurrentJarBudgets,
   calculateAllocationHealth,
+  type AllocationHealth,
   type PlanJar,
   DEFAULT_CURRENCY,
   JarState,
   JarPlanKind,
   listJarCategories,
+  AllocationHealthStatus,
+  IncomeAllocateMode,
 } from "@/modules/plan/application";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
 import { basisPointsToPercentage } from "@/shared/utils/percentage";
-import { TopAppBar } from "@/shared/patterns/top-app-bar";
+import { TopAppBar, TopAppBarVariant } from "@/shared/patterns/top-app-bar";
 import { Page } from "@/shared/patterns/page";
 import { Section } from "@/shared/patterns/section";
 import { JarCard } from "@/shared/patterns/jar-card";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { StatusAlert } from "@/shared/ui/status-alert";
+import { AlertVariant } from "@/shared/ui/alert";
 import { Text } from "@/shared/ui/text";
+import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
+import { PLAN_ICONS } from "@/shared/ui/icon-registry";
 import { FinancialValue } from "@/shared/patterns/financial-value";
 import { PlanOfflineBanner } from "../plan-offline-banner";
+import { PlanSectionTitle } from "../plan-section-title";
 import { CreateJarForm } from "./create-jar-form";
 import { CreateCategoryForm } from "./create-category-form";
 import type { CaptureJarOption } from "@/modules/ledger/application/client";
@@ -48,6 +55,26 @@ function stateLabelKey(state: PlanJar["state"]) {
   if (state === JarState.PAUSED) return "statePaused" as const;
   if (state === JarState.ARCHIVED) return "stateArchived" as const;
   return "stateActive" as const;
+}
+
+function allocationHealthCopy(
+  health: AllocationHealth,
+  t: JarPlanTranslator,
+): string {
+  switch (health.status) {
+    case AllocationHealthStatus.OVER_ALLOCATED:
+      return t("allocationHealthOver", {
+        percent: health.utilizationPercent,
+      });
+    case AllocationHealthStatus.UNDER_ALLOCATED:
+      return t("allocationHealthUnder", {
+        percent: health.utilizationPercent,
+      });
+    case AllocationHealthStatus.NO_INCOME:
+      return t("allocationHealthNoIncome");
+    default:
+      return t("allocationHealthBalanced");
+  }
 }
 
 function planSummary(
@@ -100,7 +127,7 @@ export default async function PlanJarsPage({ params }: Props) {
   const currency = listed?.currency ?? DEFAULT_CURRENCY;
   const active = listed?.active ?? [];
   const nonTargets = [...(listed?.paused ?? []), ...(listed?.archived ?? [])];
-  const incomeMode = listed?.incomeAllocateMode ?? "suggest";
+  const incomeMode = listed?.incomeAllocateMode ?? IncomeAllocateMode.SUGGEST;
   const categoryJars: CaptureJarOption[] = active.map((jar) => ({
     id: jar.id,
     name: jar.name,
@@ -110,30 +137,32 @@ export default async function PlanJarsPage({ params }: Props) {
     active,
     budgets?.periodIncome ?? 0,
   );
-  const allocationDescription =
-    allocationHealth.status === "over_allocated"
-      ? t("allocationHealthOver", {
-          percent: allocationHealth.utilizationPercent,
-        })
-      : allocationHealth.status === "under_allocated"
-        ? t("allocationHealthUnder", {
-            percent: allocationHealth.utilizationPercent,
-          })
-        : allocationHealth.status === "no_income"
-          ? t("allocationHealthNoIncome")
-          : t("allocationHealthBalanced");
+  const allocationDescription = allocationHealthCopy(
+    allocationHealth,
+    t as unknown as JarPlanTranslator,
+  );
 
   return (
     <Page
       testId="plan-jars"
-      topBar={<TopAppBar title={t("listTitle")} subtitle={t("listSubtitle")} />}
+      topBar={
+        <TopAppBar
+          variant={TopAppBarVariant.DETAIL}
+          title={t("listTitle")}
+          subtitle={t("listSubtitle")}
+          backHref={APP_PATH.PLAN}
+          backLabel={t("backToPlan")}
+        />
+      }
     >
       <PlanOfflineBanner />
 
       {active.length > 0 ? (
         <StatusAlert
           variant={
-            allocationHealth.status === "over_allocated" ? "warning" : "info"
+            allocationHealth.status === AllocationHealthStatus.OVER_ALLOCATED
+              ? AlertVariant.WARNING
+              : AlertVariant.INFO
           }
           title={t("allocationHealthTitle")}
           description={allocationDescription}
@@ -146,11 +175,14 @@ export default async function PlanJarsPage({ params }: Props) {
         })}
       </Text>
 
-      <Section title={t("activeSection")}>
+      <Section
+        title={<PlanSectionTitle>{t("activeSection")}</PlanSectionTitle>}
+      >
         {active.length === 0 ? (
           <EmptyState
             title={t("emptyTitle")}
             description={t("emptyDescription")}
+            icon={<AppIcon icon={PLAN_ICONS.jar} size={AppIconSize.DISPLAY} />}
             className="flex-none py-(--space-4)"
           />
         ) : (
@@ -177,7 +209,9 @@ export default async function PlanJarsPage({ params }: Props) {
         )}
       </Section>
 
-      <Section title={t("nonTargetSection")}>
+      <Section
+        title={<PlanSectionTitle>{t("nonTargetSection")}</PlanSectionTitle>}
+      >
         {nonTargets.length === 0 ? (
           <Text size="sm" tone="secondary">
             {t("nonTargetEmpty")}
@@ -213,13 +247,6 @@ export default async function PlanJarsPage({ params }: Props) {
         qualifyingIncome={budgets?.qualifyingIncome ?? null}
       />
       <CreateCategoryForm jars={categoryJars} />
-
-      <Link
-        href={APP_PATH.PLAN}
-        className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-      >
-        {t("backToPlan")}
-      </Link>
     </Page>
   );
 }

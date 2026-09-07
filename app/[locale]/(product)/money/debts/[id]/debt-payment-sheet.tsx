@@ -30,7 +30,7 @@ import {
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import { formatCurrency, formatDate } from "@/shared/i18n/formatters";
 import { MotionStep } from "@/shared/motion";
-import { Amount } from "@/shared/patterns/amount";
+import { Amount, AmountSize } from "@/shared/patterns/amount";
 import { AmountField } from "@/shared/patterns/amount-field";
 import { FinancialValue } from "@/shared/patterns/financial-value";
 import { ConfirmSummary } from "@/shared/patterns/confirm-summary";
@@ -351,12 +351,13 @@ export function DebtPaymentSheet({
               ) : (
                 <>
                   <Amount
-                    size="md"
+                    size={AmountSize.MD}
                     label={remainingContextLabel}
                     amountLabel={formatCurrency(
                       remainingAmount,
                       currency,
                       locale,
+                      { maximumFractionDigits: 0 },
                     )}
                   />
                   <Controller

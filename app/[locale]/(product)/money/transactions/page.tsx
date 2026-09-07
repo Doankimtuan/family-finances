@@ -36,21 +36,31 @@ import {
 } from "@/shared/utils/iso-date";
 import {
   AppIcon,
+  AppIconSize,
   FinanceIconKey,
   IconContainer,
   IconContainerTone,
   financeIconFor,
 } from "@/shared/ui";
+import { Card } from "@/shared/patterns/card";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { Page } from "@/shared/patterns/page";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import {
+  FinancialPrivacyToggle,
+  FinancialPrivacyToggleTone,
+} from "@/shared/patterns/financial-privacy-toggle";
+import { FloatingAction } from "@/shared/patterns/floating-action";
+import {
   TransactionAmountTone,
   TransactionRow,
 } from "@/shared/patterns/transaction-row";
+import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
 import { MoneyOfflineBanner } from "../money-offline-banner";
+import { MoneyCaptureAction } from "../money-capture-action";
 import { TransactionsFilterBar } from "./transactions-filter-bar";
+import { TransactionsDateGroup } from "./transactions-date-group";
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -179,6 +189,20 @@ function dateLabel(
   });
 }
 
+function activityRelationshipLabel(
+  activity: TransactionActivity,
+  t: Awaited<ReturnType<typeof getTranslations>>,
+) {
+  if (activity.kind !== TransactionActivityKind.EXPENSE) return "";
+  if (activity.status === TransactionStatus.PARTIALLY_REFUNDED) {
+    return t("relationship.partiallyRefunded");
+  }
+  if (activity.status === TransactionStatus.FULLY_REFUNDED) {
+    return t("relationship.fullyRefunded");
+  }
+  return "";
+}
+
 function groupActivities(activities: TransactionActivity[]) {
   const groups: Array<{ date: string; activities: TransactionActivity[] }> = [];
   for (const activity of activities) {
@@ -229,8 +253,9 @@ export default async function TransactionsListPage({
   const tagIds = (sp.tags ?? "")
     .split(",")
     .filter((id) => z.string().uuid().safeParse(id).success);
-  const [t, tCatalog, result, availableTags] = await Promise.all([
+  const [t, tMoney, tCatalog, result, availableTags] = await Promise.all([
     getTranslations("money.transactionsPage"),
+    getTranslations("money"),
     getTranslations("catalog"),
     listTransactionEvents({
       type,
@@ -270,18 +295,20 @@ export default async function TransactionsListPage({
   return (
     <Page
       testId="money-transactions"
+      contentClassName="gap-(--space-5)"
       topBar={
         <TopAppBar
+          variant="primary"
           title={t("title")}
           subtitle={t("subtitle")}
+          icon={FINANCE_ICONS.cash}
           trailing={
-            <Link
-              href={APP_PATH.MONEY_ADD}
-              className="inline-flex min-h-11 items-center rounded-[var(--radius-control)] bg-accent px-(--space-3) text-sm font-semibold text-accent-fg shadow-[var(--elevation-1)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-              data-testid="transactions-add"
-            >
-              {t("add")}
-            </Link>
+            <FinancialPrivacyToggle
+              hideLabel={tMoney("financialPrivacy.hide")}
+              showLabel={tMoney("financialPrivacy.show")}
+              testId="transactions-financial-privacy-toggle"
+              tone={FinancialPrivacyToggleTone.SURFACE}
+            />
           }
         />
       }
@@ -308,101 +335,84 @@ export default async function TransactionsListPage({
           }
         />
       ) : groups.length === 0 ? (
-        <EmptyState
-          title={t(hasActiveFilter ? "filteredEmptyTitle" : "emptyTitle")}
-          description={t(
-            hasActiveFilter ? "filteredEmptyDescription" : "emptyDescription",
-          )}
-          action={
-            !hasActiveFilter ? (
-              <Link
-                href={APP_PATH.MONEY_ADD}
-                className="inline-flex min-h-11 w-full items-center justify-center rounded-[var(--radius-control)] bg-accent px-(--space-4) text-sm font-semibold text-accent-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-              >
-                {t("add")}
-              </Link>
-            ) : undefined
-          }
-        />
+        <Card
+          tone="soft"
+          className="gap-(--space-3) p-(--space-4)"
+          data-testid="transactions-empty"
+        >
+          <EmptyState
+            icon={
+              <AppIcon icon={FINANCE_ICONS.cash} size={AppIconSize.DISPLAY} />
+            }
+            title={t(hasActiveFilter ? "filteredEmptyTitle" : "emptyTitle")}
+            description={t(
+              hasActiveFilter ? "filteredEmptyDescription" : "emptyDescription",
+            )}
+            className="flex-none py-(--space-2)"
+          />
+        </Card>
       ) : (
         <div className="flex flex-col gap-(--space-5)">
           {groups.map((group) => (
-            <section
+            <TransactionsDateGroup
               key={group.date}
-              aria-labelledby={`transactions-date-${group.date}`}
-              className="relative border-l border-border-subtle/70 pl-(--space-3)"
+              date={group.date}
+              label={dateLabel(group.date, locale, dateLabels)}
             >
-              <span
-                className="absolute -left-[5px] top-(--space-1) size-2 rounded-full border-2 border-canvas bg-accent"
-                aria-hidden
-              />
-              <h2
-                id={`transactions-date-${group.date}`}
-                className="mb-(--space-1) flex items-center gap-(--space-2) text-xs font-semibold uppercase tracking-[0.08em] text-text-muted"
-              >
-                {dateLabel(group.date, locale, dateLabels)}
-              </h2>
-              <ul>
-                {group.activities.map((activity) => {
-                  const title = activityTitle(
-                    activity,
-                    activityKindLabels,
-                    tCatalog,
-                  );
-                  const subtitle = activitySubtitle(
-                    activity,
-                    title,
-                    activityKindLabels,
-                    tCatalog,
-                  );
-                  const relationship =
-                    activity.kind === TransactionActivityKind.EXPENSE &&
-                    activity.status === TransactionStatus.PARTIALLY_REFUNDED
-                      ? t("relationship.partiallyRefunded")
-                      : activity.kind === TransactionActivityKind.EXPENSE &&
-                          activity.status === TransactionStatus.FULLY_REFUNDED
-                        ? t("relationship.fullyRefunded")
-                        : "";
-                  return (
-                    <li key={activity.id}>
-                      <Link
-                        href={moneyTransactionPath(
-                          activity.relatedTransactionIds[0],
-                        )}
-                        className="block focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-                        data-testid={`transaction-row-${activity.id}`}
-                      >
-                        <TransactionRow
-                          leading={
-                            <IconContainer
-                              tone={activityIconTone(activity)}
+              {group.activities.map((activity) => {
+                const title = activityTitle(
+                  activity,
+                  activityKindLabels,
+                  tCatalog,
+                );
+                const subtitle = activitySubtitle(
+                  activity,
+                  title,
+                  activityKindLabels,
+                  tCatalog,
+                );
+                const relationship = activityRelationshipLabel(activity, t);
+                return (
+                  <li key={activity.id}>
+                    <Link
+                      href={moneyTransactionPath(
+                        activity.relatedTransactionIds[0],
+                      )}
+                      className="block focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus-ring"
+                      data-testid={`transaction-row-${activity.id}`}
+                    >
+                      <TransactionRow
+                        leading={
+                          <IconContainer
+                            tone={activityIconTone(activity)}
+                            size="sm"
+                          >
+                            <AppIcon
+                              icon={financeIconFor(activityIconKey(activity))}
                               size="sm"
-                              className="mt-(--space-1)"
-                            >
-                              <AppIcon
-                                icon={financeIconFor(activityIconKey(activity))}
-                                size="sm"
-                              />
-                            </IconContainer>
-                          }
-                          title={title}
-                          subtitle={[subtitle, relationship]
-                            .filter(Boolean)
-                            .join(" · ")}
-                          amountLabel={`${activity.sign}${formatCurrency(activity.amount, activity.currency, locale, { maximumFractionDigits: 0 })}`}
-                          tone={ACTIVITY_TONE_TO_AMOUNT_TONE[activity.tone]}
-                        />
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            </section>
+                            />
+                          </IconContainer>
+                        }
+                        title={title}
+                        subtitle={[subtitle, relationship]
+                          .filter(Boolean)
+                          .join(" · ")}
+                        amountLabel={`${activity.sign}${formatCurrency(activity.amount, activity.currency, locale, { maximumFractionDigits: 0 })}`}
+                        tone={ACTIVITY_TONE_TO_AMOUNT_TONE[activity.tone]}
+                        showRail={false}
+                        showChevron
+                        className="border-b-0 px-(--space-4)"
+                      />
+                    </Link>
+                  </li>
+                );
+              })}
+            </TransactionsDateGroup>
           ))}
           {result?.hasMore && result.nextCursor ? (
             <Link
               href={listHref(type, tagIds, result.nextCursor)}
-              className="inline-flex min-h-11 w-full items-center justify-center rounded-[var(--radius-control)] border border-border-subtle bg-surface/80 text-sm font-semibold text-text-primary shadow-(--elevation-1) transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-[var(--press-scale)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none"
+              className="inline-flex min-h-11 w-full items-center justify-center rounded-[var(--radius-control)] border border-border-subtle bg-surface text-sm font-semibold text-text-primary shadow-(--elevation-1) transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-[var(--press-scale)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none"
               data-testid="transactions-load-more"
             >
               {t("loadMore")}
@@ -410,6 +420,9 @@ export default async function TransactionsListPage({
           ) : null}
         </div>
       )}
+      <FloatingAction>
+        <MoneyCaptureAction testId="transactions-add" />
+      </FloatingAction>
     </Page>
   );
 }

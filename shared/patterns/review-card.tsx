@@ -1,7 +1,17 @@
 import type { ReactNode } from "react";
 import { cn } from "@/shared/utils/cn";
 import { Text } from "@/shared/ui/text";
-import { StatusBadge, type StatusBadgeTone } from "@/shared/ui/status-badge";
+import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
+import { ACTION_ICONS } from "@/shared/ui/icon-registry";
+import { StatusBadge, StatusBadgeTone } from "@/shared/ui/status-badge";
+
+export const ReviewCardDensity = {
+  CARD: "card",
+  ROW: "row",
+} as const;
+
+export type ReviewCardDensity =
+  (typeof ReviewCardDensity)[keyof typeof ReviewCardDensity];
 
 export type ReviewCardProps = {
   title: ReactNode;
@@ -15,6 +25,9 @@ export type ReviewCardProps = {
   statusTone?: StatusBadgeTone;
   /** Quiet next-step cue; the surrounding link remains the action target. */
   actionLabel?: ReactNode;
+  density?: ReviewCardDensity;
+  showChevron?: boolean;
+  unread?: boolean;
   className?: string;
   "data-testid"?: string;
 };
@@ -29,15 +42,23 @@ export function ReviewCard({
   amountLabel,
   leading,
   subtitle,
-  statusTone = "neutral",
+  statusTone = StatusBadgeTone.NEUTRAL,
   actionLabel,
+  density = ReviewCardDensity.CARD,
+  showChevron = false,
+  unread = false,
   className,
   "data-testid": testId,
 }: ReviewCardProps) {
+  const isRow = density === ReviewCardDensity.ROW;
+
   return (
     <div
       className={cn(
-        "flex min-h-11 flex-col gap-(--space-3) rounded-[var(--radius-card)] border border-border-subtle/70 bg-surface p-(--space-3) shadow-[var(--elevation-1)] transition-[background-color,border-color,transform,box-shadow] duration-(--duration-fast) hover:border-border-default hover:bg-surface-hover hover:shadow-[var(--elevation-2)] active:scale-[var(--press-scale)] motion-reduce:transition-none motion-reduce:active:scale-100",
+        "flex min-h-11 flex-col gap-(--space-3)",
+        isRow
+          ? "px-(--space-4) py-(--space-3) transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-(--press-scale) motion-reduce:transition-none motion-reduce:active:scale-100"
+          : "rounded-[var(--radius-card)] border border-border-subtle/70 bg-surface p-(--space-4) shadow-[var(--elevation-1)] transition-[background-color,border-color,transform,box-shadow] duration-(--duration-fast) hover:border-border-default hover:bg-surface-hover hover:shadow-[var(--elevation-2)] active:scale-[var(--press-scale)] motion-reduce:transition-none motion-reduce:active:scale-100",
         className,
       )}
       data-testid={testId ?? "review-card"}
@@ -45,25 +66,43 @@ export function ReviewCard({
       <div className="flex items-start gap-(--space-3)">
         {leading}
         <div className="min-w-0 flex-1">
-          <Text
-            size="sm"
-            className="wrap-break-word font-semibold text-text-primary"
-          >
-            {title}
-          </Text>
+          <div className="flex items-center gap-(--space-2)">
+            {unread ? (
+              <span
+                className="size-1.5 shrink-0 rounded-full bg-primary"
+                aria-hidden
+              />
+            ) : null}
+            <Text
+              size="sm"
+              weight="semibold"
+              className="wrap-break-word text-text-primary"
+            >
+              {title}
+            </Text>
+          </div>
           {subtitle ? (
             <Text
               size="xs"
               tone="secondary"
-              className="mt-(--space-1) wrap-break-word"
+              className="mt-(--space-1) wrap-break-word text-pretty"
             >
               {subtitle}
             </Text>
           ) : null}
         </div>
-        <span className="shrink-0 text-right text-sm font-semibold tabular-nums tracking-tight text-text-primary">
-          {amountLabel}
-        </span>
+        <div className="flex shrink-0 items-start gap-(--space-2)">
+          <span className="min-w-[var(--financial-number-column-width)] text-right text-sm font-semibold tabular-nums tracking-tight text-text-primary">
+            {amountLabel}
+          </span>
+          {showChevron ? (
+            <AppIcon
+              icon={ACTION_ICONS.forward}
+              size={AppIconSize.SM}
+              className="mt-(--space-1) text-text-tertiary"
+            />
+          ) : null}
+        </div>
       </div>
       <div className="flex items-center justify-between gap-(--space-3)">
         <StatusBadge
