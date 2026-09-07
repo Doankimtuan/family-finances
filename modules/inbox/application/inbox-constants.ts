@@ -125,6 +125,8 @@ export const INBOX_RECEIPT_QUERY = "receipt";
 /** Query key for Open/Archived queue tabs. */
 export const INBOX_TAB_QUERY = "tab";
 
+export const INBOX_ACK_TEST_ID_PREFIX = "inbox-ack-";
+
 export const INBOX_TEST_ID = {
   QUEUE: "inbox-queue",
   QUEUE_TABS: "inbox-queue-tabs",
@@ -132,7 +134,34 @@ export const INBOX_TEST_ID = {
   TAB_ARCHIVED: "inbox-tab-archived",
   TAB_LOADING: "inbox-tab-loading",
   TAB_CONTENT: "inbox-tab-content",
+  DETAIL: "inbox-detail",
+  DETAIL_MISSING: "inbox-detail-missing",
+  DETAIL_CONTEXT: "inbox-detail-context",
+  DETAIL_CARD: "inbox-detail-card",
+  DETAIL_PRIVACY: "inbox-detail-privacy-toggle",
+  DETAIL_META: "inbox-detail-meta",
+  DECISION_PANEL: "inbox-decision-panel",
+  DECISION_QUESTION: "inbox-decision-question",
+  PARTNER_EQUAL: "inbox-partner-equal",
+  LIFECYCLE: "inbox-lifecycle-context",
+  AMOUNT: "inbox-amount",
+  ITEM_DETAILS: "inbox-item-details",
+  VIEW_SOURCE: "inbox-view-source",
+  READ_STATE: "inbox-read-state",
+  ARCHIVED_STATUS: "inbox-archived-status",
+  MISSING_BACK: "inbox-missing-back",
+  DISMISS: "inbox-dismiss",
+  DISMISS_CONFIRM: "inbox-dismiss-confirm",
+  DISMISS_YES: "inbox-dismiss-yes",
+  ACK_CONFIRM_EARLY: "inbox-ack-confirm-early",
+  ACK_CANCEL_EARLY: "inbox-ack-cancel-early",
+  ACK_CELEBRATE: "inbox-ack-celebrate",
+  ACK_LATER: "inbox-ack-later",
 } as const;
+
+export function inboxAckTestId(action: InboxAckAction): string {
+  return `${INBOX_ACK_TEST_ID_PREFIX}${action}`;
+}
 
 export const InboxSourceType = {
   TRANSACTION: "transaction",

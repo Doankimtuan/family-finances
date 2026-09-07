@@ -10,6 +10,15 @@ import {
 } from "@/app/[locale]/(product)/inbox/inbox-facts";
 import { InboxSectionTitle } from "@/app/[locale]/(product)/inbox/inbox-section-title";
 import { InboxUnavailable } from "@/app/[locale]/(product)/inbox/inbox-unavailable";
+import {
+  InboxDetailContext,
+  InboxDetailSource,
+} from "@/app/[locale]/(product)/inbox/inbox-detail-context";
+import { InboxDetailMeta } from "@/app/[locale]/(product)/inbox/inbox-detail-meta";
+import {
+  inboxMaturitySecondaryActions,
+  resolveInboxMaturityPrimaryAction,
+} from "@/app/[locale]/(product)/inbox/inbox-maturity-layout";
 import { InboxQueueTabs } from "@/app/[locale]/(product)/inbox/inbox-queue-tabs";
 import {
   InboxQueueBodyPending,
@@ -26,9 +35,13 @@ import {
   InboxLifecycleContext,
   InboxQueueHeaderState,
   InboxQueueTab,
+  INBOX_ACK_TEST_ID_PREFIX,
   INBOX_TAB_QUERY,
   INBOX_TEST_ID,
+  SavingsMaturityAckAction,
+  inboxAckTestId,
 } from "@/modules/inbox/application/inbox-constants";
+import { RenewalSuggestedAction } from "@/modules/savings/application/savings-constants";
 import {
   APP_PATH,
   inboxQueuePath,
@@ -199,5 +212,96 @@ describe("Inbox UI polish", () => {
       pathname: APP_PATH.INBOX,
       query: { [INBOX_TAB_QUERY]: InboxQueueTab.ARCHIVED },
     });
+  });
+
+  it("leads the detail with the decision question and keeps source amount as context", () => {
+    renderInbox(
+      <>
+        <InboxDetailContext
+          pending
+          heading="What needs a decision?"
+          question="This spending is not in a jar yet."
+          statusLabel="Pending"
+          partnerNote="Either partner can decide."
+          lifecycleLabel="Due: 1 Jan 2026"
+        />
+        <InboxDetailSource
+          title="Lunch"
+          kindLabel="Unmapped expense"
+          amountLabel={<span data-testid={INBOX_TEST_ID.AMOUNT}>₫45,000</span>}
+          subtitle="Cash · Food"
+          statusTone={StatusBadgeTone.WARNING}
+        />
+      </>,
+    );
+
+    expect(
+      screen.getByTestId(INBOX_TEST_ID.DETAIL_CONTEXT),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByTestId(INBOX_TEST_ID.DECISION_QUESTION),
+    ).toHaveTextContent("This spending is not in a jar yet.");
+    expect(screen.getByTestId(INBOX_TEST_ID.LIFECYCLE)).toHaveTextContent(
+      "Due: 1 Jan 2026",
+    );
+    expect(screen.getByTestId(INBOX_TEST_ID.DETAIL_CARD)).toHaveTextContent(
+      "Lunch",
+    );
+    expect(screen.getByTestId(INBOX_TEST_ID.AMOUNT)).toHaveTextContent(
+      "₫45,000",
+    );
+    expect(
+      screen.getByTestId(INBOX_TEST_ID.DETAIL_PRIVACY),
+    ).toBeInTheDocument();
+  });
+
+  it("keeps source and read-state as quiet meta rows", () => {
+    renderInbox(
+      <InboxDetailMeta>
+        <button type="button">View saving in Money</button>
+        <button type="button">Mark as read</button>
+      </InboxDetailMeta>,
+    );
+
+    expect(screen.getByTestId(INBOX_TEST_ID.DETAIL_META)).toHaveTextContent(
+      "View saving in Money",
+    );
+    expect(screen.getByTestId(INBOX_TEST_ID.DETAIL_META)).toHaveTextContent(
+      "Mark as read",
+    );
+  });
+
+  it("promotes withdraw only when Savings suggests it", () => {
+    expect(
+      resolveInboxMaturityPrimaryAction(RenewalSuggestedAction.WITHDRAW),
+    ).toBe(SavingsMaturityAckAction.WITHDRAW);
+    expect(
+      resolveInboxMaturityPrimaryAction(
+        RenewalSuggestedAction.CONFIRM_CONFIGURED,
+      ),
+    ).toBe(SavingsMaturityAckAction.CONFIRM_CONFIGURED);
+    expect(resolveInboxMaturityPrimaryAction(RenewalSuggestedAction.NONE)).toBe(
+      SavingsMaturityAckAction.CONFIRM_CONFIGURED,
+    );
+    expect(
+      inboxMaturitySecondaryActions(
+        SavingsMaturityAckAction.CONFIRM_CONFIGURED,
+      ),
+    ).toEqual([
+      SavingsMaturityAckAction.SWITCH,
+      SavingsMaturityAckAction.WITHDRAW,
+    ]);
+    expect(
+      resolveInboxMaturityPrimaryAction(
+        RenewalSuggestedAction.CONFIRM_CONFIGURED,
+        true,
+      ),
+    ).toBe(SavingsMaturityAckAction.REMIND_TOMORROW);
+    expect(
+      inboxMaturitySecondaryActions(SavingsMaturityAckAction.REMIND_TOMORROW),
+    ).toEqual([]);
+    expect(inboxAckTestId(SavingsMaturityAckAction.REMIND_TOMORROW)).toBe(
+      `${INBOX_ACK_TEST_ID_PREFIX}${SavingsMaturityAckAction.REMIND_TOMORROW}`,
+    );
   });
 });

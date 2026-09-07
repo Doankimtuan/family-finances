@@ -7,17 +7,19 @@ import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
 import { getInboxItem } from "@/modules/inbox/application";
-import { InboxItemStatus } from "@/modules/inbox/application/inbox-constants";
+import {
+  InboxItemStatus,
+  INBOX_TEST_ID,
+} from "@/modules/inbox/application/inbox-constants";
 import { listCaptureJars } from "@/modules/ledger/application";
 import { formatCurrency, formatDate } from "@/shared/i18n/formatters";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Page } from "@/shared/patterns/page";
-import { ReviewCard } from "@/shared/patterns/review-card";
 import { Card } from "@/shared/patterns/card";
 import { AppIcon } from "@/shared/ui/app-icon";
 import { IconContainer } from "@/shared/ui/icon-container";
-import { StatusBadge, StatusBadgeTone } from "@/shared/ui/status-badge";
+import { StatusBadgeTone } from "@/shared/ui/status-badge";
 import { Text } from "@/shared/ui/text";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { FinancialValue } from "@/shared/patterns/financial-value";
@@ -26,8 +28,9 @@ import { InboxDecisionPanel } from "../inbox-decision-panel";
 import { InboxSourceLink } from "../inbox-source-link";
 import { InboxReadStateControl } from "../inbox-read-state-control";
 import { InboxFactRow, InboxFactsCard } from "../inbox-facts";
-import { InboxPrivacyToggle } from "../inbox-privacy-toggle";
 import { InboxUnavailable } from "../inbox-unavailable";
+import { InboxDetailContext, InboxDetailSource } from "../inbox-detail-context";
+import { InboxDetailMeta } from "../inbox-detail-meta";
 import {
   inboxDisplayTitle,
   inboxItemVisual,
@@ -67,7 +70,7 @@ export default async function InboxItemDetailPage({ params }: Props) {
   if (!item) {
     return (
       <Page
-        testId="inbox-detail-missing"
+        testId={INBOX_TEST_ID.DETAIL_MISSING}
         topBar={
           <TopAppBar
             variant="detail"
@@ -79,12 +82,13 @@ export default async function InboxItemDetailPage({ params }: Props) {
         }
         contentClassName="gap-(--space-5)"
       >
+        <InboxOfflineBanner />
         <InboxUnavailable
           title={t("notFoundTitle")}
           description={t("notFoundBody")}
           actionHref={APP_PATH.INBOX}
           actionLabel={t("backToQueue")}
-          testId="inbox-missing-back"
+          testId={INBOX_TEST_ID.MISSING_BACK}
         />
       </Page>
     );
@@ -122,9 +126,16 @@ export default async function InboxItemDetailPage({ params }: Props) {
       }: ${formatDate(new Date(item.lifecycleDate), locale)}`
     : null;
 
+  const detailMeta = (
+    <InboxDetailMeta>
+      <InboxSourceLink item={item} />
+      <InboxReadStateControl item={item} />
+    </InboxDetailMeta>
+  );
+
   return (
     <Page
-      testId="inbox-detail"
+      testId={INBOX_TEST_ID.DETAIL}
       topBar={
         <TopAppBar
           variant="detail"
@@ -138,55 +149,20 @@ export default async function InboxItemDetailPage({ params }: Props) {
     >
       <InboxOfflineBanner />
 
-      <Card
-        tone={pending ? "highlighted" : "soft"}
-        className="gap-(--space-3) p-(--space-4)"
-        data-testid="inbox-detail-context"
-      >
-        <div className="flex items-start justify-between gap-(--space-3)">
-          <div className="min-w-0">
-            <Text size="sm" weight="semibold" className="text-text-primary">
-              {t("decisionQuestionHeading")}
-            </Text>
-            {item.kind ? (
-              <Text
-                size="sm"
-                tone="secondary"
-                className="mt-(--space-1) leading-relaxed"
-                data-testid="inbox-decision-question"
-              >
-                {t(`why.${item.kind}`)}
-              </Text>
-            ) : null}
-          </div>
-          <div className="flex shrink-0 items-center gap-(--space-2)">
-            <StatusBadge
-              tone={pending ? StatusBadgeTone.WARNING : StatusBadgeTone.NEUTRAL}
-            >
-              {t(`statuses.${item.status}`)}
-            </StatusBadge>
-            <InboxPrivacyToggle testId="inbox-detail-privacy-toggle" />
-          </div>
-        </div>
-        <Text size="xs" tone="muted" data-testid="inbox-partner-equal">
-          {t("partnerEqualNote")}
-        </Text>
-        {lifecycleLabel ? (
-          <Text
-            size="sm"
-            tone="secondary"
-            data-testid="inbox-lifecycle-context"
-          >
-            {lifecycleLabel}
-          </Text>
-        ) : null}
-      </Card>
+      <InboxDetailContext
+        pending={pending}
+        heading={t("decisionQuestionHeading")}
+        question={item.kind ? t(`why.${item.kind}`) : null}
+        statusLabel={t(`statuses.${item.status}`)}
+        partnerNote={t("partnerEqualNote")}
+        lifecycleLabel={lifecycleLabel}
+      />
 
-      <ReviewCard
+      <InboxDetailSource
         title={displayTitle}
         kindLabel={item.kind ? t(`kinds.${item.kind}`) : t("title")}
         amountLabel={
-          <FinancialValue dataTestId="inbox-amount">
+          <FinancialValue dataTestId={INBOX_TEST_ID.AMOUNT}>
             {formatCurrency(item.amount, item.currency, locale, {
               maximumFractionDigits: 0,
             })}
@@ -194,14 +170,13 @@ export default async function InboxItemDetailPage({ params }: Props) {
         }
         leading={
           visual ? (
-            <IconContainer tone={visual.tone} size="sm">
+            <IconContainer tone={visual.tone} size="md">
               <AppIcon icon={visual.icon} size="sm" />
             </IconContainer>
           ) : undefined
         }
         statusTone={pending ? StatusBadgeTone.WARNING : StatusBadgeTone.NEUTRAL}
         subtitle={detailParts.length > 0 ? detailParts.join(" · ") : undefined}
-        data-testid="inbox-detail-card"
       />
 
       <StatusAlert
@@ -210,10 +185,11 @@ export default async function InboxItemDetailPage({ params }: Props) {
         description={t("amountContextBody")}
       />
 
-      {pending ? <InboxDecisionPanel item={item} jars={activeJars} /> : null}
-
       {localizedCategory || localizedAccount || item.note ? (
-        <InboxFactsCard title={t("detailsHeading")} testId="inbox-item-details">
+        <InboxFactsCard
+          title={t("detailsHeading")}
+          testId={INBOX_TEST_ID.ITEM_DETAILS}
+        >
           {localizedCategory ? (
             <InboxFactRow label={t("factCategory")} value={localizedCategory} />
           ) : null}
@@ -226,13 +202,20 @@ export default async function InboxItemDetailPage({ params }: Props) {
         </InboxFactsCard>
       ) : null}
 
-      <InboxSourceLink item={item} />
-
-      <InboxReadStateControl item={item} />
+      {pending ? (
+        <InboxDecisionPanel item={item} jars={activeJars} meta={detailMeta} />
+      ) : (
+        detailMeta
+      )}
 
       {!pending ? (
-        <Card tone="soft" className="p-(--space-3)">
-          <Text size="sm" tone="secondary" data-testid="inbox-archived-status">
+        <Card tone="soft" className="p-(--space-4)">
+          <Text
+            size="sm"
+            tone="secondary"
+            className="text-pretty"
+            data-testid={INBOX_TEST_ID.ARCHIVED_STATUS}
+          >
             {t(`statuses.${item.status}`)}
           </Text>
         </Card>

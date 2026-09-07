@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
@@ -16,6 +16,8 @@ import {
   isJarResolvableKind,
   AUTO_RESOLVE_CONFIDENCE_THRESHOLD,
   INBOX_OPERATION,
+  INBOX_TEST_ID,
+  inboxAckTestId,
   type InboxAckAction,
   type InboxReceiptKind as InboxReceiptKindType,
 } from "@/modules/inbox/application/inbox-constants";
@@ -31,15 +33,25 @@ import {
   RenewalPolicy,
   RecommendationReasonCode,
 } from "@/modules/savings/application/savings-constants";
-import { Button } from "@/shared/ui/button";
+import { Button, ButtonVariant } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
 import { Card } from "@/shared/patterns/card";
 import { FinancialValue } from "@/shared/patterns/financial-value";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { SelectField } from "@/shared/ui/form";
-import { BottomActionBar } from "@/shared/patterns/bottom-action-bar";
+import {
+  BottomActionBar,
+  BottomActionBarLayout,
+} from "@/shared/patterns/bottom-action-bar";
 import { InboxFactRow } from "./inbox-facts";
 import { InboxSectionTitle } from "./inbox-section-title";
+import {
+  INBOX_MATURITY_ACTION_LABEL,
+  inboxMaturitySecondaryActions,
+  isMaturityMoneyMovingAction,
+  resolveInboxMaturityPrimaryAction,
+  type InboxMaturityMoneyAction,
+} from "./inbox-maturity-layout";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import { DEFAULT_CURRENCY } from "@/modules/ledger/application/client";
@@ -57,6 +69,7 @@ import {
 type Props = {
   item: InboxReviewItem;
   jars: CaptureJarOption[];
+  meta?: ReactNode;
 };
 
 type InboxErrorCode =
@@ -69,7 +82,7 @@ type PendingAction = "resolve" | "dismiss" | "ack";
  * (ST-E06-002). Only canonical kinds reach this panel; an item without a
  * canonical kind renders a dismiss-only guard.
  */
-export function InboxDecisionPanel({ item, jars }: Props) {
+export function InboxDecisionPanel({ item, jars, meta }: Props) {
   const t = useTranslations("inbox");
   const tCatalog = useTranslations("catalog");
   const locale = useLocale();
@@ -143,10 +156,14 @@ export function InboxDecisionPanel({ item, jars }: Props) {
 
   const suggestedAction =
     maturityPayload?.suggestedAction ?? RenewalSuggestedAction.NONE;
-  const highlightConfirm =
-    suggestedAction === RenewalSuggestedAction.CONFIRM_CONFIGURED;
-  const highlightWithdraw = suggestedAction === RenewalSuggestedAction.WITHDRAW;
-  const equalWeight = suggestedAction === RenewalSuggestedAction.NONE;
+  const isMaturityReminder = maturityPayload?.cascadeDay != null;
+  const maturityPrimaryAction = resolveInboxMaturityPrimaryAction(
+    suggestedAction,
+    isMaturityReminder,
+  );
+  const maturitySecondaryActions = inboxMaturitySecondaryActions(
+    maturityPrimaryAction,
+  );
 
   const policyLabelKey = (() => {
     const raw =
@@ -255,11 +272,7 @@ export function InboxDecisionPanel({ item, jars }: Props) {
       action === SavingsMaturityAckAction.WITHDRAW
         ? SettlementRule.WITHDRAW_EVERYTHING
         : selectedSettlementRule;
-    const moneyMoving =
-      action === SavingsMaturityAckAction.WITHDRAW ||
-      action === SavingsMaturityAckAction.CONFIRM_CONFIGURED ||
-      action === SavingsMaturityAckAction.SWITCH ||
-      action === SavingsMaturityAckAction.CHANGE_SETTLEMENT;
+    const moneyMoving = isMaturityMoneyMovingAction(action);
     run(
       "ack",
       () =>
@@ -297,56 +310,170 @@ export function InboxDecisionPanel({ item, jars }: Props) {
     );
   };
 
-  const dismissButton = confirmDismiss ? (
-    <div
-      className="flex flex-col gap-(--space-3)"
-      data-testid="inbox-dismiss-confirm"
-    >
-      <StatusAlert
-        variant="warning"
-        title={t("dismissConfirmTitle")}
-        description={t("dismissConfirmBody")}
-      />
-      <Button
-        variant="primary"
-        className="w-full"
-        data-testid="inbox-dismiss-yes"
-        isDisabled={busy || !online}
-        onPress={onDismiss}
-      >
-        {pendingAction === "dismiss" ? t("dismissing") : t("dismissConfirmYes")}
-      </Button>
-      <Button
-        variant="secondary"
-        className="w-full"
-        isDisabled={busy}
-        onPress={() => setConfirmDismiss(false)}
-      >
-        {t("cancel")}
-      </Button>
-    </div>
-  ) : (
+  const renderMaturityAckButton = (
+    action:
+      | InboxMaturityMoneyAction
+      | typeof SavingsMaturityAckAction.REMIND_TOMORROW,
+    variant:
+      | typeof ButtonVariant.PRIMARY
+      | typeof ButtonVariant.SECONDARY
+      | typeof ButtonVariant.GHOST,
+    className = "w-full",
+  ) => (
     <Button
-      variant="secondary"
-      className="w-full"
-      data-testid="inbox-dismiss"
+      key={action}
+      variant={variant}
+      className={className}
+      data-testid={inboxAckTestId(action)}
       isDisabled={busy || !online}
-      onPress={() => {
-        if (!online) {
-          setErrorCode(CLIENT_ACTION_ERROR_CODE.OFFLINE);
-          return;
-        }
-        setConfirmDismiss(true);
-      }}
+      onPress={() => onSavingsMaturityAck(action)}
     >
-      {t("dismiss")}
+      {t(INBOX_MATURITY_ACTION_LABEL[action])}
     </Button>
   );
+
+  const deferActions = (
+    <div className="flex flex-col gap-(--space-2)">
+      {!confirmDismiss &&
+      isMaturity &&
+      maturityPrimaryAction !== SavingsMaturityAckAction.REMIND_TOMORROW
+        ? renderMaturityAckButton(
+            SavingsMaturityAckAction.REMIND_TOMORROW,
+            ButtonVariant.GHOST,
+          )
+        : null}
+      {!confirmDismiss && isEarlyWithdrawal ? (
+        <Button
+          variant={ButtonVariant.GHOST}
+          className="w-full"
+          data-testid={INBOX_TEST_ID.ACK_CANCEL_EARLY}
+          isDisabled={busy || !online}
+          onPress={() => onEarlyWithdrawAck(EarlyWithdrawalAckAction.CANCEL)}
+        >
+          {t("earlyWithdrawalCancel")}
+        </Button>
+      ) : null}
+      {!confirmDismiss && isEmi ? (
+        <Button
+          variant={ButtonVariant.GHOST}
+          className="w-full"
+          data-testid={INBOX_TEST_ID.ACK_LATER}
+          isDisabled={busy || !online}
+          onPress={() => onAck(EmiAckAction.LATER)}
+        >
+          {t("emiLater")}
+        </Button>
+      ) : null}
+      {confirmDismiss ? (
+        <div
+          className="flex flex-col gap-(--space-3)"
+          data-testid={INBOX_TEST_ID.DISMISS_CONFIRM}
+        >
+          <StatusAlert
+            variant="warning"
+            title={t("dismissConfirmTitle")}
+            description={t("dismissConfirmBody")}
+          />
+        </div>
+      ) : (
+        <Button
+          variant={ButtonVariant.GHOST}
+          className="w-full"
+          data-testid={INBOX_TEST_ID.DISMISS}
+          isDisabled={busy || !online}
+          onPress={() => {
+            if (!online) {
+              setErrorCode(CLIENT_ACTION_ERROR_CODE.OFFLINE);
+              return;
+            }
+            setConfirmDismiss(true);
+          }}
+        >
+          {t("dismiss")}
+        </Button>
+      )}
+    </div>
+  );
+
+  let stickyBar: ReactNode = null;
+  if (confirmDismiss) {
+    stickyBar = (
+      <BottomActionBar layout={BottomActionBarLayout.SPLIT}>
+        <Button
+          variant={ButtonVariant.SECONDARY}
+          className="w-full"
+          isDisabled={busy}
+          onPress={() => setConfirmDismiss(false)}
+        >
+          {t("cancel")}
+        </Button>
+        <Button
+          variant={ButtonVariant.PRIMARY}
+          className="w-full"
+          data-testid={INBOX_TEST_ID.DISMISS_YES}
+          isDisabled={busy || !online}
+          onPress={onDismiss}
+        >
+          {pendingAction === "dismiss"
+            ? t("dismissing")
+            : t("dismissConfirmYes")}
+        </Button>
+      </BottomActionBar>
+    );
+  } else if (jarResolvable) {
+    stickyBar = (
+      <BottomActionBar>
+        <Button
+          variant={ButtonVariant.PRIMARY}
+          className="w-full"
+          data-testid="inbox-resolve"
+          isDisabled={busy || !online || jars.length === 0}
+          onPress={onResolve}
+        >
+          {pendingAction === "resolve" ? t("resolving") : t("resolve")}
+        </Button>
+      </BottomActionBar>
+    );
+  } else if (isMaturity) {
+    stickyBar = (
+      <BottomActionBar>
+        {renderMaturityAckButton(maturityPrimaryAction, ButtonVariant.PRIMARY)}
+      </BottomActionBar>
+    );
+  } else if (isEarlyWithdrawal) {
+    stickyBar = (
+      <BottomActionBar>
+        <Button
+          variant={ButtonVariant.PRIMARY}
+          className="w-full"
+          data-testid={INBOX_TEST_ID.ACK_CONFIRM_EARLY}
+          isDisabled={busy || !online}
+          onPress={() => onEarlyWithdrawAck(EarlyWithdrawalAckAction.CONFIRM)}
+        >
+          {t("earlyWithdrawalConfirm")}
+        </Button>
+      </BottomActionBar>
+    );
+  } else if (isEmi) {
+    stickyBar = (
+      <BottomActionBar>
+        <Button
+          variant={ButtonVariant.PRIMARY}
+          className="w-full"
+          data-testid={INBOX_TEST_ID.ACK_CELEBRATE}
+          isDisabled={busy || !online}
+          onPress={() => onAck(EmiAckAction.CELEBRATE)}
+        >
+          {t("emiCelebrate")}
+        </Button>
+      </BottomActionBar>
+    );
+  }
 
   return (
     <div
       className="flex flex-col gap-(--space-4)"
-      data-testid="inbox-decision-panel"
+      data-testid={INBOX_TEST_ID.DECISION_PANEL}
     >
       {errorCode ? (
         <StatusAlert
@@ -365,25 +492,12 @@ export function InboxDecisionPanel({ item, jars }: Props) {
           <Text size="sm" tone="secondary">
             {t("activeJarOnlyHint")}
           </Text>
-          <Card tone="elevated" className="gap-(--space-3) p-(--space-4)">
+          <Card tone="elevated" className="gap-(--space-4) p-(--space-4)">
             <StatusAlert
               variant="info"
               title={t("resolveMoneySafeTitle")}
               description={t("resolveMoneySafeBody")}
             />
-
-            {showPatternSuggestion ? (
-              <StatusAlert
-                variant="info"
-                title={t("patternSuggestionTitle")}
-                description={t("patternSuggestionBody", {
-                  confidence: Math.round((item.confidenceScore ?? 0) * 100),
-                  threshold: Math.round(
-                    AUTO_RESOLVE_CONFIDENCE_THRESHOLD * 100,
-                  ),
-                })}
-              />
-            ) : null}
 
             {jars.length === 0 ? (
               <StatusAlert
@@ -404,20 +518,21 @@ export function InboxDecisionPanel({ item, jars }: Props) {
                 isDisabled={busy}
                 required
                 data-testid="inbox-jar-select"
+                description={
+                  showPatternSuggestion
+                    ? t("patternSuggestionBody", {
+                        confidence: Math.round(
+                          (item.confidenceScore ?? 0) * 100,
+                        ),
+                        threshold: Math.round(
+                          AUTO_RESOLVE_CONFIDENCE_THRESHOLD * 100,
+                        ),
+                      })
+                    : undefined
+                }
               />
             )}
           </Card>
-          <BottomActionBar>
-            <Button
-              variant="primary"
-              className="w-full"
-              data-testid="inbox-resolve"
-              isDisabled={busy || !online || jars.length === 0}
-              onPress={onResolve}
-            >
-              {pendingAction === "resolve" ? t("resolving") : t("resolve")}
-            </Button>
-          </BottomActionBar>
         </section>
       ) : null}
 
@@ -428,16 +543,21 @@ export function InboxDecisionPanel({ item, jars }: Props) {
         >
           <InboxSectionTitle>{t("maturityHeading")}</InboxSectionTitle>
           <Text size="sm" tone="secondary">
-            {t("maturityHint")}
+            {t(isMaturityReminder ? "maturityReminderHint" : "maturityHint")}
           </Text>
-          <Card tone="elevated" className="gap-(--space-3) p-(--space-4)">
-            <StatusAlert
-              variant="info"
-              title={t("maturitySourceTitle")}
-              description={t("maturitySourceBody")}
-            />
+          <Card tone="elevated" className="gap-(--space-4) p-(--space-4)">
+            <Text size="sm" tone="secondary" className="text-pretty">
+              {t("maturitySourceBody")}
+            </Text>
+            {maturityPayload?.cascadeDay != null ? (
+              <StatusAlert
+                variant="info"
+                title={t("maturityReminderTitle")}
+                description={t("maturityReminderBody")}
+              />
+            ) : null}
             {maturityPayload ? (
-              <dl className="-mx-(--space-4) divide-y divide-divider border-y border-divider">
+              <dl className="-mx-(--space-4) divide-y divide-border-subtle/65 border-y border-border-subtle/65">
                 <InboxFactRow
                   label={t("factProvider")}
                   value={`${maturityPayload.providerName} · ${maturityPayload.currentPackage}`}
@@ -472,6 +592,7 @@ export function InboxDecisionPanel({ item, jars }: Props) {
               />
             ) : null}
             {maturityPayload &&
+            !isMaturityReminder &&
             maturityPayload.recommendedPackages.length > 0 ? (
               <SelectField
                 id="inbox-maturity-package"
@@ -490,7 +611,7 @@ export function InboxDecisionPanel({ item, jars }: Props) {
                 data-testid="inbox-maturity-package"
               />
             ) : null}
-            {maturityPayload ? (
+            {maturityPayload && !isMaturityReminder ? (
               <SelectField
                 id="inbox-maturity-settlement"
                 label={t("maturitySettlementLabel")}
@@ -515,42 +636,14 @@ export function InboxDecisionPanel({ item, jars }: Props) {
                 data-testid="inbox-maturity-settlement"
               />
             ) : null}
-            {(
-              [
-                [
-                  SavingsMaturityAckAction.CONFIRM_CONFIGURED,
-                  "maturityConfirm",
-                  highlightConfirm || equalWeight ? "primary" : "secondary",
-                ],
-                [
-                  SavingsMaturityAckAction.SWITCH,
-                  "maturitySwitch",
-                  "secondary",
-                ],
-                [
-                  SavingsMaturityAckAction.WITHDRAW,
-                  "maturityWithdraw",
-                  highlightWithdraw ? "primary" : "secondary",
-                ],
-                [
-                  SavingsMaturityAckAction.REMIND_TOMORROW,
-                  "maturityRemind",
-                  "secondary",
-                ],
-              ] as const
-            ).map(([action, labelKey, variant]) => (
-              <Button
-                key={action}
-                variant={variant}
-                className="w-full"
-                data-testid={`inbox-ack-${action}`}
-                isDisabled={busy || !online}
-                onPress={() => onSavingsMaturityAck(action)}
-              >
-                {t(labelKey)}
-              </Button>
-            ))}
           </Card>
+          {maturitySecondaryActions.length > 0 ? (
+            <div className="grid grid-cols-2 gap-(--space-2)">
+              {maturitySecondaryActions.map((action) =>
+                renderMaturityAckButton(action, ButtonVariant.SECONDARY),
+              )}
+            </div>
+          ) : null}
         </section>
       ) : null}
 
@@ -563,14 +656,12 @@ export function InboxDecisionPanel({ item, jars }: Props) {
           <Text size="sm" tone="secondary">
             {t("earlyWithdrawalHint")}
           </Text>
-          <Card tone="elevated" className="gap-(--space-3) p-(--space-4)">
-            <StatusAlert
-              variant="info"
-              title={t("earlyWithdrawalSourceTitle")}
-              description={t("earlyWithdrawalSourceBody")}
-            />
+          <Card tone="elevated" className="gap-(--space-4) p-(--space-4)">
+            <Text size="sm" tone="secondary" className="text-pretty">
+              {t("earlyWithdrawalSourceBody")}
+            </Text>
             {earlyPayload ? (
-              <dl className="-mx-(--space-4) divide-y divide-divider border-y border-divider">
+              <dl className="-mx-(--space-4) divide-y divide-border-subtle/65 border-y border-border-subtle/65">
                 <InboxFactRow
                   label={t("earlyWithdrawalNetLabel")}
                   value={
@@ -603,28 +694,6 @@ export function InboxDecisionPanel({ item, jars }: Props) {
                 />
               </dl>
             ) : null}
-            <Button
-              variant="primary"
-              className="w-full"
-              data-testid="inbox-ack-confirm-early"
-              isDisabled={busy || !online}
-              onPress={() =>
-                onEarlyWithdrawAck(EarlyWithdrawalAckAction.CONFIRM)
-              }
-            >
-              {t("earlyWithdrawalConfirm")}
-            </Button>
-            <Button
-              variant="secondary"
-              className="w-full"
-              data-testid="inbox-ack-cancel-early"
-              isDisabled={busy || !online}
-              onPress={() =>
-                onEarlyWithdrawAck(EarlyWithdrawalAckAction.CANCEL)
-              }
-            >
-              {t("earlyWithdrawalCancel")}
-            </Button>
           </Card>
         </section>
       ) : null}
@@ -638,26 +707,6 @@ export function InboxDecisionPanel({ item, jars }: Props) {
           <Text size="sm" tone="secondary">
             {t("emiHint")}
           </Text>
-          <Card tone="elevated" className="gap-(--space-3) p-(--space-4)">
-            <Button
-              variant="primary"
-              className="w-full"
-              data-testid="inbox-ack-celebrate"
-              isDisabled={busy || !online}
-              onPress={() => onAck(EmiAckAction.CELEBRATE)}
-            >
-              {t("emiCelebrate")}
-            </Button>
-            <Button
-              variant="secondary"
-              className="w-full"
-              data-testid="inbox-ack-later"
-              isDisabled={busy || !online}
-              onPress={() => onAck(EmiAckAction.LATER)}
-            >
-              {t("emiLater")}
-            </Button>
-          </Card>
         </section>
       ) : null}
 
@@ -678,7 +727,9 @@ export function InboxDecisionPanel({ item, jars }: Props) {
         </section>
       ) : null}
 
-      {dismissButton}
+      {deferActions}
+      {meta}
+      {stickyBar}
     </div>
   );
 }

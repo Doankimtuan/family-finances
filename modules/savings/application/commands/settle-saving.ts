@@ -240,7 +240,15 @@ export async function renewSaving(
       packageName?: string;
       annualInterestRate?: number;
     };
-    const targetPackageId = parsed.data.packageId ?? cyclePackage.packageId;
+    const productSnapshot = isRecord(saving.product_snapshot)
+      ? saving.product_snapshot
+      : null;
+    const targetPackageId =
+      parsed.data.packageId ??
+      cyclePackage.packageId ??
+      (typeof productSnapshot?.packageId === "string"
+        ? productSnapshot.packageId
+        : undefined);
     if (!targetPackageId)
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
     const resolved = await resolvePackageSnapshot(targetPackageId);

@@ -48,6 +48,8 @@ export {
   INBOX_RECEIPT_QUERY,
   INBOX_TAB_QUERY,
   INBOX_TEST_ID,
+  INBOX_ACK_TEST_ID_PREFIX,
+  inboxAckTestId,
   SavingsMaturityAckAction,
   EarlyWithdrawalAckAction,
   EmiAckAction,

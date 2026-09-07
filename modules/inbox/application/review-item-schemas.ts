@@ -78,6 +78,7 @@ export const savingsMaturityDecisionPayloadSchema = z.object({
   principal: z.number(),
   accruedInterest: z.number(),
   maturityDate: z.string(),
+  cascadeDay: z.number().int().positive().optional(),
   suggestedAction: z.enum(RENEWAL_SUGGESTED_ACTION_VALUES).optional(),
   renewalConfidence: z.number().min(0).max(1).optional(),
   warnings: z
@@ -503,6 +504,12 @@ export function instantiateTypedReviewItem(input: {
           principal: Number(ctx.principal ?? 0),
           accruedInterest: Number(ctx.accruedInterest ?? 0),
           maturityDate: String(ctx.maturityDate ?? ""),
+          cascadeDay:
+            typeof ctx.cascadeDay === "number" &&
+            Number.isInteger(ctx.cascadeDay) &&
+            ctx.cascadeDay > 0
+              ? ctx.cascadeDay
+              : undefined,
           suggestedAction:
             typeof ctx.suggestedAction === "string" &&
             (RENEWAL_SUGGESTED_ACTION_VALUES as readonly string[]).includes(

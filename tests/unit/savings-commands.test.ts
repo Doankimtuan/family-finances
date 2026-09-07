@@ -28,10 +28,13 @@ import {
   classifySavingsRpcError,
   classifyLegacySavingsRpcError,
 } from "@/modules/savings/application/savings-error";
+import { resolvePackageSnapshot } from "@/modules/savings/application/savings-provider-registry";
 import { PRODUCT_ACTION_ERROR_CODE } from "@/modules/tenancy/application/product-action-error";
 import {
+  CycleStatus,
   RenewalPolicy,
   SAVINGS_RPC,
+  SettlementRule,
   SettlementAction,
 } from "@/modules/savings/application/savings-constants";
 
@@ -126,6 +129,79 @@ describe("Savings command error boundary", () => {
       ok: false,
       code: PRODUCT_ACTION_ERROR_CODE.INVALID,
     });
+  });
+
+  it("renews legacy cycles from the product snapshot package id", async () => {
+    const packageId = "44444444-4444-4444-4444-444444444444";
+    const legacyCycleId = "22222222-2222-4222-8222-222222222222";
+    const providerId = "55555555-5555-5555-5555-555555555555";
+    const rpc = vi
+      .fn()
+      .mockResolvedValueOnce({
+        data: {
+          ok: true,
+          savingId: "saving-id",
+          cycleId: "next-cycle-id",
+          principal: 1200,
+        },
+        error: null,
+      })
+      .mockResolvedValueOnce({ data: { ok: true }, error: null });
+    const query = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({
+        data: {
+          id: legacyCycleId,
+          saving_id: "saving-id",
+          package_snapshot: { packageName: "Tikop 1 tháng" },
+          locked_rate: 6.4,
+          status: CycleStatus.MATURED,
+          savings: {
+            household_id: householdId,
+            product_snapshot: { packageId },
+            provider_id: providerId,
+            product_name: "Tikop 1 tháng",
+            renewal_policy: RenewalPolicy.AUTO_RENEW_UNTIL_CANCELLED,
+          },
+        },
+        error: null,
+      }),
+    };
+    vi.mocked(createSupabaseServerClient).mockResolvedValue({
+      from: vi.fn().mockReturnValue(query),
+      rpc,
+    } as never);
+    vi.mocked(resolvePackageSnapshot).mockResolvedValue({
+      packageSnapshot: {
+        packageId,
+        packageName: "Tikop 1 tháng",
+        durationDays: 30,
+        annualInterestRate: 6.4,
+        settlementRules: [SettlementRule.ROLL_PRINCIPAL_INTEREST],
+        penaltyRules: [],
+        renewableAvailable: true,
+        minAmount: null,
+        maxAmount: null,
+      },
+      providerId,
+      productName: "Tikop",
+    });
+
+    const result = await renewSaving({
+      cycleId: legacyCycleId,
+      action: SettlementAction.ROLL_PRINCIPAL_INTEREST,
+    });
+    expect(result).toEqual({
+      ok: true,
+      savingId: "saving-id",
+      cycleId: "next-cycle-id",
+      principal: 1200,
+    });
+    expect(rpc).toHaveBeenCalledWith(
+      SAVINGS_RPC.RENEW,
+      expect.objectContaining({ p_target_package_id: packageId }),
+    );
   });
 
   it("logs unexpected maturity RPC failures and returns UNKNOWN", async () => {

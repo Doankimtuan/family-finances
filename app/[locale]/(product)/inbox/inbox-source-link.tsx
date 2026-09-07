@@ -11,10 +11,13 @@ import {
 import {
   InboxItemKind,
   InboxSourceType,
+  INBOX_TEST_ID,
   isJarResolvableKind,
 } from "@/modules/inbox/application/inbox-constants";
 import type { InboxReviewItem } from "@/modules/inbox/application/inbox-types";
-import { INBOX_SURFACE_LINK_CLASS } from "./inbox-chrome";
+import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
+import { ACTION_ICONS } from "@/shared/ui/icon-registry";
+import { INBOX_META_ROW_CLASS } from "./inbox-chrome";
 
 type SourceTarget = {
   href: string;
@@ -123,10 +126,15 @@ export async function InboxSourceLink({ item }: { item: InboxReviewItem }) {
   return (
     <Link
       href={target.href}
-      className={INBOX_SURFACE_LINK_CLASS}
-      data-testid="inbox-view-source"
+      className={INBOX_META_ROW_CLASS}
+      data-testid={INBOX_TEST_ID.VIEW_SOURCE}
     >
-      {t(target.labelKey)}
+      <span className="min-w-0 text-pretty">{t(target.labelKey)}</span>
+      <AppIcon
+        icon={ACTION_ICONS.forward}
+        size={AppIconSize.SM}
+        className="shrink-0 text-text-tertiary"
+      />
     </Link>
   );
 }

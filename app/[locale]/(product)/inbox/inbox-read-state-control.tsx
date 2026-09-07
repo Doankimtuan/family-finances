@@ -4,8 +4,11 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import type { InboxReviewItem } from "@/modules/inbox/application/inbox-types";
-import { Button } from "@/shared/ui/button";
+import { INBOX_TEST_ID } from "@/modules/inbox/application/inbox-constants";
+import { Button, ButtonVariant } from "@/shared/ui/button";
+import { cn } from "@/shared/utils/cn";
 import { markInboxReadAction, markInboxUnreadAction } from "./actions";
+import { INBOX_META_ROW_CLASS } from "./inbox-chrome";
 
 export function InboxReadStateControl({ item }: { item: InboxReviewItem }) {
   const t = useTranslations("inbox");
@@ -15,10 +18,10 @@ export function InboxReadStateControl({ item }: { item: InboxReviewItem }) {
 
   return (
     <Button
-      variant="secondary"
-      className="w-full"
+      variant={ButtonVariant.GHOST}
+      className={cn(INBOX_META_ROW_CLASS, "rounded-none shadow-none")}
       isDisabled={busy}
-      data-testid="inbox-read-state"
+      data-testid={INBOX_TEST_ID.READ_STATE}
       onPress={async () => {
         setBusy(true);
         const result = readAt

@@ -18,9 +18,7 @@ import {
 import { recommendPackages } from "@/modules/savings/application/savings-recommendation";
 import type { SavingPackage } from "@/modules/savings/application/savings-types";
 import { instantiateTypedReviewItem } from "@/modules/inbox/application/review-item-schemas";
-import {
-  InboxItemKind,
-} from "@/modules/inbox/application/inbox-constants";
+import { InboxItemKind } from "@/modules/inbox/application/inbox-constants";
 import { shouldAutoResolveInboxItem } from "@/modules/inbox/application/inbox-resolution-policy";
 
 const catalog: SavingPackage[] = [
@@ -109,9 +107,9 @@ describe("renewal policy mapping", () => {
     expect(
       suggestedActionForPolicy(RenewalPolicy.AUTO_RENEW_UNTIL_CANCELLED, null),
     ).toBe(RenewalSuggestedAction.CONFIRM_CONFIGURED);
-    expect(
-      suggestedActionForPolicy(RenewalPolicy.ONE_TIME_RENEWAL, null),
-    ).toBe(RenewalSuggestedAction.CONFIRM_CONFIGURED);
+    expect(suggestedActionForPolicy(RenewalPolicy.ONE_TIME_RENEWAL, null)).toBe(
+      RenewalSuggestedAction.CONFIRM_CONFIGURED,
+    );
   });
 
   it("one-time renew reverts to Always Ask", () => {
@@ -211,6 +209,7 @@ describe("renewal policy inbox payload", () => {
         principal: 1_000_000,
         accruedInterest: 1000,
         maturityDate: "2026-08-01",
+        cascadeDay: 7,
         suggestedAction: RenewalSuggestedAction.CONFIRM_CONFIGURED,
         renewalConfidence: 0.9,
         warnings: [],
@@ -230,6 +229,7 @@ describe("renewal policy inbox payload", () => {
       expect(typed.payload.renewalPolicy).toBe(
         RenewalPolicy.AUTO_RENEW_UNTIL_CANCELLED,
       );
+      expect(typed.payload.cascadeDay).toBe(7);
     }
   });
 

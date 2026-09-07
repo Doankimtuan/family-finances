@@ -30,10 +30,10 @@ export function InboxFactsCard({
   children,
 }: InboxFactsCardProps) {
   return (
-    <section className="flex flex-col gap-(--space-2)" data-testid={testId}>
+    <section className="flex flex-col gap-(--space-3)" data-testid={testId}>
       {title ? <InboxSectionTitle>{title}</InboxSectionTitle> : null}
       <Card tone="elevated" className="gap-0 overflow-hidden p-0">
-        <dl className="divide-y divide-divider">{children}</dl>
+        <dl className="divide-y divide-border-subtle/65">{children}</dl>
         {footer}
       </Card>
     </section>
