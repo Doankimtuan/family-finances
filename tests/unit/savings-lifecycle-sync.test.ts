@@ -8,6 +8,11 @@ vi.mock("next/cache", () => ({
   revalidatePath: revalidatePathMock,
 }));
 
+vi.mock("@/modules/savings/application/commands/detect-matured", () => ({
+  detectMaturedSavings: vi.fn(),
+  backfillLegacySavingsAccounts: vi.fn(),
+}));
+
 vi.mock("@/modules/savings/application", async (importOriginal) => {
   const actual =
     await importOriginal<typeof import("@/modules/savings/application")>();
@@ -15,6 +20,7 @@ vi.mock("@/modules/savings/application", async (importOriginal) => {
     ...actual,
     detectMaturedSavings: vi.fn(),
     backfillLegacySavingsAccounts: vi.fn(),
+    syncSavingsLifecycle: vi.fn(),
     executeSavingsMaturityWorkflow: vi.fn(),
   };
 });
@@ -22,7 +28,12 @@ vi.mock("@/modules/savings/application", async (importOriginal) => {
 import {
   detectMaturedSavings,
   backfillLegacySavingsAccounts,
+} from "@/modules/savings/application/commands/detect-matured";
+import { syncSavingsLifecycle } from "@/modules/savings/application/commands/sync-savings-lifecycle";
+import {
+  detectMaturedSavings as detectMaturedSavingsFromBarrel,
   executeSavingsMaturityWorkflow,
+  syncSavingsLifecycle as syncSavingsLifecycleFromBarrel,
 } from "@/modules/savings/application";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import { PRODUCT_ACTION_ERROR_CODE } from "@/modules/tenancy/application/product-action-error";
@@ -37,6 +48,74 @@ vi.mock("@/modules/tenancy/application/assert-money-action-allowed", () => ({
   assertMoneyActionAllowed: vi.fn(),
 }));
 
+describe("syncSavingsLifecycle", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("runs legacy backfill before maturity detection and reports counts", async () => {
+    vi.mocked(backfillLegacySavingsAccounts).mockResolvedValue({
+      ok: true,
+      migratedCount: 2,
+    });
+    vi.mocked(detectMaturedSavings).mockResolvedValue({
+      ok: true,
+      maturedCount: 1,
+      cascadeCount: 3,
+    });
+
+    const result = await syncSavingsLifecycle();
+
+    expect(result).toEqual({
+      ok: true,
+      migratedCount: 2,
+      maturedCount: 1,
+      cascadeCount: 3,
+    });
+    expect(
+      vi.mocked(backfillLegacySavingsAccounts).mock.invocationCallOrder[0],
+    ).toBeLessThan(vi.mocked(detectMaturedSavings).mock.invocationCallOrder[0]);
+  });
+
+  it("surfaces a legacy backfill failure before detection", async () => {
+    vi.mocked(backfillLegacySavingsAccounts).mockResolvedValue({
+      ok: false,
+      code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN,
+    });
+    vi.mocked(detectMaturedSavings).mockResolvedValue({
+      ok: true,
+      maturedCount: 0,
+      cascadeCount: 0,
+    });
+
+    const result = await syncSavingsLifecycle();
+
+    expect(result).toEqual({
+      ok: false,
+      code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN,
+    });
+    expect(vi.mocked(detectMaturedSavings)).not.toHaveBeenCalled();
+  });
+
+  it("surfaces detection failures as a typed error state", async () => {
+    vi.mocked(backfillLegacySavingsAccounts).mockResolvedValue({
+      ok: true,
+      migratedCount: 1,
+    });
+    vi.mocked(detectMaturedSavings).mockResolvedValue({
+      ok: false,
+      code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN,
+    });
+
+    const result = await syncSavingsLifecycle();
+
+    expect(result).toEqual({
+      ok: false,
+      code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN,
+    });
+  });
+});
+
 describe("syncSavingsLifecycleAction", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -49,7 +128,7 @@ describe("syncSavingsLifecycleAction", () => {
   });
 
   it("refreshes maturity before a confirmed rollover action", async () => {
-    vi.mocked(detectMaturedSavings).mockResolvedValue({
+    vi.mocked(detectMaturedSavingsFromBarrel).mockResolvedValue({
       ok: true,
       maturedCount: 1,
       cascadeCount: 0,
@@ -66,17 +145,14 @@ describe("syncSavingsLifecycleAction", () => {
         savingId: "saving-id",
       }),
     ).resolves.toEqual({ status: "success" });
-    expect(detectMaturedSavings).toHaveBeenCalledTimes(1);
+    expect(detectMaturedSavingsFromBarrel).toHaveBeenCalledTimes(1);
     expect(executeSavingsMaturityWorkflow).toHaveBeenCalledTimes(1);
   });
 
-  it("runs legacy backfill before maturity detection and reports counts", async () => {
-    vi.mocked(backfillLegacySavingsAccounts).mockResolvedValue({
+  it("delegates to the explicit lifecycle command and revalidates on changes", async () => {
+    vi.mocked(syncSavingsLifecycleFromBarrel).mockResolvedValue({
       ok: true,
       migratedCount: 2,
-    });
-    vi.mocked(detectMaturedSavings).mockResolvedValue({
-      ok: true,
       maturedCount: 1,
       cascadeCount: 3,
     });
@@ -89,41 +165,15 @@ describe("syncSavingsLifecycleAction", () => {
       maturedCount: 1,
       cascadeCount: 3,
     });
-    expect(
-      vi.mocked(backfillLegacySavingsAccounts).mock.invocationCallOrder[0],
-    ).toBeLessThan(vi.mocked(detectMaturedSavings).mock.invocationCallOrder[0]);
+    expect(syncSavingsLifecycleFromBarrel).toHaveBeenCalledTimes(1);
     expect(revalidatePathMock).toHaveBeenCalledWith(
       APP_ROUTE.MONEY_TRANSACTIONS,
       "page",
     );
   });
 
-  it("surfaces a legacy backfill failure before detection", async () => {
-    vi.mocked(backfillLegacySavingsAccounts).mockResolvedValue({
-      ok: false,
-      code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN,
-    });
-    vi.mocked(detectMaturedSavings).mockResolvedValue({
-      ok: true,
-      maturedCount: 0,
-      cascadeCount: 0,
-    });
-
-    const result = await syncSavingsLifecycleAction();
-
-    expect(result).toEqual({
-      status: "error",
-      code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN,
-    });
-    expect(vi.mocked(detectMaturedSavings)).not.toHaveBeenCalled();
-  });
-
-  it("surfaces detection failures as a typed error state", async () => {
-    vi.mocked(backfillLegacySavingsAccounts).mockResolvedValue({
-      ok: true,
-      migratedCount: 1,
-    });
-    vi.mocked(detectMaturedSavings).mockResolvedValue({
+  it("surfaces a typed error from the lifecycle command without revalidating", async () => {
+    vi.mocked(syncSavingsLifecycleFromBarrel).mockResolvedValue({
       ok: false,
       code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN,
     });

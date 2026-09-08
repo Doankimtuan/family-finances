@@ -1,4 +1,8 @@
 import { cache } from "react";
+import {
+  withPerfSpan,
+  PERF_TRACE_OP,
+} from "@/modules/platform/application/perf-trace";
 import { getSupabaseEnv } from "@/modules/platform/supabase/env";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import type { User } from "@supabase/supabase-js";
@@ -19,7 +23,9 @@ async function loadSessionUser(): Promise<User | null> {
     const {
       data: { user },
       error,
-    } = await supabase.auth.getUser();
+    } = await withPerfSpan(PERF_TRACE_OP.AUTH_GET_USER, () =>
+      supabase.auth.getUser(),
+    );
     if (error && !isExpectedAuthControlFlowError(error)) {
       logTenancyFailure(TENANCY_OPERATION.AUTH_SESSION, error);
     }

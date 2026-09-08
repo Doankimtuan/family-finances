@@ -1,6 +1,5 @@
 import { cache } from "react";
-import { getSessionUser } from "./get-session-user";
-import { resolveActiveMembership } from "./resolve-active-membership";
+import { getSessionMembership } from "./get-session-membership";
 import {
   MONEY_ACTION_DENIED_REASON,
   type MoneyActionDeniedReason,
@@ -24,12 +23,11 @@ export type MoneyActionAllowance =
  */
 export const assertMoneyActionAllowed = cache(
   async (): Promise<MoneyActionAllowance> => {
-    const user = await getSessionUser();
+    const { user, membership } = await getSessionMembership();
     if (!user) {
       return { ok: false, reason: MONEY_ACTION_DENIED_REASON.UNAUTHENTICATED };
     }
 
-    const membership = await resolveActiveMembership(user.id);
     if (!membership) {
       return { ok: false, reason: MONEY_ACTION_DENIED_REASON.NO_MEMBERSHIP };
     }

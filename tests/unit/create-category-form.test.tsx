@@ -63,7 +63,7 @@ beforeEach(() => {
 });
 
 describe("CreateCategoryForm", () => {
-  it("hides the jar field and saves income without a jar", async () => {
+  it("saves income without a jar", async () => {
     renderForm();
 
     openForm();
@@ -71,8 +71,6 @@ describe("CreateCategoryForm", () => {
       target: { value: "Salary" },
     });
     fireEvent.click(screen.getByTestId("category-kind-income"));
-
-    expect(screen.queryByTestId("category-jar-select")).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByTestId("category-create-submit"));
 
@@ -85,7 +83,7 @@ describe("CreateCategoryForm", () => {
     );
   });
 
-  it("keeps the jar required for expense categories", async () => {
+  it("saves an expense category without a jar", async () => {
     renderForm();
 
     openForm();
@@ -94,24 +92,26 @@ describe("CreateCategoryForm", () => {
     });
     fireEvent.click(screen.getByTestId("category-create-submit"));
 
-    expect(
-      await screen.findByText("errors.category_unmapped"),
-    ).toBeInTheDocument();
-    expect(createCategoryMock).not.toHaveBeenCalled();
+    await waitFor(() =>
+      expect(createCategoryMock).toHaveBeenCalledWith({
+        name: "Pet Grooming",
+        kind: TransactionDirection.EXPENSE,
+        jarId: null,
+      }),
+    );
   });
 
-  it("clears a selected jar before switching to income", async () => {
+  it("keeps a selected jar optional across category kinds", async () => {
     renderForm();
 
     openForm();
     selectJar("jars.essentials");
     fireEvent.click(screen.getByTestId("category-kind-income"));
-    fireEvent.click(screen.getByTestId("category-kind-expense"));
 
     const field = screen.getByTestId("category-jar-select");
-    expect(
-      field.querySelector("[data-slot='select-value']"),
-    ).not.toHaveTextContent("jars.essentials");
+    expect(field.querySelector("[data-slot='select-value']")).toHaveTextContent(
+      "jars.essentials",
+    );
   });
 
   it("discards ephemeral create state when the sheet is closed and reopened", () => {

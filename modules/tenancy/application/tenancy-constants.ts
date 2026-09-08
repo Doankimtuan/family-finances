@@ -159,6 +159,7 @@ export type MembershipLifecycleAction =
 export const SUPABASE_POSTGRES_ERROR_CODE = {
   INSUFFICIENT_PRIVILEGE: "42501",
   INVALID_TEXT: "22p02",
+  UNIQUE_VIOLATION: "23505",
 } as const;
 
 export const TENANCY_OPERATION = {

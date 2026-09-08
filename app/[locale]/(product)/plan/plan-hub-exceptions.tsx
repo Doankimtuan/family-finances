@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Link } from "@/i18n/navigation";
+import { PRODUCT_LINK_PREFETCH } from "@/shared/constants/navigation";
 import { Card } from "@/shared/patterns/card";
 import { Section } from "@/shared/patterns/section";
 import { Text } from "@/shared/ui/text";
@@ -59,6 +60,7 @@ export function PlanHubExceptions({
                   </div>
                   <Link
                     href={exceptionHref(exception)}
+                    prefetch={PRODUCT_LINK_PREFETCH}
                     className={`${PLAN_INLINE_LINK_CLASS} shrink-0 gap-(--space-1) px-(--space-2)`}
                   >
                     {renderAction(exception)}
@@ -75,7 +77,11 @@ export function PlanHubExceptions({
         </ul>
       </Card>
       {hiddenCount > 0 ? (
-        <Link href={viewAllHref} className={PLAN_INLINE_LINK_CLASS}>
+        <Link
+          href={viewAllHref}
+          prefetch={PRODUCT_LINK_PREFETCH}
+          className={PLAN_INLINE_LINK_CLASS}
+        >
           {viewAllLabel}
         </Link>
       ) : null}

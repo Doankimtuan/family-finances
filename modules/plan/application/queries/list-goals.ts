@@ -1,11 +1,15 @@
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
-import { DEFAULT_CURRENCY } from "@/modules/ledger/application/ledger-constants";
+import { listActiveMembershipIds } from "@/modules/tenancy/application/list-active-membership-ids";
 import {
-  listAccounts,
-  listDebts,
-  listLoans,
-} from "@/modules/ledger/application";
+  ACCOUNT_TYPE_LIQUID_VALUES,
+  DEFAULT_CURRENCY,
+} from "@/modules/ledger/application/ledger-constants";
+import { mapAccountRow } from "@/modules/ledger/application/account-types";
+import {
+  applyLedgerBalances,
+  loadAccountLedgerBalances,
+} from "@/modules/ledger/application/queries/load-account-ledger-balances";
 import { listSavings } from "@/modules/savings/application";
 import { listInvestmentPortfolio } from "@/modules/investments/application";
 import {
@@ -81,28 +85,164 @@ function valuationStatus(
   const ageDays = (Date.now() - Date.parse(date)) / 86_400_000;
   return Number.isFinite(ageDays) && ageDays > 7 ? "stale" : "current";
 }
+
+function uniqueIds(values: Array<string | null>): string[] {
+  return [...new Set(values.filter((id): id is string => Boolean(id)))];
+}
+
+type LinkedLoanValue = {
+  id: string;
+  name: string;
+  principal: number;
+  remainingPrincipal: number;
+};
+
+type LinkedDebtValue = {
+  id: string;
+  name: string;
+  principalAmount: number;
+  remainingAmount: number;
+};
+
+async function loadLinkedAccountBalances(
+  householdId: string,
+  membershipId: string,
+  accountIds: string[],
+) {
+  if (accountIds.length === 0) return [];
+  const supabase = await createSupabaseServerClient();
+  const { data: rows, error } = await supabase
+    .from("accounts")
+    .select(
+      "id, name, type, opening_balance, is_archived, financial_scope, owner_membership_id",
+    )
+    .eq("household_id", householdId)
+    .eq("is_archived", false)
+    .in("id", accountIds)
+    .in("type", [...ACCOUNT_TYPE_LIQUID_VALUES]);
+  if (error) {
+    logPlanFailure(error, PLAN_OPERATION.LIST_GOALS, { householdId });
+    return [];
+  }
+  const ids = (rows ?? []).map((row) => row.id);
+  const [activeOwnerMembershipIds, balances] = await Promise.all([
+    listActiveMembershipIds(
+      supabase,
+      householdId,
+      (rows ?? [])
+        .map((row) => row.owner_membership_id)
+        .filter((id): id is string => id != null),
+    ),
+    loadAccountLedgerBalances(supabase, householdId, ids),
+  ]);
+  if (!balances) {
+    return [];
+  }
+  return applyLedgerBalances(
+    (rows ?? []).map((row) =>
+      mapAccountRow(row, membershipId, activeOwnerMembershipIds ?? undefined),
+    ),
+    balances,
+  );
+}
+
+async function loadLinkedLoans(
+  householdId: string,
+  loanIds: string[],
+): Promise<LinkedLoanValue[]> {
+  if (loanIds.length === 0) return [];
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("loans")
+    .select("id, name, principal, remaining_principal")
+    .eq("household_id", householdId)
+    .in("id", loanIds);
+  if (error) {
+    logPlanFailure(error, PLAN_OPERATION.LIST_GOALS, { householdId });
+    return [];
+  }
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    name: row.name,
+    principal: Number(row.principal) || 0,
+    remainingPrincipal: Number(row.remaining_principal) || 0,
+  }));
+}
+
+async function loadLinkedDebts(
+  householdId: string,
+  debtIds: string[],
+): Promise<LinkedDebtValue[]> {
+  if (debtIds.length === 0) return [];
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("liabilities")
+    .select("id, name, principal_amount, remaining_amount")
+    .eq("household_id", householdId)
+    .in("id", debtIds);
+  if (error) {
+    logPlanFailure(error, PLAN_OPERATION.LIST_GOALS, { householdId });
+    return [];
+  }
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    name: row.name,
+    principalAmount: Number(row.principal_amount) || 0,
+    remainingAmount: Number(row.remaining_amount) || 0,
+  }));
+}
+
 async function mapFundingLinks(
+  householdId: string,
+  membershipId: string,
   rows: FundingLinkRow[],
 ): Promise<
   Map<string, { links: GoalFundingLink[]; sources: GoalFundingSourceValue[] }>
 > {
   if (rows.length === 0) return new Map();
+  const savingIds = uniqueIds(
+    rows.flatMap((row) =>
+      row.source_kind === GoalFundingSourceKind.SAVING ? [row.saving_id] : [],
+    ),
+  );
+  const accountIds = uniqueIds(
+    rows.flatMap((row) =>
+      row.source_kind === GoalFundingSourceKind.SAVINGS_ACCOUNT
+        ? [row.account_id]
+        : [],
+    ),
+  );
+  const holdingIds = uniqueIds(
+    rows.flatMap((row) =>
+      row.source_kind === GoalFundingSourceKind.HOLDING ? [row.holding_id] : [],
+    ),
+  );
+  const loanIds = uniqueIds(
+    rows.flatMap((row) =>
+      row.source_kind === GoalFundingSourceKind.LOAN ? [row.loan_id] : [],
+    ),
+  );
+  const debtIds = uniqueIds(
+    rows.flatMap((row) =>
+      row.source_kind === GoalFundingSourceKind.DEBT ? [row.debt_id] : [],
+    ),
+  );
   const [savings, accounts, portfolio, loans, debts] = await Promise.all([
-    listSavings(),
-    listAccounts(),
-    listInvestmentPortfolio(),
-    listLoans(),
-    listDebts(),
+    savingIds.length ? listSavings() : Promise.resolve([]),
+    loadLinkedAccountBalances(householdId, membershipId, accountIds),
+    holdingIds.length
+      ? listInvestmentPortfolio()
+      : Promise.resolve({ holdings: [] }),
+    loadLinkedLoans(householdId, loanIds),
+    loadLinkedDebts(householdId, debtIds),
   ]);
   const savingMap = new Map((savings ?? []).map((item) => [item.id, item]));
-  const accountMap = new Map(
-    (accounts?.accounts ?? []).map((item) => [item.id, item]),
-  );
+  const accountMap = new Map(accounts.map((item) => [item.id, item]));
   const holdingMap = new Map(
     (portfolio?.holdings ?? []).map((item) => [item.id, item]),
   );
-  const loanMap = new Map((loans ?? []).map((item) => [item.id, item]));
-  const debtMap = new Map((debts ?? []).map((item) => [item.id, item]));
+  const loanMap = new Map(loans.map((item) => [item.id, item]));
+  const debtMap = new Map(debts.map((item) => [item.id, item]));
   const byGoal = new Map<
     string,
     { links: GoalFundingLink[]; sources: GoalFundingSourceValue[] }
@@ -214,7 +354,11 @@ async function mapFundingLinks(
   }
   return byGoal;
 }
-async function loadGoalRows(householdId: string, goalId?: string) {
+async function loadGoalRows(
+  householdId: string,
+  membershipId: string,
+  goalId?: string,
+) {
   const supabase = await createSupabaseServerClient();
   let goalsQuery = supabase
     .from("goals")
@@ -245,6 +389,8 @@ async function loadGoalRows(householdId: string, goalId?: string) {
     return null;
   }
   const linksByGoal = await mapFundingLinks(
+    householdId,
+    membershipId,
     (linkRows ?? []) as FundingLinkRow[],
   );
   return ((rows ?? []) as GoalRow[]).map((row) => {
@@ -271,7 +417,7 @@ export async function listGoals(): Promise<GoalsList | null> {
           .select("base_currency")
           .eq("id", gate.householdId)
           .maybeSingle(),
-        loadGoalRows(gate.householdId),
+        loadGoalRows(gate.householdId, gate.membershipId),
       ]);
     if (householdError) {
       logPlanFailure(householdError, PLAN_OPERATION.LIST_GOALS, {
@@ -305,7 +451,7 @@ export async function getGoal(goalId: string): Promise<GoalDetail | null> {
           .select("base_currency")
           .eq("id", gate.householdId)
           .maybeSingle(),
-        loadGoalRows(gate.householdId, goalId),
+        loadGoalRows(gate.householdId, gate.membershipId, goalId),
       ]);
     if (householdError) {
       logPlanFailure(householdError, PLAN_OPERATION.LIST_GOALS, {

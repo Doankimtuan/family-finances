@@ -4,10 +4,6 @@ import {
   TransactionStatus,
   LEDGER_ACTION_ERROR_CODE,
 } from "@/modules/ledger/application/ledger-constants";
-import {
-  isCategoryJarMapped,
-  requiresJarMapping,
-} from "@/modules/ledger/application/category-jar-policy";
 import { createCategoryInputSchema } from "@/modules/ledger/application/commands/create-category";
 import {
   resolveRefundedStatus,
@@ -32,20 +28,7 @@ import { AccountType } from "@/modules/ledger/application/ledger-constants";
 describe("category ↔ jar policy", () => {
   const jarId = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11";
 
-  it("allows household income categories without jar mapping", () => {
-    expect(
-      requiresJarMapping({
-        isSystem: false,
-        kind: TransactionDirection.INCOME,
-      }),
-    ).toBe(false);
-    expect(
-      isCategoryJarMapped({
-        isSystem: false,
-        kind: TransactionDirection.INCOME,
-        jarId: null,
-      }),
-    ).toBe(true);
+  it("allows household categories with or without jar mapping", () => {
     expect(
       createCategoryInputSchema.safeParse({
         name: "Salary",
@@ -59,28 +42,12 @@ describe("category ↔ jar policy", () => {
         jarId: null,
       }).success,
     ).toBe(true);
-  });
-
-  it("still requires a jar for household expense categories", () => {
-    expect(
-      requiresJarMapping({
-        isSystem: false,
-        kind: TransactionDirection.EXPENSE,
-      }),
-    ).toBe(true);
-    expect(
-      isCategoryJarMapped({
-        isSystem: false,
-        kind: TransactionDirection.EXPENSE,
-        jarId: null,
-      }),
-    ).toBe(false);
     expect(
       createCategoryInputSchema.safeParse({
         name: "Pet Grooming",
         kind: TransactionDirection.EXPENSE,
       }).success,
-    ).toBe(false);
+    ).toBe(true);
     expect(
       createCategoryInputSchema.safeParse({
         name: "Pet Grooming",
@@ -88,12 +55,6 @@ describe("category ↔ jar policy", () => {
         jarId,
       }).success,
     ).toBe(true);
-  });
-
-  it("exposes category_unmapped ledger error code", () => {
-    expect(LEDGER_ACTION_ERROR_CODE.CATEGORY_UNMAPPED).toBe(
-      "category_unmapped",
-    );
   });
 });
 

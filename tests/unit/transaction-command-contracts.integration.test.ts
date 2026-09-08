@@ -23,7 +23,6 @@ import { refundTransaction } from "@/modules/ledger/application/commands/refund-
 import { correctTransaction } from "@/modules/ledger/application/commands/correct-transaction";
 import { createCategory } from "@/modules/ledger/application/commands/create-category";
 import {
-  LEDGER_ACTION_ERROR_CODE,
   TransactionDirection,
   TransactionStatus,
 } from "@/modules/ledger/application/ledger-constants";
@@ -39,23 +38,30 @@ describe("Sprint 1 integration — refund / correct / category RPCs", () => {
     vi.mocked(createSupabaseServerClient).mockReset();
   });
 
-  it("createCategory rejects unmapped jar at the boundary", async () => {
+  it("createCategory sends a null jar for an unmapped expense category", async () => {
     vi.mocked(assertMoneyActionAllowed).mockResolvedValue({
       ok: true,
       householdId: "h1",
       userId: "u1",
     } as never);
 
+    const rpc = vi.fn().mockResolvedValue({
+      data: { category_id: "expense-category" },
+      error: null,
+    });
+    vi.mocked(createSupabaseServerClient).mockResolvedValue({ rpc } as never);
+
     const result = await createCategory({
       name: "Pet Grooming",
       kind: TransactionDirection.EXPENSE,
-      jarId: undefined as never,
     });
 
-    expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.code).toBe(LEDGER_ACTION_ERROR_CODE.CATEGORY_UNMAPPED);
-    }
+    expect(result).toEqual({ ok: true, categoryId: "expense-category" });
+    expect(rpc).toHaveBeenCalledWith("create_category", {
+      p_name: "Pet Grooming",
+      p_kind: TransactionDirection.EXPENSE,
+      p_jar_id: null,
+    });
   });
 
   it("createCategory sends a null jar for income categories", async () => {

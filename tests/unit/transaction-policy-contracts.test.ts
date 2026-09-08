@@ -32,7 +32,7 @@ import { applyTransactionDeltas } from "@/modules/ledger/application/transaction
 import { AccountType } from "@/modules/ledger/application/ledger-constants";
 
 describe("category jar policy", () => {
-  it("allows income without jarId and keeps expense jarId required", () => {
+  it("allows household categories with or without jar mapping", () => {
     expect(
       createCategoryInputSchema.safeParse({
         name: "Salary",
@@ -45,7 +45,7 @@ describe("category jar policy", () => {
         name: "Pet Grooming",
         kind: TransactionDirection.EXPENSE,
       }).success,
-    ).toBe(false);
+    ).toBe(true);
 
     expect(
       createCategoryInputSchema.safeParse({

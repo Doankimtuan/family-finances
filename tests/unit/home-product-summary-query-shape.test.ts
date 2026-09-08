@@ -17,6 +17,11 @@ const transactionQuery = readFileSync(
   "modules/ledger/application/queries/list-transactions.ts",
   "utf8",
 );
+const homeDashboard = readFileSync(
+  "modules/home/application/get-home-dashboard.ts",
+  "utf8",
+);
+const homePage = readFileSync("app/[locale]/(product)/home/page.tsx", "utf8");
 
 describe("Home product summary query shape", () => {
   it("uses the lightweight Investment summary API without lots or activity objects", () => {
@@ -50,5 +55,28 @@ describe("Home product summary query shape", () => {
     expect(source).not.toContain("accounts(name, type)");
     expect(source).not.toContain("jars(name)");
     expect(source).not.toContain("transaction_tag_assignments");
+  });
+
+  it("does not wait on the enriched inbox queue for Home dashboard fields", () => {
+    expect(homeDashboard).toContain("getOpenInboxAttention");
+    expect(homeDashboard).not.toContain("listOpenInboxItems");
+    const parallel = homeDashboard.slice(
+      homeDashboard.indexOf("await Promise.all(["),
+      homeDashboard.indexOf(
+        "]);",
+        homeDashboard.indexOf("await Promise.all(["),
+      ),
+    );
+    expect(parallel).toContain("getOpenInboxAttention");
+    expect(parallel).toContain("listTransactionsForDateRange");
+  });
+
+  it("starts savings summary in the same Home page Promise.all as the dashboard", () => {
+    const parallel = homePage.slice(
+      homePage.indexOf("await Promise.all(["),
+      homePage.indexOf("]);", homePage.indexOf("await Promise.all([")),
+    );
+    expect(parallel).toContain("getHomeDashboard");
+    expect(parallel).toContain("getHomeSavingsSummary");
   });
 });

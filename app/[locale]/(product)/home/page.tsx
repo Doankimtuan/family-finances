@@ -31,6 +31,7 @@ import {
 import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
+import { PRODUCT_LINK_PREFETCH } from "@/shared/constants/navigation";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Card } from "@/shared/patterns/card";
 import { FloatingAction } from "@/shared/patterns/floating-action";
@@ -242,6 +243,7 @@ export default async function HomePage({ params, searchParams }: Props) {
               <Card tone="elevated" className="gap-0 p-0">
                 <Link
                   href={APP_PATH.PLAN}
+                  prefetch={PRODUCT_LINK_PREFETCH}
                   aria-label={t("planPulse.openPlan")}
                   className="flex min-h-14 items-center gap-(--space-3) px-(--space-4) py-(--space-3) transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-(--press-scale) motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus-ring"
                   data-testid={HOME_TEST_ID.PLAN_LINK}

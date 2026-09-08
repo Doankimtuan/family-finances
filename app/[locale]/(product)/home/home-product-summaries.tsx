@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Link } from "@/i18n/navigation";
+import { PRODUCT_LINK_PREFETCH } from "@/shared/constants/navigation";
 import type { _Translator } from "use-intl";
 import type { AppMessages } from "../../../../global";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
@@ -86,7 +87,11 @@ function ProductRow({
   unavailable: string;
 }) {
   return (
-    <Link href={href} className={PRODUCT_ROW_CLASS}>
+    <Link
+      href={href}
+      prefetch={PRODUCT_LINK_PREFETCH}
+      className={PRODUCT_ROW_CLASS}
+    >
       <IconContainer tone={visual.tone} size="sm">
         <AppIcon icon={visual.icon} size="sm" />
       </IconContainer>

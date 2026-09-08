@@ -334,6 +334,7 @@ export function CreateSavingWizard({
   const [direction, setDirection] = useState<"forward" | "backward">("forward");
   const [errorCode, setErrorCode] = useState<ErrorCode | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [idempotencyKey] = useState(() => crypto.randomUUID());
   const defaultValues = createDefaultValues(
     accounts,
     providers,
@@ -581,7 +582,7 @@ export function CreateSavingWizard({
         payoutAccountId: needsPayout ? submitted.settlementAccountId : null,
         fallbackPolicy: MaturityFallbackPolicy.ASK_USER,
       },
-      idempotencyKey: crypto.randomUUID(),
+      idempotencyKey,
     };
     const input =
       submitted.creationMode === SavingsCreateMode.HISTORICAL_OPENING

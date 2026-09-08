@@ -5,6 +5,7 @@ import {
   type MoneyModuleAttentionLevel as AttentionLevel,
 } from "@/modules/ledger/application";
 import { Link } from "@/i18n/navigation";
+import { PRODUCT_LINK_PREFETCH } from "@/shared/constants/navigation";
 import { Card } from "@/shared/patterns/card";
 import { Section } from "@/shared/patterns/section";
 import { FinancialValue } from "@/shared/patterns/financial-value";
@@ -67,6 +68,7 @@ export function MoneyModuleRow({
   return (
     <Link
       href={href}
+      prefetch={PRODUCT_LINK_PREFETCH}
       className="flex min-h-14 items-center gap-(--space-3) px-(--space-4) py-(--space-2) transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-(--press-scale) motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus-ring"
       data-testid={testId}
     >

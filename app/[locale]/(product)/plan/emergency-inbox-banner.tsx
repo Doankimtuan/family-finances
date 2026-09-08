@@ -6,6 +6,7 @@ import {
 import { InboxItemKind } from "@/modules/inbox/application/inbox-constants";
 import type { InboxReviewItem } from "@/modules/inbox/application/inbox-types";
 import { isPartnerEmergencyAlert } from "@/modules/plan/application/client";
+import { PRODUCT_LINK_PREFETCH } from "@/shared/constants/navigation";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Text } from "@/shared/ui/text";
 import { PLAN_SURFACE_LINK_CLASS, PLAN_INLINE_LINK_CLASS } from "./plan-chrome";
@@ -61,6 +62,7 @@ export function EmergencyInboxBanner({
           <li key={item.id}>
             <Link
               href={inboxItemPath(item.id)}
+              prefetch={PRODUCT_LINK_PREFETCH}
               className={PLAN_SURFACE_LINK_CLASS}
               data-testid={`plan-emergency-open-${item.id}`}
             >
@@ -71,7 +73,11 @@ export function EmergencyInboxBanner({
       </ul>
       {emergencies.length > 1 ? (
         <Text size="sm" tone="secondary">
-          <Link href={APP_PATH.INBOX} className={PLAN_INLINE_LINK_CLASS}>
+          <Link
+            href={APP_PATH.INBOX}
+            prefetch={PRODUCT_LINK_PREFETCH}
+            className={PLAN_INLINE_LINK_CLASS}
+          >
             {openLabel}
           </Link>
         </Text>

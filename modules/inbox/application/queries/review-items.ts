@@ -10,6 +10,7 @@ import {
   InboxSourceType,
   InboxItemKind,
   mapInboxKind,
+  mapInboxStatus,
 } from "../inbox-constants";
 import type { InboxPage, InboxReviewItem } from "../inbox-types";
 import { logInboxFailure } from "../inbox-error";
@@ -28,6 +29,12 @@ import {
 
 const INBOX_SELECT =
   "id, kind, status, title, amount, currency, source_id, source_type, created_at, expires_at, auto_resolved, confidence_score, suggested_jar_id, suggested_category_id, context_json, assigned_to_user_id, read_at";
+const INBOX_ATTENTION_SELECT = "id, kind, status";
+
+export type OpenInboxAttention = {
+  openCount: number;
+  canReviewUncategorized: boolean;
+};
 
 type SupabaseServerClient = Awaited<
   ReturnType<typeof createSupabaseServerClient>
@@ -262,6 +269,23 @@ async function enrichWithTransactionDetails(
   });
 }
 
+function summarizeOpenInboxAttention(
+  rows: Array<{ kind: string; status?: string | null }>,
+): OpenInboxAttention {
+  let openCount = 0;
+  let canReviewUncategorized = false;
+  for (const row of rows) {
+    const kind = mapInboxKind(row.kind);
+    const status = mapInboxStatus(row.status);
+    if (!kind || !status) continue;
+    openCount += 1;
+    if (kind === InboxItemKind.UNMAPPED_EXPENSE) {
+      canReviewUncategorized = true;
+    }
+  }
+  return { openCount, canReviewUncategorized };
+}
+
 function sourceIdForOwnership(row: InboxItemRow, kind: InboxItemKind): string {
   const contextKey =
     kind === InboxItemKind.SAVINGS_MATURITY ||
@@ -322,6 +346,42 @@ async function loadOpenInboxItems(): Promise<InboxReviewItem[] | null> {
 
 /** Full open queue for screens that need the review items themselves. */
 export const listOpenInboxItems = cache(loadOpenInboxItems);
+
+/**
+ * Home-only inbox slice: open count + unmapped-expense presence.
+ * Does not enrich with transactions/savings/loans — those IDs are not
+ * required for the Home dashboard fields.
+ */
+async function loadOpenInboxAttention(): Promise<OpenInboxAttention | null> {
+  const gate = await assertMoneyActionAllowed();
+  if (!gate.ok) return null;
+  try {
+    const supabase = await createSupabaseServerClient();
+    const baseQuery = supabase
+      .from("inbox_items")
+      .select(INBOX_ATTENTION_SELECT)
+      .eq("household_id", gate.householdId)
+      .eq("status", InboxItemStatus.PENDING)
+      .or(ACTIVE_QUEUE_KIND_FILTER)
+      .or(`assigned_to_user_id.is.null,assigned_to_user_id.eq.${gate.userId}`);
+    const boundedQuery =
+      typeof baseQuery.limit === "function"
+        ? baseQuery.limit(INBOX_OPEN_PAGE_SIZE)
+        : baseQuery;
+    const { data, error } = await boundedQuery.order("created_at", {
+      ascending: false,
+    });
+    if (error) throw error;
+    return summarizeOpenInboxAttention(data ?? []);
+  } catch (error) {
+    logInboxFailure(error, INBOX_OPERATION.GET_OPEN_ATTENTION, {
+      householdId: gate.householdId,
+    });
+    return null;
+  }
+}
+
+export const getOpenInboxAttention = cache(loadOpenInboxAttention);
 
 async function loadOpenInboxPage(
   cursor?: { createdAt: string; id: string } | null,

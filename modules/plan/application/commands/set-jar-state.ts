@@ -15,6 +15,7 @@ import {
   PLAN_OPERATION,
   type JarState as JarStateValue,
 } from "../plan-constants";
+import { ensureJarPeriodRuleSnapshots } from "./ensure-jar-period-snapshots";
 
 export const setJarStateInputSchema = z.object({
   jarId: z.string().uuid(),
@@ -78,6 +79,7 @@ export async function setJarState(
     }
     if (!data) return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID };
 
+    await ensureJarPeriodRuleSnapshots();
     return { ok: true, state: parsed.data.state };
   } catch (error) {
     logPlanFailure(error, PLAN_OPERATION.SET_JAR_STATE, {

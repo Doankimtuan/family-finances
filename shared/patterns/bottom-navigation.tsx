@@ -2,6 +2,7 @@
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import { APP_PATH } from "@/modules/shared-kernel/app-path";
+import { PRODUCT_LINK_PREFETCH } from "@/shared/constants/navigation";
 import { cn } from "@/shared/utils/cn";
 import { SafeArea } from "@/providers/safe-area";
 import { TABS } from "@/shared/patterns/bottom-navigation-tabs";
@@ -59,6 +60,7 @@ export function BottomNavigation({
               <li key={href} className="min-w-0">
                 <Link
                   href={href}
+                  prefetch={PRODUCT_LINK_PREFETCH}
                   className={cn(
                     "relative flex min-h-14 min-w-0 flex-col items-center justify-center",
                     "gap-(--space-1) rounded-[var(--radius-card)] px-(--space-1) py-(--space-2)",

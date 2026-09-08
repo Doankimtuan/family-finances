@@ -84,6 +84,7 @@ describe("assertMoneyActionAllowed", () => {
     });
     vi.mocked(createSupabaseServerClient).mockResolvedValue({
       auth: {
+        getClaims: async () => ({ data: null, error: null }),
         getUser: async () => ({ data: { user: null }, error: null }),
       },
     } as never);
@@ -102,11 +103,24 @@ describe("assertMoneyActionAllowed", () => {
     });
     vi.mocked(createSupabaseServerClient).mockResolvedValue({
       auth: {
+        getClaims: async () => ({
+          data: { claims: { sub: "u1" } },
+          error: null,
+        }),
         getUser: async () => ({
           data: { user: { id: "u1" } },
           error: null,
         }),
       },
+      from: () => ({
+        select: () => ({
+          eq: () => ({
+            eq: () => ({
+              maybeSingle: async () => ({ data: null, error: null }),
+            }),
+          }),
+        }),
+      }),
     } as never);
 
     await expect(resolveActiveMembership("u1")).resolves.toBeNull();

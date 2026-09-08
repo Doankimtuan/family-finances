@@ -14,6 +14,7 @@ import {
   listRitualDivergence,
   listRitualEmergencies,
 } from "../queries/ritual-gates";
+import { ensureJarPeriodRuleSnapshots } from "./ensure-jar-period-snapshots";
 import {
   RitualMode,
   RitualStatus,
@@ -122,6 +123,7 @@ export async function previewMonthRitual(
         .update(payload)
         .eq("id", existing.id);
       if (error) return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
+      await ensureJarPeriodRuleSnapshots();
       return {
         ok: true,
         status: RitualStatus.PREVIEWED,
@@ -138,6 +140,7 @@ export async function previewMonthRitual(
     if (error || !data?.id) {
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
     }
+    await ensureJarPeriodRuleSnapshots();
     return { ok: true, status: RitualStatus.PREVIEWED, ritualId: data.id };
   } catch (error) {
     console.error(LEGACY_RITUAL_LOG_CONTEXT, error);
@@ -244,6 +247,7 @@ export async function approveMonthRitual(
       );
     }
 
+    await ensureJarPeriodRuleSnapshots();
     return { ok: true, status: RitualStatus.APPROVED, ritualId: existing.id };
   } catch (error) {
     console.error(LEGACY_RITUAL_LOG_CONTEXT, error);

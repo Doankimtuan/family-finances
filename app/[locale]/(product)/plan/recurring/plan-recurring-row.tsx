@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Link } from "@/i18n/navigation";
 import { RecurringDirection } from "@/modules/plan/application/client";
+import { PRODUCT_LINK_PREFETCH } from "@/shared/constants/navigation";
 import { FinancialValue } from "@/shared/patterns/financial-value";
 import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
 import { IconContainer, IconContainerTone } from "@/shared/ui/icon-container";
@@ -41,6 +42,7 @@ export function PlanRecurringRow({
   return (
     <Link
       href={href}
+      prefetch={PRODUCT_LINK_PREFETCH}
       className={PLAN_DESTINATION_ROW_CLASS}
       data-testid={testId}
     >

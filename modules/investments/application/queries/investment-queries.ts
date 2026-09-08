@@ -453,13 +453,49 @@ async function loadHoldings(): Promise<InvestmentHolding[] | null> {
       });
       return null;
     }
-    const activeOwnerMembershipIds = await listActiveMembershipIds(
-      supabase,
-      gate.householdId,
-      (holdings ?? [])
-        .map((row) => row.owner_membership_id)
-        .filter((id): id is string => id != null),
-    );
+    const holdingRows = (holdings ?? []) as HoldingRow[];
+    const instrumentIds = [
+      ...new Set(
+        holdingRows
+          .map((row) => row.instrument_id)
+          .filter((id): id is string => id != null),
+      ),
+    ];
+    const [activeOwnerMembershipIds, marketRows] = await Promise.all([
+      listActiveMembershipIds(
+        supabase,
+        gate.householdId,
+        holdingRows
+          .map((row) => row.owner_membership_id)
+          .filter((id): id is string => id != null),
+      ),
+      instrumentIds.length
+        ? Promise.all([
+            supabase
+              .from("market_instruments")
+              .select(
+                "id, asset_class, symbol, name, exchange, currency, pricing_mode, auto_price_supported, is_active, metadata",
+              )
+              .in("id", instrumentIds),
+            supabase
+              .from("market_instrument_prices")
+              .select(
+                "instrument_id, price, currency, price_type, price_date, fetched_at, provider, metadata, updated_at",
+              )
+              .in("instrument_id", instrumentIds),
+            supabase
+              .from("market_currency_rates")
+              .select(
+                "base_currency, quote_currency, rate, rate_date, fetched_at, provider, updated_at",
+              )
+              .eq("quote_currency", INVESTMENT_REPORTING_CURRENCY),
+          ])
+        : Promise.resolve([
+            { data: [], error: null },
+            { data: [], error: null },
+            { data: [], error: null },
+          ]),
+    ]);
     const latest = new Map<string, ValuationRow>();
     for (const row of (valuations ?? []) as ValuationRow[]) {
       if (!latest.has(row.holding_id)) latest.set(row.holding_id, row);
@@ -479,39 +515,6 @@ async function loadHoldings(): Promise<InvestmentHolding[] | null> {
       });
       lotsByHolding.set(row.position_id, holdingLots);
     }
-    const instrumentIds = [
-      ...new Set(
-        ((holdings ?? []) as HoldingRow[])
-          .map((row) => row.instrument_id)
-          .filter((id): id is string => id != null),
-      ),
-    ];
-    const marketRows = instrumentIds.length
-      ? await Promise.all([
-          supabase
-            .from("market_instruments")
-            .select(
-              "id, asset_class, symbol, name, exchange, currency, pricing_mode, auto_price_supported, is_active, metadata",
-            )
-            .in("id", instrumentIds),
-          supabase
-            .from("market_instrument_prices")
-            .select(
-              "instrument_id, price, currency, price_type, price_date, fetched_at, provider, metadata, updated_at",
-            )
-            .in("instrument_id", instrumentIds),
-          supabase
-            .from("market_currency_rates")
-            .select(
-              "base_currency, quote_currency, rate, rate_date, fetched_at, provider, updated_at",
-            )
-            .eq("quote_currency", INVESTMENT_REPORTING_CURRENCY),
-        ])
-      : [
-          { data: [], error: null },
-          { data: [], error: null },
-          { data: [], error: null },
-        ];
     const [instrumentResult, priceResult, fxResult] = marketRows;
     if (instrumentResult.error || priceResult.error || fxResult.error) {
       logActionFailure({
@@ -539,7 +542,7 @@ async function loadHoldings(): Promise<InvestmentHolding[] | null> {
         return [`${rate.baseCurrency}/${rate.quoteCurrency}`, rate];
       }),
     );
-    return ((holdings ?? []) as HoldingRow[]).map((row) =>
+    return holdingRows.map((row) =>
       (() => {
         const instrument = row.instrument_id
           ? (instrumentsById.get(row.instrument_id) ?? null)
@@ -805,10 +808,11 @@ async function loadInvestmentHomeSummary(): Promise<InvestmentHomeSummary | null
 export const listInvestmentHomeSummary = cache(loadInvestmentHomeSummary);
 
 async function loadInvestmentPortfolio(): Promise<InvestmentPortfolio | null> {
-  const holdings = await loadHoldings();
-  if (!holdings) return null;
-  const activities = await listInvestmentActivities();
-  if (!activities) return null;
+  const [holdings, activities] = await Promise.all([
+    loadHoldings(),
+    listInvestmentActivities(),
+  ]);
+  if (!holdings || !activities) return null;
   const activeHoldings = holdings.filter(
     (holding) =>
       holding.lifecycleStatus !== "exited" && Number(holding.quantity) > 0,

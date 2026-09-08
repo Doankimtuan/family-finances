@@ -1,6 +1,8 @@
+import { cache } from "react";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import { AccountType, DEFAULT_CURRENCY } from "../ledger-constants";
+import { CardBillingMonthStatus } from "../credit-card-constants";
 import {
   buildCreditCardSummary,
   mapBillingItemRow,
@@ -11,7 +13,7 @@ import {
 } from "../credit-card-types";
 import { LEDGER_OPERATION, logLedgerFailure } from "../ledger-error";
 
-export async function listCreditCards(): Promise<{
+async function loadCreditCards(): Promise<{
   currency: string;
   cards: CreditCardSummary[];
 } | null> {
@@ -69,7 +71,8 @@ export async function listCreditCards(): Promise<{
           "id, card_account_id, billing_month, statement_amount, paid_amount, due_date, status",
         )
         .eq("household_id", gate.householdId)
-        .in("card_account_id", cardIds),
+        .in("card_account_id", cardIds)
+        .neq("status", CardBillingMonthStatus.SETTLED),
     ]);
     if (settingsError || monthsError) {
       logLedgerFailure(
@@ -121,6 +124,8 @@ export async function listCreditCards(): Promise<{
     return null;
   }
 }
+
+export const listCreditCards = cache(loadCreditCards);
 
 export async function getCreditCardDetail(
   accountId: string,

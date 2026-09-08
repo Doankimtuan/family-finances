@@ -16,6 +16,13 @@ vi.mock("@/modules/tenancy/application/assert-money-action-allowed", () => ({
   assertMoneyActionAllowed: vi.fn(),
 }));
 
+vi.mock(
+  "@/modules/plan/application/commands/ensure-jar-period-snapshots",
+  () => ({
+    ensureJarPeriodRuleSnapshots: vi.fn(async () => ({ ok: true, written: 0 })),
+  }),
+);
+
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import {
@@ -28,6 +35,7 @@ import {
   isAllocationTarget,
 } from "@/modules/plan/application/jar-types";
 import { getPlanPulse } from "@/modules/plan/application/queries/get-plan-pulse";
+import { ensureJarPeriodRuleSnapshots } from "@/modules/plan/application/commands/ensure-jar-period-snapshots";
 import { setJarState } from "@/modules/plan/application/commands/set-jar-state";
 import { upsertJarPlan } from "@/modules/plan/application/commands/upsert-jar-plan";
 
@@ -228,5 +236,6 @@ describe("setJarState / upsertJarPlan", () => {
     expect(update).toHaveBeenCalledWith(
       expect.objectContaining({ is_paused: true, is_archived: false }),
     );
+    expect(ensureJarPeriodRuleSnapshots).toHaveBeenCalled();
   });
 });

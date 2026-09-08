@@ -3,13 +3,15 @@ import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import { listActiveMembershipIds } from "@/modules/tenancy/application/list-active-membership-ids";
 import { mapAccountRow, type LedgerAccount } from "../account-types";
-import { applyTransactionDeltas } from "../transaction-types";
 import {
   ACCOUNT_TYPE_LIQUID_VALUES,
   DEFAULT_CURRENCY,
-  TRANSACTION_BALANCE_STATUS_VALUES,
 } from "../ledger-constants";
 import { LEDGER_OPERATION, logLedgerFailure } from "../ledger-error";
+import {
+  applyLedgerBalances,
+  loadAccountLedgerBalances,
+} from "./load-account-ledger-balances";
 
 async function loadAccounts(options: {
   includeCreditCards: boolean;
@@ -51,33 +53,23 @@ async function loadAccounts(options: {
     }
 
     const accountIds = (rows ?? []).map((row) => row.id);
-    const { data: txRows, error: transactionError } = accountIds.length
-      ? await supabase
-          .from("transactions")
-          .select("account_id, type, amount")
-          .eq("household_id", gate.householdId)
-          .in("account_id", accountIds)
-          .in("status", [...TRANSACTION_BALANCE_STATUS_VALUES])
-      : { data: [], error: null };
-
-    if (transactionError) {
-      logLedgerFailure(transactionError, LEDGER_OPERATION.LIST_ACCOUNTS, {
-        householdId: gate.householdId,
-      });
+    const [activeOwnerMembershipIds, balances] = await Promise.all([
+      listActiveMembershipIds(
+        supabase,
+        gate.householdId,
+        (rows ?? [])
+          .map((row) => row.owner_membership_id)
+          .filter((id): id is string => id != null),
+      ),
+      loadAccountLedgerBalances(supabase, gate.householdId, accountIds),
+    ]);
+    if (!balances) {
       return null;
     }
 
-    const activeOwnerMembershipIds = await listActiveMembershipIds(
-      supabase,
-      gate.householdId,
-      (rows ?? [])
-        .map((row) => row.owner_membership_id)
-        .filter((id): id is string => id != null),
-    );
-
     return {
       currency: (household?.base_currency ?? DEFAULT_CURRENCY).toUpperCase(),
-      accounts: applyTransactionDeltas(
+      accounts: applyLedgerBalances(
         (rows ?? []).map((row) =>
           mapAccountRow(
             row,
@@ -85,11 +77,7 @@ async function loadAccounts(options: {
             activeOwnerMembershipIds ?? undefined,
           ),
         ),
-        (txRows ?? []).map((row) => ({
-          accountId: row.account_id,
-          type: row.type,
-          amount: row.amount,
-        })),
+        balances,
       ),
     };
   } catch (error) {
@@ -128,40 +116,39 @@ export async function getAccount(
 
   try {
     const supabase = await createSupabaseServerClient();
-    const [{ data: household }, { data: row, error }, { data: txRows }] =
-      await Promise.all([
-        supabase
-          .from("households")
-          .select("base_currency")
-          .eq("id", gate.householdId)
-          .maybeSingle(),
-        supabase
-          .from("accounts")
-          .select(
-            "id, name, type, opening_balance, is_archived, financial_scope, owner_membership_id",
-          )
-          .eq("household_id", gate.householdId)
-          .eq("id", accountId)
-          .maybeSingle(),
-        supabase
-          .from("transactions")
-          .select("account_id, type, amount")
-          .eq("household_id", gate.householdId)
-          .eq("account_id", accountId)
-          .in("status", [...TRANSACTION_BALANCE_STATUS_VALUES]),
-      ]);
+    const [{ data: household }, { data: row, error }] = await Promise.all([
+      supabase
+        .from("households")
+        .select("base_currency")
+        .eq("id", gate.householdId)
+        .maybeSingle(),
+      supabase
+        .from("accounts")
+        .select(
+          "id, name, type, opening_balance, is_archived, financial_scope, owner_membership_id",
+        )
+        .eq("household_id", gate.householdId)
+        .eq("id", accountId)
+        .maybeSingle(),
+    ]);
 
     if (error || !row || row.is_archived) {
       return null;
     }
 
-    const activeOwnerMembershipIds = await listActiveMembershipIds(
-      supabase,
-      gate.householdId,
-      row.owner_membership_id ? [row.owner_membership_id] : [],
-    );
+    const [activeOwnerMembershipIds, balances] = await Promise.all([
+      listActiveMembershipIds(
+        supabase,
+        gate.householdId,
+        row.owner_membership_id ? [row.owner_membership_id] : [],
+      ),
+      loadAccountLedgerBalances(supabase, gate.householdId, [accountId]),
+    ]);
+    if (!balances) {
+      return null;
+    }
 
-    const [account] = applyTransactionDeltas(
+    const [account] = applyLedgerBalances(
       [
         mapAccountRow(
           row,
@@ -169,11 +156,7 @@ export async function getAccount(
           activeOwnerMembershipIds ?? undefined,
         ),
       ],
-      (txRows ?? []).map((tx) => ({
-        accountId: tx.account_id,
-        type: tx.type,
-        amount: tx.amount,
-      })),
+      balances,
     );
 
     return {

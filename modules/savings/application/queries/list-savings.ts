@@ -23,39 +23,25 @@ import { logSavingsFailure } from "../savings-error";
 
 const SAVING_CYCLE_SELECT =
   "id, saving_id, cycle_number, start_date, end_date, principal, locked_rate, package_snapshot, accrued_interest, settlement_result, renewal_decision, status, funding_transaction_id, settlement_transaction_id, previous_cycle_id, next_cycle_id, created_at";
+const SAVING_CYCLES_SAVING_FK = "saving_cycles_saving_id_fkey";
+const SAVING_CYCLE_EMBED = `saving_cycles!${SAVING_CYCLES_SAVING_FK}(${SAVING_CYCLE_SELECT})`;
+const SAVING_LIST_SELECT = `id, household_id, status, funding_account_id, settlement_account_id,
+         provider_id, product_name, product_snapshot, renewal_policy, renewal_config, maturity_instruction, created_at, financial_scope, owner_membership_id,
+         funding_accounts:funding_account_id(name),
+         settlement_accounts:settlement_account_id(name),
+         saving_providers:provider_id(display_name, provider_key, saving_type),
+         ${SAVING_CYCLE_EMBED}`;
 
-type SupabaseServerClient = Awaited<
-  ReturnType<typeof createSupabaseServerClient>
->;
 type SavingCycleRow = Parameters<typeof mapSavingCycleRow>[0];
+type SavingListRow = Parameters<typeof mapSavingRow>[0] & {
+  saving_cycles?: SavingCycleRow[] | SavingCycleRow | null;
+};
 
-async function loadCycleRows(
-  supabase: SupabaseServerClient,
-  savingIds: readonly string[],
-): Promise<SavingCycleRow[] | null> {
-  if (savingIds.length === 0) return [];
-
-  const { data, error } = await supabase
-    .from("saving_cycles")
-    .select(SAVING_CYCLE_SELECT)
-    .in("saving_id", [...savingIds])
-    .order("cycle_number", { ascending: false });
-
-  return error ? null : ((data ?? []) as SavingCycleRow[]);
-}
-
-async function loadCycleRowsForSaving(
-  supabase: SupabaseServerClient,
-  savingId: string,
-): Promise<SavingCycleRow[]> {
-  const { data, error } = await supabase
-    .from("saving_cycles")
-    .select(SAVING_CYCLE_SELECT)
-    .eq("saving_id", savingId)
-    .order("cycle_number", { ascending: false });
-
-  if (error) throw error;
-  return (data ?? []) as SavingCycleRow[];
+function embeddedCycleRows(
+  value: SavingListRow["saving_cycles"],
+): SavingCycleRow[] {
+  if (value == null) return [];
+  return Array.isArray(value) ? value : [value];
 }
 
 async function setMaturityActionRequired(saving: Saving) {
@@ -86,13 +72,7 @@ async function loadSavings(): Promise<Saving[] | null> {
     const supabase = await createSupabaseServerClient();
     const { data, error } = await supabase
       .from("savings")
-      .select(
-        `id, household_id, status, funding_account_id, settlement_account_id,
-         provider_id, product_name, product_snapshot, renewal_policy, renewal_config, maturity_instruction, created_at, financial_scope, owner_membership_id,
-         funding_accounts:funding_account_id(name),
-         settlement_accounts:settlement_account_id(name),
-         saving_providers:provider_id(display_name, provider_key, saving_type)`,
-      )
+      .select(SAVING_LIST_SELECT)
       .eq("household_id", gate.householdId)
       .order("created_at", { ascending: false });
 
@@ -103,14 +83,15 @@ async function loadSavings(): Promise<Saving[] | null> {
       return null;
     }
 
+    const rows = (data ?? []) as SavingListRow[];
     const activeOwnerMembershipIds = await listActiveMembershipIds(
       supabase,
       gate.householdId,
-      (data ?? [])
+      rows
         .map((row) => row.owner_membership_id)
         .filter((id): id is string => id != null),
     );
-    const savings = (data ?? []).map((row) =>
+    const savings = rows.map((row) =>
       mapSavingRow(
         row,
         gate.membershipId,
@@ -118,23 +99,12 @@ async function loadSavings(): Promise<Saving[] | null> {
       ),
     );
 
-    const cycleRows = await loadCycleRows(
-      supabase,
-      savings.map((saving) => saving.id),
-    );
-    const rows =
-      cycleRows ??
-      (
-        await Promise.all(
-          savings.map((saving) => loadCycleRowsForSaving(supabase, saving.id)),
-        )
-      ).flat();
     const cyclesBySavingId = new Map<string, SavingCycle[]>();
-
     for (const row of rows) {
-      const cycles = cyclesBySavingId.get(row.saving_id) ?? [];
-      cycles.push(mapSavingCycleRow(row));
-      cyclesBySavingId.set(row.saving_id, cycles);
+      cyclesBySavingId.set(
+        row.id,
+        embeddedCycleRows(row.saving_cycles).map(mapSavingCycleRow),
+      );
     }
 
     // Enrich with the current lifecycle cycle, not merely the newest row.

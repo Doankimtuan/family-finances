@@ -4,9 +4,12 @@ export { getPlanPulse, listActiveJars } from "./queries/get-plan-pulse";
 export {
   getCurrentJarBudgets,
   getJarBudgetsForPeriod,
+  collectCurrentPeriodSnapshotInserts,
   jarBudgetPeriodBounds,
   type CurrentJarBudgetSummary,
+  type CurrentPeriodSnapshotInserts,
   type JarBudgetPeriod,
+  type JarPeriodSnapshotInsertRow,
 } from "./queries/get-current-jar-budgets";
 export {
   calculateAllocationHealth,
@@ -57,6 +60,10 @@ export {
 export { listRecurring, getRecurring } from "./queries/list-recurring";
 export { getMonthRitual, buildRitualPreview } from "./queries/get-month-ritual";
 export { getHouseholdCalendar } from "./queries/get-household-calendar";
+export {
+  listPlanHubUpcomingEvents,
+  type PlanHubUpcomingEvents,
+} from "./queries/list-plan-hub-upcoming";
 export {
   listRitualDivergence,
   listRitualEmergencies,
@@ -283,6 +290,8 @@ export {
   CALENDAR_CASH_FLOW_SIGN_VALUES,
   CALENDAR_PROJECTION_MONTHS,
   CASH_FLOW_DEFICIT_THRESHOLD,
+  PLAN_HUB_UPCOMING_DAYS,
+  PLAN_HUB_UPCOMING_EVENT_LIMIT,
 } from "./plan-constants";
 export {
   projectRecurringEvents,

@@ -1,20 +1,26 @@
+import { cache } from "react";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import { listActiveMembershipIds } from "@/modules/tenancy/application/list-active-membership-ids";
 import { mapAccountRow, type RealPosition } from "../account-types";
-import { applyTransactionDeltas } from "../transaction-types";
 import {
   ACCOUNT_TYPE_LIQUID_VALUES,
   DEFAULT_CURRENCY,
-  TRANSACTION_BALANCE_STATUS_VALUES,
 } from "../ledger-constants";
 import { LEDGER_OPERATION, logLedgerFailure } from "../ledger-error";
+import {
+  applyLedgerBalances,
+  loadAccountLedgerBalances,
+} from "./load-account-ledger-balances";
 
 /**
  * Real position = opening balances ± cleared ledger transactions (BR-01).
  * Credit cards are excluded — outstanding lives on the billing ledger.
+ *
+ * Request-local only via React `cache()`. One household per request (the
+ * gated session). Not a cross-request financial cache.
  */
-export async function getRealPosition(): Promise<RealPosition | null> {
+async function loadRealPosition(): Promise<RealPosition | null> {
   const gate = await assertMoneyActionAllowed();
   if (!gate.ok) {
     return null;
@@ -46,32 +52,22 @@ export async function getRealPosition(): Promise<RealPosition | null> {
       return null;
     }
 
-    const activeOwnerMembershipIds = await listActiveMembershipIds(
-      supabase,
-      gate.householdId,
-      (rows ?? [])
-        .map((row) => row.owner_membership_id)
-        .filter((id): id is string => id != null),
-    );
-
     const accountIds = (rows ?? []).map((row) => row.id);
-    const { data: txRows, error: transactionError } = accountIds.length
-      ? await supabase
-          .from("transactions")
-          .select("account_id, type, amount")
-          .eq("household_id", gate.householdId)
-          .in("account_id", accountIds)
-          .in("status", [...TRANSACTION_BALANCE_STATUS_VALUES])
-      : { data: [], error: null };
-
-    if (transactionError) {
-      logLedgerFailure(transactionError, LEDGER_OPERATION.GET_REAL_POSITION, {
-        householdId: gate.householdId,
-      });
+    const [activeOwnerMembershipIds, balances] = await Promise.all([
+      listActiveMembershipIds(
+        supabase,
+        gate.householdId,
+        (rows ?? [])
+          .map((row) => row.owner_membership_id)
+          .filter((id): id is string => id != null),
+      ),
+      loadAccountLedgerBalances(supabase, gate.householdId, accountIds),
+    ]);
+    if (!balances) {
       return null;
     }
 
-    const accounts = applyTransactionDeltas(
+    const accounts = applyLedgerBalances(
       (rows ?? []).map((row) =>
         mapAccountRow(
           row,
@@ -79,11 +75,7 @@ export async function getRealPosition(): Promise<RealPosition | null> {
           activeOwnerMembershipIds ?? undefined,
         ),
       ),
-      (txRows ?? []).map((row) => ({
-        accountId: row.account_id,
-        type: row.type,
-        amount: row.amount,
-      })),
+      balances,
     ).filter((account) =>
       ACCOUNT_TYPE_LIQUID_VALUES.some((type) => type === account.type),
     );
@@ -105,3 +97,5 @@ export async function getRealPosition(): Promise<RealPosition | null> {
     return null;
   }
 }
+
+export const getRealPosition = cache(loadRealPosition);

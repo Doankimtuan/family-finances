@@ -183,6 +183,112 @@ export async function getSavingsProduct(
 const LOAN_SELECT =
   "id, name, lender, loan_type, principal, remaining_principal, annual_interest_rate, interest_strategy, promo_fixed_rate, promo_fixed_months, promo_floating_rate, promo_rate_effective_on, start_date, expected_end_date, first_payment_date, repayment_frequency, repayment_method, term_months, monthly_payment, total_interest, total_repayment, next_payment_date, currency, status, note, due_day, financial_scope, owner_membership_id";
 
+type LoanAggregateTotals = {
+  principalPaid: number;
+  interestPaid: number;
+  remainingPayments: number;
+  nextPaymentAmount: number | null;
+};
+
+const EMPTY_LOAN_AGGREGATE: LoanAggregateTotals = {
+  principalPaid: 0,
+  interestPaid: 0,
+  remainingPayments: 0,
+  nextPaymentAmount: null,
+};
+
+export function foldLoanListAggregates(input: {
+  loanIds: readonly string[];
+  payments: readonly {
+    loan_id: string;
+    principal_paid: number | string | null;
+    interest_paid: number | string | null;
+  }[];
+  scheduleRows: readonly {
+    loan_id: string;
+    total_due: number | string | null;
+    sequence: number | string | null;
+  }[];
+}): Map<string, LoanAggregateTotals> {
+  const aggregates = new Map<string, LoanAggregateTotals>();
+  for (const loanId of input.loanIds) {
+    aggregates.set(loanId, { ...EMPTY_LOAN_AGGREGATE });
+  }
+
+  for (const row of input.payments) {
+    const current = aggregates.get(row.loan_id);
+    if (!current) continue;
+    current.principalPaid += Number(row.principal_paid) || 0;
+    current.interestPaid += Number(row.interest_paid) || 0;
+  }
+
+  const nextByLoanId = new Map<
+    string,
+    { sequence: number; totalDue: number }
+  >();
+  for (const row of input.scheduleRows) {
+    const current = aggregates.get(row.loan_id);
+    if (!current) continue;
+    current.remainingPayments += 1;
+    const sequence = Number(row.sequence);
+    const totalDue = Number(row.total_due);
+    if (!Number.isFinite(sequence) || !Number.isFinite(totalDue)) continue;
+    const existing = nextByLoanId.get(row.loan_id);
+    if (!existing || sequence < existing.sequence) {
+      nextByLoanId.set(row.loan_id, { sequence, totalDue });
+    }
+  }
+
+  for (const [loanId, next] of nextByLoanId) {
+    const current = aggregates.get(loanId);
+    if (!current) continue;
+    current.nextPaymentAmount = next.totalDue;
+  }
+
+  return aggregates;
+}
+
+async function loadLoanAggregatesByIds(
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+  householdId: string,
+  loanIds: string[],
+  operation: LedgerOperation,
+): Promise<Map<string, LoanAggregateTotals>> {
+  if (loanIds.length === 0) {
+    return new Map();
+  }
+
+  const [
+    { data: payments, error: paymentsError },
+    { data: scheduleRows, error: scheduleError },
+  ] = await Promise.all([
+    supabase
+      .from("loan_payments")
+      .select("loan_id, principal_paid, interest_paid")
+      .eq("household_id", householdId)
+      .in("loan_id", loanIds),
+    supabase
+      .from("loan_schedule_entries")
+      .select("loan_id, total_due, sequence")
+      .eq("household_id", householdId)
+      .in("loan_id", loanIds)
+      .eq("status", LoanScheduleEntryStatus.UPCOMING)
+      .order("sequence", { ascending: true }),
+  ]);
+
+  if (paymentsError || scheduleError) {
+    logLedgerFailure(paymentsError ?? scheduleError, operation, {
+      householdId,
+    });
+  }
+
+  return foldLoanListAggregates({
+    loanIds,
+    payments: payments ?? [],
+    scheduleRows: scheduleRows ?? [],
+  });
+}
+
 async function loanAggregates(
   supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
   householdId: string,
@@ -265,28 +371,29 @@ async function loadLoans(): Promise<Loan[] | null> {
       });
       return null;
     }
-    const activeOwnerMembershipIds = await listActiveMembershipIds(
-      supabase,
-      gate.householdId,
-      (data ?? [])
-        .map((row) => row.owner_membership_id)
-        .filter((id): id is string => id != null),
-    );
-    return Promise.all(
-      (data ?? []).map(async (row) => {
-        const aggregates = await loanAggregates(
-          supabase,
-          gate.householdId,
-          row.id,
-          LEDGER_OPERATION.LIST_LOANS,
-        );
-        return mapLoanRow(
-          row,
-          aggregates,
-          gate.membershipId,
-          activeOwnerMembershipIds ?? undefined,
-        );
-      }),
+    const loanIds = (data ?? []).map((row) => row.id);
+    const [activeOwnerMembershipIds, aggregatesByLoanId] = await Promise.all([
+      listActiveMembershipIds(
+        supabase,
+        gate.householdId,
+        (data ?? [])
+          .map((row) => row.owner_membership_id)
+          .filter((id): id is string => id != null),
+      ),
+      loadLoanAggregatesByIds(
+        supabase,
+        gate.householdId,
+        loanIds,
+        LEDGER_OPERATION.LIST_LOANS,
+      ),
+    ]);
+    return (data ?? []).map((row) =>
+      mapLoanRow(
+        row,
+        aggregatesByLoanId.get(row.id) ?? EMPTY_LOAN_AGGREGATE,
+        gate.membershipId,
+        activeOwnerMembershipIds ?? undefined,
+      ),
     );
   } catch (error) {
     logLedgerFailure(error, LEDGER_OPERATION.LIST_LOANS, {
@@ -517,22 +624,25 @@ export async function listLoanScheduleReadResult(
 }
 
 /** Upcoming schedule rows for calendar projection (all active loans). */
-export async function listUpcomingLoanScheduleEntries(): Promise<
-  LoanScheduleEntry[] | null
-> {
+export async function listUpcomingLoanScheduleEntries(
+  rangeStart?: string,
+  rangeEndExclusive?: string,
+): Promise<LoanScheduleEntry[] | null> {
   const gate = await assertMoneyActionAllowed();
   if (!gate.ok) return null;
 
   try {
     const supabase = await createSupabaseServerClient();
-    const { data, error } = await supabase
+    let query = supabase
       .from("loan_schedule_entries")
       .select(
         "id, loan_id, sequence, due_date, principal_due, interest_due, total_due, remaining_balance_after, status, paid_at",
       )
       .eq("household_id", gate.householdId)
-      .eq("status", LoanScheduleEntryStatus.UPCOMING)
-      .order("due_date", { ascending: true });
+      .eq("status", LoanScheduleEntryStatus.UPCOMING);
+    if (rangeStart) query = query.gte("due_date", rangeStart);
+    if (rangeEndExclusive) query = query.lt("due_date", rangeEndExclusive);
+    const { data, error } = await query.order("due_date", { ascending: true });
 
     if (error) {
       logLedgerFailure(error, LEDGER_OPERATION.LIST_UPCOMING_LOAN_SCHEDULE, {

@@ -31,8 +31,17 @@ import {
 } from "@/shared/patterns/hero-pill-link";
 
 vi.mock("@/i18n/navigation", () => ({
-  Link: ({ href, children, ...props }: ComponentProps<"a">) => (
-    <a href={typeof href === "string" ? href : "#"} {...props}>
+  Link: ({
+    href,
+    children,
+    prefetch,
+    ...props
+  }: ComponentProps<"a"> & { prefetch?: boolean }) => (
+    <a
+      href={typeof href === "string" ? href : "#"}
+      data-prefetch={prefetch === false ? "false" : undefined}
+      {...props}
+    >
       {children}
     </a>
   ),
@@ -135,6 +144,7 @@ describe("Hero pill link touch target (B12)", () => {
 
     const link = screen.getByRole("link", { name: "See activity" });
     expect(link).toHaveAttribute("href", APP_PATH.MONEY_TRANSACTIONS);
+    expect(link).toHaveAttribute("data-prefetch", "false");
     assertHeroPillTouchTarget(link);
     expect(link).toHaveTextContent("See activity");
   });

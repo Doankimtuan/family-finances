@@ -151,14 +151,14 @@
         "income": "Income"
       },
       "jarLabel": "Mapped jar",
-      "jarRequired": "Select a jar (required)",
+      "jarOptional": "Select a jar (optional)",
       "submit": "Save category",
       "cancel": "Cancel",
       "errors": {
         "unauthenticated": "Sign in to continue.",
         "no_membership": "Join or create a household first.",
         "invalid": "Check the category details and try again.",
-        "category_unmapped": "A jar mapping is required before saving.",
+        "category_unmapped": "The selected jar could not be linked to this category.",
         "month_locked": "This month is locked. Open Month Ritual to correct.",
         "offline": "You're offline — try again when connected.",
         "credit_limit_exceeded": "This would exceed the credit limit.",

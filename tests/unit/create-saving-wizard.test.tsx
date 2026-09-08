@@ -198,6 +198,7 @@ describe("CreateSavingWizard", () => {
         principal: 3_000_000,
         settlementRule: SettlementRule.ROLL_PRINCIPAL_ONLY,
         renewalPolicy: RenewalPolicy.ALWAYS_ASK,
+        idempotencyKey: expect.any(String),
         renewalConfig: expect.objectContaining({
           targetMode: MaturityTargetMode.SELECT_PACKAGE,
           targetPackageId: PACKAGE_ID,
@@ -228,6 +229,70 @@ describe("CreateSavingWizard", () => {
     ).toBeInTheDocument();
     expect(screen.getByTestId("savings-review-summary")).toBeInTheDocument();
     expect(replaceMock).not.toHaveBeenCalled();
+  });
+
+  it("reuses one idempotency key across first submit, retry, and double-submit", async () => {
+    const firstKey = "11111111-1111-4111-8111-111111111111";
+    const secondKey = "22222222-2222-4222-8222-222222222222";
+    const randomUuid = vi
+      .spyOn(globalThis.crypto, "randomUUID")
+      .mockReturnValueOnce(firstKey)
+      .mockReturnValueOnce(secondKey);
+    createSavingMock.mockResolvedValue({
+      status: "error",
+      code: PRODUCT_ACTION_ERROR_CODE.INVALID,
+    });
+    renderWizard();
+    reachReview();
+
+    fireEvent.click(screen.getByTestId("savings-wizard-confirm"));
+    fireEvent.click(screen.getByTestId("savings-wizard-confirm"));
+    await waitFor(() => expect(createSavingMock).toHaveBeenCalled());
+    fireEvent.click(screen.getByTestId("savings-wizard-confirm"));
+
+    await waitFor(() =>
+      expect(createSavingMock.mock.calls.length).toBeGreaterThanOrEqual(2),
+    );
+    const keys = createSavingMock.mock.calls.map(
+      (call) => call[0].idempotencyKey,
+    );
+    expect(keys.every((key) => key === firstKey)).toBe(true);
+    expect(randomUuid).toHaveBeenCalledTimes(1);
+    randomUuid.mockRestore();
+  });
+
+  it("mints a new idempotency key for a new create-saving operation", async () => {
+    const firstKey = "11111111-1111-4111-8111-111111111111";
+    const secondKey = "22222222-2222-4222-8222-222222222222";
+    const randomUuid = vi
+      .spyOn(globalThis.crypto, "randomUUID")
+      .mockReturnValueOnce(firstKey)
+      .mockReturnValueOnce(secondKey);
+    createSavingMock.mockResolvedValue({
+      status: "error",
+      code: PRODUCT_ACTION_ERROR_CODE.INVALID,
+    });
+
+    const { unmount } = renderWizard();
+    reachReview();
+    fireEvent.click(screen.getByTestId("savings-wizard-confirm"));
+    await waitFor(() =>
+      expect(createSavingMock).toHaveBeenCalledWith(
+        expect.objectContaining({ idempotencyKey: firstKey }),
+      ),
+    );
+    unmount();
+
+    renderWizard();
+    reachReview();
+    fireEvent.click(screen.getByTestId("savings-wizard-confirm"));
+    await waitFor(() =>
+      expect(createSavingMock).toHaveBeenCalledWith(
+        expect.objectContaining({ idempotencyKey: secondKey }),
+      ),
+    );
+    expect(randomUuid).toHaveBeenCalledTimes(2);
+    randomUuid.mockRestore();
   });
 
   it("disables confirmation when the selected source account is no longer available", () => {

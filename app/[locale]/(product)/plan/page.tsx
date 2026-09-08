@@ -14,7 +14,7 @@ import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-a
 import {
   getPlanPulse,
   getCurrentJarBudgets,
-  getHouseholdCalendar,
+  listPlanHubUpcomingEvents,
   listGoals,
   currentPeriodMonth,
   PlanAssistMode,
@@ -25,6 +25,8 @@ import {
   JarKind,
   DEFAULT_CURRENCY,
   QualifyingIncomeSource,
+  PLAN_HUB_UPCOMING_DAYS,
+  PLAN_HUB_UPCOMING_EVENT_LIMIT,
 } from "@/modules/plan/application";
 import {
   collectPlanHomeExceptions,
@@ -38,6 +40,7 @@ import { InboxItemKind } from "@/modules/inbox/application/inbox-constants";
 import { GoalStatus } from "@/modules/plan/application/plan-constants";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
 import { formatCurrency, formatDate } from "@/shared/i18n/formatters";
+import { PRODUCT_LINK_PREFETCH } from "@/shared/constants/navigation";
 import { FinancialValue } from "@/shared/patterns/financial-value";
 import { Card } from "@/shared/patterns/card";
 import { StatusBadge } from "@/shared/ui/status-badge";
@@ -133,8 +136,8 @@ function pickHomeGoals(goals: readonly HomeGoal[], limit = 3): HomeGoal[] {
 function upcomingWithinDays(
   events: readonly HomeEvent[],
   now = new Date(),
-  days = 7,
-  limit = 3,
+  days = PLAN_HUB_UPCOMING_DAYS,
+  limit = PLAN_HUB_UPCOMING_EVENT_LIMIT,
 ): HomeEvent[] {
   const start = now.toISOString().slice(0, 10);
   const endDate = new Date(now);
@@ -257,7 +260,7 @@ export default async function PlanHubPage({ params }: Props) {
     currentJarBudgets,
     inboxItems,
     goalsList,
-    calendar,
+    upcomingPreview,
   ] = await Promise.all([
     getTranslations("plan"),
     getTranslations("catalog"),
@@ -265,7 +268,7 @@ export default async function PlanHubPage({ params }: Props) {
     getCurrentJarBudgets(),
     listOpenInboxItems(),
     listGoals(),
-    getHouseholdCalendar(),
+    listPlanHubUpcomingEvents(),
   ]);
 
   const activeJars = (pulse?.activeJars ?? []).filter(
@@ -363,7 +366,9 @@ export default async function PlanHubPage({ params }: Props) {
       return `${APP_PATH.PLAN_RECURRING}/${action.entityId}`;
     return APP_PATH.PLAN;
   };
-  const upcoming = upcomingWithinDays((calendar?.events ?? []) as HomeEvent[]);
+  const upcoming = upcomingWithinDays(
+    (upcomingPreview?.events ?? []) as HomeEvent[],
+  );
   const overspentCount = visibleBudgets.filter(
     (budget) => budget.state === JarBudgetState.OVERSPENT,
   ).length;
@@ -470,6 +475,7 @@ export default async function PlanHubPage({ params }: Props) {
         action={
           <Link
             href={APP_PATH.PLAN_JARS}
+            prefetch={PRODUCT_LINK_PREFETCH}
             className={PLAN_INLINE_LINK_CLASS}
             data-testid="plan-see-jars"
           >
@@ -492,6 +498,7 @@ export default async function PlanHubPage({ params }: Props) {
             action={
               <Link
                 href={APP_PATH.PLAN_JARS}
+                prefetch={PRODUCT_LINK_PREFETCH}
                 className={PLAN_ACCENT_LINK_CLASS}
               >
                 {t("home.createJar")}
@@ -539,6 +546,7 @@ export default async function PlanHubPage({ params }: Props) {
                 <li key={jar.id}>
                   <Link
                     href={planJarPath(jar.id)}
+                    prefetch={PRODUCT_LINK_PREFETCH}
                     className="block h-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
                   >
                     <JarCard
@@ -598,7 +606,11 @@ export default async function PlanHubPage({ params }: Props) {
           </ul>
         )}
         {activeJars.length > PLAN_HUB_VISIBLE_JAR_LIMIT ? (
-          <Link href={APP_PATH.PLAN_JARS} className={PLAN_INLINE_LINK_CLASS}>
+          <Link
+            href={APP_PATH.PLAN_JARS}
+            prefetch={PRODUCT_LINK_PREFETCH}
+            className={PLAN_INLINE_LINK_CLASS}
+          >
             {t("home.viewAllJars", { count: activeJars.length })}
           </Link>
         ) : null}
@@ -609,6 +621,7 @@ export default async function PlanHubPage({ params }: Props) {
         action={
           <Link
             href={APP_PATH.PLAN_GOALS}
+            prefetch={PRODUCT_LINK_PREFETCH}
             className={PLAN_INLINE_LINK_CLASS}
             data-testid="plan-see-goals"
           >
@@ -625,6 +638,7 @@ export default async function PlanHubPage({ params }: Props) {
             action={
               <Link
                 href={APP_PATH.PLAN_GOALS}
+                prefetch={PRODUCT_LINK_PREFETCH}
                 className={PLAN_SURFACE_LINK_CLASS}
               >
                 {t("home.createGoal")}
@@ -640,6 +654,7 @@ export default async function PlanHubPage({ params }: Props) {
                 <li key={goal.id}>
                   <Link
                     href={planGoalPath(goal.id)}
+                    prefetch={PRODUCT_LINK_PREFETCH}
                     className="block h-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
                     data-testid={`plan-home-goal-${goal.id}`}
                   >
@@ -740,6 +755,7 @@ export default async function PlanHubPage({ params }: Props) {
         action={
           <Link
             href={APP_PATH.PLAN_CALENDAR}
+            prefetch={PRODUCT_LINK_PREFETCH}
             className={PLAN_INLINE_LINK_CLASS}
             data-testid="plan-see-calendar"
           >
@@ -829,6 +845,7 @@ export default async function PlanHubPage({ params }: Props) {
         <div className="flex flex-wrap items-center gap-x-(--space-2) gap-y-(--space-1)">
           <Link
             href={APP_PATH.MONEY}
+            prefetch={PRODUCT_LINK_PREFETCH}
             className={PLAN_INLINE_LINK_CLASS}
             data-testid="plan-money-link"
           >
@@ -836,6 +853,7 @@ export default async function PlanHubPage({ params }: Props) {
           </Link>
           <Link
             href={APP_PATH.PLAN_GOALS}
+            prefetch={PRODUCT_LINK_PREFETCH}
             className={PLAN_INLINE_LINK_CLASS}
             data-testid="plan-entry-goals"
           >
@@ -843,6 +861,7 @@ export default async function PlanHubPage({ params }: Props) {
           </Link>
           <Link
             href={APP_PATH.PLAN_RECURRING}
+            prefetch={PRODUCT_LINK_PREFETCH}
             className={PLAN_INLINE_LINK_CLASS}
             data-testid="plan-entry-recurring"
           >

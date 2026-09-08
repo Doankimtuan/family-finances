@@ -6,20 +6,30 @@ import {
   type ProductActionErrorCode,
 } from "@/modules/tenancy/application/product-action-error";
 import type { Result } from "@/modules/shared-kernel/application/result";
+import { SUPABASE_POSTGRES_ERROR_CODE } from "@/modules/tenancy/application/tenancy-constants";
 import { currentPeriodMonth } from "../ritual-period";
 import { logPlanFailure } from "../plan-error";
 import { PLAN_OPERATION } from "../plan-constants";
-import { listJars } from "../queries/list-jars";
-import { JarPlanKind } from "../jar-types";
+import { collectCurrentPeriodSnapshotInserts } from "../queries/get-current-jar-budgets";
 
 export type EnsureJarPeriodRuleSnapshotsResult = Result<
   { written: number },
   ProductActionErrorCode
 >;
 
+const JAR_PERIOD_SNAPSHOT_CONFLICT_TARGET = "jar_id,period_month";
+
+function isUniqueViolation(error: { code?: string } | null): boolean {
+  return (
+    (error?.code ?? "").toLowerCase() ===
+    SUPABASE_POSTGRES_ERROR_CODE.UNIQUE_VIOLATION
+  );
+}
+
 /**
- * Lazy month-start jar rule snapshots for historical Monthly Review stability.
- * Idempotent: skips jars already snapshotted for the period.
+ * Month-start jar rule snapshots for historical Monthly Review stability.
+ * Idempotent: unique (jar_id, period_month) wins; concurrent writers do not
+ * duplicate. GET paths must not call this.
  */
 export async function ensureJarPeriodRuleSnapshots(
   periodMonth = currentPeriodMonth(),
@@ -33,8 +43,8 @@ export async function ensureJarPeriodRuleSnapshots(
   }
 
   try {
-    const listed = await listJars();
-    if (!listed) {
+    const collected = await collectCurrentPeriodSnapshotInserts();
+    if (!collected) {
       logPlanFailure(null, PLAN_OPERATION.ENSURE_JAR_PERIOD_SNAPSHOTS, {
         householdId: gate.householdId,
         periodMonth,
@@ -42,58 +52,26 @@ export async function ensureJarPeriodRuleSnapshots(
       });
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
     }
-    const jars = [...listed.active, ...listed.paused, ...listed.archived];
-    if (jars.length === 0) return { ok: true, written: 0 };
+    if (collected.periodMonth !== periodMonth) {
+      return { ok: true, written: 0 };
+    }
+    if (collected.rows.length === 0) return { ok: true, written: 0 };
 
     const supabase = await createSupabaseServerClient();
-    const { data: existing, error: existingError } = await supabase
-      .from("jar_period_rule_snapshots")
-      .select("jar_id")
-      .eq("household_id", gate.householdId)
-      .eq("period_month", periodMonth);
-    if (existingError) {
-      logPlanFailure(
-        existingError,
-        PLAN_OPERATION.ENSURE_JAR_PERIOD_SNAPSHOTS,
-        {
-          householdId: gate.householdId,
-          periodMonth,
-        },
-      );
-      return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
-    }
-    const existingIds = new Set(
-      (existing ?? []).flatMap((row) =>
-        typeof row.jar_id === "string" ? [row.jar_id] : [],
-      ),
-    );
-
-    const rows = jars
-      .filter((jar) => !existingIds.has(jar.id) && jar.plan)
-      .map((jar) => ({
-        household_id: gate.householdId,
-        jar_id: jar.id,
-        period_month: periodMonth,
-        jar_name: jar.name,
-        plan_kind: jar.plan?.kind ?? JarPlanKind.FIXED,
-        percent_bps: jar.plan?.percentBps ?? 0,
-        fixed_amount: jar.plan?.fixedAmount ?? 0,
-        rollover_mode: jar.rolloverMode,
-      }));
-
-    if (rows.length === 0) return { ok: true, written: 0 };
-
     const { error } = await supabase
       .from("jar_period_rule_snapshots")
-      .insert(rows);
-    if (error) {
+      .upsert(collected.rows, {
+        onConflict: JAR_PERIOD_SNAPSHOT_CONFLICT_TARGET,
+        ignoreDuplicates: true,
+      });
+    if (error && !isUniqueViolation(error)) {
       logPlanFailure(error, PLAN_OPERATION.ENSURE_JAR_PERIOD_SNAPSHOTS, {
         householdId: gate.householdId,
         periodMonth,
       });
       return { ok: false, code: PRODUCT_ACTION_ERROR_CODE.UNKNOWN };
     }
-    return { ok: true, written: rows.length };
+    return { ok: true, written: collected.rows.length };
   } catch (error) {
     logPlanFailure(error, PLAN_OPERATION.ENSURE_JAR_PERIOD_SNAPSHOTS, {
       householdId: gate.householdId,

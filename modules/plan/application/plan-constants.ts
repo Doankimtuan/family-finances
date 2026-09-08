@@ -419,6 +419,8 @@ export const PLAN_OPERATION = {
   GET_RECURRING: "getRecurring",
   LIST_PAYOFF_INBOX_ITEMS: "listPayoffInboxItems",
   GET_MONTH_RITUAL: "getMonthRitual",
+  GET_JAR_BUDGETS: "getJarBudgetsForPeriod",
+  LIST_PLAN_HUB_UPCOMING: "listPlanHubUpcomingEvents",
 } as const;
 
 export type PlanOperation =
@@ -490,6 +492,10 @@ export const CALENDAR_CASH_FLOW_SIGN_VALUES = [
 
 /** Default projection horizon in months from the anchor month start. */
 export const CALENDAR_PROJECTION_MONTHS = 3;
+
+/** Plan hub upcoming preview: 7-day window, at most 3 events. */
+export const PLAN_HUB_UPCOMING_DAYS = 7;
+export const PLAN_HUB_UPCOMING_EVENT_LIMIT = 3;
 
 /**
  * Warn when projected real cash (not jar intention) would fall at or below

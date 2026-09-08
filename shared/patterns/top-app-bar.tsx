@@ -4,6 +4,7 @@ import type { IconSvgElement } from "@hugeicons/react";
 import { useTranslations } from "next-intl";
 import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
 import { Link } from "@/i18n/navigation";
+import { PRODUCT_LINK_PREFETCH } from "@/shared/constants/navigation";
 import { cn } from "@/shared/utils/cn";
 import { IconButton } from "@/shared/ui/icon-button";
 import { Heading } from "@/shared/ui/heading";
@@ -153,6 +154,7 @@ export function TopAppBar({
         ) : backHref ? (
           <Link
             href={backHref}
+            prefetch={PRODUCT_LINK_PREFETCH}
             aria-label={resolvedBackLabel}
             className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-(--radius-control) text-text-secondary transition-[background-color,color] duration-(--duration-fast) ease-(--ease-standard) hover:bg-surface-hover hover:text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none"
           >

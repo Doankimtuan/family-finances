@@ -1,5 +1,6 @@
 import type { ComponentProps } from "react";
 import { Link } from "@/i18n/navigation";
+import { PRODUCT_LINK_PREFETCH } from "@/shared/constants/navigation";
 import { cn } from "@/shared/utils/cn";
 
 /** 44×44px interactive target. Visual chrome stays on the inner pill. */
@@ -22,7 +23,11 @@ export function HeroPillLink({
   ...props
 }: HeroPillLinkProps) {
   return (
-    <Link className={cn(HERO_PILL_LINK_HIT_AREA_CLASS, className)} {...props}>
+    <Link
+      {...props}
+      className={cn(HERO_PILL_LINK_HIT_AREA_CLASS, className)}
+      prefetch={PRODUCT_LINK_PREFETCH}
+    >
       <span className={HERO_PILL_LINK_VISUAL_CLASS}>{children}</span>
     </Link>
   );

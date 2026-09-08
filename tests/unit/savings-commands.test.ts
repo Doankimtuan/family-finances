@@ -22,6 +22,7 @@ import {
   createSaving,
   detectMaturedSavings,
   backfillLegacySavingsAccounts,
+  syncSavingsLifecycle,
   renewSaving,
   settleSaving,
   updateRenewalPolicy,
@@ -37,9 +38,12 @@ import {
   RenewalPolicy,
   SAVINGS_LEGACY_BACKFILL_SKIP_ERRORS,
   SAVINGS_RPC,
+  SavingsCreateMode,
   SettlementRule,
   SettlementAction,
 } from "@/modules/savings/application/savings-constants";
+import { AccountType } from "@/modules/ledger/application/account-constants";
+import { FINANCIAL_SCOPE } from "@/modules/shared-kernel/application/financial-scope";
 
 const householdId = "11111111-1111-1111-1111-111111111111";
 const cycleId = "22222222-2222-2222-2222-222222222222";
@@ -64,6 +68,7 @@ describe("Savings command error boundary", () => {
       ok: true,
       userId: "33333333-3333-3333-3333-333333333333",
       householdId,
+      membershipId: "44444444-4444-4444-4444-444444444444",
     });
   });
 
@@ -295,5 +300,121 @@ describe("Savings command error boundary", () => {
       maturedCount: 2,
       cascadeCount: 3,
     });
+  });
+
+  it("runs backfill, detect, and cascade RPCs only when invoked explicitly", async () => {
+    const rpc = vi
+      .fn()
+      .mockResolvedValueOnce({
+        data: { ok: true, migratedCount: 1 },
+        error: null,
+      })
+      .mockResolvedValueOnce({
+        data: { maturedCount: 2 },
+        error: null,
+      })
+      .mockResolvedValueOnce({
+        data: { cascadeCount: 3 },
+        error: null,
+      });
+    vi.mocked(createSupabaseServerClient).mockResolvedValue({ rpc } as never);
+
+    await expect(syncSavingsLifecycle()).resolves.toEqual({
+      ok: true,
+      migratedCount: 1,
+      maturedCount: 2,
+      cascadeCount: 3,
+    });
+    expect(rpc).toHaveBeenNthCalledWith(1, SAVINGS_RPC.BACKFILL_LEGACY, {
+      p_household_id: householdId,
+    });
+    expect(rpc).toHaveBeenNthCalledWith(2, SAVINGS_RPC.DETECT_MATURED, {
+      p_household_id: householdId,
+    });
+    expect(rpc).toHaveBeenNthCalledWith(
+      3,
+      SAVINGS_RPC.ENQUEUE_MATURITY_CASCADE,
+      { p_household_id: householdId },
+    );
+  });
+
+  it("forwards a stable idempotency key so server replay can collapse retries", async () => {
+    const fundingAccountId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+    const settlementAccountId = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
+    const providerId = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
+    const packageId = "dddddddd-dddd-4ddd-8ddd-dddddddddddd";
+    const idempotencyKey = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee";
+    const savingId = "ffffffff-ffff-4fff-8fff-ffffffffffff";
+    const rpc = vi.fn().mockResolvedValue({
+      data: { ok: true, savingId, cycleId },
+      error: null,
+    });
+    let accountLookups = 0;
+    const query = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockImplementation(async () => {
+        accountLookups += 1;
+        const isFunding = accountLookups % 2 === 1;
+        return {
+          data: isFunding
+            ? { id: fundingAccountId, type: AccountType.CASH }
+            : { id: settlementAccountId, type: AccountType.CHECKING },
+          error: null,
+        };
+      }),
+    };
+    vi.mocked(createSupabaseServerClient).mockResolvedValue({
+      from: vi.fn().mockReturnValue(query),
+      rpc,
+    } as never);
+    vi.mocked(resolvePackageSnapshot).mockResolvedValue({
+      packageSnapshot: {
+        packageId,
+        packageName: "90-day",
+        durationDays: 90,
+        annualInterestRate: 6,
+        settlementRules: [SettlementRule.WITHDRAW_EVERYTHING],
+        penaltyRules: [],
+        renewableAvailable: true,
+        minAmount: null,
+        maxAmount: null,
+      },
+      providerId,
+      productName: "Main Bank",
+    });
+
+    const payload = {
+      creationMode: SavingsCreateMode.LIVE_DEPOSIT,
+      fundingAccountId,
+      settlementAccountId,
+      providerId,
+      packageId,
+      principal: 1_000_000,
+      productName: "90-day",
+      financialScope: FINANCIAL_SCOPE.HOUSEHOLD,
+      idempotencyKey,
+    };
+
+    const first = await createSaving(payload);
+    const replay = await createSaving(payload);
+
+    expect(first).toMatchObject({
+      ok: true,
+      savingId,
+      cycleId,
+    });
+    expect(replay).toEqual(first);
+    expect(rpc).toHaveBeenCalledTimes(2);
+    expect(rpc).toHaveBeenNthCalledWith(
+      1,
+      SAVINGS_RPC.CREATE,
+      expect.objectContaining({ p_idempotency_key: idempotencyKey }),
+    );
+    expect(rpc).toHaveBeenNthCalledWith(
+      2,
+      SAVINGS_RPC.CREATE,
+      expect.objectContaining({ p_idempotency_key: idempotencyKey }),
+    );
   });
 });

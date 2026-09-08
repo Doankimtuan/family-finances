@@ -323,6 +323,13 @@ describe("getRealPosition", () => {
       householdId: "h1",
     });
     vi.mocked(createSupabaseServerClient).mockResolvedValue({
+      rpc: async () => ({
+        data: [
+          { account_id: "a1", balance: 100 },
+          { account_id: "a2", balance: 50 },
+        ],
+        error: null,
+      }),
       from: (table: string) => {
         if (table === "households") {
           return {
@@ -331,17 +338,6 @@ describe("getRealPosition", () => {
                 maybeSingle: async () => ({
                   data: { base_currency: "VND" },
                   error: null,
-                }),
-              }),
-            }),
-          };
-        }
-        if (table === "transactions") {
-          return {
-            select: () => ({
-              eq: () => ({
-                in: () => ({
-                  in: async () => ({ data: [], error: null }),
                 }),
               }),
             }),

@@ -1,10 +1,10 @@
-const PLAN_JAR_BUDGET_LOG_CONTEXT = "[plan.jar-budgets]";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { FINANCIAL_SCOPE } from "@/modules/shared-kernel/application/financial-scope";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import { DEFAULT_CURRENCY } from "@/modules/ledger/application/ledger-constants";
 import { HOUSEHOLD_TIMEZONE } from "@/modules/tenancy/application/tenancy-constants";
-import { RecurringDirection } from "../plan-constants";
+import { PLAN_OPERATION, RecurringDirection } from "../plan-constants";
+import { logPlanFailure } from "../plan-error";
 import {
   calculateJarBudgetMetrics,
   calculateJarRuleBudget,
@@ -14,9 +14,10 @@ import {
   resolveJarPlanForPeriod,
   type JarBudgetMetrics,
   type JarBudgetTransaction,
+  type QualifyingIncomeResolution,
   type QualifyingIncomeSource,
 } from "../jar-budget";
-import { mapJarPlan, type PlanJar } from "../jar-types";
+import { mapJarPlan, type PlanJar, type PlanPulse } from "../jar-types";
 import { projectRecurringEvents } from "../calendar-projection";
 import { mapRecurringRow, type PlanRecurring } from "../goal-recurring-types";
 import { getPlanPulse } from "./get-plan-pulse";
@@ -75,6 +76,47 @@ export type CurrentJarBudgetSummary = {
   byJarId: Record<string, JarBudgetMetrics>;
 };
 
+export type JarPeriodSnapshotInsertRow = {
+  household_id: string;
+  jar_id: string;
+  period_month: string;
+  jar_name: string;
+  plan_kind: string;
+  percent_bps: number;
+  fixed_amount: number;
+  rollover_mode: string;
+  qualifying_income: number;
+  qualifying_income_source: string;
+  rule_budget: number;
+  rollover_credit: number;
+};
+
+export type CurrentPeriodSnapshotInserts = {
+  householdId: string;
+  periodMonth: string;
+  rows: JarPeriodSnapshotInsertRow[];
+};
+
+type HouseholdSettings = {
+  timezone: string;
+  configuredIncome: number | null;
+  currency: string;
+};
+
+type JarBudgetContext = {
+  householdId: string;
+  settings: HouseholdSettings;
+  pulse: PlanPulse;
+  currentPeriod: JarBudgetPeriod;
+  selectedPeriod: JarBudgetPeriod;
+  qualifyingIncome: QualifyingIncomeResolution;
+  transactions: JarBudgetTransaction[];
+  existing: Map<string, JarRuleSnapshotRow>;
+  previousTransactions: JarBudgetTransaction[];
+  previousAdjustments: Record<string, number>;
+  adjustments: Record<string, number>;
+};
+
 export function jarBudgetPeriodBounds(
   now = new Date(),
   timezone: string = DEFAULT_HOUSEHOLD_TIMEZONE,
@@ -118,26 +160,28 @@ async function loadPeriodTransactions(
   period: JarBudgetPeriod,
 ): Promise<JarBudgetTransaction[]> {
   const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase
-    .from("transactions")
-    .select(`${TRANSACTION_PERIOD_SELECT}, accounts!inner(financial_scope)`)
-    .eq("household_id", householdId)
-    .eq("accounts.financial_scope", FINANCIAL_SCOPE.HOUSEHOLD)
-    .gte("transaction_date", period.start)
-    .lt("transaction_date", period.endExclusive)
-    .order("transaction_date", { ascending: true })
-    .order("created_at", { ascending: true });
-  if (error) throw error;
-  const { data: loanRows } = await supabase
-    .from("loan_payments")
-    .select("transaction_id")
-    .eq("household_id", householdId)
-    .gte("paid_at", period.start)
-    .lt("paid_at", period.endExclusive);
+  const [txResult, loanResult] = await Promise.all([
+    supabase
+      .from("transactions")
+      .select(`${TRANSACTION_PERIOD_SELECT}, accounts!inner(financial_scope)`)
+      .eq("household_id", householdId)
+      .eq("accounts.financial_scope", FINANCIAL_SCOPE.HOUSEHOLD)
+      .gte("transaction_date", period.start)
+      .lt("transaction_date", period.endExclusive)
+      .order("transaction_date", { ascending: true })
+      .order("created_at", { ascending: true }),
+    supabase
+      .from("loan_payments")
+      .select("transaction_id")
+      .eq("household_id", householdId)
+      .gte("paid_at", period.start)
+      .lt("paid_at", period.endExclusive),
+  ]);
+  if (txResult.error) throw txResult.error;
   const loanPaymentIds = new Set(
-    (loanRows ?? []).map((row) => String(row.transaction_id)),
+    (loanResult.data ?? []).map((row) => String(row.transaction_id)),
   );
-  return (data ?? []).map((row) => ({
+  return (txResult.data ?? []).map((row) => ({
     ...mapTransactionRow(row),
     is_loan_payment: loanPaymentIds.has(row.id),
   }));
@@ -227,6 +271,7 @@ async function loadSnapshots(
   jarIds: string[],
   periods: string[],
 ): Promise<Map<string, JarRuleSnapshotRow>> {
+  if (jarIds.length === 0) return new Map();
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("jar_period_rule_snapshots")
@@ -249,6 +294,7 @@ async function loadAdjustments(
   jarIds: string[],
   periodMonth: string,
 ): Promise<Record<string, number>> {
+  if (jarIds.length === 0) return {};
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("jar_period_adjustments")
@@ -266,73 +312,201 @@ async function loadAdjustments(
   }, {});
 }
 
-async function ensureSnapshots(input: {
+function buildCurrentPeriodSnapshotRow(input: {
   householdId: string;
-  jars: PlanJar[];
-  selectedPeriod: JarBudgetPeriod;
-  currentPeriod: string;
-  qualifyingIncome: ReturnType<typeof resolveQualifyingMonthlyIncome>;
+  jar: PlanJar;
+  periodMonth: string;
+  qualifyingIncome: QualifyingIncomeResolution;
+  previousSnapshot: JarRuleSnapshotRow | undefined;
   previousTransactions: JarBudgetTransaction[];
-  previousAdjustments: Record<string, number>;
-  existing: Map<string, JarRuleSnapshotRow>;
-}): Promise<Map<string, JarRuleSnapshotRow>> {
-  const {
-    householdId,
-    jars,
-    selectedPeriod,
-    currentPeriod,
-    qualifyingIncome,
-    previousTransactions,
-    previousAdjustments,
-    existing,
-  } = input;
-  const previousPeriod = previousPeriodMonth(selectedPeriod.month);
-  const inserts: Array<Record<string, unknown>> = [];
-  for (const jar of jars) {
-    if (!jar.plan) continue;
-    const key = `${jar.id}:${selectedPeriod.month}`;
-    if (existing.has(key) || selectedPeriod.month !== currentPeriod) continue;
-    const ruleBudget = calculateJarBudgetMetrics(jar, jar.id, [], {
-      periodIncome: qualifyingIncome.amount,
-    }).ruleBudget;
-    const previousSnapshot = existing.get(`${jar.id}:${previousPeriod}`);
-    const previousSpent = previousSnapshot
-      ? calculateJarSpentAmount(jar.id, previousTransactions)
-      : 0;
-    const rolloverCredit = previousSnapshot
-      ? calculateRolloverCreditFromPreviousState({
-          rolloverMode: previousSnapshot.rollover_mode,
-          previousBudget:
-            (Number(previousSnapshot.rule_budget) ||
-              snapshotRuleBudget(previousSnapshot)) +
-            (Number(previousSnapshot.rollover_credit) || 0) +
-            (previousAdjustments[jar.id] ?? 0),
-          previousSpent,
-        })
-      : 0;
-    const row = {
-      household_id: householdId,
-      jar_id: jar.id,
-      period_month: selectedPeriod.month,
-      jar_name: jar.name,
-      plan_kind: jar.plan.kind,
-      percent_bps: jar.plan.percentBps,
-      fixed_amount: jar.plan.fixedAmount,
-      rollover_mode: jar.rolloverMode,
-      qualifying_income: qualifyingIncome.amount,
-      qualifying_income_source: qualifyingIncome.source,
-      rule_budget: ruleBudget,
-      rollover_credit: rolloverCredit,
-    };
-    inserts.push(row);
-    existing.set(key, row as JarRuleSnapshotRow);
-  }
-  const supabase = await createSupabaseServerClient();
-  if (inserts.length)
-    await supabase.from("jar_period_rule_snapshots").insert(inserts);
-  return existing;
+  previousAdjustment: number;
+}): JarPeriodSnapshotInsertRow | null {
+  const { jar } = input;
+  if (!jar.plan) return null;
+  const ruleBudget = calculateJarBudgetMetrics(jar, jar.id, [], {
+    periodIncome: input.qualifyingIncome.amount,
+  }).ruleBudget;
+  const previousSpent = input.previousSnapshot
+    ? calculateJarSpentAmount(jar.id, input.previousTransactions)
+    : 0;
+  const rolloverCredit = input.previousSnapshot
+    ? calculateRolloverCreditFromPreviousState({
+        rolloverMode: input.previousSnapshot.rollover_mode,
+        previousBudget:
+          (Number(input.previousSnapshot.rule_budget) ||
+            snapshotRuleBudget(input.previousSnapshot)) +
+          (Number(input.previousSnapshot.rollover_credit) || 0) +
+          input.previousAdjustment,
+        previousSpent,
+      })
+    : 0;
+  return {
+    household_id: input.householdId,
+    jar_id: jar.id,
+    period_month: input.periodMonth,
+    jar_name: jar.name,
+    plan_kind: jar.plan.kind,
+    percent_bps: jar.plan.percentBps,
+    fixed_amount: jar.plan.fixedAmount,
+    rollover_mode: jar.rolloverMode,
+    qualifying_income: input.qualifyingIncome.amount,
+    qualifying_income_source: input.qualifyingIncome.source,
+    rule_budget: ruleBudget ?? 0,
+    rollover_credit: rolloverCredit,
+  };
 }
 
+function missingCurrentPeriodSnapshotRows(
+  context: JarBudgetContext,
+): JarPeriodSnapshotInsertRow[] {
+  if (context.selectedPeriod.month !== context.currentPeriod.month) return [];
+  const previousPeriod = previousPeriodMonth(context.selectedPeriod.month);
+  const rows: JarPeriodSnapshotInsertRow[] = [];
+  for (const jar of context.pulse.activeJars) {
+    const key = `${jar.id}:${context.selectedPeriod.month}`;
+    if (context.existing.has(key)) continue;
+    const row = buildCurrentPeriodSnapshotRow({
+      householdId: context.householdId,
+      jar,
+      periodMonth: context.selectedPeriod.month,
+      qualifyingIncome: context.qualifyingIncome,
+      previousSnapshot: context.existing.get(`${jar.id}:${previousPeriod}`),
+      previousTransactions: context.previousTransactions,
+      previousAdjustment: context.previousAdjustments[jar.id] ?? 0,
+    });
+    if (row) rows.push(row);
+  }
+  return rows;
+}
+
+function snapshotsForRead(
+  context: JarBudgetContext,
+): Map<string, JarRuleSnapshotRow> {
+  const snapshots = new Map(context.existing);
+  for (const row of missingCurrentPeriodSnapshotRows(context)) {
+    snapshots.set(`${row.jar_id}:${row.period_month}`, row);
+  }
+  return snapshots;
+}
+
+async function loadJarBudgetContext(
+  periodMonth: string | undefined,
+  now: Date,
+): Promise<JarBudgetContext | null> {
+  const gate = await assertMoneyActionAllowed();
+  if (!gate.ok) return null;
+  const [settings, pulse] = await Promise.all([
+    loadHouseholdSettings(gate.householdId),
+    getPlanPulse(),
+  ]);
+  if (!pulse) return null;
+  const currentPeriod = jarBudgetPeriodBounds(now, settings.timezone);
+  const selectedPeriod = periodMonth
+    ? {
+        ...currentPeriod,
+        month: periodMonth,
+        start: periodMonth,
+        end: periodMonthEndDate(periodMonth),
+        endExclusive: periodMonthExclusiveEnd(periodMonth),
+      }
+    : currentPeriod;
+  const previousPeriod = previousPeriodMonth(selectedPeriod.month);
+  const jarIds = pulse.activeJars.map((jar) => jar.id);
+  const previousBounds: JarBudgetPeriod = {
+    ...selectedPeriod,
+    month: previousPeriod,
+    start: previousPeriod,
+    end: periodMonthEndDate(previousPeriod),
+    endExclusive: periodMonthExclusiveEnd(previousPeriod),
+  };
+  const [
+    transactions,
+    recurringIncome,
+    existing,
+    previousTransactions,
+    previousAdjustments,
+    adjustments,
+  ] = await Promise.all([
+    loadPeriodTransactions(gate.householdId, selectedPeriod),
+    loadRecurringIncome(gate.householdId, selectedPeriod, settings.currency),
+    loadSnapshots(gate.householdId, jarIds, [
+      selectedPeriod.month,
+      previousPeriod,
+    ]),
+    loadPeriodTransactions(gate.householdId, previousBounds),
+    loadAdjustments(gate.householdId, jarIds, previousPeriod),
+    loadAdjustments(gate.householdId, jarIds, selectedPeriod.month),
+  ]);
+  const qualifyingIncome = resolveQualifyingMonthlyIncome({
+    configuredIncome: settings.configuredIncome,
+    recurringIncome,
+    postedIncome: calculateQualifyingPostedIncome(transactions),
+  });
+  return {
+    householdId: gate.householdId,
+    settings,
+    pulse,
+    currentPeriod,
+    selectedPeriod,
+    qualifyingIncome,
+    transactions,
+    existing,
+    previousTransactions,
+    previousAdjustments,
+    adjustments,
+  };
+}
+
+function summaryFromContext(
+  context: JarBudgetContext,
+): CurrentJarBudgetSummary {
+  const snapshots = snapshotsForRead(context);
+  const byJarId: Record<string, JarBudgetMetrics> = {};
+  let summaryIncome = context.qualifyingIncome.amount;
+  let summarySource = context.qualifyingIncome.source;
+  for (const jar of context.pulse.activeJars) {
+    const snapshot = snapshots.get(`${jar.id}:${context.selectedPeriod.month}`);
+    if (!snapshot) continue;
+    const budgetPlan = resolveJarPlanForPeriod({
+      currentPlan: jar.plan,
+      snapshotPlan: mapJarPlan(snapshot),
+      periodMonth: context.selectedPeriod.month,
+      currentPeriodMonth: context.currentPeriod.month,
+    });
+    if (!budgetPlan) continue;
+    const periodIncome =
+      Number(snapshot.qualifying_income ?? context.qualifyingIncome.amount) ||
+      0;
+    const source = incomeSource(snapshot.qualifying_income_source);
+    byJarId[jar.id] = calculateJarBudgetMetrics(
+      { plan: budgetPlan },
+      jar.id,
+      context.transactions,
+      {
+        periodIncome,
+        incomeSource: source,
+        rolloverCredit: Math.max(0, Number(snapshot.rollover_credit) || 0),
+        adjustment: context.adjustments[jar.id] ?? 0,
+      },
+    );
+    summaryIncome = periodIncome;
+    summarySource = source;
+  }
+  return {
+    periodMonth: context.selectedPeriod.month,
+    periodIncome: summaryIncome,
+    qualifyingIncome: summaryIncome,
+    incomeSource: summarySource,
+    period: context.selectedPeriod,
+    byJarId,
+  };
+}
+
+/**
+ * Pure period read. Missing current-period snapshots are computed in memory
+ * so hub numbers stay available; persistence belongs to
+ * `ensureJarPeriodRuleSnapshots`.
+ */
 export async function getJarBudgetsForPeriod(
   periodMonth?: string,
   now = new Date(),
@@ -340,109 +514,14 @@ export async function getJarBudgetsForPeriod(
   const gate = await assertMoneyActionAllowed();
   if (!gate.ok) return null;
   try {
-    const settings = await loadHouseholdSettings(gate.householdId);
-    const currentPeriod = jarBudgetPeriodBounds(now, settings.timezone);
-    const selectedPeriod = periodMonth
-      ? {
-          ...currentPeriod,
-          month: periodMonth,
-          start: periodMonth,
-          end: periodMonthEndDate(periodMonth),
-          endExclusive: periodMonthExclusiveEnd(periodMonth),
-        }
-      : currentPeriod;
-    const pulse = await getPlanPulse();
-    if (!pulse) return null;
-    const transactions = await loadPeriodTransactions(
-      gate.householdId,
-      selectedPeriod,
-    );
-    const recurringIncome = await loadRecurringIncome(
-      gate.householdId,
-      selectedPeriod,
-      settings.currency,
-    );
-    const qualifyingIncome = resolveQualifyingMonthlyIncome({
-      configuredIncome: settings.configuredIncome,
-      recurringIncome,
-      postedIncome: calculateQualifyingPostedIncome(transactions),
-    });
-    const jarIds = pulse.activeJars.map((jar) => jar.id);
-    const previousPeriod = previousPeriodMonth(selectedPeriod.month);
-    const existing = await loadSnapshots(gate.householdId, jarIds, [
-      selectedPeriod.month,
-      previousPeriod,
-    ]);
-    const previousTransactions = await loadPeriodTransactions(
-      gate.householdId,
-      {
-        ...selectedPeriod,
-        month: previousPeriod,
-        start: previousPeriod,
-        end: periodMonthEndDate(previousPeriod),
-        endExclusive: periodMonthExclusiveEnd(previousPeriod),
-      },
-    );
-    const previousAdjustments = await loadAdjustments(
-      gate.householdId,
-      jarIds,
-      previousPeriod,
-    );
-    const snapshots = await ensureSnapshots({
-      householdId: gate.householdId,
-      jars: pulse.activeJars,
-      selectedPeriod,
-      currentPeriod: currentPeriod.month,
-      qualifyingIncome,
-      previousTransactions,
-      previousAdjustments,
-      existing,
-    });
-    const adjustments = await loadAdjustments(
-      gate.householdId,
-      jarIds,
-      selectedPeriod.month,
-    );
-    const byJarId: Record<string, JarBudgetMetrics> = {};
-    let summaryIncome = qualifyingIncome.amount;
-    let summarySource = qualifyingIncome.source;
-    for (const jar of pulse.activeJars) {
-      const snapshot = snapshots.get(`${jar.id}:${selectedPeriod.month}`);
-      if (!snapshot) continue;
-      const budgetPlan = resolveJarPlanForPeriod({
-        currentPlan: jar.plan,
-        snapshotPlan: mapJarPlan(snapshot),
-        periodMonth: selectedPeriod.month,
-        currentPeriodMonth: currentPeriod.month,
-      });
-      if (!budgetPlan) continue;
-      const periodIncome =
-        Number(snapshot.qualifying_income ?? qualifyingIncome.amount) || 0;
-      const source = incomeSource(snapshot.qualifying_income_source);
-      byJarId[jar.id] = calculateJarBudgetMetrics(
-        { plan: budgetPlan },
-        jar.id,
-        transactions,
-        {
-          periodIncome,
-          incomeSource: source,
-          rolloverCredit: Math.max(0, Number(snapshot.rollover_credit) || 0),
-          adjustment: adjustments[jar.id] ?? 0,
-        },
-      );
-      summaryIncome = periodIncome;
-      summarySource = source;
-    }
-    return {
-      periodMonth: selectedPeriod.month,
-      periodIncome: summaryIncome,
-      qualifyingIncome: summaryIncome,
-      incomeSource: summarySource,
-      period: selectedPeriod,
-      byJarId,
-    };
+    const context = await loadJarBudgetContext(periodMonth, now);
+    if (!context) return null;
+    return summaryFromContext(context);
   } catch (error) {
-    console.error(PLAN_JAR_BUDGET_LOG_CONTEXT, error);
+    logPlanFailure(error, PLAN_OPERATION.GET_JAR_BUDGETS, {
+      householdId: gate.householdId,
+      periodMonth,
+    });
     return null;
   }
 }
@@ -451,4 +530,29 @@ export async function getCurrentJarBudgets(
   now = new Date(),
 ): Promise<CurrentJarBudgetSummary | null> {
   return getJarBudgetsForPeriod(undefined, now);
+}
+
+/**
+ * Rows the write path should persist for the current period. GET never calls
+ * this for its own side effects; commands insert with ON CONFLICT DO NOTHING.
+ */
+export async function collectCurrentPeriodSnapshotInserts(
+  now = new Date(),
+): Promise<CurrentPeriodSnapshotInserts | null> {
+  const gate = await assertMoneyActionAllowed();
+  if (!gate.ok) return null;
+  try {
+    const context = await loadJarBudgetContext(undefined, now);
+    if (!context) return null;
+    return {
+      householdId: context.householdId,
+      periodMonth: context.selectedPeriod.month,
+      rows: missingCurrentPeriodSnapshotRows(context),
+    };
+  } catch (error) {
+    logPlanFailure(error, PLAN_OPERATION.ENSURE_JAR_PERIOD_SNAPSHOTS, {
+      householdId: gate.householdId,
+    });
+    return null;
+  }
 }

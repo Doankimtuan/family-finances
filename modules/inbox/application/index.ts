@@ -1,10 +1,12 @@
 export {
   listOpenInboxItems,
   listOpenInboxPage,
+  getOpenInboxAttention,
   countOpenInboxItems,
   countUnreadOpenInboxItems,
   listArchivedInboxItems,
   getInboxItem,
+  type OpenInboxAttention,
 } from "./queries/review-items";
 export {
   resolveInboxItemToJar,

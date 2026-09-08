@@ -17,6 +17,13 @@ vi.mock("@/modules/plan/application/queries/ritual-gates", () => ({
   listRitualEmergencies: vi.fn(),
 }));
 
+vi.mock(
+  "@/modules/plan/application/commands/ensure-jar-period-snapshots",
+  () => ({
+    ensureJarPeriodRuleSnapshots: vi.fn(async () => ({ ok: true, written: 0 })),
+  }),
+);
+
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import { buildRitualPreview } from "@/modules/plan/application/queries/get-month-ritual";
@@ -24,6 +31,7 @@ import {
   listRitualDivergence,
   listRitualEmergencies,
 } from "@/modules/plan/application/queries/ritual-gates";
+import { ensureJarPeriodRuleSnapshots } from "@/modules/plan/application/commands/ensure-jar-period-snapshots";
 import {
   acknowledgeRitualEmergencies,
   approveMonthRitual,
@@ -174,6 +182,7 @@ describe("month ritual command behavior", () => {
         updated_at: FIXED_NOW.toISOString(),
       }),
     ]);
+    expect(ensureJarPeriodRuleSnapshots).toHaveBeenCalled();
   });
 
   it("rejects approval when the period is already locked", async () => {
@@ -253,6 +262,7 @@ describe("month ritual command behavior", () => {
       ],
       { onConflict: "goal_id,period_month" },
     );
+    expect(ensureJarPeriodRuleSnapshots).toHaveBeenCalled();
   });
 
   it("rejects approval when no preview exists", async () => {

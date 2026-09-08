@@ -1,5 +1,10 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import {
+  wrapFetchForPerfTrace,
+  withPerfSpan,
+  PERF_TRACE_OP,
+} from "@/modules/platform/application/perf-trace";
 import { getSupabaseEnv } from "./env";
 
 /**
@@ -46,10 +51,15 @@ export async function updateSession(
         supabaseResponse.headers.set("Cache-Control", "private, no-store");
       },
     },
+    global: {
+      fetch: wrapFetchForPerfTrace(fetch),
+    },
   });
 
   // Required for token refresh — do not remove or insert logic before this call.
-  await supabase.auth.getClaims();
+  await withPerfSpan(PERF_TRACE_OP.AUTH_GET_CLAIMS, () =>
+    supabase.auth.getClaims(),
+  );
 
   return supabaseResponse;
 }

@@ -4,7 +4,6 @@ import { useId, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import {
-  LEDGER_ACTION_ERROR_CODE,
   TRANSACTION_DIRECTION_OPTIONS,
   TransactionDirection,
   type CaptureJarOption,
@@ -31,9 +30,7 @@ import {
 import { createCategoryAction } from "./actions";
 
 type ErrorCode =
-  | ProductActionErrorCode
-  | typeof LEDGER_ACTION_ERROR_CODE.CATEGORY_UNMAPPED
-  | typeof CLIENT_ACTION_ERROR_CODE.OFFLINE;
+  ProductActionErrorCode | typeof CLIENT_ACTION_ERROR_CODE.OFFLINE;
 
 type Props = {
   jars: CaptureJarOption[];
@@ -47,7 +44,7 @@ function createCategoryDefaults() {
   };
 }
 
-/** Category creation keeps Jar mapping only for expense categories. */
+/** Category creation keeps jar mapping optional for both category kinds. */
 export function CreateCategoryForm({ jars }: Props) {
   const t = useTranslations("plan.jars.categoryForm");
   const tCatalog = useTranslations("catalog");
@@ -63,7 +60,6 @@ export function CreateCategoryForm({ jars }: Props) {
   );
   const [mappedJarId, setMappedJarId] = useState("");
   const [nameError, setNameError] = useState<string | null>(null);
-  const [jarError, setJarError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const reset = () => {
@@ -72,7 +68,6 @@ export function CreateCategoryForm({ jars }: Props) {
     setKind(defaults.kind);
     setMappedJarId(defaults.mappedJarId);
     setNameError(null);
-    setJarError(null);
   };
 
   const close = () => {
@@ -91,22 +86,13 @@ export function CreateCategoryForm({ jars }: Props) {
 
   const handleKindChange = (nextKind: TransactionDirectionValue) => {
     setKind(nextKind);
-    setJarError(null);
-    if (nextKind === TransactionDirection.INCOME) {
-      setMappedJarId("");
-    }
   };
 
   const onSubmit = () => {
     statusAlert.hide();
     setNameError(null);
-    setJarError(null);
     if (!online) {
       showCreateError(CLIENT_ACTION_ERROR_CODE.OFFLINE);
-      return;
-    }
-    if (kind === TransactionDirection.EXPENSE && !mappedJarId) {
-      setJarError(t(`errors.${LEDGER_ACTION_ERROR_CODE.CATEGORY_UNMAPPED}`));
       return;
     }
     if (!name.trim()) {
@@ -115,18 +101,11 @@ export function CreateCategoryForm({ jars }: Props) {
     }
 
     const trimmedName = name.trim();
-    const categoryInput =
-      kind === TransactionDirection.EXPENSE
-        ? {
-            name: trimmedName,
-            kind: TransactionDirection.EXPENSE,
-            jarId: mappedJarId,
-          }
-        : {
-            name: trimmedName,
-            kind: TransactionDirection.INCOME,
-            jarId: null,
-          };
+    const categoryInput = {
+      name: trimmedName,
+      kind,
+      jarId: mappedJarId || null,
+    };
 
     startTransition(async () => {
       const result = await createCategoryAction(categoryInput);
@@ -136,7 +115,6 @@ export function CreateCategoryForm({ jars }: Props) {
         return;
       }
       if (
-        result.code === LEDGER_ACTION_ERROR_CODE.CATEGORY_UNMAPPED ||
         result.code === PRODUCT_ACTION_ERROR_CODE.INVALID ||
         result.code === PRODUCT_ACTION_ERROR_CODE.UNAUTHENTICATED ||
         result.code === PRODUCT_ACTION_ERROR_CODE.NO_MEMBERSHIP ||
@@ -206,30 +184,23 @@ export function CreateCategoryForm({ jars }: Props) {
                     ))}
                   </ChoiceTileGroup>
                 </fieldset>
-                {kind === TransactionDirection.EXPENSE ? (
-                  <SelectField
-                    id={jarId}
-                    label={t("jarLabel")}
-                    value={mappedJarId}
-                    placeholder={t("jarRequired")}
-                    required
-                    error={jarError ?? undefined}
-                    data-testid="category-jar-select"
-                    onChange={(next) => {
-                      setMappedJarId(next);
-                      if (jarError) setJarError(null);
-                    }}
-                    options={jars.map((jar) => ({
-                      id: jar.id,
-                      label:
-                        localizeCatalogName(
-                          tCatalog,
-                          CatalogGroup.JARS,
-                          jar.name,
-                        ) || jar.name,
-                    }))}
-                  />
-                ) : null}
+                <SelectField
+                  id={jarId}
+                  label={t("jarLabel")}
+                  value={mappedJarId}
+                  placeholder={t("jarOptional")}
+                  data-testid="category-jar-select"
+                  onChange={setMappedJarId}
+                  options={jars.map((jar) => ({
+                    id: jar.id,
+                    label:
+                      localizeCatalogName(
+                        tCatalog,
+                        CatalogGroup.JARS,
+                        jar.name,
+                      ) || jar.name,
+                  }))}
+                />
               </div>
             ) : null}
           </ActionSheetLayout.Body>

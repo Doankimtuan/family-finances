@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Link } from "@/i18n/navigation";
 import type { PlanRecommendation } from "@/modules/plan/application/plan-recommendations";
+import { PRODUCT_LINK_PREFETCH } from "@/shared/constants/navigation";
 import { Section } from "@/shared/patterns/section";
 import { Card } from "@/shared/patterns/card";
 import { Text } from "@/shared/ui/text";
@@ -183,6 +184,7 @@ function RecommendationItem({
       {recommendation.action ? (
         <Link
           href={resolveHref(recommendation)}
+          prefetch={PRODUCT_LINK_PREFETCH}
           className={`${PLAN_INLINE_LINK_CLASS} w-fit gap-(--space-1)`}
         >
           {actionLabel(recommendation, t)}

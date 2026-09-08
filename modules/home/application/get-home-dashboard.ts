@@ -3,8 +3,7 @@ import {
   listTransactionsForDateRange,
 } from "@/modules/ledger/application";
 import { getPlanPulse } from "@/modules/plan/application";
-import { listOpenInboxItems } from "@/modules/inbox/application";
-import { InboxItemKind } from "@/modules/inbox/application/inbox-constants";
+import { getOpenInboxAttention } from "@/modules/inbox/application";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import {
   computeHealthPulse,
@@ -74,7 +73,7 @@ export async function getHomeDashboard(
   const [position, pulse, inbox, transactions] = await Promise.all([
     getRealPosition(),
     getPlanPulse(),
-    listOpenInboxItems(),
+    getOpenInboxAttention(),
     listTransactionsForDateRange(
       homeDashboardQueryStart(dateRange),
       homeDashboardQueryEnd(dateRange),
@@ -100,7 +99,7 @@ export async function getHomeDashboard(
   }
   const accountCount = position.accounts.length;
   const activeJarCount = pulse.activeJars.length;
-  const openInboxCount = inbox.length;
+  const openInboxCount = inbox.openCount;
   const health = computeHealthPulse({
     accountCount,
     activeJarCount,
@@ -113,9 +112,7 @@ export async function getHomeDashboard(
     activeJarCount,
     openInboxCount,
     incomeAllocateMode: pulse.incomeAllocateMode,
-    canReviewUncategorized: inbox.some(
-      (item) => item.kind === InboxItemKind.UNMAPPED_EXPENSE,
-    ),
+    canReviewUncategorized: inbox.canReviewUncategorized,
     health,
     isDayZero: accountCount === 0 && activeJarCount === 0,
     period,

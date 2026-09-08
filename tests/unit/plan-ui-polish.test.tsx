@@ -28,8 +28,17 @@ import { IconContainerTone } from "@/shared/ui/icon-container";
 import { PLAN_ICONS } from "@/shared/ui/icon-registry";
 
 vi.mock("@/i18n/navigation", () => ({
-  Link: ({ href, children, ...props }: ComponentProps<"a">) => (
-    <a href={typeof href === "string" ? href : "#"} {...props}>
+  Link: ({
+    href,
+    children,
+    prefetch,
+    ...props
+  }: ComponentProps<"a"> & { prefetch?: boolean }) => (
+    <a
+      href={typeof href === "string" ? href : "#"}
+      data-prefetch={prefetch === false ? "false" : undefined}
+      {...props}
+    >
       {children}
     </a>
   ),
@@ -98,6 +107,10 @@ describe("Plan hub UI polish", () => {
       "href",
       planJarPath(jarId),
     );
+    expect(screen.getByRole("link", { name: /open jar/i })).toHaveAttribute(
+      "data-prefetch",
+      "false",
+    );
   });
 
   it("renders workspace destinations as navigable rows", () => {
@@ -114,6 +127,7 @@ describe("Plan hub UI polish", () => {
 
     const row = screen.getByTestId("plan-ritual-open");
     expect(row).toHaveAttribute("href", APP_PATH.PLAN_RITUAL);
+    expect(row).toHaveAttribute("data-prefetch", "false");
     expect(screen.getByText("Monthly review")).toBeInTheDocument();
   });
 

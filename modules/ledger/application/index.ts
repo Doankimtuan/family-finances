@@ -189,7 +189,6 @@ export {
   oppositeDirection,
   signedAmount,
 } from "./correction-policy";
-export { isCategoryJarMapped, requiresJarMapping } from "./category-jar-policy";
 export {
   settleCard,
   settleCardInputSchema,

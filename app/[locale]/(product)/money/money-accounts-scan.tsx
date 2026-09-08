@@ -3,6 +3,7 @@
 import { useState, type ReactNode } from "react";
 import type { IconSvgElement } from "@hugeicons/react";
 import { Link } from "@/i18n/navigation";
+import { PRODUCT_LINK_PREFETCH } from "@/shared/constants/navigation";
 import {
   type MoneyAccountGroupKey,
   type MoneyCreditAttention,
@@ -119,6 +120,7 @@ function AccountGroupRows({
           <li key={account.id}>
             <Link
               href={moneyAccountPath(account.id)}
+              prefetch={PRODUCT_LINK_PREFETCH}
               className="block rounded-[var(--radius-card)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
               data-testid="money-hub-account-row"
             >
@@ -250,6 +252,7 @@ export function MoneyAccountsScan({
                   <li key={card.id}>
                     <Link
                       href={moneyAccountPath(card.id)}
+                      prefetch={PRODUCT_LINK_PREFETCH}
                       className="block focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
                       data-testid="money-hub-credit-card-row"
                     >

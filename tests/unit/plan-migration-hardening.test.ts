@@ -23,18 +23,23 @@ describe("Canonical Plan V1 schema", () => {
   });
 
   it("keeps live Jar snapshots append-only and refuses historical reconstruction", () => {
-    const source = readFileSync(
+    const readPath = readFileSync(
       "modules/plan/application/queries/get-current-jar-budgets.ts",
       "utf8",
     );
-
-    expect(source).toContain(
-      "existing.has(key) || selectedPeriod.month !== currentPeriod",
+    const writePath = readFileSync(
+      "modules/plan/application/commands/ensure-jar-period-snapshots.ts",
+      "utf8",
     );
-    expect(source).not.toContain("updates.push");
-    expect(source).not.toContain(
+
+    expect(readPath).not.toContain(".insert(");
+    expect(readPath).not.toContain(".upsert(");
+    expect(readPath).not.toContain("updates.push");
+    expect(readPath).not.toContain(
       '.from("jar_period_rule_snapshots")\n      .update',
     );
+    expect(writePath).toContain("ignoreDuplicates: true");
+    expect(writePath).toContain("onConflict");
   });
 
   it("does not let a compatibility row field control live Jar state", () => {

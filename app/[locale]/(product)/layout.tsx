@@ -3,13 +3,22 @@ import type { ReactNode } from "react";
 import { ChromeShell } from "@/shared/patterns/chrome-shell";
 import { BottomNavigation } from "@/shared/patterns/bottom-navigation";
 import { countUnreadOpenInboxItems } from "@/modules/inbox/application";
+import { requireProductSession } from "@/modules/tenancy/application/require-product-session";
 
 async function ProductNavigation() {
   const inboxCount = (await countUnreadOpenInboxItems()) ?? 0;
   return <BottomNavigation inboxCount={inboxCount} />;
 }
 
-export default function ProductLayout({ children }: { children: ReactNode }) {
+type Props = {
+  children: ReactNode;
+  params: Promise<{ locale: string }>;
+};
+
+export default async function ProductLayout({ children, params }: Props) {
+  const { locale } = await params;
+  await requireProductSession({ localeParam: locale });
+
   return (
     <ChromeShell
       chrome="product"

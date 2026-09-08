@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { IconSvgElement } from "@hugeicons/react";
 import { Link } from "@/i18n/navigation";
+import { PRODUCT_LINK_PREFETCH } from "@/shared/constants/navigation";
 import { Card } from "@/shared/patterns/card";
 import { Section } from "@/shared/patterns/section";
 import { Text } from "@/shared/ui/text";
@@ -33,6 +34,7 @@ export function PlanDestinationRow({
   return (
     <Link
       href={href}
+      prefetch={PRODUCT_LINK_PREFETCH}
       className={PLAN_DESTINATION_ROW_CLASS}
       data-testid={testId}
     >

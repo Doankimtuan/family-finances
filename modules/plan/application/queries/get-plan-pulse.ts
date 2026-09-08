@@ -1,4 +1,5 @@
 const PLAN_PULSE_LOG_CONTEXT = "[plan.plan-pulse]";
+import { cache } from "react";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import { DEFAULT_CURRENCY } from "@/modules/ledger/application/ledger-constants";
@@ -17,8 +18,9 @@ const JAR_SELECT =
 /**
  * Plan hub read model — Active jars only in preview (AC-003 / BR-03).
  * Never presents jar envelopes as bank/ledger balance (BR-01).
+ * Request-local only via React `cache()` — not shared across users or requests.
  */
-export async function getPlanPulse(): Promise<PlanPulse | null> {
+async function loadPlanPulse(): Promise<PlanPulse | null> {
   const gate = await assertMoneyActionAllowed();
   if (!gate.ok) {
     return null;
@@ -66,6 +68,8 @@ export async function getPlanPulse(): Promise<PlanPulse | null> {
     return null;
   }
 }
+
+export const getPlanPulse = cache(loadPlanPulse);
 
 export async function listActiveJars(): Promise<PlanJar[] | null> {
   const pulse = await getPlanPulse();

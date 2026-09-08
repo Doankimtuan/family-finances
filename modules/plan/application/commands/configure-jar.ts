@@ -23,6 +23,7 @@ import {
   jarConfigurationInputSchema,
   type JarConfigurationInput,
 } from "./configure-jar.schema";
+import { ensureJarPeriodRuleSnapshots } from "./ensure-jar-period-snapshots";
 
 /** One authoritative payload for Create Jar and Edit Jar V2. */
 export { jarConfigurationInputSchema };
@@ -348,6 +349,7 @@ export async function createJar(
       return mapped;
     }
 
+    await ensureJarPeriodRuleSnapshots();
     return { ok: true, jarId: jar.id };
   } catch (error) {
     logPlanFailure(error, PLAN_OPERATION.CONFIGURE_JAR, {
@@ -468,6 +470,7 @@ export async function updateJarConfiguration(
     );
     if (!mapped.ok) return mapped;
 
+    await ensureJarPeriodRuleSnapshots();
     return { ok: true, jarId };
   } catch (error) {
     logPlanFailure(error, PLAN_OPERATION.CONFIGURE_JAR, {

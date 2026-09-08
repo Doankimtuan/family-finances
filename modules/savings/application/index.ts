@@ -160,6 +160,10 @@ export {
   type BackfillLegacyResult,
 } from "./commands/detect-matured";
 export {
+  syncSavingsLifecycle,
+  type SyncSavingsLifecycleResult,
+} from "./commands/sync-savings-lifecycle";
+export {
   enrichSavingsMaturityInboxItems,
   enqueueEarlyWithdrawalInboxItem,
   executeSavingsMaturityWorkflow,

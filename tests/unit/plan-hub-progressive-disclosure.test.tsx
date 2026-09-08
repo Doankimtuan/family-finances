@@ -26,8 +26,17 @@ import { APP_PATH, planJarPath } from "@/modules/tenancy/application/app-path";
 import { FinancialPrivacyProvider } from "@/providers/financial-privacy-provider";
 
 vi.mock("@/i18n/navigation", () => ({
-  Link: ({ href, children, ...props }: ComponentProps<"a">) => (
-    <a href={typeof href === "string" ? href : "#"} {...props}>
+  Link: ({
+    href,
+    children,
+    prefetch,
+    ...props
+  }: ComponentProps<"a"> & { prefetch?: boolean }) => (
+    <a
+      href={typeof href === "string" ? href : "#"}
+      data-prefetch={prefetch === false ? "false" : undefined}
+      {...props}
+    >
       {children}
     </a>
   ),

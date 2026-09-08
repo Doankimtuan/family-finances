@@ -17,6 +17,7 @@ import {
   PLAN_OPERATION,
   type JarPlanKind as JarPlanKindValue,
 } from "../plan-constants";
+import { ensureJarPeriodRuleSnapshots } from "./ensure-jar-period-snapshots";
 
 export const upsertJarPlanInputSchema = z
   .object({
@@ -145,6 +146,7 @@ export async function upsertJarPlan(
       }
     }
 
+    await ensureJarPeriodRuleSnapshots();
     return { ok: true, planKind: parsed.data.planKind };
   } catch (error) {
     logPlanFailure(error, PLAN_OPERATION.UPSERT_JAR_PLAN, {

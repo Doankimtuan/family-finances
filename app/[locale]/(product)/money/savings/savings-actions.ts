@@ -9,6 +9,7 @@ import {
   confirmEarlyWithdrawal,
   detectMaturedSavings,
   backfillLegacySavingsAccounts,
+  syncSavingsLifecycle,
   enrichSavingsMaturityInboxItems,
   enqueueEarlyWithdrawalInboxItem,
   executeSavingsMaturityWorkflow,
@@ -142,29 +143,25 @@ export type SavingsLifecycleSyncState =
   | { status: "error"; code: ProductActionErrorCode };
 
 /**
- * One explicit trigger for the household savings lifecycle writes (legacy
- * backfill, then maturity detection + cascade reminders). Runs as a server
- * action POST after a real browser visit — never during a page render or
- * prefetch, which must stay free of business-data mutations.
+ * Explicit mutation adapter for household savings lifecycle writes (legacy
+ * backfill, then maturity detection + cascade reminders). Must be invoked
+ * deliberately — never from a Savings GET, RSC render, or page hydrate.
  */
 export async function syncSavingsLifecycleAction(): Promise<SavingsLifecycleSyncState> {
-  const backfill = await backfillLegacySavingsAccounts();
-  if (!backfill.ok) return { status: "error", code: backfill.code };
-
-  const detected = await detectMaturedSavings();
-  if (!detected.ok) return { status: "error", code: detected.code };
+  const result = await syncSavingsLifecycle();
+  if (!result.ok) return { status: "error", code: result.code };
   if (
-    backfill.migratedCount > 0 ||
-    detected.maturedCount > 0 ||
-    detected.cascadeCount > 0
+    result.migratedCount > 0 ||
+    result.maturedCount > 0 ||
+    result.cascadeCount > 0
   ) {
     revalidateSavingsInboxViews();
   }
   return {
     status: "success",
-    migratedCount: backfill.migratedCount,
-    maturedCount: detected.maturedCount,
-    cascadeCount: detected.cascadeCount,
+    migratedCount: result.migratedCount,
+    maturedCount: result.maturedCount,
+    cascadeCount: result.cascadeCount,
   };
 }
 

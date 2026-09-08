@@ -191,6 +191,7 @@ export const INBOX_RPC = {
 
 export const INBOX_OPERATION = {
   LIST_OPEN: "listOpenInboxItems",
+  GET_OPEN_ATTENTION: "getOpenInboxAttention",
   LIST_ARCHIVED: "listArchivedInboxItems",
   GET_ITEM: "getInboxItem",
   RESOLVE_TO_JAR: "resolveInboxItemToJar",
