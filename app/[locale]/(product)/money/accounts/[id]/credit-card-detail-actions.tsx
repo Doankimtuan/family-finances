@@ -51,6 +51,7 @@ type CreditCardDetailActionsProps = {
     categoryId: string | null;
     status: string;
   }>;
+  canMutate?: boolean;
 };
 
 /**
@@ -63,6 +64,7 @@ export function CreditCardDetailActions({
   currency,
   installments,
   eligiblePurchases,
+  canMutate = true,
 }: CreditCardDetailActionsProps) {
   const t = useTranslations("money.creditCard");
   const locale = useLocale();
@@ -139,30 +141,33 @@ export function CreditCardDetailActions({
         installments={installments}
         eligiblePurchases={eligiblePurchases}
         currency={currency}
+        canMutate={canMutate}
       />
       <CreditCardActivitySection
         items={activityItems}
         formatMoney={formatMoney}
       />
-      <BottomActionBar>
-        <Button
-          variant="primary"
-          className="w-full"
-          data-testid="card-payment-open"
-          isDisabled={!canPay}
-          onPress={() => {
-            setErrorCode(null);
-            setIsPaymentOpen(true);
-          }}
-        >
-          {t("settleTitle")}
-        </Button>
-        {!canPay ? (
-          <Text size="sm" tone="secondary">
-            {t("paymentUnavailable")}
-          </Text>
-        ) : null}
-      </BottomActionBar>
+      {canMutate ? (
+        <BottomActionBar>
+          <Button
+            variant="primary"
+            className="w-full"
+            data-testid="card-payment-open"
+            isDisabled={!canPay}
+            onPress={() => {
+              setErrorCode(null);
+              setIsPaymentOpen(true);
+            }}
+          >
+            {t("settleTitle")}
+          </Button>
+          {!canPay ? (
+            <Text size="sm" tone="secondary">
+              {t("paymentUnavailable")}
+            </Text>
+          ) : null}
+        </BottomActionBar>
+      ) : null}
       <Sheet
         isOpen={isPaymentOpen}
         onOpenChange={(next) => {

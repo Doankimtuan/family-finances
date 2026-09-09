@@ -65,6 +65,7 @@ type Props = {
   installments: CreditCardInstallment[];
   eligiblePurchases: EligiblePurchase[];
   currency: string;
+  canMutate?: boolean;
 };
 
 export function CreditCardInstallmentsSection({
@@ -72,6 +73,7 @@ export function CreditCardInstallmentsSection({
   installments,
   eligiblePurchases,
   currency,
+  canMutate = true,
 }: Props) {
   const t = useTranslations("money.creditCard");
   const locale = useLocale();
@@ -261,18 +263,22 @@ export function CreditCardInstallmentsSection({
       <SectionHeader
         title={<AccountSectionTitle>{t("emiTitle")}</AccountSectionTitle>}
         action={
-          <Button
-            variant="secondary"
-            size="sm"
-            isDisabled={!online || isPending || eligiblePurchases.length === 0}
-            onPress={() => {
-              setError(false);
-              setIsOpen(true);
-            }}
-            data-testid="card-installment-open"
-          >
-            {t("convertTitle")}
-          </Button>
+          canMutate ? (
+            <Button
+              variant="secondary"
+              size="sm"
+              isDisabled={
+                !online || isPending || eligiblePurchases.length === 0
+              }
+              onPress={() => {
+                setError(false);
+                setIsOpen(true);
+              }}
+              data-testid="card-installment-open"
+            >
+              {t("convertTitle")}
+            </Button>
+          ) : undefined
         }
       />
       {viewModels.length === 0 ? (
@@ -359,7 +365,8 @@ export function CreditCardInstallmentsSection({
                       {formatMoney(viewModel.totalExtraCost)}
                     </FinancialValue>
                   </Text>
-                  {installment.status === CreditCardInstallmentStatus.ACTIVE ? (
+                  {canMutate &&
+                  installment.status === CreditCardInstallmentStatus.ACTIVE ? (
                     <div className="flex flex-col gap-(--space-2)">
                       <Button
                         variant="ghost"

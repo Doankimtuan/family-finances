@@ -13,6 +13,7 @@ import {
   CARD_UTILIZATION_DANGER_PCT,
   CARD_UTILIZATION_WARN_PCT,
 } from "@/modules/ledger/application/client";
+import { creditFacilityStateFromComplete } from "./credit-facility-presentation";
 
 export type CreditCardCardProps = {
   title: ReactNode;
@@ -23,6 +24,8 @@ export type CreditCardCardProps = {
   availableLabel: string;
   limitCaption?: ReactNode;
   limitLabel?: string;
+  /** False when the domain has no positive credit limit — do not format ₫0. */
+  creditFacilityComplete?: boolean;
   utilizationPct: number | null;
   utilizationLabel: ReactNode;
   utilizationAriaLabel?: string;
@@ -46,6 +49,7 @@ export function CreditCardCard({
   availableLabel,
   limitCaption,
   limitLabel,
+  creditFacilityComplete = true,
   utilizationPct,
   utilizationLabel,
   utilizationAriaLabel,
@@ -75,6 +79,9 @@ export function CreditCardCard({
       data-financial-object="credit-card"
       data-surface="soft-bounded"
       data-utilization={utilizationPct ?? undefined}
+      data-credit-facility={creditFacilityStateFromComplete(
+        creditFacilityComplete,
+      )}
     >
       <div className="flex items-start justify-between gap-(--space-3)">
         <div className="flex min-w-0 items-start gap-(--space-3)">
@@ -117,23 +124,48 @@ export function CreditCardCard({
         className="min-w-0"
       />
       <div className="grid min-w-0 grid-cols-2 gap-(--space-3)">
-        <Amount
-          label={availableCaption}
-          amountLabel={availableLabel}
-          kind={FinancialNumberKind.CURRENT_STATE}
-          size={AmountSize.SM}
-          className="min-w-0"
-          amountClassName="break-words text-base text-text-secondary"
-        />
-        {limitCaption && limitLabel ? (
+        {creditFacilityComplete ? (
           <Amount
-            label={limitCaption}
-            amountLabel={limitLabel}
+            label={availableCaption}
+            amountLabel={availableLabel}
             kind={FinancialNumberKind.CURRENT_STATE}
             size={AmountSize.SM}
             className="min-w-0"
             amountClassName="break-words text-base text-text-secondary"
           />
+        ) : (
+          <div
+            className="flex min-w-0 flex-col gap-(--space-1)"
+            data-testid="credit-card-supporting-unavailable"
+          >
+            <Text size="sm" tone="secondary">
+              {availableCaption}
+            </Text>
+            <Text size="sm" tone="secondary" className="text-pretty">
+              {availableLabel}
+            </Text>
+          </div>
+        )}
+        {limitCaption && limitLabel ? (
+          creditFacilityComplete ? (
+            <Amount
+              label={limitCaption}
+              amountLabel={limitLabel}
+              kind={FinancialNumberKind.CURRENT_STATE}
+              size={AmountSize.SM}
+              className="min-w-0"
+              amountClassName="break-words text-base text-text-secondary"
+            />
+          ) : (
+            <div className="flex min-w-0 flex-col items-end gap-(--space-1) text-right">
+              <Text size="sm" tone="secondary">
+                {limitCaption}
+              </Text>
+              <Text size="sm" tone="secondary" className="text-pretty">
+                {limitLabel}
+              </Text>
+            </div>
+          )
         ) : null}
       </div>
       {dueLabel || attentionLabel ? (

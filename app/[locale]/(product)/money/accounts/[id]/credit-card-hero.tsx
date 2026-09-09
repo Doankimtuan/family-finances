@@ -3,12 +3,14 @@ import {
   CARD_UTILIZATION_DANGER_PCT,
   CARD_UTILIZATION_WARN_PCT,
 } from "@/modules/ledger/application/client";
+import { creditFacilityStateFromComplete } from "@/modules/ledger/ui/credit-facility-presentation";
 import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
 import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
 import { Text } from "@/shared/ui/text";
 import { Progress } from "@/shared/ui/progress";
 import { Amount, AmountSize, AmountTone } from "@/shared/patterns/amount";
 import { Card } from "@/shared/patterns/card";
+import { cn } from "@/shared/utils/cn";
 
 export type CreditCardHeroProps = {
   /** Kept for standalone/privacy rendering; account identity lives in TopAppBar. */
@@ -17,6 +19,7 @@ export type CreditCardHeroProps = {
   typeLabel?: string;
   outstandingLabel: string;
   outstandingCaption: string;
+  outstandingAriaLabel?: string;
   utilizationPct: number | null;
   utilizationLabel: string;
   utilizationAriaLabel?: string;
@@ -24,6 +27,8 @@ export type CreditCardHeroProps = {
   availableCaption: string;
   limitLabel: string;
   limitCaption: string;
+  /** False when the domain has no positive credit limit — do not format ₫0. */
+  creditFacilityComplete?: boolean;
   dueLabel?: string;
   context?: ReactNode;
   /** Trailing control on the caption row (privacy toggle). */
@@ -37,6 +42,48 @@ function utilizationFillClass(utilizationPct: number | null): string {
   return "bg-hero-fg";
 }
 
+function HeroSupportingFact({
+  caption,
+  value,
+  isFinancial,
+  alignEnd = false,
+}: {
+  caption: string;
+  value: string;
+  isFinancial: boolean;
+  alignEnd?: boolean;
+}) {
+  if (!isFinancial) {
+    return (
+      <div
+        className={cn(
+          "flex min-w-0 flex-col gap-(--space-1)",
+          alignEnd && "items-end text-right",
+        )}
+        data-testid="credit-card-supporting-unavailable"
+      >
+        <Text size="sm" className="text-pretty text-hero-muted">
+          {caption}
+        </Text>
+        <Text size="sm" weight="medium" className="text-pretty text-hero-muted">
+          {value}
+        </Text>
+      </div>
+    );
+  }
+
+  return (
+    <Amount
+      label={caption}
+      amountLabel={value}
+      size={AmountSize.SM}
+      className={cn("min-w-0", alignEnd && "items-end text-right")}
+      labelClassName="text-hero-muted"
+      amountClassName="break-words text-base text-hero-fg"
+    />
+  );
+}
+
 /**
  * Liability-first credit-card hero. Outstanding debt is the dominant fact;
  * available credit, limit, utilization, due date, and ownership stay grouped
@@ -47,6 +94,7 @@ export function CreditCardHero({
   typeLabel,
   outstandingLabel,
   outstandingCaption,
+  outstandingAriaLabel,
   utilizationPct,
   utilizationLabel,
   utilizationAriaLabel,
@@ -54,6 +102,7 @@ export function CreditCardHero({
   availableCaption,
   limitLabel,
   limitCaption,
+  creditFacilityComplete = true,
   dueLabel,
   context,
   trailing,
@@ -68,7 +117,10 @@ export function CreditCardHero({
       data-financial-object="credit-card"
       data-testid="credit-card-hero"
       data-utilization={utilizationPct ?? undefined}
-      aria-label={title}
+      data-credit-facility={creditFacilityStateFromComplete(
+        creditFacilityComplete,
+      )}
+      aria-label={outstandingAriaLabel ?? outstandingCaption}
     >
       {/* Account identity remains in TopAppBar; these preserve the standalone component contract. */}
       {title ? <span className="sr-only break-words">{title}</span> : null}
@@ -127,21 +179,16 @@ export function CreditCardHero({
         </Text>
       )}
       <div className="mt-(--space-4) grid grid-cols-2 gap-(--space-3) border-t border-white/15 pt-(--space-3)">
-        <Amount
-          label={availableCaption}
-          amountLabel={availableLabel}
-          size={AmountSize.SM}
-          className="min-w-0"
-          labelClassName="text-hero-muted"
-          amountClassName="break-words text-base text-hero-fg"
+        <HeroSupportingFact
+          caption={availableCaption}
+          value={availableLabel}
+          isFinancial={creditFacilityComplete}
         />
-        <Amount
-          label={limitCaption}
-          amountLabel={limitLabel}
-          size={AmountSize.SM}
-          className="min-w-0 items-end text-right"
-          labelClassName="text-hero-muted"
-          amountClassName="break-words text-base text-hero-fg"
+        <HeroSupportingFact
+          caption={limitCaption}
+          value={limitLabel}
+          isFinancial={creditFacilityComplete}
+          alignEnd
         />
       </div>
       {dueLabel || context ? (

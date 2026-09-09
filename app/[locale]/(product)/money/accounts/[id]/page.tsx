@@ -25,6 +25,7 @@ import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-a
 import { formatCurrency } from "@/shared/i18n/formatters";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
 import { MotionReveal } from "@/shared/motion";
+import { Card } from "@/shared/patterns/card";
 import { FinancialAccountHero } from "@/shared/patterns/financial-account-hero";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { SectionHeader } from "@/shared/patterns/section-header";
@@ -46,9 +47,14 @@ import { AccountDetailPrivacyToggle } from "./account-detail-privacy-toggle";
 import { AccountDetailUnavailable } from "./account-detail-unavailable";
 import { AccountQuickCapture } from "./account-quick-capture";
 import { AccountSectionTitle } from "./account-section-title";
-import { ACCOUNT_DETAIL_PREVIEW_CONFIG } from "./detail-constants";
+import { AccountViewActivityAction } from "./account-view-activity-action";
+import {
+  ACCOUNT_ACTIVITY_LIST_CLASS,
+  ACCOUNT_DETAIL_PREVIEW_CONFIG,
+} from "./detail-constants";
 import { CreditCardDetailActions } from "./credit-card-detail-actions";
 import { CreditCardHero } from "./credit-card-hero";
+import { isCreditFacilityComplete } from "@/modules/ledger/ui/credit-facility-presentation";
 import { CreditCardRefundAction } from "./credit-card-refund-action";
 import {
   resolveAccountActivityLeading,
@@ -179,18 +185,18 @@ export default async function AccountDetailPage({
         maximumFractionDigits: 0,
       },
     );
-    const availableLabel = formatCurrency(
-      card.availableCredit,
-      currency,
-      locale,
-      {
-        maximumFractionDigits: 0,
-      },
-    );
-    const limitLabel = formatCurrency(card.creditLimit, currency, locale, {
-      maximumFractionDigits: 0,
-    });
-    const hasCreditLimit = card.creditLimit > 0;
+    const creditFacilityComplete = isCreditFacilityComplete(card.creditLimit);
+    const unavailableLabel = t("creditCard.valueUnavailable");
+    const availableLabel = creditFacilityComplete
+      ? formatCurrency(card.availableCredit, currency, locale, {
+          maximumFractionDigits: 0,
+        })
+      : unavailableLabel;
+    const limitLabel = creditFacilityComplete
+      ? formatCurrency(card.creditLimit, currency, locale, {
+          maximumFractionDigits: 0,
+        })
+      : unavailableLabel;
 
     return (
       <div
@@ -210,14 +216,15 @@ export default async function AccountDetailPage({
           <CreditCardHero
             outstandingLabel={outstandingLabel}
             outstandingCaption={t("creditCard.currentOutstandingLabel")}
-            utilizationPct={hasCreditLimit ? card.utilizationPct : null}
+            outstandingAriaLabel={t("creditCard.owedAriaLabel")}
+            utilizationPct={creditFacilityComplete ? card.utilizationPct : null}
             utilizationLabel={
-              hasCreditLimit
+              creditFacilityComplete
                 ? t("accountsPage.utilization", { pct: card.utilizationPct })
                 : t("hub.utilizationUnavailable")
             }
             utilizationAriaLabel={
-              hasCreditLimit
+              creditFacilityComplete
                 ? t("hub.utilizationAria", { pct: card.utilizationPct })
                 : undefined
             }
@@ -225,6 +232,7 @@ export default async function AccountDetailPage({
             availableCaption={t("creditCard.availableCreditLabel")}
             limitLabel={limitLabel}
             limitCaption={t("creditCard.creditLimitLabel")}
+            creditFacilityComplete={creditFacilityComplete}
             dueLabel={
               card.nextDueDate
                 ? t("creditCard.due.dueDate", { date: card.nextDueDate })
@@ -241,15 +249,14 @@ export default async function AccountDetailPage({
               />
             }
           />
-          {account.canMutate ? (
-            <CreditCardDetailActions
-              card={card}
-              liquidAccounts={liquidAccounts}
-              currency={currency}
-              installments={installments ?? []}
-              eligiblePurchases={eligiblePurchases ?? []}
-            />
-          ) : null}
+          <CreditCardDetailActions
+            card={card}
+            liquidAccounts={liquidAccounts}
+            currency={currency}
+            installments={installments ?? []}
+            eligiblePurchases={eligiblePurchases ?? []}
+            canMutate={account.canMutate}
+          />
         </div>
       </div>
     );
@@ -312,12 +319,7 @@ export default async function AccountDetailPage({
               </AccountSectionTitle>
             }
             action={
-              <Link
-                href={APP_PATH.MONEY_TRANSACTIONS}
-                data-testid="account-quick-activity"
-              >
-                {t("accountDetail.viewActivity")}
-              </Link>
+              <AccountViewActivityAction testId="account-quick-activity" />
             }
           />
           {activityLoadFailed ? (
@@ -337,6 +339,7 @@ export default async function AccountDetailPage({
           ) : activity.length === 0 ? (
             <EmptyState
               title={t("accountDetail.recentEmpty")}
+              description={t("accountDetail.recentEmptyDescription")}
               icon={
                 <AppIcon
                   icon={FINANCE_ICONS.account}
@@ -346,52 +349,54 @@ export default async function AccountDetailPage({
               className="flex-none py-(--space-4)"
             />
           ) : (
-            <ul className="flex flex-col [&>li:last-child_.group]:border-b-0">
-              {activity.map((transaction) => {
-                const leading = resolveAccountActivityLeading(transaction);
-                const transactionTone = leading.isCredit
-                  ? TransactionAmountTone.CREDIT
-                  : TransactionAmountTone.DEBIT;
+            <Card tone="elevated" className="gap-0 overflow-hidden p-0">
+              <ul className={ACCOUNT_ACTIVITY_LIST_CLASS}>
+                {activity.map((transaction) => {
+                  const leading = resolveAccountActivityLeading(transaction);
+                  const transactionTone = leading.isCredit
+                    ? TransactionAmountTone.CREDIT
+                    : TransactionAmountTone.DEBIT;
 
-                return (
-                  <li key={transaction.id}>
-                    <Link
-                      href={moneyTransactionPath(transaction.id)}
-                      className="block rounded-[var(--radius-control)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-                    >
-                      <TransactionRow
-                        leading={
-                          <IconContainer tone={leading.iconTone} size="sm">
-                            <AppIcon
-                              icon={leading.icon}
-                              size={AppIconSize.SM}
-                            />
-                          </IconContainer>
-                        }
-                        title={
-                          transaction.note ||
-                          localizeCatalogName(
-                            tCatalog,
-                            "tags",
-                            transaction.categoryName,
-                          ) ||
-                          t(`direction.${transaction.type}`)
-                        }
-                        subtitle={`${t(`direction.${transaction.type}`)} · ${transaction.transactionDate}`}
-                        amountLabel={`${TRANSACTION_LEDGER_AMOUNT_PREFIX[transaction.type]}${formatCurrency(
-                          transaction.amount,
-                          transaction.currency,
-                          locale,
-                          { maximumFractionDigits: 0 },
-                        )}`}
-                        tone={transactionTone}
-                        showChevron
-                      />
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
+                  return (
+                    <li key={transaction.id}>
+                      <Link
+                        href={moneyTransactionPath(transaction.id)}
+                        className="block rounded-[var(--radius-control)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+                      >
+                        <TransactionRow
+                          leading={
+                            <IconContainer tone={leading.iconTone} size="sm">
+                              <AppIcon
+                                icon={leading.icon}
+                                size={AppIconSize.SM}
+                              />
+                            </IconContainer>
+                          }
+                          title={
+                            transaction.note ||
+                            localizeCatalogName(
+                              tCatalog,
+                              "tags",
+                              transaction.categoryName,
+                            ) ||
+                            t(`direction.${transaction.type}`)
+                          }
+                          subtitle={`${t(`direction.${transaction.type}`)} · ${transaction.transactionDate}`}
+                          amountLabel={`${TRANSACTION_LEDGER_AMOUNT_PREFIX[transaction.type]}${formatCurrency(
+                            transaction.amount,
+                            transaction.currency,
+                            locale,
+                            { maximumFractionDigits: 0 },
+                          )}`}
+                          tone={transactionTone}
+                          showChevron
+                        />
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </Card>
           )}
         </section>
       </div>

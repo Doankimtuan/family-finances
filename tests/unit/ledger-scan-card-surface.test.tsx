@@ -292,6 +292,9 @@ describe("Ledger scan card surface ownership (B13)", () => {
       "data-financial-object",
       "credit-card",
     );
+    expect(creditRow).toHaveTextContent("800,000 ₫");
+    expect(creditRow).not.toHaveTextContent("200,000 ₫");
+    expect(creditRow).not.toHaveTextContent("1,000,000 ₫");
     expect(screen.getByText("Overdue")).toHaveClass(
       "bg-danger/10",
       "text-danger",

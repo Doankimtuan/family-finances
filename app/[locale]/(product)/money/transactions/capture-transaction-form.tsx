@@ -138,10 +138,16 @@ function captureAccountChoiceLabel(
   tCatalog: Parameters<typeof localizeCatalogName>[0],
   account: LedgerAccount,
   creditCardLabel: string,
+  typeLabel: string,
 ) {
   const name = captureAccountName(tCatalog, account.name);
-  if (account.type !== AccountType.CREDIT_CARD) return name;
-  return `${name} · ${creditCardLabel}`;
+  if (account.type === AccountType.CREDIT_CARD) {
+    return `${name} · ${creditCardLabel}`;
+  }
+  if (name.trim().toLowerCase() === typeLabel.trim().toLowerCase()) {
+    return name;
+  }
+  return `${name} · ${typeLabel}`;
 }
 
 function accountFieldLabelKey(direction: TransactionDirection) {
@@ -191,6 +197,7 @@ export function CaptureTransactionForm({
 }: Props) {
   const t = useTranslations("money.captureForm");
   const tCatalog = useTranslations("catalog");
+  const tTypes = useTranslations("money.types");
   const locale = useLocale();
   const { online } = useOnlineStatusClient();
   const statusAlert = useStatusAlert();
@@ -596,6 +603,7 @@ export function CaptureTransactionForm({
                               tCatalog,
                               account,
                               t("creditCardLabel"),
+                              tTypes(account.type),
                             )}
                             selected={field.value === account.id}
                             onPress={() => field.onChange(account.id)}
@@ -635,7 +643,12 @@ export function CaptureTransactionForm({
                     data-testid="capture-account"
                     options={accounts.map((account) => ({
                       id: account.id,
-                      label: captureAccountName(tCatalog, account.name),
+                      label: captureAccountChoiceLabel(
+                        tCatalog,
+                        account,
+                        t("creditCardLabel"),
+                        tTypes(account.type),
+                      ),
                     }))}
                   />
                 )

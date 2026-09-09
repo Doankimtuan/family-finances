@@ -5,6 +5,9 @@ export const ACCOUNT_DETAIL_PREVIEW_CONFIG = {
   CARD_ACTIVITY_LIMIT: 4,
 } as const;
 
+export const ACCOUNT_ACTIVITY_LIST_CLASS =
+  "flex flex-col px-(--space-4) [&>li:last-child_.group]:border-b-0";
+
 export const ACCOUNT_DETAIL_SHEET = {
   MANAGEMENT: "management",
   PAYMENT: "payment",

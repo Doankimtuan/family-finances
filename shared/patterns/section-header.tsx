@@ -51,7 +51,7 @@ export function SectionHeader({
         ) : null}
       </div>
       {action ? (
-        <div className="shrink-0 text-sm font-semibold text-accent [&_a]:inline-flex [&_a]:min-h-11 [&_a]:items-center [&_a]:rounded-[var(--radius-control)] [&_a]:px-(--space-2) [&_a]:transition-colors [&_a]:hover:bg-surface-hover [&_a]:focus-visible:outline-2 [&_a]:focus-visible:outline-offset-2 [&_a]:focus-visible:outline-focus-ring [&_button]:min-h-11 [&_button]:px-(--space-2)">
+        <div className="shrink-0 [&_a]:inline-flex [&_a]:min-h-11 [&_a]:items-center [&_a]:rounded-[var(--radius-control)] [&_a]:px-(--space-2) [&_a]:text-sm [&_a]:font-semibold [&_a]:text-accent [&_a]:transition-colors [&_a]:hover:bg-surface-hover [&_a]:focus-visible:outline-2 [&_a]:focus-visible:outline-offset-2 [&_a]:focus-visible:outline-focus-ring [&_button]:min-h-11">
           {action}
         </div>
       ) : null}

@@ -167,6 +167,28 @@ describe("CaptureTransactionForm save-failure presentation", () => {
     expect(screen.getByText("Visa · creditCardLabel")).toBeInTheDocument();
   });
 
+  it("keeps credit-card liability visible in the expanded account selector", () => {
+    const accounts = [0, 1, 2, 3, 4].map((index) => ({
+      ...account,
+      id: `00000000-0000-4000-8000-00000000000${index + 1}`,
+      name: index === 4 ? "Visa" : `Wallet ${index}`,
+      type: index === 4 ? AccountType.CREDIT_CARD : AccountType.CASH,
+    }));
+
+    renderCaptureForm({ accounts });
+
+    expect(
+      screen
+        .getByTestId("capture-account")
+        .querySelector("[data-slot='select-value']")?.textContent,
+    ).toBe("Wallet 0 · cash");
+
+    fireEvent.click(screen.getByLabelText(/^expenseAccountLabel/));
+    expect(
+      screen.getByRole("option", { name: "Visa · creditCardLabel" }),
+    ).toBeInTheDocument();
+  });
+
   it("orders amount, account, category, and date before optional details", () => {
     renderCaptureForm({
       expenseTags: [expenseCategory],
