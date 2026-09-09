@@ -77,33 +77,29 @@ function AccountsSkeleton() {
   return (
     <section className="flex flex-col gap-(--space-4)">
       <div className="flex items-start justify-between gap-(--space-3)">
-        <Skeleton className="h-5 w-28" />
+        <div className="flex flex-col gap-(--space-1)">
+          <Skeleton className="h-5 w-28" />
+          <Skeleton className="h-4 w-52" />
+        </div>
         <Skeleton className="h-11 w-24 rounded-(--radius-control)" />
       </div>
-      <div className="flex flex-col gap-(--space-2)">
-        {[0, 1].map((row) => (
-          <Card
-            key={row}
-            tone="default"
-            className="gap-(--space-3) p-(--space-3)"
-          >
-            <div className="flex items-start justify-between gap-(--space-3)">
-              <div className="flex min-w-0 items-center gap-(--space-3)">
-                <Skeleton className="size-9 rounded-(--radius-control)" />
-                <div className="flex min-w-0 flex-col gap-(--space-2)">
-                  <Skeleton className="h-4 w-32" />
-                  <Skeleton className="h-3 w-20" />
-                </div>
-              </div>
-              <div className="flex flex-col items-end gap-(--space-1)">
+      <Card tone="elevated" className="gap-0 p-0">
+        <div className="flex flex-col divide-y divide-border-subtle/65 py-(--space-1)">
+          {[0, 1, 2].map((row) => (
+            <div
+              key={row}
+              className="flex min-h-14 items-center gap-(--space-3) px-(--space-4) py-(--space-2)"
+            >
+              <Skeleton className="size-8 rounded-full" />
+              <div className="flex flex-1 flex-col gap-(--space-1)">
+                <Skeleton className="h-4 w-32" />
                 <Skeleton className="h-3 w-16" />
-                <Skeleton className="h-5 w-24" />
               </div>
+              <Skeleton className="h-4 w-20" />
             </div>
-            <Skeleton className="h-4 w-24" />
-          </Card>
-        ))}
-      </div>
+          ))}
+        </div>
+      </Card>
     </section>
   );
 }

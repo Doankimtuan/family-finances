@@ -16,6 +16,7 @@ import { FinancialAccountHero } from "@/shared/patterns/financial-account-hero";
 import { CreditCardHero } from "@/app/[locale]/(product)/money/accounts/[id]/credit-card-hero";
 import { MoneyPositionHero } from "@/app/[locale]/(product)/money/money-position-hero";
 import { MoneyModuleRow } from "@/app/[locale]/(product)/money/money-module-section";
+import { FinancialNumberKind } from "@/shared/patterns/financial-number-kind";
 import { FinancialValue } from "@/shared/patterns/financial-value";
 import { IconContainerTone } from "@/shared/ui/icon-container";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
@@ -235,6 +236,37 @@ describe("Money IA and financial privacy", () => {
     );
   });
 
+  it("masks estimated investment value on a Money module row", () => {
+    window.localStorage.setItem("vinha.financial-values-hidden", "true");
+
+    render(
+      <FinancialPrivacyProvider>
+        <MoneyModuleRow
+          href={APP_PATH.MONEY_INVESTMENTS}
+          testId="money-link-investments"
+          icon={FINANCE_ICONS.investment}
+          iconTone={IconContainerTone.INVESTMENT}
+          label="Investments"
+          value={{
+            state: "value",
+            label: "₫12,000,000",
+            kind: FinancialNumberKind.ESTIMATE,
+          }}
+          meta="3 holdings"
+        />
+      </FinancialPrivacyProvider>,
+    );
+
+    expect(screen.getByTestId("money-link-investments")).toHaveTextContent(
+      "3 holdings",
+    );
+    expect(document.body).not.toHaveTextContent("₫12,000,000");
+    expect(screen.getByTestId("money-link-investments")).toHaveAttribute(
+      "href",
+      APP_PATH.MONEY_INVESTMENTS,
+    );
+  });
+
   it("renders account and credit-card objects with distinct bounded semantics", () => {
     render(
       <MoneyAccountsScan
@@ -271,11 +303,7 @@ describe("Money IA and financial privacy", () => {
 
     expect(
       screen.getByTestId("money-account-object-collection"),
-    ).toBeInTheDocument();
-    expect(screen.getByTestId("account-card")).toHaveAttribute(
-      "data-surface",
-      "soft-bounded",
-    );
+    ).toHaveAttribute("data-slot", "card");
     expect(screen.getByTestId("account-card")).toHaveAttribute(
       "data-financial-object",
       "account",

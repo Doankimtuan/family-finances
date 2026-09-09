@@ -28,6 +28,7 @@ import {
 import { getSavingsHomeSummary } from "@/modules/savings/application";
 import { listInvestmentHomeSummary } from "@/modules/investments/application";
 import { formatCurrency, formatDate } from "@/shared/i18n/formatters";
+import { FinancialNumberKind } from "@/shared/patterns/financial-number-kind";
 import { MotionReveal } from "@/shared/motion";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
 import { todayIsoDate } from "@/shared/utils/iso-date";
@@ -190,7 +191,11 @@ export default async function MoneyHubPage({ params }: Props) {
     !summary.loaded
       ? unavailableValue()
       : summary.count > 0 && summary.total != null
-        ? { state: "value", label: money(summary.total, summary.currency) }
+        ? {
+            state: "value",
+            label: money(summary.total, summary.currency),
+            kind: FinancialNumberKind.CURRENT_STATE,
+          }
         : { state: "empty", label: t("hub.modules.empty") };
 
   const investmentHoldingsValue = (
@@ -200,10 +205,28 @@ export default async function MoneyHubPage({ params }: Props) {
     if (summary.count === 0) {
       return { state: "empty", label: t("hub.modules.empty") };
     }
+    if (summary.total != null) {
+      return {
+        state: "value",
+        label: money(summary.total, summary.currency),
+        kind: FinancialNumberKind.ESTIMATE,
+      };
+    }
     return {
       state: "count",
       label: t("hub.modules.investmentCount", { count: summary.count }),
     };
+  };
+
+  const investmentMeta = (summary: MoneyHubDomainSummary) => {
+    if (!summary.loaded || summary.count === 0) return undefined;
+    if (
+      summary.valuationCoverage != null &&
+      summary.valuationCoverage.total > summary.valuationCoverage.included
+    ) {
+      return t("hub.modules.investmentCoverage", summary.valuationCoverage);
+    }
+    return t("hub.modules.investmentCount", { count: summary.count });
   };
 
   const buildAccountRows = (
@@ -247,10 +270,12 @@ export default async function MoneyHubPage({ params }: Props) {
         <MotionReveal>
           <MoneyPositionHero
             ownedMoneyLabel={t("realPosition")}
+            ownedMoneyHint={t("realPositionHint")}
             ownedMoneyValue={
               viewModel ? money(viewModel.totalOwnedBalance, currency) : null
             }
             positionUnavailableLabel={t("hub.modules.positionUnavailable")}
+            heroAccessibleLabel={t("hub.heroAccessibleLabel")}
             metaLine={
               viewModel ? (
                 <div className="flex flex-wrap items-center gap-x-(--space-3) gap-y-(--space-1)">
@@ -367,6 +392,7 @@ export default async function MoneyHubPage({ params }: Props) {
           currency={currency}
           labels={{
             sectionTitle: t("accounts"),
+            sectionDescription: t("hub.accountsHint"),
             groupTitles: {
               [MoneyAccountGroupKey.CASH]: t("hub.groups.cash"),
               [MoneyAccountGroupKey.BANK]: t("hub.groups.bank"),
@@ -433,6 +459,7 @@ export default async function MoneyHubPage({ params }: Props) {
             iconTone={IconContainerTone.INVESTMENT}
             label={t("investmentsLabel")}
             value={investmentHoldingsValue(modules.investments)}
+            meta={investmentMeta(modules.investments)}
           />
         </MoneyModuleCard>
         <MoneyModuleCard
@@ -482,6 +509,7 @@ export default async function MoneyHubPage({ params }: Props) {
                   ? {
                       state: "value",
                       label: money(modules.debts.total, modules.debts.currency),
+                      kind: FinancialNumberKind.CURRENT_STATE,
                     }
                   : { state: "empty", label: t("hub.modules.noDebt") }
             }

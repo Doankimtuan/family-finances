@@ -8,6 +8,7 @@ import { Link } from "@/i18n/navigation";
 import { PRODUCT_LINK_PREFETCH } from "@/shared/constants/navigation";
 import { Card } from "@/shared/patterns/card";
 import { Section } from "@/shared/patterns/section";
+import { FinancialNumberKind } from "@/shared/patterns/financial-number-kind";
 import { FinancialValue } from "@/shared/patterns/financial-value";
 import {
   IconContainer,
@@ -20,7 +21,7 @@ import { Text } from "@/shared/ui/text";
 
 /** Right-column state for a module row; a failed domain read never renders as zero. */
 export type MoneyModuleValue =
-  | { state: "value"; label: string }
+  | { state: "value"; label: string; kind?: FinancialNumberKind }
   | { state: "count"; label: string }
   | { state: "empty"; label: string }
   | { state: "unavailable"; label: string };
@@ -41,6 +42,22 @@ const EMPHASIZED_MODULE_VALUE_STATES = new Set<MoneyModuleValue["state"]>([
   "value",
   "count",
 ]);
+
+function moduleValueClassName(value: MoneyModuleValue) {
+  if (!EMPHASIZED_MODULE_VALUE_STATES.has(value.state)) {
+    return "text-sm tabular-nums text-text-secondary";
+  }
+  if (value.state === "value" && value.kind === FinancialNumberKind.ESTIMATE) {
+    return "text-sm font-medium tabular-nums tracking-tight text-text-primary";
+  }
+  return "text-sm font-semibold tabular-nums tracking-tight text-text-primary";
+}
+
+function moduleValueKind(value: MoneyModuleValue) {
+  return value.state === "value"
+    ? (value.kind ?? FinancialNumberKind.CURRENT_STATE)
+    : undefined;
+}
 
 const ATTENTION_BADGE_TONE: Record<
   AttentionLevel,
@@ -94,11 +111,8 @@ export function MoneyModuleRow({
       </div>
       <div className="flex shrink-0 items-center gap-(--space-2)">
         <span
-          className={
-            EMPHASIZED_MODULE_VALUE_STATES.has(value.state)
-              ? "text-sm font-semibold tabular-nums tracking-tight text-text-primary"
-              : "text-sm tabular-nums text-text-secondary"
-          }
+          className={moduleValueClassName(value)}
+          data-financial-kind={moduleValueKind(value)}
         >
           {value.state === "count" ? (
             value.label

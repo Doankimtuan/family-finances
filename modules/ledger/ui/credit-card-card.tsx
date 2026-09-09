@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { cn } from "@/shared/utils/cn";
 import { Text } from "@/shared/ui/text";
+import { FinancialNumberKind } from "@/shared/patterns/financial-number-kind";
 import { Amount, AmountSize, AmountTone } from "@/shared/patterns/amount";
 import { Card } from "@/shared/patterns/card";
 import { Progress } from "@/shared/ui/progress";
@@ -111,6 +112,7 @@ export function CreditCardCard({
         label={outstandingCaption}
         amountLabel={outstandingLabel}
         tone={AmountTone.NEUTRAL}
+        kind={FinancialNumberKind.CURRENT_STATE}
         size={AmountSize.MD}
         className="min-w-0"
       />
@@ -118,6 +120,7 @@ export function CreditCardCard({
         <Amount
           label={availableCaption}
           amountLabel={availableLabel}
+          kind={FinancialNumberKind.CURRENT_STATE}
           size={AmountSize.SM}
           className="min-w-0"
           amountClassName="break-words text-base text-text-secondary"
@@ -126,6 +129,7 @@ export function CreditCardCard({
           <Amount
             label={limitCaption}
             amountLabel={limitLabel}
+            kind={FinancialNumberKind.CURRENT_STATE}
             size={AmountSize.SM}
             className="min-w-0"
             amountClassName="break-words text-base text-text-secondary"

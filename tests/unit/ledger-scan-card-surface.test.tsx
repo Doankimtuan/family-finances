@@ -206,7 +206,7 @@ describe("Ledger scan card surface ownership (B13)", () => {
     expect(indicator).not.toHaveClass("bg-danger");
   });
 
-  it("keeps Money scan rows wrapping the shared Card objects", () => {
+  it("keeps Money scan accounts and credit liabilities in separate grouped lists", () => {
     const cashGroups = [
       {
         key: MoneyAccountGroupKey.CASH,
@@ -281,11 +281,25 @@ describe("Ledger scan card surface ownership (B13)", () => {
     expect(accountRow).toHaveAttribute("href", moneyAccountPath("cash-1"));
     expect(creditRow).toHaveAttribute("href", moneyAccountPath("card-1"));
 
-    expectSharedDefaultCardSurface(screen.getByTestId("account-card"));
-    expectSharedDefaultCardSurface(screen.getByTestId("credit-card-card"));
+    expect(
+      screen.getByTestId("money-account-object-collection"),
+    ).toHaveAttribute("data-slot", "card");
+    expect(screen.getByTestId("account-card")).toHaveAttribute(
+      "data-financial-object",
+      "account",
+    );
+    expect(screen.getByTestId("credit-card-card")).toHaveAttribute(
+      "data-financial-object",
+      "credit-card",
+    );
     expect(screen.getByText("Overdue")).toHaveClass(
       "bg-danger/10",
       "text-danger",
     );
+    const indicator = screen
+      .getByTestId("credit-card-card")
+      .closest("a")
+      ?.querySelector('[data-slot="progress-indicator"]');
+    expect(indicator).toHaveClass("bg-danger");
   });
 });

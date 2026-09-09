@@ -4,23 +4,35 @@ import { useState, type ReactNode } from "react";
 import type { IconSvgElement } from "@hugeicons/react";
 import { Link } from "@/i18n/navigation";
 import { PRODUCT_LINK_PREFETCH } from "@/shared/constants/navigation";
-import {
-  type MoneyAccountGroupKey,
-  type MoneyCreditAttention,
+import type {
+  MoneyAccountGroupKey,
+  MoneyCreditAttention as MoneyCreditAttentionValue,
 } from "@/modules/ledger/application";
+import {
+  CARD_UTILIZATION_DANGER_PCT,
+  CARD_UTILIZATION_WARN_PCT,
+} from "@/modules/ledger/application/client";
 import { moneyAccountPath } from "@/modules/tenancy/application/app-path";
-import { AccountCard } from "@/modules/ledger/ui/account-card";
-import { CreditCardCard } from "@/modules/ledger/ui/credit-card-card";
 import { Card } from "@/shared/patterns/card";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { SectionHeader } from "@/shared/patterns/section-header";
+import { Balance } from "@/shared/patterns/balance";
+import { Amount, AmountSize, AmountTone } from "@/shared/patterns/amount";
+import { FinancialNumberKind } from "@/shared/patterns/financial-number-kind";
+import { BalanceSize } from "@/shared/patterns/financial-display-size";
+import { FinancialOwnershipBadge } from "@/shared/patterns/financial-ownership-badge";
 import { Text } from "@/shared/ui/text";
+import { Heading } from "@/shared/ui/heading";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
 import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
-import { type IconContainerTone as IconContainerToneValue } from "@/shared/ui/icon-container";
-import { StatusBadgeTone } from "@/shared/ui/status-badge";
-import { FinancialOwnershipBadge } from "@/shared/patterns/financial-ownership-badge";
+import {
+  IconContainer,
+  IconContainerTone,
+  type IconContainerTone as IconContainerToneValue,
+} from "@/shared/ui/icon-container";
+import { StatusBadge, StatusBadgeTone } from "@/shared/ui/status-badge";
+import { Progress } from "@/shared/ui/progress";
 import type { FinancialScope } from "@/modules/shared-kernel/application/financial-scope";
 import type { OwnerStatus } from "@/modules/shared-kernel/application/financial-ownership";
 
@@ -52,11 +64,12 @@ export type MoneyHubCardRow = {
   utilizationLabel: string;
   utilizationAriaLabel: string;
   dueLabel?: string;
-  attention?: MoneyCreditAttention | null;
+  attention?: MoneyCreditAttentionValue | null;
 };
 
 export type MoneyAccountsScanLabels = {
   sectionTitle: string;
+  sectionDescription?: string;
   groupTitles: Record<MoneyAccountGroupKey, string>;
   creditCardsTitle: string;
   creditCardType: string;
@@ -70,7 +83,7 @@ export type MoneyAccountsScanLabels = {
   emptyDescription: string;
   showAll: string;
   showLess: string;
-  attentionLabels: Record<MoneyCreditAttention, string>;
+  attentionLabels: Record<MoneyCreditAttentionValue, string>;
 };
 
 type Props = {
@@ -86,14 +99,155 @@ type Props = {
   emptyAction?: ReactNode;
 };
 
+const INVENTORY_ROW_CLASS =
+  "flex min-h-14 items-center gap-(--space-3) px-(--space-4) py-(--space-2) transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-(--press-scale) motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus-ring";
+
+function utilizationBarClass(utilizationPct: number | null) {
+  if (utilizationPct == null) return "bg-accent";
+  if (utilizationPct >= CARD_UTILIZATION_DANGER_PCT) return "bg-danger";
+  if (utilizationPct >= CARD_UTILIZATION_WARN_PCT) return "bg-warning";
+  return "bg-accent";
+}
+
 const CREDIT_ATTENTION_TONE: Record<
-  MoneyCreditAttention,
+  MoneyCreditAttentionValue,
   typeof StatusBadgeTone.WARNING | typeof StatusBadgeTone.ATTENTION
 > = {
   overdue: StatusBadgeTone.ATTENTION,
   due_soon: StatusBadgeTone.WARNING,
   high_utilization: StatusBadgeTone.WARNING,
 };
+
+function accountTypeVisible(title: string, typeLabel: string) {
+  return title.trim().toLowerCase() !== typeLabel.trim().toLowerCase();
+}
+
+function AccountInventoryRow({ account }: { account: MoneyHubAccountRow }) {
+  const showType = accountTypeVisible(account.title, account.typeLabel);
+
+  return (
+    <Link
+      href={moneyAccountPath(account.id)}
+      prefetch={PRODUCT_LINK_PREFETCH}
+      className={INVENTORY_ROW_CLASS}
+      data-testid="money-hub-account-row"
+    >
+      <div
+        className="flex min-w-0 flex-1 items-center gap-(--space-3)"
+        data-testid="account-card"
+        data-financial-object="account"
+      >
+        <IconContainer tone={account.iconTone} size="sm">
+          <AppIcon icon={account.icon} size="sm" />
+        </IconContainer>
+        <div className="min-w-0 flex-1">
+          <Text size="sm" className="break-words font-medium text-text-primary">
+            {account.title}
+          </Text>
+          <div className="mt-(--space-1) flex flex-wrap items-center gap-x-(--space-2) gap-y-(--space-1)">
+            {showType ? (
+              <Text size="xs" tone="secondary" className="break-words">
+                {account.typeLabel}
+              </Text>
+            ) : null}
+            <FinancialOwnershipBadge
+              financialScope={account.financialScope}
+              isOwnedByMe={account.isOwnedByMe}
+              ownerStatus={account.ownerStatus}
+              compact
+            />
+          </div>
+        </div>
+        <div data-testid="account-card-balance">
+          <Balance
+            amountLabel={account.balanceLabel}
+            size={BalanceSize.SM}
+            className="min-w-0 items-end text-right"
+            amountClassName="text-sm"
+          />
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+function CreditLiabilityRow({
+  card,
+  labels,
+}: {
+  card: MoneyHubCardRow;
+  labels: MoneyAccountsScanLabels;
+}) {
+  const progressValue =
+    card.utilizationPct == null
+      ? null
+      : Math.min(Math.max(card.utilizationPct, 0), 100);
+  const attentionLabel = card.attention
+    ? labels.attentionLabels[card.attention]
+    : undefined;
+
+  return (
+    <Link
+      href={moneyAccountPath(card.id)}
+      prefetch={PRODUCT_LINK_PREFETCH}
+      className="flex min-h-14 flex-col gap-(--space-2) px-(--space-4) py-(--space-3) transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-(--press-scale) motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus-ring"
+      data-testid="money-hub-credit-card-row"
+    >
+      <div
+        className="flex min-w-0 items-start gap-(--space-3)"
+        data-testid="credit-card-card"
+        data-financial-object="credit-card"
+        data-utilization={card.utilizationPct ?? undefined}
+      >
+        <IconContainer tone={IconContainerTone.DEBT} size="sm">
+          <AppIcon icon={FINANCE_ICONS.card} size="sm" />
+        </IconContainer>
+        <div className="min-w-0 flex-1">
+          <Text size="sm" className="break-words font-medium text-text-primary">
+            {card.title}
+          </Text>
+          <Text size="xs" tone="secondary">
+            {labels.creditCardType}
+          </Text>
+        </div>
+        <Amount
+          label={labels.outstanding}
+          amountLabel={card.outstandingLabel}
+          tone={AmountTone.NEUTRAL}
+          kind={FinancialNumberKind.CURRENT_STATE}
+          size={AmountSize.SM}
+          className="min-w-0 shrink-0 items-end text-right"
+          labelClassName="text-xs"
+          amountClassName="text-sm"
+        />
+      </div>
+      {progressValue != null ? (
+        <Progress
+          value={progressValue}
+          label={card.utilizationAriaLabel}
+          showLabel={false}
+          trackClassName="bg-border-subtle"
+          indicatorClassName={utilizationBarClass(card.utilizationPct)}
+        />
+      ) : null}
+      <div className="flex flex-wrap items-center gap-x-(--space-2) gap-y-(--space-1)">
+        <Text size="xs" tone="secondary" className="tabular-nums">
+          {card.utilizationLabel}
+        </Text>
+        {card.dueLabel ? (
+          <Text size="xs" tone="secondary">
+            {card.dueLabel}
+          </Text>
+        ) : null}
+        {attentionLabel && card.attention ? (
+          <StatusBadge tone={CREDIT_ATTENTION_TONE[card.attention]}>
+            {attentionLabel}
+          </StatusBadge>
+        ) : null}
+      </div>
+    </Link>
+  );
+}
 
 function AccountGroupRows({
   group,
@@ -108,39 +262,17 @@ function AccountGroupRows({
     <div className="flex flex-col">
       {showGroupTitle ? (
         <Text
-          size="sm"
-          className="px-(--space-1) font-medium text-text-secondary"
+          size="xs"
+          className="px-(--space-4) pt-(--space-3) font-medium tracking-wide text-text-secondary"
           data-testid="money-account-group-title"
         >
           {title}
         </Text>
       ) : null}
-      <ul className="flex flex-col gap-(--space-2)">
+      <ul className="flex flex-col divide-y divide-border-subtle/65">
         {group.accounts.map((account) => (
           <li key={account.id}>
-            <Link
-              href={moneyAccountPath(account.id)}
-              prefetch={PRODUCT_LINK_PREFETCH}
-              className="block rounded-[var(--radius-card)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-              data-testid="money-hub-account-row"
-            >
-              <AccountCard
-                title={account.title}
-                typeLabel={account.typeLabel}
-                balanceLabel={account.balanceLabel}
-                balanceCaption={account.balanceCaption}
-                icon={account.icon}
-                iconTone={account.iconTone}
-                metadata={
-                  <FinancialOwnershipBadge
-                    financialScope={account.financialScope}
-                    isOwnedByMe={account.isOwnedByMe}
-                    ownerStatus={account.ownerStatus}
-                    compact
-                  />
-                }
-              />
-            </Link>
+            <AccountInventoryRow account={account} />
           </li>
         ))}
       </ul>
@@ -149,8 +281,9 @@ function AccountGroupRows({
 }
 
 /**
- * Money account scan. It keeps account containers and credit liabilities
- * structurally distinct, while allowing a concise default for a large account set.
+ * Money account scan. Accessible accounts stay in one inventory list;
+ * credit liabilities stay in a separate grouped list so they cannot be
+ * scanned as spendable cash.
  */
 export function MoneyAccountsScan({
   labels,
@@ -180,6 +313,7 @@ export function MoneyAccountsScan({
     >
       <SectionHeader
         title={labels.sectionTitle}
+        description={labels.sectionDescription}
         action={hasAnyContent ? createAction : undefined}
       />
       {accountsUnavailable && labels.accountsUnavailable ? (
@@ -211,19 +345,23 @@ export function MoneyAccountsScan({
       ) : (
         <div className="flex flex-col gap-(--space-5)">
           {hasAnyAccount ? (
-            <div
-              className="flex flex-col gap-(--space-4)"
-              data-testid="money-account-object-collection"
-            >
-              {visibleGroups.map((group) => (
-                <div key={group.key} className="flex flex-col gap-(--space-2)">
-                  <AccountGroupRows
-                    group={group}
-                    showGroupTitle={accountPresentation === "grouped"}
-                    title={labels.groupTitles[group.key]}
-                  />
+            <div className="flex flex-col gap-(--space-3)">
+              <Card
+                tone="elevated"
+                className="gap-0 p-0"
+                data-testid="money-account-object-collection"
+              >
+                <div className="flex flex-col py-(--space-1)">
+                  {visibleGroups.map((group) => (
+                    <AccountGroupRows
+                      key={group.key}
+                      group={group}
+                      showGroupTitle={accountPresentation === "grouped"}
+                      title={labels.groupTitles[group.key]}
+                    />
+                  ))}
                 </div>
-              ))}
+              </Card>
               {hasMoreAccounts ? (
                 <button
                   type="button"
@@ -240,50 +378,25 @@ export function MoneyAccountsScan({
           {creditCards.length > 0 ? (
             <div className="flex flex-col gap-(--space-3)">
               <div className="flex flex-col gap-(--space-1)">
-                <Text size="sm" className="font-medium text-text-primary">
+                <Heading
+                  level={3}
+                  className="text-sm font-semibold tracking-tight text-text-primary"
+                >
                   {labels.creditCardsTitle}
-                </Text>
+                </Heading>
                 <Text size="sm" tone="secondary">
                   {labels.creditCardsHint}
                 </Text>
               </div>
-              <ul className="flex flex-col gap-(--space-2)">
-                {creditCards.map((card) => (
-                  <li key={card.id}>
-                    <Link
-                      href={moneyAccountPath(card.id)}
-                      prefetch={PRODUCT_LINK_PREFETCH}
-                      className="block focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-                      data-testid="money-hub-credit-card-row"
-                    >
-                      <CreditCardCard
-                        title={card.title}
-                        typeLabel={labels.creditCardType}
-                        outstandingCaption={labels.outstanding}
-                        outstandingLabel={card.outstandingLabel}
-                        availableCaption={labels.availableCredit}
-                        availableLabel={card.availableLabel}
-                        limitCaption={labels.creditLimit}
-                        limitLabel={card.limitLabel}
-                        utilizationPct={card.utilizationPct}
-                        utilizationLabel={card.utilizationLabel}
-                        utilizationAriaLabel={card.utilizationAriaLabel}
-                        dueLabel={card.dueLabel}
-                        attentionLabel={
-                          card.attention
-                            ? labels.attentionLabels[card.attention]
-                            : undefined
-                        }
-                        attentionTone={
-                          card.attention
-                            ? CREDIT_ATTENTION_TONE[card.attention]
-                            : undefined
-                        }
-                      />
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+              <Card tone="elevated" className="gap-0 p-0">
+                <ul className="flex flex-col divide-y divide-border-subtle/65 py-(--space-1)">
+                  {creditCards.map((card) => (
+                    <li key={card.id}>
+                      <CreditLiabilityRow card={card} labels={labels} />
+                    </li>
+                  ))}
+                </ul>
+              </Card>
             </div>
           ) : null}
           {creditCardsUnavailable && labels.creditCardsUnavailable ? (

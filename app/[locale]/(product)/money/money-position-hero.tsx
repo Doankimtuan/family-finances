@@ -6,6 +6,7 @@ import {
 import { Balance } from "@/shared/patterns/balance";
 import { BalanceSize } from "@/shared/patterns/financial-display-size";
 import { Card } from "@/shared/patterns/card";
+import { FinancialNumberKind } from "@/shared/patterns/financial-number-kind";
 import { HeroPillLink } from "@/shared/patterns/hero-pill-link";
 import { FinancialPrivacyToggle } from "@/shared/patterns/financial-privacy-toggle";
 import { FinancialValue } from "@/shared/patterns/financial-value";
@@ -31,7 +32,9 @@ type MoneyPrivacyLabels = {
 type Props = {
   ownedMoneyLabel: string;
   ownedMoneyValue: string | null;
+  ownedMoneyHint?: string;
   positionUnavailableLabel: string;
+  heroAccessibleLabel?: string;
   metaLine: ReactNode;
   allocationLabel: string;
   allocationHint?: string;
@@ -73,7 +76,9 @@ const ALLOCATION_SEGMENT_CLASS: Record<MoneyAssetAllocationKeyValue, string> = {
 export function MoneyPositionHero({
   ownedMoneyLabel,
   ownedMoneyValue,
+  ownedMoneyHint,
   positionUnavailableLabel,
+  heroAccessibleLabel,
   metaLine,
   allocationLabel,
   allocationHint,
@@ -102,23 +107,36 @@ export function MoneyPositionHero({
             />
           ) : null}
         </div>
-        {ownedMoneyValue == null ? (
-          <Text
-            size="lg"
-            weight="semibold"
-            className="mt-(--space-2) text-hero-fg"
-            data-testid="money-position-unavailable"
-          >
-            {positionUnavailableLabel}
-          </Text>
-        ) : (
-          <Balance
-            amountLabel={ownedMoneyValue}
-            size={BalanceSize.HERO}
-            className="mt-(--space-2)"
-            amountClassName="text-hero-fg"
-          />
-        )}
+        <div
+          className="mt-(--space-2)"
+          role="group"
+          aria-label={heroAccessibleLabel ?? ownedMoneyLabel}
+        >
+          {ownedMoneyValue == null ? (
+            <Text
+              size="lg"
+              weight="semibold"
+              className="text-hero-fg"
+              data-testid="money-position-unavailable"
+            >
+              {positionUnavailableLabel}
+            </Text>
+          ) : (
+            <Balance
+              amountLabel={ownedMoneyValue}
+              size={BalanceSize.HERO}
+              amountClassName="text-hero-fg"
+            />
+          )}
+          {ownedMoneyHint ? (
+            <Text
+              size="xs"
+              className="mt-(--space-2) text-pretty text-hero-muted"
+            >
+              {ownedMoneyHint}
+            </Text>
+          ) : null}
+        </div>
         <div className="mt-(--space-4) flex flex-wrap items-center justify-between gap-x-(--space-3) gap-y-(--space-2) border-t border-white/15 pt-(--space-3)">
           {metaLine}
           <HeroPillLink href={activityHref} data-testid="money-see-activity">
@@ -185,7 +203,18 @@ export function MoneyPositionHero({
                           </span>
                         </div>
                       </div>
-                      <span className="shrink-0 text-sm font-medium tabular-nums tracking-tight text-text-primary">
+                      <span
+                        className={
+                          segment.key === MoneyAssetAllocationKey.INVESTMENTS
+                            ? "shrink-0 text-sm font-medium tabular-nums tracking-tight text-text-primary"
+                            : "shrink-0 text-sm font-semibold tabular-nums tracking-tight text-text-primary"
+                        }
+                        data-financial-kind={
+                          segment.key === MoneyAssetAllocationKey.INVESTMENTS
+                            ? FinancialNumberKind.ESTIMATE
+                            : FinancialNumberKind.CURRENT_STATE
+                        }
+                      >
                         <FinancialValue>{segment.balanceLabel}</FinancialValue>
                       </span>
                     </li>

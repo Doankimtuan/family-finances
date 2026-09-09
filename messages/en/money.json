@@ -22,7 +22,7 @@
     "show": "Show financial values"
   },
   "realPosition": "Money in active accounts",
-  "realPositionHint": "Money represented by your active accounts.",
+  "realPositionHint": "Accessible money in accounts you can use. Estimated investments and Plan envelopes are separate.",
   "loadErrorTitle": "Could not load Money",
   "loadErrorBody": "Check your connection and try again.",
   "capture": "Add transaction",
@@ -51,16 +51,18 @@
   "hub": {
     "retry": "Try again",
     "activeAccounts": "{count, plural, =0 {No active accounts} one {# active account} other {# active accounts}}",
+    "heroAccessibleLabel": "Accessible money in active accounts",
+    "accountsHint": "Scan the accounts that hold usable money, then open one to manage it.",
     "totalCreditOutstandingLabel": "Card debt <value>{amount}</value>",
     "assetAllocation": {
-      "title": "Where your assets are",
-      "hint": "Across active accounts, savings, and valued investments.",
+      "title": "Where these resources sit",
+      "hint": "Accounts and savings are current balances. Investments use estimated market value.",
       "partial": "Includes {included} of {total} valued investments.",
       "unavailable": "Asset distribution is temporarily unavailable.",
       "groups": {
         "accounts": "Accounts",
         "savings": "Savings",
-        "investments": "Investments"
+        "investments": "Investments (estimated)"
       }
     },
     "percentage": "{value}%",
@@ -99,6 +101,7 @@
       "savingsCount": "{count, plural, one {# active saving} other {# active savings}}",
       "savingsAttention": "{count, plural, one {# saving needs action} other {# savings need action}}",
       "investmentCount": "{count, plural, one {# holding} other {# holdings}}",
+      "investmentCoverage": "Estimated · {included} of {total} valued",
       "loansCount": "{count, plural, one {# loan in repayment} other {# loans in repayment}}",
       "loansOverdue": "{count, plural, one {# payment overdue} other {# payments overdue}}",
       "loansDueSoon": "{count, plural, one {# payment due soon} other {# payments due soon}}",
@@ -1621,7 +1624,7 @@
     "ownershipHint": "Shared household money records — separate from personal plans.",
     "liquidTitle": "Balances",
     "creditCardsTitle": "Credit cards",
-    "creditCardsHint": "Debt and credit stay separate from account balances.",
+    "creditCardsHint": "Money owed on cards — not money you can spend.",
     "creditCardsEmpty": "No credit cards yet",
     "utilization": "{pct}% used",
     "outstanding": "Current outstanding",
