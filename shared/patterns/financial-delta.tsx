@@ -6,6 +6,7 @@ import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
 import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
 import { Text, type TextProps } from "@/shared/ui/text";
 import { FinancialValue } from "./financial-value";
+import { FinancialNumberKind } from "./financial-number-kind";
 import { cn } from "@/shared/utils/cn";
 
 export const FinancialDeltaDirection = {
@@ -108,6 +109,7 @@ export function FinancialDeltaValue({
       weight="semibold"
       tabular
       className={className}
+      data-financial-kind={FinancialNumberKind.MOVEMENT}
     >
       <FinancialValue>{children}</FinancialValue>
     </Text>

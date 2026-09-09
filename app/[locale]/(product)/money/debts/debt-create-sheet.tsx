@@ -29,7 +29,10 @@ import { ConfirmSummary } from "@/shared/patterns/confirm-summary";
 import { FinancialValue } from "@/shared/patterns/financial-value";
 import { DatePickerField, SelectField } from "@/shared/ui/form";
 import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
-import { FloatingAction } from "@/shared/patterns/floating-action";
+import {
+  FloatingAction,
+  FloatingActionButton,
+} from "@/shared/patterns/floating-action";
 import { Sheet } from "@/shared/patterns/sheet";
 import { SheetActionFooter } from "@/shared/patterns/sheet-action-footer";
 import { Button } from "@/shared/ui/button";
@@ -223,15 +226,14 @@ export function DebtCreateSheet({
     if (trigger === DebtCreateTrigger.FLOATING) {
       return (
         <FloatingAction>
-          <Button
-            className="pointer-events-auto min-h-(--floating-action-size) shrink-0 gap-(--space-2) rounded-full px-(--space-4) shadow-(--elevation-2)"
+          <FloatingActionButton
             data-testid="debt-create-open"
             isDisabled={!online}
             onPress={() => handleOpenChange(true)}
           >
             <AppIcon icon={ACTION_ICONS.add} size={AppIconSize.SM} />
             <span>{t("add")}</span>
-          </Button>
+          </FloatingActionButton>
         </FloatingAction>
       );
     }

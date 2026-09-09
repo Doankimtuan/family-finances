@@ -2,7 +2,7 @@
 
 - Mobile-first financial app personality: light, calm, warm, modern, trustworthy, slightly expressive — "Gen Z financial life companion", never accounting software, bank back-office, enterprise SaaS, crypto/dashboard-heavy, marketing landing page, or Awwwards-style showcase. Confidence: 0.9
 - Avoid excessive layout variance, oversized editorial typography, dramatic page transitions, heavy GSAP motion, random asymmetry, purposeless bento layouts, and marketing-page composition inside product screens. Confidence: 0.9
-- The product character and canonical project artifacts always win over generic design-skill rules; use design-taste-frontend as the primary skill and gpt-taste only as an anti-generic reference, never applied automatically. Confidence: 0.85
+- The product character and canonical project artifacts always win over generic design-skill rules; use `ui-ux-pro-max` (`.agents/skills/ui-ux-pro-max/`) for design audit and implementation guidance, never applied when it conflicts with ViNha artifacts. Confidence: 0.85
 - Model real financial products, not CRUD records: full lifecycle, money physically moving through a ledger, immutable product/rate snapshots and history, strongly typed ReviewItems instead of generic notifications. Confidence: 0.85
 - Prefer conversational clarity over banking terminology; never expose financial formulas to users — use human language (e.g., "Fixed Monthly Payment" not "Equal Monthly Payment") and show live simulations while editing. Confidence: 0.85
 - Money amounts must use tabular numerals; don't make every amount visually dominant; use color for meaning, never decoration; avoid red for ordinary overspending feedback; never encode status by color alone. Confidence: 0.8

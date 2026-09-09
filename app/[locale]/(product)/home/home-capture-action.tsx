@@ -5,9 +5,10 @@ import { useRouter } from "@/i18n/navigation";
 import { HOME_TEST_ID } from "@/modules/home/application/home-constants";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
-import { Button, ButtonVariant } from "@/shared/ui/button";
+import { ButtonVariant } from "@/shared/ui/button";
 import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
 import { ACTION_ICONS, FINANCE_ICONS } from "@/shared/ui/icon-registry";
+import { FloatingActionButton } from "@/shared/patterns/floating-action";
 
 /** Persistent Home-level action for capturing a transaction or adding an account. */
 export function HomeCaptureAction({ accountCount }: { accountCount: number }) {
@@ -18,9 +19,8 @@ export function HomeCaptureAction({ accountCount }: { accountCount: number }) {
   const actionLabel = t(hasAccount ? "capture" : "addAccount");
 
   return (
-    <Button
+    <FloatingActionButton
       variant={ButtonVariant.PRIMARY}
-      className="pointer-events-auto min-h-(--floating-action-size) shrink-0 gap-(--space-2) rounded-full px-(--space-4) shadow-(--elevation-2)"
       isDisabled={!online}
       data-testid={
         hasAccount ? HOME_TEST_ID.CAPTURE_ACTION : HOME_TEST_ID.ACCOUNT_ACTION
@@ -34,6 +34,6 @@ export function HomeCaptureAction({ accountCount }: { accountCount: number }) {
         size={AppIconSize.SM}
       />
       <span>{actionLabel}</span>
-    </Button>
+    </FloatingActionButton>
   );
 }

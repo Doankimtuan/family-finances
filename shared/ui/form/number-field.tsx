@@ -65,6 +65,7 @@ export function NumberField({
         step={step}
         formatOptions={formatOptions}
         isDisabled={isDisabled}
+        aria-required={required || undefined}
         aria-label={typeof label === "string" ? label : id}
         data-testid={testId}
         fullWidth

@@ -11,7 +11,7 @@ import {
   registerInputSchema,
   type RegisterInput,
 } from "@/modules/tenancy/application/register.schema";
-import type { OAuthProvider } from "@/modules/tenancy/application/oauth.schema";
+import { OAuthProvider } from "@/modules/tenancy/application/oauth.schema";
 import { AlertVariant } from "@/shared/ui/alert";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Button } from "@/shared/ui/button";
@@ -19,8 +19,10 @@ import { Text } from "@/shared/ui/text";
 import { AuthTextField, CheckboxField } from "@/shared/ui/form";
 import { AppIcon } from "@/shared/ui/app-icon";
 import {
+  AUTH_PRIMARY_ACTION_CLASS_NAME,
   AuthScreenHeader,
   AuthScreenShell,
+  authCrossLinkClassName,
   DividerWithText,
   SocialButton,
 } from "@/shared/patterns";
@@ -168,7 +170,7 @@ export function RegisterScreen() {
   });
 
   return (
-    <AuthScreenShell testId="auth-register" align="start" withGlow>
+    <AuthScreenShell testId="auth-register" align="start" withGlow busy={busy}>
       <AuthScreenHeader
         title={t("title")}
         subtitle={t("subtitle")}
@@ -187,22 +189,22 @@ export function RegisterScreen() {
         <>
           <div className="flex flex-col gap-(--space-3)">
             <SocialButton
-              provider="google"
+              provider={OAuthProvider.GOOGLE}
               isDisabled={busy}
               data-testid="oauth-google"
-              onPress={() => onOAuth("google")}
+              onPress={() => onOAuth(OAuthProvider.GOOGLE)}
             >
-              {oauthPending === "google"
+              {oauthPending === OAuthProvider.GOOGLE
                 ? t("oauthContinuing")
                 : t("continueGoogle")}
             </SocialButton>
             <SocialButton
-              provider="apple"
+              provider={OAuthProvider.APPLE}
               isDisabled={busy}
               data-testid="oauth-apple"
-              onPress={() => onOAuth("apple")}
+              onPress={() => onOAuth(OAuthProvider.APPLE)}
             >
-              {oauthPending === "apple"
+              {oauthPending === OAuthProvider.APPLE
                 ? t("oauthContinuing")
                 : t("continueApple")}
             </SocialButton>
@@ -274,7 +276,7 @@ export function RegisterScreen() {
             <Button
               type="submit"
               variant="primary"
-              className="min-h-14 w-full rounded-(--radius-control) text-base font-semibold"
+              className={AUTH_PRIMARY_ACTION_CLASS_NAME}
               isDisabled={busy}
             >
               {isPending && !oauthPending ? t("submitting") : t("submit")}
@@ -287,7 +289,9 @@ export function RegisterScreen() {
         {t("loginPrompt")}{" "}
         <Link
           href={APP_PATH.LOGIN}
-          className="font-semibold text-accent underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+          aria-disabled={busy}
+          tabIndex={busy ? -1 : undefined}
+          className={authCrossLinkClassName(busy)}
         >
           {t("login")}
         </Link>

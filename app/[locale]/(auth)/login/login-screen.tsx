@@ -17,7 +17,7 @@ import {
   signInInputSchema,
   type SignInInput,
 } from "@/modules/tenancy/application/sign-in.schema";
-import type { OAuthProvider } from "@/modules/tenancy/application/oauth.schema";
+import { OAuthProvider } from "@/modules/tenancy/application/oauth.schema";
 import { isSafeInAppNextPath } from "@/modules/tenancy/application/auth-redirect";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import { AUTH_STORAGE_KEY } from "@/modules/tenancy/application/auth-constants";
@@ -27,8 +27,10 @@ import { Text } from "@/shared/ui/text";
 import { AuthTextField, CheckboxField } from "@/shared/ui/form";
 import { AppIcon } from "@/shared/ui/app-icon";
 import {
+  AUTH_PRIMARY_ACTION_CLASS_NAME,
   AuthScreenHeader,
   AuthScreenShell,
+  authCrossLinkClassName,
   DividerWithText,
   SocialButton,
 } from "@/shared/patterns";
@@ -156,7 +158,7 @@ export function LoginScreen() {
   });
 
   return (
-    <AuthScreenShell testId="auth-login" align="start" withGlow>
+    <AuthScreenShell testId="auth-login" align="start" withGlow busy={busy}>
       <AuthScreenHeader
         title={t("title")}
         subtitle={t("subtitle")}
@@ -165,22 +167,24 @@ export function LoginScreen() {
 
       <div className="flex flex-col gap-(--space-3)">
         <SocialButton
-          provider="google"
+          provider={OAuthProvider.GOOGLE}
           isDisabled={busy || !hydrated}
           data-testid="oauth-google"
-          onPress={() => onOAuth("google")}
+          onPress={() => onOAuth(OAuthProvider.GOOGLE)}
         >
-          {oauthPending === "google"
+          {oauthPending === OAuthProvider.GOOGLE
             ? t("oauthContinuing")
             : t("continueGoogle")}
         </SocialButton>
         <SocialButton
-          provider="apple"
+          provider={OAuthProvider.APPLE}
           isDisabled={busy || !hydrated}
           data-testid="oauth-apple"
-          onPress={() => onOAuth("apple")}
+          onPress={() => onOAuth(OAuthProvider.APPLE)}
         >
-          {oauthPending === "apple" ? t("oauthContinuing") : t("continueApple")}
+          {oauthPending === OAuthProvider.APPLE
+            ? t("oauthContinuing")
+            : t("continueApple")}
         </SocialButton>
       </div>
 
@@ -226,7 +230,9 @@ export function LoginScreen() {
           />
           <Link
             href={APP_PATH.FORGOT_PASSWORD}
-            className="shrink-0 text-sm font-medium text-accent underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+            aria-disabled={busy}
+            tabIndex={busy ? -1 : undefined}
+            className={authCrossLinkClassName(busy)}
           >
             {t("forgot")}
           </Link>
@@ -235,7 +241,7 @@ export function LoginScreen() {
         <Button
           type="submit"
           variant="primary"
-          className="min-h-14 w-full rounded-(--radius-card) text-base font-semibold"
+          className={AUTH_PRIMARY_ACTION_CLASS_NAME}
           isDisabled={busy || !hydrated}
         >
           {isPending && !oauthPending ? t("submitting") : t("submit")}
@@ -246,7 +252,9 @@ export function LoginScreen() {
         {t("registerPrompt")}{" "}
         <Link
           href={APP_PATH.REGISTER}
-          className="font-semibold text-accent underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+          aria-disabled={busy}
+          tabIndex={busy ? -1 : undefined}
+          className={authCrossLinkClassName(busy)}
         >
           {t("register")}
         </Link>

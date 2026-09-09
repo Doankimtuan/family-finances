@@ -29,14 +29,15 @@ export function BottomActionBar({
     <SafeArea
       edges={["bottom"]}
       className={cn(
-        "sticky bottom-0 z-(--z-sticky) -mx-(--space-4)",
-        "relative isolate mt-(--space-2) border-t border-divider",
-        "bg-canvas/95 px-(--space-4) pt-(--space-3) backdrop-blur-md",
+        "sticky bottom-0 z-(--z-sticky) -mx-(--page-gutter)",
+        "isolate mt-(--space-2) border-t border-divider",
+        "bg-canvas/95 px-(--page-gutter) pt-(--space-3) backdrop-blur-md",
         "shadow-(--elevation-1)",
         className,
       )}
     >
       <div
+        data-slot="bottom-action-bar"
         className={cn(
           "flex gap-(--space-2)",
           layout === BottomActionBarLayout.SPLIT ? "items-stretch" : "flex-col",

@@ -8,6 +8,7 @@ import {
   BalanceSize,
   FINANCIAL_DISPLAY_SIZE_CLASS,
 } from "./financial-display-size";
+import { FinancialNumberKind } from "./financial-number-kind";
 
 export { BalanceSize, BALANCE_SIZE_VALUES } from "./financial-display-size";
 
@@ -46,6 +47,7 @@ export function Balance({
           amountClassName,
         )}
         data-testid="ledger-balance"
+        data-financial-kind={FinancialNumberKind.CURRENT_STATE}
       >
         <FinancialValue>{amountLabel}</FinancialValue>
       </p>

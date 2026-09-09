@@ -1,10 +1,12 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import {
+  FloatingAction,
+  FloatingActionButton,
+} from "@/shared/patterns/floating-action";
 import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
-import { Button } from "@/shared/ui/button";
 import { ACTION_ICONS } from "@/shared/ui/icon-registry";
-import { FloatingAction } from "@/shared/patterns/floating-action";
 import { moneySavingsNewPath } from "@/modules/tenancy/application/app-path";
 import { useRouter } from "@/i18n/navigation";
 
@@ -14,14 +16,13 @@ export function SavingsCreateAction() {
   const router = useRouter();
   return (
     <FloatingAction>
-      <Button
-        className="pointer-events-auto min-h-(--floating-action-size) shrink-0 gap-(--space-2) rounded-full px-(--space-4) shadow-(--elevation-2)"
+      <FloatingActionButton
         onPress={() => router.push(moneySavingsNewPath())}
         data-testid="savings-add-open"
       >
         <AppIcon icon={ACTION_ICONS.add} size={AppIconSize.SM} />
         <span>{t("add")}</span>
-      </Button>
+      </FloatingActionButton>
     </FloatingAction>
   );
 }

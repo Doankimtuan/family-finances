@@ -41,7 +41,10 @@ import {
 import { createLoanAction } from "../money-products-actions";
 import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
 import { Card } from "@/shared/patterns/card";
-import { FloatingAction } from "@/shared/patterns/floating-action";
+import {
+  FloatingAction,
+  FloatingActionButton,
+} from "@/shared/patterns/floating-action";
 import { SheetActionFooter } from "@/shared/patterns/sheet-action-footer";
 import { Sheet } from "@/shared/patterns/sheet";
 import { FinancialScopeField } from "@/shared/patterns/financial-scope-field";
@@ -245,15 +248,14 @@ export function CreateLoanForm({
     if (trigger === LoanCreateTrigger.FLOATING) {
       return (
         <FloatingAction>
-          <Button
-            className="pointer-events-auto min-h-(--floating-action-size) shrink-0 gap-(--space-2) rounded-full px-(--space-4) shadow-(--elevation-2)"
+          <FloatingActionButton
             data-testid="loan-add-open"
             isDisabled={!online}
             onPress={openSheet}
           >
             <AppIcon icon={ACTION_ICONS.add} size={AppIconSize.SM} />
             <span>{online ? t("add") : tErr("offline")}</span>
-          </Button>
+          </FloatingActionButton>
         </FloatingAction>
       );
     }

@@ -5,23 +5,24 @@ import { useLocale, useTranslations } from "next-intl";
 import type { IconSvgElement } from "@hugeicons/react";
 import { MotionStep, MotionStepDirection } from "@/shared/motion";
 import {
+  AUTH_PRIMARY_ACTION_CLASS_NAME,
   AmountField,
   AuthScreenShell,
   ChoiceTile,
   ChoiceTileGroup,
-  SectionHeader,
 } from "@/shared/patterns";
 import { AlertVariant } from "@/shared/ui/alert";
 import { AppIcon } from "@/shared/ui/app-icon";
 import { Button } from "@/shared/ui/button";
+import { Heading } from "@/shared/ui/heading";
 import { IconContainer } from "@/shared/ui/icon-container";
-import { ACTION_ICONS, FINANCE_ICONS } from "@/shared/ui/icon-registry";
+import { PLAN_ICONS, UTILITY_ICONS } from "@/shared/ui/icon-registry";
 import { Progress } from "@/shared/ui/progress";
 import { StatusAlert } from "@/shared/ui/status-alert";
+import { Text } from "@/shared/ui/text";
 import { TextField } from "@/shared/ui/form";
 import { useStatusAlert } from "@/providers/status-alert-provider";
-import type { PlanPreset } from "@/modules/tenancy/application/create-household.schema";
-import { PlanPreset as PlanPresetValue } from "@/modules/tenancy/application/create-household.schema";
+import { PlanPreset } from "@/modules/tenancy/application/create-household.schema";
 import {
   HOUSEHOLD_BASE_CURRENCY,
   HOUSEHOLD_LOCALE,
@@ -38,16 +39,16 @@ const PLAN_PRESET_OPTIONS: Array<{
   icon: IconSvgElement;
 }> = [
   {
-    value: PlanPresetValue.BALANCED,
+    value: PlanPreset.BALANCED,
     labelKey: "planBalanced",
     hintKey: "planBalancedHint",
-    icon: FINANCE_ICONS.wallet,
+    icon: PLAN_ICONS.jar,
   },
   {
-    value: PlanPresetValue.SIMPLE,
+    value: PlanPreset.SIMPLE,
     labelKey: "planSimple",
     hintKey: "planSimpleHint",
-    icon: FINANCE_ICONS.savings,
+    icon: PLAN_ICONS.goal,
   },
 ];
 
@@ -67,7 +68,7 @@ export function OnboardWizardScreen() {
   const [accountName, setAccountName] = useState(t("accountNamePlaceholder"));
   const [openingBalance, setOpeningBalance] = useState<number | null>(0);
   const [planPreset, setPlanPreset] = useState<PlanPreset | null>(
-    PlanPresetValue.BALANCED,
+    PlanPreset.BALANCED,
   );
   const [nameError, setNameError] = useState(false);
   const [accountError, setAccountError] = useState(false);
@@ -136,13 +137,13 @@ export function OnboardWizardScreen() {
   };
 
   return (
-    <AuthScreenShell testId="onboard-wizard" align="start">
+    <AuthScreenShell testId="onboard-wizard" align="start" busy={isPending}>
       <Progress value={step} max={TOTAL_STEPS} label={progressLabel} />
 
       <MotionStep stepKey={`onboard-step-${step}`} direction={direction}>
         {step === 1 ? (
           <section className="flex flex-1 flex-col gap-(--space-4)">
-            <SectionHeader
+            <OnboardStepHeader
               title={t("step1Title")}
               description={t("step1Description")}
             />
@@ -163,7 +164,7 @@ export function OnboardWizardScreen() {
             <div className="mt-auto pt-(--space-2)">
               <Button
                 variant="primary"
-                className="min-h-12 w-full"
+                className={AUTH_PRIMARY_ACTION_CLASS_NAME}
                 data-testid="onboard-next"
                 onPress={goNextFromHousehold}
                 isDisabled={isPending}
@@ -185,14 +186,17 @@ export function OnboardWizardScreen() {
                 {t("skipAccount")}
               </Button>
             </div>
-            <SectionHeader
+            <OnboardStepHeader
               title={t("step2Title")}
               description={t("step2Description")}
             />
             <div className="flex flex-col gap-(--space-3)">
-              <h2 className="text-sm font-semibold text-text-primary">
+              <Heading
+                level={2}
+                className="text-sm font-semibold tracking-tight text-text-primary"
+              >
                 {t("cashAccountTitle")}
-              </h2>
+              </Heading>
               <TextField
                 id="onboard-account-name"
                 label={t("accountNameLabel")}
@@ -264,28 +268,25 @@ export function OnboardWizardScreen() {
                         tone={planPreset === null ? "primary" : "neutral"}
                         size="sm"
                       >
-                        <AppIcon icon={FINANCE_ICONS.account} size="sm" />
+                        <AppIcon icon={UTILITY_ICONS.info} size="sm" />
                       </IconContainer>
                     }
                   />
                 </ChoiceTileGroup>
               </div>
             </fieldset>
-            <div className="mt-auto grid grid-cols-3 gap-(--space-2) pt-(--space-2)">
+            <div className="mt-auto flex flex-col gap-(--space-2) pt-(--space-2)">
               <Button
                 variant="ghost"
-                className="min-h-12 w-full px-(--space-2)"
+                className="min-h-11 w-full text-sm text-text-secondary"
                 onPress={goBackToHousehold}
                 isDisabled={isPending}
               >
-                <span className="inline-flex items-center gap-(--space-1)">
-                  <AppIcon icon={ACTION_ICONS.back} size="sm" emphasized />
-                  {t("back")}
-                </span>
+                {t("back")}
               </Button>
               <Button
                 variant="primary"
-                className="col-span-2 min-h-12 w-full"
+                className={AUTH_PRIMARY_ACTION_CLASS_NAME}
                 data-testid="onboard-finish"
                 onPress={() => finish()}
                 isDisabled={isPending}
@@ -297,5 +298,24 @@ export function OnboardWizardScreen() {
         )}
       </MotionStep>
     </AuthScreenShell>
+  );
+}
+
+function OnboardStepHeader({
+  title,
+  description,
+}: {
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="flex flex-col gap-(--space-1)">
+      <Heading level={1} className="text-2xl leading-tight tracking-tight">
+        {title}
+      </Heading>
+      <Text tone="secondary" size="sm" className="leading-relaxed text-pretty">
+        {description}
+      </Text>
+    </div>
   );
 }

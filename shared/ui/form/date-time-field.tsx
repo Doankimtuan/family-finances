@@ -69,6 +69,7 @@ export function DatePickerField({
         minValue={minDateValue}
         maxValue={maxDateValue}
         isDisabled={isDisabled}
+        aria-required={required || undefined}
         aria-label={typeof label === "string" ? label : id}
         data-testid={testId}
         className="w-full"
@@ -154,6 +155,7 @@ export function TimeField({
         value={timeValue}
         onChange={(next) => onChange(next ? next.toString().slice(0, 5) : "")}
         isDisabled={isDisabled}
+        aria-required={required || undefined}
         className="w-full"
         aria-label={typeof label === "string" ? label : id}
       >

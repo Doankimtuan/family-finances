@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { OAuthProvider } from "@/modules/tenancy/application/oauth.schema";
 import { cn } from "@/shared/utils/cn";
 import { Button, type ButtonProps } from "@/shared/ui/button";
 
@@ -42,7 +43,7 @@ function AppleGlyph() {
 }
 
 export type SocialButtonProps = Omit<ButtonProps, "variant" | "children"> & {
-  provider: "google" | "apple";
+  provider: OAuthProvider;
   children: ReactNode;
 };
 
@@ -55,7 +56,7 @@ export function SocialButton({
   children,
   ...props
 }: SocialButtonProps) {
-  const isGoogle = provider === "google";
+  const isGoogle = provider === OAuthProvider.GOOGLE;
   return (
     <Button
       variant="secondary"

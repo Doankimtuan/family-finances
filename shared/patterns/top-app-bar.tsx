@@ -70,6 +70,39 @@ const headerPillToneClassName: Record<HeaderPillTone, string> = {
   [HeaderPillTone.INFO]: "bg-info/10 text-info",
 };
 
+const COMPACT_HEADER_VARIANTS = new Set<TopAppBarVariant>([
+  TopAppBarVariant.DETAIL,
+  TopAppBarVariant.FORM,
+]);
+
+function headerPaddingClassName(
+  variant: TopAppBarVariant,
+  showBrandMark: boolean,
+): string {
+  if (variant === TopAppBarVariant.CONTEXTUAL) {
+    return showBrandMark
+      ? "pb-(--space-4) pt-(--space-4)"
+      : "pb-(--space-5) pt-(--space-5)";
+  }
+  if (variant === TopAppBarVariant.PRIMARY) {
+    return "pb-(--space-4) pt-(--space-5)";
+  }
+  return "pb-(--space-3) pt-(--space-2)";
+}
+
+function headerTitleClassName(
+  variant: TopAppBarVariant,
+  hasSubtitle: boolean,
+): string {
+  if (variant === TopAppBarVariant.CONTEXTUAL) {
+    return "vinha-header-title text-3xl leading-tight text-balance wrap-break-word";
+  }
+  if (variant === TopAppBarVariant.PRIMARY) {
+    return "text-2xl leading-tight";
+  }
+  return hasSubtitle ? "text-lg leading-snug" : "truncate text-lg leading-snug";
+}
+
 export function HeaderPill({
   children,
   tone = HeaderPillTone.NEUTRAL,
@@ -94,12 +127,18 @@ export function HeaderPill({
 }
 
 /**
- * Composable page header for the compact mobile-native shell. Contextual
- * headers can add a human headline, semantic icon, status, period, and insight
- * without turning every screen into a card or marketing hero.
+ * Composable page header. Answers: where am I, can I go back, what is the
+ * one primary action.
+ *
+ * Variant map (Phase 2):
+ * - `primary` — Root destinations (Home/Money/Plan/Inbox/Together titles)
+ * - `contextual` — Expressive hub headers when a situation headline exists
+ * - `detail` — Back + identity (covers Back and Detail)
+ * - `form` — Create/edit pages
+ * Search is composition via `trailing`, not a fifth variant.
  */
 export function TopAppBar({
-  variant = "primary",
+  variant = TopAppBarVariant.PRIMARY,
   eyebrow,
   title,
   subtitle,
@@ -116,29 +155,23 @@ export function TopAppBar({
 }: TopAppBarProps) {
   const tA11y = useTranslations("a11y");
   const resolvedBackLabel = backLabel ?? tA11y("back");
-  const isContextual = variant === "contextual";
+  const isContextual = variant === TopAppBarVariant.CONTEXTUAL;
+  const isCompactRow = COMPACT_HEADER_VARIANTS.has(variant);
   return (
     <header
       className={cn(
         "shrink-0 px-(--page-gutter)",
-        isContextual
-          ? showBrandMark
-            ? "pb-(--space-4) pt-(--space-4)"
-            : "pb-(--space-5) pt-(--space-5)"
-          : variant === "primary"
-            ? "pb-(--space-4) pt-(--space-5)"
-            : "pb-(--space-3) pt-(--space-2)",
+        headerPaddingClassName(variant, showBrandMark),
         className,
         isContextual ? "vinha-header-contextual" : null,
       )}
       data-header-variant={variant}
+      data-slot="top-app-bar"
     >
       <div
         className={cn(
           "flex items-start gap-(--space-2)",
-          isContextual || variant === "primary"
-            ? "min-h-0"
-            : "min-h-11 items-center",
+          isCompactRow ? "min-h-11 items-center" : "min-h-0",
         )}
       >
         {onBack ? (
@@ -179,16 +212,7 @@ export function TopAppBar({
                   level={1}
                   className={cn(
                     "text-text-primary",
-                    isContextual
-                      ? "text-3xl leading-tight"
-                      : variant === "primary"
-                        ? "text-2xl leading-tight"
-                        : "text-lg leading-snug",
-                    isContextual
-                      ? "vinha-header-title text-balance wrap-break-word"
-                      : subtitle
-                        ? ""
-                        : "truncate",
+                    headerTitleClassName(variant, Boolean(subtitle)),
                   )}
                 >
                   <span data-slot="header-title">{title}</span>
@@ -225,7 +249,10 @@ export function TopAppBar({
           ) : null}
         </div>
         {trailing ? (
-          <div className="flex shrink-0 items-center gap-(--space-1) self-center">
+          <div
+            className="flex shrink-0 items-center gap-(--space-1) self-center"
+            data-slot="header-trailing"
+          >
             {trailing}
           </div>
         ) : null}

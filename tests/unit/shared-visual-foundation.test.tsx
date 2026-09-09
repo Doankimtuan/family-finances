@@ -3,12 +3,14 @@ import { describe, expect, it, vi } from "vitest";
 import { Section, SectionVariant } from "@/shared/patterns/section";
 import { Balance, BalanceSize } from "@/shared/patterns/balance";
 import { Amount, AmountTone, AmountSize } from "@/shared/patterns/amount";
+import { FinancialNumberKind } from "@/shared/patterns/financial-number-kind";
 import { Button } from "@/shared/ui/button";
 import { FilterChip } from "@/shared/patterns/filter-chip";
 import { StatusBadge, StatusBadgeTone } from "@/shared/ui/status-badge";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { AlertVariant } from "@/shared/ui/alert";
 import { EmptyState } from "@/shared/patterns/empty-state";
+import { ErrorState } from "@/shared/patterns/error-state";
 
 describe("Shared Visual Foundation", () => {
   describe("Section & SectionHeader", () => {
@@ -87,6 +89,10 @@ describe("Shared Visual Foundation", () => {
 
       const balanceElem = screen.getByTestId("ledger-balance");
       expect(balanceElem).toHaveTextContent("₫1,889,655");
+      expect(balanceElem).toHaveAttribute(
+        "data-financial-kind",
+        FinancialNumberKind.CURRENT_STATE,
+      );
       expect(balanceElem).toHaveClass(
         "tabular-nums",
         "text-3xl",
@@ -148,6 +154,33 @@ describe("Shared Visual Foundation", () => {
       expect(screen.getByTestId("intention-amount")).toHaveClass(
         "text-text-secondary",
       );
+    });
+
+    it("marks estimated magnitudes as quieter than intention amounts", () => {
+      const { rerender } = render(
+        <Amount amountLabel="₫500,000" label="Planned" />,
+      );
+      const amount = screen.getByTestId("intention-amount");
+      expect(amount).toHaveAttribute(
+        "data-financial-kind",
+        FinancialNumberKind.INTENTION,
+      );
+      expect(amount).toHaveClass("font-semibold");
+
+      rerender(
+        <Amount
+          amountLabel="₫500,000"
+          label="Estimated market value"
+          kind={FinancialNumberKind.ESTIMATE}
+        />,
+      );
+      const estimated = screen.getByTestId("intention-amount");
+      expect(estimated).toHaveAttribute(
+        "data-financial-kind",
+        FinancialNumberKind.ESTIMATE,
+      );
+      expect(estimated).toHaveClass("font-medium");
+      expect(estimated).not.toHaveClass("font-semibold");
     });
   });
 
@@ -265,6 +298,25 @@ describe("Shared Visual Foundation", () => {
       ).toBeInTheDocument();
       const title = screen.getByText("No pending items");
       expect(title).toHaveAttribute("data-slot", "empty-state-title");
+    });
+  });
+
+  describe("ErrorState pattern", () => {
+    it("uses the same calm plate language as EmptyState", () => {
+      render(
+        <ErrorState
+          title="Could not load"
+          description="Try again in a moment."
+        />,
+      );
+
+      const title = screen.getByText("Could not load");
+      expect(title).toHaveAttribute("data-slot", "error-state-title");
+      expect(screen.getByRole("alert")).toHaveAttribute(
+        "data-slot",
+        "error-state",
+      );
+      expect(screen.getByText("Try again in a moment.")).toBeInTheDocument();
     });
   });
 });

@@ -273,4 +273,13 @@ describe("form foundation: formFieldA11y described-by wiring", () => {
       "aria-describedby": undefined,
     });
   });
+
+  it("announces required without changing validation", () => {
+    expect(formFieldA11y(id, false, false, true)).toEqual({
+      id,
+      "aria-invalid": undefined,
+      "aria-describedby": undefined,
+      "aria-required": true,
+    });
+  });
 });

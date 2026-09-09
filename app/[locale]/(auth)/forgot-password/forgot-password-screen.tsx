@@ -4,16 +4,23 @@ import { useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
+import { Mail01Icon } from "@hugeicons/core-free-icons";
 import { Link } from "@/i18n/navigation";
 import {
   forgotPasswordInputSchema,
   type ForgotPasswordInput,
 } from "@/modules/tenancy/application/register.schema";
 import { AlertVariant } from "@/shared/ui/alert";
+import { AppIcon } from "@/shared/ui/app-icon";
 import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
-import { TextField } from "@/shared/ui/form";
-import { AuthScreenHeader, AuthScreenShell } from "@/shared/patterns";
+import { AuthTextField } from "@/shared/ui/form";
+import {
+  AUTH_PRIMARY_ACTION_CLASS_NAME,
+  AuthScreenHeader,
+  AuthScreenShell,
+  authCrossLinkClassName,
+} from "@/shared/patterns";
 import { toast } from "@/shared/patterns/toast";
 import { useStatusAlert } from "@/providers/status-alert-provider";
 import { forgotPasswordAction } from "./actions";
@@ -62,7 +69,12 @@ export function ForgotPasswordScreen() {
   });
 
   return (
-    <AuthScreenShell testId="auth-forgot-password" align="start">
+    <AuthScreenShell
+      testId="auth-forgot-password"
+      align="start"
+      withGlow
+      busy={isPending}
+    >
       <AuthScreenHeader
         title={t("title")}
         subtitle={t("subtitle")}
@@ -75,18 +87,20 @@ export function ForgotPasswordScreen() {
         className="flex flex-col gap-(--space-4)"
         noValidate
       >
-        <TextField
+        <AuthTextField
           id="forgot-email"
           label={t("emailLabel")}
           type="email"
           autoComplete="email"
+          placeholder={t("emailPlaceholder")}
+          startIcon={<AppIcon icon={Mail01Icon} size="sm" />}
           registration={register("email")}
           error={errors.email ? tValidation("invalidEmail") : undefined}
         />
         <Button
           type="submit"
           variant="primary"
-          className="w-full"
+          className={AUTH_PRIMARY_ACTION_CLASS_NAME}
           isDisabled={isPending}
         >
           {isPending ? t("submitting") : t("submit")}
@@ -94,10 +108,7 @@ export function ForgotPasswordScreen() {
       </form>
 
       <Text tone="muted" size="sm" className="text-center">
-        <Link
-          href={APP_PATH.LOGIN}
-          className="min-h-11 content-center text-accent underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-        >
+        <Link href={APP_PATH.LOGIN} className={authCrossLinkClassName()}>
           {t("backToLogin")}
         </Link>
       </Text>

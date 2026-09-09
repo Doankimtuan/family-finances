@@ -34,7 +34,7 @@ export function FieldSelect({
   "data-testid": testId,
 }: FieldSelectProps) {
   const hasError = Boolean(error);
-  const a11y = formFieldA11y(id, hasError, Boolean(description));
+  const a11y = formFieldA11y(id, hasError, Boolean(description), required);
 
   return (
     <FormField

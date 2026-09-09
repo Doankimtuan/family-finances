@@ -53,7 +53,7 @@ export function SelectField({
   "data-testid": testId,
 }: SelectFieldProps) {
   const hasError = Boolean(error);
-  const a11y = formFieldA11y(id, hasError, Boolean(description));
+  const a11y = formFieldA11y(id, hasError, Boolean(description), required);
 
   return (
     <FormField

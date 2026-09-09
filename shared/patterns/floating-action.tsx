@@ -1,10 +1,16 @@
 import type { ReactNode } from "react";
+import { Button, ButtonVariant, type ButtonProps } from "@/shared/ui/button";
 import { cn } from "@/shared/utils/cn";
 
 export type FloatingActionProps = {
   children: ReactNode;
   className?: string;
 };
+
+const FLOATING_ACTION_CONTROL_CLASS_NAME = cn(
+  "pointer-events-auto min-h-(--floating-action-size) shrink-0 gap-(--space-2)",
+  "rounded-full px-(--space-4) shadow-(--elevation-2)",
+);
 
 /**
  * Sticky quick-action zone for repeated high-frequency actions (e.g. Add
@@ -36,5 +42,28 @@ export function FloatingAction({ children, className }: FloatingActionProps) {
         </div>
       </div>
     </>
+  );
+}
+
+export type FloatingActionButtonProps = ButtonProps;
+
+/**
+ * Canonical pill control for `FloatingAction`. One high-frequency create
+ * action per screen — never a second competing FAB.
+ */
+export function FloatingActionButton({
+  className,
+  children,
+  variant = ButtonVariant.PRIMARY,
+  ...props
+}: FloatingActionButtonProps) {
+  return (
+    <Button
+      variant={variant}
+      className={cn(FLOATING_ACTION_CONTROL_CLASS_NAME, className)}
+      {...props}
+    >
+      {children}
+    </Button>
   );
 }

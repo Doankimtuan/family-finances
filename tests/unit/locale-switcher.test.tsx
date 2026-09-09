@@ -2,7 +2,10 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import { routing } from "@/i18n/routing";
-import { LocaleSwitcher } from "@/shared/patterns/locale-switcher";
+import {
+  LocaleSwitcher,
+  LocaleSwitcherTone,
+} from "@/shared/patterns/locale-switcher";
 
 const { replaceMock } = vi.hoisted(() => ({ replaceMock: vi.fn() }));
 
@@ -53,5 +56,15 @@ describe("LocaleSwitcher", () => {
     expect(replaceMock).toHaveBeenCalledWith(APP_PATH.HOME, {
       locale: nextLocale,
     });
+  });
+
+  it("keeps Welcome locale controls quiet so they do not compete with the primary CTA", () => {
+    render(<LocaleSwitcher tone={LocaleSwitcherTone.QUIET} />);
+
+    const currentButton = screen.getByRole("button", {
+      name: new RegExp(`^${routing.defaultLocale}\\b`, "i"),
+    });
+    expect(currentButton).toHaveClass("text-text-primary");
+    expect(currentButton).not.toHaveClass("bg-accent");
   });
 });

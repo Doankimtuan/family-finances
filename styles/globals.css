@@ -456,11 +456,10 @@
   --page-gutter: var(--space-4);
   --sheet-footer-space: var(--space-4);
   --sheet-footer-clearance: calc(var(--space-12) + var(--sheet-footer-space));
-  /* FloatingAction geometry: pill height, gap above the bottom navigation
-     (space-2 covers the navigation's wide-viewport outer margin), and the
-     scroll clearance the pattern reserves so content clears the fixed pill. */
+  /* FloatingAction geometry: pill height, gap above the attached bottom
+     navigation, and the scroll clearance so content clears the fixed pill. */
   --floating-action-size: 3rem;
-  --floating-action-gap: calc(var(--space-4) + var(--space-2));
+  --floating-action-gap: var(--space-4);
   --floating-action-clearance: calc(
     var(--floating-action-size) + var(--floating-action-gap)
   );

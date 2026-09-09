@@ -60,6 +60,7 @@ export function formFieldA11y(
   id: string,
   hasError: boolean,
   hasDescription = false,
+  required = false,
 ) {
   const describedBy = [
     hasError ? `${id}-error` : null,
@@ -73,5 +74,6 @@ export function formFieldA11y(
     id,
     "aria-invalid": hasError || undefined,
     "aria-describedby": describedBy || undefined,
+    ...(required ? { "aria-required": true as const } : {}),
   } as const;
 }

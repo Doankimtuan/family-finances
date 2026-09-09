@@ -43,7 +43,7 @@ export function TextField({
 }: TextFieldProps) {
   const hasError = Boolean(error);
   const errorMessage = resolveErrorMessage(error);
-  const a11y = formFieldA11y(id, hasError, Boolean(description));
+  const a11y = formFieldA11y(id, hasError, Boolean(description), required);
 
   if (inputProps.type === "date" || inputProps.type === "time") {
     const value = typeof inputProps.value === "string" ? inputProps.value : "";
@@ -88,8 +88,12 @@ export function TextField({
         label={label}
         value={Number.isFinite(numericValue) ? numericValue : undefined}
         onChange={handleNumericChange}
-        minValue={typeof inputProps.min === "number" ? inputProps.min : undefined}
-        maxValue={typeof inputProps.max === "number" ? inputProps.max : undefined}
+        minValue={
+          typeof inputProps.min === "number" ? inputProps.min : undefined
+        }
+        maxValue={
+          typeof inputProps.max === "number" ? inputProps.max : undefined
+        }
         step={typeof inputProps.step === "number" ? inputProps.step : undefined}
         isDisabled={inputProps.disabled}
         description={description}

@@ -43,6 +43,7 @@ export function Card({ className, tone = "default", ...props }: CardProps) {
         toneClassName[tone],
         className,
       )}
+      data-tone={tone}
       {...props}
     />
   );

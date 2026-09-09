@@ -56,7 +56,7 @@ export function AuthTextField({
   const [revealed, setRevealed] = useState(false);
   const hasError = Boolean(error);
   const errorMessage = resolveErrorMessage(error);
-  const a11y = formFieldA11y(id, hasError, Boolean(description));
+  const a11y = formFieldA11y(id, hasError, Boolean(description), required);
   const isPassword = type === "password" || revealable;
   const canReveal = isPassword && Boolean(revealShowLabel && revealHideLabel);
   const inputType = canReveal && revealed ? "text" : type;
@@ -103,9 +103,8 @@ export function AuthTextField({
         {canReveal ? (
           <button
             type="button"
-            tabIndex={-1}
             className={cn(
-              "absolute end-2 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center",
+              "absolute end-1.5 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center",
               "rounded-(--radius-control) text-text-muted",
               "hover:text-text-secondary",
               "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring",

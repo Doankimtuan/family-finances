@@ -6,16 +6,40 @@ import { LOCALE_LABEL_KEY } from "@/i18n/locales";
 import { routing } from "@/i18n/routing";
 import { cn } from "@/shared/utils/cn";
 
+export const LocaleSwitcherTone = {
+  DEFAULT: "default",
+  QUIET: "quiet",
+} as const;
+
+export type LocaleSwitcherTone =
+  (typeof LocaleSwitcherTone)[keyof typeof LocaleSwitcherTone];
+
+function resolveLocaleSwitcherStateClassName(
+  active: boolean,
+  isQuiet: boolean,
+) {
+  if (!active) return "text-text-secondary hover:text-text-primary";
+  if (isQuiet) return "text-text-primary";
+  return "bg-accent text-accent-fg";
+}
+
 /**
  * Foundation locale switcher — not a Settings product screen.
  * Switches path prefix while preserving the current pathname.
  */
-export function LocaleSwitcher({ className }: { className?: string }) {
+export function LocaleSwitcher({
+  className,
+  tone = LocaleSwitcherTone.DEFAULT,
+}: {
+  className?: string;
+  tone?: LocaleSwitcherTone;
+}) {
   const t = useTranslations("settings");
   const tA11y = useTranslations("a11y");
   const locale = useLocale();
   const pathname = usePathname();
   const router = useRouter();
+  const isQuiet = tone === LocaleSwitcherTone.QUIET;
 
   return (
     <div
@@ -39,9 +63,7 @@ export function LocaleSwitcher({ className }: { className?: string }) {
               "rounded-(--radius-control) px-(--space-3) font-medium",
               "transition-colors duration-(--duration-fast) ease-(--ease-standard)",
               "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring",
-              active
-                ? "bg-accent text-accent-fg"
-                : "text-text-secondary hover:text-text-primary",
+              resolveLocaleSwitcherStateClassName(active, isQuiet),
             )}
             aria-pressed={active}
             onClick={() => {

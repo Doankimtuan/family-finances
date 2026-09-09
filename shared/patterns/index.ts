@@ -11,7 +11,12 @@ export {
   BottomActionBarLayout,
   type BottomActionBarProps,
 } from "./bottom-action-bar";
-export { FloatingAction, type FloatingActionProps } from "./floating-action";
+export {
+  FloatingAction,
+  FloatingActionButton,
+  type FloatingActionProps,
+  type FloatingActionButtonProps,
+} from "./floating-action";
 export { BottomNavigation } from "./bottom-navigation";
 export {
   TopAppBar,
@@ -24,6 +29,8 @@ export {
 export { ChromeShell, type ChromeShellProps } from "./chrome-shell";
 export {
   AuthScreenShell,
+  AUTH_PRIMARY_ACTION_CLASS_NAME,
+  authCrossLinkClassName,
   type AuthScreenShellProps,
   type AuthScreenShellAlign,
 } from "./auth-screen-shell";
@@ -55,7 +62,11 @@ export { Toast, toast, type ToastProps } from "./toast";
 export { EmptyState } from "./empty-state";
 export { LoadingState } from "./loading-state";
 export { ErrorState } from "./error-state";
-export { LocaleSwitcher } from "./locale-switcher";
+export {
+  LocaleSwitcher,
+  LocaleSwitcherTone,
+  type LocaleSwitcherTone as LocaleSwitcherToneValue,
+} from "./locale-switcher";
 export { ThemeToggle } from "./theme-toggle";
 export { TogetherPreferences } from "./together-preferences";
 export {
@@ -78,6 +89,10 @@ export {
   FINANCIAL_DISPLAY_SIZE_VALUES,
 } from "./financial-display-size";
 export { FinancialValue } from "./financial-value";
+export {
+  FinancialNumberKind,
+  FINANCIAL_NUMBER_KIND_VALUES,
+} from "./financial-number-kind";
 export {
   FinancialPrivacyToggle,
   FinancialPrivacyToggleTone,

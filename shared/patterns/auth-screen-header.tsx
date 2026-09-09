@@ -32,6 +32,7 @@ export function AuthScreenHeader({
   hideBrandMark = false,
 }: AuthScreenHeaderProps) {
   const tAuth = useTranslations("auth");
+  const tCommon = useTranslations("common");
 
   return (
     <header className="flex flex-col gap-(--space-4)">
@@ -45,7 +46,14 @@ export function AuthScreenHeader({
         </Link>
       ) : null}
       <div className="flex flex-col gap-(--space-3)">
-        {hideBrandMark ? null : <BrandMark variant="soft" size="sm" />}
+        {hideBrandMark ? null : (
+          <div className="flex items-center gap-(--space-2)">
+            <BrandMark variant="soft" size="sm" />
+            <Text size="sm" weight="semibold" className="text-text-primary">
+              {tCommon("brand")}
+            </Text>
+          </div>
+        )}
         <div className="flex flex-col gap-(--space-1)">
           <Heading level={1} className="text-2xl leading-tight tracking-tight">
             {title}

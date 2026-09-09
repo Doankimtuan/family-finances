@@ -4,6 +4,19 @@ import { AuthHouseGlow } from "@/shared/patterns/auth-house-glow";
 
 export type AuthScreenShellAlign = "center" | "start";
 
+/** Full-width auth primary action — 56px, keeps dimensions while pending. */
+export const AUTH_PRIMARY_ACTION_CLASS_NAME =
+  "min-h-14 w-full text-base font-semibold";
+
+export function authCrossLinkClassName(disabled = false, className?: string) {
+  return cn(
+    "inline-flex min-h-11 items-center font-semibold text-accent underline-offset-4 hover:underline",
+    "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring",
+    disabled && "pointer-events-none opacity-50",
+    className,
+  );
+}
+
 export type AuthScreenShellProps = {
   children: ReactNode;
   testId?: string;
@@ -16,6 +29,8 @@ export type AuthScreenShellProps = {
   align?: AuthScreenShellAlign;
   /** Soft house silhouette wash behind content (auth marketing screens). */
   withGlow?: boolean;
+  /** Communicates in-flight submission to assistive technology. */
+  busy?: boolean;
   className?: string;
 };
 
@@ -29,11 +44,13 @@ export function AuthScreenShell({
   centered = false,
   align = centered ? "center" : "start",
   withGlow = false,
+  busy = false,
   className,
 }: AuthScreenShellProps) {
   return (
     <div
       data-testid={testId}
+      aria-busy={busy || undefined}
       className={cn(
         "relative flex min-h-0 flex-1 flex-col overflow-hidden",
         className,

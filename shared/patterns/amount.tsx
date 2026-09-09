@@ -6,6 +6,10 @@ import {
   AmountSize,
   FINANCIAL_DISPLAY_SIZE_CLASS,
 } from "./financial-display-size";
+import {
+  FinancialNumberKind,
+  type FinancialNumberKind as FinancialNumberKindValue,
+} from "./financial-number-kind";
 
 export { AmountSize, AMOUNT_SIZE_VALUES } from "./financial-display-size";
 
@@ -39,6 +43,8 @@ export type AmountProps = {
   /** Intention / planned / credit / debit label — never unlabeled Balance. */
   label?: ReactNode;
   tone?: AmountTone;
+  /** What kind of number this is — not a calculation, only presentation. */
+  kind?: FinancialNumberKindValue;
   size?: AmountSize;
   className?: string;
   labelClassName?: string;
@@ -53,6 +59,7 @@ export function Amount({
   amountLabel,
   label,
   tone = AmountTone.NEUTRAL,
+  kind = FinancialNumberKind.INTENTION,
   size = AmountSize.MD,
   className,
   labelClassName,
@@ -67,7 +74,10 @@ export function Amount({
       ) : null}
       <p
         className={cn(
-          "font-semibold tabular-nums tracking-tight",
+          "tabular-nums tracking-tight",
+          kind === FinancialNumberKind.ESTIMATE
+            ? "font-medium"
+            : "font-semibold",
           FINANCIAL_DISPLAY_SIZE_CLASS[size],
           (tone === AmountTone.CREDIT || tone === AmountTone.INCOME) &&
             "text-success",
@@ -80,6 +90,7 @@ export function Amount({
           amountClassName,
         )}
         data-testid="intention-amount"
+        data-financial-kind={kind}
       >
         <FinancialValue>{amountLabel}</FinancialValue>
       </p>

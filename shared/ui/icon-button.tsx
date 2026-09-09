@@ -17,7 +17,9 @@ export function IconButton({ className, ...props }: IconButtonProps) {
       className={cn(
         "button min-h-11 min-w-11 rounded-(--radius-control)",
         "transition-[transform,background-color] duration-(--duration-fast) ease-(--ease-standard)",
-        "motion-reduce:transition-none motion-reduce:active:transform-none",
+        "active:scale-(--press-scale) motion-reduce:transition-none motion-reduce:active:transform-none",
+        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring",
+        "disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100",
         className,
       )}
       {...props}

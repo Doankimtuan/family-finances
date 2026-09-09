@@ -7,10 +7,12 @@ import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import { DEFAULT_CURRENCY } from "@/modules/shared-kernel/currency";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import {
+  AUTH_PRIMARY_ACTION_CLASS_NAME,
   AuthScreenShell,
   BrandMark,
   Card,
   LocaleSwitcher,
+  LocaleSwitcherTone,
 } from "@/shared/patterns";
 import { AppIcon } from "@/shared/ui/app-icon";
 import { Button } from "@/shared/ui/button";
@@ -127,25 +129,31 @@ export function WelcomeScreen() {
   const router = useRouter();
   const locale = useLocale();
   const t = useTranslations("auth.welcome");
+  const tCommon = useTranslations("common");
 
   return (
     <AuthScreenShell testId="auth-welcome" align="start" withGlow>
       <div className="flex justify-end">
-        <LocaleSwitcher />
+        <LocaleSwitcher tone={LocaleSwitcherTone.QUIET} />
       </div>
 
       <div className="flex flex-col gap-(--space-3)">
-        <BrandMark variant="plate" size="sm" decorative={false} />
+        <div className="flex items-center gap-(--space-3)">
+          <BrandMark variant="plate" size="sm" decorative />
+          <Text size="sm" weight="semibold" className="text-text-primary">
+            {tCommon("brand")}
+          </Text>
+        </div>
         <Heading
           level={1}
-          className="text-3xl leading-tight tracking-tight text-text-primary"
+          className="text-3xl leading-tight tracking-tight text-pretty text-text-primary"
         >
           {t("headline")}
         </Heading>
         <Text
           tone="secondary"
           size="base"
-          className="max-w-[20rem] leading-relaxed"
+          className="max-w-[20rem] leading-relaxed text-pretty"
         >
           {t("subtitle")}
         </Text>
@@ -173,7 +181,7 @@ export function WelcomeScreen() {
         <Button
           variant="primary"
           size="md"
-          className="min-h-14 w-full text-base font-semibold"
+          className={AUTH_PRIMARY_ACTION_CLASS_NAME}
           onPress={() => router.push(APP_PATH.REGISTER)}
         >
           {t("register")}
@@ -181,7 +189,7 @@ export function WelcomeScreen() {
         <Button
           variant="secondary"
           size="md"
-          className="min-h-14 w-full text-base font-semibold"
+          className={AUTH_PRIMARY_ACTION_CLASS_NAME}
           onPress={() => router.push(APP_PATH.LOGIN)}
         >
           {t("login")}

@@ -20,10 +20,10 @@ export function CheckboxField({
   ...props
 }: CheckboxFieldProps) {
   return (
-    <div className={cn("flex flex-col gap-1", className)}>
+    <div className={cn("flex flex-col gap-(--space-1)", className)}>
       <label
         htmlFor={id}
-        className="flex cursor-pointer items-start gap-(--space-3) text-sm leading-snug text-text-secondary"
+        className="flex min-h-11 cursor-pointer items-start gap-(--space-3) py-(--space-1) text-sm leading-snug text-text-secondary"
       >
         <input
           id={id}
