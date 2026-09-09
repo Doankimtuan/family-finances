@@ -59,7 +59,7 @@ describe("Debt UI polish", () => {
         href="/money/debts/1"
         testId="debt-row-1"
         direction={DebtDirection.BORROWED}
-        directionLabel="I borrowed money"
+        directionLabel="You owe"
         title="An"
         amountLabel="₫600,000"
         amountCaption="Still to repay"
@@ -67,20 +67,22 @@ describe("Debt UI polish", () => {
         dueDate="2026-09-10"
         dueLabels={dueLabels}
         locale="en"
-        progress={progress}
-        progressLabels={progressLabels}
       />,
     );
 
     const row = screen.getByTestId("debt-row-1");
     expect(row.tagName).toBe("A");
     expect(row).toHaveAttribute("href", "/money/debts/1");
+    expect(row).toHaveAttribute("data-financial-object", "debt");
+    expect(row).toHaveAttribute("data-debt-direction", DebtDirection.BORROWED);
     expect(row).toHaveClass("hover:bg-surface-hover");
     expect(screen.getByText("An")).toHaveClass("truncate");
+    expect(screen.getByText("You owe")).toBeInTheDocument();
     expect(screen.getByText("₫600,000")).toBeInTheDocument();
     expect(screen.getByText("Still to repay")).toBeInTheDocument();
     expect(screen.getByText("3 days left")).toBeInTheDocument();
     expect(row.querySelector("svg")).not.toBeNull();
+    expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
   });
 
   it("keeps a trailing privacy control on the detail hero caption row", () => {
@@ -94,6 +96,7 @@ describe("Debt UI polish", () => {
           progress={progress}
           currency="VND"
           locale="en"
+          directionLabel="You owe"
           trailing={<button type="button">Hide financial values</button>}
           context={<span>Household</span>}
           labels={{
@@ -108,6 +111,7 @@ describe("Debt UI polish", () => {
 
     const hero = screen.getByTestId("debt-detail-hero");
     expect(hero).toHaveTextContent("Still to repay");
+    expect(hero).toHaveTextContent("You owe");
     expect(screen.getByText("Household")).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Hide financial values" }),
@@ -145,7 +149,7 @@ describe("Debt UI polish", () => {
           href="/money/debts/2"
           testId="debt-row-2"
           direction={DebtDirection.LENT}
-          directionLabel="I lent money"
+          directionLabel="Owes you"
           title="Binh"
           amountLabel="₫200,000"
           amountCaption="Still to receive"
@@ -153,8 +157,6 @@ describe("Debt UI polish", () => {
           dueDate={null}
           dueLabels={dueLabels}
           locale="en"
-          progress={progress}
-          progressLabels={progressLabels}
           ownership={{
             financialScope: FINANCIAL_SCOPE.PERSONAL,
             isOwnedByMe: true,

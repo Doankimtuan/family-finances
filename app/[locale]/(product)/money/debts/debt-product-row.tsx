@@ -1,10 +1,6 @@
 import type { ReactNode } from "react";
 import { Link } from "@/i18n/navigation";
-import {
-  DebtDirection,
-  type DebtDue,
-  type DebtProgress,
-} from "@/modules/ledger/application";
+import { DebtDirection, type DebtDue } from "@/modules/ledger/application";
 import type { OwnerStatus } from "@/modules/shared-kernel/application/financial-ownership";
 import {
   FINANCIAL_SCOPE,
@@ -15,7 +11,6 @@ import { FinancialValue } from "@/shared/patterns/financial-value";
 import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
 import { IconContainer, IconContainerTone } from "@/shared/ui/icon-container";
 import { ACTION_ICONS, FINANCE_ICONS } from "@/shared/ui/icon-registry";
-import { Progress } from "@/shared/ui/progress";
 import { Text } from "@/shared/ui/text";
 import { cn } from "@/shared/utils/cn";
 import { DebtDueBadge } from "./debt-presentation";
@@ -34,11 +29,6 @@ type DueLabels = {
   completed: string;
 };
 
-type ProgressLabels = {
-  paid: string;
-  received: string;
-};
-
 export type DebtProductRowProps = {
   href: string;
   testId: string;
@@ -51,15 +41,13 @@ export type DebtProductRowProps = {
   dueDate: string | null;
   dueLabels: DueLabels;
   locale: string;
-  progress: DebtProgress;
-  progressLabels: ProgressLabels;
   ownership?: OwnershipView;
   history?: boolean;
 };
 
 /**
- * One navigable debt inside a grouped elevated card. Layout follows Money
- * module rows: identity, quiet meta, amount column, trailing chevron.
+ * Counterpart-first debt row. Direction is a text label (not color-only);
+ * outstanding amount is the primary figure. Progress stays on detail.
  */
 export function DebtProductRow({
   href,
@@ -73,18 +61,12 @@ export function DebtProductRow({
   dueDate,
   dueLabels,
   locale,
-  progress,
-  progressLabels,
   ownership,
   history = false,
 }: DebtProductRowProps) {
   const isBorrowed = direction === DebtDirection.BORROWED;
   const personalOwnership =
     ownership?.financialScope === FINANCIAL_SCOPE.PERSONAL ? ownership : null;
-  const progressLabel = isBorrowed
-    ? progressLabels.paid
-    : progressLabels.received;
-  const progressAriaLabel = `${progressLabel} ${progress.percent}%`;
   const iconTone = isBorrowed
     ? IconContainerTone.DEBT
     : IconContainerTone.INCOME;
@@ -100,6 +82,8 @@ export function DebtProductRow({
         "focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus-ring",
       )}
       data-testid={testId}
+      data-financial-object="debt"
+      data-debt-direction={direction}
     >
       <IconContainer tone={iconTone} size="sm">
         <AppIcon
@@ -133,33 +117,15 @@ export function DebtProductRow({
             />
           </div>
         ) : null}
-        <div className="mt-(--space-2)">
-          <DebtDueBadge
-            due={due}
-            dueDate={dueDate}
-            labels={dueLabels}
-            locale={locale}
-          />
-        </div>
         {history ? null : (
-          <>
-            <Text
-              size="xs"
-              tone="muted"
-              className="mt-(--space-2) tabular-nums"
-            >
-              {progressAriaLabel}
-            </Text>
-            <Progress
-              value={progress.percent}
-              max={100}
-              label={progressAriaLabel}
-              showLabel={false}
-              tone={iconTone}
-              trackClassName="h-1.5"
-              className="mt-(--space-1) gap-0"
+          <div className="mt-(--space-2)">
+            <DebtDueBadge
+              due={due}
+              dueDate={dueDate}
+              labels={dueLabels}
+              locale={locale}
             />
-          </>
+          </div>
         )}
       </div>
       <div className="flex shrink-0 items-start gap-(--space-2)">

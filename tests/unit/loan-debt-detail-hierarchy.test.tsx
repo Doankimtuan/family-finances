@@ -302,6 +302,7 @@ describe("Loan and debt detail hierarchy", () => {
         }}
         currency={DEFAULT_CURRENCY}
         locale="en"
+        directionLabel="You owe"
         context={<span>Household</span>}
         labels={{
           dueDate: (date) => `Due ${date}`,
@@ -320,6 +321,7 @@ describe("Loan and debt detail hierarchy", () => {
     expect(screen.getByTestId("debt-detail-hero")).toHaveTextContent(
       "Still to repay",
     );
+    expect(screen.getByTestId("debt-detail-hero")).toHaveTextContent("You owe");
     expect(screen.getByText("Household")).toBeInTheDocument();
     expect(screen.getByText("3 days left")).toBeInTheDocument();
   });

@@ -36,7 +36,6 @@ import {
 import { MotionReveal } from "@/shared/motion";
 import { BottomActionBar } from "@/shared/patterns/bottom-action-bar";
 import { FinancialOwnershipBadge } from "@/shared/patterns/financial-ownership-badge";
-import { FinancialValue } from "@/shared/patterns/financial-value";
 import { Page } from "@/shared/patterns/page";
 import { Card } from "@/shared/patterns/card";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
@@ -228,31 +227,54 @@ export default async function LoanDetailPage({ params, searchParams }: Props) {
         >
           <LoanSectionTitle>{t("nextPaymentSection")}</LoanSectionTitle>
           <Card tone="elevated" className="gap-0 overflow-hidden p-0">
-            <div className="flex flex-col gap-(--space-2) p-(--space-4)">
-              <Text size="sm" weight="medium" className="text-pretty">
-                {t("nextDueLead", {
-                  amount: money(nextTotal),
-                  date:
-                    formatLoanDate(nextEntry.dueDate, locale) ??
-                    nextEntry.dueDate,
-                })}
-              </Text>
-              <Text size="sm" tone="secondary" className="text-pretty">
-                <FinancialValue>
-                  {t("nextDueSplit", {
-                    principal: money(nextEntry.principalDue),
-                    interest: money(nextEntry.interestDue),
-                  })}
-                </FinancialValue>
-              </Text>
-              {isActive && canMutate ? (
+            <dl className="divide-y divide-divider">
+              <LoanFactRow
+                label={t("nextPaymentAmount")}
+                emphasis
+                value={
+                  <LoanAmountText
+                    amount={nextTotal}
+                    currency={loan.currency}
+                    locale={locale}
+                  />
+                }
+              />
+              <LoanFactRow
+                label={t("schedulePrincipal")}
+                value={
+                  <LoanAmountText
+                    amount={nextEntry.principalDue}
+                    currency={loan.currency}
+                    locale={locale}
+                  />
+                }
+              />
+              <LoanFactRow
+                label={t("scheduleInterest")}
+                value={
+                  <LoanAmountText
+                    amount={nextEntry.interestDue}
+                    currency={loan.currency}
+                    locale={locale}
+                  />
+                }
+              />
+              <LoanFactRow
+                label={t("nextPaymentDate")}
+                value={
+                  formatLoanDate(nextEntry.dueDate, locale) ?? nextEntry.dueDate
+                }
+              />
+            </dl>
+            {isActive && canMutate ? (
+              <div className="border-t border-divider px-(--space-4) py-(--space-3)">
                 <LoanPayoffEstimate
                   remainingPrincipal={loan.remainingPrincipal}
                   currency={loan.currency}
                   asOfDate={today}
                 />
-              ) : null}
-            </div>
+              </div>
+            ) : null}
           </Card>
         </section>
       ) : isActive && canMutate ? (

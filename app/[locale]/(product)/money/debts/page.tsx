@@ -91,6 +91,12 @@ export default async function DebtsPage({ params }: Props) {
   const debts = debtsResult ?? [];
   const rows = buildDebtViewModels(debts, today);
   const activeRows = rows.filter((debt) => debt.status === DebtStatus.ACTIVE);
+  const borrowedRows = activeRows.filter(
+    (debt) => debt.direction === DebtDirection.BORROWED,
+  );
+  const lentRows = activeRows.filter(
+    (debt) => debt.direction === DebtDirection.LENT,
+  );
   const historyRows = rows.filter((debt) => debt.status !== DebtStatus.ACTIVE);
   const summary = buildDebtSummary(debts, today);
   const nextDue = activeRows.find((debt) => debt.dueDate !== null);
@@ -109,10 +115,6 @@ export default async function DebtsPage({ params }: Props) {
     daysLeft: (days: number) => t("daysLeft", { days }),
     daysOverdue: (days: number) => t("daysOverdue", { days }),
     completed: t("completed"),
-  };
-  const progressLabels = {
-    paid: t("paid"),
-    received: t("received"),
   };
   const createAccounts = {
     accounts,
@@ -263,70 +265,121 @@ export default async function DebtsPage({ params }: Props) {
               </Card>
             </section>
           </MotionReveal>
-          <section
-            className="flex flex-col gap-(--space-2)"
-            aria-labelledby="debts-active-heading"
-          >
-            <div className="flex items-end justify-between gap-(--space-3)">
-              <div className="min-w-0">
-                <DebtSectionTitle>
-                  <span id="debts-active-heading">{t("active")}</span>
-                </DebtSectionTitle>
-                <Text
-                  size="xs"
-                  tone="secondary"
-                  className="mt-(--space-1) text-pretty"
-                >
-                  {t("activeHint")}
+          {activeRows.length === 0 ? (
+            <section
+              className="flex flex-col gap-(--space-2)"
+              aria-labelledby="debts-active-heading"
+            >
+              <DebtSectionTitle>
+                <span id="debts-active-heading">{t("active")}</span>
+              </DebtSectionTitle>
+              <Card tone="elevated" className="gap-0 overflow-hidden p-0">
+                <DebtGroupEmpty>{t("activeEmptyTitle")}</DebtGroupEmpty>
+              </Card>
+            </section>
+          ) : null}
+          {borrowedRows.length > 0 ? (
+            <section
+              className="flex flex-col gap-(--space-2)"
+              aria-labelledby="debts-borrowed-heading"
+              data-testid="debts-borrowed-section"
+            >
+              <div className="flex items-end justify-between gap-(--space-3)">
+                <div className="min-w-0">
+                  <DebtSectionTitle>
+                    <span id="debts-borrowed-heading">{t("payable")}</span>
+                  </DebtSectionTitle>
+                  <Text
+                    size="xs"
+                    tone="secondary"
+                    className="mt-(--space-1) text-pretty"
+                  >
+                    {t("borrowedHint")}
+                  </Text>
+                </div>
+                <Text size="xs" tone="muted" className="shrink-0 tabular-nums">
+                  {t("sectionCount", { count: borrowedRows.length })}
                 </Text>
               </div>
-              <Text size="xs" tone="muted" className="shrink-0 tabular-nums">
-                {t("sectionCount", { count: activeRows.length })}
-              </Text>
-            </div>
-            <Card tone="elevated" className="gap-0 overflow-hidden p-0">
-              {activeRows.length === 0 ? (
-                <DebtGroupEmpty>{t("activeEmptyTitle")}</DebtGroupEmpty>
-              ) : (
+              <Card tone="elevated" className="gap-0 overflow-hidden p-0">
                 <ul className="divide-y divide-divider">
-                  {activeRows.map((debt) => {
-                    const isBorrowed =
-                      debt.direction === DebtDirection.BORROWED;
-                    return (
-                      <li key={debt.id}>
-                        <DebtProductRow
-                          href={moneyDebtPath(debt.id)}
-                          testId={`debt-row-${debt.id}`}
-                          direction={debt.direction}
-                          directionLabel={
-                            isBorrowed ? t("create.borrowed") : t("create.lent")
-                          }
-                          title={debt.counterparty}
-                          amountLabel={moneyLabel(
-                            debt.remainingAmount,
-                            debt.currency,
-                            locale,
-                          )}
-                          amountCaption={
-                            isBorrowed
-                              ? t("remainingToPay")
-                              : t("remainingToReceive")
-                          }
-                          due={debt.due}
-                          dueDate={debt.dueDate}
-                          dueLabels={dueLabels}
-                          locale={locale}
-                          progress={debt.progress}
-                          progressLabels={progressLabels}
-                          ownership={debt.ownership}
-                        />
-                      </li>
-                    );
-                  })}
+                  {borrowedRows.map((debt) => (
+                    <li key={debt.id}>
+                      <DebtProductRow
+                        href={moneyDebtPath(debt.id)}
+                        testId={`debt-row-${debt.id}`}
+                        direction={debt.direction}
+                        directionLabel={t("youOwe")}
+                        title={debt.counterparty}
+                        amountLabel={moneyLabel(
+                          debt.remainingAmount,
+                          debt.currency,
+                          locale,
+                        )}
+                        amountCaption={t("remainingToPay")}
+                        due={debt.due}
+                        dueDate={debt.dueDate}
+                        dueLabels={dueLabels}
+                        locale={locale}
+                        ownership={debt.ownership}
+                      />
+                    </li>
+                  ))}
                 </ul>
-              )}
-            </Card>
-          </section>
+              </Card>
+            </section>
+          ) : null}
+          {lentRows.length > 0 ? (
+            <section
+              className="flex flex-col gap-(--space-2)"
+              aria-labelledby="debts-lent-heading"
+              data-testid="debts-lent-section"
+            >
+              <div className="flex items-end justify-between gap-(--space-3)">
+                <div className="min-w-0">
+                  <DebtSectionTitle>
+                    <span id="debts-lent-heading">{t("receivable")}</span>
+                  </DebtSectionTitle>
+                  <Text
+                    size="xs"
+                    tone="secondary"
+                    className="mt-(--space-1) text-pretty"
+                  >
+                    {t("lentHint")}
+                  </Text>
+                </div>
+                <Text size="xs" tone="muted" className="shrink-0 tabular-nums">
+                  {t("sectionCount", { count: lentRows.length })}
+                </Text>
+              </div>
+              <Card tone="elevated" className="gap-0 overflow-hidden p-0">
+                <ul className="divide-y divide-divider">
+                  {lentRows.map((debt) => (
+                    <li key={debt.id}>
+                      <DebtProductRow
+                        href={moneyDebtPath(debt.id)}
+                        testId={`debt-row-${debt.id}`}
+                        direction={debt.direction}
+                        directionLabel={t("owedYou")}
+                        title={debt.counterparty}
+                        amountLabel={moneyLabel(
+                          debt.remainingAmount,
+                          debt.currency,
+                          locale,
+                        )}
+                        amountCaption={t("remainingToReceive")}
+                        due={debt.due}
+                        dueDate={debt.dueDate}
+                        dueLabels={dueLabels}
+                        locale={locale}
+                        ownership={debt.ownership}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            </section>
+          ) : null}
           {historyRows.length > 0 ? (
             <section
               className="flex flex-col gap-(--space-2)"
@@ -355,8 +408,8 @@ export default async function DebtsPage({ params }: Props) {
                         direction={debt.direction}
                         directionLabel={
                           debt.direction === DebtDirection.BORROWED
-                            ? t("create.borrowed")
-                            : t("create.lent")
+                            ? t("youOwe")
+                            : t("owedYou")
                         }
                         title={debt.counterparty}
                         amountLabel={moneyLabel(
@@ -369,8 +422,6 @@ export default async function DebtsPage({ params }: Props) {
                         dueDate={debt.dueDate}
                         dueLabels={dueLabels}
                         locale={locale}
-                        progress={debt.progress}
-                        progressLabels={progressLabels}
                         ownership={debt.ownership}
                         history
                       />

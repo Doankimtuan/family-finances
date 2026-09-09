@@ -88,6 +88,7 @@ export function DebtDetailHero({
   labels,
   trailing,
   context,
+  directionLabel,
 }: {
   direction: DebtDirection;
   remainingAmount: number;
@@ -99,6 +100,7 @@ export function DebtDetailHero({
   labels: DebtDetailHeroLabels;
   trailing?: ReactNode;
   context?: ReactNode;
+  directionLabel: string;
 }) {
   const isBorrowed = direction === DebtDirection.BORROWED;
   const remainingLabel = isBorrowed
@@ -115,6 +117,8 @@ export function DebtDetailHero({
       tone="hero"
       className="gap-0 p-(--space-4)"
       data-testid="debt-detail-hero"
+      data-financial-object="debt"
+      data-debt-direction={direction}
     >
       <div className="flex items-center gap-(--space-3)">
         <div className="flex min-w-0 flex-1 items-center gap-(--space-3)">
@@ -143,6 +147,13 @@ export function DebtDetailHero({
         className="mt-(--space-3)"
         amountClassName="text-hero-fg"
       />
+      <Text
+        size="sm"
+        weight="medium"
+        className="mt-(--space-2) text-pretty text-hero-muted"
+      >
+        {directionLabel}
+      </Text>
       <div className="mt-(--space-3)">
         <DebtDueBadge
           due={due}

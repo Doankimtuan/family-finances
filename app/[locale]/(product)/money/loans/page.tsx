@@ -115,27 +115,19 @@ export default async function LoansPage({ params }: Props) {
             loan.currency,
             locale,
           )}
-          monthlyLabel={t("nextPaymentLabel")}
-          monthlyAmount={moneyLabel(loan.monthlyPayment, loan.currency, locale)}
-          interestLabel={
-            loan.annualInterestRate != null && loan.annualInterestRate > 0
-              ? t("interestRate", { rate: String(loan.annualInterestRate) })
-              : t("interestFree")
+          remainingCaption={t("summary.remainingPrincipal")}
+          nextPaymentCaption={t("nextPaymentLabel")}
+          nextPaymentAmount={
+            history
+              ? undefined
+              : moneyLabel(
+                  loan.nextPaymentAmount ?? loan.monthlyPayment,
+                  loan.currency,
+                  locale,
+                )
           }
           dueState={dueState}
           dueLabel={dueLabel}
-          nextDueAmount={
-            loan.nextPaymentAmount != null
-              ? moneyLabel(loan.nextPaymentAmount, loan.currency, locale)
-              : undefined
-          }
-          progressLabel={t("progress", {
-            percent: Math.round(loan.progress * 100),
-          })}
-          progressValue={loan.progress}
-          progressAriaLabel={t("progress", {
-            percent: Math.round(loan.progress * 100),
-          })}
           status={loan.status}
           statusLabel={t(`status.${loan.status}`)}
           ownership={loan.ownership}

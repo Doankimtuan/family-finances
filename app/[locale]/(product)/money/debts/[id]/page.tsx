@@ -200,6 +200,7 @@ export default async function DebtDetailPage({ params }: Props) {
           progress={progress}
           currency={debt.currency}
           locale={locale}
+          directionLabel={relationshipLabel}
           trailing={
             <DebtPrivacyToggle testId="debt-detail-financial-privacy-toggle" />
           }
@@ -222,6 +223,7 @@ export default async function DebtDetailPage({ params }: Props) {
       </MotionReveal>
       <DebtFactsCard title={t("details")} testId="debt-detail-facts">
         <DebtFactRow label={t("counterparty")} value={debt.counterparty} />
+        <DebtFactRow label={t("direction")} value={relationshipLabel} />
         <DebtFactRow
           label={t("originalPrincipal")}
           value={

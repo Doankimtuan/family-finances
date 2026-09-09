@@ -257,7 +257,11 @@ export default async function SavingsDetailPage({ params }: Props) {
           className="flex flex-col gap-(--space-3)"
           data-testid="savings-identity"
         >
-          <Card tone="hero" className="gap-0 p-(--space-4)">
+          <Card
+            tone="hero"
+            className="gap-0 p-(--space-4)"
+            data-financial-object="savings"
+          >
             <div className="flex items-center gap-(--space-3)">
               <div className="flex min-w-0 flex-1 items-center gap-(--space-3)">
                 <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-(--radius-control) border border-white/25 bg-white/10 text-hero-fg">

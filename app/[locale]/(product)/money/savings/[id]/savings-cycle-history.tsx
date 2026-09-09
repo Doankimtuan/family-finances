@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useState, type ReactNode } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import type { SavingCycle } from "@/modules/savings/application/savings-types";
-import { motionTokens, springs, useMotionPolicy } from "@/shared/motion";
+import { motionTokens, useMotionPolicy } from "@/shared/motion";
 import {
   formatCurrency,
   formatDate,
@@ -147,15 +147,18 @@ function CycleHistoryDetailsPanel({
       {expanded ? (
         <motion.div
           key="details"
-          initial={{ opacity: 0, y: motionTokens.distance.xs }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -motionTokens.distance.xs }}
-          transition={springs.gentle}
-          className="mt-(--space-3)"
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: "auto", opacity: 1 }}
+          exit={{ height: 0, opacity: 0 }}
+          transition={{
+            duration: motionTokens.duration.normal,
+            ease: motionTokens.easing.standard,
+          }}
+          className="overflow-hidden"
           data-testid={testId}
           data-motion-enabled="true"
         >
-          {children}
+          <div className="mt-(--space-3)">{children}</div>
         </motion.div>
       ) : null}
     </AnimatePresence>

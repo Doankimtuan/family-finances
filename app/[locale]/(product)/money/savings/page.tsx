@@ -26,7 +26,6 @@ import {
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Page } from "@/shared/patterns/page";
 import { Card } from "@/shared/patterns/card";
-import { HeroPillLink } from "@/shared/patterns/hero-pill-link";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { ErrorState } from "@/shared/patterns/error-state";
 import { Amount, AmountSize } from "@/shared/patterns/amount";
@@ -34,7 +33,7 @@ import { MotionReveal } from "@/shared/motion";
 import { Text } from "@/shared/ui/text";
 import { StatusBadge, StatusBadgeTone } from "@/shared/ui/status-badge";
 import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
-import { ACTION_ICONS, FINANCE_ICONS } from "@/shared/ui/icon-registry";
+import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
 import { FinancialValue } from "@/shared/patterns/financial-value";
 import { MoneyOfflineBanner } from "../money-offline-banner";
 import { SavingsCreateAction } from "./savings-create-action";
@@ -109,63 +108,58 @@ export default async function SavingsPage({ params }: Props) {
           {t("familyCount", { count: groupItems.length })}
         </Text>
       </div>
-      <Card tone="elevated" className="gap-0 overflow-hidden p-0">
-        {groupItems.length === 0 ? (
+      {groupItems.length === 0 ? (
+        <Card tone="elevated" className="gap-0 overflow-hidden p-0">
           <SavingsGroupEmpty>{t("activeEmpty")}</SavingsGroupEmpty>
-        ) : (
-          <ul className="divide-y divide-divider">
-            {groupItems.map((entry) => {
-              const item = entry.saving;
-              const cycle = item.latestCycle;
-              const currency =
-                item.productSnapshot.currency ?? DEFAULT_CURRENCY;
-              const rate = cycle?.lockedRate ?? 0;
-              const maturityMeta = cycle
-                ? entry.daysUntilMaturity != null &&
-                  entry.daysUntilMaturity >= 0
-                  ? t("daysRemaining", { days: entry.daysUntilMaturity })
-                  : t("maturityDateOnly", {
-                      date: formatIsoDate(cycle.endDate, locale),
-                    })
-                : undefined;
-              return (
-                <li key={item.id}>
-                  <SavingsProductRow
-                    href={moneySavingsPath(item.id)}
-                    testId={`savings-row-${item.id}`}
-                    family={item.savingsFamily}
-                    familyLabel={
-                      item.savingsFamily === SavingsFamily.BANK
-                        ? t("bankGroup")
-                        : t("platformGroup")
-                    }
-                    title={item.providerName || t("fallbackName")}
-                    subtitle={
-                      item.productName ||
-                      item.productSnapshot.packageName ||
-                      t("fallbackName")
-                    }
-                    principalLabel={moneyLabel(
-                      entry.principal,
-                      currency,
-                      locale,
-                    )}
-                    rateLabel={t("rateLabel", {
-                      rate: formatPercent(rate / 100, locale, {
-                        maximumFractionDigits: 2,
-                      }),
-                    })}
-                    maturityState={entry.maturityState}
-                    maturityLabel={t(`maturityState.${entry.maturityState}`)}
-                    maturityMeta={maturityMeta}
-                    ownership={item.ownership}
-                  />
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </Card>
+        </Card>
+      ) : (
+        <ul className="flex flex-col gap-(--space-2)">
+          {groupItems.map((entry) => {
+            const item = entry.saving;
+            const cycle = item.latestCycle;
+            const currency = item.productSnapshot.currency ?? DEFAULT_CURRENCY;
+            const rate = cycle?.lockedRate ?? 0;
+            const productName =
+              item.productName ||
+              item.productSnapshot.packageName ||
+              t("fallbackName");
+            const rateLabel = t("rateLabel", {
+              rate: formatPercent(rate / 100, locale, {
+                maximumFractionDigits: 2,
+              }),
+            });
+            const maturityMeta = cycle
+              ? entry.daysUntilMaturity != null && entry.daysUntilMaturity >= 0
+                ? t("daysRemaining", { days: entry.daysUntilMaturity })
+                : t("maturityDateOnly", {
+                    date: formatIsoDate(cycle.endDate, locale),
+                  })
+              : undefined;
+            return (
+              <li key={item.id}>
+                <SavingsProductRow
+                  href={moneySavingsPath(item.id)}
+                  testId={`savings-row-${item.id}`}
+                  family={item.savingsFamily}
+                  familyLabel={
+                    item.savingsFamily === SavingsFamily.BANK
+                      ? t("bankGroup")
+                      : t("platformGroup")
+                  }
+                  title={item.providerName || t("fallbackName")}
+                  subtitle={`${productName} · ${rateLabel}`}
+                  principalLabel={moneyLabel(entry.principal, currency, locale)}
+                  principalCaption={t("amountLabel")}
+                  maturityState={entry.maturityState}
+                  maturityLabel={t(`maturityState.${entry.maturityState}`)}
+                  maturityMeta={maturityMeta}
+                  ownership={item.ownership}
+                />
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </section>
   );
 
@@ -226,7 +220,11 @@ export default async function SavingsPage({ params }: Props) {
               className="flex flex-col gap-(--space-3)"
               data-testid="savings-summary"
             >
-              <Card tone="hero" className="gap-0 p-(--space-4)">
+              <Card
+                tone="hero"
+                className="gap-0 p-(--space-4)"
+                data-financial-object="savings"
+              >
                 <div className="flex items-center justify-between gap-(--space-3)">
                   <Text size="sm" weight="medium" className="text-hero-muted">
                     {t("principalTotal")}
@@ -249,7 +247,7 @@ export default async function SavingsPage({ params }: Props) {
                 >
                   {tProducts("notBankBalance")}
                 </Text>
-                <div className="mt-(--space-4) flex flex-wrap items-center justify-between gap-x-(--space-3) gap-y-(--space-2) border-t border-white/15 pt-(--space-3)">
+                <div className="mt-(--space-4) border-t border-white/15 pt-(--space-3)">
                   {model.attentionCount > 0 ? (
                     <Text size="xs" className="text-pretty text-hero-muted">
                       {t("orientation", {
@@ -262,16 +260,6 @@ export default async function SavingsPage({ params }: Props) {
                       {t("summaryCaption")}
                     </Text>
                   )}
-                  <HeroPillLink
-                    href={moneySavingsProvidersPath()}
-                    data-testid="savings-manage-providers"
-                  >
-                    {tCatalog("manageLink")}
-                    <AppIcon
-                      icon={ACTION_ICONS.forward}
-                      size={AppIconSize.XS}
-                    />
-                  </HeroPillLink>
                 </div>
               </Card>
               <Card
@@ -329,6 +317,15 @@ export default async function SavingsPage({ params }: Props) {
                   </SummaryMetric>
                 </div>
               </Card>
+              <div className="flex justify-end">
+                <Link
+                  href={moneySavingsProvidersPath()}
+                  className="inline-flex min-h-11 items-center justify-center rounded-(--radius-control) border border-border-subtle bg-surface px-(--space-3) text-sm font-medium text-text-primary transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-(--press-scale) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none motion-reduce:active:scale-100"
+                  data-testid="savings-manage-providers"
+                >
+                  {tCatalog("manageLink")}
+                </Link>
+              </div>
             </section>
           </MotionReveal>
           {renderGroup(
@@ -358,52 +355,51 @@ export default async function SavingsPage({ params }: Props) {
                   {t("historyCaption")}
                 </Text>
               </div>
-              <Card tone="elevated" className="gap-0 overflow-hidden p-0">
-                <ul className="divide-y divide-divider">
-                  {model.historyItems.map((entry) => {
-                    const currency =
-                      entry.saving.productSnapshot.currency ?? DEFAULT_CURRENCY;
-                    const rate = entry.saving.latestCycle?.lockedRate ?? 0;
-                    return (
-                      <li key={entry.saving.id}>
-                        <SavingsProductRow
-                          href={moneySavingsPath(entry.saving.id)}
-                          testId={`savings-history-row-${entry.saving.id}`}
-                          family={entry.saving.savingsFamily}
-                          familyLabel={
-                            entry.saving.savingsFamily === SavingsFamily.BANK
-                              ? t("bankGroup")
-                              : t("platformGroup")
-                          }
-                          title={
-                            entry.saving.productName ||
-                            entry.saving.providerName ||
-                            t("fallbackName")
-                          }
-                          subtitle={
-                            entry.saving.providerName || t("fallbackName")
-                          }
-                          principalLabel={moneyLabel(
-                            entry.principal,
-                            currency,
-                            locale,
-                          )}
-                          rateLabel={t("rateLabel", {
+              <ul className="flex flex-col gap-(--space-2)">
+                {model.historyItems.map((entry) => {
+                  const currency =
+                    entry.saving.productSnapshot.currency ?? DEFAULT_CURRENCY;
+                  const rate = entry.saving.latestCycle?.lockedRate ?? 0;
+                  return (
+                    <li key={entry.saving.id}>
+                      <SavingsProductRow
+                        href={moneySavingsPath(entry.saving.id)}
+                        testId={`savings-history-row-${entry.saving.id}`}
+                        family={entry.saving.savingsFamily}
+                        familyLabel={
+                          entry.saving.savingsFamily === SavingsFamily.BANK
+                            ? t("bankGroup")
+                            : t("platformGroup")
+                        }
+                        title={
+                          entry.saving.productName ||
+                          entry.saving.providerName ||
+                          t("fallbackName")
+                        }
+                        subtitle={`${entry.saving.providerName || t("fallbackName")} · ${t(
+                          "rateLabel",
+                          {
                             rate: formatPercent(rate / 100, locale, {
                               maximumFractionDigits: 2,
                             }),
-                          })}
-                          maturityState={entry.maturityState}
-                          maturityLabel={t(
-                            `maturityState.${entry.maturityState}`,
-                          )}
-                          history
-                        />
-                      </li>
-                    );
-                  })}
-                </ul>
-              </Card>
+                          },
+                        )}`}
+                        principalLabel={moneyLabel(
+                          entry.principal,
+                          currency,
+                          locale,
+                        )}
+                        principalCaption={t("amountLabel")}
+                        maturityState={entry.maturityState}
+                        maturityLabel={t(
+                          `maturityState.${entry.maturityState}`,
+                        )}
+                        history
+                      />
+                    </li>
+                  );
+                })}
+              </ul>
             </section>
           ) : null}
           <div aria-hidden="true" className="h-(--space-16) shrink-0" />

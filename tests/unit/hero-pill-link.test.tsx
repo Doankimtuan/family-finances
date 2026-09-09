@@ -209,10 +209,9 @@ describe("Hero pill link touch target (B12)", () => {
     expect(link.querySelector("svg")).not.toBeNull();
   });
 
-  it("wires every remaining on-hero pill link through HeroPillLink", () => {
+  it("wires remaining on-hero pill links through HeroPillLink", () => {
     const usages = [
       "app/[locale]/(product)/money/money-position-hero.tsx",
-      "app/[locale]/(product)/money/savings/page.tsx",
       "app/[locale]/(product)/money/investments/investment-overview-client.tsx",
     ];
 
@@ -227,6 +226,7 @@ describe("Hero pill link touch target (B12)", () => {
     );
     expect(savingsSource).toContain("savings-manage-providers");
     expect(savingsSource).toContain("moneySavingsProvidersPath");
+    expect(savingsSource).not.toContain("HeroPillLink");
     expect(moneySavingsProvidersPath()).toBe(APP_PATH.MONEY_SAVINGS_PROVIDERS);
   });
 });

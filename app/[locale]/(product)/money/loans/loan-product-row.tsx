@@ -20,7 +20,6 @@ import {
 import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
 import { IconContainer, IconContainerTone } from "@/shared/ui/icon-container";
 import { ACTION_ICONS } from "@/shared/ui/icon-registry";
-import { Progress } from "@/shared/ui/progress";
 import { Text } from "@/shared/ui/text";
 import { cn } from "@/shared/utils/cn";
 import { loanTypeIcon } from "./loan-type-icon";
@@ -39,15 +38,11 @@ export type LoanProductRowProps = {
   title: string;
   subtitle: string;
   remainingAmount: string;
-  monthlyLabel: string;
-  monthlyAmount: string;
-  interestLabel: string;
+  remainingCaption: string;
+  nextPaymentCaption: string;
+  nextPaymentAmount?: string;
   dueState: LoanDueStateValue;
   dueLabel?: string;
-  nextDueAmount?: string;
-  progressLabel: string;
-  progressValue: number;
-  progressAriaLabel: string;
   status: LoanStatusValue;
   statusLabel: string;
   ownership?: OwnershipView;
@@ -55,8 +50,8 @@ export type LoanProductRowProps = {
 };
 
 /**
- * One navigable loan inside a grouped elevated card. Layout follows Money
- * module rows: identity, quiet meta, amount column, trailing chevron.
+ * Remaining-principal-first loan row. Next payment is secondary context;
+ * progress stays on detail rather than competing on the scan list.
  */
 export function LoanProductRow({
   href,
@@ -66,15 +61,11 @@ export function LoanProductRow({
   title,
   subtitle,
   remainingAmount,
-  monthlyLabel,
-  monthlyAmount,
-  interestLabel,
+  remainingCaption,
+  nextPaymentCaption,
+  nextPaymentAmount,
   dueState,
   dueLabel,
-  nextDueAmount,
-  progressLabel,
-  progressValue,
-  progressAriaLabel,
   status,
   statusLabel,
   ownership,
@@ -82,7 +73,6 @@ export function LoanProductRow({
 }: LoanProductRowProps) {
   const personalOwnership =
     ownership?.financialScope === FINANCIAL_SCOPE.PERSONAL ? ownership : null;
-  const progressPercent = Math.round(progressValue * 100);
   const showDue = dueState !== LoanDueState.NONE && dueLabel != null;
   const showStatus = history || status !== LoanStatus.ACTIVE;
 
@@ -98,6 +88,7 @@ export function LoanProductRow({
       )}
       data-testid={testId}
       data-loan-status={status}
+      data-financial-object="loan"
     >
       <IconContainer tone={IconContainerTone.DEBT} size="sm">
         <AppIcon
@@ -131,6 +122,16 @@ export function LoanProductRow({
             />
           </div>
         ) : null}
+        {history ? null : nextPaymentAmount ? (
+          <Text
+            size="xs"
+            tone="secondary"
+            className="mt-(--space-2) text-pretty tabular-nums"
+          >
+            {nextPaymentCaption}{" "}
+            <FinancialValue>{nextPaymentAmount}</FinancialValue>
+          </Text>
+        ) : null}
         {showDue || showStatus ? (
           <div className="mt-(--space-2) flex flex-wrap items-center gap-(--space-1)">
             {showStatus ? (
@@ -141,32 +142,6 @@ export function LoanProductRow({
             ) : null}
           </div>
         ) : null}
-        {nextDueAmount ? (
-          <Text
-            size="xs"
-            tone="secondary"
-            className="mt-(--space-1) tabular-nums"
-          >
-            <FinancialValue>{nextDueAmount}</FinancialValue>
-          </Text>
-        ) : null}
-        <div className="mt-(--space-2) flex items-center justify-between gap-(--space-3)">
-          <Text size="xs" tone="muted" className="tabular-nums">
-            {progressLabel}
-          </Text>
-          <Text size="xs" tone="muted" className="text-right">
-            {interestLabel}
-          </Text>
-        </div>
-        <Progress
-          value={progressPercent}
-          max={100}
-          label={progressAriaLabel}
-          showLabel={false}
-          tone={IconContainerTone.DEBT}
-          trackClassName="h-1.5"
-          className="mt-(--space-1) gap-0"
-        />
       </div>
       <div className="flex shrink-0 items-start gap-(--space-2)">
         <div className="min-w-[var(--financial-number-column-width)] text-right">
@@ -178,11 +153,8 @@ export function LoanProductRow({
           >
             <FinancialValue>{remainingAmount}</FinancialValue>
           </Text>
-          <Text size="xs" tone="muted" className="mt-(--space-1)">
-            {monthlyLabel}
-          </Text>
-          <Text size="xs" tone="muted" className="mt-(--space-1) tabular-nums">
-            <FinancialValue>{monthlyAmount}</FinancialValue>
+          <Text size="xs" tone="muted" className="mt-(--space-1) text-pretty">
+            {remainingCaption}
           </Text>
         </div>
         <AppIcon

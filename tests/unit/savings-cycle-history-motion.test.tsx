@@ -113,6 +113,7 @@ describe("Savings cycle history motion policy", () => {
       `savings-cycle-details-${FIRST_CYCLE_ID}`,
     );
     expect(details).toHaveAttribute("data-motion-enabled", "true");
+    expect(details).toHaveClass("overflow-hidden");
     expect(within(details).getByText("Cycle snapshot")).toBeInTheDocument();
     expect(within(details).getByText("90-day")).toBeInTheDocument();
 

@@ -64,7 +64,7 @@ describe("Loan UI polish", () => {
     expect(loanTypeIcon(LoanType.OTHER)).toBe(BanknoteXIcon);
   });
 
-  it("renders a loan as a navigable row with remaining principal and progress", () => {
+  it("renders a loan as a navigable row with remaining principal and next payment", () => {
     renderWithProviders(
       <LoanProductRow
         href={moneyLoanPath("loan-1")}
@@ -74,15 +74,11 @@ describe("Loan UI polish", () => {
         title="Home renovation"
         subtitle="Vietcombank · Bank loan"
         remainingAmount="₫80,000,000"
-        monthlyLabel="Next payment"
-        monthlyAmount="₫5,000,000"
-        interestLabel="12% APR"
+        remainingCaption="Remaining principal"
+        nextPaymentCaption="Next payment"
+        nextPaymentAmount="₫5,000,000"
         dueState={LoanDueState.UPCOMING}
         dueLabel="Due 2026-10-01"
-        nextDueAmount="₫5,000,000"
-        progressLabel="20% paid"
-        progressValue={0.2}
-        progressAriaLabel="20% paid"
         status={LoanStatus.ACTIVE}
         statusLabel="Active"
         ownership={{
@@ -95,10 +91,14 @@ describe("Loan UI polish", () => {
     const row = screen.getByTestId("loan-row-loan-1");
     expect(row).toHaveAttribute("href", moneyLoanPath("loan-1"));
     expect(row).toHaveAttribute("data-loan-status", LoanStatus.ACTIVE);
+    expect(row).toHaveAttribute("data-financial-object", "loan");
     expect(screen.getByText("Home renovation")).toBeInTheDocument();
     expect(screen.getByText("₫80,000,000")).toBeInTheDocument();
-    expect(screen.getByText("20% paid")).toBeInTheDocument();
+    expect(screen.getByText("Remaining principal")).toBeInTheDocument();
+    expect(screen.getByText("Next payment")).toBeInTheDocument();
+    expect(screen.getByText("₫5,000,000")).toBeInTheDocument();
     expect(screen.getByText("Due 2026-10-01")).toBeInTheDocument();
+    expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
   });
 
   it("groups loan facts in an elevated definition list", () => {
