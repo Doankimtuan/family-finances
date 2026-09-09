@@ -92,6 +92,9 @@ export const MAX_TRANSACTION_TAGS = 10;
 /** SelectField key for the optional capture Jar choice that remains unset. */
 export const CAPTURE_JAR_UNMAPPED_OPTION_ID = "unmapped";
 
+/** SelectField key for capture Category when the movement stays uncategorized. */
+export const CAPTURE_CATEGORY_NONE_OPTION_ID = "none";
+
 export const DEFAULT_TRANSACTION_TAG_ICON_KEY = TransactionTagIconKey.BOOKMARK;
 export const DEFAULT_TRANSACTION_TAG_COLOR_KEY = TransactionTagColorKey.SLATE;
 

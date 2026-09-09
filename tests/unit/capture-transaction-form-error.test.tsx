@@ -140,6 +140,8 @@ describe("CaptureTransactionForm save-failure presentation", () => {
 
     expect(screen.queryByTestId("capture-preview")).not.toBeInTheDocument();
     expect(screen.getByTestId("capture-save")).toHaveClass("flex-[2]");
+    expect(screen.getByTestId("money-capture-fields")).toBeInTheDocument();
+    expect(screen.getByTestId("money-capture-form")).toHaveClass("flex-1");
     expect(screen.getByText("cancel")).toHaveAttribute("href", "/money");
 
     fireEvent.change(screen.getByLabelText(/^amountLabel/), {
@@ -165,9 +167,48 @@ describe("CaptureTransactionForm save-failure presentation", () => {
     expect(screen.getByText("Visa · creditCardLabel")).toBeInTheDocument();
   });
 
+  it("orders amount, account, category, and date before optional details", () => {
+    renderCaptureForm({
+      expenseTags: [expenseCategory],
+      jars: [captureJar],
+      transactionTags: [transactionTag],
+    });
+
+    const amount = screen.getByTestId("capture-amount");
+    const account = screen.getByTestId("capture-account");
+    const category = screen.getByTestId("capture-category");
+    const date = screen.getByTestId("capture-date");
+    const note = screen.getByTestId("capture-note");
+    const optional = screen.getByTestId("capture-optional-details");
+
+    expect(
+      amount.compareDocumentPosition(account) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(
+      account.compareDocumentPosition(category) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(
+      category.compareDocumentPosition(date) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(
+      date.compareDocumentPosition(note) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(
+      note.compareDocumentPosition(optional) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(optional).not.toHaveAttribute("open");
+    expect(screen.getByLabelText(/^amountLabel/)).toHaveAttribute(
+      "inputMode",
+      "numeric",
+    );
+  });
+
   it("uses a true empty tag state without a useless search field", () => {
     renderCaptureForm({ transactionTags: [] });
 
+    fireEvent.click(screen.getByText("moreDetails"));
     fireEvent.click(screen.getByText("choose"));
 
     expect(screen.getByText("noTagsTitle")).toBeInTheDocument();
@@ -179,6 +220,7 @@ describe("CaptureTransactionForm save-failure presentation", () => {
       transactionTags: [{ ...transactionTag, archivedAt: "2026-01-01" }],
     });
 
+    fireEvent.click(screen.getByText("moreDetails"));
     fireEvent.click(screen.getByText("choose"));
 
     expect(screen.getByText("noActiveTitle")).toBeInTheDocument();
@@ -218,6 +260,7 @@ describe("CaptureTransactionForm save-failure presentation", () => {
   it("does not run tag assignment when the transaction is rejected", async () => {
     renderCaptureForm({ transactionTags: [transactionTag] });
 
+    fireEvent.click(screen.getByText("moreDetails"));
     fireEvent.click(screen.getByText("choose"));
     fireEvent.click(screen.getByRole("button", { name: "Work" }));
     fireEvent.click(screen.getByText("done"));
@@ -264,6 +307,7 @@ describe("CaptureTransactionForm save-failure presentation", () => {
 
     renderCaptureForm({ transactionTags: [transactionTag] });
 
+    fireEvent.click(screen.getByText("moreDetails"));
     fireEvent.click(screen.getByText("choose"));
     fireEvent.click(screen.getByRole("button", { name: "Work" }));
     fireEvent.click(screen.getByText("done"));
@@ -315,7 +359,16 @@ describe("CaptureTransactionForm confirmation sheet", () => {
       jars: [captureJar],
     });
 
-    fireEvent.click(screen.getByTestId("capture-tag-food"));
+    await act(async () => {
+      const trigger = screen
+        .getByTestId("capture-category")
+        .querySelector("button");
+      if (!trigger) {
+        throw new Error("Expected capture category Select trigger");
+      }
+      fireEvent.click(trigger);
+    });
+    fireEvent.click(screen.getByRole("option", { name: "tags.food" }));
     fireEvent.change(screen.getByTestId("capture-note"), {
       target: { value: "Lunch with a friend" },
     });

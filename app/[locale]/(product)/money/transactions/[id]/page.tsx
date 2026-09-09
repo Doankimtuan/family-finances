@@ -43,7 +43,12 @@ import {
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Amount, AmountTone } from "@/shared/patterns/amount";
 import { Card } from "@/shared/patterns/card";
+import { FinancialNumberKind } from "@/shared/patterns/financial-number-kind";
 import { FinancialValue } from "@/shared/patterns/financial-value";
+import {
+  FinancialPrivacyToggle,
+  FinancialPrivacyToggleTone,
+} from "@/shared/patterns/financial-privacy-toggle";
 import { Page } from "@/shared/patterns/page";
 import { SectionHeader } from "@/shared/patterns/section-header";
 import { Text } from "@/shared/ui/text";
@@ -407,8 +412,16 @@ export default async function TransactionDetailPage({ params }: Props) {
         <TopAppBar
           variant="detail"
           title={detailLabel}
-          subtitle={t("detailPage.subtitle")}
+          subtitle={transactionContextTitle(tx, tCatalog, t)}
           backHref={APP_PATH.MONEY_TRANSACTIONS}
+          trailing={
+            <FinancialPrivacyToggle
+              hideLabel={t("financialPrivacy.hide")}
+              showLabel={t("financialPrivacy.show")}
+              testId="transaction-detail-financial-privacy-toggle"
+              tone={FinancialPrivacyToggleTone.SURFACE}
+            />
+          }
         />
       }
     >
@@ -418,6 +431,7 @@ export default async function TransactionDetailPage({ params }: Props) {
           label={t("detailPage.amount")}
           amountLabel={signed}
           size="lg"
+          kind={FinancialNumberKind.MOVEMENT}
           tone={ACTIVITY_TONE_TO_AMOUNT_TONE[activity.tone]}
         />
       </Card>
@@ -488,6 +502,18 @@ export default async function TransactionDetailPage({ params }: Props) {
           }
         />
         <TransactionFactRow
+          label={t("detailPage.category")}
+          value={
+            tx.categoryName
+              ? localizeCatalogName(
+                  tCatalog,
+                  CatalogGroup.TAGS,
+                  tx.categoryName,
+                )
+              : t("detailPage.noTag")
+          }
+        />
+        <TransactionFactRow
           label={t("detailPage.date")}
           value={formatEffectiveDate(tx.transactionDate, locale)}
         />
@@ -503,20 +529,10 @@ export default async function TransactionDetailPage({ params }: Props) {
               : t("detailPage.unmapped")
           }
         />
+        {tx.note ? (
+          <TransactionFactRow label={t("detailPage.note")} value={tx.note} />
+        ) : null}
       </TransactionFactsCard>
-
-      <section className="flex flex-col gap-(--space-3)">
-        <SectionHeader title={t("detailPage.category")} />
-        {tx.categoryName ? (
-          <span className="inline-flex min-h-11 items-center self-start rounded-(--radius-control) border border-border-subtle bg-surface px-(--space-3) text-sm font-medium text-text-primary">
-            {localizeCatalogName(tCatalog, CatalogGroup.TAGS, tx.categoryName)}
-          </span>
-        ) : (
-          <Text size="sm" tone="secondary">
-            {t("detailPage.noTag")}
-          </Text>
-        )}
-      </section>
 
       <Card tone="elevated" className="gap-(--space-3) p-(--space-4)">
         <TransactionTagEditor

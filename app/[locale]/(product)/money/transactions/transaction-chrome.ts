@@ -30,5 +30,9 @@ export const CAPTURE_SPLIT_CANCEL_LINK_CLASS =
 export const CAPTURE_AMOUNT_FIELD_CLASS =
   "min-h-16 text-2xl font-semibold tracking-tight";
 
+/** Same type as `FormField` labels. Native `<legend>` must reset float/padding. */
+export const CAPTURE_FIELDSET_LEGEND_CLASS =
+  "float-none w-full p-0 text-sm font-medium text-text-primary";
+
 export const TRANSFER_ACCOUNT_ROW_CLASS =
   "flex min-h-12 cursor-pointer items-center gap-(--space-3) rounded-[var(--radius-control)] border border-transparent bg-surface-muted px-(--space-3) py-(--space-2) transition-[background-color,border-color,box-shadow] duration-(--duration-fast) hover:bg-surface-hover has-[:checked]:border-primary/25 has-[:checked]:bg-primary-soft has-[:checked]:shadow-(--elevation-1) has-[:checked]:ring-1 has-[:checked]:ring-primary/20 motion-reduce:transition-none";

@@ -65,7 +65,7 @@ export function TransactionsFilterBar({
       <fieldset>
         <legend className="sr-only">{t("filterLabel")}</legend>
         <div
-          className="flex gap-(--space-2) overflow-x-auto pb-(--space-1) [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="flex flex-wrap gap-(--space-2)"
           role="group"
           aria-label={t("filterLabel")}
         >

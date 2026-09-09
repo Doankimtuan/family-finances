@@ -21,6 +21,8 @@ export type TransactionRowProps = {
   title: ReactNode;
   subtitle?: ReactNode;
   amountLabel: string;
+  amountMeta?: ReactNode;
+  amountAriaLabel?: string;
   tone?: TransactionAmountTone;
   leading?: ReactNode;
   showRail?: boolean;
@@ -36,6 +38,8 @@ export function TransactionRow({
   title,
   subtitle,
   amountLabel,
+  amountMeta,
+  amountAriaLabel,
   tone = TransactionAmountTone.NEUTRAL,
   leading,
   showRail = true,
@@ -89,14 +93,24 @@ export function TransactionRow({
           </Text>
         ) : null}
       </div>
-      <span
-        className={cn(
-          "max-w-[45%] shrink-0 break-words text-right text-sm font-semibold tabular-nums leading-tight",
-          amountClass,
-        )}
-      >
-        <FinancialValue>{amountLabel}</FinancialValue>
-      </span>
+      <div className="flex max-w-[45%] shrink-0 flex-col items-end gap-(--space-1)">
+        <span
+          className={cn(
+            "break-words text-right text-sm font-semibold tabular-nums leading-tight",
+            amountClass,
+          )}
+        >
+          <FinancialValue>{amountLabel}</FinancialValue>
+        </span>
+        {amountMeta ? (
+          <Text size="xs" tone="secondary" className="text-right leading-tight">
+            {amountMeta}
+          </Text>
+        ) : null}
+        {amountAriaLabel ? (
+          <span className="sr-only">{amountAriaLabel}</span>
+        ) : null}
+      </div>
       {showChevron ? (
         <AppIcon
           icon={ACTION_ICONS.forward}

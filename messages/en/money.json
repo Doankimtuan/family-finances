@@ -1504,6 +1504,7 @@
     "jarUnmapped": "Choose later",
     "noteLabel": "Note",
     "notePlaceholder": "Optional note, e.g. Lunch with a friend",
+    "moreDetails": "Jar and tags",
     "emptyValue": "—",
     "previewTitle": "Effect",
     "previewEmpty": "Enter an amount and account to preview the balance change.",
@@ -1913,7 +1914,13 @@
     "loadErrorTitle": "Couldn’t load transactions",
     "loadErrorDescription": "Your filters are preserved. Try again.",
     "emptyTitle": "No transactions yet",
-    "emptyDescription": "Add a transaction to start your history.",
+    "emptyDescription": "Record your first transaction to start seeing household money activity here.",
+    "amountAria": {
+      "credit": "Income {amount}",
+      "debit": "Expense {amount}",
+      "refund": "Refund {amount}",
+      "neutral": "Amount {amount}"
+    },
     "filteredEmptyTitle": "No transactions match",
     "filteredEmptyDescription": "Try a different filter.",
     "relationship": {

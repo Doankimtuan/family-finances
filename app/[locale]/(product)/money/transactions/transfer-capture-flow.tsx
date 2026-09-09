@@ -398,83 +398,124 @@ export function TransferCaptureFlow({
 
   return (
     <div
-      className="flex flex-col gap-(--space-5)"
+      className="flex min-h-0 flex-1 flex-col"
       data-testid="money-transfer-form"
     >
-      {errorCode ? (
-        <StatusAlert
-          variant="danger"
-          title={t("errorTitle")}
-          description={t(`errors.${toTransferErrorKey(errorCode)}`)}
-        />
-      ) : null}
+      <div className="flex min-h-0 flex-1 flex-col gap-(--space-5) overflow-y-auto overscroll-y-contain">
+        {errorCode ? (
+          <StatusAlert
+            variant="danger"
+            title={t("errorTitle")}
+            description={t(`errors.${toTransferErrorKey(errorCode)}`)}
+          />
+        ) : null}
 
-      {!online ? (
-        <StatusAlert
-          variant="warning"
-          title={t("errors.offline")}
-          description={t("offlineHint")}
-        />
-      ) : null}
+        {!online ? (
+          <StatusAlert
+            variant="warning"
+            title={t("errors.offline")}
+            description={t("offlineHint")}
+          />
+        ) : null}
 
-      <CaptureSurface>
-        <ControlledField
-          control={control}
-          field={{
-            type: "amount",
-            name: "amount",
-            id: amountId,
-            label: t("amountLabel", { currency }),
-            placeholder: "0",
-            testId: "transfer-amount",
-            required: true,
-            className: CAPTURE_AMOUNT_FIELD_CLASS,
-          }}
-          getErrorMessage={() => t("errors.invalid")}
-        />
-      </CaptureSurface>
+        <CaptureSurface>
+          <ControlledField
+            control={control}
+            field={{
+              type: "amount",
+              name: "amount",
+              id: amountId,
+              label: t("amountLabel", { currency }),
+              placeholder: "0",
+              testId: "transfer-amount",
+              required: true,
+              className: CAPTURE_AMOUNT_FIELD_CLASS,
+            }}
+            getErrorMessage={() => t("errors.invalid")}
+          />
+        </CaptureSurface>
 
-      <CaptureSurface>
-        <fieldset className="flex flex-col gap-(--space-3)">
-          <legend className="text-sm font-semibold tracking-tight text-text-primary">
-            {t("fromLabel")}
-          </legend>
-          {eligible.length < 2 ? (
-            <StatusAlert
-              variant="warning"
-              title={t("errors.need_two_accounts")}
-              description={t("needTwoAccountsHint")}
-            />
-          ) : (
+        <CaptureSurface>
+          <fieldset className="flex flex-col gap-(--space-3)">
+            <legend className="text-sm font-semibold tracking-tight text-text-primary">
+              {t("fromLabel")}
+            </legend>
+            {eligible.length < 2 ? (
+              <StatusAlert
+                variant="warning"
+                title={t("errors.need_two_accounts")}
+                description={t("needTwoAccountsHint")}
+              />
+            ) : (
+              <Controller
+                control={control}
+                name="sourceAccountId"
+                render={({ field }) => (
+                  <div className="flex flex-col gap-(--space-2)">
+                    {eligible.map((account) => (
+                      <label
+                        key={account.id}
+                        className={TRANSFER_ACCOUNT_ROW_CLASS}
+                      >
+                        <input
+                          type="radio"
+                          name="transfer-source"
+                          value={account.id}
+                          checked={field.value === account.id}
+                          onChange={() => {
+                            field.onChange(account.id);
+                            if (destinationAccountId === account.id) {
+                              setValue(
+                                "destinationAccountId",
+                                eligible.find(
+                                  (candidate) => candidate.id !== account.id,
+                                )?.id ?? "",
+                                { shouldValidate: true },
+                              );
+                            }
+                          }}
+                          className="size-4 accent-[var(--color-accent)]"
+                          data-testid={`transfer-source-${account.id}`}
+                        />
+                        <span className="text-sm font-medium text-text-primary">
+                          {localizeCatalogName(
+                            tCatalog,
+                            CatalogGroup.ACCOUNTS,
+                            account.name,
+                          )}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              />
+            )}
+          </fieldset>
+        </CaptureSurface>
+
+        <CaptureSurface>
+          <fieldset className="flex flex-col gap-(--space-3)">
+            <legend className="text-sm font-semibold tracking-tight text-text-primary">
+              {t("toLabel")}
+            </legend>
             <Controller
               control={control}
-              name="sourceAccountId"
+              name="destinationAccountId"
               render={({ field }) => (
                 <div className="flex flex-col gap-(--space-2)">
-                  {eligible.map((account) => (
+                  {destinationOptions.map((account) => (
                     <label
                       key={account.id}
                       className={TRANSFER_ACCOUNT_ROW_CLASS}
                     >
                       <input
                         type="radio"
-                        name="transfer-source"
+                        name="transfer-destination"
                         value={account.id}
                         checked={field.value === account.id}
-                        onChange={() => {
-                          field.onChange(account.id);
-                          if (destinationAccountId === account.id) {
-                            setValue(
-                              "destinationAccountId",
-                              eligible.find(
-                                (candidate) => candidate.id !== account.id,
-                              )?.id ?? "",
-                              { shouldValidate: true },
-                            );
-                          }
-                        }}
+                        onChange={() => field.onChange(account.id)}
                         className="size-4 accent-[var(--color-accent)]"
-                        data-testid={`transfer-source-${account.id}`}
+                        data-testid={`transfer-destination-${account.id}`}
                       />
                       <span className="text-sm font-medium text-text-primary">
                         {localizeCatalogName(
@@ -488,88 +529,49 @@ export function TransferCaptureFlow({
                 </div>
               )}
             />
-          )}
-        </fieldset>
-      </CaptureSurface>
+          </fieldset>
+        </CaptureSurface>
 
-      <CaptureSurface>
-        <fieldset className="flex flex-col gap-(--space-3)">
-          <legend className="text-sm font-semibold tracking-tight text-text-primary">
-            {t("toLabel")}
-          </legend>
-          <Controller
-            control={control}
-            name="destinationAccountId"
-            render={({ field }) => (
-              <div className="flex flex-col gap-(--space-2)">
-                {destinationOptions.map((account) => (
-                  <label
-                    key={account.id}
-                    className={TRANSFER_ACCOUNT_ROW_CLASS}
-                  >
-                    <input
-                      type="radio"
-                      name="transfer-destination"
-                      value={account.id}
-                      checked={field.value === account.id}
-                      onChange={() => field.onChange(account.id)}
-                      className="size-4 accent-[var(--color-accent)]"
-                      data-testid={`transfer-destination-${account.id}`}
-                    />
-                    <span className="text-sm font-medium text-text-primary">
-                      {localizeCatalogName(
-                        tCatalog,
-                        CatalogGroup.ACCOUNTS,
-                        account.name,
-                      )}
-                    </span>
-                  </label>
-                ))}
-              </div>
-            )}
-          />
-        </fieldset>
-      </CaptureSurface>
+        <ControlledField
+          control={control}
+          field={{
+            type: "date",
+            name: "transactionDate",
+            id: "transfer-date",
+            label: t("effectiveDateLabel"),
+            testId: "transfer-date",
+          }}
+          getErrorMessage={() => t("errors.invalid")}
+        />
 
-      <ControlledField
-        control={control}
-        field={{
-          type: "date",
-          name: "transactionDate",
-          id: "transfer-date",
-          label: t("effectiveDateLabel"),
-          testId: "transfer-date",
-        }}
-        getErrorMessage={() => t("errors.invalid")}
-      />
+        <TextField
+          id={noteId}
+          label={t("noteLabel")}
+          registration={register("note")}
+          error={errors.note ? t("errors.invalid") : undefined}
+          placeholder={t("notePlaceholder")}
+          data-testid="transfer-note"
+        />
 
-      <TextField
-        id={noteId}
-        label={t("noteLabel")}
-        registration={register("note")}
-        error={errors.note ? t("errors.invalid") : undefined}
-        placeholder={t("notePlaceholder")}
-        data-testid="transfer-note"
-      />
+        <Card
+          tone="highlighted"
+          className="gap-(--space-1) p-(--space-4)"
+          aria-live="polite"
+          data-testid="transfer-preview"
+        >
+          <Text size="sm" weight="medium">
+            {t("previewTitle")}
+          </Text>
+          <Text size="sm" tone="secondary">
+            {previewMessage}
+          </Text>
+          <Text size="sm" tone="secondary">
+            {t("previewNeutrality")}
+          </Text>
+        </Card>
+      </div>
 
-      <Card
-        tone="highlighted"
-        className="gap-(--space-1) p-(--space-4)"
-        aria-live="polite"
-        data-testid="transfer-preview"
-      >
-        <Text size="sm" weight="medium">
-          {t("previewTitle")}
-        </Text>
-        <Text size="sm" tone="secondary">
-          {previewMessage}
-        </Text>
-        <Text size="sm" tone="secondary">
-          {t("previewNeutrality")}
-        </Text>
-      </Card>
-
-      <BottomActionBar>
+      <BottomActionBar className="mt-auto shrink-0">
         <Button
           variant="primary"
           className="w-full"

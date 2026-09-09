@@ -1504,6 +1504,7 @@
     "jarUnmapped": "Chọn sau",
     "noteLabel": "Ghi chú",
     "notePlaceholder": "Ví dụ: Ăn trưa với bạn",
+    "moreDetails": "Hũ và nhãn",
     "emptyValue": "—",
     "previewTitle": "Tác động",
     "previewEmpty": "Nhập số tiền và tài khoản để xem thay đổi số dư.",
@@ -1913,7 +1914,13 @@
     "loadErrorTitle": "Không tải được giao dịch",
     "loadErrorDescription": "Bộ lọc vẫn được giữ lại. Hãy thử lại.",
     "emptyTitle": "Chưa có giao dịch",
-    "emptyDescription": "Thêm giao dịch để bắt đầu lịch sử của bạn.",
+    "emptyDescription": "Ghi giao dịch đầu tiên để bắt đầu thấy hoạt động tiền của gia đình tại đây.",
+    "amountAria": {
+      "credit": "Thu {amount}",
+      "debit": "Chi {amount}",
+      "refund": "Hoàn tiền {amount}",
+      "neutral": "Số tiền {amount}"
+    },
     "filteredEmptyTitle": "Không có giao dịch phù hợp",
     "filteredEmptyDescription": "Hãy thử bộ lọc khác.",
     "relationship": {

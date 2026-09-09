@@ -126,6 +126,8 @@ describe("Phase 2 app-shell foundation", () => {
     const source = readProjectFile("shared/patterns/bottom-action-bar.tsx");
     expect(source).toContain("-mx-(--page-gutter)");
     expect(source).toContain("px-(--page-gutter)");
+    expect(source).toContain("pb-(--space-4)");
+    expect(source).toContain("mb-(--space-3)");
     expect(source).not.toContain("-mx-(--space-4)");
   });
 

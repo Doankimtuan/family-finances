@@ -46,7 +46,7 @@ export function MoneyCaptureEntry({
 
   return (
     <div
-      className="flex flex-col gap-(--space-5)"
+      className="flex min-h-0 flex-1 flex-col gap-(--space-5)"
       data-testid="money-capture-entry"
     >
       <fieldset className="flex flex-col gap-(--space-2)">
@@ -98,26 +98,28 @@ export function MoneyCaptureEntry({
         </div>
       </fieldset>
 
-      <MotionStep stepKey={mode}>
-        {mode === MoneyCaptureMode.TRANSFER ? (
-          <TransferCaptureFlow
-            accounts={accounts}
-            currency={currency}
-            onBackToCapture={() => setMode(MoneyCaptureMode.EXPENSE)}
-          />
-        ) : (
-          <CaptureTransactionForm
-            key={mode}
-            accounts={accounts}
-            expenseTags={expenseTags}
-            incomeTags={incomeTags}
-            jars={jars}
-            transactionTags={transactionTags}
-            currency={currency}
-            initialDirection={mode}
-          />
-        )}
-      </MotionStep>
+      <div className="flex min-h-0 flex-1 flex-col">
+        <MotionStep stepKey={mode} className="flex h-full min-h-0 flex-col">
+          {mode === MoneyCaptureMode.TRANSFER ? (
+            <TransferCaptureFlow
+              accounts={accounts}
+              currency={currency}
+              onBackToCapture={() => setMode(MoneyCaptureMode.EXPENSE)}
+            />
+          ) : (
+            <CaptureTransactionForm
+              key={mode}
+              accounts={accounts}
+              expenseTags={expenseTags}
+              incomeTags={incomeTags}
+              jars={jars}
+              transactionTags={transactionTags}
+              currency={currency}
+              initialDirection={mode}
+            />
+          )}
+        </MotionStep>
+      </div>
     </div>
   );
 }

@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { SafeArea } from "@/providers/safe-area";
 import { cn } from "@/shared/utils/cn";
 
 export type BottomActionBarProps = {
@@ -19,6 +18,8 @@ export type BottomActionBarLayout =
 /**
  * Sticky mobile action zone for long forms and confirmations.
  * Keep to one primary action plus one secondary escape.
+ * Bottom navigation already owns the home-indicator inset; this bar keeps a
+ * token gap so actions do not sit on the tab row.
  */
 export function BottomActionBar({
   children,
@@ -26,12 +27,11 @@ export function BottomActionBar({
   layout = BottomActionBarLayout.STACKED,
 }: BottomActionBarProps) {
   return (
-    <SafeArea
-      edges={["bottom"]}
+    <div
       className={cn(
         "sticky bottom-0 z-(--z-sticky) -mx-(--page-gutter)",
         "isolate mt-(--space-2) border-t border-divider",
-        "bg-canvas/95 px-(--page-gutter) pt-(--space-3) backdrop-blur-md",
+        "bg-canvas/95 px-(--page-gutter) pt-(--space-3) pb-(--space-4) backdrop-blur-md",
         "shadow-(--elevation-1)",
         className,
       )}
@@ -45,6 +45,6 @@ export function BottomActionBar({
       >
         {children}
       </div>
-    </SafeArea>
+    </div>
   );
 }

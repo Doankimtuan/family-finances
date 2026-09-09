@@ -22,7 +22,10 @@ import {
   AccountType,
   CAPTURE_ACCOUNT_COMPACT_LIMIT,
 } from "@/modules/ledger/application/account-constants";
-import { CAPTURE_JAR_UNMAPPED_OPTION_ID } from "@/modules/ledger/application/transaction-constants";
+import {
+  CAPTURE_CATEGORY_NONE_OPTION_ID,
+  CAPTURE_JAR_UNMAPPED_OPTION_ID,
+} from "@/modules/ledger/application/transaction-constants";
 import {
   recordTransactionInputSchema,
   type RecordTransactionInput,
@@ -49,13 +52,13 @@ import {
   CatalogGroup,
   localizeCatalogName,
 } from "@/shared/i18n/localize-catalog-name";
-import { FilterChip } from "@/shared/patterns/filter-chip";
 import { Card } from "@/shared/patterns/card";
 import type { ConfirmSummaryRow } from "@/shared/patterns/confirm-summary";
 import { CaptureSurface } from "./capture-surface";
 import { CaptureTransactionConfirmSheet } from "./capture-transaction-confirm-sheet";
 import {
   CAPTURE_AMOUNT_FIELD_CLASS,
+  CAPTURE_FIELDSET_LEGEND_CLASS,
   CAPTURE_SPLIT_CANCEL_LINK_CLASS,
 } from "./transaction-chrome";
 import {
@@ -218,7 +221,6 @@ export function CaptureTransactionForm({
   const direction = useWatch({ control, name: "type" });
   const amount = useWatch({ control, name: "amount" });
   const accountId = useWatch({ control, name: "accountId" });
-  const categoryId = useWatch({ control, name: "categoryId" });
   const selectedTransactionTagIds = useWatch({
     control,
     name: "transactionTagIds",
@@ -526,256 +528,283 @@ export function CaptureTransactionForm({
     <>
       <form
         onSubmit={openConfirmation}
-        className="flex flex-col gap-(--space-5)"
+        className="flex min-h-0 flex-1 flex-col"
         data-testid="money-capture-form"
       >
-        {!online ? (
-          <StatusAlert
-            variant={AlertVariant.WARNING}
-            title={t("errors.offline")}
-            description={t("offlineHint")}
-          />
-        ) : null}
+        <div
+          className="flex min-h-0 flex-1 flex-col gap-(--space-5) overflow-y-auto overscroll-y-contain"
+          data-testid="money-capture-fields"
+        >
+          {!online ? (
+            <StatusAlert
+              variant={AlertVariant.WARNING}
+              title={t("errors.offline")}
+              description={t("offlineHint")}
+            />
+          ) : null}
 
-        <CaptureSurface>
-          <Controller
-            control={control}
-            name="amount"
-            render={({ field }) => (
-              <AmountField
-                id={amountId}
-                label={t("amountLabel", { currency })}
-                placeholder="0"
-                value={typeof field.value === "number" ? field.value : null}
-                onValueChange={(value) => field.onChange(value)}
-                error={errors.amount ? t("errors.invalid") : undefined}
-                required
-                data-testid="capture-amount"
-                className={CAPTURE_AMOUNT_FIELD_CLASS}
-              />
-            )}
-          />
-        </CaptureSurface>
-
-        {accounts.length === 0 ? (
-          <StatusAlert
-            variant="warning"
-            title={t("errors.no_account")}
-            description={t("addAccountHint")}
-          />
-        ) : (
-          <Controller
-            control={control}
-            name="accountId"
-            render={({ field }) =>
-              useCompactAccountPicker ? (
-                <CaptureSurface testId="capture-account">
-                  <fieldset className="flex flex-col gap-(--space-3)">
-                    <legend className="text-sm font-semibold tracking-tight text-text-primary">
-                      {accountLabel}
-                    </legend>
-                    <ChoiceTileGroup
-                      hint={
-                        selectedAccount?.type === AccountType.CREDIT_CARD
-                          ? t("creditCardHint")
-                          : undefined
-                      }
-                    >
-                      {accounts.map((account) => (
-                        <ChoiceTile
-                          key={account.id}
-                          label={captureAccountChoiceLabel(
-                            tCatalog,
-                            account,
-                            t("creditCardLabel"),
-                          )}
-                          selected={field.value === account.id}
-                          onPress={() => field.onChange(account.id)}
-                          role="radio"
-                          icon={
-                            <AppIcon
-                              icon={
-                                account.type === AccountType.CREDIT_CARD
-                                  ? FINANCE_ICONS.card
-                                  : FINANCE_ICONS.wallet
-                              }
-                              size="sm"
-                            />
-                          }
-                        />
-                      ))}
-                    </ChoiceTileGroup>
-                    {errors.accountId ? (
-                      <Text size="sm" className="text-danger">
-                        {t("errors.no_account")}
-                      </Text>
-                    ) : null}
-                  </fieldset>
-                </CaptureSurface>
-              ) : (
-                <SelectField
-                  id="capture-account"
-                  label={accountLabel}
-                  description={t("accountHint")}
-                  value={field.value}
-                  onChange={field.onChange}
-                  onBlur={field.onBlur}
-                  error={errors.accountId ? t("errors.no_account") : undefined}
+          <CaptureSurface>
+            <Controller
+              control={control}
+              name="amount"
+              render={({ field }) => (
+                <AmountField
+                  id={amountId}
+                  label={t("amountLabel", { currency })}
+                  placeholder="0"
+                  value={typeof field.value === "number" ? field.value : null}
+                  onValueChange={(value) => field.onChange(value)}
+                  error={errors.amount ? t("errors.invalid") : undefined}
                   required
-                  data-testid="capture-account"
-                  options={accounts.map((account) => ({
-                    id: account.id,
-                    label: captureAccountName(tCatalog, account.name),
-                  }))}
+                  autoFocus
+                  enterKeyHint="done"
+                  data-testid="capture-amount"
+                  className={CAPTURE_AMOUNT_FIELD_CLASS}
                 />
-              )
-            }
-          />
-        )}
+              )}
+            />
+          </CaptureSurface>
 
-        <Controller
-          control={control}
-          name="transactionDate"
-          render={({ field }) => (
-            <DatePickerField
-              id={dateId}
-              label={t("effectiveDateLabel")}
-              value={field.value ?? ""}
-              onChange={(value) => field.onChange(value)}
-              onBlur={field.onBlur}
-              error={errors.transactionDate ? t("errors.invalid") : undefined}
-              data-testid="capture-date"
+          {accounts.length === 0 ? (
+            <StatusAlert
+              variant="warning"
+              title={t("errors.no_account")}
+              description={t("addAccountHint")}
+            />
+          ) : (
+            <Controller
+              control={control}
+              name="accountId"
+              render={({ field }) =>
+                useCompactAccountPicker ? (
+                  <CaptureSurface testId="capture-account">
+                    <fieldset className="flex min-w-0 flex-col gap-(--space-2)">
+                      <legend className={CAPTURE_FIELDSET_LEGEND_CLASS}>
+                        {accountLabel}
+                      </legend>
+                      <ChoiceTileGroup
+                        hint={
+                          selectedAccount?.type === AccountType.CREDIT_CARD
+                            ? t("creditCardHint")
+                            : undefined
+                        }
+                      >
+                        {accounts.map((account) => (
+                          <ChoiceTile
+                            key={account.id}
+                            label={captureAccountChoiceLabel(
+                              tCatalog,
+                              account,
+                              t("creditCardLabel"),
+                            )}
+                            selected={field.value === account.id}
+                            onPress={() => field.onChange(account.id)}
+                            role="radio"
+                            icon={
+                              <AppIcon
+                                icon={
+                                  account.type === AccountType.CREDIT_CARD
+                                    ? FINANCE_ICONS.card
+                                    : FINANCE_ICONS.wallet
+                                }
+                                size="sm"
+                              />
+                            }
+                          />
+                        ))}
+                      </ChoiceTileGroup>
+                      {errors.accountId ? (
+                        <Text size="sm" className="text-danger">
+                          {t("errors.no_account")}
+                        </Text>
+                      ) : null}
+                    </fieldset>
+                  </CaptureSurface>
+                ) : (
+                  <SelectField
+                    id="capture-account"
+                    label={accountLabel}
+                    description={t("accountHint")}
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    error={
+                      errors.accountId ? t("errors.no_account") : undefined
+                    }
+                    required
+                    data-testid="capture-account"
+                    options={accounts.map((account) => ({
+                      id: account.id,
+                      label: captureAccountName(tCatalog, account.name),
+                    }))}
+                  />
+                )
+              }
             />
           )}
-        />
 
-        <CaptureSurface>
-          <fieldset className="flex flex-col gap-(--space-3)">
-            <legend className="text-sm font-semibold tracking-tight text-text-primary mb-3">
-              {t("tagLabel")}
-            </legend>
-            <div className="flex flex-wrap gap-(--space-2)">
-              <FilterChip
-                selected={!categoryId}
-                onPress={() => {
-                  setValue("categoryId", null, { shouldValidate: true });
-                  setValue("jarId", null, { shouldValidate: true });
-                }}
-              >
-                {t("tagNone")}
-              </FilterChip>
-              {tags.map((tag) => (
-                <FilterChip
-                  key={tag.id}
-                  selected={categoryId === tag.id}
-                  data-testid={`capture-tag-${tag.name.toLowerCase()}`}
-                  onPress={() => {
-                    setValue("categoryId", tag.id, { shouldValidate: true });
-                    setValue("jarId", tag.jarId ?? null, {
-                      shouldValidate: true,
-                    });
-                  }}
-                >
-                  {localizeCatalogName(tCatalog, CatalogGroup.TAGS, tag.name)}
-                </FilterChip>
-              ))}
-            </div>
-          </fieldset>
-        </CaptureSurface>
-
-        <CaptureSurface>
-          <Text size="sm" tone="secondary">
-            {jarHint}
-          </Text>
           <Controller
             control={control}
-            name="jarId"
+            name="categoryId"
             render={({ field }) => (
               <SelectField
-                id="capture-jar"
-                label={t("jarLabel")}
-                value={field.value ?? CAPTURE_JAR_UNMAPPED_OPTION_ID}
-                onChange={(value) =>
-                  field.onChange(
-                    value === CAPTURE_JAR_UNMAPPED_OPTION_ID ? null : value,
-                  )
-                }
+                id="capture-category"
+                label={t("tagLabel")}
+                value={field.value ?? CAPTURE_CATEGORY_NONE_OPTION_ID}
+                onChange={(value) => {
+                  if (value === CAPTURE_CATEGORY_NONE_OPTION_ID) {
+                    field.onChange(null);
+                    setValue("jarId", null, { shouldValidate: true });
+                    return;
+                  }
+                  const selectedTag = tags.find((tag) => tag.id === value);
+                  field.onChange(value);
+                  setValue("jarId", selectedTag?.jarId ?? null, {
+                    shouldValidate: true,
+                  });
+                }}
                 onBlur={field.onBlur}
-                error={errors.jarId ? t("errors.invalid") : undefined}
-                data-testid="capture-jar"
+                data-testid="capture-category"
                 options={[
                   {
-                    id: CAPTURE_JAR_UNMAPPED_OPTION_ID,
-                    label: t("jarUnmapped"),
+                    id: CAPTURE_CATEGORY_NONE_OPTION_ID,
+                    label: t("tagNone"),
                   },
-                  ...jars.map((jar) => ({
-                    id: jar.id,
+                  ...tags.map((tag) => ({
+                    id: tag.id,
                     label: localizeCatalogName(
                       tCatalog,
-                      CatalogGroup.JARS,
-                      jar.name,
+                      CatalogGroup.TAGS,
+                      tag.name,
                     ),
                   })),
                 ]}
               />
             )}
           />
-        </CaptureSurface>
 
-        <CaptureSurface>
-          <fieldset className="flex flex-col gap-(--space-3)">
-            <legend className="text-sm font-semibold tracking-tight text-text-primary">
-              {t("transactionTagsLabel")}
-            </legend>
-            <Text size="sm" tone="secondary">
-              {t("transactionTagsHint")}
-            </Text>
-            <TransactionTagSelector
-              availableTags={transactionTags}
-              selectedIds={selectedTransactionTagIds}
-              onChange={(value) =>
-                setValue("transactionTagIds", value, { shouldValidate: true })
-              }
-            />
-          </fieldset>
-        </CaptureSurface>
+          <Controller
+            control={control}
+            name="transactionDate"
+            render={({ field }) => (
+              <DatePickerField
+                id={dateId}
+                label={t("effectiveDateLabel")}
+                value={field.value ?? ""}
+                onChange={(value) => field.onChange(value)}
+                onBlur={field.onBlur}
+                error={errors.transactionDate ? t("errors.invalid") : undefined}
+                data-testid="capture-date"
+              />
+            )}
+          />
 
-        <TextField
-          id={noteId}
-          label={t("noteLabel")}
-          registration={register("note")}
-          error={errors.note ? t("errors.invalid") : undefined}
-          placeholder={t("notePlaceholder")}
-          data-testid="capture-note"
-        />
+          <TextField
+            id={noteId}
+            label={t("noteLabel")}
+            registration={register("note")}
+            error={errors.note ? t("errors.invalid") : undefined}
+            placeholder={t("notePlaceholder")}
+            data-testid="capture-note"
+          />
 
-        {amountLabel && selectedAccountName ? (
-          <Card
-            tone="highlighted"
-            className="gap-(--space-1) p-(--space-4)"
-            aria-live="polite"
-            data-testid="capture-preview"
+          <details
+            className="rounded-[var(--radius-control)] bg-surface-muted/55 px-(--space-4) py-(--space-2)"
+            data-testid="capture-optional-details"
           >
-            <Text size="sm" weight="medium">
-              {t("previewTitle")}
-            </Text>
-            <Text size="sm" tone="secondary">
-              {typeof t.rich === "function"
-                ? t.rich(previewMessageKey, {
-                    amount: () => (
-                      <FinancialValue>{amountLabel}</FinancialValue>
-                    ),
-                    account: selectedAccountName,
-                  })
-                : t(previewMessageKey, {
-                    amount: FINANCIAL_PRIVACY_MASK,
-                    account: selectedAccountName,
-                  })}
-            </Text>
-          </Card>
-        ) : null}
+            <summary className="flex min-h-11 cursor-pointer list-none items-center text-sm font-medium text-text-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring [&::-webkit-details-marker]:hidden">
+              {t("moreDetails")}
+            </summary>
+            <div className="flex flex-col gap-(--space-4) border-t border-border-subtle pb-(--space-3) pt-(--space-4)">
+              <Text size="sm" tone="secondary">
+                {jarHint}
+              </Text>
+              <Controller
+                control={control}
+                name="jarId"
+                render={({ field }) => (
+                  <SelectField
+                    id="capture-jar"
+                    label={t("jarLabel")}
+                    value={field.value ?? CAPTURE_JAR_UNMAPPED_OPTION_ID}
+                    onChange={(value) =>
+                      field.onChange(
+                        value === CAPTURE_JAR_UNMAPPED_OPTION_ID ? null : value,
+                      )
+                    }
+                    onBlur={field.onBlur}
+                    error={errors.jarId ? t("errors.invalid") : undefined}
+                    data-testid="capture-jar"
+                    options={[
+                      {
+                        id: CAPTURE_JAR_UNMAPPED_OPTION_ID,
+                        label: t("jarUnmapped"),
+                      },
+                      ...jars.map((jar) => ({
+                        id: jar.id,
+                        label: localizeCatalogName(
+                          tCatalog,
+                          CatalogGroup.JARS,
+                          jar.name,
+                        ),
+                      })),
+                    ]}
+                  />
+                )}
+              />
+              <fieldset className="flex min-w-0 flex-col gap-(--space-2)">
+                <legend className={CAPTURE_FIELDSET_LEGEND_CLASS}>
+                  {t("transactionTagsLabel")}
+                </legend>
+                <div className="flex flex-col gap-(--space-3)">
+                  <Text size="sm" tone="secondary">
+                    {t("transactionTagsHint")}
+                  </Text>
+                  <TransactionTagSelector
+                    availableTags={transactionTags}
+                    selectedIds={selectedTransactionTagIds}
+                    onChange={(value) =>
+                      setValue("transactionTagIds", value, {
+                        shouldValidate: true,
+                      })
+                    }
+                  />
+                </div>
+              </fieldset>
+            </div>
+          </details>
 
-        <BottomActionBar layout={BottomActionBarLayout.SPLIT}>
+          {amountLabel && selectedAccountName ? (
+            <Card
+              tone="highlighted"
+              className="gap-(--space-1) p-(--space-4)"
+              aria-live="polite"
+              data-testid="capture-preview"
+            >
+              <Text size="sm" weight="medium">
+                {t("previewTitle")}
+              </Text>
+              <Text size="sm" tone="secondary">
+                {typeof t.rich === "function"
+                  ? t.rich(previewMessageKey, {
+                      amount: () => (
+                        <FinancialValue>{amountLabel}</FinancialValue>
+                      ),
+                      account: selectedAccountName,
+                    })
+                  : t(previewMessageKey, {
+                      amount: FINANCIAL_PRIVACY_MASK,
+                      account: selectedAccountName,
+                    })}
+              </Text>
+            </Card>
+          ) : null}
+        </div>
+
+        <BottomActionBar
+          className="mt-auto shrink-0"
+          layout={BottomActionBarLayout.SPLIT}
+        >
           <Link
             href={APP_PATH.MONEY}
             className={CAPTURE_SPLIT_CANCEL_LINK_CLASS}
@@ -795,7 +824,7 @@ export function CaptureTransactionForm({
             }
             onPress={() => void openConfirmation()}
           >
-            {t("save")}
+            {isPending ? t("saving") : t("save")}
           </Button>
         </BottomActionBar>
       </form>

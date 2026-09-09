@@ -3,14 +3,13 @@ import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Page } from "@/shared/patterns/page";
 import { Card } from "@/shared/patterns/card";
 import { Skeleton } from "@/shared/ui/skeleton";
-import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
 import { FloatingAction } from "@/shared/patterns/floating-action";
 import { MoneyCaptureAction } from "../money-capture-action";
 
 function FilterSkeleton() {
   return (
     <div className="flex flex-col gap-(--space-3)" aria-hidden>
-      <div className="flex gap-(--space-2) overflow-hidden">
+      <div className="flex flex-wrap gap-(--space-2)">
         {Array.from({ length: 4 }, (_, index) => (
           <Skeleton key={index} className="h-11 w-20 shrink-0 rounded-full" />
         ))}
@@ -58,10 +57,9 @@ export default async function TransactionsLoading() {
       contentClassName="gap-(--space-5)"
       topBar={
         <TopAppBar
-          variant="primary"
+          variant="detail"
           title={t("title")}
           subtitle={<Skeleton className="h-4 w-56" />}
-          icon={FINANCE_ICONS.cash}
           trailing={<Skeleton className="size-11 rounded-(--radius-control)" />}
         />
       }

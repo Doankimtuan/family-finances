@@ -9,15 +9,18 @@ import {
 } from "./tokens";
 import { useMotionPolicy } from "./use-motion-policy";
 import { stepVariants } from "./variants";
+import { cn } from "@/shared/utils/cn";
 
 export function MotionStep({
   stepKey,
   direction = MotionStepDirection.FORWARD,
   children,
+  className,
 }: {
   stepKey: string;
   direction?: MotionStepDirectionValue;
   children: ReactNode;
+  className?: string;
 }) {
   const policy = useMotionPolicy();
   const variants = stepVariants(
@@ -29,6 +32,7 @@ export function MotionStep({
     <AnimatePresence initial={false} mode="wait">
       <motion.div
         key={stepKey}
+        className={cn("min-h-0", className)}
         variants={variants}
         initial={policy.enabled ? "initial" : false}
         animate="animate"
