@@ -23,7 +23,7 @@
       "unavailable": "There is not enough data to show your household overview yet."
     },
     "dashboardHeadline": "Your household money overview",
-    "dashboardSupporting": "See balances, money flow this period, and what needs attention.",
+    "dashboardSupporting": "How household money is doing, and what needs attention.",
     "householdContext": "Household overview",
     "cashFlowStory": {
       "positive": "Income matches or exceeds spending this period",
@@ -68,7 +68,7 @@
   "financialPulse": {
     "title": "Total assets",
     "accessibleLabel": "Total assets across accounts, savings, and investments",
-    "hint": "Total across active accounts, savings, and valued investments.",
+    "hint": "Accounts, savings, and valued investments.",
     "partial": "Includes {included} of {total} valued investments.",
     "unavailable": "Total assets are temporarily unavailable.",
     "netLabel": {
@@ -114,7 +114,9 @@
     "lowData": "Activity is concentrated on one day; quiet days are confirmed as zero."
   },
   "periodStory": {
-    "title": "This period"
+    "title": "This period",
+    "viewTransactions": "View transactions",
+    "empty": "No income or spending recorded this period."
   },
   "spending": {
     "title": "Spending breakdown",
@@ -134,7 +136,7 @@
   },
   "planPulse": {
     "title": "Plan",
-    "hint": "See active jars and how income is allocated.",
+    "hint": "Jars are a plan for money, not cash in an account.",
     "jarsCount": "{count, plural, =0 {No active jars yet} one {# active jar} other {# active jars}}",
     "allocate": {
       "off": "Income allocation: Off",
@@ -144,8 +146,8 @@
     "openPlan": "Open Plan"
   },
   "productSummary": {
-    "title": "Assets & obligations",
-    "hint": "A short view of finalized Money products and what needs attention.",
+    "title": "Also in Money",
+    "hint": "Savings, investments, loans, and debts. Money has the full picture.",
     "unavailable": "This product summary is temporarily unavailable.",
     "savings": {
       "label": "Savings",
@@ -175,10 +177,10 @@
     }
   },
   "inbox": {
-    "title": "Inbox",
-    "clear": "Inbox is clear.",
-    "pending": "{count, plural, one {# item is waiting for your review} other {# items are waiting for your review}}",
-    "open": "Open Inbox"
+    "title": "Needs attention",
+    "clear": "No decisions needed.",
+    "pending": "{count, plural, one {# item needs a decision} other {# items need a decision}}",
+    "open": "Review in Inbox"
   },
   "health": {
     "title": "Setup status",
@@ -197,7 +199,7 @@
   "addAccount": "Add an account",
   "dayZero": {
     "title": "Start tracking your money",
-    "description": "Add an account to start recording real transactions. Plan and invitations can wait.",
+    "description": "Add an account to start seeing household money here. Plan and invitations can wait.",
     "invite": "Invite a member",
     "setupPlan": "Set up Plan",
     "addExpense": "Add an expense"

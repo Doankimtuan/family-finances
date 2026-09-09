@@ -23,7 +23,7 @@
       "unavailable": "Chưa có đủ dữ liệu để hiển thị tổng quan hộ gia đình."
     },
     "dashboardHeadline": "Tổng quan tiền của hộ gia đình",
-    "dashboardSupporting": "Xem số dư, dòng tiền kỳ này và mục cần chú ý.",
+    "dashboardSupporting": "Tình hình tiền hộ gia đình và việc cần chú ý.",
     "householdContext": "Tổng quan hộ gia đình",
     "cashFlowStory": {
       "positive": "Thu vào cao hơn hoặc bằng chi ra trong kỳ này",
@@ -68,7 +68,7 @@
   "financialPulse": {
     "title": "Tổng tài sản",
     "accessibleLabel": "Tổng tài sản trong tài khoản, tiết kiệm và đầu tư",
-    "hint": "Tổng tài sản trong tài khoản đang dùng, tiết kiệm và đầu tư đã định giá.",
+    "hint": "Tài khoản, tiết kiệm và đầu tư đã định giá.",
     "partial": "Gồm {included}/{total} khoản đầu tư đã định giá.",
     "unavailable": "Tạm thời chưa thể hiển thị tổng tài sản.",
     "netLabel": {
@@ -114,7 +114,9 @@
     "lowData": "Hoạt động tập trung trong một ngày; các ngày còn lại được xác nhận là không phát sinh."
   },
   "periodStory": {
-    "title": "Kỳ này"
+    "title": "Kỳ này",
+    "viewTransactions": "Xem giao dịch",
+    "empty": "Chưa có thu hoặc chi trong kỳ này."
   },
   "spending": {
     "title": "Phân bổ chi tiêu",
@@ -134,7 +136,7 @@
   },
   "planPulse": {
     "title": "Kế hoạch",
-    "hint": "Xem các hũ đang dùng và cách phân bổ thu nhập.",
+    "hint": "Hũ là kế hoạch cho tiền, không phải tiền mặt trong tài khoản.",
     "jarsCount": "{count, plural, =0 {Chưa có hũ đang dùng} one {# hũ đang dùng} other {# hũ đang dùng}}",
     "allocate": {
       "off": "Phân bổ thu nhập: Tắt",
@@ -144,8 +146,8 @@
     "openPlan": "Mở Kế hoạch"
   },
   "productSummary": {
-    "title": "Tài sản & nghĩa vụ",
-    "hint": "Tóm tắt các sản phẩm Tiền đã hoàn thiện và mục cần chú ý.",
+    "title": "Cũng có trong Tiền",
+    "hint": "Tiết kiệm, đầu tư, khoản vay và công nợ. Màn Tiền có đầy đủ hơn.",
     "unavailable": "Tóm tắt sản phẩm này tạm thời chưa có.",
     "savings": {
       "label": "Tiết kiệm",
@@ -175,10 +177,10 @@
     }
   },
   "inbox": {
-    "title": "Hộp thư",
-    "clear": "Hộp thư đang trống.",
-    "pending": "{count, plural, one {# mục đang chờ bạn xem} other {# mục đang chờ bạn xem}}",
-    "open": "Mở Hộp thư"
+    "title": "Cần chú ý",
+    "clear": "Không có việc cần quyết định.",
+    "pending": "{count, plural, one {# mục cần quyết định} other {# mục cần quyết định}}",
+    "open": "Xem trong Hộp thư"
   },
   "health": {
     "title": "Tình trạng thiết lập",
@@ -197,7 +199,7 @@
   "addAccount": "Thêm tài khoản",
   "dayZero": {
     "title": "Bắt đầu theo dõi tiền",
-    "description": "Thêm tài khoản để bắt đầu ghi nhận giao dịch thực tế. Bạn có thể thiết lập Kế hoạch hoặc mời thành viên sau.",
+    "description": "Thêm tài khoản để bắt đầu thấy tiền hộ gia đình ở đây. Bạn có thể thiết lập Kế hoạch hoặc mời thành viên sau.",
     "invite": "Mời thành viên",
     "setupPlan": "Thiết lập Kế hoạch",
     "addExpense": "Thêm khoản chi"

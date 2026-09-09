@@ -13,7 +13,7 @@ import { motionTokens, useMotionPolicy } from "@/shared/motion";
 import { cn } from "@/shared/utils/cn";
 import { useHomePeriodTransition } from "./home-period-transition";
 
-/** On-hero segmented control for the dashboard period. */
+/** Surface segmented control for the dashboard period. */
 export function HomePeriodControl({
   restoreFocus = false,
 }: {
@@ -51,7 +51,7 @@ export function HomePeriodControl({
 
   return (
     <div
-      className="flex gap-(--space-1) rounded-full bg-black/20 p-(--space-1)"
+      className="flex gap-(--space-1) rounded-full bg-surface-muted p-(--space-1)"
       role="group"
       aria-label={t("periodControl.label")}
       aria-busy={isPending}
@@ -60,7 +60,7 @@ export function HomePeriodControl({
       {segments.map((segment) => {
         const selected = optimisticPeriod === segment.period;
         const thumbClassName =
-          "absolute inset-0 rounded-full bg-hero-fg shadow-(--elevation-1)";
+          "absolute inset-0 rounded-full bg-primary-soft shadow-(--elevation-1)";
         return (
           <button
             key={segment.period}
@@ -87,10 +87,10 @@ export function HomePeriodControl({
               )
             }
             className={cn(
-              "relative flex min-h-9 flex-1 items-center justify-center rounded-full px-(--space-3) text-sm font-medium leading-tight transition-colors duration-(--duration-fast) ease-(--ease-standard) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-hero-fg motion-reduce:transition-none",
+              "relative flex min-h-11 flex-1 items-center justify-center rounded-full px-(--space-3) text-sm font-medium leading-tight transition-colors duration-(--duration-fast) ease-(--ease-standard) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none",
               selected
-                ? "font-semibold text-hero-deep"
-                : "text-hero-muted hover:bg-white/10 hover:text-hero-fg",
+                ? "font-semibold text-primary"
+                : "text-text-secondary hover:bg-surface-hover hover:text-text-primary",
               isPending && "cursor-not-allowed opacity-60",
             )}
           >

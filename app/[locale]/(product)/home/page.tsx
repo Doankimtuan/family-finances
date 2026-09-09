@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { hasLocale } from "next-intl";
-import { redirect, Link } from "@/i18n/navigation";
+import { redirect } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import { setLocale } from "@/i18n/set-locale";
 import {
@@ -11,50 +11,40 @@ import {
   getHomeSavingsSummary,
 } from "@/modules/home/application";
 import {
-  calculateMoneyAssetOverview,
-  MoneyAssetOverviewStatus,
-} from "@/modules/ledger/application";
-import {
   HOME_DASHBOARD_DEFAULT_PERIOD,
   HOME_PERIOD_FOCUS_INTENT_KEY,
   HOME_PERIOD_FOCUS_QUERY,
   HOME_PRODUCT_FAILURE_QUERY,
+  HomeProductReadStatus,
   HomeProductSummaryKey,
   HOME_TRANSLATION_NAMESPACE,
   HOME_TEST_ID,
   HomeDashboardPeriod,
   HomeDashboardReadStatus,
-  HomeProductReadStatus,
   HomeStatusLaneKind,
   homeGreetingPeriod,
 } from "@/modules/home/application/home-constants";
+import {
+  calculateMoneyAssetOverview,
+  MoneyAssetOverviewStatus,
+} from "@/modules/ledger/application";
 import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
+import { getHouseholdPreferences } from "@/modules/tenancy/application/get-household-preferences";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
-import { PRODUCT_LINK_PREFETCH } from "@/shared/constants/navigation";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
-import { Card } from "@/shared/patterns/card";
 import { FloatingAction } from "@/shared/patterns/floating-action";
 import { Section } from "@/shared/patterns/section";
-
 import { Page } from "@/shared/patterns/page";
-import { Text } from "@/shared/ui/text";
-import { AppIcon } from "@/shared/ui/app-icon";
-import { IconContainer, IconContainerTone } from "@/shared/ui/icon-container";
-import {
-  ACTION_ICONS,
-  FINANCE_ICONS,
-  NAVIGATION_ICONS,
-} from "@/shared/ui/icon-registry";
 import { MotionReveal } from "@/shared/motion";
 import { HomeCaptureAction } from "./home-capture-action";
-import { HomeCashFlowSection } from "./home-cash-flow-section";
 import { HomeDayZeroTrio } from "./home-day-zero-trio";
 import { HomeFinancialPulse } from "./home-financial-pulse";
 import { HomeInboxCta } from "./home-inbox-cta";
 import { HomePeriodControl } from "./home-period-control";
-import { HomePeriodData, HomePeriodTransition } from "./home-period-transition";
-import { HomeSpendingSection } from "./home-spending-section";
+import { HomePeriodTransition } from "./home-period-transition";
+import { HomePeriodStory } from "./home-period-story";
+import { HomePlanPulse } from "./home-plan-pulse";
 import { HomeStatusLane } from "./home-status-lane";
 import { HomeProductSummaries } from "./home-product-summaries";
 
@@ -72,8 +62,8 @@ function resolveDashboardPeriod(rawPeriod?: string) {
 }
 
 /**
- * Home is a mobile decision surface: current position, flow, spending,
- * attention, then plan.
+ * Home is the household command center: current position, attention,
+ * intention, then period movement.
  */
 export default async function HomePage({ params, searchParams }: Props) {
   const { locale: rawLocale } = await params;
@@ -92,25 +82,24 @@ export default async function HomePage({ params, searchParams }: Props) {
     [HOME_PRODUCT_FAILURE_QUERY]: productFailure,
   } = await searchParams;
   const period = resolveDashboardPeriod(rawPeriod);
-  const [t, dashboard, savings, investments, loans, debt] = await Promise.all([
-    getTranslations(HOME_TRANSLATION_NAMESPACE),
-    getHomeDashboard(period),
-    getHomeSavingsSummary(),
-    getHomeInvestmentSummary(
-      productFailure === HomeProductSummaryKey.INVESTMENTS,
-    ),
-    getHomeLoanSummary(),
-    getHomeDebtSummary(),
-  ]);
+  const [t, dashboard, savings, investments, loans, debt, preferences] =
+    await Promise.all([
+      getTranslations(HOME_TRANSLATION_NAMESPACE),
+      getHomeDashboard(period),
+      getHomeSavingsSummary(),
+      getHomeInvestmentSummary(
+        productFailure === HomeProductSummaryKey.INVESTMENTS,
+      ),
+      getHomeLoanSummary(),
+      getHomeDebtSummary(),
+      getHouseholdPreferences(),
+    ]);
   const dashboardData =
     dashboard.status === HomeDashboardReadStatus.ERROR
       ? null
       : dashboard.dashboard;
-  const hasCashFlow =
-    dashboard.status !== HomeDashboardReadStatus.ERROR &&
-    dashboard.dashboard.financialMetrics != null &&
-    (dashboard.dashboard.financialMetrics.income > 0 ||
-      dashboard.dashboard.financialMetrics.expense > 0);
+  const householdEyebrow =
+    preferences?.householdName || t("header.householdContext");
   const assetOverview = calculateMoneyAssetOverview({
     accounts: dashboardData?.realBalance ?? null,
     savings:
@@ -126,6 +115,14 @@ export default async function HomePage({ params, searchParams }: Props) {
           }
         : null,
   });
+  const pulseBalance =
+    assetOverview.status === MoneyAssetOverviewStatus.UNAVAILABLE
+      ? null
+      : assetOverview.total;
+  const pulseNote =
+    assetOverview.status === MoneyAssetOverviewStatus.PARTIAL
+      ? t("financialPulse.partial", assetOverview.investmentCoverage)
+      : undefined;
 
   return (
     <Page
@@ -134,10 +131,9 @@ export default async function HomePage({ params, searchParams }: Props) {
         <TopAppBar
           variant="contextual"
           showBrandMark
-          eyebrow={t("header.eyebrow")}
+          eyebrow={householdEyebrow}
           title={t(`header.greeting.${homeGreetingPeriod()}`)}
           subtitle={t("header.dashboardSupporting")}
-          icon={NAVIGATION_ICONS.home}
           meta={
             dashboardData
               ? t("header.meta.available", {
@@ -166,59 +162,48 @@ export default async function HomePage({ params, searchParams }: Props) {
             <HomeStatusLane kind={HomeStatusLaneKind.PARTIAL} />
           ) : null}
           <HomePeriodTransition period={dashboard.dashboard.period}>
-            <HomePeriodData period={dashboard.dashboard.period}>
-              <MotionReveal>
-                <HomeFinancialPulse
-                  balance={
-                    assetOverview.status ===
-                    MoneyAssetOverviewStatus.UNAVAILABLE
-                      ? null
-                      : assetOverview.total
-                  }
-                  balanceNote={
-                    assetOverview.status === MoneyAssetOverviewStatus.PARTIAL
-                      ? t(
-                          "financialPulse.partial",
-                          assetOverview.investmentCoverage,
-                        )
-                      : undefined
-                  }
-                  currency={dashboard.dashboard.currency}
-                  locale={locale}
-                  period={dashboard.dashboard.period}
-                  metrics={dashboard.dashboard.financialMetrics}
-                  periodControl={
-                    <HomePeriodControl
-                      restoreFocus={
-                        focusIntent === HOME_PERIOD_FOCUS_INTENT_KEY
-                      }
-                    />
-                  }
-                />
-              </MotionReveal>
-              {hasCashFlow && dashboard.dashboard.financialMetrics ? (
-                <Card
-                  tone="elevated"
-                  className="gap-0 p-(--space-4)"
-                  data-testid={HOME_TEST_ID.PERIOD_STORY}
-                >
-                  <HomeCashFlowSection
-                    metrics={dashboard.dashboard.financialMetrics}
-                    currency={dashboard.dashboard.currency}
-                    locale={locale}
+            <MotionReveal>
+              <HomeFinancialPulse
+                balance={pulseBalance}
+                balanceNote={pulseNote}
+                currency={dashboard.dashboard.currency}
+                locale={locale}
+              />
+            </MotionReveal>
+            <Section
+              title={t("inbox.title")}
+              contentClassName="gap-(--space-3)"
+              testId={HOME_TEST_ID.INBOX_BLOCK}
+            >
+              <HomeInboxCta openCount={dashboard.dashboard.openInboxCount} />
+            </Section>
+            <HomePlanPulse
+              title={t("planPulse.title")}
+              hint={t("planPulse.hint")}
+              jarsCount={t("planPulse.jarsCount", {
+                count: dashboard.dashboard.activeJarCount,
+              })}
+              allocateLabel={t(
+                `planPulse.allocate.${dashboard.dashboard.incomeAllocateMode}`,
+              )}
+              openLabel={t("planPulse.openPlan")}
+            />
+            {dashboard.dashboard.financialMetrics ? (
+              <HomePeriodStory
+                metrics={dashboard.dashboard.financialMetrics}
+                currency={dashboard.dashboard.currency}
+                locale={locale}
+                period={dashboard.dashboard.period}
+                canReviewUncategorized={
+                  dashboard.dashboard.canReviewUncategorized
+                }
+                periodControl={
+                  <HomePeriodControl
+                    restoreFocus={focusIntent === HOME_PERIOD_FOCUS_INTENT_KEY}
                   />
-                  <div className="my-(--space-4) border-t border-divider" />
-                  <HomeSpendingSection
-                    metrics={dashboard.dashboard.financialMetrics}
-                    currency={dashboard.dashboard.currency}
-                    locale={locale}
-                    canReviewUncategorized={
-                      dashboard.dashboard.canReviewUncategorized
-                    }
-                  />
-                </Card>
-              ) : null}
-            </HomePeriodData>
+                }
+              />
+            ) : null}
             <HomeProductSummaries
               locale={locale}
               currency={dashboard.dashboard.currency}
@@ -228,49 +213,6 @@ export default async function HomePage({ params, searchParams }: Props) {
               debt={debt}
               t={t}
             />
-            <Section
-              title={t("inbox.title")}
-              contentClassName="gap-(--space-3)"
-              testId={HOME_TEST_ID.INBOX_BLOCK}
-            >
-              <HomeInboxCta openCount={dashboard.dashboard.openInboxCount} />
-            </Section>
-            <Section
-              title={t("planPulse.title")}
-              description={t("planPulse.hint")}
-              testId={HOME_TEST_ID.PLAN_PULSE}
-            >
-              <Card tone="elevated" className="gap-0 p-0">
-                <Link
-                  href={APP_PATH.PLAN}
-                  prefetch={PRODUCT_LINK_PREFETCH}
-                  aria-label={t("planPulse.openPlan")}
-                  className="flex min-h-14 items-center gap-(--space-3) px-(--space-4) py-(--space-3) transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-(--press-scale) motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus-ring"
-                  data-testid={HOME_TEST_ID.PLAN_LINK}
-                >
-                  <IconContainer tone={IconContainerTone.SAVINGS} size="md">
-                    <AppIcon icon={FINANCE_ICONS.savings} size="md" />
-                  </IconContainer>
-                  <div className="min-w-0 flex-1">
-                    <Text size="lg" className="font-semibold text-text-primary">
-                      {t("planPulse.jarsCount", {
-                        count: dashboard.dashboard.activeJarCount,
-                      })}
-                    </Text>
-                    <Text size="sm" tone="secondary" className="text-pretty">
-                      {t(
-                        `planPulse.allocate.${dashboard.dashboard.incomeAllocateMode}`,
-                      )}
-                    </Text>
-                  </div>
-                  <AppIcon
-                    icon={ACTION_ICONS.forward}
-                    size="sm"
-                    className="shrink-0 text-text-tertiary"
-                  />
-                </Link>
-              </Card>
-            </Section>
           </HomePeriodTransition>
           <FloatingAction>
             <HomeCaptureAction

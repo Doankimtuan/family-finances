@@ -1,11 +1,9 @@
 import type { ReactNode } from "react";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import {
-  HomeFinancialPulse,
-  resolveHomeFinancialPulseState,
-} from "@/app/[locale]/(product)/home/home-financial-pulse";
+import { resolveHomeFinancialPulseState } from "@/app/[locale]/(product)/home/home-financial-pulse";
 import { HomeInboxCta } from "@/app/[locale]/(product)/home/home-inbox-cta";
+import { HomeMovementStrip } from "@/app/[locale]/(product)/home/home-movement-strip";
 import { HomeStatusLane } from "@/app/[locale]/(product)/home/home-status-lane";
 import type { HomeFinancialMetrics } from "@/modules/home/application";
 import {
@@ -88,8 +86,7 @@ describe("Home cash-flow semantics", () => {
   it("keeps a negative monthly result signed without danger status chrome", () => {
     const netCashFlow = -5_000_000;
     render(
-      <HomeFinancialPulse
-        balance={12_000_000}
+      <HomeMovementStrip
         currency="VND"
         locale="en"
         period={HomeDashboardPeriod.MONTH}
@@ -112,18 +109,16 @@ describe("Home cash-flow semantics", () => {
     expect(status).not.toHaveClass("bg-danger/10", "text-danger");
     expect(status).not.toHaveClass("bg-warning/10", "text-warning");
 
-    const netStrip = screen.getByRole("group", {
+    const netGroup = screen.getByRole("group", {
       name: "financialPulse.netLabel.month",
-    }).firstElementChild;
-    expect(netStrip).toHaveClass("bg-surface");
-    expect(netStrip).not.toHaveClass("bg-warning/10");
-    expect(netStrip).not.toHaveClass("bg-danger/10");
+    });
+    expect(netGroup).not.toHaveClass("bg-warning/10");
+    expect(netGroup).not.toHaveClass("bg-danger/10");
   });
 
   it("keeps positive and zero cash flow on the success path", () => {
     const { rerender } = render(
-      <HomeFinancialPulse
-        balance={12_000_000}
+      <HomeMovementStrip
         currency="VND"
         locale="en"
         period={HomeDashboardPeriod.MONTH}
@@ -140,8 +135,7 @@ describe("Home cash-flow semantics", () => {
     ).toHaveClass("bg-success/10", "text-success");
 
     rerender(
-      <HomeFinancialPulse
-        balance={12_000_000}
+      <HomeMovementStrip
         currency="VND"
         locale="en"
         period={HomeDashboardPeriod.MONTH}

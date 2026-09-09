@@ -5,6 +5,7 @@ import {
   type ReactNode,
   useContext,
   useEffect,
+  useLayoutEffect,
   useState,
   useTransition,
 } from "react";
@@ -15,12 +16,28 @@ import {
   HomeDashboardPeriod,
   HOME_PERIOD_FOCUS_INTENT_KEY,
   HOME_PERIOD_FOCUS_QUERY,
+  HOME_PERIOD_SCROLL_KEY,
   HOME_TEST_ID,
   type HomeDashboardPeriod as HomeDashboardPeriodValue,
 } from "@/modules/home/application/home-constants";
-import { AnimatePresence, motion } from "motion/react";
-import { motionTokens, useMotionPolicy } from "@/shared/motion";
-import { HomeDashboardSkeleton } from "./home-dashboard-skeleton";
+import { SHELL_SCROLL_REGION_SLOT } from "@/shared/patterns/shell-scroll-region";
+import { cn } from "@/shared/utils/cn";
+
+function shellScrollRegion(): HTMLElement | null {
+  const region = document.querySelector(
+    `[data-slot="${SHELL_SCROLL_REGION_SLOT}"]`,
+  );
+  return region instanceof HTMLElement ? region : null;
+}
+
+function readShellScrollTop(): number {
+  return shellScrollRegion()?.scrollTop ?? 0;
+}
+
+function restoreShellScrollTop(top: number): void {
+  const region = shellScrollRegion();
+  if (region) region.scrollTop = top;
+}
 
 type HomePeriodTransitionState = {
   isPending: boolean;
@@ -67,6 +84,10 @@ export function HomePeriodTransition({
     if (nextPeriod === optimisticPeriod || isPending) return;
 
     setPendingPeriod(nextPeriod);
+    window.sessionStorage.setItem(
+      HOME_PERIOD_SCROLL_KEY,
+      String(readShellScrollTop()),
+    );
     if (restoreFocus) {
       window.sessionStorage.setItem(HOME_PERIOD_FOCUS_INTENT_KEY, nextPeriod);
     }
@@ -83,9 +104,29 @@ export function HomePeriodTransition({
         Object.keys(query).length > 0
           ? { pathname: APP_PATH.HOME, query }
           : APP_PATH.HOME,
+        { scroll: false },
       );
     });
   };
+
+  useLayoutEffect(() => {
+    const raw = window.sessionStorage.getItem(HOME_PERIOD_SCROLL_KEY);
+    if (raw == null) return;
+    const top = Number(raw);
+    if (!Number.isFinite(top)) {
+      window.sessionStorage.removeItem(HOME_PERIOD_SCROLL_KEY);
+      return;
+    }
+
+    restoreShellScrollTop(top);
+    const frame = window.requestAnimationFrame(() => {
+      restoreShellScrollTop(top);
+      if (!isPending) {
+        window.sessionStorage.removeItem(HOME_PERIOD_SCROLL_KEY);
+      }
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [isPending, period]);
 
   return (
     <HomePeriodTransitionContext.Provider
@@ -106,76 +147,31 @@ export function useHomePeriodTransition() {
   return state;
 }
 
-/** Limits period loading feedback to the dashboard data that changes. */
-export function HomePeriodData({
-  children,
-  period,
-}: {
-  children: ReactNode;
-  period: HomeDashboardPeriodValue;
-}) {
+/** Keeps period chrome mounted; only the figures inside refresh. */
+export function HomePeriodData({ children }: { children: ReactNode }) {
   const { isPending } = useHomePeriodTransition();
   const t = useTranslations("home");
-  const policy = useMotionPolicy();
-  const loading = (
-    <div
-      role="status"
-      aria-live="polite"
-      data-testid={HOME_TEST_ID.PERIOD_LOADING}
-    >
-      <span className="sr-only">{t("periodControl.loading")}</span>
-      <HomeDashboardSkeleton />
-    </div>
-  );
-
-  if (!policy.mounted || !policy.enabled) {
-    return (
-      <div
-        className="flex flex-col gap-(--space-5)"
-        aria-busy={isPending}
-        data-testid={HOME_TEST_ID.PERIOD_CONTENT}
-      >
-        {isPending ? loading : children}
-      </div>
-    );
-  }
 
   return (
-    <div
-      className="flex flex-col gap-(--space-3)"
-      aria-busy={isPending}
-      data-testid={HOME_TEST_ID.PERIOD_CONTENT}
-    >
-      <AnimatePresence initial={false} mode="wait">
-        {isPending ? (
-          <motion.div
-            key={HOME_TEST_ID.PERIOD_LOADING}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{
-              duration: motionTokens.duration.fast,
-              ease: motionTokens.easing.standard,
-            }}
-          >
-            {loading}
-          </motion.div>
-        ) : (
-          <motion.div
-            key={period}
-            className="flex flex-col gap-(--space-5)"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{
-              duration: motionTokens.duration.fast,
-              ease: motionTokens.easing.standard,
-            }}
-          >
-            {children}
-          </motion.div>
+    <div aria-busy={isPending} data-testid={HOME_TEST_ID.PERIOD_CONTENT}>
+      {isPending ? (
+        <span
+          role="status"
+          aria-live="polite"
+          className="sr-only"
+          data-testid={HOME_TEST_ID.PERIOD_LOADING}
+        >
+          {t("periodControl.loading")}
+        </span>
+      ) : null}
+      <div
+        className={cn(
+          "transition-opacity duration-(--duration-fast) ease-(--ease-standard) motion-reduce:transition-none",
+          isPending && "pointer-events-none opacity-60",
         )}
-      </AnimatePresence>
+      >
+        {children}
+      </div>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { cn } from "@/shared/utils/cn";
 import { AppViewport } from "@/shared/patterns/app-viewport";
+import { SHELL_SCROLL_REGION_SLOT } from "@/shared/patterns/shell-scroll-region";
 
 export type ChromeShellProps = {
   /** auth/system — no bottom nav; product — five-tab chrome. */
@@ -29,7 +30,7 @@ export function ChromeShell({
         )}
       >
         <main
-          data-slot="shell-scroll-region"
+          data-slot={SHELL_SCROLL_REGION_SLOT}
           className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain"
         >
           {children}

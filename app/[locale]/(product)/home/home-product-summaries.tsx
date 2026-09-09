@@ -16,6 +16,7 @@ import { HOME_TEST_ID } from "@/modules/home/application/home-constants";
 import { InvestmentHomeValuationQuality } from "@/modules/investments/application";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import { FinancialValue } from "@/shared/patterns/financial-value";
+import { FinancialNumberKind } from "@/shared/patterns/financial-number-kind";
 import { Card } from "@/shared/patterns/card";
 import { Section } from "@/shared/patterns/section";
 import { Text } from "@/shared/ui/text";
@@ -77,6 +78,7 @@ function ProductRow({
   attention,
   value,
   unavailable,
+  kind,
 }: {
   href: string;
   visual: ProductVisual;
@@ -85,6 +87,7 @@ function ProductRow({
   attention: boolean;
   value?: ReactNode;
   unavailable: string;
+  kind?: (typeof FinancialNumberKind)[keyof typeof FinancialNumberKind];
 }) {
   return (
     <Link
@@ -120,9 +123,12 @@ function ProductRow({
         {value != null ? (
           <Text
             size="sm"
-            weight="semibold"
+            weight={
+              kind === FinancialNumberKind.ESTIMATE ? "medium" : "semibold"
+            }
             tabular
             className="tracking-tight text-text-primary"
+            data-financial-kind={kind}
           >
             {value}
           </Text>
@@ -208,6 +214,7 @@ export function HomeProductSummaries({
                   {money(savings.summary.principal, currency, locale)}
                 </FinancialValue>
               }
+              kind={FinancialNumberKind.CURRENT_STATE}
               unavailable={unavailable}
             />
           ) : (
@@ -238,6 +245,7 @@ export function HomeProductSummaries({
                   </FinancialValue>
                 )
               }
+              kind={FinancialNumberKind.ESTIMATE}
               unavailable={unavailable}
             />
           ) : (
@@ -271,6 +279,7 @@ export function HomeProductSummaries({
                   {money(loans.summary.remainingPrincipal, currency, locale)}
                 </FinancialValue>
               }
+              kind={FinancialNumberKind.CURRENT_STATE}
               unavailable={unavailable}
             />
           ) : (
@@ -308,6 +317,7 @@ export function HomeProductSummaries({
                   )}
                 </FinancialValue>
               }
+              kind={FinancialNumberKind.CURRENT_STATE}
               unavailable={unavailable}
             />
           ) : (

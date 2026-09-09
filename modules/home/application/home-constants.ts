@@ -14,6 +14,7 @@ export const HOME_DASHBOARD_PERIOD_VALUES = [
 ] as const;
 export const HOME_DASHBOARD_DEFAULT_PERIOD = HomeDashboardPeriod.MONTH;
 export const HOME_PERIOD_FOCUS_INTENT_KEY = "home.period-focus-intent";
+export const HOME_PERIOD_SCROLL_KEY = "home.period-scroll-top";
 export const HOME_PERIOD_FOCUS_QUERY = "focus";
 export const HOME_PRODUCT_FAILURE_QUERY = "homeProductFailure";
 export const HomeProductSummaryKey = {
@@ -139,6 +140,8 @@ export const HOME_TEST_ID = {
   PLAN_LINK: "home-plan-link",
   PRODUCT_SUMMARIES: "home-product-summaries",
   PERIOD_STORY: "home-period-story",
+  MOVEMENT: "home-movement",
+  TRANSACTIONS_LINK: "home-transactions-link",
   CAPTURE_ACTION: "home-capture",
   ACCOUNT_ACTION: "home-add-account",
   FINANCIAL_PRIVACY_TOGGLE: "home-financial-privacy-toggle",

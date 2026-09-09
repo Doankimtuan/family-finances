@@ -15,7 +15,6 @@ import { FilterChip } from "@/shared/patterns/filter-chip";
 import {
   HOME_TEST_ID,
   HomeCashFlowGranularity,
-  HomeDashboardPeriod,
   HomeProductReadStatus,
 } from "@/modules/home/application/home-constants";
 import { InvestmentHomeValuationQuality } from "@/modules/investments/application";
@@ -28,8 +27,20 @@ vi.mock("next-intl", () => ({
 }));
 vi.mock("@/i18n/navigation", () => ({
   useRouter: () => ({ push: pushMock }),
-  Link: ({ href, children }: { href: string; children: ReactNode }) => (
-    <a href={href}>{children}</a>
+  Link: ({
+    href,
+    children,
+    "data-testid": testId,
+    "aria-label": ariaLabel,
+  }: {
+    href: string;
+    children: ReactNode;
+    "data-testid"?: string;
+    "aria-label"?: string;
+  }) => (
+    <a href={href} data-testid={testId} aria-label={ariaLabel}>
+      {children}
+    </a>
   ),
 }));
 vi.mock("@/shared/hooks/use-online-status", () => ({
@@ -104,12 +115,10 @@ describe("Home IA and action states", () => {
     const { rerender } = render(<HomeInboxCta openCount={3} />);
 
     expect(screen.getByText("inbox.pending:3")).toBeInTheDocument();
-    const openBtn = screen.getByTestId(HOME_TEST_ID.INBOX_CTA);
-    expect(openBtn).toBeVisible();
-    expect(openBtn).toHaveTextContent("inbox.open");
-
-    fireEvent.click(openBtn);
-    expect(pushMock).toHaveBeenLastCalledWith(APP_PATH.INBOX);
+    const inboxPreview = screen.getByTestId(HOME_TEST_ID.INBOX_CTA);
+    expect(inboxPreview).toBeVisible();
+    expect(inboxPreview).toHaveAttribute("href", APP_PATH.INBOX);
+    expect(inboxPreview).toHaveAccessibleName("inbox.open");
 
     rerender(<HomeInboxCta openCount={0} />);
     expect(screen.getByText("inbox.clear")).toBeInTheDocument();
@@ -117,7 +126,7 @@ describe("Home IA and action states", () => {
       screen.queryByTestId(HOME_TEST_ID.INBOX_CTA),
     ).not.toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: "inbox.open" }),
+      screen.queryByRole("link", { name: "inbox.open" }),
     ).not.toBeInTheDocument();
   });
 
@@ -268,35 +277,23 @@ describe("Home IA and action states", () => {
     );
   });
 
-  it("gives the balance and net value their financial meaning", () => {
-    render(
-      <HomeFinancialPulse
-        balance={1200000}
-        currency="VND"
-        locale="vi"
-        period={HomeDashboardPeriod.QUARTER}
-        metrics={null}
-      />,
-    );
+  it("gives the total-assets balance current-state meaning without a competing net hero", () => {
+    render(<HomeFinancialPulse balance={1200000} currency="VND" locale="vi" />);
 
     expect(
       screen.getByRole("group", { name: "financialPulse.accessibleLabel" }),
     ).toBeInTheDocument();
+    expect(screen.getByTestId("ledger-balance")).toHaveAttribute(
+      "data-financial-kind",
+      "current-state",
+    );
     expect(
-      screen.getByRole("group", { name: "financialPulse.netLabel.quarter" }),
-    ).toBeInTheDocument();
+      screen.queryByRole("group", { name: "financialPulse.netLabel.quarter" }),
+    ).not.toBeInTheDocument();
   });
 
-  it("keeps the total asset pulse explicit when the aggregate is unavailable", () => {
-    render(
-      <HomeFinancialPulse
-        balance={null}
-        currency="VND"
-        locale="vi"
-        period={HomeDashboardPeriod.MONTH}
-        metrics={null}
-      />,
-    );
+  it("keeps the total-assets pulse explicit when the balance is unavailable", () => {
+    render(<HomeFinancialPulse balance={null} currency="VND" locale="vi" />);
 
     expect(screen.getByText("financialPulse.unavailable")).toBeInTheDocument();
     expect(screen.queryByTestId("ledger-balance")).not.toBeInTheDocument();

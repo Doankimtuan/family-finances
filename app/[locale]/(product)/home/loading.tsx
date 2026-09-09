@@ -1,15 +1,13 @@
 import { getLocale, getTranslations } from "next-intl/server";
 import { Page } from "@/shared/patterns/page";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
-import { NAVIGATION_ICONS } from "@/shared/ui/icon-registry";
 import { HOME_TEST_ID } from "@/modules/home/application/home-constants";
 import { homeGreetingPeriod } from "@/modules/home/application/home-constants";
 import { HomeDashboardSkeleton } from "./home-dashboard-skeleton";
 
 /**
- * Home loading skeleton — mirrors the loaded page composition (compact
- * header, financial hero, net strip, cash-flow story, Inbox, Plan) so the
- * loading → loaded transition does not recompose the layout.
+ * Home loading skeleton — mirrors the loaded command-center composition
+ * (header, hero, Inbox, Plan, period story) so loading does not recompose.
  */
 export default async function HomeLoading() {
   const locale = await getLocale();
@@ -21,10 +19,9 @@ export default async function HomeLoading() {
         <TopAppBar
           variant="contextual"
           showBrandMark
-          eyebrow={t("header.eyebrow")}
+          eyebrow={t("header.householdContext")}
           title={t(`header.greeting.${homeGreetingPeriod()}`)}
           subtitle={t("header.dashboardSupporting")}
-          icon={NAVIGATION_ICONS.home}
           meta={t("header.meta.unavailable")}
         />
       }

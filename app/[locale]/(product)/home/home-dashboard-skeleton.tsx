@@ -1,37 +1,21 @@
 import { Skeleton } from "@/shared/ui/skeleton";
 import { Card } from "@/shared/patterns/card";
 
-/**
- * Layout-faithful skeleton for the Home data region. Mirrors the loaded
- * composition from the financial pulse through the Inbox and Plan previews.
- * Placeholders mimic layout only — never data.
- */
-export function HomeDashboardSkeleton() {
+function PeriodStoryBones() {
   return (
-    <div className="flex flex-col gap-(--space-5)" aria-hidden="true">
-      <Card tone="hero" className="gap-0 p-(--space-4)">
-        <div className="flex items-center justify-between gap-(--space-3)">
-          <Skeleton className="h-4 w-20" />
-          <Skeleton className="size-11 rounded-full" />
-        </div>
-        <Skeleton className="mt-(--space-2) h-9 w-52" />
-        <div className="mt-(--space-4) border-t border-divider pt-(--space-3)">
-          <Skeleton className="h-11 w-full rounded-full" />
-        </div>
-      </Card>
-
-      <Card
-        tone="elevated"
-        className="flex-row items-center gap-(--space-3) p-(--space-3)"
-      >
-        <Skeleton className="size-10 shrink-0 rounded-full" />
-        <div className="flex flex-col gap-(--space-2)">
-          <Skeleton className="h-4 w-36" />
-          <Skeleton className="h-6 w-48" />
-        </div>
-      </Card>
-
+    <section className="flex flex-col gap-(--space-3)">
+      <Skeleton className="h-5 w-24" />
       <Card tone="elevated" className="gap-0 p-(--space-4)">
+        <Skeleton className="h-11 w-full rounded-full" />
+        <div className="my-(--space-4) border-t border-divider" />
+        <div className="flex items-center gap-(--space-3)">
+          <Skeleton className="size-10 shrink-0 rounded-full" />
+          <div className="flex flex-col gap-(--space-2)">
+            <Skeleton className="h-4 w-36" />
+            <Skeleton className="h-6 w-48" />
+          </div>
+        </div>
+        <div className="my-(--space-4) border-t border-divider" />
         <div className="flex items-center justify-between gap-(--space-3)">
           <Skeleton className="h-4 w-16" />
           <Skeleton className="h-6 w-24" />
@@ -72,6 +56,57 @@ export function HomeDashboardSkeleton() {
           ))}
         </div>
       </Card>
+    </section>
+  );
+}
+
+/**
+ * Layout-faithful skeleton for the Home data region. Mirrors the loaded
+ * command-center composition. Placeholders mimic layout only — never data.
+ */
+export function HomeDashboardSkeleton() {
+  return (
+    <div className="flex flex-col gap-(--space-5)" aria-hidden="true">
+      <Card tone="hero" className="gap-0 p-(--space-4)">
+        <div className="flex items-center justify-between gap-(--space-3)">
+          <Skeleton className="h-4 w-28" />
+          <Skeleton className="size-11 rounded-full" />
+        </div>
+        <Skeleton className="mt-(--space-2) h-9 w-52" />
+        <div className="mt-(--space-4) flex items-center justify-between gap-(--space-3) border-t border-white/15 pt-(--space-3)">
+          <Skeleton className="h-3 w-40" />
+          <Skeleton className="h-8 w-36 rounded-full" />
+        </div>
+      </Card>
+
+      <section className="flex flex-col gap-(--space-3)">
+        <Skeleton className="h-5 w-32" />
+        <Card tone="soft" className="gap-(--space-3) p-(--space-3)">
+          <div className="flex min-h-11 items-start gap-(--space-3)">
+            <Skeleton className="size-8 rounded-(--radius-control)" />
+            <Skeleton className="h-4 w-52" />
+          </div>
+        </Card>
+      </section>
+
+      <section className="flex flex-col gap-(--space-3)">
+        <div className="flex flex-col gap-(--space-2)">
+          <Skeleton className="h-5 w-16" />
+          <Skeleton className="h-4 w-60" />
+        </div>
+        <Card tone="elevated" className="gap-0 p-0">
+          <div className="flex min-h-14 items-center gap-(--space-3) px-(--space-4) py-(--space-3)">
+            <Skeleton className="size-10 rounded-(--radius-control)" />
+            <div className="flex min-w-0 flex-1 flex-col gap-(--space-2)">
+              <Skeleton className="h-5 w-36" />
+              <Skeleton className="h-4 w-52" />
+            </div>
+            <Skeleton className="size-4 shrink-0" />
+          </div>
+        </Card>
+      </section>
+
+      <PeriodStoryBones />
 
       <section className="flex flex-col gap-(--space-3)">
         <div className="flex flex-col gap-(--space-2)">
@@ -93,33 +128,6 @@ export function HomeDashboardSkeleton() {
               <Skeleton className="size-4 shrink-0" />
             </div>
           ))}
-        </Card>
-      </section>
-
-      <section className="flex flex-col gap-(--space-3)">
-        <Skeleton className="h-5 w-20" />
-        <Card tone="soft" className="gap-(--space-3) p-(--space-3)">
-          <div className="flex items-start gap-(--space-3)">
-            <Skeleton className="size-8 rounded-(--radius-control)" />
-            <Skeleton className="h-4 w-52" />
-          </div>
-        </Card>
-      </section>
-
-      <section className="flex flex-col gap-(--space-3)">
-        <div className="flex flex-col gap-(--space-2)">
-          <Skeleton className="h-5 w-24" />
-          <Skeleton className="h-4 w-60" />
-        </div>
-        <Card tone="elevated" className="gap-0 p-0">
-          <div className="flex min-h-14 items-center gap-(--space-3) px-(--space-4) py-(--space-3)">
-            <Skeleton className="size-10 rounded-(--radius-control)" />
-            <div className="flex min-w-0 flex-1 flex-col gap-(--space-2)">
-              <Skeleton className="h-5 w-36" />
-              <Skeleton className="h-4 w-52" />
-            </div>
-            <Skeleton className="size-4 shrink-0" />
-          </div>
         </Card>
       </section>
     </div>
