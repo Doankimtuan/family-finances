@@ -60,15 +60,14 @@ Canonical product inputs:
 2. artifacts/ux-redesign/CURRENT/
 3. artifacts/design-system-evolution/CURRENT/
 
-Taste Skill is an execution assistant only.
+`ui-ux-pro-max` is an execution assistant only.
 
-When Taste Skill conflicts with ViNha canonical artifacts, ViNha artifacts always win.
+When `ui-ux-pro-max` conflicts with ViNha canonical artifacts, ViNha artifacts always win.
 
 For every UI task:
 
-- Use redesign-skill for audit first.
-- Use design-taste-frontend or gpt-tasteskill for implementation.
-- Use soft-skill as the preferred visual direction.
+- Load `ui-ux-pro-max` for design audit, UX review, and implementation guidance.
+- Use its search CLI (`.agents/skills/ui-ux-pro-max/scripts/search.py`) for style, color, typography, UX, and stack-specific lookups.
 - Preserve business, IA, routes, and UX contracts.
 - Implement exactly one screen or one coherent flow.
 - Verify in a running browser.

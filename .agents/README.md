@@ -47,10 +47,9 @@ refactors with `refactor-review`.
 ### Externally-Installed Skills (also canonical here)
 
 `supabase`, `typescript-clean-code` (deep Clean Code reference),
-`vercel-react-best-practices` (React/Next performance deep-dive), and the
-design/taste skills (`brandkit`, `design-taste-frontend`, `gpt-taste`,
-`high-end-visual-design`, `minimalist-ui`, `redesign-existing-projects`)
-referenced by the UI workflow in root `AGENTS.md`.
+`vercel-react-best-practices` (React/Next performance deep-dive), and
+`ui-ux-pro-max` (UI/UX design intelligence) referenced by the UI workflow in
+root `AGENTS.md`.
 
 ## Tool Integration
 

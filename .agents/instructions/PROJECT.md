@@ -30,10 +30,12 @@ Before implementation, load the relevant skills:
 | Forms and validation           | + `form-architecture`                               |
 | Failure handling / Supabase    | + `error-handling` (and installed `supabase` skill) |
 | Writing or changing tests      | + `testing-quality`                                 |
+| UI design / audit / review     | + `ui-ux-pro-max`                                   |
 | End of every refactor          | `refactor-review` (mandatory)                       |
 
 UI work additionally follows the UI Constitution in root `AGENTS.md`, the UI/UX
-Design SoT in `.agents/design-system.md`, and the design skills they reference.
+Design SoT in `.agents/design-system.md`, and the `ui-ux-pro-max` skill for
+design audit and implementation guidance.
 
 ## Verification Commands (mandatory before completion)
 

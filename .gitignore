@@ -46,6 +46,9 @@ yarn-error.log*
 # Local CommandCode permissions may contain developer-only commands or env references.
 .commandcode/settings.local.json
 
+# Agent skills canonical home is .agents/skills/ — block duplicate copies under .cursor/
+.cursor/skills/
+
 # Supabase CLI local link/cache (project-ref, pooler URL, service versions)
 supabase/.temp/
 
