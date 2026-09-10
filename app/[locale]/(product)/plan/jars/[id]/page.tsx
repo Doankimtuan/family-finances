@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import type { ReactNode } from "react";
 import { setLocale } from "@/i18n/set-locale";
 import { redirect, Link } from "@/i18n/navigation";
 import { hasLocale } from "next-intl";
@@ -8,6 +9,7 @@ import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
 import { getHouseholdPolicies } from "@/modules/tenancy/application/get-household-policies";
 import { OverspendPolicy } from "@/modules/tenancy/application/household-policies.schema";
+import { listOpenInboxItems } from "@/modules/inbox/application";
 import {
   getJar,
   listActiveJars,
@@ -15,22 +17,29 @@ import {
   JarState,
   JarPlanKind,
   JarBudgetState,
+  type JarBudgetMetrics,
   type JarState as JarStateValue,
   listJarCategories,
 } from "@/modules/plan/application";
-import { listOpenInboxItems } from "@/modules/inbox/application";
 import { formatCurrency } from "@/shared/i18n/formatters";
-import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
+import {
+  CatalogGroup,
+  localizeCatalogName,
+} from "@/shared/i18n/localize-catalog-name";
 import { basisPointsToPercentage } from "@/shared/utils/percentage";
 import { TopAppBar, TopAppBarVariant } from "@/shared/patterns/top-app-bar";
 import { Page } from "@/shared/patterns/page";
 import { Section } from "@/shared/patterns/section";
 import { Amount, AmountSize } from "@/shared/patterns/amount";
+import { FinancialNumberKind } from "@/shared/patterns/financial-number-kind";
 import { Card } from "@/shared/patterns/card";
-import { StatusBadge } from "@/shared/ui/status-badge";
+import { StatusBadge, StatusBadgeTone } from "@/shared/ui/status-badge";
 import { Progress } from "@/shared/ui/progress";
 import { StatusAlert } from "@/shared/ui/status-alert";
+import { AlertVariant } from "@/shared/ui/alert";
 import { Text } from "@/shared/ui/text";
+import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
+import { PLAN_ICONS } from "@/shared/ui/icon-registry";
 import { PlanOfflineBanner } from "../../plan-offline-banner";
 import { EmergencyInboxBanner } from "../../emergency-inbox-banner";
 import { PlanPrivacyToggle } from "../../plan-privacy-toggle";
@@ -39,15 +48,98 @@ import { PlanUnavailable } from "../../plan-unavailable";
 import { PLAN_SURFACE_LINK_CLASS } from "../../plan-chrome";
 import { JarDetailControls } from "./jar-detail-controls";
 import { ReallocateJarForm } from "../reallocate-jar-form";
+import {
+  jarBudgetProgressPercent,
+  jarIntentionRemainingLabel,
+  jarStateLabelKey,
+  isJarBudgetOverspent,
+} from "../jar-presentations";
 
 type Props = {
   params: Promise<{ locale: string; id: string }>;
 };
 
-function stateKey(state: JarStateValue) {
-  if (state === JarState.PAUSED) return "statePaused" as const;
-  if (state === JarState.ARCHIVED) return "stateArchived" as const;
-  return "stateActive" as const;
+type JarPlanTranslator = {
+  (key: string, values?: Record<string, string | number>): string;
+  rich: (
+    key: string,
+    values?: Record<string, string | ((chunks: ReactNode) => ReactNode)>,
+  ) => ReactNode;
+};
+
+function stateBadgeTone(state: JarStateValue) {
+  return state === JarState.ACTIVE
+    ? StatusBadgeTone.POSITIVE
+    : StatusBadgeTone.NEUTRAL;
+}
+
+function formatMoney(amount: number, currency: string, locale: string): string {
+  return formatCurrency(amount, currency, locale, {
+    maximumFractionDigits: 0,
+  });
+}
+
+function JarIntentionHero({
+  plannedHeading,
+  plannedBody,
+  kindLabel,
+  stateLabel,
+  state,
+  remainingLabel,
+}: {
+  plannedHeading: string;
+  plannedBody: ReactNode;
+  kindLabel: string;
+  stateLabel: string;
+  state: JarStateValue;
+  remainingLabel: ReactNode;
+}) {
+  return (
+    <Card
+      tone="hero"
+      className="gap-0 p-(--space-4)"
+      data-testid="plan-jar-hero"
+    >
+      <div className="flex items-center gap-(--space-3)">
+        <div className="flex min-w-0 flex-1 items-center gap-(--space-3)">
+          <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-(--radius-control) border border-white/25 bg-white/10 text-hero-fg">
+            <AppIcon icon={PLAN_ICONS.jar} size={AppIconSize.MD} emphasized />
+          </span>
+          <Text
+            size="sm"
+            weight="medium"
+            className="text-pretty text-hero-muted"
+          >
+            {plannedHeading}
+          </Text>
+        </div>
+        <div className="flex shrink-0 items-center gap-(--space-2)">
+          <StatusBadge
+            tone={stateBadgeTone(state)}
+            data-testid="jar-state-badge"
+            className="bg-white/10 text-hero-fg ring-white/15"
+          >
+            {stateLabel}
+          </StatusBadge>
+          <PlanPrivacyToggle testId="plan-jar-privacy-toggle" />
+        </div>
+      </div>
+      <div className="mt-(--space-3)">{plannedBody}</div>
+      <div className="mt-(--space-4) flex flex-col gap-(--space-2) border-t border-white/15 pt-(--space-3)">
+        <Text size="sm" className="text-hero-muted">
+          {kindLabel}
+        </Text>
+        <Text
+          size="sm"
+          className="text-hero-muted"
+          data-financial-kind={FinancialNumberKind.INTENTION}
+          data-financial-object="jar"
+        >
+          {remainingLabel}
+        </Text>
+      </div>
+    </Card>
+  );
 }
 
 /**
@@ -114,18 +206,45 @@ export default async function PlanJarDetailPage({ params }: Props) {
     );
   }
 
+  const translator = t as unknown as JarPlanTranslator;
   const displayName = jar.isNameCustom
     ? jar.name
-    : localizeCatalogName(tCatalog, "jars", jar.name);
-  let plannedLabel = t("planNone");
+    : localizeCatalogName(tCatalog, CatalogGroup.JARS, jar.name);
+  const budgetMetrics: JarBudgetMetrics | undefined = budgets?.byJarId[jar.id];
+  const remainingLabel =
+    jarIntentionRemainingLabel(
+      budgetMetrics,
+      translator,
+      jar.currency,
+      locale,
+    ) ?? t("budget.notAvailable");
+  const usagePercent = jarBudgetProgressPercent(budgetMetrics);
+  const overspent = isJarBudgetOverspent(budgetMetrics);
+
+  let plannedBody: ReactNode = (
+    <Text size="lg" weight="semibold" className="text-hero-fg">
+      {t("planNone")}
+    </Text>
+  );
   if (jar.plan?.kind === JarPlanKind.PERCENT) {
-    plannedLabel = t("planPercent", {
-      percent: Math.round(basisPointsToPercentage(jar.plan.percentBps)),
-    });
+    plannedBody = (
+      <Text size="lg" weight="semibold" className="text-hero-fg">
+        {t("planPercent", {
+          percent: Math.round(basisPointsToPercentage(jar.plan.percentBps)),
+        })}
+      </Text>
+    );
   } else if (jar.plan?.kind === JarPlanKind.FIXED) {
-    plannedLabel = formatCurrency(jar.plan.fixedAmount, jar.currency, locale, {
-      maximumFractionDigits: 0,
-    });
+    plannedBody = (
+      <Amount
+        label={t("plannedHeading")}
+        amountLabel={formatMoney(jar.plan.fixedAmount, jar.currency, locale)}
+        size={AmountSize.LG}
+        kind={FinancialNumberKind.INTENTION}
+        labelClassName="sr-only"
+        amountClassName="text-hero-fg"
+      />
+    );
   }
 
   const targetJars = (activeJars ?? [])
@@ -134,26 +253,6 @@ export default async function PlanJarDetailPage({ params }: Props) {
       id: candidate.id,
       name: candidate.name,
     }));
-
-  const budgetMetrics = budgets?.byJarId[jar.id];
-  const budgetLabel = formatCurrency(
-    budgetMetrics?.budgetAmount ?? 0,
-    jar.currency,
-    locale,
-    { maximumFractionDigits: 0 },
-  );
-  const spentLabel = formatCurrency(
-    budgetMetrics?.spentAmount ?? 0,
-    jar.currency,
-    locale,
-    { maximumFractionDigits: 0 },
-  );
-  const remainingLabel = formatCurrency(
-    budgetMetrics?.remainingAmount ?? 0,
-    jar.currency,
-    locale,
-    { maximumFractionDigits: 0 },
-  );
 
   return (
     <Page
@@ -178,62 +277,54 @@ export default async function PlanJarDetailPage({ params }: Props) {
         openLabel={t("reallocate.emergencyBannerOpen")}
       />
 
-      <Card tone="hero" className="gap-(--space-4) p-(--space-5)">
-        <div className="flex items-start justify-between gap-(--space-3)">
-          <div className="min-w-0">
-            <Text
-              size="xs"
-              className="text-hero-muted uppercase tracking-[0.14em]"
-            >
-              {t("plannedHeading")}
-            </Text>
-            <div className="mt-(--space-2)">
-              <Amount
-                label={t("plannedHeading")}
-                amountLabel={plannedLabel}
-                size={AmountSize.LG}
-                labelClassName="text-hero-muted"
-                amountClassName="text-hero-fg"
-              />
-            </div>
-          </div>
-          <div className="flex shrink-0 items-center gap-(--space-2)">
-            <StatusBadge
-              tone={jar.state === JarState.ACTIVE ? "positive" : "neutral"}
-              data-testid="jar-state-badge"
-            >
-              {t(stateKey(jar.state))}
-            </StatusBadge>
-            <PlanPrivacyToggle testId="plan-jar-privacy-toggle" />
-          </div>
-        </div>
-        <div className="flex items-center justify-between gap-(--space-3) border-t border-white/15 pt-(--space-3)">
-          <Text size="sm" className="text-hero-muted">
-            {t(`kinds.${jar.kind}`)}
-          </Text>
-          <Text size="sm" className="text-hero-muted">
-            {t("incomeModeLabel", {
-              mode: t(`incomeModes.${jar.incomeAllocateMode}`),
-            })}
-          </Text>
-        </div>
-      </Card>
+      <JarIntentionHero
+        plannedHeading={t("plannedHeading")}
+        plannedBody={plannedBody}
+        kindLabel={t(`kinds.${jar.kind}`)}
+        stateLabel={t(jarStateLabelKey(jar.state))}
+        state={jar.state}
+        remainingLabel={remainingLabel}
+      />
 
-      <Card
-        tone="elevated"
-        className="gap-(--space-4) p-(--space-4)"
-        data-testid="jar-budget-metrics"
-      >
-        <div className="grid grid-cols-3 gap-(--space-3)">
-          <Amount label={t("budgetLabel")} amountLabel={budgetLabel} />
-          <Amount label={t("spentLabel")} amountLabel={spentLabel} />
-          <Amount label={t("remainingLabel")} amountLabel={remainingLabel} />
-        </div>
-        {budgetMetrics ? (
+      {budgetMetrics && usagePercent != null ? (
+        <Card
+          tone="elevated"
+          className="gap-(--space-4) p-(--space-4)"
+          data-testid="jar-budget-metrics"
+        >
+          <div className="grid grid-cols-3 gap-(--space-3)">
+            <Amount
+              label={t("budgetLabel")}
+              amountLabel={formatMoney(
+                budgetMetrics.budgetAmount,
+                jar.currency,
+                locale,
+              )}
+              kind={FinancialNumberKind.INTENTION}
+            />
+            <Amount
+              label={t("spentLabel")}
+              amountLabel={formatMoney(
+                budgetMetrics.spentAmount,
+                jar.currency,
+                locale,
+              )}
+              kind={FinancialNumberKind.INTENTION}
+            />
+            <Amount
+              label={overspent ? t("overByHeading") : t("remainingLabel")}
+              amountLabel={formatMoney(
+                Math.abs(budgetMetrics.remainingAmount),
+                jar.currency,
+                locale,
+              )}
+              kind={FinancialNumberKind.INTENTION}
+            />
+          </div>
           <Progress
-            value={Math.max(0, budgetMetrics.usagePercent)}
+            value={usagePercent}
             max={100}
-            label={t("budget.used", { percent: budgetMetrics.usagePercent })}
+            label={t("budget.used", { percent: usagePercent })}
             privacyAware
             indicatorClassName={
               budgetMetrics.state === JarBudgetState.OVERSPENT
@@ -241,15 +332,23 @@ export default async function PlanJarDetailPage({ params }: Props) {
                 : undefined
             }
           />
-        ) : null}
-      </Card>
+        </Card>
+      ) : null}
 
       <Section
         variant="surface"
         title={<PlanSectionTitle>{t("allocationHeading")}</PlanSectionTitle>}
       >
-        <Text size="sm" tone="secondary">
+        <Text size="sm" tone="secondary" className="text-pretty">
+          {t("incomeModeLabel", {
+            mode: t(`incomeModes.${jar.incomeAllocateMode}`),
+          })}
+        </Text>
+        <Text size="sm" tone="secondary" className="text-pretty">
           {t("incomeModeHint")}
+        </Text>
+        <Text size="sm" tone="secondary" className="text-pretty">
+          {t("allocationMeaning")}
         </Text>
       </Section>
 
@@ -258,7 +357,7 @@ export default async function PlanJarDetailPage({ params }: Props) {
         data-testid="jar-monthly-review-info"
       >
         <StatusAlert
-          variant="info"
+          variant={AlertVariant.INFO}
           title={tReview("reviewWithoutBlocking")}
           description={tReview("reviewedBody")}
         />
@@ -271,10 +370,7 @@ export default async function PlanJarDetailPage({ params }: Props) {
         <ReallocateJarForm
           sourceJarId={jar.id}
           sourceJarName={displayName}
-          availableToMove={Math.max(
-            0,
-            budgets?.byJarId[jar.id]?.remainingAmount ?? 0,
-          )}
+          availableToMove={Math.max(0, budgetMetrics?.remainingAmount ?? 0)}
           currency={jar.currency}
           targetJars={targetJars}
           overspendPolicy={policies?.overspendPolicy ?? OverspendPolicy.WARN}

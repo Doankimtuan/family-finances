@@ -56,11 +56,11 @@ function resolveInboxHeadline(
     case InboxQueueHeaderState.CLEAR:
       return t("header.headline.clear");
     case InboxQueueHeaderState.OPEN:
-      return t("header.headline.open");
+      return t("header.headline.open", { count: itemCount });
     case InboxQueueHeaderState.ARCHIVED:
       return itemCount === 0
         ? t("header.meta.archived")
-        : t("header.headline.archived");
+        : t("header.headline.archived", { count: itemCount });
   }
 }
 

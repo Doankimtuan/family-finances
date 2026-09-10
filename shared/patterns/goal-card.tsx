@@ -1,25 +1,33 @@
 import { isValidElement, type ReactNode } from "react";
+import { Link } from "@/i18n/navigation";
+import { PRODUCT_LINK_PREFETCH } from "@/shared/constants/navigation";
+import { FinancialNumberKind } from "@/shared/patterns/financial-number-kind";
 import { cn } from "@/shared/utils/cn";
 import { Text } from "@/shared/ui/text";
 import { Progress } from "@/shared/ui/progress";
 import { StatusBadge, StatusBadgeTone } from "@/shared/ui/status-badge";
+import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
+import { IconContainer, IconContainerTone } from "@/shared/ui/icon-container";
+import { ACTION_ICONS, PLAN_ICONS } from "@/shared/ui/icon-registry";
 import { FinancialValue } from "./financial-value";
-import { Card } from "./card";
+
+const GOAL_INTENTION_ROW_CLASS =
+  "flex min-h-14 items-center gap-(--space-3) px-(--space-4) py-(--space-2) transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-(--press-scale) motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus-ring";
 
 export type GoalCardProps = {
   name: ReactNode;
   fundedLabel: ReactNode;
   targetLabel: ReactNode;
   progressPercent: number | null;
+  progressLabel?: string;
   progressUnavailableLabel?: ReactNode;
   statusLabel?: ReactNode;
+  sourceLabel?: ReactNode;
+  iconTone?: IconContainerTone;
+  href?: string;
   className?: string;
   "data-testid"?: string;
 };
-
-function statusTone(statusLabel: ReactNode): StatusBadgeTone {
-  return statusLabel ? StatusBadgeTone.INFO : StatusBadgeTone.NEUTRAL;
-}
 
 function financialLeaf(value: ReactNode) {
   return isValidElement(value) ? (
@@ -29,65 +37,115 @@ function financialLeaf(value: ReactNode) {
   );
 }
 
-/** Goal progress card — funded/target are intention, never bank Balance (BR-01). */
-export function GoalCard({
+function GoalCardBody({
   name,
   fundedLabel,
   targetLabel,
   progressPercent,
+  progressLabel,
   progressUnavailableLabel,
   statusLabel,
-  className,
-  "data-testid": testId,
-}: GoalCardProps) {
+  sourceLabel,
+  iconTone = IconContainerTone.SAVINGS,
+}: Omit<GoalCardProps, "href" | "className" | "data-testid">) {
   return (
-    <Card
-      tone="interactive"
-      className={cn("gap-(--space-4) p-(--space-4)", className)}
-      data-testid={testId}
-    >
-      <div className="flex items-start justify-between gap-(--space-3)">
-        <Text
-          size="sm"
-          className="min-w-0 truncate font-semibold text-text-primary"
-        >
-          {name}
-        </Text>
-        {statusLabel ? (
-          <StatusBadge tone={statusTone(statusLabel)}>
-            {statusLabel}
-          </StatusBadge>
-        ) : null}
-      </div>
-
-      {progressPercent == null ? (
-        <div className="rounded-(--radius-control) bg-surface-muted/70 px-(--space-3) py-(--space-2)">
-          <Text size="sm" tone="secondary">
-            {progressUnavailableLabel}
+    <>
+      <div className={GOAL_INTENTION_ROW_CLASS}>
+        <IconContainer tone={iconTone} size="sm">
+          <AppIcon icon={PLAN_ICONS.goal} size={AppIconSize.SM} />
+        </IconContainer>
+        <div className="min-w-0 flex-1">
+          <Text
+            size="sm"
+            weight="semibold"
+            className="truncate text-text-primary"
+          >
+            {name}
+          </Text>
+          <Text
+            size="xs"
+            tone="muted"
+            className="mt-(--space-1) truncate text-pretty"
+          >
+            {sourceLabel ?? statusLabel}
           </Text>
         </div>
-      ) : (
-        <div className="flex flex-col gap-(--space-2)">
+        <div className="flex shrink-0 items-center gap-(--space-2)">
+          <div className="min-w-[var(--financial-number-column-width)] text-right">
+            <Text
+              size="sm"
+              weight="semibold"
+              tabular
+              className="tracking-tight"
+              data-financial-kind={FinancialNumberKind.INTENTION}
+              data-financial-object="goal"
+            >
+              {financialLeaf(fundedLabel)}
+            </Text>
+            <Text
+              size="xs"
+              tone="muted"
+              tabular
+              className="mt-(--space-1)"
+              data-financial-kind={FinancialNumberKind.INTENTION}
+            >
+              {financialLeaf(targetLabel)}
+            </Text>
+          </div>
+          <AppIcon
+            icon={ACTION_ICONS.forward}
+            size={AppIconSize.SM}
+            className="shrink-0 text-text-tertiary"
+          />
+        </div>
+      </div>
+      <div className="px-(--space-4) pb-(--space-3)">
+        {progressPercent == null ? (
+          <Text size="xs" tone="secondary" className="text-pretty">
+            {progressUnavailableLabel}
+          </Text>
+        ) : (
           <Progress
             value={progressPercent}
             max={100}
-            label={`${progressPercent}%`}
+            label={progressLabel ?? `${progressPercent}%`}
             privacyAware
           />
-        </div>
-      )}
-
-      <div className="grid grid-cols-2 gap-(--space-3) border-t border-divider pt-(--space-3)">
-        <Text size="sm" className="tabular-nums font-medium text-text-primary">
-          {financialLeaf(fundedLabel)}
-        </Text>
-        <Text
-          size="sm"
-          className="text-right tabular-nums font-medium text-text-primary"
-        >
-          {financialLeaf(targetLabel)}
-        </Text>
+        )}
+        {statusLabel && sourceLabel ? (
+          <div className="mt-(--space-2) flex justify-start">
+            <StatusBadge tone={StatusBadgeTone.INFO}>{statusLabel}</StatusBadge>
+          </div>
+        ) : null}
       </div>
-    </Card>
+    </>
+  );
+}
+
+/** Goal progress row — funded/target are intention, never bank Balance. */
+export function GoalCard({
+  href,
+  className,
+  "data-testid": testId,
+  ...body
+}: GoalCardProps) {
+  const shared = {
+    className: cn("flex flex-col", className),
+    "data-testid": testId,
+    "data-financial-object": "goal",
+  } as const;
+
+  if (href) {
+    return (
+      <Link href={href} prefetch={PRODUCT_LINK_PREFETCH} {...shared}>
+        <GoalCardBody {...body} />
+      </Link>
+    );
+  }
+
+  return (
+    <div {...shared}>
+      <GoalCardBody {...body} />
+    </div>
   );
 }

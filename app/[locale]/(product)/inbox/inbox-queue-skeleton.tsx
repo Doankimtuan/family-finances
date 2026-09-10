@@ -37,8 +37,8 @@ export function InboxQueueTabsSkeleton() {
       className="flex gap-(--space-1) rounded-full bg-surface-muted p-(--space-1)"
       data-testid={INBOX_TEST_ID.LOADING_TABS}
     >
-      <Skeleton className="h-10 flex-1 rounded-full" />
-      <Skeleton className="h-10 flex-1 rounded-full" />
+      <Skeleton className="h-11 flex-1 rounded-full" />
+      <Skeleton className="h-11 flex-1 rounded-full" />
     </div>
   );
 }
@@ -101,12 +101,12 @@ export function InboxQueueListSkeleton() {
         data-testid={INBOX_TEST_ID.LOADING_FILTERS}
       >
         <div className="flex items-center gap-(--space-2)">
-          <Skeleton className="size-8 rounded-(--radius-control)" />
-          <Skeleton className="h-10 flex-1 rounded-(--radius-control)" />
+          <Skeleton className="size-11 rounded-(--radius-control)" />
+          <Skeleton className="h-11 flex-1 rounded-(--radius-control)" />
         </div>
-        <div className="flex gap-(--space-2) overflow-hidden border-t border-divider pt-(--space-3)">
+        <div className="flex flex-wrap gap-(--space-2) overflow-hidden border-t border-divider pt-(--space-3)">
           {Array.from({ length: FILTER_CHIP_COUNT }, (_, chip) => (
-            <Skeleton key={chip} className="h-9 w-20 shrink-0 rounded-full" />
+            <Skeleton key={chip} className="h-11 w-20 shrink-0 rounded-full" />
           ))}
         </div>
       </Card>

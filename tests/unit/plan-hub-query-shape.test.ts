@@ -60,5 +60,8 @@ describe("Plan hub query shape", () => {
     expect(planPage).toContain('testId="plan-home-upcoming"');
     expect(planPage).toContain('testId="plan-home-recommendations"');
     expect(planPage).toContain("EmergencyInboxBanner");
+    expect(planPage).toContain("planRecurringPath");
+    expect(planPage).not.toContain("getMonthlyReview");
+    expect(planPage).not.toContain("listRecurring(");
   });
 });

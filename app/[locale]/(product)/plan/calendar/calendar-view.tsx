@@ -14,17 +14,20 @@ import {
 } from "@/modules/tenancy/application/app-path";
 import {
   CalendarEventSource,
+  currentPeriodMonth,
   type CalendarEvent,
 } from "@/modules/plan/application/client";
 import { Text } from "@/shared/ui/text";
 import { Card } from "@/shared/patterns/card";
+import { EmptyState } from "@/shared/patterns/empty-state";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { AlertVariant } from "@/shared/ui/alert";
 import { SectionHeader } from "@/shared/patterns/section-header";
 import { FinancialValue } from "@/shared/patterns/financial-value";
 import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
-import { ACTION_ICONS } from "@/shared/ui/icon-registry";
-import { formatDate } from "@/shared/i18n/formatters";
+import { IconContainer } from "@/shared/ui/icon-container";
+import { ACTION_ICONS, PLAN_ICONS } from "@/shared/ui/icon-registry";
+import { formatCurrency, formatDate } from "@/shared/i18n/formatters";
 import {
   orderedWeekdayKeys,
   weekStartDayForLocale,
@@ -34,6 +37,10 @@ import {
   PLAN_SURFACE_LINK_CLASS,
 } from "../plan-chrome";
 import { CalendarMonthFrame } from "./calendar-month-frame";
+import {
+  calendarEventPresentation,
+  monthHasEvents,
+} from "./calendar-presentations";
 import {
   calendarMonthCells,
   daysInUtcMonth,
@@ -47,7 +54,6 @@ type ReadyProps = {
   eventsByDate: Record<string, CalendarEvent[]>;
   deficitDates: string[];
   payoffMilestoneDates: string[];
-  startingBalance: number;
   payoffInboxItemByPlanId: Record<string, string>;
 };
 
@@ -58,18 +64,6 @@ type UnavailableProps = {
 type Props = {
   anchorMonth: string;
 } & (ReadyProps | UnavailableProps);
-
-function formatAmount(amount: number, currency: string): string {
-  try {
-    return new Intl.NumberFormat(undefined, {
-      style: "currency",
-      currency,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  } catch {
-    return `${amount} ${currency}`;
-  }
-}
 
 function eventHref(event: CalendarEvent): string {
   switch (event.source) {
@@ -96,6 +90,26 @@ function defaultSelectedDay(
   const monthKey = `${String(year).padStart(4, "0")}-${String(month).padStart(2, "0")}`;
   if (!today.startsWith(monthKey)) return 1;
   return Math.min(Number(today.slice(8, 10)) || 1, dayCount);
+}
+
+function utcDateLabel(date: string, locale: string): string {
+  return formatDate(new Date(`${date}T00:00:00.000Z`), locale, {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  });
+}
+
+function dayAccessibleName(params: {
+  dayLabel: string;
+  deficitFlag?: string;
+  milestoneFlag?: string;
+}): string {
+  const parts = [params.dayLabel];
+  if (params.deficitFlag) parts.push(params.deficitFlag);
+  if (params.milestoneFlag) parts.push(params.milestoneFlag);
+  return parts.join(", ");
 }
 
 export function HouseholdCalendarView(props: Props) {
@@ -133,7 +147,11 @@ export function HouseholdCalendarView(props: Props) {
     locale,
     { month: "long", year: "numeric", timeZone: "UTC" },
   );
+  const selectedDateLabel = utcDateLabel(selectedDate, locale);
   const readyCurrency = props.isUnavailable === true ? null : props.currency;
+  const hasMonthEvents = monthHasEvents(eventsByDate);
+  const isCurrentPeriod =
+    props.anchorMonth.slice(0, 7) === currentPeriodMonth().slice(0, 7);
 
   let dayEventsBody: ReactNode;
   if (isUnavailable) {
@@ -142,51 +160,73 @@ export function HouseholdCalendarView(props: Props) {
         {t("unavailableBody")}
       </Text>
     );
+  } else if (!hasMonthEvents) {
+    dayEventsBody = (
+      <EmptyState
+        title={t("monthEmptyTitle")}
+        description={t("monthEmptyDescription")}
+        icon={<AppIcon icon={PLAN_ICONS.calendar} size={AppIconSize.DISPLAY} />}
+        className="flex-none py-(--space-4)"
+      />
+    );
   } else if (dayEvents.length === 0) {
     dayEventsBody = (
-      <Text size="sm" tone="secondary">
-        {t("dayEmpty")}
-      </Text>
+      <EmptyState
+        title={t("dayEmptyTitle")}
+        description={t("dayEmpty")}
+        icon={<AppIcon icon={PLAN_ICONS.calendar} size={AppIconSize.DISPLAY} />}
+        className="flex-none py-(--space-3)"
+      />
     );
   } else {
     dayEventsBody = (
       <Card tone="elevated" className="gap-0 overflow-hidden p-0">
         <div className="divide-y divide-border-subtle/65">
-          {dayEvents.map((event) => (
-            <Link
-              key={event.id}
-              href={eventHref(event)}
-              className="flex min-h-14 items-center gap-(--space-3) px-(--space-4) py-(--space-3) transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-(--press-scale) motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus-ring"
-              data-testid={`calendar-event-${event.source}`}
-            >
-              <div className="min-w-0 flex-1">
-                <Text
-                  size="sm"
-                  weight="medium"
-                  className="truncate text-text-primary"
-                >
-                  {event.title}
+          {dayEvents.map((event) => {
+            const presentation = calendarEventPresentation(event.source);
+            return (
+              <Link
+                key={event.id}
+                href={eventHref(event)}
+                className="flex min-h-14 items-center gap-(--space-3) px-(--space-4) py-(--space-3) transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-(--press-scale) motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus-ring"
+                data-testid={`calendar-event-${event.source}`}
+              >
+                <IconContainer tone={presentation.tone} size="sm">
+                  <AppIcon icon={presentation.icon} size={AppIconSize.SM} />
+                </IconContainer>
+                <div className="min-w-0 flex-1">
+                  <Text
+                    size="sm"
+                    weight="medium"
+                    className="truncate text-text-primary"
+                  >
+                    {event.title}
+                  </Text>
+                  <Text size="xs" tone="secondary" className="mt-(--space-1)">
+                    {t(`sources.${event.source}`)}
+                    {event.isPayoffMilestone ? ` · ${t("milestoneBadge")}` : ""}
+                  </Text>
+                </div>
+                <Text size="sm" weight="semibold" tabular className="shrink-0">
+                  <FinancialValue>
+                    <span data-financial-kind={presentation.kind}>
+                      {formatCurrency(
+                        event.amount,
+                        event.currency || readyCurrency || "",
+                        locale,
+                        { maximumFractionDigits: 0 },
+                      )}
+                    </span>
+                  </FinancialValue>
                 </Text>
-                <Text size="xs" tone="secondary" className="mt-(--space-1)">
-                  {t(`sources.${event.source}`)}
-                  {event.isPayoffMilestone ? ` · ${t("milestoneBadge")}` : ""}
-                </Text>
-              </div>
-              <Text size="sm" weight="semibold" tabular className="shrink-0">
-                <FinancialValue>
-                  {formatAmount(
-                    event.amount,
-                    event.currency || readyCurrency || "",
-                  )}
-                </FinancialValue>
-              </Text>
-              <AppIcon
-                icon={ACTION_ICONS.forward}
-                size={AppIconSize.SM}
-                className="shrink-0 text-text-tertiary"
-              />
-            </Link>
-          ))}
+                <AppIcon
+                  icon={ACTION_ICONS.forward}
+                  size={AppIconSize.SM}
+                  className="shrink-0 text-text-tertiary"
+                />
+              </Link>
+            );
+          })}
         </div>
       </Card>
     );
@@ -194,6 +234,9 @@ export function HouseholdCalendarView(props: Props) {
 
   return (
     <div className="flex flex-col gap-(--space-5)" data-testid="plan-calendar">
+      <Text size="sm" tone="secondary" className="text-pretty">
+        {t("periodContext")}
+      </Text>
       {isUnavailable ? (
         <StatusAlert
           variant={AlertVariant.INFO}
@@ -201,47 +244,28 @@ export function HouseholdCalendarView(props: Props) {
           description={t("unavailableBody")}
           data-testid="calendar-unavailable"
         />
-      ) : (
-        <>
-          <Card tone="elevated" className="gap-(--space-1) p-(--space-4)">
-            <Text size="xs" tone="muted">
-              {t("startingBalanceLabel")}
-            </Text>
-            <Text size="sm" weight="semibold" tabular>
-              <FinancialValue>
-                {formatAmount(props.startingBalance, props.currency)}
-              </FinancialValue>
-            </Text>
-          </Card>
-
-          <div data-testid="calendar-deficit-banner">
-            {deficitDates.length > 0 ? (
-              <StatusAlert
-                variant={AlertVariant.WARNING}
-                title={t("deficitTitle")}
-                description={t("deficitBody", {
-                  count: String(deficitDates.length),
-                  first: deficitDates[0] ?? "",
-                })}
-              />
-            ) : (
-              <StatusAlert
-                variant={AlertVariant.SUCCESS}
-                title={t("deficitClearTitle")}
-                description={t("deficitClearBody")}
-              />
-            )}
-          </div>
-        </>
-      )}
+      ) : deficitDates.length > 0 ? (
+        <div data-testid="calendar-deficit-banner">
+          <StatusAlert
+            variant={AlertVariant.WARNING}
+            title={t("deficitTitle")}
+            description={t("deficitBody", {
+              count: String(deficitDates.length),
+              first: utcDateLabel(deficitDates[0] ?? selectedDate, locale),
+            })}
+          />
+        </div>
+      ) : null}
 
       <CalendarMonthFrame
         monthHeading={t("monthHeading", { month: monthLabel })}
         weekdayLabels={weekdayKeys.map((key) => t(`weekdays.${key}`))}
         previousHref={planCalendarPath(shiftPeriodMonth(props.anchorMonth, -1))}
         nextHref={planCalendarPath(shiftPeriodMonth(props.anchorMonth, 1))}
+        currentHref={isCurrentPeriod ? undefined : planCalendarPath()}
         previousLabel={t("previousMonth")}
         nextLabel={t("nextMonth")}
+        currentLabel={t("thisMonth")}
         navLabel={t("monthNavLabel")}
         gridLabel={t("gridLabel")}
       >
@@ -254,15 +278,21 @@ export function HouseholdCalendarView(props: Props) {
           const isDeficit = deficitSet.has(date);
           const isMilestone = milestoneSet.has(date);
           const isSelected = day === selectedDay;
+          const isToday = date === new Date().toISOString().slice(0, 10);
           return (
             <button
               key={date}
               type="button"
               data-testid={`calendar-day-${day}`}
               aria-pressed={isSelected}
-              aria-label={t("dayLabel", {
-                date,
-                events: String(eventsByDate[date]?.length ?? 0),
+              aria-current={isToday ? "date" : undefined}
+              aria-label={dayAccessibleName({
+                dayLabel: t("dayLabel", {
+                  date: utcDateLabel(date, locale),
+                  events: String(eventsByDate[date]?.length ?? 0),
+                }),
+                deficitFlag: isDeficit ? t("dayDeficitFlag") : undefined,
+                milestoneFlag: isMilestone ? t("milestoneBadge") : undefined,
               })}
               className={[
                 "relative flex min-h-11 flex-col items-center justify-center rounded-(--radius-control) border text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring",
@@ -283,7 +313,7 @@ export function HouseholdCalendarView(props: Props) {
                 ) : null}
                 {isMilestone ? (
                   <span
-                    className="size-1.5 rounded-full bg-success"
+                    className="size-1.5 rotate-45 bg-success"
                     aria-hidden
                     data-testid={`calendar-milestone-dot-${day}`}
                   />
@@ -304,7 +334,7 @@ export function HouseholdCalendarView(props: Props) {
             title={t("payoffTitle")}
             description={t("payoffBody", {
               title: milestoneEvents[0]?.title ?? "",
-              date: selectedDate,
+              date: selectedDateLabel,
             })}
           />
           <Link
@@ -333,7 +363,7 @@ export function HouseholdCalendarView(props: Props) {
           <StatusAlert
             variant={AlertVariant.WARNING}
             title={t("dayDeficitTitle")}
-            description={t("dayDeficitBody", { date: selectedDate })}
+            description={t("dayDeficitBody", { date: selectedDateLabel })}
           />
         </div>
       ) : null}
@@ -342,7 +372,9 @@ export function HouseholdCalendarView(props: Props) {
         className="flex flex-col gap-(--space-3)"
         data-testid="calendar-day-events"
       >
-        <SectionHeader title={t("dayEventsHeading", { date: selectedDate })} />
+        <SectionHeader
+          title={t("dayEventsHeading", { date: selectedDateLabel })}
+        />
         {dayEventsBody}
       </section>
     </div>

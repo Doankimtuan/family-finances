@@ -15,6 +15,7 @@ import {
 } from "@/modules/plan/application/client";
 import { DEFAULT_CURRENCY } from "@/modules/ledger/application/ledger-constants";
 import { FinancialPrivacyProvider } from "@/providers/financial-privacy-provider";
+import { FinancialNumberKind } from "@/shared/patterns/financial-number-kind";
 
 function hrefToString(href: unknown): string {
   if (typeof href === "string") return href;
@@ -86,7 +87,6 @@ const readyProps = {
   },
   deficitDates: [] as string[],
   payoffMilestoneDates: [] as string[],
-  startingBalance: 1_000_000,
   payoffInboxItemByPlanId: {},
 };
 
@@ -144,5 +144,30 @@ describe("HouseholdCalendarView navigation", () => {
     expect(screen.getByTestId("calendar-event-recurring")).toHaveTextContent(
       "Rent",
     );
+    expect(
+      screen
+        .getByTestId("calendar-event-recurring")
+        .querySelector("[data-financial-kind]"),
+    ).toHaveAttribute("data-financial-kind", FinancialNumberKind.INTENTION);
+  });
+
+  it("links back to the current period without changing the month query name", () => {
+    renderCalendar(<HouseholdCalendarView {...readyProps} />);
+
+    expect(screen.getByTestId("calendar-month-current")).toHaveAttribute(
+      "href",
+      APP_PATH.PLAN_CALENDAR,
+    );
+    expect(screen.queryByText("Starting balance")).not.toBeInTheDocument();
+  });
+
+  it("uses EmptyState when the selected day has no events", () => {
+    renderCalendar(<HouseholdCalendarView {...readyProps} />);
+
+    fireEvent.click(screen.getByTestId("calendar-day-1"));
+    expect(screen.getByText(enPlan.calendar.dayEmptyTitle)).toBeVisible();
+    expect(
+      screen.queryByTestId("calendar-event-recurring"),
+    ).not.toBeInTheDocument();
   });
 });

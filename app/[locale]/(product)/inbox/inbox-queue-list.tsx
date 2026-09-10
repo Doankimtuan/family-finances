@@ -3,42 +3,32 @@
 import { useId, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { useTranslations } from "next-intl";
-import { Link } from "@/i18n/navigation";
-import { inboxItemPath } from "@/modules/tenancy/application/app-path";
 import {
   InboxKindFilter,
   INBOX_ITEM_KIND_VALUES,
   INBOX_TEST_ID,
+  inboxFilterTestId,
+  inboxGroupTestId,
 } from "@/modules/inbox/application/inbox-constants";
 import type { InboxReviewItem } from "@/modules/inbox/application/inbox-types";
-import { formatCurrency, formatDate } from "@/shared/i18n/formatters";
-import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
 import { motionTokens, springs, useMotionPolicy } from "@/shared/motion";
-import { ReviewCard, ReviewCardDensity } from "@/shared/patterns/review-card";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { Card } from "@/shared/patterns/card";
 import { FilterChip } from "@/shared/patterns/filter-chip";
 import { AppIcon } from "@/shared/ui/app-icon";
-import { IconContainer } from "@/shared/ui/icon-container";
 import { ACTION_ICONS } from "@/shared/ui/icon-registry";
 import { Input } from "@/shared/ui/input";
 import { Text } from "@/shared/ui/text";
-import { FinancialValue } from "@/shared/patterns/financial-value";
-import { Button } from "@/shared/ui/button";
+import { Button, ButtonVariant } from "@/shared/ui/button";
+import { Heading } from "@/shared/ui/heading";
 import type { InboxPageCursor } from "@/modules/inbox/application/inbox-types";
-import { StatusBadgeTone } from "@/shared/ui/status-badge";
 import { loadMoreInboxAction } from "./actions";
-import { INBOX_REVIEW_ROW_CLASS } from "./inbox-chrome";
 import {
-  inboxDisplayTitle,
-  inboxItemVisual,
-  inboxLifecycleLabelKey,
-  inboxOwnershipHintKey,
-  inboxQueueDominantTitle,
-  inboxQueueLifecycleLabel,
-  inboxQueueRowSubtitle,
+  groupInboxItemsByKind,
+  isInboxFilterActive,
   type InboxKindFilterId,
 } from "./inbox-presentations";
+import { InboxQueueRow } from "./inbox-queue-row";
 import { InboxSectionTitle } from "./inbox-section-title";
 
 type Props = {
@@ -60,7 +50,6 @@ export function InboxQueueList({
   nextCursor: initialNextCursor = null,
 }: Props) {
   const t = useTranslations("inbox");
-  const tCatalog = useTranslations("catalog");
   const searchId = useId();
   const policy = useMotionPolicy();
   const [kind, setKind] = useState<InboxKindFilterId>(InboxKindFilter.ALL);
@@ -88,6 +77,9 @@ export function InboxQueueList({
     });
   }, [items, kind, query]);
 
+  const groups = groupInboxItemsByKind(filtered);
+  const filterActive = isInboxFilterActive(kind, query);
+
   const filters: { id: InboxKindFilterId; label: string }[] = KIND_FILTERS.map(
     (id) => ({
       id,
@@ -95,19 +87,24 @@ export function InboxQueueList({
     }),
   );
 
+  const clearFilters = () => {
+    setKind(InboxKindFilter.ALL);
+    setQuery("");
+  };
+
   return (
     <div
       className="flex flex-col gap-(--space-5)"
-      data-testid="inbox-queue-list"
+      data-testid={INBOX_TEST_ID.QUEUE_LIST}
     >
       <Card
         tone="elevated"
         className="gap-(--space-3) p-(--space-3)"
-        data-testid="inbox-controls"
+        data-testid={INBOX_TEST_ID.CONTROLS}
       >
         <div className="flex items-center gap-(--space-2)">
           <span
-            className="flex size-8 shrink-0 items-center justify-center rounded-[var(--radius-control)] bg-surface-muted text-text-secondary"
+            className="flex size-11 shrink-0 items-center justify-center rounded-[var(--radius-control)] bg-surface-muted text-text-secondary"
             aria-hidden
           >
             <AppIcon icon={ACTION_ICONS.search} size="sm" />
@@ -122,15 +119,15 @@ export function InboxQueueList({
             placeholder={t("searchPlaceholder")}
             aria-label={t("searchLabel")}
             onChange={(e) => setQuery(e.target.value)}
-            data-testid="inbox-search"
-            className="min-h-10 border-transparent bg-surface-muted/70 shadow-none focus-visible:border-border-subtle"
+            data-testid={INBOX_TEST_ID.SEARCH}
+            className="min-h-11 border-transparent bg-surface-muted/70 shadow-none focus-visible:border-border-subtle"
           />
         </div>
         <div
-          className="flex gap-(--space-2) overflow-x-auto border-t border-border-subtle/60 pt-(--space-3) [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="flex flex-wrap gap-(--space-2) border-t border-border-subtle/60 pt-(--space-3)"
           role="group"
           aria-label={t("filterLabel")}
-          data-testid="inbox-kind-filter"
+          data-testid={INBOX_TEST_ID.KIND_FILTER}
         >
           {filters.map((filter) => {
             const pressed = kind === filter.id;
@@ -139,8 +136,8 @@ export function InboxQueueList({
                 key={filter.id}
                 selected={pressed}
                 onPress={() => setKind(filter.id)}
-                className="min-h-9 shrink-0 whitespace-nowrap px-(--space-3) text-xs"
-                data-testid={`inbox-filter-${filter.id}`}
+                className="max-w-full min-h-11 shrink-0 px-(--space-3) text-xs"
+                data-testid={inboxFilterTestId(filter.id)}
               >
                 {filter.label}
               </FilterChip>
@@ -150,7 +147,7 @@ export function InboxQueueList({
       </Card>
 
       <section
-        className="flex flex-col gap-(--space-2)"
+        className="flex flex-col gap-(--space-4)"
         aria-label={t(readOnly ? "historySectionTitle" : "pendingSectionTitle")}
       >
         <div className="flex items-end justify-between gap-(--space-3)">
@@ -176,139 +173,74 @@ export function InboxQueueList({
             title={t("filterEmptyTitle")}
             description={t("filterEmptyBody")}
             className="rounded-[var(--radius-card)] border border-dashed border-border-subtle bg-surface/60 px-(--space-4) py-(--space-5)"
+            action={
+              filterActive ? (
+                <Button
+                  variant={ButtonVariant.SECONDARY}
+                  className="min-h-11 w-full"
+                  data-testid={INBOX_TEST_ID.FILTER_CLEAR}
+                  onPress={clearFilters}
+                >
+                  {t("filterClear")}
+                </Button>
+              ) : null
+            }
           />
         ) : (
-          <Card tone="elevated" className="gap-0 overflow-hidden p-0">
-            <ul className="divide-y divide-divider">
-              <AnimatePresence initial={false} mode="popLayout">
-                {filtered.map((item) => {
-                  if (!item.kind) return null;
-                  const visual = inboxItemVisual(item.kind);
-                  const localizedCategory = item.categoryName
-                    ? localizeCatalogName(
-                        tCatalog,
-                        "tags",
-                        item.categoryName,
-                      ) || item.categoryName
-                    : null;
-                  const displayTitle = inboxDisplayTitle({
-                    note: item.note,
-                    localizedCategory,
-                    displayTitle: item.displayTitle,
-                    kindLabel: t(`kinds.${item.kind}`),
-                  });
-                  const dominant = inboxQueueDominantTitle({
-                    kind: item.kind,
-                    displayTitle,
-                  });
-                  const title = dominant.title;
-                  const detailParts = [
-                    dominant.context,
-                    item.accountName
-                      ? localizeCatalogName(
-                          tCatalog,
-                          "accounts",
-                          item.accountName,
-                        ) || item.accountName
-                      : null,
-                    localizedCategory && item.note?.trim()
-                      ? localizedCategory
-                      : null,
-                  ].filter((part): part is string => Boolean(part));
-                  const lifecycleKey = inboxLifecycleLabelKey(
-                    item.lifecycleContext,
-                  );
-                  const lifecycleLabel =
-                    item.lifecycleDate && lifecycleKey
-                      ? `${item.lifecycleOverdue ? t("lifecycleOverdue") : t(lifecycleKey)}: ${formatDate(new Date(item.lifecycleDate), locale)}`
-                      : null;
-                  const ownershipHintKey = readOnly
-                    ? null
-                    : inboxOwnershipHintKey(item.capability);
-                  const unread = item.readAt == null;
-                  const card = (
-                    <ReviewCard
-                      density={ReviewCardDensity.ROW}
-                      showChevron={!readOnly}
-                      unread={!readOnly && unread}
-                      title={title}
-                      kindLabel={
-                        readOnly
-                          ? t(`statuses.${item.status}`)
-                          : t(`kinds.${item.kind}`)
-                      }
-                      amountLabel={
-                        <FinancialValue dataTestId={INBOX_TEST_ID.AMOUNT}>
-                          {formatCurrency(item.amount, item.currency, locale, {
-                            maximumFractionDigits: 0,
-                          })}
-                        </FinancialValue>
-                      }
-                      leading={
-                        <IconContainer tone={visual.tone} size="sm">
-                          <AppIcon icon={visual.icon} size="sm" />
-                        </IconContainer>
-                      }
-                      statusTone={
-                        readOnly ? StatusBadgeTone.NEUTRAL : visual.statusTone
-                      }
-                      subtitle={inboxQueueRowSubtitle({
-                        lifecycleLabel: inboxQueueLifecycleLabel({
-                          context: item.lifecycleContext,
-                          label: lifecycleLabel,
-                        }),
-                        ownershipHint: ownershipHintKey
-                          ? t(ownershipHintKey)
-                          : null,
-                        detailParts,
-                      })}
-                      data-testid={`inbox-item-${item.id}`}
-                    />
-                  );
-
-                  return (
-                    <motion.li
-                      key={item.id}
-                      initial={false}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={
-                        policy.enabled
-                          ? { opacity: 0, y: -motionTokens.distance.xs }
-                          : { opacity: 0 }
-                      }
-                      transition={
-                        policy.enabled
-                          ? springs.gentle
-                          : { duration: motionTokens.duration.none }
-                      }
-                    >
-                      {readOnly ? (
-                        card
-                      ) : (
-                        <Link
-                          href={inboxItemPath(item.id)}
-                          aria-label={`${displayTitle} · ${unread ? t("unreadLabel") : t("readLabel")}`}
-                          className={INBOX_REVIEW_ROW_CLASS}
-                          data-testid={`inbox-item-link-${item.id}`}
-                        >
-                          {card}
-                        </Link>
-                      )}
-                    </motion.li>
-                  );
-                })}
-              </AnimatePresence>
-            </ul>
-          </Card>
+          groups.map((group) => (
+            <section
+              key={group.kind}
+              className="flex flex-col gap-(--space-2)"
+              aria-labelledby={inboxGroupTestId(group.kind)}
+              data-testid={inboxGroupTestId(group.kind)}
+            >
+              <Heading
+                level={3}
+                id={inboxGroupTestId(group.kind)}
+                className="text-xs font-medium tracking-wide text-text-secondary"
+              >
+                {t(`kinds.${group.kind}`)}
+              </Heading>
+              <Card tone="elevated" className="gap-0 overflow-hidden p-0">
+                <ul className="divide-y divide-divider">
+                  <AnimatePresence initial={false} mode="popLayout">
+                    {group.items.map((item) => (
+                      <motion.li
+                        key={item.id}
+                        initial={false}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={
+                          policy.enabled
+                            ? { opacity: 0, y: -motionTokens.distance.xs }
+                            : { opacity: 0 }
+                        }
+                        transition={
+                          policy.enabled
+                            ? springs.gentle
+                            : { duration: motionTokens.duration.none }
+                        }
+                      >
+                        <InboxQueueRow
+                          item={item}
+                          locale={locale}
+                          readOnly={readOnly}
+                        />
+                      </motion.li>
+                    ))}
+                  </AnimatePresence>
+                </ul>
+              </Card>
+            </section>
+          ))
         )}
       </section>
 
       {!readOnly && nextCursor ? (
         <Button
           variant="secondary"
-          className="w-full"
+          className="min-h-11 w-full"
           isDisabled={loadingMore}
-          data-testid="inbox-load-more"
+          data-testid={INBOX_TEST_ID.LOAD_MORE}
           onPress={async () => {
             setLoadingMore(true);
             const page = await loadMoreInboxAction(nextCursor);
@@ -324,7 +256,11 @@ export function InboxQueueList({
       ) : null}
 
       {readOnly ? null : (
-        <Text size="sm" tone="secondary" data-testid="inbox-partner-note">
+        <Text
+          size="sm"
+          tone="secondary"
+          data-testid={INBOX_TEST_ID.PARTNER_NOTE}
+        >
           {t("partnerEqualNote")}
         </Text>
       )}

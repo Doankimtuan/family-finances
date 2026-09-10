@@ -28,6 +28,7 @@ import {
   InboxLifecycleContext,
   InboxSourceType,
   INBOX_TEST_ID,
+  inboxGroupTestId,
 } from "@/modules/inbox/application/inbox-constants";
 import { InboxSourceCapability } from "@/modules/inbox/application/inbox-source-capabilities";
 import type { InboxReviewItem } from "@/modules/inbox/application/inbox-types";
@@ -536,6 +537,9 @@ describe("Inbox scan and loading hierarchy (B07)", () => {
     expect(screen.getByTestId("inbox-search")).toBeInTheDocument();
     expect(screen.getByTestId("inbox-filter-all")).toBeInTheDocument();
     expect(screen.getByText(enInbox.pendingSectionTitle)).toBeInTheDocument();
+    expect(
+      screen.getByTestId(inboxGroupTestId(InboxItemKind.UNMAPPED_EXPENSE)),
+    ).toBeInTheDocument();
     expect(screen.getByTestId("inbox-partner-note")).toHaveTextContent(
       enInbox.partnerEqualNote,
     );

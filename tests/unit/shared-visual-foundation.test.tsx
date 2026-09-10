@@ -41,7 +41,13 @@ describe("Shared Visual Foundation", () => {
       expect(screen.getByText("Section Content")).toBeInTheDocument();
       const btn = screen.getByRole("button", { name: "View all" });
       expect(btn).toBeInTheDocument();
+      const headingRow = heading.closest("[data-slot='section-heading']");
+      expect(headingRow).toHaveClass("items-start");
+      expect(headingRow).not.toContainElement(
+        screen.getByText("Cash flow summary"),
+      );
       expect(btn.parentElement?.className).toContain("[&_button]:min-h-11");
+      expect(btn.parentElement?.className).toContain("-my-3");
     });
 
     it("renders plain, surface, and emphasized semantics", () => {

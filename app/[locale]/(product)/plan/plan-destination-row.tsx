@@ -64,16 +64,22 @@ export function PlanDestinationRow({
 
 export function PlanDestinationCard({
   title,
+  description,
+  action,
   testId,
   children,
 }: {
   title: string;
+  description?: ReactNode;
+  action?: ReactNode;
   testId: string;
   children: ReactNode;
 }) {
   return (
     <Section
       title={<PlanSectionTitle>{title}</PlanSectionTitle>}
+      description={description}
+      action={action}
       testId={testId}
     >
       <Card tone="elevated" className="gap-0 p-0">

@@ -8,6 +8,7 @@ import {
   APP_PATH,
   planJarPath,
   planGoalPath,
+  planRecurringPath,
 } from "@/modules/tenancy/application/app-path";
 import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
@@ -27,6 +28,7 @@ import {
   QualifyingIncomeSource,
   PLAN_HUB_UPCOMING_DAYS,
   PLAN_HUB_UPCOMING_EVENT_LIMIT,
+  type JarBudgetMetrics,
 } from "@/modules/plan/application";
 import {
   collectPlanHomeExceptions,
@@ -41,15 +43,13 @@ import { GoalStatus } from "@/modules/plan/application/plan-constants";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
 import { formatCurrency, formatDate } from "@/shared/i18n/formatters";
 import { PRODUCT_LINK_PREFETCH } from "@/shared/constants/navigation";
+import { FinancialNumberKind } from "@/shared/patterns/financial-number-kind";
 import { FinancialValue } from "@/shared/patterns/financial-value";
 import { Card } from "@/shared/patterns/card";
-import { StatusBadge } from "@/shared/ui/status-badge";
-import { Progress } from "@/shared/ui/progress";
 import { MotionReveal } from "@/shared/motion/reveal";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Page } from "@/shared/patterns/page";
 import { Section } from "@/shared/patterns/section";
-import { JarCard } from "@/shared/patterns/jar-card";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Text } from "@/shared/ui/text";
@@ -71,11 +71,13 @@ import {
   PlanDestinationCard,
   PlanDestinationRow,
 } from "./plan-destination-row";
+import { PlanHubWorkObject, PlanHubWorkRow } from "./plan-hub-work-row";
 import {
-  allocationFactTone,
   allocationFactValue,
   isUpcomingDueEvent,
+  PLAN_HUB_VISIBLE_GOAL_LIMIT,
   PLAN_HUB_VISIBLE_JAR_LIMIT,
+  PLAN_HUB_RECOMMENDATION_LIMIT,
   RecommendationListVariant,
   resolvePlanHealthCopy,
 } from "./plan-hub-presentations";
@@ -115,7 +117,10 @@ type HomeEvent = {
   source?: string;
 };
 
-function pickHomeGoals(goals: readonly HomeGoal[], limit = 3): HomeGoal[] {
+function pickHomeGoals(
+  goals: readonly HomeGoal[],
+  limit = PLAN_HUB_VISIBLE_GOAL_LIMIT,
+): HomeGoal[] {
   return [...goals]
     .filter(
       (goal) =>
@@ -176,7 +181,9 @@ function exceptionTitle(
     : undefined;
   switch (exception.kind) {
     case PlanHomeExceptionKind.OVERSPENT_JAR:
-      return t("home.exceptionOverspent", { name: name ?? "Jar" });
+      return t("home.exceptionOverspent", {
+        name: name ?? t("recommendations.unknownJar"),
+      });
     case PlanHomeExceptionKind.UNCATEGORIZED:
       return t("home.exceptionUncategorized", {
         count: exception.count ?? 0,
@@ -192,7 +199,9 @@ function exceptionTitle(
         name: exception.goalName ?? t("home.goalFallbackName"),
       });
     case PlanHomeExceptionKind.NEAR_LIMIT_JAR:
-      return t("home.exceptionNearLimit", { name: name ?? "Jar" });
+      return t("home.exceptionNearLimit", {
+        name: name ?? t("recommendations.unknownJar"),
+      });
   }
 }
 
@@ -240,7 +249,46 @@ function exceptionAction(
   return t("home.exceptionOpenPlan");
 }
 
-/** Plan Home V2: current intention, exceptions, usage, progress, and commitments. */
+function jarRemainingLabel(
+  metrics: JarBudgetMetrics | undefined,
+  isNoIncome: boolean,
+  isOverspent: boolean,
+  t: LooseTranslator,
+  currency: string,
+  locale: string,
+): ReactNode {
+  if (!metrics) return t("jars.budget.notAvailable");
+  if (isNoIncome) return t("jars.budget.setIncome");
+  if (isOverspent) {
+    return t.rich("jars.budget.overBy", {
+      amount: formatCurrency(
+        Math.abs(metrics.remainingAmount),
+        currency,
+        locale,
+        {
+          maximumFractionDigits: 0,
+        },
+      ),
+      money: (chunks: ReactNode) => <FinancialValue>{chunks}</FinancialValue>,
+    });
+  }
+  return t.rich("jars.budget.remaining", {
+    amount: formatCurrency(metrics.remainingAmount, currency, locale, {
+      maximumFractionDigits: 0,
+    }),
+    money: (chunks: ReactNode) => <FinancialValue>{chunks}</FinancialValue>,
+  });
+}
+
+function intentionAmount(label: string) {
+  return (
+    <FinancialValue>
+      <span data-financial-kind={FinancialNumberKind.INTENTION}>{label}</span>
+    </FinancialValue>
+  );
+}
+
+/** Plan hub: current intention, attention, next decision, and planning entries. */
 export default async function PlanHubPage({ params }: Props) {
   const { locale: rawLocale } = await params;
   const locale = hasLocale(routing.locales, rawLocale)
@@ -337,8 +385,10 @@ export default async function PlanHubPage({ params }: Props) {
     qualifyingIncome: currentJarBudgets?.periodIncome ?? 0,
     uncategorizedCount,
     goals: rawGoals,
-    limit: 3,
+    limit: PLAN_HUB_RECOMMENDATION_LIMIT,
   });
+  const primaryRecommendation = recommendations[0];
+  const supportingRecommendations = recommendations.slice(1);
   const jarNames = Object.fromEntries(
     activeJars.map((jar) => [
       jar.id,
@@ -363,7 +413,7 @@ export default async function PlanHubPage({ params }: Props) {
       );
     }
     if (action.entityType === "recurring" && action.entityId)
-      return `${APP_PATH.PLAN_RECURRING}/${action.entityId}`;
+      return planRecurringPath(action.entityId);
     return APP_PATH.PLAN;
   };
   const upcoming = upcomingWithinDays(
@@ -386,6 +436,10 @@ export default async function PlanHubPage({ params }: Props) {
     overspentCount,
   );
   const periodIncome = currentJarBudgets?.periodIncome ?? 0;
+  const contextMeta = [
+    t("home.factJarsValue", { count: activeJars.length }),
+    allocationFactValue(allocationHealth, t as unknown as LooseTranslator),
+  ].join(" · ");
 
   return (
     <Page
@@ -413,38 +467,24 @@ export default async function PlanHubPage({ params }: Props) {
           health={health}
           healthTitle={healthTitle}
           healthBody={healthBody}
-          facts={[
-            {
-              label: t("home.factJars"),
-              value: t("home.factJarsValue", { count: activeJars.length }),
-            },
-            {
-              label: t("home.factAllocation"),
-              value: allocationFactValue(
-                allocationHealth,
-                t as unknown as LooseTranslator,
-              ),
-              tone: allocationFactTone(allocationHealth.status),
-            },
-            {
-              label: t("home.factIncome"),
-              value:
-                periodIncome > 0 ? (
-                  <FinancialValue>
-                    {formatCurrency(periodIncome, currency, locale, {
-                      maximumFractionDigits: 0,
-                    })}
-                  </FinancialValue>
-                ) : (
-                  t("home.factIncomeEmpty")
-                ),
-            },
-          ]}
+          contextMeta={contextMeta}
+          incomeLabel={t("home.factIncome")}
+          incomeValue={
+            periodIncome > 0
+              ? intentionAmount(
+                  formatCurrency(periodIncome, currency, locale, {
+                    maximumFractionDigits: 0,
+                  }),
+                )
+              : t("home.factIncomeEmpty")
+          }
         />
       </MotionReveal>
 
       <PlanHubExceptions
         title={t("home.exceptionsTitle")}
+        emptyTitle={t("home.exceptionsEmptyTitle")}
+        emptyBody={t("home.exceptionsEmptyBody")}
         exceptions={exceptions}
         hiddenCount={allExceptions.length - exceptions.length}
         viewAllHref={APP_PATH.PLAN_JARS}
@@ -469,286 +509,34 @@ export default async function PlanHubPage({ params }: Props) {
         }
       />
 
-      <Section
-        title={<PlanSectionTitle>{t("jars.title")}</PlanSectionTitle>}
-        description={t("jars.subtitle")}
-        action={
-          <Link
-            href={APP_PATH.PLAN_JARS}
-            prefetch={PRODUCT_LINK_PREFETCH}
-            className={PLAN_INLINE_LINK_CLASS}
-            data-testid="plan-see-jars"
-          >
-            {t("home.viewAll")}
-          </Link>
-        }
-        testId="plan-home-jars"
-      >
-        {!currentJarBudgets && activeJars.length > 0 ? (
-          <StatusAlert
-            variant="warning"
-            title={t("home.jarsUnavailableTitle")}
-            description={t("home.jarsUnavailableBody")}
-          />
-        ) : null}
-        {activeJars.length === 0 ? (
-          <EmptyState
-            title={t("jars.emptyTitle")}
-            description={t("jars.emptyDescription")}
-            action={
-              <Link
-                href={APP_PATH.PLAN_JARS}
-                prefetch={PRODUCT_LINK_PREFETCH}
-                className={PLAN_ACCENT_LINK_CLASS}
-              >
-                {t("home.createJar")}
-              </Link>
-            }
-            className="flex-none py-(--space-4)"
-          />
-        ) : (
-          <ul className="flex flex-col gap-(--space-2)">
-            {activeJars.slice(0, PLAN_HUB_VISIBLE_JAR_LIMIT).map((jar) => {
-              const metrics = budgetsByJar[jar.id];
-              const isNoIncome =
-                metrics?.state === JarBudgetState.NO_BUDGET &&
-                metrics.incomeSource === QualifyingIncomeSource.NONE;
-              const remainingLabel = metrics ? (
-                metrics.state === JarBudgetState.OVERSPENT ? (
-                  t.rich("jars.budget.overBy", {
-                    amount: formatCurrency(
-                      Math.abs(metrics.remainingAmount),
-                      currency,
-                      locale,
-                      { maximumFractionDigits: 0 },
-                    ),
-                    money: (chunks: ReactNode) => (
-                      <FinancialValue>{chunks}</FinancialValue>
-                    ),
-                  })
-                ) : isNoIncome ? (
-                  <span>{t("jars.budget.setIncome")}</span>
-                ) : (
-                  t.rich("jars.budget.remaining", {
-                    amount: formatCurrency(
-                      metrics.remainingAmount,
-                      currency,
-                      locale,
-                      { maximumFractionDigits: 0 },
-                    ),
-                    money: (chunks: ReactNode) => (
-                      <FinancialValue>{chunks}</FinancialValue>
-                    ),
-                  })
-                )
-              ) : undefined;
-              return (
-                <li key={jar.id}>
-                  <Link
-                    href={planJarPath(jar.id)}
-                    prefetch={PRODUCT_LINK_PREFETCH}
-                    className="block h-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-                  >
-                    <JarCard
-                      name={localizeCatalogName(tCatalog, "jars", jar.name)}
-                      kindLabel={t(`jars.kinds.${jar.kind}`)}
-                      stateLabel={t("jars.stateActive")}
-                      state={jar.state}
-                      budgetHeading={t("jars.budget.heading")}
-                      spentHeading={t("jars.spentLabel")}
-                      budgetLabel={
-                        metrics ? (
-                          formatCurrency(
-                            metrics.budgetAmount,
-                            currency,
-                            locale,
-                            {
-                              maximumFractionDigits: 0,
-                            },
-                          )
-                        ) : (
-                          <span>{t("jars.budget.notAvailable")}</span>
-                        )
-                      }
-                      spentLabel={
-                        metrics ? (
-                          formatCurrency(
-                            metrics.spentAmount,
-                            currency,
-                            locale,
-                            {
-                              maximumFractionDigits: 0,
-                            },
-                          )
-                        ) : (
-                          <span>{t("jars.budget.notAvailable")}</span>
-                        )
-                      }
-                      remainingLabel={remainingLabel}
-                      usageLabel={
-                        metrics ? (
-                          t("jars.budget.used", {
-                            percent: metrics.usagePercent,
-                          })
-                        ) : (
-                          <span>{t("jars.budget.notAvailable")}</span>
-                        )
-                      }
-                      usagePercent={metrics?.usagePercent}
-                      budgetState={metrics?.state}
-                      data-testid={`plan-jar-${jar.id}`}
-                      className="gap-(--space-3) p-(--space-3)"
-                    />
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-        {activeJars.length > PLAN_HUB_VISIBLE_JAR_LIMIT ? (
-          <Link
-            href={APP_PATH.PLAN_JARS}
-            prefetch={PRODUCT_LINK_PREFETCH}
-            className={PLAN_INLINE_LINK_CLASS}
-          >
-            {t("home.viewAllJars", { count: activeJars.length })}
-          </Link>
-        ) : null}
-      </Section>
-
-      <Section
-        title={<PlanSectionTitle>{t("home.goalsTitle")}</PlanSectionTitle>}
-        action={
-          <Link
-            href={APP_PATH.PLAN_GOALS}
-            prefetch={PRODUCT_LINK_PREFETCH}
-            className={PLAN_INLINE_LINK_CLASS}
-            data-testid="plan-see-goals"
-          >
-            {t("home.viewAll")}
-          </Link>
-        }
-        testId="plan-home-goals"
-      >
-        {homeGoals.length === 0 ? (
-          <EmptyState
-            title={t("home.goalsEmptyTitle")}
-            description={t("home.goalsEmptyBody")}
-            icon={<AppIcon icon={PLAN_ICONS.goal} size={AppIconSize.DISPLAY} />}
-            action={
-              <Link
-                href={APP_PATH.PLAN_GOALS}
-                prefetch={PRODUCT_LINK_PREFETCH}
-                className={PLAN_SURFACE_LINK_CLASS}
-              >
-                {t("home.createGoal")}
-              </Link>
-            }
-            className="flex-none py-(--space-4)"
-          />
-        ) : (
-          <ul className="flex flex-col gap-(--space-2)">
-            {homeGoals.map((goal) => {
-              const targetDate = formatGoalDate(goal.targetDate, locale);
-              return (
-                <li key={goal.id}>
-                  <Link
-                    href={planGoalPath(goal.id)}
-                    prefetch={PRODUCT_LINK_PREFETCH}
-                    className="block h-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-                    data-testid={`plan-home-goal-${goal.id}`}
-                  >
-                    <Card
-                      tone="interactive"
-                      className="gap-(--space-3) p-(--space-3)"
-                    >
-                      <div className="flex flex-col items-start gap-(--space-2)">
-                        <Text
-                          size="sm"
-                          className="w-full break-words font-semibold leading-snug text-text-primary"
-                        >
-                          {goal.name}
-                        </Text>
-                        <StatusBadge
-                          tone={goal.isLegacyIntention ? "warning" : "info"}
-                        >
-                          {goal.isLegacyIntention
-                            ? t("home.goalLegacy")
-                            : t("home.goalLinked")}
-                        </StatusBadge>
-                      </div>
-                      {goal.progressPercent == null ? (
-                        <Text size="sm" tone="secondary">
-                          {t("home.goalProgressIndeterminate")}
-                        </Text>
-                      ) : (
-                        <Progress
-                          value={goal.progressPercent}
-                          max={100}
-                          label={`${goal.progressPercent}%`}
-                          privacyAware
-                        />
-                      )}
-                      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-(--space-3) border-t border-divider pt-(--space-3)">
-                        <Text
-                          size="sm"
-                          tone="secondary"
-                          className="min-w-0 break-words tabular-nums leading-snug"
-                        >
-                          {goal.progressPercent == null
-                            ? t("home.goalProgressIndeterminate")
-                            : t.rich("home.goalProgress", {
-                                funded: formatCurrency(
-                                  goal.fundedAmount,
-                                  currency,
-                                  locale,
-                                  { maximumFractionDigits: 0 },
-                                ),
-                                target: formatCurrency(
-                                  goal.targetAmount,
-                                  currency,
-                                  locale,
-                                  { maximumFractionDigits: 0 },
-                                ),
-                                moneyFunded: (chunks: ReactNode) => (
-                                  <FinancialValue>{chunks}</FinancialValue>
-                                ),
-                                moneyTarget: (chunks: ReactNode) => (
-                                  <FinancialValue>{chunks}</FinancialValue>
-                                ),
-                                percent: goal.progressPercent,
-                              })}
-                        </Text>
-                        {targetDate ? (
-                          <Text
-                            size="xs"
-                            tone="secondary"
-                            className="shrink-0 text-right whitespace-nowrap"
-                          >
-                            {targetDate}
-                          </Text>
-                        ) : null}
-                      </div>
-                    </Card>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </Section>
-
-      <RecommendationList
-        recommendations={recommendations}
-        t={t as unknown as LooseTranslator}
-        resolveHref={recommendationHref}
-        jarNames={jarNames}
-        goalNames={goalNames}
-        currency={currency}
-        locale={locale}
-        variant={RecommendationListVariant.SUPPORTING}
-        testId="plan-home-recommendations"
-      />
+      {primaryRecommendation ? (
+        <RecommendationList
+          recommendations={[primaryRecommendation]}
+          t={t as unknown as LooseTranslator}
+          resolveHref={recommendationHref}
+          jarNames={jarNames}
+          goalNames={goalNames}
+          currency={currency}
+          locale={locale}
+          title={t("home.nextDecisionTitle")}
+          variant={RecommendationListVariant.HIGHLIGHTED}
+          testId="plan-home-recommendations"
+        />
+      ) : null}
+      {supportingRecommendations.length > 0 ? (
+        <RecommendationList
+          recommendations={supportingRecommendations}
+          t={t as unknown as LooseTranslator}
+          resolveHref={recommendationHref}
+          jarNames={jarNames}
+          goalNames={goalNames}
+          currency={currency}
+          locale={locale}
+          title={t("home.moreDecisionsTitle")}
+          variant={RecommendationListVariant.SUPPORTING}
+          testId="plan-home-recommendations-supporting"
+        />
+      ) : null}
 
       <Section
         title={<PlanSectionTitle>{t("home.upcomingTitle")}</PlanSectionTitle>}
@@ -774,7 +562,7 @@ export default async function PlanHubPage({ params }: Props) {
               {upcoming.map((event) => (
                 <li
                   key={event.id ?? `${event.date}-${event.title}`}
-                  className="flex items-start gap-(--space-3) px-(--space-4) py-(--space-3)"
+                  className="flex min-h-14 items-start gap-(--space-3) px-(--space-4) py-(--space-3)"
                 >
                   <div className="min-w-0 flex-1">
                     <Text size="xs" tone="muted">
@@ -793,12 +581,17 @@ export default async function PlanHubPage({ params }: Props) {
                     </Text>
                   </div>
                   <div className="shrink-0 text-right">
-                    <Text size="sm" weight="semibold" tabular>
-                      <FinancialValue>
-                        {formatCurrency(event.amount, currency, locale, {
+                    <Text
+                      size="sm"
+                      weight="semibold"
+                      tabular
+                      data-financial-kind={FinancialNumberKind.INTENTION}
+                    >
+                      {intentionAmount(
+                        formatCurrency(event.amount, currency, locale, {
                           maximumFractionDigits: 0,
-                        })}
-                      </FinancialValue>
+                        }),
+                      )}
                     </Text>
                     <Text size="xs" tone="secondary">
                       {isUpcomingDueEvent(event.source)
@@ -813,17 +606,227 @@ export default async function PlanHubPage({ params }: Props) {
         )}
       </Section>
 
+      {activeJars.length === 0 ? (
+        <Section
+          title={<PlanSectionTitle>{t("jars.title")}</PlanSectionTitle>}
+          description={t("jars.subtitle")}
+          action={
+            <Link
+              href={APP_PATH.PLAN_JARS}
+              prefetch={PRODUCT_LINK_PREFETCH}
+              className={PLAN_INLINE_LINK_CLASS}
+              data-testid="plan-see-jars"
+            >
+              {t("home.viewAll")}
+            </Link>
+          }
+          testId="plan-home-jars"
+        >
+          <EmptyState
+            title={t("jars.emptyTitle")}
+            description={t("jars.emptyDescription")}
+            action={
+              <Link
+                href={APP_PATH.PLAN_JARS}
+                prefetch={PRODUCT_LINK_PREFETCH}
+                className={PLAN_ACCENT_LINK_CLASS}
+              >
+                {t("home.createJar")}
+              </Link>
+            }
+            className="flex-none py-(--space-4)"
+          />
+        </Section>
+      ) : (
+        <PlanDestinationCard
+          title={t("jars.title")}
+          description={t("jars.subtitle")}
+          action={
+            <Link
+              href={APP_PATH.PLAN_JARS}
+              prefetch={PRODUCT_LINK_PREFETCH}
+              className={PLAN_INLINE_LINK_CLASS}
+              data-testid="plan-see-jars"
+            >
+              {t("home.viewAll")}
+            </Link>
+          }
+          testId="plan-home-jars"
+        >
+          {!currentJarBudgets ? (
+            <div className="px-(--space-4) py-(--space-3)">
+              <StatusAlert
+                variant="warning"
+                title={t("home.jarsUnavailableTitle")}
+                description={t("home.jarsUnavailableBody")}
+              />
+            </div>
+          ) : null}
+          {activeJars.slice(0, PLAN_HUB_VISIBLE_JAR_LIMIT).map((jar) => {
+            const metrics = budgetsByJar[jar.id];
+            const isNoIncome =
+              metrics?.state === JarBudgetState.NO_BUDGET &&
+              metrics.incomeSource === QualifyingIncomeSource.NONE;
+            const isOverspent = metrics?.state === JarBudgetState.OVERSPENT;
+            const remainingLabel = jarRemainingLabel(
+              metrics,
+              isNoIncome,
+              Boolean(isOverspent),
+              t as unknown as LooseTranslator,
+              currency,
+              locale,
+            );
+            return (
+              <PlanHubWorkRow
+                key={jar.id}
+                href={planJarPath(jar.id)}
+                testId={`plan-jar-${jar.id}`}
+                icon={PLAN_ICONS.jar}
+                iconTone={IconContainerTone.SAVINGS}
+                label={localizeCatalogName(tCatalog, "jars", jar.name)}
+                meta={t(`jars.kinds.${jar.kind}`)}
+                value={remainingLabel}
+                valueTone={isOverspent ? "danger" : "primary"}
+                marksIntention={Boolean(metrics) && !isNoIncome}
+                financialObject={PlanHubWorkObject.JAR}
+              />
+            );
+          })}
+          {activeJars.length > PLAN_HUB_VISIBLE_JAR_LIMIT ? (
+            <Link
+              href={APP_PATH.PLAN_JARS}
+              prefetch={PRODUCT_LINK_PREFETCH}
+              className={`${PLAN_INLINE_LINK_CLASS} mx-(--space-2) my-(--space-1)`}
+            >
+              {t("home.viewAllJars", { count: activeJars.length })}
+            </Link>
+          ) : null}
+        </PlanDestinationCard>
+      )}
+
+      {homeGoals.length === 0 ? (
+        <Section
+          title={<PlanSectionTitle>{t("home.goalsTitle")}</PlanSectionTitle>}
+          action={
+            <span data-testid="plan-entry-goals" className="inline-flex">
+              <Link
+                href={APP_PATH.PLAN_GOALS}
+                prefetch={PRODUCT_LINK_PREFETCH}
+                className={PLAN_INLINE_LINK_CLASS}
+                data-testid="plan-see-goals"
+              >
+                {t("home.viewAll")}
+              </Link>
+            </span>
+          }
+          testId="plan-home-goals"
+        >
+          <EmptyState
+            title={t("home.goalsEmptyTitle")}
+            description={t("home.goalsEmptyBody")}
+            icon={<AppIcon icon={PLAN_ICONS.goal} size={AppIconSize.DISPLAY} />}
+            action={
+              <Link
+                href={APP_PATH.PLAN_GOALS}
+                prefetch={PRODUCT_LINK_PREFETCH}
+                className={PLAN_SURFACE_LINK_CLASS}
+              >
+                {t("home.createGoal")}
+              </Link>
+            }
+            className="flex-none py-(--space-4)"
+          />
+        </Section>
+      ) : (
+        <PlanDestinationCard
+          title={t("home.goalsTitle")}
+          action={
+            <span data-testid="plan-entry-goals" className="inline-flex">
+              <Link
+                href={APP_PATH.PLAN_GOALS}
+                prefetch={PRODUCT_LINK_PREFETCH}
+                className={PLAN_INLINE_LINK_CLASS}
+                data-testid="plan-see-goals"
+              >
+                {t("home.viewAll")}
+              </Link>
+            </span>
+          }
+          testId="plan-home-goals"
+        >
+          {homeGoals.map((goal) => {
+            const targetDate = formatGoalDate(goal.targetDate, locale);
+            return (
+              <PlanHubWorkRow
+                key={goal.id}
+                href={planGoalPath(goal.id)}
+                testId={`plan-home-goal-${goal.id}`}
+                icon={PLAN_ICONS.goal}
+                iconTone={IconContainerTone.INVESTMENT}
+                label={goal.name}
+                meta={[
+                  goal.isLegacyIntention
+                    ? t("home.goalLegacy")
+                    : t("home.goalLinked"),
+                  targetDate,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
+                value={
+                  goal.progressPercent == null
+                    ? t("home.goalProgressIndeterminate")
+                    : t.rich("home.goalProgress", {
+                        funded: formatCurrency(
+                          goal.fundedAmount,
+                          currency,
+                          locale,
+                          { maximumFractionDigits: 0 },
+                        ),
+                        target: formatCurrency(
+                          goal.targetAmount,
+                          currency,
+                          locale,
+                          { maximumFractionDigits: 0 },
+                        ),
+                        moneyFunded: (chunks: ReactNode) => (
+                          <FinancialValue>{chunks}</FinancialValue>
+                        ),
+                        moneyTarget: (chunks: ReactNode) => (
+                          <FinancialValue>{chunks}</FinancialValue>
+                        ),
+                        percent: goal.progressPercent,
+                      })
+                }
+                valueTone={
+                  goal.progressPercent == null ? "secondary" : "primary"
+                }
+                marksIntention={goal.progressPercent != null}
+                financialObject={PlanHubWorkObject.GOAL}
+              />
+            );
+          })}
+        </PlanDestinationCard>
+      )}
+
       <PlanDestinationCard
         title={t("home.workspaceTitle")}
         testId="plan-ritual-cta"
       >
         <PlanDestinationRow
           href={APP_PATH.PLAN_RECURRING}
-          testId="plan-workspace-recurring"
+          testId="plan-entry-recurring"
           icon={PLAN_ICONS.recurring}
           iconTone={IconContainerTone.TRANSFER}
           label={t("home.recurringLink")}
           meta={t("home.workspaceRecurringMeta")}
+        />
+        <PlanDestinationRow
+          href={APP_PATH.PLAN_CALENDAR}
+          testId="plan-workspace-calendar"
+          icon={PLAN_ICONS.calendar}
+          iconTone={IconContainerTone.INFO}
+          label={t("calendar.title")}
+          meta={t("home.workspaceCalendarMeta")}
         />
         <PlanDestinationRow
           href={APP_PATH.PLAN_RITUAL}
@@ -842,32 +845,14 @@ export default async function PlanHubPage({ params }: Props) {
         <Text size="sm" tone="secondary" className="text-pretty">
           {t("teaching.body")}
         </Text>
-        <div className="flex flex-wrap items-center gap-x-(--space-2) gap-y-(--space-1)">
-          <Link
-            href={APP_PATH.MONEY}
-            prefetch={PRODUCT_LINK_PREFETCH}
-            className={PLAN_INLINE_LINK_CLASS}
-            data-testid="plan-money-link"
-          >
-            {t("moneyLink")}
-          </Link>
-          <Link
-            href={APP_PATH.PLAN_GOALS}
-            prefetch={PRODUCT_LINK_PREFETCH}
-            className={PLAN_INLINE_LINK_CLASS}
-            data-testid="plan-entry-goals"
-          >
-            {t("home.goalsSeeAll")}
-          </Link>
-          <Link
-            href={APP_PATH.PLAN_RECURRING}
-            prefetch={PRODUCT_LINK_PREFETCH}
-            className={PLAN_INLINE_LINK_CLASS}
-            data-testid="plan-entry-recurring"
-          >
-            {t("home.recurringLink")}
-          </Link>
-        </div>
+        <Link
+          href={APP_PATH.MONEY}
+          prefetch={PRODUCT_LINK_PREFETCH}
+          className={PLAN_INLINE_LINK_CLASS}
+          data-testid="plan-money-link"
+        >
+          {t("moneyLink")}
+        </Link>
       </div>
     </Page>
   );

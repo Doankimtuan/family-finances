@@ -129,11 +129,20 @@ export const INBOX_ACK_TEST_ID_PREFIX = "inbox-ack-";
 
 export const INBOX_TEST_ID = {
   QUEUE: "inbox-queue",
+  QUEUE_LIST: "inbox-queue-list",
   QUEUE_TABS: "inbox-queue-tabs",
   TAB_OPEN: "inbox-tab-open",
   TAB_ARCHIVED: "inbox-tab-archived",
   TAB_LOADING: "inbox-tab-loading",
   TAB_CONTENT: "inbox-tab-content",
+  CONTROLS: "inbox-controls",
+  SEARCH: "inbox-search",
+  KIND_FILTER: "inbox-kind-filter",
+  FILTER: "inbox-filter",
+  FILTER_CLEAR: "inbox-filter-clear",
+  GROUP: "inbox-group",
+  LOAD_MORE: "inbox-load-more",
+  PARTNER_NOTE: "inbox-partner-note",
   LOADING: "inbox-loading",
   LOADING_SUMMARY: "inbox-loading-summary",
   LOADING_TABS: "inbox-loading-tabs",
@@ -167,6 +176,16 @@ export const INBOX_TEST_ID = {
 
 export function inboxAckTestId(action: InboxAckAction): string {
   return `${INBOX_ACK_TEST_ID_PREFIX}${action}`;
+}
+
+export function inboxGroupTestId(kind: InboxItemKind): string {
+  return `${INBOX_TEST_ID.GROUP}-${kind}`;
+}
+
+export function inboxFilterTestId(
+  filterId: typeof InboxKindFilter.ALL | InboxItemKind,
+): string {
+  return `${INBOX_TEST_ID.FILTER}-${filterId}`;
 }
 
 export const InboxSourceType = {

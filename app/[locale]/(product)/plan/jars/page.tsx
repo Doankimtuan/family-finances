@@ -1,7 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import type { ReactNode } from "react";
 import { setLocale } from "@/i18n/set-locale";
-import { redirect, Link } from "@/i18n/navigation";
+import { redirect } from "@/i18n/navigation";
 import { hasLocale } from "next-intl";
 import { routing } from "@/i18n/routing";
 import { APP_PATH, planJarPath } from "@/modules/tenancy/application/app-path";
@@ -12,20 +12,24 @@ import {
   getCurrentJarBudgets,
   calculateAllocationHealth,
   type AllocationHealth,
+  type JarBudgetMetrics,
   type PlanJar,
   DEFAULT_CURRENCY,
-  JarState,
   JarPlanKind,
   listJarCategories,
   AllocationHealthStatus,
   IncomeAllocateMode,
 } from "@/modules/plan/application";
 import { formatCurrency } from "@/shared/i18n/formatters";
-import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
+import {
+  CatalogGroup,
+  localizeCatalogName,
+} from "@/shared/i18n/localize-catalog-name";
 import { basisPointsToPercentage } from "@/shared/utils/percentage";
 import { TopAppBar, TopAppBarVariant } from "@/shared/patterns/top-app-bar";
 import { Page } from "@/shared/patterns/page";
 import { Section } from "@/shared/patterns/section";
+import { Card } from "@/shared/patterns/card";
 import { JarCard } from "@/shared/patterns/jar-card";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { StatusAlert } from "@/shared/ui/status-alert";
@@ -39,11 +43,18 @@ import { PlanSectionTitle } from "../plan-section-title";
 import { CreateJarForm } from "./create-jar-form";
 import { CreateCategoryForm } from "./create-category-form";
 import { PlanDisclosure } from "../plan-disclosure";
+import { PlanPrivacyToggle } from "../plan-privacy-toggle";
+import {
+  JAR_KIND_ICON_TONE,
+  jarBudgetProgressPercent,
+  jarIntentionRemainingLabel,
+  jarStateLabelKey,
+} from "./jar-presentations";
 import type { CaptureJarOption } from "@/modules/ledger/application/client";
 
 type Props = { params: Promise<{ locale: string }> };
 
-/** Plain-key + rich-tag subset of the next-intl translator used by planSummary. */
+/** Plain-key + rich-tag subset of the next-intl translator used by plan summaries. */
 type JarPlanTranslator = {
   (key: string, values?: Record<string, string | number>): string;
   rich: (
@@ -51,12 +62,6 @@ type JarPlanTranslator = {
     values?: Record<string, string | ((chunks: ReactNode) => ReactNode)>,
   ) => ReactNode;
 };
-
-function stateLabelKey(state: PlanJar["state"]) {
-  if (state === JarState.PAUSED) return "statePaused" as const;
-  if (state === JarState.ARCHIVED) return "stateArchived" as const;
-  return "stateActive" as const;
-}
 
 function allocationHealthCopy(
   health: AllocationHealth,
@@ -87,7 +92,7 @@ function planSummary(
   if (!jar.plan) return t("planNone");
   if (jar.plan.kind === JarPlanKind.FIXED) {
     return t.rich("planFixed", {
-      amount: formatCurrency(jar.plan!.fixedAmount, currency, locale, {
+      amount: formatCurrency(jar.plan.fixedAmount, currency, locale, {
         maximumFractionDigits: 0,
       }),
       money: (chunks: ReactNode) => <FinancialValue>{chunks}</FinancialValue>,
@@ -96,6 +101,63 @@ function planSummary(
   return t("planPercent", {
     percent: Math.round(basisPointsToPercentage(jar.plan.percentBps)),
   });
+}
+
+function JarCollection({
+  jars,
+  t,
+  tCatalog,
+  currency,
+  locale,
+  budgetsByJar,
+}: {
+  jars: PlanJar[];
+  t: JarPlanTranslator;
+  tCatalog: Parameters<typeof localizeCatalogName>[0];
+  currency: string;
+  locale: string;
+  budgetsByJar: Record<string, JarBudgetMetrics>;
+}) {
+  return (
+    <Card tone="elevated" className="gap-0 overflow-hidden p-0">
+      <ul className="divide-y divide-border-subtle/65 py-(--space-1)">
+        {jars.map((jar) => {
+          const metrics = budgetsByJar[jar.id];
+          const usagePercent = jarBudgetProgressPercent(metrics);
+          const displayName = jar.isNameCustom
+            ? jar.name
+            : localizeCatalogName(tCatalog, CatalogGroup.JARS, jar.name);
+          return (
+            <li key={jar.id}>
+              <JarCard
+                href={planJarPath(jar.id)}
+                name={displayName}
+                kindLabel={t(`kinds.${jar.kind}`)}
+                stateLabel={t(jarStateLabelKey(jar.state))}
+                state={jar.state}
+                planLabel={planSummary(jar, t, currency, locale)}
+                remainingLabel={jarIntentionRemainingLabel(
+                  metrics,
+                  t,
+                  currency,
+                  locale,
+                )}
+                usageLabel={
+                  usagePercent == null
+                    ? undefined
+                    : t("budget.used", { percent: usagePercent })
+                }
+                usagePercent={usagePercent}
+                budgetState={metrics?.state}
+                iconTone={JAR_KIND_ICON_TONE[jar.kind]}
+                data-testid={`jar-card-${jar.id}`}
+              />
+            </li>
+          );
+        })}
+      </ul>
+    </Card>
+  );
 }
 
 /**
@@ -138,10 +200,12 @@ export default async function PlanJarsPage({ params }: Props) {
     active,
     budgets?.periodIncome ?? 0,
   );
+  const translator = t as unknown as JarPlanTranslator;
   const allocationDescription = allocationHealthCopy(
     allocationHealth,
-    t as unknown as JarPlanTranslator,
+    translator,
   );
+  const budgetsByJar = budgets?.byJarId ?? {};
 
   return (
     <Page
@@ -153,10 +217,15 @@ export default async function PlanJarsPage({ params }: Props) {
           subtitle={t("listSubtitle")}
           backHref={APP_PATH.PLAN}
           backLabel={t("backToPlan")}
+          trailing={<PlanPrivacyToggle testId="plan-jars-privacy-toggle" />}
         />
       }
     >
       <PlanOfflineBanner />
+
+      <Text size="sm" tone="secondary" className="text-pretty">
+        {t("listContext")}
+      </Text>
 
       {active.length > 0 ? (
         <StatusAlert
@@ -179,6 +248,7 @@ export default async function PlanJarsPage({ params }: Props) {
       <Section
         title={<PlanSectionTitle>{t("activeSection")}</PlanSectionTitle>}
         testId="plan-jars-active"
+        contentClassName="gap-(--space-3)"
       >
         {active.length === 0 ? (
           <EmptyState
@@ -188,26 +258,14 @@ export default async function PlanJarsPage({ params }: Props) {
             className="flex-none py-(--space-4)"
           />
         ) : (
-          <ul className="flex flex-col gap-(--space-2)">
-            {active.map((jar) => (
-              <li key={jar.id}>
-                <Link href={planJarPath(jar.id)} className="block">
-                  <JarCard
-                    name={
-                      jar.isNameCustom
-                        ? jar.name
-                        : localizeCatalogName(tCatalog, "jars", jar.name)
-                    }
-                    kindLabel={t(`kinds.${jar.kind}`)}
-                    stateLabel={t(stateLabelKey(jar.state))}
-                    state={jar.state}
-                    planLabel={planSummary(jar, t as never, currency, locale)}
-                    data-testid={`jar-card-${jar.id}`}
-                  />
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <JarCollection
+            jars={active}
+            t={translator}
+            tCatalog={tCatalog}
+            currency={currency}
+            locale={locale}
+            budgetsByJar={budgetsByJar}
+          />
         )}
       </Section>
 
@@ -225,26 +283,14 @@ export default async function PlanJarsPage({ params }: Props) {
             hideLabel={t("nonTargetHide")}
             testId="plan-jars-non-target-toggle"
           >
-            <ul className="flex flex-col gap-(--space-2)">
-              {nonTargets.map((jar) => (
-                <li key={jar.id}>
-                  <Link href={planJarPath(jar.id)} className="block">
-                    <JarCard
-                      name={
-                        jar.isNameCustom
-                          ? jar.name
-                          : localizeCatalogName(tCatalog, "jars", jar.name)
-                      }
-                      kindLabel={t(`kinds.${jar.kind}`)}
-                      stateLabel={t(stateLabelKey(jar.state))}
-                      state={jar.state}
-                      planLabel={planSummary(jar, t as never, currency, locale)}
-                      data-testid={`jar-card-${jar.id}`}
-                    />
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            <JarCollection
+              jars={nonTargets}
+              t={translator}
+              tCatalog={tCatalog}
+              currency={currency}
+              locale={locale}
+              budgetsByJar={budgetsByJar}
+            />
           </PlanDisclosure>
         )}
       </Section>

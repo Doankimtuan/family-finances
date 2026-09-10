@@ -9,9 +9,7 @@ import { Button } from "@/shared/ui/button";
 import { AlertVariant } from "@/shared/ui/alert";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import { useStatusAlert } from "@/providers/status-alert-provider";
-import { DEFAULT_CURRENCY } from "@/modules/ledger/application/ledger-constants";
-import { formatCurrency } from "@/shared/i18n/formatters";
-import { FinancialValue } from "@/shared/patterns/financial-value";
+import { StatusAlert } from "@/shared/ui/status-alert";
 import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
 import { SheetActionFooter } from "@/shared/patterns/sheet-action-footer";
 import { Sheet } from "@/shared/patterns/sheet";
@@ -21,14 +19,15 @@ import {
   type ProductActionErrorCode,
 } from "@/modules/tenancy/application/product-action-error";
 import { GOAL_TYPE_VALUES, GoalType } from "@/modules/plan/application/client";
+import { GoalFundingSourceType } from "@/modules/plan/application/plan-constants";
 import type { GoalFundingOption } from "@/modules/plan/application/queries/list-goal-funding-options";
 import { goalFundingSourceKey } from "@/modules/plan/application/goal-funding";
 import { createGoalAction, linkGoalFundingAction } from "./actions";
+import { GoalFundingSourcePicker } from "./goal-funding-source-picker";
 
 type ErrorCode =
   ProductActionErrorCode | typeof CLIENT_ACTION_ERROR_CODE.OFFLINE;
 type Props = { fundingOptions: GoalFundingOption[] };
-const SOURCE_GROUPS = ["savings", "investments", "debt"] as const;
 
 export function CreateGoalForm({ fundingOptions }: Props) {
   const t = useTranslations("plan.goals");
@@ -51,8 +50,8 @@ export function CreateGoalForm({ fundingOptions }: Props) {
   const compatibleOptions = goalType
     ? fundingOptions.filter((option) =>
         goalType === GoalType.PAYOFF
-          ? option.sourceType === "debt"
-          : option.sourceType !== "debt",
+          ? option.sourceType === GoalFundingSourceType.DEBT
+          : option.sourceType !== GoalFundingSourceType.DEBT,
       )
     : [];
   const selectedSource = compatibleOptions.find(
@@ -148,18 +147,17 @@ export function CreateGoalForm({ fundingOptions }: Props) {
             className="flex flex-col gap-(--space-3)"
             data-testid="goal-create-form"
           >
+            <StatusAlert
+              variant={AlertVariant.INFO}
+              title={t("notBalanceTitle")}
+              description={t("notBalanceBody")}
+            />
             <TextField
               id={nameId}
               label={t("createNameLabel")}
               placeholder={t("createNamePlaceholder")}
               value={name}
               onChange={(e) => setName(e.target.value)}
-            />
-            <AmountField
-              id={targetId}
-              label={t("createTargetLabel")}
-              value={target}
-              onValueChange={setTarget}
             />
             <fieldset className="flex flex-col gap-(--space-2)">
               <legend className="text-sm font-medium text-text-primary">
@@ -180,6 +178,12 @@ export function CreateGoalForm({ fundingOptions }: Props) {
                 ))}
               </ChoiceTileGroup>
             </fieldset>
+            <AmountField
+              id={targetId}
+              label={t("createTargetLabel")}
+              value={target}
+              onValueChange={setTarget}
+            />
             <DatePickerField
               id={dateId}
               label={t("createDateLabel")}
@@ -194,54 +198,18 @@ export function CreateGoalForm({ fundingOptions }: Props) {
                 <p className="text-xs text-text-secondary">
                   {t("createFundingHint")}
                 </p>
-                {SOURCE_GROUPS.map((group) => {
-                  const options = compatibleOptions.filter(
-                    (option) => option.sourceType === group,
-                  );
-                  if (options.length === 0) return null;
-                  return (
-                    <div key={group} className="flex flex-col gap-(--space-2)">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
-                        {t(`fundingGroup.${group}`)}
-                      </p>
-                      <ChoiceTileGroup>
-                        {options.map((option) => {
-                          const key = goalFundingSourceKey(option);
-                          const unavailable = !option.isAvailable;
-                          return (
-                            <ChoiceTile
-                              key={key}
-                              selected={selectedSourceKey === key}
-                              onPress={() => setSelectedSourceKey(key)}
-                              role="radio"
-                              isDisabled={unavailable}
-                            >
-                              <span className="min-w-0 flex-1">
-                                <span className="block truncate text-sm font-medium">
-                                  {option.name}
-                                </span>
-                                <span className="block text-xs text-text-secondary">
-                                  {unavailable ? (
-                                    t("fundingAlreadyLinked")
-                                  ) : (
-                                    <FinancialValue>
-                                      {formatCurrency(
-                                        option.currentAmount,
-                                        option.currency ?? DEFAULT_CURRENCY,
-                                        locale,
-                                        { maximumFractionDigits: 0 },
-                                      )}
-                                    </FinancialValue>
-                                  )}
-                                </span>
-                              </span>
-                            </ChoiceTile>
-                          );
-                        })}
-                      </ChoiceTileGroup>
-                    </div>
-                  );
-                })}
+                <GoalFundingSourcePicker
+                  options={compatibleOptions}
+                  selectedKey={selectedSourceKey}
+                  onSelect={setSelectedSourceKey}
+                  locale={locale}
+                  alreadyLinkedLabel={t("fundingAlreadyLinked")}
+                  groupLabel={(group) => t(`fundingGroup.${group}`)}
+                  aria-label={t("createFundingLabel")}
+                  searchLabel={t("fundingSearchLabel")}
+                  searchPlaceholder={t("fundingSearchPlaceholder")}
+                  noMatchesLabel={t("fundingNoMatches")}
+                />
                 <p className="text-xs text-text-secondary">
                   {t("createFundingOptional")}
                 </p>

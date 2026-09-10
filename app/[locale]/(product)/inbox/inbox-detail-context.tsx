@@ -83,7 +83,7 @@ export function InboxDetailContext({
 type InboxDetailSourceProps = {
   title: string;
   kindLabel: string;
-  amountLabel: ReactNode;
+  amountLabel?: ReactNode;
   leading?: ReactNode;
   subtitle?: string;
   statusTone: StatusBadgeTone;
@@ -127,11 +127,11 @@ export function InboxDetailSource({
         </div>
         <StatusBadge tone={statusTone}>{kindLabel}</StatusBadge>
       </div>
-      <div className="border-t border-border-subtle/70 pt-(--space-3)">
-        <p className="font-semibold tabular-nums tracking-tight text-text-primary text-xl">
+      {amountLabel ? (
+        <div className="border-t border-border-subtle/70 pt-(--space-3)">
           {amountLabel}
-        </p>
-      </div>
+        </div>
+      ) : null}
     </Card>
   );
 }

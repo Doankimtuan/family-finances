@@ -1,0 +1,22 @@
+{
+  "baseURL": "http://127.0.0.1:3000",
+  "auth": "login-disabled",
+  "loginEnabled": false,
+  "inboxReached": false,
+  "routes": {
+    "/en/login": {
+      "url": "http://127.0.0.1:3000/en/login",
+      "loginEnabled": false
+    },
+    "/en/inbox": {
+      "redirectedTo": "http://127.0.0.1:3000/en/login"
+    }
+  },
+  "limitations": [
+    "Log in stayed disabled because busy || !hydrated",
+    "Authenticated Inbox surfaces were not reached"
+  ],
+  "evidence": [
+    "artifacts/redesign/phase-12-inbox/evidence/login-disabled-cursor.png"
+  ]
+}

@@ -14,8 +14,10 @@ import {
 } from "../goal-funding";
 import {
   GoalFundingSourceKind,
+  GoalFundingSourceType,
   PLAN_OPERATION,
   type GoalFundingSourceKind as GoalFundingSourceKindValue,
+  type GoalFundingSourceType as GoalFundingSourceTypeValue,
   type GoalType as GoalTypeValue,
 } from "../plan-constants";
 import { logPlanFailure } from "../plan-error";
@@ -26,7 +28,7 @@ export type GoalFundingOption = {
   name: string;
   currentAmount: number;
   currency: string | null;
-  sourceType: "savings" | "investments" | "debt";
+  sourceType: GoalFundingSourceTypeValue;
   isAvailable: boolean;
   linkedGoalId: string | null;
   availability: "available" | "already_linked" | "unavailable";
@@ -112,7 +114,7 @@ export async function listGoalFundingOptions(input?: {
           name: saving.productName,
           currentAmount: saving.latestCycle?.principal ?? 0,
           currency: goalCurrency,
-          sourceType: "savings" as const,
+          sourceType: GoalFundingSourceType.SAVINGS,
         })),
       ...(accounts?.accounts ?? [])
         .filter(
@@ -125,7 +127,7 @@ export async function listGoalFundingOptions(input?: {
           name: account.name,
           currentAmount: account.balance,
           currency: goalCurrency,
-          sourceType: "savings" as const,
+          sourceType: GoalFundingSourceType.SAVINGS,
         })),
       ...(portfolio?.activeHoldings ?? [])
         .filter(
@@ -137,7 +139,7 @@ export async function listGoalFundingOptions(input?: {
           name: holding.name,
           currentAmount: holding.currentValue ?? 0,
           currency: "VND",
-          sourceType: "investments" as const,
+          sourceType: GoalFundingSourceType.INVESTMENTS,
         })),
       ...(loans ?? [])
         .filter(
@@ -149,7 +151,7 @@ export async function listGoalFundingOptions(input?: {
           name: loan.name,
           currentAmount: loan.remainingPrincipal,
           currency: loan.currency,
-          sourceType: "debt" as const,
+          sourceType: GoalFundingSourceType.DEBT,
         })),
       ...(debts ?? [])
         .filter(
@@ -164,7 +166,7 @@ export async function listGoalFundingOptions(input?: {
           name: debt.name,
           currentAmount: debt.remainingAmount,
           currency: debt.currency,
-          sourceType: "debt" as const,
+          sourceType: GoalFundingSourceType.DEBT,
         })),
     ];
     return options

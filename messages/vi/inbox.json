@@ -9,7 +9,7 @@
   "sectionCount": "{count, plural, one {# mục} other {# mục}}",
   "facts": {
     "waiting": "Đang chờ",
-    "archived": "Đã xong"
+    "archived": "Đã lưu trữ"
   },
   "factCategory": "Danh mục",
   "factAccount": "Tài khoản",
@@ -20,19 +20,19 @@
   "header": {
     "eyebrow": "Hộp thư",
     "headline": {
-      "clear": "Chưa có gì cần bạn xử lý",
-      "open": "Có vài việc đang chờ bạn xem",
-      "archived": "Những quyết định đã xong"
+      "clear": "Hiện không có việc nào cần chú ý",
+      "open": "{count, plural, one {1 việc cần xem} other {# việc cần xem}}",
+      "archived": "{count, plural, one {1 mục đã lưu trữ} other {# mục đã lưu trữ}}"
     },
     "supporting": {
-      "clear": "Hộp thư sạch bong. Giữ nhịp nhẹ nhàng này nhé.",
-      "open": "Xem nhanh một chút để cả hộ gia đình giữ nhịp.",
-      "archived": "Nơi nhìn lại những việc đã cùng nhau quyết định."
+      "clear": "Hàng chờ đang trống. Đây không phải báo cáo tài chính của hộ.",
+      "open": "Xem việc gì đang chờ, vì sao nó quan trọng, rồi xử lý bước tiếp theo.",
+      "archived": "Nơi nhìn lại những mục đã rời hàng chờ đang mở."
     },
     "meta": {
       "clear": "Chưa có quyết định nào đang chờ",
       "open": "{count, plural, one {# việc cần xem} other {# việc cần xem}}",
-      "archived": "Đang xem các mục đã hoàn tất"
+      "archived": "Đang xem các mục đã lưu trữ"
     }
   },
   "detailTitle": "Mục cần xem",
@@ -52,8 +52,8 @@
   "viewSourceLoan": "Xem khoản vay trong Money",
   "viewSourceDebt": "Xem khoản nợ trong Money",
   "viewSourcePlan": "Xem ngữ cảnh Plan",
-  "emptyOpenTitle": "Không cần quyết định",
-  "emptyOpenBody": "Hiện không có mục chờ xem. Điều này không có nghĩa tài chính đã hoàn tất.",
+  "emptyOpenTitle": "Hiện không có việc nào cần chú ý",
+  "emptyOpenBody": "Hàng chờ đang trống. Đây không phải báo cáo tài chính của hộ.",
   "receiptJarTitle": "Đã xử lý chú ý",
   "receiptJarBody": "Đã cập nhật gắn hũ trên giao dịch hiện có. Tiền thật không đổi.",
   "receiptSavingsTitle": "Savings xử lý trong Money",
@@ -143,8 +143,8 @@
   "tabArchived": "Đã lưu trữ",
   "tabListLabel": "Chế độ hộp thư",
   "tabLoading": "Đang tải hộp thư",
-  "archivedEmptyTitle": "Chưa có mục lưu trữ",
-  "archivedEmptyBody": "Mục hết hạn, tự gán và hoàn tất sẽ hiện ở đây.",
+  "archivedEmptyTitle": "Chưa có lịch sử Inbox đã lưu trữ",
+  "archivedEmptyBody": "Mục hết hạn, đã bỏ qua và đã xử lý sẽ hiện ở đây khi chúng rời hàng chờ đang mở.",
   "openHint": "Mở để quyết định",
   "unreadLabel": "Chưa đọc",
   "readLabel": "Đã đọc",
@@ -160,8 +160,9 @@
   "searchPlaceholder": "Tiêu đề…",
   "filterLabel": "Lọc theo loại",
   "filterAll": "Tất cả",
-  "filterEmptyTitle": "Không có mục khớp",
-  "filterEmptyBody": "Thử bộ lọc khác hoặc xoá tìm kiếm.",
+  "filterEmptyTitle": "Không có mục nào khớp bộ lọc hiện tại",
+  "filterEmptyBody": "Inbox vẫn còn mục khác. Xoá bộ lọc để xem lại hàng chờ.",
+  "filterClear": "Xoá bộ lọc",
   "pendingSectionTitle": "Việc cần bạn xử lý",
   "pendingSectionBody": "Bắt đầu với mục giúp dòng tiền hoặc kế hoạch tiếp tục vận hành.",
   "historySectionTitle": "Đã xử lý trước đó",

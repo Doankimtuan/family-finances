@@ -5,6 +5,8 @@ import {
   InboxLifecycleContext,
 } from "@/modules/inbox/application/inbox-constants";
 import { InboxSourceCapability } from "@/modules/inbox/application/inbox-source-capabilities";
+import { formatCurrency } from "@/shared/i18n/formatters";
+import { FinancialNumberKind } from "@/shared/patterns/financial-number-kind";
 import { IconContainerTone } from "@/shared/ui/icon-container";
 import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
 import { StatusBadgeTone } from "@/shared/ui/status-badge";
@@ -166,4 +168,75 @@ export function inboxQueueDominantTitle(input: {
     return { title: input.displayTitle, context: null };
   }
   return { title, context };
+}
+
+const INBOX_AMOUNT_KIND: Record<InboxItemKind, FinancialNumberKind> = {
+  [InboxItemKind.UNMAPPED_EXPENSE]: FinancialNumberKind.MOVEMENT,
+  [InboxItemKind.INCOME_SUGGEST]: FinancialNumberKind.MOVEMENT,
+  [InboxItemKind.SAVINGS_MATURITY]: FinancialNumberKind.CURRENT_STATE,
+  [InboxItemKind.EARLY_WITHDRAWAL_CONFIRMATION]:
+    FinancialNumberKind.CURRENT_STATE,
+  [InboxItemKind.EMI_COMPLETE]: FinancialNumberKind.CURRENT_STATE,
+  [InboxItemKind.EMERGENCY_DECLARATION]: FinancialNumberKind.INTENTION,
+  [InboxItemKind.LOAN_PAYMENT_ATTENTION]: FinancialNumberKind.CURRENT_STATE,
+  [InboxItemKind.DEBT_PAYMENT_ATTENTION]: FinancialNumberKind.CURRENT_STATE,
+};
+
+export function inboxAmountKind(
+  kind: InboxItemKind | null,
+): FinancialNumberKind {
+  if (kind == null) return FinancialNumberKind.CURRENT_STATE;
+  return INBOX_AMOUNT_KIND[kind];
+}
+
+export function inboxAmountLabel(
+  amount: number | null | undefined,
+  currency: string | null | undefined,
+  locale: string,
+): string | null {
+  if (amount == null || !Number.isFinite(amount) || !currency) {
+    return null;
+  }
+  return formatCurrency(amount, currency, locale, {
+    maximumFractionDigits: 0,
+  });
+}
+
+export type InboxKindGroup<T extends { kind: InboxItemKind | null }> = {
+  kind: InboxItemKind;
+  items: T[];
+};
+
+/**
+ * Presentation grouping by existing kind. Groups appear in first-seen order
+ * from the current list; items inside a group keep that list's order.
+ */
+export function groupInboxItemsByKind<T extends { kind: InboxItemKind | null }>(
+  items: readonly T[],
+): InboxKindGroup<T>[] {
+  const groups = new Map<InboxItemKind, T[]>();
+  const order: InboxItemKind[] = [];
+
+  for (const item of items) {
+    if (item.kind == null) continue;
+    const existing = groups.get(item.kind);
+    if (existing) {
+      existing.push(item);
+      continue;
+    }
+    groups.set(item.kind, [item]);
+    order.push(item.kind);
+  }
+
+  return order.map((kind) => ({
+    kind,
+    items: groups.get(kind) ?? [],
+  }));
+}
+
+export function isInboxFilterActive(
+  kind: InboxKindFilterId,
+  query: string,
+): boolean {
+  return kind !== InboxKindFilter.ALL || query.trim().length > 0;
 }

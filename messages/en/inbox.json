@@ -9,7 +9,7 @@
   "sectionCount": "{count, plural, one {# item} other {# items}}",
   "facts": {
     "waiting": "Waiting",
-    "archived": "Completed"
+    "archived": "Archived"
   },
   "factCategory": "Category",
   "factAccount": "Account",
@@ -20,19 +20,19 @@
   "header": {
     "eyebrow": "Inbox",
     "headline": {
-      "clear": "Nothing needs you right now",
-      "open": "A few things are ready for you",
-      "archived": "A few decisions already made"
+      "clear": "Nothing needs attention right now",
+      "open": "{count, plural, one {1 item to review} other {# items to review}}",
+      "archived": "{count, plural, one {1 archived item} other {# archived items}}"
     },
     "supporting": {
-      "clear": "Your queue is clear. Keep the good rhythm going.",
-      "open": "A quick look now can keep the household moving.",
-      "archived": "A quiet record of decisions already made."
+      "clear": "The open queue is empty. This is not a report on household finances.",
+      "open": "See what it is, why it matters, and finish the next step.",
+      "archived": "A quiet record of items that already left the open queue."
     },
     "meta": {
       "clear": "No decisions waiting",
       "open": "{count, plural, one {# item to review} other {# items to review}}",
-      "archived": "Looking back at completed items"
+      "archived": "Looking back at archived items"
     }
   },
   "detailTitle": "Review item",
@@ -52,8 +52,8 @@
   "viewSourceLoan": "View loan in Money",
   "viewSourceDebt": "View debt in Money",
   "viewSourcePlan": "View plan context",
-  "emptyOpenTitle": "No decisions needed",
-  "emptyOpenBody": "Nothing is waiting for review right now. This does not mean finances are complete.",
+  "emptyOpenTitle": "Nothing needs attention right now",
+  "emptyOpenBody": "The open queue is empty. This is not a report on household finances.",
   "receiptJarTitle": "Attention resolved",
   "receiptJarBody": "Jar association updated on the existing transaction. Real money unchanged.",
   "receiptSavingsTitle": "Savings handled in Money",
@@ -143,8 +143,8 @@
   "tabArchived": "Archived",
   "tabListLabel": "Inbox views",
   "tabLoading": "Loading inbox",
-  "archivedEmptyTitle": "No archived items",
-  "archivedEmptyBody": "Expired, auto-resolved, and completed items will appear here.",
+  "archivedEmptyTitle": "No archived Inbox history",
+  "archivedEmptyBody": "Expired, dismissed, and finished items will appear here when they leave the open queue.",
   "openHint": "Open to decide",
   "unreadLabel": "Unread",
   "readLabel": "Read",
@@ -160,8 +160,9 @@
   "searchPlaceholder": "Title…",
   "filterLabel": "Filter by kind",
   "filterAll": "All",
-  "filterEmptyTitle": "No matching items",
-  "filterEmptyBody": "Try another filter or clear the search.",
+  "filterEmptyTitle": "Nothing here matches the current filter",
+  "filterEmptyBody": "The rest of the Inbox is still there. Clear the filter to see it.",
+  "filterClear": "Clear filter",
   "pendingSectionTitle": "Needs your attention",
   "pendingSectionBody": "Start with the item that can keep money or plans moving.",
   "historySectionTitle": "Handled earlier",

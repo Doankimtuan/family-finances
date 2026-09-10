@@ -36,7 +36,7 @@ import {
 import { Button, ButtonVariant } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
 import { Card } from "@/shared/patterns/card";
-import { FinancialValue } from "@/shared/patterns/financial-value";
+import { FinancialNumberKind } from "@/shared/patterns/financial-number-kind";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { SelectField } from "@/shared/ui/form";
 import {
@@ -54,9 +54,10 @@ import {
   type InboxMaturityMoneyAction,
 } from "./inbox-maturity-layout";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
-import { formatCurrency } from "@/shared/i18n/formatters";
 import { DEFAULT_CURRENCY } from "@/modules/ledger/application/client";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
+import { InboxFinancialAmount } from "./inbox-financial-amount";
+import { inboxAmountLabel } from "./inbox-presentations";
 import {
   CLIENT_ACTION_ERROR_CODE,
   PRODUCT_ACTION_ERROR_CODE,
@@ -154,6 +155,12 @@ export function InboxDecisionPanel({ item, jars, meta }: Props) {
     item.suggestedJarId != null &&
     item.confidenceScore != null;
   const busy = pendingAction != null;
+  const earlyNetLabel = earlyPayload
+    ? inboxAmountLabel(earlyPayload.netReturned, DEFAULT_CURRENCY, locale)
+    : null;
+  const earlyPenaltyLabel = earlyPayload
+    ? inboxAmountLabel(earlyPayload.penaltyAmount, DEFAULT_CURRENCY, locale)
+    : null;
 
   const suggestedAction =
     maturityPayload?.suggestedAction ?? RenewalSuggestedAction.NONE;
@@ -664,38 +671,30 @@ export function InboxDecisionPanel({ item, jars, meta }: Props) {
             <Text size="sm" tone="secondary" className="text-pretty">
               {t("earlyWithdrawalSourceBody")}
             </Text>
-            {earlyPayload ? (
+            {earlyNetLabel || earlyPenaltyLabel ? (
               <dl className="-mx-(--space-4) divide-y divide-border-subtle/65 border-y border-border-subtle/65">
-                <InboxFactRow
-                  label={t("earlyWithdrawalNetLabel")}
-                  value={
-                    <FinancialValue>
-                      {formatCurrency(
-                        earlyPayload.netReturned,
-                        DEFAULT_CURRENCY,
-                        locale,
-                        {
-                          maximumFractionDigits: 0,
-                        },
-                      )}
-                    </FinancialValue>
-                  }
-                />
-                <InboxFactRow
-                  label={t("earlyWithdrawalPenaltyLabel")}
-                  value={
-                    <FinancialValue>
-                      {formatCurrency(
-                        earlyPayload.penaltyAmount,
-                        DEFAULT_CURRENCY,
-                        locale,
-                        {
-                          maximumFractionDigits: 0,
-                        },
-                      )}
-                    </FinancialValue>
-                  }
-                />
+                {earlyNetLabel ? (
+                  <InboxFactRow
+                    label={t("earlyWithdrawalNetLabel")}
+                    value={
+                      <InboxFinancialAmount
+                        amountLabel={earlyNetLabel}
+                        kind={FinancialNumberKind.ESTIMATE}
+                      />
+                    }
+                  />
+                ) : null}
+                {earlyPenaltyLabel ? (
+                  <InboxFactRow
+                    label={t("earlyWithdrawalPenaltyLabel")}
+                    value={
+                      <InboxFinancialAmount
+                        amountLabel={earlyPenaltyLabel}
+                        kind={FinancialNumberKind.ESTIMATE}
+                      />
+                    }
+                  />
+                ) : null}
               </dl>
             ) : null}
           </Card>

@@ -360,6 +360,11 @@ export function JarConfigurationForm({
           <Text size="sm" tone="secondary">
             {t("configurationIntro")}
           </Text>
+          <StatusAlert
+            variant={AlertVariant.INFO}
+            title={t("allocateVirtualTitle")}
+            description={t("allocateVirtualBody")}
+          />
           <TextField
             id={nameId}
             label={t("createNameLabel")}

@@ -22,6 +22,7 @@ import {
 } from "./plan-constants";
 export {
   GoalFundingSourceKind,
+  GoalFundingSourceType,
   GoalStatus,
   GoalType,
   RecurringDirection,
@@ -31,6 +32,7 @@ export {
   GOAL_STATUS_VALUES,
   GOAL_TYPE_VALUES,
   GOAL_FUNDING_SOURCE_KIND_VALUES,
+  GOAL_FUNDING_SOURCE_TYPE_VALUES,
   GOAL_FUNDING_LINK_AVAILABILITY_VALUES,
   GOAL_BACKING_STATE_VALUES,
   RECURRING_DIRECTION_OPTIONS,

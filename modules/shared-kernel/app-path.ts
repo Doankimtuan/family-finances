@@ -139,6 +139,14 @@ export function planCalendarPath(month?: string) {
   };
 }
 
+export function planRitualPath(month?: string) {
+  if (!month) return APP_PATH.PLAN_RITUAL;
+  return {
+    pathname: APP_PATH.PLAN_RITUAL,
+    query: { [PLAN_MONTH_QUERY]: month },
+  };
+}
+
 export function inboxItemPath(inboxItemId: string): string {
   return `${APP_PATH.INBOX}/${inboxItemId}`;
 }

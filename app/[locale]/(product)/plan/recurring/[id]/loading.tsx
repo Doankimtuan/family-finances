@@ -1,5 +1,5 @@
-import { PlanChildLoading } from "../../plan-child-loading";
+import { PlanIntentionDetailLoading } from "../../plan-child-loading";
 
 export default function PlanRecurringDetailLoading() {
-  return <PlanChildLoading />;
+  return <PlanIntentionDetailLoading />;
 }

@@ -12,7 +12,7 @@ import {
   INBOX_TEST_ID,
 } from "@/modules/inbox/application/inbox-constants";
 import { listCaptureJars } from "@/modules/ledger/application";
-import { formatCurrency, formatDate } from "@/shared/i18n/formatters";
+import { formatDate } from "@/shared/i18n/formatters";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Page } from "@/shared/patterns/page";
@@ -22,7 +22,7 @@ import { IconContainer } from "@/shared/ui/icon-container";
 import { StatusBadgeTone } from "@/shared/ui/status-badge";
 import { Text } from "@/shared/ui/text";
 import { StatusAlert } from "@/shared/ui/status-alert";
-import { FinancialValue } from "@/shared/patterns/financial-value";
+import { InboxFinancialAmount } from "../inbox-financial-amount";
 import { InboxOfflineBanner } from "../inbox-offline-banner";
 import { InboxDecisionPanel } from "../inbox-decision-panel";
 import { InboxSourceLink } from "../inbox-source-link";
@@ -32,6 +32,8 @@ import { InboxUnavailable } from "../inbox-unavailable";
 import { InboxDetailContext, InboxDetailSource } from "../inbox-detail-context";
 import { InboxDetailMeta } from "../inbox-detail-meta";
 import {
+  inboxAmountKind,
+  inboxAmountLabel,
   inboxDisplayTitle,
   inboxItemVisual,
   inboxLifecycleLabelKey,
@@ -125,6 +127,7 @@ export default async function InboxItemDetailPage({ params }: Props) {
             : t("lifecycleExpires")
       }: ${formatDate(new Date(item.lifecycleDate), locale)}`
     : null;
+  const amountLabel = inboxAmountLabel(item.amount, item.currency, locale);
 
   const detailMeta = (
     <InboxDetailMeta>
@@ -162,11 +165,13 @@ export default async function InboxItemDetailPage({ params }: Props) {
         title={displayTitle}
         kindLabel={item.kind ? t(`kinds.${item.kind}`) : t("title")}
         amountLabel={
-          <FinancialValue dataTestId={INBOX_TEST_ID.AMOUNT}>
-            {formatCurrency(item.amount, item.currency, locale, {
-              maximumFractionDigits: 0,
-            })}
-          </FinancialValue>
+          amountLabel ? (
+            <InboxFinancialAmount
+              amountLabel={amountLabel}
+              kind={inboxAmountKind(item.kind)}
+              className="text-xl"
+            />
+          ) : null
         }
         leading={
           visual ? (
@@ -179,11 +184,13 @@ export default async function InboxItemDetailPage({ params }: Props) {
         subtitle={detailParts.length > 0 ? detailParts.join(" · ") : undefined}
       />
 
-      <StatusAlert
-        variant="info"
-        title={t("amountContextTitle")}
-        description={t("amountContextBody")}
-      />
+      {amountLabel ? (
+        <StatusAlert
+          variant="info"
+          title={t("amountContextTitle")}
+          description={t("amountContextBody")}
+        />
+      ) : null}
 
       {localizedCategory || localizedAccount || item.note ? (
         <InboxFactsCard
@@ -202,11 +209,9 @@ export default async function InboxItemDetailPage({ params }: Props) {
         </InboxFactsCard>
       ) : null}
 
-      {pending ? (
-        <InboxDecisionPanel item={item} jars={activeJars} meta={detailMeta} />
-      ) : (
-        detailMeta
-      )}
+      {detailMeta}
+
+      {pending ? <InboxDecisionPanel item={item} jars={activeJars} /> : null}
 
       {!pending ? (
         <Card tone="soft" className="p-(--space-4)">

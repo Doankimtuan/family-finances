@@ -13,6 +13,7 @@ import { getHouseholdCalendar } from "@/modules/plan/application";
 import { currentPeriodMonth } from "@/modules/plan/application/ritual-period";
 import { TopAppBar, TopAppBarVariant } from "@/shared/patterns/top-app-bar";
 import { Page } from "@/shared/patterns/page";
+import { PlanPrivacyToggle } from "../plan-privacy-toggle";
 import { HouseholdCalendarView } from "./calendar-view";
 
 type Props = {
@@ -60,6 +61,7 @@ export default async function PlanCalendarPage({
           subtitle={t("subtitle")}
           backHref={APP_PATH.PLAN}
           backLabel={t("backToPlan")}
+          trailing={<PlanPrivacyToggle testId="plan-calendar-privacy-toggle" />}
         />
       }
     >
@@ -71,7 +73,6 @@ export default async function PlanCalendarPage({
           eventsByDate={calendar.eventsByDate}
           deficitDates={calendar.deficitDates}
           payoffMilestoneDates={calendar.payoffMilestoneDates}
-          startingBalance={calendar.startingBalance}
           payoffInboxItemByPlanId={calendar.payoffInboxItemByPlanId}
         />
       ) : (

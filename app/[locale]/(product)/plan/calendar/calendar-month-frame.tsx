@@ -8,6 +8,9 @@ import { ACTION_ICONS } from "@/shared/ui/icon-registry";
 const MONTH_NAV_CONTROL_CLASS =
   "inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-(--radius-control) text-text-primary transition-[background-color,color,transform] duration-(--duration-fast) ease-(--ease-standard) hover:bg-surface-hover active:scale-(--press-scale) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none motion-reduce:active:scale-100";
 
+const CURRENT_MONTH_CONTROL_CLASS =
+  "inline-flex min-h-11 min-w-11 items-center justify-center rounded-(--radius-control) px-(--space-3) text-sm font-medium text-accent transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-(--press-scale) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none motion-reduce:active:scale-100";
+
 type CalendarPath =
   string | { pathname: string; query: Record<string, string> };
 
@@ -17,8 +20,10 @@ export type CalendarMonthFrameProps = {
   children: ReactNode;
   previousHref?: CalendarPath;
   nextHref?: CalendarPath;
+  currentHref?: CalendarPath;
   previousLabel?: string;
   nextLabel?: string;
+  currentLabel?: string;
   navLabel?: string;
   gridLabel?: string;
 };
@@ -29,8 +34,10 @@ export function CalendarMonthFrame({
   children,
   previousHref,
   nextHref,
+  currentHref,
   previousLabel,
   nextLabel,
+  currentLabel,
   navLabel,
   gridLabel,
 }: CalendarMonthFrameProps) {
@@ -95,6 +102,17 @@ export function CalendarMonthFrame({
           />
         )}
       </div>
+      {currentHref && currentLabel ? (
+        <div className="flex justify-center">
+          <Link
+            href={currentHref}
+            className={CURRENT_MONTH_CONTROL_CLASS}
+            data-testid="calendar-month-current"
+          >
+            {currentLabel}
+          </Link>
+        </div>
+      ) : null}
       <div
         className="grid grid-cols-7 gap-(--space-1) text-center text-xs text-text-secondary"
         data-testid="calendar-weekdays"

@@ -1,15 +1,25 @@
+import type { ComponentProps } from "react";
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { FinancialValue } from "@/shared/patterns/financial-value";
 import { ConfirmSummary } from "@/shared/patterns/confirm-summary";
 import { FinancialPrivacyProvider } from "@/providers/financial-privacy-provider";
 import { JarCard } from "@/shared/patterns/jar-card";
 import { GoalCard } from "@/shared/patterns/goal-card";
+import { JarState } from "@/modules/plan/application/plan-constants";
 import {
   FINANCIAL_PRIVACY_MASK,
   FINANCIAL_PRIVACY_STORAGE_KEY,
   FINANCIAL_PRIVACY_STORAGE_TRUE,
 } from "@/shared/constants/financial-privacy";
+
+vi.mock("@/i18n/navigation", () => ({
+  Link: ({ href, children, ...props }: ComponentProps<"a">) => (
+    <a href={typeof href === "string" ? href : "#"} {...props}>
+      {children}
+    </a>
+  ),
+}));
 
 describe("financial privacy output", () => {
   it("does not expose the raw value to accessibility output when hidden", () => {
@@ -64,9 +74,7 @@ describe("financial privacy output", () => {
           name="Housing"
           kindLabel="Fixed"
           stateLabel="Active"
-          state="active"
-          budgetLabel="10,000 ₫"
-          spentLabel="4,000 ₫"
+          state={JarState.ACTIVE}
           remainingLabel="6,000 ₫ remaining"
           usageLabel="40%"
           usagePercent={40}

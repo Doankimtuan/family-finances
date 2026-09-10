@@ -93,24 +93,39 @@ function SupportingRecommendations() {
 }
 
 describe("Plan hub progressive disclosure (B08)", () => {
-  it("keeps attention, then active jars, then supporting suggestions", () => {
+  it("keeps attention, then the next decision, then compact planning entries", () => {
     const page = readProjectFile("app/[locale]/(product)/plan/page.tsx");
     const loading = readProjectFile("app/[locale]/(product)/plan/loading.tsx");
 
     expect(page.indexOf("<PlanHubExceptions")).toBeLessThan(
+      page.indexOf('testId="plan-home-recommendations"'),
+    );
+    expect(page.indexOf('testId="plan-home-recommendations"')).toBeLessThan(
+      page.indexOf('testId="plan-home-upcoming"'),
+    );
+    expect(page.indexOf('testId="plan-home-upcoming"')).toBeLessThan(
       page.indexOf('testId="plan-home-jars"'),
     );
     expect(page.indexOf('testId="plan-home-jars"')).toBeLessThan(
       page.indexOf('testId="plan-home-goals"'),
     );
     expect(page.indexOf('testId="plan-home-goals"')).toBeLessThan(
-      page.indexOf('testId="plan-home-recommendations"'),
+      page.indexOf('testId="plan-ritual-cta"'),
     );
     expect(page).toContain("PLAN_HUB_VISIBLE_JAR_LIMIT");
+    expect(page).toContain("RecommendationListVariant.HIGHLIGHTED");
     expect(page).toContain("RecommendationListVariant.SUPPORTING");
     expect(page).not.toContain("CreateCategoryForm");
     expect(page).not.toContain("create-category-form");
+    expect(page).not.toContain("<Balance");
+    expect(page).not.toContain("<JarCard");
 
+    expect(loading.indexOf('testId="plan-home-exceptions"')).toBeLessThan(
+      loading.indexOf('testId="plan-home-upcoming"'),
+    );
+    expect(loading.indexOf('testId="plan-home-upcoming"')).toBeLessThan(
+      loading.indexOf('testId="plan-home-jars"'),
+    );
     expect(loading.indexOf('testId="plan-home-jars"')).toBeLessThan(
       loading.indexOf('testId="plan-home-goals"'),
     );
@@ -192,6 +207,8 @@ describe("Plan hub progressive disclosure (B08)", () => {
       <>
         <PlanHubExceptions
           title={enPlan.home.exceptionsTitle}
+          emptyTitle={enPlan.home.exceptionsEmptyTitle}
+          emptyBody={enPlan.home.exceptionsEmptyBody}
           exceptions={[
             {
               kind: PlanHomeExceptionKind.OVERSPENT_JAR,

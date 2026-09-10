@@ -164,6 +164,7 @@ export function CreateRecurringForm() {
                 <AmountField
                   id={amountId}
                   label={t("amountLabel")}
+                  description={t("amountHint")}
                   value={amount}
                   onValueChange={setAmount}
                 />

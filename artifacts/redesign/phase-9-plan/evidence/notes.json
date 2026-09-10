@@ -1,0 +1,16 @@
+{
+  "baseURL": "http://127.0.0.1:3000",
+  "startedAt": "2026-09-10T03:53:27.982Z",
+  "auth": "login-disabled",
+  "routes": {
+    "/en/login": {
+      "url": "http://127.0.0.1:3000/en/login",
+      "loginEnabled": false
+    }
+  },
+  "viewports": {},
+  "limitations": [
+    "Stayed on http://127.0.0.1:3000/en/login"
+  ],
+  "finishedAt": "2026-09-10T03:54:26.390Z"
+}

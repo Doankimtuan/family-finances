@@ -125,10 +125,20 @@ export function InboxQueueHeaderPending({ children }: { children: ReactNode }) {
 
 /** Keeps the tab chrome mounted while the queue list refreshes. */
 export function InboxQueueBodyPending({ children }: { children: ReactNode }) {
-  const { isSwitching } = useInboxQueueTransition();
+  const { isSwitching, optimisticTab } = useInboxQueueTransition();
+  const labelledBy =
+    optimisticTab === InboxQueueTab.OPEN
+      ? INBOX_TEST_ID.TAB_OPEN
+      : INBOX_TEST_ID.TAB_ARCHIVED;
 
   return (
-    <div data-testid={INBOX_TEST_ID.TAB_CONTENT} aria-busy={isSwitching}>
+    <div
+      role="tabpanel"
+      id={INBOX_TEST_ID.TAB_CONTENT}
+      aria-labelledby={labelledBy}
+      aria-busy={isSwitching}
+      data-testid={INBOX_TEST_ID.TAB_CONTENT}
+    >
       <InboxQueuePending announce skeleton={<InboxQueueListSkeleton />}>
         {children}
       </InboxQueuePending>

@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "@/i18n/navigation";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useId, useState, useTransition } from "react";
 import type { ReactNode } from "react";
 import {
@@ -34,6 +34,7 @@ import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
 import { SheetActionFooter } from "@/shared/patterns/sheet-action-footer";
 import { Sheet } from "@/shared/patterns/sheet";
 import { ChoiceTile, ChoiceTileGroup } from "@/shared/patterns/choice-tile";
+import { GoalFundingSourcePicker } from "../goal-funding-source-picker";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import { AppIcon } from "@/shared/ui/app-icon";
 import { ACTION_ICONS } from "@/shared/ui/icon-registry";
@@ -121,6 +122,7 @@ export function GoalDetailControls({
   isLegacyIntention,
 }: Props) {
   const t = useTranslations("plan.goals");
+  const locale = useLocale();
   const router = useRouter();
   const amountId = useId();
   const noteId = useId();
@@ -477,8 +479,11 @@ export function GoalDetailControls({
           <StatusAlert
             variant="success"
             title={t("contributeReceiptTitle")}
-            description={t("contributeReceiptBody", {
+            description={t.rich("contributeReceiptBody", {
               amount: String(receipt),
+              money: (chunks: ReactNode) => (
+                <FinancialValue>{chunks}</FinancialValue>
+              ),
             })}
           />
         </div>
@@ -626,17 +631,20 @@ export function GoalDetailControls({
           <Text size="sm" className="font-semibold">
             {t("fundingHeading")}
           </Text>
+          <Text size="xs" tone="secondary" className="text-pretty">
+            {t("linkedSourceHint")}
+          </Text>
           <Card tone="soft" className="gap-0 overflow-hidden p-0">
             <ul className="divide-y divide-divider">
               {fundingLinks.map((item) => (
                 <li
                   key={item.id}
-                  className="flex items-center gap-(--space-3) p-(--space-3)"
+                  className="flex min-h-14 items-center gap-(--space-3) p-(--space-3)"
                   data-testid={`goal-funding-source-${item.id}`}
                 >
                   <div className="min-w-0 flex-1">
                     <Text size="sm" className="truncate font-medium">
-                      {item.sourceName}
+                      {t("linkedTo", { source: item.sourceName })}
                     </Text>
                     <Text size="xs" tone="secondary" className="mt-(--space-1)">
                       {t(`fundingKind.${item.kind}`)}
@@ -647,11 +655,6 @@ export function GoalDetailControls({
                         : ""}
                     </Text>
                   </div>
-                  <AppIcon
-                    icon={ACTION_ICONS.forward}
-                    size="sm"
-                    className="shrink-0 text-text-tertiary"
-                  />
                 </li>
               ))}
             </ul>
@@ -856,20 +859,18 @@ export function GoalDetailControls({
                 </ActionSheetLayout.Header>
                 <ActionSheetLayout.Body>
                   {actionError}
-                  <ChoiceTileGroup>
-                    {fundingOptions.map((item) => {
-                      const key = goalFundingSourceKey(item);
-                      return (
-                        <ChoiceTile
-                          key={key}
-                          label={item.name}
-                          selected={selectedSource === key}
-                          onPress={() => setSelectedSource(key)}
-                          role="radio"
-                        />
-                      );
-                    })}
-                  </ChoiceTileGroup>
+                  <GoalFundingSourcePicker
+                    options={fundingOptions}
+                    selectedKey={selectedSource}
+                    onSelect={setSelectedSource}
+                    locale={locale}
+                    alreadyLinkedLabel={t("fundingAlreadyLinked")}
+                    groupLabel={(group) => t(`fundingGroup.${group}`)}
+                    aria-label={t("linkFundingSource")}
+                    searchLabel={t("fundingSearchLabel")}
+                    searchPlaceholder={t("fundingSearchPlaceholder")}
+                    noMatchesLabel={t("fundingNoMatches")}
+                  />
                 </ActionSheetLayout.Body>
                 <SheetActionFooter
                   secondaryLabel={t("createCancel")}

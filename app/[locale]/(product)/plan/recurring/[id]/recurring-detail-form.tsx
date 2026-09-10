@@ -18,7 +18,10 @@ import { StatusAlert } from "@/shared/ui/status-alert";
 import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
 import { SheetActionFooter } from "@/shared/patterns/sheet-action-footer";
 import { Sheet } from "@/shared/patterns/sheet";
+import { Card } from "@/shared/patterns/card";
 import { ChoiceTile, ChoiceTileGroup } from "@/shared/patterns/choice-tile";
+import { Text } from "@/shared/ui/text";
+import { WEEKDAY_KEYS_BY_UTC_DAY } from "@/shared/i18n/week-start";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import {
   CLIENT_ACTION_ERROR_CODE,
@@ -144,91 +147,117 @@ export function RecurringDetailForm({
         />
       ) : null}
 
-      <TextField
-        id={nameId}
-        label={t("nameLabel")}
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-      />
-
-      <fieldset className="flex flex-col gap-(--space-2)">
-        <legend className="text-sm font-medium text-text-primary">
-          {t("directionLabel")}
-        </legend>
-        <ChoiceTileGroup>
-          {RECURRING_DIRECTION_OPTIONS.map((option) => (
-            <ChoiceTile
-              key={option}
-              label={t(`direction.${option}`)}
-              selected={direction === option}
-              onPress={() => setDirection(option)}
-              role="radio"
-            />
-          ))}
-        </ChoiceTileGroup>
-      </fieldset>
-
-      <AmountField
-        id={amountId}
-        label={t("amountLabel")}
-        value={amount}
-        onValueChange={setAmount}
-      />
-
-      <fieldset className="flex flex-col gap-(--space-2)">
-        <legend className="text-sm font-medium text-text-primary">
-          {t("frequencyLabel")}
-        </legend>
-        <ChoiceTileGroup>
-          {RECURRING_FREQUENCY_VALUES.map((option) => (
-            <ChoiceTile
-              key={option}
-              label={t(`frequency.${option}`)}
-              selected={frequency === option}
-              onPress={() => setFrequency(option)}
-              role="radio"
-            />
-          ))}
-        </ChoiceTileGroup>
-      </fieldset>
-
-      {frequency === RecurringFrequency.MONTHLY ? (
+      <Card tone="elevated" className="gap-(--space-4) p-(--space-4)">
+        <Text size="sm" weight="semibold">
+          {t("identitySection")}
+        </Text>
         <TextField
-          id={domId}
-          label={t("dayOfMonthLabel")}
-          inputMode="numeric"
-          value={dayOfMonth}
-          onChange={(e) => setDayOfMonth(e.target.value)}
+          id={nameId}
+          label={t("nameLabel")}
+          value={name}
+          onChange={(e) => setName(e.target.value)}
         />
-      ) : (
-        <TextField
-          id={dowId}
-          label={t("dayOfWeekLabel")}
-          inputMode="numeric"
-          value={dayOfWeek}
-          onChange={(e) => setDayOfWeek(e.target.value)}
+        <fieldset className="flex flex-col gap-(--space-2)">
+          <legend className="text-sm font-medium text-text-primary">
+            {t("directionLabel")}
+          </legend>
+          <ChoiceTileGroup>
+            {RECURRING_DIRECTION_OPTIONS.map((option) => (
+              <ChoiceTile
+                key={option}
+                label={t(`direction.${option}`)}
+                selected={direction === option}
+                onPress={() => setDirection(option)}
+                role="radio"
+              />
+            ))}
+          </ChoiceTileGroup>
+        </fieldset>
+        <AmountField
+          id={amountId}
+          label={t("amountLabel")}
+          description={t("amountHint")}
+          value={amount}
+          onValueChange={setAmount}
         />
-      )}
+      </Card>
 
-      <DatePickerField
-        id={startId}
-        label={t("startDateLabel")}
-        value={startDate}
-        onChange={setStartDate}
-      />
-      <DatePickerField
-        id={nextId}
-        label={t("nextRunLabel")}
-        value={nextRunDate}
-        onChange={setNextRunDate}
-      />
+      <Card tone="elevated" className="gap-(--space-4) p-(--space-4)">
+        <Text size="sm" weight="semibold">
+          {t("cadenceSection")}
+        </Text>
+        <fieldset className="flex flex-col gap-(--space-2)">
+          <legend className="text-sm font-medium text-text-primary">
+            {t("frequencyLabel")}
+          </legend>
+          <ChoiceTileGroup>
+            {RECURRING_FREQUENCY_VALUES.map((option) => (
+              <ChoiceTile
+                key={option}
+                label={t(`frequency.${option}`)}
+                selected={frequency === option}
+                onPress={() => setFrequency(option)}
+                role="radio"
+              />
+            ))}
+          </ChoiceTileGroup>
+        </fieldset>
+        {frequency === RecurringFrequency.MONTHLY ? (
+          <TextField
+            id={domId}
+            label={t("dayOfMonthLabel")}
+            description={t("dayOfMonthHint")}
+            inputMode="numeric"
+            value={dayOfMonth}
+            onChange={(e) => setDayOfMonth(e.target.value)}
+          />
+        ) : (
+          <fieldset className="flex flex-col gap-(--space-2)">
+            <legend className="text-sm font-medium text-text-primary">
+              {t("dayOfWeekLabel")}
+            </legend>
+            <ChoiceTileGroup>
+              {WEEKDAY_KEYS_BY_UTC_DAY.map((key, utcDay) => (
+                <ChoiceTile
+                  key={key}
+                  label={t(`weekdayNames.${key}`)}
+                  selected={dayOfWeek === String(utcDay)}
+                  onPress={() => setDayOfWeek(String(utcDay))}
+                  role="radio"
+                  testId={`recurring-weekday-${key}`}
+                />
+              ))}
+            </ChoiceTileGroup>
+            <span id={dowId} className="sr-only">
+              {t("dayOfWeekLabel")}
+            </span>
+          </fieldset>
+        )}
+      </Card>
 
-      <CheckboxField
-        id={`${nameId}-active`}
-        label={t("activeLabel")}
-        checked={isActive}
-        onChange={(e) => setIsActive(e.target.checked)}
-      />
+      <Card tone="elevated" className="gap-(--space-4) p-(--space-4)">
+        <Text size="sm" weight="semibold">
+          {t("scheduleSection")}
+        </Text>
+        <DatePickerField
+          id={startId}
+          label={t("startDateLabel")}
+          value={startDate}
+          onChange={setStartDate}
+        />
+        <DatePickerField
+          id={nextId}
+          label={t("nextRunLabel")}
+          value={nextRunDate}
+          onChange={setNextRunDate}
+        />
+        <CheckboxField
+          id={`${nameId}-active`}
+          label={t("activeLabel")}
+          checked={isActive}
+          onChange={(e) => setIsActive(e.target.checked)}
+        />
+      </Card>
 
       <Button
         variant="primary"
@@ -245,15 +274,17 @@ export function RecurringDetailForm({
       >
         {t("save")}
       </Button>
-      <Button
-        variant="danger"
-        className="w-full"
-        data-testid="recurring-delete"
-        isDisabled={isPending || !online}
-        onPress={() => setConfirmDelete(true)}
-      >
-        {t("delete")}
-      </Button>
+      <div className="border-t border-border-subtle pt-(--space-4)">
+        <Button
+          variant="danger"
+          className="w-full"
+          data-testid="recurring-delete"
+          isDisabled={isPending || !online}
+          onPress={() => setConfirmDelete(true)}
+        >
+          {t("delete")}
+        </Button>
+      </div>
 
       <Sheet isOpen={confirmDelete} onOpenChange={setConfirmDelete}>
         <ActionSheetLayout>

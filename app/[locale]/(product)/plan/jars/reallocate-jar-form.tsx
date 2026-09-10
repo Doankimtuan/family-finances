@@ -4,7 +4,7 @@ import { useId, useState, useTransition } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/navigation";
 import {
   PLAN_ACTION_ERROR_CODE,
@@ -30,6 +30,9 @@ import { Sheet } from "@/shared/patterns/sheet";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Text } from "@/shared/ui/text";
 import { Section } from "@/shared/patterns/section";
+import { FinancialValue } from "@/shared/patterns/financial-value";
+import { FinancialNumberKind } from "@/shared/patterns/financial-number-kind";
+import { formatCurrency } from "@/shared/i18n/formatters";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
 import {
@@ -127,6 +130,7 @@ export function ReallocateJarForm({
 }: Props) {
   const t = useTranslations("plan.jars.reallocate");
   const tCatalog = useTranslations("catalog");
+  const locale = useLocale();
   const router = useRouter();
   const amountId = useId();
   const targetId = useId();
@@ -197,8 +201,13 @@ export function ReallocateJarForm({
             <Text
               size="sm"
               className="tabular-nums font-medium text-text-primary"
+              data-financial-kind={FinancialNumberKind.INTENTION}
             >
-              {receipt.amount} {currency}
+              <FinancialValue>
+                {formatCurrency(receipt.amount, currency, locale, {
+                  maximumFractionDigits: 0,
+                })}
+              </FinancialValue>
             </Text>
           </div>
           <div className="flex justify-between gap-(--space-3)">
@@ -385,10 +394,13 @@ export function ReallocateJarForm({
               size="sm"
               tone="secondary"
               data-testid="jar-available-to-move"
+              data-financial-kind={FinancialNumberKind.INTENTION}
             >
-              {t("availableToMoveLabel", {
-                amount: availableToMove,
-                currency,
+              {t.rich("availableToMoveValue", {
+                amount: formatCurrency(availableToMove, currency, locale, {
+                  maximumFractionDigits: 0,
+                }),
+                money: (chunks) => <FinancialValue>{chunks}</FinancialValue>,
               })}
             </Text>
 

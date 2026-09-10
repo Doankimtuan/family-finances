@@ -29,7 +29,7 @@ test.describe("Plan jars (ST-E05-002)", () => {
     await page.goto("/en/plan/jars");
     await expect(page.getByTestId("plan-jars")).toBeVisible();
     await expect(
-      page.getByText(/allocation targets|đích phân bổ/i),
+      page.getByText(/intention envelopes|phong bì ý định/i),
     ).toBeVisible();
     await expect(page.getByTestId("jar-create-open")).toBeVisible();
 
@@ -40,7 +40,7 @@ test.describe("Plan jars (ST-E05-002)", () => {
     );
     await firstCard.click();
     await expect(page.getByTestId("plan-jar-detail")).toBeVisible();
-    await expect(page.getByTestId("intention-amount").first()).toBeVisible();
+    await expect(page.getByTestId("plan-jar-hero")).toBeVisible();
     await expect(page.getByTestId("jar-state-badge")).toBeVisible();
     await expect(page.getByTestId("jar-monthly-review-info")).toBeVisible();
     await expect(page.getByTestId("jar-ritual-lock")).toHaveCount(0);

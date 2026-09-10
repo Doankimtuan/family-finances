@@ -53,7 +53,7 @@ function renderPlan(ui: ReactElement) {
 }
 
 describe("Plan hub UI polish", () => {
-  it("keeps the privacy control on the period hero and lists real facts", () => {
+  it("keeps the privacy control on the planning context and avoids a cash hero", () => {
     renderPlan(
       <PlanHubHero
         periodCaption="This month"
@@ -62,18 +62,21 @@ describe("Plan hub UI polish", () => {
         health={PlanHomeHealthStatus.HEALTHY}
         healthTitle="On track"
         healthBody="The plan is holding."
-        facts={[
-          { label: "Active jars", value: "1 jar" },
-          { label: "Allocation", value: "100%" },
-          { label: "Qualifying income", value: "Set income" },
-        ]}
+        contextMeta="1 jar · 100%"
+        incomeLabel="Income base for this month's plan"
+        incomeValue="Not set"
       />,
     );
 
     expect(screen.getByTestId("plan-period-pulse")).toBeInTheDocument();
     expect(screen.getByText("September 2026")).toBeInTheDocument();
-    expect(screen.getByText("Active jars")).toBeInTheDocument();
-    expect(screen.getByText("1 jar")).toBeInTheDocument();
+    expect(screen.getByText("On track")).toBeInTheDocument();
+    expect(screen.getByText("1 jar · 100%")).toBeInTheDocument();
+    expect(screen.getByTestId("plan-hub-income-base")).toHaveAttribute(
+      "data-financial-kind",
+      "intention",
+    );
+    expect(screen.queryByText(/net worth/i)).not.toBeInTheDocument();
     expect(
       screen.getByTestId("plan-financial-privacy-toggle"),
     ).toBeInTheDocument();
@@ -84,6 +87,8 @@ describe("Plan hub UI polish", () => {
     renderPlan(
       <PlanHubExceptions
         title="Things to review"
+        emptyTitle="Nothing needs a decision right now"
+        emptyBody="When a Jar needs a look, it will show up here."
         exceptions={[
           {
             kind: PlanHomeExceptionKind.OVERSPENT_JAR,

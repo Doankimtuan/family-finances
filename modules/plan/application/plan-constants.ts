@@ -123,6 +123,22 @@ export const GOAL_FUNDING_SOURCE_KIND_VALUES = [
   GoalFundingSourceKind.DEBT,
 ] as const;
 
+/** Presentation grouping for Money sources a Goal can link to. */
+export const GoalFundingSourceType = {
+  SAVINGS: "savings",
+  INVESTMENTS: "investments",
+  DEBT: "debt",
+} as const;
+
+export type GoalFundingSourceType =
+  (typeof GoalFundingSourceType)[keyof typeof GoalFundingSourceType];
+
+export const GOAL_FUNDING_SOURCE_TYPE_VALUES = [
+  GoalFundingSourceType.SAVINGS,
+  GoalFundingSourceType.INVESTMENTS,
+  GoalFundingSourceType.DEBT,
+] as const;
+
 /** Per-source Money value freshness for linked goal funding. */
 export const GoalFundingValueStatus = {
   CURRENT: "current",

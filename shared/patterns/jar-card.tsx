@@ -1,17 +1,25 @@
 import type { ReactNode } from "react";
 import { isValidElement } from "react";
+import { Link } from "@/i18n/navigation";
 import {
   JarBudgetState,
   JarState,
   type JarBudgetState as JarBudgetStateValue,
   type JarState as JarStateValue,
 } from "@/modules/plan/application/plan-constants";
+import { PRODUCT_LINK_PREFETCH } from "@/shared/constants/navigation";
+import { FinancialNumberKind } from "@/shared/patterns/financial-number-kind";
 import { cn } from "@/shared/utils/cn";
 import { Text } from "@/shared/ui/text";
 import { StatusBadge, StatusBadgeTone } from "@/shared/ui/status-badge";
 import { Progress } from "@/shared/ui/progress";
+import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
+import { IconContainer, IconContainerTone } from "@/shared/ui/icon-container";
+import { ACTION_ICONS, PLAN_ICONS } from "@/shared/ui/icon-registry";
 import { FinancialValue } from "./financial-value";
-import { Card } from "./card";
+
+const JAR_INTENTION_ROW_CLASS =
+  "flex min-h-14 items-center gap-(--space-3) px-(--space-4) py-(--space-2) transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-(--press-scale) motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus-ring";
 
 function financialLeaf(value: ReactNode) {
   return isValidElement(value) ? (
@@ -27,134 +35,127 @@ function stateTone(state: JarStateValue): StatusBadgeTone {
     : StatusBadgeTone.NEUTRAL;
 }
 
-function budgetTone(
-  state: JarBudgetStateValue | undefined,
-): "danger" | "secondary" {
-  return state === JarBudgetState.OVERSPENT ? "danger" : "secondary";
-}
-
 export type JarCardProps = {
   name: ReactNode;
   kindLabel: ReactNode;
   stateLabel: ReactNode;
   state: JarStateValue;
   planLabel?: ReactNode;
-  budgetHeading?: ReactNode;
-  spentHeading?: ReactNode;
-  budgetLabel?: ReactNode;
-  spentLabel?: ReactNode;
   remainingLabel?: ReactNode;
   usageLabel?: ReactNode;
   usagePercent?: number;
   budgetState?: JarBudgetStateValue;
+  iconTone?: IconContainerTone;
+  href?: string;
   className?: string;
   "data-testid"?: string;
 };
 
-/** Intention Jar summary — actuals are Money-derived, never a bank Balance. */
-export function JarCard({
+function JarCardBody({
   name,
   kindLabel,
   stateLabel,
   state,
   planLabel,
-  budgetHeading,
-  spentHeading,
-  budgetLabel,
-  spentLabel,
   remainingLabel,
   usageLabel,
   usagePercent,
   budgetState,
-  className,
-  "data-testid": testId,
-}: JarCardProps) {
-  const tone = budgetTone(budgetState);
-  const hasBudgetMetrics =
-    budgetHeading != null &&
-    spentHeading != null &&
-    budgetLabel != null &&
-    spentLabel != null &&
-    remainingLabel != null &&
-    usageLabel !== undefined;
+  iconTone = IconContainerTone.SAVINGS,
+}: Omit<JarCardProps, "href" | "className" | "data-testid">) {
+  const value = remainingLabel ?? planLabel;
+  const showProgress =
+    usagePercent != null && budgetState !== JarBudgetState.NO_BUDGET;
+  const overspent = budgetState === JarBudgetState.OVERSPENT;
 
   return (
-    <Card
-      tone="interactive"
-      className={cn("gap-(--space-4) p-(--space-4)", className)}
-      data-testid={testId}
-      data-jar-state={state}
-      data-budget-state={budgetState}
-    >
-      <div className="flex items-start justify-between gap-(--space-3)">
-        <div className="min-w-0">
-          <Text size="sm" className="truncate font-semibold text-text-primary">
+    <>
+      <div className={JAR_INTENTION_ROW_CLASS}>
+        <IconContainer tone={iconTone} size="sm">
+          <AppIcon icon={PLAN_ICONS.jar} size={AppIconSize.SM} />
+        </IconContainer>
+        <div className="min-w-0 flex-1">
+          <Text
+            size="sm"
+            weight="semibold"
+            className="truncate text-text-primary"
+          >
             {name}
           </Text>
-          <Text size="xs" tone="secondary" className="mt-1">
+          <Text
+            size="xs"
+            tone="muted"
+            className="mt-(--space-1) truncate text-pretty"
+          >
             {kindLabel}
           </Text>
         </div>
-        <StatusBadge tone={stateTone(state)}>{stateLabel}</StatusBadge>
-      </div>
-
-      {planLabel ? (
-        <div className="flex items-center justify-end gap-(--space-3) border-y border-divider py-(--space-2)">
-          <Text
-            size="sm"
-            className="tabular-nums font-semibold text-text-primary"
-          >
-            {financialLeaf(planLabel)}
-          </Text>
-        </div>
-      ) : null}
-
-      {hasBudgetMetrics ? (
-        <div
-          className="flex flex-col gap-(--space-3)"
-          data-testid="jar-budget-metrics"
-        >
-          <div className="grid grid-cols-2 gap-(--space-3)">
-            <div>
-              <Text size="xs" tone="secondary">
-                {budgetHeading}
-              </Text>
+        <div className="flex shrink-0 items-center gap-(--space-2)">
+          <div className="min-w-[var(--financial-number-column-width)] text-right">
+            {value ? (
               <Text
                 size="sm"
-                className="mt-1 tabular-nums font-semibold text-text-primary"
+                weight="semibold"
+                tone={overspent ? "danger" : "primary"}
+                tabular
+                className="tracking-tight"
+                data-financial-kind={FinancialNumberKind.INTENTION}
               >
-                {financialLeaf(budgetLabel)}
+                {financialLeaf(value)}
               </Text>
-            </div>
-            <div className="text-right">
-              <Text size="xs" tone="secondary">
-                {spentHeading}
-              </Text>
-              <Text
-                size="sm"
-                className="mt-1 tabular-nums font-semibold text-text-primary"
-              >
-                {financialLeaf(spentLabel)}
-              </Text>
+            ) : null}
+            <div className="mt-(--space-1) flex justify-end">
+              <StatusBadge tone={stateTone(state)}>{stateLabel}</StatusBadge>
             </div>
           </div>
-          <Progress
-            value={Math.max(0, usagePercent ?? 0)}
-            max={100}
-            label={String(usageLabel)}
-            privacyAware
-            indicatorClassName={tone === "danger" ? "bg-danger" : undefined}
+          <AppIcon
+            icon={ACTION_ICONS.forward}
+            size={AppIconSize.SM}
+            className="shrink-0 text-text-tertiary"
           />
-          <div className="flex items-center justify-between gap-(--space-2)">
-            <Text size="xs" tone={tone} className="font-medium">
-              {financialLeaf(remainingLabel)}
-            </Text>
-            <Text size="xs" tone="secondary" className="tabular-nums">
-              {usageLabel}
-            </Text>
-          </div>
+        </div>
+      </div>
+      {showProgress ? (
+        <div className="px-(--space-4) pb-(--space-3)">
+          <Progress
+            value={usagePercent}
+            max={100}
+            label={usageLabel != null ? String(usageLabel) : undefined}
+            privacyAware
+            indicatorClassName={overspent ? "bg-danger" : undefined}
+          />
         </div>
       ) : null}
-    </Card>
+    </>
+  );
+}
+
+/** Intention Jar row — remaining/planned are envelopes, never a bank Balance. */
+export function JarCard({
+  href,
+  className,
+  "data-testid": testId,
+  ...body
+}: JarCardProps) {
+  const shared = {
+    className: cn("flex flex-col", className),
+    "data-testid": testId,
+    "data-jar-state": body.state,
+    "data-budget-state": body.budgetState,
+    "data-financial-object": "jar",
+  } as const;
+
+  if (href) {
+    return (
+      <Link href={href} prefetch={PRODUCT_LINK_PREFETCH} {...shared}>
+        <JarCardBody {...body} />
+      </Link>
+    );
+  }
+
+  return (
+    <div {...shared}>
+      <JarCardBody {...body} />
+    </div>
   );
 }

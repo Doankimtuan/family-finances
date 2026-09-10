@@ -19,6 +19,12 @@ import {
 /** Active jars shown on the Plan hub before the existing view-all escape. */
 export const PLAN_HUB_VISIBLE_JAR_LIMIT = 6;
 
+/** Active goals shown on the Plan hub before the existing view-all escape. */
+export const PLAN_HUB_VISIBLE_GOAL_LIMIT = 3;
+
+/** Existing recommendation engine cap used by the hub (one primary + supporting). */
+export const PLAN_HUB_RECOMMENDATION_LIMIT = 3;
+
 export const RecommendationListVariant = {
   HIGHLIGHTED: "highlighted",
   SUPPORTING: "supporting",
@@ -31,17 +37,6 @@ const UPCOMING_DUE_SOURCES = new Set<string>([
   CalendarEventSource.CARD_DUE,
   CalendarEventSource.LIABILITY,
 ]);
-
-const HEALTH_DOT_CLASS: Record<PlanHomeHealthStatusValue, string> = {
-  [PlanHomeHealthStatus.HEALTHY]: "bg-success",
-  [PlanHomeHealthStatus.ATTENTION]: "bg-warning",
-  [PlanHomeHealthStatus.OFF_TRACK]: "bg-danger",
-  [PlanHomeHealthStatus.NO_PLAN]: "bg-white/40",
-};
-
-export function planHealthDotClass(health: PlanHomeHealthStatusValue): string {
-  return HEALTH_DOT_CLASS[health];
-}
 
 export function resolvePlanHealthCopy(
   health: PlanHomeHealthStatusValue,
