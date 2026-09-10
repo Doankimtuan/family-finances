@@ -158,7 +158,7 @@ export function LoginScreen() {
   });
 
   return (
-    <AuthScreenShell testId="auth-login" align="start" withGlow busy={busy}>
+    <AuthScreenShell testId="auth-login" align="start" busy={busy}>
       <AuthScreenHeader
         title={t("title")}
         subtitle={t("subtitle")}

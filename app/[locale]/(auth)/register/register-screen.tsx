@@ -170,7 +170,7 @@ export function RegisterScreen() {
   });
 
   return (
-    <AuthScreenShell testId="auth-register" align="start" withGlow busy={busy}>
+    <AuthScreenShell testId="auth-register" align="start" busy={busy}>
       <AuthScreenHeader
         title={t("title")}
         subtitle={t("subtitle")}

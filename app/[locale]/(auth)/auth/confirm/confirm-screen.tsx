@@ -6,7 +6,10 @@ import { StatusAlert } from "@/shared/ui/status-alert";
 import { Button } from "@/shared/ui/button";
 import { Heading } from "@/shared/ui/heading";
 import { LoadingState } from "@/shared/patterns/loading-state";
-import { AuthScreenShell } from "@/shared/patterns/auth-screen-shell";
+import {
+  AUTH_PRIMARY_ACTION_CLASS_NAME,
+  AuthScreenShell,
+} from "@/shared/patterns/auth-screen-shell";
 import { BrandMark } from "@/shared/patterns/brand-mark";
 import {
   isAuthConfirmErrorCode,
@@ -57,7 +60,7 @@ export function ConfirmScreen({
         />
         <Button
           variant="primary"
-          className="w-full"
+          className={AUTH_PRIMARY_ACTION_CLASS_NAME}
           onPress={() => router.replace(`/${AUTH_LOCALE_HOME_SEGMENT}`)}
         >
           {t("continue")}
@@ -85,7 +88,7 @@ export function ConfirmScreen({
       />
       <Button
         variant="primary"
-        className="w-full"
+        className={AUTH_PRIMARY_ACTION_CLASS_NAME}
         onPress={() => router.replace(`/${AUTH_LOCALE_LOGIN_SEGMENT}`)}
       >
         {t("continue")}

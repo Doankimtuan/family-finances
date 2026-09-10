@@ -1,0 +1,17 @@
+{
+  "baseURL": "http://127.0.0.1:3000",
+  "auth": "unauthenticated",
+  "playwrightCapture": "failed-missing-chromium",
+  "browser": "cursor-ide-browser",
+  "metrics": {
+    "welcome390": { "innerWidth": 390, "shellWidth": 390 },
+    "login440": { "innerWidth": 440, "shellWidth": 440 },
+    "desktop": { "innerWidth": 2227, "shellWidth": 440 }
+  },
+  "loginHydration": "busy || !hydrated — submit and OAuth disabled",
+  "onboard": "redirected to /en/login",
+  "limitations": [
+    "Authenticated onboarding wizard not exercised",
+    "No fake session or credentials used"
+  ]
+}

@@ -3,15 +3,17 @@
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/navigation";
-import { AuthScreenShell } from "@/shared/patterns/auth-screen-shell";
-import { Card } from "@/shared/patterns/card";
+import {
+  AUTH_PRIMARY_ACTION_CLASS_NAME,
+  AuthScreenShell,
+  BrandMark,
+} from "@/shared/patterns";
+import { AlertVariant } from "@/shared/ui/alert";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Button } from "@/shared/ui/button";
 import { Heading } from "@/shared/ui/heading";
 import { Text } from "@/shared/ui/text";
-import { AppIcon } from "@/shared/ui/app-icon";
-import { IconContainer } from "@/shared/ui/icon-container";
-import { NAVIGATION_ICONS } from "@/shared/ui/icon-registry";
+import { cn } from "@/shared/utils/cn";
 import type { InvitationPreview } from "@/modules/tenancy/application/get-invitation-preview";
 import {
   APP_PATH,
@@ -40,6 +42,7 @@ export function InviteAcceptScreen({
   isAuthenticated: boolean;
 }) {
   const t = useTranslations("together.accept");
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const [errorCode, setErrorCode] = useState<AcceptScreenErrorCode | null>(
     null,
@@ -48,15 +51,16 @@ export function InviteAcceptScreen({
 
   if (!preview) {
     return (
-      <AuthScreenShell testId="invite-accept" centered>
+      <AuthScreenShell testId="invite-accept" align="center">
+        <InviteIdentity brand={tCommon("brand")} />
         <StatusAlert
-          variant="danger"
+          variant={AlertVariant.DANGER}
           title={t("notFoundTitle")}
           description={t("errors.not_found")}
         />
         <Button
           variant="primary"
-          className="w-full"
+          className={AUTH_PRIMARY_ACTION_CLASS_NAME}
           onPress={() => router.replace(APP_PATH.WELCOME)}
         >
           {t("goHome")}
@@ -92,45 +96,32 @@ export function InviteAcceptScreen({
   };
 
   return (
-    <AuthScreenShell testId="invite-accept" centered>
-      <Card tone="hero" className="gap-(--space-4) p-(--space-4)">
-        <div className="flex items-start gap-(--space-3)">
-          <IconContainer tone="primary" size="md">
-            <AppIcon icon={NAVIGATION_ICONS.together} size="lg" emphasized />
-          </IconContainer>
-          <div className="min-w-0">
-            <Text size="xs" className="text-hero-muted">
-              {t("invitationLabel")}
-            </Text>
-            <Heading
-              level={1}
-              className="mt-1 text-xl tracking-tight text-hero-fg"
-            >
-              {t("title")}
-            </Heading>
-          </div>
-        </div>
-        <div className="border-t border-white/15 pt-(--space-3)">
-          <Text className="font-semibold text-hero-fg text-pretty">
-            {preview.householdName}
+    <AuthScreenShell testId="invite-accept" align="center" busy={isPending}>
+      <InviteIdentity brand={tCommon("brand")} />
+
+      <header className="flex flex-col gap-(--space-2)">
+        <Text size="xs" weight="medium" tone="secondary">
+          {t("invitationLabel")}
+        </Text>
+        <Heading level={1} className="text-2xl leading-tight tracking-tight">
+          {t("title")}
+        </Heading>
+        <Text weight="semibold" className="text-pretty text-text-primary">
+          {preview.householdName}
+        </Text>
+        <Text size="sm" tone="secondary">
+          {t("forEmail", { email: preview.inviteEmail })}
+        </Text>
+        {!blocked ? (
+          <Text size="sm" tone="secondary" className="text-pretty">
+            {t("joinDescription")}
           </Text>
-          <Text size="sm" className="mt-1 text-hero-muted">
-            {t("forEmail", { email: preview.inviteEmail })}
-          </Text>
-          {!blocked ? (
-            <Text
-              size="sm"
-              className="mt-(--space-3) text-hero-muted text-pretty"
-            >
-              {t("joinDescription")}
-            </Text>
-          ) : null}
-        </div>
-      </Card>
+        ) : null}
+      </header>
 
       {blocked ? (
         <StatusAlert
-          variant="warning"
+          variant={AlertVariant.WARNING}
           title={blockedTitle}
           description={blockedDescription}
         />
@@ -138,7 +129,7 @@ export function InviteAcceptScreen({
 
       {errorCode ? (
         <StatusAlert
-          variant="danger"
+          variant={AlertVariant.DANGER}
           title={t("actionErrorTitle")}
           description={t(`errors.${errorCode}`)}
         />
@@ -147,14 +138,21 @@ export function InviteAcceptScreen({
       {!isAuthenticated ? (
         <Link
           href={loginHrefWithNext(invitePath(token))}
-          className="inline-flex min-h-12 w-full items-center justify-center rounded-[var(--radius-control)] bg-accent px-(--space-4) text-sm font-semibold text-accent-fg shadow-[var(--elevation-1)] transition-[background-color,transform] duration-(--duration-fast) hover:-translate-y-px active:scale-[var(--press-scale)] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+          className={cn(
+            AUTH_PRIMARY_ACTION_CLASS_NAME,
+            "inline-flex items-center justify-center rounded-(--radius-control) bg-accent px-(--space-4) text-accent-fg shadow-(--elevation-1)",
+            "transition-[background-color,transform] duration-(--duration-fast) ease-(--ease-standard)",
+            "hover:-translate-y-px active:scale-(--press-scale)",
+            "motion-reduce:transition-none motion-reduce:active:scale-100",
+            "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring",
+          )}
         >
           {t("signIn")}
         </Link>
       ) : blocked ? (
         <Button
           variant="primary"
-          className="w-full"
+          className={AUTH_PRIMARY_ACTION_CLASS_NAME}
           onPress={() => router.replace(APP_PATH.TOGETHER)}
         >
           {t("goTogether")}
@@ -163,7 +161,7 @@ export function InviteAcceptScreen({
         <div className="flex flex-col gap-(--space-2)">
           <Button
             variant="primary"
-            className="min-h-12 w-full"
+            className={AUTH_PRIMARY_ACTION_CLASS_NAME}
             data-testid="invite-accept"
             isDisabled={isPending}
             isPending={isPending}
@@ -173,7 +171,7 @@ export function InviteAcceptScreen({
           </Button>
           <Button
             variant="secondary"
-            className="w-full"
+            className="min-h-11 w-full"
             data-testid="invite-decline"
             isDisabled={isPending}
             onPress={onDecline}
@@ -183,5 +181,16 @@ export function InviteAcceptScreen({
         </div>
       )}
     </AuthScreenShell>
+  );
+}
+
+function InviteIdentity({ brand }: { brand: string }) {
+  return (
+    <div className="flex items-center gap-(--space-2)">
+      <BrandMark variant="soft" size="sm" decorative />
+      <Text size="sm" weight="semibold" className="text-text-primary">
+        {brand}
+      </Text>
+    </div>
   );
 }

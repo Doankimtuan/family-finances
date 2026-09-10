@@ -62,7 +62,6 @@ export function ResetPasswordScreen() {
     <AuthScreenShell
       testId="auth-reset-password"
       align="start"
-      withGlow
       busy={isPending}
     >
       <AuthScreenHeader

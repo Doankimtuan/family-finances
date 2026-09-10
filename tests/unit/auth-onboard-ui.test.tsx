@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi, beforeEach } from "vitest";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import { OAuthProvider } from "@/modules/tenancy/application/oauth.schema";
 import { PlanPreset } from "@/modules/tenancy/application/create-household.schema";
@@ -240,6 +240,10 @@ describe("Password reveal", () => {
 });
 
 describe("Onboarding two-step flow", () => {
+  beforeEach(() => {
+    createHouseholdActionMock.mockReset();
+  });
+
   it("starts on step 1 of 2 and continues to jar choices", async () => {
     renderOnboard();
 
@@ -286,6 +290,37 @@ describe("Onboarding two-step flow", () => {
     expect(screen.getByLabelText("onboard.householdNameLabel")).toHaveValue(
       "Our household",
     );
+  });
+
+  it("keeps skip secondary and submits without an account or jar preset", async () => {
+    createHouseholdActionMock.mockResolvedValue({
+      status: "error",
+      code: "unknown",
+    });
+    renderOnboard();
+
+    fireEvent.change(screen.getByLabelText("onboard.householdNameLabel"), {
+      target: { value: "Our household" },
+    });
+    fireEvent.click(screen.getByTestId("onboard-next"));
+    const finish = await screen.findByTestId("onboard-finish");
+    const skip = screen.getByTestId("onboard-skip-account");
+
+    expect(finish.compareDocumentPosition(skip)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    );
+
+    fireEvent.click(skip);
+    await waitFor(() => {
+      expect(createHouseholdActionMock).toHaveBeenCalled();
+    });
+    expect(createHouseholdActionMock.mock.calls[0]?.[0]).toMatchObject({
+      name: "Our household",
+      planPreset: null,
+    });
+    expect(
+      createHouseholdActionMock.mock.calls[0]?.[0].accountName,
+    ).toBeUndefined();
   });
 
   it("submits finish with the existing household contract", async () => {

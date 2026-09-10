@@ -8,6 +8,7 @@ import {
   AUTH_PRIMARY_ACTION_CLASS_NAME,
   AmountField,
   AuthScreenShell,
+  BrandMark,
   ChoiceTile,
   ChoiceTileGroup,
 } from "@/shared/patterns";
@@ -58,6 +59,7 @@ const PLAN_PRESET_OPTIONS: Array<{
  */
 export function OnboardWizardScreen() {
   const t = useTranslations("onboard");
+  const tCommon = useTranslations("common");
   const tValidation = useTranslations("validation");
   const locale = useLocale();
   const [step, setStep] = useState(1);
@@ -138,6 +140,12 @@ export function OnboardWizardScreen() {
 
   return (
     <AuthScreenShell testId="onboard-wizard" align="start" busy={isPending}>
+      <div className="flex items-center gap-(--space-2)">
+        <BrandMark variant="soft" size="sm" decorative />
+        <Text size="sm" weight="semibold" className="text-text-primary">
+          {tCommon("brand")}
+        </Text>
+      </div>
       <Progress value={step} max={TOTAL_STEPS} label={progressLabel} />
 
       <MotionStep stepKey={`onboard-step-${step}`} direction={direction}>
@@ -175,17 +183,6 @@ export function OnboardWizardScreen() {
           </section>
         ) : (
           <section className="flex flex-1 flex-col gap-(--space-4)">
-            <div className="flex justify-end">
-              <Button
-                variant="ghost"
-                className="min-h-11 px-(--space-2) text-sm text-text-secondary"
-                onPress={skipCashAccount}
-                isDisabled={isPending || skipAccount}
-                data-testid="onboard-skip-account"
-              >
-                {t("skipAccount")}
-              </Button>
-            </div>
             <OnboardStepHeader
               title={t("step2Title")}
               description={t("step2Description")}
@@ -277,14 +274,6 @@ export function OnboardWizardScreen() {
             </fieldset>
             <div className="mt-auto flex flex-col gap-(--space-2) pt-(--space-2)">
               <Button
-                variant="ghost"
-                className="min-h-11 w-full text-sm text-text-secondary"
-                onPress={goBackToHousehold}
-                isDisabled={isPending}
-              >
-                {t("back")}
-              </Button>
-              <Button
                 variant="primary"
                 className={AUTH_PRIMARY_ACTION_CLASS_NAME}
                 data-testid="onboard-finish"
@@ -292,6 +281,23 @@ export function OnboardWizardScreen() {
                 isDisabled={isPending}
               >
                 {isPending ? t("finishing") : t("finish")}
+              </Button>
+              <Button
+                variant="ghost"
+                className="min-h-11 w-full text-sm font-medium text-text-secondary"
+                onPress={skipCashAccount}
+                isDisabled={isPending || skipAccount}
+                data-testid="onboard-skip-account"
+              >
+                {t("skipAccount")}
+              </Button>
+              <Button
+                variant="ghost"
+                className="min-h-11 w-full text-sm text-text-muted"
+                onPress={goBackToHousehold}
+                isDisabled={isPending}
+              >
+                {t("back")}
               </Button>
             </div>
           </section>

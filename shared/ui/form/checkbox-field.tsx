@@ -23,13 +23,13 @@ export function CheckboxField({
     <div className={cn("flex flex-col gap-(--space-1)", className)}>
       <label
         htmlFor={id}
-        className="flex min-h-11 cursor-pointer items-start gap-(--space-3) py-(--space-1) text-sm leading-snug text-text-secondary"
+        className="flex min-h-11 cursor-pointer items-center gap-(--space-3) py-(--space-1) text-sm leading-snug text-text-secondary"
       >
         <input
           id={id}
           type="checkbox"
           className={cn(
-            "mt-0.5 size-5 shrink-0 rounded-sm",
+            "size-5 shrink-0 rounded-sm",
             "border border-border-strong bg-surface accent-[var(--color-accent)]",
             "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring",
           )}

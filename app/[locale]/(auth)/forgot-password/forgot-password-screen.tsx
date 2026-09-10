@@ -72,7 +72,6 @@ export function ForgotPasswordScreen() {
     <AuthScreenShell
       testId="auth-forgot-password"
       align="start"
-      withGlow
       busy={isPending}
     >
       <AuthScreenHeader
