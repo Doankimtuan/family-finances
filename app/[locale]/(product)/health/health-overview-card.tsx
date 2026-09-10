@@ -1,4 +1,5 @@
 import { Card } from "@/shared/patterns/card";
+import { StatusBadge, StatusBadgeTone } from "@/shared/ui/status-badge";
 import { Text } from "@/shared/ui/text";
 
 export function HealthOverviewCard({
@@ -6,42 +7,58 @@ export function HealthOverviewCard({
   score,
   levelLabel,
   narrative,
+  scoreMeaning,
 }: {
   title: string;
   score: number;
   levelLabel: string;
   narrative: string;
+  scoreMeaning: string;
 }) {
   const clamped = Math.max(0, Math.min(100, Math.round(score)));
+  const pulseLabel = `${title}: ${clamped} / 100, ${levelLabel}`;
 
   return (
     <Card
-      tone="hero"
+      tone="elevated"
       className="gap-0 p-(--space-4)"
       data-testid="health-overview-card"
+      aria-label={pulseLabel}
     >
       <div className="flex items-start justify-between gap-(--space-3)">
         <div className="min-w-0">
-          <Text size="sm" weight="medium" className="text-hero-muted">
+          <Text size="sm" tone="secondary" weight="medium">
             {title}
           </Text>
-          <p className="mt-(--space-2) text-4xl font-semibold leading-none tabular-nums tracking-tight text-hero-fg">
+          <p className="mt-(--space-2) text-2xl font-semibold leading-none tabular-nums tracking-tight text-text-primary">
             {clamped}
-            <span className="text-base font-medium text-hero-muted">/100</span>
+            <span className="text-sm font-medium text-text-secondary">
+              /100
+            </span>
           </p>
         </div>
-        <span
-          className="inline-flex min-h-7 shrink-0 items-center rounded-full border border-white/25 bg-white/10 px-(--space-2) text-xs font-semibold leading-none text-hero-fg"
+        <StatusBadge
+          tone={StatusBadgeTone.NEUTRAL}
+          className="shrink-0"
           data-testid="health-card-level"
         >
           {levelLabel}
-        </span>
+        </StatusBadge>
       </div>
       <Text
         size="sm"
-        className="mt-(--space-3) text-pretty leading-relaxed text-hero-muted"
+        tone="secondary"
+        className="mt-(--space-3) text-pretty leading-relaxed"
       >
         {narrative}
+      </Text>
+      <Text
+        size="sm"
+        tone="muted"
+        className="mt-(--space-2) text-pretty leading-relaxed"
+        data-testid="health-pulse-meaning"
+      >
+        {scoreMeaning}
       </Text>
     </Card>
   );

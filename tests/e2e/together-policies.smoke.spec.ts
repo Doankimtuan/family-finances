@@ -37,7 +37,7 @@ test.describe("Together policies + preferences (ST-E03-003)", () => {
       surface.getByTestId("together-policies-link").first(),
     ).toBeVisible();
     await expect(
-      surface.getByTestId("together-preferences-link").first(),
+      surface.getByTestId("together-settings-link").first(),
     ).toBeVisible();
 
     await surface.getByTestId("together-policies-link").first().click();
@@ -50,7 +50,10 @@ test.describe("Together policies + preferences (ST-E03-003)", () => {
     await expect(page.getByTestId("together-change-role")).toHaveCount(0);
 
     await page.goto("/en/together");
-    await surface.getByTestId("together-preferences-link").first().click();
+    await surface.getByTestId("together-settings-link").first().click();
+    await expect(page).toHaveURL(/\/en\/together\/settings/);
+    await expect(page.getByTestId("together-settings-page")).toBeVisible();
+    await page.getByTestId("together-preferences-link").first().click();
     await expect(page).toHaveURL(/\/en\/together\/preferences/);
     await expect(
       page

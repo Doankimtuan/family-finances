@@ -5,7 +5,7 @@ import { Card } from "@/shared/patterns/card";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 
-/** Mirrors loaded Health insights: detail header, notice rows, scenario rows. */
+/** Mirrors loaded Health insights: context, coverage, notice rows, scenario rows. */
 export default async function HealthInsightsLoading() {
   const t = await getTranslations("health");
 
@@ -23,6 +23,16 @@ export default async function HealthInsightsLoading() {
         />
       }
     >
+      <Skeleton className="h-4 w-full rounded" />
+
+      <div
+        className="flex flex-col gap-(--space-2) rounded-(--radius-card) bg-surface-muted/70 p-(--space-4)"
+        data-testid="health-insights-loading-coverage"
+      >
+        <Skeleton className="h-4 w-32 rounded" />
+        <Skeleton className="h-4 w-full rounded" />
+      </div>
+
       <div
         className="flex flex-col gap-(--space-3)"
         data-testid="health-insights-loading-notices"

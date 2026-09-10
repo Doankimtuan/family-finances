@@ -1,15 +1,14 @@
 import type { HouseholdMemberRow } from "@/modules/tenancy/application/list-household-members";
 
-const MEMBER_ID_FALLBACK_LENGTH = 8;
-
 export function memberDisplayName(
-  member: Pick<HouseholdMemberRow, "displayName" | "email" | "userId">,
+  member: Pick<HouseholdMemberRow, "displayName" | "email">,
+  unnamedFallback: string,
 ): string {
-  return (
-    member.displayName ??
-    member.email ??
-    member.userId.slice(0, MEMBER_ID_FALLBACK_LENGTH)
-  );
+  const displayName = member.displayName?.trim();
+  if (displayName) return displayName;
+  const email = member.email?.trim();
+  if (email) return email;
+  return unnamedFallback;
 }
 
 export function memberInitials(

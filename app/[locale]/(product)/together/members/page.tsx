@@ -46,6 +46,7 @@ export default async function MembersPage({ params }: Props) {
         <MemberList
           members={result.members}
           youLabel={t("you")}
+          unnamedFallback={t("unnamedMember")}
           roleAdminLabel={t("roleAdmin")}
           rolePartnerLabel={t("rolePartner")}
           roleAdminHint={t("members.roleAdminHint")}

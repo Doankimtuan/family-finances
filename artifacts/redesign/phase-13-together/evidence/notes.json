@@ -1,0 +1,11 @@
+{
+  "routeAttempted": "/en/together",
+  "resolvedUrl": "http://127.0.0.1:3000/en/login",
+  "loginButton": "disabled",
+  "oauthGoogle": "disabled",
+  "oauthApple": "disabled",
+  "waitedMs": 4000,
+  "hydrated": false,
+  "authBypassed": false,
+  "fakeDataSeeded": false
+}

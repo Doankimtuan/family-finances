@@ -1,45 +1,55 @@
 {
   "title": "Health",
-  "subtitle": "Read-only insights from household financial data",
+  "subtitle": "Read-only facts from recorded household data",
+  "context": "Health describes what recorded Money, Plan, and Inbox facts currently show. It does not give advice or change money.",
   "loadErrorTitle": "Could not load Health",
   "loadErrorBody": "Check your connection and try again.",
+  "retry": "Try again",
   "states": {
-    "noVisibleFactsTitle": "No visible financial facts yet",
-    "noVisibleFactsBody": "Health cannot assess risk until usable Money, Plan, or Inbox facts are visible.",
-    "partialTitle": "Health is partial",
-    "partialBody": "{visible} of {total} source areas have visible facts. Review the available factors without treating this as a complete assessment."
+    "noVisibleFactsTitle": "No recorded financial facts yet",
+    "noVisibleFactsBody": "Health can show coverage only after Money, Plan, or Inbox facts are recorded.",
+    "partialTitle": "Coverage is incomplete",
+    "partialBody": "{visible} of {total} source areas have recorded facts. Shown counts come only from those sources."
   },
-  "chipTitle": "Financial Health",
+  "chipTitle": "Household pulse",
+  "pulseMeaning": "This pulse uses recorded account count, active plan jars, and Inbox load. It is not a credit rating, net-worth score, or financial advice.",
   "levels": {
     "starting": "Starting",
     "steady": "Steady",
     "strong": "Strong"
   },
   "narratives": {
-    "starting": "Set up Money and Plan to strengthen the household pulse.",
-    "steady": "Solid footing — clear Inbox items to keep momentum.",
-    "strong": "Strong pulse — keep partners aligned on decisions."
+    "starting": "Recorded accounts, plan jars, and Inbox load currently show a starting pulse.",
+    "steady": "Recorded accounts, plan jars, and Inbox load currently show a steady pulse.",
+    "strong": "Recorded accounts, plan jars, and Inbox load currently show a strong pulse."
   },
-  "factorsTitle": "What shapes this score",
+  "factorsTitle": "Recorded coverage",
+  "factorsDescription": "Counts from existing household records. Missing sources stay missing.",
   "factors": {
-    "accounts": "{count, plural, =0 {No accounts yet} one {# account} other {# accounts}}",
-    "jars": "{count, plural, =0 {No active jars} one {# active jar} other {# active jars}}",
-    "inbox": "{count, plural, =0 {Inbox clear} one {# open Inbox item} other {# open Inbox items}}"
+    "accounts": "{count, plural, =0 {No recorded accounts} one {# recorded account} other {# recorded accounts}}",
+    "jars": "{count, plural, =0 {No active plan jars} one {# active plan jar} other {# active plan jars}}",
+    "inbox": "{count, plural, =0 {No open Inbox items} one {# open Inbox item} other {# open Inbox items}}"
   },
+  "coverageTitle": "Data coverage",
+  "coverageMissingAccounts": "No recorded accounts are visible in this view.",
+  "coverageMissingPlan": "No active plan jars are visible in this view.",
+  "limitationsTitle": "What this view covers",
+  "limitationsBody": "Health uses recorded accounts, plan jars, Inbox items, and recent ledger activity. It does not see finances that are not recorded in ViNha.",
   "emiCelebrateTitle": "Installment complete",
-  "emiCelebrateBody": "Celebrate in Inbox — clearing remaining principal marks completion. Health never invents a new balance.",
+  "emiCelebrateBody": "An installment completion is waiting in Inbox. Health does not invent a new ledger balance.",
   "viewInsights": "View insights",
   "backHome": "Back to Home",
   "insights": {
     "title": "Insights",
-    "subtitle": "Read-only notices from household facts only",
+    "subtitle": "Read-only notices from recorded household facts",
+    "context": "These notices describe recorded counts. They are not recommendations, forecasts, or a second Money dashboard.",
     "loadErrorTitle": "Could not load insights",
     "loadErrorBody": "Check your connection and try again.",
-    "emptyTitle": "Nothing to notice yet",
-    "emptyDescription": "As Money, Plan, and Inbox grow, light insights appear here.",
-    "sectionInsights": "Notices",
-    "sectionScenarios": "Light scenarios",
-    "scenarioReadOnly": "These scenarios are read-only and do not change money, plans, or decisions.",
+    "emptyTitle": "No recorded facts to describe yet",
+    "emptyDescription": "When Money, Plan, or Inbox has recorded facts, notices appear here.",
+    "sectionInsights": "Recorded notices",
+    "sectionScenarios": "Coverage scenarios",
+    "scenarioReadOnly": "These scenarios describe existing coverage inputs. They do not change money, plans, or decisions.",
     "backHealth": "Back to Health",
     "openInbox": "Open Inbox",
     "sources": {
@@ -51,41 +61,41 @@
     "items": {
       "emi_complete": {
         "title": "Installment complete",
-        "body": "An EMI completion is waiting in Inbox. Celebrate with your partner — no new ledger balance is invented here."
+        "body": "An EMI completion is waiting in Inbox. No new ledger balance is invented here."
       },
       "setup": {
-        "title": "Finish household setup",
-        "body": "Accounts: {accountCount}. Active jars: {jarCount}. Real position lives in Money; jars stay intention."
+        "title": "Setup coverage",
+        "body": "Recorded accounts: {accountCount}. Active jars: {jarCount}. Real position lives in Money; jars stay intention."
       },
       "inbox": {
-        "title": "Inbox needs attention",
-        "body": "{count, plural, one {# open item is waiting for a decision.} other {# open items are waiting for a decision.}}"
+        "title": "Open Inbox items",
+        "body": "{count, plural, one {# open item is waiting in Inbox.} other {# open items are waiting in Inbox.}}"
       },
       "activity": {
         "title": "Recent ledger activity",
-        "body": "{count, plural, =0 {No recent cleared moves yet — capture when ready.} one {# recent ledger move (real position only).} other {# recent ledger moves (real position only).}}"
+        "body": "{count, plural, =0 {No recent cleared moves are recorded yet.} one {# recent ledger move (real position only).} other {# recent ledger moves (real position only).}}"
       },
       "plan": {
-        "title": "Plan intention is active",
-        "body": "{count, plural, one {# Active jar is guiding intention — not bank balance.} other {# Active jars are guiding intention — not bank balance.}}"
+        "title": "Plan intention is recorded",
+        "body": "{count, plural, one {# Active jar is recorded as intention — not bank balance.} other {# Active jars are recorded as intention — not bank balance.}}"
       },
       "ai_guardrail": {
-        "title": "Assist stays honest",
-        "body": "Phase 2 AI may explain from household data only. It must not invent balances or move money without an explicit path."
+        "title": "Facts stay grounded",
+        "body": "Health may explain from household data only. It must not invent balances or move money."
       }
     },
     "scenarios": {
       "clear_inbox": {
-        "title": "If Inbox clears",
-        "body": "Clearing {count, plural, one {# open item} other {# open items}} lifts the pulse without changing ledger totals."
+        "title": "Inbox load as a pulse input",
+        "body": "This pulse treats Inbox load as one input. Open items: {count, plural, one {# item} other {# items}}. Ledger totals are unchanged here."
       },
       "add_jar": {
-        "title": "If you add an Active jar",
-        "body": "An Active jar strengthens intention. It never becomes unlabeled bank balance."
+        "title": "No active plan jar recorded",
+        "body": "No Active jar is recorded. Jars are intention. They never become unlabeled bank balance."
       },
       "keep_rhythm": {
-        "title": "If rhythm holds",
-        "body": "Partners deciding together keeps Health visible — score from setup and Inbox load, not invented cash."
+        "title": "Pulse sources",
+        "body": "This pulse stays visible from recorded setup and Inbox load, not invented cash."
       }
     }
   }

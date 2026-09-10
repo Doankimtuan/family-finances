@@ -290,8 +290,8 @@ describe("Together terminology localization (B15)", () => {
     expect(overview).toContain("TOGETHER_PATH.MEMBERS");
     expect(overview).toContain("TOGETHER_PATH.INVITATIONS");
     expect(overview).toContain("TOGETHER_PATH.POLICIES");
-    expect(overview).toContain("TOGETHER_PATH.PREFERENCES");
     expect(overview).toContain("TOGETHER_PATH.SETTINGS");
+    expect(overview).not.toContain("TOGETHER_PATH.PREFERENCES");
     expect(overview).toContain('description={t("membersDescription")}');
     expect(accept).toContain('t("goHome")');
     expect(accept).toContain("APP_PATH.WELCOME");

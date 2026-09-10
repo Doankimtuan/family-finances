@@ -17,6 +17,7 @@ import { IconContainer, IconContainerTone } from "@/shared/ui/icon-container";
 import { StatusBadge, StatusBadgeTone } from "@/shared/ui/status-badge";
 import { UTILITY_ICONS } from "@/shared/ui/icon-registry";
 import { revokeInvitationAction } from "../invite-actions";
+import { invitationRowAriaLabel } from "../together-presentations";
 import { InviteRevokeConfirmSheet } from "./invite-revoke-confirm-sheet";
 
 function inviteShareUrl(locale: string, token: string): string {
@@ -42,10 +43,20 @@ function PendingInvitationRow({
 }) {
   const t = useTranslations("together.invitations");
   const link = inviteShareUrl(locale, invite.token);
+  const expiry = t("expires", {
+    date: new Date(invite.expiresAt).toLocaleDateString(locale),
+  });
 
   return (
-    <li data-testid="together-invitation-row">
-      <div className="flex flex-col gap-(--space-2) px-(--space-3) py-(--space-3)">
+    <li
+      data-testid="together-invitation-row"
+      aria-label={invitationRowAriaLabel({
+        email: invite.email,
+        status: t("pendingTitle"),
+        expiry,
+      })}
+    >
+      <div className="flex min-h-14 flex-col gap-(--space-2) px-(--space-3) py-(--space-3)">
         <div className="flex items-start gap-(--space-3)">
           <IconContainer tone={IconContainerTone.INFO} size="sm">
             <AppIcon icon={UTILITY_ICONS.notification} size="sm" />
@@ -58,14 +69,15 @@ function PendingInvitationRow({
               >
                 {invite.email}
               </Text>
-              <StatusBadge tone={StatusBadgeTone.WARNING} className="shrink-0">
+              <StatusBadge
+                tone={StatusBadgeTone.WARNING}
+                className="shrink-0 whitespace-nowrap"
+              >
                 {t("pendingTitle")}
               </StatusBadge>
             </div>
             <Text size="xs" tone="secondary" className="mt-0.5 text-pretty">
-              {t("expires", {
-                date: new Date(invite.expiresAt).toLocaleDateString(locale),
-              })}
+              {expiry}
             </Text>
           </div>
         </div>

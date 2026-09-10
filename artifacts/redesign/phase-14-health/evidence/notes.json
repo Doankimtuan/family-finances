@@ -1,0 +1,19 @@
+{
+  "authenticated": true,
+  "routes": ["/en/health", "/en/health/insights", "/en/inbox?origin=%2Fhealth%2Finsights&factor=inbox"],
+  "viewports": {
+    "390": { "innerWidth": 390, "shellWidth": 390 },
+    "440": { "innerWidth": 440, "shellWidth": 440 },
+    "768": { "innerWidth": 768, "shellWidth": 440 },
+    "1280": { "innerWidth": 1280, "shellWidth": 440 }
+  },
+  "themes": ["light", "dark"],
+  "populatedFacts": {
+    "pulse": 85,
+    "level": "strong",
+    "accounts": 7,
+    "jars": 7,
+    "inbox": 5,
+    "coverage": "4 of 4"
+  }
+}

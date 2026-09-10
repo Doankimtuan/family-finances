@@ -18,6 +18,11 @@ const HEALTH_UI_FILES = [
   "app/[locale]/(product)/health/health-overview-card.tsx",
   "app/[locale]/(product)/health/health-view-insights-action.tsx",
   "app/[locale]/(product)/health/health-section-title.tsx",
+  "app/[locale]/(product)/health/health-fact-row.tsx",
+  "app/[locale]/(product)/health/health-coverage-card.tsx",
+  "app/[locale]/(product)/health/health-notice-row.tsx",
+  "app/[locale]/(product)/health/health-retry-link.tsx",
+  "app/[locale]/(product)/health/health-presentations.ts",
   "app/[locale]/(product)/health/insights/page.tsx",
   "app/[locale]/(product)/health/insights/loading.tsx",
   "app/[locale]/(product)/health/insights/health-source-link.tsx",
@@ -86,7 +91,7 @@ describe("Health secondary-screen shell (B06)", () => {
 
     expect(page).toContain('tone="elevated"');
     expect(page).toContain('tone="soft"');
-    expect(page).toContain("HealthSupportingItem");
+    expect(page).toContain("HealthNoticeRow");
     expect(page).not.toContain(
       "data-testid={`health-insight-${insight.kind}`}\n                    >",
     );
@@ -102,10 +107,10 @@ describe("Health secondary-screen shell (B06)", () => {
 
     expect(overviewLoading).toContain('testId="health-overview-loading"');
     expect(overviewLoading).toContain("health-overview-loading-summary");
-    expect(overviewLoading).toContain("health-overview-loading-factors");
+    expect(overviewLoading).toContain("health-overview-loading-coverage");
     expect(
-      overviewLoading.indexOf("health-overview-loading-summary"),
-    ).toBeLessThan(overviewLoading.indexOf("health-overview-loading-factors"));
+      overviewLoading.indexOf("health-overview-loading-factors"),
+    ).toBeLessThan(overviewLoading.indexOf("health-overview-loading-coverage"));
 
     expect(insightsLoading).toContain('testId="health-insights-loading"');
     expect(insightsLoading).toContain("health-insights-loading-notices");
@@ -147,7 +152,7 @@ describe("Health secondary-screen shell (B06)", () => {
     expect(APP_PATH.HEALTH_INSIGHTS).toBe("/health/insights");
   });
 
-  it("renders the Health summary as a dominant hero with unchanged score values", () => {
+  it("renders the Health pulse with unchanged score values and no giant hero", () => {
     render(
       <NextIntlClientProvider locale="en" messages={{ health: enHealth }}>
         <HealthOverviewCard
@@ -155,6 +160,7 @@ describe("Health secondary-screen shell (B06)", () => {
           score={73}
           levelLabel={enHealth.levels.steady}
           narrative={enHealth.narratives.steady}
+          scoreMeaning={enHealth.pulseMeaning}
         />
       </NextIntlClientProvider>,
     );
@@ -162,10 +168,12 @@ describe("Health secondary-screen shell (B06)", () => {
     const card = screen.getByTestId("health-overview-card");
     expect(card).toHaveTextContent("73");
     expect(card).toHaveTextContent("/100");
-    expect(card).toHaveTextContent("Financial Health");
+    expect(card).toHaveTextContent("Household pulse");
     expect(card).toHaveTextContent("Steady");
     expect(card).toHaveTextContent(enHealth.narratives.steady);
-    expect(card.className).toContain("from-hero");
+    expect(card).toHaveTextContent(enHealth.pulseMeaning);
+    expect(card.className).not.toContain("from-hero");
+    expect(card.getAttribute("data-tone")).toBe("elevated");
   });
 
   it("localizes Health secondary-shell copy in English and Vietnamese", () => {

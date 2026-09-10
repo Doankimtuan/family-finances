@@ -6,6 +6,7 @@ import { TextField } from "@/shared/ui/form";
 import { Button } from "@/shared/ui/button";
 import { AlertVariant } from "@/shared/ui/alert";
 import { StatusAlert } from "@/shared/ui/status-alert";
+import { BottomActionBar } from "@/shared/patterns/bottom-action-bar";
 import { Card } from "@/shared/patterns/card";
 import { useStatusAlert } from "@/providers/status-alert-provider";
 import { createInvitationAction } from "../../invite-actions";
@@ -52,6 +53,8 @@ export function InvitationForm() {
           error={emailError ? t("emailError") : undefined}
           autoComplete="email"
         />
+      </Card>
+      <BottomActionBar>
         <Button
           variant="primary"
           className="min-h-12 w-full"
@@ -62,7 +65,7 @@ export function InvitationForm() {
         >
           {isPending ? t("sending") : t("send")}
         </Button>
-      </Card>
+      </BottomActionBar>
     </div>
   );
 }

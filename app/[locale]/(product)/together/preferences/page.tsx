@@ -30,7 +30,7 @@ export default async function PreferencesPage({ params }: Props) {
       topBar={
         <TopAppBar
           variant="detail"
-          backHref={TOGETHER_PATH.ROOT}
+          backHref={TOGETHER_PATH.SETTINGS}
           title={t("title")}
           subtitle={preferences.householdName}
         />

@@ -32,19 +32,32 @@ describe("Together member identity", () => {
     expect(memberInitials("alex@example.com", "Alex Nguyen")).toBe("AN");
     expect(memberInitials("solo@example.com", null)).toBe("SE");
     expect(
-      memberDisplayName({
-        displayName: "Alex Nguyen",
-        email: "alex@example.com",
-        userId: "user-1",
-      }),
+      memberDisplayName(
+        {
+          displayName: "Alex Nguyen",
+          email: "alex@example.com",
+        },
+        "Member",
+      ),
     ).toBe("Alex Nguyen");
     expect(
-      memberDisplayName({
-        displayName: null,
-        email: "alex@example.com",
-        userId: "user-1",
-      }),
+      memberDisplayName(
+        {
+          displayName: null,
+          email: "alex@example.com",
+        },
+        "Member",
+      ),
     ).toBe("alex@example.com");
+    expect(
+      memberDisplayName(
+        {
+          displayName: null,
+          email: null,
+        },
+        "Member",
+      ),
+    ).toBe("Member");
   });
 });
 
@@ -71,8 +84,11 @@ describe("Together UI polish", () => {
           },
         ]}
         youLabel="You"
+        unnamedFallback="Member"
         roleAdminLabel="Admin"
         rolePartnerLabel="Partner"
+        roleAdminHint="Can manage the household"
+        rolePartnerHint="Member access"
       />,
     );
 

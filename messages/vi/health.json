@@ -1,45 +1,55 @@
 {
   "title": "Sức khỏe",
-  "subtitle": "Nhận định chỉ xem từ dữ liệu tài chính hộ gia đình",
+  "subtitle": "Sự thật chỉ xem từ dữ liệu hộ gia đình đã ghi",
+  "context": "Sức khỏe mô tả những gì dữ liệu Tiền, Kế hoạch và Hộp thư đã ghi đang cho thấy. Không tư vấn và không thay đổi tiền.",
   "loadErrorTitle": "Không tải được Sức khỏe",
   "loadErrorBody": "Kiểm tra kết nối rồi thử lại.",
+  "retry": "Thử lại",
   "states": {
-    "noVisibleFactsTitle": "Chưa có dữ liệu tài chính khả dụng",
-    "noVisibleFactsBody": "Sức khỏe chưa thể đánh giá rủi ro cho đến khi có dữ liệu khả dụng từ Tiền, Kế hoạch hoặc Hộp thư.",
-    "partialTitle": "Đánh giá chưa đầy đủ",
-    "partialBody": "Có dữ liệu ở {visible} trên {total} khu vực nguồn. Hãy xem các yếu tố hiện có nhưng đừng coi đây là đánh giá đầy đủ."
+    "noVisibleFactsTitle": "Chưa có dữ liệu tài chính đã ghi",
+    "noVisibleFactsBody": "Sức khỏe chỉ hiện phạm vi phủ khi đã có dữ liệu từ Tiền, Kế hoạch hoặc Hộp thư.",
+    "partialTitle": "Phạm vi phủ chưa đủ",
+    "partialBody": "Có dữ liệu ở {visible} trên {total} khu vực nguồn. Các số đếm hiện có chỉ từ những nguồn đó."
   },
-  "chipTitle": "Sức khỏe tài chính",
+  "chipTitle": "Nhịp hộ gia đình",
+  "pulseMeaning": "Nhịp này dùng số tài khoản đã ghi, hũ kế hoạch đang dùng và tải Hộp thư. Đây không phải điểm tín dụng, điểm tài sản ròng hay lời khuyên tài chính.",
   "levels": {
     "starting": "Bắt đầu",
     "steady": "Ổn định",
     "strong": "Vững"
   },
   "narratives": {
-    "starting": "Thiết lập Tiền và Kế hoạch để củng cố nhịp hộ gia đình.",
-    "steady": "Nền tảng ổn — xử lý Hộp thư để giữ đà.",
-    "strong": "Nhịp tốt — giữ đối tác cùng nhịp quyết định."
+    "starting": "Tài khoản, hũ kế hoạch và tải Hộp thư đã ghi hiện cho thấy nhịp bắt đầu.",
+    "steady": "Tài khoản, hũ kế hoạch và tải Hộp thư đã ghi hiện cho thấy nhịp ổn định.",
+    "strong": "Tài khoản, hũ kế hoạch và tải Hộp thư đã ghi hiện cho thấy nhịp vững."
   },
-  "factorsTitle": "Điều gì tạo nên điểm số",
+  "factorsTitle": "Phạm vi đã ghi",
+  "factorsDescription": "Số đếm từ hồ sơ hộ gia đình hiện có. Nguồn còn thiếu vẫn là chưa có.",
   "factors": {
-    "accounts": "{count, plural, =0 {Chưa có tài khoản} one {# tài khoản} other {# tài khoản}}",
-    "jars": "{count, plural, =0 {Chưa có hũ đang dùng} one {# hũ đang dùng} other {# hũ đang dùng}}",
-    "inbox": "{count, plural, =0 {Hộp thư trống} one {# việc mở trong Hộp thư} other {# việc mở trong Hộp thư}}"
+    "accounts": "{count, plural, =0 {Chưa có tài khoản đã ghi} one {# tài khoản đã ghi} other {# tài khoản đã ghi}}",
+    "jars": "{count, plural, =0 {Chưa có hũ kế hoạch đang dùng} one {# hũ kế hoạch đang dùng} other {# hũ kế hoạch đang dùng}}",
+    "inbox": "{count, plural, =0 {Không có việc mở trong Hộp thư} one {# việc mở trong Hộp thư} other {# việc mở trong Hộp thư}}"
   },
+  "coverageTitle": "Phạm vi dữ liệu",
+  "coverageMissingAccounts": "Chưa thấy tài khoản đã ghi trong khung nhìn này.",
+  "coverageMissingPlan": "Chưa thấy hũ kế hoạch đang dùng trong khung nhìn này.",
+  "limitationsTitle": "Khung nhìn này gồm gì",
+  "limitationsBody": "Sức khỏe dùng tài khoản, hũ kế hoạch, việc Hộp thư và hoạt động sổ cái gần đây đã ghi. Không thấy tài chính chưa được ghi trong ViNha.",
   "emiCelebrateTitle": "Trả góp đã xong",
-  "emiCelebrateBody": "Chúc mừng trong Hộp thư — hết gốc còn lại là hoàn tất. Sức khỏe không bịa số dư mới.",
+  "emiCelebrateBody": "Có việc hoàn tất trả góp đang chờ trong Hộp thư. Sức khỏe không bịa số dư sổ cái mới.",
   "viewInsights": "Xem nhận định",
   "backHome": "Về Trang chủ",
   "insights": {
     "title": "Nhận định",
-    "subtitle": "Thông báo chỉ xem, chỉ từ dữ liệu hộ gia đình",
+    "subtitle": "Thông báo chỉ xem từ dữ liệu hộ gia đình đã ghi",
+    "context": "Các thông báo này mô tả số đếm đã ghi. Không phải khuyến nghị, dự báo hay một bảng Tiền thứ hai.",
     "loadErrorTitle": "Không tải được nhận định",
     "loadErrorBody": "Kiểm tra kết nối rồi thử lại.",
-    "emptyTitle": "Chưa có gì để để ý",
-    "emptyDescription": "Khi Tiền, Kế hoạch và Hộp thư có dữ liệu, nhận định nhẹ sẽ hiện ở đây.",
-    "sectionInsights": "Thông báo",
-    "sectionScenarios": "Kịch bản nhẹ",
-    "scenarioReadOnly": "Các kịch bản này chỉ để xem và không thay đổi tiền, kế hoạch hay quyết định.",
+    "emptyTitle": "Chưa có dữ liệu đã ghi để mô tả",
+    "emptyDescription": "Khi Tiền, Kế hoạch hoặc Hộp thư có dữ liệu đã ghi, thông báo sẽ hiện ở đây.",
+    "sectionInsights": "Thông báo đã ghi",
+    "sectionScenarios": "Kịch bản phạm vi phủ",
+    "scenarioReadOnly": "Các kịch bản này mô tả đầu vào phạm vi phủ hiện có. Chúng không thay đổi tiền, kế hoạch hay quyết định.",
     "backHealth": "Về Sức khỏe",
     "openInbox": "Mở Hộp thư",
     "sources": {
@@ -51,41 +61,41 @@
     "items": {
       "emi_complete": {
         "title": "Trả góp đã xong",
-        "body": "Có việc hoàn tất trả góp đang chờ trong Hộp thư. Chúc mừng cùng đối tác — không bịa số dư sổ cái ở đây."
+        "body": "Có việc hoàn tất trả góp đang chờ trong Hộp thư. Không bịa số dư sổ cái ở đây."
       },
       "setup": {
-        "title": "Hoàn tất thiết lập",
-        "body": "Tài khoản: {accountCount}. Hũ đang dùng: {jarCount}. Vị thế thật ở Tiền; hũ chỉ là ý định."
+        "title": "Phạm vi thiết lập",
+        "body": "Tài khoản đã ghi: {accountCount}. Hũ đang dùng: {jarCount}. Vị thế thật ở Tiền; hũ chỉ là ý định."
       },
       "inbox": {
-        "title": "Hộp thư cần chú ý",
-        "body": "{count, plural, one {# việc đang chờ quyết định.} other {# việc đang chờ quyết định.}}"
+        "title": "Việc mở trong Hộp thư",
+        "body": "{count, plural, one {# việc đang chờ trong Hộp thư.} other {# việc đang chờ trong Hộp thư.}}"
       },
       "activity": {
         "title": "Hoạt động sổ cái gần đây",
-        "body": "{count, plural, =0 {Chưa có giao dịch gần đây — ghi khi sẵn sàng.} one {# giao dịch sổ cái gần đây (chỉ vị thế thật).} other {# giao dịch sổ cái gần đây (chỉ vị thế thật).}}"
+        "body": "{count, plural, =0 {Chưa ghi giao dịch đã tất toán gần đây.} one {# giao dịch sổ cái gần đây (chỉ vị thế thật).} other {# giao dịch sổ cái gần đây (chỉ vị thế thật).}}"
       },
       "plan": {
-        "title": "Kế hoạch ý định đang chạy",
-        "body": "{count, plural, one {# hũ đang dùng dẫn ý định — không phải số dư ngân hàng.} other {# hũ đang dùng dẫn ý định — không phải số dư ngân hàng.}}"
+        "title": "Ý định kế hoạch đã ghi",
+        "body": "{count, plural, one {# hũ đang dùng được ghi là ý định — không phải số dư ngân hàng.} other {# hũ đang dùng được ghi là ý định — không phải số dư ngân hàng.}}"
       },
       "ai_guardrail": {
-        "title": "Trợ lý giữ trung thực",
-        "body": "AI giai đoạn 2 chỉ được giải thích từ dữ liệu hộ. Không được bịa số dư hay chuyển tiền nếu không có đường rõ ràng."
+        "title": "Sự thật được neo dữ liệu",
+        "body": "Sức khỏe chỉ được giải thích từ dữ liệu hộ. Không được bịa số dư hay chuyển tiền."
       }
     },
     "scenarios": {
       "clear_inbox": {
-        "title": "Nếu Hộp thư trống",
-        "body": "Xử lý {count, plural, one {# việc mở} other {# việc mở}} sẽ nâng nhịp mà không đổi tổng sổ cái."
+        "title": "Tải Hộp thư là một đầu vào nhịp",
+        "body": "Nhịp này lấy tải Hộp thư làm một đầu vào. Việc mở: {count, plural, one {# việc} other {# việc}}. Tổng sổ cái không đổi ở đây."
       },
       "add_jar": {
-        "title": "Nếu thêm hũ đang dùng",
-        "body": "Hũ đang dùng củng cố ý định. Nó không bao giờ thành số dư ngân hàng không nhãn."
+        "title": "Chưa ghi hũ kế hoạch đang dùng",
+        "body": "Chưa ghi hũ đang dùng. Hũ là ý định. Chúng không bao giờ thành số dư ngân hàng không nhãn."
       },
       "keep_rhythm": {
-        "title": "Nếu giữ nhịp",
-        "body": "Đối tác cùng quyết giúp Sức khỏe luôn thấy — điểm từ thiết lập và Hộp thư, không phải tiền bịa."
+        "title": "Nguồn của nhịp",
+        "body": "Nhịp này hiện từ thiết lập và tải Hộp thư đã ghi, không phải tiền bịa."
       }
     }
   }
