@@ -113,14 +113,14 @@
   "investments": {
     "overview": {
       "title": "Investments",
-      "subtitle": "Track your portfolio value and performance.",
+      "subtitle": "Estimated holdings and current market value — not cash.",
       "loadError": "Could not load the portfolio.",
       "retry": "Try again",
       "emptyTitle": "No investment positions yet.",
-      "emptyDescription": "Import an existing position or record a new transaction.",
+      "emptyDescription": "Record a holding you already own. Its value is an estimate, not cash in your accounts.",
       "estimatedNotCash": "Estimated market value is not cash in your accounts.",
       "allocationHint": "Share of estimated market value by asset class.",
-      "holdingsHint": "Open a holding to buy, sell, or update its value.",
+      "holdingsHint": "Open a holding to see estimated value, units, and price.",
       "portfolioTitle": "Portfolio overview",
       "portfolioSummary": "Portfolio overview",
       "currentValue": "Estimated market value",

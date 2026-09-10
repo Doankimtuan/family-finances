@@ -113,14 +113,14 @@
   "investments": {
     "overview": {
       "title": "Đầu tư",
-      "subtitle": "Theo dõi giá trị và hiệu quả các khoản đầu tư của bạn.",
+      "subtitle": "Giá trị tạm tính của các khoản đang nắm giữ — không phải tiền mặt.",
       "loadError": "Không tải được danh mục.",
       "retry": "Thử lại",
       "emptyTitle": "Chưa có khoản đầu tư nào.",
-      "emptyDescription": "Thêm khoản đang sở hữu hoặc ghi lại một giao dịch mới.",
+      "emptyDescription": "Ghi lại khoản bạn đang nắm giữ. Giá trị là ước tính, không phải tiền mặt trong tài khoản.",
       "estimatedNotCash": "Giá trị tạm tính không phải tiền mặt trong tài khoản.",
       "allocationHint": "Tỷ trọng giá trị tạm tính theo loại tài sản.",
-      "holdingsHint": "Mở một khoản để mua, bán hoặc cập nhật giá trị.",
+      "holdingsHint": "Mở một khoản để xem giá trị tạm tính, số lượng và đơn giá.",
       "portfolioTitle": "Tổng quan danh mục",
       "portfolioSummary": "Tổng quan danh mục",
       "currentValue": "Giá trị tạm tính",

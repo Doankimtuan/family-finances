@@ -1,0 +1,8 @@
+{
+  "authenticated": false,
+  "landedOn": "",
+  "routes": {},
+  "limitations": [
+    "Browser capture failed: page.waitForFunction: Timeout 30000ms exceeded."
+  ]
+}

@@ -39,6 +39,7 @@ import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
 import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
 import { Text } from "@/shared/ui/text";
 import { FinancialOwnershipBadge } from "@/shared/patterns/financial-ownership-badge";
+import { FinancialNumberKind } from "@/shared/patterns/financial-number-kind";
 import { FinancialValue } from "@/shared/patterns/financial-value";
 import { MotionReveal } from "@/shared/motion";
 import { MoneyOfflineBanner } from "../../money-offline-banner";
@@ -99,12 +100,21 @@ function resolveValueCaption(
 function resolveHeroAmountLabel(
   isClosed: boolean,
   currentValue: number | null,
-  noCurrentValue: string,
   formattedValue: string,
 ) {
-  if (isClosed) return undefined;
-  if (currentValue == null) return noCurrentValue;
+  if (isClosed || currentValue == null) return undefined;
   return formattedValue;
+}
+
+function resolveHeroUnavailableLabel(
+  isClosed: boolean,
+  currentValue: number | null,
+  closedMessage: string,
+  noCurrentValue: string,
+) {
+  if (isClosed) return closedMessage;
+  if (currentValue == null) return noCurrentValue;
+  return undefined;
 }
 
 function resolveRealizedTone(result: number | null) {
@@ -332,17 +342,14 @@ export default async function InvestmentDetailPage({
           amountLabel={resolveHeroAmountLabel(
             isClosed,
             holding.currentValue,
-            tUx("valuation.noCurrentValue"),
             money(holding.currentValue),
           )}
-          closedMessage={isClosed ? t("closedValueUnavailable") : undefined}
-          pnl={
-            pnlLabel ? (
-              <Text size="sm" weight="semibold" tabular tone={unrealizedTone}>
-                <FinancialValue>{pnlLabel}</FinancialValue>
-              </Text>
-            ) : null
-          }
+          unavailableLabel={resolveHeroUnavailableLabel(
+            isClosed,
+            holding.currentValue,
+            t("closedValueUnavailable"),
+            tUx("valuation.noCurrentValue"),
+          )}
           trailing={
             <InvestmentPrivacyToggle testId="investment-detail-financial-privacy-toggle" />
           }
@@ -401,41 +408,61 @@ export default async function InvestmentDetailPage({
         <InvestmentFactRow
           label={t("remainingBasis")}
           value={
-            <Text size="sm" weight="medium" tabular>
-              <FinancialValue>
-                {money(holding.remainingTotalCostBasis)}
-              </FinancialValue>
-            </Text>
+            holding.remainingTotalCostBasis == null ? (
+              <Text size="sm" tone="secondary">
+                {t("unavailable")}
+              </Text>
+            ) : (
+              <Text size="sm" weight="medium" tabular>
+                <FinancialValue>
+                  {money(holding.remainingTotalCostBasis)}
+                </FinancialValue>
+              </Text>
+            )
           }
         />
         <InvestmentFactRow
           label={t("unrealizedResult")}
           value={
-            <Text size="sm" weight="medium" tabular tone={unrealizedTone}>
-              <FinancialValue>{pnlLabel ?? t("unavailable")}</FinancialValue>
-            </Text>
+            pnlLabel ? (
+              <Text size="sm" weight="medium" tabular tone={unrealizedTone}>
+                <span data-financial-kind={FinancialNumberKind.ESTIMATE}>
+                  <FinancialValue>{pnlLabel}</FinancialValue>
+                </span>
+              </Text>
+            ) : (
+              <Text size="sm" tone="secondary">
+                {t("unavailable")}
+              </Text>
+            )
           }
         />
         <InvestmentFactRow
           label={t("realizedResult")}
           value={
-            <Text size="sm" weight="medium" tabular>
-              <FinancialValue>
-                {realized == null ? t("unavailable") : money(realized)}
-              </FinancialValue>
-            </Text>
+            realized == null ? (
+              <Text size="sm" tone="secondary">
+                {t("unavailable")}
+              </Text>
+            ) : (
+              <Text size="sm" weight="medium" tabular>
+                <FinancialValue>{money(realized)}</FinancialValue>
+              </Text>
+            )
           }
         />
         <InvestmentFactRow
           label={t("receivedIncome")}
           value={
-            <Text size="sm" weight="medium" tabular>
-              <FinancialValue>
-                {receivedIncome == null
-                  ? t("unavailable")
-                  : money(receivedIncome)}
-              </FinancialValue>
-            </Text>
+            receivedIncome == null ? (
+              <Text size="sm" tone="secondary">
+                {t("unavailable")}
+              </Text>
+            ) : (
+              <Text size="sm" weight="medium" tabular>
+                <FinancialValue>{money(receivedIncome)}</FinancialValue>
+              </Text>
+            )
           }
         />
       </InvestmentFactsCard>

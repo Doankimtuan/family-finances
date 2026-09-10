@@ -194,7 +194,7 @@ describe("Hero pill link touch target (B12)", () => {
     expect(link.querySelector("svg")).not.toBeNull();
   });
 
-  it("keeps the Investments hero convert control as a 44px pill link", () => {
+  it("keeps the Investments convert control as a 44px section pill, not an on-hero pill", () => {
     render(
       <NextIntlClientProvider locale="en" messages={{ money: enMessages }}>
         <FinancialPrivacyProvider>
@@ -205,15 +205,13 @@ describe("Hero pill link touch target (B12)", () => {
 
     const link = screen.getByTestId("investment-convert-link");
     expect(link).toHaveAttribute("href", APP_PATH.MONEY_INVESTMENTS_CONVERT);
-    assertHeroPillTouchTarget(link);
-    expect(link.querySelector("svg")).not.toBeNull();
+    expect(link).toHaveClass("min-h-11");
+    expect(link.className).not.toMatch(/(?:^|\s)min-h-8(?:\s|$)/);
+    expect(link.querySelector("span.min-h-8")).toBeNull();
   });
 
   it("wires remaining on-hero pill links through HeroPillLink", () => {
-    const usages = [
-      "app/[locale]/(product)/money/money-position-hero.tsx",
-      "app/[locale]/(product)/money/investments/investment-overview-client.tsx",
-    ];
+    const usages = ["app/[locale]/(product)/money/money-position-hero.tsx"];
 
     for (const relativePath of usages) {
       const source = readProjectFile(relativePath);
@@ -228,5 +226,11 @@ describe("Hero pill link touch target (B12)", () => {
     expect(savingsSource).toContain("moneySavingsProvidersPath");
     expect(savingsSource).not.toContain("HeroPillLink");
     expect(moneySavingsProvidersPath()).toBe(APP_PATH.MONEY_SAVINGS_PROVIDERS);
+
+    const investmentOverview = readProjectFile(
+      "app/[locale]/(product)/money/investments/investment-overview-client.tsx",
+    );
+    expect(investmentOverview).toContain("investment-convert-link");
+    expect(investmentOverview).not.toContain("HeroPillLink");
   });
 });

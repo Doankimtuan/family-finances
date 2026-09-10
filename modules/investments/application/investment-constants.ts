@@ -401,6 +401,17 @@ export const INVESTMENT_OVERVIEW_FILTER_VALUES = Object.values(
   InvestmentOverviewFilter,
 );
 
+export const InvestmentHoldingsTab = {
+  ACTIVE: "active",
+  CLOSED: "closed",
+} as const;
+export type InvestmentHoldingsTab =
+  (typeof InvestmentHoldingsTab)[keyof typeof InvestmentHoldingsTab];
+export const INVESTMENT_HOLDINGS_TAB_VALUES = [
+  InvestmentHoldingsTab.ACTIVE,
+  InvestmentHoldingsTab.CLOSED,
+] as const;
+
 export const INVESTMENT_VALIDATION_MESSAGE = {
   INVALID_CASH_FEE: "INVALID_CASH_FEE",
   INVALID_ASSET_FEE: "INVALID_ASSET_FEE",

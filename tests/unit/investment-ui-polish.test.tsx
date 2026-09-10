@@ -27,6 +27,7 @@ import type {
 import { OWNER_STATUS } from "@/modules/shared-kernel/application/financial-ownership";
 import { FINANCIAL_SCOPE } from "@/modules/shared-kernel/application/financial-scope";
 import { FinancialPrivacyProvider } from "@/providers/financial-privacy-provider";
+import { FinancialNumberKind } from "@/shared/patterns/financial-number-kind";
 import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
 
 vi.mock("@/i18n/navigation", () => ({
@@ -123,7 +124,7 @@ describe("Investment UI polish", () => {
     );
   });
 
-  it("renders holdings as a grouped row with a trailing chevron", () => {
+  it("renders holdings as an interactive card with a trailing chevron", () => {
     render(
       <InvestmentPositionRow
         href="/money/investments/1"
@@ -138,17 +139,13 @@ describe("Investment UI polish", () => {
     );
 
     const row = screen.getByTestId("investment-position-1");
+    const card = screen.getByTestId("investment-position-card-1");
     expect(row.tagName).toBe("A");
-    expect(
-      screen.getByTestId("investment-position-card-1"),
-    ).toBeInTheDocument();
-    expect(row).toHaveClass("hover:bg-surface-hover");
+    expect(card).toHaveAttribute("data-financial-object", "investment");
+    expect(card).toHaveAttribute("data-tone", "interactive");
     expect(row.querySelector("svg")).not.toBeNull();
     expect(screen.getByText("Example stock")).toHaveClass("break-words");
     expect(screen.getByText("Example stock")).not.toHaveClass("truncate");
-    expect(screen.getByText("₫1,000,000").closest("div")).toHaveClass(
-      "whitespace-nowrap",
-    );
   });
 
   it("keeps holding PnL after the current value instead of under identity", () => {
@@ -187,7 +184,7 @@ describe("Investment UI polish", () => {
     expect(screen.getByText("Performance")).toBeInTheDocument();
   });
 
-  it("keeps a trailing privacy control and convert action on the overview hero", () => {
+  it("keeps a trailing privacy control on the hero and convert in the holdings header", () => {
     renderOverview();
 
     expect(
@@ -201,6 +198,9 @@ describe("Investment UI polish", () => {
     expect(
       screen.getByTestId("investment-allocation-strip"),
     ).toBeInTheDocument();
+    expect(
+      screen.getByTestId("investment-portfolio-summary"),
+    ).not.toContainElement(screen.getByTestId("investment-convert-link"));
   });
 
   it("uses a quiet section title instead of a second screen heading", () => {
@@ -227,6 +227,10 @@ describe("Investment UI polish", () => {
     expect(screen.getByTestId("investment-detail-hero")).toBeInTheDocument();
     expect(screen.getByText("Estimated market value")).toBeInTheDocument();
     expect(screen.getByText("₫1,000,000")).toBeInTheDocument();
+    expect(screen.getByTestId("intention-amount")).toHaveAttribute(
+      "data-financial-kind",
+      FinancialNumberKind.ESTIMATE,
+    );
     expect(
       screen.getByTestId("investment-detail-financial-privacy-toggle"),
     ).toBeInTheDocument();

@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import type { IconSvgElement } from "@hugeicons/react";
 import { Amount, AmountSize } from "@/shared/patterns/amount";
 import { Card } from "@/shared/patterns/card";
+import { FinancialNumberKind } from "@/shared/patterns/financial-number-kind";
 import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
 import { Text } from "@/shared/ui/text";
 
@@ -9,22 +10,20 @@ type InvestmentDetailHeroProps = {
   icon: IconSvgElement;
   caption: string;
   amountLabel?: string;
-  closedMessage?: string;
-  pnl?: ReactNode;
+  unavailableLabel?: string;
   trailing?: ReactNode;
   context?: ReactNode;
 };
 
 /**
  * Holding detail hero: one estimated-value story on the brand surface.
- * Identity stays in the TopAppBar; supporting facts live in the footer.
+ * Identity stays in the TopAppBar; gain/loss stays off the hero.
  */
 export function InvestmentDetailHero({
   icon,
   caption,
   amountLabel,
-  closedMessage,
-  pnl,
+  unavailableLabel,
   trailing,
   context,
 }: InvestmentDetailHeroProps) {
@@ -32,6 +31,7 @@ export function InvestmentDetailHero({
     <Card
       tone="hero"
       className="gap-0 p-(--space-4)"
+      data-financial-object="investment"
       data-testid="investment-detail-hero"
     >
       <div className="flex items-center gap-(--space-3)">
@@ -52,16 +52,20 @@ export function InvestmentDetailHero({
       {amountLabel ? (
         <Amount
           amountLabel={amountLabel}
+          kind={FinancialNumberKind.ESTIMATE}
           size={AmountSize.HERO}
           className="mt-(--space-3)"
           amountClassName="text-hero-fg"
         />
       ) : (
-        <Text size="sm" className="mt-(--space-3) text-pretty text-hero-muted">
-          {closedMessage}
+        <Text
+          size="sm"
+          className="mt-(--space-3) text-pretty text-hero-muted"
+          data-testid="investment-detail-hero-unavailable"
+        >
+          {unavailableLabel}
         </Text>
       )}
-      {pnl ? <div className="mt-(--space-2)">{pnl}</div> : null}
       {context ? (
         <div className="mt-(--space-4) flex flex-col gap-(--space-2) border-t border-white/15 pt-(--space-3)">
           {context}

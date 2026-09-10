@@ -193,7 +193,7 @@ export function InvestmentValuationMeta({
         }
         data-testid="investment-valuation-meta"
       >
-        <FinancialValue>{line}</FinancialValue>
+        {line}
       </Text>
     );
   }

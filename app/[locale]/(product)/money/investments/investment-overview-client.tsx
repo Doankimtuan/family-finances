@@ -2,12 +2,16 @@
 
 import { useMemo, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
-import { HeroPillLink } from "@/shared/patterns/hero-pill-link";
+import { Link } from "@/i18n/navigation";
 import {
   InvestmentAssetClass,
   InvestmentHistoryStatus,
+  InvestmentHoldingsTab,
   InvestmentOverviewFilter,
+  INVESTMENT_HOLDINGS_TAB_VALUES,
   INVESTMENT_OVERVIEW_FILTER_VALUES,
+  INVESTMENT_REPORTING_CURRENCY,
+  type InvestmentHoldingsTab as InvestmentHoldingsTabType,
   type InvestmentOverviewFilter as InvestmentOverviewFilterType,
 } from "@/modules/investments/application/investment-constants";
 import type {
@@ -28,19 +32,19 @@ import {
   formatNumber,
   formatPercent,
 } from "@/shared/i18n/formatters";
-import { DEFAULT_CURRENCY } from "@/modules/ledger/application/client";
 import { Input } from "@/shared/ui/input";
 import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
-import { ACTION_ICONS } from "@/shared/ui/icon-registry";
 import { IconContainer, IconContainerTone } from "@/shared/ui/icon-container";
 import { Card } from "@/shared/patterns/card";
 import { Amount, AmountSize } from "@/shared/patterns/amount";
+import { FinancialNumberKind } from "@/shared/patterns/financial-number-kind";
 import { FinancialValue } from "@/shared/patterns/financial-value";
 import { FilterChip } from "@/shared/patterns/filter-chip";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { StatusBadge } from "@/shared/ui/status-badge";
 import { Text } from "@/shared/ui/text";
 import { MotionReveal } from "@/shared/motion";
+import { cn } from "@/shared/utils/cn";
 import {
   InvestmentValuationMeta,
   InvestmentValuationMetaVariant,
@@ -67,37 +71,25 @@ const BASIS_POINTS_DIVISOR = 100;
 /** Initial holdings rendered before the show-all toggle (hub scan cap rule). */
 const VISIBLE_HOLDINGS_COUNT = 8;
 
-const HoldingsTab = {
-  ACTIVE: "active",
-  CLOSED: "closed",
-} as const;
-
-type HoldingsTab = (typeof HoldingsTab)[keyof typeof HoldingsTab];
-
 const chartColorVariable = (index: number) =>
   `var(--color-${CHART_COLORS[index % CHART_COLORS.length]})`;
 
-const money = (value: number | null, locale: string) =>
-  value == null
-    ? "—"
-    : formatCurrency(value, DEFAULT_CURRENCY, locale, {
-        maximumFractionDigits: 0,
-      });
+const money = (value: number, locale: string) =>
+  formatCurrency(value, INVESTMENT_REPORTING_CURRENCY, locale, {
+    maximumFractionDigits: 0,
+  });
 
-const signedMoney = (value: number | null, locale: string) =>
-  value == null
-    ? "—"
-    : `${value >= ZERO_VALUE ? "+" : "−"}${money(Math.abs(value), locale)}`;
+const signedMoney = (value: number, locale: string) =>
+  `${value >= ZERO_VALUE ? "+" : "−"}${money(Math.abs(value), locale)}`;
 
-function resolveHoldingValueLabel(
-  isActive: boolean,
-  currentValue: number | null,
-  unknownValue: string,
-  locale: string,
+function compareHoldingsByEstimatedValue(
+  left: InvestmentHolding,
+  right: InvestmentHolding,
 ) {
-  if (!isActive) return undefined;
-  if (currentValue == null) return unknownValue;
-  return money(currentValue, locale);
+  if (left.currentValue == null && right.currentValue == null) return 0;
+  if (left.currentValue == null) return 1;
+  if (right.currentValue == null) return -1;
+  return right.currentValue - left.currentValue;
 }
 
 function resolveHoldingRowSubtitle(
@@ -141,8 +133,14 @@ function HoldingPerformance({
 
   if (hasPnl) {
     const tone = holding.unrealizedResult! >= ZERO_VALUE ? "success" : "danger";
+    const percent =
+      holding.estimatedUnrealizedPnlPercent == null
+        ? null
+        : formatPercent(holding.estimatedUnrealizedPnlPercent, locale, {
+            maximumFractionDigits: PERCENT_DECIMAL_DIGITS,
+          });
     return (
-      <div className="flex flex-col items-end">
+      <div className="flex flex-col">
         <Text
           size="xs"
           weight="semibold"
@@ -151,16 +149,14 @@ function HoldingPerformance({
           className="leading-snug"
         >
           <FinancialValue>
-            {signedMoney(holding.unrealizedResult, locale)}
+            {signedMoney(holding.unrealizedResult!, locale)}
           </FinancialValue>
         </Text>
-        <Text size="xs" tabular tone={tone} className="leading-snug">
-          <FinancialValue>
-            {formatPercent(holding.estimatedUnrealizedPnlPercent ?? 0, locale, {
-              maximumFractionDigits: PERCENT_DECIMAL_DIGITS,
-            })}
-          </FinancialValue>
-        </Text>
+        {percent ? (
+          <Text size="xs" tabular tone={tone} className="leading-snug">
+            <FinancialValue>{percent}</FinancialValue>
+          </Text>
+        ) : null}
       </div>
     );
   }
@@ -186,11 +182,11 @@ function SummaryMetric({
   note?: string;
 }) {
   return (
-    <div className="flex min-w-0 items-start justify-between gap-(--space-3)">
-      <Text size="sm" tone="secondary" className="text-pretty">
+    <div className="flex min-w-0 flex-col gap-(--space-1)">
+      <Text size="xs" tone="secondary" className="text-pretty">
         {label}
       </Text>
-      <div className="min-w-0 text-right">
+      <div className="min-w-0">
         {children}
         {note ? (
           <Text
@@ -219,10 +215,10 @@ export function InvestmentOverviewClient({
     InvestmentOverviewFilter.ALL,
   );
   const [query, setQuery] = useState("");
-  const [tab, setTab] = useState<HoldingsTab>(
-    portfolio.activeHoldings.length > ZERO_VALUE
-      ? HoldingsTab.ACTIVE
-      : HoldingsTab.CLOSED,
+  const [tab, setTab] = useState<InvestmentHoldingsTabType>(
+    portfolio.activeHoldings.length > 0
+      ? InvestmentHoldingsTab.ACTIVE
+      : InvestmentHoldingsTab.CLOSED,
   );
   const [showAll, setShowAll] = useState(false);
   const active = useMemo(
@@ -236,10 +232,7 @@ export function InvestmentOverviewClient({
             `${holding.name} ${holding.symbol ?? ""} ${holding.providerCustodian ?? ""} ${holding.instrument?.symbol ?? ""} ${holding.instrument?.name ?? ""} ${holding.instrument?.exchange ?? ""}`.toLowerCase();
           return matchesFilter && text.includes(query.trim().toLowerCase());
         })
-        .sort(
-          (a, b) =>
-            (b.currentValue ?? ZERO_VALUE) - (a.currentValue ?? ZERO_VALUE),
-        ),
+        .toSorted(compareHoldingsByEstimatedValue),
     [filter, portfolio.activeHoldings, query],
   );
   const closed = useMemo(
@@ -261,13 +254,14 @@ export function InvestmentOverviewClient({
     (holding) =>
       holding.currentValue != null && holding.remainingTotalCostBasis != null,
   ).length;
-  const valuationNote =
-    portfolio.valuationCoverage.included < portfolio.valuationCoverage.total
-      ? t("valuationCoverage", {
-          included: portfolio.valuationCoverage.included,
-          total: portfolio.valuationCoverage.total,
-        })
-      : undefined;
+  const valuationIncomplete =
+    portfolio.valuationCoverage.included < portfolio.valuationCoverage.total;
+  const valuationNote = valuationIncomplete
+    ? t("valuationCoverage", {
+        included: portfolio.valuationCoverage.included,
+        total: portfolio.valuationCoverage.total,
+      })
+    : undefined;
   const pnlNote =
     pnlCoverageCount < portfolio.activeHoldings.length
       ? t("pnlCoverage", {
@@ -275,32 +269,24 @@ export function InvestmentOverviewClient({
           total: portfolio.activeHoldings.length,
         })
       : undefined;
-  const tabList = portfolio.closedHoldings.length
-    ? [
-        {
-          id: HoldingsTab.ACTIVE,
-          label: t("activeTab", { count: portfolio.activeHoldings.length }),
-        },
-        {
-          id: HoldingsTab.CLOSED,
-          label: t("closedTab", { count: portfolio.closedPositionCount }),
-        },
-      ]
-    : [
-        {
-          id: HoldingsTab.ACTIVE,
-          label: t("activeTab", { count: portfolio.activeHoldings.length }),
-        },
-      ];
-  const tabHoldings = tab === HoldingsTab.ACTIVE ? active : closed;
+  const tabList = INVESTMENT_HOLDINGS_TAB_VALUES.map((id) => ({
+    id,
+    label:
+      id === InvestmentHoldingsTab.ACTIVE
+        ? t("activeTab", { count: portfolio.activeHoldings.length })
+        : t("closedTab", { count: portfolio.closedPositionCount }),
+  }));
+  const tabHoldings = tab === InvestmentHoldingsTab.ACTIVE ? active : closed;
   const visibleHoldings = showAll
     ? tabHoldings
     : tabHoldings.slice(0, VISIBLE_HOLDINGS_COUNT);
   const hasMoreHoldings = tabHoldings.length > VISIBLE_HOLDINGS_COUNT;
-  const heroValue =
-    portfolio.totalCurrentValue == null
-      ? t("unknownValue")
-      : money(portfolio.totalCurrentValue, locale);
+  const unrealizedPercent =
+    portfolio.estimatedUnrealizedPnlPercent == null
+      ? null
+      : formatPercent(portfolio.estimatedUnrealizedPnlPercent, locale, {
+          maximumFractionDigits: PERCENT_DECIMAL_DIGITS,
+        });
 
   return (
     <div
@@ -312,34 +298,48 @@ export function InvestmentOverviewClient({
           className="flex flex-col gap-(--space-3)"
           data-testid="investment-portfolio-summary"
         >
-          <Card tone="hero" className="gap-0 p-(--space-4)">
+          <Card
+            tone="hero"
+            className="gap-0 p-(--space-4)"
+            data-financial-object="investment"
+          >
             <div className="flex items-center justify-between gap-(--space-3)">
               <Text size="sm" weight="medium" className="text-hero-muted">
                 {t("currentValue")}
               </Text>
               <InvestmentPrivacyToggle testId="investment-financial-privacy-toggle" />
             </div>
-            <Amount
-              amountLabel={heroValue}
-              size={AmountSize.HERO}
-              className="mt-(--space-2)"
-              amountClassName="text-hero-fg"
-            />
+            {portfolio.totalCurrentValue == null ? (
+              <Text
+                size="sm"
+                className="mt-(--space-2) text-pretty text-hero-muted"
+                data-testid="investment-hero-unavailable"
+              >
+                {t("unknownValue")}
+              </Text>
+            ) : (
+              <Amount
+                amountLabel={money(portfolio.totalCurrentValue, locale)}
+                kind={FinancialNumberKind.ESTIMATE}
+                size={AmountSize.HERO}
+                className="mt-(--space-2)"
+                amountClassName="text-hero-fg"
+              />
+            )}
             <Text
               size="xs"
               className="mt-(--space-2) text-pretty text-hero-muted"
             >
-              {valuationNote ?? t("estimatedNotCash")}
+              {t("estimatedNotCash")}
             </Text>
-            <div className="mt-(--space-4) flex justify-end border-t border-white/15 pt-(--space-3)">
-              <HeroPillLink
-                href={APP_PATH.MONEY_INVESTMENTS_CONVERT}
-                data-testid="investment-convert-link"
+            {valuationNote ? (
+              <Text
+                size="xs"
+                className="mt-(--space-1) text-pretty text-hero-muted"
               >
-                {t("convert")}
-                <AppIcon icon={ACTION_ICONS.forward} size={AppIconSize.XS} />
-              </HeroPillLink>
-            </div>
+                {valuationNote}
+              </Text>
+            ) : null}
           </Card>
           <Card
             tone="elevated"
@@ -349,19 +349,23 @@ export function InvestmentOverviewClient({
             <InvestmentSectionTitle>
               {t("portfolioTitle")}
             </InvestmentSectionTitle>
-            <div className="mt-(--space-3) flex flex-col gap-(--space-3)">
+            <div className="mt-(--space-3) grid grid-cols-2 gap-(--space-3)">
               <SummaryMetric label={t("knownBasis")}>
-                <Text size="sm" weight="semibold" tabular>
-                  <FinancialValue>
-                    {portfolio.totalRemainingCostBasis == null
-                      ? t("unavailable")
-                      : money(portfolio.totalRemainingCostBasis, locale)}
-                  </FinancialValue>
-                </Text>
+                {portfolio.totalRemainingCostBasis == null ? (
+                  <Text size="sm" tone="secondary" className="text-pretty">
+                    {t("unavailable")}
+                  </Text>
+                ) : (
+                  <Text size="sm" weight="semibold" tabular>
+                    <FinancialValue>
+                      {money(portfolio.totalRemainingCostBasis, locale)}
+                    </FinancialValue>
+                  </Text>
+                )}
               </SummaryMetric>
               <SummaryMetric label={t("unrealized")} note={pnlNote}>
                 {portfolio.unrealizedResult == null ? (
-                  <Text size="sm" weight="semibold" tabular>
+                  <Text size="sm" tone="secondary" className="text-pretty">
                     {t("unknownValue")}
                   </Text>
                 ) : (
@@ -376,7 +380,9 @@ export function InvestmentOverviewClient({
                     }
                   >
                     <FinancialValue>
-                      {`${signedMoney(portfolio.unrealizedResult, locale)} · ${formatPercent(portfolio.estimatedUnrealizedPnlPercent ?? 0, locale, { maximumFractionDigits: PERCENT_DECIMAL_DIGITS })}`}
+                      {unrealizedPercent
+                        ? `${signedMoney(portfolio.unrealizedResult, locale)} · ${unrealizedPercent}`
+                        : signedMoney(portfolio.unrealizedResult, locale)}
                     </FinancialValue>
                   </Text>
                 )}
@@ -423,6 +429,15 @@ export function InvestmentOverviewClient({
             >
               {t("allocationHint")}
             </Text>
+            {valuationNote ? (
+              <Text
+                size="xs"
+                tone="secondary"
+                className="mt-(--space-1) text-pretty"
+              >
+                {valuationNote}
+              </Text>
+            ) : null}
           </div>
           <Card tone="elevated" className="gap-0 overflow-hidden p-0">
             <div className="px-(--space-4) pt-(--space-4)">
@@ -444,7 +459,7 @@ export function InvestmentOverviewClient({
               </div>
             </div>
             <ul
-              className="mt-(--space-2) divide-y divide-divider"
+              className="grid grid-cols-2 gap-(--space-3) px-(--space-4) py-(--space-4)"
               aria-label={t("allocationChartAria")}
             >
               {chartData.map((row) => {
@@ -452,7 +467,7 @@ export function InvestmentOverviewClient({
                 return (
                   <li
                     key={row.name}
-                    className="flex min-w-0 items-center gap-(--space-3) px-(--space-4) py-(--space-3)"
+                    className="flex min-w-0 items-start gap-(--space-2)"
                     data-testid={`investment-allocation-${row.assetClass}`}
                   >
                     <IconContainer
@@ -462,25 +477,37 @@ export function InvestmentOverviewClient({
                       <AppIcon icon={AssetIcon} size={AppIconSize.SM} />
                     </IconContainer>
                     <div className="min-w-0 flex-1">
-                      <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-start gap-(--space-2)">
-                        <span className="min-w-0 break-words text-sm font-medium leading-snug text-text-primary">
-                          {row.name}
-                        </span>
-                        <span className="shrink-0 text-sm font-semibold tabular-nums text-text-primary">
-                          {formatPercent(
-                            row.sharePercent / PERCENT_DIVISOR,
-                            locale,
-                            {
-                              maximumFractionDigits: PERCENT_DECIMAL_DIGITS,
-                            },
-                          )}
-                        </span>
-                      </div>
-                      <span className="mt-(--space-1) block text-sm tabular-nums tracking-tight text-text-secondary">
+                      <Text
+                        size="sm"
+                        weight="medium"
+                        className="text-pretty break-words leading-snug"
+                      >
+                        {row.name}
+                      </Text>
+                      <Text
+                        size="sm"
+                        weight="semibold"
+                        tabular
+                        className="leading-snug"
+                      >
+                        {formatPercent(
+                          row.sharePercent / PERCENT_DIVISOR,
+                          locale,
+                          {
+                            maximumFractionDigits: PERCENT_DECIMAL_DIGITS,
+                          },
+                        )}
+                      </Text>
+                      <Text
+                        size="xs"
+                        tone="secondary"
+                        tabular
+                        className="leading-snug"
+                      >
                         <FinancialValue>
                           {money(row.valueVnd, locale)}
                         </FinancialValue>
-                      </span>
+                      </Text>
                     </div>
                   </li>
                 );
@@ -503,40 +530,45 @@ export function InvestmentOverviewClient({
               {t("holdingsHint")}
             </Text>
           </div>
-          <Text size="xs" tone="muted" className="shrink-0 tabular-nums">
-            {tab === HoldingsTab.ACTIVE
-              ? t("activeTab", { count: portfolio.activeHoldings.length })
-              : t("closedTab", { count: portfolio.closedPositionCount })}
-          </Text>
+          <Link
+            href={APP_PATH.MONEY_INVESTMENTS_CONVERT}
+            className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full border border-border-subtle bg-surface px-(--space-3) text-sm font-medium text-text-primary transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-(--press-scale) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none motion-reduce:active:scale-100"
+            data-testid="investment-convert-link"
+          >
+            {t("convert")}
+          </Link>
         </div>
         <div className="flex flex-col gap-(--space-3)">
-          {tabList.length > 1 ? (
-            <div
-              className="grid grid-cols-2 rounded-full bg-surface-muted p-1"
-              role="group"
-              aria-label={t("holdingsViewAria")}
-              data-testid="investment-holdings-tabs"
-            >
-              {tabList.map((item) => (
+          <div
+            className="grid grid-cols-2 rounded-full bg-surface-muted p-1"
+            role="tablist"
+            aria-label={t("holdingsViewAria")}
+            data-testid="investment-holdings-tabs"
+          >
+            {tabList.map((item) => {
+              const selected = tab === item.id;
+              return (
                 <button
                   key={item.id}
                   type="button"
-                  aria-pressed={tab === item.id}
+                  role="tab"
+                  aria-selected={selected}
                   onClick={() => {
                     setTab(item.id);
                     setShowAll(false);
                   }}
-                  className={`min-h-9 rounded-full px-(--space-3) text-sm font-medium transition-colors duration-(--duration-fast) ease-(--ease-standard) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring ${
-                    tab === item.id
+                  className={cn(
+                    "min-h-11 rounded-full px-(--space-3) text-sm font-medium transition-colors duration-(--duration-fast) ease-(--ease-standard) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring",
+                    selected
                       ? "bg-surface text-text-primary shadow-(--elevation-1)"
-                      : "text-text-secondary hover:text-text-primary"
-                  }`}
+                      : "text-text-secondary hover:text-text-primary",
+                  )}
                 >
                   {item.label}
                 </button>
-              ))}
-            </div>
-          ) : null}
+              );
+            })}
+          </div>
           <Input
             type="search"
             aria-label={t("searchAria")}
@@ -546,7 +578,7 @@ export function InvestmentOverviewClient({
             className="min-h-11 w-full"
             data-testid="investment-search"
           />
-          {tab === HoldingsTab.ACTIVE ? (
+          {tab === InvestmentHoldingsTab.ACTIVE ? (
             <div
               className="flex flex-wrap gap-(--space-2)"
               role="group"
@@ -568,78 +600,75 @@ export function InvestmentOverviewClient({
             </Text>
           )}
           {visibleHoldings.length ? (
-            <Card tone="elevated" className="gap-0 overflow-hidden p-0">
-              <ul className="divide-y divide-divider">
-                {visibleHoldings.map((holding) => {
-                  const config = investmentUxConfig(
-                    holding.assetClass as InvestmentUxType,
-                  );
-                  const isActive = tab === HoldingsTab.ACTIVE;
-                  const valueLabel = resolveHoldingValueLabel(
-                    isActive,
-                    holding.currentValue,
-                    t("unknownValue"),
-                    locale,
-                  );
+            <ul className="flex flex-col gap-(--space-2)">
+              {visibleHoldings.map((holding) => {
+                const config = investmentUxConfig(
+                  holding.assetClass as InvestmentUxType,
+                );
+                const isActive = tab === InvestmentHoldingsTab.ACTIVE;
 
-                  return (
-                    <li key={holding.id}>
-                      <InvestmentPositionRow
-                        href={moneyInvestmentPath(holding.id)}
-                        testId={
-                          isActive
-                            ? `investment-position-${holding.id}`
-                            : `investment-closed-position-${holding.id}`
-                        }
-                        cardTestId={`investment-position-card-${holding.id}`}
-                        icon={investmentAssetIcon(
-                          holding.assetClass as InvestmentUxType,
-                        )}
-                        title={holding.name}
-                        subtitle={resolveHoldingRowSubtitle(
-                          holding,
-                          tUx(config.titleKey),
-                          t("noProvider"),
-                        )}
-                        valueLabel={valueLabel}
-                        quantityLabel={
-                          isActive
-                            ? quantityLabel(holding, locale, t)
-                            : undefined
-                        }
-                        valuation={
-                          isActive ? (
-                            <InvestmentValuationMeta
-                              holding={holding}
-                              variant={InvestmentValuationMetaVariant.ROW}
-                            />
-                          ) : null
-                        }
-                        performance={
-                          isActive ? (
-                            <HoldingPerformance
-                              holding={holding}
-                              locale={locale}
-                            />
-                          ) : null
-                        }
-                        ownership={
-                          holding.ownership.financialScope ===
-                          FINANCIAL_SCOPE.PERSONAL
-                            ? holding.ownership
-                            : undefined
-                        }
-                        closed={!isActive}
-                        closedStatus={isActive ? undefined : t("closedStatus")}
-                        closedNote={
-                          isActive ? undefined : t("closedHistoryNote")
-                        }
-                      />
-                    </li>
-                  );
-                })}
-              </ul>
-            </Card>
+                return (
+                  <li key={holding.id}>
+                    <InvestmentPositionRow
+                      href={moneyInvestmentPath(holding.id)}
+                      testId={
+                        isActive
+                          ? `investment-position-${holding.id}`
+                          : `investment-closed-position-${holding.id}`
+                      }
+                      cardTestId={`investment-position-card-${holding.id}`}
+                      icon={investmentAssetIcon(
+                        holding.assetClass as InvestmentUxType,
+                      )}
+                      title={holding.name}
+                      subtitle={resolveHoldingRowSubtitle(
+                        holding,
+                        tUx(config.titleKey),
+                        t("noProvider"),
+                      )}
+                      valueLabel={
+                        isActive && holding.currentValue != null
+                          ? money(holding.currentValue, locale)
+                          : undefined
+                      }
+                      unavailableLabel={
+                        isActive && holding.currentValue == null
+                          ? t("unknownValue")
+                          : undefined
+                      }
+                      quantityLabel={
+                        isActive ? quantityLabel(holding, locale, t) : undefined
+                      }
+                      valuation={
+                        isActive ? (
+                          <InvestmentValuationMeta
+                            holding={holding}
+                            variant={InvestmentValuationMetaVariant.ROW}
+                          />
+                        ) : null
+                      }
+                      performance={
+                        isActive ? (
+                          <HoldingPerformance
+                            holding={holding}
+                            locale={locale}
+                          />
+                        ) : null
+                      }
+                      ownership={
+                        holding.ownership.financialScope ===
+                        FINANCIAL_SCOPE.PERSONAL
+                          ? holding.ownership
+                          : undefined
+                      }
+                      closed={!isActive}
+                      closedStatus={isActive ? undefined : t("closedStatus")}
+                      closedNote={isActive ? undefined : t("closedHistoryNote")}
+                    />
+                  </li>
+                );
+              })}
+            </ul>
           ) : (
             <Card tone="elevated" className="gap-0 p-0">
               <Text
@@ -647,7 +676,7 @@ export function InvestmentOverviewClient({
                 tone="secondary"
                 className="px-(--space-4) py-(--space-3)"
               >
-                {tab === HoldingsTab.ACTIVE
+                {tab === InvestmentHoldingsTab.ACTIVE
                   ? t("noFilteredResults")
                   : t("noClosedResults")}
               </Text>
