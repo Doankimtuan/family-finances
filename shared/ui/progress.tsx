@@ -70,9 +70,7 @@ export function Progress({
       ) : null}
       <div
         role="progressbar"
-        aria-label={
-          privacyHidden ? FINANCIAL_PRIVACY_MASK : (label ?? "Progress")
-        }
+        aria-label={privacyHidden ? FINANCIAL_PRIVACY_MASK : label}
         aria-valuemin={0}
         aria-valuemax={safeMax}
         aria-valuenow={privacyHidden ? undefined : clamped}

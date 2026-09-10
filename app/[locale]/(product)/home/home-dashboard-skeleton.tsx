@@ -36,7 +36,7 @@ function PeriodStoryBones() {
           <Skeleton className="h-4 w-12" />
           <Skeleton className="h-4 w-28" />
         </div>
-        <Skeleton className="mt-(--space-2) h-36 w-full rounded-md" />
+        <Skeleton className="mt-(--space-2) h-36 w-full rounded-[var(--radius-card)]" />
         <div className="mt-(--space-4) flex flex-col divide-y divide-divider">
           {[0, 1, 2].map((row) => (
             <div

@@ -236,7 +236,7 @@ export function ReallocateJarForm({
         {receipt.inboxItemId ? (
           <Link
             href={inboxItemPath(receipt.inboxItemId)}
-            className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary"
+            className="inline-flex min-h-11 w-full items-center justify-center rounded-[var(--radius-control)] border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary"
             data-testid="jar-reallocate-inbox-link"
           >
             {t("receiptInbox")}
@@ -255,7 +255,7 @@ export function ReallocateJarForm({
         </Button>
         <Link
           href={APP_PATH.PLAN_JARS}
-          className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary"
+          className="inline-flex min-h-11 w-full items-center justify-center rounded-[var(--radius-control)] border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary"
         >
           {t("receiptBackJars")}
         </Link>

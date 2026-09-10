@@ -49,7 +49,7 @@ describe("Transactions scan-first presentation", () => {
     expect(screen.getByText("Expense ₫85,000")).toHaveClass("sr-only");
   });
 
-  it("masks the signed amount without hiding merchant identity", () => {
+  it("does not announce unmasked amounts when privacy is hidden", () => {
     window.localStorage.setItem(
       FINANCIAL_PRIVACY_STORAGE_KEY,
       FINANCIAL_PRIVACY_STORAGE_TRUE,
@@ -57,12 +57,17 @@ describe("Transactions scan-first presentation", () => {
 
     render(
       <FinancialPrivacyProvider>
-        <TransactionRow title="Coffee shop" amountLabel="−₫85,000" />
+        <TransactionRow
+          title="Coffee shop"
+          amountLabel="−₫85,000"
+          amountAriaLabel="Expense ₫85,000"
+        />
       </FinancialPrivacyProvider>,
     );
 
     expect(screen.getByText("Coffee shop")).toBeInTheDocument();
     expect(document.body).not.toHaveTextContent("−₫85,000");
+    expect(document.body).not.toHaveTextContent("Expense ₫85,000");
   });
 
   it("exposes selected filter chips and can clear through the list route", () => {

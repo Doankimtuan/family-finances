@@ -1,0 +1,113 @@
+{
+  "baseURL": "http://127.0.0.1:3000",
+  "startedAt": "2026-09-10T12:41:12.806Z",
+  "authStatePresent": true,
+  "unauthenticated": {
+    "welcome-440-light": {
+      "url": "http://127.0.0.1:3000/en/welcome",
+      "visible": true,
+      "testId": "auth-welcome",
+      "innerWidth": 440,
+      "shellWidth": 440,
+      "loginSubmitDisabled": null
+    },
+    "login-440-light": {
+      "url": "http://127.0.0.1:3000/en/login",
+      "visible": true,
+      "testId": "auth-login",
+      "innerWidth": 440,
+      "shellWidth": 440,
+      "loginSubmitDisabled": true
+    },
+    "register-440-light": {
+      "url": "http://127.0.0.1:3000/en/register",
+      "visible": true,
+      "testId": "auth-register",
+      "innerWidth": 440,
+      "shellWidth": 440,
+      "loginSubmitDisabled": null
+    },
+    "forgot-440-light": {
+      "url": "http://127.0.0.1:3000/en/forgot-password",
+      "visible": true,
+      "testId": "auth-forgot-password",
+      "innerWidth": 440,
+      "shellWidth": 440,
+      "loginSubmitDisabled": null
+    },
+    "welcome-390-light": {
+      "url": "http://127.0.0.1:3000/en/welcome",
+      "visible": true,
+      "testId": "auth-welcome",
+      "innerWidth": 390,
+      "shellWidth": 390,
+      "loginSubmitDisabled": null
+    },
+    "welcome-1280-light": {
+      "url": "http://127.0.0.1:3000/en/welcome",
+      "visible": true,
+      "testId": "auth-welcome",
+      "innerWidth": 1280,
+      "shellWidth": 440,
+      "loginSubmitDisabled": null
+    },
+    "login-1280-light": {
+      "url": "http://127.0.0.1:3000/en/login",
+      "visible": true,
+      "testId": "auth-login",
+      "innerWidth": 1280,
+      "shellWidth": 440,
+      "loginSubmitDisabled": true
+    },
+    "welcome-440-dark": {
+      "url": "http://127.0.0.1:3000/en/welcome",
+      "visible": true,
+      "testId": "auth-welcome",
+      "innerWidth": 440,
+      "shellWidth": 440,
+      "loginSubmitDisabled": null
+    },
+    "login-440-dark": {
+      "url": "http://127.0.0.1:3000/en/login",
+      "visible": true,
+      "testId": "auth-login",
+      "innerWidth": 440,
+      "shellWidth": 440,
+      "loginSubmitDisabled": true
+    }
+  },
+  "authenticated": {
+    "home-440-light": {
+      "url": "http://127.0.0.1:3000/en/login",
+      "visible": false,
+      "testId": "home-dashboard",
+      "innerWidth": 440,
+      "shellWidth": 440,
+      "loginSubmitDisabled": true
+    },
+    "money-440-light": {
+      "url": "http://127.0.0.1:3000/en/login",
+      "visible": false,
+      "testId": "money-hub",
+      "innerWidth": 440,
+      "shellWidth": 440,
+      "loginSubmitDisabled": true
+    },
+    "transactions-440-light": {
+      "url": "http://127.0.0.1:3000/en/login",
+      "visible": false,
+      "testId": "money-transactions",
+      "innerWidth": 440,
+      "shellWidth": 440,
+      "loginSubmitDisabled": true
+    }
+  },
+  "loginHydration": "busy || !hydrated — submit remained disabled; no auth bypass",
+  "limitations": [
+    "Authenticated route /en/home redirected to login; storage state was not a live session.",
+    "Authenticated route /en/money redirected to login; storage state was not a live session.",
+    "Authenticated route /en/money/transactions redirected to login; storage state was not a live session.",
+    "page.goto: net::ERR_ABORTED at http://127.0.0.1:3000/en/plan\nCall log:\n  - navigating to \"http://127.0.0.1:3000/en/plan\", waiting until \"domcontentloaded\"\n"
+  ],
+  "finishedAt": "2026-09-10T12:41:28.093Z"
+}

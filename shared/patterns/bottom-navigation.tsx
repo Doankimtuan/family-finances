@@ -77,7 +77,7 @@ export function BottomNavigation({
                       <span
                         data-testid="inbox-badge"
                         data-slot="nav-tab-badge"
-                        className="pointer-events-none absolute -top-0.5 -end-1.5 flex min-w-[18px] items-center justify-center rounded-full bg-accent px-1 py-0.5 text-[10px] font-bold text-accent-fg ring-2 ring-canvas"
+                        className="pointer-events-none absolute -top-0.5 -end-1.5 flex min-w-5 items-center justify-center rounded-full bg-accent px-(--space-1) py-px text-xs font-bold leading-none text-accent-fg ring-2 ring-canvas"
                         aria-label={tA11y("inboxBadge", { count: inboxCount })}
                       >
                         {inboxCount}

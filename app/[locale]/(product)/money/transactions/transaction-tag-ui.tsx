@@ -273,7 +273,7 @@ export function TransactionTagSelector({
                   {archivedTags.length > 0 ? (
                     <Link
                       href={APP_PATH.MONEY_TRANSACTION_TAGS}
-                      className="inline-flex min-h-11 items-center rounded-md px-(--space-3) text-sm font-medium text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+                      className="inline-flex min-h-11 items-center rounded-[var(--radius-control)] px-(--space-3) text-sm font-medium text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
                     >
                       {t("manageTags")}
                     </Link>

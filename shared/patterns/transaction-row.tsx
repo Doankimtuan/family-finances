@@ -5,6 +5,7 @@ import { cn } from "@/shared/utils/cn";
 import { AppIcon } from "@/shared/ui/app-icon";
 import { ACTION_ICONS } from "@/shared/ui/icon-registry";
 import { Text } from "@/shared/ui/text";
+import { useFinancialPrivacy } from "@/providers/financial-privacy-provider";
 import { FinancialValue } from "./financial-value";
 
 export const TransactionAmountTone = {
@@ -46,6 +47,7 @@ export function TransactionRow({
   showChevron = false,
   className,
 }: TransactionRowProps) {
+  const { isHidden } = useFinancialPrivacy();
   const amountClass =
     tone === TransactionAmountTone.CREDIT
       ? "text-credit"
@@ -107,7 +109,7 @@ export function TransactionRow({
             {amountMeta}
           </Text>
         ) : null}
-        {amountAriaLabel ? (
+        {amountAriaLabel && !isHidden ? (
           <span className="sr-only">{amountAriaLabel}</span>
         ) : null}
       </div>

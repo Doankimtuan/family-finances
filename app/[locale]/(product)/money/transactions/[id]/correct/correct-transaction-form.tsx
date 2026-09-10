@@ -334,7 +334,7 @@ export function CorrectTransactionForm({
           },
         ]}
       >
-        <div className="rounded-lg border border-border-subtle bg-surface-soft p-(--space-3)">
+        <div className="rounded-[var(--radius-card)] border border-border-subtle bg-surface-soft p-(--space-3)">
           <Text size="sm" tone="secondary">
             {t("consequenceBody")}
           </Text>

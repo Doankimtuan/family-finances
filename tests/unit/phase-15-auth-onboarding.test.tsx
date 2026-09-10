@@ -94,14 +94,16 @@ describe("Phase 15 auth presentation", () => {
     expect(LOGIN_SCREEN_SOURCE).toContain("busy || !hydrated");
   });
 
-  it("keeps the decorative Welcome preview as an aria-hidden illustration", () => {
-    expect(WELCOME_SCREEN_SOURCE).toContain("PREVIEW_BALANCE");
+  it("keeps the decorative Welcome preview as an aria-hidden illustration without fake amounts", () => {
+    expect(WELCOME_SCREEN_SOURCE).not.toContain("PREVIEW_BALANCE");
+    expect(WELCOME_SCREEN_SOURCE).not.toContain("formatCurrency");
     render(<WelcomeScreen />);
     const preview = screen
       .getByText("auth.welcome.previewBadge")
       .closest("[aria-hidden]");
     expect(preview).toBeTruthy();
     expect(screen.getByText("common.brand")).toBeVisible();
+    expect(screen.getByText("auth.welcome.previewHint")).toBeVisible();
   });
 
   it("keeps reset-password fields, hint, and back-to-login", () => {

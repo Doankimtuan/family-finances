@@ -212,16 +212,18 @@ function exceptionDescription(
   locale: string,
 ) {
   if (exception.kind === PlanHomeExceptionKind.OVERSPENT_JAR) {
+    if (exception.amount == null) return undefined;
     return t.rich("home.exceptionOverspentBody", {
-      amount: formatCurrency(exception.amount ?? 0, currency, locale, {
+      amount: formatCurrency(exception.amount, currency, locale, {
         maximumFractionDigits: 0,
       }),
       money: (chunks: ReactNode) => <FinancialValue>{chunks}</FinancialValue>,
     });
   }
   if (exception.kind === PlanHomeExceptionKind.NEAR_LIMIT_JAR) {
+    if (exception.amount == null) return undefined;
     return t.rich("home.exceptionNearLimitBody", {
-      amount: formatCurrency(exception.amount ?? 0, currency, locale, {
+      amount: formatCurrency(exception.amount, currency, locale, {
         maximumFractionDigits: 0,
       }),
       money: (chunks: ReactNode) => <FinancialValue>{chunks}</FinancialValue>,

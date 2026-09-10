@@ -26,3 +26,9 @@ export const LOCALE_LABEL_KEY: Record<AppLocale, "english" | "vietnamese"> = {
   en: "english",
   vi: "vietnamese",
 };
+
+/** Native language names for locale-less surfaces (global not-found). */
+export const LOCALE_NATIVE_LABEL: Record<AppLocale, string> = {
+  en: "English",
+  vi: "Tiếng Việt",
+};

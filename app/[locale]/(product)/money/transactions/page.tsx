@@ -17,7 +17,6 @@ import {
   TRANSACTION_LIST_PAGE_SIZE,
   TransactionActivityKind,
   TransactionFilterType,
-  type TransactionActivity,
 } from "@/modules/ledger/application";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import {
@@ -35,7 +34,7 @@ import {
   FinancialPrivacyToggleTone,
 } from "@/shared/patterns/financial-privacy-toggle";
 import { FloatingAction } from "@/shared/patterns/floating-action";
-import { TransactionRow } from "@/shared/patterns/transaction-row";
+import { TransactionListItem } from "./transaction-list-item";
 import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
 import { MoneyOfflineBanner } from "../money-offline-banner";
 import { MoneyCaptureAction } from "../money-capture-action";
@@ -227,8 +226,10 @@ export default async function TransactionsListPage({
                 return (
                   <TransactionListItem
                     key={activity.id}
-                    activity={activity}
-                    locale={locale}
+                    href={moneyTransactionPath(
+                      activity.relatedTransactionIds[0],
+                    )}
+                    activityId={activity.id}
                     title={title}
                     subtitle={activitySubtitle(
                       activity,
@@ -236,6 +237,12 @@ export default async function TransactionsListPage({
                       activityKindLabels,
                       tCatalog,
                     )}
+                    amountLabel={`${activity.sign}${formatCurrency(
+                      activity.amount,
+                      activity.currency,
+                      locale,
+                      { maximumFractionDigits: 0 },
+                    )}`}
                     amountMeta={[
                       activityStatusMeta(activity, (status) =>
                         tMoney(`status.${status}`),
@@ -252,6 +259,18 @@ export default async function TransactionsListPage({
                         { maximumFractionDigits: 0 },
                       ),
                     })}
+                    tone={ACTIVITY_TONE_TO_AMOUNT_TONE[activity.tone]}
+                    leading={
+                      <IconContainer
+                        tone={activityIconTone(activity)}
+                        size="sm"
+                      >
+                        <AppIcon
+                          icon={financeIconFor(activityIconKey(activity))}
+                          size="sm"
+                        />
+                      </IconContainer>
+                    }
                   />
                 );
               })}
@@ -272,59 +291,5 @@ export default async function TransactionsListPage({
         <MoneyCaptureAction testId="transactions-add" />
       </FloatingAction>
     </Page>
-  );
-}
-
-function TransactionListItem({
-  activity,
-  locale,
-  title,
-  subtitle,
-  amountMeta,
-  amountAria,
-}: {
-  activity: TransactionActivity;
-  locale: string;
-  title: string;
-  subtitle: string;
-  amountMeta: string;
-  amountAria: string;
-}) {
-  const amountLabel = `${activity.sign}${formatCurrency(
-    activity.amount,
-    activity.currency,
-    locale,
-    { maximumFractionDigits: 0 },
-  )}`;
-
-  return (
-    <li>
-      <Link
-        href={moneyTransactionPath(activity.relatedTransactionIds[0])}
-        className="block min-h-11 rounded-[var(--radius-control)] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus-ring"
-        aria-label={`${title}. ${amountAria}${subtitle ? `. ${subtitle}` : ""}`}
-        data-testid={`transaction-row-${activity.id}`}
-      >
-        <TransactionRow
-          leading={
-            <IconContainer tone={activityIconTone(activity)} size="sm">
-              <AppIcon
-                icon={financeIconFor(activityIconKey(activity))}
-                size="sm"
-              />
-            </IconContainer>
-          }
-          title={title}
-          subtitle={subtitle}
-          amountLabel={amountLabel}
-          amountMeta={amountMeta || undefined}
-          amountAriaLabel={amountAria}
-          tone={ACTIVITY_TONE_TO_AMOUNT_TONE[activity.tone]}
-          showRail={false}
-          showChevron
-          className="border-b-0 px-(--space-4)"
-        />
-      </Link>
-    </li>
   );
 }
