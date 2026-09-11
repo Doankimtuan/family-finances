@@ -14,6 +14,10 @@ const MIGRATION = readFileSync(
   "supabase/migrations/20260908114845_get_account_ledger_balances.sql",
   "utf8",
 );
+const HOME_MIGRATION = readFileSync(
+  "supabase/migrations/20260911035150_home_account_ledger_raw_inputs.sql",
+  "utf8",
+);
 const POSITION = readFileSync(
   "modules/ledger/application/queries/get-real-position.ts",
   "utf8",
@@ -62,12 +66,28 @@ describe("account ledger balance RPC", () => {
     expect(MIGRATION).not.toContain("security definer");
   });
 
+  it("keeps the Home raw-input RPC invoker-only and ownership-aware", () => {
+    expect(HOME_MIGRATION).toContain("security invoker");
+    expect(HOME_MIGRATION).toContain("set search_path to 'public'");
+    expect(HOME_MIGRATION).toContain("public.investment_active_household()");
+    expect(HOME_MIGRATION).toContain("owner_membership_is_active");
+    expect(HOME_MIGRATION).toContain(
+      "revoke all on function public.get_home_account_ledger_raw_inputs() from public",
+    );
+    expect(HOME_MIGRATION).toContain(
+      "grant execute on function public.get_home_account_ledger_raw_inputs() to authenticated",
+    );
+    expect(HOME_MIGRATION).not.toContain("security definer");
+    expect(HOME_MIGRATION).not.toContain("to anon");
+  });
+
   it("stops Home/Money/Health position reads from downloading transaction rows", () => {
     expect(HELPER).toContain("LedgerRpcName.GET_ACCOUNT_LEDGER_BALANCES");
     expect(MIGRATION).toContain(
       `function public.${LedgerRpcName.GET_ACCOUNT_LEDGER_BALANCES}`,
     );
-    expect(POSITION).toContain("loadAccountLedgerBalances");
+    expect(POSITION).toContain("loadHomeAccountLedgerRawInputs");
+    expect(POSITION).not.toContain("loadAccountLedgerBalances");
     expect(POSITION).not.toContain('.from("transactions")');
     expect(LIST_ACCOUNTS).not.toContain('.from("transactions")');
     expect(LIST_GOALS).not.toContain('.from("transactions")');

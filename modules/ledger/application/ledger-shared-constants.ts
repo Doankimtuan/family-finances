@@ -34,6 +34,7 @@ export const LedgerRpcName = {
   ENQUEUE_SAVINGS_MATURITY: "enqueue_savings_maturity",
   RECORD_OWNED_ACCOUNT_TRANSFER: "record_owned_account_transfer",
   GET_ACCOUNT_LEDGER_BALANCES: "get_account_ledger_balances",
+  GET_HOME_ACCOUNT_LEDGER_RAW_INPUTS: "get_home_account_ledger_raw_inputs",
 } as const;
 
 export type LedgerRpcName = (typeof LedgerRpcName)[keyof typeof LedgerRpcName];
@@ -83,6 +84,7 @@ export const LEDGER_OPERATION = {
   GET_LIABILITY: "getLiability",
   GET_LOAN: "getLoan",
   GET_ACCOUNT_LEDGER_BALANCES: "getAccountLedgerBalances",
+  GET_HOME_ACCOUNT_LEDGER_RAW_INPUTS: "getHomeAccountLedgerRawInputs",
   GET_REAL_POSITION: "getRealPosition",
   GET_TRANSACTION: "getTransaction",
   GET_TRANSACTION_AUDIT_CHAIN: "getTransactionAuditChain",

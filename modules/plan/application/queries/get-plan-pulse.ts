@@ -2,6 +2,7 @@ const PLAN_PULSE_LOG_CONTEXT = "[plan.plan-pulse]";
 import { cache } from "react";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
+import { getHomeHouseholdContext } from "@/modules/tenancy/application/get-home-household-context";
 import { DEFAULT_CURRENCY } from "@/modules/ledger/application/ledger-constants";
 import {
   mapIncomeAllocateMode,
@@ -28,17 +29,15 @@ async function loadPlanPulse(): Promise<PlanPulse | null> {
 
   try {
     const supabase = await createSupabaseServerClient();
-    const [{ data: household }, { data: rows, error }] = await Promise.all([
-      supabase
-        .from("households")
-        .select("base_currency, month_close_mode, income_allocate_mode")
-        .eq("id", gate.householdId)
-        .maybeSingle(),
-      supabase
-        .from("jars")
-        .select(JAR_SELECT)
-        .eq("household_id", gate.householdId)
-        .order("sort_order", { ascending: true }),
+    const householdPromise = getHomeHouseholdContext();
+    const jarsQuery = supabase
+      .from("jars")
+      .select(JAR_SELECT)
+      .eq("household_id", gate.householdId)
+      .order("sort_order", { ascending: true });
+    const [householdContext, { data: rows, error }] = await Promise.all([
+      householdPromise,
+      jarsQuery,
     ]);
 
     if (error) throw error;
@@ -54,10 +53,12 @@ async function loadPlanPulse(): Promise<PlanPulse | null> {
 
     return {
       householdId: gate.householdId,
-      currency: (household?.base_currency ?? DEFAULT_CURRENCY).toUpperCase(),
-      monthCloseMode: mapMonthCloseMode(household?.month_close_mode),
+      currency: (
+        householdContext?.baseCurrency ?? DEFAULT_CURRENCY
+      ).toUpperCase(),
+      monthCloseMode: mapMonthCloseMode(householdContext?.monthCloseMode),
       incomeAllocateMode: mapIncomeAllocateMode(
-        household?.income_allocate_mode,
+        householdContext?.incomeAllocateMode,
       ),
       activeJars,
       pausedJarCount,

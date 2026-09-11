@@ -11,6 +11,18 @@ type LedgerBalanceRpcRow = {
   balance: number | string;
 };
 
+export type HomeAccountLedgerRawInput = {
+  account_id: string;
+  account_name: string;
+  account_type: string;
+  opening_balance: number | string;
+  is_archived: boolean;
+  financial_scope: string | null;
+  owner_membership_id: string | null;
+  owner_membership_is_active: boolean;
+  balance: number | string;
+};
+
 export async function loadAccountLedgerBalances(
   supabase: SupabaseServerClient,
   householdId: string,
@@ -44,6 +56,28 @@ export async function loadAccountLedgerBalances(
     balances.set(row.account_id, amount);
   }
   return balances;
+}
+
+export async function loadHomeAccountLedgerRawInputs(
+  supabase: SupabaseServerClient,
+  householdId: string,
+): Promise<HomeAccountLedgerRawInput[] | null> {
+  const { data, error } = await supabase.rpc(
+    LedgerRpcName.GET_HOME_ACCOUNT_LEDGER_RAW_INPUTS,
+  );
+
+  if (error) {
+    logLedgerFailure(
+      error,
+      LEDGER_OPERATION.GET_HOME_ACCOUNT_LEDGER_RAW_INPUTS,
+      {
+        householdId,
+      },
+    );
+    return null;
+  }
+
+  return (data ?? []) as HomeAccountLedgerRawInput[];
 }
 
 export function applyLedgerBalances<T extends { id: string; balance: number }>(

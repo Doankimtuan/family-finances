@@ -64,6 +64,7 @@ import { getRealPosition } from "@/modules/ledger/application";
 import { getPlanPulse } from "@/modules/plan/application";
 import { getHomeDashboard } from "@/modules/home/application/get-home-dashboard";
 import { getHomeSavingsSummary } from "@/modules/home/application/home-product-summary-adapters";
+import { getSavingsHomeSummary as getSavingsRpcSummary } from "@/modules/savings/application/queries/savings-home-summary";
 import {
   HomeDashboardReadStatus,
   HomeProductReadStatus,
@@ -75,14 +76,13 @@ import {
 } from "@/modules/inbox/application/inbox-constants";
 import { IncomeAllocateMode } from "@/modules/tenancy/application/household-policy-constants";
 import { DEFAULT_CURRENCY } from "@/modules/shared-kernel/currency";
+import { SAVINGS_RPC } from "@/modules/savings/application/savings-constants";
 
 const HOUSEHOLD_ID = "household-1";
 const MEMBERSHIP_ID = "membership-1";
 const USER_ID = "user-1";
 const INBOX_ITEMS_TABLE = "inbox_items";
 const TRANSACTIONS_TABLE = "transactions";
-const SAVINGS_TABLE = "savings";
-const SAVING_CYCLES_TABLE = "saving_cycles";
 const LOANS_TABLE = "loans";
 const LIABILITIES_TABLE = "liabilities";
 
@@ -121,11 +121,12 @@ function thenableQuery(
 function createHomeClient(input: {
   delayInbox?: Promise<void>;
   delayTransactions?: Promise<void>;
-  delaySavings?: Promise<void>;
   inboxRows?: unknown[];
   transactionRows?: unknown[];
-  savingRows?: unknown[];
+  rpcData?: unknown;
+  rpcError?: unknown;
   onTable?: (table: string) => void;
+  onRpc?: (name: string) => void;
   onTransactionsIn?: (column: string) => void;
 }) {
   const inboxRows = input.inboxRows ?? [
@@ -158,22 +159,25 @@ function createHomeClient(input: {
           input.onTransactionsIn,
         );
       }
-      if (table === SAVINGS_TABLE) {
-        return thenableQuery(
-          (input.delaySavings ?? Promise.resolve()).then(() => ({
-            data: input.savingRows ?? [],
-            error: null,
-          })),
-        );
-      }
-      if (
-        table === SAVING_CYCLES_TABLE ||
-        table === LOANS_TABLE ||
-        table === LIABILITIES_TABLE
-      ) {
+      if (table === LOANS_TABLE || table === LIABILITIES_TABLE) {
         return thenableQuery(Promise.resolve({ data: [], error: null }));
       }
       return thenableQuery(Promise.resolve({ data: [], error: null }));
+    }),
+    rpc: vi.fn((name: string) => {
+      input.onRpc?.(name);
+      return Promise.resolve({
+        data: [
+          input.rpcData ?? {
+            active_count: 0,
+            principal: 0,
+            upcoming_maturity_count: 0,
+            action_required_count: 0,
+            nearest_maturity_date: null,
+          },
+        ],
+        error: input.rpcError ?? null,
+      });
     }),
   };
 }
@@ -202,7 +206,7 @@ describe("Home dashboard domain-query orchestration", () => {
     } as never);
   });
 
-  it("starts date-range transactions and savings before inbox_items resolves", async () => {
+  it("starts date-range transactions and the savings RPC before inbox resolves", async () => {
     let releaseInbox!: () => void;
     const delayInbox = new Promise<void>((resolve) => {
       releaseInbox = resolve;
@@ -217,7 +221,9 @@ describe("Home dashboard domain-query orchestration", () => {
       onTable: (table) => {
         if (table === INBOX_ITEMS_TABLE) started.inbox = true;
         if (table === TRANSACTIONS_TABLE) started.transactions = true;
-        if (table === SAVINGS_TABLE) started.savings = true;
+      },
+      onRpc: (name) => {
+        if (name === SAVINGS_RPC.HOME_SUMMARY) started.savings = true;
       },
     });
     vi.mocked(createSupabaseServerClient).mockResolvedValue(client as never);
@@ -236,17 +242,21 @@ describe("Home dashboard domain-query orchestration", () => {
     expect(savings.status).toBe(HomeProductReadStatus.READY);
   });
 
-  it("does not start enrichment transactions or savings after inbox_items", async () => {
+  it("does not add an enrichment tail after inbox_items", async () => {
     let releaseInbox!: () => void;
     const delayInbox = new Promise<void>((resolve) => {
       releaseInbox = resolve;
     });
     const tables: string[] = [];
+    let savingsRpcStarted = false;
     const transactionInColumns: string[] = [];
     const client = createHomeClient({
       delayInbox,
       onTable: (table) => {
         tables.push(table);
+      },
+      onRpc: (name) => {
+        if (name === SAVINGS_RPC.HOME_SUMMARY) savingsRpcStarted = true;
       },
       onTransactionsIn: (column) => {
         transactionInColumns.push(column);
@@ -258,7 +268,7 @@ describe("Home dashboard domain-query orchestration", () => {
     await vi.waitFor(() => {
       expect(tables).toContain(INBOX_ITEMS_TABLE);
       expect(tables).toContain(TRANSACTIONS_TABLE);
-      expect(tables).toContain(SAVINGS_TABLE);
+      expect(savingsRpcStarted).toBe(true);
     });
     const tablesBeforeInboxResolved = [...tables];
     releaseInbox();
@@ -273,7 +283,6 @@ describe("Home dashboard domain-query orchestration", () => {
     expect(tables.filter((table) => table === TRANSACTIONS_TABLE)).toHaveLength(
       1,
     );
-    expect(tables.filter((table) => table === SAVINGS_TABLE)).toHaveLength(1);
     expect(tables).not.toContain(LOANS_TABLE);
     expect(tables).not.toContain(LIABILITIES_TABLE);
     expect(transactionInColumns).toEqual([]);
@@ -307,5 +316,29 @@ describe("Home dashboard domain-query orchestration", () => {
     expect(dashboard.dashboard.canReviewUncategorized).toBe(true);
     expect(dashboard.dashboard.accountCount).toBe(1);
     expect(dashboard.dashboard.activeJarCount).toBe(1);
+  });
+
+  it("maps the one-row savings RPC without a second table read", async () => {
+    const client = createHomeClient({
+      rpcData: {
+        active_count: "2",
+        principal: "1200000",
+        upcoming_maturity_count: "2",
+        action_required_count: "1",
+        nearest_maturity_date: "2026-10-01",
+      },
+    });
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(client as never);
+
+    const summary = await getSavingsRpcSummary();
+
+    expect(summary).toEqual({
+      activeCount: 2,
+      principal: 1_200_000,
+      upcomingMaturityCount: 2,
+      actionRequiredCount: 1,
+      nearestMaturityDate: "2026-10-01",
+    });
+    expect(client.rpc).toHaveBeenCalledWith(SAVINGS_RPC.HOME_SUMMARY);
   });
 });

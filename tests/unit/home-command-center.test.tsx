@@ -74,10 +74,12 @@ const emptyMetrics = {
 
 describe("Home command-center composition", () => {
   it("uses the existing total-assets overview for the Home hero", () => {
-    const page = readFileSync(
-      resolve(process.cwd(), "app/[locale]/(product)/home/page.tsx"),
-      "utf8",
-    );
+    const page = [
+      "app/[locale]/(product)/home/page.tsx",
+      "app/[locale]/(product)/home/home-streaming-sections.tsx",
+    ]
+      .map((path) => readFileSync(resolve(process.cwd(), path), "utf8"))
+      .join("\n");
 
     expect(page).toContain("calculateMoneyAssetOverview");
     expect(page).toContain("<HomeInboxCta");

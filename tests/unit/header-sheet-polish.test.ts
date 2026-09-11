@@ -22,7 +22,12 @@ describe("header and sheet polish contracts", () => {
   });
 
   it("keeps Home on the canonical contextual app header", () => {
-    const homePage = readProjectFile("app/[locale]/(product)/home/page.tsx");
+    const homePage = [
+      "app/[locale]/(product)/home/page.tsx",
+      "app/[locale]/(product)/home/home-streaming-sections.tsx",
+    ]
+      .map(readProjectFile)
+      .join("\n");
     const homeLoading = readProjectFile(
       "app/[locale]/(product)/home/loading.tsx",
     );

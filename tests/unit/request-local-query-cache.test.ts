@@ -49,12 +49,17 @@ vi.mock("@/modules/tenancy/application/assert-money-action-allowed", () => ({
   assertMoneyActionAllowed: vi.fn(),
 }));
 
+vi.mock("@/modules/tenancy/application/get-home-household-context", () => ({
+  getHomeHouseholdContext: vi.fn(),
+}));
+
 vi.mock("@/modules/tenancy/application/list-active-membership-ids", () => ({
   listActiveMembershipIds: vi.fn(async () => new Set<string>()),
 }));
 
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
+import { getHomeHouseholdContext } from "@/modules/tenancy/application/get-home-household-context";
 import { getPlanPulse } from "@/modules/plan/application/queries/get-plan-pulse";
 import { getRealPosition } from "@/modules/ledger/application/queries/get-real-position";
 
@@ -90,7 +95,19 @@ function pulseClient() {
 
 function positionClient(householdCurrency = "VND") {
   const rpc = vi.fn(async () => ({
-    data: [{ account_id: "a1", balance: 100 }],
+    data: [
+      {
+        account_id: "a1",
+        account_name: "Cash",
+        account_type: "cash",
+        opening_balance: 100,
+        is_archived: false,
+        financial_scope: "household",
+        owner_membership_id: null,
+        owner_membership_is_active: true,
+        balance: 100,
+      },
+    ],
     error: null,
   }));
   return {
@@ -182,12 +199,22 @@ describe("request-local query cache", () => {
       householdId: "h1",
       membershipId: "m1",
     });
+    vi.mocked(getHomeHouseholdContext).mockResolvedValue({
+      householdId: "h1",
+      householdName: "Home",
+      locale: "en-VN",
+      timezone: "Asia/Ho_Chi_Minh",
+      baseCurrency: "VND",
+      monthCloseMode: "assisted",
+      incomeAllocateMode: "suggest",
+      canEdit: true,
+    });
     const from = vi.fn((table: string) => pulseClient().from(table));
     vi.mocked(createSupabaseServerClient).mockResolvedValue({ from } as never);
 
     const [first, second] = await Promise.all([getPlanPulse(), getPlanPulse()]);
     expect(first).toEqual(second);
-    expect(from).toHaveBeenCalledTimes(2);
+    expect(from).toHaveBeenCalledTimes(1);
   });
 
   it("does not reuse getPlanPulse across requests", async () => {
@@ -196,6 +223,16 @@ describe("request-local query cache", () => {
       userId: "u1",
       householdId: "h1",
       membershipId: "m1",
+    });
+    vi.mocked(getHomeHouseholdContext).mockResolvedValue({
+      householdId: "h1",
+      householdName: "Home",
+      locale: "en-VN",
+      timezone: "Asia/Ho_Chi_Minh",
+      baseCurrency: "VND",
+      monthCloseMode: "assisted",
+      incomeAllocateMode: "suggest",
+      canEdit: true,
     });
     vi.mocked(createSupabaseServerClient).mockResolvedValue(
       pulseClient() as never,
@@ -213,6 +250,16 @@ describe("request-local query cache", () => {
       householdId: "h1",
       membershipId: "m1",
     });
+    vi.mocked(getHomeHouseholdContext).mockResolvedValue({
+      householdId: "h1",
+      householdName: "Home",
+      locale: "en-VN",
+      timezone: "Asia/Ho_Chi_Minh",
+      baseCurrency: "VND",
+      monthCloseMode: "assisted",
+      incomeAllocateMode: "suggest",
+      canEdit: true,
+    });
     const client = positionClient();
     const from = vi.fn((table: string) => client.from(table));
     vi.mocked(createSupabaseServerClient).mockResolvedValue({
@@ -226,7 +273,7 @@ describe("request-local query cache", () => {
     ]);
     expect(first).toEqual(second);
     expect(first?.totalBalance).toBe(100);
-    expect(from).toHaveBeenCalledTimes(2);
+    expect(from).toHaveBeenCalledTimes(0);
     expect(client.rpc).toHaveBeenCalledTimes(1);
   });
 
@@ -236,6 +283,16 @@ describe("request-local query cache", () => {
       userId: "u1",
       householdId: "h1",
       membershipId: "m1",
+    });
+    vi.mocked(getHomeHouseholdContext).mockResolvedValue({
+      householdId: "h1",
+      householdName: "Home",
+      locale: "en-VN",
+      timezone: "Asia/Ho_Chi_Minh",
+      baseCurrency: "VND",
+      monthCloseMode: "assisted",
+      incomeAllocateMode: "suggest",
+      canEdit: true,
     });
     vi.mocked(createSupabaseServerClient).mockResolvedValue(
       positionClient("VND") as never,
@@ -249,6 +306,16 @@ describe("request-local query cache", () => {
       userId: "u2",
       householdId: "h2",
       membershipId: "m2",
+    });
+    vi.mocked(getHomeHouseholdContext).mockResolvedValue({
+      householdId: "h2",
+      householdName: "Home 2",
+      locale: "en-VN",
+      timezone: "Asia/Ho_Chi_Minh",
+      baseCurrency: "USD",
+      monthCloseMode: "assisted",
+      incomeAllocateMode: "suggest",
+      canEdit: true,
     });
     vi.mocked(createSupabaseServerClient).mockResolvedValue(
       positionClient("USD") as never,

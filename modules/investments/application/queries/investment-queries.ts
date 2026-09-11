@@ -16,6 +16,8 @@ import {
   InvestmentValuationSource,
   INVESTMENT_REPORTING_CURRENCY,
   INVESTMENT_OPERATION,
+  INVESTMENT_QUERY_PHASE,
+  INVESTMENT_QUERY_RPC,
   MarketDataProvider,
   MarketFxProvider,
   MarketPricingMode,
@@ -185,14 +187,51 @@ export type InvestmentHomeSummary = {
   valuationTotal: number;
 };
 
-type HomeHoldingRow = Pick<
-  HoldingRow,
-  | "id"
-  | "asset_class"
-  | "instrument_id"
-  | "quantity"
-  | "remaining_total_cost_basis"
->;
+type HomeInvestmentRawInputRow = {
+  holding_id: string;
+  asset_class: string;
+  instrument_id: string | null;
+  quantity: string | number;
+  remaining_total_cost_basis: string | number | null;
+  instrument_asset_class: string | null;
+  instrument_symbol: string | null;
+  instrument_name: string | null;
+  instrument_exchange: string | null;
+  instrument_currency: string | null;
+  instrument_pricing_mode: string | null;
+  instrument_auto_price_supported: boolean | null;
+  instrument_is_active: boolean | null;
+  instrument_metadata: Record<string, unknown> | null;
+  price: string | number | null;
+  price_currency: string | null;
+  price_type: string | null;
+  price_date: string | null;
+  price_fetched_at: string | null;
+  price_provider: string | null;
+  price_metadata: Record<string, unknown> | null;
+  price_updated_at: string | null;
+  fx_base_currency: string | null;
+  fx_quote_currency: string | null;
+  fx_rate: string | number | null;
+  fx_rate_date: string | null;
+  fx_fetched_at: string | null;
+  fx_provider: string | null;
+  fx_updated_at: string | null;
+  manual_value_vnd: string | number | null;
+  manual_valuation_date: string | null;
+  manual_created_at: string | null;
+  manual_quantity: string | number | null;
+  manual_unit_price_vnd: string | number | null;
+  manual_source: string | null;
+  manual_input_currency: string | null;
+  manual_input_unit_price: string | number | null;
+  manual_input_total_value: string | number | null;
+  manual_input_rate_to_vnd: string | number | null;
+  manual_input_rate_date: string | null;
+  manual_input_rate_source: string | null;
+  realized_pnl: string | number | null;
+  investment_income: string | number | null;
+};
 
 function investmentHomeQuality(
   resolutions: readonly InvestmentValuationResolution[],
@@ -374,6 +413,106 @@ function mapCurrencyRate(row: CurrencyRateRow): MarketCurrencyRate {
     fetchedAt: row.fetched_at,
     provider: row.provider as MarketFxProvider,
     updatedAt: row.updated_at,
+  };
+}
+
+function mapHomeInstrument(
+  row: HomeInvestmentRawInputRow,
+): MarketInstrument | null {
+  if (
+    row.instrument_id == null ||
+    row.instrument_asset_class == null ||
+    row.instrument_symbol == null ||
+    row.instrument_name == null ||
+    row.instrument_currency == null ||
+    row.instrument_pricing_mode == null ||
+    row.instrument_auto_price_supported == null ||
+    row.instrument_is_active == null
+  )
+    return null;
+  return mapMarketInstrument({
+    id: row.instrument_id,
+    asset_class: row.instrument_asset_class,
+    symbol: row.instrument_symbol,
+    name: row.instrument_name,
+    exchange: row.instrument_exchange,
+    currency: row.instrument_currency,
+    pricing_mode: row.instrument_pricing_mode,
+    auto_price_supported: row.instrument_auto_price_supported,
+    is_active: row.instrument_is_active,
+    metadata: row.instrument_metadata ?? {},
+  });
+}
+
+function mapHomePrice(
+  row: HomeInvestmentRawInputRow,
+): MarketInstrumentPrice | null {
+  if (
+    row.instrument_id == null ||
+    row.price == null ||
+    row.price_currency == null ||
+    row.price_type == null ||
+    row.price_date == null ||
+    row.price_fetched_at == null ||
+    row.price_provider == null ||
+    row.price_updated_at == null
+  )
+    return null;
+  return mapMarketPrice({
+    instrument_id: row.instrument_id,
+    price: row.price,
+    currency: row.price_currency,
+    price_type: row.price_type,
+    price_date: row.price_date,
+    fetched_at: row.price_fetched_at,
+    provider: row.price_provider,
+    metadata: row.price_metadata ?? {},
+    updated_at: row.price_updated_at,
+  });
+}
+
+function mapHomeRate(
+  row: HomeInvestmentRawInputRow,
+): MarketCurrencyRate | null {
+  if (
+    row.fx_base_currency == null ||
+    row.fx_quote_currency == null ||
+    row.fx_rate == null ||
+    row.fx_rate_date == null ||
+    row.fx_fetched_at == null ||
+    row.fx_provider == null ||
+    row.fx_updated_at == null
+  )
+    return null;
+  return mapCurrencyRate({
+    base_currency: row.fx_base_currency,
+    quote_currency: row.fx_quote_currency,
+    rate: row.fx_rate,
+    rate_date: row.fx_rate_date,
+    fetched_at: row.fx_fetched_at,
+    provider: row.fx_provider,
+    updated_at: row.fx_updated_at,
+  });
+}
+
+function mapHomeManualValuation(
+  row: HomeInvestmentRawInputRow,
+): ValuationRow | undefined {
+  if (row.manual_value_vnd == null) return undefined;
+  return {
+    holding_id: row.holding_id,
+    value_vnd: row.manual_value_vnd,
+    valuation_date: row.manual_valuation_date ?? "",
+    created_at: row.manual_created_at ?? "",
+    quantity: row.manual_quantity ?? 0,
+    unit_price_vnd: row.manual_unit_price_vnd,
+    source: row.manual_source ?? "",
+    input_currency: row.manual_input_currency,
+    input_unit_price: row.manual_input_unit_price,
+    input_total_value: row.manual_input_total_value,
+    input_rate_to_vnd: row.manual_input_rate_to_vnd,
+    input_rate_date: row.manual_input_rate_date,
+    input_rate_source: row.manual_input_rate_source,
   };
 }
 
@@ -621,18 +760,23 @@ async function loadInvestmentHomeSummary(): Promise<InvestmentHomeSummary | null
   if (!gate.ok) return null;
   try {
     const supabase = await createSupabaseServerClient();
-    const { data: holdingRows, error: holdingError } = await supabase
-      .from("investment_holdings")
-      .select(
-        "id, asset_class, instrument_id, quantity, remaining_total_cost_basis",
-      )
-      .eq("household_id", gate.householdId)
-      .neq("lifecycle_status", InvestmentLifecycleStatus.EXITED)
-      .gt("quantity", 0);
-    if (holdingError) return null;
+    const { data, error } = await supabase.rpc(
+      INVESTMENT_QUERY_RPC.HOME_RAW_INPUTS,
+    );
+    if (error) {
+      logActionFailure({
+        operation: INVESTMENT_OPERATION.LIST_HOLDINGS,
+        error,
+        context: {
+          householdId: gate.householdId,
+          phase: INVESTMENT_QUERY_PHASE.HOME_RAW_INPUTS,
+        },
+      });
+      return null;
+    }
 
-    const holdings = (holdingRows ?? []) as HomeHoldingRow[];
-    if (holdings.length === 0) {
+    const rows = (data ?? []) as HomeInvestmentRawInputRow[];
+    if (rows.length === 0) {
       return {
         activeCount: 0,
         marketValue: null,
@@ -645,100 +789,18 @@ async function loadInvestmentHomeSummary(): Promise<InvestmentHomeSummary | null
         valuationTotal: 0,
       };
     }
-
-    const instrumentIds = holdings
-      .map((holding) => holding.instrument_id)
-      .filter((id): id is string => id != null);
-    const [summaryResult, instrumentResult, priceResult, fxResult] =
-      await Promise.all([
-        supabase.rpc("get_investment_home_summary_inputs"),
-        instrumentIds.length
-          ? supabase
-              .from("market_instruments")
-              .select(
-                "id, asset_class, symbol, name, exchange, currency, pricing_mode, auto_price_supported, is_active, metadata",
-              )
-              .in("id", instrumentIds)
-          : Promise.resolve({ data: [], error: null }),
-        instrumentIds.length
-          ? supabase
-              .from("market_instrument_prices")
-              .select(
-                "instrument_id, price, currency, price_type, price_date, fetched_at, provider, metadata, updated_at",
-              )
-              .in("instrument_id", instrumentIds)
-          : Promise.resolve({ data: [], error: null }),
-        supabase
-          .from("market_currency_rates")
-          .select(
-            "base_currency, quote_currency, rate, rate_date, fetched_at, provider, updated_at",
-          )
-          .eq("quote_currency", INVESTMENT_REPORTING_CURRENCY),
-      ]);
-    if (
-      summaryResult.error ||
-      instrumentResult.error ||
-      priceResult.error ||
-      fxResult.error
-    )
-      return null;
-
-    const latestValuations = new Map<string, ValuationRow>();
-    for (const row of (summaryResult.data ?? []) as Array<{
-      holding_id: string;
-      value_vnd: number | string | null;
-      valuation_date: string | null;
-      valuation_created_at: string | null;
-      unit_price_vnd: number | string | null;
-      valuation_source: string | null;
-    }>) {
-      if (row.value_vnd != null) {
-        latestValuations.set(row.holding_id, {
-          holding_id: row.holding_id,
-          value_vnd: row.value_vnd,
-          valuation_date: row.valuation_date ?? "",
-          created_at: row.valuation_created_at ?? "",
-          quantity: 0,
-          unit_price_vnd: row.unit_price_vnd,
-          source: row.valuation_source ?? "",
-        });
-      }
-    }
-    const instruments = new Map(
-      (instrumentResult.data as InstrumentRow[]).map((row) => [
-        row.id,
-        mapMarketInstrument(row),
-      ]),
-    );
-    const prices = new Map(
-      (priceResult.data as PriceRow[]).map((row) => [
-        row.instrument_id,
-        mapMarketPrice(row),
-      ]),
-    );
-    const rates = new Map(
-      (fxResult.data as CurrencyRateRow[]).map((row) => {
-        const rate = mapCurrencyRate(row);
-        return [`${rate.baseCurrency}/${rate.quoteCurrency}`, rate];
-      }),
-    );
-    const resolutions = holdings.map((holding) => {
-      const price = holding.instrument_id
-        ? (prices.get(holding.instrument_id) ?? null)
-        : null;
-      const manual = latestValuations.get(holding.id);
+    const resolutions = rows.map((row) => {
+      const instrument = mapHomeInstrument(row);
+      const price = mapHomePrice(row);
+      const fxRate = mapHomeRate(row);
+      const manual = mapHomeManualValuation(row);
       return resolveInvestmentValuation({
-        assetClass: holding.asset_class as InvestmentAssetClass,
-        quantity: String(holding.quantity),
-        remainingCostBasis: nullableNumber(holding.remaining_total_cost_basis),
-        instrument: holding.instrument_id
-          ? (instruments.get(holding.instrument_id) ?? null)
-          : null,
+        assetClass: row.asset_class as InvestmentAssetClass,
+        quantity: String(row.quantity),
+        remainingCostBasis: nullableNumber(row.remaining_total_cost_basis),
+        instrument,
         price,
-        fxRate: price
-          ? (rates.get(`${price.currency}/${INVESTMENT_REPORTING_CURRENCY}`) ??
-            null)
-          : null,
+        fxRate,
         manualValuation: manual
           ? {
               valueVnd: Number(manual.value_vnd),
@@ -765,14 +827,10 @@ async function loadInvestmentHomeSummary(): Promise<InvestmentHomeSummary | null
     const complete = resolutions.filter(
       (resolution, index) =>
         resolution.currentValue != null &&
-        holdings[index].remaining_total_cost_basis != null,
+        rows[index].remaining_total_cost_basis != null,
     );
-    const operationTotals = (summaryResult.data?.[0] ?? {}) as {
-      realized_pnl?: number | string | null;
-      investment_income?: number | string | null;
-    };
     return {
-      activeCount: holdings.length,
+      activeCount: rows.length,
       marketValue: known.length
         ? known.reduce((sum, row) => sum + (row.currentValue ?? 0), 0)
         : null,
@@ -781,25 +839,25 @@ async function loadInvestmentHomeSummary(): Promise<InvestmentHomeSummary | null
             (sum, row, index) =>
               sum +
               (row.currentValue ?? 0) -
-              Number(holdings[index].remaining_total_cost_basis),
+              Number(rows[index].remaining_total_cost_basis),
             0,
           )
         : null,
-      realizedPnl: Number(operationTotals.realized_pnl ?? 0),
-      income: Number(operationTotals.investment_income ?? 0),
-      valuationQuality: investmentHomeQuality(resolutions, holdings.length),
+      realizedPnl: Number(rows[0].realized_pnl ?? 0),
+      income: Number(rows[0].investment_income ?? 0),
+      valuationQuality: investmentHomeQuality(resolutions, rows.length),
       valuationStale: resolutions.some(
         (resolution) =>
           resolution.quality === MarketValuationQuality.AUTO_STALE,
       ),
       valuationIncluded: known.length,
-      valuationTotal: holdings.length,
+      valuationTotal: rows.length,
     };
   } catch (error) {
     logActionFailure({
       operation: INVESTMENT_OPERATION.LIST_HOLDINGS,
       error,
-      context: { phase: "home_summary" },
+      context: { phase: INVESTMENT_QUERY_PHASE.HOME_RAW_INPUTS },
     });
     return null;
   }

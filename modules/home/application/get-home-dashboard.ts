@@ -1,3 +1,4 @@
+import { cache } from "react";
 import {
   getRealPosition,
   listTransactionsForDateRange,
@@ -5,6 +6,7 @@ import {
 import { getPlanPulse } from "@/modules/plan/application";
 import { getOpenInboxAttention } from "@/modules/inbox/application";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
+import type { IncomeAllocateMode } from "@/modules/tenancy/application/household-policy-constants";
 import {
   computeHealthPulse,
   type HealthPulse,
@@ -24,13 +26,59 @@ import {
   type HomeFinancialMetrics,
 } from "./home-dashboard-metrics";
 
+export type HomeReadiness = {
+  currency: string;
+  realBalance: number;
+  accountCount: number;
+  activeJarCount: number;
+  incomeAllocateMode: IncomeAllocateMode;
+  isDayZero: boolean;
+};
+
+export type HomeReadinessReadResult =
+  | {
+      status: typeof HomeDashboardReadStatus.ERROR;
+      source:
+        | typeof HomeDashboardFailureSource.ACCESS
+        | typeof HomeDashboardFailureSource.PLAN
+        | typeof HomeDashboardFailureSource.POSITION;
+    }
+  | {
+      status: typeof HomeDashboardReadStatus.READY;
+      readiness: HomeReadiness;
+    };
+
+export type HomePeriodData = {
+  period: HomeDashboardPeriod;
+  dateRange: HomeDashboardDateRange;
+  financialMetrics: HomeFinancialMetrics | null;
+};
+
+type HomePeriodReadyData = Omit<HomePeriodData, "financialMetrics"> & {
+  financialMetrics: HomeFinancialMetrics;
+};
+
+export type HomePeriodReadResult =
+  | {
+      status: typeof HomeDashboardReadStatus.ERROR;
+      source: typeof HomeDashboardFailureSource.ACCESS;
+    }
+  | {
+      status: typeof HomeDashboardReadStatus.PARTIAL;
+      data: HomePeriodData;
+    }
+  | {
+      status: typeof HomeDashboardReadStatus.READY;
+      data: HomePeriodReadyData;
+    };
+
 export type HomeDashboard = {
   currency: string;
   realBalance: number;
   accountCount: number;
   activeJarCount: number;
   openInboxCount: number;
-  incomeAllocateMode: "off" | "suggest" | "auto";
+  incomeAllocateMode: IncomeAllocateMode;
   health: HealthPulse;
   isDayZero: boolean;
   period: HomeDashboardPeriod;
@@ -55,13 +103,7 @@ export type HomeDashboardReadResult =
       dashboard: HomeDashboard;
     };
 
-/**
- * Home read model. The top-level position, Plan, and Inbox are core data;
- * transactional analytics degrade independently when that bounded source fails.
- */
-export async function getHomeDashboard(
-  period: HomeDashboardPeriod = HOME_DASHBOARD_DEFAULT_PERIOD,
-): Promise<HomeDashboardReadResult> {
+async function loadHomeReadiness(): Promise<HomeReadinessReadResult> {
   const gate = await assertMoneyActionAllowed();
   if (!gate.ok) {
     return {
@@ -69,15 +111,10 @@ export async function getHomeDashboard(
       source: HomeDashboardFailureSource.ACCESS,
     };
   }
-  const dateRange = getHomeDashboardDateRange(period);
-  const [position, pulse, inbox, transactions] = await Promise.all([
+
+  const [position, pulse] = await Promise.all([
     getRealPosition(),
     getPlanPulse(),
-    getOpenInboxAttention(),
-    listTransactionsForDateRange(
-      homeDashboardQueryStart(dateRange),
-      homeDashboardQueryEnd(dateRange),
-    ),
   ]);
   if (position == null) {
     return {
@@ -91,35 +128,108 @@ export async function getHomeDashboard(
       source: HomeDashboardFailureSource.PLAN,
     };
   }
+
+  const accountCount = position.accounts.length;
+  const activeJarCount = pulse.activeJars.length;
+  return {
+    status: HomeDashboardReadStatus.READY,
+    readiness: {
+      currency: position.currency,
+      realBalance: position.totalBalance,
+      accountCount,
+      activeJarCount,
+      incomeAllocateMode: pulse.incomeAllocateMode,
+      isDayZero: accountCount === 0 && activeJarCount === 0,
+    },
+  };
+}
+
+export const getHomeReadiness = cache(loadHomeReadiness);
+
+async function loadHomePeriodData(
+  period: HomeDashboardPeriod,
+): Promise<HomePeriodReadResult> {
+  const gate = await assertMoneyActionAllowed();
+  if (!gate.ok) {
+    return {
+      status: HomeDashboardReadStatus.ERROR,
+      source: HomeDashboardFailureSource.ACCESS,
+    };
+  }
+
+  const dateRange = getHomeDashboardDateRange(period);
+  const transactions = await listTransactionsForDateRange(
+    homeDashboardQueryStart(dateRange),
+    homeDashboardQueryEnd(dateRange),
+  );
+  if (transactions == null) {
+    return {
+      status: HomeDashboardReadStatus.PARTIAL,
+      data: {
+        period,
+        dateRange,
+        financialMetrics: null,
+      },
+    };
+  }
+
+  return {
+    status: HomeDashboardReadStatus.READY,
+    data: {
+      period,
+      dateRange,
+      financialMetrics: calculateHomeFinancialMetrics({
+        transactions,
+        range: dateRange,
+      }),
+    },
+  };
+}
+
+export const getHomePeriodData = cache(loadHomePeriodData);
+
+/**
+ * Home read model. The top-level position, Plan, and Inbox are core data;
+ * transactional analytics degrade independently when that bounded source fails.
+ */
+export async function getHomeDashboard(
+  period: HomeDashboardPeriod = HOME_DASHBOARD_DEFAULT_PERIOD,
+): Promise<HomeDashboardReadResult> {
+  const readiness = await getHomeReadiness();
+  if (readiness.status === HomeDashboardReadStatus.ERROR) return readiness;
+
+  const [inbox, periodData] = await Promise.all([
+    getOpenInboxAttention(),
+    getHomePeriodData(period),
+  ]);
   if (inbox == null) {
     return {
       status: HomeDashboardReadStatus.ERROR,
       source: HomeDashboardFailureSource.INBOX,
     };
   }
-  const accountCount = position.accounts.length;
-  const activeJarCount = pulse.activeJars.length;
-  const openInboxCount = inbox.openCount;
-  const health = computeHealthPulse({
-    accountCount,
-    activeJarCount,
-    openInboxCount,
-  });
+  if (periodData.status === HomeDashboardReadStatus.ERROR) return periodData;
+
+  const { readiness: ready } = readiness;
   const dashboardBase = {
-    currency: position.currency,
-    realBalance: position.totalBalance,
-    accountCount,
-    activeJarCount,
-    openInboxCount,
-    incomeAllocateMode: pulse.incomeAllocateMode,
+    currency: ready.currency,
+    realBalance: ready.realBalance,
+    accountCount: ready.accountCount,
+    activeJarCount: ready.activeJarCount,
+    openInboxCount: inbox.openCount,
+    incomeAllocateMode: ready.incomeAllocateMode,
     canReviewUncategorized: inbox.canReviewUncategorized,
-    health,
-    isDayZero: accountCount === 0 && activeJarCount === 0,
-    period,
-    dateRange,
+    health: computeHealthPulse({
+      accountCount: ready.accountCount,
+      activeJarCount: ready.activeJarCount,
+      openInboxCount: inbox.openCount,
+    }),
+    isDayZero: ready.isDayZero,
+    period: periodData.data.period,
+    dateRange: periodData.data.dateRange,
   };
 
-  if (transactions == null) {
+  if (periodData.status === HomeDashboardReadStatus.PARTIAL) {
     return {
       status: HomeDashboardReadStatus.PARTIAL,
       dashboard: { ...dashboardBase, financialMetrics: null },
@@ -129,10 +239,7 @@ export async function getHomeDashboard(
     status: HomeDashboardReadStatus.READY,
     dashboard: {
       ...dashboardBase,
-      financialMetrics: calculateHomeFinancialMetrics({
-        transactions,
-        range: dateRange,
-      }),
+      financialMetrics: periodData.data.financialMetrics,
     },
   };
 }

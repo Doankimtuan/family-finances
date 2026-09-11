@@ -19,7 +19,12 @@ describe("MotionReveal usage contract (B09)", () => {
 
   it("keeps one hero-group reveal on Plan, Home, and Together", () => {
     const planHub = readProjectFile("app/[locale]/(product)/plan/page.tsx");
-    const home = readProjectFile("app/[locale]/(product)/home/page.tsx");
+    const home = [
+      "app/[locale]/(product)/home/page.tsx",
+      "app/[locale]/(product)/home/home-streaming-sections.tsx",
+    ]
+      .map(readProjectFile)
+      .join("\n");
     const together = readProjectFile(
       "app/[locale]/(product)/together/page.tsx",
     );

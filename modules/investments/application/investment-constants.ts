@@ -289,6 +289,12 @@ export type InvestmentRpc =
 export const INVESTMENT_RPC_VALUES = Object.values(INVESTMENT_RPC);
 export const INVESTMENT_INPUT_CURRENCY_RPC =
   "record_investment_with_input_currency";
+export const INVESTMENT_QUERY_RPC = {
+  HOME_RAW_INPUTS: "get_home_investment_raw_inputs",
+} as const;
+export const INVESTMENT_QUERY_PHASE = {
+  HOME_RAW_INPUTS: "home_raw_inputs",
+} as const;
 
 export const INVESTMENT_OPERATION = {
   LIST_HOLDINGS: "listInvestmentHoldings",

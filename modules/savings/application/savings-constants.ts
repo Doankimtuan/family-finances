@@ -73,6 +73,7 @@ export const SAVINGS_CREATE_MODE_VALUES = [
 
 /** Savings RPC names used at the application boundary and in diagnostics. */
 export const SAVINGS_RPC = {
+  HOME_SUMMARY: "get_home_savings_summary",
   CREATE: "create_saving_with_transfer",
   DETECT_MATURED: "detect_matured_savings",
   ENQUEUE_MATURITY_CASCADE: "enqueue_savings_maturity_cascade",

@@ -1,16 +1,10 @@
-import { getSupabaseEnv } from "@/modules/platform/supabase/env";
-import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
-import { getSessionUser } from "./get-session-user";
-import { resolveActiveMembership } from "./resolve-active-membership";
+import { getHomeHouseholdContext } from "./get-home-household-context";
 import {
   HOUSEHOLD_BASE_CURRENCY,
   HOUSEHOLD_LOCALE,
-  HOUSEHOLD_ROLE,
   HOUSEHOLD_TIMEZONE,
 } from "./tenancy-constants";
 import type { HouseholdPreferencesInput } from "./household-preferences.schema";
-import { logTenancyFailure } from "./tenancy-error";
-import { TENANCY_OPERATION } from "./tenancy-constants";
 
 export type HouseholdPreferences = HouseholdPreferencesInput & {
   householdName: string;
@@ -18,43 +12,17 @@ export type HouseholdPreferences = HouseholdPreferencesInput & {
 };
 
 export async function getHouseholdPreferences(): Promise<HouseholdPreferences | null> {
-  if (!getSupabaseEnv().isConfigured) return null;
+  const household = await getHomeHouseholdContext();
+  if (!household) return null;
 
-  const user = await getSessionUser();
-  if (!user) return null;
-  const membership = await resolveActiveMembership(user.id);
-  if (!membership) return null;
-
-  try {
-    const supabase = await createSupabaseServerClient();
-    const { data, error } = await supabase
-      .from("households")
-      .select("name, locale, timezone, base_currency")
-      .eq("id", membership.householdId)
-      .maybeSingle();
-
-    if (error) {
-      logTenancyFailure(TENANCY_OPERATION.HOUSEHOLD_QUERY, error, {
-        householdId: membership.householdId,
-      });
-      return null;
-    }
-    if (!data) return null;
-
-    return {
-      householdName: data.name,
-      locale:
-        data.locale === HOUSEHOLD_LOCALE.VIETNAMESE_VIETNAM
-          ? HOUSEHOLD_LOCALE.VIETNAMESE_VIETNAM
-          : HOUSEHOLD_LOCALE.ENGLISH_VIETNAM,
-      timezone: HOUSEHOLD_TIMEZONE.VIETNAM,
-      baseCurrency: HOUSEHOLD_BASE_CURRENCY.VIETNAM_DONG,
-      canEdit: membership.role === HOUSEHOLD_ROLE.ADMIN,
-    };
-  } catch (error) {
-    logTenancyFailure(TENANCY_OPERATION.HOUSEHOLD_QUERY, error, {
-      householdId: membership.householdId,
-    });
-    return null;
-  }
+  return {
+    householdName: household.householdName,
+    locale:
+      household.locale === HOUSEHOLD_LOCALE.VIETNAMESE_VIETNAM
+        ? HOUSEHOLD_LOCALE.VIETNAMESE_VIETNAM
+        : HOUSEHOLD_LOCALE.ENGLISH_VIETNAM,
+    timezone: HOUSEHOLD_TIMEZONE.VIETNAM,
+    baseCurrency: HOUSEHOLD_BASE_CURRENCY.VIETNAM_DONG,
+    canEdit: household.canEdit,
+  };
 }

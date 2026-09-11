@@ -18,6 +18,19 @@ vi.mock("@/modules/tenancy/application/assert-money-action-allowed", () => ({
   assertMoneyActionAllowed: vi.fn(),
 }));
 
+vi.mock("@/modules/tenancy/application/get-home-household-context", () => ({
+  getHomeHouseholdContext: vi.fn(async () => ({
+    householdId: "h1",
+    householdName: "Home",
+    locale: "en-VN",
+    timezone: "Asia/Ho_Chi_Minh",
+    baseCurrency: "VND",
+    monthCloseMode: "assisted",
+    incomeAllocateMode: "suggest",
+    canEdit: true,
+  })),
+}));
+
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import { getCurrentJarBudgets } from "@/modules/plan/application/queries/get-current-jar-budgets";

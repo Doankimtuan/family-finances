@@ -16,8 +16,13 @@ vi.mock("@/modules/tenancy/application/assert-money-action-allowed", () => ({
   assertMoneyActionAllowed: vi.fn(),
 }));
 
+vi.mock("@/modules/tenancy/application/get-home-household-context", () => ({
+  getHomeHouseholdContext: vi.fn(),
+}));
+
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
+import { getHomeHouseholdContext } from "@/modules/tenancy/application/get-home-household-context";
 import {
   MONEY_ACTION_DENIED_REASON,
   PRODUCT_ACTION_ERROR_CODE,
@@ -322,11 +327,41 @@ describe("getRealPosition", () => {
       userId: "u1",
       householdId: "h1",
     });
+    vi.mocked(getHomeHouseholdContext).mockResolvedValue({
+      householdId: "h1",
+      householdName: "Home",
+      locale: "en-VN",
+      timezone: "Asia/Ho_Chi_Minh",
+      baseCurrency: "VND",
+      monthCloseMode: "assisted",
+      incomeAllocateMode: "suggest",
+      canEdit: true,
+    });
     vi.mocked(createSupabaseServerClient).mockResolvedValue({
       rpc: async () => ({
         data: [
-          { account_id: "a1", balance: 100 },
-          { account_id: "a2", balance: 50 },
+          {
+            account_id: "a1",
+            account_name: "Cash",
+            account_type: "cash",
+            opening_balance: 100,
+            is_archived: false,
+            financial_scope: "household",
+            owner_membership_id: null,
+            owner_membership_is_active: true,
+            balance: 100,
+          },
+          {
+            account_id: "a2",
+            account_name: "Bank",
+            account_type: "checking",
+            opening_balance: 50,
+            is_archived: false,
+            financial_scope: "household",
+            owner_membership_id: null,
+            owner_membership_is_active: true,
+            balance: 50,
+          },
         ],
         error: null,
       }),

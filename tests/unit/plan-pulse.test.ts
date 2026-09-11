@@ -16,6 +16,10 @@ vi.mock("@/modules/tenancy/application/assert-money-action-allowed", () => ({
   assertMoneyActionAllowed: vi.fn(),
 }));
 
+vi.mock("@/modules/tenancy/application/get-home-household-context", () => ({
+  getHomeHouseholdContext: vi.fn(),
+}));
+
 vi.mock(
   "@/modules/plan/application/commands/ensure-jar-period-snapshots",
   () => ({
@@ -25,6 +29,7 @@ vi.mock(
 
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
+import { getHomeHouseholdContext } from "@/modules/tenancy/application/get-home-household-context";
 import {
   MONEY_ACTION_DENIED_REASON,
   PRODUCT_ACTION_ERROR_CODE,
@@ -102,6 +107,16 @@ describe("getPlanPulse", () => {
       ok: true,
       userId: "u1",
       householdId: "h1",
+    });
+    vi.mocked(getHomeHouseholdContext).mockResolvedValue({
+      householdId: "h1",
+      householdName: "Home",
+      locale: "en-VN",
+      timezone: "Asia/Ho_Chi_Minh",
+      baseCurrency: "VND",
+      monthCloseMode: "assisted",
+      incomeAllocateMode: "suggest",
+      canEdit: true,
     });
     vi.mocked(createSupabaseServerClient).mockResolvedValue({
       from: (table: string) => {

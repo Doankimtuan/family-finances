@@ -113,7 +113,7 @@ function WelcomePreview({ locale }: { locale: string }) {
             </Text>
           </span>
           <Text size="xs" className="text-hero-muted">
-            {t("previewNetLabel")}
+            {t("previewHint")}
           </Text>
         </div>
       </Card>

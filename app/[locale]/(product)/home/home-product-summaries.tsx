@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import { Link } from "@/i18n/navigation";
 import { PRODUCT_LINK_PREFETCH } from "@/shared/constants/navigation";
 import type { _Translator } from "use-intl";
@@ -20,6 +20,7 @@ import { FinancialNumberKind } from "@/shared/patterns/financial-number-kind";
 import { Card } from "@/shared/patterns/card";
 import { Section } from "@/shared/patterns/section";
 import { Text } from "@/shared/ui/text";
+import { Skeleton } from "@/shared/ui/skeleton";
 import { AppIcon } from "@/shared/ui/app-icon";
 import {
   IconContainer,
@@ -37,6 +38,16 @@ type Props = {
   loans: HomeProductReadResult<HomeLoanSummary>;
   debt: HomeProductReadResult<HomeDebtSummary>;
   t: _Translator<AppMessages, "home">;
+};
+
+type StreamingProps = Omit<
+  Props,
+  "savings" | "investments" | "loans" | "debt"
+> & {
+  savings: Promise<HomeProductReadResult<HomeSavingsSummary>>;
+  investments: Promise<HomeProductReadResult<HomeInvestmentSummary>>;
+  loans: Promise<HomeProductReadResult<HomeLoanSummary>>;
+  debt: Promise<HomeProductReadResult<HomeDebtSummary>>;
 };
 
 const PRODUCT_ROW_CLASS =
@@ -79,6 +90,7 @@ function ProductRow({
   value,
   unavailable,
   kind,
+  testId,
 }: {
   href: string;
   visual: ProductVisual;
@@ -88,12 +100,14 @@ function ProductRow({
   value?: ReactNode;
   unavailable: string;
   kind?: (typeof FinancialNumberKind)[keyof typeof FinancialNumberKind];
+  testId?: string;
 }) {
   return (
     <Link
       href={href}
       prefetch={PRODUCT_LINK_PREFETCH}
       className={PRODUCT_ROW_CLASS}
+      data-testid={testId}
     >
       <IconContainer tone={visual.tone} size="sm">
         <AppIcon icon={visual.icon} size="sm" />
@@ -168,6 +182,213 @@ function investmentDetail(
   return `${incomplete}. ${quality}`;
 }
 
+type ProductRowContentProps = Omit<
+  Props,
+  "savings" | "investments" | "loans" | "debt"
+> & {
+  testId?: string;
+};
+
+function SavingsProductRowContent({
+  result,
+  locale,
+  currency,
+  t,
+  testId,
+}: ProductRowContentProps & { result: Props["savings"] }) {
+  const unavailable = t("common.unavailable");
+
+  return result.status === HomeProductReadStatus.READY ? (
+    <ProductRow
+      href={APP_PATH.MONEY_SAVINGS}
+      visual={PRODUCT_ROW_VISUAL.savings}
+      testId={testId}
+      label={t("productSummary.savings.label")}
+      detail={
+        result.summary.actionRequiredCount > 0
+          ? t("productSummary.savings.attention", {
+              count: result.summary.actionRequiredCount,
+            })
+          : t("productSummary.savings.detail", {
+              count: result.summary.activeCount,
+            })
+      }
+      attention={result.summary.actionRequiredCount > 0}
+      value={
+        <FinancialValue>
+          {money(result.summary.principal, currency, locale)}
+        </FinancialValue>
+      }
+      kind={FinancialNumberKind.CURRENT_STATE}
+      unavailable={unavailable}
+    />
+  ) : (
+    <ProductRow
+      href={APP_PATH.MONEY_SAVINGS}
+      visual={PRODUCT_ROW_VISUAL.savings}
+      testId={testId}
+      label={t("productSummary.savings.label")}
+      detail={t("productSummary.unavailable")}
+      attention
+      value={undefined}
+      unavailable={unavailable}
+    />
+  );
+}
+
+function InvestmentProductRowContent({
+  result,
+  locale,
+  currency,
+  t,
+  testId,
+}: ProductRowContentProps & { result: Props["investments"] }) {
+  const unavailable = t("common.unavailable");
+  if (result.status !== HomeProductReadStatus.READY) {
+    return (
+      <ProductRow
+        href={APP_PATH.MONEY_INVESTMENTS}
+        visual={PRODUCT_ROW_VISUAL.investments}
+        testId={testId}
+        label={t("productSummary.investments.label")}
+        detail={t("productSummary.unavailable")}
+        attention
+        value={undefined}
+        unavailable={unavailable}
+      />
+    );
+  }
+
+  const investmentPartial =
+    result.summary.valuationIncluded < result.summary.valuationTotal;
+  return (
+    <ProductRow
+      href={APP_PATH.MONEY_INVESTMENTS}
+      visual={PRODUCT_ROW_VISUAL.investments}
+      testId={testId}
+      label={t("productSummary.investments.label")}
+      detail={investmentDetail(result.summary, t)}
+      attention={
+        result.summary.valuationQuality !==
+          InvestmentHomeValuationQuality.CURRENT || investmentPartial
+      }
+      value={
+        result.summary.marketValue == null ? undefined : (
+          <FinancialValue>
+            {money(result.summary.marketValue, currency, locale)}
+          </FinancialValue>
+        )
+      }
+      kind={FinancialNumberKind.ESTIMATE}
+      unavailable={unavailable}
+    />
+  );
+}
+
+function LoanProductRowContent({
+  result,
+  locale,
+  currency,
+  t,
+  testId,
+}: ProductRowContentProps & { result: Props["loans"] }) {
+  const unavailable = t("common.unavailable");
+  if (result.status !== HomeProductReadStatus.READY) {
+    return (
+      <ProductRow
+        href={APP_PATH.MONEY_LOANS}
+        visual={PRODUCT_ROW_VISUAL.loans}
+        testId={testId}
+        label={t("productSummary.loans.label")}
+        detail={t("productSummary.unavailable")}
+        attention
+        value={undefined}
+        unavailable={unavailable}
+      />
+    );
+  }
+
+  return (
+    <ProductRow
+      href={APP_PATH.MONEY_LOANS}
+      visual={PRODUCT_ROW_VISUAL.loans}
+      testId={testId}
+      label={t("productSummary.loans.label")}
+      detail={
+        result.summary.attentionCount > 0
+          ? t("productSummary.loans.attention", {
+              count: result.summary.attentionCount,
+            })
+          : t("productSummary.loans.detail", {
+              count: result.summary.activeCount,
+            })
+      }
+      attention={result.summary.attentionCount > 0}
+      value={
+        <FinancialValue>
+          {money(result.summary.remainingPrincipal, currency, locale)}
+        </FinancialValue>
+      }
+      kind={FinancialNumberKind.CURRENT_STATE}
+      unavailable={unavailable}
+    />
+  );
+}
+
+function DebtProductRowContent({
+  result,
+  locale,
+  currency,
+  t,
+  testId,
+}: ProductRowContentProps & { result: Props["debt"] }) {
+  const unavailable = t("common.unavailable");
+  if (result.status !== HomeProductReadStatus.READY) {
+    return (
+      <ProductRow
+        href={APP_PATH.MONEY_DEBTS}
+        visual={PRODUCT_ROW_VISUAL.debt}
+        testId={testId}
+        label={t("productSummary.debt.label")}
+        detail={t("productSummary.unavailable")}
+        attention
+        value={undefined}
+        unavailable={unavailable}
+      />
+    );
+  }
+
+  return (
+    <ProductRow
+      href={APP_PATH.MONEY_DEBTS}
+      visual={PRODUCT_ROW_VISUAL.debt}
+      testId={testId}
+      label={t("productSummary.debt.label")}
+      detail={
+        result.summary.attentionCount > 0
+          ? t("productSummary.debt.attention", {
+              count: result.summary.attentionCount,
+            })
+          : t("productSummary.debt.detail", {
+              count: result.summary.activeCount,
+            })
+      }
+      attention={result.summary.attentionCount > 0}
+      value={
+        <FinancialValue>
+          {money(
+            result.summary.borrowedRemaining + result.summary.lentRemaining,
+            currency,
+            locale,
+          )}
+        </FinancialValue>
+      }
+      kind={FinancialNumberKind.CURRENT_STATE}
+      unavailable={unavailable}
+    />
+  );
+}
+
 export function HomeProductSummaries({
   locale,
   currency,
@@ -177,15 +398,6 @@ export function HomeProductSummaries({
   debt,
   t,
 }: Props) {
-  const investment =
-    investments.status === HomeProductReadStatus.READY
-      ? investments.summary
-      : null;
-  const investmentPartial =
-    investment != null &&
-    investment.valuationIncluded < investment.valuationTotal;
-  const unavailable = t("common.unavailable");
-
   return (
     <Section
       title={t("productSummary.title")}
@@ -194,143 +406,190 @@ export function HomeProductSummaries({
     >
       <Card tone="elevated" className="gap-0 p-0">
         <div className="flex flex-col divide-y divide-border-subtle/65 py-(--space-1)">
-          {savings.status === HomeProductReadStatus.READY ? (
-            <ProductRow
-              href={APP_PATH.MONEY_SAVINGS}
-              visual={PRODUCT_ROW_VISUAL.savings}
-              label={t("productSummary.savings.label")}
-              detail={
-                savings.summary.actionRequiredCount > 0
-                  ? t("productSummary.savings.attention", {
-                      count: savings.summary.actionRequiredCount,
-                    })
-                  : t("productSummary.savings.detail", {
-                      count: savings.summary.activeCount,
-                    })
-              }
-              attention={savings.summary.actionRequiredCount > 0}
-              value={
-                <FinancialValue>
-                  {money(savings.summary.principal, currency, locale)}
-                </FinancialValue>
-              }
-              kind={FinancialNumberKind.CURRENT_STATE}
-              unavailable={unavailable}
+          <SavingsProductRowContent
+            locale={locale}
+            currency={currency}
+            result={savings}
+            t={t}
+          />
+          <InvestmentProductRowContent
+            locale={locale}
+            currency={currency}
+            result={investments}
+            t={t}
+          />
+          <LoanProductRowContent
+            locale={locale}
+            currency={currency}
+            result={loans}
+            t={t}
+          />
+          <DebtProductRowContent
+            locale={locale}
+            currency={currency}
+            result={debt}
+            t={t}
+          />
+        </div>
+      </Card>
+    </Section>
+  );
+}
+
+export function ProductRowSkeleton() {
+  return (
+    <div
+      className="flex min-h-14 items-center gap-(--space-3) px-(--space-4) py-(--space-2)"
+      aria-hidden
+    >
+      <Skeleton className="size-8 shrink-0 rounded-(--radius-control)" />
+      <div className="flex min-w-0 flex-1 flex-col gap-(--space-2)">
+        <Skeleton className="h-4 w-28" />
+        <Skeleton className="h-3 w-40" />
+      </div>
+      <Skeleton className="h-4 w-16" />
+      <Skeleton className="size-4 shrink-0" />
+    </div>
+  );
+}
+
+async function SavingsProductRow({
+  result,
+  locale,
+  currency,
+  t,
+}: {
+  result: StreamingProps["savings"];
+  locale: string;
+  currency: string;
+  t: Props["t"];
+}) {
+  return (
+    <SavingsProductRowContent
+      result={await result}
+      locale={locale}
+      currency={currency}
+      t={t}
+      testId={HOME_TEST_ID.PRODUCT_SAVINGS}
+    />
+  );
+}
+
+async function InvestmentProductRow({
+  result,
+  locale,
+  currency,
+  t,
+}: {
+  result: StreamingProps["investments"];
+  locale: string;
+  currency: string;
+  t: Props["t"];
+}) {
+  return (
+    <InvestmentProductRowContent
+      result={await result}
+      locale={locale}
+      currency={currency}
+      t={t}
+      testId={HOME_TEST_ID.PRODUCT_INVESTMENTS}
+    />
+  );
+}
+
+async function LoanProductRow({
+  result,
+  locale,
+  currency,
+  t,
+}: {
+  result: StreamingProps["loans"];
+  locale: string;
+  currency: string;
+  t: Props["t"];
+}) {
+  return (
+    <LoanProductRowContent
+      result={await result}
+      locale={locale}
+      currency={currency}
+      t={t}
+      testId={HOME_TEST_ID.PRODUCT_LOANS}
+    />
+  );
+}
+
+async function DebtProductRow({
+  result,
+  locale,
+  currency,
+  t,
+}: {
+  result: StreamingProps["debt"];
+  locale: string;
+  currency: string;
+  t: Props["t"];
+}) {
+  return (
+    <DebtProductRowContent
+      result={await result}
+      locale={locale}
+      currency={currency}
+      t={t}
+      testId={HOME_TEST_ID.PRODUCT_DEBT}
+    />
+  );
+}
+
+export function HomeProductSummariesStreaming({
+  locale,
+  currency,
+  savings,
+  investments,
+  loans,
+  debt,
+  t,
+}: StreamingProps) {
+  return (
+    <Section
+      title={t("productSummary.title")}
+      description={t("productSummary.hint")}
+      testId={HOME_TEST_ID.PRODUCT_SUMMARIES}
+    >
+      <Card tone="elevated" className="gap-0 p-0">
+        <div className="flex flex-col divide-y divide-border-subtle/65 py-(--space-1)">
+          <Suspense fallback={<ProductRowSkeleton />}>
+            <SavingsProductRow
+              result={savings}
+              locale={locale}
+              currency={currency}
+              t={t}
             />
-          ) : (
-            <ProductRow
-              href={APP_PATH.MONEY_SAVINGS}
-              visual={PRODUCT_ROW_VISUAL.savings}
-              label={t("productSummary.savings.label")}
-              detail={t("productSummary.unavailable")}
-              attention
-              value={undefined}
-              unavailable={unavailable}
+          </Suspense>
+          <Suspense fallback={<ProductRowSkeleton />}>
+            <InvestmentProductRow
+              result={investments}
+              locale={locale}
+              currency={currency}
+              t={t}
             />
-          )}
-          {investment ? (
-            <ProductRow
-              href={APP_PATH.MONEY_INVESTMENTS}
-              visual={PRODUCT_ROW_VISUAL.investments}
-              label={t("productSummary.investments.label")}
-              detail={investmentDetail(investment, t)}
-              attention={
-                investment.valuationQuality !==
-                  InvestmentHomeValuationQuality.CURRENT || investmentPartial
-              }
-              value={
-                investment.marketValue == null ? undefined : (
-                  <FinancialValue>
-                    {money(investment.marketValue, currency, locale)}
-                  </FinancialValue>
-                )
-              }
-              kind={FinancialNumberKind.ESTIMATE}
-              unavailable={unavailable}
+          </Suspense>
+          <Suspense fallback={<ProductRowSkeleton />}>
+            <LoanProductRow
+              result={loans}
+              locale={locale}
+              currency={currency}
+              t={t}
             />
-          ) : (
-            <ProductRow
-              href={APP_PATH.MONEY_INVESTMENTS}
-              visual={PRODUCT_ROW_VISUAL.investments}
-              label={t("productSummary.investments.label")}
-              detail={t("productSummary.unavailable")}
-              attention
-              value={undefined}
-              unavailable={unavailable}
+          </Suspense>
+          <Suspense fallback={<ProductRowSkeleton />}>
+            <DebtProductRow
+              result={debt}
+              locale={locale}
+              currency={currency}
+              t={t}
             />
-          )}
-          {loans.status === HomeProductReadStatus.READY ? (
-            <ProductRow
-              href={APP_PATH.MONEY_LOANS}
-              visual={PRODUCT_ROW_VISUAL.loans}
-              label={t("productSummary.loans.label")}
-              detail={
-                loans.summary.attentionCount > 0
-                  ? t("productSummary.loans.attention", {
-                      count: loans.summary.attentionCount,
-                    })
-                  : t("productSummary.loans.detail", {
-                      count: loans.summary.activeCount,
-                    })
-              }
-              attention={loans.summary.attentionCount > 0}
-              value={
-                <FinancialValue>
-                  {money(loans.summary.remainingPrincipal, currency, locale)}
-                </FinancialValue>
-              }
-              kind={FinancialNumberKind.CURRENT_STATE}
-              unavailable={unavailable}
-            />
-          ) : (
-            <ProductRow
-              href={APP_PATH.MONEY_LOANS}
-              visual={PRODUCT_ROW_VISUAL.loans}
-              label={t("productSummary.loans.label")}
-              detail={t("productSummary.unavailable")}
-              attention
-              value={undefined}
-              unavailable={unavailable}
-            />
-          )}
-          {debt.status === HomeProductReadStatus.READY ? (
-            <ProductRow
-              href={APP_PATH.MONEY_DEBTS}
-              visual={PRODUCT_ROW_VISUAL.debt}
-              label={t("productSummary.debt.label")}
-              detail={
-                debt.summary.attentionCount > 0
-                  ? t("productSummary.debt.attention", {
-                      count: debt.summary.attentionCount,
-                    })
-                  : t("productSummary.debt.detail", {
-                      count: debt.summary.activeCount,
-                    })
-              }
-              attention={debt.summary.attentionCount > 0}
-              value={
-                <FinancialValue>
-                  {money(
-                    debt.summary.borrowedRemaining + debt.summary.lentRemaining,
-                    currency,
-                    locale,
-                  )}
-                </FinancialValue>
-              }
-              kind={FinancialNumberKind.CURRENT_STATE}
-              unavailable={unavailable}
-            />
-          ) : (
-            <ProductRow
-              href={APP_PATH.MONEY_DEBTS}
-              visual={PRODUCT_ROW_VISUAL.debt}
-              label={t("productSummary.debt.label")}
-              detail={t("productSummary.unavailable")}
-              attention
-              value={undefined}
-              unavailable={unavailable}
-            />
-          )}
+          </Suspense>
         </div>
       </Card>
     </Section>

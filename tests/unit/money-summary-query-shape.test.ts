@@ -6,6 +6,10 @@ const savingsSummary = readFileSync(
   "modules/savings/application/queries/savings-home-summary.ts",
   "utf8",
 );
+const savingsMigration = readFileSync(
+  "supabase/migrations/20260910210229_home_savings_summary.sql",
+  "utf8",
+);
 
 describe("Money summary query shape", () => {
   it("uses bounded Investment and Savings summary APIs", () => {
@@ -17,13 +21,13 @@ describe("Money summary query shape", () => {
   });
 
   it("does not retain full Savings history or per-saving fallback reads", () => {
-    expect(savingsSummary).toContain(
-      'in("status", [CycleStatus.ACTIVE, CycleStatus.MATURED])',
-    );
+    expect(savingsSummary).toContain("SAVINGS_RPC.HOME_SUMMARY");
     expect(savingsSummary).not.toContain("listSavings");
     expect(savingsSummary).not.toContain("loadCycleRowsForSaving");
     expect(savingsSummary).not.toContain("saving_financial_activities");
-    expect(savingsSummary.match(/\.from\(/g)).toHaveLength(2);
+    expect(savingsSummary).not.toContain('.from("savings")');
+    expect(savingsSummary).not.toContain('.from("saving_cycles")');
+    expect(savingsMigration).toContain("sc.status in ('active', 'matured')");
   });
 
   it("keeps Money reads independent instead of coupling them to one load flag", () => {

@@ -1,7 +1,7 @@
 import { cache } from "react";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
-import { listActiveMembershipIds } from "@/modules/tenancy/application/list-active-membership-ids";
+import { getHomeHouseholdContext } from "@/modules/tenancy/application/get-home-household-context";
 import { mapAccountRow, type RealPosition } from "../account-types";
 import {
   ACCOUNT_TYPE_LIQUID_VALUES,
@@ -10,7 +10,7 @@ import {
 import { LEDGER_OPERATION, logLedgerFailure } from "../ledger-error";
 import {
   applyLedgerBalances,
-  loadAccountLedgerBalances,
+  loadHomeAccountLedgerRawInputs,
 } from "./load-account-ledger-balances";
 
 /**
@@ -28,51 +28,51 @@ async function loadRealPosition(): Promise<RealPosition | null> {
 
   try {
     const supabase = await createSupabaseServerClient();
-    const [{ data: household }, { data: rows, error }] = await Promise.all([
-      supabase
-        .from("households")
-        .select("base_currency")
-        .eq("id", gate.householdId)
-        .maybeSingle(),
-      supabase
-        .from("accounts")
-        .select(
-          "id, name, type, opening_balance, is_archived, financial_scope, owner_membership_id",
+    const householdPromise = getHomeHouseholdContext();
+    const [rows, householdContext] = await Promise.all([
+      loadHomeAccountLedgerRawInputs(supabase, gate.householdId),
+      householdPromise,
+    ]);
+    if (!rows) {
+      return null;
+    }
+
+    const activeOwnerMembershipIds = new Set(
+      rows
+        .filter(
+          (row) =>
+            row.owner_membership_id != null && row.owner_membership_is_active,
         )
-        .eq("household_id", gate.householdId)
-        .eq("is_archived", false)
-        .in("type", [...ACCOUNT_TYPE_LIQUID_VALUES])
-        .order("created_at", { ascending: true }),
-    ]);
-
-    if (error) {
-      logLedgerFailure(error, LEDGER_OPERATION.GET_REAL_POSITION, {
-        householdId: gate.householdId,
-      });
-      return null;
-    }
-
-    const accountIds = (rows ?? []).map((row) => row.id);
-    const [activeOwnerMembershipIds, balances] = await Promise.all([
-      listActiveMembershipIds(
-        supabase,
-        gate.householdId,
-        (rows ?? [])
-          .map((row) => row.owner_membership_id)
-          .filter((id): id is string => id != null),
-      ),
-      loadAccountLedgerBalances(supabase, gate.householdId, accountIds),
-    ]);
-    if (!balances) {
-      return null;
-    }
-
+        .map((row) => row.owner_membership_id)
+        .filter((id): id is string => id != null),
+    );
+    const balances = new Map(
+      rows
+        .map(
+          (row) =>
+            [
+              row.account_id,
+              typeof row.balance === "string"
+                ? Number(row.balance)
+                : row.balance,
+            ] as const,
+        )
+        .filter(([, balance]) => Number.isFinite(balance)),
+    );
     const accounts = applyLedgerBalances(
-      (rows ?? []).map((row) =>
+      rows.map((row) =>
         mapAccountRow(
-          row,
+          {
+            id: row.account_id,
+            name: row.account_name,
+            type: row.account_type,
+            opening_balance: row.opening_balance,
+            is_archived: row.is_archived,
+            financial_scope: row.financial_scope,
+            owner_membership_id: row.owner_membership_id,
+          },
           gate.membershipId,
-          activeOwnerMembershipIds ?? undefined,
+          activeOwnerMembershipIds,
         ),
       ),
       balances,
@@ -86,7 +86,9 @@ async function loadRealPosition(): Promise<RealPosition | null> {
 
     return {
       householdId: gate.householdId,
-      currency: (household?.base_currency ?? DEFAULT_CURRENCY).toUpperCase(),
+      currency: (
+        householdContext?.baseCurrency ?? DEFAULT_CURRENCY
+      ).toUpperCase(),
       totalBalance,
       accounts,
     };
