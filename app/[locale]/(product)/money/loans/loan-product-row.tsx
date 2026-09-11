@@ -17,6 +17,7 @@ import {
   LoanDueBadge,
   LoanStatusBadge,
 } from "@/modules/ledger/ui/loan-presentation";
+import { PRODUCT_LINK_PREFETCH } from "@/shared/constants/navigation";
 import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
 import { IconContainer, IconContainerTone } from "@/shared/ui/icon-container";
 import { ACTION_ICONS } from "@/shared/ui/icon-registry";
@@ -79,6 +80,7 @@ export function LoanProductRow({
   return (
     <Link
       href={href}
+      prefetch={PRODUCT_LINK_PREFETCH}
       className={cn(
         "flex min-h-14 items-start gap-(--space-3) px-(--space-4) py-(--space-3)",
         "transition-[background-color,transform] duration-(--duration-fast)",

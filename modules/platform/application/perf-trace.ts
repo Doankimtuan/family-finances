@@ -44,6 +44,10 @@ function requestMethod(input: RequestInfo | URL, init?: RequestInit): string {
   return "GET";
 }
 
+function writePerfTrace(event: Record<string, unknown>): void {
+  process.stdout.write(`${PERF_TRACE_LOG_PREFIX} ${JSON.stringify(event)}\n`);
+}
+
 export function wrapFetchForPerfTrace(baseFetch: typeof fetch): typeof fetch {
   if (!isPerfTraceEnabled()) {
     return baseFetch;
@@ -54,7 +58,7 @@ export function wrapFetchForPerfTrace(baseFetch: typeof fetch): typeof fetch {
     const method = requestMethod(input, init);
     try {
       const response = await baseFetch(input, init);
-      console.error(PERF_TRACE_LOG_PREFIX, {
+      writePerfTrace({
         op: PERF_TRACE_OP.FETCH,
         method,
         path: perfTracePathname(input),
@@ -88,7 +92,7 @@ export async function withPerfSpan<T>(
   try {
     return await fn();
   } finally {
-    console.error(PERF_TRACE_LOG_PREFIX, {
+    writePerfTrace({
       op,
       at: Math.round(start),
       ms: Math.round(performance.now() - start),

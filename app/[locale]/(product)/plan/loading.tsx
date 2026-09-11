@@ -5,7 +5,7 @@ import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Card } from "@/shared/patterns/card";
 import { Skeleton } from "@/shared/ui/skeleton";
 
-function PlanContextSkeleton() {
+export function PlanContextSkeleton() {
   return (
     <Card tone="elevated" className="gap-(--space-4) p-(--space-4)">
       <div className="flex items-start justify-between gap-(--space-3)">
@@ -31,7 +31,7 @@ function PlanContextSkeleton() {
   );
 }
 
-function PlanWorkRowSkeleton() {
+export function PlanWorkRowSkeleton() {
   return (
     <div className="flex min-h-14 items-center gap-(--space-3) px-(--space-4) py-(--space-2)">
       <Skeleton className="size-8 rounded-(--radius-control)" />

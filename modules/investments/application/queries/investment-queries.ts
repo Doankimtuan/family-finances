@@ -233,6 +233,23 @@ type HomeInvestmentRawInputRow = {
   investment_income: string | number | null;
 };
 
+type InvestmentListRawInputRow = HomeInvestmentRawInputRow & {
+  household_id: string;
+  name: string;
+  symbol: string | null;
+  provider_custodian: string | null;
+  visibility_context: string;
+  lifecycle_status: string;
+  history_status: string;
+  notes: string | null;
+  financial_scope: string | null;
+  owner_membership_id: string | null;
+  accounting_method: string | null;
+  created_at: string;
+  owner_membership_is_active: boolean;
+  fees_total: string | number | null;
+};
+
 function investmentHomeQuality(
   resolutions: readonly InvestmentValuationResolution[],
   total: number,
@@ -865,15 +882,37 @@ async function loadInvestmentHomeSummary(): Promise<InvestmentHomeSummary | null
 
 export const listInvestmentHomeSummary = cache(loadInvestmentHomeSummary);
 
-async function loadInvestmentPortfolio(): Promise<InvestmentPortfolio | null> {
-  const [holdings, activities] = await Promise.all([
-    loadHoldings(),
-    listInvestmentActivities(),
-  ]);
-  if (!holdings || !activities) return null;
+type InvestmentOperationTotals = {
+  realizedPnl: number;
+  investmentIncome: number;
+  fees: number;
+};
+
+function summarizeInvestmentActivities(
+  activities: readonly InvestmentActivity[],
+): InvestmentOperationTotals {
+  return {
+    realizedPnl: activities.reduce(
+      (sum, activity) => sum + (activity.realizedResultVnd ?? 0),
+      0,
+    ),
+    investmentIncome: activities.reduce(
+      (sum, activity) =>
+        sum + (activity.incomeKind ? (activity.executedValueVnd ?? 0) : 0),
+      0,
+    ),
+    fees: activities.reduce((sum, activity) => sum + activity.feesVnd, 0),
+  };
+}
+
+export function buildInvestmentPortfolio(
+  holdings: InvestmentHolding[],
+  operationTotals: InvestmentOperationTotals,
+): InvestmentPortfolio {
   const activeHoldings = holdings.filter(
     (holding) =>
-      holding.lifecycleStatus !== "exited" && Number(holding.quantity) > 0,
+      holding.lifecycleStatus !== InvestmentLifecycleStatus.EXITED &&
+      Number(holding.quantity) > 0,
   );
   const closedHoldings = holdings.filter(
     (holding) => !activeHoldings.some((active) => active.id === holding.id),
@@ -941,19 +980,9 @@ async function loadInvestmentPortfolio(): Promise<InvestmentPortfolio | null> {
       completeCostBasis !== 0
         ? estimatedUnrealizedPnl / completeCostBasis
         : null,
-    realizedSaleResult: activities.reduce(
-      (sum, activity) => sum + (activity.realizedResultVnd ?? 0),
-      0,
-    ),
-    investmentIncome: activities.reduce(
-      (sum, activity) =>
-        sum + (activity.incomeKind ? (activity.executedValueVnd ?? 0) : 0),
-      0,
-    ),
-    investmentFees: activities.reduce(
-      (sum, activity) => sum + activity.feesVnd,
-      0,
-    ),
+    realizedSaleResult: operationTotals.realizedPnl,
+    investmentIncome: operationTotals.investmentIncome,
+    investmentFees: operationTotals.fees,
     valuationCoverage: {
       included: valued.length,
       total: activeHoldings.length,
@@ -966,6 +995,133 @@ async function loadInvestmentPortfolio(): Promise<InvestmentPortfolio | null> {
       })),
     ),
   };
+}
+
+function mapListRawHolding(
+  row: InvestmentListRawInputRow,
+  activeMembershipId: string,
+  activeMembershipIds: ReadonlySet<string>,
+): InvestmentHolding {
+  const instrument = mapHomeInstrument(row);
+  const price = mapHomePrice(row);
+  const manual = mapHomeManualValuation(row);
+  const valuation = resolveInvestmentValuation({
+    assetClass: row.asset_class as InvestmentAssetClass,
+    quantity: String(row.quantity),
+    remainingCostBasis: nullableNumber(row.remaining_total_cost_basis),
+    instrument,
+    price,
+    fxRate: mapHomeRate(row),
+    manualValuation: manual
+      ? {
+          valueVnd: Number(manual.value_vnd),
+          valuationDate: manual.valuation_date,
+          unitPriceVnd: nullableNumber(manual.unit_price_vnd),
+          source: manual.source,
+          inputCurrency: manual.input_currency
+            ? inputCurrencyOrReporting(manual.input_currency)
+            : null,
+          inputUnitPrice: nullableNumber(manual.input_unit_price),
+          inputTotalValue: nullableNumber(manual.input_total_value),
+          inputRateToVnd: nullableNumber(manual.input_rate_to_vnd),
+          inputRateDate: manual.input_rate_date,
+          inputRateSource: manual.input_rate_source
+            ? inputRateSourceOrIdentity(manual.input_rate_source)
+            : null,
+        }
+      : null,
+  });
+  return mapHolding(
+    {
+      id: row.holding_id,
+      household_id: row.household_id,
+      name: row.name,
+      symbol: row.symbol,
+      instrument_id: row.instrument_id,
+      asset_class: row.asset_class,
+      provider_custodian: row.provider_custodian,
+      visibility_context: row.visibility_context,
+      lifecycle_status: row.lifecycle_status,
+      history_status: row.history_status,
+      quantity: row.quantity,
+      remaining_total_cost_basis: row.remaining_total_cost_basis,
+      notes: row.notes,
+      financial_scope: row.financial_scope,
+      owner_membership_id: row.owner_membership_id,
+      accounting_method: row.accounting_method,
+    },
+    instrument,
+    manual,
+    valuation,
+    activeMembershipId,
+    activeMembershipIds,
+  );
+}
+
+async function loadInvestmentListPortfolio(): Promise<InvestmentPortfolio | null> {
+  const gate = await assertMoneyActionAllowed();
+  if (!gate.ok) return null;
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { data, error } = await supabase.rpc(
+      INVESTMENT_QUERY_RPC.LIST_RAW_INPUTS,
+    );
+    if (error) {
+      logActionFailure({
+        operation: INVESTMENT_OPERATION.LIST_HOLDINGS,
+        error,
+        context: {
+          householdId: gate.householdId,
+          phase: INVESTMENT_QUERY_PHASE.LIST_RAW_INPUTS,
+        },
+      });
+      return null;
+    }
+
+    const rows = (data ?? []) as InvestmentListRawInputRow[];
+    const activeMembershipIds = new Set(
+      rows
+        .filter(
+          (row) =>
+            row.owner_membership_is_active && row.owner_membership_id != null,
+        )
+        .map((row) => row.owner_membership_id)
+        .filter((id): id is string => id != null),
+    );
+    const holdings = rows.map((row) =>
+      mapListRawHolding(row, gate.membershipId, activeMembershipIds),
+    );
+    const operationTotals: InvestmentOperationTotals = {
+      realizedPnl: Number(rows[0]?.realized_pnl ?? 0),
+      investmentIncome: Number(rows[0]?.investment_income ?? 0),
+      fees: Number(rows[0]?.fees_total ?? 0),
+    };
+    return buildInvestmentPortfolio(holdings, operationTotals);
+  } catch (error) {
+    logActionFailure({
+      operation: INVESTMENT_OPERATION.LIST_HOLDINGS,
+      error,
+      context: {
+        householdId: gate.householdId,
+        phase: INVESTMENT_QUERY_PHASE.LIST_RAW_INPUTS,
+      },
+    });
+    return null;
+  }
+}
+
+export const listInvestmentListPortfolio = cache(loadInvestmentListPortfolio);
+
+async function loadInvestmentPortfolio(): Promise<InvestmentPortfolio | null> {
+  const [holdings, activities] = await Promise.all([
+    loadHoldings(),
+    listInvestmentActivities(),
+  ]);
+  if (!holdings || !activities) return null;
+  return buildInvestmentPortfolio(
+    holdings,
+    summarizeInvestmentActivities(activities),
+  );
 }
 
 export const listInvestmentPortfolio = cache(loadInvestmentPortfolio);

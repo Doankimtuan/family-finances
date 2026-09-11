@@ -38,43 +38,6 @@ import { getCurrentJarBudgets } from "@/modules/plan/application/queries/get-cur
 const JAR_ID = "jar-needs";
 const writes: Array<{ table: string; method: string }> = [];
 
-function thenable(data: unknown, error: null | object = null) {
-  const result = { data, error };
-  const query: Record<string, unknown> = {};
-  const self = () => query;
-  for (const method of [
-    "select",
-    "eq",
-    "neq",
-    "in",
-    "gte",
-    "lt",
-    "order",
-  ] as const) {
-    query[method] = vi.fn(self);
-  }
-  query.insert = vi.fn((payload: unknown) => {
-    writes.push({ table: String(query.__table), method: "insert" });
-    void payload;
-    return query;
-  });
-  query.upsert = vi.fn((payload: unknown) => {
-    writes.push({ table: String(query.__table), method: "upsert" });
-    void payload;
-    return query;
-  });
-  query.update = vi.fn(() => {
-    writes.push({ table: String(query.__table), method: "update" });
-    return query;
-  });
-  query.maybeSingle = vi.fn(async () => result);
-  query.then = (
-    resolve: (value: typeof result) => unknown,
-    reject?: (reason: unknown) => unknown,
-  ) => Promise.resolve(result).then(resolve, reject);
-  return query;
-}
-
 describe("getCurrentJarBudgets", () => {
   beforeEach(() => {
     writes.length = 0;
@@ -89,50 +52,42 @@ describe("getCurrentJarBudgets", () => {
 
   it("does not INSERT snapshots and still returns current-period budget values", async () => {
     vi.mocked(createSupabaseServerClient).mockResolvedValue({
-      from: (table: string) => {
-        const query = thenable(
-          table === "households"
-            ? {
-                timezone: "Asia/Ho_Chi_Minh",
-                qualifying_monthly_income: 20_000_000,
-                base_currency: "VND",
-                month_close_mode: "assisted",
-                income_allocate_mode: "suggest",
-              }
-            : table === "jars"
-              ? [
-                  {
-                    id: JAR_ID,
-                    name: "Needs",
-                    kind: "spending",
-                    sort_order: 1,
-                    is_archived: false,
-                    is_paused: false,
-                    rollover_mode: "carry",
-                    jar_plans: {
-                      plan_kind: JarPlanKind.FIXED,
-                      percent_bps: 0,
-                      fixed_amount: 15_000_000,
-                    },
-                  },
-                ]
-              : [],
-        );
-        query.__table = table;
-        if (table === "households") {
-          query.maybeSingle = vi.fn(async () => ({
-            data: {
-              timezone: "Asia/Ho_Chi_Minh",
-              qualifying_monthly_income: 20_000_000,
-              base_currency: "VND",
-              month_close_mode: "assisted",
-              income_allocate_mode: "suggest",
+      rpc: vi.fn(async () => ({
+        data: {
+          household_id: "h1",
+          timezone: "Asia/Ho_Chi_Minh",
+          base_currency: "VND",
+          month_close_mode: "assisted",
+          income_allocate_mode: "suggest",
+          qualifying_monthly_income: 20_000_000,
+          current_period_month: "2026-09-01",
+          previous_period_month: "2026-08-01",
+          jars: [
+            {
+              id: JAR_ID,
+              name: "Needs",
+              kind: "spending",
+              sort_order: 1,
+              is_archived: false,
+              is_paused: false,
+              rollover_mode: "carry",
+              jar_plans: {
+                plan_kind: JarPlanKind.FIXED,
+                percent_bps: 0,
+                fixed_amount: 15_000_000,
+              },
             },
-            error: null,
-          }));
-        }
-        return query;
-      },
+          ],
+          current_transactions: [],
+          previous_transactions: [],
+          current_loan_payment_ids: [],
+          previous_loan_payment_ids: [],
+          recurring_income: [],
+          snapshots: [],
+          adjustments: [],
+        },
+        error: null,
+      })),
     } as never);
 
     const summary = await getCurrentJarBudgets(

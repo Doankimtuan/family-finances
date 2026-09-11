@@ -94,14 +94,77 @@ async function enrichWithTransactionDetails(
   const ownershipByItemId = new Map<string, SourceOwnership>();
   const unavailableSourceIds = new Set<string>();
 
-  if (txIds.length > 0) {
-    const { data: txs, error } = await supabase
-      .from("transactions")
-      .select(
-        "id, note, categories(name), accounts(name, financial_scope, owner_membership_id)",
-      )
-      .in("id", txIds);
+  const savingIds = rows.flatMap((row) => {
+    const kind = mapInboxKind(row.kind);
+    if (
+      kind !== InboxItemKind.SAVINGS_MATURITY &&
+      kind !== InboxItemKind.EARLY_WITHDRAWAL_CONFIRMATION
+    ) {
+      return [];
+    }
+    return [readContextValue(row, "savingId") ?? row.source_id];
+  });
 
+  const loanIds = rows.flatMap((row) => {
+    const kind = mapInboxKind(row.kind);
+    if (
+      kind !== InboxItemKind.EMI_COMPLETE &&
+      kind !== InboxItemKind.LOAN_PAYMENT_ATTENTION
+    ) {
+      return [];
+    }
+    return [readContextValue(row, "loanId") ?? row.source_id];
+  });
+  const debtIds = rows.flatMap((row) => {
+    const kind = mapInboxKind(row.kind);
+    if (
+      kind !== InboxItemKind.EMI_COMPLETE &&
+      kind !== InboxItemKind.DEBT_PAYMENT_ATTENTION
+    ) {
+      return [];
+    }
+    return [readContextValue(row, "debtId") ?? row.source_id];
+  });
+
+  const transactionQuery =
+    txIds.length > 0
+      ? supabase
+          .from("transactions")
+          .select(
+            "id, note, categories(name), accounts(name, financial_scope, owner_membership_id)",
+          )
+          .in("id", txIds)
+      : Promise.resolve({ data: null, error: null });
+  const savingsQuery =
+    savingIds.length > 0
+      ? supabase
+          .from("savings")
+          .select("id, financial_scope, owner_membership_id")
+          .eq("household_id", householdId)
+          .in("id", [...new Set(savingIds)])
+      : Promise.resolve({ data: null, error: null });
+  const loansQuery =
+    loanIds.length > 0
+      ? supabase
+          .from("loans")
+          .select("id, financial_scope, owner_membership_id")
+          .eq("household_id", householdId)
+          .in("id", [...new Set(loanIds)])
+      : Promise.resolve({ data: null, error: null });
+  const debtsQuery =
+    debtIds.length > 0
+      ? supabase
+          .from("liabilities")
+          .select("id, financial_scope, owner_membership_id")
+          .eq("household_id", householdId)
+          .in("id", [...new Set(debtIds)])
+      : Promise.resolve({ data: null, error: null });
+
+  const [transactionResult, savingsResult, loansResult, debtsResult] =
+    await Promise.all([transactionQuery, savingsQuery, loansQuery, debtsQuery]);
+
+  if (txIds.length > 0) {
+    const { data: txs, error } = transactionResult;
     if (error) txIds.forEach((id) => unavailableSourceIds.add(id));
 
     const transactionRows: unknown = txs;
@@ -119,23 +182,8 @@ async function enrichWithTransactionDetails(
     }
   }
 
-  const savingIds = rows.flatMap((row) => {
-    const kind = mapInboxKind(row.kind);
-    if (
-      kind !== InboxItemKind.SAVINGS_MATURITY &&
-      kind !== InboxItemKind.EARLY_WITHDRAWAL_CONFIRMATION
-    ) {
-      return [];
-    }
-    return [readContextValue(row, "savingId") ?? row.source_id];
-  });
-
   if (savingIds.length > 0) {
-    const { data: savings, error } = await supabase
-      .from("savings")
-      .select("id, financial_scope, owner_membership_id")
-      .eq("household_id", householdId)
-      .in("id", [...new Set(savingIds)]);
+    const { data: savings, error } = savingsResult;
     if (error) savingIds.forEach((id) => unavailableSourceIds.add(id));
     for (const saving of savings ?? []) {
       if (!isRecord(saving) || typeof saving.id !== "string") continue;
@@ -152,22 +200,8 @@ async function enrichWithTransactionDetails(
     }
   }
 
-  const loanIds = rows.flatMap((row) => {
-    const kind = mapInboxKind(row.kind);
-    if (
-      kind !== InboxItemKind.EMI_COMPLETE &&
-      kind !== InboxItemKind.LOAN_PAYMENT_ATTENTION
-    ) {
-      return [];
-    }
-    return [readContextValue(row, "loanId") ?? row.source_id];
-  });
   if (loanIds.length > 0) {
-    const { data: loans, error } = await supabase
-      .from("loans")
-      .select("id, financial_scope, owner_membership_id")
-      .eq("household_id", householdId)
-      .in("id", [...new Set(loanIds)]);
+    const { data: loans, error } = loansResult;
     if (error) loanIds.forEach((id) => unavailableSourceIds.add(id));
     for (const loan of loans ?? []) {
       if (!isRecord(loan) || typeof loan.id !== "string") continue;
@@ -184,22 +218,8 @@ async function enrichWithTransactionDetails(
     }
   }
 
-  const debtIds = rows.flatMap((row) => {
-    const kind = mapInboxKind(row.kind);
-    if (
-      kind !== InboxItemKind.EMI_COMPLETE &&
-      kind !== InboxItemKind.DEBT_PAYMENT_ATTENTION
-    ) {
-      return [];
-    }
-    return [readContextValue(row, "debtId") ?? row.source_id];
-  });
   if (debtIds.length > 0) {
-    const { data: debts, error } = await supabase
-      .from("liabilities")
-      .select("id, financial_scope, owner_membership_id")
-      .eq("household_id", householdId)
-      .in("id", [...new Set(debtIds)]);
+    const { data: debts, error } = debtsResult;
     if (error) debtIds.forEach((id) => unavailableSourceIds.add(id));
     for (const debt of debts ?? []) {
       if (!isRecord(debt) || typeof debt.id !== "string") continue;

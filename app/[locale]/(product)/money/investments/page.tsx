@@ -6,7 +6,7 @@ import { routing } from "@/i18n/routing";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
 import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
-import { listInvestmentPortfolio } from "@/modules/investments/application";
+import { listInvestmentListPortfolio } from "@/modules/investments/application";
 import { Page } from "@/shared/patterns/page";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { EmptyState } from "@/shared/patterns/empty-state";
@@ -28,7 +28,7 @@ export default async function InvestmentsPage({ params }: Props) {
     return redirect({ href: APP_PATH.ONBOARD, locale });
   const [t, portfolio] = await Promise.all([
     getTranslations("money.investments.overview"),
-    listInvestmentPortfolio(),
+    listInvestmentListPortfolio(),
   ]);
   return (
     <Page

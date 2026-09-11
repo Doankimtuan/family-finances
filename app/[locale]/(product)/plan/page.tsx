@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import type { ReactNode } from "react";
+import { Suspense } from "react";
 import { setLocale } from "@/i18n/set-locale";
 import { redirect, Link } from "@/i18n/navigation";
 import { hasLocale } from "next-intl";
@@ -65,7 +66,11 @@ import {
   PLAN_SURFACE_LINK_CLASS,
 } from "./plan-chrome";
 import { PlanSectionTitle } from "./plan-section-title";
-import { PlanHubHero } from "./plan-hub-hero";
+import {
+  PlanHubHero,
+  PlanHubHeroStatus,
+  PlanHubHeroStatusLoading,
+} from "./plan-hub-hero";
 import { PlanHubExceptions } from "./plan-hub-exceptions";
 import {
   PlanDestinationCard,
@@ -85,6 +90,8 @@ import {
   getPlanRecommendations,
   type PlanRecommendation,
 } from "@/modules/plan/application/plan-recommendations";
+import { PlanContextSkeleton, PlanWorkRowSkeleton } from "./loading";
+import { Skeleton } from "@/shared/ui/skeleton";
 
 type Props = { params: Promise<{ locale: string }> };
 type LooseTranslator = {
@@ -290,37 +297,64 @@ function intentionAmount(label: string) {
   );
 }
 
-/** Plan hub: current intention, attention, next decision, and planning entries. */
-export default async function PlanHubPage({ params }: Props) {
-  const { locale: rawLocale } = await params;
-  const locale = hasLocale(routing.locales, rawLocale)
-    ? rawLocale
-    : routing.defaultLocale;
-  setLocale(locale);
+type PlanTranslationPromise = ReturnType<typeof getTranslations>;
+type PlanPulseResult = Awaited<ReturnType<typeof getPlanPulse>>;
+type PlanPulseValue = NonNullable<PlanPulseResult>;
+type PlanInboxResult = Awaited<ReturnType<typeof listOpenInboxItems>>;
+type PlanGoalsResult = Awaited<ReturnType<typeof listGoals>>;
 
-  const user = await getSessionUser();
-  if (!user) return redirect({ href: APP_PATH.LOGIN, locale });
-  const membership = await resolveActiveMembership(user.id);
-  if (!membership) return redirect({ href: APP_PATH.ONBOARD, locale });
+type PlanHubDecisionData = {
+  tCatalog: LooseTranslator;
+  inboxItems: PlanInboxResult;
+  activeJars: PlanPulseValue["activeJars"];
+  assistMode: PlanAssistMode;
+  currency: string;
+  periodMonth: string;
+  uncategorizedCount: number;
+  budgetsByJar: Record<string, JarBudgetMetrics>;
+  visibleBudgets: JarBudgetMetrics[];
+  health: ReturnType<typeof resolvePlanHomeHealth>;
+  allocationHealth: ReturnType<typeof calculateAllocationHealth>;
+  rawGoals: NonNullable<PlanGoalsResult>["goals"];
+  homeGoals: HomeGoal[];
+  allExceptions: PlanHomeException[];
+  exceptions: PlanHomeException[];
+  recommendations: PlanRecommendation[];
+  primaryRecommendation: PlanRecommendation | undefined;
+  supportingRecommendations: PlanRecommendation[];
+  jarNames: Record<string, string>;
+  goalNames: Record<string, string>;
+  periodIncome: number;
+};
 
-  const [
-    t,
-    tCatalog,
-    pulse,
-    currentJarBudgets,
-    inboxItems,
-    goalsList,
-    upcomingPreview,
-  ] = await Promise.all([
-    getTranslations("plan"),
-    getTranslations("catalog"),
-    getPlanPulse(),
-    getCurrentJarBudgets(),
-    listOpenInboxItems(),
-    listGoals(),
-    listPlanHubUpcomingEvents(),
-  ]);
+type PlanHubQueryPromises = {
+  tCatalogPromise: PlanTranslationPromise;
+  pulsePromise: ReturnType<typeof getPlanPulse>;
+  currentJarBudgetsPromise: ReturnType<typeof getCurrentJarBudgets>;
+  inboxItemsPromise: ReturnType<typeof listOpenInboxItems>;
+  goalsPromise: ReturnType<typeof listGoals>;
+  upcomingPromise: ReturnType<typeof listPlanHubUpcomingEvents>;
+};
 
+async function resolvePlanHubDecisionData({
+  tCatalogPromise,
+  pulsePromise,
+  currentJarBudgetsPromise,
+  inboxItemsPromise,
+  goalsPromise,
+}: Omit<
+  PlanHubQueryPromises,
+  "upcomingPromise"
+>): Promise<PlanHubDecisionData> {
+  const [tCatalogValue, pulse, currentJarBudgets, inboxItems, goalsList] =
+    await Promise.all([
+      tCatalogPromise,
+      pulsePromise,
+      currentJarBudgetsPromise,
+      inboxItemsPromise,
+      goalsPromise,
+    ]);
+  const tCatalog = tCatalogValue as unknown as LooseTranslator;
   const activeJars = (pulse?.activeJars ?? []).filter(
     (jar) => jar.kind !== JarKind.INCOME,
   );
@@ -330,7 +364,6 @@ export default async function PlanHubPage({ params }: Props) {
       : PlanAssistMode.ASSISTED;
   const currency = pulse?.currency ?? DEFAULT_CURRENCY;
   const periodMonth = currentJarBudgets?.periodMonth ?? currentPeriodMonth();
-  const periodLabel = formatPlanPeriod(periodMonth, locale);
   const uncategorizedCount = (inboxItems ?? []).filter(
     (item) => item.kind === InboxItemKind.UNMAPPED_EXPENSE,
   ).length;
@@ -389,17 +422,137 @@ export default async function PlanHubPage({ params }: Props) {
     goals: rawGoals,
     limit: PLAN_HUB_RECOMMENDATION_LIMIT,
   });
-  const primaryRecommendation = recommendations[0];
-  const supportingRecommendations = recommendations.slice(1);
-  const jarNames = Object.fromEntries(
-    activeJars.map((jar) => [
-      jar.id,
-      localizeCatalogName(tCatalog, "jars", jar.name),
-    ]),
+
+  return {
+    tCatalog,
+    inboxItems,
+    activeJars,
+    assistMode,
+    currency,
+    periodMonth,
+    uncategorizedCount,
+    budgetsByJar,
+    visibleBudgets,
+    health,
+    allocationHealth,
+    rawGoals,
+    homeGoals,
+    allExceptions,
+    exceptions,
+    recommendations,
+    primaryRecommendation: recommendations[0],
+    supportingRecommendations: recommendations.slice(1),
+    jarNames: Object.fromEntries(
+      activeJars.map((jar) => [
+        jar.id,
+        localizeCatalogName(tCatalog, "jars", jar.name),
+      ]),
+    ),
+    goalNames: Object.fromEntries(rawGoals.map((goal) => [goal.id, goal.name])),
+    periodIncome: currentJarBudgets?.periodIncome ?? 0,
+  };
+}
+
+async function PlanHeroStatusSection({
+  dataPromise,
+  t,
+}: {
+  dataPromise: Promise<PlanHubDecisionData>;
+  t: LooseTranslator;
+}) {
+  const data = await dataPromise;
+  const firstExceptionTitle = data.exceptions[0]
+    ? exceptionTitle(data.exceptions[0], t, data.tCatalog)
+    : t("home.attentionFallback");
+  const overspentCount = data.visibleBudgets.filter(
+    (budget) => budget.state === JarBudgetState.OVERSPENT,
+  ).length;
+  const { title: healthTitle, body: healthBody } = resolvePlanHealthCopy(
+    data.health,
+    t,
+    firstExceptionTitle,
+    overspentCount,
   );
-  const goalNames = Object.fromEntries(
-    rawGoals.map((goal) => [goal.id, goal.name]),
+  const contextMeta = [
+    t("home.factJarsValue", { count: data.activeJars.length }),
+    allocationFactValue(data.allocationHealth, t),
+  ].join(" · ");
+
+  return (
+    <PlanHubHeroStatus
+      health={data.health}
+      healthTitle={healthTitle}
+      healthBody={healthBody}
+      contextMeta={contextMeta}
+    />
   );
+}
+
+async function PlanCriticalSection({
+  locale,
+  t,
+  pulsePromise,
+  currentJarBudgetsPromise,
+  decisionDataPromise,
+}: Pick<PlanHubQueryPromises, "pulsePromise" | "currentJarBudgetsPromise"> & {
+  locale: string;
+  t: LooseTranslator;
+  decisionDataPromise: Promise<PlanHubDecisionData>;
+}) {
+  const [pulse, currentJarBudgets] = await Promise.all([
+    pulsePromise,
+    currentJarBudgetsPromise,
+  ]);
+  const assistMode =
+    pulse?.monthCloseMode === RitualMode.MANUAL
+      ? PlanAssistMode.MANUAL
+      : PlanAssistMode.ASSISTED;
+  const currency = pulse?.currency ?? DEFAULT_CURRENCY;
+  const periodMonth = currentJarBudgets?.periodMonth ?? currentPeriodMonth();
+  const periodIncome = currentJarBudgets?.periodIncome ?? 0;
+
+  return (
+    <MotionReveal>
+      <PlanHubHero
+        periodCaption={t("period.label")}
+        periodLabel={formatPlanPeriod(periodMonth, locale)}
+        assistLabel={t(
+          assistMode === PlanAssistMode.MANUAL
+            ? "home.assistManual"
+            : "home.assistAssisted",
+        )}
+        status={
+          <Suspense fallback={<PlanHubHeroStatusLoading />}>
+            <PlanHeroStatusSection dataPromise={decisionDataPromise} t={t} />
+          </Suspense>
+        }
+        incomeLabel={t("home.factIncome")}
+        incomeValue={
+          periodIncome > 0
+            ? intentionAmount(
+                formatCurrency(periodIncome, currency, locale, {
+                  maximumFractionDigits: 0,
+                }),
+              )
+            : t("home.factIncomeEmpty")
+        }
+      />
+    </MotionReveal>
+  );
+}
+
+async function PlanDecisionsSection({
+  locale,
+  t,
+  userId,
+  dataPromise,
+}: {
+  locale: string;
+  t: LooseTranslator;
+  userId: string;
+  dataPromise: Promise<PlanHubDecisionData>;
+}) {
+  const data = await dataPromise;
   const recommendationHref = (recommendation: PlanRecommendation) => {
     const action = recommendation.action;
     if (!action) return APP_PATH.PLAN;
@@ -418,398 +571,393 @@ export default async function PlanHubPage({ params }: Props) {
       return planRecurringPath(action.entityId);
     return APP_PATH.PLAN;
   };
-  const upcoming = upcomingWithinDays(
-    (upcomingPreview?.events ?? []) as HomeEvent[],
-  );
-  const overspentCount = visibleBudgets.filter(
-    (budget) => budget.state === JarBudgetState.OVERSPENT,
-  ).length;
-  const firstExceptionTitle = exceptions[0]
-    ? exceptionTitle(
-        exceptions[0],
-        t as unknown as LooseTranslator,
-        tCatalog as unknown as LooseTranslator,
-      )
-    : t("home.attentionFallback");
-  const { title: healthTitle, body: healthBody } = resolvePlanHealthCopy(
-    health,
-    t as unknown as LooseTranslator,
-    firstExceptionTitle,
-    overspentCount,
-  );
-  const periodIncome = currentJarBudgets?.periodIncome ?? 0;
-  const contextMeta = [
-    t("home.factJarsValue", { count: activeJars.length }),
-    allocationFactValue(allocationHealth, t as unknown as LooseTranslator),
-  ].join(" · ");
 
   return (
-    <Page
-      testId="plan-hub"
-      topBar={<TopAppBar title={t("title")} subtitle={t("subtitle")} />}
-    >
-      <PlanOfflineBanner />
+    <>
       <EmergencyInboxBanner
-        items={inboxItems ?? []}
-        viewerUserId={user.id}
+        items={data.inboxItems ?? []}
+        viewerUserId={userId}
         title={t("jars.reallocate.emergencyBannerTitle")}
         body={t("jars.reallocate.emergencyBannerBody")}
         openLabel={t("jars.reallocate.emergencyBannerOpen")}
       />
-
-      <MotionReveal>
-        <PlanHubHero
-          periodCaption={t("period.label")}
-          periodLabel={periodLabel}
-          assistLabel={t(
-            assistMode === PlanAssistMode.MANUAL
-              ? "home.assistManual"
-              : "home.assistAssisted",
-          )}
-          health={health}
-          healthTitle={healthTitle}
-          healthBody={healthBody}
-          contextMeta={contextMeta}
-          incomeLabel={t("home.factIncome")}
-          incomeValue={
-            periodIncome > 0
-              ? intentionAmount(
-                  formatCurrency(periodIncome, currency, locale, {
-                    maximumFractionDigits: 0,
-                  }),
-                )
-              : t("home.factIncomeEmpty")
-          }
-        />
-      </MotionReveal>
-
       <PlanHubExceptions
         title={t("home.exceptionsTitle")}
         emptyTitle={t("home.exceptionsEmptyTitle")}
         emptyBody={t("home.exceptionsEmptyBody")}
-        exceptions={exceptions}
-        hiddenCount={allExceptions.length - exceptions.length}
+        exceptions={data.exceptions}
+        hiddenCount={data.allExceptions.length - data.exceptions.length}
         viewAllHref={APP_PATH.PLAN_JARS}
         viewAllLabel={t("home.viewAll")}
-        renderTitle={(exception) =>
-          exceptionTitle(
-            exception,
-            t as unknown as LooseTranslator,
-            tCatalog as unknown as LooseTranslator,
-          )
-        }
+        renderTitle={(exception) => exceptionTitle(exception, t, data.tCatalog)}
         renderDescription={(exception) =>
-          exceptionDescription(
-            exception,
-            t as unknown as LooseTranslator,
-            currency,
-            locale,
-          )
+          exceptionDescription(exception, t, data.currency, locale)
         }
-        renderAction={(exception) =>
-          exceptionAction(exception, t as unknown as LooseTranslator)
-        }
+        renderAction={(exception) => exceptionAction(exception, t)}
       />
-
-      {primaryRecommendation ? (
+      {data.primaryRecommendation ? (
         <RecommendationList
-          recommendations={[primaryRecommendation]}
-          t={t as unknown as LooseTranslator}
+          recommendations={[data.primaryRecommendation]}
+          t={t}
           resolveHref={recommendationHref}
-          jarNames={jarNames}
-          goalNames={goalNames}
-          currency={currency}
+          jarNames={data.jarNames}
+          goalNames={data.goalNames}
+          currency={data.currency}
           locale={locale}
           title={t("home.nextDecisionTitle")}
           variant={RecommendationListVariant.HIGHLIGHTED}
           testId="plan-home-recommendations"
         />
       ) : null}
-      {supportingRecommendations.length > 0 ? (
+      {data.supportingRecommendations.length > 0 ? (
         <RecommendationList
-          recommendations={supportingRecommendations}
-          t={t as unknown as LooseTranslator}
+          recommendations={data.supportingRecommendations}
+          t={t}
           resolveHref={recommendationHref}
-          jarNames={jarNames}
-          goalNames={goalNames}
-          currency={currency}
+          jarNames={data.jarNames}
+          goalNames={data.goalNames}
+          currency={data.currency}
           locale={locale}
           title={t("home.moreDecisionsTitle")}
           variant={RecommendationListVariant.SUPPORTING}
           testId="plan-home-recommendations-supporting"
         />
       ) : null}
+    </>
+  );
+}
 
-      <Section
-        title={<PlanSectionTitle>{t("home.upcomingTitle")}</PlanSectionTitle>}
+async function PlanUpcomingSection({
+  locale,
+  t,
+  pulsePromise,
+  upcomingPromise,
+}: Pick<PlanHubQueryPromises, "pulsePromise" | "upcomingPromise"> & {
+  locale: string;
+  t: LooseTranslator;
+}) {
+  const [pulse, upcomingPreview] = await Promise.all([
+    pulsePromise,
+    upcomingPromise,
+  ]);
+  const currency = pulse?.currency ?? DEFAULT_CURRENCY;
+  const upcoming = upcomingWithinDays(
+    (upcomingPreview?.events ?? []) as HomeEvent[],
+  );
+
+  return (
+    <Section
+      title={<PlanSectionTitle>{t("home.upcomingTitle")}</PlanSectionTitle>}
+      action={
+        <Link
+          href={APP_PATH.PLAN_CALENDAR}
+          prefetch={PRODUCT_LINK_PREFETCH}
+          className={PLAN_INLINE_LINK_CLASS}
+          data-testid="plan-see-calendar"
+        >
+          {t("calendar.cta")}
+        </Link>
+      }
+      testId="plan-home-upcoming"
+    >
+      {upcoming.length === 0 ? (
+        <Text size="sm" tone="secondary">
+          {t("home.upcomingEmpty")}
+        </Text>
+      ) : (
+        <Card tone="elevated" className="gap-0 overflow-hidden p-0">
+          <ul className="divide-y divide-divider">
+            {upcoming.map((event) => (
+              <li
+                key={event.id ?? `${event.date}-${event.title}`}
+                className="flex min-h-14 items-start gap-(--space-3) px-(--space-4) py-(--space-3)"
+              >
+                <div className="min-w-0 flex-1">
+                  <Text size="xs" tone="muted">
+                    {formatDate(new Date(`${event.date}T00:00:00Z`), locale, {
+                      day: "numeric",
+                      month: "short",
+                      timeZone: "Asia/Ho_Chi_Minh",
+                    })}
+                  </Text>
+                  <Text
+                    size="sm"
+                    weight="medium"
+                    className="mt-(--space-1) line-clamp-2 text-pretty"
+                  >
+                    {event.title}
+                  </Text>
+                </div>
+                <div className="shrink-0 text-right">
+                  <Text
+                    size="sm"
+                    weight="semibold"
+                    tabular
+                    data-financial-kind={FinancialNumberKind.INTENTION}
+                  >
+                    {intentionAmount(
+                      formatCurrency(event.amount, currency, locale, {
+                        maximumFractionDigits: 0,
+                      }),
+                    )}
+                  </Text>
+                  <Text size="xs" tone="secondary">
+                    {isUpcomingDueEvent(event.source)
+                      ? t("home.upcomingDue")
+                      : t("home.upcomingExpected")}
+                  </Text>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
+    </Section>
+  );
+}
+
+async function PlanJarsSection({
+  locale,
+  t,
+  tCatalogPromise,
+  pulsePromise,
+  currentJarBudgetsPromise,
+}: Pick<
+  PlanHubQueryPromises,
+  "tCatalogPromise" | "pulsePromise" | "currentJarBudgetsPromise"
+> & {
+  locale: string;
+  t: LooseTranslator;
+}) {
+  const [tCatalogValue, pulse, currentJarBudgets] = await Promise.all([
+    tCatalogPromise,
+    pulsePromise,
+    currentJarBudgetsPromise,
+  ]);
+  const tCatalog = tCatalogValue as unknown as LooseTranslator;
+  const activeJars = (pulse?.activeJars ?? []).filter(
+    (jar) => jar.kind !== JarKind.INCOME,
+  );
+  const currency = pulse?.currency ?? DEFAULT_CURRENCY;
+  const budgetsByJar = currentJarBudgets?.byJarId ?? {};
+
+  return activeJars.length === 0 ? (
+    <Section
+      title={<PlanSectionTitle>{t("jars.title")}</PlanSectionTitle>}
+      description={t("jars.subtitle")}
+      action={
+        <Link
+          href={APP_PATH.PLAN_JARS}
+          prefetch={PRODUCT_LINK_PREFETCH}
+          className={PLAN_INLINE_LINK_CLASS}
+          data-testid="plan-see-jars"
+        >
+          {t("home.viewAll")}
+        </Link>
+      }
+      testId="plan-home-jars"
+    >
+      <EmptyState
+        title={t("jars.emptyTitle")}
+        description={t("jars.emptyDescription")}
         action={
           <Link
-            href={APP_PATH.PLAN_CALENDAR}
+            href={APP_PATH.PLAN_JARS}
             prefetch={PRODUCT_LINK_PREFETCH}
-            className={PLAN_INLINE_LINK_CLASS}
-            data-testid="plan-see-calendar"
+            className={PLAN_ACCENT_LINK_CLASS}
           >
-            {t("calendar.cta")}
+            {t("home.createJar")}
           </Link>
         }
-        testId="plan-home-upcoming"
-      >
-        {upcoming.length === 0 ? (
-          <Text size="sm" tone="secondary">
-            {t("home.upcomingEmpty")}
-          </Text>
-        ) : (
-          <Card tone="elevated" className="gap-0 overflow-hidden p-0">
-            <ul className="divide-y divide-divider">
-              {upcoming.map((event) => (
-                <li
-                  key={event.id ?? `${event.date}-${event.title}`}
-                  className="flex min-h-14 items-start gap-(--space-3) px-(--space-4) py-(--space-3)"
-                >
-                  <div className="min-w-0 flex-1">
-                    <Text size="xs" tone="muted">
-                      {formatDate(new Date(`${event.date}T00:00:00Z`), locale, {
-                        day: "numeric",
-                        month: "short",
-                        timeZone: "Asia/Ho_Chi_Minh",
-                      })}
-                    </Text>
-                    <Text
-                      size="sm"
-                      weight="medium"
-                      className="mt-(--space-1) line-clamp-2 text-pretty"
-                    >
-                      {event.title}
-                    </Text>
-                  </div>
-                  <div className="shrink-0 text-right">
-                    <Text
-                      size="sm"
-                      weight="semibold"
-                      tabular
-                      data-financial-kind={FinancialNumberKind.INTENTION}
-                    >
-                      {intentionAmount(
-                        formatCurrency(event.amount, currency, locale, {
-                          maximumFractionDigits: 0,
-                        }),
-                      )}
-                    </Text>
-                    <Text size="xs" tone="secondary">
-                      {isUpcomingDueEvent(event.source)
-                        ? t("home.upcomingDue")
-                        : t("home.upcomingExpected")}
-                    </Text>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </Card>
-        )}
-      </Section>
-
-      {activeJars.length === 0 ? (
-        <Section
-          title={<PlanSectionTitle>{t("jars.title")}</PlanSectionTitle>}
-          description={t("jars.subtitle")}
-          action={
-            <Link
-              href={APP_PATH.PLAN_JARS}
-              prefetch={PRODUCT_LINK_PREFETCH}
-              className={PLAN_INLINE_LINK_CLASS}
-              data-testid="plan-see-jars"
-            >
-              {t("home.viewAll")}
-            </Link>
-          }
-          testId="plan-home-jars"
+        className="flex-none py-(--space-4)"
+      />
+    </Section>
+  ) : (
+    <PlanDestinationCard
+      title={t("jars.title")}
+      description={t("jars.subtitle")}
+      action={
+        <Link
+          href={APP_PATH.PLAN_JARS}
+          prefetch={PRODUCT_LINK_PREFETCH}
+          className={PLAN_INLINE_LINK_CLASS}
+          data-testid="plan-see-jars"
         >
-          <EmptyState
-            title={t("jars.emptyTitle")}
-            description={t("jars.emptyDescription")}
-            action={
-              <Link
-                href={APP_PATH.PLAN_JARS}
-                prefetch={PRODUCT_LINK_PREFETCH}
-                className={PLAN_ACCENT_LINK_CLASS}
-              >
-                {t("home.createJar")}
-              </Link>
-            }
-            className="flex-none py-(--space-4)"
+          {t("home.viewAll")}
+        </Link>
+      }
+      testId="plan-home-jars"
+    >
+      {!currentJarBudgets ? (
+        <div className="px-(--space-4) py-(--space-3)">
+          <StatusAlert
+            variant="warning"
+            title={t("home.jarsUnavailableTitle")}
+            description={t("home.jarsUnavailableBody")}
           />
-        </Section>
-      ) : (
-        <PlanDestinationCard
-          title={t("jars.title")}
-          description={t("jars.subtitle")}
-          action={
-            <Link
-              href={APP_PATH.PLAN_JARS}
-              prefetch={PRODUCT_LINK_PREFETCH}
-              className={PLAN_INLINE_LINK_CLASS}
-              data-testid="plan-see-jars"
-            >
-              {t("home.viewAll")}
-            </Link>
-          }
-          testId="plan-home-jars"
-        >
-          {!currentJarBudgets ? (
-            <div className="px-(--space-4) py-(--space-3)">
-              <StatusAlert
-                variant="warning"
-                title={t("home.jarsUnavailableTitle")}
-                description={t("home.jarsUnavailableBody")}
-              />
-            </div>
-          ) : null}
-          {activeJars.slice(0, PLAN_HUB_VISIBLE_JAR_LIMIT).map((jar) => {
-            const metrics = budgetsByJar[jar.id];
-            const isNoIncome =
-              metrics?.state === JarBudgetState.NO_BUDGET &&
-              metrics.incomeSource === QualifyingIncomeSource.NONE;
-            const isOverspent = metrics?.state === JarBudgetState.OVERSPENT;
-            const remainingLabel = jarRemainingLabel(
+        </div>
+      ) : null}
+      {activeJars.slice(0, PLAN_HUB_VISIBLE_JAR_LIMIT).map((jar) => {
+        const metrics = budgetsByJar[jar.id];
+        const isNoIncome =
+          metrics?.state === JarBudgetState.NO_BUDGET &&
+          metrics.incomeSource === QualifyingIncomeSource.NONE;
+        const isOverspent = metrics?.state === JarBudgetState.OVERSPENT;
+        return (
+          <PlanHubWorkRow
+            key={jar.id}
+            href={planJarPath(jar.id)}
+            testId={`plan-jar-${jar.id}`}
+            icon={PLAN_ICONS.jar}
+            iconTone={IconContainerTone.SAVINGS}
+            label={localizeCatalogName(tCatalog, "jars", jar.name)}
+            meta={t(`jars.kinds.${jar.kind}`)}
+            value={jarRemainingLabel(
               metrics,
               isNoIncome,
               Boolean(isOverspent),
-              t as unknown as LooseTranslator,
+              t,
               currency,
               locale,
-            );
-            return (
-              <PlanHubWorkRow
-                key={jar.id}
-                href={planJarPath(jar.id)}
-                testId={`plan-jar-${jar.id}`}
-                icon={PLAN_ICONS.jar}
-                iconTone={IconContainerTone.SAVINGS}
-                label={localizeCatalogName(tCatalog, "jars", jar.name)}
-                meta={t(`jars.kinds.${jar.kind}`)}
-                value={remainingLabel}
-                valueTone={isOverspent ? "danger" : "primary"}
-                marksIntention={Boolean(metrics) && !isNoIncome}
-                financialObject={PlanHubWorkObject.JAR}
-              />
-            );
-          })}
-          {activeJars.length > PLAN_HUB_VISIBLE_JAR_LIMIT ? (
-            <Link
-              href={APP_PATH.PLAN_JARS}
-              prefetch={PRODUCT_LINK_PREFETCH}
-              className={`${PLAN_INLINE_LINK_CLASS} mx-(--space-2) my-(--space-1)`}
-            >
-              {t("home.viewAllJars", { count: activeJars.length })}
-            </Link>
-          ) : null}
-        </PlanDestinationCard>
-      )}
-
-      {homeGoals.length === 0 ? (
-        <Section
-          title={<PlanSectionTitle>{t("home.goalsTitle")}</PlanSectionTitle>}
-          action={
-            <span data-testid="plan-entry-goals" className="inline-flex">
-              <Link
-                href={APP_PATH.PLAN_GOALS}
-                prefetch={PRODUCT_LINK_PREFETCH}
-                className={PLAN_INLINE_LINK_CLASS}
-                data-testid="plan-see-goals"
-              >
-                {t("home.viewAll")}
-              </Link>
-            </span>
-          }
-          testId="plan-home-goals"
-        >
-          <EmptyState
-            title={t("home.goalsEmptyTitle")}
-            description={t("home.goalsEmptyBody")}
-            icon={<AppIcon icon={PLAN_ICONS.goal} size={AppIconSize.DISPLAY} />}
-            action={
-              <Link
-                href={APP_PATH.PLAN_GOALS}
-                prefetch={PRODUCT_LINK_PREFETCH}
-                className={PLAN_SURFACE_LINK_CLASS}
-              >
-                {t("home.createGoal")}
-              </Link>
-            }
-            className="flex-none py-(--space-4)"
+            )}
+            valueTone={isOverspent ? "danger" : "primary"}
+            marksIntention={Boolean(metrics) && !isNoIncome}
+            financialObject={PlanHubWorkObject.JAR}
           />
-        </Section>
-      ) : (
-        <PlanDestinationCard
-          title={t("home.goalsTitle")}
-          action={
-            <span data-testid="plan-entry-goals" className="inline-flex">
-              <Link
-                href={APP_PATH.PLAN_GOALS}
-                prefetch={PRODUCT_LINK_PREFETCH}
-                className={PLAN_INLINE_LINK_CLASS}
-                data-testid="plan-see-goals"
-              >
-                {t("home.viewAll")}
-              </Link>
-            </span>
-          }
-          testId="plan-home-goals"
+        );
+      })}
+      {activeJars.length > PLAN_HUB_VISIBLE_JAR_LIMIT ? (
+        <Link
+          href={APP_PATH.PLAN_JARS}
+          prefetch={PRODUCT_LINK_PREFETCH}
+          className={`${PLAN_INLINE_LINK_CLASS} mx-(--space-2) my-(--space-1)`}
         >
-          {homeGoals.map((goal) => {
-            const targetDate = formatGoalDate(goal.targetDate, locale);
-            return (
-              <PlanHubWorkRow
-                key={goal.id}
-                href={planGoalPath(goal.id)}
-                testId={`plan-home-goal-${goal.id}`}
-                icon={PLAN_ICONS.goal}
-                iconTone={IconContainerTone.INVESTMENT}
-                label={goal.name}
-                meta={[
-                  goal.isLegacyIntention
-                    ? t("home.goalLegacy")
-                    : t("home.goalLinked"),
-                  targetDate,
-                ]
-                  .filter(Boolean)
-                  .join(" · ")}
-                value={
-                  goal.progressPercent == null
-                    ? t("home.goalProgressIndeterminate")
-                    : t.rich("home.goalProgress", {
-                        funded: formatCurrency(
-                          goal.fundedAmount,
-                          currency,
-                          locale,
-                          { maximumFractionDigits: 0 },
-                        ),
-                        target: formatCurrency(
-                          goal.targetAmount,
-                          currency,
-                          locale,
-                          { maximumFractionDigits: 0 },
-                        ),
-                        moneyFunded: (chunks: ReactNode) => (
-                          <FinancialValue>{chunks}</FinancialValue>
-                        ),
-                        moneyTarget: (chunks: ReactNode) => (
-                          <FinancialValue>{chunks}</FinancialValue>
-                        ),
-                        percent: goal.progressPercent,
-                      })
-                }
-                valueTone={
-                  goal.progressPercent == null ? "secondary" : "primary"
-                }
-                marksIntention={goal.progressPercent != null}
-                financialObject={PlanHubWorkObject.GOAL}
-              />
-            );
-          })}
-        </PlanDestinationCard>
-      )}
+          {t("home.viewAllJars", { count: activeJars.length })}
+        </Link>
+      ) : null}
+    </PlanDestinationCard>
+  );
+}
 
+async function PlanGoalsSection({
+  locale,
+  t,
+  pulsePromise,
+  goalsPromise,
+}: Pick<PlanHubQueryPromises, "pulsePromise" | "goalsPromise"> & {
+  locale: string;
+  t: LooseTranslator;
+}) {
+  const [pulse, goalsList] = await Promise.all([pulsePromise, goalsPromise]);
+  const currency = pulse?.currency ?? DEFAULT_CURRENCY;
+  const homeGoals = pickHomeGoals(goalsList?.goals ?? []);
+
+  return homeGoals.length === 0 ? (
+    <Section
+      title={<PlanSectionTitle>{t("home.goalsTitle")}</PlanSectionTitle>}
+      action={
+        <span data-testid="plan-entry-goals" className="inline-flex">
+          <Link
+            href={APP_PATH.PLAN_GOALS}
+            prefetch={PRODUCT_LINK_PREFETCH}
+            className={PLAN_INLINE_LINK_CLASS}
+            data-testid="plan-see-goals"
+          >
+            {t("home.viewAll")}
+          </Link>
+        </span>
+      }
+      testId="plan-home-goals"
+    >
+      <EmptyState
+        title={t("home.goalsEmptyTitle")}
+        description={t("home.goalsEmptyBody")}
+        icon={<AppIcon icon={PLAN_ICONS.goal} size={AppIconSize.DISPLAY} />}
+        action={
+          <Link
+            href={APP_PATH.PLAN_GOALS}
+            prefetch={PRODUCT_LINK_PREFETCH}
+            className={PLAN_SURFACE_LINK_CLASS}
+          >
+            {t("home.createGoal")}
+          </Link>
+        }
+        className="flex-none py-(--space-4)"
+      />
+    </Section>
+  ) : (
+    <PlanDestinationCard
+      title={t("home.goalsTitle")}
+      action={
+        <span data-testid="plan-entry-goals" className="inline-flex">
+          <Link
+            href={APP_PATH.PLAN_GOALS}
+            prefetch={PRODUCT_LINK_PREFETCH}
+            className={PLAN_INLINE_LINK_CLASS}
+            data-testid="plan-see-goals"
+          >
+            {t("home.viewAll")}
+          </Link>
+        </span>
+      }
+      testId="plan-home-goals"
+    >
+      {homeGoals.map((goal) => {
+        const targetDate = formatGoalDate(goal.targetDate, locale);
+        return (
+          <PlanHubWorkRow
+            key={goal.id}
+            href={planGoalPath(goal.id)}
+            testId={`plan-home-goal-${goal.id}`}
+            icon={PLAN_ICONS.goal}
+            iconTone={IconContainerTone.INVESTMENT}
+            label={goal.name}
+            meta={[
+              goal.isLegacyIntention
+                ? t("home.goalLegacy")
+                : t("home.goalLinked"),
+              targetDate,
+            ]
+              .filter(Boolean)
+              .join(" · ")}
+            value={
+              goal.progressPercent == null
+                ? t("home.goalProgressIndeterminate")
+                : t.rich("home.goalProgress", {
+                    funded: formatCurrency(
+                      goal.fundedAmount,
+                      currency,
+                      locale,
+                      { maximumFractionDigits: 0 },
+                    ),
+                    target: formatCurrency(
+                      goal.targetAmount,
+                      currency,
+                      locale,
+                      { maximumFractionDigits: 0 },
+                    ),
+                    moneyFunded: (chunks: ReactNode) => (
+                      <FinancialValue>{chunks}</FinancialValue>
+                    ),
+                    moneyTarget: (chunks: ReactNode) => (
+                      <FinancialValue>{chunks}</FinancialValue>
+                    ),
+                    percent: goal.progressPercent,
+                  })
+            }
+            valueTone={goal.progressPercent == null ? "secondary" : "primary"}
+            marksIntention={goal.progressPercent != null}
+            financialObject={PlanHubWorkObject.GOAL}
+          />
+        );
+      })}
+    </PlanDestinationCard>
+  );
+}
+
+function PlanStaticSections({ t }: { t: LooseTranslator }) {
+  return (
+    <>
       <PlanDestinationCard
         title={t("home.workspaceTitle")}
         testId="plan-ritual-cta"
@@ -839,7 +987,6 @@ export default async function PlanHubPage({ params }: Props) {
           meta={t("home.workspaceRitualMeta")}
         />
       </PlanDestinationCard>
-
       <div
         data-testid="plan-teaching"
         className="flex flex-col gap-(--space-2) border-t border-border-subtle pt-(--space-3)"
@@ -856,6 +1003,133 @@ export default async function PlanHubPage({ params }: Props) {
           {t("moneyLink")}
         </Link>
       </div>
+    </>
+  );
+}
+
+function PlanCriticalFallback() {
+  return <PlanContextSkeleton />;
+}
+
+function PlanDecisionsFallback() {
+  return (
+    <Section title={<Skeleton className="h-4 w-40" />}>
+      <Card tone="elevated" className="gap-0 p-0">
+        <PlanWorkRowSkeleton />
+      </Card>
+    </Section>
+  );
+}
+
+function PlanUpcomingFallback() {
+  return (
+    <Section title={<Skeleton className="h-4 w-28" />}>
+      <Card tone="elevated" className="gap-0 p-0">
+        <PlanWorkRowSkeleton />
+      </Card>
+    </Section>
+  );
+}
+
+function PlanJarsFallback() {
+  return (
+    <Section title={<Skeleton className="h-4 w-32" />}>
+      <Card tone="elevated" className="gap-0 p-0">
+        <PlanWorkRowSkeleton />
+        <PlanWorkRowSkeleton />
+      </Card>
+    </Section>
+  );
+}
+
+function PlanGoalsFallback() {
+  return (
+    <Section title={<Skeleton className="h-4 w-28" />}>
+      <Card tone="elevated" className="gap-0 p-0">
+        <PlanWorkRowSkeleton />
+      </Card>
+    </Section>
+  );
+}
+
+/** Plan hub: current intention, attention, next decision, and planning entries. */
+export default async function PlanHubPage({ params }: Props) {
+  const { locale: rawLocale } = await params;
+  const locale = hasLocale(routing.locales, rawLocale)
+    ? rawLocale
+    : routing.defaultLocale;
+  setLocale(locale);
+
+  const user = await getSessionUser();
+  if (!user) return redirect({ href: APP_PATH.LOGIN, locale });
+  const membership = await resolveActiveMembership(user.id);
+  if (!membership) return redirect({ href: APP_PATH.ONBOARD, locale });
+
+  const tPromise = getTranslations("plan");
+  const tCatalogPromise = getTranslations("catalog");
+  const pulsePromise = getPlanPulse();
+  const currentJarBudgetsPromise = getCurrentJarBudgets();
+  const inboxItemsPromise = listOpenInboxItems();
+  const goalsPromise = listGoals();
+  const upcomingPromise = listPlanHubUpcomingEvents();
+  const t = (await tPromise) as unknown as LooseTranslator;
+  const decisionDataPromise = resolvePlanHubDecisionData({
+    tCatalogPromise,
+    pulsePromise,
+    currentJarBudgetsPromise,
+    inboxItemsPromise,
+    goalsPromise,
+  });
+
+  return (
+    <Page
+      testId="plan-hub"
+      topBar={<TopAppBar title={t("title")} subtitle={t("subtitle")} />}
+    >
+      <PlanOfflineBanner />
+      <Suspense fallback={<PlanCriticalFallback />}>
+        <PlanCriticalSection
+          locale={locale}
+          t={t}
+          pulsePromise={pulsePromise}
+          currentJarBudgetsPromise={currentJarBudgetsPromise}
+          decisionDataPromise={decisionDataPromise}
+        />
+      </Suspense>
+      <Suspense fallback={<PlanDecisionsFallback />}>
+        <PlanDecisionsSection
+          locale={locale}
+          t={t}
+          userId={user.id}
+          dataPromise={decisionDataPromise}
+        />
+      </Suspense>
+      <Suspense fallback={<PlanUpcomingFallback />}>
+        <PlanUpcomingSection
+          locale={locale}
+          t={t}
+          pulsePromise={pulsePromise}
+          upcomingPromise={upcomingPromise}
+        />
+      </Suspense>
+      <Suspense fallback={<PlanJarsFallback />}>
+        <PlanJarsSection
+          locale={locale}
+          t={t}
+          tCatalogPromise={tCatalogPromise}
+          pulsePromise={pulsePromise}
+          currentJarBudgetsPromise={currentJarBudgetsPromise}
+        />
+      </Suspense>
+      <Suspense fallback={<PlanGoalsFallback />}>
+        <PlanGoalsSection
+          locale={locale}
+          t={t}
+          pulsePromise={pulsePromise}
+          goalsPromise={goalsPromise}
+        />
+      </Suspense>
+      <PlanStaticSections t={t} />
     </Page>
   );
 }

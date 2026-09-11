@@ -3,7 +3,11 @@ import { FINANCIAL_SCOPE } from "@/modules/shared-kernel/application/financial-s
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import { DEFAULT_CURRENCY } from "@/modules/ledger/application/ledger-constants";
 import { HOUSEHOLD_TIMEZONE } from "@/modules/tenancy/application/tenancy-constants";
-import { PLAN_OPERATION, RecurringDirection } from "../plan-constants";
+import {
+  PLAN_OPERATION,
+  PLAN_QUERY_RPC,
+  RecurringDirection,
+} from "../plan-constants";
 import { logPlanFailure } from "../plan-error";
 import {
   calculateJarBudgetMetrics,
@@ -17,7 +21,15 @@ import {
   type QualifyingIncomeResolution,
   type QualifyingIncomeSource,
 } from "../jar-budget";
-import { mapJarPlan, type PlanJar, type PlanPulse } from "../jar-types";
+import {
+  JarState,
+  mapIncomeAllocateMode,
+  mapJarPlan,
+  mapJarRow,
+  mapMonthCloseMode,
+  type PlanJar,
+  type PlanPulse,
+} from "../jar-types";
 import { projectRecurringEvents } from "../calendar-projection";
 import { mapRecurringRow, type PlanRecurring } from "../goal-recurring-types";
 import { getPlanPulse } from "./get-plan-pulse";
@@ -116,6 +128,482 @@ type JarBudgetContext = {
   previousAdjustments: Record<string, number>;
   adjustments: Record<string, number>;
 };
+
+type JsonRecord = Record<string, unknown>;
+
+type PlanJarBudgetRawInputs = {
+  householdId: string;
+  timezone: string;
+  currency: string;
+  monthCloseMode: string | null;
+  incomeAllocateMode: string | null;
+  configuredIncome: number | string | null;
+  currentPeriodMonth: string;
+  previousPeriodMonth: string;
+  jars: JsonRecord[];
+  currentTransactions: JsonRecord[];
+  previousTransactions: JsonRecord[];
+  currentLoanPaymentIds: string[];
+  previousLoanPaymentIds: string[];
+  recurringIncome: JsonRecord[];
+  snapshots: JsonRecord[];
+  adjustments: JsonRecord[];
+};
+
+type RawAdjustment = {
+  jarId: string;
+  periodMonth: string;
+  amount: number | string;
+};
+
+function isRecord(value: unknown): value is JsonRecord {
+  return typeof value === "object" && value !== null;
+}
+
+function readRecord(value: unknown): JsonRecord | null {
+  return isRecord(value) ? value : null;
+}
+
+function readRecords(value: unknown): JsonRecord[] | null {
+  if (!Array.isArray(value) || !value.every(isRecord)) return null;
+  return value;
+}
+
+function readStrings(value: unknown): string[] | null {
+  if (
+    !Array.isArray(value) ||
+    !value.every((item) => typeof item === "string")
+  ) {
+    return null;
+  }
+  return value;
+}
+
+function readString(value: unknown): string | null {
+  return typeof value === "string" && value.length > 0 ? value : null;
+}
+
+function readNullableString(value: unknown): string | null {
+  return value === null || value === undefined ? null : readString(value);
+}
+
+function readNumber(value: unknown): number | string | null {
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : null;
+  }
+  if (typeof value === "string" && Number.isFinite(Number(value))) {
+    return value;
+  }
+  return null;
+}
+
+function readNullableNumber(value: unknown): number | string | null {
+  return value === null || value === undefined ? null : readNumber(value);
+}
+
+function readNullableNumberValue(value: unknown): number | null {
+  const numeric = readNullableNumber(value);
+  if (numeric === null) return null;
+  const parsed = Number(numeric);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function readBoolean(value: unknown): boolean | null {
+  return typeof value === "boolean" ? value : null;
+}
+
+function readNullableBoolean(value: unknown): boolean | null {
+  return value === null || value === undefined ? null : readBoolean(value);
+}
+
+function readRawRow(value: unknown): JsonRecord | null {
+  return Array.isArray(value) ? readRecord(value[0]) : readRecord(value);
+}
+
+function parsePlanJarBudgetRawInputs(
+  value: unknown,
+): PlanJarBudgetRawInputs | null {
+  const row = readRawRow(value);
+  if (!row) return null;
+
+  const householdId = readString(row.household_id);
+  const timezone = readString(row.timezone);
+  const currency = readString(row.base_currency);
+  const currentPeriodMonth = readString(row.current_period_month);
+  const previousPeriodMonth = readString(row.previous_period_month);
+  const jars = readRecords(row.jars);
+  const currentTransactions = readRecords(row.current_transactions);
+  const previousTransactions = readRecords(row.previous_transactions);
+  const currentLoanPaymentIds = readStrings(row.current_loan_payment_ids);
+  const previousLoanPaymentIds = readStrings(row.previous_loan_payment_ids);
+  const recurringIncome = readRecords(row.recurring_income);
+  const snapshots = readRecords(row.snapshots);
+  const adjustments = readRecords(row.adjustments);
+  const configuredIncome = readNullableNumber(row.qualifying_monthly_income);
+
+  if (
+    !householdId ||
+    !timezone ||
+    !currency ||
+    !currentPeriodMonth ||
+    !previousPeriodMonth ||
+    !jars ||
+    !currentTransactions ||
+    !previousTransactions ||
+    !currentLoanPaymentIds ||
+    !previousLoanPaymentIds ||
+    !recurringIncome ||
+    !snapshots ||
+    !adjustments ||
+    (row.qualifying_monthly_income !== null && configuredIncome === null)
+  ) {
+    return null;
+  }
+
+  return {
+    householdId,
+    timezone,
+    currency,
+    monthCloseMode: readNullableString(row.month_close_mode),
+    incomeAllocateMode: readNullableString(row.income_allocate_mode),
+    configuredIncome,
+    currentPeriodMonth,
+    previousPeriodMonth,
+    jars,
+    currentTransactions,
+    previousTransactions,
+    currentLoanPaymentIds,
+    previousLoanPaymentIds,
+    recurringIncome,
+    snapshots,
+    adjustments,
+  };
+}
+
+function mapRawJar(row: JsonRecord): PlanJar | null {
+  const id = readString(row.id);
+  const name = readString(row.name);
+  const kind = readString(row.kind);
+  const sortOrder = readNumber(row.sort_order);
+  const isArchived = readBoolean(row.is_archived);
+  const isPaused = readBoolean(row.is_paused);
+  if (
+    !id ||
+    !name ||
+    !kind ||
+    sortOrder === null ||
+    isArchived === null ||
+    isPaused === null
+  ) {
+    return null;
+  }
+
+  const rawPlan = row.jar_plans === null ? null : readRecord(row.jar_plans);
+  if (row.jar_plans !== null && !rawPlan) return null;
+
+  let plan: {
+    plan_kind: string;
+    percent_bps: number | string;
+    fixed_amount: number | string;
+  } | null = null;
+  if (rawPlan) {
+    const planKind = readString(rawPlan.plan_kind);
+    const percentBps = readNumber(rawPlan.percent_bps);
+    const fixedAmount = readNumber(rawPlan.fixed_amount);
+    if (!planKind || percentBps === null || fixedAmount === null) return null;
+    plan = {
+      plan_kind: planKind,
+      percent_bps: percentBps,
+      fixed_amount: fixedAmount,
+    };
+  }
+
+  return mapJarRow({
+    id,
+    name,
+    kind,
+    sort_order: Number(sortOrder),
+    is_archived: isArchived,
+    is_paused: isPaused,
+    rollover_mode: readNullableString(row.rollover_mode),
+    jar_plans: plan,
+  });
+}
+
+function mapRawTransaction(row: JsonRecord): JarBudgetTransaction | null {
+  const id = readString(row.id);
+  const type = readString(row.type);
+  const amount = readNumber(row.amount);
+  if (!id || !type || amount === null) return null;
+  return mapTransactionRow({
+    id,
+    type,
+    amount,
+    status: readNullableString(row.status),
+    jar_id: readNullableString(row.jar_id),
+    savings_event_kind: readNullableString(row.savings_event_kind),
+    reverses_transaction_id: readNullableString(row.reverses_transaction_id),
+    corrects_transaction_id: readNullableString(row.corrects_transaction_id),
+    is_reversal: readNullableBoolean(row.is_reversal),
+  });
+}
+
+function mapRawRecurring(row: JsonRecord): PlanRecurring | null {
+  const id = readString(row.id);
+  const name = readString(row.name);
+  const direction = readString(row.direction);
+  const amount = readNumber(row.amount);
+  const frequency = readString(row.frequency);
+  const intervalCount = readNumber(row.interval_count);
+  const startDate = readString(row.start_date);
+  const isActive = readBoolean(row.is_active);
+  if (
+    !id ||
+    !name ||
+    !direction ||
+    amount === null ||
+    !frequency ||
+    intervalCount === null ||
+    !startDate ||
+    isActive === null
+  ) {
+    return null;
+  }
+  return mapRecurringRow({
+    id,
+    name,
+    direction,
+    amount,
+    frequency,
+    interval_count: Number(intervalCount),
+    day_of_month: readNullableNumberValue(row.day_of_month),
+    day_of_week: readNullableNumberValue(row.day_of_week),
+    start_date: startDate,
+    next_run_date: readNullableString(row.next_run_date),
+    is_active: isActive,
+  });
+}
+
+function mapRawSnapshot(row: JsonRecord): JarRuleSnapshotRow | null {
+  const id = readNullableString(row.id);
+  const householdId = readString(row.household_id);
+  const jarId = readString(row.jar_id);
+  const periodMonth = readString(row.period_month);
+  const jarName = readString(row.jar_name);
+  const planKind = readString(row.plan_kind);
+  const percentBps = readNumber(row.percent_bps);
+  const fixedAmount = readNumber(row.fixed_amount);
+  const rolloverMode = readString(row.rollover_mode);
+  const qualifyingIncome = readNullableNumber(row.qualifying_income);
+  const qualifyingIncomeSource = readNullableString(
+    row.qualifying_income_source,
+  );
+  const ruleBudget = readNullableNumber(row.rule_budget);
+  const rolloverCredit = readNullableNumber(row.rollover_credit);
+  if (
+    !householdId ||
+    !jarId ||
+    !periodMonth ||
+    !jarName ||
+    !planKind ||
+    percentBps === null ||
+    fixedAmount === null ||
+    !rolloverMode ||
+    qualifyingIncome === null ||
+    ruleBudget === null ||
+    rolloverCredit === null
+  ) {
+    return null;
+  }
+  return {
+    id: id ?? undefined,
+    household_id: householdId,
+    jar_id: jarId,
+    period_month: periodMonth,
+    jar_name: jarName,
+    plan_kind: planKind,
+    percent_bps: percentBps,
+    fixed_amount: fixedAmount,
+    rollover_mode: rolloverMode,
+    qualifying_income: qualifyingIncome,
+    qualifying_income_source: qualifyingIncomeSource,
+    rule_budget: ruleBudget,
+    rollover_credit: rolloverCredit,
+  };
+}
+
+function mapRawAdjustment(row: JsonRecord): RawAdjustment | null {
+  const jarId = readString(row.jar_id);
+  const periodMonth = readString(row.period_month);
+  const amount = readNumber(row.amount);
+  if (!jarId || !periodMonth || amount === null) return null;
+  return { jarId, periodMonth, amount };
+}
+
+function mapRawRows<T>(
+  rows: readonly JsonRecord[],
+  mapper: (row: JsonRecord) => T | null,
+): T[] | null {
+  const mapped = rows.map(mapper);
+  return mapped.every((row): row is T => row !== null) ? mapped : null;
+}
+
+function sumRawAdjustments(
+  rows: readonly RawAdjustment[],
+  periodMonth: string,
+): Record<string, number> {
+  return rows
+    .filter((row) => row.periodMonth === periodMonth)
+    .reduce<Record<string, number>>((result, row) => {
+      result[row.jarId] = (result[row.jarId] ?? 0) + (Number(row.amount) || 0);
+      return result;
+    }, {});
+}
+
+function periodForMonth(month: string, timezone: string): JarBudgetPeriod {
+  return {
+    month,
+    start: month,
+    end: periodMonthEndDate(month),
+    endExclusive: periodMonthExclusiveEnd(month),
+    timezone,
+  };
+}
+
+function mapRawPulse(
+  raw: PlanJarBudgetRawInputs,
+  jars: readonly PlanJar[],
+): PlanPulse {
+  const activeJars = jars.filter((jar) => jar.state === JarState.ACTIVE);
+  return {
+    householdId: raw.householdId,
+    currency: raw.currency.toUpperCase(),
+    monthCloseMode: mapMonthCloseMode(raw.monthCloseMode),
+    incomeAllocateMode: mapIncomeAllocateMode(raw.incomeAllocateMode),
+    activeJars,
+    pausedJarCount: jars.filter((jar) => jar.state === JarState.PAUSED).length,
+    archivedJarCount: jars.filter((jar) => jar.state === JarState.ARCHIVED)
+      .length,
+  };
+}
+
+function mapRawRecurringIncome(
+  raw: PlanJarBudgetRawInputs,
+  period: JarBudgetPeriod,
+): number | null {
+  const rules = mapRawRows(raw.recurringIncome, mapRawRecurring);
+  if (!rules) return null;
+  const projectedRules: Array<PlanRecurring & { currency: string }> = rules.map(
+    (rule) => ({
+      ...rule,
+      householdId: raw.householdId,
+      currency: raw.currency.toUpperCase(),
+    }),
+  );
+  return projectRecurringEvents(
+    projectedRules,
+    period.start,
+    period.endExclusive,
+  ).reduce((total, event) => total + Math.max(0, Math.trunc(event.amount)), 0);
+}
+
+function markLoanPayments(
+  transactions: readonly JarBudgetTransaction[],
+  loanPaymentIds: readonly string[],
+): JarBudgetTransaction[] {
+  const loanPaymentIdSet = new Set(loanPaymentIds);
+  return transactions.map((transaction) => ({
+    ...transaction,
+    is_loan_payment: transaction.id
+      ? loanPaymentIdSet.has(transaction.id)
+      : false,
+  }));
+}
+
+async function loadCurrentJarBudgetContextFromRpc(
+  householdId: string,
+  now: Date,
+): Promise<JarBudgetContext | null> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.rpc(
+    PLAN_QUERY_RPC.JAR_BUDGET_RAW_INPUTS,
+    {
+      p_now: now.toISOString(),
+    },
+  );
+  if (error) throw error;
+
+  const raw = parsePlanJarBudgetRawInputs(data);
+  if (!raw || raw.householdId !== householdId) return null;
+
+  const currentPeriod = periodForMonth(raw.currentPeriodMonth, raw.timezone);
+  const selectedPeriod = currentPeriod;
+  const mappedJars = mapRawRows(raw.jars, mapRawJar);
+  const currentTransactions = mapRawRows(
+    raw.currentTransactions,
+    mapRawTransaction,
+  );
+  const previousTransactions = mapRawRows(
+    raw.previousTransactions,
+    mapRawTransaction,
+  );
+  const snapshots = mapRawRows(raw.snapshots, mapRawSnapshot);
+  const adjustments = mapRawRows(raw.adjustments, mapRawAdjustment);
+  const recurringIncome = mapRawRecurringIncome(raw, selectedPeriod);
+  if (
+    !mappedJars ||
+    !currentTransactions ||
+    !previousTransactions ||
+    !snapshots ||
+    !adjustments ||
+    recurringIncome === null
+  ) {
+    return null;
+  }
+
+  const pulse = mapRawPulse(raw, mappedJars);
+  const transactions = markLoanPayments(
+    currentTransactions,
+    raw.currentLoanPaymentIds,
+  );
+  const previousBudgetTransactions = markLoanPayments(
+    previousTransactions,
+    raw.previousLoanPaymentIds,
+  );
+  const qualifyingIncome = resolveQualifyingMonthlyIncome({
+    configuredIncome: raw.configuredIncome,
+    recurringIncome,
+    postedIncome: calculateQualifyingPostedIncome(transactions),
+  });
+  const existing = new Map(
+    snapshots.map((row) => [`${row.jar_id}:${row.period_month}`, row]),
+  );
+  const adjustmentRows = adjustments;
+
+  return {
+    householdId,
+    settings: {
+      timezone: raw.timezone,
+      configuredIncome:
+        raw.configuredIncome === null
+          ? null
+          : Number(raw.configuredIncome) || 0,
+      currency: raw.currency.toUpperCase(),
+    },
+    pulse,
+    currentPeriod,
+    selectedPeriod,
+    qualifyingIncome,
+    transactions,
+    existing,
+    previousTransactions: previousBudgetTransactions,
+    previousAdjustments: sumRawAdjustments(
+      adjustmentRows,
+      raw.previousPeriodMonth,
+    ),
+    adjustments: sumRawAdjustments(adjustmentRows, raw.currentPeriodMonth),
+  };
+}
 
 export function jarBudgetPeriodBounds(
   now = new Date(),
@@ -529,7 +1017,20 @@ export async function getJarBudgetsForPeriod(
 export async function getCurrentJarBudgets(
   now = new Date(),
 ): Promise<CurrentJarBudgetSummary | null> {
-  return getJarBudgetsForPeriod(undefined, now);
+  const gate = await assertMoneyActionAllowed();
+  if (!gate.ok) return null;
+  try {
+    const context = await loadCurrentJarBudgetContextFromRpc(
+      gate.householdId,
+      now,
+    );
+    return context ? summaryFromContext(context) : null;
+  } catch (error) {
+    logPlanFailure(error, PLAN_OPERATION.GET_JAR_BUDGETS, {
+      householdId: gate.householdId,
+    });
+    return null;
+  }
 }
 
 /**

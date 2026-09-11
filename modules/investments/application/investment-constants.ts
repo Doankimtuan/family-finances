@@ -291,9 +291,11 @@ export const INVESTMENT_INPUT_CURRENCY_RPC =
   "record_investment_with_input_currency";
 export const INVESTMENT_QUERY_RPC = {
   HOME_RAW_INPUTS: "get_home_investment_raw_inputs",
+  LIST_RAW_INPUTS: "get_investments_list_raw_inputs",
 } as const;
 export const INVESTMENT_QUERY_PHASE = {
   HOME_RAW_INPUTS: "home_raw_inputs",
+  LIST_RAW_INPUTS: "list_raw_inputs",
 } as const;
 
 export const INVESTMENT_OPERATION = {

@@ -12,6 +12,7 @@ describe("product link prefetch posture", () => {
       "shared/patterns/hero-pill-link.tsx",
       "app/[locale]/(product)/money/money-module-section.tsx",
       "app/[locale]/(product)/money/money-accounts-scan.tsx",
+      "app/[locale]/(product)/money/loans/loan-product-row.tsx",
       "app/[locale]/(product)/home/home-product-summaries.tsx",
       "app/[locale]/(product)/plan/page.tsx",
       "app/[locale]/(product)/plan/plan-destination-row.tsx",

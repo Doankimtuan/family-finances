@@ -417,6 +417,13 @@ export const PLAN_ACTION_ERROR_CODE = {
   CAPACITY_BLOCKED: "capacity_blocked",
 } as const;
 
+/** Read-only Plan RPC names. */
+export const PLAN_QUERY_RPC = {
+  JAR_BUDGET_RAW_INPUTS: "get_plan_jar_budget_raw_inputs",
+} as const;
+
+export type PlanQueryRpc = (typeof PLAN_QUERY_RPC)[keyof typeof PLAN_QUERY_RPC];
+
 export type PlanActionErrorCode =
   (typeof PLAN_ACTION_ERROR_CODE)[keyof typeof PLAN_ACTION_ERROR_CODE];
 
