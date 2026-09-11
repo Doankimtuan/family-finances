@@ -1,8 +1,9 @@
 import { cache } from "react";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
+import { getHomeHouseholdContext } from "@/modules/tenancy/application/get-home-household-context";
 import { AccountType, DEFAULT_CURRENCY } from "../ledger-constants";
-import { CardBillingMonthStatus } from "../credit-card-constants";
+import { LedgerRpcName } from "../ledger-shared-constants";
 import {
   buildCreditCardSummary,
   mapBillingItemRow,
@@ -12,6 +13,103 @@ import {
   type CreditCardSummary,
 } from "../credit-card-types";
 import { LEDGER_OPERATION, logLedgerFailure } from "../ledger-error";
+
+type MoneyCreditCardRawInput = {
+  account_id: string;
+  account_name: string;
+  account_type: string;
+  financial_scope: string | null;
+  owner_membership_id: string | null;
+  owner_membership_is_active: boolean;
+  credit_limit: number | string | null;
+  statement_day: number | null;
+  due_day: number | null;
+  linked_bank_account_id: string | null;
+  billing_month_id: string | null;
+  card_account_id: string | null;
+  billing_month: string | null;
+  statement_amount: number | string | null;
+  paid_amount: number | string | null;
+  due_date: string | null;
+  status: string | null;
+};
+
+type CreditCardAccumulator = {
+  accountId: string;
+  name: string;
+  settings: ReturnType<typeof mapCreditCardSettingsRow> | null;
+  months: ReturnType<typeof mapBillingMonthRow>[];
+};
+
+function mapMoneyCreditCardRawInputs(
+  rows: MoneyCreditCardRawInput[],
+): CreditCardSummary[] {
+  const cards = new Map<string, CreditCardAccumulator>();
+  for (const row of rows) {
+    let card = cards.get(row.account_id);
+    if (!card) {
+      card = {
+        accountId: row.account_id,
+        name: row.account_name,
+        settings: null,
+        months: [],
+      };
+      cards.set(row.account_id, card);
+    }
+
+    if (
+      card.settings == null &&
+      row.credit_limit != null &&
+      row.statement_day != null &&
+      row.due_day != null
+    ) {
+      card.settings = mapCreditCardSettingsRow({
+        account_id: row.account_id,
+        credit_limit: row.credit_limit,
+        statement_day: row.statement_day,
+        due_day: row.due_day,
+        linked_bank_account_id: row.linked_bank_account_id,
+      });
+    }
+
+    if (
+      row.billing_month_id == null ||
+      row.card_account_id == null ||
+      row.billing_month == null ||
+      row.statement_amount == null ||
+      row.paid_amount == null ||
+      row.due_date == null ||
+      row.status == null
+    ) {
+      continue;
+    }
+
+    card.months.push(
+      mapBillingMonthRow({
+        id: row.billing_month_id,
+        card_account_id: row.card_account_id,
+        billing_month: row.billing_month,
+        statement_amount: row.statement_amount,
+        paid_amount: row.paid_amount,
+        due_date: row.due_date,
+        status: row.status,
+      }),
+    );
+  }
+
+  return [...cards.values()].flatMap((card) =>
+    card.settings == null
+      ? []
+      : [
+          buildCreditCardSummary({
+            accountId: card.accountId,
+            name: card.name,
+            settings: card.settings,
+            months: card.months,
+          }),
+        ],
+  );
+}
 
 async function loadCreditCards(): Promise<{
   currency: string;
@@ -24,19 +122,9 @@ async function loadCreditCards(): Promise<{
 
   try {
     const supabase = await createSupabaseServerClient();
-    const [{ data: household }, { data: accounts, error }] = await Promise.all([
-      supabase
-        .from("households")
-        .select("base_currency")
-        .eq("id", gate.householdId)
-        .maybeSingle(),
-      supabase
-        .from("accounts")
-        .select("id, name, type")
-        .eq("household_id", gate.householdId)
-        .eq("is_archived", false)
-        .eq("type", AccountType.CREDIT_CARD)
-        .order("created_at", { ascending: true }),
+    const [householdContext, { data, error }] = await Promise.all([
+      getHomeHouseholdContext(),
+      supabase.rpc(LedgerRpcName.GET_MONEY_CREDIT_CARD_RAW_INPUTS),
     ]);
 
     if (error) {
@@ -46,76 +134,13 @@ async function loadCreditCards(): Promise<{
       return null;
     }
 
-    const cardIds = (accounts ?? []).map((a) => a.id);
-    if (cardIds.length === 0) {
-      return {
-        currency: (household?.base_currency ?? DEFAULT_CURRENCY).toUpperCase(),
-        cards: [],
-      };
-    }
-
-    const [
-      { data: settingsRows, error: settingsError },
-      { data: monthRows, error: monthsError },
-    ] = await Promise.all([
-      supabase
-        .from("credit_card_settings")
-        .select(
-          "account_id, credit_limit, statement_day, due_day, linked_bank_account_id",
-        )
-        .eq("household_id", gate.householdId)
-        .in("account_id", cardIds),
-      supabase
-        .from("card_billing_months")
-        .select(
-          "id, card_account_id, billing_month, statement_amount, paid_amount, due_date, status",
-        )
-        .eq("household_id", gate.householdId)
-        .in("card_account_id", cardIds)
-        .neq("status", CardBillingMonthStatus.SETTLED),
-    ]);
-    if (settingsError || monthsError) {
-      logLedgerFailure(
-        settingsError ?? monthsError,
-        LEDGER_OPERATION.LIST_CREDIT_CARDS,
-        { householdId: gate.householdId },
-      );
-    }
-
-    const settingsByAccount = new Map(
-      (settingsRows ?? []).map((row) => [
-        row.account_id,
-        mapCreditCardSettingsRow(row),
-      ]),
-    );
-    const monthsByAccount = new Map<
-      string,
-      ReturnType<typeof mapBillingMonthRow>[]
-    >();
-    for (const row of monthRows ?? []) {
-      const mapped = mapBillingMonthRow(row);
-      const list = monthsByAccount.get(mapped.cardAccountId) ?? [];
-      list.push(mapped);
-      monthsByAccount.set(mapped.cardAccountId, list);
-    }
-
-    const cards: CreditCardSummary[] = [];
-    for (const account of accounts ?? []) {
-      const settings = settingsByAccount.get(account.id);
-      if (!settings) continue;
-      cards.push(
-        buildCreditCardSummary({
-          accountId: account.id,
-          name: account.name,
-          settings,
-          months: monthsByAccount.get(account.id) ?? [],
-        }),
-      );
-    }
-
     return {
-      currency: (household?.base_currency ?? DEFAULT_CURRENCY).toUpperCase(),
-      cards,
+      currency: (
+        householdContext?.baseCurrency ?? DEFAULT_CURRENCY
+      ).toUpperCase(),
+      cards: mapMoneyCreditCardRawInputs(
+        (data ?? []) as MoneyCreditCardRawInput[],
+      ),
     };
   } catch (error) {
     logLedgerFailure(error, LEDGER_OPERATION.LIST_CREDIT_CARDS, {

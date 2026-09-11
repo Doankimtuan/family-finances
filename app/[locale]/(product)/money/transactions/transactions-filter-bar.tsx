@@ -11,6 +11,7 @@ import {
   TRANSACTION_TYPE_QUERY_PARAM,
 } from "@/modules/ledger/application/client";
 import type { TransactionTag } from "@/modules/ledger/application/client";
+import { PRODUCT_LINK_PREFETCH } from "@/shared/constants/navigation";
 import { FilterChip } from "@/shared/patterns/filter-chip";
 import {
   TransactionTagSelector,
@@ -98,6 +99,7 @@ export function TransactionsFilterBar({
         />
         <Link
           href={APP_PATH.MONEY_TRANSACTION_TAGS}
+          prefetch={PRODUCT_LINK_PREFETCH}
           className={FILTER_TEXT_ACTION_CLASS}
         >
           {t("manageTags")}

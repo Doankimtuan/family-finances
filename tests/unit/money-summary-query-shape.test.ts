@@ -10,6 +10,14 @@ const savingsMigration = readFileSync(
   "supabase/migrations/20260910210229_home_savings_summary.sql",
   "utf8",
 );
+const creditCardQuery = readFileSync(
+  "modules/ledger/application/queries/list-credit-cards.ts",
+  "utf8",
+);
+const creditCardMigration = readFileSync(
+  "supabase/migrations/20260911055502_money_credit_card_raw_inputs.sql",
+  "utf8",
+);
 
 describe("Money summary query shape", () => {
   it("uses bounded Investment and Savings summary APIs", () => {
@@ -36,5 +44,25 @@ describe("Money summary query shape", () => {
     expect(moneyPage).toContain("toMoneyReadState(savingsSummary)");
     expect(moneyPage).toContain("toMoneyReadState(investmentSummary)");
     expect(moneyPage).not.toContain("const loadFailed");
+  });
+
+  it("uses the one-wave raw credit-card read only for the Money summary", () => {
+    const source = creditCardQuery.slice(
+      creditCardQuery.indexOf("async function loadCreditCards"),
+      creditCardQuery.indexOf("export const listCreditCards"),
+    );
+    expect(source).toContain("LedgerRpcName.GET_MONEY_CREDIT_CARD_RAW_INPUTS");
+    expect(source).toContain("mapMoneyCreditCardRawInputs");
+    expect(source).not.toContain('.from("accounts")');
+    expect(source).not.toContain('.from("credit_card_settings")');
+    expect(source).not.toContain('.from("card_billing_months")');
+    expect(creditCardMigration).toContain("security invoker");
+    expect(creditCardMigration).toContain("set search_path to 'public'");
+    expect(creditCardMigration).toContain(
+      "revoke all on function public.get_money_credit_card_raw_inputs() from public",
+    );
+    expect(creditCardMigration).toContain(
+      "grant execute on function public.get_money_credit_card_raw_inputs() to authenticated",
+    );
   });
 });

@@ -14,6 +14,7 @@ import {
   DEFAULT_TRANSACTION_TAG_ICON_KEY,
   MAX_TRANSACTION_TAGS,
 } from "@/modules/ledger/application/client";
+import { PRODUCT_LINK_PREFETCH } from "@/shared/constants/navigation";
 import { AppIcon } from "@/shared/ui/app-icon";
 import { ACTION_ICONS } from "@/shared/ui/icon-registry";
 import { Button } from "@/shared/ui/button";
@@ -273,6 +274,7 @@ export function TransactionTagSelector({
                   {archivedTags.length > 0 ? (
                     <Link
                       href={APP_PATH.MONEY_TRANSACTION_TAGS}
+                      prefetch={PRODUCT_LINK_PREFETCH}
                       className="inline-flex min-h-11 items-center rounded-[var(--radius-control)] px-(--space-3) text-sm font-medium text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
                     >
                       {t("manageTags")}

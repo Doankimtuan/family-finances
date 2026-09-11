@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { Link } from "@/i18n/navigation";
 import { useFinancialPrivacy } from "@/providers/financial-privacy-provider";
+import { PRODUCT_LINK_PREFETCH } from "@/shared/constants/navigation";
 import {
   TransactionRow,
   type TransactionAmountTone,
@@ -38,6 +39,7 @@ export function TransactionListItem({
     <li>
       <Link
         href={href}
+        prefetch={PRODUCT_LINK_PREFETCH}
         className="block min-h-11 rounded-[var(--radius-control)] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus-ring"
         aria-label={accessibleName}
         data-testid={`transaction-row-${activityId}`}

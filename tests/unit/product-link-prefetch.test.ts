@@ -39,12 +39,18 @@ describe("product link prefetch posture", () => {
 
 describe("credit card hub payload", () => {
   it("excludes settled billing months from the hub list query", () => {
-    const source = readFileSync(
+    const querySource = readFileSync(
       "modules/ledger/application/queries/list-credit-cards.ts",
       "utf8",
     );
-    expect(source).toContain(`.neq("status", CardBillingMonthStatus.SETTLED)`);
-    expect(source).toContain(
+    const migrationSource = readFileSync(
+      "supabase/migrations/20260911055502_money_credit_card_raw_inputs.sql",
+      "utf8",
+    );
+    expect(migrationSource).toContain(
+      `m.status <> '${CardBillingMonthStatus.SETTLED}'`,
+    );
+    expect(querySource).toContain(
       "export const listCreditCards = cache(loadCreditCards)",
     );
     expect(CardBillingMonthStatus.SETTLED).toBe("settled");
