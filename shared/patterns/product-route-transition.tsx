@@ -17,9 +17,11 @@ export function ProductRouteTransition({ children }: { children: ReactNode }) {
       key={isPrimaryTabRoute ? pathname : undefined}
       className="flex min-h-0 flex-1 flex-col"
       initial={
-        shouldAnimate ? { opacity: 0, y: motionTokens.distance.xs } : false
+        shouldAnimate
+          ? { opacity: motionTokens.opacity.transitionStart }
+          : false
       }
-      animate={{ opacity: 1, y: 0 }}
+      animate={{ opacity: 1 }}
       transition={
         motionEnabled
           ? springs.snappy

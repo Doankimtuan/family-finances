@@ -136,6 +136,21 @@ describe("Phase 2 app-shell foundation", () => {
     expect(moneyTab).toHaveAttribute("data-active", "true");
   });
 
+  it("preserves keyboard focus when the committed pathname changes", () => {
+    const { rerender } = render(<BottomNavigation />);
+    const moneyTab = screen.getByRole("link", { name: /navigation.money/ });
+    moneyTab.focus();
+
+    navigationState.pathname = APP_PATH.MONEY;
+    rerender(<BottomNavigation />);
+
+    expect(screen.getByRole("link", { name: /navigation.money/ })).toBe(
+      moneyTab,
+    );
+    expect(document.activeElement).toBe(moneyTab);
+    expect(moneyTab).toHaveAttribute("aria-current", "page");
+  });
+
   it("clears optimistic selection on browser history navigation", () => {
     render(<BottomNavigation />);
     fireEvent.click(screen.getByRole("link", { name: /navigation.money/ }));

@@ -1,4 +1,7 @@
 export const motionTokens = {
+  opacity: {
+    transitionStart: 0.96,
+  },
   duration: {
     none: 0,
     instant: 0.08,

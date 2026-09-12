@@ -148,7 +148,6 @@ export function BottomNavigation({
 
   return (
     <BottomNavigationContent
-      key={pathname}
       pathname={pathname}
       className={className}
       inboxCount={inboxCount}
@@ -175,7 +174,6 @@ function BottomNavigationContent({
   }, []);
 
   const handleNavigationSettled = (href: ProductTabPath) => {
-    if (isPathInTab(pathname, href)) return;
     setPendingDestination((current) => (current === href ? null : current));
   };
 
