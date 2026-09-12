@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import { BottomNavigation } from "@/shared/patterns/bottom-navigation";
 import {
@@ -22,28 +22,59 @@ function readProjectFile(relativePath: string) {
   return readFileSync(resolve(process.cwd(), relativePath), "utf8");
 }
 
+const navigationState = vi.hoisted(() => ({
+  pathname: "",
+  linkPending: false,
+}));
+
 vi.mock("next-intl", () => ({
   useTranslations: (namespace: string) => (key: string) =>
     `${namespace}.${key}`,
 }));
 
 vi.mock("@/i18n/navigation", () => ({
-  usePathname: () => APP_PATH.HOME,
+  usePathname: () => navigationState.pathname,
   Link: ({
     href,
     children,
-    prefetch: _prefetch,
+    prefetch,
+    onClick,
     ...props
   }: {
     href: string;
     children: ReactNode;
     prefetch?: boolean;
-  } & React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
+  } & React.AnchorHTMLAttributes<HTMLAnchorElement>) => {
+    void prefetch;
+    return (
+      <a
+        href={href}
+        {...props}
+        onClick={(event) => {
+          onClick?.(event);
+          event.preventDefault();
+        }}
+      >
+        {children}
+      </a>
+    );
+  },
 }));
+
+vi.mock("next/link", () => ({
+  useLinkStatus: () => ({ pending: navigationState.linkPending }),
+}));
+
+vi.mock("@/shared/motion", () => ({
+  useMotionPolicy: () => ({ enabled: false }),
+  motionTokens: { scale: { pop: 1.02 } },
+  springs: { snappy: {} },
+}));
+
+beforeEach(() => {
+  navigationState.pathname = APP_PATH.HOME;
+  navigationState.linkPending = false;
+});
 
 describe("Phase 2 app-shell foundation", () => {
   it("marks the Home tab current and keeps 44px targets on all five tabs", () => {
@@ -62,7 +93,87 @@ describe("Phase 2 app-shell foundation", () => {
     const homeTab = screen.getByRole("link", { name: /navigation.home/ });
     expect(homeTab).toHaveAttribute("aria-current", "page");
     expect(homeTab).toHaveAttribute("data-active", "true");
-    expect(homeTab).toHaveClass("bg-primary-soft", "text-primary");
+    expect(homeTab).toHaveClass("text-primary");
+    expect(
+      homeTab.querySelector('[data-slot="nav-tab-active-indicator"]'),
+    ).toHaveClass("bg-primary-soft");
+  });
+
+  it("selects the destination optimistically without changing current-page semantics", () => {
+    render(<BottomNavigation />);
+    const homeTab = screen.getByRole("link", { name: /navigation.home/ });
+    const moneyTab = screen.getByRole("link", { name: /navigation.money/ });
+
+    fireEvent.click(moneyTab);
+
+    expect(moneyTab).toHaveAttribute("data-active", "true");
+    expect(moneyTab).not.toHaveAttribute("aria-current");
+    expect(homeTab).toHaveAttribute("data-active", "false");
+    expect(homeTab).toHaveAttribute("aria-current", "page");
+  });
+
+  it("lets only the newest normal navigation remain optimistic", () => {
+    render(<BottomNavigation />);
+    const moneyTab = screen.getByRole("link", { name: /navigation.money/ });
+    const planTab = screen.getByRole("link", { name: /navigation.plan/ });
+
+    fireEvent.click(moneyTab);
+    fireEvent.click(planTab);
+
+    expect(planTab).toHaveAttribute("data-active", "true");
+    expect(moneyTab).toHaveAttribute("data-active", "false");
+  });
+
+  it("reconciles to the committed pathname and clears pending state", () => {
+    const { rerender } = render(<BottomNavigation />);
+    fireEvent.click(screen.getByRole("link", { name: /navigation.money/ }));
+    navigationState.pathname = APP_PATH.MONEY;
+
+    rerender(<BottomNavigation />);
+
+    const moneyTab = screen.getByRole("link", { name: /navigation.money/ });
+    expect(moneyTab).toHaveAttribute("aria-current", "page");
+    expect(moneyTab).toHaveAttribute("data-active", "true");
+  });
+
+  it("clears optimistic selection on browser history navigation", () => {
+    render(<BottomNavigation />);
+    fireEvent.click(screen.getByRole("link", { name: /navigation.money/ }));
+    fireEvent.popState(window);
+
+    expect(
+      screen.getByRole("link", { name: /navigation.home/ }),
+    ).toHaveAttribute("data-active", "true");
+  });
+
+  it("reverts optimistic selection when a link settles without changing route", async () => {
+    const { rerender } = render(<BottomNavigation />);
+    navigationState.linkPending = true;
+    rerender(<BottomNavigation />);
+    const moneyTab = screen.getByRole("link", { name: /navigation.money/ });
+    fireEvent.click(moneyTab);
+    expect(moneyTab).toHaveAttribute("data-active", "true");
+
+    navigationState.linkPending = false;
+    rerender(<BottomNavigation />);
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole("link", { name: /navigation.home/ }),
+      ).toHaveAttribute("data-active", "true"),
+    );
+  });
+
+  it("preserves modified-link behavior and ignores the current tab", () => {
+    render(<BottomNavigation />);
+    const homeTab = screen.getByRole("link", { name: /navigation.home/ });
+    const moneyTab = screen.getByRole("link", { name: /navigation.money/ });
+
+    fireEvent.click(moneyTab, { ctrlKey: true });
+    expect(homeTab).toHaveAttribute("data-active", "true");
+
+    expect(fireEvent.click(homeTab)).toBe(false);
+    expect(homeTab).toHaveAttribute("data-active", "true");
   });
 
   it("keeps TopAppBar variants compact and exposes a single trailing slot", () => {
@@ -127,7 +238,7 @@ describe("Phase 2 app-shell foundation", () => {
     expect(source).toContain("-mx-(--page-gutter)");
     expect(source).toContain("px-(--page-gutter)");
     expect(source).toContain("pb-(--space-4)");
-    expect(source).toContain("mb-(--space-3)");
+    expect(source).toContain("mt-(--space-2)");
     expect(source).not.toContain("-mx-(--space-4)");
   });
 

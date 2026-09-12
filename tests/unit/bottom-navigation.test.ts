@@ -40,10 +40,12 @@ describe("BottomNavigation foundation", () => {
     expect(source).toContain("bg-primary-soft");
     expect(source).toContain("min-h-14");
     expect(source).toContain("aria-current");
-    expect(source).not.toContain("layoutId");
+    expect(source).toContain("NAVIGATION_ANIMATION_ID.ACTIVE_PRODUCT_TAB");
+    expect(source).toContain("useLinkStatus");
+    expect(source).not.toContain("router.push");
     expect(source).not.toContain("min-[481px]:rounded");
     expect(source).not.toContain("min-[481px]:m-(--space-2)");
-    expect(source).not.toContain('from "motion/react"');
+    expect(source).toContain('from "motion/react"');
   });
 });
 

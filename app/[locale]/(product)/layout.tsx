@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import type { ReactNode } from "react";
 import { ChromeShell } from "@/shared/patterns/chrome-shell";
 import { BottomNavigation } from "@/shared/patterns/bottom-navigation";
+import { ProductRouteTransition } from "@/shared/patterns/product-route-transition";
 import { countUnreadOpenInboxItems } from "@/modules/inbox/application";
 import { requireProductSession } from "@/modules/tenancy/application/require-product-session";
 
@@ -28,7 +29,7 @@ export default async function ProductLayout({ children, params }: Props) {
         </Suspense>
       }
     >
-      {children}
+      <ProductRouteTransition>{children}</ProductRouteTransition>
     </ChromeShell>
   );
 }

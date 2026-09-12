@@ -14,6 +14,9 @@ vi.mock("@/shared/patterns/chrome-shell", () => ({
 vi.mock("@/shared/patterns/bottom-navigation", () => ({
   BottomNavigation: () => null,
 }));
+vi.mock("@/shared/patterns/product-route-transition", () => ({
+  ProductRouteTransition: ({ children }: { children: ReactNode }) => children,
+}));
 vi.mock("@/modules/inbox/application", () => ({
   countUnreadOpenInboxItems: vi.fn(async () => 0),
 }));

@@ -1,15 +1,134 @@
 "use client";
+import type { MouseEvent } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useLinkStatus } from "next/link";
+import { motion } from "motion/react";
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import { APP_PATH } from "@/modules/shared-kernel/app-path";
-import { PRODUCT_LINK_PREFETCH } from "@/shared/constants/navigation";
+import {
+  NAVIGATION_ANIMATION_ID,
+  PRODUCT_LINK_PREFETCH,
+} from "@/shared/constants/navigation";
+import { motionTokens, springs, useMotionPolicy } from "@/shared/motion";
 import { cn } from "@/shared/utils/cn";
 import { SafeArea } from "@/providers/safe-area";
-import { TABS } from "@/shared/patterns/bottom-navigation-tabs";
+import { TABS, type NavTab } from "@/shared/patterns/bottom-navigation-tabs";
 import { AppIcon } from "@/shared/ui/app-icon";
 
 export { TABS } from "@/shared/patterns/bottom-navigation-tabs";
 const NAV_TAB_COUNT = TABS.length;
+type ProductTabPath = NavTab["href"];
+
+function isPathInTab(pathname: string, href: ProductTabPath): boolean {
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+function isNormalPrimaryClick(event: MouseEvent<HTMLAnchorElement>): boolean {
+  const target = event.currentTarget.target;
+  return (
+    !event.defaultPrevented &&
+    event.button === 0 &&
+    !event.metaKey &&
+    !event.ctrlKey &&
+    !event.shiftKey &&
+    !event.altKey &&
+    (!target || target === "_self") &&
+    !event.currentTarget.hasAttribute("download")
+  );
+}
+
+function ActiveTabIndicator({
+  active,
+  animated,
+}: {
+  active: boolean;
+  animated: boolean;
+}) {
+  if (!active) return null;
+
+  const className =
+    "pointer-events-none absolute inset-0 rounded-[var(--radius-control)] bg-primary-soft";
+
+  return animated ? (
+    <motion.span
+      layoutId={NAVIGATION_ANIMATION_ID.ACTIVE_PRODUCT_TAB}
+      className={className}
+      transition={springs.snappy}
+      data-slot="nav-tab-active-indicator"
+      aria-hidden="true"
+    />
+  ) : (
+    <span
+      className={className}
+      data-slot="nav-tab-active-indicator"
+      aria-hidden="true"
+    />
+  );
+}
+
+function TabIcon({
+  icon,
+  active,
+  animated,
+}: {
+  icon: NavTab["icon"];
+  active: boolean;
+  animated: boolean;
+}) {
+  const content = <AppIcon icon={icon} size="lg" emphasized={active} />;
+
+  return animated ? (
+    <motion.span
+      className="relative inline-flex shrink-0"
+      animate={{ scale: active ? motionTokens.scale.pop : 1 }}
+      transition={springs.snappy}
+      aria-hidden="true"
+    >
+      {content}
+    </motion.span>
+  ) : (
+    <span className="relative inline-flex shrink-0" aria-hidden="true">
+      {content}
+    </span>
+  );
+}
+
+function NavigationPendingFeedback({
+  href,
+  onSettled,
+}: {
+  href: ProductTabPath;
+  onSettled: (href: ProductTabPath) => void;
+}) {
+  const { pending } = useLinkStatus();
+  const sawPending = useRef(false);
+
+  useEffect(() => {
+    if (pending) {
+      sawPending.current = true;
+      return;
+    }
+
+    if (sawPending.current) {
+      sawPending.current = false;
+      onSettled(href);
+    }
+  }, [href, onSettled, pending]);
+
+  return (
+    <span
+      data-slot="nav-tab-pending-indicator"
+      aria-hidden="true"
+      className={cn(
+        "pointer-events-none absolute inset-x-(--space-3) top-1 z-20 h-0.5 rounded-full bg-primary",
+        "transition-opacity duration-(--duration-fast) ease-(--ease-standard)",
+        "motion-reduce:transition-none",
+        pending ? "opacity-100" : "opacity-0",
+      )}
+    />
+  );
+}
 
 export type BottomNavigationProps = {
   className?: string;
@@ -26,8 +145,40 @@ export function BottomNavigation({
   inboxCount,
 }: BottomNavigationProps) {
   const pathname = usePathname();
+
+  return (
+    <BottomNavigationContent
+      key={pathname}
+      pathname={pathname}
+      className={className}
+      inboxCount={inboxCount}
+    />
+  );
+}
+
+function BottomNavigationContent({
+  className,
+  inboxCount,
+  pathname,
+}: BottomNavigationProps & { pathname: string }) {
   const t = useTranslations("navigation");
   const tA11y = useTranslations("a11y");
+  const { enabled: motionEnabled } = useMotionPolicy();
+  const [pendingDestination, setPendingDestination] =
+    useState<ProductTabPath | null>(null);
+
+  useEffect(() => {
+    const clearPendingDestination = () => setPendingDestination(null);
+    window.addEventListener("popstate", clearPendingDestination);
+    return () =>
+      window.removeEventListener("popstate", clearPendingDestination);
+  }, []);
+
+  const handleNavigationSettled = (href: ProductTabPath) => {
+    if (isPathInTab(pathname, href)) return;
+    setPendingDestination((current) => (current === href ? null : current));
+  };
+
   return (
     <SafeArea edges={["bottom"]} className="shrink-0">
       <nav
@@ -45,8 +196,14 @@ export function BottomNavigation({
             gridTemplateColumns: `repeat(${NAV_TAB_COUNT}, minmax(0, 1fr))`,
           }}
         >
-          {TABS.map(({ href, labelKey, icon: Icon }) => {
-            const active = pathname === href || pathname.startsWith(`${href}/`);
+          {TABS.map(({ href, labelKey, icon }) => {
+            const committedActive = isPathInTab(pathname, href);
+            const pendingIsUncommitted =
+              pendingDestination !== null &&
+              !isPathInTab(pathname, pendingDestination);
+            const active = pendingIsUncommitted
+              ? pendingDestination === href
+              : committedActive;
             const label = t(labelKey);
             const isInbox = href === APP_PATH.INBOX;
             const showBadge =
@@ -56,23 +213,48 @@ export function BottomNavigation({
                 <Link
                   href={href}
                   prefetch={PRODUCT_LINK_PREFETCH}
+                  onClick={(event) => {
+                    if (!isNormalPrimaryClick(event)) return;
+                    if (committedActive) {
+                      event.preventDefault();
+                      setPendingDestination(null);
+                      return;
+                    }
+                    if (pendingDestination === href) {
+                      event.preventDefault();
+                      return;
+                    }
+                    setPendingDestination(href);
+                  }}
                   className={cn(
                     "relative flex min-h-14 min-w-0 flex-col items-center justify-center",
                     "gap-(--space-1) rounded-[var(--radius-control)] px-(--space-1) py-(--space-2)",
                     "text-center text-xs font-medium leading-tight tracking-tight",
-                    "transition-[color,background-color,transform] duration-(--duration-fast) ease-(--ease-standard)",
+                    "transition-[color,font-weight] duration-(--duration-normal) ease-(--ease-standard)",
                     "motion-reduce:transition-none",
                     "active:scale-[var(--press-scale)] motion-reduce:active:scale-100",
                     "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring",
                     active
-                      ? "bg-primary-soft font-semibold text-primary"
+                      ? "font-semibold text-primary"
                       : "text-text-muted hover:bg-surface-hover/70 hover:text-text-secondary",
                   )}
-                  aria-current={active ? "page" : undefined}
+                  aria-current={committedActive ? "page" : undefined}
                   data-active={active ? "true" : "false"}
                 >
-                  <span className="relative inline-flex shrink-0">
-                    <AppIcon icon={Icon} size="lg" emphasized={active} />
+                  <ActiveTabIndicator
+                    active={active}
+                    animated={motionEnabled}
+                  />
+                  <NavigationPendingFeedback
+                    href={href}
+                    onSettled={handleNavigationSettled}
+                  />
+                  <span className="relative z-10 inline-flex shrink-0">
+                    <TabIcon
+                      icon={icon}
+                      active={active}
+                      animated={motionEnabled}
+                    />
                     {showBadge ? (
                       <span
                         data-testid="inbox-badge"
@@ -84,7 +266,15 @@ export function BottomNavigation({
                       </span>
                     ) : null}
                   </span>
-                  <span className="max-w-full text-balance">{label}</span>
+                  <span
+                    className={cn(
+                      "relative z-10 max-w-full text-balance transition-opacity duration-(--duration-normal)",
+                      "motion-reduce:transition-none",
+                      active ? "opacity-100" : "opacity-(--opacity-muted)",
+                    )}
+                  >
+                    {label}
+                  </span>
                 </Link>
               </li>
             );

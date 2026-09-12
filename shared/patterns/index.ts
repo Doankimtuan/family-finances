@@ -18,6 +18,7 @@ export {
   type FloatingActionButtonProps,
 } from "./floating-action";
 export { BottomNavigation } from "./bottom-navigation";
+export { ProductRouteTransition } from "./product-route-transition";
 export {
   TopAppBar,
   TopAppBarVariant,
