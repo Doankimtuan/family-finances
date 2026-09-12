@@ -7,6 +7,7 @@ import type { InboxReviewItem } from "@/modules/inbox/application/inbox-types";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
 import { formatDate } from "@/shared/i18n/formatters";
 import { ReviewCard, ReviewCardDensity } from "@/shared/patterns/review-card";
+import { PRODUCT_LINK_PREFETCH } from "@/shared/constants/navigation";
 import { AppIcon } from "@/shared/ui/app-icon";
 import { IconContainer } from "@/shared/ui/icon-container";
 import { StatusBadgeTone } from "@/shared/ui/status-badge";
@@ -111,6 +112,7 @@ export function InboxQueueRow({ item, locale, readOnly }: InboxQueueRowProps) {
   return (
     <Link
       href={inboxItemPath(item.id)}
+      prefetch={PRODUCT_LINK_PREFETCH}
       aria-label={`${displayTitle} · ${unread ? t("unreadLabel") : t("readLabel")}`}
       className={INBOX_REVIEW_ROW_CLASS}
       data-testid={`inbox-item-link-${item.id}`}
