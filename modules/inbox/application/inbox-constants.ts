@@ -157,6 +157,7 @@ export const INBOX_TEST_ID = {
   DETAIL_META: "inbox-detail-meta",
   DECISION_PANEL: "inbox-decision-panel",
   DECISION_QUESTION: "inbox-decision-question",
+  SAVINGS_AUTO_RENEWAL_RESULT: "inbox-savings-auto-renewal-result",
   PARTNER_EQUAL: "inbox-partner-equal",
   LIFECYCLE: "inbox-lifecycle-context",
   AMOUNT: "inbox-amount",
@@ -322,6 +323,11 @@ export type SavingsMaturityAckAction =
 export const SAVINGS_MATURITY_ACK_ACTION_VALUES = Object.values(
   SavingsMaturityAckAction,
 );
+
+export const SAVINGS_MATURITY_PACKAGE_ACTION_VALUES = [
+  SavingsMaturityAckAction.CONFIRM_CONFIGURED,
+  SavingsMaturityAckAction.SWITCH,
+] as const;
 
 export const EarlyWithdrawalAckAction = {
   CONFIRM: "confirm",

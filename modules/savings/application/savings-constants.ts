@@ -85,6 +85,8 @@ export const SAVINGS_RPC = {
   EARLY_WITHDRAW_PREVIEW: "preview_early_withdraw_saving",
 } as const;
 
+export const SAVINGS_AUTO_RENEWAL_IDEMPOTENCY_KEY_PREFIX = "savings-auto-renew";
+
 export type SavingsRpc = (typeof SAVINGS_RPC)[keyof typeof SAVINGS_RPC];
 
 export const SAVINGS_LEGACY_BACKFILL_SKIP_ERRORS = [
@@ -233,7 +235,7 @@ export const SETTLEMENT_ACTION_VALUES = [
   SettlementAction.WITHDRAW,
 ] as const;
 
-/** Renewal Policy — recommendation only; never executes ledger txs (BR-01 / BR-10). */
+/** Saved maturity behavior; only AUTO_RENEW_UNTIL_CANCELLED preauthorizes rollover. */
 export const RenewalPolicy = {
   ALWAYS_ASK: "always_ask",
   USE_SAVED_PREFERENCE: "use_saved_preference",
@@ -321,6 +323,7 @@ export const MaturityWarningCode = {
   PACKAGE_UNAVAILABLE: "package_unavailable",
   RATE_CHANGED: "rate_changed",
   PROVIDER_INACTIVE: "provider_inactive",
+  SAVED_RENEWAL_CONFIG_UNAVAILABLE: "saved_renewal_config_unavailable",
 } as const;
 
 export type MaturityWarningCode =
@@ -330,6 +333,18 @@ export const MATURITY_WARNING_CODE_VALUES = [
   MaturityWarningCode.PACKAGE_UNAVAILABLE,
   MaturityWarningCode.RATE_CHANGED,
   MaturityWarningCode.PROVIDER_INACTIVE,
+  MaturityWarningCode.SAVED_RENEWAL_CONFIG_UNAVAILABLE,
+] as const;
+
+export const SavingsAutoRenewalOutcomeStatus = {
+  COMPLETED: "completed",
+} as const;
+
+export type SavingsAutoRenewalOutcomeStatus =
+  (typeof SavingsAutoRenewalOutcomeStatus)[keyof typeof SavingsAutoRenewalOutcomeStatus];
+
+export const SAVINGS_AUTO_RENEWAL_OUTCOME_STATUS_VALUES = [
+  SavingsAutoRenewalOutcomeStatus.COMPLETED,
 ] as const;
 
 /** BR-10 + near-maturity escalation: Spec 30/14/7 union brief 7/3/1. */

@@ -12,7 +12,7 @@ Funding has been initiated or recorded but provider acceptance is not final. Thi
 
 ### Active
 
-Provider-held savings principal exists under known terms. The product earns expected/accrued interest according to product rules, but only provider-confirmed interest becomes posted money.
+Provider-held savings principal exists under known terms. The product earns expected/accrued interest according to product rules. Interest becomes posted money after provider confirmation or when a valid `auto_renew_until_cancelled` policy recognizes it through the existing rollover calculation.
 
 ### Paused
 
@@ -24,7 +24,7 @@ Maturity date has arrived and provider allows a defined review/rollover window b
 
 ### Awaiting Renewal
 
-Product has matured or entered actionable maturity review and requires household decision: renew, switch, withdraw, or settle.
+Product has matured and either awaits a household decision or completed a valid preauthorized automatic rollover. An invalid automatic configuration remains actionable in Inbox.
 
 ### Renewed
 
@@ -55,8 +55,9 @@ Historical, non-operational savings record retained for audit, household memory,
 | Draft | Cancelled | Household cancels before funding | No accepted provider contract | Product not created as active | None | None | None |
 | Pending Funding | Active | Provider/funding confirmation | Amount accepted and product terms established | Active cycle starts | Funding source outflow and savings-product inflow write to Ledger | None | Reads active savings later |
 | Pending Funding | Cancelled | Provider rejects or funding fails | No product contract exists | Funding is voided or reversed | Reversal/correction writes only if prior ledger movement exists | Failed funding review if user action needed | Reads no active savings |
-| Active | Grace Period | Maturity date reached with known grace window | Provider grace period exists | Product awaits decision within grace | None | Maturity decision/reminder created | Reads maturity risk only |
-| Active | Awaiting Renewal | Maturity date reached without grace or grace skipped | Product matured and decision required | Product waits for household choice | None unless provider posts interest separately | Maturity decision created | Reads maturity due only |
+| Active | Grace Period | Maturity date reached with known grace window and no valid auto rollover | Provider grace period exists | Product awaits decision within grace | None | Maturity reminder created | Reads maturity risk only |
+| Active | Awaiting Renewal | Manual policy matures, or automatic configuration is invalid | Product matured and user action is required | Product waits for household choice | None unless provider separately posts interest | Actionable maturity item created | Reads maturity due only |
+| Active | Renewed -> Active | Valid `auto_renew_until_cancelled` configuration reaches UTC maturity | Policy, ownership, package, rule, and required account pass locked revalidation | New cycle becomes active; previous cycle is linked | Existing rollover interest/tax calculation and one renewal decision commit atomically | Read-only unread maturity result created | Reads renewed cycle and result |
 | Active | Closed Early | Early withdrawal confirmed | Household confirms and provider outcome is known or accepted under manual flow | Product closes before maturity | Net payout and posted interest/penalty effects write | Early withdrawal confirmation resolved | Reads closed status later |
 | Active | Archived | Historical import already closed | Imported product has no active lifecycle | Record retained only | None unless historical ledger import separately confirmed | None | Historical read only |
 | Grace Period | Awaiting Renewal | Grace action required or window nearing end | Household decision still needed | Renewal/withdrawal decision remains active | None | Inbox priority escalates | Reads decision risk only |
@@ -74,8 +75,7 @@ Historical, non-operational savings record retained for audit, household memory,
 
 - Draft -> Completed.
 - Pending Funding -> Completed without Active or Cancelled.
-- Active -> Renewed without maturity/grace/awaiting-renewal decision.
+- Active -> Renewed before maturity or without a valid `auto_renew_until_cancelled` policy.
 - Awaiting Renewal -> Renewed by saved preference alone.
 - Health -> any Savings state.
 - Planning pause -> Savings Paused.
-

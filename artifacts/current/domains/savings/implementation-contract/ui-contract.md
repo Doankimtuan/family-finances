@@ -48,15 +48,15 @@ Progress indicator: term/maturity progress behavior allowed.
 
 ## Grace Period
 
-Visible actions: renew, withdraw all, review later if allowed.
+Visible actions: for manual policies, renew, withdraw all, review later if allowed; for a valid auto-renew policy, inspect the completed rollover result.
 
 Disabled actions: normal edit that changes historical terms.
 
 Hidden actions: cancel.
 
-Required warning: decision needed before grace ends.
+Required warning: decision needed before grace ends unless a valid auto-renew policy already rolled the cycle.
 
-Confirmation: renewal and withdrawal confirmations required.
+Confirmation: renewal confirmation follows the saved policy; withdrawal still requires explicit confirmation.
 
 Progress indicator: grace remaining.
 
@@ -68,9 +68,9 @@ Disabled actions: early withdrawal preview.
 
 Hidden actions: cancel.
 
-Required warning: matured product requires decision; saved preference does not execute automatically.
+Required warning: matured product requires a decision unless the saved auto-renew policy completed; invalid automatic settings explain that no money moved.
 
-Confirmation: renewal/withdrawal.
+Confirmation: manual renewal and all maturity withdrawals remain explicit.
 
 Progress indicator: decision pending.
 
@@ -135,4 +135,3 @@ Disabled actions: all money actions.
 Hidden actions: funding, renew, withdraw, early withdraw, edit policy.
 
 Required warning: historical only.
-

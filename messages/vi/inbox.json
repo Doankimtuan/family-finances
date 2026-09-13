@@ -87,7 +87,20 @@
   "maturityWarnings": {
     "package_unavailable": "Gói ưu tiên không còn khả dụng.",
     "rate_changed": "Lãi suất gói hiện tại khác lãi đã khóa.",
-    "provider_inactive": "Nhà cung cấp không còn hoạt động — cân nhắc phương án khác."
+    "provider_inactive": "Nhà cung cấp không còn hoạt động — cân nhắc phương án khác.",
+    "saved_renewal_config_unavailable": "Một thiết lập gia hạn đã lưu không còn dùng được. Hãy kiểm tra lại gói, quy tắc tất toán hoặc tài khoản trước khi tiếp tục. Chưa có tiền được chuyển."
+  },
+  "autoRenewalResult": {
+    "heading": "Kết quả tự gia hạn",
+    "title": "Đã gia hạn tiết kiệm",
+    "description": "Hệ thống đã áp dụng cấu hình gia hạn đã lưu khi đến hạn. Bạn không cần quyết định thêm về khoản tiền này; có thể đánh dấu thông báo là đã đọc.",
+    "contextHeading": "Đã tự động hoàn tất",
+    "completedStatus": "Đã hoàn tất",
+    "previousCycle": "Kỳ trước",
+    "newCycle": "Kỳ mới",
+    "package": "Gói gia hạn",
+    "nextMaturityDate": "Ngày đáo hạn tiếp theo",
+    "rolloverAmount": "Số tiền được gia hạn"
   },
   "renewalPolicies": {
     "always_ask": "Luôn hỏi",

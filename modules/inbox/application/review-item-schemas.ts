@@ -27,6 +27,7 @@ import {
   PenaltyStrategy,
   RENEWAL_SUGGESTED_ACTION_VALUES,
   MATURITY_WARNING_CODE_VALUES,
+  SAVINGS_AUTO_RENEWAL_OUTCOME_STATUS_VALUES,
 } from "@/modules/savings/application/savings-constants";
 import { DebtDueState } from "@/modules/ledger/application/debt-constants";
 import { LoanDueState } from "@/modules/ledger/application/loan-constants";
@@ -92,6 +93,23 @@ export const savingsMaturityDecisionPayloadSchema = z.object({
   preselectedSettlementRule: z.string().optional(),
   preselectedSettlementAccountId: z.string().uuid().nullable().optional(),
   recommendationReason: z.string().nullable().optional(),
+  autoRenewalOutcome: z
+    .object({
+      status: z.enum(SAVINGS_AUTO_RENEWAL_OUTCOME_STATUS_VALUES),
+      policyApplied: z.literal(RenewalPolicy.AUTO_RENEW_UNTIL_CANCELLED),
+      previousCycleId: z.string().uuid(),
+      nextCycleId: z.string().uuid(),
+      previousCycleNumber: z.number().int().positive(),
+      nextCycleNumber: z.number().int().positive(),
+      packageId: z.string().uuid(),
+      packageName: z.string().trim().min(1),
+      nextMaturityDate: z.string().trim().min(1),
+      rolloverAmount: z.number().nonnegative(),
+      interestRecognized: z.number().nonnegative(),
+      taxWithheld: z.number().nonnegative(),
+    })
+    .optional(),
+  autoRenewalFallbackRequired: z.boolean().optional(),
 });
 
 export const earlyWithdrawalConfirmationPayloadSchema = z.object({
@@ -461,6 +479,10 @@ export function instantiateTypedReviewItem(input: {
         ctx.renewalConfig && typeof ctx.renewalConfig === "object"
           ? (ctx.renewalConfig as Record<string, unknown>)
           : null;
+      const autoRenewalOutcome =
+        savingsMaturityDecisionPayloadSchema.shape.autoRenewalOutcome.safeParse(
+          ctx.autoRenewalOutcome,
+        );
 
       return {
         type: InboxItemKind.SAVINGS_MATURITY,
@@ -544,6 +566,10 @@ export function instantiateTypedReviewItem(input: {
               : ctx.recommendationReason === null
                 ? null
                 : undefined,
+          autoRenewalOutcome: autoRenewalOutcome.success
+            ? autoRenewalOutcome.data
+            : undefined,
+          autoRenewalFallbackRequired: ctx.autoRenewalFallbackRequired === true,
         },
       };
     }

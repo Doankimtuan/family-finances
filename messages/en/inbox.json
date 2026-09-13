@@ -87,7 +87,20 @@
   "maturityWarnings": {
     "package_unavailable": "Preferred package is no longer available.",
     "rate_changed": "Current package rate differs from the locked rate.",
-    "provider_inactive": "Provider is inactive — consider alternatives."
+    "provider_inactive": "Provider is inactive — consider alternatives.",
+    "saved_renewal_config_unavailable": "A saved renewal setting is unavailable. Review the package, settlement rule, or account before continuing. No money was moved."
+  },
+  "autoRenewalResult": {
+    "heading": "Automatic renewal result",
+    "title": "Savings renewed",
+    "description": "The saved renewal settings were applied at maturity. No further money decision is needed; you can mark this message as read.",
+    "contextHeading": "Completed automatically",
+    "completedStatus": "Completed",
+    "previousCycle": "Previous cycle",
+    "newCycle": "New cycle",
+    "package": "Renewed package",
+    "nextMaturityDate": "Next maturity date",
+    "rolloverAmount": "Amount rolled over"
   },
   "renewalPolicies": {
     "always_ask": "Always ask",

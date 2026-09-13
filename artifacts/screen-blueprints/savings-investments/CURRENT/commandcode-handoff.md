@@ -15,7 +15,7 @@ Do not reread the repository broadly. Use this handoff and open only a reference
 - Expected and accrued interest never write money transactions.
 - Posted/provider-confirmed interest is distinct from principal, tax, fee, penalty, and net settlement.
 - Maturity detection, reminder creation, saved renewal preference, Inbox acknowledgment, and preview move no money.
-- Renewal needs explicit confirmation and creates one immutable new cycle. The old cycle remains historical.
+- Manual renewal needs explicit confirmation; `auto_renew_until_cancelled` preauthorizes its still-valid saved package/rule. Each path creates one immutable new cycle and preserves the prior cycle as history.
 - Maturity settlement and early withdrawal post provider/manual actuals only.
 - Do not implement standard partial withdrawal.
 - Retried actions must be idempotent and must not duplicate cycles, settlement, or transaction postings.
@@ -128,7 +128,7 @@ Supported actions:
 - Withdraw all.
 - Review later only where the domain state allows.
 
-Saved policy may prefill, never execute. Resolve the ReviewItem only after successful mutation. On retry, do not create another cycle or settlement.
+Only `auto_renew_until_cancelled` preauthorizes rollover from its saved package and rule. Its result remains a read-only Inbox item. Manual decisions resolve the ReviewItem only after a successful mutation; retries must not create another cycle or settlement.
 
 ### Work item 5: early withdrawal preview and confirmation
 

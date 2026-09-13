@@ -916,7 +916,7 @@
     "renewalPolicyLabel": "Sau khi đáo hạn",
     "settlementHint": "Tiền gốc và lãi sẽ được xử lý theo lựa chọn của bạn và chuyển về {account}.",
     "maturityStrategyLabel": "Chỉ dẫn khi đáo hạn",
-    "maturityStrategyHint": "Bạn chọn trước cách xử lý; ứng dụng không tự chuyển tiền khi chưa có xác nhận.",
+    "maturityStrategyHint": "Chính sách tự gia hạn dùng gói và quy tắc đã lưu; rút tiền khi đáo hạn vẫn cần xác nhận.",
     "settlementRuleHints": {
       "roll_principal_interest": "Gộp lãi sau thuế vào kỳ mới.",
       "roll_principal_only": "Mở kỳ mới bằng gốc; chuyển lãi thực nhận về tài khoản.",
@@ -1015,7 +1015,8 @@
     "earlyWithdraw": "Tất toán sớm",
     "legacyBanner": "Sản phẩm nhập legacy - chỉ theo dõi đến khi tất toán qua Hộp thư.",
     "renewalPolicyTitle": "Chính sách gia hạn",
-    "renewalPolicyHint": "Chỉ hướng dẫn gợi ý Inbox. Không bao giờ tự chuyển tiền.",
+    "renewalPolicyAutoHint": "Đến hạn, chính sách này tự gia hạn theo gói và quy tắc đã lưu; lãi được tính theo công thức của gói. Việc rút tiền vẫn cần bạn xác nhận.",
+    "renewalPolicyManualHint": "Chỉ chính sách “Tự gia hạn đến khi dừng” mới tự gia hạn. Các chính sách khác gửi thông báo đáo hạn vào Hộp thư; rút tiền vẫn cần bạn xác nhận.",
     "renewalPolicyLabel": "Chính sách",
     "preferredSettlementRuleLabel": "Tất toán ưu tiên",
     "preferredPackageLabel": "Gói ưu tiên",

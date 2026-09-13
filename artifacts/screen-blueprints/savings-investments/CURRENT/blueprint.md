@@ -24,7 +24,7 @@ The scoped inspection found these implementation-relevant issues. This is not a 
 3. Savings detail visually mixes principal, accrued interest, rate, maturity, and cycle facts without a dominant distinction between provider-held principal, expected/accrued interest, and posted settlement.
 4. The current create wizard creates and funds an Active contract in one commit. It does not expose Draft or Pending Funding. This is allowed only for the canonical confirmed/manual-funding MVP path and must be described as create-and-fund, not draft creation.
 5. Maturity actions are routed to Inbox, but the saving detail does not itself present the full maturity consequence preview or a durable success receipt.
-6. The current maturity RPC derives settlement interest from `saving_cycles.accrued_interest`. Canonical behavior requires provider/manual actual principal, interest, tax, fee, penalty, and net settlement before posting. An estimate must not become posted truth.
+6. The current maturity RPC derives settlement interest from `saving_cycles.accrued_interest`. Only a valid `auto_renew_until_cancelled` policy may use the existing rollover calculation to record interest/tax into a new cycle. Maturity withdrawals and early withdrawals still require provider/manual actuals and explicit confirmation; estimates must not become settlement truth.
 7. Early-withdrawal calculation currently includes local default/provider-formula evaluation and sends calculated principal, interest, penalty, and net values into the settlement RPC. Canonical behavior forbids inventing formulas and requires provider/manual actuals for posting.
 8. Early-withdrawal preview has no durable quote/version or expiry contract. Recomputing on request or confirm does not by itself prove that the user confirmed the same still-valid result.
 9. Maturity and early-withdrawal orchestration acknowledges the Inbox item before the money mutation succeeds. A failed money RPC can therefore leave decision state inconsistent with financial state.
@@ -39,7 +39,7 @@ The scoped inspection found these implementation-relevant issues. This is not a 
 | Overview | Orientation summary, active or attention-needed contracts, then history | Create and fund saving | Open contract | `Page`, `MoneySummary`, `Section`, module-local `SavingsSummary`, `EmptyState`, `ErrorState`, `Skeleton` | Saving detail or new flow | `DERIVED_DISPLAY` |
 | Contract detail | Product identity, principal, status/source, active-cycle facts, maturity, then immutable cycle history | State-dependent: review maturity or preview early withdrawal | Edit renewal preference, view activity/history | `Page`, `MoneySummary`, module-local `SavingsSummary`, `MaturitySummary`, `BalanceRow`, activity list, `BottomActionBar` | Maturity review, early-withdraw route, or history | `DERIVED_DISPLAY` |
 | Create and fund | Required-first source, provider/package, principal, terms, settlement destination, preview | Confirm create and fund | Back or cancel | `Page`, `Section`, form fields, `FinancialPreview`, `MoneyMovementPreview`, `BottomActionBar`, `ConfirmDialog`, success receipt | Created saving detail | `REAL_MONEY` |
-| Maturity review | Decision question, actual/provider-confirmed proceeds or renewal inputs, consequence preview | Confirm selected maturity action | Review later where allowed | `Page` or Inbox-owned `ReviewFlow`, `MaturitySummary`, `FinancialPreview`, `MoneyMovementPreview`, `BottomActionBar` | Saving detail or Inbox origin | `NONE` until confirmed; then action-specific |
+| Maturity review | Manual decision question and consequence preview, or read-only result for a preauthorized rollover | Confirm manual maturity action; withdrawals always require confirmation | Review later where allowed | `Page` or Inbox-owned `ReviewFlow`, `MaturitySummary`, `FinancialPreview`, `MoneyMovementPreview`, `BottomActionBar` | Saving detail or Inbox origin | `NONE` until manual confirmation; configured auto rollover is policy-authorized |
 | Early-withdrawal preview | Canonical quote, amount breakdown, freshness, destination, consequence | Continue to confirmation | Cancel | `Page`, `FinancialPreview`, `MoneyMovementPreview`, `StatusAlert`, `BottomActionBar` | Early-withdraw confirmation | `DERIVED_DISPLAY` |
 | Completed/history | Final settlement receipt followed by immutable cycles and linked transactions | View linked transaction | Archive when allowed | `Page`, `MoneySummary`, `Section`, success receipt, activity list | Transaction detail or Savings | `DERIVED_DISPLAY` |
 
@@ -255,8 +255,8 @@ These flows are contract definitions only until the investment readiness conditi
 |---|---|
 | No contracts | Supportive `EmptyState`; one create action; drafts do not count as active savings. |
 | Active | Principal dominates; accrued/expected interest is labeled non-posted; show maturity and early-withdraw preview entry. |
-| Maturity approaching | `MaturitySummary` with date, consequence, and review entry; no automatic renewal claim. |
-| Matured | Grace Period or Awaiting Renewal meaning; options only when canonical and available. |
+| Maturity approaching | `MaturitySummary` with date, saved-policy-specific consequence, and review entry. |
+| Matured | Valid auto policy shows the resulting new cycle in read-only Inbox; manual/invalid configurations remain in Grace Period or Awaiting Renewal. |
 | Settlement pending | Requested is not settled; lock duplicate confirmation; show recovery/review. |
 | Completed | Final actual settlement receipt and immutable history; no money actions. |
 | Early-withdrawal preview | Full separated breakdown, freshness/version, destination, cancel and continue. No money moved. |

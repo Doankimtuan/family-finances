@@ -16,7 +16,7 @@ Only these prior phase artifacts are used as source evidence:
 
 - BR-01: Savings is Real Ledger money under product contract. It is never a jar, goal, or virtual plan balance.
 - BR-24: Health reads Savings only. Health never writes, renews, settles, withdraws, or resolves decisions.
-- Renewal preference never silently executes real money movement.
+- Only `auto_renew_until_cancelled` preauthorizes its saved rollover settings; other renewal policies remain manual.
 - Expected interest is never posted interest.
 - Provider-confirmed outcome outranks estimate.
 

@@ -43,8 +43,9 @@ Out of scope:
 - Expected interest never writes Ledger.
 - Accrued interest never writes Ledger.
 - Posted/provider-confirmed actuals can write Ledger.
+- A valid `auto_renew_until_cancelled` rollover may recognize interest through the existing rollover calculation.
 - Inbox acknowledgment never writes Ledger by itself.
 - Health is read-only.
-- Renewal preference never silently moves money.
+- Only `auto_renew_until_cancelled` preauthorizes automatic rollover using saved settings; withdrawals still require confirmation.
 - Partial withdrawal is not standard behavior.
 - Planning pause never changes Savings state.

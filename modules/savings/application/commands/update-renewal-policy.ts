@@ -41,7 +41,7 @@ export type UpdateRenewalPolicyInput = z.infer<
 export type UpdateRenewalPolicyResult =
   { ok: true; savingId: string } | { ok: false; code: ProductActionErrorCode };
 
-/** Edit Renewal Policy on an existing saving (recommendation only). */
+/** Save the maturity policy and rollover configuration for an existing saving. */
 export async function updateRenewalPolicy(
   raw: UpdateRenewalPolicyInput,
 ): Promise<UpdateRenewalPolicyResult> {

@@ -1,13 +1,37 @@
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { expect, test, type Page } from "@playwright/test";
-import { moneySavingsPath } from "@/modules/tenancy/application/app-path";
+import { createClient } from "@supabase/supabase-js";
+import {
+  inboxItemPath,
+  moneySavingsPath,
+} from "@/modules/tenancy/application/app-path";
+import {
+  InboxItemKind,
+  InboxItemStatus,
+  INBOX_TEST_ID,
+} from "@/modules/inbox/application/inbox-constants";
+import {
+  CycleStatus,
+  RenewalDecisionSource,
+  SAVINGS_AUTO_RENEWAL_IDEMPOTENCY_KEY_PREFIX,
+  SAVINGS_RPC,
+  SavingStatus,
+  SavingsAutoRenewalOutcomeStatus,
+  RenewalPolicy,
+  SettlementRule,
+} from "@/modules/savings/application/savings-constants";
 
 const FIXTURE_PATH = "output/playwright/savings-lifecycle-fixture.json";
 const PRINCIPAL = "1000000";
 const APP_SURFACE_SELECTOR = "#app-viewport-root";
+const AUTO_RENEWAL_FIXTURE_KEY = "auto-renewal";
+const INVALID_AUTO_RENEWAL_FIXTURE_KEY = "auto-renewal-invalid-config";
+const CHANGED_AUTO_RENEWAL_FIXTURE_KEY = "auto-renewal-policy-changed";
+const FUTURE_AUTO_RENEWAL_FIXTURE_KEY = "auto-renewal-future";
 
 type Fixture = {
+  householdId: string;
   providers: { BANK: string; PLATFORM: string };
   packages: { BANK: string; PLATFORM: string };
   accounts: { settlementAccountId: string };
@@ -20,6 +44,15 @@ function fixture(): Fixture {
 
 function surface(page: Page) {
   return page.locator(APP_SURFACE_SELECTOR);
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function inboxData(value: unknown): Record<string, unknown> {
+  if (!isRecord(value)) throw new Error("Inbox context is unavailable");
+  return isRecord(value.data) ? value.data : value;
 }
 
 async function login(page: Page) {
@@ -263,5 +296,319 @@ test.describe("Savings deterministic lifecycle", () => {
         surface(page).getByTestId("savings-cycle-history"),
       ).toBeVisible();
     }
+  });
+
+  test("preauthorized rollover creates a read-only Inbox result that only changes read state", async ({
+    page,
+  }) => {
+    test.skip(
+      process.env.SAVINGS_AUTO_RENEWAL_E2E_ISOLATED !== "true",
+      "Requires a disposable Supabase project isolated from household savings",
+    );
+
+    const state = fixture();
+    const saving = state.fixtures[AUTO_RENEWAL_FIXTURE_KEY];
+    test.skip(!saving, "Automatic-renewal fixture was not enabled");
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const publishableKey =
+      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const email = process.env.E2E_USER_EMAIL;
+    const password = process.env.E2E_USER_PASSWORD;
+    test.skip(
+      !url || !publishableKey || !serviceKey || !email || !password,
+      "E2E Supabase credentials are not configured",
+    );
+
+    const adminClient = createClient(url!, serviceKey!, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    const memberClient = createClient(url!, publishableKey!, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    const { error: signInError } = await memberClient.auth.signInWithPassword({
+      email: email!,
+      password: password!,
+    });
+    expect(signInError).toBeNull();
+
+    const initialCycleResult = await adminClient
+      .from("saving_cycles")
+      .select("status")
+      .eq("id", saving.cycleId)
+      .single();
+    expect(initialCycleResult.error).toBeNull();
+    const changedPolicySaving =
+      state.fixtures[CHANGED_AUTO_RENEWAL_FIXTURE_KEY];
+    const { error: updatePolicyError } = await adminClient
+      .from("savings")
+      .update({ renewal_policy: RenewalPolicy.ALWAYS_ASK })
+      .eq("id", changedPolicySaving.savingId);
+    expect(updatePolicyError).toBeNull();
+
+    if (initialCycleResult.data.status === CycleStatus.ACTIVE) {
+      const detections = await Promise.all(
+        [0, 1].map(() =>
+          memberClient.rpc(SAVINGS_RPC.DETECT_MATURED, {
+            p_household_id: state.householdId,
+          }),
+        ),
+      );
+      let automaticRenewalCount = 0;
+      for (const detection of detections) {
+        expect(detection.error).toBeNull();
+        if (!isRecord(detection.data)) {
+          throw new Error("Maturity detection did not return a result");
+        }
+        automaticRenewalCount += Number(detection.data.autoRenewedCount ?? 0);
+      }
+      expect(automaticRenewalCount).toBeLessThanOrEqual(1);
+    } else {
+      expect(initialCycleResult.data.status).toBe(CycleStatus.ROLLED);
+    }
+
+    const [savingResult, cyclesResult, itemResult, transactionsResult] =
+      await Promise.all([
+        adminClient
+          .from("savings")
+          .select("id, status")
+          .eq("id", saving.savingId)
+          .single(),
+        adminClient
+          .from("saving_cycles")
+          .select(
+            "id, cycle_number, status, previous_cycle_id, next_cycle_id, principal, renewal_decision",
+          )
+          .eq("saving_id", saving.savingId)
+          .order("cycle_number"),
+        adminClient
+          .from("inbox_items")
+          .select("id, status, amount, context_json, read_at")
+          .eq("household_id", state.householdId)
+          .eq("kind", InboxItemKind.SAVINGS_MATURITY)
+          .eq("source_id", saving.savingId)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+        adminClient
+          .from("transactions")
+          .select("id, idempotency_key")
+          .like(
+            "idempotency_key",
+            `${SAVINGS_AUTO_RENEWAL_IDEMPOTENCY_KEY_PREFIX}:${saving.savingId}:${saving.cycleId}:%`,
+          ),
+      ]);
+
+    const scenarioSavingIds = [
+      state.fixtures[INVALID_AUTO_RENEWAL_FIXTURE_KEY].savingId,
+      changedPolicySaving.savingId,
+      state.fixtures[FUTURE_AUTO_RENEWAL_FIXTURE_KEY].savingId,
+    ];
+    const scenarioFixtures = [
+      state.fixtures[INVALID_AUTO_RENEWAL_FIXTURE_KEY],
+      changedPolicySaving,
+      state.fixtures[FUTURE_AUTO_RENEWAL_FIXTURE_KEY],
+    ];
+    const [scenarioCyclesResult, scenarioItemsResult, ...scenarioTransactions] =
+      await Promise.all([
+        adminClient
+          .from("saving_cycles")
+          .select("id, saving_id, status")
+          .in("saving_id", scenarioSavingIds),
+        adminClient
+          .from("inbox_items")
+          .select("id, source_id, status, context_json")
+          .eq("household_id", state.householdId)
+          .eq("kind", InboxItemKind.SAVINGS_MATURITY)
+          .in("source_id", scenarioSavingIds),
+        ...scenarioFixtures.map((fixtureRow) =>
+          adminClient
+            .from("transactions")
+            .select("id")
+            .like(
+              "idempotency_key",
+              `${SAVINGS_AUTO_RENEWAL_IDEMPOTENCY_KEY_PREFIX}:${fixtureRow.savingId}:${fixtureRow.cycleId}:%`,
+            ),
+        ),
+      ]);
+
+    expect(savingResult.error).toBeNull();
+    expect(cyclesResult.error).toBeNull();
+    expect(itemResult.error).toBeNull();
+    expect(transactionsResult.error).toBeNull();
+    expect(scenarioCyclesResult.error).toBeNull();
+    expect(scenarioItemsResult.error).toBeNull();
+    for (const transactionResult of scenarioTransactions) {
+      expect(transactionResult.error).toBeNull();
+      expect(transactionResult.data).toHaveLength(0);
+    }
+    expect(savingResult.data.status).toBe(SavingStatus.ACTIVE);
+    const cycles = cyclesResult.data ?? [];
+    expect(cycles).toHaveLength(2);
+    const previousCycle = cycles[0];
+    const nextCycle = cycles[1];
+    expect(previousCycle.status).toBe(CycleStatus.ROLLED);
+    expect(previousCycle.next_cycle_id).toBe(nextCycle.id);
+    expect(previousCycle.renewal_decision).toMatchObject({
+      renewalPolicy: RenewalPolicy.AUTO_RENEW_UNTIL_CANCELLED,
+      settlementRule: SettlementRule.ROLL_PRINCIPAL_INTEREST,
+      decisionSource: RenewalDecisionSource.POLICY_APPLIED,
+    });
+    expect(nextCycle.previous_cycle_id).toBe(previousCycle.id);
+    expect(nextCycle.status).toBe(CycleStatus.ACTIVE);
+    expect(transactionsResult.data?.length).toBeGreaterThan(0);
+    const inboxItem = itemResult.data;
+    if (!inboxItem) throw new Error("Maturity result was not created");
+    expect(inboxItem.read_at).toBeNull();
+
+    const context = inboxData(inboxItem.context_json);
+    const outcome = context.autoRenewalOutcome;
+    if (!isRecord(outcome)) throw new Error("Renewal outcome is unavailable");
+    expect(outcome).toMatchObject({
+      status: SavingsAutoRenewalOutcomeStatus.COMPLETED,
+      previousCycleId: previousCycle.id,
+      nextCycleId: nextCycle.id,
+      nextCycleNumber: nextCycle.cycle_number,
+      rolloverAmount: Number(nextCycle.principal),
+    });
+
+    const scenarioCycles = scenarioCyclesResult.data ?? [];
+    const scenarioItems = scenarioItemsResult.data ?? [];
+    const invalidFixture = state.fixtures[INVALID_AUTO_RENEWAL_FIXTURE_KEY];
+    const invalidCycle = scenarioCycles.find(
+      (cycle) => cycle.saving_id === invalidFixture.savingId,
+    );
+    const invalidItem = scenarioItems.find(
+      (item) => item.source_id === invalidFixture.savingId,
+    );
+    if (!invalidItem) throw new Error("Fallback maturity item was not created");
+    expect(
+      scenarioCycles.filter(
+        (cycle) => cycle.saving_id === invalidFixture.savingId,
+      ),
+    ).toHaveLength(1);
+    expect(invalidCycle?.status).toBe(CycleStatus.MATURED);
+    expect(invalidItem?.status).toBe(InboxItemStatus.PENDING);
+    const invalidContext = inboxData(invalidItem.context_json);
+    expect(invalidContext.autoRenewalFallbackRequired).toBe(true);
+    expect(invalidContext.autoRenewalOutcome).toBeUndefined();
+    expect(invalidContext.recommendedPackages).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ packageId: state.packages.BANK }),
+      ]),
+    );
+
+    const changedPolicyFixture =
+      state.fixtures[CHANGED_AUTO_RENEWAL_FIXTURE_KEY];
+    const changedPolicyCycle = scenarioCycles.find(
+      (cycle) => cycle.saving_id === changedPolicyFixture.savingId,
+    );
+    const changedPolicyItem = scenarioItems.find(
+      (item) => item.source_id === changedPolicyFixture.savingId,
+    );
+    expect(
+      scenarioCycles.filter(
+        (cycle) => cycle.saving_id === changedPolicyFixture.savingId,
+      ),
+    ).toHaveLength(1);
+    expect(changedPolicyCycle?.status).toBe(CycleStatus.MATURED);
+    expect(changedPolicyItem?.status).toBe(InboxItemStatus.PENDING);
+    expect(inboxData(changedPolicyItem?.context_json).renewalPolicy).toBe(
+      RenewalPolicy.ALWAYS_ASK,
+    );
+    expect(
+      inboxData(changedPolicyItem?.context_json).autoRenewalOutcome,
+    ).toBeUndefined();
+
+    const futureFixture = state.fixtures[FUTURE_AUTO_RENEWAL_FIXTURE_KEY];
+    const futureCycle = scenarioCycles.find(
+      (cycle) => cycle.saving_id === futureFixture.savingId,
+    );
+    expect(
+      scenarioCycles.filter(
+        (cycle) => cycle.saving_id === futureFixture.savingId,
+      ),
+    ).toHaveLength(1);
+    expect(futureCycle?.status).toBe(CycleStatus.ACTIVE);
+    expect(
+      scenarioItems.some((item) => item.source_id === futureFixture.savingId),
+    ).toBe(false);
+
+    const cycleIdsBeforeRead = cycles.map((cycle) => cycle.id);
+    const transactionIdsBeforeRead = (transactionsResult.data ?? [])
+      .map((transaction) => transaction.id)
+      .sort();
+
+    await login(page);
+    await page.goto(`/en${inboxItemPath(invalidItem.id)}`);
+    await expect(
+      surface(page).getByTestId("inbox-maturity-panel"),
+    ).toBeVisible();
+    await expect(
+      surface(page).getByTestId("inbox-maturity-package"),
+    ).toBeVisible();
+    await page.goto(`/en${inboxItemPath(inboxItem.id)}`);
+    await expect(
+      surface(page).getByTestId(INBOX_TEST_ID.SAVINGS_AUTO_RENEWAL_RESULT),
+    ).toBeVisible();
+    await expect(
+      surface(page).getByText("Savings renewed", { exact: true }),
+    ).toBeVisible();
+    await expect(
+      surface(page).getByTestId(INBOX_TEST_ID.READ_STATE),
+    ).toHaveText("Mark as read");
+    await expect(
+      surface(page).locator('[data-testid^="inbox-ack-"]'),
+    ).toHaveCount(0);
+    await expect(surface(page).getByTestId("inbox-maturity-panel")).toHaveCount(
+      0,
+    );
+
+    await surface(page).getByTestId(INBOX_TEST_ID.READ_STATE).click();
+    await expect(
+      surface(page).getByTestId(INBOX_TEST_ID.READ_STATE),
+    ).toHaveText("Mark as unread");
+    await page.goto(`/vi${inboxItemPath(inboxItem.id)}`);
+    await expect(
+      surface(page).getByTestId(INBOX_TEST_ID.SAVINGS_AUTO_RENEWAL_RESULT),
+    ).toBeVisible();
+    await expect(
+      surface(page).getByText("Đã gia hạn tiết kiệm", { exact: true }),
+    ).toBeVisible();
+    await surface(page).getByTestId(INBOX_TEST_ID.READ_STATE).click();
+    await expect(
+      surface(page).getByTestId(INBOX_TEST_ID.READ_STATE),
+    ).toHaveText("Đánh dấu đã đọc");
+
+    const [afterCycles, afterTransactions, afterInboxItem] = await Promise.all([
+      adminClient
+        .from("saving_cycles")
+        .select("id")
+        .eq("saving_id", saving.savingId)
+        .order("cycle_number"),
+      adminClient
+        .from("transactions")
+        .select("id")
+        .like(
+          "idempotency_key",
+          `${SAVINGS_AUTO_RENEWAL_IDEMPOTENCY_KEY_PREFIX}:${saving.savingId}:${saving.cycleId}:%`,
+        ),
+      adminClient
+        .from("inbox_items")
+        .select("read_at")
+        .eq("id", inboxItem.id)
+        .single(),
+    ]);
+    expect(afterCycles.error).toBeNull();
+    expect(afterTransactions.error).toBeNull();
+    expect(afterInboxItem.error).toBeNull();
+    expect(afterCycles.data?.map((cycle) => cycle.id)).toEqual(
+      cycleIdsBeforeRead,
+    );
+    expect(
+      afterTransactions.data?.map((transaction) => transaction.id).sort(),
+    ).toEqual(transactionIdsBeforeRead);
+    expect(afterInboxItem.data.read_at).toBeNull();
   });
 });

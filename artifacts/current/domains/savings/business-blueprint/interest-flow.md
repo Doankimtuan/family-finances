@@ -20,7 +20,7 @@ Use: early withdrawal preview, household awareness.
 
 ### Posted Interest
 
-Interest confirmed as paid, credited, settled, or otherwise recognized by provider.
+Interest confirmed as paid, credited, settled, or recognized by a valid `auto_renew_until_cancelled` rollover using the existing calculation.
 
 Ledger impact: Writes according to settlement method.
 
@@ -28,7 +28,7 @@ Use: real financial truth.
 
 ### Net Interest
 
-Posted interest minus provider-confirmed tax, fee, withholding, or penalty impact.
+Posted interest minus provider-confirmed impact or tax calculated by the existing rollover rules.
 
 Ledger impact: Writes only when actual net amount is confirmed.
 
@@ -68,7 +68,7 @@ Trigger: provider confirms interest payment, maturity settlement, interest payou
 
 Conditions:
 
-- Provider amount known.
+- Provider amount known, or a valid saved auto-renewal policy authorizes the existing rollover calculation.
 - Destination known: settlement account, savings product, or new principal.
 
 Result:
@@ -91,8 +91,8 @@ Product decision status: Deferred.
 
 Deterministic current rule:
 
-- No tax movement is created by Savings unless provider confirms withholding or tax.
-- Tax metadata does not alter expected interest in MVP/v1 unless provider actual says so.
+- No tax movement is created by Savings unless provider confirms withholding or a valid preauthorized rollover applies the saved tax rule through the existing calculation.
+- Tax metadata does not alter expected interest outside that rollover path.
 
 ## Interest History
 
@@ -107,4 +107,3 @@ v1:
 Future:
 
 - Detailed interest history and provider statement evidence.
-

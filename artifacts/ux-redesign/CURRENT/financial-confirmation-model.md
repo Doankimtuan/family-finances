@@ -33,7 +33,7 @@
 - Update loan future interest when schedule changes.
 - Close/archive loan.
 - Create/fund savings.
-- Savings maturity renewal/withdrawal/change package.
+- Savings maturity withdrawal or changed-package renewal; renewal confirmation may be skipped only when a valid saved `auto_renew_until_cancelled` policy preauthorizes the configured package and rule. Early withdrawal remains explicit.
 - Early withdrawal.
 - Investment buy/sell/partial exit/full exit/write-off/transfer out.
 - Household role/ownership changes.
@@ -67,4 +67,3 @@ Related record: [created item]
 | Confirmations are not yet a unified model. | Users may over-trust or ignore warnings. | Apply the three-level model consistently. | All flows | P0 |
 | Investment values can be misread as cash. | Unsafe financial interpretation. | Add not-cash language before sell/value actions. | Investments, Health | P0 |
 | Multi-domain outcomes feel hidden. | Low trust. | Use receipts for real money/plan/decision impacts. | Money, Plan, Inbox | P0 |
-

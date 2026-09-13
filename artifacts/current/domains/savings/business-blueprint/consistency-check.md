@@ -4,7 +4,7 @@
 
 Passed.
 
-Savings is modeled as real provider-held money. Goals and Planning may hold purpose/intention only. Expected interest and accrued interest never write Ledger.
+Savings is modeled as real provider-held money. Goals and Planning may hold purpose/intention only. Expected interest and accrued estimates do not write Ledger; a valid `auto_renew_until_cancelled` rollover may recognize interest through the existing calculation.
 
 ## BR-24
 
@@ -44,4 +44,3 @@ Every money movement is tied to funding, posted interest, settlement, renewal pa
 - Provider statement evidence remains future.
 
 These are intentionally not required for MVP/v1 blueprint operation.
-

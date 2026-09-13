@@ -17,9 +17,32 @@ const outputPath = resolve(
 );
 const FIXTURE_PREFIX = process.env.SAVINGS_FIXTURE_PREFIX ?? "e2e-savings-13e2";
 const PRINCIPAL = 1_000_000;
-const RENEWAL_POLICY = "always_ask";
-const RENEWAL_PREFERENCE = "manual_review";
+const RENEWAL_POLICY = {
+  ALWAYS_ASK: "always_ask",
+  AUTO_RENEW_UNTIL_CANCELLED: "auto_renew_until_cancelled",
+};
+const RENEWAL_PREFERENCE = {
+  MANUAL_REVIEW: "manual_review",
+  AUTO_RENEW_SELECTED_PACKAGE: "auto_renew_selected_package",
+};
+const SETTLEMENT_RULE = {
+  ROLL_PRINCIPAL_INTEREST: "roll_principal_interest",
+  WITHDRAW_EVERYTHING: "withdraw_everything",
+};
 const SAVINGS_FAMILY = { BANK: "BANK", PLATFORM: "PLATFORM" };
+const SAVINGS_FIXTURE = {
+  AUTO_RENEWAL: "auto-renewal",
+  AUTO_RENEWAL_INVALID_CONFIG: "auto-renewal-invalid-config",
+  AUTO_RENEWAL_POLICY_CHANGED: "auto-renewal-policy-changed",
+  AUTO_RENEWAL_FUTURE: "auto-renewal-future",
+};
+const AUTO_RENEWAL_FIXTURE_KEYS = [
+  SAVINGS_FIXTURE.AUTO_RENEWAL,
+  SAVINGS_FIXTURE.AUTO_RENEWAL_INVALID_CONFIG,
+  SAVINGS_FIXTURE.AUTO_RENEWAL_POLICY_CHANGED,
+  SAVINGS_FIXTURE.AUTO_RENEWAL_FUTURE,
+];
+const INVALID_PACKAGE_ID = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee";
 const CYCLE_STATUS = {
   ACTIVE: "active",
   MATURED: "matured",
@@ -75,7 +98,15 @@ function packageSnapshot(pkg, provider) {
   };
 }
 
-function productSnapshot(pkg, provider, fixtureKey) {
+function productSnapshot(pkg, provider, fixtureKey, renewalPolicy) {
+  const settlementRule =
+    renewalPolicy === RENEWAL_POLICY.AUTO_RENEW_UNTIL_CANCELLED
+      ? SETTLEMENT_RULE.ROLL_PRINCIPAL_INTEREST
+      : SETTLEMENT_RULE.WITHDRAW_EVERYTHING;
+  const renewalPreference =
+    renewalPolicy === RENEWAL_POLICY.AUTO_RENEW_UNTIL_CANCELLED
+      ? RENEWAL_PREFERENCE.AUTO_RENEW_SELECTED_PACKAGE
+      : RENEWAL_PREFERENCE.MANUAL_REVIEW;
   return {
     fixtureKey,
     packageId: pkg.id,
@@ -85,9 +116,9 @@ function productSnapshot(pkg, provider, fixtureKey) {
     depositTermDays: pkg.duration_days,
     annualInterestRate: pkg.annual_interest_rate,
     interestCalculationMethod: pkg.interest_calculation_method,
-    settlementRule: "withdraw_everything",
-    renewalPolicy: RENEWAL_POLICY,
-    renewalPreference: RENEWAL_PREFERENCE,
+    settlementRule,
+    renewalPolicy,
+    renewalPreference,
     penaltyStrategy: "no_interest",
     providerRules: {},
     savingsFamily: provider.family,
@@ -271,6 +302,19 @@ async function main() {
       29,
     ],
   ];
+  if (process.env.SAVINGS_AUTO_RENEWAL_E2E_ISOLATED === "true") {
+    fixtureDefinitions.splice(
+      1,
+      0,
+      ...AUTO_RENEWAL_FIXTURE_KEYS.map((key) => [
+        key,
+        "active",
+        CYCLE_STATUS.ACTIVE,
+        key === SAVINGS_FIXTURE.AUTO_RENEWAL_FUTURE ? 0 : -31,
+        key === SAVINGS_FIXTURE.AUTO_RENEWAL_FUTURE ? 1 : -1,
+      ]),
+    );
+  }
   const fixtures = {};
 
   for (const [
@@ -283,7 +327,19 @@ async function main() {
     const family = key === "early-withdrawal" ? "PLATFORM" : "BANK";
     const provider = providers[family];
     const pkg = packages[family];
-    const snapshot = productSnapshot(pkg, provider, `${FIXTURE_PREFIX}:${key}`);
+    const renewalPolicy = AUTO_RENEWAL_FIXTURE_KEYS.includes(key)
+      ? RENEWAL_POLICY.AUTO_RENEW_UNTIL_CANCELLED
+      : RENEWAL_POLICY.ALWAYS_ASK;
+    const settlementRule =
+      renewalPolicy === RENEWAL_POLICY.AUTO_RENEW_UNTIL_CANCELLED
+        ? SETTLEMENT_RULE.ROLL_PRINCIPAL_INTEREST
+        : SETTLEMENT_RULE.WITHDRAW_EVERYTHING;
+    const snapshot = productSnapshot(
+      pkg,
+      provider,
+      `${FIXTURE_PREFIX}:${key}`,
+      renewalPolicy,
+    );
     const saving = await one(
       admin
         .from("savings")
@@ -295,15 +351,21 @@ async function main() {
           provider_id: provider.id,
           product_name: `${FIXTURE_PREFIX}:${key}`,
           product_snapshot: snapshot,
-          renewal_preference: RENEWAL_PREFERENCE,
-          renewal_policy: RENEWAL_POLICY,
+          renewal_preference:
+            renewalPolicy === RENEWAL_POLICY.AUTO_RENEW_UNTIL_CANCELLED
+              ? RENEWAL_PREFERENCE.AUTO_RENEW_SELECTED_PACKAGE
+              : RENEWAL_PREFERENCE.MANUAL_REVIEW,
+          renewal_policy: renewalPolicy,
           renewal_config: {
-            preferredPackageId: pkg.id,
-            preferredSettlementRule: "withdraw_everything",
+            preferredPackageId:
+              key === SAVINGS_FIXTURE.AUTO_RENEWAL_INVALID_CONFIG
+                ? INVALID_PACKAGE_ID
+                : pkg.id,
+            preferredSettlementRule: settlementRule,
             preferredSettlementAccountId: settlementAccount.id,
           },
           maturity_instruction: {
-            strategy: "withdraw_everything",
+            strategy: SETTLEMENT_RULE.WITHDRAW_EVERYTHING,
             targetMode: "keep_current_package",
             targetPackageId: pkg.id,
             payoutAccountId: settlementAccount.id,

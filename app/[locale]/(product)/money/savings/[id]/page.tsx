@@ -23,6 +23,7 @@ import {
   SavingsCreateMode,
 } from "@/modules/savings/application";
 import { SavingsTermUnit } from "@/modules/savings/application/savings-domain-rules";
+import { RenewalPolicy } from "@/modules/savings/application/savings-constants";
 import { DEFAULT_CURRENCY } from "@/modules/ledger/application/ledger-constants";
 import {
   formatCurrency,
@@ -478,7 +479,11 @@ export default async function SavingsDetailPage({ params }: Props) {
               tone="secondary"
               className="px-(--space-4) pt-(--space-3) text-pretty"
             >
-              {t("renewalPolicyHint")}
+              {t(
+                item.renewalPolicy === RenewalPolicy.AUTO_RENEW_UNTIL_CANCELLED
+                  ? "renewalPolicyAutoHint"
+                  : "renewalPolicyManualHint",
+              )}
             </Text>
             <dl className="divide-y divide-divider">
               <SavingsFactRow

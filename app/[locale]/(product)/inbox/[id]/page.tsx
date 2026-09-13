@@ -8,6 +8,7 @@ import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
 import { getInboxItem } from "@/modules/inbox/application";
 import {
+  InboxItemKind,
   InboxItemStatus,
   INBOX_TEST_ID,
 } from "@/modules/inbox/application/inbox-constants";
@@ -117,6 +118,11 @@ export default async function InboxItemDetailPage({ params }: Props) {
   ].filter(Boolean);
   const visual = item.kind ? inboxItemVisual(item.kind) : undefined;
   const pending = item.status === InboxItemStatus.PENDING;
+  const autoRenewalOutcome =
+    item.typed?.type === InboxItemKind.SAVINGS_MATURITY
+      ? item.typed.payload.autoRenewalOutcome
+      : undefined;
+  const isAutoRenewalResult = autoRenewalOutcome != null;
   const lifecycleKey = inboxLifecycleLabelKey(item.lifecycleContext);
   const lifecycleLabel = item.lifecycleDate
     ? `${
@@ -153,10 +159,20 @@ export default async function InboxItemDetailPage({ params }: Props) {
       <InboxOfflineBanner />
 
       <InboxDetailContext
-        pending={pending}
-        heading={t("decisionQuestionHeading")}
-        question={item.kind ? t(`why.${item.kind}`) : null}
-        statusLabel={t(`statuses.${item.status}`)}
+        pending={pending && !isAutoRenewalResult}
+        heading={
+          isAutoRenewalResult
+            ? t("autoRenewalResult.contextHeading")
+            : t("decisionQuestionHeading")
+        }
+        question={
+          isAutoRenewalResult || !item.kind ? null : t(`why.${item.kind}`)
+        }
+        statusLabel={
+          isAutoRenewalResult
+            ? t("autoRenewalResult.completedStatus")
+            : t(`statuses.${item.status}`)
+        }
         partnerNote={t("partnerEqualNote")}
         lifecycleLabel={lifecycleLabel}
       />
@@ -165,7 +181,7 @@ export default async function InboxItemDetailPage({ params }: Props) {
         title={displayTitle}
         kindLabel={item.kind ? t(`kinds.${item.kind}`) : t("title")}
         amountLabel={
-          amountLabel ? (
+          amountLabel && !isAutoRenewalResult ? (
             <InboxFinancialAmount
               amountLabel={amountLabel}
               kind={inboxAmountKind(item.kind)}
@@ -180,11 +196,15 @@ export default async function InboxItemDetailPage({ params }: Props) {
             </IconContainer>
           ) : undefined
         }
-        statusTone={pending ? StatusBadgeTone.WARNING : StatusBadgeTone.NEUTRAL}
+        statusTone={
+          pending && !isAutoRenewalResult
+            ? StatusBadgeTone.WARNING
+            : StatusBadgeTone.NEUTRAL
+        }
         subtitle={detailParts.length > 0 ? detailParts.join(" · ") : undefined}
       />
 
-      {amountLabel ? (
+      {amountLabel && !isAutoRenewalResult ? (
         <StatusAlert
           variant="info"
           title={t("amountContextTitle")}
@@ -211,7 +231,9 @@ export default async function InboxItemDetailPage({ params }: Props) {
 
       {detailMeta}
 
-      {pending ? <InboxDecisionPanel item={item} jars={activeJars} /> : null}
+      {pending || isAutoRenewalResult ? (
+        <InboxDecisionPanel item={item} jars={activeJars} />
+      ) : null}
 
       {!pending ? (
         <Card tone="soft" className="p-(--space-4)">

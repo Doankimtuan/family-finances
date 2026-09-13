@@ -52,7 +52,7 @@ Failure result: no state change.
 
 Preconditions: product not Archived, Completed, Closed Early, or Cancelled.
 
-Validation: policy is preference/pre-fill only.
+Validation: only `auto_renew_until_cancelled` preauthorizes automatic rollover; other policies remain Inbox-led.
 
 Business rules: editing renewal policy never moves money, never resolves Inbox, and never creates Ledger entries.
 
@@ -66,7 +66,7 @@ Preconditions: state Active; maturity date reached or grace window reached.
 
 Validation: product not already Completed, Renewed, Closed Early, Cancelled, or Archived.
 
-Business rules: maturity creates decision context; expected/accrued interest remains non-ledger.
+Business rules: valid `auto_renew_until_cancelled` settings may roll over at maturity; all other policies create a decision context. Invalid automatic settings follow `fallbackPolicy=ask_user`. Accrued/expected interest stays non-ledger except when the preauthorized rollover records it with the existing calculation.
 
 Success result: Grace Period if grace known, else Awaiting Renewal.
 
@@ -74,11 +74,11 @@ Failure result: Active remains; no Ledger write.
 
 ## Renew
 
-Preconditions: state Grace Period or Awaiting Renewal; household decision recorded; package/rate accepted.
+Preconditions: state Grace Period or Awaiting Renewal; either the valid saved automatic policy applies or the household decision is recorded; package/rate accepted under that path.
 
-Validation: no saved-preference-only execution; selected package available or provider terms confirmed; rate accepted if changed.
+Validation: automatic rollover requires `auto_renew_until_cancelled` and an available configured package; manual renewal requires an explicit household decision and its existing package/rate validation.
 
-Business rules: create immutable new cycle; prior cycle closes/rolls; no duplicate saving; no duplicate Ledger writes.
+Business rules: create immutable new cycle; prior cycle closes/rolls; no duplicate saving or Ledger writes. A transient failure rolls back the cycle; invalid saved settings ask the user and move no money.
 
 Success result: Renewed then Active.
 
@@ -155,4 +155,3 @@ Business rules: correction writes only if real posted truth changes.
 Success result: corrected Ledger and resolved review.
 
 Failure result: review remains open.
-

@@ -25,7 +25,7 @@ import type {
 } from "../savings-domain-rules";
 import type { FinancialCapabilities } from "@/modules/shared-kernel/application/financial-ownership";
 
-/** Saved preference config — never auto-executes ledger (BR-01). */
+/** Saved rollover config; only the auto-renew policy preauthorizes execution. */
 export type RenewalConfig = {
   preferredPackageId: string | null;
   preferredSettlementRule: SettlementRule;

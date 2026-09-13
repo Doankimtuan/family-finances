@@ -916,7 +916,7 @@
     "renewalPolicyLabel": "After maturity",
     "settlementHint": "Principal and interest will be handled according to your choices and returned to {account}.",
     "maturityStrategyLabel": "Maturity instruction",
-    "maturityStrategyHint": "Choose the handling rule now; money is not moved without a confirmation.",
+    "maturityStrategyHint": "Auto renewals use the saved package and rule; maturity withdrawals still require confirmation.",
     "settlementRuleHints": {
       "roll_principal_interest": "Add after-tax interest to the next cycle.",
       "roll_principal_only": "Start the next cycle with principal and pay interest out.",
@@ -1015,7 +1015,8 @@
     "earlyWithdraw": "Settle early",
     "legacyBanner": "Imported legacy product - tracking only until settled via Inbox.",
     "renewalPolicyTitle": "Renewal policy",
-    "renewalPolicyHint": "Guides Inbox suggestions only. Never moves money automatically.",
+    "renewalPolicyAutoHint": "At maturity, this policy automatically rolls the saved package and settlement rule. Interest follows the product's saved calculation formula. Withdrawals still require your confirmation.",
+    "renewalPolicyManualHint": "Only Auto renew until cancelled renews automatically. Other policies send a maturity message to Inbox; withdrawals still require your confirmation.",
     "renewalPolicyLabel": "Policy",
     "preferredSettlementRuleLabel": "Preferred settlement",
     "preferredPackageLabel": "Preferred package",

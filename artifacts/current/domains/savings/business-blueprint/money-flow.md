@@ -4,7 +4,7 @@
 
 - Every posted money movement belongs to Real Ledger.
 - Savings never creates money.
-- Expected/accrued amounts are explanatory until provider-confirmed or posted.
+- Expected/accrued amounts are explanatory until provider-confirmed or recognized by an explicitly preauthorized rollover.
 - Plan/Goal purpose references never move money.
 - Inbox acknowledgment is not money movement.
 
@@ -43,20 +43,20 @@ Ledger entries:
 - Expected interest: never writes.
 - Accrued estimate: never writes.
 - Posted interest paid to account: writes income/interest transaction.
-- Interest rolled into renewed principal: writes only when provider confirms and product cycle records new principal; no fake cash payout is created.
+- Interest rolled into renewed principal: a provider-confirmed renewal or valid `auto_renew_until_cancelled` policy may recognize it through the existing rollover calculation when the new cycle records its principal; no fake cash payout is created.
 
 Expected versus actual:
 
 - Expected interest is calculated from product terms.
-- Actual interest is provider-confirmed posted or settlement amount.
+- Actual interest is provider-confirmed posted/settlement amount, or interest recognized by the existing calculation in a valid preauthorized rollover.
 - Difference creates expected-versus-actual history and optional review if material.
 
 ## Renewal
 
 Principal + interest renewal:
 
-- Matured principal and confirmed/eligible interest become new principal.
-- Ledger writes posted interest only if policy records interest as realized income.
+- Matured principal and eligible interest become new principal.
+- Ledger records interest only through provider-confirmed settlement or the existing calculation in a valid preauthorized rollover.
 - New cycle begins with immutable principal and terms.
 
 Principal-only renewal:
@@ -104,9 +104,9 @@ Product decision status: Deferred.
 
 Current deterministic rule:
 
-- Tax is not posted by Savings unless provider confirms withholding/tax movement.
-- Tax treatment metadata is future scope.
-- Net interest equals posted interest minus provider-confirmed tax/withholding only when such tax exists.
+- Tax is not posted by Savings unless provider confirms withholding/tax movement or a valid preauthorized rollover applies the saved product tax rule through the existing calculation.
+- Tax treatment metadata remains future scope outside that rollover path.
+- Net interest uses provider-confirmed withholding or the saved product tax rule in a valid preauthorized rollover.
 
 ## Provider Settlement
 
@@ -120,4 +120,3 @@ Settlement states:
 - Mismatch: provider amount differs from expected.
 
 MVP may operate on manual confirmed settlement. v1 must handle pending/failed/mismatch.
-

@@ -11,6 +11,7 @@ import {
   InboxReceiptKind,
   INBOX_RECEIPT_QUERY,
   SavingsMaturityAckAction,
+  SAVINGS_MATURITY_PACKAGE_ACTION_VALUES,
   EarlyWithdrawalAckAction,
   EmiAckAction,
   isJarResolvableKind,
@@ -58,6 +59,7 @@ import { DEFAULT_CURRENCY } from "@/modules/ledger/application/client";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
 import { InboxFinancialAmount } from "./inbox-financial-amount";
 import { inboxAmountLabel } from "./inbox-presentations";
+import { formatDate } from "@/shared/i18n/formatters";
 import {
   CLIENT_ACTION_ERROR_CODE,
   PRODUCT_ACTION_ERROR_CODE,
@@ -112,23 +114,49 @@ export function InboxDecisionPanel({ item, jars, meta }: Props) {
     item.typed?.type === InboxItemKind.SAVINGS_MATURITY
       ? item.typed.payload
       : null;
+  const autoRenewalOutcome = maturityPayload?.autoRenewalOutcome ?? null;
   const earlyPayload =
     item.typed?.type === InboxItemKind.EARLY_WITHDRAWAL_CONFIRMATION
       ? item.typed.payload
       : null;
 
   const [selectedPackageId, setSelectedPackageId] = useState(
-    maturityPayload?.preselectedPackageId ??
-      maturityPayload?.recommendedPackages[0]?.packageId ??
-      "",
+    maturityPayload?.autoRenewalFallbackRequired
+      ? ""
+      : (maturityPayload?.preselectedPackageId ??
+          maturityPayload?.recommendedPackages[0]?.packageId ??
+          ""),
   );
   const [selectedSettlementRule, setSelectedSettlementRule] = useState(
-    maturityPayload?.preselectedSettlementRule ??
-      maturityPayload?.settlementRule ??
-      SettlementRule.ROLL_PRINCIPAL_INTEREST,
+    maturityPayload?.autoRenewalFallbackRequired
+      ? ""
+      : (maturityPayload?.preselectedSettlementRule ??
+          maturityPayload?.settlementRule ??
+          SettlementRule.ROLL_PRINCIPAL_INTEREST),
+  );
+  const maturitySettlementOptions = [
+    {
+      id: SettlementRule.ROLL_PRINCIPAL_INTEREST,
+      label: t("maturityRenew"),
+    },
+    {
+      id: SettlementRule.ROLL_PRINCIPAL_ONLY,
+      label: t("maturityRollPrincipalOnly"),
+    },
+    {
+      id: SettlementRule.WITHDRAW_EVERYTHING,
+      label: t("maturityWithdraw"),
+    },
+  ].filter(
+    ({ id }) =>
+      maturityPayload?.autoRenewalFallbackRequired !== true ||
+      id !== SettlementRule.ROLL_PRINCIPAL_ONLY,
   );
 
-  if (item.capability !== InboxSourceCapability.ACTIONABLE) {
+  if (
+    item.capability !== InboxSourceCapability.ACTIONABLE &&
+    !autoRenewalOutcome
+  ) {
     return (
       <StatusAlert
         variant="info"
@@ -147,6 +175,57 @@ export function InboxDecisionPanel({ item, jars, meta }: Props) {
               : t("sourceUnavailableBody")
         }
       />
+    );
+  }
+
+  if (autoRenewalOutcome) {
+    const rolloverAmount = inboxAmountLabel(
+      autoRenewalOutcome.rolloverAmount,
+      item.currency,
+      locale,
+    );
+
+    return (
+      <section
+        className="flex flex-col gap-(--space-3)"
+        data-testid={INBOX_TEST_ID.SAVINGS_AUTO_RENEWAL_RESULT}
+      >
+        <InboxSectionTitle>{t("autoRenewalResult.heading")}</InboxSectionTitle>
+        <StatusAlert
+          variant="success"
+          title={t("autoRenewalResult.title")}
+          description={t("autoRenewalResult.description")}
+        />
+        <Card tone="elevated" className="gap-0 overflow-hidden p-0">
+          <dl className="divide-y divide-border-subtle/65">
+            <InboxFactRow
+              label={t("autoRenewalResult.previousCycle")}
+              value={autoRenewalOutcome.previousCycleNumber}
+            />
+            <InboxFactRow
+              label={t("autoRenewalResult.newCycle")}
+              value={autoRenewalOutcome.nextCycleNumber}
+            />
+            <InboxFactRow
+              label={t("autoRenewalResult.package")}
+              value={autoRenewalOutcome.packageName}
+            />
+            <InboxFactRow
+              label={t("autoRenewalResult.nextMaturityDate")}
+              value={formatDate(
+                new Date(`${autoRenewalOutcome.nextMaturityDate}T12:00:00`),
+                locale,
+              )}
+            />
+            {rolloverAmount ? (
+              <InboxFactRow
+                label={t("autoRenewalResult.rolloverAmount")}
+                value={rolloverAmount}
+              />
+            ) : null}
+          </dl>
+        </Card>
+      </section>
     );
   }
 
@@ -336,7 +415,18 @@ export function InboxDecisionPanel({ item, jars, meta }: Props) {
       variant={variant}
       className={className}
       data-testid={inboxAckTestId(action)}
-      isDisabled={busy || !online}
+      isDisabled={
+        busy ||
+        !online ||
+        (maturityPayload?.autoRenewalFallbackRequired === true &&
+          SAVINGS_MATURITY_PACKAGE_ACTION_VALUES.some(
+            (packageAction) => packageAction === action,
+          ) &&
+          (!selectedSettlementRule ||
+            ((action === SavingsMaturityAckAction.SWITCH ||
+              selectedSettlementRule !== SettlementRule.WITHDRAW_EVERYTHING) &&
+              !selectedPackageId)))
+      }
       onPress={() => onSavingsMaturityAck(action)}
     >
       {t(INBOX_MATURITY_ACTION_LABEL[action])}
@@ -627,20 +717,7 @@ export function InboxDecisionPanel({ item, jars, meta }: Props) {
                 id="inbox-maturity-settlement"
                 label={t("maturitySettlementLabel")}
                 value={selectedSettlementRule}
-                options={[
-                  {
-                    id: SettlementRule.ROLL_PRINCIPAL_INTEREST,
-                    label: t("maturityRenew"),
-                  },
-                  {
-                    id: SettlementRule.ROLL_PRINCIPAL_ONLY,
-                    label: t("maturityRollPrincipalOnly"),
-                  },
-                  {
-                    id: SettlementRule.WITHDRAW_EVERYTHING,
-                    label: t("maturityWithdraw"),
-                  },
-                ]}
+                options={maturitySettlementOptions}
                 onChange={(next) => setSelectedSettlementRule(next)}
                 isDisabled={busy}
                 required

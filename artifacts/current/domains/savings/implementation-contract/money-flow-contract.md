@@ -34,27 +34,29 @@ Money comes from: none by maturity event alone.
 
 Money goes to: none by maturity event alone.
 
-Ledger writes: none unless provider separately posts interest.
+Ledger writes: maturity detection and Inbox creation do not write Ledger. An eligible `auto_renew_until_cancelled` policy runs the configured rollover and existing interest/tax calculation in the same transaction.
 
-No Ledger writes: maturity detection, reminder, Inbox creation, expected/accrued interest.
+No Ledger writes: reminders, manual maturity review, Inbox read/acknowledgment, expected/accrued interest outside the preauthorized rollover path.
 
 Virtual changes: no Plan/Jar movement.
 
-Real money movement: none.
+Real money movement: none for maturity detection itself; the preauthorized rollover may recognize interest and update the renewed product principal.
 
 ## Renewal Principal + Interest
 
-Money comes from: matured product principal plus provider-confirmed eligible interest.
+Money comes from: matured product principal plus provider-confirmed eligible interest or interest recognized by the preauthorized rollover calculation.
 
 Money goes to: new savings cycle principal.
 
-Ledger writes: actual posted interest only if realized per provider/manual confirmation; no settlement account inflow.
+Ledger writes: manual renewal follows provider/manual confirmation; an eligible saved auto-renewal policy may record interest and tax using the existing rollover calculation. No settlement account inflow.
 
-No Ledger writes: saved preference, Inbox acknowledgment, expected interest.
+No Ledger writes: saved preferences other than `auto_renew_until_cancelled`, Inbox acknowledgment/read state, expected interest outside the preauthorized rollover path.
 
 Virtual changes: purpose reference may continue, no jar balance change.
 
 Real money movement: provider rollover.
+
+Automatic renewal preauthorization: only `auto_renew_until_cancelled` authorizes this configured rollover without a new maturity confirmation. A missing or invalid package, rule, or required account leaves the cycle matured, moves no money, and asks the user through Inbox.
 
 ## Renewal Principal Only
 
@@ -123,4 +125,3 @@ Inbox: decisions and acknowledgments only.
 Goals: purpose context only.
 
 Health: read-only insights only.
-

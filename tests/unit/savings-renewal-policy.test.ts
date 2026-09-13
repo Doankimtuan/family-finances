@@ -3,6 +3,7 @@ import {
   RenewalPolicy,
   RenewalPreference,
   RenewalSuggestedAction,
+  SavingsAutoRenewalOutcomeStatus,
   SettlementRule,
   RecommendationReasonCode,
   MaturityWarningCode,
@@ -17,7 +18,10 @@ import {
 } from "@/modules/savings/application/renewal-policy-map";
 import { recommendPackages } from "@/modules/savings/application/savings-recommendation";
 import type { SavingPackage } from "@/modules/savings/application/savings-types";
-import { instantiateTypedReviewItem } from "@/modules/inbox/application/review-item-schemas";
+import {
+  instantiateTypedReviewItem,
+  savingsMaturityDecisionPayloadSchema,
+} from "@/modules/inbox/application/review-item-schemas";
 import { InboxItemKind } from "@/modules/inbox/application/inbox-constants";
 import { shouldAutoResolveInboxItem } from "@/modules/inbox/application/inbox-resolution-policy";
 
@@ -262,6 +266,100 @@ describe("renewal policy inbox payload", () => {
         ? typed.payload.suggestedAction
         : null,
     ).toBe(RenewalSuggestedAction.NONE);
+  });
+
+  it("hydrates a typed automatic-renewal outcome as a read-only result", () => {
+    const autoRenewalOutcome = {
+      status: SavingsAutoRenewalOutcomeStatus.COMPLETED,
+      policyApplied: RenewalPolicy.AUTO_RENEW_UNTIL_CANCELLED,
+      previousCycleId: "22222222-2222-4222-8222-222222222222",
+      nextCycleId: "33333333-3333-4333-8333-333333333333",
+      previousCycleNumber: 1,
+      nextCycleNumber: 2,
+      packageId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      packageName: "90 Days",
+      nextMaturityDate: "2026-10-30",
+      rolloverAmount: 1_001_000,
+      interestRecognized: 1000,
+      taxWithheld: 0,
+    };
+    const parsedOutcome =
+      savingsMaturityDecisionPayloadSchema.shape.autoRenewalOutcome.safeParse(
+        autoRenewalOutcome,
+      );
+    if (!parsedOutcome.success) {
+      throw new Error(JSON.stringify(parsedOutcome.error.issues));
+    }
+
+    const typed = instantiateTypedReviewItem({
+      kind: InboxItemKind.SAVINGS_MATURITY,
+      sourceId: "11111111-1111-1111-1111-111111111111",
+      contextJson: {
+        savingId: "11111111-1111-1111-1111-111111111111",
+        cycleId: "22222222-2222-2222-2222-222222222222",
+        providerName: "Manual Saving",
+        currentPackage: "90 Days",
+        currentRate: 4.5,
+        previousRate: null,
+        rateDifference: 0,
+        recommendedPackages: [],
+        estimatedInterest: 1000,
+        configuredRenewalPreference: RenewalPolicy.AUTO_RENEW_UNTIL_CANCELLED,
+        renewalPolicy: RenewalPolicy.AUTO_RENEW_UNTIL_CANCELLED,
+        settlementRule: SettlementRule.ROLL_PRINCIPAL_INTEREST,
+        principal: 1_000_000,
+        accruedInterest: 1000,
+        maturityDate: "2026-08-01",
+        suggestedAction: RenewalSuggestedAction.NONE,
+        renewalConfidence: 0.9,
+        autoRenewalOutcome,
+      },
+    });
+
+    expect(typed?.type).toBe(InboxItemKind.SAVINGS_MATURITY);
+    if (typed?.type === InboxItemKind.SAVINGS_MATURITY) {
+      expect(typed.payload.autoRenewalOutcome).toMatchObject({
+        status: SavingsAutoRenewalOutcomeStatus.COMPLETED,
+        previousCycleNumber: 1,
+        nextCycleNumber: 2,
+        rolloverAmount: 1_001_000,
+      });
+      expect(typed.payload.suggestedAction).toBe(RenewalSuggestedAction.NONE);
+    }
+  });
+
+  it("drops malformed automatic-renewal outcome data", () => {
+    const typed = instantiateTypedReviewItem({
+      kind: InboxItemKind.SAVINGS_MATURITY,
+      sourceId: "11111111-1111-1111-1111-111111111111",
+      contextJson: {
+        savingId: "11111111-1111-1111-1111-111111111111",
+        cycleId: "22222222-2222-2222-2222-222222222222",
+        providerName: "Manual Saving",
+        currentPackage: "90 Days",
+        currentRate: 4.5,
+        previousRate: null,
+        rateDifference: 0,
+        recommendedPackages: [],
+        estimatedInterest: 1000,
+        configuredRenewalPreference: RenewalPolicy.AUTO_RENEW_UNTIL_CANCELLED,
+        renewalPolicy: RenewalPolicy.AUTO_RENEW_UNTIL_CANCELLED,
+        settlementRule: SettlementRule.ROLL_PRINCIPAL_INTEREST,
+        principal: 1_000_000,
+        accruedInterest: 1000,
+        maturityDate: "2026-08-01",
+        autoRenewalOutcome: {
+          status: SavingsAutoRenewalOutcomeStatus.COMPLETED,
+          policyApplied: RenewalPolicy.ALWAYS_ASK,
+        },
+      },
+    });
+
+    expect(
+      typed?.type === InboxItemKind.SAVINGS_MATURITY
+        ? typed.payload.autoRenewalOutcome
+        : null,
+    ).toBeUndefined();
   });
 
   it("never auto-resolves savings maturity kinds", () => {

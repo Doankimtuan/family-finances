@@ -5,7 +5,7 @@
 - Inbox owns decisions and acknowledgment.
 - Savings owns product facts and post-decision lifecycle.
 - Inbox acknowledgment never writes Ledger by itself.
-- Savings maturity does not auto-resolve.
+- A successful preauthorized rollover creates a read-only maturity result; the Inbox item does not auto-resolve and read state never changes money.
 - Generic notifications should not crowd Inbox.
 
 ## ReviewItem Types
@@ -41,6 +41,16 @@ Manual review: required.
 Partner assignment: v1 for shared/material savings.
 
 History: record selected action, actor, timestamp, and linked product/cycle.
+
+### Automatic Renewal Result
+
+Creation: Savings completes a valid `auto_renew_until_cancelled` rollover at UTC maturity.
+
+Storage: reuse `savings_maturity`; do not add another Inbox kind or table.
+
+Content: old/new cycle, package, next maturity date, and amount rolled over.
+
+Actions: read-only result with mark-read/mark-unread control only.
 
 ### Early Withdrawal Confirmation
 
@@ -124,4 +134,3 @@ Normal:
 Low:
 
 - Non-decision informational items should be notifications, not Inbox.
-
