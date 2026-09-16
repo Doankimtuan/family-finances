@@ -5,12 +5,8 @@ import {
   CLIENT_MESSAGE_NAMESPACES,
   selectClientMessages,
 } from "@/i18n/client-messages";
-import { ChromeShell } from "@/shared/patterns/chrome-shell";
 
-/**
- * Invite deep-link chrome — no BottomNav until membership exists.
- */
-export default async function InviteLayout({
+export default async function MoneyLayout({
   children,
 }: {
   children: ReactNode;
@@ -19,12 +15,9 @@ export default async function InviteLayout({
 
   return (
     <NextIntlClientProvider
-      messages={selectClientMessages(
-        messages,
-        CLIENT_MESSAGE_NAMESPACES.INVITE,
-      )}
+      messages={selectClientMessages(messages, CLIENT_MESSAGE_NAMESPACES.MONEY)}
     >
-      <ChromeShell chrome="auth">{children}</ChromeShell>
+      {children}
     </NextIntlClientProvider>
   );
 }

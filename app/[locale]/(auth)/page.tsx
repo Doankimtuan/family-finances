@@ -7,8 +7,7 @@ import {
   AUTH_ADAPTER_CONFIRM_PATH,
   AUTH_CONFIRM_QUERY,
 } from "@/modules/tenancy/application/auth-constants";
-import { ChromeShell } from "@/shared/patterns/chrome-shell";
-import { WelcomeScreen } from "./(auth)/welcome/welcome-screen";
+import { WelcomeScreen } from "./welcome/welcome-screen";
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -67,9 +66,5 @@ export default async function LandingPage({ params, searchParams }: Props) {
     return redirect({ href: authenticatedPath, locale });
   }
 
-  return (
-    <ChromeShell chrome="auth">
-      <WelcomeScreen />
-    </ChromeShell>
-  );
+  return <WelcomeScreen />;
 }

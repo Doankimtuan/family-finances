@@ -1,5 +1,9 @@
 import { getMessages, getTranslations } from "next-intl/server";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
+import {
+  CLIENT_MESSAGE_NAMESPACES,
+  selectClientMessages,
+} from "@/i18n/client-messages";
 import { setLocale } from "@/i18n/set-locale";
 import { redirect, Link } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
@@ -99,7 +103,10 @@ export default async function LoanFullSchedulePage({
     });
 
   return (
-    <NextIntlClientProvider locale={locale} messages={messages}>
+    <NextIntlClientProvider
+      locale={locale}
+      messages={selectClientMessages(messages, CLIENT_MESSAGE_NAMESPACES.MONEY)}
+    >
       <Page
         testId="loan-full-schedule"
         contentClassName="gap-(--space-5)"

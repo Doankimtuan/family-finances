@@ -1,10 +1,6 @@
 import type { ReactNode } from "react";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
-import {
-  getMessages,
-  getTranslations,
-  setRequestLocale,
-} from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { AppProvider } from "@/providers/app-provider";
 import { routing } from "@/i18n/routing";
@@ -49,10 +45,9 @@ export default async function LocaleLayout({ children, params }: Props) {
   }
 
   setRequestLocale(locale);
-  const messages = await getMessages();
 
   return (
-    <NextIntlClientProvider locale={locale} messages={messages}>
+    <NextIntlClientProvider locale={locale} messages={null}>
       <LocaleProvider locale={locale}>
         <AppProvider>
           {/* Sync document language for a11y without adding a DOM wrapper. */}
