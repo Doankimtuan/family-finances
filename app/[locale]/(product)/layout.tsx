@@ -5,6 +5,7 @@ import { BottomNavigation } from "@/shared/patterns/bottom-navigation";
 import { ProductRouteTransition } from "@/shared/patterns/product-route-transition";
 import { countUnreadOpenInboxItems } from "@/modules/inbox/application";
 import { requireProductSession } from "@/modules/tenancy/application/require-product-session";
+import { FinancialPrivacyProvider } from "@/providers/financial-privacy-provider";
 
 async function ProductNavigation() {
   const inboxCount = (await countUnreadOpenInboxItems()) ?? 0;
@@ -21,15 +22,17 @@ export default async function ProductLayout({ children, params }: Props) {
   await requireProductSession({ localeParam: locale });
 
   return (
-    <ChromeShell
-      chrome="product"
-      footer={
-        <Suspense fallback={<BottomNavigation />}>
-          <ProductNavigation />
-        </Suspense>
-      }
-    >
-      <ProductRouteTransition>{children}</ProductRouteTransition>
-    </ChromeShell>
+    <FinancialPrivacyProvider>
+      <ChromeShell
+        chrome="product"
+        footer={
+          <Suspense fallback={<BottomNavigation />}>
+            <ProductNavigation />
+          </Suspense>
+        }
+      >
+        <ProductRouteTransition>{children}</ProductRouteTransition>
+      </ChromeShell>
+    </FinancialPrivacyProvider>
   );
 }

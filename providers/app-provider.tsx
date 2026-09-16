@@ -2,11 +2,8 @@
 
 import type { ReactNode } from "react";
 import { ThemeProvider } from "@/providers/theme-provider";
-import { QueryProvider } from "@/providers/query-provider";
-import { SupabaseProvider } from "@/providers/supabase-provider";
 import { ModalProvider } from "@/providers/modal-provider";
 import { StatusAlertProvider } from "@/providers/status-alert-provider";
-import { FinancialPrivacyProvider } from "@/providers/financial-privacy-provider";
 
 /**
  * Root application provider composition.
@@ -16,15 +13,9 @@ import { FinancialPrivacyProvider } from "@/providers/financial-privacy-provider
 export function AppProvider({ children }: { children: ReactNode }) {
   return (
     <ThemeProvider>
-      <QueryProvider>
-        <SupabaseProvider>
-          <ModalProvider>
-            <StatusAlertProvider>
-              <FinancialPrivacyProvider>{children}</FinancialPrivacyProvider>
-            </StatusAlertProvider>
-          </ModalProvider>
-        </SupabaseProvider>
-      </QueryProvider>
+      <ModalProvider>
+        <StatusAlertProvider>{children}</StatusAlertProvider>
+      </ModalProvider>
     </ThemeProvider>
   );
 }
