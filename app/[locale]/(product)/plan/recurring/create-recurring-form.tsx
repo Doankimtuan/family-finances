@@ -34,7 +34,13 @@ function todayIso() {
   return new Date().toISOString().slice(0, 10);
 }
 
-export function CreateRecurringForm() {
+type CreateRecurringFormProps = {
+  variant?: "primary" | "secondary";
+};
+
+export function CreateRecurringForm({
+  variant = "primary",
+}: CreateRecurringFormProps = {}) {
   const t = useTranslations("plan.recurring");
   const router = useRouter();
   const nameId = useId();
@@ -114,7 +120,7 @@ export function CreateRecurringForm() {
   return (
     <>
       <Button
-        variant="secondary"
+        variant={variant}
         className="w-full"
         data-testid="recurring-create-open"
         isDisabled={!online}

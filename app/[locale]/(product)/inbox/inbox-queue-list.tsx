@@ -124,7 +124,7 @@ export function InboxQueueList({
           />
         </div>
         <div
-          className="flex flex-wrap gap-(--space-2) border-t border-border-subtle/60 pt-(--space-3)"
+          className="flex flex-nowrap items-center gap-(--space-2) overflow-x-auto border-t border-border-subtle/60 pt-(--space-3) pb-(--space-1)"
           role="group"
           aria-label={t("filterLabel")}
           data-testid={INBOX_TEST_ID.KIND_FILTER}

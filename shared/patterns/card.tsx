@@ -14,7 +14,8 @@ export type CardTone =
   | "highlighted"
   | "warning"
   | "elevated"
-  | "hero";
+  | "hero"
+  | "liability";
 
 export type CardProps = HeroCardProps & {
   tone?: CardTone;
@@ -32,6 +33,9 @@ const toneClassName: Record<CardTone, string> = {
   elevated: "bg-surface border border-border-subtle shadow-(--elevation-1)",
   /** Brand hero surface — one per screen maximum (Home balance hero). */
   hero: "bg-linear-to-b from-hero to-hero-deep text-hero-fg shadow-(--elevation-2) ring-1 ring-inset ring-white/10",
+  /** Liability hero surface (Credit card / debt hero). */
+  liability:
+    "bg-linear-to-b from-liability to-liability-deep text-liability-fg shadow-(--elevation-2) ring-1 ring-inset ring-white/10",
 };
 
 /** Composable HeroUI card with a deliberately small semantic tone set. */

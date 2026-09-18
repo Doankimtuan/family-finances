@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { AllocationHealthStatus } from "@/modules/plan/application/plan-constants";
 import {
   collectPlanHomeExceptions,
   prioritizePlanHomeExceptions,
@@ -68,6 +69,25 @@ describe("Plan Home health", () => {
         uncategorizedCount: 0,
       }),
     ).toBe(PlanHomeHealthStatus.OFF_TRACK);
+  });
+
+  it("returns attention when planned jars exceed qualifying income or income is not set", () => {
+    expect(
+      resolvePlanHomeHealth({
+        activeJarCount: 1,
+        budgets: [metric("healthy")],
+        uncategorizedCount: 0,
+        allocationStatus: AllocationHealthStatus.OVER_ALLOCATED,
+      }),
+    ).toBe(PlanHomeHealthStatus.ATTENTION);
+    expect(
+      resolvePlanHomeHealth({
+        activeJarCount: 1,
+        budgets: [metric("healthy")],
+        uncategorizedCount: 0,
+        allocationStatus: AllocationHealthStatus.NO_INCOME,
+      }),
+    ).toBe(PlanHomeHealthStatus.ATTENTION);
   });
 });
 

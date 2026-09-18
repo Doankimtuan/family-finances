@@ -481,7 +481,7 @@
     "startingBalance": "Projected from real cash: {amount}",
     "startingBalanceLabel": "Starting balance",
     "deficitTitle": "Low-balance dates",
-    "deficitBody": "{count} day(s) are flagged. First: {first}.",
+    "deficitBody": "{count, plural, one {# day is flagged} other {# days are flagged}}. First: {first}.",
     "deficitClearTitle": "No deficit projected",
     "deficitClearBody": "Scheduled inflows and outflows stay above zero in this window.",
     "monthEmptyTitle": "Nothing planned this month",
@@ -691,7 +691,7 @@
     "reviewWithoutBlocking": "This is informational. Plan and Money remain available.",
     "open": "Open",
     "actionsHeading": "Suggested actions",
-    "actionUncategorized": "Review {count} uncategorized transactions",
+    "actionUncategorized": "Review {count, plural, one {# uncategorized transaction} other {# uncategorized transactions}}",
     "actionJar": "Review {name} budget",
     "actionGoal": "Link a funding source to {name}",
     "emptyTitle": "No recorded activity this month",
@@ -761,7 +761,7 @@
     "healthNoPlan": "Plan is not set up",
     "healthNoPlanBody": "Add a Jar to name what incoming money is intended for.",
     "healthOffTrack": "Needs a closer look",
-    "healthOffTrackBody": "{count} Jars are over budget.",
+    "healthOffTrackBody": "{count, plural, one {# jar is over budget.} other {# jars are over budget.}}",
     "jarsUnavailableBody": "Jar budgets are not available right now.",
     "jarsUnavailableTitle": "Jars unavailable",
     "modeHint": "{mode} suggestions are available.",
@@ -798,7 +798,7 @@
     },
     "uncategorized": {
       "title": "Transactions need categories",
-      "description": "{count} transaction(s) still need categories."
+      "description": "{count, plural, one {# transaction still needs a category.} other {# transactions still need categories.}}"
     },
     "missingIncome": {
       "title": "Set qualifying income",

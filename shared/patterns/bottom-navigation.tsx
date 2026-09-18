@@ -20,7 +20,34 @@ export { TABS } from "@/shared/patterns/bottom-navigation-tabs";
 const NAV_TAB_COUNT = TABS.length;
 type ProductTabPath = NavTab["href"];
 
-function isPathInTab(pathname: string, href: ProductTabPath): boolean {
+const STANDALONE_FLOW_PATHS = new Set<string>([
+  APP_PATH.MONEY_ADD,
+  APP_PATH.PLAN_RITUAL,
+  APP_PATH.MONEY_SAVINGS_NEW,
+  APP_PATH.MONEY_INVESTMENTS_NEW,
+  APP_PATH.INVITATIONS_NEW,
+]);
+
+export function isStandaloneFlowPath(pathname: string): boolean {
+  if (STANDALONE_FLOW_PATHS.has(pathname)) return true;
+  if (
+    pathname.startsWith(`${APP_PATH.MONEY_TRANSACTIONS}/`) &&
+    (pathname.endsWith("/edit") ||
+      pathname.endsWith("/correct") ||
+      pathname.endsWith("/refund"))
+  ) {
+    return true;
+  }
+  return false;
+}
+
+export function isPathInTab(pathname: string, href: ProductTabPath): boolean {
+  if (
+    href === APP_PATH.HOME &&
+    (pathname === APP_PATH.HEALTH || pathname.startsWith(`${APP_PATH.HEALTH}/`))
+  ) {
+    return true;
+  }
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
@@ -145,6 +172,10 @@ export function BottomNavigation({
   inboxCount,
 }: BottomNavigationProps) {
   const pathname = usePathname();
+
+  if (isStandaloneFlowPath(pathname)) {
+    return null;
+  }
 
   return (
     <BottomNavigationContent

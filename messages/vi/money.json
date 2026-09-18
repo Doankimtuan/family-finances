@@ -39,10 +39,10 @@
   "activity": "Hoạt động gần đây",
   "activityEmpty": "Chưa có giao dịch",
   "activityEmptyHint": "Thêm giao dịch để cập nhật số dư tài khoản.",
-  "debts": "Nợ",
+  "debts": "Công nợ & vay mượn cá nhân",
   "savings": "Tiết kiệm",
   "investmentsLabel": "Đầu tư",
-  "loans": "Vay và trả góp",
+  "loans": "Khoản vay ngân hàng & trả góp",
   "cards": "Vay và trả góp",
   "comingSoon": "Sẽ có sau",
   "offlineTitle": "Bạn đang ngoại tuyến",
@@ -380,6 +380,8 @@
       "basisUnknown": "Chưa biết giá vốn. Hiệu quả cần giá vốn vẫn chưa khả dụng.",
       "missingBasisAlertTitle": "Chưa đủ dữ liệu tính lãi/lỗ",
       "missingBasisAlertDescription": "Bổ sung giá vốn nếu bạn muốn theo dõi hiệu quả khoản đầu tư này.",
+      "staleValuationAlertTitle": "Giá thị trường có thể đã cũ",
+      "staleValuationAlertDescription": "Định giá tự động gần nhất được ghi nhận vào {date}. Các tính toán sử dụng giá gần nhất đã biết cho đến khi có dữ liệu thị trường mới.",
       "positionTitle": "Vị thế",
       "quantity": "Số lượng chính xác: {quantity}",
       "basis": "Giá vốn còn lại",
@@ -483,6 +485,8 @@
       "rowManual": "Thủ công · {date}",
       "rowManualUndated": "Thủ công",
       "rowStale": "Cũ · {date}",
+      "rowStaleUndated": "Đã cũ",
+      "staleUndated": "Giá có thể đã cũ",
       "rowNav": "NAV · {date}"
     },
     "operation": {
@@ -585,7 +589,7 @@
     }
   },
   "debtsPage": {
-    "title": "Nợ & cho vay",
+    "title": "Công nợ & vay mượn cá nhân",
     "subtitle": "Theo dõi tiền cần trả và tiền đang chờ về.",
     "emptyTitle": "Chưa có khoản nợ nào",
     "emptyDescription": "Theo dõi tiền hộ đang nợ người khác hoặc người khác đang nợ hộ.",

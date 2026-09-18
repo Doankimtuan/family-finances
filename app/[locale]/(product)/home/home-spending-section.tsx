@@ -96,9 +96,9 @@ export function HomeSpendingSection({
           return (
             <div
               key={category.id ?? visual.iconKey}
-              className="grid grid-cols-[auto_minmax(0,1fr)_var(--financial-number-column-width)] items-center gap-(--space-3) py-(--space-3) first:pt-0 last:pb-0"
+              className="grid grid-cols-[auto_minmax(0,1fr)_var(--financial-number-column-width)] items-start gap-(--space-3) py-(--space-3) first:pt-0 last:pb-0"
             >
-              <IconContainer tone={visual.tone} size="sm">
+              <IconContainer tone={visual.tone} size="sm" className="mt-0.5">
                 <AppIcon icon={visual.icon} size="sm" />
               </IconContainer>
               <div className="min-w-0">
@@ -108,17 +108,19 @@ export function HomeSpendingSection({
                 >
                   {categoryName}
                 </Text>
-                <Progress
-                  value={category.progressPercent}
-                  label={t("spending.share", {
-                    category: categoryName,
-                    percentage,
-                  })}
-                  showLabel={false}
-                  tone={visual.tone}
-                  className="mt-(--space-2)"
-                  trackClassName="h-1.5"
-                />
+                <div className="mt-(--space-2) flex h-3 items-center">
+                  <Progress
+                    value={category.progressPercent}
+                    label={t("spending.share", {
+                      category: categoryName,
+                      percentage,
+                    })}
+                    showLabel={false}
+                    tone={visual.tone}
+                    className="w-full"
+                    trackClassName="h-1.5"
+                  />
+                </div>
                 {isUncategorized && canReviewUncategorized ? (
                   <Link
                     href={APP_PATH.INBOX}
@@ -144,9 +146,11 @@ export function HomeSpendingSection({
                     })}
                   </FinancialValue>
                 </Text>
-                <Text size="xs" tone="muted" tabular>
-                  {percentage}
-                </Text>
+                <div className="mt-(--space-2) flex h-3 items-center justify-end">
+                  <Text size="xs" tone="muted" tabular className="leading-none">
+                    {percentage}
+                  </Text>
+                </div>
               </div>
             </div>
           );

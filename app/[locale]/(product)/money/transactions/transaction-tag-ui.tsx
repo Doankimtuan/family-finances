@@ -190,7 +190,7 @@ export function TransactionTagSelector({
             <TransactionTagChip
               key={tag.id}
               tag={tag}
-              onRemove={() => toggle(tag)}
+              onRemove={isFilterLayout ? () => toggle(tag) : undefined}
             />
           ))}
         </div>

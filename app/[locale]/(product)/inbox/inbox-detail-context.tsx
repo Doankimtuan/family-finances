@@ -47,13 +47,12 @@ export function InboxDetailContext({
             </Text>
           ) : null}
         </div>
-        <div className="flex shrink-0 items-center gap-(--space-2)">
+        <div className="flex shrink-0 items-center">
           <StatusBadge
             tone={pending ? StatusBadgeTone.WARNING : StatusBadgeTone.NEUTRAL}
           >
             {statusLabel}
           </StatusBadge>
-          <InboxPrivacyToggle testId={INBOX_TEST_ID.DETAIL_PRIVACY} />
         </div>
       </div>
       <Text
@@ -128,8 +127,9 @@ export function InboxDetailSource({
         <StatusBadge tone={statusTone}>{kindLabel}</StatusBadge>
       </div>
       {amountLabel ? (
-        <div className="border-t border-border-subtle/70 pt-(--space-3)">
-          {amountLabel}
+        <div className="flex items-center justify-between gap-(--space-3) border-t border-border-subtle/70 pt-(--space-3)">
+          <div className="min-w-0 flex-1">{amountLabel}</div>
+          <InboxPrivacyToggle testId={INBOX_TEST_ID.DETAIL_PRIVACY} />
         </div>
       ) : null}
     </Card>

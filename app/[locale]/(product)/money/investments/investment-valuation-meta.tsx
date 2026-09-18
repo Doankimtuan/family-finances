@@ -62,7 +62,7 @@ function resolveRowValuationLine({
     return t("automatic");
   }
   if (quality === MarketValuationQuality.AUTO_STALE) {
-    return date ? t("rowStale", { date }) : t("automatic");
+    return date ? t("rowStale", { date }) : t("rowStaleUndated");
   }
   if (quality === MarketValuationQuality.MANUAL) {
     return date ? t("rowManual", { date }) : t("rowManualUndated");
@@ -137,7 +137,7 @@ export function InvestmentValuationMeta({
     statusTone = StatusBadgeTone.WARNING;
     dateText = priceDate
       ? t("stale", { date: dateLabel(priceDate, locale) })
-      : null;
+      : t("staleUndated");
   } else if (quality === MarketValuationQuality.MANUAL) {
     statusLabel = t("manual");
     statusTone = StatusBadgeTone.INFO;

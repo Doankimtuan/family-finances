@@ -371,15 +371,16 @@ async function resolvePlanHubDecisionData({
   const visibleBudgets = activeJars
     .map((jar) => budgetsByJar[jar.id])
     .filter((budget): budget is NonNullable<typeof budget> => Boolean(budget));
-  const health = resolvePlanHomeHealth({
-    activeJarCount: activeJars.length,
-    budgets: visibleBudgets,
-    uncategorizedCount,
-  });
   const allocationHealth = calculateAllocationHealth(
     activeJars,
     currentJarBudgets?.periodIncome ?? 0,
   );
+  const health = resolvePlanHomeHealth({
+    activeJarCount: activeJars.length,
+    budgets: visibleBudgets,
+    uncategorizedCount,
+    allocationStatus: allocationHealth.status,
+  });
   const rawGoals = goalsList?.goals ?? [];
   const homeGoals = pickHomeGoals(rawGoals);
   const goalsMissingBacking = rawGoals.filter(

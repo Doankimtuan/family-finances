@@ -166,12 +166,12 @@
       }
     },
     "loans": {
-      "label": "Loans",
+      "label": "Bank Loans & Installments",
       "detail": "{count, plural, =0 {No active loans} one {# active loan} other {# active loans}}",
       "attention": "{count, plural, one {# payment needs attention} other {# payments need attention}}"
     },
     "debt": {
-      "label": "Debt",
+      "label": "Personal Debts & Lending",
       "detail": "{count, plural, =0 {No active debt} one {# active debt} other {# active debts}}",
       "attention": "{count, plural, one {# debt needs attention} other {# debts need attention}}"
     }

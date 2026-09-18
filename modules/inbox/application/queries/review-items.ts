@@ -29,7 +29,7 @@ import {
 
 const INBOX_SELECT =
   "id, kind, status, title, amount, currency, source_id, source_type, created_at, expires_at, auto_resolved, confidence_score, suggested_jar_id, suggested_category_id, context_json, assigned_to_user_id, read_at";
-const INBOX_ATTENTION_SELECT = "id, kind, status";
+const INBOX_ATTENTION_SELECT = "id, kind, status, auto_resolved";
 
 export type OpenInboxAttention = {
   openCount: number;
@@ -290,7 +290,11 @@ async function enrichWithTransactionDetails(
 }
 
 function summarizeOpenInboxAttention(
-  rows: Array<{ kind: string; status?: string | null }>,
+  rows: Array<{
+    kind: string;
+    status?: string | null;
+    auto_resolved?: boolean | null;
+  }>,
 ): OpenInboxAttention {
   let openCount = 0;
   let canReviewUncategorized = false;
@@ -298,6 +302,7 @@ function summarizeOpenInboxAttention(
     const kind = mapInboxKind(row.kind);
     const status = mapInboxStatus(row.status);
     if (!kind || !status) continue;
+    if (row.auto_resolved) continue;
     openCount += 1;
     if (kind === InboxItemKind.UNMAPPED_EXPENSE) {
       canReviewUncategorized = true;
@@ -474,6 +479,7 @@ export const countUnreadOpenInboxItems = cache(
         .select("id", { count: "exact", head: true })
         .eq("household_id", gate.householdId)
         .eq("status", InboxItemStatus.PENDING)
+        .eq("auto_resolved", false)
         .is("read_at", null)
         .or(ACTIVE_QUEUE_KIND_FILTER)
         .or(

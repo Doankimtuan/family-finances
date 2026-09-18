@@ -36,10 +36,10 @@ export type CreditCardHeroProps = {
 };
 
 function utilizationFillClass(utilizationPct: number | null): string {
-  if (utilizationPct == null) return "bg-hero-fg";
+  if (utilizationPct == null) return "bg-liability-fg";
   if (utilizationPct >= CARD_UTILIZATION_DANGER_PCT) return "bg-danger";
   if (utilizationPct >= CARD_UTILIZATION_WARN_PCT) return "bg-warning";
-  return "bg-hero-fg";
+  return "bg-liability-fg";
 }
 
 function HeroSupportingFact({
@@ -62,10 +62,14 @@ function HeroSupportingFact({
         )}
         data-testid="credit-card-supporting-unavailable"
       >
-        <Text size="sm" className="text-pretty text-hero-muted">
+        <Text size="sm" className="text-pretty text-liability-muted">
           {caption}
         </Text>
-        <Text size="sm" weight="medium" className="text-pretty text-hero-muted">
+        <Text
+          size="sm"
+          weight="medium"
+          className="text-pretty text-liability-muted"
+        >
           {value}
         </Text>
       </div>
@@ -78,8 +82,8 @@ function HeroSupportingFact({
       amountLabel={value}
       size={AmountSize.SM}
       className={cn("min-w-0", alignEnd && "items-end text-right")}
-      labelClassName="text-hero-muted"
-      amountClassName="break-words text-base text-hero-fg"
+      labelClassName="text-liability-muted"
+      amountClassName="break-words text-base text-liability-fg"
     />
   );
 }
@@ -112,7 +116,7 @@ export function CreditCardHero({
 
   return (
     <Card
-      tone="hero"
+      tone="liability"
       className="gap-0 p-(--space-4)"
       data-financial-object="credit-card"
       data-testid="credit-card-hero"
@@ -127,7 +131,7 @@ export function CreditCardHero({
       {typeLabel ? <span className="sr-only">{typeLabel}</span> : null}
       <div className="flex items-center gap-(--space-3)">
         <div className="flex min-w-0 flex-1 items-center gap-(--space-3)">
-          <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-(--radius-control) border border-white/25 bg-white/10 text-hero-fg">
+          <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-(--radius-control) border border-white/25 bg-white/10 text-liability-fg">
             <AppIcon
               icon={FINANCE_ICONS.card}
               size={AppIconSize.MD}
@@ -137,7 +141,7 @@ export function CreditCardHero({
           <Text
             size="sm"
             weight="medium"
-            className="text-pretty text-hero-muted"
+            className="text-pretty text-liability-muted"
           >
             {outstandingCaption}
           </Text>
@@ -149,7 +153,7 @@ export function CreditCardHero({
         tone={AmountTone.NEUTRAL}
         size={AmountSize.HERO}
         className="mt-(--space-3)"
-        amountClassName="text-hero-fg"
+        amountClassName="text-liability-fg"
       />
       {utilizationValue != null ? (
         <div className="mt-(--space-4) flex items-center gap-(--space-3)">
@@ -164,7 +168,7 @@ export function CreditCardHero({
           <Text
             size="sm"
             weight="semibold"
-            className="shrink-0 tabular-nums text-hero-fg"
+            className="shrink-0 tabular-nums text-liability-fg"
           >
             {utilizationLabel}
           </Text>
@@ -173,7 +177,7 @@ export function CreditCardHero({
         <Text
           size="sm"
           weight="medium"
-          className="mt-(--space-3) text-pretty text-hero-muted"
+          className="mt-(--space-3) text-pretty text-liability-muted"
         >
           {utilizationLabel}
         </Text>
@@ -194,7 +198,7 @@ export function CreditCardHero({
       {dueLabel || context ? (
         <div className="mt-(--space-4) flex flex-col gap-(--space-2) border-t border-white/15 pt-(--space-3)">
           {dueLabel ? (
-            <Text size="sm" weight="medium" className="text-hero-fg">
+            <Text size="sm" weight="medium" className="text-liability-fg">
               {dueLabel}
             </Text>
           ) : null}

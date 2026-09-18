@@ -335,6 +335,26 @@ export default async function InvestmentDetailPage({
           description={t("missingBasisAlertDescription")}
         />
       ) : null}
+      {!isClosed &&
+      holding.valuation?.quality === MarketValuationQuality.AUTO_STALE ? (
+        <StatusAlert
+          variant="warning"
+          title={t("staleValuationAlertTitle")}
+          description={t("staleValuationAlertDescription", {
+            date: holding.valuation.priceDate
+              ? formatDate(
+                  new Date(`${holding.valuation.priceDate}T00:00:00`),
+                  locale,
+                  {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                  },
+                )
+              : t("unavailable"),
+          })}
+        />
+      ) : null}
       <MotionReveal>
         <InvestmentDetailHero
           icon={investmentAssetIcon(asset)}

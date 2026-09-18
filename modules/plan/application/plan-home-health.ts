@@ -1,4 +1,6 @@
 import {
+  AllocationHealthStatus,
+  type AllocationHealthStatus as AllocationHealthStatusValue,
   JarBudgetState,
   type JarBudgetState as JarBudgetStateValue,
 } from "./plan-constants";
@@ -41,12 +43,19 @@ export function resolvePlanHomeHealth(input: {
   activeJarCount: number;
   budgets: readonly JarBudgetMetrics[];
   uncategorizedCount: number;
+  allocationStatus?: AllocationHealthStatusValue;
 }): PlanHomeHealthStatus {
   if (input.activeJarCount <= 0) return PlanHomeHealthStatus.NO_PLAN;
   const overspent = input.budgets.filter(
     (b) => b.state === JarBudgetState.OVERSPENT,
   ).length;
   if (overspent > 0) return PlanHomeHealthStatus.OFF_TRACK;
+  if (input.allocationStatus === AllocationHealthStatus.OVER_ALLOCATED) {
+    return PlanHomeHealthStatus.ATTENTION;
+  }
+  if (input.allocationStatus === AllocationHealthStatus.NO_INCOME) {
+    return PlanHomeHealthStatus.ATTENTION;
+  }
   // Unmapped transactions are important, but they do not mean that the plan
   // itself is off track. They are a classification task for the household.
   if (input.uncategorizedCount > 0) return PlanHomeHealthStatus.ATTENTION;

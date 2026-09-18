@@ -189,6 +189,9 @@ export default async function PlanGoalsPage({ params }: Props) {
           description={t("emptyDescription")}
           icon={<AppIcon icon={PLAN_ICONS.goal} size={AppIconSize.DISPLAY} />}
           className="flex-none py-(--space-4)"
+          action={
+            <CreateGoalForm fundingOptions={fundingOptions} variant="primary" />
+          }
         />
       ) : (
         <>
@@ -232,10 +235,9 @@ export default async function PlanGoalsPage({ params }: Props) {
               </PlanDisclosure>
             )}
           </Section>
+          <CreateGoalForm fundingOptions={fundingOptions} variant="primary" />
         </>
       )}
-
-      <CreateGoalForm fundingOptions={fundingOptions} />
     </Page>
   );
 }

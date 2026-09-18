@@ -173,6 +173,17 @@ export default async function SavingsPage({ params }: Props) {
           backHref={APP_PATH.MONEY}
           title={t("title")}
           subtitle={t("subtitle")}
+          trailing={
+            model.items.length > 0 ? (
+              <Link
+                href={moneySavingsProvidersPath()}
+                className="inline-flex min-h-11 items-center justify-center rounded-(--radius-control) border border-border-subtle bg-surface px-(--space-3) text-sm font-medium text-text-primary transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-(--press-scale) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none motion-reduce:active:scale-100"
+                data-testid="savings-manage-providers"
+              >
+                {tCatalog("manageLink")}
+              </Link>
+            ) : null
+          }
         />
       }
     >
@@ -317,15 +328,6 @@ export default async function SavingsPage({ params }: Props) {
                   </SummaryMetric>
                 </div>
               </Card>
-              <div className="flex justify-end">
-                <Link
-                  href={moneySavingsProvidersPath()}
-                  className="inline-flex min-h-11 items-center justify-center rounded-(--radius-control) border border-border-subtle bg-surface px-(--space-3) text-sm font-medium text-text-primary transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-(--press-scale) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none motion-reduce:active:scale-100"
-                  data-testid="savings-manage-providers"
-                >
-                  {tCatalog("manageLink")}
-                </Link>
-              </div>
             </section>
           </MotionReveal>
           {renderGroup(

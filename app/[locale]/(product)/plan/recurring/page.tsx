@@ -146,6 +146,7 @@ export default async function PlanRecurringPage({ params }: Props) {
             <AppIcon icon={PLAN_ICONS.recurring} size={AppIconSize.DISPLAY} />
           }
           className="flex-none py-(--space-4)"
+          action={<CreateRecurringForm variant="primary" />}
         />
       ) : (
         <>
@@ -189,10 +190,9 @@ export default async function PlanRecurringPage({ params }: Props) {
               </PlanDisclosure>
             )}
           </Section>
+          <CreateRecurringForm variant="primary" />
         </>
       )}
-
-      <CreateRecurringForm />
     </Page>
   );
 }

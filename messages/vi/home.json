@@ -166,12 +166,12 @@
       }
     },
     "loans": {
-      "label": "Khoản vay",
+      "label": "Khoản vay ngân hàng & trả góp",
       "detail": "{count, plural, =0 {Chưa có khoản vay đang dùng} one {# khoản vay đang dùng} other {# khoản vay đang dùng}}",
       "attention": "{count, plural, one {# khoản thanh toán cần chú ý} other {# khoản thanh toán cần chú ý}}"
     },
     "debt": {
-      "label": "Công nợ",
+      "label": "Công nợ & vay mượn cá nhân",
       "detail": "{count, plural, =0 {Chưa có công nợ đang dùng} one {# công nợ đang dùng} other {# công nợ đang dùng}}",
       "attention": "{count, plural, one {# công nợ cần chú ý} other {# công nợ cần chú ý}}"
     }

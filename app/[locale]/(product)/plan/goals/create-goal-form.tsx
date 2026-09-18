@@ -27,9 +27,12 @@ import { GoalFundingSourcePicker } from "./goal-funding-source-picker";
 
 type ErrorCode =
   ProductActionErrorCode | typeof CLIENT_ACTION_ERROR_CODE.OFFLINE;
-type Props = { fundingOptions: GoalFundingOption[] };
+type Props = {
+  fundingOptions: GoalFundingOption[];
+  variant?: "primary" | "secondary";
+};
 
-export function CreateGoalForm({ fundingOptions }: Props) {
+export function CreateGoalForm({ fundingOptions, variant = "primary" }: Props) {
   const t = useTranslations("plan.goals");
   const locale = useLocale();
   const router = useRouter();
@@ -119,7 +122,7 @@ export function CreateGoalForm({ fundingOptions }: Props) {
   if (!open) {
     return (
       <Button
-        variant="secondary"
+        variant={variant}
         className="w-full"
         data-testid="goal-create-open"
         isDisabled={!online}

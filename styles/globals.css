@@ -187,6 +187,10 @@
   --color-hero-deep: var(--vinha-hero-deep);
   --color-hero-fg: var(--vinha-hero-fg);
   --color-hero-muted: var(--vinha-hero-muted);
+  --color-liability: var(--vinha-liability);
+  --color-liability-deep: var(--vinha-liability-deep);
+  --color-liability-fg: var(--vinha-liability-fg);
+  --color-liability-muted: var(--vinha-liability-muted);
 
   /* Status */
   --color-success: var(--vinha-success);
@@ -292,6 +296,12 @@
   --vinha-hero-deep: #0c5f58;
   --vinha-hero-fg: #fafafa;
   --vinha-hero-muted: #d5f1ea;
+
+  /* Liability / Credit Card hero — slate/graphite liability surface */
+  --vinha-liability: #334155;
+  --vinha-liability-deep: #1e293b;
+  --vinha-liability-fg: #f8fafc;
+  --vinha-liability-muted: #cbd5e1;
 
   /* --- Status --- */
   --vinha-success: #047857;
@@ -402,6 +412,10 @@
   --color-hero-deep: var(--vinha-hero-deep);
   --color-hero-fg: var(--vinha-hero-fg);
   --color-hero-muted: var(--vinha-hero-muted);
+  --color-liability: var(--vinha-liability);
+  --color-liability-deep: var(--vinha-liability-deep);
+  --color-liability-fg: var(--vinha-liability-fg);
+  --color-liability-muted: var(--vinha-liability-muted);
   --color-danger: var(--vinha-danger);
   --color-warning: var(--vinha-warning);
   --color-success: var(--vinha-success);
@@ -461,7 +475,7 @@
   --floating-action-size: 3rem;
   --floating-action-gap: var(--space-4);
   --floating-action-clearance: calc(
-    var(--floating-action-size) + var(--floating-action-gap)
+    var(--floating-action-size) + var(--floating-action-gap) + var(--space-12)
   );
 
   --radius-control: 10px;
@@ -576,6 +590,12 @@
   --vinha-hero-deep: #113832;
   --vinha-hero-fg: #f4f4f5;
   --vinha-hero-muted: #a3d9cf;
+
+  /* Liability / Credit Card hero — dark slate liability surface */
+  --vinha-liability: #1e293b;
+  --vinha-liability-deep: #0f172a;
+  --vinha-liability-fg: #f8fafc;
+  --vinha-liability-muted: #94a3b8;
 
   --vinha-success: #34d399;
   --vinha-warning: #fbbf24;
