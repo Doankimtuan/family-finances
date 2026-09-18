@@ -60,8 +60,8 @@ export default async function MoneyTransactionAddPage({ params }: Props) {
   return (
     <Page
       testId="money-transaction-add"
-      className="h-full min-h-0 overflow-hidden"
-      contentClassName="min-h-0 overflow-hidden pb-0"
+      className="h-full min-h-0"
+      contentClassName="min-h-0 pb-0"
       topBar={
         <TopAppBar
           title={t("capture")}
