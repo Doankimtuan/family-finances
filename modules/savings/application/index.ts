@@ -178,6 +178,7 @@ export {
 export {
   listSavings,
   getSaving,
+  getSavingDetail,
   listSavingCycles,
   listSavingsFinancialActivities,
 } from "./queries/list-savings";

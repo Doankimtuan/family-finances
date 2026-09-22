@@ -23,6 +23,11 @@ import { logSavingsFailure } from "../savings-error";
 
 const SAVING_CYCLE_SELECT =
   "id, saving_id, cycle_number, start_date, end_date, principal, locked_rate, package_snapshot, accrued_interest, settlement_result, renewal_decision, status, funding_transaction_id, settlement_transaction_id, previous_cycle_id, next_cycle_id, created_at";
+const SAVING_DETAIL_SELECT = `id, household_id, status, funding_account_id, settlement_account_id,
+         provider_id, product_name, product_snapshot, renewal_policy, renewal_config, maturity_instruction, created_at, financial_scope, owner_membership_id,
+         funding_accounts:funding_account_id(name),
+         settlement_accounts:settlement_account_id(name),
+         saving_providers:provider_id(display_name, provider_key, saving_type)`;
 const SAVING_CYCLES_SAVING_FK = "saving_cycles_saving_id_fkey";
 const SAVING_CYCLE_EMBED = `saving_cycles!${SAVING_CYCLES_SAVING_FK}(${SAVING_CYCLE_SELECT})`;
 const SAVING_LIST_SELECT = `id, household_id, status, funding_account_id, settlement_account_id,
@@ -147,7 +152,14 @@ async function loadSavings(): Promise<Saving[] | null> {
 
 export const listSavings = cache(loadSavings);
 
-export async function getSaving(savingId: string): Promise<Saving | null> {
+type SavingDetailRead = {
+  saving: Saving;
+  cycles: SavingCycle[];
+};
+
+async function loadSavingDetail(
+  savingId: string,
+): Promise<SavingDetailRead | null> {
   const gate = await assertMoneyActionAllowed();
   if (!gate.ok) return null;
 
@@ -155,13 +167,7 @@ export async function getSaving(savingId: string): Promise<Saving | null> {
     const supabase = await createSupabaseServerClient();
     const { data, error } = await supabase
       .from("savings")
-      .select(
-        `id, household_id, status, funding_account_id, settlement_account_id,
-         provider_id, product_name, product_snapshot, renewal_policy, renewal_config, maturity_instruction, created_at, financial_scope, owner_membership_id,
-         funding_accounts:funding_account_id(name),
-         settlement_accounts:settlement_account_id(name),
-         saving_providers:provider_id(display_name, provider_key, saving_type)`,
-      )
+      .select(SAVING_DETAIL_SELECT)
       .eq("id", savingId)
       .eq("household_id", gate.householdId)
       .maybeSingle();
@@ -175,29 +181,39 @@ export async function getSaving(savingId: string): Promise<Saving | null> {
     }
     if (!data) return null;
 
-    const activeOwnerMembershipIds = await listActiveMembershipIds(
-      supabase,
-      gate.householdId,
-      data.owner_membership_id ? [data.owner_membership_id] : [],
-    );
+    const [activeOwnerMembershipIds, cycleResult] = await Promise.all([
+      listActiveMembershipIds(
+        supabase,
+        gate.householdId,
+        data.owner_membership_id ? [data.owner_membership_id] : [],
+      ),
+      supabase
+        .from("saving_cycles")
+        .select(SAVING_CYCLE_SELECT)
+        .eq("saving_id", data.id)
+        .order("cycle_number", { ascending: true }),
+    ]);
     const saving = mapSavingRow(
       data,
       gate.membershipId,
       activeOwnerMembershipIds ?? undefined,
     );
 
-    // Load all cycles
-    const { data: cycles } = await supabase
-      .from("saving_cycles")
-      .select(SAVING_CYCLE_SELECT)
-      .eq("saving_id", saving.id)
-      .order("cycle_number", { ascending: true });
+    if (cycleResult.error) {
+      logSavingsFailure(
+        cycleResult.error,
+        SAVINGS_OPERATION.LIST_SAVING_CYCLES,
+        {
+          householdId: gate.householdId,
+          savingId,
+        },
+      );
+    }
+    const cycles = (cycleResult.data ?? []).map(mapSavingCycleRow);
 
-    if (cycles && cycles.length > 0) {
-      const mappedCycles = cycles.map(mapSavingCycleRow);
-
+    if (cycles.length > 0) {
       // Compute current accrued interest for active cycles
-      for (const cycle of mappedCycles) {
+      for (const cycle of cycles) {
         if (cycle.status === CycleStatus.ACTIVE) {
           const accrued = computeAccruedInterest({
             principal: cycle.principal,
@@ -213,12 +229,19 @@ export async function getSaving(savingId: string): Promise<Saving | null> {
         }
       }
 
-      saving.latestCycle = selectCurrentSavingCycle(mappedCycles);
+      saving.latestCycle = selectCurrentSavingCycle(cycles);
     }
 
     await setMaturityActionRequired(saving);
 
-    return saving;
+    return {
+      saving,
+      cycles: [...cycles].sort(
+        (left, right) =>
+          right.cycleNumber - left.cycleNumber ||
+          right.createdAt.localeCompare(left.createdAt),
+      ),
+    };
   } catch (error) {
     logSavingsFailure(error, SAVINGS_OPERATION.GET_SAVING, {
       householdId: gate.householdId,
@@ -226,6 +249,17 @@ export async function getSaving(savingId: string): Promise<Saving | null> {
     });
     return null;
   }
+}
+
+export async function getSaving(savingId: string): Promise<Saving | null> {
+  const detail = await loadSavingDetail(savingId);
+  return detail?.saving ?? null;
+}
+
+export async function getSavingDetail(
+  savingId: string,
+): Promise<SavingDetailRead | null> {
+  return loadSavingDetail(savingId);
 }
 
 export async function listSavingCycles(

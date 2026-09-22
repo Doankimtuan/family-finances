@@ -54,6 +54,7 @@ import {
   InvestmentIncomeKind,
   InvestmentLifecycleStatus,
   InvestmentOperationType,
+  InvestmentHoldingReadStatus,
   InvestmentValuationSource,
   InvestmentVisibilityContext,
   INVESTMENT_REPORTING_CURRENCY,
@@ -62,7 +63,10 @@ import {
   MarketPricingMode,
   MarketPriceType,
 } from "@/modules/investments/application/investment-constants";
-import { listInvestmentPortfolio } from "@/modules/investments/application/queries/investment-queries";
+import {
+  getInvestmentHoldingResult,
+  listInvestmentPortfolio,
+} from "@/modules/investments/application/queries/investment-queries";
 import { FINANCIAL_SCOPE } from "@/modules/shared-kernel/application/financial-scope";
 
 const HOUSEHOLD_ID = "household-1";
@@ -237,7 +241,16 @@ type QueryResult = { data: unknown; error: unknown };
 function thenableQuery(result: Promise<QueryResult>) {
   const query: Record<string, unknown> = {};
   const self = () => query;
-  for (const method of ["select", "eq", "neq", "in", "or", "gt", "order"]) {
+  for (const method of [
+    "select",
+    "eq",
+    "neq",
+    "in",
+    "or",
+    "gt",
+    "order",
+    "maybeSingle",
+  ]) {
     query[method] = vi.fn(self);
   }
   query.then = (
@@ -645,5 +658,70 @@ describe("listInvestmentPortfolio orchestration", () => {
     expect(tables.filter((table) => table === VALUATIONS_TABLE)).toHaveLength(
       2,
     );
+  });
+});
+
+describe("investment detail read orchestration", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(assertMoneyActionAllowed).mockResolvedValue({
+      ok: true,
+      userId: "user-1",
+      householdId: HOUSEHOLD_ID,
+      membershipId: MEMBERSHIP_ID,
+    });
+    vi.mocked(listActiveMembershipIds).mockResolvedValue(new Set<string>());
+  });
+
+  it("scopes detail reads to the requested holding", async () => {
+    const holdingQuery = thenableQuery(
+      Promise.resolve({ data: ACTIVE_HOLDING_ROW, error: null }),
+    );
+    const valuationQuery = thenableQuery(
+      Promise.resolve({ data: [VALUATION_ROW], error: null }),
+    );
+    const lotQuery = thenableQuery(Promise.resolve({ data: [], error: null }));
+    const client = {
+      from: vi.fn((table: string) => {
+        if (table === HOLDINGS_TABLE) return holdingQuery;
+        if (table === VALUATIONS_TABLE) return valuationQuery;
+        if (table === LOTS_TABLE) return lotQuery;
+        throw new Error(`unexpected table ${table}`);
+      }),
+    };
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(client as never);
+
+    const result = await getInvestmentHoldingResult(ACTIVE_HOLDING_ID);
+
+    expect(result.status).toBe(InvestmentHoldingReadStatus.READY);
+    if (result.status !== InvestmentHoldingReadStatus.READY) return;
+    expect(result.holding.id).toBe(ACTIVE_HOLDING_ID);
+    expect(result.holding.currentValue).toBe(1_200_000);
+    expect(holdingQuery.eq).toHaveBeenCalledWith("household_id", HOUSEHOLD_ID);
+    expect(holdingQuery.eq).toHaveBeenCalledWith("id", ACTIVE_HOLDING_ID);
+    expect(valuationQuery.eq).toHaveBeenCalledWith(
+      "holding_id",
+      ACTIVE_HOLDING_ID,
+    );
+    expect(lotQuery.eq).toHaveBeenCalledWith("position_id", ACTIVE_HOLDING_ID);
+    expect(client.from).not.toHaveBeenCalledWith(OPERATIONS_TABLE);
+  });
+
+  it("does not issue dependent reads for a missing holding", async () => {
+    const holdingQuery = thenableQuery(
+      Promise.resolve({ data: null, error: null }),
+    );
+    const client = {
+      from: vi.fn((table: string) => {
+        if (table === HOLDINGS_TABLE) return holdingQuery;
+        throw new Error(`unexpected table ${table}`);
+      }),
+    };
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(client as never);
+
+    await expect(
+      getInvestmentHoldingResult(ACTIVE_HOLDING_ID),
+    ).resolves.toEqual({ status: InvestmentHoldingReadStatus.NOT_FOUND });
+    expect(client.from).toHaveBeenCalledTimes(1);
   });
 });

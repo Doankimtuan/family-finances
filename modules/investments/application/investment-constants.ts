@@ -296,6 +296,7 @@ export const INVESTMENT_QUERY_RPC = {
 export const INVESTMENT_QUERY_PHASE = {
   HOME_RAW_INPUTS: "home_raw_inputs",
   LIST_RAW_INPUTS: "list_raw_inputs",
+  DETAIL_HOLDING: "detail_holding",
 } as const;
 
 export const INVESTMENT_OPERATION = {

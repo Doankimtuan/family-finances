@@ -13,6 +13,7 @@ import { Card } from "@/shared/patterns/card";
 import { FinancialOwnershipBadge } from "@/shared/patterns/financial-ownership-badge";
 import { FinancialValue } from "@/shared/patterns/financial-value";
 import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
+import { PRODUCT_LINK_PREFETCH } from "@/shared/constants/navigation";
 import { IconContainer, IconContainerTone } from "@/shared/ui/icon-container";
 import { ACTION_ICONS } from "@/shared/ui/icon-registry";
 import { Text } from "@/shared/ui/text";
@@ -77,6 +78,7 @@ export function SavingsProductRow({
     >
       <Link
         href={href}
+        prefetch={PRODUCT_LINK_PREFETCH}
         className={cn(
           "flex min-h-14 flex-col",
           "focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus-ring",

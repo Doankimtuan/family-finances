@@ -16,6 +16,7 @@ import { ACTION_ICONS } from "@/shared/ui/icon-registry";
 import { StatusBadge } from "@/shared/ui/status-badge";
 import { Text } from "@/shared/ui/text";
 import { cn } from "@/shared/utils/cn";
+import { PRODUCT_LINK_PREFETCH } from "@/shared/constants/navigation";
 
 type OwnershipView = {
   financialScope: FinancialScope;
@@ -81,6 +82,7 @@ export function InvestmentPositionRow({
     >
       <Link
         href={href}
+        prefetch={PRODUCT_LINK_PREFETCH}
         className={cn(
           "flex min-h-14 flex-col",
           "focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus-ring",

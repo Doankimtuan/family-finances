@@ -10,8 +10,7 @@ import {
 import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
 import {
-  getSaving,
-  listSavingCycles,
+  getSavingDetail,
   listProviderPackages,
   listSavingsFinancialActivities,
   listSavingsEligibleAccounts,
@@ -126,12 +125,13 @@ export default async function SavingsDetailPage({ params }: Props) {
   if (!(await resolveActiveMembership(user.id)))
     return redirect({ href: APP_PATH.ONBOARD, locale });
 
-  const [t, tProducts, item, cycles] = await Promise.all([
+  const [t, tProducts, detail] = await Promise.all([
     getTranslations("money.savingsDetail"),
     getTranslations("money.products"),
-    getSaving(id),
-    listSavingCycles(id),
+    getSavingDetail(id),
   ]);
+  const item = detail?.saving ?? null;
+  const cycles = detail?.cycles ?? null;
   if (!item) {
     return (
       <Page

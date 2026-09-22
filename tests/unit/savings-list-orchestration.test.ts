@@ -54,7 +54,10 @@ import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import { listActiveMembershipIds } from "@/modules/tenancy/application/list-active-membership-ids";
 import { listProviderPackages } from "@/modules/savings/application/savings-provider-registry";
-import { listSavings } from "@/modules/savings/application/queries/list-savings";
+import {
+  getSavingDetail,
+  listSavings,
+} from "@/modules/savings/application/queries/list-savings";
 import {
   CycleStatus,
   InterestCalcMethod,
@@ -92,7 +95,16 @@ type QueryResult = { data: unknown; error: unknown };
 function thenableQuery(result: Promise<QueryResult>) {
   const query: Record<string, unknown> = {};
   const self = () => query;
-  for (const method of ["select", "eq", "neq", "in", "or", "gt", "order"]) {
+  for (const method of [
+    "select",
+    "eq",
+    "neq",
+    "in",
+    "or",
+    "gt",
+    "order",
+    "maybeSingle",
+  ]) {
     query[method] = vi.fn(self);
   }
   query.then = (
@@ -222,6 +234,23 @@ function createListClient(input: {
     rpc,
   };
   return { client, savingsQuery, rpc };
+}
+
+function createDetailClient(input: { savingRow: unknown; cycles?: unknown[] }) {
+  const savingsQuery = thenableQuery(
+    Promise.resolve({ data: input.savingRow, error: null }),
+  );
+  const cyclesQuery = thenableQuery(
+    Promise.resolve({ data: input.cycles ?? [], error: null }),
+  );
+  const client = {
+    from: vi.fn((table: string) => {
+      if (table === SAVINGS_TABLE) return savingsQuery;
+      if (table === SAVING_CYCLES_TABLE) return cyclesQuery;
+      throw new Error(`unexpected table ${table}`);
+    }),
+  };
+  return { client, savingsQuery, cyclesQuery };
 }
 
 async function listWithRows(
@@ -526,6 +555,49 @@ describe("Savings list read orchestration", () => {
     for (const name of LIFECYCLE_RPC_VALUES) {
       expect(rpc).not.toHaveBeenCalledWith(name, expect.anything());
     }
+  });
+});
+
+describe("Savings detail read orchestration", () => {
+  beforeEach(() => {
+    requestCache.beginRequest();
+    vi.clearAllMocks();
+    vi.mocked(assertMoneyActionAllowed).mockResolvedValue({
+      ok: true,
+      userId: USER_ID,
+      householdId: HOUSEHOLD_ID,
+      membershipId: MEMBERSHIP_ID,
+    });
+    vi.mocked(listActiveMembershipIds).mockResolvedValue(new Set());
+    vi.mocked(listProviderPackages).mockResolvedValue([]);
+  });
+
+  it("loads the saving and cycle history through one detail read", async () => {
+    const savingId = "saving-detail";
+    const cycle = cycleRow({
+      id: "cycle-detail",
+      savingId,
+      cycleNumber: 1,
+      status: CycleStatus.ACTIVE,
+    });
+    const { client, savingsQuery, cyclesQuery } = createDetailClient({
+      savingRow: savingRow({
+        id: savingId,
+        status: SavingStatus.ACTIVE,
+        cycles: [],
+      }),
+      cycles: [cycle],
+    });
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(client as never);
+
+    const result = await getSavingDetail(savingId);
+
+    expect(result?.saving.id).toBe(savingId);
+    expect(result?.saving.latestCycle?.id).toBe(cycle.id);
+    expect(result?.cycles.map((item) => item.id)).toEqual([cycle.id]);
+    expect(savingsQuery.eq).toHaveBeenCalledWith("id", savingId);
+    expect(cyclesQuery.eq).toHaveBeenCalledWith("saving_id", savingId);
+    expect(client.from).toHaveBeenCalledTimes(2);
   });
 });
 
