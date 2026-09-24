@@ -144,9 +144,12 @@ export const HTTP_HEADER = {
 } as const;
 
 export const HTTP_STATUS = {
+  BAD_REQUEST: 400,
+  UNAUTHORIZED: 401,
   SEE_OTHER: 303,
   FORBIDDEN: 403,
   METHOD_NOT_ALLOWED: 405,
+  INTERNAL_SERVER_ERROR: 500,
 } as const;
 
 export const LOCALE_COOKIE_NAME = "NEXT_LOCALE";

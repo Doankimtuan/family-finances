@@ -51,6 +51,12 @@ export const APP_PATH = {
   MAINTENANCE: "/maintenance",
 } as const;
 
+/** Root-relative API routes used by browser features and scheduled jobs. */
+export const APP_API_PATH = {
+  EXPENSE_REMINDER_SUBSCRIPTION: "/api/daily-expense-reminder/subscription",
+  EXPENSE_REMINDER_DISPATCH: "/api/admin/daily-expense-reminder",
+} as const;
+
 export type AppPath = (typeof APP_PATH)[keyof typeof APP_PATH];
 
 /**

@@ -30,6 +30,23 @@
   "account": {
     "title": "Cài đặt tài khoản",
     "subtitle": "Đăng xuất hoặc quản lý vòng đời tài khoản",
-    "back": "Về Cài đặt"
+    "back": "Về Cài đặt",
+    "expenseReminder": {
+      "title": "Nhắc ghi chi tiêu mỗi ngày",
+      "description": "Nhận lời nhắc vào buổi tối để ghi lại chi tiêu. Thông báo sẽ gửi đến thiết bị bạn bật tính năng này.",
+      "timeLabel": "Giờ nhắc",
+      "enable": "Bật trên thiết bị này",
+      "disable": "Tắt trên thiết bị này",
+      "checking": "Đang kiểm tra thiết bị…",
+      "enabledStatus": "Đã bật nhắc trên thiết bị này.",
+      "disabledStatus": "Đã tắt nhắc trên thiết bị này.",
+      "permissionDenied": "Thông báo đang bị chặn trong phần cài đặt trình duyệt.",
+      "unsupported": "Trình duyệt này chưa hỗ trợ thông báo đẩy. Trên iPhone hoặc iPad, hãy thêm ứng dụng vào Màn hình chính rồi mở ứng dụng tại đó.",
+      "configurationMissing": "Ứng dụng chưa được cấu hình để gửi thông báo nhắc nhở.",
+      "iosTip": "Trên iPhone hoặc iPad, hãy thêm ứng dụng vào Màn hình chính trước khi bật thông báo.",
+      "error": "Không thể cập nhật cài đặt nhắc nhở. Hãy thử lại.",
+      "pushTitle": "Ghi lại chi tiêu hôm nay",
+      "pushBody": "Dành một chút thời gian để ghi lại các khoản đã chi hôm nay."
+    }
   }
 }

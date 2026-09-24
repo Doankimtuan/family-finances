@@ -30,6 +30,23 @@
   "account": {
     "title": "Account settings",
     "subtitle": "Sign out or manage account lifecycle",
-    "back": "Back to Settings"
+    "back": "Back to Settings",
+    "expenseReminder": {
+      "title": "Daily expense reminder",
+      "description": "Get an evening nudge to record your expenses. Notifications arrive on devices where you enable them.",
+      "timeLabel": "Reminder time",
+      "enable": "Enable on this device",
+      "disable": "Turn off on this device",
+      "checking": "Checking this device…",
+      "enabledStatus": "Reminders are on for this device.",
+      "disabledStatus": "Reminders are off for this device.",
+      "permissionDenied": "Notifications are blocked in your browser settings.",
+      "unsupported": "Push notifications are unavailable here. On iPhone or iPad, add this app to your Home Screen and open it there.",
+      "configurationMissing": "Push reminders are not configured for this app yet.",
+      "iosTip": "On iPhone or iPad, add this app to your Home Screen before enabling notifications.",
+      "error": "Couldn’t update reminder settings. Try again.",
+      "pushTitle": "Log today’s expenses",
+      "pushBody": "Take a moment to record today’s spending."
+    }
   }
 }

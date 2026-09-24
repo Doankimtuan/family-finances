@@ -69,6 +69,10 @@ export const HOUSEHOLD_TIMEZONE = {
   VIETNAM: "Asia/Ho_Chi_Minh",
 } as const;
 
+export const HOUSEHOLD_TIMEZONE_UTC_OFFSET_MINUTES = {
+  VIETNAM: 420,
+} as const;
+
 export const HOUSEHOLD_BASE_CURRENCY = {
   VIETNAM_DONG: "VND",
 } as const;
